@@ -162,24 +162,24 @@ defmodule Localize.Unit.MathTest do
       assert result.name == "meter-second"
     end
 
-    test "multiplies same units" do
+    test "multiplies same units consolidates to square" do
       assert {:ok, result} = Math.mult(unit!(3, "meter"), unit!(4, "meter"))
       assert result.value == 12
-      assert result.name == "meter-meter"
+      assert result.name == "square-meter"
     end
 
-    test "multiplies per-unit by simple unit" do
+    test "multiplies per-unit by simple unit consolidates denominator" do
       assert {:ok, result} = Math.mult(unit!(10, "meter-per-second"), unit!(5, "second"))
       assert result.value == 50
       assert result.name == "meter-second-per-second"
     end
 
-    test "multiplies two per-units" do
+    test "multiplies two per-units consolidates repeated denominators" do
       assert {:ok, result} =
                Math.mult(unit!(6, "meter-per-second"), unit!(2, "kilogram-per-second"))
 
       assert result.value == 12
-      assert result.name == "meter-kilogram-per-second-second"
+      assert result.name == "meter-kilogram-per-square-second"
     end
 
     test "multiplies with SI-prefixed unit" do
@@ -224,14 +224,14 @@ defmodule Localize.Unit.MathTest do
       assert result.name == "meter-per-meter"
     end
 
-    test "divides per-unit by simple unit" do
+    test "divides per-unit by simple unit consolidates denominator" do
       assert {:ok, result} = Math.div(unit!(10, "meter-per-second"), unit!(2, "meter"))
       assert result.value == 5.0
       assert result.name == "meter-per-second-meter"
     end
 
-    test "divides simple unit by per-unit (multiplies by inverse)" do
-      # meter / (meter-per-second) = meter * (second/meter) = second
+    test "divides simple unit by per-unit consolidates numerator" do
+      # meter / (meter-per-second) = meter * (second / meter) = meter-second / meter
       assert {:ok, result} = Math.div(unit!(10, "meter"), unit!(2, "meter-per-second"))
       assert result.value == 5.0
       assert result.name == "meter-second-per-meter"
@@ -241,6 +241,58 @@ defmodule Localize.Unit.MathTest do
       assert {:ok, result} = Math.div(unit!(10, "kilogram"), unit!(2, "second"))
       assert result.value == 5.0
       assert result.name == "kilogram-per-second"
+    end
+  end
+
+  # ── power consolidation ──────────────────────────────────────────────
+
+  describe "power consolidation" do
+    test "meter * meter = square-meter" do
+      assert {:ok, result} = Math.mult(unit!(2, "meter"), unit!(3, "meter"))
+      assert result.name == "square-meter"
+      assert result.value == 6
+    end
+
+    test "square-meter * meter = cubic-meter" do
+      assert {:ok, result} = Math.mult(unit!(2, "square-meter"), unit!(3, "meter"))
+      assert result.name == "cubic-meter"
+      assert result.value == 6
+    end
+
+    test "cubic-meter * meter = pow4-meter" do
+      assert {:ok, result} = Math.mult(unit!(2, "cubic-meter"), unit!(3, "meter"))
+      assert result.name == "pow4-meter"
+      assert result.value == 6
+    end
+
+    test "square-meter * square-meter = pow4-meter" do
+      assert {:ok, result} = Math.mult(unit!(2, "square-meter"), unit!(3, "square-meter"))
+      assert result.name == "pow4-meter"
+      assert result.value == 6
+    end
+
+    test "consolidation in denominator: second * second = square-second" do
+      assert {:ok, result} =
+               Math.div(unit!(10, "meter"), unit!(2, "second"))
+               |> elem(1)
+               |> Math.div(unit!(1, "second"))
+
+      assert result.name == "meter-per-square-second"
+    end
+
+    test "different units are not consolidated" do
+      assert {:ok, result} = Math.mult(unit!(2, "meter"), unit!(3, "kilogram"))
+      assert result.name == "meter-kilogram"
+    end
+
+    test "SI-prefixed units only consolidate with same prefix" do
+      assert {:ok, result} = Math.mult(unit!(2, "kilometer"), unit!(3, "meter"))
+      assert result.name == "kilometer-meter"
+    end
+
+    test "same SI-prefixed units consolidate" do
+      assert {:ok, result} = Math.mult(unit!(2, "kilometer"), unit!(3, "kilometer"))
+      assert result.name == "square-kilometer"
     end
   end
 

@@ -326,9 +326,14 @@ defmodule Localize.Unit.Math do
   # ── Unit name reconstruction ────────────────────────────────────────
 
   # Build a unit identifier string from numerator and denominator AST lists.
+  # Consolidates duplicate units by summing their powers (e.g., two "meter"
+  # entries become "square-meter").
   defp build_unit_name(numerator, denominator) do
-    num_str = format_unit_list(numerator)
-    den_str = format_unit_list(denominator)
+    consolidated_num = consolidate_units(numerator)
+    consolidated_den = consolidate_units(denominator)
+
+    num_str = format_unit_list(consolidated_num)
+    den_str = format_unit_list(consolidated_den)
 
     case {num_str, den_str} do
       {"", ""} -> ""
@@ -337,6 +342,49 @@ defmodule Localize.Unit.Math do
       {num, den} -> num <> "-per-" <> den
     end
   end
+
+  # Consolidate duplicate single_units by summing their powers.
+  # Units are identified by their {prefix, base} pair.
+  # Constants pass through unchanged.
+  defp consolidate_units(units) do
+    {constants, single_units} =
+      Enum.split_with(units, fn
+        {:constant, _} -> true
+        _ -> false
+      end)
+
+    consolidated =
+      single_units
+      |> Enum.reduce([], fn {:single_unit, opts}, acc ->
+        key = {Keyword.get(opts, :prefix), Keyword.get(opts, :base)}
+        power = power_to_integer(Keyword.get(opts, :power))
+
+        case List.keyfind(acc, key, 0) do
+          nil ->
+            [{key, power, opts} | acc]
+
+          {^key, existing_power, existing_opts} ->
+            updated = {key, existing_power + power, existing_opts}
+            List.keyreplace(acc, key, 0, updated)
+        end
+      end)
+      |> Enum.reverse()
+      |> Enum.map(fn {_key, total_power, opts} ->
+        {:single_unit, Keyword.put(opts, :power, integer_to_power(total_power))}
+      end)
+
+    consolidated ++ constants
+  end
+
+  defp power_to_integer(nil), do: 1
+  defp power_to_integer(:square), do: 2
+  defp power_to_integer(:cubic), do: 3
+  defp power_to_integer({:pow, n}), do: n
+
+  defp integer_to_power(1), do: nil
+  defp integer_to_power(2), do: :square
+  defp integer_to_power(3), do: :cubic
+  defp integer_to_power(n), do: {:pow, n}
 
   defp format_unit_list([]), do: ""
 
