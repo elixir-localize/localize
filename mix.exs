@@ -21,6 +21,7 @@ defmodule Localize.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:decimal, "~> 2.0"},
       {:nimble_parsec, "~> 1.0"},
       {:sweet_xml, "~> 0.7"}
     ]
