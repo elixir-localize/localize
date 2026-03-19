@@ -1,6 +1,6 @@
 defmodule Localize.LanguageTag.Sigil do
   @moduledoc """
-  Implements a `sigil_l/2` macro to
+  Implements a `sigil_l/2` macro for
   constructing `t:Localize.LanguageTag` structs.
 
   """
@@ -10,16 +10,13 @@ defmodule Localize.LanguageTag.Sigil do
 
   ## Arguments
 
-  * `locale_name` is either a [BCP 47](https://unicode-org.github.io/cldr/ldml/tr35.html#Identifiers)
-  locale name as a string or
-
-  * `locale_name` | `backend` where backend is a backend module name.
+  * `locale_name` is a [BCP 47](https://unicode-org.github.io/cldr/ldml/tr35.html#Identifiers)
+    locale name as a string.
 
   ## Options
 
   * `u` Will parse the locale but will not add
-    likely subtags and its not guaranteed that this
-    language tag is known to the backend module.
+    likely subtags or resolve the CLDR locale name.
 
   ## Returns
 
@@ -30,29 +27,23 @@ defmodule Localize.LanguageTag.Sigil do
   ## Examples
 
       iex> import Localize.LanguageTag.Sigil
-      iex> inspect(~l(en-US-u-ca-gregory))
-      "TestBackend.Cldr.Locale.new!(\\"en-US-u-ca-gregory\\")"
+      iex> tag = ~l(en-US-u-ca-gregory)
+      iex> tag.language
+      :en
 
       iex> import Localize.LanguageTag.Sigil
-      iex> inspect(~l(en-US-u-ca-gregory|MyApp.Cldr))
-      "MyApp.Cldr.Locale.new!(\\"en-US-u-ca-gregory\\")"
-
-      iex> import Localize.LanguageTag.Sigil
-      iex> inspect(~l(en))
-      "TestBackend.Cldr.Locale.new!(\\"en-US\\")"
-
-      iex> import Localize.LanguageTag.Sigil
-      iex> inspect(~l(en)u)
-      "TestBackend.Cldr.Locale.new!(\\"en\\")"
+      iex> tag = ~l(en)u
+      iex> tag.requested_locale_name
+      "en"
 
   """
   defmacro sigil_l(locale_name, [?u]) do
     {:<<>>, _, [locale_name]} = locale_name
 
-    case parse_locale(String.split(locale_name, "|")) do
-      {:ok, locale_name} ->
+    case Localize.LanguageTag.parse(locale_name) do
+      {:ok, language_tag} ->
         quote do
-          unquote(Macro.escape(locale_name))
+          unquote(Macro.escape(language_tag))
         end
 
       {:error, {exception, reason}} ->
@@ -63,33 +54,14 @@ defmodule Localize.LanguageTag.Sigil do
   defmacro sigil_l(locale_name, _opts) do
     {:<<>>, _, [locale_name]} = locale_name
 
-    case validate_locale(String.split(locale_name, "|")) do
-      {:ok, locale_name} ->
+    case Localize.LanguageTag.new(locale_name) do
+      {:ok, language_tag} ->
         quote do
-          unquote(Macro.escape(locale_name))
+          unquote(Macro.escape(language_tag))
         end
 
       {:error, {exception, reason}} ->
         raise exception, reason
     end
-  end
-
-  defp validate_locale([locale_name, backend]) do
-    backend = Module.concat([backend])
-    Cldr.validate_locale(locale_name, backend)
-  end
-
-  defp validate_locale([locale_name]) do
-    Cldr.validate_locale(locale_name)
-  end
-
-  @opts [add_likely_subtags: false]
-  defp parse_locale([locale_name, backend]) do
-    backend = Module.concat([backend])
-    Cldr.Locale.canonical_language_tag(locale_name, backend, @opts)
-  end
-
-  defp parse_locale([locale_name]) do
-    Cldr.Locale.canonical_language_tag(locale_name, Cldr.default_backend!(), @opts)
   end
 end

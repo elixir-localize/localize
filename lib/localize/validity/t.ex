@@ -17,7 +17,7 @@ defmodule Localize.Validity.T do
 
   @fields Map.values(@field_mapping)
   @inverse_field_mapping Enum.map(@field_mapping, fn {k, v} -> {v, k} end) |> Map.new()
-  @validity_data Cldr.Config.validity(:t)
+  @validity_data Localize.Locale.Provider.validity(:t)
   @dont_process_keys ["language"]
   @valid_keys Map.keys(@validity_data) ++ @dont_process_keys
   @process_keys @valid_keys -- @dont_process_keys

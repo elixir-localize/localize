@@ -36,7 +36,7 @@ defmodule Localize.Validity.U do
   }
 
   @fields Map.values(@field_mapping) |> Enum.sort()
-  @validity_data Cldr.Config.validity(:u)
+  @validity_data Localize.Locale.Provider.validity(:u)
   @dont_process_keys ["vt", "rg", "sd", "dx", "kr"]
   @valid_keys Map.keys(@validity_data)
   @process_keys @valid_keys -- @dont_process_keys
@@ -191,7 +191,7 @@ defmodule Localize.Validity.U do
     case Map.fetch(@tz_values, value) do
       {:ok, nil} ->
         {:ok, preferred} = preferred_timezone(value)
-        {:ok, %{aliases: aliases}} = Map.fetch(Cldr.Timezone.timezones(), preferred)
+        {:ok, %{aliases: aliases}} = Map.fetch(Localize.Locale.Provider.timezones(), preferred)
         {:ok, hd(aliases)}
 
       {:ok, values} when is_list(values) ->
@@ -284,7 +284,7 @@ defmodule Localize.Validity.U do
   end
 
   defp preferred_timezone(timezone) do
-    Cldr.Timezone.timezones()
+    Localize.Locale.Provider.timezones()
     |> Map.fetch!(timezone)
     |> Map.fetch(:preferred)
   end

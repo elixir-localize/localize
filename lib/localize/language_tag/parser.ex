@@ -7,7 +7,7 @@ defmodule Localize.LanguageTag.Parser do
 
   """
   alias Localize.LanguageTag
-  alias Cldr.Locale
+  alias Localize.Locale
 
   @doc """
   Parse a locale name into a `t:Localize.LanguageTag`

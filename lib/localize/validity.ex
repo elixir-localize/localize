@@ -12,7 +12,7 @@ defmodule Localize.Validity do
   @callback validate(String.t() | atom()) :: {:ok, term, atom()} | {:error, String.t()}
 
   defmacro __using__(type) do
-    validity_data = Cldr.Config.validity(type)
+    validity_data = Localize.Locale.Provider.validity(type)
     Localize.Validity.generate_validity_checks(validity_data)
   end
 
@@ -69,7 +69,7 @@ defmodule Localize.Validity do
   # Only used for testing
   @doc false
   def all_valid(type) do
-    validity_data = Cldr.Config.validity(type)
+    validity_data = Localize.Locale.Provider.validity(type)
 
     for {_status, codes} <- validity_data do
       {code_ranges, simple_codes} = partition(codes)
@@ -96,7 +96,7 @@ defmodule Localize.Validity do
 
   @doc false
   def known(type) do
-    validity_data = Cldr.Config.validity(type)
+    validity_data = Localize.Locale.Provider.validity(type)
 
     for {status, codes} <- validity_data, status not in @omit_status do
       {code_ranges, simple_codes} = partition(codes)

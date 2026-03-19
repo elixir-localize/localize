@@ -37,7 +37,7 @@ defmodule Localize.Validity.Script do
     |> normalize()
   end
 
-  @unicode_to_subtag_mapping Cldr.Config.unicode_script_to_subtag_mapping()
+  @unicode_to_subtag_mapping Localize.Locale.Provider.unicode_script_to_subtag_mapping()
 
   @doc false
   def unicode_to_subtag_map do
@@ -56,7 +56,7 @@ defmodule Localize.Validity.Script do
   def unicode_to_subtag!(unicode) do
     case unicode_to_subtag(unicode) do
       {:ok, subtag} -> subtag
-      {:error, reason} -> raise Cldr.InvalidScriptError, reason
+      {:error, reason} -> raise ArgumentError, reason
     end
   end
 end
