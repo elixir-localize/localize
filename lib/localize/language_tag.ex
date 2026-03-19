@@ -415,7 +415,8 @@ defmodule Localize.LanguageTag do
   @language_matching Provider.language_matching()
   @language_match_rules Map.fetch!(@language_matching, :language_match)
   @match_variables Map.fetch!(@language_matching, :match_variables)
-  @default_distance 50
+  @paradigm_locales Map.fetch!(@language_matching, :paradigm_locales) |> MapSet.new()
+  @default_distance 80
 
   @doc """
   Find the best matching supported locale for a desired locale.
@@ -464,35 +465,75 @@ defmodule Localize.LanguageTag do
   end
 
   def best_match(desired, supported, distance) when is_binary(desired) and is_list(supported) do
-    with {:ok, desired_tag} <- resolve_for_matching(desired, :desired) do
-      matches =
-        supported
-        |> Enum.with_index()
-        |> Enum.flat_map(fn {supported_locale, index} ->
-          case resolve_for_matching(supported_locale, :supported) do
-            {:ok, supported_tag} ->
-              score = compute_match_distance(desired_tag, supported_tag)
+    # Handle bare "und" as desired — return default (first non-und supported)
+    # or exact match if "und" is in supported list.
+    if desired == "und" do
+      best_match_und(supported)
+    else
+      with {:ok, desired_tag} <- resolve_for_matching(desired, :desired) do
+        # Skip "und" in supported — it only matches desired "und" exactly
+        matchable_supported =
+          supported
+          |> Enum.with_index()
+          |> Enum.reject(fn {locale, _index} -> locale == "und" end)
 
-              if score <= distance do
-                [{supported_locale, supported_tag, score, index}]
-              else
+        matches =
+          matchable_supported
+          |> Enum.flat_map(fn {supported_locale, index} ->
+            case resolve_for_matching(supported_locale, :supported) do
+              {:ok, supported_tag} ->
+                score = compute_match_distance(desired_tag, supported_tag)
+
+                if score <= distance do
+                  is_paradigm = is_paradigm_locale?(supported_locale)
+                  [{supported_locale, supported_tag, score, index, is_paradigm}]
+                else
+                  []
+                end
+
+              {:error, _} ->
                 []
-              end
+            end
+          end)
+          |> Enum.sort(&match_comparator/2)
 
-            {:error, _} ->
-              []
-          end
-        end)
-        |> Enum.sort(&match_comparator/2)
+        case matches do
+          [{locale, _tag, score, _index, _paradigm} | _] ->
+            {:ok, locale, score}
 
-      case matches do
-        [{locale, _tag, score, _index} | _] ->
-          {:ok, locale, score}
+          [] ->
+            # Default fallback: return first non-und supported locale.
+            # The CLDR matching algorithm always returns a result when there
+            # are supported locales available.
+            case first_non_und(supported) do
+              nil ->
+                {:error,
+                 "No match for desired locale #{inspect(desired)} within distance #{distance}"}
 
-        [] ->
-          {:error, "No match for desired locale #{inspect(desired)} within distance #{distance}"}
+              default ->
+                {:ok, default, distance}
+            end
+        end
       end
     end
+  end
+
+  defp best_match_und(supported) do
+    if "und" in supported do
+      {:ok, "und", 0}
+    else
+      case first_non_und(supported) do
+        nil -> {:error, "No supported locales"}
+        default -> {:ok, default, @default_distance}
+      end
+    end
+  end
+
+  defp first_non_und(list) do
+    Enum.find(list, fn
+      locale when is_binary(locale) -> locale != "und"
+      _ -> true
+    end)
   end
 
   @doc """
@@ -534,7 +575,10 @@ defmodule Localize.LanguageTag do
   defp resolve_for_matching(%__MODULE__{} = tag, _role), do: {:ok, ensure_maximized(tag)}
 
   defp resolve_for_matching(locale, :desired) when is_binary(locale) do
-    if String.starts_with?(locale, "und") do
+    # Bare "und" should not be maximized (it would become en-Latn-US).
+    # But "und-TW", "und-Cyrl" etc. should be maximized normally since
+    # the "und" language means "fill in from likely subtags".
+    if locale == "und" do
       with {:ok, parsed} <- parse(locale),
            {:ok, canonical} <- canonicalize(parsed) do
         {:ok, canonical}
@@ -676,14 +720,21 @@ defmodule Localize.LanguageTag do
   # Sort matches: lower distance first, then paradigm locale preference,
   # then original order.
   defp match_comparator(
-         {_, _, distance_a, index_a},
-         {_, _, distance_b, index_b}
+         {_, _, distance_a, index_a, paradigm_a},
+         {_, _, distance_b, index_b, paradigm_b}
        ) do
     cond do
       distance_a != distance_b -> distance_a < distance_b
+      paradigm_a != paradigm_b -> paradigm_a
       true -> index_a < index_b
     end
   end
+
+  defp is_paradigm_locale?(locale) when is_binary(locale) do
+    MapSet.member?(@paradigm_locales, locale)
+  end
+
+  defp is_paradigm_locale?(_), do: false
 
   # ── Likely subtags ──────────────────────────────────────────────
 
@@ -931,49 +982,190 @@ defmodule Localize.LanguageTag do
   @variant_aliases @aliases[:variant]
 
   # Resolve aliased subtags to their canonical replacements.
-  # Language aliases may also carry replacement script and territory.
+  #
+  # The order follows TR35 Locale ID Canonicalization:
+  # 1. Resolve territory aliases (numeric codes, deprecated codes)
+  # 2. Resolve simple language aliases (3-letter codes, deprecated codes)
+  # 3. Resolve compound language+territory aliases (e.g., "sgn-US" → "ase")
+  # 4. Resolve compound language+variant aliases iteratively (e.g., "zh-hakka" → "hak")
+  #    Also tries "und-variant" as fallback.
+  # 5. Resolve script aliases
+  # 6. Resolve variant aliases
   defp resolve_aliases(%__MODULE__{} = tag) do
     tag
-    |> resolve_language_alias()
-    |> resolve_script_alias()
     |> resolve_territory_alias()
+    |> resolve_simple_language_alias()
+    |> resolve_language_territory_alias()
+    |> resolve_language_variant_aliases()
+    |> resolve_script_alias()
     |> resolve_variant_aliases()
   end
 
-  defp resolve_language_alias(%__MODULE__{language: language} = tag) when is_atom(language) do
+  # Step 2: Simple language alias (e.g., "aar" → "aa", "iw" → "he")
+  defp resolve_simple_language_alias(%__MODULE__{language: language} = tag)
+       when is_atom(language) do
     lang_str = Atom.to_string(language)
 
     case Map.get(@language_aliases, lang_str) do
       nil ->
         tag
 
-      %{language: replacement_lang} = replacement ->
-        replacement_script = replacement.script
-        replacement_territory = replacement.territory
-
-        tag = %{tag | language: to_atom(replacement_lang)}
-
-        # Language alias may also carry script (e.g., "sh" → "sr-Latn")
-        tag =
-          if tag.script == nil and replacement_script != nil do
-            %{tag | script: to_atom(replacement_script)}
-          else
-            tag
-          end
-
-        # Language alias may also carry territory (e.g., "drw" → "fa-AF")
-        tag =
-          if tag.territory == nil and replacement_territory != nil do
-            %{tag | territory: to_atom(replacement_territory)}
-          else
-            tag
-          end
-
-        tag
+      replacement ->
+        apply_language_replacement(tag, replacement)
     end
   end
 
-  defp resolve_language_alias(tag), do: tag
+  defp resolve_simple_language_alias(tag), do: tag
+
+  # Step 3: Compound language+territory alias (e.g., "sgn-US" → "ase")
+  defp resolve_language_territory_alias(%__MODULE__{territory: nil} = tag), do: tag
+
+  defp resolve_language_territory_alias(
+         %__MODULE__{language: language, territory: territory} = tag
+       )
+       when is_atom(language) and is_atom(territory) do
+    compound_key = "#{language}-#{territory}"
+
+    case Map.get(@language_aliases, compound_key) do
+      nil ->
+        tag
+
+      replacement ->
+        # Territory was consumed by the compound match — clear it unless
+        # the replacement carries its own territory.
+        tag = %{tag | territory: nil}
+        apply_language_replacement(tag, replacement)
+    end
+  end
+
+  defp resolve_language_territory_alias(tag), do: tag
+
+  # Step 4: Compound language+variant aliases, applied iteratively.
+  # Tries multi-variant compound keys (e.g., "und-hepburn-heploc"),
+  # then single-variant keys ("lang-variant"), then "und-variant" as fallback.
+  # When matched, the consumed variants are removed from the tag.
+  # Repeat until stable (no more matches).
+  defp resolve_language_variant_aliases(%__MODULE__{language_variants: []} = tag), do: tag
+
+  defp resolve_language_variant_aliases(%__MODULE__{} = tag) do
+    current_lang = Atom.to_string(tag.language)
+
+    # First try multi-variant compound keys (pairs of variants)
+    case try_multi_variant_alias(tag, current_lang) do
+      {:ok, new_tag} ->
+        resolve_language_variant_aliases(new_tag)
+
+      :none ->
+        # Then try single-variant compound keys
+        {new_tag, changed?} =
+          Enum.reduce(tag.language_variants, {tag, false}, fn variant, {acc_tag, changed?} ->
+            cur_lang = Atom.to_string(acc_tag.language)
+            compound_key = "#{cur_lang}-#{variant}"
+
+            result =
+              case Map.get(@language_aliases, compound_key) do
+                nil ->
+                  und_key = "und-#{variant}"
+
+                  case Map.get(@language_aliases, und_key) do
+                    nil -> nil
+                    replacement -> {:ok, replacement}
+                  end
+
+                replacement ->
+                  {:ok, replacement}
+              end
+
+            case result do
+              nil ->
+                {acc_tag, changed?}
+
+              {:ok, replacement} ->
+                remaining = Enum.reject(acc_tag.language_variants, &(&1 == variant))
+                acc_tag = %{acc_tag | language_variants: remaining}
+                {apply_language_replacement(acc_tag, replacement), true}
+            end
+          end)
+
+        if changed? do
+          resolve_language_variant_aliases(new_tag)
+        else
+          new_tag
+        end
+    end
+  end
+
+  # Try compound keys with two variants: "lang-v1-v2"
+  defp try_multi_variant_alias(%__MODULE__{language_variants: variants} = tag, lang_str) do
+    pairs =
+      for v1 <- variants, v2 <- variants, v1 < v2 do
+        {v1, v2}
+      end
+
+    Enum.find_value(pairs, :none, fn {v1, v2} ->
+      key = "#{lang_str}-#{v1}-#{v2}"
+
+      result =
+        case Map.get(@language_aliases, key) do
+          nil ->
+            und_key = "und-#{v1}-#{v2}"
+            Map.get(@language_aliases, und_key)
+
+          replacement ->
+            replacement
+        end
+
+      if result do
+        remaining = Enum.reject(variants, &(&1 in [v1, v2]))
+        new_tag = %{tag | language_variants: remaining}
+        {:ok, apply_language_replacement(new_tag, result)}
+      end
+    end)
+  end
+
+  # Apply a language alias replacement to a tag, filling in missing subtags.
+  defp apply_language_replacement(%__MODULE__{} = tag, %{} = replacement) do
+    replacement_lang = replacement.language
+    replacement_script = replacement[:script]
+    replacement_territory = replacement[:territory]
+    replacement_variants = replacement[:language_variants] || []
+
+    # Replace language (unless replacement is "und", meaning keep original)
+    tag =
+      if replacement_lang != nil and replacement_lang != "und" do
+        %{tag | language: to_atom(replacement_lang)}
+      else
+        tag
+      end
+
+    # Fill in script if not already present
+    tag =
+      if tag.script == nil and replacement_script != nil do
+        %{tag | script: to_atom(replacement_script)}
+      else
+        tag
+      end
+
+    # Fill in territory if not already present
+    tag =
+      if tag.territory == nil and replacement_territory != nil do
+        %{tag | territory: to_atom(replacement_territory)}
+      else
+        tag
+      end
+
+    # Add replacement variants if not already present
+    tag =
+      if replacement_variants != [] do
+        existing = tag.language_variants
+        new_variants = Enum.reject(replacement_variants, &(&1 in existing))
+        %{tag | language_variants: existing ++ new_variants}
+      else
+        tag
+      end
+
+    tag
+  end
 
   defp resolve_script_alias(%__MODULE__{script: nil} = tag), do: tag
 
@@ -997,9 +1189,10 @@ defmodule Localize.LanguageTag do
         tag
 
       replacement when is_binary(replacement) ->
-        # Some region aliases map to multiple replacements (space-separated).
-        # Use the first one.
-        first = replacement |> String.split(" ") |> hd()
+        %{tag | territory: String.to_atom(replacement)}
+
+      [first | _rest] ->
+        # Multiple replacements — use the first one per CLDR spec.
         %{tag | territory: String.to_atom(first)}
     end
   end
