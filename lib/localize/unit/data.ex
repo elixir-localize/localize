@@ -108,6 +108,24 @@ defmodule Localize.Unit.Data do
 
   @base_unit_order @unit_quantities |> Enum.map(& &1.base_unit)
 
+  @base_unit_to_quantity @unit_quantities
+                         |> Map.new(fn %{base_unit: bu, quantity: q} -> {bu, q} end)
+
+  # ── Unit Preferences ───────────────────────────────────────────────
+
+  @unit_preferences @units_xml
+                    |> xpath(
+                      ~x"//unitPreferences"l,
+                      category: ~x"./@category"s,
+                      usage: ~x"./@usage"s,
+                      preferences: [
+                        ~x"./unitPreference"l,
+                        regions: ~x"./@regions"s,
+                        unit: ~x"./text()"s,
+                        geq: ~x"./@geq"os
+                      ]
+                    )
+
   # ── Unit Constants ───────────────────────────────────────────────────
 
   @raw_constants @units_xml
@@ -369,4 +387,29 @@ defmodule Localize.Unit.Data do
   """
   @spec si_prefix_multipliers() :: %{String.t() => float()}
   def si_prefix_multipliers, do: @si_prefix_multipliers
+
+  @doc """
+  Returns a map from base unit string to its CLDR quantity name.
+
+  ### Returns
+
+  * A map such as `%{"meter" => "length", "kilogram" => "mass", ...}`.
+
+  """
+  @spec base_unit_to_quantity() :: %{String.t() => String.t()}
+  def base_unit_to_quantity, do: @base_unit_to_quantity
+
+  @doc """
+  Returns the CLDR unit preference data.
+
+  Each entry specifies preferred units for a category/usage/region
+  combination.
+
+  ### Returns
+
+  * A list of maps with keys `:category`, `:usage`, and `:preferences`.
+
+  """
+  @spec unit_preferences() :: [map()]
+  def unit_preferences, do: @unit_preferences
 end
