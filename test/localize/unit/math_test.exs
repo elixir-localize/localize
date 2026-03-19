@@ -168,10 +168,11 @@ defmodule Localize.Unit.MathTest do
       assert result.name == "square-meter"
     end
 
-    test "multiplies per-unit by simple unit consolidates denominator" do
+    test "multiplies per-unit by simple unit cross-cancels" do
+      # (meter / second) * second → meter (seconds cancel)
       assert {:ok, result} = Math.mult(unit!(10, "meter-per-second"), unit!(5, "second"))
       assert result.value == 50
-      assert result.name == "meter-second-per-second"
+      assert result.name == "meter"
     end
 
     test "multiplies two per-units consolidates repeated denominators" do
@@ -179,7 +180,7 @@ defmodule Localize.Unit.MathTest do
                Math.mult(unit!(6, "meter-per-second"), unit!(2, "kilogram-per-second"))
 
       assert result.value == 12
-      assert result.name == "meter-kilogram-per-square-second"
+      assert result.name == "kilogram-meter-per-square-second"
     end
 
     test "multiplies with SI-prefixed unit" do
@@ -218,23 +219,22 @@ defmodule Localize.Unit.MathTest do
       assert result.name == "meter-per-second"
     end
 
-    test "divides same units (dimensionless result)" do
-      assert {:ok, result} = Math.div(unit!(10, "meter"), unit!(5, "meter"))
-      assert result.value == 2.0
-      assert result.name == "meter-per-meter"
+    test "divides same units returns scalar" do
+      assert {:ok, 2.0} = Math.div(unit!(10, "meter"), unit!(5, "meter"))
     end
 
-    test "divides per-unit by simple unit consolidates denominator" do
+    test "divides per-unit by simple unit cross-cancels numerator" do
+      # (meter / second) / meter → per-second (meters cancel)
       assert {:ok, result} = Math.div(unit!(10, "meter-per-second"), unit!(2, "meter"))
       assert result.value == 5.0
-      assert result.name == "meter-per-second-meter"
+      assert result.name == "per-second"
     end
 
-    test "divides simple unit by per-unit consolidates numerator" do
-      # meter / (meter-per-second) = meter * (second / meter) = meter-second / meter
+    test "divides simple unit by per-unit cross-cancels" do
+      # meter / (meter / second) = meter * (second / meter) = second (meters cancel)
       assert {:ok, result} = Math.div(unit!(10, "meter"), unit!(2, "meter-per-second"))
       assert result.value == 5.0
-      assert result.name == "meter-second-per-meter"
+      assert result.name == "second"
     end
 
     test "divides with SI-prefixed units" do
@@ -282,7 +282,7 @@ defmodule Localize.Unit.MathTest do
 
     test "different units are not consolidated" do
       assert {:ok, result} = Math.mult(unit!(2, "meter"), unit!(3, "kilogram"))
-      assert result.name == "meter-kilogram"
+      assert result.name == "kilogram-meter"
     end
 
     test "SI-prefixed units only consolidate with same prefix" do
@@ -293,6 +293,101 @@ defmodule Localize.Unit.MathTest do
     test "same SI-prefixed units consolidate" do
       assert {:ok, result} = Math.mult(unit!(2, "kilometer"), unit!(3, "kilometer"))
       assert result.name == "square-kilometer"
+    end
+  end
+
+  # ── cross-cancellation ──────────────────────────────────────────────
+
+  describe "cross-cancellation" do
+    test "complete cancellation: meter / meter = scalar" do
+      assert {:ok, 2.0} = Math.div(unit!(10, "meter"), unit!(5, "meter"))
+    end
+
+    test "partial cancellation: square-meter / meter = meter" do
+      assert {:ok, result} = Math.div(unit!(12, "square-meter"), unit!(3, "meter"))
+      assert result.name == "meter"
+      assert result.value == 4.0
+    end
+
+    test "partial cancellation: cubic-meter / square-meter = meter" do
+      assert {:ok, result} = Math.div(unit!(24, "cubic-meter"), unit!(4, "square-meter"))
+      assert result.name == "meter"
+      assert result.value == 6.0
+    end
+
+    test "cancellation with remainder in denominator: meter / square-meter = per-meter" do
+      assert {:ok, result} = Math.div(unit!(10, "meter"), unit!(2, "square-meter"))
+      assert result.name == "per-meter"
+      assert result.value == 5.0
+    end
+
+    test "mult cancels across: (meter-per-second) * (second-per-kilogram) = meter-per-kilogram" do
+      assert {:ok, result} =
+               Math.mult(unit!(6, "meter-per-second"), unit!(2, "second-per-kilogram"))
+
+      assert result.name == "meter-per-kilogram"
+      assert result.value == 12
+    end
+
+    test "compound cancellation: (meter-kilogram-per-second) * (second-per-kilogram) = meter" do
+      assert {:ok, result} =
+               Math.mult(
+                 unit!(4, "meter-kilogram-per-second"),
+                 unit!(3, "second-per-kilogram")
+               )
+
+      assert result.name == "meter"
+      assert result.value == 12
+    end
+
+    test "full cancellation via mult returns scalar" do
+      # (meter / second) * (second / meter) = dimensionless
+      assert {:ok, 6} =
+               Math.mult(unit!(3, "meter-per-second"), unit!(2, "second-per-meter"))
+    end
+
+    test "no cancellation when prefix differs: kilometer / meter" do
+      assert {:ok, result} = Math.div(unit!(10, "kilometer"), unit!(2, "meter"))
+      assert result.name == "kilometer-per-meter"
+      assert result.value == 5.0
+    end
+
+    test "chained div produces correct cancellation" do
+      # (meter / second) / second = meter / square-second
+      {:ok, step1} = Math.div(unit!(10, "meter"), unit!(2, "second"))
+      assert {:ok, result} = Math.div(step1, unit!(1, "second"))
+      assert result.name == "meter-per-square-second"
+    end
+  end
+
+  # ── canonical ordering ──────────────────────────────────────────────
+
+  describe "canonical ordering" do
+    test "kilogram sorts before meter" do
+      assert {:ok, result} = Math.mult(unit!(2, "meter"), unit!(3, "kilogram"))
+      assert result.name == "kilogram-meter"
+    end
+
+    test "kilogram-meter-per-square-second (force)" do
+      assert {:ok, result} =
+               Math.mult(unit!(6, "meter-per-second"), unit!(2, "kilogram-per-second"))
+
+      assert result.name == "kilogram-meter-per-square-second"
+    end
+
+    test "meter sorts before second" do
+      assert {:ok, result} = Math.mult(unit!(2, "second"), unit!(3, "meter"))
+      assert result.name == "meter-second"
+    end
+
+    test "second sorts before ampere in denominator" do
+      assert {:ok, result} = Math.div(unit!(10, "kilogram"), unit!(2, "ampere-second"))
+      assert result.name == "kilogram-per-second-ampere"
+    end
+
+    test "candela sorts before everything" do
+      assert {:ok, result} = Math.mult(unit!(2, "meter"), unit!(3, "candela"))
+      assert result.name == "candela-meter"
     end
   end
 

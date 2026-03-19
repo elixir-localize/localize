@@ -14,6 +14,7 @@ defmodule Localize.Unit.Math do
   """
 
   alias Localize.Unit
+  alias Localize.Unit.Canonical
   alias Localize.Unit.Conversion
 
   @doc """
@@ -162,11 +163,12 @@ defmodule Localize.Unit.Math do
   def invert(%Unit{value: value, parsed: {:unit, keyword}} = _unit) when not is_nil(value) do
     numerator = Keyword.get(keyword, :numerator, [])
     denominator = Keyword.get(keyword, :denominator, [])
-
-    inverted_name = build_unit_name(denominator, numerator)
     inverted_value = invert_value(value)
 
-    Unit.new(inverted_value, inverted_name)
+    # Swap numerator and denominator; no consolidation or cancellation needed
+    inverted_name = Canonical.format_name(denominator, numerator)
+    inverted_ast = {:unit, type: nil, numerator: denominator, denominator: numerator}
+    {:ok, Unit.from_ast(inverted_value, inverted_name, inverted_ast)}
   end
 
   def invert(%Unit{value: nil}) do
@@ -211,7 +213,7 @@ defmodule Localize.Unit.Math do
 
   """
   @spec mult(Unit.t(), number() | Decimal.t() | Unit.t()) ::
-          {:ok, Unit.t()} | {:error, String.t()}
+          {:ok, Unit.t() | number() | Decimal.t()} | {:error, String.t()}
   def mult(unit, multiplier)
 
   def mult(%Unit{value: value} = unit, number)
@@ -227,9 +229,9 @@ defmodule Localize.Unit.Math do
     # (a/b) * (c/d) = (a*c) / (b*d)
     new_num = Keyword.get(kw_1, :numerator, []) ++ Keyword.get(kw_2, :numerator, [])
     new_den = Keyword.get(kw_1, :denominator, []) ++ Keyword.get(kw_2, :denominator, [])
-    new_name = build_unit_name(new_num, new_den)
+    result_value = mult_values(value_1, value_2)
 
-    Unit.new(mult_values(value_1, value_2), new_name)
+    build_compound_result(result_value, new_num, new_den)
   end
 
   @doc """
@@ -270,7 +272,7 @@ defmodule Localize.Unit.Math do
 
   """
   @spec div(Unit.t(), number() | Decimal.t() | Unit.t()) ::
-          {:ok, Unit.t()} | {:error, String.t()}
+          {:ok, Unit.t() | number() | Decimal.t()} | {:error, String.t()}
   def div(unit, divisor)
 
   def div(%Unit{value: value} = unit, number)
@@ -286,9 +288,22 @@ defmodule Localize.Unit.Math do
     # (a/b) / (c/d) = (a*d) / (b*c)
     new_num = Keyword.get(kw_1, :numerator, []) ++ Keyword.get(kw_2, :denominator, [])
     new_den = Keyword.get(kw_1, :denominator, []) ++ Keyword.get(kw_2, :numerator, [])
-    new_name = build_unit_name(new_num, new_den)
+    result_value = div_values(value_1, value_2)
 
-    Unit.new(div_values(value_1, value_2), new_name)
+    build_compound_result(result_value, new_num, new_den)
+  end
+
+  # Build the result of a compound unit operation. When all dimensions
+  # cancel (dimensionless), returns the bare scalar value. Otherwise
+  # constructs a Unit directly from the canonical AST without re-parsing.
+  defp build_compound_result(value, numerator, denominator) do
+    case Canonical.from_components(numerator, denominator) do
+      {:dimensionless, nil} ->
+        {:ok, value}
+
+      {canonical_name, canonical_ast} ->
+        {:ok, Unit.from_ast(value, canonical_name, canonical_ast)}
+    end
   end
 
   # ── Private arithmetic ──────────────────────────────────────────────
@@ -322,99 +337,4 @@ defmodule Localize.Unit.Math do
   defp to_decimal(%Decimal{} = d), do: d
   defp to_decimal(value) when is_float(value), do: Decimal.from_float(value)
   defp to_decimal(value) when is_integer(value), do: Decimal.new(value)
-
-  # ── Unit name reconstruction ────────────────────────────────────────
-
-  # Build a unit identifier string from numerator and denominator AST lists.
-  # Consolidates duplicate units by summing their powers (e.g., two "meter"
-  # entries become "square-meter").
-  defp build_unit_name(numerator, denominator) do
-    consolidated_num = consolidate_units(numerator)
-    consolidated_den = consolidate_units(denominator)
-
-    num_str = format_unit_list(consolidated_num)
-    den_str = format_unit_list(consolidated_den)
-
-    case {num_str, den_str} do
-      {"", ""} -> ""
-      {num, ""} -> num
-      {"", den} -> "per-" <> den
-      {num, den} -> num <> "-per-" <> den
-    end
-  end
-
-  # Consolidate duplicate single_units by summing their powers.
-  # Units are identified by their {prefix, base} pair.
-  # Constants pass through unchanged.
-  defp consolidate_units(units) do
-    {constants, single_units} =
-      Enum.split_with(units, fn
-        {:constant, _} -> true
-        _ -> false
-      end)
-
-    consolidated =
-      single_units
-      |> Enum.reduce([], fn {:single_unit, opts}, acc ->
-        key = {Keyword.get(opts, :prefix), Keyword.get(opts, :base)}
-        power = power_to_integer(Keyword.get(opts, :power))
-
-        case List.keyfind(acc, key, 0) do
-          nil ->
-            [{key, power, opts} | acc]
-
-          {^key, existing_power, existing_opts} ->
-            updated = {key, existing_power + power, existing_opts}
-            List.keyreplace(acc, key, 0, updated)
-        end
-      end)
-      |> Enum.reverse()
-      |> Enum.map(fn {_key, total_power, opts} ->
-        {:single_unit, Keyword.put(opts, :power, integer_to_power(total_power))}
-      end)
-
-    consolidated ++ constants
-  end
-
-  defp power_to_integer(nil), do: 1
-  defp power_to_integer(:square), do: 2
-  defp power_to_integer(:cubic), do: 3
-  defp power_to_integer({:pow, n}), do: n
-
-  defp integer_to_power(1), do: nil
-  defp integer_to_power(2), do: :square
-  defp integer_to_power(3), do: :cubic
-  defp integer_to_power(n), do: {:pow, n}
-
-  defp format_unit_list([]), do: ""
-
-  defp format_unit_list(units) do
-    units
-    |> Enum.map(&format_single_unit/1)
-    |> Enum.join("-")
-  end
-
-  defp format_single_unit({:single_unit, opts}) do
-    power = Keyword.get(opts, :power)
-    prefix = Keyword.get(opts, :prefix)
-    base = Keyword.get(opts, :base)
-
-    power_str =
-      case power do
-        nil -> ""
-        :square -> "square-"
-        :cubic -> "cubic-"
-        {:pow, n} -> "pow#{n}-"
-      end
-
-    prefix_str =
-      case prefix do
-        nil -> ""
-        atom -> Atom.to_string(atom)
-      end
-
-    "#{power_str}#{prefix_str}#{base}"
-  end
-
-  defp format_single_unit({:constant, value}), do: value
 end

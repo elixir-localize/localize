@@ -53,7 +53,8 @@ defmodule Localize.Unit do
   def new(amount, unit) when is_binary(unit) do
     with {:ok, _} <- validate_value(amount),
          {:ok, parsed} <- Localize.Unit.Parser.parse(unit) do
-      {:ok, %__MODULE__{name: unit, parsed: parsed, value: amount}}
+      {canonical_name, normalised_ast} = Localize.Unit.Canonical.canonicalize(parsed)
+      {:ok, %__MODULE__{name: canonical_name, parsed: normalised_ast, value: amount}}
     end
   end
 
@@ -81,8 +82,12 @@ defmodule Localize.Unit do
 
   def new(name) when is_binary(name) do
     case Localize.Unit.Parser.parse(name) do
-      {:ok, parsed} -> {:ok, %__MODULE__{name: name, parsed: parsed}}
-      {:error, _} = error -> error
+      {:ok, parsed} ->
+        {canonical_name, normalised_ast} = Localize.Unit.Canonical.canonicalize(parsed)
+        {:ok, %__MODULE__{name: canonical_name, parsed: normalised_ast}}
+
+      {:error, _} = error ->
+        error
     end
   end
 
@@ -147,6 +152,12 @@ defmodule Localize.Unit do
       {:ok, unit} -> unit
       {:error, reason} -> raise ArgumentError, reason
     end
+  end
+
+  @doc false
+  @spec from_ast(number() | Decimal.t(), String.t(), tuple()) :: t()
+  def from_ast(value, name, parsed) do
+    %__MODULE__{name: name, parsed: parsed, value: value}
   end
 
   # ── Private ─────────────────────────────────────────────────────────
