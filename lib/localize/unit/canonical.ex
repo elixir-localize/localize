@@ -47,6 +47,17 @@ defmodule Localize.Unit.Canonical do
     {canonical_name, normalised_ast}
   end
 
+  def canonicalize({:mixed_unit, units}) do
+    # Mixed units keep their order (larger unit first per CLDR spec).
+    # Each component is formatted individually and joined with "-and-".
+    canonical_name =
+      units
+      |> Enum.map(&format_single_unit/1)
+      |> Enum.join("-and-")
+
+    {canonical_name, {:mixed_unit, units}}
+  end
+
   @doc """
   Builds a canonical name and normalised AST from raw numerator and
   denominator component lists.

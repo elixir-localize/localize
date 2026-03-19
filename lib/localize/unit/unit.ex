@@ -14,10 +14,12 @@ defmodule Localize.Unit do
     :usage
   ]
 
+  @type value :: number() | Decimal.t() | [number()] | nil
+
   @type t :: %__MODULE__{
           name: String.t(),
           parsed: tuple(),
-          value: number() | Decimal.t() | nil,
+          value: value(),
           usage: String.t() | nil
         }
 
@@ -222,11 +224,117 @@ defmodule Localize.Unit do
     {:error, "Cannot convert a unit without a value"}
   end
 
-  def convert(%__MODULE__{value: value, name: from_name}, target) when is_binary(target) do
-    with {:ok, converted_value} <- Localize.Unit.Conversion.convert(value, from_name, target),
-         {:ok, target_unit} <- new(converted_value, target) do
-      {:ok, target_unit}
+  def convert(%__MODULE__{value: value, name: from_name} = source, target)
+      when is_binary(target) do
+    with {:ok, target_parsed} <- Localize.Unit.Parser.parse(target) do
+      case target_parsed do
+        {:mixed_unit, _units} ->
+          convert_to_mixed(source, target, target_parsed)
+
+        _ ->
+          # For mixed source units, convert the list of values to a scalar
+          # in the primary component, then convert from that component.
+          {source_value, effective_from} = effective_source(value, from_name, source.parsed)
+
+          with {:ok, converted} <-
+                 Localize.Unit.Conversion.convert(source_value, effective_from, target),
+               {:ok, target_unit} <- new(converted, target) do
+            {:ok, target_unit}
+          end
+      end
     end
+  end
+
+  # For mixed units, sum all component values into the primary (first) unit.
+  # For regular units, pass through unchanged.
+  defp effective_source(values, _name, {:mixed_unit, units}) when is_list(values) do
+    {:single_unit, first_opts} = hd(units)
+    first_name = format_single_unit_name(first_opts)
+    {mixed_to_scalar(values, first_name, {:mixed_unit, units}), first_name}
+  end
+
+  defp effective_source(value, name, _parsed), do: {value, name}
+
+  # Convert a scalar value from a source unit to a mixed target unit.
+  # For example, 180 centimeter → foot-and-inch = [5, 11.024...]
+  # Each component gets the integer part except the last which gets the remainder.
+  defp convert_to_mixed(source, _target_name, {:mixed_unit, target_units}) do
+    source_value = mixed_to_scalar(source.value, source.name, source.parsed)
+
+    # Get the first target component name to check convertibility
+    {:single_unit, first_opts} = hd(target_units)
+    first_name = format_single_unit_name(first_opts)
+
+    with {:ok, full_in_first} <-
+           Localize.Unit.Conversion.convert(source_value, source.name, first_name) do
+      values = distribute_mixed_values(full_in_first, target_units)
+
+      {canonical_name, canonical_ast} =
+        Localize.Unit.Canonical.canonicalize({:mixed_unit, target_units})
+
+      {:ok,
+       %__MODULE__{
+         name: canonical_name,
+         parsed: canonical_ast,
+         value: values
+       }}
+    end
+  end
+
+  # Distribute a value across mixed unit components.
+  # Each component except the last gets the integer (floor) part,
+  # and the remainder is converted to the next component.
+  defp distribute_mixed_values(value, [_last_unit]) do
+    [value]
+  end
+
+  defp distribute_mixed_values(value, [current_unit | rest]) do
+    integer_part = trunc(value)
+    remainder = value - integer_part
+
+    # Convert the remainder from the current unit to the next unit
+    {:single_unit, current_opts} = current_unit
+    {:single_unit, next_opts} = hd(rest)
+    current_name = format_single_unit_name(current_opts)
+    next_name = format_single_unit_name(next_opts)
+
+    case Localize.Unit.Conversion.convert(remainder, current_name, next_name) do
+      {:ok, remainder_in_next} ->
+        [integer_part | distribute_mixed_values(remainder_in_next, rest)]
+
+      {:error, _} ->
+        # If conversion fails, put the remainder in the current unit
+        [value]
+    end
+  end
+
+  # Convert a mixed unit value (list of values) to a single scalar
+  # in the unit's primary (first) component, for use as input to conversions.
+  defp mixed_to_scalar(values, _name, {:mixed_unit, units}) when is_list(values) do
+    {:single_unit, first_opts} = hd(units)
+    first_name = format_single_unit_name(first_opts)
+
+    values
+    |> Enum.zip(units)
+    |> Enum.reduce(0.0, fn {val, {:single_unit, opts}}, acc ->
+      component_name = format_single_unit_name(opts)
+
+      case Localize.Unit.Conversion.convert(val * 1.0, component_name, first_name) do
+        {:ok, converted} -> acc + converted
+        {:error, _} -> acc
+      end
+    end)
+  end
+
+  defp mixed_to_scalar(value, _name, _parsed) when is_number(value), do: value * 1.0
+
+  defp mixed_to_scalar(%Decimal{} = value, _name, _parsed), do: Decimal.to_float(value)
+
+  defp format_single_unit_name(opts) do
+    prefix = Keyword.get(opts, :prefix)
+    base = Keyword.get(opts, :base)
+    prefix_str = if prefix, do: Atom.to_string(prefix), else: ""
+    "#{prefix_str}#{base}"
   end
 
   @doc """
