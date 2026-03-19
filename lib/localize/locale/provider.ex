@@ -82,6 +82,20 @@ defmodule Localize.Locale.Provider do
   def validity(:units), do: load_data("validity_units.etf")
 
   @doc """
+  Returns the parent locales data as a map.
+
+  Each key is a locale identifier string (e.g., `"en-AU"`) and
+  each value is the parent locale identifier string (e.g., `"en-001"`).
+  These override the default subtag-stripping inheritance chain
+  defined by CLDR supplemental data.
+
+  """
+  @spec parent_locales() :: %{String.t() => String.t()}
+  def parent_locales do
+    load_data("parent_locales.etf")
+  end
+
+  @doc """
   Returns the timezone data as a map.
 
   Each key is a BCP 47 timezone identifier string and each

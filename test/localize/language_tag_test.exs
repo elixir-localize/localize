@@ -494,6 +494,117 @@ defmodule Localize.LanguageTagTest do
     end
   end
 
+  describe "parent/1" do
+    test "standard territory inheritance strips territory" do
+      {:ok, parent} = LanguageTag.parent("en-AU")
+      assert parent.language == :en
+      assert parent.territory == :"001"
+    end
+
+    test "standard region-group inheritance strips to language" do
+      {:ok, parent} = LanguageTag.parent("en-001")
+      assert parent.language == :en
+      assert parent.territory == nil
+    end
+
+    test "language-only locale inherits from und" do
+      {:ok, parent} = LanguageTag.parent("en")
+      assert parent.language == :und
+    end
+
+    test "und (root) has no parent" do
+      assert {:error, {Localize.NoParentError, _}} = LanguageTag.parent("und")
+    end
+
+    test "non-standard parent from CLDR parentLocales data" do
+      {:ok, parent} = LanguageTag.parent("nb")
+      assert parent.language == :no
+
+      {:ok, parent} = LanguageTag.parent("ht")
+      assert parent.language == :fr
+      assert parent.territory == :HT
+
+      {:ok, parent} = LanguageTag.parent("zh-Hant-MO")
+      assert parent.language == :zh
+      assert parent.script == :Hant
+      assert parent.territory == :HK
+
+      {:ok, parent} = LanguageTag.parent("es-AR")
+      assert parent.language == :es
+      assert parent.territory == :"419"
+
+      {:ok, parent} = LanguageTag.parent("pt-AO")
+      assert parent.language == :pt
+      assert parent.territory == :PT
+    end
+
+    test "non-standard script locale inherits from und" do
+      {:ok, parent} = LanguageTag.parent("sr-Latn")
+      assert parent.language == :und
+    end
+
+    test "extensions are transferred to parent" do
+      {:ok, parent} = LanguageTag.parent("en-AU-u-ca-buddhist")
+      assert parent.language == :en
+      assert parent.territory == :"001"
+      assert parent.locale != %{}
+
+      canonical = LanguageTag.to_string(parent)
+      assert canonical =~ "u-ca-buddhist"
+    end
+
+    test "accepts a LanguageTag struct" do
+      {:ok, tag} = LanguageTag.new("en-AU")
+      {:ok, parent} = LanguageTag.parent(tag)
+      assert parent.language == :en
+      assert parent.territory == :"001"
+    end
+
+    test "script-territory locale strips territory first" do
+      {:ok, parent} = LanguageTag.parent("zh-Hant-TW")
+      # zh-Hant-TW is not in parent_locales, so strip territory → zh-Hant
+      # But zh-Hant IS in parent_locales → und
+      # Actually, zh-Hant-TW strips territory first → zh-Hant
+      assert parent.language == :zh
+      assert parent.script == :Hant
+      assert parent.territory == nil
+    end
+
+    test "full inheritance chain from en-AU to und" do
+      chain =
+        Stream.unfold("en-AU", fn locale ->
+          case LanguageTag.parent(locale) do
+            {:ok, parent} ->
+              parent_string = LanguageTag.to_string(parent)
+              {parent_string, parent}
+
+            {:error, _} ->
+              nil
+          end
+        end)
+        |> Enum.to_list()
+
+      assert chain == ["en-001", "en", "und"]
+    end
+
+    test "full inheritance chain from es-MX" do
+      chain =
+        Stream.unfold("es-MX", fn locale ->
+          case LanguageTag.parent(locale) do
+            {:ok, parent} ->
+              parent_string = LanguageTag.to_string(parent)
+              {parent_string, parent}
+
+            {:error, _} ->
+              nil
+          end
+        end)
+        |> Enum.to_list()
+
+      assert chain == ["es-419", "es", "und"]
+    end
+  end
+
   describe "struct fields" do
     test "fields are atoms" do
       {:ok, tag} = LanguageTag.parse("en-Latn-US")
