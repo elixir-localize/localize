@@ -10,13 +10,13 @@ defmodule Localize.LanguageTag.Sigil do
 
   ## Arguments
 
-  * `locale_name` is a [BCP 47](https://unicode-org.github.io/cldr/ldml/tr35.html#Identifiers)
-    locale name as a string.
+  * `locale_id` is a [BCP 47](https://unicode-org.github.io/cldr/ldml/tr35.html#Identifiers)
+    locale identifier as a string.
 
   ## Options
 
   * `u` Will parse the locale but will not add
-    likely subtags or resolve the CLDR locale name.
+    likely subtags or resolve the CLDR locale identifier.
 
   ## Returns
 
@@ -33,14 +33,14 @@ defmodule Localize.LanguageTag.Sigil do
 
       iex> import Localize.LanguageTag.Sigil
       iex> tag = ~l(en)u
-      iex> tag.requested_locale_name
+      iex> tag.requested_locale_id
       "en"
 
   """
-  defmacro sigil_l(locale_name, [?u]) do
-    {:<<>>, _, [locale_name]} = locale_name
+  defmacro sigil_l(locale_id, [?u]) do
+    {:<<>>, _, [locale_id]} = locale_id
 
-    case Localize.LanguageTag.parse(locale_name) do
+    case Localize.LanguageTag.parse(locale_id) do
       {:ok, language_tag} ->
         quote do
           unquote(Macro.escape(language_tag))
@@ -51,10 +51,10 @@ defmodule Localize.LanguageTag.Sigil do
     end
   end
 
-  defmacro sigil_l(locale_name, _opts) do
-    {:<<>>, _, [locale_name]} = locale_name
+  defmacro sigil_l(locale_id, _opts) do
+    {:<<>>, _, [locale_id]} = locale_id
 
-    case Localize.LanguageTag.new(locale_name) do
+    case Localize.LanguageTag.new(locale_id) do
       {:ok, language_tag} ->
         quote do
           unquote(Macro.escape(language_tag))

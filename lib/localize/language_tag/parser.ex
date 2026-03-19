@@ -10,9 +10,9 @@ defmodule Localize.LanguageTag.Parser do
   alias Localize.Locale
 
   @doc """
-  Parse a locale name into a `t:Localize.LanguageTag`
+  Parse a locale identifier into a `t:Localize.LanguageTag`
 
-  * `locale_name` is a string representation of a language tag
+  * `locale_id` is a string representation of a language tag
     as defined by [RFC5646](https://tools.ietf.org/html/rfc5646).
 
   Returns
@@ -23,10 +23,10 @@ defmodule Localize.LanguageTag.Parser do
 
   """
   def parse(locale) do
-    case Localize.Rfc5646.Parser.parse(normalize_locale_name(locale)) do
+    case Localize.Rfc5646.Parser.parse(normalize_locale_id(locale)) do
       {:ok, language_tag} ->
         language_tag
-        |> Keyword.put(:requested_locale_name, locale)
+        |> Keyword.put(:requested_locale_id, locale)
         |> normalize_tag()
         |> structify(LanguageTag)
         |> wrap(:ok)
@@ -37,9 +37,9 @@ defmodule Localize.LanguageTag.Parser do
   end
 
   @doc """
-  Parse a locale name into a `t:Localize.LanguageTag`
+  Parse a locale identifier into a `t:Localize.LanguageTag`
 
-  * `locale_name` is a string representation of a language tag
+  * `locale_id` is a string representation of a language tag
     as defined by [RFC5646](https://tools.ietf.org/html/rfc5646).
 
   Returns
@@ -88,10 +88,10 @@ defmodule Localize.LanguageTag.Parser do
     other
   end
 
-  defp normalize_locale_name(name) do
-    name
+  defp normalize_locale_id(locale_id) do
+    locale_id
     |> String.downcase()
-    |> Locale.locale_name_from_posix()
+    |> Locale.locale_id_from_posix()
   end
 
   defp structify(list, module) do

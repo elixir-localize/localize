@@ -110,7 +110,7 @@ defmodule Localize.Validity.T do
     nil
   end
 
-  defp encode_key("language", %{canonical_locale_name: name}) when is_binary(name) do
+  defp encode_key("language", %{canonical_locale_id: name}) when is_binary(name) do
     String.downcase(name)
   end
 

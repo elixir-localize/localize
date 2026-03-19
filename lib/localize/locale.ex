@@ -16,18 +16,18 @@ defmodule Localize.Locale do
   @type script :: atom() | nil
 
   @typedoc "A BCP 47 region/territory subtag as an atom."
-  @type territory_code :: atom() | nil
+  @type territory :: atom() | nil
 
-  @typedoc "A locale name as an atom."
-  @type locale_name :: atom()
+  @typedoc "A locale identifier as an atom."
+  @type locale_id :: atom()
 
   @doc """
-  Convert a POSIX locale name to a BCP 47 locale name
+  Convert a POSIX locale identifier to a BCP 47 locale identifier
   by replacing underscores with hyphens.
 
   ### Arguments
 
-  * `locale_name` is a string locale identifier, potentially
+  * `locale_id` is a string locale identifier, potentially
     in POSIX format using underscores.
 
   ### Returns
@@ -36,25 +36,25 @@ defmodule Localize.Locale do
 
   ### Examples
 
-      iex> Localize.Locale.locale_name_from_posix("en_US")
+      iex> Localize.Locale.locale_id_from_posix("en_US")
       "en-US"
 
-      iex> Localize.Locale.locale_name_from_posix("zh_Hant_TW")
+      iex> Localize.Locale.locale_id_from_posix("zh_Hant_TW")
       "zh-Hant-TW"
 
-      iex> Localize.Locale.locale_name_from_posix("en")
+      iex> Localize.Locale.locale_id_from_posix("en")
       "en"
 
   """
-  @spec locale_name_from_posix(String.t()) :: String.t()
-  def locale_name_from_posix(locale_name) when is_binary(locale_name) do
-    String.replace(locale_name, "_", "-")
+  @spec locale_id_from_posix(String.t()) :: String.t()
+  def locale_id_from_posix(locale_id) when is_binary(locale_id) do
+    String.replace(locale_id, "_", "-")
   end
 
   @doc """
-  Build a locale name string from its component parts.
+  Build a locale identifier string from its component parts.
 
-  Assembles a BCP 47 locale name from language, script,
+  Assembles a BCP 47 locale identifier from language, script,
   territory, and variant subtags, omitting nil components.
 
   ### Arguments
@@ -69,22 +69,22 @@ defmodule Localize.Locale do
 
   ### Returns
 
-  * A BCP 47 locale name string.
+  * A BCP 47 locale identifier string.
 
   ### Examples
 
-      iex> Localize.Locale.locale_name_from(:en, nil, :US, [])
+      iex> Localize.Locale.locale_id_from(:en, nil, :US, [])
       "en-US"
 
-      iex> Localize.Locale.locale_name_from(:zh, :Hant, :TW, [])
+      iex> Localize.Locale.locale_id_from(:zh, :Hant, :TW, [])
       "zh-Hant-TW"
 
-      iex> Localize.Locale.locale_name_from(:en, nil, nil, [])
+      iex> Localize.Locale.locale_id_from(:en, nil, nil, [])
       "en"
 
   """
-  @spec locale_name_from(language(), script(), territory_code(), [String.t()]) :: String.t()
-  def locale_name_from(language, script, territory, variants) do
+  @spec locale_id_from(language(), script(), territory(), [String.t()]) :: String.t()
+  def locale_id_from(language, script, territory, variants) do
     [to_string(language)]
     |> maybe_append(script)
     |> maybe_append(territory)

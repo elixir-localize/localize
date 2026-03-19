@@ -46,7 +46,7 @@ defmodule Localize.LanguageTag.LikelySubtagsTest do
       test "add_likely_subtags(#{source}) == #{expected_add}" do
         {:ok, tag} = LanguageTag.parse(@tag_source)
         {:ok, result} = LanguageTag.add_likely_subtags(tag)
-        assert result.canonical_locale_name == @tag_expected
+        assert result.canonical_locale_id == @tag_expected
       end
     end
   end
@@ -61,7 +61,7 @@ defmodule Localize.LanguageTag.LikelySubtagsTest do
       test "remove_likely_subtags(#{source}) == #{expected_remove}" do
         {:ok, tag} = LanguageTag.parse(@tag_source)
         {:ok, result} = LanguageTag.remove_likely_subtags(tag)
-        assert result.canonical_locale_name == @tag_expected_remove
+        assert result.canonical_locale_id == @tag_expected_remove
       end
     end
   end

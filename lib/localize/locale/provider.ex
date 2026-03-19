@@ -50,11 +50,11 @@ defmodule Localize.Locale.Provider do
   end
 
   @doc """
-  Returns the list of all known locale name atoms.
+  Returns the list of all known locale identifier atoms.
 
   """
-  @spec all_locale_names() :: [atom()]
-  def all_locale_names do
+  @spec all_locale_ids() :: [atom()]
+  def all_locale_ids do
     load_data("all_locale_names.etf")
   end
 

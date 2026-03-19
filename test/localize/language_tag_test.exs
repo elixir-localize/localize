@@ -10,7 +10,7 @@ defmodule Localize.LanguageTagTest do
       assert tag.script == nil
       assert tag.territory == nil
       assert tag.language_variants == []
-      assert tag.requested_locale_name == "en"
+      assert tag.requested_locale_id == "en"
     end
 
     test "parses language with territory" do
@@ -152,73 +152,73 @@ defmodule Localize.LanguageTagTest do
   end
 
   describe "canonicalize/1" do
-    test "populates canonical_locale_name" do
+    test "populates canonical_locale_id" do
       {:ok, tag} = LanguageTag.parse("en-US")
-      assert tag.canonical_locale_name == nil
+      assert tag.canonical_locale_id == nil
 
       {:ok, canonical} = LanguageTag.canonicalize(tag)
-      assert canonical.canonical_locale_name == "en-US"
+      assert canonical.canonical_locale_id == "en-US"
     end
 
     test "sorts variants alphabetically" do
       {:ok, tag} = LanguageTag.parse("en-scouse-fonipa")
       {:ok, canonical} = LanguageTag.canonicalize(tag)
-      assert canonical.canonical_locale_name == "en-fonipa-scouse"
+      assert canonical.canonical_locale_id == "en-fonipa-scouse"
       assert canonical.language_variants == ["fonipa", "scouse"]
     end
 
     test "sorts u-extension keys alphabetically" do
       {:ok, tag} = LanguageTag.parse("en-US-u-nu-arab-ca-gregory")
       {:ok, canonical} = LanguageTag.canonicalize(tag)
-      assert canonical.canonical_locale_name == "en-US-u-ca-gregory-nu-arab"
+      assert canonical.canonical_locale_id == "en-US-u-ca-gregory-nu-arab"
     end
 
     test "sorts extensions by singleton: t before u" do
       {:ok, tag} = LanguageTag.parse("en-US-u-ca-gregory-t-de")
       {:ok, canonical} = LanguageTag.canonicalize(tag)
-      assert canonical.canonical_locale_name == "en-US-t-de-u-ca-gregory"
+      assert canonical.canonical_locale_id == "en-US-t-de-u-ca-gregory"
     end
 
     test "canonicalizes transform extension with language" do
       {:ok, tag} = LanguageTag.parse("de-DE-t-en-US-h0-hybrid")
       {:ok, canonical} = LanguageTag.canonicalize(tag)
-      assert canonical.canonical_locale_name == "de-DE-t-en-us-h0-hybrid"
+      assert canonical.canonical_locale_id == "de-DE-t-en-us-h0-hybrid"
     end
 
     test "preserves script in title case" do
       {:ok, tag} = LanguageTag.parse("zh-hans-cn")
       {:ok, canonical} = LanguageTag.canonicalize(tag)
-      assert canonical.canonical_locale_name == "zh-Hans-CN"
+      assert canonical.canonical_locale_id == "zh-Hans-CN"
     end
 
     test "preserves territory in uppercase" do
       {:ok, tag} = LanguageTag.parse("en-us")
       {:ok, canonical} = LanguageTag.canonicalize(tag)
-      assert canonical.canonical_locale_name == "en-US"
+      assert canonical.canonical_locale_id == "en-US"
     end
 
     test "language is lowercase" do
       {:ok, tag} = LanguageTag.parse("EN")
       {:ok, canonical} = LanguageTag.canonicalize(tag)
-      assert canonical.canonical_locale_name == "en"
+      assert canonical.canonical_locale_id == "en"
     end
 
     test "preserves private use" do
       {:ok, tag} = LanguageTag.parse("en-x-custom-tag")
       {:ok, canonical} = LanguageTag.canonicalize(tag)
-      assert canonical.canonical_locale_name == "en-x-custom-tag"
+      assert canonical.canonical_locale_id == "en-x-custom-tag"
     end
 
     test "preserves UN M.49 region code" do
       {:ok, tag} = LanguageTag.parse("es-419")
       {:ok, canonical} = LanguageTag.canonicalize(tag)
-      assert canonical.canonical_locale_name == "es-419"
+      assert canonical.canonical_locale_id == "es-419"
     end
 
     test "to_string returns cached canonical name" do
       {:ok, tag} = LanguageTag.parse("en-US-u-nu-arab-ca-gregory")
       {:ok, canonical} = LanguageTag.canonicalize(tag)
-      assert LanguageTag.to_string(canonical) == canonical.canonical_locale_name
+      assert LanguageTag.to_string(canonical) == canonical.canonical_locale_id
     end
   end
 
@@ -226,7 +226,7 @@ defmodule Localize.LanguageTagTest do
     test "returns canonicalized tag directly" do
       {:ok, tag} = LanguageTag.parse("en-US")
       canonical = LanguageTag.canonicalize!(tag)
-      assert canonical.canonical_locale_name == "en-US"
+      assert canonical.canonical_locale_id == "en-US"
     end
   end
 
@@ -236,8 +236,8 @@ defmodule Localize.LanguageTagTest do
       assert tag.language == :en
       assert tag.script == :Latn
       assert tag.territory == :US
-      assert tag.canonical_locale_name == "en"
-      assert tag.cldr_locale_name == :en
+      assert tag.canonical_locale_id == "en"
+      assert tag.cldr_locale_id == :en
     end
 
     test "fully resolves a language with territory" do
@@ -245,19 +245,19 @@ defmodule Localize.LanguageTagTest do
       assert tag.language == :zh
       assert tag.script == :Hant
       assert tag.territory == :TW
-      assert tag.canonical_locale_name == "zh-Hant"
-      assert tag.cldr_locale_name != nil
+      assert tag.canonical_locale_id == "zh-Hant"
+      assert tag.cldr_locale_id != nil
     end
 
-    test "populates cldr_locale_name via best_match" do
+    test "populates cldr_locale_id via best_match" do
       {:ok, tag} = LanguageTag.new("en-AU")
-      assert tag.cldr_locale_name == :"en-AU"
+      assert tag.cldr_locale_id == :"en-AU"
     end
 
     test "resolves deprecated locale to cldr name" do
       {:ok, tag} = LanguageTag.new("iw")
       assert tag.language == :he
-      assert tag.cldr_locale_name == :he
+      assert tag.cldr_locale_id == :he
     end
 
     test "fully resolves with extensions" do
@@ -265,13 +265,13 @@ defmodule Localize.LanguageTagTest do
       assert tag.language == :en
       assert tag.script == :Latn
       assert tag.territory == :US
-      assert tag.canonical_locale_name == "en-u-ca-gregory"
-      assert tag.cldr_locale_name != nil
+      assert tag.canonical_locale_id == "en-u-ca-gregory"
+      assert tag.cldr_locale_id != nil
     end
 
-    test "preserves requested_locale_name" do
+    test "preserves requested_locale_id" do
       {:ok, tag} = LanguageTag.new("EN-us")
-      assert tag.requested_locale_name == "EN-us"
+      assert tag.requested_locale_id == "EN-us"
     end
 
     test "returns error for invalid input" do
@@ -325,13 +325,13 @@ defmodule Localize.LanguageTagTest do
       assert min.language == :en
       assert min.script == :Latn
       assert min.territory == :US
-      assert min.canonical_locale_name == "en"
+      assert min.canonical_locale_id == "en"
     end
 
     test "favor script keeps script when ambiguous" do
       {:ok, tag} = LanguageTag.parse("zh-Hant-TW")
       {:ok, min} = LanguageTag.remove_likely_subtags(tag)
-      assert min.canonical_locale_name == "zh-Hant"
+      assert min.canonical_locale_id == "zh-Hant"
       # Struct still has all fields
       assert min.script == :Hant
       assert min.territory == :TW
@@ -503,13 +503,13 @@ defmodule Localize.LanguageTagTest do
       assert tag.transform == %{}
       assert tag.extensions == %{}
       assert tag.private_use == []
-      assert tag.canonical_locale_name == nil
-      assert tag.cldr_locale_name == nil
+      assert tag.canonical_locale_id == nil
+      assert tag.cldr_locale_id == nil
     end
 
-    test "requested_locale_name preserves original input" do
+    test "requested_locale_id preserves original input" do
       {:ok, tag} = LanguageTag.parse("EN-us")
-      assert tag.requested_locale_name == "EN-us"
+      assert tag.requested_locale_id == "EN-us"
     end
   end
 end

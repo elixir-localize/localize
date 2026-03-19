@@ -170,31 +170,31 @@ defmodule Localize.LanguageTag do
             transform: %{},
             extensions: %{},
             private_use: [],
-            requested_locale_name: nil,
-            canonical_locale_name: nil,
-            cldr_locale_name: nil
+            requested_locale_id: nil,
+            canonical_locale_id: nil,
+            cldr_locale_id: nil
 
   @type t :: %__MODULE__{
           language: Locale.language(),
           language_subtags: [String.t()],
           script: Locale.script(),
-          territory: Locale.territory_code(),
+          territory: Locale.territory(),
           language_variants: [String.t()],
           locale: U.t() | %{},
           transform: T.t() | %{},
           extensions: map(),
           private_use: [String.t()],
-          requested_locale_name: String.t(),
-          canonical_locale_name: String.t(),
-          cldr_locale_name: Locale.locale_name()
+          requested_locale_id: String.t(),
+          canonical_locale_id: String.t(),
+          cldr_locale_id: Locale.locale_id()
         }
 
   @doc """
-  Parse a locale name into a `t:Localize.LanguageTag` struct.
+  Parse a locale identifier into a `t:Localize.LanguageTag` struct.
 
   ## Arguments
 
-  * `locale_name` is any [BCP 47](https://tools.ietf.org/search/bcp47)
+  * `locale_id` is any [BCP 47](https://tools.ietf.org/search/bcp47)
     string.
 
   ## Returns
@@ -205,16 +205,16 @@ defmodule Localize.LanguageTag do
 
   """
   @spec parse(String.t()) :: {:ok, t()} | {:error, {module(), String.t()}}
-  def parse(locale_name) when is_binary(locale_name) do
-    Parser.parse(locale_name)
+  def parse(locale_id) when is_binary(locale_id) do
+    Parser.parse(locale_id)
   end
 
   @doc """
-  Parse a locale name into a `Localize.LanguageTag` struct and raises on error
+  Parse a locale identifier into a `Localize.LanguageTag` struct and raises on error
 
   ## Arguments
 
-  * `locale_name` is any [BCP 47](https://tools.ietf.org/search/bcp47)
+  * `locale_id` is any [BCP 47](https://tools.ietf.org/search/bcp47)
     string.
 
   ## Returns
@@ -235,12 +235,12 @@ defmodule Localize.LanguageTag do
   Parses the input, canonicalizes extensions, adds likely subtags
   to populate missing fields, then computes the minimized
   canonical locale name via remove likely subtags. The resulting
-  struct has all fields populated but the `canonical_locale_name`
+  struct has all fields populated but the `canonical_locale_id`
   is the shortest unambiguous form.
 
   ### Arguments
 
-  * `locale_name` is any BCP 47 locale string.
+  * `locale_id` is any BCP 47 locale string.
 
   ### Returns
 
@@ -258,15 +258,15 @@ defmodule Localize.LanguageTag do
       :Hant
       iex> tag.territory
       :TW
-      iex> tag.canonical_locale_name
+      iex> tag.canonical_locale_id
       "zh-Hant"
 
   """
-  @all_locale_names Provider.all_locale_names()
+  @all_locale_ids Provider.all_locale_ids()
 
   @spec new(String.t()) :: {:ok, t()} | {:error, term()}
-  def new(locale_name) when is_binary(locale_name) do
-    with {:ok, parsed} <- parse(locale_name),
+  def new(locale_id) when is_binary(locale_id) do
+    with {:ok, parsed} <- parse(locale_id),
          {:ok, canonical} <- canonicalize(parsed),
          {:ok, resolved} <- remove_likely_subtags(canonical) do
       tag = resolve_cldr_locale(resolved)
@@ -275,9 +275,9 @@ defmodule Localize.LanguageTag do
   end
 
   defp resolve_cldr_locale(%__MODULE__{} = tag) do
-    case best_match(tag, @all_locale_names) do
+    case best_match(tag, @all_locale_ids) do
       {:ok, cldr_locale, _score} ->
-        %{tag | cldr_locale_name: cldr_locale}
+        %{tag | cldr_locale_id: cldr_locale}
 
       {:error, _} ->
         tag
@@ -292,8 +292,8 @@ defmodule Localize.LanguageTag do
 
   """
   @spec new!(String.t()) :: t() | no_return()
-  def new!(locale_name) when is_binary(locale_name) do
-    case new(locale_name) do
+  def new!(locale_id) when is_binary(locale_id) do
+    case new(locale_id) do
       {:ok, tag} -> tag
       {:error, {exception, reason}} when is_atom(exception) -> raise exception, reason
       {:error, reason} -> raise ArgumentError, "#{inspect(reason)}"
@@ -324,7 +324,7 @@ defmodule Localize.LanguageTag do
 
   * The keyword value `"true"` is removed from the canonical form.
 
-  If the `canonical_locale_name` has already been computed, it
+  If the `canonical_locale_id` has already been computed, it
   is returned directly.
 
   ### Arguments
@@ -343,7 +343,7 @@ defmodule Localize.LanguageTag do
 
   """
   @spec to_string(t()) :: String.t()
-  def to_string(%__MODULE__{canonical_locale_name: name}) when is_binary(name), do: name
+  def to_string(%__MODULE__{canonical_locale_id: name}) when is_binary(name), do: name
 
   def to_string(%__MODULE__{} = language_tag) do
     build_canonical_name(language_tag)
@@ -369,7 +369,7 @@ defmodule Localize.LanguageTag do
 
   ### Returns
 
-  * `{:ok, canonicalized_tag}` with the `canonical_locale_name`
+  * `{:ok, canonicalized_tag}` with the `canonical_locale_id`
     field populated, or
 
   * `{:error, reason}` if extension validation fails.
@@ -378,7 +378,7 @@ defmodule Localize.LanguageTag do
 
       iex> {:ok, tag} = Localize.LanguageTag.parse("en-US-u-nu-arab-ca-gregory")
       iex> {:ok, canonical} = Localize.LanguageTag.canonicalize(tag)
-      iex> canonical.canonical_locale_name
+      iex> canonical.canonical_locale_id
       "en-US-u-ca-gregory-nu-arab"
 
   """
@@ -704,7 +704,7 @@ defmodule Localize.LanguageTag do
   ### Returns
 
   * `{:ok, maximized_tag}` with all subtags filled in and
-    `canonical_locale_name` updated, or
+    `canonical_locale_id` updated, or
 
   * `{:error, reason}` if no likely subtags data is found.
 
@@ -712,12 +712,12 @@ defmodule Localize.LanguageTag do
 
       iex> {:ok, tag} = Localize.LanguageTag.parse("en")
       iex> {:ok, max} = Localize.LanguageTag.add_likely_subtags(tag)
-      iex> max.canonical_locale_name
+      iex> max.canonical_locale_id
       "en-Latn-US"
 
       iex> {:ok, tag} = Localize.LanguageTag.parse("zh-TW")
       iex> {:ok, max} = Localize.LanguageTag.add_likely_subtags(tag)
-      iex> max.canonical_locale_name
+      iex> max.canonical_locale_id
       "zh-Hant-TW"
 
   """
@@ -792,7 +792,7 @@ defmodule Localize.LanguageTag do
   ### Returns
 
   * `{:ok, minimized_tag}` with redundant subtags removed and
-    `canonical_locale_name` updated, or
+    `canonical_locale_id` updated, or
 
   * `{:error, reason}` if maximization fails.
 
@@ -800,12 +800,12 @@ defmodule Localize.LanguageTag do
 
       iex> {:ok, tag} = Localize.LanguageTag.parse("en-Latn-US")
       iex> {:ok, min} = Localize.LanguageTag.remove_likely_subtags(tag)
-      iex> min.canonical_locale_name
+      iex> min.canonical_locale_id
       "en"
 
       iex> {:ok, tag} = Localize.LanguageTag.parse("zh-Hant-TW")
       iex> {:ok, min} = Localize.LanguageTag.remove_likely_subtags(tag)
-      iex> min.canonical_locale_name
+      iex> min.canonical_locale_id
       "zh-Hant"
 
   """
@@ -847,7 +847,7 @@ defmodule Localize.LanguageTag do
         end
 
       # Return the original tag with maximized fields but minimized canonical name
-      {:ok, %{maximized | canonical_locale_name: minimized_name}}
+      {:ok, %{maximized | canonical_locale_id: minimized_name}}
     end
   end
 
@@ -1033,7 +1033,7 @@ defmodule Localize.LanguageTag do
 
   defp compute_canonical_name(tag) do
     name = build_canonical_name(tag)
-    %{tag | canonical_locale_name: name}
+    %{tag | canonical_locale_id: name}
   end
 
   defp build_canonical_name(%__MODULE__{} = tag) do
@@ -1149,31 +1149,31 @@ defmodule Localize.LanguageTag do
 
   defimpl String.Chars do
     def to_string(language_tag) do
-      language_tag.canonical_locale_name
+      language_tag.canonical_locale_id
     end
   end
 
   defimpl Inspect do
-    def inspect(%Localize.LanguageTag{requested_locale_name: nil} = l, _opts) do
-      locale_name =
-        Localize.Locale.locale_name_from(l.language, l.script, l.territory, l.language_variants)
+    def inspect(%Localize.LanguageTag{requested_locale_id: nil} = l, _opts) do
+      locale_id =
+        Localize.Locale.locale_id_from(l.language, l.script, l.territory, l.language_variants)
 
-      "#Localize.LanguageTag<" <> locale_name <> " [tokenized]>"
+      "#Localize.LanguageTag<" <> locale_id <> " [tokenized]>"
     end
 
-    def inspect(%Localize.LanguageTag{canonical_locale_name: nil} = language_tag, _opts) do
-      "#Localize.LanguageTag<" <> language_tag.requested_locale_name <> " [parsed]>"
+    def inspect(%Localize.LanguageTag{canonical_locale_id: nil} = language_tag, _opts) do
+      "#Localize.LanguageTag<" <> language_tag.requested_locale_id <> " [parsed]>"
     end
 
-    def inspect(%Localize.LanguageTag{cldr_locale_name: nil} = language_tag, _opts) do
-      "#Localize.LanguageTag<" <> language_tag.canonical_locale_name <> " [canonical]>"
+    def inspect(%Localize.LanguageTag{cldr_locale_id: nil} = language_tag, _opts) do
+      "#Localize.LanguageTag<" <> language_tag.canonical_locale_id <> " [canonical]>"
     end
 
     def inspect(%Localize.LanguageTag{} = language_tag, _opts) do
       string = Localize.LanguageTag.to_string(language_tag)
 
       "Localize.LanguageTag.new!(" <> inspect(string) <> ")"
-      # "#Localize.LanguageTag<" <> language_tag.canonical_locale_name <> " [validated]>"
+      # "#Localize.LanguageTag<" <> language_tag.canonical_locale_id <> " [validated]>"
     end
   end
 end
