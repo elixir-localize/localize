@@ -3,7 +3,14 @@ defmodule Localize.LanguageTag.LikelySubtagsTest do
 
   alias Localize.LanguageTag
 
-  @test_data_path "/Users/kip/Development/cldr_repo/common/testData/localeIdentifiers/likelySubtags.txt"
+  @test_data_path Path.join([
+                    __DIR__,
+                    "..",
+                    "..",
+                    "support",
+                    "data",
+                    "likely_subtags_test_data.txt"
+                  ])
 
   @moduletag :likely_subtags
 
