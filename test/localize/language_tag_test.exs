@@ -237,6 +237,7 @@ defmodule Localize.LanguageTagTest do
       assert tag.script == :Latn
       assert tag.territory == :US
       assert tag.canonical_locale_name == "en"
+      assert tag.cldr_locale_name == :en
     end
 
     test "fully resolves a language with territory" do
@@ -245,6 +246,18 @@ defmodule Localize.LanguageTagTest do
       assert tag.script == :Hant
       assert tag.territory == :TW
       assert tag.canonical_locale_name == "zh-Hant"
+      assert tag.cldr_locale_name != nil
+    end
+
+    test "populates cldr_locale_name via best_match" do
+      {:ok, tag} = LanguageTag.new("en-AU")
+      assert tag.cldr_locale_name == :"en-AU"
+    end
+
+    test "resolves deprecated locale to cldr name" do
+      {:ok, tag} = LanguageTag.new("iw")
+      assert tag.language == :he
+      assert tag.cldr_locale_name == :he
     end
 
     test "fully resolves with extensions" do
@@ -253,6 +266,7 @@ defmodule Localize.LanguageTagTest do
       assert tag.script == :Latn
       assert tag.territory == :US
       assert tag.canonical_locale_name == "en-u-ca-gregory"
+      assert tag.cldr_locale_name != nil
     end
 
     test "preserves requested_locale_name" do
@@ -383,6 +397,97 @@ defmodule Localize.LanguageTagTest do
     end
   end
 
+  describe "match_distance/2" do
+    test "identical locales have zero distance" do
+      assert Localize.LanguageTag.match_distance("en", "en") == 0
+    end
+
+    test "same language different territory" do
+      assert Localize.LanguageTag.match_distance("en-AU", "en-GB") == 3
+    end
+
+    test "same language with territory vs without" do
+      assert Localize.LanguageTag.match_distance("en-AU", "en") == 5
+    end
+
+    test "closely related languages" do
+      assert Localize.LanguageTag.match_distance("nb", "no") == 1
+    end
+
+    test "one-way dialect match" do
+      distance = Localize.LanguageTag.match_distance("gsw", "de")
+      assert distance <= 10
+    end
+
+    test "completely different languages have high distance" do
+      distance = Localize.LanguageTag.match_distance("en", "zh-Hans")
+      assert distance > 100
+    end
+  end
+
+  describe "best_match/3" do
+    test "finds exact match" do
+      {:ok, match, score} = LanguageTag.best_match("en-US", ["en-US", "fr", "de"])
+      assert match == "en-US"
+      assert score == 0
+    end
+
+    test "finds closest regional match" do
+      {:ok, match, _} = LanguageTag.best_match("en-AU", ["en", "en-GB", "fr"])
+      assert match == "en-GB"
+    end
+
+    test "finds best script match for zh-HK" do
+      {:ok, match, _} = LanguageTag.best_match("zh-HK", ["zh", "zh-Hans", "zh-Hant", "en"])
+      assert match == "zh-Hant"
+    end
+
+    test "matches dialect to parent language" do
+      {:ok, match, _} = LanguageTag.best_match("gsw", ["de", "fr", "it", "en"])
+      assert match == "de"
+    end
+
+    test "returns error when no match within threshold" do
+      assert {:error, _} = LanguageTag.best_match("zh", ["en", "fr"], 5)
+    end
+
+    test "respects custom distance threshold" do
+      # gsw → de has distance ~8, so threshold 5 should reject it
+      assert {:error, _} = LanguageTag.best_match("gsw", ["de"], 5)
+      # But threshold 10 should accept it
+      assert {:ok, "de", _} = LanguageTag.best_match("gsw", ["de"], 10)
+    end
+
+    test "prefers lower distance" do
+      {:ok, match, _} = LanguageTag.best_match("pt-BR", ["pt", "pt-PT", "es"])
+      assert match == "pt"
+    end
+
+    test "accepts a LanguageTag struct as desired" do
+      {:ok, tag} = LanguageTag.new("en-AU")
+      {:ok, match, score} = LanguageTag.best_match(tag, ["en", "en-GB", "fr"])
+      assert match == "en-GB"
+      assert score == 3
+    end
+
+    test "accepts atom as desired" do
+      {:ok, match, _} = LanguageTag.best_match(:"en-AU", ["en", "en-GB", "fr"])
+      assert match == "en-GB"
+    end
+
+    test "accepts atoms in supported list" do
+      {:ok, match, _} = LanguageTag.best_match("en-AU", [:en, :"en-GB", :fr])
+      assert match == :"en-GB"
+    end
+
+    test "returns original atom form from supported" do
+      {:ok, match, score} = LanguageTag.best_match("en", [:en, :fr])
+      assert match == :en
+      assert is_atom(match)
+      assert score == 0
+    end
+  end
+
   describe "struct fields" do
     test "fields are atoms" do
       {:ok, tag} = LanguageTag.parse("en-Latn-US")
@@ -400,7 +505,6 @@ defmodule Localize.LanguageTagTest do
       assert tag.private_use == []
       assert tag.canonical_locale_name == nil
       assert tag.cldr_locale_name == nil
-      assert tag.backend == nil
     end
 
     test "requested_locale_name preserves original input" do

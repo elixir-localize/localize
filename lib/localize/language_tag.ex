@@ -171,10 +171,7 @@ defmodule Localize.LanguageTag do
             private_use: [],
             requested_locale_name: nil,
             canonical_locale_name: nil,
-            cldr_locale_name: nil,
-            rbnf_locale_name: nil,
-            gettext_locale_name: nil,
-            backend: nil
+            cldr_locale_name: nil
 
   @type t :: %__MODULE__{
           language: Locale.language(),
@@ -188,10 +185,7 @@ defmodule Localize.LanguageTag do
           private_use: [String.t()],
           requested_locale_name: String.t(),
           canonical_locale_name: String.t(),
-          cldr_locale_name: Locale.locale_name(),
-          rbnf_locale_name: Locale.locale_name(),
-          gettext_locale_name: String.t() | nil,
-          backend: Cldr.backend()
+          cldr_locale_name: Locale.locale_name()
         }
 
   @doc """
@@ -267,12 +261,25 @@ defmodule Localize.LanguageTag do
       "zh-Hant"
 
   """
+  @all_locale_names Cldr.Config.all_locale_names()
+
   @spec new(String.t()) :: {:ok, t()} | {:error, term()}
   def new(locale_name) when is_binary(locale_name) do
     with {:ok, parsed} <- parse(locale_name),
          {:ok, canonical} <- canonicalize(parsed),
          {:ok, resolved} <- remove_likely_subtags(canonical) do
-      {:ok, resolved}
+      tag = resolve_cldr_locale(resolved)
+      {:ok, tag}
+    end
+  end
+
+  defp resolve_cldr_locale(%__MODULE__{} = tag) do
+    case best_match(tag, @all_locale_names) do
+      {:ok, cldr_locale, _score} ->
+        %{tag | cldr_locale_name: cldr_locale}
+
+      {:error, _} ->
+        tag
     end
   end
 
@@ -399,6 +406,281 @@ defmodule Localize.LanguageTag do
     case canonicalize(language_tag) do
       {:ok, tag} -> tag
       {:error, reason} -> raise ArgumentError, "Failed to canonicalize: #{inspect(reason)}"
+    end
+  end
+
+  # ── Language matching ──────────────────────────────────────────
+
+  @language_matching Cldr.Config.language_matching()
+  @language_match_rules Map.fetch!(@language_matching, :language_match)
+  @match_variables Map.fetch!(@language_matching, :match_variables)
+  @default_distance 50
+
+  @doc """
+  Find the best matching supported locale for a desired locale.
+
+  Implements the [CLDR Language Matching](https://www.unicode.org/reports/tr35/tr35.html#LanguageMatching)
+  algorithm. The desired locale is compared against each supported
+  locale and the closest match (lowest distance score) is returned.
+
+  ### Arguments
+
+  * `desired` is a `%Localize.LanguageTag{}` struct or a BCP 47
+    locale string.
+
+  * `supported` is a list of `%Localize.LanguageTag{}` structs
+    or BCP 47 locale strings.
+
+  * `distance` is the maximum acceptable distance score. Matches
+    with a score above this threshold are rejected.
+    The default is #{@default_distance}.
+
+  ### Returns
+
+  * `{:ok, matched_locale, score}` where `matched_locale` is
+    the best supported match and `score` is the numeric distance, or
+
+  * `{:error, reason}` if no match is found within the threshold.
+
+  ### Examples
+
+      iex> {:ok, match, _score} = Localize.LanguageTag.best_match("en-AU", ["en", "en-GB", "fr"])
+      iex> match
+      "en-GB"
+
+  """
+  @spec best_match(t() | String.t() | atom(), [t() | String.t() | atom()], non_neg_integer()) ::
+          {:ok, t() | String.t() | atom(), non_neg_integer()} | {:error, String.t()}
+  def best_match(desired, supported, distance \\ @default_distance)
+
+  def best_match(%__MODULE__{} = desired, supported, distance) when is_list(supported) do
+    locale_string = build_canonical_name(desired)
+    best_match(locale_string, supported, distance)
+  end
+
+  def best_match(desired, supported, distance) when is_atom(desired) and is_list(supported) do
+    best_match(Atom.to_string(desired), supported, distance)
+  end
+
+  def best_match(desired, supported, distance) when is_binary(desired) and is_list(supported) do
+    with {:ok, desired_tag} <- resolve_for_matching(desired, :desired) do
+      matches =
+        supported
+        |> Enum.with_index()
+        |> Enum.flat_map(fn {supported_locale, index} ->
+          case resolve_for_matching(supported_locale, :supported) do
+            {:ok, supported_tag} ->
+              score = compute_match_distance(desired_tag, supported_tag)
+
+              if score <= distance do
+                [{supported_locale, supported_tag, score, index}]
+              else
+                []
+              end
+
+            {:error, _} ->
+              []
+          end
+        end)
+        |> Enum.sort(&match_comparator/2)
+
+      case matches do
+        [{locale, _tag, score, _index} | _] ->
+          {:ok, locale, score}
+
+        [] ->
+          {:error, "No match for desired locale #{inspect(desired)} within distance #{distance}"}
+      end
+    end
+  end
+
+  @doc """
+  Compute the match distance between two locale tags.
+
+  ### Arguments
+
+  * `desired` is a `%Localize.LanguageTag{}` struct or locale string.
+
+  * `supported` is a `%Localize.LanguageTag{}` struct or locale string.
+
+  ### Returns
+
+  * A non-negative integer distance score. `0` is a perfect match.
+    Scores below `10` indicate a good fit. Scores above `50`
+    indicate a poor fit.
+
+  ### Examples
+
+      iex> Localize.LanguageTag.match_distance("en", "en")
+      0
+
+      iex> Localize.LanguageTag.match_distance("en-AU", "en-GB")
+      3
+
+  """
+  @spec match_distance(t() | String.t(), t() | String.t()) ::
+          non_neg_integer() | {:error, String.t()}
+  def match_distance(desired, supported) do
+    with {:ok, desired_tag} <- resolve_for_matching(desired, :desired),
+         {:ok, supported_tag} <- resolve_for_matching(supported, :supported) do
+      compute_match_distance(desired_tag, supported_tag)
+    end
+  end
+
+  # Resolve a locale to a LanguageTag for matching purposes.
+  # For "und*" locales used as desired, skip likely subtags to avoid
+  # transforming "und" → "en-Latn-US".
+  defp resolve_for_matching(%__MODULE__{} = tag, _role), do: {:ok, ensure_maximized(tag)}
+
+  defp resolve_for_matching(locale, :desired) when is_binary(locale) do
+    if String.starts_with?(locale, "und") do
+      with {:ok, parsed} <- parse(locale),
+           {:ok, canonical} <- canonicalize(parsed) do
+        {:ok, canonical}
+      end
+    else
+      with {:ok, parsed} <- parse(locale),
+           {:ok, canonical} <- canonicalize(parsed),
+           {:ok, maximized} <- add_likely_subtags(canonical) do
+        {:ok, maximized}
+      end
+    end
+  end
+
+  defp resolve_for_matching(locale, :supported) when is_binary(locale) do
+    with {:ok, parsed} <- parse(locale),
+         {:ok, canonical} <- canonicalize(parsed),
+         {:ok, maximized} <- add_likely_subtags(canonical) do
+      {:ok, maximized}
+    end
+  end
+
+  defp resolve_for_matching(locale, role) when is_atom(locale) do
+    resolve_for_matching(Atom.to_string(locale), role)
+  end
+
+  defp ensure_maximized(%__MODULE__{script: nil} = tag) do
+    case add_likely_subtags(tag) do
+      {:ok, maximized} -> maximized
+      _ -> tag
+    end
+  end
+
+  defp ensure_maximized(%__MODULE__{territory: nil} = tag) do
+    case add_likely_subtags(tag) do
+      {:ok, maximized} -> maximized
+      _ -> tag
+    end
+  end
+
+  defp ensure_maximized(tag), do: tag
+
+  # Compute match distance by processing subtags in three phases.
+  defp compute_match_distance(desired, supported) do
+    [
+      [:language, :script, :territory],
+      [:language, :script],
+      [:language]
+    ]
+    |> Enum.reduce(0, fn subtag_keys, acc ->
+      desired_fields = extract_subtags(desired, subtag_keys)
+      supported_fields = extract_subtags(supported, subtag_keys)
+      subtag_distance(desired_fields, supported_fields, acc)
+    end)
+  end
+
+  # When the last subtag is identical, skip (no additional distance).
+  defp subtag_distance([_, _, t], [_, _, t], acc), do: acc
+  defp subtag_distance([_, s], [_, s], acc), do: acc
+  defp subtag_distance([l], [l], acc), do: acc
+  defp subtag_distance(desired, desired, acc), do: acc + 0
+
+  defp subtag_distance(desired, supported, acc) do
+    acc + find_match_score(desired, supported)
+  end
+
+  defp find_match_score(desired, supported) do
+    Enum.reduce_while(@language_match_rules, 0, fn match, _acc ->
+      cond do
+        rule_matches?(desired, match.desired) and
+            rule_matches?(supported, match.supported) ->
+          {:halt, match.distance}
+
+        not Map.get(match, :one_way, false) and
+          rule_matches?(desired, match.supported) and
+            rule_matches?(supported, match.desired) ->
+          {:halt, match.distance}
+
+        true ->
+          {:cont, 0}
+      end
+    end)
+  end
+
+  # Rule matching with wildcards and match variables.
+  defp rule_matches?([lang, _, _], [lang, :*, :*]), do: true
+  defp rule_matches?([lang, _], [lang, :*]), do: true
+  defp rule_matches?([lang], [lang]), do: true
+
+  defp rule_matches?([lang, _script], [lang, :*]), do: true
+  defp rule_matches?([lang, script, _], [lang, script, :*]), do: true
+  defp rule_matches?([lang, script], [lang, script]), do: true
+
+  defp rule_matches?([lang, _, territory], [lang, :*, territory]), do: true
+  defp rule_matches?([lang, script, territory], [lang, script, territory]), do: true
+
+  # Match variables
+  defp rule_matches?([lang, _script, territory], [lang, :*, {:in, variable}]) do
+    territory in expand_variable(variable)
+  end
+
+  defp rule_matches?([lang, script, territory], [lang, script, {:in, variable}]) do
+    territory in expand_variable(variable)
+  end
+
+  defp rule_matches?([lang, _script, territory], [lang, :*, {:not_in, variable}]) do
+    territory not in expand_variable(variable)
+  end
+
+  defp rule_matches?([lang, script, territory], [lang, script, {:not_in, variable}]) do
+    territory not in expand_variable(variable)
+  end
+
+  # Wildcard catch-all
+  defp rule_matches?([_, _, _], [:*, :*, :*]), do: true
+  defp rule_matches?([_, _], [:*, :*]), do: true
+  defp rule_matches?([_], [:*]), do: true
+
+  defp rule_matches?(_fields, _rule), do: false
+
+  defp expand_variable(variable) do
+    Map.fetch!(@match_variables, variable)
+  end
+
+  # Extract subtags as atoms for comparison with match rules.
+  # The match rules use strings for language but atoms for script/territory,
+  # so we convert language to string and keep script/territory as atoms.
+  defp extract_subtags(tag, [:language]) do
+    [Atom.to_string(tag.language)]
+  end
+
+  defp extract_subtags(tag, [:language, :script]) do
+    [Atom.to_string(tag.language), tag.script]
+  end
+
+  defp extract_subtags(tag, [:language, :script, :territory]) do
+    [Atom.to_string(tag.language), tag.script, tag.territory]
+  end
+
+  # Sort matches: lower distance first, then paradigm locale preference,
+  # then original order.
+  defp match_comparator(
+         {_, _, distance_a, index_a},
+         {_, _, distance_b, index_b}
+       ) do
+    cond do
+      distance_a != distance_b -> distance_a < distance_b
+      true -> index_a < index_b
     end
   end
 
@@ -888,9 +1170,8 @@ defmodule Localize.LanguageTag do
 
     def inspect(%Localize.LanguageTag{} = language_tag, _opts) do
       string = Localize.LanguageTag.to_string(language_tag)
-      backend = language_tag.backend
 
-      "#{inspect(backend)}.Locale.new!(" <> inspect(string) <> ")"
+      "Localize.LanguageTag.new!(" <> inspect(string) <> ")"
       # "#Localize.LanguageTag<" <> language_tag.canonical_locale_name <> " [validated]>"
     end
   end

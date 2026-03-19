@@ -1,40 +1,41 @@
 defmodule Localize.Validity.U do
   @moduledoc false
 
+  # Map BCP47 string keys to their atom equivalents.
+  # The struct fields use the original BCP47 key names.
   @field_mapping %{
-    "ca" => :calendar,
-    "co" => :collation,
-    "ka" => :col_alternate,
-    "kb" => :col_backwards,
-    "kc" => :col_case_level,
-    "kf" => :col_case_first,
-    "kh" => :col_hiragana_quaternary,
-    "kk" => :col_normalization,
-    "kn" => :col_numeric,
-    "kr" => :col_reorder,
-    "ks" => :col_strength,
-    "kv" => :kv,
-    "cu" => :currency,
+    "ca" => :ca,
     "cf" => :cf,
-    "nu" => :numbers,
+    "co" => :co,
+    "cu" => :cu,
+    "dx" => :dx,
     "em" => :em,
     "fw" => :fw,
     "hc" => :hc,
+    "ka" => :ka,
+    "kb" => :kb,
+    "kc" => :kc,
+    "kf" => :kf,
+    "kh" => :kh,
+    "kk" => :kk,
+    "kn" => :kn,
+    "kr" => :kr,
+    "ks" => :ks,
+    "kv" => :kv,
     "lb" => :lb,
     "lw" => :lw,
     "ms" => :ms,
     "mu" => :mu,
-    "ss" => :ss,
-    "tz" => :timezone,
+    "nu" => :nu,
     "rg" => :rg,
     "sd" => :sd,
-    "vt" => :vt,
+    "ss" => :ss,
+    "tz" => :tz,
     "va" => :va,
-    "dx" => :dx
+    "vt" => :vt
   }
 
   @fields Map.values(@field_mapping) |> Enum.sort()
-  @inverse_field_mapping Enum.map(@field_mapping, fn {k, v} -> {v, k} end) |> Map.new()
   @validity_data Cldr.Config.validity(:u)
   @dont_process_keys ["vt", "rg", "sd", "dx", "kr"]
   @valid_keys Map.keys(@validity_data)
@@ -87,7 +88,7 @@ defmodule Localize.Validity.U do
 
   # Calendar names may be compound like
   # islamic-rgsa
-  def encode(:calendar = key, value) do
+  def encode(:ca = key, value) do
     unmapped_key = unmap(key)
 
     value =
@@ -288,8 +289,8 @@ defmodule Localize.Validity.U do
     |> Map.fetch(:preferred)
   end
 
-  defp get_value(map, "cu", value) do
-    (Map.get(map, value) || value)
+  defp get_value(values_map, "cu", value) do
+    (Map.get(values_map, value) || value)
     |> String.upcase()
   end
 
@@ -301,8 +302,8 @@ defmodule Localize.Validity.U do
     Map.fetch!(@field_mapping, key)
   end
 
-  defp unmap(key) do
-    Map.fetch!(@inverse_field_mapping, key)
+  defp unmap(key) when is_atom(key) do
+    Atom.to_string(key)
   end
 
   defp wrap(term, atom) do
