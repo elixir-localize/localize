@@ -31,7 +31,7 @@ defmodule Localize.Nif do
   def init do
     path = :code.priv_dir(:localize) ++ ~c"/localize_nif"
 
-    case :erlang.load_nif(path, 0) do
+    case :erlang.load_nif(path, :erlang.system_info(:schedulers)) do
       :ok -> :ok
       {:error, _reason} -> :ok
     end
@@ -104,6 +104,77 @@ defmodule Localize.Nif do
   @spec mf2_format(String.t(), String.t(), map()) :: {:ok, String.t()} | {:error, String.t()}
   def mf2_format(message, locale \\ "en", args \\ %{}) when is_binary(message) do
     nif_mf2_format(message, locale, :json.encode(args))
+  end
+
+  # ── Collation ───────────────────────────────────────────────────
+
+  @doc """
+  Returns whether the collation NIF function is available.
+
+  ### Returns
+
+  * `true` if the collation NIF function was loaded successfully.
+
+  * `false` if the NIF is not compiled or ICU libraries are missing.
+
+  """
+  @spec collation_available?() :: boolean()
+  def collation_available? do
+    match?(
+      result when is_integer(result),
+      nif_collation_cmp("", "", -1, -1, -1, -1, -1, -1, -1, <<>>)
+    )
+  rescue
+    _ -> false
+  end
+
+  @doc """
+  Compare two strings using ICU collation with full option support.
+
+  This is the raw NIF function. Use `Localize.Collation.Nif.nif_compare/3`
+  for the higher-level interface that handles option encoding.
+
+  ### Arguments
+
+  * `string_a` - the first string to compare.
+
+  * `string_b` - the second string to compare.
+
+  * `strength` - ICU strength enum value, or -1 for default.
+
+  * `backwards` - ICU backwards enum value, or -1 for default.
+
+  * `alternate` - ICU alternate enum value, or -1 for default.
+
+  * `case_first` - ICU case_first enum value, or -1 for default.
+
+  * `case_level` - ICU case_level enum value, or -1 for default.
+
+  * `normalization` - ICU normalization enum value, or -1 for default.
+
+  * `numeric` - ICU numeric enum value, or -1 for default.
+
+  * `reorder_bin` - binary of packed big-endian int32 reorder codes.
+
+  ### Returns
+
+  An integer: `-1` (less than), `0` (equal), or `1` (greater than).
+
+  """
+  @dialyzer {:no_return, nif_collation_cmp: 10}
+  def nif_collation_cmp(
+        _string_a,
+        _string_b,
+        _strength,
+        _backwards,
+        _alternate,
+        _case_first,
+        _case_level,
+        _normalization,
+        _numeric,
+        _reorder_bin
+      ) do
+    :erlang.nif_error(:nif_library_not_loaded)
   end
 
   # ── NIF stubs ───────────────────────────────────────────────────

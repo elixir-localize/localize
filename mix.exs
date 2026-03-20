@@ -16,7 +16,8 @@ defmodule Localize.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger],
+      mod: {Localize.Application, []}
     ]
   end
 
@@ -28,6 +29,7 @@ defmodule Localize.MixProject do
       {:gettext, "~> 1.0"},
       {:nimble_parsec, "~> 1.0"},
       {:sweet_xml, "~> 0.7"},
+      {:unicode, "~> 1.21"},
       {:elixir_make, "~> 0.4", runtime: false, optional: true}
     ]
   end

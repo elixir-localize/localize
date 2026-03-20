@@ -1,11 +1,9 @@
 // Localize NIF: ICU4C bindings for the localize library.
 //
-// Currently provides MessageFormat 2.0 functions:
-//   nif_mf2_validate/1 - Parse a message and return normalized pattern or error
-//   nif_mf2_format/3   - Format a message with locale and JSON-encoded arguments
-//
-// Future functions for number, date/time, unit formatting etc. will be
-// added to the nif_funcs table below.
+// Provides:
+//   nif_mf2_validate/1      - Parse an MF2 message and return normalized pattern or error
+//   nif_mf2_format/3        - Format an MF2 message with locale and JSON-encoded arguments
+//   nif_collation_cmp/10    - Compare two strings using ICU collation with full option support
 
 #include <cstring>
 #include <map>
@@ -18,6 +16,8 @@
 
 #include "erl_nif.h"
 
+#include "unicode/ucol.h"
+#include "unicode/uscript.h"
 #include "unicode/errorcode.h"
 #include "unicode/locid.h"
 #include "unicode/messageformat2.h"
@@ -38,6 +38,96 @@ using icu::message2::MessageFormatter;
 static ERL_NIF_TERM atom_ok;
 static ERL_NIF_TERM atom_error;
 
+/* ── Collation pool ────────────────────────────────────────────── */
+
+/* Use -1 as sentinel for "use default / no change" */
+#define OPT_DEFAULT (-1)
+
+typedef struct {
+    UCollator** collators;
+    int collStackTop;
+    int numCollators;
+    ErlNifMutex* collMutex;
+} collation_priv_t;
+
+static inline void
+reserve_coll(collation_priv_t* pData, UCollator** out)
+{
+    enif_mutex_lock(pData->collMutex);
+    *out = pData->collators[pData->collStackTop];
+    pData->collStackTop += 1;
+    enif_mutex_unlock(pData->collMutex);
+}
+
+static inline void
+release_coll(collation_priv_t* pData)
+{
+    enif_mutex_lock(pData->collMutex);
+    pData->collStackTop -= 1;
+    enif_mutex_unlock(pData->collMutex);
+}
+
+static collation_priv_t*
+init_collation_pool(int num_schedulers)
+{
+    if (num_schedulers < 1) return NULL;
+
+    UErrorCode status = U_ZERO_ERROR;
+    collation_priv_t* pData = (collation_priv_t*)enif_alloc(sizeof(collation_priv_t));
+    if (!pData) return NULL;
+
+    pData->collators = NULL;
+    pData->collStackTop = 0;
+    pData->numCollators = num_schedulers;
+    pData->collMutex = enif_mutex_create((char*)"localize_coll_mutex");
+
+    if (!pData->collMutex) {
+        enif_free(pData);
+        return NULL;
+    }
+
+    pData->collators = (UCollator**)enif_alloc(sizeof(UCollator*) * num_schedulers);
+    if (!pData->collators) {
+        enif_mutex_destroy(pData->collMutex);
+        enif_free(pData);
+        return NULL;
+    }
+
+    for (int i = 0; i < num_schedulers; i++) {
+        pData->collators[i] = ucol_open("", &status);
+        if (U_FAILURE(status)) {
+            for (int j = 0; j < i; j++) {
+                ucol_close(pData->collators[j]);
+            }
+            enif_free(pData->collators);
+            enif_mutex_destroy(pData->collMutex);
+            enif_free(pData);
+            return NULL;
+        }
+    }
+
+    return pData;
+}
+
+static void
+destroy_collation_pool(collation_priv_t* pData)
+{
+    if (!pData) return;
+
+    if (pData->collators) {
+        for (int i = 0; i < pData->numCollators; i++) {
+            ucol_close(pData->collators[i]);
+        }
+        enif_free(pData->collators);
+    }
+
+    if (pData->collMutex) {
+        enif_mutex_destroy(pData->collMutex);
+    }
+
+    enif_free(pData);
+}
+
 /* ── Lifecycle ──────────────────────────────────────────────────── */
 
 static int
@@ -45,13 +135,22 @@ on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM info)
 {
     atom_ok = enif_make_atom(env, "ok");
     atom_error = enif_make_atom(env, "error");
-    *priv_data = NULL;
+
+    int num_schedulers = 0;
+    if (enif_get_int(env, info, &num_schedulers) && num_schedulers > 0) {
+        *priv_data = init_collation_pool(num_schedulers);
+    } else {
+        /* Default pool size */
+        *priv_data = init_collation_pool(4);
+    }
+
     return 0;
 }
 
 static void
 on_unload(ErlNifEnv* env, void* priv_data)
 {
+    destroy_collation_pool((collation_priv_t*)priv_data);
 }
 
 static int
@@ -59,7 +158,19 @@ on_upgrade(ErlNifEnv* env, void** priv_data, void** old_data, ERL_NIF_TERM info)
 {
     atom_ok = enif_make_atom(env, "ok");
     atom_error = enif_make_atom(env, "error");
-    *priv_data = NULL;
+
+    /* Clean up old collation pool */
+    if (*old_data) {
+        destroy_collation_pool((collation_priv_t*)*old_data);
+    }
+
+    int num_schedulers = 0;
+    if (enif_get_int(env, info, &num_schedulers) && num_schedulers > 0) {
+        *priv_data = init_collation_pool(num_schedulers);
+    } else {
+        *priv_data = init_collation_pool(4);
+    }
+
     return 0;
 }
 
@@ -327,11 +438,152 @@ static ERL_NIF_TERM nif_mf2_format(ErlNifEnv* env, int argc,
                             make_binary_from_unistr(env, result));
 }
 
+/* ── Collation NIF function ─────────────────────────────────────── */
+
+// nif_collation_cmp(string_a, string_b, strength, backwards, alternate,
+//                   case_first, case_level, normalization, numeric, reorder_bin)
+// Each option is an integer. OPT_DEFAULT (-1) means "use collator default".
+// reorder_bin is a binary of packed big-endian int32 reorder codes.
+static ERL_NIF_TERM nif_collation_cmp(ErlNifEnv* env, int argc,
+                                       const ERL_NIF_TERM argv[]) {
+    if (argc != 10) {
+        return enif_make_badarg(env);
+    }
+
+    ErlNifBinary binA, binB, reorderBin;
+    int strength, backwards, alternate, case_first, case_level, normalization, numeric;
+    int any_set = 0;
+    int has_reorder = 0;
+    UCollator* coll = NULL;
+
+    collation_priv_t* pData = (collation_priv_t*)enif_priv_data(env);
+    if (!pData) {
+        return enif_make_int(env, 0);
+    }
+
+    /* Extract binary arguments */
+    if (!enif_inspect_binary(env, argv[0], &binA) ||
+        !enif_inspect_binary(env, argv[1], &binB)) {
+        return enif_make_int(env, 0);
+    }
+
+    /* Extract option integers */
+    if (!enif_get_int(env, argv[2], &strength) ||
+        !enif_get_int(env, argv[3], &backwards) ||
+        !enif_get_int(env, argv[4], &alternate) ||
+        !enif_get_int(env, argv[5], &case_first) ||
+        !enif_get_int(env, argv[6], &case_level) ||
+        !enif_get_int(env, argv[7], &normalization) ||
+        !enif_get_int(env, argv[8], &numeric)) {
+        return enif_make_int(env, 0);
+    }
+
+    /* Extract reorder codes binary (10th arg) */
+    if (!enif_inspect_binary(env, argv[9], &reorderBin)) {
+        return enif_make_int(env, 0);
+    }
+
+    UErrorCode status = U_ZERO_ERROR;
+
+    /* Set up UTF-8 iterators */
+    UCharIterator iterA, iterB;
+    uiter_setUTF8(&iterA, (const char*)binA.data, (uint32_t)binA.size);
+    uiter_setUTF8(&iterB, (const char*)binB.data, (uint32_t)binB.size);
+
+    /* Grab a collator from the pool */
+    reserve_coll(pData, &coll);
+
+    /* Apply non-default attributes */
+    if (strength != OPT_DEFAULT) {
+        ucol_setAttribute(coll, UCOL_STRENGTH, (UColAttributeValue)strength, &status);
+        any_set = 1;
+    }
+    if (backwards != OPT_DEFAULT) {
+        ucol_setAttribute(coll, UCOL_FRENCH_COLLATION, (UColAttributeValue)backwards, &status);
+        any_set = 1;
+    }
+    if (alternate != OPT_DEFAULT) {
+        ucol_setAttribute(coll, UCOL_ALTERNATE_HANDLING, (UColAttributeValue)alternate, &status);
+        any_set = 1;
+    }
+    if (case_first != OPT_DEFAULT) {
+        ucol_setAttribute(coll, UCOL_CASE_FIRST, (UColAttributeValue)case_first, &status);
+        any_set = 1;
+    }
+    if (case_level != OPT_DEFAULT) {
+        ucol_setAttribute(coll, UCOL_CASE_LEVEL, (UColAttributeValue)case_level, &status);
+        any_set = 1;
+    }
+    if (normalization != OPT_DEFAULT) {
+        ucol_setAttribute(coll, UCOL_NORMALIZATION_MODE, (UColAttributeValue)normalization, &status);
+        any_set = 1;
+    }
+    if (numeric != OPT_DEFAULT) {
+        ucol_setAttribute(coll, UCOL_NUMERIC_COLLATION, (UColAttributeValue)numeric, &status);
+        any_set = 1;
+    }
+
+    /* Apply reorder codes if provided */
+    if (reorderBin.size > 0 && reorderBin.size % 4 == 0) {
+        int32_t numCodes = (int32_t)(reorderBin.size / 4);
+        int32_t* codes = (int32_t*)enif_alloc(sizeof(int32_t) * numCodes);
+        const unsigned char* p = reorderBin.data;
+
+        for (int32_t i = 0; i < numCodes; i++) {
+            codes[i] = (int32_t)(
+                ((uint32_t)p[0] << 24) |
+                ((uint32_t)p[1] << 16) |
+                ((uint32_t)p[2] << 8)  |
+                ((uint32_t)p[3])
+            );
+            p += 4;
+        }
+
+        ucol_setReorderCodes(coll, codes, numCodes, &status);
+        enif_free(codes);
+        has_reorder = 1;
+    }
+
+    /* Perform the comparison */
+    int response = ucol_strcollIter(coll, &iterA, &iterB, &status);
+
+    /* Restore all modified attributes to defaults */
+    if (any_set) {
+        status = U_ZERO_ERROR;
+        if (strength != OPT_DEFAULT)
+            ucol_setAttribute(coll, UCOL_STRENGTH, UCOL_DEFAULT, &status);
+        if (backwards != OPT_DEFAULT)
+            ucol_setAttribute(coll, UCOL_FRENCH_COLLATION, UCOL_DEFAULT, &status);
+        if (alternate != OPT_DEFAULT)
+            ucol_setAttribute(coll, UCOL_ALTERNATE_HANDLING, UCOL_DEFAULT, &status);
+        if (case_first != OPT_DEFAULT)
+            ucol_setAttribute(coll, UCOL_CASE_FIRST, UCOL_DEFAULT, &status);
+        if (case_level != OPT_DEFAULT)
+            ucol_setAttribute(coll, UCOL_CASE_LEVEL, UCOL_DEFAULT, &status);
+        if (normalization != OPT_DEFAULT)
+            ucol_setAttribute(coll, UCOL_NORMALIZATION_MODE, UCOL_DEFAULT, &status);
+        if (numeric != OPT_DEFAULT)
+            ucol_setAttribute(coll, UCOL_NUMERIC_COLLATION, UCOL_DEFAULT, &status);
+    }
+
+    /* Restore reorder codes to default */
+    if (has_reorder) {
+        int32_t defaultCode = UCOL_REORDER_CODE_DEFAULT;
+        status = U_ZERO_ERROR;
+        ucol_setReorderCodes(coll, &defaultCode, 1, &status);
+    }
+
+    release_coll(pData);
+
+    return enif_make_int(env, response);
+}
+
 /* ── NIF function table ─────────────────────────────────────────── */
 
 static ErlNifFunc nif_funcs[] = {
-    {"nif_mf2_validate", 1, nif_mf2_validate},
-    {"nif_mf2_format",   3, nif_mf2_format}
+    {"nif_mf2_validate",    1, nif_mf2_validate},
+    {"nif_mf2_format",      3, nif_mf2_format},
+    {"nif_collation_cmp",  10, nif_collation_cmp}
 };
 
 ERL_NIF_INIT(Elixir.Localize.Nif, nif_funcs, &on_load,
