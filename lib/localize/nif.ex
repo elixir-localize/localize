@@ -101,9 +101,16 @@ defmodule Localize.Nif do
   * `{:error, reason}` on failure.
 
   """
-  @spec mf2_format(String.t(), String.t(), map()) :: {:ok, String.t()} | {:error, String.t()}
+  @spec mf2_format(String.t(), String.t(), map() | String.t()) ::
+          {:ok, String.t()} | {:error, String.t()}
   def mf2_format(message, locale \\ "en", args \\ %{}) when is_binary(message) do
-    nif_mf2_format(message, locale, :json.encode(args))
+    args_json =
+      case args do
+        json when is_binary(json) -> json
+        map when is_map(map) -> IO.iodata_to_binary(:json.encode(map))
+      end
+
+    nif_mf2_format(message, locale, args_json)
   end
 
   # ── Collation ───────────────────────────────────────────────────
@@ -177,6 +184,52 @@ defmodule Localize.Nif do
     :erlang.nif_error(:nif_library_not_loaded)
   end
 
+  # ── Plural Rules ──────────────────────────────────────────────────
+
+  @doc """
+  Returns the plural category for a number using ICU's PluralRules.
+
+  ### Arguments
+
+  * `number` is a number (integer, float, or Decimal) to classify.
+
+  * `locale` is a locale identifier string (e.g., `"en"`, `"ar"`).
+
+  * `type` is `:cardinal` or `:ordinal`.
+
+  ### Returns
+
+  * `{:ok, category}` where `category` is one of `:zero`, `:one`,
+    `:two`, `:few`, `:many`, or `:other`.
+
+  * `{:error, reason}` if ICU cannot determine the plural category.
+
+  ### Examples
+
+      iex> Localize.Nif.plural_rule(1, "en", :cardinal)
+      {:ok, :one}
+
+      iex> Localize.Nif.plural_rule(2, "en", :ordinal)
+      {:ok, :two}
+
+  """
+  @spec plural_rule(number() | Decimal.t(), String.t(), :cardinal | :ordinal) ::
+          {:ok, atom()} | {:error, String.t()}
+  def plural_rule(number, locale, type \\ :cardinal)
+
+  def plural_rule(%Decimal{} = number, locale, type) do
+    number_str = Decimal.to_string(number, :normal)
+    nif_plural_rule(number_str, locale, to_string(type), 0)
+  end
+
+  def plural_rule(number, locale, type) when is_integer(number) do
+    nif_plural_rule(Integer.to_string(number), locale, to_string(type), 0)
+  end
+
+  def plural_rule(number, locale, type) when is_float(number) do
+    nif_plural_rule(Float.to_string(number), locale, to_string(type), 0)
+  end
+
   # ── NIF stubs ───────────────────────────────────────────────────
 
   @dialyzer {:no_return, nif_mf2_validate: 1}
@@ -186,6 +239,11 @@ defmodule Localize.Nif do
 
   @dialyzer {:no_return, nif_mf2_format: 3}
   defp nif_mf2_format(_message, _locale, _args_json) do
+    :erlang.nif_error(:nif_library_not_loaded)
+  end
+
+  @dialyzer {:no_return, nif_plural_rule: 4}
+  defp nif_plural_rule(_number, _locale, _type, _rounding) do
     :erlang.nif_error(:nif_library_not_loaded)
   end
 end

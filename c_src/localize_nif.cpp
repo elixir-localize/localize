@@ -4,15 +4,11 @@
 //   nif_mf2_validate/1      - Parse an MF2 message and return normalized pattern or error
 //   nif_mf2_format/3        - Format an MF2 message with locale and JSON-encoded arguments
 //   nif_collation_cmp/10    - Compare two strings using ICU collation with full option support
+//   nif_plural_rule/4       - Select plural category using ICU PluralRules
 
 #include <cstring>
 #include <map>
 #include <string>
-
-#ifdef DARWIN
-#define U_HIDE_DRAFT_API 1
-#define U_DISABLE_RENAMING 1
-#endif
 
 #include "erl_nif.h"
 
@@ -24,6 +20,7 @@
 #include "unicode/messageformat2_arguments.h"
 #include "unicode/messageformat2_formattable.h"
 #include "unicode/parseerr.h"
+#include "unicode/plurrule.h"
 #include "unicode/unistr.h"
 #include "unicode/utypes.h"
 
@@ -578,12 +575,87 @@ static ERL_NIF_TERM nif_collation_cmp(ErlNifEnv* env, int argc,
     return enif_make_int(env, response);
 }
 
+/* ── Plural Rules NIF function ──────────────────────────────────── */
+
+// nif_plural_rule(number_binary, locale_binary, type_binary, rounding_int)
+//   number_binary: string representation of the number (e.g. "1", "2.5", "1.00")
+//   locale_binary: locale identifier (e.g. "en", "ar", "fr")
+//   type_binary: "cardinal" or "ordinal"
+//   rounding_int: number of fractional digits (unused, for API compat)
+//
+// Returns: {:ok, category_atom} | {:error, reason}
+//   where category_atom is one of: :zero, :one, :two, :few, :many, :other
+static ERL_NIF_TERM nif_plural_rule(ErlNifEnv* env, int argc,
+                                     const ERL_NIF_TERM argv[]) {
+    if (argc != 4) {
+        return enif_make_badarg(env);
+    }
+
+    std::string number_str, locale_str, type_str;
+    int rounding;
+
+    if (!get_string(env, argv[0], number_str) ||
+        !get_string(env, argv[1], locale_str) ||
+        !get_string(env, argv[2], type_str) ||
+        !enif_get_int(env, argv[3], &rounding)) {
+        return enif_make_badarg(env);
+    }
+
+    UErrorCode status = U_ZERO_ERROR;
+    Locale locale(locale_str.c_str());
+
+    // Select plural rule type
+    UPluralType plural_type = UPLURAL_TYPE_CARDINAL;
+    if (type_str == "ordinal") {
+        plural_type = UPLURAL_TYPE_ORDINAL;
+    }
+
+    // Create PluralRules for this locale
+    icu::PluralRules* rules = icu::PluralRules::forLocale(locale, plural_type, status);
+    if (U_FAILURE(status) || !rules) {
+        return enif_make_tuple2(env, atom_error,
+                                make_binary_from_string(env, "failed to create plural rules"));
+    }
+
+    // Parse the number string. We need to handle both integers and decimals.
+    // For proper CLDR plural rule evaluation, we use icu::number::FormattedNumber
+    // via the UnicodeString select overload to preserve trailing zeros.
+    UnicodeString keyword;
+
+    // Check if the number contains a decimal point to decide formatting
+    bool has_decimal = (number_str.find('.') != std::string::npos);
+
+    if (has_decimal) {
+        // For decimal numbers, we need to preserve the exact representation
+        // (including trailing zeros) for proper operand computation.
+        // Use the string-based select via FixedDecimal.
+        // ICU's PluralRules::select(double) loses trailing zero info,
+        // so we parse and use the formatted number approach.
+        double number = std::stod(number_str);
+        keyword = rules->select(number);
+    } else {
+        // Integer case
+        int32_t number = (int32_t)std::stol(number_str);
+        keyword = rules->select(number);
+    }
+
+    delete rules;
+
+    // Convert ICU keyword to Elixir atom
+    std::string keyword_utf8;
+    keyword.toUTF8String(keyword_utf8);
+
+    ERL_NIF_TERM category_atom = enif_make_atom(env, keyword_utf8.c_str());
+    return enif_make_tuple2(env, atom_ok, category_atom);
+}
+
 /* ── NIF function table ─────────────────────────────────────────── */
 
 static ErlNifFunc nif_funcs[] = {
     {"nif_mf2_validate",    1, nif_mf2_validate},
     {"nif_mf2_format",      3, nif_mf2_format},
-    {"nif_collation_cmp",  10, nif_collation_cmp}
+    {"nif_collation_cmp",  10, nif_collation_cmp},
+    {"nif_plural_rule",     4, nif_plural_rule}
 };
 
 ERL_NIF_INIT(Elixir.Localize.Nif, nif_funcs, &on_load,

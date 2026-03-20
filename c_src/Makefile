@@ -15,11 +15,11 @@ UNAME_ARCH := $(shell uname -p)
 ifeq ($(UNAME_SYS), Darwin)
 	ifeq ($(UNAME_ARCH), arm)
 		CXX ?= c++
-		CXXFLAGS = -O3 -std=c++17 -arch arm64 -Wall -DDARWIN
+		CXXFLAGS = -O3 -std=c++17 -arch arm64 -Wall
 		LDFLAGS = -arch arm64 -flat_namespace -undefined dynamic_lookup
 	else
 		CXX ?= c++
-		CXXFLAGS = -O3 -std=c++17 -arch x86_64 -Wall -DDARWIN
+		CXXFLAGS = -O3 -std=c++17 -arch x86_64 -Wall
 		LDFLAGS = -arch x86_64 -flat_namespace -undefined dynamic_lookup
 	endif
 else ifeq ($(UNAME_SYS), FreeBSD)

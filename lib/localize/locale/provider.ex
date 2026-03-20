@@ -237,6 +237,43 @@ defmodule Localize.Locale.Provider do
     load_data("unicode_script_to_subtag_mapping.etf")
   end
 
+  @doc """
+  Returns the compiled plural rules for the given type.
+
+  The rules are pre-parsed into AST form so they can be
+  used directly by the plural rule compiler at compile time.
+
+  ### Arguments
+
+  * `type` is either `:cardinal` or `:ordinal`.
+
+  ### Returns
+
+  * A map of locale name atoms to their parsed plural rule
+    keyword lists.
+
+  """
+  @spec plural_rules(:cardinal | :ordinal) :: map()
+  def plural_rules(:cardinal), do: load_data("plural_rules_cardinal.etf")
+  def plural_rules(:ordinal), do: load_data("plural_rules_ordinal.etf")
+
+  @doc """
+  Returns the plural ranges data.
+
+  Each entry contains a list of locales and a list of range
+  mappings that determine the final plural category when
+  formatting a number range.
+
+  ### Returns
+
+  * A list of maps with `:locales` and `:ranges` keys.
+
+  """
+  @spec plural_ranges() :: [map()]
+  def plural_ranges do
+    load_data("plural_ranges.etf")
+  end
+
   defp load_data(filename) do
     cldr_dir()
     |> Path.join(filename)
