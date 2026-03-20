@@ -224,33 +224,48 @@ defmodule Localize.Message.Interpreter do
     format_with_function(name, value, func_opts, options)
   end
 
-  defp format_with_function("number", value, func_opts, options) do
-    with {:ok, number} <- ensure_number(value),
-         {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
-      format_number(number, cldr_opts)
+  if Code.ensure_loaded?(Cldr.Number) do
+    defp format_with_function("number", value, func_opts, options) do
+      with {:ok, number} <- ensure_number(value),
+           {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
+        Cldr.Number.to_string(number, cldr_opts)
+      end
     end
-  end
 
-  defp format_with_function("integer", value, func_opts, options) do
-    with {:ok, number} <- ensure_number(value),
-         {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
-      format_number(trunc(number), cldr_opts)
+    defp format_with_function("integer", value, func_opts, options) do
+      with {:ok, number} <- ensure_number(value),
+           {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
+        Cldr.Number.to_string(trunc(number), cldr_opts)
+      end
     end
-  end
 
-  defp format_with_function("percent", value, func_opts, options) do
-    with {:ok, number} <- ensure_number(value),
-         {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
-      cldr_opts = Keyword.put(cldr_opts, :format, :percent)
-      format_number(number, cldr_opts)
+    defp format_with_function("percent", value, func_opts, options) do
+      with {:ok, number} <- ensure_number(value),
+           {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
+        cldr_opts = Keyword.put(cldr_opts, :format, :percent)
+        Cldr.Number.to_string(number, cldr_opts)
+      end
     end
-  end
 
-  defp format_with_function("currency", value, func_opts, options) do
-    with {:ok, number} <- ensure_number(value),
-         {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
-      cldr_opts = map_currency_options(cldr_opts, func_opts)
-      format_number(number, cldr_opts)
+    defp format_with_function("currency", value, func_opts, options) do
+      with {:ok, number} <- ensure_number(value),
+           {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
+        cldr_opts = map_currency_options(cldr_opts, func_opts)
+        Cldr.Number.to_string(number, cldr_opts)
+      end
+    end
+  else
+    defp format_with_function(function, value, _func_opts, _options)
+         when function in ["number", "integer", "percent", "currency"] do
+      with {:ok, number} <- ensure_number(value) do
+        formatted =
+          case function do
+            "integer" -> Integer.to_string(trunc(number))
+            _ -> to_string_value(number)
+          end
+
+        {:ok, formatted}
+      end
     end
   end
 
@@ -288,6 +303,130 @@ defmodule Localize.Message.Interpreter do
         Cldr.DateTime.to_string(value, cldr_opts)
       end
     end
+
+    defp parse_date_style(style) when is_binary(style) do
+      case style do
+        "short" -> :short
+        "medium" -> :medium
+        "long" -> :long
+        "full" -> :full
+        other -> other
+      end
+    end
+
+    defp parse_time_style(style) when is_binary(style) do
+      case style do
+        "short" -> :short
+        "medium" -> :medium
+        "long" -> :long
+        "full" -> :full
+        "second" -> :medium
+        "minute" -> :short
+        other -> other
+      end
+    end
+
+    defp map_date_options(cldr_opts, func_opts, format_key) do
+      style =
+        func_opts[:style] || func_opts[:length] || func_opts[:dateStyle] || func_opts[:dateLength]
+
+      if style do
+        Keyword.put(cldr_opts, format_key, parse_date_style(style))
+      else
+        cldr_opts
+      end
+    end
+
+    defp map_time_options(cldr_opts, func_opts, format_key) do
+      style =
+        func_opts[:style] || func_opts[:precision] || func_opts[:timeStyle] ||
+          func_opts[:timePrecision]
+
+      if style do
+        Keyword.put(cldr_opts, format_key, parse_time_style(style))
+      else
+        cldr_opts
+      end
+    end
+
+    defp map_datetime_options(cldr_opts, func_opts) do
+      if style = func_opts[:style] do
+        parsed = parse_date_style(style)
+        cldr_opts |> Keyword.put(:date_format, parsed) |> Keyword.put(:time_format, parsed)
+      else
+        cldr_opts
+        |> map_date_options(func_opts, :date_format)
+        |> map_time_options(func_opts, :time_format)
+      end
+    end
+
+    defp ensure_date(value) when is_binary(value) do
+      case Date.from_iso8601(value) do
+        {:ok, date} ->
+          {:ok, date}
+
+        {:error, _} ->
+          case NaiveDateTime.from_iso8601(value) do
+            {:ok, ndt} ->
+              {:ok, NaiveDateTime.to_date(ndt)}
+
+            {:error, _} ->
+              case DateTime.from_iso8601(value) do
+                {:ok, dt, _offset} ->
+                  {:ok, DateTime.to_date(dt)}
+
+                {:error, _} ->
+                  {:error,
+                   "cannot parse #{inspect(value)} as a date. " <>
+                     "Expected an ISO 8601 date string."}
+              end
+          end
+      end
+    end
+
+    defp ensure_date(%Date{} = value), do: {:ok, value}
+    defp ensure_date(%NaiveDateTime{} = value), do: {:ok, NaiveDateTime.to_date(value)}
+    defp ensure_date(%DateTime{} = value), do: {:ok, DateTime.to_date(value)}
+
+    defp ensure_date(value) do
+      {:error,
+       "cannot format #{inspect(value)} as a date. " <>
+         "Expected a Date, NaiveDateTime, DateTime, or ISO 8601 date string."}
+    end
+
+    defp ensure_datetime(value) when is_binary(value) do
+      case NaiveDateTime.from_iso8601(value) do
+        {:ok, ndt} ->
+          {:ok, ndt}
+
+        {:error, _} ->
+          case DateTime.from_iso8601(value) do
+            {:ok, dt, _offset} ->
+              {:ok, dt}
+
+            {:error, _} ->
+              case Date.from_iso8601(value) do
+                {:ok, date} ->
+                  {:ok, NaiveDateTime.new!(date, ~T[00:00:00])}
+
+                {:error, _} ->
+                  {:error,
+                   "cannot parse #{inspect(value)} as a datetime. " <>
+                     "Expected an ISO 8601 datetime string."}
+              end
+          end
+      end
+    end
+
+    defp ensure_datetime(%NaiveDateTime{} = value), do: {:ok, value}
+    defp ensure_datetime(%DateTime{} = value), do: {:ok, value}
+    defp ensure_datetime(%Date{} = value), do: {:ok, NaiveDateTime.new!(value, ~T[00:00:00])}
+
+    defp ensure_datetime(value) do
+      {:error,
+       "cannot format #{inspect(value)} as a datetime. " <>
+         "Expected a NaiveDateTime, DateTime, Date, or ISO 8601 datetime string."}
+    end
   else
     defp format_with_function(function, _value, _func_opts, _options)
          when function in ["date", "time", "datetime"] do
@@ -298,6 +437,15 @@ defmodule Localize.Message.Interpreter do
   end
 
   if Code.ensure_loaded?(Cldr.Unit) do
+    defp map_unit_options(cldr_opts, func_opts) do
+      case func_opts[:unitDisplay] do
+        "long" -> Keyword.put(cldr_opts, :style, :long)
+        "short" -> Keyword.put(cldr_opts, :style, :short)
+        "narrow" -> Keyword.put(cldr_opts, :style, :narrow)
+        _other -> cldr_opts
+      end
+    end
+
     defp format_with_function("unit", %Cldr.Unit{} = unit_struct, func_opts, options) do
       unit_result =
         if func_opts[:unit] do
@@ -582,11 +730,119 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
-  defp build_cldr_options(options, func_opts) do
-    cldr_opts = resolve_locale_options(options)
+  if Code.ensure_loaded?(Cldr.Number) do
+    defp build_cldr_options(options, func_opts) do
+      cldr_opts = resolve_locale_options(options)
 
-    with {:ok, cldr_opts} <- map_func_options(cldr_opts, func_opts) do
-      {:ok, cldr_opts}
+      with {:ok, cldr_opts} <- map_func_options(cldr_opts, func_opts) do
+        {:ok, cldr_opts}
+      end
+    end
+
+    defp map_func_options(cldr_opts, func_opts) do
+      min_fd = get_integer_option(func_opts, :minimumFractionDigits)
+      max_fd = get_integer_option(func_opts, :maximumFractionDigits)
+      use_grouping = Map.get(func_opts, :useGrouping)
+
+      cldr_opts =
+        cldr_opts
+        |> map_fraction_digits(min_fd, max_fd, use_grouping)
+        |> map_use_grouping(use_grouping)
+
+      map_numbering_system(cldr_opts, func_opts)
+    end
+
+    defp map_numbering_system(cldr_opts, func_opts) do
+      case Map.get(func_opts, :numberingSystem) do
+        nil ->
+          {:ok, cldr_opts}
+
+        system ->
+          case safe_string_to_atom(system) do
+            {:ok, atom} -> {:ok, Keyword.put(cldr_opts, :number_system, atom)}
+            {:error, :not_existing} -> {:error, "unknown numbering system #{inspect(system)}"}
+          end
+      end
+    end
+
+    defp map_fraction_digits(cldr_opts, nil, nil, _use_grouping) do
+      cldr_opts
+    end
+
+    defp map_fraction_digits(cldr_opts, min_fd, nil, _use_grouping) do
+      Keyword.put(cldr_opts, :fractional_digits, min_fd)
+    end
+
+    defp map_fraction_digits(cldr_opts, min_fd, max_fd, use_grouping) do
+      min_fd = min_fd || 0
+      grouping = if use_grouping == "never", do: "", else: "#,#"
+      required = String.duplicate("0", min_fd)
+      optional = String.duplicate("#", max(max_fd - min_fd, 0))
+      decimal = if min_fd > 0 or max_fd > 0, do: ".", else: ""
+      format = "#{grouping}#0#{decimal}#{required}#{optional}"
+      Keyword.put(cldr_opts, :format, format)
+    end
+
+    defp map_use_grouping(cldr_opts, use_grouping) do
+      case use_grouping do
+        "never" ->
+          if Keyword.has_key?(cldr_opts, :format) do
+            cldr_opts
+          else
+            Keyword.put(cldr_opts, :format, "##0.#")
+          end
+
+        "min2" ->
+          Keyword.put(cldr_opts, :minimum_grouping_digits, 2)
+
+        _ ->
+          cldr_opts
+      end
+    end
+
+    defp get_integer_option(func_opts, key) do
+      case Map.get(func_opts, key) do
+        nil ->
+          nil
+
+        value when is_integer(value) ->
+          value
+
+        value when is_float(value) ->
+          round(value)
+
+        value when is_binary(value) ->
+          case Integer.parse(value) do
+            {int, ""} -> int
+            _ -> nil
+          end
+
+        _ ->
+          nil
+      end
+    end
+
+    defp map_currency_options(cldr_opts, func_opts) do
+      cldr_opts = Keyword.put(cldr_opts, :format, :currency)
+
+      cldr_opts =
+        if currency = func_opts[:currency] do
+          Keyword.put(cldr_opts, :currency, currency)
+        else
+          cldr_opts
+        end
+
+      cldr_opts =
+        case func_opts[:currencyDisplay] do
+          "narrowSymbol" -> Keyword.put(cldr_opts, :currency_symbol, :narrow)
+          "code" -> Keyword.put(cldr_opts, :currency_symbol, :iso)
+          _other -> cldr_opts
+        end
+
+      case func_opts[:currencySign] do
+        "accounting" -> Keyword.put(cldr_opts, :format, :accounting)
+        _other -> cldr_opts
+      end
     end
   end
 
@@ -611,97 +867,6 @@ defmodule Localize.Message.Interpreter do
 
       backend ->
         Keyword.put(opts, :backend, backend)
-    end
-  end
-
-  defp map_func_options(cldr_opts, func_opts) do
-    min_fd = get_integer_option(func_opts, :minimumFractionDigits)
-    max_fd = get_integer_option(func_opts, :maximumFractionDigits)
-    use_grouping = Map.get(func_opts, :useGrouping)
-
-    cldr_opts =
-      cldr_opts
-      |> map_fraction_digits(min_fd, max_fd, use_grouping)
-      |> map_use_grouping(use_grouping)
-
-    map_numbering_system(cldr_opts, func_opts)
-  end
-
-  defp map_numbering_system(cldr_opts, func_opts) do
-    case Map.get(func_opts, :numberingSystem) do
-      nil ->
-        {:ok, cldr_opts}
-
-      system ->
-        case safe_string_to_atom(system) do
-          {:ok, atom} -> {:ok, Keyword.put(cldr_opts, :number_system, atom)}
-          {:error, :not_existing} -> {:error, "unknown numbering system #{inspect(system)}"}
-        end
-    end
-  end
-
-  defp map_fraction_digits(cldr_opts, nil, nil, _use_grouping) do
-    cldr_opts
-  end
-
-  defp map_fraction_digits(cldr_opts, min_fd, nil, _use_grouping) do
-    Keyword.put(cldr_opts, :fractional_digits, min_fd)
-  end
-
-  defp map_fraction_digits(cldr_opts, min_fd, max_fd, use_grouping) do
-    min_fd = min_fd || 0
-    grouping = if use_grouping == "never", do: "", else: "#,#"
-    required = String.duplicate("0", min_fd)
-    optional = String.duplicate("#", max(max_fd - min_fd, 0))
-    decimal = if min_fd > 0 or max_fd > 0, do: ".", else: ""
-    format = "#{grouping}#0#{decimal}#{required}#{optional}"
-    Keyword.put(cldr_opts, :format, format)
-  end
-
-  defp map_use_grouping(cldr_opts, use_grouping) do
-    case use_grouping do
-      "never" ->
-        if Keyword.has_key?(cldr_opts, :format) do
-          cldr_opts
-        else
-          Keyword.put(cldr_opts, :format, "##0.#")
-        end
-
-      "min2" ->
-        Keyword.put(cldr_opts, :minimum_grouping_digits, 2)
-
-      _ ->
-        cldr_opts
-    end
-  end
-
-  defp get_integer_option(func_opts, key) do
-    case Map.get(func_opts, key) do
-      nil ->
-        nil
-
-      value when is_integer(value) ->
-        value
-
-      value when is_float(value) ->
-        round(value)
-
-      value when is_binary(value) ->
-        case Integer.parse(value) do
-          {int, ""} -> int
-          _ -> nil
-        end
-
-      _ ->
-        nil
-    end
-  end
-
-  defp format_number(number, cldr_opts) do
-    if Code.ensure_loaded?(Cldr.Number) do
-      Cldr.Number.to_string(number, cldr_opts)
-    else
-      {:ok, to_string_value(number)}
     end
   end
 
@@ -737,170 +902,6 @@ defmodule Localize.Message.Interpreter do
           _ -> str
         end
     end
-  end
-
-  defp parse_date_style(style) when is_binary(style) do
-    case style do
-      "short" -> :short
-      "medium" -> :medium
-      "long" -> :long
-      "full" -> :full
-      other -> other
-    end
-  end
-
-  # ── Unit option mapping ─────────────────────────────────────────
-
-  defp map_unit_options(cldr_opts, func_opts) do
-    case func_opts[:unitDisplay] do
-      "long" -> Keyword.put(cldr_opts, :style, :long)
-      "short" -> Keyword.put(cldr_opts, :style, :short)
-      "narrow" -> Keyword.put(cldr_opts, :style, :narrow)
-      _other -> cldr_opts
-    end
-  end
-
-  # ── Currency option mapping ──────────────────────────────────────
-
-  defp map_currency_options(cldr_opts, func_opts) do
-    cldr_opts = Keyword.put(cldr_opts, :format, :currency)
-
-    cldr_opts =
-      if currency = func_opts[:currency] do
-        Keyword.put(cldr_opts, :currency, currency)
-      else
-        cldr_opts
-      end
-
-    cldr_opts =
-      case func_opts[:currencyDisplay] do
-        "narrowSymbol" -> Keyword.put(cldr_opts, :currency_symbol, :narrow)
-        "code" -> Keyword.put(cldr_opts, :currency_symbol, :iso)
-        _other -> cldr_opts
-      end
-
-    case func_opts[:currencySign] do
-      "accounting" -> Keyword.put(cldr_opts, :format, :accounting)
-      _other -> cldr_opts
-    end
-  end
-
-  # ── Date/time option mapping ─────────────────────────────────────
-
-  defp map_date_options(cldr_opts, func_opts, format_key) do
-    style =
-      func_opts[:style] || func_opts[:length] || func_opts[:dateStyle] || func_opts[:dateLength]
-
-    if style do
-      Keyword.put(cldr_opts, format_key, parse_date_style(style))
-    else
-      cldr_opts
-    end
-  end
-
-  defp map_time_options(cldr_opts, func_opts, format_key) do
-    style =
-      func_opts[:style] || func_opts[:precision] || func_opts[:timeStyle] ||
-        func_opts[:timePrecision]
-
-    if style do
-      Keyword.put(cldr_opts, format_key, parse_time_style(style))
-    else
-      cldr_opts
-    end
-  end
-
-  defp map_datetime_options(cldr_opts, func_opts) do
-    if style = func_opts[:style] do
-      parsed = parse_date_style(style)
-      cldr_opts |> Keyword.put(:date_format, parsed) |> Keyword.put(:time_format, parsed)
-    else
-      cldr_opts
-      |> map_date_options(func_opts, :date_format)
-      |> map_time_options(func_opts, :time_format)
-    end
-  end
-
-  defp parse_time_style(style) when is_binary(style) do
-    case style do
-      "short" -> :short
-      "medium" -> :medium
-      "long" -> :long
-      "full" -> :full
-      "second" -> :medium
-      "minute" -> :short
-      other -> other
-    end
-  end
-
-  # ── Date/time value parsing ──────────────────────────────────────
-
-  defp ensure_date(value) when is_binary(value) do
-    case Date.from_iso8601(value) do
-      {:ok, date} ->
-        {:ok, date}
-
-      {:error, _} ->
-        case NaiveDateTime.from_iso8601(value) do
-          {:ok, ndt} ->
-            {:ok, NaiveDateTime.to_date(ndt)}
-
-          {:error, _} ->
-            case DateTime.from_iso8601(value) do
-              {:ok, dt, _offset} ->
-                {:ok, DateTime.to_date(dt)}
-
-              {:error, _} ->
-                {:error,
-                 "cannot parse #{inspect(value)} as a date. " <>
-                   "Expected an ISO 8601 date string."}
-            end
-        end
-    end
-  end
-
-  defp ensure_date(%Date{} = value), do: {:ok, value}
-  defp ensure_date(%NaiveDateTime{} = value), do: {:ok, NaiveDateTime.to_date(value)}
-  defp ensure_date(%DateTime{} = value), do: {:ok, DateTime.to_date(value)}
-
-  defp ensure_date(value) do
-    {:error,
-     "cannot format #{inspect(value)} as a date. " <>
-       "Expected a Date, NaiveDateTime, DateTime, or ISO 8601 date string."}
-  end
-
-  defp ensure_datetime(value) when is_binary(value) do
-    case NaiveDateTime.from_iso8601(value) do
-      {:ok, ndt} ->
-        {:ok, ndt}
-
-      {:error, _} ->
-        case DateTime.from_iso8601(value) do
-          {:ok, dt, _offset} ->
-            {:ok, dt}
-
-          {:error, _} ->
-            case Date.from_iso8601(value) do
-              {:ok, date} ->
-                {:ok, NaiveDateTime.new!(date, ~T[00:00:00])}
-
-              {:error, _} ->
-                {:error,
-                 "cannot parse #{inspect(value)} as a datetime. " <>
-                   "Expected an ISO 8601 datetime string."}
-            end
-        end
-    end
-  end
-
-  defp ensure_datetime(%NaiveDateTime{} = value), do: {:ok, value}
-  defp ensure_datetime(%DateTime{} = value), do: {:ok, value}
-  defp ensure_datetime(%Date{} = value), do: {:ok, NaiveDateTime.new!(value, ~T[00:00:00])}
-
-  defp ensure_datetime(value) do
-    {:error,
-     "cannot format #{inspect(value)} as a datetime. " <>
-       "Expected a NaiveDateTime, DateTime, Date, or ISO 8601 datetime string."}
   end
 
   defp to_string_value(nil), do: ""

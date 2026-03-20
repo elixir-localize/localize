@@ -1,0 +1,71 @@
+defmodule Localize.Gettext.InterpolationTest do
+  use ExUnit.Case, async: true
+
+  alias Localize.Gettext.Interpolation
+
+  describe "runtime_interpolate/2" do
+    test "formats a simple MF2 message with bindings" do
+      assert {:ok, "Hello World!"} =
+               Interpolation.runtime_interpolate(
+                 "{{Hello {$name}!}}",
+                 %{name: "World"}
+               )
+    end
+
+    test "formats a message with no bindings" do
+      assert {:ok, "Hello!"} =
+               Interpolation.runtime_interpolate("{{Hello!}}", %{})
+    end
+
+    test "returns missing_bindings when bindings are absent" do
+      result = Interpolation.runtime_interpolate("{{Hello {$name}!}}", %{})
+
+      assert {:missing_bindings, _message, missing} = result
+      assert :name in missing
+    end
+
+    test "converts atom keys to string keys for MF2" do
+      assert {:ok, "Count: 42"} =
+               Interpolation.runtime_interpolate(
+                 "{{Count: {$count}}}",
+                 %{count: 42}
+               )
+    end
+  end
+
+  describe "do_interpolate/2 (pre-parsed AST)" do
+    test "formats a pre-parsed AST" do
+      {:ok, parsed} = Localize.Message.Parser.parse("{{Hello {$name}!}}")
+
+      assert {:ok, "Hello World!"} =
+               Interpolation.do_interpolate(parsed, %{name: "World"})
+    end
+
+    test "returns missing_bindings for pre-parsed AST with missing bindings" do
+      {:ok, parsed} = Localize.Message.Parser.parse("{{Hello {$name}!}}")
+
+      assert {:missing_bindings, _partial, missing} =
+               Interpolation.do_interpolate(parsed, %{})
+
+      assert :name in missing
+    end
+  end
+
+  describe "message_format/0" do
+    test "returns icu-format" do
+      assert "icu-format" = Interpolation.message_format()
+    end
+  end
+
+  describe "expand_to_binary!/2" do
+    test "expands a binary term" do
+      assert "hello" = Interpolation.expand_to_binary!("hello", __ENV__)
+    end
+
+    test "raises for non-binary terms" do
+      assert_raise ArgumentError, ~r/expand to strings at compile-time/, fn ->
+        Interpolation.expand_to_binary!({:foo, [], nil}, __ENV__)
+      end
+    end
+  end
+end
