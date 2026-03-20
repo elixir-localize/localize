@@ -274,6 +274,27 @@ defmodule Localize.Locale.Provider do
     load_data("plural_ranges.etf")
   end
 
+  @doc """
+  Returns a sorted list of all known ISO 4217 currency code atoms.
+
+  """
+  @spec currency_codes() :: [atom()]
+  def currency_codes do
+    load_data("currency_codes.etf")
+  end
+
+  @doc """
+  Returns a map of territory atoms to their currency history.
+
+  Each territory maps to a map of currency code atoms to date
+  information with `:from`, `:to`, and `:tender` keys.
+
+  """
+  @spec territory_currencies() :: %{atom() => map()}
+  def territory_currencies do
+    load_data("territory_currencies.etf")
+  end
+
   defp load_data(filename) do
     cldr_dir()
     |> Path.join(filename)

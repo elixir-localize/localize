@@ -104,13 +104,39 @@ defmodule Localize.Nif do
   @spec mf2_format(String.t(), String.t(), map() | String.t()) ::
           {:ok, String.t()} | {:error, String.t()}
   def mf2_format(message, locale \\ "en", args \\ %{}) when is_binary(message) do
-    args_json =
+    args_map =
       case args do
-        json when is_binary(json) -> json
-        map when is_map(map) -> IO.iodata_to_binary(:json.encode(map))
+        json when is_binary(json) -> :json.decode(json)
+        map when is_map(map) -> map
       end
 
-    nif_mf2_format(message, locale, args_json)
+    case unbound_variables(message, args_map) do
+      [] ->
+        args_json = IO.iodata_to_binary(:json.encode(args_map))
+        nif_mf2_format(message, locale, args_json)
+
+      unbound ->
+        {:error, Localize.BindError.exception(unbound: unbound)}
+    end
+  end
+
+  @variable_pattern ~r/\$([a-zA-Z_][a-zA-Z0-9_]*)/
+  @local_declaration_pattern ~r/\.(?:local|input)\s+\$([a-zA-Z_][a-zA-Z0-9_]*)/
+
+  defp unbound_variables(message, args) do
+    declared =
+      @local_declaration_pattern
+      |> Regex.scan(message)
+      |> Enum.map(fn [_match, name] -> name end)
+      |> MapSet.new()
+
+    @variable_pattern
+    |> Regex.scan(message)
+    |> Enum.map(fn [_match, name] -> name end)
+    |> Enum.uniq()
+    |> Enum.reject(fn name ->
+      Map.has_key?(args, name) || MapSet.member?(declared, name)
+    end)
   end
 
   # ── Collation ───────────────────────────────────────────────────

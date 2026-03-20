@@ -7,7 +7,8 @@ defmodule Localize.Application do
   def start(_type \\ :normal, _args \\ []) do
     children = [
       Localize.Collation.Table,
-      Localize.Collation.Han
+      Localize.Collation.Han,
+      Localize.Currency.Store
     ]
 
     options = [strategy: :one_for_one, name: Localize.Supervisor]
