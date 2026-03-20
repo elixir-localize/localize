@@ -2,13 +2,14 @@ defmodule Localize.Nif do
   @moduledoc """
   Optional NIF interface to ICU4C for high-performance locale operations.
 
-  This module provides the NIF lifecycle management and availability
-  checking. NIF functions for units, numbers, dates, and other
-  locale-aware operations will be added here as the library grows.
+  This module provides NIF bindings for ICU4C functions including
+  MessageFormat 2.0 parsing and formatting. Additional functions for
+  number, date/time, and unit formatting will be added as the library
+  grows.
 
   The NIF is opt-in and requires:
 
-  1. ICU system libraries installed (`libicu` or `icucore` on macOS).
+  1. ICU system libraries installed (ICU 75+ with MF2 support).
 
   2. The `elixir_make` dependency.
 
@@ -53,20 +54,67 @@ defmodule Localize.Nif do
   """
   @spec available?() :: boolean()
   def available? do
-    nif_loaded?()
+    match?({:ok, _}, nif_mf2_validate(""))
+  rescue
+    _ -> false
   end
 
-  defp nif_loaded? do
-    # The NIF is loaded if :erlang.load_nif/2 succeeded during @on_load.
-    # We check by verifying that the module's NIF flag is set.
-    # Since we have no NIF functions yet, we probe by attempting to
-    # re-load and checking the error reason.
-    path = :code.priv_dir(:localize) ++ ~c"/localize_nif"
+  # ── MessageFormat 2 ─────────────────────────────────────────────
 
-    case :erlang.load_nif(path, 0) do
-      {:error, {:reload, _}} -> true
-      {:error, {:upgrade, _}} -> true
-      _ -> false
-    end
+  @doc """
+  Validates a MessageFormat 2 message string using ICU's parser.
+
+  ### Arguments
+
+  * `message` is an MF2 message string.
+
+  ### Returns
+
+  * `{:ok, normalized_pattern}` if the message is valid.
+
+  * `{:error, reason}` if the message is invalid.
+
+  """
+  @spec mf2_validate(String.t()) :: {:ok, String.t()} | {:error, String.t()}
+  def mf2_validate(message) when is_binary(message) do
+    nif_mf2_validate(message)
+  end
+
+  @doc """
+  Formats a MessageFormat 2 message string using ICU.
+
+  Arguments are passed as a map of `%{name => value}` and
+  encoded to JSON for the NIF.
+
+  ### Arguments
+
+  * `message` is an MF2 message string.
+
+  * `locale` is a locale identifier string. The default is `"en"`.
+
+  * `args` is a map of variable bindings. The default is `%{}`.
+
+  ### Returns
+
+  * `{:ok, formatted_string}` on success.
+
+  * `{:error, reason}` on failure.
+
+  """
+  @spec mf2_format(String.t(), String.t(), map()) :: {:ok, String.t()} | {:error, String.t()}
+  def mf2_format(message, locale \\ "en", args \\ %{}) when is_binary(message) do
+    nif_mf2_format(message, locale, :json.encode(args))
+  end
+
+  # ── NIF stubs ───────────────────────────────────────────────────
+
+  @dialyzer {:no_return, nif_mf2_validate: 1}
+  defp nif_mf2_validate(_message) do
+    :erlang.nif_error(:nif_library_not_loaded)
+  end
+
+  @dialyzer {:no_return, nif_mf2_format: 3}
+  defp nif_mf2_format(_message, _locale, _args_json) do
+    :erlang.nif_error(:nif_library_not_loaded)
   end
 end

@@ -5,7 +5,7 @@ PRIVDIR=./priv
 NIF_DIR=c_src
 NIF_ENV=c_src/env.mk
 
-NIF_SOURCES=$(NIF_DIR)/localize_nif.c
+NIF_SOURCES=$(NIF_DIR)/localize_nif.cpp
 NIF_OBJS=$(NIF_DIR)/localize_nif.o
 NIF_SO=$(PRIVDIR)/localize_nif.so
 
@@ -14,27 +14,26 @@ UNAME_ARCH := $(shell uname -p)
 
 ifeq ($(UNAME_SYS), Darwin)
 	ifeq ($(UNAME_ARCH), arm)
-		CC ?= cc
-		CFLAGS = -O3 -std=c99 -arch arm64 -Wall -Wmissing-prototypes -DDARWIN
+		CXX ?= c++
+		CXXFLAGS = -O3 -std=c++17 -arch arm64 -Wall -DDARWIN
 		LDFLAGS = -arch arm64 -flat_namespace -undefined dynamic_lookup
 	else
-		CC ?= cc
-		CFLAGS = -O3 -std=c99 -arch x86_64 -Wall -Wmissing-prototypes -DDARWIN
+		CXX ?= c++
+		CXXFLAGS = -O3 -std=c++17 -arch x86_64 -Wall -DDARWIN
 		LDFLAGS = -arch x86_64 -flat_namespace -undefined dynamic_lookup
 	endif
 else ifeq ($(UNAME_SYS), FreeBSD)
-	CC ?= cc
-	CFLAGS ?= -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
+	CXX ?= c++
+	CXXFLAGS ?= -O3 -std=c++17 -finline-functions -Wall
 else ifeq ($(UNAME_SYS), Linux)
-	CC ?= gcc
-	CFLAGS ?= -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
+	CXX ?= g++
+	CXXFLAGS ?= -O3 -std=c++17 -finline-functions -Wall
 endif
 
-CFLAGS += -fPIC -I$(ERTS_INCLUDE_DIR) -I$(ERL_INTERFACE_INCLUDE_DIR)
+CXXFLAGS += -fPIC -I$(ERTS_INCLUDE_DIR) -I$(ERL_INTERFACE_INCLUDE_DIR)
 
 # On OTP 23 and later, liberl_interface.a doesn't exist and
 # isn't required
-
 ifneq ("$(wildcard $(ERL_INTERFACE_LIB_DIR)/liberl_interface.a)","")
     LDLIBS += -L$(ERL_INTERFACE_LIB_DIR) -lerl_interface -lei
 else
@@ -43,18 +42,31 @@ endif
 
 LDFLAGS += -shared
 
-ICU_CFLAGS = $(shell pkg-config --cflags icu-uc icu-io --silence-errors)
-ICU_LIBS = $(shell pkg-config --libs icu-uc icu-io --silence-errors)
+# ICU detection: MF2 requires icu-uc and icu-i18n
+# On macOS with Homebrew, we need to set PKG_CONFIG_PATH since icu4c is keg-only
+ifeq ($(UNAME_SYS), Darwin)
+  HOMEBREW_ICU_DIR := $(shell [ -d /usr/local/opt/icu4c/lib/pkgconfig ] && echo /usr/local/opt/icu4c/lib/pkgconfig || ([ -d /opt/homebrew/opt/icu4c/lib/pkgconfig ] && echo /opt/homebrew/opt/icu4c/lib/pkgconfig || echo ""))
+  ifneq ($(HOMEBREW_ICU_DIR),)
+    export PKG_CONFIG_PATH := $(HOMEBREW_ICU_DIR):$(PKG_CONFIG_PATH)
+  endif
+endif
+
+ICU_CFLAGS = $(shell pkg-config --cflags icu-uc icu-i18n 2>/dev/null)
+ICU_LIBS = $(shell pkg-config --libs icu-uc icu-i18n 2>/dev/null)
 
 ifeq ($(ICU_LIBS),)
   ifeq ($(UNAME_SYS), Darwin)
-		ICU_CFLAGS = -I$(BASEDIR)/c_src/platform/osx/icu
-		ICU_LIBS = -lpthread -lm -licucore -lstdc++
-	endif
+    # Fallback: try to find Homebrew ICU directly
+    HOMEBREW_ICU := $(shell [ -d /usr/local/opt/icu4c ] && echo /usr/local/opt/icu4c || ([ -d /opt/homebrew/opt/icu4c ] && echo /opt/homebrew/opt/icu4c || echo ""))
+    ifneq ($(HOMEBREW_ICU),)
+      ICU_CFLAGS = -I$(HOMEBREW_ICU)/include
+      ICU_LIBS = -L$(HOMEBREW_ICU)/lib -licuuc -licui18n -licudata -lstdc++
+    endif
+  endif
 endif
 
 ifeq ($(ICU_LIBS),)
-  $(error ICU_LIBS not set, is pkg-config installed?)
+  $(error ICU libraries not found. Install ICU 75+ with MF2 support. On macOS: brew install icu4c)
 endif
 
 all: $(NIF_ENV) $(NIF_SO)
@@ -67,10 +79,10 @@ distclean: clean
 
 $(NIF_SO): $(NIF_OBJS)
 	@mkdir -p $(PRIVDIR)
-	$(CC) $(NIF_OBJS) $(LDFLAGS) $(LDLIBS) $(ICU_LIBS) -o $(NIF_SO)
+	$(CXX) $(NIF_OBJS) $(LDFLAGS) $(LDLIBS) $(ICU_LIBS) -o $(NIF_SO)
 
-%.o: %.c
-	@$(CC) -c $(CFLAGS) $(CPPFLAGS) $(ICU_CFLAGS) $< -o $@
+%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $(ICU_CFLAGS) $< -o $@
 
 $(NIF_ENV):
 	@$(ERL) -eval "file:write_file(\"$(NIF_ENV)\", \
