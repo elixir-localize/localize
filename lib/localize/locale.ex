@@ -234,4 +234,151 @@ defmodule Localize.Locale do
 
   defp append_variants(parts, []), do: parts
   defp append_variants(parts, variants), do: parts ++ Enum.map(variants, &to_string/1)
+
+  # ── Provider API ───────────────────────────────────────────────
+
+  @doc """
+  Returns the default locale data provider module.
+
+  ### Returns
+
+  * The module implementing `Localize.Locale.Provider`.
+
+  """
+  @spec default_provider() :: module()
+  def default_provider do
+    Localize.Locale.Provider.PersistentTerm
+  end
+
+  @doc """
+  Loads locale data for the given locale.
+
+  Delegates to the configured provider module to find and retrieve
+  locale data.
+
+  ### Arguments
+
+  * `locale` is a locale identifier atom or a `t:Localize.LanguageTag.t/0`.
+
+  * `options` is a keyword list of options. The default is `[]`.
+
+  ### Options
+
+  * `:provider` is the module implementing `Localize.Locale.Provider`
+    to use. The default is `default_provider/0`.
+
+  ### Returns
+
+  * `{:ok, locale_data}` where `locale_data` is a map of the locale's
+    CLDR data.
+
+  * `{:error, Localize.UnknownLocaleError.t()}` if the locale is not
+    recognized.
+
+  """
+  @spec load(Provider.locale(), Keyword.t()) ::
+          {:ok, map()} | {:error, Exception.t()}
+  def load(locale, options \\ []) do
+    {provider, _options} = Keyword.pop(options, :provider, default_provider())
+    provider.load(locale)
+  end
+
+  @doc """
+  Stores locale data in the provider's backing store.
+
+  Delegates to the configured provider module to persist locale data.
+
+  ### Arguments
+
+  * `locale_id` is a locale identifier atom.
+
+  * `locale_data` is a map of locale data to store.
+
+  * `options` is a keyword list of options. The default is `[]`.
+
+  ### Options
+
+  * `:provider` is the module implementing `Localize.Locale.Provider`
+    to use. The default is `default_provider/0`.
+
+  ### Returns
+
+  * `:ok` on success.
+
+  * `{:error, reason}` on failure.
+
+  """
+  @spec store(locale_id(), map(), Keyword.t()) ::
+          :ok | {:error, term()}
+  def store(locale_id, locale_data, options \\ []) do
+    {provider, _options} = Keyword.pop(options, :provider, default_provider())
+    provider.store(locale_id, locale_data)
+  end
+
+  @doc """
+  Returns whether locale data has been loaded and is available.
+
+  Delegates to the configured provider module to check availability.
+
+  ### Arguments
+
+  * `locale` is a locale identifier atom or a `t:Localize.LanguageTag.t/0`.
+
+  * `options` is a keyword list of options. The default is `[]`.
+
+  ### Options
+
+  * `:provider` is the module implementing `Localize.Locale.Provider`
+    to use. The default is `default_provider/0`.
+
+  ### Returns
+
+  * `true` if the locale data has been loaded and stored.
+
+  * `false` otherwise.
+
+  """
+  @spec loaded?(Provider.locale(), Keyword.t()) :: boolean()
+  def loaded?(locale, options \\ []) do
+    {provider, _options} = Keyword.pop(options, :provider, default_provider())
+    provider.loaded?(locale)
+  end
+
+  @doc """
+  Retrieves a value from locale data by following a list of access keys.
+
+  Delegates to the configured provider module to navigate the locale
+  data map.
+
+  ### Arguments
+
+  * `locale` is a locale identifier atom or a `t:Localize.LanguageTag.t/0`.
+
+  * `keys` is a list of keys to traverse in the locale data map.
+
+  * `options` is a keyword list of options. The default is `[]`.
+
+  ### Options
+
+  * `:provider` is the module implementing `Localize.Locale.Provider`
+    to use. The default is `default_provider/0`.
+
+  * `:fallback` is a boolean. When `true`, if the requested key path
+    is not found in the given locale, parent locales are searched
+    according to the CLDR locale inheritance chain. The default is
+    `false`.
+
+  ### Returns
+
+  * `{:ok, value}` if the key path resolves to a value.
+
+  * `{:error, reason}` if the key path cannot be resolved.
+
+  """
+  @spec get(Provider.locale(), list(), Keyword.t()) ::
+          {:ok, term()} | {:error, term()}
+  def get(locale, keys, options \\ []) do
+    {provider, options} = Keyword.pop(options, :provider, default_provider())
+    provider.get(locale, keys, options)
+  end
 end

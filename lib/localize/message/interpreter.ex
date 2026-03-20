@@ -8,6 +8,8 @@ defmodule Localize.Message.Interpreter do
 
   """
 
+  # ── Public API ─────────────────────────────────────────────────
+
   @doc """
   Formats a parsed MF2 AST with the given bindings.
 
@@ -45,6 +47,8 @@ defmodule Localize.Message.Interpreter do
     bindings = normalize_binding_keys(bindings)
     do_format_list(ast, bindings, options)
   end
+
+  # ── Top-level AST dispatch ────────────────────────────────────
 
   defp do_format_list([{:complex, _, _} = complex], bindings, options) do
     do_format_list(complex, bindings, options)
@@ -97,6 +101,51 @@ defmodule Localize.Message.Interpreter do
 
   defp do_format_list({:match, selectors, variants}, bindings, options) do
     evaluate_match(selectors, variants, bindings, options, [], %{})
+  end
+
+  # ── Declaration resolution ───────────────────────────────────
+
+  defp resolve_declarations(declarations, bindings, options) do
+    Enum.reduce_while(declarations, {bindings, [], %{}}, fn decl,
+                                                            {bindings_acc, bound_acc, sel_meta} ->
+      case decl do
+        {:input, {:expression, {:variable, name}, func, _attrs}} ->
+          case resolve_variable(name, bindings_acc) do
+            {:ok, value} ->
+              case apply_function(value, func, Keyword.put(options, :bindings, bindings_acc)) do
+                {:ok, formatted} ->
+                  sel_value = selector_value(value, func)
+                  sel_meta = Map.put(sel_meta, name, {sel_value, func})
+                  bindings_acc = Map.put(bindings_acc, name, formatted)
+                  {:cont, {bindings_acc, [name | bound_acc], sel_meta}}
+
+                {:error, reason} ->
+                  {:halt, {:format_error, format_error_reason(reason)}}
+              end
+
+            :error ->
+              {:cont, {bindings_acc, bound_acc, sel_meta}}
+          end
+
+        {:local, {:variable, name}, {:expression, operand, func, _attrs}} ->
+          case resolve_operand(operand, bindings_acc) do
+            {:ok, value, _} ->
+              case apply_function(value, func, Keyword.put(options, :bindings, bindings_acc)) do
+                {:ok, formatted} ->
+                  sel_value = selector_value(value, func)
+                  sel_meta = Map.put(sel_meta, name, {sel_value, func})
+                  bindings_acc = Map.put(bindings_acc, name, formatted)
+                  {:cont, {bindings_acc, [name | bound_acc], sel_meta}}
+
+                {:error, reason} ->
+                  {:halt, {:format_error, format_error_reason(reason)}}
+              end
+
+            {:unbound, _} ->
+              {:cont, {bindings_acc, bound_acc, sel_meta}}
+          end
+      end
+    end)
   end
 
   # ── Pattern formatting ──────────────────────────────────────────
@@ -169,9 +218,6 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
-  defp format_error_reason({_module, message}) when is_binary(message), do: message
-  defp format_error_reason(reason) when is_binary(reason), do: reason
-
   defp resolve_operand(nil, _bindings) do
     {:ok, nil, []}
   end
@@ -191,28 +237,7 @@ defmodule Localize.Message.Interpreter do
     {:ok, value, []}
   end
 
-  defp resolve_variable(name, bindings) when is_map(bindings) do
-    cond do
-      Map.has_key?(bindings, name) ->
-        {:ok, Map.get(bindings, name)}
-
-      atom_key_exists?(name) && Map.has_key?(bindings, String.to_existing_atom(name)) ->
-        {:ok, Map.get(bindings, String.to_existing_atom(name))}
-
-      true ->
-        :error
-    end
-  end
-
-  defp atom_key_exists?(name) do
-    match?({:ok, _}, safe_string_to_atom(name))
-  end
-
-  defp safe_string_to_atom(name) do
-    {:ok, String.to_existing_atom(name)}
-  rescue
-    ArgumentError -> {:error, :not_existing}
-  end
+  # ── Function dispatch ──────────────────────────────────────────
 
   defp apply_function(value, nil, _options) do
     {:ok, to_string_value(value)}
@@ -224,316 +249,116 @@ defmodule Localize.Message.Interpreter do
     format_with_function(name, value, func_opts, options)
   end
 
-  if Code.ensure_loaded?(Cldr.Number) do
-    defp format_with_function("number", value, func_opts, options) do
-      with {:ok, number} <- ensure_number(value),
-           {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
-        Cldr.Number.to_string(number, cldr_opts)
-      end
-    end
+  # ── Number formatting ──────────────────────────────────────────
 
-    defp format_with_function("integer", value, func_opts, options) do
-      with {:ok, number} <- ensure_number(value),
-           {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
-        Cldr.Number.to_string(trunc(number), cldr_opts)
-      end
-    end
-
-    defp format_with_function("percent", value, func_opts, options) do
-      with {:ok, number} <- ensure_number(value),
-           {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
-        cldr_opts = Keyword.put(cldr_opts, :format, :percent)
-        Cldr.Number.to_string(number, cldr_opts)
-      end
-    end
-
-    defp format_with_function("currency", value, func_opts, options) do
-      with {:ok, number} <- ensure_number(value),
-           {:ok, cldr_opts} <- build_cldr_options(options, func_opts) do
-        cldr_opts = map_currency_options(cldr_opts, func_opts)
-        Cldr.Number.to_string(number, cldr_opts)
-      end
-    end
-  else
-    defp format_with_function(function, value, _func_opts, _options)
-         when function in ["number", "integer", "percent", "currency"] do
-      with {:ok, number} <- ensure_number(value) do
-        formatted =
-          case function do
-            "integer" -> Integer.to_string(trunc(number))
-            _ -> to_string_value(number)
-          end
-
-        {:ok, formatted}
-      end
+  defp format_with_function("number", value, func_opts, options) do
+    with {:ok, number} <- ensure_number(value),
+         {:ok, localize_opts} <- build_localize_options(options, func_opts) do
+      Localize.Number.to_string(number, localize_opts)
     end
   end
+
+  defp format_with_function("integer", value, func_opts, options) do
+    with {:ok, number} <- ensure_number(value),
+         {:ok, localize_opts} <- build_localize_options(options, func_opts) do
+      Localize.Number.to_string(trunc(number), localize_opts)
+    end
+  end
+
+  defp format_with_function("percent", value, func_opts, options) do
+    with {:ok, number} <- ensure_number(value),
+         {:ok, localize_opts} <- build_localize_options(options, func_opts) do
+      localize_opts = Keyword.put(localize_opts, :format, :percent)
+      Localize.Number.to_string(number, localize_opts)
+    end
+  end
+
+  defp format_with_function("currency", value, func_opts, options) do
+    with {:ok, number} <- ensure_number(value),
+         {:ok, localize_opts} <- build_localize_options(options, func_opts) do
+      localize_opts = map_currency_options(localize_opts, func_opts)
+      Localize.Number.to_string(number, localize_opts)
+    end
+  end
+
+  # ── String formatting ──────────────────────────────────────────
 
   defp format_with_function("string", value, _func_opts, _options) do
     {:ok, to_string_value(value)}
   end
 
-  if Code.ensure_loaded?(Cldr.DateTime) do
-    defp format_with_function("date", value, func_opts, options) do
-      with {:ok, value} <- ensure_date(value) do
-        cldr_opts = resolve_locale_options(options)
-        cldr_opts = map_date_options(cldr_opts, func_opts, :format)
-        Cldr.Date.to_string(value, cldr_opts)
-      end
-    end
+  # ── Date/time formatting ───────────────────────────────────────
 
-    defp format_with_function("time", %Time{} = value, func_opts, options) do
-      cldr_opts = resolve_locale_options(options)
-      cldr_opts = map_time_options(cldr_opts, func_opts, :format)
-      Cldr.Time.to_string(value, cldr_opts)
-    end
-
-    defp format_with_function("time", value, func_opts, options) do
-      with {:ok, value} <- ensure_datetime(value) do
-        cldr_opts = resolve_locale_options(options)
-        cldr_opts = map_time_options(cldr_opts, func_opts, :format)
-        Cldr.Time.to_string(value, cldr_opts)
-      end
-    end
-
-    defp format_with_function("datetime", value, func_opts, options) do
-      with {:ok, value} <- ensure_datetime(value) do
-        cldr_opts = resolve_locale_options(options)
-        cldr_opts = map_datetime_options(cldr_opts, func_opts)
-        Cldr.DateTime.to_string(value, cldr_opts)
-      end
-    end
-
-    defp parse_date_style(style) when is_binary(style) do
-      case style do
-        "short" -> :short
-        "medium" -> :medium
-        "long" -> :long
-        "full" -> :full
-        other -> other
-      end
-    end
-
-    defp parse_time_style(style) when is_binary(style) do
-      case style do
-        "short" -> :short
-        "medium" -> :medium
-        "long" -> :long
-        "full" -> :full
-        "second" -> :medium
-        "minute" -> :short
-        other -> other
-      end
-    end
-
-    defp map_date_options(cldr_opts, func_opts, format_key) do
-      style =
-        func_opts[:style] || func_opts[:length] || func_opts[:dateStyle] || func_opts[:dateLength]
-
-      if style do
-        Keyword.put(cldr_opts, format_key, parse_date_style(style))
-      else
-        cldr_opts
-      end
-    end
-
-    defp map_time_options(cldr_opts, func_opts, format_key) do
-      style =
-        func_opts[:style] || func_opts[:precision] || func_opts[:timeStyle] ||
-          func_opts[:timePrecision]
-
-      if style do
-        Keyword.put(cldr_opts, format_key, parse_time_style(style))
-      else
-        cldr_opts
-      end
-    end
-
-    defp map_datetime_options(cldr_opts, func_opts) do
-      if style = func_opts[:style] do
-        parsed = parse_date_style(style)
-        cldr_opts |> Keyword.put(:date_format, parsed) |> Keyword.put(:time_format, parsed)
-      else
-        cldr_opts
-        |> map_date_options(func_opts, :date_format)
-        |> map_time_options(func_opts, :time_format)
-      end
-    end
-
-    defp ensure_date(value) when is_binary(value) do
-      case Date.from_iso8601(value) do
-        {:ok, date} ->
-          {:ok, date}
-
-        {:error, _} ->
-          case NaiveDateTime.from_iso8601(value) do
-            {:ok, ndt} ->
-              {:ok, NaiveDateTime.to_date(ndt)}
-
-            {:error, _} ->
-              case DateTime.from_iso8601(value) do
-                {:ok, dt, _offset} ->
-                  {:ok, DateTime.to_date(dt)}
-
-                {:error, _} ->
-                  {:error,
-                   "cannot parse #{inspect(value)} as a date. " <>
-                     "Expected an ISO 8601 date string."}
-              end
-          end
-      end
-    end
-
-    defp ensure_date(%Date{} = value), do: {:ok, value}
-    defp ensure_date(%NaiveDateTime{} = value), do: {:ok, NaiveDateTime.to_date(value)}
-    defp ensure_date(%DateTime{} = value), do: {:ok, DateTime.to_date(value)}
-
-    defp ensure_date(value) do
-      {:error,
-       "cannot format #{inspect(value)} as a date. " <>
-         "Expected a Date, NaiveDateTime, DateTime, or ISO 8601 date string."}
-    end
-
-    defp ensure_datetime(value) when is_binary(value) do
-      case NaiveDateTime.from_iso8601(value) do
-        {:ok, ndt} ->
-          {:ok, ndt}
-
-        {:error, _} ->
-          case DateTime.from_iso8601(value) do
-            {:ok, dt, _offset} ->
-              {:ok, dt}
-
-            {:error, _} ->
-              case Date.from_iso8601(value) do
-                {:ok, date} ->
-                  {:ok, NaiveDateTime.new!(date, ~T[00:00:00])}
-
-                {:error, _} ->
-                  {:error,
-                   "cannot parse #{inspect(value)} as a datetime. " <>
-                     "Expected an ISO 8601 datetime string."}
-              end
-          end
-      end
-    end
-
-    defp ensure_datetime(%NaiveDateTime{} = value), do: {:ok, value}
-    defp ensure_datetime(%DateTime{} = value), do: {:ok, value}
-    defp ensure_datetime(%Date{} = value), do: {:ok, NaiveDateTime.new!(value, ~T[00:00:00])}
-
-    defp ensure_datetime(value) do
-      {:error,
-       "cannot format #{inspect(value)} as a datetime. " <>
-         "Expected a NaiveDateTime, DateTime, Date, or ISO 8601 datetime string."}
-    end
-  else
-    defp format_with_function(function, _value, _func_opts, _options)
-         when function in ["date", "time", "datetime"] do
-      {:error,
-       "the :#{function} function requires the hex package `ex_cldr_dates_times` " <>
-         "to be configured in `mix.exs`."}
+  defp format_with_function("date", value, func_opts, options) do
+    with {:ok, value} <- ensure_date(value) do
+      localize_opts = resolve_locale_options(options)
+      localize_opts = map_date_options(localize_opts, func_opts, :format)
+      Localize.Date.to_string(value, localize_opts)
     end
   end
 
-  if Code.ensure_loaded?(Cldr.Unit) do
-    defp map_unit_options(cldr_opts, func_opts) do
-      case func_opts[:unitDisplay] do
-        "long" -> Keyword.put(cldr_opts, :style, :long)
-        "short" -> Keyword.put(cldr_opts, :style, :short)
-        "narrow" -> Keyword.put(cldr_opts, :style, :narrow)
-        _other -> cldr_opts
-      end
-    end
+  defp format_with_function("time", %Time{} = value, func_opts, options) do
+    localize_opts = resolve_locale_options(options)
+    localize_opts = map_time_options(localize_opts, func_opts, :format)
+    Localize.Time.to_string(value, localize_opts)
+  end
 
-    defp format_with_function("unit", %Cldr.Unit{} = unit_struct, func_opts, options) do
-      unit_result =
-        if func_opts[:unit] do
-          Cldr.Unit.new(Map.get(unit_struct, :value), func_opts[:unit])
-        else
-          {:ok, unit_struct}
-        end
-
-      with {:ok, unit} <- unit_result do
-        cldr_opts = resolve_locale_options(options)
-        cldr_opts = map_unit_options(cldr_opts, func_opts)
-        Cldr.Unit.to_string(unit, cldr_opts)
-      end
-    end
-
-    defp format_with_function("unit", value, func_opts, options) do
-      with {:ok, number} <- ensure_number(value) do
-        case func_opts[:unit] do
-          nil ->
-            {:error, "the :unit function requires a `unit` option"}
-
-          name ->
-            with {:ok, unit} <- Cldr.Unit.new(number, name) do
-              cldr_opts = resolve_locale_options(options)
-              cldr_opts = map_unit_options(cldr_opts, func_opts)
-              Cldr.Unit.to_string(unit, cldr_opts)
-            end
-        end
-      end
-    end
-  else
-    defp format_with_function("unit", _value, _func_opts, _options) do
-      {:error,
-       "the :unit function requires the hex package `ex_cldr_units` " <>
-         "to be configured in `mix.exs`."}
+  defp format_with_function("time", value, func_opts, options) do
+    with {:ok, value} <- ensure_datetime(value) do
+      localize_opts = resolve_locale_options(options)
+      localize_opts = map_time_options(localize_opts, func_opts, :format)
+      Localize.Time.to_string(value, localize_opts)
     end
   end
+
+  defp format_with_function("datetime", value, func_opts, options) do
+    with {:ok, value} <- ensure_datetime(value) do
+      localize_opts = resolve_locale_options(options)
+      localize_opts = map_datetime_options(localize_opts, func_opts)
+      Localize.DateTime.to_string(value, localize_opts)
+    end
+  end
+
+  # ── Unit formatting ────────────────────────────────────────────
+
+  defp format_with_function("unit", %Localize.Unit{} = unit_struct, func_opts, options) do
+    unit_result =
+      if func_opts[:unit] do
+        Localize.Unit.new(Map.get(unit_struct, :value), func_opts[:unit])
+      else
+        {:ok, unit_struct}
+      end
+
+    with {:ok, unit} <- unit_result do
+      localize_opts = resolve_locale_options(options)
+      localize_opts = map_unit_options(localize_opts, func_opts)
+      Localize.Unit.to_string(unit, localize_opts)
+    end
+  end
+
+  defp format_with_function("unit", value, func_opts, options) do
+    with {:ok, number} <- ensure_number(value) do
+      case func_opts[:unit] do
+        nil ->
+          {:error, "the :unit function requires a `unit` option"}
+
+        name ->
+          with {:ok, unit} <- Localize.Unit.new(number, name) do
+            localize_opts = resolve_locale_options(options)
+            localize_opts = map_unit_options(localize_opts, func_opts)
+            Localize.Unit.to_string(unit, localize_opts)
+          end
+      end
+    end
+  end
+
+  # ── Fallback formatting ────────────────────────────────────────
 
   defp format_with_function(_name, value, _func_opts, _options) do
     {:ok, to_string_value(value)}
   end
 
-  # ── Declarations ────────────────────────────────────────────────
-
-  defp resolve_declarations(declarations, bindings, options) do
-    Enum.reduce_while(declarations, {bindings, [], %{}}, fn decl,
-                                                            {bindings_acc, bound_acc, sel_meta} ->
-      case decl do
-        {:input, {:expression, {:variable, name}, func, _attrs}} ->
-          case resolve_variable(name, bindings_acc) do
-            {:ok, value} ->
-              case apply_function(value, func, Keyword.put(options, :bindings, bindings_acc)) do
-                {:ok, formatted} ->
-                  sel_value = selector_value(value, func)
-                  sel_meta = Map.put(sel_meta, name, {sel_value, func})
-                  bindings_acc = Map.put(bindings_acc, name, formatted)
-                  {:cont, {bindings_acc, [name | bound_acc], sel_meta}}
-
-                {:error, reason} ->
-                  {:halt, {:format_error, format_error_reason(reason)}}
-              end
-
-            :error ->
-              {:cont, {bindings_acc, bound_acc, sel_meta}}
-          end
-
-        {:local, {:variable, name}, {:expression, operand, func, _attrs}} ->
-          case resolve_operand(operand, bindings_acc) do
-            {:ok, value, _} ->
-              case apply_function(value, func, Keyword.put(options, :bindings, bindings_acc)) do
-                {:ok, formatted} ->
-                  sel_value = selector_value(value, func)
-                  sel_meta = Map.put(sel_meta, name, {sel_value, func})
-                  bindings_acc = Map.put(bindings_acc, name, formatted)
-                  {:cont, {bindings_acc, [name | bound_acc], sel_meta}}
-
-                {:error, reason} ->
-                  {:halt, {:format_error, format_error_reason(reason)}}
-              end
-
-            {:unbound, _} ->
-              {:cont, {bindings_acc, bound_acc, sel_meta}}
-          end
-      end
-    end)
-  end
-
-  # ── Match evaluation ────────────────────────────────────────────
+  # ── Match evaluation ───────────────────────────────────────────
 
   defp evaluate_match(selectors, variants, bindings, options, bound, selector_meta) do
     selector_info =
@@ -623,6 +448,8 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
+  # ── Selector helpers ───────────────────────────────────────────
+
   defp selector_value(value, {:function, "integer", _}) when is_number(value) do
     trunc(value)
   end
@@ -635,6 +462,8 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp selector_value(value, _func), do: value
+
+  # ── Plural category resolution ────────────────────────────────
 
   defp plural_match_type(nil), do: nil
 
@@ -655,17 +484,13 @@ defmodule Localize.Message.Interpreter do
   defp plural_match_type(_), do: nil
 
   defp resolve_plural_category(value, plural_type, options) when is_number(value) do
-    if Code.ensure_loaded?(Cldr.Number.PluralRule) do
-      locale = Keyword.get(options, :locale)
+    locale = Keyword.get(options, :locale)
 
-      plural_options =
-        [locale: locale, type: plural_type]
-        |> maybe_add_backend(options)
+    plural_options =
+      [locale: locale, type: plural_type]
+      |> maybe_add_backend(options)
 
-      Cldr.Number.PluralRule.plural_type(value, plural_options)
-    else
-      nil
-    end
+    Localize.Number.PluralRule.plural_type(value, plural_options)
   end
 
   defp resolve_plural_category(value, plural_type, options) when is_binary(value) do
@@ -676,6 +501,8 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp resolve_plural_category(_, _, _), do: nil
+
+  # ── Value comparison ───────────────────────────────────────────
 
   defp match_value?(value, key) when is_integer(value) and is_integer(key) do
     value == key
@@ -705,7 +532,278 @@ defmodule Localize.Message.Interpreter do
     to_string_value(value) == to_string_value(key)
   end
 
-  # ── Helpers ─────────────────────────────────────────────────────
+  # ── Number option mapping ──────────────────────────────────────
+
+  defp build_localize_options(options, func_opts) do
+    localize_opts = resolve_locale_options(options)
+
+    with {:ok, localize_opts} <- map_func_options(localize_opts, func_opts) do
+      {:ok, localize_opts}
+    end
+  end
+
+  defp map_func_options(localize_opts, func_opts) do
+    min_fd = get_integer_option(func_opts, :minimumFractionDigits)
+    max_fd = get_integer_option(func_opts, :maximumFractionDigits)
+    use_grouping = Map.get(func_opts, :useGrouping)
+
+    localize_opts =
+      localize_opts
+      |> map_fraction_digits(min_fd, max_fd, use_grouping)
+      |> map_use_grouping(use_grouping)
+
+    map_numbering_system(localize_opts, func_opts)
+  end
+
+  defp map_fraction_digits(localize_opts, nil, nil, _use_grouping) do
+    localize_opts
+  end
+
+  defp map_fraction_digits(localize_opts, min_fd, nil, _use_grouping) do
+    Keyword.put(localize_opts, :fractional_digits, min_fd)
+  end
+
+  defp map_fraction_digits(localize_opts, min_fd, max_fd, use_grouping) do
+    min_fd = min_fd || 0
+    grouping = if use_grouping == "never", do: "", else: "#,#"
+    required = String.duplicate("0", min_fd)
+    optional = String.duplicate("#", max(max_fd - min_fd, 0))
+    decimal = if min_fd > 0 or max_fd > 0, do: ".", else: ""
+    format = "#{grouping}#0#{decimal}#{required}#{optional}"
+    Keyword.put(localize_opts, :format, format)
+  end
+
+  defp map_use_grouping(localize_opts, use_grouping) do
+    case use_grouping do
+      "never" ->
+        if Keyword.has_key?(localize_opts, :format) do
+          localize_opts
+        else
+          Keyword.put(localize_opts, :format, "##0.#")
+        end
+
+      "min2" ->
+        Keyword.put(localize_opts, :minimum_grouping_digits, 2)
+
+      _ ->
+        localize_opts
+    end
+  end
+
+  defp map_numbering_system(localize_opts, func_opts) do
+    case Map.get(func_opts, :numberingSystem) do
+      nil ->
+        {:ok, localize_opts}
+
+      system ->
+        case safe_string_to_atom(system) do
+          {:ok, atom} -> {:ok, Keyword.put(localize_opts, :number_system, atom)}
+          {:error, :not_existing} -> {:error, "unknown numbering system #{inspect(system)}"}
+        end
+    end
+  end
+
+  defp map_currency_options(localize_opts, func_opts) do
+    localize_opts = Keyword.put(localize_opts, :format, :currency)
+
+    localize_opts =
+      if currency = func_opts[:currency] do
+        Keyword.put(localize_opts, :currency, currency)
+      else
+        localize_opts
+      end
+
+    localize_opts =
+      case func_opts[:currencyDisplay] do
+        "narrowSymbol" -> Keyword.put(localize_opts, :currency_symbol, :narrow)
+        "code" -> Keyword.put(localize_opts, :currency_symbol, :iso)
+        _other -> localize_opts
+      end
+
+    case func_opts[:currencySign] do
+      "accounting" -> Keyword.put(localize_opts, :format, :accounting)
+      _other -> localize_opts
+    end
+  end
+
+  # ── Date/time option mapping ───────────────────────────────────
+
+  defp map_date_options(localize_opts, func_opts, format_key) do
+    style =
+      func_opts[:style] || func_opts[:length] || func_opts[:dateStyle] || func_opts[:dateLength]
+
+    if style do
+      Keyword.put(localize_opts, format_key, parse_date_style(style))
+    else
+      localize_opts
+    end
+  end
+
+  defp map_time_options(localize_opts, func_opts, format_key) do
+    style =
+      func_opts[:style] || func_opts[:precision] || func_opts[:timeStyle] ||
+        func_opts[:timePrecision]
+
+    if style do
+      Keyword.put(localize_opts, format_key, parse_time_style(style))
+    else
+      localize_opts
+    end
+  end
+
+  defp map_datetime_options(localize_opts, func_opts) do
+    if style = func_opts[:style] do
+      parsed = parse_date_style(style)
+      localize_opts |> Keyword.put(:date_format, parsed) |> Keyword.put(:time_format, parsed)
+    else
+      localize_opts
+      |> map_date_options(func_opts, :date_format)
+      |> map_time_options(func_opts, :time_format)
+    end
+  end
+
+  defp parse_date_style(style) when is_binary(style) do
+    case style do
+      "short" -> :short
+      "medium" -> :medium
+      "long" -> :long
+      "full" -> :full
+      other -> other
+    end
+  end
+
+  defp parse_time_style(style) when is_binary(style) do
+    case style do
+      "short" -> :short
+      "medium" -> :medium
+      "long" -> :long
+      "full" -> :full
+      "second" -> :medium
+      "minute" -> :short
+      other -> other
+    end
+  end
+
+  # ── Unit option mapping ────────────────────────────────────────
+
+  defp map_unit_options(localize_opts, func_opts) do
+    case func_opts[:unitDisplay] do
+      "long" -> Keyword.put(localize_opts, :style, :long)
+      "short" -> Keyword.put(localize_opts, :style, :short)
+      "narrow" -> Keyword.put(localize_opts, :style, :narrow)
+      _other -> localize_opts
+    end
+  end
+
+  # ── Type coercion and validation ───────────────────────────────
+
+  defp ensure_number(value) when is_number(value), do: {:ok, value}
+
+  defp ensure_number(value) when is_binary(value) do
+    case parse_number(value) do
+      num when is_number(num) -> {:ok, num}
+      _ -> {:error, "cannot parse #{inspect(value)} as a number."}
+    end
+  end
+
+  defp ensure_number(value) do
+    {:error,
+     "cannot format #{inspect(value)} as a number. " <>
+       "Expected a number or a numeric string."}
+  end
+
+  defp ensure_date(value) when is_binary(value) do
+    case Date.from_iso8601(value) do
+      {:ok, date} ->
+        {:ok, date}
+
+      {:error, _} ->
+        case NaiveDateTime.from_iso8601(value) do
+          {:ok, ndt} ->
+            {:ok, NaiveDateTime.to_date(ndt)}
+
+          {:error, _} ->
+            case DateTime.from_iso8601(value) do
+              {:ok, dt, _offset} ->
+                {:ok, DateTime.to_date(dt)}
+
+              {:error, _} ->
+                {:error,
+                 "cannot parse #{inspect(value)} as a date. " <>
+                   "Expected an ISO 8601 date string."}
+            end
+        end
+    end
+  end
+
+  defp ensure_date(%Date{} = value), do: {:ok, value}
+  defp ensure_date(%NaiveDateTime{} = value), do: {:ok, NaiveDateTime.to_date(value)}
+  defp ensure_date(%DateTime{} = value), do: {:ok, DateTime.to_date(value)}
+
+  defp ensure_date(value) do
+    {:error,
+     "cannot format #{inspect(value)} as a date. " <>
+       "Expected a Date, NaiveDateTime, DateTime, or ISO 8601 date string."}
+  end
+
+  defp ensure_datetime(value) when is_binary(value) do
+    case NaiveDateTime.from_iso8601(value) do
+      {:ok, ndt} ->
+        {:ok, ndt}
+
+      {:error, _} ->
+        case DateTime.from_iso8601(value) do
+          {:ok, dt, _offset} ->
+            {:ok, dt}
+
+          {:error, _} ->
+            case Date.from_iso8601(value) do
+              {:ok, date} ->
+                {:ok, NaiveDateTime.new!(date, ~T[00:00:00])}
+
+              {:error, _} ->
+                {:error,
+                 "cannot parse #{inspect(value)} as a datetime. " <>
+                   "Expected an ISO 8601 datetime string."}
+            end
+        end
+    end
+  end
+
+  defp ensure_datetime(%NaiveDateTime{} = value), do: {:ok, value}
+  defp ensure_datetime(%DateTime{} = value), do: {:ok, value}
+  defp ensure_datetime(%Date{} = value), do: {:ok, NaiveDateTime.new!(value, ~T[00:00:00])}
+
+  defp ensure_datetime(value) do
+    {:error,
+     "cannot format #{inspect(value)} as a datetime. " <>
+       "Expected a NaiveDateTime, DateTime, Date, or ISO 8601 datetime string."}
+  end
+
+  # ── Variable and binding helpers ───────────────────────────────
+
+  defp resolve_variable(name, bindings) when is_map(bindings) do
+    cond do
+      Map.has_key?(bindings, name) ->
+        {:ok, Map.get(bindings, name)}
+
+      atom_key_exists?(name) && Map.has_key?(bindings, String.to_existing_atom(name)) ->
+        {:ok, Map.get(bindings, String.to_existing_atom(name))}
+
+      true ->
+        :error
+    end
+  end
+
+  defp normalize_binding_keys(bindings) when is_map(bindings) do
+    Map.new(bindings, fn
+      {key, value} when is_binary(key) ->
+        {:unicode.characters_to_nfc_binary(key), value}
+
+      {key, value} ->
+        {key, value}
+    end)
+  end
 
   defp resolve_func_options(func_options, bindings) do
     Enum.reduce(func_options, %{}, fn
@@ -723,129 +821,6 @@ defmodule Localize.Message.Interpreter do
     end)
   end
 
-  defp option_key(name) do
-    case safe_string_to_atom(name) do
-      {:ok, atom} -> atom
-      {:error, :not_existing} -> name
-    end
-  end
-
-  if Code.ensure_loaded?(Cldr.Number) do
-    defp build_cldr_options(options, func_opts) do
-      cldr_opts = resolve_locale_options(options)
-
-      with {:ok, cldr_opts} <- map_func_options(cldr_opts, func_opts) do
-        {:ok, cldr_opts}
-      end
-    end
-
-    defp map_func_options(cldr_opts, func_opts) do
-      min_fd = get_integer_option(func_opts, :minimumFractionDigits)
-      max_fd = get_integer_option(func_opts, :maximumFractionDigits)
-      use_grouping = Map.get(func_opts, :useGrouping)
-
-      cldr_opts =
-        cldr_opts
-        |> map_fraction_digits(min_fd, max_fd, use_grouping)
-        |> map_use_grouping(use_grouping)
-
-      map_numbering_system(cldr_opts, func_opts)
-    end
-
-    defp map_numbering_system(cldr_opts, func_opts) do
-      case Map.get(func_opts, :numberingSystem) do
-        nil ->
-          {:ok, cldr_opts}
-
-        system ->
-          case safe_string_to_atom(system) do
-            {:ok, atom} -> {:ok, Keyword.put(cldr_opts, :number_system, atom)}
-            {:error, :not_existing} -> {:error, "unknown numbering system #{inspect(system)}"}
-          end
-      end
-    end
-
-    defp map_fraction_digits(cldr_opts, nil, nil, _use_grouping) do
-      cldr_opts
-    end
-
-    defp map_fraction_digits(cldr_opts, min_fd, nil, _use_grouping) do
-      Keyword.put(cldr_opts, :fractional_digits, min_fd)
-    end
-
-    defp map_fraction_digits(cldr_opts, min_fd, max_fd, use_grouping) do
-      min_fd = min_fd || 0
-      grouping = if use_grouping == "never", do: "", else: "#,#"
-      required = String.duplicate("0", min_fd)
-      optional = String.duplicate("#", max(max_fd - min_fd, 0))
-      decimal = if min_fd > 0 or max_fd > 0, do: ".", else: ""
-      format = "#{grouping}#0#{decimal}#{required}#{optional}"
-      Keyword.put(cldr_opts, :format, format)
-    end
-
-    defp map_use_grouping(cldr_opts, use_grouping) do
-      case use_grouping do
-        "never" ->
-          if Keyword.has_key?(cldr_opts, :format) do
-            cldr_opts
-          else
-            Keyword.put(cldr_opts, :format, "##0.#")
-          end
-
-        "min2" ->
-          Keyword.put(cldr_opts, :minimum_grouping_digits, 2)
-
-        _ ->
-          cldr_opts
-      end
-    end
-
-    defp get_integer_option(func_opts, key) do
-      case Map.get(func_opts, key) do
-        nil ->
-          nil
-
-        value when is_integer(value) ->
-          value
-
-        value when is_float(value) ->
-          round(value)
-
-        value when is_binary(value) ->
-          case Integer.parse(value) do
-            {int, ""} -> int
-            _ -> nil
-          end
-
-        _ ->
-          nil
-      end
-    end
-
-    defp map_currency_options(cldr_opts, func_opts) do
-      cldr_opts = Keyword.put(cldr_opts, :format, :currency)
-
-      cldr_opts =
-        if currency = func_opts[:currency] do
-          Keyword.put(cldr_opts, :currency, currency)
-        else
-          cldr_opts
-        end
-
-      cldr_opts =
-        case func_opts[:currencyDisplay] do
-          "narrowSymbol" -> Keyword.put(cldr_opts, :currency_symbol, :narrow)
-          "code" -> Keyword.put(cldr_opts, :currency_symbol, :iso)
-          _other -> cldr_opts
-        end
-
-      case func_opts[:currencySign] do
-        "accounting" -> Keyword.put(cldr_opts, :format, :accounting)
-        _other -> cldr_opts
-      end
-    end
-  end
-
   defp resolve_locale_options(options) do
     locale = Keyword.get(options, :locale)
     opts = if locale, do: [locale: locale], else: []
@@ -855,34 +830,55 @@ defmodule Localize.Message.Interpreter do
   defp maybe_add_backend(opts, options) do
     case Keyword.get(options, :backend) do
       nil ->
-        if Code.ensure_loaded?(Cldr) and function_exported?(Cldr, :default_backend!, 0) do
-          try do
-            Keyword.put(opts, :backend, Cldr.default_backend!())
-          rescue
-            _ -> opts
-          end
-        else
-          opts
-        end
+        opts
 
       backend ->
         Keyword.put(opts, :backend, backend)
     end
   end
 
-  defp ensure_number(value) when is_number(value), do: {:ok, value}
+  # ── General utilities ──────────────────────────────────────────
 
-  defp ensure_number(value) when is_binary(value) do
-    case parse_number(value) do
-      num when is_number(num) -> {:ok, num}
-      _ -> {:error, "cannot parse #{inspect(value)} as a number."}
+  defp format_error_reason({_module, message}) when is_binary(message), do: message
+  defp format_error_reason(reason) when is_binary(reason), do: reason
+
+  defp option_key(name) do
+    case safe_string_to_atom(name) do
+      {:ok, atom} -> atom
+      {:error, :not_existing} -> name
     end
   end
 
-  defp ensure_number(value) do
-    {:error,
-     "cannot format #{inspect(value)} as a number. " <>
-       "Expected a number or a numeric string."}
+  defp get_integer_option(func_opts, key) do
+    case Map.get(func_opts, key) do
+      nil ->
+        nil
+
+      value when is_integer(value) ->
+        value
+
+      value when is_float(value) ->
+        round(value)
+
+      value when is_binary(value) ->
+        case Integer.parse(value) do
+          {int, ""} -> int
+          _ -> nil
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  defp atom_key_exists?(name) do
+    match?({:ok, _}, safe_string_to_atom(name))
+  end
+
+  defp safe_string_to_atom(name) do
+    {:ok, String.to_existing_atom(name)}
+  rescue
+    ArgumentError -> {:error, :not_existing}
   end
 
   defp parse_number(str) when is_binary(str) do
@@ -909,14 +905,4 @@ defmodule Localize.Message.Interpreter do
   defp to_string_value(value) when is_integer(value), do: Integer.to_string(value)
   defp to_string_value(value) when is_float(value), do: Float.to_string(value)
   defp to_string_value(value), do: Kernel.to_string(value)
-
-  defp normalize_binding_keys(bindings) when is_map(bindings) do
-    Map.new(bindings, fn
-      {key, value} when is_binary(key) ->
-        {:unicode.characters_to_nfc_binary(key), value}
-
-      {key, value} ->
-        {key, value}
-    end)
-  end
 end
