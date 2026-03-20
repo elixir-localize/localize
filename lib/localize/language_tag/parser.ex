@@ -52,6 +52,7 @@ defmodule Localize.LanguageTag.Parser do
   def parse!(locale) do
     case parse(locale) do
       {:ok, language_tag} -> language_tag
+      {:error, %{__exception__: true} = exception} -> raise exception
       {:error, {exception, reason}} -> raise exception, reason
     end
   end

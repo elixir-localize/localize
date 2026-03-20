@@ -332,12 +332,15 @@ defmodule Localize.Validity.U do
 
   @doc false
   def invalid_value_error(key, value) do
-    {Localize.LanguageTag.ParseError,
-     "The value #{inspect(value)} is not valid for the key #{inspect(key)}"}
+    Localize.InvalidSubtagError.exception(key: key, value: value, reason: nil)
   end
 
   @doc false
   def invalid_key_error(key) do
-    {Localize.LanguageTag.ParseError, "The key #{inspect(key)} is not valid for the -u- subtag"}
+    Localize.InvalidSubtagError.exception(
+      key: key,
+      value: nil,
+      reason: "The key #{inspect(key)} is not valid for the -u- subtag"
+    )
   end
 end

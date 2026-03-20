@@ -153,7 +153,7 @@ defmodule Localize.Unit do
   def new!(amount, unit, options \\ []) when is_binary(unit) do
     case new(amount, unit, options) do
       {:ok, result} -> result
-      {:error, reason} -> raise ArgumentError, reason
+      {:error, %{__exception__: true} = exception} -> raise exception
     end
   end
 
@@ -183,7 +183,7 @@ defmodule Localize.Unit do
   def new!(name) when is_binary(name) do
     case new(name) do
       {:ok, unit} -> unit
-      {:error, reason} -> raise ArgumentError, reason
+      {:error, %{__exception__: true} = exception} -> raise exception
     end
   end
 
@@ -221,7 +221,12 @@ defmodule Localize.Unit do
   @spec convert(t(), String.t()) :: {:ok, t()} | {:error, String.t()}
 
   def convert(%__MODULE__{value: nil}, _target) do
-    {:error, "Cannot convert a unit without a value"}
+    {:error,
+     Localize.UnitConversionError.exception(
+       from: nil,
+       to: nil,
+       reason: "Cannot convert a unit without a value"
+     )}
   end
 
   def convert(%__MODULE__{value: value, name: from_name} = source, target)
@@ -366,7 +371,7 @@ defmodule Localize.Unit do
   def convert!(%__MODULE__{} = unit, target) when is_binary(target) do
     case convert(unit, target) do
       {:ok, result} -> result
-      {:error, reason} -> raise ArgumentError, reason
+      {:error, %{__exception__: true} = exception} -> raise exception
     end
   end
 
@@ -403,7 +408,12 @@ defmodule Localize.Unit do
           {:ok, t()} | {:error, String.t()}
 
   def convert_measurement_system(%__MODULE__{value: nil}, _system) do
-    {:error, "Cannot convert a unit without a value"}
+    {:error,
+     Localize.UnitConversionError.exception(
+       from: nil,
+       to: nil,
+       reason: "Cannot convert a unit without a value"
+     )}
   end
 
   def convert_measurement_system(%__MODULE__{} = unit, system)
@@ -416,7 +426,12 @@ defmodule Localize.Unit do
   end
 
   def convert_measurement_system(%__MODULE__{}, system) do
-    {:error, "Invalid measurement system: #{inspect(system)}. Expected :metric, :us, or :uk"}
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: system,
+       expected: ":metric, :us, or :uk",
+       context: "measurement system"
+     )}
   end
 
   # Measurement system to CLDR region code mapping.
@@ -458,15 +473,33 @@ defmodule Localize.Unit do
 
   defp lookup_quantity(base_unit) do
     case Map.get(@base_unit_to_quantity, base_unit) do
-      nil -> {:error, "No quantity found for base unit: #{inspect(base_unit)}"}
-      quantity -> {:ok, quantity}
+      nil ->
+        {:error,
+         Localize.UnitPreferenceError.exception(
+           unit: base_unit,
+           region: nil,
+           usage: nil,
+           reason: "No quantity found for base unit: #{inspect(base_unit)}"
+         )}
+
+      quantity ->
+        {:ok, quantity}
     end
   end
 
   defp lookup_category(quantity) do
     case Map.get(@quantity_to_preference_category, quantity) do
-      nil -> {:error, "No unit preferences found for quantity: #{inspect(quantity)}"}
-      category -> {:ok, category}
+      nil ->
+        {:error,
+         Localize.UnitPreferenceError.exception(
+           unit: nil,
+           region: nil,
+           usage: nil,
+           reason: "No unit preferences found for quantity: #{inspect(quantity)}"
+         )}
+
+      category ->
+        {:ok, category}
     end
   end
 
@@ -488,7 +521,13 @@ defmodule Localize.Unit do
     case Enum.find(@unit_preferences, &(&1.category == category and &1.usage == usage)) do
       nil ->
         {:error,
-         "No unit preferences for category #{inspect(category)} and usage #{inspect(usage)}"}
+         Localize.UnitPreferenceError.exception(
+           unit: nil,
+           region: nil,
+           usage: usage,
+           reason:
+             "No unit preferences for category #{inspect(category)} and usage #{inspect(usage)}"
+         )}
 
       %{preferences: preferences} ->
         case Enum.find(preferences, fn pref ->
@@ -496,7 +535,13 @@ defmodule Localize.Unit do
              end) do
           nil ->
             {:error,
-             "No unit preference for region #{inspect(region)} in category #{inspect(category)}"}
+             Localize.UnitPreferenceError.exception(
+               unit: nil,
+               region: region,
+               usage: nil,
+               reason:
+                 "No unit preference for region #{inspect(region)} in category #{inspect(category)}"
+             )}
 
           %{unit: unit} ->
             {:ok, unit}
@@ -518,7 +563,12 @@ defmodule Localize.Unit do
   defp validate_value(%Decimal{} = value), do: {:ok, value}
 
   defp validate_value(value) do
-    {:error, "Expected a number (integer, float, or Decimal), got: #{inspect(value)}"}
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: value,
+       expected: "a number (integer, float, or Decimal)",
+       context: nil
+     )}
   end
 
   defp validate_usage(nil), do: {:ok, nil}
@@ -528,11 +578,20 @@ defmodule Localize.Unit do
       {:ok, usage}
     else
       {:error,
-       "Invalid usage: #{inspect(usage)}. Valid usages are: #{Enum.join(@valid_usages, ", ")}"}
+       Localize.InvalidValueError.exception(
+         value: usage,
+         expected: "a valid usage (one of: #{Enum.join(@valid_usages, ", ")})",
+         context: "usage"
+       )}
     end
   end
 
   defp validate_usage(usage) do
-    {:error, "Expected usage to be a string or nil, got: #{inspect(usage)}"}
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: usage,
+       expected: "a string or nil",
+       context: "usage"
+     )}
   end
 end

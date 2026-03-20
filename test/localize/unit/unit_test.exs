@@ -65,13 +65,13 @@ defmodule Localize.UnitTest do
     end
 
     test "raises on invalid unit string" do
-      assert_raise ArgumentError, fn ->
+      assert_raise Localize.ParseError, fn ->
         Unit.new!(100, "not-a-unit")
       end
     end
 
     test "raises on invalid value" do
-      assert_raise ArgumentError, fn ->
+      assert_raise Localize.InvalidValueError, fn ->
         Unit.new!("bad", "meter")
       end
     end

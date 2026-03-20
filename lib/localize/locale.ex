@@ -52,7 +52,7 @@ defmodule Localize.Locale do
   * `{:ok, parent_tag}` where `parent_tag` is a
     `%Localize.LanguageTag{}` struct representing the parent locale.
 
-  * `{:error, {Localize.NoParentError, message}}` if the locale
+  * `{:error, Localize.NoParentError.exception(locale: locale)}` if the locale
     is the root locale (`und`) which has no parent.
 
   ### Examples
@@ -69,11 +69,11 @@ defmodule Localize.Locale do
 
   """
   @spec parent(LanguageTag.t() | String.t()) ::
-          {:ok, LanguageTag.t()} | {:error, {module(), String.t()}}
+          {:ok, LanguageTag.t()} | {:error, Exception.t()}
   def parent(
         %LanguageTag{language: :und, script: nil, territory: nil, language_variants: []} = _tag
       ) do
-    {:error, {Localize.NoParentError, "The locale \"und\" has no parent locale"}}
+    {:error, Localize.NoParentError.exception(locale: "und")}
   end
 
   def parent(%LanguageTag{} = tag) do

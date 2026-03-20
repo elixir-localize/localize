@@ -16,8 +16,6 @@ defmodule Localize.Timezone do
   alias Localize.Locale.Provider
   alias Localize.Validity.Territory
 
-  @unknown_zone "Etc/Unknown"
-
   @timezones Provider.timezones()
 
   @timezones_by_territory @timezones
@@ -277,7 +275,7 @@ defmodule Localize.Timezone do
         {:ok, first_zone}
 
       :error ->
-        {:error, @unknown_zone}
+        {:error, Localize.UnknownTimezoneError.exception(timezone: short_zone)}
     end
   end
 end

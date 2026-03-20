@@ -96,7 +96,8 @@ defmodule Localize.Unit.Conversion do
       do_convert(to_float(value), parsed_from, parsed_to)
     else
       false ->
-        {:error, "Units #{inspect(from)} and #{inspect(to)} are not convertible"}
+        {:error,
+         Localize.UnitConversionError.exception(from: from, to: to, reason: "not convertible")}
 
       {:error, _} = error ->
         error
@@ -132,7 +133,7 @@ defmodule Localize.Unit.Conversion do
   def convert!(value, from, to) do
     case convert(value, from, to) do
       {:ok, result} -> result
-      {:error, reason} -> raise ArgumentError, reason
+      {:error, %{__exception__: true} = exception} -> raise exception
     end
   end
 
@@ -191,7 +192,12 @@ defmodule Localize.Unit.Conversion do
   end
 
   defp conversion_params({:mixed_unit, _units}) do
-    {:error, "Cannot compute conversion factor for mixed units (e.g., foot-and-inch)"}
+    {:error,
+     Localize.UnitConversionError.exception(
+       from: nil,
+       to: nil,
+       reason: "Cannot compute conversion factor for mixed units (e.g., foot-and-inch)"
+     )}
   end
 
   defp product_factor([]), do: {:ok, 1.0}
@@ -212,10 +218,15 @@ defmodule Localize.Unit.Conversion do
 
     case Map.get(@conversion_factors, base) do
       nil ->
-        {:error, "Unknown unit for conversion: #{inspect(base)}"}
+        {:error, Localize.UnknownUnitError.exception(unit: base)}
 
       %{factor: :special} ->
-        {:error, "Special conversion not supported for: #{inspect(base)}"}
+        {:error,
+         Localize.UnitConversionError.exception(
+           from: base,
+           to: nil,
+           reason: "special conversion not supported"
+         )}
 
       %{factor: base_factor} ->
         prefix_mult =

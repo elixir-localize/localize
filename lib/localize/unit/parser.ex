@@ -44,11 +44,19 @@ defmodule Localize.Unit.Parser do
 
       {:ok, _result, rest, _, _, offset} ->
         {:error,
-         "Could not parse the remaining #{inspect(rest)} starting at position #{offset + 1}"}
+         Localize.ParseError.exception(
+           input: input,
+           reason:
+             "Could not parse the remaining #{inspect(rest)} starting at position #{offset + 1}"
+         )}
 
       {:error, reason, rest, _, _, offset} ->
         {:error,
-         "#{reason}. Could not parse the remaining #{inspect(rest)} at position #{offset + 1}"}
+         Localize.ParseError.exception(
+           input: input,
+           reason:
+             "#{reason}. Could not parse the remaining #{inspect(rest)} at position #{offset + 1}"
+         )}
     end
   end
 
@@ -77,7 +85,7 @@ defmodule Localize.Unit.Parser do
   def parse!(input) when is_binary(input) do
     case parse(input) do
       {:ok, parsed} -> parsed
-      {:error, reason} -> raise ArgumentError, reason
+      {:error, %{__exception__: true} = exception} -> raise exception
     end
   end
 end

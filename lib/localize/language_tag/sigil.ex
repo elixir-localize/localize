@@ -46,6 +46,9 @@ defmodule Localize.LanguageTag.Sigil do
           unquote(Macro.escape(language_tag))
         end
 
+      {:error, %{__exception__: true} = exception} ->
+        raise exception
+
       {:error, {exception, reason}} ->
         raise exception, reason
     end
@@ -59,6 +62,9 @@ defmodule Localize.LanguageTag.Sigil do
         quote do
           unquote(Macro.escape(language_tag))
         end
+
+      {:error, %{__exception__: true} = exception} ->
+        raise exception
 
       {:error, {exception, reason}} ->
         raise exception, reason

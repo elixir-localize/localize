@@ -11,8 +11,6 @@ defmodule Localize.Rfc5646.Parser do
 
   """
 
-  alias Localize.LanguageTag
-
   import Localize.Rfc5646.Helpers
 
   def parse(rule \\ :language_tag, input) when is_atom(rule) and is_binary(input) do
@@ -26,9 +24,12 @@ defmodule Localize.Rfc5646.Parser do
   defp unwrap({:error, <<first::binary-size(1), reason::binary>>, rest, _, _, offset}),
     do:
       {:error,
-       {LanguageTag.ParseError,
-        "#{String.capitalize(first)}#{reason}. Could not parse the remaining #{inspect(rest)} " <>
-          "starting at position #{offset + 1}"}}
+       Localize.ParseError.exception(
+         input: rest,
+         reason:
+           "#{String.capitalize(first)}#{reason}. Could not parse the remaining #{inspect(rest)} " <>
+             "starting at position #{offset + 1}"
+       )}
 
   @doc """
   Parses the given `binary` as language_tag.

@@ -43,7 +43,12 @@ defmodule Localize.Unit.Math do
   end
 
   def negate(%Unit{value: nil}) do
-    {:error, "Cannot negate a unit without a value"}
+    {:error,
+     Localize.UnitConversionError.exception(
+       from: nil,
+       to: nil,
+       reason: "Cannot negate a unit without a value"
+     )}
   end
 
   @doc """
@@ -85,7 +90,12 @@ defmodule Localize.Unit.Math do
   end
 
   def add(%Unit{}, %Unit{}) do
-    {:error, "Both units must have values for addition"}
+    {:error,
+     Localize.UnitConversionError.exception(
+       from: nil,
+       to: nil,
+       reason: "Both units must have values for addition"
+     )}
   end
 
   @doc """
@@ -127,7 +137,12 @@ defmodule Localize.Unit.Math do
   end
 
   def sub(%Unit{}, %Unit{}) do
-    {:error, "Both units must have values for subtraction"}
+    {:error,
+     Localize.UnitConversionError.exception(
+       from: nil,
+       to: nil,
+       reason: "Both units must have values for subtraction"
+     )}
   end
 
   @doc """
@@ -172,7 +187,12 @@ defmodule Localize.Unit.Math do
   end
 
   def invert(%Unit{value: nil}) do
-    {:error, "Cannot invert a unit without a value"}
+    {:error,
+     Localize.UnitConversionError.exception(
+       from: nil,
+       to: nil,
+       reason: "Cannot invert a unit without a value"
+     )}
   end
 
   @doc """

@@ -233,7 +233,10 @@ defmodule Localize.Validity.T do
   defp invalid_date_order(key, value) do
     encoded = encode_key(key, value)
 
-    {Localize.LanguageTag.ParseError,
-     "The date #{inspect(encoded)} must be the last value in a subtag"}
+    Localize.InvalidSubtagError.exception(
+      key: key,
+      value: encoded,
+      reason: "The date #{inspect(encoded)} must be the last value in a subtag"
+    )
   end
 end

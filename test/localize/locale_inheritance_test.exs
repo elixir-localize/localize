@@ -23,7 +23,7 @@ defmodule Localize.LocaleInheritanceTest do
     end
 
     test "und (root) has no parent" do
-      assert {:error, {Localize.NoParentError, _}} = Locale.parent("und")
+      assert {:error, %Localize.NoParentError{}} = Locale.parent("und")
     end
 
     test "non-standard parent from CLDR parentLocales data" do

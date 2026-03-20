@@ -87,7 +87,7 @@ defmodule Localize.Unit.BaseUnit do
   def base_unit!(input) do
     case base_unit(input) do
       {:ok, result} -> result
-      {:error, reason} -> raise ArgumentError, reason
+      {:error, %{__exception__: true} = exception} -> raise exception
     end
   end
 
@@ -212,7 +212,7 @@ defmodule Localize.Unit.BaseUnit do
   defp resolve_base_unit(name) do
     case Map.get(@conversions, name) do
       nil ->
-        {:error, "Unknown unit: #{inspect(name)}"}
+        {:error, Localize.UnknownUnitError.exception(unit: name)}
 
       base_unit_string ->
         {:ok, parse_base_unit_string(base_unit_string)}

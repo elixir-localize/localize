@@ -1,9 +1,1 @@
-defmodule Localize.NoParentError do
-  @moduledoc false
-
-  defexception [:message]
-
-  def exception(message) do
-    %__MODULE__{message: message}
-  end
-end
+# Moved to lib/localize/exception/no_parent_error.ex

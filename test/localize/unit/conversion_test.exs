@@ -76,7 +76,7 @@ defmodule Localize.Unit.ConversionTest do
     end
 
     test "raises on error" do
-      assert_raise ArgumentError, fn ->
+      assert_raise Localize.UnitConversionError, fn ->
         Conversion.convert!(1, "meter", "kilogram")
       end
     end

@@ -47,8 +47,16 @@ defmodule Localize.Validity.Script do
   @doc false
   def unicode_to_subtag(unicode) do
     case Map.fetch(unicode_to_subtag_map(), unicode) do
-      {:ok, subtag} -> {:ok, subtag}
-      :error -> {:error, "No unicode language #{inspect(unicode)} found."}
+      {:ok, subtag} ->
+        {:ok, subtag}
+
+      :error ->
+        {:error,
+         Localize.InvalidSubtagError.exception(
+           key: "unicode_script",
+           value: unicode,
+           reason: "No unicode language #{inspect(unicode)} found."
+         )}
     end
   end
 
@@ -56,7 +64,7 @@ defmodule Localize.Validity.Script do
   def unicode_to_subtag!(unicode) do
     case unicode_to_subtag(unicode) do
       {:ok, subtag} -> subtag
-      {:error, reason} -> raise ArgumentError, reason
+      {:error, %{__exception__: true} = exception} -> raise exception
     end
   end
 end

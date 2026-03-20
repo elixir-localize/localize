@@ -295,6 +295,7 @@ defmodule Localize.LanguageTag do
   def new!(locale_id) when is_binary(locale_id) do
     case new(locale_id) do
       {:ok, tag} -> tag
+      {:error, %{__exception__: true} = exception} -> raise exception
       {:error, {exception, reason}} when is_atom(exception) -> raise exception, reason
       {:error, reason} -> raise ArgumentError, "#{inspect(reason)}"
     end
@@ -406,6 +407,7 @@ defmodule Localize.LanguageTag do
   def canonicalize!(%__MODULE__{} = language_tag) do
     case canonicalize(language_tag) do
       {:ok, tag} -> tag
+      {:error, %{__exception__: true} = exception} -> raise exception
       {:error, reason} -> raise ArgumentError, "Failed to canonicalize: #{inspect(reason)}"
     end
   end
@@ -508,7 +510,7 @@ defmodule Localize.LanguageTag do
             case first_non_und(supported) do
               nil ->
                 {:error,
-                 "No match for desired locale #{inspect(desired)} within distance #{distance}"}
+                 Localize.LocaleMatchError.exception(desired: desired, threshold: distance)}
 
               default ->
                 {:ok, default, distance}
@@ -523,7 +525,7 @@ defmodule Localize.LanguageTag do
       {:ok, "und", 0}
     else
       case first_non_und(supported) do
-        nil -> {:error, "No supported locales"}
+        nil -> {:error, Localize.LocaleMatchError.exception(desired: "und", threshold: 0)}
         default -> {:ok, default, @default_distance}
       end
     end
@@ -805,7 +807,8 @@ defmodule Localize.LanguageTag do
           {:ok, compute_canonical_name(tag)}
 
         :error ->
-          {:error, "No likely subtags found for #{build_canonical_name(language_tag)}"}
+          locale_name = build_canonical_name(language_tag)
+          {:error, Localize.LikelySubtagsError.exception(locale: locale_name)}
       end
     end
   end
@@ -821,7 +824,7 @@ defmodule Localize.LanguageTag do
   def add_likely_subtags!(%__MODULE__{} = language_tag) do
     case add_likely_subtags(language_tag) do
       {:ok, tag} -> tag
-      {:error, reason} -> raise ArgumentError, reason
+      {:error, %{__exception__: true} = exception} -> raise exception
     end
   end
 
@@ -913,7 +916,7 @@ defmodule Localize.LanguageTag do
   def remove_likely_subtags!(%__MODULE__{} = language_tag) do
     case remove_likely_subtags(language_tag) do
       {:ok, tag} -> tag
-      {:error, reason} -> raise ArgumentError, reason
+      {:error, %{__exception__: true} = exception} -> raise exception
     end
   end
 

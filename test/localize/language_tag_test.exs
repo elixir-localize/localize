@@ -107,7 +107,7 @@ defmodule Localize.LanguageTagTest do
 
   describe "parse/1 error cases" do
     test "returns error for invalid tag" do
-      assert {:error, {Localize.LanguageTag.ParseError, _message}} =
+      assert {:error, %Localize.ParseError{}} =
                LanguageTag.parse("not-valid-!")
     end
 
@@ -124,7 +124,7 @@ defmodule Localize.LanguageTagTest do
     end
 
     test "raises on error" do
-      assert_raise Localize.LanguageTag.ParseError, fn ->
+      assert_raise Localize.ParseError, fn ->
         LanguageTag.parse!("!!!")
       end
     end
@@ -288,7 +288,7 @@ defmodule Localize.LanguageTagTest do
     end
 
     test "raises on invalid input" do
-      assert_raise Localize.LanguageTag.ParseError, fn ->
+      assert_raise Localize.ParseError, fn ->
         LanguageTag.new!("!!!")
       end
     end

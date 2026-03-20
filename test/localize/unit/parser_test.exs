@@ -301,7 +301,7 @@ defmodule Localize.Unit.ParserTest do
     end
 
     test "parse! raises on invalid input" do
-      assert_raise ArgumentError, fn ->
+      assert_raise Localize.ParseError, fn ->
         Parser.parse!("invalid-unit-xyz")
       end
     end
