@@ -1,6 +1,8 @@
 defmodule Localize.Unit.MathTest do
   use ExUnit.Case, async: true
 
+  doctest Localize.Unit.Math
+
   alias Localize.Unit
   alias Localize.Unit.Math
 

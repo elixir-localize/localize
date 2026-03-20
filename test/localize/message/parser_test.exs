@@ -1,6 +1,8 @@
 defmodule Localize.Message.ParserTest do
   use ExUnit.Case, async: true
 
+  doctest Localize.Message.Parser
+
   alias Localize.Message.Parser
 
   describe "simple messages" do

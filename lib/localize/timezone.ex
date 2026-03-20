@@ -265,7 +265,7 @@ defmodule Localize.Timezone do
       {:ok, "Australia/Sydney"}
 
       iex> Localize.Timezone.validate_short_zone("nope")
-      {:error, "Etc/Unknown"}
+      {:error, %Localize.UnknownTimezoneError{timezone: "nope"}}
 
   """
   @spec validate_short_zone(String.t()) :: {:ok, String.t()} | {:error, String.t()}

@@ -1,6 +1,8 @@
 defmodule Localize.UnitTest do
   use ExUnit.Case, async: true
 
+  doctest Localize.Unit
+
   alias Localize.Unit
 
   describe "new/2" do

@@ -1,6 +1,18 @@
 defmodule Localize.CollationTest do
   use ExUnit.Case
 
+  doctest Localize.Collation
+  doctest Localize.Collation.Element
+  doctest Localize.Collation.Options
+  doctest Localize.Collation.SortKey
+  doctest Localize.Collation.Table
+  doctest Localize.Collation.Normalizer
+  doctest Localize.Collation.Numeric
+  doctest Localize.Collation.Variable
+  doctest Localize.Collation.ImplicitWeights
+  doctest Localize.Collation.Sensitive
+  doctest Localize.Collation.Insensitive
+
   setup_all do
     Localize.Collation.ensure_loaded()
     :ok

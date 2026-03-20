@@ -113,11 +113,21 @@ defmodule Localize.Currency do
       {:ok,
        %Localize.Currency{
         code: :XAC,
-        count: %{other: "XAC currency"},
+        alt_code: :XAC,
         name: "XAC currency",
         symbol: "XAC",
+        narrow_symbol: nil,
         digits: 0,
-        tender: false
+        rounding: 0,
+        cash_digits: 0,
+        cash_rounding: nil,
+        iso_digits: 0,
+        decimal_separator: nil,
+        grouping_separator: nil,
+        tender: false,
+        count: %{other: "XAC currency"},
+        from: nil,
+        to: nil
       }}
 
   """
@@ -171,8 +181,7 @@ defmodule Localize.Currency do
     if currency_code in known_currency_codes() do
       {:ok, currency_code}
     else
-      {:error,
-       Localize.UnknownCurrencyError.exception(currency: currency_code)}
+      {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
     end
   end
 
@@ -202,14 +211,12 @@ defmodule Localize.Currency do
     canonical_code = canonicalize_currency_code(currency_code)
 
     if canonical_code in @currency_codes do
-      {:error,
-       Localize.CurrencyAlreadyDefinedError.exception(currency: canonical_code)}
+      {:error, Localize.CurrencyAlreadyDefinedError.exception(currency: canonical_code)}
     else
       case validate_custom_currency_code(currency_code) do
         {:ok, code} ->
           if code in Localize.Currency.Store.codes() do
-            {:error,
-             Localize.CurrencyAlreadyDefinedError.exception(currency: code)}
+            {:error, Localize.CurrencyAlreadyDefinedError.exception(currency: code)}
           else
             {:ok, code}
           end
@@ -783,8 +790,7 @@ defmodule Localize.Currency do
          Regex.match?(@valid_private_currency_code, upcase_code) do
       {:ok, String.to_atom(upcase_code)}
     else
-      {:error,
-       Localize.UnknownCurrencyError.exception(currency: currency_code)}
+      {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
     end
   end
 

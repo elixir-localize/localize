@@ -1,6 +1,8 @@
 defmodule Localize.Number.PluralRule.OrdinalTest do
   use ExUnit.Case, async: true
 
+  doctest Localize.Number.PluralRule.Ordinal
+
   alias Localize.Number.PluralRule.Ordinal
 
   test "ordinal plural rule for English integers" do

@@ -1,6 +1,8 @@
 defmodule Localize.Collation.ReorderTest do
   use ExUnit.Case
 
+  doctest Localize.Collation.Reorder
+
   setup_all do
     Localize.Collation.ensure_loaded()
     :ok

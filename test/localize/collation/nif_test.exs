@@ -1,6 +1,8 @@
 defmodule Localize.Collation.NifTest do
   use ExUnit.Case, async: true
 
+  doctest Localize.Collation.Nif
+
   describe "Localize.Collation.Nif.available?/0" do
     test "returns a boolean" do
       assert is_boolean(Localize.Collation.Nif.available?())

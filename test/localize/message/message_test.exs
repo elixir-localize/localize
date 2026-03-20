@@ -2,6 +2,8 @@ if Code.ensure_loaded?(Localize.Message.Interpreter) do
   defmodule Localize.MessageTest do
     use ExUnit.Case
 
+    doctest Localize.Message
+
     describe "format/3" do
       test "simple v2 text" do
         assert Localize.Message.format("{{Hello, world!}}") ==

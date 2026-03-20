@@ -37,7 +37,7 @@ defmodule Localize.Collation do
 
       # From BCP47 locale
       iex> Localize.Collation.compare("a", "A", locale: "en-u-ks-level2")
-      :eq
+      :lt
 
   ## Collation Options
 

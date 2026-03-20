@@ -41,7 +41,7 @@ In the example above:
 * msgid is the message string in Unicode Message Format 2 format with interpolation of the struct bindings
 * bindings - the bindings derived from the struct
 
-## When adapting code from ex_cldr
+## When adapting code from ex_cldr and related libraries
 
 ex_cldr standard error returns are of the for {:error, {exception, message}}. When adapting a function from ex_cldr to operating in Localize, the following should done:
 
@@ -52,3 +52,6 @@ ex_cldr standard error returns are of the for {:error, {exception, message}}. Wh
 * Attempt to identify relevant bindings for the message and re-write the message in MF2 format
 
 * Update the :error tuple to be of the standard format described about
+
+* Keep a track of the functions not adapted and merged in the TODO.md file so we can come back to it later
+

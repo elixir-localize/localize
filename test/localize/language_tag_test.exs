@@ -1,6 +1,8 @@
 defmodule Localize.LanguageTagTest do
   use ExUnit.Case, async: true
 
+  doctest Localize.LanguageTag
+
   alias Localize.LanguageTag
 
   describe "parse/1 basic language tags" do

@@ -1,6 +1,8 @@
 defmodule Localize.Number.PluralRule.PluralTypeTest do
   use ExUnit.Case, async: true
 
+  doctest Localize.Number.PluralRule
+
   alias Localize.Number.PluralRule
 
   test "plural_type defaults to cardinal and English" do

@@ -1,6 +1,8 @@
 defmodule Localize.Collation.HanTest do
   use ExUnit.Case
 
+  doctest Localize.Collation.Han
+
   setup_all do
     Localize.Collation.ensure_loaded()
     Localize.Collation.Han.ensure_loaded()

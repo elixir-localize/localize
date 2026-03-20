@@ -73,8 +73,7 @@ defmodule Localize.Currency.Store do
     GenServer.call(__MODULE__, {:put, currency})
   rescue
     _error ->
-      {:error,
-       Localize.CurrencyNotSavedError.exception(currency: currency.code)}
+      {:error, Localize.CurrencyNotSavedError.exception(currency: currency.code)}
   end
 
   @doc """

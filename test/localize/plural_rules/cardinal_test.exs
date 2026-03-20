@@ -1,6 +1,8 @@
 defmodule Localize.Number.PluralRule.CardinalTest do
   use ExUnit.Case, async: true
 
+  doctest Localize.Number.PluralRule.Cardinal
+
   alias Localize.Number.PluralRule.Cardinal
 
   test "cardinal plural rule for English integers" do

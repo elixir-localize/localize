@@ -1,6 +1,8 @@
 defmodule Localize.CurrencyTest do
   use ExUnit.Case, async: true
 
+  doctest Localize.Currency
+
   alias Localize.Currency
 
   describe "known_currency_codes/0" do

@@ -1,6 +1,8 @@
 defmodule Localize.Unit.BaseUnitTest do
   use ExUnit.Case, async: true
 
+  doctest Localize.Unit.BaseUnit
+
   alias Localize.Unit.BaseUnit
 
   # ── Simple units ────────────────────────────────────────────────────
