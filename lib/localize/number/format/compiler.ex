@@ -1,0 +1,454 @@
+defmodule Localize.Number.Format.Compiler do
+  @moduledoc """
+  Compiles number format patterns into metadata for fast runtime
+  interpretation.
+
+  Number format patterns like `"#,##0.###"` or `"¤#,##0.00"` are
+  parsed using a leex/yecc lexer-parser and then analysed to
+  extract formatting metadata (digit counts, grouping, rounding,
+  etc.) into a `Localize.Number.Format.Meta` struct.
+
+  """
+
+  import Kernel, except: [length: 1]
+  alias Localize.Number.Format.Meta
+
+  @decimal_separator "."
+  @grouping_separator ","
+  @significant_digit "@"
+  @digit_omit_zeroes "#"
+  @digits "[0-9]"
+  @default_pad_char " "
+  @default_round_nearest 0
+  @max_integer_digits 0
+  @min_integer_digits 1
+  @min_fraction_digits 0
+
+  @rounding_pattern "[" <> @digit_omit_zeroes <> @significant_digit <> @grouping_separator <> "]"
+
+  # ── Placeholder symbols ──────────────────────────────────────
+
+  @doc false
+  def placeholder(:decimal), do: "."
+  def placeholder(:group), do: ","
+  def placeholder(:exponent), do: "E"
+  def placeholder(:plus), do: "+"
+  def placeholder(:minus), do: "-"
+  def placeholder(:currency), do: "¤"
+  def placeholder(:exponent_sign), do: "+"
+
+  # ── Tokenize and parse ──────────────────────────────────────
+
+  @doc """
+  Tokenizes a number format definition string.
+
+  ### Arguments
+
+  * `definition` is a number format pattern string.
+
+  ### Returns
+
+  * `{:ok, tokens, end_line}` or an error tuple.
+
+  """
+  @spec tokenize(String.t()) :: {:ok, list(), integer()} | {:error, term()}
+  def tokenize(definition) when is_binary(definition) do
+    definition
+    |> String.to_charlist()
+    |> :decimal_formats_lexer.string()
+  end
+
+  @doc """
+  Parses a number format definition into a keyword list of
+  positive and negative format elements.
+
+  ### Arguments
+
+  * `definition` is a number format pattern string or a
+    list of tokens from `tokenize/1`.
+
+  ### Returns
+
+  * `{:ok, format}` where `format` is a keyword list with
+    `:positive` and `:negative` keys.
+
+  * `{:error, reason}` if parsing fails.
+
+  ### Examples
+
+      iex> Localize.Number.Format.Compiler.parse("#,##0.###")
+      {:ok, [positive: [format: "#,##0.###"], negative: [minus: ~c"-", format: :same_as_positive]]}
+
+  """
+  @spec parse(String.t() | list()) :: {:ok, Keyword.t()} | {:error, term()}
+  def parse(tokens) when is_list(tokens) do
+    :decimal_formats_parser.parse(tokens)
+  end
+
+  def parse("") do
+    {:error, "empty format string cannot be compiled"}
+  end
+
+  def parse(definition) when is_binary(definition) do
+    {:ok, tokens, _end_line} = tokenize(definition)
+    :decimal_formats_parser.parse(tokens)
+  end
+
+  def parse(nil) do
+    {:error, "no format string or token list provided"}
+  end
+
+  # ── Compile ──────────────────────────────────────────────────
+
+  @doc """
+  Compiles a number format definition into metadata.
+
+  Parses the format string, analyses it, and returns the
+  metadata struct used to drive number formatting.
+
+  ### Arguments
+
+  * `definition` is a number format pattern string.
+
+  ### Returns
+
+  * `{:ok, meta}` where `meta` is a `Localize.Number.Format.Meta.t()`.
+
+  * `{:error, reason}` if parsing fails.
+
+  """
+  @spec compile(String.t()) :: {:ok, Meta.t()} | {:error, String.t()}
+  def compile(definition) when is_binary(definition) do
+    case parse(definition) do
+      {:ok, format} ->
+        {:ok, meta_data} = format_to_metadata(format)
+        {:ok, meta_data}
+
+      {:error, {_line, _parser, [message, context]}} ->
+        {:error, "Decimal format compiler: #{message}#{Enum.join(context)}"}
+
+      {:error, message} ->
+        {:error, message}
+    end
+  end
+
+  @doc """
+  Extracts metadata from a parsed format.
+
+  ### Arguments
+
+  * `format` is either a format pattern string or a parsed
+    keyword list from `parse/1`.
+
+  ### Returns
+
+  * `{:ok, meta}` where `meta` is a `Localize.Number.Format.Meta.t()`.
+
+  """
+  @spec format_to_metadata(String.t() | Keyword.t()) :: {:ok, Meta.t()} | {:error, String.t()}
+  def format_to_metadata(format) when is_binary(format) do
+    with {:ok, parsed} <- parse(format) do
+      format_to_metadata(parsed)
+    else
+      {:error, {_line, _parser, [message, context]}} ->
+        {:error, "Decimal format compiler: #{message}#{Enum.join(context)}"}
+    end
+  end
+
+  def format_to_metadata(format) when is_list(format) do
+    metadata = analyse(format, format[:positive][:format])
+    {:ok, metadata}
+  end
+
+  @doc """
+  Same as `format_to_metadata/1` but raises on error.
+
+  ### Arguments
+
+  * `format` is either a format pattern string or a parsed
+    keyword list.
+
+  ### Returns
+
+  * A `Localize.Number.Format.Meta.t()` struct.
+
+  ### Raises
+
+  * Raises `ArgumentError` if the format cannot be parsed.
+
+  """
+  @spec format_to_metadata!(String.t() | Keyword.t()) :: Meta.t()
+  def format_to_metadata!(format) do
+    case format_to_metadata(format) do
+      {:ok, metadata} -> metadata
+      {:error, reason} -> raise ArgumentError, reason
+    end
+  end
+
+  @doc """
+  Returns a regex that can be used to split a number format
+  or number string into integer, fraction, and exponent parts.
+
+  """
+  @integer_digits "(?<integer>[@#0-9,]+)"
+  @fraction_digits "([.](?<fraction>[#0-9,]+))?"
+  @exponent "([Ee](?<exponent_sign>[+-])?(?<exponent_digits>[0-9]+))?"
+  @format_regex @integer_digits <> @fraction_digits <> @exponent
+
+  def number_match_regex do
+    ~r/#{@format_regex}/
+  end
+
+  # ── Analysis ─────────────────────────────────────────────────
+
+  defp analyse(format, positive_format) do
+    format_parts = split_format(positive_format)
+
+    meta = %Meta{
+      integer_digits: %{
+        min: required_integer_digits(format_parts),
+        max: max_integer_digits(format_parts)
+      },
+      fractional_digits: %{
+        min: required_fraction_digits(format_parts),
+        max: optional_fraction_digits(format_parts) + required_fraction_digits(format_parts)
+      },
+      significant_digits: significant_digits(format_parts),
+      exponent_digits: exponent_digits(format_parts),
+      exponent_sign: exponent_sign(format_parts),
+      scientific_rounding: scientific_rounding(format_parts),
+      grouping: grouping(format_parts),
+      round_nearest: round_nearest(format_parts),
+      padding_length: padding_length(format[:positive][:pad], format),
+      padding_char: padding_char(format),
+      multiplier: multiplier(format),
+      currency: currency_location(format[:positive]),
+      format: format
+    }
+
+    reconcile_significant_and_scientific_digits(meta)
+  end
+
+  # ── Format splitting ─────────────────────────────────────────
+
+  defp split_format(nil), do: %{}
+
+  defp split_format(format) do
+    parts = Regex.named_captures(~r/#{@format_regex}/, format)
+
+    parts
+    |> Map.put("compact_integer", String.replace(parts["integer"], @grouping_separator, ""))
+    |> Map.put("compact_fraction", String.replace(parts["fraction"], @grouping_separator, ""))
+  end
+
+  # ── Integer digit extraction ────────────────────────────────
+
+  @digits_match "(?<digits>" <> @digits <> "+)"
+
+  defp required_integer_digits(%{"compact_integer" => integer_format}) do
+    if captures = Regex.named_captures(~r/#{@digits_match}/, integer_format) do
+      String.length(captures["digits"])
+    else
+      @min_integer_digits
+    end
+  end
+
+  defp required_integer_digits(_), do: @min_integer_digits
+
+  defp max_integer_digits(_), do: @max_integer_digits
+
+  # ── Fraction digit extraction ───────────────────────────────
+
+  defp required_fraction_digits(%{"compact_fraction" => nil}), do: 0
+
+  defp required_fraction_digits(%{"compact_fraction" => fraction_format}) do
+    if captures = Regex.named_captures(~r/#{@digits_match}/, fraction_format) do
+      String.length(captures["digits"])
+    else
+      @min_fraction_digits
+    end
+  end
+
+  defp required_fraction_digits(_), do: @min_fraction_digits
+
+  @hashes_match "(?<hashes>[" <> @digit_omit_zeroes <> "]+)"
+
+  defp optional_fraction_digits(%{"compact_fraction" => ""}), do: 0
+
+  defp optional_fraction_digits(%{"compact_fraction" => fraction_format}) do
+    if captures = Regex.named_captures(~r/#{@hashes_match}/, fraction_format) do
+      String.length(captures["hashes"])
+    else
+      0
+    end
+  end
+
+  defp optional_fraction_digits(_), do: 0
+
+  # ── Exponent extraction ────────────────────────────────────
+
+  defp exponent_digits(%{"exponent_digits" => ""}), do: 0
+  defp exponent_digits(%{"exponent_digits" => exp}), do: String.length(exp)
+  defp exponent_digits(_), do: 0
+
+  @doc false
+  def exponent_sign(%{"exponent_sign" => ""}), do: false
+  def exponent_sign(%{"exponent_sign" => _}), do: true
+  def exponent_sign(_), do: false
+
+  # ── Scientific rounding ────────────────────────────────────
+
+  @scientific_match "(?<scientific_rounding>0[0#]*)?"
+
+  defp scientific_rounding(%{"exponent_digits" => ""}), do: 0
+
+  defp scientific_rounding(%{
+         "compact_integer" => integer_format,
+         "compact_fraction" => fraction_format
+       }) do
+    format = integer_format <> fraction_format
+
+    if captures = Regex.named_captures(~r/#{@scientific_match}/, format) do
+      String.length(captures["scientific_rounding"])
+    else
+      0
+    end
+  end
+
+  defp scientific_rounding(_), do: 0
+
+  # ── Grouping extraction ────────────────────────────────────
+
+  defp grouping(%{"integer" => integer_format, "fraction" => fraction_format}) do
+    %{integer: integer_grouping(integer_format), fraction: fraction_grouping(fraction_format)}
+  end
+
+  defp grouping(_) do
+    %{
+      integer: %{first: @max_integer_digits, rest: @max_integer_digits},
+      fraction: %{first: @max_integer_digits, rest: @max_integer_digits}
+    }
+  end
+
+  defp integer_grouping(format) do
+    [_drop | groups] = String.split(format, @grouping_separator)
+
+    grouping =
+      groups
+      |> Enum.reverse()
+      |> Enum.slice(0..1)
+      |> Enum.map(&String.length/1)
+
+    case grouping do
+      [first, rest] -> %{first: first, rest: rest}
+      [first] -> %{first: first, rest: first}
+      _ -> %{first: @max_integer_digits, rest: @max_integer_digits}
+    end
+  end
+
+  defp fraction_grouping(format) do
+    case String.split(format, @grouping_separator) do
+      [_] -> %{first: @max_integer_digits, rest: @max_integer_digits}
+      [group | _] -> %{first: String.length(group), rest: String.length(group)}
+    end
+  end
+
+  # ── Significant digits ─────────────────────────────────────
+
+  @min_significant_digits "(?<ats>" <> @significant_digit <> "+)"
+  @max_significant_digits "(?<hashes>" <> @digit_omit_zeroes <> "*)?"
+  @leading_digits "([" <> @digit_omit_zeroes <> @grouping_separator <> "]*)?"
+  @significant_digits_match @leading_digits <> @min_significant_digits <> @max_significant_digits
+
+  defp significant_digits(%{
+         "compact_integer" => integer_format,
+         "compact_fraction" => fraction_format
+       }) do
+    format = integer_format <> fraction_format
+
+    if captures = Regex.named_captures(~r/#{@significant_digits_match}/, format) do
+      minimum = String.length(captures["ats"])
+      maximum = minimum + String.length(captures["hashes"])
+      %{min: minimum, max: maximum}
+    else
+      %{min: 0, max: 0}
+    end
+  end
+
+  defp significant_digits(_), do: %{min: 0, max: 0}
+
+  # ── Rounding ───────────────────────────────────────────────
+
+  defp round_nearest(%{"integer" => integer_format, "fraction" => fraction_format}) do
+    format =
+      (integer_format <> @decimal_separator <> fraction_format)
+      |> String.replace(~r/#{@rounding_pattern}/, "")
+      |> String.trim_trailing(@decimal_separator)
+
+    case Float.parse(format) do
+      :error -> @default_round_nearest
+      {rounding, ""} -> rounding
+    end
+  end
+
+  defp round_nearest(_), do: @default_round_nearest
+
+  # ── Padding ────────────────────────────────────────────────
+
+  defp padding_length(nil, _format), do: 0
+
+  defp padding_length(_pad, format) do
+    String.length(format[:positive][:format])
+  end
+
+  @doc false
+  def padding_char(format) do
+    format[:positive][:pad] || @default_pad_char
+  end
+
+  # ── Multiplier ─────────────────────────────────────────────
+
+  defp multiplier(format) do
+    cond do
+      Keyword.has_key?(format[:positive], :percent) -> 100
+      Keyword.has_key?(format[:positive], :permille) -> 1000
+      true -> 1
+    end
+  end
+
+  # ── Currency location ──────────────────────────────────────
+
+  defp currency_location([{:currency, count} | _rest]) do
+    %{location: :first, symbol_count: count}
+  end
+
+  defp currency_location(parts) do
+    location =
+      Enum.reduce_while(parts, 0, fn
+        {:currency, count}, offset -> {:halt, %{location: offset, symbol_count: count}}
+        _other, offset -> {:cont, offset + 1}
+      end)
+
+    if location == 0 do
+      nil
+    else
+      adjust_location(location, Kernel.length(parts))
+    end
+  end
+
+  defp adjust_location(%{location: offset} = location, count) when count == offset + 1 do
+    %{location | location: :last}
+  end
+
+  defp adjust_location(location, _count), do: location
+
+  # ── Reconciliation ──────────────────────────────────────────
+
+  defp reconcile_significant_and_scientific_digits(%Meta{} = meta) do
+    if meta.significant_digits[:min] > 0 && meta.exponent_digits > 0 do
+      %{meta | scientific_rounding: 0}
+    else
+      meta
+    end
+  end
+end

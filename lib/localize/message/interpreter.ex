@@ -253,31 +253,30 @@ defmodule Localize.Message.Interpreter do
 
   defp format_with_function("number", value, func_opts, options) do
     with {:ok, number} <- ensure_number(value),
-         {:ok, localize_opts} <- build_localize_options(options, func_opts) do
-      Localize.Number.to_string(number, localize_opts)
+         {:ok, options_struct} <- build_number_options(options, func_opts) do
+      Localize.Number.to_string(number, set_number_pattern(options_struct, number))
     end
   end
 
   defp format_with_function("integer", value, func_opts, options) do
     with {:ok, number} <- ensure_number(value),
-         {:ok, localize_opts} <- build_localize_options(options, func_opts) do
-      Localize.Number.to_string(trunc(number), localize_opts)
+         {:ok, options_struct} <- build_number_options(options, func_opts) do
+      integer = trunc(number)
+      Localize.Number.to_string(integer, set_number_pattern(options_struct, integer))
     end
   end
 
   defp format_with_function("percent", value, func_opts, options) do
     with {:ok, number} <- ensure_number(value),
-         {:ok, localize_opts} <- build_localize_options(options, func_opts) do
-      localize_opts = Keyword.put(localize_opts, :format, :percent)
-      Localize.Number.to_string(number, localize_opts)
+         {:ok, options_struct} <- build_number_options(options, func_opts, format: :percent) do
+      Localize.Number.to_string(number, set_number_pattern(options_struct, number))
     end
   end
 
   defp format_with_function("currency", value, func_opts, options) do
     with {:ok, number} <- ensure_number(value),
-         {:ok, localize_opts} <- build_localize_options(options, func_opts) do
-      localize_opts = map_currency_options(localize_opts, func_opts)
-      Localize.Number.to_string(number, localize_opts)
+         {:ok, options_struct} <- build_currency_options(options, func_opts) do
+      Localize.Number.to_string(number, set_number_pattern(options_struct, number))
     end
   end
 
@@ -476,8 +475,8 @@ defmodule Localize.Message.Interpreter do
 
     case select_opt do
       "exact" -> :exact
-      "ordinal" -> :Ordinal
-      _ -> :Cardinal
+      "ordinal" -> :ordinal
+      _ -> :cardinal
     end
   end
 
@@ -534,96 +533,225 @@ defmodule Localize.Message.Interpreter do
 
   # ── Number option mapping ──────────────────────────────────────
 
-  defp build_localize_options(options, func_opts) do
-    localize_opts = resolve_locale_options(options)
+  alias Localize.Number.Format.Options, as: NumberOptions
 
-    with {:ok, localize_opts} <- map_func_options(localize_opts, func_opts) do
-      {:ok, localize_opts}
+  defp set_number_pattern(options_struct, number) when is_number(number) and number < 0 do
+    %{options_struct | pattern: :negative}
+  end
+
+  defp set_number_pattern(options_struct, %Decimal{sign: sign}) when sign < 0 do
+    %{options_struct | pattern: :negative}
+  end
+
+  defp set_number_pattern(options_struct, _number) do
+    %{options_struct | pattern: :positive}
+  end
+
+  defp build_number_options(options, func_opts, overrides \\ []) do
+    with {:ok, locale} <- resolve_locale(options),
+         {:ok, number_system} <- resolve_number_system(locale, func_opts),
+         {:ok, symbols} <- Localize.Number.Symbol.number_symbols_for(locale, number_system) do
+      min_fd = get_integer_option(func_opts, :minimumFractionDigits)
+      max_fd = get_integer_option(func_opts, :maximumFractionDigits)
+      use_grouping = Map.get(func_opts, :useGrouping)
+
+      {format, fractional_digits, minimum_grouping_digits} =
+        resolve_format_and_digits(min_fd, max_fd, use_grouping, overrides)
+
+      pattern = Keyword.get(overrides, :pattern, :positive)
+
+      raw_format = Keyword.get(overrides, :format, format)
+
+      resolved_format = resolve_number_format(raw_format, locale, number_system)
+
+      options_struct = %NumberOptions{
+        locale: locale,
+        number_system: number_system,
+        format: resolved_format,
+        symbols: symbols,
+        rounding_mode: :half_even,
+        fractional_digits: fractional_digits,
+        minimum_grouping_digits: minimum_grouping_digits,
+        pattern: pattern,
+        currency: Keyword.get(overrides, :currency),
+        currency_symbol: Keyword.get(overrides, :currency_symbol),
+        currency_digits: :accounting
+      }
+
+      {:ok, options_struct}
     end
   end
 
-  defp map_func_options(localize_opts, func_opts) do
-    min_fd = get_integer_option(func_opts, :minimumFractionDigits)
-    max_fd = get_integer_option(func_opts, :maximumFractionDigits)
-    use_grouping = Map.get(func_opts, :useGrouping)
-
-    localize_opts =
-      localize_opts
-      |> map_fraction_digits(min_fd, max_fd, use_grouping)
-      |> map_use_grouping(use_grouping)
-
-    map_numbering_system(localize_opts, func_opts)
+  defp resolve_number_format(format, _locale, _number_system) when is_binary(format) do
+    format
   end
 
-  defp map_fraction_digits(localize_opts, nil, nil, _use_grouping) do
-    localize_opts
-  end
-
-  defp map_fraction_digits(localize_opts, min_fd, nil, _use_grouping) do
-    Keyword.put(localize_opts, :fractional_digits, min_fd)
-  end
-
-  defp map_fraction_digits(localize_opts, min_fd, max_fd, use_grouping) do
-    min_fd = min_fd || 0
-    grouping = if use_grouping == "never", do: "", else: "#,#"
-    required = String.duplicate("0", min_fd)
-    optional = String.duplicate("#", max(max_fd - min_fd, 0))
-    decimal = if min_fd > 0 or max_fd > 0, do: ".", else: ""
-    format = "#{grouping}#0#{decimal}#{required}#{optional}"
-    Keyword.put(localize_opts, :format, format)
-  end
-
-  defp map_use_grouping(localize_opts, use_grouping) do
-    case use_grouping do
-      "never" ->
-        if Keyword.has_key?(localize_opts, :format) do
-          localize_opts
-        else
-          Keyword.put(localize_opts, :format, "##0.#")
+  defp resolve_number_format(format_atom, locale, number_system) when is_atom(format_atom) do
+    case Localize.Number.Format.formats_for(locale, number_system) do
+      {:ok, formats} ->
+        case Map.get(formats, format_atom) do
+          nil -> "#,##0.###"
+          resolved -> resolved
         end
 
-      "min2" ->
-        Keyword.put(localize_opts, :minimum_grouping_digits, 2)
-
       _ ->
-        localize_opts
+        "#,##0.###"
     end
   end
 
-  defp map_numbering_system(localize_opts, func_opts) do
+  defp build_currency_options(options, func_opts) do
+    currency_code = func_opts[:currency]
+    currency_sign = func_opts[:currencySign]
+
+    format =
+      case currency_sign do
+        "accounting" -> :accounting
+        _ -> :currency
+      end
+
+    currency_symbol =
+      case func_opts[:currencyDisplay] do
+        "narrowSymbol" -> :narrow
+        "code" -> :iso
+        _ -> nil
+      end
+
+    with {:ok, locale} <- resolve_locale(options),
+         {:ok, number_system} <- resolve_number_system(locale, func_opts),
+         {:ok, symbols} <- Localize.Number.Symbol.number_symbols_for(locale, number_system),
+         {:ok, format_string} <- resolve_currency_format(locale, number_system, format),
+         {:ok, currency_struct} <- resolve_currency_struct(currency_code, locale) do
+      min_fd = get_integer_option(func_opts, :minimumFractionDigits)
+
+      actual_symbol = resolve_currency_symbol(currency_struct, currency_symbol)
+
+      fractional_digits =
+        if min_fd != nil do
+          min_fd
+        else
+          currency_struct.digits
+        end
+
+      options_struct = %NumberOptions{
+        locale: locale,
+        number_system: number_system,
+        format: format_string,
+        symbols: symbols,
+        rounding_mode: :half_even,
+        fractional_digits: fractional_digits,
+        minimum_grouping_digits: nil,
+        pattern: :positive,
+        currency: currency_struct,
+        currency_symbol: actual_symbol,
+        currency_spacing: resolve_currency_spacing(locale, number_system),
+        currency_digits: :accounting
+      }
+
+      {:ok, options_struct}
+    end
+  end
+
+  defp resolve_locale(options) do
+    locale = Keyword.get(options, :locale, :en)
+    Localize.validate_locale(locale)
+  end
+
+  defp resolve_number_system(locale, func_opts) do
     case Map.get(func_opts, :numberingSystem) do
       nil ->
-        {:ok, localize_opts}
+        Localize.Number.System.number_system_from_locale(locale)
 
       system ->
         case safe_string_to_atom(system) do
-          {:ok, atom} -> {:ok, Keyword.put(localize_opts, :number_system, atom)}
-          {:error, :not_existing} -> {:error, "unknown numbering system #{inspect(system)}"}
+          {:ok, atom} ->
+            Localize.Number.System.system_name_from(atom, locale)
+
+          {:error, :not_existing} ->
+            {:error, "unknown numbering system #{inspect(system)}"}
         end
     end
   end
 
-  defp map_currency_options(localize_opts, func_opts) do
-    localize_opts = Keyword.put(localize_opts, :format, :currency)
+  defp resolve_format_and_digits(min_fd, max_fd, use_grouping, overrides) do
+    base_format = Keyword.get(overrides, :format)
 
-    localize_opts =
-      if currency = func_opts[:currency] do
-        Keyword.put(localize_opts, :currency, currency)
-      else
-        localize_opts
-      end
+    cond do
+      # Explicit format override (like :percent)
+      base_format != nil and is_atom(base_format) ->
+        {base_format, min_fd, nil}
 
-    localize_opts =
-      case func_opts[:currencyDisplay] do
-        "narrowSymbol" -> Keyword.put(localize_opts, :currency_symbol, :narrow)
-        "code" -> Keyword.put(localize_opts, :currency_symbol, :iso)
-        _other -> localize_opts
-      end
+      # Custom fraction digits require a format string
+      min_fd != nil or max_fd != nil ->
+        min_fd = min_fd || 0
+        max_fd = max_fd || min_fd
+        grouping = if use_grouping == "never", do: "", else: "#,#"
+        required = String.duplicate("0", min_fd)
+        optional = String.duplicate("#", max(max_fd - min_fd, 0))
+        decimal = if min_fd > 0 or max_fd > 0, do: ".", else: ""
+        format = "#{grouping}#0#{decimal}#{required}#{optional}"
+        {format, nil, nil}
 
-    case func_opts[:currencySign] do
-      "accounting" -> Keyword.put(localize_opts, :format, :accounting)
-      _other -> localize_opts
+      # useGrouping=never with no fraction digits
+      use_grouping == "never" ->
+        {"##0.#", nil, nil}
+
+      # useGrouping=min2
+      use_grouping == "min2" ->
+        {:standard, nil, 2}
+
+      # Default
+      true ->
+        {:standard, nil, nil}
     end
+  end
+
+  defp resolve_currency_format(locale, number_system, format_atom) do
+    with {:ok, formats} <- Localize.Number.Format.formats_for(locale, number_system) do
+      case Map.get(formats, format_atom) do
+        nil -> {:ok, Map.get(formats, :currency) || "¤#,##0.00"}
+        format -> {:ok, format}
+      end
+    end
+  end
+
+  defp resolve_currency_struct(nil, _locale) do
+    {:error, "currency option is required for :currency format"}
+  end
+
+  defp resolve_currency_struct(currency_code, locale) when is_binary(currency_code) do
+    with {:ok, code} <- Localize.Currency.validate_currency(currency_code) do
+      locale_id =
+        case locale do
+          %Localize.LanguageTag{cldr_locale_id: id} when not is_nil(id) -> id
+          _ -> :en
+        end
+
+      Localize.Currency.currency_for_code(code, locale: locale_id)
+    end
+  end
+
+  defp resolve_currency_struct(currency_code, locale) when is_atom(currency_code) do
+    resolve_currency_struct(Atom.to_string(currency_code), locale)
+  end
+
+  defp resolve_currency_symbol(currency_struct, nil) do
+    currency_struct.symbol
+  end
+
+  defp resolve_currency_symbol(currency_struct, :narrow) do
+    currency_struct.narrow_symbol || currency_struct.symbol
+  end
+
+  defp resolve_currency_symbol(currency_struct, :iso) do
+    to_string(currency_struct.code)
+  end
+
+  defp resolve_currency_symbol(_currency_struct, symbol) when is_binary(symbol) do
+    symbol
+  end
+
+  defp resolve_currency_spacing(locale, number_system) do
+    Localize.Number.Format.currency_spacing(locale, number_system)
   end
 
   # ── Date/time option mapping ───────────────────────────────────
