@@ -190,6 +190,41 @@ defmodule Localize.SupplementalData do
     load_data("territory_currencies.etf")
   end
 
+  @doc """
+  Returns the week information data for all territories.
+
+  The returned map has keys `:first_day`, `:min_days`,
+  `:weekend_start`, and `:weekend_end`. Each maps a territory
+  atom to an integer day-of-week value (1 = Monday, 7 = Sunday).
+
+  """
+  @spec weeks() :: map()
+  def weeks do
+    load_data("weeks.etf")
+  end
+
+  @doc """
+  Returns the calendar preferences per territory.
+
+  Each key is a territory atom and each value is a list of
+  preferred calendar type atoms (e.g., `[:gregorian]` or
+  `[:persian, :gregorian]`).
+
+  """
+  @spec calendar_preferences() :: %{atom() => [atom()]}
+  def calendar_preferences do
+    load_data("calendar_preferences.etf")
+  end
+
+  @doc """
+  Returns the list of all known territory atoms.
+
+  """
+  @spec known_territories() :: [atom()]
+  def known_territories do
+    load_data("known_territories.etf")
+  end
+
   # ── Derived supplemental data ──────────────────────────────────
 
   # Returns a map of validated territory atoms to lists of
