@@ -460,7 +460,7 @@ defmodule Localize.Currency do
   # ── Locale-based currency functions ──────────────────────────
 
   @doc """
-  Returns the effective currency for a given language tag.
+  Returns the effective currency for a given locale.
 
   If the language tag has a `cu` Unicode extension key set,
   that currency is returned. Otherwise, the current currency
@@ -468,26 +468,39 @@ defmodule Localize.Currency do
 
   ### Arguments
 
-  * `locale` is a `t:Localize.LanguageTag.t/0` struct.
+  * `locale` is a locale identifier string, atom, or a
+    `t:Localize.LanguageTag.t/0` struct.
 
   ### Returns
 
-  * A currency code atom.
+  * `{:ok, currency_code}` where `currency_code` is an atom.
+
+  * `{:error, exception}` if the locale is not valid.
 
   ### Examples
 
       iex> {:ok, tag} = Localize.LanguageTag.parse("en-US")
       iex> Localize.Currency.currency_from_locale(tag)
-      :USD
+      {:ok, :USD}
+
+      iex> Localize.Currency.currency_from_locale("en-AU")
+      {:ok, :AUD}
 
   """
-  @spec currency_from_locale(Localize.LanguageTag.t()) :: currency_code() | nil
+  @spec currency_from_locale(Localize.LanguageTag.t() | String.t() | atom()) ::
+          {:ok, currency_code()} | {:error, Exception.t()}
+  def currency_from_locale(locale) when is_binary(locale) or is_atom(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      currency_from_locale(language_tag)
+    end
+  end
+
   def currency_from_locale(%Localize.LanguageTag{locale: %{cu: nil}} = locale) do
     current_currency_from_locale(locale)
   end
 
   def currency_from_locale(%Localize.LanguageTag{locale: %{cu: currency}}) do
-    currency
+    {:ok, currency}
   end
 
   def currency_from_locale(%Localize.LanguageTag{} = locale) do
@@ -495,34 +508,46 @@ defmodule Localize.Currency do
   end
 
   @doc """
-  Returns the effective currency format for a given language tag.
+  Returns the effective currency format for a given locale.
 
   If the language tag has a `cf` Unicode extension key set to
   `:account`, returns `:accounting`. Otherwise returns `:currency`.
 
   ### Arguments
 
-  * `locale` is a `t:Localize.LanguageTag.t/0` struct.
+  * `locale` is a locale identifier string, atom, or a
+    `t:Localize.LanguageTag.t/0` struct.
 
   ### Returns
 
-  * `:currency` or `:accounting`.
+  * `{:ok, format}` where `format` is `:currency` or `:accounting`.
+
+  * `{:error, exception}` if the locale is not valid.
 
   ### Examples
 
       iex> {:ok, tag} = Localize.LanguageTag.parse("en-US")
       iex> Localize.Currency.currency_format_from_locale(tag)
-      :currency
+      {:ok, :currency}
+
+      iex> Localize.Currency.currency_format_from_locale("en-US")
+      {:ok, :currency}
 
   """
-  @spec currency_format_from_locale(Localize.LanguageTag.t()) ::
-          :currency | :accounting
+  @spec currency_format_from_locale(Localize.LanguageTag.t() | String.t() | atom()) ::
+          {:ok, :currency | :accounting} | {:error, Exception.t()}
+  def currency_format_from_locale(locale) when is_binary(locale) or is_atom(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      currency_format_from_locale(language_tag)
+    end
+  end
+
   def currency_format_from_locale(%Localize.LanguageTag{locale: %{cf: :account}}) do
-    :accounting
+    {:ok, :accounting}
   end
 
   def currency_format_from_locale(%Localize.LanguageTag{}) do
-    :currency
+    {:ok, :currency}
   end
 
   @doc """
@@ -534,32 +559,54 @@ defmodule Localize.Currency do
 
   ### Arguments
 
-  * `locale` is a `t:Localize.LanguageTag.t/0` struct.
+  * `locale` is a locale identifier string, atom, or a
+    `t:Localize.LanguageTag.t/0` struct.
 
   ### Returns
 
-  * A currency code atom, or `nil`.
+  * `{:ok, currency_code}` where `currency_code` is an atom.
+
+  * `{:ok, nil}` if the locale has no territory or the territory
+    has no current currency.
+
+  * `{:error, exception}` if the locale is not valid.
+
+  ### Examples
+
+      iex> {:ok, tag} = Localize.LanguageTag.parse("en-AU")
+      iex> Localize.Currency.current_currency_from_locale(tag)
+      {:ok, :AUD}
+
+      iex> Localize.Currency.current_currency_from_locale("en-US")
+      {:ok, :USD}
 
   """
-  @spec current_currency_from_locale(Localize.LanguageTag.t()) ::
-          currency_code() | nil
+  @spec current_currency_from_locale(Localize.LanguageTag.t() | String.t() | atom()) ::
+          {:ok, currency_code() | nil} | {:error, Exception.t()}
+  def current_currency_from_locale(locale) when is_binary(locale) or is_atom(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      current_currency_from_locale(language_tag)
+    end
+  end
+
   def current_currency_from_locale(%Localize.LanguageTag{territory: territory})
       when not is_nil(territory) do
-    current_currency_for_territory(territory)
+    {:ok, current_currency_for_territory(territory)}
   end
 
   def current_currency_from_locale(%Localize.LanguageTag{}) do
-    nil
+    {:ok, nil}
   end
 
-  # ── Locale-specific functions (stubs) ────────────────────────
+  # ── Locale-specific currency functions ────────────────────────
 
   @doc """
   Returns the currency metadata for the requested currency code
   in the given locale.
 
-  This function requires locale-specific currency data which is
-  not yet implemented.
+  Looks up localized currency data (display name, symbol, plural
+  forms) for a specific currency code. Custom (private use)
+  currencies are also checked if not found in the locale data.
 
   ### Arguments
 
@@ -569,36 +616,61 @@ defmodule Localize.Currency do
 
   ### Options
 
-  * `:locale` is a locale identifier or language tag.
+  * `:locale` is a locale identifier atom or a
+    `t:Localize.LanguageTag.t/0`. The default is `:en`.
 
   ### Returns
 
-  * `{:error, :not_yet_implemented}`.
+  * `{:ok, Localize.Currency.t()}` with localized currency metadata.
+
+  * `{:error, exception}` if the currency code is unknown or
+    the locale data cannot be loaded.
 
   """
   @spec currency_for_code(atom() | String.t(), Keyword.t()) ::
-          {:ok, t()} | {:error, :not_yet_implemented | Exception.t()}
-  def currency_for_code(_currency_code, _options \\ []) do
-    {:error, :not_yet_implemented}
+          {:ok, t()} | {:error, Exception.t()}
+  def currency_for_code(currency_code, options \\ []) do
+    locale = Keyword.get(options, :locale, :en)
+
+    with {:ok, code} <- validate_currency(currency_code),
+         {:ok, currencies} <- currencies_for_locale(locale) do
+      case Map.get(currencies, code) do
+        nil ->
+          case Map.get(private_currencies(), code) do
+            nil -> {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
+            currency -> {:ok, currency}
+          end
+
+        currency ->
+          {:ok, currency}
+      end
+    end
   end
 
   @doc """
   Returns a map of all currencies for a given locale.
 
-  This function requires locale-specific currency data which is
-  not yet implemented.
+  Each key is a currency code atom and each value is a
+  `t:Localize.Currency.t/0` struct with localized display names,
+  symbols, and plural forms. The result can be filtered by
+  currency status.
 
   ### Arguments
 
-  * `locale` is a locale identifier or language tag.
+  * `locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
 
-  * `only` is a filter for currency status. Default `:all`.
+  * `only` is a filter for currency status. The default is `:all`.
 
-  * `except` is a filter for currencies to exclude. Default `nil`.
+  * `except` is a filter for currencies to exclude. The default
+    is `nil`.
 
   ### Returns
 
-  * `{:error, :not_yet_implemented}`.
+  * `{:ok, currencies_map}` where `currencies_map` is a map of
+    `%{currency_code => Localize.Currency.t()}`.
+
+  * `{:error, exception}` if the locale data cannot be loaded.
 
   """
   @spec currencies_for_locale(
@@ -606,29 +678,48 @@ defmodule Localize.Currency do
           filter(),
           filter()
         ) ::
-          {:ok, map()} | {:error, :not_yet_implemented}
-  def currencies_for_locale(_locale, _only \\ :all, _except \\ nil) do
-    {:error, :not_yet_implemented}
+          {:ok, map()} | {:error, Exception.t()}
+  def currencies_for_locale(locale, only \\ :all, except \\ nil) do
+    locale_id = to_locale_id(locale)
+
+    with {:ok, currencies_map} <- Localize.Locale.get(locale_id, [:currencies]) do
+      currencies =
+        currencies_map
+        |> Enum.map(fn {code, data} ->
+          currency_code = if is_atom(code), do: code, else: String.to_atom(code)
+          {currency_code, struct(__MODULE__, normalize_currency_data(currency_code, data))}
+        end)
+        |> Map.new()
+        |> currency_filter(only, except)
+
+      {:ok, currencies}
+    end
   end
 
   @doc """
   Returns a map matching currency strings to currency codes
   for a given locale.
 
-  This function requires locale-specific currency data which is
-  not yet implemented.
+  A currency string is a localized name or symbol representing
+  a currency in a locale-specific manner. The map can be used
+  to parse user input into currency codes.
 
   ### Arguments
 
-  * `locale` is a locale identifier or language tag.
+  * `locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
 
-  * `only` is a filter for currency status. Default `:all`.
+  * `only` is a filter for currency status. The default is `:all`.
 
-  * `except` is a filter for currencies to exclude. Default `nil`.
+  * `except` is a filter for currencies to exclude. The default
+    is `nil`.
 
   ### Returns
 
-  * `{:error, :not_yet_implemented}`.
+  * `{:ok, string_map}` where `string_map` is a map of
+    `%{downcased_string => currency_code}`.
+
+  * `{:error, exception}` if the locale data cannot be loaded.
 
   """
   @spec currency_strings(
@@ -636,40 +727,105 @@ defmodule Localize.Currency do
           filter(),
           filter()
         ) ::
-          {:ok, map()} | {:error, :not_yet_implemented}
-  def currency_strings(_locale, _only \\ :all, _except \\ nil) do
-    {:error, :not_yet_implemented}
+          {:ok, map()} | {:error, Exception.t()}
+  def currency_strings(locale, only \\ :all, except \\ nil) do
+    with {:ok, currencies} <- currencies_for_locale(locale, only, except) do
+      {:ok, build_currency_strings(currencies)}
+    end
+  end
+
+  @doc """
+  Returns the list of strings that map to a given currency
+  code in a locale.
+
+  This is the inverse of `currency_strings/3` filtered to a
+  single currency. It returns all localized representations
+  (name, symbol, plural forms) that identify the currency.
+
+  ### Arguments
+
+  * `currency` is a currency code atom or string.
+
+  * `locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  ### Returns
+
+  * `{:ok, strings}` where `strings` is a list of downcased
+    strings that represent the currency in the locale.
+
+  * `{:error, exception}` if the currency is unknown or the
+    locale data cannot be loaded.
+
+  """
+  @spec strings_for_currency(
+          currency_code() | String.t(),
+          Localize.LanguageTag.t() | atom() | String.t()
+        ) ::
+          {:ok, [String.t()]} | {:error, Exception.t()}
+  def strings_for_currency(currency, locale) do
+    with {:ok, currency_code} <- validate_currency(currency),
+         {:ok, strings} <- currency_strings(locale) do
+      result =
+        strings
+        |> Enum.filter(fn {_string, code} -> code == currency_code end)
+        |> Enum.map(fn {string, _code} -> string end)
+
+      {:ok, result}
+    end
   end
 
   @doc """
   Returns the display name for a currency.
 
-  This function requires locale-specific currency data which is
-  not yet implemented.
+  When given a `t:Localize.Currency.t/0` struct, returns its
+  `:name` field directly. When given a currency code, looks up
+  the localized name from the locale data.
 
   ### Arguments
 
-  * `currency` is a currency code or `t:Localize.Currency.t/0` struct.
+  * `currency` is a currency code atom, string, or a
+    `t:Localize.Currency.t/0` struct.
 
   * `options` is a keyword list of options.
 
+  ### Options
+
+  * `:locale` is a locale identifier atom or a
+    `t:Localize.LanguageTag.t/0`. The default is `:en`.
+
   ### Returns
 
-  * `{:error, :not_yet_implemented}`.
+  * `{:ok, display_name}` where `display_name` is a string.
+
+  * `{:error, exception}` if the currency has no display name
+    or is unknown.
 
   """
-  @spec display_name(atom() | t(), Keyword.t()) ::
-          {:ok, String.t()} | {:error, :not_yet_implemented | Exception.t()}
-  def display_name(_currency, _options \\ []) do
-    {:error, :not_yet_implemented}
+  @spec display_name(atom() | String.t() | t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def display_name(currency, options \\ [])
+
+  def display_name(%__MODULE__{name: nil, code: code}, _options) do
+    {:error, Localize.CurrencyNoDisplayNameError.exception(currency: code)}
+  end
+
+  def display_name(%__MODULE__{name: name}, _options) do
+    {:ok, name}
+  end
+
+  def display_name(currency_code, options) do
+    with {:ok, currency_data} <- currency_for_code(currency_code, options) do
+      display_name(currency_data, options)
+    end
   end
 
   @doc """
   Returns the appropriate currency display name based on
   plural rules for the locale.
 
-  This function requires locale-specific currency data which is
-  not yet implemented.
+  Uses the locale's cardinal plural rules to determine which
+  plural form of the currency name to use for the given number.
 
   ### Arguments
 
@@ -679,15 +835,311 @@ defmodule Localize.Currency do
 
   * `options` is a keyword list of options.
 
+  ### Options
+
+  * `:locale` is a locale identifier atom or a
+    `t:Localize.LanguageTag.t/0`. The default is `:en`.
+
   ### Returns
 
-  * `{:error, :not_yet_implemented}`.
+  * `{:ok, pluralized_name}` where `pluralized_name` is the
+    appropriate plural form string.
+
+  * `{:error, exception}` if the currency is unknown or the
+    locale data cannot be loaded.
 
   """
   @spec pluralize(number(), currency_code(), Keyword.t()) ::
-          {:ok, String.t()} | {:error, :not_yet_implemented}
-  def pluralize(_number, _currency, _options \\ []) do
-    {:error, :not_yet_implemented}
+          {:ok, String.t()} | {:error, Exception.t()}
+  def pluralize(number, currency, options \\ []) do
+    locale = Keyword.get(options, :locale, :en)
+
+    with {:ok, currency_code} <- validate_currency(currency),
+         {:ok, currency_data} <- currency_for_code(currency_code, locale: locale) do
+      counts =
+        (currency_data.count || %{})
+        |> Map.put_new(:other, currency_data.name)
+
+      plural_category =
+        Localize.Number.PluralRule.Cardinal.plural_rule(number, locale)
+
+      {:ok, Map.get(counts, plural_category, counts[:other])}
+    end
+  end
+
+  # ── Bang versions ──────────────────────────────────────────
+
+  @doc """
+  Same as `currency_for_code/2` but raises on error.
+
+  ### Arguments
+
+  * `currency_code` is an atom or string currency code.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier atom or a
+    `t:Localize.LanguageTag.t/0`. The default is `:en`.
+
+  ### Returns
+
+  * A `t:Localize.Currency.t/0` struct.
+
+  ### Raises
+
+  * Raises an exception if the currency code is unknown or the
+    locale data cannot be loaded.
+
+  """
+  @spec currency_for_code!(atom() | String.t(), Keyword.t()) :: t()
+  def currency_for_code!(currency_code, options \\ []) do
+    case currency_for_code(currency_code, options) do
+      {:ok, currency} -> currency
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Same as `currencies_for_locale/3` but raises on error.
+
+  ### Arguments
+
+  * `locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  * `only` is a filter for currency status. The default is `:all`.
+
+  * `except` is a filter for currencies to exclude. The default
+    is `nil`.
+
+  ### Returns
+
+  * A map of `%{currency_code => Localize.Currency.t()}`.
+
+  ### Raises
+
+  * Raises an exception if the locale data cannot be loaded.
+
+  """
+  @spec currencies_for_locale!(
+          Localize.LanguageTag.t() | atom() | String.t(),
+          filter(),
+          filter()
+        ) :: map()
+  def currencies_for_locale!(locale, only \\ :all, except \\ nil) do
+    case currencies_for_locale(locale, only, except) do
+      {:ok, currencies} -> currencies
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Same as `currency_strings/3` but raises on error.
+
+  ### Arguments
+
+  * `locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  * `only` is a filter for currency status. The default is `:all`.
+
+  * `except` is a filter for currencies to exclude. The default
+    is `nil`.
+
+  ### Returns
+
+  * A map of `%{downcased_string => currency_code}`.
+
+  ### Raises
+
+  * Raises an exception if the locale data cannot be loaded.
+
+  """
+  @spec currency_strings!(
+          Localize.LanguageTag.t() | atom() | String.t(),
+          filter(),
+          filter()
+        ) :: map()
+  def currency_strings!(locale, only \\ :all, except \\ nil) do
+    case currency_strings(locale, only, except) do
+      {:ok, strings} -> strings
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Same as `display_name/2` but raises on error.
+
+  ### Arguments
+
+  * `currency` is a currency code atom, string, or a
+    `t:Localize.Currency.t/0` struct.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier atom or a
+    `t:Localize.LanguageTag.t/0`. The default is `:en`.
+
+  ### Returns
+
+  * A display name string.
+
+  ### Raises
+
+  * Raises an exception if the currency has no display name
+    or is unknown.
+
+  """
+  @spec display_name!(atom() | String.t() | t(), Keyword.t()) :: String.t()
+  def display_name!(currency, options \\ []) do
+    case display_name(currency, options) do
+      {:ok, name} -> name
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Same as `strings_for_currency/2` but raises on error.
+
+  ### Arguments
+
+  * `currency` is a currency code atom or string.
+
+  * `locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  ### Returns
+
+  * A list of downcased strings that represent the currency
+    in the locale.
+
+  ### Raises
+
+  * Raises an exception if the currency is unknown or the
+    locale data cannot be loaded.
+
+  """
+  @spec strings_for_currency!(
+          currency_code() | String.t(),
+          Localize.LanguageTag.t() | atom() | String.t()
+        ) ::
+          [String.t()]
+  def strings_for_currency!(currency, locale) do
+    case strings_for_currency(currency, locale) do
+      {:ok, strings} -> strings
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Same as `territory_currencies/1` but raises on error.
+
+  ### Arguments
+
+  * `territory` is a territory code atom or string (e.g., `:US` or `"US"`).
+
+  ### Returns
+
+  * A map of currency codes and date ranges.
+
+  ### Raises
+
+  * Raises an exception if no currencies are found for the territory.
+
+  """
+  @spec territory_currencies!(territory()) :: map()
+  def territory_currencies!(territory) do
+    case territory_currencies(territory) do
+      {:ok, currencies} -> currencies
+      {:error, exception} -> raise exception
+    end
+  end
+
+  # ── Currency filtering ─────────────────────────────────────
+
+  @doc """
+  Filters a map of currencies by status predicates.
+
+  ### Arguments
+
+  * `currencies` is a map of `%{currency_code => Localize.Currency.t()}`.
+
+  * `only` is a filter or list of filters to include. The default
+    is `:all`.
+
+  * `except` is a filter or list of filters to exclude. The default
+    is `nil`.
+
+  ### Returns
+
+  * A filtered map of currencies.
+
+  """
+  @spec currency_filter(map(), filter(), filter()) :: map()
+  def currency_filter(currencies, only \\ :all, except \\ nil)
+
+  def currency_filter(currencies, :all, nil) do
+    currencies
+  end
+
+  def currency_filter(currencies, only, except) when is_map(currencies) do
+    included = expand_filter(currencies, :only, List.wrap(only))
+    excluded = expand_filter(currencies, :except, List.wrap(except))
+
+    included
+    |> Kernel.--(excluded)
+    |> Map.new()
+  end
+
+  defp expand_filter(_currencies, :only, [:all]) do
+    []
+  end
+
+  defp expand_filter(currencies, :only, [:all | _]) do
+    Enum.to_list(currencies)
+  end
+
+  defp expand_filter(_currencies, :except, [nil]) do
+    []
+  end
+
+  defp expand_filter(currencies, _, filter_list) do
+    currencies_list = Enum.to_list(currencies)
+
+    Enum.flat_map(filter_list, fn
+      :all ->
+        currencies_list
+
+      :historic ->
+        Enum.filter(currencies_list, fn {_, c} -> historic?(c) end)
+
+      :tender ->
+        Enum.filter(currencies_list, fn {_, c} -> tender?(c) end)
+
+      :current ->
+        Enum.filter(currencies_list, fn {_, c} -> current?(c) end)
+
+      :annotated ->
+        Enum.filter(currencies_list, fn {_, c} -> annotated?(c) end)
+
+      :unannotated ->
+        Enum.filter(currencies_list, fn {_, c} -> unannotated?(c) end)
+
+      :private ->
+        Enum.to_list(private_currencies())
+
+      code when is_atom(code) ->
+        Enum.filter(currencies_list, fn {k, _} -> k == code end)
+
+      code when is_binary(code) ->
+        atom_code = String.to_atom(code)
+        Enum.filter(currencies_list, fn {k, _} -> k == atom_code end)
+    end)
+    |> Enum.uniq()
   end
 
   # ── Currency status predicates ───────────────────────────────
@@ -796,6 +1248,131 @@ defmodule Localize.Currency do
 
   defp validate_custom_currency_code(currency_code) when is_atom(currency_code) do
     validate_custom_currency_code(to_string(currency_code))
+  end
+
+  @rtl_mark "\u200F"
+
+  defp to_locale_id(%Localize.LanguageTag{cldr_locale_id: locale_id}), do: locale_id
+  defp to_locale_id(locale_id) when is_atom(locale_id), do: locale_id
+
+  defp to_locale_id(locale_id) when is_binary(locale_id) do
+    String.to_atom(locale_id)
+  end
+
+  defp normalize_currency_data(currency_code, data) when is_map(data) do
+    count =
+      case data do
+        %{count: count} when is_map(count) -> atomize_count_keys(count)
+        %{"count" => count} when is_map(count) -> atomize_count_keys(count)
+        _ -> nil
+      end
+
+    [
+      code: currency_code,
+      name: get_field(data, :name, ""),
+      symbol: get_field(data, :symbol, ""),
+      narrow_symbol: get_field(data, :narrow_symbol, nil),
+      digits: get_field(data, :digits, 0),
+      rounding: get_field(data, :rounding, 0),
+      cash_digits: get_field(data, :cash_digits, 0),
+      cash_rounding: get_field(data, :cash_rounding, 0),
+      iso_digits: get_field(data, :iso_digits, nil),
+      tender: get_field(data, :tender, false),
+      decimal_separator: get_field(data, :decimal_separator, nil),
+      grouping_separator: get_field(data, :grouping_separator, nil),
+      count: count
+    ]
+  end
+
+  # Looks up a field by atom key first, then string key, using the
+  # provided default only when neither key is present. Unlike `||`,
+  # this preserves explicit `nil` and `false` values in the data.
+  defp get_field(data, key, default) do
+    atom_key = key
+    string_key = Atom.to_string(key)
+
+    cond do
+      Map.has_key?(data, atom_key) -> Map.get(data, atom_key)
+      Map.has_key?(data, string_key) -> Map.get(data, string_key)
+      true -> default
+    end
+  end
+
+  defp atomize_count_keys(count) do
+    Map.new(count, fn
+      {key, value} when is_atom(key) -> {key, value}
+      {key, value} when is_binary(key) -> {String.to_atom(key), value}
+    end)
+  end
+
+  defp build_currency_strings(currencies) do
+    currency_string_pairs =
+      Enum.flat_map(currencies, fn {code, currency} ->
+        strings =
+          [currency.name, currency.symbol, to_string(code)]
+          |> Kernel.++(if currency.count, do: Map.values(currency.count), else: [])
+          |> Enum.reject(&is_nil/1)
+          |> Enum.map(&String.downcase/1)
+          |> Enum.map(&String.trim_trailing(&1, @rtl_mark))
+          |> Enum.map(&String.trim_trailing(&1, "."))
+          |> Enum.uniq()
+
+        Enum.map(strings, fn string -> {string, code} end)
+      end)
+
+    string_map =
+      currency_string_pairs
+      |> resolve_duplicate_strings(currencies)
+      |> Map.new()
+
+    add_unique_narrow_symbols(string_map, currencies)
+  end
+
+  defp resolve_duplicate_strings(pairs, currencies) do
+    pairs
+    |> Enum.sort_by(fn {string, _code} -> string end)
+    |> do_resolve_duplicates(currencies)
+  end
+
+  defp do_resolve_duplicates([], _currencies), do: []
+  defp do_resolve_duplicates([pair], _currencies), do: [pair]
+
+  defp do_resolve_duplicates(
+         [{string, code1}, {string, code2} | rest],
+         currencies
+       ) do
+    currency1 = Map.get(currencies, code1)
+    currency2 = Map.get(currencies, code2)
+
+    cond do
+      currency1 != nil and currency2 != nil and historic?(currency1) and current?(currency2) ->
+        do_resolve_duplicates([{string, code2} | rest], currencies)
+
+      currency1 != nil and currency2 != nil and current?(currency1) and historic?(currency2) ->
+        do_resolve_duplicates([{string, code1} | rest], currencies)
+
+      true ->
+        do_resolve_duplicates(rest, currencies)
+    end
+  end
+
+  defp do_resolve_duplicates([pair | rest], currencies) do
+    [pair | do_resolve_duplicates(rest, currencies)]
+  end
+
+  defp add_unique_narrow_symbols(string_map, currencies) do
+    Enum.reduce(currencies, string_map, fn {code, currency}, acc ->
+      cond do
+        is_nil(currency.narrow_symbol) ->
+          acc
+
+        Map.has_key?(acc, String.downcase(currency.narrow_symbol)) ->
+          acc
+
+        true ->
+          Map.put(acc, String.downcase(currency.narrow_symbol), code)
+      end
+    end)
   end
 
   defp validate_options(code, options) do

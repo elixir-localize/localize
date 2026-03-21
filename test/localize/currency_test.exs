@@ -122,13 +122,21 @@ defmodule Localize.CurrencyTest do
     test "returns currency from territory" do
       {:ok, tag} = Localize.LanguageTag.parse("en-US")
       {:ok, tag} = Localize.LanguageTag.canonicalize(tag)
-      assert :USD = Currency.currency_from_locale(tag)
+      assert {:ok, :USD} = Currency.currency_from_locale(tag)
     end
 
     test "returns currency from cu extension" do
       {:ok, tag} = Localize.LanguageTag.parse("en-US-u-cu-eur")
       {:ok, tag} = Localize.LanguageTag.canonicalize(tag)
-      assert :EUR = Currency.currency_from_locale(tag)
+      assert {:ok, :EUR} = Currency.currency_from_locale(tag)
+    end
+
+    test "accepts a string locale identifier" do
+      assert {:ok, :AUD} = Currency.currency_from_locale("en-AU")
+    end
+
+    test "accepts an atom locale identifier" do
+      assert {:ok, :USD} = Currency.currency_from_locale(:en)
     end
   end
 
@@ -136,13 +144,33 @@ defmodule Localize.CurrencyTest do
     test "returns :currency by default" do
       {:ok, tag} = Localize.LanguageTag.parse("en-US")
       {:ok, tag} = Localize.LanguageTag.canonicalize(tag)
-      assert :currency = Currency.currency_format_from_locale(tag)
+      assert {:ok, :currency} = Currency.currency_format_from_locale(tag)
     end
 
     test "returns :accounting for cf-account" do
       {:ok, tag} = Localize.LanguageTag.parse("en-US-u-cf-account")
       {:ok, tag} = Localize.LanguageTag.canonicalize(tag)
-      assert :accounting = Currency.currency_format_from_locale(tag)
+      assert {:ok, :accounting} = Currency.currency_format_from_locale(tag)
+    end
+
+    test "accepts a string locale identifier" do
+      assert {:ok, :currency} = Currency.currency_format_from_locale("en-US")
+    end
+  end
+
+  describe "current_currency_from_locale/1" do
+    test "returns currency for a language tag" do
+      {:ok, tag} = Localize.LanguageTag.parse("en-AU")
+      {:ok, tag} = Localize.LanguageTag.canonicalize(tag)
+      assert {:ok, :AUD} = Currency.current_currency_from_locale(tag)
+    end
+
+    test "accepts a string locale identifier" do
+      assert {:ok, :USD} = Currency.current_currency_from_locale("en-US")
+    end
+
+    test "accepts an atom locale identifier" do
+      assert {:ok, _currency} = Currency.current_currency_from_locale(:en)
     end
   end
 
@@ -157,25 +185,253 @@ defmodule Localize.CurrencyTest do
     end
   end
 
-  describe "stub functions" do
-    test "currency_for_code returns not_yet_implemented" do
-      assert {:error, :not_yet_implemented} = Currency.currency_for_code(:USD)
+  describe "locale-specific currency functions" do
+    test "currency_for_code returns localized currency data" do
+      assert {:ok, currency} = Currency.currency_for_code(:USD)
+      assert currency.code == :USD
+      assert currency.name == "US Dollar"
+      assert currency.symbol == "$"
+      assert currency.digits == 2
     end
 
-    test "currencies_for_locale returns not_yet_implemented" do
-      assert {:error, :not_yet_implemented} = Currency.currencies_for_locale("en")
+    test "currency_for_code with locale option" do
+      assert {:ok, currency} = Currency.currency_for_code(:USD, locale: :en)
+      assert currency.name == "US Dollar"
     end
 
-    test "currency_strings returns not_yet_implemented" do
-      assert {:error, :not_yet_implemented} = Currency.currency_strings("en")
+    test "currency_for_code returns error for unknown currency" do
+      assert {:error, %Localize.UnknownCurrencyError{}} =
+               Currency.currency_for_code(:ZZZ)
     end
 
-    test "display_name returns not_yet_implemented" do
-      assert {:error, :not_yet_implemented} = Currency.display_name(:USD)
+    test "currencies_for_locale returns all currencies for a locale" do
+      assert {:ok, currencies} = Currency.currencies_for_locale(:en)
+      assert is_map(currencies)
+      assert Map.has_key?(currencies, :USD)
+      assert %Currency{} = currencies[:USD]
     end
 
-    test "pluralize returns not_yet_implemented" do
-      assert {:error, :not_yet_implemented} = Currency.pluralize(1, :USD)
+    test "currencies_for_locale with string locale" do
+      assert {:ok, currencies} = Currency.currencies_for_locale("en")
+      assert Map.has_key?(currencies, :USD)
+    end
+
+    test "currency_strings returns inverted string map" do
+      assert {:ok, strings} = Currency.currency_strings(:en)
+      assert is_map(strings)
+      assert strings["us dollar"] == :USD || strings["us dollars"] == :USD
+    end
+
+    test "display_name returns the currency name" do
+      assert {:ok, "US Dollar"} = Currency.display_name(:USD)
+    end
+
+    test "display_name with struct" do
+      currency = %Currency{name: "Euro", code: :EUR}
+      assert {:ok, "Euro"} = Currency.display_name(currency)
+    end
+
+    test "display_name with nil name returns error" do
+      currency = %Currency{name: nil, code: :XYZ}
+
+      assert {:error, %Localize.CurrencyNoDisplayNameError{}} =
+               Currency.display_name(currency)
+    end
+
+    test "pluralize returns singular form" do
+      assert {:ok, "US dollar"} = Currency.pluralize(1, :USD)
+    end
+
+    test "pluralize returns plural form" do
+      assert {:ok, "US dollars"} = Currency.pluralize(3, :USD)
+    end
+  end
+
+  describe "currency_filter/3" do
+    test "filtering by :current excludes historic currencies" do
+      {:ok, current} = Currency.currencies_for_locale(:en, :current)
+      refute Map.has_key?(current, :SDP)
+      assert Map.has_key?(current, :USD)
+    end
+
+    test "filtering by :historic includes historic currencies" do
+      {:ok, historic} = Currency.currencies_for_locale(:en, :historic)
+      assert Map.has_key?(historic, :SDP)
+      assert Map.has_key?(historic, :ZWR)
+    end
+
+    test "filtering by :tender includes only tender currencies" do
+      {:ok, tender} = Currency.currencies_for_locale(:en, :tender)
+
+      Enum.each(tender, fn {_code, currency} ->
+        assert Currency.tender?(currency)
+      end)
+    end
+
+    test "filtering by :unannotated excludes annotated currencies" do
+      {:ok, unannotated} = Currency.currencies_for_locale(:en, :unannotated)
+
+      Enum.each(unannotated, fn {_code, currency} ->
+        refute String.contains?(currency.name, "(")
+      end)
+    end
+
+    test "filtering with :all returns all currencies" do
+      {:ok, all} = Currency.currencies_for_locale(:en, :all)
+      assert map_size(all) > 200
+    end
+
+    test "filtering with except removes currencies" do
+      {:ok, all} = Currency.currencies_for_locale(:en)
+      {:ok, no_historic} = Currency.currencies_for_locale(:en, :all, :historic)
+      assert map_size(no_historic) < map_size(all)
+    end
+  end
+
+  describe "currency predicates" do
+    test "current?/1 returns true for active currencies" do
+      {:ok, currencies} = Currency.currencies_for_locale(:en)
+      assert Currency.current?(currencies[:USD])
+      assert Currency.current?(currencies[:EUR])
+    end
+
+    test "historic?/1 returns true for currencies with nil iso_digits" do
+      {:ok, currencies} = Currency.currencies_for_locale(:en)
+      assert Currency.historic?(currencies[:SDP])
+      assert Currency.historic?(currencies[:ZWR])
+    end
+
+    test "historic?/1 returns false for active currencies" do
+      {:ok, currencies} = Currency.currencies_for_locale(:en)
+      refute Currency.historic?(currencies[:USD])
+    end
+
+    test "tender?/1 returns true for legal tender" do
+      {:ok, currencies} = Currency.currencies_for_locale(:en)
+      assert Currency.tender?(currencies[:USD])
+    end
+
+    test "annotated?/1 returns true for currencies with annotations" do
+      {:ok, currencies} = Currency.currencies_for_locale(:en)
+      # USN has "(Next day)" annotation
+      assert Currency.annotated?(currencies[:USN])
+    end
+
+    test "unannotated?/1 returns true for currencies without annotations" do
+      {:ok, currencies} = Currency.currencies_for_locale(:en)
+      assert Currency.unannotated?(currencies[:USD])
+    end
+  end
+
+  describe "currency_strings edge cases" do
+    test "dollar sign maps to USD in en locale" do
+      {:ok, strings} = Currency.currency_strings(:en)
+      assert strings["$"] == :USD
+    end
+
+    test "narrow symbol R maps to ZAR in en locale" do
+      {:ok, strings} = Currency.currency_strings(:en)
+      assert strings["r"] == :ZAR
+    end
+
+    test "annotated currency names are preserved" do
+      {:ok, currencies} = Currency.currencies_for_locale(:en)
+      usn = currencies[:USN]
+      assert usn.name =~ "(Next day)"
+    end
+
+    test "RTL markers are stripped from currency strings" do
+      {:ok, strings} = Currency.currency_strings(:ar)
+      # No string should end with the RTL mark
+      rtl_mark = "\u200F"
+
+      Enum.each(strings, fn {string, _code} ->
+        refute String.ends_with?(string, rtl_mark),
+               "String #{inspect(string)} should not end with RTL mark"
+      end)
+    end
+
+    test "currency strings work with non-Latin locales" do
+      {:ok, strings} = Currency.currency_strings(:ar)
+      assert is_map(strings)
+      assert map_size(strings) > 0
+      assert Map.has_key?(strings, "mad")
+    end
+  end
+
+  describe "strings_for_currency/2" do
+    test "returns all string variants for a currency" do
+      {:ok, strings} = Currency.strings_for_currency(:AUD, :en)
+      assert is_list(strings)
+      assert "aud" in strings
+      assert "australian dollar" in strings || "australian dollars" in strings
+    end
+
+    test "returns strings for a string currency code" do
+      {:ok, strings} = Currency.strings_for_currency("USD", :en)
+      assert "usd" in strings
+      assert "us dollar" in strings
+    end
+
+    test "includes symbol strings" do
+      {:ok, strings} = Currency.strings_for_currency(:AUD, :en)
+      assert "a$" in strings
+    end
+
+    test "returns error for unknown currency" do
+      assert {:error, %Localize.UnknownCurrencyError{}} =
+               Currency.strings_for_currency(:ZZZ, :en)
+    end
+  end
+
+  describe "bang versions" do
+    test "currency_for_code! returns currency struct" do
+      currency = Currency.currency_for_code!(:USD)
+      assert %Currency{} = currency
+      assert currency.code == :USD
+      assert currency.name == "US Dollar"
+    end
+
+    test "currency_for_code! raises for unknown currency" do
+      assert_raise Localize.UnknownCurrencyError, fn ->
+        Currency.currency_for_code!(:ZZZ)
+      end
+    end
+
+    test "currencies_for_locale! returns currencies map" do
+      currencies = Currency.currencies_for_locale!(:en)
+      assert is_map(currencies)
+      assert Map.has_key?(currencies, :USD)
+    end
+
+    test "currencies_for_locale! with filter" do
+      current = Currency.currencies_for_locale!(:en, :current)
+      assert Map.has_key?(current, :USD)
+      refute Map.has_key?(current, :SDP)
+    end
+
+    test "currency_strings! returns string map" do
+      strings = Currency.currency_strings!(:en)
+      assert is_map(strings)
+      assert strings["us dollar"] == :USD
+    end
+
+    test "display_name! returns name string" do
+      assert "US Dollar" = Currency.display_name!(:USD)
+    end
+
+    test "display_name! raises for currency with no name" do
+      currency = %Currency{name: nil, code: :XYZ}
+
+      assert_raise Localize.CurrencyNoDisplayNameError, fn ->
+        Currency.display_name!(currency)
+      end
+    end
+  end
+
+  describe "current_currency_for_territory edge cases" do
+    test "Antarctica has no current currency" do
+      assert is_nil(Currency.current_currency_for_territory(:AQ))
     end
   end
 end

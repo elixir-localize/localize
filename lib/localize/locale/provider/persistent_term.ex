@@ -55,7 +55,7 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   @impl Localize.Locale.Provider
   def store(locale_id, locale_data) do
     locale_key = locale_key(locale_id)
-    :ok = :persistent_term.put(locale_key, locale_data) |> IO.inspect(label: "Store")
+    :ok = :persistent_term.put(locale_key, locale_data)
   end
 
   @doc """
@@ -113,7 +113,7 @@ defmodule Localize.Locale.Provider.PersistentTerm do
     locale_id = to_locale_id(locale)
     locale_key = locale_key(locale_id)
     locale_data = :persistent_term.get(locale_key)
-    IO.inspect Map.keys(locale_data)
+
     if item = get_in(locale_data, keys) do
       {:ok, item}
     else
