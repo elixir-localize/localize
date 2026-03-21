@@ -64,8 +64,9 @@ defmodule Localize.Number.SystemTest do
       assert is_binary(result)
     end
 
-    test "returns error for algorithmic system" do
-      {:error, _exception} = System.to_system(123, :roman)
+    test "formats using algorithmic system (RBNF)" do
+      {:ok, result} = System.to_system(123, :roman)
+      assert result == "CXXIII"
     end
   end
 

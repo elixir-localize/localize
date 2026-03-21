@@ -553,13 +553,11 @@ defmodule Localize.Number.System do
         transliteration_map = generate_transliteration_map(latn_digits, digits)
         {:ok, Transliterate.transliterate_digits(number_string, transliteration_map)}
 
-      %{type: :algorithmic} ->
-        {:error,
-         Localize.InvalidValueError.exception(
-           value: system_name,
-           expected: "a numeric number system (algorithmic systems require RBNF)",
-           context: "Localize.Number.System.to_system/2"
-         )}
+      %{type: :algorithmic, rules: rules} ->
+        # Delegate to RBNF processor
+        # Rules can be "rule_name" or "locale/group/rule_name"
+        {rbnf_locale, rule_name} = parse_rbnf_rule_ref(rules)
+        Localize.Number.Rbnf.to_string(number, rule_name, locale: rbnf_locale)
     end
   end
 
@@ -654,4 +652,24 @@ defmodule Localize.Number.System do
 
   defp to_atom_key(key) when is_atom(key), do: key
   defp to_atom_key(key) when is_binary(key), do: String.to_atom(key)
+
+  # Parse RBNF rule reference from algorithmic number system definition.
+  # Can be "rule_name" or "locale/RuleGroup/rule_name"
+  defp parse_rbnf_rule_ref(rules) when is_binary(rules) do
+    case String.split(rules, "/") do
+      [rule_name] ->
+        # Simple rule name — look in root locale (und)
+        {:und, rule_name}
+
+      [locale, _group, rule_name] ->
+        # locale/RuleGroup/rule_name
+        locale_atom = String.to_atom(locale)
+        # Convert camelCase rule name to snake_case with underscores
+        normalized = rule_name |> String.replace("-", "_")
+        {locale_atom, normalized}
+
+      _ ->
+        {:und, rules}
+    end
+  end
 end
