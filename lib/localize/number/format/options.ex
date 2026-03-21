@@ -113,6 +113,8 @@ defmodule Localize.Number.Format.Options do
     |> validate_symbols()
     |> validate_rounding_mode()
     |> resolve_standard_format()
+    |> resolve_currency_symbol()
+    |> resolve_currency_spacing()
     |> set_pattern(number)
     |> structify()
     |> wrap_ok()
@@ -172,8 +174,22 @@ defmodule Localize.Number.Format.Options do
 
   defp validate_currency(error), do: error
 
+  defp validate_format(%{currency: %Localize.Currency{}, format: :standard} = options) do
+    # When a currency is provided and format is default (:standard),
+    # automatically switch to currency format
+    currency_format = derive_currency_format(options)
+    Map.put(options, :format, currency_format)
+  end
+
   defp validate_format(options) when is_map(options), do: options
   defp validate_format(error), do: error
+
+  defp derive_currency_format(%{locale: locale}) do
+    case Localize.Currency.currency_format_from_locale(locale) do
+      {:ok, format} -> format
+      _ -> :currency
+    end
+  end
 
   defp validate_symbols(%{locale: locale, number_system: number_system} = options)
        when is_map(options) do
@@ -215,6 +231,37 @@ defmodule Localize.Number.Format.Options do
 
   defp resolve_standard_format(options) when is_map(options), do: options
   defp resolve_standard_format(error), do: error
+
+  # Resolve the currency symbol from the currency struct and options
+  defp resolve_currency_symbol(%{currency: %Localize.Currency{} = currency} = options)
+       when is_map(options) do
+    symbol =
+      case options[:currency_symbol] do
+        :narrow -> currency.narrow_symbol || currency.symbol
+        :iso -> to_string(currency.code)
+        :symbol -> currency.symbol
+        nil -> currency.symbol
+        other when is_binary(other) -> other
+        _ -> currency.symbol
+      end
+
+    Map.put(options, :currency_symbol, symbol)
+  end
+
+  defp resolve_currency_symbol(options) when is_map(options), do: options
+  defp resolve_currency_symbol(error), do: error
+
+  # Resolve currency spacing from locale data
+  defp resolve_currency_spacing(
+         %{currency: %Localize.Currency{}, locale: locale, number_system: number_system} = options
+       )
+       when is_map(options) do
+    spacing = Localize.Number.Format.currency_spacing(locale, number_system)
+    Map.put(options, :currency_spacing, spacing)
+  end
+
+  defp resolve_currency_spacing(options) when is_map(options), do: options
+  defp resolve_currency_spacing(error), do: error
 
   defp set_pattern(options, number) when is_map(options) and is_number(number) and number < 0 do
     Map.put(options, :pattern, :negative)

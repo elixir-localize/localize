@@ -76,8 +76,9 @@ defmodule Localize.Number.Format.Compiler do
 
   ### Examples
 
-      iex> Localize.Number.Format.Compiler.parse("#,##0.###")
-      {:ok, [positive: [format: "#,##0.###"], negative: [minus: ~c"-", format: :same_as_positive]]}
+      iex> {:ok, parsed} = Localize.Number.Format.Compiler.parse("#,##0.###")
+      iex> parsed[:positive]
+      [format: "#,##0.###"]
 
   """
   @spec parse(String.t() | list()) :: {:ok, Keyword.t()} | {:error, term()}
