@@ -272,4 +272,77 @@ defmodule Localize.Nif do
   defp nif_plural_rule(_number, _locale, _type, _rounding) do
     :erlang.nif_error(:nif_library_not_loaded)
   end
+
+  # ── Number formatting ───────────────────────────────────────────
+
+  @doc """
+  Formats a number using ICU4C's NumberFormatter.
+
+  This provides a reference implementation for cross-validating
+  the pure Elixir number formatting in `Localize.Number`.
+
+  ### Arguments
+
+  * `number` is a number (integer, float, or Decimal).
+
+  * `locale` is a locale identifier string (e.g., `"en-US"`, `"de"`).
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:currency` is an ISO 4217 currency code string (e.g., `"USD"`).
+
+  * `:min_fraction_digits` is the minimum fractional digits.
+
+  * `:max_fraction_digits` is the maximum fractional digits.
+
+  * `:notation` is one of `"standard"`, `"scientific"`, `"compact"`.
+
+  * `:use_grouping` is a boolean for grouping separators.
+
+  ### Returns
+
+  * `{:ok, formatted_string}` or `{:error, reason}`.
+
+  """
+  @spec number_format(number() | Decimal.t(), String.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, String.t()}
+  def number_format(number, locale, options \\ []) do
+    number_str =
+      cond do
+        is_integer(number) -> Integer.to_string(number)
+        is_float(number) -> Float.to_string(number)
+        is_struct(number, Decimal) -> Decimal.to_string(number, :normal)
+        true -> to_string(number)
+      end
+
+    options_json = encode_number_options(options)
+    nif_number_format(number_str, "", locale, options_json)
+  end
+
+  defp encode_number_options([]), do: "{}"
+
+  defp encode_number_options(options) do
+    pairs =
+      options
+      |> Enum.map(fn
+        {:currency, code} -> "\"currency\":\"#{code}\""
+        {:min_fraction_digits, n} -> "\"minFractionDigits\":#{n}"
+        {:max_fraction_digits, n} -> "\"maxFractionDigits\":#{n}"
+        {:notation, n} -> "\"notation\":\"#{n}\""
+        {:use_grouping, false} -> "\"useGrouping\":false"
+        {:use_grouping, true} -> "\"useGrouping\":true"
+        _ -> nil
+      end)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.join(",")
+
+    "{#{pairs}}"
+  end
+
+  @dialyzer {:no_return, nif_number_format: 4}
+  defp nif_number_format(_number, _pattern, _locale, _options_json) do
+    :erlang.nif_error(:nif_library_not_loaded)
+  end
 end

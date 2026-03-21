@@ -439,21 +439,27 @@ defmodule Localize.Number.Formatter.Decimal do
     group_sym = extract_symbol(symbols.group)
     decimal_sym = extract_symbol(symbols.decimal)
 
-    number_string
-    |> replace_placeholder(@group_separator, group_sym)
-    |> replace_placeholder(@decimal_separator, decimal_sym)
+    # If both are the same as placeholders, nothing to do
+    if (group_sym == @group_separator or group_sym == nil) and
+         (decimal_sym == @decimal_separator or decimal_sym == nil) do
+      number_string
+    else
+      # Single-pass replacement to avoid conflicts when separators
+      # swap (e.g., German: "," → "." and "." → ",")
+      number_string
+      |> String.graphemes()
+      |> Enum.map(fn
+        @group_separator -> group_sym || @group_separator
+        @decimal_separator -> decimal_sym || @decimal_separator
+        char -> char
+      end)
+      |> Enum.join()
+    end
   end
 
   defp extract_symbol(%{standard: value}), do: value
   defp extract_symbol(value) when is_binary(value), do: value
   defp extract_symbol(_), do: nil
-
-  defp replace_placeholder(string, _placeholder, nil), do: string
-  defp replace_placeholder(string, placeholder, placeholder), do: string
-
-  defp replace_placeholder(string, placeholder, replacement) do
-    String.replace(string, placeholder, replacement)
-  end
 
   defp assemble_format(number_string, meta, options) do
     format = meta.format[options.pattern]
