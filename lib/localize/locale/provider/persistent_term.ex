@@ -32,8 +32,8 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   @impl Localize.Locale.Provider
   def load(locale) do
     locale_id = to_locale_id(locale)
-    _locale_id = locale_id
-    {:ok, %{}}
+    locale = Cldr.Locale.Loader.get_locale(locale_id, %Cldr.Config{locales: :all})
+    {:ok, locale}
   end
 
   @doc """
@@ -54,9 +54,8 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   """
   @impl Localize.Locale.Provider
   def store(locale_id, locale_data) do
-    _locale_id = locale_id
-    _locale_data = locale_data
-    :ok
+    locale_key = locale_key(locale_id)
+    :ok = :persistent_term.put(locale_key, locale_data) |> IO.inspect(label: "Store")
   end
 
   @doc """
@@ -76,8 +75,8 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   @impl Localize.Locale.Provider
   def loaded?(locale) do
     locale_id = to_locale_id(locale)
-    _locale_id = locale_id
-    false
+    locale_key = locale_key(locale_id)
+    !!:persistent_term.get(locale_key, nil)
   end
 
   @doc """
@@ -110,12 +109,16 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
   """
   @impl Localize.Locale.Provider
-  def get(locale, keys, options \\ []) do
+  def get(locale, keys, _options \\ []) when is_list(keys) do
     locale_id = to_locale_id(locale)
-    _locale_id = locale_id
-    _keys = keys
-    _options = options
-    {:error, :not_implemented}
+    locale_key = locale_key(locale_id)
+    locale_data = :persistent_term.get(locale_key)
+    IO.inspect Map.keys(locale_data)
+    if item = get_in(locale_data, keys) do
+      {:ok, item}
+    else
+      {:error, Localize.ItemNotFoundError.exception(locale: locale_id, keys: keys)}
+    end
   end
 
   # ── Helpers ──────────────────────────────────────────────────
@@ -126,5 +129,9 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
   defp to_locale_id(locale_id) when is_atom(locale_id) do
     locale_id
+  end
+
+  defp locale_key(locale_id) do
+    {:localize, locale_id}
   end
 end

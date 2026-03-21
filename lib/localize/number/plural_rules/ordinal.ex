@@ -26,9 +26,7 @@ defmodule Localize.Number.PluralRule.Ordinal do
 
   @rules Localize.Number.PluralRule.load_plural_rules(:ordinal)
 
-  @rules_locales @rules
-                 |> Map.keys()
-                 |> Enum.sort()
+  @rules_locales Localize.SupplementalData.plural_rules_locales(:ordinal)
 
   @doc """
   Returns the locale names for which ordinal plural rules

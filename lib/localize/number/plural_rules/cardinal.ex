@@ -26,9 +26,7 @@ defmodule Localize.Number.PluralRule.Cardinal do
 
   @rules Localize.Number.PluralRule.load_plural_rules(:cardinal)
 
-  @rules_locales @rules
-                 |> Map.keys()
-                 |> Enum.sort()
+  @rules_locales Localize.SupplementalData.plural_rules_locales(:cardinal)
 
   @doc """
   Returns the locale names for which cardinal plural rules

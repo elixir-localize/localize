@@ -14,42 +14,10 @@ defmodule Localize.Timezone do
   """
 
   alias Localize.SupplementalData
-  alias Localize.Validity.Territory
 
   @timezones SupplementalData.timezones()
-
-  @timezones_by_territory @timezones
-                          |> Enum.group_by(
-                            fn {_key, value} -> value.territory end,
-                            fn {key, value} -> Map.put(value, :short_zone, key) end
-                          )
-                          |> Enum.map(fn
-                            {nil, _} ->
-                              nil
-
-                            {territory, zones} ->
-                              case Territory.validate(territory) do
-                                {:ok, validated_territory, _status} ->
-                                  {validated_territory, List.flatten(zones)}
-
-                                {:error, _} ->
-                                  nil
-                              end
-                          end)
-                          |> Enum.reject(&is_nil/1)
-                          |> Map.new()
-
-  @territories_by_timezone @timezones_by_territory
-                           |> Enum.map(fn {territory, zones} ->
-                             Enum.map(zones, fn zone ->
-                               Enum.map(zone.aliases, fn zone_alias ->
-                                 {zone_alias, territory}
-                               end)
-                             end)
-                           end)
-                           |> List.flatten()
-                           |> Enum.reject(fn {_zone, territory} -> territory == :UT end)
-                           |> Map.new()
+  @timezones_by_territory SupplementalData.timezones_by_territory()
+  @territories_by_timezone SupplementalData.territories_by_timezone()
 
   @doc """
   Returns a mapping of CLDR short zone codes to

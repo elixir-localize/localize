@@ -189,4 +189,91 @@ defmodule Localize.SupplementalData do
   def territory_currencies do
     load_data("territory_currencies.etf")
   end
+
+  # ── Derived supplemental data ──────────────────────────────────
+
+  # Returns a map of validated territory atoms to lists of
+  # timezone zone maps.
+  #
+  # Each timezone zone map includes the original timezone data
+  # plus a `:short_zone` key with the BCP 47 short zone code.
+  # Territories that fail validation or are `nil` are excluded.
+  #
+  # ### Returns
+  #
+  # * A map where each key is a validated territory atom and
+  #   each value is a list of zone maps.
+  #
+  @doc false
+  @spec timezones_by_territory() :: %{atom() => [map()]}
+  def timezones_by_territory do
+    timezones()
+    |> Enum.group_by(
+      fn {_key, value} -> value.territory end,
+      fn {key, value} -> Map.put(value, :short_zone, key) end
+    )
+    |> Enum.map(fn
+      {nil, _} ->
+        nil
+
+      {territory, zones} ->
+        case Localize.Validity.Territory.validate(territory) do
+          {:ok, validated_territory, _status} ->
+            {validated_territory, List.flatten(zones)}
+
+          {:error, _} ->
+            nil
+        end
+    end)
+    |> Enum.reject(&is_nil/1)
+    |> Map.new()
+  end
+
+  # Returns a map of IANA timezone name strings to their
+  # territory atoms.
+  #
+  # Built by inverting `timezones_by_territory/0` so that
+  # each timezone alias maps to the territory it belongs to.
+  # The synthetic `:UT` territory is excluded.
+  #
+  # ### Returns
+  #
+  # * A map where each key is an IANA timezone name string
+  #   and each value is a territory atom.
+  #
+  @doc false
+  @spec territories_by_timezone() :: %{String.t() => atom()}
+  def territories_by_timezone do
+    timezones_by_territory()
+    |> Enum.map(fn {territory, zones} ->
+      Enum.map(zones, fn zone ->
+        Enum.map(zone.aliases, fn zone_alias ->
+          {zone_alias, territory}
+        end)
+      end)
+    end)
+    |> List.flatten()
+    |> Enum.reject(fn {_zone, territory} -> territory == :UT end)
+    |> Map.new()
+  end
+
+  # Returns a sorted list of locale identifier atoms for which
+  # plural rules of the given type are defined.
+  #
+  # ### Arguments
+  #
+  # * `type` is either `:cardinal` or `:ordinal`.
+  #
+  # ### Returns
+  #
+  # * A sorted list of locale identifier atoms.
+  #
+  @doc false
+  @spec plural_rules_locales(:cardinal | :ordinal) :: [atom()]
+  def plural_rules_locales(type) when type in [:cardinal, :ordinal] do
+    type
+    |> plural_rules()
+    |> Map.keys()
+    |> Enum.sort()
+  end
 end

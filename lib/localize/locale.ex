@@ -281,7 +281,7 @@ defmodule Localize.Locale do
           {:ok, map()} | {:error, Exception.t()}
   def load(locale, options \\ []) do
     {provider, _options} = Keyword.pop(options, :provider, default_provider())
-    provider.load(locale)
+    provider.store(locale, locale)
   end
 
   @doc """
@@ -314,6 +314,48 @@ defmodule Localize.Locale do
   def store(locale_id, locale_data, options \\ []) do
     {provider, _options} = Keyword.pop(options, :provider, default_provider())
     provider.store(locale_id, locale_data)
+  end
+
+  @doc """
+  Loads and stores locale data if it has not already been loaded.
+
+  This is a convenience function that checks whether the locale
+  data is already available and, if not, delegates to the configured
+  provider to load and store it. Subsequent calls for the same
+  locale are no-ops.
+
+  ### Arguments
+
+  * `locale` is a locale identifier atom or a `t:Localize.LanguageTag.t/0`.
+
+  * `options` is a keyword list of options. The default is `[]`.
+
+  ### Options
+
+  * `:provider` is the module implementing `Localize.Locale.Provider`
+    to use. The default is `default_provider/0`.
+
+  ### Returns
+
+  * `:ok` if the locale data is already loaded or was successfully
+    loaded and stored.
+
+  * `{:error, Localize.UnknownLocaleError.t()}` if the locale data
+    could not be loaded.
+
+  """
+  @spec load_and_store(Provider.locale(), Keyword.t()) ::
+          :ok | {:error, Exception.t()}
+  def load_and_store(locale, options \\ []) do
+    {provider, _options} = Keyword.pop(options, :provider, default_provider())
+
+    if not loaded?(locale) do
+      with {:ok, locale_data} <- provider.load(locale) do
+        provider.store(locale, locale_data)
+      end
+    else
+      :ok
+    end
   end
 
   @doc """
@@ -380,6 +422,7 @@ defmodule Localize.Locale do
           {:ok, term()} | {:error, term()}
   def get(locale, keys, options \\ []) do
     {provider, options} = Keyword.pop(options, :provider, default_provider())
+    :ok = load_and_store(locale)
     provider.get(locale, keys, options)
   end
 end
