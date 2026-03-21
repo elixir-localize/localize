@@ -8,7 +8,8 @@ defmodule Localize.SupplementalData do
   datasets defined by the Unicode CLDR project.
 
   All data is stored as pre-compiled ETF (Erlang Term Format) files
-  in the `priv/cldr/` directory and deserialized on demand.
+  in `priv/cldr/` and deserialized on demand. Supplemental data files
+  are stored in `priv/cldr/supplemental_data/`.
 
   """
 
@@ -28,6 +29,22 @@ defmodule Localize.SupplementalData do
     |> :erlang.binary_to_term()
   end
 
+  defp load_supplemental(filename) do
+    cldr_dir()
+    |> Path.join("supplemental_data")
+    |> Path.join(filename)
+    |> File.read!()
+    |> :erlang.binary_to_term()
+  end
+
+  defp load_validity(filename) do
+    cldr_dir()
+    |> Path.join("validity")
+    |> Path.join(filename)
+    |> File.read!()
+    |> :erlang.binary_to_term()
+  end
+
   # ── Public API ──────────────────────────────────────────────────
 
   @doc """
@@ -40,7 +57,7 @@ defmodule Localize.SupplementalData do
   """
   @spec likely_subtags() :: %{String.t() => map()}
   def likely_subtags do
-    load_data("likely_subtags.etf")
+    load_supplemental("likely_subtags.etf")
   end
 
   @doc """
@@ -50,7 +67,7 @@ defmodule Localize.SupplementalData do
   """
   @spec aliases() :: map()
   def aliases do
-    load_data("aliases.etf")
+    load_supplemental("aliases.etf")
   end
 
   @doc """
@@ -60,7 +77,7 @@ defmodule Localize.SupplementalData do
   """
   @spec language_matching() :: map()
   def language_matching do
-    load_data("language_matching.etf")
+    load_supplemental("language_matching.etf")
   end
 
   @doc """
@@ -86,14 +103,14 @@ defmodule Localize.SupplementalData do
 
   """
   @spec validity(atom()) :: map()
-  def validity(:u), do: load_data("validity_u.etf")
-  def validity(:t), do: load_data("validity_t.etf")
-  def validity(:languages), do: load_data("validity_languages.etf")
-  def validity(:scripts), do: load_data("validity_scripts.etf")
-  def validity(:territories), do: load_data("validity_territories.etf")
-  def validity(:variants), do: load_data("validity_variants.etf")
-  def validity(:subdivisions), do: load_data("validity_subdivisions.etf")
-  def validity(:units), do: load_data("validity_units.etf")
+  def validity(:u), do: load_validity("validity_u.etf")
+  def validity(:t), do: load_validity("validity_t.etf")
+  def validity(:languages), do: load_validity("validity_languages.etf")
+  def validity(:scripts), do: load_validity("validity_scripts.etf")
+  def validity(:territories), do: load_validity("validity_territories.etf")
+  def validity(:variants), do: load_validity("validity_variants.etf")
+  def validity(:subdivisions), do: load_validity("validity_subdivisions.etf")
+  def validity(:units), do: load_validity("validity_units.etf")
 
   @doc """
   Returns the parent locales data as a map.
@@ -106,7 +123,7 @@ defmodule Localize.SupplementalData do
   """
   @spec parent_locales() :: %{String.t() => String.t()}
   def parent_locales do
-    load_data("parent_locales.etf")
+    load_supplemental("parent_locales.etf")
   end
 
   @doc """
@@ -119,7 +136,7 @@ defmodule Localize.SupplementalData do
   """
   @spec timezones() :: map()
   def timezones do
-    load_data("timezones.etf")
+    load_supplemental("timezones.etf")
   end
 
   @doc """
@@ -149,8 +166,8 @@ defmodule Localize.SupplementalData do
 
   """
   @spec plural_rules(:cardinal | :ordinal) :: map()
-  def plural_rules(:cardinal), do: load_data("plural_rules_cardinal.etf")
-  def plural_rules(:ordinal), do: load_data("plural_rules_ordinal.etf")
+  def plural_rules(:cardinal), do: load_supplemental("plural_rules_cardinal.etf")
+  def plural_rules(:ordinal), do: load_supplemental("plural_rules_ordinal.etf")
 
   @doc """
   Returns the plural ranges data.
@@ -166,7 +183,7 @@ defmodule Localize.SupplementalData do
   """
   @spec plural_ranges() :: [map()]
   def plural_ranges do
-    load_data("plural_ranges.etf")
+    load_supplemental("plural_ranges.etf")
   end
 
   @doc """
@@ -175,7 +192,7 @@ defmodule Localize.SupplementalData do
   """
   @spec currency_codes() :: [atom()]
   def currency_codes do
-    load_data("currency_codes.etf")
+    load_supplemental("currency_codes.etf")
   end
 
   @doc """
@@ -187,7 +204,7 @@ defmodule Localize.SupplementalData do
   """
   @spec territory_currencies() :: %{atom() => map()}
   def territory_currencies do
-    load_data("territory_currencies.etf")
+    load_supplemental("territory_currencies.etf")
   end
 
   @doc """
@@ -200,7 +217,7 @@ defmodule Localize.SupplementalData do
   """
   @spec weeks() :: map()
   def weeks do
-    load_data("weeks.etf")
+    load_supplemental("weeks.etf")
   end
 
   @doc """
@@ -213,7 +230,7 @@ defmodule Localize.SupplementalData do
   """
   @spec calendar_preferences() :: %{atom() => [atom()]}
   def calendar_preferences do
-    load_data("calendar_preferences.etf")
+    load_supplemental("calendar_preferences.etf")
   end
 
   @doc """

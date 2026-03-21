@@ -1,5 +1,5 @@
-defmodule Localize.TimezoneTest do
+defmodule Localize.DateTime.TimezoneTest do
   use ExUnit.Case, async: true
 
-  doctest Localize.Timezone
+  doctest Localize.DateTime.Timezone
 end
