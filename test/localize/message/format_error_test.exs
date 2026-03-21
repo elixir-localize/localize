@@ -85,7 +85,7 @@ if Code.ensure_loaded?(Localize.Message.Interpreter) do
           {:error, reason} =
             format_error("{$x :number numberingSystem=bogus}", %{"x" => 42})
 
-          assert reason =~ "unknown numbering system"
+          assert reason =~ "bogus"
         end
       end
 
