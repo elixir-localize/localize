@@ -154,7 +154,7 @@ defmodule Localize.LanguageTag do
   import Kernel, except: [to_string: 1]
 
   alias Localize.Locale
-  alias Localize.Locale.Provider
+  alias Localize.SupplementalData
   alias Localize.LanguageTag.{Parser, U, T}
 
   if Code.ensure_loaded?(Jason) do
@@ -262,7 +262,7 @@ defmodule Localize.LanguageTag do
       "zh-Hant"
 
   """
-  @all_locale_ids Provider.all_locale_ids()
+  @all_locale_ids SupplementalData.all_locale_ids()
 
   @spec new(String.t()) :: {:ok, t()} | {:error, term()}
   def new(locale_id) when is_binary(locale_id) do
@@ -414,7 +414,7 @@ defmodule Localize.LanguageTag do
 
   # ── Language matching ──────────────────────────────────────────
 
-  @language_matching Provider.language_matching()
+  @language_matching SupplementalData.language_matching()
   @language_match_rules Map.fetch!(@language_matching, :language_match)
   @match_variables Map.fetch!(@language_matching, :match_variables)
   @paradigm_locales Map.fetch!(@language_matching, :paradigm_locales) |> MapSet.new()
@@ -740,7 +740,7 @@ defmodule Localize.LanguageTag do
 
   # ── Likely subtags ──────────────────────────────────────────────
 
-  @likely_subtags Provider.likely_subtags()
+  @likely_subtags SupplementalData.likely_subtags()
 
   @doc """
   Add likely subtags to a language tag.
@@ -978,7 +978,7 @@ defmodule Localize.LanguageTag do
 
   # ── Alias resolution ──────────────────────────────────────────────
 
-  @aliases Provider.aliases()
+  @aliases SupplementalData.aliases()
   @language_aliases @aliases[:language]
   @region_aliases @aliases[:region]
   @script_aliases @aliases[:script]

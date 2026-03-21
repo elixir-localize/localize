@@ -14,7 +14,7 @@ defmodule Localize.Currency do
 
   """
 
-  alias Localize.Locale.Provider
+  alias Localize.SupplementalData
 
   @type currency_code :: atom()
 
@@ -65,8 +65,8 @@ defmodule Localize.Currency do
 
   # ── Known currency codes (loaded from ETF at compile time) ───
 
-  @currency_codes Provider.currency_codes()
-  @territory_currencies Provider.territory_currencies()
+  @currency_codes SupplementalData.currency_codes()
+  @territory_currencies SupplementalData.territory_currencies()
 
   # ── Creating custom currencies ───────────────────────────────
 

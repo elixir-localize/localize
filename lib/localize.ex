@@ -79,7 +79,7 @@ defmodule Localize do
   end
 
   defp resolve_cldr_locale(%Localize.LanguageTag{} = language_tag) do
-    all_locale_ids = Localize.Locale.Provider.all_locale_ids()
+    all_locale_ids = Localize.SupplementalData.all_locale_ids()
 
     case Localize.LanguageTag.best_match(language_tag, all_locale_ids) do
       {:ok, cldr_locale_id, _score} ->

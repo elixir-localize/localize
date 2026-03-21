@@ -11,6 +11,7 @@ defmodule Localize.Locale do
 
   alias Localize.LanguageTag
   alias Localize.Locale.Provider
+  alias Localize.SupplementalData
 
   @typedoc "A BCP 47 language subtag as an atom."
   @type language :: atom() | nil
@@ -26,7 +27,7 @@ defmodule Localize.Locale do
 
   # ── Locale inheritance ────────────────────────────────────────
 
-  @parent_locales Provider.parent_locales()
+  @parent_locales SupplementalData.parent_locales()
 
   @doc """
   Return the parent locale of the given language tag.

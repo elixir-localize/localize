@@ -37,7 +37,7 @@ defmodule Localize.Validity.Script do
     |> normalize()
   end
 
-  @unicode_to_subtag_mapping Localize.Locale.Provider.unicode_script_to_subtag_mapping()
+  @unicode_to_subtag_mapping Localize.SupplementalData.unicode_script_to_subtag_mapping()
 
   @doc false
   def unicode_to_subtag_map do

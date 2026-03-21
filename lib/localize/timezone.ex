@@ -13,10 +13,10 @@ defmodule Localize.Timezone do
 
   """
 
-  alias Localize.Locale.Provider
+  alias Localize.SupplementalData
   alias Localize.Validity.Territory
 
-  @timezones Provider.timezones()
+  @timezones SupplementalData.timezones()
 
   @timezones_by_territory @timezones
                           |> Enum.group_by(

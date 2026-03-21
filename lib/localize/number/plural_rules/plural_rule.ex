@@ -19,7 +19,7 @@ defmodule Localize.Number.PluralRule do
   """
 
   alias Localize.LanguageTag
-  alias Localize.Locale.Provider
+  alias Localize.SupplementalData
 
   @type operand :: any()
 
@@ -152,11 +152,11 @@ defmodule Localize.Number.PluralRule do
 
   @doc false
   def load_plural_rules(type) when type in [:cardinal, :ordinal] do
-    Provider.plural_rules(type)
+    SupplementalData.plural_rules(type)
   end
 
   @doc false
   def load_plural_ranges do
-    Provider.plural_ranges()
+    SupplementalData.plural_ranges()
   end
 end
