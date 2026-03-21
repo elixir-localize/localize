@@ -345,4 +345,54 @@ defmodule Localize.Nif do
   defp nif_number_format(_number, _pattern, _locale, _options_json) do
     :erlang.nif_error(:nif_library_not_loaded)
   end
+
+  # ── Unit formatting ────────────────────────────────────────────
+
+  @doc """
+  Formats a number with a unit using ICU4C's NumberFormatter.
+
+  ### Arguments
+
+  * `number` is a number (integer, float, or Decimal).
+
+  * `unit` is an ICU unit identifier string (e.g., `"meter"`,
+    `"mile-per-hour"`).
+
+  * `locale` is a locale identifier string.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:style` is `"long"`, `"short"`, or `"narrow"`. Default is `"long"`.
+
+  ### Returns
+
+  * `{:ok, formatted_string}` or `{:error, reason}`.
+
+  """
+  @spec unit_format(number() | Decimal.t(), String.t(), String.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, String.t()}
+  def unit_format(number, unit, locale, options \\ []) do
+    number_str =
+      cond do
+        is_integer(number) -> Integer.to_string(number)
+        is_float(number) -> Float.to_string(number)
+        is_struct(number, Decimal) -> Decimal.to_string(number, :normal)
+        true -> Kernel.to_string(number)
+      end
+
+    style = Keyword.get(options, :style, "long")
+    style_str = if is_atom(style), do: Atom.to_string(style), else: style
+
+    # Convert Localize unit name to ICU format (underscores to hyphens)
+    icu_unit = String.replace(unit, "_", "-")
+
+    nif_unit_format(number_str, icu_unit, locale, style_str)
+  end
+
+  @dialyzer {:no_return, nif_unit_format: 4}
+  defp nif_unit_format(_number, _unit, _locale, _style) do
+    :erlang.nif_error(:nif_library_not_loaded)
+  end
 end

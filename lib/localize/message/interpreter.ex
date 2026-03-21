@@ -967,6 +967,7 @@ defmodule Localize.Message.Interpreter do
 
   # ── General utilities ──────────────────────────────────────────
 
+  defp format_error_reason(%{__exception__: true} = exception), do: Exception.message(exception)
   defp format_error_reason({_module, message}) when is_binary(message), do: message
   defp format_error_reason(reason) when is_binary(reason), do: reason
 

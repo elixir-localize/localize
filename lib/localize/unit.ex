@@ -594,4 +594,75 @@ defmodule Localize.Unit do
        context: "usage"
      )}
   end
+
+  # ── Formatting ───────────────────────────────────────────────
+
+  @doc """
+  Formats a unit as a localized string.
+
+  ### Arguments
+
+  * `unit` is a `t:Localize.Unit.t/0` struct.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0`. The default is `:en`.
+
+  * `:style` is `:long`, `:short`, or `:narrow`.
+    The default is `:long`.
+
+  ### Returns
+
+  * `{:ok, formatted_string}` on success.
+
+  * `{:error, exception}` if the unit cannot be formatted.
+
+  ### Examples
+
+      iex> {:ok, unit} = Localize.Unit.new(42, "meter")
+      iex> Localize.Unit.to_string(unit)
+      {:ok, "42 meters"}
+
+      iex> {:ok, unit} = Localize.Unit.new(1, "meter")
+      iex> Localize.Unit.to_string(unit)
+      {:ok, "1 meter"}
+
+      iex> {:ok, unit} = Localize.Unit.new(42, "meter")
+      iex> Localize.Unit.to_string(unit, style: :short)
+      {:ok, "42 m"}
+
+  """
+  @spec to_string(t(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
+  def to_string(%__MODULE__{} = unit, options \\ []) do
+    Localize.Unit.Formatter.to_string(unit, options)
+  end
+
+  @doc """
+  Same as `to_string/2` but raises on error.
+
+  ### Arguments
+
+  * `unit` is a `t:Localize.Unit.t/0` struct.
+
+  * `options` is a keyword list of options.
+
+  ### Returns
+
+  * A formatted string.
+
+  ### Raises
+
+  * Raises an exception if the unit cannot be formatted.
+
+  """
+  @spec to_string!(t(), Keyword.t()) :: String.t()
+  def to_string!(%__MODULE__{} = unit, options \\ []) do
+    case to_string(unit, options) do
+      {:ok, string} -> string
+      {:error, exception} -> raise exception
+    end
+  end
 end

@@ -21,6 +21,7 @@
 #include "unicode/messageformat2_arguments.h"
 #include "unicode/messageformat2_formattable.h"
 #include "unicode/parseerr.h"
+#include "unicode/measunit.h"
 #include "unicode/numberformatter.h"
 #include "unicode/plurrule.h"
 #include "unicode/unistr.h"
@@ -816,6 +817,92 @@ static ERL_NIF_TERM nif_number_format(ErlNifEnv* env, int argc,
                             make_binary_from_unistr(env, result));
 }
 
+/* ── Unit formatting NIF function ───────────────────────────────── */
+
+// nif_unit_format(number_binary, unit_binary, locale_binary, style_binary)
+//   number_binary: string representation of the number
+//   unit_binary: ICU MeasureUnit identifier (e.g., "meter", "mile-per-hour")
+//   locale_binary: locale identifier (e.g., "en", "de")
+//   style_binary: "long", "short", or "narrow"
+//
+// Returns: {:ok, formatted_string} | {:error, reason}
+static ERL_NIF_TERM nif_unit_format(ErlNifEnv* env, int argc,
+                                     const ERL_NIF_TERM argv[]) {
+    if (argc != 4) {
+        return enif_make_badarg(env);
+    }
+
+    std::string number_str, unit_str, locale_str, style_str;
+
+    if (!get_string(env, argv[0], number_str) ||
+        !get_string(env, argv[1], unit_str) ||
+        !get_string(env, argv[2], locale_str) ||
+        !get_string(env, argv[3], style_str)) {
+        return enif_make_badarg(env);
+    }
+
+    UErrorCode status = U_ZERO_ERROR;
+    Locale locale(locale_str.c_str());
+
+    // Parse the unit identifier
+    icu::MeasureUnit unit = icu::MeasureUnit::forIdentifier(unit_str.c_str(), status);
+    if (U_FAILURE(status)) {
+        std::string err = "unknown unit: ";
+        err += unit_str;
+        return enif_make_tuple2(env, atom_error,
+                                make_binary_from_string(env, err));
+    }
+
+    // Set up the formatter with unit and style
+    auto formatter = icu::number::NumberFormatter::withLocale(locale)
+                         .unit(unit);
+
+    // Apply style (width)
+    if (style_str == "short") {
+        formatter = formatter.unitWidth(UNUM_UNIT_WIDTH_SHORT);
+    } else if (style_str == "narrow") {
+        formatter = formatter.unitWidth(UNUM_UNIT_WIDTH_NARROW);
+    } else {
+        formatter = formatter.unitWidth(UNUM_UNIT_WIDTH_FULL_NAME);
+    }
+
+    // Parse and format the number
+    bool has_decimal = (number_str.find('.') != std::string::npos);
+    UnicodeString result;
+
+    if (has_decimal) {
+        double number = std::stod(number_str);
+        auto formatted = formatter.formatDouble(number, status);
+        if (U_FAILURE(status)) {
+            return enif_make_tuple2(env, atom_error,
+                                    make_binary_from_string(env, "format error"));
+        }
+        result = formatted.toString(status);
+    } else {
+        int64_t number = 0;
+        try {
+            number = std::stoll(number_str);
+        } catch (...) {
+            return enif_make_tuple2(env, atom_error,
+                                    make_binary_from_string(env, "invalid number"));
+        }
+        auto formatted = formatter.formatInt(number, status);
+        if (U_FAILURE(status)) {
+            return enif_make_tuple2(env, atom_error,
+                                    make_binary_from_string(env, "format error"));
+        }
+        result = formatted.toString(status);
+    }
+
+    if (U_FAILURE(status)) {
+        return enif_make_tuple2(env, atom_error,
+                                make_binary_from_string(env, "toString failed"));
+    }
+
+    return enif_make_tuple2(env, atom_ok,
+                            make_binary_from_unistr(env, result));
+}
+
 /* ── NIF function table ─────────────────────────────────────────── */
 
 static ErlNifFunc nif_funcs[] = {
@@ -823,7 +910,8 @@ static ErlNifFunc nif_funcs[] = {
     {"nif_mf2_format",      3, nif_mf2_format},
     {"nif_collation_cmp",  10, nif_collation_cmp},
     {"nif_plural_rule",     4, nif_plural_rule},
-    {"nif_number_format",   4, nif_number_format}
+    {"nif_number_format",   4, nif_number_format},
+    {"nif_unit_format",     4, nif_unit_format}
 };
 
 ERL_NIF_INIT(Elixir.Localize.Nif, nif_funcs, &on_load,
