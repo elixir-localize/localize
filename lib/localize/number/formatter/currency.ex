@@ -123,10 +123,7 @@ defmodule Localize.Number.Formatter.Currency do
   # Substitution of [number_string, currency_string] into a format
   # like [0, " ", 1] where 0 = number and 1 = currency name
   defp substitute(values, format) when is_list(format) do
-    Enum.map(format, fn
-      index when is_integer(index) -> Enum.at(values, index, "")
-      string when is_binary(string) -> string
-    end)
+    Localize.Substitution.substitute(values, format)
   end
 
   defp substitute(_values, format) when is_binary(format), do: [format]

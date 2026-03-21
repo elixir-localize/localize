@@ -119,8 +119,10 @@ defmodule Localize.Unit.Formatter do
     case pattern do
       [position, pattern_str] when is_integer(position) and is_binary(pattern_str) ->
         with {:ok, number_str} <- format_number(value, options) do
-          result = substitute(number_str, pattern_str, position)
-          {:ok, String.trim(result)}
+          # Build a Substitution-compatible token list from position + pattern
+          tokens = unit_pattern_to_tokens(position, pattern_str)
+          result = Localize.Substitution.substitute(number_str, tokens)
+          {:ok, result |> :erlang.iolist_to_binary() |> String.trim()}
         end
 
       nil ->
@@ -133,22 +135,11 @@ defmodule Localize.Unit.Formatter do
     end
   end
 
-  # ── Pattern substitution ───────────────────────────────────
-
-  defp substitute(number_str, pattern_str, 0) do
-    # Position 0: number comes at the beginning
-    # Pattern is like " meters" or " m"
-    number_str <> pattern_str
-  end
-
-  defp substitute(number_str, pattern_str, 1) do
-    # Position 1: number comes after the unit text
-    pattern_str <> number_str
-  end
-
-  defp substitute(number_str, pattern_str, _position) do
-    number_str <> pattern_str
-  end
+  # Converts the CLDR unit pattern [position, suffix] into a
+  # Localize.Substitution-compatible token list.
+  defp unit_pattern_to_tokens(0, pattern_str), do: [0, pattern_str]
+  defp unit_pattern_to_tokens(1, pattern_str), do: [pattern_str, 0]
+  defp unit_pattern_to_tokens(_, pattern_str), do: [0, pattern_str]
 
   # ── Number formatting ──────────────────────────────────────
 
