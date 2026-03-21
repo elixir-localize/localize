@@ -7,6 +7,7 @@ defmodule Localize.MixProject do
       version: "0.1.0",
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
+      elixirc_paths: elixirc_paths(Mix.env()),
       compilers: maybe_elixir_make() ++ Mix.compilers(),
       make_makefile: "c_src/Makefile",
       deps: deps()
@@ -20,6 +21,9 @@ defmodule Localize.MixProject do
       mod: {Localize.Application, []}
     ]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
