@@ -74,7 +74,7 @@ defmodule Localize.Time do
 
   # Full time
   def to_string(%{hour: _, minute: _, second: _} = time, options) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
@@ -87,7 +87,7 @@ defmodule Localize.Time do
 
   # Partial time (has at least one time field but not all three)
   def to_string(time, options) when has_time_field(time) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format)
 
     with {:ok, locale_id} <- resolve_locale_id(locale) do

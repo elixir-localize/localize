@@ -400,7 +400,7 @@ defmodule Localize.LocaleDisplay do
   end
 
   defp resolve_locale_id(options) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
 
     case locale do
       %Localize.LanguageTag{cldr_locale_id: id} when not is_nil(id) -> id

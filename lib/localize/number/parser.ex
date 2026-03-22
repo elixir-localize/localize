@@ -51,7 +51,7 @@ defmodule Localize.Number.Parser do
           list(String.t() | integer() | float() | Decimal.t())
           | {:error, Exception.t()}
   def scan(string, options \\ []) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, symbols} <- Symbol.number_symbols_for(language_tag),
@@ -105,7 +105,7 @@ defmodule Localize.Number.Parser do
           {:ok, integer() | float() | Decimal.t()}
           | {:error, Exception.t()}
   def parse(string, options \\ []) when is_binary(string) and is_list(options) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, symbols} <- Symbol.number_symbols_for(language_tag),
@@ -183,7 +183,7 @@ defmodule Localize.Number.Parser do
   @spec resolve_currency(String.t(), Keyword.t()) ::
           list(atom() | String.t()) | {:error, Exception.t()}
   def resolve_currency(string, options \\ []) when is_binary(string) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
     only_filter = Keyword.get(options, :only, [:all])
     except_filter = Keyword.get(options, :except, [])
     fuzzy = Keyword.get(options, :fuzzy, nil)
@@ -249,7 +249,7 @@ defmodule Localize.Number.Parser do
   @spec resolve_per(String.t(), Keyword.t()) ::
           list(per() | String.t()) | {:error, Exception.t()}
   def resolve_per(string, options \\ []) when is_binary(string) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, symbols} <- Symbol.number_symbols_for(language_tag),

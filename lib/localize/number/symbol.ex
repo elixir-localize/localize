@@ -123,16 +123,7 @@ defmodule Localize.Number.Symbol do
 
   # ── Private helpers ──────────────────────────────────────────
 
-  defp to_locale_id(%Localize.LanguageTag{cldr_locale_id: locale_id})
-       when not is_nil(locale_id),
-       do: locale_id
-
-  defp to_locale_id(%Localize.LanguageTag{} = tag) do
-    Localize.LanguageTag.to_string(tag) |> String.to_atom()
-  end
-
-  defp to_locale_id(locale_id) when is_atom(locale_id), do: locale_id
-  defp to_locale_id(locale_id) when is_binary(locale_id), do: String.to_atom(locale_id)
+  defp to_locale_id(locale), do: Localize.Locale.to_locale_id(locale)
 
   defp to_system_atom(system) when is_atom(system), do: system
   defp to_system_atom(system) when is_binary(system), do: String.to_atom(system)

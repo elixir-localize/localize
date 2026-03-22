@@ -80,7 +80,7 @@ defmodule Localize.DateTime.Relative do
   @spec to_string(integer() | Date.t() | DateTime.t() | Time.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def to_string(relative, options \\ []) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, :standard)
     unit = Keyword.get(options, :unit)
     relative_to = Keyword.get_lazy(options, :relative_to, &DateTime.utc_now/0)

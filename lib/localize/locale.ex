@@ -425,4 +425,48 @@ defmodule Localize.Locale do
     :ok = load_and_store(locale)
     provider.get(locale, keys, options)
   end
+
+  # ── Locale ID coercion ────────────────────────────────────────
+
+  @doc """
+  Coerces a locale identifier to an atom.
+
+  Accepts a `t:Localize.LanguageTag.t/0`, an atom, or a binary
+  string and returns the corresponding locale identifier atom.
+
+  When given a `Localize.LanguageTag` with a populated
+  `:cldr_locale_id`, that value is returned directly. When the
+  `:cldr_locale_id` is `nil`, the tag is serialised to a string
+  and converted to an atom.
+
+  ### Arguments
+
+  * `locale` is a `t:Localize.LanguageTag.t/0`, an atom, or
+    a binary string.
+
+  ### Returns
+
+  * A locale identifier atom.
+
+  ### Examples
+
+      iex> Localize.Locale.to_locale_id(:en)
+      :en
+
+      iex> Localize.Locale.to_locale_id("en")
+      :en
+
+  """
+  @spec to_locale_id(LanguageTag.t() | atom() | String.t()) :: atom()
+  def to_locale_id(%LanguageTag{cldr_locale_id: locale_id})
+      when not is_nil(locale_id) do
+    locale_id
+  end
+
+  def to_locale_id(%LanguageTag{} = tag) do
+    tag |> LanguageTag.to_string() |> String.to_atom()
+  end
+
+  def to_locale_id(locale_id) when is_atom(locale_id), do: locale_id
+  def to_locale_id(locale_id) when is_binary(locale_id), do: String.to_atom(locale_id)
 end

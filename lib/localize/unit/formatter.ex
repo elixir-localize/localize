@@ -28,7 +28,7 @@ defmodule Localize.Unit.Formatter do
   @spec to_string(Localize.Unit.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def to_string(%Localize.Unit{} = unit, options \\ []) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
     style = Keyword.get(options, :style, :long)
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),

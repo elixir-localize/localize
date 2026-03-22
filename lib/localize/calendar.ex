@@ -32,6 +32,24 @@ defmodule Localize.Calendar do
   @days 1..7 |> Enum.to_list()
   @the_world :"001"
 
+  @doc """
+  Returns the list of known CLDR calendar types.
+
+  ### Returns
+
+  * A list of calendar type atoms.
+
+  ### Examples
+
+      iex> Localize.Calendar.known_calendars()
+      [:gregorian, :persian, :coptic, :ethiopic, :ethiopic_amete_alem, :chinese, :japanese, :dangi]
+
+  """
+  @spec known_calendars() :: [atom()]
+  def known_calendars do
+    @acceptable_calendars
+  end
+
   # ── Locale data access ─────────────────────────────────────────
 
   @doc """
@@ -266,7 +284,7 @@ defmodule Localize.Calendar do
   def localize(datetime, part, options \\ [])
 
   def localize(datetime, part, options) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
     type = Keyword.get(options, :type, :format)
     format = Keyword.get(options, :format, :abbreviated)
     calendar_type = calendar_type_from(datetime)
@@ -379,7 +397,7 @@ defmodule Localize.Calendar do
   """
   @spec strftime_options!(Keyword.t()) :: Keyword.t()
   def strftime_options!(options \\ []) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
     calendar_type = Keyword.get(options, :calendar_type, @default_calendar_type)
 
     with {:ok, locale_id} <- resolve_locale_id(locale),

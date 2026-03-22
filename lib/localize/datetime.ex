@@ -53,7 +53,7 @@ defmodule Localize.DateTime do
   def to_string(datetime, options \\ [])
 
   def to_string(%{year: _, month: _, day: _, hour: _, minute: _} = datetime, options) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
     style = Keyword.get(options, :style, :default)
 

@@ -50,7 +50,7 @@ defmodule Localize.DateTime.Formatter do
   @spec format(map(), String.t(), atom(), map()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def format(datetime, format_string, locale_id, options \\ %{}) do
-    with {:ok, tokens, _} <- Compiler.tokenize(format_string) do
+    with {:ok, tokens, _} <- tokenize_cached(format_string) do
       results =
         Enum.map(tokens, fn
           {:literal, _line, string} ->
@@ -64,6 +64,25 @@ defmodule Localize.DateTime.Formatter do
         {:error, _} = error -> error
         nil -> {:ok, results |> Enum.map(&ensure_string/1) |> IO.iodata_to_binary()}
       end
+    end
+  end
+
+  defp tokenize_cached(format_string) do
+    key = {:localize_datetime_format_tokens, format_string}
+
+    case :persistent_term.get(key, :not_compiled) do
+      :not_compiled ->
+        case Compiler.tokenize(format_string) do
+          {:ok, tokens, end_line} ->
+            :persistent_term.put(key, {tokens, end_line})
+            {:ok, tokens, end_line}
+
+          error ->
+            error
+        end
+
+      {tokens, end_line} ->
+        {:ok, tokens, end_line}
     end
   end
 

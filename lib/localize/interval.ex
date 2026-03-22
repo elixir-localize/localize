@@ -62,7 +62,7 @@ defmodule Localize.Interval do
   @spec to_string(map(), map(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def to_string(from, to, options \\ []) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
     style = Keyword.get(options, :style, @default_date_style)
 

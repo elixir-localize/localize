@@ -23,10 +23,12 @@ defmodule Localize.Number.PluralRule.Cardinal do
   import Localize.Number.PluralRule.Transformer
 
   alias Localize.LanguageTag
+  alias Localize.SupplementalData
 
-  @rules Localize.Number.PluralRule.load_plural_rules(:cardinal)
-
-  @rules_locales Localize.SupplementalData.plural_rules_locales(:cardinal)
+  # Load rules at compile time for function generation only.
+  # The attribute is deleted after generation so the raw data
+  # is not embedded in the BEAM file.
+  @rules_at_compile Localize.Number.PluralRule.load_plural_rules(:cardinal)
 
   @doc """
   Returns the locale names for which cardinal plural rules
@@ -39,7 +41,7 @@ defmodule Localize.Number.PluralRule.Cardinal do
   """
   @spec available_locale_names :: [atom(), ...]
   def available_locale_names do
-    @rules_locales
+    SupplementalData.plural_rules_locales(:cardinal)
   end
 
   @doc """
@@ -51,7 +53,7 @@ defmodule Localize.Number.PluralRule.Cardinal do
 
   """
   def plural_rules do
-    @rules
+    SupplementalData.plural_rules(:cardinal)
   end
 
   @doc """
@@ -333,9 +335,9 @@ defmodule Localize.Number.PluralRule.Cardinal do
         ) :: :zero | :one | :two | :few | :many | :other | {:error, Exception.t()}
 
   # Generate per-locale do_plural_rule/8 functions from the CLDR data
-  for locale_name <- @rules |> Map.keys() |> Enum.sort() do
+  for locale_name <- @rules_at_compile |> Map.keys() |> Enum.sort() do
     function_body =
-      @rules
+      @rules_at_compile
       |> Map.get(locale_name)
       |> rules_to_condition_statement(__MODULE__)
 
@@ -354,6 +356,8 @@ defmodule Localize.Number.PluralRule.Cardinal do
       unquote(function_body)
     end
   end
+
+  Module.delete_attribute(__MODULE__, :rules_at_compile)
 
   # If the locale doesn't have a plural rule, try the language
   defp do_plural_rule(%LanguageTag{} = language_tag, n, i, v, w, f, t, e) do

@@ -8,9 +8,7 @@ defmodule Localize.Currency do
   mappings, and support for custom (private use) currencies.
 
   Locale-specific currency data (display names, pluralized names,
-  symbols) will be implemented in a future release. Functions that
-  require locale data are currently stubs that return
-  `{:error, :not_yet_implemented}`.
+  symbols) is loaded on demand from the locale data provider.
 
   """
 
@@ -630,7 +628,7 @@ defmodule Localize.Currency do
   @spec currency_for_code(atom() | String.t(), Keyword.t()) ::
           {:ok, t()} | {:error, Exception.t()}
   def currency_for_code(currency_code, options \\ []) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, code} <- validate_currency(currency_code),
          {:ok, currencies} <- currencies_for_locale(locale) do
@@ -852,7 +850,7 @@ defmodule Localize.Currency do
   @spec pluralize(number(), currency_code(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def pluralize(number, currency, options \\ []) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, currency_code} <- validate_currency(currency),
          {:ok, currency_data} <- currency_for_code(currency_code, locale: locale) do
@@ -1252,12 +1250,7 @@ defmodule Localize.Currency do
 
   @rtl_mark "\u200F"
 
-  defp to_locale_id(%Localize.LanguageTag{cldr_locale_id: locale_id}), do: locale_id
-  defp to_locale_id(locale_id) when is_atom(locale_id), do: locale_id
-
-  defp to_locale_id(locale_id) when is_binary(locale_id) do
-    String.to_atom(locale_id)
-  end
+  defp to_locale_id(locale), do: Localize.Locale.to_locale_id(locale)
 
   defp normalize_currency_data(currency_code, data) when is_map(data) do
     count =

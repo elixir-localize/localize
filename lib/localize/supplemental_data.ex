@@ -8,7 +8,8 @@ defmodule Localize.SupplementalData do
   datasets defined by the Unicode CLDR project.
 
   All data is stored as pre-compiled ETF (Erlang Term Format) files
-  in `priv/cldr/` and deserialized on demand. Supplemental data files
+  in `priv/cldr/` and deserialized on first access, then cached in
+  `:persistent_term` for subsequent lookups. Supplemental data files
   are stored in `priv/cldr/supplemental_data/`.
 
   """
@@ -23,26 +24,62 @@ defmodule Localize.SupplementalData do
   end
 
   defp load_data(filename) do
-    cldr_dir()
-    |> Path.join(filename)
-    |> File.read!()
-    |> :erlang.binary_to_term()
+    key = {:localize_data, filename}
+
+    case :persistent_term.get(key, :not_loaded) do
+      :not_loaded ->
+        data =
+          cldr_dir()
+          |> Path.join(filename)
+          |> File.read!()
+          |> :erlang.binary_to_term()
+
+        :persistent_term.put(key, data)
+        data
+
+      data ->
+        data
+    end
   end
 
   defp load_supplemental(filename) do
-    cldr_dir()
-    |> Path.join("supplemental_data")
-    |> Path.join(filename)
-    |> File.read!()
-    |> :erlang.binary_to_term()
+    key = {:localize_supplemental, filename}
+
+    case :persistent_term.get(key, :not_loaded) do
+      :not_loaded ->
+        data =
+          cldr_dir()
+          |> Path.join("supplemental_data")
+          |> Path.join(filename)
+          |> File.read!()
+          |> :erlang.binary_to_term()
+
+        :persistent_term.put(key, data)
+        data
+
+      data ->
+        data
+    end
   end
 
   defp load_validity(filename) do
-    cldr_dir()
-    |> Path.join("validity")
-    |> Path.join(filename)
-    |> File.read!()
-    |> :erlang.binary_to_term()
+    key = {:localize_validity, filename}
+
+    case :persistent_term.get(key, :not_loaded) do
+      :not_loaded ->
+        data =
+          cldr_dir()
+          |> Path.join("validity")
+          |> Path.join(filename)
+          |> File.read!()
+          |> :erlang.binary_to_term()
+
+        :persistent_term.put(key, data)
+        data
+
+      data ->
+        data
+    end
   end
 
   # ── Public API ──────────────────────────────────────────────────
@@ -240,6 +277,53 @@ defmodule Localize.SupplementalData do
   @spec known_territories() :: [atom()]
   def known_territories do
     load_data("known_territories.etf")
+  end
+
+  @doc """
+  Returns a map of each territory to its containment chain.
+
+  Each key is a territory atom and each value is a list of
+  parent territory atoms in order of increasing scope, ending
+  with `:"001"` (the world).
+
+  """
+  @spec territory_containment() :: %{atom() => [atom()]}
+  def territory_containment do
+    load_supplemental("territory_containment.etf")
+  end
+
+  @doc """
+  Returns a map of container territories to the territories
+  they contain.
+
+  For example, `:"001"` (the world) contains `:"019"` (Americas),
+  `:"002"` (Africa), `:"150"` (Europe), `:"142"` (Asia), and
+  `:"009"` (Oceania).
+
+  """
+  @spec territory_containers() :: %{atom() => [atom()]}
+  def territory_containers do
+    load_supplemental("territory_containers.etf")
+  end
+
+  @doc """
+  Returns a map of territories and subdivisions to their
+  child subdivision codes.
+
+  """
+  @spec territory_subdivisions() :: %{atom() => [atom()]}
+  def territory_subdivisions do
+    load_supplemental("territory_subdivisions.etf")
+  end
+
+  @doc """
+  Returns a map of subdivision codes to their containment
+  chain (parent subdivision and territory).
+
+  """
+  @spec territory_subdivision_containment() :: %{atom() => [atom()]}
+  def territory_subdivision_containment do
+    load_supplemental("territory_subdivision_containment.etf")
   end
 
   # ── Derived supplemental data ──────────────────────────────────

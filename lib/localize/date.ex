@@ -77,7 +77,7 @@ defmodule Localize.Date do
 
   # Full date
   def to_string(%{year: _, month: _, day: _} = date, options) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
@@ -90,7 +90,7 @@ defmodule Localize.Date do
 
   # Partial date
   def to_string(date, options) when has_date_field(date) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format)
 
     with {:ok, locale_id} <- resolve_locale_id(locale) do

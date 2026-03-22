@@ -332,7 +332,7 @@ defmodule Localize.List do
   # ── Options normalization ──────────────────────────────────
 
   defp normalize_options(options) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
     middle_as_end? = !!Keyword.get(options, :treat_middle_as_end, false)
 

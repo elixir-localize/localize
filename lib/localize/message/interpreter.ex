@@ -652,7 +652,7 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp resolve_locale(options) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
     Localize.validate_locale(locale)
   end
 

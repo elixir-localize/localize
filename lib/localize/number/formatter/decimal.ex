@@ -46,7 +46,22 @@ defmodule Localize.Number.Formatter.Decimal do
   # Returns the parsed metadata for a format string.
   @doc false
   def metadata(format) when is_binary(format) do
-    Compiler.format_to_metadata(format)
+    key = {:localize_number_format_meta, format}
+
+    case :persistent_term.get(key, :not_compiled) do
+      :not_compiled ->
+        case Compiler.format_to_metadata(format) do
+          {:ok, meta} ->
+            :persistent_term.put(key, meta)
+            {:ok, meta}
+
+          error ->
+            error
+        end
+
+      meta ->
+        {:ok, meta}
+    end
   end
 
   @doc false

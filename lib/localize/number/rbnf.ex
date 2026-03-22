@@ -47,7 +47,7 @@ defmodule Localize.Number.Rbnf do
   @spec to_string(number(), atom() | String.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def to_string(number, rule_name, options \\ []) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
     locale_id = to_locale_id(locale)
     rule_name_str = normalize_rule_name(rule_name)
 
@@ -146,9 +146,7 @@ defmodule Localize.Number.Rbnf do
   defp normalize_rule_name(name) when is_atom(name), do: Atom.to_string(name)
   defp normalize_rule_name(name) when is_binary(name), do: name
 
-  defp to_locale_id(%Localize.LanguageTag{cldr_locale_id: id}) when not is_nil(id), do: id
-  defp to_locale_id(locale_id) when is_atom(locale_id), do: locale_id
-  defp to_locale_id(locale_id) when is_binary(locale_id), do: String.to_atom(locale_id)
+  defp to_locale_id(locale), do: Localize.Locale.to_locale_id(locale)
 
   defp to_string_key(key) when is_atom(key), do: Atom.to_string(key)
   defp to_string_key(key) when is_binary(key), do: key

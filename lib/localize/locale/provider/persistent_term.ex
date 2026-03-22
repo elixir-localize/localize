@@ -123,13 +123,7 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
   # ── Helpers ──────────────────────────────────────────────────
 
-  defp to_locale_id(%Localize.LanguageTag{cldr_locale_id: locale_id}) do
-    locale_id
-  end
-
-  defp to_locale_id(locale_id) when is_atom(locale_id) do
-    locale_id
-  end
+  defp to_locale_id(locale), do: Localize.Locale.to_locale_id(locale)
 
   defp locale_key(locale_id) do
     {:localize, locale_id}
