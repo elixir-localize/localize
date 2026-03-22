@@ -111,8 +111,7 @@ defmodule Localize.Territory do
                )}
 
             _ ->
-              {:error,
-               Localize.UnknownTerritoryError.exception(territory: territory_atom)}
+              {:error, Localize.UnknownTerritoryError.exception(territory: territory_atom)}
           end
 
         {:error, _} = error ->
@@ -184,8 +183,7 @@ defmodule Localize.Territory do
     with {:ok, subdivisions} <- Localize.Locale.get(locale_id, [:subdivisions]) do
       case Map.get(subdivisions, code) do
         nil ->
-          {:error,
-           Localize.UnknownSubdivisionError.exception(subdivision: code)}
+          {:error, Localize.UnknownSubdivisionError.exception(subdivision: code)}
 
         name ->
           {:ok, name}
@@ -324,8 +322,7 @@ defmodule Localize.Territory do
 
       case Map.get(inverted, normalized) do
         nil ->
-          {:error,
-           Localize.UnknownSubdivisionError.exception(subdivision: name)}
+          {:error, Localize.UnknownSubdivisionError.exception(subdivision: name)}
 
         code ->
           subdivision_name(code, locale: to_locale)
@@ -393,8 +390,7 @@ defmodule Localize.Territory do
 
       case Map.get(inverted, normalized) do
         nil ->
-          {:error,
-           Localize.UnknownTerritoryError.exception(territory: name)}
+          {:error, Localize.UnknownTerritoryError.exception(territory: name)}
 
         code ->
           {:ok, code}
@@ -461,8 +457,7 @@ defmodule Localize.Territory do
 
       case Enum.sort(parents) do
         [] ->
-          {:error,
-           Localize.UnknownTerritoryError.exception(territory: territory)}
+          {:error, Localize.UnknownTerritoryError.exception(territory: territory)}
 
         sorted ->
           {:ok, sorted}
@@ -520,8 +515,7 @@ defmodule Localize.Territory do
 
       case Map.get(containers, code) do
         nil ->
-          {:error,
-           Localize.UnknownTerritoryError.exception(territory: territory)}
+          {:error, Localize.UnknownTerritoryError.exception(territory: territory)}
 
         child_list ->
           {:ok, child_list}
@@ -623,8 +617,7 @@ defmodule Localize.Territory do
 
       case Map.get(territories, code) do
         nil ->
-          {:error,
-           Localize.UnknownTerritoryError.exception(territory: territory)}
+          {:error, Localize.UnknownTerritoryError.exception(territory: territory)}
 
         info_map ->
           {:ok, info_map}
@@ -789,9 +782,28 @@ defmodule Localize.Territory do
   # ── Country codes ───────────────────────────────────────────
 
   @regions [
-    "005", "011", "013", "014", "015", "017", "018", "021",
-    "029", "030", "034", "035", "039", "053", "054", "057",
-    "061", "143", "145", "151", "154", "155"
+    "005",
+    "011",
+    "013",
+    "014",
+    "015",
+    "017",
+    "018",
+    "021",
+    "029",
+    "030",
+    "034",
+    "035",
+    "039",
+    "053",
+    "054",
+    "057",
+    "061",
+    "143",
+    "145",
+    "151",
+    "154",
+    "155"
   ]
 
   @doc """
@@ -823,6 +835,201 @@ defmodule Localize.Territory do
       Map.get(containers, region_atom, [])
     end)
     |> Enum.sort()
+  end
+
+  # ── Flag ─────────────────────────────────────────────────────
+
+  @unicode_flag_codepoint_offset 0x1F1A5
+
+  @doc """
+  Returns a Unicode flag emoji for a territory or locale.
+
+  Converts a two-letter ISO 3166 territory code into the
+  corresponding regional indicator flag emoji. Territories
+  that are not two-letter codes (e.g., region codes like
+  `:"001"`) return an empty string.
+
+  When given a `t:Localize.LanguageTag.t/0`, the territory
+  is extracted from the tag.
+
+  ### Arguments
+
+  * `territory_or_locale` is a territory code atom, string,
+    or a `t:Localize.LanguageTag.t/0`.
+
+  ### Returns
+
+  * `{:ok, flag_string}` where `flag_string` is the Unicode
+    flag emoji, or an empty string if the territory does not
+    have a flag representation.
+
+  * `{:error, exception}` if the territory is not known.
+
+  ### Examples
+
+      iex> Localize.Territory.unicode_flag(:US)
+      {:ok, "🇺🇸"}
+
+      iex> Localize.Territory.unicode_flag(:GB)
+      {:ok, "🇬🇧"}
+
+      iex> Localize.Territory.unicode_flag(:"001")
+      {:ok, ""}
+
+      iex> {:ok, tag} = Localize.validate_locale(:en)
+      iex> Localize.Territory.unicode_flag(tag)
+      {:ok, "🇺🇸"}
+
+  """
+  @spec unicode_flag(LanguageTag.t() | atom() | String.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def unicode_flag(%LanguageTag{territory: territory}) when not is_nil(territory) do
+    unicode_flag(territory)
+  end
+
+  def unicode_flag(%LanguageTag{} = locale) do
+    with {:ok, territory} <- default_territory(locale) do
+      unicode_flag(territory)
+    end
+  end
+
+  def unicode_flag(territory) do
+    with {:ok, territory_atom} <- Localize.validate_territory(territory) do
+      flag_string =
+        territory_atom
+        |> Atom.to_charlist()
+        |> generate_flag()
+
+      {:ok, flag_string}
+    end
+  end
+
+  @doc """
+  Same as `unicode_flag/1` but raises on error.
+
+  ### Examples
+
+      iex> Localize.Territory.unicode_flag!(:US)
+      "🇺🇸"
+
+  """
+  @spec unicode_flag!(LanguageTag.t() | atom() | String.t()) :: String.t()
+  def unicode_flag!(territory) do
+    case unicode_flag(territory) do
+      {:ok, result} -> result
+      {:error, exception} -> raise exception
+    end
+  end
+
+  defp generate_flag([_, _] = iso_code) do
+    iso_code
+    |> Enum.map(&(&1 + @unicode_flag_codepoint_offset))
+    |> Kernel.to_string()
+  end
+
+  defp generate_flag(_), do: ""
+
+  # ── Utility ──────────────────────────────────────────────────
+
+  @doc """
+  Returns the territory code representing the world.
+
+  ### Returns
+
+  * The atom `:"001"`.
+
+  ### Examples
+
+      iex> Localize.Territory.the_world()
+      :"001"
+
+  """
+  @spec the_world() :: atom()
+  def the_world, do: :"001"
+
+  @doc """
+  Returns the territory fallback chain for a territory.
+
+  The chain starts with the territory itself and includes each
+  containing territory in order of increasing scope, ending with
+  `:"001"` (the world).
+
+  ### Arguments
+
+  * `territory` is a territory code atom, string, or integer.
+
+  ### Returns
+
+  * `{:ok, chain}` where `chain` is a list of territory atoms.
+
+  * `{:error, exception}` if the territory is not known.
+
+  ### Examples
+
+      iex> Localize.Territory.territory_chain(:US)
+      {:ok, [:US, :UN, :"001"]}
+
+      iex> Localize.Territory.territory_chain(:"001")
+      {:ok, [:"001"]}
+
+  """
+  @spec territory_chain(atom() | String.t() | integer()) ::
+          {:ok, [atom()]} | {:error, Exception.t()}
+  def territory_chain(:"001" = world) do
+    {:ok, [world]}
+  end
+
+  def territory_chain(territory) do
+    with {:ok, territory_atom} <- Localize.validate_territory(territory) do
+      case Map.fetch(SupplementalData.territory_containment(), territory_atom) do
+        {:ok, chain} ->
+          {:ok, [territory_atom | chain]}
+
+        :error ->
+          {:ok, [territory_atom]}
+      end
+    end
+  end
+
+  @doc """
+  Returns the default territory for a locale.
+
+  Extracts the territory from a locale's language tag. If the
+  locale does not have an explicit territory, the likely subtag
+  data is used to infer one.
+
+  ### Arguments
+
+  * `locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  ### Returns
+
+  * `{:ok, territory_atom}` where `territory_atom` is the
+    inferred territory.
+
+  * `{:error, exception}` if the locale is not valid.
+
+  ### Examples
+
+      iex> Localize.Territory.default_territory(:en)
+      {:ok, :US}
+
+      iex> Localize.Territory.default_territory(:ja)
+      {:ok, :JP}
+
+  """
+  @spec default_territory(atom() | String.t() | LanguageTag.t()) ::
+          {:ok, atom()} | {:error, Exception.t()}
+  def default_territory(%LanguageTag{territory: territory})
+      when not is_nil(territory) do
+    {:ok, territory}
+  end
+
+  def default_territory(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      {:ok, language_tag.territory}
+    end
   end
 
   # ── Name normalization ──────────────────────────────────────
@@ -869,8 +1076,7 @@ defmodule Localize.Territory do
   defp validate_style(style) when style in @styles, do: {:ok, style}
 
   defp validate_style(style) do
-    {:error,
-     Localize.UnknownStyleError.exception(style: style, territory: nil)}
+    {:error, Localize.UnknownStyleError.exception(style: style, territory: nil)}
   end
 
   defp normalize_subdivision_code(code) when is_atom(code), do: code
