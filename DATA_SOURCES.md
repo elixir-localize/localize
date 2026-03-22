@@ -69,6 +69,7 @@ There are three methods used to produce the ETF files:
 | `territory_subdivision_containment.etf` | `../cldr/priv/cldr/territory_subdivision_containment.json` | Ad-hoc script (see below) — subdivision containment hierarchy |
 | `territory_subdivisions.etf` | `../cldr/priv/cldr/territory_subdivisions.json` | Ad-hoc script (see below) — maps territories to subdivision codes |
 | `time_preferences.etf` | `../cldr/priv/cldr/time_preferences.json` | Extracted from `Cldr.Config` or ad-hoc script |
+| `number_systems.etf` | `../cldr/priv/cldr/number_systems.json` | Extracted from `Cldr.Config.number_systems()` — maps 97 number system name atoms to definitions containing `:type` (`:numeric` or `:algorithmic`) and either `:digits` (10-character string) or `:rules` (RBNF rule reference). Loaded at runtime by `Localize.Number.System` and cached in `:persistent_term`. |
 | `timezones.etf` | `../cldr/priv/cldr/timezones.json` | Extracted from `Cldr.Config.timezones()` |
 | `unit_data.etf` | `../cldr_repo/common/supplemental/units.xml` and `../cldr_repo/common/validity/unit.xml` | Script: `scripts/extract_unit_data.exs` — parses XML with `SweetXml`, extracts unit conversions, preferences, quantities, and categories |
 | `weeks.etf` | `../cldr/priv/cldr/weeks.json` | Extracted from `Cldr.Config.weeks()` |

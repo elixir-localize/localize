@@ -18,9 +18,10 @@ locale loader that reads JSON files directly from
       to use the new loader instead of
       `Cldr.Locale.Loader.get_locale/2`.
 
-* [ ] `Localize.Number.System` loads `@number_systems` at
-      compile time via `Cldr.Config.number_systems()`. Extract
-      this data to an ETF file and load at runtime.
+* [x] `Localize.Number.System` loads `@number_systems` at
+      compile time via `Cldr.Config.number_systems()`. Extracted
+      to `priv/cldr/supplemental_data/number_systems.etf` and
+      loaded at runtime via `:persistent_term`.
 
 * [ ] `Localize.Collation` checks for `Cldr.LanguageTag` at
       runtime via `Code.ensure_loaded?/1`. Remove this

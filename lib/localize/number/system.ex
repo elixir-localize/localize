@@ -32,19 +32,14 @@ defmodule Localize.Number.System do
   @type system_name :: atom()
   @type system_type :: :default | :native | :traditional | :finance
 
-  # Number system definitions from CLDR supplemental data.
-  # This is global (not per-locale) data loaded at compile time.
-  @number_systems Cldr.Config.number_systems()
-
-  @numeric_systems @number_systems
-                   |> Enum.reject(fn {_name, system} -> is_nil(system[:digits]) end)
-                   |> Map.new()
-
-  @algorithmic_systems @number_systems
-                       |> Enum.filter(fn {_name, system} -> system.type == :algorithmic end)
-                       |> Map.new()
-
   @known_number_system_types [:default, :native, :traditional, :finance]
+
+  @number_systems_path Path.join(:code.priv_dir(:localize), "cldr/supplemental_data/number_systems.etf")
+
+  # Lazy-load number systems from ETF at runtime and cache in persistent_term.
+  @persistent_term_key {__MODULE__, :number_systems}
+  @numeric_systems_key {__MODULE__, :numeric_systems}
+  @algorithmic_systems_key {__MODULE__, :algorithmic_systems}
 
   @doc """
   Returns the default number system type.
@@ -85,7 +80,10 @@ defmodule Localize.Number.System do
   """
   @spec number_systems() :: map()
   def number_systems do
-    @number_systems
+    case :persistent_term.get(@persistent_term_key, :not_loaded) do
+      :not_loaded -> load_number_systems()
+      systems -> systems
+    end
   end
 
   @doc """
@@ -99,7 +97,14 @@ defmodule Localize.Number.System do
   """
   @spec numeric_systems() :: map()
   def numeric_systems do
-    @numeric_systems
+    case :persistent_term.get(@numeric_systems_key, :not_loaded) do
+      :not_loaded ->
+        load_number_systems()
+        :persistent_term.get(@numeric_systems_key)
+
+      systems ->
+        systems
+    end
   end
 
   @doc """
@@ -115,7 +120,14 @@ defmodule Localize.Number.System do
   """
   @spec algorithmic_systems() :: map()
   def algorithmic_systems do
-    @algorithmic_systems
+    case :persistent_term.get(@algorithmic_systems_key, :not_loaded) do
+      :not_loaded ->
+        load_number_systems()
+        :persistent_term.get(@algorithmic_systems_key)
+
+      systems ->
+        systems
+    end
   end
 
   @doc """
@@ -151,7 +163,7 @@ defmodule Localize.Number.System do
   """
   @spec known_number_systems() :: [system_name()]
   def known_number_systems do
-    Map.keys(@number_systems)
+    Map.keys(number_systems())
   end
 
   @doc """
@@ -358,7 +370,7 @@ defmodule Localize.Number.System do
           {:ok, system_name}
 
         # It's a known system globally but not in this locale
-        Map.has_key?(@number_systems, system_name) ->
+        Map.has_key?(number_systems(), system_name) ->
           {:ok, system_name}
 
         true ->
@@ -638,6 +650,26 @@ defmodule Localize.Number.System do
   end
 
   # ── Private helpers ──────────────────────────────────────────
+
+  defp load_number_systems do
+    systems = @number_systems_path |> File.read!() |> :erlang.binary_to_term()
+
+    numeric =
+      systems
+      |> Enum.reject(fn {_name, system} -> is_nil(system[:digits]) end)
+      |> Map.new()
+
+    algorithmic =
+      systems
+      |> Enum.filter(fn {_name, system} -> system.type == :algorithmic end)
+      |> Map.new()
+
+    :persistent_term.put(@persistent_term_key, systems)
+    :persistent_term.put(@numeric_systems_key, numeric)
+    :persistent_term.put(@algorithmic_systems_key, algorithmic)
+
+    systems
+  end
 
   defp to_locale_id(locale), do: Localize.Locale.to_locale_id(locale)
 
