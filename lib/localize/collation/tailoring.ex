@@ -222,7 +222,11 @@ defmodule Localize.Collation.Tailoring do
           {{:reset_before, level, first_char}, rest}
 
         # Special reset positions: [last regular], [first primary ignorable], etc.
-        match = Regex.run(~r/^\[(last|first) (regular|primary ignorable|secondary ignorable|tertiary ignorable)\](.*)$/, str) ->
+        match =
+            Regex.run(
+              ~r/^\[(last|first) (regular|primary ignorable|secondary ignorable|tertiary ignorable)\](.*)$/,
+              str
+            ) ->
           [_, _pos, _level, rest] = match
           # These are positional anchors — we handle them as a reset to
           # a synthetic position. For now, skip the reset and just parse
@@ -273,9 +277,15 @@ defmodule Localize.Collation.Tailoring do
           entries ++ parse_ordering_rules(rest)
         else
           # Regular syntax — handle slash expansion
-          {target_chars, _expansion} = split_expansion(chars)
+          {target_chars, expansion} = split_expansion(chars)
           cps = target_to_codepoints(target_chars)
-          [{level, cps} | parse_ordering_rules(rest)]
+
+          if expansion do
+            expansion_cps = target_to_codepoints(expansion)
+            [{level, cps, expansion_cps} | parse_ordering_rules(rest)]
+          else
+            [{level, cps} | parse_ordering_rules(rest)]
+          end
         end
 
       nil ->
@@ -341,6 +351,25 @@ defmodule Localize.Collation.Tailoring do
             elements = lookup_elements(cps)
             adjusted = adjust_before(elements, level)
             {overlay, {:after, adjusted}}
+
+          # Expansion: target sorts at `level` relative to the
+          # expansion's collation elements. E.g., ccs/cs means
+          # ccs produces the same elements as cs but at tertiary
+          # level below.
+          {level, target_cps, expansion_cps}
+          when level in [:primary, :secondary, :tertiary] ->
+            expansion_key = Parser.codepoints_to_key(expansion_cps)
+
+            expansion_elements =
+              case Map.get(overlay, expansion_key) do
+                nil -> lookup_elements(expansion_cps)
+                elements -> elements
+              end
+
+            new_elements = compute_tailored_elements(expansion_elements, level)
+            key = Parser.codepoints_to_key(target_cps)
+            new_overlay = Map.put(overlay, key, new_elements)
+            {new_overlay, {:after, new_elements}}
 
           {level, cps} when level in [:primary, :secondary, :tertiary] ->
             case state do

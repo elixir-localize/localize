@@ -49,7 +49,9 @@ defmodule Localize.Collation.Reorder do
                   offset = primary - base_primary
 
                   case Map.get(lead_byte_remap, frac_lead) do
-                    nil -> primary
+                    nil ->
+                      primary
+
                     new_lead ->
                       base_sub = Map.get(primary_to_frac_lead, {:sub, base_primary}, 0)
                       (new_lead <<< 8 ||| base_sub) + offset
