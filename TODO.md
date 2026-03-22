@@ -140,10 +140,19 @@ covering 97 languages, extracted from CLDR XML.
       specified level. Works for all 11 languages that use it
       (hu, fi, sv, no, se, fo, kl, ja, zh, en-US-POSIX).
 
-* [ ] Star syntax (`<*`) for CJK (ja, ko, zh) adds thousands
-      of characters at primary level. These parse correctly but
-      generate very large overlays. Performance impact on sort
-      key generation with these overlays has not been assessed.
+* [ ] CJK star syntax overlays (ja, ko, zh) generate very
+      large overlay maps (thousands of entries). Performance
+      impact on sort key generation has not been assessed.
+
+* [ ] `search` collation type — currently excluded from
+      extraction. Search collations use `[import und-u-co-search]`
+      to import root search rules (~600 lines) which provide
+      loose matching (accent/case insensitive). Requires:
+      (1) extracting and bundling root search collation rules,
+      (2) resolving `[import]` directives at extraction time,
+      (3) merging imported rules with locale-specific overrides.
+      Used by ko, hr, and many other locales for search/filter
+      operations as opposed to display sorting.
 
 * [x] `[suppressContractions]` directive fully supported —
       parsed from tailoring rules, stored as a codepoint list
