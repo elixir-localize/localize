@@ -194,27 +194,8 @@ defmodule Localize.Message.Parser do
   end
 
   defp message__8(rest, user_acc, [acc | stack], context, line, offset) do
-    case (case maybe_wrap_leading_ws(rest, user_acc, context, line, offset) do
-            {_, _, _} = res ->
-              res
-
-            {:error, reason} ->
-              {:error, reason}
-
-            {acc, context} ->
-              IO.warn(
-                "returning a two-element tuple {acc, context} in pre_traverse/post_traverse is deprecated, " <>
-                  "please return {rest, acc, context} instead"
-              )
-
-              {rest, acc, context}
-          end) do
-      {rest, user_acc, context} when is_list(user_acc) ->
-        message__9(rest, user_acc ++ acc, stack, context, line, offset)
-
-      {:error, reason} ->
-        {:error, reason, rest, context, line, offset}
-    end
+    {rest, user_acc, context} = maybe_wrap_leading_ws(rest, user_acc, context, line, offset)
+    message__9(rest, user_acc ++ acc, stack, context, line, offset)
   end
 
   defp message__9(rest, acc, stack, context, line, offset) do
@@ -34316,27 +34297,8 @@ defmodule Localize.Message.Parser do
   end
 
   defp message__10(rest, user_acc, [acc | stack], context, line, offset) do
-    case (case coalesce_text(rest, user_acc, context, line, offset) do
-            {_, _, _} = res ->
-              res
-
-            {:error, reason} ->
-              {:error, reason}
-
-            {acc, context} ->
-              IO.warn(
-                "returning a two-element tuple {acc, context} in pre_traverse/post_traverse is deprecated, " <>
-                  "please return {rest, acc, context} instead"
-              )
-
-              {rest, acc, context}
-          end) do
-      {rest, user_acc, context} when is_list(user_acc) ->
-        message__3361(rest, user_acc ++ acc, stack, context, line, offset)
-
-      {:error, reason} ->
-        {:error, reason, rest, context, line, offset}
-    end
+    {rest, user_acc, context} = coalesce_text(rest, user_acc, context, line, offset)
+    message__3361(rest, user_acc ++ acc, stack, context, line, offset)
   end
 
   defp message__3361(rest, acc, [_, previous_acc | stack], context, line, offset) do
