@@ -150,6 +150,16 @@ covering 97 languages, extracted from CLDR XML.
       in Options, and checked during collation element
       production to skip contraction lookups for specified
       characters. Used by cu, sr, mk (Cyrillic И/и).
+* [x] Continuation lines — multi-line CLDR rules are joined
+      before parsing. Lines starting with `<`, `<<`, `<<<`,
+      `<*`, `=` without `&` are appended to the previous line.
+* [x] Equivalence operator (`=`) — `&X=Y` maps Y to the same
+      collation elements as X. Used by Arabic (presentation
+      forms) and Japanese (kana).
+* [x] Bidi mark stripping — U+200E/U+200F marks in Arabic
+      rules are stripped before parsing.
+* [x] Inline comment stripping — `# comment` suffixes on rule
+      lines are removed before parsing.
 
 ## Data and scripts
 

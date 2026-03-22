@@ -177,8 +177,12 @@ defmodule Localize.Collation.Tailoring do
       String.starts_with?(line, "=")
   end
 
+  @bidi_lrm <<0x200E::utf8>>
+  @bidi_rlm <<0x200F::utf8>>
   defp strip_bidi_marks(str) do
-    String.replace(str, ~r/[\x{200E}\x{200F}]/, "")
+    str
+    |> String.replace(@bidi_lrm, "")
+    |> String.replace(@bidi_rlm, "")
   end
 
   defp build_tailoring(rules_str) do
@@ -254,9 +258,10 @@ defmodule Localize.Collation.Tailoring do
         chars = parse_suppress_contractions(line)
         [{:option, :suppress_contractions, chars}]
 
-      # Ordering rules
-      String.starts_with?(line, "&") ->
-        parse_reset_and_rules(String.trim_leading(line, "&"))
+      # Ordering rules — strip bidi marks before checking
+      String.starts_with?(line, "&") or String.starts_with?(strip_bidi_marks(line), "&") ->
+        cleaned = strip_bidi_marks(line) |> String.trim_leading("&")
+        parse_reset_and_rules(cleaned)
 
       true ->
         []
@@ -337,7 +342,7 @@ defmodule Localize.Collation.Tailoring do
   end
 
   defp split_first_char_sequence(str) do
-    case Regex.run(~r/^(.+?)(<<<\*|<<\*|<\*|<<<|<<|<)(.*)$/, str) do
+    case Regex.run(~r/^(.+?)(<<<\*|<<\*|<\*|<<<|<<|<|=)(.*)$/, str) do
       [_, chars, op, rest] ->
         cps = anchor_to_codepoints(chars)
         {cps, op <> rest}
@@ -351,8 +356,14 @@ defmodule Localize.Collation.Tailoring do
   defp parse_ordering_rules(""), do: []
 
   defp parse_ordering_rules(str) do
-    # Match star syntax (<<<*, <<*, <*) or regular (<<<, <<, <)
-    case Regex.run(~r/^(<<<\*|<<\*|<\*|<<<|<<|<)(.+?)(?=(<<<\*|<<\*|<\*|<<<|<<|<)|$)/, str) do
+    # Strip inline comments (# ...) but preserve # inside character data
+    str = Regex.replace(~r/\s+#\s.*$/, str, "")
+
+    # Match star syntax, regular operators, or equivalence (=)
+    case Regex.run(
+           ~r/^(<<<\*|<<\*|<\*|<<<|<<|<|=)(.+?)(?=(<<<\*|<<\*|<\*|<<<|<<|<|=)|$)/,
+           str
+         ) do
       [full, op, chars | _] ->
         {level, star?} = parse_operator(op)
         rest = String.trim_leading(str, full)
@@ -393,6 +404,7 @@ defmodule Localize.Collation.Tailoring do
   defp parse_operator("<<<"), do: {:tertiary, false}
   defp parse_operator("<<"), do: {:secondary, false}
   defp parse_operator("<"), do: {:primary, false}
+  defp parse_operator("="), do: {:identical, false}
 
   # Split "chars/expansion" — for now we record the target chars
   # and ignore the expansion (expansion support requires changes
@@ -451,7 +463,7 @@ defmodule Localize.Collation.Tailoring do
           # ccs produces the same elements as cs but at tertiary
           # level below.
           {level, target_cps, expansion_cps}
-          when level in [:primary, :secondary, :tertiary] ->
+          when level in [:primary, :secondary, :tertiary, :identical] ->
             expansion_key = Parser.codepoints_to_key(expansion_cps)
 
             expansion_elements =
@@ -460,10 +472,29 @@ defmodule Localize.Collation.Tailoring do
                 elements -> elements
               end
 
-            new_elements = compute_tailored_elements(expansion_elements, level)
+            new_elements =
+              if level == :identical do
+                expansion_elements
+              else
+                compute_tailored_elements(expansion_elements, level)
+              end
+
             key = Parser.codepoints_to_key(target_cps)
             new_overlay = Map.put(overlay, key, new_elements)
             {new_overlay, {:after, new_elements}}
+
+          # Identical (=): target gets the same elements as the anchor
+          {:identical, cps} ->
+            case state do
+              {:after, anchor_elements} ->
+                key = Parser.codepoints_to_key(cps)
+                new_overlay = Map.put(overlay, key, anchor_elements)
+                # State stays the same — next entry still relative to anchor
+                {new_overlay, state}
+
+              nil ->
+                {overlay, state}
+            end
 
           {level, cps} when level in [:primary, :secondary, :tertiary] ->
             case state do
