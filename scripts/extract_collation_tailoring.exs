@@ -44,8 +44,7 @@ strip_line? = fn line ->
   line == "" or
     String.starts_with?(line, "#") or
     String.starts_with?(line, "[import") or
-    String.starts_with?(line, "[optimize") or
-    String.starts_with?(line, "[suppressContractions")
+    String.starts_with?(line, "[optimize")
 end
 
 # Decode \uXXXX escape sequences to actual Unicode characters
@@ -66,7 +65,8 @@ has_ordering_rules? = fn rules ->
       String.starts_with?(line, "[alternate") or
       String.starts_with?(line, "[backwards") or
       String.starts_with?(line, "[normalization") or
-      String.starts_with?(line, "[strength")
+      String.starts_with?(line, "[strength") or
+      String.starts_with?(line, "[suppressContractions")
   end)
 end
 

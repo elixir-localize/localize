@@ -134,21 +134,22 @@ covering 97 languages, extracted from CLDR XML.
 
 ### Remaining collation work
 
-* [ ] Slash expansion notation (e.g., `ccs/cs` in Hungarian)
-      is parsed but the expansion is not applied — the target
-      characters are stored without expansion semantics. Full
-      support requires the collation engine to generate
-      expansion sort keys.
+* [x] Slash expansion notation (e.g., `ccs/cs` in Hungarian)
+      fully supported — the target characters produce collation
+      elements derived from the expansion's elements at the
+      specified level. Works for all 11 languages that use it
+      (hu, fi, sv, no, se, fo, kl, ja, zh, en-US-POSIX).
 
 * [ ] Star syntax (`<*`) for CJK (ja, ko, zh) adds thousands
       of characters at primary level. These parse correctly but
       generate very large overlays. Performance impact on sort
       key generation with these overlays has not been assessed.
 
-* [ ] Some complex non-Latin tailoring rules (ar, bn, sa) use
-      features like `[suppressContractions]` that are stripped
-      during extraction. These affect sort accuracy for those
-      specific scripts.
+* [x] `[suppressContractions]` directive fully supported —
+      parsed from tailoring rules, stored as a codepoint list
+      in Options, and checked during collation element
+      production to skip contraction lookups for specified
+      characters. Used by cu, sr, mk (Cyrillic И/и).
 
 ## Data and scripts
 

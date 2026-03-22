@@ -130,7 +130,55 @@ defmodule Localize.Collation.Tailoring do
   def parse_rules(rules_str) do
     rules_str
     |> String.split("\n", trim: true)
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == ""))
+    |> join_continuation_lines()
     |> Enum.flat_map(&parse_rule_line/1)
+  end
+
+  # Join continuation lines onto the previous line. A continuation
+  # is any line that starts with an ordering operator (<, <<, <<<,
+  # <*, <<*, <<<*, =) without a preceding & reset. These occur when
+  # CLDR wraps long rules across multiple lines.
+  defp join_continuation_lines(lines) do
+    {result, current} =
+      Enum.reduce(lines, {[], nil}, fn line, {acc, current} ->
+        stripped = strip_bidi_marks(line)
+
+        if continuation_line?(stripped) do
+          case current do
+            nil -> {acc, line}
+            prev -> {acc, prev <> line}
+          end
+        else
+          case current do
+            nil -> {acc, line}
+            prev -> {[prev | acc], line}
+          end
+        end
+      end)
+
+    result =
+      case current do
+        nil -> result
+        last -> [last | result]
+      end
+
+    Enum.reverse(result)
+  end
+
+  defp continuation_line?(line) do
+    String.starts_with?(line, "<<<*") or
+      String.starts_with?(line, "<<<") or
+      String.starts_with?(line, "<<*") or
+      String.starts_with?(line, "<<") or
+      String.starts_with?(line, "<*") or
+      String.starts_with?(line, "<") or
+      String.starts_with?(line, "=")
+  end
+
+  defp strip_bidi_marks(str) do
+    String.replace(str, ~r/[\x{200E}\x{200F}]/, "")
   end
 
   defp build_tailoring(rules_str) do
@@ -202,6 +250,10 @@ defmodule Localize.Collation.Tailoring do
 
         [{:option, :reorder, codes}]
 
+      String.starts_with?(line, "[suppressContractions") ->
+        chars = parse_suppress_contractions(line)
+        [{:option, :suppress_contractions, chars}]
+
       # Ordering rules
       String.starts_with?(line, "&") ->
         parse_reset_and_rules(String.trim_leading(line, "&"))
@@ -209,6 +261,48 @@ defmodule Localize.Collation.Tailoring do
       true ->
         []
     end
+  end
+
+  defp parse_suppress_contractions(line) do
+    # Format: [suppressContractions [chars-or-ranges]]
+    # Extract the content between the inner brackets
+    case Regex.run(~r/\[suppressContractions\s+\[(.+)\]\]/, line) do
+      [_, content] ->
+        content
+        |> decode_unicode_escapes()
+        |> expand_ranges()
+
+      nil ->
+        []
+    end
+  end
+
+  defp decode_unicode_escapes(str) do
+    Regex.replace(~r/\\u([0-9A-Fa-f]{4})/, str, fn _full, hex ->
+      <<String.to_integer(hex, 16)::utf8>>
+    end)
+  end
+
+  defp expand_ranges(str) do
+    # Split by spaces, then expand any X-Y ranges into individual codepoints
+    str
+    |> String.split(~r/\s+/, trim: true)
+    |> Enum.flat_map(fn token ->
+      case String.split(token, "-", parts: 2) do
+        [from, to] ->
+          from_cp = from |> String.to_charlist() |> List.first()
+          to_cp = to |> String.to_charlist() |> List.first()
+
+          if from_cp && to_cp && to_cp >= from_cp do
+            Enum.to_list(from_cp..to_cp)
+          else
+            String.to_charlist(token)
+          end
+
+        [single] ->
+          String.to_charlist(single)
+      end
+    end)
   end
 
   defp parse_reset_and_rules(str) do

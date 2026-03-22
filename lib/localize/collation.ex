@@ -302,56 +302,71 @@ defmodule Localize.Collation do
   # Internal: produce collation elements from codepoints
 
   defp produce_collation_elements(codepoints, options) do
-    overlay = options.tailoring
-
     if options.numeric do
       produce_with_numeric(codepoints, options)
     else
-      produce_standard(codepoints, overlay)
+      produce_standard(codepoints, options.tailoring, options.suppress_contractions)
     end
   end
 
-  defp produce_standard(codepoints, overlay) do
-    do_produce(codepoints, [], overlay)
+  defp produce_standard(codepoints, overlay, suppress) do
+    do_produce(codepoints, [], overlay, suppress)
   end
 
-  defp do_produce([], acc, _overlay), do: Enum.reverse(acc) |> List.flatten()
+  defp do_produce([], acc, _overlay, _suppress), do: Enum.reverse(acc) |> List.flatten()
 
   # FastLatin shortcut: only when there is no tailoring overlay,
   # since overlays may remap characters in the Latin range.
-  defp do_produce([cp | rest], acc, nil) when cp < 0x0180 do
+  defp do_produce([cp | rest], acc, nil, suppress) when cp < 0x0180 do
     case FastLatin.lookup(cp) do
       nil ->
-        do_produce_full([cp | rest], acc, nil)
+        do_produce_full([cp | rest], acc, nil, suppress)
 
       elements ->
-        do_produce(rest, [elements | acc], nil)
+        do_produce(rest, [elements | acc], nil, suppress)
     end
   end
 
-  defp do_produce(codepoints, acc, overlay) do
-    do_produce_full(codepoints, acc, overlay)
+  defp do_produce(codepoints, acc, overlay, suppress) do
+    do_produce_full(codepoints, acc, overlay, suppress)
   end
 
-  defp do_produce_full(codepoints, acc, overlay) do
-    case Table.longest_match_with_overlay(codepoints, overlay) do
-      {matched, elements, remaining} when is_list(elements) ->
-        {final_elements, final_remaining} =
-          try_discontiguous_match(matched, elements, remaining)
+  defp do_produce_full([cp | rest] = codepoints, acc, overlay, suppress) do
+    # When a codepoint is in the suppress list, skip contraction
+    # lookup and look up only the single codepoint.
+    if suppress != [] and cp in suppress do
+      case Table.lookup(cp) do
+        {:ok, elements} ->
+          do_produce(rest, [elements | acc], overlay, suppress)
 
-        do_produce(final_remaining, [final_elements | acc], overlay)
+        :unmapped ->
+          elements = resolve_unmapped(cp)
+          do_produce(rest, [elements | acc], overlay, suppress)
+      end
+    else
+      case Table.longest_match_with_overlay(codepoints, overlay) do
+        {matched, elements, remaining} when is_list(elements) ->
+          {final_elements, final_remaining} =
+            try_discontiguous_match(matched, elements, remaining)
 
-      {:unmapped, cp, remaining} ->
-        elements = resolve_unmapped(cp)
+          do_produce(final_remaining, [final_elements | acc], overlay, suppress)
 
-        {final_elements, final_remaining} =
-          try_discontiguous_match([cp], elements, remaining)
+        {:unmapped, cp, remaining} ->
+          elements = resolve_unmapped(cp)
 
-        do_produce(final_remaining, [final_elements | acc], overlay)
+          {final_elements, final_remaining} =
+            try_discontiguous_match([cp], elements, remaining)
 
-      :done ->
-        Enum.reverse(acc) |> List.flatten()
+          do_produce(final_remaining, [final_elements | acc], overlay, suppress)
+
+        :done ->
+          Enum.reverse(acc) |> List.flatten()
+      end
     end
+  end
+
+  defp do_produce_full([], acc, _overlay, _suppress) do
+    Enum.reverse(acc) |> List.flatten()
   end
 
   defp try_discontiguous_match(matched_cps, elements, remaining) do
