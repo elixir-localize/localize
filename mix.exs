@@ -22,6 +22,7 @@ defmodule Localize.MixProject do
     ]
   end
 
+  defp elixirc_paths(:dev), do: ["lib", "dev/parsers"]
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
@@ -29,10 +30,13 @@ defmodule Localize.MixProject do
   defp deps do
     [
       {:ex_cldr, path: "../cldr"},
+
       {:decimal, "~> 2.0"},
       {:gettext, "~> 1.0"},
-      {:nimble_parsec, "~> 1.0"},
+
       {:unicode, "~> 1.21"},
+
+      {:nimble_parsec, "~> 1.0", only: :dev, runtime: false},
       {:elixir_make, "~> 0.4", runtime: false, optional: true},
       {:sweet_xml, "~> 0.7", only: :dev, runtime: false}
     ]

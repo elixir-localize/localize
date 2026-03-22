@@ -170,6 +170,32 @@ covering 97 languages, extracted from CLDR XML.
 * [x] Inline comment stripping — `# comment` suffixes on rule
       lines are removed before parsing.
 
+## Performance
+
+### Pre-compile NimbleParsec parsers — completed
+
+All three parsers are pre-compiled using
+`mix nimble_parsec.compile`. Runtime helper functions (wrapper
+functions called by the generated parser code) are extracted
+into `Helpers` modules. NimbleParsec combinator modules are
+in `dev/parsers/` and only compiled in `:dev` env.
+
+* [x] `Localize.Unit.Parser` — template in
+      `lib/localize/unit/parser.ex.exs`, runtime helpers in
+      `lib/localize/unit/parser/helpers.ex`, combinator in
+      `dev/parsers/combinators.ex`.
+
+* [x] `Localize.Message.Parser` — template in
+      `lib/localize/message/parser/parser.ex.exs`, runtime
+      helpers in `lib/localize/message/parser/helpers.ex`,
+      combinator in `dev/parsers/combinator.ex`.
+
+* [x] `Localize.Rfc5646.Parser` — already pre-compiled.
+      Grammar files moved to `dev/parsers/`.
+
+* [x] `nimble_parsec` marked `only: :dev, runtime: false`.
+      `sweet_xml` already `only: :dev, runtime: false`.
+
 ## Data and scripts
 
 * [ ] Consolidate ad-hoc territory data conversion scripts
