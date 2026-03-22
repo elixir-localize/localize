@@ -70,7 +70,7 @@ defmodule Localize.LocaleDisplay.T do
 
   defp canonicalize_value(field, value) when is_binary(value) do
     # Try to convert to existing atom for type lookup
-    bcp47_key =
+    _bcp47_key =
       Enum.find_value(Localize.Validity.T.field_mapping(), fn {k, v} ->
         if v == field, do: k
       end)

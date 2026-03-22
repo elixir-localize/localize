@@ -13,19 +13,6 @@ defmodule Localize do
 
   require Logger
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Localize.hello()
-      :world
-
-  """
-  def hello do
-    :world
-  end
-
   # ── Process locale management ──────────────────────────────────
 
   @locale_key :localize_locale

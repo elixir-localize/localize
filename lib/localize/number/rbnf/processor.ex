@@ -131,7 +131,7 @@ defmodule Localize.Number.Rbnf.Processor do
   end
 
   # Modulo for negative numbers (-x rule)
-  defp do_operation(:modulo, number, rule_set, rule, argument, all_sets)
+  defp do_operation(:modulo, number, rule_set, _rule, argument, all_sets)
        when is_number(number) and number < 0 do
     case argument do
       {:rule, rule_name} ->
@@ -263,6 +263,11 @@ defmodule Localize.Number.Rbnf.Processor do
     _ -> nil
   end
 
+  defp find_rule_set(all_rule_sets, name) when is_atom(name) do
+    Map.get(all_rule_sets, name) ||
+      Map.get(all_rule_sets, Atom.to_string(name))
+  end
+
   # Strip "r" prefix added by ex_cldr for function names that start with digits
   defp strip_r_prefix("r" <> rest = _name) do
     if String.match?(rest, ~r/^[0-9]/) do
@@ -273,11 +278,6 @@ defmodule Localize.Number.Rbnf.Processor do
   end
 
   defp strip_r_prefix(name), do: name
-
-  defp find_rule_set(all_rule_sets, name) when is_atom(name) do
-    Map.get(all_rule_sets, name) ||
-      Map.get(all_rule_sets, Atom.to_string(name))
-  end
 
   defp format_with_pattern(number, format) do
     case Localize.Number.to_string(number, format: format) do

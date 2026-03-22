@@ -8,7 +8,7 @@ defmodule Localize.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
-      compilers: maybe_elixir_make() ++ Mix.compilers(),
+      compilers: maybe_elixir_make() ++ [:yecc, :leex] ++ Mix.compilers(),
       make_makefile: "c_src/Makefile",
       deps: deps()
     ]

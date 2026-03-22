@@ -19,6 +19,8 @@ defmodule Localize.Language do
 
   """
 
+  import Kernel, except: [to_string: 1]
+
   alias Localize.LanguageTag
 
   @styles [:standard, :short]
@@ -56,22 +58,22 @@ defmodule Localize.Language do
 
   ### Examples
 
-      iex> Localize.Language.display_name("de")
+      iex> Localize.Language.to_string("de")
       {:ok, "German"}
 
-      iex> Localize.Language.display_name("en-GB", style: :short)
+      iex> Localize.Language.to_string("en-GB", style: :short)
       {:ok, "UK English"}
 
-      iex> Localize.Language.display_name("en", locale: :de)
+      iex> Localize.Language.to_string("en", locale: :de)
       {:ok, "Englisch"}
 
-      iex> Localize.Language.display_name("ja")
+      iex> Localize.Language.to_string("ja")
       {:ok, "Japanese"}
 
   """
-  @spec display_name(String.t() | LanguageTag.t(), Keyword.t()) ::
+  @spec to_string(String.t() | LanguageTag.t(), Keyword.t()) ::
           {:ok, String.t()} | :error | {:error, Exception.t()}
-  def display_name(language, options \\ []) do
+  def to_string(language, options \\ []) do
     style = validate_style!(Keyword.get(options, :style, :standard))
     locale = Keyword.get(options, :locale, Localize.get_locale())
     fallback = validate_fallback!(Keyword.get(options, :fallback, false))
@@ -90,20 +92,20 @@ defmodule Localize.Language do
   end
 
   @doc """
-  Same as `display_name/2` but raises on error.
+  Same as `to_string/2` but raises on error.
 
   ### Examples
 
-      iex> Localize.Language.display_name!("de")
+      iex> Localize.Language.to_string!("de")
       "German"
 
-      iex> Localize.Language.display_name!("en-GB", style: :short)
+      iex> Localize.Language.to_string!("en-GB", style: :short)
       "UK English"
 
   """
-  @spec display_name!(String.t() | LanguageTag.t(), Keyword.t()) :: String.t()
-  def display_name!(language, options \\ []) do
-    case display_name(language, options) do
+  @spec to_string!(String.t() | LanguageTag.t(), Keyword.t()) :: String.t()
+  def to_string!(language, options \\ []) do
+    case to_string(language, options) do
       {:ok, name} -> name
       :error -> raise ArgumentError, "No language name found for #{inspect(language)}"
       {:error, exception} -> raise exception

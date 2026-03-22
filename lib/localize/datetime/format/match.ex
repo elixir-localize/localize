@@ -40,7 +40,7 @@ defmodule Localize.DateTime.Format.Match do
   @time_zone ["x", "X", "v", "V", "z", "Z", "O"]
 
   @prefer_cycle_24 ["H", "k"]
-  @prefer_cycle_12 ["h", "K"]
+  # @prefer_cycle_12 ["h", "K"]
 
   @time_preferences_path Path.join(
                            :code.priv_dir(:localize) |> Kernel.to_string(),

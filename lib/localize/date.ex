@@ -17,7 +17,7 @@ defmodule Localize.Date do
   @default_format :medium
   # Ordered by CLDR canonical skeleton order: year, month, day
   @date_fields_ordered [{:year, "y"}, {:month, "M"}, {:day, "d"}]
-  @date_field_names Enum.map(@date_fields_ordered, &elem(&1, 0))
+  # @date_field_names Enum.map(@date_fields_ordered, &elem(&1, 0))
 
   defguardp is_full_date(date)
             when is_map_key(date, :year) and is_map_key(date, :month) and is_map_key(date, :day)

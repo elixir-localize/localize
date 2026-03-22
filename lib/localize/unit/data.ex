@@ -9,7 +9,7 @@ defmodule Localize.Unit.Data do
 
   """
 
-  alias Localize.Unit.Data.Expression
+  # alias Localize.Unit.Data.Expression
 
   @etf_path Path.join(
               :code.priv_dir(:localize) |> to_string(),
@@ -29,7 +29,7 @@ defmodule Localize.Unit.Data do
   @si_prefix_multipliers @data.si_prefix_multipliers
   @base_units @data.base_units
   @conversions @data.conversions
-  @unit_quantities @data.unit_quantities
+  # @unit_quantities @data.unit_quantities
   @simple_base_units @data.simple_base_units
   @base_unit_order @data.base_unit_order
   @base_unit_to_quantity @data.base_unit_to_quantity

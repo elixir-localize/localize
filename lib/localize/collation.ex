@@ -463,14 +463,12 @@ defmodule Localize.Collation do
         rest = Keyword.delete(options, :locale)
         options_from_language_tag(tag, rest)
 
-      locale ->
-        # Try Cldr.LanguageTag if ex_cldr is available
-        if Code.ensure_loaded?(Cldr.LanguageTag) and is_struct(locale, Cldr.LanguageTag) do
-          rest = Keyword.delete(options, :locale)
-          options_from_cldr_language_tag(locale, rest)
-        else
-          Options.new(Keyword.delete(options, :locale))
-        end
+      locale when is_atom(locale) ->
+        rest = Keyword.delete(options, :locale)
+        options_from_locale_string(Atom.to_string(locale), rest)
+
+      _locale ->
+        Options.new(Keyword.delete(options, :locale))
     end
   end
 
@@ -500,59 +498,6 @@ defmodule Localize.Collation do
     u_options = extract_u_options(u)
 
     # Determine collation type
-    type =
-      Keyword.get(u_options, :type) ||
-        Keyword.get(extra_options, :type) ||
-        LocaleDefaults.default_type(language)
-
-    {tailoring_overlay, tailoring_option_overrides} =
-      case Tailoring.get_tailoring(language, type) do
-        {overlay, overrides} -> {overlay, overrides}
-        nil -> {nil, []}
-      end
-
-    Options.new()
-    |> struct(tailoring_option_overrides)
-    |> struct(locale_defaults)
-    |> struct(u_options)
-    |> struct(extra_options)
-    |> Map.put(:type, type)
-    |> Map.put(:tailoring, tailoring_overlay)
-  end
-
-  defp options_from_cldr_language_tag(tag, extra_options) do
-    alias Localize.Collation.Tailoring
-    alias Localize.Collation.Tailoring.LocaleDefaults
-
-    u = tag.locale
-
-    u_options =
-      []
-      |> maybe_put(:strength, u_field(u, :col_strength))
-      |> maybe_put(:alternate, u_field(u, :col_alternate))
-      |> maybe_put(:backwards, u_bool(u, :col_backwards))
-      |> maybe_put(:normalization, u_bool(u, :col_normalization))
-      |> maybe_put(:case_level, u_bool(u, :col_case_level))
-      |> maybe_put(:case_first, u_field(u, :col_case_first))
-      |> maybe_put(:numeric, u_bool(u, :col_numeric))
-      |> maybe_put(:reorder, u_field(u, :col_reorder))
-      |> maybe_put(:max_variable, u_field(u, :kv))
-      |> maybe_put(:type, u_field(u, :collation))
-
-    language =
-      cond do
-        is_atom(tag.cldr_locale_name) and not is_nil(tag.cldr_locale_name) ->
-          tag.cldr_locale_name |> to_string() |> LocaleDefaults.extract_language()
-
-        is_binary(tag.language) ->
-          LocaleDefaults.extract_language(tag.language)
-
-        true ->
-          "und"
-      end
-
-    locale_defaults = LocaleDefaults.options_for(language)
-
     type =
       Keyword.get(u_options, :type) ||
         Keyword.get(extra_options, :type) ||
@@ -611,16 +556,6 @@ defmodule Localize.Collation do
   defp maybe_put(opts, _key, nil), do: opts
   defp maybe_put(opts, key, value), do: Keyword.put(opts, key, value)
 
-  defp u_field(u, field) when is_struct(u), do: Map.get(u, field)
-  defp u_field(_u, _field), do: nil
-
-  defp u_bool(u, field) do
-    case u_field(u, field) do
-      :yes -> true
-      :no -> false
-      nil -> nil
-    end
-  end
 
   defp use_nif?(%Options{backend: :elixir}), do: false
 

@@ -325,7 +325,7 @@ defmodule Localize.Calendar do
     end
   end
 
-  defp do_localize(datetime, :days_of_week, type, format, locale_id, calendar_type, _options) do
+  defp do_localize(_datetime, :days_of_week, type, format, locale_id, calendar_type, _options) do
     with {:ok, days} <- get_calendar_data_raw(locale_id, calendar_type, :days) do
       for day <- @days do
         day_name = get_in(days, [type, format, day])

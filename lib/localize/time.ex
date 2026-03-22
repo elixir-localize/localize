@@ -18,7 +18,7 @@ defmodule Localize.Time do
   @default_format :medium
   # Ordered by CLDR canonical skeleton order: hour, minute, second
   @time_fields_ordered [{:hour, "h"}, {:minute, "m"}, {:second, "s"}]
-  @time_field_names Enum.map(@time_fields_ordered, &elem(&1, 0))
+  # @time_field_names Enum.map(@time_fields_ordered, &elem(&1, 0))
 
   defguardp is_full_time(time)
             when is_map_key(time, :hour) and is_map_key(time, :minute) and

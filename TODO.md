@@ -1,132 +1,195 @@
-# Post-Merge TODO
+# TODO
 
-Remaining work after merging ex_cldr_collation, ex_cldr_currencies, and
-ex_cldr_messages into Localize.
+## Pre-release blockers
 
-## Collation
+### Remove ex_cldr runtime dependency
 
-Collation is functionally complete. No remaining merge work.
+The `PersistentTerm` data provider currently calls
+`Cldr.Locale.Loader.get_locale/2` to load per-locale JSON
+data at runtime. This must be replaced with a standalone
+locale loader that reads JSON files directly from
+`priv/cldr/locales/` without depending on `ex_cldr`.
 
-* [ ] Review whether locale-specific tailoring covers all CLDR locales
-      (currently loads from `collation/tailoring/locale_defaults.ex`)
+* [ ] Implement standalone JSON locale loader in
+      `Localize.Locale.Loader` that reads and decodes locale
+      JSON files from `priv/cldr/locales/`.
 
-## Messages (MF2)
+* [ ] Update `Localize.Locale.Provider.PersistentTerm.load/1`
+      to use the new loader instead of
+      `Cldr.Locale.Loader.get_locale/2`.
 
-The MF2 parser, interpreter, and NIF are merged. All formatter modules
-are implemented and tested. The interpreter dispatches to:
+* [ ] `Localize.Number.System` loads `@number_systems` at
+      compile time via `Cldr.Config.number_systems()`. Extract
+      this data to an ETF file and load at runtime.
 
-* [x] `Localize.Number.to_string/2` — used by `:number`, `:integer`,
-      `:percent`, and `:currency` MF2 functions
-* [x] `Localize.Date.to_string/2` — used by `:date` MF2 function
-* [x] `Localize.Time.to_string/2` — used by `:time` MF2 function
-* [x] `Localize.DateTime.to_string/2` — used by `:datetime` MF2 function
-* [x] `Localize.Unit.to_string/2` — used by `:unit` MF2 function
+* [ ] `Localize.Collation` checks for `Cldr.LanguageTag` at
+      runtime via `Code.ensure_loaded?/1`. Remove this
+      compatibility shim.
 
-## Currency
+* [ ] Remove `{:ex_cldr, path: "../cldr"}` from `mix.exs`
+      dependencies.
 
-Core currency validation, territory mappings, custom currency store,
-and locale tag integration are complete. Per-locale currency data
-(display names, symbols, plural count names) is loaded on demand
-via `Localize.Locale.get/3`.
+* [ ] Copy locale JSON files from `../cldr/priv/cldr/locales/`
+      into `priv/cldr/locales/` so the library is
+      self-contained.
 
-### Locale data integration
+### Compile warnings
 
-* [x] Load per-locale currency data (display names, symbols, plural
-      count names) — loaded lazily from locale provider
-* [x] `currency_for_code/2` — return localized currency struct for a
-      code and locale
-* [x] `currencies_for_locale/3` — return all currency structs for a
-      locale with `:all`/`:current`/`:historic`/`:tender`/`:unannotated`
-      filtering
-* [x] `currency_strings/3` — reverse map of localized strings to
-      currency codes (for parsing user input)
-* [x] `display_name/2` — localized display name for a currency
-* [x] `pluralize/2` — plural-aware currency name
-* [x] `strings_for_currency/2` — all strings (name, plurals, symbol)
-      that map to a specific currency in a locale
-* [x] `currency_filter/3` — filtering by status
-* [ ] `currency_history_for_locale/1` — territory lookup works but
-      locale-to-territory resolution should use full locale inheritance
-      chain, not just `tag.territory`
+Resolve all compile warnings before release. Currently 17
+warnings:
 
-## Data and performance
+* [ ] Unused module attributes: `@date_field_names` (date.ex),
+      `@time_field_names` (time.ex), `@prefer_cycle_12`
+      (format/match.ex), `@unit_quantities` (unit/data.ex).
 
-* [x] Switch plural rules from compile-time ETF loading to
-      `:persistent_term` — supplemental data loads cached on first
-      access; `@rules` attribute removed from Cardinal/Ordinal BEAM
-* [x] Cache compiled number format metadata in `:persistent_term`
-* [x] Cache compiled datetime format tokens in `:persistent_term`
-* [ ] Clean up `scripts/convert_currency_data.exs` or integrate the
-      JSON-to-ETF conversion into the build process
+* [ ] Unused functions: `resolve_date_format/3`,
+      `resolve_time_format/3`, `resolve_wrapper/3` default
+      values (datetime.ex).
+
+* [ ] Unused variables: `datetime`, `locale_id`, `rule`,
+      `bcp47_key` — prefix with underscore or remove.
+
+* [ ] Unused alias: `Expression` (unit/data.ex).
+
+* [ ] Ungrouped clauses: `find_rule_set/2`
+      (rbnf/processor.ex).
+
+* [ ] Leex/yecc compiler warnings — add `:leex` and `:yecc`
+      to compilers in `mix.exs` project definition.
+
+### Placeholder code
+
+* [ ] Remove `Localize.hello/0` — placeholder function from
+      project generation.
+
+### Documentation
+
+* [ ] Write `Localize` moduledoc — currently a stub. Should
+      describe the library's purpose, list the main domain
+      modules, and explain the locale management API.
+
+* [ ] Review and update all public module `@moduledoc`
+      sections for completeness and accuracy.
+
+* [ ] Write a `README.md` with installation, quick start,
+      and links to documentation.
+
+* [ ] Write a `CHANGELOG.md`.
+
+* [ ] Ensure all public functions have `@doc` in the standard
+      format described in `CLAUDE.md`.
+
+### Hex publishing
+
+* [ ] Set version in `mix.exs`.
+
+* [ ] Add `:description`, `:package`, `:source_url` to
+      `mix.exs` for Hex.
+
+* [ ] Add license file.
+
+* [ ] Run `mix docs` and review generated documentation.
+
+* [ ] Run `mix dialyzer` and resolve any errors.
+
+## Remaining merge work
+
+### Currency
+
+* [ ] `currency_history_for_locale/1` — territory lookup works
+      but locale-to-territory resolution should use full locale
+      inheritance chain, not just `tag.territory`.
+
+### Collation
+
+* [ ] Review whether locale-specific tailoring covers all CLDR
+      locales (currently loads from
+      `collation/tailoring/locale_defaults.ex`).
+
+## Data and scripts
+
+* [ ] Consolidate ad-hoc territory data conversion scripts
+      into a single reusable script in `scripts/`. Currently
+      `territories.etf`, `territory_codes.etf`,
+      `territory_containers.etf`, `territory_containment.etf`,
+      `territory_subdivision_containment.etf`, and
+      `territory_subdivisions.etf` were generated by throwaway
+      `mix run` scripts. See `DATA_SOURCES.md` for details.
+
+* [ ] Clean up `scripts/convert_currency_data.exs` or
+      integrate the JSON-to-ETF conversion into the build
+      process.
 
 ## Design review
 
-* [ ] Revisit `Localize.Locale.to_locale_id/1` — currently coerces
-      `LanguageTag`, atom, and binary inputs to a locale id atom. The
-      nil-cldr_locale_id fallback path (`LanguageTag.to_string |>
-      String.to_atom`) may produce atoms that don't correspond to known
-      CLDR locales. Consider whether this function should validate
-      against known locales, return `{:ok, id} | {:error, _}`, or
-      remain a best-effort coercion. Also consider whether callers
-      that previously had only the 3-clause version (no nil fallback)
-      are affected by now inheriting the 4-clause behaviour.
+* [ ] Revisit `Localize.Locale.to_locale_id/1` — currently
+      coerces `LanguageTag`, atom, and binary inputs to a
+      locale id atom. The nil-cldr_locale_id fallback path
+      (`LanguageTag.to_string |> String.to_atom`) may produce
+      atoms that don't correspond to known CLDR locales.
+      Consider whether this function should validate against
+      known locales, return `{:ok, id} | {:error, _}`, or
+      remain a best-effort coercion. Also consider whether
+      callers that previously had only the 3-clause version
+      (no nil fallback) are affected by now inheriting the
+      4-clause behaviour.
 
-## Cldr public API merge candidates
+* [ ] Review error return consistency — most functions return
+      `{:error, %Exception{}}` but some (like
+      `Language.to_string/2`) return bare `:error`. Standardise
+      on one pattern.
 
-Functions from the top-level `Cldr` module that should be considered
-for merging into `Localize`. Grouped by priority and effort.
+* [ ] Review whether `Localize.Territory.parent/1` should
+      return `{:error, %UnknownParentError{}}` for territories
+      with no parents (like `:"001"`) instead of reusing
+      `UnknownTerritoryError`.
 
-### Already merged
+* [ ] Consider whether data accessor functions in
+      `Localize.SupplementalData` should be `@doc false` and
+      accessed only through domain modules, or remain public.
 
-* [x] `validate_locale/1` → `Localize.validate_locale/1`
-* [x] `validate_currency/1` → `Localize.Currency.validate_currency/1`
-* [x] `known_currencies/0` → `Localize.Currency.known_currencies/0`
-* [x] `quote/2` → `Localize.quote/2`
-* [x] `ellipsis/2` → `Localize.ellipsis/2`
-* [x] `known_territories/0` → `Localize.known_territories/0`
-* [x] `known_calendars/0` → `Localize.known_calendars/0`
-* [x] `known_number_systems/0` → `Localize.known_number_systems/0`
-* [x] `all_locale_names/0` → `Localize.all_locale_names/0`
-* [x] `available_locale_name?/1` → `Localize.available_locale_name?/1`
-* [x] `flag/1` → `Localize.flag/1`
-* [x] `the_world/0` → `Localize.the_world/0`
-* [x] `validate_territory/1` → `Localize.validate_territory/1`
-* [x] `validate_script/1` → `Localize.validate_script/1`
-* [x] `validate_calendar/1` → `Localize.validate_calendar/1`
-* [x] `validate_number_system/1` → `Localize.validate_number_system/1`
-* [x] `validate_territory_subdivision/1` →
-      `Localize.validate_territory_subdivision/1`
-* [x] `validate_measurement_system/1` →
-      `Localize.validate_measurement_system/1`
-* [x] `territory_containment/0` → `Localize.territory_containment/0`
-* [x] `known_territory_subdivisions/0` →
-      `Localize.known_territory_subdivisions/0`
-* [x] `known_territory_subdivision_containment/0` →
-      `Localize.known_territory_subdivision_containment/0`
-* [x] `territory_chain/1` → `Localize.territory_chain/1`
-* [x] `default_territory/1` → `Localize.default_territory/1`
+## Completed
 
-### Tier 4 — Process locale management
+### Cldr public API merges
 
-* [x] `get_locale/0` → `Localize.get_locale/0` — process dictionary.
-* [x] `put_locale/1` → `Localize.put_locale/1`
-* [x] `with_locale/2` → `Localize.with_locale/2`
-* [x] `default_locale/0` → `Localize.default_locale/0` — app env.
-* [x] `put_default_locale/1` → `Localize.put_default_locale/1`
+* [x] `validate_locale/1`, `validate_territory/1`,
+      `validate_script/1`, `validate_calendar/1`,
+      `validate_number_system/1`,
+      `validate_territory_subdivision/1`,
+      `validate_measurement_system/1`,
+      `validate_currency/1`
+* [x] `quote/2`, `ellipsis/2`
+* [x] `all_locale_names/0`, `available_locale_name?/1`,
+      `known_territories/0`, `known_calendars/0`,
+      `known_number_systems/0`, `known_currencies/0`
+* [x] `get_locale/0`, `put_locale/1`, `with_locale/2`,
+      `default_locale/0`, `put_default_locale/1`
 * [x] All formatting functions default `:locale` to
-      `Localize.get_locale()` instead of `:en`.
+      `Localize.get_locale()`.
 
-### Not recommended for merge
+### Library merges
 
-These are backend-specific or configuration-specific and do not
-fit the Localize architecture:
+* [x] `ex_cldr_collation` → `Localize.Collation`
+* [x] `ex_cldr_currencies` → `Localize.Currency`
+* [x] `ex_cldr_messages` → `Localize.Message`
+* [x] `ex_cldr_numbers` → `Localize.Number`
+* [x] `ex_cldr_dates_times` → `Localize.Date`,
+      `Localize.Time`, `Localize.DateTime`,
+      `Localize.Interval`
+* [x] `ex_cldr_units` → `Localize.Unit`
+* [x] `ex_cldr_lists` → `Localize.List`
+* [x] `ex_cldr_territories` → `Localize.Territory`
+* [x] `ex_cldr_languages` → `Localize.Language`
+* [x] `ex_cldr_locale_display` → `Localize.LocaleDisplay`
 
-* `default_backend!/0`, `validate_backend/1` — Localize has no
-  backend concept.
-* `known_locale_names/1`, `requested_locale_names/1` — per-backend
-  configured locale subsets.
-* `known_gettext_locale_names/1`, `validate_gettext_locale/1` —
-  Gettext integration is separate.
-* `put_gettext_locale/1` — Gettext-specific.
-* `known_rbnf_locale_names/1`, `known_rbnf_locale_name?/1` —
-  RBNF is internal implementation detail.
+### Data and performance
+
+* [x] Supplemental data cached in `:persistent_term`
+* [x] Compiled number format metadata cached in
+      `:persistent_term`
+* [x] Compiled datetime format tokens cached in
+      `:persistent_term`
+* [x] Plural rules `@rules` attribute removed from
+      Cardinal/Ordinal BEAM files
+* [x] `Localize.Locale.to_locale_id/1` consolidated into
+      single canonical implementation

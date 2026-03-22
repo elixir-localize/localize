@@ -183,7 +183,7 @@ defmodule Localize.DateTime do
 
   defp resolve_prefer(pattern, _prefer) when is_binary(pattern), do: pattern
 
-  defp resolve_wrapper(format, locale_id, style \\ :default) do
+  defp resolve_wrapper(format, locale_id, style) do
     standard_format = if is_atom(format), do: format, else: :medium
 
     case style do
@@ -213,21 +213,6 @@ defmodule Localize.DateTime do
     end
   end
 
-  defp resolve_date_format(format, locale_id, options) when is_atom(format) do
-    Localize.DateTime.Format.resolve_format(:date, format, locale_id, :gregorian, options)
-  end
-
-  defp resolve_date_format(format, _locale_id, _options) when is_binary(format) do
-    {:ok, format}
-  end
-
-  defp resolve_time_format(format, locale_id, options) when is_atom(format) do
-    Localize.DateTime.Format.resolve_format(:time, format, locale_id, :gregorian, options)
-  end
-
-  defp resolve_time_format(format, _locale_id, _options) when is_binary(format) do
-    {:ok, format}
-  end
 
   defp resolve_locale_id(%Localize.LanguageTag{cldr_locale_id: id}), do: {:ok, id}
 

@@ -571,7 +571,7 @@ defmodule Localize.DateTime.Formatter do
   # Z (4):   Localized GMT format (GMT+05:00)
   # Z (5):   ISO 8601 extended with Z for zero (+05:00 or Z)
   @doc false
-  def zone_basic(datetime, count, locale_id, _options) when count in 1..3 do
+  def zone_basic(datetime, count, _locale_id, _options) when count in 1..3 do
     case Timezone.iso_format(datetime, format: :long, type: :basic, z_for_zero: false) do
       {:ok, result} -> result
       _ -> ""
@@ -639,12 +639,12 @@ defmodule Localize.DateTime.Formatter do
 
   # V (1-4): Zone ID and location formats
   @doc false
-  def specific_non_location(%{time_zone: tz} = datetime, 1, _locale_id, _options)
+  def specific_non_location(%{time_zone: tz} = _datetime, 1, _locale_id, _options)
       when is_binary(tz) do
     tz
   end
 
-  def specific_non_location(%{time_zone: tz} = datetime, 2, _locale_id, _options)
+  def specific_non_location(%{time_zone: tz} = _datetime, 2, _locale_id, _options)
       when is_binary(tz) do
     tz
   end
