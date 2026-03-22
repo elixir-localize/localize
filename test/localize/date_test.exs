@@ -59,9 +59,127 @@ defmodule Localize.DateTest do
     end
   end
 
+  describe "to_string/2 with partial dates" do
+    test "year and month" do
+      assert {:ok, "6/2024"} = Localize.Date.to_string(%{year: 2024, month: 6}, locale: :en)
+    end
+
+    test "year and month with skeleton" do
+      assert {:ok, "Jun 2024"} =
+               Localize.Date.to_string(%{year: 2024, month: 6}, format: :yMMM, locale: :en)
+    end
+
+    test "year and month in French" do
+      assert {:ok, "juin 2024"} =
+               Localize.Date.to_string(%{year: 2024, month: 6}, format: :yMMM, locale: :fr)
+    end
+
+    test "month and day" do
+      assert {:ok, "6/15"} =
+               Localize.Date.to_string(%{month: 6, day: 15}, format: :Md, locale: :en)
+    end
+
+    test "year only" do
+      assert {:ok, "2024"} =
+               Localize.Date.to_string(%{year: 2024}, format: :y, locale: :en)
+    end
+
+    test "standard format rejected for partial date" do
+      result = Localize.Date.to_string(%{year: 2024, month: 6}, format: :medium, locale: :en)
+      assert match?({:error, _}, result)
+    end
+
+    test "derive_format_id/1 produces canonical order" do
+      assert :yM = Localize.Date.derive_format_id(%{year: 2024, month: 6})
+      assert :Md = Localize.Date.derive_format_id(%{month: 6, day: 15})
+      assert :yMd = Localize.Date.derive_format_id(%{year: 2024, month: 6, day: 15})
+    end
+  end
+
+  describe "to_string/2 with skeleton formats" do
+    test "yMMMd skeleton" do
+      assert {:ok, "Jul 10, 2017"} =
+               Localize.Date.to_string(~D[2017-07-10], format: :yMMMd, locale: :en)
+    end
+
+    test "yMMMEd skeleton" do
+      assert {:ok, result} =
+               Localize.Date.to_string(~D[2017-07-10], format: :yMMMEd, locale: :en)
+
+      assert String.contains?(result, "Mon")
+      assert String.contains?(result, "Jul")
+    end
+
+    test "MMMd skeleton" do
+      assert {:ok, "Jul 10"} =
+               Localize.Date.to_string(~D[2017-07-10], format: :MMMd, locale: :en)
+    end
+
+    test "yMd skeleton" do
+      assert {:ok, "7/10/2017"} =
+               Localize.Date.to_string(~D[2017-07-10], format: :yMd, locale: :en)
+    end
+
+    test "Ed skeleton" do
+      assert {:ok, result} =
+               Localize.Date.to_string(~D[2017-07-10], format: :Ed, locale: :en)
+
+      assert String.contains?(result, "Mon")
+      assert String.contains?(result, "10")
+    end
+
+    test "skeleton in French" do
+      assert {:ok, "10 juil. 2017"} =
+               Localize.Date.to_string(~D[2017-07-10], format: :yMMMd, locale: :fr)
+    end
+
+    test "skeleton in German" do
+      assert {:ok, result} =
+               Localize.Date.to_string(~D[2017-07-10], format: :yMMMd, locale: :de)
+
+      assert String.contains?(result, "Juli")
+    end
+  end
+
+  describe "to_string/2 with Unicode/ASCII preference" do
+    test "ascii preference" do
+      # Date formats shouldn't differ much between unicode/ascii but test it works
+      assert {:ok, _result} =
+               Localize.Date.to_string(~D[2017-07-10], locale: :en, prefer: :ascii)
+    end
+  end
+
+  describe "to_string/2 error handling" do
+    test "non-date map returns error" do
+      assert {:error, %Localize.DateTimeFormatError{}} =
+               Localize.Date.to_string(%{foo: :bar})
+    end
+
+    test "string input returns error" do
+      assert {:error, %Localize.DateTimeFormatError{}} =
+               Localize.Date.to_string("not a date")
+    end
+
+    test "invalid skeleton returns error" do
+      assert {:error, _} =
+               Localize.Date.to_string(~D[2017-07-10], format: :zzzzz, locale: :en)
+    end
+  end
+
   describe "to_string!/2" do
     test "returns string directly" do
       assert "Jul 10, 2017" = Localize.Date.to_string!(~D[2017-07-10], locale: :en)
+    end
+
+    test "partial date bang" do
+      assert "juin 2024" =
+               Localize.Date.to_string!(%{year: 2024, month: 6}, format: :yMMM, locale: :fr)
+    end
+
+    test "raises on error" do
+      assert_raise Localize.DateTimeFormatError, fn ->
+        Localize.Date.to_string!(%{foo: :bar})
+      end
     end
   end
 end

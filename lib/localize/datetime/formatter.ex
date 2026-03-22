@@ -497,9 +497,16 @@ defmodule Localize.DateTime.Formatter do
   @doc false
   def time(datetime, _count, locale_id, options) when is_time(datetime) do
     time_format = options[:time_format] || :medium
+    prefer = if options[:prefer], do: [prefer: options[:prefer]], else: []
 
     with {:ok, pattern} <-
-           Localize.DateTime.Format.resolve_format(:time, time_format, locale_id),
+           Localize.DateTime.Format.resolve_format(
+             :time,
+             time_format,
+             locale_id,
+             :gregorian,
+             prefer
+           ),
          {:ok, formatted} <- format(datetime, pattern, locale_id, options) do
       formatted
     else

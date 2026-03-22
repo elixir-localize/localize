@@ -49,10 +49,68 @@ defmodule Localize.DateTimeTest do
     end
   end
 
+  describe "to_string/2 with at-style formats" do
+    test "long format uses at pattern" do
+      {:ok, result} =
+        Localize.DateTime.to_string(~N[2017-07-10 14:30:00],
+          format: :long,
+          locale: :en,
+          prefer: :ascii
+        )
+
+      assert String.contains?(result, "July 10, 2017")
+      assert String.contains?(result, "2:30:00 PM")
+    end
+
+    test "full format uses at pattern" do
+      {:ok, result} =
+        Localize.DateTime.to_string(~N[2017-07-10 14:30:00],
+          format: :full,
+          locale: :en,
+          prefer: :ascii
+        )
+
+      assert String.contains?(result, "Monday, July 10, 2017")
+    end
+  end
+
+  describe "to_string/2 with partial datetime" do
+    test "date-only map delegates to Date" do
+      assert {:ok, result} =
+               Localize.DateTime.to_string(%{year: 2024, month: 6}, locale: :en)
+
+      assert String.contains?(result, "2024")
+    end
+
+    test "time-only map delegates to Time" do
+      assert {:ok, result} =
+               Localize.DateTime.to_string(%{hour: 14, minute: 30},
+                 format: :hm,
+                 locale: :en,
+                 prefer: :ascii
+               )
+
+      assert String.contains?(result, "2:30")
+    end
+  end
+
+  describe "to_string/2 error handling" do
+    test "empty map returns error" do
+      assert {:error, %Localize.DateTimeFormatError{}} =
+               Localize.DateTime.to_string(%{foo: :bar})
+    end
+  end
+
   describe "to_string!/2" do
     test "returns string directly" do
       result = Localize.DateTime.to_string!(~N[2024-01-15 09:00:00], locale: :en)
       assert String.contains?(result, "Jan 15, 2024")
+    end
+
+    test "raises on error" do
+      assert_raise Localize.DateTimeFormatError, fn ->
+        Localize.DateTime.to_string!(%{foo: :bar})
+      end
     end
   end
 end

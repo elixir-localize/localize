@@ -11,6 +11,7 @@ defmodule Localize.DateTime do
   import Kernel, except: [to_string: 1]
 
   @default_format :medium
+  @standard_formats [:short, :medium, :long, :full]
 
   @doc """
   Formats a datetime according to a CLDR format pattern.
@@ -54,24 +55,24 @@ defmodule Localize.DateTime do
   def to_string(%{year: _, month: _, day: _, hour: _, minute: _} = datetime, options) do
     locale = Keyword.get(options, :locale, :en)
     format = Keyword.get(options, :format, @default_format)
-    date_format = Keyword.get(options, :date_format, format)
-    time_format = Keyword.get(options, :time_format, format)
+    style = Keyword.get(options, :style, :default)
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, wrapper} <- resolve_wrapper(format, locale_id),
-         {:ok, date_pattern} <- resolve_date_format(date_format, locale_id, options),
-         {:ok, time_pattern} <- resolve_time_format(time_format, locale_id, options),
-         {:ok, date_str} <-
-           Localize.DateTime.Formatter.format(datetime, date_pattern, locale_id, Map.new(options)),
-         {:ok, time_str} <-
-           Localize.DateTime.Formatter.format(datetime, time_pattern, locale_id, Map.new(options)) do
-      # Substitute into the wrapper pattern: {1} = date, {0} = time
-      result =
-        wrapper
-        |> String.replace("{1}", date_str)
-        |> String.replace("{0}", time_str)
+    with {:ok, locale_id} <- resolve_locale_id(locale) do
+      cond do
+        # Explicit pattern string — format directly
+        is_binary(format) ->
+          Localize.DateTime.Formatter.format(datetime, format, locale_id, Map.new(options))
 
-      {:ok, result}
+        # Standard format with separate date/time formats — use wrapper
+        format in @standard_formats or
+            (Keyword.has_key?(options, :date_format) and
+               Keyword.has_key?(options, :time_format)) ->
+          format_with_wrapper(datetime, options, locale_id, format, style)
+
+        # Skeleton atom — resolve to a pattern from available_formats
+        is_atom(format) ->
+          format_with_skeleton(datetime, options, locale_id, format)
+      end
     end
   end
 
@@ -105,13 +106,110 @@ defmodule Localize.DateTime do
     end
   end
 
-  defp resolve_wrapper(format, locale_id) do
+  defp format_with_wrapper(datetime, options, locale_id, format, style) do
+    date_format = Keyword.get(options, :date_format, format)
+    time_format = Keyword.get(options, :time_format, format)
+
+    # The wrapper style should match the date format level
+    # (e.g., full date + short time → use full wrapper)
+    wrapper_format =
+      if Keyword.has_key?(options, :date_format),
+        do: date_format,
+        else: format
+
+    options_map =
+      options
+      |> Map.new()
+      |> Map.put(:date_format, date_format)
+      |> Map.put(:time_format, time_format)
+
+    with {:ok, wrapper} <- resolve_wrapper(wrapper_format, locale_id, style) do
+      Localize.DateTime.Formatter.format(datetime, wrapper, locale_id, options_map)
+    end
+  end
+
+  defp format_with_skeleton(datetime, options, locale_id, skeleton) do
+    prefer = Keyword.get(options, :prefer, :unicode)
+
+    with {:ok, available} <- Localize.DateTime.Format.available_formats(locale_id) do
+      case Map.get(available, skeleton) do
+        nil ->
+          # Try best-match algorithm for skeletons not found exactly
+          case Localize.DateTime.Format.Match.best_match(skeleton, locale_id) do
+            {:ok, matched_skeleton} when is_atom(matched_skeleton) ->
+              case Map.get(available, matched_skeleton) do
+                nil ->
+                  {:error,
+                   Localize.DateTimeUnresolvedFormatError.exception(
+                     format: skeleton,
+                     locale: locale_id
+                   )}
+
+                matched_pattern ->
+                  pattern = resolve_prefer(matched_pattern, prefer)
+
+                  Localize.DateTime.Formatter.format(
+                    datetime,
+                    pattern,
+                    locale_id,
+                    Map.new(options)
+                  )
+              end
+
+            {:ok, pattern} when is_binary(pattern) ->
+              Localize.DateTime.Formatter.format(datetime, pattern, locale_id, Map.new(options))
+
+            _ ->
+              {:error,
+               Localize.DateTimeUnresolvedFormatError.exception(
+                 format: skeleton,
+                 locale: locale_id
+               )}
+          end
+
+        %{} = variant_map ->
+          pattern = Map.get(variant_map, prefer) || Map.get(variant_map, :unicode)
+          Localize.DateTime.Formatter.format(datetime, pattern, locale_id, Map.new(options))
+
+        pattern when is_binary(pattern) ->
+          Localize.DateTime.Formatter.format(datetime, pattern, locale_id, Map.new(options))
+      end
+    end
+  end
+
+  defp resolve_prefer(%{} = variant_map, prefer) do
+    Map.get(variant_map, prefer) || Map.get(variant_map, :unicode)
+  end
+
+  defp resolve_prefer(pattern, _prefer) when is_binary(pattern), do: pattern
+
+  defp resolve_wrapper(format, locale_id, style \\ :default) do
     standard_format = if is_atom(format), do: format, else: :medium
 
-    with {:ok, dt_formats} <-
-           Localize.DateTime.Format.date_time_formats(locale_id) do
-      pattern = Map.get(dt_formats, standard_format, "{1}, {0}")
-      {:ok, pattern}
+    case style do
+      :at ->
+        # Use at-style format (e.g., "{1} 'at' {0}")
+        with {:ok, at_formats} <-
+               Localize.DateTime.Format.date_time_at_formats(locale_id) do
+          pattern =
+            get_in(at_formats, [:standard, standard_format]) ||
+              fallback_wrapper(standard_format, locale_id)
+
+          {:ok, pattern}
+        else
+          _ -> {:ok, fallback_wrapper(standard_format, locale_id)}
+        end
+
+      _ ->
+        # Use standard wrapper format (e.g., "{1}, {0}")
+        {:ok, fallback_wrapper(standard_format, locale_id)}
+    end
+  end
+
+  defp fallback_wrapper(standard_format, locale_id) do
+    case Localize.DateTime.Format.date_time_formats(locale_id) do
+      {:ok, dt_formats} -> Map.get(dt_formats, standard_format, "{1}, {0}")
+      _ -> "{1}, {0}"
     end
   end
 

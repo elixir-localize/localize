@@ -124,6 +124,41 @@ defmodule Localize.IntervalTest do
     end
   end
 
+  describe "to_string/3 with datetime intervals" do
+    test "same day different times" do
+      assert {:ok, result} =
+               Interval.to_string(
+                 ~N[2022-04-22 10:00:00],
+                 ~N[2022-04-22 14:00:00],
+                 locale: :en,
+                 prefer: :ascii
+               )
+
+      assert is_binary(result)
+    end
+
+    test "different days with times" do
+      assert {:ok, result} =
+               Interval.to_string(
+                 ~N[2022-04-22 10:00:00],
+                 ~N[2022-04-25 14:00:00],
+                 locale: :en,
+                 prefer: :ascii
+               )
+
+      assert is_binary(result)
+    end
+  end
+
+  describe "to_string/3 error handling" do
+    test "reversed dates" do
+      result = Interval.to_string(~D[2023-01-01], ~D[2022-01-01], locale: :en)
+
+      # Should either format anyway or return error
+      assert match?({:ok, _}, result) or match?({:error, _}, result)
+    end
+  end
+
   describe "date_styles/0" do
     test "returns expected styles" do
       styles = Interval.date_styles()

@@ -12,17 +12,15 @@ Collation is functionally complete. No remaining merge work.
 
 ## Messages (MF2)
 
-The MF2 parser, interpreter, and NIF are merged. The interpreter calls
-formatter modules that do not exist yet. These calls compile with
-warnings but will raise at runtime when the corresponding MF2 function
-annotations are used.
+The MF2 parser, interpreter, and NIF are merged. All formatter modules
+are implemented and tested. The interpreter dispatches to:
 
-* [ ] `Localize.Number.to_string/2` — used by `:number`, `:integer`,
+* [x] `Localize.Number.to_string/2` — used by `:number`, `:integer`,
       `:percent`, and `:currency` MF2 functions
-* [ ] `Localize.Date.to_string/2` — used by `:date` MF2 function
-* [ ] `Localize.Time.to_string/2` — used by `:time` MF2 function
-* [ ] `Localize.DateTime.to_string/2` — used by `:datetime` MF2 function
-* [ ] `Localize.Unit.to_string/2` — used by `:unit` MF2 function
+* [x] `Localize.Date.to_string/2` — used by `:date` MF2 function
+* [x] `Localize.Time.to_string/2` — used by `:time` MF2 function
+* [x] `Localize.DateTime.to_string/2` — used by `:datetime` MF2 function
+* [x] `Localize.Unit.to_string/2` — used by `:unit` MF2 function
 
 ## Currency
 
