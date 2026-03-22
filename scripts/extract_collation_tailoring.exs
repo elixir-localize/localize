@@ -1,7 +1,7 @@
 # Script: Extract CLDR collation tailoring rules from XML
 #
-# Parses collation XML files from the CLDR repository and extracts
-# tailoring rule strings for each language/type combination.
+# Parses collation XML files from the CLDR repository using SweetXml
+# and extracts tailoring rule strings for each language/type combination.
 # Outputs an ETF file for runtime loading.
 #
 # Usage:
@@ -13,11 +13,9 @@
 # Output:
 #   priv/cldr/supplemental_data/collation_tailoring.etf
 #
-# The ETF file contains a map of {language, type} tuples to
-# tailoring rule strings. Only "standard" and named collation
-# types are included. Types marked as "search" or "private" are
-# excluded. Files with only [import], [reorder], or [strength]
-# directives (no actual ordering rules) are excluded.
+# Requires sweet_xml as a dev dependency.
+
+import SweetXml
 
 cldr_repo =
   case System.argv() do
@@ -26,7 +24,10 @@ cldr_repo =
   end
 
 collation_dir = Path.join(cldr_repo, "common/collation")
-output_path = Path.join([__DIR__, "..", "priv", "cldr", "supplemental_data", "collation_tailoring.etf"]) |> Path.expand()
+
+output_path =
+  Path.join([__DIR__, "..", "priv", "cldr", "supplemental_data", "collation_tailoring.etf"])
+  |> Path.expand()
 
 unless File.dir?(collation_dir) do
   IO.puts(:stderr, "Error: #{collation_dir} not found")
@@ -35,76 +36,96 @@ end
 
 IO.puts("Parsing collation files from #{collation_dir}...")
 
-# Skip the root file (it's the base DUCET, not a tailoring)
-xml_files =
-  collation_dir
-  |> File.ls!()
-  |> Enum.filter(&String.ends_with?(&1, ".xml"))
-  |> Enum.reject(&(&1 == "root.xml"))
-  |> Enum.sort()
+# Types to skip — search collations and private types are not tailorings
+skip_types = MapSet.new(["search", "private", "searchjl"])
 
-# Parse a single collation XML file and extract {language, type} => rules
+# Lines to strip from CDATA content
+strip_line? = fn line ->
+  line == "" or
+    String.starts_with?(line, "#") or
+    String.starts_with?(line, "[import") or
+    String.starts_with?(line, "[optimize") or
+    String.starts_with?(line, "[suppressContractions")
+end
+
+# Decode \uXXXX escape sequences to actual Unicode characters
+decode_escapes = fn s ->
+  Regex.replace(~r/\\u([0-9A-Fa-f]{4})/, s, fn _full, hex ->
+    <<String.to_integer(hex, 16)::utf8>>
+  end)
+end
+
+# Check if rules contain actual ordering operations (not just directives)
+has_ordering_rules? = fn rules ->
+  rules
+  |> String.split("\n")
+  |> Enum.any?(fn line ->
+    String.starts_with?(line, "&") or
+      String.starts_with?(line, "[caseFirst") or
+      String.starts_with?(line, "[caseLevel") or
+      String.starts_with?(line, "[alternate") or
+      String.starts_with?(line, "[backwards") or
+      String.starts_with?(line, "[normalization") or
+      String.starts_with?(line, "[strength")
+  end)
+end
+
+# Clean CDATA content into a rule string
+clean_rules = fn cdata ->
+  cdata
+  |> String.split("\n")
+  |> Enum.map(&String.trim/1)
+  |> Enum.reject(strip_line?)
+  |> Enum.join("\n")
+  |> String.trim()
+  |> decode_escapes.()
+end
+
+# Parse a single XML file
 parse_file = fn filename ->
   path = Path.join(collation_dir, filename)
-  content = File.read!(path)
+  xml = File.read!(path)
+  # Remove DOCTYPE to avoid DTD resolution
+  xml = Regex.replace(~r/<!DOCTYPE[^>]*>/, xml, "")
 
-  # Extract language from filename (e.g., "cs.xml" -> "cs", "bs_Cyrl.xml" -> "bs_Cyrl")
-  language = String.replace(filename, ".xml", "")
-  # Normalize: bs_Cyrl -> bs-Cyrl for BCP47 compatibility
-  language = String.replace(language, "_", "-")
+  language =
+    filename
+    |> String.replace(".xml", "")
+    |> String.replace("_", "-")
 
-  # Find all <collation type="..."> sections with <cr><![CDATA[...]]></cr>
-  regex = ~r/<collation\s+type="([^"]+)"[^>]*>.*?<cr><!\[CDATA\[(.*?)\]\]><\/cr>/s
+  doc = SweetXml.parse(xml)
 
-  Regex.scan(regex, content)
-  |> Enum.flat_map(fn [_full, type, cdata] ->
-    # Skip search and private types
-    if type in ["search", "private", "searchjl"] do
+  # Extract all collation elements with their type and cr content
+  collations =
+    doc
+    |> SweetXml.xpath(~x"//collation"l,
+      type: ~x"./@type"s,
+      cr: ~x"./cr/text()"s
+    )
+
+  collations
+  |> Enum.flat_map(fn %{type: type, cr: cr} ->
+    if type in skip_types or cr == "" do
       []
     else
-      # Clean up the CDATA content
-      rules =
-        cdata
-        |> String.split("\n")
-        |> Enum.map(&String.trim/1)
-        |> Enum.reject(fn line ->
-          line == "" or
-            String.starts_with?(line, "#") or
-            String.starts_with?(line, "[import") or
-            String.starts_with?(line, "[reorder")
-        end)
-        |> Enum.join("\n")
-        |> String.trim()
-        # Decode \uXXXX escape sequences to actual Unicode characters
-        |> then(fn s ->
-          Regex.replace(~r/\\u([0-9A-Fa-f]{4})/, s, fn _full, hex ->
-            <<String.to_integer(hex, 16)::utf8>>
-          end)
-        end)
+      rules = clean_rules.(cr)
 
-      # Check if there are actual ordering rules (not just directives)
-      has_ordering_rules =
-        rules
-        |> String.split("\n")
-        |> Enum.any?(fn line ->
-          String.starts_with?(line, "&") or
-            (String.starts_with?(line, "[") and
-               not String.starts_with?(line, "[reorder") and
-               not String.starts_with?(line, "[strength") and
-               not String.starts_with?(line, "[normalization") and
-               not String.starts_with?(line, "[suppressContractions") and
-               not String.starts_with?(line, "[optimize"))
-        end)
-
-      if has_ordering_rules and rules != "" do
-        type_atom = String.to_atom(type)
-        [{language, type_atom, rules}]
+      if has_ordering_rules?.(rules) and rules != "" do
+        [{language, String.to_atom(type), rules}]
       else
         []
       end
     end
   end)
 end
+
+# Skip root.xml (base DUCET, not a tailoring)
+xml_files =
+  collation_dir
+  |> File.ls!()
+  |> Enum.filter(&String.ends_with?(&1, ".xml"))
+  |> Enum.reject(&(&1 == "root.xml"))
+  |> Enum.sort()
 
 # Parse all files
 all_tailorings =
@@ -114,7 +135,7 @@ all_tailorings =
       parse_file.(filename)
     rescue
       e ->
-        IO.puts(:stderr, "Warning: Could not parse #{filename}: #{inspect(e)}")
+        IO.puts(:stderr, "Warning: Could not parse #{filename}: #{Exception.message(e)}")
         []
     end
   end)
@@ -134,10 +155,21 @@ IO.puts("Wrote #{map_size(tailoring_map)} tailoring entries to #{output_path}")
 IO.puts("")
 
 # Summary
-languages = tailoring_map |> Map.keys() |> Enum.map(&elem(&1, 0)) |> Enum.uniq() |> Enum.sort()
+languages =
+  tailoring_map
+  |> Map.keys()
+  |> Enum.map(&elem(&1, 0))
+  |> Enum.uniq()
+  |> Enum.sort()
+
 IO.puts("Languages with tailoring (#{length(languages)}):")
 
 for lang <- languages do
-  types = tailoring_map |> Map.keys() |> Enum.filter(&(elem(&1, 0) == lang)) |> Enum.map(&elem(&1, 1))
+  types =
+    tailoring_map
+    |> Map.keys()
+    |> Enum.filter(&(elem(&1, 0) == lang))
+    |> Enum.map(&elem(&1, 1))
+
   IO.puts("  #{lang}: #{inspect(types)}")
 end

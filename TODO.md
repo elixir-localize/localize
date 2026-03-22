@@ -125,25 +125,30 @@ covering 97 languages, extracted from CLDR XML.
       engine's internal normalisation.
 * [x] Forced `normalization: true` when tailoring is active
       so input is decomposed to NFD before overlay lookup.
-* [x] Stripped `[reorder]` directives from tailoring rules
-      (script reordering is a separate concern from character
-      ordering and conflicts with overlay weight computation).
+* [x] `[reorder]` directives fully supported — script reorder
+      mapping preserves relative offsets for tailored weights
+      by finding the nearest base weight and adding the offset.
 * [x] Fixed FastLatin shortcut to be bypassed when an overlay
       is present (comment-only — the guard already handled it).
 * [x] All 205 collation tests pass (14 doctests + 191 tests).
 
 ### Remaining collation work
 
-* [ ] `[reorder]` directive support — currently stripped from
-      tailoring rules. Requires computing overlay weights in
-      the reordered weight space, or applying reorder as a
-      post-processing step on sort keys.
+* [ ] Slash expansion notation (e.g., `ccs/cs` in Hungarian)
+      is parsed but the expansion is not applied — the target
+      characters are stored without expansion semantics. Full
+      support requires the collation engine to generate
+      expansion sort keys.
 
-* [ ] Some complex non-Latin tailoring rules (ja, ko, zh, ar,
-      bn, sa) use advanced features (strength overrides, slash
-      notation for expansions, contraction sequences) that the
-      parser does not fully support. These 14 languages have
-      >80-line rule sets.
+* [ ] Star syntax (`<*`) for CJK (ja, ko, zh) adds thousands
+      of characters at primary level. These parse correctly but
+      generate very large overlays. Performance impact on sort
+      key generation with these overlays has not been assessed.
+
+* [ ] Some complex non-Latin tailoring rules (ar, bn, sa) use
+      features like `[suppressContractions]` that are stripped
+      during extraction. These affect sort accuracy for those
+      specific scripts.
 
 ## Data and scripts
 

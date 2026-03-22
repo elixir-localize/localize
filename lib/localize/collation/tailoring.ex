@@ -154,6 +154,7 @@ defmodule Localize.Collation.Tailoring do
     line = String.trim(line)
 
     cond do
+      # Option directives
       String.starts_with?(line, "[caseFirst ") ->
         value = line |> String.trim_leading("[caseFirst ") |> String.trim_trailing("]")
 
@@ -161,6 +162,33 @@ defmodule Localize.Collation.Tailoring do
           "upper" -> [{:option, :case_first, :upper}]
           "lower" -> [{:option, :case_first, :lower}]
           "off" -> [{:option, :case_first, false}]
+          _ -> []
+        end
+
+      String.starts_with?(line, "[caseLevel on]") ->
+        [{:option, :case_level, true}]
+
+      String.starts_with?(line, "[backwards 2]") ->
+        [{:option, :backwards, true}]
+
+      String.starts_with?(line, "[alternate shifted]") ->
+        [{:option, :alternate, :shifted}]
+
+      String.starts_with?(line, "[normalization on]") ->
+        [{:option, :normalization, true}]
+
+      String.starts_with?(line, "[strength ") ->
+        value =
+          line
+          |> String.trim_leading("[strength ")
+          |> String.trim_trailing("]")
+          |> String.trim()
+
+        case value do
+          "1" -> [{:option, :strength, :primary}]
+          "2" -> [{:option, :strength, :secondary}]
+          "3" -> [{:option, :strength, :tertiary}]
+          "4" -> [{:option, :strength, :quaternary}]
           _ -> []
         end
 
@@ -174,6 +202,7 @@ defmodule Localize.Collation.Tailoring do
 
         [{:option, :reorder, codes}]
 
+      # Ordering rules
       String.starts_with?(line, "&") ->
         parse_reset_and_rules(String.trim_leading(line, "&"))
 
@@ -184,13 +213,23 @@ defmodule Localize.Collation.Tailoring do
 
   defp parse_reset_and_rules(str) do
     {reset_op, after_reset} =
-      case Regex.run(~r/^\[before (\d)\](.+)$/, str) do
-        [_, level_str, remainder] ->
+      cond do
+        # [before N] reset
+        match = Regex.run(~r/^\[before (\d)\](.+)$/, str) ->
+          [_, level_str, remainder] = match
           level = String.to_integer(level_str)
           {first_char, rest} = split_first_char_sequence(remainder)
           {{:reset_before, level, first_char}, rest}
 
-        nil ->
+        # Special reset positions: [last regular], [first primary ignorable], etc.
+        match = Regex.run(~r/^\[(last|first) (regular|primary ignorable|secondary ignorable|tertiary ignorable)\](.*)$/, str) ->
+          [_, _pos, _level, rest] = match
+          # These are positional anchors — we handle them as a reset to
+          # a synthetic position. For now, skip the reset and just parse
+          # the ordering rules that follow.
+          {{:reset_special, str}, rest}
+
+        true ->
           {first_char, rest} = split_first_char_sequence(str)
           {{:reset, first_char}, rest}
       end
@@ -200,7 +239,7 @@ defmodule Localize.Collation.Tailoring do
   end
 
   defp split_first_char_sequence(str) do
-    case Regex.run(~r/^(.+?)(<<<|<<|<)(.*)$/, str) do
+    case Regex.run(~r/^(.+?)(<<<\*|<<\*|<\*|<<<|<<|<)(.*)$/, str) do
       [_, chars, op, rest] ->
         cps = anchor_to_codepoints(chars)
         {cps, op <> rest}
@@ -214,21 +253,52 @@ defmodule Localize.Collation.Tailoring do
   defp parse_ordering_rules(""), do: []
 
   defp parse_ordering_rules(str) do
-    case Regex.run(~r/^(<<<|<<|<)(.+?)(?=(<<<|<<|<)|$)/, str) do
+    # Match star syntax (<<<*, <<*, <*) or regular (<<<, <<, <)
+    case Regex.run(~r/^(<<<\*|<<\*|<\*|<<<|<<|<)(.+?)(?=(<<<\*|<<\*|<\*|<<<|<<|<)|$)/, str) do
       [full, op, chars | _] ->
-        level =
-          case op do
-            "<<<" -> :tertiary
-            "<<" -> :secondary
-            "<" -> :primary
-          end
-
-        cps = target_to_codepoints(chars)
+        {level, star?} = parse_operator(op)
         rest = String.trim_leading(str, full)
-        [{level, cps} | parse_ordering_rules(rest)]
+
+        if star? do
+          # Star syntax: each grapheme cluster gets its own entry
+          entries =
+            chars
+            |> String.trim()
+            |> String.graphemes()
+            |> Enum.map(fn grapheme ->
+              cps = target_to_codepoints(grapheme)
+              {level, cps}
+            end)
+
+          entries ++ parse_ordering_rules(rest)
+        else
+          # Regular syntax — handle slash expansion
+          {target_chars, _expansion} = split_expansion(chars)
+          cps = target_to_codepoints(target_chars)
+          [{level, cps} | parse_ordering_rules(rest)]
+        end
 
       nil ->
         []
+    end
+  end
+
+  defp parse_operator("<<<*"), do: {:tertiary, true}
+  defp parse_operator("<<*"), do: {:secondary, true}
+  defp parse_operator("<*"), do: {:primary, true}
+  defp parse_operator("<<<"), do: {:tertiary, false}
+  defp parse_operator("<<"), do: {:secondary, false}
+  defp parse_operator("<"), do: {:primary, false}
+
+  # Split "chars/expansion" — for now we record the target chars
+  # and ignore the expansion (expansion support requires changes
+  # to the collation engine to generate expansion sort keys).
+  defp split_expansion(str) do
+    str = String.trim(str)
+
+    case String.split(str, "/", parts: 2) do
+      [target, expansion] -> {target, expansion}
+      [target] -> {target, nil}
     end
   end
 
@@ -307,6 +377,8 @@ defmodule Localize.Collation.Tailoring do
     end
   end
 
+  defp adjust_before([], _level), do: [Element.new(0, 0x0020, 0x0002)]
+
   defp adjust_before(elements, level) do
     {init, [{p, s, t, v}]} = Enum.split(elements, -1)
 
@@ -318,6 +390,15 @@ defmodule Localize.Collation.Tailoring do
       end
 
     init ++ [adjusted]
+  end
+
+  defp compute_tailored_elements([], level) do
+    # Fallback for unmapped anchors — use a synthetic element
+    case level do
+      :primary -> [Element.new(1, 0x0020, 0x0002)]
+      :secondary -> [Element.new(0, 0x0021, 0x0002)]
+      :tertiary -> [Element.new(0, 0x0020, 0x0003)]
+    end
   end
 
   defp compute_tailored_elements(anchor_elements, :primary) do

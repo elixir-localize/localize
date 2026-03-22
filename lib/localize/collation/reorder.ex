@@ -42,7 +42,22 @@ defmodule Localize.Collation.Reorder do
         else
           case Map.get(primary_to_frac_lead, primary) do
             nil ->
-              primary
+              # Tailored weight — find the nearest base weight and
+              # preserve the offset so relative ordering is maintained.
+              case find_nearest_base(primary, primary_to_frac_lead) do
+                {base_primary, frac_lead} ->
+                  offset = primary - base_primary
+
+                  case Map.get(lead_byte_remap, frac_lead) do
+                    nil -> primary
+                    new_lead ->
+                      base_sub = Map.get(primary_to_frac_lead, {:sub, base_primary}, 0)
+                      (new_lead <<< 8 ||| base_sub) + offset
+                  end
+
+                nil ->
+                  primary
+              end
 
             frac_lead ->
               case Map.get(lead_byte_remap, frac_lead) do
@@ -326,4 +341,22 @@ defmodule Localize.Collation.Reorder do
           non_neg_integer()
   def apply_mapping(nil, primary), do: primary
   def apply_mapping(mapping_fn, primary), do: mapping_fn.(primary)
+
+  # Find the nearest base weight (one that has a fractional lead
+  # byte mapping) by searching downward from the tailored weight.
+  # Returns `{base_primary, frac_lead}` or `nil`.
+  defp find_nearest_base(primary, frac_map) do
+    find_nearest_base(primary - 1, frac_map, 32)
+  end
+
+  defp find_nearest_base(_primary, _frac_map, 0), do: nil
+
+  defp find_nearest_base(primary, frac_map, remaining) when primary > 0 do
+    case Map.get(frac_map, primary) do
+      nil -> find_nearest_base(primary - 1, frac_map, remaining - 1)
+      lead -> {primary, lead}
+    end
+  end
+
+  defp find_nearest_base(_primary, _frac_map, _remaining), do: nil
 end
