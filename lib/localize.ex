@@ -902,8 +902,7 @@ defmodule Localize do
     if system in @known_measurement_systems do
       {:ok, system}
     else
-      {:error,
-       Localize.UnknownMeasurementSystemError.exception(measurement_system: system)}
+      {:error, Localize.UnknownMeasurementSystemError.exception(measurement_system: system)}
     end
   end
 

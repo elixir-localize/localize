@@ -469,4 +469,62 @@ defmodule Localize.Locale do
 
   def to_locale_id(locale_id) when is_atom(locale_id), do: locale_id
   def to_locale_id(locale_id) when is_binary(locale_id), do: String.to_atom(locale_id)
+
+  # ── Gettext integration ────────────────────────────────────────
+
+  @doc """
+  Returns the best-matching Gettext locale for a given locale
+  identifier.
+
+  Compares the given locale against the locales known to a Gettext
+  backend using `Localize.LanguageTag.best_match/3`. This allows
+  a CLDR locale like `:"en-AU"` to match a Gettext locale like
+  `"en"` when no exact match exists.
+
+  ### Arguments
+
+  * `locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  * `gettext_backend` is a module that uses `Gettext` (e.g.,
+    `MyApp.Gettext`). It must respond to
+    `Gettext.known_locales/1`.
+
+  ### Returns
+
+  * `{:ok, gettext_locale}` where `gettext_locale` is a string
+    from the Gettext backend's known locales.
+
+  * `{:error, exception}` if no match is found among the
+    backend's known locales.
+
+  ### Examples
+
+      iex> Localize.Locale.gettext_locale_id(:en, Localize.Gettext)
+      {:error,
+       %Localize.UnknownLocaleError{
+         locale_id: "en"
+       }}
+
+  """
+  @spec gettext_locale_id(LanguageTag.t() | atom() | String.t(), module()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def gettext_locale_id(locale, gettext_backend) when is_atom(gettext_backend) do
+    known = Gettext.known_locales(gettext_backend)
+
+    locale_string =
+      case locale do
+        %LanguageTag{} -> LanguageTag.to_string(locale)
+        atom when is_atom(atom) -> Atom.to_string(atom)
+        binary when is_binary(binary) -> binary
+      end
+
+    case LanguageTag.best_match(locale_string, known) do
+      {:ok, matched_locale, _score} ->
+        {:ok, matched_locale}
+
+      {:error, _} ->
+        {:error, Localize.UnknownLocaleError.exception(locale_id: locale_string)}
+    end
+  end
 end
