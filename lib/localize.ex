@@ -583,16 +583,20 @@ defmodule Localize do
   end
 
   @doc """
-  Returns a Unicode flag emoji for a territory.
+  Returns a Unicode flag emoji for a territory or locale.
 
   Converts a two-letter ISO 3166 territory code into the
   corresponding regional indicator flag emoji. Territories
   that are not two-letter codes (e.g., region codes like
   `:"001"`) return an empty string.
 
+  When given a `t:Localize.LanguageTag.t/0`, the territory
+  is extracted from the tag.
+
   ### Arguments
 
-  * `territory` is a territory code atom or string.
+  * `territory_or_locale` is a territory code atom, string,
+    or a `t:Localize.LanguageTag.t/0`.
 
   ### Returns
 
@@ -613,10 +617,25 @@ defmodule Localize do
       iex> Localize.flag(:"001")
       {:ok, ""}
 
+      iex> {:ok, tag} = Localize.validate_locale(:en)
+      iex> Localize.flag(tag)
+      {:ok, "🇺🇸"}
+
   """
   @unicode_flag_codepoint_offset 0x1F1A5
 
-  @spec flag(atom() | String.t()) :: {:ok, String.t()} | {:error, Exception.t()}
+  @spec flag(Localize.LanguageTag.t() | atom() | String.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def flag(%Localize.LanguageTag{territory: territory}) when not is_nil(territory) do
+    flag(territory)
+  end
+
+  def flag(%Localize.LanguageTag{} = locale) do
+    with {:ok, territory} <- default_territory(locale) do
+      flag(territory)
+    end
+  end
+
   def flag(territory) do
     with {:ok, territory_atom} <- validate_territory(territory) do
       flag_string =
