@@ -326,6 +326,27 @@ defmodule Localize.SupplementalData do
     load_supplemental("territory_subdivision_containment.etf")
   end
 
+  @doc """
+  Returns a map of territory information including GDP,
+  population, currency, measurement system, and language
+  population data.
+
+  """
+  @spec territories() :: %{atom() => map()}
+  def territories do
+    load_supplemental("territories.etf")
+  end
+
+  @doc """
+  Returns a map of territory codes (ISO 3166 Alpha-2) to
+  their Alpha-3, FIPS 10, and numeric code equivalents.
+
+  """
+  @spec territory_codes() :: %{atom() => map()}
+  def territory_codes do
+    load_supplemental("territory_codes.etf")
+  end
+
   # ── Derived supplemental data ──────────────────────────────────
 
   # Returns a map of validated territory atoms to lists of
