@@ -25,26 +25,12 @@ defmodule Localize.Collation.Tailoring do
   alias Localize.Collation.{Element, Table}
   alias Localize.Collation.Table.Parser
 
-  @tailorings %{
-    {"da", :standard} =>
-      "[caseFirst upper]\n&D<<đ<<<Đ<<ð<<<Ð\n&Y<<ü<<<Ü<<ű<<<Ű\n&[before 1]ǀ<æ<<<Æ<<ä<<<Ä<ø<<<Ø<<ö<<<Ö<<ő<<<Ő<å<<<Å<<<aa<<<Aa<<<AA",
-    {"de", :phonebook} => "&AE<<ä<<<Ä\n&OE<<ö<<<Ö\n&UE<<ü<<<Ü",
-    {"es", :standard} => "&N<ñ<<<Ñ",
-    {"es", :traditional} => "&N<ñ<<<Ñ\n&C<ch<<<Ch<<<CH\n&l<ll<<<Ll<<<LL",
-    {"sv", :standard} =>
-      "&D<<đ<<<Đ<<ð<<<Ð\n&Y<<ü<<<Ü<<ű<<<Ű\n&[before 1]ǀ<å<<<Å<ä<<<Ä<<æ<<<Æ<<ę<<<Ę<ö<<<Ö<<ø<<<Ø<<ő<<<Ő<<œ<<<Œ<<ô<<<Ô",
-    {"fi", :standard} =>
-      "&D<<đ<<<Đ<<ð<<<Ð\n&Y<<ü<<<Ü<<ű<<<Ű\n&[before 1]ǀ<å<<<Å<ä<<<Ä<<æ<<<Æ<<ę<<<Ę<ö<<<Ö<<ø<<<Ø<<ő<<<Ő<<œ<<<Œ<<ô<<<Ô",
-    {"nb", :standard} =>
-      "[caseFirst upper]\n&D<<đ<<<Đ<<ð<<<Ð\n&Y<<ü<<<Ü<<ű<<<Ű\n&[before 1]ǀ<æ<<<Æ<<ä<<<Ä<ø<<<Ø<<ö<<<Ö<<ő<<<Ő<å<<<Å<<<aa<<<Aa<<<AA",
-    {"nn", :standard} =>
-      "[caseFirst upper]\n&D<<đ<<<Đ<<ð<<<Ð\n&Y<<ü<<<Ü<<ű<<<Ű\n&[before 1]ǀ<æ<<<Æ<<ä<<<Ä<ø<<<Ø<<ö<<<Ö<<ő<<<Ő<å<<<Å<<<aa<<<Aa<<<AA",
-    {"pl", :standard} =>
-      "&A<ą<<<Ą\n&C<ć<<<Ć\n&E<ę<<<Ę\n&L<ł<<<Ł\n&N<ń<<<Ń\n&O<ó<<<Ó\n&S<ś<<<Ś\n&Z<ź<<<Ź<ż<<<Ż",
-    {"hr", :standard} =>
-      "&C<č<<<Č<ć<<<Ć\n&D<dž<<<Dž<<<DŽ<đ<<<Đ\n&L<lj<<<Lj<<<LJ\n&N<nj<<<Nj<<<NJ\n&S<š<<<Š\n&Z<ž<<<Ž",
-    {"tr", :standard} => "&C<ç<<<Ç\n&G<ğ<<<Ğ\n&H<ı<<<I\n&O<ö<<<Ö\n&S<ş<<<Ş\n&U<ü<<<Ü"
-  }
+  @tailorings_path Path.join(
+                     :code.priv_dir(:localize) |> to_string(),
+                     "cldr/supplemental_data/collation_tailoring.etf"
+                   )
+  @external_resource @tailorings_path
+  @tailorings @tailorings_path |> File.read!() |> :erlang.binary_to_term()
 
   @doc """
   Get a tailoring overlay for the given locale and collation type.
@@ -65,8 +51,41 @@ defmodule Localize.Collation.Tailoring do
   @spec get_tailoring(String.t(), atom()) :: {map(), keyword()} | nil
   def get_tailoring(language, type) do
     case Map.get(@tailorings, {language, type}) do
-      nil -> nil
+      nil -> get_tailoring_from_parent(language, type, MapSet.new([language]))
       rules_str -> build_tailoring(rules_str)
+    end
+  end
+
+  defp get_tailoring_from_parent(language, type, visited) do
+    case Localize.validate_locale(language) do
+      {:ok, tag} ->
+        walk_parent_chain(tag, type, visited)
+
+      {:error, _} ->
+        nil
+    end
+  end
+
+  defp walk_parent_chain(tag, type, visited) do
+    case Localize.Locale.parent(tag) do
+      {:ok, parent_tag} ->
+        parent_language = parent_tag.language |> to_string()
+        parent_id = Localize.LanguageTag.to_string(parent_tag)
+
+        if parent_id in visited or parent_language == "und" do
+          nil
+        else
+          case Map.get(@tailorings, {parent_language, type}) do
+            nil ->
+              walk_parent_chain(parent_tag, type, MapSet.put(visited, parent_id))
+
+            rules_str ->
+              build_tailoring(rules_str)
+          end
+        end
+
+      {:error, _} ->
+        nil
     end
   end
 
@@ -183,11 +202,11 @@ defmodule Localize.Collation.Tailoring do
   defp split_first_char_sequence(str) do
     case Regex.run(~r/^(.+?)(<<<|<<|<)(.*)$/, str) do
       [_, chars, op, rest] ->
-        cps = string_to_codepoints(chars)
+        cps = anchor_to_codepoints(chars)
         {cps, op <> rest}
 
       nil ->
-        cps = string_to_codepoints(str)
+        cps = anchor_to_codepoints(str)
         {cps, ""}
     end
   end
@@ -204,7 +223,7 @@ defmodule Localize.Collation.Tailoring do
             "<" -> :primary
           end
 
-        cps = string_to_codepoints(chars)
+        cps = target_to_codepoints(chars)
         rest = String.trim_leading(str, full)
         [{level, cps} | parse_ordering_rules(rest)]
 
@@ -213,10 +232,29 @@ defmodule Localize.Collation.Tailoring do
     end
   end
 
-  defp string_to_codepoints(str) do
-    str
-    |> String.trim()
-    |> String.to_charlist()
+  # Convert rule characters to codepoints. Both anchors and
+  # ordering targets use NFC form. The collation table stores
+  # entries for precomposed characters, and the overlay keys
+  # must match what the engine looks up after normalising input
+  # to NFD and then matching against the table/overlay.
+  #
+  # The collation engine normalises input to NFD, but the table
+  # has entries keyed by precomposed codepoints. The overlay
+  # lookup in `longest_match_with_overlay` checks the overlay
+  # map using `Parser.codepoints_to_key`, which produces a
+  # single integer for one codepoint or a tuple for sequences.
+  # Since the engine decomposes input to NFD, we store overlay
+  # keys in NFD form so they match the decomposed input stream.
+  # Anchors (reset characters) use NFC for table lookup since
+  # the base collation table has entries for precomposed chars.
+  defp anchor_to_codepoints(str) do
+    str |> String.trim() |> :unicode.characters_to_nfc_binary() |> String.to_charlist()
+  end
+
+  # Targets (ordering characters) use NFD since the collation
+  # engine normalises input to NFD before overlay lookup.
+  defp target_to_codepoints(str) do
+    str |> String.trim() |> :unicode.characters_to_nfd_binary() |> String.to_charlist()
   end
 
   defp apply_operations(ops) do

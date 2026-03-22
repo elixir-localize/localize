@@ -213,7 +213,6 @@ defmodule Localize.DateTime do
     end
   end
 
-
   defp resolve_locale_id(%Localize.LanguageTag{cldr_locale_id: id}), do: {:ok, id}
 
   defp resolve_locale_id(locale) when is_atom(locale) or is_binary(locale) do

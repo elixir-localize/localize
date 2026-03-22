@@ -317,6 +317,8 @@ defmodule Localize.Collation do
 
   defp do_produce([], acc, _overlay), do: Enum.reverse(acc) |> List.flatten()
 
+  # FastLatin shortcut: only when there is no tailoring overlay,
+  # since overlays may remap characters in the Latin range.
   defp do_produce([cp | rest], acc, nil) when cp < 0x0180 do
     case FastLatin.lookup(cp) do
       nil ->
@@ -509,9 +511,16 @@ defmodule Localize.Collation do
         nil -> {nil, []}
       end
 
+    # When a tailoring overlay is present, normalization must be
+    # enabled so input is decomposed to NFD — the form used for
+    # overlay keys.
+    normalization =
+      if tailoring_overlay != nil, do: [normalization: true], else: []
+
     Options.new()
     |> struct(tailoring_option_overrides)
     |> struct(locale_defaults)
+    |> struct(normalization)
     |> struct(u_options)
     |> struct(extra_options)
     |> Map.put(:type, type)
@@ -555,7 +564,6 @@ defmodule Localize.Collation do
 
   defp maybe_put(opts, _key, nil), do: opts
   defp maybe_put(opts, key, value), do: Keyword.put(opts, key, value)
-
 
   defp use_nif?(%Options{backend: :elixir}), do: false
 

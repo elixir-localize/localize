@@ -96,15 +96,54 @@ warnings:
 
 ### Currency
 
-* [ ] `currency_history_for_locale/1` — territory lookup works
-      but locale-to-territory resolution should use full locale
-      inheritance chain, not just `tag.territory`.
+* [x] `currency_history_for_locale/1` — implemented with
+      `territory_from_locale/1` that resolves territory via
+      `rg` extension → explicit territory → likely subtags.
 
-### Collation
+### Currency inheritance — completed
 
-* [ ] Review whether locale-specific tailoring covers all CLDR
-      locales (currently loads from
-      `collation/tailoring/locale_defaults.ex`).
+* [x] `territory_from_locale/1` — resolves territory via
+      `rg` extension → explicit territory → likely subtags.
+* [x] `current_currency_from_locale/1` updated to use
+      `territory_from_locale/1`.
+* [x] `currency_history_for_locale/1` implemented.
+
+### Collation tailoring — completed
+
+Expanded from 11 hardcoded locale/type pairs to 110 entries
+covering 97 languages, extracted from CLDR XML.
+
+* [x] Audited all 135 CLDR collation XML files.
+* [x] Created `scripts/extract_collation_tailoring.exs` to
+      parse CLDR XML and produce
+      `priv/cldr/supplemental_data/collation_tailoring.etf`.
+* [x] `@tailorings` now loaded from ETF at compile time.
+* [x] Extended `locale_defaults.ex` with `cu`, `mt`, `no`.
+* [x] Tailoring lookup walks parent locale chain via
+      `Localize.Locale.parent/1` (e.g., `nb` → `no`).
+* [x] Overlay keys use NFD form to match the collation
+      engine's internal normalisation.
+* [x] Forced `normalization: true` when tailoring is active
+      so input is decomposed to NFD before overlay lookup.
+* [x] Stripped `[reorder]` directives from tailoring rules
+      (script reordering is a separate concern from character
+      ordering and conflicts with overlay weight computation).
+* [x] Fixed FastLatin shortcut to be bypassed when an overlay
+      is present (comment-only — the guard already handled it).
+* [x] All 205 collation tests pass (14 doctests + 191 tests).
+
+### Remaining collation work
+
+* [ ] `[reorder]` directive support — currently stripped from
+      tailoring rules. Requires computing overlay weights in
+      the reordered weight space, or applying reorder as a
+      post-processing step on sort keys.
+
+* [ ] Some complex non-Latin tailoring rules (ja, ko, zh, ar,
+      bn, sa) use advanced features (strength overrides, slash
+      notation for expansions, contraction sequences) that the
+      parser does not fully support. These 14 languages have
+      >80-line rule sets.
 
 ## Data and scripts
 

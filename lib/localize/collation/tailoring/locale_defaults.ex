@@ -9,9 +9,12 @@ defmodule Localize.Collation.Tailoring.LocaleDefaults do
   """
 
   @locale_defaults %{
+    "cu" => [case_first: :upper],
     "da" => [case_first: :upper],
+    "mt" => [case_first: :upper],
     "nb" => [case_first: :upper],
-    "nn" => [case_first: :upper]
+    "nn" => [case_first: :upper],
+    "no" => [case_first: :upper]
   }
 
   @locale_type_defaults %{
@@ -42,7 +45,33 @@ defmodule Localize.Collation.Tailoring.LocaleDefaults do
   @spec options_for(String.t()) :: keyword()
   def options_for(locale) when is_binary(locale) do
     language = extract_language(locale)
-    Map.get(@locale_defaults, language, [])
+
+    case Map.get(@locale_defaults, language) do
+      nil -> options_from_parent(language)
+      defaults -> defaults
+    end
+  end
+
+  defp options_from_parent(language) do
+    case Localize.validate_locale(language) do
+      {:ok, tag} ->
+        case Localize.Locale.parent(tag) do
+          {:ok, parent_tag} ->
+            parent_lang = parent_tag.language |> to_string()
+
+            if parent_lang != language and parent_lang != "und" do
+              options_for(parent_lang)
+            else
+              []
+            end
+
+          {:error, _} ->
+            []
+        end
+
+      {:error, _} ->
+        []
+    end
   end
 
   @doc """

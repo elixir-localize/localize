@@ -458,6 +458,74 @@ defmodule Localize.Currency do
   # ── Locale-based currency functions ──────────────────────────
 
   @doc """
+  Returns the territory associated with a locale.
+
+  Resolves the territory using the following precedence:
+
+  1. The `rg` (region override) Unicode extension parameter,
+     if present (e.g., `"en-US-u-rg-gbzzzz"` → `:GB`).
+
+  2. The explicit territory in the language tag (e.g.,
+     `"en-AU"` → `:AU`).
+
+  3. The territory inferred from likely subtags via
+     `Localize.validate_locale/1` (e.g., `"en"` → `:US`,
+     `"de"` → `:DE`).
+
+  ### Arguments
+
+  * `locale` is a locale identifier string, atom, or a
+    `t:Localize.LanguageTag.t/0` struct.
+
+  ### Returns
+
+  * `{:ok, territory_code}` where `territory_code` is an atom.
+
+  * `{:error, exception}` if the locale cannot be resolved.
+
+  ### Examples
+
+      iex> Localize.Currency.territory_from_locale("en-AU")
+      {:ok, :AU}
+
+      iex> Localize.Currency.territory_from_locale("en")
+      {:ok, :US}
+
+      iex> Localize.Currency.territory_from_locale("de")
+      {:ok, :DE}
+
+  """
+  @spec territory_from_locale(Localize.LanguageTag.t() | String.t() | atom()) ::
+          {:ok, atom()} | {:error, Exception.t()}
+  def territory_from_locale(locale) when is_binary(locale) or is_atom(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      territory_from_locale(language_tag)
+    end
+  end
+
+  def territory_from_locale(%Localize.LanguageTag{locale: %{rg: rg}})
+      when not is_nil(rg) do
+    {:ok, rg}
+  end
+
+  def territory_from_locale(%Localize.LanguageTag{territory: territory})
+      when not is_nil(territory) do
+    {:ok, territory}
+  end
+
+  def territory_from_locale(%Localize.LanguageTag{} = tag) do
+    # Territory is nil — resolve through validate_locale which
+    # populates territory from likely subtags
+    case Localize.validate_locale(tag) do
+      {:ok, %{territory: territory}} when not is_nil(territory) ->
+        {:ok, territory}
+
+      _ ->
+        {:ok, Localize.default_locale().territory}
+    end
+  end
+
+  @doc """
   Returns the effective currency for a given locale.
 
   If the language tag has a `cu` Unicode extension key set,
@@ -587,13 +655,60 @@ defmodule Localize.Currency do
     end
   end
 
-  def current_currency_from_locale(%Localize.LanguageTag{territory: territory})
-      when not is_nil(territory) do
-    {:ok, current_currency_for_territory(territory)}
+  def current_currency_from_locale(%Localize.LanguageTag{} = locale) do
+    with {:ok, territory} <- territory_from_locale(locale) do
+      {:ok, current_currency_for_territory(territory)}
+    end
   end
 
-  def current_currency_from_locale(%Localize.LanguageTag{}) do
-    {:ok, nil}
+  @doc """
+  Returns the full currency history for a locale's territory.
+
+  Resolves the territory from the locale using
+  `territory_from_locale/1` (which considers the `rg` extension,
+  the explicit territory, and likely subtags), then returns the
+  currency history for that territory.
+
+  ### Arguments
+
+  * `locale` is a locale identifier string, atom, or a
+    `t:Localize.LanguageTag.t/0` struct.
+
+  ### Returns
+
+  * `{:ok, currency_map}` where `currency_map` is a map of
+    `%{currency_code => %{from: date, to: date, ...}}` entries.
+
+  * `{:error, exception}` if the locale or territory cannot
+    be resolved.
+
+  ### Examples
+
+      iex> {:ok, history} = Localize.Currency.currency_history_for_locale("en-US")
+      iex> Map.has_key?(history, :USD)
+      true
+
+      iex> {:ok, history} = Localize.Currency.currency_history_for_locale("de")
+      iex> Map.has_key?(history, :EUR)
+      true
+
+      iex> {:ok, history} = Localize.Currency.currency_history_for_locale("ja")
+      iex> Map.has_key?(history, :JPY)
+      true
+
+  """
+  @spec currency_history_for_locale(Localize.LanguageTag.t() | String.t() | atom()) ::
+          {:ok, map()} | {:error, Exception.t()}
+  def currency_history_for_locale(locale) when is_binary(locale) or is_atom(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      currency_history_for_locale(language_tag)
+    end
+  end
+
+  def currency_history_for_locale(%Localize.LanguageTag{} = locale) do
+    with {:ok, territory} <- territory_from_locale(locale) do
+      territory_currencies(territory)
+    end
   end
 
   # ── Locale-specific currency functions ────────────────────────

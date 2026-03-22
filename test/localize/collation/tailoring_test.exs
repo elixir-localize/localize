@@ -11,14 +11,14 @@ defmodule Localize.Collation.TailoringTest do
   describe "parse_rules/1" do
     test "parses simple primary tailoring" do
       ops = Localize.Collation.Tailoring.parse_rules("&N<ñ<<<Ñ")
-
-      assert [{:reset, [?N]}, {:primary, [?ñ]}, {:tertiary, [?Ñ]}] = ops
+      # Targets are NFD: ñ = n(110) + combining tilde(771)
+      assert [{:reset, [?N]}, {:primary, [110, 771]}, {:tertiary, [78, 771]}] = ops
     end
 
     test "parses secondary tailoring" do
       ops = Localize.Collation.Tailoring.parse_rules("&AE<<ä<<<Ä")
-
-      assert [{:reset, [?A, ?E]}, {:secondary, [?ä]}, {:tertiary, [?Ä]}] = ops
+      # Targets are NFD: ä = a(97) + combining diaeresis(776)
+      assert [{:reset, [?A, ?E]}, {:secondary, [97, 776]}, {:tertiary, [65, 776]}] = ops
     end
 
     test "parses multi-character contraction" do
@@ -81,10 +81,10 @@ defmodule Localize.Collation.TailoringTest do
       {overlay, options} = Localize.Collation.Tailoring.get_tailoring("de", :phonebook)
       assert is_map(overlay)
       assert options == []
-      # Should have entries for ä, ö, ü (keys are now bare integers)
-      assert Map.has_key?(overlay, ?ä)
-      assert Map.has_key?(overlay, ?ö)
-      assert Map.has_key?(overlay, ?ü)
+      # Overlay keys are NFD: ä = {97, 776}, ö = {111, 776}, ü = {117, 776}
+      assert Map.has_key?(overlay, {97, 776})
+      assert Map.has_key?(overlay, {111, 776})
+      assert Map.has_key?(overlay, {117, 776})
     end
 
     test "returns nil for unsupported locale" do
