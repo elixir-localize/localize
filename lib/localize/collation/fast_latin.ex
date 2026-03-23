@@ -13,7 +13,7 @@ defmodule Localize.Collation.FastLatin do
 
   """
 
-  @table_name :collation_fast_latin
+  @table_name {:localize, :collation_fast_latin}
   @latin_limit 0x0180
 
   @doc """
@@ -33,8 +33,8 @@ defmodule Localize.Collation.FastLatin do
   """
   @spec build() :: :ok
   def build do
-    table = :persistent_term.get(:collation_table)
-    contractions = :persistent_term.get(:collation_contractions)
+    table = :persistent_term.get({:localize, :collation_table})
+    contractions = :persistent_term.get({:localize, :collation_contractions})
 
     entries =
       for cp <- 0..(@latin_limit - 1) do

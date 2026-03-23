@@ -13,7 +13,7 @@ defmodule Localize.Currency.Store do
 
   use GenServer
 
-  @persistent_key :localize_custom_currencies
+  @persistent_key {:localize, :custom_currencies}
 
   # ── Client API ────────────────────────────────────────────────
 

@@ -10,7 +10,7 @@ defmodule Localize.Locale.SupportedLocalesTest do
 
     # Clear persistent_term and ETS cache before each test
     try do
-      :persistent_term.erase(:localize_supported_locales)
+      :persistent_term.erase({:localize, :supported_locales})
     rescue
       ArgumentError -> :ok
     end
@@ -33,7 +33,7 @@ defmodule Localize.Locale.SupportedLocalesTest do
 
       # Clear persistent_term and ETS cache
       try do
-        :persistent_term.erase(:localize_supported_locales)
+        :persistent_term.erase({:localize, :supported_locales})
       rescue
         ArgumentError -> :ok
       end
@@ -174,7 +174,7 @@ defmodule Localize.Locale.SupportedLocalesTest do
       Application.delete_env(:localize, :preload_locales)
 
       try do
-        :persistent_term.erase(:localize_supported_locales)
+        :persistent_term.erase({:localize, :supported_locales})
       rescue
         ArgumentError -> :ok
       end
@@ -212,7 +212,7 @@ defmodule Localize.Locale.SupportedLocalesTest do
     :ets.delete_all_objects(@locale_cache_table)
 
     try do
-      :persistent_term.erase(:localize_supported_locales)
+      :persistent_term.erase({:localize, :supported_locales})
     rescue
       ArgumentError -> :ok
     end
@@ -228,7 +228,7 @@ defmodule Localize.Locale.SupportedLocalesTest do
 
       _configured ->
         merged = Enum.uniq(supported ++ preload)
-        :persistent_term.put(:localize_supported_locales, merged)
+        :persistent_term.put({:localize, :supported_locales}, merged)
     end
   end
 

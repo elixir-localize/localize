@@ -89,7 +89,7 @@ defmodule Localize do
   @type locale :: atom() | Localize.LanguageTag.t()
 
   @locale_key :localize_locale
-  @default_locale_key :localize_default_locale
+  @default_locale_key {:localize, :default_locale}
 
   @doc """
   Returns the application-wide default locale as a
@@ -535,7 +535,7 @@ defmodule Localize do
   """
   @spec supported_locales() :: [atom()] | nil
   def supported_locales do
-    :persistent_term.get(:localize_supported_locales, nil)
+    :persistent_term.get({:localize, :supported_locales}, nil)
   end
 
   @doc """
@@ -1016,7 +1016,7 @@ defmodule Localize do
   # supported list. If not, re-resolve via best_match against the
   # supported list to find the closest supported locale.
   defp maybe_restrict_to_supported(%Localize.LanguageTag{cldr_locale_id: cldr_locale_id} = tag) do
-    case :persistent_term.get(:localize_supported_locales, nil) do
+    case :persistent_term.get({:localize, :supported_locales}, nil) do
       list when is_list(list) and list != [] ->
         if cldr_locale_id in list do
           {:ok, tag}
@@ -1031,7 +1031,7 @@ defmodule Localize do
 
   defp resolve_cldr_locale(%Localize.LanguageTag{} = language_tag) do
     locale_ids =
-      case :persistent_term.get(:localize_supported_locales, nil) do
+      case :persistent_term.get({:localize, :supported_locales}, nil) do
         list when is_list(list) and list != [] -> list
         _ -> Localize.SupplementalData.all_locale_ids()
       end

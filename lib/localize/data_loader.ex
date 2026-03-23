@@ -37,7 +37,7 @@ defmodule Localize.DataLoader do
   ### Arguments
 
   * `key` is the `:persistent_term` key (e.g.,
-    `{:localize_supplemental, "aliases.etf"}`).
+    `{:localize, :supplemental, "aliases.etf"}`).
 
   * `load_fn` is a zero-arity function that reads and decodes
     the file, returning the data to be cached.

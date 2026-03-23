@@ -16,8 +16,8 @@ defmodule Localize.Collation.Table do
   alias Localize.Collation.Element
   alias Localize.Collation.Table.Parser
 
-  @table_name :collation_table
-  @contractions_table :collation_contractions
+  @table_name {:localize, :collation_table}
+  @contractions_table {:localize, :collation_contractions}
 
   @fractional_keys "FractionalUCA.txt"
 

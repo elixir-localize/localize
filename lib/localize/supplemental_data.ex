@@ -24,7 +24,7 @@ defmodule Localize.SupplementalData do
   end
 
   defp load_data(filename) do
-    key = {:localize_data, filename}
+    key = {:localize, :data, filename}
 
     Localize.DataLoader.load(key, fn ->
       cldr_dir()
@@ -35,7 +35,7 @@ defmodule Localize.SupplementalData do
   end
 
   defp load_supplemental(filename) do
-    key = {:localize_supplemental, filename}
+    key = {:localize, :supplemental, filename}
 
     Localize.DataLoader.load(key, fn ->
       cldr_dir()
@@ -47,7 +47,7 @@ defmodule Localize.SupplementalData do
   end
 
   defp load_validity(filename) do
-    key = {:localize_validity, filename}
+    key = {:localize, :validity, filename}
 
     Localize.DataLoader.load(key, fn ->
       cldr_dir()

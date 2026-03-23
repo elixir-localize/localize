@@ -58,7 +58,7 @@ defmodule Localize.Application do
           (supported ++ preload)
           |> Enum.uniq()
 
-        :persistent_term.put(:localize_supported_locales, merged)
+        :persistent_term.put({:localize, :supported_locales}, merged)
     end
 
     # Preload locale data for the preload list

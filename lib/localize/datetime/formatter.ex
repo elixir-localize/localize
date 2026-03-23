@@ -67,7 +67,7 @@ defmodule Localize.DateTime.Formatter do
   end
 
   defp tokenize_cached(format_string) do
-    key = {:localize_datetime_format_tokens, format_string}
+    key = {:localize, :datetime_format_tokens, format_string}
 
     case :persistent_term.get(key, :not_compiled) do
       :not_compiled ->

@@ -40,9 +40,9 @@ defmodule Localize.Number.System do
                        )
 
   # Lazy-load number systems from ETF at runtime and cache in persistent_term.
-  @persistent_term_key {__MODULE__, :number_systems}
-  @numeric_systems_key {__MODULE__, :numeric_systems}
-  @algorithmic_systems_key {__MODULE__, :algorithmic_systems}
+  @persistent_term_key {:localize, :number_systems}
+  @numeric_systems_key {:localize, :numeric_systems}
+  @algorithmic_systems_key {:localize, :algorithmic_systems}
 
   @doc """
   Returns the default number system type.
