@@ -472,6 +472,43 @@ defmodule Localize.Number.Format do
     System.number_system_names_for(locale)
   end
 
+  @doc """
+  Returns the miscellaneous number patterns for a locale and
+  number system.
+
+  These patterns include range, approximately, at-least, and
+  at-most formatting templates.
+
+  ### Arguments
+
+  * `locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  * `number_system` is a number system name atom. The default
+    is `:latn`.
+
+  ### Returns
+
+  * `{:ok, patterns}` where `patterns` is a map with keys
+    `:range`, `:approximately`, `:at_least`, and `:at_most`.
+
+  * `{:error, exception}` if the locale or number system data
+    cannot be loaded.
+
+  ### Examples
+
+      iex> {:ok, patterns} = Localize.Number.Format.misc_patterns_for(:en)
+      iex> patterns.range
+      [0, "–", 1]
+
+  """
+  @spec misc_patterns_for(Localize.locale(), atom()) ::
+          {:ok, map()} | {:error, Exception.t()}
+  def misc_patterns_for(locale, number_system \\ :latn) do
+    locale_id = to_locale_id(locale)
+    Localize.Locale.get(locale_id, [:number_formats, number_system, :other])
+  end
+
   # ── Private helpers ──────────────────────────────────────────
 
   defp to_locale_id(locale), do: Localize.Locale.to_locale_id(locale)

@@ -25,7 +25,8 @@ defmodule Localize.Number.Symbol do
     :percent_sign,
     :plus_sign,
     :superscripting_exponent,
-    :time_separator
+    :time_separator,
+    :approximately_sign
   ]
 
   @type t :: %__MODULE__{
@@ -40,7 +41,8 @@ defmodule Localize.Number.Symbol do
           percent_sign: String.t(),
           plus_sign: String.t(),
           superscripting_exponent: String.t(),
-          time_separator: String.t()
+          time_separator: String.t(),
+          approximately_sign: String.t()
         }
 
   @doc """

@@ -16,13 +16,22 @@ defmodule Localize.Calendar do
 
   @acceptable_calendars [
     :gregorian,
-    :persian,
+    :buddhist,
+    :chinese,
     :coptic,
+    :dangi,
     :ethiopic,
     :ethiopic_amete_alem,
-    :chinese,
+    :hebrew,
+    :indian,
+    :islamic,
+    :islamic_civil,
+    :islamic_rgsa,
+    :islamic_tbla,
+    :islamic_umalqura,
     :japanese,
-    :dangi
+    :persian,
+    :roc
   ]
 
   @type part :: :era | :quarter | :month | :day_of_week | :days_of_week | :am_pm | :day_periods
@@ -41,8 +50,9 @@ defmodule Localize.Calendar do
 
   ### Examples
 
-      iex> Localize.Calendar.known_calendars()
-      [:gregorian, :persian, :coptic, :ethiopic, :ethiopic_amete_alem, :chinese, :japanese, :dangi]
+      iex> calendars = Localize.Calendar.known_calendars()
+      iex> :gregorian in calendars and :buddhist in calendars and :hebrew in calendars
+      true
 
   """
   @spec known_calendars() :: [atom()]

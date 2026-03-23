@@ -198,8 +198,8 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Number range formatting | Not implemented | Interval formatting exists for dates but not for standalone number ranges. |
-| Approximate number formatting | Not implemented | |
+| Number range formatting | Implemented | `Localize.Number.to_range_string/3` using locale-specific range patterns. |
+| Approximate number formatting | Implemented | `Localize.Number.to_approximately_string/2`, also `to_at_least_string/2` and `to_at_most_string/2`. |
 
 ### Rational Numbers
 
@@ -316,11 +316,11 @@ Two areas are explicitly out of scope:
 | Coptic | Implemented | Calendar data present. |
 | Ethiopic | Implemented | Including Amete Alem variant. |
 | Dangi (Korean) | Implemented | Calendar data present. |
-| Buddhist | Not verified | Data may be present but not independently tested. |
-| Hebrew | Not verified | |
-| Islamic variants | Not verified | |
-| ROC (Minguo) | Not verified | |
-| Indian (Saka) | Not verified | |
+| Buddhist | Implemented | Era (BE), month, and day data tested. |
+| Hebrew | Implemented | Era (AM), 13-month calendar with leap year variant tested. |
+| Islamic variants | Implemented | `:islamic`, `:islamic_civil`, `:islamic_rgsa`, `:islamic_tbla`, `:islamic_umalqura` — eras (AH) and month names (Muharram, Ramadan, etc.) tested. |
+| ROC (Minguo) | Implemented | Era names (B.R.O.C., Minguo) tested. |
+| Indian (Saka) | Implemented | Calendar data present and included in `known_calendars/0`. |
 
 ---
 
@@ -519,12 +519,9 @@ Two areas are explicitly out of scope:
 
 * General character transforms/transliteration — [unicode_transform](https://github.com/elixir-unicode/unicode_transform)
 * Text segmentation (grapheme/word/sentence/line) — [unicode_string](https://github.com/elixir-unicode/unicode_string)
-* Script display names (data present, no public function)
-* Calendar field display names (data present, no public function)
 
 ### Not implemented
 
-* Number range formatting
 * Date/time parsing (string to date)
 * Metazone display names
 * Semantic skeletons
@@ -541,3 +538,5 @@ Two areas are explicitly out of scope:
 ### Note in scope for Localize
 
 * Emoji/character annotations and labels
+* Keyboards
+

@@ -12,8 +12,10 @@ defmodule Localize.Number do
 
   """
 
+  alias Localize.Number.Format
   alias Localize.Number.Format.Options
   alias Localize.Number.Formatter
+  alias Localize.Number.System
 
   @doc """
   Formats a number as a localized string.
@@ -149,6 +151,222 @@ defmodule Localize.Number do
     case to_string(number, options) do
       {:ok, string} -> string
       {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Formats a numeric range as a localized string.
+
+  Accepts either two numbers or an Elixir `Range`. Uses the
+  locale's range pattern (e.g., `"3–5"` in English, `"3～5"` in
+  Japanese) to combine two formatted numbers. When the start and
+  end are equal, the locale's approximately pattern is used
+  instead (e.g., `"~5"`).
+
+  ### Arguments
+
+  * `number_start` is the start of the range (integer, float,
+    or Decimal).
+
+  * `number_end` is the end of the range (integer, float, or
+    Decimal).
+
+  * `options` is a keyword list of options.
+
+  Alternatively:
+
+  * `range` is an Elixir `t:Range.t/0` (e.g., `3..5`).
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  All options accepted by `to_string/2` are supported and applied
+  to both numbers. Additional options:
+
+  * `:approximate` is a boolean. When `true`, forces use of the
+    approximately pattern regardless of whether start equals end.
+    The default is `false`.
+
+  ### Returns
+
+  * `{:ok, formatted_range}` on success.
+
+  * `{:error, exception}` if formatting fails.
+
+  ### Examples
+
+      iex> Localize.Number.to_range_string(3, 5, locale: :en)
+      {:ok, "3–5"}
+
+      iex> Localize.Number.to_range_string(3..5, locale: :en)
+      {:ok, "3–5"}
+
+      iex> Localize.Number.to_range_string(5, 5, locale: :en)
+      {:ok, "~5"}
+
+  """
+  @spec to_range_string(Range.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def to_range_string(%Range{first: first, last: last}, options) do
+    to_range_string(first, last, options)
+  end
+
+  @spec to_range_string(number() | Decimal.t(), number() | Decimal.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def to_range_string(number_start, number_end, options \\ []) do
+    {approximate, format_options} = Keyword.pop(options, :approximate, false)
+    locale = Keyword.get(format_options, :locale, Localize.get_locale())
+    format_options = Keyword.put_new(format_options, :locale, locale)
+
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, number_system} <- System.number_system_from_locale(language_tag),
+         {:ok, patterns} <- Format.misc_patterns_for(language_tag, number_system) do
+      if approximate or number_start == number_end do
+        with {:ok, formatted} <- to_string(number_start, format_options) do
+          result = Localize.Substitution.substitute([formatted], patterns.approximately)
+          {:ok, IO.iodata_to_binary(result)}
+        end
+      else
+        with {:ok, formatted_start} <- to_string(number_start, format_options),
+             {:ok, formatted_end} <- to_string(number_end, format_options) do
+          result = Localize.Substitution.substitute([formatted_start, formatted_end], patterns.range)
+          {:ok, IO.iodata_to_binary(result)}
+        end
+      end
+    end
+  end
+
+  @doc """
+  Same as `to_range_string/3` but raises on error.
+
+  ### Examples
+
+      iex> Localize.Number.to_range_string!(3, 5, locale: :en)
+      "3–5"
+
+      iex> Localize.Number.to_range_string!(3..5, locale: :en)
+      "3–5"
+
+  """
+  @spec to_range_string!(Range.t(), Keyword.t()) :: String.t()
+  def to_range_string!(%Range{} = range, options) do
+    case to_range_string(range, options) do
+      {:ok, string} -> string
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @spec to_range_string!(number() | Decimal.t(), number() | Decimal.t(), Keyword.t()) ::
+          String.t()
+  def to_range_string!(number_start, number_end, options \\ []) do
+    case to_range_string(number_start, number_end, options) do
+      {:ok, string} -> string
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Formats a number with the locale's "at least" pattern.
+
+  Produces strings like `"5+"` (English) or `"5以上"` (Japanese).
+
+  ### Arguments
+
+  * `number` is an integer, float, or Decimal.
+
+  * `options` is a keyword list of options accepted by
+    `to_string/2`.
+
+  ### Returns
+
+  * `{:ok, formatted}` on success.
+
+  * `{:error, exception}` if formatting fails.
+
+  ### Examples
+
+      iex> Localize.Number.to_at_least_string(5, locale: :en)
+      {:ok, "5+"}
+
+  """
+  @spec to_at_least_string(number() | Decimal.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def to_at_least_string(number, options \\ []) do
+    format_misc_pattern(number, :at_least, options)
+  end
+
+  @doc """
+  Formats a number with the locale's "at most" pattern.
+
+  Produces strings like `"≤5"` (English) or `"5以下"` (Japanese).
+
+  ### Arguments
+
+  * `number` is an integer, float, or Decimal.
+
+  * `options` is a keyword list of options accepted by
+    `to_string/2`.
+
+  ### Returns
+
+  * `{:ok, formatted}` on success.
+
+  * `{:error, exception}` if formatting fails.
+
+  ### Examples
+
+      iex> Localize.Number.to_at_most_string(5, locale: :en)
+      {:ok, "≤5"}
+
+  """
+  @spec to_at_most_string(number() | Decimal.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def to_at_most_string(number, options \\ []) do
+    format_misc_pattern(number, :at_most, options)
+  end
+
+  @doc """
+  Formats a number with the locale's approximately pattern.
+
+  Produces strings like `"~5"` (English) or `"約 5"` (Japanese).
+
+  ### Arguments
+
+  * `number` is an integer, float, or Decimal.
+
+  * `options` is a keyword list of options accepted by
+    `to_string/2`.
+
+  ### Returns
+
+  * `{:ok, formatted}` on success.
+
+  * `{:error, exception}` if formatting fails.
+
+  ### Examples
+
+      iex> Localize.Number.to_approximately_string(5, locale: :en)
+      {:ok, "~5"}
+
+  """
+  @spec to_approximately_string(number() | Decimal.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def to_approximately_string(number, options \\ []) do
+    format_misc_pattern(number, :approximately, options)
+  end
+
+  defp format_misc_pattern(number, pattern_key, options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    options = Keyword.put_new(options, :locale, locale)
+
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, number_system} <- System.number_system_from_locale(language_tag),
+         {:ok, patterns} <- Format.misc_patterns_for(language_tag, number_system),
+         {:ok, formatted} <- to_string(number, options) do
+      pattern = Map.fetch!(patterns, pattern_key)
+      result = Localize.Substitution.substitute([formatted], pattern)
+      {:ok, IO.iodata_to_binary(result)}
     end
   end
 

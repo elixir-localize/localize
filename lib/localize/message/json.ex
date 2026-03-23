@@ -63,6 +63,7 @@ defmodule Localize.Message.JSON do
       "declarations" => [],
       "pattern" => convert_pattern(parts)
     }
+
     maybe_encode(result, options)
   end
 
@@ -72,6 +73,7 @@ defmodule Localize.Message.JSON do
       "declarations" => [],
       "pattern" => convert_pattern(parts)
     }
+
     maybe_encode(result, options)
   end
 
@@ -289,7 +291,12 @@ defmodule Localize.Message.JSON do
     {:ok, ast}
   end
 
-  def from_json(%{"type" => "select", "declarations" => decls, "selectors" => sels, "variants" => vars}) do
+  def from_json(%{
+        "type" => "select",
+        "declarations" => decls,
+        "selectors" => sels,
+        "variants" => vars
+      }) do
     declarations = Enum.map(decls, &parse_declaration/1)
     selectors = Enum.map(sels, &parse_selector/1)
     variants = Enum.map(vars, &parse_variant/1)

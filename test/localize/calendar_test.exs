@@ -206,6 +206,82 @@ defmodule Localize.CalendarTest do
     end
   end
 
+  # ── Calendar data availability ─────────────────────────────────
+
+  describe "Buddhist calendar data" do
+    test "has era names" do
+      {:ok, eras} = Localize.Calendar.eras(:en, :buddhist)
+      assert get_in(eras, [:abbreviated, 0]) == "BE"
+    end
+
+    test "has month names" do
+      {:ok, months} = Localize.Calendar.months(:en, :buddhist)
+      assert get_in(months, [:format, :wide, 1]) == "January"
+    end
+  end
+
+  describe "Hebrew calendar data" do
+    test "has era names" do
+      {:ok, eras} = Localize.Calendar.eras(:en, :hebrew)
+      assert get_in(eras, [:abbreviated, 0]) == "AM"
+    end
+
+    test "has month names" do
+      {:ok, months} = Localize.Calendar.months(:en, :hebrew)
+      assert get_in(months, [:format, :wide, 1]) == "Tishri"
+      assert get_in(months, [:format, :wide, 8]) == "Nisan"
+    end
+  end
+
+  describe "Islamic calendar data" do
+    test "has era names for :islamic" do
+      {:ok, eras} = Localize.Calendar.eras(:en, :islamic)
+      assert get_in(eras, [:abbreviated, 0]) == "AH"
+    end
+
+    test "has month names for :islamic" do
+      {:ok, months} = Localize.Calendar.months(:en, :islamic)
+      assert get_in(months, [:format, :wide, 1]) == "Muharram"
+      assert get_in(months, [:format, :wide, 9]) == "Ramadan"
+    end
+
+    test "has era names for :islamic_civil" do
+      {:ok, eras} = Localize.Calendar.eras(:en, :islamic_civil)
+      assert get_in(eras, [:abbreviated, 0]) == "AH"
+    end
+
+    test "has era names for :islamic_umalqura" do
+      {:ok, eras} = Localize.Calendar.eras(:en, :islamic_umalqura)
+      assert get_in(eras, [:abbreviated, 0]) == "AH"
+    end
+  end
+
+  describe "ROC (Minguo) calendar data" do
+    test "has era names" do
+      {:ok, eras} = Localize.Calendar.eras(:en, :roc)
+      assert get_in(eras, [:abbreviated, 0]) == "B.R.O.C."
+      assert get_in(eras, [:abbreviated, 1]) == "Minguo"
+    end
+
+    test "has month names" do
+      {:ok, months} = Localize.Calendar.months(:en, :roc)
+      assert get_in(months, [:format, :wide, 1]) == "January"
+    end
+  end
+
+  describe "known_calendars/0 includes all calendar systems" do
+    test "includes Buddhist, Hebrew, Islamic variants, and ROC" do
+      calendars = Localize.Calendar.known_calendars()
+      assert :buddhist in calendars
+      assert :hebrew in calendars
+      assert :islamic in calendars
+      assert :islamic_civil in calendars
+      assert :islamic_umalqura in calendars
+      assert :roc in calendars
+      assert :indian in calendars
+    end
+  end
+
   describe "first_day_for_locale/1" do
     test "returns first day for :en locale" do
       assert Localize.Calendar.first_day_for_locale(:en) == 7
