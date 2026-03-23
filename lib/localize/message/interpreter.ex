@@ -788,7 +788,6 @@ defmodule Localize.Message.Interpreter do
     to_string(currency_struct.code)
   end
 
-
   defp resolve_currency_spacing(locale, number_system) do
     Localize.Number.Format.currency_spacing(locale, number_system)
   end

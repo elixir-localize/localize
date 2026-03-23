@@ -583,7 +583,9 @@ defmodule Localize.DateTime.Formatter do
   end
 
   def zone_basic(datetime, 5, _locale_id, _options) do
-    {:ok, result} = Timezone.iso_format(datetime, format: :full, type: :extended, z_for_zero: true)
+    {:ok, result} =
+      Timezone.iso_format(datetime, format: :full, type: :extended, z_for_zero: true)
+
     result
   end
 

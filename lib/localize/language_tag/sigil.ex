@@ -5,8 +5,6 @@ defmodule Localize.LanguageTag.Sigil do
 
   """
 
-  @dialyzer :no_return
-
   @doc """
   Handles sigil `~l` for language tags.
 

@@ -45,7 +45,8 @@ defmodule Localize.Unit.BaseUnit do
       {:ok, "meter-per-second"}
 
   """
-  @spec base_unit(String.t() | tuple()) :: {:ok, String.t()} | {:error, Exception.t() | String.t()}
+  @spec base_unit(String.t() | tuple()) ::
+          {:ok, String.t()} | {:error, Exception.t() | String.t()}
 
   def base_unit(input) when is_binary(input) do
     case Localize.Unit.Parser.parse(input) do
