@@ -365,15 +365,7 @@ defmodule Localize.Locale do
   @spec load_and_store(Provider.locale(), Keyword.t()) ::
           :ok | {:error, Exception.t()}
   def load_and_store(locale, options \\ []) do
-    {provider, _options} = Keyword.pop(options, :provider, default_provider())
-
-    if not loaded?(locale) do
-      with {:ok, locale_data} <- provider.load(locale) do
-        provider.store(locale, locale_data)
-      end
-    else
-      :ok
-    end
+    Localize.Locale.Loader.load_and_store(locale, options)
   end
 
   @doc """
