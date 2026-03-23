@@ -473,7 +473,7 @@ Two areas are explicitly out of scope:
 | `:date` | Implemented | Delegates to `Localize.Date.to_string/2`. |
 | `:time` | Implemented | Delegates to `Localize.Time.to_string/2`. |
 | `:datetime` | Implemented | Delegates to `Localize.DateTime.to_string/2`. |
-| `:offset` | Not implemented | Numeric offset for grammatical selection (e.g., "you and N other people"). |
+| `:offset` | Implemented | Subtracts offset from operand for plural selection while formatting the original value. Used for patterns like "you and N other people". |
 
 ### MF2 Error Handling
 
@@ -487,8 +487,8 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| JSON interchange format | Not implemented | |
-| Bidirectional text handling | Not implemented | |
+| JSON interchange format | Implemented | `Localize.Message.JSON.to_json/2` and `from_json/1` for round-trip serialization to the TR35 §8 data model. |
+| Bidirectional text handling | Implemented | `:bidi` option (`:none`, `:isolate`, `:auto`) wraps placeholder output in Unicode isolate characters (FSI/PDI). Supports `u:dir` attribute for per-expression overrides. |
 
 ---
 
@@ -528,17 +528,16 @@ Two areas are explicitly out of scope:
 * Date/time parsing (string to date)
 * Metazone display names
 * Semantic skeletons
-* Text segmentation (grapheme/word/sentence/line)
 * Context-dependent capitalization
-* Emoji/character annotations and labels
 * Collation search type
 * Collation alphabetic index (UI bucketing)
-* MF2 `:offset` function
-* MF2 JSON interchange format
-* MF2 bidirectional text handling
 * Duration unit patterns (h:mm:ss)
 * Coordinate unit formatting (N/S/E/W)
 * Layout direction data
 * Coverage level assessment
 * Cyclic name sets (Chinese/Dangi calendars)
 * Append items (missing date/time fields)
+
+### Note in scope for Localize
+
+* Emoji/character annotations and labels

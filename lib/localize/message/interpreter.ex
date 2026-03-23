@@ -187,8 +187,17 @@ defmodule Localize.Message.Interpreter do
     {:ok, char, []}
   end
 
-  defp format_part({:expression, operand, func, _attrs}, bindings, options) do
-    format_expression(operand, func, bindings, options)
+  defp format_part({:expression, operand, func, attrs}, bindings, options) do
+    case format_expression(operand, func, bindings, options) do
+      {:ok, formatted, bound_names} ->
+        bidi_mode = Keyword.get(options, :bidi, :none)
+        dir_override = extract_dir_attribute(attrs)
+        wrapped = apply_bidi_isolation(formatted, bidi_mode, dir_override, options)
+        {:ok, wrapped, bound_names}
+
+      other ->
+        other
+    end
   end
 
   defp format_part({:markup_open, _name, _options, _attrs}, _bindings, _options_kw) do
@@ -263,6 +272,13 @@ defmodule Localize.Message.Interpreter do
          {:ok, options_struct} <- build_number_options(options, func_opts) do
       integer = trunc(number)
       Localize.Number.to_string(integer, set_number_pattern(options_struct, integer))
+    end
+  end
+
+  defp format_with_function("offset", value, func_opts, options) do
+    with {:ok, number} <- ensure_number(value),
+         {:ok, options_struct} <- build_number_options(options, func_opts) do
+      Localize.Number.to_string(number, set_number_pattern(options_struct, number))
     end
   end
 
@@ -460,13 +476,49 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
+  defp selector_value(value, {:function, "offset", func_options}) when is_number(value) do
+    offset = extract_offset(func_options)
+    value - offset
+  end
+
+  defp selector_value(value, {:function, "offset", func_options}) when is_binary(value) do
+    case parse_number(value) do
+      num when is_number(num) ->
+        offset = extract_offset(func_options)
+        num - offset
+
+      _ ->
+        value
+    end
+  end
+
   defp selector_value(value, _func), do: value
+
+  defp extract_offset(func_options) do
+    Enum.find_value(func_options, 0, fn
+      {:option, "offset", {:number_literal, val}} ->
+        case parse_number(val) do
+          num when is_number(num) -> num
+          _ -> 0
+        end
+
+      {:option, "offset", {:literal, val}} ->
+        case parse_number(val) do
+          num when is_number(num) -> num
+          _ -> 0
+        end
+
+      _ ->
+        nil
+    end)
+  end
 
   # ── Plural category resolution ────────────────────────────────
 
   defp plural_match_type(nil), do: nil
 
-  defp plural_match_type({:function, name, func_options}) when name in ["number", "integer"] do
+  defp plural_match_type({:function, name, func_options})
+       when name in ["number", "integer", "offset"] do
     select_opt =
       Enum.find_value(func_options, fn
         {:option, "select", {:literal, value}} -> value
@@ -483,7 +535,7 @@ defmodule Localize.Message.Interpreter do
   defp plural_match_type(_), do: nil
 
   defp resolve_plural_category(value, plural_type, options) when is_number(value) do
-    locale = Keyword.get(options, :locale)
+    locale = Keyword.get(options, :locale) || Localize.get_locale()
 
     plural_options =
       [locale: locale, type: plural_type]
@@ -1023,4 +1075,64 @@ defmodule Localize.Message.Interpreter do
   defp to_string_value(value) when is_integer(value), do: Integer.to_string(value)
   defp to_string_value(value) when is_float(value), do: Float.to_string(value)
   defp to_string_value(value), do: Kernel.to_string(value)
+
+  # ── Bidirectional text isolation ─────────────────────────────────
+
+  # Unicode bidi isolate characters
+  @lri "\u2066"
+  @rli "\u2067"
+  @fsi "\u2068"
+  @pdi "\u2069"
+
+  # RTL scripts that trigger automatic bidi isolation
+  @rtl_scripts ~w(Arab Hebr Thaa Syrc Mand Samr Nkoo Tfng Adlm)a
+
+  defp extract_dir_attribute(attrs) do
+    Enum.find_value(attrs, nil, fn
+      {:attribute, {:namespace, "u", "dir"}, {:literal, dir}} -> dir
+      {:attribute, "u:dir", {:literal, dir}} -> dir
+      _ -> nil
+    end)
+  end
+
+  defp apply_bidi_isolation(value, :none, nil, _options), do: value
+
+  defp apply_bidi_isolation(value, _mode, dir, _options) when dir != nil do
+    {open, close} = bidi_marks_for_dir(dir)
+    [open, value, close]
+  end
+
+  defp apply_bidi_isolation(value, :isolate, _dir, _options) do
+    [@fsi, value, @pdi]
+  end
+
+  defp apply_bidi_isolation(value, :auto, _dir, options) do
+    if locale_is_rtl?(options) do
+      [@fsi, value, @pdi]
+    else
+      value
+    end
+  end
+
+  defp bidi_marks_for_dir("ltr"), do: {@lri, @pdi}
+  defp bidi_marks_for_dir("rtl"), do: {@rli, @pdi}
+  defp bidi_marks_for_dir("auto"), do: {@fsi, @pdi}
+  defp bidi_marks_for_dir(_), do: {@fsi, @pdi}
+
+  defp locale_is_rtl?(options) do
+    locale = Keyword.get(options, :locale)
+
+    case locale do
+      nil ->
+        false
+
+      locale ->
+        with {:ok, tag} <- Localize.validate_locale(locale),
+             {:ok, expanded} <- Localize.LanguageTag.add_likely_subtags(tag) do
+          expanded.script in @rtl_scripts
+        else
+          _ -> false
+        end
+    end
+  end
 end
