@@ -369,7 +369,7 @@ iex> Localize.Number.to_string(2.5, fractional_digits: 0, rounding_mode: :ceilin
 {:ok, "3"}
 ```
 
-## Normalized options for performance
+## Performance and optimization
 
 `to_string/2` accepts either a keyword list or a pre-validated `Localize.Number.Format.Options` struct. The keyword list path resolves the number system, loads format patterns, resolves currency data, and builds metadata on every call. Locale validation itself is cached in ETS and is fast (~1µs), but the remaining options resolution — format pattern lookup, currency data loading, symbol resolution — still adds measurable overhead, especially for currency formatting.
 

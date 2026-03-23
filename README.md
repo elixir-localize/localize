@@ -105,21 +105,49 @@ The default locale is resolved from (in order):
 
 All formatting functions default their `:locale` option to `Localize.get_locale()` when no locale is explicitly passed.
 
-## Optional NIF
+## Configuration
 
-An optional NIF provides faster Unicode normalisation and collation sort-key generation. Enable it at compile time:
-
-```bash
-LOCALIZE_NIF=true mix compile
-```
-
-Or in your config:
+Localize requires no compile-time configuration. All options are set in your application config and take effect at runtime.
 
 ```elixir
-config :localize, :nif, true
+config :localize,
+  default_locale: :fr,
+  supported_locales: [:en, :fr, :de, :ja, :es, "zh-*"],
+  preload_locales: [:en, :de, :ja, "fr-*"],
+  locale_provider: MyApp.LocaleProvider,
+  locale_cache_max_entries: 2_000,
+  data_dir: "/path/to/locale/data",
+  nif: true,
+  cacertfile: "/path/to/cacerts.pem",
+  https_proxy: "http://proxy.example.com:8080"
 ```
 
-See `Localize.Nif` for details.
+| Option | Default | Description |
+|--------|---------|-------------|
+| `:default_locale` | Derived from `LOCALIZE_DEFAULT_LOCALE` env var, then `LANG` env var, then `:en`. | The application-wide default locale. Can also be set at runtime with `Localize.put_default_locale/1`. |
+| `:supported_locales` | `nil` | A list of locale identifiers that your application supports. Each entry is an atom matching a known CLDR locale (e.g., `:en`, `:"fr-CA"`) or a wildcard string (e.g., `"en-*"`) that expands to all matching CLDR locales. Invalid entries log a warning and are skipped. When set, `validate_locale/1` resolves locale identifiers against this list rather than all ~766 CLDR locales. Accessible at runtime via `Localize.supported_locales/0`. See below for how this interacts with `:preload_locales`. |
+| `:preload_locales` | `nil` | A list of locale identifiers to load at application startup. Accepts atoms and wildcard strings like `:supported_locales`. Locale data is fetched and cached in `:persistent_term` before any formatting calls. Invalid entries log a warning and are skipped. See below for how this interacts with `:supported_locales`. |
+| `:locale_provider` | `Localize.Locale.Provider.PersistentTerm` | Module that implements the `Localize.Locale.Provider` behaviour for loading and caching per-locale data. |
+| `:locale_cache_max_entries` | `1_000` | Maximum number of validated locales to hold in the ETS cache. A background sweeper runs every 10 seconds and evicts excess entries to prevent unbounded growth. |
+| `:data_dir` | `Path.join(:code.priv_dir(:localize), "cldr/locales")` | Directory where per-locale JSON data files are stored. |
+| `:nif` | `false` | Enable the optional NIF for faster Unicode normalisation and collation sort-key generation. Can also be enabled with the `LOCALIZE_NIF=true` environment variable at compile time. See `Localize.Nif` for details. |
+| `:cacertfile` | System default | Path to a custom CA certificate file for HTTPS connections (used when downloading locale data). |
+| `:https_proxy` | `nil` | HTTPS proxy URL. Also reads the `HTTPS_PROXY` environment variable. |
+
+### Supported and preload locale interaction
+
+When `:supported_locales` is configured, the effective supported locale list is the **union** of `:supported_locales` and `:preload_locales`. This means any locale you preload is automatically considered supported — you don't need to list it in both places.
+
+```elixir
+config :localize,
+  supported_locales: [:en, :fr, :de],
+  preload_locales: [:ja]
+
+# Effective supported locales: [:en, :fr, :de, :ja]
+# Locale data for :ja is preloaded at startup
+```
+
+When `:supported_locales` is **not** configured (the default), `validate_locale/1` matches against all ~766 CLDR locales and `:preload_locales` simply controls which locale data is loaded eagerly.
 
 ## Documentation
 

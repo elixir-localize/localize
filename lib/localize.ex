@@ -511,6 +511,31 @@ defmodule Localize do
   # ── Data accessors (Tier 1) ────────────────────────────────
 
   @doc """
+  Returns the list of supported locales configured via
+  `config :localize, supported_locales: [...]`.
+
+  If no `:supported_locales` option is configured, returns `nil`.
+  If configured with an empty list, returns `[]`.
+
+  The returned list contains canonical CLDR locale ID atoms,
+  resolved and validated at application startup.
+
+  ### Returns
+
+  * A list of locale ID atoms, or `nil` if not configured.
+
+  ### Examples
+
+      iex> is_list(Localize.supported_locales()) or is_nil(Localize.supported_locales())
+      true
+
+  """
+  @spec supported_locales() :: [atom()] | nil
+  def supported_locales do
+    :persistent_term.get(:localize_supported_locales, nil)
+  end
+
+  @doc """
   Returns a list of all known CLDR locale name atoms.
 
   ### Returns
@@ -880,6 +905,24 @@ defmodule Localize do
   whose `:cldr_locale_id` is not yet populated, a best-match
   resolution is attempted using `Localize.LanguageTag.best_match/2`.
 
+  ## Locale resolution
+
+  The `:cldr_locale_id` field on the returned language tag is
+  derived by matching the parsed tag against a list of candidate
+  locale IDs:
+
+  * If `config :localize, supported_locales: [...]` is
+    configured, the candidate list is the resolved supported
+    locales (the union of `:supported_locales` and
+    `:preload_locales`). This restricts matching to only the
+    locales your application explicitly supports.
+
+  * If `:supported_locales` is not configured, the candidate
+    list is all ~766 CLDR locale IDs.
+
+  Validated locale results are cached in an ETS table so
+  repeated calls with the same identifier are fast (~1µs).
+
   ### Arguments
 
   * `locale` is a locale identifier binary, an atom, or a
@@ -894,7 +937,8 @@ defmodule Localize do
     identifier cannot be parsed into a valid language tag.
 
   * `{:error, Localize.UnknownLocaleError.t()}` if the locale
-    parses successfully but does not match any known CLDR locale.
+    parses successfully but does not match any known CLDR locale
+    (or any supported locale, when configured).
 
   ### Examples
 
@@ -910,7 +954,7 @@ defmodule Localize do
 
   def validate_locale(%Localize.LanguageTag{cldr_locale_id: cldr_locale_id} = language_tag)
       when not is_nil(cldr_locale_id) do
-    {:ok, language_tag}
+    maybe_restrict_to_supported(language_tag)
   end
 
   def validate_locale(%Localize.LanguageTag{cldr_locale_id: nil} = language_tag) do
@@ -929,7 +973,7 @@ defmodule Localize do
           case Localize.LanguageTag.new(locale_id) do
             {:ok, %Localize.LanguageTag{cldr_locale_id: cldr_locale_id} = language_tag}
             when not is_nil(cldr_locale_id) ->
-              {:ok, language_tag}
+              maybe_restrict_to_supported(language_tag)
 
             {:ok, %Localize.LanguageTag{cldr_locale_id: nil} = language_tag} ->
               resolve_cldr_locale(language_tag)
@@ -964,10 +1008,32 @@ defmodule Localize do
 
   defp locale_cache_store(_cache_key, {:error, _}), do: :ok
 
-  defp resolve_cldr_locale(%Localize.LanguageTag{} = language_tag) do
-    all_locale_ids = Localize.SupplementalData.all_locale_ids()
+  # When supported_locales is configured and the tag's cldr_locale_id
+  # was already set by LanguageTag.new, check whether it's in the
+  # supported list. If not, re-resolve via best_match against the
+  # supported list to find the closest supported locale.
+  defp maybe_restrict_to_supported(%Localize.LanguageTag{cldr_locale_id: cldr_locale_id} = tag) do
+    case :persistent_term.get(:localize_supported_locales, nil) do
+      list when is_list(list) and list != [] ->
+        if cldr_locale_id in list do
+          {:ok, tag}
+        else
+          resolve_cldr_locale(tag)
+        end
 
-    case Localize.LanguageTag.best_match(language_tag, all_locale_ids) do
+      _ ->
+        {:ok, tag}
+    end
+  end
+
+  defp resolve_cldr_locale(%Localize.LanguageTag{} = language_tag) do
+    locale_ids =
+      case :persistent_term.get(:localize_supported_locales, nil) do
+        list when is_list(list) and list != [] -> list
+        _ -> Localize.SupplementalData.all_locale_ids()
+      end
+
+    case Localize.LanguageTag.best_match(language_tag, locale_ids) do
       {:ok, cldr_locale_id, _score} ->
         {:ok, %{language_tag | cldr_locale_id: cldr_locale_id}}
 

@@ -94,7 +94,46 @@ defmodule Localize.Number.Format.Options do
   #   ]
   # end
 
-  @doc false
+  @doc """
+  Validates and resolves number formatting options into an
+  `Options` struct.
+
+  This function performs locale validation, number system
+  resolution, format pattern lookup, currency data loading,
+  and symbol resolution. The resulting struct can be passed
+  directly to `Localize.Number.to_string/2` to bypass options
+  resolution on each call.
+
+  This is useful when formatting many numbers with the same
+  locale and format. See the
+  [Performance and optimization](number_formatting.html#performance-and-optimization)
+  section of the Number Formatting guide for benchmarks and
+  usage guidance.
+
+  ### Arguments
+
+  * `number` is a representative number used to determine the
+    sign pattern. Use `0` for a positive-number format or `-1`
+    for a negative-number format.
+
+  * `options` is a keyword list of the same options accepted by
+    `Localize.Number.to_string/2`.
+
+  ### Returns
+
+  * `{:ok, options_struct}` where `options_struct` is a
+    `t:Localize.Number.Format.Options.t/0`.
+
+  * `{:error, exception}` if any option is invalid.
+
+  ### Examples
+
+      iex> {:ok, options} = Localize.Number.Format.Options.validate_options(0, locale: :en)
+      iex> {:ok, _} = Localize.Number.to_string(1234.56, options)
+
+  """
+  @spec validate_options(number(), Keyword.t()) ::
+          {:ok, t()} | {:error, Exception.t()}
   def validate_options(number, options) do
     options =
       [

@@ -266,7 +266,7 @@ defmodule Localize.Locale do
   """
   @spec default_provider() :: module()
   def default_provider do
-    Localize.Locale.Provider.PersistentTerm
+    Application.get_env(:localize, :locale_provider, Localize.Locale.Provider.PersistentTerm)
   end
 
   @doc """
