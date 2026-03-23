@@ -150,8 +150,13 @@ defmodule Localize.AdversarialTest do
         {constant(:rounding_mode),
          member_of([:down, :half_up, :half_even, :ceiling, :floor, :half_down, :up, :bogus])}
       ),
-      tuple({constant(:fractional_digits), one_of([integer(0..10), integer(-5..-1), constant(nil)])}),
-      tuple({constant(:number_system), one_of([constant(:default), constant(:native), constant(:latn), atom(:alphanumeric)])})
+      tuple(
+        {constant(:fractional_digits), one_of([integer(0..10), integer(-5..-1), constant(nil)])}
+      ),
+      tuple(
+        {constant(:number_system),
+         one_of([constant(:default), constant(:native), constant(:latn), atom(:alphanumeric)])}
+      )
     ])
   end
 
@@ -417,9 +422,7 @@ defmodule Localize.AdversarialTest do
                 ]),
               options <-
                 options_gen([
-                  tuple(
-                    {constant(:style), member_of([:short, :standard, :variant, :bogus, nil])}
-                  )
+                  tuple({constant(:style), member_of([:short, :standard, :variant, :bogus, nil])})
                 ]),
               max_runs: 500
             ) do

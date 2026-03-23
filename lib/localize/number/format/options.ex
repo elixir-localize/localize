@@ -300,6 +300,7 @@ defmodule Localize.Number.Format.Options do
   defp resolve_currency_symbol(options) when is_map(options) do
     Map.put_new(options, :currency_symbol, "")
   end
+
   defp resolve_currency_symbol(error), do: error
 
   # Resolve currency spacing from locale data
