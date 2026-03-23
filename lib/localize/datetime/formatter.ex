@@ -12,8 +12,7 @@ defmodule Localize.DateTime.Formatter do
   # `MMM` has count 3) and `options` is a map.
   #
   # Calendar.ISO is supported natively — values like calendar_year,
-  # week_of_year, and day_of_year are derived directly rather than
-  # requiring the Cldr.Calendar behaviour.
+  # week_of_year, and day_of_year are derived directly.
 
   import Kernel, except: [to_string: 1]
 

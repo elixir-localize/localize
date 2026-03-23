@@ -358,11 +358,7 @@ defmodule Localize.Unit.Conversion do
   defp to_float(value) when is_integer(value), do: value * 1.0
   defp to_float(value) when is_float(value), do: value
 
-  defp to_float(value) do
-    if Code.ensure_loaded?(Decimal) and is_struct(value, Decimal) do
-      Decimal.to_float(value)
-    else
-      raise ArgumentError, "Expected a number, got: #{inspect(value)}"
-    end
+  defp to_float(%Decimal{} = value) do
+    Decimal.to_float(value)
   end
 end

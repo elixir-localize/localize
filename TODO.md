@@ -22,7 +22,7 @@ locale loader that reads JSON files directly from
       compile time via `Cldr.Config.number_systems()`. Extracted
       to `priv/cldr/supplemental_data/number_systems.etf` and
       loaded at runtime via `:persistent_term`.
-
+      
 * [ ] `Localize.Collation` checks for `Cldr.LanguageTag` at
       runtime via `Code.ensure_loaded?/1`. Remove this
       compatibility shim.
@@ -55,12 +55,12 @@ warnings:
 * [ ] Ungrouped clauses: `find_rule_set/2`
       (rbnf/processor.ex).
 
-* [ ] Leex/yecc compiler warnings — add `:leex` and `:yecc`
+* [X] Leex/yecc compiler warnings — add `:leex` and `:yecc`
       to compilers in `mix.exs` project definition.
 
 ### Placeholder code
 
-* [ ] Remove `Localize.hello/0` — placeholder function from
+* [X] Remove `Localize.hello/0` — placeholder function from
       project generation.
 
 ### Documentation
@@ -81,7 +81,6 @@ warnings:
 * [x] Ensure all public functions have `@doc` in the standard
       format described in `CLAUDE.md` — audited all 15 main
       public modules; all public functions documented.
-
 ### Hex publishing
 
 * [ ] Set version in `mix.exs`.
