@@ -48,7 +48,9 @@ defmodule Localize.Message do
 
   * `{:ok, formatted_message}` on success.
 
-  * `{:error, {module, reason}}` on failure.
+  * `{:error, exception}` where `exception` is a `t:Localize.BindError.t/0`
+    for unbound variables or a `t:Localize.FormatError.t/0` for formatting
+    failures.
 
   ### Examples
 

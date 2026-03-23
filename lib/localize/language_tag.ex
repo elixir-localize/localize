@@ -204,7 +204,7 @@ defmodule Localize.LanguageTag do
   * `{:error, reason}`
 
   """
-  @spec parse(String.t()) :: {:ok, t()} | {:error, module()}
+  @spec parse(String.t()) :: {:ok, t()} | {:error, Exception.t()}
   def parse(locale_id) when is_binary(locale_id) do
     Parser.parse(locale_id)
   end
@@ -295,9 +295,7 @@ defmodule Localize.LanguageTag do
   def new!(locale_id) when is_binary(locale_id) do
     case new(locale_id) do
       {:ok, tag} -> tag
-      {:error, %{__exception__: true} = exception} -> raise exception
-      {:error, {exception, reason}} when is_atom(exception) -> raise exception, reason
-      {:error, reason} -> raise ArgumentError, "#{inspect(reason)}"
+      {:error, exception} -> raise exception
     end
   end
 

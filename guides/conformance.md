@@ -240,11 +240,11 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Month names (format/standalone, wide/abbreviated/narrow) | Implemented | `Localize.Calendar.month_names/3`. |
-| Day names (format/standalone, wide/abbreviated/narrow) | Implemented | `Localize.Calendar.day_names/3`. |
-| Quarter names | Implemented | `Localize.Calendar.quarter_names/3`. |
+| Month names (format/standalone, wide/abbreviated/narrow) | Implemented | `Localize.Calendar.months/2`. |
+| Day names (format/standalone, wide/abbreviated/narrow) | Implemented | `Localize.Calendar.days/2`. |
+| Quarter names | Implemented | `Localize.Calendar.quarters/2`. |
 | Era names | Implemented | `Localize.Calendar.eras/2`. |
-| Day period names (AM/PM, flexible) | Implemented | `Localize.Calendar.day_period_names/3`. |
+| Day period names (AM/PM, flexible) | Implemented | `Localize.Calendar.day_periods/2`. |
 | Cyclic name sets (Chinese/Dangi) | Not implemented | |
 | Month patterns (leap months) | Not implemented | |
 
@@ -500,7 +500,7 @@ Two areas are explicitly out of scope:
 * Date, time, and datetime formatting
 * Interval formatting
 * Relative date/time formatting
-* Unit formatting, conversion, and preferences (also include basic math funcitons)
+* Unit formatting, conversion, and preferences (also include basic math functions)
 * List formatting
 * Currency data and validation
 * Territory data and display names
@@ -529,7 +529,7 @@ Two areas are explicitly out of scope:
 * Cyclic name sets (Chinese/Dangi calendars)
 * Append items (missing date/time fields)
 
-### Note in scope for Localize
+### Not in scope for Localize
 
 * Emoji/character annotations and labels
 * Keyboards
