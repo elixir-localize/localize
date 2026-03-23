@@ -34,33 +34,29 @@ locale loader that reads JSON files directly from
       into `priv/cldr/locales/` so the library is
       self-contained.
 
-### Compile warnings
+### Compile warnings — resolved
 
-Resolve all compile warnings before release. Currently 17
-warnings:
+All compile warnings have been resolved. Zero warnings on
+`mix compile --force`.
 
-* [ ] Unused module attributes: `@date_field_names` (date.ex),
-      `@time_field_names` (time.ex), `@prefer_cycle_12`
-      (format/match.ex), `@unit_quantities` (unit/data.ex).
+* [x] Unused module attributes removed or prefixed.
 
-* [ ] Unused functions: `resolve_date_format/3`,
-      `resolve_time_format/3`, `resolve_wrapper/3` default
-      values (datetime.ex).
+* [x] Unused functions removed.
 
-* [ ] Unused variables: `datetime`, `locale_id`, `rule`,
-      `bcp47_key` — prefix with underscore or remove.
+* [x] Unused variables prefixed with underscore.
 
-* [ ] Unused alias: `Expression` (unit/data.ex).
+* [x] Unused alias removed.
 
-* [ ] Ungrouped clauses: `find_rule_set/2`
-      (rbnf/processor.ex).
+* [x] Ungrouped clauses reordered.
 
-* [X] Leex/yecc compiler warnings — add `:leex` and `:yecc`
-      to compilers in `mix.exs` project definition.
+* [x] Leex/yecc compiler directives added to `mix.exs`.
+
+* [x] NimbleParsec typing violations in generated parser
+      fixed by simplifying dead `{:error, reason}` branches.
 
 ### Placeholder code
 
-* [X] Remove `Localize.hello/0` — placeholder function from
+* [x] Remove `Localize.hello/0` — placeholder function from
       project generation.
 
 ### Documentation
@@ -142,9 +138,13 @@ covering 97 languages, extracted from CLDR XML.
       specified level. Works for all 11 languages that use it
       (hu, fi, sv, no, se, fo, kl, ja, zh, en-US-POSIX).
 
-* [ ] CJK star syntax overlays (ja, ko, zh) generate very
-      large overlay maps (thousands of entries). Performance
-      impact on sort key generation has not been assessed.
+* [x] CJK star syntax overlays (ja, ko, zh) generate large
+      overlay maps (ja: 7,164, ko: 7,476, zh: ~525 entries).
+      Performance assessed: sub-microsecond per lookup (575ns
+      for 7,476-entry map), ~630KB memory per CJK locale.
+      Codepoints are scattered (not contiguous ranges) so
+      range-based arithmetic derivation is not feasible.
+      Current flat map approach is acceptable.
 
 * [x] `search` collation type — root search rules extracted
       from CLDR XML (Arabic form equivalences, Korean jamo

@@ -372,6 +372,88 @@ defmodule Localize.Number do
     end
   end
 
+  # ── Ratio formatting ────────────────────────────────────────
+
+  @doc """
+  Formats a number as a rational fraction string.
+
+  Converts a decimal number to its rational fraction representation
+  using the continued fraction algorithm, then formats it with CLDR
+  rational format patterns.
+
+  ### Arguments
+
+  * `number` is an integer, float, or Decimal.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier. The default is `Localize.get_locale()`.
+
+  * `:prefer` is a list of rendering preferences. Valid values are `:default`, `:super_sub`, and `:precomposed`. The default is `[:default]`.
+
+  * `:max_denominator` is the largest permitted denominator. The default is `10`.
+
+  * `:max_iterations` is the maximum continued fraction iterations. The default is `20`.
+
+  * `:epsilon` is the tolerance for float comparisons. The default is `1.0e-10`.
+
+  ### Returns
+
+  * `{:ok, formatted_string}` on success.
+
+  * `{:error, exception}` if the number cannot be converted to a ratio or locale data is unavailable.
+
+  ### Examples
+
+      iex> Localize.Number.to_ratio_string(0.5)
+      {:ok, "1⁄2"}
+
+      iex> Localize.Number.to_ratio_string(0.5, prefer: [:precomposed])
+      {:ok, "½"}
+
+      iex> Localize.Number.to_ratio_string(0.5, prefer: [:super_sub])
+      {:ok, "¹⁄₂"}
+
+      iex> Localize.Number.to_ratio_string(1.5)
+      {:ok, "1\u202F1⁄2"}
+
+      iex> Localize.Number.to_ratio_string(1.5, prefer: [:super_sub, :precomposed])
+      {:ok, "1\u2060½"}
+
+  """
+  @spec to_ratio_string(number() | Decimal.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  defdelegate to_ratio_string(number, options \\ []),
+    to: Localize.Number.Formatter.Ratio
+
+  @doc """
+  Same as `to_ratio_string/2` but raises on error.
+
+  ### Arguments
+
+  * `number` is an integer, float, or Decimal.
+
+  * `options` is a keyword list of options.
+
+  ### Returns
+
+  * The formatted ratio string.
+
+  ### Raises
+
+  * Raises an exception if the number cannot be converted.
+
+  """
+  @spec to_ratio_string!(number() | Decimal.t(), Keyword.t()) :: String.t()
+  def to_ratio_string!(number, options \\ []) do
+    case to_ratio_string(number, options) do
+      {:ok, string} -> string
+      {:error, exception} -> raise exception
+    end
+  end
+
   @doc """
   Scans a string and returns a list of strings and numbers.
 

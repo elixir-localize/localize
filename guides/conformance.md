@@ -1,21 +1,17 @@
 # TR35 Conformance
 
-This document maps the features defined in
-[Unicode Technical Standard #35 (LDML)](https://www.unicode.org/reports/tr35/)
-version 48 against the implementation status of the Localize library.
+This document maps the features defined in [Unicode Technical Standard #35 (LDML)](https://www.unicode.org/reports/tr35/) version 48 against the implementation status of the Localize library.
 
 Two areas are explicitly out of scope:
 
 * **Part 7 — Keyboards.** Not relevant to a formatting library.
 
-* **Part 8 — Person Names.** Will be a separate
-  `localize_person_names` library.
+* **Part 8 — Person Names.** Will be a separate `localize_person_names` library.
 
 ## Legend
 
 * **Implemented** — feature is present and tested.
-* **Partial** — core functionality exists but some sub-features
-  are missing.
+* **Partial** — core functionality exists but some sub-features are missing.
 * **Not implemented** — feature is absent.
 
 ---

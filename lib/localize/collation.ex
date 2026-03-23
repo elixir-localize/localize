@@ -35,9 +35,9 @@ defmodule Localize.Collation do
       iex> Localize.Collation.compare("a", "A", strength: :secondary)
       :eq
 
-      # From BCP47 locale
+      # From BCP47 locale (ks-level2 = secondary strength, ignores case)
       iex> Localize.Collation.compare("a", "A", locale: "en-u-ks-level2")
-      :lt
+      :eq
 
   ## Collation Options
 
@@ -492,8 +492,9 @@ defmodule Localize.Collation do
   defp resolve_options(%Options{} = options), do: options
 
   defp options_from_locale_string(locale, extra_options) do
-    # Try to parse via Localize.LanguageTag first
-    case Localize.LanguageTag.parse(locale) do
+    # Validate the locale to get a fully canonicalized LanguageTag
+    # with the U extension parsed into a LanguageTag.U struct.
+    case Localize.validate_locale(locale) do
       {:ok, tag} ->
         options_from_language_tag(tag, extra_options)
 
@@ -559,16 +560,16 @@ defmodule Localize.Collation do
 
   defp extract_u_options(%Localize.LanguageTag.U{} = u) do
     []
-    |> maybe_put(:strength, Map.get(u, :col_strength))
-    |> maybe_put(:alternate, Map.get(u, :col_alternate))
-    |> maybe_put(:backwards, u_bool_value(Map.get(u, :col_backwards)))
-    |> maybe_put(:normalization, u_bool_value(Map.get(u, :col_normalization)))
-    |> maybe_put(:case_level, u_bool_value(Map.get(u, :col_case_level)))
-    |> maybe_put(:case_first, Map.get(u, :col_case_first))
-    |> maybe_put(:numeric, u_bool_value(Map.get(u, :col_numeric)))
-    |> maybe_put(:reorder, Map.get(u, :col_reorder))
-    |> maybe_put(:max_variable, Map.get(u, :kv))
-    |> maybe_put(:type, Map.get(u, :collation))
+    |> maybe_put(:type, u.co)
+    |> maybe_put(:strength, u.ks)
+    |> maybe_put(:alternate, u.ka)
+    |> maybe_put(:backwards, u_bool_value(u.kb))
+    |> maybe_put(:normalization, u_bool_value(u.kk))
+    |> maybe_put(:case_level, u_bool_value(u.kc))
+    |> maybe_put(:case_first, u.kf)
+    |> maybe_put(:numeric, u_bool_value(u.kn))
+    |> maybe_put(:reorder, u.kr)
+    |> maybe_put(:max_variable, u.kv)
   end
 
   defp extract_u_options(_), do: []

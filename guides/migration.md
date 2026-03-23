@@ -1,13 +1,10 @@
 # Migrating from ex_cldr to Localize
 
-This guide is for developers currently using one or more
-`ex_cldr_*` libraries who want to migrate to Localize.
+This guide is for developers currently using one or more `ex_cldr_*` libraries who want to migrate to Localize.
 
 ## No compile-time configuration
 
-The most significant change is that Localize requires no
-compile-time backend module. In `ex_cldr` you define a
-backend:
+The most significant change is that Localize requires no compile-time backend module. In `ex_cldr` you define a backend:
 
 ```elixir
 # ex_cldr — remove this entirely
@@ -19,61 +16,47 @@ defmodule MyApp.Cldr do
 end
 ```
 
-In Localize there is no equivalent. Delete your backend
-module. All 766+ CLDR locales are available at runtime
-without pre-declaration, and all formatting modules are
-ready to use immediately.
+In Localize there is no equivalent. Delete your backend module. All 766+ CLDR locales are available at runtime without pre-declaration, and all formatting modules are ready to use immediately.
 
 ## Configuration
 
-Localize has minimal configuration. The only supported
-setting is the default locale.
+Localize has minimal configuration. The only supported setting is the default locale.
 
 ### Default locale resolution
 
-The default locale is resolved once on first access using
-this precedence chain:
+The default locale is resolved once on first access using this precedence chain:
 
 1. `LOCALIZE_DEFAULT_LOCALE` environment variable.
 
-2. `config :localize, default_locale: :fr` in your
-   application config.
+2. `config :localize, default_locale: :fr` in your application config.
 
-3. The `LANG` environment variable (e.g., `en_US.UTF-8`),
-   with the charset suffix stripped and POSIX underscores
-   converted to BCP 47 hyphens.
+3. The `LANG` environment variable (e.g., `en_US.UTF-8`), with the charset suffix stripped and POSIX underscores converted to BCP 47 hyphens.
 
 4. `:en` as a final fallback.
 
-The resolved locale is validated and cached as a
-`Localize.LanguageTag` struct in `:persistent_term`.
+The resolved locale is validated and cached as a `Localize.LanguageTag` struct in `:persistent_term`.
 
-If any source provides an invalid locale, a warning is
-logged with `domain: :localize` metadata and the next
-source is tried.
+If any source provides an invalid locale, a warning is logged with `domain: :localize` metadata and the next source is tried.
 
 ### Process locale
 
 Set the locale for the current process:
 
 ```elixir
-{:ok, _} = Localize.put_locale(:de)
-Localize.get_locale().cldr_locale_id
-#=> :de
+iex> {:ok, _} = Localize.put_locale(:de)
+iex> Localize.get_locale().cldr_locale_id
+:de
 ```
 
-All formatting functions default their `:locale` option to
-`Localize.get_locale()`. In a Phoenix application you would
-typically call `Localize.put_locale/1` in a plug early in
-your pipeline.
+All formatting functions default their `:locale` option to `Localize.get_locale()`. In a Phoenix application you would typically call `Localize.put_locale/1` in a plug early in your pipeline.
 
 Use `Localize.with_locale/2` for temporary locale changes:
 
 ```elixir
-Localize.with_locale(:ja, fn ->
-  Localize.Number.to_string(1234)
-end)
-#=> {:ok, "1,234"}
+iex> Localize.with_locale(:ja, fn ->
+...>   Localize.Number.to_string(1234)
+...> end)
+{:ok, "1,234"}
 ```
 
 ## Dependency changes
@@ -125,8 +108,7 @@ end
 
 ### No backend argument
 
-In `ex_cldr`, most functions require a backend module as an
-argument. In Localize, remove it:
+In `ex_cldr`, most functions require a backend module as an argument. In Localize, remove it:
 
 ```elixir
 # ex_cldr
@@ -134,14 +116,16 @@ Cldr.Territory.display_name(:GB, backend: MyApp.Cldr)
 Cldr.Territory.from_territory_code(:GB, MyApp.Cldr, locale: "pt")
 
 # Localize
-Localize.Territory.display_name(:GB)
-Localize.Territory.display_name(:GB, locale: :pt)
+iex> Localize.Territory.display_name(:GB)
+{:ok, "United Kingdom"}
+
+iex> Localize.Territory.display_name(:GB, locale: :pt)
+{:ok, "Reino Unido"}
 ```
 
 ### Error tuple format
 
-`ex_cldr` returns `{:error, {ExceptionModule, message}}`.
-Localize returns `{:error, %ExceptionStruct{}}`:
+`ex_cldr` returns `{:error, {ExceptionModule, message}}`. Localize returns `{:error, %ExceptionStruct{}}`:
 
 ```elixir
 # ex_cldr
@@ -151,15 +135,11 @@ Localize returns `{:error, %ExceptionStruct{}}`:
 {:error, %Localize.UnknownTerritoryError{territory: :ZZ}}
 ```
 
-Update any `case` or `with` clauses that pattern match on
-the two-element error tuple.
+Update any `case` or `with` clauses that pattern match on the two-element error tuple.
 
 ### Locale option defaults
 
-All formatting functions default their `:locale` option to
-`Localize.get_locale()` (which returns a `LanguageTag`).
-You no longer need to pass `:locale` if you have set the
-process locale.
+All formatting functions default their `:locale` option to `Localize.get_locale()` (which returns a `LanguageTag`). You no longer need to pass `:locale` if you have set the process locale.
 
 ## Formatting examples
 
@@ -172,14 +152,14 @@ MyApp.Cldr.Number.to_string(0.56, format: :percent)
 MyApp.Cldr.Number.to_string(100, currency: :USD)
 
 # Localize
-Localize.Number.to_string(1234.5)
-#=> {:ok, "1,234.5"}
+iex> Localize.Number.to_string(1234.5)
+{:ok, "1,234.5"}
 
-Localize.Number.to_string(0.56, format: :percent)
-#=> {:ok, "56%"}
+iex> Localize.Number.to_string(0.56, format: :percent)
+{:ok, "56%"}
 
-Localize.Number.to_string(100, currency: :USD)
-#=> {:ok, "$100.00"}
+iex> Localize.Number.to_string(100, currency: :USD)
+{:ok, "$100.00"}
 ```
 
 ### Dates
@@ -190,11 +170,11 @@ MyApp.Cldr.Date.to_string(~D[2025-07-10])
 MyApp.Cldr.Date.to_string(~D[2025-07-10], format: :full, locale: "fr")
 
 # Localize
-Localize.Date.to_string(~D[2025-07-10])
-#=> {:ok, "Jul 10, 2025"}
+iex> Localize.Date.to_string(~D[2025-07-10])
+{:ok, "Jul 10, 2025"}
 
-Localize.Date.to_string(~D[2025-07-10], format: :full, locale: :fr)
-#=> {:ok, "jeudi 10 juillet 2025"}
+iex> Localize.Date.to_string(~D[2025-07-10], format: :full, locale: :fr)
+{:ok, "jeudi 10 juillet 2025"}
 ```
 
 ### Times
@@ -204,11 +184,11 @@ Localize.Date.to_string(~D[2025-07-10], format: :full, locale: :fr)
 MyApp.Cldr.Time.to_string(~T[14:30:00])
 
 # Localize
-Localize.Time.to_string(~T[14:30:00])
-#=> {:ok, "2:30:00 PM"}
+iex> Localize.Time.to_string(~T[14:30:00])
+{:ok, "2:30:00 PM"}
 
-Localize.Time.to_string(~T[14:30:00], format: :short)
-#=> {:ok, "2:30 PM"}
+iex> Localize.Time.to_string(~T[14:30:00], format: :short)
+{:ok, "2:30 PM"}
 ```
 
 ### DateTimes
@@ -218,11 +198,11 @@ Localize.Time.to_string(~T[14:30:00], format: :short)
 MyApp.Cldr.DateTime.to_string(~N[2025-07-10 14:30:00])
 
 # Localize
-Localize.DateTime.to_string(~N[2025-07-10 14:30:00])
-#=> {:ok, "Jul 10, 2025, 2:30:00 PM"}
+iex> Localize.DateTime.to_string(~N[2025-07-10 14:30:00])
+{:ok, "Jul 10, 2025, 2:30:00 PM"}
 
-Localize.DateTime.to_string(~N[2025-07-10 14:30:00], format: :short)
-#=> {:ok, "7/10/25, 2:30 PM"}
+iex> Localize.DateTime.to_string(~N[2025-07-10 14:30:00], format: :short)
+{:ok, "7/10/25, 2:30 PM"}
 ```
 
 ### Units
@@ -234,17 +214,16 @@ MyApp.Cldr.Unit.to_string(unit)
 MyApp.Cldr.Unit.convert!(unit, :kilometer)
 
 # Localize
-{:ok, unit} = Localize.Unit.new(100, "meter")
+iex> {:ok, unit} = Localize.Unit.new(100, "meter")
+iex> Localize.Unit.to_string(unit)
+{:ok, "100 meters"}
 
-Localize.Unit.to_string(unit)
-#=> {:ok, "100 meters"}
+iex> Localize.Unit.to_string(unit, style: :short)
+{:ok, "100 m"}
 
-Localize.Unit.to_string(unit, style: :short)
-#=> {:ok, "100 m"}
-
-{:ok, converted} = Localize.Unit.convert(unit, "kilometer")
-converted.value
-#=> 0.1
+iex> {:ok, converted} = Localize.Unit.convert(unit, "kilometer")
+iex> converted.value
+0.1
 ```
 
 ### Lists
@@ -254,11 +233,11 @@ converted.value
 MyApp.Cldr.List.to_string(["a", "b", "c"])
 
 # Localize
-Localize.List.to_string(["a", "b", "c"])
-#=> {:ok, "a, b, and c"}
+iex> Localize.List.to_string(["a", "b", "c"])
+{:ok, "a, b, and c"}
 
-Localize.List.to_string(["a", "b", "c"], locale: :fr)
-#=> {:ok, "a, b et c"}
+iex> Localize.List.to_string(["a", "b", "c"], locale: :fr)
+{:ok, "a, b et c"}
 ```
 
 ### Territories
@@ -272,20 +251,20 @@ Cldr.Territory.children(:EU)
 Cldr.Territory.info(:US)
 
 # Localize
-Localize.Territory.display_name(:GB)
-#=> {:ok, "United Kingdom"}
+iex> Localize.Territory.display_name(:GB)
+{:ok, "United Kingdom"}
 
-Localize.Territory.display_name(:GB, locale: :pt)
-#=> {:ok, "Reino Unido"}
+iex> Localize.Territory.display_name(:GB, locale: :pt)
+{:ok, "Reino Unido"}
 
-Localize.Territory.parent(:FR)
-#=> {:ok, [:"155", :EU, :EZ, :UN]}
+iex> Localize.Territory.parent(:FR)
+{:ok, [:"155", :EU, :EZ, :UN]}
 
-Localize.Territory.children(:EU)
-#=> {:ok, [:AT, :BE, :CY, ...]}
+iex> Localize.Territory.children(:EU)
+{:ok, [:AT, :BE, :CY, ...]}
 
-Localize.Territory.info(:US)
-#=> {:ok, %{gdp: 24660000000000, population: 341963000, ...}}
+iex> Localize.Territory.info(:US)
+{:ok, %{gdp: 24660000000000, population: 341963000, ...}}
 ```
 
 ### Languages
@@ -296,14 +275,14 @@ MyApp.Cldr.Language.to_string("de")
 MyApp.Cldr.Language.to_string("en", locale: "de")
 
 # Localize
-Localize.Language.to_string("de")
-#=> {:ok, "German"}
+iex> Localize.Language.to_string("de")
+{:ok, "German"}
 
-Localize.Language.to_string("en", locale: :de)
-#=> {:ok, "Englisch"}
+iex> Localize.Language.to_string("en", locale: :de)
+{:ok, "Englisch"}
 
-Localize.Language.to_string("en-GB", style: :short)
-#=> {:ok, "UK English"}
+iex> Localize.Language.to_string("en-GB", style: :short)
+{:ok, "UK English"}
 ```
 
 ### Text formatting
@@ -314,11 +293,11 @@ Cldr.quote("Hello", MyApp.Cldr)
 Cldr.ellipsis("And so on", MyApp.Cldr)
 
 # Localize
-Localize.quote("Hello")
-#=> {:ok, "\u201CHello\u201D"}
+iex> Localize.quote("Hello")
+{:ok, "\u201CHello\u201D"}
 
-Localize.ellipsis("And so on")
-#=> {:ok, "And so on\u2026"}
+iex> Localize.ellipsis("And so on")
+{:ok, "And so on\u2026"}
 ```
 
 ### Messages (ICU MessageFormat 2)
@@ -328,16 +307,14 @@ Localize.ellipsis("And so on")
 Cldr.Message.format("You have {count} items", %{"count" => 3}, MyApp.Cldr)
 
 # Localize
-Localize.Message.format(
-  "{{You have {$count} items}}",
-  %{"count" => 3}
-)
-#=> {:ok, "You have 3 items"}
+iex> Localize.Message.format(
+...>   "{{You have {$count} items}}",
+...>   %{"count" => 3}
+...> )
+{:ok, "You have 3 items"}
 ```
 
-Note that Localize uses the MF2 (MessageFormat 2) syntax
-which differs from ICU MessageFormat 1. See the MF2
-specification for syntax details.
+Note that Localize uses the MF2 (MessageFormat 2) syntax which differs from ICU MessageFormat 1. See the MF2 specification for syntax details.
 
 ## Function renaming
 
@@ -356,30 +333,25 @@ Some functions have been renamed for clarity:
 Cldr.validate_locale("en", MyApp.Cldr)
 
 # Localize
-Localize.validate_locale("en")
-#=> {:ok, %Localize.LanguageTag{cldr_locale_id: :en, ...}}
+iex> {:ok, tag} = Localize.validate_locale("en")
+iex> tag.cldr_locale_id
+:en
 ```
 
-The returned `LanguageTag` struct can be passed directly
-to any function that accepts a locale.
+The returned `LanguageTag` struct can be passed directly to any function that accepts a locale.
 
 ## Gettext integration
 
-Use `Localize.Locale.gettext_locale_id/2` to find the
-best-matching Gettext locale for a CLDR locale:
+Use `Localize.Locale.gettext_locale_id/2` to find the best-matching Gettext locale for a CLDR locale:
 
 ```elixir
-Localize.Locale.gettext_locale_id(:en, MyApp.Gettext)
-#=> {:ok, "en"}
+iex> Localize.Locale.gettext_locale_id(:en, MyApp.Gettext)
+{:ok, "en"}
 ```
 
 ## Optional NIF
 
-Localize includes an optional NIF binding for ICU4C that
-provides native-speed implementations of some operations.
-Currently the NIF supports MessageFormat 2 parsing and
-formatting. Future releases will extend NIF support to
-additional formatting functions.
+Localize includes an optional NIF binding for ICU4C that provides native-speed implementations of some operations. Currently the NIF supports MessageFormat 2 parsing and formatting. Future releases will extend NIF support to additional formatting functions.
 
 The NIF is opt-in. Enable it by setting:
 
@@ -394,9 +366,7 @@ Or via environment variable:
 export LOCALIZE_NIF=true
 ```
 
-When the NIF is not available, Localize falls back to pure
-Elixir implementations automatically. You can check
-availability with `Localize.Nif.available?/0`.
+When the NIF is not available, Localize falls back to pure Elixir implementations automatically. You can check availability with `Localize.Nif.available?/0`.
 
 ## Collation
 
@@ -405,12 +375,11 @@ availability with `Localize.Nif.available?/0`.
 Cldr.Collation.sort(["banana", "apple", "cherry"], MyApp.Cldr, locale: "en")
 
 # Localize
-Localize.Collation.sort(["banana", "apple", "cherry"])
-#=> ["apple", "banana", "cherry"]
+iex> Localize.Collation.sort(["banana", "apple", "cherry"])
+["apple", "banana", "cherry"]
 ```
 
-The collation table is loaded into `:persistent_term` on
-first use. No compile-time configuration is needed.
+The collation table is loaded into `:persistent_term` on first use. No compile-time configuration is needed.
 
 ## Summary of key differences
 

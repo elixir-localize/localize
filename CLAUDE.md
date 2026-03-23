@@ -41,6 +41,10 @@ In the example above:
 * msgid is the message string in Unicode Message Format 2 format with interpolation of the struct bindings
 * bindings - the bindings derived from the struct
 
+## Locale parsing
+
+* When we need to parse or resolve a locale identifier, prefer `Localize.validate_locale/1` over `Localize.LanguageTag.parse/1`. Validation canonicalizes the tag, populates the `LanguageTag.U` struct for `-u-` extensions, resolves likely subtags, and caches the result.
+
 ## When adapting code from ex_cldr and related libraries
 
 ex_cldr standard error returns are of the for {:error, {exception, message}}. When adapting a function from ex_cldr to operating in Localize, the following should done:
