@@ -1,9 +1,31 @@
 defmodule Localize.Unit do
   @moduledoc """
-  Represents a CLDR unit of measure with its parsed structure.
+  Represents and formats CLDR units of measure.
 
   A `Localize.Unit` struct holds the original unit name string,
   its parsed AST representation, and an optional numeric value.
+  Units can be created with `new/3` and formatted with
+  `to_string/2`.
+
+  ## Unit names
+
+  Unit names follow the CLDR identifier syntax defined in
+  [TR35](https://www.unicode.org/reports/tr35/tr35-general.html#unit-syntax).
+  Examples: `"meter"`, `"kilogram"`, `"meter-per-second"`,
+  `"square-kilometer"`, `"liter-per-100-kilometer"`.
+
+  ## Formatting
+
+  `to_string/2` produces locale-aware output with plural-sensitive
+  patterns (e.g., `"1 kilometer"` vs `"3 kilometers"`) and supports
+  `:long`, `:short`, and `:narrow` format styles.
+
+  ## Usage preferences
+
+  CLDR defines measurement usage preferences by territory and
+  category (e.g., road distances in the US use miles). The
+  `:usage` field on the struct and the `:usage` option on
+  `to_string/2` support automatic unit selection based on locale.
 
   """
 

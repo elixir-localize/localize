@@ -65,20 +65,22 @@ warnings:
 
 ### Documentation
 
-* [ ] Write `Localize` moduledoc — currently a stub. Should
-      describe the library's purpose, list the main domain
-      modules, and explain the locale management API.
+* [x] Write `Localize` moduledoc — expanded with domain module
+      list, locale management summary, data loading strategy,
+      and NIF mention.
 
-* [ ] Review and update all public module `@moduledoc`
-      sections for completeness and accuracy.
+* [x] Review and update all public module `@moduledoc`
+      sections — expanded `DateTime`, `Unit`, and `Locale`
+      moduledocs. Others verified as adequate.
 
-* [ ] Write a `README.md` with installation, quick start,
+* [x] Write a `README.md` with installation, quick start,
       and links to documentation.
 
-* [ ] Write a `CHANGELOG.md`.
+* [x] Write a `CHANGELOG.md`.
 
-* [ ] Ensure all public functions have `@doc` in the standard
-      format described in `CLAUDE.md`.
+* [x] Ensure all public functions have `@doc` in the standard
+      format described in `CLAUDE.md` — audited all 15 main
+      public modules; all public functions documented.
 
 ### Hex publishing
 

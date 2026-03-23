@@ -1,13 +1,83 @@
 defmodule Localize do
   @moduledoc """
-  Localize provides locale-aware formatting, validation, and data
-  access built on the Unicode CLDR repository.
+  Locale-aware formatting, validation, and data access built on the
+  Unicode CLDR repository.
 
-  The primary public API for text formatting (`quote/2`, `ellipsis/2`),
-  locale and territory validation, and process-level locale management
-  lives in this module. Domain-specific formatting is provided by
-  `Localize.Number`, `Localize.Date`, `Localize.Time`,
-  `Localize.DateTime`, `Localize.Unit`, and `Localize.List`.
+  Localize consolidates the functionality of the `ex_cldr_*` library
+  family into a single package with no compile-time backend
+  configuration. All CLDR data is loaded at runtime from ETF and JSON
+  files and cached in `:persistent_term` on first access.
+
+  ## Domain modules
+
+  * `Localize.Number` — format numbers, decimals, percentages, and
+    currencies.
+
+  * `Localize.Date` — format dates using CLDR calendar patterns.
+
+  * `Localize.Time` — format times using CLDR calendar patterns.
+
+  * `Localize.DateTime` — format date-times with combined date and
+    time patterns.
+
+  * `Localize.Interval` — format date, time, and datetime intervals.
+
+  * `Localize.Unit` — format units of measure with plural-aware
+    patterns (e.g., "3 kilometers", "1.5 hours").
+
+  * `Localize.List` — format lists with locale-appropriate
+    conjunctions and disjunctions (e.g., "a, b, and c").
+
+  * `Localize.Currency` — currency metadata, validation, and
+    territory-to-currency mapping.
+
+  * `Localize.Territory` — territory display names, containment,
+    subdivisions, and emoji flags.
+
+  * `Localize.Language` — language display names.
+
+  * `Localize.Collation` — locale-sensitive string sorting using the
+    Unicode Collation Algorithm.
+
+  * `Localize.LocaleDisplay` — full locale display names
+    (e.g., "English (United States)").
+
+  * `Localize.Calendar` — calendar era names, day/month names, and
+    day period names.
+
+  ## Locale management
+
+  Localize maintains a per-process current locale and an
+  application-wide default locale:
+
+  * `get_locale/0` — returns the current process locale, falling
+    back to `default_locale/0`.
+
+  * `put_locale/1` — sets the current process locale.
+
+  * `with_locale/2` — executes a function with a temporary locale.
+
+  * `default_locale/0` — returns the application-wide default,
+    resolved from environment variables and application config.
+
+  * `put_default_locale/1` — overrides the application-wide default.
+
+  All formatting functions default their `:locale` option to
+  `get_locale/0` when no locale is explicitly provided.
+
+  ## This module
+
+  This module also provides text formatting helpers (`quote/2`,
+  `ellipsis/2`), validators for locales, territories, scripts,
+  calendars, number systems, currencies, and measurement systems,
+  and accessors for known locale names and territory lists.
+
+  ## Optional NIF
+
+  An optional NIF-based implementation of selected algorithms
+  (currently Unicode normalisation and collation sort-key generation)
+  can be enabled by setting `LOCALIZE_NIF=true` at compile time. See
+  `Localize.Nif` for details.
 
   """
 

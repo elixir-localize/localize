@@ -3,8 +3,23 @@ defmodule Localize.DateTime do
   Provides localized formatting of `DateTime`, `NaiveDateTime`,
   and datetime-like maps.
 
-  Formats are defined in CLDR and described in
+  The primary function is `to_string/2` which accepts a datetime
+  value and an options keyword list. Format patterns are defined
+  in CLDR and described in
   [TR35](http://unicode.org/reports/tr35/tr35-dates.html).
+
+  ## Predefined formats
+
+  * `:short` — abbreviated date and time (e.g., "1/2/25, 3:04 PM").
+
+  * `:medium` — standard date and time (default).
+
+  * `:long` — includes time zone name.
+
+  * `:full` — verbose day-of-week, date, and time zone.
+
+  Custom CLDR skeleton strings and raw format patterns are also
+  supported via the `:format` option.
 
   """
 

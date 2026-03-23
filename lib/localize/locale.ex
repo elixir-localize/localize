@@ -1,11 +1,29 @@
 defmodule Localize.Locale do
   @moduledoc """
-  Provides locale utility functions for working with
-  BCP 47 language tags and POSIX locale identifiers.
+  Locale utility functions for resolution, validation, and
+  per-locale data access.
 
-  This module contains functions previously delegated to
-  `Cldr.Locale`, adapted for use within the `Localize`
-  library without external dependencies.
+  ## Locale data
+
+  Per-locale CLDR data (number formats, calendar patterns,
+  territory names, etc.) is loaded on demand via a configurable
+  data provider and cached in `:persistent_term`. The default
+  provider is `Localize.Locale.Provider.PersistentTerm`.
+
+  * `load/2` — loads raw locale data from the provider.
+
+  * `get/2` — retrieves a specific data key for a locale.
+
+  ## Locale resolution
+
+  * `parent/1` — returns the CLDR parent locale (e.g.,
+    `:"en-AU"` → `:en`, `:en` → `:und`).
+
+  * `to_locale_id/1` — coerces a language tag, atom, or string
+    to a canonical locale identifier atom.
+
+  * `gettext_locale_id/2` — finds the best matching locale among
+    a Gettext backend's known locales.
 
   """
 
