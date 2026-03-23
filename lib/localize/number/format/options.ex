@@ -251,7 +251,7 @@ defmodule Localize.Number.Format.Options do
     Map.put(options, :rounding_mode, :half_even)
   end
 
-  defp validate_rounding_mode(%{rounding_mode: mode} = _options) when is_map(_options) do
+  defp validate_rounding_mode(%{rounding_mode: mode}) do
     {:error,
      Localize.InvalidValueError.exception(
        value: mode,

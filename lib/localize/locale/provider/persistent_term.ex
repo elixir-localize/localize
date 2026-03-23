@@ -56,7 +56,8 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   @impl Localize.Locale.Provider
   def store(locale_id, locale_data) do
     locale_key = locale_key(locale_id)
-    :ok = :persistent_term.put(locale_key, locale_data)
+    transformed = Localize.Locale.Transformer.transform(locale_data)
+    :ok = :persistent_term.put(locale_key, transformed)
   end
 
   @doc """

@@ -795,17 +795,8 @@ defmodule Localize.Currency do
   def currencies_for_locale(locale, only \\ :all, except \\ nil) do
     locale_id = to_locale_id(locale)
 
-    with {:ok, currencies_map} <- Localize.Locale.get(locale_id, [:currencies]) do
-      currencies =
-        currencies_map
-        |> Enum.map(fn {code, data} ->
-          currency_code = if is_atom(code), do: code, else: String.to_atom(code)
-          {currency_code, struct(__MODULE__, normalize_currency_data(currency_code, data))}
-        end)
-        |> Map.new()
-        |> currency_filter(only, except)
-
-      {:ok, currencies}
+    with {:ok, currencies} <- Localize.Locale.get(locale_id, [:currencies]) do
+      {:ok, currency_filter(currencies, only, except)}
     end
   end
 
@@ -1366,52 +1357,6 @@ defmodule Localize.Currency do
   @rtl_mark "\u200F"
 
   defp to_locale_id(locale), do: Localize.Locale.to_locale_id(locale)
-
-  defp normalize_currency_data(currency_code, data) when is_map(data) do
-    count =
-      case data do
-        %{count: count} when is_map(count) -> atomize_count_keys(count)
-        %{"count" => count} when is_map(count) -> atomize_count_keys(count)
-        _ -> nil
-      end
-
-    [
-      code: currency_code,
-      name: get_field(data, :name, ""),
-      symbol: get_field(data, :symbol, ""),
-      narrow_symbol: get_field(data, :narrow_symbol, nil),
-      digits: get_field(data, :digits, 0),
-      rounding: get_field(data, :rounding, 0),
-      cash_digits: get_field(data, :cash_digits, 0),
-      cash_rounding: get_field(data, :cash_rounding, 0),
-      iso_digits: get_field(data, :iso_digits, nil),
-      tender: get_field(data, :tender, false),
-      decimal_separator: get_field(data, :decimal_separator, nil),
-      grouping_separator: get_field(data, :grouping_separator, nil),
-      count: count
-    ]
-  end
-
-  # Looks up a field by atom key first, then string key, using the
-  # provided default only when neither key is present. Unlike `||`,
-  # this preserves explicit `nil` and `false` values in the data.
-  defp get_field(data, key, default) do
-    atom_key = key
-    string_key = Atom.to_string(key)
-
-    cond do
-      Map.has_key?(data, atom_key) -> Map.get(data, atom_key)
-      Map.has_key?(data, string_key) -> Map.get(data, string_key)
-      true -> default
-    end
-  end
-
-  defp atomize_count_keys(count) do
-    Map.new(count, fn
-      {key, value} when is_atom(key) -> {key, value}
-      {key, value} when is_binary(key) -> {String.to_atom(key), value}
-    end)
-  end
 
   defp build_currency_strings(currencies) do
     currency_string_pairs =

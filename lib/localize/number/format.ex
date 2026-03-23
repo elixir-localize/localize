@@ -32,9 +32,29 @@ defmodule Localize.Number.Format do
 
   defstruct @format_styles ++ [:currency_spacing, :other, :rational]
 
+  @behaviour Access
+
   @type format :: String.t()
 
   @type t :: %__MODULE__{}
+
+  @impl Access
+  def fetch(struct, key), do: Map.fetch(struct, key)
+
+  @impl Access
+  def get_and_update(struct, key, function) do
+    current = Map.get(struct, key)
+
+    case function.(current) do
+      {get, update} -> {get, Map.put(struct, key, update)}
+      :pop -> {current, Map.delete(struct, key)}
+    end
+  end
+
+  @impl Access
+  def pop(struct, key) do
+    {Map.get(struct, key), Map.delete(struct, key)}
+  end
 
   @reject_styles [:__struct__, :currency_spacing, :other, :rational]
   @isnt_really_a_short_format [:currency_long]
@@ -80,17 +100,7 @@ defmodule Localize.Number.Format do
           {:ok, map()} | {:error, Exception.t()}
   def all_formats_for(locale) do
     locale_id = to_locale_id(locale)
-
-    with {:ok, raw_formats} <- Localize.Locale.get(locale_id, [:number_formats]) do
-      formats =
-        raw_formats
-        |> Enum.map(fn {system, format_data} ->
-          {to_atom_key(system), to_format_struct(format_data)}
-        end)
-        |> Map.new()
-
-      {:ok, formats}
-    end
+    Localize.Locale.get(locale_id, [:number_formats])
   end
 
   @doc """
@@ -514,20 +524,6 @@ defmodule Localize.Number.Format do
   # ── Private helpers ──────────────────────────────────────────
 
   defp to_locale_id(locale), do: Localize.Locale.to_locale_id(locale)
-
-  defp to_atom_key(key) when is_atom(key), do: key
-  defp to_atom_key(key) when is_binary(key), do: String.to_atom(key)
-
-  defp to_format_struct(%__MODULE__{} = format), do: format
-
-  defp to_format_struct(data) when is_map(data) do
-    fields =
-      data
-      |> Enum.map(fn {key, value} -> {to_atom_key(key), value} end)
-      |> Map.new()
-
-    struct(__MODULE__, fields)
-  end
 
   # Extract grouping from a standard format pattern string.
   # Parses patterns like "#,##0.###" or "#,##,##0.###".

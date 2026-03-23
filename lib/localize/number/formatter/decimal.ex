@@ -134,6 +134,9 @@ defmodule Localize.Number.Formatter.Decimal do
 
   defp multiply_by_factor(number, %{multiplier: factor}) when is_number(number) do
     number * factor
+  rescue
+    ArithmeticError ->
+      Decimal.mult(Decimal.from_float(number / 1.0), Decimal.new(factor))
   end
 
   defp round_to_significant_digits(number, %{significant_digits: %{min: 0, max: 0}}) do

@@ -66,18 +66,7 @@ defmodule Localize.Number.Symbol do
           {:ok, map()} | {:error, Exception.t()}
   def number_symbols_for(locale) do
     locale_id = to_locale_id(locale)
-
-    with {:ok, raw_symbols} <- Localize.Locale.get(locale_id, [:number_symbols]) do
-      symbols =
-        raw_symbols
-        |> Enum.map(fn
-          {number_system, nil} -> {to_system_atom(number_system), nil}
-          {number_system, data} -> {to_system_atom(number_system), to_symbol_struct(data)}
-        end)
-        |> Map.new()
-
-      {:ok, symbols}
-    end
+    Localize.Locale.get(locale_id, [:number_symbols])
   end
 
   @doc """
@@ -130,17 +119,4 @@ defmodule Localize.Number.Symbol do
   defp to_system_atom(system) when is_atom(system), do: system
   defp to_system_atom(system) when is_binary(system), do: String.to_atom(system)
 
-  defp to_symbol_struct(%__MODULE__{} = symbol), do: symbol
-
-  defp to_symbol_struct(data) when is_map(data) do
-    fields =
-      data
-      |> Enum.map(fn {key, value} -> {to_atom_key(key), value} end)
-      |> Map.new()
-
-    struct(__MODULE__, fields)
-  end
-
-  defp to_atom_key(key) when is_atom(key), do: key
-  defp to_atom_key(key) when is_binary(key), do: String.to_atom(key)
 end
