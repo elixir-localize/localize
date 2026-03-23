@@ -106,7 +106,7 @@ Two areas are explicitly out of scope:
 | Unit formatting with plural patterns | Implemented | `Localize.Unit.to_string/2` with `:long`, `:short`, `:narrow` styles. |
 | Compound unit formatting | Implemented | Multiplication, division, and power patterns. |
 | Mixed/sequence units | Partial | `Localize.Unit` struct supports mixed units; formatting coverage not fully verified. |
-| Duration unit patterns (hms) | Not implemented | |
+| Duration unit patterns (hms) | Implemented | `Localize.Duration.to_time_string/2` formats durations as `"hh:mm:ss"` with unbounded hours. `to_string/2` formats as localized unit list (e.g., "11 months and 30 days"). |
 | Coordinate units (N/S/E/W) | Not implemented | |
 | Unit conversion | Implemented | `Localize.Unit.Conversion` with factor/offset mappings to base units. |
 | Unit preferences by territory | Implemented | Territory and usage-based unit selection from supplemental data. |
@@ -528,7 +528,6 @@ Two areas are explicitly out of scope:
 * Context-dependent capitalization
 * Collation search type
 * Collation alphabetic index (UI bucketing)
-* Duration unit patterns (h:mm:ss)
 * Coordinate unit formatting (N/S/E/W)
 * Layout direction data
 * Coverage level assessment

@@ -230,7 +230,9 @@ defmodule Localize.Number do
       else
         with {:ok, formatted_start} <- to_string(number_start, format_options),
              {:ok, formatted_end} <- to_string(number_end, format_options) do
-          result = Localize.Substitution.substitute([formatted_start, formatted_end], patterns.range)
+          result =
+            Localize.Substitution.substitute([formatted_start, formatted_end], patterns.range)
+
           {:ok, IO.iodata_to_binary(result)}
         end
       end

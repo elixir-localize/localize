@@ -88,8 +88,10 @@ defmodule Localize.Duration do
   @spec new(from :: date_or_time_or_datetime(), to :: date_or_time_or_datetime()) ::
           {:ok, t()} | {:error, Exception.t()}
 
-  def new(%{__struct__: _, year: _, month: _, day: _, hour: _, minute: _, second: _} = from,
-          %{__struct__: _, year: _, month: _, day: _, hour: _, minute: _, second: _} = to) do
+  def new(
+        %{year: _, month: _, day: _, hour: _, minute: _, second: _} = from,
+        %{year: _, month: _, day: _, hour: _, minute: _, second: _} = to
+      ) do
     with :ok <- confirm_same_calendar(from, to),
          :ok <- confirm_same_time_zone(from, to),
          :ok <- confirm_date_order(from, to) do
@@ -99,16 +101,20 @@ defmodule Localize.Duration do
     end
   end
 
-  def new(%{__struct__: _, year: _, month: _, day: _} = from,
-          %{__struct__: _, year: _, month: _, day: _} = to) do
+  def new(
+        %{year: _, month: _, day: _} = from,
+        %{year: _, month: _, day: _} = to
+      ) do
     with {:ok, from_dt} <- cast_to_datetime(from),
          {:ok, to_dt} <- cast_to_datetime(to) do
       new(from_dt, to_dt)
     end
   end
 
-  def new(%{__struct__: _, hour: _, minute: _, second: _} = from,
-          %{__struct__: _, hour: _, minute: _, second: _} = to) do
+  def new(
+        %{hour: _, minute: _, second: _} = from,
+        %{hour: _, minute: _, second: _} = to
+      ) do
     with {:ok, from_dt} <- cast_to_datetime(from),
          {:ok, to_dt} <- cast_to_datetime(to) do
       time_diff = time_duration(from_dt, to_dt)
