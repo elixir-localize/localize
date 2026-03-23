@@ -78,7 +78,8 @@ defmodule Localize.LocaleDisplay do
     prefer = if prefer == :default, do: :standard, else: prefer
     standard_or_dialect = Keyword.get(options, :language_display, :standard)
 
-    with {:ok, display_names} <- load_display_names(locale_id),
+    with :ok <- validate_language_display(standard_or_dialect),
+         {:ok, display_names} <- load_display_names(locale_id),
          {:ok, matched_tags, language_name} <-
            language_name(language_tag, display_names, prefer, standard_or_dialect) do
       language_tag = merge_extensions_and_private_use(language_tag)
@@ -397,6 +398,16 @@ defmodule Localize.LocaleDisplay do
   defp join_subtags(fields, display_names) do
     join_pattern = get_in(display_names, [:locale_display_pattern, :locale_separator])
     Enum.reduce(fields, &Localize.Substitution.substitute([&2, &1], join_pattern))
+  end
+
+  defp validate_language_display(style) when style in [:standard, :dialect], do: :ok
+
+  defp validate_language_display(invalid) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: invalid,
+       expected: ":standard or :dialect"
+     )}
   end
 
   defp resolve_locale_id(options) do

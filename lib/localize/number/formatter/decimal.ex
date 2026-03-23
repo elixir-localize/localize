@@ -469,7 +469,7 @@ defmodule Localize.Number.Formatter.Decimal do
 
   defp extract_symbol(%{standard: value}), do: value
   defp extract_symbol(value) when is_binary(value), do: value
-  defp extract_symbol(_), do: nil
+  defp extract_symbol(_), do: ""
 
   defp assemble_format(number_string, meta, options) do
     format = meta.format[options.pattern]

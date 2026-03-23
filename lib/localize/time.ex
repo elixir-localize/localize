@@ -154,17 +154,30 @@ defmodule Localize.Time do
     end
   end
 
-  defp resolve_skeleton(skeleton, locale_id, options) do
+  defp find_format(_time, format, _locale_id, _options) do
+    {:error, Localize.DateTimeFormatError.exception(format: format, reason: "invalid format")}
+  end
+
+  defp resolve_skeleton(skeleton, locale_id, options) when is_atom(skeleton) do
     prefer = Keyword.get(options, :prefer, :unicode)
 
     with {:ok, available} <-
            Localize.DateTime.Format.available_formats(locale_id, :gregorian) do
       case Map.get(available, skeleton) do
         nil ->
-          # Try best match
-          with {:ok, matched_id} <-
-                 Localize.DateTime.Format.Match.best_match(skeleton, locale_id) do
-            resolve_skeleton(matched_id, locale_id, options)
+          case Localize.DateTime.Format.Match.best_match(skeleton, locale_id) do
+            {:ok, matched_id} when is_atom(matched_id) ->
+              resolve_skeleton(matched_id, locale_id, options)
+
+            {:ok, {_date_id, _time_id}} ->
+              {:error,
+               Localize.DateTimeUnresolvedFormatError.exception(
+                 format: skeleton,
+                 locale: locale_id
+               )}
+
+            {:error, _} = error ->
+              error
           end
 
         %{} = variant_map ->
@@ -195,5 +208,9 @@ defmodule Localize.Time do
       {:ok, tag} -> {:ok, tag.cldr_locale_id}
       error -> error
     end
+  end
+
+  defp resolve_locale_id(invalid) do
+    {:error, Localize.InvalidLocaleError.exception(locale_id: inspect(invalid))}
   end
 end

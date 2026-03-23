@@ -994,6 +994,10 @@ defmodule Localize do
     validate_locale(Atom.to_string(locale_id))
   end
 
+  def validate_locale(invalid) do
+    {:error, Localize.InvalidLocaleError.exception(locale_id: inspect(invalid))}
+  end
+
   defp locale_cache_lookup(cache_key) do
     case :ets.lookup(@locale_cache_table, cache_key) do
       [{^cache_key, result}] -> result

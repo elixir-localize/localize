@@ -87,6 +87,10 @@ defmodule Localize.DateTime do
         # Skeleton atom — resolve to a pattern from available_formats
         is_atom(format) ->
           format_with_skeleton(datetime, options, locale_id, format)
+
+        true ->
+          {:error,
+           Localize.DateTimeFormatError.exception(format: format, reason: "invalid format")}
       end
     end
   end
@@ -107,6 +111,14 @@ defmodule Localize.DateTime do
            reason: "datetime must have date and/or time keys"
          )}
     end
+  end
+
+  def to_string(_invalid, _options) do
+    {:error,
+     Localize.DateTimeFormatError.exception(
+       format: nil,
+       reason: "expected a map with date and/or time keys"
+     )}
   end
 
   @doc """
@@ -248,5 +260,9 @@ defmodule Localize.DateTime do
       {:ok, tag} -> {:ok, tag.cldr_locale_id}
       error -> error
     end
+  end
+
+  defp resolve_locale_id(invalid) do
+    {:error, Localize.InvalidLocaleError.exception(locale_id: inspect(invalid))}
   end
 end

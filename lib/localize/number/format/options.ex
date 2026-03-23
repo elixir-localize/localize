@@ -132,7 +132,7 @@ defmodule Localize.Number.Format.Options do
       iex> {:ok, _} = Localize.Number.to_string(1234.56, options)
 
   """
-  @spec validate_options(number(), Keyword.t()) ::
+  @spec validate_options(number() | Decimal.t(), Keyword.t()) ::
           {:ok, t()} | {:error, Exception.t()}
   def validate_options(number, options) do
     options =
@@ -251,6 +251,14 @@ defmodule Localize.Number.Format.Options do
     Map.put(options, :rounding_mode, :half_even)
   end
 
+  defp validate_rounding_mode(%{rounding_mode: mode} = _options) when is_map(_options) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: mode,
+       expected: "a valid rounding mode (#{inspect(@rounding_modes)})"
+     )}
+  end
+
   defp validate_rounding_mode(error), do: error
 
   defp resolve_standard_format(%{format: format} = options)
@@ -289,7 +297,9 @@ defmodule Localize.Number.Format.Options do
     Map.put(options, :currency_symbol, symbol)
   end
 
-  defp resolve_currency_symbol(options) when is_map(options), do: options
+  defp resolve_currency_symbol(options) when is_map(options) do
+    Map.put_new(options, :currency_symbol, "")
+  end
   defp resolve_currency_symbol(error), do: error
 
   # Resolve currency spacing from locale data

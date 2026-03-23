@@ -153,6 +153,9 @@ defmodule Localize.Number.Format.Compiler do
     else
       {:error, {_line, _parser, [message, context]}} ->
         {:error, "Decimal format compiler: #{message}#{Enum.join(context)}"}
+
+      {:error, reason} when is_binary(reason) ->
+        {:error, reason}
     end
   end
 

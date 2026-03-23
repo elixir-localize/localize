@@ -94,10 +94,24 @@ defmodule Localize.Number do
     dispatch_format(number, validated_options)
   end
 
-  def to_string(number, options) when is_list(options) do
+  def to_string(number, options) when is_number(number) and is_list(options) do
     with {:ok, validated_options} <- Options.validate_options(number, options) do
       dispatch_format(number, validated_options)
     end
+  end
+
+  def to_string(%Decimal{} = number, options) when is_list(options) do
+    with {:ok, validated_options} <- Options.validate_options(number, options) do
+      dispatch_format(number, validated_options)
+    end
+  end
+
+  def to_string(number, _options) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: number,
+       expected: "a number (integer, float, or Decimal)"
+     )}
   end
 
   defp dispatch_format(number, validated_options) do

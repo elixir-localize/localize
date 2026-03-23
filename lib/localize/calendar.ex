@@ -646,6 +646,10 @@ defmodule Localize.Calendar do
     end
   end
 
+  defp resolve_locale_id(invalid) do
+    {:error, Localize.InvalidLocaleError.exception(locale_id: inspect(invalid))}
+  end
+
   defp calendar_type_from(%{calendar: calendar}) do
     if function_exported?(calendar, :cldr_calendar_type, 0) do
       calendar.cldr_calendar_type()

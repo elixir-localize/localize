@@ -80,12 +80,17 @@ defmodule Localize.Locale.Loader do
       if provider.loaded?(locale) do
         :ok
       else
-        case provider.load(locale) do
-          {:ok, locale_data} ->
-            provider.store(locale, locale_data)
+        try do
+          case provider.load(locale) do
+            {:ok, locale_data} ->
+              provider.store(locale, locale_data)
 
-          {:error, _reason} = error ->
-            error
+            {:error, _reason} = error ->
+              error
+          end
+        rescue
+          exception ->
+            {:error, exception}
         end
       end
 

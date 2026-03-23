@@ -314,4 +314,8 @@ defmodule Localize.Interval do
       error -> error
     end
   end
+
+  defp resolve_locale_id(invalid) do
+    {:error, Localize.InvalidLocaleError.exception(locale_id: inspect(invalid))}
+  end
 end

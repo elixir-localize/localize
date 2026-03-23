@@ -432,8 +432,11 @@ defmodule Localize.Locale do
           {:ok, term()} | {:error, term()}
   def get(locale, keys, options \\ []) do
     {provider, options} = Keyword.pop(options, :provider, default_provider())
-    :ok = load_and_store(locale)
-    provider.get(locale, keys, options)
+
+    case load_and_store(locale) do
+      :ok -> provider.get(locale, keys, options)
+      {:error, _} = error -> error
+    end
   end
 
   # ── Locale ID coercion ────────────────────────────────────────
@@ -479,6 +482,7 @@ defmodule Localize.Locale do
 
   def to_locale_id(locale_id) when is_atom(locale_id), do: locale_id
   def to_locale_id(locale_id) when is_binary(locale_id), do: String.to_atom(locale_id)
+  def to_locale_id(locale_id), do: String.to_atom(inspect(locale_id))
 
   # ── Gettext integration ────────────────────────────────────────
 

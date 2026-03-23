@@ -39,7 +39,8 @@ defmodule Localize.MixProject do
       {:nimble_parsec, "~> 1.0", only: :dev, runtime: false},
       {:elixir_make, "~> 0.4", runtime: false, optional: true},
       {:sweet_xml, "~> 0.7", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.4", only: :dev, runtime: false}
+      {:dialyxir, "~> 1.4", only: :dev, runtime: false},
+      {:stream_data, "~> 1.0", only: :test}
     ]
   end
 
