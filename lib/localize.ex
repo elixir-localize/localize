@@ -921,7 +921,8 @@ defmodule Localize do
     cache_key = String.downcase(locale_id)
 
     case locale_cache_lookup(cache_key) do
-      {:ok, _tag} = cached -> cached
+      {:ok, _tag} = cached ->
+        cached
 
       :miss ->
         result =

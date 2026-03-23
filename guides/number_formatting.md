@@ -369,41 +369,40 @@ iex> Localize.Number.to_string(2.5, fractional_digits: 0, rounding_mode: :ceilin
 {:ok, "3"}
 ```
 
-## Pre-built options for performance
+## Normalized options for performance
 
-`to_string/2` accepts either a keyword list or a pre-validated `Localize.Number.Format.Options` struct. The keyword list path validates the locale, resolves the number system, loads format patterns, resolves currency data, and builds metadata on every call. For high-throughput formatting (e.g., rendering a table of thousands of numbers), pre-building the options struct eliminates this overhead.
+`to_string/2` accepts either a keyword list or a pre-validated `Localize.Number.Format.Options` struct. The keyword list path resolves the number system, loads format patterns, resolves currency data, and builds metadata on every call. Locale validation itself is cached in ETS and is fast (~1µs), but the remaining options resolution — format pattern lookup, currency data loading, symbol resolution — still adds measurable overhead, especially for currency formatting.
 
-### Building an Options struct
+For high-throughput formatting (rendering a table of thousands of numbers, batch processing), call `Localize.Number.Format.Options.validate_options/2` once to build an options struct, then pass it to `to_string/2` for each number. The first argument is a representative number (use `0` for a positive-number format):
 
 ```elixir
-alias Localize.Number.Format.Options
+iex> alias Localize.Number.Format.Options
+iex> {:ok, options} = Options.validate_options(0, locale: :en, currency: :USD)
 
-# Build once — pass a representative number for pattern selection
-{:ok, options} = Options.validate_options(0, locale: :en, currency: :USD)
-
-# Reuse for many calls
-{:ok, formatted} = Localize.Number.to_string(1234.56, options)
+iex> # Reuse for many calls — bypasses all options resolution
+iex> {:ok, _} = Localize.Number.to_string(1234.56, options)
+iex> {:ok, _} = Localize.Number.to_string(9876.54, options)
 ```
 
 ### Performance comparison
-
-Options resolution accounts for approximately 98% of the total time in a `to_string/2` call with keyword options. Pre-built options bypass all resolution and go directly to the format engine.
 
 Benchmarks on a typical development machine (Apple Silicon):
 
 | Approach | Simple decimal | Currency |
 |----------|---------------|----------|
-| Keyword options | ~12,000 µs/call | ~12,000 µs/call |
-| Pre-built `Options` struct | ~2 µs/call | ~6 µs/call |
-| Speedup | ~6,000x | ~1,800x |
+| Keyword options | ~7 µs/call | ~300 µs/call |
+| Normalized `Options` struct | ~2 µs/call | ~6 µs/call |
+| Speedup | ~3x | ~50x |
 
-The absolute times will vary by machine, but the relative speedup is consistent. The keyword path is dominated by locale data loading, format resolution, and symbol lookup — all of which are done once when building the struct.
+The difference is largest for currency formatting because options resolution must load currency metadata (symbols, decimal places, spacing rules) in addition to the standard format pattern. With normalized options, currency formatting drops from ~300µs to ~6µs.
 
-**When to use pre-built options:**
+For simple decimal formatting the keyword path is already fast (~7µs) thanks to the locale validation cache, and the normalized path is ~2µs. The difference is small enough that keyword options are fine for most use cases.
+
+**When to use `Options.validate_options/2`:**
 
 * Formatting many numbers with the same locale and format (reports, tables, batch processing).
 
-* Any hot loop where formatting is called repeatedly.
+* Currency formatting in hot loops — the 50x speedup is significant.
 
 * Server-side rendering where latency matters.
 
@@ -411,7 +410,7 @@ The absolute times will vary by machine, but the relative speedup is consistent.
 
 * One-off formatting calls.
 
-* Interactive or low-frequency usage.
+* Simple decimal formatting (already ~7µs with keywords).
 
 * When the locale or format changes between calls.
 
