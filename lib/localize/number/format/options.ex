@@ -135,123 +135,97 @@ defmodule Localize.Number.Format.Options do
   @spec validate_options(number() | Decimal.t(), Keyword.t()) ::
           {:ok, t()} | {:error, Exception.t()}
   def validate_options(number, options) do
-    options =
-      [
-        locale: :en,
-        number_system: :default,
-        format: :standard,
-        rounding_mode: :half_even,
-        currency_digits: :accounting
-      ]
-      |> Keyword.merge(options)
-      |> Map.new()
+    locale = Keyword.get(options, :locale, :en)
+    format = Keyword.get(options, :format, :standard)
+    currency = Keyword.get(options, :currency)
+    number_system = Keyword.get(options, :number_system, :default)
+    rounding_mode = Keyword.get(options, :rounding_mode, :half_even)
 
-    options
-    |> validate_locale()
-    |> validate_number_system()
-    |> validate_currency()
-    |> validate_format()
-    |> validate_symbols()
-    |> validate_rounding_mode()
-    |> resolve_standard_format()
-    |> resolve_currency_symbol()
-    |> resolve_currency_spacing()
-    |> set_pattern(number)
-    |> structify()
-    |> wrap_ok()
-  end
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, system_name} <- resolve_number_system(language_tag, number_system),
+         {:ok, currency_struct} <- resolve_currency(currency, language_tag),
+         format <- maybe_switch_currency_format(format, currency_struct, language_tag),
+         :ok <- validate_rounding_mode(rounding_mode),
+         {:ok, symbols} <- resolve_symbols(language_tag, system_name),
+         {:ok, resolved_format, formats} <- resolve_format(format, language_tag, system_name) do
+      currency_symbol = resolve_currency_symbol(currency_struct, options[:currency_symbol])
+      currency_spacing = resolve_currency_spacing(currency_struct, formats)
+      pattern = if negative?(number), do: :negative, else: :positive
 
-  defp validate_locale(%{locale: locale} = options) when is_map(options) do
-    case Localize.validate_locale(locale) do
-      {:ok, language_tag} -> Map.put(options, :locale, language_tag)
-      {:error, _} = error -> error
+      # Build struct from the options keyword list (passthrough fields)
+      # then overlay the resolved values
+      result =
+        struct(__MODULE__, options)
+        |> Map.merge(%{
+          locale: language_tag,
+          number_system: system_name,
+          currency: currency_struct,
+          format: resolved_format,
+          symbols: symbols,
+          rounding_mode: rounding_mode || :half_even,
+          currency_symbol: currency_symbol,
+          currency_spacing: currency_spacing,
+          currency_digits: Keyword.get(options, :currency_digits, :accounting),
+          pattern: pattern
+        })
+
+      {:ok, result}
     end
   end
 
-  defp validate_locale(error), do: error
+  # ── Number system resolution ────────────────────────────────
 
-  defp validate_number_system(%{locale: locale, number_system: number_system} = options)
-       when is_map(options) do
-    case number_system do
-      nil ->
-        case System.number_system_from_locale(locale) do
-          {:ok, system} -> Map.put(options, :number_system, system)
-          {:error, _} = error -> error
-        end
+  # Fast path: read directly from the LanguageTag U extension struct
+  defp resolve_number_system(%Localize.LanguageTag{locale: %{nu: ns}}, :default)
+       when not is_nil(ns) do
+    {:ok, ns}
+  end
 
-      :default ->
-        case System.number_system_from_locale(locale) do
-          {:ok, system} -> Map.put(options, :number_system, system)
-          {:error, _} = error -> error
-        end
+  defp resolve_number_system(%Localize.LanguageTag{locale: %{nu: ns}}, nil)
+       when not is_nil(ns) do
+    {:ok, ns}
+  end
 
-      system_name ->
-        case System.system_name_from(system_name, locale) do
-          {:ok, name} -> Map.put(options, :number_system, name)
-          {:error, _} = error -> error
-        end
+  defp resolve_number_system(language_tag, :default) do
+    System.number_system_from_locale(language_tag)
+  end
+
+  defp resolve_number_system(language_tag, nil) do
+    System.number_system_from_locale(language_tag)
+  end
+
+  defp resolve_number_system(language_tag, system_name) do
+    System.system_name_from(system_name, language_tag)
+  end
+
+  # ── Currency resolution ─────────────────────────────────────
+
+  defp resolve_currency(nil, _language_tag), do: {:ok, nil}
+  defp resolve_currency(%Localize.Currency{} = c, _language_tag), do: {:ok, c}
+
+  defp resolve_currency(currency, language_tag) do
+    with {:ok, code} <- Localize.Currency.validate_currency(currency) do
+      Localize.Currency.currency_for_code(code, locale: language_tag)
     end
   end
 
-  defp validate_number_system(error), do: error
+  # ── Format auto-switch ──────────────────────────────────────
 
-  defp validate_currency(%{currency: nil} = options) when is_map(options), do: options
-
-  defp validate_currency(%{currency: %Localize.Currency{}} = options) when is_map(options),
-    do: options
-
-  defp validate_currency(%{currency: currency} = options) when is_map(options) do
-    case Localize.Currency.validate_currency(currency) do
-      {:ok, code} ->
-        case Localize.Currency.currency_for_code(code, locale: options[:locale]) do
-          {:ok, currency_struct} -> Map.put(options, :currency, currency_struct)
-          {:error, _} = error -> error
-        end
-
-      {:error, _} = error ->
-        error
-    end
-  end
-
-  defp validate_currency(error), do: error
-
-  defp validate_format(%{currency: %Localize.Currency{}, format: :standard} = options) do
-    # When a currency is provided and format is default (:standard),
-    # automatically switch to currency format
-    currency_format = derive_currency_format(options)
-    Map.put(options, :format, currency_format)
-  end
-
-  defp validate_format(options) when is_map(options), do: options
-  defp validate_format(error), do: error
-
-  defp derive_currency_format(%{locale: locale}) do
-    case Localize.Currency.currency_format_from_locale(locale) do
+  defp maybe_switch_currency_format(:standard, %Localize.Currency{}, language_tag) do
+    case Localize.Currency.currency_format_from_locale(language_tag) do
       {:ok, format} -> format
       _ -> :currency
     end
   end
 
-  defp validate_symbols(%{locale: locale, number_system: number_system} = options)
-       when is_map(options) do
-    case Symbol.number_symbols_for(locale, number_system) do
-      {:ok, symbols} -> Map.put(options, :symbols, symbols)
-      _other -> Map.put(options, :symbols, nil)
-    end
-  end
+  defp maybe_switch_currency_format(format, _currency, _language_tag), do: format
 
-  defp validate_symbols(error), do: error
+  # ── Rounding mode validation ────────────────────────────────
 
-  defp validate_rounding_mode(%{rounding_mode: mode} = options)
-       when is_map(options) and mode in @rounding_modes do
-    options
-  end
+  defp validate_rounding_mode(nil), do: :ok
+  defp validate_rounding_mode(mode) when mode in @rounding_modes, do: :ok
 
-  defp validate_rounding_mode(%{rounding_mode: nil} = options) when is_map(options) do
-    Map.put(options, :rounding_mode, :half_even)
-  end
-
-  defp validate_rounding_mode(%{rounding_mode: mode}) do
+  defp validate_rounding_mode(mode) do
     {:error,
      Localize.InvalidValueError.exception(
        value: mode,
@@ -259,82 +233,81 @@ defmodule Localize.Number.Format.Options do
      )}
   end
 
-  defp validate_rounding_mode(error), do: error
+  # ── Symbols resolution ──────────────────────────────────────
 
-  defp resolve_standard_format(%{format: format} = options)
-       when is_map(options) and format in @standard_formats do
-    %{locale: locale, number_system: number_system} = options
+  defp resolve_symbols(language_tag, system_name) do
+    case Symbol.number_symbols_for(language_tag, system_name) do
+      {:ok, _} = result -> result
+      _other -> {:ok, nil}
+    end
+  end
 
-    with {:ok, formats} <- Format.formats_for(locale, number_system) do
-      case Map.get(formats, format) do
-        nil -> options
-        resolved -> Map.put(options, :format, resolved)
+  # ── Format resolution ───────────────────────────────────────
+
+  # Standard formats: load formats once, look up the pattern
+  defp resolve_format(format, language_tag, system_name) when format in @standard_formats do
+    locale_id = Localize.Locale.to_locale_id(language_tag)
+
+    with {:ok, all_formats} <- Localize.Locale.get(locale_id, [:number_formats]) do
+      formats = Map.get(all_formats, system_name)
+
+      case formats do
+        nil ->
+          {:ok, format, nil}
+
+        %Format{} = f ->
+          resolved = Map.get(f, format, format)
+          {:ok, resolved, f}
+
+        %{} = f ->
+          {:ok, Map.get(f, format, format), f}
       end
     end
   end
 
-  defp resolve_standard_format(%{format: format} = options)
-       when is_map(options) and format in @short_formats do
-    options
-  end
+  # Short formats: no resolution needed, but load formats for currency_spacing
+  defp resolve_format(format, language_tag, system_name) when format in @short_formats do
+    locale_id = Localize.Locale.to_locale_id(language_tag)
 
-  defp resolve_standard_format(options) when is_map(options), do: options
-  defp resolve_standard_format(error), do: error
-
-  # Resolve the currency symbol from the currency struct and options
-  defp resolve_currency_symbol(%{currency: %Localize.Currency{} = currency} = options)
-       when is_map(options) do
-    symbol =
-      case options[:currency_symbol] do
-        :narrow -> currency.narrow_symbol || currency.symbol
-        :iso -> to_string(currency.code)
-        :symbol -> currency.symbol
-        nil -> currency.symbol
-        other when is_binary(other) -> other
-        _ -> currency.symbol
+    formats =
+      case Localize.Locale.get(locale_id, [:number_formats]) do
+        {:ok, all} -> Map.get(all, system_name)
+        _ -> nil
       end
 
-    Map.put(options, :currency_symbol, symbol)
+    {:ok, format, formats}
   end
 
-  defp resolve_currency_symbol(options) when is_map(options) do
-    Map.put_new(options, :currency_symbol, "")
+  # Custom string or other: no format resolution needed
+  defp resolve_format(format, _language_tag, _system_name) do
+    {:ok, format, nil}
   end
 
-  defp resolve_currency_symbol(error), do: error
+  # ── Currency symbol resolution ──────────────────────────────
 
-  # Resolve currency spacing from locale data
-  defp resolve_currency_spacing(
-         %{currency: %Localize.Currency{}, locale: locale, number_system: number_system} = options
-       )
-       when is_map(options) do
-    spacing = Localize.Number.Format.currency_spacing(locale, number_system)
-    Map.put(options, :currency_spacing, spacing)
-  end
+  defp resolve_currency_symbol(nil, _option), do: ""
+  defp resolve_currency_symbol(%Localize.Currency{} = c, :narrow), do: c.narrow_symbol || c.symbol
+  defp resolve_currency_symbol(%Localize.Currency{} = c, :iso), do: Kernel.to_string(c.code)
+  defp resolve_currency_symbol(%Localize.Currency{} = c, :symbol), do: c.symbol
+  defp resolve_currency_symbol(%Localize.Currency{} = c, nil), do: c.symbol
+  defp resolve_currency_symbol(_currency, other) when is_binary(other), do: other
+  defp resolve_currency_symbol(%Localize.Currency{} = c, _), do: c.symbol
 
-  defp resolve_currency_spacing(options) when is_map(options), do: options
-  defp resolve_currency_spacing(error), do: error
+  # ── Currency spacing resolution ─────────────────────────────
 
-  defp set_pattern(options, number) when is_map(options) and is_number(number) and number < 0 do
-    Map.put(options, :pattern, :negative)
-  end
+  defp resolve_currency_spacing(nil, _formats), do: nil
 
-  defp set_pattern(options, %Decimal{sign: sign}) when is_map(options) and sign < 0 do
-    Map.put(options, :pattern, :negative)
-  end
+  defp resolve_currency_spacing(%Localize.Currency{}, %Format{currency_spacing: spacing}),
+    do: spacing
 
-  defp set_pattern(options, _number) when is_map(options) do
-    Map.put(options, :pattern, :positive)
-  end
+  defp resolve_currency_spacing(%Localize.Currency{}, %{currency_spacing: spacing}),
+    do: spacing
 
-  defp set_pattern(error, _number), do: error
+  defp resolve_currency_spacing(%Localize.Currency{}, _formats), do: nil
 
-  defp structify(options) when is_map(options) do
-    struct(__MODULE__, options)
-  end
+  # ── Sign detection ──────────────────────────────────────────
 
-  defp structify(error), do: error
-
-  defp wrap_ok(%__MODULE__{} = options), do: {:ok, options}
-  defp wrap_ok(other), do: other
+  defp negative?(%Decimal{sign: sign}) when sign < 0, do: true
+  defp negative?(number) when is_number(number) and number < 0, do: true
+  defp negative?(_), do: false
 end

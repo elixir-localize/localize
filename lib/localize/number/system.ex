@@ -314,7 +314,7 @@ defmodule Localize.Number.System do
   """
   @spec number_system_from_locale(Localize.LanguageTag.t() | atom() | String.t()) ::
           {:ok, system_name()} | {:error, Exception.t()}
-  def number_system_from_locale(%Localize.LanguageTag{locale: %{numbers: number_system}})
+  def number_system_from_locale(%Localize.LanguageTag{locale: %{nu: number_system}})
       when not is_nil(number_system) do
     {:ok, number_system}
   end

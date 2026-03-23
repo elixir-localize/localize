@@ -118,5 +118,4 @@ defmodule Localize.Number.Symbol do
 
   defp to_system_atom(system) when is_atom(system), do: system
   defp to_system_atom(system) when is_binary(system), do: String.to_atom(system)
-
 end
