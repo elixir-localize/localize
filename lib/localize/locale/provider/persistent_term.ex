@@ -30,10 +30,11 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
   """
   @impl Localize.Locale.Provider
+  @dialyzer {:nowarn_function, load: 1}
   def load(locale) do
     locale_id = to_locale_id(locale)
-    locale = Cldr.Locale.Loader.get_locale(locale_id, %Cldr.Config{locales: :all})
-    {:ok, locale}
+    locale_data = Cldr.Locale.Loader.get_locale(locale_id, %Cldr.Config{locales: :all})
+    {:ok, locale_data}
   end
 
   @doc """

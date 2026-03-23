@@ -334,10 +334,12 @@ defmodule Localize.Unit.Math do
   defp negate_value(%Decimal{} = value), do: Decimal.negate(value)
   defp negate_value(value), do: -value
 
+  @dialyzer {:nowarn_function, add_values: 2}
   defp add_values(%Decimal{} = a, b), do: Decimal.add(a, to_decimal(b))
   defp add_values(a, %Decimal{} = b), do: Decimal.add(to_decimal(a), b)
   defp add_values(a, b), do: a + b
 
+  @dialyzer {:nowarn_function, sub_values: 2}
   defp sub_values(%Decimal{} = a, b), do: Decimal.sub(a, to_decimal(b))
   defp sub_values(a, %Decimal{} = b), do: Decimal.sub(to_decimal(a), b)
   defp sub_values(a, b), do: a - b

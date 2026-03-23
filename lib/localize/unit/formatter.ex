@@ -201,6 +201,7 @@ defmodule Localize.Unit.Formatter do
   defp locale_id(%Localize.LanguageTag{cldr_locale_id: id}) when not is_nil(id), do: id
   defp locale_id(_), do: :en
 
+  @dialyzer {:nowarn_function, safe_to_atom: 1}
   defp safe_to_atom(string) when is_binary(string) do
     String.to_existing_atom(string)
   rescue

@@ -66,6 +66,7 @@ defmodule Localize.Collation.Tailoring do
     end
   end
 
+  @dialyzer {:nowarn_function, walk_parent_chain: 3}
   defp walk_parent_chain(tag, type, visited) do
     case Localize.Locale.parent(tag) do
       {:ok, parent_tag} ->

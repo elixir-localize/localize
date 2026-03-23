@@ -185,7 +185,7 @@ defmodule Localize.LanguageTag do
           extensions: map(),
           private_use: [String.t()],
           requested_locale_id: String.t(),
-          canonical_locale_id: String.t(),
+          canonical_locale_id: String.t() | nil,
           cldr_locale_id: Locale.locale_id()
         }
 
@@ -204,7 +204,7 @@ defmodule Localize.LanguageTag do
   * `{:error, reason}`
 
   """
-  @spec parse(String.t()) :: {:ok, t()} | {:error, {module(), String.t()}}
+  @spec parse(String.t()) :: {:ok, t()} | {:error, module()}
   def parse(locale_id) when is_binary(locale_id) do
     Parser.parse(locale_id)
   end
@@ -606,6 +606,7 @@ defmodule Localize.LanguageTag do
     resolve_for_matching(Atom.to_string(locale), role)
   end
 
+  @dialyzer {:nowarn_function, ensure_maximized: 1}
   defp ensure_maximized(%__MODULE__{script: nil} = tag) do
     case add_likely_subtags(tag) do
       {:ok, maximized} -> maximized
@@ -821,10 +822,11 @@ defmodule Localize.LanguageTag do
 
   """
   @spec add_likely_subtags!(t()) :: t() | no_return()
+  @dialyzer {:nowarn_function, add_likely_subtags!: 1}
   def add_likely_subtags!(%__MODULE__{} = language_tag) do
     case add_likely_subtags(language_tag) do
       {:ok, tag} -> tag
-      {:error, %{__exception__: true} = exception} -> raise exception
+      {:error, reason} -> raise ArgumentError, Kernel.to_string(reason)
     end
   end
 
@@ -913,15 +915,17 @@ defmodule Localize.LanguageTag do
 
   """
   @spec remove_likely_subtags!(t()) :: t() | no_return()
+  @dialyzer {:nowarn_function, remove_likely_subtags!: 1}
   def remove_likely_subtags!(%__MODULE__{} = language_tag) do
     case remove_likely_subtags(language_tag) do
       {:ok, tag} -> tag
-      {:error, %{__exception__: true} = exception} -> raise exception
+      {:error, reason} -> raise ArgumentError, Kernel.to_string(reason)
     end
   end
 
   # Check if adding likely subtags to a trial tag produces the same
   # maximized language, script, and region.
+  @dialyzer {:nowarn_function, matches_maximized?: 4}
   defp matches_maximized?(trial, max_lang, max_script, max_region) do
     case add_likely_subtags(trial) do
       {:ok, trial_max} ->

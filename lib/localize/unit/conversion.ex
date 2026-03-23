@@ -87,7 +87,7 @@ defmodule Localize.Unit.Conversion do
       {:ok, 0.0}
 
   """
-  @spec convert(number(), String.t(), String.t()) :: {:ok, float()} | {:error, String.t()}
+  @spec convert(number(), String.t(), String.t()) :: {:ok, float()} | {:error, Exception.t() | String.t()}
 
   def convert(value, from, to) do
     with {:ok, parsed_from} <- Parser.parse(from),
@@ -134,6 +134,7 @@ defmodule Localize.Unit.Conversion do
     case convert(value, from, to) do
       {:ok, result} -> result
       {:error, %{__exception__: true} = exception} -> raise exception
+      {:error, reason} -> raise ArgumentError, Kernel.to_string(reason)
     end
   end
 

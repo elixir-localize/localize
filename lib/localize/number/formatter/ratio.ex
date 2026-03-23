@@ -162,10 +162,6 @@ defmodule Localize.Number.Formatter.Ratio do
   defp to_float(number) when is_float(number), do: number
   defp to_float(number) when is_integer(number), do: number * 1.0
 
-  defp number_to_integer_and_fraction(number) when is_integer(number) do
-    {number, 0.0}
-  end
-
   defp number_to_integer_and_fraction(number) when is_float(number) do
     integer = trunc(number)
     fraction = number - integer

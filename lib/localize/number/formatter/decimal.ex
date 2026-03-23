@@ -202,11 +202,6 @@ defmodule Localize.Number.Formatter.Decimal do
     {number, exponent}
   end
 
-  defp output_to_tuple(number) when is_integer(number) do
-    integer = :erlang.integer_to_list(number)
-    {1, integer, [], 1, [?0]}
-  end
-
   defp output_to_tuple({coef, exponent}) do
     {integer, fraction, sign} = Digits.to_tuple(coef)
     exponent_sign = if exponent >= 0, do: 1, else: -1

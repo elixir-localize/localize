@@ -64,13 +64,13 @@ defmodule Localize.Utils.Digits do
 
   """
   @spec fraction_as_integer(number() | Decimal.t() | {list, list, 1 | -1}) :: integer
+  def fraction_as_integer({_integer, [], _sign}) do
+    0
+  end
+
   def fraction_as_integer({_integer, fraction, _sign})
       when is_list(fraction) do
     Integer.undigits(fraction)
-  end
-
-  def fraction_as_integer({_integer, [], _sign}) do
-    0
   end
 
   def fraction_as_integer(number) do

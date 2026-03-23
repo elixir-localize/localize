@@ -95,7 +95,7 @@ defmodule Localize.Unit do
 
   """
   @spec new(number() | Decimal.t(), String.t(), keyword()) ::
-          {:ok, t()} | {:error, String.t()}
+          {:ok, t()} | {:error, Exception.t()}
 
   def new(amount, unit, options \\ []) when is_binary(unit) do
     with {:ok, _} <- validate_value(amount),
@@ -133,7 +133,7 @@ defmodule Localize.Unit do
       "meter"
 
   """
-  @spec new(String.t()) :: {:ok, t()} | {:error, String.t()}
+  @spec new(String.t()) :: {:ok, t()} | {:error, Exception.t()}
 
   def new(name) when is_binary(name) do
     case Localize.Unit.Parser.parse(name) do
@@ -171,11 +171,12 @@ defmodule Localize.Unit do
 
   """
   @spec new!(number() | Decimal.t(), String.t(), keyword()) :: t() | no_return()
-
+  @dialyzer {:nowarn_function, new!: 3}
   def new!(amount, unit, options \\ []) when is_binary(unit) do
     case new(amount, unit, options) do
       {:ok, result} -> result
       {:error, %{__exception__: true} = exception} -> raise exception
+      {:error, reason} -> raise ArgumentError, Kernel.to_string(reason)
     end
   end
 
@@ -201,11 +202,12 @@ defmodule Localize.Unit do
 
   """
   @spec new!(String.t()) :: t() | no_return()
-
+  @dialyzer {:nowarn_function, new!: 1}
   def new!(name) when is_binary(name) do
     case new(name) do
       {:ok, unit} -> unit
       {:error, %{__exception__: true} = exception} -> raise exception
+      {:error, reason} -> raise ArgumentError, Kernel.to_string(reason)
     end
   end
 
@@ -240,7 +242,7 @@ defmodule Localize.Unit do
       "meter"
 
   """
-  @spec convert(t(), String.t()) :: {:ok, t()} | {:error, String.t()}
+  @spec convert(t(), String.t()) :: {:ok, t()} | {:error, Exception.t()}
 
   def convert(%__MODULE__{value: nil}, _target) do
     {:error,
@@ -389,11 +391,12 @@ defmodule Localize.Unit do
 
   """
   @spec convert!(t(), String.t()) :: t() | no_return()
-
+  @dialyzer {:nowarn_function, convert!: 2}
   def convert!(%__MODULE__{} = unit, target) when is_binary(target) do
     case convert(unit, target) do
       {:ok, result} -> result
       {:error, %{__exception__: true} = exception} -> raise exception
+      {:error, reason} -> raise ArgumentError, Kernel.to_string(reason)
     end
   end
 

@@ -199,12 +199,12 @@ defmodule Localize.Number.Rbnf.Processor do
 
   # Plural operations
   defp do_operation(:ordinal, number, _rule_set, _rule, plurals, _all_sets) do
-    plural = Localize.Number.PluralRule.Ordinal.plural_rule(number, :en)
+    plural = Localize.Number.PluralRule.Ordinal.plural_rule(number, "en")
     Map.get(plurals, plural) || Map.get(plurals, :other, "")
   end
 
   defp do_operation(:cardinal, number, _rule_set, _rule, plurals, _all_sets) do
-    plural = Localize.Number.PluralRule.Cardinal.plural_rule(number, :en)
+    plural = Localize.Number.PluralRule.Cardinal.plural_rule(number, "en")
     Map.get(plurals, plural) || Map.get(plurals, :other, "")
   end
 
@@ -246,6 +246,7 @@ defmodule Localize.Number.Rbnf.Processor do
     end
   end
 
+  @dialyzer {:nowarn_function, find_rule_set: 2}
   defp find_rule_set(all_rule_sets, name) when is_binary(name) do
     # Try direct string match, then atom match, then underscore/hyphen variations
     # Also handle the "r" prefix for rule names that start with digits
@@ -298,8 +299,8 @@ defmodule Localize.Number.Rbnf.Processor do
       numbering_set = "spellout_numbering"
 
       case apply_rule_set(n, numbering_set, all_sets) do
-        {:ok, result} -> result
         {:error, _} -> apply_rule_set_or_string(n, rule_set, all_sets)
+        result -> result
       end
     end)
     |> Enum.join(" ")
@@ -307,8 +308,8 @@ defmodule Localize.Number.Rbnf.Processor do
 
   defp apply_rule_set_or_string(number, rule_set, all_sets) do
     case apply_rule_set(number, rule_set, all_sets) do
-      {:ok, result} -> result
       {:error, _} -> to_string(number)
+      result -> result
     end
   end
 

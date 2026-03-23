@@ -365,10 +365,6 @@ defmodule Localize.Collation do
     end
   end
 
-  defp do_produce_full([], acc, _overlay, _suppress) do
-    Enum.reverse(acc) |> List.flatten()
-  end
-
   defp try_discontiguous_match(matched_cps, elements, remaining) do
     case remaining do
       [] ->

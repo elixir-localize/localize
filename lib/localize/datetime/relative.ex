@@ -94,7 +94,7 @@ defmodule Localize.DateTime.Relative do
 
       case format_relative(scaled, resolved_unit, format, locale_id) do
         {:ok, _} = result -> result
-        nil -> {:ok, Kernel.to_string(scaled)}
+        {:error, _} -> {:ok, Kernel.to_string(scaled)}
       end
     end
   end

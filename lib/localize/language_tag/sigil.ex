@@ -5,6 +5,8 @@ defmodule Localize.LanguageTag.Sigil do
 
   """
 
+  @dialyzer :no_return
+
   @doc """
   Handles sigil `~l` for language tags.
 
@@ -46,11 +48,8 @@ defmodule Localize.LanguageTag.Sigil do
           unquote(Macro.escape(language_tag))
         end
 
-      {:error, %{__exception__: true} = exception} ->
+      {:error, exception} ->
         raise exception
-
-      {:error, {exception, reason}} ->
-        raise exception, reason
     end
   end
 
@@ -63,11 +62,8 @@ defmodule Localize.LanguageTag.Sigil do
           unquote(Macro.escape(language_tag))
         end
 
-      {:error, %{__exception__: true} = exception} ->
+      {:error, exception} ->
         raise exception
-
-      {:error, {exception, reason}} ->
-        raise exception, reason
     end
   end
 end

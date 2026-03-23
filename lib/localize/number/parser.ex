@@ -509,7 +509,7 @@ defmodule Localize.Number.Parser do
 
         if offset >= 0 do
           skip = offset + match_length
-          <<_::binary-size(skip), remainder::binary>> = search
+          <<_::binary-size(^skip), remainder::binary>> = search
           [code, remainder]
         else
           ["", search]
@@ -532,7 +532,7 @@ defmodule Localize.Number.Parser do
         match_length = byte_size(match_string)
         total = byte_size(String.trim_trailing(search))
         keep = total - match_length
-        <<remainder::binary-size(keep), _::binary>> = search
+        <<remainder::binary-size(^keep), _::binary>> = search
         [remainder, code]
     end
   end

@@ -238,6 +238,21 @@ in `dev/parsers/` and only compiled in `:dev` env.
       `Localize.SupplementalData` should be `@doc false` and
       accessed only through domain modules, or remain public.
 
+* [ ] Determine minimum supported Elixir and OTP versions.
+      Currently `mix.exs` specifies `elixir: "~> 1.19"`. Decide
+      whether to support earlier versions (1.17+, 1.18+) and
+      which OTP versions (26, 27, 28). This affects availability
+      of the `:json` module (OTP 27+), `+0.0` pattern matching
+      (OTP 27+), and other language features.
+
+* [ ] MF2 JSON interchange format (`Localize.Message.JSON`)
+      requires a JSON library. OTP 27+ includes the `:json`
+      module natively. Decide whether to support only OTP 27+
+      or provide a fallback (e.g., conditional `Code.ensure_loaded?(:json)`
+      with a dependency like `jason` for earlier versions).
+      Currently `mix.exs` specifies `elixir: "~> 1.19"` which
+      implies OTP 27+, so this may already be resolved.
+
 ## Completed
 
 ### Cldr public API merges

@@ -101,6 +101,8 @@ defmodule Localize.Nif do
   * `{:error, reason}` on failure.
 
   """
+  @dialyzer {:nowarn_function, mf2_format: 3}
+
   @spec mf2_format(String.t(), String.t(), map() | String.t()) ::
           {:ok, String.t()} | {:error, String.t()}
   def mf2_format(message, locale \\ "en", args \\ %{}) when is_binary(message) do
@@ -123,6 +125,7 @@ defmodule Localize.Nif do
   @variable_pattern ~r/\$([a-zA-Z_][a-zA-Z0-9_]*)/
   @local_declaration_pattern ~r/\.(?:local|input)\s+\$([a-zA-Z_][a-zA-Z0-9_]*)/
 
+  @dialyzer {:nowarn_function, unbound_variables: 2}
   defp unbound_variables(message, args) do
     declared =
       @local_declaration_pattern

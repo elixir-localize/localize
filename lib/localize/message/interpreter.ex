@@ -775,6 +775,7 @@ defmodule Localize.Message.Interpreter do
     resolve_currency_struct(Atom.to_string(currency_code), locale)
   end
 
+  @dialyzer {:nowarn_function, resolve_currency_symbol: 2}
   defp resolve_currency_symbol(currency_struct, nil) do
     currency_struct.symbol
   end
@@ -787,9 +788,6 @@ defmodule Localize.Message.Interpreter do
     to_string(currency_struct.code)
   end
 
-  defp resolve_currency_symbol(_currency_struct, symbol) when is_binary(symbol) do
-    symbol
-  end
 
   defp resolve_currency_spacing(locale, number_system) do
     Localize.Number.Format.currency_spacing(locale, number_system)
@@ -867,6 +865,7 @@ defmodule Localize.Message.Interpreter do
   # ── Type coercion and validation ───────────────────────────────
 
   defp ensure_number(value) when is_number(value), do: {:ok, value}
+  defp ensure_number(%Decimal{} = value), do: {:ok, value}
 
   defp ensure_number(value) when is_binary(value) do
     case parse_number(value) do
@@ -1009,7 +1008,6 @@ defmodule Localize.Message.Interpreter do
   # ── General utilities ──────────────────────────────────────────
 
   defp format_error_reason(%{__exception__: true} = exception), do: Exception.message(exception)
-  defp format_error_reason({_module, message}) when is_binary(message), do: message
   defp format_error_reason(reason) when is_binary(reason), do: reason
 
   defp option_key(name) do

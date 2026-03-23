@@ -35,7 +35,7 @@ defmodule Localize.Unit.Parser do
       {:ok, {:unit, type: nil, numerator: [{:single_unit, prefix: nil, power: nil, base: "meter"}], denominator: [{:single_unit, prefix: nil, power: nil, base: "second"}]}}
 
   """
-  @spec parse(String.t()) :: {:ok, tuple()} | {:error, String.t()}
+  @spec parse(String.t()) :: {:ok, tuple()} | {:error, Exception.t()}
 
   def parse(input) when is_binary(input) do
     case unit_identifier(input) do
@@ -85,7 +85,7 @@ defmodule Localize.Unit.Parser do
   def parse!(input) when is_binary(input) do
     case parse(input) do
       {:ok, parsed} -> parsed
-      {:error, %{__exception__: true} = exception} -> raise exception
+      {:error, exception} -> raise exception
     end
   end
 

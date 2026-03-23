@@ -10,7 +10,10 @@ defmodule Localize.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: maybe_elixir_make() ++ [:yecc, :leex] ++ Mix.compilers(),
       make_makefile: "c_src/Makefile",
-      deps: deps()
+      deps: deps(),
+      dialyzer: [
+        ignore_warnings: ".dialyzer_ignore.exs"
+      ]
     ]
   end
 
@@ -35,7 +38,8 @@ defmodule Localize.MixProject do
       {:unicode, "~> 1.21"},
       {:nimble_parsec, "~> 1.0", only: :dev, runtime: false},
       {:elixir_make, "~> 0.4", runtime: false, optional: true},
-      {:sweet_xml, "~> 0.7", only: :dev, runtime: false}
+      {:sweet_xml, "~> 0.7", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.4", only: :dev, runtime: false}
     ]
   end
 

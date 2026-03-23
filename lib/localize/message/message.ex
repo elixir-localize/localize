@@ -60,7 +60,7 @@ defmodule Localize.Message do
   @type formatter_backend :: :default | :nif | :elixir
 
   @spec format(String.t(), bindings(), options()) ::
-          {:ok, String.t()} | {:error, {module(), String.t()}}
+          {:ok, String.t()} | {:error, Exception.t()}
 
   def format(message, bindings \\ %{}, options \\ []) when is_binary(message) do
     {formatter, options} = resolve_formatter_backend(options)
@@ -120,6 +120,7 @@ defmodule Localize.Message do
     end
   end
 
+  @dialyzer {:nowarn_function, check_unbound_variables: 2}
   defp check_unbound_variables(message, bindings_map) do
     case Parser.parse(message) do
       {:ok, ast} ->

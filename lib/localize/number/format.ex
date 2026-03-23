@@ -410,6 +410,8 @@ defmodule Localize.Number.Format do
   * `{:error, exception}` if the locale data cannot be loaded.
 
   """
+  @dialyzer {:nowarn_function, short_format_styles_for: 1}
+  @dialyzer {:nowarn_function, short_format_styles_for: 2}
   @spec short_format_styles_for(
           Localize.LanguageTag.t() | atom() | String.t(),
           atom() | String.t()

@@ -571,10 +571,8 @@ defmodule Localize.DateTime.Formatter do
   # Z (5):   ISO 8601 extended with Z for zero (+05:00 or Z)
   @doc false
   def zone_basic(datetime, count, _locale_id, _options) when count in 1..3 do
-    case Timezone.iso_format(datetime, format: :long, type: :basic, z_for_zero: false) do
-      {:ok, result} -> result
-      _ -> ""
-    end
+    {:ok, result} = Timezone.iso_format(datetime, format: :long, type: :basic, z_for_zero: false)
+    result
   end
 
   def zone_basic(datetime, 4, locale_id, _options) do
@@ -585,10 +583,8 @@ defmodule Localize.DateTime.Formatter do
   end
 
   def zone_basic(datetime, 5, _locale_id, _options) do
-    case Timezone.iso_format(datetime, format: :full, type: :extended, z_for_zero: true) do
-      {:ok, result} -> result
-      _ -> ""
-    end
+    {:ok, result} = Timezone.iso_format(datetime, format: :full, type: :extended, z_for_zero: true)
+    result
   end
 
   def zone_basic(_datetime, _count, _locale_id, _options), do: ""
@@ -662,10 +658,8 @@ defmodule Localize.DateTime.Formatter do
   def zone_iso_z(datetime, count, _locale_id, _options) do
     {format, type} = iso_format_for_count(count)
 
-    case Timezone.iso_format(datetime, format: format, type: type, z_for_zero: true) do
-      {:ok, result} -> result
-      _ -> ""
-    end
+    {:ok, result} = Timezone.iso_format(datetime, format: format, type: type, z_for_zero: true)
+    result
   end
 
   # x (1-5): ISO 8601 without Z for zero offset
@@ -673,10 +667,8 @@ defmodule Localize.DateTime.Formatter do
   def zone_iso(datetime, count, _locale_id, _options) do
     {format, type} = iso_format_for_count(count)
 
-    case Timezone.iso_format(datetime, format: format, type: type, z_for_zero: false) do
-      {:ok, result} -> result
-      _ -> ""
-    end
+    {:ok, result} = Timezone.iso_format(datetime, format: format, type: type, z_for_zero: false)
+    result
   end
 
   defp iso_format_for_count(1), do: {:short, :basic}

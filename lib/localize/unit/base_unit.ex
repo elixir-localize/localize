@@ -45,7 +45,7 @@ defmodule Localize.Unit.BaseUnit do
       {:ok, "meter-per-second"}
 
   """
-  @spec base_unit(String.t() | tuple()) :: {:ok, String.t()} | {:error, String.t()}
+  @spec base_unit(String.t() | tuple()) :: {:ok, String.t()} | {:error, Exception.t() | String.t()}
 
   def base_unit(input) when is_binary(input) do
     case Localize.Unit.Parser.parse(input) do
@@ -88,6 +88,7 @@ defmodule Localize.Unit.BaseUnit do
     case base_unit(input) do
       {:ok, result} -> result
       {:error, %{__exception__: true} = exception} -> raise exception
+      {:error, reason} -> raise ArgumentError, Kernel.to_string(reason)
     end
   end
 

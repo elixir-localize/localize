@@ -171,8 +171,21 @@ defmodule Localize.DateTime do
                   )
               end
 
-            {:ok, pattern} when is_binary(pattern) ->
-              Localize.DateTime.Formatter.format(datetime, pattern, locale_id, Map.new(options))
+            {:ok, {date_skeleton, time_skeleton}} ->
+              date_pattern = resolve_prefer(Map.get(available, date_skeleton, ""), prefer)
+              time_pattern = resolve_prefer(Map.get(available, time_skeleton, ""), prefer)
+
+              options_map =
+                options
+                |> Map.new()
+                |> Map.put(:date_format, :medium)
+                |> Map.put(:time_format, :medium)
+
+              with {:ok, wrapper} <- resolve_wrapper(:medium, locale_id, :default) do
+                combined = String.replace(wrapper, "{0}", time_pattern)
+                combined = String.replace(combined, "{1}", date_pattern)
+                Localize.DateTime.Formatter.format(datetime, combined, locale_id, options_map)
+              end
 
             _ ->
               {:error,

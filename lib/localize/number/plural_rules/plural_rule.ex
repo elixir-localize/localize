@@ -97,6 +97,7 @@ defmodule Localize.Number.PluralRule do
   """
   @spec plural_type(number() | Decimal.t(), Keyword.t()) ::
           plural_type() | {:error, Exception.t()}
+  @dialyzer {:nowarn_function, plural_type: 2}
   def plural_type(number, options \\ []) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     type = Keyword.get(options, :type, :cardinal)

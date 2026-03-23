@@ -85,6 +85,9 @@ defmodule Localize do
 
   # ── Process locale management ──────────────────────────────────
 
+  @typedoc "A locale identifier atom or a language tag struct."
+  @type locale :: atom() | Localize.LanguageTag.t()
+
   @locale_key :localize_locale
   @default_locale_key :localize_default_locale
 
