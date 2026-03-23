@@ -86,6 +86,16 @@ All compile warnings have been resolved. Zero warnings on
 
 * [ ] Add license file.
 
+* [ ] Define docs structure in `mix.exs` including topic
+      grouping and user guides (`guides/number_formatting.md`,
+      `guides/date_time_formatting.md`,
+      `guides/unit_formatting.md`,
+      `guides/message_formatting.md`,
+      `guides/collation.md`,
+      `guides/architecture.md`,
+      `guides/migration.md`,
+      `guides/conformance.md`).
+
 * [ ] Run `mix docs` and review generated documentation.
 
 * [ ] Run `mix dialyzer` and resolve any errors.

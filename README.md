@@ -151,6 +151,41 @@ config :localize,
 
 When `:supported_locales` is **not** configured (the default), `validate_locale/1` matches against all ~766 CLDR locales and `:preload_locales` simply controls which locale data is loaded eagerly.
 
+## Environment variables
+
+The following environment variables influence Localize behaviour.
+
+### Runtime
+
+| Variable | Description |
+|----------|-------------|
+| `LOCALIZE_DEFAULT_LOCALE` | Sets the application-wide default locale (e.g., `en-AU`, `ja`). Takes precedence over the `LANG` variable and the `:default_locale` application config. Evaluated once on first call to `Localize.get_locale/0` or `Localize.default_locale/0`. |
+| `LANG` | Standard POSIX locale variable (e.g., `en_US.UTF-8`). Used as a fallback when `LOCALIZE_DEFAULT_LOCALE` is not set and no `:default_locale` is configured. The value is converted from POSIX format (underscores replaced with hyphens, encoding suffix stripped). |
+| `LOCALIZE_UNSAFE_HTTPS` | When set to any value, disables SSL certificate verification for HTTPS connections (e.g., locale data downloads). Intended for development behind corporate proxies with self-signed certificates. Do not use in production. |
+| `LOCALIZE_HTTP_TIMEOUT` | HTTP request timeout in milliseconds for locale data downloads. Overrides the default timeout. |
+| `LOCALIZE_HTTP_CONNECTION_TIMEOUT` | HTTP connection timeout in milliseconds for locale data downloads. Overrides the default connection timeout. |
+| `HTTPS_PROXY` / `https_proxy` | HTTPS proxy URL for outbound connections. Also configurable via the `:https_proxy` application config key. |
+
+### Compile time
+
+| Variable | Description |
+|----------|-------------|
+| `LOCALIZE_NIF` | Set to `true` to compile the optional NIF extension (e.g., `LOCALIZE_NIF=true mix compile`). Enables ICU4C-based Unicode normalisation, collation sort-key generation, and number/message formatting. Can also be enabled with `config :localize, nif: true`. |
+
+### Default locale resolution order
+
+When `Localize.get_locale/0` is called and no process-level locale has been set, the default locale is resolved in this order:
+
+1. `LOCALIZE_DEFAULT_LOCALE` environment variable.
+
+2. `:default_locale` application config (`config :localize, default_locale: :fr`).
+
+3. `LANG` environment variable (POSIX format converted to BCP 47).
+
+4. `:en` as the final fallback.
+
+The resolved locale is cached in `:persistent_term` after first resolution so this lookup happens only once per BEAM lifetime.
+
 ## Documentation
 
 Full documentation is available on [HexDocs](https://hexdocs.pm/localize).
