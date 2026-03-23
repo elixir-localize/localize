@@ -48,19 +48,19 @@ defmodule Localize.Number.Formatter.Decimal do
   def metadata(format) when is_binary(format) do
     key = {:localize, :number_format_meta, format}
 
-    case :persistent_term.get(key, :not_compiled) do
-      :not_compiled ->
+    case Localize.FormatCache.lookup(key) do
+      {:ok, meta} ->
+        {:ok, meta}
+
+      :miss ->
         case Compiler.format_to_metadata(format) do
           {:ok, meta} ->
-            :persistent_term.put(key, meta)
+            Localize.FormatCache.store(key, meta)
             {:ok, meta}
 
           error ->
             error
         end
-
-      meta ->
-        {:ok, meta}
     end
   end
 

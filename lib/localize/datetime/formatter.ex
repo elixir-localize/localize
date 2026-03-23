@@ -69,19 +69,19 @@ defmodule Localize.DateTime.Formatter do
   defp tokenize_cached(format_string) do
     key = {:localize, :datetime_format_tokens, format_string}
 
-    case :persistent_term.get(key, :not_compiled) do
-      :not_compiled ->
+    case Localize.FormatCache.lookup(key) do
+      {:ok, {tokens, end_line}} ->
+        {:ok, tokens, end_line}
+
+      :miss ->
         case Compiler.tokenize(format_string) do
           {:ok, tokens, end_line} ->
-            :persistent_term.put(key, {tokens, end_line})
+            Localize.FormatCache.store(key, {tokens, end_line})
             {:ok, tokens, end_line}
 
           error ->
             error
         end
-
-      {tokens, end_line} ->
-        {:ok, tokens, end_line}
     end
   end
 

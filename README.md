@@ -116,6 +116,7 @@ config :localize,
   preload_locales: [:en, :de, :ja, "fr-*"],
   locale_provider: MyApp.LocaleProvider,
   locale_cache_max_entries: 2_000,
+  format_cache_max_entries: 5_000,
   data_dir: "/path/to/locale/data",
   nif: true,
   cacertfile: "/path/to/cacerts.pem",
@@ -129,6 +130,7 @@ config :localize,
 | `:preload_locales` | `nil` | A list of locale identifiers to load at application startup. Accepts atoms and wildcard strings like `:supported_locales`. Locale data is fetched and cached in `:persistent_term` before any formatting calls. Invalid entries log a warning and are skipped. See below for how this interacts with `:supported_locales`. |
 | `:locale_provider` | `Localize.Locale.Provider.PersistentTerm` | Module that implements the `Localize.Locale.Provider` behaviour for loading and caching per-locale data. |
 | `:locale_cache_max_entries` | `1_000` | Maximum number of validated locales to hold in the ETS cache. A background sweeper runs every 10 seconds and evicts excess entries to prevent unbounded growth. |
+| `:format_cache_max_entries` | `2_000` | Maximum number of compiled format patterns (number and date/time) to hold in the ETS cache. A background sweeper runs every 10 seconds and evicts excess entries to prevent unbounded growth. |
 | `:data_dir` | `Path.join(:code.priv_dir(:localize), "cldr/locales")` | Directory where per-locale JSON data files are stored. |
 | `:nif` | `false` | Enable the optional NIF for faster Unicode normalisation and collation sort-key generation. Can also be enabled with the `LOCALIZE_NIF=true` environment variable at compile time. See `Localize.Nif` for details. |
 | `:cacertfile` | System default | Path to a custom CA certificate file for HTTPS connections (used when downloading locale data). |

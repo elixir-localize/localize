@@ -13,6 +13,7 @@ defmodule Localize.Application do
       Localize.DataLoader,
       Localize.Locale.Loader,
       Localize.Locale.CacheSweeper,
+      Localize.FormatCache,
       Localize.Collation.Table,
       Localize.Collation.Han,
       Localize.Currency.Store
