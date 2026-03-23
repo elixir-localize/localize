@@ -903,6 +903,8 @@ defmodule Localize do
       :en
 
   """
+  @locale_cache_table :localize_locale_cache
+
   @spec validate_locale(Localize.LanguageTag.t() | String.t() | atom()) ::
           {:ok, Localize.LanguageTag.t()} | {:error, Exception.t()}
 
@@ -916,22 +918,50 @@ defmodule Localize do
   end
 
   def validate_locale(locale_id) when is_binary(locale_id) do
-    case Localize.LanguageTag.new(locale_id) do
-      {:ok, %Localize.LanguageTag{cldr_locale_id: cldr_locale_id} = language_tag}
-      when not is_nil(cldr_locale_id) ->
-        {:ok, language_tag}
+    cache_key = String.downcase(locale_id)
 
-      {:ok, %Localize.LanguageTag{cldr_locale_id: nil} = language_tag} ->
-        resolve_cldr_locale(language_tag)
+    case locale_cache_lookup(cache_key) do
+      {:ok, _tag} = cached -> cached
 
-      {:error, _reason} ->
-        {:error, Localize.InvalidLocaleError.exception(locale_id: locale_id)}
+      :miss ->
+        result =
+          case Localize.LanguageTag.new(locale_id) do
+            {:ok, %Localize.LanguageTag{cldr_locale_id: cldr_locale_id} = language_tag}
+            when not is_nil(cldr_locale_id) ->
+              {:ok, language_tag}
+
+            {:ok, %Localize.LanguageTag{cldr_locale_id: nil} = language_tag} ->
+              resolve_cldr_locale(language_tag)
+
+            {:error, _reason} ->
+              {:error, Localize.InvalidLocaleError.exception(locale_id: locale_id)}
+          end
+
+        locale_cache_store(cache_key, result)
+        result
     end
   end
 
   def validate_locale(locale_id) when is_atom(locale_id) do
     validate_locale(Atom.to_string(locale_id))
   end
+
+  defp locale_cache_lookup(cache_key) do
+    case :ets.lookup(@locale_cache_table, cache_key) do
+      [{^cache_key, result}] -> result
+      [] -> :miss
+    end
+  rescue
+    ArgumentError -> :miss
+  end
+
+  defp locale_cache_store(cache_key, {:ok, _tag} = result) do
+    :ets.insert(@locale_cache_table, {cache_key, result})
+  rescue
+    ArgumentError -> :ok
+  end
+
+  defp locale_cache_store(_cache_key, {:error, _}), do: :ok
 
   defp resolve_cldr_locale(%Localize.LanguageTag{} = language_tag) do
     all_locale_ids = Localize.SupplementalData.all_locale_ids()

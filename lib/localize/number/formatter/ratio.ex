@@ -172,7 +172,14 @@ defmodule Localize.Number.Formatter.Ratio do
     {integer, fraction}
   end
 
-  defp format_integer_and_fraction(integer, fraction, formats, prefer, ratio_options, number_options) do
+  defp format_integer_and_fraction(
+         integer,
+         fraction,
+         formats,
+         prefer,
+         ratio_options,
+         number_options
+       ) do
     # For the fraction part of a negative number, force positive display
     fraction_options =
       if integer > 0, do: number_options, else: number_options
@@ -194,7 +201,14 @@ defmodule Localize.Number.Formatter.Ratio do
     case Localize.Utils.Math.float_to_ratio(abs(fraction), ratio_options) do
       {numerator, denominator} ->
         prefer_precomposed? = :precomposed in prefer
-        format_ratio({numerator, denominator}, formats, prefer, number_options, prefer_precomposed?)
+
+        format_ratio(
+          {numerator, denominator},
+          formats,
+          prefer,
+          number_options,
+          prefer_precomposed?
+        )
 
       _other ->
         {:error,

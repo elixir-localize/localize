@@ -211,7 +211,7 @@ iex> Localize.Number.to_string(42, format: :currency, currency: :USD)
 
 ### RBNF rule names
 
-For rule-based formatting, use `Localize.Number.Rbnf.to_string/3` with a rule name atom or string:
+For rule-based formatting, use `Localize.Number.Rbnf.to_string/3` with a rule name atom:
 
 ```elixir
 iex> Localize.Number.Rbnf.to_string(42, :spellout_cardinal, locale: :en)
