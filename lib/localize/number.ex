@@ -44,8 +44,21 @@ defmodule Localize.Number do
     `:ceiling`, `:floor`, `:half_down`, `:up`. The default is
     `:half_even`.
 
-  * `:fractional_digits` is an integer specifying the exact number
-    of fractional digits to display.
+  * `:fractional_digits` is an integer that sets both the minimum
+    and maximum fractional digits to the same value. Equivalent to
+    setting `:min_fractional_digits` and `:max_fractional_digits`
+    to the same integer. Overridden by either of those options when
+    they are also provided.
+
+  * `:min_fractional_digits` is an integer specifying the minimum
+    number of fractional digits. Trailing zeros are added to reach
+    this count. When not set, falls back to `:fractional_digits`
+    or the format pattern default.
+
+  * `:max_fractional_digits` is an integer specifying the maximum
+    number of fractional digits. Values are rounded to fit. When
+    not set, falls back to `:fractional_digits` or the format
+    pattern default.
 
   * `:maximum_integer_digits` is an integer specifying the maximum
     number of integer digits to display.

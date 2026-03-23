@@ -24,6 +24,8 @@ defmodule Localize.Number.Format.Options do
     :pattern,
     :rounding_mode,
     :fractional_digits,
+    :min_fractional_digits,
+    :max_fractional_digits,
     :maximum_integer_digits,
     :round_nearest,
     :wrapper,

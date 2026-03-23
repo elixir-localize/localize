@@ -555,8 +555,8 @@ defmodule Localize.Message.Interpreter do
       max_fd = get_integer_option(func_opts, :maximumFractionDigits)
       use_grouping = Map.get(func_opts, :useGrouping)
 
-      {format, fractional_digits, minimum_grouping_digits} =
-        resolve_format_and_digits(min_fd, max_fd, use_grouping, overrides)
+      {format, minimum_grouping_digits} =
+        resolve_format_and_grouping(use_grouping, overrides)
 
       pattern = Keyword.get(overrides, :pattern, :positive)
 
@@ -570,7 +570,8 @@ defmodule Localize.Message.Interpreter do
         format: resolved_format,
         symbols: symbols,
         rounding_mode: :half_even,
-        fractional_digits: fractional_digits,
+        min_fractional_digits: min_fd,
+        max_fractional_digits: max_fd,
         minimum_grouping_digits: minimum_grouping_digits,
         pattern: pattern,
         currency: Keyword.get(overrides, :currency),
@@ -622,15 +623,12 @@ defmodule Localize.Message.Interpreter do
          {:ok, format_string} <- resolve_currency_format(locale, number_system, format),
          {:ok, currency_struct} <- resolve_currency_struct(currency_code, locale) do
       min_fd = get_integer_option(func_opts, :minimumFractionDigits)
+      max_fd = get_integer_option(func_opts, :maximumFractionDigits)
 
       actual_symbol = resolve_currency_symbol(currency_struct, currency_symbol)
 
-      fractional_digits =
-        if min_fd != nil do
-          min_fd
-        else
-          currency_struct.digits
-        end
+      # Default fractional digits from currency when not explicitly set
+      default_fd = currency_struct.digits
 
       options_struct = %NumberOptions{
         locale: locale,
@@ -638,7 +636,9 @@ defmodule Localize.Message.Interpreter do
         format: format_string,
         symbols: symbols,
         rounding_mode: :half_even,
-        fractional_digits: fractional_digits,
+        fractional_digits: if(min_fd == nil and max_fd == nil, do: default_fd, else: nil),
+        min_fractional_digits: min_fd,
+        max_fractional_digits: max_fd,
         minimum_grouping_digits: nil,
         pattern: :positive,
         currency: currency_struct,
@@ -672,36 +672,25 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
-  defp resolve_format_and_digits(min_fd, max_fd, use_grouping, overrides) do
+  defp resolve_format_and_grouping(use_grouping, overrides) do
     base_format = Keyword.get(overrides, :format)
 
     cond do
       # Explicit format override (like :percent)
       base_format != nil and is_atom(base_format) ->
-        {base_format, min_fd, nil}
+        {base_format, nil}
 
-      # Custom fraction digits require a format string
-      min_fd != nil or max_fd != nil ->
-        min_fd = min_fd || 0
-        max_fd = max_fd || min_fd
-        grouping = if use_grouping == "never", do: "", else: "#,#"
-        required = String.duplicate("0", min_fd)
-        optional = String.duplicate("#", max(max_fd - min_fd, 0))
-        decimal = if min_fd > 0 or max_fd > 0, do: ".", else: ""
-        format = "#{grouping}#0#{decimal}#{required}#{optional}"
-        {format, nil, nil}
-
-      # useGrouping=never with no fraction digits
+      # useGrouping=never
       use_grouping == "never" ->
-        {"##0.#", nil, nil}
+        {"##0.###", nil}
 
       # useGrouping=min2
       use_grouping == "min2" ->
-        {:standard, nil, 2}
+        {:standard, 2}
 
       # Default
       true ->
-        {:standard, nil, nil}
+        {:standard, nil}
     end
   end
 

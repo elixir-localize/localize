@@ -77,7 +77,7 @@ defmodule Localize.Number.Formatter.Decimal do
     meta
     |> adjust_fraction_for_currency(options.currency, options.currency_digits)
     |> adjust_fraction_for_significant_digits(number)
-    |> adjust_for_fractional_digits(options.fractional_digits)
+    |> adjust_for_fractional_digits(options)
     |> adjust_for_integer_digits(options.maximum_integer_digits)
     |> adjust_for_round_nearest(options.round_nearest)
     |> Map.put(:number, number)
@@ -737,10 +737,26 @@ defmodule Localize.Number.Formatter.Decimal do
     %{meta | fractional_digits: %{max: 10, min: 1}}
   end
 
-  defp adjust_for_fractional_digits(meta, nil), do: meta
+  defp adjust_for_fractional_digits(meta, options) do
+    fd = options.fractional_digits
+    min_fd = options.min_fractional_digits
+    max_fd = options.max_fractional_digits
 
-  defp adjust_for_fractional_digits(meta, digits) do
-    %{meta | fractional_digits: %{max: digits, min: digits}}
+    cond do
+      # Explicit min/max take precedence
+      min_fd != nil or max_fd != nil ->
+        min_val = min_fd || fd || meta.fractional_digits[:min]
+        max_val = max_fd || fd || meta.fractional_digits[:max]
+        %{meta | fractional_digits: %{max: max_val, min: min_val}}
+
+      # Legacy :fractional_digits sets both min and max
+      fd != nil ->
+        %{meta | fractional_digits: %{max: fd, min: fd}}
+
+      # No override — keep format-derived defaults
+      true ->
+        meta
+    end
   end
 
   defp adjust_for_integer_digits(meta, nil), do: meta
