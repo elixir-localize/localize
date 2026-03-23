@@ -26,60 +26,36 @@ defmodule Localize.SupplementalData do
   defp load_data(filename) do
     key = {:localize_data, filename}
 
-    case :persistent_term.get(key, :not_loaded) do
-      :not_loaded ->
-        data =
-          cldr_dir()
-          |> Path.join(filename)
-          |> File.read!()
-          |> :erlang.binary_to_term()
-
-        :persistent_term.put(key, data)
-        data
-
-      data ->
-        data
-    end
+    Localize.DataLoader.load(key, fn ->
+      cldr_dir()
+      |> Path.join(filename)
+      |> File.read!()
+      |> :erlang.binary_to_term()
+    end)
   end
 
   defp load_supplemental(filename) do
     key = {:localize_supplemental, filename}
 
-    case :persistent_term.get(key, :not_loaded) do
-      :not_loaded ->
-        data =
-          cldr_dir()
-          |> Path.join("supplemental_data")
-          |> Path.join(filename)
-          |> File.read!()
-          |> :erlang.binary_to_term()
-
-        :persistent_term.put(key, data)
-        data
-
-      data ->
-        data
-    end
+    Localize.DataLoader.load(key, fn ->
+      cldr_dir()
+      |> Path.join("supplemental_data")
+      |> Path.join(filename)
+      |> File.read!()
+      |> :erlang.binary_to_term()
+    end)
   end
 
   defp load_validity(filename) do
     key = {:localize_validity, filename}
 
-    case :persistent_term.get(key, :not_loaded) do
-      :not_loaded ->
-        data =
-          cldr_dir()
-          |> Path.join("validity")
-          |> Path.join(filename)
-          |> File.read!()
-          |> :erlang.binary_to_term()
-
-        :persistent_term.put(key, data)
-        data
-
-      data ->
-        data
-    end
+    Localize.DataLoader.load(key, fn ->
+      cldr_dir()
+      |> Path.join("validity")
+      |> Path.join(filename)
+      |> File.read!()
+      |> :erlang.binary_to_term()
+    end)
   end
 
   # ── Public API ──────────────────────────────────────────────────

@@ -655,23 +655,24 @@ defmodule Localize.Number.System do
   # ── Private helpers ──────────────────────────────────────────
 
   defp load_number_systems do
-    systems = @number_systems_path |> File.read!() |> :erlang.binary_to_term()
+    Localize.DataLoader.load(@persistent_term_key, fn ->
+      systems = @number_systems_path |> File.read!() |> :erlang.binary_to_term()
 
-    numeric =
+      numeric =
+        systems
+        |> Enum.reject(fn {_name, system} -> is_nil(system[:digits]) end)
+        |> Map.new()
+
+      algorithmic =
+        systems
+        |> Enum.filter(fn {_name, system} -> system.type == :algorithmic end)
+        |> Map.new()
+
+      :persistent_term.put(@numeric_systems_key, numeric)
+      :persistent_term.put(@algorithmic_systems_key, algorithmic)
+
       systems
-      |> Enum.reject(fn {_name, system} -> is_nil(system[:digits]) end)
-      |> Map.new()
-
-    algorithmic =
-      systems
-      |> Enum.filter(fn {_name, system} -> system.type == :algorithmic end)
-      |> Map.new()
-
-    :persistent_term.put(@persistent_term_key, systems)
-    :persistent_term.put(@numeric_systems_key, numeric)
-    :persistent_term.put(@algorithmic_systems_key, algorithmic)
-
-    systems
+    end)
   end
 
   defp to_locale_id(locale), do: Localize.Locale.to_locale_id(locale)

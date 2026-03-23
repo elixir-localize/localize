@@ -6,6 +6,7 @@ defmodule Localize.Application do
   @impl true
   def start(_type \\ :normal, _args \\ []) do
     children = [
+      Localize.DataLoader,
       Localize.Locale.Loader,
       Localize.Collation.Table,
       Localize.Collation.Han,
