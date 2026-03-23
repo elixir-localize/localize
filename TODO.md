@@ -146,15 +146,13 @@ covering 97 languages, extracted from CLDR XML.
       large overlay maps (thousands of entries). Performance
       impact on sort key generation has not been assessed.
 
-* [ ] `search` collation type — currently excluded from
-      extraction. Search collations use `[import und-u-co-search]`
-      to import root search rules (~600 lines) which provide
-      loose matching (accent/case insensitive). Requires:
-      (1) extracting and bundling root search collation rules,
-      (2) resolving `[import]` directives at extraction time,
-      (3) merging imported rules with locale-specific overrides.
-      Used by ko, hr, and many other locales for search/filter
-      operations as opposed to display sorting.
+* [x] `search` collation type — root search rules extracted
+      from CLDR XML (Arabic form equivalences, Korean jamo
+      decomposition, `[suppressContractions]`). `[import]`
+      directives resolved at extraction time by inlining
+      referenced rules. 20 locale-specific search entries with
+      merged imports. Parent chain fallback reaches `und:search`
+      for all locales. Accessed via `type: :search` option.
 
 * [x] `[suppressContractions]` directive fully supported —
       parsed from tailoring rules, stored as a codepoint list

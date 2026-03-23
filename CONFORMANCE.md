@@ -365,7 +365,7 @@ Two areas are explicitly out of scope:
 | `[before N]` positioning | Not implemented | |
 | `[suppressContractions]` | Implemented | Used by cu, sr, mk. |
 | `[optimize]` | Not applicable | Advisory hint; intentionally ignored. |
-| `[import]` | Not implemented | Required for search collation. |
+| `[import]` | Implemented | Resolved at extraction time — imported rules are inlined into the ETF. Supports BCP47 tags (e.g., `und-u-co-search`, `de-u-co-phonebk`) and short locale tags (e.g., `hr`). |
 | `[strength]` directive | Not implemented | Used by ja:private-kana only. |
 
 ### Collation Types
@@ -373,7 +373,7 @@ Two areas are explicitly out of scope:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Standard collation | Implemented | Default type for all locales. |
-| Search collation | Not implemented | Requires `[import]` of root search rules. |
+| Search collation | Implemented | Root search rules (Arabic form equivalences, Korean jamo decomposition, `[suppressContractions]`) extracted from CLDR XML. 20 locale-specific search types with resolved imports. Accessed via `type: :search` option. |
 | Phonebook (de), Pinyin (zh), etc. | Partial | Some non-standard types extracted; not all verified. |
 
 ### Collation Features
@@ -526,7 +526,6 @@ Two areas are explicitly out of scope:
 * Metazone display names
 * Semantic skeletons
 * Context-dependent capitalization
-* Collation search type
 * Collation alphabetic index (UI bucketing)
 * Coordinate unit formatting (N/S/E/W)
 * Layout direction data

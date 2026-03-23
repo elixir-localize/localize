@@ -72,20 +72,37 @@ defmodule Localize.Collation.Tailoring do
         parent_language = parent_tag.language |> to_string()
         parent_id = Localize.LanguageTag.to_string(parent_tag)
 
-        if parent_id in visited or parent_language == "und" do
-          nil
-        else
-          case Map.get(@tailorings, {parent_language, type}) do
-            nil ->
-              walk_parent_chain(parent_tag, type, MapSet.put(visited, parent_id))
+        cond do
+          parent_id in visited ->
+            # Chain exhausted — try und as final fallback
+            check_und_fallback(type)
 
-            rules_str ->
-              build_tailoring(rules_str)
-          end
+          parent_language == "und" ->
+            # Reached und — check for und tailoring (e.g., und:search)
+            case Map.get(@tailorings, {"und", type}) do
+              nil -> nil
+              rules_str -> build_tailoring(rules_str)
+            end
+
+          true ->
+            case Map.get(@tailorings, {parent_language, type}) do
+              nil ->
+                walk_parent_chain(parent_tag, type, MapSet.put(visited, parent_id))
+
+              rules_str ->
+                build_tailoring(rules_str)
+            end
         end
 
       {:error, _} ->
-        nil
+        check_und_fallback(type)
+    end
+  end
+
+  defp check_und_fallback(type) do
+    case Map.get(@tailorings, {"und", type}) do
+      nil -> nil
+      rules_str -> build_tailoring(rules_str)
     end
   end
 
