@@ -965,7 +965,7 @@ defmodule Localize do
   end
 
   def validate_locale(locale_id) when is_binary(locale_id) do
-    cache_key = String.downcase(locale_id)
+    cache_key = locale_id |> String.replace("_", "-") |> String.downcase()
 
     case locale_cache_lookup(cache_key) do
       {:ok, _tag} = cached ->
