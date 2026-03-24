@@ -308,3 +308,118 @@ in `dev/parsers/` and only compiled in `:dev` env.
       Cardinal/Ordinal BEAM files
 * [x] `Localize.Locale.to_locale_id/1` consolidated into
       single canonical implementation
+
+## CLDR 48.2 Migration
+
+CLDR 48.2 introduces changes to locale display names, key fallback behavior, and MF2 function stability. The data format changes are minimal but the algorithm changes in `LocaleDisplay` require code updates.
+
+Reference: https://www.unicode.org/reports/tr35/tr35-modifications.html#modifications
+
+### 1. Nested Bracket Replacement (new data + algorithm)
+
+CLDR 48.2 formalizes the nested bracket replacement as structured data rather than ad-hoc string replacement. The data is:
+
+```xml
+<nestedBracketReplacement bracket="(">[</nestedBracketReplacement>
+<nestedBracketReplacement bracket=")">]</nestedBracketReplacement>
+<nestedBracketReplacement bracket="（">［</nestedBracketReplacement>
+<nestedBracketReplacement bracket="）">］</nestedBracketReplacement>
+```
+
+Reference: https://www.unicode.org/reports/tr35/tr35-general.html#Character_Nested_Bracket_Replacement
+
+**Current state:** We already replace parentheses with brackets in `LocaleDisplay.replace_parens_with_brackets/1` (locale_display.ex:377-382) with hardcoded `String.replace` calls. This produces the correct output but doesn't use the CLDR data.
+
+**Changes needed:**
+
+* [ ] Load `nestedBracketReplacement` data from CLDR locale data (likely in `locale_display_names` or `characters` section).
+
+* [ ] Replace the hardcoded `replace_parens_with_brackets/1` with a data-driven implementation that reads the bracket mapping from the locale data. This allows locale-specific bracket replacement if CLDR ever adds locale-specific mappings.
+
+* [ ] Apply bracket replacement only when nesting is detected (inner brackets within outer brackets), not unconditionally as we do now. The algorithm should detect when a subtag display name contains the same bracket characters as the `localePattern` and only then apply replacement.
+
+**Risk:** Low. The current hardcoded behavior already produces the correct output for all known CLDR locales. This is a formalization of existing behavior.
+
+### 2. Locale Display Name Algorithm — reorder -u- before -t-
+
+CLDR 48.2 changes the display order so that `-u-` (Unicode locale extension) names appear **before** `-t-` (transform extension) names. We currently display `-t-` first, then `-u-`.
+
+**Current state:** In `extension_display_names/4` (locale_display.ex:276-314), T extension is processed at lines 279-288, then U extension at lines 290-301.
+
+**Changes needed:**
+
+* [ ] Swap the order in `extension_display_names/4` so that U extension is processed first and T extension second.
+
+**Risk:** Low. Simple reorder of two code blocks.
+
+### 3. Locale Display Name Algorithm — flatten -t- language names
+
+CLDR 48.2 specifies that `-t-` transform language names should be flattened to avoid nested parentheses. Instead of recursively calling `display_name` (which wraps in parentheses via `localePattern`), the transform language's subtags should be appended directly to the locale qualifying string (LQS).
+
+**Current state:** In `locale_display/t.ex:104-107`, the `:language` display value calls `Localize.LocaleDisplay.display_name!/2` which recursively generates a full display name including `localePattern` wrapping. This produces nested parentheses like "English (Transform: German (Germany))".
+
+**Changes needed:**
+
+* [ ] Modify `display_value(:language, ...)` in `locale_display/t.ex` to NOT call `display_name!` recursively. Instead, parse the transform language tag and collect its subtag display names (script, region, variants) as a flat list, then join them with the locale separator.
+
+* [ ] The flattened result should be something like "Transform: German, Germany" instead of "Transform: German (Germany)".
+
+**Risk:** Medium. This changes visible output for locales with `-t-` extensions. Need to verify against CLDR test data.
+
+### 4. Missing key translations fallback to key identifier
+
+CLDR 48.2 specifies that when a `<keys>` translation is missing, the key identifier should be used as the fallback rather than omitting the key name.
+
+**Current state:** In `locale_display/t.ex:117-124` and `locale_display/u.ex`, when `key_name` is nil, the code falls back to showing just the value without any key label. In some cases it returns the raw value string.
+
+**Changes needed:**
+
+* [ ] When `get_in(display_names, [:keys, field])` returns nil, fall back to the BCP 47 key identifier string (e.g., "ca" for calendar, "nu" for numbering system) instead of omitting the key.
+
+* [ ] Apply this fallback in both `locale_display/t.ex` and `locale_display/u.ex` in the `display_value` functions.
+
+**Risk:** Low. Adds a fallback where previously there was none. Improves output for incomplete locale data.
+
+### 5. MF2 :currency and :percent — mark as Stable
+
+CLDR 48.2 promotes `:currency` and `:percent` MF2 functions from Draft to Stable status, with the same implementations as previously.
+
+**Current state:** Both functions are implemented in `message/interpreter.ex` (lines 285-297) and work correctly. They are not explicitly documented with a stability status.
+
+**Changes needed:**
+
+* [ ] Add documentation to the MF2 function registry or interpreter noting that `:currency` and `:percent` are Stable per MF2 specification.
+
+* [ ] No implementation changes needed — the spec says implementations are unchanged.
+
+**Risk:** None. Documentation-only change.
+
+### 6. MF2 u:locale option — remove
+
+CLDR 48.2 drops the `u:locale` option from the MF2 specification (it was previously in Draft).
+
+**Current state:** Need to check if we implemented the `u:locale` option.
+
+**Changes needed:**
+
+* [ ] Search for any `u:locale` handling in the MF2 interpreter. If present, remove it. If not present, no action needed.
+
+**Risk:** Low.
+
+### 7. Data update
+
+* [ ] Update CLDR data files from 48.1 to 48.2 in `priv/cldr/`.
+
+* [ ] Verify any new data keys in the locale JSON files (e.g., `nestedBracketReplacement` data).
+
+* [ ] Run the full test suite against the new data to catch any format string changes or new locale additions.
+
+### Migration order
+
+1. Update CLDR data files (item 7)
+2. Swap -u- / -t- ordering (item 2) — simple, low risk
+3. Flatten -t- language names (item 3) — medium complexity
+4. Missing key fallback (item 4) — low risk
+5. Nested bracket replacement from data (item 1) — low risk
+6. MF2 stability docs and u:locale removal (items 5, 6) — trivial
+7. Run full test suite + update expected test outputs
