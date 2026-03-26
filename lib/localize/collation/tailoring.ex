@@ -27,7 +27,7 @@ defmodule Localize.Collation.Tailoring do
 
   @tailorings_path Path.join(
                      :code.priv_dir(:localize) |> to_string(),
-                     "cldr/supplemental_data/collation_tailoring.etf"
+                     "localize/supplemental_data/collation_tailoring.etf"
                    )
   @external_resource @tailorings_path
   @tailorings @tailorings_path |> File.read!() |> :erlang.binary_to_term()

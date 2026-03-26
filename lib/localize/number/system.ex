@@ -36,7 +36,7 @@ defmodule Localize.Number.System do
 
   @number_systems_path Path.join(
                          :code.priv_dir(:localize),
-                         "cldr/supplemental_data/number_systems.etf"
+                         "localize/supplemental_data/number_systems.etf"
                        )
 
   # Lazy-load number systems from ETF at runtime and cache in persistent_term.

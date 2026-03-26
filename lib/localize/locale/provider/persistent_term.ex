@@ -3,7 +3,7 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   A locale data provider that stores locale data in `:persistent_term`.
 
   This provider loads CLDR locale data from `.etf` files in the
-  `priv/cldr/locales/` directory and caches it in `:persistent_term`
+  `priv/localize/locales/` directory and caches it in `:persistent_term`
   for fast, concurrent access without copying.
 
   """
@@ -13,7 +13,7 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   @doc """
   Loads locale data for the given locale.
 
-  Reads the locale's `.etf` file from `priv/cldr/locales/`,
+  Reads the locale's `.etf` file from `priv/localize/locales/`,
   decodes it, and stores the result in `:persistent_term`.
 
   ### Arguments
@@ -30,11 +30,25 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
   """
   @impl Localize.Locale.Provider
-  @dialyzer {:nowarn_function, load: 1}
   def load(locale) do
     locale_id = to_locale_id(locale)
-    locale_data = Cldr.Locale.Loader.get_locale(locale_id, %Cldr.Config{locales: :all})
-    {:ok, locale_data}
+
+    path =
+      :localize
+      |> :code.priv_dir()
+      |> Path.join("localize/locales/#{locale_id}.etf")
+
+    if File.exists?(path) do
+      locale_data =
+        path
+        |> File.read!()
+        |> :erlang.binary_to_term()
+
+      {:ok, locale_data}
+    else
+      {:error,
+       Localize.UnknownLocaleError.exception(locale_id: locale_id)}
+    end
   end
 
   @doc """
@@ -56,8 +70,7 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   @impl Localize.Locale.Provider
   def store(locale_id, locale_data) do
     locale_key = locale_key(locale_id)
-    transformed = Localize.Locale.Transformer.transform(locale_data)
-    :ok = :persistent_term.put(locale_key, transformed)
+    :ok = :persistent_term.put(locale_key, locale_data)
   end
 
   @doc """

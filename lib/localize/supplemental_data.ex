@@ -8,26 +8,26 @@ defmodule Localize.SupplementalData do
   datasets defined by the Unicode CLDR project.
 
   All data is stored as pre-compiled ETF (Erlang Term Format) files
-  in `priv/cldr/` and deserialized on first access, then cached in
+  in `priv/localize/` and deserialized on first access, then cached in
   `:persistent_term` for subsequent lookups. Supplemental data files
-  are stored in `priv/cldr/supplemental_data/`.
+  are stored in `priv/localize/supplemental_data/`.
 
   """
 
   # ── Private helpers ─────────────────────────────────────────────
 
-  defp cldr_dir do
+  defp localize_dir do
     :localize
     |> :code.priv_dir()
     |> to_string()
-    |> Path.join("cldr")
+    |> Path.join("localize")
   end
 
   defp load_data(filename) do
     key = {:localize, :data, filename}
 
     Localize.DataLoader.load(key, fn ->
-      cldr_dir()
+      localize_dir()
       |> Path.join(filename)
       |> File.read!()
       |> :erlang.binary_to_term()
@@ -38,7 +38,7 @@ defmodule Localize.SupplementalData do
     key = {:localize, :supplemental, filename}
 
     Localize.DataLoader.load(key, fn ->
-      cldr_dir()
+      localize_dir()
       |> Path.join("supplemental_data")
       |> Path.join(filename)
       |> File.read!()
@@ -50,7 +50,7 @@ defmodule Localize.SupplementalData do
     key = {:localize, :validity, filename}
 
     Localize.DataLoader.load(key, fn ->
-      cldr_dir()
+      localize_dir()
       |> Path.join("validity")
       |> Path.join(filename)
       |> File.read!()

@@ -54,6 +54,111 @@ All compile warnings have been resolved. Zero warnings on
 * [x] NimbleParsec typing violations in generated parser
       fixed by simplifying dead `{:error, reason}` branches.
 
+### Merge localize_data into localize
+
+The `localize_data` project (at `../localize_data`) generates and manages all CLDR data consumed by Localize. It is currently a separate path dependency. Merging it into Localize eliminates the two-repo workflow and makes CLDR data updates self-contained.
+
+#### Current architecture
+
+`localize_data` has two compilation targets:
+
+* **Dev/build modules** (`lib/`) — 30 modules that read CLDR JSON/XML source files and generate ETF. These include `LocalizeData.Supplemental`, `LocalizeData.Locale`, `LocalizeData.Collation`, `LocalizeData.Validity`, `LocalizeData.PluralRules`, `LocalizeData.XmlExtractors`, `LocalizeData.ScriptMetadata`, 18 `LocalizeData.Normalize.*` modules, and 5 Mix tasks.
+
+* **Production/runtime modules** (`production/`) — 4 modules: `LocalizeData.Application` (supervisor), `LocalizeData.DataLoader` (GenServer for serialized ETF loading), `LocalizeData.SupplementalData` (public API), `LocalizeData.LocaleTransformer` (map → struct conversion at load time).
+
+The generated data lives in `priv/localize/` (supplemental ETF, locale ETF, validity ETF). Localize already has its own parallel runtime data access layer (`Localize.SupplementalData`, `Localize.DataLoader`) that reads ETF from `priv/cldr/`. Localize does NOT reference any `LocalizeData.*` module at runtime.
+
+#### Merge plan
+
+**Phase 1: Move generated data under localize priv/**
+
+* [ ] Copy `localize_data/priv/localize/locales/` into `localize/priv/cldr/locales/` (766 ETF files, ~120 MB). The supplemental and validity ETF files are already in `localize/priv/cldr/`.
+
+* [ ] Update `Localize.Locale.Provider.PersistentTerm.load/1` to read locale ETF directly from `priv/cldr/locales/<locale_id>.etf` instead of calling `Cldr.Locale.Loader.get_locale/2`. This removes the ex_cldr runtime dependency (already a TODO item).
+
+* [ ] Remove the `{:ex_cldr, path: "../cldr"}` dependency from `mix.exs`.
+
+* [ ] Verify all tests pass with the new locale loading path.
+
+**Phase 2: Move build/generation modules into localize**
+
+* [ ] Create `lib/localize/data/` directory for the data generation modules.
+
+* [ ] Move the 5 Mix tasks from `localize_data/lib/mix/tasks/` to `localize/lib/mix/tasks/`, renaming from `localize_data.*` to `localize.*`:
+  - `mix localize.copy_sources` — copies raw CLDR JSON/XML into priv/
+  - `mix localize.generate_supplemental` — generates supplemental ETF files
+  - `mix localize.generate_locales` — generates locale ETF files
+  - `mix localize.download_iso_currencies` — downloads ISO 4217 list
+  - `mix localize.upload_locale` — uploads locale ETF to CDN
+
+* [ ] Move the generation modules to `lib/localize/data/`:
+  - `LocalizeData` → `Localize.Data` (main orchestrator)
+  - `LocalizeData.Supplemental` → `Localize.Data.Supplemental`
+  - `LocalizeData.Locale` → `Localize.Data.Locale`
+  - `LocalizeData.Collation` → `Localize.Data.Collation`
+  - `LocalizeData.Validity` → `Localize.Data.Validity`
+  - `LocalizeData.PluralRules` → `Localize.Data.PluralRules`
+  - `LocalizeData.XmlExtractors` → `Localize.Data.XmlExtractors`
+  - `LocalizeData.ScriptMetadata` → `Localize.Data.ScriptMetadata`
+  - 18 `LocalizeData.Normalize.*` → `Localize.Data.Normalize.*`
+
+* [ ] Add `{:sweet_xml, "~> 0.7", only: :dev, runtime: false}` (already present in localize mix.exs).
+
+**Phase 3: Merge runtime modules**
+
+All four runtime modules in `localize_data/production/` are either duplicated in localize or unnecessary:
+
+* [ ] `LocalizeData.DataLoader` — already duplicated as `Localize.DataLoader`. Drop.
+
+* [ ] `LocalizeData.SupplementalData` — already duplicated as `Localize.SupplementalData`. Drop.
+
+* [ ] `LocalizeData.Application` — the supervisor that starts `DataLoader`. Localize already has `Localize.Application`. Drop.
+
+* [ ] `LocalizeData.LocaleTransformer` — converts raw maps to `Localize.Number.Symbol`, `Localize.Number.Format`, and `Localize.Currency` structs. This is already called in the build pipeline (`LocalizeData.Locale` line 77) so the generated locale ETF files already contain pre-built structs. It only lives in `production/` because the current localize code loads raw maps via `Cldr.Locale.Loader.get_locale` and would need runtime transformation. Once Phase 1 switches to reading the pre-built ETF files directly, this module is not needed at runtime. Move to `lib/localize/data/` as a build-only module.
+
+**Phase 4: Move CLDR source data**
+
+* [ ] Move `localize_data/priv/cldr/` (raw JSON/XML source files) into `localize/priv/cldr_sources/` to keep source data separate from generated data. This is ~500 MB and should be gitignored; the Mix task `mix localize.copy_sources` populates it from the CLDR repository.
+
+* [ ] Add `priv/cldr_sources/` to `.gitignore`.
+
+* [ ] Move the `ldml2json` shell script to `scripts/ldml2json`.
+
+**Phase 5: Remove localize_data dependency**
+
+* [ ] Remove `{:localize_data, path: "../localize_data", env: Mix.env()}` from `mix.exs`.
+
+* [ ] Remove the `localize_data` application from `extra_applications` if present.
+
+* [ ] Move the CI workflow (`upload-locales.yml`) to localize's `.github/workflows/`.
+
+* [ ] Write `CLDR_DATA.md` documenting the data update process.
+
+* [ ] Run full test suite + dialyzer.
+
+#### Files summary
+
+| Source (localize_data) | Destination (localize) | Action |
+|---|---|---|
+| `production/localize_data/data_loader.ex` | — | Drop (already have `Localize.DataLoader`) |
+| `production/localize_data/supplemental_data.ex` | — | Drop (already have `Localize.SupplementalData`) |
+| `production/localize_data/application.ex` | — | Drop (already have `Localize.Application`) |
+| `production/localize_data/locale_transformer.ex` | `lib/localize/data/localize/data/locale_transformer.ex` | Move to dev-only (build pipeline only) |
+| `lib/localize_data.ex` | `lib/localize/data/localize/data.ex` | Move + rename |
+| `lib/supplemental.ex` | `lib/localize/data/localize/data/supplemental.ex` | Move + rename |
+| `lib/locale.ex` | `lib/localize/data/localize/data/locale.ex` | Move + rename |
+| `lib/collation.ex` | `lib/localize/data/localize/data/collation.ex` | Move + rename |
+| `lib/localize_data/validity.ex` | `lib/localize/data/localize/data/validity.ex` | Move + rename |
+| `lib/plural_rules.ex` | `lib/localize/data/localize/data/plural_rules.ex` | Move + rename |
+| `lib/xml_extractors.ex` | `lib/localize/data/localize/data/xml_extractors.ex` | Move + rename |
+| `lib/localize_data/script_metadata.ex` | `lib/localize/data/localize/data/script_metadata.ex` | Move + rename |
+| `lib/normalize/*.ex` (18 files) | `lib/localize/data/localize/data/normalize/*.ex` | Move + rename |
+| `lib/mix/tasks/*.ex` (5 files) | `lib/mix/tasks/*.ex` | Move + rename prefix |
+| `priv/localize/locales/*.etf` (766 files) | `priv/cldr/locales/*.etf` | Move |
+| `priv/cldr/` (source JSON/XML) | `priv/cldr_sources/` | Move (gitignored) |
+| `.github/workflows/upload-locales.yml` | `.github/workflows/upload-locales.yml` | Move |
+| `ldml2json` | `scripts/ldml2json` | Move |
+
 ### Placeholder code
 
 * [x] Remove `Localize.hello/0` — placeholder function from

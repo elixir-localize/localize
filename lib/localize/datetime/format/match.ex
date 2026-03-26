@@ -44,7 +44,7 @@ defmodule Localize.DateTime.Format.Match do
 
   @time_preferences_path Path.join(
                            :code.priv_dir(:localize) |> Kernel.to_string(),
-                           "cldr/supplemental_data/time_preferences.etf"
+                           "localize/supplemental_data/time_preferences.etf"
                          )
 
   @time_preferences (if File.exists?(@time_preferences_path) do

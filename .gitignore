@@ -30,3 +30,10 @@ mise.toml
 *.so
 *.o
 
+# CLDR source data (populated via mix localize.copy_sources)
+/priv/cldr
+
+# Generated locale ETF files (populated via mix localize.generate_locales)
+/priv/localize/locales/
+!/priv/localize/locales/en.etf
+

@@ -31,8 +31,15 @@ defmodule Localize.LanguageTag.Parser do
         |> structify(LanguageTag)
         |> wrap(:ok)
 
-      {:error, reason} ->
-        {:error, reason}
+      {:error, %Localize.ParseError{}} = error ->
+        error
+
+      {:error, %{__exception__: true} = exception} ->
+        {:error,
+         Localize.ParseError.exception(
+           input: locale,
+           reason: Exception.message(exception)
+         )}
     end
   end
 

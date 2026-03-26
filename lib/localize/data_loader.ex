@@ -67,7 +67,7 @@ defmodule Localize.DataLoader do
 
   defp server_running? do
     pid = Process.whereis(__MODULE__)
-    pid != nil and Process.alive?(pid)
+    pid && Process.alive?(pid)
   end
 
   # ── GenServer callbacks ───────────────────────────────────────
