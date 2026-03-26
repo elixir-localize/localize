@@ -457,7 +457,6 @@ defmodule Localize.Currency do
 
   # ── Locale-based currency functions ──────────────────────────
 
-
   @doc """
   Returns the effective currency for a given locale.
 

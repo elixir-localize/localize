@@ -246,17 +246,17 @@ covering 97 languages, extracted from CLDR XML.
       is present (comment-only — the guard already handled it).
 * [x] All 205 collation tests pass (14 doctests + 191 tests).
 
-### CLDR conformance tests for unit conversions
+### CLDR conformance tests for unit conversions — completed
 
 Port the CLDR unit conversion and preference conformance tests from `ex_cldr_units`. The test data files (`conversion_test_data.txt`, `preference_test_data.txt`) are already copied by `mix localize.copy_sources`. The test parsers and conformance test modules need to be adapted from the `Cldr.Unit.Test.ConversionData` and `Cldr.Unit.Test.PreferenceData` support modules.
 
-* [X] Port `test/support/parse_conversion_data.ex` from cldr_units to `test/support/parse_conversion_data.ex` in localize, replacing `Cldr.Unit` references with `Localize.Unit`.
+* [x] Port `test/support/parse_conversion_data.ex` from cldr_units to `test/support/parse_conversion_data.ex` in localize, replacing `Cldr.Unit` references with `Localize.Unit`.
 
-* [ ] Port `test/support/parse_preference_data.ex` similarly.
+* [x] Port `test/support/parse_preference_data.ex` similarly.
 
-* [X] Port `test/conversion_test.exs` from cldr_units — this runs ~186 conversion conformance tests from the CLDR test data.
+* [x] Port `test/conversion_test.exs` from cldr_units — this runs ~186 conversion conformance tests from the CLDR test data.
 
-* [ ] Port `test/preference_test.exs` — unit preference tests for locale-specific measurement systems.
+* [x] Port `test/preference_test.exs` — unit preference tests for locale-specific measurement systems.
 
 ### Rewrite locale distance algorithm
 
@@ -276,7 +276,7 @@ Reference: ICU `XLocaleDistance` class in `icu4c/source/common/` or `icu4j/main/
 * [ ] Rewrite `compute_match_distance/2` and `find_match_score/2` to match the CLDR spec.
 * [ ] Use the unmodified CLDR test data (from `copy_test_data`) for validation.
 
-### Remaining collation work
+### Remaining collation work — completed
 
 * [x] Slash expansion notation (e.g., `ccs/cs` in Hungarian)
       fully supported — the target characters produce collation
@@ -536,7 +536,7 @@ CLDR 48.2 specifies that when a `<keys>` translation is missing, the key identif
 
 **Risk:** Low. Adds a fallback where previously there was none. Improves output for incomplete locale data.
 
-### 5. MF2 :currency and :percent — mark as Stable
+### 5. MF2 :currency and :percent — completed
 
 CLDR 48.2 promotes `:currency` and `:percent` MF2 functions from Draft to Stable status, with the same implementations as previously.
 
@@ -550,17 +550,9 @@ CLDR 48.2 promotes `:currency` and `:percent` MF2 functions from Draft to Stable
 
 **Risk:** None. Documentation-only change.
 
-### 6. MF2 u:locale option — remove
+### 6. MF2 u:locale option — completed
 
-CLDR 48.2 drops the `u:locale` option from the MF2 specification (it was previously in Draft).
-
-**Current state:** Need to check if we implemented the `u:locale` option.
-
-**Changes needed:**
-
-* [ ] Search for any `u:locale` handling in the MF2 interpreter. If present, remove it. If not present, no action needed.
-
-**Risk:** Low.
+CLDR 48.2 drops the `u:locale` option from the MF2 specification (it was previously in Draft). We never implemented `u:locale`, so no changes needed. Already compliant.
 
 ### 7. Data update
 

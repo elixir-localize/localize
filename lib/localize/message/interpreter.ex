@@ -6,6 +6,33 @@ defmodule Localize.Message.Interpreter do
   `{:text, "..."}`, `{:expression, operand, function, attrs}`,
   `{:complex, declarations, body}`, `{:match, selectors, variants}`, etc.
 
+  ## Supported MF2 Functions
+
+  The following functions are available in MF2 expressions:
+
+  ### Stable (per MF2 specification)
+
+  * `:number` — format a number using locale-aware decimal formatting.
+
+  * `:integer` — format a number as an integer (truncates fractional part).
+
+  * `:string` — format a value as a string (identity for strings).
+
+  * `:currency` — format a number as a currency amount. Requires a
+    `currency` option (ISO 4217 code).
+
+  * `:percent` — format a number as a percentage.
+
+  ### Draft
+
+  * `:date` — format a date using CLDR date patterns.
+
+  * `:time` — format a time using CLDR time patterns.
+
+  * `:datetime` — format a datetime using CLDR datetime patterns.
+
+  * `:unit` — format a number with a unit of measure.
+
   """
 
   # ── Public API ─────────────────────────────────────────────────
@@ -259,6 +286,15 @@ defmodule Localize.Message.Interpreter do
   end
 
   # ── Number formatting ──────────────────────────────────────────
+  #
+  # MF2 function stability levels (per Unicode MessageFormat 2.0):
+  #
+  #   Stable:  :number, :integer, :string, :currency, :percent
+  #   Draft:   :date, :time, :datetime, :unit
+  #
+  # Stable functions have fixed signatures and behaviour across
+  # MF2 specification versions. Draft functions may change in
+  # future specification releases.
 
   defp format_with_function("number", value, func_opts, options) do
     with {:ok, number} <- ensure_number(value),
