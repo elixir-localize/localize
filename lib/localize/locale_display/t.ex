@@ -163,6 +163,56 @@ defmodule Localize.LocaleDisplay.T do
     end
   end
 
+  defp display_value(
+         _key,
+         nil,
+         value,
+         _transform,
+         _locale_id,
+         _display_names,
+         _prefer,
+         _language_display
+       )
+       when is_binary(value) do
+    replace_parens_with_brackets(value)
+  end
+
+  defp display_value(
+         _key,
+         nil,
+         value,
+         _transform,
+         _locale_id,
+         _display_names,
+         _prefer,
+         _language_display
+       )
+       when is_atom(value) do
+    value |> to_string() |> replace_parens_with_brackets()
+  end
+
+  defp display_value(
+         key,
+         key_name,
+         value,
+         transform,
+         locale_id,
+         display_names,
+         prefer,
+         _language_display
+       ) do
+    value_name =
+      key
+      |> get_special(key_name, value, transform, locale_id, display_names)
+      |> Kernel.||(value)
+      |> get_display_preference(prefer)
+      |> :erlang.iolist_to_binary()
+      |> replace_parens_with_brackets()
+
+    display_pattern = get_in(display_names, [:locale_display_pattern, :locale_key_type_pattern])
+    Localize.Substitution.substitute([key_name, value_name], display_pattern)
+  end
+
   # Flatten a T language tag into a list of display name parts:
   # [language_name, script_name, region_name, variant1, variant2, ...]
   # CLDR 48.2: Do not use localePattern; append subtag display names directly.
@@ -223,6 +273,15 @@ defmodule Localize.LocaleDisplay.T do
     [language_name | subtags ++ variant_names]
   end
 
+  defp flatten_t_language(value, _locale_id, display_names, prefer, _language_display)
+       when is_atom(value) do
+    language_name =
+      get_display_preference(get_in(display_names, [:language, value]), prefer) ||
+        to_string(value)
+
+    [language_name]
+  end
+
   defp find_longest_language_match(tag, display_names, prefer) do
     lang = to_string(tag.language)
     script_str = if tag.script, do: tag.script |> to_string() |> capitalize_script()
@@ -252,69 +311,6 @@ defmodule Localize.LocaleDisplay.T do
   end
 
   defp normalize_territory_string(t), do: t |> to_string() |> String.upcase()
-
-  defp flatten_t_language(value, _locale_id, display_names, prefer, _language_display)
-       when is_atom(value) do
-    language_name =
-      get_display_preference(get_in(display_names, [:language, value]), prefer) ||
-        to_string(value)
-
-    [language_name]
-  end
-
-  defp flatten_t_language(value, _locale_id, _display_names, _prefer) do
-    [to_string(value)]
-  end
-
-  defp display_value(
-         _key,
-         nil,
-         value,
-         _transform,
-         _locale_id,
-         _display_names,
-         _prefer,
-         _language_display
-       )
-       when is_binary(value) do
-    replace_parens_with_brackets(value)
-  end
-
-  defp display_value(
-         _key,
-         nil,
-         value,
-         _transform,
-         _locale_id,
-         _display_names,
-         _prefer,
-         _language_display
-       )
-       when is_atom(value) do
-    value |> to_string() |> replace_parens_with_brackets()
-  end
-
-  defp display_value(
-         key,
-         key_name,
-         value,
-         transform,
-         locale_id,
-         display_names,
-         prefer,
-         _language_display
-       ) do
-    value_name =
-      key
-      |> get_special(key_name, value, transform, locale_id, display_names)
-      |> Kernel.||(value)
-      |> get_display_preference(prefer)
-      |> :erlang.iolist_to_binary()
-      |> replace_parens_with_brackets()
-
-    display_pattern = get_in(display_names, [:locale_display_pattern, :locale_key_type_pattern])
-    Localize.Substitution.substitute([key_name, value_name], display_pattern)
-  end
 
   defp get_special(:x0, _key_name, values, _transform, _locale_id, display_names)
        when is_list(values) do

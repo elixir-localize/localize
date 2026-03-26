@@ -688,22 +688,7 @@ defmodule Localize.Calendar do
 
   defp iso_day_of_week(_), do: 1
 
-  defp territory_from_locale(%Localize.LanguageTag{territory: territory})
-       when not is_nil(territory) do
-    {:ok, territory}
+  defp territory_from_locale(locale) do
+    Localize.Territory.territory_from_locale(locale)
   end
-
-  defp territory_from_locale(locale) when is_atom(locale) do
-    with {:ok, language_tag} <- Localize.validate_locale(locale) do
-      {:ok, language_tag.territory || :US}
-    end
-  end
-
-  defp territory_from_locale(locale) when is_binary(locale) do
-    with {:ok, language_tag} <- Localize.validate_locale(locale) do
-      {:ok, language_tag.territory || :US}
-    end
-  end
-
-  defp territory_from_locale(_), do: {:ok, :US}
 end

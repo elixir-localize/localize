@@ -1032,7 +1032,8 @@ defmodule Localize.Unit do
   """
   @spec zero?(t()) :: boolean()
   def zero?(%__MODULE__{value: 0}), do: true
-  def zero?(%__MODULE__{value: 0.0}), do: true
+  def zero?(%__MODULE__{value: +0.0}), do: true
+  def zero?(%__MODULE__{value: -0.0}), do: true
   def zero?(%__MODULE__{value: %Decimal{coef: 0}}), do: true
   def zero?(%__MODULE__{}), do: false
 

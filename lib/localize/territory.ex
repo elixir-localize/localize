@@ -1084,4 +1084,72 @@ defmodule Localize.Territory do
   defp normalize_subdivision_code(code) when is_binary(code) do
     code |> String.downcase() |> String.to_atom()
   end
+
+  # ── Territory from locale ──────────────────────────────────────
+
+  @doc """
+  Returns the effective territory for a locale.
+
+  Resolves the territory using the following precedence:
+
+  1. The `rg` (region override) Unicode extension parameter,
+     if present (e.g., `"en-US-u-rg-gbzzzz"` → `:GB`).
+
+  2. The explicit territory in the language tag (e.g.,
+     `"en-AU"` → `:AU`).
+
+  3. The territory inferred from likely subtags via
+     `Localize.validate_locale/1` (e.g., `"en"` → `:US`,
+     `"de"` → `:DE`).
+
+  ### Arguments
+
+  * `locale` is a locale identifier string, atom, or a
+    `t:Localize.LanguageTag.t/0` struct.
+
+  ### Returns
+
+  * `{:ok, territory_code}` where `territory_code` is an atom.
+
+  * `{:error, exception}` if the locale cannot be resolved.
+
+  ### Examples
+
+      iex> Localize.Territory.territory_from_locale("en-AU")
+      {:ok, :AU}
+
+      iex> Localize.Territory.territory_from_locale("en")
+      {:ok, :US}
+
+      iex> Localize.Territory.territory_from_locale("de")
+      {:ok, :DE}
+
+  """
+  @spec territory_from_locale(Localize.LanguageTag.t() | String.t() | atom()) ::
+          {:ok, atom()} | {:error, Exception.t()}
+  def territory_from_locale(locale) when is_binary(locale) or is_atom(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      territory_from_locale(language_tag)
+    end
+  end
+
+  def territory_from_locale(%Localize.LanguageTag{locale: %{rg: rg}})
+      when not is_nil(rg) do
+    {:ok, rg}
+  end
+
+  def territory_from_locale(%Localize.LanguageTag{territory: territory})
+      when not is_nil(territory) do
+    {:ok, territory}
+  end
+
+  def territory_from_locale(%Localize.LanguageTag{} = tag) do
+    case Localize.validate_locale(tag) do
+      {:ok, %{territory: territory}} when not is_nil(territory) ->
+        {:ok, territory}
+
+      _ ->
+        {:ok, Localize.default_locale().territory}
+    end
+  end
 end

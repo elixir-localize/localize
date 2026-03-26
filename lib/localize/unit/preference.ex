@@ -29,8 +29,8 @@ defmodule Localize.Unit.Preference do
 
                           s when is_binary(s) ->
                             case Float.parse(s) do
-                              {0.0, _} ->
-                                0.0
+                              {+0.0, _} ->
+                                +0.0
 
                               {geq_value, _} ->
                                 primary = unit_name |> String.split("-and-") |> hd()
@@ -198,7 +198,11 @@ defmodule Localize.Unit.Preference do
     case Keyword.get(options, :territory) do
       nil ->
         locale = Keyword.get(options, :locale, Localize.get_locale())
-        Localize.Territory.territory_from_locale(locale)
+
+        case Localize.Territory.territory_from_locale(locale) do
+          {:ok, territory} -> territory
+          _ -> :US
+        end
 
       territory ->
         territory

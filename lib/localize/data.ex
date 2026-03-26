@@ -395,7 +395,7 @@ defmodule Localize.Data do
     File.mkdir_p!(dest)
 
     repo_root = cldr_repo_dir()
-    copied = 0
+    _copied = 0
 
     count =
       Enum.reduce(@test_data_files, 0, fn {src_path, dst_name}, acc ->
