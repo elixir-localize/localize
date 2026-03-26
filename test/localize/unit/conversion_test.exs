@@ -93,12 +93,8 @@ defmodule Localize.Unit.ConversionTest do
   # against the expected value at the precision indicated by the test data.
 
   @test_data_path Path.join(
-                    Application.compile_env(
-                      :localize,
-                      :cldr_data_dir,
-                      "/Users/kip/Development/cldr_repo"
-                    ),
-                    "common/testData/units/unitsTest.txt"
+                    File.cwd!(),
+                    "test/support/data/conversion_test_data.txt"
                   )
 
   @external_resource @test_data_path

@@ -351,7 +351,9 @@ defmodule Localize.DateTime.Timezone do
       gmt_pattern = tz_data[:gmt_format] || ["GMT", 0]
       hour_format_str = tz_data[:hour_format] || "+HH:mm;-HH:mm"
 
-      if offset == 0 do
+      zero_format = Keyword.get(options, :zero_format, :gmt_zero)
+
+      if offset == 0 and zero_format == :gmt_zero do
         {:ok, gmt_zero}
       else
         format = Keyword.get(options, :format, :long)
@@ -428,11 +430,11 @@ defmodule Localize.DateTime.Timezone do
       |> String.replace("H", Integer.to_string(hours))
       |> String.replace("mm", pad(minutes, 2))
 
-    # For short format, remove ":00" minutes part when minutes == 0
+    # For short format, remove minutes separator and part when minutes == 0,
+    # and strip leading zero from hours (e.g., "+00:00" → "+0", "+05:00" → "+5")
     if format == :short and minutes == 0 do
-      result
-      |> String.replace(":00", "")
-      |> String.replace("00", "", global: false)
+      Regex.replace(~r/[:.]00$/, result, "")
+      |> String.replace(~r/(?<=[\+\-])0(?=\d)/, "")
     else
       result
     end

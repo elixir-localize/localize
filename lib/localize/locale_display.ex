@@ -276,18 +276,7 @@ defmodule Localize.LocaleDisplay do
   defp extension_display_names(language_tag, locale_id, display_names, options) do
     results = []
 
-    # T extension (transform)
-    transform = Map.get(language_tag, :transform, %{})
-
-    results =
-      if transform != %{} and not is_nil(transform) do
-        name = Localize.LocaleDisplay.T.display_name(transform, locale_id, display_names, options)
-        if empty?(name), do: results, else: results ++ [name]
-      else
-        results
-      end
-
-    # U extension (locale)
+    # U extension (locale) — CLDR 48.2: -u- items appear before -t- items
     locale_ext = Map.get(language_tag, :locale, %{})
 
     results =
@@ -295,6 +284,17 @@ defmodule Localize.LocaleDisplay do
         name =
           Localize.LocaleDisplay.U.display_name(locale_ext, locale_id, display_names, options)
 
+        if empty?(name), do: results, else: results ++ [name]
+      else
+        results
+      end
+
+    # T extension (transform)
+    transform = Map.get(language_tag, :transform, %{})
+
+    results =
+      if transform != %{} and not is_nil(transform) do
+        name = Localize.LocaleDisplay.T.display_name(transform, locale_id, display_names, options)
         if empty?(name), do: results, else: results ++ [name]
       else
         results

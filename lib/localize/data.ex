@@ -69,6 +69,24 @@ defmodule Localize.Data do
     {"cldr-numbers-full/main/en/currencies.json", "currencies_en.json"}
   ]
 
+  # Test data files from CLDR_REPO → test/support/data/
+  @test_data_dir "test/support/data"
+  @test_data_files [
+    {"common/testData/localeIdentifiers/localeCanonicalization.txt", "locale_canonicalization.txt"},
+    {"common/testData/localeIdentifiers/likelySubtags.txt", "likely_subtags_test_data.txt"},
+    {"common/testData/localeIdentifiers/localeDisplayName.txt", "locale_display_names.txt"},
+    {"tools/cldr-code/src/test/resources/org/unicode/cldr/unittest/data/localeDistanceTest.txt",
+     "locale_distance_test_data.txt"},
+    {"tools/cldr-code/src/test/resources/org/unicode/cldr/unittest/data/localeMatcherTest.txt",
+     "locale_matching_test_data.txt"},
+    {"common/testData/datetime/datetime.json", "date_time_formatting.json"},
+    {"common/testData/units/unitsTest.txt", "conversion_test_data.txt"},
+    {"common/testData/units/unitPreferencesTest.txt", "preference_test_data.txt"},
+    {"common/uca/CollationTest_CLDR_NON_IGNORABLE_SHORT.txt",
+     "CollationTest_CLDR_NON_IGNORABLE_SHORT.txt"},
+    {"common/uca/CollationTest_CLDR_SHIFTED_SHORT.txt", "CollationTest_CLDR_SHIFTED_SHORT.txt"}
+  ]
+
   @generators [
     {"aliases.etf", &Localize.Data.Supplemental.generate_aliases/0},
     {"calendar_preferences.etf", &Localize.Data.Supplemental.generate_calendar_preferences/0},
@@ -353,6 +371,45 @@ defmodule Localize.Data do
     end
 
     IO.puts("Copied locale sources for #{total} locales to #{dest_root}")
+    :ok
+  end
+
+  @doc """
+  Copies CLDR test data files from `CLDR_REPO` into
+  `test/support/data/`.
+
+  These files include conformance test data for locale
+  canonicalization, likely subtags, locale display names,
+  locale matching, datetime formatting, unit conversions,
+  and collation.
+
+  ### Returns
+
+  * `:ok` on success.
+
+  """
+  @spec copy_test_data() :: :ok
+  def copy_test_data do
+    dest = Path.join(File.cwd!(), @test_data_dir)
+    File.mkdir_p!(dest)
+
+    repo_root = cldr_repo_dir()
+    copied = 0
+
+    count =
+      Enum.reduce(@test_data_files, 0, fn {src_path, dst_name}, acc ->
+        src = Path.join(repo_root, src_path)
+
+        if File.exists?(src) do
+          File.cp!(src, Path.join(dest, dst_name))
+          acc + 1
+        else
+          IO.puts("  Warning: #{src_path} not found, skipping")
+          acc
+        end
+      end)
+
+    IO.puts("Copied #{count} test data files to #{dest}")
     :ok
   end
 

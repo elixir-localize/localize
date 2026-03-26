@@ -61,7 +61,8 @@ defmodule Localize.LocaleDisplay.T do
     if value_name = get_type(field, canonical_value, display_names) do
       replace_parens_with_brackets(value_name)
     else
-      key_name = get_in(display_names, [:keys, field])
+      # CLDR 48.2: fall back to key identifier when translation is missing
+      key_name = get_in(display_names, [:keys, field]) || bcp47_key_for(field)
       display_value(field, key_name, canonical_value, transform, locale_id, display_names, prefer)
     end
   end
@@ -98,20 +99,118 @@ defmodule Localize.LocaleDisplay.T do
       if h0 == :hybrid or h0 == "hybrid" do
         get_in(display_names, [:types, :h0, :hybrid])
       else
-        get_in(display_names, [:keys, :t])
+        nil
       end
 
-    value_name =
-      value
-      |> Localize.LocaleDisplay.display_name!(prefer: prefer, locale: locale_id)
-      |> replace_parens_with_brackets()
+    # CLDR 48.2: fall back to key identifier when translation is missing
+    key_name = key_name || get_in(display_names, [:keys, :t]) || "t"
+
+    # CLDR 48.2: Flatten the T language — do not use localePattern.
+    # Instead, get the language name and append subtag display names
+    # directly as a flat list.
+    value_parts = flatten_t_language(value, locale_id, display_names, prefer)
 
     if key_name do
+      value_name =
+        value_parts
+        |> join_field_values(display_names)
+        |> :erlang.iolist_to_binary()
+        |> replace_parens_with_brackets()
+
       display_pattern = get_in(display_names, [:locale_display_pattern, :locale_key_type_pattern])
       Localize.Substitution.substitute([key_name, value_name], display_pattern)
     else
-      value_name
+      value_parts
+      |> join_field_values(display_names)
+      |> :erlang.iolist_to_binary()
+      |> replace_parens_with_brackets()
     end
+  end
+
+  # Flatten a T language tag into a list of display name parts:
+  # [language_name, script_name, region_name, variant1, variant2, ...]
+  # CLDR 48.2: Do not use localePattern; append subtag display names directly.
+  # Try longest locale name match first (e.g., "fr-CA" → "Canadian French").
+  defp flatten_t_language(%Localize.LanguageTag{} = tag, _locale_id, display_names, prefer) do
+    # Scripts are title case atoms (:Latn), territories are uppercase (:JP)
+    script = if tag.script, do: tag.script |> to_string() |> capitalize_script() |> to_atom_safe()
+    territory = if tag.territory, do: normalize_territory(tag.territory)
+
+    # CLDR 48.2: T language always uses standard mode — base language
+    # name with subtags listed separately (never dialect form).
+    lang_key = to_string(tag.language)
+
+    language_name =
+      get_display_preference(get_in(display_names, [:language, lang_key]), prefer) ||
+        lang_key
+
+    subtags =
+      [
+        if(script,
+          do:
+            get_display_preference(get_in(display_names, [:script, script]), prefer) ||
+              to_string(tag.script)
+        ),
+        if(territory,
+          do:
+            get_display_preference(get_in(display_names, [:territory, territory]), prefer) ||
+              to_string(tag.territory)
+        )
+      ]
+      |> Enum.reject(&is_nil/1)
+
+    variant_names =
+      (tag.language_variants || [])
+      |> Enum.map(fn v ->
+        v_str = to_string(v)
+
+        get_display_preference(
+          get_in(display_names, [:language_variants, v_str]),
+          prefer
+        ) || v_str
+      end)
+
+    [language_name | subtags ++ variant_names]
+  end
+
+  defp find_longest_language_match(tag, display_names, prefer) do
+    lang = to_string(tag.language)
+    script_str = if tag.script, do: tag.script |> to_string() |> capitalize_script()
+    territory_str = if tag.territory, do: normalize_territory_string(tag.territory)
+
+    candidates =
+      [
+        if(script_str && territory_str, do: {"#{lang}-#{script_str}-#{territory_str}", [:script, :territory]}),
+        if(territory_str, do: {"#{lang}-#{territory_str}", [:territory]}),
+        if(script_str, do: {"#{lang}-#{script_str}", [:script]}),
+        {lang, []}
+      ]
+      |> Enum.reject(&is_nil/1)
+
+    Enum.find_value(candidates, {lang, []}, fn {key, consumed} ->
+      case get_display_preference(get_in(display_names, [:language, key]), prefer) do
+        nil -> nil
+        name -> {name, consumed}
+      end
+    end)
+  end
+
+  defp normalize_territory_string(t) when is_integer(t) do
+    t |> Integer.to_string() |> String.pad_leading(3, "0")
+  end
+
+  defp normalize_territory_string(t), do: t |> to_string() |> String.upcase()
+
+  defp flatten_t_language(value, _locale_id, display_names, prefer) when is_atom(value) do
+    language_name =
+      get_display_preference(get_in(display_names, [:language, value]), prefer) ||
+        to_string(value)
+
+    [language_name]
+  end
+
+  defp flatten_t_language(value, _locale_id, _display_names, _prefer) do
+    [to_string(value)]
   end
 
   defp display_value(_key, nil, value, _transform, _locale_id, _display_names, _prefer)
@@ -156,5 +255,40 @@ defmodule Localize.LocaleDisplay.T do
 
   defp get_type(field, value, display_names) do
     get_in(display_names, [:types, field, value])
+  end
+
+  # Normalize territory: integers get zero-padded to 3 digits, strings get uppercased
+  defp normalize_territory(t) when is_integer(t) do
+    t |> Integer.to_string() |> String.pad_leading(3, "0") |> to_atom_safe()
+  end
+
+  defp normalize_territory(t) when is_atom(t), do: t
+
+  defp normalize_territory(t) when is_binary(t) do
+    t |> String.upcase() |> to_atom_safe()
+  end
+
+  defp capitalize_script(<<first::binary-size(1), rest::binary>>),
+    do: String.upcase(first) <> String.downcase(rest)
+
+  defp capitalize_script(s), do: s
+
+  defp to_atom_safe(nil), do: nil
+  defp to_atom_safe(value) when is_atom(value), do: value
+
+  defp to_atom_safe(value) when is_binary(value) do
+    String.to_existing_atom(value)
+  rescue
+    ArgumentError -> String.to_atom(value)
+  end
+
+  # CLDR 48.2: when key translation is missing, fall back to the
+  # BCP47 key identifier string.
+  defp bcp47_key_for(field) do
+    mapping = Localize.Validity.T.field_mapping()
+
+    Enum.find_value(mapping, to_string(field), fn {key, f} ->
+      if f == field, do: key
+    end)
   end
 end

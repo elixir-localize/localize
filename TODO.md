@@ -182,6 +182,7 @@ All four runtime modules in `localize_data/production/` are either duplicated in
 * [x] Ensure all public functions have `@doc` in the standard
       format described in `CLAUDE.md` — audited all 15 main
       public modules; all public functions documented.
+      
 ### Hex publishing
 
 * [ ] Set version in `mix.exs`.
@@ -244,6 +245,36 @@ covering 97 languages, extracted from CLDR XML.
 * [x] Fixed FastLatin shortcut to be bypassed when an overlay
       is present (comment-only — the guard already handled it).
 * [x] All 205 collation tests pass (14 doctests + 191 tests).
+
+### CLDR conformance tests for unit conversions
+
+Port the CLDR unit conversion and preference conformance tests from `ex_cldr_units`. The test data files (`conversion_test_data.txt`, `preference_test_data.txt`) are already copied by `mix localize.copy_sources`. The test parsers and conformance test modules need to be adapted from the `Cldr.Unit.Test.ConversionData` and `Cldr.Unit.Test.PreferenceData` support modules.
+
+* [X] Port `test/support/parse_conversion_data.ex` from cldr_units to `test/support/parse_conversion_data.ex` in localize, replacing `Cldr.Unit` references with `Localize.Unit`.
+
+* [ ] Port `test/support/parse_preference_data.ex` similarly.
+
+* [X] Port `test/conversion_test.exs` from cldr_units — this runs ~186 conversion conformance tests from the CLDR test data.
+
+* [ ] Port `test/preference_test.exs` — unit preference tests for locale-specific measurement systems.
+
+### Rewrite locale distance algorithm
+
+The locale distance computation (`Localize.LanguageTag.match_distance/2` and `compute_match_distance/2`) does not implement the CLDR Enhanced Language Matching algorithm correctly. The old test data was manually adjusted to pass with the broken implementation.
+
+Key issues:
+* Language mutual intelligibility clusters (hr/sr/bs/sh) are not handled — there is no transitive distance composition through shared languages.
+* The distance from `hr → sr-Latn` should be 8 (lang=4 + script=0 + territory=4) but we compute 84 because there's no direct `hr → sr` rule.
+* Script-level distances appear to need halving or different scaling (e.g., `zh-Hant → zh-Hans` should be 23, we compute 54).
+* The `en-CA → en-Cyrl` case should be 100 (fail) but we compute 54.
+* The threshold/fail value of 100 is not applied correctly.
+* The phase decomposition (lang then script then territory) and rule matching needs to be aligned with the ICU reference implementation.
+
+Reference: ICU `XLocaleDistance` class in `icu4c/source/common/` or `icu4j/main/core/src/`.
+
+* [ ] Study the ICU reference implementation of `XLocaleDistance` to understand the correct algorithm.
+* [ ] Rewrite `compute_match_distance/2` and `find_match_score/2` to match the CLDR spec.
+* [ ] Use the unmodified CLDR test data (from `copy_test_data`) for validation.
 
 ### Remaining collation work
 
@@ -528,3 +559,20 @@ CLDR 48.2 drops the `u:locale` option from the MF2 specification (it was previou
 5. Nested bracket replacement from data (item 1) — low risk
 6. MF2 stability docs and u:locale removal (items 5, 6) — trivial
 7. Run full test suite + update expected test outputs
+
+### Locale distance test data vs ICU implementation
+
+The CLDR 48.2 locale distance test file (`localeDistanceTest.txt` in the CLDR repo at `tools/cldr-code/src/test/resources/org/unicode/cldr/unittest/data/`) appears to be stale — it has not been updated since a directory rename, while `languageInfo.xml` rule data has been updated multiple times. Our computed values align with the current 48.2 rule data. The following table documents the discrepancies between the CLDR test expectations and our computed values.
+
+| Case | CLDR test expected | Our result | Why ours is correct per 48.2 data |
+|------|-------------------|------------|----------------------------------|
+| `nn → no` | 10 | 20 | XML rule says `distance="20"` explicitly |
+| `to → en` | 14 | 34 | Rule `distance="30"` (one-way) + region wildcard 4 = 34 |
+| `no-DE → nn` | 14 | 24 | Region wildcard 4 + language nn→no 20 = 24 |
+| `zh-Hant → zh-Hans` | 23 | 54 | Script wildcard 50 + region wildcard 4 = 54 |
+| `en-AU → en-CA` | 4 | 5 | CA is in `$enUS` cluster, AU is not → cross-cluster = 5 |
+| `hr → sr-Latn` | 8 | 84 | `sr → hr` rule is commented out in 48.2 XML |
+
+* [ ] Revisit the ICU `XLocaleDistance` implementation (in particular the trie-based distance table built from `languageInfo.xml`) and verify whether the ICU test actually passes with CLDR 48.2 data. It is possible the ICU implementation has internal adjustments or uses a different data source that produces different distances. The Java source is in `tools/cldr-code/src/main/java/org/unicode/cldr/draft/XLocaleDistance.java`.
+
+* [ ] File a CLDR ticket or raise on cldr-dev if the test data is confirmed stale.

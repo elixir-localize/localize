@@ -160,6 +160,6 @@ defmodule Localize.Collation.ConformanceTest do
   end
 
   defp test_data_dir do
-    Path.join([File.cwd!(), "test", "data"])
+    Path.join([File.cwd!(), "test", "support", "data"])
   end
 end

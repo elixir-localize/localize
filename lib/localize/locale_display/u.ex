@@ -91,7 +91,8 @@ defmodule Localize.LocaleDisplay.U do
     if value_name = get_type(display_key, canonical_value, display_names) do
       replace_parens_with_brackets(value_name)
     else
-      key_name = get_in(display_names, [:keys, display_key])
+      # CLDR 48.2: fall back to key identifier when translation is missing
+      key_name = get_in(display_names, [:keys, display_key]) || to_string(display_key)
 
       display_value(
         field,

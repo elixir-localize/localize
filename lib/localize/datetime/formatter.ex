@@ -595,14 +595,14 @@ defmodule Localize.DateTime.Formatter do
   # O (4): Long localized GMT (GMT+01:00)
   @doc false
   def zone_gmt(datetime, 1, locale_id, _options) do
-    case Timezone.gmt_format(datetime, locale_id, format: :short) do
+    case Timezone.gmt_format(datetime, locale_id, format: :short, zero_format: :offset) do
       {:ok, result} -> result
       _ -> ""
     end
   end
 
   def zone_gmt(datetime, 4, locale_id, _options) do
-    case Timezone.gmt_format(datetime, locale_id, format: :long) do
+    case Timezone.gmt_format(datetime, locale_id, format: :long, zero_format: :offset) do
       {:ok, result} -> result
       _ -> ""
     end

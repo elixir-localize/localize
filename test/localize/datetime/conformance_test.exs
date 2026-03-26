@@ -18,7 +18,7 @@ defmodule Localize.DateTime.ConformanceTest do
   # Tests requiring timezone name resolution (z, Z, O, v, V symbols)
   # or the `j` meta-symbol in skeleton matching. These need
   # full timezone support and locale-sensitive hour cycle resolution.
-  @timezone_tests [14, 16, 18, 38, 40, 41, 42, 44, 45, 46, 49, 50, 53, 54, 57, 58]
+  @timezone_tests [14, 16, 18, 38, 39, 40, 41, 42, 44, 45, 46, 49, 50, 53, 54, 57, 58]
   @j_symbol_tests []
   @skeleton_match_issues [19, 20, 21, 34, 35, 36]
 
