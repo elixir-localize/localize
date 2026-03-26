@@ -68,7 +68,10 @@ defmodule Localize.Number.Format do
   * A list of atoms: `[:decimal_long, :decimal_short, :currency_short, :currency_long]`.
 
   """
-  @spec short_format_styles() :: [:decimal_long | :decimal_short | :currency_short | :currency_long, ...]
+  @spec short_format_styles() :: [
+          :decimal_long | :decimal_short | :currency_short | :currency_long,
+          ...
+        ]
   def short_format_styles do
     @short_format_styles
   end
@@ -322,8 +325,10 @@ defmodule Localize.Number.Format do
 
   """
   @spec default_grouping_for!(Localize.LanguageTag.t() | atom() | String.t()) ::
-          %{fraction: %{first: 0, rest: 0},
-            integer: %{first: non_neg_integer(), rest: non_neg_integer()}}
+          %{
+            fraction: %{first: 0, rest: 0},
+            integer: %{first: non_neg_integer(), rest: non_neg_integer()}
+          }
   def default_grouping_for!(locale) do
     case default_grouping_for(locale) do
       {:ok, grouping} -> grouping

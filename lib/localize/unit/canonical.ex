@@ -30,7 +30,8 @@ defmodule Localize.Unit.Canonical do
     string and `normalised_ast` has canonically ordered components.
 
   """
-  @spec canonicalize({:unit, keyword()} | {:mixed_unit, term()}) :: {String.t(), {:unit, keyword()} | {:mixed_unit, term()}}
+  @spec canonicalize({:unit, keyword()} | {:mixed_unit, term()}) ::
+          {String.t(), {:unit, keyword()} | {:mixed_unit, term()}}
   def canonicalize({:unit, kw}) do
     type = Keyword.get(kw, :type)
     numerator = Keyword.get(kw, :numerator, [])
