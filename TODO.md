@@ -445,6 +445,26 @@ in `dev/parsers/` and only compiled in `:dev` env.
 * [x] `Localize.Locale.to_locale_id/1` consolidated into
       single canonical implementation
 
+## Future enhancements
+
+### Custom/additional unit registration
+
+ex_cldr_units supports runtime registration of custom units via `Cldr.Unit.Additional`. This allows applications to define application-specific units (e.g., "widget", "pixel") with custom conversion factors and localized display names. Implementing this in Localize would require:
+
+* [ ] A registration API for defining custom units at application start.
+
+* [ ] Integration with the parser so custom unit names are recognized.
+
+* [ ] Integration with the formatter so custom units get locale-aware display names.
+
+* [ ] Integration with conversion so custom units can convert to/from standard units.
+
+### Locale distance test data alignment
+
+The CLDR locale distance test data (`localeDistanceTest.txt`) in the CLDR repository appears to be stale — the expected distance values don't match the current `languageInfo.xml` rules. Our implementation computes distances correctly per the current rule data. Revisit when either the CLDR test data or the rules are updated.
+
+* [ ] Re-check CLDR locale distance test data against ICU4J implementation to verify whether the stale data is a known issue or whether the ICU implementation uses a different algorithm (e.g., trie-based distance table with different aggregation).
+
 ## CLDR 48.2 Migration
 
 CLDR 48.2 introduces changes to locale display names, key fallback behavior, and MF2 function stability. The data format changes are minimal but the algorithm changes in `LocaleDisplay` require code updates.

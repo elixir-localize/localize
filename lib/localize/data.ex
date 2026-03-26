@@ -72,7 +72,8 @@ defmodule Localize.Data do
   # Test data files from CLDR_REPO → test/support/data/
   @test_data_dir "test/support/data"
   @test_data_files [
-    {"common/testData/localeIdentifiers/localeCanonicalization.txt", "locale_canonicalization.txt"},
+    {"common/testData/localeIdentifiers/localeCanonicalization.txt",
+     "locale_canonicalization.txt"},
     {"common/testData/localeIdentifiers/likelySubtags.txt", "likely_subtags_test_data.txt"},
     {"common/testData/localeIdentifiers/localeDisplayName.txt", "locale_display_names.txt"},
     {"tools/cldr-code/src/test/resources/org/unicode/cldr/unittest/data/localeDistanceTest.txt",

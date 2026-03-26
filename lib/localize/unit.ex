@@ -690,4 +690,589 @@ defmodule Localize.Unit do
       {:error, exception} -> raise exception
     end
   end
+
+  @doc """
+  Formats a unit as an iolist.
+
+  Same as `to_string/2` but returns an iolist for efficient
+  IO operations without an intermediate binary allocation.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct.
+
+  * `options` is a keyword list of formatting options (same as `to_string/2`).
+
+  ### Returns
+
+  * `{:ok, iolist}` or `{:error, exception}`.
+
+  """
+  @spec to_iolist(t(), Keyword.t()) :: {:ok, iolist()} | {:error, Exception.t()}
+  def to_iolist(%__MODULE__{} = unit, options \\ []) do
+    case to_string(unit, options) do
+      {:ok, string} -> {:ok, [string]}
+      error -> error
+    end
+  end
+
+  # ── Arithmetic ────────────────────────────────────────────────
+
+  @doc """
+  Adds two convertible units.
+
+  The value of `unit_2` is converted to the unit type of `unit_1`
+  before addition. The result retains the unit type of `unit_1`.
+
+  ### Arguments
+
+  * `unit_1` is a `%Localize.Unit{}` struct with a value.
+
+  * `unit_2` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, unit}` or `{:error, exception}`.
+
+  ### Examples
+
+      iex> {:ok, a} = Localize.Unit.new(1, "kilometer")
+      iex> {:ok, b} = Localize.Unit.new(500, "meter")
+      iex> {:ok, result} = Localize.Unit.add(a, b)
+      iex> result.value
+      1.5
+
+  """
+  @spec add(t(), t()) :: {:ok, t()} | {:error, Exception.t()}
+  defdelegate add(unit_1, unit_2), to: Localize.Unit.Math
+
+  @doc """
+  Subtracts `unit_2` from `unit_1`.
+
+  The value of `unit_2` is converted to the unit type of `unit_1`.
+
+  ### Arguments
+
+  * `unit_1` is a `%Localize.Unit{}` struct with a value.
+
+  * `unit_2` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, unit}` or `{:error, exception}`.
+
+  ### Examples
+
+      iex> {:ok, a} = Localize.Unit.new(5, "kilometer")
+      iex> {:ok, b} = Localize.Unit.new(2000, "meter")
+      iex> {:ok, result} = Localize.Unit.sub(a, b)
+      iex> result.value
+      3.0
+
+  """
+  @spec sub(t(), t()) :: {:ok, t()} | {:error, Exception.t()}
+  defdelegate sub(unit_1, unit_2), to: Localize.Unit.Math
+
+  @doc """
+  Multiplies a unit by a scalar or another unit.
+
+  When multiplied by a number, the value is scaled. When multiplied
+  by another unit, a compound unit is produced (e.g., meter × second).
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct.
+
+  * `multiplier` is a number or a `%Localize.Unit{}` struct.
+
+  ### Returns
+
+  * `{:ok, unit}` or `{:error, exception}`.
+
+  ### Examples
+
+      iex> {:ok, m} = Localize.Unit.new(5, "meter")
+      iex> {:ok, result} = Localize.Unit.mult(m, 3)
+      iex> result.value
+      15
+
+  """
+  @spec mult(t(), number() | t()) :: {:ok, t()} | {:error, Exception.t()}
+  defdelegate mult(unit, multiplier), to: Localize.Unit.Math
+
+  @doc """
+  Divides a unit by a scalar or another unit.
+
+  When divided by a number, the value is scaled. When divided by
+  another unit, a per-unit compound is produced (e.g., meter ÷ second).
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct.
+
+  * `divisor` is a number or a `%Localize.Unit{}` struct.
+
+  ### Returns
+
+  * `{:ok, unit}` or `{:error, exception}`.
+
+  ### Examples
+
+      iex> {:ok, m} = Localize.Unit.new(10, "meter")
+      iex> {:ok, result} = Localize.Unit.div(m, 2)
+      iex> result.value
+      5.0
+
+  """
+  @spec div(t(), number() | t()) :: {:ok, t()} | {:error, Exception.t()}
+  defdelegate div(unit, divisor), to: Localize.Unit.Math
+
+  @doc """
+  Negates a unit's value.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, unit}` or `{:error, exception}`.
+
+  """
+  @spec negate(t()) :: {:ok, t()} | {:error, Exception.t()}
+  defdelegate negate(unit), to: Localize.Unit.Math
+
+  @doc """
+  Compares two convertible units.
+
+  The value of `unit_2` is converted to the unit type of `unit_1`
+  before comparison.
+
+  ### Arguments
+
+  * `unit_1` is a `%Localize.Unit{}` struct with a value.
+
+  * `unit_2` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `:lt`, `:eq`, or `:gt`.
+
+  * `{:error, exception}` if the units are not convertible.
+
+  ### Examples
+
+      iex> {:ok, a} = Localize.Unit.new(1, "kilometer")
+      iex> {:ok, b} = Localize.Unit.new(500, "meter")
+      iex> Localize.Unit.compare(a, b)
+      :gt
+
+  """
+  @spec compare(t(), t()) :: :lt | :eq | :gt | {:error, Exception.t()}
+  def compare(%__MODULE__{value: v1} = _unit_1, %__MODULE__{value: v2} = _unit_2)
+      when is_nil(v1) or is_nil(v2) do
+    {:error,
+     Localize.UnitConversionError.exception(
+       from: nil,
+       to: nil,
+       reason: "Both units must have values for comparison"
+     )}
+  end
+
+  def compare(%__MODULE__{} = unit_1, %__MODULE__{} = unit_2) do
+    case Localize.Unit.Conversion.convert(unit_2.value, unit_2.name, unit_1.name) do
+      {:ok, converted} ->
+        v1 = to_float(unit_1.value)
+        v2 = to_float(converted)
+
+        cond do
+          v1 < v2 -> :lt
+          v1 > v2 -> :gt
+          true -> :eq
+        end
+
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  # ── Decompose ─────────────────────────────────────────────────
+
+  @doc """
+  Decomposes a unit into a list of units with the given target units.
+
+  This is used for mixed-unit formatting, for example converting
+  1.75 meters into `[1 meter, 75 centimeters]` or 5.25 feet into
+  `[5 feet, 3 inches]`.
+
+  Each target unit receives the integer part of the remaining value,
+  except the last unit which receives the remainder.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  * `target_units` is a list of unit name strings, ordered from
+    largest to smallest (e.g., `["foot", "inch"]`).
+
+  ### Returns
+
+  * `{:ok, units}` where `units` is a list of `%Localize.Unit{}` structs.
+
+  * `{:error, exception}` if conversion fails.
+
+  ### Examples
+
+      iex> {:ok, m} = Localize.Unit.new(1.75, "meter")
+      iex> {:ok, parts} = Localize.Unit.decompose(m, ["meter", "centimeter"])
+      iex> Enum.map(parts, fn u -> {u.name, u.value} end)
+      [{"meter", 1}, {"centimeter", 75.0}]
+
+  """
+  @spec decompose(t(), [String.t()]) :: {:ok, [t()]} | {:error, Exception.t()}
+  def decompose(%__MODULE__{value: nil}, _targets) do
+    {:error,
+     Localize.UnitConversionError.exception(
+       from: nil,
+       to: nil,
+       reason: "Cannot decompose a unit without a value"
+     )}
+  end
+
+  def decompose(%__MODULE__{} = unit, [single]) do
+    case convert(unit, single) do
+      {:ok, converted} -> {:ok, [converted]}
+      error -> error
+    end
+  end
+
+  def decompose(%__MODULE__{} = unit, [target | rest]) do
+    case convert(unit, target) do
+      {:ok, converted} ->
+        float_value = to_float(converted.value)
+        integer_part = trunc(float_value)
+        remainder = float_value - integer_part
+
+        with {:ok, remainder_unit} <- new(remainder, target),
+             {:ok, rest_parts} <- decompose(remainder_unit, rest) do
+          {:ok, [%{converted | value: integer_part} | rest_parts]}
+        end
+
+      error ->
+        error
+    end
+  end
+
+  def decompose(%__MODULE__{}, []) do
+    {:ok, []}
+  end
+
+  # ── Accessors ─────────────────────────────────────────────────
+
+  @doc """
+  Returns the numeric value of a unit.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct.
+
+  ### Returns
+
+  * The value (number, Decimal, or nil).
+
+  ### Examples
+
+      iex> {:ok, m} = Localize.Unit.new(42, "meter")
+      iex> Localize.Unit.value(m)
+      42
+
+  """
+  @spec value(t()) :: value()
+  def value(%__MODULE__{value: value}), do: value
+
+  @doc """
+  Returns a zero-valued unit of the same type.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct.
+
+  ### Returns
+
+  * A new `%Localize.Unit{}` with value `0`.
+
+  ### Examples
+
+      iex> {:ok, m} = Localize.Unit.new(42, "meter")
+      iex> z = Localize.Unit.zero(m)
+      iex> z.value
+      0
+
+  """
+  @spec zero(t()) :: t()
+  def zero(%__MODULE__{} = unit), do: %{unit | value: 0}
+
+  @doc """
+  Returns true if the unit has a zero value.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct.
+
+  ### Returns
+
+  * `true` or `false`.
+
+  ### Examples
+
+      iex> {:ok, m} = Localize.Unit.new(0, "meter")
+      iex> Localize.Unit.zero?(m)
+      true
+
+  """
+  @spec zero?(t()) :: boolean()
+  def zero?(%__MODULE__{value: 0}), do: true
+  def zero?(%__MODULE__{value: 0.0}), do: true
+  def zero?(%__MODULE__{value: %Decimal{coef: 0}}), do: true
+  def zero?(%__MODULE__{}), do: false
+
+  # ── Introspection ─────────────────────────────────────────────
+
+  @doc """
+  Returns the CLDR category for a unit.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct or a unit name string.
+
+  ### Returns
+
+  * `{:ok, category}` where category is a string like `"length"`, or
+
+  * `{:error, exception}`.
+
+  ### Examples
+
+      iex> {:ok, m} = Localize.Unit.new(1, "meter")
+      iex> Localize.Unit.unit_category(m)
+      {:ok, "length"}
+
+      iex> Localize.Unit.unit_category("kilogram")
+      {:ok, "mass"}
+
+  """
+  @spec unit_category(t() | String.t()) :: {:ok, String.t()} | {:error, Exception.t()}
+  def unit_category(%__MODULE__{name: name}), do: unit_category(name)
+
+  def unit_category(name) when is_binary(name) do
+    btq = Localize.Unit.Data.base_unit_to_quantity()
+
+    case Map.get(btq, name) do
+      nil ->
+        with {:ok, parsed} <- Localize.Unit.Parser.parse(name),
+             {:ok, base} <- Localize.Unit.BaseUnit.base_unit(parsed) do
+          case Map.get(btq, base) do
+            nil ->
+              {:error,
+               Localize.InvalidValueError.exception(
+                 value: name,
+                 expected: "a unit with a known category"
+               )}
+
+            category ->
+              {:ok, category}
+          end
+        end
+
+      category ->
+        {:ok, category}
+    end
+  end
+
+  @doc """
+  Returns whether two units are convertible (same category).
+
+  ### Arguments
+
+  * `unit_1` is a `%Localize.Unit{}` struct or a unit name string.
+
+  * `unit_2` is a `%Localize.Unit{}` struct or a unit name string.
+
+  ### Returns
+
+  * `true` or `false`.
+
+  ### Examples
+
+      iex> Localize.Unit.compatible?("meter", "foot")
+      true
+
+      iex> Localize.Unit.compatible?("meter", "kilogram")
+      false
+
+  """
+  @spec compatible?(t() | String.t(), t() | String.t()) :: boolean()
+  def compatible?(%__MODULE__{name: name_1}, unit_2), do: compatible?(name_1, unit_2)
+  def compatible?(unit_1, %__MODULE__{name: name_2}), do: compatible?(unit_1, name_2)
+
+  def compatible?(name_1, name_2) when is_binary(name_1) and is_binary(name_2) do
+    with {:ok, parsed_1} <- Localize.Unit.Parser.parse(name_1),
+         {:ok, base_1} <- Localize.Unit.BaseUnit.base_unit(parsed_1),
+         {:ok, parsed_2} <- Localize.Unit.Parser.parse(name_2),
+         {:ok, base_2} <- Localize.Unit.BaseUnit.base_unit(parsed_2) do
+      base_1 == base_2
+    else
+      _ -> false
+    end
+  end
+
+  @doc """
+  Returns the localized display name for a unit.
+
+  This returns the unit name as it would appear in the locale,
+  without any numeric value (e.g., "meters", "kilograms").
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct or a unit name string.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier. The default is `Localize.get_locale()`.
+
+  * `:style` is `:long`, `:short`, or `:narrow`. The default is `:long`.
+
+  ### Returns
+
+  * `{:ok, name}` or `{:error, exception}`.
+
+  ### Examples
+
+      iex> Localize.Unit.display_name("meter", locale: :en)
+      {:ok, "meters"}
+
+      iex> Localize.Unit.display_name("meter", locale: :en, style: :short)
+      {:ok, "m"}
+
+  """
+  @spec display_name(t() | String.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def display_name(unit_or_name, options \\ [])
+
+  def display_name(%__MODULE__{} = unit, options) do
+    display_name(unit.name, options)
+  end
+
+  def display_name(name, options) when is_binary(name) do
+    case new(name) do
+      {:ok, unit} ->
+        Localize.Unit.Formatter.to_string(unit, options)
+
+      error ->
+        error
+    end
+  end
+
+  @doc """
+  Returns a list of all known unit categories.
+
+  ### Returns
+
+  * A list of category name strings.
+
+  ### Examples
+
+      iex> cats = Localize.Unit.known_categories()
+      iex> "length" in cats
+      true
+
+  """
+  @spec known_categories() :: [String.t()]
+  def known_categories do
+    Localize.Unit.Data.categories()
+  end
+
+  @doc """
+  Returns a map of unit categories to their member units.
+
+  ### Returns
+
+  * A map of `%{category_string => [unit_name_string]}`.
+
+  ### Examples
+
+      iex> by_cat = Localize.Unit.known_units_by_category()
+      iex> is_list(by_cat["length"])
+      true
+
+  """
+  @spec known_units_by_category() :: %{String.t() => [String.t()]}
+  def known_units_by_category do
+    btq = Localize.Unit.Data.base_unit_to_quantity()
+
+    Localize.Unit.Data.conversions()
+    |> Enum.group_by(
+      fn {_unit, base} -> Map.get(btq, base, "unknown") end,
+      fn {unit, _base} -> unit end
+    )
+  end
+
+  @doc """
+  Returns a list of valid usage types for unit preferences.
+
+  ### Returns
+
+  * A sorted list of usage atoms.
+
+  ### Examples
+
+      iex> usages = Localize.Unit.known_usages()
+      iex> "default" in usages
+      true
+
+  """
+  @spec known_usages() :: [String.t()]
+  def known_usages do
+    @valid_usages
+  end
+
+  @doc """
+  Returns the preferred measurement system for a territory.
+
+  ### Arguments
+
+  * `territory` is a territory code atom (e.g., `:US`, `:GB`).
+
+  ### Returns
+
+  * `:metric`, `:ussystem`, or `:uksystem`.
+
+  ### Examples
+
+      iex> Localize.Unit.measurement_system_for_territory(:US)
+      :ussystem
+
+      iex> Localize.Unit.measurement_system_for_territory(:FR)
+      :metric
+
+  """
+  @spec measurement_system_for_territory(atom()) :: atom()
+  def measurement_system_for_territory(territory) when is_atom(territory) do
+    territories = Localize.SupplementalData.territories()
+    territory_data = Map.get(territories, territory, %{})
+
+    case Map.get(territory_data, :measurement_system) do
+      %{default: system} -> system
+      system when is_atom(system) -> system
+      _ -> :metric
+    end
+  end
+
+  # ── Private helpers ───────────────────────────────────────────
+
+  defp to_float(%Decimal{} = d), do: Decimal.to_float(d)
+  defp to_float(n) when is_number(n), do: n * 1.0
+  defp to_float(n), do: n
 end

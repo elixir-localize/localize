@@ -81,9 +81,11 @@ defmodule Localize.Test.PreferenceData do
   end
 
   defp parse_mixed_output([], acc), do: Enum.reverse(acc)
+
   defp parse_mixed_output([int, unit, rational, double, last_unit], acc) do
     Enum.reverse([{last_unit, [rational, double]}, {unit, [int, nil]} | acc])
   end
+
   defp parse_mixed_output([int, unit | rest], acc) do
     parse_mixed_output(rest, [{unit, [int, nil]} | acc])
   end

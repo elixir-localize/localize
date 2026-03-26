@@ -19,58 +19,71 @@ defmodule Localize.Unit.Preference do
   alias Localize.Unit.{Conversion, Data, Parser, BaseUnit}
 
   @unit_preferences (
-    geq_to_base = fn unit_name, geq_string ->
-      case geq_string do
-        nil -> 0.0
-        "" -> 0.0
-        s when is_binary(s) ->
-          case Float.parse(s) do
-            {0.0, _} -> 0.0
-            {geq_value, _} ->
-              primary = unit_name |> String.split("-and-") |> hd()
-              case Parser.parse(primary) do
-                {:ok, parsed} ->
-                  case BaseUnit.base_unit(parsed) do
-                    {:ok, base} ->
-                      case Conversion.convert(geq_value, primary, base) do
-                        {:ok, v} -> v
-                        _ -> 0.0
+                      geq_to_base = fn unit_name, geq_string ->
+                        case geq_string do
+                          nil ->
+                            0.0
+
+                          "" ->
+                            0.0
+
+                          s when is_binary(s) ->
+                            case Float.parse(s) do
+                              {0.0, _} ->
+                                0.0
+
+                              {geq_value, _} ->
+                                primary = unit_name |> String.split("-and-") |> hd()
+
+                                case Parser.parse(primary) do
+                                  {:ok, parsed} ->
+                                    case BaseUnit.base_unit(parsed) do
+                                      {:ok, base} ->
+                                        case Conversion.convert(geq_value, primary, base) do
+                                          {:ok, v} -> v
+                                          _ -> 0.0
+                                        end
+
+                                      _ ->
+                                        0.0
+                                    end
+
+                                  _ ->
+                                    0.0
+                                end
+
+                              :error ->
+                                0.0
+                            end
+                        end
                       end
-                    _ -> 0.0
-                  end
-                _ -> 0.0
-              end
-            :error -> 0.0
-          end
-      end
-    end
 
-    Data.unit_preferences()
-    |> Enum.group_by(& &1.category)
-    |> Map.new(fn {category, entries} ->
-      by_usage =
-        entries
-        |> Enum.group_by(& &1.usage)
-        |> Map.new(fn {usage, usage_entries} ->
-          prefs =
-            usage_entries
-            |> Enum.flat_map(fn entry ->
-              Enum.map(entry.preferences, fn p ->
-                %{
-                  unit: p.unit,
-                  geq: geq_to_base.(p.unit, p[:geq]),
-                  regions: String.split(p.regions, " ", trim: true),
-                  skeleton: p[:skeleton] || ""
-                }
-              end)
-            end)
+                      Data.unit_preferences()
+                      |> Enum.group_by(& &1.category)
+                      |> Map.new(fn {category, entries} ->
+                        by_usage =
+                          entries
+                          |> Enum.group_by(& &1.usage)
+                          |> Map.new(fn {usage, usage_entries} ->
+                            prefs =
+                              usage_entries
+                              |> Enum.flat_map(fn entry ->
+                                Enum.map(entry.preferences, fn p ->
+                                  %{
+                                    unit: p.unit,
+                                    geq: geq_to_base.(p.unit, p[:geq]),
+                                    regions: String.split(p.regions, " ", trim: true),
+                                    skeleton: p[:skeleton] || ""
+                                  }
+                                end)
+                              end)
 
-          {usage, prefs}
-        end)
+                            {usage, prefs}
+                          end)
 
-      {category, by_usage}
-    end)
-  )
+                        {category, by_usage}
+                      end)
+                    )
 
   @doc """
   Returns the preferred units for a given unit, territory, and usage.
@@ -286,9 +299,13 @@ defmodule Localize.Unit.Preference do
               {:ok, converted} -> abs(converted) >= 1.0 - 1.0e-8
               _ -> false
             end
-          _ -> false
+
+          _ ->
+            false
         end
-      _ -> false
+
+      _ ->
+        false
     end
   end
 
@@ -318,5 +335,4 @@ defmodule Localize.Unit.Preference do
   end
 
   defp parse_skeleton(_), do: []
-
 end

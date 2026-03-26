@@ -180,7 +180,9 @@ defmodule Localize.LocaleDisplay.T do
 
     candidates =
       [
-        if(script_str && territory_str, do: {"#{lang}-#{script_str}-#{territory_str}", [:script, :territory]}),
+        if(script_str && territory_str,
+          do: {"#{lang}-#{script_str}-#{territory_str}", [:script, :territory]}
+        ),
         if(territory_str, do: {"#{lang}-#{territory_str}", [:territory]}),
         if(script_str, do: {"#{lang}-#{script_str}", [:script]}),
         {lang, []}
