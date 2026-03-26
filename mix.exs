@@ -5,7 +5,7 @@ defmodule Localize.MixProject do
     [
       app: :localize,
       version: "0.1.0",
-      elixir: "~> 1.19",
+      elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: maybe_elixir_make() ++ [:yecc, :leex] ++ Mix.compilers(),

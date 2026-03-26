@@ -30,6 +30,10 @@ Localize consolidates the functionality of the `ex_cldr_*` library family into a
 
 * **MessageFormat 2** — parse and evaluate ICU MessageFormat 2 message strings.
 
+## Supported Elixir and OTP versions
+
+Localize requires **Elixir 1.17+** and **Erlang/OTP 26+**.
+
 ## Installation
 
 Add `localize` to your dependencies in `mix.exs`:
