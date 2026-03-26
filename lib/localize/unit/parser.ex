@@ -101,7 +101,68 @@ defmodule Localize.Unit.Parser do
       wrap_mixed_unit: 1
     ]
 
-  defparsec(:unit_identifier, unit_identifier())
+  # Break out the two largest choice lists as defparsecp
+  # so they compile once instead of being inlined at every call site.
+  defparsecp(:base_unit_p, base_unit())
+  defparsecp(:si_prefix_p, si_prefix())
+
+  # Rebuild single_unit to reference the defparsecp versions
+  single_unit_v =
+    choice([
+      optional(power_prefix())
+      |> choice([
+        parsec(:base_unit_p),
+        parsec(:si_prefix_p) |> concat(parsec(:base_unit_p))
+      ])
+      |> reduce(:wrap_single_unit),
+      unit_constant()
+    ])
+
+  defparsecp(:single_unit_p, single_unit_v)
+
+  product_unit_v =
+    parsec(:single_unit_p)
+    |> repeat(
+      lookahead_not(string("-per-"))
+      |> lookahead_not(string("-and-"))
+      |> ignore(string("-"))
+      |> concat(parsec(:single_unit_p))
+    )
+    |> tag(:product)
+
+  defparsecp(:product_unit_p, product_unit_v)
+
+  core_unit_v =
+    choice([
+      ignore(string("per-"))
+      |> concat(parsec(:product_unit_p))
+      |> repeat(ignore(string("-per-")) |> concat(parsec(:product_unit_p)))
+      |> reduce(:wrap_per_leading),
+      parsec(:product_unit_p)
+      |> repeat(ignore(string("-per-")) |> concat(parsec(:product_unit_p)))
+      |> reduce(:wrap_core_unit)
+    ])
+
+  long_unit_v =
+    category()
+    |> ignore(string("-"))
+    |> concat(core_unit_v)
+    |> reduce(:wrap_long_unit)
+
+  mixed_unit_v =
+    parsec(:single_unit_p)
+    |> times(ignore(string("-and-")) |> concat(parsec(:single_unit_p)), min: 1)
+    |> reduce(:wrap_mixed_unit)
+
+  unit_identifier_v =
+    choice([
+      mixed_unit_v,
+      core_unit_v,
+      long_unit_v
+    ])
+    |> eos()
+
+  defparsec(:unit_identifier, unit_identifier_v)
 
   # parsec:Localize.Unit.Parser
 end

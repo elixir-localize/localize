@@ -34,3 +34,6 @@ mise.toml
 /priv/localize/locales/
 !/priv/localize/locales/en.etf
 
+# Experiment files
+bench_unit_parser.sh
+
