@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-TV": {
+      "identity": {
+        "language": "en",
+        "territory": "TV"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

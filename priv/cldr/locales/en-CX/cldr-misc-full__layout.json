@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-CX": {
+      "identity": {
+        "language": "en",
+        "territory": "CX"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ee": {
+      "identity": {
+        "language": "ee"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "dzidzeti",
+          "UK": "uk",
+          "US": "us"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ff-Adlm": {
+      "identity": {
+        "language": "ff",
+        "script": "Adlm"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

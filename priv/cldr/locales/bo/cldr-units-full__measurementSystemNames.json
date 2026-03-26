@@ -1,0 +1,16 @@
+{
+  "main": {
+    "bo": {
+      "identity": {
+        "language": "bo"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "ཨ་མེ་རི་ཀའི།"
+        }
+      }
+    }
+  }
+}

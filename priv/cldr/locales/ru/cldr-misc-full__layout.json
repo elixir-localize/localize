@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ru": {
+      "identity": {
+        "language": "ru"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

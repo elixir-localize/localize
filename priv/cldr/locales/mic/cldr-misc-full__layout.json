@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mic": {
+      "identity": {
+        "language": "mic"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

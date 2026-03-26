@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ba": {
+      "identity": {
+        "language": "ba"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

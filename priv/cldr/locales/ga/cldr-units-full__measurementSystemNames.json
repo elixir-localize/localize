@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ga": {
+      "identity": {
+        "language": "ga"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Méadrach",
+          "UK": "RA",
+          "US": "SAM"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "dz": {
+      "identity": {
+        "language": "dz"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "མེ་ཊྲིཀ་བརྩི་ལུགས",
+          "UK": "བྲི་ཊིཤ་ བརྩི་ལུགས",
+          "US": "ཨ་མི་རི་ཀཱན་ བརྩི་ལུགས"
+        }
+      }
+    }
+  }
+}

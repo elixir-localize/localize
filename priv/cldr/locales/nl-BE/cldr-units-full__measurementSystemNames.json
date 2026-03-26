@@ -1,0 +1,17 @@
+{
+  "main": {
+    "nl-BE": {
+      "identity": {
+        "language": "nl",
+        "territory": "BE"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metriek",
+          "UK": "Brits",
+          "US": "Amerikaans"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-BZ": {
+      "identity": {
+        "language": "es",
+        "territory": "BZ"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

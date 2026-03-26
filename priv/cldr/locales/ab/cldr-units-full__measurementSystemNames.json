@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ab": {
+      "identity": {
+        "language": "ab"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Аметрикатә",
+          "UK": "Англиатәи",
+          "US": "Америкатә"
+        }
+      }
+    }
+  }
+}

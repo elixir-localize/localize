@@ -1,0 +1,17 @@
+{
+  "main": {
+    "zh-Hans-SG": {
+      "identity": {
+        "language": "zh",
+        "script": "Hans",
+        "territory": "SG"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

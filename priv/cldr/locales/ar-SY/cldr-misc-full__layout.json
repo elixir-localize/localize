@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-SY": {
+      "identity": {
+        "language": "ar",
+        "territory": "SY"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

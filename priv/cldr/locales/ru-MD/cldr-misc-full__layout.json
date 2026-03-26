@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ru-MD": {
+      "identity": {
+        "language": "ru",
+        "territory": "MD"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

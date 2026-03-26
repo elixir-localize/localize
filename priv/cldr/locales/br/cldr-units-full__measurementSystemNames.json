@@ -1,0 +1,16 @@
+{
+  "main": {
+    "br": {
+      "identity": {
+        "language": "br"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrek",
+          "UK": "RU",
+          "US": "SU"
+        }
+      }
+    }
+  }
+}

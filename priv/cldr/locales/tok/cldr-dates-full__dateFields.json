@@ -1,0 +1,580 @@
+{
+  "main": {
+    "tok": {
+      "identity": {
+        "language": "tok"
+      },
+      "dates": {
+        "fields": {
+          "era": {
+            "displayName": "tenpo"
+          },
+          "era-short": {
+            "displayName": "tenpo"
+          },
+          "era-narrow": {
+            "displayName": "tenpo"
+          },
+          "year": {
+            "displayName": "tenpo sike",
+            "relative-type--1": "tenpo sike pini",
+            "relative-type-0": "tenpo sike ni",
+            "relative-type-1": "tenpo sike wan",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "tenpo sike kama {0}"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "tenpo sike pini {0}"
+            }
+          },
+          "year-short": {
+            "displayName": "sike",
+            "relative-type--1": "tenpo sike pini",
+            "relative-type-0": "tenpo sike ni",
+            "relative-type-1": "tenpo sike wan",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "tenpo sike kama {0}"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "tenpo sike pini {0}"
+            }
+          },
+          "year-narrow": {
+            "displayName": "sike",
+            "relative-type--1": "tenpo sike pini",
+            "relative-type-0": "tenpo sike ni",
+            "relative-type-1": "tenpo sike wan",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "tenpo sike kama {0}"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "tenpo sike pini {0}"
+            }
+          },
+          "quarter": {
+            "displayName": "Quarter",
+            "relative-type--1": "last quarter",
+            "relative-type-0": "this quarter",
+            "relative-type-1": "next quarter",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Q"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Q"
+            }
+          },
+          "quarter-short": {
+            "displayName": "Quarter",
+            "relative-type--1": "last quarter",
+            "relative-type-0": "this quarter",
+            "relative-type-1": "next quarter",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Q"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Q"
+            }
+          },
+          "quarter-narrow": {
+            "displayName": "Quarter",
+            "relative-type--1": "last quarter",
+            "relative-type-0": "this quarter",
+            "relative-type-1": "next quarter",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Q"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Q"
+            }
+          },
+          "month": {
+            "displayName": "tenpo mun",
+            "relative-type--1": "tenpo mun pini",
+            "relative-type-0": "tenpo mun ni",
+            "relative-type-1": "tenpo mun kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "tenpo mun kama {0}"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "tenpo mun pini {0}"
+            }
+          },
+          "month-short": {
+            "displayName": "mun",
+            "relative-type--1": "tenpo mun pini",
+            "relative-type-0": "tenpo mun ni",
+            "relative-type-1": "tenpo mun kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "tenpo mun kama {0}"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "tenpo mun pini {0}"
+            }
+          },
+          "month-narrow": {
+            "displayName": "mun",
+            "relative-type--1": "tenpo mun pini",
+            "relative-type-0": "tenpo mun ni",
+            "relative-type-1": "tenpo mun kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "tenpo mun kama {0}"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "tenpo mun pini {0}"
+            }
+          },
+          "week": {
+            "displayName": "tenpo esun",
+            "relative-type--1": "tenpo esun pini",
+            "relative-type-0": "tenpo esun ni",
+            "relative-type-1": "tenpo esun kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "tenpo esun kama {0}"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "tenpo esun pini {0}"
+            },
+            "relativePeriod": "the week of {0}"
+          },
+          "week-short": {
+            "displayName": "esun",
+            "relative-type--1": "tenpo esun pini",
+            "relative-type-0": "tenpo esun ni",
+            "relative-type-1": "tenpo esun kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "tenpo esun kama {0}"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "tenpo esun pini {0}"
+            },
+            "relativePeriod": "the week of {0}"
+          },
+          "week-narrow": {
+            "displayName": "esun",
+            "relative-type--1": "tenpo esun pini",
+            "relative-type-0": "tenpo esun ni",
+            "relative-type-1": "tenpo esun kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "tenpo esun kama {0}"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "tenpo esun pini {0}"
+            },
+            "relativePeriod": "the week of {0}"
+          },
+          "weekOfMonth": {
+            "displayName": "Week Of Month"
+          },
+          "weekOfMonth-short": {
+            "displayName": "Week Of Month"
+          },
+          "weekOfMonth-narrow": {
+            "displayName": "Week Of Month"
+          },
+          "day": {
+            "displayName": "tenpo suno",
+            "relative-type--1": "tenpo suno pini",
+            "relative-type-0": "tenpo suno ni",
+            "relative-type-1": "tenpo suno kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "tenpo suno kama {0}"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "tenpo suno pini {0}"
+            }
+          },
+          "day-short": {
+            "displayName": "suno",
+            "relative-type--1": "tenpo suno pini",
+            "relative-type-0": "tenpo suno ni",
+            "relative-type-1": "tenpo suno kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "tenpo suno kama {0}"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "tenpo suno pini {0}"
+            }
+          },
+          "day-narrow": {
+            "displayName": "suno",
+            "relative-type--1": "tenpo suno pini",
+            "relative-type-0": "tenpo suno ni",
+            "relative-type-1": "tenpo suno kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "tenpo suno kama {0}"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "tenpo suno pini {0}"
+            }
+          },
+          "dayOfYear": {
+            "displayName": "Day Of Year"
+          },
+          "dayOfYear-short": {
+            "displayName": "Day Of Year"
+          },
+          "dayOfYear-narrow": {
+            "displayName": "Day Of Year"
+          },
+          "weekday": {
+            "displayName": "Day of the Week"
+          },
+          "weekday-short": {
+            "displayName": "Day of the Week"
+          },
+          "weekday-narrow": {
+            "displayName": "Day of the Week"
+          },
+          "weekdayOfMonth": {
+            "displayName": "Weekday Of Month"
+          },
+          "weekdayOfMonth-short": {
+            "displayName": "Weekday Of Month"
+          },
+          "weekdayOfMonth-narrow": {
+            "displayName": "Weekday Of Month"
+          },
+          "sun": {
+            "relative-type--1": "tenpo esun #7 pini",
+            "relative-type-0": "tenpo esun #7 ni",
+            "relative-type-1": "tenpo esun #7 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Sundays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Sundays"
+            }
+          },
+          "sun-short": {
+            "relative-type--1": "tenpo esun #7 pini",
+            "relative-type-0": "tenpo esun #7 ni",
+            "relative-type-1": "tenpo esun #7 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Sundays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Sundays"
+            }
+          },
+          "sun-narrow": {
+            "relative-type--1": "tenpo esun #7 pini",
+            "relative-type-0": "tenpo esun #7 ni",
+            "relative-type-1": "tenpo esun #7 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Sundays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Sundays"
+            }
+          },
+          "mon": {
+            "relative-type--1": "tenpo esun #1 pini",
+            "relative-type-0": "tenpo esun #1 ni",
+            "relative-type-1": "tenpo esun #1 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Mondays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Mondays"
+            }
+          },
+          "mon-short": {
+            "relative-type--1": "tenpo esun #1 pini",
+            "relative-type-0": "tenpo esun #1 ni",
+            "relative-type-1": "tenpo esun #1 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Mondays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Mondays"
+            }
+          },
+          "mon-narrow": {
+            "relative-type--1": "tenpo esun #1 pini",
+            "relative-type-0": "tenpo esun #1 ni",
+            "relative-type-1": "tenpo esun #1 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Mondays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Mondays"
+            }
+          },
+          "tue": {
+            "relative-type--1": "tenpo esun #2 pini",
+            "relative-type-0": "tenpo esun #2 ni",
+            "relative-type-1": "tenpo esun #2 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Tuesdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Tuesdays"
+            }
+          },
+          "tue-short": {
+            "relative-type--1": "tenpo esun #2 pini",
+            "relative-type-0": "tenpo esun #2 ni",
+            "relative-type-1": "tenpo esun #2 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Tuesdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Tuesdays"
+            }
+          },
+          "tue-narrow": {
+            "relative-type--1": "tenpo esun #2 pini",
+            "relative-type-0": "tenpo esun #2 ni",
+            "relative-type-1": "tenpo esun #2 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Tuesdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Tuesdays"
+            }
+          },
+          "wed": {
+            "relative-type--1": "tenpo esun #3 pini",
+            "relative-type-0": "tenpo esun #3 ni",
+            "relative-type-1": "tenpo esun #3 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Wednesdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Wednesdays"
+            }
+          },
+          "wed-short": {
+            "relative-type--1": "tenpo esun #3 pini",
+            "relative-type-0": "tenpo esun #3 ni",
+            "relative-type-1": "tenpo esun #3 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Wednesdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Wednesdays"
+            }
+          },
+          "wed-narrow": {
+            "relative-type--1": "tenpo esun #3 pini",
+            "relative-type-0": "tenpo esun #3 ni",
+            "relative-type-1": "tenpo esun #3 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Wednesdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Wednesdays"
+            }
+          },
+          "thu": {
+            "relative-type--1": "tenpo esun #4 pini",
+            "relative-type-0": "tenpo esun #4 ni",
+            "relative-type-1": "tenpo esun #4 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Thursdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Thursdays"
+            }
+          },
+          "thu-short": {
+            "relative-type--1": "tenpo esun #4 pini",
+            "relative-type-0": "tenpo esun #4 ni",
+            "relative-type-1": "tenpo esun #4 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Thursdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Thursdays"
+            }
+          },
+          "thu-narrow": {
+            "relative-type--1": "tenpo esun #4 pini",
+            "relative-type-0": "tenpo esun #4 ni",
+            "relative-type-1": "tenpo esun #4 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Thursdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Thursdays"
+            }
+          },
+          "fri": {
+            "relative-type--1": "tenpo esun #5 pini",
+            "relative-type-0": "tenpo esun #5 ni",
+            "relative-type-1": "tenpo esun #5 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Fridays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Fridays"
+            }
+          },
+          "fri-short": {
+            "relative-type--1": "tenpo esun #5 pini",
+            "relative-type-0": "tenpo esun #5 ni",
+            "relative-type-1": "tenpo esun #5 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Fridays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Fridays"
+            }
+          },
+          "fri-narrow": {
+            "relative-type--1": "tenpo esun #5 pini",
+            "relative-type-0": "tenpo esun #5 ni",
+            "relative-type-1": "tenpo esun #5 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Fridays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Fridays"
+            }
+          },
+          "sat": {
+            "relative-type--1": "tenpo esun #6 pini",
+            "relative-type-0": "tenpo esun #6 ni",
+            "relative-type-1": "tenpo esun #6 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Saturdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Saturdays"
+            }
+          },
+          "sat-short": {
+            "relative-type--1": "tenpo esun #6 pini",
+            "relative-type-0": "tenpo esun #6 ni",
+            "relative-type-1": "tenpo esun #6 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Saturdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Saturdays"
+            }
+          },
+          "sat-narrow": {
+            "relative-type--1": "tenpo esun #6 pini",
+            "relative-type-0": "tenpo esun #6 ni",
+            "relative-type-1": "tenpo esun #6 kama",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Saturdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Saturdays"
+            }
+          },
+          "dayperiod-short": {
+            "displayName": "Dayperiod"
+          },
+          "dayperiod": {
+            "displayName": "Dayperiod"
+          },
+          "dayperiod-narrow": {
+            "displayName": "Dayperiod"
+          },
+          "hour": {
+            "displayName": "tenpo ilo",
+            "relative-type-0": "tenpo ilo ni",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "tenpo ilo kama {0}"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "tenpo ilo pini {0}"
+            }
+          },
+          "hour-short": {
+            "displayName": "tenpo ilo",
+            "relative-type-0": "tenpo ilo ni",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "tenpo ilo kama {0}"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "tenpo ilo pini {0}"
+            }
+          },
+          "hour-narrow": {
+            "displayName": "tenpo ilo",
+            "relative-type-0": "tenpo ilo ni",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "tenpo ilo kama {0}"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "tenpo ilo pini {0}"
+            }
+          },
+          "minute": {
+            "displayName": "Minute",
+            "relative-type-0": "this minute",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} min"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} min"
+            }
+          },
+          "minute-short": {
+            "displayName": "Minute",
+            "relative-type-0": "this minute",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} min"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} min"
+            }
+          },
+          "minute-narrow": {
+            "displayName": "Minute",
+            "relative-type-0": "this minute",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} min"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} min"
+            }
+          },
+          "second": {
+            "displayName": "Second",
+            "relative-type-0": "now",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} s"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} s"
+            }
+          },
+          "second-short": {
+            "displayName": "Second",
+            "relative-type-0": "now",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} s"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} s"
+            }
+          },
+          "second-narrow": {
+            "displayName": "Second",
+            "relative-type-0": "now",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} s"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} s"
+            }
+          },
+          "zone": {
+            "displayName": "nasin tenpo"
+          },
+          "zone-short": {
+            "displayName": "nasin tenpo"
+          },
+          "zone-narrow": {
+            "displayName": "nasin tenpo"
+          }
+        }
+      }
+    }
+  }
+}

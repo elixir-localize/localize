@@ -1,0 +1,15 @@
+{
+  "main": {
+    "twq": {
+      "identity": {
+        "language": "twq"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ayyo:A",
+          "nostr": "Kala:K"
+        }
+      }
+    }
+  }
+}

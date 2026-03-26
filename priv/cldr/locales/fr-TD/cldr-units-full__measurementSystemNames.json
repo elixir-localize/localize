@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fr-TD": {
+      "identity": {
+        "language": "fr",
+        "territory": "TD"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrique",
+          "UK": "impérial",
+          "US": "américain"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "el-CY": {
+      "identity": {
+        "language": "el",
+        "territory": "CY"
+      },
+      "contextTransforms": {
+        "relative": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        }
+      }
+    }
+  }
+}

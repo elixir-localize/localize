@@ -1,0 +1,15 @@
+{
+  "main": {
+    "doi": {
+      "identity": {
+        "language": "doi"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "हां",
+          "nostr": "नेईं"
+        }
+      }
+    }
+  }
+}

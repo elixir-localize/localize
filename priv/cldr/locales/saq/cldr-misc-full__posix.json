@@ -1,0 +1,15 @@
+{
+  "main": {
+    "saq": {
+      "identity": {
+        "language": "saq"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Neja",
+          "nostr": "Nara"
+        }
+      }
+    }
+  }
+}

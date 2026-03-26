@@ -1,0 +1,16 @@
+{
+  "main": {
+    "pis": {
+      "identity": {
+        "language": "pis"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrik",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

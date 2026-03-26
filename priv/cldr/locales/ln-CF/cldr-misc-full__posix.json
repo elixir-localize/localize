@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ln-CF": {
+      "identity": {
+        "language": "ln",
+        "territory": "CF"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Íyo:Í:I",
+          "nostr": "Tɛ̂:T"
+        }
+      }
+    }
+  }
+}

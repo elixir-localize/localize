@@ -1,0 +1,539 @@
+{
+  "main": {
+    "mua": {
+      "identity": {
+        "language": "mua"
+      },
+      "numbers": {
+        "currencies": {
+          "AED": {
+            "displayName": "Solai Arabiya",
+            "displayName-count-other": "Solai Arabiya"
+          },
+          "AFN": {
+            "symbol-alt-narrow": "؋"
+          },
+          "AMD": {
+            "symbol-alt-narrow": "֏"
+          },
+          "AOA": {
+            "displayName": "solai Angola",
+            "displayName-count-other": "solai Angola",
+            "symbol-alt-narrow": "Kz"
+          },
+          "ARS": {
+            "symbol-alt-narrow": "$"
+          },
+          "AUD": {
+            "displayName": "solai Australya",
+            "displayName-count-other": "solai Australya",
+            "symbol": "A$",
+            "symbol-alt-narrow": "$"
+          },
+          "AZN": {
+            "symbol-alt-narrow": "₼"
+          },
+          "BAM": {
+            "symbol-alt-narrow": "KM"
+          },
+          "BBD": {
+            "symbol-alt-narrow": "$"
+          },
+          "BDT": {
+            "symbol-alt-narrow": "৳"
+          },
+          "BHD": {
+            "displayName": "solai Barenya",
+            "displayName-count-other": "solai Barenya"
+          },
+          "BIF": {
+            "displayName": "solai Burundi",
+            "displayName-count-other": "solai Burundi"
+          },
+          "BMD": {
+            "symbol-alt-narrow": "$"
+          },
+          "BND": {
+            "symbol-alt-narrow": "$"
+          },
+          "BOB": {
+            "symbol-alt-narrow": "Bs"
+          },
+          "BRL": {
+            "symbol": "R$",
+            "symbol-alt-narrow": "R$"
+          },
+          "BSD": {
+            "symbol-alt-narrow": "$"
+          },
+          "BWP": {
+            "displayName": "solai Botswana",
+            "displayName-count-other": "solai Botswana",
+            "symbol-alt-narrow": "P"
+          },
+          "BZD": {
+            "symbol-alt-narrow": "$"
+          },
+          "CAD": {
+            "displayName": "solai Kanada",
+            "displayName-count-other": "solai Kanada",
+            "symbol": "CA$",
+            "symbol-alt-narrow": "$"
+          },
+          "CDF": {
+            "displayName": "solai Kongo",
+            "displayName-count-other": "solai Kongo"
+          },
+          "CHF": {
+            "displayName": "Solai Swiss",
+            "displayName-count-other": "Solai Swiss"
+          },
+          "CLP": {
+            "symbol-alt-narrow": "$"
+          },
+          "CNY": {
+            "displayName": "solai Syiŋ",
+            "displayName-count-other": "solai Syiŋ",
+            "symbol": "CN¥",
+            "symbol-alt-narrow": "¥"
+          },
+          "COP": {
+            "symbol-alt-narrow": "$"
+          },
+          "CRC": {
+            "symbol-alt-narrow": "₡"
+          },
+          "CUC": {
+            "symbol-alt-narrow": "$"
+          },
+          "CUP": {
+            "symbol-alt-narrow": "$"
+          },
+          "CVE": {
+            "displayName": "solai Kapverdiya",
+            "displayName-count-other": "solai Kapverdiya"
+          },
+          "CZK": {
+            "symbol-alt-narrow": "Kč"
+          },
+          "DJF": {
+            "displayName": "solai Djibouti",
+            "displayName-count-other": "solai Djibouti"
+          },
+          "DKK": {
+            "symbol-alt-narrow": "kr"
+          },
+          "DOP": {
+            "symbol-alt-narrow": "$"
+          },
+          "DZD": {
+            "displayName": "solai Algerya",
+            "displayName-count-other": "solai Algerya"
+          },
+          "EGP": {
+            "displayName": "solai Egypt",
+            "displayName-count-other": "solai Egypt",
+            "symbol-alt-narrow": "E£"
+          },
+          "ERN": {
+            "displayName": "solai Eritre",
+            "displayName-count-other": "solai Eritre"
+          },
+          "ESP": {
+            "symbol-alt-narrow": "₧"
+          },
+          "ETB": {
+            "displayName": "solai Etiopia",
+            "displayName-count-other": "solai Etiopia"
+          },
+          "EUR": {
+            "displayName": "solai Euro",
+            "displayName-count-other": "solai Euro",
+            "symbol": "€",
+            "symbol-alt-narrow": "€"
+          },
+          "FJD": {
+            "symbol-alt-narrow": "$"
+          },
+          "FKP": {
+            "symbol-alt-narrow": "£"
+          },
+          "GBP": {
+            "displayName": "solai Britaniya",
+            "displayName-count-other": "solai Britaniya",
+            "symbol": "£",
+            "symbol-alt-narrow": "£"
+          },
+          "GEL": {
+            "symbol-alt-narrow": "₾"
+          },
+          "GHC": {
+            "displayName": "solai Gana",
+            "displayName-count-other": "solai Gana"
+          },
+          "GHS": {
+            "symbol-alt-narrow": "GH₵"
+          },
+          "GIP": {
+            "symbol-alt-narrow": "£"
+          },
+          "GMD": {
+            "displayName": "solai Gambiya",
+            "displayName-count-other": "solai Gambiya"
+          },
+          "GNF": {
+            "symbol-alt-narrow": "FG"
+          },
+          "GNS": {
+            "displayName": "solai Guine",
+            "displayName-count-other": "solai Guine"
+          },
+          "GTQ": {
+            "symbol-alt-narrow": "Q"
+          },
+          "GYD": {
+            "symbol-alt-narrow": "$"
+          },
+          "HKD": {
+            "symbol": "HK$",
+            "symbol-alt-narrow": "$"
+          },
+          "HNL": {
+            "symbol-alt-narrow": "L"
+          },
+          "HRK": {
+            "symbol-alt-narrow": "kn"
+          },
+          "HUF": {
+            "symbol-alt-narrow": "Ft"
+          },
+          "IDR": {
+            "symbol-alt-narrow": "Rp"
+          },
+          "ILS": {
+            "symbol": "₪",
+            "symbol-alt-narrow": "₪"
+          },
+          "INR": {
+            "displayName": "solai India",
+            "displayName-count-other": "solai India",
+            "symbol": "₹",
+            "symbol-alt-narrow": "₹"
+          },
+          "ISK": {
+            "symbol-alt-narrow": "kr"
+          },
+          "JMD": {
+            "symbol-alt-narrow": "$"
+          },
+          "JPY": {
+            "displayName": "solai Japoŋ",
+            "displayName-count-other": "solai Japoŋ",
+            "symbol": "JP¥",
+            "symbol-alt-narrow": "¥"
+          },
+          "KES": {
+            "displayName": "solai Kenia",
+            "displayName-count-other": "solai Kenia"
+          },
+          "KGS": {
+            "symbol-alt-narrow": "⃀"
+          },
+          "KHR": {
+            "symbol-alt-narrow": "៛"
+          },
+          "KMF": {
+            "displayName": "solai Komorya",
+            "displayName-count-other": "solai Komorya",
+            "symbol-alt-narrow": "CF"
+          },
+          "KPW": {
+            "symbol-alt-narrow": "₩"
+          },
+          "KRW": {
+            "symbol": "₩",
+            "symbol-alt-narrow": "₩"
+          },
+          "KYD": {
+            "symbol-alt-narrow": "$"
+          },
+          "KZT": {
+            "symbol-alt-narrow": "₸"
+          },
+          "LAK": {
+            "symbol-alt-narrow": "₭"
+          },
+          "LBP": {
+            "symbol-alt-narrow": "L£"
+          },
+          "LKR": {
+            "symbol-alt-narrow": "Rs"
+          },
+          "LRD": {
+            "displayName": "solai Liberiya",
+            "displayName-count-other": "solai Liberiya",
+            "symbol-alt-narrow": "$"
+          },
+          "LSL": {
+            "displayName": "solai Lesotho",
+            "displayName-count-other": "solai Lesotho"
+          },
+          "LTL": {
+            "symbol-alt-narrow": "Lt"
+          },
+          "LVL": {
+            "symbol-alt-narrow": "Ls"
+          },
+          "LYD": {
+            "displayName": "solai Libya",
+            "displayName-count-other": "solai Libya"
+          },
+          "MAD": {
+            "displayName": "Solai Marok",
+            "displayName-count-other": "Solai Marok"
+          },
+          "MGA": {
+            "displayName": "Solai Malagasya",
+            "displayName-count-other": "Solai Malagasya",
+            "symbol-alt-narrow": "Ar"
+          },
+          "MMK": {
+            "symbol-alt-narrow": "K"
+          },
+          "MNT": {
+            "symbol-alt-narrow": "₮"
+          },
+          "MRO": {
+            "displayName": "Solai Mauritaniya (1973–2017)",
+            "displayName-count-other": "Solai Mauritaniya (1973–2017)"
+          },
+          "MRU": {
+            "displayName": "Solai Mauritaniya",
+            "displayName-count-other": "Solai Mauritaniya"
+          },
+          "MUR": {
+            "displayName": "Solai Mauricǝ",
+            "displayName-count-other": "Solai Mauricǝ",
+            "symbol-alt-narrow": "Rs"
+          },
+          "MWK": {
+            "displayName": "Solai Malawi",
+            "displayName-count-other": "Solai Malawi"
+          },
+          "MXN": {
+            "symbol": "MX$",
+            "symbol-alt-narrow": "$"
+          },
+          "MYR": {
+            "symbol-alt-narrow": "RM"
+          },
+          "MZM": {
+            "displayName": "Solai Mozambika",
+            "displayName-count-other": "Solai Mozambika"
+          },
+          "NAD": {
+            "displayName": "Solai Namibiya",
+            "displayName-count-other": "Solai Namibiya",
+            "symbol-alt-narrow": "$"
+          },
+          "NGN": {
+            "displayName": "Solai Nigeriya",
+            "displayName-count-other": "Solai Nigeriya",
+            "symbol-alt-narrow": "₦"
+          },
+          "NIO": {
+            "symbol-alt-narrow": "C$"
+          },
+          "NOK": {
+            "symbol-alt-narrow": "kr"
+          },
+          "NPR": {
+            "symbol-alt-narrow": "Rs"
+          },
+          "NZD": {
+            "symbol": "NZ$",
+            "symbol-alt-narrow": "$"
+          },
+          "PHP": {
+            "symbol": "₱",
+            "symbol-alt-narrow": "₱"
+          },
+          "PKR": {
+            "symbol-alt-narrow": "Rs"
+          },
+          "PLN": {
+            "symbol-alt-narrow": "zł"
+          },
+          "PYG": {
+            "symbol-alt-narrow": "₲"
+          },
+          "RON": {
+            "symbol-alt-narrow": "lei"
+          },
+          "RUB": {
+            "symbol-alt-narrow": "₽"
+          },
+          "RWF": {
+            "displayName": "Solai Rwanda",
+            "displayName-count-other": "Solai Rwanda",
+            "symbol-alt-narrow": "RF"
+          },
+          "SAR": {
+            "displayName": "Solai Saudiya",
+            "displayName-count-other": "Solai Saudiya",
+            "symbol-alt-variant": "⃁"
+          },
+          "SBD": {
+            "symbol-alt-narrow": "$"
+          },
+          "SCR": {
+            "displayName": "Solai Saichel",
+            "displayName-count-other": "Solai Saichel"
+          },
+          "SDG": {
+            "displayName": "Solai Sudaŋ ma dii ne dinar",
+            "displayName-count-other": "Solai Sudaŋ ma dii ne dinar"
+          },
+          "SDP": {
+            "displayName": "Solai Sudaŋ ma dii ne livre",
+            "displayName-count-other": "Solai Sudaŋ ma dii ne livre"
+          },
+          "SEK": {
+            "symbol-alt-narrow": "kr"
+          },
+          "SGD": {
+            "symbol-alt-narrow": "$"
+          },
+          "SHP": {
+            "displayName": "Solai Helena",
+            "displayName-count-other": "Solai Helena",
+            "symbol-alt-narrow": "£"
+          },
+          "SLE": {
+            "displayName": "solai Sierra leonǝ",
+            "displayName-count-other": "solai Sierra leonǝ"
+          },
+          "SLL": {
+            "displayName": "solai Sierra leonǝ (1964—2022)",
+            "displayName-count-other": "solai Sierra leonǝ (1964—2022)"
+          },
+          "SOS": {
+            "displayName": "Solai Somaliya",
+            "displayName-count-other": "Solai Somaliya"
+          },
+          "SRD": {
+            "symbol-alt-narrow": "$"
+          },
+          "SSP": {
+            "symbol-alt-narrow": "£"
+          },
+          "STD": {
+            "displayName": "Solai Sao Tome (1977–2017)",
+            "displayName-count-other": "Solai Sao Tome (1977–2017)"
+          },
+          "STN": {
+            "displayName": "Solai Sao Tome",
+            "displayName-count-other": "Solai Sao Tome",
+            "symbol-alt-narrow": "Db"
+          },
+          "SYP": {
+            "symbol-alt-narrow": "£"
+          },
+          "SZL": {
+            "displayName": "solai Swaziland",
+            "displayName-count-other": "solai Swaziland"
+          },
+          "THB": {
+            "symbol-alt-narrow": "฿"
+          },
+          "TND": {
+            "displayName": "Solai Tunisiya",
+            "displayName-count-other": "Solai Tunisiya"
+          },
+          "TOP": {
+            "symbol-alt-narrow": "T$"
+          },
+          "TRY": {
+            "symbol-alt-narrow": "₺",
+            "symbol-alt-variant": "TL"
+          },
+          "TTD": {
+            "symbol-alt-narrow": "$"
+          },
+          "TWD": {
+            "symbol": "NT$",
+            "symbol-alt-narrow": "$"
+          },
+          "TZS": {
+            "displayName": "Solai Tanzaniya",
+            "displayName-count-other": "Solai Tanzaniya"
+          },
+          "UAH": {
+            "symbol-alt-narrow": "₴"
+          },
+          "UGX": {
+            "displayName": "Solai Uganda",
+            "displayName-count-other": "Solai Uganda"
+          },
+          "USD": {
+            "displayName": "Solai Amerika",
+            "displayName-count-other": "Solai Amerika",
+            "symbol": "US$",
+            "symbol-alt-narrow": "$"
+          },
+          "UYU": {
+            "symbol-alt-narrow": "$"
+          },
+          "VEF": {
+            "symbol-alt-narrow": "Bs"
+          },
+          "VND": {
+            "symbol": "₫",
+            "symbol-alt-narrow": "₫"
+          },
+          "XAF": {
+            "displayName": "solai BEAC",
+            "displayName-count-other": "solai BEAC",
+            "symbol": "FCFA"
+          },
+          "XCD": {
+            "symbol": "EC$",
+            "symbol-alt-narrow": "$"
+          },
+          "XCG": {
+            "symbol": "Cg."
+          },
+          "XOF": {
+            "displayName": "solai BCEAO",
+            "displayName-count-other": "solai BCEAO",
+            "symbol": "F CFA"
+          },
+          "XPF": {
+            "symbol": "CFPF"
+          },
+          "XXX": {
+            "symbol": "¤"
+          },
+          "ZAR": {
+            "displayName": "Solai Africa nekǝsǝŋ",
+            "displayName-count-other": "Solai Africa nekǝsǝŋ",
+            "symbol-alt-narrow": "R"
+          },
+          "ZMK": {
+            "displayName": "Solai Zambiya (1968–2012)",
+            "displayName-count-other": "Solai Zambiya (1968–2012)"
+          },
+          "ZMW": {
+            "displayName": "Solai Zambiya",
+            "displayName-count-other": "Solai Zambiya",
+            "symbol-alt-narrow": "ZK"
+          },
+          "ZWD": {
+            "displayName": "Solai Zimbabwe",
+            "displayName-count-other": "Solai Zimbabwe"
+          }
+        }
+      }
+    }
+  }
+}

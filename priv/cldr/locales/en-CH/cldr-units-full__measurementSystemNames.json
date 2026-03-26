@@ -1,0 +1,17 @@
+{
+  "main": {
+    "en-CH": {
+      "identity": {
+        "language": "en",
+        "territory": "CH"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

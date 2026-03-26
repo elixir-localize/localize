@@ -1,0 +1,15 @@
+{
+  "main": {
+    "scn": {
+      "identity": {
+        "language": "scn"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "se:s",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

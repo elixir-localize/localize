@@ -1,0 +1,17 @@
+{
+  "main": {
+    "bs-Cyrl": {
+      "identity": {
+        "language": "bs",
+        "script": "Cyrl"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "метрички",
+          "UK": "империјални",
+          "US": "САД"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "kxv": {
+      "identity": {
+        "language": "kxv"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

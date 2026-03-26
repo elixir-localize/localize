@@ -1,0 +1,16 @@
+{
+  "main": {
+    "gd": {
+      "identity": {
+        "language": "gd"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Meatrach",
+          "UK": "RA",
+          "US": "SA"
+        }
+      }
+    }
+  }
+}

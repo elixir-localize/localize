@@ -1,0 +1,15 @@
+{
+  "main": {
+    "dua": {
+      "identity": {
+        "language": "dua"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

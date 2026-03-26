@@ -1,0 +1,16 @@
+{
+  "main": {
+    "hnj-Hmnp": {
+      "identity": {
+        "language": "hnj",
+        "script": "Hmnp"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "main": {
+    "ms-Arab": {
+      "identity": {
+        "language": "ms",
+        "script": "Arab"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Arab": "عرب",
+          "Deva": "ديؤاناݢري",
+          "Hans": "ريڠکس",
+          "Hans-alt-stand-alone": "هن ريڠکس",
+          "Hant": "تراديسيونل",
+          "Hant-alt-stand-alone": "هن تراديسيونل",
+          "Jpan": "جڤون",
+          "Latn": "لاتين",
+          "Mlym": "مالايالم",
+          "Taml": "تاميل",
+          "Zsym": "سيمبول",
+          "Zxxx": "تيدق دتوليس",
+          "Zyyy": "بياسا",
+          "Zzzz": "سکريڤ تيدق دکتاهوءي"
+        }
+      }
+    }
+  }
+}

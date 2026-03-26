@@ -1,0 +1,17 @@
+{
+  "main": {
+    "gsw-FR": {
+      "identity": {
+        "language": "gsw",
+        "territory": "FR"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrisch",
+          "UK": "UK",
+          "US": "angloamerikaanisch"
+        }
+      }
+    }
+  }
+}

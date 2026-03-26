@@ -1,0 +1,16 @@
+{
+  "main": {
+    "lkt": {
+      "identity": {
+        "language": "lkt"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

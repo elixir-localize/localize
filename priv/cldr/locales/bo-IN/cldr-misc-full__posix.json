@@ -1,0 +1,16 @@
+{
+  "main": {
+    "bo-IN": {
+      "identity": {
+        "language": "bo",
+        "territory": "IN"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ཡིན།:Y",
+          "nostr": "མིན།:N"
+        }
+      }
+    }
+  }
+}

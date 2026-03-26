@@ -1,0 +1,14 @@
+{
+  "main": {
+    "cad": {
+      "identity": {
+        "language": "cad"
+      },
+      "localeDisplayNames": {
+        "territories": {
+          "US": "United States"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fa-AF": {
+      "identity": {
+        "language": "fa",
+        "territory": "AF"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

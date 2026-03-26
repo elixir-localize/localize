@@ -1,0 +1,16 @@
+{
+  "main": {
+    "qu-BO": {
+      "identity": {
+        "language": "qu",
+        "territory": "BO"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

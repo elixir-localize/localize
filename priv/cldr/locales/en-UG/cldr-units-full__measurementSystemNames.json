@@ -1,0 +1,17 @@
+{
+  "main": {
+    "en-UG": {
+      "identity": {
+        "language": "en",
+        "territory": "UG"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "nso": {
+      "identity": {
+        "language": "nso"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metriki",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

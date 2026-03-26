@@ -1,0 +1,17 @@
+{
+  "main": {
+    "es-BO": {
+      "identity": {
+        "language": "es",
+        "territory": "BO"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrico",
+          "UK": "anglosajón",
+          "US": "estadounidense"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "main": {
+    "bal": {
+      "identity": {
+        "language": "bal"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Arab": "اربی",
+          "Cyrl": "روسی",
+          "Hans": "هان (ساده کرتگێن)",
+          "Hant": "هان (اسلیگێن)",
+          "Latn": "لاتینی",
+          "Zxxx": "نبشته نبوتگێن سیاهگ",
+          "Zzzz": "کۆڈ نبوتگێن سیاهگ"
+        }
+      }
+    }
+  }
+}

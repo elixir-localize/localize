@@ -1,0 +1,17 @@
+{
+  "main": {
+    "el-polyton": {
+      "identity": {
+        "language": "el",
+        "variant": "POLYTON"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Μετρικό",
+          "UK": "Αγγλοσαξονικό",
+          "US": "Αμερικανικό"
+        }
+      }
+    }
+  }
+}

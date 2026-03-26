@@ -1,0 +1,15 @@
+{
+  "main": {
+    "kkj": {
+      "identity": {
+        "language": "kkj"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

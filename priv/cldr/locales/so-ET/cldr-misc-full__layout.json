@@ -1,0 +1,16 @@
+{
+  "main": {
+    "so-ET": {
+      "identity": {
+        "language": "so",
+        "territory": "ET"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

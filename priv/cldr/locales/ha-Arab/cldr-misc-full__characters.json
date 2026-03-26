@@ -1,0 +1,59 @@
+{
+  "main": {
+    "ha-Arab": {
+      "identity": {
+        "language": "ha",
+        "script": "Arab"
+      },
+      "characters": {
+        "exemplarCharacters": "[ا ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ڢ ك ل م ن]",
+        "auxiliary": "[]",
+        "index": "[ا ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ڢ ك ل م ن]",
+        "numbers": "[\\- ‑ , . % ‰ + − 0 1 2 3 4 5 6 7 8 9]",
+        "numbers-auxiliary": "[]",
+        "punctuation": "[\\- ‐‑ , ; \\: ! ? . ( ) \\[ \\] \\{ \\}]",
+        "punctuation-auxiliary": "[]",
+        "punctuation-person": "[\\- ‐‑ , . /]",
+        "ellipsis": {
+          "final": "{0}…",
+          "initial": "…{0}",
+          "medial": "{0}…{1}",
+          "word-final": "{0} …",
+          "word-initial": "… {0}",
+          "word-medial": "{0} … {1}"
+        },
+        "nestedBracketReplacement": {
+          "(": "[",
+          "（": "［",
+          ")": "]",
+          "）": "］"
+        },
+        "moreInformation": "?",
+        "lenient-scope-date": {
+          "-": "[\\- ‑ . /]",
+          ":": "[\\:：﹕︓ ∶]"
+        },
+        "lenient-scope-general": {
+          ".": "[.．․﹒ 。｡︒]",
+          "’": "['＇’ ՚ ᾽᾿ ʼ]",
+          "%": "[%％﹪ ٪]",
+          "‰": "[‰ ؉]",
+          "$": "[\\$＄﹩]",
+          "£": "[£￡ ₤]",
+          "¥": "[¥￥]",
+          "₩": "[₩￦]",
+          "₹": "[₹ {Rp} {Rs}₨]"
+        },
+        "lenient-scope-number": {
+          "-": "[\\-－﹣ ‐‑ ‒ – −⁻₋ ➖]",
+          ",": "[,，﹐︐ ⹁ ، ٫ 、﹑､︑]",
+          "+": "[+＋﬩﹢⁺₊ ➕]"
+        },
+        "stricter-scope-number": {
+          ",": "[,，﹐︐ ⹁ ٫]",
+          ".": "[.．․﹒ ｡]"
+        }
+      }
+    }
+  }
+}

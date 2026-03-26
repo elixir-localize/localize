@@ -1,0 +1,15 @@
+{
+  "main": {
+    "jgo": {
+      "identity": {
+        "language": "jgo"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ɔ́ŋ:ɔ́",
+          "nostr": "ŋgáŋ:ŋ"
+        }
+      }
+    }
+  }
+}

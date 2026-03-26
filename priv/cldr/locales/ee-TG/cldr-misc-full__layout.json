@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ee-TG": {
+      "identity": {
+        "language": "ee",
+        "territory": "TG"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

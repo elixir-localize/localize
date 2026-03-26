@@ -1,0 +1,15 @@
+{
+  "main": {
+    "trw": {
+      "identity": {
+        "language": "trw"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ہاں:ہاں",
+          "nostr": "نأ:نأ"
+        }
+      }
+    }
+  }
+}

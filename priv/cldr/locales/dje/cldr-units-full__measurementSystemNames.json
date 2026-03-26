@@ -1,0 +1,16 @@
+{
+  "main": {
+    "dje": {
+      "identity": {
+        "language": "dje"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

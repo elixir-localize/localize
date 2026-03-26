@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ksh": {
+      "identity": {
+        "language": "ksh"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

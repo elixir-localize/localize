@@ -1,0 +1,15 @@
+{
+  "main": {
+    "el": {
+      "identity": {
+        "language": "el"
+      },
+      "contextTransforms": {
+        "relative": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ms-Arab": {
+      "identity": {
+        "language": "ms",
+        "script": "Arab"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

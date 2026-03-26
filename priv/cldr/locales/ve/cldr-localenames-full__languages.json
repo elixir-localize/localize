@@ -1,0 +1,14 @@
+{
+  "main": {
+    "ve": {
+      "identity": {
+        "language": "ve"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "ve": "Tshivenḓa"
+        }
+      }
+    }
+  }
+}

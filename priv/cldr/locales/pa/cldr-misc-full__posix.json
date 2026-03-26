@@ -1,0 +1,15 @@
+{
+  "main": {
+    "pa": {
+      "identity": {
+        "language": "pa"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ਹਾਂ:ਹ",
+          "nostr": "ਨਹੀਂ:ਨ"
+        }
+      }
+    }
+  }
+}

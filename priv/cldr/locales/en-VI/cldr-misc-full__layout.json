@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-VI": {
+      "identity": {
+        "language": "en",
+        "territory": "VI"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

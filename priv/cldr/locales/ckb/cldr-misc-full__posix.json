@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ckb": {
+      "identity": {
+        "language": "ckb"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "بەڵێ:ب",
+          "nostr": "نەخێر:ن"
+        }
+      }
+    }
+  }
+}

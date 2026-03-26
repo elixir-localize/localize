@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sw-UG": {
+      "identity": {
+        "language": "sw",
+        "territory": "UG"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ndiyo:N",
+          "nostr": "Hapana:H"
+        }
+      }
+    }
+  }
+}

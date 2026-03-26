@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fo-DK": {
+      "identity": {
+        "language": "fo",
+        "territory": "DK"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metralagið",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

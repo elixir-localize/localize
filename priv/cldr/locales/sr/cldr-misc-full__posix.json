@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sr": {
+      "identity": {
+        "language": "sr"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "да:д",
+          "nostr": "не:н"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-BI": {
+      "identity": {
+        "language": "fr",
+        "territory": "BI"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

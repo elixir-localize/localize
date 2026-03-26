@@ -1,0 +1,16 @@
+{
+  "main": {
+    "kab": {
+      "identity": {
+        "language": "kab"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Amitran",
+          "UK": "Anglizi",
+          "US": "Amarikan"
+        }
+      }
+    }
+  }
+}

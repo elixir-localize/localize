@@ -1,0 +1,15 @@
+{
+  "main": {
+    "dz": {
+      "identity": {
+        "language": "dz"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ཨིན་:ཨ",
+          "nostr": "མེན་:མ"
+        }
+      }
+    }
+  }
+}

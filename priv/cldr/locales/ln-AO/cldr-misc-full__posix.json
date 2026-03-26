@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ln-AO": {
+      "identity": {
+        "language": "ln",
+        "territory": "AO"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Íyo:Í:I",
+          "nostr": "Tɛ̂:T"
+        }
+      }
+    }
+  }
+}

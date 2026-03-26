@@ -1,0 +1,15 @@
+{
+  "main": {
+    "oc": {
+      "identity": {
+        "language": "oc"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "òc:o",
+          "nostr": "non:n"
+        }
+      }
+    }
+  }
+}

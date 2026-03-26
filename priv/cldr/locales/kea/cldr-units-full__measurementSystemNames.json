@@ -1,0 +1,16 @@
+{
+  "main": {
+    "kea": {
+      "identity": {
+        "language": "kea"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Métriku",
+          "UK": "Britániku",
+          "US": "Merkanu"
+        }
+      }
+    }
+  }
+}

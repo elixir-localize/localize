@@ -1,0 +1,15 @@
+{
+  "main": {
+    "csw": {
+      "identity": {
+        "language": "csw"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ᐁᐦᐁ:ᐁ",
+          "nostr": "ᓇᒨᓇ:ᓇ"
+        }
+      }
+    }
+  }
+}

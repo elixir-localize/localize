@@ -1,0 +1,15 @@
+{
+  "main": {
+    "tok": {
+      "identity": {
+        "language": "tok"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "lon:l:y",
+          "nostr": "ala:a:n"
+        }
+      }
+    }
+  }
+}

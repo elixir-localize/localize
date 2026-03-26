@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-MQ": {
+      "identity": {
+        "language": "fr",
+        "territory": "MQ"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ku": {
+      "identity": {
+        "language": "ku"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrîk",
+          "UK": "îngilîzî",
+          "US": "amerîkî"
+        }
+      }
+    }
+  }
+}

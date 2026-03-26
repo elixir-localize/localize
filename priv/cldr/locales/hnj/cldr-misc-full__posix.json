@@ -1,0 +1,15 @@
+{
+  "main": {
+    "hnj": {
+      "identity": {
+        "language": "hnj"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

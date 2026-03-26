@@ -1,0 +1,17 @@
+{
+  "main": {
+    "sw-UG": {
+      "identity": {
+        "language": "sw",
+        "territory": "UG"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Mfumo wa Mita",
+          "UK": "Uingereza",
+          "US": "Marekani"
+        }
+      }
+    }
+  }
+}

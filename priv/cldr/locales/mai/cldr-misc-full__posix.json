@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mai": {
+      "identity": {
+        "language": "mai"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "हं",
+          "nostr": "नहि"
+        }
+      }
+    }
+  }
+}

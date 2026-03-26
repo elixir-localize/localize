@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-AR": {
+      "identity": {
+        "language": "es",
+        "territory": "AR"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

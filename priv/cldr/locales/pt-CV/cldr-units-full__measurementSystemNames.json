@@ -1,0 +1,17 @@
+{
+  "main": {
+    "pt-CV": {
+      "identity": {
+        "language": "pt",
+        "territory": "CV"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrico",
+          "UK": "Reino Unido",
+          "US": "Estados Unidos"
+        }
+      }
+    }
+  }
+}

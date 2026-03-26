@@ -1,0 +1,16 @@
+{
+  "main": {
+    "lrc": {
+      "identity": {
+        "language": "lrc"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "مئتری",
+          "UK": "بئریتانیا گأپ",
+          "US": "ڤولاتیا یأکاگئرته"
+        }
+      }
+    }
+  }
+}

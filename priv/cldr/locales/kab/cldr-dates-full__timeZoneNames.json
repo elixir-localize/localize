@@ -1,0 +1,1939 @@
+{
+  "main": {
+    "kab": {
+      "identity": {
+        "language": "kab"
+      },
+      "dates": {
+        "timeZoneNames": {
+          "hourFormat": "+HH:mm;-HH:mm",
+          "gmtFormat": "KLG {0}",
+          "gmtZeroFormat": "KLG",
+          "gmtUnknownFormat": "GMT+?",
+          "regionFormat": "Akud: {0}",
+          "regionFormat-type-daylight": "{0} Akud n unebdu",
+          "regionFormat-type-standard": "{0} Akud amezday",
+          "fallbackFormat": "{1} ({0})",
+          "zone": {
+            "Pacific": {
+              "Honolulu": {
+                "_type": "zone",
+                "exemplarCity": "Honolulu"
+              },
+              "Galapagos": {
+                "_type": "zone",
+                "exemplarCity": "Galapagus"
+              },
+              "Truk": {
+                "_type": "zone",
+                "exemplarCity": "Chuuk"
+              },
+              "Ponape": {
+                "_type": "zone",
+                "exemplarCity": "Pohnpei"
+              },
+              "Enderbury": {
+                "_type": "zone",
+                "exemplarCity": "Canton"
+              },
+              "Noumea": {
+                "_type": "zone",
+                "exemplarCity": "Nouméa"
+              },
+              "Norfolk": {
+                "_type": "zone",
+                "exemplarCity": "Nurfulk"
+              },
+              "Niue": {
+                "_type": "zone",
+                "exemplarCity": "Niyu"
+              },
+              "Chatham": {
+                "_type": "zone",
+                "exemplarCity": "Catham"
+              },
+              "Auckland": {
+                "_type": "zone",
+                "exemplarCity": "Ukland"
+              },
+              "Marquesas": {
+                "_type": "zone",
+                "exemplarCity": "Markiz"
+              },
+              "Gambier": {
+                "_type": "zone",
+                "exemplarCity": "Gambyer"
+              },
+              "Wallis": {
+                "_type": "zone",
+                "exemplarCity": "Wallis & Futuna"
+              },
+              "Apia": {
+                "_type": "zone",
+                "exemplarCity": "Apya"
+              }
+            },
+            "Etc": {
+              "UTC": {
+                "_type": "zone",
+                "long": {
+                  "standard": "Akud agraɣlan imyuddsen"
+                },
+                "short": {
+                  "standard": "UTC"
+                }
+              },
+              "Unknown": {
+                "_type": "zone",
+                "exemplarCity": "Aɣrem Arussin"
+              }
+            },
+            "Europe": {
+              "Andorra": {
+                "_type": "zone",
+                "exemplarCity": "Andura"
+              },
+              "Tirane": {
+                "_type": "zone",
+                "exemplarCity": "Tiran"
+              },
+              "Vienna": {
+                "_type": "zone",
+                "exemplarCity": "Vyenna"
+              },
+              "Mariehamn": {
+                "_type": "zone",
+                "exemplarCity": "Marihamn"
+              },
+              "Sarajevo": {
+                "_type": "zone",
+                "exemplarCity": "Sarajivu"
+              },
+              "Brussels": {
+                "_type": "zone",
+                "exemplarCity": "Bruksel"
+              },
+              "Sofia": {
+                "_type": "zone",
+                "exemplarCity": "Sofya"
+              },
+              "Zurich": {
+                "_type": "zone",
+                "exemplarCity": "Zurix"
+              },
+              "Prague": {
+                "_type": "zone",
+                "exemplarCity": "Prag"
+              },
+              "Busingen": {
+                "_type": "zone",
+                "exemplarCity": "Büsingen"
+              },
+              "Copenhagen": {
+                "_type": "zone",
+                "exemplarCity": "Kupenhagen"
+              },
+              "Tallinn": {
+                "_type": "zone",
+                "exemplarCity": "Tallin"
+              },
+              "Helsinki": {
+                "_type": "zone",
+                "exemplarCity": "Hilsinki"
+              },
+              "London": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "Akud n unebdu n Britanya"
+                },
+                "exemplarCity": "Lundun"
+              },
+              "Guernsey": {
+                "_type": "zone",
+                "exemplarCity": "Girnizey"
+              },
+              "Gibraltar": {
+                "_type": "zone",
+                "exemplarCity": "Jibralṭar"
+              },
+              "Athens": {
+                "_type": "zone",
+                "exemplarCity": "Atina"
+              },
+              "Dublin": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "Agud amezday n Irland"
+                },
+                "exemplarCity": "Dublan"
+              },
+              "Isle_of_Man": {
+                "_type": "zone",
+                "exemplarCity": "Tigzirt n Man"
+              },
+              "Rome": {
+                "_type": "zone",
+                "exemplarCity": "Rum"
+              },
+              "Jersey": {
+                "_type": "zone",
+                "exemplarCity": "Jirzey"
+              },
+              "Vilnius": {
+                "_type": "zone",
+                "exemplarCity": "Vilnyus"
+              },
+              "Luxembourg": {
+                "_type": "zone",
+                "exemplarCity": "Luksemburg"
+              },
+              "Monaco": {
+                "_type": "zone",
+                "exemplarCity": "Munaku"
+              },
+              "Chisinau": {
+                "_type": "zone",
+                "exemplarCity": "Chișinău"
+              },
+              "Amsterdam": {
+                "_type": "zone",
+                "exemplarCity": "Amestirdam"
+              },
+              "Oslo": {
+                "_type": "zone",
+                "exemplarCity": "Uṣlu"
+              },
+              "Lisbon": {
+                "_type": "zone",
+                "exemplarCity": "Lizbun"
+              },
+              "Bucharest": {
+                "_type": "zone",
+                "exemplarCity": "Buxarest"
+              },
+              "Belgrade": {
+                "_type": "zone",
+                "exemplarCity": "Bilgrad"
+              },
+              "Moscow": {
+                "_type": "zone",
+                "exemplarCity": "Musku"
+              },
+              "Stockholm": {
+                "_type": "zone",
+                "exemplarCity": "Sṭukhulm"
+              },
+              "San_Marino": {
+                "_type": "zone",
+                "exemplarCity": "San Marinu"
+              },
+              "Istanbul": {
+                "_type": "zone",
+                "exemplarCity": "Isṭanbul"
+              },
+              "Kiev": {
+                "_type": "zone",
+                "exemplarCity": "Kyev"
+              },
+              "Vatican": {
+                "_type": "zone",
+                "exemplarCity": "Vatikan"
+              }
+            },
+            "Asia": {
+              "Dubai": {
+                "_type": "zone",
+                "exemplarCity": "Dubay"
+              },
+              "Yerevan": {
+                "_type": "zone",
+                "exemplarCity": "Yervan"
+              },
+              "Bahrain": {
+                "_type": "zone",
+                "exemplarCity": "Baḥrin"
+              },
+              "Brunei": {
+                "_type": "zone",
+                "exemplarCity": "Brunay"
+              },
+              "Urumqi": {
+                "_type": "zone",
+                "exemplarCity": "Ürümqi"
+              },
+              "Shanghai": {
+                "_type": "zone",
+                "exemplarCity": "Cangay"
+              },
+              "Nicosia": {
+                "_type": "zone",
+                "exemplarCity": "Nikusya"
+              },
+              "Hong_Kong": {
+                "_type": "zone",
+                "exemplarCity": "Hung Kung"
+              },
+              "Jerusalem": {
+                "_type": "zone",
+                "exemplarCity": "Jirusalem"
+              },
+              "Calcutta": {
+                "_type": "zone",
+                "exemplarCity": "Kulkata"
+              },
+              "Baghdad": {
+                "_type": "zone",
+                "exemplarCity": "Beɣdad"
+              },
+              "Amman": {
+                "_type": "zone",
+                "exemplarCity": "Ɛemman"
+              },
+              "Tokyo": {
+                "_type": "zone",
+                "exemplarCity": "Tukyu"
+              },
+              "Pyongyang": {
+                "_type": "zone",
+                "exemplarCity": "Pyungyung"
+              },
+              "Seoul": {
+                "_type": "zone",
+                "exemplarCity": "Siyul"
+              },
+              "Kuwait": {
+                "_type": "zone",
+                "exemplarCity": "Kwit"
+              },
+              "Qostanay": {
+                "_type": "zone",
+                "exemplarCity": "Kustanay"
+              },
+              "Almaty": {
+                "_type": "zone",
+                "exemplarCity": "Almati"
+              },
+              "Beirut": {
+                "_type": "zone",
+                "exemplarCity": "Bayrut"
+              },
+              "Colombo": {
+                "_type": "zone",
+                "exemplarCity": "Kulumbu"
+              },
+              "Rangoon": {
+                "_type": "zone",
+                "exemplarCity": "Rangoon"
+              },
+              "Hovd": {
+                "_type": "zone",
+                "exemplarCity": "Huvd"
+              },
+              "Ulaanbaatar": {
+                "_type": "zone",
+                "exemplarCity": "Ulanbatar"
+              },
+              "Macau": {
+                "_type": "zone",
+                "exemplarCity": "Makaw"
+              },
+              "Kuala_Lumpur": {
+                "_type": "zone",
+                "exemplarCity": "Kwala Lumpur"
+              },
+              "Katmandu": {
+                "_type": "zone",
+                "exemplarCity": "Katmandu"
+              },
+              "Muscat": {
+                "_type": "zone",
+                "exemplarCity": "Musqaṭ"
+              },
+              "Karachi": {
+                "_type": "zone",
+                "exemplarCity": "Karaci"
+              },
+              "Gaza": {
+                "_type": "zone",
+                "exemplarCity": "Ɣezza"
+              },
+              "Hebron": {
+                "_type": "zone",
+                "exemplarCity": "Hebrun"
+              },
+              "Qatar": {
+                "_type": "zone",
+                "exemplarCity": "Qaṭar"
+              },
+              "Anadyr": {
+                "_type": "zone",
+                "exemplarCity": "Anadir"
+              },
+              "Riyadh": {
+                "_type": "zone",
+                "exemplarCity": "Riyaḍ"
+              },
+              "Singapore": {
+                "_type": "zone",
+                "exemplarCity": "Sangapur"
+              },
+              "Damascus": {
+                "_type": "zone",
+                "exemplarCity": "Damas"
+              },
+              "Bangkok": {
+                "_type": "zone",
+                "exemplarCity": "Bangkuk"
+              },
+              "Taipei": {
+                "_type": "zone",
+                "exemplarCity": "Taypay"
+              },
+              "Saigon": {
+                "_type": "zone",
+                "exemplarCity": "Ho Chi Minh"
+              },
+              "Aden": {
+                "_type": "zone",
+                "exemplarCity": "Ɛaden"
+              }
+            },
+            "America": {
+              "Antigua": {
+                "_type": "zone",
+                "exemplarCity": "Antiga"
+              },
+              "Anguilla": {
+                "_type": "zone",
+                "exemplarCity": "Angila"
+              },
+              "Argentina": {
+                "Rio_Gallegos": {
+                  "_type": "zone",
+                  "exemplarCity": "Río Gallegos"
+                },
+                "San_Juan": {
+                  "_type": "zone",
+                  "exemplarCity": "San Xwan"
+                },
+                "Ushuaia": {
+                  "_type": "zone",
+                  "exemplarCity": "Ucwaya"
+                },
+                "San_Luis": {
+                  "_type": "zone",
+                  "exemplarCity": "San Lwis"
+                },
+                "Tucuman": {
+                  "_type": "zone",
+                  "exemplarCity": "Tukuman"
+                }
+              },
+              "Mendoza": {
+                "_type": "zone",
+                "exemplarCity": "Minduẓa"
+              },
+              "Catamarca": {
+                "_type": "zone",
+                "exemplarCity": "Katamarka"
+              },
+              "Cordoba": {
+                "_type": "zone",
+                "exemplarCity": "Kurduba"
+              },
+              "Barbados": {
+                "_type": "zone",
+                "exemplarCity": "Barbadus"
+              },
+              "St_Barthelemy": {
+                "_type": "zone",
+                "exemplarCity": "St. Barthélemy"
+              },
+              "Eirunepe": {
+                "_type": "zone",
+                "exemplarCity": "Eirunepé"
+              },
+              "Rio_Branco": {
+                "_type": "zone",
+                "exemplarCity": "Ryu Branku"
+              },
+              "Porto_Velho": {
+                "_type": "zone",
+                "exemplarCity": "Purtu Vilhu"
+              },
+              "Cuiaba": {
+                "_type": "zone",
+                "exemplarCity": "Cuiabá"
+              },
+              "Santarem": {
+                "_type": "zone",
+                "exemplarCity": "Santarém"
+              },
+              "Campo_Grande": {
+                "_type": "zone",
+                "exemplarCity": "Kumpu Grandi"
+              },
+              "Belem": {
+                "_type": "zone",
+                "exemplarCity": "Belém"
+              },
+              "Araguaina": {
+                "_type": "zone",
+                "exemplarCity": "Araguaína"
+              },
+              "Sao_Paulo": {
+                "_type": "zone",
+                "exemplarCity": "Saw Pawlu"
+              },
+              "Bahia": {
+                "_type": "zone",
+                "exemplarCity": "Bahya"
+              },
+              "Fortaleza": {
+                "_type": "zone",
+                "exemplarCity": "Furṭaliza"
+              },
+              "Maceio": {
+                "_type": "zone",
+                "exemplarCity": "Maceió"
+              },
+              "Recife": {
+                "_type": "zone",
+                "exemplarCity": "Risif"
+              },
+              "Noronha": {
+                "_type": "zone",
+                "exemplarCity": "Nuṛunha"
+              },
+              "Belize": {
+                "_type": "zone",
+                "exemplarCity": "Biliz"
+              },
+              "Dawson": {
+                "_type": "zone",
+                "exemplarCity": "Dawsun"
+              },
+              "Fort_Nelson": {
+                "_type": "zone",
+                "exemplarCity": "Fuṛt Nilṣun"
+              },
+              "Dawson_Creek": {
+                "_type": "zone",
+                "exemplarCity": "Dawsun Krik"
+              },
+              "Creston": {
+                "_type": "zone",
+                "exemplarCity": "Kristun"
+              },
+              "Edmonton": {
+                "_type": "zone",
+                "exemplarCity": "Idmuntun"
+              },
+              "Cambridge_Bay": {
+                "_type": "zone",
+                "exemplarCity": "Kambriǧ Bay"
+              },
+              "Coral_Harbour": {
+                "_type": "zone",
+                "exemplarCity": "Atikukan"
+              },
+              "Blanc-Sablon": {
+                "_type": "zone",
+                "exemplarCity": "Blun-Sablun"
+              },
+              "St_Johns": {
+                "_type": "zone",
+                "exemplarCity": "St. John’s"
+              },
+              "Santiago": {
+                "_type": "zone",
+                "exemplarCity": "Santyagu"
+              },
+              "Bogota": {
+                "_type": "zone",
+                "exemplarCity": "Buguṭa"
+              },
+              "Costa_Rica": {
+                "_type": "zone",
+                "exemplarCity": "Kusta Rika"
+              },
+              "Curacao": {
+                "_type": "zone",
+                "exemplarCity": "Kuračaw"
+              },
+              "Dominica": {
+                "_type": "zone",
+                "exemplarCity": "Duminik"
+              },
+              "Guayaquil": {
+                "_type": "zone",
+                "exemplarCity": "Gayakil"
+              },
+              "Grenada": {
+                "_type": "zone",
+                "exemplarCity": "Grunada"
+              },
+              "Cayenne": {
+                "_type": "zone",
+                "exemplarCity": "Kayan"
+              },
+              "Godthab": {
+                "_type": "zone",
+                "exemplarCity": "Nuk"
+              },
+              "Scoresbysund": {
+                "_type": "zone",
+                "exemplarCity": "Ittoqqortoormiit"
+              },
+              "Danmarkshavn": {
+                "_type": "zone",
+                "exemplarCity": "Danmarkcaven"
+              },
+              "Guadeloupe": {
+                "_type": "zone",
+                "exemplarCity": "Gwadalupi"
+              },
+              "Guatemala": {
+                "_type": "zone",
+                "exemplarCity": "Gwatimala"
+              },
+              "Guyana": {
+                "_type": "zone",
+                "exemplarCity": "Guyan"
+              },
+              "Jamaica": {
+                "_type": "zone",
+                "exemplarCity": "Jamayka"
+              },
+              "St_Kitts": {
+                "_type": "zone",
+                "exemplarCity": "St. Kitts"
+              },
+              "Cayman": {
+                "_type": "zone",
+                "exemplarCity": "Kayman"
+              },
+              "St_Lucia": {
+                "_type": "zone",
+                "exemplarCity": "St. Lucia"
+              },
+              "Marigot": {
+                "_type": "zone",
+                "exemplarCity": "Mariguṭ"
+              },
+              "Martinique": {
+                "_type": "zone",
+                "exemplarCity": "Martinik"
+              },
+              "Ciudad_Juarez": {
+                "_type": "zone",
+                "exemplarCity": "Ciudad Juárez"
+              },
+              "Mazatlan": {
+                "_type": "zone",
+                "exemplarCity": "Mazatlán"
+              },
+              "Chihuahua": {
+                "_type": "zone",
+                "exemplarCity": "Ciwawa"
+              },
+              "Bahia_Banderas": {
+                "_type": "zone",
+                "exemplarCity": "Bahya Bandiras"
+              },
+              "Mexico_City": {
+                "_type": "zone",
+                "exemplarCity": "Ciudad de México"
+              },
+              "Merida": {
+                "_type": "zone",
+                "exemplarCity": "Merida"
+              },
+              "Cancun": {
+                "_type": "zone",
+                "exemplarCity": "Kankun"
+              },
+              "Managua": {
+                "_type": "zone",
+                "exemplarCity": "Managa"
+              },
+              "Miquelon": {
+                "_type": "zone",
+                "exemplarCity": "Saint-Pierre"
+              },
+              "Asuncion": {
+                "_type": "zone",
+                "exemplarCity": "Asunsyun"
+              },
+              "Paramaribo": {
+                "_type": "zone",
+                "exemplarCity": "Paramaribu"
+              },
+              "El_Salvador": {
+                "_type": "zone",
+                "exemplarCity": "Salvadur"
+              },
+              "Lower_Princes": {
+                "_type": "zone",
+                "exemplarCity": "Lower Prince’s Quarter"
+              },
+              "Anchorage": {
+                "_type": "zone",
+                "exemplarCity": "Ankuraj"
+              },
+              "Boise": {
+                "_type": "zone",
+                "exemplarCity": "Bwaẓ"
+              },
+              "North_Dakota": {
+                "Beulah": {
+                  "_type": "zone",
+                  "exemplarCity": "Beulah, North Dakota"
+                },
+                "New_Salem": {
+                  "_type": "zone",
+                  "exemplarCity": "New Salem, North Dakota"
+                },
+                "Center": {
+                  "_type": "zone",
+                  "exemplarCity": "Center, North Dakota"
+                }
+              },
+              "Chicago": {
+                "_type": "zone",
+                "exemplarCity": "Cikagu"
+              },
+              "Indiana": {
+                "Vincennes": {
+                  "_type": "zone",
+                  "exemplarCity": "Vincennes, Indiana"
+                },
+                "Petersburg": {
+                  "_type": "zone",
+                  "exemplarCity": "Petersburg, Indiana"
+                },
+                "Tell_City": {
+                  "_type": "zone",
+                  "exemplarCity": "Tell City, Indiana"
+                },
+                "Knox": {
+                  "_type": "zone",
+                  "exemplarCity": "Knox, Indiana"
+                },
+                "Winamac": {
+                  "_type": "zone",
+                  "exemplarCity": "Winamac, Indiana"
+                },
+                "Marengo": {
+                  "_type": "zone",
+                  "exemplarCity": "Marengo, Indiana"
+                },
+                "Vevay": {
+                  "_type": "zone",
+                  "exemplarCity": "Vevay, Indiana"
+                }
+              },
+              "Kentucky": {
+                "Monticello": {
+                  "_type": "zone",
+                  "exemplarCity": "Monticello, Kentucky"
+                }
+              },
+              "Detroit": {
+                "_type": "zone",
+                "exemplarCity": "Ditrwa"
+              },
+              "St_Vincent": {
+                "_type": "zone",
+                "exemplarCity": "St. Vincent"
+              },
+              "Caracas": {
+                "_type": "zone",
+                "exemplarCity": "Karakas"
+              },
+              "St_Thomas": {
+                "_type": "zone",
+                "exemplarCity": "St. Thomas"
+              }
+            },
+            "Africa": {
+              "Luanda": {
+                "_type": "zone",
+                "exemplarCity": "Lwanda"
+              },
+              "Ouagadougou": {
+                "_type": "zone",
+                "exemplarCity": "Wagadugu"
+              },
+              "Porto-Novo": {
+                "_type": "zone",
+                "exemplarCity": "Puṛtu Nuvu"
+              },
+              "Gaborone": {
+                "_type": "zone",
+                "exemplarCity": "Gaburun"
+              },
+              "Kinshasa": {
+                "_type": "zone",
+                "exemplarCity": "Kincaṣa"
+              },
+              "Lubumbashi": {
+                "_type": "zone",
+                "exemplarCity": "Lubumbaci"
+              },
+              "Bangui": {
+                "_type": "zone",
+                "exemplarCity": "Bangi"
+              },
+              "Brazzaville": {
+                "_type": "zone",
+                "exemplarCity": "Braẓavil"
+              },
+              "Abidjan": {
+                "_type": "zone",
+                "exemplarCity": "Abiǧan"
+              },
+              "Douala": {
+                "_type": "zone",
+                "exemplarCity": "Dwala"
+              },
+              "Djibouti": {
+                "_type": "zone",
+                "exemplarCity": "Ǧibuti"
+              },
+              "Algiers": {
+                "_type": "zone",
+                "exemplarCity": "Lezzayer"
+              },
+              "Cairo": {
+                "_type": "zone",
+                "exemplarCity": "Lqahira"
+              },
+              "El_Aaiun": {
+                "_type": "zone",
+                "exemplarCity": "Leɛyun"
+              },
+              "Asmera": {
+                "_type": "zone",
+                "exemplarCity": "Asmara"
+              },
+              "Ceuta": {
+                "_type": "zone",
+                "exemplarCity": "Sebta"
+              },
+              "Addis_Ababa": {
+                "_type": "zone",
+                "exemplarCity": "Adis Ababa"
+              },
+              "Libreville": {
+                "_type": "zone",
+                "exemplarCity": "Libervil"
+              },
+              "Accra": {
+                "_type": "zone",
+                "exemplarCity": "Akṛa"
+              },
+              "Conakry": {
+                "_type": "zone",
+                "exemplarCity": "Kunakri"
+              },
+              "Malabo": {
+                "_type": "zone",
+                "exemplarCity": "Malabu"
+              },
+              "Bissau": {
+                "_type": "zone",
+                "exemplarCity": "Bisaw"
+              },
+              "Nairobi": {
+                "_type": "zone",
+                "exemplarCity": "Nayrubi"
+              },
+              "Monrovia": {
+                "_type": "zone",
+                "exemplarCity": "Munṛuvya"
+              },
+              "Maseru": {
+                "_type": "zone",
+                "exemplarCity": "Masiru"
+              },
+              "Tripoli": {
+                "_type": "zone",
+                "exemplarCity": "Trablus"
+              },
+              "Casablanca": {
+                "_type": "zone",
+                "exemplarCity": "Kaẓablanka"
+              },
+              "Bamako": {
+                "_type": "zone",
+                "exemplarCity": "Bamaku"
+              },
+              "Nouakchott": {
+                "_type": "zone",
+                "exemplarCity": "Nwaqcuṭ"
+              },
+              "Blantyre": {
+                "_type": "zone",
+                "exemplarCity": "Blantir"
+              },
+              "Maputo": {
+                "_type": "zone",
+                "exemplarCity": "Mapuṭu"
+              },
+              "Windhoek": {
+                "_type": "zone",
+                "exemplarCity": "Windhek"
+              },
+              "Niamey": {
+                "_type": "zone",
+                "exemplarCity": "Nyamey"
+              },
+              "Lagos": {
+                "_type": "zone",
+                "exemplarCity": "Lagus"
+              },
+              "Khartoum": {
+                "_type": "zone",
+                "exemplarCity": "Xaṛtum"
+              },
+              "Freetown": {
+                "_type": "zone",
+                "exemplarCity": "Friṭawn"
+              },
+              "Mogadishu": {
+                "_type": "zone",
+                "exemplarCity": "Muqadicu"
+              },
+              "Sao_Tome": {
+                "_type": "zone",
+                "exemplarCity": "Saw Ṭumi"
+              },
+              "Mbabane": {
+                "_type": "zone",
+                "exemplarCity": "Mbaban"
+              },
+              "Ndjamena": {
+                "_type": "zone",
+                "exemplarCity": "Nǧamina"
+              },
+              "Lome": {
+                "_type": "zone",
+                "exemplarCity": "Lumi"
+              },
+              "Tunis": {
+                "_type": "zone",
+                "exemplarCity": "Tunes"
+              },
+              "Dar_es_Salaam": {
+                "_type": "zone",
+                "exemplarCity": "Dar Salam"
+              },
+              "Johannesburg": {
+                "_type": "zone",
+                "exemplarCity": "Juhanisburg"
+              },
+              "Lusaka": {
+                "_type": "zone",
+                "exemplarCity": "Luzaka"
+              },
+              "Harare": {
+                "_type": "zone",
+                "exemplarCity": "Harari"
+              }
+            },
+            "Antarctica": {
+              "Syowa": {
+                "_type": "zone",
+                "exemplarCity": "Showa"
+              },
+              "Vostok": {
+                "_type": "zone",
+                "exemplarCity": "Vusṭuk"
+              },
+              "DumontDUrville": {
+                "_type": "zone",
+                "exemplarCity": "Dumont-d’Urville"
+              },
+              "Macquarie": {
+                "_type": "zone",
+                "exemplarCity": "Makari"
+              }
+            },
+            "Australia": {
+              "Adelaide": {
+                "_type": "zone",
+                "exemplarCity": "Adilayid"
+              },
+              "Melbourne": {
+                "_type": "zone",
+                "exemplarCity": "Malburn"
+              },
+              "Sydney": {
+                "_type": "zone",
+                "exemplarCity": "Sidni"
+              },
+              "Brisbane": {
+                "_type": "zone",
+                "exemplarCity": "Brisban"
+              }
+            },
+            "Atlantic": {
+              "Bermuda": {
+                "_type": "zone",
+                "exemplarCity": "Birmud"
+              },
+              "Cape_Verde": {
+                "_type": "zone",
+                "exemplarCity": "Kap Vir"
+              },
+              "Canary": {
+                "_type": "zone",
+                "exemplarCity": "Tigzirin n Kanari"
+              },
+              "Faeroe": {
+                "_type": "zone",
+                "exemplarCity": "Farwi"
+              },
+              "South_Georgia": {
+                "_type": "zone",
+                "exemplarCity": "Jyurjya n unẓul"
+              },
+              "Azores": {
+                "_type": "zone",
+                "exemplarCity": "Aẓuris"
+              },
+              "Madeira": {
+                "_type": "zone",
+                "exemplarCity": "Madira"
+              },
+              "St_Helena": {
+                "_type": "zone",
+                "exemplarCity": "Sant Ilina"
+              }
+            },
+            "Indian": {
+              "Cocos": {
+                "_type": "zone",
+                "exemplarCity": "Kuku"
+              },
+              "Christmas": {
+                "_type": "zone",
+                "exemplarCity": "Krismas"
+              },
+              "Chagos": {
+                "_type": "zone",
+                "exemplarCity": "Cagus"
+              },
+              "Comoro": {
+                "_type": "zone",
+                "exemplarCity": "Kumuṛ"
+              },
+              "Antananarivo": {
+                "_type": "zone",
+                "exemplarCity": "Antananarivu"
+              },
+              "Mauritius": {
+                "_type": "zone",
+                "exemplarCity": "Muris"
+              },
+              "Maldives": {
+                "_type": "zone",
+                "exemplarCity": "Maldiv"
+              },
+              "Reunion": {
+                "_type": "zone",
+                "exemplarCity": "Riyunyun"
+              },
+              "Mahe": {
+                "_type": "zone",
+                "exemplarCity": "Mahi"
+              },
+              "Kerguelen": {
+                "_type": "zone",
+                "exemplarCity": "Kerglen"
+              },
+              "Mayotte": {
+                "_type": "zone",
+                "exemplarCity": "Mayuṭ"
+              }
+            },
+            "Arctic": {
+              "Longyearbyen": {
+                "_type": "zone",
+                "exemplarCity": "Lungyerbyen"
+              }
+            }
+          },
+          "metazone": {
+            "Afghanistan": {
+              "long": {
+                "standard": "Akud n Afɣanistan"
+              }
+            },
+            "Africa_Central": {
+              "long": {
+                "standard": "Akud n Tefriqt talemmast"
+              }
+            },
+            "Africa_Eastern": {
+              "long": {
+                "standard": "Akud n Tefriqt n usammar"
+              }
+            },
+            "Africa_Southern": {
+              "long": {
+                "standard": "Akud amezday n Tefriqt n unẓul"
+              }
+            },
+            "Africa_Western": {
+              "long": {
+                "standard": "Akud n Tefriqt n umalu"
+              }
+            },
+            "Alaska": {
+              "long": {
+                "generic": "Akud n Alaska",
+                "standard": "Akud amezday n Alaska",
+                "daylight": "Akud n unebdu n Alaska"
+              }
+            },
+            "Amazon": {
+              "long": {
+                "generic": "Akud n Amaẓun",
+                "standard": "Akud amezday n Amaẓun",
+                "daylight": "Akud n unebdu n Amaẓun"
+              }
+            },
+            "America_Central": {
+              "long": {
+                "generic": "Akud n tlemmast n Marikan",
+                "standard": "Akud amezday n tlemmast n Marikan",
+                "daylight": "Akud n unebdu n tlemmast n Marikan"
+              }
+            },
+            "America_Eastern": {
+              "long": {
+                "generic": "Akud n usammar n Marikan",
+                "standard": "Akud amezday n usammar n Marikan",
+                "daylight": "Akud n unebdu n usammar n Marikan"
+              }
+            },
+            "America_Mountain": {
+              "long": {
+                "generic": "Akud n yidurar n Marikan",
+                "standard": "Akud amezday n yidurar n Marikan",
+                "daylight": "Akud n unebdu n yidurar n Marikan"
+              }
+            },
+            "America_Pacific": {
+              "long": {
+                "generic": "Akud amelwi",
+                "standard": "Akud amezday amelwi",
+                "daylight": "Akud umelwi n unebdu"
+              }
+            },
+            "Apia": {
+              "long": {
+                "generic": "Akud n Apya",
+                "standard": "Akud amezday n Apya",
+                "daylight": "Akud n unebdu n Apya"
+              }
+            },
+            "Arabian": {
+              "long": {
+                "generic": "Akud aɛrab",
+                "standard": "Akud aɛrab amezday",
+                "daylight": "Akud aɛrab n unebdu"
+              }
+            },
+            "Argentina": {
+              "long": {
+                "generic": "Akud n Arjuntin",
+                "standard": "Akud amezday n Arjuntin",
+                "daylight": "Akud n unebdu n Arjuntin"
+              }
+            },
+            "Argentina_Western": {
+              "long": {
+                "generic": "Akud n Arjuntin n usammar",
+                "standard": "Akud amezday n Arjuntin n usammar",
+                "daylight": "Akud n unebdu n Arjuntin n usammar"
+              }
+            },
+            "Armenia": {
+              "long": {
+                "generic": "Akud n Arminya",
+                "standard": "Akud amezday n Arminya",
+                "daylight": "Akud n unebdu n Arminya"
+              }
+            },
+            "Atlantic": {
+              "long": {
+                "generic": "Akud aṭlasan",
+                "standard": "Akud amezday aṭlasan",
+                "daylight": "Akud aṭlasan n unebdu"
+              }
+            },
+            "Australia_Central": {
+              "long": {
+                "generic": "Akud n Ustralya talemmast",
+                "standard": "Akud amezday n Ustralya talemmast",
+                "daylight": "Akud n unebdu n Ustralya talemmast"
+              }
+            },
+            "Australia_CentralWestern": {
+              "long": {
+                "generic": "Akud n tlemmast n umalu n Ustralya",
+                "standard": "Akud amezday n tlemmast n umalu n Ustralya",
+                "daylight": "Akud n unebdu n tlemmast n umalu n Ustralya"
+              }
+            },
+            "Australia_Eastern": {
+              "long": {
+                "generic": "Akud n Ustralya n usammar",
+                "standard": "Akud amezday n Ustralya n usammar",
+                "daylight": "Akud n unebdu n Ustralya n usammar"
+              }
+            },
+            "Australia_Western": {
+              "long": {
+                "generic": "Akud n Ustralya n umalu",
+                "standard": "Akud amezday n Ustralya n umalu",
+                "daylight": "Akud n unebdu Ustralya n umalu"
+              }
+            },
+            "Azerbaijan": {
+              "long": {
+                "generic": "Akud n Aẓerbiǧan",
+                "standard": "Akud amezday n Aẓerbiǧan",
+                "daylight": "Akud n unebdu n Aẓerbiǧan"
+              }
+            },
+            "Azores": {
+              "long": {
+                "generic": "Akud n Aẓuris",
+                "standard": "Akud amezday n Aẓuris",
+                "daylight": "Akud n unebdu n Aẓuris"
+              }
+            },
+            "Bangladesh": {
+              "long": {
+                "generic": "Akud n Bangladac",
+                "standard": "Akud amezday n Bangladac",
+                "daylight": "Akud n unebdu n Bangladac"
+              }
+            },
+            "Bhutan": {
+              "long": {
+                "standard": "Akud n Butan"
+              }
+            },
+            "Bolivia": {
+              "long": {
+                "standard": "Akud n Bulivi"
+              }
+            },
+            "Brasilia": {
+              "long": {
+                "generic": "Akud n Braẓilya",
+                "standard": "Akud amezday n Braẓilya",
+                "daylight": "Akud n unebdu n Braẓilya"
+              }
+            },
+            "Brunei": {
+              "long": {
+                "standard": "Akud n Brunay Dar Salam"
+              }
+            },
+            "Cape_Verde": {
+              "long": {
+                "generic": "Akud n Kap Vir",
+                "standard": "Akud amezday n Kap Vir",
+                "daylight": "Akud n unebdu n Kap Vir"
+              }
+            },
+            "Chamorro": {
+              "long": {
+                "standard": "Akud amezday n Camurru"
+              }
+            },
+            "Chatham": {
+              "long": {
+                "generic": "Akud n Catham",
+                "standard": "Akud amezday n Catham",
+                "daylight": "Akud n unebdu Catham"
+              }
+            },
+            "Chile": {
+              "long": {
+                "generic": "Akud n Cili",
+                "standard": "Akud amezday n Cili",
+                "daylight": "Akud n unebdu n Cili"
+              }
+            },
+            "China": {
+              "long": {
+                "generic": "Akud n Cin",
+                "standard": "Akud amezday n Cin",
+                "daylight": "Akud n unebdu n Cin"
+              }
+            },
+            "Christmas": {
+              "long": {
+                "standard": "Akud n Tegzirin n Krismas"
+              }
+            },
+            "Cocos": {
+              "long": {
+                "standard": "Akud n Tegzirin n Kuku"
+              }
+            },
+            "Colombia": {
+              "long": {
+                "generic": "Akud n Kulumbya",
+                "standard": "Akud amezday n Kulumbya",
+                "daylight": "Akud n unebdu n Kulumbya"
+              }
+            },
+            "Cook": {
+              "long": {
+                "generic": "Akud n Tegzirin n Kuk",
+                "standard": "Akud amezday n Tegzirin n Kuk",
+                "daylight": "Akud n unebdu n Tegzirin n Kuk"
+              }
+            },
+            "Cuba": {
+              "long": {
+                "generic": "Akud n Kuba",
+                "standard": "Akud amezday n Kuba",
+                "daylight": "Akud n unebdu n Kuba"
+              }
+            },
+            "Davis": {
+              "long": {
+                "standard": "Akud n Davis"
+              }
+            },
+            "DumontDUrville": {
+              "long": {
+                "standard": "Akud n Dumont-d’Urville"
+              }
+            },
+            "East_Timor": {
+              "long": {
+                "standard": "Akud n Timur n usammar"
+              }
+            },
+            "Easter": {
+              "long": {
+                "generic": "Akud n Island n usammar",
+                "standard": "Akud amezday n Island n usammar",
+                "daylight": "Akud n unebdu n Island n usammar"
+              }
+            },
+            "Ecuador": {
+              "long": {
+                "standard": "Akud n Ikwaṭur"
+              }
+            },
+            "Europe_Central": {
+              "long": {
+                "generic": "Akud n Turuft talemmast",
+                "standard": "Akud amezday n Turuft talemmast",
+                "daylight": "Akud n unebdu n Turuft talemmast"
+              }
+            },
+            "Europe_Eastern": {
+              "long": {
+                "generic": "Akud n Turuft n usammar",
+                "standard": "Akud amezday n Turuft n usammar",
+                "daylight": "Akud n unebdu n Turuft n usammar"
+              }
+            },
+            "Europe_Further_Eastern": {
+              "long": {
+                "standard": "Akud nniḍen n Turuft n Usammar"
+              }
+            },
+            "Europe_Western": {
+              "long": {
+                "generic": "Akud n Turuft n umalu",
+                "standard": "Akud amezday n Turuft n umalu",
+                "daylight": "Akud n unebdu Turuft n umalu"
+              }
+            },
+            "Falkland": {
+              "long": {
+                "generic": "Akud n Tegzirin n Falkland",
+                "standard": "Akud amezday n Tegzirin n Falkland",
+                "daylight": "Akud n unebdu Tegzirin n Falkland"
+              }
+            },
+            "Fiji": {
+              "long": {
+                "generic": "Akud n Fiji",
+                "standard": "Akud amezday n Fiji",
+                "daylight": "Akud n unebdu n Fiji"
+              }
+            },
+            "French_Guiana": {
+              "long": {
+                "standard": "Akud n Gwiyan tafransist"
+              }
+            },
+            "French_Southern": {
+              "long": {
+                "standard": "Akud n wakal n unẓul d Antarktik n Fransa"
+              }
+            },
+            "Galapagos": {
+              "long": {
+                "standard": "Akud n Galapagus"
+              }
+            },
+            "Gambier": {
+              "long": {
+                "standard": "Akud n Tegzirin Gambyer"
+              }
+            },
+            "Georgia": {
+              "long": {
+                "generic": "Akud n Jyurjya",
+                "standard": "Akud amezday n Jyurjya",
+                "daylight": "Akud n unebdu n Jyurjya"
+              }
+            },
+            "Gilbert_Islands": {
+              "long": {
+                "standard": "Akud n Tegzirin Jilbar"
+              }
+            },
+            "GMT": {
+              "long": {
+                "standard": "Akud alemmas n Greenwich"
+              }
+            },
+            "Greenland_Eastern": {
+              "long": {
+                "generic": "Akud n Grinland n usammar",
+                "standard": "Akud amezday n Grinland n usammar",
+                "daylight": "Akud n unebdu n Grinland n usammar"
+              }
+            },
+            "Greenland_Western": {
+              "long": {
+                "generic": "Akud n Grinland n umalu",
+                "standard": "Akud amezday n Grinland n umalu",
+                "daylight": "Akud n unebdu n Grinland n umalu"
+              }
+            },
+            "Gulf": {
+              "long": {
+                "standard": "Akud amezday n Gulf"
+              }
+            },
+            "Guyana": {
+              "long": {
+                "standard": "Akud n Gwiyan"
+              }
+            },
+            "Hawaii": {
+              "long": {
+                "standard": "Akud amezday n Haway-Aliwsyan"
+              }
+            },
+            "Hawaii_Aleutian": {
+              "long": {
+                "generic": "Akud n Haway-Aliwsyan",
+                "standard": "Akud amezday n Haway-Aliwsyan",
+                "daylight": "Akud n unebdu n Haway-Aliwsyan"
+              }
+            },
+            "Hong_Kong": {
+              "long": {
+                "generic": "Akud n Hung Kung",
+                "standard": "Akud amezday n Hung Kung",
+                "daylight": "Akud n unebdu n Hung Kung"
+              }
+            },
+            "Hovd": {
+              "long": {
+                "generic": "Akud n Huvd",
+                "standard": "Akud amezday n Huvd",
+                "daylight": "Akud n unebdu n Huvd"
+              }
+            },
+            "India": {
+              "long": {
+                "standard": "Akud amezday n Lhend"
+              }
+            },
+            "Indian_Ocean": {
+              "long": {
+                "standard": "Akud n Ugaraw Ahendi"
+              }
+            },
+            "Indochina": {
+              "long": {
+                "standard": "Akud n Inducin"
+              }
+            },
+            "Indonesia_Central": {
+              "long": {
+                "standard": "Akud n tlemmast n Andunisya"
+              }
+            },
+            "Indonesia_Eastern": {
+              "long": {
+                "standard": "Akud n usammar n Andunisya"
+              }
+            },
+            "Indonesia_Western": {
+              "long": {
+                "standard": "Akud n umalu n Andunisya"
+              }
+            },
+            "Iran": {
+              "long": {
+                "generic": "Akud n Iran",
+                "standard": "Akud amezday n Iran",
+                "daylight": "Akud n unebdu Iran"
+              }
+            },
+            "Irkutsk": {
+              "long": {
+                "generic": "Akud n Irkutsk",
+                "standard": "Akud amezday n Irkutsk",
+                "daylight": "Akud n unebdu n Irkutsk"
+              }
+            },
+            "Israel": {
+              "long": {
+                "generic": "Akud n Izrayil",
+                "standard": "Akud amezday n Izrayil",
+                "daylight": "Akud n unebdu n Izrayil"
+              }
+            },
+            "Japan": {
+              "long": {
+                "generic": "Akud n Japun",
+                "standard": "Akud amezday n Japun",
+                "daylight": "Akud n unebdu n Japun"
+              }
+            },
+            "Kazakhstan_Eastern": {
+              "long": {
+                "standard": "Akud n usammar n Kazaxistan"
+              }
+            },
+            "Kazakhstan_Western": {
+              "long": {
+                "standard": "Akud n n umalu n Kazaxistan"
+              }
+            },
+            "Korea": {
+              "long": {
+                "generic": "Akud n Kurya",
+                "standard": "Akud amezday n Kurya",
+                "daylight": "Akud n unebdu n Kurya"
+              }
+            },
+            "Kosrae": {
+              "long": {
+                "standard": "Akud n Kosrae"
+              }
+            },
+            "Krasnoyarsk": {
+              "long": {
+                "generic": "Akud n Krasnoyarsk",
+                "standard": "Akud amagnu n Krasnoyarsk",
+                "daylight": "Akud n unebdu n Krasnoyarsk"
+              }
+            },
+            "Kyrgystan": {
+              "long": {
+                "standard": "Akud n Kirigistan"
+              }
+            },
+            "Line_Islands": {
+              "long": {
+                "standard": "Akud n Tegzirin Lin"
+              }
+            },
+            "Lord_Howe": {
+              "long": {
+                "generic": "Akud n Lord Howe",
+                "standard": "Akud Amagnu n Lord Howe",
+                "daylight": "Akud n Unebdu n Lord Howe"
+              }
+            },
+            "Magadan": {
+              "long": {
+                "generic": "Akud n Magadan",
+                "standard": "Akud amezday n Magadan",
+                "daylight": "Akud n unebdu n Magadan"
+              }
+            },
+            "Malaysia": {
+              "long": {
+                "standard": "Akud n Malizya"
+              }
+            },
+            "Maldives": {
+              "long": {
+                "standard": "Akud n Maldiv"
+              }
+            },
+            "Marquesas": {
+              "long": {
+                "standard": "Akud n Tegzirin Markiz"
+              }
+            },
+            "Marshall_Islands": {
+              "long": {
+                "standard": "Akud n Tegzirin Marcal"
+              }
+            },
+            "Mauritius": {
+              "long": {
+                "generic": "Akud n Muris",
+                "standard": "Akud amezday n Muris",
+                "daylight": "Akud n unebdu n Muris"
+              }
+            },
+            "Mawson": {
+              "long": {
+                "standard": "Akud n Mawsun"
+              }
+            },
+            "Mexico_Pacific": {
+              "long": {
+                "generic": "Akud amelwi n Miksik",
+                "standard": "Akud amezday amelwi n Miksik",
+                "daylight": "Akud amelwi n unebdu n Miksik"
+              }
+            },
+            "Mongolia": {
+              "long": {
+                "generic": "Akud n Ulanbatar",
+                "standard": "Akud amezday n Ulanbatar",
+                "daylight": "Akud n unebdu n Ulanbatar"
+              }
+            },
+            "Moscow": {
+              "long": {
+                "generic": "Akud n Muṣku",
+                "standard": "Akud amezday n Muṣku",
+                "daylight": "Akud n unebdu n Muṣku"
+              }
+            },
+            "Myanmar": {
+              "long": {
+                "standard": "Akud n Myanmar"
+              }
+            },
+            "Nauru": {
+              "long": {
+                "standard": "Akud n Nuru"
+              }
+            },
+            "Nepal": {
+              "long": {
+                "standard": "Akud n Nipal"
+              }
+            },
+            "New_Caledonia": {
+              "long": {
+                "generic": "Akud n Kalidunya Tamaynut",
+                "standard": "Akud amezday n Kalidunya Tamaynut",
+                "daylight": "Akud n unebdu n Kalidunya Tamaynut"
+              }
+            },
+            "New_Zealand": {
+              "long": {
+                "generic": "Akud n Ziland Tamaynut",
+                "standard": "Akud amezday n Ziland Tamaynut",
+                "daylight": "Akud n unebdu Ziland Tamaynut"
+              }
+            },
+            "Newfoundland": {
+              "long": {
+                "generic": "Akud n Wakal amaynut",
+                "standard": "Akud amezday n Wakal amaynut",
+                "daylight": "Akud n unebdu n Wakal amaynut"
+              }
+            },
+            "Niue": {
+              "long": {
+                "standard": "Akud n Niyu"
+              }
+            },
+            "Norfolk": {
+              "long": {
+                "generic": "Akud n Tegzirt n Nurfulk",
+                "standard": "Akud amezday n Tegzirt n Nurfulk",
+                "daylight": "Akud n unebdu n Tegzirt n Nurfulk"
+              }
+            },
+            "Noronha": {
+              "long": {
+                "generic": "Akud n Firnandu n Nurunha",
+                "standard": "Akud amezday n Firnandu n Nurunha",
+                "daylight": "Akud n unebdu n Firnandu n Nurunha"
+              }
+            },
+            "Novosibirsk": {
+              "long": {
+                "generic": "Akud n Novosibirsk",
+                "standard": "Akud Amagnu n Novosibirsk",
+                "daylight": "Akud n Unebdu n Novosibirsk"
+              }
+            },
+            "Omsk": {
+              "long": {
+                "generic": "Akud n Omsk",
+                "standard": "Akud Amagnu n Omsk",
+                "daylight": "Akud n Unebdu n Omsk"
+              }
+            },
+            "Pakistan": {
+              "long": {
+                "generic": "Akud n Pakistan",
+                "standard": "Akud amezday n Pakistan",
+                "daylight": "Akud n unebdu n Pakistan"
+              }
+            },
+            "Palau": {
+              "long": {
+                "standard": "Akud n Palau"
+              }
+            },
+            "Papua_New_Guinea": {
+              "long": {
+                "standard": "Akud n Papwa n Ɣinya Tamaynut"
+              }
+            },
+            "Paraguay": {
+              "long": {
+                "generic": "Akud n Paragway",
+                "standard": "Akud amezday n Paragway",
+                "daylight": "Akud n unebdu n Paragway"
+              }
+            },
+            "Peru": {
+              "long": {
+                "generic": "Akud n Piru",
+                "standard": "Akud amezday n Piru",
+                "daylight": "Akud n unebdu n Piru"
+              }
+            },
+            "Philippines": {
+              "long": {
+                "generic": "Akud n Filipin",
+                "standard": "Akud amezday n Filipin",
+                "daylight": "Akud n unebdu n Filipin"
+              }
+            },
+            "Phoenix_Islands": {
+              "long": {
+                "standard": "Akud n Tegzirin n Finiks"
+              }
+            },
+            "Pierre_Miquelon": {
+              "long": {
+                "generic": "Akud n San Pyir & Miklun",
+                "standard": "Akud amezday n San Pyir & Miklun",
+                "daylight": "Akud n unebdu n San Pyir & Miklun"
+              }
+            },
+            "Pitcairn": {
+              "long": {
+                "standard": "Akud n Pitkarn"
+              }
+            },
+            "Ponape": {
+              "long": {
+                "standard": "Akud n Ponape"
+              }
+            },
+            "Pyongyang": {
+              "long": {
+                "standard": "Akud n Pyungyung"
+              }
+            },
+            "Reunion": {
+              "long": {
+                "standard": "Akud n Riyunyun"
+              }
+            },
+            "Rothera": {
+              "long": {
+                "standard": "Akud n Rothera"
+              }
+            },
+            "Sakhalin": {
+              "long": {
+                "generic": "Akud n Sakhalin",
+                "standard": "Akud Amagnu n Sakhalin",
+                "daylight": "Akud n Unebdu n Sakhalin"
+              }
+            },
+            "Samoa": {
+              "long": {
+                "generic": "Akud n Samwa",
+                "standard": "Akud amezday n Samwa",
+                "daylight": "Akud n unebdu n Samwa"
+              }
+            },
+            "Seychelles": {
+              "long": {
+                "standard": "Akud n Saycal"
+              }
+            },
+            "Singapore": {
+              "long": {
+                "standard": "Akud amezday n Sangapur"
+              }
+            },
+            "Solomon": {
+              "long": {
+                "standard": "Akud n Tegzirin Salumun"
+              }
+            },
+            "South_Georgia": {
+              "long": {
+                "standard": "Akud n Jyurjya n unẓul"
+              }
+            },
+            "Suriname": {
+              "long": {
+                "standard": "Akud n Surinam"
+              }
+            },
+            "Syowa": {
+              "long": {
+                "standard": "Akud n Syuwa"
+              }
+            },
+            "Tahiti": {
+              "long": {
+                "standard": "Akud n Tahiti"
+              }
+            },
+            "Taipei": {
+              "long": {
+                "generic": "Akud n Taypay",
+                "standard": "Akud amezday n Taypay",
+                "daylight": "Akud n unebdu n Taypay"
+              }
+            },
+            "Tajikistan": {
+              "long": {
+                "standard": "Akud n Ṭajikistan"
+              }
+            },
+            "Tokelau": {
+              "long": {
+                "standard": "Akud n Ṭukilaw"
+              }
+            },
+            "Tonga": {
+              "long": {
+                "generic": "Akud n Ṭunga",
+                "standard": "Akud amezday n Ṭunga",
+                "daylight": "Akud n unebdu n Ṭunga"
+              }
+            },
+            "Truk": {
+              "long": {
+                "standard": "Akud n Chuuk"
+              }
+            },
+            "Turkmenistan": {
+              "long": {
+                "generic": "Akud n Turkmanistan",
+                "standard": "Akud amezday n Turkmanistan",
+                "daylight": "Akud n unebdu n Turkmanistan"
+              }
+            },
+            "Tuvalu": {
+              "long": {
+                "standard": "Akud n Tuvalu"
+              }
+            },
+            "Uruguay": {
+              "long": {
+                "generic": "Akud n Urugway",
+                "standard": "Akud amezday n Urugway",
+                "daylight": "Akud n unebdu n Urugway"
+              }
+            },
+            "Uzbekistan": {
+              "long": {
+                "generic": "Akud n Uzbikistan",
+                "standard": "Akud amezday n Uzbikistan",
+                "daylight": "Akud n unebdu n Uzbikistan"
+              }
+            },
+            "Vanuatu": {
+              "long": {
+                "generic": "Akud n Vanuyatu",
+                "standard": "Akud Amagnu n Vanuyatu",
+                "daylight": "Akud n Unebdu n Vanuyatu"
+              }
+            },
+            "Venezuela": {
+              "long": {
+                "standard": "Akud n Vinizwila"
+              }
+            },
+            "Vladivostok": {
+              "long": {
+                "generic": "Akud n Vladivostok",
+                "standard": "Akud Amagnu n Vladivostok",
+                "daylight": "Akud n Unebdu n Vladivostok"
+              }
+            },
+            "Volgograd": {
+              "long": {
+                "generic": "Akud n Volgograd",
+                "standard": "Akud Amagnu n Volgograd",
+                "daylight": "Akud n Unebdu n Volgograd"
+              }
+            },
+            "Vostok": {
+              "long": {
+                "standard": "Akud n Vostok"
+              }
+            },
+            "Wake": {
+              "long": {
+                "standard": "Akud n Tegzirin n Wake"
+              }
+            },
+            "Wallis": {
+              "long": {
+                "standard": "Akud n Wallis akked Futuna"
+              }
+            },
+            "Yakutsk": {
+              "long": {
+                "generic": "Akud n Yakutsk",
+                "standard": "Akud amezday n Yakutsk",
+                "daylight": "Akud n unebdu n Yakutsk"
+              }
+            },
+            "Yekaterinburg": {
+              "long": {
+                "generic": "Akud n Yekaterinburg",
+                "standard": "Akud Amagnu n Yekaterinburg",
+                "daylight": "Akud n Unebdu n Yekaterinburg"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

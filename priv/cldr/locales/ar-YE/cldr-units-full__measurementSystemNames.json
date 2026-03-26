@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ar-YE": {
+      "identity": {
+        "language": "ar",
+        "territory": "YE"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "النظام المتري",
+          "UK": "النظام البريطاني",
+          "US": "النظام الأمريكي"
+        }
+      }
+    }
+  }
+}

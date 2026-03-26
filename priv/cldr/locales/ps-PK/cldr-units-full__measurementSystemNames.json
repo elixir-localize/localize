@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ps-PK": {
+      "identity": {
+        "language": "ps",
+        "territory": "PK"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "مېټرک",
+          "UK": "برتانوې",
+          "US": "متحده ايالات"
+        }
+      }
+    }
+  }
+}

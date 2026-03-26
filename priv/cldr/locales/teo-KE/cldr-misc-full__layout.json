@@ -1,0 +1,16 @@
+{
+  "main": {
+    "teo-KE": {
+      "identity": {
+        "language": "teo",
+        "territory": "KE"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

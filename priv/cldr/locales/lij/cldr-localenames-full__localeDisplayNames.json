@@ -1,0 +1,117 @@
+{
+  "main": {
+    "lij": {
+      "identity": {
+        "language": "lij"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}, {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "keys": {
+          "calendar": "lunäio",
+          "cf": "formato de monæa",
+          "collation": "ordine",
+          "currency": "monæa",
+          "hc": "scistema oräio (12 ò 24 oe)",
+          "lb": "stilo de interruçion de linia",
+          "ms": "scistema de mesuaçion",
+          "numbers": "numeri"
+        },
+        "types": {
+          "calendar": {
+            "buddhist": "lunäio buddista",
+            "chinese": "lunäio cineise",
+            "coptic": "lunäio còpto",
+            "dangi": "lunäio dangi",
+            "ethiopic": "lunäio etiope",
+            "ethiopic-amete-alem": "lunäio etiope Amete Alem",
+            "gregorian": "lunäio gregorian",
+            "hebrew": "lunäio ebraico",
+            "islamic": "lunäio egirian",
+            "islamic-civil": "lunäio çivile egirian",
+            "islamic-umalqura": "lunäio egirian (Umm al-Qura)",
+            "iso8601": "lunäio ISO-8601",
+            "japanese": "lunäio giapponeise",
+            "persian": "lunäio perscian",
+            "roc": "lunäio repubrican cineise"
+          },
+          "cf": {
+            "account": "formato de monæa contabile",
+            "standard": "formato de monæa standard"
+          },
+          "collation": {
+            "ducet": "ordine predefinio de Unicode",
+            "search": "reçerca generica",
+            "standard": "ordine standard"
+          },
+          "hc": {
+            "h11": "scistema oräio à 12 oe (0–11)",
+            "h12": "scistema oräio à 12 oe (1–12)",
+            "h23": "scistema oräio à 24 oe (0–23)",
+            "h24": "scistema oräio à 24 oe (1–24)"
+          },
+          "lb": {
+            "loose": "stilo de interruçion de linia flescibile",
+            "normal": "stilo de interruçion de linia standard",
+            "strict": "stilo de interruçion de linia sforsou"
+          },
+          "ms": {
+            "metric": "scistema metrico",
+            "uksystem": "scistema de mesuaçion imperiale",
+            "ussystem": "scistema de mesuaçion american"
+          },
+          "numbers": {
+            "arab": "giffre indo-arabe",
+            "arabext": "giffre indo-arabe esteise",
+            "armn": "numeri ermeni",
+            "armnlow": "numeri ermeni piccin",
+            "beng": "giffre bengaleixi",
+            "cakm": "giffre chakma",
+            "deva": "giffre devanagari",
+            "ethi": "numeri etiopi",
+            "fullwide": "giffre à ampiessa intrega",
+            "geor": "numeri georgien",
+            "grek": "numeri greghi",
+            "greklow": "numeri greghi piccin",
+            "gujr": "giffre gujarati",
+            "guru": "giffre gurmuki",
+            "hanidec": "numeri deçimali cineixi",
+            "hans": "numeri cineixi semplificæ",
+            "hansfin": "numeri finansiäi in cineise semplificou",
+            "hant": "numeri cineixi tradiçionali",
+            "hantfin": "numeri finansiäi in cineise tradiçionale",
+            "hebr": "numeri ebraichi",
+            "java": "giffre giavaneixi",
+            "jpan": "numeri giapponeixi",
+            "jpanfin": "numeri finansiäi giapponeixi",
+            "khmr": "giffre khmer",
+            "knda": "giffre kannada",
+            "laoo": "giffre lao",
+            "latn": "giffre occidentale",
+            "mlym": "giffre malayalam",
+            "mtei": "giffre meetei mayek",
+            "mymr": "giffre birmañe",
+            "olck": "giffre ol chiki",
+            "orya": "giffre ödia",
+            "roman": "numeri romoen",
+            "romanlow": "numeri romoen piccin",
+            "taml": "giffre tamil tradiçionale",
+            "tamldec": "giffre tamil",
+            "telu": "giffre telugu",
+            "thai": "giffre tailandeixi",
+            "tibt": "giffre tibetañe",
+            "vaii": "giffre vaii"
+          }
+        },
+        "codePatterns": {
+          "language": "Lengua: {0}",
+          "script": "Scrittua: {0}",
+          "territory": "Region: {0}"
+        }
+      }
+    }
+  }
+}

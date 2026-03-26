@@ -1,0 +1,15 @@
+{
+  "main": {
+    "wo": {
+      "identity": {
+        "language": "wo"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

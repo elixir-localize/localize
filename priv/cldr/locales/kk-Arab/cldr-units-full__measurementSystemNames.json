@@ -1,0 +1,17 @@
+{
+  "main": {
+    "kk-Arab": {
+      "identity": {
+        "language": "kk",
+        "script": "Arab"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "مەترلىك",
+          "UK": "اعىلشىن",
+          "US": "امەريكالىق"
+        }
+      }
+    }
+  }
+}

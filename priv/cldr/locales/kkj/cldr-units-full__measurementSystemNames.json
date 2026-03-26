@@ -1,0 +1,16 @@
+{
+  "main": {
+    "kkj": {
+      "identity": {
+        "language": "kkj"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

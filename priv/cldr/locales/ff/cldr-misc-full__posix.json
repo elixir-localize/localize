@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ff": {
+      "identity": {
+        "language": "ff"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Eey:E",
+          "nostr": "Alaa:A"
+        }
+      }
+    }
+  }
+}

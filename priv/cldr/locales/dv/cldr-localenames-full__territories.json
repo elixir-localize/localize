@@ -1,0 +1,14 @@
+{
+  "main": {
+    "dv": {
+      "identity": {
+        "language": "dv"
+      },
+      "localeDisplayNames": {
+        "territories": {
+          "MV": "ދިވެހި ރާއްޖެ"
+        }
+      }
+    }
+  }
+}

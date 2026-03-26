@@ -1,0 +1,15 @@
+{
+  "main": {
+    "et": {
+      "identity": {
+        "language": "et"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "jah:j",
+          "nostr": "ei:e"
+        }
+      }
+    }
+  }
+}

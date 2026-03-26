@@ -1,0 +1,17 @@
+{
+  "main": {
+    "af-NA": {
+      "identity": {
+        "language": "af",
+        "territory": "NA"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metrieke stelsel",
+          "UK": "VK",
+          "US": "VSA"
+        }
+      }
+    }
+  }
+}

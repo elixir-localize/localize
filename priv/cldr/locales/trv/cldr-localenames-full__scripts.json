@@ -1,0 +1,20 @@
+{
+  "main": {
+    "trv": {
+      "identity": {
+        "language": "trv"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Arab": "tasan Arapit",
+          "Cyrl": "tasan Sirorik",
+          "Hans": "Qantan tasan Ipaw",
+          "Hant": "Baday tasan Ipaw",
+          "Latn": "tasan Ratin",
+          "Zxxx": "Unat tasan",
+          "Zzzz": "ini klayi tasan ni"
+        }
+      }
+    }
+  }
+}

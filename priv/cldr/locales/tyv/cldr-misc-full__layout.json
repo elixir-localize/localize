@@ -1,0 +1,15 @@
+{
+  "main": {
+    "tyv": {
+      "identity": {
+        "language": "tyv"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

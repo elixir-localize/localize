@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mua": {
+      "identity": {
+        "language": "mua"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

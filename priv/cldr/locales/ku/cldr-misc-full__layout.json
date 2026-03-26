@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ku": {
+      "identity": {
+        "language": "ku"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

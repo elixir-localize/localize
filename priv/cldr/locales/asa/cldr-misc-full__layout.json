@@ -1,0 +1,15 @@
+{
+  "main": {
+    "asa": {
+      "identity": {
+        "language": "asa"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

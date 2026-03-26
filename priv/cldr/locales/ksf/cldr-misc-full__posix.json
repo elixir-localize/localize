@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ksf": {
+      "identity": {
+        "language": "ksf"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ɛ́:Ɛ",
+          "nostr": "EÉ:E"
+        }
+      }
+    }
+  }
+}

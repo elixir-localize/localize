@@ -1,0 +1,540 @@
+{
+  "main": {
+    "mg": {
+      "identity": {
+        "language": "mg"
+      },
+      "numbers": {
+        "currencies": {
+          "AED": {
+            "displayName": "Dirham",
+            "displayName-count-other": "Dirham"
+          },
+          "AFN": {
+            "symbol-alt-narrow": "؋"
+          },
+          "AMD": {
+            "symbol-alt-narrow": "֏"
+          },
+          "AOA": {
+            "displayName": "kwanza angoley",
+            "displayName-count-other": "kwanza angoley",
+            "symbol-alt-narrow": "Kz"
+          },
+          "ARS": {
+            "symbol-alt-narrow": "$"
+          },
+          "AUD": {
+            "displayName": "Dolara aostralianina",
+            "displayName-count-other": "Dolara aostralianina",
+            "symbol": "A$",
+            "symbol-alt-narrow": "$"
+          },
+          "AZN": {
+            "symbol-alt-narrow": "₼"
+          },
+          "BAM": {
+            "symbol-alt-narrow": "KM"
+          },
+          "BBD": {
+            "symbol-alt-narrow": "$"
+          },
+          "BDT": {
+            "symbol-alt-narrow": "৳"
+          },
+          "BHD": {
+            "displayName": "dinar bahreïni",
+            "displayName-count-other": "dinar bahreïni"
+          },
+          "BIF": {
+            "displayName": "Farantsa Borondi",
+            "displayName-count-other": "Farantsa Borondi"
+          },
+          "BMD": {
+            "symbol-alt-narrow": "$"
+          },
+          "BND": {
+            "symbol-alt-narrow": "$"
+          },
+          "BOB": {
+            "symbol-alt-narrow": "Bs"
+          },
+          "BRL": {
+            "symbol": "R$",
+            "symbol-alt-narrow": "R$"
+          },
+          "BSD": {
+            "symbol-alt-narrow": "$"
+          },
+          "BWP": {
+            "displayName": "Pola botsoaney",
+            "displayName-count-other": "Pola botsoaney",
+            "symbol-alt-narrow": "P"
+          },
+          "BZD": {
+            "symbol-alt-narrow": "$"
+          },
+          "CAD": {
+            "displayName": "Dôlara Kanadianina",
+            "displayName-count-other": "Dôlara Kanadianina",
+            "symbol": "CA$",
+            "symbol-alt-narrow": "$"
+          },
+          "CDF": {
+            "displayName": "Farantsa kôngôley",
+            "displayName-count-other": "Farantsa kôngôley"
+          },
+          "CHF": {
+            "displayName": "Farantsa soisa",
+            "displayName-count-other": "Farantsa soisa"
+          },
+          "CLP": {
+            "symbol-alt-narrow": "$"
+          },
+          "CNY": {
+            "displayName": "Yoan sinoa Renminbi",
+            "displayName-count-other": "Yoan sinoa Renminbi",
+            "symbol": "CN¥",
+            "symbol-alt-narrow": "¥"
+          },
+          "COP": {
+            "symbol-alt-narrow": "$"
+          },
+          "CRC": {
+            "symbol-alt-narrow": "₡"
+          },
+          "CUC": {
+            "symbol-alt-narrow": "$"
+          },
+          "CUP": {
+            "symbol-alt-narrow": "$"
+          },
+          "CVE": {
+            "displayName": "Escudo",
+            "displayName-count-other": "Escudo"
+          },
+          "CZK": {
+            "symbol-alt-narrow": "Kč"
+          },
+          "DJF": {
+            "displayName": "Farantsa Djibotianina",
+            "displayName-count-other": "Farantsa Djibotianina"
+          },
+          "DKK": {
+            "symbol-alt-narrow": "kr"
+          },
+          "DOP": {
+            "symbol-alt-narrow": "$"
+          },
+          "DZD": {
+            "displayName": "Dinara alzerianina",
+            "displayName-count-other": "Dinara alzerianina"
+          },
+          "EGP": {
+            "displayName": "vola venty ejipsiana",
+            "displayName-count-other": "vola venty ejipsiana",
+            "symbol-alt-narrow": "E£"
+          },
+          "ERN": {
+            "displayName": "Nakfà Eritreanina",
+            "displayName-count-other": "Nakfà Eritreanina"
+          },
+          "ESP": {
+            "symbol-alt-narrow": "₧"
+          },
+          "ETB": {
+            "displayName": "Bir etiopianina",
+            "displayName-count-other": "Bir etiopianina"
+          },
+          "EUR": {
+            "displayName": "Eoro",
+            "displayName-count-other": "Eoro",
+            "symbol": "€",
+            "symbol-alt-narrow": "€"
+          },
+          "FJD": {
+            "symbol-alt-narrow": "$"
+          },
+          "FKP": {
+            "symbol-alt-narrow": "£"
+          },
+          "GBP": {
+            "displayName": "livre sterling",
+            "displayName-count-other": "livre sterling",
+            "symbol": "£",
+            "symbol-alt-narrow": "£"
+          },
+          "GEL": {
+            "symbol-alt-narrow": "₾"
+          },
+          "GHC": {
+            "displayName": "cédi",
+            "displayName-count-other": "cédi"
+          },
+          "GHS": {
+            "symbol-alt-narrow": "GH₵"
+          },
+          "GIP": {
+            "symbol-alt-narrow": "£"
+          },
+          "GMD": {
+            "displayName": "Dalasi gambianina",
+            "displayName-count-other": "Dalasi gambianina"
+          },
+          "GNF": {
+            "symbol-alt-narrow": "FG"
+          },
+          "GNS": {
+            "displayName": "Farantsa Gineanina",
+            "displayName-count-other": "Farantsa Gineanina"
+          },
+          "GTQ": {
+            "symbol-alt-narrow": "Q"
+          },
+          "GYD": {
+            "symbol-alt-narrow": "$"
+          },
+          "HKD": {
+            "symbol": "HK$",
+            "symbol-alt-narrow": "$"
+          },
+          "HNL": {
+            "symbol-alt-narrow": "L"
+          },
+          "HRK": {
+            "symbol-alt-narrow": "kn"
+          },
+          "HUF": {
+            "symbol-alt-narrow": "Ft"
+          },
+          "IDR": {
+            "symbol-alt-narrow": "Rp"
+          },
+          "ILS": {
+            "symbol": "₪",
+            "symbol-alt-narrow": "₪"
+          },
+          "INR": {
+            "displayName": "Ropia Indianina",
+            "displayName-count-other": "Ropia Indianina",
+            "symbol": "₹",
+            "symbol-alt-narrow": "₹"
+          },
+          "ISK": {
+            "symbol-alt-narrow": "kr"
+          },
+          "JMD": {
+            "symbol-alt-narrow": "$"
+          },
+          "JPY": {
+            "displayName": "Yen Japoney",
+            "displayName-count-other": "Yen Japoney",
+            "symbol": "JP¥",
+            "symbol-alt-narrow": "¥"
+          },
+          "KES": {
+            "displayName": "Shilling kenianina",
+            "displayName-count-other": "Shilling kenianina"
+          },
+          "KGS": {
+            "symbol-alt-narrow": "⃀"
+          },
+          "KHR": {
+            "symbol-alt-narrow": "៛"
+          },
+          "KMF": {
+            "displayName": "Farantsa Komorianina",
+            "displayName-count-other": "Farantsa Komorianina",
+            "symbol-alt-narrow": "CF"
+          },
+          "KPW": {
+            "symbol-alt-narrow": "₩"
+          },
+          "KRW": {
+            "symbol": "₩",
+            "symbol-alt-narrow": "₩"
+          },
+          "KYD": {
+            "symbol-alt-narrow": "$"
+          },
+          "KZT": {
+            "symbol-alt-narrow": "₸"
+          },
+          "LAK": {
+            "symbol-alt-narrow": "₭"
+          },
+          "LBP": {
+            "symbol-alt-narrow": "L£"
+          },
+          "LKR": {
+            "symbol-alt-narrow": "Rs"
+          },
+          "LRD": {
+            "displayName": "Dôlara Liberianina",
+            "displayName-count-other": "Dôlara Liberianina",
+            "symbol-alt-narrow": "$"
+          },
+          "LSL": {
+            "displayName": "Loti",
+            "displayName-count-other": "Loti"
+          },
+          "LTL": {
+            "symbol-alt-narrow": "Lt"
+          },
+          "LVL": {
+            "symbol-alt-narrow": "Ls"
+          },
+          "LYD": {
+            "displayName": "Dinara Libyanina",
+            "displayName-count-other": "Dinara Libyanina"
+          },
+          "MAD": {
+            "displayName": "Dirham marokianina",
+            "displayName-count-other": "Dirham marokianina"
+          },
+          "MGA": {
+            "displayName": "Ariary",
+            "displayName-count-other": "Ariary",
+            "symbol": "Ar",
+            "symbol-alt-narrow": "Ar"
+          },
+          "MMK": {
+            "symbol-alt-narrow": "K"
+          },
+          "MNT": {
+            "symbol-alt-narrow": "₮"
+          },
+          "MRO": {
+            "displayName": "Ouguiya moritanianina (1973–2017)",
+            "displayName-count-other": "Ouguiya moritanianina (1973–2017)"
+          },
+          "MRU": {
+            "displayName": "Ouguiya moritanianina",
+            "displayName-count-other": "Ouguiya moritanianina"
+          },
+          "MUR": {
+            "displayName": "Ropia maorisianina",
+            "displayName-count-other": "Ropia maorisianina",
+            "symbol-alt-narrow": "Rs"
+          },
+          "MWK": {
+            "displayName": "kwacha malawite",
+            "displayName-count-other": "kwacha malawite"
+          },
+          "MXN": {
+            "symbol": "MX$",
+            "symbol-alt-narrow": "$"
+          },
+          "MYR": {
+            "symbol-alt-narrow": "RM"
+          },
+          "MZM": {
+            "displayName": "Metikaly",
+            "displayName-count-other": "Metikaly"
+          },
+          "NAD": {
+            "displayName": "Dolara namibianina",
+            "displayName-count-other": "Dolara namibianina",
+            "symbol-alt-narrow": "$"
+          },
+          "NGN": {
+            "displayName": "Naira nigerianina",
+            "displayName-count-other": "Naira nigerianina",
+            "symbol-alt-narrow": "₦"
+          },
+          "NIO": {
+            "symbol-alt-narrow": "C$"
+          },
+          "NOK": {
+            "symbol-alt-narrow": "kr"
+          },
+          "NPR": {
+            "symbol-alt-narrow": "Rs"
+          },
+          "NZD": {
+            "symbol": "NZ$",
+            "symbol-alt-narrow": "$"
+          },
+          "PHP": {
+            "symbol": "₱",
+            "symbol-alt-narrow": "₱"
+          },
+          "PKR": {
+            "symbol-alt-narrow": "Rs"
+          },
+          "PLN": {
+            "symbol-alt-narrow": "zł"
+          },
+          "PYG": {
+            "symbol-alt-narrow": "₲"
+          },
+          "RON": {
+            "symbol-alt-narrow": "lei"
+          },
+          "RUB": {
+            "symbol-alt-narrow": "₽"
+          },
+          "RWF": {
+            "displayName": "Farantsa Roande",
+            "displayName-count-other": "Farantsa Roande",
+            "symbol-alt-narrow": "RF"
+          },
+          "SAR": {
+            "displayName": "Rial saodianina",
+            "displayName-count-other": "Rial saodianina",
+            "symbol-alt-variant": "⃁"
+          },
+          "SBD": {
+            "symbol-alt-narrow": "$"
+          },
+          "SCR": {
+            "displayName": "Ropia Seysheloà",
+            "displayName-count-other": "Ropia Seysheloà"
+          },
+          "SDG": {
+            "displayName": "Dinara Sodaney",
+            "displayName-count-other": "Dinara Sodaney"
+          },
+          "SDP": {
+            "displayName": "livre soudanaise (1956–2007)",
+            "displayName-count-other": "livre soudanaise (1956–2007)"
+          },
+          "SEK": {
+            "symbol-alt-narrow": "kr"
+          },
+          "SGD": {
+            "symbol-alt-narrow": "$"
+          },
+          "SHP": {
+            "displayName": "livre de Sainte-Hélène",
+            "displayName-count-other": "livre de Sainte-Hélène",
+            "symbol-alt-narrow": "£"
+          },
+          "SLE": {
+            "displayName": "Leone",
+            "displayName-count-other": "Leone"
+          },
+          "SLL": {
+            "displayName": "Leone (1964—2022)",
+            "displayName-count-other": "Leone (1964—2022)"
+          },
+          "SOS": {
+            "displayName": "Shilling somalianina",
+            "displayName-count-other": "Shilling somalianina"
+          },
+          "SRD": {
+            "symbol-alt-narrow": "$"
+          },
+          "SSP": {
+            "symbol-alt-narrow": "£"
+          },
+          "STD": {
+            "displayName": "Dobra (1977–2017)",
+            "displayName-count-other": "Dobra (1977–2017)"
+          },
+          "STN": {
+            "displayName": "Dobra",
+            "displayName-count-other": "Dobra",
+            "symbol-alt-narrow": "Db"
+          },
+          "SYP": {
+            "symbol-alt-narrow": "£"
+          },
+          "SZL": {
+            "displayName": "Lilangeni",
+            "displayName-count-other": "Lilangeni"
+          },
+          "THB": {
+            "symbol-alt-narrow": "฿"
+          },
+          "TND": {
+            "displayName": "Dinar tonizianina",
+            "displayName-count-other": "Dinar tonizianina"
+          },
+          "TOP": {
+            "symbol-alt-narrow": "T$"
+          },
+          "TRY": {
+            "symbol-alt-narrow": "₺",
+            "symbol-alt-variant": "TL"
+          },
+          "TTD": {
+            "symbol-alt-narrow": "$"
+          },
+          "TWD": {
+            "symbol": "NT$",
+            "symbol-alt-narrow": "$"
+          },
+          "TZS": {
+            "displayName": "Shilling tanzanianina",
+            "displayName-count-other": "Shilling tanzanianina"
+          },
+          "UAH": {
+            "symbol-alt-narrow": "₴"
+          },
+          "UGX": {
+            "displayName": "Shilling ogandianina",
+            "displayName-count-other": "Shilling ogandianina"
+          },
+          "USD": {
+            "displayName": "Dolara amerikanina",
+            "displayName-count-other": "Dolara amerikanina",
+            "symbol": "US$",
+            "symbol-alt-narrow": "$"
+          },
+          "UYU": {
+            "symbol-alt-narrow": "$"
+          },
+          "VEF": {
+            "symbol-alt-narrow": "Bs"
+          },
+          "VND": {
+            "symbol": "₫",
+            "symbol-alt-narrow": "₫"
+          },
+          "XAF": {
+            "displayName": "Farantsa CFA (BEAC)",
+            "displayName-count-other": "Farantsa CFA (BEAC)",
+            "symbol": "FCFA"
+          },
+          "XCD": {
+            "symbol": "EC$",
+            "symbol-alt-narrow": "$"
+          },
+          "XCG": {
+            "symbol": "Cg."
+          },
+          "XOF": {
+            "displayName": "Farantsa CFA (BCEAO)",
+            "displayName-count-other": "Farantsa CFA (BCEAO)",
+            "symbol": "F CFA"
+          },
+          "XPF": {
+            "symbol": "CFPF"
+          },
+          "XXX": {
+            "symbol": "¤"
+          },
+          "ZAR": {
+            "displayName": "Rand afrikanina tatsimo",
+            "displayName-count-other": "Rand afrikanina tatsimo",
+            "symbol-alt-narrow": "R"
+          },
+          "ZMK": {
+            "displayName": "Kwacha zambianina (1968–2012)",
+            "displayName-count-other": "Kwacha zambianina (1968–2012)"
+          },
+          "ZMW": {
+            "displayName": "Kwacha zambianina",
+            "displayName-count-other": "Kwacha zambianina",
+            "symbol-alt-narrow": "ZK"
+          },
+          "ZWD": {
+            "displayName": "Dôlara Zimbaboeanina",
+            "displayName-count-other": "Dôlara Zimbaboeanina"
+          }
+        }
+      }
+    }
+  }
+}

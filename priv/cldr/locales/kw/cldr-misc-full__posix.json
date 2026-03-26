@@ -1,0 +1,15 @@
+{
+  "main": {
+    "kw": {
+      "identity": {
+        "language": "kw"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

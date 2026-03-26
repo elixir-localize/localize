@@ -1,0 +1,16 @@
+{
+  "main": {
+    "khq": {
+      "identity": {
+        "language": "khq"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "mt": {
+      "identity": {
+        "language": "mt"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metriku",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

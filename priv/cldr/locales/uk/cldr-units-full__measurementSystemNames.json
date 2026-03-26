@@ -1,0 +1,16 @@
+{
+  "main": {
+    "uk": {
+      "identity": {
+        "language": "uk"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Метрична",
+          "UK": "Британська",
+          "US": "Американська"
+        }
+      }
+    }
+  }
+}

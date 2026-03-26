@@ -1,0 +1,64 @@
+{
+  "main": {
+    "bew": {
+      "identity": {
+        "language": "bew"
+      },
+      "typographicNames": {
+        "axisNames": {
+          "ital": "doyong",
+          "opsz": "ukuran optikal",
+          "slnt": "mèncong",
+          "wdth": "lèbar",
+          "wght": "berat"
+        },
+        "styleNames": {
+          "ital-subtype-1": "tulisan",
+          "opsz-subtype-8": "keterangan",
+          "opsz-subtype-12": "tèks",
+          "opsz-subtype-18": "judul",
+          "opsz-subtype-72": "pampangan",
+          "opsz-subtype-144": "poster",
+          "slnt-subtype--12": "mèncong kèbot",
+          "slnt-subtype-0": "gaceng",
+          "slnt-subtype-12": "mèncong",
+          "slnt-subtype-24": "lebi-mèncong",
+          "wdth-subtype-50": "keliwat-cempèt",
+          "wdth-subtype-62.5": "lebi-cempèt",
+          "wdth-subtype-75": "cempèt",
+          "wdth-subtype-87.5": "separo-cempèt",
+          "wdth-subtype-100": "biasa",
+          "wdth-subtype-112.5": "separo-longgar",
+          "wdth-subtype-125": "longgar",
+          "wdth-subtype-150": "lebi-longgar",
+          "wdth-subtype-200": "keliwat-longgar",
+          "wght-subtype-100": "tipis",
+          "wght-subtype-200": "lebi-tipis",
+          "wght-subtype-300": "terang",
+          "wght-subtype-350": "separo-terang",
+          "wght-subtype-380": "kitap",
+          "wght-subtype-400": "lumbrah",
+          "wght-subtype-500": "sedeng",
+          "wght-subtype-600": "separo-tebel",
+          "wght-subtype-700": "tebel",
+          "wght-subtype-800": "lebi-tebel",
+          "wght-subtype-900": "kereng",
+          "wght-subtype-950": "lebi-kereng"
+        },
+        "featureNames": {
+          "afrc": "pecahan atas-bawah",
+          "cpsp": "apstan hurup gedé",
+          "dlig": "ligatur opsionil",
+          "frac": "pecahan nyèrong",
+          "lnum": "angka baris",
+          "onum": "angka tinggi sama",
+          "ordn": "rèndèngan",
+          "pnum": "angka proporsionil",
+          "smcp": "hurup gedé-cilik",
+          "tnum": "angka jadwal",
+          "zero": "nol begaris doyong"
+        }
+      }
+    }
+  }
+}

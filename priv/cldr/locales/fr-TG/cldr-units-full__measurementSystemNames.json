@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fr-TG": {
+      "identity": {
+        "language": "fr",
+        "territory": "TG"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrique",
+          "UK": "impérial",
+          "US": "américain"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ur": {
+      "identity": {
+        "language": "ur"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "میٹرک",
+          "UK": "برطانیہ",
+          "US": "ریاست ہائے متحدہ امریکہ"
+        }
+      }
+    }
+  }
+}

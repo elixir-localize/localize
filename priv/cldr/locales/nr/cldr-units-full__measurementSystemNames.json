@@ -1,0 +1,16 @@
+{
+  "main": {
+    "nr": {
+      "identity": {
+        "language": "nr"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ken": {
+      "identity": {
+        "language": "ken"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

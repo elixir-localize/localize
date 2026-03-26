@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ru-MD": {
+      "identity": {
+        "language": "ru",
+        "territory": "MD"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Метрическая",
+          "UK": "Английская",
+          "US": "Американская"
+        }
+      }
+    }
+  }
+}

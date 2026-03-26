@@ -1,0 +1,15 @@
+{
+  "main": {
+    "pcm": {
+      "identity": {
+        "language": "pcm"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yẹs:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

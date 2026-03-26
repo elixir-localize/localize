@@ -1,0 +1,16 @@
+{
+  "main": {
+    "an": {
+      "identity": {
+        "language": "an"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrico",
+          "UK": "RU",
+          "US": "EUA"
+        }
+      }
+    }
+  }
+}

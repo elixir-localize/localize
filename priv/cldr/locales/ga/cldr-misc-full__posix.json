@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ga": {
+      "identity": {
+        "language": "ga"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "tá:t",
+          "nostr": "níl:n"
+        }
+      }
+    }
+  }
+}

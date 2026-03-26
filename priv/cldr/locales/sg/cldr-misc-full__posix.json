@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sg": {
+      "identity": {
+        "language": "sg"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Iin:I",
+          "nostr": "Én-en:E"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "main": {
+    "sv-AX": {
+      "identity": {
+        "language": "sv",
+        "territory": "AX"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "SI-enheter",
+          "UK": "engelska enheter",
+          "US": "USA-enheter"
+        }
+      }
+    }
+  }
+}

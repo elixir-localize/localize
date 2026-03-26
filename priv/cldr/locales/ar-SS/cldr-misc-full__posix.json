@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-SS": {
+      "identity": {
+        "language": "ar",
+        "territory": "SS"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "نعم:ن",
+          "nostr": "لا:ل"
+        }
+      }
+    }
+  }
+}

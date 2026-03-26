@@ -1,0 +1,17 @@
+{
+  "main": {
+    "tn-BW": {
+      "identity": {
+        "language": "tn",
+        "territory": "BW"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "nds-NL": {
+      "identity": {
+        "language": "nds",
+        "territory": "NL"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "jo:j",
+          "nostr": "nee:n"
+        }
+      }
+    }
+  }
+}

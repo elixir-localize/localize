@@ -1,0 +1,16 @@
+{
+  "main": {
+    "om-KE": {
+      "identity": {
+        "language": "om",
+        "territory": "KE"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

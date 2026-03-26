@@ -1,0 +1,563 @@
+{
+  "main": {
+    "kok": {
+      "identity": {
+        "language": "kok"
+      },
+      "dates": {
+        "calendars": {
+          "gregorian": {
+            "months": {
+              "format": {
+                "abbreviated": {
+                  "1": "जाने",
+                  "2": "फेब्रु",
+                  "3": "मार्च",
+                  "4": "एप्री",
+                  "5": "मे",
+                  "6": "जून",
+                  "7": "जुल",
+                  "8": "ऑग",
+                  "9": "सप्टें",
+                  "10": "ऑक्टो",
+                  "11": "नोव्हें",
+                  "12": "डिसें"
+                },
+                "narrow": {
+                  "1": "जा",
+                  "2": "फे",
+                  "3": "मा",
+                  "4": "ए",
+                  "5": "मे",
+                  "6": "जू",
+                  "7": "जु",
+                  "8": "ऑ",
+                  "9": "स",
+                  "10": "ऑ",
+                  "11": "नो",
+                  "12": "डि"
+                },
+                "wide": {
+                  "1": "जानेवारी",
+                  "2": "फेब्रुवारी",
+                  "3": "मार्च",
+                  "4": "एप्रील",
+                  "5": "मे",
+                  "6": "जून",
+                  "7": "जुलय",
+                  "8": "ऑगस्ट",
+                  "9": "सप्टेंबर",
+                  "10": "ऑक्टोबर",
+                  "11": "नोव्हेंबर",
+                  "12": "डिसेंबर"
+                }
+              },
+              "stand-alone": {
+                "abbreviated": {
+                  "1": "जाने",
+                  "2": "फेब्रु",
+                  "3": "मार्च",
+                  "4": "एप्री",
+                  "5": "मे",
+                  "6": "जून",
+                  "7": "जुल",
+                  "8": "ऑग",
+                  "9": "सप्टें",
+                  "10": "ऑक्टो",
+                  "11": "नोव्हें",
+                  "12": "डिसे"
+                },
+                "narrow": {
+                  "1": "जा",
+                  "2": "फे",
+                  "3": "मा",
+                  "4": "ए",
+                  "5": "मे",
+                  "6": "जू",
+                  "7": "जु",
+                  "8": "ऑ",
+                  "9": "स",
+                  "10": "ऑ",
+                  "11": "नो",
+                  "12": "डि"
+                },
+                "wide": {
+                  "1": "जानेवारी",
+                  "2": "फेब्रुवारी",
+                  "3": "मार्च",
+                  "4": "एप्रील",
+                  "5": "मे",
+                  "6": "जून",
+                  "7": "जुलय",
+                  "8": "ऑगस्ट",
+                  "9": "सप्टेंबर",
+                  "10": "ऑक्टोबर",
+                  "11": "नोव्हेंबर",
+                  "12": "डिसेंबर"
+                }
+              }
+            },
+            "days": {
+              "format": {
+                "abbreviated": {
+                  "sun": "आयतार",
+                  "mon": "सोमार",
+                  "tue": "मंगळार",
+                  "wed": "बुधवार",
+                  "thu": "बिरेस्तार",
+                  "fri": "शुक्रार",
+                  "sat": "शेनवार"
+                },
+                "narrow": {
+                  "sun": "आ",
+                  "mon": "सो",
+                  "tue": "मं",
+                  "wed": "बु",
+                  "thu": "बि",
+                  "fri": "शु",
+                  "sat": "शे"
+                },
+                "short": {
+                  "sun": "आ",
+                  "mon": "सोम",
+                  "tue": "मंगळार",
+                  "wed": "बुधवार",
+                  "thu": "बिरे",
+                  "fri": "शुक्रार",
+                  "sat": "शेनवार"
+                },
+                "wide": {
+                  "sun": "आयतार",
+                  "mon": "सोमार",
+                  "tue": "मंगळार",
+                  "wed": "बुधवार",
+                  "thu": "बिरेस्तार",
+                  "fri": "शुक्रार",
+                  "sat": "शेनवार"
+                }
+              },
+              "stand-alone": {
+                "abbreviated": {
+                  "sun": "आयतार",
+                  "mon": "सोमार",
+                  "tue": "मंगळार",
+                  "wed": "बुधवार",
+                  "thu": "बिरेस्तार",
+                  "fri": "शुक्रार",
+                  "sat": "शेनवार"
+                },
+                "narrow": {
+                  "sun": "आ",
+                  "mon": "सो",
+                  "tue": "मं",
+                  "wed": "बु",
+                  "thu": "ब",
+                  "fri": "शु",
+                  "sat": "शे"
+                },
+                "short": {
+                  "sun": "आ",
+                  "mon": "सो",
+                  "tue": "मंगळार",
+                  "wed": "बुधवार",
+                  "thu": "बिरे",
+                  "fri": "शुक्रार",
+                  "sat": "शेनवार"
+                },
+                "wide": {
+                  "sun": "आयतार",
+                  "mon": "सोमार",
+                  "tue": "मंगळार",
+                  "wed": "बुधवार",
+                  "thu": "बिरेस्तार",
+                  "fri": "शुक्रार",
+                  "sat": "शेनवार"
+                }
+              }
+            },
+            "quarters": {
+              "format": {
+                "abbreviated": {
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
+                },
+                "narrow": {
+                  "1": "1",
+                  "2": "2",
+                  "3": "3",
+                  "4": "4"
+                },
+                "wide": {
+                  "1": "1लें त्रैमासीक",
+                  "2": "2रें त्रैमासीक",
+                  "3": "3रें त्रैमासीक",
+                  "4": "4थें त्रैमासीक"
+                }
+              },
+              "stand-alone": {
+                "abbreviated": {
+                  "1": "तिम्ह1",
+                  "2": "तिम्ह2",
+                  "3": "तिम्ह3",
+                  "4": "तिम्ह4"
+                },
+                "narrow": {
+                  "1": "1",
+                  "2": "2",
+                  "3": "3",
+                  "4": "4"
+                },
+                "wide": {
+                  "1": "1लें त्रैमासीक",
+                  "2": "2रें त्रैमासीक",
+                  "3": "3रें त्रैमासीक",
+                  "4": "4थें त्रैमासीक"
+                }
+              }
+            },
+            "dayPeriods": {
+              "format": {
+                "abbreviated": {
+                  "midnight": "मध्यान",
+                  "am": "AM",
+                  "pm": "PM",
+                  "morning1": "सकाळ",
+                  "afternoon1": "दनपार",
+                  "evening1": "सांज",
+                  "night1": "रात"
+                },
+                "narrow": {
+                  "midnight": "मध्यान",
+                  "am": "a",
+                  "pm": "PM",
+                  "morning1": "सकाळ",
+                  "afternoon1": "दनपार",
+                  "evening1": "सांज",
+                  "night1": "रात"
+                },
+                "wide": {
+                  "midnight": "मध्यानरात",
+                  "am": "सकाळीं",
+                  "pm": "सांजे",
+                  "morning1": "सकाळीं",
+                  "afternoon1": "दनपारां",
+                  "evening1": "सांजे",
+                  "night1": "राती"
+                }
+              },
+              "stand-alone": {
+                "abbreviated": {
+                  "midnight": "मध्यान",
+                  "am": "AM",
+                  "pm": "PM",
+                  "morning1": "सकाळ",
+                  "afternoon1": "दनपार",
+                  "evening1": "सांज",
+                  "night1": "रात"
+                },
+                "narrow": {
+                  "midnight": "मध्यान",
+                  "am": "AM",
+                  "pm": "PM",
+                  "morning1": "सकाळ",
+                  "afternoon1": "दनपार",
+                  "evening1": "सांज",
+                  "night1": "रात"
+                },
+                "wide": {
+                  "midnight": "मध्यानरात",
+                  "am": "सकाळीं",
+                  "pm": "सांजे",
+                  "morning1": "सकाळीं",
+                  "afternoon1": "दनपारां",
+                  "evening1": "सांजे",
+                  "night1": "राती"
+                }
+              }
+            },
+            "eras": {
+              "eraNames": {
+                "0": "क्रिस्ता आदीं",
+                "0-alt-variant": "क्रिस्तपूर्व शक",
+                "1": "क्रि.श.",
+                "1-alt-variant": "इसवी सन"
+              },
+              "eraAbbr": {
+                "0": "क्रिस्तपूर्व",
+                "0-alt-variant": "BCE",
+                "1": "क्रि.श.",
+                "1-alt-variant": "क्रि.श."
+              },
+              "eraNarrow": {
+                "0": "क्रि.आ.",
+                "0-alt-variant": "BC",
+                "1": "क्रि.श.",
+                "1-alt-variant": "AD"
+              }
+            },
+            "dateFormats": {
+              "full": "EEEE d MMMM y",
+              "long": "d MMMM y",
+              "medium": "d-MMM-y",
+              "short": "d-M-yy"
+            },
+            "dateSkeletons": {
+              "full": "yMMMMEEEEd",
+              "long": "yMMMMd",
+              "medium": "yMMMd",
+              "short": "yyMd"
+            },
+            "timeFormats": {
+              "full": "h:mm:ss a zzzz",
+              "long": "h:mm:ss a z",
+              "medium": "h:mm:ss a",
+              "short": "h:mm a"
+            },
+            "timeSkeletons": {
+              "full": "ahmmsszzzz",
+              "long": "ahmmssz",
+              "medium": "ahmmss",
+              "short": "ahmm"
+            },
+            "dateTimeFormats": {
+              "full": "{1} {0}",
+              "long": "{1} {0}",
+              "medium": "{1} {0}",
+              "short": "{1} {0}",
+              "availableFormats": {
+                "Bh": "h B",
+                "Bhm": "B h:mm",
+                "Bhms": "B h:mm:ss",
+                "d": "d",
+                "E": "ccc",
+                "EBh": "E h B",
+                "EBhm": "E B h:mm",
+                "EBhms": "E B h:mm:ss",
+                "Ed": "d, E",
+                "Eh": "E h a",
+                "Ehm": "E h:mm a",
+                "EHm": "E HH:mm",
+                "Ehms": "E h:mm:ss a",
+                "EHms": "E HH:mm:ss",
+                "Gy": "G y",
+                "GyM": "M/y G",
+                "GyMd": "G y-MM-dd",
+                "GyMEd": "E, d-M-y G",
+                "GyMMM": "MMM y G",
+                "GyMMMd": "d MMM, y G",
+                "GyMMMEd": "E, d MMM, y G",
+                "h": "h a",
+                "H": "HH",
+                "hm": "a h:mm",
+                "Hm": "HH:mm",
+                "hms": "a h:mm:ss",
+                "Hms": "HH:mm:ss",
+                "hmsv": "a h:mm:ss v",
+                "Hmsv": "HH:mm:ss v",
+                "hmv": "a h:mm v",
+                "Hmv": "HH:mm v",
+                "hv": "a h वाजतां v",
+                "Hv": "HH v",
+                "M": "L",
+                "Md": "d/M",
+                "MEd": "d-M, E",
+                "MMM": "LLL",
+                "MMMd": "d MMM",
+                "MMMEd": "E, d MMM",
+                "MMMMd": "d MMMM",
+                "MMMMW-count-one": "MMMM हाचो सप्तक W",
+                "MMMMW-count-other": "MMMM हाचो सप्तक W",
+                "ms": "mm:ss",
+                "y": "y",
+                "yM": "M-y",
+                "yMd": "d-M-y",
+                "yMEd": "d-M-y, E",
+                "yMMM": "MMM y",
+                "yMMMd": "d MMM, y",
+                "yMMMEd": "y MMM d, E",
+                "yMMMM": "MMMM, y",
+                "yQQQ": "y QQQ",
+                "yQQQQ": "y QQQQ",
+                "yw-count-one": "Y हाचो सप्तक w",
+                "yw-count-other": "Y हाचो सप्तक w"
+              },
+              "appendItems": {
+                "Day": "{0} ({2}: {1})",
+                "Day-Of-Week": "{0} {1}",
+                "Era": "{1} {0}",
+                "Hour": "{0} ({2}: {1})",
+                "Minute": "{0} ({2}: {1})",
+                "Month": "{0} ({2}: {1})",
+                "Quarter": "{0} ({2}: {1})",
+                "Second": "{0} ({2}: {1})",
+                "Timezone": "{0} {1}",
+                "Week": "{0} ({2}: {1})",
+                "Year": "{1} {0}"
+              },
+              "intervalFormats": {
+                "intervalFormatFallback": "{0} – {1}",
+                "Bh": {
+                  "B": "B h – B h",
+                  "h": "h–h B"
+                },
+                "Bhm": {
+                  "B": "B h:mm – B h:mm",
+                  "h": "h:mm–h:mm B",
+                  "m": "h:mm–h:mm B"
+                },
+                "d": {
+                  "d": "d – d"
+                },
+                "Gy": {
+                  "G": "y G – y G",
+                  "y": "y – y G"
+                },
+                "GyM": {
+                  "G": "GGGGG M-y – GGGGG M-y",
+                  "M": "G y-MM – y-MM",
+                  "y": "M/y – M/y G"
+                },
+                "GyMd": {
+                  "d": "d/M/y – d/M/y G",
+                  "G": "d/M/y G – d/M/y G",
+                  "M": "d/M/y – d/M/y G",
+                  "y": "d/M/y – d/M/y G"
+                },
+                "GyMEd": {
+                  "d": "E, d/M/y – E, d/M/y G",
+                  "G": "E, d/M/y G – E, d/M/y G",
+                  "M": "E, d/M/y – E, d/M/y G",
+                  "y": "E, d/M/y – E, d/M/y G"
+                },
+                "GyMMM": {
+                  "G": "MMM y G – MMM y G",
+                  "M": "MMM – MMM y G",
+                  "y": "MMM y – MMM y G"
+                },
+                "GyMMMd": {
+                  "d": "d – d MMM, y G",
+                  "G": "d MMM, y G – d MMM, y G",
+                  "M": "d MMM – d MMM, y G",
+                  "y": "d MMM, y – d MMM, y G"
+                },
+                "GyMMMEd": {
+                  "d": "E, d MMM – E, d MMM, y G",
+                  "G": "E, d MMM, y G – E, d MMM, y G",
+                  "M": "E, d MMM – E, d MMM, y G",
+                  "y": "E, d MMM, y – E, d MMM, y G"
+                },
+                "h": {
+                  "a": "a h – a h",
+                  "h": "a h–h"
+                },
+                "H": {
+                  "H": "HH–HH"
+                },
+                "hm": {
+                  "a": "a h:mm – a h:mm",
+                  "h": "h:mm–h:mm a",
+                  "m": "h:mm–h:mm a"
+                },
+                "Hm": {
+                  "H": "HH:mm – HH:mm",
+                  "m": "HH:mm–HH:mm"
+                },
+                "hmv": {
+                  "a": "a h:mm – a h:mm v",
+                  "h": "h:mm–h:mm a v",
+                  "m": "h:mm–h:mm a v"
+                },
+                "Hmv": {
+                  "H": "HH:mm–HH:mm v",
+                  "m": "HH:mm–HH:mm v"
+                },
+                "hv": {
+                  "a": "h a – h a v",
+                  "h": "h–h a v"
+                },
+                "Hv": {
+                  "H": "HH – HH v"
+                },
+                "M": {
+                  "M": "MM–MM"
+                },
+                "Md": {
+                  "d": "d/M – d/M",
+                  "M": "d-M –d-M"
+                },
+                "MEd": {
+                  "d": "d-M, E – d-M, E",
+                  "M": "d-M, E – d-M, E"
+                },
+                "MMM": {
+                  "M": "MMM – MMM"
+                },
+                "MMMd": {
+                  "d": "d – d MMM",
+                  "M": "d MMM – d MMM"
+                },
+                "MMMEd": {
+                  "d": "E, d MMM – E, d MMM",
+                  "M": "E, d MMM – E, d MMM"
+                },
+                "y": {
+                  "y": "y – y"
+                },
+                "yM": {
+                  "M": "M/y – M/y",
+                  "y": "M-y – M-y"
+                },
+                "yMd": {
+                  "d": "d-M-y – d-M-y",
+                  "M": "d/M/y – d/M/y",
+                  "y": "d-M-y – d-M-y"
+                },
+                "yMEd": {
+                  "d": "E, d/M/y – E, d/M/y",
+                  "M": "d-M-y, E – d-M-y, E",
+                  "y": "d-M-y, E – d-M-y, E"
+                },
+                "yMMM": {
+                  "M": "MMM–MMM y",
+                  "y": "MMM y– MMM y"
+                },
+                "yMMMd": {
+                  "d": "d–d MMM y",
+                  "M": "d MMM – d MMM y",
+                  "y": "d MMM y – d MMM y"
+                },
+                "yMMMEd": {
+                  "d": "E, d MMM –E, d MMM y",
+                  "M": "E, d MMM – E, d MMM, y",
+                  "y": "E, d MMM, y – E, d MMM, y"
+                },
+                "yMMMM": {
+                  "M": "MMMM – MMMM y",
+                  "y": "MMMM y – MMMM y"
+                }
+              }
+            },
+            "dateTimeFormats-atTime": {
+              "standard": {
+                "full": "{1} {0} वरांचेर",
+                "long": "{1} {0} वरांचेर",
+                "medium": "{1}, {0}",
+                "short": "{1}, {0}"
+              }
+            },
+            "dateTimeFormats-relative": {
+              "standard": {
+                "full": "{1} {0} वरांचेर",
+                "long": "{1} {0} वरांचेर",
+                "medium": "{1}, {0}",
+                "short": "{1}, {0}"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

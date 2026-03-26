@@ -1,0 +1,16 @@
+{
+  "main": {
+    "uz": {
+      "identity": {
+        "language": "uz"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metrik",
+          "UK": "Buyuk Britaniya",
+          "US": "AQSH"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ne": {
+      "identity": {
+        "language": "ne"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "हो",
+          "nostr": "होइन"
+        }
+      }
+    }
+  }
+}

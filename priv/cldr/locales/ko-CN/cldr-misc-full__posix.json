@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ko-CN": {
+      "identity": {
+        "language": "ko",
+        "territory": "CN"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "예",
+          "nostr": "아니요"
+        }
+      }
+    }
+  }
+}

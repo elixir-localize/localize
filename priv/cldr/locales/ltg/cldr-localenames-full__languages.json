@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ltg": {
+      "identity": {
+        "language": "ltg"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "en": "angļu",
+          "ltg": "latgalīšu",
+          "lv": "latvīšu"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,694 @@
+{
+  "main": {
+    "ksh": {
+      "identity": {
+        "language": "ksh"
+      },
+      "dates": {
+        "timeZoneNames": {
+          "hourFormat": "+HH:mm;-HH:mm",
+          "gmtFormat": "GMT{0}",
+          "gmtZeroFormat": "GMT",
+          "gmtUnknownFormat": "GMT+?",
+          "regionFormat": "Zick vun {0}",
+          "regionFormat-type-daylight": "Summerzick vun {0}",
+          "regionFormat-type-standard": "Schtandattzick vun {0}",
+          "fallbackFormat": "{1} ({0})",
+          "zone": {
+            "Pacific": {
+              "Honolulu": {
+                "_type": "zone",
+                "exemplarCity": "Honululu"
+              },
+              "Galapagos": {
+                "_type": "zone",
+                "exemplarCity": "Jalappajos"
+              },
+              "Truk": {
+                "_type": "zone",
+                "exemplarCity": "Chuuk"
+              },
+              "Ponape": {
+                "_type": "zone",
+                "exemplarCity": "Pohnpei"
+              },
+              "Guam": {
+                "_type": "zone",
+                "exemplarCity": "Juam"
+              },
+              "Enderbury": {
+                "_type": "zone",
+                "exemplarCity": "Canton"
+              },
+              "Noumea": {
+                "_type": "zone",
+                "exemplarCity": "Nouméa"
+              },
+              "Pitcairn": {
+                "_type": "zone",
+                "exemplarCity": "Pitkern"
+              },
+              "Wallis": {
+                "_type": "zone",
+                "exemplarCity": "Wallis & Futuna"
+              }
+            },
+            "Etc": {
+              "UTC": {
+                "_type": "zone",
+                "short": {
+                  "standard": "UTC"
+                }
+              },
+              "Unknown": {
+                "_type": "zone",
+                "exemplarCity": "- weße mer nit -"
+              }
+            },
+            "Europe": {
+              "Tirane": {
+                "_type": "zone",
+                "exemplarCity": "Tiraana"
+              },
+              "Vienna": {
+                "_type": "zone",
+                "exemplarCity": "Wien"
+              },
+              "Brussels": {
+                "_type": "zone",
+                "exemplarCity": "Brüssel"
+              },
+              "Zurich": {
+                "_type": "zone",
+                "exemplarCity": "Züresch"
+              },
+              "Prague": {
+                "_type": "zone",
+                "exemplarCity": "Prag"
+              },
+              "Busingen": {
+                "_type": "zone",
+                "exemplarCity": "Büsingen"
+              },
+              "Copenhagen": {
+                "_type": "zone",
+                "exemplarCity": "Kopenharen"
+              },
+              "London": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "Jrußbretannije sing Summerzick"
+                }
+              },
+              "Guernsey": {
+                "_type": "zone",
+                "exemplarCity": "Jöönsei"
+              },
+              "Gibraltar": {
+                "_type": "zone",
+                "exemplarCity": "Jibraltaa"
+              },
+              "Athens": {
+                "_type": "zone",
+                "exemplarCity": "Athen"
+              },
+              "Zagreb": {
+                "_type": "zone",
+                "exemplarCity": "Sagreb"
+              },
+              "Dublin": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "Irland sing Summerzick"
+                }
+              },
+              "Isle_of_Man": {
+                "_type": "zone",
+                "exemplarCity": "Ensel Män"
+              },
+              "Rome": {
+                "_type": "zone",
+                "exemplarCity": "Rom"
+              },
+              "Jersey": {
+                "_type": "zone",
+                "exemplarCity": "Jöösei"
+              },
+              "Luxembourg": {
+                "_type": "zone",
+                "exemplarCity": "Luxembursch"
+              },
+              "Riga": {
+                "_type": "zone",
+                "exemplarCity": "Riija"
+              },
+              "Chisinau": {
+                "_type": "zone",
+                "exemplarCity": "Chișinău"
+              },
+              "Warsaw": {
+                "_type": "zone",
+                "exemplarCity": "Warschau"
+              },
+              "Lisbon": {
+                "_type": "zone",
+                "exemplarCity": "Lissabon"
+              },
+              "Bucharest": {
+                "_type": "zone",
+                "exemplarCity": "Bukarest"
+              },
+              "Belgrade": {
+                "_type": "zone",
+                "exemplarCity": "Beljrad"
+              },
+              "Kaliningrad": {
+                "_type": "zone",
+                "exemplarCity": "Kalinninjraad"
+              },
+              "Moscow": {
+                "_type": "zone",
+                "exemplarCity": "Moskau"
+              },
+              "Volgograd": {
+                "_type": "zone",
+                "exemplarCity": "Woljojrad"
+              },
+              "Istanbul": {
+                "_type": "zone",
+                "exemplarCity": "Istambul"
+              },
+              "Kiev": {
+                "_type": "zone",
+                "exemplarCity": "Kyiv"
+              },
+              "Vatican": {
+                "_type": "zone",
+                "exemplarCity": "der Vatikahn"
+              }
+            },
+            "Asia": {
+              "Yerevan": {
+                "_type": "zone",
+                "exemplarCity": "Eriwan"
+              },
+              "Urumqi": {
+                "_type": "zone",
+                "exemplarCity": "Urrumptschi"
+              },
+              "Shanghai": {
+                "_type": "zone",
+                "exemplarCity": "Schanghai"
+              },
+              "Nicosia": {
+                "_type": "zone",
+                "exemplarCity": "Nikosija"
+              },
+              "Tbilisi": {
+                "_type": "zone",
+                "exemplarCity": "Tiblis"
+              },
+              "Hong_Kong": {
+                "_type": "zone",
+                "exemplarCity": "Hongkong"
+              },
+              "Calcutta": {
+                "_type": "zone",
+                "exemplarCity": "Kolkata"
+              },
+              "Baghdad": {
+                "_type": "zone",
+                "exemplarCity": "Bagdad"
+              },
+              "Bishkek": {
+                "_type": "zone",
+                "exemplarCity": "Bischkek"
+              },
+              "Phnom_Penh": {
+                "_type": "zone",
+                "exemplarCity": "Pnom Penh"
+              },
+              "Aqtobe": {
+                "_type": "zone",
+                "exemplarCity": "Aqtöbe"
+              },
+              "Qyzylorda": {
+                "_type": "zone",
+                "exemplarCity": "Qysylorda"
+              },
+              "Rangoon": {
+                "_type": "zone",
+                "exemplarCity": "Ranjun"
+              },
+              "Hovd": {
+                "_type": "zone",
+                "exemplarCity": "Khovd"
+              },
+              "Ulaanbaatar": {
+                "_type": "zone",
+                "exemplarCity": "Ulan Bator"
+              },
+              "Macau": {
+                "_type": "zone",
+                "exemplarCity": "Macao"
+              },
+              "Katmandu": {
+                "_type": "zone",
+                "exemplarCity": "Kathmandu"
+              },
+              "Gaza": {
+                "_type": "zone",
+                "exemplarCity": "Jaasa"
+              },
+              "Yekaterinburg": {
+                "_type": "zone",
+                "exemplarCity": "Jekaterinburg"
+              },
+              "Krasnoyarsk": {
+                "_type": "zone",
+                "exemplarCity": "Krasnojarsk"
+              },
+              "Yakutsk": {
+                "_type": "zone",
+                "exemplarCity": "Jakutsk"
+              },
+              "Vladivostok": {
+                "_type": "zone",
+                "exemplarCity": "Wladiwostok"
+              },
+              "Kamchatka": {
+                "_type": "zone",
+                "exemplarCity": "Kamschattka"
+              },
+              "Riyadh": {
+                "_type": "zone",
+                "exemplarCity": "Rijad"
+              },
+              "Singapore": {
+                "_type": "zone",
+                "exemplarCity": "Singjapuur"
+              },
+              "Damascus": {
+                "_type": "zone",
+                "exemplarCity": "Damaskus"
+              },
+              "Dushanbe": {
+                "_type": "zone",
+                "exemplarCity": "Duschanbe"
+              },
+              "Ashgabat": {
+                "_type": "zone",
+                "exemplarCity": "Asshgabat"
+              },
+              "Tashkent": {
+                "_type": "zone",
+                "exemplarCity": "Taschkent"
+              },
+              "Saigon": {
+                "_type": "zone",
+                "exemplarCity": "Sigong (Ho-Tschi-Minh-Schtadt)"
+              }
+            },
+            "Antarctica": {
+              "Syowa": {
+                "_type": "zone",
+                "exemplarCity": "Schoowa-Schtazjohn op dä Ensel Onjul"
+              },
+              "Vostok": {
+                "_type": "zone",
+                "exemplarCity": "Wostok"
+              },
+              "DumontDUrville": {
+                "_type": "zone",
+                "exemplarCity": "Dumont-d’Urville-Schtazjohn"
+              }
+            },
+            "America": {
+              "Argentina": {
+                "Rio_Gallegos": {
+                  "_type": "zone",
+                  "exemplarCity": "Río Gallegos"
+                },
+                "Tucuman": {
+                  "_type": "zone",
+                  "exemplarCity": "Tucumán"
+                }
+              },
+              "Cordoba": {
+                "_type": "zone",
+                "exemplarCity": "Córdoba"
+              },
+              "St_Barthelemy": {
+                "_type": "zone",
+                "exemplarCity": "Zint Barthélemy"
+              },
+              "Eirunepe": {
+                "_type": "zone",
+                "exemplarCity": "Eirunepé"
+              },
+              "Cuiaba": {
+                "_type": "zone",
+                "exemplarCity": "Cuiabá"
+              },
+              "Santarem": {
+                "_type": "zone",
+                "exemplarCity": "Santarém"
+              },
+              "Belem": {
+                "_type": "zone",
+                "exemplarCity": "Belém"
+              },
+              "Araguaina": {
+                "_type": "zone",
+                "exemplarCity": "Araguaína"
+              },
+              "Sao_Paulo": {
+                "_type": "zone",
+                "exemplarCity": "São Paulo"
+              },
+              "Maceio": {
+                "_type": "zone",
+                "exemplarCity": "Maceió"
+              },
+              "Noronha": {
+                "_type": "zone",
+                "exemplarCity": "Fernando de Noronha"
+              },
+              "Coral_Harbour": {
+                "_type": "zone",
+                "exemplarCity": "Atikokan"
+              },
+              "St_Johns": {
+                "_type": "zone",
+                "exemplarCity": "Zint John’s"
+              },
+              "Bogota": {
+                "_type": "zone",
+                "exemplarCity": "Bogotá"
+              },
+              "Costa_Rica": {
+                "_type": "zone",
+                "exemplarCity": "Koßtaricka"
+              },
+              "Curacao": {
+                "_type": "zone",
+                "exemplarCity": "Curaçao"
+              },
+              "Guayaquil": {
+                "_type": "zone",
+                "exemplarCity": "Juayaquil"
+              },
+              "Godthab": {
+                "_type": "zone",
+                "exemplarCity": "Nuuk"
+              },
+              "Scoresbysund": {
+                "_type": "zone",
+                "exemplarCity": "Ittoqqortoormiit"
+              },
+              "St_Kitts": {
+                "_type": "zone",
+                "exemplarCity": "Zint Kitts"
+              },
+              "St_Lucia": {
+                "_type": "zone",
+                "exemplarCity": "Santa Lutschiija"
+              },
+              "Ciudad_Juarez": {
+                "_type": "zone",
+                "exemplarCity": "Ciudad Juárez"
+              },
+              "Mazatlan": {
+                "_type": "zone",
+                "exemplarCity": "Mazatlán"
+              },
+              "Bahia_Banderas": {
+                "_type": "zone",
+                "exemplarCity": "Bahía de Banderas"
+              },
+              "Mexico_City": {
+                "_type": "zone",
+                "exemplarCity": "Schtadt Mexiko"
+              },
+              "Merida": {
+                "_type": "zone",
+                "exemplarCity": "Mérida"
+              },
+              "Cancun": {
+                "_type": "zone",
+                "exemplarCity": "Cancún"
+              },
+              "Miquelon": {
+                "_type": "zone",
+                "exemplarCity": "Saint-Pierre"
+              },
+              "Asuncion": {
+                "_type": "zone",
+                "exemplarCity": "Asunción"
+              },
+              "Lower_Princes": {
+                "_type": "zone",
+                "exemplarCity": "Lower Prince’s Quarter"
+              },
+              "Yakutat": {
+                "_type": "zone",
+                "exemplarCity": "Jakutat"
+              },
+              "North_Dakota": {
+                "Beulah": {
+                  "_type": "zone",
+                  "exemplarCity": "Beulah en Nood Dakota"
+                },
+                "New_Salem": {
+                  "_type": "zone",
+                  "exemplarCity": "Neu Salem en Nood Dakota"
+                },
+                "Center": {
+                  "_type": "zone",
+                  "exemplarCity": "Zenter en Nood Dakota"
+                }
+              },
+              "Indiana": {
+                "Vincennes": {
+                  "_type": "zone",
+                  "exemplarCity": "Vincennes en Indiana"
+                },
+                "Petersburg": {
+                  "_type": "zone",
+                  "exemplarCity": "Petersburg en Indiana"
+                },
+                "Tell_City": {
+                  "_type": "zone",
+                  "exemplarCity": "Tell City en Indiana"
+                },
+                "Knox": {
+                  "_type": "zone",
+                  "exemplarCity": "Knox en Indiana"
+                },
+                "Winamac": {
+                  "_type": "zone",
+                  "exemplarCity": "Winamac en Indiana"
+                },
+                "Marengo": {
+                  "_type": "zone",
+                  "exemplarCity": "Marengo en Indiana"
+                },
+                "Vevay": {
+                  "_type": "zone",
+                  "exemplarCity": "Vevay en Indiana"
+                }
+              },
+              "Kentucky": {
+                "Monticello": {
+                  "_type": "zone",
+                  "exemplarCity": "Monticello en Kentucky"
+                }
+              },
+              "St_Vincent": {
+                "_type": "zone",
+                "exemplarCity": "Zint Vintschänt"
+              },
+              "St_Thomas": {
+                "_type": "zone",
+                "exemplarCity": "Zint Thomas"
+              }
+            },
+            "Atlantic": {
+              "Cape_Verde": {
+                "_type": "zone",
+                "exemplarCity": "Kap Verde"
+              },
+              "Canary": {
+                "_type": "zone",
+                "exemplarCity": "Kannaare"
+              },
+              "Faeroe": {
+                "_type": "zone",
+                "exemplarCity": "Färör"
+              },
+              "Azores": {
+                "_type": "zone",
+                "exemplarCity": "Azoore"
+              },
+              "St_Helena": {
+                "_type": "zone",
+                "exemplarCity": "Zint Helena"
+              }
+            },
+            "Africa": {
+              "Cairo": {
+                "_type": "zone",
+                "exemplarCity": "Kaijro"
+              },
+              "El_Aaiun": {
+                "_type": "zone",
+                "exemplarCity": "El Aaiún"
+              },
+              "Asmera": {
+                "_type": "zone",
+                "exemplarCity": "Asmara"
+              },
+              "Windhoek": {
+                "_type": "zone",
+                "exemplarCity": "Windhuk"
+              },
+              "Lagos": {
+                "_type": "zone",
+                "exemplarCity": "Laajos"
+              },
+              "Sao_Tome": {
+                "_type": "zone",
+                "exemplarCity": "São Tomé"
+              },
+              "Ndjamena": {
+                "_type": "zone",
+                "exemplarCity": "N’Djamena"
+              },
+              "Lome": {
+                "_type": "zone",
+                "exemplarCity": "Lomé"
+              }
+            },
+            "Indian": {
+              "Comoro": {
+                "_type": "zone",
+                "exemplarCity": "Comores"
+              },
+              "Maldives": {
+                "_type": "zone",
+                "exemplarCity": "Malldive"
+              },
+              "Reunion": {
+                "_type": "zone",
+                "exemplarCity": "Réunion"
+              },
+              "Mahe": {
+                "_type": "zone",
+                "exemplarCity": "Mahé"
+              }
+            }
+          },
+          "metazone": {
+            "Africa_Central": {
+              "long": {
+                "standard": "Zentraal-Affrekaanesche Zigg"
+              }
+            },
+            "Africa_Eastern": {
+              "long": {
+                "standard": "Oß-Affrekaanesche Zigg"
+              }
+            },
+            "Africa_Southern": {
+              "long": {
+                "standard": "Söd-Affrekaanesche Zigg"
+              }
+            },
+            "Africa_Western": {
+              "long": {
+                "standard": "Wäß-Affrekaanesche Zigg"
+              }
+            },
+            "Azores": {
+              "long": {
+                "generic": "de Azore ier Zick",
+                "standard": "de Azore ier jewöhnlijje Zick",
+                "daylight": "de Azore ier Summerzick"
+              }
+            },
+            "Cape_Verde": {
+              "long": {
+                "generic": "Kapvärdejaansche Zigg",
+                "standard": "Jewöhnlijje Kapvärdejaansche Zigg",
+                "daylight": "Kapvärdejaansche Sommerzigg"
+              }
+            },
+            "Europe_Central": {
+              "long": {
+                "generic": "Meddel-Europpa sing Zick",
+                "standard": "Meddel-Europpa sing jewöhnlijje Zick",
+                "daylight": "Meddel-Europpa sing Summerzick"
+              },
+              "short": {
+                "generic": "MEZ",
+                "standard": "MEZ",
+                "daylight": "MESZ"
+              }
+            },
+            "Europe_Eastern": {
+              "long": {
+                "generic": "Oß-Europpa sing Zick",
+                "standard": "Oß-Europpa sing jewöhnlijje Zick",
+                "daylight": "Oß-Europpa sing Summerzick"
+              },
+              "short": {
+                "generic": "OEZ",
+                "standard": "OEZ",
+                "daylight": "OESZ"
+              }
+            },
+            "Europe_Western": {
+              "long": {
+                "generic": "Weß-Europpa sing Zick",
+                "standard": "Weß-Europpa sing jewöhnlijje Zick",
+                "daylight": "Weß-Europpa sing Summerzick"
+              },
+              "short": {
+                "generic": "WEZ",
+                "standard": "WEZ",
+                "daylight": "WESZ"
+              }
+            },
+            "GMT": {
+              "long": {
+                "standard": "Greenwich sing Standat-Zick"
+              }
+            },
+            "Indian_Ocean": {
+              "long": {
+                "standard": "dem Indische Ozejan sing Zick"
+              }
+            },
+            "Mauritius": {
+              "long": {
+                "generic": "Zigg vun Mauritius",
+                "standard": "Jewöhnlijje Zigg vun Mauritius",
+                "daylight": "Summerzigg vun Mauritius"
+              }
+            },
+            "Reunion": {
+              "long": {
+                "standard": "Zigg vun Reunion"
+              }
+            },
+            "Seychelles": {
+              "long": {
+                "standard": "Zigg vun de Seischälle"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

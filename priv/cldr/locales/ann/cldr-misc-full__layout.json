@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ann": {
+      "identity": {
+        "language": "ann"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

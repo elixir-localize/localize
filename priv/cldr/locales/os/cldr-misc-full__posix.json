@@ -1,0 +1,15 @@
+{
+  "main": {
+    "os": {
+      "identity": {
+        "language": "os"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "уойы:у",
+          "nostr": "нӕйы:н"
+        }
+      }
+    }
+  }
+}

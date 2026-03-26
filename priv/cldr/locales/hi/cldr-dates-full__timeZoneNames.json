@@ -1,0 +1,2645 @@
+{
+  "main": {
+    "hi": {
+      "identity": {
+        "language": "hi"
+      },
+      "dates": {
+        "timeZoneNames": {
+          "hourFormat": "+HH:mm;-HH:mm",
+          "gmtFormat": "GMT{0}",
+          "gmtZeroFormat": "GMT",
+          "gmtUnknownFormat": "GMT+?",
+          "regionFormat": "{0} समय",
+          "regionFormat-type-daylight": "{0} डेलाइट समय",
+          "regionFormat-type-standard": "{0} मानक समय",
+          "fallbackFormat": "{1} ({0})",
+          "zone": {
+            "Pacific": {
+              "Honolulu": {
+                "_type": "zone",
+                "exemplarCity": "होनोलुलु"
+              },
+              "Pago_Pago": {
+                "_type": "zone",
+                "exemplarCity": "पागो पागो"
+              },
+              "Rarotonga": {
+                "_type": "zone",
+                "exemplarCity": "रारोटोंगा"
+              },
+              "Easter": {
+                "_type": "zone",
+                "exemplarCity": "ईस्टर"
+              },
+              "Galapagos": {
+                "_type": "zone",
+                "exemplarCity": "गेलापागोस"
+              },
+              "Fiji": {
+                "_type": "zone",
+                "exemplarCity": "फ़िजी"
+              },
+              "Truk": {
+                "_type": "zone",
+                "exemplarCity": "चक"
+              },
+              "Ponape": {
+                "_type": "zone",
+                "exemplarCity": "पोनपेई"
+              },
+              "Kosrae": {
+                "_type": "zone",
+                "exemplarCity": "कोसराए"
+              },
+              "Guam": {
+                "_type": "zone",
+                "exemplarCity": "गुआम"
+              },
+              "Enderbury": {
+                "_type": "zone",
+                "exemplarCity": "कैंटन"
+              },
+              "Kiritimati": {
+                "_type": "zone",
+                "exemplarCity": "किरीतिमाति"
+              },
+              "Tarawa": {
+                "_type": "zone",
+                "exemplarCity": "टारावा"
+              },
+              "Kwajalein": {
+                "_type": "zone",
+                "exemplarCity": "क्वाज़ालीन"
+              },
+              "Majuro": {
+                "_type": "zone",
+                "exemplarCity": "माजुरो"
+              },
+              "Saipan": {
+                "_type": "zone",
+                "exemplarCity": "सायपान"
+              },
+              "Noumea": {
+                "_type": "zone",
+                "exemplarCity": "नौमिया"
+              },
+              "Norfolk": {
+                "_type": "zone",
+                "exemplarCity": "नॉरफ़ॉक"
+              },
+              "Nauru": {
+                "_type": "zone",
+                "exemplarCity": "नौरु"
+              },
+              "Niue": {
+                "_type": "zone",
+                "exemplarCity": "नीयू"
+              },
+              "Chatham": {
+                "_type": "zone",
+                "exemplarCity": "चैथम"
+              },
+              "Auckland": {
+                "_type": "zone",
+                "exemplarCity": "ऑकलैंड"
+              },
+              "Tahiti": {
+                "_type": "zone",
+                "exemplarCity": "ताहिती"
+              },
+              "Marquesas": {
+                "_type": "zone",
+                "exemplarCity": "मार्केसस"
+              },
+              "Gambier": {
+                "_type": "zone",
+                "exemplarCity": "गैंबियर"
+              },
+              "Port_Moresby": {
+                "_type": "zone",
+                "exemplarCity": "पोर्ट मोरेस्बी"
+              },
+              "Bougainville": {
+                "_type": "zone",
+                "exemplarCity": "बोगनविले"
+              },
+              "Pitcairn": {
+                "_type": "zone",
+                "exemplarCity": "पिटकैर्न"
+              },
+              "Palau": {
+                "_type": "zone",
+                "exemplarCity": "पलाऊ"
+              },
+              "Guadalcanal": {
+                "_type": "zone",
+                "exemplarCity": "ग्वाडलकनाल"
+              },
+              "Fakaofo": {
+                "_type": "zone",
+                "exemplarCity": "फ़ाकाओफ़ो"
+              },
+              "Tongatapu": {
+                "_type": "zone",
+                "exemplarCity": "टोंगाटापू"
+              },
+              "Funafuti": {
+                "_type": "zone",
+                "exemplarCity": "फ़्यूनाफ़ुटी"
+              },
+              "Midway": {
+                "_type": "zone",
+                "exemplarCity": "मिडवे"
+              },
+              "Wake": {
+                "_type": "zone",
+                "exemplarCity": "वेक"
+              },
+              "Efate": {
+                "_type": "zone",
+                "exemplarCity": "एफ़ेट"
+              },
+              "Wallis": {
+                "_type": "zone",
+                "exemplarCity": "वालिस"
+              },
+              "Apia": {
+                "_type": "zone",
+                "exemplarCity": "एपिया"
+              }
+            },
+            "Etc": {
+              "UTC": {
+                "_type": "zone",
+                "long": {
+                  "standard": "समन्वित वैश्विक समय"
+                },
+                "short": {
+                  "standard": "UTC"
+                }
+              },
+              "Unknown": {
+                "_type": "zone",
+                "exemplarCity": "अज्ञात शहर"
+              }
+            },
+            "Europe": {
+              "Andorra": {
+                "_type": "zone",
+                "exemplarCity": "अंडोरा"
+              },
+              "Tirane": {
+                "_type": "zone",
+                "exemplarCity": "टाइरेन"
+              },
+              "Vienna": {
+                "_type": "zone",
+                "exemplarCity": "विएना"
+              },
+              "Mariehamn": {
+                "_type": "zone",
+                "exemplarCity": "मारियाहैम"
+              },
+              "Sarajevo": {
+                "_type": "zone",
+                "exemplarCity": "साराजेवो"
+              },
+              "Brussels": {
+                "_type": "zone",
+                "exemplarCity": "ब्रूसेल्स"
+              },
+              "Sofia": {
+                "_type": "zone",
+                "exemplarCity": "सोफ़िया"
+              },
+              "Minsk": {
+                "_type": "zone",
+                "exemplarCity": "मिंस्क"
+              },
+              "Zurich": {
+                "_type": "zone",
+                "exemplarCity": "ज़्यूरिख़"
+              },
+              "Prague": {
+                "_type": "zone",
+                "exemplarCity": "प्राग"
+              },
+              "Busingen": {
+                "_type": "zone",
+                "exemplarCity": "ब्यूसिनजेन"
+              },
+              "Berlin": {
+                "_type": "zone",
+                "exemplarCity": "बर्लिन"
+              },
+              "Copenhagen": {
+                "_type": "zone",
+                "exemplarCity": "कोपेनहेगन"
+              },
+              "Tallinn": {
+                "_type": "zone",
+                "exemplarCity": "तेलिन"
+              },
+              "Madrid": {
+                "_type": "zone",
+                "exemplarCity": "मैड्रिड"
+              },
+              "Helsinki": {
+                "_type": "zone",
+                "exemplarCity": "हेलसिंकी"
+              },
+              "Paris": {
+                "_type": "zone",
+                "exemplarCity": "पेरिस"
+              },
+              "London": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "ब्रिटिश ग्रीष्मकालीन समय"
+                },
+                "exemplarCity": "लंदन"
+              },
+              "Guernsey": {
+                "_type": "zone",
+                "exemplarCity": "गर्नसी"
+              },
+              "Gibraltar": {
+                "_type": "zone",
+                "exemplarCity": "जिब्राल्टर"
+              },
+              "Athens": {
+                "_type": "zone",
+                "exemplarCity": "एथेंस"
+              },
+              "Zagreb": {
+                "_type": "zone",
+                "exemplarCity": "ज़ाग्रेब"
+              },
+              "Budapest": {
+                "_type": "zone",
+                "exemplarCity": "बुडापेस्ट"
+              },
+              "Dublin": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "आइरिश मानक समय"
+                },
+                "exemplarCity": "डबलिन"
+              },
+              "Isle_of_Man": {
+                "_type": "zone",
+                "exemplarCity": "आइल ऑफ़ मैन"
+              },
+              "Rome": {
+                "_type": "zone",
+                "exemplarCity": "रोम"
+              },
+              "Jersey": {
+                "_type": "zone",
+                "exemplarCity": "जर्सी"
+              },
+              "Vaduz": {
+                "_type": "zone",
+                "exemplarCity": "वादुज़"
+              },
+              "Vilnius": {
+                "_type": "zone",
+                "exemplarCity": "विल्नियस"
+              },
+              "Luxembourg": {
+                "_type": "zone",
+                "exemplarCity": "लक्ज़मबर्ग"
+              },
+              "Riga": {
+                "_type": "zone",
+                "exemplarCity": "रीगा"
+              },
+              "Monaco": {
+                "_type": "zone",
+                "exemplarCity": "मोनाको"
+              },
+              "Chisinau": {
+                "_type": "zone",
+                "exemplarCity": "चिसीनाउ"
+              },
+              "Podgorica": {
+                "_type": "zone",
+                "exemplarCity": "पोड्गोरिका"
+              },
+              "Skopje": {
+                "_type": "zone",
+                "exemplarCity": "स्कोप्जे"
+              },
+              "Malta": {
+                "_type": "zone",
+                "exemplarCity": "माल्टा"
+              },
+              "Amsterdam": {
+                "_type": "zone",
+                "exemplarCity": "एम्स्टर्डम"
+              },
+              "Oslo": {
+                "_type": "zone",
+                "exemplarCity": "ओस्लो"
+              },
+              "Warsaw": {
+                "_type": "zone",
+                "exemplarCity": "वॉरसॉ"
+              },
+              "Lisbon": {
+                "_type": "zone",
+                "exemplarCity": "लिस्बन"
+              },
+              "Bucharest": {
+                "_type": "zone",
+                "exemplarCity": "बुख़ारेस्ट"
+              },
+              "Belgrade": {
+                "_type": "zone",
+                "exemplarCity": "बेलग्रेड"
+              },
+              "Kaliningrad": {
+                "_type": "zone",
+                "exemplarCity": "कालीनिनग्राड"
+              },
+              "Moscow": {
+                "_type": "zone",
+                "exemplarCity": "मॉस्को"
+              },
+              "Volgograd": {
+                "_type": "zone",
+                "exemplarCity": "वोल्गोग्राड"
+              },
+              "Saratov": {
+                "_type": "zone",
+                "exemplarCity": "सारातोव"
+              },
+              "Astrakhan": {
+                "_type": "zone",
+                "exemplarCity": "आस्ट्राखान"
+              },
+              "Ulyanovsk": {
+                "_type": "zone",
+                "exemplarCity": "उल्यानोव्स्क"
+              },
+              "Kirov": {
+                "_type": "zone",
+                "exemplarCity": "किरोव"
+              },
+              "Samara": {
+                "_type": "zone",
+                "exemplarCity": "समारा"
+              },
+              "Stockholm": {
+                "_type": "zone",
+                "exemplarCity": "स्टॉकहोम"
+              },
+              "Ljubljana": {
+                "_type": "zone",
+                "exemplarCity": "ल्यूबेलजाना"
+              },
+              "Bratislava": {
+                "_type": "zone",
+                "exemplarCity": "ब्रातिस्लावा"
+              },
+              "San_Marino": {
+                "_type": "zone",
+                "exemplarCity": "सैन मारीनो"
+              },
+              "Istanbul": {
+                "_type": "zone",
+                "exemplarCity": "इस्तांबुल"
+              },
+              "Kiev": {
+                "_type": "zone",
+                "exemplarCity": "कीव"
+              },
+              "Simferopol": {
+                "_type": "zone",
+                "exemplarCity": "सिम्फ़ेरोपोल"
+              },
+              "Vatican": {
+                "_type": "zone",
+                "exemplarCity": "वेटिकन"
+              }
+            },
+            "Asia": {
+              "Dubai": {
+                "_type": "zone",
+                "exemplarCity": "दुबई"
+              },
+              "Kabul": {
+                "_type": "zone",
+                "exemplarCity": "काबुल"
+              },
+              "Yerevan": {
+                "_type": "zone",
+                "exemplarCity": "येरेवान"
+              },
+              "Baku": {
+                "_type": "zone",
+                "exemplarCity": "बाकु"
+              },
+              "Dhaka": {
+                "_type": "zone",
+                "exemplarCity": "ढाका"
+              },
+              "Bahrain": {
+                "_type": "zone",
+                "exemplarCity": "बहरीन"
+              },
+              "Brunei": {
+                "_type": "zone",
+                "exemplarCity": "ब्रूनेई"
+              },
+              "Thimphu": {
+                "_type": "zone",
+                "exemplarCity": "थिंपू"
+              },
+              "Urumqi": {
+                "_type": "zone",
+                "exemplarCity": "उरूम्की"
+              },
+              "Shanghai": {
+                "_type": "zone",
+                "exemplarCity": "शंघाई"
+              },
+              "Nicosia": {
+                "_type": "zone",
+                "exemplarCity": "निकोसिया"
+              },
+              "Famagusta": {
+                "_type": "zone",
+                "exemplarCity": "फ़ामागुस्ता"
+              },
+              "Tbilisi": {
+                "_type": "zone",
+                "exemplarCity": "टबिलिसी"
+              },
+              "Hong_Kong": {
+                "_type": "zone",
+                "exemplarCity": "हाँग काँग"
+              },
+              "Jakarta": {
+                "_type": "zone",
+                "exemplarCity": "जकार्ता"
+              },
+              "Pontianak": {
+                "_type": "zone",
+                "exemplarCity": "पोंटीयांक"
+              },
+              "Makassar": {
+                "_type": "zone",
+                "exemplarCity": "मकस्सर"
+              },
+              "Jayapura": {
+                "_type": "zone",
+                "exemplarCity": "जयापुरा"
+              },
+              "Jerusalem": {
+                "_type": "zone",
+                "exemplarCity": "यरूशलम"
+              },
+              "Calcutta": {
+                "_type": "zone",
+                "exemplarCity": "कोलकाता"
+              },
+              "Baghdad": {
+                "_type": "zone",
+                "exemplarCity": "बगदाद"
+              },
+              "Tehran": {
+                "_type": "zone",
+                "exemplarCity": "तेहरान"
+              },
+              "Amman": {
+                "_type": "zone",
+                "exemplarCity": "अम्मान"
+              },
+              "Tokyo": {
+                "_type": "zone",
+                "exemplarCity": "टोक्यो"
+              },
+              "Bishkek": {
+                "_type": "zone",
+                "exemplarCity": "बिश्केक"
+              },
+              "Phnom_Penh": {
+                "_type": "zone",
+                "exemplarCity": "नॉम पेन्ह"
+              },
+              "Pyongyang": {
+                "_type": "zone",
+                "exemplarCity": "प्योंगयांग"
+              },
+              "Seoul": {
+                "_type": "zone",
+                "exemplarCity": "सिओल"
+              },
+              "Kuwait": {
+                "_type": "zone",
+                "exemplarCity": "कुवैत"
+              },
+              "Aqtau": {
+                "_type": "zone",
+                "exemplarCity": "अक्ताउ"
+              },
+              "Oral": {
+                "_type": "zone",
+                "exemplarCity": "ओरल"
+              },
+              "Atyrau": {
+                "_type": "zone",
+                "exemplarCity": "एतराउ"
+              },
+              "Aqtobe": {
+                "_type": "zone",
+                "exemplarCity": "अक्तोब"
+              },
+              "Qostanay": {
+                "_type": "zone",
+                "exemplarCity": "कोस्टाने"
+              },
+              "Qyzylorda": {
+                "_type": "zone",
+                "exemplarCity": "केज़ेलोर्डा"
+              },
+              "Almaty": {
+                "_type": "zone",
+                "exemplarCity": "अल्माटी"
+              },
+              "Vientiane": {
+                "_type": "zone",
+                "exemplarCity": "विएनतियान"
+              },
+              "Beirut": {
+                "_type": "zone",
+                "exemplarCity": "बेरुत"
+              },
+              "Colombo": {
+                "_type": "zone",
+                "exemplarCity": "कोलंबो"
+              },
+              "Rangoon": {
+                "_type": "zone",
+                "exemplarCity": "रंगून"
+              },
+              "Hovd": {
+                "_type": "zone",
+                "exemplarCity": "होव्ड"
+              },
+              "Ulaanbaatar": {
+                "_type": "zone",
+                "exemplarCity": "उलानबातर"
+              },
+              "Macau": {
+                "_type": "zone",
+                "exemplarCity": "मकाऊ"
+              },
+              "Kuala_Lumpur": {
+                "_type": "zone",
+                "exemplarCity": "कुआलालंपुर"
+              },
+              "Kuching": {
+                "_type": "zone",
+                "exemplarCity": "कूचिंग"
+              },
+              "Katmandu": {
+                "_type": "zone",
+                "exemplarCity": "काठमांडू"
+              },
+              "Muscat": {
+                "_type": "zone",
+                "exemplarCity": "मस्कट"
+              },
+              "Manila": {
+                "_type": "zone",
+                "exemplarCity": "मनीला"
+              },
+              "Karachi": {
+                "_type": "zone",
+                "exemplarCity": "कराची"
+              },
+              "Gaza": {
+                "_type": "zone",
+                "exemplarCity": "गाज़ा"
+              },
+              "Hebron": {
+                "_type": "zone",
+                "exemplarCity": "हेब्रोन"
+              },
+              "Qatar": {
+                "_type": "zone",
+                "exemplarCity": "कतर"
+              },
+              "Yekaterinburg": {
+                "_type": "zone",
+                "exemplarCity": "येकातेरिनबर्ग"
+              },
+              "Omsk": {
+                "_type": "zone",
+                "exemplarCity": "ओम्स्क"
+              },
+              "Novosibirsk": {
+                "_type": "zone",
+                "exemplarCity": "नोवोसिबिर्स्क"
+              },
+              "Barnaul": {
+                "_type": "zone",
+                "exemplarCity": "बर्नोल"
+              },
+              "Tomsk": {
+                "_type": "zone",
+                "exemplarCity": "तोम्स्क"
+              },
+              "Novokuznetsk": {
+                "_type": "zone",
+                "exemplarCity": "नोवोकुज़्नेत्स्क"
+              },
+              "Krasnoyarsk": {
+                "_type": "zone",
+                "exemplarCity": "क्रास्नोयार्स्क"
+              },
+              "Irkutsk": {
+                "_type": "zone",
+                "exemplarCity": "इर्कुत्स्क"
+              },
+              "Chita": {
+                "_type": "zone",
+                "exemplarCity": "त्शिता"
+              },
+              "Yakutsk": {
+                "_type": "zone",
+                "exemplarCity": "याकूत्स्क"
+              },
+              "Vladivostok": {
+                "_type": "zone",
+                "exemplarCity": "व्लादिवोस्तोक"
+              },
+              "Khandyga": {
+                "_type": "zone",
+                "exemplarCity": "खांडिगा"
+              },
+              "Sakhalin": {
+                "_type": "zone",
+                "exemplarCity": "सखालिन"
+              },
+              "Ust-Nera": {
+                "_type": "zone",
+                "exemplarCity": "यूस्ट–नेरा"
+              },
+              "Magadan": {
+                "_type": "zone",
+                "exemplarCity": "मागादान"
+              },
+              "Srednekolymsk": {
+                "_type": "zone",
+                "exemplarCity": "स्रेद्निकोलिमस्क"
+              },
+              "Kamchatka": {
+                "_type": "zone",
+                "exemplarCity": "कमचत्का"
+              },
+              "Anadyr": {
+                "_type": "zone",
+                "exemplarCity": "अनाडिर"
+              },
+              "Riyadh": {
+                "_type": "zone",
+                "exemplarCity": "रियाद"
+              },
+              "Singapore": {
+                "_type": "zone",
+                "exemplarCity": "सिंगापुर"
+              },
+              "Damascus": {
+                "_type": "zone",
+                "exemplarCity": "दमास्कस"
+              },
+              "Bangkok": {
+                "_type": "zone",
+                "exemplarCity": "बैंकॉक"
+              },
+              "Dushanbe": {
+                "_type": "zone",
+                "exemplarCity": "दुशांबे"
+              },
+              "Dili": {
+                "_type": "zone",
+                "exemplarCity": "डिलि"
+              },
+              "Ashgabat": {
+                "_type": "zone",
+                "exemplarCity": "अश्गाबात"
+              },
+              "Taipei": {
+                "_type": "zone",
+                "exemplarCity": "ताईपेई"
+              },
+              "Samarkand": {
+                "_type": "zone",
+                "exemplarCity": "समरकंद"
+              },
+              "Tashkent": {
+                "_type": "zone",
+                "exemplarCity": "ताशकंद"
+              },
+              "Saigon": {
+                "_type": "zone",
+                "exemplarCity": "हो ची मिन्ह सिटी"
+              },
+              "Aden": {
+                "_type": "zone",
+                "exemplarCity": "आदेन"
+              }
+            },
+            "America": {
+              "Antigua": {
+                "_type": "zone",
+                "exemplarCity": "एंटीगुआ"
+              },
+              "Anguilla": {
+                "_type": "zone",
+                "exemplarCity": "एंग्विला"
+              },
+              "Argentina": {
+                "Rio_Gallegos": {
+                  "_type": "zone",
+                  "exemplarCity": "रियो गालेगोस"
+                },
+                "San_Juan": {
+                  "_type": "zone",
+                  "exemplarCity": "सैन ह्वान"
+                },
+                "Ushuaia": {
+                  "_type": "zone",
+                  "exemplarCity": "उशुआइया"
+                },
+                "La_Rioja": {
+                  "_type": "zone",
+                  "exemplarCity": "ला रिओजा"
+                },
+                "San_Luis": {
+                  "_type": "zone",
+                  "exemplarCity": "सैन लूई"
+                },
+                "Salta": {
+                  "_type": "zone",
+                  "exemplarCity": "साल्टा"
+                },
+                "Tucuman": {
+                  "_type": "zone",
+                  "exemplarCity": "टोकूमन"
+                }
+              },
+              "Mendoza": {
+                "_type": "zone",
+                "exemplarCity": "मेंडोज़ा"
+              },
+              "Catamarca": {
+                "_type": "zone",
+                "exemplarCity": "काटामार्का"
+              },
+              "Jujuy": {
+                "_type": "zone",
+                "exemplarCity": "जुजोए"
+              },
+              "Cordoba": {
+                "_type": "zone",
+                "exemplarCity": "कोर्डोबा"
+              },
+              "Buenos_Aires": {
+                "_type": "zone",
+                "exemplarCity": "ब्यूनस आयरस"
+              },
+              "Aruba": {
+                "_type": "zone",
+                "exemplarCity": "अरूबा"
+              },
+              "Barbados": {
+                "_type": "zone",
+                "exemplarCity": "बारबाडोस"
+              },
+              "St_Barthelemy": {
+                "_type": "zone",
+                "exemplarCity": "सेंट बार्थेलेमी"
+              },
+              "La_Paz": {
+                "_type": "zone",
+                "exemplarCity": "ला पाज़"
+              },
+              "Kralendijk": {
+                "_type": "zone",
+                "exemplarCity": "क्रालैंडिजिक"
+              },
+              "Eirunepe": {
+                "_type": "zone",
+                "exemplarCity": "ईरुनेपे"
+              },
+              "Rio_Branco": {
+                "_type": "zone",
+                "exemplarCity": "रियो ब्रांको"
+              },
+              "Porto_Velho": {
+                "_type": "zone",
+                "exemplarCity": "पोर्टो वेल्हो"
+              },
+              "Boa_Vista": {
+                "_type": "zone",
+                "exemplarCity": "बोआ विस्ता"
+              },
+              "Manaus": {
+                "_type": "zone",
+                "exemplarCity": "मनौस"
+              },
+              "Cuiaba": {
+                "_type": "zone",
+                "exemplarCity": "क्यूआबा"
+              },
+              "Santarem": {
+                "_type": "zone",
+                "exemplarCity": "सैंटारेम"
+              },
+              "Campo_Grande": {
+                "_type": "zone",
+                "exemplarCity": "कैंपो ग्रांडे"
+              },
+              "Belem": {
+                "_type": "zone",
+                "exemplarCity": "बेलेम"
+              },
+              "Araguaina": {
+                "_type": "zone",
+                "exemplarCity": "आराग्वेना"
+              },
+              "Sao_Paulo": {
+                "_type": "zone",
+                "exemplarCity": "साओ पाउलो"
+              },
+              "Bahia": {
+                "_type": "zone",
+                "exemplarCity": "बहिया"
+              },
+              "Fortaleza": {
+                "_type": "zone",
+                "exemplarCity": "फ़ोर्टालेज़ा"
+              },
+              "Maceio": {
+                "_type": "zone",
+                "exemplarCity": "मेसीओ"
+              },
+              "Recife": {
+                "_type": "zone",
+                "exemplarCity": "रेसाइफ़"
+              },
+              "Noronha": {
+                "_type": "zone",
+                "exemplarCity": "नोरोन्हा"
+              },
+              "Nassau": {
+                "_type": "zone",
+                "exemplarCity": "नासाउ"
+              },
+              "Belize": {
+                "_type": "zone",
+                "exemplarCity": "बेलीज़"
+              },
+              "Dawson": {
+                "_type": "zone",
+                "exemplarCity": "डॉसन"
+              },
+              "Whitehorse": {
+                "_type": "zone",
+                "exemplarCity": "व्हाइटहोर्स"
+              },
+              "Inuvik": {
+                "_type": "zone",
+                "exemplarCity": "इनूविक"
+              },
+              "Vancouver": {
+                "_type": "zone",
+                "exemplarCity": "वैंकूवर"
+              },
+              "Fort_Nelson": {
+                "_type": "zone",
+                "exemplarCity": "फ़ोर्ट नेल्सन"
+              },
+              "Dawson_Creek": {
+                "_type": "zone",
+                "exemplarCity": "डॉसन क्रीक"
+              },
+              "Creston": {
+                "_type": "zone",
+                "exemplarCity": "क्रेस्टन"
+              },
+              "Edmonton": {
+                "_type": "zone",
+                "exemplarCity": "एडमंटन"
+              },
+              "Swift_Current": {
+                "_type": "zone",
+                "exemplarCity": "स्विफ़्ट करंट"
+              },
+              "Cambridge_Bay": {
+                "_type": "zone",
+                "exemplarCity": "कैम्ब्रिज खाड़ी"
+              },
+              "Regina": {
+                "_type": "zone",
+                "exemplarCity": "रेजिना"
+              },
+              "Winnipeg": {
+                "_type": "zone",
+                "exemplarCity": "विनीपेग"
+              },
+              "Resolute": {
+                "_type": "zone",
+                "exemplarCity": "रिसोल्यूट"
+              },
+              "Rankin_Inlet": {
+                "_type": "zone",
+                "exemplarCity": "रेंकिन इनलेट"
+              },
+              "Coral_Harbour": {
+                "_type": "zone",
+                "exemplarCity": "अटिकोकान"
+              },
+              "Toronto": {
+                "_type": "zone",
+                "exemplarCity": "टोरंटो"
+              },
+              "Iqaluit": {
+                "_type": "zone",
+                "exemplarCity": "इकालुईट"
+              },
+              "Moncton": {
+                "_type": "zone",
+                "exemplarCity": "मोंकटन"
+              },
+              "Halifax": {
+                "_type": "zone",
+                "exemplarCity": "हेलिफ़ैक्स"
+              },
+              "Goose_Bay": {
+                "_type": "zone",
+                "exemplarCity": "गूस खाड़ी"
+              },
+              "Glace_Bay": {
+                "_type": "zone",
+                "exemplarCity": "ग्लेस खाड़ी"
+              },
+              "Blanc-Sablon": {
+                "_type": "zone",
+                "exemplarCity": "ब्लांक-सेबलोन"
+              },
+              "St_Johns": {
+                "_type": "zone",
+                "exemplarCity": "सेंट जोंस"
+              },
+              "Coyhaique": {
+                "_type": "zone",
+                "exemplarCity": "कॉयहेक"
+              },
+              "Punta_Arenas": {
+                "_type": "zone",
+                "exemplarCity": "पुंटा एरिनास"
+              },
+              "Santiago": {
+                "_type": "zone",
+                "exemplarCity": "सैंटियागो"
+              },
+              "Bogota": {
+                "_type": "zone",
+                "exemplarCity": "बोगोटा"
+              },
+              "Costa_Rica": {
+                "_type": "zone",
+                "exemplarCity": "कोस्टा रिका"
+              },
+              "Havana": {
+                "_type": "zone",
+                "exemplarCity": "हवाना"
+              },
+              "Curacao": {
+                "_type": "zone",
+                "exemplarCity": "कुराकाओ"
+              },
+              "Dominica": {
+                "_type": "zone",
+                "exemplarCity": "डोमिनिका"
+              },
+              "Santo_Domingo": {
+                "_type": "zone",
+                "exemplarCity": "सेंटो डोमिंगो"
+              },
+              "Guayaquil": {
+                "_type": "zone",
+                "exemplarCity": "ग्वायाकील"
+              },
+              "Grenada": {
+                "_type": "zone",
+                "exemplarCity": "ग्रेनाडा"
+              },
+              "Cayenne": {
+                "_type": "zone",
+                "exemplarCity": "कायेन"
+              },
+              "Thule": {
+                "_type": "zone",
+                "exemplarCity": "थ्यूले"
+              },
+              "Godthab": {
+                "_type": "zone",
+                "exemplarCity": "नुक"
+              },
+              "Scoresbysund": {
+                "_type": "zone",
+                "exemplarCity": "इटोकोर्टोरमिट"
+              },
+              "Danmarkshavn": {
+                "_type": "zone",
+                "exemplarCity": "डेनमार्कशॉन"
+              },
+              "Guadeloupe": {
+                "_type": "zone",
+                "exemplarCity": "ग्वाडेलोप"
+              },
+              "Guatemala": {
+                "_type": "zone",
+                "exemplarCity": "ग्वाटेमाला"
+              },
+              "Guyana": {
+                "_type": "zone",
+                "exemplarCity": "गयाना"
+              },
+              "Tegucigalpa": {
+                "_type": "zone",
+                "exemplarCity": "टेगुसिगल्पा"
+              },
+              "Port-au-Prince": {
+                "_type": "zone",
+                "exemplarCity": "पोर्ट-ऑ-प्रिंस"
+              },
+              "Jamaica": {
+                "_type": "zone",
+                "exemplarCity": "जमैका"
+              },
+              "St_Kitts": {
+                "_type": "zone",
+                "exemplarCity": "सेंट किट्स"
+              },
+              "Cayman": {
+                "_type": "zone",
+                "exemplarCity": "कैमेन"
+              },
+              "St_Lucia": {
+                "_type": "zone",
+                "exemplarCity": "सेंट लूसिया"
+              },
+              "Marigot": {
+                "_type": "zone",
+                "exemplarCity": "मैरीगोट"
+              },
+              "Martinique": {
+                "_type": "zone",
+                "exemplarCity": "मार्टिनिक"
+              },
+              "Montserrat": {
+                "_type": "zone",
+                "exemplarCity": "मोंटसेरात"
+              },
+              "Tijuana": {
+                "_type": "zone",
+                "exemplarCity": "तिजुआना"
+              },
+              "Hermosillo": {
+                "_type": "zone",
+                "exemplarCity": "हर्मोसिल्लो"
+              },
+              "Ciudad_Juarez": {
+                "_type": "zone",
+                "exemplarCity": "स्युदाद ह्वारेज़"
+              },
+              "Mazatlan": {
+                "_type": "zone",
+                "exemplarCity": "माज़ाटलान"
+              },
+              "Chihuahua": {
+                "_type": "zone",
+                "exemplarCity": "चिहुआहुआ"
+              },
+              "Bahia_Banderas": {
+                "_type": "zone",
+                "exemplarCity": "बेहिया बांडेरास"
+              },
+              "Ojinaga": {
+                "_type": "zone",
+                "exemplarCity": "ओखाजीनागा"
+              },
+              "Monterrey": {
+                "_type": "zone",
+                "exemplarCity": "मोंटेरेरी"
+              },
+              "Mexico_City": {
+                "_type": "zone",
+                "exemplarCity": "मेक्सिको सिटी"
+              },
+              "Matamoros": {
+                "_type": "zone",
+                "exemplarCity": "माटामोरोस"
+              },
+              "Merida": {
+                "_type": "zone",
+                "exemplarCity": "मेरिडा"
+              },
+              "Cancun": {
+                "_type": "zone",
+                "exemplarCity": "कैनकुन"
+              },
+              "Managua": {
+                "_type": "zone",
+                "exemplarCity": "मानागुआ"
+              },
+              "Panama": {
+                "_type": "zone",
+                "exemplarCity": "पनामा"
+              },
+              "Lima": {
+                "_type": "zone",
+                "exemplarCity": "लीमा"
+              },
+              "Miquelon": {
+                "_type": "zone",
+                "exemplarCity": "मिकेलॉन"
+              },
+              "Puerto_Rico": {
+                "_type": "zone",
+                "exemplarCity": "पोर्टो रिको"
+              },
+              "Asuncion": {
+                "_type": "zone",
+                "exemplarCity": "एसनशियॉन"
+              },
+              "Paramaribo": {
+                "_type": "zone",
+                "exemplarCity": "पारामारिबो"
+              },
+              "El_Salvador": {
+                "_type": "zone",
+                "exemplarCity": "अल सल्वाडोर"
+              },
+              "Lower_Princes": {
+                "_type": "zone",
+                "exemplarCity": "लोअर प्रिंसेस क्वार्टर"
+              },
+              "Grand_Turk": {
+                "_type": "zone",
+                "exemplarCity": "ग्रांड टर्क"
+              },
+              "Port_of_Spain": {
+                "_type": "zone",
+                "exemplarCity": "पोर्ट ऑफ़ स्पेन"
+              },
+              "Adak": {
+                "_type": "zone",
+                "exemplarCity": "अडक"
+              },
+              "Nome": {
+                "_type": "zone",
+                "exemplarCity": "नोम"
+              },
+              "Anchorage": {
+                "_type": "zone",
+                "exemplarCity": "एंकरेज"
+              },
+              "Yakutat": {
+                "_type": "zone",
+                "exemplarCity": "याकूटाट"
+              },
+              "Sitka": {
+                "_type": "zone",
+                "exemplarCity": "सिट्का"
+              },
+              "Juneau": {
+                "_type": "zone",
+                "exemplarCity": "ज्यूनाउ"
+              },
+              "Metlakatla": {
+                "_type": "zone",
+                "exemplarCity": "मेट्लेकाट्ला"
+              },
+              "Los_Angeles": {
+                "_type": "zone",
+                "exemplarCity": "लॉस एंजिल्स"
+              },
+              "Boise": {
+                "_type": "zone",
+                "exemplarCity": "बॉइसी"
+              },
+              "Phoenix": {
+                "_type": "zone",
+                "exemplarCity": "फ़ीनिक्स"
+              },
+              "Denver": {
+                "_type": "zone",
+                "exemplarCity": "डेनवर"
+              },
+              "North_Dakota": {
+                "Beulah": {
+                  "_type": "zone",
+                  "exemplarCity": "ब्यूला, उत्तरी डकोटा"
+                },
+                "New_Salem": {
+                  "_type": "zone",
+                  "exemplarCity": "न्यू सालेम, उत्तरी डकोटा"
+                },
+                "Center": {
+                  "_type": "zone",
+                  "exemplarCity": "मध्य, उत्तरी दाकोता"
+                }
+              },
+              "Chicago": {
+                "_type": "zone",
+                "exemplarCity": "शिकागो"
+              },
+              "Menominee": {
+                "_type": "zone",
+                "exemplarCity": "मेनोमिनी"
+              },
+              "Indiana": {
+                "Vincennes": {
+                  "_type": "zone",
+                  "exemplarCity": "विंसेनेस, इंडियाना"
+                },
+                "Petersburg": {
+                  "_type": "zone",
+                  "exemplarCity": "पीटर्सबर्ग, इंडियाना"
+                },
+                "Tell_City": {
+                  "_type": "zone",
+                  "exemplarCity": "टेल सिटी, इंडियाना"
+                },
+                "Knox": {
+                  "_type": "zone",
+                  "exemplarCity": "नौक्स, इंडियाना"
+                },
+                "Winamac": {
+                  "_type": "zone",
+                  "exemplarCity": "विनामेक, इंडियाना"
+                },
+                "Marengo": {
+                  "_type": "zone",
+                  "exemplarCity": "मारेंगो, इंडियाना"
+                },
+                "Vevay": {
+                  "_type": "zone",
+                  "exemplarCity": "वेवे, इंडियाना"
+                }
+              },
+              "Indianapolis": {
+                "_type": "zone",
+                "exemplarCity": "इंडियानापोलिस"
+              },
+              "Louisville": {
+                "_type": "zone",
+                "exemplarCity": "लुइसविले"
+              },
+              "Kentucky": {
+                "Monticello": {
+                  "_type": "zone",
+                  "exemplarCity": "मोंटीसेलो, केंटकी"
+                }
+              },
+              "Detroit": {
+                "_type": "zone",
+                "exemplarCity": "डेट्रॉयट"
+              },
+              "New_York": {
+                "_type": "zone",
+                "exemplarCity": "न्यूयॉर्क"
+              },
+              "Montevideo": {
+                "_type": "zone",
+                "exemplarCity": "मोंटेवीडियो"
+              },
+              "St_Vincent": {
+                "_type": "zone",
+                "exemplarCity": "सेंट विंसेंट"
+              },
+              "Caracas": {
+                "_type": "zone",
+                "exemplarCity": "काराकस"
+              },
+              "Tortola": {
+                "_type": "zone",
+                "exemplarCity": "टोर्टोला"
+              },
+              "St_Thomas": {
+                "_type": "zone",
+                "exemplarCity": "सेंट थॉमस"
+              }
+            },
+            "Africa": {
+              "Luanda": {
+                "_type": "zone",
+                "exemplarCity": "लुआंडा"
+              },
+              "Ouagadougou": {
+                "_type": "zone",
+                "exemplarCity": "औगाडोगू"
+              },
+              "Bujumbura": {
+                "_type": "zone",
+                "exemplarCity": "बुजुंबूरा"
+              },
+              "Porto-Novo": {
+                "_type": "zone",
+                "exemplarCity": "पोर्टो-नोवो"
+              },
+              "Gaborone": {
+                "_type": "zone",
+                "exemplarCity": "गाबोरोन"
+              },
+              "Kinshasa": {
+                "_type": "zone",
+                "exemplarCity": "किंशासा"
+              },
+              "Lubumbashi": {
+                "_type": "zone",
+                "exemplarCity": "लुबुमबाशी"
+              },
+              "Bangui": {
+                "_type": "zone",
+                "exemplarCity": "बांगुइ"
+              },
+              "Brazzaville": {
+                "_type": "zone",
+                "exemplarCity": "ब्राज़ाविले"
+              },
+              "Abidjan": {
+                "_type": "zone",
+                "exemplarCity": "अबिदजान"
+              },
+              "Douala": {
+                "_type": "zone",
+                "exemplarCity": "डूआला"
+              },
+              "Djibouti": {
+                "_type": "zone",
+                "exemplarCity": "जिबूती"
+              },
+              "Algiers": {
+                "_type": "zone",
+                "exemplarCity": "अल्जीयर्स"
+              },
+              "Cairo": {
+                "_type": "zone",
+                "exemplarCity": "कायरो"
+              },
+              "El_Aaiun": {
+                "_type": "zone",
+                "exemplarCity": "अल आइयून"
+              },
+              "Asmera": {
+                "_type": "zone",
+                "exemplarCity": "अस्मारा"
+              },
+              "Ceuta": {
+                "_type": "zone",
+                "exemplarCity": "सेउटा"
+              },
+              "Addis_Ababa": {
+                "_type": "zone",
+                "exemplarCity": "अदीस अबाबा"
+              },
+              "Libreville": {
+                "_type": "zone",
+                "exemplarCity": "लिब्रेविले"
+              },
+              "Accra": {
+                "_type": "zone",
+                "exemplarCity": "एक्रा"
+              },
+              "Banjul": {
+                "_type": "zone",
+                "exemplarCity": "बैंजुल"
+              },
+              "Conakry": {
+                "_type": "zone",
+                "exemplarCity": "कोनाक्री"
+              },
+              "Malabo": {
+                "_type": "zone",
+                "exemplarCity": "मलाबो"
+              },
+              "Bissau": {
+                "_type": "zone",
+                "exemplarCity": "बिसाऊ"
+              },
+              "Nairobi": {
+                "_type": "zone",
+                "exemplarCity": "नैरोबी"
+              },
+              "Monrovia": {
+                "_type": "zone",
+                "exemplarCity": "मोनरोविया"
+              },
+              "Maseru": {
+                "_type": "zone",
+                "exemplarCity": "मासेरू"
+              },
+              "Tripoli": {
+                "_type": "zone",
+                "exemplarCity": "त्रिपोली"
+              },
+              "Casablanca": {
+                "_type": "zone",
+                "exemplarCity": "कासाब्लांका"
+              },
+              "Bamako": {
+                "_type": "zone",
+                "exemplarCity": "बामाको"
+              },
+              "Nouakchott": {
+                "_type": "zone",
+                "exemplarCity": "नौआकशॉट"
+              },
+              "Blantyre": {
+                "_type": "zone",
+                "exemplarCity": "ब्लांटायर"
+              },
+              "Maputo": {
+                "_type": "zone",
+                "exemplarCity": "मापुटो"
+              },
+              "Windhoek": {
+                "_type": "zone",
+                "exemplarCity": "विंडहोक"
+              },
+              "Niamey": {
+                "_type": "zone",
+                "exemplarCity": "नियामी"
+              },
+              "Lagos": {
+                "_type": "zone",
+                "exemplarCity": "लागोस"
+              },
+              "Kigali": {
+                "_type": "zone",
+                "exemplarCity": "किगाली"
+              },
+              "Khartoum": {
+                "_type": "zone",
+                "exemplarCity": "खार्तूम"
+              },
+              "Freetown": {
+                "_type": "zone",
+                "exemplarCity": "फ़्रीटाउन"
+              },
+              "Dakar": {
+                "_type": "zone",
+                "exemplarCity": "डकार"
+              },
+              "Mogadishu": {
+                "_type": "zone",
+                "exemplarCity": "मोगादिशु"
+              },
+              "Juba": {
+                "_type": "zone",
+                "exemplarCity": "जुबा"
+              },
+              "Sao_Tome": {
+                "_type": "zone",
+                "exemplarCity": "साओ टोम"
+              },
+              "Mbabane": {
+                "_type": "zone",
+                "exemplarCity": "एमबाबेन"
+              },
+              "Ndjamena": {
+                "_type": "zone",
+                "exemplarCity": "नेद्जामीना"
+              },
+              "Lome": {
+                "_type": "zone",
+                "exemplarCity": "लोम"
+              },
+              "Tunis": {
+                "_type": "zone",
+                "exemplarCity": "ट्यूनिस"
+              },
+              "Dar_es_Salaam": {
+                "_type": "zone",
+                "exemplarCity": "दार अस सलाम"
+              },
+              "Kampala": {
+                "_type": "zone",
+                "exemplarCity": "कंपाला"
+              },
+              "Johannesburg": {
+                "_type": "zone",
+                "exemplarCity": "जोहांसबर्ग"
+              },
+              "Lusaka": {
+                "_type": "zone",
+                "exemplarCity": "लुसाका"
+              },
+              "Harare": {
+                "_type": "zone",
+                "exemplarCity": "हरारे"
+              }
+            },
+            "Antarctica": {
+              "Rothera": {
+                "_type": "zone",
+                "exemplarCity": "रोथेरा"
+              },
+              "Palmer": {
+                "_type": "zone",
+                "exemplarCity": "पॉमर"
+              },
+              "Troll": {
+                "_type": "zone",
+                "exemplarCity": "ट्रोल"
+              },
+              "Syowa": {
+                "_type": "zone",
+                "exemplarCity": "स्योवा"
+              },
+              "Mawson": {
+                "_type": "zone",
+                "exemplarCity": "मॉसन"
+              },
+              "Davis": {
+                "_type": "zone",
+                "exemplarCity": "डेविस"
+              },
+              "Vostok": {
+                "_type": "zone",
+                "exemplarCity": "वोस्तोक"
+              },
+              "Casey": {
+                "_type": "zone",
+                "exemplarCity": "केसी"
+              },
+              "DumontDUrville": {
+                "_type": "zone",
+                "exemplarCity": "ड्यूमोंट डी अर्विले"
+              },
+              "McMurdo": {
+                "_type": "zone",
+                "exemplarCity": "मैकमुर्डो"
+              },
+              "Macquarie": {
+                "_type": "zone",
+                "exemplarCity": "मक्वारी"
+              }
+            },
+            "Australia": {
+              "Perth": {
+                "_type": "zone",
+                "exemplarCity": "पर्थ"
+              },
+              "Eucla": {
+                "_type": "zone",
+                "exemplarCity": "यूक्ला"
+              },
+              "Darwin": {
+                "_type": "zone",
+                "exemplarCity": "डार्विन"
+              },
+              "Adelaide": {
+                "_type": "zone",
+                "exemplarCity": "एडिलेड"
+              },
+              "Broken_Hill": {
+                "_type": "zone",
+                "exemplarCity": "ब्रोकन हिल"
+              },
+              "Melbourne": {
+                "_type": "zone",
+                "exemplarCity": "मेलबोर्न"
+              },
+              "Hobart": {
+                "_type": "zone",
+                "exemplarCity": "होबार्ट"
+              },
+              "Lindeman": {
+                "_type": "zone",
+                "exemplarCity": "लिंडेमान"
+              },
+              "Sydney": {
+                "_type": "zone",
+                "exemplarCity": "सिडनी"
+              },
+              "Brisbane": {
+                "_type": "zone",
+                "exemplarCity": "ब्रिस्बन"
+              },
+              "Lord_Howe": {
+                "_type": "zone",
+                "exemplarCity": "लॉर्ड होवे"
+              }
+            },
+            "Atlantic": {
+              "Bermuda": {
+                "_type": "zone",
+                "exemplarCity": "बरमूडा"
+              },
+              "Cape_Verde": {
+                "_type": "zone",
+                "exemplarCity": "केप वर्ड"
+              },
+              "Canary": {
+                "_type": "zone",
+                "exemplarCity": "कैनेरी"
+              },
+              "Stanley": {
+                "_type": "zone",
+                "exemplarCity": "स्टैनली"
+              },
+              "Faeroe": {
+                "_type": "zone",
+                "exemplarCity": "फ़ैरो"
+              },
+              "South_Georgia": {
+                "_type": "zone",
+                "exemplarCity": "दक्षिण जॉर्जिया"
+              },
+              "Reykjavik": {
+                "_type": "zone",
+                "exemplarCity": "रेक्याविक"
+              },
+              "Azores": {
+                "_type": "zone",
+                "exemplarCity": "अज़ोरेस"
+              },
+              "Madeira": {
+                "_type": "zone",
+                "exemplarCity": "मडेरा"
+              },
+              "St_Helena": {
+                "_type": "zone",
+                "exemplarCity": "सेंट हेलेना"
+              }
+            },
+            "Indian": {
+              "Cocos": {
+                "_type": "zone",
+                "exemplarCity": "कोकोस"
+              },
+              "Christmas": {
+                "_type": "zone",
+                "exemplarCity": "क्रिसमस"
+              },
+              "Chagos": {
+                "_type": "zone",
+                "exemplarCity": "शागोस"
+              },
+              "Comoro": {
+                "_type": "zone",
+                "exemplarCity": "कोमोरो"
+              },
+              "Antananarivo": {
+                "_type": "zone",
+                "exemplarCity": "एंटानानरीवो"
+              },
+              "Mauritius": {
+                "_type": "zone",
+                "exemplarCity": "मॉरीशस"
+              },
+              "Maldives": {
+                "_type": "zone",
+                "exemplarCity": "मालदीव"
+              },
+              "Reunion": {
+                "_type": "zone",
+                "exemplarCity": "रीयूनियन"
+              },
+              "Mahe": {
+                "_type": "zone",
+                "exemplarCity": "माहे"
+              },
+              "Kerguelen": {
+                "_type": "zone",
+                "exemplarCity": "करगुलेन"
+              },
+              "Mayotte": {
+                "_type": "zone",
+                "exemplarCity": "मायोत्ते"
+              }
+            },
+            "Arctic": {
+              "Longyearbyen": {
+                "_type": "zone",
+                "exemplarCity": "लॉन्गईयरबायेन"
+              }
+            }
+          },
+          "metazone": {
+            "Afghanistan": {
+              "long": {
+                "standard": "अफ़गानिस्तान समय"
+              }
+            },
+            "Africa_Central": {
+              "long": {
+                "standard": "मध्य अफ़्रीका समय"
+              }
+            },
+            "Africa_Eastern": {
+              "long": {
+                "standard": "पूर्वी अफ़्रीका समय"
+              }
+            },
+            "Africa_Southern": {
+              "long": {
+                "standard": "दक्षिण अफ़्रीका मानक समय"
+              }
+            },
+            "Africa_Western": {
+              "long": {
+                "standard": "पश्चिम अफ़्रीका समय"
+              }
+            },
+            "Alaska": {
+              "long": {
+                "generic": "अलास्का समय",
+                "standard": "अलास्‍का मानक समय",
+                "daylight": "अलास्‍का डेलाइट समय"
+              }
+            },
+            "Amazon": {
+              "long": {
+                "generic": "अमेज़न समय",
+                "standard": "अमेज़न मानक समय",
+                "daylight": "अमेज़न ग्रीष्मकालीन समय"
+              }
+            },
+            "America_Central": {
+              "long": {
+                "generic": "उत्तरी अमेरिकी केंद्रीय समय",
+                "standard": "उत्तरी अमेरिकी केंद्रीय मानक समय",
+                "daylight": "उत्तरी अमेरिकी केंद्रीय डेलाइट समय"
+              }
+            },
+            "America_Eastern": {
+              "long": {
+                "generic": "उत्तरी अमेरिकी पूर्वी समय",
+                "standard": "उत्तरी अमेरिकी पूर्वी मानक समय",
+                "daylight": "उत्तरी अमेरिकी पूर्वी डेलाइट समय"
+              }
+            },
+            "America_Mountain": {
+              "long": {
+                "generic": "उत्तरी अमेरिकी माउंटेन समय",
+                "standard": "उत्तरी अमेरिकी माउंटेन मानक समय",
+                "daylight": "उत्तरी अमेरिकी माउंटेन डेलाइट समय"
+              }
+            },
+            "America_Pacific": {
+              "long": {
+                "generic": "उत्तरी अमेरिकी प्रशांत समय",
+                "standard": "उत्तरी अमेरिकी प्रशांत मानक समय",
+                "daylight": "उत्तरी अमेरिकी प्रशांत डेलाइट समय"
+              }
+            },
+            "Anadyr": {
+              "long": {
+                "generic": "एनाडीयर समय",
+                "standard": "एनाडीयर मानक समय",
+                "daylight": "एनाडीयर ग्रीष्मकालीन समय"
+              }
+            },
+            "Apia": {
+              "long": {
+                "generic": "एपिआ समय",
+                "standard": "एपिआ मानक समय",
+                "daylight": "एपिआ डेलाइट समय"
+              }
+            },
+            "Arabian": {
+              "long": {
+                "generic": "अरब समय",
+                "standard": "अरब मानक समय",
+                "daylight": "अरब डेलाइट समय"
+              }
+            },
+            "Argentina": {
+              "long": {
+                "generic": "अर्जेंटीना समय",
+                "standard": "अर्जेंटीना मानक समय",
+                "daylight": "अर्जेंटीना ग्रीष्मकालीन समय"
+              }
+            },
+            "Argentina_Western": {
+              "long": {
+                "generic": "पश्चिमी अर्जेंटीना समय",
+                "standard": "पश्चिमी अर्जेंटीना मानक समय",
+                "daylight": "पश्चिमी अर्जेंटीना ग्रीष्मकालीन समय"
+              }
+            },
+            "Armenia": {
+              "long": {
+                "generic": "आर्मेनिया समय",
+                "standard": "आर्मेनिया मानक समय",
+                "daylight": "आर्मेनिया ग्रीष्मकालीन समय"
+              }
+            },
+            "Atlantic": {
+              "long": {
+                "generic": "अटलांटिक समय",
+                "standard": "अटलांटिक मानक समय",
+                "daylight": "अटलांटिक डेलाइट समय"
+              }
+            },
+            "Australia_Central": {
+              "long": {
+                "generic": "मध्य ऑस्ट्रेलियाई समय",
+                "standard": "ऑस्‍ट्रेलियाई केंद्रीय मानक समय",
+                "daylight": "ऑस्‍ट्रेलियाई केंद्रीय डेलाइट समय"
+              }
+            },
+            "Australia_CentralWestern": {
+              "long": {
+                "generic": "ऑस्‍ट्रेलियाई केंद्रीय पश्चिमी समय",
+                "standard": "ऑस्‍ट्रेलियाई केंद्रीय पश्चिमी मानक समय",
+                "daylight": "ऑस्‍ट्रेलियाई केंद्रीय पश्चिमी डेलाइट समय"
+              }
+            },
+            "Australia_Eastern": {
+              "long": {
+                "generic": "पूर्वी ऑस्ट्रेलिया समय",
+                "standard": "ऑस्‍ट्रेलियाई पूर्वी मानक समय",
+                "daylight": "ऑस्‍ट्रेलियाई पूर्वी डेलाइट समय"
+              }
+            },
+            "Australia_Western": {
+              "long": {
+                "generic": "पश्चिमी ऑस्ट्रेलिया समय",
+                "standard": "ऑस्ट्रेलियाई पश्चिमी मानक समय",
+                "daylight": "ऑस्ट्रेलियाई पश्चिमी डेलाइट समय"
+              }
+            },
+            "Azerbaijan": {
+              "long": {
+                "generic": "अज़रबैजान समय",
+                "standard": "अज़रबैजान मानक समय",
+                "daylight": "अज़रबैजान ग्रीष्मकालीन समय"
+              }
+            },
+            "Azores": {
+              "long": {
+                "generic": "अज़ोरेस समय",
+                "standard": "अज़ोरेस मानक समय",
+                "daylight": "अज़ोरेस ग्रीष्मकालीन समय"
+              }
+            },
+            "Bangladesh": {
+              "long": {
+                "generic": "बांग्लादेश समय",
+                "standard": "बांग्लादेश मानक समय",
+                "daylight": "बांग्लादेश ग्रीष्मकालीन समय"
+              }
+            },
+            "Bhutan": {
+              "long": {
+                "standard": "भूटान समय"
+              }
+            },
+            "Bolivia": {
+              "long": {
+                "standard": "बोलीविया समय"
+              }
+            },
+            "Brasilia": {
+              "long": {
+                "generic": "ब्राज़ीलिया समय",
+                "standard": "ब्राज़ीलिया मानक समय",
+                "daylight": "ब्राज़ीलिया ग्रीष्मकालीन समय"
+              }
+            },
+            "Brunei": {
+              "long": {
+                "standard": "ब्रूनेई दारूस्सलम समय"
+              }
+            },
+            "Cape_Verde": {
+              "long": {
+                "generic": "केप वर्ड समय",
+                "standard": "केप वर्ड मानक समय",
+                "daylight": "केप वर्ड ग्रीष्मकालीन समय"
+              }
+            },
+            "Chamorro": {
+              "long": {
+                "standard": "चामोरो मानक समय"
+              }
+            },
+            "Chatham": {
+              "long": {
+                "generic": "चैथम समय",
+                "standard": "चैथम मानक समय",
+                "daylight": "चैथम डेलाइट समय"
+              }
+            },
+            "Chile": {
+              "long": {
+                "generic": "चिली समय",
+                "standard": "चिली मानक समय",
+                "daylight": "चिली ग्रीष्मकालीन समय"
+              }
+            },
+            "China": {
+              "long": {
+                "generic": "चीन समय",
+                "standard": "चीन मानक समय",
+                "daylight": "चीन डेलाइट समय"
+              }
+            },
+            "Christmas": {
+              "long": {
+                "standard": "क्रिसमस द्वीप समय"
+              }
+            },
+            "Cocos": {
+              "long": {
+                "standard": "कोकोस द्वीपसमूह समय"
+              }
+            },
+            "Colombia": {
+              "long": {
+                "generic": "कोलंबिया समय",
+                "standard": "कोलंबिया मानक समय",
+                "daylight": "कोलंबिया ग्रीष्मकालीन समय"
+              }
+            },
+            "Cook": {
+              "long": {
+                "generic": "कुक द्वीपसमूह समय",
+                "standard": "कुक द्वीपसमूह मानक समय",
+                "daylight": "कुक द्वीपसमूह अर्द्ध ग्रीष्मकालीन समय"
+              }
+            },
+            "Cuba": {
+              "long": {
+                "generic": "क्यूबा समय",
+                "standard": "क्यूबा मानक समय",
+                "daylight": "क्यूबा डेलाइट समय"
+              }
+            },
+            "Davis": {
+              "long": {
+                "standard": "डेविस समय"
+              }
+            },
+            "DumontDUrville": {
+              "long": {
+                "standard": "ड्यूमोंट डी अर्विले समय"
+              }
+            },
+            "East_Timor": {
+              "long": {
+                "standard": "पूर्वी तिमोर समय"
+              }
+            },
+            "Easter": {
+              "long": {
+                "generic": "ईस्टर द्वीप समय",
+                "standard": "ईस्टर द्वीप मानक समय",
+                "daylight": "ईस्टर द्वीप ग्रीष्मकालीन समय"
+              }
+            },
+            "Ecuador": {
+              "long": {
+                "standard": "इक्वाडोर समय"
+              }
+            },
+            "Europe_Central": {
+              "long": {
+                "generic": "मध्य यूरोपीय समय",
+                "standard": "मध्य यूरोपीय मानक समय",
+                "daylight": "मध्‍य यूरोपीय ग्रीष्‍मकालीन समय"
+              }
+            },
+            "Europe_Eastern": {
+              "long": {
+                "generic": "पूर्वी यूरोपीय समय",
+                "standard": "पूर्वी यूरोपीय मानक समय",
+                "daylight": "पूर्वी यूरोपीय ग्रीष्मकालीन समय"
+              }
+            },
+            "Europe_Further_Eastern": {
+              "long": {
+                "standard": "अग्र पूर्वी यूरोपीय समय"
+              }
+            },
+            "Europe_Western": {
+              "long": {
+                "generic": "पश्चिमी यूरोपीय समय",
+                "standard": "पश्चिमी यूरोपीय मानक समय",
+                "daylight": "पश्चिमी यूरोपीय ग्रीष्‍मकालीन समय"
+              }
+            },
+            "Falkland": {
+              "long": {
+                "generic": "फ़ॉकलैंड द्वीपसमूह समय",
+                "standard": "फ़ॉकलैंड द्वीपसमूह मानक समय",
+                "daylight": "फ़ॉकलैंड द्वीपसमूह ग्रीष्मकालीन समय"
+              }
+            },
+            "Fiji": {
+              "long": {
+                "generic": "फ़िजी समय",
+                "standard": "फ़िजी मानक समय",
+                "daylight": "फ़िजी ग्रीष्मकालीन समय"
+              }
+            },
+            "French_Guiana": {
+              "long": {
+                "standard": "फ़्रेंच गुयाना समय"
+              }
+            },
+            "French_Southern": {
+              "long": {
+                "standard": "दक्षिणी फ़्रांस और अंटार्कटिक समय"
+              }
+            },
+            "Galapagos": {
+              "long": {
+                "standard": "गैलापेगोस का समय"
+              }
+            },
+            "Gambier": {
+              "long": {
+                "standard": "गैंबियर समय"
+              }
+            },
+            "Georgia": {
+              "long": {
+                "generic": "जॉर्जिया समय",
+                "standard": "जॉर्जिया मानक समय",
+                "daylight": "जॉर्जिया ग्रीष्मकालीन समय"
+              }
+            },
+            "Gilbert_Islands": {
+              "long": {
+                "standard": "गिल्बर्ट द्वीपसमूह समय"
+              }
+            },
+            "GMT": {
+              "long": {
+                "standard": "ग्रीनविच मीन टाइम"
+              }
+            },
+            "Greenland_Eastern": {
+              "long": {
+                "generic": "पूर्वी ग्रीनलैंड समय",
+                "standard": "पूर्वी ग्रीनलैंड मानक समय",
+                "daylight": "पूर्वी ग्रीनलैंड ग्रीष्मकालीन समय"
+              }
+            },
+            "Greenland_Western": {
+              "long": {
+                "generic": "पश्चिमी ग्रीनलैंड समय",
+                "standard": "पश्चिमी ग्रीनलैंड मानक समय",
+                "daylight": "पश्चिमी ग्रीनलैंड ग्रीष्मकालीन समय"
+              }
+            },
+            "Gulf": {
+              "long": {
+                "standard": "खाड़ी मानक समय"
+              }
+            },
+            "Guyana": {
+              "long": {
+                "standard": "गुयाना समय"
+              }
+            },
+            "Hawaii": {
+              "long": {
+                "standard": "हवाई–आल्यूशन मानक समय"
+              }
+            },
+            "Hawaii_Aleutian": {
+              "long": {
+                "generic": "हवाई–आल्यूशन समय",
+                "standard": "हवाई–आल्यूशन मानक समय",
+                "daylight": "हवाई–आल्यूशन डेलाइट समय"
+              }
+            },
+            "Hong_Kong": {
+              "long": {
+                "generic": "हाँग काँग समय",
+                "standard": "हाँग काँग मानक समय",
+                "daylight": "हाँग काँग ग्रीष्मकालीन समय"
+              }
+            },
+            "Hovd": {
+              "long": {
+                "generic": "होव्ड समय",
+                "standard": "होव्ड मानक समय",
+                "daylight": "होव्ड ग्रीष्मकालीन समय"
+              }
+            },
+            "India": {
+              "long": {
+                "standard": "भारतीय मानक समय"
+              },
+              "short": {
+                "standard": "IST"
+              }
+            },
+            "Indian_Ocean": {
+              "long": {
+                "standard": "हिंद महासागर समय"
+              }
+            },
+            "Indochina": {
+              "long": {
+                "standard": "इंडोचाइना समय"
+              }
+            },
+            "Indonesia_Central": {
+              "long": {
+                "standard": "मध्य इंडोनेशिया समय"
+              }
+            },
+            "Indonesia_Eastern": {
+              "long": {
+                "standard": "पूर्वी इंडोनेशिया समय"
+              }
+            },
+            "Indonesia_Western": {
+              "long": {
+                "standard": "पश्चिमी इंडोनेशिया समय"
+              }
+            },
+            "Iran": {
+              "long": {
+                "generic": "ईरान समय",
+                "standard": "ईरान मानक समय",
+                "daylight": "ईरान डेलाइट समय"
+              }
+            },
+            "Irkutsk": {
+              "long": {
+                "generic": "इर्कुत्स्क समय",
+                "standard": "इर्कुत्स्क मानक समय",
+                "daylight": "इर्कुत्स्क ग्रीष्मकालीन समय"
+              }
+            },
+            "Israel": {
+              "long": {
+                "generic": "इज़राइल समय",
+                "standard": "इज़राइल मानक समय",
+                "daylight": "इज़राइल डेलाइट समय"
+              }
+            },
+            "Japan": {
+              "long": {
+                "generic": "जापान समय",
+                "standard": "जापान मानक समय",
+                "daylight": "जापान डेलाइट समय"
+              }
+            },
+            "Kamchatka": {
+              "long": {
+                "generic": "पेट्रोपेवलास्क-कैमचात्सकी समय",
+                "standard": "पेट्रोपेवलास्क-कैमचात्सकी मानक समय",
+                "daylight": "पेट्रोपेवलास्क-कैमचात्सकी ग्रीष्मकालीन समय"
+              }
+            },
+            "Kazakhstan": {
+              "long": {
+                "standard": "कज़ाखस्तान समय"
+              }
+            },
+            "Kazakhstan_Eastern": {
+              "long": {
+                "standard": "पूर्व कज़ाखस्तान समय"
+              }
+            },
+            "Kazakhstan_Western": {
+              "long": {
+                "standard": "पश्चिम कज़ाखस्तान समय"
+              }
+            },
+            "Korea": {
+              "long": {
+                "generic": "कोरियाई समय",
+                "standard": "कोरियाई मानक समय",
+                "daylight": "कोरियाई डेलाइट समय"
+              }
+            },
+            "Kosrae": {
+              "long": {
+                "standard": "कोसराए समय"
+              }
+            },
+            "Krasnoyarsk": {
+              "long": {
+                "generic": "क्रास्नोयार्स्क समय",
+                "standard": "क्रास्नोयार्स्क मानक समय",
+                "daylight": "क्रास्नोयार्स्क ग्रीष्मकालीन समय"
+              }
+            },
+            "Kyrgystan": {
+              "long": {
+                "standard": "किर्गिस्‍तान समय"
+              }
+            },
+            "Line_Islands": {
+              "long": {
+                "standard": "लाइन द्वीपसमूह समय"
+              }
+            },
+            "Lord_Howe": {
+              "long": {
+                "generic": "लॉर्ड होवे समय",
+                "standard": "लॉर्ड होवे मानक समय",
+                "daylight": "लॉर्ड होवे डेलाइट समय"
+              }
+            },
+            "Magadan": {
+              "long": {
+                "generic": "मागादान समय",
+                "standard": "मागादान मानक समय",
+                "daylight": "मागादान ग्रीष्मकालीन समय"
+              }
+            },
+            "Malaysia": {
+              "long": {
+                "standard": "मलेशिया समय"
+              }
+            },
+            "Maldives": {
+              "long": {
+                "standard": "मालदीव समय"
+              }
+            },
+            "Marquesas": {
+              "long": {
+                "standard": "मार्केसस समय"
+              }
+            },
+            "Marshall_Islands": {
+              "long": {
+                "standard": "मार्शल द्वीपसमूह समय"
+              }
+            },
+            "Mauritius": {
+              "long": {
+                "generic": "मॉरीशस समय",
+                "standard": "मॉरीशस मानक समय",
+                "daylight": "मॉरीशस ग्रीष्मकालीन समय"
+              }
+            },
+            "Mawson": {
+              "long": {
+                "standard": "माव्सन समय"
+              }
+            },
+            "Mexico_Pacific": {
+              "long": {
+                "generic": "मेक्सिकन प्रशांत समय",
+                "standard": "मेक्सिकन प्रशांत मानक समय",
+                "daylight": "मेक्सिकन प्रशांत डेलाइट समय"
+              }
+            },
+            "Mongolia": {
+              "long": {
+                "generic": "उलान बटोर समय",
+                "standard": "उलान बटोर मानक समय",
+                "daylight": "उलान बटोर ग्रीष्मकालीन समय"
+              }
+            },
+            "Moscow": {
+              "long": {
+                "generic": "मॉस्को समय",
+                "standard": "मॉस्को मानक समय",
+                "daylight": "मॉस्को ग्रीष्मकालीन समय"
+              }
+            },
+            "Myanmar": {
+              "long": {
+                "standard": "म्यांमार समय"
+              }
+            },
+            "Nauru": {
+              "long": {
+                "standard": "नौरू समय"
+              }
+            },
+            "Nepal": {
+              "long": {
+                "standard": "नेपाल समय"
+              }
+            },
+            "New_Caledonia": {
+              "long": {
+                "generic": "न्यू कैलेडोनिया समय",
+                "standard": "न्यू कैलेडोनिया मानक समय",
+                "daylight": "न्यू कैलेडोनिया ग्रीष्मकालीन समय"
+              }
+            },
+            "New_Zealand": {
+              "long": {
+                "generic": "न्यूज़ीलैंड समय",
+                "standard": "न्यूज़ीलैंड मानक समय",
+                "daylight": "न्यूज़ीलैंड डेलाइट समय"
+              }
+            },
+            "Newfoundland": {
+              "long": {
+                "generic": "न्यूफ़ाउंडलैंड समय",
+                "standard": "न्यूफ़ाउंडलैंड मानक समय",
+                "daylight": "न्यूफ़ाउंडलैंड डेलाइट समय"
+              }
+            },
+            "Niue": {
+              "long": {
+                "standard": "नीयू समय"
+              }
+            },
+            "Norfolk": {
+              "long": {
+                "generic": "नॉरफ़ॉक द्वीप समय",
+                "standard": "नॉरफ़ॉक द्वीप मानक समय",
+                "daylight": "नॉरफ़ॉक द्वीप डेलाइट समय"
+              }
+            },
+            "Noronha": {
+              "long": {
+                "generic": "फ़र्नांर्डो डे नोरोन्हा समय",
+                "standard": "फ़र्नांर्डो डे नोरोन्हा मानक समय",
+                "daylight": "फ़र्नांर्डो डे नोरोन्हा ग्रीष्मकालीन समय"
+              }
+            },
+            "Novosibirsk": {
+              "long": {
+                "generic": "नोवोसिबिर्स्क समय",
+                "standard": "नोवोसिबिर्स्क मानक समय",
+                "daylight": "नोवोसिबिर्स्क ग्रीष्मकालीन समय"
+              }
+            },
+            "Omsk": {
+              "long": {
+                "generic": "ओम्स्क समय",
+                "standard": "ओम्स्क मानक समय",
+                "daylight": "ओम्स्क ग्रीष्मकालीन समय"
+              }
+            },
+            "Pakistan": {
+              "long": {
+                "generic": "पाकिस्तान समय",
+                "standard": "पाकिस्तान मानक समय",
+                "daylight": "पाकिस्तान ग्रीष्मकालीन समय"
+              }
+            },
+            "Palau": {
+              "long": {
+                "standard": "पलाउ समय"
+              }
+            },
+            "Papua_New_Guinea": {
+              "long": {
+                "standard": "पापुआ न्यू गिनी समय"
+              }
+            },
+            "Paraguay": {
+              "long": {
+                "generic": "पैराग्वे समय",
+                "standard": "पैराग्वे मानक समय",
+                "daylight": "पैराग्वे ग्रीष्मकालीन समय"
+              }
+            },
+            "Peru": {
+              "long": {
+                "generic": "पेरू समय",
+                "standard": "पेरू मानक समय",
+                "daylight": "पेरू ग्रीष्मकालीन समय"
+              }
+            },
+            "Philippines": {
+              "long": {
+                "generic": "फ़िलिपीन समय",
+                "standard": "फ़िलिपीन मानक समय",
+                "daylight": "फ़िलिपीन ग्रीष्मकालीन समय"
+              }
+            },
+            "Phoenix_Islands": {
+              "long": {
+                "standard": "फ़ीनिक्स द्वीपसमूह समय"
+              }
+            },
+            "Pierre_Miquelon": {
+              "long": {
+                "generic": "सेंट पिएरे और मिक्वेलान समय",
+                "standard": "सेंट पिएरे और मिक्वेलान मानक समय",
+                "daylight": "सेंट पिएरे और मिक्वेलान डेलाइट समय"
+              }
+            },
+            "Pitcairn": {
+              "long": {
+                "standard": "पिटकैर्न समय"
+              }
+            },
+            "Ponape": {
+              "long": {
+                "standard": "पोनापे समय"
+              }
+            },
+            "Pyongyang": {
+              "long": {
+                "standard": "प्योंगयांग समय"
+              }
+            },
+            "Reunion": {
+              "long": {
+                "standard": "रीयूनियन समय"
+              }
+            },
+            "Rothera": {
+              "long": {
+                "standard": "रोथेरा समय"
+              }
+            },
+            "Sakhalin": {
+              "long": {
+                "generic": "सखालिन समय",
+                "standard": "सखालिन मानक समय",
+                "daylight": "सखालिन ग्रीष्मकालीन समय"
+              }
+            },
+            "Samara": {
+              "long": {
+                "generic": "समारा समय",
+                "standard": "समारा मानक समय",
+                "daylight": "समारा ग्रीष्मकालीन समय"
+              }
+            },
+            "Samoa": {
+              "long": {
+                "generic": "समोआ समय",
+                "standard": "समोआ मानक समय",
+                "daylight": "समोआ डेलाइट समय"
+              }
+            },
+            "Seychelles": {
+              "long": {
+                "standard": "सेशेल्स समय"
+              }
+            },
+            "Singapore": {
+              "long": {
+                "standard": "सिंगापुर समय"
+              }
+            },
+            "Solomon": {
+              "long": {
+                "standard": "सोलोमन द्वीपसमूह समय"
+              }
+            },
+            "South_Georgia": {
+              "long": {
+                "standard": "दक्षिणी जॉर्जिया समय"
+              }
+            },
+            "Suriname": {
+              "long": {
+                "standard": "सूरीनाम समय"
+              }
+            },
+            "Syowa": {
+              "long": {
+                "standard": "स्योवा समय"
+              }
+            },
+            "Tahiti": {
+              "long": {
+                "standard": "ताहिती समय"
+              }
+            },
+            "Taipei": {
+              "long": {
+                "generic": "ताइपे समय",
+                "standard": "ताइपे मानक समय",
+                "daylight": "ताइपे डेलाइट समय"
+              }
+            },
+            "Tajikistan": {
+              "long": {
+                "standard": "ताजिकिस्तान समय"
+              }
+            },
+            "Tokelau": {
+              "long": {
+                "standard": "टोकेलाऊ समय"
+              }
+            },
+            "Tonga": {
+              "long": {
+                "generic": "टोंगा समय",
+                "standard": "टोंगा मानक समय",
+                "daylight": "टोंगा ग्रीष्मकालीन समय"
+              }
+            },
+            "Truk": {
+              "long": {
+                "standard": "चुक समय"
+              }
+            },
+            "Turkmenistan": {
+              "long": {
+                "generic": "तुर्कमेनिस्तान समय",
+                "standard": "तुर्कमेनिस्तान मानक समय",
+                "daylight": "तुर्कमेनिस्तान ग्रीष्मकालीन समय"
+              }
+            },
+            "Tuvalu": {
+              "long": {
+                "standard": "तुवालू समय"
+              }
+            },
+            "Uruguay": {
+              "long": {
+                "generic": "उरुग्वे समय",
+                "standard": "उरुग्वे मानक समय",
+                "daylight": "उरुग्वे ग्रीष्मकालीन समय"
+              }
+            },
+            "Uzbekistan": {
+              "long": {
+                "generic": "उज़्बेकिस्तान समय",
+                "standard": "उज़्बेकिस्तान मानक समय",
+                "daylight": "उज़्बेकिस्तान ग्रीष्मकालीन समय"
+              }
+            },
+            "Vanuatu": {
+              "long": {
+                "generic": "वनुआतू समय",
+                "standard": "वनुआतू मानक समय",
+                "daylight": "वनुआतू ग्रीष्मकालीन समय"
+              }
+            },
+            "Venezuela": {
+              "long": {
+                "standard": "वेनेज़ुएला समय"
+              }
+            },
+            "Vladivostok": {
+              "long": {
+                "generic": "व्लादिवोस्तोक समय",
+                "standard": "व्लादिवोस्तोक मानक समय",
+                "daylight": "व्लादिवोस्तोक ग्रीष्मकालीन समय"
+              }
+            },
+            "Volgograd": {
+              "long": {
+                "generic": "वोल्गोग्राड समय",
+                "standard": "वोल्गोग्राड मानक समय",
+                "daylight": "वोल्गोग्राड ग्रीष्मकालीन समय"
+              }
+            },
+            "Vostok": {
+              "long": {
+                "standard": "वोस्तोक समय"
+              }
+            },
+            "Wake": {
+              "long": {
+                "standard": "वेक द्वीप समय"
+              }
+            },
+            "Wallis": {
+              "long": {
+                "standard": "वालिस और फ़्यूचूना समय"
+              }
+            },
+            "Yakutsk": {
+              "long": {
+                "generic": "याकुत्स्क समय",
+                "standard": "याकुत्स्क मानक समय",
+                "daylight": "याकुत्स्क ग्रीष्मकालीन समय"
+              }
+            },
+            "Yekaterinburg": {
+              "long": {
+                "generic": "येकातेरिनबर्ग समय",
+                "standard": "येकातेरिनबर्ग मानक समय",
+                "daylight": "येकातेरिनबर्ग ग्रीष्मकालीन समय"
+              }
+            },
+            "Yukon": {
+              "long": {
+                "standard": "युकॉन समय"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

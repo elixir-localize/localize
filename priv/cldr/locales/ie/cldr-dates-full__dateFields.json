@@ -1,0 +1,586 @@
+{
+  "main": {
+    "ie": {
+      "identity": {
+        "language": "ie"
+      },
+      "dates": {
+        "fields": {
+          "era": {
+            "displayName": "era"
+          },
+          "era-short": {
+            "displayName": "era"
+          },
+          "era-narrow": {
+            "displayName": "era"
+          },
+          "year": {
+            "displayName": "annu",
+            "relative-type--1": "ultim annu",
+            "relative-type-0": "ho-annu",
+            "relative-type-1": "sequent annu",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} y"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} y"
+            }
+          },
+          "year-short": {
+            "displayName": "annu",
+            "relative-type--1": "ultim annu",
+            "relative-type-0": "ho-annu",
+            "relative-type-1": "seq. annu",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} y"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} y"
+            }
+          },
+          "year-narrow": {
+            "displayName": "a",
+            "relative-type--1": "ult. a.",
+            "relative-type-0": "ho-a.",
+            "relative-type-1": "seq. a.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} y"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} y"
+            }
+          },
+          "quarter": {
+            "displayName": "trimestre",
+            "relative-type--1": "ultim trimestre",
+            "relative-type-0": "ho-trimestre",
+            "relative-type-1": "sequent trimestre",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Q"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Q"
+            }
+          },
+          "quarter-short": {
+            "displayName": "trim.",
+            "relative-type--1": "ultim trimestre",
+            "relative-type-0": "ho-trimestre",
+            "relative-type-1": "sequent trimestre",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Q"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Q"
+            }
+          },
+          "quarter-narrow": {
+            "displayName": "tr",
+            "relative-type--1": "ultim trimestre",
+            "relative-type-0": "ho-trimestre",
+            "relative-type-1": "sequent trimestre",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Q"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Q"
+            }
+          },
+          "month": {
+            "displayName": "mensu",
+            "relative-type--1": "ultim mensu",
+            "relative-type-0": "ho-mensu",
+            "relative-type-1": "sequent mensu",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} m"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} m"
+            }
+          },
+          "month-short": {
+            "displayName": "mn.",
+            "relative-type--1": "ultim mensu",
+            "relative-type-0": "ho-mensu",
+            "relative-type-1": "seq. mensu",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} m"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} m"
+            }
+          },
+          "month-narrow": {
+            "displayName": "mn",
+            "relative-type--1": "ult. mn.",
+            "relative-type-0": "ho-mn.",
+            "relative-type-1": "seq. mn.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} m"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} m"
+            }
+          },
+          "week": {
+            "displayName": "semane",
+            "relative-type--1": "ultim semane",
+            "relative-type-0": "ho-semane",
+            "relative-type-1": "sequent semane",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} w"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} w"
+            },
+            "relativePeriod": "li semane de {0}"
+          },
+          "week-short": {
+            "displayName": "sem.",
+            "relative-type--1": "ultim semane",
+            "relative-type-0": "ho-semane",
+            "relative-type-1": "seq. semane",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} w"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} w"
+            },
+            "relativePeriod": "li semane de {0}"
+          },
+          "week-narrow": {
+            "displayName": "sem",
+            "relative-type--1": "ult. sem.",
+            "relative-type-0": "ho sem.",
+            "relative-type-1": "seq. sem.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} w"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} w"
+            },
+            "relativePeriod": "sem. de {0}"
+          },
+          "weekOfMonth": {
+            "displayName": "semane del mensu"
+          },
+          "weekOfMonth-short": {
+            "displayName": "sem/mn"
+          },
+          "weekOfMonth-narrow": {
+            "displayName": "sem/mn"
+          },
+          "day": {
+            "displayName": "die",
+            "relative-type--2": "anteyer",
+            "relative-type--1": "yer",
+            "relative-type-0": "hodie",
+            "relative-type-1": "deman",
+            "relative-type-2": "posdeman",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} d"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} d"
+            }
+          },
+          "day-short": {
+            "displayName": "die",
+            "relative-type--2": "anteyer",
+            "relative-type--1": "yer",
+            "relative-type-0": "hodie",
+            "relative-type-1": "deman",
+            "relative-type-2": "posdeman",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} d"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} d"
+            }
+          },
+          "day-narrow": {
+            "displayName": "d",
+            "relative-type--2": "anteyer",
+            "relative-type--1": "yer",
+            "relative-type-0": "hodie",
+            "relative-type-1": "deman",
+            "relative-type-2": "posdeman",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} d"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} d"
+            }
+          },
+          "dayOfYear": {
+            "displayName": "die del annu"
+          },
+          "dayOfYear-short": {
+            "displayName": "die/annu"
+          },
+          "dayOfYear-narrow": {
+            "displayName": "die/annu"
+          },
+          "weekday": {
+            "displayName": "die del semane"
+          },
+          "weekday-short": {
+            "displayName": "die del sem."
+          },
+          "weekday-narrow": {
+            "displayName": "die/sem"
+          },
+          "weekdayOfMonth": {
+            "displayName": "die del sem. del mensu"
+          },
+          "weekdayOfMonth-short": {
+            "displayName": "d.sem/mensu"
+          },
+          "weekdayOfMonth-narrow": {
+            "displayName": "d.sem/mensu"
+          },
+          "sun": {
+            "relative-type--1": "ultim soledí",
+            "relative-type-0": "ho-soledí",
+            "relative-type-1": "sequent soledí",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Sundays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Sundays"
+            }
+          },
+          "sun-short": {
+            "relative-type--1": "ult. sol.",
+            "relative-type-0": "ho-sol.",
+            "relative-type-1": "seq. sol.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Sundays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Sundays"
+            }
+          },
+          "sun-narrow": {
+            "relative-type--1": "ult. sol.",
+            "relative-type-0": "ho-sol.",
+            "relative-type-1": "seq. sol.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Sundays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Sundays"
+            }
+          },
+          "mon": {
+            "relative-type--1": "ultim lunedí",
+            "relative-type-0": "ho-lunedí",
+            "relative-type-1": "sequent lunedí",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Mondays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Mondays"
+            }
+          },
+          "mon-short": {
+            "relative-type--1": "ult. lun.",
+            "relative-type-0": "ho-lun.",
+            "relative-type-1": "seq. lun.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Mondays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Mondays"
+            }
+          },
+          "mon-narrow": {
+            "relative-type--1": "ult. lun.",
+            "relative-type-0": "ho-lun.",
+            "relative-type-1": "seq. lun.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Mondays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Mondays"
+            }
+          },
+          "tue": {
+            "relative-type--1": "ultim mardí",
+            "relative-type-0": "ho-mardí",
+            "relative-type-1": "sequent mardí",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Tuesdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Tuesdays"
+            }
+          },
+          "tue-short": {
+            "relative-type--1": "ult. mar.",
+            "relative-type-0": "ho-mar.",
+            "relative-type-1": "seq. mar.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Tuesdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Tuesdays"
+            }
+          },
+          "tue-narrow": {
+            "relative-type--1": "ult. mar.",
+            "relative-type-0": "ho-mar.",
+            "relative-type-1": "seq. mar.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Tuesdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Tuesdays"
+            }
+          },
+          "wed": {
+            "relative-type--1": "ultim mercurdí",
+            "relative-type-0": "ho-mercurdí",
+            "relative-type-1": "sequent mercurdí",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Wednesdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Wednesdays"
+            }
+          },
+          "wed-short": {
+            "relative-type--1": "ult. mer.",
+            "relative-type-0": "ho-mer.",
+            "relative-type-1": "seq. mer.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Wednesdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Wednesdays"
+            }
+          },
+          "wed-narrow": {
+            "relative-type--1": "ult. mer.",
+            "relative-type-0": "ho-mer.",
+            "relative-type-1": "seq. mer.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Wednesdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Wednesdays"
+            }
+          },
+          "thu": {
+            "relative-type--1": "ultim jovedí",
+            "relative-type-0": "ho-jovedí",
+            "relative-type-1": "sequent jovedí",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Thursdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Thursdays"
+            }
+          },
+          "thu-short": {
+            "relative-type--1": "ult. jov.",
+            "relative-type-0": "ho-jov.",
+            "relative-type-1": "seq. jov.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Thursdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Thursdays"
+            }
+          },
+          "thu-narrow": {
+            "relative-type--1": "ult. jov.",
+            "relative-type-0": "ho-jov.",
+            "relative-type-1": "seq. jov.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Thursdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Thursdays"
+            }
+          },
+          "fri": {
+            "relative-type--1": "ultim venerdí",
+            "relative-type-0": "ho-venerdí",
+            "relative-type-1": "sequent venerdí",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Fridays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Fridays"
+            }
+          },
+          "fri-short": {
+            "relative-type--1": "ult. ven.",
+            "relative-type-0": "ho-ven.",
+            "relative-type-1": "seq. ven.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Fridays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Fridays"
+            }
+          },
+          "fri-narrow": {
+            "relative-type--1": "ult. ven.",
+            "relative-type-0": "ho-ven.",
+            "relative-type-1": "seq. ven.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Fridays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Fridays"
+            }
+          },
+          "sat": {
+            "relative-type--1": "ultim saturdí",
+            "relative-type-0": "ho-saturdí",
+            "relative-type-1": "sequent saturdí",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Saturdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Saturdays"
+            }
+          },
+          "sat-short": {
+            "relative-type--1": "ult. sat.",
+            "relative-type-0": "ho-sat.",
+            "relative-type-1": "seq. sat.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Saturdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Saturdays"
+            }
+          },
+          "sat-narrow": {
+            "relative-type--1": "ult. sat.",
+            "relative-type-0": "ho-sat.",
+            "relative-type-1": "seq. sat.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Saturdays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Saturdays"
+            }
+          },
+          "dayperiod-short": {
+            "displayName": "midídie"
+          },
+          "dayperiod": {
+            "displayName": "midídie"
+          },
+          "dayperiod-narrow": {
+            "displayName": "midídie"
+          },
+          "hour": {
+            "displayName": "hor",
+            "relative-type-0": "ti hor",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} h"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} h"
+            }
+          },
+          "hour-short": {
+            "displayName": "hor",
+            "relative-type-0": "ti hor",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} h"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} h"
+            }
+          },
+          "hour-narrow": {
+            "displayName": "h",
+            "relative-type-0": "ti hor",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} h"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} h"
+            }
+          },
+          "minute": {
+            "displayName": "minute",
+            "relative-type-0": "ti minute",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} min"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} min"
+            }
+          },
+          "minute-short": {
+            "displayName": "min",
+            "relative-type-0": "ti minute",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} min"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} min"
+            }
+          },
+          "minute-narrow": {
+            "displayName": "m",
+            "relative-type-0": "ti minute",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} min"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} min"
+            }
+          },
+          "second": {
+            "displayName": "seconde",
+            "relative-type-0": "nu",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} s"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} s"
+            }
+          },
+          "second-short": {
+            "displayName": "sec",
+            "relative-type-0": "nu",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} s"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} s"
+            }
+          },
+          "second-narrow": {
+            "displayName": "s",
+            "relative-type-0": "nu",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} s"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} s"
+            }
+          },
+          "zone": {
+            "displayName": "zone horari"
+          },
+          "zone-short": {
+            "displayName": "zone"
+          },
+          "zone-narrow": {
+            "displayName": "zone"
+          }
+        }
+      }
+    }
+  }
+}

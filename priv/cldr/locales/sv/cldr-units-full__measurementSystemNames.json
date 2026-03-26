@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sv": {
+      "identity": {
+        "language": "sv"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "SI-enheter",
+          "UK": "engelska enheter",
+          "US": "USA-enheter"
+        }
+      }
+    }
+  }
+}

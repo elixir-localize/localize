@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ba": {
+      "identity": {
+        "language": "ba"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "метрик",
+          "UK": "Бөйөк Британия",
+          "US": "АҠШ"
+        }
+      }
+    }
+  }
+}

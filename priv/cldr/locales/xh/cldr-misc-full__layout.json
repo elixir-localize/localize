@@ -1,0 +1,15 @@
+{
+  "main": {
+    "xh": {
+      "identity": {
+        "language": "xh"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

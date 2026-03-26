@@ -1,0 +1,15 @@
+{
+  "main": {
+    "rwk": {
+      "identity": {
+        "language": "rwk"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "cy": {
+      "identity": {
+        "language": "cy"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ie:i",
+          "nostr": "na:n"
+        }
+      }
+    }
+  }
+}

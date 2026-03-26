@@ -1,0 +1,15 @@
+{
+  "main": {
+    "vai": {
+      "identity": {
+        "language": "vai"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

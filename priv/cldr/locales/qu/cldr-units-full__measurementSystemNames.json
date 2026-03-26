@@ -1,0 +1,16 @@
+{
+  "main": {
+    "qu": {
+      "identity": {
+        "language": "qu"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

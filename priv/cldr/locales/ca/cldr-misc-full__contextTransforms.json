@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ca": {
+      "identity": {
+        "language": "ca"
+      },
+      "contextTransforms": {
+        "typographicNames": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        }
+      }
+    }
+  }
+}

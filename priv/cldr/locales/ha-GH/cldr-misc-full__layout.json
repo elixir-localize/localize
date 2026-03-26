@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ha-GH": {
+      "identity": {
+        "language": "ha",
+        "territory": "GH"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

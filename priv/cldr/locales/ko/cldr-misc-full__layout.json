@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ko": {
+      "identity": {
+        "language": "ko"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

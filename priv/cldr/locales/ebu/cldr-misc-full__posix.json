@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ebu": {
+      "identity": {
+        "language": "ebu"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ii:I",
+          "nostr": "Ka:K"
+        }
+      }
+    }
+  }
+}

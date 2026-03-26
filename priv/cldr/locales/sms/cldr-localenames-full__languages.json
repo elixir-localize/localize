@@ -1,0 +1,47 @@
+{
+  "main": {
+    "sms": {
+      "identity": {
+        "language": "sms"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "ar": "arabia",
+          "bn": "bengal",
+          "cs": "čekk-ǩiõll",
+          "da": "danskk-ǩiõll",
+          "de": "sakslaǩiõl",
+          "en": "eŋgglõsǩiõll",
+          "en-AU": "australiaeŋgglõsǩiõll",
+          "en-CA": "kanadaeŋgglõsǩiõll",
+          "en-GB": "britanneŋgglõsǩiõll",
+          "en-US": "aʹmmriikkeŋgglõsǩiõll",
+          "es": "espaanǩiõll",
+          "et": "eeʹstt",
+          "fi": "lääʹddǩiõll",
+          "fr": "franskk-kiõll",
+          "fr-CA": "kanadafranskk-ǩiõll",
+          "fr-CH": "sveiccfranskk-ǩiõll",
+          "hi": "hindiǩiõll",
+          "hu": "uŋŋar",
+          "id": "indonesia",
+          "it": "italia",
+          "ja": "jaappanǩiõll",
+          "ko": "koreaǩiõll",
+          "lv": "latviaǩiõll",
+          "nl": "hollanttǩiõll",
+          "nl-BE": "flaamǩiõll",
+          "pl": "puolaǩiõll",
+          "pt": "portugalkiõll",
+          "ru": "ruõšš",
+          "sms": "sääʹmǩiõll",
+          "sv": "ruõccǩiõll",
+          "th": "thaiǩiõll",
+          "zh": "ǩiinaǩiõll",
+          "zh-Hans": "pråstjum ǩiinaǩiõll",
+          "zh-Hant": "äʹrbbvuõđlaž ǩiinǩiõll"
+        }
+      }
+    }
+  }
+}

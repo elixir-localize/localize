@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mgo": {
+      "identity": {
+        "language": "mgo"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "èè",
+          "nostr": "ideg."
+        }
+      }
+    }
+  }
+}

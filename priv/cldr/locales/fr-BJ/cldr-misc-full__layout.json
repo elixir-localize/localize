@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-BJ": {
+      "identity": {
+        "language": "fr",
+        "territory": "BJ"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

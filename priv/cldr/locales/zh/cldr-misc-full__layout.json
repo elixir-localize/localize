@@ -1,0 +1,15 @@
+{
+  "main": {
+    "zh": {
+      "identity": {
+        "language": "zh"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

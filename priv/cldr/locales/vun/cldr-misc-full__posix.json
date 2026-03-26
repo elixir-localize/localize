@@ -1,0 +1,15 @@
+{
+  "main": {
+    "vun": {
+      "identity": {
+        "language": "vun"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Haya:H",
+          "nostr": "Ote:O"
+        }
+      }
+    }
+  }
+}

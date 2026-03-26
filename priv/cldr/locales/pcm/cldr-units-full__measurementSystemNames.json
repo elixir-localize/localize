@@ -1,0 +1,16 @@
+{
+  "main": {
+    "pcm": {
+      "identity": {
+        "language": "pcm"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Mẹ́trik",
+          "UK": "Brítish",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

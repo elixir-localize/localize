@@ -1,0 +1,15 @@
+{
+  "main": {
+    "da": {
+      "identity": {
+        "language": "da"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "xnr": {
+      "identity": {
+        "language": "xnr"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

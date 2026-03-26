@@ -1,0 +1,16 @@
+{
+  "main": {
+    "bs-Cyrl": {
+      "identity": {
+        "language": "bs",
+        "script": "Cyrl"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "да:д",
+          "nostr": "не:н"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sw-CD": {
+      "identity": {
+        "language": "sw",
+        "territory": "CD"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ndiyo:N",
+          "nostr": "Hapana:H"
+        }
+      }
+    }
+  }
+}

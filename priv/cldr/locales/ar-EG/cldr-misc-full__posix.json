@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-EG": {
+      "identity": {
+        "language": "ar",
+        "territory": "EG"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "نعم:ن",
+          "nostr": "لا:ل"
+        }
+      }
+    }
+  }
+}

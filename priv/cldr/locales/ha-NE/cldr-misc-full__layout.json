@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ha-NE": {
+      "identity": {
+        "language": "ha",
+        "territory": "NE"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

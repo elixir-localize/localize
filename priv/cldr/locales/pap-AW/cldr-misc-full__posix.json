@@ -1,0 +1,16 @@
+{
+  "main": {
+    "pap-AW": {
+      "identity": {
+        "language": "pap",
+        "territory": "AW"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "si",
+          "nostr": "no"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "et": {
+      "identity": {
+        "language": "et"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "meetermõõdustik",
+          "UK": "inglise mõõdustik",
+          "US": "USA mõõdustik"
+        }
+      }
+    }
+  }
+}

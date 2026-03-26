@@ -1,0 +1,15 @@
+{
+  "main": {
+    "vmw": {
+      "identity": {
+        "language": "vmw"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

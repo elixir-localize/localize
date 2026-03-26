@@ -1,0 +1,19 @@
+{
+  "main": {
+    "mww-Hmnp": {
+      "identity": {
+        "language": "mww",
+        "script": "Hmnp"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "ar": "𞄤𞄣",
+          "bn": "𞄜𞄤",
+          "en": "𞄥𞄴𞄅𞄇𞄉𞄦𞄱𞄊",
+          "fr": "𞄕𞄤𞄰𞄎𞄦𞄴",
+          "zh": "𞄋𞄄"
+        }
+      }
+    }
+  }
+}

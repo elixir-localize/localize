@@ -1,0 +1,15 @@
+{
+  "main": {
+    "zgh": {
+      "identity": {
+        "language": "zgh"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ⵢⵢⵉⵀ:ⵢ",
+          "nostr": "ⵓⵀⵓ:ⵓ"
+        }
+      }
+    }
+  }
+}

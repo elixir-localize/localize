@@ -1,0 +1,38 @@
+{
+  "main": {
+    "rif": {
+      "identity": {
+        "language": "rif"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}, {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "types": {
+          "calendar": {
+            "gregorian": "taklindart tagrikant",
+            "core": "ameslem (ayur)",
+            "islamic": "taklindart tameslemt",
+            "islamic-civil": "taklindart tameslemt (leḥsab)",
+            "islamic-tbla": "taklindart tameslemt (ayur)",
+            "iso8601": "kalandar n ISO-8601"
+          },
+          "collation": {
+            "standard": "asettef sṭandar",
+            "core": "sṭandar"
+          },
+          "numbers": {
+            "latn": "nnumrawat irumiyyen"
+          }
+        },
+        "codePatterns": {
+          "language": "tutlayt: {0}",
+          "script": "tira: {0}",
+          "territory": "jjihet: {0}"
+        }
+      }
+    }
+  }
+}

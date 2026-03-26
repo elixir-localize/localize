@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mfe": {
+      "identity": {
+        "language": "mfe"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Wi:W",
+          "nostr": "Non:N"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ms-Arab": {
+      "identity": {
+        "language": "ms",
+        "script": "Arab"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

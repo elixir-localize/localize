@@ -1,0 +1,17 @@
+{
+  "main": {
+    "so-DJ": {
+      "identity": {
+        "language": "so",
+        "territory": "DJ"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metrik",
+          "UK": "Boqortooyada Midawday",
+          "US": "Maraykan"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-EH": {
+      "identity": {
+        "language": "ar",
+        "territory": "EH"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

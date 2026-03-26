@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ckb": {
+      "identity": {
+        "language": "ckb"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "مەتریک",
+          "UK": "بەڕیتانی",
+          "US": "ئەمەریکی"
+        }
+      }
+    }
+  }
+}

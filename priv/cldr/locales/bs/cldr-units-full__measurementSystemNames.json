@@ -1,0 +1,16 @@
+{
+  "main": {
+    "bs": {
+      "identity": {
+        "language": "bs"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrički",
+          "UK": "britanski",
+          "US": "američki"
+        }
+      }
+    }
+  }
+}

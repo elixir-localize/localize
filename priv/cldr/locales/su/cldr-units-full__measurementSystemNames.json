@@ -1,0 +1,16 @@
+{
+  "main": {
+    "su": {
+      "identity": {
+        "language": "su"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Métrik",
+          "UK": "U.K.",
+          "US": "A.S."
+        }
+      }
+    }
+  }
+}

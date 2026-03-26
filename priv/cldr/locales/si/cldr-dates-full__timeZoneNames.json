@@ -1,0 +1,2626 @@
+{
+  "main": {
+    "si": {
+      "identity": {
+        "language": "si"
+      },
+      "dates": {
+        "timeZoneNames": {
+          "hourFormat": "+HH.mm;-HH.mm",
+          "gmtFormat": "ග්‍රිමවේ{0}",
+          "gmtZeroFormat": "ග්‍රිමවේ",
+          "gmtUnknownFormat": "ග්‍රිමවේ+?",
+          "regionFormat": "{0} වේලාව",
+          "regionFormat-type-daylight": "{0} දිවාආලෝක වේලාව",
+          "regionFormat-type-standard": "{0} සම්මත වේලාව",
+          "fallbackFormat": "{1} ({0})",
+          "zone": {
+            "Pacific": {
+              "Honolulu": {
+                "_type": "zone",
+                "exemplarCity": "හොනොලුලු"
+              },
+              "Pago_Pago": {
+                "_type": "zone",
+                "exemplarCity": "පගෝ පගෝ"
+              },
+              "Rarotonga": {
+                "_type": "zone",
+                "exemplarCity": "රරෝටෝන්ගා"
+              },
+              "Easter": {
+                "_type": "zone",
+                "exemplarCity": "ඊස්ටර්"
+              },
+              "Galapagos": {
+                "_type": "zone",
+                "exemplarCity": "ගලපගෝස්"
+              },
+              "Fiji": {
+                "_type": "zone",
+                "exemplarCity": "ෆීජි"
+              },
+              "Truk": {
+                "_type": "zone",
+                "exemplarCity": "චූක්"
+              },
+              "Ponape": {
+                "_type": "zone",
+                "exemplarCity": "පොන්පෙයි"
+              },
+              "Kosrae": {
+                "_type": "zone",
+                "exemplarCity": "කොස්රේ"
+              },
+              "Guam": {
+                "_type": "zone",
+                "exemplarCity": "ගුවාම්"
+              },
+              "Enderbury": {
+                "_type": "zone",
+                "exemplarCity": "කැන්ටන්"
+              },
+              "Kiritimati": {
+                "_type": "zone",
+                "exemplarCity": "කිරිමටි"
+              },
+              "Tarawa": {
+                "_type": "zone",
+                "exemplarCity": "ටරාවා"
+              },
+              "Kwajalein": {
+                "_type": "zone",
+                "exemplarCity": "ක්වාජලෙයින්"
+              },
+              "Majuro": {
+                "_type": "zone",
+                "exemplarCity": "මජුරෝ"
+              },
+              "Saipan": {
+                "_type": "zone",
+                "exemplarCity": "සයිපාන්"
+              },
+              "Noumea": {
+                "_type": "zone",
+                "exemplarCity": "නෝමියා"
+              },
+              "Norfolk": {
+                "_type": "zone",
+                "exemplarCity": "නෝෆෝක්"
+              },
+              "Nauru": {
+                "_type": "zone",
+                "exemplarCity": "නවුරු"
+              },
+              "Niue": {
+                "_type": "zone",
+                "exemplarCity": "නියු"
+              },
+              "Chatham": {
+                "_type": "zone",
+                "exemplarCity": "චැතම්"
+              },
+              "Auckland": {
+                "_type": "zone",
+                "exemplarCity": "ඕක්ලන්ඩ්"
+              },
+              "Tahiti": {
+                "_type": "zone",
+                "exemplarCity": "ටහිති"
+              },
+              "Marquesas": {
+                "_type": "zone",
+                "exemplarCity": "මාකුවෙසාස්"
+              },
+              "Gambier": {
+                "_type": "zone",
+                "exemplarCity": "ගම්බියෙර්"
+              },
+              "Port_Moresby": {
+                "_type": "zone",
+                "exemplarCity": "පොර්ට් මොරෙස්බි"
+              },
+              "Bougainville": {
+                "_type": "zone",
+                "exemplarCity": "බෝගන්විලා"
+              },
+              "Pitcairn": {
+                "_type": "zone",
+                "exemplarCity": "පිට්කෙයාන්"
+              },
+              "Palau": {
+                "_type": "zone",
+                "exemplarCity": "පලාවු"
+              },
+              "Guadalcanal": {
+                "_type": "zone",
+                "exemplarCity": "ගුවාඩල්කැනල්"
+              },
+              "Fakaofo": {
+                "_type": "zone",
+                "exemplarCity": "ෆාකාඕෆෝ"
+              },
+              "Tongatapu": {
+                "_type": "zone",
+                "exemplarCity": "ටොන්ගටාපු"
+              },
+              "Funafuti": {
+                "_type": "zone",
+                "exemplarCity": "ෆුනෆුටි"
+              },
+              "Midway": {
+                "_type": "zone",
+                "exemplarCity": "මිඩ්වේ"
+              },
+              "Wake": {
+                "_type": "zone",
+                "exemplarCity": "වේක්"
+              },
+              "Efate": {
+                "_type": "zone",
+                "exemplarCity": "එෆාත්"
+              },
+              "Wallis": {
+                "_type": "zone",
+                "exemplarCity": "වැලිස්"
+              },
+              "Apia": {
+                "_type": "zone",
+                "exemplarCity": "ඇපියා"
+              }
+            },
+            "Etc": {
+              "UTC": {
+                "_type": "zone",
+                "long": {
+                  "standard": "සමකක්ෂ සාර්ව වේලාව"
+                },
+                "short": {
+                  "standard": "UTC"
+                }
+              },
+              "Unknown": {
+                "_type": "zone",
+                "exemplarCity": "හඳුනා නොගත් නගරය"
+              }
+            },
+            "Europe": {
+              "Andorra": {
+                "_type": "zone",
+                "exemplarCity": "ඇන්ඩෝරාව"
+              },
+              "Tirane": {
+                "_type": "zone",
+                "exemplarCity": "ටිරානේ"
+              },
+              "Vienna": {
+                "_type": "zone",
+                "exemplarCity": "වියනා"
+              },
+              "Mariehamn": {
+                "_type": "zone",
+                "exemplarCity": "මරියෙහම්න්"
+              },
+              "Sarajevo": {
+                "_type": "zone",
+                "exemplarCity": "සරාජෙවෝ"
+              },
+              "Brussels": {
+                "_type": "zone",
+                "exemplarCity": "බ්‍රසල්ස්"
+              },
+              "Sofia": {
+                "_type": "zone",
+                "exemplarCity": "සොෆියා"
+              },
+              "Minsk": {
+                "_type": "zone",
+                "exemplarCity": "මින්ස්ක්"
+              },
+              "Zurich": {
+                "_type": "zone",
+                "exemplarCity": "සූරිච්"
+              },
+              "Prague": {
+                "_type": "zone",
+                "exemplarCity": "ප්‍රෙග්"
+              },
+              "Busingen": {
+                "_type": "zone",
+                "exemplarCity": "බුසින්ජෙන්"
+              },
+              "Berlin": {
+                "_type": "zone",
+                "exemplarCity": "බර්ලින්"
+              },
+              "Copenhagen": {
+                "_type": "zone",
+                "exemplarCity": "කෝපන්හේගන්"
+              },
+              "Tallinn": {
+                "_type": "zone",
+                "exemplarCity": "ටලින්"
+              },
+              "Madrid": {
+                "_type": "zone",
+                "exemplarCity": "මැඩ්රිඩ්"
+              },
+              "Helsinki": {
+                "_type": "zone",
+                "exemplarCity": "හෙල්සින්කි"
+              },
+              "Paris": {
+                "_type": "zone",
+                "exemplarCity": "පැරිස්"
+              },
+              "London": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "බ්‍රිතාන්‍ය ගිම්හාන වේලාව"
+                },
+                "exemplarCity": "ලන්ඩන්"
+              },
+              "Guernsey": {
+                "_type": "zone",
+                "exemplarCity": "ගුවන්සේ"
+              },
+              "Gibraltar": {
+                "_type": "zone",
+                "exemplarCity": "ජිබ්රෝල්ටා"
+              },
+              "Athens": {
+                "_type": "zone",
+                "exemplarCity": "ඇතැන්ස්"
+              },
+              "Zagreb": {
+                "_type": "zone",
+                "exemplarCity": "සග්රෙබ්"
+              },
+              "Budapest": {
+                "_type": "zone",
+                "exemplarCity": "බුඩාපෙස්ට්"
+              },
+              "Dublin": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "අයර්ලන්ත සම්මත වේලාව"
+                },
+                "exemplarCity": "ඩබ්ලින්"
+              },
+              "Isle_of_Man": {
+                "_type": "zone",
+                "exemplarCity": "අයිල් ඔෆ් මෑන්"
+              },
+              "Rome": {
+                "_type": "zone",
+                "exemplarCity": "රෝමය"
+              },
+              "Jersey": {
+                "_type": "zone",
+                "exemplarCity": "ජර්සි"
+              },
+              "Vaduz": {
+                "_type": "zone",
+                "exemplarCity": "වඩුස්"
+              },
+              "Vilnius": {
+                "_type": "zone",
+                "exemplarCity": "විල්නියුස්"
+              },
+              "Luxembourg": {
+                "_type": "zone",
+                "exemplarCity": "ලක්සැම්බර්ග්"
+              },
+              "Riga": {
+                "_type": "zone",
+                "exemplarCity": "රිගා"
+              },
+              "Monaco": {
+                "_type": "zone",
+                "exemplarCity": "මොනැකෝ"
+              },
+              "Chisinau": {
+                "_type": "zone",
+                "exemplarCity": "චිසිනෝ"
+              },
+              "Podgorica": {
+                "_type": "zone",
+                "exemplarCity": "පොඩ්ගොරිකා"
+              },
+              "Skopje": {
+                "_type": "zone",
+                "exemplarCity": "ස්කොප්ජේ"
+              },
+              "Malta": {
+                "_type": "zone",
+                "exemplarCity": "මෝල්ටා"
+              },
+              "Amsterdam": {
+                "_type": "zone",
+                "exemplarCity": "ඇම්ස්ටර්ඩෑම්"
+              },
+              "Oslo": {
+                "_type": "zone",
+                "exemplarCity": "ඔස්ලෝ"
+              },
+              "Warsaw": {
+                "_type": "zone",
+                "exemplarCity": "වර්සෝ"
+              },
+              "Lisbon": {
+                "_type": "zone",
+                "exemplarCity": "ලිස්බන්"
+              },
+              "Bucharest": {
+                "_type": "zone",
+                "exemplarCity": "බුකාරෙස්ට්"
+              },
+              "Belgrade": {
+                "_type": "zone",
+                "exemplarCity": "බෙල්ග්‍රේඩ්ඩ්"
+              },
+              "Kaliningrad": {
+                "_type": "zone",
+                "exemplarCity": "කලිනින්ග්‍රෑඩ්"
+              },
+              "Moscow": {
+                "_type": "zone",
+                "exemplarCity": "මොස්කව්"
+              },
+              "Volgograd": {
+                "_type": "zone",
+                "exemplarCity": "වොල්ගොග්‍රෑඩ්"
+              },
+              "Saratov": {
+                "_type": "zone",
+                "exemplarCity": "සරටොව්"
+              },
+              "Astrakhan": {
+                "_type": "zone",
+                "exemplarCity": "අස්ට්‍රඛාන්"
+              },
+              "Ulyanovsk": {
+                "_type": "zone",
+                "exemplarCity": "උල්යනොව්ස්ක්"
+              },
+              "Kirov": {
+                "_type": "zone",
+                "exemplarCity": "කිරොව්"
+              },
+              "Samara": {
+                "_type": "zone",
+                "exemplarCity": "සමරා"
+              },
+              "Stockholm": {
+                "_type": "zone",
+                "exemplarCity": "ස්ටොක්හෝම්"
+              },
+              "Ljubljana": {
+                "_type": "zone",
+                "exemplarCity": "ල්ජුබුල්ජනා"
+              },
+              "Bratislava": {
+                "_type": "zone",
+                "exemplarCity": "බ්‍රටිස්ලවා"
+              },
+              "San_Marino": {
+                "_type": "zone",
+                "exemplarCity": "සැන් මැරිනෝ"
+              },
+              "Istanbul": {
+                "_type": "zone",
+                "exemplarCity": "ඉස්තාන්බුල්"
+              },
+              "Kiev": {
+                "_type": "zone",
+                "exemplarCity": "කිව්"
+              },
+              "Simferopol": {
+                "_type": "zone",
+                "exemplarCity": "සිම්ෆෙරෝපොල්"
+              },
+              "Vatican": {
+                "_type": "zone",
+                "exemplarCity": "වතිකානුව"
+              }
+            },
+            "Asia": {
+              "Dubai": {
+                "_type": "zone",
+                "exemplarCity": "ඩුබායි"
+              },
+              "Kabul": {
+                "_type": "zone",
+                "exemplarCity": "කාබුල්"
+              },
+              "Yerevan": {
+                "_type": "zone",
+                "exemplarCity": "යෙරෙවන්"
+              },
+              "Baku": {
+                "_type": "zone",
+                "exemplarCity": "බාකු"
+              },
+              "Dhaka": {
+                "_type": "zone",
+                "exemplarCity": "ඩකා"
+              },
+              "Bahrain": {
+                "_type": "zone",
+                "exemplarCity": "බහරේන්"
+              },
+              "Brunei": {
+                "_type": "zone",
+                "exemplarCity": "බෲනායි"
+              },
+              "Thimphu": {
+                "_type": "zone",
+                "exemplarCity": "තිම්පු"
+              },
+              "Urumqi": {
+                "_type": "zone",
+                "exemplarCity": "උරුම්කි"
+              },
+              "Shanghai": {
+                "_type": "zone",
+                "exemplarCity": "ෂැන්හයි"
+              },
+              "Nicosia": {
+                "_type": "zone",
+                "exemplarCity": "නිකෝසියා"
+              },
+              "Famagusta": {
+                "_type": "zone",
+                "exemplarCity": "ෆැමගුස්ටා"
+              },
+              "Tbilisi": {
+                "_type": "zone",
+                "exemplarCity": "ට්බිලිසි"
+              },
+              "Hong_Kong": {
+                "_type": "zone",
+                "exemplarCity": "හොංකොං"
+              },
+              "Jakarta": {
+                "_type": "zone",
+                "exemplarCity": "ජකර්තා"
+              },
+              "Pontianak": {
+                "_type": "zone",
+                "exemplarCity": "පොන්ටියනක්"
+              },
+              "Makassar": {
+                "_type": "zone",
+                "exemplarCity": "මක්ස්සාර්"
+              },
+              "Jayapura": {
+                "_type": "zone",
+                "exemplarCity": "ජයපුර"
+              },
+              "Jerusalem": {
+                "_type": "zone",
+                "exemplarCity": "ජෙරුසලම"
+              },
+              "Calcutta": {
+                "_type": "zone",
+                "exemplarCity": "කල්කටා"
+              },
+              "Baghdad": {
+                "_type": "zone",
+                "exemplarCity": "බැග්ඩෑඩ්"
+              },
+              "Tehran": {
+                "_type": "zone",
+                "exemplarCity": "ටෙහෙරාන්"
+              },
+              "Amman": {
+                "_type": "zone",
+                "exemplarCity": "අම්මාන්"
+              },
+              "Tokyo": {
+                "_type": "zone",
+                "exemplarCity": "ටෝකියෝ"
+              },
+              "Bishkek": {
+                "_type": "zone",
+                "exemplarCity": "බිශ්කෙක්"
+              },
+              "Phnom_Penh": {
+                "_type": "zone",
+                "exemplarCity": "නොම් පෙන්"
+              },
+              "Pyongyang": {
+                "_type": "zone",
+                "exemplarCity": "ප්යෝන්ග්යැන්ග්"
+              },
+              "Seoul": {
+                "_type": "zone",
+                "exemplarCity": "සෝල්"
+              },
+              "Kuwait": {
+                "_type": "zone",
+                "exemplarCity": "කුවේට්"
+              },
+              "Aqtau": {
+                "_type": "zone",
+                "exemplarCity": "අක්ටෝ"
+              },
+              "Oral": {
+                "_type": "zone",
+                "exemplarCity": "ඔරාල්"
+              },
+              "Atyrau": {
+                "_type": "zone",
+                "exemplarCity": "ඇටිරවු"
+              },
+              "Aqtobe": {
+                "_type": "zone",
+                "exemplarCity": "අක්ටෝබ්"
+              },
+              "Qostanay": {
+                "_type": "zone",
+                "exemplarCity": "කොස්තානේ"
+              },
+              "Qyzylorda": {
+                "_type": "zone",
+                "exemplarCity": "ක්යිසිලෝර්ඩා"
+              },
+              "Almaty": {
+                "_type": "zone",
+                "exemplarCity": "අල්මටි"
+              },
+              "Vientiane": {
+                "_type": "zone",
+                "exemplarCity": "වියැන්ටියන්"
+              },
+              "Beirut": {
+                "_type": "zone",
+                "exemplarCity": "බීරුට්"
+              },
+              "Colombo": {
+                "_type": "zone",
+                "exemplarCity": "කොළඹ"
+              },
+              "Rangoon": {
+                "_type": "zone",
+                "exemplarCity": "රැංගුන්"
+              },
+              "Hovd": {
+                "_type": "zone",
+                "exemplarCity": "හොව්ඩ්"
+              },
+              "Ulaanbaatar": {
+                "_type": "zone",
+                "exemplarCity": "උලාන්බාටර්"
+              },
+              "Macau": {
+                "_type": "zone",
+                "exemplarCity": "මැකාවු"
+              },
+              "Kuala_Lumpur": {
+                "_type": "zone",
+                "exemplarCity": "ක්වාලාලම්පූර්"
+              },
+              "Kuching": {
+                "_type": "zone",
+                "exemplarCity": "කුචිං"
+              },
+              "Katmandu": {
+                "_type": "zone",
+                "exemplarCity": "කත්මන්ඩු"
+              },
+              "Muscat": {
+                "_type": "zone",
+                "exemplarCity": "මස්කට්"
+              },
+              "Manila": {
+                "_type": "zone",
+                "exemplarCity": "මැනිලා"
+              },
+              "Karachi": {
+                "_type": "zone",
+                "exemplarCity": "කරච්චිචි"
+              },
+              "Gaza": {
+                "_type": "zone",
+                "exemplarCity": "ගාසා"
+              },
+              "Hebron": {
+                "_type": "zone",
+                "exemplarCity": "හෙබ්රෝන්"
+              },
+              "Qatar": {
+                "_type": "zone",
+                "exemplarCity": "කටාර්"
+              },
+              "Yekaterinburg": {
+                "_type": "zone",
+                "exemplarCity": "යෙකටරින්බර්ග්"
+              },
+              "Omsk": {
+                "_type": "zone",
+                "exemplarCity": "ඔම්ස්ක්"
+              },
+              "Novosibirsk": {
+                "_type": "zone",
+                "exemplarCity": "නොවොසිබර්ස්ක්"
+              },
+              "Barnaul": {
+                "_type": "zone",
+                "exemplarCity": "බර්නෞල්"
+              },
+              "Tomsk": {
+                "_type": "zone",
+                "exemplarCity": "ටොම්ස්ක්"
+              },
+              "Novokuznetsk": {
+                "_type": "zone",
+                "exemplarCity": "නොවොකුස්නේට්ස්ක්"
+              },
+              "Krasnoyarsk": {
+                "_type": "zone",
+                "exemplarCity": "ක්‍රස්නෝයාර්ස්ක්"
+              },
+              "Irkutsk": {
+                "_type": "zone",
+                "exemplarCity": "ඉරකුට්ස්ක්"
+              },
+              "Chita": {
+                "_type": "zone",
+                "exemplarCity": "චිටා"
+              },
+              "Yakutsk": {
+                "_type": "zone",
+                "exemplarCity": "යකුට්ස්ක්"
+              },
+              "Vladivostok": {
+                "_type": "zone",
+                "exemplarCity": "ව්ලඩිවොස්ටොක්"
+              },
+              "Khandyga": {
+                "_type": "zone",
+                "exemplarCity": "ඛන්ඩිගා"
+              },
+              "Sakhalin": {
+                "_type": "zone",
+                "exemplarCity": "සක්හලින්"
+              },
+              "Ust-Nera": {
+                "_type": "zone",
+                "exemplarCity": "උස්ට්-නෙරා"
+              },
+              "Magadan": {
+                "_type": "zone",
+                "exemplarCity": "මගඩන්"
+              },
+              "Srednekolymsk": {
+                "_type": "zone",
+                "exemplarCity": "ශ්‍රෙඩ්නෙකෝලිම්සක්"
+              },
+              "Kamchatka": {
+                "_type": "zone",
+                "exemplarCity": "කම්චට්කා"
+              },
+              "Anadyr": {
+                "_type": "zone",
+                "exemplarCity": "ඇනාදිය්ර්"
+              },
+              "Riyadh": {
+                "_type": "zone",
+                "exemplarCity": "රියාද්"
+              },
+              "Singapore": {
+                "_type": "zone",
+                "exemplarCity": "සිංගප්පූරුව"
+              },
+              "Damascus": {
+                "_type": "zone",
+                "exemplarCity": "ඩැමස්කස්"
+              },
+              "Bangkok": {
+                "_type": "zone",
+                "exemplarCity": "බැංකොක්"
+              },
+              "Dushanbe": {
+                "_type": "zone",
+                "exemplarCity": "ඩුශන්බේ"
+              },
+              "Dili": {
+                "_type": "zone",
+                "exemplarCity": "ඩිලි"
+              },
+              "Ashgabat": {
+                "_type": "zone",
+                "exemplarCity": "අශ්ගබැට්"
+              },
+              "Taipei": {
+                "_type": "zone",
+                "exemplarCity": "තායිපෙ"
+              },
+              "Samarkand": {
+                "_type": "zone",
+                "exemplarCity": "සාමාර්කන්ඩ්"
+              },
+              "Tashkent": {
+                "_type": "zone",
+                "exemplarCity": "ටෂ්කෙන්ට්"
+              },
+              "Saigon": {
+                "_type": "zone",
+                "exemplarCity": "හෝචි මිං නගරය"
+              },
+              "Aden": {
+                "_type": "zone",
+                "exemplarCity": "ඒඩ්න්"
+              }
+            },
+            "America": {
+              "Antigua": {
+                "_type": "zone",
+                "exemplarCity": "ඇන්ටිගුවා"
+              },
+              "Anguilla": {
+                "_type": "zone",
+                "exemplarCity": "ඇන්ගුයිලාව"
+              },
+              "Argentina": {
+                "Rio_Gallegos": {
+                  "_type": "zone",
+                  "exemplarCity": "රියෝ ගලෙගොස්"
+                },
+                "San_Juan": {
+                  "_type": "zone",
+                  "exemplarCity": "සැන් ජුවාන්"
+                },
+                "Ushuaia": {
+                  "_type": "zone",
+                  "exemplarCity": "උෂුඅයියා"
+                },
+                "La_Rioja": {
+                  "_type": "zone",
+                  "exemplarCity": "ලා රිජෝලා"
+                },
+                "San_Luis": {
+                  "_type": "zone",
+                  "exemplarCity": "සැන් ලුවිස්"
+                },
+                "Salta": {
+                  "_type": "zone",
+                  "exemplarCity": "සොල්ටා"
+                },
+                "Tucuman": {
+                  "_type": "zone",
+                  "exemplarCity": "ටුකුමන්"
+                }
+              },
+              "Mendoza": {
+                "_type": "zone",
+                "exemplarCity": "මෙන්ඩෝසා"
+              },
+              "Catamarca": {
+                "_type": "zone",
+                "exemplarCity": "කටමර්කා"
+              },
+              "Jujuy": {
+                "_type": "zone",
+                "exemplarCity": "ජුජුයි"
+              },
+              "Cordoba": {
+                "_type": "zone",
+                "exemplarCity": "කොර්දොබා"
+              },
+              "Buenos_Aires": {
+                "_type": "zone",
+                "exemplarCity": "බුවනෝස් අයර්ස්"
+              },
+              "Aruba": {
+                "_type": "zone",
+                "exemplarCity": "අරූබා"
+              },
+              "Barbados": {
+                "_type": "zone",
+                "exemplarCity": "බාබඩෝස්"
+              },
+              "St_Barthelemy": {
+                "_type": "zone",
+                "exemplarCity": "ශාන්ත බර්තලෙමි"
+              },
+              "La_Paz": {
+                "_type": "zone",
+                "exemplarCity": "ලා පස්"
+              },
+              "Kralendijk": {
+                "_type": "zone",
+                "exemplarCity": "ක්‍රලෙන්දිජ්ක්"
+              },
+              "Eirunepe": {
+                "_type": "zone",
+                "exemplarCity": "එයිරුනේප්"
+              },
+              "Rio_Branco": {
+                "_type": "zone",
+                "exemplarCity": "රියෝ බ්‍රන්කෝ"
+              },
+              "Porto_Velho": {
+                "_type": "zone",
+                "exemplarCity": "පොර්තෝ වෙල්හෝ"
+              },
+              "Boa_Vista": {
+                "_type": "zone",
+                "exemplarCity": "බොආ විස්ටා"
+              },
+              "Manaus": {
+                "_type": "zone",
+                "exemplarCity": "මැනෝස්"
+              },
+              "Cuiaba": {
+                "_type": "zone",
+                "exemplarCity": "කුයිඅබා"
+              },
+              "Santarem": {
+                "_type": "zone",
+                "exemplarCity": "සන්ටරේම්"
+              },
+              "Campo_Grande": {
+                "_type": "zone",
+                "exemplarCity": "කම්පෝ ග්‍රෑන්ඩ්"
+              },
+              "Belem": {
+                "_type": "zone",
+                "exemplarCity": "බෙලෙම්"
+              },
+              "Araguaina": {
+                "_type": "zone",
+                "exemplarCity": "ඇරගුඅයිනා"
+              },
+              "Sao_Paulo": {
+                "_type": "zone",
+                "exemplarCity": "සාවෝ පෝලො"
+              },
+              "Bahia": {
+                "_type": "zone",
+                "exemplarCity": "බහියා"
+              },
+              "Fortaleza": {
+                "_type": "zone",
+                "exemplarCity": "ෆොර්ටලේසා"
+              },
+              "Maceio": {
+                "_type": "zone",
+                "exemplarCity": "මසේයියෝ"
+              },
+              "Recife": {
+                "_type": "zone",
+                "exemplarCity": "රෙසිෆ්"
+              },
+              "Noronha": {
+                "_type": "zone",
+                "exemplarCity": "නොරොන්හා"
+              },
+              "Nassau": {
+                "_type": "zone",
+                "exemplarCity": "නස්සෝ"
+              },
+              "Belize": {
+                "_type": "zone",
+                "exemplarCity": "බෙලීස්"
+              },
+              "Dawson": {
+                "_type": "zone",
+                "exemplarCity": "ඩෝසන්"
+              },
+              "Whitehorse": {
+                "_type": "zone",
+                "exemplarCity": "වයිට්හෝර්ස්"
+              },
+              "Inuvik": {
+                "_type": "zone",
+                "exemplarCity": "ඉනුවික්"
+              },
+              "Vancouver": {
+                "_type": "zone",
+                "exemplarCity": "වැන්කුවර්"
+              },
+              "Fort_Nelson": {
+                "_type": "zone",
+                "exemplarCity": "ෆෝට් නෙල්සන්"
+              },
+              "Dawson_Creek": {
+                "_type": "zone",
+                "exemplarCity": "ඩෝසන් ක්‍රීක්"
+              },
+              "Creston": {
+                "_type": "zone",
+                "exemplarCity": "ක්‍රෙස්ටන්"
+              },
+              "Edmonton": {
+                "_type": "zone",
+                "exemplarCity": "එඩ්මන්ටන්"
+              },
+              "Swift_Current": {
+                "_type": "zone",
+                "exemplarCity": "ස්විෆ්ට් කරන්ට්"
+              },
+              "Cambridge_Bay": {
+                "_type": "zone",
+                "exemplarCity": "කේම්බ්‍රිජ් බොක්ක"
+              },
+              "Regina": {
+                "_type": "zone",
+                "exemplarCity": "රෙජිනා"
+              },
+              "Winnipeg": {
+                "_type": "zone",
+                "exemplarCity": "විනිපෙග්"
+              },
+              "Resolute": {
+                "_type": "zone",
+                "exemplarCity": "රෙසොලුට්"
+              },
+              "Rankin_Inlet": {
+                "_type": "zone",
+                "exemplarCity": "රැන්කින් පිවිසුම"
+              },
+              "Coral_Harbour": {
+                "_type": "zone",
+                "exemplarCity": "ඇටිකොකන්"
+              },
+              "Toronto": {
+                "_type": "zone",
+                "exemplarCity": "ටොරන්ටෝ"
+              },
+              "Iqaluit": {
+                "_type": "zone",
+                "exemplarCity": "ඉකාලුයිට්"
+              },
+              "Moncton": {
+                "_type": "zone",
+                "exemplarCity": "මොන්ක්ටන්"
+              },
+              "Halifax": {
+                "_type": "zone",
+                "exemplarCity": "හලිෆැක්ස්"
+              },
+              "Goose_Bay": {
+                "_type": "zone",
+                "exemplarCity": "ගූස් බොක්ක"
+              },
+              "Glace_Bay": {
+                "_type": "zone",
+                "exemplarCity": "ග්ලේස් බොක්ක"
+              },
+              "Blanc-Sablon": {
+                "_type": "zone",
+                "exemplarCity": "බ්ලැන්ක්-සැබ්ලන්"
+              },
+              "St_Johns": {
+                "_type": "zone",
+                "exemplarCity": "ශාන්ත ජෝන්ගේ"
+              },
+              "Coyhaique": {
+                "_type": "zone",
+                "exemplarCity": "කොයිහයික්"
+              },
+              "Punta_Arenas": {
+                "_type": "zone",
+                "exemplarCity": "පුන්ටා ඇරිනාස්"
+              },
+              "Santiago": {
+                "_type": "zone",
+                "exemplarCity": "සන්තියාගෝ"
+              },
+              "Bogota": {
+                "_type": "zone",
+                "exemplarCity": "බොගොටා"
+              },
+              "Costa_Rica": {
+                "_type": "zone",
+                "exemplarCity": "කොස්ටරිකා"
+              },
+              "Havana": {
+                "_type": "zone",
+                "exemplarCity": "හවානා"
+              },
+              "Curacao": {
+                "_type": "zone",
+                "exemplarCity": "කුරකාවෝ"
+              },
+              "Dominica": {
+                "_type": "zone",
+                "exemplarCity": "ඩොමිනිකා"
+              },
+              "Santo_Domingo": {
+                "_type": "zone",
+                "exemplarCity": "සැන්ටෝ ඩොමින්ගෝ"
+              },
+              "Guayaquil": {
+                "_type": "zone",
+                "exemplarCity": "ගුඅයාකුයිල්"
+              },
+              "Grenada": {
+                "_type": "zone",
+                "exemplarCity": "ග්‍රැනඩා"
+              },
+              "Cayenne": {
+                "_type": "zone",
+                "exemplarCity": "කේයෙන්"
+              },
+              "Thule": {
+                "_type": "zone",
+                "exemplarCity": "තුලේ"
+              },
+              "Godthab": {
+                "_type": "zone",
+                "exemplarCity": "නූක්"
+              },
+              "Scoresbysund": {
+                "_type": "zone",
+                "exemplarCity": "ඉටොකොර්ටෝමිට්"
+              },
+              "Danmarkshavn": {
+                "_type": "zone",
+                "exemplarCity": "ඩෙන්මාර්ක්ශව්න්"
+              },
+              "Guadeloupe": {
+                "_type": "zone",
+                "exemplarCity": "ග්වාඩ්ලෝප්"
+              },
+              "Guatemala": {
+                "_type": "zone",
+                "exemplarCity": "ගෝතමාලාව"
+              },
+              "Guyana": {
+                "_type": "zone",
+                "exemplarCity": "ගයනාව"
+              },
+              "Tegucigalpa": {
+                "_type": "zone",
+                "exemplarCity": "ටෙගුසිගල්පා"
+              },
+              "Port-au-Prince": {
+                "_type": "zone",
+                "exemplarCity": "පොර්ට්-ඕ-ප්‍රින්ස්"
+              },
+              "Jamaica": {
+                "_type": "zone",
+                "exemplarCity": "ජැමෙයිකා"
+              },
+              "St_Kitts": {
+                "_type": "zone",
+                "exemplarCity": "ශාන්ත කිට්ස්"
+              },
+              "Cayman": {
+                "_type": "zone",
+                "exemplarCity": "කේමන්"
+              },
+              "St_Lucia": {
+                "_type": "zone",
+                "exemplarCity": "ශාන්ත ලුසියා"
+              },
+              "Marigot": {
+                "_type": "zone",
+                "exemplarCity": "මැරිගොට්"
+              },
+              "Martinique": {
+                "_type": "zone",
+                "exemplarCity": "මාටිනික්"
+              },
+              "Montserrat": {
+                "_type": "zone",
+                "exemplarCity": "මොන්ට්සේරාට්"
+              },
+              "Tijuana": {
+                "_type": "zone",
+                "exemplarCity": "ටිජුආනා"
+              },
+              "Hermosillo": {
+                "_type": "zone",
+                "exemplarCity": "හෙමොසිලෝ"
+              },
+              "Ciudad_Juarez": {
+                "_type": "zone",
+                "exemplarCity": "සියුඩාඩ් ජුවාරෙස්"
+              },
+              "Mazatlan": {
+                "_type": "zone",
+                "exemplarCity": "මසට්ලාන්"
+              },
+              "Chihuahua": {
+                "_type": "zone",
+                "exemplarCity": "චිහුආහුආ"
+              },
+              "Bahia_Banderas": {
+                "_type": "zone",
+                "exemplarCity": "බහියා බන්දෙරාස්"
+              },
+              "Ojinaga": {
+                "_type": "zone",
+                "exemplarCity": "ඔජිනගා"
+              },
+              "Monterrey": {
+                "_type": "zone",
+                "exemplarCity": "මොන්ටෙරේ"
+              },
+              "Mexico_City": {
+                "_type": "zone",
+                "exemplarCity": "මෙක්සිකෝ නගරය"
+              },
+              "Matamoros": {
+                "_type": "zone",
+                "exemplarCity": "මටමොරොස්"
+              },
+              "Merida": {
+                "_type": "zone",
+                "exemplarCity": "මෙරිඩා"
+              },
+              "Cancun": {
+                "_type": "zone",
+                "exemplarCity": "කැන්කුන්"
+              },
+              "Managua": {
+                "_type": "zone",
+                "exemplarCity": "මනගුආ"
+              },
+              "Panama": {
+                "_type": "zone",
+                "exemplarCity": "පැනමා"
+              },
+              "Lima": {
+                "_type": "zone",
+                "exemplarCity": "ලීමා"
+              },
+              "Miquelon": {
+                "_type": "zone",
+                "exemplarCity": "මිකියුලන්"
+              },
+              "Puerto_Rico": {
+                "_type": "zone",
+                "exemplarCity": "පුවටොරිකෝව"
+              },
+              "Asuncion": {
+                "_type": "zone",
+                "exemplarCity": "අසුන්සියොන්"
+              },
+              "Paramaribo": {
+                "_type": "zone",
+                "exemplarCity": "පැරාමරිබෝ"
+              },
+              "El_Salvador": {
+                "_type": "zone",
+                "exemplarCity": "එල්සැල්වදෝර්"
+              },
+              "Lower_Princes": {
+                "_type": "zone",
+                "exemplarCity": "ලෝවර් ප්‍රින්සස් ක්වාටර්"
+              },
+              "Grand_Turk": {
+                "_type": "zone",
+                "exemplarCity": "ග්රෑන්ඩ් ටර්ක්"
+              },
+              "Port_of_Spain": {
+                "_type": "zone",
+                "exemplarCity": "පොර්ට් ඔෆ් ස්පෙයින්"
+              },
+              "Adak": {
+                "_type": "zone",
+                "exemplarCity": "ඇඩක්"
+              },
+              "Nome": {
+                "_type": "zone",
+                "exemplarCity": "නෝම්"
+              },
+              "Anchorage": {
+                "_type": "zone",
+                "exemplarCity": "ඇනකොරාජ්"
+              },
+              "Yakutat": {
+                "_type": "zone",
+                "exemplarCity": "යකුටට්"
+              },
+              "Sitka": {
+                "_type": "zone",
+                "exemplarCity": "සිට්කා"
+              },
+              "Juneau": {
+                "_type": "zone",
+                "exemplarCity": "ජූනෝ"
+              },
+              "Metlakatla": {
+                "_type": "zone",
+                "exemplarCity": "මෙට්ලකට්ලා"
+              },
+              "Los_Angeles": {
+                "_type": "zone",
+                "exemplarCity": "ලොස් ඇන්ජලීස්"
+              },
+              "Boise": {
+                "_type": "zone",
+                "exemplarCity": "බොයිසි"
+              },
+              "Phoenix": {
+                "_type": "zone",
+                "exemplarCity": "ෆීනික්ස්"
+              },
+              "Denver": {
+                "_type": "zone",
+                "exemplarCity": "ඩෙන්වර්"
+              },
+              "North_Dakota": {
+                "Beulah": {
+                  "_type": "zone",
+                  "exemplarCity": "බියුලා, උතුරු ඩකෝටා"
+                },
+                "New_Salem": {
+                  "_type": "zone",
+                  "exemplarCity": "නව සලෙම්ම, උතුරු ඩකෝටා"
+                },
+                "Center": {
+                  "_type": "zone",
+                  "exemplarCity": "මධ්‍යම, උතුරු ඩකෝටා"
+                }
+              },
+              "Chicago": {
+                "_type": "zone",
+                "exemplarCity": "චිකාගෝ"
+              },
+              "Menominee": {
+                "_type": "zone",
+                "exemplarCity": "මෙනොමිනී"
+              },
+              "Indiana": {
+                "Vincennes": {
+                  "_type": "zone",
+                  "exemplarCity": "වින්සනස්, ඉන්දියානා"
+                },
+                "Petersburg": {
+                  "_type": "zone",
+                  "exemplarCity": "පීටර්ස්බර්ග්, ඉන්දියානා"
+                },
+                "Tell_City": {
+                  "_type": "zone",
+                  "exemplarCity": "ටෙල් නගරය, ඉන්දියානා"
+                },
+                "Knox": {
+                  "_type": "zone",
+                  "exemplarCity": "නොක්ස්, ඉන්දියානා"
+                },
+                "Winamac": {
+                  "_type": "zone",
+                  "exemplarCity": "විනමැක්, ඉන්දියානා"
+                },
+                "Marengo": {
+                  "_type": "zone",
+                  "exemplarCity": "මරෙන්ගෝ, ඉන්දියානා"
+                },
+                "Vevay": {
+                  "_type": "zone",
+                  "exemplarCity": "වෙවේ, ඉන්දියානා"
+                }
+              },
+              "Indianapolis": {
+                "_type": "zone",
+                "exemplarCity": "ඉන්ඩියානපොලිස්"
+              },
+              "Louisville": {
+                "_type": "zone",
+                "exemplarCity": "ලුවිස්විල්"
+              },
+              "Kentucky": {
+                "Monticello": {
+                  "_type": "zone",
+                  "exemplarCity": "මොන්ටිසෙලෝ, කෙන්ටකි"
+                }
+              },
+              "Detroit": {
+                "_type": "zone",
+                "exemplarCity": "ඩෙත්රුවා"
+              },
+              "New_York": {
+                "_type": "zone",
+                "exemplarCity": "නිව්යෝක්"
+              },
+              "Montevideo": {
+                "_type": "zone",
+                "exemplarCity": "මොන්ටෙවිඩියෝ"
+              },
+              "St_Vincent": {
+                "_type": "zone",
+                "exemplarCity": "ශාන්ත වින්ට්සන්"
+              },
+              "Caracas": {
+                "_type": "zone",
+                "exemplarCity": "කරකස්"
+              },
+              "Tortola": {
+                "_type": "zone",
+                "exemplarCity": "ටොර්ටෝලා"
+              },
+              "St_Thomas": {
+                "_type": "zone",
+                "exemplarCity": "ශාන්ත තෝමස්"
+              }
+            },
+            "Africa": {
+              "Luanda": {
+                "_type": "zone",
+                "exemplarCity": "ලුවන්ඩා"
+              },
+              "Ouagadougou": {
+                "_type": "zone",
+                "exemplarCity": "ඔආගඩොගො"
+              },
+              "Bujumbura": {
+                "_type": "zone",
+                "exemplarCity": "බුජුම්බුරා"
+              },
+              "Porto-Novo": {
+                "_type": "zone",
+                "exemplarCity": "පොර්තෝ-නොවෝ"
+              },
+              "Gaborone": {
+                "_type": "zone",
+                "exemplarCity": "ගැබරෝන්"
+              },
+              "Kinshasa": {
+                "_type": "zone",
+                "exemplarCity": "කින්ශාසා"
+              },
+              "Lubumbashi": {
+                "_type": "zone",
+                "exemplarCity": "ලුබුම්බාශි"
+              },
+              "Bangui": {
+                "_type": "zone",
+                "exemplarCity": "බන්ගුයි"
+              },
+              "Brazzaville": {
+                "_type": "zone",
+                "exemplarCity": "බ්‍රසාවිල්"
+              },
+              "Abidjan": {
+                "_type": "zone",
+                "exemplarCity": "අබිජාන්"
+              },
+              "Douala": {
+                "_type": "zone",
+                "exemplarCity": "දෞඅලා"
+              },
+              "Djibouti": {
+                "_type": "zone",
+                "exemplarCity": "ජිබුටි"
+              },
+              "Algiers": {
+                "_type": "zone",
+                "exemplarCity": "ඇල්ජියර්ස්"
+              },
+              "Cairo": {
+                "_type": "zone",
+                "exemplarCity": "කයිරෝ"
+              },
+              "El_Aaiun": {
+                "_type": "zone",
+                "exemplarCity": "එල් ආයුන්"
+              },
+              "Asmera": {
+                "_type": "zone",
+                "exemplarCity": "අස්මාරා"
+              },
+              "Ceuta": {
+                "_type": "zone",
+                "exemplarCity": "සෙයුටා"
+              },
+              "Addis_Ababa": {
+                "_type": "zone",
+                "exemplarCity": "අඩිස් අබාබා"
+              },
+              "Libreville": {
+                "_type": "zone",
+                "exemplarCity": "ලිබ්රවිල්"
+              },
+              "Accra": {
+                "_type": "zone",
+                "exemplarCity": "අක්රා"
+              },
+              "Banjul": {
+                "_type": "zone",
+                "exemplarCity": "බන්ජුල්"
+              },
+              "Conakry": {
+                "_type": "zone",
+                "exemplarCity": "කොනක්‍රි"
+              },
+              "Malabo": {
+                "_type": "zone",
+                "exemplarCity": "මලබෝ"
+              },
+              "Bissau": {
+                "_type": "zone",
+                "exemplarCity": "බිසෝ"
+              },
+              "Nairobi": {
+                "_type": "zone",
+                "exemplarCity": "නයිරෝබි"
+              },
+              "Monrovia": {
+                "_type": "zone",
+                "exemplarCity": "මොන්රොවියා"
+              },
+              "Maseru": {
+                "_type": "zone",
+                "exemplarCity": "මසේරු"
+              },
+              "Tripoli": {
+                "_type": "zone",
+                "exemplarCity": "ට්‍රිපොලි"
+              },
+              "Casablanca": {
+                "_type": "zone",
+                "exemplarCity": "කැසබ්ලන්කා"
+              },
+              "Bamako": {
+                "_type": "zone",
+                "exemplarCity": "බමකො"
+              },
+              "Nouakchott": {
+                "_type": "zone",
+                "exemplarCity": "නුආක්චොට්"
+              },
+              "Blantyre": {
+                "_type": "zone",
+                "exemplarCity": "බ්ලන්ටයර්"
+              },
+              "Maputo": {
+                "_type": "zone",
+                "exemplarCity": "මපුටෝ"
+              },
+              "Windhoek": {
+                "_type": "zone",
+                "exemplarCity": "වින්ඩ්හොඑක්"
+              },
+              "Niamey": {
+                "_type": "zone",
+                "exemplarCity": "නියාමේ"
+              },
+              "Lagos": {
+                "_type": "zone",
+                "exemplarCity": "ලාගෝස්"
+              },
+              "Kigali": {
+                "_type": "zone",
+                "exemplarCity": "කිගාලි"
+              },
+              "Khartoum": {
+                "_type": "zone",
+                "exemplarCity": "කාර්ටොම්"
+              },
+              "Freetown": {
+                "_type": "zone",
+                "exemplarCity": "ෆ්‍රීටවුන්"
+              },
+              "Dakar": {
+                "_type": "zone",
+                "exemplarCity": "ඩකර්"
+              },
+              "Mogadishu": {
+                "_type": "zone",
+                "exemplarCity": "මොගඩිෂු"
+              },
+              "Juba": {
+                "_type": "zone",
+                "exemplarCity": "ජුබා"
+              },
+              "Sao_Tome": {
+                "_type": "zone",
+                "exemplarCity": "සාඕ තෝම්"
+              },
+              "Mbabane": {
+                "_type": "zone",
+                "exemplarCity": "ම්බබානේ"
+              },
+              "Ndjamena": {
+                "_type": "zone",
+                "exemplarCity": "ද්ජමෙනා"
+              },
+              "Lome": {
+                "_type": "zone",
+                "exemplarCity": "ලෝම්"
+              },
+              "Tunis": {
+                "_type": "zone",
+                "exemplarCity": "ටියුනිස්"
+              },
+              "Dar_es_Salaam": {
+                "_type": "zone",
+                "exemplarCity": "දාර් එස් සලාම්"
+              },
+              "Kampala": {
+                "_type": "zone",
+                "exemplarCity": "කම්පාලා"
+              },
+              "Johannesburg": {
+                "_type": "zone",
+                "exemplarCity": "ජොහන්නස්බර්ග්"
+              },
+              "Lusaka": {
+                "_type": "zone",
+                "exemplarCity": "ලුසාකා"
+              },
+              "Harare": {
+                "_type": "zone",
+                "exemplarCity": "හරාරේ"
+              }
+            },
+            "Antarctica": {
+              "Rothera": {
+                "_type": "zone",
+                "exemplarCity": "රොතෙරා"
+              },
+              "Palmer": {
+                "_type": "zone",
+                "exemplarCity": "පැල්මර්"
+              },
+              "Troll": {
+                "_type": "zone",
+                "exemplarCity": "ට්‍රෝල්"
+              },
+              "Syowa": {
+                "_type": "zone",
+                "exemplarCity": "සියෝවා"
+              },
+              "Mawson": {
+                "_type": "zone",
+                "exemplarCity": "මව්සන්"
+              },
+              "Davis": {
+                "_type": "zone",
+                "exemplarCity": "ඩේවිස්"
+              },
+              "Vostok": {
+                "_type": "zone",
+                "exemplarCity": "වොස්ටොක්"
+              },
+              "Casey": {
+                "_type": "zone",
+                "exemplarCity": "කැසේ"
+              },
+              "DumontDUrville": {
+                "_type": "zone",
+                "exemplarCity": "ඩුමොන්ට් ඩු‘ර්විල්"
+              },
+              "McMurdo": {
+                "_type": "zone",
+                "exemplarCity": "මැක්මුර්ඩෝ"
+              },
+              "Macquarie": {
+                "_type": "zone",
+                "exemplarCity": "මක්කුවරි"
+              }
+            },
+            "Australia": {
+              "Perth": {
+                "_type": "zone",
+                "exemplarCity": "පර්ත්"
+              },
+              "Eucla": {
+                "_type": "zone",
+                "exemplarCity": "ඉයුක්ලා"
+              },
+              "Darwin": {
+                "_type": "zone",
+                "exemplarCity": "ඩාවින්"
+              },
+              "Adelaide": {
+                "_type": "zone",
+                "exemplarCity": "ඇඩිලේඩ්"
+              },
+              "Broken_Hill": {
+                "_type": "zone",
+                "exemplarCity": "බ්‍රෝකන් හිල්"
+              },
+              "Melbourne": {
+                "_type": "zone",
+                "exemplarCity": "මෙල්බෝර්න්"
+              },
+              "Hobart": {
+                "_type": "zone",
+                "exemplarCity": "හෝබාර්ට්"
+              },
+              "Lindeman": {
+                "_type": "zone",
+                "exemplarCity": "ලින්ඩේමන්"
+              },
+              "Sydney": {
+                "_type": "zone",
+                "exemplarCity": "සිඩ්නි"
+              },
+              "Brisbane": {
+                "_type": "zone",
+                "exemplarCity": "බ්‍රිස්බේන්"
+              },
+              "Lord_Howe": {
+                "_type": "zone",
+                "exemplarCity": "ලෝර්ඩ් හෝව්"
+              }
+            },
+            "Atlantic": {
+              "Bermuda": {
+                "_type": "zone",
+                "exemplarCity": "බර්මියුඩා"
+              },
+              "Cape_Verde": {
+                "_type": "zone",
+                "exemplarCity": "කේප් වර්ඩ්"
+              },
+              "Canary": {
+                "_type": "zone",
+                "exemplarCity": "කැනරි"
+              },
+              "Stanley": {
+                "_type": "zone",
+                "exemplarCity": "ස්ටැන්ලි"
+              },
+              "Faeroe": {
+                "_type": "zone",
+                "exemplarCity": "ෆාරෝ"
+              },
+              "South_Georgia": {
+                "_type": "zone",
+                "exemplarCity": "දකුණු ජෝර්ජියාව"
+              },
+              "Reykjavik": {
+                "_type": "zone",
+                "exemplarCity": "රෙයික්ජාවික්"
+              },
+              "Azores": {
+                "_type": "zone",
+                "exemplarCity": "ඇසොරේ"
+              },
+              "Madeira": {
+                "_type": "zone",
+                "exemplarCity": "මඩෙයිරා"
+              },
+              "St_Helena": {
+                "_type": "zone",
+                "exemplarCity": "ශා. හෙලේනා"
+              }
+            },
+            "Indian": {
+              "Cocos": {
+                "_type": "zone",
+                "exemplarCity": "කොකොස්"
+              },
+              "Christmas": {
+                "_type": "zone",
+                "exemplarCity": "ක්‍රිස්මස්"
+              },
+              "Chagos": {
+                "_type": "zone",
+                "exemplarCity": "චාගොස්"
+              },
+              "Comoro": {
+                "_type": "zone",
+                "exemplarCity": "කොමොරෝ"
+              },
+              "Antananarivo": {
+                "_type": "zone",
+                "exemplarCity": "ඇන්ටනානරිවෝ"
+              },
+              "Mauritius": {
+                "_type": "zone",
+                "exemplarCity": "මුරුසිය"
+              },
+              "Maldives": {
+                "_type": "zone",
+                "exemplarCity": "මාල දිවයින"
+              },
+              "Reunion": {
+                "_type": "zone",
+                "exemplarCity": "රියුනියන්"
+              },
+              "Mahe": {
+                "_type": "zone",
+                "exemplarCity": "මාහේ"
+              },
+              "Kerguelen": {
+                "_type": "zone",
+                "exemplarCity": "කෙර්ගුඑලෙන්"
+              },
+              "Mayotte": {
+                "_type": "zone",
+                "exemplarCity": "මයෝටි"
+              }
+            },
+            "Arctic": {
+              "Longyearbyen": {
+                "_type": "zone",
+                "exemplarCity": "ලෝන්ග්ඉයර්බියෙන්"
+              }
+            }
+          },
+          "metazone": {
+            "Afghanistan": {
+              "long": {
+                "standard": "ඇෆ්ගනිස්ථාන වේලාව"
+              }
+            },
+            "Africa_Central": {
+              "long": {
+                "standard": "මධ්‍යම අප්‍රිකානු වේලාව"
+              }
+            },
+            "Africa_Eastern": {
+              "long": {
+                "standard": "නැගෙනහිර අප්‍රිකානු වේලාව"
+              }
+            },
+            "Africa_Southern": {
+              "long": {
+                "standard": "දකුණු අප්‍රිකානු වේලාව"
+              }
+            },
+            "Africa_Western": {
+              "long": {
+                "standard": "බටහිර අප්‍රිකානු වේලාව"
+              }
+            },
+            "Alaska": {
+              "long": {
+                "generic": "ඇලස්කා වේලාව",
+                "standard": "ඇලස්කා සම්මත වේලාව",
+                "daylight": "ඇලස්කා දිවාආලෝක වේලාව"
+              }
+            },
+            "Amazon": {
+              "long": {
+                "generic": "ඇමර්සන් වේලාව",
+                "standard": "ඇමර්සන් සම්මත වේලාව",
+                "daylight": "ඇමර්සන් ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "America_Central": {
+              "long": {
+                "generic": "උතුරු ඇමරිකානු මධ්‍යම වේලාව",
+                "standard": "උතුරු ඇමරිකානු මධ්‍යම සම්මත වේලාව",
+                "daylight": "උතුරු ඇමරිකානු මධ්‍යම දිවාආලෝක වේලාව"
+              }
+            },
+            "America_Eastern": {
+              "long": {
+                "generic": "උතුරු ඇමරිකානු නැගෙනහිර වේලාව",
+                "standard": "උතුරු ඇමරිකානු නැගෙනහිර සම්මත වේලාව",
+                "daylight": "උතුරු ඇමරිකානු නැගෙනහිර දිවාආලෝක වේලාව"
+              }
+            },
+            "America_Mountain": {
+              "long": {
+                "generic": "උතුරු ඇමරිකානු කඳුකර වේලාව",
+                "standard": "උතුරු ඇමරිකානු කඳුකර සම්මත වේලාව",
+                "daylight": "උතුරු ඇමරිකානු කඳුකර දිවාආලෝක වේලාව"
+              }
+            },
+            "America_Pacific": {
+              "long": {
+                "generic": "උතුරු ඇමරිකානු පැසිෆික් වේලාව",
+                "standard": "උතුරු ඇමරිකානු පැසිෆික් සම්මත වේලාව",
+                "daylight": "උතුරු ඇමරිකානු පැසිෆික් දිවාආලෝක වේලාව"
+              }
+            },
+            "Apia": {
+              "long": {
+                "generic": "අපියා වේලාව",
+                "standard": "අපියා සම්මත වේලාව",
+                "daylight": "අපියා දිවා වේලාව"
+              }
+            },
+            "Arabian": {
+              "long": {
+                "generic": "අරාබි වේලාව",
+                "standard": "අරාබි සම්මත වේලාව",
+                "daylight": "අරාබි දහවල් වේලාව"
+              }
+            },
+            "Argentina": {
+              "long": {
+                "generic": "ආර්ජන්ටිනා වේලාව",
+                "standard": "ආර්ජන්ටිනා සම්මත වේලාව",
+                "daylight": "ආර්ජන්ටිනා ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Argentina_Western": {
+              "long": {
+                "generic": "බටහිර ආර්ජන්ටිනා වේලාව",
+                "standard": "බටහිර ආර්ජන්ටිනා සම්මත වේලාව",
+                "daylight": "බටහිර ආර්ජන්ටිනා ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Armenia": {
+              "long": {
+                "generic": "ආමේනියානු වේලාව",
+                "standard": "ආමේනියානු සම්මත වේලාව",
+                "daylight": "ආමේනියානු ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Atlantic": {
+              "long": {
+                "generic": "අත්ලාන්තික් වේලාව",
+                "standard": "අත්ලාන්තික් සම්මත වේලාව",
+                "daylight": "අත්ලාන්තික් දිවාආලෝක වේලාව"
+              }
+            },
+            "Australia_Central": {
+              "long": {
+                "generic": "මධ්‍යම ඕස්ට්‍රේලියානු වේලාව",
+                "standard": "ඕස්ට්‍රේලියානු සම්මත වේලාව",
+                "daylight": "මධ්‍යම ඔස්ට්‍රේලියානු දහවල් වේලාව"
+              }
+            },
+            "Australia_CentralWestern": {
+              "long": {
+                "generic": "මධ්‍යම බටහිර ඔස්ට්‍රේලියානු වේලාව",
+                "standard": "මධ්‍යම බටහිර ඔස්ට්‍රේලියානු සම්මත වේලාව",
+                "daylight": "මධ්‍යම බටහිර ඔස්ට්‍රේලියානු දහවල් වේලාව"
+              }
+            },
+            "Australia_Eastern": {
+              "long": {
+                "generic": "නැගෙනහිර ඕස්ට්‍රේලියානු වේලාව",
+                "standard": "නැගෙනහිර ඕස්ට්‍රේලියානු සම්මත වේලාව",
+                "daylight": "නැඟෙනහිර ඕස්ට්‍රේලියානු දහවල් වේලාව"
+              }
+            },
+            "Australia_Western": {
+              "long": {
+                "generic": "බටහිර ඕස්ට්‍රේලියානු වේලාව",
+                "standard": "බටහිර ඕස්ට්‍රේලියානු සම්මත වේලාව",
+                "daylight": "බටහිර ඔස්ට්‍රේලියානු දහවල් වේලාව"
+              }
+            },
+            "Azerbaijan": {
+              "long": {
+                "generic": "අසර්බයිජාන් වේලාව",
+                "standard": "අසර්බයිජාන් සම්මත වේලාව",
+                "daylight": "අසර්බයිජාන් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Azores": {
+              "long": {
+                "generic": "ඇසොර්ස් වේලාව",
+                "standard": "ඇසොර්ස් සම්මත වේලාව",
+                "daylight": "ඇසොර්ස් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Bangladesh": {
+              "long": {
+                "generic": "බංගලාදේශ වේලාව",
+                "standard": "බංගලාදේශ සම්මත වේලාව",
+                "daylight": "බංගලාදේශ ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Bhutan": {
+              "long": {
+                "standard": "භුතාන වේලාව"
+              }
+            },
+            "Bolivia": {
+              "long": {
+                "standard": "බොලිවියා වේලාව"
+              }
+            },
+            "Brasilia": {
+              "long": {
+                "generic": "බ්‍රසීල වේලාව",
+                "standard": "බ්‍රසීල සම්මත වේලාව",
+                "daylight": "බ්‍රසීල ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Brunei": {
+              "long": {
+                "standard": "බෘනායි දරුස්සලාම් වේලාව"
+              }
+            },
+            "Cape_Verde": {
+              "long": {
+                "generic": "කේප්වේඩ් වේලාව",
+                "standard": "කේප්වේඩ් සම්මත වේලාව",
+                "daylight": "කේප්වේඩ් ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Chamorro": {
+              "long": {
+                "standard": "චමොරෝ වේලාව"
+              }
+            },
+            "Chatham": {
+              "long": {
+                "generic": "චැතම් වේලාව",
+                "standard": "චැතම් සම්මත වේලාව",
+                "daylight": "චැතම් දිවා වේලාව"
+              }
+            },
+            "Chile": {
+              "long": {
+                "generic": "චිලී වේලාව",
+                "standard": "චිලී සම්මත වේලාව",
+                "daylight": "චිලී ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "China": {
+              "long": {
+                "generic": "චීන වේලාව",
+                "standard": "චීන සම්මත වේලාව",
+                "daylight": "චීන දහවල් වේලාව"
+              }
+            },
+            "Christmas": {
+              "long": {
+                "standard": "ක්‍රිස්මස් දුපත් වේලාව"
+              }
+            },
+            "Cocos": {
+              "long": {
+                "standard": "කොකෝස් දුපත් වේලාව"
+              }
+            },
+            "Colombia": {
+              "long": {
+                "generic": "කොලොම්බියා වේලාව",
+                "standard": "කොලොම්බියා සම්මත වේලාව",
+                "daylight": "කොලොම්බියා ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Cook": {
+              "long": {
+                "generic": "කුක් දුපත් වේලාව",
+                "standard": "කුක් දුපත් සම්මත වේලාව",
+                "daylight": "කුක් දුපත් භාග ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Cuba": {
+              "long": {
+                "generic": "කියුබානු වේලාව",
+                "standard": "කියුබානු සම්මත වේලාව",
+                "daylight": "කියුබානු දිවාආලෝක වේලාව"
+              }
+            },
+            "Davis": {
+              "long": {
+                "standard": "ඩාවිස් වේලාව"
+              }
+            },
+            "DumontDUrville": {
+              "long": {
+                "standard": "දුමොන්ත්-ඩ්උර්විල් වේලාව"
+              }
+            },
+            "East_Timor": {
+              "long": {
+                "standard": "නැගෙනහිර ටිමෝර් වේලාව"
+              }
+            },
+            "Easter": {
+              "long": {
+                "generic": "ඊස්ටර් දූපත් වේලාව",
+                "standard": "ඊස්ටර් දූපත් සම්මත වේලාව",
+                "daylight": "ඊස්ටර් දූපත් ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Ecuador": {
+              "long": {
+                "standard": "ඉක්වදෝර් වේලාව"
+              }
+            },
+            "Europe_Central": {
+              "long": {
+                "generic": "මධ්‍යම යුරෝපීය වේලාව",
+                "standard": "මධ්‍යම යුරෝපීය සම්මත වේලාව",
+                "daylight": "මධ්‍යම යුරෝපීය ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Europe_Eastern": {
+              "long": {
+                "generic": "නැගෙනහිර යුරෝපීය වේලාව",
+                "standard": "නැගෙනහිර යුරෝපීය සම්මත වේලාව",
+                "daylight": "නැගෙනහිර යුරෝපීය ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Europe_Further_Eastern": {
+              "long": {
+                "standard": "තවත්-නැගෙනහිර යුරෝපීය වේලාව"
+              }
+            },
+            "Europe_Western": {
+              "long": {
+                "generic": "බටහිර යුරෝපීය වේලාව",
+                "standard": "බටහිර යුරෝපීය සම්මත වේලාව",
+                "daylight": "බටහිර යුරෝපීය ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Falkland": {
+              "long": {
+                "generic": "ෆෝක්ලන්ඩ් දූපත් වේලාව",
+                "standard": "ෆෝක්ලන්ඩ් දූපත් සම්මත වේලාව",
+                "daylight": "ෆෝක්ලන්ඩ් දූපත් ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Fiji": {
+              "long": {
+                "generic": "ෆිජි වේලාව",
+                "standard": "ෆිජි සම්මත වේලාව",
+                "daylight": "ෆිජි ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "French_Guiana": {
+              "long": {
+                "standard": "ප්‍රංශ ගයනා වේලාව"
+              }
+            },
+            "French_Southern": {
+              "long": {
+                "standard": "ප්‍රංශ දකුණුදිග සහ ඇන්ටාර්ක්ටික් වේලාව"
+              }
+            },
+            "Galapagos": {
+              "long": {
+                "standard": "ගලපගොස් වේලාව"
+              }
+            },
+            "Gambier": {
+              "long": {
+                "standard": "ගැම්බියර් වේලාව"
+              }
+            },
+            "Georgia": {
+              "long": {
+                "generic": "ජෝර්ජියානු වේලාව",
+                "standard": "ජෝර්ජියානු සම්මත වේලාව",
+                "daylight": "ජෝර්ජියානු ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Gilbert_Islands": {
+              "long": {
+                "standard": "ගිල්බර්ට් දුපත් වේලාව"
+              }
+            },
+            "GMT": {
+              "long": {
+                "standard": "ග්‍රිනිච් මධ්‍යම වේලාව"
+              }
+            },
+            "Greenland_Eastern": {
+              "long": {
+                "generic": "නැගෙනහිර ග්‍රීන්ලන්ත වේලාව",
+                "standard": "නැගෙනහිර ග්‍රීන්ලන්ත සම්මත වේලාව",
+                "daylight": "නැගෙනහිර ග්‍රීන්ලන්ත ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Greenland_Western": {
+              "long": {
+                "generic": "බටහිර ග්‍රීන්ලන්ත වේලාව",
+                "standard": "බටහිර ග්‍රීන්ලන්ත සම්මත වේලාව",
+                "daylight": "බටහිර ග්‍රීන්ලන්ත ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Gulf": {
+              "long": {
+                "standard": "ගල්ෆ් වේලාව"
+              }
+            },
+            "Guyana": {
+              "long": {
+                "standard": "ගයනා වේලාව"
+              }
+            },
+            "Hawaii": {
+              "long": {
+                "standard": "හවායි-අලෙයුතියාන් සම්මත වේලාව"
+              }
+            },
+            "Hawaii_Aleutian": {
+              "long": {
+                "generic": "හවායි-අලෙයුතියාන් වේලාව",
+                "standard": "හවායි-අලෙයුතියාන් සම්මත වේලාව",
+                "daylight": "හවායි-අලෙයුතියාන් දිවාආලෝක වේලාව"
+              }
+            },
+            "Hong_Kong": {
+              "long": {
+                "generic": "හොංකොං වේලාව",
+                "standard": "හොංකොං සම්මත වේලාව",
+                "daylight": "හොංකොං ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Hovd": {
+              "long": {
+                "generic": "හොව්ඩ් වේලාව",
+                "standard": "හොව්ඩ් සම්මත වේලාව",
+                "daylight": "හොව්ඩ් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "India": {
+              "long": {
+                "standard": "ඉන්දියානු වේලාව"
+              }
+            },
+            "Indian_Ocean": {
+              "long": {
+                "standard": "ඉන්දියන් සාගර වේලාව"
+              }
+            },
+            "Indochina": {
+              "long": {
+                "standard": "ඉන්දුචීන වේලාව"
+              }
+            },
+            "Indonesia_Central": {
+              "long": {
+                "standard": "මධ්‍යම ඉන්දුනීසියානු වේලාව"
+              }
+            },
+            "Indonesia_Eastern": {
+              "long": {
+                "standard": "නැගෙනහිර ඉන්දුනීසියානු වේලාව"
+              }
+            },
+            "Indonesia_Western": {
+              "long": {
+                "standard": "බටහිර ඉන්දුනීසියානු වේලාව"
+              }
+            },
+            "Iran": {
+              "long": {
+                "generic": "ඉරාන වේලාව",
+                "standard": "ඉරාන සම්මත වේලාව",
+                "daylight": "ඉරාන දිවා කාලය"
+              }
+            },
+            "Irkutsk": {
+              "long": {
+                "generic": "ඉර්කුට්ස්ක් වේලාව",
+                "standard": "ඉර්කුට්ස්ක් සම්මත වේලාව",
+                "daylight": "ඉර්කුට්ස්ක් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Israel": {
+              "long": {
+                "generic": "ඊශ්‍රායල වේලාව",
+                "standard": "ඊශ්‍රායල සම්මත වේලාව",
+                "daylight": "ඊශ්‍රායල දහවල් වේලාව"
+              }
+            },
+            "Japan": {
+              "long": {
+                "generic": "ජපාන වේලාව",
+                "standard": "ජපාන සම්මත වේලාව",
+                "daylight": "ජපාන දහවල් වේලාව"
+              }
+            },
+            "Kazakhstan": {
+              "long": {
+                "standard": "කසකස්තාන වේලාව"
+              }
+            },
+            "Kazakhstan_Eastern": {
+              "long": {
+                "standard": "නැගෙනහිර කසකස්තාන වේලාව"
+              }
+            },
+            "Kazakhstan_Western": {
+              "long": {
+                "standard": "බටහිර කසකස්තාන වේලාව"
+              }
+            },
+            "Korea": {
+              "long": {
+                "generic": "කොරියානු වේලාව",
+                "standard": "කොරියානු සම්මත වේලාව",
+                "daylight": "කොරියානු දහවල් වේලාව"
+              }
+            },
+            "Kosrae": {
+              "long": {
+                "standard": "කොස්රේ වේලාව"
+              }
+            },
+            "Krasnoyarsk": {
+              "long": {
+                "generic": "ක්‍රස්නොයාර්ස්ක් වේලාව",
+                "standard": "ක්‍රස්නොයාර්ස්ක් සම්මත වේලාව",
+                "daylight": "ක්‍රස්නොයාර්ස්ක් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Kyrgystan": {
+              "long": {
+                "standard": "කිර්ගිස්තාන වේලාව"
+              }
+            },
+            "Lanka": {
+              "long": {
+                "standard": "ශ්‍රී ලංකා වේලාව"
+              }
+            },
+            "Line_Islands": {
+              "long": {
+                "standard": "ලයින් දුපත් වේලාව"
+              }
+            },
+            "Lord_Howe": {
+              "long": {
+                "generic": "ලෝර්ඩ් හෝව් වේලාව",
+                "standard": "ලෝර්ඩ් හෝව් සම්මත වේලාව",
+                "daylight": "ලෝර්ඩ් හෝව් දිවා වේලාව"
+              }
+            },
+            "Magadan": {
+              "long": {
+                "generic": "මෙගඩන් වේලාව",
+                "standard": "මෙගඩන් සම්මත වේලාව",
+                "daylight": "මෙගඩන් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Malaysia": {
+              "long": {
+                "standard": "මැලේසියානු වේලාව"
+              }
+            },
+            "Maldives": {
+              "long": {
+                "standard": "මාලදිවයින් වේලාව"
+              }
+            },
+            "Marquesas": {
+              "long": {
+                "standard": "මාර්කුඑසාස් වේලාව"
+              }
+            },
+            "Marshall_Islands": {
+              "long": {
+                "standard": "මාර්ෂල් දුපත් වේලාව"
+              }
+            },
+            "Mauritius": {
+              "long": {
+                "generic": "මුරුසි වේලාව",
+                "standard": "මුරුසි සම්මත වේලාව",
+                "daylight": "මුරුසි ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Mawson": {
+              "long": {
+                "standard": "මොව්සන් වේලාව"
+              }
+            },
+            "Mexico_Pacific": {
+              "long": {
+                "generic": "මෙක්සිකෝ පැසිෆික් වේලාව",
+                "standard": "මෙක්සිකෝ පැසිෆික් සම්මත වේලාව",
+                "daylight": "මෙක්සිකෝ පැසිෆික් දිවාආලෝක වේලාව"
+              }
+            },
+            "Mongolia": {
+              "long": {
+                "generic": "උලාන් බාටර් වේලාව",
+                "standard": "උලාන් බාටර් සම්මත වේලාව",
+                "daylight": "උලාන් බාටර් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Moscow": {
+              "long": {
+                "generic": "මොස්කව් වේලාව",
+                "standard": "මොස්කව් සම්මත වේලාව",
+                "daylight": "මොස්කව් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Myanmar": {
+              "long": {
+                "standard": "මියන්මාර් වේලාව"
+              }
+            },
+            "Nauru": {
+              "long": {
+                "standard": "නාවුරු වේලාව"
+              }
+            },
+            "Nepal": {
+              "long": {
+                "standard": "නේපාල වේලාව"
+              }
+            },
+            "New_Caledonia": {
+              "long": {
+                "generic": "නව සෙලඩොනියානු වේලාව",
+                "standard": "නව සෙලඩොනියානු සම්මත වේලාව",
+                "daylight": "නව සෙලඩොනියානු ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "New_Zealand": {
+              "long": {
+                "generic": "නවසීලන්ත වේලාව",
+                "standard": "නවසීලන්ත සම්මත වේලාව",
+                "daylight": "නවසීලන්ත දිවා වේලාව"
+              }
+            },
+            "Newfoundland": {
+              "long": {
+                "generic": "නිව්ෆවුන්ලන්ත වේලාව",
+                "standard": "නිව්ෆවුන්ලන්ත සම්මත වේලාව",
+                "daylight": "නිව්ෆවුන්ලන්ත දිවාආලෝක වේලාව"
+              }
+            },
+            "Niue": {
+              "long": {
+                "standard": "නියු වේලාව"
+              }
+            },
+            "Norfolk": {
+              "long": {
+                "generic": "නොෆොල්ක් දුපත් වේලාව",
+                "standard": "නොෆොල්ක් දුපත් සම්මත වේලාව",
+                "daylight": "නොෆොල්ක් දුපත් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Noronha": {
+              "long": {
+                "generic": "ෆර්නැන්ඩෝ ඩි නොරොන්හා වේලාව",
+                "standard": "ෆර්නැන්ඩෝ ඩි නොරොන්හා සම්මත වේලාව",
+                "daylight": "ෆර්නැන්ඩෝ ඩි නොරොන්හා ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Novosibirsk": {
+              "long": {
+                "generic": "නොවසිබිර්ස්ක් වේලාව",
+                "standard": "නොවසිබිර්ස්ක් සම්මත වේලාව",
+                "daylight": "නොවසිබිර්ස්ක් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Omsk": {
+              "long": {
+                "generic": "ඔම්ස්ක් වේලාව",
+                "standard": "ඔම්ස්ක් සම්මත වේලාව",
+                "daylight": "ඔම්ස්ක් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Pakistan": {
+              "long": {
+                "generic": "පාකිස්ථාන වේලාව",
+                "standard": "පාකිස්ථාන සම්මත වේලාව",
+                "daylight": "පාකිස්ථාන ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Palau": {
+              "long": {
+                "standard": "පලාවු වේලාව"
+              }
+            },
+            "Papua_New_Guinea": {
+              "long": {
+                "standard": "පැපුවා නිව් ගිනීයා වේලාව"
+              }
+            },
+            "Paraguay": {
+              "long": {
+                "generic": "පැරගුවේ වේලාව",
+                "standard": "පැරගුවේ සම්මත වේලාව",
+                "daylight": "පැරගුවේ ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Peru": {
+              "long": {
+                "generic": "පේරු වේලාව",
+                "standard": "පේරු සම්මත වේලාව",
+                "daylight": "පේරු ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Philippines": {
+              "long": {
+                "generic": "පිලිපීන වේලාව",
+                "standard": "පිලිපීන සම්මත වේලාව",
+                "daylight": "පිලිපීන ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Phoenix_Islands": {
+              "long": {
+                "standard": "ෆීනික්ස් දුපත් වේලාව"
+              }
+            },
+            "Pierre_Miquelon": {
+              "long": {
+                "generic": "ශාන්ත පියරේ සහ මැකෝලන් වේලාව",
+                "standard": "ශාන්ත පියරේ සහ මැකෝලන් සම්මත වේලාව",
+                "daylight": "ශාන්ත පියරේ සහ මැකෝලන් දිවාආලෝක වේලාව"
+              }
+            },
+            "Pitcairn": {
+              "long": {
+                "standard": "පිට්කෙයාන් වේලාව"
+              }
+            },
+            "Ponape": {
+              "long": {
+                "standard": "පොනපේ වේලාව"
+              }
+            },
+            "Pyongyang": {
+              "long": {
+                "standard": "ප්යොන්ග්යන් වේලාව"
+              }
+            },
+            "Reunion": {
+              "long": {
+                "standard": "රියුනියන් වේලාව"
+              }
+            },
+            "Rothera": {
+              "long": {
+                "standard": "රොතෙරා වේලාව"
+              }
+            },
+            "Sakhalin": {
+              "long": {
+                "generic": "සඛලින් වේලාව",
+                "standard": "සඛලින් සම්මත වේලාව",
+                "daylight": "සඛලින් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Samoa": {
+              "long": {
+                "generic": "සැමෝවා වේලාව",
+                "standard": "සැමෝවා සම්මත වේලාව",
+                "daylight": "සැමෝවා ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Seychelles": {
+              "long": {
+                "standard": "සීෂෙල්ස් වේලාව"
+              }
+            },
+            "Singapore": {
+              "long": {
+                "standard": "සිංගප්පුරු වේලාව"
+              }
+            },
+            "Solomon": {
+              "long": {
+                "standard": "සොලොමන් දූපත් වේලාව"
+              }
+            },
+            "South_Georgia": {
+              "long": {
+                "standard": "දකුණු ජෝජියා වේලාව"
+              }
+            },
+            "Suriname": {
+              "long": {
+                "standard": "සුරිනාම වේලාව"
+              }
+            },
+            "Syowa": {
+              "long": {
+                "standard": "ස්යෝවා වේලාව"
+              }
+            },
+            "Tahiti": {
+              "long": {
+                "standard": "ටාහිටි වේලාව"
+              }
+            },
+            "Taipei": {
+              "long": {
+                "generic": "තායිපේ වේලාව",
+                "standard": "තායිපේ සම්මත වේලාව",
+                "daylight": "තායිපේ දහවල් වේලාව"
+              }
+            },
+            "Tajikistan": {
+              "long": {
+                "standard": "ටජිකිස්තාන වේලාව"
+              }
+            },
+            "Tokelau": {
+              "long": {
+                "standard": "ටොකෙලාවු වේලාව"
+              }
+            },
+            "Tonga": {
+              "long": {
+                "generic": "ටොංගා වේලාව",
+                "standard": "ටොංගා සම්මත වේලාව",
+                "daylight": "ටොංගා ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Truk": {
+              "long": {
+                "standard": "චුක් වේලාව"
+              }
+            },
+            "Turkmenistan": {
+              "long": {
+                "generic": "ටර්ක්මෙනිස්තාන වේලාව",
+                "standard": "ටර්ක්මෙනිස්තාන සම්මත වේලාව",
+                "daylight": "ටර්ක්මෙනිස්තාන ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Tuvalu": {
+              "long": {
+                "standard": "ටුවාලු වේලාව"
+              }
+            },
+            "Uruguay": {
+              "long": {
+                "generic": "උරුගුවේ වේලාව",
+                "standard": "උරුගුවේ සම්මත වේලාව",
+                "daylight": "උරුගුවේ ග්‍රීෂ්ම කාලය"
+              }
+            },
+            "Uzbekistan": {
+              "long": {
+                "generic": "උස්බෙකිස්තාන වේලාව",
+                "standard": "උස්බෙකිස්තාන සම්මත වේලාව",
+                "daylight": "උස්බෙකිස්තාන ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Vanuatu": {
+              "long": {
+                "generic": "වනුආටු වේලාව",
+                "standard": "වනුආටු සම්මත වේලාව",
+                "daylight": "වනුආටු ගිම්හාන වේලාව"
+              }
+            },
+            "Venezuela": {
+              "long": {
+                "standard": "වෙනිසියුලා වේලාව"
+              }
+            },
+            "Vladivostok": {
+              "long": {
+                "generic": "ව්ලදිවෝස්ටෝක් වේලාව",
+                "standard": "ව්ලදිවෝස්ටෝක් සම්මත වේලාව",
+                "daylight": "ව්ලදිවෝස්ටෝක් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Volgograd": {
+              "long": {
+                "generic": "වොල්ගොග්‍රාඩ් වේලාව",
+                "standard": "වොල්ගොග්‍රාඩ් සම්මත වේලාව",
+                "daylight": "වොල්ගොග්‍රාඩ් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Vostok": {
+              "long": {
+                "standard": "වොස්ටොක් වේලාව"
+              }
+            },
+            "Wake": {
+              "long": {
+                "standard": "වේක් දූපත් වේලාව"
+              }
+            },
+            "Wallis": {
+              "long": {
+                "standard": "වැලිස් සහ ෆුටුනා වේලාව"
+              }
+            },
+            "Yakutsk": {
+              "long": {
+                "generic": "යකුට්ස්ක් වේලාව",
+                "standard": "යකුට්ස්ක් සම්මත වේලාව",
+                "daylight": "යකුට්ස්ක් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Yekaterinburg": {
+              "long": {
+                "generic": "යෙකටෙරින්බර්ග් වේලාව",
+                "standard": "යෙකටෙරින්බර්ග් සම්මත වේලාව",
+                "daylight": "යෙකටෙරින්බර්ග් ග්‍රීෂ්ම වේලාව"
+              }
+            },
+            "Yukon": {
+              "long": {
+                "standard": "යුකොන් වේලාව"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

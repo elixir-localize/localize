@@ -1,0 +1,559 @@
+{
+  "main": {
+    "lij": {
+      "identity": {
+        "language": "lij"
+      },
+      "dates": {
+        "calendars": {
+          "ethiopic-amete-alem": {
+            "months": {
+              "format": {
+                "abbreviated": {
+                  "1": "Meskerem",
+                  "2": "Tekemt",
+                  "3": "Hedar",
+                  "4": "Tahsas",
+                  "5": "Ter",
+                  "6": "Yekatit",
+                  "7": "Megabit",
+                  "8": "Miazia",
+                  "9": "Genbot",
+                  "10": "Sene",
+                  "11": "Hamle",
+                  "12": "Nehasse",
+                  "13": "Pagumen"
+                },
+                "narrow": {
+                  "1": "1",
+                  "2": "2",
+                  "3": "3",
+                  "4": "4",
+                  "5": "5",
+                  "6": "6",
+                  "7": "7",
+                  "8": "8",
+                  "9": "9",
+                  "10": "10",
+                  "11": "11",
+                  "12": "12",
+                  "13": "13"
+                },
+                "wide": {
+                  "1": "Meskerem",
+                  "2": "Tekemt",
+                  "3": "Hedar",
+                  "4": "Tahsas",
+                  "5": "Ter",
+                  "6": "Yekatit",
+                  "7": "Megabit",
+                  "8": "Miazia",
+                  "9": "Genbot",
+                  "10": "Sene",
+                  "11": "Hamle",
+                  "12": "Nehasse",
+                  "13": "Pagumen"
+                }
+              },
+              "stand-alone": {
+                "abbreviated": {
+                  "1": "Meskerem",
+                  "2": "Tekemt",
+                  "3": "Hedar",
+                  "4": "Tahsas",
+                  "5": "Ter",
+                  "6": "Yekatit",
+                  "7": "Megabit",
+                  "8": "Miazia",
+                  "9": "Genbot",
+                  "10": "Sene",
+                  "11": "Hamle",
+                  "12": "Nehasse",
+                  "13": "Pagumen"
+                },
+                "narrow": {
+                  "1": "1",
+                  "2": "2",
+                  "3": "3",
+                  "4": "4",
+                  "5": "5",
+                  "6": "6",
+                  "7": "7",
+                  "8": "8",
+                  "9": "9",
+                  "10": "10",
+                  "11": "11",
+                  "12": "12",
+                  "13": "13"
+                },
+                "wide": {
+                  "1": "Meskerem",
+                  "2": "Tekemt",
+                  "3": "Hedar",
+                  "4": "Tahsas",
+                  "5": "Ter",
+                  "6": "Yekatit",
+                  "7": "Megabit",
+                  "8": "Miazia",
+                  "9": "Genbot",
+                  "10": "Sene",
+                  "11": "Hamle",
+                  "12": "Nehasse",
+                  "13": "Pagumen"
+                }
+              }
+            },
+            "days": {
+              "format": {
+                "abbreviated": {
+                  "sun": "dom.",
+                  "mon": "lun.",
+                  "tue": "mät.",
+                  "wed": "mäc.",
+                  "thu": "zeu.",
+                  "fri": "ven.",
+                  "sat": "sab."
+                },
+                "narrow": {
+                  "sun": "D",
+                  "mon": "L",
+                  "tue": "M",
+                  "wed": "M",
+                  "thu": "Z",
+                  "fri": "V",
+                  "sat": "S"
+                },
+                "short": {
+                  "sun": "dom.",
+                  "mon": "lun.",
+                  "tue": "mät.",
+                  "wed": "mäc.",
+                  "thu": "zeu.",
+                  "fri": "ven.",
+                  "sat": "sab."
+                },
+                "wide": {
+                  "sun": "domenega",
+                  "mon": "lunesdì",
+                  "tue": "mätesdì",
+                  "wed": "mäcordì",
+                  "thu": "zeuggia",
+                  "fri": "venardì",
+                  "sat": "sabbo"
+                }
+              },
+              "stand-alone": {
+                "abbreviated": {
+                  "sun": "dom.",
+                  "mon": "lun.",
+                  "tue": "mät.",
+                  "wed": "mäc.",
+                  "thu": "zeu.",
+                  "fri": "ven.",
+                  "sat": "sab."
+                },
+                "narrow": {
+                  "sun": "D",
+                  "mon": "L",
+                  "tue": "M",
+                  "wed": "M",
+                  "thu": "Z",
+                  "fri": "V",
+                  "sat": "S"
+                },
+                "short": {
+                  "sun": "dom.",
+                  "mon": "lun.",
+                  "tue": "mät.",
+                  "wed": "mäc.",
+                  "thu": "zeu.",
+                  "fri": "ven.",
+                  "sat": "sab."
+                },
+                "wide": {
+                  "sun": "domenega",
+                  "mon": "lunesdì",
+                  "tue": "mätesdì",
+                  "wed": "mäcordì",
+                  "thu": "zeuggia",
+                  "fri": "venardì",
+                  "sat": "sabbo"
+                }
+              }
+            },
+            "quarters": {
+              "format": {
+                "abbreviated": {
+                  "1": "T1",
+                  "2": "T2",
+                  "3": "T3",
+                  "4": "T4"
+                },
+                "narrow": {
+                  "1": "1",
+                  "2": "2",
+                  "3": "3",
+                  "4": "4"
+                },
+                "wide": {
+                  "1": "1º trimestre",
+                  "2": "2º trimestre",
+                  "3": "3º trimestre",
+                  "4": "4º trimestre"
+                }
+              },
+              "stand-alone": {
+                "abbreviated": {
+                  "1": "T1",
+                  "2": "T2",
+                  "3": "T3",
+                  "4": "T4"
+                },
+                "narrow": {
+                  "1": "1",
+                  "2": "2",
+                  "3": "3",
+                  "4": "4"
+                },
+                "wide": {
+                  "1": "1º trimestre",
+                  "2": "2º trimestre",
+                  "3": "3º trimestre",
+                  "4": "4º trimestre"
+                }
+              }
+            },
+            "dayPeriods": {
+              "format": {
+                "abbreviated": {
+                  "midnight": "mëzaneutte",
+                  "am": "AM",
+                  "noon": "mëzogiorno",
+                  "pm": "PM",
+                  "morning1": "da mattin",
+                  "afternoon1": "do poidisnâ",
+                  "evening1": "da seia",
+                  "night1": "da neutte"
+                },
+                "narrow": {
+                  "midnight": "mëzaneutte",
+                  "am": "m.",
+                  "noon": "mëzogiorno",
+                  "pm": "p.",
+                  "morning1": "da mattin",
+                  "afternoon1": "do poidisnâ",
+                  "evening1": "da seia",
+                  "night1": "da neutte"
+                },
+                "wide": {
+                  "midnight": "mëzaneutte",
+                  "am": "AM",
+                  "noon": "mëzogiorno",
+                  "pm": "PM",
+                  "morning1": "da mattin",
+                  "afternoon1": "do poidisnâ",
+                  "evening1": "da seia",
+                  "night1": "da neutte"
+                }
+              },
+              "stand-alone": {
+                "abbreviated": {
+                  "midnight": "mëzaneutte",
+                  "am": "AM",
+                  "noon": "mëzogiorno",
+                  "pm": "PM",
+                  "morning1": "mattin",
+                  "afternoon1": "poidisnâ",
+                  "evening1": "seia",
+                  "night1": "neutte"
+                },
+                "narrow": {
+                  "midnight": "mëzaneutte",
+                  "am": "m.",
+                  "noon": "mëzogiorno",
+                  "pm": "p.",
+                  "morning1": "mattin",
+                  "afternoon1": "poidisnâ",
+                  "evening1": "seia",
+                  "night1": "neutte"
+                },
+                "wide": {
+                  "midnight": "mëzaneutte",
+                  "am": "AM",
+                  "noon": "mëzogiorno",
+                  "pm": "PM",
+                  "morning1": "mattin",
+                  "afternoon1": "poidisnâ",
+                  "evening1": "seia",
+                  "night1": "neutte"
+                }
+              }
+            },
+            "eras": {
+              "eraNames": {
+                "0": "AA"
+              },
+              "eraAbbr": {
+                "0": "AA"
+              },
+              "eraNarrow": {
+                "0": "AA"
+              }
+            },
+            "dateFormats": {
+              "full": "EEEE d 'de' MMMM 'do' y G",
+              "long": "d 'de' MMMM 'do' y G",
+              "medium": "d/M/y G",
+              "short": "d/M/yy GGGGG"
+            },
+            "dateSkeletons": {
+              "full": "GyMMMMEEEEd",
+              "long": "GyMMMMd",
+              "medium": "GyMMMd",
+              "short": "GGGGGyMMdd"
+            },
+            "timeFormats": {
+              "full": "HH:mm:ss zzzz",
+              "long": "HH:mm:ss z",
+              "medium": "HH:mm:ss",
+              "short": "HH:mm"
+            },
+            "timeSkeletons": {
+              "full": "HHmmsszzzz",
+              "long": "HHmmssz",
+              "medium": "HHmmss",
+              "short": "HHmm"
+            },
+            "dateTimeFormats": {
+              "full": "{1}, {0}",
+              "long": "{1}, {0}",
+              "medium": "{1}, {0}",
+              "short": "{1}, {0}",
+              "availableFormats": {
+                "Bh": "h B",
+                "Bhm": "h:mm B",
+                "Bhms": "h:mm:ss B",
+                "d": "d",
+                "E": "ccc",
+                "EBh": "E h B",
+                "EBhm": "E h:mm B",
+                "EBhms": "E h:mm:ss B",
+                "Ed": "E d",
+                "Eh": "E h a",
+                "Ehm": "E h:mm a",
+                "EHm": "E HH:mm",
+                "Ehms": "E h:mm:ss a",
+                "EHms": "E HH:mm:ss",
+                "Gy": "y G",
+                "GyM": "G y-MM",
+                "GyMd": "d/M/y GGGGG",
+                "GyMEd": "G y-MM-dd, E",
+                "GyMMM": "LLL y G",
+                "GyMMMd": "d MMM y G",
+                "GyMMMEd": "E d MMM y G",
+                "h": "h a",
+                "H": "HH",
+                "hm": "h:mm a",
+                "Hm": "HH:mm",
+                "hms": "h:mm:ss a",
+                "Hms": "HH:mm:ss",
+                "hv": "h a v",
+                "Hv": "HH v",
+                "M": "L",
+                "Md": "d/M",
+                "MEd": "E d/M",
+                "MMM": "LLL",
+                "MMMd": "d MMM",
+                "MMMEd": "E d MMM",
+                "MMMMd": "d MMMM",
+                "ms": "mm:ss",
+                "y": "y G",
+                "yyyy": "y G",
+                "yyyyM": "M/y G",
+                "yyyyMd": "d/M/y G",
+                "yyyyMEd": "E d/M/y GGGGG",
+                "yyyyMMM": "LLL y G",
+                "yyyyMMMd": "d MMM y G",
+                "yyyyMMMEd": "E d MMM y G",
+                "yyyyMMMM": "LLLL 'do' y G",
+                "yyyyQQQ": "QQQ y G",
+                "yyyyQQQQ": "QQQQ y G"
+              },
+              "appendItems": {
+                "Day": "{0} ({2}: {1})",
+                "Day-Of-Week": "{0} {1}",
+                "Era": "{1} {0}",
+                "Hour": "{0} ({2}: {1})",
+                "Minute": "{0} ({2}: {1})",
+                "Month": "{0} ({2}: {1})",
+                "Quarter": "{0} ({2}: {1})",
+                "Second": "{0} ({2}: {1})",
+                "Timezone": "{0} {1}",
+                "Week": "{0} ({2}: {1})",
+                "Year": "{1} {0}"
+              },
+              "intervalFormats": {
+                "intervalFormatFallback": "{0} – {1}",
+                "Bh": {
+                  "B": "h B – h B",
+                  "h": "h–h B"
+                },
+                "Bhm": {
+                  "B": "h:mm B – h:mm B",
+                  "h": "h:mm–h:mm B",
+                  "m": "h:mm–h:mm B"
+                },
+                "d": {
+                  "d": "d–d"
+                },
+                "Gy": {
+                  "G": "y G – y G",
+                  "y": "y–y G"
+                },
+                "GyM": {
+                  "G": "M/y GGGGG – M/y GGGGG",
+                  "M": "M/y – M/y GGGGG",
+                  "y": "M/y – M/y GGGGG"
+                },
+                "GyMd": {
+                  "d": "d/M/y – d/M/y GGGGG",
+                  "G": "d/M/y GGGGG – d/M/y GGGGG",
+                  "M": "d/M/y – d/M/y GGGGG",
+                  "y": "d/M/y – d/M/y GGGGG"
+                },
+                "GyMEd": {
+                  "d": "E d/M/y – E d/M/y GGGGG",
+                  "G": "E d/M/y GGGGG – E d/M/y GGGGG",
+                  "M": "E d/M/y – E d/M/y GGGGG",
+                  "y": "E d/M/y – E d/M/y GGGGG"
+                },
+                "GyMMM": {
+                  "G": "MMM y G – MMM y G",
+                  "M": "MMM–MMM y G",
+                  "y": "MMM y – MMM y G"
+                },
+                "GyMMMd": {
+                  "d": "d–d MMM, y G",
+                  "G": "d MMM y G – d MMM y G",
+                  "M": "d MMM y G – d MMM y G",
+                  "y": "d MMM y G – d MMM y G"
+                },
+                "GyMMMEd": {
+                  "d": "E d MMM – E d MMM y G",
+                  "G": "E d MMM y G – E d MMM y G",
+                  "M": "E d MMM y – E d MMM y G",
+                  "y": "E d MMM y – E d MMM y G"
+                },
+                "h": {
+                  "a": "h a – h a",
+                  "h": "h–h a"
+                },
+                "H": {
+                  "H": "HH–HH"
+                },
+                "hm": {
+                  "a": "h:mm a – h:mm a",
+                  "h": "h:mm–h:mm a",
+                  "m": "h:mm–h:mm a"
+                },
+                "Hm": {
+                  "H": "HH:mm–HH:mm",
+                  "m": "HH:mm–HH:mm"
+                },
+                "hmv": {
+                  "a": "h:mm a – h:mm a v",
+                  "h": "h:mm–h:mm a v",
+                  "m": "h:mm–h:mm a v"
+                },
+                "Hmv": {
+                  "H": "HH:mm–HH:mm v",
+                  "m": "HH:mm–HH:mm v"
+                },
+                "hv": {
+                  "a": "h a – h a v",
+                  "h": "h–h a v"
+                },
+                "Hv": {
+                  "H": "HH–HH v"
+                },
+                "M": {
+                  "M": "M–M"
+                },
+                "Md": {
+                  "d": "d/M – d/M",
+                  "M": "d/M – d/M"
+                },
+                "MEd": {
+                  "d": "E d/M – E d/M",
+                  "M": "E d/M – E d/M"
+                },
+                "MMM": {
+                  "M": "MMM–MMM"
+                },
+                "MMMd": {
+                  "d": "d–d MMM",
+                  "M": "d MMM – d MMM"
+                },
+                "MMMEd": {
+                  "d": "E d – E d MMM",
+                  "M": "E d MMM – E d MMM"
+                },
+                "y": {
+                  "y": "y–y G"
+                },
+                "yM": {
+                  "M": "M/y – M/y GGGGG",
+                  "y": "M/y – M/y GGGGG"
+                },
+                "yMd": {
+                  "d": "d/M/y – d/M/y GGGGG",
+                  "M": "d/M/y – d/M/y GGGGG",
+                  "y": "d/M/y – d/M/y GGGGG"
+                },
+                "yMEd": {
+                  "d": "E d/M/y – E d/M/y GGGGG",
+                  "M": "E d/M/y – E d/M/y GGGGG",
+                  "y": "E d/M/y – E d/M/y GGGGG"
+                },
+                "yMMM": {
+                  "M": "MMM–MMM y G",
+                  "y": "MMM 'do' y – MMM 'do' y G"
+                },
+                "yMMMd": {
+                  "d": "d–d MMM 'do' y G",
+                  "M": "d MMM – d MMM 'do' y G",
+                  "y": "d MMM 'do' y – d MMM 'do' y G"
+                },
+                "yMMMEd": {
+                  "d": "E d MMM – E d MMM 'do' y G",
+                  "M": "E d MMM – E d MMM 'do' y G",
+                  "y": "E d MMM 'do' y – E d MMM 'do' y G"
+                },
+                "yMMMM": {
+                  "M": "MMMM–MMMM 'do' y G",
+                  "y": "MMMM 'do' y – MMMM 'do' y G"
+                }
+              }
+            },
+            "dateTimeFormats-atTime": {
+              "standard": {
+                "full": "{1} 'à' {0}",
+                "long": "{1} 'à' {0}",
+                "medium": "{1}, {0}",
+                "short": "{1}, {0}"
+              }
+            },
+            "dateTimeFormats-relative": {
+              "standard": {
+                "full": "{1}, {0}",
+                "long": "{1}, {0}",
+                "medium": "{1}, {0}",
+                "short": "{1}, {0}"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

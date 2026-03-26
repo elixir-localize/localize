@@ -1,0 +1,15 @@
+{
+  "main": {
+    "hi": {
+      "identity": {
+        "language": "hi"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "हाँ",
+          "nostr": "नहीं"
+        }
+      }
+    }
+  }
+}

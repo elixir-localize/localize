@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mk": {
+      "identity": {
+        "language": "mk"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "да:д",
+          "nostr": "не:н"
+        }
+      }
+    }
+  }
+}

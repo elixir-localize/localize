@@ -1,0 +1,15 @@
+{
+  "main": {
+    "hu": {
+      "identity": {
+        "language": "hu"
+      },
+      "contextTransforms": {
+        "typographicNames": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        }
+      }
+    }
+  }
+}

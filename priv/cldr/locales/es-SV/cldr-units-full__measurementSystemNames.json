@@ -1,0 +1,17 @@
+{
+  "main": {
+    "es-SV": {
+      "identity": {
+        "language": "es",
+        "territory": "SV"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrico",
+          "UK": "anglosajón",
+          "US": "estadounidense"
+        }
+      }
+    }
+  }
+}

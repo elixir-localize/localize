@@ -1,0 +1,16 @@
+{
+  "main": {
+    "de-BE": {
+      "identity": {
+        "language": "de",
+        "territory": "BE"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ja:j",
+          "nostr": "nein:n"
+        }
+      }
+    }
+  }
+}

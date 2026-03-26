@@ -1,0 +1,15 @@
+{
+  "main": {
+    "chr": {
+      "identity": {
+        "language": "chr"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ᎥᎥ:Ꭵ",
+          "nostr": "ᎥᏝ:Ꮭ"
+        }
+      }
+    }
+  }
+}

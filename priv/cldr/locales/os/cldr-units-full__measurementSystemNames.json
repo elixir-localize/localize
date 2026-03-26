@@ -1,0 +1,16 @@
+{
+  "main": {
+    "os": {
+      "identity": {
+        "language": "os"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Метрикон",
+          "UK": "СБ",
+          "US": "АИШ"
+        }
+      }
+    }
+  }
+}

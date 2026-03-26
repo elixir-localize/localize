@@ -1,0 +1,16 @@
+{
+  "main": {
+    "zh": {
+      "identity": {
+        "language": "zh"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "公制",
+          "UK": "英制",
+          "US": "美制"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,526 @@
+{
+  "main": {
+    "ckb": {
+      "identity": {
+        "language": "ckb"
+      },
+      "numbers": {
+        "currencies": {
+          "AED": {
+            "displayName": "درهەمی ئیماڕاتی",
+            "displayName-count-other": "درهەمی ئیماڕاتی"
+          },
+          "AFN": {
+            "displayName": "ئەفغانیی ئەفغانستان",
+            "displayName-count-other": "ئەفغانیی ئەفغانستان",
+            "symbol-alt-narrow": "؋"
+          },
+          "AMD": {
+            "displayName": "درامی ئەرمینیایی",
+            "displayName-count-other": "درامی ئەرمینیایی",
+            "symbol-alt-narrow": "֏"
+          },
+          "AOA": {
+            "symbol-alt-narrow": "Kz"
+          },
+          "ARS": {
+            "displayName": "پێسۆی ئەرجەنتینی",
+            "displayName-count-other": "پێسۆی ئەرجەنتینی",
+            "symbol-alt-narrow": "$"
+          },
+          "AUD": {
+            "displayName": "دۆلاری ئوسترالی",
+            "displayName-count-other": "دۆلاری ئوسترالی",
+            "symbol": "A$",
+            "symbol-alt-narrow": "$"
+          },
+          "AZN": {
+            "displayName": "مەنەتی ئازەربایجانی",
+            "displayName-count-other": "مەنەتی ئازەربایجانی",
+            "symbol-alt-narrow": "₼"
+          },
+          "BAM": {
+            "symbol-alt-narrow": "KM"
+          },
+          "BBD": {
+            "symbol-alt-narrow": "$"
+          },
+          "BDT": {
+            "displayName": "تەکەی بەنگالی",
+            "displayName-count-other": "تەکەی بەنگالی",
+            "symbol-alt-narrow": "৳"
+          },
+          "BHD": {
+            "displayName": "دیناری بەحرەینی",
+            "displayName-count-other": "دیناری بەحرەینی"
+          },
+          "BMD": {
+            "symbol-alt-narrow": "$"
+          },
+          "BND": {
+            "displayName": "دۆلاری بروونایی",
+            "displayName-count-other": "دۆلاری بروونایی",
+            "symbol-alt-narrow": "$"
+          },
+          "BOB": {
+            "symbol-alt-narrow": "Bs"
+          },
+          "BRL": {
+            "symbol": "R$",
+            "symbol-alt-narrow": "R$"
+          },
+          "BSD": {
+            "symbol-alt-narrow": "$"
+          },
+          "BWP": {
+            "symbol-alt-narrow": "P"
+          },
+          "BZD": {
+            "displayName": "دۆلاری بەلیزی",
+            "displayName-count-other": "دۆلاری بەلیزی",
+            "symbol-alt-narrow": "$"
+          },
+          "CAD": {
+            "displayName": "دۆلاری کەنەدی",
+            "displayName-count-other": "دۆلاری کەنەدی",
+            "symbol": "CA$",
+            "symbol-alt-narrow": "$"
+          },
+          "CHF": {
+            "displayName": "فرانکی سویسری",
+            "displayName-count-other": "فرانکی سویسری"
+          },
+          "CLP": {
+            "symbol-alt-narrow": "$"
+          },
+          "CNY": {
+            "displayName": "یەننی چینی",
+            "displayName-count-other": "یەننی چینی",
+            "symbol": "CN¥",
+            "symbol-alt-narrow": "¥"
+          },
+          "COP": {
+            "symbol-alt-narrow": "$"
+          },
+          "CRC": {
+            "symbol-alt-narrow": "₡"
+          },
+          "CUC": {
+            "symbol-alt-narrow": "$"
+          },
+          "CUP": {
+            "symbol-alt-narrow": "$"
+          },
+          "CZK": {
+            "symbol-alt-narrow": "Kč"
+          },
+          "DKK": {
+            "displayName": "کرۆنی دانیمارکی",
+            "displayName-count-other": "کرۆنی دانیمارکی",
+            "symbol-alt-narrow": "kr"
+          },
+          "DOP": {
+            "symbol-alt-narrow": "$"
+          },
+          "DZD": {
+            "displayName": "دیناری جەزائیری",
+            "displayName-count-other": "دیناری جەزائیری"
+          },
+          "EGP": {
+            "displayName": "جونەی میسڕی",
+            "displayName-count-other": "جونەی میسڕی",
+            "symbol-alt-narrow": "E£"
+          },
+          "ESP": {
+            "symbol-alt-narrow": "₧"
+          },
+          "EUR": {
+            "displayName": "یورۆ",
+            "displayName-count-other": "یورۆ",
+            "symbol": "€",
+            "symbol-alt-narrow": "€"
+          },
+          "FJD": {
+            "displayName": "دۆلاری فیجیی",
+            "displayName-count-other": "دۆلاری فیجیی",
+            "symbol-alt-narrow": "$"
+          },
+          "FKP": {
+            "symbol-alt-narrow": "£"
+          },
+          "GBP": {
+            "displayName": "پاوەنی بەریتانی",
+            "displayName-count-other": "پاوەنی بەریتانی",
+            "symbol": "£",
+            "symbol-alt-narrow": "£"
+          },
+          "GEL": {
+            "displayName": "لاری جۆرجیی",
+            "displayName-count-other": "لاری جۆرجیی",
+            "symbol-alt-narrow": "₾"
+          },
+          "GHS": {
+            "symbol-alt-narrow": "GH₵"
+          },
+          "GIP": {
+            "symbol-alt-narrow": "£"
+          },
+          "GNF": {
+            "symbol-alt-narrow": "FG"
+          },
+          "GTQ": {
+            "symbol-alt-narrow": "Q"
+          },
+          "GYD": {
+            "symbol-alt-narrow": "$"
+          },
+          "HKD": {
+            "symbol": "HK$",
+            "symbol-alt-narrow": "$"
+          },
+          "HNL": {
+            "symbol-alt-narrow": "L"
+          },
+          "HRK": {
+            "symbol-alt-narrow": "kn"
+          },
+          "HUF": {
+            "symbol-alt-narrow": "Ft"
+          },
+          "IDR": {
+            "displayName": "ڕوپیەی ئیندۆنیزی",
+            "displayName-count-other": "ڕوپیەی ئیندۆنیزی",
+            "symbol-alt-narrow": "Rp"
+          },
+          "ILS": {
+            "displayName": "شەخەلی ئیسرائیلی",
+            "displayName-count-other": "شەخەلی ئیسرائیلی",
+            "symbol": "₪",
+            "symbol-alt-narrow": "₪"
+          },
+          "INR": {
+            "displayName": "ڕوپیەی هیندی",
+            "displayName-count-other": "ڕوپیەی هیندی",
+            "symbol": "₹",
+            "symbol-alt-narrow": "₹"
+          },
+          "IQD": {
+            "displayName": "دیناری عێراقی",
+            "displayName-count-other": "دیناری عێراقی",
+            "symbol": "د.ع.‏"
+          },
+          "IRR": {
+            "displayName": "ڕیاڵی ئێرانی",
+            "displayName-count-other": "ڕیاڵی ئێرانی"
+          },
+          "ISK": {
+            "symbol-alt-narrow": "kr"
+          },
+          "JMD": {
+            "symbol-alt-narrow": "$"
+          },
+          "JOD": {
+            "displayName": "دیناری ئوردنی",
+            "displayName-count-other": "دیناری ئوردنی"
+          },
+          "JPY": {
+            "displayName": "یەنی یابانی",
+            "displayName-count-other": "یەنی یابانی",
+            "symbol": "JP¥",
+            "symbol-alt-narrow": "¥"
+          },
+          "KGS": {
+            "displayName": "سۆمی قیڕغستانی",
+            "displayName-count-other": "سۆمی قیڕغستانی",
+            "symbol-alt-narrow": "⃀"
+          },
+          "KHR": {
+            "displayName": "ڕیالی کەمبۆدی",
+            "displayName-count-other": "ڕیالی کەمبۆدی",
+            "symbol-alt-narrow": "៛"
+          },
+          "KMF": {
+            "symbol-alt-narrow": "CF"
+          },
+          "KPW": {
+            "symbol-alt-narrow": "₩"
+          },
+          "KRW": {
+            "symbol": "₩",
+            "symbol-alt-narrow": "₩"
+          },
+          "KWD": {
+            "displayName": "دیناری کووەیتی",
+            "displayName-count-other": "دیناری کووەیتی"
+          },
+          "KYD": {
+            "symbol-alt-narrow": "$"
+          },
+          "KZT": {
+            "displayName": "تەنگەی کازاخستانی",
+            "displayName-count-other": "تەنگەی کازاخستانی",
+            "symbol-alt-narrow": "₸"
+          },
+          "LAK": {
+            "symbol-alt-narrow": "₭"
+          },
+          "LBP": {
+            "displayName": "لیرەی کوبنانی",
+            "displayName-count-other": "لیرەی کوبنانی",
+            "symbol-alt-narrow": "L£"
+          },
+          "LKR": {
+            "displayName": "ڕوپیەی سریلانکی",
+            "displayName-count-other": "ڕوپیەی سریلانکی",
+            "symbol-alt-narrow": "Rs"
+          },
+          "LRD": {
+            "symbol-alt-narrow": "$"
+          },
+          "LTL": {
+            "symbol-alt-narrow": "Lt"
+          },
+          "LVL": {
+            "symbol-alt-narrow": "Ls"
+          },
+          "LYD": {
+            "displayName": "دیناری لیبی",
+            "displayName-count-other": "دیناری لیبی"
+          },
+          "MAD": {
+            "displayName": "درهەمی مەغریبی",
+            "displayName-count-other": "درهەمی مەغریبی"
+          },
+          "MGA": {
+            "symbol-alt-narrow": "Ar"
+          },
+          "MMK": {
+            "symbol-alt-narrow": "K"
+          },
+          "MNT": {
+            "displayName": "توگریکی مەنگۆلی",
+            "displayName-count-other": "توگریکی مەنگۆلی",
+            "symbol-alt-narrow": "₮"
+          },
+          "MUR": {
+            "symbol-alt-narrow": "Rs"
+          },
+          "MVR": {
+            "displayName": "ڕوفیەی ماڵدیڤی",
+            "displayName-count-other": "ڕوفیەی ماڵدیڤی"
+          },
+          "MXN": {
+            "symbol": "MX$",
+            "symbol-alt-narrow": "$"
+          },
+          "MYR": {
+            "displayName": "ڕینگەی مالیزی",
+            "displayName-count-other": "ڕینگەی مالیزی",
+            "symbol-alt-narrow": "RM"
+          },
+          "NAD": {
+            "symbol-alt-narrow": "$"
+          },
+          "NGN": {
+            "symbol-alt-narrow": "₦"
+          },
+          "NIO": {
+            "symbol-alt-narrow": "C$"
+          },
+          "NOK": {
+            "displayName": "کرۆنی نەرویجی",
+            "displayName-count-other": "کرۆنی نەرویجی",
+            "symbol-alt-narrow": "kr"
+          },
+          "NPR": {
+            "displayName": "ڕوپیەی نیپاڵی",
+            "displayName-count-other": "ڕوپیەی نیپاڵی",
+            "symbol-alt-narrow": "Rs"
+          },
+          "NZD": {
+            "displayName": "دۆلاری نیوزیکلەندی",
+            "displayName-count-other": "دۆلاری نیوزیکلەندی",
+            "symbol": "NZ$",
+            "symbol-alt-narrow": "$"
+          },
+          "OMR": {
+            "displayName": "ڕیاڵی عومانی",
+            "displayName-count-other": "ڕیاڵی عومانی"
+          },
+          "PGK": {
+            "displayName": "کینای پاپوا گینیایی نوێ",
+            "displayName-count-other": "کینای پاپوا گینیایی نوێ"
+          },
+          "PHP": {
+            "displayName": "پێسۆی فلیپینی",
+            "displayName-count-other": "پێسۆی فلیپینی",
+            "symbol": "₱",
+            "symbol-alt-narrow": "₱"
+          },
+          "PKR": {
+            "displayName": "ڕوپیەی پاکستانی",
+            "displayName-count-other": "ڕوپیەی پاکستانی",
+            "symbol-alt-narrow": "Rs"
+          },
+          "PLN": {
+            "symbol-alt-narrow": "zł"
+          },
+          "PYG": {
+            "symbol-alt-narrow": "₲"
+          },
+          "QAR": {
+            "displayName": "ڕیاڵی قەتەری",
+            "displayName-count-other": "ڕیاڵی قەتەری"
+          },
+          "RON": {
+            "symbol-alt-narrow": "lei"
+          },
+          "RUB": {
+            "displayName": "ڕوبڵی ڕووسی",
+            "displayName-count-other": "ڕوبڵی ڕووسی",
+            "symbol-alt-narrow": "₽"
+          },
+          "RWF": {
+            "symbol-alt-narrow": "RF"
+          },
+          "SAR": {
+            "displayName": "ڕیاڵی سەعوودی",
+            "displayName-count-other": "ڕیاڵی سەعوودی",
+            "symbol-alt-variant": "⃁"
+          },
+          "SBD": {
+            "displayName": "دۆلاری دورگەی سۆلۆمۆن",
+            "displayName-count-other": "دۆلاری دورگەی سۆلۆمۆن",
+            "symbol-alt-narrow": "$"
+          },
+          "SDG": {
+            "displayName": "جونەی سودانی",
+            "displayName-count-other": "جونەی سودانی"
+          },
+          "SEK": {
+            "displayName": "کرۆنی سویدی",
+            "displayName-count-other": "کرۆنی سویدی",
+            "symbol-alt-narrow": "kr"
+          },
+          "SGD": {
+            "displayName": "دۆلاری سینگاپووری",
+            "displayName-count-other": "دۆلاری سینگاپووری",
+            "symbol-alt-narrow": "$"
+          },
+          "SHP": {
+            "symbol-alt-narrow": "£"
+          },
+          "SRD": {
+            "symbol-alt-narrow": "$"
+          },
+          "SSP": {
+            "symbol-alt-narrow": "£"
+          },
+          "STN": {
+            "symbol-alt-narrow": "Db"
+          },
+          "SYP": {
+            "symbol-alt-narrow": "£"
+          },
+          "THB": {
+            "symbol-alt-narrow": "฿"
+          },
+          "TJS": {
+            "displayName": "سۆمۆنی تاجیکستانی",
+            "displayName-count-other": "سۆمۆنی تاجیکستانی"
+          },
+          "TMT": {
+            "displayName": "مەنەتی تورکمانستانی",
+            "displayName-count-other": "مەنەتی تورکمانستانی"
+          },
+          "TND": {
+            "displayName": "دیناری توونس",
+            "displayName-count-other": "دیناری توونس"
+          },
+          "TOP": {
+            "symbol-alt-narrow": "T$"
+          },
+          "TRY": {
+            "displayName": "لیرەی تورکیا",
+            "displayName-count-other": "لیرەی تورکیا",
+            "symbol-alt-narrow": "₺",
+            "symbol-alt-variant": "TL"
+          },
+          "TTD": {
+            "displayName": "دۆلاری ترینیداد و تۆباگۆ",
+            "displayName-count-other": "دۆلاری ترینیداد و تۆباگۆ",
+            "symbol-alt-narrow": "$"
+          },
+          "TWD": {
+            "displayName": "دۆلاری تایوانی نوێ",
+            "displayName-count-other": "دۆلاری تایوانی نوێ",
+            "symbol": "NT$",
+            "symbol-alt-narrow": "$"
+          },
+          "UAH": {
+            "symbol-alt-narrow": "₴"
+          },
+          "USD": {
+            "symbol": "US$",
+            "symbol-alt-narrow": "$"
+          },
+          "UYU": {
+            "symbol-alt-narrow": "$"
+          },
+          "UZS": {
+            "displayName": "سۆمی ئۆزبەکستانی",
+            "displayName-count-other": "سۆمی ئۆزبەکستانی"
+          },
+          "VEF": {
+            "symbol-alt-narrow": "Bs"
+          },
+          "VND": {
+            "displayName": "دۆنگی ڤێتنامی",
+            "displayName-count-other": "دۆنگی ڤێتنامی",
+            "symbol": "₫",
+            "symbol-alt-narrow": "₫"
+          },
+          "WST": {
+            "displayName": "تەلەی ساموایی",
+            "displayName-count-other": "تەلەی ساموایی"
+          },
+          "XAF": {
+            "symbol": "FCFA"
+          },
+          "XAU": {
+            "displayName": "زێڕ",
+            "displayName-count-other": "زێڕ"
+          },
+          "XCD": {
+            "symbol": "EC$",
+            "symbol-alt-narrow": "$"
+          },
+          "XCG": {
+            "symbol": "Cg."
+          },
+          "XOF": {
+            "symbol": "F CFA"
+          },
+          "XPF": {
+            "symbol": "CFPF"
+          },
+          "XXX": {
+            "displayName": "پارەی نەناسراو",
+            "displayName-count-other": "پارەی نەناسراو",
+            "symbol": "¤"
+          },
+          "YER": {
+            "displayName": "ڕیالی یەمەنی",
+            "displayName-count-other": "ڕیالی یەمەنی"
+          },
+          "ZAR": {
+            "symbol-alt-narrow": "R"
+          },
+          "ZMW": {
+            "symbol-alt-narrow": "ZK"
+          }
+        }
+      }
+    }
+  }
+}

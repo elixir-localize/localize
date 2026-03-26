@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-QA": {
+      "identity": {
+        "language": "ar",
+        "territory": "QA"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "نعم:ن",
+          "nostr": "لا:ل"
+        }
+      }
+    }
+  }
+}

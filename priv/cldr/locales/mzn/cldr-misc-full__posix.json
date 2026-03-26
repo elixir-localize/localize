@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mzn": {
+      "identity": {
+        "language": "mzn"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-PA": {
+      "identity": {
+        "language": "es",
+        "territory": "PA"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "sí:s",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-PH": {
+      "identity": {
+        "language": "es",
+        "territory": "PH"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

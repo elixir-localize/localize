@@ -1,0 +1,15 @@
+{
+  "main": {
+    "kln": {
+      "identity": {
+        "language": "kln"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

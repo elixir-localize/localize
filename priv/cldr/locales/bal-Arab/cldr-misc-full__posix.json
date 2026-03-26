@@ -1,0 +1,16 @@
+{
+  "main": {
+    "bal-Arab": {
+      "identity": {
+        "language": "bal",
+        "script": "Arab"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "هئو:ه",
+          "nostr": "نه:ن"
+        }
+      }
+    }
+  }
+}

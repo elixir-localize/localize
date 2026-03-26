@@ -1,0 +1,15 @@
+{
+  "main": {
+    "xog": {
+      "identity": {
+        "language": "xog"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ye:Y",
+          "nostr": "Be:B"
+        }
+      }
+    }
+  }
+}

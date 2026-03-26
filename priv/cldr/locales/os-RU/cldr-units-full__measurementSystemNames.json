@@ -1,0 +1,17 @@
+{
+  "main": {
+    "os-RU": {
+      "identity": {
+        "language": "os",
+        "territory": "RU"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Метрикон",
+          "UK": "СБ",
+          "US": "АИШ"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,2476 @@
+{
+  "main": {
+    "lv": {
+      "identity": {
+        "language": "lv"
+      },
+      "dates": {
+        "timeZoneNames": {
+          "hourFormat": "+HH:mm;-HH:mm",
+          "gmtFormat": "GMT{0}",
+          "gmtZeroFormat": "GMT",
+          "gmtUnknownFormat": "GMT+?",
+          "regionFormat": "Laika josla: {0}",
+          "regionFormat-type-daylight": "{0}: vasaras laiks",
+          "regionFormat-type-standard": "{0}: standarta laiks",
+          "fallbackFormat": "{0} ({1})",
+          "zone": {
+            "Pacific": {
+              "Honolulu": {
+                "_type": "zone",
+                "exemplarCity": "Honolulu"
+              },
+              "Pago_Pago": {
+                "_type": "zone",
+                "exemplarCity": "Pagopago"
+              },
+              "Easter": {
+                "_type": "zone",
+                "exemplarCity": "Lieldienu sala"
+              },
+              "Galapagos": {
+                "_type": "zone",
+                "exemplarCity": "Galapagu salas"
+              },
+              "Fiji": {
+                "_type": "zone",
+                "exemplarCity": "Fidži"
+              },
+              "Truk": {
+                "_type": "zone",
+                "exemplarCity": "Čūka"
+              },
+              "Ponape": {
+                "_type": "zone",
+                "exemplarCity": "Ponpeja"
+              },
+              "Kosrae": {
+                "_type": "zone",
+                "exemplarCity": "Kosraja"
+              },
+              "Guam": {
+                "_type": "zone",
+                "exemplarCity": "Guama"
+              },
+              "Enderbury": {
+                "_type": "zone",
+                "exemplarCity": "Kantona"
+              },
+              "Kiritimati": {
+                "_type": "zone",
+                "exemplarCity": "Kirisimasi"
+              },
+              "Tarawa": {
+                "_type": "zone",
+                "exemplarCity": "Tarava"
+              },
+              "Kwajalein": {
+                "_type": "zone",
+                "exemplarCity": "Kvadžaleina"
+              },
+              "Majuro": {
+                "_type": "zone",
+                "exemplarCity": "Madžuro"
+              },
+              "Saipan": {
+                "_type": "zone",
+                "exemplarCity": "Saipana"
+              },
+              "Noumea": {
+                "_type": "zone",
+                "exemplarCity": "Numea"
+              },
+              "Norfolk": {
+                "_type": "zone",
+                "exemplarCity": "Norfolka"
+              },
+              "Chatham": {
+                "_type": "zone",
+                "exemplarCity": "Četema"
+              },
+              "Auckland": {
+                "_type": "zone",
+                "exemplarCity": "Oklenda"
+              },
+              "Tahiti": {
+                "_type": "zone",
+                "exemplarCity": "Taiti"
+              },
+              "Marquesas": {
+                "_type": "zone",
+                "exemplarCity": "Marķīza salas"
+              },
+              "Gambier": {
+                "_type": "zone",
+                "exemplarCity": "Gambjē salas"
+              },
+              "Port_Moresby": {
+                "_type": "zone",
+                "exemplarCity": "Portmorsbi"
+              },
+              "Bougainville": {
+                "_type": "zone",
+                "exemplarCity": "Bugenvila sala"
+              },
+              "Pitcairn": {
+                "_type": "zone",
+                "exemplarCity": "Pitkērna"
+              },
+              "Guadalcanal": {
+                "_type": "zone",
+                "exemplarCity": "Gvadalkanala"
+              },
+              "Midway": {
+                "_type": "zone",
+                "exemplarCity": "Midvejs"
+              },
+              "Wake": {
+                "_type": "zone",
+                "exemplarCity": "Veika sala"
+              },
+              "Wallis": {
+                "_type": "zone",
+                "exemplarCity": "Volisa"
+              },
+              "Apia": {
+                "_type": "zone",
+                "exemplarCity": "Apija"
+              }
+            },
+            "Etc": {
+              "UTC": {
+                "_type": "zone",
+                "long": {
+                  "standard": "Universālais koordinētais laiks"
+                },
+                "short": {
+                  "standard": "UTC"
+                }
+              },
+              "Unknown": {
+                "_type": "zone",
+                "exemplarCity": "nezināma pilsēta"
+              }
+            },
+            "Europe": {
+              "Andorra": {
+                "_type": "zone",
+                "exemplarCity": "Andora"
+              },
+              "Tirane": {
+                "_type": "zone",
+                "exemplarCity": "Tirāna"
+              },
+              "Vienna": {
+                "_type": "zone",
+                "exemplarCity": "Vīne"
+              },
+              "Mariehamn": {
+                "_type": "zone",
+                "exemplarCity": "Mariehamna"
+              },
+              "Sarajevo": {
+                "_type": "zone",
+                "exemplarCity": "Sarajeva"
+              },
+              "Brussels": {
+                "_type": "zone",
+                "exemplarCity": "Brisele"
+              },
+              "Sofia": {
+                "_type": "zone",
+                "exemplarCity": "Sofija"
+              },
+              "Minsk": {
+                "_type": "zone",
+                "exemplarCity": "Minska"
+              },
+              "Zurich": {
+                "_type": "zone",
+                "exemplarCity": "Cīrihe"
+              },
+              "Prague": {
+                "_type": "zone",
+                "exemplarCity": "Prāga"
+              },
+              "Busingen": {
+                "_type": "zone",
+                "exemplarCity": "Bīzingene"
+              },
+              "Berlin": {
+                "_type": "zone",
+                "exemplarCity": "Berlīne"
+              },
+              "Copenhagen": {
+                "_type": "zone",
+                "exemplarCity": "Kopenhāgena"
+              },
+              "Tallinn": {
+                "_type": "zone",
+                "exemplarCity": "Tallina"
+              },
+              "Madrid": {
+                "_type": "zone",
+                "exemplarCity": "Madride"
+              },
+              "Paris": {
+                "_type": "zone",
+                "exemplarCity": "Parīze"
+              },
+              "London": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "Lielbritānijas vasaras laiks"
+                },
+                "exemplarCity": "Londona"
+              },
+              "Guernsey": {
+                "_type": "zone",
+                "exemplarCity": "Gērnsija"
+              },
+              "Gibraltar": {
+                "_type": "zone",
+                "exemplarCity": "Gibraltārs"
+              },
+              "Athens": {
+                "_type": "zone",
+                "exemplarCity": "Atēnas"
+              },
+              "Zagreb": {
+                "_type": "zone",
+                "exemplarCity": "Zagreba"
+              },
+              "Budapest": {
+                "_type": "zone",
+                "exemplarCity": "Budapešta"
+              },
+              "Dublin": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "Īrijas ziemas laiks"
+                },
+                "exemplarCity": "Dublina"
+              },
+              "Isle_of_Man": {
+                "_type": "zone",
+                "exemplarCity": "Menas sala"
+              },
+              "Rome": {
+                "_type": "zone",
+                "exemplarCity": "Roma"
+              },
+              "Jersey": {
+                "_type": "zone",
+                "exemplarCity": "Džērsija"
+              },
+              "Vaduz": {
+                "_type": "zone",
+                "exemplarCity": "Vaduca"
+              },
+              "Vilnius": {
+                "_type": "zone",
+                "exemplarCity": "Viļņa"
+              },
+              "Luxembourg": {
+                "_type": "zone",
+                "exemplarCity": "Luksemburga"
+              },
+              "Riga": {
+                "_type": "zone",
+                "exemplarCity": "Rīga"
+              },
+              "Monaco": {
+                "_type": "zone",
+                "exemplarCity": "Monako"
+              },
+              "Chisinau": {
+                "_type": "zone",
+                "exemplarCity": "Kišiņeva"
+              },
+              "Amsterdam": {
+                "_type": "zone",
+                "exemplarCity": "Amsterdama"
+              },
+              "Warsaw": {
+                "_type": "zone",
+                "exemplarCity": "Varšava"
+              },
+              "Lisbon": {
+                "_type": "zone",
+                "exemplarCity": "Lisabona"
+              },
+              "Bucharest": {
+                "_type": "zone",
+                "exemplarCity": "Bukareste"
+              },
+              "Belgrade": {
+                "_type": "zone",
+                "exemplarCity": "Belgrada"
+              },
+              "Kaliningrad": {
+                "_type": "zone",
+                "exemplarCity": "Kaļiņingrada"
+              },
+              "Moscow": {
+                "_type": "zone",
+                "exemplarCity": "Maskava"
+              },
+              "Volgograd": {
+                "_type": "zone",
+                "exemplarCity": "Volgograda"
+              },
+              "Saratov": {
+                "_type": "zone",
+                "exemplarCity": "Saratova"
+              },
+              "Astrakhan": {
+                "_type": "zone",
+                "exemplarCity": "Astrahaņa"
+              },
+              "Ulyanovsk": {
+                "_type": "zone",
+                "exemplarCity": "Uļjanovska"
+              },
+              "Kirov": {
+                "_type": "zone",
+                "exemplarCity": "Kirova"
+              },
+              "Stockholm": {
+                "_type": "zone",
+                "exemplarCity": "Stokholma"
+              },
+              "Ljubljana": {
+                "_type": "zone",
+                "exemplarCity": "Ļubļana"
+              },
+              "San_Marino": {
+                "_type": "zone",
+                "exemplarCity": "Sanmarīno"
+              },
+              "Istanbul": {
+                "_type": "zone",
+                "exemplarCity": "Stambula"
+              },
+              "Kiev": {
+                "_type": "zone",
+                "exemplarCity": "Kijeva"
+              },
+              "Simferopol": {
+                "_type": "zone",
+                "exemplarCity": "Simferopole"
+              },
+              "Vatican": {
+                "_type": "zone",
+                "exemplarCity": "Vatikāns"
+              }
+            },
+            "Asia": {
+              "Dubai": {
+                "_type": "zone",
+                "exemplarCity": "Dubaija"
+              },
+              "Kabul": {
+                "_type": "zone",
+                "exemplarCity": "Kabula"
+              },
+              "Yerevan": {
+                "_type": "zone",
+                "exemplarCity": "Erevāna"
+              },
+              "Dhaka": {
+                "_type": "zone",
+                "exemplarCity": "Daka"
+              },
+              "Bahrain": {
+                "_type": "zone",
+                "exemplarCity": "Bahreina"
+              },
+              "Brunei": {
+                "_type": "zone",
+                "exemplarCity": "Bruneja"
+              },
+              "Urumqi": {
+                "_type": "zone",
+                "exemplarCity": "Urumči"
+              },
+              "Shanghai": {
+                "_type": "zone",
+                "exemplarCity": "Šanhaja"
+              },
+              "Nicosia": {
+                "_type": "zone",
+                "exemplarCity": "Nikosija"
+              },
+              "Hong_Kong": {
+                "_type": "zone",
+                "exemplarCity": "Honkonga"
+              },
+              "Jakarta": {
+                "_type": "zone",
+                "exemplarCity": "Džakarta"
+              },
+              "Pontianak": {
+                "_type": "zone",
+                "exemplarCity": "Pontianaka"
+              },
+              "Makassar": {
+                "_type": "zone",
+                "exemplarCity": "Makasara"
+              },
+              "Jayapura": {
+                "_type": "zone",
+                "exemplarCity": "Džajapura"
+              },
+              "Jerusalem": {
+                "_type": "zone",
+                "exemplarCity": "Jeruzaleme"
+              },
+              "Calcutta": {
+                "_type": "zone",
+                "exemplarCity": "Kalkāta"
+              },
+              "Baghdad": {
+                "_type": "zone",
+                "exemplarCity": "Bagdāde"
+              },
+              "Tehran": {
+                "_type": "zone",
+                "exemplarCity": "Teherāna"
+              },
+              "Amman": {
+                "_type": "zone",
+                "exemplarCity": "Ammāna"
+              },
+              "Tokyo": {
+                "_type": "zone",
+                "exemplarCity": "Tokija"
+              },
+              "Bishkek": {
+                "_type": "zone",
+                "exemplarCity": "Biškeka"
+              },
+              "Phnom_Penh": {
+                "_type": "zone",
+                "exemplarCity": "Pnompeņa"
+              },
+              "Pyongyang": {
+                "_type": "zone",
+                "exemplarCity": "Phenjana"
+              },
+              "Seoul": {
+                "_type": "zone",
+                "exemplarCity": "Seula"
+              },
+              "Kuwait": {
+                "_type": "zone",
+                "exemplarCity": "Kuveita"
+              },
+              "Aqtau": {
+                "_type": "zone",
+                "exemplarCity": "Aktau"
+              },
+              "Oral": {
+                "_type": "zone",
+                "exemplarCity": "Orala"
+              },
+              "Atyrau": {
+                "_type": "zone",
+                "exemplarCity": "Atirau"
+              },
+              "Aqtobe": {
+                "_type": "zone",
+                "exemplarCity": "Aktebe"
+              },
+              "Qostanay": {
+                "_type": "zone",
+                "exemplarCity": "Kostanaja"
+              },
+              "Qyzylorda": {
+                "_type": "zone",
+                "exemplarCity": "Kizilorda"
+              },
+              "Almaty": {
+                "_type": "zone",
+                "exemplarCity": "Almati"
+              },
+              "Vientiane": {
+                "_type": "zone",
+                "exemplarCity": "Vjenčana"
+              },
+              "Beirut": {
+                "_type": "zone",
+                "exemplarCity": "Beirūta"
+              },
+              "Colombo": {
+                "_type": "zone",
+                "exemplarCity": "Kolombo"
+              },
+              "Rangoon": {
+                "_type": "zone",
+                "exemplarCity": "Ranguna"
+              },
+              "Hovd": {
+                "_type": "zone",
+                "exemplarCity": "Hovda"
+              },
+              "Ulaanbaatar": {
+                "_type": "zone",
+                "exemplarCity": "Ulanbatora"
+              },
+              "Macau": {
+                "_type": "zone",
+                "exemplarCity": "Makao"
+              },
+              "Kuala_Lumpur": {
+                "_type": "zone",
+                "exemplarCity": "Kualalumpura"
+              },
+              "Kuching": {
+                "_type": "zone",
+                "exemplarCity": "Kučina"
+              },
+              "Katmandu": {
+                "_type": "zone",
+                "exemplarCity": "Katmandu"
+              },
+              "Muscat": {
+                "_type": "zone",
+                "exemplarCity": "Maskata"
+              },
+              "Karachi": {
+                "_type": "zone",
+                "exemplarCity": "Karāči"
+              },
+              "Hebron": {
+                "_type": "zone",
+                "exemplarCity": "Hebrona"
+              },
+              "Qatar": {
+                "_type": "zone",
+                "exemplarCity": "Katara"
+              },
+              "Yekaterinburg": {
+                "_type": "zone",
+                "exemplarCity": "Jekaterinburga"
+              },
+              "Omsk": {
+                "_type": "zone",
+                "exemplarCity": "Omska"
+              },
+              "Novosibirsk": {
+                "_type": "zone",
+                "exemplarCity": "Novosibirska"
+              },
+              "Barnaul": {
+                "_type": "zone",
+                "exemplarCity": "Barnaula"
+              },
+              "Tomsk": {
+                "_type": "zone",
+                "exemplarCity": "Tomska"
+              },
+              "Novokuznetsk": {
+                "_type": "zone",
+                "exemplarCity": "Novokuzņecka"
+              },
+              "Krasnoyarsk": {
+                "_type": "zone",
+                "exemplarCity": "Krasnojarska"
+              },
+              "Irkutsk": {
+                "_type": "zone",
+                "exemplarCity": "Irkutska"
+              },
+              "Chita": {
+                "_type": "zone",
+                "exemplarCity": "Čita"
+              },
+              "Yakutsk": {
+                "_type": "zone",
+                "exemplarCity": "Jakutska"
+              },
+              "Vladivostok": {
+                "_type": "zone",
+                "exemplarCity": "Vladivostoka"
+              },
+              "Khandyga": {
+                "_type": "zone",
+                "exemplarCity": "Handiga"
+              },
+              "Sakhalin": {
+                "_type": "zone",
+                "exemplarCity": "Sahalīna"
+              },
+              "Ust-Nera": {
+                "_type": "zone",
+                "exemplarCity": "Ustjņera"
+              },
+              "Magadan": {
+                "_type": "zone",
+                "exemplarCity": "Magadana"
+              },
+              "Srednekolymsk": {
+                "_type": "zone",
+                "exemplarCity": "Sredņekolimska"
+              },
+              "Kamchatka": {
+                "_type": "zone",
+                "exemplarCity": "Kamčatka"
+              },
+              "Anadyr": {
+                "_type": "zone",
+                "exemplarCity": "Anadira"
+              },
+              "Riyadh": {
+                "_type": "zone",
+                "exemplarCity": "Rijāda"
+              },
+              "Singapore": {
+                "_type": "zone",
+                "exemplarCity": "Singapūra"
+              },
+              "Damascus": {
+                "_type": "zone",
+                "exemplarCity": "Damaska"
+              },
+              "Bangkok": {
+                "_type": "zone",
+                "exemplarCity": "Bangkoka"
+              },
+              "Dushanbe": {
+                "_type": "zone",
+                "exemplarCity": "Dušanbe"
+              },
+              "Ashgabat": {
+                "_type": "zone",
+                "exemplarCity": "Ašgabata"
+              },
+              "Taipei": {
+                "_type": "zone",
+                "exemplarCity": "Taibei"
+              },
+              "Samarkand": {
+                "_type": "zone",
+                "exemplarCity": "Samarkanda"
+              },
+              "Tashkent": {
+                "_type": "zone",
+                "exemplarCity": "Taškenta"
+              },
+              "Saigon": {
+                "_type": "zone",
+                "exemplarCity": "Hošimina"
+              },
+              "Aden": {
+                "_type": "zone",
+                "exemplarCity": "Adena"
+              }
+            },
+            "America": {
+              "Antigua": {
+                "_type": "zone",
+                "exemplarCity": "Antigva"
+              },
+              "Anguilla": {
+                "_type": "zone",
+                "exemplarCity": "Angilja"
+              },
+              "Argentina": {
+                "Rio_Gallegos": {
+                  "_type": "zone",
+                  "exemplarCity": "Riogaljegosa"
+                },
+                "San_Juan": {
+                  "_type": "zone",
+                  "exemplarCity": "Sanhuana"
+                },
+                "Ushuaia": {
+                  "_type": "zone",
+                  "exemplarCity": "Ušuaja"
+                },
+                "La_Rioja": {
+                  "_type": "zone",
+                  "exemplarCity": "Larjoha"
+                },
+                "San_Luis": {
+                  "_type": "zone",
+                  "exemplarCity": "Sanluisa"
+                },
+                "Tucuman": {
+                  "_type": "zone",
+                  "exemplarCity": "Tukumana"
+                }
+              },
+              "Mendoza": {
+                "_type": "zone",
+                "exemplarCity": "Mendosa"
+              },
+              "Catamarca": {
+                "_type": "zone",
+                "exemplarCity": "Katamarka"
+              },
+              "Jujuy": {
+                "_type": "zone",
+                "exemplarCity": "Huhuja"
+              },
+              "Cordoba": {
+                "_type": "zone",
+                "exemplarCity": "Kordova"
+              },
+              "Buenos_Aires": {
+                "_type": "zone",
+                "exemplarCity": "Buenosairesa"
+              },
+              "Barbados": {
+                "_type": "zone",
+                "exemplarCity": "Barbadosa"
+              },
+              "St_Barthelemy": {
+                "_type": "zone",
+                "exemplarCity": "Senbartelmī"
+              },
+              "La_Paz": {
+                "_type": "zone",
+                "exemplarCity": "Lapasa"
+              },
+              "Kralendijk": {
+                "_type": "zone",
+                "exemplarCity": "Krālendeika"
+              },
+              "Eirunepe": {
+                "_type": "zone",
+                "exemplarCity": "Eirunepé"
+              },
+              "Rio_Branco": {
+                "_type": "zone",
+                "exemplarCity": "Riobranko"
+              },
+              "Porto_Velho": {
+                "_type": "zone",
+                "exemplarCity": "Portuveļu"
+              },
+              "Boa_Vista": {
+                "_type": "zone",
+                "exemplarCity": "Boavista"
+              },
+              "Manaus": {
+                "_type": "zone",
+                "exemplarCity": "Manausa"
+              },
+              "Cuiaba": {
+                "_type": "zone",
+                "exemplarCity": "Kujaba"
+              },
+              "Santarem": {
+                "_type": "zone",
+                "exemplarCity": "Santarena"
+              },
+              "Campo_Grande": {
+                "_type": "zone",
+                "exemplarCity": "Kampugrandi"
+              },
+              "Belem": {
+                "_type": "zone",
+                "exemplarCity": "Belena"
+              },
+              "Araguaina": {
+                "_type": "zone",
+                "exemplarCity": "Aragvaina"
+              },
+              "Sao_Paulo": {
+                "_type": "zone",
+                "exemplarCity": "Sanpaulu"
+              },
+              "Bahia": {
+                "_type": "zone",
+                "exemplarCity": "Baija"
+              },
+              "Maceio": {
+                "_type": "zone",
+                "exemplarCity": "Masejo"
+              },
+              "Recife": {
+                "_type": "zone",
+                "exemplarCity": "Resifi"
+              },
+              "Noronha": {
+                "_type": "zone",
+                "exemplarCity": "Noroņa"
+              },
+              "Nassau": {
+                "_type": "zone",
+                "exemplarCity": "Naso"
+              },
+              "Belize": {
+                "_type": "zone",
+                "exemplarCity": "Beliza"
+              },
+              "Dawson": {
+                "_type": "zone",
+                "exemplarCity": "Dousona"
+              },
+              "Whitehorse": {
+                "_type": "zone",
+                "exemplarCity": "Vaithorsa"
+              },
+              "Inuvik": {
+                "_type": "zone",
+                "exemplarCity": "Inuvika"
+              },
+              "Vancouver": {
+                "_type": "zone",
+                "exemplarCity": "Vankūvera"
+              },
+              "Fort_Nelson": {
+                "_type": "zone",
+                "exemplarCity": "Fortnelsona"
+              },
+              "Dawson_Creek": {
+                "_type": "zone",
+                "exemplarCity": "Dousonkrīka"
+              },
+              "Creston": {
+                "_type": "zone",
+                "exemplarCity": "Krestona"
+              },
+              "Edmonton": {
+                "_type": "zone",
+                "exemplarCity": "Edmontona"
+              },
+              "Swift_Current": {
+                "_type": "zone",
+                "exemplarCity": "Sviftkarenta"
+              },
+              "Cambridge_Bay": {
+                "_type": "zone",
+                "exemplarCity": "Kembridžbeja"
+              },
+              "Regina": {
+                "_type": "zone",
+                "exemplarCity": "Ridžaina"
+              },
+              "Winnipeg": {
+                "_type": "zone",
+                "exemplarCity": "Vinipega"
+              },
+              "Resolute": {
+                "_type": "zone",
+                "exemplarCity": "Rezolūta"
+              },
+              "Rankin_Inlet": {
+                "_type": "zone",
+                "exemplarCity": "Rankininleta"
+              },
+              "Coral_Harbour": {
+                "_type": "zone",
+                "exemplarCity": "Atikokana"
+              },
+              "Iqaluit": {
+                "_type": "zone",
+                "exemplarCity": "Ikaluita"
+              },
+              "Moncton": {
+                "_type": "zone",
+                "exemplarCity": "Monktona"
+              },
+              "Halifax": {
+                "_type": "zone",
+                "exemplarCity": "Helifeksa"
+              },
+              "Goose_Bay": {
+                "_type": "zone",
+                "exemplarCity": "Gūsbeja"
+              },
+              "Glace_Bay": {
+                "_type": "zone",
+                "exemplarCity": "Gleisbeja"
+              },
+              "Blanc-Sablon": {
+                "_type": "zone",
+                "exemplarCity": "Blansablona"
+              },
+              "St_Johns": {
+                "_type": "zone",
+                "exemplarCity": "Sentdžonsa"
+              },
+              "Coyhaique": {
+                "_type": "zone",
+                "exemplarCity": "Kojhaika"
+              },
+              "Punta_Arenas": {
+                "_type": "zone",
+                "exemplarCity": "Puntaarenasa"
+              },
+              "Santiago": {
+                "_type": "zone",
+                "exemplarCity": "Santjago"
+              },
+              "Bogota": {
+                "_type": "zone",
+                "exemplarCity": "Bogotá"
+              },
+              "Costa_Rica": {
+                "_type": "zone",
+                "exemplarCity": "Kostarika"
+              },
+              "Curacao": {
+                "_type": "zone",
+                "exemplarCity": "Kirasao"
+              },
+              "Dominica": {
+                "_type": "zone",
+                "exemplarCity": "Dominika"
+              },
+              "Santo_Domingo": {
+                "_type": "zone",
+                "exemplarCity": "Santodomingo"
+              },
+              "Guayaquil": {
+                "_type": "zone",
+                "exemplarCity": "Gvajakila"
+              },
+              "Grenada": {
+                "_type": "zone",
+                "exemplarCity": "Grenāda"
+              },
+              "Cayenne": {
+                "_type": "zone",
+                "exemplarCity": "Kajenna"
+              },
+              "Thule": {
+                "_type": "zone",
+                "exemplarCity": "Tule"
+              },
+              "Godthab": {
+                "_type": "zone",
+                "exemplarCity": "Nūka"
+              },
+              "Scoresbysund": {
+                "_type": "zone",
+                "exemplarCity": "Itokortormita"
+              },
+              "Danmarkshavn": {
+                "_type": "zone",
+                "exemplarCity": "Denmārkšavna"
+              },
+              "Guadeloupe": {
+                "_type": "zone",
+                "exemplarCity": "Gvadelupa"
+              },
+              "Guatemala": {
+                "_type": "zone",
+                "exemplarCity": "Gvatemala"
+              },
+              "Guyana": {
+                "_type": "zone",
+                "exemplarCity": "Gajāna"
+              },
+              "Tegucigalpa": {
+                "_type": "zone",
+                "exemplarCity": "Tegusigalpa"
+              },
+              "Port-au-Prince": {
+                "_type": "zone",
+                "exemplarCity": "Portoprensa"
+              },
+              "Jamaica": {
+                "_type": "zone",
+                "exemplarCity": "Jamaika"
+              },
+              "St_Kitts": {
+                "_type": "zone",
+                "exemplarCity": "Sentkitsa"
+              },
+              "Cayman": {
+                "_type": "zone",
+                "exemplarCity": "Kaimanu salas"
+              },
+              "St_Lucia": {
+                "_type": "zone",
+                "exemplarCity": "Sentlūsija"
+              },
+              "Marigot": {
+                "_type": "zone",
+                "exemplarCity": "Merigota"
+              },
+              "Martinique": {
+                "_type": "zone",
+                "exemplarCity": "Martinika"
+              },
+              "Montserrat": {
+                "_type": "zone",
+                "exemplarCity": "Montserrata"
+              },
+              "Tijuana": {
+                "_type": "zone",
+                "exemplarCity": "Tihuana"
+              },
+              "Hermosillo": {
+                "_type": "zone",
+                "exemplarCity": "Ermosiljo"
+              },
+              "Ciudad_Juarez": {
+                "_type": "zone",
+                "exemplarCity": "Huaresa"
+              },
+              "Mazatlan": {
+                "_type": "zone",
+                "exemplarCity": "Masatlana"
+              },
+              "Chihuahua": {
+                "_type": "zone",
+                "exemplarCity": "Čivava"
+              },
+              "Bahia_Banderas": {
+                "_type": "zone",
+                "exemplarCity": "Bajabanderasa"
+              },
+              "Ojinaga": {
+                "_type": "zone",
+                "exemplarCity": "Ohinaga"
+              },
+              "Monterrey": {
+                "_type": "zone",
+                "exemplarCity": "Monterreja"
+              },
+              "Mexico_City": {
+                "_type": "zone",
+                "exemplarCity": "Mehiko"
+              },
+              "Matamoros": {
+                "_type": "zone",
+                "exemplarCity": "Matamorosa"
+              },
+              "Merida": {
+                "_type": "zone",
+                "exemplarCity": "Merida"
+              },
+              "Cancun": {
+                "_type": "zone",
+                "exemplarCity": "Kankuna"
+              },
+              "Managua": {
+                "_type": "zone",
+                "exemplarCity": "Managva"
+              },
+              "Miquelon": {
+                "_type": "zone",
+                "exemplarCity": "Mikelona"
+              },
+              "Puerto_Rico": {
+                "_type": "zone",
+                "exemplarCity": "Puertoriko"
+              },
+              "Asuncion": {
+                "_type": "zone",
+                "exemplarCity": "Asunsjona"
+              },
+              "El_Salvador": {
+                "_type": "zone",
+                "exemplarCity": "Salvadora"
+              },
+              "Lower_Princes": {
+                "_type": "zone",
+                "exemplarCity": "Louerprinseskvotera"
+              },
+              "Grand_Turk": {
+                "_type": "zone",
+                "exemplarCity": "Grandtkērka"
+              },
+              "Port_of_Spain": {
+                "_type": "zone",
+                "exemplarCity": "Portofspeina"
+              },
+              "Adak": {
+                "_type": "zone",
+                "exemplarCity": "Adaka"
+              },
+              "Nome": {
+                "_type": "zone",
+                "exemplarCity": "Noma"
+              },
+              "Anchorage": {
+                "_type": "zone",
+                "exemplarCity": "Ankurāža"
+              },
+              "Yakutat": {
+                "_type": "zone",
+                "exemplarCity": "Jakutata"
+              },
+              "Juneau": {
+                "_type": "zone",
+                "exemplarCity": "Džuno"
+              },
+              "Los_Angeles": {
+                "_type": "zone",
+                "exemplarCity": "Losandželosa"
+              },
+              "Boise": {
+                "_type": "zone",
+                "exemplarCity": "Boisisitija"
+              },
+              "Phoenix": {
+                "_type": "zone",
+                "exemplarCity": "Fīniksa"
+              },
+              "Denver": {
+                "_type": "zone",
+                "exemplarCity": "Denvera"
+              },
+              "North_Dakota": {
+                "Beulah": {
+                  "_type": "zone",
+                  "exemplarCity": "Bjula, Ziemeļdakota"
+                },
+                "New_Salem": {
+                  "_type": "zone",
+                  "exemplarCity": "Ņūseilema, Ziemeļdakota"
+                },
+                "Center": {
+                  "_type": "zone",
+                  "exemplarCity": "Sentera, Ziemeļdakota"
+                }
+              },
+              "Chicago": {
+                "_type": "zone",
+                "exemplarCity": "Čikāga"
+              },
+              "Menominee": {
+                "_type": "zone",
+                "exemplarCity": "Menominī"
+              },
+              "Indiana": {
+                "Vincennes": {
+                  "_type": "zone",
+                  "exemplarCity": "Vinsensa, Indiāna"
+                },
+                "Petersburg": {
+                  "_type": "zone",
+                  "exemplarCity": "Pītersbērga, Indiāna"
+                },
+                "Tell_City": {
+                  "_type": "zone",
+                  "exemplarCity": "Telsitija, Indiāna"
+                },
+                "Knox": {
+                  "_type": "zone",
+                  "exemplarCity": "Noksa, Indiāna"
+                },
+                "Winamac": {
+                  "_type": "zone",
+                  "exemplarCity": "Vinamaka, Indiāna"
+                },
+                "Marengo": {
+                  "_type": "zone",
+                  "exemplarCity": "Marengo, Indiāna"
+                },
+                "Vevay": {
+                  "_type": "zone",
+                  "exemplarCity": "Vīveja, Indiāna"
+                }
+              },
+              "Indianapolis": {
+                "_type": "zone",
+                "exemplarCity": "Indianapolisa"
+              },
+              "Louisville": {
+                "_type": "zone",
+                "exemplarCity": "Lūivila"
+              },
+              "Kentucky": {
+                "Monticello": {
+                  "_type": "zone",
+                  "exemplarCity": "Montičelo, Kentuki"
+                }
+              },
+              "Detroit": {
+                "_type": "zone",
+                "exemplarCity": "Detroita"
+              },
+              "New_York": {
+                "_type": "zone",
+                "exemplarCity": "Ņujorka"
+              },
+              "St_Vincent": {
+                "_type": "zone",
+                "exemplarCity": "Sentvinsenta"
+              },
+              "Caracas": {
+                "_type": "zone",
+                "exemplarCity": "Karakasa"
+              },
+              "St_Thomas": {
+                "_type": "zone",
+                "exemplarCity": "Sentomasa"
+              }
+            },
+            "Antarctica": {
+              "Rothera": {
+                "_type": "zone",
+                "exemplarCity": "Rotera"
+              },
+              "Palmer": {
+                "_type": "zone",
+                "exemplarCity": "Pālmera"
+              },
+              "Troll": {
+                "_type": "zone",
+                "exemplarCity": "Trolla"
+              },
+              "Syowa": {
+                "_type": "zone",
+                "exemplarCity": "Šova"
+              },
+              "Mawson": {
+                "_type": "zone",
+                "exemplarCity": "Mosona"
+              },
+              "Davis": {
+                "_type": "zone",
+                "exemplarCity": "Deivisa"
+              },
+              "Vostok": {
+                "_type": "zone",
+                "exemplarCity": "Vostoka"
+              },
+              "Casey": {
+                "_type": "zone",
+                "exemplarCity": "Keisi"
+              },
+              "DumontDUrville": {
+                "_type": "zone",
+                "exemplarCity": "Dimondirvila"
+              },
+              "McMurdo": {
+                "_type": "zone",
+                "exemplarCity": "Makmerdo"
+              },
+              "Macquarie": {
+                "_type": "zone",
+                "exemplarCity": "Makvori"
+              }
+            },
+            "Australia": {
+              "Perth": {
+                "_type": "zone",
+                "exemplarCity": "Pērta"
+              },
+              "Eucla": {
+                "_type": "zone",
+                "exemplarCity": "Jukla"
+              },
+              "Darwin": {
+                "_type": "zone",
+                "exemplarCity": "Dārvina"
+              },
+              "Adelaide": {
+                "_type": "zone",
+                "exemplarCity": "Adelaida"
+              },
+              "Broken_Hill": {
+                "_type": "zone",
+                "exemplarCity": "Brokenhila"
+              },
+              "Melbourne": {
+                "_type": "zone",
+                "exemplarCity": "Melburna"
+              },
+              "Hobart": {
+                "_type": "zone",
+                "exemplarCity": "Hobārta"
+              },
+              "Lindeman": {
+                "_type": "zone",
+                "exemplarCity": "Lindemana"
+              },
+              "Sydney": {
+                "_type": "zone",
+                "exemplarCity": "Sidneja"
+              },
+              "Brisbane": {
+                "_type": "zone",
+                "exemplarCity": "Brisbena"
+              },
+              "Lord_Howe": {
+                "_type": "zone",
+                "exemplarCity": "Lordhava"
+              }
+            },
+            "Africa": {
+              "Ouagadougou": {
+                "_type": "zone",
+                "exemplarCity": "Vagadugu"
+              },
+              "Bujumbura": {
+                "_type": "zone",
+                "exemplarCity": "Bužumbura"
+              },
+              "Porto-Novo": {
+                "_type": "zone",
+                "exemplarCity": "Portonovo"
+              },
+              "Kinshasa": {
+                "_type": "zone",
+                "exemplarCity": "Kinšasa"
+              },
+              "Lubumbashi": {
+                "_type": "zone",
+                "exemplarCity": "Lubumbaši"
+              },
+              "Bangui": {
+                "_type": "zone",
+                "exemplarCity": "Bangi"
+              },
+              "Brazzaville": {
+                "_type": "zone",
+                "exemplarCity": "Brazavila"
+              },
+              "Abidjan": {
+                "_type": "zone",
+                "exemplarCity": "Abidžana"
+              },
+              "Douala": {
+                "_type": "zone",
+                "exemplarCity": "Duala"
+              },
+              "Djibouti": {
+                "_type": "zone",
+                "exemplarCity": "Džibutija"
+              },
+              "Algiers": {
+                "_type": "zone",
+                "exemplarCity": "Alžīra"
+              },
+              "Cairo": {
+                "_type": "zone",
+                "exemplarCity": "Kaira"
+              },
+              "El_Aaiun": {
+                "_type": "zone",
+                "exemplarCity": "Ajūna"
+              },
+              "Asmera": {
+                "_type": "zone",
+                "exemplarCity": "Asmara"
+              },
+              "Ceuta": {
+                "_type": "zone",
+                "exemplarCity": "Seuta"
+              },
+              "Addis_Ababa": {
+                "_type": "zone",
+                "exemplarCity": "Adisabeba"
+              },
+              "Libreville": {
+                "_type": "zone",
+                "exemplarCity": "Librevila"
+              },
+              "Accra": {
+                "_type": "zone",
+                "exemplarCity": "Akra"
+              },
+              "Banjul": {
+                "_type": "zone",
+                "exemplarCity": "Bandžula"
+              },
+              "Conakry": {
+                "_type": "zone",
+                "exemplarCity": "Konakri"
+              },
+              "Bissau": {
+                "_type": "zone",
+                "exemplarCity": "Bisava"
+              },
+              "Monrovia": {
+                "_type": "zone",
+                "exemplarCity": "Monrovija"
+              },
+              "Tripoli": {
+                "_type": "zone",
+                "exemplarCity": "Tripole"
+              },
+              "Casablanca": {
+                "_type": "zone",
+                "exemplarCity": "Kasablanka"
+              },
+              "Nouakchott": {
+                "_type": "zone",
+                "exemplarCity": "Nuakšota"
+              },
+              "Blantyre": {
+                "_type": "zone",
+                "exemplarCity": "Blantaira"
+              },
+              "Maputo": {
+                "_type": "zone",
+                "exemplarCity": "Maputu"
+              },
+              "Windhoek": {
+                "_type": "zone",
+                "exemplarCity": "Vindhuka"
+              },
+              "Niamey": {
+                "_type": "zone",
+                "exemplarCity": "Niameja"
+              },
+              "Lagos": {
+                "_type": "zone",
+                "exemplarCity": "Lagosa"
+              },
+              "Khartoum": {
+                "_type": "zone",
+                "exemplarCity": "Hartūma"
+              },
+              "Freetown": {
+                "_type": "zone",
+                "exemplarCity": "Frītauna"
+              },
+              "Dakar": {
+                "_type": "zone",
+                "exemplarCity": "Dakara"
+              },
+              "Mogadishu": {
+                "_type": "zone",
+                "exemplarCity": "Mogadīšo"
+              },
+              "Juba": {
+                "_type": "zone",
+                "exemplarCity": "Džūba"
+              },
+              "Sao_Tome": {
+                "_type": "zone",
+                "exemplarCity": "Santome"
+              },
+              "Ndjamena": {
+                "_type": "zone",
+                "exemplarCity": "Ndžamena"
+              },
+              "Lome": {
+                "_type": "zone",
+                "exemplarCity": "Lomé"
+              },
+              "Tunis": {
+                "_type": "zone",
+                "exemplarCity": "Tunisa"
+              },
+              "Dar_es_Salaam": {
+                "_type": "zone",
+                "exemplarCity": "Dāresalāma"
+              },
+              "Johannesburg": {
+                "_type": "zone",
+                "exemplarCity": "Johannesburga"
+              }
+            },
+            "Indian": {
+              "Cocos": {
+                "_type": "zone",
+                "exemplarCity": "Kokosu (Kīlinga) sala"
+              },
+              "Christmas": {
+                "_type": "zone",
+                "exemplarCity": "Ziemsvētku sala"
+              },
+              "Chagos": {
+                "_type": "zone",
+                "exemplarCity": "Čagosa"
+              },
+              "Comoro": {
+                "_type": "zone",
+                "exemplarCity": "Komoras"
+              },
+              "Antananarivo": {
+                "_type": "zone",
+                "exemplarCity": "Antananarivu"
+              },
+              "Mauritius": {
+                "_type": "zone",
+                "exemplarCity": "Maurīcija"
+              },
+              "Maldives": {
+                "_type": "zone",
+                "exemplarCity": "Maldīvija"
+              },
+              "Reunion": {
+                "_type": "zone",
+                "exemplarCity": "Reinjona"
+              },
+              "Mahe": {
+                "_type": "zone",
+                "exemplarCity": "Mae"
+              },
+              "Kerguelen": {
+                "_type": "zone",
+                "exemplarCity": "Kergelēna sala"
+              },
+              "Mayotte": {
+                "_type": "zone",
+                "exemplarCity": "Majota"
+              }
+            },
+            "Atlantic": {
+              "Cape_Verde": {
+                "_type": "zone",
+                "exemplarCity": "Kaboverde"
+              },
+              "Canary": {
+                "_type": "zone",
+                "exemplarCity": "Kanāriju salas"
+              },
+              "Stanley": {
+                "_type": "zone",
+                "exemplarCity": "Stenli"
+              },
+              "Faeroe": {
+                "_type": "zone",
+                "exemplarCity": "Fēru salas"
+              },
+              "South_Georgia": {
+                "_type": "zone",
+                "exemplarCity": "Dienviddžordžija"
+              },
+              "Reykjavik": {
+                "_type": "zone",
+                "exemplarCity": "Reikjavika"
+              },
+              "Azores": {
+                "_type": "zone",
+                "exemplarCity": "Azoru salas"
+              },
+              "St_Helena": {
+                "_type": "zone",
+                "exemplarCity": "Sv.Helēnas sala"
+              }
+            },
+            "Arctic": {
+              "Longyearbyen": {
+                "_type": "zone",
+                "exemplarCity": "Longjērbīene"
+              }
+            }
+          },
+          "metazone": {
+            "Afghanistan": {
+              "long": {
+                "standard": "Afganistānas laiks"
+              }
+            },
+            "Africa_Central": {
+              "long": {
+                "standard": "Centrālāfrikas laiks"
+              }
+            },
+            "Africa_Eastern": {
+              "long": {
+                "standard": "Austrumāfrikas laiks"
+              }
+            },
+            "Africa_Southern": {
+              "long": {
+                "standard": "Dienvidāfrikas ziemas laiks"
+              }
+            },
+            "Africa_Western": {
+              "long": {
+                "standard": "Rietumāfrikas laiks"
+              }
+            },
+            "Alaska": {
+              "long": {
+                "generic": "Aļaskas laiks",
+                "standard": "Aļaskas ziemas laiks",
+                "daylight": "Aļaskas vasaras laiks"
+              }
+            },
+            "Amazon": {
+              "long": {
+                "generic": "Amazones laiks",
+                "standard": "Amazones ziemas laiks",
+                "daylight": "Amazones vasaras laiks"
+              }
+            },
+            "America_Central": {
+              "long": {
+                "generic": "Centrālais laiks",
+                "standard": "Centrālais ziemas laiks",
+                "daylight": "Centrālais vasaras laiks"
+              }
+            },
+            "America_Eastern": {
+              "long": {
+                "generic": "Austrumu laiks",
+                "standard": "Austrumu ziemas laiks",
+                "daylight": "Austrumu vasaras laiks"
+              }
+            },
+            "America_Mountain": {
+              "long": {
+                "generic": "Kalnu laiks",
+                "standard": "Kalnu ziemas laiks",
+                "daylight": "Kalnu vasaras laiks"
+              }
+            },
+            "America_Pacific": {
+              "long": {
+                "generic": "Klusā okeāna laiks",
+                "standard": "Klusā okeāna ziemas laiks",
+                "daylight": "Klusā okeāna vasaras laiks"
+              }
+            },
+            "Anadyr": {
+              "long": {
+                "generic": "Anadiras laiks",
+                "standard": "Anadiras ziemas laiks",
+                "daylight": "Anadiras vasaras laiks"
+              }
+            },
+            "Apia": {
+              "long": {
+                "generic": "Apijas laiks",
+                "standard": "Apijas ziemas laiks",
+                "daylight": "Apijas vasaras laiks"
+              }
+            },
+            "Arabian": {
+              "long": {
+                "generic": "Arābijas pussalas laiks",
+                "standard": "Arābijas pussalas ziemas laiks",
+                "daylight": "Arābijas pussalas vasaras laiks"
+              }
+            },
+            "Argentina": {
+              "long": {
+                "generic": "Argentīnas laiks",
+                "standard": "Argentīnas ziemas laiks",
+                "daylight": "Argentīnas vasaras laiks"
+              }
+            },
+            "Argentina_Western": {
+              "long": {
+                "generic": "Rietumargentīnas laiks",
+                "standard": "Rietumargentīnas ziemas laiks",
+                "daylight": "Rietumargentīnas vasaras laiks"
+              }
+            },
+            "Armenia": {
+              "long": {
+                "generic": "Armēnijas laiks",
+                "standard": "Armēnijas ziemas laiks",
+                "daylight": "Armēnijas vasaras laiks"
+              }
+            },
+            "Atlantic": {
+              "long": {
+                "generic": "Atlantijas laiks",
+                "standard": "Atlantijas ziemas laiks",
+                "daylight": "Atlantijas vasaras laiks"
+              }
+            },
+            "Australia_Central": {
+              "long": {
+                "generic": "Austrālijas centrālais laiks",
+                "standard": "Austrālijas centrālais ziemas laiks",
+                "daylight": "Austrālijas centrālais vasaras laiks"
+              }
+            },
+            "Australia_CentralWestern": {
+              "long": {
+                "generic": "Austrālijas centrālais rietumu laiks",
+                "standard": "Austrālijas centrālais rietumu ziemas laiks",
+                "daylight": "Austrālijas centrālais rietumu vasaras laiks"
+              }
+            },
+            "Australia_Eastern": {
+              "long": {
+                "generic": "Austrālijas austrumu laiks",
+                "standard": "Austrālijas austrumu ziemas laiks",
+                "daylight": "Austrālijas austrumu vasaras laiks"
+              }
+            },
+            "Australia_Western": {
+              "long": {
+                "generic": "Austrālijas rietumu laiks",
+                "standard": "Austrālijas rietumu ziemas laiks",
+                "daylight": "Austrālijas rietumu vasaras laiks"
+              }
+            },
+            "Azerbaijan": {
+              "long": {
+                "generic": "Azerbaidžānas laiks",
+                "standard": "Azerbaidžānas ziemas laiks",
+                "daylight": "Azerbaidžānas vasaras laiks"
+              }
+            },
+            "Azores": {
+              "long": {
+                "generic": "Azoru salu laiks",
+                "standard": "Azoru salu ziemas laiks",
+                "daylight": "Azoru salu vasaras laiks"
+              }
+            },
+            "Bangladesh": {
+              "long": {
+                "generic": "Bangladešas laiks",
+                "standard": "Bangladešas ziemas laiks",
+                "daylight": "Bangladešas vasaras laiks"
+              }
+            },
+            "Bhutan": {
+              "long": {
+                "standard": "Butānas laiks"
+              }
+            },
+            "Bolivia": {
+              "long": {
+                "standard": "Bolīvijas laiks"
+              }
+            },
+            "Brasilia": {
+              "long": {
+                "generic": "Brazīlijas laiks",
+                "standard": "Brazīlijas ziemas laiks",
+                "daylight": "Brazīlijas vasaras laiks"
+              }
+            },
+            "Brunei": {
+              "long": {
+                "standard": "Brunejas Darusalamas laiks"
+              }
+            },
+            "Cape_Verde": {
+              "long": {
+                "generic": "Kaboverdes laiks",
+                "standard": "Kaboverdes ziemas laiks",
+                "daylight": "Kaboverdes vasaras laiks"
+              }
+            },
+            "Chamorro": {
+              "long": {
+                "standard": "Čamorra ziemas laiks"
+              }
+            },
+            "Chatham": {
+              "long": {
+                "generic": "Četemas laiks",
+                "standard": "Četemas ziemas laiks",
+                "daylight": "Četemas vasaras laiks"
+              }
+            },
+            "Chile": {
+              "long": {
+                "generic": "Čīles laiks",
+                "standard": "Čīles ziemas laiks",
+                "daylight": "Čīles vasaras laiks"
+              }
+            },
+            "China": {
+              "long": {
+                "generic": "Ķīnas laiks",
+                "standard": "Ķīnas ziemas laiks",
+                "daylight": "Ķīnas vasaras laiks"
+              }
+            },
+            "Christmas": {
+              "long": {
+                "standard": "Ziemsvētku salas laiks"
+              }
+            },
+            "Cocos": {
+              "long": {
+                "standard": "Kokosu (Kīlinga) salu laiks"
+              }
+            },
+            "Colombia": {
+              "long": {
+                "generic": "Kolumbijas laiks",
+                "standard": "Kolumbijas ziemas laiks",
+                "daylight": "Kolumbijas vasaras laiks"
+              }
+            },
+            "Cook": {
+              "long": {
+                "generic": "Kuka salu laiks",
+                "standard": "Kuka salu ziemas laiks",
+                "daylight": "Kuka salu vasaras laiks"
+              }
+            },
+            "Cuba": {
+              "long": {
+                "generic": "Kubas laiks",
+                "standard": "Kubas ziemas laiks",
+                "daylight": "Kubas vasaras laiks"
+              }
+            },
+            "Davis": {
+              "long": {
+                "standard": "Deivisas laiks"
+              }
+            },
+            "DumontDUrville": {
+              "long": {
+                "standard": "Dimondirvilas laiks"
+              }
+            },
+            "East_Timor": {
+              "long": {
+                "standard": "Austrumtimoras laiks"
+              }
+            },
+            "Easter": {
+              "long": {
+                "generic": "Lieldienu salas laiks",
+                "standard": "Lieldienu salas ziemas laiks",
+                "daylight": "Lieldienu salas vasaras laiks"
+              }
+            },
+            "Ecuador": {
+              "long": {
+                "standard": "Ekvadoras laiks"
+              }
+            },
+            "Europe_Central": {
+              "long": {
+                "generic": "Centrāleiropas laiks",
+                "standard": "Centrāleiropas ziemas laiks",
+                "daylight": "Centrāleiropas vasaras laiks"
+              },
+              "short": {
+                "generic": "CET",
+                "standard": "CET",
+                "daylight": "CEST"
+              }
+            },
+            "Europe_Eastern": {
+              "long": {
+                "generic": "Austrumeiropas laiks",
+                "standard": "Austrumeiropas ziemas laiks",
+                "daylight": "Austrumeiropas vasaras laiks"
+              },
+              "short": {
+                "generic": "EET",
+                "standard": "EET",
+                "daylight": "EEST"
+              }
+            },
+            "Europe_Further_Eastern": {
+              "long": {
+                "standard": "Austrumeiropas laika josla (FET)"
+              }
+            },
+            "Europe_Western": {
+              "long": {
+                "generic": "Rietumeiropas laiks",
+                "standard": "Rietumeiropas ziemas laiks",
+                "daylight": "Rietumeiropas vasaras laiks"
+              },
+              "short": {
+                "generic": "WET",
+                "standard": "WET",
+                "daylight": "WEST"
+              }
+            },
+            "Falkland": {
+              "long": {
+                "generic": "Folklenda (Malvinu) salu laiks",
+                "standard": "Folklenda (Malvinu) salu ziemas laiks",
+                "daylight": "Folklenda (Malvinu) salu vasaras laiks"
+              }
+            },
+            "Fiji": {
+              "long": {
+                "generic": "Fidži laiks",
+                "standard": "Fidži ziemas laiks",
+                "daylight": "Fidži vasaras laiks"
+              }
+            },
+            "French_Guiana": {
+              "long": {
+                "standard": "Francijas Gviānas laiks"
+              }
+            },
+            "French_Southern": {
+              "long": {
+                "standard": "Francijas Dienvidjūru un Antarktikas teritorijas laiks"
+              }
+            },
+            "Galapagos": {
+              "long": {
+                "standard": "Galapagu laiks"
+              }
+            },
+            "Gambier": {
+              "long": {
+                "standard": "Gambjē salu laiks"
+              }
+            },
+            "Georgia": {
+              "long": {
+                "generic": "Gruzijas laiks",
+                "standard": "Gruzijas ziemas laiks",
+                "daylight": "Gruzijas vasaras laiks"
+              }
+            },
+            "Gilbert_Islands": {
+              "long": {
+                "standard": "Gilberta salu laiks"
+              }
+            },
+            "GMT": {
+              "long": {
+                "standard": "Griničas laiks"
+              }
+            },
+            "Greenland_Eastern": {
+              "long": {
+                "generic": "Austrumgrenlandes laiks",
+                "standard": "Austrumgrenlandes ziemas laiks",
+                "daylight": "Austrumgrenlandes vasaras laiks"
+              }
+            },
+            "Greenland_Western": {
+              "long": {
+                "generic": "Rietumgrenlandes laiks",
+                "standard": "Rietumgrenlandes ziemas laiks",
+                "daylight": "Rietumgrenlandes vasaras laiks"
+              }
+            },
+            "Gulf": {
+              "long": {
+                "standard": "Persijas līča laiks"
+              }
+            },
+            "Guyana": {
+              "long": {
+                "standard": "Gajānas laiks"
+              }
+            },
+            "Hawaii": {
+              "long": {
+                "standard": "Havaju–Aleutu ziemas laiks"
+              }
+            },
+            "Hawaii_Aleutian": {
+              "long": {
+                "generic": "Havaju–Aleutu laiks",
+                "standard": "Havaju–Aleutu ziemas laiks",
+                "daylight": "Havaju–Aleutu vasaras laiks"
+              }
+            },
+            "Hong_Kong": {
+              "long": {
+                "generic": "Honkongas laiks",
+                "standard": "Honkongas ziemas laiks",
+                "daylight": "Honkongas vasaras laiks"
+              }
+            },
+            "Hovd": {
+              "long": {
+                "generic": "Hovdas laiks",
+                "standard": "Hovdas ziemas laiks",
+                "daylight": "Hovdas vasaras laiks"
+              }
+            },
+            "India": {
+              "long": {
+                "standard": "Indijas ziemas laiks"
+              }
+            },
+            "Indian_Ocean": {
+              "long": {
+                "standard": "Indijas okeāna laiks"
+              }
+            },
+            "Indochina": {
+              "long": {
+                "standard": "Indoķīnas laiks"
+              }
+            },
+            "Indonesia_Central": {
+              "long": {
+                "standard": "Centrālindonēzijas laiks"
+              }
+            },
+            "Indonesia_Eastern": {
+              "long": {
+                "standard": "Austrumindonēzijas laiks"
+              }
+            },
+            "Indonesia_Western": {
+              "long": {
+                "standard": "Rietumindonēzijas laiks"
+              }
+            },
+            "Iran": {
+              "long": {
+                "generic": "Irānas laiks",
+                "standard": "Irānas ziemas laiks",
+                "daylight": "Irānas vasaras laiks"
+              }
+            },
+            "Irkutsk": {
+              "long": {
+                "generic": "Irkutskas laiks",
+                "standard": "Irkutskas ziemas laiks",
+                "daylight": "Irkutskas vasaras laiks"
+              }
+            },
+            "Israel": {
+              "long": {
+                "generic": "Izraēlas laiks",
+                "standard": "Izraēlas ziemas laiks",
+                "daylight": "Izraēlas vasaras laiks"
+              }
+            },
+            "Japan": {
+              "long": {
+                "generic": "Japānas laiks",
+                "standard": "Japānas ziemas laiks",
+                "daylight": "Japānas vasaras laiks"
+              }
+            },
+            "Kamchatka": {
+              "long": {
+                "generic": "Petropavlovskas-Kamčatskas laiks",
+                "standard": "Petropavlovskas-Kamčatskas ziemas laiks",
+                "daylight": "Petropavlovskas-Kamčatskas vasaras laiks"
+              }
+            },
+            "Kazakhstan": {
+              "long": {
+                "standard": "Kazahstānas laiks"
+              }
+            },
+            "Kazakhstan_Eastern": {
+              "long": {
+                "standard": "Austrumkazahstānas laiks"
+              }
+            },
+            "Kazakhstan_Western": {
+              "long": {
+                "standard": "Rietumkazahstānas laiks"
+              }
+            },
+            "Korea": {
+              "long": {
+                "generic": "Korejas laiks",
+                "standard": "Korejas ziemas laiks",
+                "daylight": "Korejas vasaras laiks"
+              }
+            },
+            "Kosrae": {
+              "long": {
+                "standard": "Kosrae laiks"
+              }
+            },
+            "Krasnoyarsk": {
+              "long": {
+                "generic": "Krasnojarskas laiks",
+                "standard": "Krasnojarskas ziemas laiks",
+                "daylight": "Krasnojarskas vasaras laiks"
+              }
+            },
+            "Kyrgystan": {
+              "long": {
+                "standard": "Kirgizstānas laiks"
+              }
+            },
+            "Line_Islands": {
+              "long": {
+                "standard": "Lainas salu laiks"
+              }
+            },
+            "Lord_Howe": {
+              "long": {
+                "generic": "Lorda Hava salas laiks",
+                "standard": "Lorda Hava salas ziemas laiks",
+                "daylight": "Lorda Hava salas vasaras laiks"
+              }
+            },
+            "Magadan": {
+              "long": {
+                "generic": "Magadanas laiks",
+                "standard": "Magadanas ziemas laiks",
+                "daylight": "Magadanas vasaras laiks"
+              }
+            },
+            "Malaysia": {
+              "long": {
+                "standard": "Malaizijas laiks"
+              }
+            },
+            "Maldives": {
+              "long": {
+                "standard": "Maldīvijas laiks"
+              }
+            },
+            "Marquesas": {
+              "long": {
+                "standard": "Marķīza salu laiks"
+              }
+            },
+            "Marshall_Islands": {
+              "long": {
+                "standard": "Māršala salu laiks"
+              }
+            },
+            "Mauritius": {
+              "long": {
+                "generic": "Maurīcijas laiks",
+                "standard": "Maurīcijas ziemas laiks",
+                "daylight": "Maurīcijas vasaras laiks"
+              }
+            },
+            "Mawson": {
+              "long": {
+                "standard": "Mosonas laiks"
+              }
+            },
+            "Mexico_Pacific": {
+              "long": {
+                "generic": "Meksikas Klusā okeāna piekrastes laiks",
+                "standard": "Meksikas Klusā okeāna piekrastes ziemas laiks",
+                "daylight": "Meksikas Klusā okeāna piekrastes vasaras laiks"
+              }
+            },
+            "Mongolia": {
+              "long": {
+                "generic": "Ulanbatoras laiks",
+                "standard": "Ulanbatoras ziemas laiks",
+                "daylight": "Ulanbatoras vasaras laiks"
+              }
+            },
+            "Moscow": {
+              "long": {
+                "generic": "Maskavas laiks",
+                "standard": "Maskavas ziemas laiks",
+                "daylight": "Maskavas vasaras laiks"
+              }
+            },
+            "Myanmar": {
+              "long": {
+                "standard": "Mjanmas laiks"
+              }
+            },
+            "Nauru": {
+              "long": {
+                "standard": "Nauru laiks"
+              }
+            },
+            "Nepal": {
+              "long": {
+                "standard": "Nepālas laiks"
+              }
+            },
+            "New_Caledonia": {
+              "long": {
+                "generic": "Jaunkaledonijas laiks",
+                "standard": "Jaunkaledonijas ziemas laiks",
+                "daylight": "Jaunkaledonijas vasaras laiks"
+              }
+            },
+            "New_Zealand": {
+              "long": {
+                "generic": "Jaunzēlandes laiks",
+                "standard": "Jaunzēlandes ziemas laiks",
+                "daylight": "Jaunzēlandes vasaras laiks"
+              }
+            },
+            "Newfoundland": {
+              "long": {
+                "generic": "Ņūfaundlendas laiks",
+                "standard": "Ņūfaundlendas ziemas laiks",
+                "daylight": "Ņūfaundlendas vasaras laiks"
+              }
+            },
+            "Niue": {
+              "long": {
+                "standard": "Niues laiks"
+              }
+            },
+            "Norfolk": {
+              "long": {
+                "generic": "Norfolkas salas laiks",
+                "standard": "Norfolkas salas ziemas laiks",
+                "daylight": "Norfolkas salas vasaras laiks"
+              }
+            },
+            "Noronha": {
+              "long": {
+                "generic": "Fernandu di Noroņas laiks",
+                "standard": "Fernandu di Noroņas ziemas laiks",
+                "daylight": "Fernandu di Noroņas vasaras laiks"
+              }
+            },
+            "Novosibirsk": {
+              "long": {
+                "generic": "Novosibirskas laiks",
+                "standard": "Novosibirskas ziemas laiks",
+                "daylight": "Novosibirskas vasaras laiks"
+              }
+            },
+            "Omsk": {
+              "long": {
+                "generic": "Omskas laiks",
+                "standard": "Omskas ziemas laiks",
+                "daylight": "Omskas vasaras laiks"
+              }
+            },
+            "Pakistan": {
+              "long": {
+                "generic": "Pakistānas laiks",
+                "standard": "Pakistānas ziemas laiks",
+                "daylight": "Pakistānas vasaras laiks"
+              }
+            },
+            "Palau": {
+              "long": {
+                "standard": "Palau laiks"
+              }
+            },
+            "Papua_New_Guinea": {
+              "long": {
+                "standard": "Papua-Jaungvinejas laiks"
+              }
+            },
+            "Paraguay": {
+              "long": {
+                "generic": "Paragvajas laiks",
+                "standard": "Paragvajas ziemas laiks",
+                "daylight": "Paragvajas vasaras laiks"
+              }
+            },
+            "Peru": {
+              "long": {
+                "generic": "Peru laiks",
+                "standard": "Peru ziemas laiks",
+                "daylight": "Peru vasaras laiks"
+              }
+            },
+            "Philippines": {
+              "long": {
+                "generic": "Filipīnu laiks",
+                "standard": "Filipīnu ziemas laiks",
+                "daylight": "Filipīnu vasaras laiks"
+              }
+            },
+            "Phoenix_Islands": {
+              "long": {
+                "standard": "Fēniksa salu laiks"
+              }
+            },
+            "Pierre_Miquelon": {
+              "long": {
+                "generic": "Senpjēras un Mikelonas laiks",
+                "standard": "Senpjēras un Mikelonas ziemas laiks",
+                "daylight": "Senpjēras un Mikelonas vasaras laiks"
+              }
+            },
+            "Pitcairn": {
+              "long": {
+                "standard": "Pitkērnas laiks"
+              }
+            },
+            "Ponape": {
+              "long": {
+                "standard": "Ponapē laiks"
+              }
+            },
+            "Pyongyang": {
+              "long": {
+                "standard": "Phenjanas laiks"
+              }
+            },
+            "Reunion": {
+              "long": {
+                "standard": "Reinjonas laiks"
+              }
+            },
+            "Rothera": {
+              "long": {
+                "standard": "Roteras laiks"
+              }
+            },
+            "Sakhalin": {
+              "long": {
+                "generic": "Sahalīnas laiks",
+                "standard": "Sahalīnas ziemas laiks",
+                "daylight": "Sahalīnas vasaras laiks"
+              }
+            },
+            "Samara": {
+              "long": {
+                "generic": "Samaras laiks",
+                "standard": "Samaras ziemas laiks",
+                "daylight": "Samaras vasaras laiks"
+              }
+            },
+            "Samoa": {
+              "long": {
+                "generic": "Samoa laiks",
+                "standard": "Samoa ziemas laiks",
+                "daylight": "Samoa vasaras laiks"
+              }
+            },
+            "Seychelles": {
+              "long": {
+                "standard": "Seišeļu salu laiks"
+              }
+            },
+            "Singapore": {
+              "long": {
+                "standard": "Singapūras laiks"
+              }
+            },
+            "Solomon": {
+              "long": {
+                "standard": "Zālamana salu laiks"
+              }
+            },
+            "South_Georgia": {
+              "long": {
+                "standard": "Dienviddžordžijas laiks"
+              }
+            },
+            "Suriname": {
+              "long": {
+                "standard": "Surinamas laiks"
+              }
+            },
+            "Syowa": {
+              "long": {
+                "standard": "Šovas laiks"
+              }
+            },
+            "Tahiti": {
+              "long": {
+                "standard": "Taiti laiks"
+              }
+            },
+            "Taipei": {
+              "long": {
+                "generic": "Taibei laiks",
+                "standard": "Taibei ziemas laiks",
+                "daylight": "Taibei vasaras laiks"
+              }
+            },
+            "Tajikistan": {
+              "long": {
+                "standard": "Tadžikistānas laiks"
+              }
+            },
+            "Tokelau": {
+              "long": {
+                "standard": "Tokelau laiks"
+              }
+            },
+            "Tonga": {
+              "long": {
+                "generic": "Tongas laiks",
+                "standard": "Tongas ziemas laiks",
+                "daylight": "Tongas vasaras laiks"
+              }
+            },
+            "Truk": {
+              "long": {
+                "standard": "Čūkas laiks"
+              }
+            },
+            "Turkey": {
+              "long": {
+                "generic": "Turcijas laiks",
+                "standard": "Turcijas ziemas laiks",
+                "daylight": "Turcijas vasaras laiks"
+              }
+            },
+            "Turkmenistan": {
+              "long": {
+                "generic": "Turkmenistānas laiks",
+                "standard": "Turkmenistānas ziemas laiks",
+                "daylight": "Turkmenistānas vasaras laiks"
+              }
+            },
+            "Tuvalu": {
+              "long": {
+                "standard": "Tuvalu laiks"
+              }
+            },
+            "Uruguay": {
+              "long": {
+                "generic": "Urugvajas laiks",
+                "standard": "Urugvajas ziemas laiks",
+                "daylight": "Urugvajas vasaras laiks"
+              }
+            },
+            "Uzbekistan": {
+              "long": {
+                "generic": "Uzbekistānas laiks",
+                "standard": "Uzbekistānas ziemas laiks",
+                "daylight": "Uzbekistānas vasaras laiks"
+              }
+            },
+            "Vanuatu": {
+              "long": {
+                "generic": "Vanuatu laiks",
+                "standard": "Vanuatu ziemas laiks",
+                "daylight": "Vanuatu vasaras laiks"
+              }
+            },
+            "Venezuela": {
+              "long": {
+                "standard": "Venecuēlas laiks"
+              }
+            },
+            "Vladivostok": {
+              "long": {
+                "generic": "Vladivostokas laiks",
+                "standard": "Vladivostokas ziemas laiks",
+                "daylight": "Vladivostokas vasaras laiks"
+              }
+            },
+            "Volgograd": {
+              "long": {
+                "generic": "Volgogradas laiks",
+                "standard": "Volgogradas ziemas laiks",
+                "daylight": "Volgogradas vasaras laiks"
+              }
+            },
+            "Vostok": {
+              "long": {
+                "standard": "Vostokas laiks"
+              }
+            },
+            "Wake": {
+              "long": {
+                "standard": "Veika salas laiks"
+              }
+            },
+            "Wallis": {
+              "long": {
+                "standard": "Volisas un Futunas laiks"
+              }
+            },
+            "Yakutsk": {
+              "long": {
+                "generic": "Jakutskas laiks",
+                "standard": "Jakutskas ziemas laiks",
+                "daylight": "Jakutskas vasaras laiks"
+              }
+            },
+            "Yekaterinburg": {
+              "long": {
+                "generic": "Jekaterinburgas laiks",
+                "standard": "Jekaterinburgas ziemas laiks",
+                "daylight": "Jekaterinburgas vasaras laiks"
+              }
+            },
+            "Yukon": {
+              "long": {
+                "standard": "Jukonas laiks"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

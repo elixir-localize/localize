@@ -1,0 +1,16 @@
+{
+  "main": {
+    "myv": {
+      "identity": {
+        "language": "myv"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

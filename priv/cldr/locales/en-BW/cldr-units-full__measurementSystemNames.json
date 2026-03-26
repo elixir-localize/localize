@@ -1,0 +1,17 @@
+{
+  "main": {
+    "en-BW": {
+      "identity": {
+        "language": "en",
+        "territory": "BW"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

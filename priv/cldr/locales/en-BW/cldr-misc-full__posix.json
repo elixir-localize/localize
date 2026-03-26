@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-BW": {
+      "identity": {
+        "language": "en",
+        "territory": "BW"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

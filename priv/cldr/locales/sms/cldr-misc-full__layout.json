@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sms": {
+      "identity": {
+        "language": "sms"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

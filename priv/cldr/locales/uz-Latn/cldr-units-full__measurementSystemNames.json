@@ -1,0 +1,17 @@
+{
+  "main": {
+    "uz-Latn": {
+      "identity": {
+        "language": "uz",
+        "script": "Latn"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metrik",
+          "UK": "Buyuk Britaniya",
+          "US": "AQSH"
+        }
+      }
+    }
+  }
+}

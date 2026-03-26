@@ -1,0 +1,15 @@
+{
+  "main": {
+    "scn": {
+      "identity": {
+        "language": "scn"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

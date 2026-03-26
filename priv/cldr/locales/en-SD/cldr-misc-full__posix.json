@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-SD": {
+      "identity": {
+        "language": "en",
+        "territory": "SD"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fr-CI": {
+      "identity": {
+        "language": "fr",
+        "territory": "CI"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrique",
+          "UK": "impérial",
+          "US": "américain"
+        }
+      }
+    }
+  }
+}

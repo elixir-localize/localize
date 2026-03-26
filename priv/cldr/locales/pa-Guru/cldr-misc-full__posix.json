@@ -1,0 +1,16 @@
+{
+  "main": {
+    "pa-Guru": {
+      "identity": {
+        "language": "pa",
+        "script": "Guru"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ਹਾਂ:ਹ",
+          "nostr": "ਨਹੀਂ:ਨ"
+        }
+      }
+    }
+  }
+}

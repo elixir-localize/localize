@@ -1,0 +1,18 @@
+{
+  "main": {
+    "ca-ES-valencia": {
+      "identity": {
+        "language": "ca",
+        "territory": "ES",
+        "variant": "VALENCIA"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "mètric",
+          "UK": "RU",
+          "US": "EUA"
+        }
+      }
+    }
+  }
+}

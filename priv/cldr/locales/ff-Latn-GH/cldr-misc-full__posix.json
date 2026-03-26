@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ff-Latn-GH": {
+      "identity": {
+        "language": "ff",
+        "script": "Latn",
+        "territory": "GH"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Eey:E",
+          "nostr": "Alaa:A"
+        }
+      }
+    }
+  }
+}

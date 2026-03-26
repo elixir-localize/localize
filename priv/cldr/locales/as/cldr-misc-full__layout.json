@@ -1,0 +1,15 @@
+{
+  "main": {
+    "as": {
+      "identity": {
+        "language": "as"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

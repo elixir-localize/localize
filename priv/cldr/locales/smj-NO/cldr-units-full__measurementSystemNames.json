@@ -1,0 +1,17 @@
+{
+  "main": {
+    "smj-NO": {
+      "identity": {
+        "language": "smj",
+        "territory": "NO"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

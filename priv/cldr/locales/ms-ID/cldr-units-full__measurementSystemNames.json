@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ms-ID": {
+      "identity": {
+        "language": "ms",
+        "territory": "ID"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metrik",
+          "UK": "UK",
+          "US": "AS"
+        }
+      }
+    }
+  }
+}

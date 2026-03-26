@@ -1,0 +1,15 @@
+{
+  "main": {
+    "gez-ER": {
+      "identity": {
+        "language": "gez",
+        "territory": "ER"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Latn": "ላቲን"
+        }
+      }
+    }
+  }
+}

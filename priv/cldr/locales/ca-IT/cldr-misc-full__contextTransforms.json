@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ca-IT": {
+      "identity": {
+        "language": "ca",
+        "territory": "IT"
+      },
+      "contextTransforms": {
+        "typographicNames": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        }
+      }
+    }
+  }
+}

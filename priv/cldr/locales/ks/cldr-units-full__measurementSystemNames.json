@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ks": {
+      "identity": {
+        "language": "ks"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "میٖٹرِک",
+          "UK": "یو کے",
+          "US": "یو ایس"
+        }
+      }
+    }
+  }
+}

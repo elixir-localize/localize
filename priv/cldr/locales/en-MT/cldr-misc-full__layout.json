@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-MT": {
+      "identity": {
+        "language": "en",
+        "territory": "MT"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

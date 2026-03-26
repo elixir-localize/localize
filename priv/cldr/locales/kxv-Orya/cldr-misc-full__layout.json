@@ -1,0 +1,16 @@
+{
+  "main": {
+    "kxv-Orya": {
+      "identity": {
+        "language": "kxv",
+        "script": "Orya"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

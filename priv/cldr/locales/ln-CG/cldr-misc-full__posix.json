@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ln-CG": {
+      "identity": {
+        "language": "ln",
+        "territory": "CG"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Íyo:Í:I",
+          "nostr": "Tɛ̂:T"
+        }
+      }
+    }
+  }
+}

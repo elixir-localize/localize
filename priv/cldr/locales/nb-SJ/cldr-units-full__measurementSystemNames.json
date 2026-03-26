@@ -1,0 +1,17 @@
+{
+  "main": {
+    "nb-SJ": {
+      "identity": {
+        "language": "nb",
+        "territory": "SJ"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrisk",
+          "UK": "engelsk",
+          "US": "amerikansk"
+        }
+      }
+    }
+  }
+}

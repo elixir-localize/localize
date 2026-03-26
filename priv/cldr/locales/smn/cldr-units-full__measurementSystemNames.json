@@ -1,0 +1,16 @@
+{
+  "main": {
+    "smn": {
+      "identity": {
+        "language": "smn"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrisâš",
+          "UK": "brittilâš",
+          "US": "ameriklâš"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "main": {
+    "tpi": {
+      "identity": {
+        "language": "tpi"
+      },
+      "localeDisplayNames": {
+        "territories": {
+          "BR": "Brasil",
+          "CN": "Saina",
+          "DE": "Jemani",
+          "FR": "Frans",
+          "GB": "Yunaited Kingdom",
+          "IN": "India",
+          "IT": "Itali",
+          "PG": "Papua Niugini",
+          "ZZ": "Rijen i no stap"
+        }
+      }
+    }
+  }
+}

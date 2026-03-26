@@ -1,0 +1,18 @@
+{
+  "main": {
+    "nn": {
+      "identity": {
+        "language": "nn"
+      },
+      "contextTransforms": {
+        "relative": {
+          "stand-alone": "titlecase-firstword"
+        },
+        "typographicNames": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        }
+      }
+    }
+  }
+}

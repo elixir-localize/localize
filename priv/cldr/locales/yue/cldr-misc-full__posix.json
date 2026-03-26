@@ -1,0 +1,15 @@
+{
+  "main": {
+    "yue": {
+      "identity": {
+        "language": "yue"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "係",
+          "nostr": "唔係"
+        }
+      }
+    }
+  }
+}

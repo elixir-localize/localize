@@ -1,0 +1,15 @@
+{
+  "main": {
+    "kcg": {
+      "identity": {
+        "language": "kcg"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

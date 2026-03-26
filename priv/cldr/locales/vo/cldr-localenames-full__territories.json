@@ -1,0 +1,30 @@
+{
+  "main": {
+    "vo": {
+      "identity": {
+        "language": "vo"
+      },
+      "localeDisplayNames": {
+        "territories": {
+          "BR": "Brasilän",
+          "CN": "Tsyinän",
+          "DE": "Deutän",
+          "ES": "Spanyän",
+          "FR": "Fransän",
+          "GB": "Regän Pebalöl",
+          "GE": "Grusiyän",
+          "GR": "Grikän",
+          "IN": "Lindän",
+          "IT": "Litaliyän",
+          "JP": "Yapän",
+          "MX": "Mäxikän",
+          "NR": "Naureän",
+          "PT": "Portugän",
+          "PW": "Palauäns",
+          "RU": "Rusän",
+          "US": "Lamerikän"
+        }
+      }
+    }
+  }
+}

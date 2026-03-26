@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-SC": {
+      "identity": {
+        "language": "fr",
+        "territory": "SC"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "oui:o",
+          "nostr": "non:n"
+        }
+      }
+    }
+  }
+}

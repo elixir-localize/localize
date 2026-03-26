@@ -1,0 +1,16 @@
+{
+  "main": {
+    "xnr": {
+      "identity": {
+        "language": "xnr"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "मीट्रिक",
+          "UK": "यूके",
+          "US": "यूएस"
+        }
+      }
+    }
+  }
+}

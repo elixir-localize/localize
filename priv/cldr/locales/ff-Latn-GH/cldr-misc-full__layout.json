@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ff-Latn-GH": {
+      "identity": {
+        "language": "ff",
+        "script": "Latn",
+        "territory": "GH"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

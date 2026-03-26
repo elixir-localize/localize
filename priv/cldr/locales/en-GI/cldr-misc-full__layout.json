@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-GI": {
+      "identity": {
+        "language": "en",
+        "territory": "GI"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

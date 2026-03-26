@@ -1,0 +1,15 @@
+{
+  "main": {
+    "lrc": {
+      "identity": {
+        "language": "lrc"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "هأری:ه",
+          "nostr": "نه:ن"
+        }
+      }
+    }
+  }
+}

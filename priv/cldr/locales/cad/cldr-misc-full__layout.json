@@ -1,0 +1,15 @@
+{
+  "main": {
+    "cad": {
+      "identity": {
+        "language": "cad"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ki": {
+      "identity": {
+        "language": "ki"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ĩĩ:Ĩ",
+          "nostr": "Ca:C"
+        }
+      }
+    }
+  }
+}

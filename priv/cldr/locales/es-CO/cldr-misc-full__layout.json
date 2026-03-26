@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-CO": {
+      "identity": {
+        "language": "es",
+        "territory": "CO"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

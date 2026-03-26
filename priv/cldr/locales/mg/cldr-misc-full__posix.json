@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mg": {
+      "identity": {
+        "language": "mg"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Eny:E",
+          "nostr": "Tsia:T"
+        }
+      }
+    }
+  }
+}

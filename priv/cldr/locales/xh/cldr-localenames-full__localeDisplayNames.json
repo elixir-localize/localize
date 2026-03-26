@@ -1,0 +1,35 @@
+{
+  "main": {
+    "xh": {
+      "identity": {
+        "language": "xh"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}, {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "types": {
+          "calendar": {
+            "gregorian": "Ngokwekhalenda KaGregorian",
+            "core": "IGregorian",
+            "iso8601": "Ikhalenda kaGregorian"
+          },
+          "collation": {
+            "standard": "Standard Sort Order",
+            "core": "Eqhelekileyo"
+          },
+          "numbers": {
+            "latn": "Western Digits"
+          }
+        },
+        "codePatterns": {
+          "language": "Language: {0}",
+          "script": "Script: {0}",
+          "territory": "Region: {0}"
+        }
+      }
+    }
+  }
+}

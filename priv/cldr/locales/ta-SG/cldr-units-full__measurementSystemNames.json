@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ta-SG": {
+      "identity": {
+        "language": "ta",
+        "territory": "SG"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "மெட்ரிக்",
+          "UK": "யூகே",
+          "US": "யூஎஸ்"
+        }
+      }
+    }
+  }
+}

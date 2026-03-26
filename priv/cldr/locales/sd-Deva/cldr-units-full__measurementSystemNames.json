@@ -1,0 +1,17 @@
+{
+  "main": {
+    "sd-Deva": {
+      "identity": {
+        "language": "sd",
+        "script": "Deva"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "मैट्रिक",
+          "UK": "यूके",
+          "US": "यूएस"
+        }
+      }
+    }
+  }
+}

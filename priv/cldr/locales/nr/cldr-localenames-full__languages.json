@@ -1,0 +1,14 @@
+{
+  "main": {
+    "nr": {
+      "identity": {
+        "language": "nr"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "nr": "isiNdebele"
+        }
+      }
+    }
+  }
+}

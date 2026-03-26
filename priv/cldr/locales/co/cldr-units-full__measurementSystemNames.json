@@ -1,0 +1,16 @@
+{
+  "main": {
+    "co": {
+      "identity": {
+        "language": "co"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metricu",
+          "UK": "imperiale",
+          "US": "americanu"
+        }
+      }
+    }
+  }
+}

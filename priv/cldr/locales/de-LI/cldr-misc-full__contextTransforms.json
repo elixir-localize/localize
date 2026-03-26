@@ -1,0 +1,16 @@
+{
+  "main": {
+    "de-LI": {
+      "identity": {
+        "language": "de",
+        "territory": "LI"
+      },
+      "contextTransforms": {
+        "typographicNames": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        }
+      }
+    }
+  }
+}

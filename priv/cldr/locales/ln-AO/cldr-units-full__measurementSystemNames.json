@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ln-AO": {
+      "identity": {
+        "language": "ln",
+        "territory": "AO"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

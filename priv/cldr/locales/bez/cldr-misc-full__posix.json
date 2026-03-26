@@ -1,0 +1,15 @@
+{
+  "main": {
+    "bez": {
+      "identity": {
+        "language": "bez"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Eeh:E",
+          "nostr": "Sio ewo:S"
+        }
+      }
+    }
+  }
+}

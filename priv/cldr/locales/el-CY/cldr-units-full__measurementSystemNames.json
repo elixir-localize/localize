@@ -1,0 +1,17 @@
+{
+  "main": {
+    "el-CY": {
+      "identity": {
+        "language": "el",
+        "territory": "CY"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Μετρικό",
+          "UK": "Αγγλοσαξονικό",
+          "US": "Αμερικανικό"
+        }
+      }
+    }
+  }
+}

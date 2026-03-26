@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-FM": {
+      "identity": {
+        "language": "en",
+        "territory": "FM"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "is": {
+      "identity": {
+        "language": "is"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrakerfi",
+          "UK": "breskt",
+          "US": "bandarískt"
+        }
+      }
+    }
+  }
+}

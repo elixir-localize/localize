@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-IL": {
+      "identity": {
+        "language": "ar",
+        "territory": "IL"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

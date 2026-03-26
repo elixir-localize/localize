@@ -1,0 +1,15 @@
+{
+  "main": {
+    "bs": {
+      "identity": {
+        "language": "bs"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

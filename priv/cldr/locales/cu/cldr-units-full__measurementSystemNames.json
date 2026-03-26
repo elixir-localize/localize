@@ -1,0 +1,16 @@
+{
+  "main": {
+    "cu": {
+      "identity": {
+        "language": "cu"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "метрі́ческаѧ",
+          "UK": "а҆нглі́йскаѧ",
+          "US": "а҆мерїка́нскаѧ"
+        }
+      }
+    }
+  }
+}

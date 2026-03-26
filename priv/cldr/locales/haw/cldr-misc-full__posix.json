@@ -1,0 +1,15 @@
+{
+  "main": {
+    "haw": {
+      "identity": {
+        "language": "haw"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

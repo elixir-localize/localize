@@ -1,0 +1,15 @@
+{
+  "main": {
+    "za": {
+      "identity": {
+        "language": "za"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "yue-Hant": {
+      "identity": {
+        "language": "yue",
+        "script": "Hant"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

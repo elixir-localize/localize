@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-CY": {
+      "identity": {
+        "language": "en",
+        "territory": "CY"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

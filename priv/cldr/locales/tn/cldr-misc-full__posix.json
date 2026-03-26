@@ -1,0 +1,15 @@
+{
+  "main": {
+    "tn": {
+      "identity": {
+        "language": "tn"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

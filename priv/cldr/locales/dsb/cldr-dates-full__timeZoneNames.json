@@ -1,0 +1,1526 @@
+{
+  "main": {
+    "dsb": {
+      "identity": {
+        "language": "dsb"
+      },
+      "dates": {
+        "timeZoneNames": {
+          "hourFormat": "+HH:mm;-HH:mm",
+          "gmtFormat": "GMT{0}",
+          "gmtZeroFormat": "GMT",
+          "gmtUnknownFormat": "GMT+?",
+          "regionFormat": "Casowe pasmo {0}",
+          "regionFormat-type-daylight": "{0} lěśojski cas",
+          "regionFormat-type-standard": "{0} zymski cas",
+          "fallbackFormat": "{1} ({0})",
+          "zone": {
+            "Etc": {
+              "UTC": {
+                "_type": "zone",
+                "long": {
+                  "standard": "koordiněrowany swětowy cas"
+                },
+                "short": {
+                  "standard": "UTC"
+                }
+              },
+              "Unknown": {
+                "_type": "zone",
+                "exemplarCity": "Njeznate"
+              }
+            },
+            "Europe": {
+              "Tirane": {
+                "_type": "zone",
+                "exemplarCity": "Tirana"
+              },
+              "Vienna": {
+                "_type": "zone",
+                "exemplarCity": "Wien"
+              },
+              "Brussels": {
+                "_type": "zone",
+                "exemplarCity": "Brüssel"
+              },
+              "Zurich": {
+                "_type": "zone",
+                "exemplarCity": "Zürich"
+              },
+              "Prague": {
+                "_type": "zone",
+                "exemplarCity": "Praga"
+              },
+              "Busingen": {
+                "_type": "zone",
+                "exemplarCity": "Büsingen"
+              },
+              "Copenhagen": {
+                "_type": "zone",
+                "exemplarCity": "Kopenhagen"
+              },
+              "London": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "Britiski lěśojski cas"
+                }
+              },
+              "Athens": {
+                "_type": "zone",
+                "exemplarCity": "Athen"
+              },
+              "Dublin": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "Iriski lěśojski cas"
+                }
+              },
+              "Rome": {
+                "_type": "zone",
+                "exemplarCity": "Rom"
+              },
+              "Vilnius": {
+                "_type": "zone",
+                "exemplarCity": "Wilna"
+              },
+              "Luxembourg": {
+                "_type": "zone",
+                "exemplarCity": "Luxemburg"
+              },
+              "Chisinau": {
+                "_type": "zone",
+                "exemplarCity": "Kišinau"
+              },
+              "Warsaw": {
+                "_type": "zone",
+                "exemplarCity": "Waršawa"
+              },
+              "Lisbon": {
+                "_type": "zone",
+                "exemplarCity": "Lissabon"
+              },
+              "Bucharest": {
+                "_type": "zone",
+                "exemplarCity": "Bukarest"
+              },
+              "Belgrade": {
+                "_type": "zone",
+                "exemplarCity": "Běłogrod"
+              },
+              "Moscow": {
+                "_type": "zone",
+                "exemplarCity": "Moskwa"
+              },
+              "Volgograd": {
+                "_type": "zone",
+                "exemplarCity": "Wolgograd"
+              },
+              "Kiev": {
+                "_type": "zone",
+                "exemplarCity": "Kiew"
+              },
+              "Vatican": {
+                "_type": "zone",
+                "exemplarCity": "Vatikan"
+              }
+            },
+            "Asia": {
+              "Yerevan": {
+                "_type": "zone",
+                "exemplarCity": "Jerewan"
+              },
+              "Urumqi": {
+                "_type": "zone",
+                "exemplarCity": "Ürümqi"
+              },
+              "Nicosia": {
+                "_type": "zone",
+                "exemplarCity": "Nikosia"
+              },
+              "Hong_Kong": {
+                "_type": "zone",
+                "exemplarCity": "Hongkong"
+              },
+              "Jayapura": {
+                "_type": "zone",
+                "exemplarCity": "Port Numbay"
+              },
+              "Calcutta": {
+                "_type": "zone",
+                "exemplarCity": "Kalkutta"
+              },
+              "Baghdad": {
+                "_type": "zone",
+                "exemplarCity": "Bagdad"
+              },
+              "Tehran": {
+                "_type": "zone",
+                "exemplarCity": "Teheran"
+              },
+              "Tokyo": {
+                "_type": "zone",
+                "exemplarCity": "Tokio"
+              },
+              "Bishkek": {
+                "_type": "zone",
+                "exemplarCity": "Biškek"
+              },
+              "Pyongyang": {
+                "_type": "zone",
+                "exemplarCity": "Pjöngjang"
+              },
+              "Aqtobe": {
+                "_type": "zone",
+                "exemplarCity": "Aktobe"
+              },
+              "Rangoon": {
+                "_type": "zone",
+                "exemplarCity": "Rangun"
+              },
+              "Hovd": {
+                "_type": "zone",
+                "exemplarCity": "Khovd"
+              },
+              "Macau": {
+                "_type": "zone",
+                "exemplarCity": "Macao"
+              },
+              "Katmandu": {
+                "_type": "zone",
+                "exemplarCity": "Kathmandu"
+              },
+              "Muscat": {
+                "_type": "zone",
+                "exemplarCity": "Muskat"
+              },
+              "Karachi": {
+                "_type": "zone",
+                "exemplarCity": "Karači"
+              },
+              "Qatar": {
+                "_type": "zone",
+                "exemplarCity": "Katar"
+              },
+              "Yekaterinburg": {
+                "_type": "zone",
+                "exemplarCity": "Jekaterinburg"
+              },
+              "Novosibirsk": {
+                "_type": "zone",
+                "exemplarCity": "Nowosibirsk"
+              },
+              "Novokuznetsk": {
+                "_type": "zone",
+                "exemplarCity": "Nowokuznjetsk"
+              },
+              "Krasnoyarsk": {
+                "_type": "zone",
+                "exemplarCity": "Krasnojarsk"
+              },
+              "Yakutsk": {
+                "_type": "zone",
+                "exemplarCity": "Jakutsk"
+              },
+              "Vladivostok": {
+                "_type": "zone",
+                "exemplarCity": "Wladiwostok"
+              },
+              "Sakhalin": {
+                "_type": "zone",
+                "exemplarCity": "Sachalin"
+              },
+              "Kamchatka": {
+                "_type": "zone",
+                "exemplarCity": "Kamčatka"
+              },
+              "Riyadh": {
+                "_type": "zone",
+                "exemplarCity": "Riad"
+              },
+              "Singapore": {
+                "_type": "zone",
+                "exemplarCity": "Singapur"
+              },
+              "Damascus": {
+                "_type": "zone",
+                "exemplarCity": "Damaskus"
+              },
+              "Dushanbe": {
+                "_type": "zone",
+                "exemplarCity": "Dušanbe"
+              },
+              "Taipei": {
+                "_type": "zone",
+                "exemplarCity": "Taipeh"
+              },
+              "Tashkent": {
+                "_type": "zone",
+                "exemplarCity": "Taškent"
+              },
+              "Saigon": {
+                "_type": "zone",
+                "exemplarCity": "Ho-Chi-Minh-město"
+              }
+            },
+            "Antarctica": {
+              "Syowa": {
+                "_type": "zone",
+                "exemplarCity": "Showa"
+              },
+              "Vostok": {
+                "_type": "zone",
+                "exemplarCity": "Wostok"
+              },
+              "DumontDUrville": {
+                "_type": "zone",
+                "exemplarCity": "Dumont D’Urville"
+              }
+            },
+            "America": {
+              "Argentina": {
+                "Rio_Gallegos": {
+                  "_type": "zone",
+                  "exemplarCity": "Río Gallegos"
+                },
+                "Tucuman": {
+                  "_type": "zone",
+                  "exemplarCity": "Tucumán"
+                }
+              },
+              "Cordoba": {
+                "_type": "zone",
+                "exemplarCity": "Córdoba"
+              },
+              "St_Barthelemy": {
+                "_type": "zone",
+                "exemplarCity": "St.Barthélemy"
+              },
+              "Eirunepe": {
+                "_type": "zone",
+                "exemplarCity": "Eirunepé"
+              },
+              "Cuiaba": {
+                "_type": "zone",
+                "exemplarCity": "Cuiabá"
+              },
+              "Santarem": {
+                "_type": "zone",
+                "exemplarCity": "Santarém"
+              },
+              "Belem": {
+                "_type": "zone",
+                "exemplarCity": "Belém"
+              },
+              "Araguaina": {
+                "_type": "zone",
+                "exemplarCity": "Araguaína"
+              },
+              "Sao_Paulo": {
+                "_type": "zone",
+                "exemplarCity": "São Paulo"
+              },
+              "Maceio": {
+                "_type": "zone",
+                "exemplarCity": "Maceió"
+              },
+              "Noronha": {
+                "_type": "zone",
+                "exemplarCity": "Fernando de Noronha"
+              },
+              "Coral_Harbour": {
+                "_type": "zone",
+                "exemplarCity": "Atikokan"
+              },
+              "St_Johns": {
+                "_type": "zone",
+                "exemplarCity": "St. John’s"
+              },
+              "Bogota": {
+                "_type": "zone",
+                "exemplarCity": "Bogotá"
+              },
+              "Havana": {
+                "_type": "zone",
+                "exemplarCity": "Havanna"
+              },
+              "Curacao": {
+                "_type": "zone",
+                "exemplarCity": "Curaçao"
+              },
+              "Godthab": {
+                "_type": "zone",
+                "exemplarCity": "Nuuk"
+              },
+              "Scoresbysund": {
+                "_type": "zone",
+                "exemplarCity": "Ittoqqortoormiit"
+              },
+              "Jamaica": {
+                "_type": "zone",
+                "exemplarCity": "Jamaika"
+              },
+              "St_Kitts": {
+                "_type": "zone",
+                "exemplarCity": "St. Kitts"
+              },
+              "Cayman": {
+                "_type": "zone",
+                "exemplarCity": "Kaimaniske kupy"
+              },
+              "St_Lucia": {
+                "_type": "zone",
+                "exemplarCity": "St. Lucia"
+              },
+              "Ciudad_Juarez": {
+                "_type": "zone",
+                "exemplarCity": "Ciudad Juárez"
+              },
+              "Mazatlan": {
+                "_type": "zone",
+                "exemplarCity": "Mazatlán"
+              },
+              "Bahia_Banderas": {
+                "_type": "zone",
+                "exemplarCity": "Bahía de Banderas"
+              },
+              "Mexico_City": {
+                "_type": "zone",
+                "exemplarCity": "Mexiko-město"
+              },
+              "Merida": {
+                "_type": "zone",
+                "exemplarCity": "Mérida"
+              },
+              "Cancun": {
+                "_type": "zone",
+                "exemplarCity": "Cancún"
+              },
+              "Miquelon": {
+                "_type": "zone",
+                "exemplarCity": "Saint-Pierre"
+              },
+              "Asuncion": {
+                "_type": "zone",
+                "exemplarCity": "Asunción"
+              },
+              "Lower_Princes": {
+                "_type": "zone",
+                "exemplarCity": "Lower Prince’s Quarter"
+              },
+              "Port_of_Spain": {
+                "_type": "zone",
+                "exemplarCity": "Port-of-Spain"
+              },
+              "North_Dakota": {
+                "Beulah": {
+                  "_type": "zone",
+                  "exemplarCity": "Beulah, North Dakota"
+                },
+                "New_Salem": {
+                  "_type": "zone",
+                  "exemplarCity": "New Salem, North Dakota"
+                },
+                "Center": {
+                  "_type": "zone",
+                  "exemplarCity": "Center, North Dakota"
+                }
+              },
+              "Indiana": {
+                "Vincennes": {
+                  "_type": "zone",
+                  "exemplarCity": "Vincennes, Indiana"
+                },
+                "Petersburg": {
+                  "_type": "zone",
+                  "exemplarCity": "Petersburg, Indiana"
+                },
+                "Tell_City": {
+                  "_type": "zone",
+                  "exemplarCity": "Tell City, Indiana"
+                },
+                "Knox": {
+                  "_type": "zone",
+                  "exemplarCity": "Knox, Indiana"
+                },
+                "Winamac": {
+                  "_type": "zone",
+                  "exemplarCity": "Winamac, Indiana"
+                },
+                "Marengo": {
+                  "_type": "zone",
+                  "exemplarCity": "Marengo, Indiana"
+                },
+                "Vevay": {
+                  "_type": "zone",
+                  "exemplarCity": "Vevay, Indiana"
+                }
+              },
+              "Kentucky": {
+                "Monticello": {
+                  "_type": "zone",
+                  "exemplarCity": "Monticello, Kentucky"
+                }
+              },
+              "St_Vincent": {
+                "_type": "zone",
+                "exemplarCity": "St. Vincent"
+              },
+              "St_Thomas": {
+                "_type": "zone",
+                "exemplarCity": "St. Thomas"
+              }
+            },
+            "Africa": {
+              "Ouagadougou": {
+                "_type": "zone",
+                "exemplarCity": "Wagadugu"
+              },
+              "Porto-Novo": {
+                "_type": "zone",
+                "exemplarCity": "Porto Novo"
+              },
+              "Djibouti": {
+                "_type": "zone",
+                "exemplarCity": "Džibuti"
+              },
+              "Algiers": {
+                "_type": "zone",
+                "exemplarCity": "Algier"
+              },
+              "Cairo": {
+                "_type": "zone",
+                "exemplarCity": "Kairo"
+              },
+              "El_Aaiun": {
+                "_type": "zone",
+                "exemplarCity": "El Aaiún"
+              },
+              "Asmera": {
+                "_type": "zone",
+                "exemplarCity": "Asmara"
+              },
+              "Addis_Ababa": {
+                "_type": "zone",
+                "exemplarCity": "Addis Abeba"
+              },
+              "Accra": {
+                "_type": "zone",
+                "exemplarCity": "Akkra"
+              },
+              "Tripoli": {
+                "_type": "zone",
+                "exemplarCity": "Tripolis"
+              },
+              "Khartoum": {
+                "_type": "zone",
+                "exemplarCity": "Khartum"
+              },
+              "Mogadishu": {
+                "_type": "zone",
+                "exemplarCity": "Mogadišu"
+              },
+              "Sao_Tome": {
+                "_type": "zone",
+                "exemplarCity": "São Tomé"
+              },
+              "Ndjamena": {
+                "_type": "zone",
+                "exemplarCity": "N’Djamena"
+              },
+              "Lome": {
+                "_type": "zone",
+                "exemplarCity": "Lomé"
+              },
+              "Dar_es_Salaam": {
+                "_type": "zone",
+                "exemplarCity": "Daressalam"
+              }
+            },
+            "Atlantic": {
+              "Bermuda": {
+                "_type": "zone",
+                "exemplarCity": "Bermudy"
+              },
+              "Cape_Verde": {
+                "_type": "zone",
+                "exemplarCity": "Kap Verde"
+              },
+              "Canary": {
+                "_type": "zone",
+                "exemplarCity": "Kanary"
+              },
+              "Faeroe": {
+                "_type": "zone",
+                "exemplarCity": "Färöje"
+              },
+              "South_Georgia": {
+                "_type": "zone",
+                "exemplarCity": "Pódpołdnjowa Georgiska"
+              },
+              "Reykjavik": {
+                "_type": "zone",
+                "exemplarCity": "Reykjavík"
+              },
+              "Azores": {
+                "_type": "zone",
+                "exemplarCity": "Acory"
+              },
+              "St_Helena": {
+                "_type": "zone",
+                "exemplarCity": "St. Helena"
+              }
+            },
+            "Pacific": {
+              "Easter": {
+                "_type": "zone",
+                "exemplarCity": "Jatšowne kupy"
+              },
+              "Galapagos": {
+                "_type": "zone",
+                "exemplarCity": "Galápagos"
+              },
+              "Fiji": {
+                "_type": "zone",
+                "exemplarCity": "Fidži"
+              },
+              "Truk": {
+                "_type": "zone",
+                "exemplarCity": "Chuuk"
+              },
+              "Ponape": {
+                "_type": "zone",
+                "exemplarCity": "Pohnpei"
+              },
+              "Enderbury": {
+                "_type": "zone",
+                "exemplarCity": "Canton"
+              },
+              "Noumea": {
+                "_type": "zone",
+                "exemplarCity": "Nouméa"
+              },
+              "Wallis": {
+                "_type": "zone",
+                "exemplarCity": "Wallis & Futuna"
+              }
+            },
+            "Indian": {
+              "Christmas": {
+                "_type": "zone",
+                "exemplarCity": "Gódowne kupy"
+              },
+              "Comoro": {
+                "_type": "zone",
+                "exemplarCity": "Komory"
+              },
+              "Maldives": {
+                "_type": "zone",
+                "exemplarCity": "Malediwy"
+              },
+              "Reunion": {
+                "_type": "zone",
+                "exemplarCity": "Réunion"
+              },
+              "Mahe": {
+                "_type": "zone",
+                "exemplarCity": "Mahé"
+              }
+            }
+          },
+          "metazone": {
+            "Afghanistan": {
+              "long": {
+                "standard": "Afghaniski cas"
+              }
+            },
+            "Africa_Central": {
+              "long": {
+                "standard": "Srjejźoafriski cas"
+              }
+            },
+            "Africa_Eastern": {
+              "long": {
+                "standard": "Pódzajtšnoafriski cas"
+              }
+            },
+            "Africa_Southern": {
+              "long": {
+                "standard": "Pódpołdnjowoafriski cas"
+              }
+            },
+            "Africa_Western": {
+              "long": {
+                "standard": "Pódwjacornoafriski cas"
+              }
+            },
+            "Alaska": {
+              "long": {
+                "generic": "Alaskojski cas",
+                "standard": "Alaskojski standardny cas",
+                "daylight": "Alaskojski lěśojski cas"
+              }
+            },
+            "Amazon": {
+              "long": {
+                "generic": "Amaconaski cas",
+                "standard": "Amaconaski standardny cas",
+                "daylight": "Amaconaski lěśojski cas"
+              }
+            },
+            "America_Central": {
+              "long": {
+                "generic": "Pódpołnocnoameriski centralny cas",
+                "standard": "Pódpołnocnoameriski centralny standardny cas",
+                "daylight": "Pódpołnocnoameriski centralny lěśojski cas"
+              }
+            },
+            "America_Eastern": {
+              "long": {
+                "generic": "Pódpołnocnoameriski pódzajtšny cas",
+                "standard": "Pódpołnocnoameriski pódzajtšny standardny cas",
+                "daylight": "Pódpołnocnoameriski pódzajtšny lěśojski cas"
+              }
+            },
+            "America_Mountain": {
+              "long": {
+                "generic": "Pódpołnocnoameriski górski cas",
+                "standard": "Pódpołnocnoameriski górski standardny cas",
+                "daylight": "Pódpołnocnoameriski górski lěśojski cas"
+              }
+            },
+            "America_Pacific": {
+              "long": {
+                "generic": "Pódpołnocnoameriski pacifiski cas",
+                "standard": "Pódpołnocnoameriski pacifiski standardny cas",
+                "daylight": "Pódpołnocnoameriski pacifiski lěśojski cas"
+              }
+            },
+            "Apia": {
+              "long": {
+                "generic": "Apiaski cas",
+                "standard": "Apiaski standardny cas",
+                "daylight": "Apiaski lěśojski cas"
+              }
+            },
+            "Arabian": {
+              "long": {
+                "generic": "Arabiski cas",
+                "standard": "Arabiski standardny cas",
+                "daylight": "Arabiski lěśojski cas"
+              }
+            },
+            "Argentina": {
+              "long": {
+                "generic": "Argentinski cas",
+                "standard": "Argentinski standardny cas",
+                "daylight": "Argentinski lěśojski cas"
+              }
+            },
+            "Argentina_Western": {
+              "long": {
+                "generic": "Pódwjacornoargentinski cas",
+                "standard": "Pódwjacornoargentinski standardny cas",
+                "daylight": "Pódwjacornoargentinski lěśojski cas"
+              }
+            },
+            "Armenia": {
+              "long": {
+                "generic": "Armeński cas",
+                "standard": "Armeński standardny cas",
+                "daylight": "Armeński lěśojski cas"
+              }
+            },
+            "Atlantic": {
+              "long": {
+                "generic": "Atlantiski cas",
+                "standard": "Atlantiski standardny cas",
+                "daylight": "Atlantiski lěśojski cas"
+              }
+            },
+            "Australia_Central": {
+              "long": {
+                "generic": "Srjejźoawstralski cas",
+                "standard": "Srjejźoawstralski standardny cas",
+                "daylight": "Srjejźoawstralski lěśojski cas"
+              }
+            },
+            "Australia_CentralWestern": {
+              "long": {
+                "generic": "Srjejźopódwjacorny awstralski cas",
+                "standard": "Srjejźopódwjacorny awstralski standardny cas",
+                "daylight": "Srjejźopódwjacorny awstralski lěśojski cas"
+              }
+            },
+            "Australia_Eastern": {
+              "long": {
+                "generic": "Pódzajtšnoawstralski cas",
+                "standard": "Pódzajtšnoawstralski standardny cas",
+                "daylight": "Pódzajtšnoawstralski lěśojski cas"
+              }
+            },
+            "Australia_Western": {
+              "long": {
+                "generic": "Pódwjacornoawstralski cas",
+                "standard": "Pódwjacornoawstralski standardny cas",
+                "daylight": "Pódwjacornoawstralski lěśojski cas"
+              }
+            },
+            "Azerbaijan": {
+              "long": {
+                "generic": "Azerbajdžaniski cas",
+                "standard": "Azerbajdžaniski standardny cas",
+                "daylight": "Azerbajdžaniski lěśojski cas"
+              }
+            },
+            "Azores": {
+              "long": {
+                "generic": "Acorski cas",
+                "standard": "Acorski standardny cas",
+                "daylight": "Acorski lěśojski cas"
+              }
+            },
+            "Bangladesh": {
+              "long": {
+                "generic": "Bangladešski cas",
+                "standard": "Bangladešski standardny cas",
+                "daylight": "Bangladešski lěśojski cas"
+              }
+            },
+            "Bhutan": {
+              "long": {
+                "standard": "Bhutański cas"
+              }
+            },
+            "Bolivia": {
+              "long": {
+                "standard": "Boliwiski cas"
+              }
+            },
+            "Brasilia": {
+              "long": {
+                "generic": "Brasília cas",
+                "standard": "Brasília standardny cas",
+                "daylight": "Brasília lěśojski cas"
+              }
+            },
+            "Brunei": {
+              "long": {
+                "standard": "Bruneiski cas"
+              }
+            },
+            "Cape_Verde": {
+              "long": {
+                "generic": "Kapverdski cas",
+                "standard": "Kapverdski standardny cas",
+                "daylight": "Kapverdski lěśojski cas"
+              }
+            },
+            "Chamorro": {
+              "long": {
+                "standard": "Chamorrski cas"
+              }
+            },
+            "Chatham": {
+              "long": {
+                "generic": "Chathamski cas",
+                "standard": "Chathamski standardny cas",
+                "daylight": "Chathamski lěśojski cas"
+              }
+            },
+            "Chile": {
+              "long": {
+                "generic": "Chilski cas",
+                "standard": "Chilski standardny cas",
+                "daylight": "Chilski lěśojski cas"
+              }
+            },
+            "China": {
+              "long": {
+                "generic": "Chinski cas",
+                "standard": "Chinski standardny cas",
+                "daylight": "Chinski lěśojski cas"
+              }
+            },
+            "Christmas": {
+              "long": {
+                "standard": "cas Gódownych kupow"
+              }
+            },
+            "Cocos": {
+              "long": {
+                "standard": "cas Kokosowych kupow"
+              }
+            },
+            "Colombia": {
+              "long": {
+                "generic": "Kolumbiski cas",
+                "standard": "Kolumbiski standardny cas",
+                "daylight": "Kolumbiski lěśojski cas"
+              }
+            },
+            "Cook": {
+              "long": {
+                "generic": "cas Cookowych kupow",
+                "standard": "Standardny cas Cookowych kupow",
+                "daylight": "lěśojski cas Cookowych kupow"
+              }
+            },
+            "Cuba": {
+              "long": {
+                "generic": "Kubański cas",
+                "standard": "Kubański standardny cas",
+                "daylight": "Kubański lěśojski cas"
+              }
+            },
+            "Davis": {
+              "long": {
+                "standard": "Davis cas"
+              }
+            },
+            "DumontDUrville": {
+              "long": {
+                "standard": "DumontDUrville cas"
+              }
+            },
+            "East_Timor": {
+              "long": {
+                "standard": "Pódzajtšnotimorski cas"
+              }
+            },
+            "Easter": {
+              "long": {
+                "generic": "cas Jatšowneje kupy",
+                "standard": "standardny cas Jatšowneje kupy",
+                "daylight": "lěśojski cas Jatšowneje kupy"
+              }
+            },
+            "Ecuador": {
+              "long": {
+                "standard": "Ekuadorski cas"
+              }
+            },
+            "Europe_Central": {
+              "long": {
+                "generic": "Srjejźnoeuropejski cas",
+                "standard": "Srjejźnoeuropejski standardny cas",
+                "daylight": "Srjejźnoeuropejski lěśojski cas"
+              },
+              "short": {
+                "generic": "MEZ",
+                "standard": "MEZ",
+                "daylight": "MESZ"
+              }
+            },
+            "Europe_Eastern": {
+              "long": {
+                "generic": "Pódzajtšnoeuropejski cas",
+                "standard": "Pódzajtšnoeuropejski standardny cas",
+                "daylight": "Pódzajtšnoeuropejski lěśojski cas"
+              },
+              "short": {
+                "generic": "OEZ",
+                "standard": "OEZ",
+                "daylight": "OESZ"
+              }
+            },
+            "Europe_Further_Eastern": {
+              "long": {
+                "standard": "Kaliningradski cas"
+              }
+            },
+            "Europe_Western": {
+              "long": {
+                "generic": "Pódwjacornoeuropejski cas",
+                "standard": "Pódwjacornoeuropejski standardny cas",
+                "daylight": "Pódwjacornoeuropejski lěśojski cas"
+              },
+              "short": {
+                "generic": "WEZ",
+                "standard": "WEZ",
+                "daylight": "WESZ"
+              }
+            },
+            "Falkland": {
+              "long": {
+                "generic": "Falklandski cas",
+                "standard": "Falklandski standardny cas",
+                "daylight": "Falklandski lěśojski cas"
+              }
+            },
+            "Fiji": {
+              "long": {
+                "generic": "Fidźiski cas",
+                "standard": "Fidźiski standardny cas",
+                "daylight": "Fidźiski lěśojski cas"
+              }
+            },
+            "French_Guiana": {
+              "long": {
+                "standard": "Francojskoguyański cas"
+              }
+            },
+            "French_Southern": {
+              "long": {
+                "standard": "cas francojskego pódpołdnjowego a antarktiskeho teritoriuma"
+              }
+            },
+            "Galapagos": {
+              "long": {
+                "standard": "Galapagoski cas"
+              }
+            },
+            "Gambier": {
+              "long": {
+                "standard": "Gambierski cas"
+              }
+            },
+            "Georgia": {
+              "long": {
+                "generic": "Georgiski cas",
+                "standard": "Georgiski standardny cas",
+                "daylight": "Georgiski lěśojski cas"
+              }
+            },
+            "Gilbert_Islands": {
+              "long": {
+                "standard": "cas Gilbertowych kupow"
+              }
+            },
+            "GMT": {
+              "long": {
+                "standard": "Greenwichski cas"
+              }
+            },
+            "Greenland_Eastern": {
+              "long": {
+                "generic": "Pódzajtšnogrönlandski cas",
+                "standard": "Pódzajtšnogrönlandski standardny cas",
+                "daylight": "Pódzajtšnogrönlandski lěśojski cas"
+              }
+            },
+            "Greenland_Western": {
+              "long": {
+                "generic": "Pódwjacornogrönlandski cas",
+                "standard": "Pódwjacornogrönlandski standardny cas",
+                "daylight": "Pódwjacornogrönlandski lěśojski cas"
+              }
+            },
+            "Gulf": {
+              "long": {
+                "standard": "cas Persiskego golfa"
+              }
+            },
+            "Guyana": {
+              "long": {
+                "standard": "Guyański cas"
+              }
+            },
+            "Hawaii": {
+              "long": {
+                "standard": "Hawaiisko-aleutski standardny cas"
+              }
+            },
+            "Hawaii_Aleutian": {
+              "long": {
+                "generic": "Hawaiisko-aleutski cas",
+                "standard": "Hawaiisko-aleutski standardny cas",
+                "daylight": "Hawaiisko-aleutski lěśojski cas"
+              }
+            },
+            "Hong_Kong": {
+              "long": {
+                "generic": "Hongkongski cas",
+                "standard": "Hongkongski standardny cas",
+                "daylight": "Hongkongski lěśojski cas"
+              }
+            },
+            "Hovd": {
+              "long": {
+                "generic": "Chowdski cas",
+                "standard": "Chowdski standardny cas",
+                "daylight": "Chowdski lěśojski cas"
+              }
+            },
+            "India": {
+              "long": {
+                "standard": "Indiski cas"
+              }
+            },
+            "Indian_Ocean": {
+              "long": {
+                "standard": "Indiskooceaniski cas"
+              }
+            },
+            "Indochina": {
+              "long": {
+                "standard": "Indochinski cas"
+              }
+            },
+            "Indonesia_Central": {
+              "long": {
+                "standard": "Srjejźoindoneski cas"
+              }
+            },
+            "Indonesia_Eastern": {
+              "long": {
+                "standard": "Pódzajtšnoindoneski"
+              }
+            },
+            "Indonesia_Western": {
+              "long": {
+                "standard": "Pódwjacornoindoneski cas"
+              }
+            },
+            "Iran": {
+              "long": {
+                "generic": "Irański cas",
+                "standard": "Irański standardny cas",
+                "daylight": "Irański lěśojski cas"
+              }
+            },
+            "Irkutsk": {
+              "long": {
+                "generic": "Irkutski cas",
+                "standard": "Irkutski standardny cas",
+                "daylight": "Irkutski lěśojski cas"
+              }
+            },
+            "Israel": {
+              "long": {
+                "generic": "Israelski cas",
+                "standard": "Israelski standardny cas",
+                "daylight": "Israelski lěśojski cas"
+              }
+            },
+            "Japan": {
+              "long": {
+                "generic": "Japański cas",
+                "standard": "Japański standardny cas",
+                "daylight": "Japański lěśojski cas"
+              }
+            },
+            "Kazakhstan": {
+              "long": {
+                "standard": "kazachiski cas"
+              }
+            },
+            "Kazakhstan_Eastern": {
+              "long": {
+                "standard": "Pódzajtšnokazachski cas"
+              }
+            },
+            "Kazakhstan_Western": {
+              "long": {
+                "standard": "Pódwjacornokazachski cas"
+              }
+            },
+            "Korea": {
+              "long": {
+                "generic": "Korejski cas",
+                "standard": "Korejski standardny cas",
+                "daylight": "Korejski lěśojski cas"
+              }
+            },
+            "Kosrae": {
+              "long": {
+                "standard": "Kosraeski cas"
+              }
+            },
+            "Krasnoyarsk": {
+              "long": {
+                "generic": "Krasnojarski cas",
+                "standard": "Krasnojarski standardny cas",
+                "daylight": "Krasnojarski lěśojski cas"
+              }
+            },
+            "Kyrgystan": {
+              "long": {
+                "standard": "Kirgiski cas"
+              }
+            },
+            "Line_Islands": {
+              "long": {
+                "standard": "cas Linijowych kupow"
+              }
+            },
+            "Lord_Howe": {
+              "long": {
+                "generic": "cas kupy Lord-Howe",
+                "standard": "Standardny cas kupy Lord-Howe",
+                "daylight": "lěśojski cas kupy Lord-Howe"
+              }
+            },
+            "Magadan": {
+              "long": {
+                "generic": "Magadański cas",
+                "standard": "Magadański standardny cas",
+                "daylight": "Magadański lěśojski cas"
+              }
+            },
+            "Malaysia": {
+              "long": {
+                "standard": "Malajziski cas"
+              }
+            },
+            "Maldives": {
+              "long": {
+                "standard": "Malediwski cas"
+              }
+            },
+            "Marquesas": {
+              "long": {
+                "standard": "Marqueski cas"
+              }
+            },
+            "Marshall_Islands": {
+              "long": {
+                "standard": "cas Marshallowych kupow"
+              }
+            },
+            "Mauritius": {
+              "long": {
+                "generic": "Mauriciski cas",
+                "standard": "Mauriciski standardny cas",
+                "daylight": "Mauriciski lěśojski cas"
+              }
+            },
+            "Mawson": {
+              "long": {
+                "standard": "Mawson cas"
+              }
+            },
+            "Mexico_Pacific": {
+              "long": {
+                "generic": "Mexiski pacifiski cas",
+                "standard": "Mexiski pacifiski standardny cas",
+                "daylight": "Mexiski pacifiski lěśojski cas"
+              }
+            },
+            "Mongolia": {
+              "long": {
+                "generic": "Ulan-Batorski cas",
+                "standard": "Ulan-Batorski standardny cas",
+                "daylight": "Ulan-Batorski lěśojski cas"
+              }
+            },
+            "Moscow": {
+              "long": {
+                "generic": "Moskowski cas",
+                "standard": "Moskowski standardny cas",
+                "daylight": "Moskowski lěśojski cas"
+              }
+            },
+            "Myanmar": {
+              "long": {
+                "standard": "Myanmarski cas"
+              }
+            },
+            "Nauru": {
+              "long": {
+                "standard": "Nauruski cas"
+              }
+            },
+            "Nepal": {
+              "long": {
+                "standard": "Nepalski cas"
+              }
+            },
+            "New_Caledonia": {
+              "long": {
+                "generic": "Nowokaledoniski cas",
+                "standard": "Nowokaledoniski standardny cas",
+                "daylight": "Nowokaledoniski lěśojski cas"
+              }
+            },
+            "New_Zealand": {
+              "long": {
+                "generic": "Nowoseelandski cas",
+                "standard": "Nowoseelandski standardny cas",
+                "daylight": "Nowoseelandski lěśojski cas"
+              }
+            },
+            "Newfoundland": {
+              "long": {
+                "generic": "Nowofundlandski cas",
+                "standard": "Nowofundlandski standardny cas",
+                "daylight": "Nowofundlandski lěśojski cas"
+              }
+            },
+            "Niue": {
+              "long": {
+                "standard": "Niueski cas"
+              }
+            },
+            "Norfolk": {
+              "long": {
+                "generic": "cas kupy Norfolk",
+                "standard": "standardny cas kupy Norfolk",
+                "daylight": "lěśojski cas kupy Norfolk"
+              }
+            },
+            "Noronha": {
+              "long": {
+                "generic": "cas Fernando de Noronha",
+                "standard": "standardny cas Fernando de Noronha",
+                "daylight": "lěśojski cas Fernando de Noronha"
+              }
+            },
+            "Novosibirsk": {
+              "long": {
+                "generic": "Nowosibirski cas",
+                "standard": "Nowosibirski standardny cas",
+                "daylight": "Nowosibirski lěśojski cas"
+              }
+            },
+            "Omsk": {
+              "long": {
+                "generic": "Omski cas",
+                "standard": "Omski standardny cas",
+                "daylight": "Omski lěśojski cas"
+              }
+            },
+            "Pakistan": {
+              "long": {
+                "generic": "Pakistański cas",
+                "standard": "Pakistański standardny cas",
+                "daylight": "Pakistański lěśojski cas"
+              }
+            },
+            "Palau": {
+              "long": {
+                "standard": "Palauski cas"
+              }
+            },
+            "Papua_New_Guinea": {
+              "long": {
+                "standard": "Papua-Nowoginejski cas"
+              }
+            },
+            "Paraguay": {
+              "long": {
+                "generic": "Paraguayski cas",
+                "standard": "Paraguayski standardny cas",
+                "daylight": "Paraguayski lěśojski cas"
+              }
+            },
+            "Peru": {
+              "long": {
+                "generic": "Peruski cas",
+                "standard": "Peruski standardny cas",
+                "daylight": "Peruski lěśojski cas"
+              }
+            },
+            "Philippines": {
+              "long": {
+                "generic": "Filipinski cas",
+                "standard": "Filipinski standardny cas",
+                "daylight": "Filipinski lěśojski cas"
+              }
+            },
+            "Phoenix_Islands": {
+              "long": {
+                "standard": "cas Phoenixowych kupow"
+              }
+            },
+            "Pierre_Miquelon": {
+              "long": {
+                "generic": "St.-Pierre-a-Miqueloński cas",
+                "standard": "St.-Pierre-a-Miqueloński standardny cas",
+                "daylight": "St.-Pierre-a-Miqueloński lěśojski cas"
+              }
+            },
+            "Pitcairn": {
+              "long": {
+                "standard": "cas Pitcairnowych kupow"
+              }
+            },
+            "Ponape": {
+              "long": {
+                "standard": "Ponapski cas"
+              }
+            },
+            "Pyongyang": {
+              "long": {
+                "standard": "Pjöngjangski cas"
+              }
+            },
+            "Reunion": {
+              "long": {
+                "standard": "Reunionski cas"
+              }
+            },
+            "Rothera": {
+              "long": {
+                "standard": "cas Rothera"
+              }
+            },
+            "Sakhalin": {
+              "long": {
+                "generic": "Sachalinski cas",
+                "standard": "Sachalinski standardny cas",
+                "daylight": "Sachalinski lěśojski cas"
+              }
+            },
+            "Samoa": {
+              "long": {
+                "generic": "Samoaski cas",
+                "standard": "Samoaski standardny cas",
+                "daylight": "Samoaski lěśojski cas"
+              }
+            },
+            "Seychelles": {
+              "long": {
+                "standard": "Seychelski cas"
+              }
+            },
+            "Singapore": {
+              "long": {
+                "standard": "Singapurski cas"
+              }
+            },
+            "Solomon": {
+              "long": {
+                "standard": "Salomoński cas"
+              }
+            },
+            "South_Georgia": {
+              "long": {
+                "standard": "Pódpołdnjowogeorgiski cas"
+              }
+            },
+            "Suriname": {
+              "long": {
+                "standard": "Surinamski cas"
+              }
+            },
+            "Syowa": {
+              "long": {
+                "standard": "Syowa cas"
+              }
+            },
+            "Tahiti": {
+              "long": {
+                "standard": "Tahitiski cas"
+              }
+            },
+            "Taipei": {
+              "long": {
+                "generic": "Tchajpejski cas",
+                "standard": "Tchajpejski standardny cas",
+                "daylight": "Tchajpejski lěśojski cas"
+              }
+            },
+            "Tajikistan": {
+              "long": {
+                "standard": "Tadźikiski cas"
+              }
+            },
+            "Tokelau": {
+              "long": {
+                "standard": "Tokelauski cas"
+              }
+            },
+            "Tonga": {
+              "long": {
+                "generic": "Tongaski cas",
+                "standard": "Tongaski standardny cas",
+                "daylight": "Tongaski lěśojski cas"
+              }
+            },
+            "Truk": {
+              "long": {
+                "standard": "Chuukski cas"
+              }
+            },
+            "Turkmenistan": {
+              "long": {
+                "generic": "Turkmeniski cas",
+                "standard": "Turkmeniski standardny cas",
+                "daylight": "Turkmeniski lěśojski cas"
+              }
+            },
+            "Tuvalu": {
+              "long": {
+                "standard": "Tuvalski cas"
+              }
+            },
+            "Uruguay": {
+              "long": {
+                "generic": "Uruguayski cas",
+                "standard": "Uruguayski standardny cas",
+                "daylight": "Uruguayski lěśojski cas"
+              }
+            },
+            "Uzbekistan": {
+              "long": {
+                "generic": "Uzbekiski cas",
+                "standard": "Uzbekiski standardny cas",
+                "daylight": "Uzbekiski lěśojski cas"
+              }
+            },
+            "Vanuatu": {
+              "long": {
+                "generic": "Vanuatski cas",
+                "standard": "Vanuatski standardny cas",
+                "daylight": "Vanuatski lěśojski cas"
+              }
+            },
+            "Venezuela": {
+              "long": {
+                "standard": "Venezuelski cas"
+              }
+            },
+            "Vladivostok": {
+              "long": {
+                "generic": "Wladiwostokski cas",
+                "standard": "Wladiwostokski standardny cas",
+                "daylight": "Wladiwostokski lěśojski cas"
+              }
+            },
+            "Volgograd": {
+              "long": {
+                "generic": "Wolgogradski cas",
+                "standard": "Wolgogradski standardny cas",
+                "daylight": "Wolgogradski lěśojski cas"
+              }
+            },
+            "Vostok": {
+              "long": {
+                "standard": "cas Wostok"
+              }
+            },
+            "Wake": {
+              "long": {
+                "standard": "cas kupy Wake"
+              }
+            },
+            "Wallis": {
+              "long": {
+                "standard": "cas kupow Wallis a Futuna"
+              }
+            },
+            "Yakutsk": {
+              "long": {
+                "generic": "Jakutski cas",
+                "standard": "Jakutski standardny cas",
+                "daylight": "Jakutski lěśojski cas"
+              }
+            },
+            "Yekaterinburg": {
+              "long": {
+                "generic": "Jekaterinburgski cas",
+                "standard": "Jekaterinburgski standardny cas",
+                "daylight": "Jekaterinburgski lěśojski cas"
+              }
+            },
+            "Yukon": {
+              "long": {
+                "standard": "Yukonowy cas"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

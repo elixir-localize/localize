@@ -1,0 +1,2628 @@
+{
+  "main": {
+    "ti": {
+      "identity": {
+        "language": "ti"
+      },
+      "dates": {
+        "timeZoneNames": {
+          "hourFormat": "+HH:mm;-HH:mm",
+          "gmtFormat": "GMT{0}",
+          "gmtZeroFormat": "GMT",
+          "gmtUnknownFormat": "GMT+?",
+          "regionFormat": "ግዘ {0}",
+          "regionFormat-type-daylight": "ናይ {0} መዓልቲ ግዘ",
+          "regionFormat-type-standard": "ናይ መደበኛ ጊዜ {0} ግዘ",
+          "fallbackFormat": "{1} ({0})",
+          "zone": {
+            "Pacific": {
+              "Honolulu": {
+                "_type": "zone",
+                "exemplarCity": "ሆኖሉሉ"
+              },
+              "Pago_Pago": {
+                "_type": "zone",
+                "exemplarCity": "ፓጎ ፓጎ"
+              },
+              "Rarotonga": {
+                "_type": "zone",
+                "exemplarCity": "ራሮቶንጋ"
+              },
+              "Easter": {
+                "_type": "zone",
+                "exemplarCity": "ደሴት ፋሲካ"
+              },
+              "Galapagos": {
+                "_type": "zone",
+                "exemplarCity": "ጋላፓጎስ"
+              },
+              "Fiji": {
+                "_type": "zone",
+                "exemplarCity": "ፊጂ"
+              },
+              "Truk": {
+                "_type": "zone",
+                "exemplarCity": "ቹክ"
+              },
+              "Ponape": {
+                "_type": "zone",
+                "exemplarCity": "ፖንፐይ"
+              },
+              "Kosrae": {
+                "_type": "zone",
+                "exemplarCity": "ኮስሬ"
+              },
+              "Guam": {
+                "_type": "zone",
+                "exemplarCity": "ጓም"
+              },
+              "Enderbury": {
+                "_type": "zone",
+                "exemplarCity": "ካንቶን"
+              },
+              "Kiritimati": {
+                "_type": "zone",
+                "exemplarCity": "ኪሪቲማቲ"
+              },
+              "Tarawa": {
+                "_type": "zone",
+                "exemplarCity": "ታራዋ"
+              },
+              "Kwajalein": {
+                "_type": "zone",
+                "exemplarCity": "ክዋጃሊን"
+              },
+              "Majuro": {
+                "_type": "zone",
+                "exemplarCity": "ማጁሮ"
+              },
+              "Saipan": {
+                "_type": "zone",
+                "exemplarCity": "ሳይፓን"
+              },
+              "Noumea": {
+                "_type": "zone",
+                "exemplarCity": "ኑመያ"
+              },
+              "Norfolk": {
+                "_type": "zone",
+                "exemplarCity": "ኖርፎልክ"
+              },
+              "Nauru": {
+                "_type": "zone",
+                "exemplarCity": "ናውሩ"
+              },
+              "Niue": {
+                "_type": "zone",
+                "exemplarCity": "ኒዩ"
+              },
+              "Chatham": {
+                "_type": "zone",
+                "exemplarCity": "ቻታም"
+              },
+              "Auckland": {
+                "_type": "zone",
+                "exemplarCity": "ኦክላንድ"
+              },
+              "Tahiti": {
+                "_type": "zone",
+                "exemplarCity": "ታሂቲ"
+              },
+              "Marquesas": {
+                "_type": "zone",
+                "exemplarCity": "ማርኬሳስ"
+              },
+              "Gambier": {
+                "_type": "zone",
+                "exemplarCity": "ጋምብየር"
+              },
+              "Port_Moresby": {
+                "_type": "zone",
+                "exemplarCity": "ፖርት ሞርስቢ"
+              },
+              "Bougainville": {
+                "_type": "zone",
+                "exemplarCity": "ቡገንቪል"
+              },
+              "Pitcairn": {
+                "_type": "zone",
+                "exemplarCity": "ፒትከርን"
+              },
+              "Palau": {
+                "_type": "zone",
+                "exemplarCity": "ፓላው"
+              },
+              "Guadalcanal": {
+                "_type": "zone",
+                "exemplarCity": "ጓዳልካናል"
+              },
+              "Fakaofo": {
+                "_type": "zone",
+                "exemplarCity": "ፋካኦፎ"
+              },
+              "Tongatapu": {
+                "_type": "zone",
+                "exemplarCity": "ቶንጋታፑ"
+              },
+              "Funafuti": {
+                "_type": "zone",
+                "exemplarCity": "ፉናፉቲ"
+              },
+              "Midway": {
+                "_type": "zone",
+                "exemplarCity": "ሚድወይ"
+              },
+              "Wake": {
+                "_type": "zone",
+                "exemplarCity": "ዌክ"
+              },
+              "Efate": {
+                "_type": "zone",
+                "exemplarCity": "ኤፋቴ"
+              },
+              "Wallis": {
+                "_type": "zone",
+                "exemplarCity": "ዋሊስ"
+              },
+              "Apia": {
+                "_type": "zone",
+                "exemplarCity": "ኣፕያ"
+              }
+            },
+            "Etc": {
+              "UTC": {
+                "_type": "zone",
+                "long": {
+                  "standard": "ዝተሳነየ ኣድማሳዊ ግዜ"
+                },
+                "short": {
+                  "standard": "UTC"
+                }
+              },
+              "Unknown": {
+                "_type": "zone",
+                "exemplarCity": "ዘይተፈልጠ ከተማ"
+              }
+            },
+            "Europe": {
+              "Andorra": {
+                "_type": "zone",
+                "exemplarCity": "ኣንዶራ"
+              },
+              "Tirane": {
+                "_type": "zone",
+                "exemplarCity": "ቲራና"
+              },
+              "Vienna": {
+                "_type": "zone",
+                "exemplarCity": "ቭየና"
+              },
+              "Mariehamn": {
+                "_type": "zone",
+                "exemplarCity": "ማሪሃምን"
+              },
+              "Sarajevo": {
+                "_type": "zone",
+                "exemplarCity": "ሳራየቮ"
+              },
+              "Brussels": {
+                "_type": "zone",
+                "exemplarCity": "ብራስልስ"
+              },
+              "Sofia": {
+                "_type": "zone",
+                "exemplarCity": "ሶፍያ"
+              },
+              "Minsk": {
+                "_type": "zone",
+                "exemplarCity": "ሚንስክ"
+              },
+              "Zurich": {
+                "_type": "zone",
+                "exemplarCity": "ዙሪክ"
+              },
+              "Prague": {
+                "_type": "zone",
+                "exemplarCity": "ፕራግ"
+              },
+              "Busingen": {
+                "_type": "zone",
+                "exemplarCity": "ቡሲንገን"
+              },
+              "Berlin": {
+                "_type": "zone",
+                "exemplarCity": "በርሊን"
+              },
+              "Copenhagen": {
+                "_type": "zone",
+                "exemplarCity": "ኮፐንሃገን"
+              },
+              "Tallinn": {
+                "_type": "zone",
+                "exemplarCity": "ታሊን"
+              },
+              "Madrid": {
+                "_type": "zone",
+                "exemplarCity": "ማድሪድ"
+              },
+              "Helsinki": {
+                "_type": "zone",
+                "exemplarCity": "ሄልሲንኪ"
+              },
+              "Paris": {
+                "_type": "zone",
+                "exemplarCity": "ፓሪስ"
+              },
+              "London": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "ግዜ ክረምቲ ብሪጣንያ"
+                },
+                "exemplarCity": "ሎንደን"
+              },
+              "Guernsey": {
+                "_type": "zone",
+                "exemplarCity": "ገርንዚ"
+              },
+              "Gibraltar": {
+                "_type": "zone",
+                "exemplarCity": "ጂብራልታር"
+              },
+              "Athens": {
+                "_type": "zone",
+                "exemplarCity": "ኣቴንስ"
+              },
+              "Zagreb": {
+                "_type": "zone",
+                "exemplarCity": "ዛግረብ"
+              },
+              "Budapest": {
+                "_type": "zone",
+                "exemplarCity": "ቡዳፐስት"
+              },
+              "Dublin": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "ናይ መደበኛ አይሪሽ ግዘ"
+                },
+                "exemplarCity": "ደብሊን"
+              },
+              "Isle_of_Man": {
+                "_type": "zone",
+                "exemplarCity": "ኣይል ኦፍ ማን"
+              },
+              "Rome": {
+                "_type": "zone",
+                "exemplarCity": "ሮማ"
+              },
+              "Jersey": {
+                "_type": "zone",
+                "exemplarCity": "ጀርዚ"
+              },
+              "Vaduz": {
+                "_type": "zone",
+                "exemplarCity": "ቫዱዝ"
+              },
+              "Vilnius": {
+                "_type": "zone",
+                "exemplarCity": "ቪልንየስ"
+              },
+              "Luxembourg": {
+                "_type": "zone",
+                "exemplarCity": "ሉክሰምበርግ"
+              },
+              "Riga": {
+                "_type": "zone",
+                "exemplarCity": "ሪጋ"
+              },
+              "Monaco": {
+                "_type": "zone",
+                "exemplarCity": "ሞናኮ"
+              },
+              "Chisinau": {
+                "_type": "zone",
+                "exemplarCity": "ኪሺናው"
+              },
+              "Podgorica": {
+                "_type": "zone",
+                "exemplarCity": "ፖድጎሪጻ"
+              },
+              "Skopje": {
+                "_type": "zone",
+                "exemplarCity": "ስኮፕየ"
+              },
+              "Malta": {
+                "_type": "zone",
+                "exemplarCity": "ማልታ"
+              },
+              "Amsterdam": {
+                "_type": "zone",
+                "exemplarCity": "ኣምስተርዳም"
+              },
+              "Oslo": {
+                "_type": "zone",
+                "exemplarCity": "ኦስሎ"
+              },
+              "Warsaw": {
+                "_type": "zone",
+                "exemplarCity": "ዋርሳው"
+              },
+              "Lisbon": {
+                "_type": "zone",
+                "exemplarCity": "ሊዝበን"
+              },
+              "Bucharest": {
+                "_type": "zone",
+                "exemplarCity": "ቡካረስት"
+              },
+              "Belgrade": {
+                "_type": "zone",
+                "exemplarCity": "በልግሬድ"
+              },
+              "Kaliningrad": {
+                "_type": "zone",
+                "exemplarCity": "ካሊኒንግራድ"
+              },
+              "Moscow": {
+                "_type": "zone",
+                "exemplarCity": "ሞስኮ"
+              },
+              "Volgograd": {
+                "_type": "zone",
+                "exemplarCity": "ቮልጎግራድ"
+              },
+              "Saratov": {
+                "_type": "zone",
+                "exemplarCity": "ሳራቶቭ"
+              },
+              "Astrakhan": {
+                "_type": "zone",
+                "exemplarCity": "ኣስትራካን"
+              },
+              "Ulyanovsk": {
+                "_type": "zone",
+                "exemplarCity": "ኡልያኖቭስክ"
+              },
+              "Kirov": {
+                "_type": "zone",
+                "exemplarCity": "ኪሮቭ"
+              },
+              "Samara": {
+                "_type": "zone",
+                "exemplarCity": "ሳማራ"
+              },
+              "Stockholm": {
+                "_type": "zone",
+                "exemplarCity": "ስቶክሆልም"
+              },
+              "Ljubljana": {
+                "_type": "zone",
+                "exemplarCity": "ልዩብልያና"
+              },
+              "Bratislava": {
+                "_type": "zone",
+                "exemplarCity": "ብራቲስላቫ"
+              },
+              "San_Marino": {
+                "_type": "zone",
+                "exemplarCity": "ሳን ማሪኖ"
+              },
+              "Istanbul": {
+                "_type": "zone",
+                "exemplarCity": "ኢስታንቡል"
+              },
+              "Kiev": {
+                "_type": "zone",
+                "exemplarCity": "ክየቭ"
+              },
+              "Simferopol": {
+                "_type": "zone",
+                "exemplarCity": "ሲምፈሮፖል"
+              },
+              "Vatican": {
+                "_type": "zone",
+                "exemplarCity": "ቫቲካን"
+              }
+            },
+            "Asia": {
+              "Dubai": {
+                "_type": "zone",
+                "exemplarCity": "ዱባይ"
+              },
+              "Kabul": {
+                "_type": "zone",
+                "exemplarCity": "ካቡል"
+              },
+              "Yerevan": {
+                "_type": "zone",
+                "exemplarCity": "የረቫን"
+              },
+              "Baku": {
+                "_type": "zone",
+                "exemplarCity": "ባኩ"
+              },
+              "Dhaka": {
+                "_type": "zone",
+                "exemplarCity": "ዳካ"
+              },
+              "Bahrain": {
+                "_type": "zone",
+                "exemplarCity": "ባሕሬን"
+              },
+              "Brunei": {
+                "_type": "zone",
+                "exemplarCity": "ብሩነይ"
+              },
+              "Thimphu": {
+                "_type": "zone",
+                "exemplarCity": "ቲምፉ"
+              },
+              "Urumqi": {
+                "_type": "zone",
+                "exemplarCity": "ኡሩምኪ"
+              },
+              "Shanghai": {
+                "_type": "zone",
+                "exemplarCity": "ሻንግሃይ"
+              },
+              "Nicosia": {
+                "_type": "zone",
+                "exemplarCity": "ኒኮስያ"
+              },
+              "Famagusta": {
+                "_type": "zone",
+                "exemplarCity": "ፋማጉስታ"
+              },
+              "Tbilisi": {
+                "_type": "zone",
+                "exemplarCity": "ትቢሊሲ"
+              },
+              "Hong_Kong": {
+                "_type": "zone",
+                "exemplarCity": "ሆንግ ኮንግ"
+              },
+              "Jakarta": {
+                "_type": "zone",
+                "exemplarCity": "ጃካርታ"
+              },
+              "Pontianak": {
+                "_type": "zone",
+                "exemplarCity": "ፖንትያናክ"
+              },
+              "Makassar": {
+                "_type": "zone",
+                "exemplarCity": "ማካሳር"
+              },
+              "Jayapura": {
+                "_type": "zone",
+                "exemplarCity": "ጃያፑራ"
+              },
+              "Jerusalem": {
+                "_type": "zone",
+                "exemplarCity": "የሩሳሌም"
+              },
+              "Calcutta": {
+                "_type": "zone",
+                "exemplarCity": "ኮልካታ"
+              },
+              "Baghdad": {
+                "_type": "zone",
+                "exemplarCity": "ባቕዳድ"
+              },
+              "Tehran": {
+                "_type": "zone",
+                "exemplarCity": "ተህራን"
+              },
+              "Amman": {
+                "_type": "zone",
+                "exemplarCity": "ዓማን"
+              },
+              "Tokyo": {
+                "_type": "zone",
+                "exemplarCity": "ቶክዮ"
+              },
+              "Bishkek": {
+                "_type": "zone",
+                "exemplarCity": "ቢሽኬክ"
+              },
+              "Phnom_Penh": {
+                "_type": "zone",
+                "exemplarCity": "ፕኖም ፐን"
+              },
+              "Pyongyang": {
+                "_type": "zone",
+                "exemplarCity": "ፕዮንግያንግ"
+              },
+              "Seoul": {
+                "_type": "zone",
+                "exemplarCity": "ሶውል"
+              },
+              "Kuwait": {
+                "_type": "zone",
+                "exemplarCity": "ኩዌት"
+              },
+              "Aqtau": {
+                "_type": "zone",
+                "exemplarCity": "ኣክታው"
+              },
+              "Oral": {
+                "_type": "zone",
+                "exemplarCity": "ኦራል"
+              },
+              "Atyrau": {
+                "_type": "zone",
+                "exemplarCity": "ኣቲራው"
+              },
+              "Aqtobe": {
+                "_type": "zone",
+                "exemplarCity": "ኣክቶበ"
+              },
+              "Qostanay": {
+                "_type": "zone",
+                "exemplarCity": "ኮስታናይ"
+              },
+              "Qyzylorda": {
+                "_type": "zone",
+                "exemplarCity": "ኪዚሎርዳ"
+              },
+              "Almaty": {
+                "_type": "zone",
+                "exemplarCity": "ኣልማቲ"
+              },
+              "Vientiane": {
+                "_type": "zone",
+                "exemplarCity": "ቭየንትያን"
+              },
+              "Beirut": {
+                "_type": "zone",
+                "exemplarCity": "በይሩት"
+              },
+              "Colombo": {
+                "_type": "zone",
+                "exemplarCity": "ኮሎምቦ"
+              },
+              "Rangoon": {
+                "_type": "zone",
+                "exemplarCity": "ያንጎን"
+              },
+              "Hovd": {
+                "_type": "zone",
+                "exemplarCity": "ሆቭድ"
+              },
+              "Ulaanbaatar": {
+                "_type": "zone",
+                "exemplarCity": "ኡላን ባቶር"
+              },
+              "Macau": {
+                "_type": "zone",
+                "exemplarCity": "ማካው"
+              },
+              "Kuala_Lumpur": {
+                "_type": "zone",
+                "exemplarCity": "ኳላ ሉምፑር"
+              },
+              "Kuching": {
+                "_type": "zone",
+                "exemplarCity": "ኩቺንግ"
+              },
+              "Katmandu": {
+                "_type": "zone",
+                "exemplarCity": "ካትማንዱ"
+              },
+              "Muscat": {
+                "_type": "zone",
+                "exemplarCity": "ሙስካት"
+              },
+              "Manila": {
+                "_type": "zone",
+                "exemplarCity": "ማኒላ"
+              },
+              "Karachi": {
+                "_type": "zone",
+                "exemplarCity": "ካራቺ"
+              },
+              "Gaza": {
+                "_type": "zone",
+                "exemplarCity": "ቓዛ"
+              },
+              "Hebron": {
+                "_type": "zone",
+                "exemplarCity": "ኬብሮን"
+              },
+              "Qatar": {
+                "_type": "zone",
+                "exemplarCity": "ቐጠር"
+              },
+              "Yekaterinburg": {
+                "_type": "zone",
+                "exemplarCity": "የካተሪንበርግ"
+              },
+              "Omsk": {
+                "_type": "zone",
+                "exemplarCity": "ኦምስክ"
+              },
+              "Novosibirsk": {
+                "_type": "zone",
+                "exemplarCity": "ኖቮሲቢርስክ"
+              },
+              "Barnaul": {
+                "_type": "zone",
+                "exemplarCity": "ባርናውል"
+              },
+              "Tomsk": {
+                "_type": "zone",
+                "exemplarCity": "ቶምስክ"
+              },
+              "Novokuznetsk": {
+                "_type": "zone",
+                "exemplarCity": "ኖቮኩዝነትስክ"
+              },
+              "Krasnoyarsk": {
+                "_type": "zone",
+                "exemplarCity": "ክራስኖያርስክ"
+              },
+              "Irkutsk": {
+                "_type": "zone",
+                "exemplarCity": "ኢርኩትስክ"
+              },
+              "Chita": {
+                "_type": "zone",
+                "exemplarCity": "ቺታ"
+              },
+              "Yakutsk": {
+                "_type": "zone",
+                "exemplarCity": "ያኩትስክ"
+              },
+              "Vladivostok": {
+                "_type": "zone",
+                "exemplarCity": "ቭላዲቮስቶክ"
+              },
+              "Khandyga": {
+                "_type": "zone",
+                "exemplarCity": "ካንዲጋ"
+              },
+              "Sakhalin": {
+                "_type": "zone",
+                "exemplarCity": "ሳካሊን"
+              },
+              "Ust-Nera": {
+                "_type": "zone",
+                "exemplarCity": "ኡስት-ኔራ"
+              },
+              "Magadan": {
+                "_type": "zone",
+                "exemplarCity": "ማጋዳን"
+              },
+              "Srednekolymsk": {
+                "_type": "zone",
+                "exemplarCity": "ስሬድነኮሊምስክ"
+              },
+              "Kamchatka": {
+                "_type": "zone",
+                "exemplarCity": "ካምቻትካ"
+              },
+              "Anadyr": {
+                "_type": "zone",
+                "exemplarCity": "ኣናዲር"
+              },
+              "Riyadh": {
+                "_type": "zone",
+                "exemplarCity": "ርያድ"
+              },
+              "Singapore": {
+                "_type": "zone",
+                "exemplarCity": "ሲንጋፖር"
+              },
+              "Damascus": {
+                "_type": "zone",
+                "exemplarCity": "ደማስቆ"
+              },
+              "Bangkok": {
+                "_type": "zone",
+                "exemplarCity": "ባንግኮክ"
+              },
+              "Dushanbe": {
+                "_type": "zone",
+                "exemplarCity": "ዱሻንበ"
+              },
+              "Dili": {
+                "_type": "zone",
+                "exemplarCity": "ዲሊ"
+              },
+              "Ashgabat": {
+                "_type": "zone",
+                "exemplarCity": "ኣሽጋባት"
+              },
+              "Taipei": {
+                "_type": "zone",
+                "exemplarCity": "ታይፐይ"
+              },
+              "Samarkand": {
+                "_type": "zone",
+                "exemplarCity": "ሳማርካንድ"
+              },
+              "Tashkent": {
+                "_type": "zone",
+                "exemplarCity": "ታሽከንት"
+              },
+              "Saigon": {
+                "_type": "zone",
+                "exemplarCity": "ከተማ ሆ ቺ ሚን"
+              },
+              "Aden": {
+                "_type": "zone",
+                "exemplarCity": "ዓደን"
+              }
+            },
+            "America": {
+              "Antigua": {
+                "_type": "zone",
+                "exemplarCity": "ኣንቲጓ"
+              },
+              "Anguilla": {
+                "_type": "zone",
+                "exemplarCity": "ኣንጒላ"
+              },
+              "Argentina": {
+                "Rio_Gallegos": {
+                  "_type": "zone",
+                  "exemplarCity": "ርዮ ጋየጎስ"
+                },
+                "San_Juan": {
+                  "_type": "zone",
+                  "exemplarCity": "ሳን ህዋን"
+                },
+                "Ushuaia": {
+                  "_type": "zone",
+                  "exemplarCity": "ኡሽዋያ"
+                },
+                "La_Rioja": {
+                  "_type": "zone",
+                  "exemplarCity": "ላ ርዮሃ"
+                },
+                "San_Luis": {
+                  "_type": "zone",
+                  "exemplarCity": "ሳን ልዊስ"
+                },
+                "Salta": {
+                  "_type": "zone",
+                  "exemplarCity": "ሳልታ"
+                },
+                "Tucuman": {
+                  "_type": "zone",
+                  "exemplarCity": "ቱኩማን"
+                }
+              },
+              "Mendoza": {
+                "_type": "zone",
+                "exemplarCity": "መንዶዛ"
+              },
+              "Catamarca": {
+                "_type": "zone",
+                "exemplarCity": "ካታማርካ"
+              },
+              "Jujuy": {
+                "_type": "zone",
+                "exemplarCity": "ሁሁይ"
+              },
+              "Cordoba": {
+                "_type": "zone",
+                "exemplarCity": "ኮርዶባ"
+              },
+              "Buenos_Aires": {
+                "_type": "zone",
+                "exemplarCity": "ብወኖስ ኣይረስ"
+              },
+              "Aruba": {
+                "_type": "zone",
+                "exemplarCity": "ኣሩባ"
+              },
+              "Barbados": {
+                "_type": "zone",
+                "exemplarCity": "ባርባዶስ"
+              },
+              "St_Barthelemy": {
+                "_type": "zone",
+                "exemplarCity": "ቅዱስ ባርተለሚ"
+              },
+              "La_Paz": {
+                "_type": "zone",
+                "exemplarCity": "ላ ፓዝ"
+              },
+              "Kralendijk": {
+                "_type": "zone",
+                "exemplarCity": "ክራለንዳይክ"
+              },
+              "Eirunepe": {
+                "_type": "zone",
+                "exemplarCity": "ኤይሩኔፒ"
+              },
+              "Rio_Branco": {
+                "_type": "zone",
+                "exemplarCity": "ርዮ ብራንኮ"
+              },
+              "Porto_Velho": {
+                "_type": "zone",
+                "exemplarCity": "ፖርቶ ቨልዮ"
+              },
+              "Boa_Vista": {
+                "_type": "zone",
+                "exemplarCity": "ቦዋ ቪስታ"
+              },
+              "Manaus": {
+                "_type": "zone",
+                "exemplarCity": "ማናውስ"
+              },
+              "Cuiaba": {
+                "_type": "zone",
+                "exemplarCity": "ኩያባ"
+              },
+              "Santarem": {
+                "_type": "zone",
+                "exemplarCity": "ሳንታረም"
+              },
+              "Campo_Grande": {
+                "_type": "zone",
+                "exemplarCity": "ካምፖ ግራንደ"
+              },
+              "Belem": {
+                "_type": "zone",
+                "exemplarCity": "በለም"
+              },
+              "Araguaina": {
+                "_type": "zone",
+                "exemplarCity": "ኣራጓይና"
+              },
+              "Sao_Paulo": {
+                "_type": "zone",
+                "exemplarCity": "ሳኦ ፓውሎ"
+              },
+              "Bahia": {
+                "_type": "zone",
+                "exemplarCity": "ባህያ"
+              },
+              "Fortaleza": {
+                "_type": "zone",
+                "exemplarCity": "ፎርታለዛ"
+              },
+              "Maceio": {
+                "_type": "zone",
+                "exemplarCity": "ማሰዮ"
+              },
+              "Recife": {
+                "_type": "zone",
+                "exemplarCity": "ረሲፈ"
+              },
+              "Noronha": {
+                "_type": "zone",
+                "exemplarCity": "ኖሮንያ"
+              },
+              "Nassau": {
+                "_type": "zone",
+                "exemplarCity": "ናሳው"
+              },
+              "Belize": {
+                "_type": "zone",
+                "exemplarCity": "በሊዝ"
+              },
+              "Dawson": {
+                "_type": "zone",
+                "exemplarCity": "ዳውሰን"
+              },
+              "Whitehorse": {
+                "_type": "zone",
+                "exemplarCity": "ዋይትሆዝ"
+              },
+              "Inuvik": {
+                "_type": "zone",
+                "exemplarCity": "ኢኑቪክ"
+              },
+              "Vancouver": {
+                "_type": "zone",
+                "exemplarCity": "ቫንኩቨር"
+              },
+              "Fort_Nelson": {
+                "_type": "zone",
+                "exemplarCity": "ፎርት ነልሰን"
+              },
+              "Dawson_Creek": {
+                "_type": "zone",
+                "exemplarCity": "ዳውሰን ክሪክ"
+              },
+              "Creston": {
+                "_type": "zone",
+                "exemplarCity": "ክረስተን"
+              },
+              "Edmonton": {
+                "_type": "zone",
+                "exemplarCity": "ኤድመንተን"
+              },
+              "Swift_Current": {
+                "_type": "zone",
+                "exemplarCity": "ስዊፍት ካረንት"
+              },
+              "Cambridge_Bay": {
+                "_type": "zone",
+                "exemplarCity": "ካምብሪጅ በይ"
+              },
+              "Regina": {
+                "_type": "zone",
+                "exemplarCity": "ረጂና"
+              },
+              "Winnipeg": {
+                "_type": "zone",
+                "exemplarCity": "ዊኒፐግ"
+              },
+              "Resolute": {
+                "_type": "zone",
+                "exemplarCity": "ረዞሉት"
+              },
+              "Rankin_Inlet": {
+                "_type": "zone",
+                "exemplarCity": "ራንኪን ኢንለት"
+              },
+              "Coral_Harbour": {
+                "_type": "zone",
+                "exemplarCity": "ኣቲኮካን"
+              },
+              "Toronto": {
+                "_type": "zone",
+                "exemplarCity": "ቶሮንቶ"
+              },
+              "Iqaluit": {
+                "_type": "zone",
+                "exemplarCity": "ኢቃልዊት"
+              },
+              "Moncton": {
+                "_type": "zone",
+                "exemplarCity": "ሞንክተን"
+              },
+              "Halifax": {
+                "_type": "zone",
+                "exemplarCity": "ሃሊፋክስ"
+              },
+              "Goose_Bay": {
+                "_type": "zone",
+                "exemplarCity": "ጉዝ በይ"
+              },
+              "Glace_Bay": {
+                "_type": "zone",
+                "exemplarCity": "ግሌስ በይ"
+              },
+              "Blanc-Sablon": {
+                "_type": "zone",
+                "exemplarCity": "ብላንክ-ሳብሎን"
+              },
+              "St_Johns": {
+                "_type": "zone",
+                "exemplarCity": "ቅዱስ ዮሃንስ"
+              },
+              "Coyhaique": {
+                "_type": "zone",
+                "exemplarCity": "ኮሃይክ"
+              },
+              "Punta_Arenas": {
+                "_type": "zone",
+                "exemplarCity": "ፑንታ ኣረናስ"
+              },
+              "Santiago": {
+                "_type": "zone",
+                "exemplarCity": "ሳንትያጎ"
+              },
+              "Bogota": {
+                "_type": "zone",
+                "exemplarCity": "ቦጎታ"
+              },
+              "Costa_Rica": {
+                "_type": "zone",
+                "exemplarCity": "ኮስታ ሪካ"
+              },
+              "Havana": {
+                "_type": "zone",
+                "exemplarCity": "ሃቫና"
+              },
+              "Curacao": {
+                "_type": "zone",
+                "exemplarCity": "ኩራሳው"
+              },
+              "Dominica": {
+                "_type": "zone",
+                "exemplarCity": "ዶሚኒካ"
+              },
+              "Santo_Domingo": {
+                "_type": "zone",
+                "exemplarCity": "ሳንቶ ዶሚንጎ"
+              },
+              "Guayaquil": {
+                "_type": "zone",
+                "exemplarCity": "ጓያኪል"
+              },
+              "Grenada": {
+                "_type": "zone",
+                "exemplarCity": "ግረናዳ"
+              },
+              "Cayenne": {
+                "_type": "zone",
+                "exemplarCity": "ካየን"
+              },
+              "Thule": {
+                "_type": "zone",
+                "exemplarCity": "ዙል"
+              },
+              "Godthab": {
+                "_type": "zone",
+                "exemplarCity": "ኑክ"
+              },
+              "Scoresbysund": {
+                "_type": "zone",
+                "exemplarCity": "ኢቶቆርቶሚት"
+              },
+              "Danmarkshavn": {
+                "_type": "zone",
+                "exemplarCity": "ዳንማርክሻቭን"
+              },
+              "Guadeloupe": {
+                "_type": "zone",
+                "exemplarCity": "ጓደሉፕ"
+              },
+              "Guatemala": {
+                "_type": "zone",
+                "exemplarCity": "ጓቲማላ"
+              },
+              "Guyana": {
+                "_type": "zone",
+                "exemplarCity": "ጉያና"
+              },
+              "Tegucigalpa": {
+                "_type": "zone",
+                "exemplarCity": "ተጉሲጋልፓ"
+              },
+              "Port-au-Prince": {
+                "_type": "zone",
+                "exemplarCity": "ፖርት-ኦ-ፕሪንስ"
+              },
+              "Jamaica": {
+                "_type": "zone",
+                "exemplarCity": "ጃማይካ"
+              },
+              "St_Kitts": {
+                "_type": "zone",
+                "exemplarCity": "ቅዱስ ኪትስ"
+              },
+              "Cayman": {
+                "_type": "zone",
+                "exemplarCity": "ካይማን"
+              },
+              "St_Lucia": {
+                "_type": "zone",
+                "exemplarCity": "ቅድስቲ ሉስያ"
+              },
+              "Marigot": {
+                "_type": "zone",
+                "exemplarCity": "ማሪጎት"
+              },
+              "Martinique": {
+                "_type": "zone",
+                "exemplarCity": "ማርቲኒክ"
+              },
+              "Montserrat": {
+                "_type": "zone",
+                "exemplarCity": "ሞንትሰራት"
+              },
+              "Tijuana": {
+                "_type": "zone",
+                "exemplarCity": "ቲጅዋና"
+              },
+              "Hermosillo": {
+                "_type": "zone",
+                "exemplarCity": "ኤርሞስዮ"
+              },
+              "Ciudad_Juarez": {
+                "_type": "zone",
+                "exemplarCity": "ሲዩዳድ ጁዋረዝ"
+              },
+              "Mazatlan": {
+                "_type": "zone",
+                "exemplarCity": "ማዛትላን"
+              },
+              "Chihuahua": {
+                "_type": "zone",
+                "exemplarCity": "ቺዋዋ"
+              },
+              "Bahia_Banderas": {
+                "_type": "zone",
+                "exemplarCity": "ባእያ ደ ባንደራስ"
+              },
+              "Ojinaga": {
+                "_type": "zone",
+                "exemplarCity": "ኦጂናጋ"
+              },
+              "Monterrey": {
+                "_type": "zone",
+                "exemplarCity": "ሞንተረይ"
+              },
+              "Mexico_City": {
+                "_type": "zone",
+                "exemplarCity": "ከተማ ሜክሲኮ"
+              },
+              "Matamoros": {
+                "_type": "zone",
+                "exemplarCity": "ማታሞሮስ"
+              },
+              "Merida": {
+                "_type": "zone",
+                "exemplarCity": "መሪዳ"
+              },
+              "Cancun": {
+                "_type": "zone",
+                "exemplarCity": "ካንኩን"
+              },
+              "Managua": {
+                "_type": "zone",
+                "exemplarCity": "ማናጓ"
+              },
+              "Panama": {
+                "_type": "zone",
+                "exemplarCity": "ፓናማ"
+              },
+              "Lima": {
+                "_type": "zone",
+                "exemplarCity": "ሊማ"
+              },
+              "Miquelon": {
+                "_type": "zone",
+                "exemplarCity": "ሚከሎን"
+              },
+              "Puerto_Rico": {
+                "_type": "zone",
+                "exemplarCity": "ፖርቶ ሪኮ"
+              },
+              "Asuncion": {
+                "_type": "zone",
+                "exemplarCity": "ኣሱንስዮን"
+              },
+              "Paramaribo": {
+                "_type": "zone",
+                "exemplarCity": "ፓራማሪቦ"
+              },
+              "El_Salvador": {
+                "_type": "zone",
+                "exemplarCity": "ኤል ሳልቫዶር"
+              },
+              "Lower_Princes": {
+                "_type": "zone",
+                "exemplarCity": "ለወር ፕሪንሰስ ኳርተር"
+              },
+              "Grand_Turk": {
+                "_type": "zone",
+                "exemplarCity": "ግራንድ ቱርክ"
+              },
+              "Port_of_Spain": {
+                "_type": "zone",
+                "exemplarCity": "ፖርት ኦፍ ስፔን"
+              },
+              "Adak": {
+                "_type": "zone",
+                "exemplarCity": "ኣዳክ"
+              },
+              "Nome": {
+                "_type": "zone",
+                "exemplarCity": "ነውም"
+              },
+              "Anchorage": {
+                "_type": "zone",
+                "exemplarCity": "ኣንኮረጅ"
+              },
+              "Yakutat": {
+                "_type": "zone",
+                "exemplarCity": "ያኩታት"
+              },
+              "Sitka": {
+                "_type": "zone",
+                "exemplarCity": "ሲትካ"
+              },
+              "Juneau": {
+                "_type": "zone",
+                "exemplarCity": "ጁነው"
+              },
+              "Metlakatla": {
+                "_type": "zone",
+                "exemplarCity": "መትላካትላ"
+              },
+              "Los_Angeles": {
+                "_type": "zone",
+                "exemplarCity": "ሎስ ኣንጀለስ"
+              },
+              "Boise": {
+                "_type": "zone",
+                "exemplarCity": "ቦይዚ"
+              },
+              "Phoenix": {
+                "_type": "zone",
+                "exemplarCity": "ፊኒክስ"
+              },
+              "Denver": {
+                "_type": "zone",
+                "exemplarCity": "ደንቨር"
+              },
+              "North_Dakota": {
+                "Beulah": {
+                  "_type": "zone",
+                  "exemplarCity": "ብዩላ፣ ሰሜን ዳኮታ"
+                },
+                "New_Salem": {
+                  "_type": "zone",
+                  "exemplarCity": "ኒው ሳለም፣ ሰሜን ዳኮታ"
+                },
+                "Center": {
+                  "_type": "zone",
+                  "exemplarCity": "ሰንተር፣ ሰሜን ዳኮታ"
+                }
+              },
+              "Chicago": {
+                "_type": "zone",
+                "exemplarCity": "ቺካጎ"
+              },
+              "Menominee": {
+                "_type": "zone",
+                "exemplarCity": "ሜኖሚኒ"
+              },
+              "Indiana": {
+                "Vincennes": {
+                  "_type": "zone",
+                  "exemplarCity": "ቪንሰንስ፣ ኢንድያና"
+                },
+                "Petersburg": {
+                  "_type": "zone",
+                  "exemplarCity": "ፒተርስበርግ፣ ኢንድያና"
+                },
+                "Tell_City": {
+                  "_type": "zone",
+                  "exemplarCity": "ተል ሲቲ፣ ኢንድያና"
+                },
+                "Knox": {
+                  "_type": "zone",
+                  "exemplarCity": "ኖክስ፣ ኢንድያና"
+                },
+                "Winamac": {
+                  "_type": "zone",
+                  "exemplarCity": "ዊናማክ፣ ኢንድያና"
+                },
+                "Marengo": {
+                  "_type": "zone",
+                  "exemplarCity": "ማረንጎ፣ ኢንድያና"
+                },
+                "Vevay": {
+                  "_type": "zone",
+                  "exemplarCity": "ቪቪ፣ ኢንድያና"
+                }
+              },
+              "Indianapolis": {
+                "_type": "zone",
+                "exemplarCity": "ኢንድያናፖሊስ"
+              },
+              "Louisville": {
+                "_type": "zone",
+                "exemplarCity": "ልዊቪል"
+              },
+              "Kentucky": {
+                "Monticello": {
+                  "_type": "zone",
+                  "exemplarCity": "ሞንቲቸሎ፣ ከንታኪ"
+                }
+              },
+              "Detroit": {
+                "_type": "zone",
+                "exemplarCity": "ዲትሮይት"
+              },
+              "New_York": {
+                "_type": "zone",
+                "exemplarCity": "ኒው ዮርክ"
+              },
+              "Montevideo": {
+                "_type": "zone",
+                "exemplarCity": "ሞንተቪደዮ"
+              },
+              "St_Vincent": {
+                "_type": "zone",
+                "exemplarCity": "ቅዱስ ቪንሰንት"
+              },
+              "Caracas": {
+                "_type": "zone",
+                "exemplarCity": "ካራካስ"
+              },
+              "Tortola": {
+                "_type": "zone",
+                "exemplarCity": "ቶርቶላ"
+              },
+              "St_Thomas": {
+                "_type": "zone",
+                "exemplarCity": "ቅዱስ ቶማስ"
+              }
+            },
+            "Africa": {
+              "Luanda": {
+                "_type": "zone",
+                "exemplarCity": "ሉዋንዳ"
+              },
+              "Ouagadougou": {
+                "_type": "zone",
+                "exemplarCity": "ዋጋዱጉ"
+              },
+              "Bujumbura": {
+                "_type": "zone",
+                "exemplarCity": "ቡጁምቡራ"
+              },
+              "Porto-Novo": {
+                "_type": "zone",
+                "exemplarCity": "ፖርቶ ኖቮ"
+              },
+              "Gaborone": {
+                "_type": "zone",
+                "exemplarCity": "ጋቦሮን"
+              },
+              "Kinshasa": {
+                "_type": "zone",
+                "exemplarCity": "ኪንሻሳ"
+              },
+              "Lubumbashi": {
+                "_type": "zone",
+                "exemplarCity": "ሉቡምባሺ"
+              },
+              "Bangui": {
+                "_type": "zone",
+                "exemplarCity": "ባንጊ"
+              },
+              "Brazzaville": {
+                "_type": "zone",
+                "exemplarCity": "ብራዛቪል"
+              },
+              "Abidjan": {
+                "_type": "zone",
+                "exemplarCity": "ኣቢጃን"
+              },
+              "Douala": {
+                "_type": "zone",
+                "exemplarCity": "ዱዋላ"
+              },
+              "Djibouti": {
+                "_type": "zone",
+                "exemplarCity": "ጅቡቲ"
+              },
+              "Algiers": {
+                "_type": "zone",
+                "exemplarCity": "ኣልጀርስ"
+              },
+              "Cairo": {
+                "_type": "zone",
+                "exemplarCity": "ካይሮ"
+              },
+              "El_Aaiun": {
+                "_type": "zone",
+                "exemplarCity": "ኤል ኣዩን"
+              },
+              "Asmera": {
+                "_type": "zone",
+                "exemplarCity": "ኣስመራ"
+              },
+              "Ceuta": {
+                "_type": "zone",
+                "exemplarCity": "ሴውታ"
+              },
+              "Addis_Ababa": {
+                "_type": "zone",
+                "exemplarCity": "ኣዲስ ኣበባ"
+              },
+              "Libreville": {
+                "_type": "zone",
+                "exemplarCity": "ሊብረቪል"
+              },
+              "Accra": {
+                "_type": "zone",
+                "exemplarCity": "ኣክራ"
+              },
+              "Banjul": {
+                "_type": "zone",
+                "exemplarCity": "ባንጁል"
+              },
+              "Conakry": {
+                "_type": "zone",
+                "exemplarCity": "ኮናክሪ"
+              },
+              "Malabo": {
+                "_type": "zone",
+                "exemplarCity": "ማላቦ"
+              },
+              "Bissau": {
+                "_type": "zone",
+                "exemplarCity": "ቢሳው"
+              },
+              "Nairobi": {
+                "_type": "zone",
+                "exemplarCity": "ናይሮቢ"
+              },
+              "Monrovia": {
+                "_type": "zone",
+                "exemplarCity": "ሞንሮቭያ"
+              },
+              "Maseru": {
+                "_type": "zone",
+                "exemplarCity": "ማሰሩ"
+              },
+              "Tripoli": {
+                "_type": "zone",
+                "exemplarCity": "ትሪፖሊ"
+              },
+              "Casablanca": {
+                "_type": "zone",
+                "exemplarCity": "ካዛብላንካ"
+              },
+              "Bamako": {
+                "_type": "zone",
+                "exemplarCity": "ባማኮ"
+              },
+              "Nouakchott": {
+                "_type": "zone",
+                "exemplarCity": "ንዋክሾት"
+              },
+              "Blantyre": {
+                "_type": "zone",
+                "exemplarCity": "ብላንታየር"
+              },
+              "Maputo": {
+                "_type": "zone",
+                "exemplarCity": "ማፑቶ"
+              },
+              "Windhoek": {
+                "_type": "zone",
+                "exemplarCity": "ዊንድሆክ"
+              },
+              "Niamey": {
+                "_type": "zone",
+                "exemplarCity": "ንያመይ"
+              },
+              "Lagos": {
+                "_type": "zone",
+                "exemplarCity": "ሌጎስ"
+              },
+              "Kigali": {
+                "_type": "zone",
+                "exemplarCity": "ኪጋሊ"
+              },
+              "Khartoum": {
+                "_type": "zone",
+                "exemplarCity": "ካርቱም"
+              },
+              "Freetown": {
+                "_type": "zone",
+                "exemplarCity": "ፍሪታውን"
+              },
+              "Dakar": {
+                "_type": "zone",
+                "exemplarCity": "ዳካር"
+              },
+              "Mogadishu": {
+                "_type": "zone",
+                "exemplarCity": "ሞቓድሾ"
+              },
+              "Juba": {
+                "_type": "zone",
+                "exemplarCity": "ጁባ"
+              },
+              "Sao_Tome": {
+                "_type": "zone",
+                "exemplarCity": "ሳኦ ቶመ"
+              },
+              "Mbabane": {
+                "_type": "zone",
+                "exemplarCity": "ምባባነ"
+              },
+              "Ndjamena": {
+                "_type": "zone",
+                "exemplarCity": "ንጃመና"
+              },
+              "Lome": {
+                "_type": "zone",
+                "exemplarCity": "ሎመ"
+              },
+              "Tunis": {
+                "_type": "zone",
+                "exemplarCity": "ቱኒስ"
+              },
+              "Dar_es_Salaam": {
+                "_type": "zone",
+                "exemplarCity": "ዳር ኤስ ሳላም"
+              },
+              "Kampala": {
+                "_type": "zone",
+                "exemplarCity": "ካምፓላ"
+              },
+              "Johannesburg": {
+                "_type": "zone",
+                "exemplarCity": "ጆሃንስበርግ"
+              },
+              "Lusaka": {
+                "_type": "zone",
+                "exemplarCity": "ሉሳካ"
+              },
+              "Harare": {
+                "_type": "zone",
+                "exemplarCity": "ሃራረ"
+              }
+            },
+            "Antarctica": {
+              "Rothera": {
+                "_type": "zone",
+                "exemplarCity": "ሮዘራ"
+              },
+              "Palmer": {
+                "_type": "zone",
+                "exemplarCity": "ፓልመር"
+              },
+              "Troll": {
+                "_type": "zone",
+                "exemplarCity": "ትሮል"
+              },
+              "Syowa": {
+                "_type": "zone",
+                "exemplarCity": "ስዮዋ"
+              },
+              "Mawson": {
+                "_type": "zone",
+                "exemplarCity": "ማውሰን"
+              },
+              "Davis": {
+                "_type": "zone",
+                "exemplarCity": "ደቪስ"
+              },
+              "Vostok": {
+                "_type": "zone",
+                "exemplarCity": "ቮስቶክ"
+              },
+              "Casey": {
+                "_type": "zone",
+                "exemplarCity": "ከይዚ"
+              },
+              "DumontDUrville": {
+                "_type": "zone",
+                "exemplarCity": "ዱሞንት ዲኡርቪል"
+              },
+              "McMurdo": {
+                "_type": "zone",
+                "exemplarCity": "ማክሙርዶ"
+              },
+              "Macquarie": {
+                "_type": "zone",
+                "exemplarCity": "ማኳሪ"
+              }
+            },
+            "Australia": {
+              "Perth": {
+                "_type": "zone",
+                "exemplarCity": "ፐርዝ"
+              },
+              "Eucla": {
+                "_type": "zone",
+                "exemplarCity": "ዩክላ"
+              },
+              "Darwin": {
+                "_type": "zone",
+                "exemplarCity": "ዳርዊን"
+              },
+              "Adelaide": {
+                "_type": "zone",
+                "exemplarCity": "ኣደለይድ"
+              },
+              "Broken_Hill": {
+                "_type": "zone",
+                "exemplarCity": "ብሮክን ሂል"
+              },
+              "Melbourne": {
+                "_type": "zone",
+                "exemplarCity": "መልበርን"
+              },
+              "Hobart": {
+                "_type": "zone",
+                "exemplarCity": "ሆባርት"
+              },
+              "Lindeman": {
+                "_type": "zone",
+                "exemplarCity": "ሊንድማን"
+              },
+              "Sydney": {
+                "_type": "zone",
+                "exemplarCity": "ሲድኒ"
+              },
+              "Brisbane": {
+                "_type": "zone",
+                "exemplarCity": "ብሪዝቤን"
+              },
+              "Lord_Howe": {
+                "_type": "zone",
+                "exemplarCity": "ሎርድ ሃው"
+              }
+            },
+            "Atlantic": {
+              "Bermuda": {
+                "_type": "zone",
+                "exemplarCity": "በርሙዳ"
+              },
+              "Cape_Verde": {
+                "_type": "zone",
+                "exemplarCity": "ኬፕ ቨርደ"
+              },
+              "Canary": {
+                "_type": "zone",
+                "exemplarCity": "ካናሪ"
+              },
+              "Stanley": {
+                "_type": "zone",
+                "exemplarCity": "ስታንሊ"
+              },
+              "Faeroe": {
+                "_type": "zone",
+                "exemplarCity": "ደሴታት ፋሮ"
+              },
+              "South_Georgia": {
+                "_type": "zone",
+                "exemplarCity": "ደቡብ ጆርጅያ"
+              },
+              "Reykjavik": {
+                "_type": "zone",
+                "exemplarCity": "ረይክያቪክ"
+              },
+              "Azores": {
+                "_type": "zone",
+                "exemplarCity": "ኣዞረስ"
+              },
+              "Madeira": {
+                "_type": "zone",
+                "exemplarCity": "ማደይራ"
+              },
+              "St_Helena": {
+                "_type": "zone",
+                "exemplarCity": "ቅድስቲ ሄለና"
+              }
+            },
+            "Indian": {
+              "Cocos": {
+                "_type": "zone",
+                "exemplarCity": "ኮኮስ"
+              },
+              "Christmas": {
+                "_type": "zone",
+                "exemplarCity": "ክሪስማስ"
+              },
+              "Chagos": {
+                "_type": "zone",
+                "exemplarCity": "ቻጎስ"
+              },
+              "Comoro": {
+                "_type": "zone",
+                "exemplarCity": "ኮሞሮ"
+              },
+              "Antananarivo": {
+                "_type": "zone",
+                "exemplarCity": "ኣንታናናሪቮ"
+              },
+              "Mauritius": {
+                "_type": "zone",
+                "exemplarCity": "ማውሪሸስ"
+              },
+              "Maldives": {
+                "_type": "zone",
+                "exemplarCity": "ማልዲቭስ"
+              },
+              "Reunion": {
+                "_type": "zone",
+                "exemplarCity": "ርዩንየን"
+              },
+              "Mahe": {
+                "_type": "zone",
+                "exemplarCity": "ማሄ"
+              },
+              "Kerguelen": {
+                "_type": "zone",
+                "exemplarCity": "ከርጉለን"
+              },
+              "Mayotte": {
+                "_type": "zone",
+                "exemplarCity": "ማዮት"
+              }
+            },
+            "Arctic": {
+              "Longyearbyen": {
+                "_type": "zone",
+                "exemplarCity": "ሎንግየርባየን"
+              }
+            }
+          },
+          "metazone": {
+            "Acre": {
+              "long": {
+                "generic": "ግዘ አክሪ",
+                "standard": "ናይ መደበኛ ግዘ ኣክሪ",
+                "daylight": "ግዜ ክረምቲ ኣክሪ"
+              }
+            },
+            "Afghanistan": {
+              "long": {
+                "standard": "ናይ አፍጋኒስታን ግዘ"
+              }
+            },
+            "Africa_Central": {
+              "long": {
+                "standard": "ግዜ ማእከላይ ኣፍሪቃ"
+              }
+            },
+            "Africa_Eastern": {
+              "long": {
+                "standard": "ግዜ ምብራቕ ኣፍሪቃ"
+              }
+            },
+            "Africa_Southern": {
+              "long": {
+                "standard": "ግዜ ደቡብ ኣፍሪቃ"
+              }
+            },
+            "Africa_Western": {
+              "long": {
+                "standard": "ግዜ ምዕራብ ኣፍሪቃ"
+              }
+            },
+            "Alaska": {
+              "long": {
+                "generic": "ግዘ አላስካ",
+                "standard": "ናይ መደበኛ ግዘ አላስካ",
+                "daylight": "ናይ መዓልቲ ግዘ አላስካ"
+              }
+            },
+            "Amazon": {
+              "long": {
+                "generic": "ግዜ ኣማዞን",
+                "standard": "ናይ መደበኛ ግዘ ኣማዞን",
+                "daylight": "ግዜ ክረምቲ ኣማዞን"
+              }
+            },
+            "America_Central": {
+              "long": {
+                "generic": "ማእከላይ አመሪካ ግዘ",
+                "standard": "ናይ መደበኛ ግዘ ማእከላይ አመሪካ",
+                "daylight": "ናይ መዓልቲ ግዘ ማእከላይ አመሪካ"
+              }
+            },
+            "America_Eastern": {
+              "long": {
+                "generic": "ናይ ምብራቓዊ ግዘ",
+                "standard": "ናይ መደበኛ ግዘ ምብራቓዊ ኣመሪካ",
+                "daylight": "ናይ መዓልቲ ግዘ ምብራቓዊ አመሪካ"
+              }
+            },
+            "America_Mountain": {
+              "long": {
+                "generic": "ናይ ጎቦ ግዘ",
+                "standard": "ናይ መደበኛ ግዘ ጎቦ ኣመሪካ",
+                "daylight": "ናይ መዓልቲ ግዘ ጎቦ አመሪካ"
+              }
+            },
+            "America_Pacific": {
+              "long": {
+                "generic": "ናይ ፓስፊክ ግዘ",
+                "standard": "ናይ መደበኛ ግዘ ፓስፊክ",
+                "daylight": "ናይ መዓልቲ ግዘ ፓስፊክ"
+              }
+            },
+            "Apia": {
+              "long": {
+                "generic": "ናይ አፒያ ግዘ",
+                "standard": "ናይ መደበኛ አፒያ ግዘ",
+                "daylight": "ናይ መዓልቲ አፒያ ግዘ"
+              }
+            },
+            "Arabian": {
+              "long": {
+                "generic": "ናይ አረብ ግዘ",
+                "standard": "ናይ መደበኛ አረብ ግዘ",
+                "daylight": "ናይ መዓልቲ አረብ ግዘ"
+              }
+            },
+            "Argentina": {
+              "long": {
+                "generic": "ግዜ ኣርጀንቲና",
+                "standard": "ናይ መደበኛ ግዘ ኣርጀንቲና",
+                "daylight": "ግዜ ክረምቲ ኣርጀንቲና"
+              }
+            },
+            "Argentina_Western": {
+              "long": {
+                "generic": "ግዜ ምዕራባዊ ኣርጀንቲና",
+                "standard": "ናይ መደበኛ ግዘ ምዕራባዊ ኣርጀንቲና",
+                "daylight": "ግዜ ክረምቲ ምዕራባዊ ኣርጀንቲና"
+              }
+            },
+            "Armenia": {
+              "long": {
+                "generic": "ናይ አርሜኒያ ግዘ",
+                "standard": "ናይ መደበኛ አርሜኒያ ግዘ",
+                "daylight": "ናይ ክረምቲ አርሜኒያ ግዘ"
+              }
+            },
+            "Atlantic": {
+              "long": {
+                "generic": "ናይ አትላንቲክ ግዘ",
+                "standard": "ናይ መደበኛ ግዘ አትላንቲክ",
+                "daylight": "ናይ መዓልቲ ግዘ አትላንቲክ"
+              }
+            },
+            "Australia_Central": {
+              "long": {
+                "generic": "ናይ አውስራሊያ ግዘ",
+                "standard": "ናይ ማዕከላይ መደበኛ አውስራሊያ ግዘ",
+                "daylight": "ናይ ማዕከላይ መዓልቲ አውስራሊያ ግዘ"
+              }
+            },
+            "Australia_CentralWestern": {
+              "long": {
+                "generic": "ናይ ምዕራባዊ አውስራሊያ ግዘ",
+                "standard": "ናይ ምዕራባዊ መደበኛ አውስራሊያ ግዘ",
+                "daylight": "ናይ ምዕራባዊ መዓልቲ አውስራሊያ ግዘ"
+              }
+            },
+            "Australia_Eastern": {
+              "long": {
+                "generic": "ናይ ምብራቓዊ ኣውስትራልያ ግዘ",
+                "standard": "ናይ ምብራቓዊ መደበኛ ኣውስትራልያ ግዘ",
+                "daylight": "ናይ ምብራቓዊ መዓልቲ ኣውስትራልያ ግዘ"
+              }
+            },
+            "Australia_Western": {
+              "long": {
+                "generic": "ናይ ምዕራባዊ አውስትራሊያ ግዘ",
+                "standard": "ናይ ምዕራባዊ መደበኛ አውስትራሊያ ግዘ",
+                "daylight": "ናይ ምዕራባዊ መዓልቲ አውስትራሊያ ግዘ"
+              }
+            },
+            "Azerbaijan": {
+              "long": {
+                "generic": "ናይ አዘርባዣን ግዘ",
+                "standard": "ናይ መደበኛ አዘርባዣን ግዘ",
+                "daylight": "ናይ ክረምቲ አዘርባዣን ግዘ"
+              }
+            },
+            "Azores": {
+              "long": {
+                "generic": "ናይ አዞረስ ግዘ",
+                "standard": "ናይ መደበኛ ግዘ ኣዞረስ",
+                "daylight": "ናይ ክረምቲ አዞረስ ግዘ"
+              }
+            },
+            "Bangladesh": {
+              "long": {
+                "generic": "ናይ ባንግላዲሽ ግዘ",
+                "standard": "ናይ መደበኛ ባንግላዲሽ ግዘ",
+                "daylight": "ናይ ክረምቲ ባንግላዲሽ ግዘ"
+              }
+            },
+            "Bhutan": {
+              "long": {
+                "standard": "ናይ ቡህታን ግዘ"
+              }
+            },
+            "Bolivia": {
+              "long": {
+                "standard": "ግዜ ቦሊቭያ"
+              }
+            },
+            "Brasilia": {
+              "long": {
+                "generic": "ግዜ ብራዚልያ",
+                "standard": "ናይ መደበኛ ግዘ ብራዚልያ",
+                "daylight": "ግዜ ክረምቲ ብራዚልያ"
+              }
+            },
+            "Brunei": {
+              "long": {
+                "standard": "ናይ ብሩኔ ዳሩሳሌም ግዘ"
+              }
+            },
+            "Cape_Verde": {
+              "long": {
+                "generic": "ግዜ ኬፕ ቨርደ",
+                "standard": "ናይ መደበኛ ግዘ ኬፕ ቨርደ",
+                "daylight": "ግዜ ክረምቲ ኬፕ ቨርደ"
+              }
+            },
+            "Chamorro": {
+              "long": {
+                "standard": "ናይ መደበኛ ቻሞሮ ግዘ"
+              }
+            },
+            "Chatham": {
+              "long": {
+                "generic": "ናይ ቻትሃም ግዘ",
+                "standard": "ናይ መደበኛ ቻትሃም ግዘ",
+                "daylight": "ናይ መዓልቲ ቻትሃም ግዘ"
+              }
+            },
+            "Chile": {
+              "long": {
+                "generic": "ግዜ ቺሌ",
+                "standard": "ናይ መደበኛ ግዘ ቺሌ",
+                "daylight": "ግዜ ክረምቲ ቺሌ"
+              }
+            },
+            "China": {
+              "long": {
+                "generic": "ናይ ቻይና ግዘ",
+                "standard": "ናይ መደበኛ ቻይና ግዘ",
+                "daylight": "ናይ መዓልቲ ቻይና ግዘ"
+              }
+            },
+            "Christmas": {
+              "long": {
+                "standard": "ናይ ልደት ደሴት ግዘ"
+              }
+            },
+            "Cocos": {
+              "long": {
+                "standard": "ናይ ኮኮስ ደሴት ግዘ"
+              }
+            },
+            "Colombia": {
+              "long": {
+                "generic": "ግዜ ኮሎምብያ",
+                "standard": "ናይ መደበኛ ግዘ ኮሎምብያ",
+                "daylight": "ግዜ ክረምቲ ኮሎምብያ"
+              }
+            },
+            "Cook": {
+              "long": {
+                "generic": "ናይ ኩክ ደሴት ግዘ",
+                "standard": "ናይ መደበኛ ኩክ ደሴት ግዘ",
+                "daylight": "ናይ ፍርቂ ክረምቲ ኩክ ደሴት ግዘ"
+              }
+            },
+            "Cuba": {
+              "long": {
+                "generic": "ናይ ኩባ ግዘ",
+                "standard": "ናይ መደበኛ ግዘ ኩባ",
+                "daylight": "ናይ መዓልቲ ግዘ ኩባ"
+              }
+            },
+            "Davis": {
+              "long": {
+                "standard": "ናይ ዴቪስ ግዘ"
+              }
+            },
+            "DumontDUrville": {
+              "long": {
+                "standard": "ናይ ዱሞ-ዱርቪል ግዘ"
+              }
+            },
+            "East_Timor": {
+              "long": {
+                "standard": "ናይ ምብራቅ ቲሞር ግዘ"
+              }
+            },
+            "Easter": {
+              "long": {
+                "generic": "ግዜ ደሴት ፋሲካ",
+                "standard": "ናይ መደበኛ ግዘ ደሴት ፋሲካ",
+                "daylight": "ግዜ ክረምቲ ደሴት ፋሲካ"
+              }
+            },
+            "Ecuador": {
+              "long": {
+                "standard": "ግዜ ኤኳዶር"
+              }
+            },
+            "Europe_Central": {
+              "long": {
+                "generic": "ናይ ማእከላይ ኤውሮጳ ግዘ",
+                "standard": "ናይ መደበኛ ግዘ ማእከላይ ኤውሮጳ",
+                "daylight": "ግዜ ክረምቲ ኤውሮጳ"
+              }
+            },
+            "Europe_Eastern": {
+              "long": {
+                "generic": "ናይ ምብራቕ ኤውሮጳ ግዘ",
+                "standard": "ናይ መደበኛ ግዘ ምብራቕ ኤውሮጳ",
+                "daylight": "ግዜ ክረምቲ ምብራቕ ኤውሮጳ"
+              }
+            },
+            "Europe_Further_Eastern": {
+              "long": {
+                "standard": "ናይ ርሑቕ-ምብራቕ ኤውሮጳዊ ግዘ"
+              }
+            },
+            "Europe_Western": {
+              "long": {
+                "generic": "ናይ ምዕራባዊ ኤውሮጳዊ ግዘ",
+                "standard": "ናይ መደበኛ ምዕራባዊ ኤውሮጳዊ ግዘ",
+                "daylight": "ናይ ክረምቲ ምዕራባዊ ኤውሮጳዊ ግዘ"
+              }
+            },
+            "Falkland": {
+              "long": {
+                "generic": "ግዜ ደሴታት ፎክላንድ",
+                "standard": "ናይ መደበኛ ግዘ ደሴታት ፎክላንድ",
+                "daylight": "ግዜ ከረምቲ ደሴታት ፎክላንድ"
+              }
+            },
+            "Fiji": {
+              "long": {
+                "generic": "ናይ ፊጂ ግዘ",
+                "standard": "ናይ መደበኛ ፊጂ ግዘ",
+                "daylight": "ናይ ክረምቲ ፊጂ ግዘ"
+              }
+            },
+            "French_Guiana": {
+              "long": {
+                "standard": "ግዜ ፈረንሳዊት ጊያና"
+              }
+            },
+            "French_Southern": {
+              "long": {
+                "standard": "ናይ ደቡባዊን ኣንታርቲክ ግዘ"
+              }
+            },
+            "Galapagos": {
+              "long": {
+                "standard": "ግዜ ጋላፓጎስ"
+              }
+            },
+            "Gambier": {
+              "long": {
+                "standard": "ናይ ጋምቢየር ግዘ"
+              }
+            },
+            "Georgia": {
+              "long": {
+                "generic": "ናይ ጆርጂያ ግዘ",
+                "standard": "ናይ መደበኛ ጆርጂያ ግዘ",
+                "daylight": "ናይ ክረምቲ ጆርጂያ ግዘ"
+              }
+            },
+            "Gilbert_Islands": {
+              "long": {
+                "standard": "ናይ ጊልበርት ደሴታት ግዘ"
+              }
+            },
+            "GMT": {
+              "long": {
+                "standard": "GMT"
+              }
+            },
+            "Greenland_Eastern": {
+              "long": {
+                "generic": "ናይ ምብራቓዊ ግዘ ግሪንላንድ",
+                "standard": "ናይ መደበኛ ምብራቓዊ ግዘ ግሪንላንድ",
+                "daylight": "ናይ መዓልቲ ምብራቓዊ ግዘ ግሪንላንድ"
+              }
+            },
+            "Greenland_Western": {
+              "long": {
+                "generic": "ናይ ምዕራብ ግሪንላንድ ግዘ",
+                "standard": "ናይ መደበኛ ምዕራብ ግሪንላንድ ግዘ",
+                "daylight": "ናይ መዓልቲ ምዕራብ ግሪንላንድ ግዘ"
+              }
+            },
+            "Gulf": {
+              "long": {
+                "standard": "ናይ መደበኛ ገልፍ ግዘ"
+              }
+            },
+            "Guyana": {
+              "long": {
+                "standard": "ግዜ ጉያና"
+              }
+            },
+            "Hawaii": {
+              "long": {
+                "standard": "ናይ መደበኛ ሃዋይ-ኣሌውቲያን ግዘ"
+              }
+            },
+            "Hawaii_Aleutian": {
+              "long": {
+                "generic": "ናይ ሃዋይ-ኣሌውቲያን ግዘ",
+                "standard": "ናይ መደበኛ ሃዋይ-ኣሌውቲያን ግዘ",
+                "daylight": "ናይ መዓልቲ ሃዋይ-ኣሌውቲያን ግዘ"
+              }
+            },
+            "Hong_Kong": {
+              "long": {
+                "generic": "ናይ ሆንግ ኮንግ ግዘ",
+                "standard": "ናይ መደበኛ ሆንግ ኮንግ ግዘ",
+                "daylight": "ናይ ክረምቲ ሆንግ ኮንግ ግዘ"
+              }
+            },
+            "Hovd": {
+              "long": {
+                "generic": "ናይ ሆቭድ ግዘ",
+                "standard": "ናይ መደበኛ ሆቭድ ግዘ",
+                "daylight": "ናይ ክረምቲ ሆቭድ ግዘ"
+              }
+            },
+            "India": {
+              "long": {
+                "standard": "ናይ መደበኛ ህንድ ግዘ"
+              }
+            },
+            "Indian_Ocean": {
+              "long": {
+                "standard": "ግዜ ህንዳዊ ውቅያኖስ"
+              }
+            },
+            "Indochina": {
+              "long": {
+                "standard": "ናይ ኢንዶቻይና ግዘ"
+              }
+            },
+            "Indonesia_Central": {
+              "long": {
+                "standard": "ናይ ማእከላይ ኢንዶነዥያ ግዘ"
+              }
+            },
+            "Indonesia_Eastern": {
+              "long": {
+                "standard": "ናይ ምብራቓዊ ኢንዶነዥያ ግዘ"
+              }
+            },
+            "Indonesia_Western": {
+              "long": {
+                "standard": "ናይ ምዕራባዊ ኢንዶነዥያ ግዘ"
+              }
+            },
+            "Iran": {
+              "long": {
+                "generic": "ናይ ኢራን ግዘ",
+                "standard": "ናይ መደበኛ ኢራን ግዘ",
+                "daylight": "ናይ መዓልቲ ኢራን ግዘ"
+              }
+            },
+            "Irkutsk": {
+              "long": {
+                "generic": "ናይ ኢርኩትስክ ግዘ",
+                "standard": "ናይ መደበኛ ኢርኩትስክ ግዘ",
+                "daylight": "ናይ ክረምቲ ኢርኩትስክ ግዘ"
+              }
+            },
+            "Israel": {
+              "long": {
+                "generic": "ናይ እስራኤል ግዘ",
+                "standard": "ናይ መደበኛ እስራኤል ግዘ",
+                "daylight": "ናይ መዓልቲ እስራኤል ግዘ"
+              }
+            },
+            "Japan": {
+              "long": {
+                "generic": "ናይ ጃፓን ግዘ",
+                "standard": "ናይ መደበኛ ጃፓን ግዘ",
+                "daylight": "ናይ መዓልቲ ጃፓን ግዘ"
+              }
+            },
+            "Kazakhstan": {
+              "long": {
+                "standard": "ናይ ካዛኪስታን ግዘ"
+              }
+            },
+            "Kazakhstan_Eastern": {
+              "long": {
+                "standard": "ናይ ምብራቅ ካዛኪስታን ግዘ"
+              }
+            },
+            "Kazakhstan_Western": {
+              "long": {
+                "standard": "ናይ ምዕራብ ካዛኪስታን ግዘ"
+              }
+            },
+            "Korea": {
+              "long": {
+                "generic": "ናይ ኮሪያን ግዘ",
+                "standard": "ናይ መደበኛ ኮሪያን ግዘ",
+                "daylight": "ናይ መዓልቲ ኮሪያን ግዘ"
+              }
+            },
+            "Kosrae": {
+              "long": {
+                "standard": "ናይ ኮርሳይ ግዘ"
+              }
+            },
+            "Krasnoyarsk": {
+              "long": {
+                "generic": "ናይ ክራንስኖያርክ ግዘ",
+                "standard": "ናይ መደበኛ ክራንስኖያርክ ግዘ",
+                "daylight": "ናይ ክረምቲ ክራንስኖያርክ ግዘ"
+              }
+            },
+            "Kyrgystan": {
+              "long": {
+                "standard": "ናይ ክርጅስታን ግዘ"
+              }
+            },
+            "Line_Islands": {
+              "long": {
+                "standard": "ናይ ላይን ደሴታት ግዘ"
+              }
+            },
+            "Lord_Howe": {
+              "long": {
+                "generic": "ናይ ሎርድ ሆው ግዘ",
+                "standard": "ናይ መድበኛ ሎርድ ሆው ግዘ",
+                "daylight": "ናይ መዓልቲ ሎርድ ሆው ግዘ"
+              }
+            },
+            "Magadan": {
+              "long": {
+                "generic": "ናይ ሜጋዳን ግዘ",
+                "standard": "ናይ መደበኛ ሜጋዳን ግዘ",
+                "daylight": "ናይ ክረምቲ ሜጋዳን ግዘ"
+              }
+            },
+            "Malaysia": {
+              "long": {
+                "standard": "ናይ ማሌዢያ ግዘ"
+              }
+            },
+            "Maldives": {
+              "long": {
+                "standard": "ናይ ሞልዲቭስ ግዘ"
+              }
+            },
+            "Marquesas": {
+              "long": {
+                "standard": "ናይ ማርኩዌሳስ ግዘ"
+              }
+            },
+            "Marshall_Islands": {
+              "long": {
+                "standard": "ናይ ማርሻል ደሴታት ግዘ"
+              }
+            },
+            "Mauritius": {
+              "long": {
+                "generic": "ግዜ ማውሪሸስ",
+                "standard": "ናይ መደበኛ ግዘ ማውሪሸስ",
+                "daylight": "ግዜ ክረምቲ ማውሪሸስ"
+              }
+            },
+            "Mawson": {
+              "long": {
+                "standard": "ናይ ማውሶን ግዘ"
+              }
+            },
+            "Mexico_Pacific": {
+              "long": {
+                "generic": "ናይ ሜክሲኮ ፓስፊክ ግዘ",
+                "standard": "ናይ መደበኛ ሜክሲኮ ፓስፊክ ግዘ",
+                "daylight": "ናይ መዓልቲ ሜክሲኮ ፓስፊክ ግዘ"
+              }
+            },
+            "Mongolia": {
+              "long": {
+                "generic": "ናይ ኡላንባታር ግዘ",
+                "standard": "ናይ መደበኛ ኡላንባታር ግዘ",
+                "daylight": "ናይ ክረምቲ ኡላንባታር ግዘ"
+              }
+            },
+            "Moscow": {
+              "long": {
+                "generic": "ናይ ሞስኮው ግዘ",
+                "standard": "ናይ መደበኛ ሞስኮው ግዘ",
+                "daylight": "ናይ ክረምቲ ሞስኮው ግዘ"
+              }
+            },
+            "Myanmar": {
+              "long": {
+                "standard": "ናይ ምያንማር ግዘ"
+              }
+            },
+            "Nauru": {
+              "long": {
+                "standard": "ናይ ናውሩ ግዘ"
+              }
+            },
+            "Nepal": {
+              "long": {
+                "standard": "ናይ ኔፓል ግዘ"
+              }
+            },
+            "New_Caledonia": {
+              "long": {
+                "generic": "ናይ ኒው ካሌዶኒያ ግዘ",
+                "standard": "ናይ መደበኛ ኒው ካሌዶኒያ ግዘ",
+                "daylight": "ናይ ክረምቲ ኒው ካሌዶኒያ ግዘ"
+              }
+            },
+            "New_Zealand": {
+              "long": {
+                "generic": "ናይ ኒው ዚላንድ ግዘ",
+                "standard": "ናይ መደበኛ ኒው ዚላንድ ግዘ",
+                "daylight": "ናይ መዓልቲ ኒው ዚላንድ ግዘ"
+              }
+            },
+            "Newfoundland": {
+              "long": {
+                "generic": "ናይ ኒውፋውንድላንድ ግዘ",
+                "standard": "ናይ መደበኛ ኒውፋውንድላንድ ግዘ",
+                "daylight": "ናይ መዓልቲ ኒውፋውንድላንድ ግዘ"
+              }
+            },
+            "Niue": {
+              "long": {
+                "standard": "ናይ ኒዌ ግዘ"
+              }
+            },
+            "Norfolk": {
+              "long": {
+                "generic": "ናይ ኖርፎልክ ደሴት ግዘ",
+                "standard": "ናይ መደበኛ ኖርፎልክ ደሴት ግዘ",
+                "daylight": "ናይ መዓልቲ ኖርፎልክ ደሴት ግዘ"
+              }
+            },
+            "Noronha": {
+              "long": {
+                "generic": "ግዜ ፈርናንዶ ደ ኖሮንያ",
+                "standard": "ናይ መደበኛ ግዘ ፈርናንዶ ደ ኖሮንያ",
+                "daylight": "ግዜ ክረምቲ ፈርናንዶ ደ ኖሮንያ"
+              }
+            },
+            "Novosibirsk": {
+              "long": {
+                "generic": "ናይ ኖቮሲሪስክ ግዘ",
+                "standard": "ናይ መደበኛ ኖቮሲሪስክ ግዘ",
+                "daylight": "ናይ ክረምቲ ኖቮሲሪስክ ግዘ"
+              }
+            },
+            "Omsk": {
+              "long": {
+                "generic": "ናይ ኦምስክ ግዘ",
+                "standard": "ናይ መደበኛ ኦምስክ ግዘ",
+                "daylight": "ናይ ክረምቲ ኦምስክ ግዘ"
+              }
+            },
+            "Pakistan": {
+              "long": {
+                "generic": "ናይ ፓኪስታን ግዘ",
+                "standard": "ናይ መደበኛ ፓኪስታን ግዘ",
+                "daylight": "ናይ ክረምቲ ፓኪስታን ግዘ"
+              }
+            },
+            "Palau": {
+              "long": {
+                "standard": "ናይ ፓላው ግዘ"
+              }
+            },
+            "Papua_New_Guinea": {
+              "long": {
+                "standard": "ናይ ፓፗ ኒው ጊኒ ግዘ"
+              }
+            },
+            "Paraguay": {
+              "long": {
+                "generic": "ግዜ ፓራጓይ",
+                "standard": "ናይ መደበኛ ግዘ ፓራጓይ",
+                "daylight": "ግዜ ክረምቲ ፓራጓይ"
+              }
+            },
+            "Peru": {
+              "long": {
+                "generic": "ግዜ ፔሩ",
+                "standard": "ናይ መደበኛ ግዘ ፔሩ",
+                "daylight": "ግዜ ክረምቲ ፔሩ"
+              }
+            },
+            "Philippines": {
+              "long": {
+                "generic": "ናይ ፊሊፒን ግዘ",
+                "standard": "ናይ መደበኛ ፊሊፒን ግዘ",
+                "daylight": "ናይ ክረምቲ ፊሊፒን ግዘ"
+              }
+            },
+            "Phoenix_Islands": {
+              "long": {
+                "standard": "ናይ ፊኒክስ ደሴታት ግዘ"
+              }
+            },
+            "Pierre_Miquelon": {
+              "long": {
+                "generic": "ናይ ቅዱስ ፒየርን ሚከሎን ግዘ",
+                "standard": "ናይ መደበኛ ቅዱስ ፒየርን ሚከሎን ግዘ",
+                "daylight": "ናይ መዓልቲ ቅዱስ ፒየርን ሚከሎን ግዘ"
+              }
+            },
+            "Pitcairn": {
+              "long": {
+                "standard": "ናይ ፒትቻይርን ግዘ"
+              }
+            },
+            "Ponape": {
+              "long": {
+                "standard": "ናይ ፖናፔ ግዘ"
+              }
+            },
+            "Pyongyang": {
+              "long": {
+                "standard": "ናይ ፕዮንግያንግ ግዘ"
+              }
+            },
+            "Reunion": {
+              "long": {
+                "standard": "ግዜ ርዩንየን"
+              }
+            },
+            "Rothera": {
+              "long": {
+                "standard": "ናይ ሮቴራ ግዘ"
+              }
+            },
+            "Sakhalin": {
+              "long": {
+                "generic": "ናይ ሳክሃሊን ግዘ",
+                "standard": "ናይ መደበኛ ሳክሃሊን ግዘ",
+                "daylight": "ናይ ክረምቲ ሳክሃሊን ግዘ"
+              }
+            },
+            "Samoa": {
+              "long": {
+                "generic": "ናይ ሳሞዋ ግዘ",
+                "standard": "ናይ መደበኛ ሳሞዋ ግዘ",
+                "daylight": "ናይ መዓልቲ ሳሞዋ ግዘ"
+              }
+            },
+            "Seychelles": {
+              "long": {
+                "standard": "ግዜ ሲሸልስ"
+              }
+            },
+            "Singapore": {
+              "long": {
+                "standard": "ናይ መደበኛ ሲጋፖር ግዘ"
+              }
+            },
+            "Solomon": {
+              "long": {
+                "standard": "ናይ ሶሎሞን ደሴታት ግዘ"
+              }
+            },
+            "South_Georgia": {
+              "long": {
+                "standard": "ግዜ ደቡብ ጆርጅያ"
+              }
+            },
+            "Suriname": {
+              "long": {
+                "standard": "ግዜ ሱሪናም"
+              }
+            },
+            "Syowa": {
+              "long": {
+                "standard": "ናይ ስዮዋ ግዘ"
+              }
+            },
+            "Tahiti": {
+              "long": {
+                "standard": "ናይ ቲሂቲ ግዘ"
+              }
+            },
+            "Taipei": {
+              "long": {
+                "generic": "ናይ ቴፒ ግዘ",
+                "standard": "ናይ መደበኛ ቴፒ ግዘ",
+                "daylight": "ናይ መዓልቲ ቴፒ ግዘ"
+              }
+            },
+            "Tajikistan": {
+              "long": {
+                "standard": "ናይ ታጃክስታን ግዘ"
+              }
+            },
+            "Tokelau": {
+              "long": {
+                "standard": "ናይ ቶኬላው ግዘ"
+              }
+            },
+            "Tonga": {
+              "long": {
+                "generic": "ናይ ቶንጋ ግዘ",
+                "standard": "ናይ መደበኛ ቶንጋ ግዘ",
+                "daylight": "ናይ ክረምቲ ቶንጋ ግዘ"
+              }
+            },
+            "Truk": {
+              "long": {
+                "standard": "ናይ ቹክ ግዘ"
+              }
+            },
+            "Turkmenistan": {
+              "long": {
+                "generic": "ናይ ቱርክሜኒስታን ግዘ",
+                "standard": "ናይ መደበኛ ቱርክሜኒስታን ግዘ",
+                "daylight": "ናይ ክረምቲ ቱርክሜኒስታን ግዘ"
+              }
+            },
+            "Tuvalu": {
+              "long": {
+                "standard": "ናይ ቱቫሉ ግዘ"
+              }
+            },
+            "Uruguay": {
+              "long": {
+                "generic": "ግዜ ኡራጓይ",
+                "standard": "ናይ መደበኛ ግዘ ኡራጓይ",
+                "daylight": "ግዜ ክረምቲ ኡራጓይ"
+              }
+            },
+            "Uzbekistan": {
+              "long": {
+                "generic": "ናይ ኡዝቤኪስታን ግዘ",
+                "standard": "ናይ መደበኛ ኡዝቤኪስታን ግዘ",
+                "daylight": "ናይ ክረምቲ ኡዝቤኪስታን ግዘ"
+              }
+            },
+            "Vanuatu": {
+              "long": {
+                "generic": "ናይ ቫኗታው ግዘ",
+                "standard": "ናይ መደበኛ ቫኗታው ግዘ",
+                "daylight": "ናይ ክረምቲ ቫኗታው ግዘ"
+              }
+            },
+            "Venezuela": {
+              "long": {
+                "standard": "ግዜ ቬኔዝዌላ"
+              }
+            },
+            "Vladivostok": {
+              "long": {
+                "generic": "ናይ ቭላዲቮስቶክ ግዘ",
+                "standard": "ናይ መደበኛ ቭላዲቮስቶክ ግዘ",
+                "daylight": "ናይ ክረምቲ ቭላዲቮስቶክ ግዘ"
+              }
+            },
+            "Volgograd": {
+              "long": {
+                "generic": "ናይ ቮልጎግራድ ግዘ",
+                "standard": "ናይ መደበኛ ቮልጎግራድ ግዘ",
+                "daylight": "ናይ ክረምቲ ቮልጎግራድ ግዘ"
+              }
+            },
+            "Vostok": {
+              "long": {
+                "standard": "ናይ ቮስቶክ ግዘ"
+              }
+            },
+            "Wake": {
+              "long": {
+                "standard": "ናይ ዌክ ደሴት ግዘ"
+              }
+            },
+            "Wallis": {
+              "long": {
+                "standard": "ናይ ዌልስን ፉቷ ግዘ"
+              }
+            },
+            "Yakutsk": {
+              "long": {
+                "generic": "ናይ ያኩትስክ ግዘ",
+                "standard": "ናይ መደበኛ ያኩትስክ ግዘ",
+                "daylight": "ናይ ክረምቲ ያኩትስክ ግዘ"
+              }
+            },
+            "Yekaterinburg": {
+              "long": {
+                "generic": "ናይ ያክተርኒበርግ ግዘ",
+                "standard": "ናይ መደበኛ ያክተርኒበርግ ግዘ",
+                "daylight": "ናይ ክረምቲ ያክተርኒበርግ ግዘ"
+              }
+            },
+            "Yukon": {
+              "long": {
+                "standard": "ናይ ዩኮን ግዘ"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

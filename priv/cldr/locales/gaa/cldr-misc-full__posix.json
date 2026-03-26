@@ -1,0 +1,15 @@
+{
+  "main": {
+    "gaa": {
+      "identity": {
+        "language": "gaa"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "hɛɛ:h",
+          "nostr": "dabi:d"
+        }
+      }
+    }
+  }
+}

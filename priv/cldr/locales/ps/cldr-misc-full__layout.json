@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ps": {
+      "identity": {
+        "language": "ps"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

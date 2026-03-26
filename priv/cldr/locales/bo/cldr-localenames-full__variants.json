@@ -1,0 +1,14 @@
+{
+  "main": {
+    "bo": {
+      "identity": {
+        "language": "bo"
+      },
+      "localeDisplayNames": {
+        "variants": {
+          "PINYIN": "པིན་ཡིན།"
+        }
+      }
+    }
+  }
+}

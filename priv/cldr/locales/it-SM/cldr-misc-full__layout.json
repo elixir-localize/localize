@@ -1,0 +1,16 @@
+{
+  "main": {
+    "it-SM": {
+      "identity": {
+        "language": "it",
+        "territory": "SM"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

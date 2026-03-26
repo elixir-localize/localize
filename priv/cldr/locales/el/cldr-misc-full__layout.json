@@ -1,0 +1,15 @@
+{
+  "main": {
+    "el": {
+      "identity": {
+        "language": "el"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

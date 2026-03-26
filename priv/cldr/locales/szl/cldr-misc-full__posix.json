@@ -1,0 +1,15 @@
+{
+  "main": {
+    "szl": {
+      "identity": {
+        "language": "szl"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "niy:n",
+          "nostr": "ja:j"
+        }
+      }
+    }
+  }
+}

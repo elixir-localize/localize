@@ -1,0 +1,15 @@
+{
+  "main": {
+    "iu": {
+      "identity": {
+        "language": "iu"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

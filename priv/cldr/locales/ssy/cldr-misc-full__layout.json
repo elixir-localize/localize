@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ssy": {
+      "identity": {
+        "language": "ssy"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

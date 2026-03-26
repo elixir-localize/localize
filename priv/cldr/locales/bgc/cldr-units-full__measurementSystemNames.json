@@ -1,0 +1,16 @@
+{
+  "main": {
+    "bgc": {
+      "identity": {
+        "language": "bgc"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "मेट्रिक",
+          "UK": "ब्रिटेन",
+          "US": "अमेरिका"
+        }
+      }
+    }
+  }
+}

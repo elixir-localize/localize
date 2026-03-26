@@ -1,0 +1,16 @@
+{
+  "main": {
+    "trw": {
+      "identity": {
+        "language": "trw"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "میٹرک",
+          "UK": "برطانیہ",
+          "US": "ریاست ہائے متحدہ امریکہ"
+        }
+      }
+    }
+  }
+}

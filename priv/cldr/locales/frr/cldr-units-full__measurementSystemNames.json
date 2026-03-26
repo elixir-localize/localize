@@ -1,0 +1,16 @@
+{
+  "main": {
+    "frr": {
+      "identity": {
+        "language": "frr"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Meetrisk",
+          "UK": "Britisk",
+          "US": "US-Amerikoonsk"
+        }
+      }
+    }
+  }
+}

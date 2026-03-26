@@ -1,0 +1,16 @@
+{
+  "main": {
+    "bn": {
+      "identity": {
+        "language": "bn"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "মেট্রিক",
+          "UK": "ইউকে",
+          "US": "ইউ এস"
+        }
+      }
+    }
+  }
+}

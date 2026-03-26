@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ast": {
+      "identity": {
+        "language": "ast"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Métricu",
+          "UK": "R.X.",
+          "US": "EE.XX."
+        }
+      }
+    }
+  }
+}

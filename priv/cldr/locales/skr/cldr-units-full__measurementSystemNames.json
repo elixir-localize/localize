@@ -1,0 +1,16 @@
+{
+  "main": {
+    "skr": {
+      "identity": {
+        "language": "skr"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "مِیٹرک",
+          "UK": "یو کے",
+          "US": "یو ایس"
+        }
+      }
+    }
+  }
+}

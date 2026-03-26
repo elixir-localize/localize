@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ccp": {
+      "identity": {
+        "language": "ccp"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "𑄃𑄳𑄦𑄨",
+          "nostr": "𑄚"
+        }
+      }
+    }
+  }
+}

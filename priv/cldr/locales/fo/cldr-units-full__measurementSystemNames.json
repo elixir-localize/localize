@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fo": {
+      "identity": {
+        "language": "fo"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metralagið",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

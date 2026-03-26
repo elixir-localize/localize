@@ -1,0 +1,15 @@
+{
+  "main": {
+    "uz": {
+      "identity": {
+        "language": "uz"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ha:h",
+          "nostr": "yo‘q:y"
+        }
+      }
+    }
+  }
+}

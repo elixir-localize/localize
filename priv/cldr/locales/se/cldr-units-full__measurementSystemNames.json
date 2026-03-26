@@ -1,0 +1,16 @@
+{
+  "main": {
+    "se": {
+      "identity": {
+        "language": "se"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "SI állan",
+          "UK": "SB állan",
+          "US": "AOS állan"
+        }
+      }
+    }
+  }
+}

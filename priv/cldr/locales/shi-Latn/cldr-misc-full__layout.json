@@ -1,0 +1,16 @@
+{
+  "main": {
+    "shi-Latn": {
+      "identity": {
+        "language": "shi",
+        "script": "Latn"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "main": {
+    "nl-CW": {
+      "identity": {
+        "language": "nl",
+        "territory": "CW"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metriek",
+          "UK": "Brits",
+          "US": "Amerikaans"
+        }
+      }
+    }
+  }
+}

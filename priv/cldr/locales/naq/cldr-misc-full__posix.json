@@ -1,0 +1,15 @@
+{
+  "main": {
+    "naq": {
+      "identity": {
+        "language": "naq"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Îi:Î",
+          "nostr": "Hî-î:H"
+        }
+      }
+    }
+  }
+}

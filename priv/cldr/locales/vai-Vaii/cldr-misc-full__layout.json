@@ -1,0 +1,16 @@
+{
+  "main": {
+    "vai-Vaii": {
+      "identity": {
+        "language": "vai",
+        "script": "Vaii"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

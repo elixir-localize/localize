@@ -1,0 +1,16 @@
+{
+  "main": {
+    "tg": {
+      "identity": {
+        "language": "tg"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Метрӣ",
+          "UK": "БК",
+          "US": "ИМА"
+        }
+      }
+    }
+  }
+}

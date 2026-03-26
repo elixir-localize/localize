@@ -1,0 +1,15 @@
+{
+  "main": {
+    "qu": {
+      "identity": {
+        "language": "qu"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

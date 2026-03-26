@@ -1,0 +1,55 @@
+{
+  "main": {
+    "ckb": {
+      "identity": {
+        "language": "ckb"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}، {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "subdivisions": {
+          "gbeng": "ئینگلاند",
+          "gbsct": "سکۆتلەندا",
+          "gbwls": "وەیڵز"
+        },
+        "keys": {
+          "calendar": "ڕۆژژمێر",
+          "collation": "ڕیزبەندی",
+          "currency": "دراو",
+          "numbers": "ژمارەکان"
+        },
+        "types": {
+          "calendar": {
+            "chinese": "ڕۆژژمێری چینی",
+            "gregorian": "ڕۆژژمێری زاینیی",
+            "core": "فارسی",
+            "hebrew": "ڕۆژژمێری عیبری",
+            "indian": "ڕۆژژمێری نەتەوەیی ھیندی",
+            "islamic": "ڕۆژژمێری کۆچیی",
+            "iso8601": "ISO-8601 ڕۆژژمێری",
+            "persian": "ڕۆژژمێری کۆچیی ھەتاوی"
+          },
+          "collation": {
+            "standard": "ڕیزکردنی داواکری ستاندارد",
+            "core": "ستاندارد"
+          },
+          "numbers": {
+            "arab": "ژمارە عەربی-ھیندییەکان",
+            "gujr": "ژمارە گوجەراتییەکان",
+            "khmr": "ژمارە خمێرییەکان",
+            "latn": "ژمارە ڕۆژاوایییەکان",
+            "mymr": "ژمارە میانمارییەکان"
+          }
+        },
+        "codePatterns": {
+          "language": "زمان: {0}",
+          "script": "نووسە:{0}",
+          "territory": "ناوچە: {0}"
+        }
+      }
+    }
+  }
+}

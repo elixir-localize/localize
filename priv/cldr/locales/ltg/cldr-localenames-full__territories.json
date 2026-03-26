@@ -1,0 +1,14 @@
+{
+  "main": {
+    "ltg": {
+      "identity": {
+        "language": "ltg"
+      },
+      "localeDisplayNames": {
+        "territories": {
+          "LV": "Latveja"
+        }
+      }
+    }
+  }
+}

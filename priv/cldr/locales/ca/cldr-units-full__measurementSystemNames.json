@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ca": {
+      "identity": {
+        "language": "ca"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "mètric",
+          "UK": "RU",
+          "US": "EUA"
+        }
+      }
+    }
+  }
+}

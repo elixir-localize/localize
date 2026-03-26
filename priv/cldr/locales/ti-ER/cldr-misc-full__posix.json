@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ti-ER": {
+      "identity": {
+        "language": "ti",
+        "territory": "ER"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "እወ:እ",
+          "nostr": "ኣይፋልን:ኣ"
+        }
+      }
+    }
+  }
+}

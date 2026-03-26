@@ -1,0 +1,1545 @@
+{
+  "main": {
+    "br": {
+      "identity": {
+        "language": "br"
+      },
+      "dates": {
+        "timeZoneNames": {
+          "hourFormat": "+HH:mm;-HH:mm",
+          "gmtFormat": "UTC{0}",
+          "gmtZeroFormat": "UTC",
+          "gmtUnknownFormat": "UTC+?",
+          "regionFormat": "eur {0}",
+          "regionFormat-type-daylight": "eur hañv {0}",
+          "regionFormat-type-standard": "eur cʼhoañv {0}",
+          "fallbackFormat": "{1} ({0})",
+          "zone": {
+            "Pacific": {
+              "Honolulu": {
+                "_type": "zone",
+                "exemplarCity": "Honolulu"
+              },
+              "Easter": {
+                "_type": "zone",
+                "exemplarCity": "Enez Pask"
+              },
+              "Galapagos": {
+                "_type": "zone",
+                "exemplarCity": "Galápagos"
+              },
+              "Fiji": {
+                "_type": "zone",
+                "exemplarCity": "Fidji"
+              },
+              "Truk": {
+                "_type": "zone",
+                "exemplarCity": "Chuuk"
+              },
+              "Ponape": {
+                "_type": "zone",
+                "exemplarCity": "Pohnpei"
+              },
+              "Enderbury": {
+                "_type": "zone",
+                "exemplarCity": "Canton"
+              },
+              "Noumea": {
+                "_type": "zone",
+                "exemplarCity": "Noumea"
+              },
+              "Marquesas": {
+                "_type": "zone",
+                "exemplarCity": "Inizi Markiz"
+              },
+              "Pitcairn": {
+                "_type": "zone",
+                "exemplarCity": "Inizi Pitcairn"
+              },
+              "Midway": {
+                "_type": "zone",
+                "exemplarCity": "Inizi Midway"
+              },
+              "Wake": {
+                "_type": "zone",
+                "exemplarCity": "Enez Wake"
+              },
+              "Wallis": {
+                "_type": "zone",
+                "exemplarCity": "Wallis-ha-Futuna"
+              }
+            },
+            "Etc": {
+              "UTC": {
+                "_type": "zone",
+                "long": {
+                  "standard": "amzer hollvedel kenurzhiet"
+                },
+                "short": {
+                  "standard": "UTC"
+                }
+              },
+              "Unknown": {
+                "_type": "zone",
+                "exemplarCity": "Lecʼhiadur dianav"
+              }
+            },
+            "Asia": {
+              "Kabul": {
+                "_type": "zone",
+                "exemplarCity": "Kaboul"
+              },
+              "Baku": {
+                "_type": "zone",
+                "exemplarCity": "Bakou"
+              },
+              "Bahrain": {
+                "_type": "zone",
+                "exemplarCity": "Bahrein"
+              },
+              "Urumqi": {
+                "_type": "zone",
+                "exemplarCity": "Ürümqi"
+              },
+              "Nicosia": {
+                "_type": "zone",
+                "exemplarCity": "Levkosía"
+              },
+              "Jerusalem": {
+                "_type": "zone",
+                "exemplarCity": "Jeruzalem"
+              },
+              "Calcutta": {
+                "_type": "zone",
+                "exemplarCity": "Kolkata"
+              },
+              "Phnom_Penh": {
+                "_type": "zone",
+                "exemplarCity": "Phnum Pénh"
+              },
+              "Kuwait": {
+                "_type": "zone",
+                "exemplarCity": "Koweit"
+              },
+              "Vientiane": {
+                "_type": "zone",
+                "exemplarCity": "Viangchan"
+              },
+              "Beirut": {
+                "_type": "zone",
+                "exemplarCity": "Bayrut"
+              },
+              "Colombo": {
+                "_type": "zone",
+                "exemplarCity": "Kolamba"
+              },
+              "Rangoon": {
+                "_type": "zone",
+                "exemplarCity": "Yangon"
+              },
+              "Hovd": {
+                "_type": "zone",
+                "exemplarCity": "Khovd"
+              },
+              "Macau": {
+                "_type": "zone",
+                "exemplarCity": "Makao"
+              },
+              "Katmandu": {
+                "_type": "zone",
+                "exemplarCity": "Kathmandu"
+              },
+              "Muscat": {
+                "_type": "zone",
+                "exemplarCity": "Masqat"
+              },
+              "Yekaterinburg": {
+                "_type": "zone",
+                "exemplarCity": "Yekaterinbourg"
+              },
+              "Chita": {
+                "_type": "zone",
+                "exemplarCity": "Tchita"
+              },
+              "Kamchatka": {
+                "_type": "zone",
+                "exemplarCity": "Kamtchatka"
+              },
+              "Anadyr": {
+                "_type": "zone",
+                "exemplarCity": "Anadyrʼ"
+              },
+              "Singapore": {
+                "_type": "zone",
+                "exemplarCity": "Singapour"
+              },
+              "Damascus": {
+                "_type": "zone",
+                "exemplarCity": "Damask"
+              },
+              "Tashkent": {
+                "_type": "zone",
+                "exemplarCity": "Toshkent"
+              },
+              "Saigon": {
+                "_type": "zone",
+                "exemplarCity": "Kêr Hô-Chi-Minh"
+              }
+            },
+            "Europe": {
+              "Tirane": {
+                "_type": "zone",
+                "exemplarCity": "Tiranë"
+              },
+              "Mariehamn": {
+                "_type": "zone",
+                "exemplarCity": "Marjehamn"
+              },
+              "Brussels": {
+                "_type": "zone",
+                "exemplarCity": "Brusel"
+              },
+              "Minsk": {
+                "_type": "zone",
+                "exemplarCity": "Mensk"
+              },
+              "Prague": {
+                "_type": "zone",
+                "exemplarCity": "Praha"
+              },
+              "Busingen": {
+                "_type": "zone",
+                "exemplarCity": "Büsingen"
+              },
+              "Copenhagen": {
+                "_type": "zone",
+                "exemplarCity": "Kopenhagen"
+              },
+              "Paris": {
+                "_type": "zone",
+                "exemplarCity": "Pariz"
+              },
+              "London": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "eur hañv Breizh-Veur"
+                },
+                "exemplarCity": "Londrez"
+              },
+              "Guernsey": {
+                "_type": "zone",
+                "exemplarCity": "Gwernenez"
+              },
+              "Gibraltar": {
+                "_type": "zone",
+                "exemplarCity": "Jibraltar"
+              },
+              "Athens": {
+                "_type": "zone",
+                "exemplarCity": "Aten"
+              },
+              "Dublin": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "eur cʼhoañv Iwerzhon"
+                },
+                "exemplarCity": "Dulenn"
+              },
+              "Isle_of_Man": {
+                "_type": "zone",
+                "exemplarCity": "Manav"
+              },
+              "Rome": {
+                "_type": "zone",
+                "exemplarCity": "Roma"
+              },
+              "Jersey": {
+                "_type": "zone",
+                "exemplarCity": "Jerzenez"
+              },
+              "Luxembourg": {
+                "_type": "zone",
+                "exemplarCity": "Luksembourg"
+              },
+              "Chisinau": {
+                "_type": "zone",
+                "exemplarCity": "Chișinău"
+              },
+              "Warsaw": {
+                "_type": "zone",
+                "exemplarCity": "Varsovia"
+              },
+              "Lisbon": {
+                "_type": "zone",
+                "exemplarCity": "Lisboa"
+              },
+              "Bucharest": {
+                "_type": "zone",
+                "exemplarCity": "Bukarest"
+              },
+              "Belgrade": {
+                "_type": "zone",
+                "exemplarCity": "Beograd"
+              },
+              "Moscow": {
+                "_type": "zone",
+                "exemplarCity": "Moskov"
+              },
+              "Kiev": {
+                "_type": "zone",
+                "exemplarCity": "Kyyiv"
+              },
+              "Vatican": {
+                "_type": "zone",
+                "exemplarCity": "Vatikan"
+              }
+            },
+            "Antarctica": {
+              "Syowa": {
+                "_type": "zone",
+                "exemplarCity": "Showa"
+              },
+              "DumontDUrville": {
+                "_type": "zone",
+                "exemplarCity": "Dumont-d’Urville"
+              }
+            },
+            "America": {
+              "Argentina": {
+                "Rio_Gallegos": {
+                  "_type": "zone",
+                  "exemplarCity": "Río Gallegos"
+                },
+                "Tucuman": {
+                  "_type": "zone",
+                  "exemplarCity": "Tucumán"
+                }
+              },
+              "Cordoba": {
+                "_type": "zone",
+                "exemplarCity": "Córdoba"
+              },
+              "St_Barthelemy": {
+                "_type": "zone",
+                "exemplarCity": "Sant-Bertele"
+              },
+              "Eirunepe": {
+                "_type": "zone",
+                "exemplarCity": "Eirunepé"
+              },
+              "Cuiaba": {
+                "_type": "zone",
+                "exemplarCity": "Cuiabá"
+              },
+              "Santarem": {
+                "_type": "zone",
+                "exemplarCity": "Santarém"
+              },
+              "Belem": {
+                "_type": "zone",
+                "exemplarCity": "Belém"
+              },
+              "Araguaina": {
+                "_type": "zone",
+                "exemplarCity": "Araguaína"
+              },
+              "Sao_Paulo": {
+                "_type": "zone",
+                "exemplarCity": "São Paulo"
+              },
+              "Maceio": {
+                "_type": "zone",
+                "exemplarCity": "Maceió"
+              },
+              "Noronha": {
+                "_type": "zone",
+                "exemplarCity": "Fernando de Noronha"
+              },
+              "Coral_Harbour": {
+                "_type": "zone",
+                "exemplarCity": "Atikokan"
+              },
+              "St_Johns": {
+                "_type": "zone",
+                "exemplarCity": "Saint Johnʼs"
+              },
+              "Bogota": {
+                "_type": "zone",
+                "exemplarCity": "Bogotá"
+              },
+              "Havana": {
+                "_type": "zone",
+                "exemplarCity": "La Habana"
+              },
+              "Curacao": {
+                "_type": "zone",
+                "exemplarCity": "Curaçao"
+              },
+              "Thule": {
+                "_type": "zone",
+                "exemplarCity": "Qaanaaq"
+              },
+              "Godthab": {
+                "_type": "zone",
+                "exemplarCity": "Nuuk (Godthåb)"
+              },
+              "Scoresbysund": {
+                "_type": "zone",
+                "exemplarCity": "Ittoqqortoormiit"
+              },
+              "Guadeloupe": {
+                "_type": "zone",
+                "exemplarCity": "Gwadeloup"
+              },
+              "Jamaica": {
+                "_type": "zone",
+                "exemplarCity": "Jamaika"
+              },
+              "St_Kitts": {
+                "_type": "zone",
+                "exemplarCity": "Saint Kitts"
+              },
+              "St_Lucia": {
+                "_type": "zone",
+                "exemplarCity": "Saint Lucia"
+              },
+              "Martinique": {
+                "_type": "zone",
+                "exemplarCity": "Martinik"
+              },
+              "Ciudad_Juarez": {
+                "_type": "zone",
+                "exemplarCity": "Ciudad Juárez"
+              },
+              "Mazatlan": {
+                "_type": "zone",
+                "exemplarCity": "Mazatlán"
+              },
+              "Bahia_Banderas": {
+                "_type": "zone",
+                "exemplarCity": "Bahía de Banderas"
+              },
+              "Mexico_City": {
+                "_type": "zone",
+                "exemplarCity": "Kêr Vecʼhiko"
+              },
+              "Merida": {
+                "_type": "zone",
+                "exemplarCity": "Mérida"
+              },
+              "Cancun": {
+                "_type": "zone",
+                "exemplarCity": "Cancún"
+              },
+              "Panama": {
+                "_type": "zone",
+                "exemplarCity": "Panamá"
+              },
+              "Miquelon": {
+                "_type": "zone",
+                "exemplarCity": "Mikelon"
+              },
+              "Asuncion": {
+                "_type": "zone",
+                "exemplarCity": "Asunción"
+              },
+              "El_Salvador": {
+                "_type": "zone",
+                "exemplarCity": "Salvador"
+              },
+              "Lower_Princes": {
+                "_type": "zone",
+                "exemplarCity": "Lower Prince’s Quarter"
+              },
+              "North_Dakota": {
+                "Beulah": {
+                  "_type": "zone",
+                  "exemplarCity": "Beulah, North Dakota"
+                },
+                "New_Salem": {
+                  "_type": "zone",
+                  "exemplarCity": "New Salem, North Dakota"
+                },
+                "Center": {
+                  "_type": "zone",
+                  "exemplarCity": "Center, North Dakota"
+                }
+              },
+              "Indiana": {
+                "Vincennes": {
+                  "_type": "zone",
+                  "exemplarCity": "Vincennes, Indiana"
+                },
+                "Petersburg": {
+                  "_type": "zone",
+                  "exemplarCity": "Petersburg, Indiana"
+                },
+                "Tell_City": {
+                  "_type": "zone",
+                  "exemplarCity": "Tell City, Indiana"
+                },
+                "Knox": {
+                  "_type": "zone",
+                  "exemplarCity": "Knox, Indiana"
+                },
+                "Winamac": {
+                  "_type": "zone",
+                  "exemplarCity": "Winamac, Indiana"
+                },
+                "Marengo": {
+                  "_type": "zone",
+                  "exemplarCity": "Marengo, Indiana"
+                },
+                "Vevay": {
+                  "_type": "zone",
+                  "exemplarCity": "Vevay, Indiana"
+                }
+              },
+              "Kentucky": {
+                "Monticello": {
+                  "_type": "zone",
+                  "exemplarCity": "Monticello, Kentucky"
+                }
+              },
+              "St_Vincent": {
+                "_type": "zone",
+                "exemplarCity": "Sant-Visant"
+              },
+              "St_Thomas": {
+                "_type": "zone",
+                "exemplarCity": "St. Thomas"
+              }
+            },
+            "Atlantic": {
+              "Bermuda": {
+                "_type": "zone",
+                "exemplarCity": "Bermudez"
+              },
+              "Cape_Verde": {
+                "_type": "zone",
+                "exemplarCity": "Kab-Glas"
+              },
+              "Canary": {
+                "_type": "zone",
+                "exemplarCity": "Kanariez"
+              },
+              "Faeroe": {
+                "_type": "zone",
+                "exemplarCity": "Faero"
+              },
+              "South_Georgia": {
+                "_type": "zone",
+                "exemplarCity": "Georgia ar Su"
+              },
+              "Reykjavik": {
+                "_type": "zone",
+                "exemplarCity": "Reykjavík"
+              },
+              "Azores": {
+                "_type": "zone",
+                "exemplarCity": "Azorez"
+              },
+              "St_Helena": {
+                "_type": "zone",
+                "exemplarCity": "Saint-Helena"
+              }
+            },
+            "Indian": {
+              "Cocos": {
+                "_type": "zone",
+                "exemplarCity": "Kokoz"
+              },
+              "Comoro": {
+                "_type": "zone",
+                "exemplarCity": "Komorez"
+              },
+              "Mauritius": {
+                "_type": "zone",
+                "exemplarCity": "Moris"
+              },
+              "Maldives": {
+                "_type": "zone",
+                "exemplarCity": "Maldivez"
+              },
+              "Reunion": {
+                "_type": "zone",
+                "exemplarCity": "Reünion"
+              },
+              "Mahe": {
+                "_type": "zone",
+                "exemplarCity": "Mahé"
+              },
+              "Kerguelen": {
+                "_type": "zone",
+                "exemplarCity": "Kergelenn"
+              }
+            },
+            "Africa": {
+              "Algiers": {
+                "_type": "zone",
+                "exemplarCity": "Aljer"
+              },
+              "Cairo": {
+                "_type": "zone",
+                "exemplarCity": "Kaero"
+              },
+              "El_Aaiun": {
+                "_type": "zone",
+                "exemplarCity": "LaʼYoun"
+              },
+              "Asmera": {
+                "_type": "zone",
+                "exemplarCity": "Asmara"
+              },
+              "Addis_Ababa": {
+                "_type": "zone",
+                "exemplarCity": "Adis Abeba"
+              },
+              "Tripoli": {
+                "_type": "zone",
+                "exemplarCity": "Tarabulus (Tripoli)"
+              },
+              "Casablanca": {
+                "_type": "zone",
+                "exemplarCity": "Dar el Beida (Casablanca)"
+              },
+              "Mogadishu": {
+                "_type": "zone",
+                "exemplarCity": "Muqdisho"
+              },
+              "Sao_Tome": {
+                "_type": "zone",
+                "exemplarCity": "São Tomé"
+              },
+              "Ndjamena": {
+                "_type": "zone",
+                "exemplarCity": "NʼDjamena"
+              },
+              "Lome": {
+                "_type": "zone",
+                "exemplarCity": "Lomé"
+              },
+              "Tunis": {
+                "_type": "zone",
+                "exemplarCity": "Tuniz"
+              }
+            }
+          },
+          "metazone": {
+            "Afghanistan": {
+              "long": {
+                "standard": "eur Afghanistan"
+              }
+            },
+            "Africa_Central": {
+              "long": {
+                "standard": "eur Kreizafrika"
+              }
+            },
+            "Africa_Eastern": {
+              "long": {
+                "standard": "eur Afrika ar Reter"
+              }
+            },
+            "Africa_Southern": {
+              "long": {
+                "standard": "eur cʼhoañv Suafrika"
+              }
+            },
+            "Africa_Western": {
+              "long": {
+                "standard": "eur Afrika ar Cʼhornôg"
+              }
+            },
+            "Alaska": {
+              "long": {
+                "generic": "eur Alaska",
+                "standard": "eur cʼhoañv Alaska",
+                "daylight": "eur hañv Alaska"
+              }
+            },
+            "Almaty": {
+              "long": {
+                "generic": "eur Almaty",
+                "standard": "eur cʼhoañv Almaty",
+                "daylight": "eur hañv Almaty"
+              }
+            },
+            "Amazon": {
+              "long": {
+                "generic": "eur an Amazon",
+                "standard": "eur cʼhoañv an Amazon",
+                "daylight": "eur hañv an Amazon"
+              }
+            },
+            "America_Central": {
+              "long": {
+                "generic": "eur ar Cʼhreiz",
+                "standard": "eur cʼhoañv ar Cʼhreiz",
+                "daylight": "eur hañv ar Cʼhreiz"
+              }
+            },
+            "America_Eastern": {
+              "long": {
+                "generic": "eur ar Reter",
+                "standard": "eur cʼhoañv ar Reter",
+                "daylight": "eur hañv ar Reter"
+              }
+            },
+            "America_Mountain": {
+              "long": {
+                "generic": "eur ar Menezioù",
+                "standard": "eur cʼhoañv ar Menezioù",
+                "daylight": "eur hañv ar Menezioù"
+              }
+            },
+            "America_Pacific": {
+              "long": {
+                "generic": "eur an Habask",
+                "standard": "eur cʼhoañv an Habask",
+                "daylight": "eur hañv an Habask"
+              }
+            },
+            "Anadyr": {
+              "long": {
+                "generic": "eur Anadyrʼ",
+                "standard": "eur cʼhoañv Anadyrʼ",
+                "daylight": "eur hañv Anadyrʼ"
+              }
+            },
+            "Apia": {
+              "long": {
+                "generic": "eur Samoa",
+                "standard": "eur cʼhoañv Samoa",
+                "daylight": "eur hañv Samoa"
+              }
+            },
+            "Arabian": {
+              "long": {
+                "generic": "eur Arabia",
+                "standard": "eur cʼhoañv Arabia",
+                "daylight": "eur hañv Arabia"
+              }
+            },
+            "Argentina": {
+              "long": {
+                "generic": "eur Arcʼhantina",
+                "standard": "eur cʼhoañv Arcʼhantina",
+                "daylight": "eur hañv Arcʼhantina"
+              }
+            },
+            "Argentina_Western": {
+              "long": {
+                "generic": "eur Arcʼhantina ar Cʼhornôg",
+                "standard": "eur cʼhoañv Arcʼhantina ar Cʼhornôg",
+                "daylight": "eur hañv Arcʼhantina ar Cʼhornôg"
+              }
+            },
+            "Armenia": {
+              "long": {
+                "generic": "eur Armenia",
+                "standard": "eur cʼhoañv Armenia",
+                "daylight": "eur hañv Armenia"
+              }
+            },
+            "Atlantic": {
+              "long": {
+                "generic": "eur an Atlantel",
+                "standard": "eur cʼhoañv an Atlantel",
+                "daylight": "eur hañv an Atlantel"
+              }
+            },
+            "Australia_Central": {
+              "long": {
+                "generic": "eur Kreizaostralia",
+                "standard": "eur cʼhoañv Kreizaostralia",
+                "daylight": "eur hañv Kreizaostralia"
+              }
+            },
+            "Australia_CentralWestern": {
+              "long": {
+                "generic": "eur Kreizaostralia ar Cʼhornôg",
+                "standard": "eur cʼhoañv Kreizaostralia ar Cʼhornôg",
+                "daylight": "eur hañv Kreizaostralia ar Cʼhornôg"
+              }
+            },
+            "Australia_Eastern": {
+              "long": {
+                "generic": "eur Aostralia ar Reter",
+                "standard": "eur cʼhoañv Aostralia ar Reter",
+                "daylight": "eur hañv Aostralia ar Reter"
+              }
+            },
+            "Australia_Western": {
+              "long": {
+                "generic": "eur Aostralia ar Cʼhornôg",
+                "standard": "eur cʼhoañv Aostralia ar Cʼhornôg",
+                "daylight": "eur hañv Aostralia ar Cʼhornôg"
+              }
+            },
+            "Azerbaijan": {
+              "long": {
+                "generic": "eur Azerbaidjan",
+                "standard": "eur cʼhoañv Azerbaidjan",
+                "daylight": "eur hañv Azerbaidjan"
+              }
+            },
+            "Azores": {
+              "long": {
+                "generic": "eur an Azorez",
+                "standard": "eur cʼhoañv an Azorez",
+                "daylight": "eur hañv an Azorez"
+              }
+            },
+            "Bangladesh": {
+              "long": {
+                "generic": "eur Bangladesh",
+                "standard": "eur cʼhoañv Bangladesh",
+                "daylight": "eur hañv Bangladesh"
+              }
+            },
+            "Bhutan": {
+              "long": {
+                "standard": "eur Bhoutan"
+              }
+            },
+            "Bolivia": {
+              "long": {
+                "standard": "eur Bolivia"
+              }
+            },
+            "Brasilia": {
+              "long": {
+                "generic": "eur Brasília",
+                "standard": "eur cʼhoañv Brasília",
+                "daylight": "eur hañv Brasília"
+              }
+            },
+            "Brunei": {
+              "long": {
+                "standard": "eur Brunei"
+              }
+            },
+            "Cape_Verde": {
+              "long": {
+                "generic": "eur ar Cʼhab-Glas",
+                "standard": "eur cʼhoañv ar Cʼhab-Glas",
+                "daylight": "eur hañv ar Cʼhab-Glas"
+              }
+            },
+            "Chamorro": {
+              "long": {
+                "standard": "eur Chamorro"
+              }
+            },
+            "Chatham": {
+              "long": {
+                "generic": "eur Chatham",
+                "standard": "eur cʼhoañv Chatham",
+                "daylight": "eur hañv Chatham"
+              }
+            },
+            "Chile": {
+              "long": {
+                "generic": "eur Chile",
+                "standard": "eur cʼhoañv Chile",
+                "daylight": "eur hañv Chile"
+              }
+            },
+            "China": {
+              "long": {
+                "generic": "eur Sina",
+                "standard": "eur cʼhoañv Sina",
+                "daylight": "eur hañv Sina"
+              }
+            },
+            "Christmas": {
+              "long": {
+                "standard": "eur Enez Christmas"
+              }
+            },
+            "Cocos": {
+              "long": {
+                "standard": "eur Inizi Kokoz"
+              }
+            },
+            "Colombia": {
+              "long": {
+                "generic": "eur Kolombia",
+                "standard": "eur cʼhoañv Kolombia",
+                "daylight": "eur hañv Kolombia"
+              }
+            },
+            "Cook": {
+              "long": {
+                "generic": "eur Inizi Cook",
+                "standard": "eur cʼhoañv Inizi Cook",
+                "daylight": "eur hañv Inizi Cook"
+              }
+            },
+            "Cuba": {
+              "long": {
+                "generic": "eur Kuba",
+                "standard": "eur cʼhoañv Kuba",
+                "daylight": "eur hañv Kuba"
+              }
+            },
+            "Davis": {
+              "long": {
+                "standard": "eur Davis"
+              }
+            },
+            "DumontDUrville": {
+              "long": {
+                "standard": "eur Dumont-d’Urville"
+              }
+            },
+            "East_Timor": {
+              "long": {
+                "standard": "eur Timor ar Reter"
+              }
+            },
+            "Easter": {
+              "long": {
+                "generic": "eur Enez Pask",
+                "standard": "eur cʼhoañv Enez Pask",
+                "daylight": "eur hañv Enez Pask"
+              }
+            },
+            "Ecuador": {
+              "long": {
+                "standard": "eur Ecuador"
+              }
+            },
+            "Europe_Central": {
+              "long": {
+                "generic": "eur Kreizeuropa",
+                "standard": "eur cʼhoañv Kreizeuropa",
+                "daylight": "eur hañv Kreizeuropa"
+              }
+            },
+            "Europe_Eastern": {
+              "long": {
+                "generic": "eur Europa ar Reter",
+                "standard": "eur cʼhoañv Europa ar Reter",
+                "daylight": "eur hañv Europa ar Reter"
+              }
+            },
+            "Europe_Further_Eastern": {
+              "long": {
+                "standard": "eur Kaliningrad"
+              }
+            },
+            "Europe_Western": {
+              "long": {
+                "generic": "eur Europa ar Cʼhornôg",
+                "standard": "eur cʼhoañv Europa ar Cʼhornôg",
+                "daylight": "eur hañv Europa ar Cʼhornôg"
+              }
+            },
+            "Falkland": {
+              "long": {
+                "generic": "eur Inizi Falkland",
+                "standard": "eur cʼhoañv Inizi Falkland",
+                "daylight": "eur hañv Inizi Falkland"
+              }
+            },
+            "Fiji": {
+              "long": {
+                "generic": "eur Fidji",
+                "standard": "eur cʼhoañv Fidji",
+                "daylight": "eur hañv Fidji"
+              }
+            },
+            "French_Guiana": {
+              "long": {
+                "standard": "eur Gwiana cʼhall"
+              }
+            },
+            "French_Southern": {
+              "long": {
+                "standard": "eur Douaroù aostral Frañs hag Antarktika"
+              }
+            },
+            "Galapagos": {
+              "long": {
+                "standard": "eur Inizi Galápagos"
+              }
+            },
+            "Gambier": {
+              "long": {
+                "standard": "eur Inizi Gambier"
+              }
+            },
+            "Georgia": {
+              "long": {
+                "generic": "eur Jorjia",
+                "standard": "eur cʼhoañv Jorjia",
+                "daylight": "eur hañv Jorjia"
+              }
+            },
+            "Gilbert_Islands": {
+              "long": {
+                "standard": "eur Inizi Gilbert"
+              }
+            },
+            "GMT": {
+              "long": {
+                "standard": "amzer keitat Greenwich (AKG)"
+              }
+            },
+            "Greenland_Eastern": {
+              "long": {
+                "generic": "eur Greunland ar Reter",
+                "standard": "eur cʼhoañv Greunland ar Reter",
+                "daylight": "eur hañv Greunland ar Reter"
+              }
+            },
+            "Greenland_Western": {
+              "long": {
+                "generic": "eur Greunland ar Cʼhornôg",
+                "standard": "eur cʼhoañv Greunland ar Cʼhornôg",
+                "daylight": "eur hañv Greunland ar Cʼhornôg"
+              }
+            },
+            "Guam": {
+              "long": {
+                "standard": "eur cʼhoañv Guam"
+              }
+            },
+            "Gulf": {
+              "long": {
+                "standard": "eur cʼhoañv ar Pleg-mor Arab-ha-Pers"
+              }
+            },
+            "Guyana": {
+              "long": {
+                "standard": "eur Guyana"
+              }
+            },
+            "Hawaii": {
+              "long": {
+                "standard": "eur cʼhoañv Hawaii hag an Aleouted"
+              }
+            },
+            "Hawaii_Aleutian": {
+              "long": {
+                "generic": "eur Hawaii hag an Aleouted",
+                "standard": "eur cʼhoañv Hawaii hag an Aleouted",
+                "daylight": "eur hañv Hawaii hag an Aleouted"
+              }
+            },
+            "Hong_Kong": {
+              "long": {
+                "generic": "eur Hong Kong",
+                "standard": "eur cʼhoañv Hong Kong",
+                "daylight": "eur hañv Hong Kong"
+              }
+            },
+            "Hovd": {
+              "long": {
+                "generic": "eur Khovd",
+                "standard": "eur cʼhoañv Khovd",
+                "daylight": "eur hañv Khovd"
+              }
+            },
+            "India": {
+              "long": {
+                "standard": "eur cʼhoañv India"
+              }
+            },
+            "Indian_Ocean": {
+              "long": {
+                "standard": "eur Meurvor Indez"
+              }
+            },
+            "Indochina": {
+              "long": {
+                "standard": "eur Indez-Sina"
+              }
+            },
+            "Indonesia_Central": {
+              "long": {
+                "standard": "eur Kreiz Indonezia"
+              }
+            },
+            "Indonesia_Eastern": {
+              "long": {
+                "standard": "eur Indonezia ar Reter"
+              }
+            },
+            "Indonesia_Western": {
+              "long": {
+                "standard": "eur Indonezia ar Cʼhornôg"
+              }
+            },
+            "Iran": {
+              "long": {
+                "generic": "eur Iran",
+                "standard": "eur cʼhoañv Iran",
+                "daylight": "eur hañv Iran"
+              }
+            },
+            "Irkutsk": {
+              "long": {
+                "generic": "eur Irkutsk",
+                "standard": "eur cʼhoañv Irkutsk",
+                "daylight": "eur hañv Irkutsk"
+              }
+            },
+            "Israel": {
+              "long": {
+                "generic": "eur Israel",
+                "standard": "eur cʼhoañv Israel",
+                "daylight": "eur hañv Israel"
+              }
+            },
+            "Japan": {
+              "long": {
+                "generic": "eur Japan",
+                "standard": "eur cʼhoañv Japan",
+                "daylight": "eur hañv Japan"
+              }
+            },
+            "Kazakhstan": {
+              "long": {
+                "standard": "eur Kazakstan"
+              }
+            },
+            "Kazakhstan_Eastern": {
+              "long": {
+                "standard": "eur Kazakstan ar Reter"
+              }
+            },
+            "Kazakhstan_Western": {
+              "long": {
+                "standard": "eur Kazakstan ar Cʼhornôg"
+              }
+            },
+            "Korea": {
+              "long": {
+                "generic": "eur Korea",
+                "standard": "eur cʼhoañv Korea",
+                "daylight": "eur hañv Korea"
+              }
+            },
+            "Kosrae": {
+              "long": {
+                "standard": "eur Kosrae"
+              }
+            },
+            "Krasnoyarsk": {
+              "long": {
+                "generic": "eur Krasnoyarsk",
+                "standard": "eur cʼhoañv Krasnoyarsk",
+                "daylight": "eur hañv Krasnoyarsk"
+              }
+            },
+            "Kyrgystan": {
+              "long": {
+                "standard": "eur Kyrgyzstan"
+              }
+            },
+            "Lanka": {
+              "long": {
+                "standard": "eur Sri Lanka"
+              }
+            },
+            "Line_Islands": {
+              "long": {
+                "standard": "eur Line Islands"
+              }
+            },
+            "Lord_Howe": {
+              "long": {
+                "generic": "eur Lord Howe",
+                "standard": "eur cʼhoañv Lord Howe",
+                "daylight": "eur hañv Lord Howe"
+              }
+            },
+            "Macau": {
+              "long": {
+                "generic": "eur Macau",
+                "standard": "eur cʼhoañv Macau",
+                "daylight": "eur hañv Macau"
+              }
+            },
+            "Magadan": {
+              "long": {
+                "generic": "eur Magadan",
+                "standard": "eur cʼhoañv Magadan",
+                "daylight": "eur hañv Magadan"
+              }
+            },
+            "Malaysia": {
+              "long": {
+                "standard": "eur Malaysia"
+              }
+            },
+            "Maldives": {
+              "long": {
+                "standard": "eur ar Maldivez"
+              }
+            },
+            "Marquesas": {
+              "long": {
+                "standard": "eur Inizi Markiz"
+              }
+            },
+            "Marshall_Islands": {
+              "long": {
+                "standard": "eur Inizi Marshall"
+              }
+            },
+            "Mauritius": {
+              "long": {
+                "generic": "eur Moris",
+                "standard": "eur cʼhoañv Moris",
+                "daylight": "eur hañv Moris"
+              }
+            },
+            "Mawson": {
+              "long": {
+                "standard": "eur Mawson"
+              }
+            },
+            "Mexico_Pacific": {
+              "long": {
+                "generic": "eur an Habask mecʼhikan",
+                "standard": "eur cʼhoañv an Habask mecʼhikan",
+                "daylight": "eur hañv an Habask mecʼhikan"
+              }
+            },
+            "Mongolia": {
+              "long": {
+                "generic": "eur Ulaanbaatar",
+                "standard": "eur cʼhoañv Ulaanbaatar",
+                "daylight": "eur hañv Ulaanbaatar"
+              }
+            },
+            "Moscow": {
+              "long": {
+                "generic": "eur Moskov",
+                "standard": "eur cʼhoañv Moskov",
+                "daylight": "eur hañv Moskov"
+              }
+            },
+            "Myanmar": {
+              "long": {
+                "standard": "eur Myanmar"
+              }
+            },
+            "Nauru": {
+              "long": {
+                "standard": "eur Nauru"
+              }
+            },
+            "Nepal": {
+              "long": {
+                "standard": "eur Nepal"
+              }
+            },
+            "New_Caledonia": {
+              "long": {
+                "generic": "eur Kaledonia-Nevez",
+                "standard": "eur cʼhoañv Kaledonia-Nevez",
+                "daylight": "eur hañv Kaledonia-Nevez"
+              }
+            },
+            "New_Zealand": {
+              "long": {
+                "generic": "eur Zeland-Nevez",
+                "standard": "eur cʼhoañv Zeland-Nevez",
+                "daylight": "eur hañv Zeland-Nevez"
+              }
+            },
+            "Newfoundland": {
+              "long": {
+                "generic": "eur Newfoundland",
+                "standard": "eur cʼhoañv Newfoundland",
+                "daylight": "eur hañv Newfoundland"
+              }
+            },
+            "Niue": {
+              "long": {
+                "standard": "eur Niue"
+              }
+            },
+            "Norfolk": {
+              "long": {
+                "generic": "eur Enez Norfolk",
+                "standard": "eur cʼhoañv Enez Norfolk",
+                "daylight": "eur hañv Enez Norfolk"
+              }
+            },
+            "Noronha": {
+              "long": {
+                "generic": "eur Fernando de Noronha",
+                "standard": "eur cʼhoañv Fernando de Noronha",
+                "daylight": "eur hañv Fernando de Noronha"
+              }
+            },
+            "North_Mariana": {
+              "long": {
+                "standard": "eur Mariana an Norzh"
+              }
+            },
+            "Novosibirsk": {
+              "long": {
+                "generic": "eur Novosibirsk",
+                "standard": "eur cʼhoañv Novosibirsk",
+                "daylight": "eur hañv Novosibirsk"
+              }
+            },
+            "Omsk": {
+              "long": {
+                "generic": "eur Omsk",
+                "standard": "eur cʼhoañv Omsk",
+                "daylight": "eur hañv Omsk"
+              }
+            },
+            "Pakistan": {
+              "long": {
+                "generic": "eur Pakistan",
+                "standard": "eur cʼhoañv Pakistan",
+                "daylight": "eur hañv Pakistan"
+              }
+            },
+            "Palau": {
+              "long": {
+                "standard": "eur Palau"
+              }
+            },
+            "Papua_New_Guinea": {
+              "long": {
+                "standard": "eur Papoua Ginea-Nevez"
+              }
+            },
+            "Paraguay": {
+              "long": {
+                "generic": "eur Paraguay",
+                "standard": "eur cʼhoañv Paraguay",
+                "daylight": "eur hañv Paraguay"
+              }
+            },
+            "Peru": {
+              "long": {
+                "generic": "eur Perou",
+                "standard": "eur cʼhoañv Perou",
+                "daylight": "eur hañv Perou"
+              }
+            },
+            "Philippines": {
+              "long": {
+                "generic": "eur ar Filipinez",
+                "standard": "eur cʼhoañv ar Filipinez",
+                "daylight": "eur hañv ar Filipinez"
+              }
+            },
+            "Phoenix_Islands": {
+              "long": {
+                "standard": "eur Inizi Phoenix"
+              }
+            },
+            "Pierre_Miquelon": {
+              "long": {
+                "generic": "eur Sant-Pêr-ha-Mikelon",
+                "standard": "eur cʼhoañv Sant-Pêr-ha-Mikelon",
+                "daylight": "eur hañv Sant-Pêr-ha-Mikelon"
+              }
+            },
+            "Pitcairn": {
+              "long": {
+                "standard": "eur Pitcairn"
+              }
+            },
+            "Ponape": {
+              "long": {
+                "standard": "eur Pohnpei"
+              }
+            },
+            "Pyongyang": {
+              "long": {
+                "standard": "eur Norzhkorea"
+              }
+            },
+            "Reunion": {
+              "long": {
+                "standard": "eur ar Reünion"
+              }
+            },
+            "Rothera": {
+              "long": {
+                "standard": "eur Rothera"
+              }
+            },
+            "Sakhalin": {
+              "long": {
+                "generic": "eur Sakhalin",
+                "standard": "eur cʼhoañv Sakhalin",
+                "daylight": "eur hañv Sakhalin"
+              }
+            },
+            "Samoa": {
+              "long": {
+                "generic": "eur Samoa Amerikan",
+                "standard": "eur cʼhoañv Samoa Amerikan",
+                "daylight": "eur hañv Samoa Amerikan"
+              }
+            },
+            "Seychelles": {
+              "long": {
+                "standard": "eur Sechelez"
+              }
+            },
+            "Singapore": {
+              "long": {
+                "standard": "eur cʼhoañv Singapour"
+              }
+            },
+            "Solomon": {
+              "long": {
+                "standard": "eur Inizi Salomon"
+              }
+            },
+            "South_Georgia": {
+              "long": {
+                "standard": "eur Georgia ar Su"
+              }
+            },
+            "Suriname": {
+              "long": {
+                "standard": "eur Surinam"
+              }
+            },
+            "Syowa": {
+              "long": {
+                "standard": "eur Syowa"
+              }
+            },
+            "Tahiti": {
+              "long": {
+                "standard": "eur Tahiti"
+              }
+            },
+            "Taipei": {
+              "long": {
+                "generic": "eur Taiwan",
+                "standard": "eur cʼhoañv Taiwan",
+                "daylight": "eur hañv Taiwan"
+              }
+            },
+            "Tajikistan": {
+              "long": {
+                "standard": "eur Tadjikistan"
+              }
+            },
+            "Tokelau": {
+              "long": {
+                "standard": "eur Tokelau"
+              }
+            },
+            "Tonga": {
+              "long": {
+                "generic": "eur Tonga",
+                "standard": "eur cʼhoañv Tonga",
+                "daylight": "eur hañv Tonga"
+              }
+            },
+            "Truk": {
+              "long": {
+                "standard": "eur Chuuk"
+              }
+            },
+            "Turkmenistan": {
+              "long": {
+                "generic": "eur Turkmenistan",
+                "standard": "eur cʼhoañv Turkmenistan",
+                "daylight": "eur hañv Turkmenistan"
+              }
+            },
+            "Tuvalu": {
+              "long": {
+                "standard": "eur Tuvalu"
+              }
+            },
+            "Uruguay": {
+              "long": {
+                "generic": "eur Uruguay",
+                "standard": "eur cʼhoañv Uruguay",
+                "daylight": "eur hañv Uruguay"
+              }
+            },
+            "Uzbekistan": {
+              "long": {
+                "generic": "eur Ouzbekistan",
+                "standard": "eur cʼhoañv Ouzbekistan",
+                "daylight": "eur hañv Ouzbekistan"
+              }
+            },
+            "Vanuatu": {
+              "long": {
+                "generic": "eur Vanuatu",
+                "standard": "eur cʼhoañv Vanuatu",
+                "daylight": "eur hañv Vanuatu"
+              }
+            },
+            "Venezuela": {
+              "long": {
+                "standard": "eur Venezuela"
+              }
+            },
+            "Vladivostok": {
+              "long": {
+                "generic": "eur Vladivostok",
+                "standard": "eur cʼhoañv Vladivostok",
+                "daylight": "eur hañv Vladivostok"
+              }
+            },
+            "Volgograd": {
+              "long": {
+                "generic": "eur Volgograd",
+                "standard": "eur cʼhoañv Volgograd",
+                "daylight": "eur hañv Volgograd"
+              }
+            },
+            "Vostok": {
+              "long": {
+                "standard": "eur Vostok"
+              }
+            },
+            "Wake": {
+              "long": {
+                "standard": "eur Enez Wake"
+              }
+            },
+            "Wallis": {
+              "long": {
+                "standard": "eur Wallis-ha-Futuna"
+              }
+            },
+            "Yakutsk": {
+              "long": {
+                "generic": "eur Yakutsk",
+                "standard": "eur cʼhoañv Yakutsk",
+                "daylight": "eur hañv Yakutsk"
+              }
+            },
+            "Yekaterinburg": {
+              "long": {
+                "generic": "eur Yekaterinbourg",
+                "standard": "eur cʼhoañv Yekaterinbourg",
+                "daylight": "eur hañv Yekaterinbourg"
+              }
+            },
+            "Yukon": {
+              "long": {
+                "standard": "eur Yukon"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

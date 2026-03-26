@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sw-KE": {
+      "identity": {
+        "language": "sw",
+        "territory": "KE"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ndiyo:N",
+          "nostr": "Hapana:H"
+        }
+      }
+    }
+  }
+}

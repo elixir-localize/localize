@@ -1,0 +1,16 @@
+{
+  "main": {
+    "agq": {
+      "identity": {
+        "language": "agq"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

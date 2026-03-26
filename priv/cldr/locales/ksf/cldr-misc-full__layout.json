@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ksf": {
+      "identity": {
+        "language": "ksf"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

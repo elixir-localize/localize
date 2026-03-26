@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sah": {
+      "identity": {
+        "language": "sah"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

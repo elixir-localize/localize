@@ -1,0 +1,16 @@
+{
+  "main": {
+    "om": {
+      "identity": {
+        "language": "om"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Meetirikii",
+          "UK": "Inglizi",
+          "US": "Ameerikaa"
+        }
+      }
+    }
+  }
+}

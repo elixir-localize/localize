@@ -1,0 +1,15 @@
+{
+  "main": {
+    "tn": {
+      "identity": {
+        "language": "tn"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

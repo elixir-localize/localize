@@ -1,0 +1,17 @@
+{
+  "main": {
+    "bs-Latn": {
+      "identity": {
+        "language": "bs",
+        "script": "Latn"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrički",
+          "UK": "britanski",
+          "US": "američki"
+        }
+      }
+    }
+  }
+}

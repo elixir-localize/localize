@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-TD": {
+      "identity": {
+        "language": "ar",
+        "territory": "TD"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

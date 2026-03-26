@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ru-KZ": {
+      "identity": {
+        "language": "ru",
+        "territory": "KZ"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Метрическая",
+          "UK": "Английская",
+          "US": "Американская"
+        }
+      }
+    }
+  }
+}

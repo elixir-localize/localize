@@ -1,0 +1,15 @@
+{
+  "main": {
+    "arn": {
+      "identity": {
+        "language": "arn"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

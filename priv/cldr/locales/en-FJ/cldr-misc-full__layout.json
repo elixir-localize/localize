@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-FJ": {
+      "identity": {
+        "language": "en",
+        "territory": "FJ"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "wal": {
+      "identity": {
+        "language": "wal"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

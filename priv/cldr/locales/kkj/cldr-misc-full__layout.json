@@ -1,0 +1,15 @@
+{
+  "main": {
+    "kkj": {
+      "identity": {
+        "language": "kkj"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

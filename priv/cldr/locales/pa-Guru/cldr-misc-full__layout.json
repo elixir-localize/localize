@@ -1,0 +1,16 @@
+{
+  "main": {
+    "pa-Guru": {
+      "identity": {
+        "language": "pa",
+        "script": "Guru"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

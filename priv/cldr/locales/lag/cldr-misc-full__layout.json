@@ -1,0 +1,15 @@
+{
+  "main": {
+    "lag": {
+      "identity": {
+        "language": "lag"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "se-FI": {
+      "identity": {
+        "language": "se",
+        "territory": "FI"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

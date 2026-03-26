@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ka": {
+      "identity": {
+        "language": "ka"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "კი:კ",
+          "nostr": "არა:ა"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "kn": {
+      "identity": {
+        "language": "kn"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "ಮೆಟ್ರಿಕ್",
+          "UK": "ಯುಕೆ",
+          "US": "ಯುಎಸ್"
+        }
+      }
+    }
+  }
+}

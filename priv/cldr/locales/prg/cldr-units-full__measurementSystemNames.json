@@ -1,0 +1,16 @@
+{
+  "main": {
+    "prg": {
+      "identity": {
+        "language": "prg"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "mētriskan",
+          "UK": "brītiskan",
+          "US": "amērikaniskan"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sw": {
+      "identity": {
+        "language": "sw"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ndiyo:N",
+          "nostr": "Hapana:H"
+        }
+      }
+    }
+  }
+}

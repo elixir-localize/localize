@@ -1,0 +1,16 @@
+{
+  "main": {
+    "nqo": {
+      "identity": {
+        "language": "nqo"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "ߜߟߊ߬ߜߟߊ߬ߡߊ",
+          "UK": "ߓߙߌߕߊ߲ߓߊ߫ ߡߊ߲߬ߛߊ߬ߟߊ (ߓ.ߡ.)",
+          "US": "ߞߊ߬ߝߏ߫ ߘߍ߬ߣߍ߲ (ߞ.ߘ.)"
+        }
+      }
+    }
+  }
+}

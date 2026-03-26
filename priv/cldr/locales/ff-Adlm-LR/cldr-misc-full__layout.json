@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ff-Adlm-LR": {
+      "identity": {
+        "language": "ff",
+        "script": "Adlm",
+        "territory": "LR"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

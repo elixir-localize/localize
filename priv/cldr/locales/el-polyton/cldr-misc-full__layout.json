@@ -1,0 +1,16 @@
+{
+  "main": {
+    "el-polyton": {
+      "identity": {
+        "language": "el",
+        "variant": "POLYTON"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

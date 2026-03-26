@@ -1,0 +1,39 @@
+{
+  "main": {
+    "pap": {
+      "identity": {
+        "language": "pap"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "ar": "arabir",
+          "ar-001": "arabir (mundu)",
+          "de": "alemán",
+          "en": "ingles",
+          "es": "spañó",
+          "es-419": "spañó di latino amérika",
+          "fr": "franses",
+          "he": "hebreo",
+          "hi": "hindi",
+          "hmn": "hmong",
+          "ht": "kreol di Haiti",
+          "hz": "herero",
+          "id": "indones",
+          "it": "italiano",
+          "ja": "hapones",
+          "ko": "koreano",
+          "la": "latin",
+          "nl": "hulandes",
+          "pap": "Papiamentu",
+          "pl": "polaco",
+          "pt": "portugues",
+          "ru": "ruso",
+          "th": "tailandes",
+          "tr": "turko",
+          "und": "idioma deskonosí",
+          "zh": "chines"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "bho": {
+      "identity": {
+        "language": "bho"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "मीट्रिक",
+          "UK": "यूके",
+          "US": "यूएस"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ms": {
+      "identity": {
+        "language": "ms"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ya:y",
+          "nostr": "tidak:t"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sa": {
+      "identity": {
+        "language": "sa"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "छन्दोमान",
+          "UK": "सं.अ.",
+          "US": "सं.रा."
+        }
+      }
+    }
+  }
+}

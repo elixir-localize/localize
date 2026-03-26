@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-GY": {
+      "identity": {
+        "language": "en",
+        "territory": "GY"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

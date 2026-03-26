@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ms-SG": {
+      "identity": {
+        "language": "ms",
+        "territory": "SG"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metrik",
+          "UK": "UK",
+          "US": "AS"
+        }
+      }
+    }
+  }
+}

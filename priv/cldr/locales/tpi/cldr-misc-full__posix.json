@@ -1,0 +1,15 @@
+{
+  "main": {
+    "tpi": {
+      "identity": {
+        "language": "tpi"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

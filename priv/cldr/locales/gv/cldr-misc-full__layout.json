@@ -1,0 +1,15 @@
+{
+  "main": {
+    "gv": {
+      "identity": {
+        "language": "gv"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -142,8 +142,8 @@ defmodule Localize.Data.XmlExtractors do
   def generate_unit_data do
     alias Localize.Unit.Data.Expression
 
-    units_xml = read_and_parse_xml("units.xml")
-    validity_xml = read_and_parse_xml("validity/unit.xml")
+    units_xml = read_xml("units.xml") |> SweetXml.parse()
+    validity_xml = read_xml("validity/unit.xml") |> SweetXml.parse()
 
     # Unit ID Components
     prefix_components =
@@ -256,11 +256,11 @@ defmodule Localize.Data.XmlExtractors do
     # Conversion Factors and Offsets
     conversion_factors =
       Map.new(raw_convert_units, fn %{
-                                       source: source,
-                                       factor: factor,
-                                       offset: offset,
-                                       special: special
-                                     } ->
+                                      source: source,
+                                      factor: factor,
+                                      offset: offset,
+                                      special: special
+                                    } ->
         factor_value =
           cond do
             special != "" -> :special
@@ -320,30 +320,29 @@ defmodule Localize.Data.XmlExtractors do
 
   # ── Private helpers ─────────────────────────────────────────────
 
-  # Maps short names used by generators to their cldr_repo paths
-  @xml_repo_paths %{
-    "plural_ranges.xml" => "common/supplemental/pluralRanges.xml",
-    "subdivisions.xml" => "common/supplemental/subdivisions.xml",
-    "bcp47/timezone.xml" => "common/bcp47/timezone.xml",
-    "units.xml" => "common/supplemental/units.xml",
-    "validity/unit.xml" => "common/validity/unit.xml"
+  # Maps short names to their local paths under priv/cldr/
+  @xml_local_paths %{
+    "plural_ranges.xml" => {:supplemental, "pluralRanges.xml"},
+    "subdivisions.xml" => {:supplemental, "subdivisions.xml"},
+    "bcp47/timezone.xml" => {:bcp47, "timezone.xml"},
+    "units.xml" => {:supplemental, "units.xml"},
+    "validity/unit.xml" => {:validity, "unit.xml"}
   }
 
   defp read_xml(short_name) do
-    repo_path = Map.fetch!(@xml_repo_paths, short_name)
+    {dir_type, filename} = Map.fetch!(@xml_local_paths, short_name)
 
-    Localize.Data.cldr_repo_dir()
-    |> Path.join(repo_path)
+    dir =
+      case dir_type do
+        :supplemental -> Localize.Data.supplemental_source_dir()
+        :bcp47 -> Localize.Data.bcp47_source_dir()
+        :validity -> Localize.Data.validity_source_dir()
+      end
+
+    dir
+    |> Path.join(filename)
     |> File.read!()
     |> String.replace(~r/<!DOCTYPE.*>\n/, "")
-  end
-
-  defp read_and_parse_xml(relative_path) do
-    Localize.Data.cldr_source_dir()
-    |> Path.join(relative_path)
-    |> File.read!()
-    |> then(fn xml -> Regex.replace(~r/<!DOCTYPE[^>]*>/, xml, "") end)
-    |> SweetXml.parse()
   end
 
   defp generate_territory_subdivisions_raw do
@@ -403,5 +402,4 @@ defmodule Localize.Data.XmlExtractors do
       String.to_atom(str)
     end
   end
-
 end

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-Shaw": {
+      "identity": {
+        "language": "en",
+        "script": "Shaw"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "𐑘𐑧𐑕:𐑘",
+          "nostr": "𐑯𐑴:𐑯"
+        }
+      }
+    }
+  }
+}

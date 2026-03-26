@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sd-Deva": {
+      "identity": {
+        "language": "sd",
+        "script": "Deva"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "हा:हा",
+          "nostr": "न:न"
+        }
+      }
+    }
+  }
+}

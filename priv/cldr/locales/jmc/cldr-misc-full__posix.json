@@ -1,0 +1,15 @@
+{
+  "main": {
+    "jmc": {
+      "identity": {
+        "language": "jmc"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Haya:H",
+          "nostr": "Ote:O"
+        }
+      }
+    }
+  }
+}

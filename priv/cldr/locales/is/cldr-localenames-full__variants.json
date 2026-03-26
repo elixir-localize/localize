@@ -1,0 +1,17 @@
+{
+  "main": {
+    "is": {
+      "identity": {
+        "language": "is"
+      },
+      "localeDisplayNames": {
+        "variants": {
+          "MONOTON": "monotonísk",
+          "PINYIN": "pinyin",
+          "POLYTON": "polytonísk",
+          "WADEGILE": "Wade-Giles"
+        }
+      }
+    }
+  }
+}

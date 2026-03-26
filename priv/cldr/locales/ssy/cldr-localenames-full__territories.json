@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ssy": {
+      "identity": {
+        "language": "ssy"
+      },
+      "localeDisplayNames": {
+        "territories": {
+          "DJ": "Yabuuti",
+          "ER": "Eretria",
+          "ET": "Otobbia"
+        }
+      }
+    }
+  }
+}

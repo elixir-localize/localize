@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es": {
+      "identity": {
+        "language": "es"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrico",
+          "UK": "anglosajón",
+          "US": "estadounidense"
+        }
+      }
+    }
+  }
+}

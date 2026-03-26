@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fa-AF": {
+      "identity": {
+        "language": "fa",
+        "territory": "AF"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "متریک",
+          "UK": "بریتانیایی",
+          "US": "امریکایی"
+        }
+      }
+    }
+  }
+}

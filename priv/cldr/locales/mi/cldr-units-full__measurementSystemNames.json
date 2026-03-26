@@ -1,0 +1,16 @@
+{
+  "main": {
+    "mi": {
+      "identity": {
+        "language": "mi"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Ngahuru",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ceb": {
+      "identity": {
+        "language": "ceb"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "oo:o",
+          "nostr": "dili:d"
+        }
+      }
+    }
+  }
+}

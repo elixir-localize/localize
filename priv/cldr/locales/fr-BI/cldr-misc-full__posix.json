@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-BI": {
+      "identity": {
+        "language": "fr",
+        "territory": "BI"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "oui:o",
+          "nostr": "non:n"
+        }
+      }
+    }
+  }
+}

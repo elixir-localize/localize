@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-PY": {
+      "identity": {
+        "language": "es",
+        "territory": "PY"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

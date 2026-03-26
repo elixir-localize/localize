@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-VU": {
+      "identity": {
+        "language": "en",
+        "territory": "VU"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

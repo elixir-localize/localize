@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sc": {
+      "identity": {
+        "language": "sc"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "mètricu",
+          "UK": "britànnicu",
+          "US": "americanu"
+        }
+      }
+    }
+  }
+}

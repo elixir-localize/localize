@@ -1,0 +1,15 @@
+{
+  "main": {
+    "agq": {
+      "identity": {
+        "language": "agq"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

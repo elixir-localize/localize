@@ -1,0 +1,16 @@
+{
+  "main": {
+    "kok": {
+      "identity": {
+        "language": "kok"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "मॅट्रिक",
+          "UK": "युके",
+          "US": "युएस"
+        }
+      }
+    }
+  }
+}

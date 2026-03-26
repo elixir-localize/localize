@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ak": {
+      "identity": {
+        "language": "ak"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Yiw:Y",
+          "nostr": "Daabi:D"
+        }
+      }
+    }
+  }
+}

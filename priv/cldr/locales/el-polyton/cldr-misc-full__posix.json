@@ -1,0 +1,16 @@
+{
+  "main": {
+    "el-polyton": {
+      "identity": {
+        "language": "el",
+        "variant": "POLYTON"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ναί",
+          "nostr": "Ὄχι"
+        }
+      }
+    }
+  }
+}

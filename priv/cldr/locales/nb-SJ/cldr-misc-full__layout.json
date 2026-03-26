@@ -1,0 +1,16 @@
+{
+  "main": {
+    "nb-SJ": {
+      "identity": {
+        "language": "nb",
+        "territory": "SJ"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

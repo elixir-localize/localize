@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ar": {
+      "identity": {
+        "language": "ar"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "نعم:ن",
+          "nostr": "لا:ل"
+        }
+      }
+    }
+  }
+}

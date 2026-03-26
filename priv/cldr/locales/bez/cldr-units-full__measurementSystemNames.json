@@ -1,0 +1,16 @@
+{
+  "main": {
+    "bez": {
+      "identity": {
+        "language": "bez"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

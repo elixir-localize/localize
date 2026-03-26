@@ -1,0 +1,16 @@
+{
+  "main": {
+    "bs-Latn": {
+      "identity": {
+        "language": "bs",
+        "script": "Latn"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "da:d",
+          "nostr": "ne:n"
+        }
+      }
+    }
+  }
+}

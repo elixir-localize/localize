@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ln-AO": {
+      "identity": {
+        "language": "ln",
+        "territory": "AO"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

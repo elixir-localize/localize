@@ -1,0 +1,15 @@
+{
+  "main": {
+    "yav": {
+      "identity": {
+        "language": "yav"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ɛ́ɛ́ɛ:ɛ",
+          "nostr": "aákó:a"
+        }
+      }
+    }
+  }
+}

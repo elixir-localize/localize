@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ksb": {
+      "identity": {
+        "language": "ksb"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ehe:E",
+          "nostr": "Doo:D"
+        }
+      }
+    }
+  }
+}

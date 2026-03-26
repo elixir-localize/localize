@@ -1,0 +1,15 @@
+{
+  "main": {
+    "chr": {
+      "identity": {
+        "language": "chr"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

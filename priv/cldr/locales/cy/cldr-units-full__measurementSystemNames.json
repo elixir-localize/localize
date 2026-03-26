@@ -1,0 +1,16 @@
+{
+  "main": {
+    "cy": {
+      "identity": {
+        "language": "cy"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metrig",
+          "UK": "DU",
+          "US": "UDA"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-MA": {
+      "identity": {
+        "language": "ar",
+        "territory": "MA"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "نعم:ن",
+          "nostr": "لا:ل"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "main": {
+    "tr-CY": {
+      "identity": {
+        "language": "tr",
+        "territory": "CY"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metrik",
+          "UK": "İngiliz",
+          "US": "Amerikan"
+        }
+      }
+    }
+  }
+}

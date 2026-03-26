@@ -1,0 +1,17 @@
+{
+  "main": {
+    "bo-IN": {
+      "identity": {
+        "language": "bo",
+        "territory": "IN"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "ཨ་མེ་རི་ཀའི།"
+        }
+      }
+    }
+  }
+}

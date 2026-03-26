@@ -1,0 +1,16 @@
+{
+  "main": {
+    "yue-Hans": {
+      "identity": {
+        "language": "yue",
+        "script": "Hans"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "系",
+          "nostr": "唔系"
+        }
+      }
+    }
+  }
+}

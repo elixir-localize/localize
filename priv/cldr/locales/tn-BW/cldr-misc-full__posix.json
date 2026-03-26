@@ -1,0 +1,16 @@
+{
+  "main": {
+    "tn-BW": {
+      "identity": {
+        "language": "tn",
+        "territory": "BW"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

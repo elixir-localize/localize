@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ko": {
+      "identity": {
+        "language": "ko"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "예",
+          "nostr": "아니요"
+        }
+      }
+    }
+  }
+}

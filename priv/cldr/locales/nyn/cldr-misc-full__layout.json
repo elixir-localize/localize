@@ -1,0 +1,15 @@
+{
+  "main": {
+    "nyn": {
+      "identity": {
+        "language": "nyn"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

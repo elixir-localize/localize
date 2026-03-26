@@ -1,0 +1,16 @@
+{
+  "main": {
+    "nb": {
+      "identity": {
+        "language": "nb"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrisk",
+          "UK": "engelsk",
+          "US": "amerikansk"
+        }
+      }
+    }
+  }
+}

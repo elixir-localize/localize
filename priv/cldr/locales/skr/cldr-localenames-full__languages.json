@@ -1,0 +1,15 @@
+{
+  "main": {
+    "skr": {
+      "identity": {
+        "language": "skr"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "en": "سرائیکی ► skr",
+          "skr": "سرائیکی"
+        }
+      }
+    }
+  }
+}

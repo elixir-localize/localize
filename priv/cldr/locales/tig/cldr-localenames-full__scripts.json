@@ -1,0 +1,14 @@
+{
+  "main": {
+    "tig": {
+      "identity": {
+        "language": "tig"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Latn": "ላቲን"
+        }
+      }
+    }
+  }
+}

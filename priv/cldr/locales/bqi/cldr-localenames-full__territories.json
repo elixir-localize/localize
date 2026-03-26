@@ -1,0 +1,14 @@
+{
+  "main": {
+    "bqi": {
+      "identity": {
+        "language": "bqi"
+      },
+      "localeDisplayNames": {
+        "territories": {
+          "IR": "ایران"
+        }
+      }
+    }
+  }
+}

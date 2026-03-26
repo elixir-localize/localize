@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ko-CN": {
+      "identity": {
+        "language": "ko",
+        "territory": "CN"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "미터법",
+          "UK": "영국식",
+          "US": "미국식"
+        }
+      }
+    }
+  }
+}

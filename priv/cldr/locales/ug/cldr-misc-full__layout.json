@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ug": {
+      "identity": {
+        "language": "ug"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

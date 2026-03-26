@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sq": {
+      "identity": {
+        "language": "sq"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

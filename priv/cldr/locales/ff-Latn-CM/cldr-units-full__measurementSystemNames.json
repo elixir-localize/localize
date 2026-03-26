@@ -1,0 +1,18 @@
+{
+  "main": {
+    "ff-Latn-CM": {
+      "identity": {
+        "language": "ff",
+        "script": "Latn",
+        "territory": "CM"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

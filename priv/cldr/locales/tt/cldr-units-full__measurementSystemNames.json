@@ -1,0 +1,16 @@
+{
+  "main": {
+    "tt": {
+      "identity": {
+        "language": "tt"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "метрик",
+          "UK": "Бөекбритания",
+          "US": "АКШ"
+        }
+      }
+    }
+  }
+}

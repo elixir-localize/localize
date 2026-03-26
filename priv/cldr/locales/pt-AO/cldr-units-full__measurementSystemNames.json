@@ -1,0 +1,17 @@
+{
+  "main": {
+    "pt-AO": {
+      "identity": {
+        "language": "pt",
+        "territory": "AO"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrico",
+          "UK": "Reino Unido",
+          "US": "Estados Unidos"
+        }
+      }
+    }
+  }
+}

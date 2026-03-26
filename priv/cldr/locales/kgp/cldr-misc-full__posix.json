@@ -1,0 +1,15 @@
+{
+  "main": {
+    "kgp": {
+      "identity": {
+        "language": "kgp"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "hỹ:h",
+          "nostr": "tũ:t"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "wa": {
+      "identity": {
+        "language": "wa"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

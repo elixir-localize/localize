@@ -1,0 +1,109 @@
+{
+  "main": {
+    "ee": {
+      "identity": {
+        "language": "ee"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}, {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "keys": {
+          "calendar": "kalenda",
+          "collation": "tutuɖo",
+          "currency": "gaɖuɖu",
+          "numbers": "nɔmbawo"
+        },
+        "types": {
+          "calendar": {
+            "buddhist": "buddha subɔlawo ƒe kalenda",
+            "chinese": "chinatɔwo ƒe kalenda",
+            "coptic": "coptia kalenda",
+            "ethiopic": "ethiopiatɔwo ƒe kalenda",
+            "ethiopic-amete-alem": "ethiopia amate alemtɔwo ƒe kalenda",
+            "gregorian": "Gregorian kalenda",
+            "hebrew": "hebritɔwo ƒe kalenda",
+            "indian": "india dukɔ ƒe kalenda",
+            "islamic": "islam subɔlawo ƒe kalenda",
+            "islamic-civil": "islam subɔlawo ƒe sivil kalenda",
+            "japanese": "japantɔwo ƒe kalenda",
+            "persian": "persiatɔwo ƒe kalenda",
+            "roc": "china repɔbliktɔwo ƒe kalenda tso 1912"
+          },
+          "collation": {
+            "dictionary": "nuɖoɖo ɖe nyagɔmeɖegbalẽ ƒe ɖoɖomɔ nu",
+            "ducet": "nuɖoɖo ɖe unicode ƒe ɖoɖo nu",
+            "phonebook": "fonegbalẽ me ɖoɖomɔ nu",
+            "pinyin": "pinyin ɖoɖomɔ nu",
+            "search": "nudidi hena zazã gbadza",
+            "searchjl": "nudidi le hangul ƒe ɖoɖo gbãtɔ nu",
+            "stroke": "stroke ɖoɖomɔ nu",
+            "traditional": "blema ɖoɖomɔ nu",
+            "unihan": "ɖoɖomɔnutɔxɛ manɔŋu stroke ƒe ɖoɖo nu"
+          },
+          "numbers": {
+            "arab": "india ƒe arabia digitwo",
+            "arabext": "india ƒe arabia digitwo dzi yiyi",
+            "armn": "armeniatɔwo ƒe numeralwo",
+            "armnlow": "armeniatɔwo ƒe numeral suetɔwo",
+            "bali": "balina digitwo",
+            "beng": "bengalitɔwo ƒe digitwo",
+            "cham": "tsam digitwo",
+            "deva": "devanagari digitwo",
+            "ethi": "ethiopia numeralwo",
+            "fullwide": "digit kekeme blibotɔwo",
+            "geor": "georgiatɔwo ƒe numeralwo",
+            "grek": "greecetɔwo ƒe nemeralwo",
+            "greklow": "greecetɔwo ƒe numeral suetɔwo",
+            "gujr": "gujarati digitwo",
+            "guru": "gurmukhi digitwo",
+            "hanidec": "chinatɔwo ƒe nɔmba madeblibowo",
+            "hans": "chinatɔwo ƒe numeralwo",
+            "hansfin": "chinatɔwo ƒe gadzikpɔ numeralwo",
+            "hant": "blema chinatɔwo ƒe numeralwo",
+            "hantfin": "blema chinatɔwo ƒe gadzikpɔ numeralwo",
+            "hebr": "hebritɔwo ƒe numeralwo",
+            "java": "dzava digitwo",
+            "jpan": "japantɔwo ƒe numeralwo",
+            "jpanfin": "japantɔwo ƒe gadzikpɔnumeralwo",
+            "kali": "kali digitwo",
+            "khmr": "khmertɔwo ƒe nɔmbawo",
+            "knda": "kannadatɔwo ƒe digitwo",
+            "lana": "lana digitwo",
+            "lanatham": "lanatham digitwo",
+            "laoo": "laotɔwo ƒe digitwo",
+            "latn": "Nɔmbawo le Latingbe ƒe ɖoɖo nu",
+            "lepc": "leptsa digitwo",
+            "limb": "limbu digitwo",
+            "mlym": "malaya digitwo",
+            "mong": "mongolia digitwo",
+            "mtei": "meetei mayek digitwo",
+            "mymr": "myanmar digitwo",
+            "mymrshan": "myanmar shan digitwo",
+            "nkoo": "n’ko digitwo",
+            "olck": "ol tsiki digitwo",
+            "orya": "oriya digitwo",
+            "roman": "romatɔwo ƒe numeralwo",
+            "romanlow": "romatɔwo ƒe numeral suetɔwo",
+            "saur": "saurashtra digitwo",
+            "sund": "sundana digitwo",
+            "talu": "tai lue digit yeye wo",
+            "taml": "tamil numeralwo",
+            "tamldec": "tamil digitwo",
+            "telu": "telegu digitwo",
+            "thai": "thai digitwo",
+            "tibt": "tibet digitwo",
+            "vaii": "vaii digitwo"
+          }
+        },
+        "codePatterns": {
+          "language": "gbegbɔgblɔ {0}",
+          "script": "gbeŋɔŋlɔ {0}",
+          "territory": "nutome {0}"
+        }
+      }
+    }
+  }
+}

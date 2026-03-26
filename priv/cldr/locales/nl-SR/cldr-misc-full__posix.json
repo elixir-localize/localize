@@ -1,0 +1,16 @@
+{
+  "main": {
+    "nl-SR": {
+      "identity": {
+        "language": "nl",
+        "territory": "SR"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ja:j",
+          "nostr": "nee:n"
+        }
+      }
+    }
+  }
+}

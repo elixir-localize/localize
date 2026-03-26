@@ -1,0 +1,17 @@
+{
+  "main": {
+    "yrl-VE": {
+      "identity": {
+        "language": "yrl",
+        "territory": "VE"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métiriku",
+          "UK": "Reyinu Yepewasú",
+          "US": "Tetãma-ita Yepewasú"
+        }
+      }
+    }
+  }
+}

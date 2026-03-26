@@ -1,0 +1,16 @@
+{
+  "main": {
+    "oc": {
+      "identity": {
+        "language": "oc"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "anglosajon",
+          "US": "estadounidenc"
+        }
+      }
+    }
+  }
+}

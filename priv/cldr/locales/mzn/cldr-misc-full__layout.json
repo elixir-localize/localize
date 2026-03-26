@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mzn": {
+      "identity": {
+        "language": "mzn"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

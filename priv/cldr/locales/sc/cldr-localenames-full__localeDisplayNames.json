@@ -1,0 +1,200 @@
+{
+  "main": {
+    "sc": {
+      "identity": {
+        "language": "sc"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}, {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "keys": {
+          "calendar": "calendàriu",
+          "cf": "formadu de valuta",
+          "collation": "ordinamentu",
+          "currency": "valuta",
+          "em": "presentatzione emoji",
+          "hc": "sistema oràriu (12 o 24 oras)",
+          "lb": "casta de truncadura de lìnia",
+          "lw": "truncaduras de lìnia a intro de sas paràulas",
+          "ms": "sistema de medida",
+          "numbers": "nùmeros",
+          "ss": "truncadura de fràsia a pustis de incurtz."
+        },
+        "types": {
+          "calendar": {
+            "buddhist": "calendàriu buddhista",
+            "core": "minguo",
+            "chinese": "calendàriu tzinesu",
+            "coptic": "calendàriu coptu",
+            "dangi": "calendàriu dangi",
+            "ethiopic": "calendàriu etìope",
+            "ethiopic-amete-alem": "calendàriu etìope Amete Alem",
+            "gregorian": "calendàriu gregorianu",
+            "hebrew": "calendàriu ebràicu",
+            "indian": "calendàriu natzionale indianu",
+            "islamic": "calendàriu egirianu",
+            "islamic-civil": "calendàriu egirianu (tabulare, època tzivile)",
+            "islamic-rgsa": "calendàriu islàmicu (Aràbia Saudita, osservatzione)",
+            "islamic-tbla": "calendàriu islàmicu (tabulare, època astronòmica)",
+            "islamic-umalqura": "calendàriu egirianu (Umm al-Qura)",
+            "iso8601": "calendàriu ISO-8601",
+            "japanese": "calendàriu giaponesu",
+            "persian": "calendàriu persianu",
+            "roc": "calendàriu minguo"
+          },
+          "cf": {
+            "account": "formadu de valuta contàbile",
+            "core": "istandard",
+            "standard": "formadu de valuta istandard"
+          },
+          "collation": {
+            "compat": "ordinamentu antepostu, pro cumpatibilidade",
+            "core": "zhuyin",
+            "dictionary": "ordinamentu de su ditzionàriu",
+            "ducet": "ordinamentu Unicode predefinidu",
+            "emoji": "ordinamentu de sas emoji",
+            "eor": "règulas de ordinamentu europeas",
+            "phonebook": "ordinamentu de s’elencu telefònicu",
+            "pinyin": "ordinamentu pinyin",
+            "search": "chirca genèrica",
+            "searchjl": "chirca pro consonante hangul initziale",
+            "standard": "ordinamentu istandard",
+            "stroke": "òrdine de sos tratos",
+            "traditional": "ordinamentu traditzionale",
+            "unihan": "ordinamentu in base a sos radicales",
+            "zhuyin": "ordinamentu zhuyin"
+          },
+          "em": {
+            "core": "testu"
+          },
+          "hc": {
+            "h11": "sistema oràriu a 12 oras (0–11)",
+            "core": "24 (1–24)",
+            "h12": "sistema oràriu a 12 oras (1–12)",
+            "h23": "sistema oràriu a 24 oras (0–23)",
+            "h24": "sistema oràriu a 24 oras (1–24)"
+          },
+          "lb": {
+            "loose": "truncadura de lìnia facoltativa",
+            "core": "fortzada",
+            "normal": "truncadura de lìnia normale",
+            "strict": "truncadura de lìnia fortzada"
+          },
+          "lw": {
+            "core": "mantene in sas fràsias"
+          },
+          "ms": {
+            "metric": "sistema mètricu",
+            "core": "consuetudinàriu americanu",
+            "uksystem": "sistema imperiale britànnicu",
+            "ussystem": "sistema consuetudinàriu americanu"
+          },
+          "numbers": {
+            "ahom": "tzifras ahom",
+            "arab": "tzifras indo-àrabas",
+            "arabext": "tzifras indo-àrabas estèndidas",
+            "armn": "nùmeros armenos",
+            "armnlow": "nùmeros armenos minùscolos",
+            "bali": "tzifras balinesas",
+            "beng": "tzifras bengalesas",
+            "brah": "tzifras brahmi",
+            "cakm": "tzifras chakma",
+            "cham": "tzifras cham",
+            "cyrl": "tzifras tzirìllicas",
+            "deva": "tzifras devanagari",
+            "diak": "tzifras dhives akuru",
+            "ethi": "nùmeros etìopes",
+            "fullwide": "tzifras a largària intrea",
+            "gara": "tzifras garay",
+            "geor": "nùmeros georgianos",
+            "gong": "tzifras gondi gunjala",
+            "gonm": "tzifras gondi masaram",
+            "grek": "nùmeros grecos",
+            "greklow": "nùmeros grecos minùscolos",
+            "gujr": "tzifras gujarati",
+            "gukh": "tzifras gurung khema",
+            "guru": "tzifras gurmukhi",
+            "hanidec": "nùmeros detzimales tzinesos",
+            "hans": "nùmeros in tzinesu semplificadu",
+            "hansfin": "nùmeros finantziàrios in tzinesu semplificadu",
+            "hant": "nùmeros in tzinesu traditzionale",
+            "hantfin": "nùmeros finantziàrios in tzinesu traditzionale",
+            "hebr": "nùmeros ebràicos",
+            "hmng": "tzifras pahawh hmong",
+            "hmnp": "tzifras nyiakeng puachue hmong",
+            "java": "tzifras giavanesas",
+            "jpan": "nùmeros giaponesos",
+            "jpanfin": "nùmeros finantziàrios giaponesos",
+            "kali": "tzifras kayah li",
+            "kawi": "tzifras kawi",
+            "khmr": "tzifras khmer",
+            "knda": "tzifras kannada",
+            "krai": "tzifras kirat rai",
+            "lana": "tzifras tai tham hora",
+            "lanatham": "tzifras tai tham tham",
+            "laoo": "tzifras laotianas",
+            "latn": "tzifras otzidentales",
+            "lepc": "tzifras lepcha",
+            "limb": "tzifras limbu",
+            "mathbold": "tzifras matemàticas in grussitu",
+            "mathdbl": "tzifras matemàticas a tràtu dòpiu",
+            "mathmono": "tzifras matemàticas a ispàtziu sìngulu",
+            "mathsanb": "tzifras matemàticas in grussitu chene gràtzias",
+            "mathsans": "tzifras matemàticas chene gràtzias",
+            "mlym": "tzifras malayam",
+            "modi": "tzifras modi",
+            "mong": "tzifras mòngolas",
+            "mroo": "tzifras mro",
+            "mtei": "tzifras meitei mayek",
+            "mymr": "tzifras birmanas",
+            "mymrepka": "tzifras birmanas de su pwo karen orientale",
+            "mymrpao": "tzifras birmanas pao",
+            "mymrshan": "tzifras shan birmanas",
+            "mymrtlng": "tzifras tai lang birmanas",
+            "nagm": "tzifras nag mundari",
+            "nkoo": "tzifras n’ko",
+            "olck": "tzifras ol chiki",
+            "onao": "tzifras ol onal",
+            "orya": "tzifras odia",
+            "osma": "tzifras osmanya",
+            "outlined": "tzifras deliniadas",
+            "rohg": "tzifras rohingya hanifi",
+            "roman": "nùmeros romanos",
+            "romanlow": "nùmeros romanos minùscolos",
+            "saur": "tzifras saurashtra",
+            "shrd": "tzifras sharada",
+            "sind": "tzifras khudawadi",
+            "sinh": "tzifras lith singalesas",
+            "sora": "tzifras sora sompeng",
+            "sund": "tzifras sundanesas",
+            "sunu": "tzifras sunuwar",
+            "takr": "tzifras takri",
+            "talu": "tzifras tai lue noas",
+            "taml": "nùmeros tamil traditzionales",
+            "tamldec": "tzifras tamil",
+            "telu": "tzifras telugu",
+            "thai": "tzifras tailandesas",
+            "tibt": "tzifras tibetanas",
+            "tirh": "tzifras tirhuta",
+            "tnsa": "tzifras tangsa",
+            "tols": "tzifras tolong siki",
+            "vaii": "tzifras vai",
+            "wara": "tzifras warang citi",
+            "wcho": "tzifras wancho"
+          },
+          "ss": {
+            "core": "istudada"
+          }
+        },
+        "codePatterns": {
+          "language": "Limba: {0}",
+          "script": "Iscritura: {0}",
+          "territory": "Regione: {0}"
+        }
+      }
+    }
+  }
+}

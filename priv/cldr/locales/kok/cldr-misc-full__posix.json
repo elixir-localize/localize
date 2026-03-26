@@ -1,0 +1,15 @@
+{
+  "main": {
+    "kok": {
+      "identity": {
+        "language": "kok"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "हय:y",
+          "nostr": "ना:n"
+        }
+      }
+    }
+  }
+}

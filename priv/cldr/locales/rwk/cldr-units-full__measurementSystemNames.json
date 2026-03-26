@@ -1,0 +1,16 @@
+{
+  "main": {
+    "rwk": {
+      "identity": {
+        "language": "rwk"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

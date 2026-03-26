@@ -1,0 +1,16 @@
+{
+  "main": {
+    "hi-Latn": {
+      "identity": {
+        "language": "hi",
+        "script": "Latn"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

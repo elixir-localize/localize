@@ -1,0 +1,15 @@
+{
+  "main": {
+    "doi": {
+      "identity": {
+        "language": "doi"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "haw": {
+      "identity": {
+        "language": "haw"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

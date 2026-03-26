@@ -1,0 +1,15 @@
+{
+  "main": {
+    "af": {
+      "identity": {
+        "language": "af"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ja:j",
+          "nostr": "nee:n"
+        }
+      }
+    }
+  }
+}

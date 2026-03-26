@@ -1,0 +1,658 @@
+{
+  "main": {
+    "csw": {
+      "identity": {
+        "language": "csw"
+      },
+      "dates": {
+        "fields": {
+          "era": {
+            "displayName": "Era"
+          },
+          "era-short": {
+            "displayName": "Era"
+          },
+          "era-narrow": {
+            "displayName": "Era"
+          },
+          "year": {
+            "displayName": "ᐊᐢᑭᕀ",
+            "relative-type--1": "ᐃᐢᐠᐚᐨ ᐊᐢᑭᕀ",
+            "relative-type-0": "ᐆᒪ ᐊᐢᑫᕀ",
+            "relative-type-1": "ᒦᓇ ᐊᐢᑭᕀ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᓃᑳᐣ {0} ᐊᐢᑮᐊᐧᐦᑭᕀ",
+              "relativeTimePattern-count-other": "ᓃᑳᐣ {0} ᐊᐢᑮᐊᐧᐦᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑲᔮᐢ ᐊᐢᑭᕀ",
+              "relativeTimePattern-count-other": "{0} ᑲᔮᐢ ᐊᐢᑭᕀ"
+            }
+          },
+          "year-short": {
+            "displayName": "ᐊᐢᑭᕀ",
+            "relative-type--1": "ᐃᐢᐠᐚᐨ ᐊᐢᑭᕀ",
+            "relative-type-0": "ᐆᒪ ᐊᐢᑫᕀ",
+            "relative-type-1": "ᒦᓇ ᐊᐢᑭᕀ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᓃᑳᐣ {0} ᐊᐢᑮᐊᐧᐦᑭ",
+              "relativeTimePattern-count-other": "ᓃᑳᐣ {0} ᐊᐢᑮᐊᐧᐦᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑲᔮᐢ ᐊᐢᑭᕀ",
+              "relativeTimePattern-count-other": "{0} ᑲᔮᐢ ᐊᐢᑭᕀ"
+            }
+          },
+          "year-narrow": {
+            "displayName": "ᐊᐢᑭᕀ",
+            "relative-type--1": "ᐃᐢᐠᐚᐨ ᐊᐢᑭᕀ",
+            "relative-type-0": "ᐆᒪ ᐊᐢᑫᕀ",
+            "relative-type-1": "ᒦᓇ ᐊᐢᑭᕀ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᓃᑳᐣ {0}ᐊᐢᑮᐊᐧᐦᑭ",
+              "relativeTimePattern-count-other": "ᓃᑳᐣ {0}ᐊᐢᑮᐊᐧᐦᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑲᔮᐢ ᐊᐢᑭᕀ",
+              "relativeTimePattern-count-other": "{0} ᑲᔮᐢ ᐊᐢᑭᕀ"
+            }
+          },
+          "quarter": {
+            "displayName": "Quarter",
+            "relative-type--1": "last quarter",
+            "relative-type-0": "this quarter",
+            "relative-type-1": "next quarter",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Q"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Q"
+            }
+          },
+          "quarter-short": {
+            "displayName": "Quarter",
+            "relative-type--1": "last quarter",
+            "relative-type-0": "this quarter",
+            "relative-type-1": "next quarter",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Q"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Q"
+            }
+          },
+          "quarter-narrow": {
+            "displayName": "Quarter",
+            "relative-type--1": "last quarter",
+            "relative-type-0": "this quarter",
+            "relative-type-1": "next quarter",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Q"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Q"
+            }
+          },
+          "month": {
+            "displayName": "ᐲᓯᒼ",
+            "relative-type--1": "ᐃᐢᐠᐚᐨ ᐲᓯᒼ",
+            "relative-type-0": "ᐊᓄᐦᐨ ᐲᓯᒼ",
+            "relative-type-1": "ᒦᓇ ᐲᓯᒼ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᓃᑳᐣ {0} ᐲᓯᒧᐤᐊᐧᐦᑭ",
+              "relativeTimePattern-count-other": "ᓃᑳᐣ {0} ᐲᓯᒧᐤᐊᐧᐦᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᐃᐢᐠᐚᐨ ᐲᓯᒼ",
+              "relativeTimePattern-count-other": "{0} ᑕᐦᑐ ᐲᓯᒼ"
+            }
+          },
+          "month-short": {
+            "displayName": "ᐲᓯᒼ",
+            "relative-type--1": "ᐃᐢᐠᐚᐨ ᐲᓯᒼ",
+            "relative-type-0": "ᐊᓄᐦᐨ ᐲᓯᒼ",
+            "relative-type-1": "ᒦᓇ ᐲᓯᒼ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᓃᑳᐣ {0} ᐲᓯᒧᐤᐊᐧᐦᑭ",
+              "relativeTimePattern-count-other": "ᓃᑳᐣ {0} ᐲᓯᒧᐤᐊᐧᐦᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᐃᐢᐠᐚᐨ ᐲᓯᒼ",
+              "relativeTimePattern-count-other": "{0} ᑕᐦᑐ ᐲᓯᒼ"
+            }
+          },
+          "month-narrow": {
+            "displayName": "ᐲᓯᒼ",
+            "relative-type--1": "ᐃᐢᑳᐤᐨ ᐲᓯᒼ",
+            "relative-type-0": "ᐊᓄᐦᐨ ᐲᓯᒼ",
+            "relative-type-1": "ᒦᓇ ᐲᓯᒼ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᓃᑳᐣ {0} ᐲᓯᒧᐤᐊᐧᐦᑭ",
+              "relativeTimePattern-count-other": "ᓃᑳᐣ {0} ᐲᓯᒧᐤᐊᐧᐦᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᐃᐢᐠᐚᐨ ᐲᓯᒼ",
+              "relativeTimePattern-count-other": "{0} ᑕᐦᑐ ᐲᓯᒼ"
+            }
+          },
+          "week": {
+            "displayName": "ᑮᓯᑳᐘ",
+            "relative-type--1": "ᐃᐢᐠᐚᐨ ᑳᐃᐢᐸᓂᐠ",
+            "relative-type-0": "ᐊᓄᐦᐨ ᑳᐃᐢᐸᓂᐠ",
+            "relative-type-1": "ᒦᓇ ᐃᐢᐸᓂᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᓃᑳᐣ {0} ᐃᐢᐸᓂᑭ",
+              "relativeTimePattern-count-other": "ᓃᑳᐣ {0} ᐃᐢᐸᓂᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "ᑳᑮ {0} ᐃᐢᐸᓂᐠ",
+              "relativeTimePattern-count-other": "ᑳᑮ {0} ᐃᐢᐸᓂᐠ"
+            },
+            "relativePeriod": "ᑳᑮ {0} ᐃᐢᐸᓂᐠ"
+          },
+          "week-short": {
+            "displayName": "ᑮᓯᑳᐘ",
+            "relative-type--1": "ᐃᐢᐠᐚᐨ ᑳᐃᐢᐸᓂᐠ",
+            "relative-type-0": "ᐊᓄᐦᐨ ᑳᐃᐢᐸᓂᐠ",
+            "relative-type-1": "ᒦᓇ ᐃᐢᐸᓂᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᓃᑳᐣ {0} ᐃᐢᐸᓂᑭ",
+              "relativeTimePattern-count-other": "ᓃᑳᐣ {0} ᐃᐢᐸᓂᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "ᑳᑮ {0} ᐃᐢᐸᓂᐠ",
+              "relativeTimePattern-count-other": "ᑳᑮ {0} ᐃᐢᐸᓂᐠ"
+            },
+            "relativePeriod": "ᑳᑮ {0} ᐃᐢᐸᓂᐠ"
+          },
+          "week-narrow": {
+            "displayName": "ᑮᓯᑳᐘ",
+            "relative-type--1": "ᐃᐢᐠᐚᐨ ᑳᐃᐢᐸᓂᐠ",
+            "relative-type-0": "ᐊᓄᐦᐨ ᑳᐃᐢᐸᓂᐠ",
+            "relative-type-1": "ᒦᓇ ᐃᐢᐸᓂᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᓃᑳᐣ {0} ᐃᐢᐸᓂᑭ",
+              "relativeTimePattern-count-other": "ᓃᑳᐣ {0} ᐃᐢᐸᓂᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᐅᑖᑯᓰᕽ",
+              "relativeTimePattern-count-other": "{0} ᑳᑮ ᐃᐢᐸᓂᐠ"
+            },
+            "relativePeriod": "ᑳᑮ ᐃᐢᐸᓂᐠ {0}"
+          },
+          "weekOfMonth": {
+            "displayName": "Week Of Month"
+          },
+          "weekOfMonth-short": {
+            "displayName": "Week Of Month"
+          },
+          "weekOfMonth-narrow": {
+            "displayName": "Week Of Month"
+          },
+          "day": {
+            "displayName": "ᑮᓯᑳᐤ",
+            "relative-type--1": "ᐅᑖᑯᓯᕽ",
+            "relative-type-0": "ᐊᓄᐦᐨ",
+            "relative-type-1": "ᐚᐸᐦᑫ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᑮᓯᑳᑭ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᑮᓯᑳᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑮ ᑕᐦᑐ ᑮᓯᑳᐠ",
+              "relativeTimePattern-count-other": "{0} ᑳᑮ ᑕᐦᑐ ᑮᓯᑳᐠ"
+            }
+          },
+          "day-short": {
+            "displayName": "ᑮᓯᑳᐤ",
+            "relative-type--1": "ᐅᑖᑯᓰᕽ",
+            "relative-type-0": "ᐊᓄᐦᐨ",
+            "relative-type-1": "ᐚᐸᐦᑫ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᑮᓯᑳᑭ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᑮᓯᑳᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑮ ᑕᐦᑐ ᑮᓯᑳᐠ",
+              "relativeTimePattern-count-other": "{0} ᑳᑮ ᑕᐦᑐ ᑮᓯᑳᐠ"
+            }
+          },
+          "day-narrow": {
+            "displayName": "ᑮᓯᑳᐤ",
+            "relative-type--1": "ᐅᑖᑯᓰᕽ",
+            "relative-type-0": "ᐊᓄᐦᐨ",
+            "relative-type-1": "ᐚᐸᐦᑫ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0}ᑮᓯᑳᑭ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0}ᑮᓯᑳᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᐅᑖᑯᓰᕽ",
+              "relativeTimePattern-count-other": "{0} ᑳᑮ ᑕᐦᑐ ᑮᓯᑳᐠ"
+            }
+          },
+          "dayOfYear": {
+            "displayName": "Day Of Year"
+          },
+          "dayOfYear-short": {
+            "displayName": "Day Of Year"
+          },
+          "dayOfYear-narrow": {
+            "displayName": "Day Of Year"
+          },
+          "weekday": {
+            "displayName": "Day of the Week"
+          },
+          "weekday-short": {
+            "displayName": "Day of the Week"
+          },
+          "weekday-narrow": {
+            "displayName": "Day of the Week"
+          },
+          "weekdayOfMonth": {
+            "displayName": "Weekday Of Month"
+          },
+          "weekdayOfMonth-short": {
+            "displayName": "Weekday Of Month"
+          },
+          "weekdayOfMonth-narrow": {
+            "displayName": "Weekday Of Month"
+          },
+          "sun": {
+            "relative-type--1": "ᑳᐊᔭᒥᐦᑮᓯᑳᐠ",
+            "relative-type-0": "ᐆᒪ ᐊᔭᒥᐦᐁ ᑮᓯᑳᐤ",
+            "relative-type-1": "ᐊᔭᒥᐦᐁ ᑮᓯᑳᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᒦᓄ {0} ᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ",
+              "relativeTimePattern-count-other": "ᒦᓄ {0} ᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑕᐦᑐ ᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ",
+              "relativeTimePattern-count-other": "{0} ᑕᐦᑐ ᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ"
+            }
+          },
+          "sun-short": {
+            "relative-type--1": "ᑳᐊᔭᒥᐦᑮᓯᑳᐠ",
+            "relative-type-0": "ᐆᒪ ᐊᔭᒥᐦᐁ ᑮᓯᑳᐤ",
+            "relative-type-1": "ᐊᔭᒥᐦᐁ ᑮᓯᑳᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᒦᓄ {0} ᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ",
+              "relativeTimePattern-count-other": "ᒦᓄ {0} ᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑕᐦᑐ ᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ",
+              "relativeTimePattern-count-other": "{0} ᑕᐦᑐ ᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ"
+            }
+          },
+          "sun-narrow": {
+            "relative-type--1": "ᑳᐊᔭᒥᐦᑮᓯᑳᐠ",
+            "relative-type-0": "ᐆᒪ ᐊᔭᒥᐦᐁ ᑮᓯᑳᐤ",
+            "relative-type-1": "ᐊᔭᒥᐦᐁ ᑮᓯᑳᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᒦᓄ {0} ᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ",
+              "relativeTimePattern-count-other": "ᒦᓄ {0} ᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑕᐦᑐ ᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ",
+              "relativeTimePattern-count-other": "{0} ᑕᐦᑐ ᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ"
+            }
+          },
+          "mon": {
+            "relative-type--1": "ᑳᐴᓂ ᐊᔭᒥᐦᐁ ᑮᓯᑳᐠ",
+            "relative-type-0": "ᐆᒪ ᑳᐴᓂ ᐊᔭᒥᐦᐁ ᑮᓯᑳᐠ",
+            "relative-type-1": "ᐴᓂ ᐊᔭᒥᐦᐁᑮᓯᑳᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᐴᓂᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᐴᓂᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᐴᓂᐊᔭᒥᐦᐁ ᑮᓯᑳᐠ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᐴᓂᐊᔭᒥᐦᐁ ᑮᓯᑳᐠ"
+            }
+          },
+          "mon-short": {
+            "relative-type--1": "ᑳᐴᓂ ᐊᔭᒥᐦᐁ ᑮᓯᑳᐠ",
+            "relative-type-0": "ᐆᒪ ᑳᐴᓂ ᐊᔭᒥᐦᐁ ᑮᓯᑳᐠ",
+            "relative-type-1": "ᐴᓂ ᐊᔭᒥᐦᐁᑮᓯᑳᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᐴᓂᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᐴᓂᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᐴᓂᐊᔭᒥᐦᐁ ᑮᓯᑳᐠ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᐴᓂᐊᔭᒥᐦᐁ ᑮᓯᑳᐠ"
+            }
+          },
+          "mon-narrow": {
+            "relative-type--1": "ᑳᐴᓂ ᐊᔭᒥᐦᐁ ᑮᓯᑳᐠ",
+            "relative-type-0": "ᐆᒪ ᑳᐴᓂ ᐊᔭᒥᐦᐁ ᑮᓯᑳᐠ",
+            "relative-type-1": "ᐴᓂ ᐊᔭᒥᐦᐁᑮᓯᑳᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᐴᓂᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᐴᓂᐊᔭᒥᐦᐁ ᑮᓯᑳᐘ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᐴᓂᐊᔭᒥᐦᐁ ᑮᓯᑳᐠ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᐴᓂᐊᔭᒥᐦᐁ ᑮᓯᑳᐠ"
+            }
+          },
+          "tue": {
+            "relative-type--1": "ᑳᓃᓱᑮᓯᑳᐠ",
+            "relative-type-0": "ᐆᒪ ᓃᓱᑮᓯᑳᐠ",
+            "relative-type-1": "ᓃᓯᑮᓯᑳᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᓃᓱᑮᓯᑳᐘ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᓃᓱᑮᓯᑳᐘ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᓃᓱᑮᓯᑳᐠ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᓃᓱᑮᓯᑳᐠ"
+            }
+          },
+          "tue-short": {
+            "relative-type--1": "ᑳᓃᓱᑮᓯᑳᐠ",
+            "relative-type-0": "ᐆᒪ ᓃᓱᑮᓯᑳᐠ",
+            "relative-type-1": "ᓃᓯᑮᓯᑳᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᓃᓱᑮᓯᑳᐘ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᓃᓱᑮᓯᑳᐘ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᓃᓱᑮᓯᑳᐠ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᓃᓱᑮᓯᑳᐠ"
+            }
+          },
+          "tue-narrow": {
+            "relative-type--1": "ᑳᓃᓱᑮᓯᑳᐠ",
+            "relative-type-0": "ᐆᒪ ᓃᓱᑮᓯᑳᐠ",
+            "relative-type-1": "ᓃᓯᑮᓯᑳᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᓃᓱᑮᓯᑳᐘ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᓃᓱᑮᓯᑳᐘ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᓃᓱᑮᓯᑳᐠ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᓃᓱᑮᓯᑳᐠ"
+            }
+          },
+          "wed": {
+            "relative-type--1": "ᑳᐋᐱᐦᑕᐘᕽ",
+            "relative-type-0": "ᐆᒪ ᑳᐋᐱᐦᑕᐘᕽ",
+            "relative-type-1": "ᒦᓇ ᐋᐱᐦᑕᐘᐦᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᐋᐱᐦᑕᐘᐦᑭ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᐋᐱᐦᑕᐘᐦᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᐋᐱᐦᑕᐘᕽ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᐋᐱᐦᑕᐘᕽ"
+            }
+          },
+          "wed-short": {
+            "relative-type--1": "ᑳᐋᐱᐦᑕᐘᕽ",
+            "relative-type-0": "ᐆᒪ ᑳᐋᐱᐦᑕᐘᕽ",
+            "relative-type-1": "ᒦᓇ ᐋᐱᐦᑕᐘᐦᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᐋᐱᐦᑕᐘᐦᑭ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᐋᐱᐦᑕᐘᐦᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᐋᐱᐦᑕᐘᕽ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᐋᐱᐦᑕᐘᕽ"
+            }
+          },
+          "wed-narrow": {
+            "relative-type--1": "ᑳᐋᐱᐦᑕᐘᕽ",
+            "relative-type-0": "ᐆᒪ ᑳᐋᐱᐦᑕᐘᕽ",
+            "relative-type-1": "ᒦᓇ ᐋᐱᐦᑕᐘᐦᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᐋᐱᐦᑕᐘᐦᑭ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᐋᐱᐦᑕᐘᐦᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᐋᐱᐦᑕᐘᕽ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᐋᐱᐦᑕᐘᕽ"
+            }
+          },
+          "thu": {
+            "relative-type--1": "ᑳᐴᓂ ᐋᐱᐦᑕᐘᕽ",
+            "relative-type-0": "ᐆᒪ ᑳᐴᓂ ᐋᐱᐦᑕᐘᕽ",
+            "relative-type-1": "ᒦᓇ ᐴᓂ ᐋᐱᐦᑕᐘᐦᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᐴᓂ ᐋᐱᐦᑕᐘᐦᑭ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᐴᓂ ᐋᐱᐦᑕᐘᐦᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᐴᓂ ᐋᐱᐦᑕᐘᕽ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᐴᓂ ᐋᐱᐦᑕᐘᕽ"
+            }
+          },
+          "thu-short": {
+            "relative-type--1": "ᑳᐴᓂ ᐋᐱᐦᑕᐘᕽ",
+            "relative-type-0": "ᐆᒪ ᑳᐴᓂ ᐋᐱᐦᑕᐘᕽ",
+            "relative-type-1": "ᒦᓇ ᐴᓂ ᐋᐱᐦᑕᐘᐦᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᐴᓂ ᐋᐱᐦᑕᐘᐦᑭ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᐴᓂ ᐋᐱᐦᑕᐘᐦᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᐴᓂ ᐋᐱᐦᑕᐘᕽ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᐴᓂ ᐋᐱᐦᑕᐘᕽ"
+            }
+          },
+          "thu-narrow": {
+            "relative-type--1": "ᑳᐴᓂ ᐋᐱᐦᑕᐘᕽ",
+            "relative-type-0": "ᐆᒪ ᑳᐴᓂ ᐋᐱᐦᑕᐘᕽ",
+            "relative-type-1": "ᒦᓇ ᐴᓂ ᐋᐱᐦᑕᐘᐦᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᐴᓂ ᐋᐱᐦᑕᐘᐦᑭ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᐴᓂ ᐋᐱᐦᑕᐘᐦᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᐴᓂ ᐋᐱᐦᑕᐘᕽ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᐴᓂ ᐋᐱᐦᑕᐘᕽ"
+            }
+          },
+          "fri": {
+            "relative-type--1": "ᑫᑳᐨ ᑳᒫᑎᓇᐍ ᑮᓯᑳᐠ",
+            "relative-type-0": "ᐆᒪ ᑫᑳᐨ ᑳᒫᑎᓇᐍ ᑮᓯᑳᐠ",
+            "relative-type-1": "ᒦᓇ ᑫᑳᐨ ᒫᑎᓇᐍ ᑮᓯᑳᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᑫᑳᐨ ᒫᑎᓇᐍ ᑮᓯᑳᑭ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᑫᑳᐨ ᒫᑎᓇᐍ ᑮᓯᑳᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᑫᑳᐨ ᑳᒫᑎᓇᐍ ᑮᓯᑳᐠ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᑫᑳᐨ ᑳᒫᑎᓇᐍ ᑮᓯᑳᐠ"
+            }
+          },
+          "fri-short": {
+            "relative-type--1": "ᑫᑳᐨ ᑳᒫᑎᓇᐍ ᑮᓯᑳᐠ",
+            "relative-type-0": "ᐆᒪ ᑫᑳᐨ ᑳᒫᑎᓇᐍ ᑮᓯᑳᐠ",
+            "relative-type-1": "ᒦᓇ ᑫᑳᐨ ᒫᑎᓇᐍ ᑮᓯᑳᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᑫᑳᐨ ᒫᑎᓇᐍ ᑮᓯᑳᑭ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᑫᑳᐨ ᒫᑎᓇᐍ ᑮᓯᑳᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᑫᑳᐨ ᑳᒫᑎᓇᐍ ᑮᓯᑳᐠ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᑫᑳᐨ ᑳᒫᑎᓇᐍ ᑮᓯᑳᐠ"
+            }
+          },
+          "fri-narrow": {
+            "relative-type--1": "ᑫᑳᐨ ᑳᒫᑎᓇᐍ ᑮᓯᑳᐠ",
+            "relative-type-0": "ᐆᒪ ᑫᑳᐨ ᑳᒫᑎᓇᐍ ᑮᓯᑳᐠ",
+            "relative-type-1": "ᒦᓇ ᑫᑳᐨ ᒫᑎᓇᐍ ᑮᓯᑳᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᑫᑳᐨ ᒫᑎᓇᐍ ᑮᓯᑳᑭ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᑫᑳᐨ ᒫᑎᓇᐍ ᑮᓯᑳᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᑫᑳᐨ ᑳᒫᑎᓇᐍ ᑮᓯᑳᐠ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᑫᑳᐨ ᑳᒫᑎᓇᐍ ᑮᓯᑳᐠ"
+            }
+          },
+          "sat": {
+            "relative-type--1": "ᑫᑳᐨ ᑳᒫᑎᓇᐍᑮᓯᑲᐠ",
+            "relative-type-0": "ᒦᓇ ᑮᑳᐨᒪᑎᓇᐍᑮᓯᑳᐤ",
+            "relative-type-1": "ᒦᓇ ᑮᑳᐨᒪᑎᓇᐍᑮᓯᑳᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᒫᑎᓇᐍᑮᓯᑳᐘ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᒫᑎᓇᐍᑮᓯᑳᐘ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᒫᑎᓇᐍᑮᓯᑲᐠ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᒫᑎᓇᐍᑮᓯᑲᐠ"
+            }
+          },
+          "sat-short": {
+            "relative-type--1": "ᑫᑳᐨ ᑳᒫᑎᓇᐍᑮᓯᑲᐠ",
+            "relative-type-0": "ᒦᓇ ᑮᑳᐨᒪᑎᓇᐍᑮᓯᑳᐤ",
+            "relative-type-1": "ᒦᓇ ᑮᑳᐨᒪᑎᓇᐍᑮᓯᑳᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᒫᑎᓇᐍᑮᓯᑳᐘ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᒫᑎᓇᐍᑮᓯᑳᐘ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᒫᑎᓇᐍᑮᓯᑲᐠ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᒫᑎᓇᐍᑮᓯᑲᐠ"
+            }
+          },
+          "sat-narrow": {
+            "relative-type--1": "ᑫᑳᐨ ᑳᒫᑎᓇᐍᑮᓯᑲᐠ",
+            "relative-type-0": "ᒦᓇ ᑮᑳᐨᒪᑎᓇᐍᑮᓯᑳᐤ",
+            "relative-type-1": "ᒦᓇ ᑮᑳᐨᒪᑎᓇᐍᑮᓯᑳᑭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᒫᑎᓇᐍᑮᓯᑳᐘ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᒫᑎᓇᐍᑮᓯᑳᐘ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑳᑕᐦᑐ ᒫᑎᓇᐍᑮᓯᑲᐠ",
+              "relativeTimePattern-count-other": "{0} ᑳᑕᐦᑐ ᒫᑎᓇᐍᑮᓯᑲᐠ"
+            }
+          },
+          "dayperiod-short": {
+            "displayName": "Dayperiod"
+          },
+          "dayperiod": {
+            "displayName": "Dayperiod"
+          },
+          "dayperiod-narrow": {
+            "displayName": "Dayperiod"
+          },
+          "hour": {
+            "displayName": "ᐚᐢᑳᐸᓂᐤ",
+            "relative-type-0": "ᐆᒪ ᐘᐢᑳᐸᓄᐤ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᐘᐢᑳᐸᓂᑭ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᐘᐢᑳᐸᓂᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᐘᐢᑳᐸᓂᑯᕽ",
+              "relativeTimePattern-count-other": "{0} ᐘᐢᑳᐸᓂᑯᕽ"
+            }
+          },
+          "hour-short": {
+            "displayName": "ᐚᐢᑳᐸᓂᐤ",
+            "relative-type-0": "ᐆᒪ ᐘᐢᑳᐸᓄᐤ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᐘᐢᑳᐸᓂᑭ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᐘᐢᑳᐸᓂᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᐘᐢᑳᐸᓂᑯᕽ",
+              "relativeTimePattern-count-other": "{0} ᐘᐢᑳᐸᓂᑯᕽ"
+            }
+          },
+          "hour-narrow": {
+            "displayName": "ᐚᐢᑳᐸᓂᐤ",
+            "relative-type-0": "ᐆᒪ ᐘᐢᑳᐸᓄᐤ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᐘᐢᑳᐸᓂᑭ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᐘᐢᑳᐸᓂᑭ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑕᐦᑐ ᐘᐢᑳᐸᓂᑭ",
+              "relativeTimePattern-count-other": "{0} ᐘᐢᑳᐸᓂᑯᕽ"
+            }
+          },
+          "minute": {
+            "displayName": "ᑎᐸᐦᐃᑲᓂᐢ",
+            "relative-type-0": "ᐆᒪ ᑎᐸᐦᐃᑲᓂᐢ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᑎᐸᐦᐃᑲᓂᓴ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᑎᐸᐦᐃᑲᓂᓴ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑎᐸᐦᐃᑲᓂᓯᐦᑯᕽ",
+              "relativeTimePattern-count-other": "{0} ᑎᐸᐦᐃᑲᓂᓯᐦᑯᕽ"
+            }
+          },
+          "minute-short": {
+            "displayName": "ᑎᐸᐦᐃᑲᓂᐢ",
+            "relative-type-0": "ᐆᒪ ᑎᐸᐦᐃᑲᓂᐢ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᑎᐸᐦᐃᑲᓂᓴ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᑎᐸᐦᐃᑲᓂᓴ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑎᐸᐦᐃᑲᓂᓯᐦᑯᕽ",
+              "relativeTimePattern-count-other": "{0} ᑎᐸᐦᐃᑲᓂᓯᐦᑯᕽ"
+            }
+          },
+          "minute-narrow": {
+            "displayName": "ᑎᐸᐦᐃᑲᓂᐢ",
+            "relative-type-0": "ᐆᒪ ᑎᐸᐦᐃᑲᓂᐢ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "ᑕᐦᑐ {0} ᑎᐸᐦᐃᑲᓂᓴ",
+              "relativeTimePattern-count-other": "ᑕᐦᑐ {0} ᑎᐸᐦᐃᑲᓂᓴ"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ᑎᐸᐦᐃᑲᓂᓯᐦᑯᕽ",
+              "relativeTimePattern-count-other": "{0} ᑎᐸᐦᐃᑲᓂᓯᐦᑯᕽ"
+            }
+          },
+          "second": {
+            "displayName": "Second",
+            "relative-type-0": "ᒣᐠᐚᐨ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} s"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} s"
+            }
+          },
+          "second-short": {
+            "displayName": "Second",
+            "relative-type-0": "ᒣᐠᐚᐨ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} s"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} s"
+            }
+          },
+          "second-narrow": {
+            "displayName": "Second",
+            "relative-type-0": "ᒣᐠᐚᐨ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} s"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} s"
+            }
+          },
+          "zone": {
+            "displayName": "Zone"
+          },
+          "zone-short": {
+            "displayName": "Zone"
+          },
+          "zone-narrow": {
+            "displayName": "Zone"
+          }
+        }
+      }
+    }
+  }
+}

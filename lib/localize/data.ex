@@ -60,6 +60,7 @@ defmodule Localize.Data do
   @supplemental_xml_files [
     {"common/supplemental/pluralRanges.xml", "pluralRanges.xml"},
     {"common/supplemental/subdivisions.xml", "subdivisions.xml"},
+    {"common/supplemental/units.xml", "units.xml"},
     {"common/bcp47/timezone.xml", "bcp47_timezone.xml"}
   ]
 
@@ -88,7 +89,8 @@ defmodule Localize.Data do
     {"plural_rules_ordinal.etf", &Localize.Data.PluralRules.generate_plural_rules_ordinal/0},
     {"plural_ranges.etf", &Localize.Data.XmlExtractors.generate_plural_ranges/0},
     {"timezones.etf", &Localize.Data.XmlExtractors.generate_timezones/0},
-    {"territory_subdivisions.etf", &Localize.Data.XmlExtractors.generate_territory_subdivisions/0},
+    {"territory_subdivisions.etf",
+     &Localize.Data.XmlExtractors.generate_territory_subdivisions/0},
     {"territory_subdivision_containment.etf",
      &Localize.Data.XmlExtractors.generate_territory_subdivision_containment/0},
     {"unit_data.etf", &Localize.Data.XmlExtractors.generate_unit_data/0},
@@ -116,7 +118,7 @@ defmodule Localize.Data do
     File.mkdir_p!(dest)
 
     # Copy JSON files from CLDR_PRODUCTION_DATA/cldr-core/supplemental/
-    source_supplemental = supplemental_dir()
+    source_supplemental = Path.join([cldr_source_dir(), "cldr-core", "supplemental"])
 
     for filename <- @supplemental_json_files do
       src = Path.join(source_supplemental, filename)
@@ -341,6 +343,13 @@ defmodule Localize.Data do
       if File.exists?(sub_xml) do
         File.cp!(sub_xml, Path.join(locale_dest, "subdivisions.xml"))
       end
+
+      # Copy RBNF JSON if it exists
+      rbnf_json = Path.join([source_root, "cldr-rbnf", "rbnf", "#{locale}.json"])
+
+      if File.exists?(rbnf_json) do
+        File.cp!(rbnf_json, Path.join(locale_dest, "rbnf.json"))
+      end
     end
 
     IO.puts("Copied locale sources for #{total} locales to #{dest_root}")
@@ -406,7 +415,6 @@ defmodule Localize.Data do
   """
   @spec generate_all() :: :ok
   def generate_all do
-    File.rm_rf!(output_dir())
     File.mkdir_p!(output_dir())
 
     Enum.each(@generators, fn {filename, generator} ->
@@ -440,21 +448,12 @@ defmodule Localize.Data do
   end
 
   defp derive_all_locale_names do
-    source_root = cldr_source_dir()
+    locales_dir = locales_source_dir()
 
-    full_dirs =
-      source_root
-      |> File.ls!()
-      |> Enum.filter(&String.ends_with?(&1, "-full"))
-
-    full_dirs
-    |> Enum.flat_map(fn dir ->
-      main_dir = Path.join([source_root, dir, "main"])
-
-      case File.ls(main_dir) do
-        {:ok, entries} -> entries
-        {:error, _} -> []
-      end
+    locales_dir
+    |> File.ls!()
+    |> Enum.filter(fn entry ->
+      Path.join(locales_dir, entry) |> File.dir?()
     end)
     |> Enum.uniq()
     |> Enum.sort()
@@ -560,12 +559,16 @@ defmodule Localize.Data do
   end
 
   @doc """
-  Returns the path to the CLDR supplemental JSON directory.
+  Returns the path to the local CLDR supplemental JSON directory.
+
+  This returns the path to locally copied supplemental source
+  files in `priv/cldr/supplemental_data/`, not the external
+  CLDR production data directory.
 
   """
   @spec supplemental_dir() :: String.t()
   def supplemental_dir do
-    Path.join([cldr_source_dir(), "cldr-core", "supplemental"])
+    Path.join(File.cwd!(), @cldr_supplemental_dir)
   end
 
   @doc """
@@ -587,6 +590,57 @@ defmodule Localize.Data do
   @spec external_sources_dir() :: String.t()
   def external_sources_dir do
     Path.join(File.cwd!(), @cldr_external_sources_dir)
+  end
+
+  @doc """
+  Returns the local path to the copied CLDR locale source data.
+
+  After `copy_locale_sources/0`, locale JSON and XML files are
+  stored in `priv/cldr/locales/<locale>/`.
+
+  """
+  @spec locales_source_dir() :: String.t()
+  def locales_source_dir do
+    Path.join(File.cwd!(), @cldr_locales_dir)
+  end
+
+  @doc """
+  Returns the local path to the copied CLDR supplemental source data.
+
+  After `copy_supplemental_sources/0`, supplemental JSON and XML
+  files are stored in `priv/cldr/supplemental_data/`.
+
+  """
+  @spec supplemental_source_dir() :: String.t()
+  def supplemental_source_dir do
+    Path.join(File.cwd!(), @cldr_supplemental_dir)
+  end
+
+  @doc """
+  Returns the local path to the copied CLDR collation XML data.
+
+  """
+  @spec collation_source_dir() :: String.t()
+  def collation_source_dir do
+    Path.join(File.cwd!(), @cldr_collation_dir)
+  end
+
+  @doc """
+  Returns the local path to the copied CLDR validity XML data.
+
+  """
+  @spec validity_source_dir() :: String.t()
+  def validity_source_dir do
+    Path.join(File.cwd!(), @cldr_validity_dir)
+  end
+
+  @doc """
+  Returns the local path to the copied BCP47 XML data.
+
+  """
+  @spec bcp47_source_dir() :: String.t()
+  def bcp47_source_dir do
+    Path.join(File.cwd!(), @cldr_bcp47_dir)
   end
 
   @doc """
@@ -624,7 +678,7 @@ defmodule Localize.Data do
   """
   @spec read_json_path(String.t()) :: map()
   def read_json_path(path) do
-    cldr_source_dir()
+    supplemental_source_dir()
     |> Path.join(path)
     |> File.read!()
     |> :json.decode()

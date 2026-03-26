@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sd-Deva": {
+      "identity": {
+        "language": "sd",
+        "script": "Deva"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

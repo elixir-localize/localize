@@ -1,0 +1,15 @@
+{
+  "main": {
+    "dje": {
+      "identity": {
+        "language": "dje"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

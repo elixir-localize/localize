@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ar-PS": {
+      "identity": {
+        "language": "ar",
+        "territory": "PS"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "النظام المتري",
+          "UK": "النظام البريطاني",
+          "US": "النظام الأمريكي"
+        }
+      }
+    }
+  }
+}

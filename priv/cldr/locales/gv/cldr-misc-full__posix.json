@@ -1,0 +1,15 @@
+{
+  "main": {
+    "gv": {
+      "identity": {
+        "language": "gv"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

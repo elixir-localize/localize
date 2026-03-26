@@ -1,0 +1,16 @@
+{
+  "main": {
+    "bn-IN": {
+      "identity": {
+        "language": "bn",
+        "territory": "IN"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

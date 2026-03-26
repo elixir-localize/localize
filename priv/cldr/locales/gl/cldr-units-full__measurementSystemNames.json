@@ -1,0 +1,16 @@
+{
+  "main": {
+    "gl": {
+      "identity": {
+        "language": "gl"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrico decimal",
+          "UK": "británico",
+          "US": "estadounidense"
+        }
+      }
+    }
+  }
+}

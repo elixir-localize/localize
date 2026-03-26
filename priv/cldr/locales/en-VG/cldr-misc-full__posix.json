@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-VG": {
+      "identity": {
+        "language": "en",
+        "territory": "VG"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "main": {
+    "sma-NO": {
+      "identity": {
+        "language": "sma",
+        "territory": "NO"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

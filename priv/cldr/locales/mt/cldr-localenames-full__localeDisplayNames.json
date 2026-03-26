@@ -1,0 +1,58 @@
+{
+  "main": {
+    "mt": {
+      "identity": {
+        "language": "mt"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}, {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "subdivisions": {
+          "gbeng": "l-Ingilterra",
+          "gbsct": "l-Iskozja",
+          "gbwls": "Wales"
+        },
+        "keys": {
+          "calendar": "Kalendarju",
+          "collation": "Kollazjoni",
+          "currency": "Munita",
+          "numbers": "Numri"
+        },
+        "types": {
+          "calendar": {
+            "buddhist": "Kalendarju Buddist",
+            "chinese": "Kalendarju Ċiniż",
+            "coptic": "Kalendarju Koptiku",
+            "dangi": "Kalendarju Dangi",
+            "ethiopic": "Kalendarju Etjopiku",
+            "gregorian": "Kalendarju Gregorjan",
+            "hebrew": "Kalendarju Ebrajk",
+            "islamic": "Kalendarju Iżlamiku",
+            "islamic-civil": "Kalendarju Islamiku-Ċivili",
+            "iso8601": "Kalendarju ISO-8601",
+            "japanese": "Kalendarju Ġappuniż"
+          },
+          "collation": {
+            "dictionary": "Ordni tad-Dizzjunarju",
+            "phonebook": "Ordni Telefonika",
+            "pinyin": "Ordni tal-Pinjin",
+            "standard": "Ordni Standard",
+            "stroke": "Ordni Maħżuża",
+            "traditional": "Tradizzjonali"
+          },
+          "numbers": {
+            "latn": "Numri tal-Punent"
+          }
+        },
+        "codePatterns": {
+          "language": "Lingwa: {0}",
+          "script": "Skript: {0}",
+          "territory": "Reġjun: {0}"
+        }
+      }
+    }
+  }
+}

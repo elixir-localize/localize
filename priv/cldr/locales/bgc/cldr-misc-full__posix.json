@@ -1,0 +1,15 @@
+{
+  "main": {
+    "bgc": {
+      "identity": {
+        "language": "bgc"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

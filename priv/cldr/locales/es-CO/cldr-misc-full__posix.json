@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-CO": {
+      "identity": {
+        "language": "es",
+        "territory": "CO"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "sí:s",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

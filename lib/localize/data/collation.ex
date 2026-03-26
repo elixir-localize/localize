@@ -82,7 +82,7 @@ defmodule Localize.Data.Collation do
   # ── Private helpers ─────────────────────────────────────────────
 
   defp collation_source_dir do
-    Path.join(Localize.Data.cldr_repo_dir(), "common/collation")
+    Localize.Data.collation_source_dir()
   end
 
   defp parse_collation_file(collation_dir, filename) do
@@ -167,7 +167,9 @@ defmodule Localize.Data.Collation do
           case parse_import_tag(tag) do
             {lang, type} ->
               case Map.get(raw_map, {lang, type}) do
-                nil -> []
+                nil ->
+                  []
+
                 imported_rules ->
                   imported_rules
                   |> String.split("\n")

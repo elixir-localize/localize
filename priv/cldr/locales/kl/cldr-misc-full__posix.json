@@ -1,0 +1,15 @@
+{
+  "main": {
+    "kl": {
+      "identity": {
+        "language": "kl"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "aap:a",
+          "nostr": "naagga:n"
+        }
+      }
+    }
+  }
+}

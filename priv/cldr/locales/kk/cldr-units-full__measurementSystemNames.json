@@ -1,0 +1,16 @@
+{
+  "main": {
+    "kk": {
+      "identity": {
+        "language": "kk"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Метрлік",
+          "UK": "Ағылшын",
+          "US": "Америкалық"
+        }
+      }
+    }
+  }
+}

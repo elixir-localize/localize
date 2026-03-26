@@ -1,0 +1,16 @@
+{
+  "main": {
+    "lij": {
+      "identity": {
+        "language": "lij"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrico",
+          "UK": "imperiale",
+          "US": "american"
+        }
+      }
+    }
+  }
+}

@@ -29,7 +29,7 @@ defmodule Localize.Data.Normalize.Rbnf do
   end
 
   defp rbnf_locale_path(locale) do
-    Path.join([Localize.Data.cldr_source_dir(), "cldr-rbnf", "rbnf", "#{locale}.json"])
+    Path.join([Localize.Data.locales_source_dir(), locale, "rbnf.json"])
   end
 
   defp structure_rbnf(rules) do

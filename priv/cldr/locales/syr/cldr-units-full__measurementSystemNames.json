@@ -1,0 +1,16 @@
+{
+  "main": {
+    "syr": {
+      "identity": {
+        "language": "syr"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "ܛܟܣܐ ܡܝܬܪܝܐ",
+          "UK": "ܛܟܣܐ ܒܪܝܛܢܝܐ",
+          "US": "ܛܟܣܐ ܐܡܪܝܟܝܐ"
+        }
+      }
+    }
+  }
+}

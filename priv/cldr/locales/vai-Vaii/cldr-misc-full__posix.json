@@ -1,0 +1,16 @@
+{
+  "main": {
+    "vai-Vaii": {
+      "identity": {
+        "language": "vai",
+        "script": "Vaii"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "ꔉꔒ"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-PN": {
+      "identity": {
+        "language": "en",
+        "territory": "PN"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

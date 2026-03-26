@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ka": {
+      "identity": {
+        "language": "ka"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "მეტრული",
+          "UK": "ბრიტანული",
+          "US": "ამერიკული"
+        }
+      }
+    }
+  }
+}

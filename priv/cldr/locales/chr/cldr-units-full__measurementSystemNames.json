@@ -1,0 +1,16 @@
+{
+  "main": {
+    "chr": {
+      "identity": {
+        "language": "chr"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "ᎠᏂᎩᎸᏥ ᏂᏓᏳᏓᎴᏅᎯ ᏗᏎᏍᏗ",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

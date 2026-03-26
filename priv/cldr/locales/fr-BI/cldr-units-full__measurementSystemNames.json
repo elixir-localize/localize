@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fr-BI": {
+      "identity": {
+        "language": "fr",
+        "territory": "BI"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrique",
+          "UK": "impérial",
+          "US": "américain"
+        }
+      }
+    }
+  }
+}

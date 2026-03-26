@@ -1,0 +1,22 @@
+{
+  "main": {
+    "pap-AW": {
+      "identity": {
+        "language": "pap",
+        "territory": "AW"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}, {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "codePatterns": {
+          "language": "Idioma: {0}",
+          "script": "Manera di skirbi: {0}",
+          "territory": "Region: {0}"
+        }
+      }
+    }
+  }
+}

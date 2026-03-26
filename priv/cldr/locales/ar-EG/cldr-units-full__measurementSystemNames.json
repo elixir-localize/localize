@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ar-EG": {
+      "identity": {
+        "language": "ar",
+        "territory": "EG"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "النظام المتري",
+          "UK": "النظام البريطاني",
+          "US": "النظام الأمريكي"
+        }
+      }
+    }
+  }
+}

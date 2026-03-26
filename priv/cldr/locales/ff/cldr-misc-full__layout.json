@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ff": {
+      "identity": {
+        "language": "ff"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

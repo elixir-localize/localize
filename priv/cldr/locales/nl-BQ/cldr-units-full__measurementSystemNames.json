@@ -1,0 +1,17 @@
+{
+  "main": {
+    "nl-BQ": {
+      "identity": {
+        "language": "nl",
+        "territory": "BQ"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metriek",
+          "UK": "Brits",
+          "US": "Amerikaans"
+        }
+      }
+    }
+  }
+}

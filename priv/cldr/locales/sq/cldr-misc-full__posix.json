@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sq": {
+      "identity": {
+        "language": "sq"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "po:p",
+          "nostr": "jo:j"
+        }
+      }
+    }
+  }
+}

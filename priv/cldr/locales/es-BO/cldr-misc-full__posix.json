@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-BO": {
+      "identity": {
+        "language": "es",
+        "territory": "BO"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "sí:s",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

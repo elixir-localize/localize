@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-LR": {
+      "identity": {
+        "language": "en",
+        "territory": "LR"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

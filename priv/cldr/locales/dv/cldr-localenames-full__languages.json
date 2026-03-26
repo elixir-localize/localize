@@ -1,0 +1,14 @@
+{
+  "main": {
+    "dv": {
+      "identity": {
+        "language": "dv"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "dv": "ދިވެހިބަސް"
+        }
+      }
+    }
+  }
+}

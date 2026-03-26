@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ky": {
+      "identity": {
+        "language": "ky"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Метрикалык өлчөө тутуму",
+          "UK": "Британия",
+          "US": "АКШ"
+        }
+      }
+    }
+  }
+}

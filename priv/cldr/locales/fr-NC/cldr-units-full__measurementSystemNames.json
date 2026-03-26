@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fr-NC": {
+      "identity": {
+        "language": "fr",
+        "territory": "NC"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrique",
+          "UK": "impérial",
+          "US": "américain"
+        }
+      }
+    }
+  }
+}

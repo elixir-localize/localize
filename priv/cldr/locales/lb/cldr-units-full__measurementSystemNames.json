@@ -1,0 +1,16 @@
+{
+  "main": {
+    "lb": {
+      "identity": {
+        "language": "lb"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metreschen Eenheetesystem",
+          "UK": "Engleschen Eenheetesystem",
+          "US": "Angloamerikaneschen Eenheetesystem"
+        }
+      }
+    }
+  }
+}

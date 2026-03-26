@@ -1,0 +1,17 @@
+{
+  "main": {
+    "kl": {
+      "identity": {
+        "language": "kl"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Latn": "latin allakkat",
+          "Zsym": "assersuut",
+          "Zyyy": "peqatigiipput",
+          "Zzzz": "atorsinnaanngitsoq allakkat"
+        }
+      }
+    }
+  }
+}

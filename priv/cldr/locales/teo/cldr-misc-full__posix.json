@@ -1,0 +1,15 @@
+{
+  "main": {
+    "teo": {
+      "identity": {
+        "language": "teo"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Eeh:E",
+          "nostr": "Kuju:K"
+        }
+      }
+    }
+  }
+}

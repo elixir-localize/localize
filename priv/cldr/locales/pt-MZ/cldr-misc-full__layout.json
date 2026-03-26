@@ -1,0 +1,16 @@
+{
+  "main": {
+    "pt-MZ": {
+      "identity": {
+        "language": "pt",
+        "territory": "MZ"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

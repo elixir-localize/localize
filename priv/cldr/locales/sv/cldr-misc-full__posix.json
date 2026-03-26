@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sv": {
+      "identity": {
+        "language": "sv"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ja:j",
+          "nostr": "nej:n"
+        }
+      }
+    }
+  }
+}

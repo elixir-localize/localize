@@ -1,0 +1,15 @@
+{
+  "main": {
+    "nqo": {
+      "identity": {
+        "language": "nqo"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

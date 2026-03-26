@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ks-Arab": {
+      "identity": {
+        "language": "ks",
+        "script": "Arab"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

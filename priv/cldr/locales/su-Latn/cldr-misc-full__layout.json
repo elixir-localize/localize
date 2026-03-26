@@ -1,0 +1,16 @@
+{
+  "main": {
+    "su-Latn": {
+      "identity": {
+        "language": "su",
+        "script": "Latn"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

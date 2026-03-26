@@ -1,0 +1,16 @@
+{
+  "main": {
+    "syr-SY": {
+      "identity": {
+        "language": "syr",
+        "territory": "SY"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ܗܐ:ܗ",
+          "nostr": "ܠܐ:ܠ"
+        }
+      }
+    }
+  }
+}

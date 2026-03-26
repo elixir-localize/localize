@@ -1,0 +1,16 @@
+{
+  "main": {
+    "lld": {
+      "identity": {
+        "language": "lld"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrich",
+          "UK": "Gran Bretagna",
+          "US": "Stac Unis"
+        }
+      }
+    }
+  }
+}

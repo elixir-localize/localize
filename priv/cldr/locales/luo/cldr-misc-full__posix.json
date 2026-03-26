@@ -1,0 +1,15 @@
+{
+  "main": {
+    "luo": {
+      "identity": {
+        "language": "luo"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ee:e",
+          "nostr": "da:d"
+        }
+      }
+    }
+  }
+}

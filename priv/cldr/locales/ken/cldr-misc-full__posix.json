@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ken": {
+      "identity": {
+        "language": "ken"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

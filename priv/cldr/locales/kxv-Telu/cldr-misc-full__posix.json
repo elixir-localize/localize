@@ -1,0 +1,16 @@
+{
+  "main": {
+    "kxv-Telu": {
+      "identity": {
+        "language": "kxv",
+        "script": "Telu"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

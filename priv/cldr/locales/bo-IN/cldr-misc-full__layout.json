@@ -1,0 +1,16 @@
+{
+  "main": {
+    "bo-IN": {
+      "identity": {
+        "language": "bo",
+        "territory": "IN"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

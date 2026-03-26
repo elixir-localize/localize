@@ -1,0 +1,15 @@
+{
+  "main": {
+    "dsb": {
+      "identity": {
+        "language": "dsb"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "jo:j",
+          "nostr": "ně:n"
+        }
+      }
+    }
+  }
+}

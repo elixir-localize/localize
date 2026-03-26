@@ -1,0 +1,14 @@
+{
+  "main": {
+    "sid": {
+      "identity": {
+        "language": "sid"
+      },
+      "localeDisplayNames": {
+        "territories": {
+          "ET": "Itiyoophiya"
+        }
+      }
+    }
+  }
+}

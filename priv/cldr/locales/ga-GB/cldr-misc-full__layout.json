@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ga-GB": {
+      "identity": {
+        "language": "ga",
+        "territory": "GB"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

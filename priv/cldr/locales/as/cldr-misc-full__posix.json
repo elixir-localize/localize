@@ -1,0 +1,15 @@
+{
+  "main": {
+    "as": {
+      "identity": {
+        "language": "as"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "হয়",
+          "nostr": "নহয়"
+        }
+      }
+    }
+  }
+}

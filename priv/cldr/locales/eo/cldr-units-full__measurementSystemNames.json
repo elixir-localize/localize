@@ -1,0 +1,16 @@
+{
+  "main": {
+    "eo": {
+      "identity": {
+        "language": "eo"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metra",
+          "UK": "brita",
+          "US": "usona"
+        }
+      }
+    }
+  }
+}

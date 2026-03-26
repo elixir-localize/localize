@@ -1,0 +1,16 @@
+{
+  "main": {
+    "lt": {
+      "identity": {
+        "language": "lt"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrinė",
+          "UK": "JK",
+          "US": "JAV"
+        }
+      }
+    }
+  }
+}

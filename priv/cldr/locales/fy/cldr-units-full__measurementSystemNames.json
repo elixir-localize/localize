@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fy": {
+      "identity": {
+        "language": "fy"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metriek",
+          "UK": "Brits",
+          "US": "Amerikaansk"
+        }
+      }
+    }
+  }
+}

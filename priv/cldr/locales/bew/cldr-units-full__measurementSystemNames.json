@@ -1,0 +1,16 @@
+{
+  "main": {
+    "bew": {
+      "identity": {
+        "language": "bew"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Mètrik",
+          "UK": "Inggris",
+          "US": "AS"
+        }
+      }
+    }
+  }
+}

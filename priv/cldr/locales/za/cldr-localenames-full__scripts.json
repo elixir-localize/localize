@@ -1,0 +1,28 @@
+{
+  "main": {
+    "za": {
+      "identity": {
+        "language": "za"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Arab": "Saw Ahlahbwz",
+          "Bopo": "Cuyinh Fuzhau",
+          "Brai": "Sawmengz",
+          "Grek": "Saw Hihlaz",
+          "Hani": "Sawgun",
+          "Jpan": "Yizvwnz",
+          "Kore": "Hanzvwnz",
+          "Laoo": "Saw Laojvoh",
+          "Latn": "Lahdinghvwnz",
+          "Mong": "Saw Mungzguj",
+          "Thai": "Daivwnz",
+          "Tibt": "Cangvwnz",
+          "Zsym": "Fouzhauh",
+          "Zyyy": "Doengyungh",
+          "Zzzz": "Saw caengz rox"
+        }
+      }
+    }
+  }
+}

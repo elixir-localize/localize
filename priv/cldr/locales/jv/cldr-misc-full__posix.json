@@ -1,0 +1,15 @@
+{
+  "main": {
+    "jv": {
+      "identity": {
+        "language": "jv"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yoh",
+          "nostr": "ora"
+        }
+      }
+    }
+  }
+}

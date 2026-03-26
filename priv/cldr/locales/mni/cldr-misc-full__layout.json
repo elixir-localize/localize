@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mni": {
+      "identity": {
+        "language": "mni"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

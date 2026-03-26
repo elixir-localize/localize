@@ -1,0 +1,1573 @@
+{
+  "main": {
+    "fy": {
+      "identity": {
+        "language": "fy"
+      },
+      "dates": {
+        "timeZoneNames": {
+          "hourFormat": "+HH:mm;-HH:mm",
+          "gmtFormat": "GMT{0}",
+          "gmtZeroFormat": "GMT",
+          "gmtUnknownFormat": "GMT+?",
+          "regionFormat": "{0}-tiid",
+          "regionFormat-type-daylight": "Zomertiid {0}",
+          "regionFormat-type-standard": "Standaardtiid {0}",
+          "fallbackFormat": "{1} ({0})",
+          "zone": {
+            "Etc": {
+              "UTC": {
+                "_type": "zone",
+                "long": {
+                  "standard": "koördinearre wrâldtiid"
+                },
+                "short": {
+                  "standard": "UTC"
+                }
+              },
+              "Unknown": {
+                "_type": "zone",
+                "exemplarCity": "Unbekende stêd"
+              }
+            },
+            "Europe": {
+              "Tirane": {
+                "_type": "zone",
+                "exemplarCity": "Tirana"
+              },
+              "Vienna": {
+                "_type": "zone",
+                "exemplarCity": "Wenen"
+              },
+              "Brussels": {
+                "_type": "zone",
+                "exemplarCity": "Brussel"
+              },
+              "Zurich": {
+                "_type": "zone",
+                "exemplarCity": "Zürich"
+              },
+              "Prague": {
+                "_type": "zone",
+                "exemplarCity": "Praach"
+              },
+              "Busingen": {
+                "_type": "zone",
+                "exemplarCity": "Büsingen"
+              },
+              "Berlin": {
+                "_type": "zone",
+                "exemplarCity": "Berlyn"
+              },
+              "Copenhagen": {
+                "_type": "zone",
+                "exemplarCity": "Kopenhagen"
+              },
+              "Helsinki": {
+                "_type": "zone",
+                "exemplarCity": "Helsinky"
+              },
+              "Paris": {
+                "_type": "zone",
+                "exemplarCity": "Parys"
+              },
+              "London": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "Britse simmertiid"
+                },
+                "exemplarCity": "Londen"
+              },
+              "Athens": {
+                "_type": "zone",
+                "exemplarCity": "Athene"
+              },
+              "Budapest": {
+                "_type": "zone",
+                "exemplarCity": "Boedapest"
+              },
+              "Dublin": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "Ierse simmertiid"
+                }
+              },
+              "Luxembourg": {
+                "_type": "zone",
+                "exemplarCity": "Luxemburg"
+              },
+              "Chisinau": {
+                "_type": "zone",
+                "exemplarCity": "Chișinău"
+              },
+              "Warsaw": {
+                "_type": "zone",
+                "exemplarCity": "Warschau"
+              },
+              "Lisbon": {
+                "_type": "zone",
+                "exemplarCity": "Lissabon"
+              },
+              "Bucharest": {
+                "_type": "zone",
+                "exemplarCity": "Boekarest"
+              },
+              "Belgrade": {
+                "_type": "zone",
+                "exemplarCity": "Belgrado"
+              },
+              "Moscow": {
+                "_type": "zone",
+                "exemplarCity": "Moskou"
+              },
+              "Volgograd": {
+                "_type": "zone",
+                "exemplarCity": "Wolgograd"
+              },
+              "Istanbul": {
+                "_type": "zone",
+                "exemplarCity": "Istanboel"
+              },
+              "Kiev": {
+                "_type": "zone",
+                "exemplarCity": "Kyiv"
+              },
+              "Vatican": {
+                "_type": "zone",
+                "exemplarCity": "Fatikaanstêd"
+              }
+            },
+            "Asia": {
+              "Yerevan": {
+                "_type": "zone",
+                "exemplarCity": "Jerevan"
+              },
+              "Baku": {
+                "_type": "zone",
+                "exemplarCity": "Bakoe"
+              },
+              "Bahrain": {
+                "_type": "zone",
+                "exemplarCity": "Bahrein"
+              },
+              "Urumqi": {
+                "_type": "zone",
+                "exemplarCity": "Ürümqi"
+              },
+              "Shanghai": {
+                "_type": "zone",
+                "exemplarCity": "Sjanghai"
+              },
+              "Hong_Kong": {
+                "_type": "zone",
+                "exemplarCity": "Hongkong"
+              },
+              "Jerusalem": {
+                "_type": "zone",
+                "exemplarCity": "Jeruzalem"
+              },
+              "Calcutta": {
+                "_type": "zone",
+                "exemplarCity": "Calcutta"
+              },
+              "Baghdad": {
+                "_type": "zone",
+                "exemplarCity": "Bagdad"
+              },
+              "Tehran": {
+                "_type": "zone",
+                "exemplarCity": "Teheran"
+              },
+              "Tokyo": {
+                "_type": "zone",
+                "exemplarCity": "Tokio"
+              },
+              "Bishkek": {
+                "_type": "zone",
+                "exemplarCity": "Bisjkek"
+              },
+              "Phnom_Penh": {
+                "_type": "zone",
+                "exemplarCity": "Phnom-Penh"
+              },
+              "Kuwait": {
+                "_type": "zone",
+                "exemplarCity": "Koeweit"
+              },
+              "Aqtobe": {
+                "_type": "zone",
+                "exemplarCity": "Aqtöbe"
+              },
+              "Almaty": {
+                "_type": "zone",
+                "exemplarCity": "Alma-Ata"
+              },
+              "Beirut": {
+                "_type": "zone",
+                "exemplarCity": "Beiroet"
+              },
+              "Rangoon": {
+                "_type": "zone",
+                "exemplarCity": "Yangon"
+              },
+              "Hovd": {
+                "_type": "zone",
+                "exemplarCity": "Khovd"
+              },
+              "Macau": {
+                "_type": "zone",
+                "exemplarCity": "Macao"
+              },
+              "Katmandu": {
+                "_type": "zone",
+                "exemplarCity": "Kathmandu"
+              },
+              "Manila": {
+                "_type": "zone",
+                "exemplarCity": "Manilla"
+              },
+              "Yekaterinburg": {
+                "_type": "zone",
+                "exemplarCity": "Jekaterinenburg"
+              },
+              "Krasnoyarsk": {
+                "_type": "zone",
+                "exemplarCity": "Krasnojarsk"
+              },
+              "Irkutsk": {
+                "_type": "zone",
+                "exemplarCity": "Irkoetsk"
+              },
+              "Yakutsk": {
+                "_type": "zone",
+                "exemplarCity": "Jakoetsk"
+              },
+              "Sakhalin": {
+                "_type": "zone",
+                "exemplarCity": "Sachalin"
+              },
+              "Kamchatka": {
+                "_type": "zone",
+                "exemplarCity": "Kamtsjatka"
+              },
+              "Riyadh": {
+                "_type": "zone",
+                "exemplarCity": "Riyad"
+              },
+              "Dushanbe": {
+                "_type": "zone",
+                "exemplarCity": "Dusjanbe"
+              },
+              "Ashgabat": {
+                "_type": "zone",
+                "exemplarCity": "Asjchabad"
+              },
+              "Tashkent": {
+                "_type": "zone",
+                "exemplarCity": "Tasjkent"
+              },
+              "Saigon": {
+                "_type": "zone",
+                "exemplarCity": "Ho Chi Minhstad"
+              }
+            },
+            "Antarctica": {
+              "Syowa": {
+                "_type": "zone",
+                "exemplarCity": "Showa"
+              },
+              "DumontDUrville": {
+                "_type": "zone",
+                "exemplarCity": "Dumont-d’Urville"
+              }
+            },
+            "America": {
+              "Argentina": {
+                "Rio_Gallegos": {
+                  "_type": "zone",
+                  "exemplarCity": "Río Gallegos"
+                },
+                "Tucuman": {
+                  "_type": "zone",
+                  "exemplarCity": "Tucumán"
+                }
+              },
+              "Cordoba": {
+                "_type": "zone",
+                "exemplarCity": "Córdoba"
+              },
+              "St_Barthelemy": {
+                "_type": "zone",
+                "exemplarCity": "Saint-Barthélemy"
+              },
+              "Eirunepe": {
+                "_type": "zone",
+                "exemplarCity": "Eirunepé"
+              },
+              "Porto_Velho": {
+                "_type": "zone",
+                "exemplarCity": "Pôrto Velho"
+              },
+              "Cuiaba": {
+                "_type": "zone",
+                "exemplarCity": "Cuiabá"
+              },
+              "Santarem": {
+                "_type": "zone",
+                "exemplarCity": "Santarém"
+              },
+              "Belem": {
+                "_type": "zone",
+                "exemplarCity": "Belém"
+              },
+              "Araguaina": {
+                "_type": "zone",
+                "exemplarCity": "Araguaína"
+              },
+              "Sao_Paulo": {
+                "_type": "zone",
+                "exemplarCity": "São Paulo"
+              },
+              "Maceio": {
+                "_type": "zone",
+                "exemplarCity": "Maceió"
+              },
+              "Noronha": {
+                "_type": "zone",
+                "exemplarCity": "Fernando de Noronha"
+              },
+              "Coral_Harbour": {
+                "_type": "zone",
+                "exemplarCity": "Atikokan"
+              },
+              "St_Johns": {
+                "_type": "zone",
+                "exemplarCity": "St. John’s"
+              },
+              "Bogota": {
+                "_type": "zone",
+                "exemplarCity": "Bogotá"
+              },
+              "Curacao": {
+                "_type": "zone",
+                "exemplarCity": "Curaçao"
+              },
+              "Godthab": {
+                "_type": "zone",
+                "exemplarCity": "Nuuk"
+              },
+              "Scoresbysund": {
+                "_type": "zone",
+                "exemplarCity": "Ittoqqortoormiit"
+              },
+              "St_Kitts": {
+                "_type": "zone",
+                "exemplarCity": "St. Kitts"
+              },
+              "St_Lucia": {
+                "_type": "zone",
+                "exemplarCity": "St. Lucia"
+              },
+              "Ciudad_Juarez": {
+                "_type": "zone",
+                "exemplarCity": "Ciudad Juárez"
+              },
+              "Mazatlan": {
+                "_type": "zone",
+                "exemplarCity": "Mazatlán"
+              },
+              "Bahia_Banderas": {
+                "_type": "zone",
+                "exemplarCity": "Bahía de Banderas"
+              },
+              "Mexico_City": {
+                "_type": "zone",
+                "exemplarCity": "Mexico-stad"
+              },
+              "Merida": {
+                "_type": "zone",
+                "exemplarCity": "Mérida"
+              },
+              "Cancun": {
+                "_type": "zone",
+                "exemplarCity": "Cancun"
+              },
+              "Miquelon": {
+                "_type": "zone",
+                "exemplarCity": "Saint-Pierre"
+              },
+              "Asuncion": {
+                "_type": "zone",
+                "exemplarCity": "Asunción"
+              },
+              "El_Salvador": {
+                "_type": "zone",
+                "exemplarCity": "Salvador"
+              },
+              "Lower_Princes": {
+                "_type": "zone",
+                "exemplarCity": "Beneden Prinsen Kwartier"
+              },
+              "North_Dakota": {
+                "Beulah": {
+                  "_type": "zone",
+                  "exemplarCity": "Beulah, Noard-Dakota"
+                },
+                "New_Salem": {
+                  "_type": "zone",
+                  "exemplarCity": "New Salem, Noard-Dakota"
+                },
+                "Center": {
+                  "_type": "zone",
+                  "exemplarCity": "Center, Noard-Dakota"
+                }
+              },
+              "Indiana": {
+                "Vincennes": {
+                  "_type": "zone",
+                  "exemplarCity": "Vincennes, Indiana"
+                },
+                "Petersburg": {
+                  "_type": "zone",
+                  "exemplarCity": "Petersburg, Indiana"
+                },
+                "Tell_City": {
+                  "_type": "zone",
+                  "exemplarCity": "Tell City, Indiana"
+                },
+                "Knox": {
+                  "_type": "zone",
+                  "exemplarCity": "Knox, Indiana"
+                },
+                "Winamac": {
+                  "_type": "zone",
+                  "exemplarCity": "Winamac, Indiana"
+                },
+                "Marengo": {
+                  "_type": "zone",
+                  "exemplarCity": "Marengo, Indiana"
+                },
+                "Vevay": {
+                  "_type": "zone",
+                  "exemplarCity": "Vevay, Indiana"
+                }
+              },
+              "Kentucky": {
+                "Monticello": {
+                  "_type": "zone",
+                  "exemplarCity": "Monticello, Kentucky"
+                }
+              },
+              "St_Vincent": {
+                "_type": "zone",
+                "exemplarCity": "St. Vincent"
+              },
+              "St_Thomas": {
+                "_type": "zone",
+                "exemplarCity": "St. Thomas"
+              }
+            },
+            "Indian": {
+              "Cocos": {
+                "_type": "zone",
+                "exemplarCity": "Cocoseilannen"
+              },
+              "Christmas": {
+                "_type": "zone",
+                "exemplarCity": "Krysteilân"
+              },
+              "Chagos": {
+                "_type": "zone",
+                "exemplarCity": "Chagosarchipel"
+              },
+              "Comoro": {
+                "_type": "zone",
+                "exemplarCity": "Comores"
+              },
+              "Maldives": {
+                "_type": "zone",
+                "exemplarCity": "Maldiven"
+              },
+              "Reunion": {
+                "_type": "zone",
+                "exemplarCity": "Réunion"
+              },
+              "Mahe": {
+                "_type": "zone",
+                "exemplarCity": "Mahé"
+              }
+            },
+            "Pacific": {
+              "Easter": {
+                "_type": "zone",
+                "exemplarCity": "Peaskeeilân"
+              },
+              "Galapagos": {
+                "_type": "zone",
+                "exemplarCity": "Galápagos"
+              },
+              "Truk": {
+                "_type": "zone",
+                "exemplarCity": "Chuuk"
+              },
+              "Ponape": {
+                "_type": "zone",
+                "exemplarCity": "Pohnpei"
+              },
+              "Enderbury": {
+                "_type": "zone",
+                "exemplarCity": "Enderbury-eilân"
+              },
+              "Noumea": {
+                "_type": "zone",
+                "exemplarCity": "Nouméa"
+              },
+              "Marquesas": {
+                "_type": "zone",
+                "exemplarCity": "Marquesaseilannen"
+              },
+              "Gambier": {
+                "_type": "zone",
+                "exemplarCity": "Gambiereilannen"
+              },
+              "Wallis": {
+                "_type": "zone",
+                "exemplarCity": "Wallis & Futuna"
+              }
+            },
+            "Atlantic": {
+              "Cape_Verde": {
+                "_type": "zone",
+                "exemplarCity": "Kaapverdië"
+              },
+              "Canary": {
+                "_type": "zone",
+                "exemplarCity": "Kanaryske Eilannen"
+              },
+              "Faeroe": {
+                "_type": "zone",
+                "exemplarCity": "Faeröer"
+              },
+              "South_Georgia": {
+                "_type": "zone",
+                "exemplarCity": "Sûd-Georgia"
+              },
+              "Azores": {
+                "_type": "zone",
+                "exemplarCity": "Azoren"
+              },
+              "St_Helena": {
+                "_type": "zone",
+                "exemplarCity": "Sint-Helena"
+              }
+            },
+            "Africa": {
+              "Cairo": {
+                "_type": "zone",
+                "exemplarCity": "Caïro"
+              },
+              "El_Aaiun": {
+                "_type": "zone",
+                "exemplarCity": "El Aaiún"
+              },
+              "Asmera": {
+                "_type": "zone",
+                "exemplarCity": "Asmara"
+              },
+              "Addis_Ababa": {
+                "_type": "zone",
+                "exemplarCity": "Addis Abeba"
+              },
+              "Khartoum": {
+                "_type": "zone",
+                "exemplarCity": "Khartoem"
+              },
+              "Sao_Tome": {
+                "_type": "zone",
+                "exemplarCity": "Sao Tomé"
+              },
+              "Ndjamena": {
+                "_type": "zone",
+                "exemplarCity": "N’Djamena"
+              },
+              "Lome": {
+                "_type": "zone",
+                "exemplarCity": "Lomé"
+              }
+            }
+          },
+          "metazone": {
+            "Acre": {
+              "long": {
+                "generic": "Acre-tiid",
+                "standard": "Acre-standerttiid",
+                "daylight": "Acre-simmertiid"
+              }
+            },
+            "Afghanistan": {
+              "long": {
+                "standard": "Afghaanske tiid"
+              }
+            },
+            "Africa_Central": {
+              "long": {
+                "standard": "Sintraal-Afrikaanske tiid"
+              }
+            },
+            "Africa_Eastern": {
+              "long": {
+                "standard": "East-Afrikaanske tiid"
+              }
+            },
+            "Africa_Southern": {
+              "long": {
+                "standard": "Sûd-Afrikaanske tiid"
+              }
+            },
+            "Africa_Western": {
+              "long": {
+                "standard": "West-Afrikaanske tiid"
+              }
+            },
+            "Alaska": {
+              "long": {
+                "generic": "Alaska-tiid",
+                "standard": "Alaska-standerttiid",
+                "daylight": "Alaska-simmertiid"
+              }
+            },
+            "Almaty": {
+              "long": {
+                "generic": "Alma-Ata-tiid",
+                "standard": "Alma-Ata-standerttiid",
+                "daylight": "Alma-Ata-simmertiid"
+              }
+            },
+            "Amazon": {
+              "long": {
+                "generic": "Amazone-tiid",
+                "standard": "Amazone-standerttiid",
+                "daylight": "Amazone-simmertiid"
+              }
+            },
+            "America_Central": {
+              "long": {
+                "generic": "Central-tiid",
+                "standard": "Central-standerttiid",
+                "daylight": "Central-simmertiid"
+              }
+            },
+            "America_Eastern": {
+              "long": {
+                "generic": "Eastern-tiid",
+                "standard": "Eastern-standerttiid",
+                "daylight": "Eastern-simmertiid"
+              }
+            },
+            "America_Mountain": {
+              "long": {
+                "generic": "Mountain-tiid",
+                "standard": "Mountain-standerttiid",
+                "daylight": "Mountain-simmertiid"
+              }
+            },
+            "America_Pacific": {
+              "long": {
+                "generic": "Pasifik-tiid",
+                "standard": "Pasifik-standerttiid",
+                "daylight": "Pasifik-simmertiid"
+              }
+            },
+            "Anadyr": {
+              "long": {
+                "generic": "Anadyr-tiid",
+                "standard": "Anadyr-standerttiid",
+                "daylight": "Anadyr-simmertiid"
+              }
+            },
+            "Apia": {
+              "long": {
+                "generic": "Apia-tiid",
+                "standard": "Apia-standerttiid",
+                "daylight": "Apia-simmertiid"
+              }
+            },
+            "Aqtau": {
+              "long": {
+                "generic": "Aqtau-tiid",
+                "standard": "Aqtau-standerttiid",
+                "daylight": "Aqtau-simmertiid"
+              }
+            },
+            "Aqtobe": {
+              "long": {
+                "generic": "Aqtöbe-tiid",
+                "standard": "Aqtöbe-standerttiid",
+                "daylight": "Aqtöbe-simmertiid"
+              }
+            },
+            "Arabian": {
+              "long": {
+                "generic": "Arabyske tiid",
+                "standard": "Arabyske standerttiid",
+                "daylight": "Arabyske simmertiid"
+              }
+            },
+            "Argentina": {
+              "long": {
+                "generic": "Argentynske tiid",
+                "standard": "Argentynske standerttiid",
+                "daylight": "Argentynske simmertiid"
+              }
+            },
+            "Argentina_Western": {
+              "long": {
+                "generic": "West-Argentynske tiid",
+                "standard": "West-Argentynske standerttiid",
+                "daylight": "West-Argentynske simmertiid"
+              }
+            },
+            "Armenia": {
+              "long": {
+                "generic": "Armeense tiid",
+                "standard": "Armeense standerttiid",
+                "daylight": "Armeense simmertiid"
+              }
+            },
+            "Atlantic": {
+              "long": {
+                "generic": "Atlantic-tiid",
+                "standard": "Atlantic-standerttiid",
+                "daylight": "Atlantic-simmertiid"
+              }
+            },
+            "Australia_Central": {
+              "long": {
+                "generic": "Midden-Australyske tiid",
+                "standard": "Midden-Australyske standerttiid",
+                "daylight": "Midden-Australyske simmertiid"
+              }
+            },
+            "Australia_CentralWestern": {
+              "long": {
+                "generic": "Midden-Australyske westelijke tiid",
+                "standard": "Midden-Australyske westelijke standerttiid",
+                "daylight": "Midden-Australyske westelijke simmertiid"
+              }
+            },
+            "Australia_Eastern": {
+              "long": {
+                "generic": "East-Australyske tiid",
+                "standard": "East-Australyske standerttiid",
+                "daylight": "East-Australyske simmertiid"
+              }
+            },
+            "Australia_Western": {
+              "long": {
+                "generic": "West-Australyske tiid",
+                "standard": "West-Australyske standerttiid",
+                "daylight": "West-Australyske simmertiid"
+              }
+            },
+            "Azerbaijan": {
+              "long": {
+                "generic": "Azerbeidzjaanske tiid",
+                "standard": "Azerbeidzjaanske standerttiid",
+                "daylight": "Azerbeidzjaanske simmertiid"
+              }
+            },
+            "Azores": {
+              "long": {
+                "generic": "Azoren-tiid",
+                "standard": "Azoren-standerttiid",
+                "daylight": "Azoren-simmertiid"
+              }
+            },
+            "Bangladesh": {
+              "long": {
+                "generic": "Bengalese tiid",
+                "standard": "Bengalese standerttiid",
+                "daylight": "Bengalese simmertiid"
+              }
+            },
+            "Bhutan": {
+              "long": {
+                "standard": "Bhutaanske tiid"
+              }
+            },
+            "Bolivia": {
+              "long": {
+                "standard": "Boliviaanske tiid"
+              }
+            },
+            "Brasilia": {
+              "long": {
+                "generic": "Brazyljaanske tiid",
+                "standard": "Brazyljaanske standerttiid",
+                "daylight": "Brazyljaanske simmertiid"
+              }
+            },
+            "Brunei": {
+              "long": {
+                "standard": "Bruneise tiid"
+              }
+            },
+            "Cape_Verde": {
+              "long": {
+                "generic": "Kaapverdyske tiid",
+                "standard": "Kaapverdyske standerttiid",
+                "daylight": "Kaapverdyske simmertiid"
+              }
+            },
+            "Chamorro": {
+              "long": {
+                "standard": "Chamorro-tiid"
+              }
+            },
+            "Chatham": {
+              "long": {
+                "generic": "Chatham tiid",
+                "standard": "Chatham standerttiid",
+                "daylight": "Chatham simmertiid"
+              }
+            },
+            "Chile": {
+              "long": {
+                "generic": "Sileenske tiid",
+                "standard": "Sileenske standerttiid",
+                "daylight": "Sileenske simmertiid"
+              }
+            },
+            "China": {
+              "long": {
+                "generic": "Sineeske tiid",
+                "standard": "Sineeske standerttiid",
+                "daylight": "Sineeske simmertiid"
+              }
+            },
+            "Christmas": {
+              "long": {
+                "standard": "Krysteilânske tiid"
+              }
+            },
+            "Cocos": {
+              "long": {
+                "standard": "Kokoseilânske tiid"
+              }
+            },
+            "Colombia": {
+              "long": {
+                "generic": "Kolombiaanske tiid",
+                "standard": "Kolombiaanske standerttiid",
+                "daylight": "Kolombiaanske simmertiid"
+              }
+            },
+            "Cook": {
+              "long": {
+                "generic": "Cookeilânse tiid",
+                "standard": "Cookeilânse standerttiid",
+                "daylight": "Cookeilânse halve simmertiid"
+              }
+            },
+            "Cuba": {
+              "long": {
+                "generic": "Kubaanske tiid",
+                "standard": "Kubaanske standerttiid",
+                "daylight": "Kubaanske simmertiid"
+              }
+            },
+            "Davis": {
+              "long": {
+                "standard": "Davis tiid"
+              }
+            },
+            "DumontDUrville": {
+              "long": {
+                "standard": "Dumont-d’Urville tiid"
+              }
+            },
+            "East_Timor": {
+              "long": {
+                "standard": "East-Timorese tiid"
+              }
+            },
+            "Easter": {
+              "long": {
+                "generic": "Peaskeeilânske tiid",
+                "standard": "Peaskeeilânske standerttiid",
+                "daylight": "Peaskeeilânske simmertiid"
+              }
+            },
+            "Ecuador": {
+              "long": {
+                "standard": "Ecuadoraanske tiid"
+              }
+            },
+            "Europe_Central": {
+              "long": {
+                "generic": "Midden-Europeeske tiid",
+                "standard": "Midden-Europeeske standerttiid",
+                "daylight": "Midden-Europeeske simmertiid"
+              },
+              "short": {
+                "generic": "CET",
+                "standard": "CET",
+                "daylight": "CEST"
+              }
+            },
+            "Europe_Eastern": {
+              "long": {
+                "generic": "East-Europeeske tiid",
+                "standard": "East-Europeeske standerttiid",
+                "daylight": "East-Europeeske simmertiid"
+              },
+              "short": {
+                "generic": "EET",
+                "standard": "EET",
+                "daylight": "EEST"
+              }
+            },
+            "Europe_Further_Eastern": {
+              "long": {
+                "standard": "Fierder-eastlik-Europeeske tiid"
+              }
+            },
+            "Europe_Western": {
+              "long": {
+                "generic": "West-Europeeske tiid",
+                "standard": "West-Europeeske standerttiid",
+                "daylight": "West-Europeeske simmertiid"
+              },
+              "short": {
+                "generic": "WET",
+                "standard": "WET",
+                "daylight": "WEST"
+              }
+            },
+            "Falkland": {
+              "long": {
+                "generic": "Falklâneilânske tiid",
+                "standard": "Falklâneilânske standerttiid",
+                "daylight": "Falklâneilânske simmertiid"
+              }
+            },
+            "Fiji": {
+              "long": {
+                "generic": "Fijyske tiid",
+                "standard": "Fijyske standerttiid",
+                "daylight": "Fijyske simmertiid"
+              }
+            },
+            "French_Guiana": {
+              "long": {
+                "standard": "Frâns-Guyaanske tiid"
+              }
+            },
+            "French_Southern": {
+              "long": {
+                "standard": "Frânske Súdlike en Antarctyske tiid"
+              }
+            },
+            "Galapagos": {
+              "long": {
+                "standard": "Galapagoseilânske tiid"
+              }
+            },
+            "Gambier": {
+              "long": {
+                "standard": "Gambiereilânske tiid"
+              }
+            },
+            "Georgia": {
+              "long": {
+                "generic": "Georgyske tiid",
+                "standard": "Georgyske standerttiid",
+                "daylight": "Georgyske simmertiid"
+              }
+            },
+            "Gilbert_Islands": {
+              "long": {
+                "standard": "Gilberteilânske tiid"
+              }
+            },
+            "GMT": {
+              "long": {
+                "standard": "Greenwich Mean Time"
+              }
+            },
+            "Greenland_Eastern": {
+              "long": {
+                "generic": "East-Groenlânske tiid",
+                "standard": "East-Groenlânske standerttiid",
+                "daylight": "East-Groenlânske simmertiid"
+              }
+            },
+            "Greenland_Western": {
+              "long": {
+                "generic": "West-Groenlânske tiid",
+                "standard": "West-Groenlânske standerttiid",
+                "daylight": "West-Groenlânske simmertiid"
+              }
+            },
+            "Guam": {
+              "long": {
+                "standard": "Guamese standerttiid"
+              }
+            },
+            "Gulf": {
+              "long": {
+                "standard": "Golf standerttiid"
+              }
+            },
+            "Guyana": {
+              "long": {
+                "standard": "Guyaanske tiid"
+              }
+            },
+            "Hawaii": {
+              "long": {
+                "standard": "Hawaii-Aleoetyske standerttiid"
+              }
+            },
+            "Hawaii_Aleutian": {
+              "long": {
+                "generic": "Hawaii-Aleoetyske tiid",
+                "standard": "Hawaii-Aleoetyske standerttiid",
+                "daylight": "Hawaii-Aleoetyske simmertiid"
+              }
+            },
+            "Hong_Kong": {
+              "long": {
+                "generic": "Hongkongse tiid",
+                "standard": "Hongkongse standerttiid",
+                "daylight": "Hongkongse simmertiid"
+              }
+            },
+            "Hovd": {
+              "long": {
+                "generic": "Hovd tiid",
+                "standard": "Hovd standerttiid",
+                "daylight": "Hovd simmertiid"
+              }
+            },
+            "India": {
+              "long": {
+                "standard": "Yndiaaske tiid"
+              }
+            },
+            "Indian_Ocean": {
+              "long": {
+                "standard": "Yndyske Oceaan-tiid"
+              }
+            },
+            "Indochina": {
+              "long": {
+                "standard": "Yndochinese tiid"
+              }
+            },
+            "Indonesia_Central": {
+              "long": {
+                "standard": "Sintraal-Yndonezyske tiid"
+              }
+            },
+            "Indonesia_Eastern": {
+              "long": {
+                "standard": "East-Yndonezyske tiid"
+              }
+            },
+            "Indonesia_Western": {
+              "long": {
+                "standard": "West-Yndonezyske tiid"
+              }
+            },
+            "Iran": {
+              "long": {
+                "generic": "Iraanske tiid",
+                "standard": "Iraanske standerttiid",
+                "daylight": "Iraanske simmertiid"
+              }
+            },
+            "Irkutsk": {
+              "long": {
+                "generic": "Irkoetsk-tiid",
+                "standard": "Irkoetsk-standerttiid",
+                "daylight": "Irkoetsk-simmertiid"
+              }
+            },
+            "Israel": {
+              "long": {
+                "generic": "Israëlyske tiid",
+                "standard": "Israëlyske standerttiid",
+                "daylight": "Israëlyske simmertiid"
+              }
+            },
+            "Japan": {
+              "long": {
+                "generic": "Japanske tiid",
+                "standard": "Japanske standerttiid",
+                "daylight": "Japanske simmertiid"
+              }
+            },
+            "Kamchatka": {
+              "long": {
+                "generic": "Petropavlovsk-Kamtsjatski-tiid",
+                "standard": "Petropavlovsk-Kamtsjatski-standerttiid",
+                "daylight": "Petropavlovsk-Kamtsjatski-simmertiid"
+              }
+            },
+            "Kazakhstan": {
+              "long": {
+                "standard": "Kazakhstan-tiid"
+              }
+            },
+            "Kazakhstan_Eastern": {
+              "long": {
+                "standard": "East-Kazachse tiid"
+              }
+            },
+            "Kazakhstan_Western": {
+              "long": {
+                "standard": "West-Kazachse tiid"
+              }
+            },
+            "Korea": {
+              "long": {
+                "generic": "Koreaanske tiid",
+                "standard": "Koreaanske standerttiid",
+                "daylight": "Koreaanske simmertiid"
+              }
+            },
+            "Kosrae": {
+              "long": {
+                "standard": "Kosraese tiid"
+              }
+            },
+            "Krasnoyarsk": {
+              "long": {
+                "generic": "Krasnojarsk-tiid",
+                "standard": "Krasnojarsk-standerttiid",
+                "daylight": "Krasnojarsk-simmertiid"
+              }
+            },
+            "Kyrgystan": {
+              "long": {
+                "standard": "Kirgizyske tiid"
+              }
+            },
+            "Lanka": {
+              "long": {
+                "standard": "Lanka-tiid"
+              }
+            },
+            "Line_Islands": {
+              "long": {
+                "standard": "Line-eilânske tiid"
+              }
+            },
+            "Lord_Howe": {
+              "long": {
+                "generic": "Lord Howe-eilânske tiid",
+                "standard": "Lord Howe-eilânske standerttiid",
+                "daylight": "Lord Howe-eilânske simmertiid"
+              }
+            },
+            "Macau": {
+              "long": {
+                "generic": "Macause tiid",
+                "standard": "Macause standerttiid",
+                "daylight": "Macause simmertiid"
+              }
+            },
+            "Magadan": {
+              "long": {
+                "generic": "Magadan-tiid",
+                "standard": "Magadan-standerttiid",
+                "daylight": "Magadan-simmertiid"
+              }
+            },
+            "Malaysia": {
+              "long": {
+                "standard": "Maleisyske tiid"
+              }
+            },
+            "Maldives": {
+              "long": {
+                "standard": "Maldivyske tiid"
+              }
+            },
+            "Marquesas": {
+              "long": {
+                "standard": "Marquesaseilânske tiid"
+              }
+            },
+            "Marshall_Islands": {
+              "long": {
+                "standard": "Marshalleilânske tiid"
+              }
+            },
+            "Mauritius": {
+              "long": {
+                "generic": "Mauritiaanske tiid",
+                "standard": "Mauritiaanske standerttiid",
+                "daylight": "Mauritiaanske simmertiid"
+              }
+            },
+            "Mawson": {
+              "long": {
+                "standard": "Mawson tiid"
+              }
+            },
+            "Mexico_Pacific": {
+              "long": {
+                "generic": "Meksikaanske Pacific-tiid",
+                "standard": "Meksikaanske Pacific-standerttiid",
+                "daylight": "Meksikaanske Pacific-simmerttiid"
+              }
+            },
+            "Mongolia": {
+              "long": {
+                "generic": "Ulaanbaatar tiid",
+                "standard": "Ulaanbaatar standerttiid",
+                "daylight": "Ulaanbaatar simmertiid"
+              }
+            },
+            "Moscow": {
+              "long": {
+                "generic": "Moskou-tiid",
+                "standard": "Moskou-standerttiid",
+                "daylight": "Moskou-simmertiid"
+              }
+            },
+            "Myanmar": {
+              "long": {
+                "standard": "Myanmarese tiid"
+              }
+            },
+            "Nauru": {
+              "long": {
+                "standard": "Nauruaanske tiid"
+              }
+            },
+            "Nepal": {
+              "long": {
+                "standard": "Nepalese tiid"
+              }
+            },
+            "New_Caledonia": {
+              "long": {
+                "generic": "Nij-Kaledonyske tiid",
+                "standard": "Nij-Kaledonyske standerttiid",
+                "daylight": "Nij-Kaledonyske simmertiid"
+              }
+            },
+            "New_Zealand": {
+              "long": {
+                "generic": "Nij-Seelânske tiid",
+                "standard": "Nij-Seelânske standerttiid",
+                "daylight": "Nij-Seelânske simmertiid"
+              }
+            },
+            "Newfoundland": {
+              "long": {
+                "generic": "Newfoundlânske-tiid",
+                "standard": "Newfoundlânske-standerttiid",
+                "daylight": "Newfoundlânske-simmertiid"
+              }
+            },
+            "Niue": {
+              "long": {
+                "standard": "Niuese tiid"
+              }
+            },
+            "Norfolk": {
+              "long": {
+                "generic": "Norfolkeilânske tiid",
+                "standard": "Norfolkeilânske standerttiid",
+                "daylight": "Norfolkeilânske simmertiid"
+              }
+            },
+            "Noronha": {
+              "long": {
+                "generic": "Fernando de Noronha-tiid",
+                "standard": "Fernando de Noronha-standerttiid",
+                "daylight": "Fernando de Noronha-simmertiid"
+              }
+            },
+            "North_Mariana": {
+              "long": {
+                "standard": "Noardlike Mariaanske tiid"
+              }
+            },
+            "Novosibirsk": {
+              "long": {
+                "generic": "Novosibirsk-tiid",
+                "standard": "Novosibirsk-standerttiid",
+                "daylight": "Novosibirsk-simmertiid"
+              }
+            },
+            "Omsk": {
+              "long": {
+                "generic": "Omsk-tiid",
+                "standard": "Omsk-standerttiid",
+                "daylight": "Omsk-simmertiid"
+              }
+            },
+            "Pakistan": {
+              "long": {
+                "generic": "Pakistaanske tiid",
+                "standard": "Pakistaanske standerttiid",
+                "daylight": "Pakistaanske simmertiid"
+              }
+            },
+            "Palau": {
+              "long": {
+                "standard": "Belause tiid"
+              }
+            },
+            "Papua_New_Guinea": {
+              "long": {
+                "standard": "Papoea-Nij-Guineeske tiid"
+              }
+            },
+            "Paraguay": {
+              "long": {
+                "generic": "Paraguayaanske tiid",
+                "standard": "Paraguayaanske standerttiid",
+                "daylight": "Paraguayaanske simmertiid"
+              }
+            },
+            "Peru": {
+              "long": {
+                "generic": "Peruaanske tiid",
+                "standard": "Peruaanske standerttiid",
+                "daylight": "Peruaanske simmertiid"
+              }
+            },
+            "Philippines": {
+              "long": {
+                "generic": "Filipijnse tiid",
+                "standard": "Filipijnse standerttiid",
+                "daylight": "Filipijnse simmertiid"
+              }
+            },
+            "Phoenix_Islands": {
+              "long": {
+                "standard": "Phoenixeilânske tiid"
+              }
+            },
+            "Pierre_Miquelon": {
+              "long": {
+                "generic": "Saint Pierre en Miquelon-tiid",
+                "standard": "Saint Pierre en Miquelon-standerttiid",
+                "daylight": "Saint Pierre en Miquelon-simmertiid"
+              }
+            },
+            "Pitcairn": {
+              "long": {
+                "standard": "Pitcairneillânske tiid"
+              }
+            },
+            "Ponape": {
+              "long": {
+                "standard": "Pohnpei tiid"
+              }
+            },
+            "Pyongyang": {
+              "long": {
+                "standard": "Pyongyang-tiid"
+              }
+            },
+            "Qyzylorda": {
+              "long": {
+                "generic": "Qyzylorda-tiid",
+                "standard": "Qyzylorda-standerttiid",
+                "daylight": "Qyzylorda-simmertiid"
+              }
+            },
+            "Reunion": {
+              "long": {
+                "standard": "Réunionse tiid"
+              }
+            },
+            "Rothera": {
+              "long": {
+                "standard": "Rothera tiid"
+              }
+            },
+            "Sakhalin": {
+              "long": {
+                "generic": "Sachalin-tiid",
+                "standard": "Sachalin-standerttiid",
+                "daylight": "Sachalin-simmertiid"
+              }
+            },
+            "Samara": {
+              "long": {
+                "generic": "Samara-tiid",
+                "standard": "Samara-standerttiid",
+                "daylight": "Samara-simmertiid"
+              }
+            },
+            "Samoa": {
+              "long": {
+                "generic": "Samoaanske tiid",
+                "standard": "Samoaanske standerttiid",
+                "daylight": "Samoaanske simmertiid"
+              }
+            },
+            "Seychelles": {
+              "long": {
+                "standard": "Seychelse tiid"
+              }
+            },
+            "Singapore": {
+              "long": {
+                "standard": "Singaporese standerttiid"
+              }
+            },
+            "Solomon": {
+              "long": {
+                "standard": "Salomonseilânske tiid"
+              }
+            },
+            "South_Georgia": {
+              "long": {
+                "standard": "Sûd-Georgyske tiid"
+              }
+            },
+            "Suriname": {
+              "long": {
+                "standard": "Surinaamske tiid"
+              }
+            },
+            "Syowa": {
+              "long": {
+                "standard": "Syowa tiid"
+              }
+            },
+            "Tahiti": {
+              "long": {
+                "standard": "Tahitiaanske tiid"
+              }
+            },
+            "Taipei": {
+              "long": {
+                "generic": "Taipei tiid",
+                "standard": "Taipei standerttiid",
+                "daylight": "Taipei simmertiid"
+              }
+            },
+            "Tajikistan": {
+              "long": {
+                "standard": "Tadzjiekse tiid"
+              }
+            },
+            "Tokelau": {
+              "long": {
+                "standard": "Tokelau-eilânske tiid"
+              }
+            },
+            "Tonga": {
+              "long": {
+                "generic": "Tongaanske tiid",
+                "standard": "Tongaanske standerttiid",
+                "daylight": "Tongaanske simmertiid"
+              }
+            },
+            "Truk": {
+              "long": {
+                "standard": "Chuukse tiid"
+              }
+            },
+            "Turkmenistan": {
+              "long": {
+                "generic": "Turkmeense tiid",
+                "standard": "Turkmeense standerttiid",
+                "daylight": "Turkmeense simmertiid"
+              }
+            },
+            "Tuvalu": {
+              "long": {
+                "standard": "Tuvaluaanske tiid"
+              }
+            },
+            "Uruguay": {
+              "long": {
+                "generic": "Uruguayaanske tiid",
+                "standard": "Uruguayaanske standerttiid",
+                "daylight": "Uruguayaanske simmertiid"
+              }
+            },
+            "Uzbekistan": {
+              "long": {
+                "generic": "Oezbeekse tiid",
+                "standard": "Oezbeekse standerttiid",
+                "daylight": "Oezbeekse simmertiid"
+              }
+            },
+            "Vanuatu": {
+              "long": {
+                "generic": "Vanuatuaanske tiid",
+                "standard": "Vanuatuaanske standerttiid",
+                "daylight": "Vanuatuaanske simmertiid"
+              }
+            },
+            "Venezuela": {
+              "long": {
+                "standard": "Fenezolaanske tiid"
+              }
+            },
+            "Vladivostok": {
+              "long": {
+                "generic": "Vladivostok-tiid",
+                "standard": "Vladivostok-standerttiid",
+                "daylight": "Vladivostok-simmertiid"
+              }
+            },
+            "Volgograd": {
+              "long": {
+                "generic": "Wolgograd-tiid",
+                "standard": "Wolgograd-standerttiid",
+                "daylight": "Wolgograd-simmertiid"
+              }
+            },
+            "Vostok": {
+              "long": {
+                "standard": "Vostok tiid"
+              }
+            },
+            "Wake": {
+              "long": {
+                "standard": "Wake-eilânske tiid"
+              }
+            },
+            "Wallis": {
+              "long": {
+                "standard": "Wallis en Futunase tiid"
+              }
+            },
+            "Yakutsk": {
+              "long": {
+                "generic": "Jakoetsk-tiid",
+                "standard": "Jakoetsk-standerttiid",
+                "daylight": "Jakoetsk-simmertiid"
+              }
+            },
+            "Yekaterinburg": {
+              "long": {
+                "generic": "Jekaterinenburg-tiid",
+                "standard": "Jekaterinenburg-standerttiid",
+                "daylight": "Jekaterinenburg-simmertiid"
+              }
+            },
+            "Yukon": {
+              "long": {
+                "standard": "Yukon-tiid"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

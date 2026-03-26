@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-Dsrt": {
+      "identity": {
+        "language": "en",
+        "script": "Dsrt"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

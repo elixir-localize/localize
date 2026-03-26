@@ -1,0 +1,14 @@
+{
+  "main": {
+    "iu": {
+      "identity": {
+        "language": "iu"
+      },
+      "localeDisplayNames": {
+        "territories": {
+          "CA": "ᑲᓇᑕᒥ"
+        }
+      }
+    }
+  }
+}

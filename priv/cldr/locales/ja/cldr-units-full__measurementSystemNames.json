@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ja": {
+      "identity": {
+        "language": "ja"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "メートル法",
+          "UK": "英ヤード・ポンド法",
+          "US": "米ヤード・ポンド法"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sma": {
+      "identity": {
+        "language": "sma"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "main": {
+    "pt-GW": {
+      "identity": {
+        "language": "pt",
+        "territory": "GW"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrico",
+          "UK": "Reino Unido",
+          "US": "Estados Unidos"
+        }
+      }
+    }
+  }
+}

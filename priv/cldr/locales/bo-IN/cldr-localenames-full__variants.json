@@ -1,0 +1,15 @@
+{
+  "main": {
+    "bo-IN": {
+      "identity": {
+        "language": "bo",
+        "territory": "IN"
+      },
+      "localeDisplayNames": {
+        "variants": {
+          "PINYIN": "པིན་ཡིན།"
+        }
+      }
+    }
+  }
+}

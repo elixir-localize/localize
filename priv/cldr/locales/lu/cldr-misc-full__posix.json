@@ -1,0 +1,15 @@
+{
+  "main": {
+    "lu": {
+      "identity": {
+        "language": "lu"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Eyo:E",
+          "nostr": "To:T"
+        }
+      }
+    }
+  }
+}

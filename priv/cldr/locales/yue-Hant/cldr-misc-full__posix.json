@@ -1,0 +1,16 @@
+{
+  "main": {
+    "yue-Hant": {
+      "identity": {
+        "language": "yue",
+        "script": "Hant"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "係",
+          "nostr": "唔係"
+        }
+      }
+    }
+  }
+}

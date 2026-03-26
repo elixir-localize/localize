@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-TK": {
+      "identity": {
+        "language": "en",
+        "territory": "TK"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

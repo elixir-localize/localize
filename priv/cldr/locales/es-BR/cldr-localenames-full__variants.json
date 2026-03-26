@@ -1,0 +1,47 @@
+{
+  "main": {
+    "es-BR": {
+      "identity": {
+        "language": "es",
+        "territory": "BR"
+      },
+      "localeDisplayNames": {
+        "variants": {
+          "1901": "Ortografía alemana tradicional",
+          "1994": "Ortografía estandarizada del resiano",
+          "1996": "Ortografía alemana de 1996",
+          "1606NICT": "Francés medieval tardío hasta 1606",
+          "1694ACAD": "Francés moderno temprano",
+          "1959ACAD": "Académico",
+          "AREVELA": "Armenio oriental",
+          "AREVMDA": "Armenio occidental",
+          "BAKU1926": "Alfabeto latino túrquico unificado",
+          "BISKE": "Dialecto de San Giorgio/Bila",
+          "BOONT": "Boontling",
+          "FONIPA": "Alfabeto fonético internacional IPA",
+          "FONUPA": "Alfabeto fonético urálico UPA",
+          "KKCOR": "Ortografía común",
+          "LIPAW": "Dialecto Lipovaz del resiano",
+          "MONOTON": "Monotónico",
+          "NEDIS": "Dialecto del Natisone",
+          "NJIVA": "Dialecto de Gniva/Njiva",
+          "OSOJS": "Dialecto de Oseacco/Osoane",
+          "PINYIN": "Romanización pinyin",
+          "POLYTON": "Politónico",
+          "POSIX": "Ordenador",
+          "REVISED": "Ortografía revisada",
+          "ROZAJ": "Resiano",
+          "SAAHO": "Saho",
+          "SCOTLAND": "Inglés escocés estándar",
+          "SCOUSE": "Scouse",
+          "SOLBA": "Dialecto de Stolvizza/Solbica",
+          "TARASK": "Ortografía taraskievica",
+          "UCCOR": "Ortografía unificada",
+          "UCRCOR": "Ortografía unificada revisada",
+          "VALENCIA": "Valenciano",
+          "WADEGILE": "Romanización Wade-Giles"
+        }
+      }
+    }
+  }
+}

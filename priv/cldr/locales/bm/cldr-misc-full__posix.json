@@ -1,0 +1,15 @@
+{
+  "main": {
+    "bm": {
+      "identity": {
+        "language": "bm"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ɔwɔ:ɔ",
+          "nostr": "ayi:a"
+        }
+      }
+    }
+  }
+}

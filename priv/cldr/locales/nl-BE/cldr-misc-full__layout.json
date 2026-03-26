@@ -1,0 +1,16 @@
+{
+  "main": {
+    "nl-BE": {
+      "identity": {
+        "language": "nl",
+        "territory": "BE"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

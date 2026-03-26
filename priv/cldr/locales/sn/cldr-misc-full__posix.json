@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sn": {
+      "identity": {
+        "language": "sn"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Hongu:H",
+          "nostr": "Kwete:K"
+        }
+      }
+    }
+  }
+}

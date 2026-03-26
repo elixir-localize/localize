@@ -1,0 +1,15 @@
+{
+  "main": {
+    "rm": {
+      "identity": {
+        "language": "rm"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "gea:g",
+          "nostr": "na:n"
+        }
+      }
+    }
+  }
+}

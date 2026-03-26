@@ -1,0 +1,16 @@
+{
+  "main": {
+    "shn": {
+      "identity": {
+        "language": "shn"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "မႅတ်ႉထရိတ်ႉ",
+          "UK": "ယူႇၶေႇ",
+          "US": "ယူႇဢႅတ်ႉသ်"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "blt": {
+      "identity": {
+        "language": "blt"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

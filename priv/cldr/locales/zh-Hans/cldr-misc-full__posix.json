@@ -1,0 +1,16 @@
+{
+  "main": {
+    "zh-Hans": {
+      "identity": {
+        "language": "zh",
+        "script": "Hans"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "确定:是",
+          "nostr": "否定:否"
+        }
+      }
+    }
+  }
+}

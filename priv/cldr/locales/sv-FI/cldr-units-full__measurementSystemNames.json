@@ -1,0 +1,17 @@
+{
+  "main": {
+    "sv-FI": {
+      "identity": {
+        "language": "sv",
+        "territory": "FI"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "SI-enheter",
+          "UK": "engelska enheter",
+          "US": "USA-enheter"
+        }
+      }
+    }
+  }
+}

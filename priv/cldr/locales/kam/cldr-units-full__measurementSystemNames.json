@@ -1,0 +1,16 @@
+{
+  "main": {
+    "kam": {
+      "identity": {
+        "language": "kam"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

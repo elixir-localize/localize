@@ -1,0 +1,15 @@
+{
+  "main": {
+    "dav": {
+      "identity": {
+        "language": "dav"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

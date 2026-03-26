@@ -1,0 +1,15 @@
+{
+  "main": {
+    "de": {
+      "identity": {
+        "language": "de"
+      },
+      "contextTransforms": {
+        "typographicNames": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "tr": {
+      "identity": {
+        "language": "tr"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "evet:e",
+          "nostr": "hayir:h"
+        }
+      }
+    }
+  }
+}

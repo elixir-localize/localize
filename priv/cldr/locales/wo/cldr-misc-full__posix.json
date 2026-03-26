@@ -1,0 +1,15 @@
+{
+  "main": {
+    "wo": {
+      "identity": {
+        "language": "wo"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "waaw:wa",
+          "nostr": "déedet:dé"
+        }
+      }
+    }
+  }
+}

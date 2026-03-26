@@ -1,0 +1,17 @@
+{
+  "main": {
+    "se-FI": {
+      "identity": {
+        "language": "se",
+        "territory": "FI"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "SI állan",
+          "UK": "SB állan",
+          "US": "AOS állan"
+        }
+      }
+    }
+  }
+}

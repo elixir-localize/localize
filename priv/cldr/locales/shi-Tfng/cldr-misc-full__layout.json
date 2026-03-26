@@ -1,0 +1,16 @@
+{
+  "main": {
+    "shi-Tfng": {
+      "identity": {
+        "language": "shi",
+        "script": "Tfng"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

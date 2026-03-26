@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-KY": {
+      "identity": {
+        "language": "en",
+        "territory": "KY"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

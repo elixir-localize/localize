@@ -1,0 +1,25 @@
+{
+  "main": {
+    "rif": {
+      "identity": {
+        "language": "rif"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Arab": "aɛrab",
+          "Cyrl": "asirilik",
+          "Hans": "sampl",
+          "Hans-alt-stand-alone": "han sampl",
+          "Hant": "amensay",
+          "Hant-alt-stand-alone": "amensay Han",
+          "Jpan": "ajappuni",
+          "Kore": "akuri",
+          "Latn": "talatinit",
+          "Tfng": "tifinaɣ",
+          "Zxxx": "wer ttemwari",
+          "Zzzz": "asekkil nneɣni"
+        }
+      }
+    }
+  }
+}

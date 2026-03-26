@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-GQ": {
+      "identity": {
+        "language": "fr",
+        "territory": "GQ"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "oui:o",
+          "nostr": "non:n"
+        }
+      }
+    }
+  }
+}

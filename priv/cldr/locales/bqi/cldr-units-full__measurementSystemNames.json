@@ -1,0 +1,16 @@
+{
+  "main": {
+    "bqi": {
+      "identity": {
+        "language": "bqi"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "متریک",
+          "UK": "بریتانیایی",
+          "US": "امریکایی"
+        }
+      }
+    }
+  }
+}

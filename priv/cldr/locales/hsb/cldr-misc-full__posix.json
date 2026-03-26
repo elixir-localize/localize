@@ -1,0 +1,15 @@
+{
+  "main": {
+    "hsb": {
+      "identity": {
+        "language": "hsb"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "haj:h",
+          "nostr": "ně:n"
+        }
+      }
+    }
+  }
+}

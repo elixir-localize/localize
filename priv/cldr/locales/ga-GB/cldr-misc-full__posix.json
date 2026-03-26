@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ga-GB": {
+      "identity": {
+        "language": "ga",
+        "territory": "GB"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "tá:t",
+          "nostr": "níl:n"
+        }
+      }
+    }
+  }
+}

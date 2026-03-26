@@ -1,0 +1,16 @@
+{
+  "main": {
+    "de-AT": {
+      "identity": {
+        "language": "de",
+        "territory": "AT"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

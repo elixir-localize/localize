@@ -1,0 +1,15 @@
+{
+  "main": {
+    "tpi": {
+      "identity": {
+        "language": "tpi"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

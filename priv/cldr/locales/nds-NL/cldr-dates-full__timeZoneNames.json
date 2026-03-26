@@ -1,0 +1,574 @@
+{
+  "main": {
+    "nds-NL": {
+      "identity": {
+        "language": "nds",
+        "territory": "NL"
+      },
+      "dates": {
+        "timeZoneNames": {
+          "hourFormat": "+HH.mm;-HH.mm",
+          "gmtFormat": "UTC{0}",
+          "gmtZeroFormat": "UTC",
+          "gmtUnknownFormat": "GMT+?",
+          "regionFormat": "{0}-Tiet",
+          "regionFormat-type-daylight": "{0}-Summertiet",
+          "regionFormat-type-standard": "{0}-Standardtiet",
+          "fallbackFormat": "{1} ({0})",
+          "zone": {
+            "Etc": {
+              "UTC": {
+                "_type": "zone",
+                "short": {
+                  "standard": "UTC"
+                }
+              },
+              "Unknown": {
+                "_type": "zone",
+                "exemplarCity": "Nich begäng"
+              }
+            },
+            "Europe": {
+              "Tirane": {
+                "_type": "zone",
+                "exemplarCity": "Tirana"
+              },
+              "Busingen": {
+                "_type": "zone",
+                "exemplarCity": "Büsingen"
+              },
+              "Chisinau": {
+                "_type": "zone",
+                "exemplarCity": "Chișinău"
+              },
+              "Moscow": {
+                "_type": "zone",
+                "exemplarCity": "Moskau"
+              },
+              "Volgograd": {
+                "_type": "zone",
+                "exemplarCity": "Wolgograd"
+              },
+              "Kiev": {
+                "_type": "zone",
+                "exemplarCity": "Kyiv"
+              }
+            },
+            "Antarctica": {
+              "Syowa": {
+                "_type": "zone",
+                "exemplarCity": "Showa"
+              },
+              "Vostok": {
+                "_type": "zone",
+                "exemplarCity": "Wostok"
+              },
+              "DumontDUrville": {
+                "_type": "zone",
+                "exemplarCity": "Dumont-d’Urville"
+              }
+            },
+            "America": {
+              "Argentina": {
+                "Rio_Gallegos": {
+                  "_type": "zone",
+                  "exemplarCity": "Río Gallegos"
+                },
+                "Tucuman": {
+                  "_type": "zone",
+                  "exemplarCity": "Tucumán"
+                }
+              },
+              "Cordoba": {
+                "_type": "zone",
+                "exemplarCity": "Córdoba"
+              },
+              "St_Barthelemy": {
+                "_type": "zone",
+                "exemplarCity": "St. Barthélemy"
+              },
+              "Eirunepe": {
+                "_type": "zone",
+                "exemplarCity": "Eirunepé"
+              },
+              "Cuiaba": {
+                "_type": "zone",
+                "exemplarCity": "Cuiabá"
+              },
+              "Santarem": {
+                "_type": "zone",
+                "exemplarCity": "Santarém"
+              },
+              "Belem": {
+                "_type": "zone",
+                "exemplarCity": "Belém"
+              },
+              "Araguaina": {
+                "_type": "zone",
+                "exemplarCity": "Araguaína"
+              },
+              "Sao_Paulo": {
+                "_type": "zone",
+                "exemplarCity": "São Paulo"
+              },
+              "Maceio": {
+                "_type": "zone",
+                "exemplarCity": "Maceió"
+              },
+              "Noronha": {
+                "_type": "zone",
+                "exemplarCity": "Fernando de Noronha"
+              },
+              "Coral_Harbour": {
+                "_type": "zone",
+                "exemplarCity": "Atikokan"
+              },
+              "St_Johns": {
+                "_type": "zone",
+                "exemplarCity": "St. John’s"
+              },
+              "Bogota": {
+                "_type": "zone",
+                "exemplarCity": "Bogotá"
+              },
+              "Curacao": {
+                "_type": "zone",
+                "exemplarCity": "Curaçao"
+              },
+              "Godthab": {
+                "_type": "zone",
+                "exemplarCity": "Nuuk"
+              },
+              "Scoresbysund": {
+                "_type": "zone",
+                "exemplarCity": "Ittoqqortoormiit"
+              },
+              "St_Kitts": {
+                "_type": "zone",
+                "exemplarCity": "St. Kitts"
+              },
+              "St_Lucia": {
+                "_type": "zone",
+                "exemplarCity": "St. Lucia"
+              },
+              "Ciudad_Juarez": {
+                "_type": "zone",
+                "exemplarCity": "Ciudad Juárez"
+              },
+              "Mazatlan": {
+                "_type": "zone",
+                "exemplarCity": "Mazatlán"
+              },
+              "Bahia_Banderas": {
+                "_type": "zone",
+                "exemplarCity": "Bahía de Banderas"
+              },
+              "Mexico_City": {
+                "_type": "zone",
+                "exemplarCity": "Mexiko-Stadt"
+              },
+              "Merida": {
+                "_type": "zone",
+                "exemplarCity": "Mérida"
+              },
+              "Cancun": {
+                "_type": "zone",
+                "exemplarCity": "Cancún"
+              },
+              "Miquelon": {
+                "_type": "zone",
+                "exemplarCity": "Saint-Pierre"
+              },
+              "Asuncion": {
+                "_type": "zone",
+                "exemplarCity": "Asunción"
+              },
+              "Lower_Princes": {
+                "_type": "zone",
+                "exemplarCity": "Lower Prince’s Quarter"
+              },
+              "North_Dakota": {
+                "Beulah": {
+                  "_type": "zone",
+                  "exemplarCity": "Beulah, North Dakota"
+                },
+                "New_Salem": {
+                  "_type": "zone",
+                  "exemplarCity": "New Salem, Noord-Dakota"
+                },
+                "Center": {
+                  "_type": "zone",
+                  "exemplarCity": "Center, Noord-Dakota"
+                }
+              },
+              "Indiana": {
+                "Vincennes": {
+                  "_type": "zone",
+                  "exemplarCity": "Vincennes, Indiana"
+                },
+                "Petersburg": {
+                  "_type": "zone",
+                  "exemplarCity": "Petersburg, Indiana"
+                },
+                "Tell_City": {
+                  "_type": "zone",
+                  "exemplarCity": "Tell City, Indiana"
+                },
+                "Knox": {
+                  "_type": "zone",
+                  "exemplarCity": "Knox, Indiana"
+                },
+                "Winamac": {
+                  "_type": "zone",
+                  "exemplarCity": "Winamac, Indiana"
+                },
+                "Marengo": {
+                  "_type": "zone",
+                  "exemplarCity": "Marengo, Indiana"
+                },
+                "Vevay": {
+                  "_type": "zone",
+                  "exemplarCity": "Vevay, Indiana"
+                }
+              },
+              "Kentucky": {
+                "Monticello": {
+                  "_type": "zone",
+                  "exemplarCity": "Monticello, Kentucky"
+                }
+              },
+              "St_Vincent": {
+                "_type": "zone",
+                "exemplarCity": "St. Vincent"
+              },
+              "St_Thomas": {
+                "_type": "zone",
+                "exemplarCity": "St. Thomas"
+              }
+            },
+            "Asia": {
+              "Urumqi": {
+                "_type": "zone",
+                "exemplarCity": "Ürümqi"
+              },
+              "Calcutta": {
+                "_type": "zone",
+                "exemplarCity": "Kolkata"
+              },
+              "Rangoon": {
+                "_type": "zone",
+                "exemplarCity": "Yangon"
+              },
+              "Hovd": {
+                "_type": "zone",
+                "exemplarCity": "Khovd"
+              },
+              "Ulaanbaatar": {
+                "_type": "zone",
+                "exemplarCity": "Ulanbator"
+              },
+              "Macau": {
+                "_type": "zone",
+                "exemplarCity": "Macao"
+              },
+              "Katmandu": {
+                "_type": "zone",
+                "exemplarCity": "Kathmandu"
+              },
+              "Yekaterinburg": {
+                "_type": "zone",
+                "exemplarCity": "Jekaterinborg"
+              },
+              "Novosibirsk": {
+                "_type": "zone",
+                "exemplarCity": "Nowosibirsk"
+              },
+              "Krasnoyarsk": {
+                "_type": "zone",
+                "exemplarCity": "Krasnojarsk"
+              },
+              "Yakutsk": {
+                "_type": "zone",
+                "exemplarCity": "Jakutsk"
+              },
+              "Vladivostok": {
+                "_type": "zone",
+                "exemplarCity": "Wladiwostok"
+              },
+              "Sakhalin": {
+                "_type": "zone",
+                "exemplarCity": "Sachalin"
+              },
+              "Kamchatka": {
+                "_type": "zone",
+                "exemplarCity": "Kamschatka"
+              },
+              "Saigon": {
+                "_type": "zone",
+                "exemplarCity": "Ho Chi Minh"
+              }
+            },
+            "Pacific": {
+              "Galapagos": {
+                "_type": "zone",
+                "exemplarCity": "Galápagos"
+              },
+              "Truk": {
+                "_type": "zone",
+                "exemplarCity": "Chuuk"
+              },
+              "Ponape": {
+                "_type": "zone",
+                "exemplarCity": "Pohnpei"
+              },
+              "Enderbury": {
+                "_type": "zone",
+                "exemplarCity": "Canton"
+              },
+              "Noumea": {
+                "_type": "zone",
+                "exemplarCity": "Nouméa"
+              },
+              "Wallis": {
+                "_type": "zone",
+                "exemplarCity": "Wallis & Futuna"
+              }
+            },
+            "Africa": {
+              "El_Aaiun": {
+                "_type": "zone",
+                "exemplarCity": "El Aaiún"
+              },
+              "Asmera": {
+                "_type": "zone",
+                "exemplarCity": "Asmara"
+              },
+              "Sao_Tome": {
+                "_type": "zone",
+                "exemplarCity": "São Tomé"
+              },
+              "Ndjamena": {
+                "_type": "zone",
+                "exemplarCity": "N’Djamena"
+              },
+              "Lome": {
+                "_type": "zone",
+                "exemplarCity": "Lomé"
+              }
+            },
+            "Atlantic": {
+              "Canary": {
+                "_type": "zone",
+                "exemplarCity": "Kanaren"
+              },
+              "Faeroe": {
+                "_type": "zone",
+                "exemplarCity": "Faroe"
+              },
+              "Azores": {
+                "_type": "zone",
+                "exemplarCity": "Azoren"
+              },
+              "St_Helena": {
+                "_type": "zone",
+                "exemplarCity": "St. Helena"
+              }
+            },
+            "Indian": {
+              "Comoro": {
+                "_type": "zone",
+                "exemplarCity": "Comores"
+              },
+              "Reunion": {
+                "_type": "zone",
+                "exemplarCity": "Réunion"
+              },
+              "Mahe": {
+                "_type": "zone",
+                "exemplarCity": "Mahé"
+              }
+            }
+          },
+          "metazone": {
+            "Africa_Central": {
+              "long": {
+                "standard": "Zentraalafrikaansch Tiet"
+              }
+            },
+            "Africa_Eastern": {
+              "long": {
+                "standard": "Oostafrikaansch Tiet"
+              }
+            },
+            "Africa_Southern": {
+              "long": {
+                "standard": "Söödafrikaansch Tiet"
+              }
+            },
+            "Africa_Western": {
+              "long": {
+                "standard": "Westafrikaansch Tiet"
+              }
+            },
+            "America_Central": {
+              "long": {
+                "generic": "Noordamerikaansch Zentraaltiet",
+                "standard": "Noordamerikaansch zentraal Standardtiet",
+                "daylight": "Noordamerikaansch zentraal Summertiet"
+              }
+            },
+            "America_Eastern": {
+              "long": {
+                "generic": "Noordamerikaansch oosten Tiet",
+                "standard": "Noordamerikaansch oosten Standardtiet",
+                "daylight": "Noordamerikaansch oosten Summertiet"
+              }
+            },
+            "America_Mountain": {
+              "long": {
+                "generic": "Noordamerikaansch Bargtiet",
+                "standard": "Noordamerikaansch Barg-Standardtiet",
+                "daylight": "Noordamerikaansch Barg-Summertiet"
+              }
+            },
+            "America_Pacific": {
+              "long": {
+                "generic": "Noordamerikaansch Pazifiktiet",
+                "standard": "Noordamerikaansch Pazifik-Standardtiet",
+                "daylight": "Noordamerikaansch Pazifik-Summertiet"
+              }
+            },
+            "Arabian": {
+              "long": {
+                "generic": "Araabsch Tiet",
+                "standard": "Araabsch Standardtiet",
+                "daylight": "Araabsch Summertiet"
+              }
+            },
+            "Atlantic": {
+              "long": {
+                "generic": "Noordamerikaansch Atlantiktiet",
+                "standard": "Noordamerikaansch Atlantik-Standardtiet",
+                "daylight": "Noordamerikaansch Atlantik-Summertiet"
+              }
+            },
+            "Australia_Central": {
+              "long": {
+                "generic": "Zentraalaustraalsch Tiet",
+                "standard": "Zentraalaustraalsch Standardtiet",
+                "daylight": "Zentraalaustraalsch Summertiet"
+              }
+            },
+            "Australia_CentralWestern": {
+              "long": {
+                "generic": "Westzentraalaustraalsch Tiet",
+                "standard": "Westzentraalaustraalsch Standardtiet",
+                "daylight": "Westzentraalaustraalsch Summertiet"
+              }
+            },
+            "Australia_Eastern": {
+              "long": {
+                "generic": "Oostaustraalsch Tiet",
+                "standard": "Oostaustraalsch Standardtiet",
+                "daylight": "Oostaustraalsch Summertiet"
+              }
+            },
+            "Australia_Western": {
+              "long": {
+                "generic": "Westaustraalsch Tiet",
+                "standard": "Westaustraalsch Standardtiet",
+                "daylight": "Westaustraalsch Summertiet"
+              }
+            },
+            "China": {
+              "long": {
+                "generic": "China-Tiet",
+                "standard": "China-Standardtiet",
+                "daylight": "China-Summertiet"
+              }
+            },
+            "Europe_Central": {
+              "long": {
+                "generic": "Zentraaleuropääsch Tiet",
+                "standard": "Zentraaleuropääsch Standardtiet",
+                "daylight": "Zentraaleuropääsch Summertiet"
+              }
+            },
+            "Europe_Eastern": {
+              "long": {
+                "generic": "Oosteuropääsch Tiet",
+                "standard": "Oosteuropääsch Standardtiet",
+                "daylight": "Oosteuropääsch Summertiet"
+              }
+            },
+            "Europe_Western": {
+              "long": {
+                "generic": "Westeuropääsch Tiet",
+                "standard": "Westeuropääsch Standardtiet",
+                "daylight": "Westeuropääsch Summertiet"
+              }
+            },
+            "GMT": {
+              "long": {
+                "standard": "Gröönwisch-Welttiet"
+              }
+            },
+            "India": {
+              "long": {
+                "standard": "Indien-Tiet"
+              }
+            },
+            "Indochina": {
+              "long": {
+                "standard": "Söödoostasiaatsch Tiet"
+              }
+            },
+            "Indonesia_Central": {
+              "long": {
+                "standard": "Indoneesch Zentraaltiet"
+              }
+            },
+            "Indonesia_Eastern": {
+              "long": {
+                "standard": "Oostindoneesch Tiet"
+              }
+            },
+            "Indonesia_Western": {
+              "long": {
+                "standard": "Westindoneesch Tiet"
+              }
+            },
+            "Israel": {
+              "long": {
+                "generic": "Israel-Tiet",
+                "standard": "Israel-Standardtiet",
+                "daylight": "Israel-Summertiet"
+              }
+            },
+            "Japan": {
+              "long": {
+                "generic": "Japaansch Tiet",
+                "standard": "Japaansch Standardtiet",
+                "daylight": "Japaansch Summertiet"
+              }
+            },
+            "Korea": {
+              "long": {
+                "generic": "Koreaansch Tiet",
+                "standard": "Koreaansch Standardtiet",
+                "daylight": "Koreaansch Summertiet"
+              }
+            },
+            "Moscow": {
+              "long": {
+                "generic": "Moskau-Tiet",
+                "standard": "Moskau-Standardtiet",
+                "daylight": "Moskau-Summertiet"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

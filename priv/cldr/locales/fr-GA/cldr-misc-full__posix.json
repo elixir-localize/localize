@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-GA": {
+      "identity": {
+        "language": "fr",
+        "territory": "GA"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "oui:o",
+          "nostr": "non:n"
+        }
+      }
+    }
+  }
+}

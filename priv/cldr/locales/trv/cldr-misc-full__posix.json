@@ -1,0 +1,15 @@
+{
+  "main": {
+    "trv": {
+      "identity": {
+        "language": "trv"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yiru:y",
+          "nostr": "mnan:m"
+        }
+      }
+    }
+  }
+}

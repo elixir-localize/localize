@@ -1,0 +1,16 @@
+{
+  "main": {
+    "lmo": {
+      "identity": {
+        "language": "lmo"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metregh",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

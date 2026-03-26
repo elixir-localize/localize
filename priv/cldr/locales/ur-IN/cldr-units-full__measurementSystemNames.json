@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ur-IN": {
+      "identity": {
+        "language": "ur",
+        "territory": "IN"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "میٹرک",
+          "UK": "برطانیہ",
+          "US": "ریاست ہائے متحدہ امریکہ"
+        }
+      }
+    }
+  }
+}

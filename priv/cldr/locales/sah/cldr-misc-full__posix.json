@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sah": {
+      "identity": {
+        "language": "sah"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "сөп:с",
+          "nostr": "суох:х"
+        }
+      }
+    }
+  }
+}

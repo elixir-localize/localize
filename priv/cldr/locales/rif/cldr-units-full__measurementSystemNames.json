@@ -1,0 +1,16 @@
+{
+  "main": {
+    "rif": {
+      "identity": {
+        "language": "rif"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "amitrik",
+          "UK": "aglinziy",
+          "US": "amirikaniy"
+        }
+      }
+    }
+  }
+}

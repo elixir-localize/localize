@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mer": {
+      "identity": {
+        "language": "mer"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

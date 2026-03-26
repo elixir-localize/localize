@@ -1,0 +1,15 @@
+{
+  "main": {
+    "cch": {
+      "identity": {
+        "language": "cch"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ru-KG": {
+      "identity": {
+        "language": "ru",
+        "territory": "KG"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

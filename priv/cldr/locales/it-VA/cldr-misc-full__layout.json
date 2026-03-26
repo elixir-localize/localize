@@ -1,0 +1,16 @@
+{
+  "main": {
+    "it-VA": {
+      "identity": {
+        "language": "it",
+        "territory": "VA"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

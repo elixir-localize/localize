@@ -1,0 +1,15 @@
+{
+  "main": {
+    "zgh": {
+      "identity": {
+        "language": "zgh"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

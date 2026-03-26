@@ -1,0 +1,16 @@
+{
+  "main": {
+    "seh": {
+      "identity": {
+        "language": "seh"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

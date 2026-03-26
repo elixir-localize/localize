@@ -1,0 +1,15 @@
+{
+  "main": {
+    "fy": {
+      "identity": {
+        "language": "fy"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

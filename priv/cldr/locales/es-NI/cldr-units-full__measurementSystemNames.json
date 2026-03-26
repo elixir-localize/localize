@@ -1,0 +1,17 @@
+{
+  "main": {
+    "es-NI": {
+      "identity": {
+        "language": "es",
+        "territory": "NI"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrico",
+          "UK": "anglosajón",
+          "US": "estadounidense"
+        }
+      }
+    }
+  }
+}

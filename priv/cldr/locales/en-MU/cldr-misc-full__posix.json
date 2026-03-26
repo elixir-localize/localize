@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-MU": {
+      "identity": {
+        "language": "en",
+        "territory": "MU"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

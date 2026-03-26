@@ -1,0 +1,15 @@
+{
+  "main": {
+    "smj": {
+      "identity": {
+        "language": "smj"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

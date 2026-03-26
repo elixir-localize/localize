@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-CD": {
+      "identity": {
+        "language": "fr",
+        "territory": "CD"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "oui:o",
+          "nostr": "non:n"
+        }
+      }
+    }
+  }
+}

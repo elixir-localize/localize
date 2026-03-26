@@ -1,0 +1,15 @@
+{
+  "main": {
+    "seh": {
+      "identity": {
+        "language": "seh"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ande:A",
+          "nostr": "Nkhabe:N"
+        }
+      }
+    }
+  }
+}

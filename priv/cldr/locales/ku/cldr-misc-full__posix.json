@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ku": {
+      "identity": {
+        "language": "ku"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "erê:e",
+          "nostr": "na:n"
+        }
+      }
+    }
+  }
+}

@@ -32,7 +32,6 @@ defmodule Localize.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-
       {:decimal, "~> 2.0"},
       {:gettext, "~> 1.0"},
       {:unicode, "~> 1.21"},

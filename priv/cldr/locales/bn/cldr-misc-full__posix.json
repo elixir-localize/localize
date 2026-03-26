@@ -1,0 +1,15 @@
+{
+  "main": {
+    "bn": {
+      "identity": {
+        "language": "bn"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "হ্যাঁ",
+          "nostr": "না"
+        }
+      }
+    }
+  }
+}

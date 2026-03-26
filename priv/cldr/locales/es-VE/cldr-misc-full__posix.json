@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-VE": {
+      "identity": {
+        "language": "es",
+        "territory": "VE"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "sí:s",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "yue-Hans": {
+      "identity": {
+        "language": "yue",
+        "script": "Hans"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

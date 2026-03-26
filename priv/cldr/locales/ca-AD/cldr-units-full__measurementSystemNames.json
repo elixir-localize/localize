@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ca-AD": {
+      "identity": {
+        "language": "ca",
+        "territory": "AD"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "mètric",
+          "UK": "RU",
+          "US": "EUA"
+        }
+      }
+    }
+  }
+}

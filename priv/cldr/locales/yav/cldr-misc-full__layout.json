@@ -1,0 +1,15 @@
+{
+  "main": {
+    "yav": {
+      "identity": {
+        "language": "yav"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "el-CY": {
+      "identity": {
+        "language": "el",
+        "territory": "CY"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ναι:ν",
+          "nostr": "όχι:ό"
+        }
+      }
+    }
+  }
+}

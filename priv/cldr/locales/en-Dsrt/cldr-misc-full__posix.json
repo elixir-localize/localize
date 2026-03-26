@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-Dsrt": {
+      "identity": {
+        "language": "en",
+        "script": "Dsrt"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "𐐷𐐯𐑅:𐐷",
+          "nostr": "𐑌𐐬:𐑌"
+        }
+      }
+    }
+  }
+}

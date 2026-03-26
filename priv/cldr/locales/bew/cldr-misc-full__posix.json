@@ -1,0 +1,15 @@
+{
+  "main": {
+    "bew": {
+      "identity": {
+        "language": "bew"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ya:y",
+          "nostr": "kaga’:k"
+        }
+      }
+    }
+  }
+}

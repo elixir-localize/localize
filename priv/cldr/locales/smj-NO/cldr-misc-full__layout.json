@@ -1,0 +1,16 @@
+{
+  "main": {
+    "smj-NO": {
+      "identity": {
+        "language": "smj",
+        "territory": "NO"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

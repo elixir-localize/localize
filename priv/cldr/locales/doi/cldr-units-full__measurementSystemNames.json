@@ -1,0 +1,16 @@
+{
+  "main": {
+    "doi": {
+      "identity": {
+        "language": "doi"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "मीट्रिक",
+          "UK": "यूके",
+          "US": "यूएस"
+        }
+      }
+    }
+  }
+}

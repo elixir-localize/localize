@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-HN": {
+      "identity": {
+        "language": "es",
+        "territory": "HN"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

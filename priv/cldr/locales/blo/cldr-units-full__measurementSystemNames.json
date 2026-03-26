@@ -1,0 +1,16 @@
+{
+  "main": {
+    "blo": {
+      "identity": {
+        "language": "blo"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "mɛta kʊfaŋʊ kayaashɩ",
+          "UK": "Gɛɛshɩ kʊfaŋʊ kayaashɩ",
+          "US": "Amalɩka kʊfaŋʊ kayaashɩ"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "frr": {
+      "identity": {
+        "language": "frr"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ja:j",
+          "nostr": "naan:n"
+        }
+      }
+    }
+  }
+}

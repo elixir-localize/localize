@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-ER": {
+      "identity": {
+        "language": "en",
+        "territory": "ER"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

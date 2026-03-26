@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ta-LK": {
+      "identity": {
+        "language": "ta",
+        "territory": "LK"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "மெட்ரிக்",
+          "UK": "யூகே",
+          "US": "யூஎஸ்"
+        }
+      }
+    }
+  }
+}

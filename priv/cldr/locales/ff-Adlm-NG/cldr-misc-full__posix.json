@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ff-Adlm-NG": {
+      "identity": {
+        "language": "ff",
+        "script": "Adlm",
+        "territory": "NG"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "𞤢𞤱𞤢:𞤢",
+          "nostr": "𞤮𞥅𞤮:𞤮"
+        }
+      }
+    }
+  }
+}

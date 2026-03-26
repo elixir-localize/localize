@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ps": {
+      "identity": {
+        "language": "ps"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "هو:ه",
+          "nostr": "نه:ن"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "za": {
+      "identity": {
+        "language": "za"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "gunghci",
+          "UK": "yinghci",
+          "US": "meijci"
+        }
+      }
+    }
+  }
+}

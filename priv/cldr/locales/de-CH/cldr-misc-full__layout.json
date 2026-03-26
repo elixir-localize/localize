@@ -1,0 +1,16 @@
+{
+  "main": {
+    "de-CH": {
+      "identity": {
+        "language": "de",
+        "territory": "CH"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

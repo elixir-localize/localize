@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-AI": {
+      "identity": {
+        "language": "en",
+        "territory": "AI"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

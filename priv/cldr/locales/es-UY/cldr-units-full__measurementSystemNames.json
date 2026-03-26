@@ -1,0 +1,17 @@
+{
+  "main": {
+    "es-UY": {
+      "identity": {
+        "language": "es",
+        "territory": "UY"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrico",
+          "UK": "anglosajón",
+          "US": "estadounidense"
+        }
+      }
+    }
+  }
+}

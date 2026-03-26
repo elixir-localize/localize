@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-MX": {
+      "identity": {
+        "language": "es",
+        "territory": "MX"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

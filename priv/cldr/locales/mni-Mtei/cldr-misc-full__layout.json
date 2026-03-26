@@ -1,0 +1,16 @@
+{
+  "main": {
+    "mni-Mtei": {
+      "identity": {
+        "language": "mni",
+        "script": "Mtei"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

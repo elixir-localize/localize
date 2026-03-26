@@ -1,0 +1,16 @@
+{
+  "main": {
+    "kxv-Orya": {
+      "identity": {
+        "language": "kxv",
+        "script": "Orya"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

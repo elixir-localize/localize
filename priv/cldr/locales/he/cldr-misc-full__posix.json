@@ -1,0 +1,15 @@
+{
+  "main": {
+    "he": {
+      "identity": {
+        "language": "he"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "כן:כ",
+          "nostr": "לא:ל"
+        }
+      }
+    }
+  }
+}

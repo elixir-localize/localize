@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sq-MK": {
+      "identity": {
+        "language": "sq",
+        "territory": "MK"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "po:p",
+          "nostr": "jo:j"
+        }
+      }
+    }
+  }
+}

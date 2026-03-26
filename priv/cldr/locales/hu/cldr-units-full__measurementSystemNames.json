@@ -1,0 +1,16 @@
+{
+  "main": {
+    "hu": {
+      "identity": {
+        "language": "hu"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrikus",
+          "UK": "angol",
+          "US": "amerikai"
+        }
+      }
+    }
+  }
+}

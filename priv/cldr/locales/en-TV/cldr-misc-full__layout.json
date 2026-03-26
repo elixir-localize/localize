@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-TV": {
+      "identity": {
+        "language": "en",
+        "territory": "TV"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

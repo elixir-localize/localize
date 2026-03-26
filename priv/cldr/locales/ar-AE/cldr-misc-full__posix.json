@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-AE": {
+      "identity": {
+        "language": "ar",
+        "territory": "AE"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "نعم:ن",
+          "nostr": "لا:ل"
+        }
+      }
+    }
+  }
+}

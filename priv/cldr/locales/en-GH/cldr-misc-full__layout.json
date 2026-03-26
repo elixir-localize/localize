@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-GH": {
+      "identity": {
+        "language": "en",
+        "territory": "GH"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

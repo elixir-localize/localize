@@ -1,0 +1,17 @@
+{
+  "main": {
+    "it-SM": {
+      "identity": {
+        "language": "it",
+        "territory": "SM"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrico",
+          "UK": "britannico",
+          "US": "USA"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "main": {
+    "pa-Guru": {
+      "identity": {
+        "language": "pa",
+        "script": "Guru"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "ਮੀਟਰਿਕ",
+          "UK": "ਯੂ. ਕੇ.",
+          "US": "ਯੂ. ਐੱਸ."
+        }
+      }
+    }
+  }
+}

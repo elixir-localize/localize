@@ -1,0 +1,21 @@
+{
+  "main": {
+    "kok-Latn": {
+      "identity": {
+        "language": "kok",
+        "script": "Latn"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Arab": "Farsi Orbi",
+          "Beng": "Bangla",
+          "Cyrl": "Cyrili",
+          "Deva": "Devanagari",
+          "Grek": "Grik",
+          "Hebr": "Hebrev",
+          "Latn": "Romi"
+        }
+      }
+    }
+  }
+}

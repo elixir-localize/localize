@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-SD": {
+      "identity": {
+        "language": "ar",
+        "territory": "SD"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

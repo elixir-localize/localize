@@ -1,0 +1,15 @@
+{
+  "main": {
+    "brx": {
+      "identity": {
+        "language": "brx"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "नंगौ:नं",
+          "nostr": "नङा:न"
+        }
+      }
+    }
+  }
+}

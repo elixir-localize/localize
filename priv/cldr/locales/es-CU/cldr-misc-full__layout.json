@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-CU": {
+      "identity": {
+        "language": "es",
+        "territory": "CU"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

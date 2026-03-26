@@ -1,0 +1,15 @@
+{
+  "main": {
+    "shn": {
+      "identity": {
+        "language": "shn"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

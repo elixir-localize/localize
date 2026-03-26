@@ -1,0 +1,15 @@
+{
+  "main": {
+    "su": {
+      "identity": {
+        "language": "su"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "enya:e",
+          "nostr": "teu:t"
+        }
+      }
+    }
+  }
+}

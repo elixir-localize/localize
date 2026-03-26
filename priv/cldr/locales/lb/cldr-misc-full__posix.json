@@ -1,0 +1,15 @@
+{
+  "main": {
+    "lb": {
+      "identity": {
+        "language": "lb"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "jo:j",
+          "nostr": "nee:n"
+        }
+      }
+    }
+  }
+}

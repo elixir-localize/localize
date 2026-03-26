@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ru-KG": {
+      "identity": {
+        "language": "ru",
+        "territory": "KG"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Метрическая",
+          "UK": "Английская",
+          "US": "Американская"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "cv": {
+      "identity": {
+        "language": "cv"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Метрла",
+          "UK": "Акӑлчанла",
+          "US": "Америкӑлла"
+        }
+      }
+    }
+  }
+}

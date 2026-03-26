@@ -1,0 +1,15 @@
+{
+  "main": {
+    "cy": {
+      "identity": {
+        "language": "cy"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

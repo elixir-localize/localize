@@ -1,0 +1,15 @@
+{
+  "main": {
+    "cv": {
+      "identity": {
+        "language": "cv"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

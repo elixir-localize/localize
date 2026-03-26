@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mas": {
+      "identity": {
+        "language": "mas"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Eé:E",
+          "nostr": "Á’ā:A"
+        }
+      }
+    }
+  }
+}

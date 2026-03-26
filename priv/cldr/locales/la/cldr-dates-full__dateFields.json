@@ -1,0 +1,670 @@
+{
+  "main": {
+    "la": {
+      "identity": {
+        "language": "la"
+      },
+      "dates": {
+        "fields": {
+          "era": {
+            "displayName": "eare"
+          },
+          "era-short": {
+            "displayName": "eare"
+          },
+          "era-narrow": {
+            "displayName": "eare"
+          },
+          "year": {
+            "displayName": "anno",
+            "relative-type--1": "priore anno",
+            "relative-type-0": "hoc anno",
+            "relative-type-1": "postero anno",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} anno",
+              "relativeTimePattern-count-other": "in {0} annis"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} annum",
+              "relativeTimePattern-count-other": "abhinc {0} annos"
+            }
+          },
+          "year-short": {
+            "displayName": "an.",
+            "relative-type--1": "priore an.",
+            "relative-type-0": "hoc an.",
+            "relative-type-1": "postero an.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} an.",
+              "relativeTimePattern-count-other": "in {0} an."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} an.",
+              "relativeTimePattern-count-other": "abhinc {0} an."
+            }
+          },
+          "year-narrow": {
+            "displayName": "an.",
+            "relative-type--1": "priore an.",
+            "relative-type-0": "hoc an.",
+            "relative-type-1": "postero an.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} an.",
+              "relativeTimePattern-count-other": "in {0} an."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} an.",
+              "relativeTimePattern-count-other": "abhinc {0} an."
+            }
+          },
+          "quarter": {
+            "displayName": "quarter",
+            "relative-type--1": "priore quarta",
+            "relative-type-0": "hac quarta",
+            "relative-type-1": "postera quarta",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} quarta",
+              "relativeTimePattern-count-other": "in {0} quartis"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} quartam",
+              "relativeTimePattern-count-other": "abhinc {0} quartas"
+            }
+          },
+          "quarter-short": {
+            "displayName": "qrt.",
+            "relative-type--1": "priore qrt.",
+            "relative-type-0": "hac qrt.",
+            "relative-type-1": "postera qrt.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} qrt.",
+              "relativeTimePattern-count-other": "in {0} qrt."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} qrt.",
+              "relativeTimePattern-count-other": "abhinc {0} qrt."
+            }
+          },
+          "quarter-narrow": {
+            "displayName": "qrt.",
+            "relative-type--1": "priore qrt.",
+            "relative-type-0": "hac qrt.",
+            "relative-type-1": "postera qrt.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} qrt.",
+              "relativeTimePattern-count-other": "in {0} qrt."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} qrt.",
+              "relativeTimePattern-count-other": "abhinc {0} qrt."
+            }
+          },
+          "month": {
+            "displayName": "mensis",
+            "relative-type--1": "priore mense",
+            "relative-type-0": "hac mense",
+            "relative-type-1": "postera mense",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} mense",
+              "relativeTimePattern-count-other": "in {0} mensibus"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} mensem",
+              "relativeTimePattern-count-other": "abhinc {0} menses"
+            }
+          },
+          "month-short": {
+            "displayName": "men.",
+            "relative-type--1": "priore men.",
+            "relative-type-0": "hac men.",
+            "relative-type-1": "postera men.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} men.",
+              "relativeTimePattern-count-other": "in {0} men."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} men.",
+              "relativeTimePattern-count-other": "abhinc {0} men."
+            }
+          },
+          "month-narrow": {
+            "displayName": "men.",
+            "relative-type--1": "priore men.",
+            "relative-type-0": "hac men.",
+            "relative-type-1": "postera men.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} men.",
+              "relativeTimePattern-count-other": "in {0} men."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} men.",
+              "relativeTimePattern-count-other": "abhinc {0} men."
+            }
+          },
+          "week": {
+            "displayName": "hebdomas",
+            "relative-type--1": "priore hebdomade",
+            "relative-type-0": "hac hebdomade",
+            "relative-type-1": "postera hebdomade",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} hebdomade",
+              "relativeTimePattern-count-other": "in {0} hebdomadibus"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} hebdomadem",
+              "relativeTimePattern-count-other": "abhinc {0} hebdomades"
+            },
+            "relativePeriod": "the week of {0}"
+          },
+          "week-short": {
+            "displayName": "hebd.",
+            "relative-type--1": "priore hebd.",
+            "relative-type-0": "hac hebd.",
+            "relative-type-1": "postera hebd",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} hebd.",
+              "relativeTimePattern-count-other": "in {0} hebd."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} hebd.",
+              "relativeTimePattern-count-other": "abhinc {0} hebd."
+            },
+            "relativePeriod": "the week of {0}"
+          },
+          "week-narrow": {
+            "displayName": "hebd.",
+            "relative-type--1": "priore hebd.",
+            "relative-type-0": "hac hebd.",
+            "relative-type-1": "postera hebd",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} hebd.",
+              "relativeTimePattern-count-other": "in {0} hebd."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} hebd.",
+              "relativeTimePattern-count-other": "abhinc {0} hebd."
+            },
+            "relativePeriod": "the week of {0}"
+          },
+          "weekOfMonth": {
+            "displayName": "Week Of Month"
+          },
+          "weekOfMonth-short": {
+            "displayName": "Week Of Month"
+          },
+          "weekOfMonth-narrow": {
+            "displayName": "Week Of Month"
+          },
+          "day": {
+            "displayName": "dies",
+            "relative-type--1": "pridie",
+            "relative-type-0": "hodie",
+            "relative-type-1": "cras",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die",
+              "relativeTimePattern-count-other": "in {0} diebus"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem",
+              "relativeTimePattern-count-other": "abhinc {0} dies"
+            }
+          },
+          "day-short": {
+            "displayName": "dies",
+            "relative-type--1": "pridie",
+            "relative-type-0": "hodie",
+            "relative-type-1": "cras",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die",
+              "relativeTimePattern-count-other": "in {0} diebus"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem",
+              "relativeTimePattern-count-other": "abhinc {0} dies"
+            }
+          },
+          "day-narrow": {
+            "displayName": "dies",
+            "relative-type--1": "pridie",
+            "relative-type-0": "hodie",
+            "relative-type-1": "cras",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die",
+              "relativeTimePattern-count-other": "in {0} diebus"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem",
+              "relativeTimePattern-count-other": "abhinc {0} dies"
+            }
+          },
+          "dayOfYear": {
+            "displayName": "Day Of Year"
+          },
+          "dayOfYear-short": {
+            "displayName": "Day Of Year"
+          },
+          "dayOfYear-narrow": {
+            "displayName": "Day Of Year"
+          },
+          "weekday": {
+            "displayName": "day of the week"
+          },
+          "weekday-short": {
+            "displayName": "day of the week"
+          },
+          "weekday-narrow": {
+            "displayName": "day of the week"
+          },
+          "weekdayOfMonth": {
+            "displayName": "Weekday Of Month"
+          },
+          "weekdayOfMonth-short": {
+            "displayName": "Weekday Of Month"
+          },
+          "weekdayOfMonth-narrow": {
+            "displayName": "Weekday Of Month"
+          },
+          "sun": {
+            "relative-type--1": "priore die Solis",
+            "relative-type-0": "hoc die Solis",
+            "relative-type-1": "postero die Solis",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Solis",
+              "relativeTimePattern-count-other": "in {0} diebus Solis"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Solis",
+              "relativeTimePattern-count-other": "abhinc {0} dies Solis"
+            }
+          },
+          "sun-short": {
+            "relative-type--1": "prior. die Sol.",
+            "relative-type-0": "hoc die Sol.",
+            "relative-type-1": "post. die Sol.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Sol.",
+              "relativeTimePattern-count-other": "in {0} dieb. Sol."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Sol.",
+              "relativeTimePattern-count-other": "abhinc {0} dies Sol."
+            }
+          },
+          "sun-narrow": {
+            "relative-type--1": "prior. die Sol.",
+            "relative-type-0": "hoc die Sol.",
+            "relative-type-1": "post. die Sol.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Sol.",
+              "relativeTimePattern-count-other": "in {0} dieb. Sol."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Sol.",
+              "relativeTimePattern-count-other": "abhinc {0} dies Sol."
+            }
+          },
+          "mon": {
+            "relative-type--1": "priore die Lunae",
+            "relative-type-0": "hoc die Lunae",
+            "relative-type-1": "postero die Lunae",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Lunae",
+              "relativeTimePattern-count-other": "in {0} diebus Lunae"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Lunae",
+              "relativeTimePattern-count-other": "abhinc {0} dies Lunae"
+            }
+          },
+          "mon-short": {
+            "relative-type--1": "priore die Lun.",
+            "relative-type-0": "hoc die Lun.",
+            "relative-type-1": "postero die Lun.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Lun.",
+              "relativeTimePattern-count-other": "in {0} diebus Lun."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Lun.",
+              "relativeTimePattern-count-other": "abhinc {0} dies Lun."
+            }
+          },
+          "mon-narrow": {
+            "relative-type--1": "priore die Lun.",
+            "relative-type-0": "hoc die Lun.",
+            "relative-type-1": "postero die Lun.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Lun.",
+              "relativeTimePattern-count-other": "in {0} diebus Lun."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Lun.",
+              "relativeTimePattern-count-other": "abhinc {0} dies Lun."
+            }
+          },
+          "tue": {
+            "relative-type--1": "priore die Martis",
+            "relative-type-0": "hoc die Martis",
+            "relative-type-1": "postero die Martis",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Martis",
+              "relativeTimePattern-count-other": "in {0} diebus Martis"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Martis",
+              "relativeTimePattern-count-other": "abhinc {0} dies Martis"
+            }
+          },
+          "tue-short": {
+            "relative-type--1": "priore die Mar.",
+            "relative-type-0": "hoc die Mar.",
+            "relative-type-1": "postero die Mar.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Mar.",
+              "relativeTimePattern-count-other": "in {0} diebus Mar."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Mar.",
+              "relativeTimePattern-count-other": "abhinc {0} dies Mar."
+            }
+          },
+          "tue-narrow": {
+            "relative-type--1": "priore die Mar.",
+            "relative-type-0": "hoc die Mar.",
+            "relative-type-1": "postero die Mar.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Mar.",
+              "relativeTimePattern-count-other": "in {0} diebus Mar."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Mar.",
+              "relativeTimePattern-count-other": "abhinc {0} dies Mar."
+            }
+          },
+          "wed": {
+            "relative-type--1": "priore die Mercurii",
+            "relative-type-0": "hoc die Mercurii",
+            "relative-type-1": "postero die Mercurii",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Mercurii",
+              "relativeTimePattern-count-other": "in {0} diebus Mercurii"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Mercurii",
+              "relativeTimePattern-count-other": "abhinc {0} dies Mercurii"
+            }
+          },
+          "wed-short": {
+            "relative-type--1": "priore die Merc.",
+            "relative-type-0": "hoc die Merc.",
+            "relative-type-1": "postero die Merc.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Merc.",
+              "relativeTimePattern-count-other": "in {0} diebus Merc."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Merc.",
+              "relativeTimePattern-count-other": "abhinc {0} dies Merc."
+            }
+          },
+          "wed-narrow": {
+            "relative-type--1": "priore die Merc.",
+            "relative-type-0": "hoc die Merc.",
+            "relative-type-1": "postero die Merc.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Merc.",
+              "relativeTimePattern-count-other": "in {0} diebus Merc."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Merc.",
+              "relativeTimePattern-count-other": "abhinc {0} dies Merc."
+            }
+          },
+          "thu": {
+            "relative-type--1": "priore die Iovis",
+            "relative-type-0": "hoc die Iovis",
+            "relative-type-1": "postero die Iovis",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Iovis",
+              "relativeTimePattern-count-other": "in {0} diebus Iovis"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Iovis",
+              "relativeTimePattern-count-other": "abhinc {0} dies Iovis"
+            }
+          },
+          "thu-short": {
+            "relative-type--1": "priore die Iov.",
+            "relative-type-0": "hoc die Iov.",
+            "relative-type-1": "postero die Iov.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Iov.",
+              "relativeTimePattern-count-other": "in {0} diebus Iov."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Iov.",
+              "relativeTimePattern-count-other": "abhinc {0} dies Iov."
+            }
+          },
+          "thu-narrow": {
+            "relative-type--1": "priore die Iov.",
+            "relative-type-0": "hoc die Iov.",
+            "relative-type-1": "postero die Iov.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Iov.",
+              "relativeTimePattern-count-other": "in {0} diebus Iov."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Iov.",
+              "relativeTimePattern-count-other": "abhinc {0} dies Iov."
+            }
+          },
+          "fri": {
+            "relative-type--1": "priore die Veneris",
+            "relative-type-0": "hoc die Veneris",
+            "relative-type-1": "postero die Veneris",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Veneris",
+              "relativeTimePattern-count-other": "in {0} diebus Veneris"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Veneris",
+              "relativeTimePattern-count-other": "abhinc {0} dies Veneris"
+            }
+          },
+          "fri-short": {
+            "relative-type--1": "priore die Ven.",
+            "relative-type-0": "hoc die Ven.",
+            "relative-type-1": "postero die Ven.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Ven.",
+              "relativeTimePattern-count-other": "in {0} diebus Ven."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Ven.",
+              "relativeTimePattern-count-other": "abhinc {0} dies Ven."
+            }
+          },
+          "fri-narrow": {
+            "relative-type--1": "priore die Ven.",
+            "relative-type-0": "hoc die Ven.",
+            "relative-type-1": "postero die Ven.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Ven.",
+              "relativeTimePattern-count-other": "in {0} diebus Ven."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Ven.",
+              "relativeTimePattern-count-other": "abhinc {0} dies Ven."
+            }
+          },
+          "sat": {
+            "relative-type--1": "priore die Saturni",
+            "relative-type-0": "hoc die Saturni",
+            "relative-type-1": "postero die Saturni",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Saturni",
+              "relativeTimePattern-count-other": "in {0} diebus Saturni"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Saturni",
+              "relativeTimePattern-count-other": "abhinc {0} dies Saturni"
+            }
+          },
+          "sat-short": {
+            "relative-type--1": "priore die Sat.",
+            "relative-type-0": "hoc die Sat.",
+            "relative-type-1": "postero die Sat.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Sat.",
+              "relativeTimePattern-count-other": "in {0} diebus Sat."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Sat.",
+              "relativeTimePattern-count-other": "abhinc {0} dies Sat."
+            }
+          },
+          "sat-narrow": {
+            "relative-type--1": "priore die Sat.",
+            "relative-type-0": "hoc die Sat.",
+            "relative-type-1": "postero die Sat.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} die Sat.",
+              "relativeTimePattern-count-other": "in {0} diebus Sat."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} diem Sat.",
+              "relativeTimePattern-count-other": "abhinc {0} dies Sat."
+            }
+          },
+          "dayperiod-short": {
+            "displayName": "Dayperiod"
+          },
+          "dayperiod": {
+            "displayName": "Dayperiod"
+          },
+          "dayperiod-narrow": {
+            "displayName": "Dayperiod"
+          },
+          "hour": {
+            "displayName": "hora",
+            "relative-type-0": "hac hora",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} hora",
+              "relativeTimePattern-count-other": "in {0} horis"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} horam",
+              "relativeTimePattern-count-other": "abhinc {0} horas"
+            }
+          },
+          "hour-short": {
+            "displayName": "hr.",
+            "relative-type-0": "hac hora",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} hr.",
+              "relativeTimePattern-count-other": "in {0} hr."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} hr.",
+              "relativeTimePattern-count-other": "abhinc {0} hr."
+            }
+          },
+          "hour-narrow": {
+            "displayName": "hr.",
+            "relative-type-0": "hac hora",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} hr.",
+              "relativeTimePattern-count-other": "in {0} hr."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} hr.",
+              "relativeTimePattern-count-other": "abhinc {0} hr."
+            }
+          },
+          "minute": {
+            "displayName": "minuta",
+            "relative-type-0": "hac minuta",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} minuta",
+              "relativeTimePattern-count-other": "in {0} minutis"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} minutam",
+              "relativeTimePattern-count-other": "abhinc {0} minutas"
+            }
+          },
+          "minute-short": {
+            "displayName": "min.",
+            "relative-type-0": "hac minuta",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} min.",
+              "relativeTimePattern-count-other": "in {0} min."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} min.",
+              "relativeTimePattern-count-other": "abhinc {0} min."
+            }
+          },
+          "minute-narrow": {
+            "displayName": "min.",
+            "relative-type-0": "hac minuta",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} min.",
+              "relativeTimePattern-count-other": "in {0} min."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} min.",
+              "relativeTimePattern-count-other": "abhinc {0} min."
+            }
+          },
+          "second": {
+            "displayName": "secunda",
+            "relative-type-0": "nunc",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} secunda",
+              "relativeTimePattern-count-other": "in {0} secundis"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} secundam",
+              "relativeTimePattern-count-other": "abhinc {0} secundas"
+            }
+          },
+          "second-short": {
+            "displayName": "sec.",
+            "relative-type-0": "nunc",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} sec.",
+              "relativeTimePattern-count-other": "in {0} sec."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} sec.",
+              "relativeTimePattern-count-other": "abhinc {0} sec."
+            }
+          },
+          "second-narrow": {
+            "displayName": "sec.",
+            "relative-type-0": "nunc",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "in {0} sec.",
+              "relativeTimePattern-count-other": "in {0} sec."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "abhinc {0} sec.",
+              "relativeTimePattern-count-other": "abhinc {0} sec."
+            }
+          },
+          "zone": {
+            "displayName": "time zone"
+          },
+          "zone-short": {
+            "displayName": "time zone"
+          },
+          "zone-narrow": {
+            "displayName": "time zone"
+          }
+        }
+      }
+    }
+  }
+}

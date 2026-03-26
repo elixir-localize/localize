@@ -1,0 +1,51 @@
+{
+  "main": {
+    "prg": {
+      "identity": {
+        "language": "prg"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "ar": "arābiskan",
+          "da": "dāniskan",
+          "de": "miksiskan",
+          "de-AT": "Āustrarīkis miksiskan",
+          "de-CH": "Šwēicis aūktamiksiskan",
+          "el": "grēkiskan",
+          "en": "ēngliskan",
+          "en-AU": "Austrālijas ēngliskan",
+          "en-CA": "Kanādas ēngliskan",
+          "en-GB": "brītiskan ēngliskan",
+          "en-US": "amērikaniskan ēngliskan",
+          "en-US-alt-short": "APW ēngliskan",
+          "es": "špāniskan",
+          "es-419": "Lātiniskas Amērikas špāniskan",
+          "es-ES": "eurōpiskan špāniskan",
+          "es-MX": "Meksikus špāniskan",
+          "et": "èstiskan",
+          "fi": "sōmiskan",
+          "fr": "prancōziskan",
+          "fr-CA": "Kanādas prancōziskan",
+          "fr-CH": "Šwēicis prancōziskan",
+          "it": "wālkiskan",
+          "ja": "japāniskan",
+          "lt": "laītawiskan",
+          "lv": "lattawiskan",
+          "nl": "ullandiskan",
+          "pl": "pōliskan",
+          "prg": "prūsiskan",
+          "pt": "pōrtugaliskan",
+          "pt-BR": "Brazīlijas pōrtugaliskan",
+          "pt-PT": "eurōpiskan pōrtugaliskan",
+          "ru": "maskōwitiskan",
+          "sv": "šwēdiskan",
+          "tr": "turkiskan",
+          "und": "niwaistā bilā",
+          "zh": "kīniskan",
+          "zh-Hans": "prastintan kīniskan",
+          "zh-Hant": "tradiciōnalin kīniskan"
+        }
+      }
+    }
+  }
+}

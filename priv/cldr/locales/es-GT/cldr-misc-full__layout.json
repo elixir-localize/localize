@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-GT": {
+      "identity": {
+        "language": "es",
+        "territory": "GT"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

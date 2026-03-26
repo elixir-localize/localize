@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-HK": {
+      "identity": {
+        "language": "en",
+        "territory": "HK"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

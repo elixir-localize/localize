@@ -1,0 +1,16 @@
+{
+  "main": {
+    "nl-AW": {
+      "identity": {
+        "language": "nl",
+        "territory": "AW"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ja:j",
+          "nostr": "nee:n"
+        }
+      }
+    }
+  }
+}

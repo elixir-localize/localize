@@ -1,0 +1,16 @@
+{
+  "main": {
+    "shn-TH": {
+      "identity": {
+        "language": "shn",
+        "territory": "TH"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

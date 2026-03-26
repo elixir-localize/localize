@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-NI": {
+      "identity": {
+        "language": "es",
+        "territory": "NI"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "sí:s",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

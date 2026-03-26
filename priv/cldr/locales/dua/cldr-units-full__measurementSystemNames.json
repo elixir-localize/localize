@@ -1,0 +1,16 @@
+{
+  "main": {
+    "dua": {
+      "identity": {
+        "language": "dua"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

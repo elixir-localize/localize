@@ -1,0 +1,19 @@
+{
+  "main": {
+    "da-GL": {
+      "identity": {
+        "language": "da",
+        "territory": "GL"
+      },
+      "contextTransforms": {
+        "languages": {
+          "uiListOrMenu": "titlecase-firstword"
+        },
+        "typographicNames": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        }
+      }
+    }
+  }
+}

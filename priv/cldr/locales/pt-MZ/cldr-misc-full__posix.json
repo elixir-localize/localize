@@ -1,0 +1,16 @@
+{
+  "main": {
+    "pt-MZ": {
+      "identity": {
+        "language": "pt",
+        "territory": "MZ"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "sim:s",
+          "nostr": "não:n"
+        }
+      }
+    }
+  }
+}

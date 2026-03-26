@@ -1,0 +1,17 @@
+{
+  "main": {
+    "sw-CD": {
+      "identity": {
+        "language": "sw",
+        "territory": "CD"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Mfumo wa Mita",
+          "UK": "Uingereza",
+          "US": "Marekani"
+        }
+      }
+    }
+  }
+}

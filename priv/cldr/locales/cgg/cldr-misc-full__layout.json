@@ -1,0 +1,15 @@
+{
+  "main": {
+    "cgg": {
+      "identity": {
+        "language": "cgg"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

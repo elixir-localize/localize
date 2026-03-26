@@ -1,0 +1,111 @@
+{
+  "main": {
+    "ie": {
+      "identity": {
+        "language": "ie"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}, {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "keys": {
+          "calendar": "calendare",
+          "cf": "formate de valuta",
+          "collation": "órdine",
+          "currency": "valuta",
+          "hc": "cicle de hores (12 o 24)",
+          "ms": "sistema de mesuras",
+          "numbers": "númeres"
+        },
+        "types": {
+          "calendar": {
+            "buddhist": "buddhist calendare",
+            "core": "gregorian",
+            "chinese": "chinesi calendare",
+            "coptic": "coptic calendare",
+            "ethiopic": "etiopic calendare",
+            "gregorian": "gregorian calendare",
+            "hebrew": "hebreic calendare",
+            "islamic": "calendare hejra",
+            "iso8601": "gregorian (li annu in avan)",
+            "japanese": "japanesi calendare",
+            "persian": "persian calendare"
+          },
+          "cf": {
+            "account": "formate por contation",
+            "standard": "standard valuta-formate"
+          },
+          "collation": {
+            "dictionary": "órdine de dictionarium",
+            "ducet": "órdine predefinit de Unicode",
+            "eor": "órdine paneuropan",
+            "phonebook": "órdine de numerarium",
+            "pinyin": "órdine pinyin",
+            "search": "órdine por sercha",
+            "standard": "standard órdine",
+            "core": "standard",
+            "stroke": "órdine de strecs",
+            "unihan": "órdine de radicales"
+          },
+          "hc": {
+            "h11": "sistema 12-hor (0..11)",
+            "h12": "sistema 12-hor (1..12)",
+            "h23": "sistema 24-hor (0..23)",
+            "h24": "sistema 24-hor (1..24)"
+          },
+          "ms": {
+            "metric": "metric sistema",
+            "uksystem": "britanic sistema",
+            "ussystem": "american sistema"
+          },
+          "numbers": {
+            "arab": "oriental ciffres",
+            "arabext": "extendet oriental ciffres",
+            "armn": "armenian númeres",
+            "armnlow": "armenian minuscules",
+            "beng": "bengalic ciffres",
+            "cakm": "ciffres chakma",
+            "deva": "ciffres devanagari",
+            "ethi": "etiopic ciffres",
+            "fullwide": "plen-larg ciffres",
+            "geor": "georgian númeres",
+            "grek": "grec númeres",
+            "greklow": "grec minuscules",
+            "gujr": "gujaratic ciffres",
+            "guru": "gurmukhic ciffres",
+            "hanidec": "chinesi decimal númeres",
+            "hans": "simplificat chinesi númeres",
+            "hansfin": "simp. chinesi financial númeres",
+            "hant": "traditional chinesi númeres",
+            "hantfin": "trad. chinesi financial númeres",
+            "hebr": "hebreic númeres",
+            "java": "javanesi ciffres",
+            "jpan": "japanesi númeres",
+            "jpanfin": "japanesi financial númeres",
+            "khmr": "ciffres khmer",
+            "knda": "kannadan ciffres",
+            "laoo": "laotic ciffres",
+            "latn": "occidental ciffres",
+            "mlym": "ciffres malayalam",
+            "mymr": "birmesi ciffres",
+            "roman": "roman ciffres",
+            "romanlow": "roman minuscules",
+            "taml": "traditional tamilic númeres",
+            "tamldec": "tamilic ciffres",
+            "telu": "ciffres telugu",
+            "thai": "thai ciffres",
+            "tibt": "tibetan ciffres",
+            "vaii": "ciffres vai"
+          }
+        },
+        "codePatterns": {
+          "language": "Lingue: {0}",
+          "script": "Scritura: {0}",
+          "territory": "Region: {0}"
+        }
+      }
+    }
+  }
+}

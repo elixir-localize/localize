@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-PR": {
+      "identity": {
+        "language": "es",
+        "territory": "PR"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "sí:s",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

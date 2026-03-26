@@ -1,0 +1,15 @@
+{
+  "main": {
+    "lmo": {
+      "identity": {
+        "language": "lmo"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

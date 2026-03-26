@@ -1,0 +1,16 @@
+{
+  "main": {
+    "shi-Tfng": {
+      "identity": {
+        "language": "shi",
+        "script": "Tfng"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ⵢⵢⵉⵀ:ⵢ",
+          "nostr": "ⵓⵀⵓ:ⵓ"
+        }
+      }
+    }
+  }
+}

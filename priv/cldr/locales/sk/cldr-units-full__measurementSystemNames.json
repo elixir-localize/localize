@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sk": {
+      "identity": {
+        "language": "sk"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrický",
+          "UK": "britský",
+          "US": "americký"
+        }
+      }
+    }
+  }
+}

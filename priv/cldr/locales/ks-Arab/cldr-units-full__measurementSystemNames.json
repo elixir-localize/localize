@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ks-Arab": {
+      "identity": {
+        "language": "ks",
+        "script": "Arab"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "میٖٹرِک",
+          "UK": "یو کے",
+          "US": "یو ایس"
+        }
+      }
+    }
+  }
+}

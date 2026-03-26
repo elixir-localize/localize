@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sa": {
+      "identity": {
+        "language": "sa"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "आम्",
+          "nostr": "न"
+        }
+      }
+    }
+  }
+}

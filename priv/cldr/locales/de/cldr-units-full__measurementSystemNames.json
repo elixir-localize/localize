@@ -1,0 +1,16 @@
+{
+  "main": {
+    "de": {
+      "identity": {
+        "language": "de"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Internationales (SI)",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

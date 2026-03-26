@@ -1,0 +1,16 @@
+{
+  "main": {
+    "szl": {
+      "identity": {
+        "language": "szl"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metryczny",
+          "UK": "brytyjski",
+          "US": "amerykański"
+        }
+      }
+    }
+  }
+}

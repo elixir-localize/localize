@@ -1,0 +1,15 @@
+{
+  "main": {
+    "prg": {
+      "identity": {
+        "language": "prg"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

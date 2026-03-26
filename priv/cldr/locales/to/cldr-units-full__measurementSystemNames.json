@@ -1,0 +1,16 @@
+{
+  "main": {
+    "to": {
+      "identity": {
+        "language": "to"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "fakamita",
+          "UK": "fakapilitānia",
+          "US": "fakaʻamelika"
+        }
+      }
+    }
+  }
+}

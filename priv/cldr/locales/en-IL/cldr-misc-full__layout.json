@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-IL": {
+      "identity": {
+        "language": "en",
+        "territory": "IL"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

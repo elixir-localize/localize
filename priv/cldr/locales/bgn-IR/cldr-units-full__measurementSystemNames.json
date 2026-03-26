@@ -1,0 +1,17 @@
+{
+  "main": {
+    "bgn-IR": {
+      "identity": {
+        "language": "bgn",
+        "territory": "IR"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "میٹریک",
+          "UK": "بریتانوی",
+          "US": "امریکایی"
+        }
+      }
+    }
+  }
+}

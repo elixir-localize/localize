@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sbp": {
+      "identity": {
+        "language": "sbp"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ena:E",
+          "nostr": "Ndaali:N"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "jgo": {
+      "identity": {
+        "language": "jgo"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

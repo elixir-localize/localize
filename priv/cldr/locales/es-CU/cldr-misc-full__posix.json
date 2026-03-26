@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-CU": {
+      "identity": {
+        "language": "es",
+        "territory": "CU"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "sí:s",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

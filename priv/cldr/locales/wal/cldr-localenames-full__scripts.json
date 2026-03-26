@@ -1,0 +1,14 @@
+{
+  "main": {
+    "wal": {
+      "identity": {
+        "language": "wal"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Latn": "ላቲን"
+        }
+      }
+    }
+  }
+}

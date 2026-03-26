@@ -1,0 +1,15 @@
+{
+  "main": {
+    "lag": {
+      "identity": {
+        "language": "lag"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Hɨɨ:H",
+          "nostr": "Tʉkʉ:T"
+        }
+      }
+    }
+  }
+}

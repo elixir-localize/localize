@@ -1,0 +1,16 @@
+{
+  "main": {
+    "mn-Mong": {
+      "identity": {
+        "language": "mn",
+        "script": "Mong"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "тийм:т",
+          "nostr": "үгүй:ү"
+        }
+      }
+    }
+  }
+}

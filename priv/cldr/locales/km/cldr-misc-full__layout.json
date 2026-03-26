@@ -1,0 +1,15 @@
+{
+  "main": {
+    "km": {
+      "identity": {
+        "language": "km"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

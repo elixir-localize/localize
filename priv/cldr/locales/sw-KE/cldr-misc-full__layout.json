@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sw-KE": {
+      "identity": {
+        "language": "sw",
+        "territory": "KE"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

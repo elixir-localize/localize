@@ -1,0 +1,15 @@
+{
+  "main": {
+    "kaj": {
+      "identity": {
+        "language": "kaj"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

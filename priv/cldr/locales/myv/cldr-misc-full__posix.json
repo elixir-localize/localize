@@ -1,0 +1,15 @@
+{
+  "main": {
+    "myv": {
+      "identity": {
+        "language": "myv"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "истя:и",
+          "nostr": "арась:а"
+        }
+      }
+    }
+  }
+}

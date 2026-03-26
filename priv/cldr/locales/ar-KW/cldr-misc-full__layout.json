@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-KW": {
+      "identity": {
+        "language": "ar",
+        "territory": "KW"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

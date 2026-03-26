@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ia": {
+      "identity": {
+        "language": "ia"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metric",
+          "UK": "britannic",
+          "US": "statounitese"
+        }
+      }
+    }
+  }
+}

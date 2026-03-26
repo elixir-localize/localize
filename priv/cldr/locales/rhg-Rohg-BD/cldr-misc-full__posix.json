@@ -1,0 +1,17 @@
+{
+  "main": {
+    "rhg-Rohg-BD": {
+      "identity": {
+        "language": "rhg",
+        "script": "Rohg",
+        "territory": "BD"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

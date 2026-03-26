@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ca": {
+      "identity": {
+        "language": "ca"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

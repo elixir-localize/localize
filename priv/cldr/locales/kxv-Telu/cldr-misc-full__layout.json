@@ -1,0 +1,16 @@
+{
+  "main": {
+    "kxv-Telu": {
+      "identity": {
+        "language": "kxv",
+        "script": "Telu"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

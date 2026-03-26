@@ -1,0 +1,16 @@
+{
+  "main": {
+    "se-FI": {
+      "identity": {
+        "language": "se",
+        "territory": "FI"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "jo",
+          "nostr": "ii"
+        }
+      }
+    }
+  }
+}

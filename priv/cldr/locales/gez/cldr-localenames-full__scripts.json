@@ -1,0 +1,14 @@
+{
+  "main": {
+    "gez": {
+      "identity": {
+        "language": "gez"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Latn": "ላቲን"
+        }
+      }
+    }
+  }
+}

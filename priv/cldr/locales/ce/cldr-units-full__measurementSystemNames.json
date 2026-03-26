@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ce": {
+      "identity": {
+        "language": "ce"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Метрикин",
+          "UK": "Ингалсан",
+          "US": "Инг-американ"
+        }
+      }
+    }
+  }
+}

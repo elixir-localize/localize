@@ -1,0 +1,16 @@
+{
+  "main": {
+    "yo": {
+      "identity": {
+        "language": "yo"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Mẹ́tíríìkì",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

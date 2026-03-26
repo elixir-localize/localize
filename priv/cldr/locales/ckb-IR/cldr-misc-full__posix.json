@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ckb-IR": {
+      "identity": {
+        "language": "ckb",
+        "territory": "IR"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "بەڵێ:ب",
+          "nostr": "نەخێر:ن"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-IQ": {
+      "identity": {
+        "language": "ar",
+        "territory": "IQ"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

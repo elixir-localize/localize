@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fr-PF": {
+      "identity": {
+        "language": "fr",
+        "territory": "PF"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrique",
+          "UK": "impérial",
+          "US": "américain"
+        }
+      }
+    }
+  }
+}

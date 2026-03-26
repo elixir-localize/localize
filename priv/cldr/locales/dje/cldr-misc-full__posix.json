@@ -1,0 +1,15 @@
+{
+  "main": {
+    "dje": {
+      "identity": {
+        "language": "dje"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ayyo:A",
+          "nostr": "Kala:K"
+        }
+      }
+    }
+  }
+}

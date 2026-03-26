@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ko": {
+      "identity": {
+        "language": "ko"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "미터법",
+          "UK": "영국식",
+          "US": "미국식"
+        }
+      }
+    }
+  }
+}

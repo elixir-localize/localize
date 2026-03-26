@@ -1,0 +1,16 @@
+{
+  "main": {
+    "af": {
+      "identity": {
+        "language": "af"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metrieke stelsel",
+          "UK": "VK",
+          "US": "VSA"
+        }
+      }
+    }
+  }
+}

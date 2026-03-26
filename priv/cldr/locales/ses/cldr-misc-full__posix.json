@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ses": {
+      "identity": {
+        "language": "ses"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ayyo:A",
+          "nostr": "Kala:K"
+        }
+      }
+    }
+  }
+}

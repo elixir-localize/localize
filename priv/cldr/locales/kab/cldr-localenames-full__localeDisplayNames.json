@@ -1,0 +1,108 @@
+{
+  "main": {
+    "kab": {
+      "identity": {
+        "language": "kab"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}, {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "keys": {
+          "calendar": "Awitay",
+          "cf": "Amasal n tedrimt",
+          "collation": "Amizwer deg ufr",
+          "currency": "Tadrimt",
+          "hc": "Anagraw usrig (12 mgal 24)",
+          "lb": "Aɣanib n tuɣalin ar udur",
+          "ms": "Anagraw n uktal",
+          "numbers": "Imḍanen"
+        },
+        "types": {
+          "calendar": {
+            "buddhist": "Awitay abudi",
+            "chinese": "Awitay acinwa",
+            "dangi": "Awitay n Dangi",
+            "ethiopic": "Awitay n Ityupya",
+            "gregorian": "Awitay agriguryan",
+            "hebrew": "Awitay aɛebri",
+            "islamic": "Awitay ineslem",
+            "iso8601": "Awitay ISO-8601",
+            "japanese": "Awitay ajapuni",
+            "persian": "Awitay afarsi",
+            "roc": "Awitay agdudan acinwa"
+          },
+          "cf": {
+            "account": "Amasal n tedrimt n tsiḍent",
+            "standard": "Amasal n tedrimt izeɣ"
+          },
+          "collation": {
+            "ducet": "Tanila n usemyizwer Unicod amezwaru",
+            "search": "Anadi amatu",
+            "standard": "Amizwer s ufran izeɣ"
+          },
+          "hc": {
+            "h11": "Anagraw usrig 12 (0–11)",
+            "h12": "Anagraw usrig 12 (1–12)",
+            "h23": "Anagraw usrig 24 (0–23)",
+            "h24": "Anagraw usrig 24 (1–24)"
+          },
+          "lb": {
+            "loose": "Aɣanib n tuɣalin ar udur ilelli",
+            "normal": "Aɣanib n tuɣalin ar udur amagnu",
+            "strict": "Aɣanib n tuɣalin ar udur uḥriṣ."
+          },
+          "ms": {
+            "metric": "Anagraw amitran",
+            "uksystem": "Anagraw n uktal Impiryal",
+            "ussystem": "Anagraw n uktal n Marikan"
+          },
+          "numbers": {
+            "arab": "Izwilen aɛraben",
+            "arabext": "Izwilen aɛraben yettwasɣezfen",
+            "armn": "Izwilen iṛminiyen",
+            "armnlow": "Izwilen iṛminiyen meẓẓiyen",
+            "beng": "Izwilen ibingaliyen",
+            "deva": "Izwilen idivangariyen",
+            "ethi": "Izwilen ityupanen",
+            "fullwide": "Izwilen ihrawanen",
+            "geor": "Izwilen ijyuṛjiyen",
+            "grek": "Izwilen igrikiyen",
+            "greklow": "Izwilen igrikiyen imeẓyanen",
+            "gujr": "Izwilen iguǧaratiyen",
+            "guru": "Izwilen igurmuxiyen",
+            "hanidec": "Izwilen imrawen icinwaten",
+            "hans": "Izwilen iḥerfiyen icinwaten",
+            "hansfin": "Izwilen udrimen iḥerfiyen icinwaten",
+            "hant": "Izwilen imensayen icinwaten",
+            "hantfin": "Izwilen udrimen iḥerfiyen nicinwaten",
+            "hebr": "Izwilen iɛebriyen",
+            "jpan": "Izwilen ijapuniyen",
+            "jpanfin": "Izwilen udrimen ijjapuniyen",
+            "khmr": "Izwilen ixmariyen",
+            "knda": "Izwilen n Kannada",
+            "laoo": "Izwilen ilawsiyen",
+            "latn": "Izwilen n umalu",
+            "mlym": "Izwilen n Malayalam",
+            "mymr": "Izwilen n Myanmar",
+            "orya": "Izwilen uryanen",
+            "roman": "Izwilen iṛumanen",
+            "romanlow": "Izwilen iṛumanen imeẓyanen",
+            "taml": "Izwilen imensayen n ṭamil",
+            "tamldec": "Izwilen n Ṭamil",
+            "telu": "Izwilen n Tilugu",
+            "thai": "Izwilen n Ṭayland",
+            "tibt": "Izwilen Itibitanen"
+          }
+        },
+        "codePatterns": {
+          "language": "Tutlayt: {0}",
+          "script": "Tira: {0}",
+          "territory": "Tamnaḍt: {0}"
+        }
+      }
+    }
+  }
+}

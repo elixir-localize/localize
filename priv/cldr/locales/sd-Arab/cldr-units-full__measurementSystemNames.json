@@ -1,0 +1,17 @@
+{
+  "main": {
+    "sd-Arab": {
+      "identity": {
+        "language": "sd",
+        "script": "Arab"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "ميٽرڪ",
+          "UK": "برطانيه",
+          "US": "آمريڪا"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sat": {
+      "identity": {
+        "language": "sat"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ᱦᱚᱸᱺᱦ",
+          "nostr": "ᱵᱟᱝᱺᱵ"
+        }
+      }
+    }
+  }
+}

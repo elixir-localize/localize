@@ -1,0 +1,15 @@
+{
+  "main": {
+    "vai": {
+      "identity": {
+        "language": "vai"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "ꔉꔒ"
+        }
+      }
+    }
+  }
+}

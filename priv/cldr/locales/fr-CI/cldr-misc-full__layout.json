@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-CI": {
+      "identity": {
+        "language": "fr",
+        "territory": "CI"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

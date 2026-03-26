@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ti-ER": {
+      "identity": {
+        "language": "ti",
+        "territory": "ER"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "ሜትሪክ",
+          "UK": "ብሪጣንያ",
+          "US": "ኣመሪካ"
+        }
+      }
+    }
+  }
+}

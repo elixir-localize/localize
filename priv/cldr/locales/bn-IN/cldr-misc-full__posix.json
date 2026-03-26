@@ -1,0 +1,16 @@
+{
+  "main": {
+    "bn-IN": {
+      "identity": {
+        "language": "bn",
+        "territory": "IN"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "হ্যাঁ",
+          "nostr": "না"
+        }
+      }
+    }
+  }
+}

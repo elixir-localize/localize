@@ -1,0 +1,15 @@
+{
+  "main": {
+    "gsw": {
+      "identity": {
+        "language": "gsw"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ja:j",
+          "nostr": "näi:n"
+        }
+      }
+    }
+  }
+}

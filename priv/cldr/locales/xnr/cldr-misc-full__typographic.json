@@ -1,0 +1,64 @@
+{
+  "main": {
+    "xnr": {
+      "identity": {
+        "language": "xnr"
+      },
+      "typographicNames": {
+        "axisNames": {
+          "ital": "इटैलिक",
+          "opsz": "ऑप्टिकल आकार",
+          "slnt": "तिरछा",
+          "wdth": "चौड़ाई",
+          "wght": "भार"
+        },
+        "styleNames": {
+          "ital-subtype-1": "कर्सिव",
+          "opsz-subtype-8": "खास खास सीरसक",
+          "opsz-subtype-12": "अक्खर",
+          "opsz-subtype-18": "सीरसक बनाणा",
+          "opsz-subtype-72": "डिस्प्ले",
+          "opsz-subtype-144": "पोस्टर",
+          "slnt-subtype--12": "पिछले पास्से ते तिरछा",
+          "slnt-subtype-0": "सिद्धा",
+          "slnt-subtype-12": "तिरछा",
+          "slnt-subtype-24": "बड्डा भारी तिरछा",
+          "wdth-subtype-50": "बड्डा भारी गूढ़ा",
+          "wdth-subtype-62.5": "होर जादा गूढ़ा",
+          "wdth-subtype-75": "गूढ़ा",
+          "wdth-subtype-87.5": "जरा की गूढ़ा",
+          "wdth-subtype-100": "सामान्य",
+          "wdth-subtype-112.5": "जरा की फलाया",
+          "wdth-subtype-125": "फलाया",
+          "wdth-subtype-150": "होर जादा फलाया",
+          "wdth-subtype-200": "बड्डा भारी फलाया",
+          "wght-subtype-100": "पतला",
+          "wght-subtype-200": "होर जादा हल्का",
+          "wght-subtype-300": "हल्के",
+          "wght-subtype-350": "जरा की हल्का",
+          "wght-subtype-380": "कताब",
+          "wght-subtype-400": "लगातार",
+          "wght-subtype-500": "बिचला",
+          "wght-subtype-600": "जरा की मोटा",
+          "wght-subtype-700": "मोटा",
+          "wght-subtype-800": "होर जादा मोटा",
+          "wght-subtype-900": "काला",
+          "wght-subtype-950": "होर जादा काला"
+        },
+        "featureNames": {
+          "afrc": "लम्बाइया च अंश",
+          "cpsp": "कैपिटल स्पेसिंग",
+          "dlig": "वैकल्पिक कट्ठे अक्खर",
+          "frac": "तिरछे अंश",
+          "lnum": "लाईना च नबंर",
+          "onum": "पराणी शैलिया आले नंबर",
+          "ordn": "क्रम संख्या",
+          "pnum": "आनुपातिक संख्यां",
+          "smcp": "छोटे बड्डे",
+          "tnum": "सारणी च नंबर",
+          "zero": "स्लैश कित्या ज़ीरो"
+        }
+      }
+    }
+  }
+}

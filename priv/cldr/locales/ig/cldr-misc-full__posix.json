@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ig": {
+      "identity": {
+        "language": "ig"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Eye:E",
+          "nostr": "Mba:M"
+        }
+      }
+    }
+  }
+}

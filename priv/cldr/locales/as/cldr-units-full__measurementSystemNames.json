@@ -1,0 +1,16 @@
+{
+  "main": {
+    "as": {
+      "identity": {
+        "language": "as"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "মেট্ৰিক",
+          "UK": "ইউ. কে.",
+          "US": "ইউ. এছ."
+        }
+      }
+    }
+  }
+}

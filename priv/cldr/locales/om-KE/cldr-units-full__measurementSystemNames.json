@@ -1,0 +1,17 @@
+{
+  "main": {
+    "om-KE": {
+      "identity": {
+        "language": "om",
+        "territory": "KE"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Meetirikii",
+          "UK": "Inglizi",
+          "US": "Ameerikaa"
+        }
+      }
+    }
+  }
+}

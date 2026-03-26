@@ -1,0 +1,24 @@
+{
+  "main": {
+    "vo": {
+      "identity": {
+        "language": "vo"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "de": "Deutänapük",
+          "en": "Linglänapük",
+          "eo": "Sperantapük",
+          "es": "Spanyänapük",
+          "fr": "Fransänapük",
+          "it": "Litaliyänapük",
+          "ja": "Yapänapük",
+          "pt": "Portugänapük",
+          "ru": "Rusänapük",
+          "vo": "Volapük",
+          "zh": "Tsyinänapük"
+        }
+      }
+    }
+  }
+}

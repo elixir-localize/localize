@@ -1,0 +1,37 @@
+{
+  "main": {
+    "syr-SY": {
+      "identity": {
+        "language": "syr",
+        "territory": "SY"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Arab": "ܥܪܒܝܬ",
+          "Armi": "ܐܪܡܝܐ",
+          "Armn": "ܐܪܡܢܝܬ",
+          "Beng": "ܒܢܓܠܝܬ",
+          "Bopo": "ܒܘܦܘܡܘܦܘܐܝܬ",
+          "Cyrl": "ܩܘܪܠܝܐ",
+          "Ethi": "ܟܘܫܝܬ",
+          "Geor": "ܓܘܪܓܝܬ",
+          "Grek": "ܝܘܢܝܬ",
+          "Gujr": "ܓܘܓܐܪܝܬ",
+          "Hans": "ܦܫܝܛܐ",
+          "Hans-alt-stand-alone": "ܨܝܢܐܝܬ ܦܫܝܛܐ",
+          "Hant": "ܝܘܒܠܝܐ",
+          "Hant-alt-stand-alone": "ܨܝܢܐܝܬ ܝܘܒܠܝܐ",
+          "Hebr": "ܥܒܪܝܬ",
+          "Jpan": "ܝܦܢܐܝܬ",
+          "Knda": "ܟܢܕܐܝܬ",
+          "Kore": "ܟܘܪܝܐܝܬ",
+          "Latn": "ܪܗܘܡܝܐ",
+          "Syrc": "ܣܘܪܝܬ",
+          "Zsye": "ܐܝܡܘܓܝ",
+          "Zxxx": "ܕܠܐ ܟܬܒܐ",
+          "Zzzz": "ܟܬܝܒܘܬܐ ܠܐ ܝܕܝܥܬܐ"
+        }
+      }
+    }
+  }
+}

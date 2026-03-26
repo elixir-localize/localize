@@ -1,0 +1,20 @@
+{
+  "main": {
+    "tr-CY": {
+      "identity": {
+        "language": "tr",
+        "territory": "CY"
+      },
+      "contextTransforms": {
+        "relative": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        },
+        "typographicNames": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        }
+      }
+    }
+  }
+}

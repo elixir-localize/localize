@@ -1,0 +1,15 @@
+{
+  "main": {
+    "xh": {
+      "identity": {
+        "language": "xh"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ewe:e",
+          "nostr": "hayi:h"
+        }
+      }
+    }
+  }
+}

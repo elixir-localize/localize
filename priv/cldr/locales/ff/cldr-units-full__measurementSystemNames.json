@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ff": {
+      "identity": {
+        "language": "ff"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

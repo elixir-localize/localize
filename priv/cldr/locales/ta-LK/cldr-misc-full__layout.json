@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ta-LK": {
+      "identity": {
+        "language": "ta",
+        "territory": "LK"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

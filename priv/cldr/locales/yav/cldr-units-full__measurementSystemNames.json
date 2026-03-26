@@ -1,0 +1,16 @@
+{
+  "main": {
+    "yav": {
+      "identity": {
+        "language": "yav"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,670 @@
+{
+  "main": {
+    "kok": {
+      "identity": {
+        "language": "kok"
+      },
+      "dates": {
+        "fields": {
+          "era": {
+            "displayName": "शक"
+          },
+          "era-short": {
+            "displayName": "शक"
+          },
+          "era-narrow": {
+            "displayName": "शक"
+          },
+          "year": {
+            "displayName": "वर्स",
+            "relative-type--1": "पोरूं",
+            "relative-type-0": "हें वर्स",
+            "relative-type-1": "फुडलें वर्स",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} वर्सान",
+              "relativeTimePattern-count-other": "{0} वर्सांनीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} वर्स आदीं",
+              "relativeTimePattern-count-other": "{0} वर्सां आदीं"
+            }
+          },
+          "year-short": {
+            "displayName": "वर्स",
+            "relative-type--1": "पोरूं",
+            "relative-type-0": "हें वर्स",
+            "relative-type-1": "फुडलें वर्स",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} वर्सान",
+              "relativeTimePattern-count-other": "{0} वर्सांनीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} वर्स आदीं",
+              "relativeTimePattern-count-other": "{0} वर्सां आदीं"
+            }
+          },
+          "year-narrow": {
+            "displayName": "वर्स",
+            "relative-type--1": "पोरूं",
+            "relative-type-0": "हें वर्स",
+            "relative-type-1": "फुडलें वर्स",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0}वर्सान",
+              "relativeTimePattern-count-other": "{0}वर्सांनीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0}वर्स आदीं",
+              "relativeTimePattern-count-other": "{0}वर्सां आदीं"
+            }
+          },
+          "quarter": {
+            "displayName": "त्रैमासीक",
+            "relative-type--1": "फाटलें तिम्हयनाळें",
+            "relative-type-0": "हें तिम्हयनाळें",
+            "relative-type-1": "फुडलें तिम्हयनाळें",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} तिम्हयनाळ्यान",
+              "relativeTimePattern-count-other": "{0} तिम्हयनाळ्यांनीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} तिम्हयनाळें आदीं",
+              "relativeTimePattern-count-other": "{0} तिम्हयनाळे आदीं"
+            }
+          },
+          "quarter-short": {
+            "displayName": "त्रैमासीक",
+            "relative-type--1": "फाटलें तिम्ह.",
+            "relative-type-0": "हें तिम्ह.",
+            "relative-type-1": "फुडलें तिम्ह.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} तिम्हयनाळ्यान",
+              "relativeTimePattern-count-other": "{0} तिम्हयनाळ्यांनीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} तिम्ह. आदीं",
+              "relativeTimePattern-count-other": "{0} तिम्ह. आदीं"
+            }
+          },
+          "quarter-narrow": {
+            "displayName": "त्रैमासीक",
+            "relative-type--1": "फाटलें तिम्ह",
+            "relative-type-0": "हें तिम्ह",
+            "relative-type-1": "फुडलें तिम्ह",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0}तिम्हयनाळ्यान",
+              "relativeTimePattern-count-other": "{0}तिम्हयनाळ्यांनीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0}तिम्ह आदीं",
+              "relativeTimePattern-count-other": "{0}तिम्ह आदीं"
+            }
+          },
+          "month": {
+            "displayName": "म्हयनो",
+            "relative-type--1": "फाटलो म्हयनो",
+            "relative-type-0": "हो म्हयनो",
+            "relative-type-1": "फुडलो म्हयनो",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} म्हयन्यान",
+              "relativeTimePattern-count-other": "{0} म्हयन्यानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} म्हयनो आदीं",
+              "relativeTimePattern-count-other": "{0} म्हयने आदीं"
+            }
+          },
+          "month-short": {
+            "displayName": "म्हयनो",
+            "relative-type--1": "फाटलो म्ह.",
+            "relative-type-0": "हो म्ह.",
+            "relative-type-1": "फुडलो म्ह.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} म्हयन्यान",
+              "relativeTimePattern-count-other": "{0} म्हयन्यानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} म्ह. आदीं",
+              "relativeTimePattern-count-other": "{0} म्ह. आदीं"
+            }
+          },
+          "month-narrow": {
+            "displayName": "म्हयनो",
+            "relative-type--1": "फाटलो म्ह",
+            "relative-type-0": "हो म्ह",
+            "relative-type-1": "फुडलो म्ह",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0}म्हयन्यान",
+              "relativeTimePattern-count-other": "{0}म्हयन्यानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0}म्ह आदीं",
+              "relativeTimePattern-count-other": "{0}म्ह आदीं"
+            }
+          },
+          "week": {
+            "displayName": "सप्तक",
+            "relative-type--1": "फाटलो सप्तक",
+            "relative-type-0": "हो सप्तक",
+            "relative-type-1": "फुडलो सप्तक",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} सप्तकान",
+              "relativeTimePattern-count-other": "{0} सप्तकांनीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} सप्तक आदीं",
+              "relativeTimePattern-count-other": "{0} सप्तकां आदीं"
+            },
+            "relativePeriod": "{0} चो सप्तक"
+          },
+          "week-short": {
+            "displayName": "सप्तक",
+            "relative-type--1": "फाटलो सप्तक",
+            "relative-type-0": "हो सप्तक",
+            "relative-type-1": "फुडलो सप्तक",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} सप्तकान",
+              "relativeTimePattern-count-other": "{0} सप्तकांनीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} सप्तक आदीं",
+              "relativeTimePattern-count-other": "{0} सप्तकां आदीं"
+            },
+            "relativePeriod": "{0} चो सप्तक"
+          },
+          "week-narrow": {
+            "displayName": "सप्तक",
+            "relative-type--1": "फाटलो सप्त",
+            "relative-type-0": "हो सप्त",
+            "relative-type-1": "फुडलो सप्त",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0}सप्तकान",
+              "relativeTimePattern-count-other": "{0}सप्तकांनीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0}सप्त आदीं",
+              "relativeTimePattern-count-other": "{0}सप्त आदीं"
+            },
+            "relativePeriod": "{0} चो सप्त"
+          },
+          "weekOfMonth": {
+            "displayName": "म्हयन्यातलो सप्तक"
+          },
+          "weekOfMonth-short": {
+            "displayName": "म्हयन्यातलो सप्तक"
+          },
+          "weekOfMonth-narrow": {
+            "displayName": "म्हयन्यातलो सप्तक"
+          },
+          "day": {
+            "displayName": "दीस",
+            "relative-type--1": "काल",
+            "relative-type-0": "आयज",
+            "relative-type-1": "फाल्यां",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} दिसान",
+              "relativeTimePattern-count-other": "{0} दिसानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} दीस आदीं",
+              "relativeTimePattern-count-other": "{0} दीस आदीं"
+            }
+          },
+          "day-short": {
+            "displayName": "दीस",
+            "relative-type--1": "काल",
+            "relative-type-0": "आयज",
+            "relative-type-1": "फाल्यां",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} दिसान",
+              "relativeTimePattern-count-other": "{0} दिसानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} दीस आदीं",
+              "relativeTimePattern-count-other": "{0} दीस आदीं"
+            }
+          },
+          "day-narrow": {
+            "displayName": "दीस",
+            "relative-type--1": "काल",
+            "relative-type-0": "आयज",
+            "relative-type-1": "फाल्यां",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0}दिसान",
+              "relativeTimePattern-count-other": "{0}दिसानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0}दी आदीं",
+              "relativeTimePattern-count-other": "{0}दी आदीं"
+            }
+          },
+          "dayOfYear": {
+            "displayName": "वर्साचो दीस"
+          },
+          "dayOfYear-short": {
+            "displayName": "वर्साचो दीस"
+          },
+          "dayOfYear-narrow": {
+            "displayName": "वर्साचो दीस"
+          },
+          "weekday": {
+            "displayName": "सप्तकाचो दीस"
+          },
+          "weekday-short": {
+            "displayName": "सप्तकाचो दीस"
+          },
+          "weekday-narrow": {
+            "displayName": "सप्तकाचो दीस"
+          },
+          "weekdayOfMonth": {
+            "displayName": "म्हयन्यांत दीसाचो प्रसंग"
+          },
+          "weekdayOfMonth-short": {
+            "displayName": "म्हयन्यांत दीसाचो प्रसंग"
+          },
+          "weekdayOfMonth-narrow": {
+            "displayName": "म्हयन्यांत दीसाचो प्रसंग"
+          },
+          "sun": {
+            "relative-type--1": "फाटलो आयतार",
+            "relative-type-0": "हो आयतार",
+            "relative-type-1": "फुडलो आयतार",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} आयतारान",
+              "relativeTimePattern-count-other": "{0} आयतारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} आयतार आदीं",
+              "relativeTimePattern-count-other": "{0} आयतारां आदीं"
+            }
+          },
+          "sun-short": {
+            "relative-type--1": "फाटलो आयत",
+            "relative-type-0": "हो आयत",
+            "relative-type-1": "फुडलो आयत",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} आयतारान",
+              "relativeTimePattern-count-other": "{0} आयतारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} आयत. आदीं",
+              "relativeTimePattern-count-other": "{0} आयत आदीं"
+            }
+          },
+          "sun-narrow": {
+            "relative-type--1": "फाटलो आ",
+            "relative-type-0": "हो आ",
+            "relative-type-1": "फुडलो आ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} आयतारान",
+              "relativeTimePattern-count-other": "{0} आयतारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} आ आदीं",
+              "relativeTimePattern-count-other": "{0} आ आदीं"
+            }
+          },
+          "mon": {
+            "relative-type--1": "फाटलो सोमार",
+            "relative-type-0": "हो सोमार",
+            "relative-type-1": "फुडलो सोमार",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} सोमारान",
+              "relativeTimePattern-count-other": "{0} सोमारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} सोमार आदीं",
+              "relativeTimePattern-count-other": "{0} सोमारां आदीं"
+            }
+          },
+          "mon-short": {
+            "relative-type--1": "फाटलो सोम.",
+            "relative-type-0": "हो सोम.",
+            "relative-type-1": "फुडलो सोम.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} सोमारान",
+              "relativeTimePattern-count-other": "{0} सोमारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} सोम. आदीं",
+              "relativeTimePattern-count-other": "{0} सोम. आदीं"
+            }
+          },
+          "mon-narrow": {
+            "relative-type--1": "फाटलो सो",
+            "relative-type-0": "हो सो",
+            "relative-type-1": "फुडलो सो",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} सोमारान",
+              "relativeTimePattern-count-other": "{0} सोमारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} सो आदीं",
+              "relativeTimePattern-count-other": "{0} सो आदीं"
+            }
+          },
+          "tue": {
+            "relative-type--1": "फाटलो मंगळार",
+            "relative-type-0": "हो मंगळार",
+            "relative-type-1": "फुडलो मंगळार",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} मंगळारान",
+              "relativeTimePattern-count-other": "{0} मंगळारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} मंगळार आदीं",
+              "relativeTimePattern-count-other": "{0} मंगळारां आदीं"
+            }
+          },
+          "tue-short": {
+            "relative-type--1": "फाटलो मंग.",
+            "relative-type-0": "हो मंग.",
+            "relative-type-1": "फुडलो मंग.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} मंगळारान",
+              "relativeTimePattern-count-other": "{0} मंगळारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} मंग. आदीं",
+              "relativeTimePattern-count-other": "{0} मंग. आदीं"
+            }
+          },
+          "tue-narrow": {
+            "relative-type--1": "फाटलो मं",
+            "relative-type-0": "हो मं",
+            "relative-type-1": "फुडलो मं",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} मंगळारान",
+              "relativeTimePattern-count-other": "{0} मंगळारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} मं आदीं",
+              "relativeTimePattern-count-other": "{0} मं आदीं"
+            }
+          },
+          "wed": {
+            "relative-type--1": "फाटलो बुधवार",
+            "relative-type-0": "हो बुधवार",
+            "relative-type-1": "फुडलो बुधवार",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} बुधवारान",
+              "relativeTimePattern-count-other": "{0} बुधवारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} बुधवार आदीं",
+              "relativeTimePattern-count-other": "{0} बुधवारां आदीं"
+            }
+          },
+          "wed-short": {
+            "relative-type--1": "फाटलो बुध.",
+            "relative-type-0": "हो बुध.",
+            "relative-type-1": "फुडलो बुध.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} बुधवारान",
+              "relativeTimePattern-count-other": "{0} बुधवारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} बुध. आदीं",
+              "relativeTimePattern-count-other": "{0} बुध. आदीं"
+            }
+          },
+          "wed-narrow": {
+            "relative-type--1": "फाटलो बु",
+            "relative-type-0": "हो बु",
+            "relative-type-1": "फुडलो बु",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} बुधवारान",
+              "relativeTimePattern-count-other": "{0} बुधवारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} बु आदीं",
+              "relativeTimePattern-count-other": "{0} बु आदीं"
+            }
+          },
+          "thu": {
+            "relative-type--1": "फाटलो बिरेस्तार",
+            "relative-type-0": "हो बिरेस्तार",
+            "relative-type-1": "फुडलो बिरेस्तार",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} बिरेस्तारान",
+              "relativeTimePattern-count-other": "{0} बिरेस्तारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} बिरेस्तार आदीं",
+              "relativeTimePattern-count-other": "{0} बिरेस्तारां आदीं"
+            }
+          },
+          "thu-short": {
+            "relative-type--1": "फाटलो ब्रेस्त.",
+            "relative-type-0": "हो ब्रेस्त.",
+            "relative-type-1": "फुडलो ब्रेस्त.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} बिरेस्तारान",
+              "relativeTimePattern-count-other": "{0} बिरेस्तारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ब्रेस्त. आदीं",
+              "relativeTimePattern-count-other": "{0} ब्रेस्त. आदीं"
+            }
+          },
+          "thu-narrow": {
+            "relative-type--1": "फाटलो ब्रे",
+            "relative-type-0": "हो ब्रे",
+            "relative-type-1": "फुडलो ब्रे",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} बिरेस्तारान",
+              "relativeTimePattern-count-other": "{0} बिरेस्तारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ब्रे आदीं",
+              "relativeTimePattern-count-other": "{0} ब्रे आदीं"
+            }
+          },
+          "fri": {
+            "relative-type--1": "फाटलो सुक्रार",
+            "relative-type-0": "हो सुक्रार",
+            "relative-type-1": "फुडलो सुक्रार",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} सुक्रारान",
+              "relativeTimePattern-count-other": "{0} सुक्रारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} सुक्रार आदीं",
+              "relativeTimePattern-count-other": "{0} सुक्रारां आदीं"
+            }
+          },
+          "fri-short": {
+            "relative-type--1": "फाटलो सुक्र.",
+            "relative-type-0": "हो सुक्र.",
+            "relative-type-1": "फुडलो सुक्र.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} सुक्रारान",
+              "relativeTimePattern-count-other": "{0} सुक्रारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} सुक्र. आदीं",
+              "relativeTimePattern-count-other": "{0} सुक्र. आदीं"
+            }
+          },
+          "fri-narrow": {
+            "relative-type--1": "फाटलो सुक्र",
+            "relative-type-0": "हो सुक्र",
+            "relative-type-1": "फुडलो सुक्र",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} सुक्रारान",
+              "relativeTimePattern-count-other": "{0} सुक्रारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} सुक्र आदीं",
+              "relativeTimePattern-count-other": "{0} सुक्र आदीं"
+            }
+          },
+          "sat": {
+            "relative-type--1": "फाटलो शेनवार",
+            "relative-type-0": "हो शेनवार",
+            "relative-type-1": "फुडलो शेनवार",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} शेनवारान",
+              "relativeTimePattern-count-other": "{0} शेनवारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} शेनवार आदीं",
+              "relativeTimePattern-count-other": "{0} शेनवारां आदीं"
+            }
+          },
+          "sat-short": {
+            "relative-type--1": "फाटलो शेन.",
+            "relative-type-0": "हो शेन.",
+            "relative-type-1": "फुडलो शेन.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} शेनवारान",
+              "relativeTimePattern-count-other": "{0} शेनवारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} शेन. आदीं",
+              "relativeTimePattern-count-other": "{0} शेन. आदीं"
+            }
+          },
+          "sat-narrow": {
+            "relative-type--1": "फाटलो शे",
+            "relative-type-0": "हो शे",
+            "relative-type-1": "फुडलो शे",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} शेनवारान",
+              "relativeTimePattern-count-other": "{0} शेनवारानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} शे आदीं",
+              "relativeTimePattern-count-other": "{0} शे आदीं"
+            }
+          },
+          "dayperiod-short": {
+            "displayName": "AM/PM"
+          },
+          "dayperiod": {
+            "displayName": "AM/PM"
+          },
+          "dayperiod-narrow": {
+            "displayName": "AM/PM"
+          },
+          "hour": {
+            "displayName": "वर",
+            "relative-type-0": "हें वर",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} वरान",
+              "relativeTimePattern-count-other": "{0} वरांनीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} वर आदीं",
+              "relativeTimePattern-count-other": "{0} वरां आदीं"
+            }
+          },
+          "hour-short": {
+            "displayName": "वर",
+            "relative-type-0": "हें वर",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} वरान",
+              "relativeTimePattern-count-other": "{0} वरांनीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} वर आदीं",
+              "relativeTimePattern-count-other": "{0} वरां आदीं"
+            }
+          },
+          "hour-narrow": {
+            "displayName": "वर",
+            "relative-type-0": "हें वर",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0}वरान",
+              "relativeTimePattern-count-other": "{0}वरांनीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0}वर आदीं",
+              "relativeTimePattern-count-other": "{0}वरां आदीं"
+            }
+          },
+          "minute": {
+            "displayName": "मिनीट",
+            "relative-type-0": "हो मिनूट",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} मिणटान",
+              "relativeTimePattern-count-other": "{0} मिणटांनी"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} मिनूट आदीं",
+              "relativeTimePattern-count-other": "{0} मिणटां आदीं"
+            }
+          },
+          "minute-short": {
+            "displayName": "मिनीट",
+            "relative-type-0": "हो मिन.",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} मिणटान",
+              "relativeTimePattern-count-other": "{0} मिण."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} मिण. आदीं",
+              "relativeTimePattern-count-other": "{0} मिण. आदीं"
+            }
+          },
+          "minute-narrow": {
+            "displayName": "मिनीट",
+            "relative-type-0": "हो मिन",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0}मिणटान",
+              "relativeTimePattern-count-other": "{0}मिण"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0}मिण आदीं",
+              "relativeTimePattern-count-other": "{0}मिण आदीं"
+            }
+          },
+          "second": {
+            "displayName": "सेकंद",
+            "relative-type-0": "आतां",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} सॅकंडान",
+              "relativeTimePattern-count-other": "{0} सॅकंडानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} सॅकंड आदीं",
+              "relativeTimePattern-count-other": "{0} सॅकंड आदीं"
+            }
+          },
+          "second-short": {
+            "displayName": "सेकंद",
+            "relative-type-0": "आतां",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} सॅकंडान",
+              "relativeTimePattern-count-other": "{0} सॅकंडानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} सॅक. आदीं",
+              "relativeTimePattern-count-other": "{0} सॅक. आदीं"
+            }
+          },
+          "second-narrow": {
+            "displayName": "सेकंद",
+            "relative-type-0": "आतां",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0}सॅकंडान",
+              "relativeTimePattern-count-other": "{0}सॅकंडानीं"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0}सॅक आदीं",
+              "relativeTimePattern-count-other": "{0}सॅक आदीं"
+            }
+          },
+          "zone": {
+            "displayName": "वेळ झोन"
+          },
+          "zone-short": {
+            "displayName": "क्षेत्र"
+          },
+          "zone-narrow": {
+            "displayName": "क्षेत्र"
+          }
+        }
+      }
+    }
+  }
+}

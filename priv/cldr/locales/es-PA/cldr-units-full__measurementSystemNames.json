@@ -1,0 +1,17 @@
+{
+  "main": {
+    "es-PA": {
+      "identity": {
+        "language": "es",
+        "territory": "PA"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrico",
+          "UK": "anglosajón",
+          "US": "estadounidense"
+        }
+      }
+    }
+  }
+}

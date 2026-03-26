@@ -1,0 +1,17 @@
+{
+  "main": {
+    "teo-KE": {
+      "identity": {
+        "language": "teo",
+        "territory": "KE"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

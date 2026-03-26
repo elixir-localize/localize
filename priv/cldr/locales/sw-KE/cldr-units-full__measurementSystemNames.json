@@ -1,0 +1,17 @@
+{
+  "main": {
+    "sw-KE": {
+      "identity": {
+        "language": "sw",
+        "territory": "KE"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Kipimo",
+          "UK": "Uingereza",
+          "US": "Marekani"
+        }
+      }
+    }
+  }
+}

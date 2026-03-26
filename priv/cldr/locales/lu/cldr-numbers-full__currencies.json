@@ -1,0 +1,540 @@
+{
+  "main": {
+    "lu": {
+      "identity": {
+        "language": "lu"
+      },
+      "numbers": {
+        "currencies": {
+          "AED": {
+            "displayName": "Ndiriha wa Lemila alabu",
+            "displayName-count-other": "Ndiriha wa Lemila alabu"
+          },
+          "AFN": {
+            "symbol-alt-narrow": "؋"
+          },
+          "AMD": {
+            "symbol-alt-narrow": "֏"
+          },
+          "AOA": {
+            "displayName": "Kwanza wa Angola",
+            "displayName-count-other": "Kwanza wa Angola",
+            "symbol-alt-narrow": "Kz"
+          },
+          "ARS": {
+            "symbol-alt-narrow": "$"
+          },
+          "AUD": {
+            "displayName": "Ndola wa Ositali",
+            "displayName-count-other": "Ndola wa Ositali",
+            "symbol": "A$",
+            "symbol-alt-narrow": "$"
+          },
+          "AZN": {
+            "symbol-alt-narrow": "₼"
+          },
+          "BAM": {
+            "symbol-alt-narrow": "KM"
+          },
+          "BBD": {
+            "symbol-alt-narrow": "$"
+          },
+          "BDT": {
+            "symbol-alt-narrow": "৳"
+          },
+          "BHD": {
+            "displayName": "Ndina wa Bahrene",
+            "displayName-count-other": "Ndina wa Bahrene"
+          },
+          "BIF": {
+            "displayName": "Nfalanga wa Bulundi",
+            "displayName-count-other": "Nfalanga wa Bulundi"
+          },
+          "BMD": {
+            "symbol-alt-narrow": "$"
+          },
+          "BND": {
+            "symbol-alt-narrow": "$"
+          },
+          "BOB": {
+            "symbol-alt-narrow": "Bs"
+          },
+          "BRL": {
+            "symbol": "R$",
+            "symbol-alt-narrow": "R$"
+          },
+          "BSD": {
+            "symbol-alt-narrow": "$"
+          },
+          "BWP": {
+            "displayName": "Pula wa Botswana",
+            "displayName-count-other": "Pula wa Botswana",
+            "symbol-alt-narrow": "P"
+          },
+          "BZD": {
+            "symbol-alt-narrow": "$"
+          },
+          "CAD": {
+            "displayName": "Ndola wa Kanada",
+            "displayName-count-other": "Ndola wa Kanada",
+            "symbol": "CA$",
+            "symbol-alt-narrow": "$"
+          },
+          "CDF": {
+            "displayName": "Nfalanga wa Kongu",
+            "displayName-count-other": "Nfalanga wa Kongu",
+            "symbol": "FC"
+          },
+          "CHF": {
+            "displayName": "Nfalanga wa Swise",
+            "displayName-count-other": "Nfalanga wa Swise"
+          },
+          "CLP": {
+            "symbol-alt-narrow": "$"
+          },
+          "CNY": {
+            "displayName": "Yuani Renminbi wa Shine",
+            "displayName-count-other": "Yuani Renminbi wa Shine",
+            "symbol": "CN¥",
+            "symbol-alt-narrow": "¥"
+          },
+          "COP": {
+            "symbol-alt-narrow": "$"
+          },
+          "CRC": {
+            "symbol-alt-narrow": "₡"
+          },
+          "CUC": {
+            "symbol-alt-narrow": "$"
+          },
+          "CUP": {
+            "symbol-alt-narrow": "$"
+          },
+          "CVE": {
+            "displayName": "Esikuludo wa Kapevere",
+            "displayName-count-other": "Esikuludo wa Kapevere"
+          },
+          "CZK": {
+            "symbol-alt-narrow": "Kč"
+          },
+          "DJF": {
+            "displayName": "Nfalanga wa Dzibuti",
+            "displayName-count-other": "Nfalanga wa Dzibuti"
+          },
+          "DKK": {
+            "symbol-alt-narrow": "kr"
+          },
+          "DOP": {
+            "symbol-alt-narrow": "$"
+          },
+          "DZD": {
+            "displayName": "Ndina wa Alijeri",
+            "displayName-count-other": "Ndina wa Alijeri"
+          },
+          "EGP": {
+            "displayName": "Pauni wa Mushidi",
+            "displayName-count-other": "Pauni wa Mushidi",
+            "symbol-alt-narrow": "E£"
+          },
+          "ERN": {
+            "displayName": "Nakfa wa Elitle",
+            "displayName-count-other": "Nakfa wa Elitle"
+          },
+          "ESP": {
+            "symbol-alt-narrow": "₧"
+          },
+          "ETB": {
+            "displayName": "Bira wa Etshiopi",
+            "displayName-count-other": "Bira wa Etshiopi"
+          },
+          "EUR": {
+            "displayName": "Iro",
+            "displayName-count-other": "Iro",
+            "symbol": "€",
+            "symbol-alt-narrow": "€"
+          },
+          "FJD": {
+            "symbol-alt-narrow": "$"
+          },
+          "FKP": {
+            "symbol-alt-narrow": "£"
+          },
+          "GBP": {
+            "displayName": "Pauni wa Angeletele",
+            "displayName-count-other": "Pauni wa Angeletele",
+            "symbol": "£",
+            "symbol-alt-narrow": "£"
+          },
+          "GEL": {
+            "symbol-alt-narrow": "₾"
+          },
+          "GHC": {
+            "displayName": "Sedi wa Ngana",
+            "displayName-count-other": "Sedi wa Ngana"
+          },
+          "GHS": {
+            "symbol-alt-narrow": "GH₵"
+          },
+          "GIP": {
+            "symbol-alt-narrow": "£"
+          },
+          "GMD": {
+            "displayName": "Ndalasi wa Ngambi",
+            "displayName-count-other": "Ndalasi wa Ngambi"
+          },
+          "GNF": {
+            "symbol-alt-narrow": "FG"
+          },
+          "GNS": {
+            "displayName": "Nfalanga wa Ngina",
+            "displayName-count-other": "Nfalanga wa Ngina"
+          },
+          "GTQ": {
+            "symbol-alt-narrow": "Q"
+          },
+          "GYD": {
+            "symbol-alt-narrow": "$"
+          },
+          "HKD": {
+            "symbol": "HK$",
+            "symbol-alt-narrow": "$"
+          },
+          "HNL": {
+            "symbol-alt-narrow": "L"
+          },
+          "HRK": {
+            "symbol-alt-narrow": "kn"
+          },
+          "HUF": {
+            "symbol-alt-narrow": "Ft"
+          },
+          "IDR": {
+            "symbol-alt-narrow": "Rp"
+          },
+          "ILS": {
+            "symbol": "₪",
+            "symbol-alt-narrow": "₪"
+          },
+          "INR": {
+            "displayName": "Rupi wa Inde",
+            "displayName-count-other": "Rupi wa Inde",
+            "symbol": "₹",
+            "symbol-alt-narrow": "₹"
+          },
+          "ISK": {
+            "symbol-alt-narrow": "kr"
+          },
+          "JMD": {
+            "symbol-alt-narrow": "$"
+          },
+          "JPY": {
+            "displayName": "Yeni wa Zapɔ",
+            "displayName-count-other": "Yeni wa Zapɔ",
+            "symbol": "JP¥",
+            "symbol-alt-narrow": "¥"
+          },
+          "KES": {
+            "displayName": "Nshili wa Kenya",
+            "displayName-count-other": "Nshili wa Kenya"
+          },
+          "KGS": {
+            "symbol-alt-narrow": "⃀"
+          },
+          "KHR": {
+            "symbol-alt-narrow": "៛"
+          },
+          "KMF": {
+            "displayName": "Nfalanga wa Komoru",
+            "displayName-count-other": "Nfalanga wa Komoru",
+            "symbol-alt-narrow": "CF"
+          },
+          "KPW": {
+            "symbol-alt-narrow": "₩"
+          },
+          "KRW": {
+            "symbol": "₩",
+            "symbol-alt-narrow": "₩"
+          },
+          "KYD": {
+            "symbol-alt-narrow": "$"
+          },
+          "KZT": {
+            "symbol-alt-narrow": "₸"
+          },
+          "LAK": {
+            "symbol-alt-narrow": "₭"
+          },
+          "LBP": {
+            "symbol-alt-narrow": "L£"
+          },
+          "LKR": {
+            "symbol-alt-narrow": "Rs"
+          },
+          "LRD": {
+            "displayName": "Ndola wa Liberya",
+            "displayName-count-other": "Ndola wa Liberya",
+            "symbol-alt-narrow": "$"
+          },
+          "LSL": {
+            "displayName": "Loti wa Lesoto",
+            "displayName-count-other": "Loti wa Lesoto"
+          },
+          "LTL": {
+            "symbol-alt-narrow": "Lt"
+          },
+          "LVL": {
+            "symbol-alt-narrow": "Ls"
+          },
+          "LYD": {
+            "displayName": "Ndina wa Libi",
+            "displayName-count-other": "Ndina wa Libi"
+          },
+          "MAD": {
+            "displayName": "Ndiriha wa Maroke",
+            "displayName-count-other": "Ndiriha wa Maroke"
+          },
+          "MGA": {
+            "displayName": "Nfalanga wa Madagasikare",
+            "displayName-count-other": "Nfalanga wa Madagasikare",
+            "symbol-alt-narrow": "Ar"
+          },
+          "MMK": {
+            "symbol-alt-narrow": "K"
+          },
+          "MNT": {
+            "symbol-alt-narrow": "₮"
+          },
+          "MRO": {
+            "displayName": "Ugwiya wa Moritani (1973–2017)",
+            "displayName-count-other": "Ugwiya wa Moritani (1973–2017)"
+          },
+          "MRU": {
+            "displayName": "Ugwiya wa Moritani",
+            "displayName-count-other": "Ugwiya wa Moritani"
+          },
+          "MUR": {
+            "displayName": "Rupia wa Morisi",
+            "displayName-count-other": "Rupia wa Morisi",
+            "symbol-alt-narrow": "Rs"
+          },
+          "MWK": {
+            "displayName": "Kwasha wa Malawi",
+            "displayName-count-other": "Kwasha wa Malawi"
+          },
+          "MXN": {
+            "symbol": "MX$",
+            "symbol-alt-narrow": "$"
+          },
+          "MYR": {
+            "symbol-alt-narrow": "RM"
+          },
+          "MZM": {
+            "displayName": "Metikali wa Mozambiki",
+            "displayName-count-other": "Metikali wa Mozambiki"
+          },
+          "NAD": {
+            "displayName": "Ndola wa Namibi",
+            "displayName-count-other": "Ndola wa Namibi",
+            "symbol-alt-narrow": "$"
+          },
+          "NGN": {
+            "displayName": "Naira wa Nizerya",
+            "displayName-count-other": "Naira wa Nizerya",
+            "symbol-alt-narrow": "₦"
+          },
+          "NIO": {
+            "symbol-alt-narrow": "C$"
+          },
+          "NOK": {
+            "symbol-alt-narrow": "kr"
+          },
+          "NPR": {
+            "symbol-alt-narrow": "Rs"
+          },
+          "NZD": {
+            "symbol": "NZ$",
+            "symbol-alt-narrow": "$"
+          },
+          "PHP": {
+            "symbol": "₱",
+            "symbol-alt-narrow": "₱"
+          },
+          "PKR": {
+            "symbol-alt-narrow": "Rs"
+          },
+          "PLN": {
+            "symbol-alt-narrow": "zł"
+          },
+          "PYG": {
+            "symbol-alt-narrow": "₲"
+          },
+          "RON": {
+            "symbol-alt-narrow": "lei"
+          },
+          "RUB": {
+            "symbol-alt-narrow": "₽"
+          },
+          "RWF": {
+            "displayName": "Nfalanga wa Rwanda",
+            "displayName-count-other": "Nfalanga wa Rwanda",
+            "symbol-alt-narrow": "RF"
+          },
+          "SAR": {
+            "displayName": "Riyale wa Alabu Nsawu",
+            "displayName-count-other": "Riyale wa Alabu Nsawu",
+            "symbol-alt-variant": "⃁"
+          },
+          "SBD": {
+            "symbol-alt-narrow": "$"
+          },
+          "SCR": {
+            "displayName": "Rupya wa Seshele",
+            "displayName-count-other": "Rupya wa Seshele"
+          },
+          "SDG": {
+            "displayName": "Ndina wa Suda",
+            "displayName-count-other": "Ndina wa Suda"
+          },
+          "SDP": {
+            "displayName": "Pauni wa Suda",
+            "displayName-count-other": "Pauni wa Suda"
+          },
+          "SEK": {
+            "symbol-alt-narrow": "kr"
+          },
+          "SGD": {
+            "symbol-alt-narrow": "$"
+          },
+          "SHP": {
+            "displayName": "Pauni wa Santu Elena",
+            "displayName-count-other": "Pauni wa Santu Elena",
+            "symbol-alt-narrow": "£"
+          },
+          "SLE": {
+            "displayName": "Leone",
+            "displayName-count-other": "Leone"
+          },
+          "SLL": {
+            "displayName": "Leone (1964—2022)",
+            "displayName-count-other": "Leone (1964—2022)"
+          },
+          "SOS": {
+            "displayName": "Nshili wa Somali",
+            "displayName-count-other": "Nshili wa Somali"
+          },
+          "SRD": {
+            "symbol-alt-narrow": "$"
+          },
+          "SSP": {
+            "symbol-alt-narrow": "£"
+          },
+          "STD": {
+            "displayName": "Dobra wa Sao Tome ne Presipe (1977–2017)",
+            "displayName-count-other": "Dobra wa Sao Tome ne Presipe (1977–2017)"
+          },
+          "STN": {
+            "displayName": "Dobra wa Sao Tome ne Presipe",
+            "displayName-count-other": "Dobra wa Sao Tome ne Presipe",
+            "symbol-alt-narrow": "Db"
+          },
+          "SYP": {
+            "symbol-alt-narrow": "£"
+          },
+          "SZL": {
+            "displayName": "Lilangeni",
+            "displayName-count-other": "Lilangeni"
+          },
+          "THB": {
+            "symbol-alt-narrow": "฿"
+          },
+          "TND": {
+            "displayName": "Ndina wa Tinizi",
+            "displayName-count-other": "Ndina wa Tinizi"
+          },
+          "TOP": {
+            "symbol-alt-narrow": "T$"
+          },
+          "TRY": {
+            "symbol-alt-narrow": "₺",
+            "symbol-alt-variant": "TL"
+          },
+          "TTD": {
+            "symbol-alt-narrow": "$"
+          },
+          "TWD": {
+            "symbol": "NT$",
+            "symbol-alt-narrow": "$"
+          },
+          "TZS": {
+            "displayName": "Nshili wa Tanzani",
+            "displayName-count-other": "Nshili wa Tanzani"
+          },
+          "UAH": {
+            "symbol-alt-narrow": "₴"
+          },
+          "UGX": {
+            "displayName": "Nshili wa Uganda",
+            "displayName-count-other": "Nshili wa Uganda"
+          },
+          "USD": {
+            "displayName": "Ndola wa Ameriki",
+            "displayName-count-other": "Ndola wa Ameriki",
+            "symbol": "US$",
+            "symbol-alt-narrow": "$"
+          },
+          "UYU": {
+            "symbol-alt-narrow": "$"
+          },
+          "VEF": {
+            "symbol-alt-narrow": "Bs"
+          },
+          "VND": {
+            "symbol": "₫",
+            "symbol-alt-narrow": "₫"
+          },
+          "XAF": {
+            "displayName": "Nfalanga CFA BEAC",
+            "displayName-count-other": "Nfalanga CFA BEAC",
+            "symbol": "FCFA"
+          },
+          "XCD": {
+            "symbol": "EC$",
+            "symbol-alt-narrow": "$"
+          },
+          "XCG": {
+            "symbol": "Cg."
+          },
+          "XOF": {
+            "displayName": "Nfalanga CFA BCEAO",
+            "displayName-count-other": "Nfalanga CFA BCEAO",
+            "symbol": "F CFA"
+          },
+          "XPF": {
+            "symbol": "CFPF"
+          },
+          "XXX": {
+            "symbol": "¤"
+          },
+          "ZAR": {
+            "displayName": "Rande wa Afrika wa Mwinshi",
+            "displayName-count-other": "Rande wa Afrika wa Mwinshi",
+            "symbol-alt-narrow": "R"
+          },
+          "ZMK": {
+            "displayName": "Kwasha wa Zambi (1968–2012)",
+            "displayName-count-other": "Kwasha wa Zambi (1968–2012)"
+          },
+          "ZMW": {
+            "displayName": "Kwasha wa Zambi",
+            "displayName-count-other": "Kwasha wa Zambi",
+            "symbol-alt-narrow": "ZK"
+          },
+          "ZWD": {
+            "displayName": "Ndola wa Zimbabwe",
+            "displayName-count-other": "Ndola wa Zimbabwe"
+          }
+        }
+      }
+    }
+  }
+}

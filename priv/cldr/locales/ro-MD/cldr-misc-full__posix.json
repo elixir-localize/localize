@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ro-MD": {
+      "identity": {
+        "language": "ro",
+        "territory": "MD"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "da:d",
+          "nostr": "nu:n"
+        }
+      }
+    }
+  }
+}

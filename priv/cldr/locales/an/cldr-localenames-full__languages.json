@@ -1,0 +1,55 @@
+{
+  "main": {
+    "an": {
+      "identity": {
+        "language": "an"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "an": "aragonés",
+          "ar": "arabe",
+          "ar-001": "arabe standard moderno",
+          "bn": "bengalí",
+          "de": "alemán",
+          "de-AT": "alemán austriaco",
+          "de-CH": "alemán standard suizo",
+          "en": "anglés",
+          "en-AU": "anglés australiano",
+          "en-CA": "anglés canadiense",
+          "en-GB": "anglés britanico",
+          "en-GB-alt-short": "anglés (RU)",
+          "en-US": "anglés americano",
+          "en-US-alt-short": "anglés (EUA)",
+          "es": "espanyol",
+          "es-419": "espanyol latino-americano",
+          "es-ES": "espanyol europeu",
+          "es-MX": "espanyol mexicano",
+          "fr": "francés",
+          "fr-CA": "francés canadiense",
+          "fr-CH": "francés suizo",
+          "hi": "hindi",
+          "id": "indonesio",
+          "it": "italiano",
+          "ja": "chaponés",
+          "ko": "coreano",
+          "nl": "neerlandés",
+          "nl-BE": "flamenco",
+          "pl": "polaco",
+          "pt": "portugués",
+          "pt-BR": "portugués brasilenyo",
+          "pt-PT": "portugués europeu",
+          "ru": "ruso",
+          "th": "tai",
+          "tr": "turco",
+          "und": "idioma desconoixiu",
+          "zh": "chino",
+          "zh-alt-menu": "chino mandarín",
+          "zh-Hans": "chino simplificau",
+          "zh-Hans-alt-long": "chino mandarín (simplificau)",
+          "zh-Hant": "chino tradicional",
+          "zh-Hant-alt-long": "chino mandarín (tradicional)"
+        }
+      }
+    }
+  }
+}

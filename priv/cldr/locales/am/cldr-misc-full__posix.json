@@ -1,0 +1,15 @@
+{
+  "main": {
+    "am": {
+      "identity": {
+        "language": "am"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "አዎን:ዎ",
+          "nostr": "አይ:ይ"
+        }
+      }
+    }
+  }
+}

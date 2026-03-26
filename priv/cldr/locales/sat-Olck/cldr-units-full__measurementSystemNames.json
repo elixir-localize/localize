@@ -1,0 +1,17 @@
+{
+  "main": {
+    "sat-Olck": {
+      "identity": {
+        "language": "sat",
+        "script": "Olck"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "ᱢᱮᱴᱨᱤᱠ",
+          "UK": "ᱭᱩᱠᱮ",
+          "US": "ᱭᱩᱮᱥ"
+        }
+      }
+    }
+  }
+}

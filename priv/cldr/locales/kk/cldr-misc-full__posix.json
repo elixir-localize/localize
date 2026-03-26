@@ -1,0 +1,15 @@
+{
+  "main": {
+    "kk": {
+      "identity": {
+        "language": "kk"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "иә:и",
+          "nostr": "жоқ:ж"
+        }
+      }
+    }
+  }
+}

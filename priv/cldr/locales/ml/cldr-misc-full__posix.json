@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ml": {
+      "identity": {
+        "language": "ml"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ഉവ്വ്",
+          "nostr": "അല്ല"
+        }
+      }
+    }
+  }
+}

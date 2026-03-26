@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-SH": {
+      "identity": {
+        "language": "en",
+        "territory": "SH"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

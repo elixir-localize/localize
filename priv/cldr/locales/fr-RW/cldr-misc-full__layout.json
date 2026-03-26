@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-RW": {
+      "identity": {
+        "language": "fr",
+        "territory": "RW"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

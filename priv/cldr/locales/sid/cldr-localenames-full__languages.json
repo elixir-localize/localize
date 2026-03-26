@@ -1,0 +1,14 @@
+{
+  "main": {
+    "sid": {
+      "identity": {
+        "language": "sid"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "sid": "Sidaamu Afo"
+        }
+      }
+    }
+  }
+}

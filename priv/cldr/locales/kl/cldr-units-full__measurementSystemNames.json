@@ -1,0 +1,16 @@
+{
+  "main": {
+    "kl": {
+      "identity": {
+        "language": "kl"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "SI",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

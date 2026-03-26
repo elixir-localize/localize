@@ -1,0 +1,17 @@
+{
+  "main": {
+    "so-ET": {
+      "identity": {
+        "language": "so",
+        "territory": "ET"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metrik",
+          "UK": "Boqortooyada Midawday",
+          "US": "Maraykan"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "apc": {
+      "identity": {
+        "language": "apc"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

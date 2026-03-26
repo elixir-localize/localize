@@ -1,0 +1,16 @@
+{
+  "main": {
+    "kxv-Latn": {
+      "identity": {
+        "language": "kxv",
+        "script": "Latn"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

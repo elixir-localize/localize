@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fr-KM": {
+      "identity": {
+        "language": "fr",
+        "territory": "KM"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrique",
+          "UK": "impérial",
+          "US": "américain"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "main": {
+    "sr-Cyrl": {
+      "identity": {
+        "language": "sr",
+        "script": "Cyrl"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "метрички",
+          "UK": "британски",
+          "US": "амерички"
+        }
+      }
+    }
+  }
+}

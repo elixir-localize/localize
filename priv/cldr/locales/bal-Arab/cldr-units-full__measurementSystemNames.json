@@ -1,0 +1,17 @@
+{
+  "main": {
+    "bal-Arab": {
+      "identity": {
+        "language": "bal",
+        "script": "Arab"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "میتَری",
+          "UK": "برتانی",
+          "US": "امریکی"
+        }
+      }
+    }
+  }
+}

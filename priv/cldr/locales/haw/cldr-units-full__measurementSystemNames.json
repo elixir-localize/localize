@@ -1,0 +1,16 @@
+{
+  "main": {
+    "haw": {
+      "identity": {
+        "language": "haw"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Mekalika",
+          "UK": "UK",
+          "US": "ʻAmelika Hui Pū ʻIa"
+        }
+      }
+    }
+  }
+}

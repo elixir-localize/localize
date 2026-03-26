@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ps": {
+      "identity": {
+        "language": "ps"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "مېټرک",
+          "UK": "برتانوې",
+          "US": "متحده ايالات"
+        }
+      }
+    }
+  }
+}

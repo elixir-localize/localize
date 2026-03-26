@@ -1,0 +1,15 @@
+{
+  "main": {
+    "dyo": {
+      "identity": {
+        "language": "dyo"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Eey:E",
+          "nostr": "Hani:H"
+        }
+      }
+    }
+  }
+}

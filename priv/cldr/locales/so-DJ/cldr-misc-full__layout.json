@@ -1,0 +1,16 @@
+{
+  "main": {
+    "so-DJ": {
+      "identity": {
+        "language": "so",
+        "territory": "DJ"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

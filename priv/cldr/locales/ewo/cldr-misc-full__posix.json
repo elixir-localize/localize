@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ewo": {
+      "identity": {
+        "language": "ewo"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Owé:O",
+          "nostr": "Tɛgɛ:T"
+        }
+      }
+    }
+  }
+}

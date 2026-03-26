@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ak": {
+      "identity": {
+        "language": "ak"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

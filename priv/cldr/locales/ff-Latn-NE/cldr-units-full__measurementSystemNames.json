@@ -1,0 +1,18 @@
+{
+  "main": {
+    "ff-Latn-NE": {
+      "identity": {
+        "language": "ff",
+        "script": "Latn",
+        "territory": "NE"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

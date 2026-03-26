@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ps-PK": {
+      "identity": {
+        "language": "ps",
+        "territory": "PK"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "هو:ه",
+          "nostr": "نه:ن"
+        }
+      }
+    }
+  }
+}

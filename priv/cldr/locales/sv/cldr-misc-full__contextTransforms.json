@@ -1,0 +1,23 @@
+{
+  "main": {
+    "sv": {
+      "identity": {
+        "language": "sv"
+      },
+      "contextTransforms": {
+        "currencyName": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        },
+        "languages": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        },
+        "typographicNames": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        }
+      }
+    }
+  }
+}

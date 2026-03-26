@@ -46,8 +46,7 @@ defmodule Localize.Data.Locale do
 
   """
   def generate_locale(locale) do
-    cldr_locale_specific_dirs()
-    |> consolidate_locale_content(locale)
+    consolidate_locale_content(locale)
     |> level_up_locale(locale)
     |> put_localized_subdivisions(locale)
     |> LMap.underscore_keys(
@@ -82,33 +81,25 @@ defmodule Localize.Data.Locale do
 
   # ── Content consolidation ─────────────────────────────────────
 
-  defp cldr_locale_specific_dirs do
-    source_dir = Localize.Data.cldr_source_dir()
+  # Reads all JSON files from priv/cldr/locales/<locale>/ and
+  # merges them into a single map. Files are named as
+  # <source-dir>__<original-name>.json by copy_locale_sources.
+  defp consolidate_locale_content(locale) do
+    locale_dir = Path.join(Localize.Data.locales_source_dir(), locale)
 
-    source_dir
-    |> File.ls!()
-    |> Enum.filter(&String.ends_with?(&1, "-full"))
-    |> Enum.map(&Path.join(source_dir, &1))
-  end
+    case File.ls(locale_dir) do
+      {:ok, files} ->
+        files
+        |> Enum.filter(&String.ends_with?(&1, ".json"))
+        |> Enum.sort()
+        |> Enum.map(fn file ->
+          content = File.read!(Path.join(locale_dir, file))
+          if content == "", do: %{}, else: :json.decode(content)
+        end)
+        |> merge_maps()
 
-  defp consolidate_locale_content(locale_dirs, locale) do
-    locale_dirs
-    |> Enum.map(&locale_specific_content(locale, &1))
-    |> merge_maps()
-  end
-
-  defp locale_specific_content(locale, directory) do
-    dir = Path.join(directory, "main/#{locale}")
-
-    with {:ok, files} <- File.ls(dir) do
-      Enum.map(files, &Path.join(dir, &1))
-      |> Enum.map(fn f ->
-        content = File.read!(f)
-        if content == "", do: %{}, else: :json.decode(content)
-      end)
-      |> merge_maps()
-    else
-      {:error, _} -> %{}
+      {:error, _} ->
+        %{}
     end
   end
 
@@ -131,7 +122,7 @@ defmodule Localize.Data.Locale do
 
   defp localized_subdivisions(locale) do
     subdivisions_path =
-      Path.join(Localize.Data.cldr_source_dir(), "subdivisions/#{locale}.xml")
+      Path.join([Localize.Data.locales_source_dir(), locale, "subdivisions.xml"])
 
     if File.exists?(subdivisions_path) do
       parse_xml_subdivisions(subdivisions_path)
@@ -159,12 +150,19 @@ defmodule Localize.Data.Locale do
   # generated data matches what get_locale returns.
 
   @alt_keys [
-    "default", "menu", "short", "long", "variant",
-    "standard", "medium", "core", "extension", "alt"
+    "default",
+    "menu",
+    "short",
+    "long",
+    "variant",
+    "standard",
+    "medium",
+    "core",
+    "extension",
+    "alt"
   ]
 
   @lenient_parse_keys ["date", "general", "number"]
-
 
   defp apply_loader_transforms(content) do
     content

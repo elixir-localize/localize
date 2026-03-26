@@ -1,0 +1,16 @@
+{
+  "main": {
+    "lv": {
+      "identity": {
+        "language": "lv"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metriskā",
+          "UK": "angļu",
+          "US": "amerikāņu"
+        }
+      }
+    }
+  }
+}

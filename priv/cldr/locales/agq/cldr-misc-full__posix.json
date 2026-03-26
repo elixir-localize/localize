@@ -1,0 +1,15 @@
+{
+  "main": {
+    "agq": {
+      "identity": {
+        "language": "agq"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "òo:O",
+          "nostr": "hǎe:H"
+        }
+      }
+    }
+  }
+}

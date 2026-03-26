@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ha-GH": {
+      "identity": {
+        "language": "ha",
+        "territory": "GH"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "i",
+          "nostr": "aʼa:a"
+        }
+      }
+    }
+  }
+}

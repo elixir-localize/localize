@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sw": {
+      "identity": {
+        "language": "sw"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Mfumo wa Mita",
+          "UK": "Uingereza",
+          "US": "Marekani"
+        }
+      }
+    }
+  }
+}

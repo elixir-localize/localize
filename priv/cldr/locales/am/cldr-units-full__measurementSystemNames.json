@@ -1,0 +1,16 @@
+{
+  "main": {
+    "am": {
+      "identity": {
+        "language": "am"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "ሜትሪክ",
+          "UK": "ዩኬ",
+          "US": "ዩ ኤስ"
+        }
+      }
+    }
+  }
+}

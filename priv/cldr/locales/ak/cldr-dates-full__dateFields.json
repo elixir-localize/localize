@@ -1,0 +1,670 @@
+{
+  "main": {
+    "ak": {
+      "identity": {
+        "language": "ak"
+      },
+      "dates": {
+        "fields": {
+          "era": {
+            "displayName": "berɛ"
+          },
+          "era-short": {
+            "displayName": "berɛ"
+          },
+          "era-narrow": {
+            "displayName": "berɛ"
+          },
+          "year": {
+            "displayName": "Afe",
+            "relative-type--1": "afe a atwam",
+            "relative-type-0": "afe yi",
+            "relative-type-1": "afe a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "afe {0} mu",
+              "relativeTimePattern-count-other": "mfeɛ {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "afe {0} a atwam",
+              "relativeTimePattern-count-other": "mfeɛ {0} a atwam"
+            }
+          },
+          "year-short": {
+            "displayName": "Afe",
+            "relative-type--1": "afe a atwam",
+            "relative-type-0": "afe yi",
+            "relative-type-1": "afe a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "afe {0} mu",
+              "relativeTimePattern-count-other": "mfeɛ {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "afe {0} a atwam",
+              "relativeTimePattern-count-other": "mfeɛ {0} a atwam"
+            }
+          },
+          "year-narrow": {
+            "displayName": "Afe",
+            "relative-type--1": "afe a atwam",
+            "relative-type-0": "afe yi",
+            "relative-type-1": "afe a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "afe {0} mu",
+              "relativeTimePattern-count-other": "mfeɛ {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "afe {0} a atwam",
+              "relativeTimePattern-count-other": "mfeɛ {0} a atwam"
+            }
+          },
+          "quarter": {
+            "displayName": "kɔta",
+            "relative-type--1": "kɔta a atwam",
+            "relative-type-0": "kɔta yi",
+            "relative-type-1": "kɔta a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "kɔta {0} mu",
+              "relativeTimePattern-count-other": "kɔta ahodoɔ {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "kɔta {0} a atwam",
+              "relativeTimePattern-count-other": "kɔta ahodoɔ {0} a atwam"
+            }
+          },
+          "quarter-short": {
+            "displayName": "kɔta",
+            "relative-type--1": "kɔta a atwam",
+            "relative-type-0": "kɔta yi",
+            "relative-type-1": "kɔta a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "kɔta {0} mu",
+              "relativeTimePattern-count-other": "kɔta ahodoɔ {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "kɔta {0} a atwam",
+              "relativeTimePattern-count-other": "kɔta ahodoɔ {0} a atwam"
+            }
+          },
+          "quarter-narrow": {
+            "displayName": "kɔta",
+            "relative-type--1": "kɔta a atwam",
+            "relative-type-0": "kɔta yi",
+            "relative-type-1": "kɔta a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "kɔta {0} mu",
+              "relativeTimePattern-count-other": "kɔta {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "kɔta {0} a atwam",
+              "relativeTimePattern-count-other": "kɔta {0} a atwam"
+            }
+          },
+          "month": {
+            "displayName": "Bosome",
+            "relative-type--1": "bosome a atwam",
+            "relative-type-0": "bosome yi",
+            "relative-type-1": "bosome a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "bosome{0} mu",
+              "relativeTimePattern-count-other": "abosome{0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "-{0} bosome a atwam",
+              "relativeTimePattern-count-other": "abosome{0} a atwam"
+            }
+          },
+          "month-short": {
+            "displayName": "Bosome",
+            "relative-type--1": "bosome a atwam",
+            "relative-type-0": "bosome yi",
+            "relative-type-1": "bosome a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "bosome {0} mu",
+              "relativeTimePattern-count-other": "abosome{0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "bosome {0} a atwam",
+              "relativeTimePattern-count-other": "abosome{0} a atwam"
+            }
+          },
+          "month-narrow": {
+            "displayName": "Bosome",
+            "relative-type--1": "bosome a atwam",
+            "relative-type-0": "bosome yi",
+            "relative-type-1": "bosome a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "bosome {0} mu",
+              "relativeTimePattern-count-other": "abosome{0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "bosome {0} a atwam",
+              "relativeTimePattern-count-other": "abosome{0} a atwam"
+            }
+          },
+          "week": {
+            "displayName": "Nnawɔtwe",
+            "relative-type--1": "nnawɔtwe a atwam",
+            "relative-type-0": "nnawɔtwe yi",
+            "relative-type-1": "nnawɔtwe a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "nnawɔtwe {0} mu",
+              "relativeTimePattern-count-other": "nnawɔtwe {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "nnawɔtwe{0} a atwam",
+              "relativeTimePattern-count-other": "nnawɔtwe{0} a atwam"
+            },
+            "relativePeriod": "nnawɔtwe a ɛtɔ so {0}mu"
+          },
+          "week-short": {
+            "displayName": "Nnawɔtwe",
+            "relative-type--1": "nnawɔtwe a atwam",
+            "relative-type-0": "nnawɔtwe yi",
+            "relative-type-1": "nnawɔtwe a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "nnawɔtwe {0} mu",
+              "relativeTimePattern-count-other": "nnawɔtwe {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "nnawɔtwe{0} a atwam",
+              "relativeTimePattern-count-other": "nnawɔtwe{0} a atwam"
+            },
+            "relativePeriod": "nnawɔtwe a ɛtɔ so {0}mu"
+          },
+          "week-narrow": {
+            "displayName": "Nnawɔtwe",
+            "relative-type--1": "nnawɔtwe a atwam",
+            "relative-type-0": "nnawɔtwe yi",
+            "relative-type-1": "nnawɔtwe a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "nnawɔtwe {0} mu.",
+              "relativeTimePattern-count-other": "nnawɔtwe {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "nnawɔtwe{0} a atwam",
+              "relativeTimePattern-count-other": "nnawɔtwe {0} a atwam"
+            },
+            "relativePeriod": "nnawɔtwe a ɛtɔ so {0}mu"
+          },
+          "weekOfMonth": {
+            "displayName": "bosome mu nnawɔtwe"
+          },
+          "weekOfMonth-short": {
+            "displayName": "bosome mu nnawɔtwe"
+          },
+          "weekOfMonth-narrow": {
+            "displayName": "bosome mu nnawɔtwe"
+          },
+          "day": {
+            "displayName": "Da",
+            "relative-type--1": "nnora",
+            "relative-type-0": "ɛnnɛ",
+            "relative-type-1": "Ɔkyena",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "da {0} mu",
+              "relativeTimePattern-count-other": "nna {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "da{0} a atwam",
+              "relativeTimePattern-count-other": "nna{0} a atwam"
+            }
+          },
+          "day-short": {
+            "displayName": "Da",
+            "relative-type--1": "nnora",
+            "relative-type-0": "ɛnnɛ",
+            "relative-type-1": "Ɔkyena",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "da {0} mu",
+              "relativeTimePattern-count-other": "nna {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "da{0} a atwam",
+              "relativeTimePattern-count-other": "nna{0} a atwam"
+            }
+          },
+          "day-narrow": {
+            "displayName": "Da",
+            "relative-type--1": "ɛnnora",
+            "relative-type-0": "ɛnnɛ",
+            "relative-type-1": "Ɔkyena",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "da {0} mu",
+              "relativeTimePattern-count-other": "nna {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "da{0} a atwam",
+              "relativeTimePattern-count-other": "nna{0} a atwam"
+            }
+          },
+          "dayOfYear": {
+            "displayName": "afe mu da"
+          },
+          "dayOfYear-short": {
+            "displayName": "afe mu da"
+          },
+          "dayOfYear-narrow": {
+            "displayName": "afe mu da"
+          },
+          "weekday": {
+            "displayName": "nnawɔtwe mu da"
+          },
+          "weekday-short": {
+            "displayName": "nnawɔtwe mu da"
+          },
+          "weekday-narrow": {
+            "displayName": "nnawɔtwe mu da"
+          },
+          "weekdayOfMonth": {
+            "displayName": "nnawɔtwe mu da wɔ bosome mu"
+          },
+          "weekdayOfMonth-short": {
+            "displayName": "nnawɔtwe mu da wɔ bosome mu"
+          },
+          "weekdayOfMonth-narrow": {
+            "displayName": "nnawɔtwe mu da wɔ bosome mu"
+          },
+          "sun": {
+            "relative-type--1": "Kwasiada a atwam",
+            "relative-type-0": "Kwasiada yi",
+            "relative-type-1": "Kwasiada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Kwasiada {0} mu",
+              "relativeTimePattern-count-other": "Kwasiada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Kwasiada {0} a atwam",
+              "relativeTimePattern-count-other": "Kwasiada {0} a atwam"
+            }
+          },
+          "sun-short": {
+            "relative-type--1": "Kwasiada a atwam",
+            "relative-type-0": "Kwasiada yi",
+            "relative-type-1": "Kwasiada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Kwasiada {0} mu",
+              "relativeTimePattern-count-other": "Kwasiada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Kwasiada {0} a atwam",
+              "relativeTimePattern-count-other": "Kwasiada {0} a atwam"
+            }
+          },
+          "sun-narrow": {
+            "relative-type--1": "Kwasiada a atwam",
+            "relative-type-0": "Kwasiada yi",
+            "relative-type-1": "Kwasiada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Kwasiada {0} mu",
+              "relativeTimePattern-count-other": "Kwasiada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Kwasiada {0} a atwam",
+              "relativeTimePattern-count-other": "Kwasiada {0} a atwam"
+            }
+          },
+          "mon": {
+            "relative-type--1": "Dwoada a atwam",
+            "relative-type-0": "Dwoada yi",
+            "relative-type-1": "Dwoada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Dwoada {0} mu",
+              "relativeTimePattern-count-other": "Dwoada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Dwoada {0} a atwam",
+              "relativeTimePattern-count-other": "Dwoada {0} a atwam"
+            }
+          },
+          "mon-short": {
+            "relative-type--1": "Dwoada a atwam",
+            "relative-type-0": "Dwoada yi",
+            "relative-type-1": "Dwoada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Dwoada {0} mu",
+              "relativeTimePattern-count-other": "Dwoada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Dwoada {0} a atwam",
+              "relativeTimePattern-count-other": "Dwoada {0} a atwam"
+            }
+          },
+          "mon-narrow": {
+            "relative-type--1": "Dwoada a atwam",
+            "relative-type-0": "Dwoada yi",
+            "relative-type-1": "Dwoada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Dwoada {0} mu",
+              "relativeTimePattern-count-other": "Dwoada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Dwoada {0} a atwam",
+              "relativeTimePattern-count-other": "Dwoada {0} a atwam"
+            }
+          },
+          "tue": {
+            "relative-type--1": "Benada a atwam",
+            "relative-type-0": "Benada yi",
+            "relative-type-1": "Benada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Benada {0} mu",
+              "relativeTimePattern-count-other": "Benada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Benada {0} a atwam",
+              "relativeTimePattern-count-other": "Benada {0} a atwam"
+            }
+          },
+          "tue-short": {
+            "relative-type--1": "Benada a atwam",
+            "relative-type-0": "Benada yi",
+            "relative-type-1": "Benada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Benada {0} mu",
+              "relativeTimePattern-count-other": "Benada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Benada {0} a atwam",
+              "relativeTimePattern-count-other": "Benada {0} a atwam"
+            }
+          },
+          "tue-narrow": {
+            "relative-type--1": "Benada a atwam",
+            "relative-type-0": "Benada yi",
+            "relative-type-1": "Benada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Benada {0} mu",
+              "relativeTimePattern-count-other": "Benada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Benada {0} a atwam",
+              "relativeTimePattern-count-other": "Benada {0} a atwam"
+            }
+          },
+          "wed": {
+            "relative-type--1": "Wukuada a atwam",
+            "relative-type-0": "Wukuada yi",
+            "relative-type-1": "Wukuada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Wukuada {0} mu",
+              "relativeTimePattern-count-other": "Wukuada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Wukuada {0} a atwam",
+              "relativeTimePattern-count-other": "Wukuada {0} a atwam"
+            }
+          },
+          "wed-short": {
+            "relative-type--1": "Wukuada a atwam",
+            "relative-type-0": "Wukuada yi",
+            "relative-type-1": "Wukuada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Wukuada {0} mu",
+              "relativeTimePattern-count-other": "Wukuada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Wukuada {0} a atwam",
+              "relativeTimePattern-count-other": "Wukuada {0} a atwam"
+            }
+          },
+          "wed-narrow": {
+            "relative-type--1": "Wukuada a atwam",
+            "relative-type-0": "Wukuada yi",
+            "relative-type-1": "Wukuada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Wukuada {0} mu",
+              "relativeTimePattern-count-other": "Wukuada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Wukuada {0} a atwam",
+              "relativeTimePattern-count-other": "Wukuada {0} a atwam"
+            }
+          },
+          "thu": {
+            "relative-type--1": "Yawoada a atwam",
+            "relative-type-0": "Yawoada yi",
+            "relative-type-1": "Yawoada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Yawoada {0} mu",
+              "relativeTimePattern-count-other": "Yawoada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Yawoada {0} a atwam",
+              "relativeTimePattern-count-other": "Yawoada {0} a atwam"
+            }
+          },
+          "thu-short": {
+            "relative-type--1": "Yawoada a atwam",
+            "relative-type-0": "Yawoada yi",
+            "relative-type-1": "Yawoada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Yawoada {0} mu",
+              "relativeTimePattern-count-other": "Yawoada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Yawoada {0} a atwam",
+              "relativeTimePattern-count-other": "Yawoada {0} a atwam"
+            }
+          },
+          "thu-narrow": {
+            "relative-type--1": "Yawoada a atwam",
+            "relative-type-0": "Yawoada yi",
+            "relative-type-1": "Yawoada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Yawoada {0} mu",
+              "relativeTimePattern-count-other": "Yawoada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Yawoada {0} a atwam",
+              "relativeTimePattern-count-other": "Yawoada {0} a atwam"
+            }
+          },
+          "fri": {
+            "relative-type--1": "Fiada a atwam",
+            "relative-type-0": "Fiada yi",
+            "relative-type-1": "Fiada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Fiada {0} mu",
+              "relativeTimePattern-count-other": "Fiada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Fiada {0} a atwam",
+              "relativeTimePattern-count-other": "Fiada {0} a atwam"
+            }
+          },
+          "fri-short": {
+            "relative-type--1": "Fiada a atwam",
+            "relative-type-0": "Fiada yi",
+            "relative-type-1": "Fiada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Fiada {0} mu",
+              "relativeTimePattern-count-other": "Fiada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Fiada {0} a atwam",
+              "relativeTimePattern-count-other": "Fiada {0} a atwam"
+            }
+          },
+          "fri-narrow": {
+            "relative-type--1": "Fiada a atwam",
+            "relative-type-0": "Fiada yi",
+            "relative-type-1": "Fiada a ɛdi hɔ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Fiada {0} mu",
+              "relativeTimePattern-count-other": "Fiada {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Fiada {0} a atwam",
+              "relativeTimePattern-count-other": "Fiada {0} a atwam"
+            }
+          },
+          "sat": {
+            "relative-type--1": "Memeneda a atwam",
+            "relative-type-0": "Memeneda yi",
+            "relative-type-1": "next Saturday",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Memeneda {0} mu",
+              "relativeTimePattern-count-other": "Memeneda {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Memeneda {0} a atwam",
+              "relativeTimePattern-count-other": "Memeneda {0} a atwam"
+            }
+          },
+          "sat-short": {
+            "relative-type--1": "Memeneda a atwam",
+            "relative-type-0": "Memeneda yi",
+            "relative-type-1": "next Saturday",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Memeneda {0} mu",
+              "relativeTimePattern-count-other": "Memeneda {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Memeneda {0} a atwam",
+              "relativeTimePattern-count-other": "Memeneda {0} a atwam"
+            }
+          },
+          "sat-narrow": {
+            "relative-type--1": "Memeneda a atwam",
+            "relative-type-0": "Memeneda yi",
+            "relative-type-1": "next Saturday",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Memeneda {0} mu",
+              "relativeTimePattern-count-other": "Memeneda {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "Memeneda {0} a atwam",
+              "relativeTimePattern-count-other": "Memeneda {0} a atwam"
+            }
+          },
+          "dayperiod-short": {
+            "displayName": "anɔpa/anwummerɛ"
+          },
+          "dayperiod": {
+            "displayName": "anɔpa/anwummerɛ"
+          },
+          "dayperiod-narrow": {
+            "displayName": "anɔpa/anwummerɛ"
+          },
+          "hour": {
+            "displayName": "dɔnhwere",
+            "relative-type-0": "dɔnhwere yi",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "dɔnhwere {0} mu",
+              "relativeTimePattern-count-other": "nnɔnhwere {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "dɔnhwere {0} a atwam",
+              "relativeTimePattern-count-other": "nnɔnhwere {0} a atwam"
+            }
+          },
+          "hour-short": {
+            "displayName": "dɔnhwere",
+            "relative-type-0": "dɔnhwere yi",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "dɔnhwere {0} mu",
+              "relativeTimePattern-count-other": "nnɔnhwere {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "dɔnhwere {0} a atwam",
+              "relativeTimePattern-count-other": "nnɔnhwere {0} a atwam"
+            }
+          },
+          "hour-narrow": {
+            "displayName": "dɔnhwere",
+            "relative-type-0": "dɔnhwere yi",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "dɔnhwere {0} mu",
+              "relativeTimePattern-count-other": "nnɔnhwere {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "dɔnhwere {0} a atwam",
+              "relativeTimePattern-count-other": "nnɔnhwere {0} a atwam"
+            }
+          },
+          "minute": {
+            "displayName": "sima",
+            "relative-type-0": "sima yi",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "sima {0} mu",
+              "relativeTimePattern-count-other": "sima {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "sima {0} a atwam",
+              "relativeTimePattern-count-other": "sima {0} a atwam"
+            }
+          },
+          "minute-short": {
+            "displayName": "sima",
+            "relative-type-0": "sima yi",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "sima {0} mu",
+              "relativeTimePattern-count-other": "sima {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "sima {0} a atwam",
+              "relativeTimePattern-count-other": "sima {0} a atwam"
+            }
+          },
+          "minute-narrow": {
+            "displayName": "sima",
+            "relative-type-0": "sima yi",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "sima {0} mu",
+              "relativeTimePattern-count-other": "sima {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "sima {0} a atwam",
+              "relativeTimePattern-count-other": "sima {0} a atwam"
+            }
+          },
+          "second": {
+            "displayName": "Simasin",
+            "relative-type-0": "seesei",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "simasin {0} mu",
+              "relativeTimePattern-count-other": "simasin {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "simasin {0} a atwam",
+              "relativeTimePattern-count-other": "simasin {0} a atwam"
+            }
+          },
+          "second-short": {
+            "displayName": "Simasin",
+            "relative-type-0": "seesei",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "simasin {0} mu",
+              "relativeTimePattern-count-other": "simasin {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "simasin {0} a atwam",
+              "relativeTimePattern-count-other": "simasin {0} a atwam"
+            }
+          },
+          "second-narrow": {
+            "displayName": "Simasin",
+            "relative-type-0": "seesei",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "simasin {0} mu",
+              "relativeTimePattern-count-other": "simasin {0} mu"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "simasin {0} a atwam",
+              "relativeTimePattern-count-other": "simasin {0} a atwam"
+            }
+          },
+          "zone": {
+            "displayName": "berɛ mu wiase nkyekyɛmu"
+          },
+          "zone-short": {
+            "displayName": "nkyekyɛmu"
+          },
+          "zone-narrow": {
+            "displayName": "nkyekyɛmu"
+          }
+        }
+      }
+    }
+  }
+}

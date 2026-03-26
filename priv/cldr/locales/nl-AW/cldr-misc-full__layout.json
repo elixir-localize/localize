@@ -1,0 +1,16 @@
+{
+  "main": {
+    "nl-AW": {
+      "identity": {
+        "language": "nl",
+        "territory": "AW"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

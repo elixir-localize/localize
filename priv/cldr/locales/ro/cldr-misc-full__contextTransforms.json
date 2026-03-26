@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ro": {
+      "identity": {
+        "language": "ro"
+      },
+      "contextTransforms": {
+        "typographicNames": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        }
+      }
+    }
+  }
+}

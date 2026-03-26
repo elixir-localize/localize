@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-KM": {
+      "identity": {
+        "language": "fr",
+        "territory": "KM"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "oui:o",
+          "nostr": "non:n"
+        }
+      }
+    }
+  }
+}

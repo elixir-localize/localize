@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-DZ": {
+      "identity": {
+        "language": "fr",
+        "territory": "DZ"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

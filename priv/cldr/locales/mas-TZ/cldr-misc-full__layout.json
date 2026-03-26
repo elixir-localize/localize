@@ -1,0 +1,16 @@
+{
+  "main": {
+    "mas-TZ": {
+      "identity": {
+        "language": "mas",
+        "territory": "TZ"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

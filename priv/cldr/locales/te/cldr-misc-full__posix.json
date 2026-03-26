@@ -1,0 +1,15 @@
+{
+  "main": {
+    "te": {
+      "identity": {
+        "language": "te"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "అవును:అ",
+          "nostr": "వద్దు:వ"
+        }
+      }
+    }
+  }
+}

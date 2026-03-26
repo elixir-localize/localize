@@ -1,0 +1,16 @@
+{
+  "main": {
+    "guz": {
+      "identity": {
+        "language": "guz"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

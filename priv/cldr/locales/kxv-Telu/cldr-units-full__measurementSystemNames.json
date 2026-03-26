@@ -1,0 +1,17 @@
+{
+  "main": {
+    "kxv-Telu": {
+      "identity": {
+        "language": "kxv",
+        "script": "Telu"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "దసాంసం",
+          "UK": "యుకె",
+          "US": "యుఎస్"
+        }
+      }
+    }
+  }
+}

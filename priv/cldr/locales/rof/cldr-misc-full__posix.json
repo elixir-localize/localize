@@ -1,0 +1,15 @@
+{
+  "main": {
+    "rof": {
+      "identity": {
+        "language": "rof"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Yee:Y",
+          "nostr": "Ehe:N"
+        }
+      }
+    }
+  }
+}

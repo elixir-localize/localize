@@ -1,0 +1,15 @@
+{
+  "main": {
+    "hr": {
+      "identity": {
+        "language": "hr"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "da:d",
+          "nostr": "ne:n"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ckb-IR": {
+      "identity": {
+        "language": "ckb",
+        "territory": "IR"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "مەتریک",
+          "UK": "بەڕیتانی",
+          "US": "ئەمەریکی"
+        }
+      }
+    }
+  }
+}

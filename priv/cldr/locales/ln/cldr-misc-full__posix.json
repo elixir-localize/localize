@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ln": {
+      "identity": {
+        "language": "ln"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Íyo:Í:I",
+          "nostr": "Tɛ̂:T"
+        }
+      }
+    }
+  }
+}

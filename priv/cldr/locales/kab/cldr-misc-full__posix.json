@@ -1,0 +1,15 @@
+{
+  "main": {
+    "kab": {
+      "identity": {
+        "language": "kab"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ih:I",
+          "nostr": "Uhu:U"
+        }
+      }
+    }
+  }
+}

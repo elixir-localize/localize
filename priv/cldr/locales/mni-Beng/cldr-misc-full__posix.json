@@ -1,0 +1,16 @@
+{
+  "main": {
+    "mni-Beng": {
+      "identity": {
+        "language": "mni",
+        "script": "Beng"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "য়েস:y",
+          "nostr": "নো:n"
+        }
+      }
+    }
+  }
+}

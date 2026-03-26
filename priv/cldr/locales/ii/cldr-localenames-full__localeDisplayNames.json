@@ -1,0 +1,33 @@
+{
+  "main": {
+    "ii": {
+      "identity": {
+        "language": "ii"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0}（{1}）",
+          "localeSeparator": "{0}，{1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "keys": {
+          "calendar": "ꈎꌗ"
+        },
+        "types": {
+          "calendar": {
+            "gregorian": "ꄉꉻꃅꑍ",
+            "islamic": "ꑳꌦꇂꑍꉖ"
+          },
+          "numbers": {
+            "latn": "ꀊꆿꀙꃷꁨꁱꂷ"
+          }
+        },
+        "codePatterns": {
+          "language": "ꅇꉙ: {0}",
+          "script": "ꁱꂷꑵ：{0}",
+          "territory": "ꃅꄷ: {0}"
+        }
+      }
+    }
+  }
+}

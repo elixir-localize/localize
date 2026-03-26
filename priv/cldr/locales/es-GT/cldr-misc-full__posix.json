@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-GT": {
+      "identity": {
+        "language": "es",
+        "territory": "GT"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "sí:s",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

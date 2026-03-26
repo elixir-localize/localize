@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ti": {
+      "identity": {
+        "language": "ti"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "እወ:እ",
+          "nostr": "ኣይፋልን:ኣ"
+        }
+      }
+    }
+  }
+}

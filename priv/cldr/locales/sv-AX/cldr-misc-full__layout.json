@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sv-AX": {
+      "identity": {
+        "language": "sv",
+        "territory": "AX"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

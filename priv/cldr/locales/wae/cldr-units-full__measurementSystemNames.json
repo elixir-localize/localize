@@ -1,0 +1,16 @@
+{
+  "main": {
+    "wae": {
+      "identity": {
+        "language": "wae"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metriš",
+          "UK": "Angelsä",
+          "US": "Angloamerikaniš"
+        }
+      }
+    }
+  }
+}

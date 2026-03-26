@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fr-PM": {
+      "identity": {
+        "language": "fr",
+        "territory": "PM"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrique",
+          "UK": "impérial",
+          "US": "américain"
+        }
+      }
+    }
+  }
+}

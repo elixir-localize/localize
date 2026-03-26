@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ru-KZ": {
+      "identity": {
+        "language": "ru",
+        "territory": "KZ"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "да:д",
+          "nostr": "нет:н"
+        }
+      }
+    }
+  }
+}

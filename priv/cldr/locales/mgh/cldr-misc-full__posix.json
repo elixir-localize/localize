@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mgh": {
+      "identity": {
+        "language": "mgh"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "eyo:e",
+          "nostr": "akin’tuna:a"
+        }
+      }
+    }
+  }
+}

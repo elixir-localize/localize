@@ -1,0 +1,16 @@
+{
+  "main": {
+    "trv": {
+      "identity": {
+        "language": "trv"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Snamrika",
+          "UK": "UK",
+          "US": "Snyunaydi"
+        }
+      }
+    }
+  }
+}

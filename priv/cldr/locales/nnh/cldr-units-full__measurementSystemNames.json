@@ -1,0 +1,16 @@
+{
+  "main": {
+    "nnh": {
+      "identity": {
+        "language": "nnh"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "fʉ̀ʼʉ mmó",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-BH": {
+      "identity": {
+        "language": "ar",
+        "territory": "BH"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "نعم:ن",
+          "nostr": "لا:ل"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fi": {
+      "identity": {
+        "language": "fi"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrinen",
+          "UK": "brittiläinen",
+          "US": "amerikkalainen"
+        }
+      }
+    }
+  }
+}

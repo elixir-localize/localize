@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-TG": {
+      "identity": {
+        "language": "fr",
+        "territory": "TG"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

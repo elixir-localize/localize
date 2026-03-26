@@ -1,0 +1,17 @@
+{
+  "main": {
+    "so-KE": {
+      "identity": {
+        "language": "so",
+        "territory": "KE"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metrik",
+          "UK": "Boqortooyada Midawday",
+          "US": "Maraykan"
+        }
+      }
+    }
+  }
+}

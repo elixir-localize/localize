@@ -81,7 +81,9 @@ defmodule Localize.Data.Normalize.LocaleDisplayNames do
       |> Map.put("script", scripts)
       |> Map.put("types", types)
       |> Map.put("locale_display_pattern", locale_display_pattern)
-      |> then(fn m -> if code_patterns, do: Map.put(m, "code_patterns", code_patterns), else: m end)
+      |> then(fn m ->
+        if code_patterns, do: Map.put(m, "code_patterns", code_patterns), else: m
+      end)
       |> Map.merge(optional_fields)
       |> LMap.atomize_keys(level: 1)
 

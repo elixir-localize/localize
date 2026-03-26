@@ -1,0 +1,15 @@
+{
+  "main": {
+    "to": {
+      "identity": {
+        "language": "to"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ʻio",
+          "nostr": "ʻikai"
+        }
+      }
+    }
+  }
+}

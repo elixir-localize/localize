@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-KE": {
+      "identity": {
+        "language": "en",
+        "territory": "KE"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ee-TG": {
+      "identity": {
+        "language": "ee",
+        "territory": "TG"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "dzidzeti",
+          "UK": "uk",
+          "US": "us"
+        }
+      }
+    }
+  }
+}

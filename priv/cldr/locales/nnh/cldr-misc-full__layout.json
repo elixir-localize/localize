@@ -1,0 +1,15 @@
+{
+  "main": {
+    "nnh": {
+      "identity": {
+        "language": "nnh"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

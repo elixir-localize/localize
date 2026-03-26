@@ -1,0 +1,16 @@
+{
+  "main": {
+    "gv": {
+      "identity": {
+        "language": "gv"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

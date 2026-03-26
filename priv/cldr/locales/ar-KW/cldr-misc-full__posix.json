@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-KW": {
+      "identity": {
+        "language": "ar",
+        "territory": "KW"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "نعم:ن",
+          "nostr": "لا:ل"
+        }
+      }
+    }
+  }
+}

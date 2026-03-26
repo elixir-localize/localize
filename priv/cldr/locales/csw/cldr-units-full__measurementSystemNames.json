@@ -1,0 +1,16 @@
+{
+  "main": {
+    "csw": {
+      "identity": {
+        "language": "csw"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

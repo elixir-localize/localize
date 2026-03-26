@@ -1,0 +1,16 @@
+{
+  "main": {
+    "de-LI": {
+      "identity": {
+        "language": "de",
+        "territory": "LI"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

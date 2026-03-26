@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-US": {
+      "identity": {
+        "language": "es",
+        "territory": "US"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

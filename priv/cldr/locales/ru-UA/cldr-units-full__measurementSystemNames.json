@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ru-UA": {
+      "identity": {
+        "language": "ru",
+        "territory": "UA"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Метрическая",
+          "UK": "Английская",
+          "US": "Американская"
+        }
+      }
+    }
+  }
+}

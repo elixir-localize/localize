@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fr-GQ": {
+      "identity": {
+        "language": "fr",
+        "territory": "GQ"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrique",
+          "UK": "impérial",
+          "US": "américain"
+        }
+      }
+    }
+  }
+}

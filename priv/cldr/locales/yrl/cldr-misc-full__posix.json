@@ -1,0 +1,15 @@
+{
+  "main": {
+    "yrl": {
+      "identity": {
+        "language": "yrl"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "eẽ:e",
+          "nostr": "ũbaá:u"
+        }
+      }
+    }
+  }
+}

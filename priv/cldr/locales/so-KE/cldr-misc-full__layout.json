@@ -1,0 +1,16 @@
+{
+  "main": {
+    "so-KE": {
+      "identity": {
+        "language": "so",
+        "territory": "KE"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

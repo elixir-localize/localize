@@ -1,0 +1,15 @@
+{
+  "main": {
+    "tt": {
+      "identity": {
+        "language": "tt"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "әйе:әйе",
+          "nostr": "юк:юк"
+        }
+      }
+    }
+  }
+}

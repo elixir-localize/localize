@@ -1,0 +1,580 @@
+{
+  "main": {
+    "bew": {
+      "identity": {
+        "language": "bew"
+      },
+      "dates": {
+        "fields": {
+          "era": {
+            "displayName": "jaman"
+          },
+          "era-short": {
+            "displayName": "jmn"
+          },
+          "era-narrow": {
+            "displayName": "jmn"
+          },
+          "year": {
+            "displayName": "tahon",
+            "relative-type--1": "tahon kemarèn",
+            "relative-type-0": "ni tahon",
+            "relative-type-1": "tahon bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} tahon lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} tahon nyang liwat"
+            }
+          },
+          "year-short": {
+            "displayName": "thn",
+            "relative-type--1": "thn marèn",
+            "relative-type-0": "ni thn",
+            "relative-type-1": "thn bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} thn lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} thn nyang liwat"
+            }
+          },
+          "year-narrow": {
+            "displayName": "thn",
+            "relative-type--1": "thn marèn",
+            "relative-type-0": "ni thn",
+            "relative-type-1": "thn bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} thn lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} thn nyang liwat"
+            }
+          },
+          "quarter": {
+            "displayName": "kuartal",
+            "relative-type--1": "kuartal kemarèn",
+            "relative-type-0": "ni kuartal",
+            "relative-type-1": "kuartal bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} kuartal lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} kuartal nyang liwat"
+            }
+          },
+          "quarter-short": {
+            "displayName": "krtl",
+            "relative-type--1": "krtl marèn",
+            "relative-type-0": "ni krtl",
+            "relative-type-1": "krtl bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} krtl lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} krtl nyang liwat"
+            }
+          },
+          "quarter-narrow": {
+            "displayName": "krtl",
+            "relative-type--1": "krtl marèn",
+            "relative-type-0": "ni krtl",
+            "relative-type-1": "krtl bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} krtl lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} krtl nyang liwat"
+            }
+          },
+          "month": {
+            "displayName": "bulan",
+            "relative-type--1": "bulan kemarèn",
+            "relative-type-0": "ni bulan",
+            "relative-type-1": "bulan bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} bulan lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} bulan nyang liwat"
+            }
+          },
+          "month-short": {
+            "displayName": "bln",
+            "relative-type--1": "bln marèn",
+            "relative-type-0": "ni bln",
+            "relative-type-1": "bln bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} bln lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} bln nyang liwat"
+            }
+          },
+          "month-narrow": {
+            "displayName": "bln",
+            "relative-type--1": "bln marèn",
+            "relative-type-0": "ni bln",
+            "relative-type-1": "bln bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} bln lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} bulan nyang liwat"
+            }
+          },
+          "week": {
+            "displayName": "minggu",
+            "relative-type--1": "minggu marèn",
+            "relative-type-0": "ni minggu",
+            "relative-type-1": "minggu bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} minggu lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} minggu nyang liwat"
+            },
+            "relativePeriod": "minggu ke-{0}"
+          },
+          "week-short": {
+            "displayName": "mgg",
+            "relative-type--1": "mgg marèn",
+            "relative-type-0": "ni mgg",
+            "relative-type-1": "mgg bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} mgg lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} mgg nyang liwat"
+            },
+            "relativePeriod": "mgg ke-{0}"
+          },
+          "week-narrow": {
+            "displayName": "mgg",
+            "relative-type--1": "mgg marèn",
+            "relative-type-0": "ni mgg",
+            "relative-type-1": "mgg bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} mgg lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} mgg nyang liwat"
+            },
+            "relativePeriod": "mgg ke-{0}"
+          },
+          "weekOfMonth": {
+            "displayName": "minggu dalem sebulan"
+          },
+          "weekOfMonth-short": {
+            "displayName": "minggu dlm sebulan"
+          },
+          "weekOfMonth-narrow": {
+            "displayName": "mgg dlm 1 bln"
+          },
+          "day": {
+            "displayName": "ari",
+            "relative-type--1": "kemarèn",
+            "relative-type-0": "ni ari",
+            "relative-type-1": "bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} ari lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} ari nyang liwat"
+            }
+          },
+          "day-short": {
+            "displayName": "ari",
+            "relative-type--1": "marèn",
+            "relative-type-0": "ni ari",
+            "relative-type-1": "bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} ari lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} ari nyang liwat"
+            }
+          },
+          "day-narrow": {
+            "displayName": "ari",
+            "relative-type--1": "marèn",
+            "relative-type-0": "ni ari",
+            "relative-type-1": "bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} ari lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} ari nyang liwat"
+            }
+          },
+          "dayOfYear": {
+            "displayName": "ari dalem setahon"
+          },
+          "dayOfYear-short": {
+            "displayName": "ari dlm setahon"
+          },
+          "dayOfYear-narrow": {
+            "displayName": "ari dlm 1 thn"
+          },
+          "weekday": {
+            "displayName": "ari dalem seminggu"
+          },
+          "weekday-short": {
+            "displayName": "ari dlm seminggu"
+          },
+          "weekday-narrow": {
+            "displayName": "ari dlm 1 mgg"
+          },
+          "weekdayOfMonth": {
+            "displayName": "ari gawé"
+          },
+          "weekdayOfMonth-short": {
+            "displayName": "ari gawé"
+          },
+          "weekdayOfMonth-narrow": {
+            "displayName": "ari gawé"
+          },
+          "sun": {
+            "relative-type--1": "last Sunday",
+            "relative-type-0": "this Sunday",
+            "relative-type-1": "next Sunday",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Sundays"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Sundays"
+            }
+          },
+          "sun-short": {
+            "relative-type--1": "Min marèn",
+            "relative-type-0": "ni Min",
+            "relative-type-1": "Min bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Min lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Min nyang liwat"
+            }
+          },
+          "sun-narrow": {
+            "relative-type--1": "Min marèn",
+            "relative-type-0": "ni Min",
+            "relative-type-1": "Min bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Min lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Min nyang liwat"
+            }
+          },
+          "mon": {
+            "relative-type--1": "Senèn kemarèn",
+            "relative-type-0": "ni Senèn",
+            "relative-type-1": "Senèn bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Senèn lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Senèn nyang liwat"
+            }
+          },
+          "mon-short": {
+            "relative-type--1": "Sen marèn",
+            "relative-type-0": "ni Sen",
+            "relative-type-1": "Sen bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Sen lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Sen nyang liwat"
+            }
+          },
+          "mon-narrow": {
+            "relative-type--1": "Sen marèn",
+            "relative-type-0": "ni Sen",
+            "relative-type-1": "Sen bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Sen lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Sen nyang liwat"
+            }
+          },
+          "tue": {
+            "relative-type--1": "Selasa kemarèn",
+            "relative-type-0": "ni Selasa",
+            "relative-type-1": "Selasa bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Selasa lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Selasa nyang liwat"
+            }
+          },
+          "tue-short": {
+            "relative-type--1": "Sel marèn",
+            "relative-type-0": "ni Sel",
+            "relative-type-1": "Sel bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Sel lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Sel nyang liwat"
+            }
+          },
+          "tue-narrow": {
+            "relative-type--1": "Sel marèn",
+            "relative-type-0": "ni Sel",
+            "relative-type-1": "Sel bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Sel lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Sel nyang liwat"
+            }
+          },
+          "wed": {
+            "relative-type--1": "Rebo kemarèn",
+            "relative-type-0": "ni Rebo",
+            "relative-type-1": "Rebo bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Rebo lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Rebo nyang liwat"
+            }
+          },
+          "wed-short": {
+            "relative-type--1": "Reb marèn",
+            "relative-type-0": "ni Reb",
+            "relative-type-1": "Reb bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Reb lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Reb nyang liwat"
+            }
+          },
+          "wed-narrow": {
+            "relative-type--1": "Reb marèn",
+            "relative-type-0": "ni Reb",
+            "relative-type-1": "Reb bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Reb lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Reb nyang liwat"
+            }
+          },
+          "thu": {
+            "relative-type--1": "Kemis kemarèn",
+            "relative-type-0": "ni Kemis",
+            "relative-type-1": "Kemis bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Kemis lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Kemis nyang liwat"
+            }
+          },
+          "thu-short": {
+            "relative-type--1": "Kem marèn",
+            "relative-type-0": "ni Kem",
+            "relative-type-1": "Kem bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Kem lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Kem nyang liwat"
+            }
+          },
+          "thu-narrow": {
+            "relative-type--1": "Kem marèn",
+            "relative-type-0": "ni Kem",
+            "relative-type-1": "Kem bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Kem lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Kem nyang liwat"
+            }
+          },
+          "fri": {
+            "relative-type--1": "Juma’at kemarèn",
+            "relative-type-0": "ni Juma’at",
+            "relative-type-1": "Juma’at bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Juma’at lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Juma’at nyang liwat"
+            }
+          },
+          "fri-short": {
+            "relative-type--1": "Jum marèn",
+            "relative-type-0": "ni Jum",
+            "relative-type-1": "Jum bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Jum lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Jum nyang liwat"
+            }
+          },
+          "fri-narrow": {
+            "relative-type--1": "Jum marèn",
+            "relative-type-0": "ni Jum",
+            "relative-type-1": "Jum bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Jum lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Jum nyang liwat"
+            }
+          },
+          "sat": {
+            "relative-type--1": "Saptu kemarèn",
+            "relative-type-0": "ni Saptu",
+            "relative-type-1": "Saptu bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Saptu lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Saptu nyang liwat"
+            }
+          },
+          "sat-short": {
+            "relative-type--1": "Sap marèn",
+            "relative-type-0": "ni Sap",
+            "relative-type-1": "Sap bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Sap lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Sap nyang liwat"
+            }
+          },
+          "sat-narrow": {
+            "relative-type--1": "Sap marèn",
+            "relative-type-0": "ni Sap",
+            "relative-type-1": "Sap bèsok",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Sap lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Sap nyang liwat"
+            }
+          },
+          "dayperiod-short": {
+            "displayName": "pagi/siang/soré/malem"
+          },
+          "dayperiod": {
+            "displayName": "pagi/siang/soré/malem"
+          },
+          "dayperiod-narrow": {
+            "displayName": "pagi/siang/soré/malem"
+          },
+          "hour": {
+            "displayName": "jem",
+            "relative-type-0": "ni jem",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} jem lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} jem nyang liwat"
+            }
+          },
+          "hour-short": {
+            "displayName": "jem",
+            "relative-type-0": "ni jem",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} jem lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} jem nyang liwat"
+            }
+          },
+          "hour-narrow": {
+            "displayName": "j",
+            "relative-type-0": "ni jem",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} j lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} j nyang liwat"
+            }
+          },
+          "minute": {
+            "displayName": "menit",
+            "relative-type-0": "ni menit",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} menit lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} menit nyang liwat"
+            }
+          },
+          "minute-short": {
+            "displayName": "mnt",
+            "relative-type-0": "ni menit",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} mnt lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} mnt nyang liwat"
+            }
+          },
+          "minute-narrow": {
+            "displayName": "m",
+            "relative-type-0": "ni menit",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} m lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} m nyang liwat"
+            }
+          },
+          "second": {
+            "displayName": "sekon",
+            "relative-type-0": "sekarang",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} sekon lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} sekon nyang liwat"
+            }
+          },
+          "second-short": {
+            "displayName": "sek",
+            "relative-type-0": "karang",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} sek lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} sek nyang liwat"
+            }
+          },
+          "second-narrow": {
+            "displayName": "s",
+            "relative-type-0": "skrg",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} s lagi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} s nyang liwat"
+            }
+          },
+          "zone": {
+            "displayName": "gutekan wayah"
+          },
+          "zone-short": {
+            "displayName": "gutekan wyh"
+          },
+          "zone-narrow": {
+            "displayName": "gtkn wyh"
+          }
+        }
+      }
+    }
+  }
+}

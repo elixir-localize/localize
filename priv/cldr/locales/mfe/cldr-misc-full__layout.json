@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mfe": {
+      "identity": {
+        "language": "mfe"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

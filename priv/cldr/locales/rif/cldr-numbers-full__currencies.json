@@ -1,0 +1,787 @@
+{
+  "main": {
+    "rif": {
+      "identity": {
+        "language": "rif"
+      },
+      "numbers": {
+        "currencies": {
+          "AED": {
+            "displayName": "dderhem n limarat",
+            "displayName-count-other": "dderhem n limarat"
+          },
+          "AFN": {
+            "displayName": "afɣani",
+            "displayName-count-other": "afɣani",
+            "symbol-alt-narrow": "؋"
+          },
+          "ALL": {
+            "displayName": "lik n walbanya",
+            "displayName-count-other": "lik n walbanya"
+          },
+          "AMD": {
+            "displayName": "ddram n arminya",
+            "displayName-count-other": "ddram n arminya",
+            "symbol-alt-narrow": "֏"
+          },
+          "ANG": {
+            "displayName": "xulden n wantil",
+            "displayName-count-other": "xulden n wantil"
+          },
+          "AOA": {
+            "displayName": "kwanza n angula",
+            "displayName-count-other": "kwanza n angula",
+            "symbol-alt-narrow": "Kz"
+          },
+          "ARS": {
+            "displayName": "pisus n arxantina",
+            "displayName-count-other": "pisus n arxantina",
+            "symbol-alt-narrow": "$"
+          },
+          "AUD": {
+            "displayName": "ddular n wustralya",
+            "displayName-count-other": "ddular n wustralya",
+            "symbol": "A$",
+            "symbol-alt-narrow": "$"
+          },
+          "AWG": {
+            "displayName": "flurin n aruba",
+            "displayName-count-other": "flurin n aruba"
+          },
+          "AZN": {
+            "displayName": "manat n azrabijan",
+            "displayName-count-other": "manat n azrabijan",
+            "symbol-alt-narrow": "₼"
+          },
+          "BAM": {
+            "displayName": "mark n busniya",
+            "displayName-count-other": "mark n busniya",
+            "symbol-alt-narrow": "KM"
+          },
+          "BBD": {
+            "displayName": "ddular n barbadyan",
+            "displayName-count-other": "ddular n barbadyan",
+            "symbol-alt-narrow": "$"
+          },
+          "BDT": {
+            "displayName": "ṭaka n bangladic",
+            "displayName-count-other": "ṭaka n bangladic",
+            "symbol-alt-narrow": "৳"
+          },
+          "BGN": {
+            "displayName": "liva n belgarya",
+            "displayName-count-other": "liva n belgarya"
+          },
+          "BHD": {
+            "displayName": "ddinar n lbeḥrin",
+            "displayName-count-other": "ddinar n lbeḥrin"
+          },
+          "BIF": {
+            "displayName": "frank n burundi",
+            "displayName-count-other": "frank n burundi"
+          },
+          "BMD": {
+            "displayName": "Bermudan Dollar",
+            "displayName-count-other": "ddular n birmudan",
+            "symbol-alt-narrow": "$"
+          },
+          "BND": {
+            "displayName": "ddular n brunay",
+            "displayName-count-other": "ddular n brunay",
+            "symbol-alt-narrow": "$"
+          },
+          "BOB": {
+            "displayName": "bulibyanu",
+            "displayName-count-other": "bulibyanu",
+            "symbol-alt-narrow": "Bs"
+          },
+          "BRL": {
+            "displayName": "riyal n brazil",
+            "displayName-count-other": "riyal n brazil",
+            "symbol": "R$",
+            "symbol-alt-narrow": "R$"
+          },
+          "BSD": {
+            "displayName": "ddular n bahamas",
+            "displayName-count-other": "ddular n bahamas",
+            "symbol-alt-narrow": "$"
+          },
+          "BTN": {
+            "displayName": "ngultrum n buṭan",
+            "displayName-count-other": "ngultrum n buṭan"
+          },
+          "BWP": {
+            "displayName": "pula n buteswana",
+            "displayName-count-other": "pula n buteswana",
+            "symbol-alt-narrow": "P"
+          },
+          "BYN": {
+            "displayName": "rrubel n bilarus",
+            "displayName-count-other": "rrubel n bilarus"
+          },
+          "BZD": {
+            "displayName": "Belize Dollar",
+            "displayName-count-other": "ddular n biliz",
+            "symbol-alt-narrow": "$"
+          },
+          "CAD": {
+            "displayName": "Canadian Dollar",
+            "displayName-count-other": "ddular n kanada",
+            "symbol": "CA$",
+            "symbol-alt-narrow": "$"
+          },
+          "CDF": {
+            "displayName": "frank n kungu",
+            "displayName-count-other": "frank n kungu"
+          },
+          "CHF": {
+            "displayName": "frank",
+            "displayName-count-other": "frank"
+          },
+          "CLP": {
+            "displayName": "pisus n tcili",
+            "displayName-count-other": "pisus n tcili",
+            "symbol-alt-narrow": "$"
+          },
+          "CNH": {
+            "displayName": "ywan n cina",
+            "displayName-count-other": "ywan n cina"
+          },
+          "CNY": {
+            "displayName": "ywan n tcina",
+            "displayName-count-other": "ywan n tcina",
+            "symbol": "CN¥",
+            "symbol-alt-narrow": "¥"
+          },
+          "COP": {
+            "displayName": "pisus n kulumbya",
+            "displayName-count-other": "pisus n kulumbya",
+            "symbol-alt-narrow": "$"
+          },
+          "CRC": {
+            "displayName": "Costa Rican Colón",
+            "displayName-count-other": "kulun n kustarika",
+            "symbol-alt-narrow": "₡"
+          },
+          "CUC": {
+            "displayName": "pisus n kuba",
+            "displayName-count-other": "pisus n kuba",
+            "symbol-alt-narrow": "$"
+          },
+          "CUP": {
+            "displayName": "pisus n kuba",
+            "displayName-count-other": "pisus n kuba",
+            "symbol-alt-narrow": "$"
+          },
+          "CVE": {
+            "displayName": "iskudu n qabu yazegza",
+            "displayName-count-other": "iskudu n qabu yazegza"
+          },
+          "CZK": {
+            "displayName": "kruna n ttcik",
+            "displayName-count-other": "kruna n ttcik",
+            "symbol-alt-narrow": "Kč"
+          },
+          "DJF": {
+            "displayName": "frank n djibuti",
+            "displayName-count-other": "frank n djibuti"
+          },
+          "DKK": {
+            "displayName": "Danish Krone",
+            "displayName-count-other": "kruna n ddanmark",
+            "symbol-alt-narrow": "kr"
+          },
+          "DOP": {
+            "displayName": "pisus n dduminik",
+            "displayName-count-other": "pisus n dduminik",
+            "symbol-alt-narrow": "$"
+          },
+          "DZD": {
+            "displayName": "Algerian Dinar",
+            "displayName-count-other": "ddinar n ddzayer"
+          },
+          "EGP": {
+            "displayName": "ljunih n masr",
+            "displayName-count-other": "ljunih n masr",
+            "symbol-alt-narrow": "E£"
+          },
+          "ERN": {
+            "displayName": "nafka n iritirya",
+            "displayName-count-other": "nafka n iritirya"
+          },
+          "ESP": {
+            "symbol-alt-narrow": "₧"
+          },
+          "ETB": {
+            "displayName": "bir n yityupya",
+            "displayName-count-other": "bir n yityupya"
+          },
+          "EUR": {
+            "displayName": "Euro",
+            "displayName-count-other": "uru",
+            "symbol": "€",
+            "symbol-alt-narrow": "€"
+          },
+          "FJD": {
+            "displayName": "ddular n fiji",
+            "displayName-count-other": "ddular n fiji",
+            "symbol-alt-narrow": "$"
+          },
+          "FKP": {
+            "displayName": "ljunih n falkland",
+            "displayName-count-other": "ljunih n falkland",
+            "symbol-alt-narrow": "£"
+          },
+          "GBP": {
+            "displayName": "British Pound",
+            "displayName-count-other": "jinuh",
+            "symbol": "£",
+            "symbol-alt-narrow": "£"
+          },
+          "GEL": {
+            "displayName": "lari n gyurgya",
+            "displayName-count-other": "lari n gyurgya",
+            "symbol-alt-narrow": "₾"
+          },
+          "GHS": {
+            "displayName": "sidiy n ɣana",
+            "displayName-count-other": "sidiy n ɣana",
+            "symbol-alt-narrow": "GH₵"
+          },
+          "GIP": {
+            "displayName": "ljunih n jabalṭariq",
+            "displayName-count-other": "ljunih n jabalṭariq",
+            "symbol-alt-narrow": "£"
+          },
+          "GMD": {
+            "displayName": "dalasi n ɣambya",
+            "displayName-count-other": "dalasi n ɣambya"
+          },
+          "GNF": {
+            "displayName": "frank n ɣinya",
+            "displayName-count-other": "frank n ɣinya",
+            "symbol-alt-narrow": "FG"
+          },
+          "GTQ": {
+            "displayName": "Guatemalan Quetzal",
+            "displayName-count-other": "kwitzal n gwatimala",
+            "symbol-alt-narrow": "Q"
+          },
+          "GYD": {
+            "displayName": "ddular n guyana",
+            "displayName-count-other": "ddular n guyana",
+            "symbol-alt-narrow": "$"
+          },
+          "HKD": {
+            "displayName": "ddular n hungkung",
+            "displayName-count-other": "ddular n hungkung",
+            "symbol": "HK$",
+            "symbol-alt-narrow": "$"
+          },
+          "HNL": {
+            "displayName": "Honduran Lempira",
+            "displayName-count-other": "lempiras n hondura",
+            "symbol-alt-narrow": "L"
+          },
+          "HRK": {
+            "displayName": "kuna n kerwatya",
+            "displayName-count-other": "kuna n kerwatya",
+            "symbol-alt-narrow": "kn"
+          },
+          "HTG": {
+            "displayName": "ɣurda n hayṭi",
+            "displayName-count-other": "ɣurda n hayṭi"
+          },
+          "HUF": {
+            "displayName": "furint n hungatya",
+            "displayName-count-other": "furint n hungatya",
+            "symbol-alt-narrow": "Ft"
+          },
+          "IDR": {
+            "displayName": "rrupya n yindunisya",
+            "displayName-count-other": "rrupya n yindunisya",
+            "symbol-alt-narrow": "Rp"
+          },
+          "ILS": {
+            "displayName": "cikel",
+            "displayName-count-other": "cikel",
+            "symbol": "₪",
+            "symbol-alt-narrow": "₪"
+          },
+          "INR": {
+            "displayName": "rrupya n lhend",
+            "displayName-count-other": "Indian rupees",
+            "symbol": "₹",
+            "symbol-alt-narrow": "₹"
+          },
+          "IQD": {
+            "displayName": "ddinar n lɛiraq",
+            "displayName-count-other": "ddinar n lɛiraq"
+          },
+          "IRR": {
+            "displayName": "rryal n iran",
+            "displayName-count-other": "Iranian rials"
+          },
+          "ISK": {
+            "displayName": "kruna n yeslanda",
+            "displayName-count-other": "kruna n yeslanda",
+            "symbol-alt-narrow": "kr"
+          },
+          "JMD": {
+            "displayName": "ddular n jamayka",
+            "displayName-count-other": "ddular n jamayka",
+            "symbol-alt-narrow": "$"
+          },
+          "JOD": {
+            "displayName": "ddinar n lurdun",
+            "displayName-count-other": "ddinar n lurdun"
+          },
+          "JPY": {
+            "displayName": "lyan n jjapun",
+            "displayName-count-other": "lyan n jjapun",
+            "symbol": "JP¥",
+            "symbol-alt-narrow": "¥"
+          },
+          "KES": {
+            "displayName": "cilin n kinya",
+            "displayName-count-other": "cilin n kinya"
+          },
+          "KGS": {
+            "displayName": "sum n kirgistan",
+            "displayName-count-other": "sum n kirgistan",
+            "symbol-alt-narrow": "⃀"
+          },
+          "KHR": {
+            "displayName": "rryal n kambudya",
+            "displayName-count-other": "rryal n kambudya",
+            "symbol-alt-narrow": "៛"
+          },
+          "KMF": {
+            "displayName": "frank n qumrus",
+            "displayName-count-other": "frank n qumrus",
+            "symbol-alt-narrow": "CF"
+          },
+          "KPW": {
+            "displayName": "wun n kurya n sennej",
+            "displayName-count-other": "wun n kurya n sennej",
+            "symbol-alt-narrow": "₩"
+          },
+          "KRW": {
+            "displayName": "wun n kurya n wadday",
+            "displayName-count-other": "wun n kurya n wadday",
+            "symbol": "₩",
+            "symbol-alt-narrow": "₩"
+          },
+          "KWD": {
+            "displayName": "ddinar n lkuwit",
+            "displayName-count-other": "ddinar n lkuwit"
+          },
+          "KYD": {
+            "displayName": "ddular n sayman",
+            "displayName-count-other": "ddular n sayman",
+            "symbol-alt-narrow": "$"
+          },
+          "KZT": {
+            "displayName": "tinga n kazaxistan",
+            "displayName-count-other": "tinga n kazaxistan",
+            "symbol-alt-narrow": "₸"
+          },
+          "LAK": {
+            "displayName": "kip n lawes",
+            "displayName-count-other": "kip n lawes",
+            "symbol-alt-narrow": "₭"
+          },
+          "LBP": {
+            "displayName": "ljunih n lubnan",
+            "displayName-count-other": "ljunih n lubnan",
+            "symbol-alt-narrow": "L£"
+          },
+          "LKR": {
+            "displayName": "rrupya n Sri Lanka",
+            "displayName-count-other": "Sri Lankan rupees",
+            "symbol-alt-narrow": "Rs"
+          },
+          "LRD": {
+            "displayName": "ddular n libirya",
+            "displayName-count-other": "ddular n libirya",
+            "symbol-alt-narrow": "$"
+          },
+          "LSL": {
+            "displayName": "lluti n lisutu",
+            "displayName-count-other": "lluti n lisutu"
+          },
+          "LTL": {
+            "symbol-alt-narrow": "Lt"
+          },
+          "LVL": {
+            "symbol-alt-narrow": "Ls"
+          },
+          "LYD": {
+            "displayName": "Libyan Dinar",
+            "displayName-count-other": "ddinar n libya"
+          },
+          "MAD": {
+            "displayName": "dderhem ameɣrabi",
+            "displayName-count-other": "dderhem"
+          },
+          "MDL": {
+            "displayName": "liyu n muldub",
+            "displayName-count-other": "liyu n muldub"
+          },
+          "MGA": {
+            "displayName": "aryari n madaɣacqar",
+            "displayName-count-other": "aryari n madaɣacqar",
+            "symbol-alt-narrow": "Ar"
+          },
+          "MKD": {
+            "displayName": "ddinar n maqdunya",
+            "displayName-count-other": "ddinar n maqdunya"
+          },
+          "MMK": {
+            "displayName": "kyat n myanmar",
+            "displayName-count-other": "kyat n myanmar",
+            "symbol-alt-narrow": "K"
+          },
+          "MNT": {
+            "displayName": "tugrug n mangulya",
+            "displayName-count-other": "tugrug n mangulya",
+            "symbol-alt-narrow": "₮"
+          },
+          "MOP": {
+            "displayName": "patakaw n makkaw",
+            "displayName-count-other": "patakaw n makkaw"
+          },
+          "MRU": {
+            "displayName": "uqiya n muritanya",
+            "displayName-count-other": "uqiya n muritanya"
+          },
+          "MUR": {
+            "displayName": "rrupya n muriṭanya",
+            "displayName-count-other": "rrupya n muriṭanya",
+            "symbol-alt-narrow": "Rs"
+          },
+          "MVR": {
+            "displayName": "rrufiya n maldib",
+            "displayName-count-other": "Maldivian rufiyaas"
+          },
+          "MWK": {
+            "displayName": "kwaca n malawi",
+            "displayName-count-other": "kwaca n malawi"
+          },
+          "MXN": {
+            "displayName": "Mexican Peso",
+            "displayName-count-other": "pisus n miksiku",
+            "symbol": "MX$",
+            "symbol-alt-narrow": "$"
+          },
+          "MYR": {
+            "displayName": "ringit n malizya",
+            "displayName-count-other": "ringit n malizya",
+            "symbol-alt-narrow": "RM"
+          },
+          "MZN": {
+            "displayName": "metqal n muzembiq",
+            "displayName-count-other": "metqal n muzembiq"
+          },
+          "NAD": {
+            "displayName": "ddular n nambya",
+            "displayName-count-other": "ddular n nambya",
+            "symbol-alt-narrow": "$"
+          },
+          "NGN": {
+            "displayName": "nira n nijirya",
+            "displayName-count-other": "nira n nijirya",
+            "symbol-alt-narrow": "₦"
+          },
+          "NIO": {
+            "displayName": "kurduba n nikaragwa",
+            "displayName-count-other": "kurduba n nikaragwa",
+            "symbol-alt-narrow": "C$"
+          },
+          "NOK": {
+            "displayName": "Norwegian Krone",
+            "displayName-count-other": "kruna n nnarwij",
+            "symbol-alt-narrow": "kr"
+          },
+          "NPR": {
+            "displayName": "rrupya n nnipal",
+            "displayName-count-other": "rrupya n nnipal",
+            "symbol-alt-narrow": "Rs"
+          },
+          "NZD": {
+            "displayName": "ddular nyuziland",
+            "displayName-count-other": "ddular n yuziland",
+            "symbol": "NZ$",
+            "symbol-alt-narrow": "$"
+          },
+          "OMR": {
+            "displayName": "rriyal n ɛumman",
+            "displayName-count-other": "rriyal n ɛumman"
+          },
+          "PAB": {
+            "displayName": "balbaw n panama",
+            "displayName-count-other": "balbaw n panama"
+          },
+          "PEN": {
+            "displayName": "ssul n piru",
+            "displayName-count-other": "ssul n piru"
+          },
+          "PGK": {
+            "displayName": "kina n papwa",
+            "displayName-count-other": "kina n papwa"
+          },
+          "PHP": {
+            "displayName": "pisus n filippin",
+            "displayName-count-other": "pisus n filippin",
+            "symbol": "₱",
+            "symbol-alt-narrow": "₱"
+          },
+          "PKR": {
+            "displayName": "rrupya n pakistan",
+            "displayName-count-other": "rrupya n pakistan",
+            "symbol-alt-narrow": "Rs"
+          },
+          "PLN": {
+            "displayName": "zluṭi n pulanda",
+            "displayName-count-other": "zluṭi n pulanda",
+            "symbol-alt-narrow": "zł"
+          },
+          "PYG": {
+            "displayName": "gwarani n paragway",
+            "displayName-count-other": "gwarani n paragway",
+            "symbol-alt-narrow": "₲"
+          },
+          "QAR": {
+            "displayName": "rriyal n qatar",
+            "displayName-count-other": "rriyal n qatar"
+          },
+          "RON": {
+            "displayName": "liyu n rumanya",
+            "displayName-count-other": "liyu n rumanya",
+            "symbol-alt-narrow": "lei"
+          },
+          "RSD": {
+            "displayName": "ddinar n sirbya",
+            "displayName-count-other": "ddinar n sirbya"
+          },
+          "RUB": {
+            "displayName": "rrubel",
+            "displayName-count-other": "rrubel",
+            "symbol-alt-narrow": "₽"
+          },
+          "RWF": {
+            "displayName": "frank n ruwanda",
+            "displayName-count-other": "frank n ruwanda",
+            "symbol-alt-narrow": "RF"
+          },
+          "SAR": {
+            "displayName": "rriyal n ssaɛud",
+            "displayName-count-other": "rriyal n ssaɛud",
+            "symbol-alt-variant": "⃁"
+          },
+          "SBD": {
+            "displayName": "ddular n sulumun",
+            "displayName-count-other": "ddular n sulumun",
+            "symbol-alt-narrow": "$"
+          },
+          "SCR": {
+            "displayName": "rrupya n sicel",
+            "displayName-count-other": "rrupya n sicel"
+          },
+          "SDG": {
+            "displayName": "ljunih n ssudan",
+            "displayName-count-other": "ljunih n ssudan"
+          },
+          "SEK": {
+            "displayName": "Swedish Krona",
+            "displayName-count-other": "kruna n sswid",
+            "symbol-alt-narrow": "kr"
+          },
+          "SGD": {
+            "displayName": "ddular n sanɣafura",
+            "displayName-count-other": "ddular n sanɣafura",
+            "symbol-alt-narrow": "$"
+          },
+          "SHP": {
+            "displayName": "ljunih n hilina",
+            "displayName-count-other": "ljunih n hilina",
+            "symbol-alt-narrow": "£"
+          },
+          "SLE": {
+            "displayName": "lyun n siraliyyun",
+            "displayName-count-other": "lyun n siraliyyun"
+          },
+          "SLL": {
+            "displayName": "lyun n siraliyyun",
+            "displayName-count-other": "lyun n siraliyyun"
+          },
+          "SOS": {
+            "displayName": "cilin n ssumal",
+            "displayName-count-other": "cilin n ssumal"
+          },
+          "SRD": {
+            "displayName": "ddular n surinam",
+            "displayName-count-other": "ddular n surinam",
+            "symbol-alt-narrow": "$"
+          },
+          "SSP": {
+            "displayName": "ljunih n ssudan n wadday",
+            "displayName-count-other": "ljunih n ssudan n wadday",
+            "symbol-alt-narrow": "£"
+          },
+          "STN": {
+            "displayName": "dubra n sawtumi",
+            "displayName-count-other": "dubra n sawtumi",
+            "symbol-alt-narrow": "Db"
+          },
+          "SYP": {
+            "displayName": "ljunih n surya",
+            "displayName-count-other": "ljunih n surya",
+            "symbol-alt-narrow": "£"
+          },
+          "SZL": {
+            "displayName": "lilangini",
+            "displayName-count-other": "lilangini"
+          },
+          "THB": {
+            "displayName": "baṭ n ṭṭayland",
+            "displayName-count-other": "baṭ n ṭṭayland",
+            "symbol-alt-narrow": "฿"
+          },
+          "TJS": {
+            "displayName": "sumuni n tajikistan",
+            "displayName-count-other": "sumuni n tajikistan"
+          },
+          "TMT": {
+            "displayName": "manat n ṭurkmanistan",
+            "displayName-count-other": "manat n ṭurkmanistan"
+          },
+          "TND": {
+            "displayName": "Tunisian Dinar",
+            "displayName-count-other": "ddinar n tunes"
+          },
+          "TOP": {
+            "displayName": "panga n ṭunga",
+            "displayName-count-other": "panga",
+            "symbol-alt-narrow": "T$"
+          },
+          "TRY": {
+            "displayName": "llira",
+            "displayName-count-other": "llira",
+            "symbol-alt-narrow": "₺",
+            "symbol-alt-variant": "TL"
+          },
+          "TTD": {
+            "displayName": "ddular n trinindad",
+            "displayName-count-other": "ddular n trinindad",
+            "symbol-alt-narrow": "$"
+          },
+          "TWD": {
+            "displayName": "ddular n ttaywan",
+            "displayName-count-other": "ddular n ttaywan",
+            "symbol": "NT$",
+            "symbol-alt-narrow": "$"
+          },
+          "TZS": {
+            "displayName": "cilin n tanzanya",
+            "displayName-count-other": "cilin n tanzanya"
+          },
+          "UAH": {
+            "displayName": "hribnya n wekranya",
+            "displayName-count-other": "hribnya n wekranya",
+            "symbol-alt-narrow": "₴"
+          },
+          "UGX": {
+            "displayName": "cilin n uɣanda",
+            "displayName-count-other": "cilin n uɣanda"
+          },
+          "USD": {
+            "displayName": "US Dollar",
+            "displayName-count-other": "ddular",
+            "symbol": "US$",
+            "symbol-alt-narrow": "$"
+          },
+          "UYU": {
+            "displayName": "pisus n urugway",
+            "displayName-count-other": "pisus n urugway",
+            "symbol-alt-narrow": "$"
+          },
+          "UZS": {
+            "displayName": "sum n uzbakistan",
+            "displayName-count-other": "sum n uzbakistan"
+          },
+          "VEF": {
+            "symbol-alt-narrow": "Bs"
+          },
+          "VES": {
+            "displayName": "bulibyar",
+            "displayName-count-other": "bulibyar"
+          },
+          "VND": {
+            "displayName": "ddung n bitnam",
+            "displayName-count-other": "ddung n bitnam",
+            "symbol": "₫",
+            "symbol-alt-narrow": "₫"
+          },
+          "VUV": {
+            "displayName": "batu n banwatu",
+            "displayName-count-other": "batu n banwatu"
+          },
+          "WST": {
+            "displayName": "tala n samwa",
+            "displayName-count-other": "tala n samwa"
+          },
+          "XAF": {
+            "displayName": "frank n wafriqa",
+            "displayName-count-other": "frank n wafriqa",
+            "symbol": "FCFA"
+          },
+          "XCD": {
+            "displayName": "ddular n karibyan",
+            "displayName-count-other": "ddular n karibyan",
+            "symbol": "EC$",
+            "symbol-alt-narrow": "$"
+          },
+          "XCG": {
+            "displayName": "xulden n karibyan",
+            "displayName-count-other": "xulden n karibyan",
+            "symbol": "Cg."
+          },
+          "XOF": {
+            "displayName": "frank n wafriqa",
+            "displayName-count-other": "frank n wafriqa",
+            "symbol": "F CFA"
+          },
+          "XPF": {
+            "displayName": "frank n kalidunya",
+            "displayName-count-other": "frank n kalidunya",
+            "symbol": "CFPF"
+          },
+          "XXX": {
+            "displayName": "ttmenyat",
+            "displayName-count-other": "ttmneyat",
+            "symbol": "¤"
+          },
+          "YER": {
+            "displayName": "rriyal n lyaman",
+            "displayName-count-other": "rriyal n lyaman"
+          },
+          "ZAR": {
+            "displayName": "rrand n tafriqt n wadday",
+            "displayName-count-other": "rrand n tafriqt n wadday",
+            "symbol-alt-narrow": "R"
+          },
+          "ZMW": {
+            "displayName": "kwaca n zambya",
+            "displayName-count-other": "kwaca n zambya",
+            "symbol-alt-narrow": "ZK"
+          },
+          "ZWG": {
+            "displayName": "uru n zimbabwi",
+            "displayName-count-other": "uru n zimbabwi"
+          }
+        }
+      }
+    }
+  }
+}

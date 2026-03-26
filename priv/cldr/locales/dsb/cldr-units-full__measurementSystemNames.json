@@ -1,0 +1,16 @@
+{
+  "main": {
+    "dsb": {
+      "identity": {
+        "language": "dsb"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metriski",
+          "UK": "britiski",
+          "US": "ameriski"
+        }
+      }
+    }
+  }
+}

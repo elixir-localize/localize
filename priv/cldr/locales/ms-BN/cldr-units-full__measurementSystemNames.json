@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ms-BN": {
+      "identity": {
+        "language": "ms",
+        "territory": "BN"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metrik",
+          "UK": "UK",
+          "US": "AS"
+        }
+      }
+    }
+  }
+}

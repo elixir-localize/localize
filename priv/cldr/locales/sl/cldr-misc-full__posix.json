@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sl": {
+      "identity": {
+        "language": "sl"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "da:d",
+          "nostr": "ne:n"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-TN": {
+      "identity": {
+        "language": "fr",
+        "territory": "TN"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "oui:o",
+          "nostr": "non:n"
+        }
+      }
+    }
+  }
+}

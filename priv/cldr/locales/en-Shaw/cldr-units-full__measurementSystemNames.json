@@ -1,0 +1,17 @@
+{
+  "main": {
+    "en-Shaw": {
+      "identity": {
+        "language": "en",
+        "script": "Shaw"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "𐑥𐑧𐑑𐑮𐑦𐑒",
+          "UK": "𐑿𐑒𐑱",
+          "US": "𐑿𐑧𐑕"
+        }
+      }
+    }
+  }
+}

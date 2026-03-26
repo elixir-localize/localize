@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ks-Deva": {
+      "identity": {
+        "language": "ks",
+        "script": "Deva"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "आ:y",
+          "nostr": "न:n"
+        }
+      }
+    }
+  }
+}

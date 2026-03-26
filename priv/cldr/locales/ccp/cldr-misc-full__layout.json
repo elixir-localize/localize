@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ccp": {
+      "identity": {
+        "language": "ccp"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

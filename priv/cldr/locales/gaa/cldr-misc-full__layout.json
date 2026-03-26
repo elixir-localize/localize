@@ -1,0 +1,15 @@
+{
+  "main": {
+    "gaa": {
+      "identity": {
+        "language": "gaa"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

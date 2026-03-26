@@ -1,0 +1,18 @@
+{
+  "main": {
+    "ms-Arab-BN": {
+      "identity": {
+        "language": "ms",
+        "script": "Arab",
+        "territory": "BN"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "ميتريک",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-DZ": {
+      "identity": {
+        "language": "fr",
+        "territory": "DZ"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "oui:o",
+          "nostr": "non:n"
+        }
+      }
+    }
+  }
+}

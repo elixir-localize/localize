@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sd-Arab": {
+      "identity": {
+        "language": "sd",
+        "script": "Arab"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ها:ها",
+          "nostr": "نه:نه"
+        }
+      }
+    }
+  }
+}

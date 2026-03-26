@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-CC": {
+      "identity": {
+        "language": "en",
+        "territory": "CC"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

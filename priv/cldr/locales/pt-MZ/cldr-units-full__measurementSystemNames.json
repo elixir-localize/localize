@@ -1,0 +1,17 @@
+{
+  "main": {
+    "pt-MZ": {
+      "identity": {
+        "language": "pt",
+        "territory": "MZ"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrico",
+          "UK": "Reino Unido",
+          "US": "Estados Unidos"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ny": {
+      "identity": {
+        "language": "ny"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

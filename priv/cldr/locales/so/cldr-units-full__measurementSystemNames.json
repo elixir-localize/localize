@@ -1,0 +1,16 @@
+{
+  "main": {
+    "so": {
+      "identity": {
+        "language": "so"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metrik",
+          "UK": "Boqortooyada Midawday",
+          "US": "Maraykan"
+        }
+      }
+    }
+  }
+}

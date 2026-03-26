@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-DO": {
+      "identity": {
+        "language": "es",
+        "territory": "DO"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "sí:s",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

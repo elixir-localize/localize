@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ti-ER": {
+      "identity": {
+        "language": "ti",
+        "territory": "ER"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

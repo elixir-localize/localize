@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-JO": {
+      "identity": {
+        "language": "ar",
+        "territory": "JO"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "نعم:ن",
+          "nostr": "لا:ل"
+        }
+      }
+    }
+  }
+}

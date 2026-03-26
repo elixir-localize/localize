@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sr": {
+      "identity": {
+        "language": "sr"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "метрички",
+          "UK": "британски",
+          "US": "амерички"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "tk": {
+      "identity": {
+        "language": "tk"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "hawa:h",
+          "nostr": "ýok:ý"
+        }
+      }
+    }
+  }
+}

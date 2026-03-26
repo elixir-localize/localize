@@ -1,0 +1,15 @@
+{
+  "main": {
+    "vec": {
+      "identity": {
+        "language": "vec"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "sì:s",
+          "nostr": "nò:n"
+        }
+      }
+    }
+  }
+}

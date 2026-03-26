@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ig": {
+      "identity": {
+        "language": "ig"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

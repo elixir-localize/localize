@@ -1,0 +1,850 @@
+{
+  "main": {
+    "ie": {
+      "identity": {
+        "language": "ie"
+      },
+      "dates": {
+        "timeZoneNames": {
+          "hourFormat": "+HH:mm;-HH:mm",
+          "gmtFormat": "TMG{0}",
+          "gmtZeroFormat": "TMG",
+          "gmtUnknownFormat": "TMG+?",
+          "regionFormat": "témpor de {0}",
+          "regionFormat-type-daylight": "témpor estival de {0}",
+          "regionFormat-type-standard": "témpor standard de {0}",
+          "fallbackFormat": "{1} ({0})",
+          "zone": {
+            "Etc": {
+              "UTC": {
+                "_type": "zone",
+                "long": {
+                  "standard": "universal témpor coordinat"
+                },
+                "short": {
+                  "standard": "UTC"
+                }
+              },
+              "Unknown": {
+                "_type": "zone",
+                "exemplarCity": "ínconosset loc"
+              }
+            },
+            "Europe": {
+              "Tirane": {
+                "_type": "zone",
+                "exemplarCity": "Tirana"
+              },
+              "Brussels": {
+                "_type": "zone",
+                "exemplarCity": "Bruxelles"
+              },
+              "Zurich": {
+                "_type": "zone",
+                "exemplarCity": "Zürich"
+              },
+              "Prague": {
+                "_type": "zone",
+                "exemplarCity": "Praha"
+              },
+              "Busingen": {
+                "_type": "zone",
+                "exemplarCity": "Büsingen"
+              },
+              "Copenhagen": {
+                "_type": "zone",
+                "exemplarCity": "København"
+              },
+              "London": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "britanic estival témpor"
+                }
+              },
+              "Athens": {
+                "_type": "zone",
+                "exemplarCity": "Aten"
+              },
+              "Dublin": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "irlandesi standard témpor"
+                }
+              },
+              "Isle_of_Man": {
+                "_type": "zone",
+                "exemplarCity": "Insul de Man"
+              },
+              "Rome": {
+                "_type": "zone",
+                "exemplarCity": "Roma"
+              },
+              "Luxembourg": {
+                "_type": "zone",
+                "exemplarCity": "Luxemburg"
+              },
+              "Monaco": {
+                "_type": "zone",
+                "exemplarCity": "Mónaco"
+              },
+              "Chisinau": {
+                "_type": "zone",
+                "exemplarCity": "Chișinău"
+              },
+              "Warsaw": {
+                "_type": "zone",
+                "exemplarCity": "Warszawa"
+              },
+              "Lisbon": {
+                "_type": "zone",
+                "exemplarCity": "Lisboa"
+              },
+              "Bucharest": {
+                "_type": "zone",
+                "exemplarCity": "Bucuresti"
+              },
+              "Belgrade": {
+                "_type": "zone",
+                "exemplarCity": "Belgrad"
+              },
+              "Moscow": {
+                "_type": "zone",
+                "exemplarCity": "Moscva"
+              },
+              "San_Marino": {
+                "_type": "zone",
+                "exemplarCity": "San-Marino"
+              },
+              "Kiev": {
+                "_type": "zone",
+                "exemplarCity": "Kiev"
+              }
+            },
+            "Antarctica": {
+              "Syowa": {
+                "_type": "zone",
+                "exemplarCity": "Showa"
+              },
+              "DumontDUrville": {
+                "_type": "zone",
+                "exemplarCity": "Dumont-d’Urville"
+              }
+            },
+            "America": {
+              "Argentina": {
+                "Rio_Gallegos": {
+                  "_type": "zone",
+                  "exemplarCity": "Rio-Gallegos"
+                },
+                "San_Juan": {
+                  "_type": "zone",
+                  "exemplarCity": "Sant-Juan"
+                },
+                "La_Rioja": {
+                  "_type": "zone",
+                  "exemplarCity": "La-Rioja"
+                },
+                "San_Luis": {
+                  "_type": "zone",
+                  "exemplarCity": "Sant-Luis"
+                },
+                "Tucuman": {
+                  "_type": "zone",
+                  "exemplarCity": "Tucumán"
+                }
+              },
+              "Cordoba": {
+                "_type": "zone",
+                "exemplarCity": "Córdoba"
+              },
+              "Buenos_Aires": {
+                "_type": "zone",
+                "exemplarCity": "Buenos-Aires"
+              },
+              "St_Barthelemy": {
+                "_type": "zone",
+                "exemplarCity": "Sant-Bartolomeo"
+              },
+              "La_Paz": {
+                "_type": "zone",
+                "exemplarCity": "La-Paz"
+              },
+              "Eirunepe": {
+                "_type": "zone",
+                "exemplarCity": "Eirunepé"
+              },
+              "Rio_Branco": {
+                "_type": "zone",
+                "exemplarCity": "Rio-Branco"
+              },
+              "Porto_Velho": {
+                "_type": "zone",
+                "exemplarCity": "Porto-Velho"
+              },
+              "Boa_Vista": {
+                "_type": "zone",
+                "exemplarCity": "Boa-Vista"
+              },
+              "Cuiaba": {
+                "_type": "zone",
+                "exemplarCity": "Cuiabá"
+              },
+              "Santarem": {
+                "_type": "zone",
+                "exemplarCity": "Santarém"
+              },
+              "Campo_Grande": {
+                "_type": "zone",
+                "exemplarCity": "Campo-Grande"
+              },
+              "Belem": {
+                "_type": "zone",
+                "exemplarCity": "Belém"
+              },
+              "Araguaina": {
+                "_type": "zone",
+                "exemplarCity": "Araguaína"
+              },
+              "Sao_Paulo": {
+                "_type": "zone",
+                "exemplarCity": "São-Paulo"
+              },
+              "Maceio": {
+                "_type": "zone",
+                "exemplarCity": "Maceió"
+              },
+              "Noronha": {
+                "_type": "zone",
+                "exemplarCity": "Fernando de Noronha"
+              },
+              "Fort_Nelson": {
+                "_type": "zone",
+                "exemplarCity": "Fort-Nelson"
+              },
+              "Dawson_Creek": {
+                "_type": "zone",
+                "exemplarCity": "Dawson-Creek"
+              },
+              "Swift_Current": {
+                "_type": "zone",
+                "exemplarCity": "Swift-Current"
+              },
+              "Cambridge_Bay": {
+                "_type": "zone",
+                "exemplarCity": "Cambridge-Bay"
+              },
+              "Rankin_Inlet": {
+                "_type": "zone",
+                "exemplarCity": "Rankin-Inlet"
+              },
+              "Coral_Harbour": {
+                "_type": "zone",
+                "exemplarCity": "Atikokan"
+              },
+              "Goose_Bay": {
+                "_type": "zone",
+                "exemplarCity": "Goose-Bay"
+              },
+              "Glace_Bay": {
+                "_type": "zone",
+                "exemplarCity": "Glace-Bay"
+              },
+              "St_Johns": {
+                "_type": "zone",
+                "exemplarCity": "St.-John’s"
+              },
+              "Punta_Arenas": {
+                "_type": "zone",
+                "exemplarCity": "Punta-Arenas"
+              },
+              "Bogota": {
+                "_type": "zone",
+                "exemplarCity": "Bogotá"
+              },
+              "Costa_Rica": {
+                "_type": "zone",
+                "exemplarCity": "Costa-Rica"
+              },
+              "Curacao": {
+                "_type": "zone",
+                "exemplarCity": "Curaçao"
+              },
+              "Santo_Domingo": {
+                "_type": "zone",
+                "exemplarCity": "San-Domingo"
+              },
+              "Godthab": {
+                "_type": "zone",
+                "exemplarCity": "Nuuk"
+              },
+              "Scoresbysund": {
+                "_type": "zone",
+                "exemplarCity": "Ittoqqortoormiit"
+              },
+              "Guadeloupe": {
+                "_type": "zone",
+                "exemplarCity": "Guadelupa"
+              },
+              "St_Kitts": {
+                "_type": "zone",
+                "exemplarCity": "St.-Kitts"
+              },
+              "St_Lucia": {
+                "_type": "zone",
+                "exemplarCity": "St.-Lucia"
+              },
+              "Martinique": {
+                "_type": "zone",
+                "exemplarCity": "Martinica"
+              },
+              "Ciudad_Juarez": {
+                "_type": "zone",
+                "exemplarCity": "Ciudad-Juarez"
+              },
+              "Mazatlan": {
+                "_type": "zone",
+                "exemplarCity": "Mazatlán"
+              },
+              "Bahia_Banderas": {
+                "_type": "zone",
+                "exemplarCity": "bay de Banderas"
+              },
+              "Mexico_City": {
+                "_type": "zone",
+                "exemplarCity": "Mexican Cité"
+              },
+              "Merida": {
+                "_type": "zone",
+                "exemplarCity": "Mérida"
+              },
+              "Cancun": {
+                "_type": "zone",
+                "exemplarCity": "Cancún"
+              },
+              "Miquelon": {
+                "_type": "zone",
+                "exemplarCity": "Saint-Pierre"
+              },
+              "Puerto_Rico": {
+                "_type": "zone",
+                "exemplarCity": "Porto-Rico"
+              },
+              "Asuncion": {
+                "_type": "zone",
+                "exemplarCity": "Asunción"
+              },
+              "El_Salvador": {
+                "_type": "zone",
+                "exemplarCity": "El-Salvador"
+              },
+              "Lower_Princes": {
+                "_type": "zone",
+                "exemplarCity": "Lower-Prince’s-Quarter"
+              },
+              "Grand_Turk": {
+                "_type": "zone",
+                "exemplarCity": "Grand-Turk"
+              },
+              "Port_of_Spain": {
+                "_type": "zone",
+                "exemplarCity": "Port-of-Spain"
+              },
+              "Los_Angeles": {
+                "_type": "zone",
+                "exemplarCity": "Los-Angeles"
+              },
+              "North_Dakota": {
+                "Beulah": {
+                  "_type": "zone",
+                  "exemplarCity": "Beulah, Nord-Dakota"
+                },
+                "New_Salem": {
+                  "_type": "zone",
+                  "exemplarCity": "New Salem, Nord-Dakota"
+                },
+                "Center": {
+                  "_type": "zone",
+                  "exemplarCity": "Center, Nord-Dakota"
+                }
+              },
+              "Indiana": {
+                "Vincennes": {
+                  "_type": "zone",
+                  "exemplarCity": "Vincennes, Indiana"
+                },
+                "Petersburg": {
+                  "_type": "zone",
+                  "exemplarCity": "Petersburg, Indiana"
+                },
+                "Tell_City": {
+                  "_type": "zone",
+                  "exemplarCity": "Tell-City, Indiana"
+                },
+                "Knox": {
+                  "_type": "zone",
+                  "exemplarCity": "Knox, Indiana"
+                },
+                "Winamac": {
+                  "_type": "zone",
+                  "exemplarCity": "Winamac, Indiana"
+                },
+                "Marengo": {
+                  "_type": "zone",
+                  "exemplarCity": "Marengo, Indiana"
+                },
+                "Vevay": {
+                  "_type": "zone",
+                  "exemplarCity": "Vevay, Indiana"
+                }
+              },
+              "Kentucky": {
+                "Monticello": {
+                  "_type": "zone",
+                  "exemplarCity": "Monticello, Kentucky"
+                }
+              },
+              "St_Vincent": {
+                "_type": "zone",
+                "exemplarCity": "St.-Vincent"
+              },
+              "St_Thomas": {
+                "_type": "zone",
+                "exemplarCity": "St.-Thomas"
+              }
+            },
+            "Pacific": {
+              "Pago_Pago": {
+                "_type": "zone",
+                "exemplarCity": "Pago-Pago"
+              },
+              "Easter": {
+                "_type": "zone",
+                "exemplarCity": "Pasca"
+              },
+              "Galapagos": {
+                "_type": "zone",
+                "exemplarCity": "Galápagos"
+              },
+              "Fiji": {
+                "_type": "zone",
+                "exemplarCity": "Fidji"
+              },
+              "Truk": {
+                "_type": "zone",
+                "exemplarCity": "Chuuk"
+              },
+              "Ponape": {
+                "_type": "zone",
+                "exemplarCity": "Pohnpei"
+              },
+              "Enderbury": {
+                "_type": "zone",
+                "exemplarCity": "Canton"
+              },
+              "Noumea": {
+                "_type": "zone",
+                "exemplarCity": "Nouméa"
+              },
+              "Port_Moresby": {
+                "_type": "zone",
+                "exemplarCity": "Port-Moresby"
+              },
+              "Wake": {
+                "_type": "zone",
+                "exemplarCity": "Insul Wake"
+              },
+              "Wallis": {
+                "_type": "zone",
+                "exemplarCity": "Wallis & Futuna"
+              }
+            },
+            "Australia": {
+              "Perth": {
+                "_type": "zone",
+                "exemplarCity": "Pert"
+              },
+              "Broken_Hill": {
+                "_type": "zone",
+                "exemplarCity": "Broken-Hill"
+              },
+              "Lord_Howe": {
+                "_type": "zone",
+                "exemplarCity": "Insul Lord-Howe"
+              }
+            },
+            "Africa": {
+              "Ouagadougou": {
+                "_type": "zone",
+                "exemplarCity": "Uagadugu"
+              },
+              "Djibouti": {
+                "_type": "zone",
+                "exemplarCity": "Djibuti"
+              },
+              "Algiers": {
+                "_type": "zone",
+                "exemplarCity": "Alger"
+              },
+              "El_Aaiun": {
+                "_type": "zone",
+                "exemplarCity": "El-Aaiun"
+              },
+              "Asmera": {
+                "_type": "zone",
+                "exemplarCity": "Asmara"
+              },
+              "Addis_Ababa": {
+                "_type": "zone",
+                "exemplarCity": "Addis-Abeba"
+              },
+              "Khartoum": {
+                "_type": "zone",
+                "exemplarCity": "Khartum"
+              },
+              "Sao_Tome": {
+                "_type": "zone",
+                "exemplarCity": "São-Tomé"
+              },
+              "Ndjamena": {
+                "_type": "zone",
+                "exemplarCity": "N’Djamena"
+              },
+              "Lome": {
+                "_type": "zone",
+                "exemplarCity": "Lomé"
+              },
+              "Dar_es_Salaam": {
+                "_type": "zone",
+                "exemplarCity": "Dar-es-Salaam"
+              }
+            },
+            "Asia": {
+              "Urumqi": {
+                "_type": "zone",
+                "exemplarCity": "Ürümqi"
+              },
+              "Hong_Kong": {
+                "_type": "zone",
+                "exemplarCity": "Hong-Kong"
+              },
+              "Calcutta": {
+                "_type": "zone",
+                "exemplarCity": "Kolkata"
+              },
+              "Tehran": {
+                "_type": "zone",
+                "exemplarCity": "Teheran"
+              },
+              "Tokyo": {
+                "_type": "zone",
+                "exemplarCity": "Tokio"
+              },
+              "Phnom_Penh": {
+                "_type": "zone",
+                "exemplarCity": "Phnom-Penh"
+              },
+              "Aqtau": {
+                "_type": "zone",
+                "exemplarCity": "Aktau"
+              },
+              "Atyrau": {
+                "_type": "zone",
+                "exemplarCity": "Atirau"
+              },
+              "Aqtobe": {
+                "_type": "zone",
+                "exemplarCity": "Aktobe"
+              },
+              "Qostanay": {
+                "_type": "zone",
+                "exemplarCity": "Kostanay"
+              },
+              "Qyzylorda": {
+                "_type": "zone",
+                "exemplarCity": "Kizilorda"
+              },
+              "Almaty": {
+                "_type": "zone",
+                "exemplarCity": "Almati"
+              },
+              "Rangoon": {
+                "_type": "zone",
+                "exemplarCity": "Yangon"
+              },
+              "Hovd": {
+                "_type": "zone",
+                "exemplarCity": "Khovd"
+              },
+              "Macau": {
+                "_type": "zone",
+                "exemplarCity": "Macao"
+              },
+              "Kuala_Lumpur": {
+                "_type": "zone",
+                "exemplarCity": "Kuala-Lumpur"
+              },
+              "Katmandu": {
+                "_type": "zone",
+                "exemplarCity": "Kathmandu"
+              },
+              "Singapore": {
+                "_type": "zone",
+                "exemplarCity": "Singapur"
+              },
+              "Damascus": {
+                "_type": "zone",
+                "exemplarCity": "Damasco"
+              },
+              "Saigon": {
+                "_type": "zone",
+                "exemplarCity": "Ho-Chi-Minh"
+              }
+            },
+            "Atlantic": {
+              "Cape_Verde": {
+                "_type": "zone",
+                "exemplarCity": "Cap-Verdi"
+              },
+              "Canary": {
+                "_type": "zone",
+                "exemplarCity": "Canaria"
+              },
+              "Faeroe": {
+                "_type": "zone",
+                "exemplarCity": "Feroe"
+              },
+              "South_Georgia": {
+                "_type": "zone",
+                "exemplarCity": "Sud-Georgia"
+              },
+              "St_Helena": {
+                "_type": "zone",
+                "exemplarCity": "Sant-Helena"
+              }
+            },
+            "Indian": {
+              "Comoro": {
+                "_type": "zone",
+                "exemplarCity": "Comores"
+              },
+              "Mauritius": {
+                "_type": "zone",
+                "exemplarCity": "Mauricio"
+              },
+              "Reunion": {
+                "_type": "zone",
+                "exemplarCity": "Réunion"
+              },
+              "Mahe": {
+                "_type": "zone",
+                "exemplarCity": "Mahé"
+              }
+            }
+          },
+          "metazone": {
+            "Alaska": {
+              "long": {
+                "generic": "alaskan témpor",
+                "standard": "alaskan standard témpor",
+                "daylight": "alaskan estival témpor"
+              }
+            },
+            "America_Central": {
+              "long": {
+                "generic": "american central témpor",
+                "standard": "american central standard témpor",
+                "daylight": "american central estival témpor"
+              }
+            },
+            "America_Eastern": {
+              "long": {
+                "generic": "american oriental témpor",
+                "standard": "american oriental standard témpor",
+                "daylight": "american oriental estival témpor"
+              }
+            },
+            "America_Mountain": {
+              "long": {
+                "generic": "american montan témpor",
+                "standard": "american montan standard témpor",
+                "daylight": "american montan estival témpor"
+              }
+            },
+            "America_Pacific": {
+              "long": {
+                "generic": "american pacific témpor",
+                "standard": "american pacific standard témpor",
+                "daylight": "american pacific estival témpor"
+              }
+            },
+            "Atlantic": {
+              "long": {
+                "generic": "american atlantic témpor",
+                "standard": "american atlantic standard témpor",
+                "daylight": "american atlantic estival témpor"
+              }
+            },
+            "Azores": {
+              "long": {
+                "generic": "témpor del Azores",
+                "standard": "témpor standard del Azores",
+                "daylight": "témpor estival del Azores"
+              }
+            },
+            "Christmas": {
+              "long": {
+                "standard": "témpor del Insul Christmas"
+              }
+            },
+            "Cocos": {
+              "long": {
+                "standard": "témpor del Insules Cocos"
+              }
+            },
+            "Cook": {
+              "long": {
+                "generic": "témpor del Insules Cook",
+                "standard": "témpor standard del Insules Cook",
+                "daylight": "témpor demíestival del Insules Cook"
+              }
+            },
+            "Cuba": {
+              "long": {
+                "generic": "cuban témpor",
+                "standard": "cuban standard témpor",
+                "daylight": "cuban estival témpor"
+              }
+            },
+            "Europe_Central": {
+              "long": {
+                "generic": "central europan témpor",
+                "standard": "central europan standard témpor",
+                "daylight": "central europan estival témpor"
+              }
+            },
+            "Europe_Eastern": {
+              "long": {
+                "generic": "ost-europan témpor",
+                "standard": "ost-europan standard témpor",
+                "daylight": "ost-europan estival témpor"
+              }
+            },
+            "Europe_Western": {
+              "long": {
+                "generic": "west-europan témpor",
+                "standard": "west-europan standard témpor",
+                "daylight": "west-europan estival témpor"
+              }
+            },
+            "Falkland": {
+              "long": {
+                "generic": "témpor del Insules Falkland",
+                "standard": "témpor standard del Insules Falkland",
+                "daylight": "témpor estival del Insules Falkland"
+              }
+            },
+            "Gilbert_Islands": {
+              "long": {
+                "standard": "témpor del Insules Gilbert"
+              }
+            },
+            "GMT": {
+              "long": {
+                "standard": "témpore medial de Greenwich"
+              }
+            },
+            "Greenland_Eastern": {
+              "long": {
+                "generic": "témpor del oriental Greenland",
+                "standard": "témpor standard del oriental Greenland",
+                "daylight": "témpor estival del oriental Greenland"
+              }
+            },
+            "Greenland_Western": {
+              "long": {
+                "generic": "témpor del occidental Greenland",
+                "standard": "témpor standard del occidental Greenland",
+                "daylight": "témpor estival del occidental Greenland"
+              }
+            },
+            "Hawaii": {
+              "long": {
+                "standard": "témpor standard de Hawai e Aleutes"
+              }
+            },
+            "Hawaii_Aleutian": {
+              "long": {
+                "generic": "témpor de Hawai e Aleutes",
+                "standard": "témpor standard de Hawai e Aleutes",
+                "daylight": "témpor estival de Hawai e Aleutes"
+              }
+            },
+            "Line_Islands": {
+              "long": {
+                "standard": "témpor del Insules Line"
+              }
+            },
+            "Lord_Howe": {
+              "long": {
+                "generic": "témpor del Insul Lord-Howe",
+                "standard": "témpor standard del Insul Lord-Howe",
+                "daylight": "témpor estival del Insul Lord-Howe"
+              }
+            },
+            "Marquesas": {
+              "long": {
+                "standard": "témpor del Marquesas"
+              }
+            },
+            "Marshall_Islands": {
+              "long": {
+                "standard": "témpor del Insules Marshall"
+              }
+            },
+            "Mexico_Pacific": {
+              "long": {
+                "generic": "mexican pacific témpor",
+                "standard": "mexican pacific standard témpor",
+                "daylight": "mexican pacific estival témpor"
+              }
+            },
+            "Newfoundland": {
+              "long": {
+                "generic": "témpor de Newfoundland",
+                "standard": "témpor standard de Newfoundland",
+                "daylight": "témpor estival de Newfoundland"
+              }
+            },
+            "Norfolk": {
+              "long": {
+                "generic": "témpor del Insul Norfolk",
+                "standard": "témpor standard del Insul Norfolk",
+                "daylight": "témpor estival del Insul Norfolk"
+              }
+            },
+            "Phoenix_Islands": {
+              "long": {
+                "standard": "témpor del Insules Fénix"
+              }
+            },
+            "Solomon": {
+              "long": {
+                "standard": "témpor del Insules Solomon"
+              }
+            },
+            "Wake": {
+              "long": {
+                "standard": "témpor del Insul Wake"
+              }
+            },
+            "Yukon": {
+              "long": {
+                "standard": "témpor de Yukon"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

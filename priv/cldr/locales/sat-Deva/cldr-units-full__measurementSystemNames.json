@@ -1,0 +1,17 @@
+{
+  "main": {
+    "sat-Deva": {
+      "identity": {
+        "language": "sat",
+        "script": "Deva"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

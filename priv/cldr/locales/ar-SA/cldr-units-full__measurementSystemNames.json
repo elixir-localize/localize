@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ar-SA": {
+      "identity": {
+        "language": "ar",
+        "territory": "SA"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "النظام المتري",
+          "UK": "النظام البريطاني",
+          "US": "الولايت المتحدة"
+        }
+      }
+    }
+  }
+}

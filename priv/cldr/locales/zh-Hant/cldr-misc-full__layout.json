@@ -1,0 +1,16 @@
+{
+  "main": {
+    "zh-Hant": {
+      "identity": {
+        "language": "zh",
+        "script": "Hant"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

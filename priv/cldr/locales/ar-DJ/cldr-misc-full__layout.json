@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ar-DJ": {
+      "identity": {
+        "language": "ar",
+        "territory": "DJ"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

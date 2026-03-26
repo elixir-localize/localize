@@ -1,0 +1,20 @@
+{
+  "main": {
+    "pap": {
+      "identity": {
+        "language": "pap"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Arab": "Arabir",
+          "Brai": "braille",
+          "Jpan": "hapones",
+          "Kore": "koreano",
+          "Latn": "Latin",
+          "Zxxx": "No Tin Ortografia",
+          "Zzzz": "Ortografia Deskonosí"
+        }
+      }
+    }
+  }
+}

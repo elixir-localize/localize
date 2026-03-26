@@ -1,0 +1,1239 @@
+{
+  "main": {
+    "ha": {
+      "identity": {
+        "language": "ha"
+      },
+      "dates": {
+        "timeZoneNames": {
+          "hourFormat": "+HH:mm;-HH:mm",
+          "gmtFormat": "GMT{0}",
+          "gmtZeroFormat": "GMT",
+          "gmtUnknownFormat": "GMT+?",
+          "regionFormat": "{0} Lokaci",
+          "regionFormat-type-daylight": "{0} Lokacin Rana",
+          "regionFormat-type-standard": "{0} Daidaitaccen Lokaci",
+          "fallbackFormat": "{1} ({0})",
+          "zone": {
+            "Etc": {
+              "UTC": {
+                "_type": "zone",
+                "long": {
+                  "standard": "Hadewa Lokaci na Duniya"
+                },
+                "short": {
+                  "standard": "UTC"
+                }
+              },
+              "Unknown": {
+                "_type": "zone",
+                "exemplarCity": "Birni da ba a sani ba"
+              }
+            },
+            "Europe": {
+              "Tirane": {
+                "_type": "zone",
+                "exemplarCity": "Tirana"
+              },
+              "Busingen": {
+                "_type": "zone",
+                "exemplarCity": "Büsingen"
+              },
+              "London": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "Lokacin Bazara na Birtaniya"
+                }
+              },
+              "Dublin": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "Tsayayyen Lokacin Irish"
+                }
+              },
+              "Chisinau": {
+                "_type": "zone",
+                "exemplarCity": "Chișinău"
+              },
+              "Kiev": {
+                "_type": "zone",
+                "exemplarCity": "Kyiv"
+              }
+            },
+            "Antarctica": {
+              "Syowa": {
+                "_type": "zone",
+                "exemplarCity": "Showa"
+              },
+              "DumontDUrville": {
+                "_type": "zone",
+                "exemplarCity": "Dumont-d’Urville"
+              }
+            },
+            "America": {
+              "Argentina": {
+                "Rio_Gallegos": {
+                  "_type": "zone",
+                  "exemplarCity": "Río Gallegos"
+                },
+                "Tucuman": {
+                  "_type": "zone",
+                  "exemplarCity": "Tucumán"
+                }
+              },
+              "Cordoba": {
+                "_type": "zone",
+                "exemplarCity": "Córdoba"
+              },
+              "St_Barthelemy": {
+                "_type": "zone",
+                "exemplarCity": "St. Barthélemy"
+              },
+              "Eirunepe": {
+                "_type": "zone",
+                "exemplarCity": "Eirunepé"
+              },
+              "Cuiaba": {
+                "_type": "zone",
+                "exemplarCity": "Cuiabá"
+              },
+              "Santarem": {
+                "_type": "zone",
+                "exemplarCity": "Santarém"
+              },
+              "Belem": {
+                "_type": "zone",
+                "exemplarCity": "Belém"
+              },
+              "Araguaina": {
+                "_type": "zone",
+                "exemplarCity": "Araguaína"
+              },
+              "Sao_Paulo": {
+                "_type": "zone",
+                "exemplarCity": "São Paulo"
+              },
+              "Maceio": {
+                "_type": "zone",
+                "exemplarCity": "Maceió"
+              },
+              "Noronha": {
+                "_type": "zone",
+                "exemplarCity": "Fernando de Noronha"
+              },
+              "Coral_Harbour": {
+                "_type": "zone",
+                "exemplarCity": "Atikokan"
+              },
+              "St_Johns": {
+                "_type": "zone",
+                "exemplarCity": "St. John’s"
+              },
+              "Bogota": {
+                "_type": "zone",
+                "exemplarCity": "Bogotá"
+              },
+              "Curacao": {
+                "_type": "zone",
+                "exemplarCity": "Curaçao"
+              },
+              "Godthab": {
+                "_type": "zone",
+                "exemplarCity": "Nuuk"
+              },
+              "Scoresbysund": {
+                "_type": "zone",
+                "exemplarCity": "Ittoqqortoormiit"
+              },
+              "St_Kitts": {
+                "_type": "zone",
+                "exemplarCity": "St. Kitts"
+              },
+              "St_Lucia": {
+                "_type": "zone",
+                "exemplarCity": "St. Lucia"
+              },
+              "Ciudad_Juarez": {
+                "_type": "zone",
+                "exemplarCity": "Ciudad Juárez"
+              },
+              "Mazatlan": {
+                "_type": "zone",
+                "exemplarCity": "Mazatlán"
+              },
+              "Bahia_Banderas": {
+                "_type": "zone",
+                "exemplarCity": "Bahía de Banderas"
+              },
+              "Mexico_City": {
+                "_type": "zone",
+                "exemplarCity": "Ciudad de México"
+              },
+              "Merida": {
+                "_type": "zone",
+                "exemplarCity": "Mérida"
+              },
+              "Cancun": {
+                "_type": "zone",
+                "exemplarCity": "Cancún"
+              },
+              "Miquelon": {
+                "_type": "zone",
+                "exemplarCity": "Saint-Pierre"
+              },
+              "Asuncion": {
+                "_type": "zone",
+                "exemplarCity": "Asunción"
+              },
+              "Lower_Princes": {
+                "_type": "zone",
+                "exemplarCity": "Lower Prince’s Quarter"
+              },
+              "North_Dakota": {
+                "Beulah": {
+                  "_type": "zone",
+                  "exemplarCity": "Beulah, Arewacin Dakota"
+                },
+                "New_Salem": {
+                  "_type": "zone",
+                  "exemplarCity": "New Salem, Arewacin Dakota"
+                },
+                "Center": {
+                  "_type": "zone",
+                  "exemplarCity": "Center, Arewacin Dakota"
+                }
+              },
+              "Indiana": {
+                "Vincennes": {
+                  "_type": "zone",
+                  "exemplarCity": "Vincennes, Indiana"
+                },
+                "Petersburg": {
+                  "_type": "zone",
+                  "exemplarCity": "Petersburg, Indiana"
+                },
+                "Tell_City": {
+                  "_type": "zone",
+                  "exemplarCity": "Tell City, Indiana"
+                },
+                "Knox": {
+                  "_type": "zone",
+                  "exemplarCity": "Knox, Indiana"
+                },
+                "Winamac": {
+                  "_type": "zone",
+                  "exemplarCity": "Winamac, Indiana"
+                },
+                "Marengo": {
+                  "_type": "zone",
+                  "exemplarCity": "Marengo, Indiana"
+                },
+                "Vevay": {
+                  "_type": "zone",
+                  "exemplarCity": "Vevay, Indiana"
+                }
+              },
+              "Kentucky": {
+                "Monticello": {
+                  "_type": "zone",
+                  "exemplarCity": "Monticello, Kentucky"
+                }
+              },
+              "St_Vincent": {
+                "_type": "zone",
+                "exemplarCity": "St. Vincent"
+              },
+              "St_Thomas": {
+                "_type": "zone",
+                "exemplarCity": "St. Thomas"
+              }
+            },
+            "Asia": {
+              "Urumqi": {
+                "_type": "zone",
+                "exemplarCity": "Ürümqi"
+              },
+              "Calcutta": {
+                "_type": "zone",
+                "exemplarCity": "Kolkata"
+              },
+              "Rangoon": {
+                "_type": "zone",
+                "exemplarCity": "Yangon"
+              },
+              "Hovd": {
+                "_type": "zone",
+                "exemplarCity": "Khovd"
+              },
+              "Macau": {
+                "_type": "zone",
+                "exemplarCity": "Macao"
+              },
+              "Katmandu": {
+                "_type": "zone",
+                "exemplarCity": "Kathmandu"
+              },
+              "Saigon": {
+                "_type": "zone",
+                "exemplarCity": "Ho Chi Minh"
+              }
+            },
+            "Pacific": {
+              "Galapagos": {
+                "_type": "zone",
+                "exemplarCity": "Galápagos"
+              },
+              "Truk": {
+                "_type": "zone",
+                "exemplarCity": "Chuuk"
+              },
+              "Ponape": {
+                "_type": "zone",
+                "exemplarCity": "Pohnpei"
+              },
+              "Enderbury": {
+                "_type": "zone",
+                "exemplarCity": "Tsibirin Canton"
+              },
+              "Noumea": {
+                "_type": "zone",
+                "exemplarCity": "Nouméa"
+              },
+              "Wallis": {
+                "_type": "zone",
+                "exemplarCity": "Wallis & Futuna"
+              }
+            },
+            "Africa": {
+              "El_Aaiun": {
+                "_type": "zone",
+                "exemplarCity": "El Aaiún"
+              },
+              "Asmera": {
+                "_type": "zone",
+                "exemplarCity": "Asmara"
+              },
+              "Sao_Tome": {
+                "_type": "zone",
+                "exemplarCity": "São Tomé"
+              },
+              "Ndjamena": {
+                "_type": "zone",
+                "exemplarCity": "N’Djamena"
+              },
+              "Lome": {
+                "_type": "zone",
+                "exemplarCity": "Lomé"
+              }
+            },
+            "Atlantic": {
+              "Canary": {
+                "_type": "zone",
+                "exemplarCity": "Canarias"
+              },
+              "Faeroe": {
+                "_type": "zone",
+                "exemplarCity": "Faroe"
+              },
+              "St_Helena": {
+                "_type": "zone",
+                "exemplarCity": "St. Helena"
+              }
+            },
+            "Indian": {
+              "Comoro": {
+                "_type": "zone",
+                "exemplarCity": "Comores"
+              },
+              "Reunion": {
+                "_type": "zone",
+                "exemplarCity": "Réunion"
+              },
+              "Mahe": {
+                "_type": "zone",
+                "exemplarCity": "Mahé"
+              }
+            }
+          },
+          "metazone": {
+            "Afghanistan": {
+              "long": {
+                "standard": "Lokacin Afghanistan"
+              }
+            },
+            "Africa_Central": {
+              "long": {
+                "standard": "Lokacin Afirka ta Tsakiya"
+              }
+            },
+            "Africa_Eastern": {
+              "long": {
+                "standard": "Lokacin Gabashin Afirka"
+              }
+            },
+            "Africa_Southern": {
+              "long": {
+                "standard": "Tsayayyen Lokacin Afirka ta Kudu"
+              }
+            },
+            "Africa_Western": {
+              "long": {
+                "standard": "Lokacin Afirka ta Yamma"
+              }
+            },
+            "Alaska": {
+              "long": {
+                "generic": "Lokacin Alaska",
+                "standard": "Tsayayyen Lokacin Alaska",
+                "daylight": "Lokacin Rana na Alaska"
+              }
+            },
+            "Amazon": {
+              "long": {
+                "generic": "Lokacin Amazon",
+                "standard": "Tsayayyen Lokacin Amazon",
+                "daylight": "Lokacin Bazara na Amazon"
+              }
+            },
+            "America_Central": {
+              "long": {
+                "generic": "Lokaci dake Amurika arewa ta tsakiyar",
+                "standard": "Tsayayyen Lokaci dake Arewacin Amurika ta Tsakiya",
+                "daylight": "Lokacin Rana dake Arewacin Amurika ta Tsakiya"
+              }
+            },
+            "America_Eastern": {
+              "long": {
+                "generic": "Lokacin Gabas dake Arewacin Amurikaa",
+                "standard": "Tsayayyen Lokacin Gabas dake Arewacin Amurika",
+                "daylight": "Lokacin Rana ta Gabas dake Arewacin Amurika"
+              }
+            },
+            "America_Mountain": {
+              "long": {
+                "generic": "Lokacin Tsauni na Arewacin Amurka",
+                "standard": "Lokaci tsayayye na tsauni a Arewacin Amurica",
+                "daylight": "Lokacin Rana na Tsaunin Arewacin Amurka"
+              }
+            },
+            "America_Pacific": {
+              "long": {
+                "generic": "Lokacin Arewacin Amurika",
+                "standard": "Lokaci Tsayayye na Arewacin Amurika",
+                "daylight": "Lokacin Rana na Arewacin Amurka"
+              }
+            },
+            "Apia": {
+              "long": {
+                "generic": "Lokacin Apia",
+                "standard": "Tsayayyen Lokacin Apia",
+                "daylight": "Lokacin Rana na Apia"
+              }
+            },
+            "Arabian": {
+              "long": {
+                "generic": "Lokacin Arebiya",
+                "standard": "Tsayayyen lokacin Arebiya",
+                "daylight": "Lokacin Rana na Arebiya"
+              }
+            },
+            "Argentina": {
+              "long": {
+                "generic": "Lokacin Argentina",
+                "standard": "Tsayayyen Lokacin Argentina",
+                "daylight": "Lokacin Bazara na Argentina"
+              }
+            },
+            "Argentina_Western": {
+              "long": {
+                "generic": "Lokacin Yammacin Argentina",
+                "standard": "Tsayayyen Lokacin Yammacin Argentina",
+                "daylight": "Lokacin Bazara na Yammacin Argentina"
+              }
+            },
+            "Armenia": {
+              "long": {
+                "generic": "Lokacin Armenia",
+                "standard": "Tsayayyen Lokacin Armenia",
+                "daylight": "Lokacin Bazara na Armenia"
+              }
+            },
+            "Atlantic": {
+              "long": {
+                "generic": "Lokacin Kanada, Puerto Rico da Virgin Islands",
+                "standard": "Tsayayyen Lokacin Kanada, Puerto Rico da Virgin Islands",
+                "daylight": "Lokacin Rana na Kanada, Puerto Rico da Virgin Islands"
+              }
+            },
+            "Australia_Central": {
+              "long": {
+                "generic": "Lokacin Tsakiyar Australiya",
+                "standard": "Tsayayyen Lokacin Tsakiyar Austiraliya",
+                "daylight": "Lokacin Rana na Tsakiyar Austiraliya"
+              }
+            },
+            "Australia_CentralWestern": {
+              "long": {
+                "generic": "Lokacin Yammacin Tsakiyar Austiraliya",
+                "standard": "Tsayayyen Lokacin Yammacin Tsakiyar Austiraliya",
+                "daylight": "Lokacin Rana na Yammacin Tsakiyar Austiraliya"
+              }
+            },
+            "Australia_Eastern": {
+              "long": {
+                "generic": "Lokacin Gabashin Austiraliya",
+                "standard": "Tsayayyen lokacin Gabashin Australia",
+                "daylight": "Lokacin Rana na Gabashin Austiraliya"
+              }
+            },
+            "Australia_Western": {
+              "long": {
+                "generic": "Lokacin Yammacin Austiralia",
+                "standard": "Tsayayyen Lokacin Yammacin Austiralia",
+                "daylight": "Lokacin Rana na Yammacin Austiralia"
+              }
+            },
+            "Azerbaijan": {
+              "long": {
+                "generic": "Lokacin Azerbaijan",
+                "standard": "Tsayayyen Lokacin Azerbaijan",
+                "daylight": "Lokacin Bazara na Azerbaijan"
+              }
+            },
+            "Azores": {
+              "long": {
+                "generic": "Lokacin Azores",
+                "standard": "Lokacin Azores Daidaitacce",
+                "daylight": "Lokacin Azure na Bazara"
+              }
+            },
+            "Bangladesh": {
+              "long": {
+                "generic": "Lokacin Bangladesh",
+                "standard": "Tsayayyen Lokacin Bangladesh",
+                "daylight": "Lokacin Bazara na Bangladesh"
+              }
+            },
+            "Bhutan": {
+              "long": {
+                "standard": "Lokacin Bhutan"
+              }
+            },
+            "Bolivia": {
+              "long": {
+                "standard": "Lokacin Bolivia"
+              }
+            },
+            "Brasilia": {
+              "long": {
+                "generic": "Lokacin Brasillia",
+                "standard": "Tsayayyen Lokacin Brasillia",
+                "daylight": "Lokacin Bazara na Brasillia"
+              }
+            },
+            "Brunei": {
+              "long": {
+                "standard": "Lokacin Brunei Darussalam"
+              }
+            },
+            "Cape_Verde": {
+              "long": {
+                "generic": "Lokacin Cape Verde",
+                "standard": "Tsayayyen lokacin Cape Verde",
+                "daylight": "Lokacin Bazara na Cape Verde"
+              }
+            },
+            "Chamorro": {
+              "long": {
+                "standard": "Tsayayyen Lokacin Chamorro"
+              }
+            },
+            "Chatham": {
+              "long": {
+                "generic": "Lokacin Chatham",
+                "standard": "Tsayayyen Lokacin Chatham",
+                "daylight": "Lokacin Rana na Chatham"
+              }
+            },
+            "Chile": {
+              "long": {
+                "generic": "Lokacin Chile",
+                "standard": "Tsayayyen Lokacin Chile",
+                "daylight": "Lokacin Bazara na Chile"
+              }
+            },
+            "China": {
+              "long": {
+                "generic": "Lokacin Sin",
+                "standard": "Tsayayyen Lokacin Sin",
+                "daylight": "Lokacin Rana na Sin"
+              }
+            },
+            "Christmas": {
+              "long": {
+                "standard": "Lokacin Christmas Island"
+              }
+            },
+            "Cocos": {
+              "long": {
+                "standard": "Lokacin Cocos Islands"
+              }
+            },
+            "Colombia": {
+              "long": {
+                "generic": "Lokacin Colombia",
+                "standard": "Tsayayyen Lokacin Colombia",
+                "daylight": "Lokacin Bazara na Colombia"
+              }
+            },
+            "Cook": {
+              "long": {
+                "generic": "Lokacin Cook Islands",
+                "standard": "Tsayayyen Lokacin Cook Islands",
+                "daylight": "Rabin Lokacin Bazara na Cook Islands"
+              }
+            },
+            "Cuba": {
+              "long": {
+                "generic": "Lokaci na Kuba",
+                "standard": "Tsayayyen Lokacin Kuba",
+                "daylight": "Lokacin Rana na Kuba"
+              }
+            },
+            "Davis": {
+              "long": {
+                "standard": "Lokacin Davis"
+              }
+            },
+            "DumontDUrville": {
+              "long": {
+                "standard": "Lokacin Dumont-d’Urville"
+              }
+            },
+            "East_Timor": {
+              "long": {
+                "standard": "Lokacin East Timor"
+              }
+            },
+            "Easter": {
+              "long": {
+                "generic": "Lokacin Easter Island",
+                "standard": "Tsayayyen Lokacin Easter Island",
+                "daylight": "Lokacin Bazara na Easter Island"
+              }
+            },
+            "Ecuador": {
+              "long": {
+                "standard": "Lokacin Ecuador"
+              }
+            },
+            "Europe_Central": {
+              "long": {
+                "generic": "Tsakiyar a lokaci turai",
+                "standard": "Ida Tsakiyar a Lokaci Turai",
+                "daylight": "Tsakiyar bazara a lokaci turai"
+              }
+            },
+            "Europe_Eastern": {
+              "long": {
+                "generic": "Lokaci a turai gabas",
+                "standard": "Ida lokaci a turai gabas",
+                "daylight": "Gabas a lokaci turai da bazara"
+              }
+            },
+            "Europe_Further_Eastern": {
+              "long": {
+                "standard": "Lokacin Gabashin Turai mai Nisa"
+              }
+            },
+            "Europe_Western": {
+              "long": {
+                "generic": "Lokaci ta yammacin turai",
+                "standard": "Ida lokaci ta yammacin turai",
+                "daylight": "Ida lokaci ta yammacin turai da bazara"
+              }
+            },
+            "Falkland": {
+              "long": {
+                "generic": "Lokacin Falkland Islands",
+                "standard": "Tsayayyen Lokacin Falkland Islands",
+                "daylight": "Lokacin Bazara na Falkland Islands"
+              }
+            },
+            "Fiji": {
+              "long": {
+                "generic": "Lokacin Fiji",
+                "standard": "Tsayayyen Lokacin Fiji",
+                "daylight": "Lokacin Bazara na Fiji"
+              }
+            },
+            "French_Guiana": {
+              "long": {
+                "standard": "Lokacin French Guiana"
+              }
+            },
+            "French_Southern": {
+              "long": {
+                "standard": "Lokacin Kudancin Faransa da Antarctic"
+              }
+            },
+            "Galapagos": {
+              "long": {
+                "standard": "Lokacin Galapagos"
+              }
+            },
+            "Gambier": {
+              "long": {
+                "standard": "Lokacin Gambier"
+              }
+            },
+            "Georgia": {
+              "long": {
+                "generic": "Lokacin Georgia",
+                "standard": "Tsayayyen Lokacin Georgia",
+                "daylight": "Lokacin Bazara na Georgia"
+              }
+            },
+            "Gilbert_Islands": {
+              "long": {
+                "standard": "Lokacin Gilbert Islands"
+              }
+            },
+            "GMT": {
+              "long": {
+                "standard": "Lokacin Greenwich a Ingila"
+              }
+            },
+            "Greenland_Eastern": {
+              "long": {
+                "generic": "Lokacin Gabas na Greenland",
+                "standard": "Tsayayyen Lokacin Gabashin Greenland",
+                "daylight": "Lokacin Rana na Gabashin Greenland"
+              }
+            },
+            "Greenland_Western": {
+              "long": {
+                "generic": "Lokacin Yammacin Greenland",
+                "standard": "Tsayayyen Lokacin Yammacin Greenland",
+                "daylight": "Lokacin Rana na Yammacin Greenland"
+              }
+            },
+            "Gulf": {
+              "long": {
+                "standard": "Tsayayyen lokacin Gulf"
+              }
+            },
+            "Guyana": {
+              "long": {
+                "standard": "Lokacin Guyana"
+              }
+            },
+            "Hawaii": {
+              "long": {
+                "standard": "Tsayayyen Lokacin Hawaii-Aleutian"
+              }
+            },
+            "Hawaii_Aleutian": {
+              "long": {
+                "generic": "Lokaci na Hawaii-Aleutian",
+                "standard": "Tsayayyen Lokacin Hawaii-Aleutian",
+                "daylight": "Lokacin Rana na Hawaii-Aleutian"
+              }
+            },
+            "Hong_Kong": {
+              "long": {
+                "generic": "Lokacin Hong Kong",
+                "standard": "Tsayayyen Lokacin Hong Kong",
+                "daylight": "Lokacin Bazara na Hong Kong"
+              }
+            },
+            "Hovd": {
+              "long": {
+                "generic": "Lokacin Hovd",
+                "standard": "Tsayayyen Lokacin Hovd",
+                "daylight": "Lokacin Bazara na Hovd"
+              }
+            },
+            "India": {
+              "long": {
+                "standard": "Tsayayyen lokacin Indiya"
+              }
+            },
+            "Indian_Ocean": {
+              "long": {
+                "standard": "Lokacin Tekun Indiya"
+              }
+            },
+            "Indochina": {
+              "long": {
+                "standard": "Lokacin Indochina"
+              }
+            },
+            "Indonesia_Central": {
+              "long": {
+                "standard": "Lokacin Indonesia ta Tsakiya"
+              }
+            },
+            "Indonesia_Eastern": {
+              "long": {
+                "standard": "Lokacin Gabashin Indonesia"
+              }
+            },
+            "Indonesia_Western": {
+              "long": {
+                "standard": "Lokacin Yammacin Indonesia"
+              }
+            },
+            "Iran": {
+              "long": {
+                "generic": "Lokacin Iran",
+                "standard": "Tsayayyen Lokacin Iran",
+                "daylight": "Lokacin Rana na Iran"
+              }
+            },
+            "Irkutsk": {
+              "long": {
+                "generic": "Lokacin Irkutsk",
+                "standard": "Tsayayyen Lokacin Irkutsk",
+                "daylight": "Lokacin Bazara na Irkutsk"
+              }
+            },
+            "Israel": {
+              "long": {
+                "generic": "Lokacin Israʼila",
+                "standard": "Tsayayyen lokacin Israʼila",
+                "daylight": "Lokacin Hasken Rana na Israʼila"
+              }
+            },
+            "Japan": {
+              "long": {
+                "generic": "Lokacin Japan",
+                "standard": "Tsayayyen lokacin Japan",
+                "daylight": "Lokacin Hasken Rana na Japan"
+              }
+            },
+            "Kazakhstan": {
+              "long": {
+                "standard": "Lokacin Kazakhstan"
+              }
+            },
+            "Kazakhstan_Eastern": {
+              "long": {
+                "standard": "Lokacin Gabashin Kazakhstan"
+              }
+            },
+            "Kazakhstan_Western": {
+              "long": {
+                "standard": "Lokacin Yammacin Kazakhstan"
+              }
+            },
+            "Korea": {
+              "long": {
+                "generic": "Lokacin Koriya",
+                "standard": "Tsayayyen Lokacin Koriya",
+                "daylight": "Lokacin Rana na Koriya"
+              }
+            },
+            "Kosrae": {
+              "long": {
+                "standard": "Lokacin Kosrae"
+              }
+            },
+            "Krasnoyarsk": {
+              "long": {
+                "generic": "Lokacin Krasnoyarsk",
+                "standard": "Tsayayyen Lokacin Krasnoyarsk",
+                "daylight": "Lokacin Bazara na Krasnoyarsk"
+              }
+            },
+            "Kyrgystan": {
+              "long": {
+                "standard": "Lokacin Kyrgyzstan"
+              }
+            },
+            "Line_Islands": {
+              "long": {
+                "standard": "Lokacin Line Islands"
+              }
+            },
+            "Lord_Howe": {
+              "long": {
+                "generic": "Lokacin Lord Howe",
+                "standard": "Tsayayyen Lokacin Lord Howe",
+                "daylight": "Lokacin Rana na Vote Lord Howe"
+              }
+            },
+            "Magadan": {
+              "long": {
+                "generic": "Lokacin Magadan",
+                "standard": "Tsayayyen Lokacin Magadan",
+                "daylight": "Lokacin Bazara na Magadan"
+              }
+            },
+            "Malaysia": {
+              "long": {
+                "standard": "Lokacin Malaysia"
+              }
+            },
+            "Maldives": {
+              "long": {
+                "standard": "Lokacin Maldives"
+              }
+            },
+            "Marquesas": {
+              "long": {
+                "standard": "Lokacin Marquesas"
+              }
+            },
+            "Marshall_Islands": {
+              "long": {
+                "standard": "Lokacin Marshall Islands"
+              }
+            },
+            "Mauritius": {
+              "long": {
+                "generic": "Lokacin Mauritius",
+                "standard": "Tsayayyen Lokacin Mauritius",
+                "daylight": "Lokacin Bazara na Mauritius"
+              }
+            },
+            "Mawson": {
+              "long": {
+                "standard": "Lokacin Mawson"
+              }
+            },
+            "Mexico_Pacific": {
+              "long": {
+                "generic": "Lokacin Mekziko Pacific",
+                "standard": "Tsayayyen Lokacin Mekziko Pacific",
+                "daylight": "Lokacin Rana na Mekziko Pacific"
+              }
+            },
+            "Mongolia": {
+              "long": {
+                "generic": "Lokacin Ulaanbaatar",
+                "standard": "Tsayayyen Lokacin Ulaanbaatar",
+                "daylight": "Lokacin Bazara na Ulaanbaatar"
+              }
+            },
+            "Moscow": {
+              "long": {
+                "generic": "Lokacin Moscow",
+                "standard": "Tsayayyen Lokacin Moscow",
+                "daylight": "Lokacin Bazara na Moscow"
+              }
+            },
+            "Myanmar": {
+              "long": {
+                "standard": "Lokacin Myanmar"
+              }
+            },
+            "Nauru": {
+              "long": {
+                "standard": "Lokacin Nauru"
+              }
+            },
+            "Nepal": {
+              "long": {
+                "standard": "Lokacin Nepal"
+              }
+            },
+            "New_Caledonia": {
+              "long": {
+                "generic": "Lokacin New Caledonia",
+                "standard": "Tsayayyen Lokacin New Caledonia",
+                "daylight": "Lokacin Bazara na New Caledonia"
+              }
+            },
+            "New_Zealand": {
+              "long": {
+                "generic": "Lokacin New Zealand",
+                "standard": "Tsayayyen Lokacin New Zealand",
+                "daylight": "Lokacin Rana na New Zealand"
+              }
+            },
+            "Newfoundland": {
+              "long": {
+                "generic": "Lokacin Newfoundland",
+                "standard": "Lokaci Tsayayye ta Newfoundland",
+                "daylight": "Lokaci rana ta Newfoundland"
+              }
+            },
+            "Niue": {
+              "long": {
+                "standard": "Lokacin Niue"
+              }
+            },
+            "Norfolk": {
+              "long": {
+                "generic": "Lokacin Norfolk Island",
+                "standard": "Tsayayyen Lokacin Norfolk Island",
+                "daylight": "Lokacin Rana na Norfolk Island"
+              }
+            },
+            "Noronha": {
+              "long": {
+                "generic": "Lokacin Fernando de Noronha",
+                "standard": "Tsayayyen Lokacin Fernando de Noronha",
+                "daylight": "Lokacin Bazara na Fernando de Noronha"
+              }
+            },
+            "Novosibirsk": {
+              "long": {
+                "generic": "Lokacin Novosibirsk",
+                "standard": "Novosibirsk Standard Time",
+                "daylight": "Lokacin Bazara na Novosibirsk"
+              }
+            },
+            "Omsk": {
+              "long": {
+                "generic": "Lokacin Omsk",
+                "standard": "Tsayayyen Lokacin Omsk",
+                "daylight": "Lokacin Bazara na Omsk"
+              }
+            },
+            "Pakistan": {
+              "long": {
+                "generic": "Lokacin Pakistan",
+                "standard": "Tsayayyen Lokacin Pakistan",
+                "daylight": "Lokacin Bazara na Pakistan"
+              }
+            },
+            "Palau": {
+              "long": {
+                "standard": "Lokacin Palau"
+              }
+            },
+            "Papua_New_Guinea": {
+              "long": {
+                "standard": "Lokacin Papua New Guinea"
+              }
+            },
+            "Paraguay": {
+              "long": {
+                "generic": "Lokacin Paraguay",
+                "standard": "Tsayayyen Lokacin Paraguay",
+                "daylight": "Lokacin Bazara na Paraguay"
+              }
+            },
+            "Peru": {
+              "long": {
+                "generic": "Lokacin Peru",
+                "standard": "Tsayayyen Lokacin Peru",
+                "daylight": "Lokacin Bazara na Peru"
+              }
+            },
+            "Philippines": {
+              "long": {
+                "generic": "Lokacin Philippine",
+                "standard": "Tsayayyen Lokacin Philippine",
+                "daylight": "Lokacin Bazara na Philippine"
+              }
+            },
+            "Phoenix_Islands": {
+              "long": {
+                "standard": "Lokacin Phoenix Islands"
+              }
+            },
+            "Pierre_Miquelon": {
+              "long": {
+                "generic": "Lokacin St. Pierre da Miquelon",
+                "standard": "Tsayayyen Lokacin St. Pierre da Miquelon",
+                "daylight": "Lokacin Rana na St. Pierre da Miquelon"
+              }
+            },
+            "Pitcairn": {
+              "long": {
+                "standard": "Lokacin Pitcairn"
+              }
+            },
+            "Ponape": {
+              "long": {
+                "standard": "Lokacin Ponape"
+              }
+            },
+            "Pyongyang": {
+              "long": {
+                "standard": "Lokacin Pyongyang"
+              }
+            },
+            "Reunion": {
+              "long": {
+                "standard": "Lokacin Réunion"
+              }
+            },
+            "Rothera": {
+              "long": {
+                "standard": "Lokacin Rothera"
+              }
+            },
+            "Sakhalin": {
+              "long": {
+                "generic": "Lokacin Sakhalin",
+                "standard": "Tsayayyen Lokacin Sakhalin",
+                "daylight": "Lokacin Bazara na Sakhalin"
+              }
+            },
+            "Samoa": {
+              "long": {
+                "generic": "Lokacin Samoa",
+                "standard": "Tsayayyen Lokacin Samoa",
+                "daylight": "Lokacin Rana na Vote Samoa"
+              }
+            },
+            "Seychelles": {
+              "long": {
+                "standard": "Lokacin Seychelles"
+              }
+            },
+            "Singapore": {
+              "long": {
+                "standard": "Tsayayyen Lokacin Singapore"
+              }
+            },
+            "Solomon": {
+              "long": {
+                "standard": "Lokacin Rana na Solomon"
+              }
+            },
+            "South_Georgia": {
+              "long": {
+                "standard": "Lokacin Kudancin Georgia"
+              }
+            },
+            "Suriname": {
+              "long": {
+                "standard": "Lokacin Suriname"
+              }
+            },
+            "Syowa": {
+              "long": {
+                "standard": "Lokacin Syowa"
+              }
+            },
+            "Tahiti": {
+              "long": {
+                "standard": "Lokacin Tahiti"
+              }
+            },
+            "Taipei": {
+              "long": {
+                "generic": "Lokacin Taipei",
+                "standard": "Tsayayyen Lokacin Taipei",
+                "daylight": "Lokacin Rana na Taipei"
+              }
+            },
+            "Tajikistan": {
+              "long": {
+                "standard": "Lokacin Tajikistan"
+              }
+            },
+            "Tokelau": {
+              "long": {
+                "standard": "Lokacin Tokelau"
+              }
+            },
+            "Tonga": {
+              "long": {
+                "generic": "Lokacin Tonga",
+                "standard": "Tsayayyen Lokacin Tonga",
+                "daylight": "Lokacin Bazara na Tonga"
+              }
+            },
+            "Truk": {
+              "long": {
+                "standard": "Lokacin Chuuk"
+              }
+            },
+            "Turkmenistan": {
+              "long": {
+                "generic": "Lokacin Turkmenistan",
+                "standard": "Tsayayyen Lokacin Turkmenistan",
+                "daylight": "Lokacin Bazara na Turkmenistan"
+              }
+            },
+            "Tuvalu": {
+              "long": {
+                "standard": "Lokacin Tuvalu"
+              }
+            },
+            "Uruguay": {
+              "long": {
+                "generic": "Lokacin Uruguay",
+                "standard": "Tsayayyen Lokacin Uruguay",
+                "daylight": "Lokacin Bazara na Uruguay"
+              }
+            },
+            "Uzbekistan": {
+              "long": {
+                "generic": "Lokacin Uzbekistan",
+                "standard": "Tsayayyen Lokacin Uzbekistan",
+                "daylight": "Lokacin Bazara na Uzbekistan"
+              }
+            },
+            "Vanuatu": {
+              "long": {
+                "generic": "Lokacin Vanuatu",
+                "standard": "Tsayayyen Lokacin Vanuatu",
+                "daylight": "Lokacin Bazara na Vanuatu"
+              }
+            },
+            "Venezuela": {
+              "long": {
+                "standard": "Lokacin Venezuela"
+              }
+            },
+            "Vladivostok": {
+              "long": {
+                "generic": "Lokacin Vladivostok",
+                "standard": "Tsayayyen Lokacin Vladivostok",
+                "daylight": "Lokacin Bazara na Vladivostok"
+              }
+            },
+            "Volgograd": {
+              "long": {
+                "generic": "Lokacin Volgograd",
+                "standard": "Tsayayyen Lokacin Volgograd",
+                "daylight": "Lokacin Bazara na Volgograd"
+              }
+            },
+            "Vostok": {
+              "long": {
+                "standard": "Lokacin Vostok"
+              }
+            },
+            "Wake": {
+              "long": {
+                "standard": "Lokacin Wake Island"
+              }
+            },
+            "Wallis": {
+              "long": {
+                "standard": "Lokacin Wallis da Futuna"
+              }
+            },
+            "Yakutsk": {
+              "long": {
+                "generic": "Lokacin Yakutsk",
+                "standard": "Tsayayyen Lokacin Yakutsk",
+                "daylight": "Lokacin Bazara na Yakutsk"
+              }
+            },
+            "Yekaterinburg": {
+              "long": {
+                "generic": "Lokacin Yekaterinburg",
+                "standard": "Tsayayyen Lokacin Yekaterinburg",
+                "daylight": "Lokacin Bazara na Yekaterinburg"
+              }
+            },
+            "Yukon": {
+              "long": {
+                "standard": "Lokacin Yukon"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

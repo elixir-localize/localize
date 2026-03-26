@@ -1,0 +1,16 @@
+{
+  "main": {
+    "gaa": {
+      "identity": {
+        "language": "gaa"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Susumɔnii",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

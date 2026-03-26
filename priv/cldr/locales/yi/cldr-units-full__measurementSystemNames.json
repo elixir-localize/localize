@@ -1,0 +1,16 @@
+{
+  "main": {
+    "yi": {
+      "identity": {
+        "language": "yi"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "מעטריש",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

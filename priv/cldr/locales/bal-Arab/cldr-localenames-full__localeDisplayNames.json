@@ -1,0 +1,56 @@
+{
+  "main": {
+    "bal-Arab": {
+      "identity": {
+        "language": "bal",
+        "script": "Arab"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}، {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "types": {
+          "calendar": {
+            "buddhist": "بُدّایی سالدر",
+            "chinese": "چینی سالدر",
+            "coptic": "کپتی سالدر",
+            "dangi": "دانگی سالدر",
+            "ethiopic": "ایتیوپیایی سالدر",
+            "ethiopic-amete-alem": "ایتیوپیایی آمیت آلم سالدر",
+            "gregorian": "گرێگۆری سالدر",
+            "hebrew": "ابرانی سالدر",
+            "indian": "هندی کئومی سالدر",
+            "islamic": "اسلامی سالدر",
+            "islamic-civil": "اسلامی شهری سالدر",
+            "islamic-rgsa": "اسلامی سئوودی اربی سالدر",
+            "islamic-tbla": "اسلامی نجومی سالدر",
+            "islamic-umalqura": "اسلامی ام الکراهی سالدر",
+            "iso8601": "سالدر ISO-8601",
+            "japanese": "جاپانی سالدر",
+            "persian": "پارسی سالدر",
+            "roc": "مینگۆ چینی سالدر"
+          },
+          "cf": {
+            "standard": "زرّئے گیشّتگێن کالب"
+          },
+          "collation": {
+            "standard": "گیشّتگێن ترتیب"
+          },
+          "numbers": {
+            "arab": "اربی-هندی نمبر",
+            "cyrl": "روسی نمبر",
+            "deva": "دێوناگری نمبر",
+            "latn": "مگربی نمبر"
+          }
+        },
+        "codePatterns": {
+          "language": "زبان: {0}",
+          "script": "سیاهگ: {0}",
+          "territory": "دمگ: {0}"
+        }
+      }
+    }
+  }
+}

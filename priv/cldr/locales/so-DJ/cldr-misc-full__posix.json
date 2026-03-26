@@ -1,0 +1,16 @@
+{
+  "main": {
+    "so-DJ": {
+      "identity": {
+        "language": "so",
+        "territory": "DJ"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "haa:h",
+          "nostr": "maya:m"
+        }
+      }
+    }
+  }
+}

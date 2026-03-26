@@ -1,0 +1,1428 @@
+{
+  "main": {
+    "lij": {
+      "identity": {
+        "language": "lij"
+      },
+      "dates": {
+        "timeZoneNames": {
+          "hourFormat": "+HH:mm;−HH:mm",
+          "gmtFormat": "UTC{0}",
+          "gmtZeroFormat": "UTC",
+          "gmtUnknownFormat": "GMT+?",
+          "regionFormat": "oa: {0}",
+          "regionFormat-type-daylight": "oa de stæ: {0}",
+          "regionFormat-type-standard": "oa standard: {0}",
+          "fallbackFormat": "{1} ({0})",
+          "zone": {
+            "Etc": {
+              "UTC": {
+                "_type": "zone",
+                "long": {
+                  "standard": "tempo universale coordinou"
+                },
+                "short": {
+                  "standard": "UTC"
+                }
+              },
+              "Unknown": {
+                "_type": "zone",
+                "exemplarCity": "çittæ desconosciua"
+              }
+            },
+            "Europe": {
+              "Andorra": {
+                "_type": "zone",
+                "exemplarCity": "Andòrra"
+              },
+              "Tirane": {
+                "_type": "zone",
+                "exemplarCity": "Tiraña"
+              },
+              "Brussels": {
+                "_type": "zone",
+                "exemplarCity": "Bruxelles"
+              },
+              "Zurich": {
+                "_type": "zone",
+                "exemplarCity": "Zurigo"
+              },
+              "Prague": {
+                "_type": "zone",
+                "exemplarCity": "Praga"
+              },
+              "Busingen": {
+                "_type": "zone",
+                "exemplarCity": "Büsingen"
+              },
+              "Paris": {
+                "_type": "zone",
+                "exemplarCity": "Pariggi"
+              },
+              "London": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "oa de stæ britannica"
+                },
+                "exemplarCity": "Londra"
+              },
+              "Gibraltar": {
+                "_type": "zone",
+                "exemplarCity": "Gibertâ"
+              },
+              "Athens": {
+                "_type": "zone",
+                "exemplarCity": "Atene"
+              },
+              "Zagreb": {
+                "_type": "zone",
+                "exemplarCity": "Zagabria"
+              },
+              "Dublin": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "oa de stæ d’Irlanda"
+                },
+                "exemplarCity": "Doblin"
+              },
+              "Isle_of_Man": {
+                "_type": "zone",
+                "exemplarCity": "Isoa de Man"
+              },
+              "Rome": {
+                "_type": "zone",
+                "exemplarCity": "Romma"
+              },
+              "Luxembourg": {
+                "_type": "zone",
+                "exemplarCity": "Luxemburgo"
+              },
+              "Monaco": {
+                "_type": "zone",
+                "exemplarCity": "Monego"
+              },
+              "Chisinau": {
+                "_type": "zone",
+                "exemplarCity": "Chișinău"
+              },
+              "Oslo": {
+                "_type": "zone",
+                "exemplarCity": "Òslo"
+              },
+              "Warsaw": {
+                "_type": "zone",
+                "exemplarCity": "Varsavia"
+              },
+              "Lisbon": {
+                "_type": "zone",
+                "exemplarCity": "Lisboña"
+              },
+              "Belgrade": {
+                "_type": "zone",
+                "exemplarCity": "Belgraddo"
+              },
+              "Moscow": {
+                "_type": "zone",
+                "exemplarCity": "Mosca"
+              },
+              "Stockholm": {
+                "_type": "zone",
+                "exemplarCity": "Stoccolma"
+              },
+              "Ljubljana": {
+                "_type": "zone",
+                "exemplarCity": "Lubiaña"
+              },
+              "San_Marino": {
+                "_type": "zone",
+                "exemplarCity": "San Marin"
+              },
+              "Kiev": {
+                "_type": "zone",
+                "exemplarCity": "Kyiv"
+              }
+            },
+            "Antarctica": {
+              "Syowa": {
+                "_type": "zone",
+                "exemplarCity": "Showa"
+              },
+              "DumontDUrville": {
+                "_type": "zone",
+                "exemplarCity": "Dumont-d’Urville"
+              }
+            },
+            "America": {
+              "Argentina": {
+                "Rio_Gallegos": {
+                  "_type": "zone",
+                  "exemplarCity": "Río Gallegos"
+                },
+                "Tucuman": {
+                  "_type": "zone",
+                  "exemplarCity": "Tucumán"
+                }
+              },
+              "Cordoba": {
+                "_type": "zone",
+                "exemplarCity": "Còrdova"
+              },
+              "St_Barthelemy": {
+                "_type": "zone",
+                "exemplarCity": "San Bertomê"
+              },
+              "Eirunepe": {
+                "_type": "zone",
+                "exemplarCity": "Eirunepé"
+              },
+              "Cuiaba": {
+                "_type": "zone",
+                "exemplarCity": "Cuiabá"
+              },
+              "Santarem": {
+                "_type": "zone",
+                "exemplarCity": "Santarém"
+              },
+              "Belem": {
+                "_type": "zone",
+                "exemplarCity": "Belém"
+              },
+              "Araguaina": {
+                "_type": "zone",
+                "exemplarCity": "Araguaína"
+              },
+              "Sao_Paulo": {
+                "_type": "zone",
+                "exemplarCity": "San Poulo"
+              },
+              "Maceio": {
+                "_type": "zone",
+                "exemplarCity": "Maceió"
+              },
+              "Noronha": {
+                "_type": "zone",
+                "exemplarCity": "Fernando de Noronha"
+              },
+              "Coral_Harbour": {
+                "_type": "zone",
+                "exemplarCity": "Atikokan"
+              },
+              "St_Johns": {
+                "_type": "zone",
+                "exemplarCity": "St. John’s"
+              },
+              "Bogota": {
+                "_type": "zone",
+                "exemplarCity": "Bogotà"
+              },
+              "Costa_Rica": {
+                "_type": "zone",
+                "exemplarCity": "Còsta Rica"
+              },
+              "Curacao": {
+                "_type": "zone",
+                "exemplarCity": "Curaçao"
+              },
+              "Grenada": {
+                "_type": "zone",
+                "exemplarCity": "Granada"
+              },
+              "Cayenne": {
+                "_type": "zone",
+                "exemplarCity": "Caieña"
+              },
+              "Godthab": {
+                "_type": "zone",
+                "exemplarCity": "Nuuk"
+              },
+              "Scoresbysund": {
+                "_type": "zone",
+                "exemplarCity": "Ittoqqortoormiit"
+              },
+              "Guadeloupe": {
+                "_type": "zone",
+                "exemplarCity": "Guadaluppa"
+              },
+              "St_Kitts": {
+                "_type": "zone",
+                "exemplarCity": "San Cristoffa"
+              },
+              "St_Lucia": {
+                "_type": "zone",
+                "exemplarCity": "Santa Luçia"
+              },
+              "Martinique": {
+                "_type": "zone",
+                "exemplarCity": "Martinica"
+              },
+              "Ciudad_Juarez": {
+                "_type": "zone",
+                "exemplarCity": "Ciudad Juárez"
+              },
+              "Mazatlan": {
+                "_type": "zone",
+                "exemplarCity": "Mazatlán"
+              },
+              "Bahia_Banderas": {
+                "_type": "zone",
+                "exemplarCity": "Bahía de Banderas"
+              },
+              "Mexico_City": {
+                "_type": "zone",
+                "exemplarCity": "Çittæ do Mescico"
+              },
+              "Merida": {
+                "_type": "zone",
+                "exemplarCity": "Mérida"
+              },
+              "Cancun": {
+                "_type": "zone",
+                "exemplarCity": "Cancún"
+              },
+              "Miquelon": {
+                "_type": "zone",
+                "exemplarCity": "Saint-Pierre"
+              },
+              "Asuncion": {
+                "_type": "zone",
+                "exemplarCity": "Asunción"
+              },
+              "Lower_Princes": {
+                "_type": "zone",
+                "exemplarCity": "Lower Prince’s Quarter"
+              },
+              "North_Dakota": {
+                "Beulah": {
+                  "_type": "zone",
+                  "exemplarCity": "Beulah, North Dakota"
+                },
+                "New_Salem": {
+                  "_type": "zone",
+                  "exemplarCity": "New Salem, North Dakota"
+                },
+                "Center": {
+                  "_type": "zone",
+                  "exemplarCity": "Center, North Dakota"
+                }
+              },
+              "Indiana": {
+                "Vincennes": {
+                  "_type": "zone",
+                  "exemplarCity": "Vincennes, Indiana"
+                },
+                "Petersburg": {
+                  "_type": "zone",
+                  "exemplarCity": "Petersburg, Indiana"
+                },
+                "Tell_City": {
+                  "_type": "zone",
+                  "exemplarCity": "Tell City, Indiana"
+                },
+                "Knox": {
+                  "_type": "zone",
+                  "exemplarCity": "Knox, Indiana"
+                },
+                "Winamac": {
+                  "_type": "zone",
+                  "exemplarCity": "Winamac, Indiana"
+                },
+                "Marengo": {
+                  "_type": "zone",
+                  "exemplarCity": "Marengo, Indiana"
+                },
+                "Vevay": {
+                  "_type": "zone",
+                  "exemplarCity": "Vevay, Indiana"
+                }
+              },
+              "Kentucky": {
+                "Monticello": {
+                  "_type": "zone",
+                  "exemplarCity": "Monticello, Kentucky"
+                }
+              },
+              "St_Vincent": {
+                "_type": "zone",
+                "exemplarCity": "San Viçenso"
+              },
+              "St_Thomas": {
+                "_type": "zone",
+                "exemplarCity": "St. Thomas"
+              }
+            },
+            "Asia": {
+              "Bahrain": {
+                "_type": "zone",
+                "exemplarCity": "Bahrein"
+              },
+              "Urumqi": {
+                "_type": "zone",
+                "exemplarCity": "Ürümqi"
+              },
+              "Jakarta": {
+                "_type": "zone",
+                "exemplarCity": "Giacarta"
+              },
+              "Jerusalem": {
+                "_type": "zone",
+                "exemplarCity": "Gerusalemme"
+              },
+              "Calcutta": {
+                "_type": "zone",
+                "exemplarCity": "Calcutta"
+              },
+              "Rangoon": {
+                "_type": "zone",
+                "exemplarCity": "Yangon"
+              },
+              "Hovd": {
+                "_type": "zone",
+                "exemplarCity": "Khovd"
+              },
+              "Ulaanbaatar": {
+                "_type": "zone",
+                "exemplarCity": "Ulan Bator"
+              },
+              "Macau": {
+                "_type": "zone",
+                "exemplarCity": "Macao"
+              },
+              "Katmandu": {
+                "_type": "zone",
+                "exemplarCity": "Kathmandu"
+              },
+              "Yekaterinburg": {
+                "_type": "zone",
+                "exemplarCity": "Ekaterinburg"
+              },
+              "Chita": {
+                "_type": "zone",
+                "exemplarCity": "Cita"
+              },
+              "Singapore": {
+                "_type": "zone",
+                "exemplarCity": "Scingapô"
+              },
+              "Damascus": {
+                "_type": "zone",
+                "exemplarCity": "Damasco"
+              },
+              "Samarkand": {
+                "_type": "zone",
+                "exemplarCity": "Samarcanda"
+              },
+              "Saigon": {
+                "_type": "zone",
+                "exemplarCity": "Ho Chi Minh"
+              }
+            },
+            "Pacific": {
+              "Easter": {
+                "_type": "zone",
+                "exemplarCity": "Pasqua"
+              },
+              "Galapagos": {
+                "_type": "zone",
+                "exemplarCity": "Galápagos"
+              },
+              "Fiji": {
+                "_type": "zone",
+                "exemplarCity": "Figi"
+              },
+              "Truk": {
+                "_type": "zone",
+                "exemplarCity": "Chuuk"
+              },
+              "Ponape": {
+                "_type": "zone",
+                "exemplarCity": "Pohnpei"
+              },
+              "Enderbury": {
+                "_type": "zone",
+                "exemplarCity": "Canton"
+              },
+              "Noumea": {
+                "_type": "zone",
+                "exemplarCity": "Nouméa"
+              },
+              "Marquesas": {
+                "_type": "zone",
+                "exemplarCity": "Marcheixi"
+              },
+              "Wallis": {
+                "_type": "zone",
+                "exemplarCity": "Wallis & Futuna"
+              }
+            },
+            "Atlantic": {
+              "Cape_Verde": {
+                "_type": "zone",
+                "exemplarCity": "Cappo Verde"
+              },
+              "Canary": {
+                "_type": "zone",
+                "exemplarCity": "Canäie"
+              },
+              "Faeroe": {
+                "_type": "zone",
+                "exemplarCity": "Fær Øer"
+              },
+              "South_Georgia": {
+                "_type": "zone",
+                "exemplarCity": "Geòrgia do sud"
+              },
+              "Azores": {
+                "_type": "zone",
+                "exemplarCity": "Azore"
+              },
+              "St_Helena": {
+                "_type": "zone",
+                "exemplarCity": "Sant’Elena"
+              }
+            },
+            "Africa": {
+              "Algiers": {
+                "_type": "zone",
+                "exemplarCity": "Argê"
+              },
+              "El_Aaiun": {
+                "_type": "zone",
+                "exemplarCity": "El Aaiún"
+              },
+              "Asmera": {
+                "_type": "zone",
+                "exemplarCity": "Asmara"
+              },
+              "Ceuta": {
+                "_type": "zone",
+                "exemplarCity": "Çéuta"
+              },
+              "Addis_Ababa": {
+                "_type": "zone",
+                "exemplarCity": "Addis Abeba"
+              },
+              "Nairobi": {
+                "_type": "zone",
+                "exemplarCity": "Nairöbi"
+              },
+              "Mogadishu": {
+                "_type": "zone",
+                "exemplarCity": "Mogadiscio"
+              },
+              "Sao_Tome": {
+                "_type": "zone",
+                "exemplarCity": "Sao Tomé"
+              },
+              "Ndjamena": {
+                "_type": "zone",
+                "exemplarCity": "N’Djamena"
+              },
+              "Lome": {
+                "_type": "zone",
+                "exemplarCity": "Lomé"
+              },
+              "Tunis": {
+                "_type": "zone",
+                "exemplarCity": "Tunexi"
+              }
+            },
+            "Indian": {
+              "Comoro": {
+                "_type": "zone",
+                "exemplarCity": "Comöre"
+              },
+              "Maldives": {
+                "_type": "zone",
+                "exemplarCity": "Maldive"
+              },
+              "Reunion": {
+                "_type": "zone",
+                "exemplarCity": "Réunion"
+              },
+              "Mahe": {
+                "_type": "zone",
+                "exemplarCity": "Mahé"
+              },
+              "Mayotte": {
+                "_type": "zone",
+                "exemplarCity": "Maiòtta"
+              }
+            }
+          },
+          "metazone": {
+            "Afghanistan": {
+              "long": {
+                "standard": "oa de l’Afghanistan"
+              }
+            },
+            "Africa_Central": {
+              "long": {
+                "standard": "oa de l’Africa do mezo"
+              }
+            },
+            "Africa_Eastern": {
+              "long": {
+                "standard": "oa de l’Africa de levante"
+              }
+            },
+            "Africa_Southern": {
+              "long": {
+                "standard": "oa de l’Africa do meridion"
+              }
+            },
+            "Africa_Western": {
+              "long": {
+                "standard": "oa de l’Africa de ponente"
+              }
+            },
+            "Alaska": {
+              "long": {
+                "generic": "oa de l’Alaska",
+                "standard": "oa standard de l’Alaska",
+                "daylight": "oa de stæ de l’Alaska"
+              }
+            },
+            "Amazon": {
+              "long": {
+                "generic": "oa de l’Amassònia",
+                "standard": "oa standard de l’Amassònia",
+                "daylight": "oa de stæ de l’Amassònia"
+              }
+            },
+            "America_Central": {
+              "long": {
+                "generic": "oa do mezo nordamericaña",
+                "standard": "oa standard do mezo nordamericaña",
+                "daylight": "oa de stæ do mezo nordamericaña"
+              }
+            },
+            "America_Eastern": {
+              "long": {
+                "generic": "oa do levante nordamericaña",
+                "standard": "oa standard do levante nordamericaña",
+                "daylight": "oa de stæ do levante nordamericaña"
+              }
+            },
+            "America_Mountain": {
+              "long": {
+                "generic": "oa de Montagne Alliggiæ",
+                "standard": "oa standard de Montagne Alliggiæ",
+                "daylight": "oa de stæ de Montagne Alliggiæ"
+              }
+            },
+            "America_Pacific": {
+              "long": {
+                "generic": "oa do Paçifico nordamericaña",
+                "standard": "oa standard do Paçifico nordamericaña",
+                "daylight": "oa de stæ do Paçifico nordamericaña"
+              }
+            },
+            "Apia": {
+              "long": {
+                "generic": "oa de Apia",
+                "standard": "oa standard de Apia",
+                "daylight": "oa de stæ de Apia"
+              }
+            },
+            "Arabian": {
+              "long": {
+                "generic": "oa de l’Arabia",
+                "standard": "oa standard de l’Arabia",
+                "daylight": "oa de stæ de l’Arabia"
+              }
+            },
+            "Argentina": {
+              "long": {
+                "generic": "oa de l’Argentiña",
+                "standard": "oa standard de l’Argentiña",
+                "daylight": "oa de stæ de l’Argentiña"
+              }
+            },
+            "Argentina_Western": {
+              "long": {
+                "generic": "oa de l’Argentiña de ponente",
+                "standard": "oa standard de l’Argentiña de ponente",
+                "daylight": "oa de stæ de l’Argentiña de ponente"
+              }
+            },
+            "Armenia": {
+              "long": {
+                "generic": "oa de l’Ermenia",
+                "standard": "oa standard de l’Ermenia",
+                "daylight": "oa de stæ de l’Ermenia"
+              }
+            },
+            "Atlantic": {
+              "long": {
+                "generic": "oa de l’Atlantico nordamericaña",
+                "standard": "oa standard de l’Atlantico nordamericaña",
+                "daylight": "oa de stæ de l’Atlantico nordamericaña"
+              }
+            },
+            "Australia_Central": {
+              "long": {
+                "generic": "oa de l’Australia de mezo",
+                "standard": "oa standard de l’Australia de mezo",
+                "daylight": "oa de stæ de l’Australia de mezo"
+              }
+            },
+            "Australia_CentralWestern": {
+              "long": {
+                "generic": "oa de l’Australia do mezo-ponente",
+                "standard": "oa standard de l’Australia do mezo-ponente",
+                "daylight": "oa de stæ de l’Australia do mezo-ponente"
+              }
+            },
+            "Australia_Eastern": {
+              "long": {
+                "generic": "oa de l’Australia de levante",
+                "standard": "oa standard de l’Australia de levante",
+                "daylight": "oa de stæ de l’Australia de levante"
+              }
+            },
+            "Australia_Western": {
+              "long": {
+                "generic": "oa de l’Australia de ponente",
+                "standard": "oa standard de l’Australia de ponente",
+                "daylight": "oa de stæ de l’Australia de ponente"
+              }
+            },
+            "Azerbaijan": {
+              "long": {
+                "generic": "oa de l’Azerbaigian",
+                "standard": "oa standard de l’Azerbaigian",
+                "daylight": "oa de stæ de l’Azerbaigian"
+              }
+            },
+            "Azores": {
+              "long": {
+                "generic": "oa de Azore",
+                "standard": "oa standard de Azore",
+                "daylight": "oa de stæ de Azore"
+              }
+            },
+            "Bangladesh": {
+              "long": {
+                "generic": "oa do Bangladesh",
+                "standard": "oa standard do Bangladesh",
+                "daylight": "oa de stæ do Bangladesh"
+              }
+            },
+            "Bhutan": {
+              "long": {
+                "standard": "oa do Bhutan"
+              }
+            },
+            "Bolivia": {
+              "long": {
+                "standard": "oa da Bolivia"
+              }
+            },
+            "Brasilia": {
+              "long": {
+                "generic": "oa de Brasilia",
+                "standard": "oa standard de Brasilia",
+                "daylight": "oa de stæ de Brasilia"
+              }
+            },
+            "Brunei": {
+              "long": {
+                "standard": "oa do Brunei Darussalam"
+              }
+            },
+            "Cape_Verde": {
+              "long": {
+                "generic": "oa de Cappo Verde",
+                "standard": "oa standard de Cappo Verde",
+                "daylight": "oa de stæ de Cappo Verde"
+              }
+            },
+            "Chamorro": {
+              "long": {
+                "standard": "oa de Chamorro"
+              }
+            },
+            "Chatham": {
+              "long": {
+                "generic": "oa de Chatham",
+                "standard": "oa standard de Chatham",
+                "daylight": "oa de stæ de Chatham"
+              }
+            },
+            "Chile": {
+              "long": {
+                "generic": "oa do Cile",
+                "standard": "oa standard do Cile",
+                "daylight": "oa de stæ do Cile"
+              }
+            },
+            "China": {
+              "long": {
+                "generic": "oa da Ciña",
+                "standard": "oa standard da Ciña",
+                "daylight": "oa de stæ da Ciña"
+              }
+            },
+            "Christmas": {
+              "long": {
+                "standard": "oa de l’isoa Christmas"
+              }
+            },
+            "Cocos": {
+              "long": {
+                "standard": "oa de isoe Cocos"
+              }
+            },
+            "Colombia": {
+              "long": {
+                "generic": "oa da Colombia",
+                "standard": "oa standard da Colombia",
+                "daylight": "oa de stæ da Colombia"
+              }
+            },
+            "Cook": {
+              "long": {
+                "generic": "oa de isoe Cook",
+                "standard": "oa standard de isoe Cook",
+                "daylight": "oa de stæ de isoe Cook"
+              }
+            },
+            "Cuba": {
+              "long": {
+                "generic": "oa de Cubba",
+                "standard": "oa standard de Cubba",
+                "daylight": "oa de stæ de Cubba"
+              }
+            },
+            "Davis": {
+              "long": {
+                "standard": "oa de Davis"
+              }
+            },
+            "DumontDUrville": {
+              "long": {
+                "standard": "oa de Dumont-d’Urville"
+              }
+            },
+            "East_Timor": {
+              "long": {
+                "standard": "oa de Timor Est"
+              }
+            },
+            "Easter": {
+              "long": {
+                "generic": "oa de l’isoa de Pasqua",
+                "standard": "oa standard de l’isoa de Pasqua",
+                "daylight": "oa de stæ de l’isoa de Pasqua"
+              }
+            },
+            "Ecuador": {
+              "long": {
+                "standard": "oa de l’Ecuador"
+              }
+            },
+            "Europe_Central": {
+              "long": {
+                "generic": "oa de l’Euröpa do mezo",
+                "standard": "oa standard de l’Euröpa do mezo",
+                "daylight": "oa de stæ de l’Euröpa do mezo"
+              }
+            },
+            "Europe_Eastern": {
+              "long": {
+                "generic": "oa de l’Euröpa de levante",
+                "standard": "oa standard de l’Euröpa de levante",
+                "daylight": "oa de stæ de l’Euröpa de levante"
+              }
+            },
+            "Europe_Further_Eastern": {
+              "long": {
+                "standard": "oa de Kaliningrad"
+              }
+            },
+            "Europe_Western": {
+              "long": {
+                "generic": "oa de l’Euröpa de ponente",
+                "standard": "oa standard de l’Euröpa de ponente",
+                "daylight": "oa de stæ de l’Euröpa de ponente"
+              }
+            },
+            "Falkland": {
+              "long": {
+                "generic": "oa de isoe Malviñe",
+                "standard": "oa standard de isoe Malviñe",
+                "daylight": "oa de stæ de isoe Malviñe"
+              }
+            },
+            "Fiji": {
+              "long": {
+                "generic": "oa de Figi",
+                "standard": "oa standard de Figi",
+                "daylight": "oa de stæ de Figi"
+              }
+            },
+            "French_Guiana": {
+              "long": {
+                "standard": "oa da Guyana franseise"
+              }
+            },
+            "French_Southern": {
+              "long": {
+                "standard": "oa de Tære australe e antartiche franseixi"
+              }
+            },
+            "Galapagos": {
+              "long": {
+                "standard": "oa de Galapagos"
+              }
+            },
+            "Gambier": {
+              "long": {
+                "standard": "oa de Gambier"
+              }
+            },
+            "Georgia": {
+              "long": {
+                "generic": "oa da Geòrgia",
+                "standard": "oa standard da Geòrgia",
+                "daylight": "oa de stæ da Geòrgia"
+              }
+            },
+            "Gilbert_Islands": {
+              "long": {
+                "standard": "oa de isoe Gilbert"
+              }
+            },
+            "GMT": {
+              "long": {
+                "standard": "oa do meridian de Greenwich"
+              }
+            },
+            "Greenland_Eastern": {
+              "long": {
+                "generic": "oa da Groenlandia de levante",
+                "standard": "oa standard da Groenlandia de levante",
+                "daylight": "oa de stæ da Groenlandia de levante"
+              }
+            },
+            "Greenland_Western": {
+              "long": {
+                "generic": "oa da Groenlandia de ponente",
+                "standard": "oa standard da Groenlandia de ponente",
+                "daylight": "oa de stæ da Groenlandia de ponente"
+              }
+            },
+            "Gulf": {
+              "long": {
+                "standard": "oa standard do Gorfo"
+              }
+            },
+            "Guyana": {
+              "long": {
+                "standard": "oa da Guyana"
+              }
+            },
+            "Hawaii": {
+              "long": {
+                "standard": "oa standard de Hawaii-Aleutiñe"
+              }
+            },
+            "Hawaii_Aleutian": {
+              "long": {
+                "generic": "oa de Hawaii-Aleutiñe",
+                "standard": "oa standard de Hawaii-Aleutiñe",
+                "daylight": "oa de stæ de Hawaii-Aleutiñe"
+              }
+            },
+            "Hong_Kong": {
+              "long": {
+                "generic": "oa de Hong Kong",
+                "standard": "oa standard de Hong Kong",
+                "daylight": "oa de stæ de Hong Kong"
+              }
+            },
+            "Hovd": {
+              "long": {
+                "generic": "oa de Hovd",
+                "standard": "oa standard de Hovd",
+                "daylight": "oa de stæ de Hovd"
+              }
+            },
+            "India": {
+              "long": {
+                "standard": "oa de l’India"
+              }
+            },
+            "Indian_Ocean": {
+              "long": {
+                "standard": "oa de l’Oçeano Indian"
+              }
+            },
+            "Indochina": {
+              "long": {
+                "standard": "oa de l’Indociña"
+              }
+            },
+            "Indonesia_Central": {
+              "long": {
+                "standard": "oa de l’Indonesia de mezo"
+              }
+            },
+            "Indonesia_Eastern": {
+              "long": {
+                "standard": "oa de l’Indonesia de levante"
+              }
+            },
+            "Indonesia_Western": {
+              "long": {
+                "standard": "oa de l’Indonesia de ponente"
+              }
+            },
+            "Iran": {
+              "long": {
+                "generic": "oa de l’Iran",
+                "standard": "oa standard de l’Iran",
+                "daylight": "oa de stæ de l’Iran"
+              }
+            },
+            "Irkutsk": {
+              "long": {
+                "generic": "oa de Irkutsk",
+                "standard": "oa standard de Irkutsk",
+                "daylight": "oa de stæ de Irkutsk"
+              }
+            },
+            "Israel": {
+              "long": {
+                "generic": "oa d’Israele",
+                "standard": "oa standard d’Israele",
+                "daylight": "oa de stæ d’Israele"
+              }
+            },
+            "Japan": {
+              "long": {
+                "generic": "oa do Giappon",
+                "standard": "oa standard do Giappon",
+                "daylight": "oa de stæ do Giappon"
+              }
+            },
+            "Kazakhstan_Eastern": {
+              "long": {
+                "standard": "oa do Kazakistan de levante"
+              }
+            },
+            "Kazakhstan_Western": {
+              "long": {
+                "standard": "oa do Kazakistan de ponente"
+              }
+            },
+            "Korea": {
+              "long": {
+                "generic": "oa da Corea",
+                "standard": "oa standard da Corea",
+                "daylight": "oa de stæ da Corea"
+              }
+            },
+            "Kosrae": {
+              "long": {
+                "standard": "oa do Kosrae"
+              }
+            },
+            "Krasnoyarsk": {
+              "long": {
+                "generic": "oa de Krasnoyarsk",
+                "standard": "oa standard de Krasnoyarsk",
+                "daylight": "oa de stæ de Krasnoyarsk"
+              }
+            },
+            "Kyrgystan": {
+              "long": {
+                "standard": "oa do Kirghizistan"
+              }
+            },
+            "Line_Islands": {
+              "long": {
+                "standard": "oa de isoe da Linia"
+              }
+            },
+            "Lord_Howe": {
+              "long": {
+                "generic": "oa de Lord Howe",
+                "standard": "oa standard de Lord Howe",
+                "daylight": "oa de stæ de Lord Howe"
+              }
+            },
+            "Magadan": {
+              "long": {
+                "generic": "oa de Magadan",
+                "standard": "oa standard de Magadan",
+                "daylight": "oa de stæ de Magadan"
+              }
+            },
+            "Malaysia": {
+              "long": {
+                "standard": "oa da Malesia"
+              }
+            },
+            "Maldives": {
+              "long": {
+                "standard": "oa de Maldive"
+              }
+            },
+            "Marquesas": {
+              "long": {
+                "standard": "oa de Marcheixi"
+              }
+            },
+            "Marshall_Islands": {
+              "long": {
+                "standard": "oa de isoe Marshall"
+              }
+            },
+            "Mauritius": {
+              "long": {
+                "generic": "oa de Mauritius",
+                "standard": "oa standard de Mauritius",
+                "daylight": "oa de stæ de Mauritius"
+              }
+            },
+            "Mawson": {
+              "long": {
+                "standard": "oa de Mawson"
+              }
+            },
+            "Mexico_Pacific": {
+              "long": {
+                "generic": "oa do Paçifico mescicaña",
+                "standard": "oa standard do Paçifico mescicaña",
+                "daylight": "oa de stæ do Paçifico mescicaña"
+              }
+            },
+            "Mongolia": {
+              "long": {
+                "generic": "oa d’Ulan Bator",
+                "standard": "oa standard d’Ulan Bator",
+                "daylight": "oa de stæ d’Ulan Bator"
+              }
+            },
+            "Moscow": {
+              "long": {
+                "generic": "oa de Mosca",
+                "standard": "oa standard de Mosca",
+                "daylight": "oa de stæ de Mosca"
+              }
+            },
+            "Myanmar": {
+              "long": {
+                "standard": "oa da Birmania"
+              }
+            },
+            "Nauru": {
+              "long": {
+                "standard": "oa de Nauru"
+              }
+            },
+            "Nepal": {
+              "long": {
+                "standard": "oa do Nepal"
+              }
+            },
+            "New_Caledonia": {
+              "long": {
+                "generic": "oa da Neuva Caledònia",
+                "standard": "oa standard da Neuva Caledònia",
+                "daylight": "oa de stæ da Neuva Caledònia"
+              }
+            },
+            "New_Zealand": {
+              "long": {
+                "generic": "oa da Neuva Zelanda",
+                "standard": "oa standard da Neuva Zelanda",
+                "daylight": "oa de stæ da Neuva Zelanda"
+              }
+            },
+            "Newfoundland": {
+              "long": {
+                "generic": "oa de Tæraneuva",
+                "standard": "oa standard de Tæraneuva",
+                "daylight": "oa de stæ de Tæraneuva"
+              }
+            },
+            "Niue": {
+              "long": {
+                "standard": "oa de Niue"
+              }
+            },
+            "Norfolk": {
+              "long": {
+                "generic": "oa de l’isoa Norfolk",
+                "standard": "oa standard de l’isoa Norfolk",
+                "daylight": "oa de stæ de l’isoa Norfolk"
+              }
+            },
+            "Noronha": {
+              "long": {
+                "generic": "oa de Fernando de Noronha",
+                "standard": "oa standard de Fernando de Noronha",
+                "daylight": "oa de stæ de Fernando de Noronha"
+              }
+            },
+            "Novosibirsk": {
+              "long": {
+                "generic": "oa de Novosibirsk",
+                "standard": "oa standard de Novosibirsk",
+                "daylight": "oa de stæ de Novosibirsk"
+              }
+            },
+            "Omsk": {
+              "long": {
+                "generic": "oa de Òmsk",
+                "standard": "oa standard de Òmsk",
+                "daylight": "oa de stæ de Òmsk"
+              }
+            },
+            "Pakistan": {
+              "long": {
+                "generic": "oa do Pakistan",
+                "standard": "oa standard do Pakistan",
+                "daylight": "oa de stæ do Pakistan"
+              }
+            },
+            "Palau": {
+              "long": {
+                "standard": "oa de Palau"
+              }
+            },
+            "Papua_New_Guinea": {
+              "long": {
+                "standard": "oa da Papua Neuva Guinea"
+              }
+            },
+            "Paraguay": {
+              "long": {
+                "generic": "oa do Paraguay",
+                "standard": "oa standard do Paraguay",
+                "daylight": "oa de stæ do Paraguay"
+              }
+            },
+            "Peru": {
+              "long": {
+                "generic": "oa do Perù",
+                "standard": "oa standard do Perù",
+                "daylight": "oa de stæ do Perù"
+              }
+            },
+            "Philippines": {
+              "long": {
+                "generic": "oa de Filipiñe",
+                "standard": "oa standard de Filipiñe",
+                "daylight": "oa de stæ de Filipiñe"
+              }
+            },
+            "Phoenix_Islands": {
+              "long": {
+                "standard": "oa de isoe Phoenix"
+              }
+            },
+            "Pierre_Miquelon": {
+              "long": {
+                "generic": "oa de San Pê e Miquelon",
+                "standard": "oa standard de San Pê e Miquelon",
+                "daylight": "oa de stæ de San Pê e Miquelon"
+              }
+            },
+            "Pitcairn": {
+              "long": {
+                "standard": "oa de Pitcairn"
+              }
+            },
+            "Ponape": {
+              "long": {
+                "standard": "oa de Pohnpei"
+              }
+            },
+            "Pyongyang": {
+              "long": {
+                "standard": "oa de Pyongyang"
+              }
+            },
+            "Reunion": {
+              "long": {
+                "standard": "oa da Réunion"
+              }
+            },
+            "Rothera": {
+              "long": {
+                "standard": "oa de Rothera"
+              }
+            },
+            "Sakhalin": {
+              "long": {
+                "generic": "oa de Sakhalin",
+                "standard": "oa standard de Sakhalin",
+                "daylight": "oa de stæ de Sakhalin"
+              }
+            },
+            "Samoa": {
+              "long": {
+                "generic": "oa de Samoa",
+                "standard": "oa standard de Samoa",
+                "daylight": "oa de stæ de Samoa"
+              }
+            },
+            "Seychelles": {
+              "long": {
+                "standard": "oa de Seychelles"
+              }
+            },
+            "Singapore": {
+              "long": {
+                "standard": "oa de Scingapô"
+              }
+            },
+            "Solomon": {
+              "long": {
+                "standard": "oa de isoe Solomon"
+              }
+            },
+            "South_Georgia": {
+              "long": {
+                "standard": "oa da Geòrgia do sud"
+              }
+            },
+            "Suriname": {
+              "long": {
+                "standard": "oa do Suriname"
+              }
+            },
+            "Syowa": {
+              "long": {
+                "standard": "oa de Syowa"
+              }
+            },
+            "Tahiti": {
+              "long": {
+                "standard": "oa de Tahiti"
+              }
+            },
+            "Taipei": {
+              "long": {
+                "generic": "oa de Taipei",
+                "standard": "oa standard de Taipei",
+                "daylight": "oa de stæ de Taipei"
+              }
+            },
+            "Tajikistan": {
+              "long": {
+                "standard": "oa do Tagikistan"
+              }
+            },
+            "Tokelau": {
+              "long": {
+                "standard": "oa de Tokelau"
+              }
+            },
+            "Tonga": {
+              "long": {
+                "generic": "oa de Tonga",
+                "standard": "oa standard de Tonga",
+                "daylight": "oa de stæ de Tonga"
+              }
+            },
+            "Truk": {
+              "long": {
+                "standard": "oa do Chuuk"
+              }
+            },
+            "Turkmenistan": {
+              "long": {
+                "generic": "oa do Turkmenistan",
+                "standard": "oa standard do Turkmenistan",
+                "daylight": "oa de stæ do Turkmenistan"
+              }
+            },
+            "Tuvalu": {
+              "long": {
+                "standard": "oa de Tuvalu"
+              }
+            },
+            "Uruguay": {
+              "long": {
+                "generic": "oa de l’Uruguay",
+                "standard": "oa standard de l’Uruguay",
+                "daylight": "oa de stæ de l’Uruguay"
+              }
+            },
+            "Uzbekistan": {
+              "long": {
+                "generic": "oa de l’Uzbekistan",
+                "standard": "oa standard de l’Uzbekistan",
+                "daylight": "oa de stæ de l’Uzbekistan"
+              }
+            },
+            "Vanuatu": {
+              "long": {
+                "generic": "oa de Vanuatu",
+                "standard": "oa standard de Vanuatu",
+                "daylight": "oa de stæ de Vanuatu"
+              }
+            },
+            "Venezuela": {
+              "long": {
+                "standard": "oa do Venessuela"
+              }
+            },
+            "Vladivostok": {
+              "long": {
+                "generic": "oa de Vladivostok",
+                "standard": "oa standard de Vladivostok",
+                "daylight": "oa de stæ de Vladivostok"
+              }
+            },
+            "Volgograd": {
+              "long": {
+                "generic": "oa de Volgograd",
+                "standard": "oa standard de Volgograd",
+                "daylight": "oa de stæ de Volgograd"
+              }
+            },
+            "Vostok": {
+              "long": {
+                "standard": "oa de Vostok"
+              }
+            },
+            "Wake": {
+              "long": {
+                "standard": "oa de l’isoa de Wake"
+              }
+            },
+            "Wallis": {
+              "long": {
+                "standard": "oa de Wallis e Futuna"
+              }
+            },
+            "Yakutsk": {
+              "long": {
+                "generic": "oa de Yakutsk",
+                "standard": "oa standard de Yakutsk",
+                "daylight": "oa de stæ de Yakutsk"
+              }
+            },
+            "Yekaterinburg": {
+              "long": {
+                "generic": "oa d’Ekaterinburg",
+                "standard": "oa standard d’Ekaterinburg",
+                "daylight": "oa de stæ d’Ekaterinburg"
+              }
+            },
+            "Yukon": {
+              "long": {
+                "standard": "oa do Yukon"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

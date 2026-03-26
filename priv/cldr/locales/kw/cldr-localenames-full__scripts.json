@@ -1,0 +1,21 @@
+{
+  "main": {
+    "kw": {
+      "identity": {
+        "language": "kw"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Arab": "Arabek",
+          "Grek": "Greka",
+          "Hani": "Han",
+          "Hans": "Sempelhes",
+          "Hans-alt-stand-alone": "Han sempelhes",
+          "Hant": "Hengovek",
+          "Hant-alt-stand-alone": "Han hengovek",
+          "Latn": "Latin"
+        }
+      }
+    }
+  }
+}

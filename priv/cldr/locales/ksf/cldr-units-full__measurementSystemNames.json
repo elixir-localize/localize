@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ksf": {
+      "identity": {
+        "language": "ksf"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

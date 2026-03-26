@@ -1,0 +1,15 @@
+{
+  "main": {
+    "bem": {
+      "identity": {
+        "language": "bem"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ee:E",
+          "nostr": "Awe:A"
+        }
+      }
+    }
+  }
+}

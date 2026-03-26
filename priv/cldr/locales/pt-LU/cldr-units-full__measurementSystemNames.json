@@ -1,0 +1,17 @@
+{
+  "main": {
+    "pt-LU": {
+      "identity": {
+        "language": "pt",
+        "territory": "LU"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrico",
+          "UK": "Reino Unido",
+          "US": "Estados Unidos"
+        }
+      }
+    }
+  }
+}

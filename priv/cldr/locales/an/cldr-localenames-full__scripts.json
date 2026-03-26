@@ -1,0 +1,24 @@
+{
+  "main": {
+    "an": {
+      "identity": {
+        "language": "an"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Arab": "arabe",
+          "Cyrl": "cirilico",
+          "Hans": "simplificau",
+          "Hans-alt-stand-alone": "han simplificau",
+          "Hant": "tradicional",
+          "Hant-alt-stand-alone": "han tradicional",
+          "Jpan": "chaponés",
+          "Kore": "coreano",
+          "Latn": "latín",
+          "Zxxx": "sin escritura",
+          "Zzzz": "escritura desconoixida"
+        }
+      }
+    }
+  }
+}

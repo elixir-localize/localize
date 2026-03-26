@@ -1,0 +1,17 @@
+{
+  "main": {
+    "zh-Hant-MO": {
+      "identity": {
+        "language": "zh",
+        "script": "Hant",
+        "territory": "MO"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

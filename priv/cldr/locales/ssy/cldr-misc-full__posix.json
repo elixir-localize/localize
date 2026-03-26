@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ssy": {
+      "identity": {
+        "language": "ssy"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

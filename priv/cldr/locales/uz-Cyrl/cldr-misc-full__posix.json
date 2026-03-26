@@ -1,0 +1,16 @@
+{
+  "main": {
+    "uz-Cyrl": {
+      "identity": {
+        "language": "uz",
+        "script": "Cyrl"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ҳа:ҳ",
+          "nostr": "йўқ:й"
+        }
+      }
+    }
+  }
+}

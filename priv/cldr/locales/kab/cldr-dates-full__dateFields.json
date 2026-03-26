@@ -1,0 +1,670 @@
+{
+  "main": {
+    "kab": {
+      "identity": {
+        "language": "kab"
+      },
+      "dates": {
+        "fields": {
+          "era": {
+            "displayName": "Tallit"
+          },
+          "era-short": {
+            "displayName": "Tallit"
+          },
+          "era-narrow": {
+            "displayName": "Tallit"
+          },
+          "year": {
+            "displayName": "Aseggas",
+            "relative-type--1": "ilindi",
+            "relative-type-0": "aseggas-a",
+            "relative-type-1": "qabel",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n useggas",
+              "relativeTimePattern-count-other": "deg {0} n yiseggasen"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n useggas aya",
+              "relativeTimePattern-count-other": "{0} n yiseggasen aya"
+            }
+          },
+          "year-short": {
+            "displayName": "sg.",
+            "relative-type--1": "ilindi",
+            "relative-type-0": "aseggas-a",
+            "relative-type-1": "qabel",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} sg.",
+              "relativeTimePattern-count-other": "deg {0} sg."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} sg. aya",
+              "relativeTimePattern-count-other": "{0} sg. aya"
+            }
+          },
+          "year-narrow": {
+            "displayName": "sg",
+            "relative-type--1": "ilindi",
+            "relative-type-0": "aseggas-a",
+            "relative-type-1": "qabel",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} sg.",
+              "relativeTimePattern-count-other": "deg {0} sg."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} sg. aya",
+              "relativeTimePattern-count-other": "{0} sg. aya"
+            }
+          },
+          "quarter": {
+            "displayName": "akraḍyur",
+            "relative-type--1": "akraḍyur izrin",
+            "relative-type-0": "akraḍyur-agi",
+            "relative-type-1": "akraḍyur d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n ukraḍyur",
+              "relativeTimePattern-count-other": "deg {0} n ikraḍyuren"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n ukraḍyur aya",
+              "relativeTimePattern-count-other": "{0} n yikraḍyuren aya"
+            }
+          },
+          "quarter-short": {
+            "displayName": "kyr.",
+            "relative-type--1": "akraḍyur izrin",
+            "relative-type-0": "akraḍyur-agi",
+            "relative-type-1": "akraḍyur d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} kyr.",
+              "relativeTimePattern-count-other": "deg {0} kyrn."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} kyr. aya",
+              "relativeTimePattern-count-other": "{0} kyrn. aya"
+            }
+          },
+          "quarter-narrow": {
+            "displayName": "kyr.",
+            "relative-type--1": "akraḍyur izrin",
+            "relative-type-0": "akraḍyur-agi",
+            "relative-type-1": "akraḍyur d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} kyr.",
+              "relativeTimePattern-count-other": "deg {0} kyrn."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} kyr. aya",
+              "relativeTimePattern-count-other": "{0} kyrn. aya"
+            }
+          },
+          "month": {
+            "displayName": "Aggur",
+            "relative-type--1": "ayyur izrin",
+            "relative-type-0": "ayyur-a",
+            "relative-type-1": "ayyur i d-itteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n wayyur",
+              "relativeTimePattern-count-other": "deg {0} n wayyuren"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n wayyur aya",
+              "relativeTimePattern-count-other": "{0} n wayyuren aya"
+            }
+          },
+          "month-short": {
+            "displayName": "yr.",
+            "relative-type--1": "ayyur izrin",
+            "relative-type-0": "ayyur-a",
+            "relative-type-1": "ayyur i d-itteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} yr.",
+              "relativeTimePattern-count-other": "deg {0} yr."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} yr. aya",
+              "relativeTimePattern-count-other": "{0} yr. aya"
+            }
+          },
+          "month-narrow": {
+            "displayName": "yr.",
+            "relative-type--1": "ayyur izrin",
+            "relative-type-0": "ayyur-a",
+            "relative-type-1": "ayyur i d-itteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} yr.",
+              "relativeTimePattern-count-other": "deg {0} yr."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} yr. aya",
+              "relativeTimePattern-count-other": "{0} yr. aya"
+            }
+          },
+          "week": {
+            "displayName": "Ddurt",
+            "relative-type--1": "dduṛt izrin",
+            "relative-type-0": "dduṛt -a",
+            "relative-type-1": "dduṛt i d-itteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n dduṛt",
+              "relativeTimePattern-count-other": "deg {0} n dduṛtat"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n dduṛt aya",
+              "relativeTimePattern-count-other": "{0} n dduṛtat aya"
+            },
+            "relativePeriod": "dduṛt n {0}"
+          },
+          "week-short": {
+            "displayName": "dṛ.",
+            "relative-type--1": "dduṛt izrin",
+            "relative-type-0": "dduṛt-a",
+            "relative-type-1": "dduṛt i d-itteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} mls.",
+              "relativeTimePattern-count-other": "deg {0} mls."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} mls. aya",
+              "relativeTimePattern-count-other": "{0} mls. aya"
+            },
+            "relativePeriod": "ddurt n {0}"
+          },
+          "week-narrow": {
+            "displayName": "dṛ.",
+            "relative-type--1": "ddurt izrin",
+            "relative-type-0": "ddurt-a",
+            "relative-type-1": "dduṛt i d-itteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} mls.",
+              "relativeTimePattern-count-other": "deg {0} mls."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} mls. aya",
+              "relativeTimePattern-count-other": "{0} mls. aya"
+            },
+            "relativePeriod": "ddurt n {0}"
+          },
+          "weekOfMonth": {
+            "displayName": "dduṛt n wayyur"
+          },
+          "weekOfMonth-short": {
+            "displayName": "dṛ. n yr."
+          },
+          "weekOfMonth-narrow": {
+            "displayName": "dṛ. n yr."
+          },
+          "day": {
+            "displayName": "Ass",
+            "relative-type--1": "Iḍelli",
+            "relative-type-0": "Ass-a",
+            "relative-type-1": "Azekka",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n wass",
+              "relativeTimePattern-count-other": "deg {0} n wussan"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n wass aya",
+              "relativeTimePattern-count-other": "{0} n wussan aya"
+            }
+          },
+          "day-short": {
+            "displayName": "ass",
+            "relative-type--1": "iḍelli",
+            "relative-type-0": "ass-a",
+            "relative-type-1": "azekka",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n wass",
+              "relativeTimePattern-count-other": "deg {0} n wussan"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n wass aya",
+              "relativeTimePattern-count-other": "{0} n wussan aya"
+            }
+          },
+          "day-narrow": {
+            "displayName": "ass",
+            "relative-type--1": "iḍelli",
+            "relative-type-0": "ass-a",
+            "relative-type-1": "azekka",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n wass",
+              "relativeTimePattern-count-other": "deg {0} n wussan"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n wass aya",
+              "relativeTimePattern-count-other": "{0} n wussan aya"
+            }
+          },
+          "dayOfYear": {
+            "displayName": "ass n useggas"
+          },
+          "dayOfYear-short": {
+            "displayName": "ass n sgs."
+          },
+          "dayOfYear-narrow": {
+            "displayName": "ass n sgs."
+          },
+          "weekday": {
+            "displayName": "Ussan n ddurt"
+          },
+          "weekday-short": {
+            "displayName": "ass n dṛ."
+          },
+          "weekday-narrow": {
+            "displayName": "ass n dṛ."
+          },
+          "weekdayOfMonth": {
+            "displayName": "assn dduṛt n wayyur"
+          },
+          "weekdayOfMonth-short": {
+            "displayName": "ass. n dṛ. n yr."
+          },
+          "weekdayOfMonth-narrow": {
+            "displayName": "ass. n dṛ. n yr."
+          },
+          "sun": {
+            "relative-type--1": "Acer izrin",
+            "relative-type-0": "Acer-agi",
+            "relative-type-1": "Acer d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n Acer",
+              "relativeTimePattern-count-other": "deg {0} n Acer"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Acer aya",
+              "relativeTimePattern-count-other": "{0} n Acer aya"
+            }
+          },
+          "sun-short": {
+            "relative-type--1": "Ace. izrin",
+            "relative-type-0": "Ace. agi",
+            "relative-type-1": "Ace. d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n Ace.",
+              "relativeTimePattern-count-other": "deg {0} n Ace."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Ace. aya",
+              "relativeTimePattern-count-other": "{0} n Ace. aya"
+            }
+          },
+          "sun-narrow": {
+            "relative-type--1": "Cr. izrin",
+            "relative-type-0": "Cr. agi",
+            "relative-type-1": "Cr. d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} Cr.",
+              "relativeTimePattern-count-other": "deg {0} Cr."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} Cr. aya",
+              "relativeTimePattern-count-other": "{0} Cr. aya"
+            }
+          },
+          "mon": {
+            "relative-type--1": "Arim yezrin",
+            "relative-type-0": "Arim-agi",
+            "relative-type-1": "Arim d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n Arim",
+              "relativeTimePattern-count-other": "deg {0} n Arim"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Arim aya",
+              "relativeTimePattern-count-other": "{0} n Arim aya"
+            }
+          },
+          "mon-short": {
+            "relative-type--1": "Arim yezrin",
+            "relative-type-0": "Arim-agi",
+            "relative-type-1": "Arim d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n Arim",
+              "relativeTimePattern-count-other": "deg {0} n Arim"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Arim aya",
+              "relativeTimePattern-count-other": "{0} n Arim aya"
+            }
+          },
+          "mon-narrow": {
+            "relative-type--1": "Ri. yezrin",
+            "relative-type-0": "Ri. agi",
+            "relative-type-1": "Ri d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n Ri.",
+              "relativeTimePattern-count-other": "deg {0} n Ri."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Ri. aya",
+              "relativeTimePattern-count-other": "{0} n Ri. aya"
+            }
+          },
+          "tue": {
+            "relative-type--1": "Aram izrin",
+            "relative-type-0": "Aram-agi",
+            "relative-type-1": "Aram d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} Aram",
+              "relativeTimePattern-count-other": "deg {0} Aram"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Aram aya",
+              "relativeTimePattern-count-other": "{0} n Aram aya"
+            }
+          },
+          "tue-short": {
+            "relative-type--1": "Aram izrin",
+            "relative-type-0": "Aram-agi",
+            "relative-type-1": "Aram d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} Aram",
+              "relativeTimePattern-count-other": "deg {0} Aram"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Aram aya",
+              "relativeTimePattern-count-other": "{0} n Aram aya"
+            }
+          },
+          "tue-narrow": {
+            "relative-type--1": "Aram izrin",
+            "relative-type-0": "Aram-agi",
+            "relative-type-1": "Aram d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} Aram",
+              "relativeTimePattern-count-other": "deg {0} Aram"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Aram aya",
+              "relativeTimePattern-count-other": "{0} n Aram aya"
+            }
+          },
+          "wed": {
+            "relative-type--1": "Ahad izrin",
+            "relative-type-0": "Ahad-agi",
+            "relative-type-1": "Ahad d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n Ahad",
+              "relativeTimePattern-count-other": "deg {0} n ahad"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Ahad aya",
+              "relativeTimePattern-count-other": "{0} n Ahad aya"
+            }
+          },
+          "wed-short": {
+            "relative-type--1": "Ahad izrin",
+            "relative-type-0": "Ahad-agi",
+            "relative-type-1": "Ahad d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n Ahad",
+              "relativeTimePattern-count-other": "deg {0} n ahad"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Ahad aya",
+              "relativeTimePattern-count-other": "{0} n ahad aya"
+            }
+          },
+          "wed-narrow": {
+            "relative-type--1": "Ahad izrin",
+            "relative-type-0": "Ahad-agi",
+            "relative-type-1": "Ahad d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n Ahad",
+              "relativeTimePattern-count-other": "deg {0} n ahad"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Ahad aya",
+              "relativeTimePattern-count-other": "{0} n ahad aya"
+            }
+          },
+          "thu": {
+            "relative-type--1": "Amhad izrin",
+            "relative-type-0": "Amhad-agi",
+            "relative-type-1": "Amhad d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n Amhad",
+              "relativeTimePattern-count-other": "deg {0} n Amhad"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Amhad aya",
+              "relativeTimePattern-count-other": "{0} n Amhad aya"
+            }
+          },
+          "thu-short": {
+            "relative-type--1": "Amhad izrin",
+            "relative-type-0": "Amhad-agi",
+            "relative-type-1": "Amhad d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n Amhad",
+              "relativeTimePattern-count-other": "deg {0} n Amhad"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Amhad aya",
+              "relativeTimePattern-count-other": "{0} n Amhad aya"
+            }
+          },
+          "thu-narrow": {
+            "relative-type--1": "Amhad izrin",
+            "relative-type-0": "Amhad-agi",
+            "relative-type-1": "Amhad d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n Amhad",
+              "relativeTimePattern-count-other": "deg {0} n Amhad"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Amhad aya",
+              "relativeTimePattern-count-other": "{0} n Amhad aya"
+            }
+          },
+          "fri": {
+            "relative-type--1": "Sem izrin",
+            "relative-type-0": "Sem-agi",
+            "relative-type-1": "Sem d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Deg {0} Sem",
+              "relativeTimePattern-count-other": "Deg {0} Sem"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Sem aya",
+              "relativeTimePattern-count-other": "{0} n Sem aya"
+            }
+          },
+          "fri-short": {
+            "relative-type--1": "Sem izrin",
+            "relative-type-0": "Sem-agi",
+            "relative-type-1": "Sem d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Deg {0} Sem",
+              "relativeTimePattern-count-other": "Deg {0} Sem"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Sem aya",
+              "relativeTimePattern-count-other": "{0} n Sem aya"
+            }
+          },
+          "fri-narrow": {
+            "relative-type--1": "Sm. izrin",
+            "relative-type-0": "Sm. agi",
+            "relative-type-1": "Sm. d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "Deg {0} Sm.",
+              "relativeTimePattern-count-other": "Deg {0} Sm."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Sm. aya",
+              "relativeTimePattern-count-other": "{0} n Sm. aya"
+            }
+          },
+          "sat": {
+            "relative-type--1": "sed izrin",
+            "relative-type-0": "sed-agi",
+            "relative-type-1": "sed d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "di {0} n sed",
+              "relativeTimePattern-count-other": "di {0} n sed"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Sed aya",
+              "relativeTimePattern-count-other": "{0} n Sed aya"
+            }
+          },
+          "sat-short": {
+            "relative-type--1": "sed izrin",
+            "relative-type-0": "sed-agi",
+            "relative-type-1": "Sed d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "di {0} n sed",
+              "relativeTimePattern-count-other": "di {0} n sed"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Sed aya",
+              "relativeTimePattern-count-other": "{0} n Sed aya"
+            }
+          },
+          "sat-narrow": {
+            "relative-type--1": "Sd izrin",
+            "relative-type-0": "Sd agi",
+            "relative-type-1": "Sd d-iteddun",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n Sd",
+              "relativeTimePattern-count-other": "deg {0} n Sd"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n Sd. aya",
+              "relativeTimePattern-count-other": "{0} n Sd aya"
+            }
+          },
+          "dayperiod-short": {
+            "displayName": "TF/MD"
+          },
+          "dayperiod": {
+            "displayName": "n tufat / n tmeddit"
+          },
+          "dayperiod-narrow": {
+            "displayName": "TF/MD"
+          },
+          "hour": {
+            "displayName": "Tamert",
+            "relative-type-0": "asrag-agi",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n usrag",
+              "relativeTimePattern-count-other": "deg {0} n isragen"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n usrag aya",
+              "relativeTimePattern-count-other": "{0} n isragen aya"
+            }
+          },
+          "hour-short": {
+            "displayName": "sr.",
+            "relative-type-0": "asrag-agi",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} sr.",
+              "relativeTimePattern-count-other": "deg {0} sr."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} sr. aya",
+              "relativeTimePattern-count-other": "{0} sr. aya"
+            }
+          },
+          "hour-narrow": {
+            "displayName": "sr.",
+            "relative-type-0": "asrag-agi",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} sr.",
+              "relativeTimePattern-count-other": "deg {0} sr."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} sr. aya",
+              "relativeTimePattern-count-other": "{0} sr. aya"
+            }
+          },
+          "minute": {
+            "displayName": "Tamrect",
+            "relative-type-0": "tasdat-agi",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n tesdat",
+              "relativeTimePattern-count-other": "deg {0} n tesdatin"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n tesdat aya",
+              "relativeTimePattern-count-other": "{0} n tesdatin aya"
+            }
+          },
+          "minute-short": {
+            "displayName": "tsd.",
+            "relative-type-0": "tasdat-agi",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} tsd.",
+              "relativeTimePattern-count-other": "deg {0} tsd."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} tsd. aya",
+              "relativeTimePattern-count-other": "{0} tsd. aya"
+            }
+          },
+          "minute-narrow": {
+            "displayName": "tsd.",
+            "relative-type-0": "tasdat-agi",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} tsd.",
+              "relativeTimePattern-count-other": "deg {0} tsd."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} tsd. aya",
+              "relativeTimePattern-count-other": "{0} tsd. aya"
+            }
+          },
+          "second": {
+            "displayName": "Tasint",
+            "relative-type-0": "tura",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} n tasint",
+              "relativeTimePattern-count-other": "deg {0} n tasinin"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} n tasint aya",
+              "relativeTimePattern-count-other": "{0} n tasinin aya"
+            }
+          },
+          "second-short": {
+            "displayName": "tsn.",
+            "relative-type-0": "tura",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} tsn.",
+              "relativeTimePattern-count-other": "deg {0} tsn."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} tsn. aya",
+              "relativeTimePattern-count-other": "{0} tsn. aya"
+            }
+          },
+          "second-narrow": {
+            "displayName": "tsn.",
+            "relative-type-0": "tura",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "deg {0} tsn.",
+              "relativeTimePattern-count-other": "deg {0} tsn."
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} tsn. aya",
+              "relativeTimePattern-count-other": "{0} tsn. aya"
+            }
+          },
+          "zone": {
+            "displayName": "Aseglem asergan"
+          },
+          "zone-short": {
+            "displayName": "tamnaḍt"
+          },
+          "zone-narrow": {
+            "displayName": "tamnaḍt"
+          }
+        }
+      }
+    }
+  }
+}

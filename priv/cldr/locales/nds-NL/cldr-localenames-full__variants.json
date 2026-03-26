@@ -1,0 +1,41 @@
+{
+  "main": {
+    "nds-NL": {
+      "identity": {
+        "language": "nds",
+        "territory": "NL"
+      },
+      "localeDisplayNames": {
+        "variants": {
+          "1901": "Ole düütsche Rechtschrievung",
+          "1994": "Standardiseert Resiaansch Rechtschrievung",
+          "1996": "Ne’e düütsche Rechtschrievung",
+          "1606NICT": "Laat Middelfranzöösch bet 1606",
+          "1694ACAD": "Fröh Neefranzöösch",
+          "AREVELA": "Oostarmeensch",
+          "AREVMDA": "Westarmeensch",
+          "BAKU1926": "Vereenheitlicht Törksch Latienalphabet",
+          "BISKE": "San Giorgio-/Bila-Dialekt",
+          "BOONT": "Boontling",
+          "FONIPA": "Phoneetsch (IPA)",
+          "FONUPA": "Phoneetsch (UPA)",
+          "LIPAW": "Lipovaz-Dialekt vun dat Resiaansche",
+          "MONOTON": "Monotoonsch",
+          "NEDIS": "Natisone-Dialekt",
+          "NJIVA": "Gniva-/Njiva-Dialekt",
+          "OSOJS": "Oseacco-/Osojane-Dialekt",
+          "POLYTON": "Polytoonsch",
+          "POSIX": "Computer",
+          "REVISED": "Överarbeidt Rechtschrievung",
+          "ROZAJ": "Resiaansch",
+          "SAAHO": "Saho",
+          "SCOTLAND": "Schottsch Standard-Engelsch",
+          "SCOUSE": "Scouse",
+          "SOLBA": "Stolvizza-/Solbica-Dialekt",
+          "TARASK": "Taraskievica-Rechtschrievung",
+          "VALENCIA": "Valenziaansch"
+        }
+      }
+    }
+  }
+}

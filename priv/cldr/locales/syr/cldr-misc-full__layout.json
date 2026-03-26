@@ -1,0 +1,15 @@
+{
+  "main": {
+    "syr": {
+      "identity": {
+        "language": "syr"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

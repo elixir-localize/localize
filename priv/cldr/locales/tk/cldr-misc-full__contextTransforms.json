@@ -1,0 +1,14 @@
+{
+  "main": {
+    "tk": {
+      "identity": {
+        "language": "tk"
+      },
+      "contextTransforms": {
+        "languages": {
+          "stand-alone": "titlecase-firstword"
+        }
+      }
+    }
+  }
+}

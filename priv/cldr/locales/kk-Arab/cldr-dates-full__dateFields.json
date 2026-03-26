@@ -1,0 +1,671 @@
+{
+  "main": {
+    "kk-Arab": {
+      "identity": {
+        "language": "kk",
+        "script": "Arab"
+      },
+      "dates": {
+        "fields": {
+          "era": {
+            "displayName": "ءداۋىر"
+          },
+          "era-short": {
+            "displayName": "ءداۋىر"
+          },
+          "era-narrow": {
+            "displayName": "ءداۋىر"
+          },
+          "year": {
+            "displayName": "جىل",
+            "relative-type--1": "بىلتىرعى جىل",
+            "relative-type-0": "بيىلعى جىل",
+            "relative-type-1": "كەلەسى جىل",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} جىلدان كەيىن",
+              "relativeTimePattern-count-other": "{0} جىلدان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} جىل بۇرىن",
+              "relativeTimePattern-count-other": "{0} جىل بۇرىن"
+            }
+          },
+          "year-short": {
+            "displayName": "جىل",
+            "relative-type--1": "بىلتىرعى جىل",
+            "relative-type-0": "بيىلعى جىل",
+            "relative-type-1": "كەلەسى جىل",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} جىلدان كەيىن",
+              "relativeTimePattern-count-other": "{0} جىلدان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} جىل بۇرىن",
+              "relativeTimePattern-count-other": "{0} جىل بۇرىن"
+            }
+          },
+          "year-narrow": {
+            "displayName": "جىل",
+            "relative-type--1": "بىلتىرعى جىل",
+            "relative-type-0": "بيىلعى جىل",
+            "relative-type-1": "كەلەسى جىل",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} جىلدان كەيىن",
+              "relativeTimePattern-count-other": "{0} جىلدان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} جىل بۇرىن",
+              "relativeTimePattern-count-other": "{0} جىل بۇرىن"
+            }
+          },
+          "quarter": {
+            "displayName": "شيرەك",
+            "relative-type--1": "وتكەن توقسان",
+            "relative-type-0": "وسى توقسان",
+            "relative-type-1": "كەلەسى توقسان",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} توقساننان كەيىن",
+              "relativeTimePattern-count-other": "{0} توقساننان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} توقسان بۇرىن",
+              "relativeTimePattern-count-other": "{0} توقسان بۇرىن"
+            }
+          },
+          "quarter-short": {
+            "displayName": "شيرەك",
+            "relative-type--1": "وتكەن توقسان",
+            "relative-type-0": "وسى توقسان",
+            "relative-type-1": "كەلەسى توقسان",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} توقساننان كەيىن",
+              "relativeTimePattern-count-other": "{0} توقساننان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} توقسان بۇرىن",
+              "relativeTimePattern-count-other": "{0} توقسان بۇرىن"
+            }
+          },
+          "quarter-narrow": {
+            "displayName": "شيرەك",
+            "relative-type--1": "وتكەن توقسان",
+            "relative-type-0": "وسى توقسان",
+            "relative-type-1": "كەلەسى توقسان",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} توقساننان كەيىن",
+              "relativeTimePattern-count-other": "{0} توقساننان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} توقسان بۇرىن",
+              "relativeTimePattern-count-other": "{0} توقسان بۇرىن"
+            }
+          },
+          "month": {
+            "displayName": "اي",
+            "relative-type--1": "وتكەن اي",
+            "relative-type-0": "وسى اي",
+            "relative-type-1": "كەلەسى اي",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} ايدان كەيىن",
+              "relativeTimePattern-count-other": "{0} ايدان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} اي بۇرىن",
+              "relativeTimePattern-count-other": "{0} اي بۇرىن"
+            }
+          },
+          "month-short": {
+            "displayName": "اي",
+            "relative-type--1": "وتكەن اي",
+            "relative-type-0": "وسى اي",
+            "relative-type-1": "كەلەسى اي",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} ايدان كەيىن",
+              "relativeTimePattern-count-other": "{0} ايدان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} اي بۇرىن",
+              "relativeTimePattern-count-other": "{0} اي بۇرىن"
+            }
+          },
+          "month-narrow": {
+            "displayName": "اي",
+            "relative-type--1": "وتكەن اي",
+            "relative-type-0": "وسى اي",
+            "relative-type-1": "كەلەسى اي",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} ايدان كەيىن",
+              "relativeTimePattern-count-other": "{0} ايدان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} اي بۇرىن",
+              "relativeTimePattern-count-other": "{0} اي بۇرىن"
+            }
+          },
+          "week": {
+            "displayName": "اپتا",
+            "relative-type--1": "وتكەن اپتا",
+            "relative-type-0": "وسى اپتا",
+            "relative-type-1": "كەلەسى اپتا",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} اپتادان كەيىن",
+              "relativeTimePattern-count-other": "{0} اپتادان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} اپتا بۇرىن",
+              "relativeTimePattern-count-other": "{0} اپتا بۇرىن"
+            },
+            "relativePeriod": "{0} اپتاسى"
+          },
+          "week-short": {
+            "displayName": "اپتا",
+            "relative-type--1": "وتكەن اپتا",
+            "relative-type-0": "وسى اپتا",
+            "relative-type-1": "كەلەسى اپتا",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} اپتادان كەيىن",
+              "relativeTimePattern-count-other": "{0} اپتادان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} اپتا بۇرىن",
+              "relativeTimePattern-count-other": "{0} اپتا بۇرىن"
+            },
+            "relativePeriod": "{0} اپتاسى"
+          },
+          "week-narrow": {
+            "displayName": "اپتا",
+            "relative-type--1": "وتكەن اپتا",
+            "relative-type-0": "وسى اپتا",
+            "relative-type-1": "كەلەسى اپتا",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} اپتادان كەيىن",
+              "relativeTimePattern-count-other": "{0} اپتادان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} اپتا بۇرىن",
+              "relativeTimePattern-count-other": "{0} اپتا بۇرىن"
+            },
+            "relativePeriod": "{0} اپتاسى"
+          },
+          "weekOfMonth": {
+            "displayName": "ايداعى اپتا"
+          },
+          "weekOfMonth-short": {
+            "displayName": "ايداعى اپتا"
+          },
+          "weekOfMonth-narrow": {
+            "displayName": "ايداعى اپتا"
+          },
+          "day": {
+            "displayName": "كۇن",
+            "relative-type--1": "كەشە",
+            "relative-type-0": "بۇگىن",
+            "relative-type-1": "ەرتەڭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} كۇننەن كەيىن",
+              "relativeTimePattern-count-other": "{0} كۇننەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} كۇن بۇرىن",
+              "relativeTimePattern-count-other": "{0} كۇن بۇرىن"
+            }
+          },
+          "day-short": {
+            "displayName": "كۇن",
+            "relative-type--1": "كەشە",
+            "relative-type-0": "بۇگىن",
+            "relative-type-1": "ەرتەڭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} كۇننەن كەيىن",
+              "relativeTimePattern-count-other": "{0} كۇننەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} كۇن بۇرىن",
+              "relativeTimePattern-count-other": "{0} كۇن بۇرىن"
+            }
+          },
+          "day-narrow": {
+            "displayName": "كۇن",
+            "relative-type--1": "كەشە",
+            "relative-type-0": "بۇگىن",
+            "relative-type-1": "ەرتەڭ",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} كۇننەن كەيىن",
+              "relativeTimePattern-count-other": "{0} كۇننەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} كۇن بۇرىن",
+              "relativeTimePattern-count-other": "{0} كۇن بۇرىن"
+            }
+          },
+          "dayOfYear": {
+            "displayName": "جىلداعى كۇن"
+          },
+          "dayOfYear-short": {
+            "displayName": "جىلداعى كۇن"
+          },
+          "dayOfYear-narrow": {
+            "displayName": "جىلداعى كۇن"
+          },
+          "weekday": {
+            "displayName": "اپتا كۇنى"
+          },
+          "weekday-short": {
+            "displayName": "اپتا كۇنى"
+          },
+          "weekday-narrow": {
+            "displayName": "اپتا كۇنى"
+          },
+          "weekdayOfMonth": {
+            "displayName": "ايداعى اپتا كۇنى"
+          },
+          "weekdayOfMonth-short": {
+            "displayName": "ايداعى اپتا كۇنى"
+          },
+          "weekdayOfMonth-narrow": {
+            "displayName": "ايداعى اپتا كۇنى"
+          },
+          "sun": {
+            "relative-type--1": "وتكەن جەكسەنبى",
+            "relative-type-0": "وسى جەكسەنبى",
+            "relative-type-1": "كەلەسى جەكسەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} جەكسەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} جەكسەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} جەكسەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} جەكسەنبى بۇرىن"
+            }
+          },
+          "sun-short": {
+            "relative-type--1": "وتكەن جەكسەنبى",
+            "relative-type-0": "وسى جەكسەنبى",
+            "relative-type-1": "كەلەسى جەكسەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} جەكسەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} جەكسەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} جەكسەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} جەكسەنبى بۇرىن"
+            }
+          },
+          "sun-narrow": {
+            "relative-type--1": "وتكەن جەكسەنبى",
+            "relative-type-0": "وسى جەكسەنبى",
+            "relative-type-1": "كەلەسى جەكسەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} جەكسەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} جەكسەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} جەكسەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} جەكسەنبى بۇرىن"
+            }
+          },
+          "mon": {
+            "relative-type--1": "وتكەن دۇيسەنبى",
+            "relative-type-0": "وسى دۇيسەنبى",
+            "relative-type-1": "كەلەسى دۇيسەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} دۇيسەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} دۇيسەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} دۇيسەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} دۇيسەنبى بۇرىن"
+            }
+          },
+          "mon-short": {
+            "relative-type--1": "وتكەن دۇيسەنبى",
+            "relative-type-0": "وسى دۇيسەنبى",
+            "relative-type-1": "كەلەسى دۇيسەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} دۇيسەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} دۇيسەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} دۇيسەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} دۇيسەنبى بۇرىن"
+            }
+          },
+          "mon-narrow": {
+            "relative-type--1": "وتكەن دۇيسەنبى",
+            "relative-type-0": "وسى دۇيسەنبى",
+            "relative-type-1": "كەلەسى دۇيسەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} دۇيسەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} دۇيسەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} دۇيسەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} دۇيسەنبى بۇرىن"
+            }
+          },
+          "tue": {
+            "relative-type--1": "وتكەن سەيسەنبى",
+            "relative-type-0": "وسى سەيسەنبى",
+            "relative-type-1": "كەلەسى سەيسەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} سەيسەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} سەيسەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} سەيسەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} سەيسەنبى بۇرىن"
+            }
+          },
+          "tue-short": {
+            "relative-type--1": "وتكەن سەيسەنبى",
+            "relative-type-0": "وسى سەيسەنبى",
+            "relative-type-1": "كەلەسى سەيسەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} سەيسەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} سەيسەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} سەيسەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} سەيسەنبى بۇرىن"
+            }
+          },
+          "tue-narrow": {
+            "relative-type--1": "وتكەن سەيسەنبى",
+            "relative-type-0": "وسى سەيسەنبى",
+            "relative-type-1": "كەلەسى سەيسەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} سەيسەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} سەيسەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} سەيسەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} سەيسەنبى بۇرىن"
+            }
+          },
+          "wed": {
+            "relative-type--1": "وتكەن سارساەنبى",
+            "relative-type-0": "وسى سارسەنبى",
+            "relative-type-1": "كەلەسى سارسەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} سارسەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} سارسەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} سارسەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} سارسەنبى بۇرىن"
+            }
+          },
+          "wed-short": {
+            "relative-type--1": "وتكەن سارساەنبى",
+            "relative-type-0": "وسى سارسەنبى",
+            "relative-type-1": "كەلەسى سارسەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} سارسەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} سارسەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} سارسەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} سارسەنبى بۇرىن"
+            }
+          },
+          "wed-narrow": {
+            "relative-type--1": "وتكەن سارساەنبى",
+            "relative-type-0": "وسى سارسەنبى",
+            "relative-type-1": "كەلەسى سارسەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} سارسەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} سارسەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} سارسەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} سارسەنبى بۇرىن"
+            }
+          },
+          "thu": {
+            "relative-type--1": "وتكەن بەيسەنبى",
+            "relative-type-0": "وسى بەيسەنبى",
+            "relative-type-1": "كەلەسى بەيسەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} بەيسەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} بەيسەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} بەيسەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} بەيسەنبى بۇرىن"
+            }
+          },
+          "thu-short": {
+            "relative-type--1": "وتكەن بەيسەنبى",
+            "relative-type-0": "وسى بەيسەنبى",
+            "relative-type-1": "كەلەسى بەيسەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} بەيسەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} بەيسەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} بەيسەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} بەيسەنبى بۇرىن"
+            }
+          },
+          "thu-narrow": {
+            "relative-type--1": "وتكەن بەيسەنبى",
+            "relative-type-0": "وسى بەيسەنبى",
+            "relative-type-1": "كەلەسى بەيسەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} بەيسەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} بەيسەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} بەيسەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} بەيسەنبى بۇرىن"
+            }
+          },
+          "fri": {
+            "relative-type--1": "وتكەن جۇما",
+            "relative-type-0": "وسى جۇما",
+            "relative-type-1": "كەلەسى جۇما",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} جۇمادان كەيىن",
+              "relativeTimePattern-count-other": "{0} جۇمادان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} جۇما بۇرىن",
+              "relativeTimePattern-count-other": "{0} جۇما بۇرىن"
+            }
+          },
+          "fri-short": {
+            "relative-type--1": "وتكەن جۇما",
+            "relative-type-0": "وسى جۇما",
+            "relative-type-1": "كەلەسى جۇما",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} جۇمادان كەيىن",
+              "relativeTimePattern-count-other": "{0} جۇمادان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} جۇما بۇرىن",
+              "relativeTimePattern-count-other": "{0} جۇما بۇرىن"
+            }
+          },
+          "fri-narrow": {
+            "relative-type--1": "وتكەن جۇما",
+            "relative-type-0": "وسى جۇما",
+            "relative-type-1": "كەلەسى جۇما",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} جۇمادان كەيىن",
+              "relativeTimePattern-count-other": "{0} جۇمادان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} جۇما بۇرىن",
+              "relativeTimePattern-count-other": "{0} جۇما بۇرىن"
+            }
+          },
+          "sat": {
+            "relative-type--1": "وتكەن سەنبى",
+            "relative-type-0": "وسى سەنبى",
+            "relative-type-1": "كەلەسى سەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} سەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} سەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} سەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} سەنبى بۇرىن"
+            }
+          },
+          "sat-short": {
+            "relative-type--1": "وتكەن سەنبى",
+            "relative-type-0": "وسى سەنبى",
+            "relative-type-1": "كەلەسى سەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} سەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} سەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} سەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} سەنبى بۇرىن"
+            }
+          },
+          "sat-narrow": {
+            "relative-type--1": "وتكەن سەنبى",
+            "relative-type-0": "وسى سەنبى",
+            "relative-type-1": "كەلەسى سەنبى",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} سەنبىدەن كەيىن",
+              "relativeTimePattern-count-other": "{0} سەنبىدەن كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} سەنبى بۇرىن",
+              "relativeTimePattern-count-other": "{0} سەنبى بۇرىن"
+            }
+          },
+          "dayperiod-short": {
+            "displayName": "تۇسكە دەيىن/تۇستەن كەيىن"
+          },
+          "dayperiod": {
+            "displayName": "تۇسكە دەيىن/تۇستەن كەيىن"
+          },
+          "dayperiod-narrow": {
+            "displayName": "تۇسكە دەيىن/تۇستەن كەيىن"
+          },
+          "hour": {
+            "displayName": "ساعات",
+            "relative-type-0": "وسى ساعات",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} ساعاتتان كەيىن",
+              "relativeTimePattern-count-other": "{0} ساعاتتان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ساعات بۇرىن",
+              "relativeTimePattern-count-other": "{0} ساعات بۇرىن"
+            }
+          },
+          "hour-short": {
+            "displayName": "ساعات",
+            "relative-type-0": "وسى ساعات",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} ساعاتتان كەيىن",
+              "relativeTimePattern-count-other": "{0} ساعاتتان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ساعات بۇرىن",
+              "relativeTimePattern-count-other": "{0} ساعات بۇرىن"
+            }
+          },
+          "hour-narrow": {
+            "displayName": "ساعات",
+            "relative-type-0": "وسى ساعات",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} ساعاتتان كەيىن",
+              "relativeTimePattern-count-other": "{0} ساعاتتان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} ساعات بۇرىن",
+              "relativeTimePattern-count-other": "{0} ساعات بۇرىن"
+            }
+          },
+          "minute": {
+            "displayName": "مينۋت",
+            "relative-type-0": "وسى مينۋت",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} مينۋتتان كەيىن",
+              "relativeTimePattern-count-other": "{0} مينۋتتان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} مينۋت بۇرىن",
+              "relativeTimePattern-count-other": "{0} مينۋت بۇرىن"
+            }
+          },
+          "minute-short": {
+            "displayName": "مينۋت",
+            "relative-type-0": "وسى مينۋت",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} مينۋتتان كەيىن",
+              "relativeTimePattern-count-other": "{0} مينۋتتان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} مينۋت بۇرىن",
+              "relativeTimePattern-count-other": "{0} مينۋت بۇرىن"
+            }
+          },
+          "minute-narrow": {
+            "displayName": "مينۋت",
+            "relative-type-0": "وسى مينۋت",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} مينۋتتان كەيىن",
+              "relativeTimePattern-count-other": "{0} مينۋتتان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} مينۋت بۇرىن",
+              "relativeTimePattern-count-other": "{0} مينۋت بۇرىن"
+            }
+          },
+          "second": {
+            "displayName": "سەكۋند",
+            "relative-type-0": "قازىر",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} سەكۋندتان كەيىن",
+              "relativeTimePattern-count-other": "{0} سەكۋندتان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} سەكۋند بۇرىن",
+              "relativeTimePattern-count-other": "{0} سەكۋند بۇرىن"
+            }
+          },
+          "second-short": {
+            "displayName": "سەكۋند",
+            "relative-type-0": "قازىر",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} سەكۋندتان كەيىن",
+              "relativeTimePattern-count-other": "{0} سەكۋندتان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} سەكۋند بۇرىن",
+              "relativeTimePattern-count-other": "{0} سەكۋند بۇرىن"
+            }
+          },
+          "second-narrow": {
+            "displayName": "سەكۋند",
+            "relative-type-0": "قازىر",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-one": "{0} سەكۋندتان كەيىن",
+              "relativeTimePattern-count-other": "{0} سەكۋندتان كەيىن"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-one": "{0} سەكۋند بۇرىن",
+              "relativeTimePattern-count-other": "{0} سەكۋند بۇرىن"
+            }
+          },
+          "zone": {
+            "displayName": "ۋاقىت بەلدەۋى"
+          },
+          "zone-short": {
+            "displayName": "ۋاقىت بەلدەۋى"
+          },
+          "zone-narrow": {
+            "displayName": "ۋاقىت بەلدەۋى"
+          }
+        }
+      }
+    }
+  }
+}

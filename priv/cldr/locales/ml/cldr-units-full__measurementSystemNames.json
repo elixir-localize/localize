@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ml": {
+      "identity": {
+        "language": "ml"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "മെട്രിക്ക്",
+          "UK": "യുകെ",
+          "US": "യുഎസ്"
+        }
+      }
+    }
+  }
+}

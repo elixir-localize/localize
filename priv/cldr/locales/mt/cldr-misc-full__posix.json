@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mt": {
+      "identity": {
+        "language": "mt"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "iva:i",
+          "nostr": "le:l"
+        }
+      }
+    }
+  }
+}

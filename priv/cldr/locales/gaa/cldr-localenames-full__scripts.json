@@ -1,0 +1,24 @@
+{
+  "main": {
+    "gaa": {
+      "identity": {
+        "language": "gaa"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Arab": "Arabik",
+          "Cyrl": "Russiabii Aniŋmaa",
+          "Hans": "Nɔ Ni Yɔɔ Mlɛo",
+          "Hans-alt-stand-alone": "Nɔ Ni Yɔɔ Mlɛo Kwraa",
+          "Hant": "Blema",
+          "Hant-alt-stand-alone": "Tsutsu Blema",
+          "Jpan": "Japanese",
+          "Kore": "Korean",
+          "Latn": "Niŋmaa Ni Asharaa Yiteŋ",
+          "Zxxx": "Aŋmaaa",
+          "Zzzz": "Niŋmaa Ni Aleee"
+        }
+      }
+    }
+  }
+}

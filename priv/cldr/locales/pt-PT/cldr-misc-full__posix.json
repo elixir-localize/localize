@@ -1,0 +1,16 @@
+{
+  "main": {
+    "pt-PT": {
+      "identity": {
+        "language": "pt",
+        "territory": "PT"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "sim:s",
+          "nostr": "não:n"
+        }
+      }
+    }
+  }
+}

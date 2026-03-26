@@ -1,0 +1,14 @@
+{
+  "main": {
+    "cad": {
+      "identity": {
+        "language": "cad"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "cad": "Caddo"
+        }
+      }
+    }
+  }
+}

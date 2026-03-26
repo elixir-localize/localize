@@ -1,0 +1,15 @@
+{
+  "main": {
+    "luy": {
+      "identity": {
+        "language": "luy"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ye:Y",
+          "nostr": "Dave:D"
+        }
+      }
+    }
+  }
+}

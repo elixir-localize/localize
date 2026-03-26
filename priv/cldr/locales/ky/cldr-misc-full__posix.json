@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ky": {
+      "identity": {
+        "language": "ky"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ооба:о",
+          "nostr": "жок:ж"
+        }
+      }
+    }
+  }
+}

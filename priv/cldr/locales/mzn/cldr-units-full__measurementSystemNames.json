@@ -1,0 +1,16 @@
+{
+  "main": {
+    "mzn": {
+      "identity": {
+        "language": "mzn"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "متریک",
+          "UK": "بریتانیایی",
+          "US": "آمریکایی"
+        }
+      }
+    }
+  }
+}

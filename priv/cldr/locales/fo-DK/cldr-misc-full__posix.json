@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fo-DK": {
+      "identity": {
+        "language": "fo",
+        "territory": "DK"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ja:j",
+          "nostr": "nei:n"
+        }
+      }
+    }
+  }
+}

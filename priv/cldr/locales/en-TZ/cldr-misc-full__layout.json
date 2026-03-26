@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-TZ": {
+      "identity": {
+        "language": "en",
+        "territory": "TZ"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

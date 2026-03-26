@@ -1,0 +1,15 @@
+{
+  "main": {
+    "nus": {
+      "identity": {
+        "language": "nus"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ɣää:Ɣ",
+          "nostr": "Ëëy:Ë"
+        }
+      }
+    }
+  }
+}

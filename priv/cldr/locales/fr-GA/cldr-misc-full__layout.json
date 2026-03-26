@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-GA": {
+      "identity": {
+        "language": "fr",
+        "territory": "GA"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

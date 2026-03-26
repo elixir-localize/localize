@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-SH": {
+      "identity": {
+        "language": "en",
+        "territory": "SH"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

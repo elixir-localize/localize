@@ -1,0 +1,16 @@
+{
+  "main": {
+    "kgp": {
+      "identity": {
+        "language": "kgp"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "kãmur to ke",
+          "UK": "Rejnũ Jagmré-ke",
+          "US": "Enhtano Unĩno Jagmré-ke ag"
+        }
+      }
+    }
+  }
+}

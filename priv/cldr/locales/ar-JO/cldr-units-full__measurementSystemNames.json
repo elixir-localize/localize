@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ar-JO": {
+      "identity": {
+        "language": "ar",
+        "territory": "JO"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "النظام المتري",
+          "UK": "النظام البريطاني",
+          "US": "النظام الأمريكي"
+        }
+      }
+    }
+  }
+}

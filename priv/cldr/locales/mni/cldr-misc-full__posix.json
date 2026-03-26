@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mni": {
+      "identity": {
+        "language": "mni"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "য়েস:y",
+          "nostr": "নো:n"
+        }
+      }
+    }
+  }
+}

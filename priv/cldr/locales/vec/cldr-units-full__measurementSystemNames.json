@@ -1,0 +1,16 @@
+{
+  "main": {
+    "vec": {
+      "identity": {
+        "language": "vec"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "mètrego",
+          "UK": "inperiale",
+          "US": "de i Stadi Unìi"
+        }
+      }
+    }
+  }
+}

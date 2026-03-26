@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-GP": {
+      "identity": {
+        "language": "fr",
+        "territory": "GP"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

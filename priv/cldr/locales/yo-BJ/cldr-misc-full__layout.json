@@ -1,0 +1,16 @@
+{
+  "main": {
+    "yo-BJ": {
+      "identity": {
+        "language": "yo",
+        "territory": "BJ"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

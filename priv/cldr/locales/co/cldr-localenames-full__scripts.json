@@ -1,0 +1,21 @@
+{
+  "main": {
+    "co": {
+      "identity": {
+        "language": "co"
+      },
+      "localeDisplayNames": {
+        "scripts": {
+          "Arab": "arabu",
+          "Hans": "simplificatu",
+          "Hant": "tradiziunale",
+          "Jpan": "giappunese",
+          "Kore": "cureanu",
+          "Latn": "latinu",
+          "Zxxx": "micca scrittu",
+          "Zzzz": "scrittura scunnisciuta"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "bgc": {
+      "identity": {
+        "language": "bgc"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

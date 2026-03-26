@@ -1,0 +1,15 @@
+{
+  "main": {
+    "cad": {
+      "identity": {
+        "language": "cad"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ro": {
+      "identity": {
+        "language": "ro"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "da:d",
+          "nostr": "nu:n"
+        }
+      }
+    }
+  }
+}

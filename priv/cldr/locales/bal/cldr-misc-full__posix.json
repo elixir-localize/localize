@@ -1,0 +1,15 @@
+{
+  "main": {
+    "bal": {
+      "identity": {
+        "language": "bal"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "هئو:ه",
+          "nostr": "نه:ن"
+        }
+      }
+    }
+  }
+}

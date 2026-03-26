@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fil": {
+      "identity": {
+        "language": "fil"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metriko",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-EC": {
+      "identity": {
+        "language": "es",
+        "territory": "EC"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

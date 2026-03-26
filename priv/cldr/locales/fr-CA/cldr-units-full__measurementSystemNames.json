@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fr-CA": {
+      "identity": {
+        "language": "fr",
+        "territory": "CA"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrique",
+          "UK": "impérial",
+          "US": "américain"
+        }
+      }
+    }
+  }
+}

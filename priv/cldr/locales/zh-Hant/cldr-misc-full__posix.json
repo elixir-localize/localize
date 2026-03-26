@@ -1,0 +1,16 @@
+{
+  "main": {
+    "zh-Hant": {
+      "identity": {
+        "language": "zh",
+        "script": "Hant"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "是:確定",
+          "nostr": "否:不"
+        }
+      }
+    }
+  }
+}

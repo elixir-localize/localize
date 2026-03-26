@@ -1,0 +1,17 @@
+{
+  "main": {
+    "es-419": {
+      "identity": {
+        "language": "es",
+        "territory": "419"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrico",
+          "UK": "anglosajón",
+          "US": "estadounidense"
+        }
+      }
+    }
+  }
+}

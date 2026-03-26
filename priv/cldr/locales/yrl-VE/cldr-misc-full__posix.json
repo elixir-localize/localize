@@ -1,0 +1,16 @@
+{
+  "main": {
+    "yrl-VE": {
+      "identity": {
+        "language": "yrl",
+        "territory": "VE"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "eẽ:e",
+          "nostr": "ũbaá:u"
+        }
+      }
+    }
+  }
+}

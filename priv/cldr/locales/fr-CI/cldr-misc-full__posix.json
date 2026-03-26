@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-CI": {
+      "identity": {
+        "language": "fr",
+        "territory": "CI"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "oui:o",
+          "nostr": "non:n"
+        }
+      }
+    }
+  }
+}

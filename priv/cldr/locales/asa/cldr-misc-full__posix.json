@@ -1,0 +1,15 @@
+{
+  "main": {
+    "asa": {
+      "identity": {
+        "language": "asa"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Iyee:I",
+          "nostr": "Hai:H"
+        }
+      }
+    }
+  }
+}

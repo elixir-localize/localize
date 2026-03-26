@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-VE": {
+      "identity": {
+        "language": "es",
+        "territory": "VE"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "af-NA": {
+      "identity": {
+        "language": "af",
+        "territory": "NA"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-YT": {
+      "identity": {
+        "language": "fr",
+        "territory": "YT"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "oui:o",
+          "nostr": "non:n"
+        }
+      }
+    }
+  }
+}

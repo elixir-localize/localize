@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fr-MQ": {
+      "identity": {
+        "language": "fr",
+        "territory": "MQ"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrique",
+          "UK": "impérial",
+          "US": "américain"
+        }
+      }
+    }
+  }
+}

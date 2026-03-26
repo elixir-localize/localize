@@ -1,0 +1,16 @@
+{
+  "main": {
+    "nl-SX": {
+      "identity": {
+        "language": "nl",
+        "territory": "SX"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

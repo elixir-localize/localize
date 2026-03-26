@@ -1,0 +1,16 @@
+{
+  "main": {
+    "lo": {
+      "identity": {
+        "language": "lo"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "ເມທຣິກ",
+          "UK": "ສະຫະລາດຊະອານາຈັກອັງກິດ",
+          "US": "ສະຫະລັດອາເມລິກາ"
+        }
+      }
+    }
+  }
+}

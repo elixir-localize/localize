@@ -46,8 +46,7 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
       {:ok, locale_data}
     else
-      {:error,
-       Localize.UnknownLocaleError.exception(locale_id: locale_id)}
+      {:error, Localize.UnknownLocaleError.exception(locale_id: locale_id)}
     end
   end
 

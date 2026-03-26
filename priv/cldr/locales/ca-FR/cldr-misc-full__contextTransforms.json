@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ca-FR": {
+      "identity": {
+        "language": "ca",
+        "territory": "FR"
+      },
+      "contextTransforms": {
+        "typographicNames": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        }
+      }
+    }
+  }
+}

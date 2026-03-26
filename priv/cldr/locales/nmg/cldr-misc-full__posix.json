@@ -1,0 +1,15 @@
+{
+  "main": {
+    "nmg": {
+      "identity": {
+        "language": "nmg"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Yaŋ:Y",
+          "nostr": "Nzúl:N"
+        }
+      }
+    }
+  }
+}

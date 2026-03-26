@@ -1,0 +1,15 @@
+{
+  "main": {
+    "iu": {
+      "identity": {
+        "language": "iu"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

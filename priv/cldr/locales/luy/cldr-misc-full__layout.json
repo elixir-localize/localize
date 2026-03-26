@@ -1,0 +1,15 @@
+{
+  "main": {
+    "luy": {
+      "identity": {
+        "language": "luy"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

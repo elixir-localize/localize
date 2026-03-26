@@ -1,0 +1,17 @@
+{
+  "main": {
+    "sq-XK": {
+      "identity": {
+        "language": "sq",
+        "territory": "XK"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrik",
+          "UK": "britanik (imperial)",
+          "US": "amerikan"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "vmw": {
+      "identity": {
+        "language": "vmw"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "metrikhu",
+          "UK": "RU",
+          "US": "EUA"
+        }
+      }
+    }
+  }
+}

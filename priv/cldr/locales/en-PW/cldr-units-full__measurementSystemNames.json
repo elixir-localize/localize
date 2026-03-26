@@ -1,0 +1,17 @@
+{
+  "main": {
+    "en-PW": {
+      "identity": {
+        "language": "en",
+        "territory": "PW"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

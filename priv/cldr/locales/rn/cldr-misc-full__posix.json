@@ -1,0 +1,15 @@
+{
+  "main": {
+    "rn": {
+      "identity": {
+        "language": "rn"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ego:E",
+          "nostr": "Oya:O"
+        }
+      }
+    }
+  }
+}

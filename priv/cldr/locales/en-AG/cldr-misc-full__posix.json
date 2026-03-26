@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-AG": {
+      "identity": {
+        "language": "en",
+        "territory": "AG"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

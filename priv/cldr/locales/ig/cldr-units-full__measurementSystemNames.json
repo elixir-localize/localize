@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ig": {
+      "identity": {
+        "language": "ig"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metriik",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

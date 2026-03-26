@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-KE": {
+      "identity": {
+        "language": "en",
+        "territory": "KE"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

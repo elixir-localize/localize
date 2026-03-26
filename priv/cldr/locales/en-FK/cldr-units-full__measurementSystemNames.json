@@ -1,0 +1,17 @@
+{
+  "main": {
+    "en-FK": {
+      "identity": {
+        "language": "en",
+        "territory": "FK"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

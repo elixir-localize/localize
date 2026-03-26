@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mi": {
+      "identity": {
+        "language": "mi"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "āe:ā",
+          "nostr": "kāo:k"
+        }
+      }
+    }
+  }
+}

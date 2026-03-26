@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sat": {
+      "identity": {
+        "language": "sat"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "ᱢᱮᱴᱨᱤᱠ",
+          "UK": "ᱭᱩᱠᱮ",
+          "US": "ᱭᱩᱮᱥ"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "oc": {
+      "identity": {
+        "language": "oc"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "tyv": {
+      "identity": {
+        "language": "tyv"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Метрик",
+          "UK": "Англи",
+          "US": "Американ"
+        }
+      }
+    }
+  }
+}

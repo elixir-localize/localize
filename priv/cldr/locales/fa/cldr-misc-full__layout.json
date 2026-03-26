@@ -1,0 +1,15 @@
+{
+  "main": {
+    "fa": {
+      "identity": {
+        "language": "fa"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "right-to-left",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

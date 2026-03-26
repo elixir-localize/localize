@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ar-KM": {
+      "identity": {
+        "language": "ar",
+        "territory": "KM"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "النظام المتري",
+          "UK": "النظام البريطاني",
+          "US": "النظام الأمريكي"
+        }
+      }
+    }
+  }
+}

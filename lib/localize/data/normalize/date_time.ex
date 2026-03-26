@@ -81,11 +81,23 @@ defmodule Localize.Data.Normalize.DateTime do
   end
 
   @tz_structural_keys MapSet.new([
-    "zone", "metazone", "region_format", "hour_format", "gmt_format",
-    "gmt_zero_format", "fallback_format", "exemplar_city", "formal",
-    "type", "long", "short", "generic", "standard", "daylight",
-    "number_system"
-  ])
+                        "zone",
+                        "metazone",
+                        "region_format",
+                        "hour_format",
+                        "gmt_format",
+                        "gmt_zero_format",
+                        "fallback_format",
+                        "exemplar_city",
+                        "formal",
+                        "type",
+                        "long",
+                        "short",
+                        "generic",
+                        "standard",
+                        "daylight",
+                        "number_system"
+                      ])
 
   defp atomize_tz_structural_keys(content) do
     tz = content["time_zone_names"]
@@ -99,7 +111,9 @@ defmodule Localize.Data.Normalize.DateTime do
 
   defp deep_atomize_structural(map) when is_map(map) do
     Enum.map(map, fn {k, v} ->
-      key = if is_binary(k) and MapSet.member?(@tz_structural_keys, k), do: String.to_atom(k), else: k
+      key =
+        if is_binary(k) and MapSet.member?(@tz_structural_keys, k), do: String.to_atom(k), else: k
+
       {key, deep_atomize_structural(v)}
     end)
     |> Map.new()

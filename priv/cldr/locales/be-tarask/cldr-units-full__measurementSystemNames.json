@@ -1,0 +1,17 @@
+{
+  "main": {
+    "be-tarask": {
+      "identity": {
+        "language": "be",
+        "variant": "TARASK"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "мэтрычная",
+          "UK": "брытанская",
+          "US": "амэрыканская"
+        }
+      }
+    }
+  }
+}

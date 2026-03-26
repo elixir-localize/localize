@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ksh": {
+      "identity": {
+        "language": "ksh"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "SI",
+          "UK": "änglesch",
+          "US": "ammärekaanesch"
+        }
+      }
+    }
+  }
+}

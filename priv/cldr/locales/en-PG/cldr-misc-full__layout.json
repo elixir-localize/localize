@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-PG": {
+      "identity": {
+        "language": "en",
+        "territory": "PG"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

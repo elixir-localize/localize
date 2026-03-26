@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-YT": {
+      "identity": {
+        "language": "fr",
+        "territory": "YT"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

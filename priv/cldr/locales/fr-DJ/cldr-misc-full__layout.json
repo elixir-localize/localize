@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-DJ": {
+      "identity": {
+        "language": "fr",
+        "territory": "DJ"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

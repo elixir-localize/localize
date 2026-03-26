@@ -1,0 +1,16 @@
+{
+  "main": {
+    "se-SE": {
+      "identity": {
+        "language": "se",
+        "territory": "SE"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

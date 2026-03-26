@@ -43,7 +43,9 @@ defmodule Mix.Tasks.Localize.UploadLocale do
       OptionParser.parse!(args, strict: [version: :string, bucket: :string])
 
     version = opts[:version] || Mix.raise("--version is required")
-    bucket = opts[:bucket] || System.get_env("R2_BUCKET") || Mix.raise("--bucket or R2_BUCKET required")
+
+    bucket =
+      opts[:bucket] || System.get_env("R2_BUCKET") || Mix.raise("--bucket or R2_BUCKET required")
 
     if locale_args == [] do
       Mix.raise("At least one locale argument is required")
@@ -71,7 +73,9 @@ defmodule Mix.Tasks.Localize.UploadLocale do
   defp r2_config do
     account_id = System.get_env("R2_ACCOUNT_ID") || Mix.raise("R2_ACCOUNT_ID not set")
     access_key = System.get_env("R2_ACCESS_KEY_ID") || Mix.raise("R2_ACCESS_KEY_ID not set")
-    secret_key = System.get_env("R2_SECRET_ACCESS_KEY") || Mix.raise("R2_SECRET_ACCESS_KEY not set")
+
+    secret_key =
+      System.get_env("R2_SECRET_ACCESS_KEY") || Mix.raise("R2_SECRET_ACCESS_KEY not set")
 
     endpoint = String.replace(@r2_endpoint, "{account_id}", account_id)
 
@@ -98,9 +102,7 @@ defmodule Mix.Tasks.Localize.UploadLocale do
         Mix.shell().info("  Uploaded #{object_key} (#{byte_size(body)} bytes)")
 
       {:ok, {{_http, status, reason}, _headers, resp_body}} ->
-        Mix.raise(
-          "R2 upload failed: HTTP #{status} #{reason}\n#{resp_body}"
-        )
+        Mix.raise("R2 upload failed: HTTP #{status} #{reason}\n#{resp_body}")
 
       {:error, reason} ->
         Mix.raise("R2 upload failed: #{inspect(reason)}")

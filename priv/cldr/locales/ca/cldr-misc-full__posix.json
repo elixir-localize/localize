@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ca": {
+      "identity": {
+        "language": "ca"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "sí:s",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

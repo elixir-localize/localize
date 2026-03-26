@@ -1,0 +1,15 @@
+{
+  "main": {
+    "su": {
+      "identity": {
+        "language": "su"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

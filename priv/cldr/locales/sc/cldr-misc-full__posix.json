@@ -1,0 +1,15 @@
+{
+  "main": {
+    "sc": {
+      "identity": {
+        "language": "sc"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "eja:e",
+          "nostr": "nono:n"
+        }
+      }
+    }
+  }
+}

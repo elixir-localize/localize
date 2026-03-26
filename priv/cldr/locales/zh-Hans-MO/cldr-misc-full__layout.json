@@ -1,0 +1,17 @@
+{
+  "main": {
+    "zh-Hans-MO": {
+      "identity": {
+        "language": "zh",
+        "script": "Hans",
+        "territory": "MO"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

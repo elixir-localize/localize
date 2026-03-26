@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ru-BY": {
+      "identity": {
+        "language": "ru",
+        "territory": "BY"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Метрическая",
+          "UK": "Английская",
+          "US": "Американская"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "main": {
+    "ceb": {
+      "identity": {
+        "language": "ceb"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "ar": "Arabic",
+          "ar-001": "Modernong Standard nga Arabic",
+          "bn": "Bangla",
+          "ceb": "Cebuano",
+          "de": "German",
+          "de-CH": "Swiss High German",
+          "en": "English",
+          "en-GB": "English (British)",
+          "en-GB-alt-short": "English (UK)",
+          "en-US": "English (America)",
+          "en-US-alt-short": "English (US)",
+          "es": "Espanyol",
+          "es-419": "Spanish (Latin America)",
+          "es-ES": "Spanish (Europe)",
+          "es-MX": "Spanish (Mexico)",
+          "fr": "French",
+          "fr-CA": "French (Canada)",
+          "fr-CH": "French (Switzerland)",
+          "hi": "Hindi",
+          "hi-Latn-alt-variant": "Hinglish",
+          "id": "Indonesian",
+          "it": "Italian",
+          "ja": "Japanese",
+          "ko": "Korean",
+          "nl": "Dutch",
+          "nl-BE": "Flemish",
+          "pl": "Polish",
+          "pt": "Portuguese",
+          "ru": "Russian",
+          "th": "Thai",
+          "tr": "Turkish",
+          "und": "Wala mailhi nga pinulongan",
+          "zh": "Chinese",
+          "zh-alt-menu": "Chinese, Mandarin",
+          "zh-Hans": "Pinasimple nga Chinese",
+          "zh-Hans-alt-long": "Pinasimple nga Mandarin Chinese",
+          "zh-Hant": "Tradisyonal nga Chinese",
+          "zh-Hant-alt-long": "Tradisyonal nga Mandarin Chinese"
+        }
+      }
+    }
+  }
+}

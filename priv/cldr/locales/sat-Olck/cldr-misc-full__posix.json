@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sat-Olck": {
+      "identity": {
+        "language": "sat",
+        "script": "Olck"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ᱦᱚᱸᱺᱦ",
+          "nostr": "ᱵᱟᱝᱺᱵ"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-CA": {
+      "identity": {
+        "language": "en",
+        "territory": "CA"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

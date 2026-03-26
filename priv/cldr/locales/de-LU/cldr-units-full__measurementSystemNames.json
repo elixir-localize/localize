@@ -1,0 +1,17 @@
+{
+  "main": {
+    "de-LU": {
+      "identity": {
+        "language": "de",
+        "territory": "LU"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Internationales (SI)",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

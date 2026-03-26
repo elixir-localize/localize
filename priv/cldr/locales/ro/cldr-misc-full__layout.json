@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ro": {
+      "identity": {
+        "language": "ro"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

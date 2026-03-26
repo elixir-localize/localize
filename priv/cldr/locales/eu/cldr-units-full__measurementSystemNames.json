@@ -1,0 +1,16 @@
+{
+  "main": {
+    "eu": {
+      "identity": {
+        "language": "eu"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Sistema metrikoa",
+          "UK": "Erresuma Batuko sistema",
+          "US": "AEBetako sistema"
+        }
+      }
+    }
+  }
+}

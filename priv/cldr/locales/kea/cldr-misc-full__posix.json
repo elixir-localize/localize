@@ -1,0 +1,15 @@
+{
+  "main": {
+    "kea": {
+      "identity": {
+        "language": "kea"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Sin:S",
+          "nostr": "Nãu:N"
+        }
+      }
+    }
+  }
+}

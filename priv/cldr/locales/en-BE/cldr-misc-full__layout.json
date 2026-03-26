@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-BE": {
+      "identity": {
+        "language": "en",
+        "territory": "BE"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ja": {
+      "identity": {
+        "language": "ja"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "はい:y",
+          "nostr": "いいえ:n"
+        }
+      }
+    }
+  }
+}

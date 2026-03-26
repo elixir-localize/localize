@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mua": {
+      "identity": {
+        "language": "mua"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Oho:O",
+          "nostr": "A a:A"
+        }
+      }
+    }
+  }
+}

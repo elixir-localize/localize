@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ja": {
+      "identity": {
+        "language": "ja"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

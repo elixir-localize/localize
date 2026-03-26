@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ta": {
+      "identity": {
+        "language": "ta"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

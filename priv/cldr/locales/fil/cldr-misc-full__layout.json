@@ -1,0 +1,15 @@
+{
+  "main": {
+    "fil": {
+      "identity": {
+        "language": "fil"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "tig": {
+      "identity": {
+        "language": "tig"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

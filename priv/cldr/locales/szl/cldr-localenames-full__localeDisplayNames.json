@@ -1,0 +1,33 @@
+{
+  "main": {
+    "szl": {
+      "identity": {
+        "language": "szl"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}, {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "types": {
+          "calendar": {
+            "gregorian": "Gregoriański kalyndorz",
+            "iso8601": "Kalyndorz ISO-8601"
+          },
+          "collation": {
+            "standard": "Sztandardowy porzōndek zortowanio"
+          },
+          "numbers": {
+            "latn": "Cyfry zachodnie"
+          }
+        },
+        "codePatterns": {
+          "language": "Jynzyk: {0}",
+          "script": "Pismo: {0}",
+          "territory": "Regiōn: {0}"
+        }
+      }
+    }
+  }
+}

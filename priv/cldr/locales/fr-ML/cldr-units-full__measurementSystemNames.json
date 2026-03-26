@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fr-ML": {
+      "identity": {
+        "language": "fr",
+        "territory": "ML"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrique",
+          "UK": "impérial",
+          "US": "américain"
+        }
+      }
+    }
+  }
+}

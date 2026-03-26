@@ -1,0 +1,17 @@
+{
+  "main": {
+    "mas-TZ": {
+      "identity": {
+        "language": "mas",
+        "territory": "TZ"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "aa-DJ": {
+      "identity": {
+        "language": "aa",
+        "territory": "DJ"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "aa": "Qafar"
+        }
+      }
+    }
+  }
+}

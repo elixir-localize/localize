@@ -1,0 +1,15 @@
+{
+  "main": {
+    "gu": {
+      "identity": {
+        "language": "gu"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "હા",
+          "nostr": "નહીં"
+        }
+      }
+    }
+  }
+}

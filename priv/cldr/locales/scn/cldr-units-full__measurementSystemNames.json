@@ -1,0 +1,16 @@
+{
+  "main": {
+    "scn": {
+      "identity": {
+        "language": "scn"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "mètricu",
+          "UK": "ngrisi",
+          "US": "miricanu"
+        }
+      }
+    }
+  }
+}

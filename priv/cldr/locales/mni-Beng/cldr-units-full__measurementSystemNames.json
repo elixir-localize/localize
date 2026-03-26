@@ -1,0 +1,17 @@
+{
+  "main": {
+    "mni-Beng": {
+      "identity": {
+        "language": "mni",
+        "script": "Beng"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "মেত্রিক",
+          "UK": "য়ু কে",
+          "US": "য়ু এস"
+        }
+      }
+    }
+  }
+}

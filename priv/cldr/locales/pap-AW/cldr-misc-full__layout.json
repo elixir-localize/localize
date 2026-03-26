@@ -1,0 +1,16 @@
+{
+  "main": {
+    "pap-AW": {
+      "identity": {
+        "language": "pap",
+        "territory": "AW"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

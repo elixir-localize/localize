@@ -1,0 +1,16 @@
+{
+  "main": {
+    "qu-BO": {
+      "identity": {
+        "language": "qu",
+        "territory": "BO"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

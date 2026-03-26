@@ -1,0 +1,16 @@
+{
+  "main": {
+    "gsw-FR": {
+      "identity": {
+        "language": "gsw",
+        "territory": "FR"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ja:j",
+          "nostr": "näi:n"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "main": {
+    "kab": {
+      "identity": {
+        "language": "kab"
+      },
+      "typographicNames": {
+        "axisNames": {
+          "ital": "uknan",
+          "opsz": "tafekka tasniẓrant",
+          "slnt": "kennu",
+          "wdth": "tehri",
+          "wght": "tuzert"
+        },
+        "styleNames": {
+          "ital-subtype-1": "idewweṛ",
+          "opsz-subtype-8": "taneffust",
+          "opsz-subtype-12": "aḍris",
+          "opsz-subtype-18": "asezwel",
+          "opsz-subtype-72": "askan",
+          "opsz-subtype-144": "anazal",
+          "slnt-subtype--12": "yekna s azelmaḍ",
+          "slnt-subtype-0": "ubdid",
+          "slnt-subtype-12": "yekna",
+          "slnt-subtype-24": "yekna nezzeh",
+          "wdth-subtype-50": "yezmeḍ aṭas",
+          "wdth-subtype-50-alt-compressed": "yessed aṭas",
+          "wdth-subtype-50-alt-narrow": "yeḥreṣ aṭas",
+          "wdth-subtype-62.5": "yezmeḍ nezzeh",
+          "wdth-subtype-62.5-alt-compressed": "yessed nezzeh",
+          "wdth-subtype-62.5-alt-narrow": "yeḥreṣ nezzeh",
+          "wdth-subtype-75": "yezmeḍ",
+          "wdth-subtype-75-alt-compressed": "yessed",
+          "wdth-subtype-75-alt-narrow": "yessed",
+          "wdth-subtype-87.5": "azgen yezmeḍ",
+          "wdth-subtype-87.5-alt-compressed": "azgen yessed",
+          "wdth-subtype-87.5-alt-narrow": "azgen yeḥreṣ",
+          "wdth-subtype-100": "amagnu",
+          "wdth-subtype-112.5": "azgen yejbed",
+          "wdth-subtype-112.5-alt-extended": "azgen yennejbad",
+          "wdth-subtype-112.5-alt-wide": "azgen hraw",
+          "wdth-subtype-125": "yejbed",
+          "wdth-subtype-125-alt-extended": "yennejbad",
+          "wdth-subtype-125-alt-wide": "hraw",
+          "wdth-subtype-150": "yejbed nezzeh",
+          "wdth-subtype-150-alt-extended": "yennejbad nezzeh",
+          "wdth-subtype-150-alt-wide": "hraw nezzeh",
+          "wdth-subtype-200": "yejbed aṭas",
+          "wdth-subtype-200-alt-extended": "yennejbad aṭas",
+          "wdth-subtype-200-alt-wide": "hraw aṭas",
+          "wght-subtype-100": "rqiq",
+          "wght-subtype-200": "rqiq nezzeh",
+          "wght-subtype-200-alt-ultra": "rqiq aṭas",
+          "wght-subtype-300": "afessas",
+          "wght-subtype-350": "azgen afessas",
+          "wght-subtype-380": "adlis",
+          "wght-subtype-400": "alugan",
+          "wght-subtype-500": "alemmas",
+          "wght-subtype-600": "zur azgen",
+          "wght-subtype-700": "zur",
+          "wght-subtype-800": "zur nezzeh",
+          "wght-subtype-900": "aberkan",
+          "wght-subtype-900-alt-heavy": "ẓẓay",
+          "wght-subtype-950": "aberkan nezzeh",
+          "wght-subtype-950-alt-ultrablack": "aberkan aṭas",
+          "wght-subtype-950-alt-ultraheavy": "ẓẓay aṭas"
+        },
+        "featureNames": {
+          "afrc": "tirẓiyin tubdidin",
+          "cpsp": "aṣiẓi n yisekkilen meqqṛen",
+          "dlig": "tirẓiyin tisefranin",
+          "frac": "beṭṭu yeknan",
+          "lnum": "imḍanen n ureyyec",
+          "onum": "imḍanen s truẓi n wadda",
+          "ordn": "imḍanen udusen",
+          "pnum": "imḍanen iẓunanen",
+          "smcp": "isekkilen imeẓẓyanen",
+          "tnum": "izwilen imdewṛen",
+          "zero": "tagrumma tilemt"
+        }
+      }
+    }
+  }
+}

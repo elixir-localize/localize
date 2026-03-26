@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fr-MQ": {
+      "identity": {
+        "language": "fr",
+        "territory": "MQ"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "oui:o",
+          "nostr": "non:n"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "main": {
+    "pap-AW": {
+      "identity": {
+        "language": "pap",
+        "territory": "AW"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "meter",
+          "UK": "britániko",
+          "US": "merikano"
+        }
+      }
+    }
+  }
+}

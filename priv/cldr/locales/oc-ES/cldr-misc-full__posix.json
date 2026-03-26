@@ -1,0 +1,16 @@
+{
+  "main": {
+    "oc-ES": {
+      "identity": {
+        "language": "oc",
+        "territory": "ES"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "òc:o",
+          "nostr": "non:n"
+        }
+      }
+    }
+  }
+}

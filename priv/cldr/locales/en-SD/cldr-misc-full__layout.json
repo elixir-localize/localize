@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-SD": {
+      "identity": {
+        "language": "en",
+        "territory": "SD"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

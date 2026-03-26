@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fr-DJ": {
+      "identity": {
+        "language": "fr",
+        "territory": "DJ"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrique",
+          "UK": "impérial",
+          "US": "américain"
+        }
+      }
+    }
+  }
+}

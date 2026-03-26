@@ -1,0 +1,15 @@
+{
+  "main": {
+    "ee": {
+      "identity": {
+        "language": "ee"
+      },
+      "localeDisplayNames": {
+        "variants": {
+          "ALALC97": "ALALC9",
+          "BISCAYAN": "BISCAYA"
+        }
+      }
+    }
+  }
+}

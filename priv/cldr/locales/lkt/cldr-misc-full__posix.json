@@ -1,0 +1,15 @@
+{
+  "main": {
+    "lkt": {
+      "identity": {
+        "language": "lkt"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "iu-Latn": {
+      "identity": {
+        "language": "iu",
+        "script": "Latn"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

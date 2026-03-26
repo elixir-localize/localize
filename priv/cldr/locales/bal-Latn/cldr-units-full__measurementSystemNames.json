@@ -1,0 +1,17 @@
+{
+  "main": {
+    "bal-Latn": {
+      "identity": {
+        "language": "bal",
+        "script": "Latn"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Mitari",
+          "UK": "Bartáni",
+          "US": "Amriki"
+        }
+      }
+    }
+  }
+}

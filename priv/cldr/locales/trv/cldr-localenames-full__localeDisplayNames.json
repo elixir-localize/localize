@@ -1,0 +1,26 @@
+{
+  "main": {
+    "trv": {
+      "identity": {
+        "language": "trv"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}, {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "types": {
+          "calendar": {
+            "gregorian": "Jiyax Yisu Thulang"
+          }
+        },
+        "codePatterns": {
+          "language": "Kari: {0}",
+          "script": "Patas: {0}",
+          "territory": "Alang: {0}"
+        }
+      }
+    }
+  }
+}

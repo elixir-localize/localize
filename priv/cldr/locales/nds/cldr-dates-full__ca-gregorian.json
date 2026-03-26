@@ -1,0 +1,531 @@
+{
+  "main": {
+    "nds": {
+      "identity": {
+        "language": "nds"
+      },
+      "dates": {
+        "calendars": {
+          "gregorian": {
+            "months": {
+              "format": {
+                "abbreviated": {
+                  "1": "Jan.",
+                  "2": "Feb.",
+                  "3": "März",
+                  "4": "Apr.",
+                  "5": "Mai",
+                  "6": "Juni",
+                  "7": "Juli",
+                  "8": "Aug.",
+                  "9": "Sep.",
+                  "10": "Okt.",
+                  "11": "Nov.",
+                  "12": "Dez."
+                },
+                "narrow": {
+                  "1": "J",
+                  "2": "F",
+                  "3": "M",
+                  "4": "A",
+                  "5": "M",
+                  "6": "J",
+                  "7": "J",
+                  "8": "A",
+                  "9": "S",
+                  "10": "O",
+                  "11": "N",
+                  "12": "D"
+                },
+                "wide": {
+                  "1": "Januaar",
+                  "2": "Februaar",
+                  "3": "März",
+                  "4": "April",
+                  "5": "Mai",
+                  "6": "Juni",
+                  "7": "Juli",
+                  "8": "August",
+                  "9": "September",
+                  "10": "Oktover",
+                  "11": "November",
+                  "12": "Dezember"
+                }
+              },
+              "stand-alone": {
+                "abbreviated": {
+                  "1": "Jan.",
+                  "2": "Feb.",
+                  "3": "März",
+                  "4": "Apr.",
+                  "5": "Mai",
+                  "6": "Juni",
+                  "7": "Juli",
+                  "8": "Aug.",
+                  "9": "Sep.",
+                  "10": "Okt.",
+                  "11": "Nov.",
+                  "12": "Dez."
+                },
+                "narrow": {
+                  "1": "J",
+                  "2": "F",
+                  "3": "M",
+                  "4": "A",
+                  "5": "M",
+                  "6": "J",
+                  "7": "J",
+                  "8": "A",
+                  "9": "S",
+                  "10": "O",
+                  "11": "N",
+                  "12": "D"
+                },
+                "wide": {
+                  "1": "Januaar",
+                  "2": "Februaar",
+                  "3": "März",
+                  "4": "April",
+                  "5": "Mai",
+                  "6": "Juni",
+                  "7": "Juli",
+                  "8": "August",
+                  "9": "September",
+                  "10": "Oktover",
+                  "11": "November",
+                  "12": "Dezember"
+                }
+              }
+            },
+            "days": {
+              "format": {
+                "abbreviated": {
+                  "sun": "Sü.",
+                  "mon": "Ma.",
+                  "tue": "Di.",
+                  "wed": "Mi.",
+                  "thu": "Du.",
+                  "fri": "Fr.",
+                  "sat": "Sa."
+                },
+                "narrow": {
+                  "sun": "S",
+                  "mon": "M",
+                  "tue": "D",
+                  "wed": "M",
+                  "thu": "D",
+                  "fri": "F",
+                  "sat": "S"
+                },
+                "short": {
+                  "sun": "Sü.",
+                  "mon": "Ma.",
+                  "tue": "Di.",
+                  "wed": "Mi.",
+                  "thu": "Du.",
+                  "fri": "Fr.",
+                  "sat": "Sa."
+                },
+                "wide": {
+                  "sun": "Sünndag",
+                  "mon": "Maandag",
+                  "tue": "Dingsdag",
+                  "wed": "Middeweken",
+                  "thu": "Dunnersdag",
+                  "fri": "Freedag",
+                  "sat": "Sünnavend"
+                }
+              },
+              "stand-alone": {
+                "abbreviated": {
+                  "sun": "Sü.",
+                  "mon": "Ma.",
+                  "tue": "Di.",
+                  "wed": "Mi.",
+                  "thu": "Du.",
+                  "fri": "Fr.",
+                  "sat": "Sa."
+                },
+                "narrow": {
+                  "sun": "S",
+                  "mon": "M",
+                  "tue": "D",
+                  "wed": "M",
+                  "thu": "D",
+                  "fri": "F",
+                  "sat": "S"
+                },
+                "short": {
+                  "sun": "Sü.",
+                  "mon": "Ma.",
+                  "tue": "Di.",
+                  "wed": "Mi.",
+                  "thu": "Du.",
+                  "fri": "Fr.",
+                  "sat": "Sa."
+                },
+                "wide": {
+                  "sun": "Sünndag",
+                  "mon": "Maandag",
+                  "tue": "Dingsdag",
+                  "wed": "Middeweken",
+                  "thu": "Dunnersdag",
+                  "fri": "Freedag",
+                  "sat": "Sünnavend"
+                }
+              }
+            },
+            "quarters": {
+              "format": {
+                "abbreviated": {
+                  "1": "Q.1",
+                  "2": "Q.2",
+                  "3": "Q.3",
+                  "4": "Q.4"
+                },
+                "narrow": {
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
+                },
+                "wide": {
+                  "1": "1. Quartaal",
+                  "2": "2. Quartaal",
+                  "3": "3. Quartaal",
+                  "4": "4. Quartaal"
+                }
+              },
+              "stand-alone": {
+                "abbreviated": {
+                  "1": "Q. I",
+                  "2": "Q. II",
+                  "3": "Q. III",
+                  "4": "Q. IV"
+                },
+                "narrow": {
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
+                },
+                "wide": {
+                  "1": "1. Quartaal",
+                  "2": "2. Quartaal",
+                  "3": "3. Quartaal",
+                  "4": "4. Quartaal"
+                }
+              }
+            },
+            "dayPeriods": {
+              "format": {
+                "abbreviated": {
+                  "am": "vm",
+                  "pm": "nm"
+                },
+                "narrow": {
+                  "am": "vm",
+                  "pm": "nm"
+                },
+                "wide": {
+                  "am": "vm",
+                  "pm": "nm"
+                }
+              },
+              "stand-alone": {
+                "abbreviated": {
+                  "am": "vm",
+                  "pm": "nm"
+                },
+                "narrow": {
+                  "am": "vm",
+                  "pm": "nm"
+                },
+                "wide": {
+                  "am": "vm",
+                  "pm": "nm"
+                }
+              }
+            },
+            "eras": {
+              "eraNames": {
+                "0": "vör Christus",
+                "0-alt-variant": "vör uns Tiet",
+                "1": "na Christus",
+                "1-alt-variant": "binnen uns Tiet"
+              },
+              "eraAbbr": {
+                "0": "v.Chr.",
+                "0-alt-variant": "v.u.T.",
+                "1": "n.Chr.",
+                "1-alt-variant": "b.u.T."
+              },
+              "eraNarrow": {
+                "0": "vC",
+                "0-alt-variant": "vuT",
+                "1": "nC",
+                "1-alt-variant": "buT"
+              }
+            },
+            "dateFormats": {
+              "full": "EEEE, 'de' d. MMMM y",
+              "long": "d. MMMM y",
+              "medium": "d. MMM y",
+              "short": "d.MM.yy"
+            },
+            "dateSkeletons": {
+              "full": "yMMMMEEEEd",
+              "long": "yMMMMd",
+              "medium": "yMMMd",
+              "short": "yyMMd"
+            },
+            "timeFormats": {
+              "full": "'Klock' H.mm:ss (zzzz)",
+              "long": "'Klock' H.mm:ss (z)",
+              "medium": "'Klock' H.mm:ss",
+              "short": "'Kl'. H.mm"
+            },
+            "timeSkeletons": {
+              "full": "Hmmsszzzz",
+              "long": "Hmmssz",
+              "medium": "Hmmss",
+              "short": "Hmm"
+            },
+            "dateTimeFormats": {
+              "full": "{1}, {0}",
+              "long": "{1}, {0}",
+              "medium": "{1}, {0}",
+              "short": "{1}, {0}",
+              "availableFormats": {
+                "Bh": "h B",
+                "Bhm": "h:mm B",
+                "Bhms": "h:mm:ss B",
+                "d": "d.",
+                "E": "ccc",
+                "EBh": "E h B",
+                "EBhm": "E h:mm B",
+                "EBhms": "E h:mm:ss B",
+                "Ed": "E d.",
+                "Eh": "E h a",
+                "Ehm": "E, 'Kl'. h.mm a",
+                "EHm": "E, 'Kl'. HH.mm",
+                "Ehms": "E, 'Kl'. h.mm:ss a",
+                "EHms": "E, 'Kl'. HH.mm:ss",
+                "Gy": "y G",
+                "GyM": "G y-MM",
+                "GyMd": "G y-MM-dd",
+                "GyMEd": "G y-MM-dd, E",
+                "GyMMM": "MMM y G",
+                "GyMMMd": "d. MMM y G",
+                "GyMMMEd": "E, d. MMM y G",
+                "h": "'Klock' h a",
+                "H": "'Klock' H",
+                "hm": "'Kl'. h.mm a",
+                "Hm": "'Kl'. H.mm",
+                "hms": "'Klock' h.mm:ss a",
+                "Hms": "'Klock' H.mm:ss",
+                "hmsv": "'Klock' h.mm:ss a v",
+                "Hmsv": "'Klock' H.mm:ss v",
+                "hmv": "h:mm a v",
+                "Hmv": "HH:mm v",
+                "hv": "h a v",
+                "Hv": "HH v",
+                "M": "L",
+                "Md": "d. M.",
+                "MEd": "E, d. M.",
+                "MMM": "LLL",
+                "MMMd": "d. MMM",
+                "MMMEd": "E, d. MMM",
+                "MMMMd": "MMMM d",
+                "MMMMW-count-other": "'week' W 'of' MMMM",
+                "ms": "m:ss",
+                "y": "y",
+                "yM": "MM/y",
+                "yMd": "d.M.y",
+                "yMEd": "E, d.M.y",
+                "yMMM": "MMM y",
+                "yMMMd": "d. MMM y",
+                "yMMMEd": "E, d. MMM y",
+                "yMMMM": "y MMMM",
+                "yQQQ": "QQQ y",
+                "yQQQQ": "QQQQ y",
+                "yw-count-other": "'week' w 'of' Y"
+              },
+              "appendItems": {
+                "Day": "{0} ({2}: {1})",
+                "Day-Of-Week": "{0} {1}",
+                "Era": "{1} {0}",
+                "Hour": "{0} ({2}: {1})",
+                "Minute": "{0} ({2}: {1})",
+                "Month": "{0} ({2}: {1})",
+                "Quarter": "{0} ({2}: {1})",
+                "Second": "{0} ({2}: {1})",
+                "Timezone": "{0} ({1})",
+                "Week": "{0} ({2}: {1})",
+                "Year": "{1} {0}"
+              },
+              "intervalFormats": {
+                "intervalFormatFallback": "{0} – {1}",
+                "Bh": {
+                  "B": "h B – h B",
+                  "h": "h–h B"
+                },
+                "Bhm": {
+                  "B": "h:mm B – h:mm B",
+                  "h": "h:mm–h:mm B",
+                  "m": "h:mm–h:mm B"
+                },
+                "d": {
+                  "d": "d.–d."
+                },
+                "Gy": {
+                  "G": "G y – G y",
+                  "y": "G y–y"
+                },
+                "GyM": {
+                  "G": "G y-MM – G y-MM",
+                  "M": "G y-MM – y-MM",
+                  "y": "G y-MM – y-MM"
+                },
+                "GyMd": {
+                  "d": "G y-MM-dd – y-MM-dd",
+                  "G": "G y-MM-dd – G y-MM-dd",
+                  "M": "G y-MM-dd – y-MM-dd",
+                  "y": "G y-MM-dd – y-MM-dd"
+                },
+                "GyMEd": {
+                  "d": "G y-MM-dd, E – y-MM-dd, E",
+                  "G": "G y-MM-dd, E – G y-MM-dd, E",
+                  "M": "G y-MM-dd, E – y-MM-dd, E",
+                  "y": "G y-MM-dd, E – y-MM-dd, E"
+                },
+                "GyMMM": {
+                  "G": "G y MMM – G y MMM",
+                  "M": "G y MMM–MMM",
+                  "y": "G y MMM – y MMM"
+                },
+                "GyMMMd": {
+                  "d": "G y MMM d–d",
+                  "G": "G y MMM d – G y MMM d",
+                  "M": "G y MMM d – MMM d",
+                  "y": "G y MMM d – y MMM d"
+                },
+                "GyMMMEd": {
+                  "d": "G y MMM d, E – MMM d, E",
+                  "G": "G y MMM d, E – G y MMM d, E",
+                  "M": "G y MMM d, E – MMM d, E",
+                  "y": "G y MMM d, E – y MMM d, E"
+                },
+                "h": {
+                  "a": "'Kl'. h a – h a",
+                  "h": "'Kl'. h – h a"
+                },
+                "H": {
+                  "H": "'Kl'. H – H"
+                },
+                "hm": {
+                  "a": "'Kl'. h.mm a – 'Kl'. h.mm a",
+                  "h": "'Kl'. h.mm – h.mm a",
+                  "m": "'Kl'. h.mm – h.mm a"
+                },
+                "Hm": {
+                  "H": "'Kl'. H.mm – H.mm",
+                  "m": "'Kl'. H.mm – H.mm"
+                },
+                "hmv": {
+                  "a": "'Kl'. h.mm – h.mm a (v)",
+                  "h": "'Kl'. h.mm – h.mm a (v)",
+                  "m": "'Kl'. h.mm – h.mm a (v)"
+                },
+                "Hmv": {
+                  "H": "'Kl'. H.mm – H.mm (v)",
+                  "m": "'Kl'. H.mm – H.mm (v)"
+                },
+                "hv": {
+                  "a": "'Kl'. h a – h a (v)",
+                  "h": "'Kl'. h – h a (v)"
+                },
+                "Hv": {
+                  "H": "'Kl'. H – H (v)"
+                },
+                "M": {
+                  "M": "MM–MM"
+                },
+                "Md": {
+                  "d": "d.M.–d.M.",
+                  "M": "d.M.–d.M."
+                },
+                "MEd": {
+                  "d": "E, d. – E, d.M.",
+                  "M": "E, d.M. – E, d.M."
+                },
+                "MMM": {
+                  "M": "LLL – LLL"
+                },
+                "MMMd": {
+                  "d": "d.–d. MMM",
+                  "M": "d. MMM – d. MMM"
+                },
+                "MMMEd": {
+                  "d": "E, d. – E, d. MMM",
+                  "M": "E, d. MMM – E, d. MMM"
+                },
+                "y": {
+                  "y": "y–y"
+                },
+                "yM": {
+                  "M": "MM–MM/y",
+                  "y": "MM/y – MM/y"
+                },
+                "yMd": {
+                  "d": "d.–d.M.y",
+                  "M": "d.M.–d.M.y",
+                  "y": "d.M.y – d.M.y"
+                },
+                "yMEd": {
+                  "d": "E, d. – E, d.M.y",
+                  "M": "E, d.M. – E, d.M.y",
+                  "y": "E, d.M.y – E, d.M.y"
+                },
+                "yMMM": {
+                  "M": "MMM – MMM y",
+                  "y": "MMM y – MMM y"
+                },
+                "yMMMd": {
+                  "d": "d.–d. MMM y",
+                  "M": "d. MMM – d. MMM y",
+                  "y": "d. MMM y – d. MMM y"
+                },
+                "yMMMEd": {
+                  "d": "E, d. – E, d. MMM y",
+                  "M": "E, d. MMM – E, d. MMM y",
+                  "y": "E, d. MMM y – E, d. MMM y"
+                },
+                "yMMMM": {
+                  "M": "MMMM – MMMM y",
+                  "y": "MMMM y – MMMM y"
+                }
+              }
+            },
+            "dateTimeFormats-atTime": {
+              "standard": {
+                "full": "{1}, {0}",
+                "long": "{1}, {0}",
+                "medium": "{1}, {0}",
+                "short": "{1}, {0}"
+              }
+            },
+            "dateTimeFormats-relative": {
+              "standard": {
+                "full": "{1}, {0}",
+                "long": "{1}, {0}",
+                "medium": "{1}, {0}",
+                "short": "{1}, {0}"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

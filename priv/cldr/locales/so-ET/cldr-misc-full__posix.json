@@ -1,0 +1,16 @@
+{
+  "main": {
+    "so-ET": {
+      "identity": {
+        "language": "so",
+        "territory": "ET"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "haa:h",
+          "nostr": "maya:m"
+        }
+      }
+    }
+  }
+}

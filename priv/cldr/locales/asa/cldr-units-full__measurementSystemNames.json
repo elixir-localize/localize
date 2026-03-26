@@ -1,0 +1,16 @@
+{
+  "main": {
+    "asa": {
+      "identity": {
+        "language": "asa"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

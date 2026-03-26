@@ -1,0 +1,17 @@
+{
+  "main": {
+    "fr-HT": {
+      "identity": {
+        "language": "fr",
+        "territory": "HT"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrique",
+          "UK": "impérial",
+          "US": "américain"
+        }
+      }
+    }
+  }
+}

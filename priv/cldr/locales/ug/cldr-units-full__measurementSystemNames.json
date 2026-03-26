@@ -1,0 +1,16 @@
+{
+  "main": {
+    "ug": {
+      "identity": {
+        "language": "ug"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "مېتىر",
+          "UK": "ئەنگلىيە ئۆلچىمى",
+          "US": "ئامېرىكا ئۆلچىمى"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-MP": {
+      "identity": {
+        "language": "en",
+        "territory": "MP"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

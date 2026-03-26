@@ -1,0 +1,15 @@
+{
+  "main": {
+    "gd": {
+      "identity": {
+        "language": "gd"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

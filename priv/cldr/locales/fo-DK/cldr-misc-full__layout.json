@@ -1,0 +1,16 @@
+{
+  "main": {
+    "fo-DK": {
+      "identity": {
+        "language": "fo",
+        "territory": "DK"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

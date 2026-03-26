@@ -1,0 +1,15 @@
+{
+  "main": {
+    "uk": {
+      "identity": {
+        "language": "uk"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "так:т",
+          "nostr": "ні:н"
+        }
+      }
+    }
+  }
+}

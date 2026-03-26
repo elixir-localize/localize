@@ -1,0 +1,16 @@
+{
+  "main": {
+    "tk": {
+      "identity": {
+        "language": "tk"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metrik",
+          "UK": "Birleşen Patyşalyk",
+          "US": "ABŞ"
+        }
+      }
+    }
+  }
+}

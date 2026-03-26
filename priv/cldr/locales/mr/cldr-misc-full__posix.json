@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mr": {
+      "identity": {
+        "language": "mr"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "होयःहो",
+          "nostr": "नाहीःना"
+        }
+      }
+    }
+  }
+}

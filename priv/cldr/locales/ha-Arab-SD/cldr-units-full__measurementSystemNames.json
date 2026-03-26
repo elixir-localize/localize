@@ -1,0 +1,18 @@
+{
+  "main": {
+    "ha-Arab-SD": {
+      "identity": {
+        "language": "ha",
+        "script": "Arab",
+        "territory": "SD"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
+        }
+      }
+    }
+  }
+}

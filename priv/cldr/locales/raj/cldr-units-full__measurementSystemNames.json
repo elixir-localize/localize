@@ -1,0 +1,16 @@
+{
+  "main": {
+    "raj": {
+      "identity": {
+        "language": "raj"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "मीट्रिक",
+          "UK": "यूके",
+          "US": "यू एस"
+        }
+      }
+    }
+  }
+}

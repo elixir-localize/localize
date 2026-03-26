@@ -1,0 +1,15 @@
+{
+  "main": {
+    "kxv": {
+      "identity": {
+        "language": "kxv"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

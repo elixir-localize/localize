@@ -1,0 +1,16 @@
+{
+  "main": {
+    "sat-Olck": {
+      "identity": {
+        "language": "sat",
+        "script": "Olck"
+      },
+      "localeDisplayNames": {
+        "variants": {
+          "POLYTON": "ᱯᱚᱞᱤᱴᱚᱱᱤᱠ",
+          "POSIX": "ᱠᱚᱢᱯᱩᱴᱚᱨ"
+        }
+      }
+    }
+  }
+}

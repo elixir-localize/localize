@@ -1,0 +1,154 @@
+{
+  "main": {
+    "frr": {
+      "identity": {
+        "language": "frr"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}, {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "keys": {
+          "calendar": "Kalender",
+          "cf": "Münt Formaat",
+          "collation": "Sortiaring",
+          "currency": "Münt",
+          "em": "Emoji Presentatsion",
+          "hc": "Stünjen Formaat (12 of 24)",
+          "lb": "Rä Ambreeg String",
+          "lw": "Rä ambreeg uun wurden",
+          "ms": "Miat Süsteem",
+          "numbers": "Taalen",
+          "ss": "Sats aanj efter ufk."
+        },
+        "types": {
+          "calendar": {
+            "buddhist": "Buddhistisk Kalender",
+            "core": "Minguo",
+            "chinese": "Schineesk Kalender",
+            "coptic": "Koptisk Kalender",
+            "dangi": "Dangi Kalender",
+            "ethiopic": "Etioopisk Kalender",
+            "ethiopic-amete-alem": "Etioopisk Amete Alem Kalender",
+            "gregorian": "Gregoriaans Kalender",
+            "hebrew": "Hebreewsk Kalender",
+            "islamic": "Islaamisk Kalender",
+            "islamic-civil": "Islaamisk Bürgerlik Kalender",
+            "islamic-umalqura": "Islaamisk Umalkura Kalender",
+            "iso8601": "ISO-8601 Kalender",
+            "japanese": "Japoonsk Kalender",
+            "persian": "Persisk Kalender",
+            "roc": "Minguo Kalender"
+          },
+          "cf": {
+            "account": "Konto Münt Formaat",
+            "core": "Standard",
+            "standard": "Standard Münt Formaat"
+          },
+          "collation": {
+            "ducet": "Unicode Sortiaring",
+            "core": "Standard",
+            "search": "Normool Schük",
+            "standard": "Standard Sortiaring"
+          },
+          "em": {
+            "core": "Tekst"
+          },
+          "hc": {
+            "h11": "12 Stünj Süsteem (0–11)",
+            "core": "24 (1–24)",
+            "h12": "12 Stünj Süsteem (1–12)",
+            "h23": "24 Stünj Süsteem (0–23)",
+            "h24": "24 Stünj Süsteem (1–24)"
+          },
+          "lb": {
+            "loose": "Luas Rä Ambreeg Stiil",
+            "core": "String",
+            "normal": "Normool Rä Ambreeg Stiil",
+            "strict": "String Rä Ambreeg Stiil"
+          },
+          "lw": {
+            "core": "Hual uun fraasen"
+          },
+          "ms": {
+            "metric": "Meetrisk Süsteem",
+            "core": "US",
+            "uksystem": "UK Süsteem",
+            "ussystem": "US Süsteem"
+          },
+          "numbers": {
+            "ahom": "Ahom Taalen",
+            "arab": "Araabisk Taalen",
+            "arabext": "Ütjwidjet Araabisk Taalen",
+            "armn": "Armeensk Taalen",
+            "armnlow": "Armeensk Letj Taalen",
+            "bali": "Balineesk Taalen",
+            "beng": "Bangla Taalen",
+            "brah": "Brahmi Taalen",
+            "cakm": "Chakma Taalen",
+            "cham": "Cham Taalen",
+            "cyrl": "Kyrilisk Taalen",
+            "deva": "Devanagari Taalen",
+            "diak": "Dives Akuru Taalen",
+            "ethi": "Etioopisk Taalen",
+            "fullwide": "Ütjwidjet Taalen",
+            "gara": "Garay Taalen",
+            "geor": "Georgisk Taalen",
+            "gong": "Gunjala Gondi Taalen",
+            "gonm": "Masaram Gondi Taalen",
+            "grek": "Greks Taalen",
+            "greklow": "Greks Letj Taalen",
+            "gujr": "Gujarati Taalen",
+            "gukh": "Gurung Khema Taalen",
+            "guru": "Gurmukhi Taalen",
+            "hanidec": "Schineesk Deesimaal Taalen",
+            "hans": "Ianfach Schineesk Taalen",
+            "hansfin": "Ianfach Schineesk Finans Taalen",
+            "hant": "Ual Schineesk Taalen",
+            "hantfin": "Ual Schineesk Finans Taalen",
+            "hebr": "Hebreewsk Taalen",
+            "hmng": "Pahawh Hmong Taalen",
+            "hmnp": "Nyiakeng Puachue Hmong Taalen",
+            "java": "Jawaans Taalen",
+            "jpan": "Japoonsk Taalen",
+            "jpanfin": "Japoonsk Finans Taalen",
+            "kali": "Kayah Li Taalen",
+            "kawi": "Kawi Taalen",
+            "khmr": "Khmer Taalen",
+            "knda": "Kanaada Taalen",
+            "krai": "Kirat Rai Taalen",
+            "lana": "Tai Tham Hora Taalen",
+            "lanatham": "Tai Tham Tham Taalen",
+            "laoo": "Laotisk Taalen",
+            "latn": "Europeesk Taalen",
+            "lepc": "Lepcha Taalen",
+            "limb": "Limbu Taalen",
+            "mlym": "Malayalam Taalen",
+            "mtei": "Meetei Mayek Taalen",
+            "mymr": "Mjanmaar Taalen",
+            "olck": "Ol Chiki Taalen",
+            "orya": "Oriya Taalen",
+            "roman": "Röömsk Taalen",
+            "romanlow": "Röömsk Letj Taalen",
+            "taml": "Ual Tamil Taalen",
+            "tamldec": "Tamil Taalen",
+            "telu": "Telugu Taalen",
+            "thai": "Thai Taalen",
+            "tibt": "Tibetaans Taalen",
+            "vaii": "Vai Taalen"
+          },
+          "ss": {
+            "core": "Uun"
+          }
+        },
+        "codePatterns": {
+          "language": "Spriik: {0}",
+          "script": "Skraft: {0}",
+          "territory": "Regiuun: {0}"
+        }
+      }
+    }
+  }
+}

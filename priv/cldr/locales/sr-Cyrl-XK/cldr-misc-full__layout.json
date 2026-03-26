@@ -1,0 +1,17 @@
+{
+  "main": {
+    "sr-Cyrl-XK": {
+      "identity": {
+        "language": "sr",
+        "script": "Cyrl",
+        "territory": "XK"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

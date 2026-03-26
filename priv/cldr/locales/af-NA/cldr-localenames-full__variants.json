@@ -1,0 +1,19 @@
+{
+  "main": {
+    "af-NA": {
+      "identity": {
+        "language": "af",
+        "territory": "NA"
+      },
+      "localeDisplayNames": {
+        "variants": {
+          "1901": "Duitse ortografie van 1901",
+          "1996": "Duitse ortografie van 1996",
+          "PINYIN": "pinyin",
+          "REVISED": "hersiene ortografie",
+          "WADEGILE": "Wade-Giles"
+        }
+      }
+    }
+  }
+}

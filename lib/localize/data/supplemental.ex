@@ -69,7 +69,7 @@ defmodule Localize.Data.Supplemental do
     |> get_in(["supplemental", "calendarPreferenceData"])
     |> LMap.remove_leading_underscores()
     |> Enum.map(fn {k, v} ->
-      {k, Enum.map(v, &(Localize.Utils.String.to_underscore(&1)))}
+      {k, Enum.map(v, &Localize.Utils.String.to_underscore(&1))}
     end)
     |> Map.new()
     |> LMap.atomize_keys()
@@ -205,7 +205,9 @@ defmodule Localize.Data.Supplemental do
 
   """
   def generate_currency_codes do
-    Localize.Data.read_json_path("cldr-numbers-full/main/en/currencies.json")
+    Path.join([Localize.Data.locales_source_dir(), "en", "cldr-numbers-full__currencies.json"])
+    |> File.read!()
+    |> :json.decode()
     |> get_in(["main", "en", "numbers", "currencies"])
     |> Map.keys()
     |> Enum.sort()
@@ -419,7 +421,11 @@ defmodule Localize.Data.Supplemental do
 
     case parts do
       [language, script, territory] ->
-        %{language: language, script: String.to_atom(script), territory: String.to_atom(territory)}
+        %{
+          language: language,
+          script: String.to_atom(script),
+          territory: String.to_atom(territory)
+        }
 
       [language, second] ->
         if String.length(second) == 4 and String.match?(second, ~r/^[A-Z]/) do

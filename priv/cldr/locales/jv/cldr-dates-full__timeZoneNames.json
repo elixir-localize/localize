@@ -1,0 +1,1407 @@
+{
+  "main": {
+    "jv": {
+      "identity": {
+        "language": "jv"
+      },
+      "dates": {
+        "timeZoneNames": {
+          "hourFormat": "+HH:mm;-HH:mm",
+          "gmtFormat": "GMT{0}",
+          "gmtZeroFormat": "GMT",
+          "gmtUnknownFormat": "GMT+?",
+          "regionFormat": "Wektu {0}",
+          "regionFormat-type-daylight": "Wektu Ketigo {0}",
+          "regionFormat-type-standard": "Wektu Standar {0}",
+          "fallbackFormat": "{1} ({0})",
+          "zone": {
+            "Etc": {
+              "UTC": {
+                "_type": "zone",
+                "long": {
+                  "standard": "Wektu Universal Kakoordhinasi"
+                },
+                "short": {
+                  "standard": "UTC"
+                }
+              },
+              "Unknown": {
+                "_type": "zone",
+                "exemplarCity": "Lokasi Ora Dikenali"
+              }
+            },
+            "Europe": {
+              "Tirane": {
+                "_type": "zone",
+                "exemplarCity": "Tirana"
+              },
+              "Busingen": {
+                "_type": "zone",
+                "exemplarCity": "Büsingen"
+              },
+              "Copenhagen": {
+                "_type": "zone",
+                "exemplarCity": "Kopenhagen"
+              },
+              "London": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "Wektu Ketigo Inggris"
+                }
+              },
+              "Athens": {
+                "_type": "zone",
+                "exemplarCity": "Athena"
+              },
+              "Dublin": {
+                "_type": "zone",
+                "long": {
+                  "daylight": "Wektu Standar Irlandia"
+                }
+              },
+              "Isle_of_Man": {
+                "_type": "zone",
+                "exemplarCity": "Pulo Man"
+              },
+              "Rome": {
+                "_type": "zone",
+                "exemplarCity": "Roma"
+              },
+              "Luxembourg": {
+                "_type": "zone",
+                "exemplarCity": "Luksemburk"
+              },
+              "Monaco": {
+                "_type": "zone",
+                "exemplarCity": "Monako"
+              },
+              "Chisinau": {
+                "_type": "zone",
+                "exemplarCity": "Chișinău"
+              },
+              "Kiev": {
+                "_type": "zone",
+                "exemplarCity": "Kiev"
+              },
+              "Vatican": {
+                "_type": "zone",
+                "exemplarCity": "Vatikan"
+              }
+            },
+            "Antarctica": {
+              "Syowa": {
+                "_type": "zone",
+                "exemplarCity": "Showa"
+              },
+              "DumontDUrville": {
+                "_type": "zone",
+                "exemplarCity": "Dumont-d’Urville"
+              }
+            },
+            "America": {
+              "Argentina": {
+                "Rio_Gallegos": {
+                  "_type": "zone",
+                  "exemplarCity": "Río Gallegos"
+                },
+                "Tucuman": {
+                  "_type": "zone",
+                  "exemplarCity": "Tucumán"
+                }
+              },
+              "Mendoza": {
+                "_type": "zone",
+                "exemplarCity": "Mendosa"
+              },
+              "Catamarca": {
+                "_type": "zone",
+                "exemplarCity": "Katamarka"
+              },
+              "Cordoba": {
+                "_type": "zone",
+                "exemplarCity": "Kordoba"
+              },
+              "St_Barthelemy": {
+                "_type": "zone",
+                "exemplarCity": "Santa Barthelemy"
+              },
+              "Eirunepe": {
+                "_type": "zone",
+                "exemplarCity": "Eirunepé"
+              },
+              "Cuiaba": {
+                "_type": "zone",
+                "exemplarCity": "Kuiaba"
+              },
+              "Santarem": {
+                "_type": "zone",
+                "exemplarCity": "Santarém"
+              },
+              "Campo_Grande": {
+                "_type": "zone",
+                "exemplarCity": "Kampo Grande"
+              },
+              "Belem": {
+                "_type": "zone",
+                "exemplarCity": "Belém"
+              },
+              "Araguaina": {
+                "_type": "zone",
+                "exemplarCity": "Araguaína"
+              },
+              "Sao_Paulo": {
+                "_type": "zone",
+                "exemplarCity": "São Paulo"
+              },
+              "Maceio": {
+                "_type": "zone",
+                "exemplarCity": "Maceió"
+              },
+              "Noronha": {
+                "_type": "zone",
+                "exemplarCity": "Fernando de Noronha"
+              },
+              "Belize": {
+                "_type": "zone",
+                "exemplarCity": "Belise"
+              },
+              "Fort_Nelson": {
+                "_type": "zone",
+                "exemplarCity": "Benteng Nelson"
+              },
+              "Swift_Current": {
+                "_type": "zone",
+                "exemplarCity": "Arus Banter"
+              },
+              "Cambridge_Bay": {
+                "_type": "zone",
+                "exemplarCity": "Teluk Cambridge"
+              },
+              "Coral_Harbour": {
+                "_type": "zone",
+                "exemplarCity": "Atikokan"
+              },
+              "Halifax": {
+                "_type": "zone",
+                "exemplarCity": "Halifak"
+              },
+              "Goose_Bay": {
+                "_type": "zone",
+                "exemplarCity": "Teluk Goose"
+              },
+              "Glace_Bay": {
+                "_type": "zone",
+                "exemplarCity": "Teluk Glace"
+              },
+              "St_Johns": {
+                "_type": "zone",
+                "exemplarCity": "Santa John"
+              },
+              "Bogota": {
+                "_type": "zone",
+                "exemplarCity": "Bogotá"
+              },
+              "Costa_Rica": {
+                "_type": "zone",
+                "exemplarCity": "Kosta Rika"
+              },
+              "Curacao": {
+                "_type": "zone",
+                "exemplarCity": "Curaçao"
+              },
+              "Dominica": {
+                "_type": "zone",
+                "exemplarCity": "Dominika"
+              },
+              "Cayenne": {
+                "_type": "zone",
+                "exemplarCity": "Kayenne"
+              },
+              "Godthab": {
+                "_type": "zone",
+                "exemplarCity": "Nuuk"
+              },
+              "Scoresbysund": {
+                "_type": "zone",
+                "exemplarCity": "Ittoqqortoormiit"
+              },
+              "St_Kitts": {
+                "_type": "zone",
+                "exemplarCity": "Santa Kitts"
+              },
+              "Cayman": {
+                "_type": "zone",
+                "exemplarCity": "Caiman"
+              },
+              "St_Lucia": {
+                "_type": "zone",
+                "exemplarCity": "Santa Lucia"
+              },
+              "Martinique": {
+                "_type": "zone",
+                "exemplarCity": "Martinik"
+              },
+              "Ciudad_Juarez": {
+                "_type": "zone",
+                "exemplarCity": "Ciudad Juáres"
+              },
+              "Mazatlan": {
+                "_type": "zone",
+                "exemplarCity": "Mazatlán"
+              },
+              "Bahia_Banderas": {
+                "_type": "zone",
+                "exemplarCity": "Bahia Banderas"
+              },
+              "Mexico_City": {
+                "_type": "zone",
+                "exemplarCity": "Kutho Meksiko"
+              },
+              "Merida": {
+                "_type": "zone",
+                "exemplarCity": "Merida"
+              },
+              "Cancun": {
+                "_type": "zone",
+                "exemplarCity": "Cancun"
+              },
+              "Miquelon": {
+                "_type": "zone",
+                "exemplarCity": "Saint-Pierre"
+              },
+              "Puerto_Rico": {
+                "_type": "zone",
+                "exemplarCity": "Puerto Riko"
+              },
+              "Asuncion": {
+                "_type": "zone",
+                "exemplarCity": "Asunción"
+              },
+              "Lower_Princes": {
+                "_type": "zone",
+                "exemplarCity": "Lower Prince’s Quarter"
+              },
+              "Port_of_Spain": {
+                "_type": "zone",
+                "exemplarCity": "Palabuhan Spanyol"
+              },
+              "North_Dakota": {
+                "Beulah": {
+                  "_type": "zone",
+                  "exemplarCity": "Beulah [Dakota Lor]"
+                },
+                "New_Salem": {
+                  "_type": "zone",
+                  "exemplarCity": "Salem Anyar [Dakota Lor]"
+                },
+                "Center": {
+                  "_type": "zone",
+                  "exemplarCity": "Tengah [Dakota Lor]"
+                }
+              },
+              "Indiana": {
+                "Vincennes": {
+                  "_type": "zone",
+                  "exemplarCity": "Vincennes [Indiana]"
+                },
+                "Petersburg": {
+                  "_type": "zone",
+                  "exemplarCity": "Petersburg [Indiana]"
+                },
+                "Tell_City": {
+                  "_type": "zone",
+                  "exemplarCity": "Tell City [Indiana]"
+                },
+                "Knox": {
+                  "_type": "zone",
+                  "exemplarCity": "Knox [Indiana]"
+                },
+                "Winamac": {
+                  "_type": "zone",
+                  "exemplarCity": "Winamac [Indiana]"
+                },
+                "Marengo": {
+                  "_type": "zone",
+                  "exemplarCity": "Marengo [Indiana]"
+                },
+                "Vevay": {
+                  "_type": "zone",
+                  "exemplarCity": "Vevay [Indiana]"
+                }
+              },
+              "Kentucky": {
+                "Monticello": {
+                  "_type": "zone",
+                  "exemplarCity": "Monticello [Kentucky]"
+                }
+              },
+              "St_Vincent": {
+                "_type": "zone",
+                "exemplarCity": "Santa Vincent"
+              },
+              "Caracas": {
+                "_type": "zone",
+                "exemplarCity": "Karakas"
+              },
+              "St_Thomas": {
+                "_type": "zone",
+                "exemplarCity": "Santa Thomas"
+              }
+            },
+            "Pacific": {
+              "Easter": {
+                "_type": "zone",
+                "exemplarCity": "Paskah"
+              },
+              "Galapagos": {
+                "_type": "zone",
+                "exemplarCity": "Galápagos"
+              },
+              "Truk": {
+                "_type": "zone",
+                "exemplarCity": "Chuuk"
+              },
+              "Ponape": {
+                "_type": "zone",
+                "exemplarCity": "Pohnpei"
+              },
+              "Enderbury": {
+                "_type": "zone",
+                "exemplarCity": "Canton"
+              },
+              "Noumea": {
+                "_type": "zone",
+                "exemplarCity": "Nouméa"
+              },
+              "Port_Moresby": {
+                "_type": "zone",
+                "exemplarCity": "Pelabuhan Moresby"
+              },
+              "Wallis": {
+                "_type": "zone",
+                "exemplarCity": "Wallis & Futuna"
+              }
+            },
+            "Asia": {
+              "Urumqi": {
+                "_type": "zone",
+                "exemplarCity": "Ürümqi"
+              },
+              "Makassar": {
+                "_type": "zone",
+                "exemplarCity": "Makasar"
+              },
+              "Jerusalem": {
+                "_type": "zone",
+                "exemplarCity": "Yerusalem"
+              },
+              "Calcutta": {
+                "_type": "zone",
+                "exemplarCity": "Kalkuta"
+              },
+              "Tehran": {
+                "_type": "zone",
+                "exemplarCity": "Teheran"
+              },
+              "Qostanay": {
+                "_type": "zone",
+                "exemplarCity": "Kostanai"
+              },
+              "Colombo": {
+                "_type": "zone",
+                "exemplarCity": "Kolombo"
+              },
+              "Rangoon": {
+                "_type": "zone",
+                "exemplarCity": "Yangon"
+              },
+              "Hovd": {
+                "_type": "zone",
+                "exemplarCity": "Khovd"
+              },
+              "Macau": {
+                "_type": "zone",
+                "exemplarCity": "Macau"
+              },
+              "Katmandu": {
+                "_type": "zone",
+                "exemplarCity": "Kathmandu"
+              },
+              "Singapore": {
+                "_type": "zone",
+                "exemplarCity": "Singapura"
+              },
+              "Damascus": {
+                "_type": "zone",
+                "exemplarCity": "Damaskus"
+              },
+              "Saigon": {
+                "_type": "zone",
+                "exemplarCity": "Ho Chi Minh"
+              }
+            },
+            "Atlantic": {
+              "Cape_Verde": {
+                "_type": "zone",
+                "exemplarCity": "Kape Verde"
+              },
+              "Canary": {
+                "_type": "zone",
+                "exemplarCity": "Kanari"
+              },
+              "Faeroe": {
+                "_type": "zone",
+                "exemplarCity": "Faroe"
+              },
+              "South_Georgia": {
+                "_type": "zone",
+                "exemplarCity": "Georgia Kidul"
+              },
+              "St_Helena": {
+                "_type": "zone",
+                "exemplarCity": "Santa Helena"
+              }
+            },
+            "Indian": {
+              "Christmas": {
+                "_type": "zone",
+                "exemplarCity": "Natal"
+              },
+              "Chagos": {
+                "_type": "zone",
+                "exemplarCity": "Khagos"
+              },
+              "Comoro": {
+                "_type": "zone",
+                "exemplarCity": "Komoro"
+              },
+              "Maldives": {
+                "_type": "zone",
+                "exemplarCity": "Maladewa"
+              },
+              "Reunion": {
+                "_type": "zone",
+                "exemplarCity": "Réunion"
+              },
+              "Mahe": {
+                "_type": "zone",
+                "exemplarCity": "Mahé"
+              }
+            },
+            "Africa": {
+              "Cairo": {
+                "_type": "zone",
+                "exemplarCity": "Kairo"
+              },
+              "El_Aaiun": {
+                "_type": "zone",
+                "exemplarCity": "El Aaiún"
+              },
+              "Asmera": {
+                "_type": "zone",
+                "exemplarCity": "Asmara"
+              },
+              "Conakry": {
+                "_type": "zone",
+                "exemplarCity": "Konakri"
+              },
+              "Casablanca": {
+                "_type": "zone",
+                "exemplarCity": "Kasablanka"
+              },
+              "Sao_Tome": {
+                "_type": "zone",
+                "exemplarCity": "São Tomé"
+              },
+              "Ndjamena": {
+                "_type": "zone",
+                "exemplarCity": "N’Djamena"
+              },
+              "Lome": {
+                "_type": "zone",
+                "exemplarCity": "Lomé"
+              }
+            }
+          },
+          "metazone": {
+            "Afghanistan": {
+              "long": {
+                "standard": "Wektu Afghanistan"
+              }
+            },
+            "Africa_Central": {
+              "long": {
+                "standard": "Wektu Afrika Tengah"
+              }
+            },
+            "Africa_Eastern": {
+              "long": {
+                "standard": "Wektu Afrika Wetan"
+              }
+            },
+            "Africa_Southern": {
+              "long": {
+                "standard": "Wektu Standar Afrika Kidul"
+              }
+            },
+            "Africa_Western": {
+              "long": {
+                "standard": "Wektu Afrika Kulon"
+              }
+            },
+            "Alaska": {
+              "long": {
+                "generic": "Wektu Alaska",
+                "standard": "Wektu Standar Alaska",
+                "daylight": "Wektu Ketigo Alaska"
+              }
+            },
+            "Amazon": {
+              "long": {
+                "generic": "Wektu Amazon",
+                "standard": "Wektu Standar Amazon",
+                "daylight": "Wektu Ketigo Amazon"
+              }
+            },
+            "America_Central": {
+              "long": {
+                "generic": "Wektu Tengah",
+                "standard": "Wektu Standar Tengah",
+                "daylight": "Wektu Ketigo Tengah"
+              }
+            },
+            "America_Eastern": {
+              "long": {
+                "generic": "Wektu sisih Wetan",
+                "standard": "Wektu Standar sisih Wetan",
+                "daylight": "Wektu Ketigo sisih Wetah"
+              }
+            },
+            "America_Mountain": {
+              "long": {
+                "generic": "Wektu Giri",
+                "standard": "Wektu Standar Giri",
+                "daylight": "Wektu Ketigo Giri"
+              }
+            },
+            "America_Pacific": {
+              "long": {
+                "generic": "Wektu Pasifik",
+                "standard": "Wektu Standar Pasifik",
+                "daylight": "Wektu Ketigo Pasifik"
+              }
+            },
+            "Apia": {
+              "long": {
+                "generic": "Wektu Apia",
+                "standard": "Wektu Standar Samoa",
+                "daylight": "Wektu Ketiga Samoa"
+              }
+            },
+            "Arabian": {
+              "long": {
+                "generic": "Wektu Arab",
+                "standard": "Wektu Standar Arab",
+                "daylight": "Wektu Ketigo Arab"
+              }
+            },
+            "Argentina": {
+              "long": {
+                "generic": "Wektu Argentina",
+                "standard": "Wektu Standar Argentina",
+                "daylight": "Wektu Ketigo Argentina"
+              }
+            },
+            "Argentina_Western": {
+              "long": {
+                "generic": "Wektu Argentina sisih Kulon",
+                "standard": "Wektu Standar Argentina sisih Kulon",
+                "daylight": "Wektu Ketigo Argentina sisih Kulon"
+              }
+            },
+            "Armenia": {
+              "long": {
+                "generic": "Wektu Armenia",
+                "standard": "Wektu Standar Armenia",
+                "daylight": "Wektu Ketigo Armenia"
+              }
+            },
+            "Atlantic": {
+              "long": {
+                "generic": "Wektu Atlantik",
+                "standard": "Wektu Standar Atlantik",
+                "daylight": "Wektu Ketigo Atlantik"
+              }
+            },
+            "Australia_Central": {
+              "long": {
+                "generic": "Wektu Australia Tengah",
+                "standard": "Wektu Standar Australia Tengah",
+                "daylight": "Wektu Ketigo Australia Tengah"
+              }
+            },
+            "Australia_CentralWestern": {
+              "long": {
+                "generic": "Wektu Australia Tengah sisih Kulon",
+                "standard": "Wektu Standar Australia Tengah sisih Kulon",
+                "daylight": "Wektu Ketigo Australia Tengah sisih Kulon"
+              }
+            },
+            "Australia_Eastern": {
+              "long": {
+                "generic": "Wektu Australia sisih Wetan",
+                "standard": "Wektu Standar Australia sisih Wetan",
+                "daylight": "Wektu Ketigo Australia sisih Wetan"
+              }
+            },
+            "Australia_Western": {
+              "long": {
+                "generic": "Wektu Australia sisih Kulon",
+                "standard": "Wektu Standar Australia sisih Kulon",
+                "daylight": "Wektu Ketigo Australia sisih Kulon"
+              }
+            },
+            "Azerbaijan": {
+              "long": {
+                "generic": "Wektu Azerbaijan",
+                "standard": "Wektu Standar Azerbaijan",
+                "daylight": "Wektu Ketigo Azerbaijan"
+              }
+            },
+            "Azores": {
+              "long": {
+                "generic": "Wektu Azores",
+                "standard": "Wektu Standar Azores",
+                "daylight": "Wektu Ketigo Azores"
+              }
+            },
+            "Bangladesh": {
+              "long": {
+                "generic": "Wektu Bangladesh",
+                "standard": "Wektu Standar Bangladesh",
+                "daylight": "Wektu Ketigo Bangladesh"
+              }
+            },
+            "Bhutan": {
+              "long": {
+                "standard": "Wektu Bhutan"
+              }
+            },
+            "Bolivia": {
+              "long": {
+                "standard": "Wektu Bolivia"
+              }
+            },
+            "Brasilia": {
+              "long": {
+                "generic": "Wektu Brasilia",
+                "standard": "Wektu Standar Brasilia",
+                "daylight": "Wektu Ketigo Brasilia"
+              }
+            },
+            "Brunei": {
+              "long": {
+                "standard": "Wektu Brunei"
+              }
+            },
+            "Cape_Verde": {
+              "long": {
+                "generic": "Wektu Tanjung Verde",
+                "standard": "Wektu Standar Tanjung Verde",
+                "daylight": "Wektu Ketigo Tanjung Verde"
+              }
+            },
+            "Chamorro": {
+              "long": {
+                "standard": "Wektu Chamorro"
+              }
+            },
+            "Chatham": {
+              "long": {
+                "generic": "Wektu Chatham",
+                "standard": "Wektu Standar Chatham",
+                "daylight": "Wektu Ketigo Chatham"
+              }
+            },
+            "Chile": {
+              "long": {
+                "generic": "Wektu Chili",
+                "standard": "Wektu Standar Chili",
+                "daylight": "Wektu Ketigo Chili"
+              }
+            },
+            "China": {
+              "long": {
+                "generic": "Wektu Cina",
+                "standard": "Wektu Standar Cina",
+                "daylight": "Wektu Ketiga Cina"
+              }
+            },
+            "Christmas": {
+              "long": {
+                "standard": "Wektu Pulo Natal"
+              }
+            },
+            "Cocos": {
+              "long": {
+                "standard": "Wektu Kepuloan Cocos"
+              }
+            },
+            "Colombia": {
+              "long": {
+                "generic": "Wektu Kolombia",
+                "standard": "Wektu Standar Kolombia",
+                "daylight": "Wektu Ketigo Kolombia"
+              }
+            },
+            "Cook": {
+              "long": {
+                "generic": "Wektu Kepuloan Cook",
+                "standard": "Wektu Standar Kepuloan Cook",
+                "daylight": "Wektu Ketiga Kepuloan Cook"
+              }
+            },
+            "Cuba": {
+              "long": {
+                "generic": "Wektu Kuba",
+                "standard": "Wektu Standar Kuba",
+                "daylight": "Wektu Ketigo Kuba"
+              }
+            },
+            "Davis": {
+              "long": {
+                "standard": "Wektu Davis"
+              }
+            },
+            "DumontDUrville": {
+              "long": {
+                "standard": "Wektu Dumont d’Urville"
+              }
+            },
+            "East_Timor": {
+              "long": {
+                "standard": "Wektu Timor-Leste"
+              }
+            },
+            "Easter": {
+              "long": {
+                "generic": "Wektu Pulo Paskah",
+                "standard": "Wektu Standar Pulo Paskah",
+                "daylight": "Wektu Ketigo Pulo Paskah"
+              }
+            },
+            "Ecuador": {
+              "long": {
+                "standard": "Wektu Ekuador"
+              }
+            },
+            "Europe_Central": {
+              "long": {
+                "generic": "Wektu Eropa Tengah",
+                "standard": "Wektu Standar Eropa Tengah",
+                "daylight": "Wektu Ketigo Eropa Tengah"
+              }
+            },
+            "Europe_Eastern": {
+              "long": {
+                "generic": "Wektu Eropa sisih Wetan",
+                "standard": "Wektu Standar Eropa sisih Wetan",
+                "daylight": "Wektu Ketigo Eropa sisih Wetan"
+              }
+            },
+            "Europe_Further_Eastern": {
+              "long": {
+                "standard": "Wektu Eropa sisih Wetan seng Luwih Adoh"
+              }
+            },
+            "Europe_Western": {
+              "long": {
+                "generic": "Wektu Eropa sisih Kulon",
+                "standard": "Wektu Standar Eropa sisih Kulon",
+                "daylight": "Wektu Ketigo Eropa sisih Kulon"
+              }
+            },
+            "Falkland": {
+              "long": {
+                "generic": "Wektu Kepuloan Falkland",
+                "standard": "Wektu Standar Kepuloan Falkland",
+                "daylight": "Wektu Ketigo Kepuloan Falkland"
+              }
+            },
+            "Fiji": {
+              "long": {
+                "generic": "Wektu Fiji",
+                "standard": "Wektu Standar Fiji",
+                "daylight": "Wektu Ketigo Fiji"
+              }
+            },
+            "French_Guiana": {
+              "long": {
+                "standard": "Wektu Guiana Prancis"
+              }
+            },
+            "French_Southern": {
+              "long": {
+                "standard": "Wektu Antartika lan Prancis sisih Kidul"
+              }
+            },
+            "Galapagos": {
+              "long": {
+                "standard": "Wektu Galapagos"
+              }
+            },
+            "Gambier": {
+              "long": {
+                "standard": "Wektu Gambier"
+              }
+            },
+            "Georgia": {
+              "long": {
+                "generic": "Wektu Georgia",
+                "standard": "Wektu Standar Georgia",
+                "daylight": "Wektu Ketigo Georgia"
+              }
+            },
+            "Gilbert_Islands": {
+              "long": {
+                "standard": "Wektu Kepuloan Gilbert"
+              }
+            },
+            "GMT": {
+              "long": {
+                "standard": "Wektu Rerata Greenwich"
+              }
+            },
+            "Greenland_Eastern": {
+              "long": {
+                "generic": "Wektu Grinland Wetan",
+                "standard": "Wektu Standar Grinland Wetan",
+                "daylight": "Wektu Ketigo Grinland Wetan"
+              }
+            },
+            "Greenland_Western": {
+              "long": {
+                "generic": "Wektu Grinland Kulon",
+                "standard": "Wektu Standar Grinland Kulon",
+                "daylight": "Wektu Ketigo Grinland Kulon"
+              }
+            },
+            "Gulf": {
+              "long": {
+                "standard": "Wektu Standar Teluk"
+              }
+            },
+            "Guyana": {
+              "long": {
+                "standard": "Wektu Guyana"
+              }
+            },
+            "Hawaii": {
+              "long": {
+                "standard": "Wektu Standar Hawaii-Aleutian"
+              }
+            },
+            "Hawaii_Aleutian": {
+              "long": {
+                "generic": "Wektu Hawaii-Aleutian",
+                "standard": "Wektu Standar Hawaii-Aleutian",
+                "daylight": "Wektu Ketigo Hawaii-Aleutian"
+              }
+            },
+            "Hong_Kong": {
+              "long": {
+                "generic": "Wektu Hong Kong",
+                "standard": "Wektu Standar Hong Kong",
+                "daylight": "Wektu Ketiga Hong Kong"
+              }
+            },
+            "Hovd": {
+              "long": {
+                "generic": "Wektu Hovd",
+                "standard": "Wektu Standar Hovd",
+                "daylight": "Wektu Ketiga Hovd"
+              }
+            },
+            "India": {
+              "long": {
+                "standard": "Wektu Standar India"
+              }
+            },
+            "Indian_Ocean": {
+              "long": {
+                "standard": "Wektu Segoro Hindia"
+              }
+            },
+            "Indochina": {
+              "long": {
+                "standard": "Wektu Indocina"
+              }
+            },
+            "Indonesia_Central": {
+              "long": {
+                "standard": "Wektu Indonesia Tengah"
+              }
+            },
+            "Indonesia_Eastern": {
+              "long": {
+                "standard": "Wektu Indonesia sisih Wetan"
+              }
+            },
+            "Indonesia_Western": {
+              "long": {
+                "standard": "Wektu Indonesia sisih Kulon"
+              }
+            },
+            "Iran": {
+              "long": {
+                "generic": "Wektu Iran",
+                "standard": "Wektu Standar Iran",
+                "daylight": "Wektu Ketigo Iran"
+              }
+            },
+            "Irkutsk": {
+              "long": {
+                "generic": "Wektu Irkutsk",
+                "standard": "Wektu Standar Irkutsk",
+                "daylight": "Wektu Ketigo Irkutsk"
+              }
+            },
+            "Israel": {
+              "long": {
+                "generic": "Wektu Israel",
+                "standard": "Wektu Standar Israel",
+                "daylight": "Wektu Ketigo Israel"
+              }
+            },
+            "Japan": {
+              "long": {
+                "generic": "Wektu Jepang",
+                "standard": "Wektu Standar Jepang",
+                "daylight": "Wektu Ketiga Jepang"
+              }
+            },
+            "Kazakhstan": {
+              "long": {
+                "standard": "Wektu Kazakhstan"
+              }
+            },
+            "Kazakhstan_Eastern": {
+              "long": {
+                "standard": "Wektu Kazakhstan Wetan"
+              }
+            },
+            "Kazakhstan_Western": {
+              "long": {
+                "standard": "Wektu Kazakhstan Kulon"
+              }
+            },
+            "Korea": {
+              "long": {
+                "generic": "Wektu Korea",
+                "standard": "Wektu Standar Korea",
+                "daylight": "Wektu Ketiga Korea"
+              }
+            },
+            "Kosrae": {
+              "long": {
+                "standard": "Wektu Kosrae"
+              }
+            },
+            "Krasnoyarsk": {
+              "long": {
+                "generic": "Wektu Krasnoyarsk",
+                "standard": "Wektu Standar Krasnoyarsk",
+                "daylight": "Wektu Ketigo Krasnoyarsk"
+              }
+            },
+            "Kyrgystan": {
+              "long": {
+                "standard": "Wektu Kirgizstan"
+              }
+            },
+            "Line_Islands": {
+              "long": {
+                "standard": "Wektu Kepuloan Line"
+              }
+            },
+            "Lord_Howe": {
+              "long": {
+                "generic": "Wektu Lord Howe",
+                "standard": "Wektu Standar Lord Howe",
+                "daylight": "Wektu Ketigo Lord Howe"
+              }
+            },
+            "Magadan": {
+              "long": {
+                "generic": "Wektu Magadan",
+                "standard": "Wektu Standar Magadan",
+                "daylight": "Wektu Ketigo Magadan"
+              }
+            },
+            "Malaysia": {
+              "long": {
+                "standard": "Wektu Malaysia"
+              }
+            },
+            "Maldives": {
+              "long": {
+                "standard": "Wektu Maladewa"
+              }
+            },
+            "Marquesas": {
+              "long": {
+                "standard": "Wektu Marquesas"
+              }
+            },
+            "Marshall_Islands": {
+              "long": {
+                "standard": "Wektu Kepuloan Marshall"
+              }
+            },
+            "Mauritius": {
+              "long": {
+                "generic": "Wektu Mauritius",
+                "standard": "Wektu Standar Mauritius",
+                "daylight": "Wektu Ketigo Mauritius"
+              }
+            },
+            "Mawson": {
+              "long": {
+                "standard": "Wektu Mawson"
+              }
+            },
+            "Mexico_Pacific": {
+              "long": {
+                "generic": "Wektu Pasifik Meksiko",
+                "standard": "Wektu Standar Pasifik Meksiko",
+                "daylight": "Wektu Ketigo Pasifik Meksiko"
+              }
+            },
+            "Mongolia": {
+              "long": {
+                "generic": "Wektu Ulaanbaatar",
+                "standard": "Wektu Standar Ulaanbaatar",
+                "daylight": "Wektu Ketiga Ulaanbaatar"
+              }
+            },
+            "Moscow": {
+              "long": {
+                "generic": "Wektu Moscow",
+                "standard": "Wektu Standar Moscow",
+                "daylight": "Wektu Ketigo Moscow"
+              }
+            },
+            "Myanmar": {
+              "long": {
+                "standard": "Wektu Myanmar"
+              }
+            },
+            "Nauru": {
+              "long": {
+                "standard": "Wektu Nauru"
+              }
+            },
+            "Nepal": {
+              "long": {
+                "standard": "Wektu Nepal"
+              }
+            },
+            "New_Caledonia": {
+              "long": {
+                "generic": "Wektu Kaledonia Anyar",
+                "standard": "Wektu Standar Kaledonia Anyar",
+                "daylight": "Wektu Ketigo Kaledonia Anyar"
+              }
+            },
+            "New_Zealand": {
+              "long": {
+                "generic": "Wektu Selandia Anyar",
+                "standard": "Wektu Standar Selandia Anyar",
+                "daylight": "Wektu Ketigo Selandia Anyar"
+              }
+            },
+            "Newfoundland": {
+              "long": {
+                "generic": "Wektu Newfoundland",
+                "standard": "Wektu Standar Newfoundland",
+                "daylight": "Wektu Ketigo Newfoundland"
+              }
+            },
+            "Niue": {
+              "long": {
+                "standard": "Wektu Niue"
+              }
+            },
+            "Norfolk": {
+              "long": {
+                "generic": "Wektu Pulo Norfolk",
+                "standard": "Wektu Standar Pulo Norfolk",
+                "daylight": "Wektu Ketigo Pulo Norfolk"
+              }
+            },
+            "Noronha": {
+              "long": {
+                "generic": "Wektu Fernando de Noronha",
+                "standard": "Wektu Standar Fernando de Noronha",
+                "daylight": "Wektu Ketigo Fernando de Noronha"
+              }
+            },
+            "Novosibirsk": {
+              "long": {
+                "generic": "Wektu Novosibirsk",
+                "standard": "Wektu Standar Novosibirsk",
+                "daylight": "Wektu Ketigo Novosibirsk"
+              }
+            },
+            "Omsk": {
+              "long": {
+                "generic": "Wektu Omsk",
+                "standard": "Wektu Standar Omsk",
+                "daylight": "Wektu Ketigo Omsk"
+              }
+            },
+            "Pakistan": {
+              "long": {
+                "generic": "Wektu Pakistan",
+                "standard": "Wektu Standar Pakistan",
+                "daylight": "Wektu Ketigo Pakistan"
+              }
+            },
+            "Palau": {
+              "long": {
+                "standard": "Wektu Palau"
+              }
+            },
+            "Papua_New_Guinea": {
+              "long": {
+                "standard": "Wektu Papua Nugini"
+              }
+            },
+            "Paraguay": {
+              "long": {
+                "generic": "Wektu Paraguay",
+                "standard": "Wektu Standar Paraguay",
+                "daylight": "Wektu Ketigo Paraguay"
+              }
+            },
+            "Peru": {
+              "long": {
+                "generic": "Wektu Peru",
+                "standard": "Wektu Standar Peru",
+                "daylight": "Wektu Ketigo Peru"
+              }
+            },
+            "Philippines": {
+              "long": {
+                "generic": "Wektu Filipina",
+                "standard": "Wektu Standar Filipina",
+                "daylight": "Wektu Ketigo Filipina"
+              }
+            },
+            "Phoenix_Islands": {
+              "long": {
+                "standard": "Wektu Kepuloan Phoenix"
+              }
+            },
+            "Pierre_Miquelon": {
+              "long": {
+                "generic": "Wektu Santa Pierre lan Miquelon",
+                "standard": "Wektu Standar Santa Pierre lan Miquelon",
+                "daylight": "Wektu Ketigo Santa Pierre lan Miquelon"
+              }
+            },
+            "Pitcairn": {
+              "long": {
+                "standard": "Wektu Pitcairn"
+              }
+            },
+            "Ponape": {
+              "long": {
+                "standard": "Wektu Pohnpei"
+              }
+            },
+            "Pyongyang": {
+              "long": {
+                "standard": "Wektu Korea Lor"
+              }
+            },
+            "Reunion": {
+              "long": {
+                "standard": "Wektu Reunion"
+              }
+            },
+            "Rothera": {
+              "long": {
+                "standard": "Wektu Rothera"
+              }
+            },
+            "Sakhalin": {
+              "long": {
+                "generic": "Wektu Sakhalin",
+                "standard": "Wektu Standar Sakhalin",
+                "daylight": "Wektu Ketigo Sakhalin"
+              }
+            },
+            "Samoa": {
+              "long": {
+                "generic": "Wektu Samoa Amerika",
+                "standard": "Wektu Standar Samoa Amerika",
+                "daylight": "Wektu Ketiga Samoa Amerika"
+              }
+            },
+            "Seychelles": {
+              "long": {
+                "standard": "Wektu Seichelles"
+              }
+            },
+            "Singapore": {
+              "long": {
+                "standard": "Wektu Singapura"
+              }
+            },
+            "Solomon": {
+              "long": {
+                "standard": "Wektu Kepuloan Solomon"
+              }
+            },
+            "South_Georgia": {
+              "long": {
+                "standard": "Wektu Georgia Kidul"
+              }
+            },
+            "Suriname": {
+              "long": {
+                "standard": "Wektu Suriname"
+              }
+            },
+            "Syowa": {
+              "long": {
+                "standard": "Wektu Syowa"
+              }
+            },
+            "Tahiti": {
+              "long": {
+                "standard": "Wektu Tahiti"
+              }
+            },
+            "Taipei": {
+              "long": {
+                "generic": "Wektu Taiwan",
+                "standard": "Wektu Standar Taiwan",
+                "daylight": "Wektu Awan Taiwan"
+              }
+            },
+            "Tajikistan": {
+              "long": {
+                "standard": "Wektu Tajikistan"
+              }
+            },
+            "Tokelau": {
+              "long": {
+                "standard": "Wektu Tokelau"
+              }
+            },
+            "Tonga": {
+              "long": {
+                "generic": "Wektu Tonga",
+                "standard": "Wektu Standar Tonga",
+                "daylight": "Wektu Ketigo Tonga"
+              }
+            },
+            "Truk": {
+              "long": {
+                "standard": "Wektu Chuuk"
+              }
+            },
+            "Turkmenistan": {
+              "long": {
+                "generic": "Wektu Turkmenistan",
+                "standard": "Wektu Standar Turkmenistan",
+                "daylight": "Wektu Ketigo Turkmenistan"
+              }
+            },
+            "Tuvalu": {
+              "long": {
+                "standard": "Wektu Tuvalu"
+              }
+            },
+            "Uruguay": {
+              "long": {
+                "generic": "Wektu Uruguay",
+                "standard": "Wektu Standar Uruguay",
+                "daylight": "Wektu Ketigo Uruguay"
+              }
+            },
+            "Uzbekistan": {
+              "long": {
+                "generic": "Wektu Usbekistan",
+                "standard": "Wektu Standar Usbekistan",
+                "daylight": "Wektu Ketigo Usbekistan"
+              }
+            },
+            "Vanuatu": {
+              "long": {
+                "generic": "Wektu Vanuatu",
+                "standard": "Wektu Standar Vanuatu",
+                "daylight": "Wektu Ketigo Vanuatu"
+              }
+            },
+            "Venezuela": {
+              "long": {
+                "standard": "Wektu Venezuela"
+              }
+            },
+            "Vladivostok": {
+              "long": {
+                "generic": "Wektu Vladivostok",
+                "standard": "Wektu Standar Vladivostok",
+                "daylight": "Wektu Ketigo Vladivostok"
+              }
+            },
+            "Volgograd": {
+              "long": {
+                "generic": "Wektu Volgograd",
+                "standard": "Wektu Standar Volgograd",
+                "daylight": "Wektu Ketigo Volgograd"
+              }
+            },
+            "Vostok": {
+              "long": {
+                "standard": "Wektu Vostok"
+              }
+            },
+            "Wake": {
+              "long": {
+                "standard": "Wektu Pulo Wake"
+              }
+            },
+            "Wallis": {
+              "long": {
+                "standard": "Wektu Wallis lan Futuna"
+              }
+            },
+            "Yakutsk": {
+              "long": {
+                "generic": "Wektu Yakutsk",
+                "standard": "Wektu Standar Yakutsk",
+                "daylight": "Wektu Ketigo Yakutsk"
+              }
+            },
+            "Yekaterinburg": {
+              "long": {
+                "generic": "Wektu Yekaterinburg",
+                "standard": "Wektu Standar Yekaterinburg",
+                "daylight": "Wektu Ketigo Yekaterinburg"
+              }
+            },
+            "Yukon": {
+              "long": {
+                "standard": "Wektu Yukon"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

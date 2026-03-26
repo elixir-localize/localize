@@ -1,0 +1,15 @@
+{
+  "main": {
+    "pap": {
+      "identity": {
+        "language": "pap"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "si",
+          "nostr": "no"
+        }
+      }
+    }
+  }
+}

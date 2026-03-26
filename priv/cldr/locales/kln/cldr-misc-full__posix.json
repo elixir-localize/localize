@@ -1,0 +1,15 @@
+{
+  "main": {
+    "kln": {
+      "identity": {
+        "language": "kln"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Wei:W",
+          "nostr": "Achicha:A"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "prg": {
+      "identity": {
+        "language": "prg"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "jā:j",
+          "nostr": "ni:n"
+        }
+      }
+    }
+  }
+}

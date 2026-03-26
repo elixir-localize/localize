@@ -1,0 +1,17 @@
+{
+  "main": {
+    "es-GT": {
+      "identity": {
+        "language": "es",
+        "territory": "GT"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "métrico",
+          "UK": "anglosajón",
+          "US": "estadounidense"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "main": {
+    "hy": {
+      "identity": {
+        "language": "hy"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "այո:ա",
+          "nostr": "ոչ:ո"
+        }
+      }
+    }
+  }
+}

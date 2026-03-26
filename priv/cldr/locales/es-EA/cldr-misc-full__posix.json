@@ -1,0 +1,16 @@
+{
+  "main": {
+    "es-EA": {
+      "identity": {
+        "language": "es",
+        "territory": "EA"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "sí:s",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

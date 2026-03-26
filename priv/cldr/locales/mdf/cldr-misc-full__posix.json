@@ -1,0 +1,15 @@
+{
+  "main": {
+    "mdf": {
+      "identity": {
+        "language": "mdf"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

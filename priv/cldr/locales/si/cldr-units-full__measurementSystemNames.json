@@ -1,0 +1,16 @@
+{
+  "main": {
+    "si": {
+      "identity": {
+        "language": "si"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "මෙට්රික්",
+          "UK": "එංගලන්ත",
+          "US": "ඇමරිකානු"
+        }
+      }
+    }
+  }
+}

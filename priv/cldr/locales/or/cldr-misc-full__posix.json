@@ -1,0 +1,15 @@
+{
+  "main": {
+    "or": {
+      "identity": {
+        "language": "or"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "ହଁ",
+          "nostr": "ନା"
+        }
+      }
+    }
+  }
+}

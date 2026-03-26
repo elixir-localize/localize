@@ -1,0 +1,17 @@
+{
+  "main": {
+    "sr-Latn-BA": {
+      "identity": {
+        "language": "sr",
+        "script": "Latn",
+        "territory": "BA"
+      },
+      "layout": {
+        "orientation": {
+          "characterOrder": "left-to-right",
+          "lineOrder": "top-to-bottom"
+        }
+      }
+    }
+  }
+}

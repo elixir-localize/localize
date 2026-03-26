@@ -1,0 +1,16 @@
+{
+  "main": {
+    "en-NZ": {
+      "identity": {
+        "language": "en",
+        "territory": "NZ"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "yes:y",
+          "nostr": "no:n"
+        }
+      }
+    }
+  }
+}

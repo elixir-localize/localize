@@ -1,0 +1,15 @@
+{
+  "main": {
+    "lg": {
+      "identity": {
+        "language": "lg"
+      },
+      "posix": {
+        "messages": {
+          "yesstr": "Ye:Y",
+          "nostr": "Nedda:N"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "main": {
+    "oc-ES": {
+      "identity": {
+        "language": "oc",
+        "territory": "ES"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}, {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "keys": {
+          "calendar": "calendier",
+          "collation": "òrde alfabetic",
+          "currency": "moneda"
+        },
+        "types": {
+          "calendar": {
+            "gregorian": "calendari gregorian",
+            "iso8601": "calendari ISO-8601"
+          },
+          "collation": {
+            "standard": "ordre estandard"
+          },
+          "numbers": {
+            "latn": "digits occidentaus"
+          }
+        },
+        "codePatterns": {
+          "language": "Lengua: {0}",
+          "script": "Escritura: {0}",
+          "territory": "Region: {0}"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "main": {
+    "el-polyton": {
+      "identity": {
+        "language": "el",
+        "variant": "POLYTON"
+      },
+      "contextTransforms": {
+        "relative": {
+          "stand-alone": "titlecase-firstword",
+          "uiListOrMenu": "titlecase-firstword"
+        }
+      }
+    }
+  }
+}

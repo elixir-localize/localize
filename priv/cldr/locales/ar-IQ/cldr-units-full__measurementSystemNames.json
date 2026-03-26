@@ -1,0 +1,17 @@
+{
+  "main": {
+    "ar-IQ": {
+      "identity": {
+        "language": "ar",
+        "territory": "IQ"
+      },
+      "localeDisplayNames": {
+        "measurementSystemNames": {
+          "metric": "النظام المتري",
+          "UK": "النظام البريطاني",
+          "US": "النظام الأمريكي"
+        }
+      }
+    }
+  }
+}

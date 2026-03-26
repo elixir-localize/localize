@@ -1,0 +1,15 @@
+{
+  "main": {
+    "iu": {
+      "identity": {
+        "language": "iu"
+      },
+      "localeDisplayNames": {
+        "languages": {
+          "fr": "ᐅᐃᒍᐃᕐᒥᐅᖅ",
+          "iu": "ᐃᓄᒃᑎᑐᑦ"
+        }
+      }
+    }
+  }
+}

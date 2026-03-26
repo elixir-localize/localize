@@ -1,0 +1,581 @@
+{
+  "main": {
+    "qu-EC": {
+      "identity": {
+        "language": "qu",
+        "territory": "EC"
+      },
+      "dates": {
+        "fields": {
+          "era": {
+            "displayName": "Era"
+          },
+          "era-short": {
+            "displayName": "Era"
+          },
+          "era-narrow": {
+            "displayName": "Era"
+          },
+          "year": {
+            "displayName": "wata",
+            "relative-type--1": "qayna wata",
+            "relative-type-0": "kunan wata",
+            "relative-type-1": "hamuq wata",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} y"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} y"
+            }
+          },
+          "year-short": {
+            "displayName": "wata",
+            "relative-type--1": "qayna wata",
+            "relative-type-0": "kunan wata",
+            "relative-type-1": "hamuq wata",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} watapi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa watapi"
+            }
+          },
+          "year-narrow": {
+            "displayName": "wata",
+            "relative-type--1": "qayna wata",
+            "relative-type-0": "kunan wata",
+            "relative-type-1": "hamuq wata",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} hamuq watapi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} ñawpaq watapi"
+            }
+          },
+          "quarter": {
+            "displayName": "trimestral nisqa",
+            "relative-type--1": "qayna kimsa killa",
+            "relative-type-0": "kunan kimsa killa",
+            "relative-type-1": "hamuq kimsa killa",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} kimsa killapi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa kimsa killa"
+            }
+          },
+          "quarter-short": {
+            "displayName": "trimestral nisqa",
+            "relative-type--1": "qayna kimsa killa",
+            "relative-type-0": "kunan kimsa killa",
+            "relative-type-1": "hamuq kimsa killa",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} kimsa killapi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa kimsa killa"
+            }
+          },
+          "quarter-narrow": {
+            "displayName": "trimestral nisqa",
+            "relative-type--1": "qayna kimsa killa",
+            "relative-type-0": "kunan kimsa killa",
+            "relative-type-1": "hamuq kimsa killa",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} kimsa killapi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa kimsa killa"
+            }
+          },
+          "month": {
+            "displayName": "killa",
+            "relative-type--1": "qayna killa",
+            "relative-type-0": "kunan killa",
+            "relative-type-1": "hamuq killa",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} killapi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa killa"
+            }
+          },
+          "month-short": {
+            "displayName": "killa",
+            "relative-type--1": "qayna killa",
+            "relative-type-0": "kunan killa",
+            "relative-type-1": "hamuq killa",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} killapi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa killa"
+            }
+          },
+          "month-narrow": {
+            "displayName": "killa",
+            "relative-type--1": "qayna killa",
+            "relative-type-0": "kunan killa",
+            "relative-type-1": "hamuq killa",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} killapi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa killa"
+            }
+          },
+          "week": {
+            "displayName": "simana",
+            "relative-type--1": "qayna semana",
+            "relative-type-0": "kunan semana",
+            "relative-type-1": "hamuq semana",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} semanapi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa semana"
+            },
+            "relativePeriod": "{0} semanapi"
+          },
+          "week-short": {
+            "displayName": "simana",
+            "relative-type--1": "qayna semana",
+            "relative-type-0": "kunan semana",
+            "relative-type-1": "hamuq semana",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} semanapi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa semana"
+            },
+            "relativePeriod": "{0} semanapi"
+          },
+          "week-narrow": {
+            "displayName": "simana",
+            "relative-type--1": "qayna semana",
+            "relative-type-0": "kunan semana",
+            "relative-type-1": "hamuq semana",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} semanapi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa semana"
+            },
+            "relativePeriod": "{0} semanapi"
+          },
+          "weekOfMonth": {
+            "displayName": "killamanta simana"
+          },
+          "weekOfMonth-short": {
+            "displayName": "killamanta simana"
+          },
+          "weekOfMonth-narrow": {
+            "displayName": "killamanta simana"
+          },
+          "day": {
+            "displayName": "punchaw",
+            "relative-type--1": "qayna punchaw",
+            "relative-type-0": "kunan punchaw",
+            "relative-type-1": "paqarin",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} punchawpi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa punchaw"
+            }
+          },
+          "day-short": {
+            "displayName": "punchaw",
+            "relative-type--1": "qayna punchaw",
+            "relative-type-0": "kunan punchaw",
+            "relative-type-1": "paqarin",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} punchawpi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa punchaw"
+            }
+          },
+          "day-narrow": {
+            "displayName": "punchaw",
+            "relative-type--1": "qayna punchaw",
+            "relative-type-0": "kunan punchaw",
+            "relative-type-1": "paqarin",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} punchawpi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa punchaw"
+            }
+          },
+          "dayOfYear": {
+            "displayName": "watamanta punchaw"
+          },
+          "dayOfYear-short": {
+            "displayName": "watamanta punchaw"
+          },
+          "dayOfYear-narrow": {
+            "displayName": "watamanta punchaw"
+          },
+          "weekday": {
+            "displayName": "simanamanta punchaw"
+          },
+          "weekday-short": {
+            "displayName": "simanamanta punchaw"
+          },
+          "weekday-narrow": {
+            "displayName": "simanamanta punchaw"
+          },
+          "weekdayOfMonth": {
+            "displayName": "killamanta llamkaypa punchawnin"
+          },
+          "weekdayOfMonth-short": {
+            "displayName": "killamanta llamkaypa punchawnin"
+          },
+          "weekdayOfMonth-narrow": {
+            "displayName": "killamanta llamkaypa punchawnin"
+          },
+          "sun": {
+            "relative-type--1": "qayna domingo",
+            "relative-type-0": "kunan domingo",
+            "relative-type-1": "hamuq domingo",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Domingopi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa domingo"
+            }
+          },
+          "sun-short": {
+            "relative-type--1": "qayna domingo",
+            "relative-type-0": "kunan domingo",
+            "relative-type-1": "hamuq domingo",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Domingopi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa domingo"
+            }
+          },
+          "sun-narrow": {
+            "relative-type--1": "qayna domingo",
+            "relative-type-0": "kunan domingo",
+            "relative-type-1": "hamuq domingo",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Domingopi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa domingo"
+            }
+          },
+          "mon": {
+            "relative-type--1": "qayna Lunes",
+            "relative-type-0": "kunan Lunes",
+            "relative-type-1": "hamuq Lunes",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Lunespi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa lunes"
+            }
+          },
+          "mon-short": {
+            "relative-type--1": "qayna Lunes",
+            "relative-type-0": "kunan Lunes",
+            "relative-type-1": "hamuq Lunes",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Lunespi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa lunes"
+            }
+          },
+          "mon-narrow": {
+            "relative-type--1": "qayna Lunes",
+            "relative-type-0": "kunan Lunes",
+            "relative-type-1": "hamuq Lunes",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Lunespi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa lunes"
+            }
+          },
+          "tue": {
+            "relative-type--1": "qayna Martes",
+            "relative-type-0": "kunan Martes",
+            "relative-type-1": "hamuq Martes",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Martespi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa martes"
+            }
+          },
+          "tue-short": {
+            "relative-type--1": "qayna Martes",
+            "relative-type-0": "kunan Martes",
+            "relative-type-1": "hamuq Martes",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Martespi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa martes"
+            }
+          },
+          "tue-narrow": {
+            "relative-type--1": "qayna Martes",
+            "relative-type-0": "kunan Martes",
+            "relative-type-1": "hamuq Martes",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Martespi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa martes"
+            }
+          },
+          "wed": {
+            "relative-type--1": "Qayna Miércoles",
+            "relative-type-0": "kunan Miércoles",
+            "relative-type-1": "hamuq Miércoles",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Miércolespi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa miércoles"
+            }
+          },
+          "wed-short": {
+            "relative-type--1": "Qayna Miércoles",
+            "relative-type-0": "kunan Miércoles",
+            "relative-type-1": "hamuq Miércoles",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Miércolespi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa miércoles"
+            }
+          },
+          "wed-narrow": {
+            "relative-type--1": "Qayna Miércoles",
+            "relative-type-0": "kunan Miércoles",
+            "relative-type-1": "hamuq Miércoles",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Miércolespi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa miércoles"
+            }
+          },
+          "thu": {
+            "relative-type--1": "qayna Jueves",
+            "relative-type-0": "kunan Jueves",
+            "relative-type-1": "hamuq Jueves",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "+{0} Jueves"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "-{0} Jueves"
+            }
+          },
+          "thu-short": {
+            "relative-type--1": "qayna Jueves",
+            "relative-type-0": "kunan Jueves",
+            "relative-type-1": "hamuq Jueves",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Juevespi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa jueves"
+            }
+          },
+          "thu-narrow": {
+            "relative-type--1": "qayna Jueves",
+            "relative-type-0": "kunan Jueves",
+            "relative-type-1": "hamuq Jueves",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Juevespi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa jueves"
+            }
+          },
+          "fri": {
+            "relative-type--1": "Qayna Viernes",
+            "relative-type-0": "kunan Viernes",
+            "relative-type-1": "hamuq Viernes",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Viernespi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa viernes"
+            }
+          },
+          "fri-short": {
+            "relative-type--1": "Qayna Viernes",
+            "relative-type-0": "kunan Viernes",
+            "relative-type-1": "hamuq Viernes",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Viernespi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa viernes"
+            }
+          },
+          "fri-narrow": {
+            "relative-type--1": "Qayna Viernes",
+            "relative-type-0": "kunan Viernes",
+            "relative-type-1": "hamuq Viernes",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Viernespi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa viernes"
+            }
+          },
+          "sat": {
+            "relative-type--1": "qayna Sábado",
+            "relative-type-0": "kunan Sábado",
+            "relative-type-1": "hamuq Sábado",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Sábadopi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa sábado"
+            }
+          },
+          "sat-short": {
+            "relative-type--1": "qayna Sábado",
+            "relative-type-0": "kunan Sábado",
+            "relative-type-1": "hamuq Sábado",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Sábadopi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa sábado"
+            }
+          },
+          "sat-narrow": {
+            "relative-type--1": "qayna Sábado",
+            "relative-type-0": "kunan Sábado",
+            "relative-type-1": "hamuq Sábado",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} Sábadopi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} Qipa sábado"
+            }
+          },
+          "dayperiod-short": {
+            "displayName": "a. m. / p. m."
+          },
+          "dayperiod": {
+            "displayName": "a. m. / p. m."
+          },
+          "dayperiod-narrow": {
+            "displayName": "a. m. / p. m."
+          },
+          "hour": {
+            "displayName": "ura",
+            "relative-type-0": "kay hora",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} urapi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa ura"
+            }
+          },
+          "hour-short": {
+            "displayName": "ura",
+            "relative-type-0": "kay hora",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} urapi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa ura"
+            }
+          },
+          "hour-narrow": {
+            "displayName": "ura",
+            "relative-type-0": "kay hora",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} urapi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa ura"
+            }
+          },
+          "minute": {
+            "displayName": "minutu",
+            "relative-type-0": "kay minuto",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} minutupi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa minutu"
+            }
+          },
+          "minute-short": {
+            "displayName": "minutu",
+            "relative-type-0": "kay minuto",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} minutupi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa minutu"
+            }
+          },
+          "minute-narrow": {
+            "displayName": "minutu",
+            "relative-type-0": "kay minuto",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} minutupi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa minutu"
+            }
+          },
+          "second": {
+            "displayName": "segundu",
+            "relative-type-0": "now",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} segundupi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa segundu"
+            }
+          },
+          "second-short": {
+            "displayName": "segundu",
+            "relative-type-0": "now",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} segundupi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa segundu"
+            }
+          },
+          "second-narrow": {
+            "displayName": "segundu",
+            "relative-type-0": "now",
+            "relativeTime-type-future": {
+              "relativeTimePattern-count-other": "{0} segundupi"
+            },
+            "relativeTime-type-past": {
+              "relativeTimePattern-count-other": "{0} qipa segundu"
+            }
+          },
+          "zone": {
+            "displayName": "ura pachapi"
+          },
+          "zone-short": {
+            "displayName": "ura pachapi"
+          },
+          "zone-narrow": {
+            "displayName": "ura pachapi"
+          }
+        }
+      }
+    }
+  }
+}
