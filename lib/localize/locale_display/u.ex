@@ -182,12 +182,14 @@ defmodule Localize.LocaleDisplay.U do
   # Special handling for certain fields
 
   # These match on the struct field name (BCP47 key atom), not display key name
-  defp get_special(:rg, _key_name, value, _locale_ext, _locale_id, display_names) do
-    get_territory(value, display_names)
+  defp get_special(:rg, _key_name, value, _locale_ext, locale_id, display_names) do
+    get_subdivision(value, locale_id, display_names) ||
+      get_territory(value, display_names)
   end
 
   defp get_special(:sd, _key_name, value, _locale_ext, locale_id, display_names) do
-    get_subdivision(value, locale_id, display_names)
+    get_subdivision(value, locale_id, display_names) ||
+      get_territory(value, display_names)
   end
 
   defp get_special(:dx, _key_name, value, _locale_ext, _locale_id, display_names) do
@@ -198,8 +200,18 @@ defmodule Localize.LocaleDisplay.U do
     end
   end
 
+  defp get_special(:tz, _key_name, value, _locale_ext, locale_id, _display_names)
+       when is_binary(value) do
+    get_timezone_display_name(value, locale_id)
+  end
+
   defp get_special(:cu, _key_name, value, _locale_ext, locale_id, _display_names) do
     get_currency(value, locale_id)
+  end
+
+  defp get_special(:kr, key_name, values, locale_ext, locale_id, display_names)
+       when is_list(values) do
+    get_special(:col_reorder, key_name, values, locale_ext, locale_id, display_names)
   end
 
   defp get_special(:col_reorder, _key_name, values, _locale_ext, _locale_id, display_names)
@@ -248,15 +260,27 @@ defmodule Localize.LocaleDisplay.U do
   end
 
   defp get_script(script, display_names) do
-    get_in(display_names, [:script, script])
+    case get_in(display_names, [:script, script]) do
+      %{standard: name} -> name
+      name when is_binary(name) -> name
+      _ -> nil
+    end
   end
 
-  defp get_subdivision(subdivision, locale_id, _display_names) do
-    with {:ok, subdivisions} <-
-           Localize.Locale.get(locale_id, [:locale_display_names, :subdivisions]) do
-      Map.get(subdivisions, subdivision)
-    else
-      _ -> nil
+  defp get_subdivision(subdivision, _locale_id, display_names) do
+    sub_atom =
+      if is_binary(subdivision) do
+        try do
+          String.to_existing_atom(subdivision)
+        rescue
+          ArgumentError -> nil
+        end
+      else
+        subdivision
+      end
+
+    if sub_atom do
+      get_in(display_names, [:subdivisions, sub_atom])
     end
   end
 
@@ -293,6 +317,88 @@ defmodule Localize.LocaleDisplay.U do
         {:ok, currency_struct} -> currency_struct.symbol
         _other -> nil
       end
+    end
+  end
+
+  # Timezone display names.
+  #
+  # Implements the CLDR non-location format algorithm:
+  # 1. Find the territory for the IANA timezone ID.
+  # 2. If the territory has only one timezone, use the territory
+  #    (country) display name as the location (e.g., "United Kingdom").
+  # 3. Otherwise, use the exemplar city name (e.g., "Los Angeles").
+  # 4. Format using the locale's regionFormat pattern
+  #    (e.g., "{0} Time").
+  defp get_timezone_display_name(iana_id, locale_id) when is_binary(iana_id) do
+    alias Localize.DateTime.Timezone
+
+    with {:ok, tz_data} <- Localize.Locale.get(locale_id, [:dates, :time_zone_names]) do
+      region_format = get_in(tz_data, [:region_format, :generic])
+      territory = Map.get(Timezone.territories_by_timezone(), iana_id)
+
+      location =
+        cond do
+          # If the territory has a single timezone, use the country name
+          territory && Timezone.timezone_count_for_territory(territory) == 1 ->
+            get_territory_name(territory, locale_id)
+
+          # Otherwise use the exemplar city
+          true ->
+            find_exemplar_city(iana_id, tz_data) || derive_city_from_id(iana_id)
+        end
+
+      if location && region_format do
+        Localize.Substitution.substitute(location, region_format)
+        |> :erlang.iolist_to_binary()
+      else
+        nil
+      end
+    else
+      _ -> nil
+    end
+  end
+
+  defp get_timezone_display_name(_value, _locale_id), do: nil
+
+  # Look up the display name for a territory.
+  defp get_territory_name(territory, locale_id) do
+    case Localize.Territory.display_name(territory, locale: locale_id) do
+      {:ok, name} -> name
+      _ -> Atom.to_string(territory)
+    end
+  end
+
+  # Look up an explicit exemplar city in the zone data.
+  # The zone data is structured as %{"america" => %{"los_angeles" => %{city: "Los Angeles"}, ...}}
+  defp find_exemplar_city(iana_id, tz_data) do
+    zone = Map.get(tz_data, :zone, %{})
+
+    case String.split(iana_id, "/", parts: 2) do
+      [region, city] ->
+        region_key = String.downcase(region)
+        city_key = city |> String.downcase() |> String.replace(" ", "_")
+
+        case get_in(zone, [region_key, city_key]) do
+          %{city: city_name} -> city_name
+          _ -> nil
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  # Derive city display name from IANA timezone ID.
+  # "America/Los_Angeles" → "Los Angeles"
+  # "Europe/London" → "London"
+  # "America/Argentina/Buenos_Aires" → "Buenos Aires"
+  defp derive_city_from_id(iana_id) do
+    case String.split(iana_id, "/") do
+      [_] -> nil
+      parts ->
+        parts
+        |> List.last()
+        |> String.replace("_", " ")
     end
   end
 end

@@ -67,8 +67,9 @@ defmodule Localize.LocaleDisplay do
 
   def display_name(language_tag, options)
       when is_binary(language_tag) or is_atom(language_tag) do
-    with {:ok, parsed} <- Localize.LanguageTag.parse(to_string(language_tag)) do
-      display_name(parsed, options)
+    with {:ok, parsed} <- Localize.LanguageTag.parse(to_string(language_tag)),
+         {:ok, canonical} <- Localize.LanguageTag.canonicalize(parsed) do
+      display_name(canonical, options)
     end
   end
 

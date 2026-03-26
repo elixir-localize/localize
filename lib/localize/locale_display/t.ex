@@ -24,12 +24,13 @@ defmodule Localize.LocaleDisplay.T do
   #
   def display_name(transform, locale_id, display_names, options) do
     prefer = Keyword.get(options, :prefer, :standard)
+    language_display = Keyword.get(options, :language_display, :standard)
 
     # Get T extension fields, excluding h0 (handled specially)
     fields = get_fields(transform)
 
     for {_key, field} <- fields, !is_nil(value = get_field(transform, field)) do
-      format_key_value(field, value, transform, locale_id, display_names, prefer)
+      format_key_value(field, value, transform, locale_id, display_names, prefer, language_display)
     end
     |> join_field_values(display_names)
   end
@@ -55,7 +56,7 @@ defmodule Localize.LocaleDisplay.T do
     Map.get(map, key) || Map.get(map, to_string(field))
   end
 
-  def format_key_value(field, value, transform, locale_id, display_names, prefer) do
+  def format_key_value(field, value, transform, locale_id, display_names, prefer, language_display \\ :standard) do
     canonical_value = canonicalize_value(field, value)
 
     if value_name = get_type(field, canonical_value, display_names) do
@@ -63,7 +64,7 @@ defmodule Localize.LocaleDisplay.T do
     else
       # CLDR 48.2: fall back to key identifier when translation is missing
       key_name = get_in(display_names, [:keys, field]) || bcp47_key_for(field)
-      display_value(field, key_name, canonical_value, transform, locale_id, display_names, prefer)
+      display_value(field, key_name, canonical_value, transform, locale_id, display_names, prefer, language_display)
     end
   end
 
@@ -92,7 +93,7 @@ defmodule Localize.LocaleDisplay.T do
     ArgumentError -> string
   end
 
-  defp display_value(:language, _key_name, value, transform, locale_id, display_names, prefer) do
+  defp display_value(:language, _key_name, value, transform, locale_id, display_names, prefer, language_display) do
     h0 = get_field(transform, :h0) || Map.get(transform, "h0")
 
     key_name =
@@ -108,7 +109,7 @@ defmodule Localize.LocaleDisplay.T do
     # CLDR 48.2: Flatten the T language — do not use localePattern.
     # Instead, get the language name and append subtag display names
     # directly as a flat list.
-    value_parts = flatten_t_language(value, locale_id, display_names, prefer)
+    value_parts = flatten_t_language(value, locale_id, display_names, prefer, language_display)
 
     if key_name do
       value_name =
@@ -130,28 +131,33 @@ defmodule Localize.LocaleDisplay.T do
   # Flatten a T language tag into a list of display name parts:
   # [language_name, script_name, region_name, variant1, variant2, ...]
   # CLDR 48.2: Do not use localePattern; append subtag display names directly.
-  # Try longest locale name match first (e.g., "fr-CA" → "Canadian French").
-  defp flatten_t_language(%Localize.LanguageTag{} = tag, _locale_id, display_names, prefer) do
-    # Scripts are title case atoms (:Latn), territories are uppercase (:JP)
+  # Use longest locale name match (e.g., "fr-CA" → "Canadian French"),
+  # then only include subtags NOT consumed by the match.
+  defp flatten_t_language(%Localize.LanguageTag{} = tag, _locale_id, display_names, prefer, language_display) do
+    # CLDR 48.2: Flatten the T language — do not use localePattern.
+    # In dialect mode: use longest language match (e.g., "fr-CA" → "Canadian French"),
+    # then only show unconsumed subtags.
+    # In standard mode: use language-only match, show all subtags separately.
+    {language_name, consumed} =
+      if language_display == :dialect do
+        find_longest_language_match(tag, display_names, prefer)
+      else
+        lang_key = to_string(tag.language)
+        name = get_display_preference(get_in(display_names, [:language, lang_key]), prefer) || lang_key
+        {name, []}
+      end
+
     script = if tag.script, do: tag.script |> to_string() |> capitalize_script() |> to_atom_safe()
     territory = if tag.territory, do: normalize_territory(tag.territory)
 
-    # CLDR 48.2: T language always uses standard mode — base language
-    # name with subtags listed separately (never dialect form).
-    lang_key = to_string(tag.language)
-
-    language_name =
-      get_display_preference(get_in(display_names, [:language, lang_key]), prefer) ||
-        lang_key
-
     subtags =
       [
-        if(script,
+        if(script && :script not in consumed,
           do:
             get_display_preference(get_in(display_names, [:script, script]), prefer) ||
               to_string(tag.script)
         ),
-        if(territory,
+        if(territory && :territory not in consumed,
           do:
             get_display_preference(get_in(display_names, [:territory, territory]), prefer) ||
               to_string(tag.territory)
@@ -203,7 +209,7 @@ defmodule Localize.LocaleDisplay.T do
 
   defp normalize_territory_string(t), do: t |> to_string() |> String.upcase()
 
-  defp flatten_t_language(value, _locale_id, display_names, prefer) when is_atom(value) do
+  defp flatten_t_language(value, _locale_id, display_names, prefer, _language_display) when is_atom(value) do
     language_name =
       get_display_preference(get_in(display_names, [:language, value]), prefer) ||
         to_string(value)
@@ -215,17 +221,17 @@ defmodule Localize.LocaleDisplay.T do
     [to_string(value)]
   end
 
-  defp display_value(_key, nil, value, _transform, _locale_id, _display_names, _prefer)
+  defp display_value(_key, nil, value, _transform, _locale_id, _display_names, _prefer, _language_display)
        when is_binary(value) do
     replace_parens_with_brackets(value)
   end
 
-  defp display_value(_key, nil, value, _transform, _locale_id, _display_names, _prefer)
+  defp display_value(_key, nil, value, _transform, _locale_id, _display_names, _prefer, _language_display)
        when is_atom(value) do
     value |> to_string() |> replace_parens_with_brackets()
   end
 
-  defp display_value(key, key_name, value, transform, locale_id, display_names, prefer) do
+  defp display_value(key, key_name, value, transform, locale_id, display_names, prefer, _language_display) do
     value_name =
       key
       |> get_special(key_name, value, transform, locale_id, display_names)
