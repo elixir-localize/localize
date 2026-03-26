@@ -56,7 +56,7 @@ defmodule Localize.DateTime.Timezone do
       true
 
   """
-  @spec timezones_by_territory() :: %{atom() => [map()]}
+  @spec timezones_by_territory() :: %{required(atom()) => [%{short_zone: String.t(), territory: atom(), aliases: [term(), ...], preferred: nil | String.t()}, ...]}
   def timezones_by_territory, do: @timezones_by_territory
 
   @doc """

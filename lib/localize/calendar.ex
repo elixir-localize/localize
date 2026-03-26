@@ -55,7 +55,7 @@ defmodule Localize.Calendar do
       true
 
   """
-  @spec known_calendars() :: [atom()]
+  @spec known_calendars() :: [atom(), ...]
   def known_calendars do
     @acceptable_calendars
   end
@@ -227,7 +227,7 @@ defmodule Localize.Calendar do
   * A list of atoms.
 
   """
-  @spec acceptable_calendars() :: [atom()]
+  @spec acceptable_calendars() :: [atom(), ...]
   def acceptable_calendars, do: @acceptable_calendars
 
   # ── Localize date parts ─────────────────────────────────────────
@@ -565,7 +565,7 @@ defmodule Localize.Calendar do
       [1, 2, 3, 4, 5]
 
   """
-  @spec weekdays(atom()) :: [integer()]
+  @spec weekdays(atom()) :: [1..7, ...]
   def weekdays(territory) when is_atom(territory) do
     @days -- weekend(territory)
   end

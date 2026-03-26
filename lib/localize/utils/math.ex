@@ -27,7 +27,7 @@ defmodule Localize.Utils.Math do
           | :half_down
           | :up
 
-  @type number_or_decimal :: number | %Decimal{}
+  @type number_or_decimal :: number | Decimal.t()
   @type normalised_decimal :: {%Decimal{}, integer}
 
   @default_rounding 3
@@ -216,7 +216,7 @@ defmodule Localize.Utils.Math do
       Decimal.new("5")
 
   """
-  @spec div(number_or_decimal, number_or_decimal) :: number_or_decimal
+  @spec div(number_or_decimal, number_or_decimal) :: Decimal.t()
   def div(%Decimal{} = number_1, %Decimal{} = number_2) do
     Decimal.div(number_1, number_2)
   end
@@ -301,7 +301,7 @@ defmodule Localize.Utils.Math do
       3
 
   """
-  @spec default_rounding :: pos_integer()
+  @spec default_rounding :: 3
   def default_rounding do
     @default_rounding
   end
@@ -319,7 +319,7 @@ defmodule Localize.Utils.Math do
       :half_even
 
   """
-  @spec default_rounding_mode :: atom
+  @spec default_rounding_mode :: :half_even
   def default_rounding_mode do
     @default_rounding_mode
   end
@@ -712,7 +712,7 @@ defmodule Localize.Utils.Math do
       Decimal.new("3.953767554157656512064441441")
 
   """
-  @spec log10(number_or_decimal) :: number_or_decimal
+  @spec log10(number_or_decimal) :: float() | Decimal.t()
   def log10(number) when is_number(number) do
     :math.log10(number)
   end

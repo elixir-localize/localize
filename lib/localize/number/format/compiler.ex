@@ -51,7 +51,7 @@ defmodule Localize.Number.Format.Compiler do
   * `{:ok, tokens, end_line}` or an error tuple.
 
   """
-  @spec tokenize(String.t()) :: {:ok, list(), integer()} | {:error, term()}
+  @spec tokenize(String.t()) :: {:ok, list(), integer()} | {:error, term(), integer()}
   def tokenize(definition) when is_binary(definition) do
     definition
     |> String.to_charlist()

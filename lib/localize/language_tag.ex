@@ -773,7 +773,7 @@ defmodule Localize.LanguageTag do
       "zh-Hant-TW"
 
   """
-  @spec add_likely_subtags(t()) :: {:ok, t()} | {:error, String.t()}
+  @spec add_likely_subtags(t()) :: {:ok, t()} | {:error, Exception.t()}
   def add_likely_subtags(%__MODULE__{} = language_tag) do
     language = language_tag.language || :und
     script = strip_sentinel(language_tag.script, :Zzzz)
@@ -863,7 +863,7 @@ defmodule Localize.LanguageTag do
       "zh-Hant"
 
   """
-  @spec remove_likely_subtags(t()) :: {:ok, t()} | {:error, String.t()}
+  @spec remove_likely_subtags(t()) :: {:ok, t()} | {:error, Exception.t()}
   def remove_likely_subtags(%__MODULE__{} = language_tag) do
     with {:ok, maximized} <- add_likely_subtags(language_tag) do
       max_lang = maximized.language

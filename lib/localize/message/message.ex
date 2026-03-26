@@ -329,6 +329,7 @@ defmodule Localize.Message do
   @spec format_to_iolist(String.t(), bindings(), options()) ::
           {:ok, list(), list(), list()}
           | {:error, list(), list(), list()}
+          | {:error, String.t()}
           | {:format_error, String.t()}
 
   def format_to_iolist(message, bindings \\ %{}, options \\ []) when is_binary(message) do

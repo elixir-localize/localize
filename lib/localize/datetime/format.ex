@@ -18,7 +18,7 @@ defmodule Localize.DateTime.Format do
   #
   # * `[:short, :medium, :long, :full]`
   #
-  @spec standard_formats() :: [atom()]
+  @spec standard_formats() :: [:short | :medium | :long | :full, ...]
   def standard_formats, do: @standard_formats
 
   # # date_formats/2

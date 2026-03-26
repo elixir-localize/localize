@@ -47,6 +47,7 @@ defmodule Localize.Unit.BaseUnit do
   """
   @spec base_unit(String.t() | tuple()) ::
           {:ok, String.t()} | {:error, Exception.t() | String.t()}
+  @dialyzer {:nowarn_function, base_unit: 1}
 
   def base_unit(input) when is_binary(input) do
     case Localize.Unit.Parser.parse(input) do
@@ -84,6 +85,7 @@ defmodule Localize.Unit.BaseUnit do
 
   """
   @spec base_unit!(String.t() | tuple()) :: String.t() | no_return()
+  @dialyzer {:nowarn_function, base_unit!: 1}
 
   def base_unit!(input) do
     case base_unit(input) do

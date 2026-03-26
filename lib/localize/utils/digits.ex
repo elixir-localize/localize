@@ -264,7 +264,7 @@ defmodule Localize.Utils.Digits do
 
   """
   @spec remove_trailing_zeros(number() | Decimal.t() | [integer(), ...]) ::
-          integer | [integer(), ...]
+          number() | [integer()]
   def remove_trailing_zeros(0) do
     0
   end

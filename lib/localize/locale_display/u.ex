@@ -358,6 +358,7 @@ defmodule Localize.LocaleDisplay.U do
     end
   end
 
+  @dialyzer {:nowarn_function, get_timezone_display_name: 2}
   defp get_timezone_display_name(_value, _locale_id), do: nil
 
   # Look up the display name for a territory.

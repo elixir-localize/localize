@@ -55,7 +55,7 @@ defmodule Localize.Collation.Normalizer do
       [97, 98, 99]
 
   """
-  @spec to_codepoints(String.t()) :: [non_neg_integer()]
+  @spec to_codepoints(String.t()) :: [non_neg_integer(), ...]
   def to_codepoints(string) when is_binary(string) do
     String.to_charlist(string)
   end

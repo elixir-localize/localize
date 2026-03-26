@@ -115,7 +115,7 @@ defmodule Localize.DateTime.Relative do
   Returns the list of known time units.
 
   """
-  @spec known_units() :: [atom()]
+  @spec known_units() :: [atom(), ...]
   def known_units, do: @unit_keys
 
   # ── Core formatting ───────────────────────────────────────

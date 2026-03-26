@@ -276,7 +276,7 @@ defmodule Localize.List do
       [:or, :or_narrow, :or_short, :standard, :standard_narrow, :standard_short, :unit, :unit_narrow, :unit_short]
 
   """
-  @spec known_list_formats() :: [atom()]
+  @spec known_list_formats() :: [:or | :or_narrow | :or_short | :standard | :standard_narrow | :standard_short | :unit | :unit_narrow | :unit_short, ...]
   def known_list_formats do
     [
       :or,

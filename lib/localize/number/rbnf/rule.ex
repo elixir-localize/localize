@@ -25,7 +25,7 @@ defmodule Localize.Number.Rbnf.Rule do
   #
   # ### Returns
   # * `{:ok, tokens, end_line}` or an error.
-  @spec tokenize(String.t() | t()) :: {:ok, list(), integer()} | {:error, term()}
+  @spec tokenize(String.t() | t()) :: {:ok, list(), integer()} | {:error, term(), integer()}
   def tokenize(definition) when is_binary(definition) do
     definition
     |> String.trim_leading("'")

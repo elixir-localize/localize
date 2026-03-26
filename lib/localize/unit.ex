@@ -134,6 +134,7 @@ defmodule Localize.Unit do
 
   """
   @spec new(String.t()) :: {:ok, t()} | {:error, Exception.t()}
+  @dialyzer {:nowarn_function, new: 1}
 
   def new(name) when is_binary(name) do
     case Localize.Unit.Parser.parse(name) do
@@ -743,7 +744,7 @@ defmodule Localize.Unit do
       1.5
 
   """
-  @spec add(t(), t()) :: {:ok, t()} | {:error, Exception.t()}
+  @spec add(t(), t()) :: {:ok, t()} | {:error, Exception.t() | String.t()}
   defdelegate add(unit_1, unit_2), to: Localize.Unit.Math
 
   @doc """
@@ -770,7 +771,7 @@ defmodule Localize.Unit do
       3.0
 
   """
-  @spec sub(t(), t()) :: {:ok, t()} | {:error, Exception.t()}
+  @spec sub(t(), t()) :: {:ok, t()} | {:error, Exception.t() | String.t()}
   defdelegate sub(unit_1, unit_2), to: Localize.Unit.Math
 
   @doc """
@@ -1160,6 +1161,7 @@ defmodule Localize.Unit do
   """
   @spec display_name(t() | String.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
+  @dialyzer {:nowarn_function, display_name: 2}
   def display_name(unit_or_name, options \\ [])
 
   def display_name(%__MODULE__{} = unit, options) do

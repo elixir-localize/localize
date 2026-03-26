@@ -349,6 +349,7 @@ defmodule Localize.LocaleDisplay.T do
 
   defp capitalize_script(s), do: s
 
+  @dialyzer {:nowarn_function, to_atom_safe: 1}
   defp to_atom_safe(nil), do: nil
   defp to_atom_safe(value) when is_atom(value), do: value
 

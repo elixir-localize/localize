@@ -43,7 +43,7 @@ defmodule Localize.Territory do
       [:short, :standard, :variant]
 
   """
-  @spec available_styles() :: [:short | :standard | :variant]
+  @spec available_styles() :: [:short | :standard | :variant, ...]
   def available_styles, do: @styles
 
   # ── Display names ───────────────────────────────────────────
@@ -474,7 +474,7 @@ defmodule Localize.Territory do
       [:"154", :UN]
 
   """
-  @spec parent!(atom() | String.t() | LanguageTag.t()) :: [atom()]
+  @spec parent!(atom() | String.t() | LanguageTag.t()) :: [atom(), ...]
   def parent!(territory) do
     case parent(territory) do
       {:ok, result} -> result
@@ -944,7 +944,7 @@ defmodule Localize.Territory do
       :"001"
 
   """
-  @spec the_world() :: atom()
+  @spec the_world() :: :"001"
   def the_world, do: :"001"
 
   @doc """

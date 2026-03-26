@@ -135,6 +135,7 @@ defmodule Localize.Gettext.Interpolation do
     end
   end
 
+  @dialyzer {:nowarn_function, raise_not_binary!: 1}
   defp raise_not_binary!(term) do
     raise ArgumentError, """
     Localize.Gettext.Interpolation macros expect translation keys to expand \

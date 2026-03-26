@@ -146,7 +146,7 @@ defmodule Localize.Number.System do
       [:default, :native, :traditional, :finance]
 
   """
-  @spec known_number_system_types() :: [system_type()]
+  @spec known_number_system_types() :: [system_type(), ...]
   def known_number_system_types do
     @known_number_system_types
   end

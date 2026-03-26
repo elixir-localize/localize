@@ -120,7 +120,7 @@ defmodule Localize.Interval do
 
   """
   @spec greatest_difference(map(), map()) ::
-          {:ok, atom()} | {:error, :no_practical_difference}
+          {:ok, :y | :M | :d | :H | :m} | {:error, :no_practical_difference}
   def greatest_difference(from, to) do
     cond do
       Map.get(from, :year) != Map.get(to, :year) -> {:ok, :y}
@@ -136,7 +136,12 @@ defmodule Localize.Interval do
   Returns the date interval style configurations.
 
   """
-  @spec date_styles() :: map()
+  @spec date_styles() :: %{
+          date: %{short: :yMd, medium: :yMMMd, long: :yMMMEd},
+          month: %{short: :M, medium: :MMM, long: :MMM},
+          month_and_day: %{short: :Md, medium: :MMMd, long: :MMMEd},
+          year_and_month: %{short: :yM, medium: :yMMM, long: :yMMMM}
+        }
   def date_styles, do: @date_styles
 
   # ── Interval pattern resolution ────────────────────────────

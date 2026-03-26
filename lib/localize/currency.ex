@@ -250,7 +250,7 @@ defmodule Localize.Currency do
       true
 
   """
-  @spec known_currency_codes() :: [currency_code()]
+  @spec known_currency_codes() :: [currency_code(), ...]
   def known_currency_codes do
     @currency_codes ++ Localize.Currency.Store.codes()
   end
@@ -329,7 +329,8 @@ defmodule Localize.Currency do
       true
 
   """
-  @spec territory_currencies() :: %{atom() => map()}
+  @dialyzer {:nowarn_function, territory_currencies: 0}
+  @spec territory_currencies() :: %{required(atom()) => %{required(atom()) => map()}}
   def territory_currencies do
     @territory_currencies
   end

@@ -12,7 +12,15 @@ defmodule Localize.MixProject do
       make_makefile: "c_src/Makefile",
       deps: deps(),
       dialyzer: [
-        ignore_warnings: ".dialyzer_ignore.exs"
+        plt_add_apps: ~w(gettext inets mix sweet_xml nimble_parsec)a,
+        ignore_warnings: ".dialyzer_ignore.exs",
+        flags: [
+          :error_handling,
+          :unknown,
+          :underspecs,
+          :extra_return,
+          :missing_return
+        ]
       ]
     ]
   end

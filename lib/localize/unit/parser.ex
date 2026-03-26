@@ -32,7 +32,7 @@ defmodule Localize.Unit.Parser do
       {:ok, {:unit, type: nil, numerator: [{:single_unit, prefix: nil, power: nil, base: "meter"}], denominator: [{:single_unit, prefix: nil, power: nil, base: "second"}]}}
 
   """
-  @spec parse(String.t()) :: {:ok, tuple()} | {:error, String.t()}
+  @spec parse(String.t()) :: {:ok, tuple()} | {:error, Exception.t()}
 
   def parse(input) when is_binary(input) do
     case unit_identifier(input) do
@@ -77,7 +77,8 @@ defmodule Localize.Unit.Parser do
       {:unit, type: nil, numerator: [{:single_unit, prefix: nil, power: nil, base: "meter"}], denominator: []}
 
   """
-  @spec parse!(String.t()) :: tuple() | no_return()
+  @spec parse!(String.t()) :: {atom(), keyword()} | no_return()
+  @dialyzer {:nowarn_function, parse!: 1}
 
   def parse!(input) when is_binary(input) do
     case parse(input) do

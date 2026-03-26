@@ -89,6 +89,7 @@ defmodule Localize.Unit.Conversion do
   """
   @spec convert(number(), String.t(), String.t()) ::
           {:ok, float()} | {:error, Exception.t() | String.t()}
+  @dialyzer {:nowarn_function, convert: 3}
 
   def convert(value, from, to) do
     with {:ok, parsed_from} <- Parser.parse(from),

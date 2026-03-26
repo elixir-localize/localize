@@ -94,7 +94,7 @@ defmodule Localize.Unit.Data do
   * A list of maps with keys `:type`, `:symbol`, `:power10`, and `:power2`.
 
   """
-  @spec si_prefix_data() :: [map()]
+  @spec si_prefix_data() :: [%{type: String.t(), symbol: String.t(), power10: String.t(), power2: String.t()}, ...]
   def si_prefix_data, do: @si_prefix_data
 
   @doc """
@@ -236,6 +236,6 @@ defmodule Localize.Unit.Data do
   * A list of maps with keys `:category`, `:usage`, and `:preferences`.
 
   """
-  @spec unit_preferences() :: [map()]
+  @spec unit_preferences() :: [%{category: String.t(), usage: String.t(), preferences: [map(), ...]}, ...]
   def unit_preferences, do: @unit_preferences
 end

@@ -27,6 +27,12 @@ defmodule Localize.Data do
 
   """
 
+  @dialyzer {:nowarn_function, write_version: 0}
+  @dialyzer {:nowarn_function, cldr_source_dir: 0}
+  @dialyzer {:nowarn_function, cldr_repo_dir: 0}
+  @dialyzer {:nowarn_function, read_json: 1}
+  @dialyzer {:nowarn_function, read_json_path: 1}
+
   @supplemental_etf_dir "priv/localize/supplemental_data"
   @locales_etf_dir "priv/localize/locales"
   @cldr_supplemental_dir "priv/cldr/supplemental_data"

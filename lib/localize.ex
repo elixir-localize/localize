@@ -603,7 +603,7 @@ defmodule Localize do
       true
 
   """
-  @spec known_calendars() :: [atom()]
+  @spec known_calendars() :: [atom(), ...]
   def known_calendars do
     Localize.Calendar.known_calendars()
   end

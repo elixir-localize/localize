@@ -22,6 +22,7 @@ defmodule Localize.LanguageTag.Parser do
   * `{:error, reasons}`
 
   """
+  @dialyzer {:nowarn_function, parse: 1}
   def parse(locale) do
     case Localize.Rfc5646.Parser.parse(normalize_locale_id(locale)) do
       {:ok, language_tag} ->

@@ -36,7 +36,7 @@ defmodule Localize.Unit.Math do
       -5
 
   """
-  @spec negate(Unit.t()) :: {:ok, Unit.t()} | {:error, String.t()}
+  @spec negate(Unit.t()) :: {:ok, Unit.t()} | {:error, Exception.t()}
 
   def negate(%Unit{value: value} = unit) when not is_nil(value) do
     {:ok, %{unit | value: negate_value(value)}}
@@ -80,7 +80,7 @@ defmodule Localize.Unit.Math do
       "kilometer"
 
   """
-  @spec add(Unit.t(), Unit.t()) :: {:ok, Unit.t()} | {:error, String.t()}
+  @spec add(Unit.t(), Unit.t()) :: {:ok, Unit.t()} | {:error, Exception.t() | String.t()}
 
   def add(%Unit{value: value_1} = unit_1, %Unit{value: value_2} = unit_2)
       when not is_nil(value_1) and not is_nil(value_2) do
@@ -127,7 +127,7 @@ defmodule Localize.Unit.Math do
       "kilometer"
 
   """
-  @spec sub(Unit.t(), Unit.t()) :: {:ok, Unit.t()} | {:error, String.t()}
+  @spec sub(Unit.t(), Unit.t()) :: {:ok, Unit.t()} | {:error, Exception.t() | String.t()}
 
   def sub(%Unit{value: value_1} = unit_1, %Unit{value: value_2} = unit_2)
       when not is_nil(value_1) and not is_nil(value_2) do
@@ -173,7 +173,7 @@ defmodule Localize.Unit.Math do
       0.25
 
   """
-  @spec invert(Unit.t()) :: {:ok, Unit.t()} | {:error, String.t()}
+  @spec invert(Unit.t()) :: {:ok, Unit.t()} | {:error, Exception.t()}
 
   def invert(%Unit{value: value, parsed: {:unit, keyword}} = _unit) when not is_nil(value) do
     numerator = Keyword.get(keyword, :numerator, [])

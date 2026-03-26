@@ -294,6 +294,7 @@ defmodule Localize.Unit.Preference do
     end
   end
 
+  @dialyzer {:nowarn_function, converted_value_gte_1?: 2}
   defp converted_value_gte_1?(base_value, unit_name) do
     case Parser.parse(unit_name) do
       {:ok, parsed} ->

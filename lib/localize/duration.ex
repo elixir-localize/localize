@@ -86,7 +86,8 @@ defmodule Localize.Duration do
 
   """
   @spec new(from :: date_or_time_or_datetime(), to :: date_or_time_or_datetime()) ::
-          {:ok, t()} | {:error, Exception.t()}
+          {:ok, t()} | {:error, Exception.t() | atom()}
+  @dialyzer {:nowarn_function, new: 2}
 
   def new(
         %{year: _, month: _, day: _, hour: _, minute: _, second: _} = from,
