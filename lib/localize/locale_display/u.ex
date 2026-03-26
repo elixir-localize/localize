@@ -394,7 +394,9 @@ defmodule Localize.LocaleDisplay.U do
   # "America/Argentina/Buenos_Aires" → "Buenos Aires"
   defp derive_city_from_id(iana_id) do
     case String.split(iana_id, "/") do
-      [_] -> nil
+      [_] ->
+        nil
+
       parts ->
         parts
         |> List.last()
