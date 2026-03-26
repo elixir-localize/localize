@@ -4,21 +4,25 @@
 
 ### Hex publishing
 
-* [ ] Set version in `mix.exs`.
+* [x] Set version in `mix.exs`.
 
 * [ ] Add `:description`, `:package`, `:source_url` to `mix.exs` for Hex.
 
-* [ ] Add license file.
+* [x] Add license file.
 
 * [ ] Define docs structure in `mix.exs` including topic grouping and user guides.
 
 * [ ] Run `mix docs` and review generated documentation.
 
-* [ ] Run `mix dialyzer` and resolve any errors.
+* [x] Run `mix dialyzer` and resolve any errors.
 
 ### CI
 
 * [ ] Move the CI workflow (`upload-locales.yml`) to `.github/workflows/`.
+
+### Data loader
+
+* [ ] Data loader should generate locales as required when in `:test` mode. Currently all 766 locale ETF files must be present in `priv/localize/locales/` for tests to pass. In CI and fresh checkouts only `en.etf` is committed; the loader should detect missing locales and generate them on-the-fly from the CLDR source data when `Mix.env() == :test`.
 
 ## Open work
 
