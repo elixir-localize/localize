@@ -21,7 +21,6 @@ defmodule Mix.Tasks.Localize.DownloadIsoCurrencies do
   """
 
   use Mix.Task
-  require Logger
 
   @url "https://www.six-group.com/dam/download/financial-information/data-center/iso-currrency/lists/list-one.xml"
 
