@@ -144,23 +144,17 @@ defmodule Localize.LocaleDisplay.T do
     # CLDR 48.2: Flatten the T language — do not use localePattern.
     # Instead, get the language name and append subtag display names
     # directly as a flat list.
-    value_parts = flatten_t_language(value, locale_id, display_names, prefer, language_display)
+    value_parts =
+      flatten_t_language(value, locale_id, display_names, prefer, language_display)
 
-    if key_name do
-      value_name =
-        value_parts
-        |> join_field_values(display_names)
-        |> :erlang.iolist_to_binary()
-        |> replace_parens_with_brackets()
-
-      display_pattern = get_in(display_names, [:locale_display_pattern, :locale_key_type_pattern])
-      Localize.Substitution.substitute([key_name, value_name], display_pattern)
-    else
+    value_name =
       value_parts
       |> join_field_values(display_names)
       |> :erlang.iolist_to_binary()
       |> replace_parens_with_brackets()
-    end
+
+    display_pattern = get_in(display_names, [:locale_display_pattern, :locale_key_type_pattern])
+    Localize.Substitution.substitute([key_name, value_name], display_pattern)
   end
 
   defp display_value(

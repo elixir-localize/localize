@@ -125,6 +125,13 @@ defmodule Localize.Unit.Formatter do
           {:ok, result |> :erlang.iolist_to_binary() |> String.trim()}
         end
 
+      tokens when is_list(tokens) ->
+        # Substitution-format pattern like ["華氏 ", 0, " 度"]
+        with {:ok, number_str} <- format_number(value, options) do
+          result = Localize.Substitution.substitute(number_str, tokens)
+          {:ok, result |> :erlang.iolist_to_binary() |> String.trim()}
+        end
+
       nil ->
         format_fallback(value, Map.get(unit_formats, :display_name, ""), options)
 

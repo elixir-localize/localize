@@ -83,8 +83,8 @@ defmodule Localize.Rfc5646.Helpers do
     []
   end
 
-  def flatten(_rest, args, context, _line, _offset) when is_list(args) do
-    {List.flatten(args), context}
+  def flatten(rest, args, context, _line, _offset) when is_list(args) do
+    {rest, List.flatten(args), context}
   end
 
   # This is just to keep dialyzer quiet
