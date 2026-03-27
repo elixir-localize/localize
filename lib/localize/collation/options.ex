@@ -19,13 +19,13 @@ defmodule Localize.Collation.Options do
             max_variable: :punct,
             type: :standard,
             tailoring: nil,
-            backend: :default
+            backend: :elixir
 
   @type strength :: :primary | :secondary | :tertiary | :quaternary | :identical
   @type alternate :: :non_ignorable | :shifted
   @type case_first_opt :: :upper | :lower | false
   @type max_variable :: :space | :punct | :symbol | :currency
-  @type backend :: :default | :nif | :elixir
+  @type backend :: :nif | :elixir
 
   @type t :: %__MODULE__{
           strength: strength(),
@@ -80,7 +80,7 @@ defmodule Localize.Collation.Options do
 
   * `:casing` - `:sensitive` or `:insensitive` (convenience alias for strength).
 
-  * `:backend` - `:default`, `:nif`, or `:elixir`.
+  * `:backend` - `:nif` or `:elixir`. The default is `:elixir`.
 
   ### Returns
 

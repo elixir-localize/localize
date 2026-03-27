@@ -637,8 +637,13 @@ defmodule Localize.Unit do
   * `:locale` is a locale identifier atom, string, or a
     `t:Localize.LanguageTag.t/0`. The default is `:en`.
 
-  * `:style` is `:long`, `:short`, or `:narrow`.
+  * `:format` is `:long`, `:short`, or `:narrow`.
     The default is `:long`.
+
+  * `:backend` is `:nif` or `:elixir`. When `:nif` is
+    specified and the NIF is available, ICU4C is used for
+    formatting. Otherwise falls back to the pure-Elixir
+    formatter. The default is `:elixir`.
 
   ### Returns
 
@@ -657,7 +662,7 @@ defmodule Localize.Unit do
       {:ok, "1 meter"}
 
       iex> {:ok, unit} = Localize.Unit.new(42, "meter")
-      iex> Localize.Unit.to_string(unit, style: :short)
+      iex> Localize.Unit.to_string(unit, format: :short)
       {:ok, "42 m"}
 
   """
@@ -1144,7 +1149,7 @@ defmodule Localize.Unit do
 
   * `:locale` is a locale identifier. The default is `Localize.get_locale()`.
 
-  * `:style` is `:long`, `:short`, or `:narrow`. The default is `:long`.
+  * `:format` is `:long`, `:short`, or `:narrow`. The default is `:long`.
 
   ### Returns
 
@@ -1155,7 +1160,7 @@ defmodule Localize.Unit do
       iex> Localize.Unit.display_name("meter", locale: :en)
       {:ok, "meters"}
 
-      iex> Localize.Unit.display_name("meter", locale: :en, style: :short)
+      iex> Localize.Unit.display_name("meter", locale: :en, format: :short)
       {:ok, "m"}
 
   """

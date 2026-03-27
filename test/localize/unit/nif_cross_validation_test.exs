@@ -39,7 +39,7 @@ if Localize.Nif.available?() do
             {:ok, unit} = Localize.Unit.new(number, unit_name)
 
             {:ok, elixir_result} =
-              Localize.Unit.to_string(unit, locale: :en, style: style)
+              Localize.Unit.to_string(unit, locale: :en, format: style)
 
             assert icu_result == elixir_result,
                    "ICU: #{inspect(icu_result)} vs Elixir: #{inspect(elixir_result)} " <>
@@ -58,7 +58,7 @@ if Localize.Nif.available?() do
             Localize.Nif.unit_format(number, "meter", "de", style: "long")
 
           {:ok, unit} = Localize.Unit.new(number, "meter")
-          {:ok, elixir_result} = Localize.Unit.to_string(unit, locale: :de, style: :long)
+          {:ok, elixir_result} = Localize.Unit.to_string(unit, locale: :de, format: :long)
 
           assert icu_result == elixir_result,
                  "ICU: #{inspect(icu_result)} vs Elixir: #{inspect(elixir_result)}"

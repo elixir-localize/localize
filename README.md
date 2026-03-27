@@ -190,6 +190,20 @@ When `Localize.get_locale/0` is called and no process-level locale has been set,
 
 The resolved locale is cached in `:persistent_term` after first resolution so this lookup happens only once per BEAM lifetime.
 
+## Optional NIF Backend
+
+Localize includes an optional NIF backend powered by ICU4C. When enabled, specific functions can use the NIF for formatting by passing `backend: :nif`. The default backend is always `:elixir` — no NIF is required.
+
+| Function | `:backend` option | NIF implementation |
+|----------|------------------|--------------------|
+| `Localize.Number.to_string/2` | `backend: :nif` | ICU4C NumberFormatter |
+| `Localize.Unit.to_string/2` | `backend: :nif` | ICU4C NumberFormatter (unit) |
+| `Localize.Number.PluralRule.plural_type/2` | `backend: :nif` | ICU4C PluralRules |
+| `Localize.Message.format/3` | `backend: :nif` | ICU4C MessageFormat 2 |
+| `Localize.Collation.compare/3` | `backend: :nif` | ICU4C Collator |
+
+If `:nif` is specified but the NIF is not compiled or not available, it silently falls back to the pure Elixir implementation. See the [Performance Guide](guides/performance.md) for benchmarks and guidance.
+
 ## Documentation
 
 Full documentation is available on [HexDocs](https://hexdocs.pm/localize).

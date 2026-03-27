@@ -95,14 +95,30 @@ defmodule Localize.Number do
   end
 
   def to_string(number, options) when is_number(number) and is_list(options) do
-    with {:ok, validated_options} <- Options.validate_options(number, options) do
-      dispatch_format(number, validated_options)
+    case Localize.Backend.resolve(options) do
+      :nif ->
+        locale = Keyword.get(options, :locale, Localize.get_locale())
+        locale_string = locale_to_string(locale)
+        Localize.Nif.number_format(number, locale_string, options)
+
+      :elixir ->
+        with {:ok, validated_options} <- Options.validate_options(number, options) do
+          dispatch_format(number, validated_options)
+        end
     end
   end
 
   def to_string(%Decimal{} = number, options) when is_list(options) do
-    with {:ok, validated_options} <- Options.validate_options(number, options) do
-      dispatch_format(number, validated_options)
+    case Localize.Backend.resolve(options) do
+      :nif ->
+        locale = Keyword.get(options, :locale, Localize.get_locale())
+        locale_string = locale_to_string(locale)
+        Localize.Nif.number_format(number, locale_string, options)
+
+      :elixir ->
+        with {:ok, validated_options} <- Options.validate_options(number, options) do
+          dispatch_format(number, validated_options)
+        end
     end
   end
 
@@ -535,4 +551,9 @@ defmodule Localize.Number do
 
   """
   defdelegate resolve_per(string, options \\ []), to: Localize.Number.Parser
+
+  defp locale_to_string(%Localize.LanguageTag{} = tag), do: Localize.LanguageTag.to_string(tag)
+  defp locale_to_string(locale) when is_atom(locale), do: Atom.to_string(locale)
+  defp locale_to_string(locale) when is_binary(locale), do: locale
+  defp locale_to_string(_), do: "en"
 end

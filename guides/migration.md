@@ -218,7 +218,7 @@ iex> {:ok, unit} = Localize.Unit.new(100, "meter")
 iex> Localize.Unit.to_string(unit)
 {:ok, "100 meters"}
 
-iex> Localize.Unit.to_string(unit, style: :short)
+iex> Localize.Unit.to_string(unit, format: :short)
 {:ok, "100 m"}
 
 iex> {:ok, converted} = Localize.Unit.convert(unit, "kilometer")

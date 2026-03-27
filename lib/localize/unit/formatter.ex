@@ -21,20 +21,29 @@ defmodule Localize.Unit.Formatter do
   #
   # ### Options
   # * `:locale` — locale identifier (default `:en`).
-  # * `:style` — `:long`, `:short`, or `:narrow` (default `:long`).
+  # * `:format` — `:long`, `:short`, or `:narrow` (default `:long`).
+  # * `:backend` — `:nif` or `:elixir` (default `:elixir`).
   #
   # ### Returns
   # * `{:ok, formatted_string}` or `{:error, exception}`.
   @spec to_string(Localize.Unit.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def to_string(%Localize.Unit{} = unit, options \\ []) do
-    locale = Keyword.get(options, :locale, Localize.get_locale())
-    style = Keyword.get(options, :style, :long)
+    case Localize.Backend.resolve(options) do
+      :nif ->
+        locale = Keyword.get(options, :locale, Localize.get_locale())
+        locale_string = locale_to_string(locale)
+        Localize.Nif.unit_format(unit.value, unit.name, locale_string, options)
 
-    with {:ok, language_tag} <- Localize.validate_locale(locale),
-         {:ok, unit_data} <- load_unit_data(language_tag, style),
-         {:ok, formatted} <- format_unit(unit, unit_data, language_tag, style, options) do
-      {:ok, formatted}
+      :elixir ->
+        locale = Keyword.get(options, :locale, Localize.get_locale())
+        format = Keyword.get(options, :format, Keyword.get(options, :style, :long))
+
+        with {:ok, language_tag} <- Localize.validate_locale(locale),
+             {:ok, unit_data} <- load_unit_data(language_tag, format),
+             {:ok, formatted} <- format_unit(unit, unit_data, language_tag, format, options) do
+          {:ok, formatted}
+        end
     end
   end
 
@@ -153,7 +162,7 @@ defmodule Localize.Unit.Formatter do
   defp format_number(value, options) do
     number_options =
       options
-      |> Keyword.take([:locale, :format, :fractional_digits, :currency])
+      |> Keyword.take([:locale, :fractional_digits, :currency])
 
     Localize.Number.to_string(value, number_options)
   end
@@ -216,4 +225,9 @@ defmodule Localize.Unit.Formatter do
   end
 
   defp safe_to_atom(atom) when is_atom(atom), do: atom
+
+  defp locale_to_string(%Localize.LanguageTag{} = tag), do: Localize.LanguageTag.to_string(tag)
+  defp locale_to_string(locale) when is_atom(locale), do: Atom.to_string(locale)
+  defp locale_to_string(locale) when is_binary(locale), do: locale
+  defp locale_to_string(_), do: "en"
 end

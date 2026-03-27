@@ -69,7 +69,7 @@ defmodule Localize.Collation do
 
   * `casing` - `:sensitive`, `:insensitive` (convenience alias).
 
-  * `backend` - `:default` (NIF if available), `:nif`, `:elixir`.
+  * `backend` - `:nif` or `:elixir`. The default is `:elixir`.
 
   """
 
@@ -128,7 +128,7 @@ defmodule Localize.Collation do
 
   * `:locale` - a BCP47 locale string or a `Localize.LanguageTag` struct.
 
-  * `:backend` - `:default`, `:nif`, or `:elixir`.
+  * `:backend` - `:nif` or `:elixir`. The default is `:elixir`.
 
   ### Returns
 
@@ -577,28 +577,9 @@ defmodule Localize.Collation do
   defp maybe_put(opts, _key, nil), do: opts
   defp maybe_put(opts, key, value), do: Keyword.put(opts, key, value)
 
-  defp use_nif?(%Options{backend: :elixir}), do: false
-
   defp use_nif?(%Options{backend: :nif} = options) do
-    unless Nif.available?() do
-      raise RuntimeError,
-            "NIF collation backend requested but not available. " <>
-              "Compile with LOCALIZE_NIF=true or set `config :localize, :nif, true` " <>
-              "in config.exs, and ensure ICU libraries are installed."
-    end
-
-    unless Options.nif_compatible?(options) do
-      raise ArgumentError,
-            "NIF collation backend does not support the given options. " <>
-              "Options requiring tailoring, non-default max_variable, or " <>
-              "unrecognized reorder codes are not supported. " <>
-              "Use backend: :elixir or backend: :default."
-    end
-
-    true
-  end
-
-  defp use_nif?(%Options{backend: :default} = options) do
     Nif.available?() and Options.nif_compatible?(options)
   end
+
+  defp use_nif?(_options), do: false
 end

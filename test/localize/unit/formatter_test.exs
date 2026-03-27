@@ -18,12 +18,12 @@ defmodule Localize.Unit.FormatterTest do
 
     test "formats in short style" do
       {:ok, unit} = Unit.new(42, "meter")
-      assert {:ok, "42 m"} = Unit.to_string(unit, style: :short)
+      assert {:ok, "42 m"} = Unit.to_string(unit, format: :short)
     end
 
     test "formats in narrow style" do
       {:ok, unit} = Unit.new(42, "meter")
-      {:ok, result} = Unit.to_string(unit, style: :narrow)
+      {:ok, result} = Unit.to_string(unit, format: :narrow)
       assert String.contains?(result, "42")
       assert String.contains?(result, "m")
     end
@@ -36,7 +36,7 @@ defmodule Localize.Unit.FormatterTest do
 
     test "formats celsius" do
       {:ok, unit} = Unit.new(100, "celsius")
-      {:ok, result} = Unit.to_string(unit, style: :short)
+      {:ok, result} = Unit.to_string(unit, format: :short)
       assert String.contains?(result, "°C")
     end
   end
@@ -49,7 +49,7 @@ defmodule Localize.Unit.FormatterTest do
 
     test "formats mile-per-hour in short style" do
       {:ok, unit} = Unit.new(60, "mile-per-hour")
-      assert {:ok, "60 mph"} = Unit.to_string(unit, style: :short)
+      assert {:ok, "60 mph"} = Unit.to_string(unit, format: :short)
     end
   end
 

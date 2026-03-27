@@ -115,11 +115,34 @@ export LOCALIZE_NIF=true
 
 The NIF requires ICU4C development headers at compile time. On macOS: `brew install icu4c`. On Ubuntu: `apt install libicu-dev`.
 
-When the NIF is enabled, MF2 formatting automatically uses the NIF backend. All other operations continue to use the pure Elixir implementation regardless of the NIF setting. You can check NIF availability at runtime:
+You can check NIF availability at runtime:
 
 ```elixir
 iex> Localize.Nif.available?()
 true
+```
+
+## Selecting a Backend
+
+All NIF-capable functions accept a `:backend` option. The default is always `:elixir`. When `:nif` is specified and the NIF is available, the ICU4C implementation is used. If the NIF is not available, it silently falls back to the pure Elixir implementation.
+
+| Function | `:backend` option | NIF implementation |
+|----------|------------------|--------------------|
+| `Localize.Number.to_string/2` | `backend: :nif` | ICU4C NumberFormatter |
+| `Localize.Unit.to_string/2` | `backend: :nif` | ICU4C NumberFormatter (unit) |
+| `Localize.Number.PluralRule.plural_type/2` | `backend: :nif` | ICU4C PluralRules |
+| `Localize.Message.format/3` | `backend: :nif` | ICU4C MessageFormat 2 |
+| `Localize.Collation.compare/3` | `backend: :nif` | ICU4C Collator |
+
+Example:
+
+```elixir
+iex> Localize.Number.to_string(1234.5, locale: :de, backend: :nif)
+{:ok, "1.234,5"}
+
+iex> {:ok, unit} = Localize.Unit.new(100, "meter")
+iex> Localize.Unit.to_string(unit, format: :short, backend: :nif)
+{:ok, "100 m"}
 ```
 
 ## Optimizing Pure Elixir Performance

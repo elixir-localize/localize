@@ -54,12 +54,9 @@ defmodule Localize.Collation.NifTest do
       end
     end
 
-    test "backend: :nif with incompatible options raises" do
-      if Localize.Collation.Nif.available?() do
-        assert_raise ArgumentError, ~r/NIF collation backend does not support/, fn ->
-          Localize.Collation.compare("a", "b", backend: :nif, tailoring: %{})
-        end
-      end
+    test "backend: :nif with incompatible options falls back to elixir" do
+      # When NIF can't handle the options, it silently falls back to Elixir
+      assert Localize.Collation.compare("a", "b", backend: :nif, tailoring: %{}) == :lt
     end
   end
 

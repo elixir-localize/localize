@@ -11,10 +11,10 @@ iex> {:ok, unit} = Localize.Unit.new(42, "meter")
 iex> Localize.Unit.to_string(unit)
 {:ok, "42 meters"}
 
-iex> Localize.Unit.to_string(unit, style: :short)
+iex> Localize.Unit.to_string(unit, format: :short)
 {:ok, "42 m"}
 
-iex> Localize.Unit.to_string(unit, style: :narrow)
+iex> Localize.Unit.to_string(unit, format: :narrow)
 {:ok, "42m"}
 ```
 
@@ -96,11 +96,11 @@ Prefix a unit with `square-` or `cubic-` for powers:
 
 ```elixir
 iex> {:ok, area} = Localize.Unit.new(100, "square-meter")
-iex> Localize.Unit.to_string(area, style: :short)
+iex> Localize.Unit.to_string(area, format: :short)
 {:ok, "100 m\u00B2"}
 
 iex> {:ok, vol} = Localize.Unit.new(5, "cubic-meter")
-iex> Localize.Unit.to_string(vol, style: :short)
+iex> Localize.Unit.to_string(vol, format: :short)
 {:ok, "5 m\u00B3"}
 ```
 
@@ -113,11 +113,11 @@ iex> {:ok, speed} = Localize.Unit.new(60, "mile-per-hour")
 iex> Localize.Unit.to_string(speed)
 {:ok, "60 miles per hour"}
 
-iex> Localize.Unit.to_string(speed, style: :short)
+iex> Localize.Unit.to_string(speed, format: :short)
 {:ok, "60 mph"}
 
 iex> {:ok, density} = Localize.Unit.new(1000, "kilogram-per-cubic-meter")
-iex> Localize.Unit.to_string(density, style: :short)
+iex> Localize.Unit.to_string(density, format: :short)
 {:ok, "1,000 kg/m\u00B3"}
 ```
 
@@ -127,7 +127,7 @@ Complex compounds with multiple numerator and denominator components are also su
 
 ### Styles
 
-The `:style` option controls the verbosity of the output:
+The `:format` option controls the verbosity of the output:
 
 | Style | Description | Example (42 meters) |
 |-------|-------------|---------------------|
@@ -137,13 +137,13 @@ The `:style` option controls the verbosity of the output:
 
 ```elixir
 iex> unit = Localize.Unit.new!(42, "meter")
-iex> Localize.Unit.to_string(unit, style: :long)
+iex> Localize.Unit.to_string(unit, format: :long)
 {:ok, "42 meters"}
 
-iex> Localize.Unit.to_string(unit, style: :short)
+iex> Localize.Unit.to_string(unit, format: :short)
 {:ok, "42 m"}
 
-iex> Localize.Unit.to_string(unit, style: :narrow)
+iex> Localize.Unit.to_string(unit, format: :narrow)
 {:ok, "42m"}
 ```
 
@@ -344,7 +344,7 @@ Units are organized into dimensional categories. Common categories and represent
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `:locale` | atom, string, or `LanguageTag` | `Localize.get_locale()` | Locale for unit names and number formatting. |
-| `:style` | atom | `:long` | Display style: `:long`, `:short`, or `:narrow`. |
+| `:format` | atom | `:long` | Display format: `:long`, `:short`, or `:narrow`. |
 
 ### `Localize.Unit.new/3`
 

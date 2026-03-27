@@ -36,13 +36,10 @@ defmodule Localize.Message do
     of whitespace before formatting. The default is
     `false`.
 
-  * `:formatter_backend` determines which formatting engine to use.
-    Accepts `:default`, `:nif`, or `:elixir`.
-    When set to `:default`, the ICU NIF is used if available, otherwise
-    the pure-Elixir interpreter is used. When set to `:nif`, the NIF
-    is required and a `RuntimeError` is raised if it is not available.
-    When set to `:elixir`, the pure-Elixir interpreter is always used.
-    The default is `:default`.
+  * `:backend` determines which formatting engine to use.
+    Accepts `:nif` or `:elixir`. When set to `:nif`, the ICU NIF
+    is used if available, otherwise falls back to the pure-Elixir
+    interpreter. The default is `:elixir`.
 
   ### Returns
 
@@ -59,17 +56,15 @@ defmodule Localize.Message do
 
   """
 
-  @type formatter_backend :: :default | :nif | :elixir
+  @type backend :: :nif | :elixir
 
   @spec format(String.t(), bindings(), options()) ::
           {:ok, String.t()} | {:error, Exception.t()}
 
   def format(message, bindings \\ %{}, options \\ []) when is_binary(message) do
-    {formatter, options} = resolve_formatter_backend(options)
-
-    case formatter do
-      :nif -> format_nif(message, bindings, options)
-      :elixir -> format_elixir(message, bindings, options)
+    case Localize.Backend.resolve(options) do
+      :nif -> format_nif(message, bindings, Keyword.delete(options, :backend))
+      :elixir -> format_elixir(message, bindings, Keyword.delete(options, :backend))
     end
   end
 
@@ -198,31 +193,6 @@ defmodule Localize.Message do
     end)
   end
 
-  defp resolve_formatter_backend(options) do
-    {fb, rest} = Keyword.pop(options, :formatter_backend, :default)
-
-    case fb do
-      :nif ->
-        unless Localize.Nif.available?() do
-          raise RuntimeError,
-                "NIF formatter backend requested but not available. " <>
-                  "Compile with LOCALIZE_NIF=true or set " <>
-                  "`config :localize, :nif, true` in config.exs."
-        end
-
-        {:nif, rest}
-
-      :elixir ->
-        {:elixir, rest}
-
-      :default ->
-        if Localize.Nif.available?() do
-          {:nif, rest}
-        else
-          {:elixir, rest}
-        end
-    end
-  end
 
   defp resolve_locale_string(options) do
     case Keyword.get(options, :locale) do

@@ -99,6 +99,24 @@ defmodule Localize.Number.PluralRule do
           plural_type() | {:error, Exception.t()}
   @dialyzer {:nowarn_function, plural_type: 2}
   def plural_type(number, options \\ []) do
+    case Localize.Backend.resolve(options) do
+      :nif ->
+        locale = Keyword.get(options, :locale, Localize.get_locale())
+        type = Keyword.get(options, :type, :cardinal)
+        locale_string = locale_to_string(locale)
+        Localize.Nif.plural_rule(number, locale_string, type)
+
+      :elixir ->
+        plural_type_elixir(number, options)
+    end
+  end
+
+  defp locale_to_string(%LanguageTag{} = tag), do: LanguageTag.to_string(tag)
+  defp locale_to_string(locale) when is_atom(locale), do: Atom.to_string(locale)
+  defp locale_to_string(locale) when is_binary(locale), do: locale
+  defp locale_to_string(_), do: "en"
+
+  defp plural_type_elixir(number, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     type = Keyword.get(options, :type, :cardinal)
 
