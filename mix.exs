@@ -43,8 +43,8 @@ defmodule Localize.MixProject do
     ]
   end
 
-  defp elixirc_paths(:dev), do: ["lib"]
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(:dev), do: ["lib", "data"]
+  defp elixirc_paths(:test), do: ["lib", "data", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
   # Run "mix help deps" to learn about dependencies.
