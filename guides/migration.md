@@ -185,10 +185,10 @@ MyApp.Cldr.Time.to_string(~T[14:30:00])
 
 # Localize
 iex> Localize.Time.to_string(~T[14:30:00])
-{:ok, "2:30:00 PM"}
+{:ok, "2:30:00\u202FPM"}
 
 iex> Localize.Time.to_string(~T[14:30:00], format: :short)
-{:ok, "2:30 PM"}
+{:ok, "2:30\u202FPM"}
 ```
 
 ### DateTimes
@@ -199,10 +199,10 @@ MyApp.Cldr.DateTime.to_string(~N[2025-07-10 14:30:00])
 
 # Localize
 iex> Localize.DateTime.to_string(~N[2025-07-10 14:30:00])
-{:ok, "Jul 10, 2025, 2:30:00 PM"}
+{:ok, "Jul 10, 2025, 2:30:00\u202FPM"}
 
 iex> Localize.DateTime.to_string(~N[2025-07-10 14:30:00], format: :short)
-{:ok, "7/10/25, 2:30 PM"}
+{:ok, "7/10/25, 2:30\u202FPM"}
 ```
 
 ### Units
