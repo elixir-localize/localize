@@ -48,6 +48,26 @@ The CLDR 48.2 test file (`localeDistanceTest.txt`) appears stale — expected va
 
 * [ ] File a CLDR ticket if confirmed stale.
 
+### Language data generation
+
+Language display name data is not generated correctly. The "alt" variants (e.g., `alt="short"`, `alt="long"`, `alt="menu"`) in CLDR language display names are not being handled properly during data generation. This affects `Localize.Language.to_string/2` when requesting non-standard display variants.
+
+* [ ] Investigate how alt variants are stored in the CLDR JSON locale data for languages.
+
+* [ ] Update the data generation pipeline to preserve alt variant mappings.
+
+* [ ] Verify `Localize.Language.to_string/2` returns correct results for all alt variants.
+
+### Locale display T extension data types
+
+The T extension display code in `locale_display/t.ex` has comparisons like `h0 == :hybrid or h0 == "hybrid"` which suggests the locale data may contain inconsistent types (atom vs string) for T extension values. This should be investigated — if the data generation pipeline normalises to atoms consistently, the string comparisons are dead code. If not, the data pipeline should be fixed.
+
+* [ ] Audit the T extension value types in generated locale ETF data.
+
+* [ ] Normalise to atoms in the data generation pipeline if needed.
+
+* [ ] Remove the redundant string comparisons in `locale_display/t.ex`.
+
 ### Nested bracket replacement (CLDR 48.2)
 
 CLDR 48.2 formalizes nested bracket replacement as structured data. Our current implementation uses hardcoded `String.replace` calls which produce correct output for all known locales but don't use the CLDR data.

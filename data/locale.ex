@@ -61,6 +61,21 @@ defmodule Localize.Data.Locale do
   end
 
   @doc """
+  Generates and transforms locale data.
+
+  Calls `generate_locale/1` to produce the consolidated data,
+  then applies `Localize.Data.LocaleTransformer.transform/1` to
+  convert number symbols, number formats, and currencies to
+  their struct forms.
+
+  """
+  def generate_and_transform(locale) do
+    locale
+    |> generate_locale()
+    |> Localize.Data.LocaleTransformer.transform()
+  end
+
+  @doc """
   Generates, transforms, and saves a locale ETF file.
 
   Calls `generate_locale/1` to produce the consolidated data,
@@ -70,12 +85,9 @@ defmodule Localize.Data.Locale do
 
   """
   def generate_and_save_locale(locale) do
-    data =
-      locale
-      |> generate_locale()
-      |> Localize.Data.LocaleTransformer.transform()
-
+    data = generate_and_transform(locale)
     save_locale(data, locale)
+
     data
   end
 

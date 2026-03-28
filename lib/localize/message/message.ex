@@ -193,7 +193,6 @@ defmodule Localize.Message do
     end)
   end
 
-
   defp resolve_locale_string(options) do
     case Keyword.get(options, :locale) do
       nil ->

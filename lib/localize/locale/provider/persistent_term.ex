@@ -29,6 +29,9 @@ defmodule Localize.Locale.Provider.PersistentTerm do
     file cannot be found.
 
   """
+
+  @env Mix.env()
+
   @impl Localize.Locale.Provider
   def load(locale) do
     locale_id = to_locale_id(locale)
@@ -38,15 +41,21 @@ defmodule Localize.Locale.Provider.PersistentTerm do
       |> :code.priv_dir()
       |> Path.join("localize/locales/#{locale_id}.etf")
 
-    if File.exists?(path) do
-      locale_data =
-        path
-        |> File.read!()
-        |> :erlang.binary_to_term()
+    cond do
+      File.exists?(path) ->
+        locale_data =
+          path
+          |> File.read!()
+          |> :erlang.binary_to_term()
 
-      {:ok, locale_data}
-    else
-      {:error, Localize.UnknownLocaleError.exception(locale_id: locale_id)}
+        {:ok, locale_data}
+
+      @env == :test ->
+        locale_data = Localize.Data.Locale.generate_and_transform(locale_id)
+        {:ok, locale_data}
+
+      true ->
+        {:error, Localize.UnknownLocaleError.exception(locale_id: locale_id)}
     end
   end
 
@@ -137,7 +146,9 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
   # ── Helpers ──────────────────────────────────────────────────
 
-  defp to_locale_id(locale), do: Localize.Locale.to_locale_id(locale)
+  defp to_locale_id(locale) do
+    Localize.Locale.to_locale_id(locale)
+  end
 
   defp locale_key(locale_id) do
     {:localize, locale_id}

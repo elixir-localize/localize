@@ -58,7 +58,15 @@ defmodule Localize.MixProject do
       {:sweet_xml, "~> 0.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
       {:stream_data, "~> 1.0", only: :test}
-    ]
+      ] ++ maybe_json_polyfill()
+  end
+
+  def maybe_json_polyfill do
+    if Code.ensure_loaded?(:json) do
+      []
+    else
+      [{:json_polyfill, "~> 0.2 or 1.0"}]
+    end
   end
 
   # Only add the :elixir_make compiler when the NIF build is opted-in
