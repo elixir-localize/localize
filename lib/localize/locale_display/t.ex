@@ -339,9 +339,6 @@ defmodule Localize.LocaleDisplay.T do
 
   defp capitalize_script(s), do: s
 
-  defp to_atom_safe(nil), do: nil
-  defp to_atom_safe(value) when is_atom(value), do: value
-
   defp to_atom_safe(value) when is_binary(value),
     do: Helpers.existing_atom(value) || String.to_atom(value)
 

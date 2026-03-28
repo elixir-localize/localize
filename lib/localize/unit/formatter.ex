@@ -220,7 +220,6 @@ defmodule Localize.Unit.Formatter do
   defp locale_id(_), do: :en
 
   defp safe_to_atom(string) when is_binary(string), do: Helpers.existing_atom(string) || string
-  defp safe_to_atom(atom) when is_atom(atom), do: atom
 
   defp locale_to_string(%Localize.LanguageTag{} = tag), do: Localize.LanguageTag.to_string(tag)
   defp locale_to_string(locale) when is_atom(locale), do: Atom.to_string(locale)

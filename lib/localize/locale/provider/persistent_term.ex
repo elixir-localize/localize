@@ -29,10 +29,10 @@ defmodule Localize.Locale.Provider.PersistentTerm do
     file cannot be found.
 
   """
-
   @env Mix.env()
 
   @impl Localize.Locale.Provider
+  @dialyzer {:nowarn_function, load: 1}
   def load(locale) do
     locale_id = to_locale_id(locale)
 
