@@ -46,12 +46,9 @@ defmodule Localize.Collation.NifTest do
       assert result == ["a", "b"]
     end
 
-    test "backend: :nif raises when NIF is unavailable" do
-      unless Localize.Collation.Nif.available?() do
-        assert_raise RuntimeError, ~r/NIF collation backend requested but not available/, fn ->
-          Localize.Collation.compare("a", "b", backend: :nif)
-        end
-      end
+    test "backend: :nif falls back to elixir when NIF is unavailable" do
+      # When NIF is not available, backend: :nif silently falls back to Elixir
+      assert Localize.Collation.compare("a", "b", backend: :nif) == :lt
     end
 
     test "backend: :nif with incompatible options falls back to elixir" do

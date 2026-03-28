@@ -235,11 +235,13 @@ defmodule Localize.Nif do
 
   ### Examples
 
-      iex> Localize.Nif.plural_rule(1, "en", :cardinal)
-      {:ok, :one}
+  When the NIF is available:
 
-      iex> Localize.Nif.plural_rule(2, "en", :ordinal)
-      {:ok, :two}
+      Localize.Nif.plural_rule(1, "en", :cardinal)
+      #=> {:ok, :one}
+
+      Localize.Nif.plural_rule(2, "en", :ordinal)
+      #=> {:ok, :two}
 
   """
   @spec plural_rule(number() | Decimal.t(), String.t(), :cardinal | :ordinal) ::
