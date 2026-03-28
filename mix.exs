@@ -57,7 +57,7 @@ defmodule Localize.MixProject do
       {:elixir_make, "~> 0.4", runtime: false, optional: true},
       {:sweet_xml, "~> 0.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
-      {:stream_data, "~> 1.0", only: :test},
+      {:stream_data, "~> 1.0", only: :test}
       # {:recompile_buster, "~> 0.1", only: [:dev, :test], runtime: false}
     ] ++ maybe_json_polyfill()
   end
