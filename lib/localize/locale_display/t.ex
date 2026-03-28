@@ -341,7 +341,9 @@ defmodule Localize.LocaleDisplay.T do
 
   defp to_atom_safe(nil), do: nil
   defp to_atom_safe(value) when is_atom(value), do: value
-  defp to_atom_safe(value) when is_binary(value), do: Helpers.existing_atom(value) || String.to_atom(value)
+
+  defp to_atom_safe(value) when is_binary(value),
+    do: Helpers.existing_atom(value) || String.to_atom(value)
 
   # CLDR 48.2: when key translation is missing, fall back to the
   # BCP47 key identifier string.

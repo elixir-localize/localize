@@ -110,7 +110,9 @@ defmodule Localize.FormatCache do
 
   defp sweep do
     if :ets.whereis(@table) != :undefined do
-      max_entries = Application.get_env(:localize, :format_cache_max_entries, @default_max_entries)
+      max_entries =
+        Application.get_env(:localize, :format_cache_max_entries, @default_max_entries)
+
       size = :ets.info(@table, :size)
 
       if size > max_entries do
