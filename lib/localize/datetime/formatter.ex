@@ -711,13 +711,19 @@ defmodule Localize.DateTime.Formatter do
     days_before + day
   end
 
-  defp iso_day(%{year: year, month: month, day: day, calendar: calendar}) do
-    {dow, _, _} = calendar.day_of_week(year, month, day, :monday)
+  defp iso_day(%{year: year, month: month, day: day, calendar: Calendar.ISO}) do
+    {dow, _, _} = Calendar.ISO.day_of_week(year, month, day, :monday)
     dow
-  rescue
-    _ ->
+  end
+
+  defp iso_day(%{year: year, month: month, day: day, calendar: calendar}) do
+    if function_exported?(calendar, :day_of_week, 4) do
+      {dow, _, _} = calendar.day_of_week(year, month, day, :monday)
+      dow
+    else
       {dow, _, _} = Calendar.ISO.day_of_week(year, month, day, :monday)
       dow
+    end
   end
 
   defp iso_day(%{year: year, month: month, day: day}) do

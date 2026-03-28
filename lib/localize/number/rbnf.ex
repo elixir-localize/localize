@@ -15,6 +15,7 @@ defmodule Localize.Number.Rbnf do
   """
 
   alias Localize.Number.Rbnf.Processor
+  alias Localize.Utils.Helpers
 
   @doc """
   Formats a number using RBNF rules.
@@ -151,9 +152,5 @@ defmodule Localize.Number.Rbnf do
   defp to_string_key(key) when is_atom(key), do: Atom.to_string(key)
   defp to_string_key(key) when is_binary(key), do: key
 
-  defp safe_to_atom(string) do
-    String.to_existing_atom(string)
-  rescue
-    ArgumentError -> nil
-  end
+  defp safe_to_atom(string), do: Helpers.existing_atom(string)
 end

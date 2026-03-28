@@ -71,8 +71,8 @@ defmodule Localize.Currency.Store do
           {:ok, Localize.Currency.t()} | {:error, Exception.t()}
   def put(%Localize.Currency{} = currency) do
     GenServer.call(__MODULE__, {:put, currency})
-  rescue
-    _error ->
+  catch
+    :exit, _reason ->
       {:error, Localize.CurrencyNotSavedError.exception(currency: currency.code)}
   end
 

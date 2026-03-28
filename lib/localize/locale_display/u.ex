@@ -146,9 +146,7 @@ defmodule Localize.LocaleDisplay.U do
   defp canonicalize_value(_field, value), do: value
 
   defp safe_to_atom(string) when is_binary(string) do
-    String.to_existing_atom(string)
-  rescue
-    ArgumentError -> string
+    Localize.Utils.Helpers.existing_atom(string) || string
   end
 
   # Returns the localized value when key_name is nil
@@ -249,13 +247,7 @@ defmodule Localize.LocaleDisplay.U do
   end
 
   defp get_territory(territory, display_names) when is_binary(territory) do
-    atom_territory =
-      try do
-        String.to_existing_atom(String.upcase(territory))
-      rescue
-        ArgumentError -> nil
-      end
-
+    atom_territory = Localize.Utils.Helpers.existing_atom(String.upcase(territory))
     if atom_territory, do: get_in(display_names, [:territory, atom_territory])
   end
 
@@ -270,18 +262,12 @@ defmodule Localize.LocaleDisplay.U do
   defp get_subdivision(subdivision, _locale_id, display_names) do
     sub_atom =
       if is_binary(subdivision) do
-        try do
-          String.to_existing_atom(subdivision)
-        rescue
-          ArgumentError -> nil
-        end
+        Localize.Utils.Helpers.existing_atom(subdivision)
       else
         subdivision
       end
 
-    if sub_atom do
-      get_in(display_names, [:subdivisions, sub_atom])
-    end
+    if sub_atom, do: get_in(display_names, [:subdivisions, sub_atom])
   end
 
   defp get_currency(currency, locale_id) when is_atom(currency) do
@@ -303,14 +289,7 @@ defmodule Localize.LocaleDisplay.U do
   end
 
   defp get_currency(currency, _locale_id) when is_binary(currency) do
-    upcase = String.upcase(currency)
-
-    atom_currency =
-      try do
-        String.to_existing_atom(upcase)
-      rescue
-        ArgumentError -> nil
-      end
+    atom_currency = Localize.Utils.Helpers.existing_atom(String.upcase(currency))
 
     if atom_currency do
       case Localize.Currency.currency_for_code(atom_currency) do

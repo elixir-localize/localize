@@ -260,8 +260,6 @@ defmodule Localize.Number.Rbnf.Processor do
       Map.get(all_rule_sets, String.to_atom(String.replace(name, "_", "-"))) ||
       (stripped != name && find_rule_set(all_rule_sets, stripped)) ||
       nil
-  rescue
-    _ -> nil
   end
 
   defp find_rule_set(all_rule_sets, name) when is_atom(name) do

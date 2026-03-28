@@ -1,6 +1,8 @@
 defmodule Localize.Unit.Formatter do
   @moduledoc false
 
+  alias Localize.Utils.Helpers
+
   import Kernel, except: [to_string: 1]
 
   # Formats a Localize.Unit struct into a localized string.
@@ -217,13 +219,7 @@ defmodule Localize.Unit.Formatter do
   defp locale_id(%Localize.LanguageTag{cldr_locale_id: id}) when not is_nil(id), do: id
   defp locale_id(_), do: :en
 
-  @dialyzer {:nowarn_function, safe_to_atom: 1}
-  defp safe_to_atom(string) when is_binary(string) do
-    String.to_existing_atom(string)
-  rescue
-    ArgumentError -> string
-  end
-
+  defp safe_to_atom(string) when is_binary(string), do: Helpers.existing_atom(string) || string
   defp safe_to_atom(atom) when is_atom(atom), do: atom
 
   defp locale_to_string(%Localize.LanguageTag{} = tag), do: Localize.LanguageTag.to_string(tag)

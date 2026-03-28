@@ -622,6 +622,7 @@ defmodule Localize.Message.Interpreter do
   # ── Number option mapping ──────────────────────────────────────
 
   alias Localize.Number.Format.Options, as: NumberOptions
+  alias Localize.Utils.Helpers
 
   defp set_number_pattern(options_struct, number) when is_number(number) and number < 0 do
     %{options_struct | pattern: :negative}
@@ -750,12 +751,12 @@ defmodule Localize.Message.Interpreter do
         Localize.Number.System.number_system_from_locale(locale)
 
       system ->
-        case safe_string_to_atom(system) do
-          {:ok, atom} ->
-            Localize.Number.System.system_name_from(atom, locale)
-
-          {:error, :not_existing} ->
+        case Helpers.existing_atom(system) do
+          nil ->
             {:error, "unknown numbering system #{inspect(system)}"}
+
+          atom ->
+            Localize.Number.System.system_name_from(atom, locale)
         end
     end
   end
@@ -1046,10 +1047,7 @@ defmodule Localize.Message.Interpreter do
   defp format_error_reason(reason) when is_binary(reason), do: reason
 
   defp option_key(name) do
-    case safe_string_to_atom(name) do
-      {:ok, atom} -> atom
-      {:error, :not_existing} -> name
-    end
+    Helpers.existing_atom(name) || name
   end
 
   defp get_integer_option(func_opts, key) do
@@ -1075,13 +1073,7 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp atom_key_exists?(name) do
-    match?({:ok, _}, safe_string_to_atom(name))
-  end
-
-  defp safe_string_to_atom(name) do
-    {:ok, String.to_existing_atom(name)}
-  rescue
-    ArgumentError -> {:error, :not_existing}
+    Helpers.existing_atom(name) != nil
   end
 
   defp parse_number(str) when is_binary(str) do

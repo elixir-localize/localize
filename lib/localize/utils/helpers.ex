@@ -52,4 +52,29 @@ defmodule Localize.Utils.Helpers do
   def put_term(key, value) do
     :persistent_term.put(key, value)
   end
+
+  @doc """
+  Converts a string to an existing atom, returning `nil` if the atom
+  does not already exist in the atom table.
+
+  This is the safe alternative to `String.to_existing_atom/1` that
+  avoids using `try/rescue` as control flow.
+
+  ### Arguments
+
+  * `string` is a binary string.
+
+  ### Returns
+
+  * The atom if it exists, or `nil` otherwise.
+
+  """
+  @spec existing_atom(String.t()) :: atom() | nil
+  def existing_atom(string) when is_binary(string) do
+    :erlang.binary_to_existing_atom(string, :utf8)
+  rescue
+    ArgumentError -> nil
+  end
+
+  def existing_atom(_), do: nil
 end

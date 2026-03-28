@@ -999,18 +999,22 @@ defmodule Localize do
   end
 
   defp locale_cache_lookup(cache_key) do
-    case :ets.lookup(@locale_cache_table, cache_key) do
-      [{^cache_key, result}] -> result
-      [] -> :miss
+    if :ets.whereis(@locale_cache_table) != :undefined do
+      case :ets.lookup(@locale_cache_table, cache_key) do
+        [{^cache_key, result}] -> result
+        [] -> :miss
+      end
+    else
+      :miss
     end
-  rescue
-    ArgumentError -> :miss
   end
 
   defp locale_cache_store(cache_key, {:ok, _tag} = result) do
-    :ets.insert(@locale_cache_table, {cache_key, result})
-  rescue
-    ArgumentError -> :ok
+    if :ets.whereis(@locale_cache_table) != :undefined do
+      :ets.insert(@locale_cache_table, {cache_key, result})
+    end
+
+    :ok
   end
 
   defp locale_cache_store(_cache_key, {:error, _}), do: :ok

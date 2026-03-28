@@ -84,14 +84,14 @@ defmodule Localize.Locale.CacheSweeper do
   end
 
   defp sweep do
-    max_entries = Application.get_env(:localize, :locale_cache_max_entries, 1_000)
-    size = :ets.info(@table, :size)
+    if :ets.whereis(@table) != :undefined do
+      max_entries = Application.get_env(:localize, :locale_cache_max_entries, 1_000)
+      size = :ets.info(@table, :size)
 
-    if size > max_entries do
-      evict_random(size - max_entries)
+      if size > max_entries do
+        evict_random(size - max_entries)
+      end
     end
-  rescue
-    ArgumentError -> :ok
   end
 
   defp evict_random(count) when count <= 0, do: :ok

@@ -1,4 +1,5 @@
 defmodule Localize.Gettext.Interpolation do
+  alias Localize.Utils.Helpers
   @moduledoc """
   Gettext interpolation module for ICU MessageFormat 2 (MF2) messages.
 
@@ -108,12 +109,7 @@ defmodule Localize.Gettext.Interpolation do
     end)
   end
 
-  defp safe_to_atom(name) when is_binary(name) do
-    String.to_existing_atom(name)
-  rescue
-    ArgumentError -> String.to_atom(name)
-  end
-
+  defp safe_to_atom(name) when is_binary(name), do: Helpers.existing_atom(name) || String.to_atom(name)
   defp safe_to_atom(name) when is_atom(name), do: name
 
   @doc false

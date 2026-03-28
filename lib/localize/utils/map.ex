@@ -34,6 +34,8 @@ defmodule Localize.Utils.Map do
 
   """
 
+  alias Localize.Utils.Helpers
+
   @doc """
   Returns an argument unchanged.
 
@@ -1100,9 +1102,7 @@ defmodule Localize.Utils.Map do
   end
 
   defp atomize_key({k, v}, %{only_existing: true}) when is_binary(k) do
-    {String.to_existing_atom(k), v}
-  rescue
-    ArgumentError -> {k, v}
+    {Helpers.existing_atom(k) || k, v}
   end
 
   defp atomize_key({k, v}, %{only_existing: false}) when is_binary(k) do
@@ -1114,9 +1114,7 @@ defmodule Localize.Utils.Map do
   end
 
   defp atomize_value({k, v}, %{only_existing: true}) when is_binary(v) do
-    {k, String.to_existing_atom(v)}
-  rescue
-    ArgumentError -> {k, v}
+    {k, Helpers.existing_atom(v) || v}
   end
 
   defp atomize_value({k, v}, %{only_existing: false}) when is_binary(v) do

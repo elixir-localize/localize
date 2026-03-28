@@ -1,6 +1,8 @@
 defmodule Localize.LocaleDisplay.T do
   @moduledoc false
 
+  alias Localize.Utils.Helpers
+
   import Localize.LocaleDisplay,
     only: [get_display_preference: 2, join_field_values: 2, replace_parens_with_brackets: 1]
 
@@ -108,16 +110,10 @@ defmodule Localize.LocaleDisplay.T do
     # hyphens to underscores and atomize for type key lookup.
     value
     |> String.replace("-", "_")
-    |> safe_to_atom()
+    |> then(&(Helpers.existing_atom(&1) || &1))
   end
 
   defp canonicalize_value(_field, value), do: value
-
-  defp safe_to_atom(string) when is_binary(string) do
-    String.to_existing_atom(string)
-  rescue
-    ArgumentError -> string
-  end
 
   defp display_value(
          :language,
@@ -343,15 +339,9 @@ defmodule Localize.LocaleDisplay.T do
 
   defp capitalize_script(s), do: s
 
-  @dialyzer {:nowarn_function, to_atom_safe: 1}
   defp to_atom_safe(nil), do: nil
   defp to_atom_safe(value) when is_atom(value), do: value
-
-  defp to_atom_safe(value) when is_binary(value) do
-    String.to_existing_atom(value)
-  rescue
-    ArgumentError -> String.to_atom(value)
-  end
+  defp to_atom_safe(value) when is_binary(value), do: Helpers.existing_atom(value) || String.to_atom(value)
 
   # CLDR 48.2: when key translation is missing, fall back to the
   # BCP47 key identifier string.

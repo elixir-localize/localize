@@ -76,6 +76,11 @@ defmodule Localize.Locale.Loader do
   def handle_call({:load_and_store, locale, provider}, _from, state) do
     # Double-check inside the serialized context — another
     # request may have loaded it while we were queued.
+    #
+    # The try/rescue here is a system boundary guard: provider.load/1
+    # may call into external data generation code that can raise for
+    # invalid locales. Without this protection the GenServer would
+    # crash and become unavailable for subsequent valid requests.
     result =
       if provider.loaded?(locale) do
         :ok

@@ -133,10 +133,12 @@ defmodule Localize.Number.Formatter.Decimal do
   end
 
   defp multiply_by_factor(number, %{multiplier: factor}) when is_number(number) do
-    number * factor
-  rescue
-    ArithmeticError ->
-      Decimal.mult(Decimal.from_float(number / 1.0), Decimal.new(factor))
+    # Use Decimal for large floats to avoid ArithmeticError overflow
+    if is_float(number) and (abs(number) > 1.0e300 or abs(factor) > 1.0e300) do
+      Decimal.mult(Decimal.from_float(number), Decimal.new(factor))
+    else
+      number * factor
+    end
   end
 
   defp round_to_significant_digits(number, %{significant_digits: %{min: 0, max: 0}}) do

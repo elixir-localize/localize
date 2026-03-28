@@ -268,13 +268,11 @@ defmodule Localize.Utils.Math do
 
   """
   def maybe_integer(%Decimal{} = number) do
-    Decimal.to_integer(number)
-  rescue
-    FunctionClauseError ->
+    if Decimal.integer?(number) do
+      Decimal.to_integer(number)
+    else
       number
-
-    ArgumentError ->
-      number
+    end
   end
 
   def maybe_integer(number) when is_float(number) do

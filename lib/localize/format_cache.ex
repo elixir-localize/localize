@@ -39,12 +39,14 @@ defmodule Localize.FormatCache do
   """
   @spec lookup(term()) :: {:ok, term()} | :miss
   def lookup(key) do
-    case :ets.lookup(@table, key) do
-      [{^key, value}] -> {:ok, value}
-      [] -> :miss
+    if :ets.whereis(@table) != :undefined do
+      case :ets.lookup(@table, key) do
+        [{^key, value}] -> {:ok, value}
+        [] -> :miss
+      end
+    else
+      :miss
     end
-  rescue
-    ArgumentError -> :miss
   end
 
   @doc """
@@ -63,10 +65,11 @@ defmodule Localize.FormatCache do
   """
   @spec store(term(), term()) :: :ok
   def store(key, value) do
-    :ets.insert(@table, {key, value})
+    if :ets.whereis(@table) != :undefined do
+      :ets.insert(@table, {key, value})
+    end
+
     :ok
-  rescue
-    ArgumentError -> :ok
   end
 
   # ── GenServer (sweeper) ─────────────────────────────────────
@@ -106,14 +109,14 @@ defmodule Localize.FormatCache do
   end
 
   defp sweep do
-    max_entries = Application.get_env(:localize, :format_cache_max_entries, @default_max_entries)
-    size = :ets.info(@table, :size)
+    if :ets.whereis(@table) != :undefined do
+      max_entries = Application.get_env(:localize, :format_cache_max_entries, @default_max_entries)
+      size = :ets.info(@table, :size)
 
-    if size > max_entries do
-      evict_random(size - max_entries)
+      if size > max_entries do
+        evict_random(size - max_entries)
+      end
     end
-  rescue
-    ArgumentError -> :ok
   end
 
   defp evict_random(count) when count <= 0, do: :ok
