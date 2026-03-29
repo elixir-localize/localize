@@ -262,26 +262,26 @@ defmodule Localize.DateTime.Timezone do
   # This is a simplified mapping covering the most common zones.
   # A full implementation would load this from CLDR supplemental data.
   @zone_to_metazone %{
-    "America/New_York" => "america_eastern",
-    "America/Chicago" => "america_central",
-    "America/Denver" => "america_mountain",
-    "America/Los_Angeles" => "america_pacific",
-    "America/Anchorage" => "alaska",
-    "Pacific/Honolulu" => "hawaii_aleutian",
-    "Europe/London" => "gmt",
-    "Europe/Paris" => "europe_central",
-    "Europe/Berlin" => "europe_central",
-    "Europe/Moscow" => "moscow",
-    "Asia/Tokyo" => "japan",
-    "Asia/Shanghai" => "china",
-    "Asia/Kolkata" => "india",
-    "Asia/Dubai" => "gulf",
-    "Australia/Sydney" => "australia_eastern",
-    "Australia/Melbourne" => "australia_eastern",
-    "Australia/Perth" => "australia_western",
-    "Etc/UTC" => "gmt",
-    "Etc/GMT" => "gmt",
-    "UTC" => "gmt"
+    "America/New_York" => :america_eastern,
+    "America/Chicago" => :america_central,
+    "America/Denver" => :america_mountain,
+    "America/Los_Angeles" => :america_pacific,
+    "America/Anchorage" => :alaska,
+    "Pacific/Honolulu" => :hawaii_aleutian,
+    "Europe/London" => :gmt,
+    "Europe/Paris" => :europe_central,
+    "Europe/Berlin" => :europe_central,
+    "Europe/Moscow" => :moscow,
+    "Asia/Tokyo" => :japan,
+    "Asia/Shanghai" => :china,
+    "Asia/Kolkata" => :india,
+    "Asia/Dubai" => :gulf,
+    "Australia/Sydney" => :australia_eastern,
+    "Australia/Melbourne" => :australia_eastern,
+    "Australia/Perth" => :australia_western,
+    "Etc/UTC" => :gmt,
+    "Etc/GMT" => :gmt,
+    "UTC" => :gmt
   }
 
   # # non_location_format/3

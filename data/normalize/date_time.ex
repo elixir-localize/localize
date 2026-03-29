@@ -103,7 +103,12 @@ defmodule Localize.Data.Normalize.DateTime do
     tz = content["time_zone_names"]
 
     if is_map(tz) do
-      Map.put(content, "time_zone_names", deep_atomize_structural(tz))
+      atomized =
+        tz
+        |> deep_atomize_structural()
+        |> atomize_tz_data_keys()
+
+      Map.put(content, "time_zone_names", atomized)
     else
       content
     end
@@ -120,6 +125,37 @@ defmodule Localize.Data.Normalize.DateTime do
   end
 
   defp deep_atomize_structural(other), do: other
+
+  # Atomize data keys within :zone (two levels: region → city)
+  # and :metazone (one level: metazone name).
+  defp atomize_tz_data_keys(tz) do
+    tz
+    |> maybe_update(:zone, &atomize_zone_data_keys/1)
+    |> maybe_update(:metazone, &atomize_all_keys/1)
+  end
+
+  defp maybe_update(map, key, fun) do
+    case Map.get(map, key) do
+      nil -> map
+      data -> Map.put(map, key, fun.(data))
+    end
+  end
+
+  defp atomize_zone_data_keys(zone) when is_map(zone) do
+    Map.new(zone, fn {region, cities} ->
+      atomized_cities =
+        if is_map(cities), do: atomize_all_keys(cities), else: cities
+
+      {to_atom(region), atomized_cities}
+    end)
+  end
+
+  defp atomize_all_keys(map) when is_map(map) do
+    Map.new(map, fn {k, v} -> {to_atom(k), v} end)
+  end
+
+  defp to_atom(k) when is_atom(k), do: k
+  defp to_atom(k) when is_binary(k), do: String.to_atom(k)
 
   defp hoist(content, key) do
     calendars =

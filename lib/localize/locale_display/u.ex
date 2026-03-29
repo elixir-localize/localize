@@ -346,14 +346,14 @@ defmodule Localize.LocaleDisplay.U do
   end
 
   # Look up an explicit exemplar city in the zone data.
-  # The zone data is structured as %{"america" => %{"los_angeles" => %{city: "Los Angeles"}, ...}}
+  # The zone data is structured as %{america: %{los_angeles: %{city: "Los Angeles"}, ...}}
   defp find_exemplar_city(iana_id, tz_data) do
     zone = Map.get(tz_data, :zone, %{})
 
     case String.split(iana_id, "/", parts: 2) do
       [region, city] ->
-        region_key = String.downcase(region)
-        city_key = city |> String.downcase() |> String.replace(" ", "_")
+        region_key = region |> String.downcase() |> String.to_atom()
+        city_key = city |> String.downcase() |> String.replace(" ", "_") |> String.to_atom()
 
         case get_in(zone, [region_key, city_key]) do
           %{city: city_name} -> city_name

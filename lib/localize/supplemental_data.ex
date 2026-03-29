@@ -247,6 +247,20 @@ defmodule Localize.SupplementalData do
   end
 
   @doc """
+  Returns the CLDR calendar definitions including era data.
+
+  Each key is a calendar type atom (e.g., `:gregorian`, `:japanese`)
+  and each value is a map containing `:eras` (list of era definitions),
+  optional `:calendar_system` (`:solar`, `:lunar`, `:lunisolar`, `:other`),
+  and optional `:inherit_eras`.
+
+  """
+  @spec calendars() :: map()
+  def calendars do
+    load_supplemental("calendars.etf")
+  end
+
+  @doc """
   Returns the list of all known territory atoms.
 
   """

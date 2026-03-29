@@ -125,10 +125,10 @@ defmodule Localize.LocaleDisplay.T do
          prefer,
          language_display
        ) do
-    h0 = get_field(transform, :h0) || Map.get(transform, "h0")
+    h0 = get_field(transform, :h0)
 
     key_name =
-      if h0 == :hybrid or h0 == "hybrid" do
+      if h0 == :hybrid do
         get_in(display_names, [:types, :h0, :hybrid])
       else
         nil

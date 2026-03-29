@@ -220,6 +220,61 @@ defmodule Localize.Calendar do
   end
 
   @doc """
+  Returns the cyclic year names for a locale and calendar type.
+
+  Cyclic year names are used by some calendar systems (such as
+  Chinese and Dangi) that follow a 60-year cycle of named years.
+
+  ### Arguments
+
+  * `locale` is a locale identifier atom, string, or
+    `t:Localize.LanguageTag.t/0`.
+
+  * `calendar_type` is a CLDR calendar type atom. The default
+    is `:gregorian`.
+
+  ### Returns
+
+  * `{:ok, cyclic_year_data}` where `cyclic_year_data` is a map
+    of cyclic name sets.
+
+  * `{:error, exception}` if the locale or calendar is not found.
+
+  """
+  @spec cyclic_years(Localize.locale(), atom()) :: {:ok, map()} | {:error, Exception.t()}
+  def cyclic_years(locale, calendar_type \\ @default_calendar_type) do
+    get_calendar_data(locale, calendar_type, :cyclic_name_sets)
+  end
+
+  @doc """
+  Returns the month pattern data for a locale and calendar type.
+
+  Month patterns are used by some calendar systems (such as
+  Chinese and Hebrew) that have leap months. The patterns define
+  how to format month names in leap and non-leap contexts.
+
+  ### Arguments
+
+  * `locale` is a locale identifier atom, string, or
+    `t:Localize.LanguageTag.t/0`.
+
+  * `calendar_type` is a CLDR calendar type atom. The default
+    is `:gregorian`.
+
+  ### Returns
+
+  * `{:ok, month_pattern_data}` where `month_pattern_data` is a map
+    of month patterns keyed by context and format width.
+
+  * `{:error, exception}` if the locale or calendar is not found.
+
+  """
+  @spec month_patterns(Localize.locale(), atom()) :: {:ok, map()} | {:error, Exception.t()}
+  def month_patterns(locale, calendar_type \\ @default_calendar_type) do
+    get_calendar_data(locale, calendar_type, :month_patterns)
+  end
+
+  @doc """
   Returns the acceptable CLDR calendar types.
 
   ### Returns

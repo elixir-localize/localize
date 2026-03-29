@@ -67,8 +67,8 @@ defmodule Localize.Data.Normalize.Rbnf do
     |> Map.new()
   end
 
-  defp access_from_set(<<"%%", _rest::binary>>), do: "private"
-  defp access_from_set(_), do: "public"
+  defp access_from_set(<<"%%", _rest::binary>>), do: :private
+  defp access_from_set(_), do: :public
 
   defp rules_from(rules) do
     Enum.map(rules, fn [name, rule] ->

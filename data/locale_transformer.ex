@@ -137,4 +137,5 @@ defmodule Localize.Data.LocaleTransformer do
       {key, value} when is_binary(key) -> {String.to_atom(key), value}
     end)
   end
+
 end

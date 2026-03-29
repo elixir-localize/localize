@@ -87,7 +87,7 @@ defmodule Localize.Number.Rbnf do
         |> Enum.map(&to_string_key/1)
         |> Enum.filter(fn name ->
           rule_set = all_rule_sets[name] || all_rule_sets[String.to_atom(name)]
-          rule_set && Map.get(rule_set, :access, "public") == "public"
+          rule_set && Map.get(rule_set, :access, :public) == :public
         end)
 
       {:ok, names}
@@ -129,7 +129,7 @@ defmodule Localize.Number.Rbnf do
         Map.get(all_rule_sets, safe_to_atom(String.replace(rule_name_str, "-", "_")))
 
     if rule_set do
-      {:ok, %{rules: extract_rules(rule_set), access: Map.get(rule_set, :access, "public")}}
+      {:ok, %{rules: extract_rules(rule_set), access: Map.get(rule_set, :access, :public)}}
     else
       {:error,
        Localize.InvalidValueError.exception(
