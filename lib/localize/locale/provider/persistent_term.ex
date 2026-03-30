@@ -50,9 +50,9 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
         {:ok, locale_data}
 
-      @env in [:test, :dev] ->
+      Enum.any?([:test, :dev], &(&1 == @env)) ->
         locale_string = to_string(locale)
-        locale_data = Localize.Data.Locale.generate_and_transform(locale_string)
+        locale_data = apply(Localize.Data.Locale, :generate_and_transform, [locale_string])
         {:ok, locale_data}
 
       true ->
