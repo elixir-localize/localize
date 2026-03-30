@@ -90,6 +90,18 @@ CLDR 48.2 formalizes nested bracket replacement as structured data. Our current 
 
 * [ ] MF2 JSON interchange format (`Localize.Message.JSON`) — requires `:json` module (OTP 27+). Decide fallback strategy for OTP 26.
 
+### Unicode version alignment
+
+Elixir, OTP, and CLDR each ship with their own Unicode version. When these versions differ, string operations (NFC normalization, grapheme breaking, case mapping) may produce subtly different results depending on whether they use the OTP/Elixir Unicode tables or the CLDR Unicode data. Today they do not all match. Investigate whether we can:
+
+* [ ] Document which Unicode version each component uses (OTP 28 = Unicode 16.0, Elixir 1.19 = Unicode 16.0, CLDR 48 = Unicode 16.0 — but older OTP/Elixir combinations use earlier Unicode versions).
+
+* [ ] Identify code paths where Unicode version mismatches could produce incorrect results (e.g., NFC normalization in MF2 `name` parsing, collation combining class lookups, character category checks in `Localize.Collation.Numeric`).
+
+* [ ] Evaluate whether the `unicode` library dependency (which has its own Unicode version) should be version-pinned to match the CLDR Unicode version, or whether we can rely on OTP's built-in Unicode support for OTP 28+.
+
+* [ ] Consider conditional compilation that uses OTP's `:unicode` module directly on OTP 28+ (Unicode 16.0) and falls back to the `unicode` library on older OTP versions.
+
 ## Future enhancements
 
 ### Digital token (cryptocurrency) support
