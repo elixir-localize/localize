@@ -7,7 +7,7 @@ defmodule Localize.LocaleDisplayTest do
   doctest Localize.LocaleDisplay
 
   # ── ICU Data-Driven Tests ──────────────────────────────────────
-
+  # if System.otp_release() >= "28" do
   # Lines with known data issues or unsupported features
   @invalid_test_results [41, 2530, 2527, 2528, 2531]
   @unexpected_root_locale_results [2517, 2512, 2525, 2518, 2515, 2513, 2526, 2514]
@@ -61,35 +61,33 @@ defmodule Localize.LocaleDisplayTest do
   # Locales with data formatting issues
   @except_format_for_locales ["hi-Latn", "zh-Hans", "zh-Hant", "zh-Hans-fonipa"]
 
-  if System.otp_release() >= "28" do
-    for [line, locale, language_display, from, to] <-
-          Localize.LocaleDisplayNameGenerator.data(),
-        line not in @except_lines,
-        from not in @except_format_for_locales do
-      @tag {:locale_display_icu, line}
-      test "ICU ##{line} #{inspect(from)} => #{inspect(to)} in #{inspect(locale)}" do
-        result =
-          Localize.LocaleDisplay.display_name(
-            unquote(from),
-            locale: unquote(locale),
-            language_display: unquote(language_display)
+  for [line, locale, language_display, from, to] <-
+        Localize.LocaleDisplayNameGenerator.data(),
+      line not in @except_lines,
+      from not in @except_format_for_locales do
+    @tag locale_display_icu: line
+    test "ICU ##{line} #{inspect(from)} => #{inspect(to)} in #{inspect(locale)}" do
+      result =
+        Localize.LocaleDisplay.display_name(
+          unquote(from),
+          locale: unquote(locale),
+          language_display: unquote(language_display)
+        )
+
+      case result do
+        {:ok, actual} ->
+          assert actual == unquote(to),
+                 "Line #{unquote(line)}: expected #{inspect(unquote(to))}, got #{inspect(actual)}"
+
+        {:error, _} ->
+          flunk(
+            "Line #{unquote(line)}: display_name returned error for #{inspect(unquote(from))}"
           )
-
-        case result do
-          {:ok, actual} ->
-            assert actual == unquote(to),
-                   "Line #{unquote(line)}: expected #{inspect(unquote(to))}, got #{inspect(actual)}"
-
-          {:error, _} ->
-            flunk(
-              "Line #{unquote(line)}: display_name returned error for #{inspect(unquote(from))}"
-            )
-        end
       end
     end
   end
 
-  # if OTP 28+
+  # end
 
   describe "display_name/2 basic formatting" do
     test "simple language" do
