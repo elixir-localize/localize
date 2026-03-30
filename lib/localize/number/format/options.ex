@@ -66,6 +66,8 @@ defmodule Localize.Number.Format.Options do
 
   @type t :: %__MODULE__{}
 
+  @currency_indicator "¤"
+
   # # Returns the default options for number formatting.
   # #
   # # These serve as the base options that user-supplied
@@ -143,7 +145,7 @@ defmodule Localize.Number.Format.Options do
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, system_name} <- resolve_number_system(language_tag, number_system),
-         {:ok, currency_struct} <- resolve_currency(currency, language_tag),
+         {:ok, currency_struct} <- resolve_currency(format, currency, language_tag),
          format <- maybe_switch_currency_format(format, currency_struct, language_tag),
          :ok <- validate_rounding_mode(rounding_mode),
          {:ok, symbols} <- resolve_symbols(language_tag, system_name),
@@ -208,20 +210,35 @@ defmodule Localize.Number.Format.Options do
 
   # ── Currency resolution ─────────────────────────────────────
 
-  defp resolve_currency(nil, %Localize.LanguageTag{locale: %{cu: cu}} = language_tag)
-       when not is_nil(cu) do
-    # Resolve -u-cu- extension from the locale tag
-    Localize.Currency.currency_for_code(cu, locale: language_tag)
+  defp resolve_currency(_format, %Localize.Currency{} = currency, _language_tag) do
+    {:ok, currency}
   end
 
-  defp resolve_currency(nil, _language_tag), do: {:ok, nil}
+  defp resolve_currency(:currency, nil, %Localize.LanguageTag{} = language_tag) do
+    with {:ok, code} <- Localize.Currency.currency_from_locale(language_tag) do
+      Localize.Currency.currency_for_code(code, locale: language_tag)
+    end
+  end
 
-  defp resolve_currency(%Localize.Currency{} = c, _language_tag), do: {:ok, c}
+  defp resolve_currency(format, nil, %Localize.LanguageTag{} = language_tag)
+       when is_binary(format) do
+    if String.contains?(format, @currency_indicator) do
+      with {:ok, code} <- Localize.Currency.currency_from_locale(language_tag) do
+        Localize.Currency.currency_for_code(code, locale: language_tag)
+      end
+    else
+      {:ok, nil}
+    end
+  end
 
-  defp resolve_currency(currency, language_tag) do
+  defp resolve_currency(_, currency, language_tag) when not is_nil(currency) do
     with {:ok, code} <- Localize.Currency.validate_currency(currency) do
       Localize.Currency.currency_for_code(code, locale: language_tag)
     end
+  end
+
+  defp resolve_currency(_format, _currency, _language_tag) do
+    {:ok, nil}
   end
 
   # ── Format auto-switch ──────────────────────────────────────
