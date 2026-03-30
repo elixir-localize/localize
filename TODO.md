@@ -92,6 +92,14 @@ CLDR 48.2 formalizes nested bracket replacement as structured data. Our current 
 
 ## Future enhancements
 
+### Digital token (cryptocurrency) support
+
+ex_cldr supports BTC and other digital tokens via the `digital_token` library which maps ISO 24165 digital token identifiers to currency data. Localize does not currently integrate this library.
+
+* [ ] Evaluate whether to integrate `digital_token` as an optional dependency or embed the token data directly.
+
+* [ ] Add currency data for digital tokens (BTC, ETH, etc.) so they can be formatted with `Localize.Number.to_string/2`.
+
 ### Custom/additional unit registration
 
 ex_cldr_units supports runtime registration of custom units. Implementing this in Localize would require:

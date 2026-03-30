@@ -151,6 +151,13 @@ defmodule Localize.Number.Format.Options do
       currency_symbol = resolve_currency_symbol(currency_struct, options[:currency_symbol])
       currency_spacing = resolve_currency_spacing(currency_struct, formats)
       pattern = if negative?(number), do: :negative, else: :positive
+      currency_digits = Keyword.get(options, :currency_digits, :accounting)
+
+      # For standard currency formats (not custom pattern strings),
+      # set fractional_digits from the currency when not explicitly provided.
+      fractional_digits =
+        Keyword.get(options, :fractional_digits) ||
+          default_currency_fractional_digits(format, currency_struct, currency_digits)
 
       # Build struct from the options keyword list (passthrough fields)
       # then overlay the resolved values
@@ -165,7 +172,8 @@ defmodule Localize.Number.Format.Options do
           rounding_mode: rounding_mode || :half_even,
           currency_symbol: currency_symbol,
           currency_spacing: currency_spacing,
-          currency_digits: Keyword.get(options, :currency_digits, :accounting),
+          currency_digits: currency_digits,
+          fractional_digits: fractional_digits,
           pattern: pattern
         })
 
@@ -200,7 +208,14 @@ defmodule Localize.Number.Format.Options do
 
   # ── Currency resolution ─────────────────────────────────────
 
+  defp resolve_currency(nil, %Localize.LanguageTag{locale: %{cu: cu}} = language_tag)
+       when not is_nil(cu) do
+    # Resolve -u-cu- extension from the locale tag
+    Localize.Currency.currency_for_code(cu, locale: language_tag)
+  end
+
   defp resolve_currency(nil, _language_tag), do: {:ok, nil}
+
   defp resolve_currency(%Localize.Currency{} = c, _language_tag), do: {:ok, c}
 
   defp resolve_currency(currency, language_tag) do
@@ -282,6 +297,42 @@ defmodule Localize.Number.Format.Options do
   defp resolve_format(format, _language_tag, _system_name) do
     {:ok, format, nil}
   end
+
+  # ── Currency symbol resolution ──────────────────────────────
+
+  # ── Currency fractional digits ─────────────────────────────
+
+  # Set default fractional digits from the currency data when the
+  # format is a standard currency format (atom like :currency,
+  # :accounting, etc.) and the user hasn't explicitly provided
+  # fractional_digits. Custom format strings keep their own
+  # fractional digit specification from the pattern.
+  @currency_fraction_formats [
+    :currency,
+    :accounting,
+    :standard,
+    :currency_no_symbol,
+    :accounting_no_symbol,
+    :currency_alpha_next_to_number,
+    :accounting_alpha_next_to_number
+  ]
+
+  defp default_currency_fractional_digits(format, %Localize.Currency{} = currency, :accounting)
+       when format in @currency_fraction_formats do
+    currency.digits
+  end
+
+  defp default_currency_fractional_digits(format, %Localize.Currency{} = currency, :cash)
+       when format in @currency_fraction_formats do
+    currency.cash_digits
+  end
+
+  defp default_currency_fractional_digits(format, %Localize.Currency{} = currency, :iso)
+       when format in @currency_fraction_formats do
+    currency.iso_digits
+  end
+
+  defp default_currency_fractional_digits(_format, _currency, _currency_digits), do: nil
 
   # ── Currency symbol resolution ──────────────────────────────
 
