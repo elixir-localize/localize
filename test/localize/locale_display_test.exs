@@ -7,87 +7,88 @@ defmodule Localize.LocaleDisplayTest do
   doctest Localize.LocaleDisplay
 
   # ── ICU Data-Driven Tests ──────────────────────────────────────
-  # if System.otp_release() >= "28" do
-  # Lines with known data issues or unsupported features
-  @invalid_test_results [41, 2530, 2527, 2528, 2531]
-  @unexpected_root_locale_results [2517, 2512, 2525, 2518, 2515, 2513, 2526, 2514]
+  if System.otp_release() >= "28" do
+    # Lines with known data issues or unsupported features
+    @invalid_test_results [41, 2530, 2527, 2528, 2531]
+    @unexpected_root_locale_results [2517, 2512, 2525, 2518, 2515, 2513, 2526, 2514]
 
-  # Features not yet implemented:
-  # - uu attribute display in U extension (47)
-  # - variant display in T extension for certain locales (ka, ko, kk)
-  # - root locale: no translations, raw subtag codes expected
-  @not_yet_implemented [
-    47,
-    627,
-    631,
-    646,
-    650,
-    2223,
-    2227,
-    2242,
-    2246,
-    2451,
-    2455,
-    2470,
-    2474,
-    3514,
-    3515,
-    3516,
-    3517,
-    3518,
-    3519,
-    3520,
-    3521,
-    3522,
-    3524,
-    3525,
-    3526,
-    3533,
-    3534,
-    3535,
-    3536,
-    3537,
-    3538,
-    3539,
-    3540,
-    3541,
-    3543,
-    3544,
-    3545
-  ]
+    # Features not yet implemented:
+    # - uu attribute display in U extension (47)
+    # - variant display in T extension for certain locales (ka, ko, kk)
+    # - root locale: no translations, raw subtag codes expected
+    @not_yet_implemented [
+      47,
+      627,
+      631,
+      646,
+      650,
+      2223,
+      2227,
+      2242,
+      2246,
+      2451,
+      2455,
+      2470,
+      2474,
+      3514,
+      3515,
+      3516,
+      3517,
+      3518,
+      3519,
+      3520,
+      3521,
+      3522,
+      3524,
+      3525,
+      3526,
+      3533,
+      3534,
+      3535,
+      3536,
+      3537,
+      3538,
+      3539,
+      3540,
+      3541,
+      3543,
+      3544,
+      3545
+    ]
 
-  @except_lines @invalid_test_results ++ @unexpected_root_locale_results ++ @not_yet_implemented
+    @except_lines @invalid_test_results ++ @unexpected_root_locale_results ++ @not_yet_implemented
 
-  # Locales with data formatting issues
-  @except_format_for_locales ["hi-Latn", "zh-Hans", "zh-Hant", "zh-Hans-fonipa"]
+    # Locales with data formatting issues
+    @except_format_for_locales ["hi-Latn", "zh-Hans", "zh-Hant", "zh-Hans-fonipa"]
 
-  for [line, locale, language_display, from, to] <-
-        Localize.LocaleDisplayNameGenerator.data(),
-      line not in @except_lines,
-      from not in @except_format_for_locales do
-    @tag locale_display_icu: line
-    test "ICU ##{line} #{inspect(from)} => #{inspect(to)} in #{inspect(locale)}" do
-      result =
-        Localize.LocaleDisplay.display_name(
-          unquote(from),
-          locale: unquote(locale),
-          language_display: unquote(language_display)
-        )
-
-      case result do
-        {:ok, actual} ->
-          assert actual == unquote(to),
-                 "Line #{unquote(line)}: expected #{inspect(unquote(to))}, got #{inspect(actual)}"
-
-        {:error, _} ->
-          flunk(
-            "Line #{unquote(line)}: display_name returned error for #{inspect(unquote(from))}"
+    for [line, locale, language_display, from, to] <-
+          Localize.LocaleDisplayNameGenerator.data(),
+        line not in @except_lines,
+        from not in @except_format_for_locales do
+      @tag locale_display_icu: line
+      test "ICU ##{line} #{inspect(from)} => #{inspect(to)} in #{inspect(locale)}" do
+        result =
+          Localize.LocaleDisplay.display_name(
+            unquote(from),
+            locale: unquote(locale),
+            language_display: unquote(language_display)
           )
+
+        case result do
+          {:ok, actual} ->
+            assert actual == unquote(to),
+                   "Line #{unquote(line)}: expected #{inspect(unquote(to))}, got #{inspect(actual)}"
+
+          {:error, _} ->
+            flunk(
+              "Line #{unquote(line)}: display_name returned error for #{inspect(unquote(from))}"
+            )
+        end
       end
     end
   end
 
-  # end
+  # if OTP 28+
 
   describe "display_name/2 basic formatting" do
     test "simple language" do
