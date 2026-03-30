@@ -66,6 +66,12 @@ defmodule Localize.Number.FormattingTest do
       assert String.contains?(result, "USD")
     end
 
+    test "currency symbol falls back to ISO code when locale has no symbol" do
+      # CHF has no symbol in the fr locale — should fall back to "CHF"
+      {:ok, result} = Localize.Number.to_string(1_000_000_000, locale: :fr, currency: :CHF)
+      assert String.contains?(result, "CHF")
+    end
+
     test "fraction digits of 0 with currency" do
       {:ok, result} = Localize.Number.to_string(50.12, fractional_digits: 0, currency: :USD)
       assert String.contains?(result, "$")
