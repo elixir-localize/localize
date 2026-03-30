@@ -29,7 +29,7 @@ defmodule Localize.Locale.Provider.PersistentTerm do
     file cannot be found.
 
   """
-  @env Mix.env()
+  @env apply(Mix, :env, [])
 
   @impl Localize.Locale.Provider
   @dialyzer {:nowarn_function, load: 1}
