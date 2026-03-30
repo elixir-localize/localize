@@ -29,8 +29,10 @@ defmodule Localize.Test.Number.FormatData do
       {1234.567, "01234,5670", [format: "00000.0000", locale: "fr"]},
       {1234.567, "1#{@fr_group}234,57 €", [format: "#,##0.00 ¤", locale: "fr", currency: :EUR]},
       {1234.567, "1#{@fr_group}235 JPY", [format: "#,##0 ¤", locale: "fr", currency: "JPY"]},
-      {1234.567, "1#{@fr_group}234,57 JPY", [format: "#,##0.00 ¤", locale: "fr", currency: "JPY"]},
-      {1234.567, "1#{@fr_group}234,57 JPY", [format: "#,##0.## ¤", locale: "fr", currency: "JPY"]},
+      {1234.567, "1#{@fr_group}234,57 JPY",
+       [format: "#,##0.00 ¤", locale: "fr", currency: "JPY"]},
+      {1234.567, "1#{@fr_group}234,57 JPY",
+       [format: "#,##0.## ¤", locale: "fr", currency: "JPY"]},
       {1234.00, "1#{@fr_group}234 JPY", [format: "#,##0.## ¤", locale: "fr", currency: "JPY"]},
       {1234, "1#{@fr_group}234 JPY", [format: "#,##0.## ¤", locale: "fr", currency: "JPY"]},
 
