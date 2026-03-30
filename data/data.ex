@@ -587,8 +587,54 @@ defmodule Localize.Data do
       Localize.Data.Locale.generate_and_save_locale(locale)
     end)
 
+    increment_patch_version()
     IO.puts("All #{total} locale ETF files generated.")
     :ok
+  end
+
+  @doc """
+  Returns the current CLDR data version string, including the
+  Localize patch version.
+
+  The format is `"v{cldr_version}.{patch_version}"`, for example
+  `"v48.2.1"`.
+
+  """
+  @spec data_version() :: String.t()
+  def data_version do
+    "v#{cldr_version()}.#{patch_version()}"
+  end
+
+  @doc """
+  Returns the Localize patch version from
+  `priv/localize/localize_patch_version`.
+
+  """
+  @spec patch_version() :: String.t()
+  def patch_version do
+    path = Path.join([File.cwd!(), @version_file]) |> Path.dirname()
+    patch_path = Path.join(path, "localize_patch_version")
+
+    if File.exists?(patch_path) do
+      patch_path |> File.read!() |> String.trim()
+    else
+      "0"
+    end
+  end
+
+  defp increment_patch_version do
+    path = Path.join([File.cwd!(), @version_file]) |> Path.dirname()
+    patch_path = Path.join(path, "localize_patch_version")
+
+    current =
+      if File.exists?(patch_path) do
+        patch_path |> File.read!() |> String.trim() |> String.to_integer()
+      else
+        0
+      end
+
+    File.write!(patch_path, Integer.to_string(current + 1))
+    IO.puts("Patch version incremented to #{current + 1}")
   end
 
   # ── Path helpers ────────────────────────────────────────────────

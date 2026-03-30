@@ -1,0 +1,127 @@
+name: Upload Locales to Cloudflare R2
+
+# Triggered on version tag pushes (e.g., v0.1.0, v1.0.0-rc.1)
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  MIX_ENV: dev
+  R2_BUCKET: locales
+  # Maximum concurrent uploads to stay within Cloudflare API limits.
+  # R2 allows ~1000 PUT requests/second; we use a conservative batch
+  # size to avoid transient rate-limit errors.
+  BATCH_SIZE: 50
+
+permissions:
+  contents: read
+
+jobs:
+  generate-and-upload:
+    name: Generate and upload locale ETFs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.19"
+          otp-version: "28"
+
+      - name: Restore dependency cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: mix-locales-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            mix-locales-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Compile
+        run: mix compile
+
+      - name: Generate locale ETFs
+        run: mix localize.generate_locales
+
+      - name: Read data version
+        id: version
+        run: |
+          cldr_version=$(cat priv/localize/version | tr -d '[:space:]')
+          patch_version=$(cat priv/localize/localize_patch_version | tr -d '[:space:]')
+          data_version="v${cldr_version}.${patch_version}"
+          echo "data_version=${data_version}" >> "$GITHUB_OUTPUT"
+          echo "Data version: ${data_version}"
+
+      - name: Verify generated locales
+        run: |
+          count=$(ls priv/localize/locales/*.etf 2>/dev/null | wc -l)
+          echo "Generated ${count} locale ETF files"
+          if [ "$count" -lt 100 ]; then
+            echo "::error::Expected at least 100 locale files, got ${count}"
+            exit 1
+          fi
+
+      - name: Install rclone
+        run: |
+          curl -fsSL https://rclone.org/install.sh | sudo bash
+
+      - name: Configure rclone for Cloudflare R2
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+        run: |
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf << EOF
+          [r2]
+          type = s3
+          provider = Cloudflare
+          access_key_id = ${R2_ACCESS_KEY_ID}
+          secret_access_key = ${R2_SECRET_ACCESS_KEY}
+          endpoint = https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com
+          acl = private
+          no_check_bucket = true
+          EOF
+
+      - name: Upload locales to R2
+        env:
+          DATA_VERSION: ${{ steps.version.outputs.data_version }}
+        run: |
+          echo "Uploading to r2:${R2_BUCKET}/${DATA_VERSION}/"
+          echo "Files: $(ls priv/localize/locales/*.etf | wc -l)"
+
+          # Use rclone sync with bandwidth and concurrency limits.
+          # --transfers: concurrent file transfers (R2 allows ~1000 PUT/s,
+          #   we use a conservative limit via BATCH_SIZE).
+          # --checkers: concurrent hash checks.
+          # --s3-upload-concurrency: per-file multipart concurrency.
+          rclone sync \
+            priv/localize/locales/ \
+            "r2:${R2_BUCKET}/${DATA_VERSION}/" \
+            --include "*.etf" \
+            --transfers ${BATCH_SIZE} \
+            --checkers 8 \
+            --s3-upload-concurrency 2 \
+            --stats 10s \
+            --stats-one-line \
+            --verbose
+
+      - name: Verify upload
+        env:
+          DATA_VERSION: ${{ steps.version.outputs.data_version }}
+        run: |
+          uploaded=$(rclone ls "r2:${R2_BUCKET}/${DATA_VERSION}/" | wc -l)
+          local_count=$(ls priv/localize/locales/*.etf | wc -l)
+          echo "Uploaded: ${uploaded}, Local: ${local_count}"
+          if [ "$uploaded" -ne "$local_count" ]; then
+            echo "::warning::Upload count mismatch: ${uploaded} uploaded vs ${local_count} local"
+          fi
+          echo "Upload complete: ${uploaded} locale files to ${R2_BUCKET}/${DATA_VERSION}/"
