@@ -288,7 +288,10 @@ defmodule Localize.Number.Format.Options do
   # Per TR35: if no symbol data is available for a currency in a locale,
   # fall back to the ISO 4217 currency code (e.g., "CHF").
   defp resolve_currency_symbol(nil, _option), do: ""
-  defp resolve_currency_symbol(%Localize.Currency{} = c, :narrow), do: c.narrow_symbol || c.symbol || iso_code(c)
+
+  defp resolve_currency_symbol(%Localize.Currency{} = c, :narrow),
+    do: c.narrow_symbol || c.symbol || iso_code(c)
+
   defp resolve_currency_symbol(%Localize.Currency{} = c, :iso), do: iso_code(c)
   defp resolve_currency_symbol(%Localize.Currency{} = c, :symbol), do: c.symbol || iso_code(c)
   defp resolve_currency_symbol(%Localize.Currency{} = c, nil), do: c.symbol || iso_code(c)
