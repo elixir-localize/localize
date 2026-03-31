@@ -8,7 +8,7 @@ defmodule Localize do
   configuration. All CLDR data is loaded at runtime from ETF and JSON
   files and cached in `:persistent_term` on first access.
 
-  ## Domain modules
+  ## Primary usage modules
 
   * `Localize.Number` — format numbers, decimals, percentages, and
     currencies.
@@ -82,14 +82,18 @@ defmodule Localize do
   """
 
   require Logger
+  alias Localize.Locale
 
-  # ── Process locale management ──────────────────────────────────
+  @typedoc "A locale identifier. That is, known to CLDR"
+  @type locale_id :: atom()
 
   @typedoc "A locale identifier atom or a language tag struct."
-  @type locale :: atom() | Localize.LanguageTag.t()
+  @type locale :: locale_id | Localize.LanguageTag.t()
 
   @locale_key :localize_locale
   @default_locale_key {:localize, :default_locale}
+
+  @known_measurement_systems [:metric, :us, :uk]
 
   @doc """
   Returns the application-wide default locale as a
@@ -292,8 +296,8 @@ defmodule Localize do
           end
         end
 
-      {:error, _} = error ->
-        raise "invalid locale: #{inspect(error)}"
+      other ->
+        other
     end
   end
 
@@ -309,56 +313,49 @@ defmodule Localize do
   end
 
   defp try_locale_from_env(var_name) do
-    case System.get_env(var_name) do
-      nil ->
-        nil
+    if raw = System.get_env(var_name) do
+      locale_id = locale_from_env_var(raw)
 
-      raw ->
-        locale_id =
-          raw
-          |> String.split(".")
-          |> hd()
-          |> Localize.Locale.locale_id_from_posix()
+      case validate_locale(locale_id) do
+        {:ok, tag} ->
+          tag
 
-        case validate_locale(locale_id) do
-          {:ok, tag} ->
-            tag
+        {:error, exception} ->
+          Logger.warning(
+            "#{var_name}=#{inspect(raw)} is not a valid locale: " <>
+              Exception.message(exception),
+            domain: :localize
+          )
 
-          {:error, exception} ->
-            Logger.warning(
-              "#{var_name}=#{inspect(raw)} is not a valid locale: " <>
-                Exception.message(exception),
-              domain: :localize
-            )
-
-            nil
-        end
+          nil
+      end
     end
   end
 
   defp try_locale_from_app_config do
-    case Application.get_env(:localize, :default_locale) do
-      nil ->
-        nil
+    if locale = Application.get_env(:localize, :default_locale) do
+      case validate_locale(locale) do
+        {:ok, tag} ->
+          tag
 
-      locale ->
-        case validate_locale(locale) do
-          {:ok, tag} ->
-            tag
+        {:error, exception} ->
+          Logger.warning(
+            "config :localize, default_locale: #{inspect(locale)} is not a valid locale: " <>
+              Exception.message(exception),
+            domain: :localize
+          )
 
-          {:error, exception} ->
-            Logger.warning(
-              "config :localize, default_locale: #{inspect(locale)} is not a valid locale: " <>
-                Exception.message(exception),
-              domain: :localize
-            )
-
-            nil
-        end
+          nil
+      end
     end
   end
 
-  # ── Text formatting ──────────────────────────────────────────
+  defp locale_from_env_var(raw) do
+    raw
+    |> String.split(".")
+    |> hd()
+    |> Localize.Locale.locale_id_from_posix()
+  end
 
   @doc """
   Wraps a string in locale-specific quotation marks.
@@ -401,7 +398,7 @@ defmodule Localize do
   def quote(string, options \\ []) when is_binary(string) do
     locale = Keyword.get(options, :locale, get_locale())
     style = Keyword.get(options, :style, :default)
-    locale_id = to_locale_id(locale)
+    locale_id = Locale.to_locale_id(locale)
 
     with {:ok, delimiters} <- Localize.Locale.get(locale_id, [:delimiters]) do
       open = get_in(delimiters, [:quotation_start, style]) || ""
@@ -464,7 +461,7 @@ defmodule Localize do
     locale = Keyword.get(options, :locale, get_locale())
     format = Keyword.get(options, :format, :sentence)
     location = Keyword.get(options, :location, default_ellipsis_location(string))
-    locale_id = to_locale_id(locale)
+    locale_id = Locale.to_locale_id(locale)
 
     with {:ok, ellipsis_chars} <- Localize.Locale.get(locale_id, [:ellipsis]) do
       result = apply_ellipsis(string, ellipsis_chars, location, format)
@@ -547,13 +544,13 @@ defmodule Localize do
 
   ### Examples
 
-      iex> locales = Localize.all_locale_names()
+      iex> locales = Localize.all_locale_ids()
       iex> :en in locales
       true
 
   """
-  @spec all_locale_names() :: [atom()]
-  def all_locale_names do
+  @spec all_locale_ids() :: [atom()]
+  def all_locale_ids do
     Localize.SupplementalData.all_locale_ids()
   end
 
@@ -573,24 +570,33 @@ defmodule Localize do
 
   ### Examples
 
-      iex> Localize.available_locale_name?(:en)
+      iex> Localize.available_locale_id?(:en)
       true
 
-      iex> Localize.available_locale_name?(:zzzz)
+      iex> Localize.available_locale_id?(:zzzz)
       false
 
   """
-  @spec available_locale_name?(atom() | String.t()) :: boolean()
-  def available_locale_name?(locale_name) when is_atom(locale_name) do
-    locale_name in all_locale_names()
+  @spec available_locale_id?(atom() | String.t()) :: boolean()
+  def available_locale_id?(locale_name) when is_atom(locale_name) do
+    locale_name in all_locale_ids()
   end
 
-  def available_locale_name?(locale_name) when is_binary(locale_name) do
-    available_locale_name?(String.to_atom(locale_name))
+  def available_locale_id?(locale_name) when is_binary(locale_name) do
+    available_locale_id?(String.to_atom(locale_name))
   end
 
   @doc """
-  Returns a list of all known CLDR calendar type atoms.
+  Returns a list of all known CLDR calendar types
+  as atoms.
+
+  The calendar types are internal CLDR values to
+  identify localized month and day names, era names
+  and other calendarical data.
+
+  The calendars defined in the [localzie_calendars](https://hex.pm/packages/localize_calendars)
+  embed the appropriate CLDR calendar type to support
+  localization.
 
   ### Returns
 
@@ -598,9 +604,10 @@ defmodule Localize do
 
   ### Examples
 
-      iex> calendars = Localize.known_calendars()
-      iex> :gregorian in calendars
-      true
+      iex> Localize.known_calendars()
+      [:gregorian, :buddhist, :chinese, :coptic, :dangi, :ethiopic,
+       :ethiopic_amete_alem, :hebrew, :indian, :islamic, :islamic_civil,
+       :islamic_rgsa, :islamic_tbla, :islamic_umalqura, :japanese, :persian, :roc]
 
   """
   @spec known_calendars() :: [atom(), ...]
@@ -626,8 +633,6 @@ defmodule Localize do
   def known_number_systems do
     Localize.Number.System.known_number_systems()
   end
-
-  # ── Validation (Tier 2) ──────────────────────────────────────
 
   @doc """
   Validates a territory code.
@@ -750,7 +755,9 @@ defmodule Localize do
   @spec validate_calendar(atom() | String.t()) ::
           {:ok, atom()} | {:error, Exception.t()}
   def validate_calendar(calendar) when is_binary(calendar) do
-    validate_calendar(normalize_calendar(calendar))
+    calendar
+    |> normalize_calendar()
+    |> validate_calendar()
   end
 
   def validate_calendar(calendar) when is_atom(calendar) do
@@ -854,15 +861,14 @@ defmodule Localize do
     end
   end
 
-  @known_measurement_systems [:metric, :us, :uk]
-
   @doc """
   Validates a measurement system type.
 
   ### Arguments
 
   * `system` is a measurement system atom or string. Valid values
-    are `:metric`, `:us`, and `:uk`.
+    are `:metric`, `:us`, and `:uk`. The measurement system `:imperial`
+    is treated as a synonym for `:uk`.
 
   ### Returns
 
@@ -886,7 +892,17 @@ defmodule Localize do
   @spec validate_measurement_system(atom() | String.t()) ::
           {:ok, atom()} | {:error, Exception.t()}
   def validate_measurement_system(system) when is_binary(system) do
-    validate_measurement_system(String.to_atom(String.downcase(system)))
+    system
+    |> String.downcase()
+    |> String.to_existing_atom()
+    |> validate_measurement_system()
+
+  rescue ArgumentError ->
+    {:error, Localize.UnknownMeasurementSystemError.exception(measurement_system: system)}
+  end
+
+  def validate_measurement_system(:uk) do
+    {:ok, :uk}
   end
 
   def validate_measurement_system(system) when is_atom(system) do
@@ -896,8 +912,6 @@ defmodule Localize do
       {:error, Localize.UnknownMeasurementSystemError.exception(measurement_system: system)}
     end
   end
-
-  # ── Locale validation ──────────────────────────────────────
 
   @doc """
   Validates a locale identifier or language tag.
@@ -965,9 +979,7 @@ defmodule Localize do
   end
 
   def validate_locale(locale_id) when is_binary(locale_id) do
-    cache_key = locale_id |> String.replace("_", "-") |> String.downcase()
-
-    case locale_cache_lookup(cache_key) do
+    case locale_cache_lookup(locale_id) do
       {:ok, _tag} = cached ->
         cached
 
@@ -985,7 +997,7 @@ defmodule Localize do
               {:error, Localize.InvalidLocaleError.exception(locale_id: locale_id)}
           end
 
-        locale_cache_store(cache_key, result)
+        locale_cache_store(locale_id, result)
         result
     end
   end
@@ -998,7 +1010,9 @@ defmodule Localize do
     {:error, Localize.InvalidLocaleError.exception(locale_id: inspect(invalid))}
   end
 
-  defp locale_cache_lookup(cache_key) do
+  defp locale_cache_lookup(locale_id) do
+    cache_key = locale_cache_key(locale_id)
+
     if :ets.whereis(@locale_cache_table) != :undefined do
       case :ets.lookup(@locale_cache_table, cache_key) do
         [{^cache_key, result}] -> result
@@ -1009,7 +1023,9 @@ defmodule Localize do
     end
   end
 
-  defp locale_cache_store(cache_key, {:ok, _tag} = result) do
+  defp locale_cache_store(locale_id, {:ok, _tag} = result) do
+    cache_key = locale_cache_key(locale_id)
+
     if :ets.whereis(@locale_cache_table) != :undefined do
       :ets.insert(@locale_cache_table, {cache_key, result})
     end
@@ -1018,6 +1034,12 @@ defmodule Localize do
   end
 
   defp locale_cache_store(_cache_key, {:error, _}), do: :ok
+
+  defp locale_cache_key(locale_id) do
+    locale_id
+    |> String.replace("_", "-")
+    |> String.downcase()
+  end
 
   # When supported_locales is configured and the tag's cldr_locale_id
   # was already set by LanguageTag.new, check whether it's in the
@@ -1053,6 +1075,4 @@ defmodule Localize do
         {:error, Localize.UnknownLocaleError.exception(locale_id: locale_id)}
     end
   end
-
-  defdelegate to_locale_id(locale), to: Localize.Locale
 end
