@@ -524,7 +524,8 @@ defmodule Localize do
   """
   @spec supported_locales() :: [atom()]
   def supported_locales do
-    :persistent_term.get({:localize, :supported_locales}, nil) || Localize.SupplementalData.all_locale_ids()
+    :persistent_term.get({:localize, :supported_locales}, nil) ||
+      Localize.SupplementalData.all_locale_ids()
   end
 
   @doc """
@@ -544,13 +545,19 @@ defmodule Localize do
 
   ### Examples
 
+      iex> original = Localize.supported_locales()
       iex> Localize.put_supported_locales([:en, :fr, :de])
       :ok
+      iex> Localize.put_supported_locales(original)
+      :ok
 
+      iex> original = Localize.supported_locales()
       iex> Localize.put_supported_locales([:en, :fr, :de])
       :ok
       iex> Localize.supported_locales()
       [:en, :fr, :de]
+      iex> Localize.put_supported_locales(original)
+      :ok
 
   """
   @spec put_supported_locales([atom()]) :: :ok
