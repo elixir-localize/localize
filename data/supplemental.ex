@@ -731,6 +731,43 @@ defmodule Localize.Data.Supplemental do
     end
   end
 
+  @doc """
+  Generates locale coverage level data from `coverageLevels.json`.
+
+  Returns a map with three keys — `:basic`, `:moderate`, and
+  `:modern` — each containing a sorted list of locale ID atoms
+  at that coverage level or above.
+
+  A locale at the `:modern` level is also included in `:moderate`
+  and `:basic`. A locale at `:moderate` is also included in
+  `:basic`.
+
+  """
+  def generate_coverage_levels do
+    raw =
+      Localize.Data.read_json("coverageLevels.json")
+      |> Map.fetch!("coverageLevels")
+
+    grouped =
+      Enum.group_by(raw, fn {_locale, level} -> level end, fn {locale, _level} -> locale end)
+
+    modern = Map.get(grouped, "modern", [])
+    moderate = Map.get(grouped, "moderate", [])
+    basic = Map.get(grouped, "basic", [])
+
+    to_atoms = fn locales ->
+      locales
+      |> Enum.map(&String.to_atom/1)
+      |> Enum.sort()
+    end
+
+    %{
+      modern: to_atoms.(modern),
+      moderate: to_atoms.(modern ++ moderate),
+      basic: to_atoms.(modern ++ moderate ++ basic)
+    }
+  end
+
   defp level_up_paradigm_locales(matching) do
     paradigm_locales =
       matching

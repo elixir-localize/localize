@@ -1253,12 +1253,12 @@ defmodule Localize.Unit do
 
   ### Returns
 
-  * `:metric`, `:ussystem`, or `:uksystem`.
+  * `:metric`, `:us`, or `:uk`.
 
   ### Examples
 
       iex> Localize.Unit.measurement_system_for_territory(:US)
-      :ussystem
+      :us
 
       iex> Localize.Unit.measurement_system_for_territory(:FR)
       :metric
@@ -1266,14 +1266,10 @@ defmodule Localize.Unit do
   """
   @spec measurement_system_for_territory(atom()) :: atom()
   def measurement_system_for_territory(territory) when is_atom(territory) do
-    territories = Localize.SupplementalData.territories()
-    territory_data = Map.get(territories, territory, %{})
+    measurement_data = Localize.SupplementalData.measurement_data()
 
-    case Map.get(territory_data, :measurement_system) do
-      %{default: system} -> system
-      system when is_atom(system) -> system
-      _ -> :metric
-    end
+    Map.get(measurement_data.measurement_system, territory) ||
+      Map.get(measurement_data.measurement_system, :"001", :metric)
   end
 
   # ── Private helpers ───────────────────────────────────────────

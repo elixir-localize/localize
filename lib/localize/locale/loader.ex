@@ -65,11 +65,34 @@ defmodule Localize.Locale.Loader do
     end
   end
 
+  @doc """
+  Clears the locale validation cache.
+
+  This is called when the supported locales change to ensure
+  stale resolutions are not returned.
+
+  """
+  @spec clear_locale_cache() :: :ok
+  def clear_locale_cache do
+    GenServer.call(__MODULE__, :clear_locale_cache)
+  end
+
   # ── GenServer callbacks ───────────────────────────────────────
 
   @impl GenServer
   def init(_options) do
     {:ok, %{}}
+  end
+
+  @impl GenServer
+  def handle_call(:clear_locale_cache, _from, state) do
+    table = :localize_locale_cache
+
+    if :ets.whereis(table) != :undefined do
+      :ets.delete_all_objects(table)
+    end
+
+    {:reply, :ok, state}
   end
 
   @impl GenServer

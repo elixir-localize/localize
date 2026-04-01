@@ -318,6 +318,126 @@ defmodule Localize.Data.XmlExtractors do
     }
   end
 
+  @doc """
+  Generates measurement system data from `bcp47/measure.xml`.
+
+  Returns a map with two keys:
+
+  * `:systems` — a map of canonical measurement system atoms to
+    description strings. For example, `%{metric: "Metric System"}`.
+
+  * `:aliases` — a map of alias atoms to their canonical
+    measurement system atom. For example,
+    `%{imperial: :uk, ussystem: :us, uksystem: :uk}`.
+
+  The BCP 47 canonical names `ussystem` and `uksystem` are
+  mapped to the short names `:us` and `:uk` respectively.
+
+  """
+  def generate_measurement_systems do
+    [%{types: types}] =
+      read_xml("bcp47/measure.xml")
+      |> xpath(~x"//key[@name='ms']"l,
+        types: [
+          ~x"./type"l,
+          name: ~x"./@name"s,
+          description: ~x"./@description"s,
+          alias: ~x"./@alias"s
+        ]
+      )
+
+    canonical_name_map = %{
+      "metric" => :metric,
+      "ussystem" => :us,
+      "uksystem" => :uk
+    }
+
+    {systems, aliases} =
+      Enum.reduce(types, {%{}, %{}}, fn type, {systems_acc, aliases_acc} ->
+        bcp47_name = type.name
+        canonical = Map.fetch!(canonical_name_map, bcp47_name)
+        systems_acc = Map.put(systems_acc, canonical, type.description)
+
+        # Add the BCP 47 name as an alias if it differs from the canonical short name
+        aliases_acc =
+          if String.to_atom(bcp47_name) != canonical do
+            Map.put(aliases_acc, String.to_atom(bcp47_name), canonical)
+          else
+            aliases_acc
+          end
+
+        # Add any explicit aliases from the XML
+        aliases_acc =
+          if type.alias != "" do
+            type.alias
+            |> String.split(" ")
+            |> Enum.reduce(aliases_acc, fn alias_name, acc ->
+              Map.put(acc, String.to_atom(alias_name), canonical)
+            end)
+          else
+            aliases_acc
+          end
+
+        {systems_acc, aliases_acc}
+      end)
+
+    %{systems: systems, aliases: aliases}
+  end
+
+  @doc """
+  Generates measurement data from `measurementData.json`.
+
+  Returns a map with three keys:
+
+  * `:measurement_system` — a map of territory atoms to
+    measurement system atoms (`:metric`, `:us`, or `:uk`).
+
+  * `:measurement_system_temperature` — a map of territory atoms
+    to measurement system atoms for temperature overrides.
+
+  * `:paper_size` — a map of territory atoms to paper size atoms
+    (`:a4` or `:us_letter`).
+
+  """
+  def generate_measurement_data do
+    raw =
+      Localize.Data.read_json("measurementData.json")
+      |> get_in(["supplemental", "measurementData"])
+
+    system_map = %{"metric" => :metric, "US" => :us, "UK" => :uk}
+    paper_map = %{"A4" => :a4, "US-Letter" => :us_letter}
+
+    measurement_system =
+      raw
+      |> Map.get("measurementSystem", %{})
+      |> Enum.map(fn {territory, system} ->
+        {String.to_atom(territory), Map.fetch!(system_map, system)}
+      end)
+      |> Map.new()
+
+    temperature =
+      raw
+      |> Map.get("measurementSystem-category-temperature", %{})
+      |> Enum.map(fn {territory, system} ->
+        {String.to_atom(territory), Map.fetch!(system_map, system)}
+      end)
+      |> Map.new()
+
+    paper_size =
+      raw
+      |> Map.get("paperSize", %{})
+      |> Enum.map(fn {territory, size} ->
+        {String.to_atom(territory), Map.fetch!(paper_map, size)}
+      end)
+      |> Map.new()
+
+    %{
+      measurement_system: measurement_system,
+      measurement_system_temperature: temperature,
+      paper_size: paper_size
+    }
+  end
+
   # ── Private helpers ─────────────────────────────────────────────
 
   # Maps short names to their local paths under priv/cldr/
@@ -325,6 +445,7 @@ defmodule Localize.Data.XmlExtractors do
     "plural_ranges.xml" => {:supplemental, "pluralRanges.xml"},
     "subdivisions.xml" => {:supplemental, "subdivisions.xml"},
     "bcp47/timezone.xml" => {:bcp47, "timezone.xml"},
+    "bcp47/measure.xml" => {:bcp47, "measure.xml"},
     "units.xml" => {:supplemental, "units.xml"},
     "validity/unit.xml" => {:validity, "unit.xml"}
   }

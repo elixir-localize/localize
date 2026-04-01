@@ -103,6 +103,19 @@ defmodule Localize.SupplementalData do
   end
 
   @doc """
+  Returns locale coverage level data as a map.
+
+  The map has three keys — `:basic`, `:moderate`, and `:modern` —
+  each containing a sorted list of locale ID atoms at that
+  coverage level or above.
+
+  """
+  @spec coverage_levels() :: %{basic: [atom()], moderate: [atom()], modern: [atom()]}
+  def coverage_levels do
+    load_supplemental("coverage_levels.etf")
+  end
+
+  @doc """
   Returns validity data for the given type.
 
   ### Arguments
@@ -335,6 +348,46 @@ defmodule Localize.SupplementalData do
   @spec territory_codes() :: %{atom() => map()}
   def territory_codes do
     load_supplemental("territory_codes.etf")
+  end
+
+  @doc """
+  Returns measurement system data parsed from `bcp47/measure.xml`.
+
+  The returned map has two keys:
+
+  * `:systems` — a map of canonical measurement system atoms
+    (`:metric`, `:us`, `:uk`) to description strings.
+
+  * `:aliases` — a map of alias atoms to their canonical
+    measurement system atom (e.g., `%{imperial: :uk}`).
+
+  """
+  @spec measurement_systems() :: %{systems: map(), aliases: map()}
+  def measurement_systems do
+    load_supplemental("measurement_systems.etf")
+  end
+
+  @doc """
+  Returns measurement data parsed from `measurementData.json`.
+
+  The returned map has three keys:
+
+  * `:measurement_system` — a map of territory atoms to
+    measurement system atoms.
+
+  * `:measurement_system_temperature` — a map of territory atoms
+    to measurement system atoms for temperature overrides.
+
+  * `:paper_size` — a map of territory atoms to paper size atoms.
+
+  """
+  @spec measurement_data() :: %{
+          measurement_system: map(),
+          measurement_system_temperature: map(),
+          paper_size: map()
+        }
+  def measurement_data do
+    load_supplemental("measurement_data.etf")
   end
 
   # ── Derived supplemental data ──────────────────────────────────

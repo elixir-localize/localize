@@ -1,3 +1,7 @@
+## Module structure
+
+All module attributes (`@attr value`) must be placed before any function definitions and after any `import`, `alias`, `require`, or `use` declarations. Do not define module attributes inline between functions.
+
 ## Error returns from public API functions
 
 Our objective is to return error tuples that can both machine readable and can also produce localized human-readable messages.

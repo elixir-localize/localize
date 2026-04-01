@@ -72,7 +72,8 @@ defmodule Localize.Data do
 
   # Non-supplemental files needed from other paths in CLDR_PRODUCTION_DATA
   @supplemental_extra_files [
-    {"cldr-numbers-full/main/en/currencies.json", "currencies_en.json"}
+    {"cldr-numbers-full/main/en/currencies.json", "currencies_en.json"},
+    {"cldr-core/coverageLevels.json", "coverageLevels.json"}
   ]
 
   # Test data files from CLDR_REPO → test/support/data/
@@ -119,7 +120,10 @@ defmodule Localize.Data do
     {"territory_subdivision_containment.etf",
      &Localize.Data.XmlExtractors.generate_territory_subdivision_containment/0},
     {"unit_data.etf", &Localize.Data.XmlExtractors.generate_unit_data/0},
-    {"collation_tailoring.etf", &Localize.Data.Collation.generate_collation_tailoring/0}
+    {"collation_tailoring.etf", &Localize.Data.Collation.generate_collation_tailoring/0},
+    {"coverage_levels.etf", &Localize.Data.Supplemental.generate_coverage_levels/0},
+    {"measurement_systems.etf", &Localize.Data.XmlExtractors.generate_measurement_systems/0},
+    {"measurement_data.etf", &Localize.Data.XmlExtractors.generate_measurement_data/0}
   ]
 
   # ── Source data copying ─────────────────────────────────────────

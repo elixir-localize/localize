@@ -93,7 +93,8 @@ defmodule Localize do
   @locale_key :localize_locale
   @default_locale_key {:localize, :default_locale}
 
-  @known_measurement_systems [:metric, :us, :uk]
+  @coverage_levels [:basic, :moderate, :modern]
+  @locale_cache_table :localize_locale_cache
 
   @doc """
   Returns the application-wide default locale as a
@@ -508,31 +509,54 @@ defmodule Localize do
     |> :erlang.iolist_to_binary()
   end
 
-  # ── Data accessors (Tier 1) ────────────────────────────────
-
   @doc """
   Returns the list of supported locales configured via
-  `config :localize, supported_locales: [...]`.
-
-  If no `:supported_locales` option is configured, returns `nil`.
-  If configured with an empty list, returns `[]`.
+  `config :localize, supported_locales: [...]` or
+  `Localize.all_locale_ids/0`.
 
   The returned list contains canonical CLDR locale ID atoms,
   resolved and validated at application startup.
 
   ### Returns
 
-  * A list of locale ID atoms, or `nil` if not configured.
+  * A list of locale ID atoms.
+
+  """
+  @spec supported_locales() :: [atom()]
+  def supported_locales do
+    :persistent_term.get({:localize, :supported_locales}, nil) || Localize.SupplementalData.all_locale_ids()
+  end
+
+  @doc """
+  Sets the list of supported locales in `:persistent_term`.
+
+  This function does not modify the application configuration.
+  It directly updates the runtime cache that `supported_locales/0`
+  reads from.
+
+  ### Arguments
+
+  * `locales` is a list of locale ID atoms.
+
+  ### Returns
+
+  * `:ok`.
 
   ### Examples
 
-      iex> is_list(Localize.supported_locales()) or is_nil(Localize.supported_locales())
-      true
+      iex> Localize.put_supported_locales([:en, :fr, :de])
+      :ok
+
+      iex> Localize.put_supported_locales([:en, :fr, :de])
+      :ok
+      iex> Localize.supported_locales()
+      [:en, :fr, :de]
 
   """
-  @spec supported_locales() :: [atom()] | nil
-  def supported_locales do
-    :persistent_term.get({:localize, :supported_locales}, nil)
+  @spec put_supported_locales([atom()]) :: :ok
+  def put_supported_locales(locales) when is_list(locales) do
+    :persistent_term.put({:localize, :supported_locales}, locales)
+    Localize.Locale.Loader.clear_locale_cache()
   end
 
   @doc """
@@ -552,6 +576,39 @@ defmodule Localize do
   @spec all_locale_ids() :: [atom()]
   def all_locale_ids do
     Localize.SupplementalData.all_locale_ids()
+  end
+
+  @doc """
+  Returns a list of all known CLDR locale ID atoms at or above the
+  given coverage level.
+
+  CLDR assigns each locale a coverage level of `:basic`,
+  `:moderate`, or `:modern`. A locale at the `:modern` level is
+  also included when requesting `:moderate` or `:basic`. A locale
+  at `:moderate` is also included when requesting `:basic`.
+
+  ### Arguments
+
+  * `level` is one of `:basic`, `:moderate`, or `:modern`.
+
+  ### Returns
+
+  * A sorted list of locale ID atoms.
+
+  ### Examples
+
+      iex> locales = Localize.all_locale_ids(:modern)
+      iex> :en in locales
+      true
+
+      iex> length(Localize.all_locale_ids(:basic)) >= length(Localize.all_locale_ids(:modern))
+      true
+
+  """
+  @spec all_locale_ids(:basic | :moderate | :modern) :: [atom()]
+  def all_locale_ids(level) when level in @coverage_levels do
+    Localize.SupplementalData.coverage_levels()
+    |> Map.fetch!(level)
   end
 
   @doc """
@@ -862,18 +919,44 @@ defmodule Localize do
   end
 
   @doc """
-  Validates a measurement system type.
+  Returns the list of canonical measurement system atoms.
 
-  ### Arguments
-
-  * `system` is a measurement system atom or string. Valid values
-    are `:metric`, `:us`, and `:uk`. The measurement system `:imperial`
-    is treated as a synonym for `:uk`.
+  The canonical names are derived from `bcp47/measure.xml` and
+  mapped to the short forms `:metric`, `:us`, and `:uk`.
 
   ### Returns
 
-  * `{:ok, system_atom}` where `system_atom` is the measurement
-    system atom.
+  * A list of measurement system atoms.
+
+  ### Examples
+
+      iex> Localize.measurement_systems()
+      [:metric, :uk, :us]
+
+  """
+  @spec measurement_systems() :: [atom()]
+  def measurement_systems do
+    Localize.SupplementalData.measurement_systems()
+    |> Map.fetch!(:systems)
+    |> Map.keys()
+    |> Enum.sort()
+  end
+
+  @doc """
+  Validates a measurement system type.
+
+  Accepts canonical names (`:metric`, `:us`, `:uk`) as well as
+  aliases defined in CLDR (`:imperial`, `:ussystem`, `:uksystem`).
+  Aliases are resolved to the canonical short name.
+
+  ### Arguments
+
+  * `system` is a measurement system atom or string.
+
+  ### Returns
+
+  * `{:ok, canonical_atom}` where `canonical_atom` is the
+    canonical measurement system atom.
 
   * `{:error, exception}` if the measurement system is not known.
 
@@ -886,7 +969,13 @@ defmodule Localize do
       {:ok, :us}
 
       iex> Localize.validate_measurement_system(:imperial)
-      {:error, %Localize.UnknownMeasurementSystemError{measurement_system: :imperial}}
+      {:ok, :uk}
+
+      iex> Localize.validate_measurement_system(:ussystem)
+      {:ok, :us}
+
+      iex> Localize.validate_measurement_system(:klingon)
+      {:error, %Localize.UnknownMeasurementSystemError{measurement_system: :klingon}}
 
   """
   @spec validate_measurement_system(atom() | String.t()) ::
@@ -896,20 +985,23 @@ defmodule Localize do
     |> String.downcase()
     |> String.to_existing_atom()
     |> validate_measurement_system()
-
-  rescue ArgumentError ->
-    {:error, Localize.UnknownMeasurementSystemError.exception(measurement_system: system)}
-  end
-
-  def validate_measurement_system(:uk) do
-    {:ok, :uk}
+  rescue
+    ArgumentError ->
+      {:error, Localize.UnknownMeasurementSystemError.exception(measurement_system: system)}
   end
 
   def validate_measurement_system(system) when is_atom(system) do
-    if system in @known_measurement_systems do
-      {:ok, system}
-    else
-      {:error, Localize.UnknownMeasurementSystemError.exception(measurement_system: system)}
+    %{systems: systems, aliases: aliases} = Localize.SupplementalData.measurement_systems()
+
+    cond do
+      Map.has_key?(systems, system) ->
+        {:ok, system}
+
+      Map.has_key?(aliases, system) ->
+        {:ok, Map.fetch!(aliases, system)}
+
+      true ->
+        {:error, Localize.UnknownMeasurementSystemError.exception(measurement_system: system)}
     end
   end
 
@@ -918,7 +1010,7 @@ defmodule Localize do
 
   Ensures that the given locale can be resolved to a known CLDR
   locale. When given a binary locale identifier, it is parsed into
-  a `Localize.LanguageTag`. When given an existing language tag
+  a `t:Localize.LanguageTag.t/0`. When given an existing language tag
   whose `:cldr_locale_id` is not yet populated, a best-match
   resolution is attempted using `Localize.LanguageTag.best_match/2`.
 
@@ -935,7 +1027,7 @@ defmodule Localize do
     locales your application explicitly supports.
 
   * If `:supported_locales` is not configured, the candidate
-    list is all ~766 CLDR locale IDs.
+    list is all CLDR locale IDs.
 
   Validated locale results are cached in an ETS table so
   repeated calls with the same identifier are fast (~1µs).
@@ -964,8 +1056,6 @@ defmodule Localize do
       :en
 
   """
-  @locale_cache_table :localize_locale_cache
-
   @spec validate_locale(Localize.LanguageTag.t() | String.t() | atom()) ::
           {:ok, Localize.LanguageTag.t()} | {:error, Exception.t()}
 
@@ -1033,7 +1123,9 @@ defmodule Localize do
     :ok
   end
 
-  defp locale_cache_store(_cache_key, {:error, _}), do: :ok
+  defp locale_cache_store(_cache_key, {:error, _}) do
+    :ok
+  end
 
   defp locale_cache_key(locale_id) do
     locale_id
@@ -1045,34 +1137,24 @@ defmodule Localize do
   # was already set by LanguageTag.new, check whether it's in the
   # supported list. If not, re-resolve via best_match against the
   # supported list to find the closest supported locale.
-  defp maybe_restrict_to_supported(%Localize.LanguageTag{cldr_locale_id: cldr_locale_id} = tag) do
-    case :persistent_term.get({:localize, :supported_locales}, nil) do
-      list when is_list(list) and list != [] ->
-        if cldr_locale_id in list do
-          {:ok, tag}
-        else
-          resolve_cldr_locale(tag)
-        end
+  defp resolve_cldr_locale(%Localize.LanguageTag{cldr_locale_id: nil} = language_tag) do
+    supported_locale_ids = supported_locales()
 
-      _ ->
-        {:ok, tag}
-    end
-  end
-
-  defp resolve_cldr_locale(%Localize.LanguageTag{} = language_tag) do
-    locale_ids =
-      case :persistent_term.get({:localize, :supported_locales}, nil) do
-        list when is_list(list) and list != [] -> list
-        _ -> Localize.SupplementalData.all_locale_ids()
-      end
-
-    case Localize.LanguageTag.best_match(language_tag, locale_ids) do
+    case Localize.LanguageTag.best_match(language_tag, supported_locale_ids) do
       {:ok, cldr_locale_id, _score} ->
         {:ok, %{language_tag | cldr_locale_id: cldr_locale_id}}
 
       {:error, _} ->
         locale_id = Localize.LanguageTag.to_string(language_tag)
         {:error, Localize.UnknownLocaleError.exception(locale_id: locale_id)}
+    end
+  end
+
+  defp maybe_restrict_to_supported(%Localize.LanguageTag{cldr_locale_id: cldr_locale_id} = tag) do
+    if cldr_locale_id in supported_locales() do
+      {:ok, tag}
+    else
+      resolve_cldr_locale(%{tag | cldr_locale_id: nil})
     end
   end
 end
