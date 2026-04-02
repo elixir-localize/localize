@@ -59,7 +59,7 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Language display names | Implemented | `Localize.Language.to_string/2` with `:standard` and `:menu` styles. |
+| Language display names | Implemented | `Localize.Language.display_name/2` with `:standard`, `:short`, `:long`, `:menu`, and `:variant` styles. |
 | Script display names | Partial | Data accessible via `Localize.Locale.get/2` but no dedicated public function. |
 | Territory display names | Implemented | `Localize.Territory.display_name/2` with `:standard`, `:short`, `:variant` styles. |
 | Variant display names | Not implemented | |

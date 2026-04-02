@@ -274,14 +274,14 @@ iex> Localize.Territory.info(:US)
 MyApp.Cldr.Language.to_string("de")
 MyApp.Cldr.Language.to_string("en", locale: "de")
 
-# Localize
-iex> Localize.Language.to_string("de")
+# Localize (renamed from to_string to display_name)
+iex> Localize.Language.display_name("de")
 {:ok, "German"}
 
-iex> Localize.Language.to_string("en", locale: :de)
+iex> Localize.Language.display_name("en", locale: :de)
 {:ok, "Englisch"}
 
-iex> Localize.Language.to_string("en-GB", style: :short)
+iex> Localize.Language.display_name("en-GB", style: :short)
 {:ok, "UK English"}
 ```
 

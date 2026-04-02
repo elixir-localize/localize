@@ -31,7 +31,6 @@ defmodule Localize.Language do
 
   """
 
-  import Kernel, except: [to_string: 1]
 
   alias Localize.LanguageTag
 
@@ -72,22 +71,22 @@ defmodule Localize.Language do
 
   ### Examples
 
-      iex> Localize.Language.to_string("de")
+      iex> Localize.Language.display_name("de")
       {:ok, "German"}
 
-      iex> Localize.Language.to_string("en-GB", style: :short)
+      iex> Localize.Language.display_name("en-GB", style: :short)
       {:ok, "UK English"}
 
-      iex> Localize.Language.to_string("en", locale: :de)
+      iex> Localize.Language.display_name("en", locale: :de)
       {:ok, "Englisch"}
 
-      iex> Localize.Language.to_string("ja")
+      iex> Localize.Language.display_name("ja")
       {:ok, "Japanese"}
 
   """
-  @spec to_string(String.t() | LanguageTag.t(), Keyword.t()) ::
+  @spec display_name(String.t() | LanguageTag.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def to_string(language, options \\ []) do
+  def display_name(language, options \\ []) do
     style = validate_style!(Keyword.get(options, :style, :standard))
     locale = Keyword.get(options, :locale, Localize.get_locale())
     fallback = validate_fallback!(Keyword.get(options, :fallback, false))
@@ -110,20 +109,20 @@ defmodule Localize.Language do
   end
 
   @doc """
-  Same as `to_string/2` but raises on error.
+  Same as `display_name/2` but raises on error.
 
   ### Examples
 
-      iex> Localize.Language.to_string!("de")
+      iex> Localize.Language.display_name!("de")
       "German"
 
-      iex> Localize.Language.to_string!("en-GB", style: :short)
+      iex> Localize.Language.display_name!("en-GB", style: :short)
       "UK English"
 
   """
-  @spec to_string!(String.t() | LanguageTag.t(), Keyword.t()) :: String.t()
-  def to_string!(language, options \\ []) do
-    case to_string(language, options) do
+  @spec display_name!(String.t() | LanguageTag.t(), Keyword.t()) :: String.t()
+  def display_name!(language, options \\ []) do
+    case display_name(language, options) do
       {:ok, name} -> name
       {:error, exception} -> raise exception
     end

@@ -118,7 +118,7 @@ ex_cldr_units supports runtime registration of custom units. Implementing this i
 
 * [x] Update the data generation pipeline to preserve alt variant mappings.
 
-* [x] Verify `Localize.Language.to_string/2` returns correct results for all alt variants.
+* [x] Verify `Localize.Language.display_name/2` returns correct results for all alt variants.
 
 ### Pre-release blockers
 

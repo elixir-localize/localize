@@ -75,7 +75,7 @@ iex> # Territories and languages
 iex> Localize.Territory.display_name(:US)
 {:ok, "United States"}
 
-iex> Localize.Language.to_string(:fr)
+iex> Localize.Language.display_name(:fr)
 {:ok, "French"}
 
 iex> # Collation
