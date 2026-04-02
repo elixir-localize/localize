@@ -95,6 +95,7 @@ defmodule Localize.Unit.Parser do
     except: [
       wrap_pow: 1,
       wrap_constant: 1,
+      wrap_currency_unit: 1,
       wrap_single_unit: 1,
       wrap_per_leading: 1,
       wrap_core_unit: 1,
@@ -106,10 +107,12 @@ defmodule Localize.Unit.Parser do
   # so they compile once instead of being inlined at every call site.
   defparsecp(:base_unit_p, base_unit())
   defparsecp(:si_prefix_p, si_prefix())
+  defparsecp(:currency_unit_p, currency_unit())
 
   # Rebuild single_unit to reference the defparsecp versions
   single_unit_v =
     choice([
+      parsec(:currency_unit_p),
       optional(power_prefix())
       |> choice([
         parsec(:base_unit_p),

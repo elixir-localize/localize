@@ -79,17 +79,92 @@ defmodule Localize.Unit.Formatter do
 
   # ── Unit formatting ────────────────────────────────────────
 
-  defp format_unit(%Localize.Unit{value: value, name: name}, unit_data, locale, _style, options) do
-    unit_name = normalize_unit_name(name)
+  defp format_unit(%Localize.Unit{value: value, name: name, parsed: parsed}, unit_data, locale, _style, options) do
+    case currency_unit_parts(parsed) do
+      {:ok, currency_code, denominator_units} ->
+        format_currency_unit(value, currency_code, denominator_units, unit_data, locale, options)
 
-    case find_unit_formats(unit_data, unit_name) do
-      nil ->
-        # Fallback: just format as "number unit_name"
-        format_fallback(value, name, options)
+      :not_currency ->
+        unit_name = normalize_unit_name(name)
 
-      unit_formats ->
-        grammatical_case = Keyword.get(options, :grammatical_case, :nominative)
-        format_with_pattern(value, unit_formats, locale, grammatical_case, options)
+        case find_unit_formats(unit_data, unit_name) do
+          nil ->
+            format_fallback(value, name, options)
+
+          unit_formats ->
+            grammatical_case = Keyword.get(options, :grammatical_case, :nominative)
+            format_with_pattern(value, unit_formats, locale, grammatical_case, options)
+        end
+    end
+  end
+
+  defp currency_unit_parts({:unit, keyword}) do
+    numerator = Keyword.get(keyword, :numerator, [])
+    denominator = Keyword.get(keyword, :denominator, [])
+
+    case numerator do
+      [{:single_unit, kw}] ->
+        case Keyword.fetch!(kw, :base) do
+          "curr-" <> code -> {:ok, code, denominator}
+          _ -> :not_currency
+        end
+
+      _ ->
+        :not_currency
+    end
+  end
+
+  defp currency_unit_parts(_), do: :not_currency
+
+  defp format_currency_unit(value, currency_code, denominator_units, unit_data, locale, options) do
+    currency_atom = String.to_atom(currency_code)
+    currency_options = Keyword.merge(options, currency: currency_atom, locale: locale)
+
+    with {:ok, currency_string} <- format_number(value, currency_options) do
+      case denominator_units do
+        [] ->
+          {:ok, currency_string}
+
+        [{:single_unit, kw} | _rest] ->
+          denominator_base = Keyword.fetch!(kw, :base)
+          denominator_name = normalize_unit_name(denominator_base)
+
+          case find_per_unit_pattern(unit_data, denominator_name, value, locale) do
+            nil ->
+              {:ok, "#{currency_string} per #{denominator_base}"}
+
+            pattern ->
+              result = Localize.Substitution.substitute(currency_string, pattern)
+              {:ok, result |> :erlang.iolist_to_binary() |> String.trim()}
+          end
+      end
+    end
+  end
+
+  defp find_per_unit_pattern(unit_data, denominator_name, _value, _locale) do
+    denominator_atom = safe_to_atom(denominator_name)
+
+    per_unit_pattern =
+      Enum.find_value(unit_data, fn
+        {_category, units} when is_map(units) ->
+          case Map.get(units, denominator_atom) || Map.get(units, denominator_name) do
+            %{per_unit_pattern: pattern} -> pattern
+            _ -> nil
+          end
+
+        _ ->
+          nil
+      end)
+
+    case per_unit_pattern do
+      [position, pattern_str] when is_integer(position) ->
+        unit_pattern_to_tokens(position, pattern_str)
+
+      tokens when is_list(tokens) ->
+        tokens
+
+      _ ->
+        nil
     end
   end
 

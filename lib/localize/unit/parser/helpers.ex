@@ -16,6 +16,11 @@ defmodule Localize.Unit.Parser.Helpers do
   end
 
   @doc false
+  def wrap_currency_unit([code]) do
+    {:single_unit, prefix: nil, power: nil, base: "curr-" <> String.upcase(code)}
+  end
+
+  @doc false
   def wrap_single_unit(parts) do
     power =
       case Enum.find(parts, fn

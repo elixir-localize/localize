@@ -216,28 +216,37 @@ defmodule Localize.Unit.Conversion do
 
   defp single_factor({:single_unit, keyword}) do
     base = Keyword.fetch!(keyword, :base)
-    prefix = Keyword.get(keyword, :prefix)
-    power = Keyword.get(keyword, :power)
 
-    case Map.get(@conversion_factors, base) do
-      nil ->
-        {:error, Localize.UnknownUnitError.exception(unit: base)}
+    case base do
+      "curr-" <> _code ->
+        {:ok, 1.0}
 
-      %{factor: :special} ->
-        {:error,
-         Localize.UnitConversionError.exception(
-           from: base,
-           to: nil,
-           reason: "special conversion not supported"
-         )}
+      _ ->
+        prefix = Keyword.get(keyword, :prefix)
+        power = Keyword.get(keyword, :power)
 
-      %{factor: base_factor} ->
-        prefix_mult =
-          if prefix, do: Map.get(@si_prefix_multipliers, Atom.to_string(prefix), 1.0), else: 1.0
+        case Map.get(@conversion_factors, base) do
+          nil ->
+            {:error, Localize.UnknownUnitError.exception(unit: base)}
 
-        total = base_factor * prefix_mult
-        powered = apply_power_to_factor(total, power)
-        {:ok, powered}
+          %{factor: :special} ->
+            {:error,
+             Localize.UnitConversionError.exception(
+               from: base,
+               to: nil,
+               reason: "special conversion not supported"
+             )}
+
+          %{factor: base_factor} ->
+            prefix_mult =
+              if prefix,
+                do: Map.get(@si_prefix_multipliers, Atom.to_string(prefix), 1.0),
+                else: 1.0
+
+            total = base_factor * prefix_mult
+            powered = apply_power_to_factor(total, power)
+            {:ok, powered}
+        end
     end
   end
 

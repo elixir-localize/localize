@@ -213,6 +213,10 @@ defmodule Localize.Unit.BaseUnit do
     {:ok, %{}}
   end
 
+  defp resolve_base_unit("curr-" <> _code = currency_base) do
+    {:ok, %{currency_base => 1}}
+  end
+
   defp resolve_base_unit(name) do
     case Map.get(@conversions, name) do
       nil ->

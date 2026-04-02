@@ -100,6 +100,7 @@ defmodule Localize.Unit do
   def new(amount, unit, options \\ []) when is_binary(unit) do
     with {:ok, _} <- validate_value(amount),
          {:ok, parsed} <- Localize.Unit.Parser.parse(unit),
+         :ok <- validate_currency_codes(parsed),
          {:ok, usage} <- validate_usage(Keyword.get(options, :usage)) do
       {canonical_name, normalised_ast} = Localize.Unit.Canonical.canonicalize(parsed)
 
@@ -137,13 +138,10 @@ defmodule Localize.Unit do
   @dialyzer {:nowarn_function, new: 1}
 
   def new(name) when is_binary(name) do
-    case Localize.Unit.Parser.parse(name) do
-      {:ok, parsed} ->
-        {canonical_name, normalised_ast} = Localize.Unit.Canonical.canonicalize(parsed)
-        {:ok, %__MODULE__{name: canonical_name, parsed: normalised_ast}}
-
-      {:error, _} = error ->
-        error
+    with {:ok, parsed} <- Localize.Unit.Parser.parse(name),
+         :ok <- validate_currency_codes(parsed) do
+      {canonical_name, normalised_ast} = Localize.Unit.Canonical.canonicalize(parsed)
+      {:ok, %__MODULE__{name: canonical_name, parsed: normalised_ast}}
     end
   end
 
@@ -619,6 +617,34 @@ defmodule Localize.Unit do
        expected: "a string or nil",
        context: "usage"
      )}
+  end
+
+  defp validate_currency_codes({:unit, keyword}) do
+    units = Keyword.get(keyword, :numerator, []) ++ Keyword.get(keyword, :denominator, [])
+    validate_currency_codes_in_list(units)
+  end
+
+  defp validate_currency_codes({:mixed_unit, units}) do
+    validate_currency_codes_in_list(units)
+  end
+
+  defp validate_currency_codes_in_list(units) do
+    Enum.reduce_while(units, :ok, fn
+      {:single_unit, kw}, :ok ->
+        case Keyword.fetch!(kw, :base) do
+          "curr-" <> code ->
+            case Localize.Currency.validate_currency(code) do
+              {:ok, _} -> {:cont, :ok}
+              {:error, _} = error -> {:halt, error}
+            end
+
+          _ ->
+            {:cont, :ok}
+        end
+
+      _, :ok ->
+        {:cont, :ok}
+    end)
   end
 
   # ── Formatting ───────────────────────────────────────────────

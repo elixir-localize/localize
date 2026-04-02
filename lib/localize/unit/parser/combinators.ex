@@ -65,11 +65,22 @@ defmodule Localize.Unit.Parser.Combinator do
     {:constant, Enum.join(parts)}
   end
 
+  # ── Currency unit ───────────────────────────────────────────────────
+
+  @doc false
+  def currency_unit do
+    ignore(string("curr-"))
+    |> ascii_string([?a..?z, ?A..?Z], 3)
+    |> reduce(:wrap_currency_unit)
+  end
+
   # ── Single unit ─────────────────────────────────────────────────────
 
   @doc false
   def single_unit do
     choice([
+      # Currency unit (curr-USD, curr-EUR, etc.)
+      currency_unit(),
       # Unit with optional power prefix, optional SI prefix, and base unit
       optional(power_prefix())
       |> choice([
