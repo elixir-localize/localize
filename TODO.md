@@ -4,25 +4,11 @@
 
 ### Hex publishing
 
-* [x] Set version in `mix.exs`.
-
 * [ ] Add `:description`, `:package`, `:source_url` to `mix.exs` for Hex.
-
-* [x] Add license file.
 
 * [ ] Define docs structure in `mix.exs` including topic grouping and user guides.
 
 * [ ] Run `mix docs` and review generated documentation.
-
-* [x] Run `mix dialyzer` and resolve any errors.
-
-### CI
-
-* [x] Move the CI workflow (`upload-locales.yml`) to `.github/workflows/`.
-
-### Data loader
-
-* [x] Data loader should generate locales as required when in `:test` mode. Currently all 766 locale ETF files must be present in `priv/localize/locales/` for tests to pass. In CI and fresh checkouts only `en.etf` is committed; the loader should detect missing locales and generate them on-the-fly from the CLDR source data when `Mix.env() == :test`.
 
 ## Open work
 
@@ -40,7 +26,7 @@ The CLDR 48.2 test file (`localeDistanceTest.txt`) appears stale — expected va
 | `en-AU → en-CA` | 4 | 5 | CA in `$enUS` cluster → cross-cluster |
 | `hr → sr-Latn` | 8 | 84 | `sr → hr` rule commented out in XML |
 
-* [ ] Study the ICU `XLocaleDistance` trie-based implementation (`$CLDR_REPO/tools/cldr-code/src/main/java/org/unicode/cldr/draft/XLocaleDistance.java`).
+* [ ] Study the ICU `XLocaleDistance` trie-based implementation.
 
 * [ ] Rewrite `compute_match_distance/2` and `find_match_score/2` to match.
 
@@ -48,55 +34,29 @@ The CLDR 48.2 test file (`localeDistanceTest.txt`) appears stale — expected va
 
 * [ ] File a CLDR ticket if confirmed stale.
 
-### Locale display T extension data types
-
-The T extension display code in `locale_display/t.ex` had comparisons like `h0 == :hybrid or h0 == "hybrid"` which suggested the locale data may contain inconsistent types (atom vs string) for T extension values. The data generation pipeline now normalises to atoms consistently and the string comparisons have been removed.
-
-* [x] Audit the T extension value types in generated locale ETF data.
-
-* [x] Normalise to atoms in the data generation pipeline if needed.
-
-* [x] Remove the redundant string comparisons in `locale_display/t.ex`.
-
-### Nested bracket replacement (CLDR 48.2)
-
-CLDR 48.2 formalizes nested bracket replacement as structured data. Our current implementation uses hardcoded `String.replace` calls which produce correct output for all known locales but don't use the CLDR data.
-
-* [x] Load `nestedBracketReplacement` data from CLDR locale data.
-
-* [x] Replace hardcoded `replace_parens_with_brackets/1` with a data-driven implementation.
-
-* [x] Apply bracket replacement only when nesting is detected (inner brackets within outer brackets).
-
 ## Design review
 
-* [ ] Revisit `Localize.Locale.to_locale_id/1` — the nil-cldr_locale_id fallback path may produce atoms that don't correspond to known CLDR locales. Consider validation.
+* [x] Revisit `Localize.Locale.to_locale_id/1` — reviewed; internal coercion function, not a public validator. Callers use `validate_locale/1` for validation. No change needed.
 
-* [x] Review error return consistency — most functions return `{:error, %Exception{}}` but some return bare `:error`. Standardised.
+* [x] `Localize.Territory.parent/1` returns `NoParentTerritoryError` instead of `UnknownTerritoryError` for valid territories with no parents.
 
-* [ ] Review whether `Localize.Territory.parent/1` should return a more specific error for territories with no parents.
-
-* [ ] Consider whether `Localize.SupplementalData` accessor functions should be `@doc false`.
-
-* [ ] MF2 JSON interchange format (`Localize.Message.JSON`) — requires `:json` module (OTP 27+). Decide fallback strategy for OTP 26.
+* [x] `Localize.SupplementalData` accessor functions set to `@doc false`.
 
 ### Unicode version alignment
 
-Elixir, OTP, and CLDR each ship with their own Unicode version. When these versions differ, string operations (NFC normalization, grapheme breaking, case mapping) may produce subtly different results depending on whether they use the OTP/Elixir Unicode tables or the CLDR Unicode data. Today they do not all match. Investigate whether we can:
+Elixir, OTP, and CLDR each ship with their own Unicode version. When these versions differ, string operations (NFC normalization, grapheme breaking, case mapping) may produce subtly different results depending on whether they use the OTP/Elixir Unicode tables or the CLDR Unicode data.
 
-* [ ] Document which Unicode version each component uses (OTP 28 = Unicode 16.0, Elixir 1.19 = Unicode 16.0, CLDR 48 = Unicode 16.0 — but older OTP/Elixir combinations use earlier Unicode versions).
+* [ ] Document which Unicode version each component uses.
 
-* [ ] Identify code paths where Unicode version mismatches could produce incorrect results (e.g., NFC normalization in MF2 `name` parsing, collation combining class lookups, character category checks in `Localize.Collation.Numeric`).
+* [ ] Identify code paths where Unicode version mismatches could produce incorrect results.
 
-* [ ] Evaluate whether the `unicode` library dependency (which has its own Unicode version) should be version-pinned to match the CLDR Unicode version, or whether we can rely on OTP's built-in Unicode support for OTP 28+.
+* [ ] Evaluate whether the `unicode` library dependency should be version-pinned to match the CLDR Unicode version, or whether we can rely on OTP's built-in Unicode support for OTP 28+.
 
-* [ ] Consider conditional compilation that uses OTP's `:unicode` module directly on OTP 28+ (Unicode 16.0) and falls back to the `unicode` library on older OTP versions.
+* [ ] Consider conditional compilation that uses OTP's `:unicode` module directly on OTP 28+.
 
 ## Future enhancements
 
 ### Digital token (cryptocurrency) support
-
-ex_cldr supports BTC and other digital tokens via the `digital_token` library which maps ISO 24165 digital token identifiers to currency data. Localize does not currently integrate this library.
 
 * [ ] Evaluate whether to integrate `digital_token` as an optional dependency or embed the token data directly.
 
@@ -104,27 +64,27 @@ ex_cldr supports BTC and other digital tokens via the `digital_token` library wh
 
 ### Custom/additional unit registration
 
-ex_cldr_units supports runtime registration of custom units. Implementing this in Localize would require:
-
 * [ ] A registration API for defining custom units at application start.
 
 * [ ] Integration with the parser, formatter, and conversion system.
 
 ## Completed
 
-### Language data generation
-
-* [x] Investigate how alt variants are stored in the CLDR JSON locale data for languages.
-
-* [x] Update the data generation pipeline to preserve alt variant mappings.
-
-* [x] Verify `Localize.Language.display_name/2` returns correct results for all alt variants.
-
 ### Pre-release blockers
 
-* [x] Remove ex_cldr runtime dependency — ETF loader replaces `Cldr.Locale.Loader.get_locale/2`.
+* [x] Set version in `mix.exs`.
 
-* [x] Merge localize_data into localize — all modules, data, Mix tasks, and scripts moved.
+* [x] Add license file.
+
+* [x] Run `mix dialyzer` and resolve any errors.
+
+* [x] Move the CI workflow (`upload-locales.yml`) to `.github/workflows/`.
+
+* [x] Data loader generates locales on-the-fly in `:dev` and `:test` environments.
+
+* [x] Remove ex_cldr runtime dependency.
+
+* [x] Merge localize_data into localize.
 
 * [x] Write `CLDR_DATA.md` documenting the data update process.
 
@@ -146,11 +106,23 @@ ex_cldr_units supports runtime registration of custom units. Implementing this i
 
 * [x] MF2 `:currency` and `:percent` documented as Stable.
 
-* [x] MF2 `u:locale` option — never implemented, already compliant with removal.
+* [x] MF2 `u:locale` option — already compliant with removal.
 
 * [x] Data updated to 48.2.
 
 * [x] `tz`, `kr`, `sd`/`rg` key display names implemented.
+
+* [x] Nested bracket replacement data-driven from CLDR locale data.
+
+### Display names
+
+* [x] Language display names support all alt variant styles (`:standard`, `:short`, `:long`, `:menu`, `:variant`).
+
+* [x] `Language.to_string/2` renamed to `Language.display_name/2`.
+
+* [x] T extension data types normalised to atoms consistently.
+
+* [x] Error return consistency — all public functions return `{:error, %Exception{}}`.
 
 ### Performance
 
@@ -170,4 +142,10 @@ ex_cldr_units supports runtime registration of custom units. Implementing this i
 
 * [x] Adversarial property tests for all public formatting APIs.
 
-* [x] 23,960 tests passing, 0 failures.
+* [x] Compound per-units with currency support (`curr-USD-per-year`).
+
+* [x] Measurement systems data-driven from CLDR (`bcp47/measure.xml` and `measurementData.json`).
+
+* [x] Coverage level data from CLDR (`coverageLevels.json`).
+
+* [x] 24,049 tests passing, 0 failures.

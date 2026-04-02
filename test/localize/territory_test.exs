@@ -215,7 +215,8 @@ defmodule Localize.TerritoryTest do
     end
 
     test "returns error for territory with no parents" do
-      assert {:error, %Localize.UnknownTerritoryError{}} = Territory.parent(:"001")
+      assert {:error, %Localize.NoParentTerritoryError{territory: :"001"}} =
+               Territory.parent(:"001")
     end
   end
 

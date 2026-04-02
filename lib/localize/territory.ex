@@ -457,7 +457,7 @@ defmodule Localize.Territory do
 
       case Enum.sort(parents) do
         [] ->
-          {:error, Localize.UnknownTerritoryError.exception(territory: territory)}
+          {:error, Localize.NoParentTerritoryError.exception(territory: code)}
 
         sorted ->
           {:ok, sorted}
