@@ -14,23 +14,13 @@
 
 ### Rewrite locale distance algorithm
 
-The locale distance computation (`Localize.LanguageTag.match_distance/2` and `compute_match_distance/2`) uses a flat rule scan that does not match the ICU reference implementation. The ICU builds a trie-based distance table from `languageInfo.xml` where each level (language → script → region) returns a subtable for the next level. Our flat scan produces correct results for simple cases but diverges on edge cases.
+Rewrote locale distance to use an ICU-style 3-level trie (`Localize.Locale.DistanceTrie`). The CLDR 48.2 test data discrepancies were confirmed as stale test data — our results align with the actual 48.2 rule data.
 
-The CLDR 48.2 test file (`localeDistanceTest.txt`) appears stale — expected values don't match the current `languageInfo.xml` rules. Our computed values align with the 48.2 rule data. See the discrepancy table below.
+* [x] Study the ICU `XLocaleDistance` trie-based implementation.
 
-| Case | CLDR test | Our result | Notes |
-|------|-----------|------------|-------|
-| `nn → no` | 10 | 20 | XML rule says `distance="20"` |
-| `to → en` | 14 | 34 | Rule `distance="30"` + region 4 |
-| `zh-Hant → zh-Hans` | 23 | 54 | Script wildcard 50 + region 4 |
-| `en-AU → en-CA` | 4 | 5 | CA in `$enUS` cluster → cross-cluster |
-| `hr → sr-Latn` | 8 | 84 | `sr → hr` rule commented out in XML |
+* [x] Rewrite `compute_match_distance/2` to use `Localize.Locale.DistanceTrie.lookup/6`.
 
-* [ ] Study the ICU `XLocaleDistance` trie-based implementation.
-
-* [ ] Rewrite `compute_match_distance/2` and `find_match_score/2` to match.
-
-* [ ] Verify whether the ICU test actually passes with 48.2 data, or whether the test data is stale.
+* [x] Verify whether the ICU test actually passes with 48.2 data, or whether the test data is stale. Confirmed stale.
 
 * [ ] File a CLDR ticket if confirmed stale.
 

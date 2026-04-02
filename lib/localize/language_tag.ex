@@ -412,10 +412,9 @@ defmodule Localize.LanguageTag do
 
   # ── Language matching ──────────────────────────────────────────
 
-  @language_matching SupplementalData.language_matching()
-  @language_match_rules Map.fetch!(@language_matching, :language_match)
-  @match_variables Map.fetch!(@language_matching, :match_variables)
-  @paradigm_locales Map.fetch!(@language_matching, :paradigm_locales) |> MapSet.new()
+  @paradigm_locales SupplementalData.language_matching()
+                    |> Map.fetch!(:paradigm_locales)
+                    |> MapSet.new()
   @default_distance 80
 
   @doc """
@@ -621,101 +620,16 @@ defmodule Localize.LanguageTag do
 
   defp ensure_maximized(tag), do: tag
 
-  # Compute match distance by processing subtags in three phases.
+  # Compute match distance using the trie-based lookup.
   defp compute_match_distance(desired, supported) do
-    [
-      [:language, :script, :territory],
-      [:language, :script],
-      [:language]
-    ]
-    |> Enum.reduce(0, fn subtag_keys, acc ->
-      desired_fields = extract_subtags(desired, subtag_keys)
-      supported_fields = extract_subtags(supported, subtag_keys)
-      subtag_distance(desired_fields, supported_fields, acc)
-    end)
-  end
-
-  # When the last subtag is identical, skip (no additional distance).
-  defp subtag_distance([_, _, t], [_, _, t], acc), do: acc
-  defp subtag_distance([_, s], [_, s], acc), do: acc
-  defp subtag_distance([l], [l], acc), do: acc
-  defp subtag_distance(desired, desired, acc), do: acc + 0
-
-  defp subtag_distance(desired, supported, acc) do
-    acc + find_match_score(desired, supported)
-  end
-
-  defp find_match_score(desired, supported) do
-    Enum.reduce_while(@language_match_rules, 0, fn match, _acc ->
-      cond do
-        rule_matches?(desired, match.desired) and
-            rule_matches?(supported, match.supported) ->
-          {:halt, match.distance}
-
-        not Map.get(match, :one_way, false) and
-          rule_matches?(desired, match.supported) and
-            rule_matches?(supported, match.desired) ->
-          {:halt, match.distance}
-
-        true ->
-          {:cont, 0}
-      end
-    end)
-  end
-
-  # Rule matching with wildcards and match variables.
-  defp rule_matches?([lang, _, _], [lang, :*, :*]), do: true
-  defp rule_matches?([lang, _], [lang, :*]), do: true
-  defp rule_matches?([lang], [lang]), do: true
-
-  defp rule_matches?([lang, _script], [lang, :*]), do: true
-  defp rule_matches?([lang, script, _], [lang, script, :*]), do: true
-  defp rule_matches?([lang, script], [lang, script]), do: true
-
-  defp rule_matches?([lang, _, territory], [lang, :*, territory]), do: true
-  defp rule_matches?([lang, script, territory], [lang, script, territory]), do: true
-
-  # Match variables
-  defp rule_matches?([lang, _script, territory], [lang, :*, {:in, variable}]) do
-    territory in expand_variable(variable)
-  end
-
-  defp rule_matches?([lang, script, territory], [lang, script, {:in, variable}]) do
-    territory in expand_variable(variable)
-  end
-
-  defp rule_matches?([lang, _script, territory], [lang, :*, {:not_in, variable}]) do
-    territory not in expand_variable(variable)
-  end
-
-  defp rule_matches?([lang, script, territory], [lang, script, {:not_in, variable}]) do
-    territory not in expand_variable(variable)
-  end
-
-  # Wildcard catch-all
-  defp rule_matches?([_, _, _], [:*, :*, :*]), do: true
-  defp rule_matches?([_, _], [:*, :*]), do: true
-  defp rule_matches?([_], [:*]), do: true
-
-  defp rule_matches?(_fields, _rule), do: false
-
-  defp expand_variable(variable) do
-    Map.fetch!(@match_variables, variable)
-  end
-
-  # Extract subtags as atoms for comparison with match rules.
-  # The match rules use strings for language but atoms for script/territory,
-  # so we convert language to string and keep script/territory as atoms.
-  defp extract_subtags(tag, [:language]) do
-    [Atom.to_string(tag.language)]
-  end
-
-  defp extract_subtags(tag, [:language, :script]) do
-    [Atom.to_string(tag.language), tag.script]
-  end
-
-  defp extract_subtags(tag, [:language, :script, :territory]) do
-    [Atom.to_string(tag.language), tag.script, tag.territory]
+    Localize.Locale.DistanceTrie.lookup(
+      Atom.to_string(desired.language),
+      desired.script,
+      desired.territory,
+      Atom.to_string(supported.language),
+      supported.script,
+      supported.territory
+    )
   end
 
   # Sort matches: lower distance first, then paradigm locale preference,
