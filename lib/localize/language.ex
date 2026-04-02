@@ -225,8 +225,11 @@ defmodule Localize.Language do
 
             :error ->
               case Map.fetch(names, :standard) do
-                {:ok, _} = result -> result
-                :error -> {:error, Localize.UnknownLanguageError.exception(language: language_code)}
+                {:ok, _} = result ->
+                  result
+
+                :error ->
+                  {:error, Localize.UnknownLanguageError.exception(language: language_code)}
               end
           end
 
