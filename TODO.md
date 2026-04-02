@@ -18,11 +18,11 @@
 
 ### CI
 
-* [ ] Move the CI workflow (`upload-locales.yml`) to `.github/workflows/`.
+* [x] Move the CI workflow (`upload-locales.yml`) to `.github/workflows/`.
 
 ### Data loader
 
-* [ ] Data loader should generate locales as required when in `:test` mode. Currently all 766 locale ETF files must be present in `priv/localize/locales/` for tests to pass. In CI and fresh checkouts only `en.etf` is committed; the loader should detect missing locales and generate them on-the-fly from the CLDR source data when `Mix.env() == :test`.
+* [x] Data loader should generate locales as required when in `:test` mode. Currently all 766 locale ETF files must be present in `priv/localize/locales/` for tests to pass. In CI and fresh checkouts only `en.etf` is committed; the loader should detect missing locales and generate them on-the-fly from the CLDR source data when `Mix.env() == :test`.
 
 ## Open work
 
@@ -52,11 +52,11 @@ The CLDR 48.2 test file (`localeDistanceTest.txt`) appears stale — expected va
 
 Language display name data is not generated correctly. The "alt" variants (e.g., `alt="short"`, `alt="long"`, `alt="menu"`) in CLDR language display names are not being handled properly during data generation. This affects `Localize.Language.to_string/2` when requesting non-standard display variants.
 
-* [ ] Investigate how alt variants are stored in the CLDR JSON locale data for languages.
+* [x] Investigate how alt variants are stored in the CLDR JSON locale data for languages.
 
-* [ ] Update the data generation pipeline to preserve alt variant mappings.
+* [x] Update the data generation pipeline to preserve alt variant mappings.
 
-* [ ] Verify `Localize.Language.to_string/2` returns correct results for all alt variants.
+* [x] Verify `Localize.Language.to_string/2` returns correct results for all alt variants.
 
 ### Locale display T extension data types
 

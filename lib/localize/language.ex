@@ -9,13 +9,25 @@ defmodule Localize.Language do
 
   ## Styles
 
-  Language display names come in two styles:
+  Language display names come in several styles:
 
   * `:standard` — the full display name (default).
 
-  * `:short` — a shorter form when available (e.g., "UK English"
-    instead of "British English"). Falls back to `:standard`
+  * `:short` — a shorter form when available (e.g., "Azeri"
+    instead of "Azerbaijani"). Falls back to `:standard`
     when unavailable.
+
+  * `:long` — a longer form when available (e.g., "Mandarin
+    Chinese" instead of "Chinese"). Falls back to `:standard`
+    when unavailable.
+
+  * `:menu` — a menu-friendly form with the language family
+    first (e.g., "Chinese, Mandarin" instead of "Mandarin
+    Chinese"). Falls back to `:standard` when unavailable.
+
+  * `:variant` — an alternative variant name (e.g., "Pushto"
+    instead of "Pashto"). Falls back to `:standard` when
+    unavailable.
 
   """
 
@@ -23,7 +35,7 @@ defmodule Localize.Language do
 
   alias Localize.LanguageTag
 
-  @styles [:standard, :short]
+  @styles [:standard, :short, :long, :menu, :variant]
 
   # ── Display names ───────────────────────────────────────────
 
@@ -42,9 +54,10 @@ defmodule Localize.Language do
   * `:locale` is a locale identifier. The default is
     `Localize.get_locale()`.
 
-  * `:style` is one of `:standard` or `:short`. The default
-    is `:standard`. If `:short` is not available for a
-    language, falls back to `:standard`.
+  * `:style` is one of `:standard`, `:short`, `:long`, `:menu`,
+    or `:variant`. The default is `:standard`. If the requested
+    style is not available for a language, falls back to
+    `:standard`.
 
   * `:fallback` is a boolean. When `true` and the language
     is not found in the specified locale, falls back to the
@@ -204,7 +217,7 @@ defmodule Localize.Language do
     with {:ok, languages} <- Localize.Locale.get(locale_id, [:languages]) do
       case Map.fetch(languages, language_code) do
         {:ok, names} ->
-          case Map.fetch(names, style) do
+          case resolve_style(names, style) do
             {:ok, _} = result -> result
             :error -> Map.fetch(names, :standard)
           end
@@ -212,6 +225,23 @@ defmodule Localize.Language do
         :error ->
           :error
       end
+    end
+  end
+
+  # The :menu style stores a nested map with :alt (the composed
+  # display string), :core, and :extension keys. Return the :alt
+  # value as the display name.
+  defp resolve_style(names, :menu) do
+    case Map.fetch(names, :menu) do
+      {:ok, %{alt: alt}} when is_binary(alt) -> {:ok, alt}
+      _ -> :error
+    end
+  end
+
+  defp resolve_style(names, style) do
+    case Map.fetch(names, style) do
+      {:ok, value} when is_binary(value) -> {:ok, value}
+      _ -> :error
     end
   end
 
