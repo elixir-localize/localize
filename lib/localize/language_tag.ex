@@ -560,7 +560,7 @@ defmodule Localize.LanguageTag do
 
   """
   @spec match_distance(t() | String.t(), t() | String.t()) ::
-          non_neg_integer() | {:error, String.t()}
+          number() | {:error, String.t()}
   def match_distance(desired, supported) do
     with {:ok, desired_tag} <- resolve_for_matching(desired, :desired),
          {:ok, supported_tag} <- resolve_for_matching(supported, :supported) do

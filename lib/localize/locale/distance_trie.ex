@@ -11,19 +11,31 @@ defmodule Localize.Locale.DistanceTrie do
   @persistent_term_key {:localize, :distance_trie}
 
   @doc false
-  @spec lookup(String.t(), atom(), atom(), String.t(), atom(), atom()) :: non_neg_integer()
-  def lookup(desired_lang, desired_script, desired_territory,
-             supported_lang, supported_script, supported_territory) do
+  @spec lookup(String.t(), atom(), atom(), String.t(), atom(), atom()) :: number()
+  def lookup(
+        desired_lang,
+        desired_script,
+        desired_territory,
+        supported_lang,
+        supported_script,
+        supported_territory
+      ) do
     {trie, variables} = ensure_loaded()
     default_lang_node = Map.get(trie, {:*, :*}) || %{distance: 0, script: %{}}
 
     # Language level
     {lang_distance, lang_node} =
       if desired_lang == supported_lang do
-        node = cascade_lookup(trie, desired_lang, supported_lang, nil, nil, variables) || default_lang_node
+        node =
+          cascade_lookup(trie, desired_lang, supported_lang, nil, nil, variables) ||
+            default_lang_node
+
         {0, node}
       else
-        node = cascade_lookup(trie, desired_lang, supported_lang, nil, nil, variables) || default_lang_node
+        node =
+          cascade_lookup(trie, desired_lang, supported_lang, nil, nil, variables) ||
+            default_lang_node
+
         distance = node[:distance] || default_lang_node.distance
         {distance, node}
       end
@@ -36,13 +48,27 @@ defmodule Localize.Locale.DistanceTrie do
       if desired_script == supported_script do
         node =
           cascade_lookup(script_table, desired_script, supported_script, nil, nil, variables) ||
-            cascade_lookup(default_script_table, desired_script, supported_script, nil, nil, variables)
+            cascade_lookup(
+              default_script_table,
+              desired_script,
+              supported_script,
+              nil,
+              nil,
+              variables
+            )
 
         {0, node}
       else
         node =
           cascade_lookup(script_table, desired_script, supported_script, nil, nil, variables) ||
-            cascade_lookup(default_script_table, desired_script, supported_script, nil, nil, variables)
+            cascade_lookup(
+              default_script_table,
+              desired_script,
+              supported_script,
+              nil,
+              nil,
+              variables
+            )
 
         cond do
           node && node[:distance] -> {node.distance, node}
@@ -120,8 +146,8 @@ defmodule Localize.Locale.DistanceTrie do
           nil
       end)
 
+    # Check {{:not_in, var}, supported} — supported is concrete, desired must not be in var
     result ||
-      # Check {{:not_in, var}, supported} — supported is concrete, desired must not be in var
       Enum.find_value(table, fn
         {{{:not_in, var}, ^supported}, distance} ->
           set = Map.fetch!(variables, var)
@@ -235,19 +261,43 @@ defmodule Localize.Locale.DistanceTrie do
       one_way = Map.get(rule, :one_way, false)
       distance = rule.distance
 
-      acc = put_script_entry(acc, desired_lang, supported_lang, desired_script, supported_script, distance)
+      acc =
+        put_script_entry(
+          acc,
+          desired_lang,
+          supported_lang,
+          desired_script,
+          supported_script,
+          distance
+        )
 
       if not one_way do
-        put_script_entry(acc, supported_lang, desired_lang, supported_script, desired_script, distance)
+        put_script_entry(
+          acc,
+          supported_lang,
+          desired_lang,
+          supported_script,
+          desired_script,
+          distance
+        )
       else
         acc
       end
     end)
   end
 
-  defp put_script_entry(trie, desired_lang, supported_lang, desired_script, supported_script, distance) do
+  defp put_script_entry(
+         trie,
+         desired_lang,
+         supported_lang,
+         desired_script,
+         supported_script,
+         distance
+       ) do
     lang_key = {desired_lang, supported_lang}
-    lang_node = Map.get(trie, lang_key) || Map.get(trie, {desired_lang, :*}) || %{distance: 0, script: %{}}
+
+    lang_node =
+      Map.get(trie, lang_key) || Map.get(trie, {desired_lang, :*}) || %{distance: 0, script: %{}}
 
     script_key = {desired_script, supported_script}
     script_table = Map.get(lang_node, :script, %{})
@@ -271,12 +321,32 @@ defmodule Localize.Locale.DistanceTrie do
 
       acc =
         for dk <- desired_keys, sk <- supported_keys, reduce: acc do
-          acc -> put_territory_entry(acc, desired_lang, supported_lang, desired_script, supported_script, dk, sk, distance)
+          acc ->
+            put_territory_entry(
+              acc,
+              desired_lang,
+              supported_lang,
+              desired_script,
+              supported_script,
+              dk,
+              sk,
+              distance
+            )
         end
 
       if not one_way do
         for dk <- supported_keys, sk <- desired_keys, reduce: acc do
-          acc -> put_territory_entry(acc, supported_lang, desired_lang, supported_script, desired_script, dk, sk, distance)
+          acc ->
+            put_territory_entry(
+              acc,
+              supported_lang,
+              desired_lang,
+              supported_script,
+              desired_script,
+              dk,
+              sk,
+              distance
+            )
         end
       else
         acc
@@ -293,13 +363,28 @@ defmodule Localize.Locale.DistanceTrie do
   defp expand_territory_keys({:not_in, _variable} = not_in, _variables), do: [not_in]
   defp expand_territory_keys(territory, _variables) when is_atom(territory), do: [territory]
 
-  defp put_territory_entry(trie, desired_lang, supported_lang, desired_script, supported_script, desired_terr, supported_terr, distance) do
+  defp put_territory_entry(
+         trie,
+         desired_lang,
+         supported_lang,
+         desired_script,
+         supported_script,
+         desired_terr,
+         supported_terr,
+         distance
+       ) do
     lang_key = {desired_lang, supported_lang}
-    lang_node = Map.get(trie, lang_key) || Map.get(trie, {desired_lang, :*}) || %{distance: nil, script: %{}}
+
+    lang_node =
+      Map.get(trie, lang_key) || Map.get(trie, {desired_lang, :*}) ||
+        %{distance: nil, script: %{}}
 
     script_key = {desired_script, supported_script}
     script_table = Map.get(lang_node, :script, %{})
-    script_node = Map.get(script_table, script_key) || Map.get(script_table, {desired_script, :*}) || %{distance: nil, territory: %{}}
+
+    script_node =
+      Map.get(script_table, script_key) || Map.get(script_table, {desired_script, :*}) ||
+        %{distance: nil, territory: %{}}
 
     terr_key = {desired_terr, supported_terr}
     territory_table = Map.get(script_node, :territory, %{})
