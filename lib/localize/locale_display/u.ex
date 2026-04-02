@@ -318,7 +318,7 @@ defmodule Localize.LocaleDisplay.U do
       location =
         cond do
           # If the territory has a single timezone, use the country name
-          territory && Timezone.timezone_count_for_territory(territory) == 1 ->
+          territory && Timezone.timezone_count_for_territory(territory) == {:ok, 1} ->
             get_territory_name(territory, locale_id)
 
           # Otherwise use the exemplar city

@@ -36,8 +36,9 @@ defmodule Localize.LanguageTest do
       assert {:ok, "Deutsch"} == Language.to_string("de", locale: :de)
     end
 
-    test "returns :error for unknown language code" do
-      assert :error == Language.to_string("zzzzzzz")
+    test "returns error tuple for unknown language code" do
+      assert {:error, %Localize.UnknownLanguageError{language: "zzzzzzz"}} =
+               Language.to_string("zzzzzzz")
     end
 
     test "falls back to default locale when fallback is true" do
@@ -62,7 +63,7 @@ defmodule Localize.LanguageTest do
     end
 
     test "raises on unknown language" do
-      assert_raise ArgumentError, fn ->
+      assert_raise Localize.UnknownLanguageError, fn ->
         Language.to_string!("zzzzzzz")
       end
     end

@@ -48,25 +48,15 @@ The CLDR 48.2 test file (`localeDistanceTest.txt`) appears stale — expected va
 
 * [ ] File a CLDR ticket if confirmed stale.
 
-### Language data generation
-
-Language display name data is not generated correctly. The "alt" variants (e.g., `alt="short"`, `alt="long"`, `alt="menu"`) in CLDR language display names are not being handled properly during data generation. This affects `Localize.Language.to_string/2` when requesting non-standard display variants.
-
-* [x] Investigate how alt variants are stored in the CLDR JSON locale data for languages.
-
-* [x] Update the data generation pipeline to preserve alt variant mappings.
-
-* [x] Verify `Localize.Language.to_string/2` returns correct results for all alt variants.
-
 ### Locale display T extension data types
 
-The T extension display code in `locale_display/t.ex` has comparisons like `h0 == :hybrid or h0 == "hybrid"` which suggests the locale data may contain inconsistent types (atom vs string) for T extension values. This should be investigated — if the data generation pipeline normalises to atoms consistently, the string comparisons are dead code. If not, the data pipeline should be fixed.
+The T extension display code in `locale_display/t.ex` had comparisons like `h0 == :hybrid or h0 == "hybrid"` which suggested the locale data may contain inconsistent types (atom vs string) for T extension values. The data generation pipeline now normalises to atoms consistently and the string comparisons have been removed.
 
-* [ ] Audit the T extension value types in generated locale ETF data.
+* [x] Audit the T extension value types in generated locale ETF data.
 
-* [ ] Normalise to atoms in the data generation pipeline if needed.
+* [x] Normalise to atoms in the data generation pipeline if needed.
 
-* [ ] Remove the redundant string comparisons in `locale_display/t.ex`.
+* [x] Remove the redundant string comparisons in `locale_display/t.ex`.
 
 ### Nested bracket replacement (CLDR 48.2)
 
@@ -82,7 +72,7 @@ CLDR 48.2 formalizes nested bracket replacement as structured data. Our current 
 
 * [ ] Revisit `Localize.Locale.to_locale_id/1` — the nil-cldr_locale_id fallback path may produce atoms that don't correspond to known CLDR locales. Consider validation.
 
-* [ ] Review error return consistency — most functions return `{:error, %Exception{}}` but some return bare `:error`. Standardise.
+* [x] Review error return consistency — most functions return `{:error, %Exception{}}` but some return bare `:error`. Standardised.
 
 * [ ] Review whether `Localize.Territory.parent/1` should return a more specific error for territories with no parents.
 
@@ -121,6 +111,14 @@ ex_cldr_units supports runtime registration of custom units. Implementing this i
 * [ ] Integration with the parser, formatter, and conversion system.
 
 ## Completed
+
+### Language data generation
+
+* [x] Investigate how alt variants are stored in the CLDR JSON locale data for languages.
+
+* [x] Update the data generation pipeline to preserve alt variant mappings.
+
+* [x] Verify `Localize.Language.to_string/2` returns correct results for all alt variants.
 
 ### Pre-release blockers
 

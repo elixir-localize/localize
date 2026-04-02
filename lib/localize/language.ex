@@ -67,7 +67,8 @@ defmodule Localize.Language do
 
   * `{:ok, name}` where `name` is the localized language name.
 
-  * `:error` if the language code is not found in the locale.
+  * `{:error, exception}` if the language code is not found
+    in the locale.
 
   ### Examples
 
@@ -85,7 +86,7 @@ defmodule Localize.Language do
 
   """
   @spec to_string(String.t() | LanguageTag.t(), Keyword.t()) ::
-          {:ok, String.t()} | :error | {:error, Exception.t()}
+          {:ok, String.t()} | {:error, Exception.t()}
   def to_string(language, options \\ []) do
     style = validate_style!(Keyword.get(options, :style, :standard))
     locale = Keyword.get(options, :locale, Localize.get_locale())
@@ -94,13 +95,17 @@ defmodule Localize.Language do
     language_code = extract_language_code(language)
     locale_id = Localize.Locale.to_locale_id(locale)
 
-    result = lookup_language(language_code, locale_id, style)
+    case lookup_language(language_code, locale_id, style) do
+      {:ok, _} = result ->
+        result
 
-    if result == :error and fallback do
-      default_locale_id = Localize.Locale.to_locale_id(Localize.default_locale())
-      lookup_language(language_code, default_locale_id, style)
-    else
-      result
+      {:error, _} = error ->
+        if fallback do
+          default_locale_id = Localize.Locale.to_locale_id(Localize.default_locale())
+          lookup_language(language_code, default_locale_id, style)
+        else
+          error
+        end
     end
   end
 
@@ -120,7 +125,6 @@ defmodule Localize.Language do
   def to_string!(language, options \\ []) do
     case to_string(language, options) do
       {:ok, name} -> name
-      :error -> raise ArgumentError, "No language name found for #{inspect(language)}"
       {:error, exception} -> raise exception
     end
   end
@@ -223,7 +227,7 @@ defmodule Localize.Language do
           end
 
         :error ->
-          :error
+          {:error, Localize.UnknownLanguageError.exception(language: language_code)}
       end
     end
   end

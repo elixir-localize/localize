@@ -101,7 +101,7 @@ defmodule Localize.DateTime.Timezone do
 
   * `{:ok, list}` where list is timezone maps for the territory.
 
-  * `:error` if the territory has no known timezones.
+  * `{:error, exception}` if the territory has no known timezones.
 
   ### Examples
 
@@ -110,9 +110,12 @@ defmodule Localize.DateTime.Timezone do
       true
 
   """
-  @spec timezones_for_territory(atom()) :: {:ok, [map()]} | :error
+  @spec timezones_for_territory(atom()) :: {:ok, [map()]} | {:error, Exception.t()}
   def timezones_for_territory(territory) do
-    Map.fetch(@timezones_by_territory, territory)
+    case Map.fetch(@timezones_by_territory, territory) do
+      {:ok, _} = result -> result
+      :error -> {:error, Localize.UnknownTerritoryError.exception(territory: territory)}
+    end
   end
 
   @doc """
@@ -124,19 +127,21 @@ defmodule Localize.DateTime.Timezone do
 
   ### Returns
 
-  * An integer count of timezones, or `:error` if the territory
-    has no known timezones.
+  * `{:ok, count}` where count is the number of timezones.
+
+  * `{:error, exception}` if the territory has no known timezones.
 
   ### Examples
 
-      iex> Localize.DateTime.Timezone.timezone_count_for_territory(:AU) > 0
+      iex> {:ok, count} = Localize.DateTime.Timezone.timezone_count_for_territory(:AU)
+      iex> count > 0
       true
 
   """
-  @spec timezone_count_for_territory(atom()) :: non_neg_integer() | :error
+  @spec timezone_count_for_territory(atom()) :: {:ok, non_neg_integer()} | {:error, Exception.t()}
   def timezone_count_for_territory(territory) do
     with {:ok, zones} <- timezones_for_territory(territory) do
-      Enum.count(zones)
+      {:ok, Enum.count(zones)}
     end
   end
 
@@ -187,7 +192,7 @@ defmodule Localize.DateTime.Timezone do
   * `{:ok, map}` where map has `:aliases`, `:preferred`, and
     `:territory` keys.
 
-  * `:error` if the short zone code is not found.
+  * `{:error, exception}` if the short zone code is not found.
 
   ### Examples
 
@@ -201,13 +206,16 @@ defmodule Localize.DateTime.Timezone do
         }
       }
 
-      iex> Localize.DateTime.Timezone.fetch_short_zone("nope")
-      :error
+      iex> match?({:error, _}, Localize.DateTime.Timezone.fetch_short_zone("nope"))
+      true
 
   """
-  @spec fetch_short_zone(String.t()) :: {:ok, map()} | :error
+  @spec fetch_short_zone(String.t()) :: {:ok, map()} | {:error, Exception.t()}
   def fetch_short_zone(short_zone) do
-    Map.fetch(@timezones, short_zone)
+    case Map.fetch(@timezones, short_zone) do
+      {:ok, _} = result -> result
+      :error -> {:error, Localize.UnknownTimezoneError.exception(timezone: short_zone)}
+    end
   end
 
   @doc """
@@ -240,8 +248,8 @@ defmodule Localize.DateTime.Timezone do
       {:ok, %{aliases: [first_zone | _others]}} ->
         {:ok, first_zone}
 
-      :error ->
-        {:error, Localize.UnknownTimezoneError.exception(timezone: short_zone)}
+      {:error, _} = error ->
+        error
     end
   end
 
