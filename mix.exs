@@ -38,9 +38,17 @@ defmodule Localize.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
-      mod: {Localize.Application, []}
+      mod: {Localize.Application, []},
+      extra_applications: extra_applications(Mix.env())
     ]
+  end
+
+  def extra_applications(:dev) do
+    [:logger, :inets, :ssl, :observer, :wx]
+  end
+
+  def extra_applications(_) do
+    [:logger, :inets, :ssl]
   end
 
   defp elixirc_paths(:dev), do: ["lib", "data"]
@@ -52,13 +60,11 @@ defmodule Localize.MixProject do
     [
       {:decimal, "~> 2.0"},
       {:gettext, "~> 1.0"},
-      {:unicode, "~> 1.21"},
       {:nimble_parsec, "~> 1.0", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false, optional: true},
       {:sweet_xml, "~> 0.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
       {:stream_data, "~> 1.0", only: :test}
-      # {:recompile_buster, "~> 0.1", only: [:dev, :test], runtime: false}
     ] ++ maybe_json_polyfill()
   end
 

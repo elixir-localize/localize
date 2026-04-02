@@ -81,7 +81,7 @@ defmodule Localize.Collation.Numeric do
   defp digit_codepoints?(cps) do
     Enum.all?(cps, fn cp ->
       (cp >= 0x0030 and cp <= 0x0039) or
-        Unicode.GeneralCategory.category(cp) == :Nd
+        Localize.Collation.Unicode.decimal_digit?(cp)
     end)
   end
 

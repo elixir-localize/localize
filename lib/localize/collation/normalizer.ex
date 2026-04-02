@@ -113,6 +113,6 @@ defmodule Localize.Collation.Normalizer do
   defp reorder_pass([], swapped), do: {[], swapped}
 
   defp combining_class(cp) do
-    Unicode.CanonicalCombiningClass.combining_class(cp)
+    Localize.Collation.Unicode.combining_class(cp)
   end
 end

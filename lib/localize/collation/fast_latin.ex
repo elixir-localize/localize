@@ -76,6 +76,6 @@ defmodule Localize.Collation.FastLatin do
   end
 
   defp combining_mark?(cp) do
-    Unicode.CanonicalCombiningClass.combining_class(cp) > 0
+    Localize.Collation.Unicode.combining_class(cp) > 0
   end
 end

@@ -424,7 +424,7 @@ defmodule Localize.Collation do
   end
 
   defp combining_class(cp) do
-    Unicode.CanonicalCombiningClass.combining_class(cp)
+    Localize.Collation.Unicode.combining_class(cp)
   end
 
   defp produce_with_numeric(codepoints, _options) do

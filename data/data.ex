@@ -512,6 +512,21 @@ defmodule Localize.Data do
     territories = derive_known_territories()
     save_etf("known_territories.etf", territories)
 
+    # Generate Unicode collation data ETFs
+    unicode_dir = Path.join(File.cwd!(), "priv/unicode")
+
+    if File.dir?(unicode_dir) do
+      IO.puts("Generating combining_classes.etf...")
+      combining = Localize.Data.UnicodeData.generate_combining_classes()
+      save_etf("combining_classes.etf", combining)
+      IO.puts("  #{map_size(combining)} codepoint entries")
+
+      IO.puts("Generating decimal_digit_ranges.etf...")
+      digits = Localize.Data.UnicodeData.generate_decimal_digit_ranges()
+      save_etf("decimal_digit_ranges.etf", digits)
+      IO.puts("  #{length(digits)} ranges")
+    end
+
     :ok
   end
 
