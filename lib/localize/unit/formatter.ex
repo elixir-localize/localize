@@ -79,7 +79,13 @@ defmodule Localize.Unit.Formatter do
 
   # ── Unit formatting ────────────────────────────────────────
 
-  defp format_unit(%Localize.Unit{value: value, name: name, parsed: parsed}, unit_data, locale, _style, options) do
+  defp format_unit(
+         %Localize.Unit{value: value, name: name, parsed: parsed},
+         unit_data,
+         locale,
+         _style,
+         options
+       ) do
     case currency_unit_parts(parsed) do
       {:ok, currency_code, denominator_units} ->
         format_currency_unit(value, currency_code, denominator_units, unit_data, locale, options)
@@ -121,24 +127,52 @@ defmodule Localize.Unit.Formatter do
     currency_options = Keyword.merge(options, currency: currency_atom, locale: locale)
 
     with {:ok, currency_string} <- format_number(value, currency_options) do
-      case denominator_units do
-        [] ->
+      case extract_denominator_parts(denominator_units) do
+        {nil, nil} ->
           {:ok, currency_string}
 
-        [{:single_unit, kw} | _rest] ->
-          denominator_base = Keyword.fetch!(kw, :base)
+        {count, denominator_base} ->
           denominator_name = normalize_unit_name(denominator_base)
 
           case find_per_unit_pattern(unit_data, denominator_name, value, locale) do
             nil ->
-              {:ok, "#{currency_string} per #{denominator_base}"}
+              per_part = if count, do: "#{count} #{denominator_base}", else: denominator_base
+              {:ok, "#{currency_string} per #{per_part}"}
 
             pattern ->
-              result = Localize.Substitution.substitute(currency_string, pattern)
-              {:ok, result |> :erlang.iolist_to_binary() |> String.trim()}
+              currency_with_count =
+                if count do
+                  result = Localize.Substitution.substitute(currency_string, pattern)
+                  per_string = result |> :erlang.iolist_to_binary() |> String.trim()
+                  # Insert the count before the denominator unit name in the pattern
+                  String.replace(per_string, "per ", "per #{count} ")
+                else
+                  result = Localize.Substitution.substitute(currency_string, pattern)
+                  result |> :erlang.iolist_to_binary() |> String.trim()
+                end
+
+              {:ok, currency_with_count}
           end
       end
     end
+  end
+
+  defp extract_denominator_parts([]), do: {nil, nil}
+
+  defp extract_denominator_parts(units) do
+    constant =
+      Enum.find_value(units, fn
+        {:constant, value} -> value
+        _ -> nil
+      end)
+
+    single_unit_base =
+      Enum.find_value(units, fn
+        {:single_unit, kw} -> Keyword.fetch!(kw, :base)
+        _ -> nil
+      end)
+
+    {constant, single_unit_base}
   end
 
   defp find_per_unit_pattern(unit_data, denominator_name, _value, _locale) do

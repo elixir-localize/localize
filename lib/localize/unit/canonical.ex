@@ -158,10 +158,10 @@ defmodule Localize.Unit.Canonical do
     Enum.sort_by(units, fn
       {:single_unit, opts} ->
         base = Keyword.get(opts, :base)
-        {Map.get(@canonical_order, base, map_size(@canonical_order)), base}
+        {1, Map.get(@canonical_order, base, map_size(@canonical_order)), base}
 
       {:constant, _} ->
-        {map_size(@canonical_order) + 1, ""}
+        {0, 0, ""}
     end)
   end
 
