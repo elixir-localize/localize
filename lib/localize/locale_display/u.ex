@@ -2,7 +2,7 @@ defmodule Localize.LocaleDisplay.U do
   @moduledoc false
 
   import Localize.LocaleDisplay,
-    only: [get_display_preference: 2, join_field_values: 2, replace_parens_with_brackets: 1]
+    only: [get_display_preference: 2, join_field_values: 2, replace_nested_brackets: 2]
 
   # Mapping from BCP47 U extension struct field atoms to the
   # CLDR key names used in locale_display_names[:keys] and [:types].
@@ -89,7 +89,7 @@ defmodule Localize.LocaleDisplay.U do
     canonical_value = canonicalize_value(field, value)
 
     if value_name = get_type(display_key, canonical_value, display_names) do
-      replace_parens_with_brackets(value_name)
+      replace_nested_brackets(value_name, display_names)
     else
       # CLDR 48.2: fall back to key identifier when translation is missing
       key_name = get_in(display_names, [:keys, display_key]) || to_string(display_key)
@@ -150,14 +150,14 @@ defmodule Localize.LocaleDisplay.U do
   end
 
   # Returns the localized value when key_name is nil
-  defp display_value(_key, nil, value, _locale_ext, _locale_id, _display_names, _prefer)
+  defp display_value(_key, nil, value, _locale_ext, _locale_id, display_names, _prefer)
        when is_binary(value) do
-    replace_parens_with_brackets(value)
+    replace_nested_brackets(value, display_names)
   end
 
-  defp display_value(_key, nil, value, _locale_ext, _locale_id, _display_names, _prefer)
+  defp display_value(_key, nil, value, _locale_ext, _locale_id, display_names, _prefer)
        when is_atom(value) do
-    value |> to_string() |> replace_parens_with_brackets()
+    value |> to_string() |> replace_nested_brackets(display_names)
   end
 
   defp display_value(key, key_name, value, locale_ext, locale_id, display_names, prefer) do
@@ -167,13 +167,13 @@ defmodule Localize.LocaleDisplay.U do
       |> Kernel.||(value)
       |> get_display_preference(prefer)
       |> :erlang.iolist_to_binary()
-      |> replace_parens_with_brackets()
+      |> replace_nested_brackets(display_names)
 
     if key_name do
       display_pattern = get_in(display_names, [:locale_display_pattern, :locale_key_type_pattern])
       Localize.Substitution.substitute([key_name, value_name], display_pattern)
     else
-      replace_parens_with_brackets(value_name)
+      replace_nested_brackets(value_name, display_names)
     end
   end
 

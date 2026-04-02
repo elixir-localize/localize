@@ -4,7 +4,7 @@ defmodule Localize.LocaleDisplay.T do
   alias Localize.Utils.Helpers
 
   import Localize.LocaleDisplay,
-    only: [get_display_preference: 2, join_field_values: 2, replace_parens_with_brackets: 1]
+    only: [get_display_preference: 2, join_field_values: 2, replace_nested_brackets: 2]
 
   # # display_name/4
   #
@@ -78,7 +78,7 @@ defmodule Localize.LocaleDisplay.T do
     canonical_value = canonicalize_value(field, value)
 
     if value_name = get_type(field, canonical_value, display_names) do
-      replace_parens_with_brackets(value_name)
+      replace_nested_brackets(value_name, display_names)
     else
       # CLDR 48.2: fall back to key identifier when translation is missing
       key_name = get_in(display_names, [:keys, field]) || bcp47_key_for(field)
@@ -147,7 +147,7 @@ defmodule Localize.LocaleDisplay.T do
       value_parts
       |> join_field_values(display_names)
       |> :erlang.iolist_to_binary()
-      |> replace_parens_with_brackets()
+      |> replace_nested_brackets(display_names)
 
     display_pattern = get_in(display_names, [:locale_display_pattern, :locale_key_type_pattern])
     Localize.Substitution.substitute([key_name, value_name], display_pattern)
@@ -159,12 +159,12 @@ defmodule Localize.LocaleDisplay.T do
          value,
          _transform,
          _locale_id,
-         _display_names,
+         display_names,
          _prefer,
          _language_display
        )
        when is_binary(value) do
-    replace_parens_with_brackets(value)
+    replace_nested_brackets(value, display_names)
   end
 
   defp display_value(
@@ -173,12 +173,12 @@ defmodule Localize.LocaleDisplay.T do
          value,
          _transform,
          _locale_id,
-         _display_names,
+         display_names,
          _prefer,
          _language_display
        )
        when is_atom(value) do
-    value |> to_string() |> replace_parens_with_brackets()
+    value |> to_string() |> replace_nested_brackets(display_names)
   end
 
   defp display_value(
@@ -197,7 +197,7 @@ defmodule Localize.LocaleDisplay.T do
       |> Kernel.||(value)
       |> get_display_preference(prefer)
       |> :erlang.iolist_to_binary()
-      |> replace_parens_with_brackets()
+      |> replace_nested_brackets(display_names)
 
     display_pattern = get_in(display_names, [:locale_display_pattern, :locale_key_type_pattern])
     Localize.Substitution.substitute([key_name, value_name], display_pattern)

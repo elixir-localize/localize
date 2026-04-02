@@ -89,7 +89,7 @@ defmodule Localize.LocaleDisplay do
         language_tag
         |> subtag_names(@basic_tag_order -- matched_tags, prefer, display_names)
         |> List.flatten()
-        |> Enum.map(&replace_parens_with_brackets/1)
+        |> Enum.map(&replace_nested_brackets(&1, display_names))
         |> join_subtags(display_names)
 
       extension_names =
@@ -135,11 +135,14 @@ defmodule Localize.LocaleDisplay do
   defp load_display_names(locale_id) do
     with {:ok, locale_display_names} <- Localize.Locale.get(locale_id, [:locale_display_names]),
          {:ok, languages} <- Localize.Locale.get(locale_id, [:languages]),
-         {:ok, territories} <- Localize.Locale.get(locale_id, [:territories]) do
+         {:ok, territories} <- Localize.Locale.get(locale_id, [:territories]),
+         {:ok, bracket_replacements} <-
+           Localize.Locale.get(locale_id, [:nested_bracket_replacement]) do
       display_names =
         locale_display_names
         |> Map.put(:language, languages)
         |> Map.put(:territory, territories)
+        |> Map.put(:nested_bracket_replacement, bracket_replacements)
 
       {:ok, display_names}
     end
@@ -330,12 +333,12 @@ defmodule Localize.LocaleDisplay do
     format_display_name(alt, subtag_names, extension_names, display_names)
   end
 
-  defp format_display_name(language_name, [], [], _display_names) do
-    replace_parens_with_brackets(language_name)
+  defp format_display_name(language_name, [], [], display_names) do
+    replace_nested_brackets(language_name, display_names)
   end
 
   defp format_display_name(language_name, subtag_names, extension_names, display_names) do
-    language_name = replace_parens_with_brackets(language_name)
+    language_name = replace_nested_brackets(language_name, display_names)
     locale_pattern = get_in(display_names, [:locale_display_pattern, :locale_pattern])
 
     subtags =
@@ -375,15 +378,21 @@ defmodule Localize.LocaleDisplay do
   end
 
   @doc false
-  def replace_parens_with_brackets(value) when is_binary(value) do
-    value
-    |> String.replace("(", "[")
-    |> String.replace(")", "]")
-    |> String.replace("（", "［")
-    |> String.replace("）", "］")
+  def replace_nested_brackets(value, display_names)
+
+  def replace_nested_brackets(value, display_names) when is_binary(value) do
+    replacements = Map.get(display_names, :nested_bracket_replacement, %{})
+
+    if replacements == %{} do
+      value
+    else
+      Enum.reduce(replacements, value, fn {from, to}, acc ->
+        String.replace(acc, from, to)
+      end)
+    end
   end
 
-  def replace_parens_with_brackets(value), do: value
+  def replace_nested_brackets(value, _display_names), do: value
 
   @doc false
   def join_field_values([], _display_names), do: []

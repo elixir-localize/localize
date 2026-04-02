@@ -45,6 +45,16 @@ In the example above:
 * msgid is the message string in Unicode Message Format 2 format with interpolation of the struct bindings
 * bindings - the bindings derived from the struct
 
+## Data pipeline
+
+When changing the locale data generation pipeline (normalizers in `data/normalize/`, `@required_modules` in `data/locale.ex`, or any transform in `Localize.Data.Locale`), regenerate all locale ETF files to keep them up-to-date:
+
+```bash
+mix localize.generate_locales
+```
+
+The `:en` locale ETF is the only locale committed to the repository. Other locales are generated on-the-fly in `:dev` and `:test` environments.
+
 ## Locale parsing
 
 * When we need to parse or resolve a locale identifier, prefer `Localize.validate_locale/1` over `Localize.LanguageTag.parse/1`. Validation canonicalizes the tag, populates the `LanguageTag.U` struct for `-u-` extensions, resolves likely subtags, and caches the result.

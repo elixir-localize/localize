@@ -26,6 +26,7 @@ defmodule Localize.Data.Locale do
     "languages",
     "delimiters",
     "ellipsis",
+    "nested_bracket_replacement",
     "lenient_parse",
     "locale_display_names",
     "subdivisions",
@@ -200,6 +201,7 @@ defmodule Localize.Data.Locale do
     |> Localize.Data.Normalize.LanguageNames.normalize(locale)
     |> Localize.Data.Normalize.Delimiter.normalize(locale)
     |> Localize.Data.Normalize.Ellipsis.normalize(locale)
+    |> Localize.Data.Normalize.NestedBrackets.normalize(locale)
     |> Localize.Data.Normalize.LenientParse.normalize(locale)
     |> Localize.Data.Normalize.LocaleDisplayNames.normalize(locale)
     |> Localize.Data.Normalize.PersonName.normalize(locale)

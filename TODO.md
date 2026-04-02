@@ -62,11 +62,11 @@ The T extension display code in `locale_display/t.ex` had comparisons like `h0 =
 
 CLDR 48.2 formalizes nested bracket replacement as structured data. Our current implementation uses hardcoded `String.replace` calls which produce correct output for all known locales but don't use the CLDR data.
 
-* [ ] Load `nestedBracketReplacement` data from CLDR locale data.
+* [x] Load `nestedBracketReplacement` data from CLDR locale data.
 
-* [ ] Replace hardcoded `replace_parens_with_brackets/1` with a data-driven implementation.
+* [x] Replace hardcoded `replace_parens_with_brackets/1` with a data-driven implementation.
 
-* [ ] Apply bracket replacement only when nesting is detected (inner brackets within outer brackets).
+* [x] Apply bracket replacement only when nesting is detected (inner brackets within outer brackets).
 
 ## Design review
 

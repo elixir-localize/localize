@@ -31,7 +31,6 @@ defmodule Localize.Language do
 
   """
 
-
   alias Localize.LanguageTag
 
   @styles [:standard, :short, :long, :menu, :variant]
@@ -221,8 +220,14 @@ defmodule Localize.Language do
       case Map.fetch(languages, language_code) do
         {:ok, names} ->
           case resolve_style(names, style) do
-            {:ok, _} = result -> result
-            :error -> Map.fetch(names, :standard)
+            {:ok, _} = result ->
+              result
+
+            :error ->
+              case Map.fetch(names, :standard) do
+                {:ok, _} = result -> result
+                :error -> {:error, Localize.UnknownLanguageError.exception(language: language_code)}
+              end
           end
 
         :error ->
