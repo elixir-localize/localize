@@ -1,7 +1,7 @@
-defmodule Localize.LocaleDisplay.Extension do
+defmodule Localize.Locale.LocaleDisplay.Extension do
   @moduledoc false
 
-  import Localize.LocaleDisplay, only: [join_field_values: 2]
+  import Localize.Locale.LocaleDisplay, only: [join_field_values: 2]
 
   # # display_name/3
   #

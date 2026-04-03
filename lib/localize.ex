@@ -39,7 +39,7 @@ defmodule Localize do
   * `Localize.Collation` — locale-sensitive string sorting using the
     Unicode Collation Algorithm.
 
-  * `Localize.LocaleDisplay` — full locale display names
+  * `Localize.Locale.LocaleDisplay` — full locale display names
     (e.g., "English (United States)").
 
   * `Localize.Calendar` — calendar era names, day/month names, and

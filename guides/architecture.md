@@ -135,7 +135,7 @@ All functionality is merged into a single library with domain modules under the 
 * `Localize.Currency` — currency data and formatting.
 * `Localize.Territory` — territory names, metadata, and relationships.
 * `Localize.Language` — language display names.
-* `Localize.LocaleDisplay` — full locale display names.
+* `Localize.Locale.LocaleDisplay` — full locale display names.
 * `Localize.Message` — ICU MessageFormat 2.0 formatting.
 * `Localize.Collation` — Unicode collation.
 * `Localize.Calendar` — calendar localization.

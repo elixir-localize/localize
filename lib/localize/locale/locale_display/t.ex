@@ -1,9 +1,9 @@
-defmodule Localize.LocaleDisplay.T do
+defmodule Localize.Locale.LocaleDisplay.T do
   @moduledoc false
 
   alias Localize.Utils.Helpers
 
-  import Localize.LocaleDisplay,
+  import Localize.Locale.LocaleDisplay,
     only: [get_display_preference: 2, join_field_values: 2, replace_nested_brackets: 2]
 
   # # display_name/4

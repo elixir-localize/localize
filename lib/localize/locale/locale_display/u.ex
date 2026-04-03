@@ -1,7 +1,7 @@
-defmodule Localize.LocaleDisplay.U do
+defmodule Localize.Locale.LocaleDisplay.U do
   @moduledoc false
 
-  import Localize.LocaleDisplay,
+  import Localize.Locale.LocaleDisplay,
     only: [get_display_preference: 2, join_field_values: 2, replace_nested_brackets: 2]
 
   # Mapping from BCP47 U extension struct field atoms to the

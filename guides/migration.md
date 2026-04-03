@@ -99,7 +99,7 @@ end
 | `MyApp.Cldr.Territory` | `Localize.Territory` |
 | `MyApp.Cldr.Language` | `Localize.Language` |
 | `MyApp.Cldr.Currency` | `Localize.Currency` |
-| `Cldr.LocaleDisplay` | `Localize.LocaleDisplay` |
+| `Cldr.LocaleDisplay` | `Localize.Locale.LocaleDisplay` |
 | `Cldr.Message` | `Localize.Message` |
 | `Cldr.Collation` | `Localize.Collation` |
 | `Cldr` (core) | `Localize` |
@@ -283,6 +283,27 @@ iex> Localize.Language.display_name("en", locale: :de)
 
 iex> Localize.Language.display_name("en-GB", style: :short)
 {:ok, "UK English"}
+```
+
+### Calendar
+
+```elixir
+# ex_cldr
+MyApp.Cldr.Calendar.localize(~D[2024-01-15], :month, type: :stand_alone)
+
+# Localize (option :type renamed to :context)
+iex> Localize.Calendar.localize(~D[2024-01-15], :month, context: :stand_alone)
+"January"
+
+# New unified display_name API
+iex> Localize.Calendar.display_name(:month, 1)
+{:ok, "January"}
+
+iex> Localize.Calendar.display_name(:calendar, :gregorian)
+{:ok, "Gregorian Calendar"}
+
+iex> Localize.Calendar.display_name(:date_time_field, :year)
+{:ok, "year"}
 ```
 
 ### Text formatting

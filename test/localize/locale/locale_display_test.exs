@@ -1,10 +1,10 @@
-defmodule Localize.LocaleDisplayTest do
+defmodule Localize.Locale.LocaleDisplayTest do
   use ExUnit.Case, async: true
 
   # The ICU data-driven locale display tests require OTP 28+ for
   # correct Unicode NFC normalization behavior. Doctests run on
   # all OTP versions since they test basic functionality.
-  doctest Localize.LocaleDisplay
+  doctest Localize.Locale.LocaleDisplay
 
   # ── ICU Data-Driven Tests ──────────────────────────────────────
   if System.otp_release() >= "28" do
@@ -68,7 +68,7 @@ defmodule Localize.LocaleDisplayTest do
       @tag locale_display_icu: line
       test "ICU ##{line} #{inspect(from)} => #{inspect(to)} in #{inspect(locale)}" do
         result =
-          Localize.LocaleDisplay.display_name(
+          Localize.Locale.LocaleDisplay.display_name(
             unquote(from),
             locale: unquote(locale),
             language_display: unquote(language_display)
@@ -92,35 +92,35 @@ defmodule Localize.LocaleDisplayTest do
 
   describe "display_name/2 basic formatting" do
     test "simple language" do
-      assert {:ok, "English"} = Localize.LocaleDisplay.display_name("en")
+      assert {:ok, "English"} = Localize.Locale.LocaleDisplay.display_name("en")
     end
 
     test "language with territory in standard mode" do
-      assert {:ok, "English (United States)"} = Localize.LocaleDisplay.display_name("en-US")
+      assert {:ok, "English (United States)"} = Localize.Locale.LocaleDisplay.display_name("en-US")
     end
 
     test "language with territory in dialect mode" do
       assert {:ok, "American English"} =
-               Localize.LocaleDisplay.display_name("en-US", language_display: :dialect)
+               Localize.Locale.LocaleDisplay.display_name("en-US", language_display: :dialect)
     end
 
     test "compound dialect name" do
       assert {:ok, "Flemish"} =
-               Localize.LocaleDisplay.display_name("nl-BE", language_display: :dialect)
+               Localize.Locale.LocaleDisplay.display_name("nl-BE", language_display: :dialect)
     end
 
     test "language with script and territory" do
-      assert {:ok, name} = Localize.LocaleDisplay.display_name("zh-Hans-CN")
+      assert {:ok, name} = Localize.Locale.LocaleDisplay.display_name("zh-Hans-CN")
       assert String.contains?(name, "Chinese")
       assert String.contains?(name, "Simplified")
     end
 
     test "display in different locale" do
-      assert {:ok, "anglais"} = Localize.LocaleDisplay.display_name("en", locale: :fr)
+      assert {:ok, "anglais"} = Localize.Locale.LocaleDisplay.display_name("en", locale: :fr)
     end
 
     test "display in German" do
-      {:ok, name} = Localize.LocaleDisplay.display_name("en-US", locale: :de)
+      {:ok, name} = Localize.Locale.LocaleDisplay.display_name("en-US", locale: :de)
       assert String.contains?(name, "Englisch")
       assert String.contains?(name, "Vereinigte Staaten")
     end
@@ -129,7 +129,7 @@ defmodule Localize.LocaleDisplayTest do
   describe "display_name/2 with U extension" do
     test "calendar and currency extensions in dialect mode" do
       {:ok, name} =
-        Localize.LocaleDisplay.display_name("en-US-u-ca-gregory-cu-aud",
+        Localize.Locale.LocaleDisplay.display_name("en-US-u-ca-gregory-cu-aud",
           language_display: :dialect
         )
 
@@ -140,7 +140,7 @@ defmodule Localize.LocaleDisplayTest do
 
     test "calendar extension in French dialect mode" do
       {:ok, name} =
-        Localize.LocaleDisplay.display_name("en-US-u-ca-gregory-cu-aud",
+        Localize.Locale.LocaleDisplay.display_name("en-US-u-ca-gregory-cu-aud",
           locale: :fr,
           language_display: :dialect
         )
@@ -153,7 +153,7 @@ defmodule Localize.LocaleDisplayTest do
   describe "display_name/2 with prefer option" do
     test "prefer :short for territory" do
       {:ok, name} =
-        Localize.LocaleDisplay.display_name("en-GB", locale: :"en-GB", prefer: :short)
+        Localize.Locale.LocaleDisplay.display_name("en-GB", locale: :"en-GB", prefer: :short)
 
       assert String.contains?(name, "UK")
     end
@@ -161,19 +161,19 @@ defmodule Localize.LocaleDisplayTest do
 
   describe "display_name!/2" do
     test "returns string directly" do
-      assert "English" = Localize.LocaleDisplay.display_name!("en")
+      assert "English" = Localize.Locale.LocaleDisplay.display_name!("en")
     end
 
     test "raises on invalid input" do
       assert_raise Localize.ParseError, fn ->
-        Localize.LocaleDisplay.display_name!("xyz-invalid-totally-bad")
+        Localize.Locale.LocaleDisplay.display_name!("xyz-invalid-totally-bad")
       end
     end
   end
 
   describe "display_name/2 error handling" do
     test "returns error for unparseable locale" do
-      result = Localize.LocaleDisplay.display_name("xyz-invalid-totally-bad")
+      result = Localize.Locale.LocaleDisplay.display_name("xyz-invalid-totally-bad")
       assert match?({:error, _}, result)
     end
   end

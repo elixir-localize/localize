@@ -36,6 +36,14 @@ Removed the `unicode` hex dependency. Collation now uses `Localize.Collation.Uni
 
 * [ ] Integration with the parser, formatter, and conversion system.
 
+### Person name formatting
+
+* [ ] Create a separate `localize_person_names` package using `unicode_string` for Unicode word segmentation.
+
+* [ ] Implement TR35 person name formatting spec (`tr35-personNames.md`).
+
+* [ ] Person name data is already normalized and stored in locale ETFs (`:person_names` key).
+
 ## Completed
 
 ### Pre-release blockers

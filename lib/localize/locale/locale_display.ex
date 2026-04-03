@@ -1,4 +1,4 @@
-defmodule Localize.LocaleDisplay do
+defmodule Localize.Locale.LocaleDisplay do
   @moduledoc """
   Implements the CLDR locale display name algorithm to format
   locale identifiers for presentation.
@@ -48,16 +48,16 @@ defmodule Localize.LocaleDisplay do
 
   ### Examples
 
-      iex> Localize.LocaleDisplay.display_name("en")
+      iex> Localize.Locale.LocaleDisplay.display_name("en")
       {:ok, "English"}
 
-      iex> Localize.LocaleDisplay.display_name("en-US")
+      iex> Localize.Locale.LocaleDisplay.display_name("en-US")
       {:ok, "English (United States)"}
 
-      iex> Localize.LocaleDisplay.display_name("en-US", language_display: :dialect)
+      iex> Localize.Locale.LocaleDisplay.display_name("en-US", language_display: :dialect)
       {:ok, "American English"}
 
-      iex> Localize.LocaleDisplay.display_name("nl-BE", language_display: :dialect)
+      iex> Localize.Locale.LocaleDisplay.display_name("nl-BE", language_display: :dialect)
       {:ok, "Flemish"}
 
   """
@@ -286,7 +286,7 @@ defmodule Localize.LocaleDisplay do
     results =
       if locale_ext != %{} and not is_nil(locale_ext) do
         name =
-          Localize.LocaleDisplay.U.display_name(locale_ext, locale_id, display_names, options)
+          Localize.Locale.LocaleDisplay.U.display_name(locale_ext, locale_id, display_names, options)
 
         if empty?(name), do: results, else: results ++ [name]
       else
@@ -298,7 +298,7 @@ defmodule Localize.LocaleDisplay do
 
     results =
       if transform != %{} and not is_nil(transform) do
-        name = Localize.LocaleDisplay.T.display_name(transform, locale_id, display_names, options)
+        name = Localize.Locale.LocaleDisplay.T.display_name(transform, locale_id, display_names, options)
         if empty?(name), do: results, else: results ++ [name]
       else
         results
@@ -309,7 +309,7 @@ defmodule Localize.LocaleDisplay do
 
     results =
       if extensions != %{} do
-        name = Localize.LocaleDisplay.Extension.display_name(extensions, locale_id, display_names)
+        name = Localize.Locale.LocaleDisplay.Extension.display_name(extensions, locale_id, display_names)
         if empty?(name), do: results, else: results ++ [name]
       else
         results

@@ -43,6 +43,61 @@ defmodule Localize.Locale do
   @typedoc "A locale identifier as an atom."
   @type locale_id :: atom()
 
+  # ── Display names ────────────────────────────────────────────
+
+  @doc """
+  Returns the localized display name for a locale identifier.
+
+  Formats a locale identifier or language tag into a
+  human-readable display name using the CLDR locale display
+  name algorithm (e.g., `"en-AU"` → `"English (Australia)"`).
+
+  ### Arguments
+
+  * `locale` is a locale identifier string, atom, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is the locale to use for formatting. The default
+    is `Localize.get_locale()`.
+
+  * `:prefer` is `:standard` or `:short`. The default is
+    `:standard`.
+
+  ### Returns
+
+  * `{:ok, name}` where `name` is the localized display name.
+
+  * `{:error, exception}` if the locale cannot be resolved.
+
+  ### Examples
+
+      iex> Localize.Locale.display_name("en-AU")
+      {:ok, "English (Australia)"}
+
+      iex> Localize.Locale.display_name("zh-Hant")
+      {:ok, "Chinese (Traditional)"}
+
+  """
+  @spec display_name(LanguageTag.t() | String.t() | atom(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  defdelegate display_name(locale, options \\ []), to: Localize.Locale.LocaleDisplay
+
+  @doc """
+  Same as `display_name/2` but raises on error.
+
+  ### Examples
+
+      iex> Localize.Locale.display_name!("en-AU")
+      "English (Australia)"
+
+  """
+  @spec display_name!(LanguageTag.t() | String.t() | atom(), Keyword.t()) :: String.t()
+  defdelegate display_name!(locale, options \\ []), to: Localize.Locale.LocaleDisplay
+
   # ── Locale inheritance ────────────────────────────────────────
 
   @parent_locales SupplementalData.parent_locales()

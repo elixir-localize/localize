@@ -7,8 +7,31 @@ defmodule Localize.Calendar do
   weekend days) and functions to produce localized date part strings
   from `Date`, `DateTime`, and `NaiveDateTime` structs.
 
-  Calendar locale data is accessed via `Localize.Locale.get/2` using
-  the path `[:dates, :calendars, calendar_type]`.
+  ## Display names
+
+  The `display_name/3` function provides a unified API for
+  localized calendar-related names, modeled on the JavaScript
+  `Intl.DisplayNames` API:
+
+  | Type | Value | Example result |
+  |---|---|---|
+  | `:calendar` | `:gregorian` | `"Gregorian Calendar"` |
+  | `:era` | `1` | `"Anno Domini"` |
+  | `:month` | `1` | `"January"` |
+  | `:day` | `1` (ISO Monday) | `"Monday"` |
+  | `:quarter` | `1` | `"1st quarter"` |
+  | `:day_period` | `:am` | `"AM"` |
+  | `:date_time_field` | `:year` | `"year"` |
+
+  All types support `:locale` and `:style` options. The `:month`,
+  `:day`, `:quarter`, and `:day_period` types also support a
+  `:context` option (`:format` or `:stand_alone`).
+
+  ## Data access
+
+  Lower-level data access functions (`eras/2`, `months/2`,
+  `days/2`, `quarters/2`, `day_periods/2`) return full data
+  maps for use in formatting pipelines.
 
   """
 
@@ -59,6 +82,286 @@ defmodule Localize.Calendar do
   def known_calendars do
     @acceptable_calendars
   end
+
+  # ── Display names ─────────────────────────────────────────────
+
+  @display_name_types [
+    :calendar,
+    :era,
+    :quarter,
+    :month,
+    :day,
+    :day_period,
+    :date_time_field
+  ]
+
+  @date_time_fields [
+    :era,
+    :year,
+    :quarter,
+    :month,
+    :week,
+    :weekday,
+    :day,
+    :day_period,
+    :hour,
+    :minute,
+    :second,
+    :zone
+  ]
+
+  @doc """
+  Returns a localized display name for a calendar-related item.
+
+  This is a unified API for retrieving localized names for
+  calendar systems, date-time fields, eras, months, days, quarters,
+  and day periods — modeled on the JavaScript `Intl.DisplayNames`
+  API.
+
+  ### Summary
+
+  | Type | Value | Example result |
+  |---|---|---|
+  | `:calendar` | `:gregorian` | `"Gregorian Calendar"` |
+  | `:era` | `1` | `"Anno Domini"` |
+  | `:month` | `1` | `"January"` |
+  | `:day` | `1` (ISO Monday) | `"Monday"` |
+  | `:quarter` | `1` | `"1st quarter"` |
+  | `:day_period` | `:am` | `"AM"` |
+  | `:date_time_field` | `:year` | `"year"` |
+
+  ### Arguments
+
+  * `type` is the type of calendar item. One of:
+
+    * `:calendar` — a calendar system name (e.g., `:gregorian`).
+
+    * `:era` — an era name by index (e.g., `1` for AD).
+
+    * `:quarter` — a quarter name by number (1–4).
+
+    * `:month` — a month name by number (1–12).
+
+    * `:day` — a day-of-week name by ISO day number (1–7,
+      Monday–Sunday).
+
+    * `:day_period` — a day period name (e.g., `:am`, `:pm`,
+      `:noon`, `:midnight`).
+
+    * `:date_time_field` — a date-time field label (e.g.,
+      `:year`, `:month`, `:day`, `:hour`, `:minute`, `:second`).
+
+  * `value` is the value to look up. The type depends on
+    the `type` argument (see above).
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier. The default is
+    `Localize.get_locale()`.
+
+  * `:style` is the display width. One of `:wide` (default),
+    `:abbreviated`, `:narrow`, or `:short`. Not all styles are
+    available for all types.
+
+  * `:context` is `:format` (default) or `:stand_alone`.
+    Applies to `:month`, `:day`, `:quarter`, and `:day_period`.
+
+  * `:calendar` is the calendar system atom. The default is
+    `:gregorian`.
+
+  ### Returns
+
+  * `{:ok, name}` where `name` is the localized display name.
+
+  * `{:error, exception}` if the value is not found.
+
+  ### Examples
+
+      iex> Localize.Calendar.display_name(:calendar, :gregorian)
+      {:ok, "Gregorian Calendar"}
+
+      iex> Localize.Calendar.display_name(:month, 1)
+      {:ok, "January"}
+
+      iex> Localize.Calendar.display_name(:month, 1, style: :abbreviated)
+      {:ok, "Jan"}
+
+      iex> Localize.Calendar.display_name(:day, 1)
+      {:ok, "Monday"}
+
+      iex> Localize.Calendar.display_name(:day, 1, style: :narrow)
+      {:ok, "M"}
+
+      iex> Localize.Calendar.display_name(:day_period, :am)
+      {:ok, "AM"}
+
+      iex> Localize.Calendar.display_name(:date_time_field, :year)
+      {:ok, "year"}
+
+      iex> Localize.Calendar.display_name(:era, 1)
+      {:ok, "Anno Domini"}
+
+      iex> Localize.Calendar.display_name(:quarter, 1, style: :abbreviated)
+      {:ok, "Q1"}
+
+  """
+  @spec display_name(atom(), term(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def display_name(type, value, options \\ [])
+
+  def display_name(:calendar, calendar_type, options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, ldn} <- Localize.Locale.get(locale_id, [:locale_display_names]) do
+      calendar_names = get_in(ldn, [:types, :calendar]) || %{}
+
+      case Map.get(calendar_names, calendar_type) do
+        nil ->
+          {:error,
+           Localize.UnknownCalendarError.exception(calendar: calendar_type)}
+
+        name when is_binary(name) ->
+          {:ok, name}
+      end
+    end
+  end
+
+  def display_name(:date_time_field, field, options) when field in @date_time_fields do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    style = map_field_style(Keyword.get(options, :style, :wide))
+
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, date_fields} <- Localize.Locale.get(locale_id, [:date_fields]) do
+      field_data = Map.get(date_fields, field)
+
+      case get_in(field_data, [style, :display_name]) do
+        nil ->
+          {:error,
+           Localize.InvalidValueError.exception(
+             value: field,
+             expected: "a known date-time field",
+             context: "Calendar.display_name"
+           )}
+
+        %{default: name} ->
+          {:ok, name}
+
+        name when is_binary(name) ->
+          {:ok, name}
+      end
+    end
+  end
+
+  def display_name(:era, era_index, options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    style = Keyword.get(options, :style, :wide)
+    calendar_type = Keyword.get(options, :calendar, @default_calendar_type)
+
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, eras_data} <- get_calendar_data_raw(locale_id, calendar_type, :eras) do
+      case get_in(eras_data, [style, era_index]) do
+        nil ->
+          {:error,
+           Localize.InvalidValueError.exception(
+             value: era_index,
+             expected: "a valid era index",
+             context: "Calendar.display_name"
+           )}
+
+        name ->
+          {:ok, name}
+      end
+    end
+  end
+
+  def display_name(:quarter, quarter, options) when quarter in 1..4 do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    style = Keyword.get(options, :style, :wide)
+    context = Keyword.get(options, :context, :format)
+    calendar_type = Keyword.get(options, :calendar, @default_calendar_type)
+
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, quarters_data} <- get_calendar_data_raw(locale_id, calendar_type, :quarters) do
+      case get_in(quarters_data, [context, style, quarter]) do
+        nil -> {:error, Localize.InvalidValueError.exception(value: quarter, expected: "1..4", context: "Calendar.display_name")}
+        name -> {:ok, name}
+      end
+    end
+  end
+
+  def display_name(:month, month, options) when month in 1..13 do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    style = Keyword.get(options, :style, :wide)
+    context = Keyword.get(options, :context, :format)
+    calendar_type = Keyword.get(options, :calendar, @default_calendar_type)
+
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, months_data} <- get_calendar_data_raw(locale_id, calendar_type, :months) do
+      case get_in(months_data, [context, style, month]) do
+        nil -> {:error, Localize.InvalidValueError.exception(value: month, expected: "1..13", context: "Calendar.display_name")}
+        name -> {:ok, name}
+      end
+    end
+  end
+
+  def display_name(:day, day, options) when day in 1..7 do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    style = Keyword.get(options, :style, :wide)
+    context = Keyword.get(options, :context, :format)
+    calendar_type = Keyword.get(options, :calendar, @default_calendar_type)
+
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, days_data} <- get_calendar_data_raw(locale_id, calendar_type, :days) do
+      case get_in(days_data, [context, style, day]) do
+        nil -> {:error, Localize.InvalidValueError.exception(value: day, expected: "1..7 (ISO day)", context: "Calendar.display_name")}
+        name -> {:ok, name}
+      end
+    end
+  end
+
+  def display_name(:day_period, period, options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    style = Keyword.get(options, :style, :abbreviated)
+    context = Keyword.get(options, :context, :format)
+    calendar_type = Keyword.get(options, :calendar, @default_calendar_type)
+
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, dp_data} <- get_calendar_data_raw(locale_id, calendar_type, :day_periods) do
+      case get_in(dp_data, [context, style, period]) do
+        nil ->
+          {:error,
+           Localize.InvalidValueError.exception(
+             value: period,
+             expected: "a day period atom (:am, :pm, :noon, :midnight, etc.)",
+             context: "Calendar.display_name"
+           )}
+
+        %{default: name} ->
+          {:ok, name}
+
+        name when is_binary(name) ->
+          {:ok, name}
+      end
+    end
+  end
+
+  def display_name(type, _value, _options) when type in @display_name_types do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: type,
+       expected: "a valid value for the given type",
+       context: "Calendar.display_name"
+     )}
+  end
+
+  # Map :wide/:short style names to date_fields width keys
+  defp map_field_style(:wide), do: :standard
+  defp map_field_style(:short), do: :short
+  defp map_field_style(:narrow), do: :narrow
+  defp map_field_style(style), do: style
 
   # ── Locale data access ─────────────────────────────────────────
 
@@ -307,7 +610,7 @@ defmodule Localize.Calendar do
   * `:format` is one of `:wide`, `:abbreviated`, or `:narrow`.
     The default is `:abbreviated`.
 
-  * `:type` is one of `:format` or `:stand_alone`. The default
+  * `:context` is one of `:format` or `:stand_alone`. The default
     is `:format`.
 
   * `:era` — if set to `:variant`, uses variant era names
@@ -350,7 +653,7 @@ defmodule Localize.Calendar do
 
   def localize(datetime, part, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    type = Keyword.get(options, :type, :format)
+    type = Keyword.get(options, :context, :format)
     format = Keyword.get(options, :format, :abbreviated)
     calendar_type = calendar_type_from(datetime)
 

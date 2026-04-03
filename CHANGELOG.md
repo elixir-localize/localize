@@ -34,7 +34,9 @@ The format is based on
 
 * Script display names with `:standard`, `:short`, `:stand_alone`, and `:variant` styles via `Localize.Script.display_name/2`.
 
-* Locale display names implementing the CLDR locale display name algorithm.
+* Locale display names via `Localize.Locale.display_name/2` implementing the CLDR locale display name algorithm.
+
+* Calendar display names via `Localize.Calendar.display_name/3` — a unified API for localized calendar system names, eras, months, days, quarters, day periods, and date-time field labels. Modeled on the JavaScript `Intl.DisplayNames` API.
 
 * Calendar data access — era names, month names, day names, and day period names for all CLDR-supported calendars.
 
@@ -63,3 +65,11 @@ The format is based on
 * Optional NIF (via `elixir_make`) for faster Unicode normalisation and collation sort-key generation. Enabled with `LOCALIZE_NIF=true`.
 
 * Gettext integration — `Localize.Gettext.Interpolation` provides an MF2-based interpolation module for Gettext backends.
+
+### Changed
+
+* `Localize.LocaleDisplay` moved to `Localize.Locale.LocaleDisplay`.
+
+* `Localize.Language.to_string/2` renamed to `Localize.Language.display_name/2`.
+
+* `Localize.Calendar.localize/3` option `:type` renamed to `:context` for clarity. The `:context` option selects between `:format` and `:stand_alone` forms.

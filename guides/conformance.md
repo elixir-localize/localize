@@ -64,7 +64,7 @@ Two areas are explicitly out of scope:
 | Territory display names | Implemented | `Localize.Territory.display_name/2` with `:standard`, `:short`, `:variant` styles. |
 | Variant display names | Not implemented | |
 | Key/type display names | Not implemented | |
-| Locale display names | Implemented | `Localize.LocaleDisplay.display_name/2` implements the CLDR locale display name algorithm. |
+| Locale display names | Implemented | `Localize.Locale.LocaleDisplay.display_name/2` implements the CLDR locale display name algorithm. |
 
 ### Layout
 

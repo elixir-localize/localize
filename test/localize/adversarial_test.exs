@@ -382,7 +382,7 @@ defmodule Localize.AdversarialTest do
 
   # ── LocaleDisplay.display_name ──────────────────────────────
 
-  describe "Localize.LocaleDisplay.display_name/2 adversarial" do
+  describe "Localize.Locale.LocaleDisplay.display_name/2 adversarial" do
     property "valid and random locales with random options" do
       check all(
               locale <-
@@ -399,7 +399,7 @@ defmodule Localize.AdversarialTest do
                 ]),
               max_runs: 500
             ) do
-        result = safe_call(fn -> Localize.LocaleDisplay.display_name(locale, options) end)
+        result = safe_call(fn -> Localize.Locale.LocaleDisplay.display_name(locale, options) end)
 
         assert_no_crash(
           result,
