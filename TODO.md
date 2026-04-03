@@ -10,19 +10,17 @@
 
 ## Open
 
-* [ ] File a CLDR ticket for stale `localeDistanceTest.txt` test data (confirmed our 48.2 rule-aligned results are correct; CLDR test expectations are outdated).
+* [x] File a CLDR ticket for stale `localeDistanceTest.txt` test data (confirmed our 48.2 rule-aligned results are correct; CLDR test expectations are outdated).
 
 ### Unicode version alignment
 
-Elixir, OTP, and CLDR each ship with their own Unicode version. When these versions differ, string operations may produce subtly different results.
+Removed the `unicode` hex dependency. Collation now uses `Localize.Collation.Unicode` backed by UCD data (combining classes, decimal digits) downloaded from `unicode.org` and stored as ETF files. NFC/NFD normalization uses OTP's built-in `:unicode` module.
 
-* [ ] Document which Unicode version each component uses.
+* [x] Removed `unicode` hex dependency — replaced with `Localize.Collation.Unicode` using UCD ETF data.
 
-* [ ] Identify code paths where Unicode version mismatches could produce incorrect results.
+* [x] `mix localize.download_unicode_data` fetches UCD files from `unicode.org/Public/17.0.0/ucd/`.
 
-* [ ] Evaluate whether the `unicode` library dependency should be version-pinned to match the CLDR Unicode version, or whether we can rely on OTP's built-in Unicode support for OTP 28+.
-
-* [ ] Consider conditional compilation that uses OTP's `:unicode` module directly on OTP 28+.
+* [x] Only OTP's `:unicode` module (NFC/NFD) and our own UCD ETF data are used — no external Unicode library.
 
 ## Future enhancements
 

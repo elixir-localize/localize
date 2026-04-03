@@ -30,7 +30,9 @@ The format is based on
 
 * Territory display names, containment hierarchies, subdivision names, and emoji flag generation.
 
-* Language display names with `:standard` and `:menu` styles.
+* Language display names with `:standard`, `:short`, `:long`, `:menu`, and `:variant` styles via `Localize.Language.display_name/2`.
+
+* Script display names with `:standard`, `:short`, `:stand_alone`, and `:variant` styles via `Localize.Script.display_name/2`.
 
 * Locale display names implementing the CLDR locale display name algorithm.
 
