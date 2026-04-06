@@ -86,7 +86,7 @@ defmodule Localize.Number do
       {:ok, "56%"}
 
   """
-  @spec to_string(number() | Decimal.t(), Keyword.t() | Options.t()) ::
+  @spec to_string(number() | Decimal.t(), Keyword.t() | struct()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def to_string(number, options \\ [])
 

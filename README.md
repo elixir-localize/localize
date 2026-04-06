@@ -208,6 +208,24 @@ If `:nif` is specified but the NIF is not compiled or not available, it silently
 
 Full documentation is available on [HexDocs](https://hexdocs.pm/localize).
 
+## Additional Localize libraries
+
+Localize is the core CLDR-backed formatting and validation library. The following companion packages build on top of it and cover domains that fall outside the core CLDR data model:
+
+### Supplemental localization libraries
+
+* [localize_person_names](https://hex.pm/packages/localize_person_names) — Locale-aware person name formatting implementing the CLDR TR35 person names specification. Uses Unicode word segmentation to handle given, middle, surname, and generation components across locales.
+
+* [localize_phonenumber](https://hex.pm/packages/localize_phonenumber) — Parsing, validation, and locale-aware formatting of international phone numbers, including territory detection and E.164 canonicalisation.
+
+* [localize_address](https://hex.pm/packages/localize_address) — Postal address parsing and locale-aware formatting using CLDR territory data and locale-specific address layouts.
+
+* [intl](https://hex.pm/packages/intl) — A higher-level, ergonomic API layer over `Localize` modeled on the ECMAScript `Intl` object. Provides a unified interface for number, date, time, relative time, list, and plural formatting.
+
+### Libraries that depend on Localize
+
+* [ex_money version 6.0](https://hex.pm/packages/ex_money) which is updated to be based upon `Localize`.
+
 ## License
 
 Apache License 2.0. See the [LICENSE](LICENSE.md) file for details.

@@ -6,7 +6,7 @@ defmodule Localize.Currency.Store do
   `Localize.Currency.new/2`. They are stored in `:persistent_term`
   for fast concurrent read access.
 
-  This module is started as part of the `Localize.Application`
+  This module is started as part of the Localize application
   supervision tree.
 
   """

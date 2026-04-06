@@ -9,7 +9,7 @@ defmodule Localize.MixProject do
     [
       app: :localize,
       version: @version,
-      name: "Cldr",
+      name: "Localize",
       source_url: "https://github.com/elixir-localize/localize",
       docs: docs(),
       deps: deps(),
@@ -38,7 +38,7 @@ defmodule Localize.MixProject do
 
   def description do
     "Localization (parsing, formatting) of numbers, dates/time/calendar, units of measure, " <>
-    "messages and lists. Includes localized collation."
+      "messages and lists. Includes localized collation."
   end
 
   def package do
@@ -55,10 +55,11 @@ defmodule Localize.MixProject do
         "CHANGELOG*",
         "LICENSE*",
         "priv/localize/*.etf",
+        "priv/localize/verison",
         "priv/localize/localize_patch_version",
         "priv/localize/supplemental_data",
         "priv/localize/validity",
-        "priv/localize/locales/en.etf",
+        "priv/localize/locales/en.etf"
       ]
     ]
   end
@@ -76,47 +77,49 @@ defmodule Localize.MixProject do
       source_ref: "v#{@version}",
       main: "readme",
       logo: "logo.png",
-      extras: [
-        "README.md",
-        "LICENSE.md",
-        "CHANGELOG.md",
-      ] ++ Path.wildcard("guides/*.md"),
+      extras:
+        [
+          "README.md",
+          "LICENSE.md",
+          "CHANGELOG.md"
+        ] ++ Path.wildcard("guides/*.md"),
       formatters: ["html", "markdown"],
       groups_for_modules: groups_for_modules(),
       groups_for_extras: groups_for_extras(),
-      skip_undefined_reference_warnings_on: [
-        "CHANGELOG.md"
-      ] ++ Path.wildcard("guides/*.md"),
+      skip_undefined_reference_warnings_on:
+        [
+          "CHANGELOG.md"
+        ] ++ Path.wildcard("guides/*.md")
     ]
   end
 
   def groups_for_modules do
     [
-      "Numbers": ~r/Localize.Number/,
+      Numbers: ~r/Localize.Number/,
       "Dates and Times": ~r/Localize.[Date|Time]*/,
-      "Calendars": ~r/Localize.Calendar/,
-      "Currencies": ~r/Localize.Currency/,
-      "Languages": ~r/Localize.Language/,
-      "Territories": ~r/Localize.Territory/,
-      "Scripts": ~r/Localize.Script/,
+      Calendars: ~r/Localize.Calendar/,
+      Currencies: ~r/Localize.Currency/,
+      Languages: ~r/Localize.Language/,
+      Territories: ~r/Localize.Territory/,
+      Scripts: ~r/Localize.Script/,
       "Units of Measure": ~r/Localize.Unit/,
-      "Messages": ~r/Localize.Message/,
-      "Lists": ~r/Localize.List/,
-      "Collation": ~r/Localize.Collation/,
-      "Utilities": ~r/Localize.Util/
+      Messages: ~r/Localize.Message/,
+      Lists: ~r/Localize.List/,
+      Collation: ~r/Localize.Collation/,
+      Utilities: ~r/Localize.Util/
     ]
   end
 
   defp groups_for_extras do
     [
-      "Guides": [
+      Guides: [
         "guides/number_formatting.md",
         "guides/date_time_formatting.md",
         "guides/unit_formatting.md",
         "guides/message_formatting.md",
         "guides/collation.md"
       ],
-      "Advanced": [
+      Advanced: [
         "guides/architecture.md",
         "guides/conformance.md",
         "guides/performance.md"
@@ -175,7 +178,7 @@ defmodule Localize.MixProject do
       {:elixir_make, "~> 0.4", runtime: false, optional: true},
       {:sweet_xml, "~> 0.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
-      {:stream_data, "~> 1.0", only: :test},
+      {:stream_data, "~> 1.0", only: :test}
     ] ++ maybe_json_polyfill()
   end
 

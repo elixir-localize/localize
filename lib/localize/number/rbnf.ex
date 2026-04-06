@@ -9,8 +9,8 @@ defmodule Localize.Number.Rbnf do
   twenty-three".
 
   RBNF rules are loaded from locale data at runtime and interpreted
-  by `Localize.Number.Rbnf.Processor`. Parsed rule ASTs are cached
-  in `:persistent_term` for performance.
+  by an internal rule processor. Parsed rule ASTs are cached in
+  `:persistent_term` for performance.
 
   """
 

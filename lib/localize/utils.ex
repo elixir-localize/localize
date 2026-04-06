@@ -23,8 +23,6 @@ defmodule Localize.Utils do
 
   * `Localize.Utils.Http` — secure HTTPS downloading.
 
-  * `Localize.Utils.Code` — code compilation utilities.
-
   """
 
   @doc """

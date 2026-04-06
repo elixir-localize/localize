@@ -2,11 +2,15 @@
 
 ## Pre-release
 
-* [ ] Add `:description`, `:package`, `:source_url` to `mix.exs` for Hex.
+* [x] Add `:description`, `:package`, `:source_url` to `mix.exs` for Hex.
 
-* [ ] Define docs structure in `mix.exs` including topic grouping and user guides.
+* [x] Define docs structure in `mix.exs` including topic grouping and user guides.
 
-* [ ] Run `mix docs` and review generated documentation.
+* [x] Run `MIX_ENV=release mix docs` and review the generated documentation.
+
+* [x] Fix `name:` in `mix.exs` (was `"Cldr"`, now `"Localize"`).
+
+* [x] Confirm the `:package` `files` list includes everything needed for runtime but nothing from `data/` or raw CLDR sources.
 
 ## Open
 
@@ -35,14 +39,6 @@ Removed the `unicode` hex dependency. Collation now uses `Localize.Collation.Uni
 * [ ] A registration API for defining custom units at application start.
 
 * [ ] Integration with the parser, formatter, and conversion system.
-
-### Person name formatting
-
-* [ ] Create a separate `localize_person_names` package using `unicode_string` for Unicode word segmentation.
-
-* [ ] Implement TR35 person name formatting spec (`tr35-personNames.md`).
-
-* [ ] Person name data is already normalized and stored in locale ETFs (`:person_names` key).
 
 ## Completed
 
@@ -73,3 +69,7 @@ Removed the `unicode` hex dependency. Collation now uses `Localize.Collation.Uni
 ### Data and tests
 
 * [x] CLDR conformance tests, unit preferences, collation, adversarial property tests. Compound per-units with currency (`curr-USD-per-year`). Measurement systems from CLDR. Coverage levels. 24,049 tests passing, 0 failures.
+
+### Person name formatting
+
+* [x] `localize_person_names` package written and complete — separate package implementing TR35 person name formatting (`tr35-personNames.md`) using `unicode_string` for Unicode word segmentation. Person name data is normalized and stored in Localize locale ETFs under the `:person_names` key.
