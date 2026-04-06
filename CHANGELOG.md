@@ -66,6 +66,10 @@ The format is based on
 
 * Gettext integration — `Localize.Gettext.Interpolation` provides an MF2-based interpolation module for Gettext backends.
 
+* On-disk locale cache and HTTPS download provider — `Localize.Locale.Provider` exposes `locale_cache_dir/0`, `base_url/0`, `locale_url/1`, and `download_locale/1`, with `Localize.Locale.Provider.Cache` storing downloaded ETF files under the cache directory. The `PersistentTerm` provider falls back to the download path when a locale is not already cached.
+
+* `Localize.version/0` — returns a `%Version{}` assembled from `priv/localize/version` (CLDR release) and `priv/localize/localize_patch_version` (Localize patch counter). Generated locale ETF files embed this value under the `:version` key so the cache can detect stale files.
+
 ### Changed
 
 * `Localize.LocaleDisplay` moved to `Localize.Locale.LocaleDisplay`.
@@ -73,3 +77,13 @@ The format is based on
 * `Localize.Language.to_string/2` renamed to `Localize.Language.display_name/2`.
 
 * `Localize.Calendar.localize/3` option `:type` renamed to `:context` for clarity. The `:context` option selects between `:format` and `:stand_alone` forms.
+
+* `Localize.Territory.country_codes/0` renamed to `Localize.Territory.individual_territories/0` for consistency with the rest of the module naming. Returns the same sorted list of leaf territory code atoms, distinct from `Localize.Territory.territory_codes/0` which returns the map of ISO 3166 Alpha-2/Alpha-3/numeric code mappings.
+
+* `Localize.Exception.InvalidLanguageTag` renamed to `Localize.InvalidLanguageTagError` and relocated to `lib/localize/exception/` for consistency with all other exception modules.
+
+* Configuration option `:data_dir` renamed to `:locale_cache_dir`. Defaults to `Path.join(:code.priv_dir(:localize), "localize/locales")`.
+
+### Added exceptions
+
+* `Localize.LocaleDownloadError`, `Localize.LocaleIsStaleError`, `Localize.LocaleNotFoundInCacheError`, and `Localize.LocaleCacheWriteError` — raised by the new locale download and cache infrastructure.

@@ -32,7 +32,7 @@ The generated module is compiled into a single BEAM file whose size grows with t
 
 Localize has no backend concept. All public API functions live directly in domain modules (`Localize.Number`, `Localize.Date`, `Localize.Territory`, etc.) and are available immediately without any compile-time setup.
 
-There is nothing to configure to start using the library. All 766+ CLDR locales are available at runtime without pre-declaration.
+There is nothing to configure to start using the library. All 766 CLDR locales are available at runtime without pre-declaration.
 
 ## Dynamic data loading at runtime
 
@@ -58,20 +58,26 @@ This means:
 
 ### Localize
 
-Locale data is loaded lazily at runtime on first access and cached in `:persistent_term` for zero-copy concurrent reads:
+Locale data is loaded lazily at runtime on first access and cached in `:persistent_term` for zero-copy concurrent reads. The default provider reads pre-built ETF files from an on-disk cache (`priv/localize/locales/`) and, if a locale is not cached, downloads it from the Localize release CDN:
 
 ```elixir
 # Localize.Locale.Provider.PersistentTerm (simplified)
-def load(locale_id) do
-  locale_data = read_locale_json(locale_id)
-  :persistent_term.put({:localize, locale_id}, locale_data)
-end
+def load(locale) do
+  locale_id = to_locale_id(locale)
 
-def get(locale_id, keys, _options) do
-  locale_data = :persistent_term.get({:localize, locale_id})
-  get_in(locale_data, keys)
+  case Localize.Locale.Provider.Cache.get(locale_id) do
+    {:ok, locale_data} ->
+      {:ok, locale_data}
+
+    {:error, _} ->
+      {:ok, binary} = Localize.Locale.Provider.download_locale(locale_id)
+      Localize.Locale.Provider.Cache.store(locale_id, binary)
+      {:ok, :erlang.binary_to_term(binary)}
+  end
 end
 ```
+
+The cache directory is configurable via `Localize.Locale.Provider.locale_cache_dir/0`, which reads the `:locale_cache_dir` application environment key, falling back to `Path.join(:code.priv_dir(:localize), "localize/locales")`. Cached files are tagged with the current `Localize.version/0` so stale files are detected and re-downloaded on upgrade.
 
 This means:
 
@@ -83,7 +89,9 @@ This means:
 
 * No recompilation when locale requirements change.
 
-Supplemental data (plural rules, territory containment, currency codes, etc.) follows the same pattern — stored as ETF files in `priv/cldr/`, deserialized on first access, and cached in `:persistent_term`.
+* Applications can ship with a pre-warmed cache or rely on on-demand download at first use.
+
+Supplemental data (plural rules, territory containment, currency codes, etc.) follows the same in-memory pattern — stored as ETF files in `priv/localize/supplemental_data/`, deserialized on first access, and cached in `:persistent_term`.
 
 ## Configurable data providers
 
@@ -99,7 +107,7 @@ defmodule Localize.Locale.Provider do
 end
 ```
 
-The default provider is `Localize.Locale.Provider.PersistentTerm`, which loads JSON locale files and caches them in `:persistent_term`. Alternative providers could store data in ETS, a database, or a remote service.
+The default provider is `Localize.Locale.Provider.PersistentTerm`, which reads ETF locale files from the on-disk cache, downloads them on demand when missing, and caches the decoded term in `:persistent_term`. Alternative providers could store data in ETS, a database, or a remote service.
 
 `ex_cldr` has no equivalent abstraction — data access is hard-wired through the compiled backend module.
 

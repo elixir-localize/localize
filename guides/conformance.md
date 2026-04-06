@@ -6,7 +6,7 @@ Two areas are explicitly out of scope:
 
 * **Part 7 — Keyboards.** Not relevant to a formatting library.
 
-* **Part 8 — Person Names.** Will be a separate `localize_person_names` library.
+* **Part 8 — Person Names.** Implemented as the separate [localize_person_names](https://hex.pm/packages/localize_person_names) package, which uses Localize's person-name locale data (stored under the `:person_names` key in each locale ETF) and implements the full TR35 Part 8 formatting algorithm.
 
 ## Legend
 
@@ -60,7 +60,7 @@ Two areas are explicitly out of scope:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Language display names | Implemented | `Localize.Language.display_name/2` with `:standard`, `:short`, `:long`, `:menu`, and `:variant` styles. |
-| Script display names | Partial | Data accessible via `Localize.Locale.get/2` but no dedicated public function. |
+| Script display names | Implemented | `Localize.Script.display_name/2` with `:standard`, `:short`, `:stand_alone`, and `:variant` styles. |
 | Territory display names | Implemented | `Localize.Territory.display_name/2` with `:standard`, `:short`, `:variant` styles. |
 | Variant display names | Not implemented | |
 | Key/type display names | Not implemented | |

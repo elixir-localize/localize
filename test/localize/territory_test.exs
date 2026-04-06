@@ -391,18 +391,18 @@ defmodule Localize.TerritoryTest do
     end
   end
 
-  # ── country_codes ─────────────────────────────────────────────
+  # ── individual_territories ────────────────────────────────────
 
-  describe "country_codes/0" do
-    test "returns sorted list of country codes" do
-      codes = Territory.country_codes()
+  describe "individual_territories/0" do
+    test "returns sorted list of individual territory codes" do
+      codes = Territory.individual_territories()
       assert :US in codes
       assert :GB in codes
       assert :FR in codes
     end
 
     test "does not include region codes" do
-      codes = Territory.country_codes()
+      codes = Territory.individual_territories()
       refute :"001" in codes
       refute :"019" in codes
     end

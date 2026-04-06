@@ -98,7 +98,7 @@ defmodule Localize.MixProject do
       Numbers: ~r/Localize.Number/,
       "Dates and Times": ~r/^Localize\.(Date|Time|Interval|Duration)(?!\w*Error)/,
       Locale: ~r/Localize\.Locale(?!\w*Error)/,
-      "Language Tag":  ~r/Localize\.(LanguageTag|Rfc5646)(?!\w*Error)/,
+      "Language Tag": ~r/Localize\.(LanguageTag|Rfc5646)(?!\w*Error)/,
       Calendars: ~r/Localize.Calendar(?!\w*Error)/,
       Currencies: ~r/Localize.Currency(?!\w*Error)/,
       Languages: ~r/Localize.Language(?!\w*Error)/,
@@ -128,6 +128,9 @@ defmodule Localize.MixProject do
         "guides/architecture.md",
         "guides/conformance.md",
         "guides/performance.md"
+      ],
+      "Migration from ex_cldr": [
+        "guides/migration.md"
       ]
     ]
   end

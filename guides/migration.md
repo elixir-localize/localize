@@ -16,7 +16,7 @@ defmodule MyApp.Cldr do
 end
 ```
 
-In Localize there is no equivalent. Delete your backend module. All 766+ CLDR locales are available at runtime without pre-declaration, and all formatting modules are ready to use immediately.
+In Localize there is no equivalent. Delete your backend module. All 766 CLDR locales are available at runtime without pre-declaration, and all formatting modules are ready to use immediately.
 
 ## Configuration
 
@@ -346,6 +346,9 @@ Some functions have been renamed for clarity:
 | `Territory.from_territory_code/3` | `Territory.display_name/2` |
 | `Territory.from_subdivision_code/3` | `Territory.subdivision_name/2` |
 | `Territory.to_unicode_flag/1` | `Territory.unicode_flag/1` |
+| `Territory.country_codes/0` | `Territory.individual_territories/0` |
+
+Note that `Localize.Territory.individual_territories/0` returns a sorted list of leaf territory code atoms (actual territories, excluding macro-regions such as `:"001"` or `:"150"`). This is distinct from `Localize.Territory.territory_codes/0`, which returns a map of ISO 3166 Alpha-2 codes to their Alpha-3 and numeric equivalents for all territories.
 
 ## Locale validation
 
@@ -407,7 +410,7 @@ The collation table is loaded into `:persistent_term` on first use. No compile-t
 | Aspect | ex_cldr | Localize |
 |---|---|---|
 | Setup | `use Cldr` backend module | None required |
-| Available locales | Pre-configured list | All 766+ CLDR locales |
+| Available locales | Pre-configured list | All 766 CLDR locales |
 | Locale data loading | Compile-time embedding | Runtime lazy loading |
 | Locale argument | Backend module required | Not needed |
 | Default locale | Per-backend config | Process dictionary + app config |

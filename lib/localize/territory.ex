@@ -779,7 +779,7 @@ defmodule Localize.Territory do
     end
   end
 
-  # ── Country codes ───────────────────────────────────────────
+  # ── Individual territories ──────────────────────────────────
 
   @regions [
     "005",
@@ -807,8 +807,17 @@ defmodule Localize.Territory do
   ]
 
   @doc """
-  Returns a sorted list of country codes (territories that are
-  not regions or groupings).
+  Returns a sorted list of territory codes for individual
+  territories.
+
+  Only leaf territories are returned — those contained by a
+  continental or sub-continental region. Macro-regions and
+  groupings (e.g., `:"001"` World, `:"150"` Europe) are
+  excluded.
+
+  To retrieve the full map of ISO 3166 code mappings
+  (Alpha-2, Alpha-3, numeric) for all territories, see
+  `territory_codes/0`.
 
   ### Returns
 
@@ -816,17 +825,17 @@ defmodule Localize.Territory do
 
   ### Examples
 
-      iex> codes = Localize.Territory.country_codes()
+      iex> codes = Localize.Territory.individual_territories()
       iex> :US in codes
       true
 
-      iex> codes = Localize.Territory.country_codes()
+      iex> codes = Localize.Territory.individual_territories()
       iex> :"001" in codes
       false
 
   """
-  @spec country_codes() :: [atom()]
-  def country_codes do
+  @spec individual_territories() :: [atom()]
+  def individual_territories do
     containers = SupplementalData.territory_containers()
 
     @regions
