@@ -9,6 +9,12 @@ defmodule Localize.MixProject do
     [
       app: :localize,
       version: @version,
+      name: "Cldr",
+      source_url: "https://github.com/elixir-localize/localize",
+      docs: docs(),
+      deps: deps(),
+      description: description(),
+      package: package(),
       cldr_version: cldr_version(),
       cldr_patch_version: cldr_patch_version(),
       elixir: "~> 1.17",
@@ -16,7 +22,6 @@ defmodule Localize.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: maybe_elixir_make() ++ [:yecc, :leex] ++ Mix.compilers(),
       make_makefile: "c_src/Makefile",
-      deps: deps(),
       dialyzer: [
         plt_add_apps: ~w(gettext inets mix sweet_xml nimble_parsec)a,
         ignore_warnings: ".dialyzer_ignore.exs",
@@ -27,6 +32,94 @@ defmodule Localize.MixProject do
           :extra_return,
           :missing_return
         ]
+      ]
+    ]
+  end
+
+  def description do
+    "Localization (parsing, formatting) of numbers, dates/time/calendar, units of measure, " <>
+    "messages and lists. Includes localized collation."
+  end
+
+  def package do
+    [
+      maintainers: ["Kip Cole"],
+      licenses: ["Apache-2.0"],
+      links: links(),
+      files: [
+        "lib",
+        "src/*xrl",
+        "src/*.yrl",
+        "mix.exs",
+        "README*",
+        "CHANGELOG*",
+        "LICENSE*",
+        "priv/localize/*.etf",
+        "priv/localize/localize_patch_version",
+        "priv/localize/supplemental_data",
+        "priv/localize/validity",
+        "priv/localize/locales/en.etf",
+      ]
+    ]
+  end
+
+  def links do
+    %{
+      "GitHub" => "https://github.com/elixir-localize/localize",
+      "Readme" => "https://github.com/elixir-localize/localize/blob/v#{@version}/README.md",
+      "Changelog" => "https://github.com/elixir-localize/localize/blob/v#{@version}/CHANGELOG.md"
+    }
+  end
+
+  def docs do
+    [
+      source_ref: "v#{@version}",
+      main: "readme",
+      logo: "logo.png",
+      extras: [
+        "README.md",
+        "LICENSE.md",
+        "CHANGELOG.md",
+      ] ++ Path.wildcard("guides/*.md"),
+      formatters: ["html", "markdown"],
+      groups_for_modules: groups_for_modules(),
+      groups_for_extras: groups_for_extras(),
+      skip_undefined_reference_warnings_on: [
+        "CHANGELOG.md"
+      ] ++ Path.wildcard("guides/*.md"),
+    ]
+  end
+
+  def groups_for_modules do
+    [
+      "Numbers": ~r/Localize.Number/,
+      "Dates and Times": ~r/Localize.[Date|Time]*/,
+      "Calendars": ~r/Localize.Calendar/,
+      "Currencies": ~r/Localize.Currency/,
+      "Languages": ~r/Localize.Language/,
+      "Territories": ~r/Localize.Territory/,
+      "Scripts": ~r/Localize.Script/,
+      "Units of Measure": ~r/Localize.Unit/,
+      "Messages": ~r/Localize.Message/,
+      "Lists": ~r/Localize.List/,
+      "Collation": ~r/Localize.Collation/,
+      "Utilities": ~r/Localize.Util/
+    ]
+  end
+
+  defp groups_for_extras do
+    [
+      "Guides": [
+        "guides/number_formatting.md",
+        "guides/date_time_formatting.md",
+        "guides/unit_formatting.md",
+        "guides/message_formatting.md",
+        "guides/collation.md"
+      ],
+      "Advanced": [
+        "guides/architecture.md",
+        "guides/conformance.md",
+        "guides/performance.md"
       ]
     ]
   end
@@ -77,11 +170,12 @@ defmodule Localize.MixProject do
     [
       {:decimal, "~> 2.0"},
       {:gettext, "~> 1.0"},
+      {:ex_doc, "~> 0.18", only: [:dev, :release]},
       {:nimble_parsec, "~> 1.0", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false, optional: true},
       {:sweet_xml, "~> 0.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
-      {:stream_data, "~> 1.0", only: :test}
+      {:stream_data, "~> 1.0", only: :test},
     ] ++ maybe_json_polyfill()
   end
 
@@ -105,7 +199,7 @@ defmodule Localize.MixProject do
   end
 
   defp nif_enabled? do
-    String.downcase(System.get_env("LOCALIZE_NIF", "false")) == "true" or
+    String.downcase(System.get_env("LOCALIZE_NIF", "false")) == "true" ||
       Application.get_env(:localize, :nif, false) == true
   end
 end

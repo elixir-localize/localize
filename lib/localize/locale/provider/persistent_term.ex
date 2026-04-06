@@ -14,10 +14,6 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
   @env apply(Mix, :env, [])
 
-  if @env not in [:dev, :test] do
-    alias Localize.Locale.Provider
-  end
-
   @doc """
   Loads locale data for the given locale.
 
@@ -65,7 +61,7 @@ defmodule Localize.Locale.Provider.PersistentTerm do
     end
   else
     defp load_miss(locale_id, _locale) do
-      case Provider.download_locale(locale_id) do
+      case Localize.Locale.Provider.download_locale(locale_id) do
         {:ok, binary} ->
           _ = Cache.store(locale_id, binary)
           {:ok, :erlang.binary_to_term(binary)}
