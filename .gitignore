@@ -40,3 +40,6 @@ bench_unit_parser.sh
 # Generated erl files
 /src/*.erl
 
+# Claude
+.claude/
+
