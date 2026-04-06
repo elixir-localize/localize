@@ -3,10 +3,6 @@
 # TODO Try to use https://github.com/unicode-org/cldr-json/blob/main/cldr-generate-json.sh
 # for CLDR 49
 
-# The location of the `ex_cldr` repo
-export EX_CLDR="${EX_CLDR:=$HOME/Development/cldr}"
-[ ! -d $EX_CLDR ] && { echo "ex_cldr repository $EX_CLDR was not found."; exit 1; }
-
 # The location of the cloned CLDR repo
 export CLDR_REPO="${CLDR_REPO:=$HOME/Development/cldr_repo}"
 [ ! -d $CLDR_REPO ] && { echo "Unicode CLDR repository $CLDR_REPO was not found."; exit 1; }
@@ -93,16 +89,7 @@ java -DCLDR_DIR=$CLDR_STAGING \
 # cp $CLDR_REPO/tools/cldr-code/src/main/resources/org/unicode/cldr/util/data/Script_Metadata.csv \
 #    $EX_CLDR/priv/cldr/script_metadata.csv
 
-###########
-
-# Copy test data
-cp $CLDR_REPO/common/testData/localeIdentifiers/localeCanonicalization.txt \
-   $EX_CLDR/test/support/data/locale_canonicalization.txt
-
-cp $CLDR_REPO/tools/cldr-code/src/test/resources/org/unicode/cldr/unittest/data/localeDistanceTest.txt \
-   $EX_CLDR/test/support/data/locale_distance_test_data.txt
-
-cp $CLDR_REPO/tools/cldr-code/src/test/resources/org/unicode/cldr/unittest/data/localeMatcherTest.txt \
-   $EX_CLDR/test/support/data/locale_matching_test_data.txt
+# Test data files are copied into Localize by `mix localize.copy_sources`,
+# which reads them directly from $CLDR_REPO. No copy step is needed here.
 
 cd $OLDPWD

@@ -6,7 +6,7 @@ Rules for LLM coding agents using `Localize` as a dependency. These are not exha
 
 * All public formatting and validation functions return `{:ok, result}` or `{:error, exception}`. Pattern match with `case`/`with`, never `try/rescue`. The exception is a struct (e.g. `%Localize.UnknownLocaleError{}`), not a string.
 
-* Bang variants (`to_string!/2`, `validate_locale!/1`, etc.) exist for the rare cases where raising is preferred.
+* Bang variants (`to_string!/2`, `validate_locale!/1`, etc.) exist for the rare cases where raising is preferred on error.
 
 * Never construct locale identifiers by hand and pass them around as raw strings. Call `Localize.validate_locale/1` once and pass the resulting `%Localize.LanguageTag{}` struct, or use a validated atom (`:en`, `:"en-AU"`).
 

@@ -143,9 +143,21 @@ defmodule Localize do
         _ -> "0"
       end
 
-    case Version.parse("#{cldr_version}.#{patch}") do
+    # CLDR sometimes records only the major version (e.g. `"48"`)
+    # in `aliases.json`, so the on-disk version file may be either
+    # `"48"` or `"48.2"`. `Version.parse/1` requires three
+    # components, so pad missing minor/patch components with `0`.
+    case Version.parse(normalize_semver(cldr_version, patch)) do
       {:ok, version} -> version
       :error -> Version.parse!("0.0.0")
+    end
+  end
+
+  defp normalize_semver(cldr_version, patch) do
+    case String.split(cldr_version, ".") do
+      [major] -> "#{major}.0.#{patch}"
+      [major, minor] -> "#{major}.#{minor}.#{patch}"
+      [major, minor, _existing_patch | _rest] -> "#{major}.#{minor}.#{patch}"
     end
   end
 

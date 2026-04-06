@@ -318,6 +318,16 @@ defmodule Localize.Data do
 
     source_root = cldr_source_dir()
 
+    # Per-locale subdivision XML files are read directly from
+    # `CLDR_REPO/common/subdivisions/`. CLDR's `ldml2json` does not
+    # convert these files to JSON, and the published `cldr-json`
+    # release artifacts do not include them, so they are sourced
+    # from the CLDR repository in their original XML form. This
+    # mirrors the way the global supplemental subdivisions, the
+    # validity, BCP 47, and collation XML files are also sourced
+    # directly from `CLDR_REPO`.
+    repo_subdivisions_dir = Path.join(cldr_repo_dir(), "common/subdivisions")
+
     # Find all -full directories
     full_dirs =
       source_root
@@ -366,8 +376,9 @@ defmodule Localize.Data do
         end
       end
 
-      # Copy subdivision XML if it exists
-      sub_xml = Path.join([source_root, "subdivisions", "#{locale}.xml"])
+      # Copy per-locale subdivision XML directly from CLDR_REPO if
+      # one exists. Not every locale has subdivision data.
+      sub_xml = Path.join(repo_subdivisions_dir, "#{locale}.xml")
 
       if File.exists?(sub_xml) do
         File.cp!(sub_xml, Path.join(locale_dest, "subdivisions.xml"))
@@ -440,14 +451,69 @@ defmodule Localize.Data do
   @spec write_version() :: String.t()
   def write_version do
     version_json = read_json("aliases.json")
-    cldr_version = get_in(version_json, ["supplemental", "version", "_cldrVersion"])
+    json_cldr_version = get_in(version_json, ["supplemental", "version", "_cldrVersion"])
 
     path = Path.join(File.cwd!(), @version_file)
     File.mkdir_p!(Path.dirname(path))
-    File.write!(path, cldr_version)
 
-    IO.puts("Wrote CLDR version #{cldr_version} to #{path}")
-    cldr_version
+    previous_cldr_version = cldr_version()
+
+    cond do
+      is_nil(previous_cldr_version) ->
+        File.write!(path, json_cldr_version)
+        reset_patch_version(json_cldr_version)
+        :persistent_term.erase({:localize, :version})
+        IO.puts("Wrote CLDR version #{json_cldr_version} to #{path}")
+        json_cldr_version
+
+      # CLDR's `aliases.json` only records the major version
+      # (e.g. `"48"`), not sub-releases like `"48.2"`. When a
+      # more-specific version is already on disk and shares the
+      # same major release, leave it alone — that finer value
+      # was set intentionally to record a CLDR sub-release.
+      same_major_version?(previous_cldr_version, json_cldr_version) ->
+        IO.puts(
+          "CLDR version #{previous_cldr_version} on disk is at least as " <>
+            "specific as #{json_cldr_version} from aliases.json; " <>
+            "leaving #{path} unchanged."
+        )
+
+        previous_cldr_version
+
+      true ->
+        # Real CLDR major-version change — overwrite the version
+        # file and reset the Localize patch counter to `0`. The
+        # patch counter tracks Localize-side data-pipeline changes
+        # within a single CLDR release; a fresh CLDR release starts
+        # a new patch series. Subsequent explicit
+        # `bump_patch_version/0` calls then increment from `0` to
+        # `1`, `2`, etc.
+        File.write!(path, json_cldr_version)
+        reset_patch_version(json_cldr_version)
+        :persistent_term.erase({:localize, :version})
+
+        IO.puts(
+          "Updated CLDR version #{previous_cldr_version} -> " <>
+            "#{json_cldr_version} in #{path}"
+        )
+
+        json_cldr_version
+    end
+  end
+
+  defp same_major_version?(a, b) do
+    major_component(a) == major_component(b)
+  end
+
+  defp major_component(version) when is_binary(version) do
+    version |> String.split(".") |> hd()
+  end
+
+  defp major_component(_), do: nil
+
+  defp reset_patch_version(cldr_version) do
+    File.write!(patch_version_path(), "#{cldr_version}:0")
+    IO.puts("Reset Localize patch version to #{cldr_version}:0")
   end
 
   @doc """
@@ -589,10 +655,17 @@ defmodule Localize.Data do
     File.rm_rf!(output)
     File.mkdir_p!(output)
 
-    # Bump the patch version up-front so generated ETF files
-    # record the post-bump version. `bump_patch_version/0` also
-    # clears the `Localize.version/0` persistent_term cache.
-    bump_patch_version()
+    # Generation does NOT bump the patch version. The patch
+    # counter is only advanced explicitly by a developer running
+    # `mix localize.bump_patch_version` when they have changed
+    # the data pipeline (normalizers, transforms, etc.). This
+    # makes generation safe to run from CI without producing
+    # phantom version bumps.
+    #
+    # Clear any cached `Localize.version/0` so the generated ETF
+    # files reflect the current on-disk patch version, which may
+    # have been changed externally between Mix runs.
+    :persistent_term.erase({:localize, :version})
 
     locales =
       Localize.SupplementalData.all_locale_ids()
@@ -679,9 +752,22 @@ defmodule Localize.Data do
   @doc """
   Bumps the Localize patch version for the current CLDR release.
 
-  Reads the current CLDR version from `priv/localize/version`.
-  If the recorded patch applies to the same CLDR version, the
-  patch counter is incremented. Otherwise it is reset to `1`.
+  Reads the current CLDR version from `priv/localize/version` and
+  increments the patch counter associated with that version.
+
+  This function is intended to be called explicitly by a developer
+  via `mix localize.bump_patch_version` when they have changed
+  the locale data generation pipeline (normalizers, transforms,
+  etc.). It is **not** called automatically by
+  `generate_all_locales/0` so that CI runs do not produce phantom
+  version bumps.
+
+  When the upstream CLDR release version changes,
+  `write_version/0` resets the patch counter to `0`. The first
+  bump after a CLDR upgrade therefore takes the patch from `0` to
+  `1`. If the patch file is in some unexpected state (missing,
+  malformed, or recorded against a different CLDR version), the
+  next patch is set to `1` as a safe default.
 
   After bumping, any cached `Localize.version/0` value is cleared
   from `:persistent_term`.

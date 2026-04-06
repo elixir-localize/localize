@@ -68,7 +68,11 @@ The format is based on
 
 * On-disk locale cache and HTTPS download provider — `Localize.Locale.Provider` exposes `locale_cache_dir/0`, `base_url/0`, `locale_url/1`, and `download_locale/1`, with `Localize.Locale.Provider.Cache` storing downloaded ETF files under the cache directory. The `PersistentTerm` provider falls back to the download path when a locale is not already cached.
 
-* `Localize.version/0` — returns a `%Version{}` assembled from `priv/localize/version` (CLDR release) and `priv/localize/localize_patch_version` (Localize patch counter). Generated locale ETF files embed this value under the `:version` key so the cache can detect stale files.
+* `Localize.version/0` — returns a `%Version{}` assembled from `priv/localize/version` (CLDR release) and `priv/localize/localize_patch_version` (Localize patch counter). Generated locale ETF files embed this value under the `:version` key so the cache can detect stale files. The semver parser tolerates CLDR version strings that omit minor/patch components (e.g. `"48"` from `aliases.json`).
+
+* `mix localize.bump_patch_version` — explicit Mix task that increments the Localize patch counter for the current CLDR release. The patch counter is no longer bumped automatically by `mix localize.generate_locales`, so CI jobs that regenerate locales (for example the Cloudflare upload workflow) do not produce phantom version bumps. Run this task by hand whenever the locale-data generation pipeline (normalizers, transforms, etc.) changes.
+
+* When `Localize.Data.write_version/0` detects a real CLDR major-version change (i.e. the new value from `aliases.json` differs from the major component of the previously recorded version), it now resets the patch counter to `0` automatically. The first `mix localize.bump_patch_version` after a CLDR upgrade therefore takes the patch from `0` to `1`. A more-specific sub-version recorded on disk (e.g. `"48.2"` while `aliases.json` carries `"48"`) is preserved untouched on rerun.
 
 ### Changed
 
