@@ -11,9 +11,11 @@ defmodule Localize.Number.PluralRule.NifCrossValidationTest do
 
   @moduletag :nif
 
-  if Localize.Nif.available?() do
-    alias Localize.Number.PluralRule
+  # Aliased outside the `if` block so the compiler does not warn when
+  # the NIF is unavailable and the conditional body is compiled away.
+  alias Localize.Number.PluralRule
 
+  if Localize.Nif.available?() do
     # Representative locales covering different plural rule categories
     @test_locales ~w(en fr ar de ja ru zh pl cs he cy uk ga)
 
