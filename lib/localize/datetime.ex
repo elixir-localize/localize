@@ -173,13 +173,12 @@ defmodule Localize.DateTime do
                    )}
 
                 matched_pattern ->
-                  pattern = resolve_prefer(matched_pattern, prefer)
-
-                  Localize.DateTime.Formatter.format(
+                  format_resolved_pattern(
+                    resolve_prefer(matched_pattern, prefer),
                     datetime,
-                    pattern,
+                    options,
                     locale_id,
-                    Map.new(options)
+                    skeleton
                   )
               end
 
@@ -187,16 +186,24 @@ defmodule Localize.DateTime do
               date_pattern = resolve_prefer(Map.get(available, date_skeleton, ""), prefer)
               time_pattern = resolve_prefer(Map.get(available, time_skeleton, ""), prefer)
 
-              options_map =
-                options
-                |> Map.new()
-                |> Map.put(:date_format, :medium)
-                |> Map.put(:time_format, :medium)
+              if is_binary(date_pattern) and is_binary(time_pattern) do
+                options_map =
+                  options
+                  |> Map.new()
+                  |> Map.put(:date_format, :medium)
+                  |> Map.put(:time_format, :medium)
 
-              with {:ok, wrapper} <- resolve_wrapper(:medium, locale_id, :default) do
-                combined = String.replace(wrapper, "{0}", time_pattern)
-                combined = String.replace(combined, "{1}", date_pattern)
-                Localize.DateTime.Formatter.format(datetime, combined, locale_id, options_map)
+                with {:ok, wrapper} <- resolve_wrapper(:medium, locale_id, :default) do
+                  combined = String.replace(wrapper, "{0}", time_pattern)
+                  combined = String.replace(combined, "{1}", date_pattern)
+                  Localize.DateTime.Formatter.format(datetime, combined, locale_id, options_map)
+                end
+              else
+                {:error,
+                 Localize.DateTimeUnresolvedFormatError.exception(
+                   format: skeleton,
+                   locale: locale_id
+                 )}
               end
 
             _ ->
@@ -208,8 +215,13 @@ defmodule Localize.DateTime do
           end
 
         %{} = variant_map ->
-          pattern = Map.get(variant_map, prefer) || Map.get(variant_map, :unicode)
-          Localize.DateTime.Formatter.format(datetime, pattern, locale_id, Map.new(options))
+          format_resolved_pattern(
+            resolve_prefer(variant_map, prefer),
+            datetime,
+            options,
+            locale_id,
+            skeleton
+          )
 
         pattern when is_binary(pattern) ->
           Localize.DateTime.Formatter.format(datetime, pattern, locale_id, Map.new(options))
@@ -217,11 +229,41 @@ defmodule Localize.DateTime do
     end
   end
 
+  defp format_resolved_pattern(nil, _datetime, _options, locale_id, skeleton) do
+    {:error,
+     Localize.DateTimeUnresolvedFormatError.exception(
+       format: skeleton,
+       locale: locale_id
+     )}
+  end
+
+  defp format_resolved_pattern(pattern, datetime, options, locale_id, _skeleton)
+       when is_binary(pattern) do
+    Localize.DateTime.Formatter.format(datetime, pattern, locale_id, Map.new(options))
+  end
+
   defp resolve_prefer(%{} = variant_map, prefer) do
-    Map.get(variant_map, prefer) || Map.get(variant_map, :unicode)
+    cond do
+      # `:unicode` / `:ascii` prefer-style variant.
+      Map.has_key?(variant_map, :unicode) or Map.has_key?(variant_map, :ascii) ->
+        Map.get(variant_map, prefer) || Map.get(variant_map, :unicode) ||
+          Map.get(variant_map, :ascii)
+
+      # CLDR plural-keyed variant (`:zero`, `:one`, `:two`, `:few`,
+      # `:many`, `:other`). These appear in skeleton-derived formats
+      # such as `MMMMW` ("week W of MMMM"). Without knowing the
+      # numeric value at this stage we fall back to the `:other`
+      # category, which CLDR guarantees to be present.
+      Map.has_key?(variant_map, :other) ->
+        Map.get(variant_map, :other)
+
+      true ->
+        nil
+    end
   end
 
   defp resolve_prefer(pattern, _prefer) when is_binary(pattern), do: pattern
+  defp resolve_prefer(_other, _prefer), do: nil
 
   defp resolve_wrapper(format, locale_id, style) do
     standard_format = if is_atom(format), do: format, else: :medium

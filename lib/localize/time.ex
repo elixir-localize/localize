@@ -181,12 +181,36 @@ defmodule Localize.Time do
           end
 
         %{} = variant_map ->
-          pattern = Map.get(variant_map, prefer) || Map.get(variant_map, :unicode)
-          {:ok, pattern}
+          case resolve_variant(variant_map, prefer) do
+            nil ->
+              {:error,
+               Localize.DateTimeUnresolvedFormatError.exception(
+                 format: skeleton,
+                 locale: locale_id
+               )}
+
+            pattern ->
+              {:ok, pattern}
+          end
 
         pattern when is_binary(pattern) ->
           {:ok, pattern}
       end
+    end
+  end
+
+  defp resolve_variant(%{} = variant_map, prefer) do
+    cond do
+      Map.has_key?(variant_map, :unicode) or Map.has_key?(variant_map, :ascii) ->
+        Map.get(variant_map, prefer) || Map.get(variant_map, :unicode) ||
+          Map.get(variant_map, :ascii)
+
+      # CLDR plural-keyed variant — fall back to `:other`.
+      Map.has_key?(variant_map, :other) ->
+        Map.get(variant_map, :other)
+
+      true ->
+        nil
     end
   end
 
