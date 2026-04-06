@@ -96,7 +96,8 @@ defmodule Localize.Locale.LocaleDisplayTest do
     end
 
     test "language with territory in standard mode" do
-      assert {:ok, "English (United States)"} = Localize.Locale.LocaleDisplay.display_name("en-US")
+      assert {:ok, "English (United States)"} =
+               Localize.Locale.LocaleDisplay.display_name("en-US")
     end
 
     test "language with territory in dialect mode" do

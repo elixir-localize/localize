@@ -220,8 +220,7 @@ defmodule Localize.Calendar do
 
       case Map.get(calendar_names, calendar_type) do
         nil ->
-          {:error,
-           Localize.UnknownCalendarError.exception(calendar: calendar_type)}
+          {:error, Localize.UnknownCalendarError.exception(calendar: calendar_type)}
 
         name when is_binary(name) ->
           {:ok, name}
@@ -286,8 +285,16 @@ defmodule Localize.Calendar do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, quarters_data} <- get_calendar_data_raw(locale_id, calendar_type, :quarters) do
       case get_in(quarters_data, [context, style, quarter]) do
-        nil -> {:error, Localize.InvalidValueError.exception(value: quarter, expected: "1..4", context: "Calendar.display_name")}
-        name -> {:ok, name}
+        nil ->
+          {:error,
+           Localize.InvalidValueError.exception(
+             value: quarter,
+             expected: "1..4",
+             context: "Calendar.display_name"
+           )}
+
+        name ->
+          {:ok, name}
       end
     end
   end
@@ -301,8 +308,16 @@ defmodule Localize.Calendar do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, months_data} <- get_calendar_data_raw(locale_id, calendar_type, :months) do
       case get_in(months_data, [context, style, month]) do
-        nil -> {:error, Localize.InvalidValueError.exception(value: month, expected: "1..13", context: "Calendar.display_name")}
-        name -> {:ok, name}
+        nil ->
+          {:error,
+           Localize.InvalidValueError.exception(
+             value: month,
+             expected: "1..13",
+             context: "Calendar.display_name"
+           )}
+
+        name ->
+          {:ok, name}
       end
     end
   end
@@ -316,8 +331,16 @@ defmodule Localize.Calendar do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, days_data} <- get_calendar_data_raw(locale_id, calendar_type, :days) do
       case get_in(days_data, [context, style, day]) do
-        nil -> {:error, Localize.InvalidValueError.exception(value: day, expected: "1..7 (ISO day)", context: "Calendar.display_name")}
-        name -> {:ok, name}
+        nil ->
+          {:error,
+           Localize.InvalidValueError.exception(
+             value: day,
+             expected: "1..7 (ISO day)",
+             context: "Calendar.display_name"
+           )}
+
+        name ->
+          {:ok, name}
       end
     end
   end

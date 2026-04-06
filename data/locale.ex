@@ -209,17 +209,7 @@ defmodule Localize.Data.Locale do
   end
 
   defp add_version(content) do
-    # CLDR version from any supplemental file that includes it
-    version_json = Localize.Data.read_json("aliases.json")
-    cldr_version = get_in(version_json, ["supplemental", "version", "_cldrVersion"])
-
-    version =
-      case Version.parse("#{cldr_version}.0.0") do
-        {:ok, v} -> v
-        _ -> %Version{major: 0, minor: 0, patch: 0}
-      end
-
-    Map.put(content, :version, version)
+    Map.put(content, :version, Localize.version())
   end
 
   defp add_name(content, locale) do

@@ -3,12 +3,14 @@ defmodule Localize.MixProject do
 
   @version "0.1.0"
   @cldr_version_path "priv/localize/version"
+  @localize_patch_version_path "priv/localize/localize_patch_version"
 
   def project do
     [
       app: :localize,
       version: @version,
       cldr_version: cldr_version(),
+      cldr_patch_version: cldr_patch_version(),
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -33,6 +35,21 @@ defmodule Localize.MixProject do
     @cldr_version_path
     |> File.read!()
     |> String.trim()
+  end
+
+  def cldr_patch_version do
+    current_cldr = cldr_version()
+
+    case File.read(@localize_patch_version_path) do
+      {:ok, content} ->
+        case String.trim(content) |> String.split(":", parts: 2) do
+          [^current_cldr, patch] -> patch
+          _other -> "0"
+        end
+
+      {:error, _} ->
+        "0"
+    end
   end
 
   # Run "mix help compile.app" to learn about applications.

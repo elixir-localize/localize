@@ -10,11 +10,29 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
   @behaviour Localize.Locale.Provider
 
+  alias Localize.Locale.Provider.Cache
+
+  @env apply(Mix, :env, [])
+
+  if @env not in [:dev, :test] do
+    alias Localize.Locale.Provider
+  end
+
   @doc """
   Loads locale data for the given locale.
 
-  Reads the locale's `.etf` file from `priv/localize/locales/`,
-  decodes it, and stores the result in `:persistent_term`.
+  Locale data is resolved in the following order:
+
+  1. If a fresh copy is present in the on-disk cache
+     (see `Localize.Locale.Provider.Cache`), it is returned.
+
+  2. In `:dev` and `:test` environments, the locale is generated
+     from the CLDR source data via
+     `Localize.Data.Locale.generate_and_transform/1`.
+
+  3. Otherwise, the locale is downloaded via
+     `Localize.Locale.Provider.download_locale/1`, written to the
+     cache, decoded, and returned.
 
   ### Arguments
 
@@ -25,38 +43,36 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   * `{:ok, locale_data}` where `locale_data` is a map of the locale's
     CLDR data.
 
-  * `{:error, Localize.UnknownLocaleError.t()}` if the locale data
-    file cannot be found.
+  * `{:error, exception}` if the locale data cannot be obtained.
 
   """
-  @env apply(Mix, :env, [])
-
   @impl Localize.Locale.Provider
   @dialyzer {:nowarn_function, load: 1}
   def load(locale) do
     locale_id = to_locale_id(locale)
 
-    path =
-      :localize
-      |> :code.priv_dir()
-      |> Path.join("localize/locales/#{locale_id}.etf")
+    case Cache.get(locale_id) do
+      {:ok, locale_data} -> {:ok, locale_data}
+      {:error, _exception} -> load_miss(locale_id, locale)
+    end
+  end
 
-    cond do
-      File.exists?(path) ->
-        locale_data =
-          path
-          |> File.read!()
-          |> :erlang.binary_to_term()
+  if @env in [:dev, :test] do
+    defp load_miss(_locale_id, locale) do
+      locale_string = to_string(locale)
+      locale_data = apply(Localize.Data.Locale, :generate_and_transform, [locale_string])
+      {:ok, locale_data}
+    end
+  else
+    defp load_miss(locale_id, _locale) do
+      case Provider.download_locale(locale_id) do
+        {:ok, binary} ->
+          _ = Cache.store(locale_id, binary)
+          {:ok, :erlang.binary_to_term(binary)}
 
-        {:ok, locale_data}
-
-      Enum.any?([:test, :dev], &(&1 == @env)) ->
-        locale_string = to_string(locale)
-        locale_data = apply(Localize.Data.Locale, :generate_and_transform, [locale_string])
-        {:ok, locale_data}
-
-      true ->
-        {:error, Localize.UnknownLocaleError.exception(locale_id: locale_id)}
+        {:error, exception} ->
+          {:error, exception}
+      end
     end
   end
 

@@ -286,7 +286,12 @@ defmodule Localize.Locale.LocaleDisplay do
     results =
       if locale_ext != %{} and not is_nil(locale_ext) do
         name =
-          Localize.Locale.LocaleDisplay.U.display_name(locale_ext, locale_id, display_names, options)
+          Localize.Locale.LocaleDisplay.U.display_name(
+            locale_ext,
+            locale_id,
+            display_names,
+            options
+          )
 
         if empty?(name), do: results, else: results ++ [name]
       else
@@ -298,7 +303,14 @@ defmodule Localize.Locale.LocaleDisplay do
 
     results =
       if transform != %{} and not is_nil(transform) do
-        name = Localize.Locale.LocaleDisplay.T.display_name(transform, locale_id, display_names, options)
+        name =
+          Localize.Locale.LocaleDisplay.T.display_name(
+            transform,
+            locale_id,
+            display_names,
+            options
+          )
+
         if empty?(name), do: results, else: results ++ [name]
       else
         results
@@ -309,7 +321,13 @@ defmodule Localize.Locale.LocaleDisplay do
 
     results =
       if extensions != %{} do
-        name = Localize.Locale.LocaleDisplay.Extension.display_name(extensions, locale_id, display_names)
+        name =
+          Localize.Locale.LocaleDisplay.Extension.display_name(
+            extensions,
+            locale_id,
+            display_names
+          )
+
         if empty?(name), do: results, else: results ++ [name]
       else
         results

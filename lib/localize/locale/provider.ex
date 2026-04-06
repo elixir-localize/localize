@@ -120,4 +120,174 @@ defmodule Localize.Locale.Provider do
   """
   @callback get(locale(), list(), Keyword.t()) ::
               {:ok, term()} | {:error, term()}
+
+  @doc """
+  Returns the directory in which downloaded locale data is cached.
+
+  The directory is resolved from the `:locale_cache_dir` application
+  environment key for `:localize`, falling back to
+  `default_locale_cache_dir/0` when unset.
+
+  ### Returns
+
+  * A string path to the locale cache directory.
+
+  ### Examples
+
+      iex> is_binary(Localize.Locale.Provider.locale_cache_dir())
+      true
+
+  """
+  @spec locale_cache_dir() :: String.t()
+  def locale_cache_dir do
+    Application.get_env(:localize, :locale_cache_dir, default_locale_cache_dir())
+  end
+
+  @doc """
+  Returns the default directory in which downloaded locale data is cached.
+
+  The default directory is located under the `:localize` application's
+  `priv` directory at `localize/locales`.
+
+  ### Returns
+
+  * A string path to the default locale cache directory.
+
+  ### Examples
+
+      iex> String.ends_with?(Localize.Locale.Provider.default_locale_cache_dir(), "localize/locales")
+      true
+
+  """
+  @spec default_locale_cache_dir() :: String.t()
+  def default_locale_cache_dir do
+    Path.join(:code.priv_dir(:localize), "localize/locales")
+  end
+
+  @doc """
+  Returns the base URL from which locale data files are downloaded.
+
+  ### Returns
+
+  * A string URL.
+
+  ### Examples
+
+      iex> Localize.Locale.Provider.base_url()
+      "https://elixir-localize.com/locales"
+
+  """
+  @spec base_url() :: String.t()
+  def base_url do
+    "https://elixir-localize.com/locales"
+  end
+
+  @doc """
+  Returns the file name for a locale's cached data file.
+
+  ### Arguments
+
+  * `locale_id` is a locale identifier atom.
+
+  ### Returns
+
+  * A string file name of the form `"{locale_id}.etf"`.
+
+  ### Examples
+
+      iex> Localize.Locale.Provider.locale_file_name(:en)
+      "en.etf"
+
+  """
+  @spec locale_file_name(locale_id()) :: String.t()
+  def locale_file_name(locale_id) when is_atom(locale_id) do
+    "#{locale_id}.etf"
+  end
+
+  @doc """
+  Returns the download URL for a given locale.
+
+  The URL is versioned by the current `Localize.version/0` so
+  that each Localize release downloads from its own path.
+
+  ### Arguments
+
+  * `locale_id` is a locale identifier atom.
+
+  ### Returns
+
+  * A string URL from which the locale's data file can be downloaded.
+
+  ### Examples
+
+      iex> url = Localize.Locale.Provider.locale_url(:en)
+      iex> String.starts_with?(url, "https://elixir-localize.com/locales/")
+      true
+      iex> String.ends_with?(url, "/en.etf")
+      true
+
+  """
+  @spec locale_url(locale_id()) :: String.t()
+  def locale_url(locale_id) when is_atom(locale_id) do
+    base_url() <> "/" <> version_segment() <> "/" <> locale_file_name(locale_id)
+  end
+
+  @doc """
+  Returns the version segment used in cache paths and download URLs.
+
+  ### Returns
+
+  * A string of the form `"{major}.{minor}.{patch}"` matching
+    `Localize.version/0`.
+
+  """
+  @spec version_segment() :: String.t()
+  def version_segment do
+    Version.to_string(Localize.version())
+  end
+
+  @doc """
+  Downloads locale data for the given locale from `locale_url/1`.
+
+  Uses Erlang's built-in `:httpc` to fetch the file. The downloaded
+  content is returned as a binary and is not written to disk or
+  decoded by this function.
+
+  ### Arguments
+
+  * `locale_id` is a locale identifier atom.
+
+  ### Returns
+
+  * `{:ok, binary}` with the raw downloaded file contents on success.
+
+  * `{:error, exception}` if the locale could not be downloaded.
+
+  """
+  @spec download_locale(locale_id()) ::
+          {:ok, binary()} | {:error, Exception.t()}
+  def download_locale(locale_id) when is_atom(locale_id) do
+    url = locale_url(locale_id)
+
+    case Localize.Utils.Http.get(url) do
+      {:ok, body} when is_binary(body) ->
+        {:ok, body}
+
+      {:not_modified, _headers} ->
+        {:error,
+         Localize.LocaleDownloadError.exception(
+           locale_id: locale_id,
+           url: url,
+           reason: "not modified"
+         )}
+
+      {:error, reason} ->
+        {:error,
+         Localize.LocaleDownloadError.exception(
+           locale_id: locale_id,
+           url: url,
+           reason: inspect(reason)
+         )}
+    end
+  end
 end

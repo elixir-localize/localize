@@ -589,12 +589,17 @@ defmodule Localize.Data do
     File.rm_rf!(output)
     File.mkdir_p!(output)
 
+    # Bump the patch version up-front so generated ETF files
+    # record the post-bump version. `bump_patch_version/0` also
+    # clears the `Localize.version/0` persistent_term cache.
+    bump_patch_version()
+
     locales =
       Localize.SupplementalData.all_locale_ids()
       |> Enum.map(&Atom.to_string/1)
 
     total = length(locales)
-    IO.puts("Generating #{total} locale ETF files...")
+    IO.puts("Generating #{total} locale ETF files with version #{Localize.version()}...")
 
     locales
     |> Enum.with_index(1)
@@ -606,7 +611,6 @@ defmodule Localize.Data do
       Localize.Data.Locale.generate_and_save_locale(locale)
     end)
 
-    increment_patch_version()
     IO.puts("All #{total} locale ETF files generated.")
     :ok
   end
@@ -628,32 +632,80 @@ defmodule Localize.Data do
   Returns the Localize patch version from
   `priv/localize/localize_patch_version`.
 
+  The file stores the version in `"{cldr_version}:{patch}"` format
+  (for example `"48.2:3"`). The returned value is the patch
+  component as a string. If the stored CLDR version does not match
+  the current `cldr_version/0`, the patch is considered to be `"0"`
+  since the recorded patch applies to a different CLDR release.
+
+  ### Returns
+
+  * The patch version as a string.
+
   """
   @spec patch_version() :: String.t()
   def patch_version do
-    path = Path.join([File.cwd!(), @version_file]) |> Path.dirname()
-    patch_path = Path.join(path, "localize_patch_version")
+    case read_patch_version() do
+      {cldr_version, patch} ->
+        if cldr_version == cldr_version(), do: patch, else: "0"
 
-    if File.exists?(patch_path) do
-      patch_path |> File.read!() |> String.trim()
-    else
-      "0"
+      :not_found ->
+        "0"
     end
   end
 
-  defp increment_patch_version do
-    path = Path.join([File.cwd!(), @version_file]) |> Path.dirname()
-    patch_path = Path.join(path, "localize_patch_version")
+  defp read_patch_version do
+    patch_path = patch_version_path()
 
-    current =
-      if File.exists?(patch_path) do
-        patch_path |> File.read!() |> String.trim() |> String.to_integer()
-      else
-        0
+    case File.read(patch_path) do
+      {:ok, content} ->
+        case String.trim(content) |> String.split(":", parts: 2) do
+          [cldr_version, patch] -> {cldr_version, patch}
+          [patch] -> {nil, patch}
+        end
+
+      {:error, _} ->
+        :not_found
+    end
+  end
+
+  defp patch_version_path do
+    [File.cwd!(), @version_file]
+    |> Path.join()
+    |> Path.dirname()
+    |> Path.join("localize_patch_version")
+  end
+
+  @doc """
+  Bumps the Localize patch version for the current CLDR release.
+
+  Reads the current CLDR version from `priv/localize/version`.
+  If the recorded patch applies to the same CLDR version, the
+  patch counter is incremented. Otherwise it is reset to `1`.
+
+  After bumping, any cached `Localize.version/0` value is cleared
+  from `:persistent_term`.
+
+  ### Returns
+
+  * The new patch version as a string.
+
+  """
+  @spec bump_patch_version() :: String.t()
+  def bump_patch_version do
+    patch_path = patch_version_path()
+    current_cldr = cldr_version()
+
+    next_patch =
+      case read_patch_version() do
+        {^current_cldr, patch} -> String.to_integer(patch) + 1
+        _other -> 1
       end
 
-    File.write!(patch_path, Integer.to_string(current + 1))
-    IO.puts("Patch version incremented to #{current + 1}")
+    File.write!(patch_path, "#{current_cldr}:#{next_patch}")
+    :persistent_term.erase({:localize, :version})
+    IO.puts("Patch version updated to #{current_cldr}:#{next_patch}")
+    Integer.to_string(next_patch)
   end
 
   # ── Path helpers ────────────────────────────────────────────────

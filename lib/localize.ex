@@ -96,6 +96,66 @@ defmodule Localize do
   @coverage_levels [:basic, :moderate, :modern]
   @locale_cache_table :localize_locale_cache
 
+  @version_key {:localize, :version}
+
+  @doc """
+  Returns the CLDR version this build of Localize targets.
+
+  The version is a `t:Version.t/0` whose major and minor components
+  come from `priv/localize/version` (the CLDR release version) and
+  whose patch component comes from `priv/localize/localize_patch_version`
+  (Localize's per-release patch counter).
+
+  The value is read once on first access and cached in
+  `:persistent_term`.
+
+  ### Returns
+
+  * A `t:Version.t/0` representing the CLDR version.
+
+  ### Examples
+
+      iex> %Version{} = Localize.version()
+
+  """
+  @spec version() :: Version.t()
+  def version do
+    case :persistent_term.get(@version_key, :not_set) do
+      :not_set ->
+        version = read_version()
+        :persistent_term.put(@version_key, version)
+        version
+
+      version ->
+        version
+    end
+  end
+
+  defp read_version do
+    priv = :code.priv_dir(:localize)
+    cldr_version = priv |> Path.join("localize/version") |> read_trimmed("0.0")
+    patch_raw = priv |> Path.join("localize/localize_patch_version") |> read_trimmed("0")
+
+    patch =
+      case String.split(patch_raw, ":", parts: 2) do
+        [^cldr_version, patch] -> patch
+        [patch_only] -> patch_only
+        _ -> "0"
+      end
+
+    case Version.parse("#{cldr_version}.#{patch}") do
+      {:ok, version} -> version
+      :error -> Version.parse!("0.0.0")
+    end
+  end
+
+  defp read_trimmed(path, default) do
+    case File.read(path) do
+      {:ok, content} -> String.trim(content)
+      {:error, _} -> default
+    end
+  end
+
   @doc """
   Returns the application-wide default locale as a
   `t:Localize.LanguageTag.t/0`.
