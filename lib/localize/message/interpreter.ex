@@ -750,13 +750,19 @@ defmodule Localize.Message.Interpreter do
       nil ->
         Localize.Number.System.number_system_from_locale(locale)
 
-      system ->
-        case Helpers.existing_atom(system) do
-          nil ->
-            {:error, "unknown numbering system #{inspect(system)}"}
+      system when is_binary(system) or is_atom(system) ->
+        # `system_name_from/2` accepts strings or atoms and validates
+        # against the full numbering system table. We deliberately
+        # avoid `String.to_existing_atom/1` here because the atom
+        # may not yet have been created on this BEAM instance —
+        # numbering system atoms are created lazily when the
+        # supplemental data is first read.
+        case Localize.Number.System.system_name_from(system, locale) do
+          {:ok, _} = ok ->
+            ok
 
-          atom ->
-            Localize.Number.System.system_name_from(atom, locale)
+          {:error, _exception} ->
+            {:error, "unknown numbering system #{inspect(system)}"}
         end
     end
   end
