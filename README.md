@@ -226,6 +226,12 @@ Localize is the core CLDR-backed formatting and validation library. The followin
 
 * [ex_money version 6.0](https://hex.pm/packages/ex_money) which is updated to be based upon `Localize`.
 
+## Acknowledgements
+
+* `Localize.Language` is based upon the [ex_cldr_language](https://github.com/elixir-cldr/cldr_languages) library by [@lostkobraki](https://github.com/lostkobrakai).
+
+* `Localize.Territory` is based upon the [ex_cldr_territories](https://github.com/elixir-cldr/cldr_territories) library by [@Schultzer](https://github.com/Schultzer).
+
 ## License
 
 Apache License 2.0. See the [LICENSE](LICENSE.md) file for details.
