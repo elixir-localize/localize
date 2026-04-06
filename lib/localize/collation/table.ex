@@ -18,6 +18,7 @@ defmodule Localize.Collation.Table do
 
   @table_name {:localize, :collation_table}
   @contractions_table {:localize, :collation_contractions}
+  @fast_latin_key {:localize, :collation_fast_latin}
 
   @fractional_keys "FractionalUCA.txt"
 
@@ -39,9 +40,14 @@ defmodule Localize.Collation.Table do
   """
   @spec ensure_loaded() :: :ok
   def ensure_loaded do
-    case :persistent_term.get(@table_name, nil) do
-      nil -> GenServer.call(__MODULE__, :load, :infinity)
-      _map -> :ok
+    table_loaded? = :persistent_term.get(@table_name, nil) != nil
+    contractions_loaded? = :persistent_term.get(@contractions_table, nil) != nil
+    fast_latin_loaded? = :persistent_term.get(@fast_latin_key, nil) != nil
+
+    if table_loaded? and contractions_loaded? and fast_latin_loaded? do
+      :ok
+    else
+      GenServer.call(__MODULE__, :load, :infinity)
     end
   end
 
@@ -317,13 +323,23 @@ defmodule Localize.Collation.Table do
   end
 
   @impl true
-  def handle_call(:load, _from, %{loaded: true} = state) do
-    {:reply, :ok, state}
+  def handle_call(:load, _from, state) do
+    # Always verify the persistent_term keys are actually present
+    # before short-circuiting. The `state.loaded` flag is not
+    # authoritative: callers (or hot reloads) may have erased
+    # individual keys since the last load.
+    if fully_loaded?() do
+      {:reply, :ok, %{state | loaded: true}}
+    else
+      load_table()
+      {:reply, :ok, %{state | loaded: true}}
+    end
   end
 
-  def handle_call(:load, _from, %{loaded: false} = state) do
-    load_table()
-    {:reply, :ok, %{state | loaded: true}}
+  defp fully_loaded? do
+    :persistent_term.get(@table_name, nil) != nil and
+      :persistent_term.get(@contractions_table, nil) != nil and
+      :persistent_term.get(@fast_latin_key, nil) != nil
   end
 
   defp load_table do

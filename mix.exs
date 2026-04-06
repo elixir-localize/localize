@@ -96,17 +96,22 @@ defmodule Localize.MixProject do
   def groups_for_modules do
     [
       Numbers: ~r/Localize.Number/,
-      "Dates and Times": ~r/Localize.[Date|Time]*/,
-      Calendars: ~r/Localize.Calendar/,
-      Currencies: ~r/Localize.Currency/,
-      Languages: ~r/Localize.Language/,
-      Territories: ~r/Localize.Territory/,
-      Scripts: ~r/Localize.Script/,
-      "Units of Measure": ~r/Localize.Unit/,
-      Messages: ~r/Localize.Message/,
-      Lists: ~r/Localize.List/,
-      Collation: ~r/Localize.Collation/,
-      Utilities: ~r/Localize.Util/
+      "Dates and Times": ~r/^Localize\.(Date|Time|Interval|Duration)(?!\w*Error)/,
+      Locale: ~r/Localize\.Locale(?!\w*Error)/,
+      "Language Tag":  ~r/Localize\.(LanguageTag|Rfc5646)(?!\w*Error)/,
+      Calendars: ~r/Localize.Calendar(?!\w*Error)/,
+      Currencies: ~r/Localize.Currency(?!\w*Error)/,
+      Languages: ~r/Localize.Language(?!\w*Error)/,
+      Territories: ~r/Localize.Territory(?!\w*Error)/,
+      Scripts: ~r/Localize.Script(?!\w*Error)/,
+      "Units of Measure": ~r/^Localize\.Unit?(?:\.|$)/,
+      Messages: ~r/Localize.Message(?!\w*Error)/,
+      Gettext: ~r/Gettext(?!\w*Error)/,
+      Lists: ~r/Localize.List(?!\w*Error)/,
+      Collation: ~r/Localize.Collation(?!\w*Error)/,
+      Utilities: ~r/Localize.Util(?!\w*Error)/,
+      NIF: ~r/Localize.Nif(?!\w*Error)/,
+      Exceptions: ~r/^Localize\.\w+Error$/
     ]
   end
 

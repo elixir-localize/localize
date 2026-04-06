@@ -72,7 +72,25 @@ defmodule Localize.Collation.FastLatin do
   """
   @spec lookup(non_neg_integer()) :: [Localize.Collation.Element.t()] | nil
   def lookup(cp) when cp < @latin_limit do
-    elem(:persistent_term.get(@table_name), cp)
+    elem(table(), cp)
+  end
+
+  defp table do
+    case :persistent_term.get(@table_name, :not_loaded) do
+      :not_loaded ->
+        # The fast-latin table is normally built when
+        # `Localize.Collation.Table` loads. If it is missing — for
+        # example because the collation table was loaded directly
+        # into `:persistent_term` without running `build/0`, or
+        # because the fast-latin term was erased — rebuild it by
+        # routing through `Table.ensure_loaded/0`, which runs the
+        # full load path and invokes `build/0`.
+        Localize.Collation.Table.ensure_loaded()
+        :persistent_term.get(@table_name)
+
+      tuple ->
+        tuple
+    end
   end
 
   defp combining_mark?(cp) do
