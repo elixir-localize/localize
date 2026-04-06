@@ -438,7 +438,17 @@ Two GitHub Actions workflows live in `.github/workflows/`:
 
 * `ci.yml` — runs `mix test`, `mix format --check-formatted`, and `mix dialyzer` against a matrix of Elixir/OTP versions on every PR and push.
 
-* `upload-locales.yml` — regenerates all 766 locale ETFs and uploads them to Cloudflare R2 (the CDN behind `https://elixir-localize.com/locales`). Triggered on pushes to `main`. Crucially, this workflow does **not** bump the patch version — `mix localize.generate_locales` no longer auto-bumps for exactly this reason.
+* `upload-locales.yml` — regenerates all 766 locale ETFs and uploads them to Cloudflare R2 (the CDN behind `https://elixir-localize.com/locales`). Triggered on pushes of `v*` tags. The workflow:
+
+  1. Reads the current `data_version` (e.g. `v48.2.1`) directly from `priv/localize/version` and `priv/localize/localize_patch_version` before any compile or generation.
+
+  2. Configures `rclone` for R2 and checks whether the target prefix `r2:locales/{data_version}/` already contains ETF files.
+
+  3. If the prefix is already populated, the workflow logs a notice and **skips the Elixir setup, compile, generate, and upload steps entirely** — nothing is regenerated or re-uploaded.
+
+  4. If the prefix is empty, the workflow sets up Elixir, runs `mix localize.generate_locales`, uploads via `rclone sync`, and verifies the upload count.
+
+  This short-circuit exists so that release tags can be re-pushed or re-applied (for example to trigger a Hex publish retry) without accidentally overwriting data that is already live on the CDN. The only way to publish a new set of ETFs is to bump either the CLDR version or the Localize patch counter (via `mix localize.bump_patch_version`) and then tag the commit. `mix localize.generate_locales` itself does not bump the patch — for exactly this reason.
 
 ## Release process
 

@@ -26,48 +26,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Elixir
-        uses: erlef/setup-beam@v1
-        with:
-          elixir-version: "1.19"
-          otp-version: "28"
-
-      - name: Restore dependency cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            deps
-            _build
-          key: mix-locales-${{ hashFiles('mix.lock') }}
-          restore-keys: |
-            mix-locales-
-
-      - name: Install dependencies
-        run: mix deps.get
-
-      - name: Compile
-        run: mix compile
-
-      - name: Generate locale ETFs
-        run: mix localize.generate_locales
-
+      # Read the data version directly from the on-disk version
+      # files before doing any expensive work. The version is
+      # derived from `priv/localize/version` (CLDR release) and
+      # `priv/localize/localize_patch_version` (Localize patch
+      # counter). No Elixir compile is required for this step.
       - name: Read data version
         id: version
         run: |
           cldr_version=$(cat priv/localize/version | tr -d '[:space:]')
-          patch_version=$(cat priv/localize/localize_patch_version | tr -d '[:space:]')
+          patch_raw=$(cat priv/localize/localize_patch_version | tr -d '[:space:]')
+          # `localize_patch_version` is stored as "{cldr_version}:{patch}".
+          # If the recorded CLDR version matches the current one, take
+          # the numeric patch; otherwise treat the patch as 0.
+          recorded_cldr="${patch_raw%%:*}"
+          recorded_patch="${patch_raw##*:}"
+          if [ "${recorded_cldr}" = "${cldr_version}" ]; then
+            patch_version="${recorded_patch}"
+          else
+            patch_version="0"
+          fi
           data_version="v${cldr_version}.${patch_version}"
           echo "data_version=${data_version}" >> "$GITHUB_OUTPUT"
           echo "Data version: ${data_version}"
-
-      - name: Verify generated locales
-        run: |
-          count=$(ls priv/localize/locales/*.etf 2>/dev/null | wc -l)
-          echo "Generated ${count} locale ETF files"
-          if [ "$count" -lt 100 ]; then
-            echo "::error::Expected at least 100 locale files, got ${count}"
-            exit 1
-          fi
 
       - name: Install rclone
         run: |
@@ -91,7 +72,67 @@ jobs:
           no_check_bucket = true
           EOF
 
+      # Short-circuit: if the target R2 prefix already contains ETF
+      # files for this data_version, there is nothing to do. This
+      # avoids re-generating and re-uploading the same data when a
+      # release tag is pushed without a corresponding CLDR or patch
+      # version bump.
+      - name: Check if data version already exists on R2
+        id: check_existing
+        env:
+          DATA_VERSION: ${{ steps.version.outputs.data_version }}
+        run: |
+          existing=$(rclone lsf "r2:${R2_BUCKET}/${DATA_VERSION}/" --include "*.etf" 2>/dev/null | wc -l | tr -d '[:space:]')
+          echo "Found ${existing} existing ETF file(s) at r2:${R2_BUCKET}/${DATA_VERSION}/"
+          if [ "${existing}" -gt 0 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Data version ${DATA_VERSION} already exists on R2 with ${existing} file(s); skipping generation and upload."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Elixir
+        if: steps.check_existing.outputs.skip != 'true'
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.19"
+          otp-version: "28"
+
+      - name: Restore dependency cache
+        if: steps.check_existing.outputs.skip != 'true'
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: mix-locales-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            mix-locales-
+
+      - name: Install dependencies
+        if: steps.check_existing.outputs.skip != 'true'
+        run: mix deps.get
+
+      - name: Compile
+        if: steps.check_existing.outputs.skip != 'true'
+        run: mix compile
+
+      - name: Generate locale ETFs
+        if: steps.check_existing.outputs.skip != 'true'
+        run: mix localize.generate_locales
+
+      - name: Verify generated locales
+        if: steps.check_existing.outputs.skip != 'true'
+        run: |
+          count=$(ls priv/localize/locales/*.etf 2>/dev/null | wc -l)
+          echo "Generated ${count} locale ETF files"
+          if [ "$count" -lt 100 ]; then
+            echo "::error::Expected at least 100 locale files, got ${count}"
+            exit 1
+          fi
+
       - name: Upload locales to R2
+        if: steps.check_existing.outputs.skip != 'true'
         env:
           DATA_VERSION: ${{ steps.version.outputs.data_version }}
         run: |
@@ -115,6 +156,7 @@ jobs:
             --verbose
 
       - name: Verify upload
+        if: steps.check_existing.outputs.skip != 'true'
         env:
           DATA_VERSION: ${{ steps.version.outputs.data_version }}
         run: |
@@ -125,3 +167,11 @@ jobs:
             echo "::warning::Upload count mismatch: ${uploaded} uploaded vs ${local_count} local"
           fi
           echo "Upload complete: ${uploaded} locale files to ${R2_BUCKET}/${DATA_VERSION}/"
+
+      - name: Skipped summary
+        if: steps.check_existing.outputs.skip == 'true'
+        env:
+          DATA_VERSION: ${{ steps.version.outputs.data_version }}
+        run: |
+          echo "Skipped: data version ${DATA_VERSION} already present on R2 at ${R2_BUCKET}/${DATA_VERSION}/"
+          echo "Nothing was regenerated or uploaded. Bump the CLDR or Localize patch version and push a new tag to trigger a real upload."
