@@ -1,0 +1,187 @@
+name: Delete Locales from Cloudflare R2
+
+# Manually triggered workflow to remove a previously-uploaded data
+# version from the Cloudflare R2 `locales` bucket. Useful when a
+# broken release needs to be pulled or when an old version is
+# being retired.
+#
+# Safety features:
+#
+#   * The target version must be supplied as an input and must
+#     match a strict `v{major}.{minor}.{patch}` format.
+#
+#   * A separate `confirmation` input must literally equal the
+#     target version for the delete to proceed. This prevents
+#     one-click accidents from the Actions UI.
+#
+#   * `dry_run` defaults to `true`. A dry run lists what would
+#     be deleted without touching anything. You must explicitly
+#     set it to `false` to actually delete.
+#
+#   * The workflow refuses to delete the data version currently
+#     recorded on `main` unless `allow_current: true` is set.
+#     This protects the live release from being wiped by accident.
+
+on:
+  workflow_dispatch:
+    inputs:
+      data_version:
+        description: 'Data version to delete (e.g. v48.2.1). Must match v{major}.{minor}.{patch}.'
+        required: true
+        type: string
+      confirmation:
+        description: 'Retype the exact data version to confirm. Must match the value above.'
+        required: true
+        type: string
+      dry_run:
+        description: 'Dry run (list what would be deleted, do not touch anything).'
+        required: true
+        type: boolean
+        default: true
+      allow_current:
+        description: 'Allow deleting the data version currently recorded on main. DANGEROUS.'
+        required: true
+        type: boolean
+        default: false
+
+env:
+  R2_BUCKET: locales
+
+permissions:
+  contents: read
+
+jobs:
+  delete:
+    name: Delete locale ETFs from R2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Validate inputs before touching anything.
+      - name: Validate inputs
+        env:
+          DATA_VERSION: ${{ inputs.data_version }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          # Strict format: v{major}.{minor}.{patch}, each component
+          # a non-negative integer. This rejects tags like "latest",
+          # empty strings, and shell-injection attempts.
+          if ! echo "${DATA_VERSION}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Invalid data_version format: '${DATA_VERSION}'. Expected v{major}.{minor}.{patch} (e.g. v48.2.1)."
+            exit 1
+          fi
+
+          if [ "${DATA_VERSION}" != "${CONFIRMATION}" ]; then
+            echo "::error::Confirmation does not match data_version. Retype the exact value to proceed."
+            exit 1
+          fi
+
+          echo "Validated target: ${DATA_VERSION}"
+
+      # Compute the current data version from the repository so we
+      # can refuse to delete it unless allow_current is set.
+      - name: Read current data version on main
+        id: current
+        run: |
+          cldr_version=$(cat priv/localize/version | tr -d '[:space:]')
+          patch_raw=$(cat priv/localize/localize_patch_version | tr -d '[:space:]')
+          recorded_cldr="${patch_raw%%:*}"
+          recorded_patch="${patch_raw##*:}"
+          if [ "${recorded_cldr}" = "${cldr_version}" ]; then
+            patch_version="${recorded_patch}"
+          else
+            patch_version="0"
+          fi
+          current_data_version="v${cldr_version}.${patch_version}"
+          echo "current=${current_data_version}" >> "$GITHUB_OUTPUT"
+          echo "Current data version on main: ${current_data_version}"
+
+      - name: Refuse to delete the live version
+        if: inputs.allow_current != true && steps.current.outputs.current == inputs.data_version
+        run: |
+          echo "::error::Refusing to delete ${{ inputs.data_version }} because it matches the current data version recorded on main."
+          echo "Set allow_current: true if you really mean to delete the live release."
+          exit 1
+
+      - name: Install rclone
+        run: |
+          curl -fsSL https://rclone.org/install.sh | sudo bash
+
+      - name: Configure rclone for Cloudflare R2
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+        run: |
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf << EOF
+          [r2]
+          type = s3
+          provider = Cloudflare
+          access_key_id = ${R2_ACCESS_KEY_ID}
+          secret_access_key = ${R2_SECRET_ACCESS_KEY}
+          endpoint = https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com
+          acl = private
+          no_check_bucket = true
+          EOF
+
+      # List files at the target prefix so the Actions log records
+      # exactly what exists before any destructive operation.
+      - name: List files at target prefix
+        id: list
+        env:
+          DATA_VERSION: ${{ inputs.data_version }}
+        run: |
+          prefix="r2:${R2_BUCKET}/${DATA_VERSION}/"
+          echo "Listing ${prefix}"
+          count=$(rclone lsf "${prefix}" --recursive 2>/dev/null | wc -l | tr -d '[:space:]')
+          echo "count=${count}" >> "$GITHUB_OUTPUT"
+          echo "Found ${count} object(s) at ${prefix}"
+
+          if [ "${count}" -eq 0 ]; then
+            echo "::warning::No objects found at ${prefix}. Nothing to delete."
+          else
+            echo "--- Objects that would be deleted ---"
+            rclone lsf "${prefix}" --recursive
+            echo "--- End of listing ---"
+          fi
+
+      - name: Dry run summary
+        if: inputs.dry_run == true
+        env:
+          DATA_VERSION: ${{ inputs.data_version }}
+          COUNT: ${{ steps.list.outputs.count }}
+        run: |
+          echo "::notice::Dry run complete. ${COUNT} object(s) would be deleted from r2:${R2_BUCKET}/${DATA_VERSION}/"
+          echo "To actually delete, re-run the workflow with dry_run: false."
+
+      - name: Delete files
+        if: inputs.dry_run == false && steps.list.outputs.count != '0'
+        env:
+          DATA_VERSION: ${{ inputs.data_version }}
+        run: |
+          prefix="r2:${R2_BUCKET}/${DATA_VERSION}/"
+          echo "Deleting ${prefix}"
+
+          # `rclone purge` removes the prefix and all objects below
+          # it. `rclone delete` would leave the empty prefix object
+          # on some S3-compatible stores, which we also want gone.
+          rclone purge "${prefix}" \
+            --stats 10s \
+            --stats-one-line \
+            --verbose
+
+      - name: Verify deletion
+        if: inputs.dry_run == false && steps.list.outputs.count != '0'
+        env:
+          DATA_VERSION: ${{ inputs.data_version }}
+        run: |
+          prefix="r2:${R2_BUCKET}/${DATA_VERSION}/"
+          remaining=$(rclone lsf "${prefix}" --recursive 2>/dev/null | wc -l | tr -d '[:space:]')
+          if [ "${remaining}" -ne 0 ]; then
+            echo "::error::Expected 0 objects after purge, found ${remaining} at ${prefix}"
+            exit 1
+          fi
+          echo "::notice::Successfully deleted all objects at ${prefix}"

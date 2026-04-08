@@ -18,11 +18,6 @@ defmodule Mix.Tasks.Localize.GenerateLocales do
 
   Generates only the specified locales.
 
-  ## Configuration
-
-  The source data directory is read from the `CLDR_PRODUCTION_DATA`
-  environment variable, falling back to `../cldr_production_data`.
-
   """
 
   use Mix.Task

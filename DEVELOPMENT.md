@@ -434,7 +434,7 @@ The build is gated through `mix.exs` `maybe_elixir_make/0`, which only adds `:el
 
 ## CI
 
-Two GitHub Actions workflows live in `.github/workflows/`:
+Three GitHub Actions workflows live in `.github/workflows/`:
 
 * `ci.yml` — runs `mix test`, `mix format --check-formatted`, and `mix dialyzer` against a matrix of Elixir/OTP versions on every PR and push.
 
@@ -449,6 +449,25 @@ Two GitHub Actions workflows live in `.github/workflows/`:
   4. If the prefix is empty, the workflow sets up Elixir, runs `mix localize.generate_locales`, uploads via `rclone sync`, and verifies the upload count.
 
   This short-circuit exists so that release tags can be re-pushed or re-applied (for example to trigger a Hex publish retry) without accidentally overwriting data that is already live on the CDN. The only way to publish a new set of ETFs is to bump either the CLDR version or the Localize patch counter (via `mix localize.bump_patch_version`) and then tag the commit. `mix localize.generate_locales` itself does not bump the patch — for exactly this reason.
+
+* `delete-locales.yml` — manually triggered (`workflow_dispatch`) workflow for removing a previously-uploaded data version from R2. Useful when pulling a broken release or retiring old versions. Inputs:
+
+  * **`data_version`** — the version to delete, e.g. `v48.2.1`. Must match the strict `v{major}.{minor}.{patch}` format; anything else is rejected by a regex check before any rclone call runs.
+  * **`confirmation`** — must literally equal `data_version`. This is a two-field typed confirmation so a one-click accident from the Actions UI is not sufficient to destroy data.
+  * **`dry_run`** (default `true`) — lists the objects at the target prefix without touching anything. You must explicitly set it to `false` to actually delete.
+  * **`allow_current`** (default `false`) — the workflow refuses to delete the data version currently recorded on `main` unless this is explicitly set. Protects the live release from being wiped by accident.
+
+  The delete itself uses `rclone purge`, which removes both the objects and the empty prefix. After deletion, the workflow verifies that the prefix is empty and fails loudly if anything remains. Every step logs to the Actions output so there is an audit trail of who initiated the delete, what was listed, and what was removed.
+
+  **Typical usage.** To retire `v48.2.0` after publishing `v48.2.1`:
+
+  1. Run the workflow with `data_version: v48.2.0`, `confirmation: v48.2.0`, `dry_run: true`. Confirm from the log that the object list matches expectations.
+  2. Re-run with the same inputs but `dry_run: false`. The objects are removed and the run verifies the prefix is empty.
+
+  To delete the live version (rarely needed, usually only after a security incident or a publish that needs to be pulled immediately):
+
+  1. First dry-run as above.
+  2. Re-run with `dry_run: false` **and** `allow_current: true`. Be ready to re-upload immediately — end users downloading that version will start getting 404s.
 
 ## Release process
 
