@@ -493,18 +493,6 @@ Before publishing a new Hex version:
 
 10. `usage-rules.md` is up to date — this is the LLM-agent guidance file shipped to end users via the `usage_rules` Hex package convention.
 
-## LLM agent instructions
-
-Three different files serve three different audiences. **Do not confuse them.**
-
-| File | Audience | Purpose |
-|---|---|---|
-| `CLAUDE.md` (or `AGENTS.md`) at repo root | Coding agents working *on* the Localize codebase | Build/test commands, code style, conventions for contributors |
-| `usage-rules.md` at repo root | Coding agents working *with* Localize as a dependency in some other app | API idioms, common pitfalls, what to import, what to avoid |
-| `guides/*.md` | Human developers reading HexDocs | End-user documentation |
-
-`usage-rules.md` is shipped in the Hex package (it is in the `:files` list in `mix.exs`) and is picked up automatically by the [`usage_rules`](https://hex.pm/packages/usage_rules) Hex tooling that consolidates per-dependency rules into a downstream user's `AGENTS.md` or `CLAUDE.md`.
-
 ## Companion packages
 
 Some functionality is intentionally split into separate packages so that Localize stays focused on CLDR core data:

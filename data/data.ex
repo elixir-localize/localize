@@ -526,7 +526,7 @@ defmodule Localize.Data do
   """
   @spec cldr_version() :: String.t() | nil
   def cldr_version do
-    path = Path.join(File.cwd!(), @version_file)
+    path = priv_relative_path(@version_file)
 
     case File.read(path) do
       {:ok, content} -> String.trim(content)
@@ -631,10 +631,16 @@ defmodule Localize.Data do
   @doc """
   Returns the output directory for generated locale ETF files.
 
+  Resolves against the `:localize` application's own priv path
+  (via `:code.priv_dir/1`) rather than `File.cwd!/0` so that
+  `mix localize.generate_locales` works when Localize is pulled
+  in as a dependency and the task is run from the dependent
+  project's working directory.
+
   """
   @spec locales_output_dir() :: String.t()
   def locales_output_dir do
-    Path.join(File.cwd!(), @locales_etf_dir)
+    priv_relative_path(@locales_etf_dir)
   end
 
   @doc """
@@ -743,8 +749,8 @@ defmodule Localize.Data do
   end
 
   defp patch_version_path do
-    [File.cwd!(), @version_file]
-    |> Path.join()
+    @version_file
+    |> priv_relative_path()
     |> Path.dirname()
     |> Path.join("localize_patch_version")
   end
@@ -835,7 +841,7 @@ defmodule Localize.Data do
   """
   @spec supplemental_dir() :: String.t()
   def supplemental_dir do
-    Path.join(File.cwd!(), @cldr_supplemental_dir)
+    priv_relative_path(@cldr_supplemental_dir)
   end
 
   @doc """
@@ -844,7 +850,7 @@ defmodule Localize.Data do
   """
   @spec output_dir() :: String.t()
   def output_dir do
-    Path.join(File.cwd!(), @supplemental_etf_dir)
+    priv_relative_path(@supplemental_etf_dir)
   end
 
   @doc """
@@ -856,7 +862,7 @@ defmodule Localize.Data do
   """
   @spec external_sources_dir() :: String.t()
   def external_sources_dir do
-    Path.join(File.cwd!(), @cldr_external_sources_dir)
+    priv_relative_path(@cldr_external_sources_dir)
   end
 
   @doc """
@@ -868,7 +874,7 @@ defmodule Localize.Data do
   """
   @spec locales_source_dir() :: String.t()
   def locales_source_dir do
-    Path.join(File.cwd!(), @cldr_locales_dir)
+    priv_relative_path(@cldr_locales_dir)
   end
 
   @doc """
@@ -880,7 +886,7 @@ defmodule Localize.Data do
   """
   @spec supplemental_source_dir() :: String.t()
   def supplemental_source_dir do
-    Path.join(File.cwd!(), @cldr_supplemental_dir)
+    priv_relative_path(@cldr_supplemental_dir)
   end
 
   @doc """
@@ -889,7 +895,7 @@ defmodule Localize.Data do
   """
   @spec collation_source_dir() :: String.t()
   def collation_source_dir do
-    Path.join(File.cwd!(), @cldr_collation_dir)
+    priv_relative_path(@cldr_collation_dir)
   end
 
   @doc """
@@ -898,7 +904,7 @@ defmodule Localize.Data do
   """
   @spec validity_source_dir() :: String.t()
   def validity_source_dir do
-    Path.join(File.cwd!(), @cldr_validity_dir)
+    priv_relative_path(@cldr_validity_dir)
   end
 
   @doc """
@@ -907,7 +913,31 @@ defmodule Localize.Data do
   """
   @spec bcp47_source_dir() :: String.t()
   def bcp47_source_dir do
-    Path.join(File.cwd!(), @cldr_bcp47_dir)
+    priv_relative_path(@cldr_bcp47_dir)
+  end
+
+  # Resolves a project-relative path (e.g. `"priv/cldr/locales"`)
+  # against the `:localize` application's own root directory,
+  # rather than the current working directory.
+  #
+  # When Localize is used as a dependency and a task such as
+  # `mix localize.generate_locales` is run from the dependent
+  # project, `File.cwd!/0` returns the dependent project's root
+  # and the data-pipeline helpers would look in the wrong place.
+  # `:code.priv_dir(:localize)` returns `.../localize/priv` for
+  # both the Localize repo itself and for any project that pulls
+  # Localize in as a dep, so paths resolved relative to it are
+  # stable across both scenarios.
+  #
+  # The input path always starts with `"priv/"` (the on-disk
+  # layout), so we strip that prefix before joining to
+  # `:code.priv_dir(:localize)`.
+  defp priv_relative_path("priv/" <> rest) do
+    :localize |> :code.priv_dir() |> Path.join(rest)
+  end
+
+  defp priv_relative_path(path) do
+    :localize |> :code.priv_dir() |> Path.join(path)
   end
 
   @doc """
