@@ -131,7 +131,8 @@ defmodule Localize.MixProject do
         "guides/performance.md"
       ],
       "Migration from ex_cldr": [
-        "guides/migration.md"
+        "guides/migration.md",
+        "guides/performance_comparison.md"
       ]
     ]
   end
@@ -169,12 +170,17 @@ defmodule Localize.MixProject do
     [:logger, :inets, :ssl, :observer, :wx]
   end
 
+  def extra_applications(:bench) do
+    [:logger, :inets, :ssl]
+  end
+
   def extra_applications(_) do
     [:logger, :inets, :ssl]
   end
 
   defp elixirc_paths(:dev), do: ["lib", "data"]
   defp elixirc_paths(:test), do: ["lib", "data", "test/support"]
+  defp elixirc_paths(:bench), do: ["lib", "ex_cldr"]
   defp elixirc_paths(_), do: ["lib"]
 
   # Run "mix help deps" to learn about dependencies.
@@ -187,7 +193,15 @@ defmodule Localize.MixProject do
       {:elixir_make, "~> 0.4", runtime: false, optional: true},
       {:sweet_xml, "~> 0.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
-      {:stream_data, "~> 1.0", only: :test}
+      {:stream_data, "~> 1.0", only: :test},
+
+      # Benchmark-only deps — used by the `:bench` environment to
+      # compare Localize with the ex_cldr_* libraries. These are
+      # never compiled into any non-benchmark build.
+      {:ex_cldr_numbers, "~> 2.0", only: :bench},
+      {:ex_cldr_dates_times, "~> 2.0", only: :bench},
+      {:ex_cldr_units, "~> 3.0", only: :bench},
+      {:benchee, "~> 1.3", only: :bench}
     ] ++ maybe_json_polyfill()
   end
 
