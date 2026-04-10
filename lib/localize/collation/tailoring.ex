@@ -25,9 +25,9 @@ defmodule Localize.Collation.Tailoring do
   alias Localize.Collation.{Element, Table}
   alias Localize.Collation.Table.Parser
 
-  @tailorings_path Path.join(
-                     :code.priv_dir(:localize) |> to_string(),
-                     "localize/supplemental_data/collation_tailoring.etf"
+  @tailorings_path Application.app_dir(
+                     :localize,
+                     "priv/localize/supplemental_data/collation_tailoring.etf"
                    )
   @external_resource @tailorings_path
   @tailorings @tailorings_path |> File.read!() |> :erlang.binary_to_term()

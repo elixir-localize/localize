@@ -161,7 +161,7 @@ defmodule Localize.Locale.Provider do
   """
   @spec default_locale_cache_dir() :: String.t()
   def default_locale_cache_dir do
-    Path.join(:code.priv_dir(:localize), "localize/locales")
+    Application.app_dir(:localize, "priv/localize/locales")
   end
 
   @doc """

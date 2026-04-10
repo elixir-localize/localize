@@ -525,9 +525,7 @@ defmodule Localize.Data do
   """
   @spec cldr_version() :: String.t() | nil
   def cldr_version do
-    path = priv_relative_path(@version_file)
-
-    case File.read(path) do
+    case File.read(Application.app_dir(:localize, @version_file)) do
       {:ok, content} -> String.trim(content)
       {:error, _} -> nil
     end
@@ -635,8 +633,7 @@ defmodule Localize.Data do
   directory that the runtime cache reads from.
 
   By default the value is
-  `Application.app_dir(:localize, "priv/localize/locales")`
-  (equivalent to `:code.priv_dir(:localize) |> Path.join("localize/locales")`).
+  `Application.app_dir(:localize, "priv/localize/locales")`.
 
   End users can redirect generated output to a persistent
   location by configuring it in their application environment:
@@ -759,10 +756,7 @@ defmodule Localize.Data do
   end
 
   defp patch_version_path do
-    @version_file
-    |> priv_relative_path()
-    |> Path.dirname()
-    |> Path.join("localize_patch_version")
+    Application.app_dir(:localize, "priv/localize/localize_patch_version")
   end
 
   @doc """
@@ -851,7 +845,7 @@ defmodule Localize.Data do
   """
   @spec supplemental_dir() :: String.t()
   def supplemental_dir do
-    priv_relative_path(@cldr_supplemental_dir)
+    Application.app_dir(:localize, @cldr_supplemental_dir)
   end
 
   @doc """
@@ -860,7 +854,7 @@ defmodule Localize.Data do
   """
   @spec output_dir() :: String.t()
   def output_dir do
-    priv_relative_path(@supplemental_etf_dir)
+    Application.app_dir(:localize, @supplemental_etf_dir)
   end
 
   @doc """
@@ -872,7 +866,7 @@ defmodule Localize.Data do
   """
   @spec external_sources_dir() :: String.t()
   def external_sources_dir do
-    priv_relative_path(@cldr_external_sources_dir)
+    Application.app_dir(:localize, @cldr_external_sources_dir)
   end
 
   @doc """
@@ -884,7 +878,7 @@ defmodule Localize.Data do
   """
   @spec locales_source_dir() :: String.t()
   def locales_source_dir do
-    priv_relative_path(@cldr_locales_dir)
+    Application.app_dir(:localize, @cldr_locales_dir)
   end
 
   @doc """
@@ -896,7 +890,7 @@ defmodule Localize.Data do
   """
   @spec supplemental_source_dir() :: String.t()
   def supplemental_source_dir do
-    priv_relative_path(@cldr_supplemental_dir)
+    Application.app_dir(:localize, @cldr_supplemental_dir)
   end
 
   @doc """
@@ -905,7 +899,7 @@ defmodule Localize.Data do
   """
   @spec collation_source_dir() :: String.t()
   def collation_source_dir do
-    priv_relative_path(@cldr_collation_dir)
+    Application.app_dir(:localize, @cldr_collation_dir)
   end
 
   @doc """
@@ -914,7 +908,7 @@ defmodule Localize.Data do
   """
   @spec validity_source_dir() :: String.t()
   def validity_source_dir do
-    priv_relative_path(@cldr_validity_dir)
+    Application.app_dir(:localize, @cldr_validity_dir)
   end
 
   @doc """
@@ -923,31 +917,7 @@ defmodule Localize.Data do
   """
   @spec bcp47_source_dir() :: String.t()
   def bcp47_source_dir do
-    priv_relative_path(@cldr_bcp47_dir)
-  end
-
-  # Resolves a project-relative path (e.g. `"priv/cldr/locales"`)
-  # against the `:localize` application's own root directory,
-  # rather than the current working directory.
-  #
-  # When Localize is used as a dependency and a task such as
-  # `mix localize.generate_locales` is run from the dependent
-  # project, `File.cwd!/0` returns the dependent project's root
-  # and the data-pipeline helpers would look in the wrong place.
-  # `:code.priv_dir(:localize)` returns `.../localize/priv` for
-  # both the Localize repo itself and for any project that pulls
-  # Localize in as a dep, so paths resolved relative to it are
-  # stable across both scenarios.
-  #
-  # The input path always starts with `"priv/"` (the on-disk
-  # layout), so we strip that prefix before joining to
-  # `:code.priv_dir(:localize)`.
-  defp priv_relative_path("priv/" <> rest) do
-    :localize |> :code.priv_dir() |> Path.join(rest)
-  end
-
-  defp priv_relative_path(path) do
-    :localize |> :code.priv_dir() |> Path.join(path)
+    Application.app_dir(:localize, @cldr_bcp47_dir)
   end
 
   @doc """

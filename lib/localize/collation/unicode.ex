@@ -51,9 +51,7 @@ defmodule Localize.Collation.Unicode do
 
   defp load_etf(filename) do
     :localize
-    |> :code.priv_dir()
-    |> Path.join("localize/supplemental_data")
-    |> Path.join(filename)
+    |> Application.app_dir(["priv", "localize", "supplemental_data", filename])
     |> File.read!()
     |> :erlang.binary_to_term()
   end

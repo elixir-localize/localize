@@ -34,9 +34,9 @@ defmodule Localize.Number.System do
 
   @known_number_system_types [:default, :native, :traditional, :finance]
 
-  @number_systems_path Path.join(
-                         :code.priv_dir(:localize),
-                         "localize/supplemental_data/number_systems.etf"
+  @number_systems_path Application.app_dir(
+                         :localize,
+                         "priv/localize/supplemental_data/number_systems.etf"
                        )
 
   # Lazy-load number systems from ETF at runtime and cache in persistent_term.

@@ -301,13 +301,7 @@ defmodule Localize.Collation.Reorder do
   end
 
   defp fractional_uca_path do
-    case :code.priv_dir(:localize) do
-      {:error, :bad_name} ->
-        Path.join([File.cwd!(), "priv", "cldr", "FractionalUCA.txt"])
-
-      priv_dir ->
-        Path.join([priv_dir, "cldr", "FractionalUCA.txt"])
-    end
+    Application.app_dir(:localize, ["priv", "cldr", "FractionalUCA.txt"])
   end
 
   defp default_script_ranges do

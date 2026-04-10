@@ -11,10 +11,7 @@ defmodule Localize.Unit.Data do
 
   # alias Localize.Unit.Data.Expression
 
-  @etf_path Path.join(
-              :code.priv_dir(:localize) |> to_string(),
-              "localize/supplemental_data/unit_data.etf"
-            )
+  @etf_path Application.app_dir(:localize, "priv/localize/supplemental_data/unit_data.etf")
   @external_resource @etf_path
 
   @data @etf_path

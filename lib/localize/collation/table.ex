@@ -370,12 +370,6 @@ defmodule Localize.Collation.Table do
   end
 
   defp data_path(filename) do
-    case :code.priv_dir(:localize) do
-      {:error, :bad_name} ->
-        Path.join([File.cwd!(), "priv", "cldr", filename])
-
-      priv_dir ->
-        Path.join([priv_dir, "cldr", filename])
-    end
+    Application.app_dir(:localize, ["priv", "cldr", filename])
   end
 end

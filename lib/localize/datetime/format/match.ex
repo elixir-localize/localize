@@ -42,9 +42,9 @@ defmodule Localize.DateTime.Format.Match do
   @prefer_cycle_24 ["H", "k"]
   # @prefer_cycle_12 ["h", "K"]
 
-  @time_preferences_path Path.join(
-                           :code.priv_dir(:localize) |> Kernel.to_string(),
-                           "localize/supplemental_data/time_preferences.etf"
+  @time_preferences_path Application.app_dir(
+                           :localize,
+                           "priv/localize/supplemental_data/time_preferences.etf"
                          )
 
   @time_preferences (if File.exists?(@time_preferences_path) do

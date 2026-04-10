@@ -132,9 +132,15 @@ defmodule Localize do
   end
 
   defp read_version do
-    priv = :code.priv_dir(:localize)
-    cldr_version = priv |> Path.join("localize/version") |> read_trimmed("0.0")
-    patch_raw = priv |> Path.join("localize/localize_patch_version") |> read_trimmed("0")
+    cldr_version =
+      :localize
+      |> Application.app_dir("priv/localize/version")
+      |> read_trimmed("0.0")
+
+    patch_raw =
+      :localize
+      |> Application.app_dir("priv/localize/localize_patch_version")
+      |> read_trimmed("0")
 
     patch =
       case String.split(patch_raw, ":", parts: 2) do

@@ -29,7 +29,10 @@ defmodule Localize.Nif do
 
   @doc false
   def init do
-    path = :code.priv_dir(:localize) ++ ~c"/localize_nif"
+    path =
+      :localize
+      |> Application.app_dir("priv/localize_nif")
+      |> String.to_charlist()
 
     case :erlang.load_nif(path, :erlang.system_info(:schedulers)) do
       :ok -> :ok
