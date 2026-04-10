@@ -61,13 +61,21 @@ defmodule Localize.Locale.Provider.PersistentTerm do
     end
   else
     defp load_miss(locale_id, _locale) do
-      case Localize.Locale.Provider.download_locale(locale_id) do
-        {:ok, binary} ->
-          _ = Cache.store(locale_id, binary)
-          {:ok, :erlang.binary_to_term(binary)}
+      if Localize.Locale.Provider.allow_download?(__MODULE__) do
+        case Localize.Locale.Provider.download_locale(locale_id) do
+          {:ok, binary} ->
+            _ = Cache.store(locale_id, binary)
+            {:ok, :erlang.binary_to_term(binary)}
 
-        {:error, exception} ->
-          {:error, exception}
+          {:error, exception} ->
+            {:error, exception}
+        end
+      else
+        {:error,
+         Localize.LocaleNotFoundInCacheError.exception(
+           locale_id: locale_id,
+           path: Cache.path(locale_id)
+         )}
       end
     end
   end

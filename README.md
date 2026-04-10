@@ -136,6 +136,7 @@ config :localize,
 | `:locale_cache_max_entries` | `1_000` | Maximum number of validated locales to hold in the ETS cache. A background sweeper runs every 10 seconds and evicts excess entries to prevent unbounded growth. |
 | `:format_cache_max_entries` | `2_000` | Maximum number of compiled format patterns (number and date/time) to hold in the ETS cache. A background sweeper runs every 10 seconds and evicts excess entries to prevent unbounded growth. |
 | `:locale_cache_dir` | `Path.join(:code.priv_dir(:localize), "localize/locales")` | Directory where downloaded per-locale ETF data files are cached. See `Localize.Locale.Provider.locale_cache_dir/0`. |
+| `:allow_runtime_locale_download` | `false` | When `true`, locales not found in the on-disk cache are downloaded from the Localize CDN on first access. When `false` (the default), missing locales return an error. Use `mix localize.download_locales` to pre-populate the cache at build time. |
 | `:nif` | `false` | Enable the optional NIF for faster Unicode normalisation and collation sort-key generation. Can also be enabled with the `LOCALIZE_NIF=true` environment variable at compile time. See `Localize.Nif` for details. |
 | `:cacertfile` | System default | Path to a custom CA certificate file for HTTPS connections (used when downloading locale data). |
 | `:https_proxy` | `nil` | HTTPS proxy URL. Also reads the `HTTPS_PROXY` environment variable. |

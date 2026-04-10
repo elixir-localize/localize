@@ -111,6 +111,8 @@ config :localize,
 
 * `:preload_locales` loads locale data eagerly at app start instead of lazily on first use. Anything in `:preload_locales` is automatically considered supported.
 
+* Runtime locale downloading is **off by default**. Set `allow_runtime_locale_download: true` to enable on-demand downloading from the Localize CDN. Otherwise pre-populate the cache at build time with `mix localize.download_locales --preload` (or `mix localize.download_locales en fr de` for specific locales).
+
 ## Things not to do
 
 * Do not write `Localize.Number.to_string!(value)` and discard the locale — at least pass `locale: Localize.get_locale()` if you have not set the process locale, or accept the application default.

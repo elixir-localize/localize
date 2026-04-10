@@ -596,4 +596,76 @@ defmodule Localize.Locale do
         {:error, Localize.UnknownLocaleError.exception(locale_id: locale_string)}
     end
   end
+
+  @doc """
+  Expands a list of locale identifiers (atoms and wildcard strings)
+  into a list of known CLDR locale ID atoms.
+
+  Each entry is either an atom matching a known CLDR locale
+  (e.g. `:en`, `:"fr-CA"`) or a string with a trailing `*`
+  wildcard (e.g. `"en-*"`) that expands to all matching locales.
+
+  Invalid entries log a warning and are skipped.
+
+  ### Arguments
+
+  * `entries` is a list of atoms and/or strings.
+
+  * `context` is an atom or string used in warning messages to
+    identify where the entry came from (e.g. `:preload_locales`).
+
+  ### Returns
+
+  * A deduplicated list of locale ID atoms.
+
+  """
+  @spec expand_locale_list([atom() | String.t()], atom() | String.t()) :: [atom()]
+  def expand_locale_list(entries, context \\ :locales) when is_list(entries) do
+    all_ids = Localize.SupplementalData.all_locale_ids()
+    all_strings = MapSet.new(all_ids, &Atom.to_string/1)
+
+    entries
+    |> Enum.flat_map(fn entry -> expand_locale_entry(entry, all_ids, all_strings, context) end)
+    |> Enum.uniq()
+  end
+
+  defp expand_locale_entry(entry, all_ids, _all_strings, context) when is_atom(entry) do
+    if entry in all_ids do
+      [entry]
+    else
+      require Logger
+
+      Logger.warning(
+        "Ignoring unknown locale #{inspect(entry)} in #{inspect(context)} configuration. " <>
+          "Not found in known CLDR locales.",
+        domain: [:localize]
+      )
+
+      []
+    end
+  end
+
+  defp expand_locale_entry(entry, all_ids, all_strings, context) when is_binary(entry) do
+    if String.ends_with?(entry, "*") do
+      prefix = String.trim_trailing(entry, "*")
+
+      Enum.filter(all_ids, fn id ->
+        id |> Atom.to_string() |> String.starts_with?(prefix)
+      end)
+    else
+      if MapSet.member?(all_strings, entry) do
+        [String.to_existing_atom(entry)]
+      else
+        require Logger
+
+        Logger.warning(
+          "Ignoring unknown locale #{inspect(entry)} in #{inspect(context)} configuration. " <>
+            "Not found in known CLDR locales.",
+          domain: [:localize]
+        )
+
+        []
+      end
+    end
+  end
 end

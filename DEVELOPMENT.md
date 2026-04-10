@@ -279,6 +279,7 @@ priv/cldr/  →  data/normalize/  →  data/locale.ex  →  priv/localize/locale
 ### Mix tasks
 
 ```bash
+# ── Developer tasks (data/ tree, dev-only) ──────────────────────
 mix localize.copy_sources               # Copy CLDR sources from CLDR_PRODUCTION_DATA / CLDR_REPO
 mix localize.download_unicode_data      # Download UCD files for collation
 mix localize.download_iso_currencies    # Download ISO 4217 currency data
@@ -287,6 +288,11 @@ mix localize.generate_locales           # Regenerate all 766 locale ETFs
 mix localize.generate_locales en fr de  # Regenerate specific locales
 mix localize.bump_patch_version         # Increment the Localize patch counter
 mix localize.upload_locale              # Generate one locale and upload to Cloudflare R2
+
+# ── User tasks (lib/ tree, shipped with the hex package) ────────
+mix localize.download_locales en fr de  # Download specific locale ETFs from the CDN
+mix localize.download_locales --preload # Download the :preload_locales from config
+mix localize.download_locales --all     # Download all 766 CLDR locales
 ```
 
 ## Versioning: CLDR + Localize patch

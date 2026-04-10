@@ -44,6 +44,7 @@ In ex_cldr, these were declared inside `use Cldr, locales: [...]`. In Localize t
 | `:supported_locales` | `nil` (all 766 CLDR locales) | List of locale atoms and/or wildcard strings (e.g. `"en-*"`). When set, `validate_locale/1` resolves against this list instead of all CLDR locales. |
 | `:preload_locales` | `nil` | List of locales to load into `:persistent_term` at application startup. Anything in `:preload_locales` is automatically considered supported. |
 | `:locale_cache_dir` | `Application.app_dir(:localize, "priv/localize/locales")` | Directory where downloaded locale ETF files are cached. |
+| `:allow_runtime_locale_download` | `false` | When `true`, locales not in the cache are downloaded from the CDN on first access. Default `false` — use `mix localize.download_locales` to pre-populate at build time. |
 | `:locale_provider` | `Localize.Locale.Provider.PersistentTerm` | Module implementing `Localize.Locale.Provider` for locale data loading. |
 | `:nif` | `false` | Enable the optional ICU4C NIF backend. Also settable via `LOCALIZE_NIF=true`. |
 | `:mf2_functions` | `%{}` | Map of custom MF2 function modules (see `Localize.Message.Function`). |

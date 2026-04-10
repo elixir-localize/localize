@@ -10,6 +10,12 @@ The format is based on
 
 ### Added
 
+* Runtime locale downloading is now **opt-in**. The new `:allow_runtime_locale_download` application config key (default `false`) gates whether the `PersistentTerm` provider may download locale ETF files from the CDN when a cache miss occurs. When disabled (the default), a missing locale returns `{:error, %Localize.LocaleNotFoundInCacheError{}}` with a message that tells the user how to fix it (either run `mix localize.download_locales` or enable the config key). The `Localize.Locale.Provider` behaviour gains an optional `allow_download?/0` callback so alternative providers can implement their own download-gating logic.
+
+* `mix localize.download_locales` — new Mix task (shipped with the hex package) that downloads locale ETF files from the Localize CDN and writes them to the configured cache directory. Three modes: `mix localize.download_locales en fr de` for specific locales, `--preload` to download the configured `:preload_locales`, and `--all` for all 766 CLDR locales. Intended for Dockerfiles, CI pipelines, and release builds.
+
+* `Localize.Locale.expand_locale_list/2` — extracted from `Localize.Application` as a public function so mix tasks and user code can expand wildcard locale lists (e.g. `"en-*"`) against the known CLDR locale set.
+
 * `Localize.Message.Function` behaviour — defines the callback shape for custom MF2 formatting functions. Custom functions can be registered per-call via the `:functions` option on `Localize.Message.format/3` or application-wide via `config :localize, :mf2_functions, %{"name" => Module}`. Per-call functions take precedence over application-level functions, which take precedence over built-in functions. Unknown function names with no registry entry fall back to `Kernel.to_string/1` on the operand value.
 
 * `:list` MF2 function — Localize-specific extension for the MessageFormat 2 interpreter that formats a list operand by delegating to `Localize.List.to_string/2`. Each list element is itself formatted via `Localize.Chars`, so a message like `"{$items :list}"` with `items: [~D[2025-07-10], ~D[2025-08-15]]` produces `"Jul 10, 2025 and Aug 15, 2025"` in `:en`. Accepts a `style` (or `type`) option whose values map to CLDR list styles: `"and"` (default), `"and-short"`, `"and-narrow"`, `"or"`, `"or-short"`, `"or-narrow"`, `"unit"`, `"unit-short"`, `"unit-narrow"`. Documented in `guides/message_formatting.md` and `guides/conformance.md`.

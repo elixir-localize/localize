@@ -122,6 +122,56 @@ defmodule Localize.Locale.Provider do
               {:ok, term()} | {:error, term()}
 
   @doc """
+  Returns whether this provider is permitted to download locale
+  data from a remote source at runtime.
+
+  Providers that never download (e.g. a database-backed provider)
+  should return `false`. Providers that always have data locally
+  available can simply not implement this callback — the default
+  implementation reads `Application.get_env(:localize,
+  :allow_runtime_locale_download, false)`.
+
+  """
+  @callback allow_download?() :: boolean()
+
+  @optional_callbacks [allow_download?: 0]
+
+  @doc """
+  Returns whether runtime locale downloads are permitted for the
+  given provider module.
+
+  If the provider module implements the optional `allow_download?/0`
+  callback, that implementation is called. Otherwise falls back to
+  the `:allow_runtime_locale_download` application environment key
+  (default `false`).
+
+  ### Arguments
+
+  * `provider_module` is a module that implements the
+    `Localize.Locale.Provider` behaviour. The default is the
+    currently configured provider.
+
+  ### Returns
+
+  * `true` if runtime downloads are permitted.
+
+  * `false` otherwise.
+
+  """
+  @spec allow_download?(module()) :: boolean()
+  def allow_download?(provider_module \\ configured_provider()) do
+    if function_exported?(provider_module, :allow_download?, 0) do
+      provider_module.allow_download?()
+    else
+      Application.get_env(:localize, :allow_runtime_locale_download, false)
+    end
+  end
+
+  defp configured_provider do
+    Application.get_env(:localize, :locale_provider, Localize.Locale.Provider.PersistentTerm)
+  end
+
+  @doc """
   Returns the directory in which downloaded locale data is cached.
 
   The directory is resolved from the `:locale_cache_dir` application
@@ -237,13 +287,13 @@ defmodule Localize.Locale.Provider do
 
   ### Returns
 
-  * A string of the form `"{major}.{minor}.{patch}"` matching
-    `Localize.version/0`.
+  * A string of the form `"v{major}.{minor}.{patch}"` matching
+    `Localize.version/0` with a `v` prefix.
 
   """
   @spec version_segment() :: String.t()
   def version_segment do
-    Version.to_string(Localize.version())
+    "v" <> Version.to_string(Localize.version())
   end
 
   @doc """
