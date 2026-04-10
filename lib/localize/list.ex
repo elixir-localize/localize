@@ -441,5 +441,4 @@ defmodule Localize.List do
   end
 
   # ── Helpers ────────────────────────────────────────────────
-
 end

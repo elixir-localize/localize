@@ -41,6 +41,14 @@ defmodule Localize.Message do
     is used if available, otherwise falls back to the pure-Elixir
     interpreter. The default is `:elixir`.
 
+  * `:functions` is a map of `%{String.t() => module()}` that
+    registers custom MF2 formatting functions for this call.
+    Each module must implement the `Localize.Message.Function`
+    behaviour. Per-call functions take precedence over
+    application-level functions registered via
+    `config :localize, :mf2_functions`. See
+    `Localize.Message.Function` for details.
+
   ### Returns
 
   * `{:ok, formatted_message}` on success.

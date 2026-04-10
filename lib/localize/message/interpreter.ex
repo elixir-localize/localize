@@ -46,6 +46,22 @@ defmodule Localize.Message.Interpreter do
     `"unit"`, `"unit-short"`, `"unit-narrow"`. The default
     is `"and"` (the CLDR `:standard` list style).
 
+  ## Custom function registry
+
+  When a function name is not matched by any built-in function
+  above, the interpreter looks for a custom function module in
+  two places (in order of precedence):
+
+  1. The per-call `:functions` option on `Localize.Message.format/3`.
+  2. The application-level `config :localize, :mf2_functions` map.
+
+  Custom function modules must implement the
+  `Localize.Message.Function` behaviour. See that module's
+  documentation for details and examples.
+
+  If no custom function is found, the interpreter falls back to
+  `Kernel.to_string/1` on the operand value.
+
   """
 
   # ── Public API ─────────────────────────────────────────────────
@@ -428,10 +444,43 @@ defmodule Localize.Message.Interpreter do
     {:error, "the :list function requires a list operand, got #{inspect(value)}"}
   end
 
-  # ── Fallback formatting ────────────────────────────────────────
+  # ── Custom function registry + fallback ─────────────────────────
+  #
+  # When a function name is not matched by any built-in clause
+  # above, look for a custom function module in two places:
+  #
+  #   1. The per-call `:functions` option (takes precedence).
+  #   2. The application-level `:mf2_functions` config.
+  #
+  # If found, the module must implement the
+  # `Localize.Message.Function` behaviour. If no custom function
+  # is registered for the name, fall back to `to_string_value/1`.
 
-  defp format_with_function(_name, value, _func_opts, _options) do
-    {:ok, to_string_value(value)}
+  defp format_with_function(name, value, func_opts, options) do
+    case resolve_custom_function(name, options) do
+      {:ok, module} ->
+        module.format(value, func_opts, options)
+
+      :not_found ->
+        {:ok, to_string_value(value)}
+    end
+  end
+
+  defp resolve_custom_function(name, options) do
+    per_call = Keyword.get(options, :functions, %{})
+
+    case Map.get(per_call, name) do
+      nil ->
+        app_functions = Application.get_env(:localize, :mf2_functions, %{})
+
+        case Map.get(app_functions, name) do
+          nil -> :not_found
+          module -> {:ok, module}
+        end
+
+      module ->
+        {:ok, module}
+    end
   end
 
   # ── Match evaluation ───────────────────────────────────────────

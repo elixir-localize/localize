@@ -571,3 +571,53 @@ iex> Localize.Message.format(
 ```
 
 Passing a non-list operand returns a format error rather than crashing.
+
+### Custom MF2 functions
+
+Any module that implements the `Localize.Message.Function` behaviour can be registered as a custom MF2 function. This lets companion packages (like `localize_person_names`) and end-user code add domain-specific functions without modifying Localize core.
+
+**Registration options:**
+
+1. **Per-call** — pass a `:functions` map in the options:
+
+```elixir
+iex> {:ok, name} = Localize.PersonName.new(given_name: "José", surname: "Valim", locale: "pt")
+iex> Localize.Message.format(
+...>   "Author: {$name :personName format=long formality=formal usage=referring}",
+...>   %{"name" => name},
+...>   locale: :en,
+...>   functions: %{"personName" => Localize.PersonName.MF2}
+...> )
+```
+
+2. **Application-level** — register once in `config/config.exs`:
+
+```elixir
+# config/config.exs
+config :localize, :mf2_functions, %{
+  "personName" => Localize.PersonName.MF2,
+  "money"      => MyApp.MoneyFunction
+}
+```
+
+Per-call functions take precedence over application-level functions, which take precedence over built-in functions. Unknown function names with no registry entry fall back to `Kernel.to_string/1`.
+
+**Implementing a custom function:**
+
+```elixir
+defmodule MyApp.MoneyFunction do
+  @behaviour Localize.Message.Function
+
+  @impl true
+  def format(%MyApp.Money{amount: amount, currency: currency}, func_opts, options) do
+    locale = Keyword.get(options, :locale)
+    Localize.Number.to_string(amount, locale: locale, currency: currency)
+  end
+
+  def format(value, _func_opts, _options) do
+    {:error, "expected a Money struct, got #{inspect(value)}"}
+  end
+end
+```
+
+See `Localize.Message.Function` for the full callback specification.

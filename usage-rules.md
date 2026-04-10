@@ -33,6 +33,7 @@ Rules for LLM coding agents using `Localize` as a dependency. These are not exha
 | Currency metadata | `Localize.Currency.*` |
 | String sorting / collation | `Localize.Collation.sort/2`, `Localize.Collation.compare/3` |
 | MessageFormat 2 / pluralization | `Localize.Message.format/3` |
+| Custom MF2 functions | `Localize.Message.Function` behaviour + `:functions` option or `config :localize, :mf2_functions` |
 | Calendar names (months, days, eras) | `Localize.Calendar.display_name/3` |
 
 ## Locale management
