@@ -45,15 +45,15 @@ defmodule LocalizeTest do
       assert "1,234.5" = Localize.to_string!(1234.5, locale: :en)
     end
 
-    test "to_string!/1 raises Protocol.UndefinedError for unsupported types" do
+    test "to_string!/1 raises Protocol.UndefinedError for types with no String.Chars impl" do
       assert_raise Protocol.UndefinedError, fn ->
-        apply(Localize, :to_string!, [:not_supported])
+        apply(Localize, :to_string!, [{1, 2, 3}])
       end
     end
 
-    test "to_string!/2 raises Protocol.UndefinedError for unsupported types" do
+    test "to_string!/2 raises Protocol.UndefinedError for types with no String.Chars impl" do
       assert_raise Protocol.UndefinedError, fn ->
-        apply(Localize, :to_string!, [:not_supported, [locale: :en]])
+        apply(Localize, :to_string!, [{1, 2, 3}, [locale: :en]])
       end
     end
 
@@ -64,18 +64,19 @@ defmodule LocalizeTest do
     end
   end
 
-  describe "to_string/1 — fallback behaviour" do
-    test "atoms raise Protocol.UndefinedError via Localize.to_string" do
-      assert_raise Protocol.UndefinedError, fn ->
-        apply(Localize, :to_string, [:not_supported])
-      end
+  describe "to_string/1 — Any fallback" do
+    test "atoms fall through to Kernel.to_string via Localize.to_string" do
+      assert {:ok, "some_atom"} = Localize.to_string(:some_atom)
     end
 
-    test "nil raises Protocol.UndefinedError via Localize.to_string" do
+    test "nil falls through to an empty string via Localize.to_string" do
+      assert {:ok, ""} = Localize.to_string(nil)
+    end
+
+    test "tuples raise Protocol.UndefinedError via Localize.to_string" do
       assert_raise Protocol.UndefinedError, fn ->
-        apply(Localize, :to_string, [nil])
+        apply(Localize, :to_string, [{1, 2, 3}])
       end
     end
   end
 end
-

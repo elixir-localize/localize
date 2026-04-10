@@ -442,13 +442,18 @@ defmodule Localize do
   Delegates to `Localize.Chars.to_string/1`. Equivalent to
   calling `Localize.to_string(value, [])`.
 
-  Built-in implementations exist for `Integer`, `Float`,
-  `Decimal`, `Date`, `Time`, `DateTime`, `NaiveDateTime`, `Range`,
-  `BitString`, `List`, `Localize.Unit`, `Localize.Duration`,
-  `Localize.LanguageTag`, and `Localize.Currency`. Unknown types
-  raise `Protocol.UndefinedError`. See `Localize.Chars` for the
-  full list and instructions on adding implementations for your
-  own types.
+  Built-in locale-aware implementations exist for `Integer`,
+  `Float`, `Decimal`, `Date`, `Time`, `DateTime`, `NaiveDateTime`,
+  `Range`, `BitString`, `List`, `Localize.Unit`, `Localize.Duration`,
+  `Localize.LanguageTag`, and `Localize.Currency`. Any other type
+  falls through to `Kernel.to_string/1`, so atoms, charlists,
+  booleans, and `nil` produce the same output they would from
+  `Kernel.to_string/1`. Types with no `String.Chars` implementation
+  either (tuples, plain maps, PIDs, references, anonymous functions)
+  raise `Protocol.UndefinedError`.
+
+  See `Localize.Chars` for the full list and instructions on
+  adding implementations for your own types.
 
   > #### `Kernel.to_string/1` shadowing {: .info}
   >

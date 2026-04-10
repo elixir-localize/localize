@@ -42,21 +42,29 @@ defprotocol Localize.Chars do
   | `Localize.LanguageTag` | `Localize.Locale.LocaleDisplay.display_name/2` |
   | `Localize.Currency` | `Localize.Currency.display_name/2` |
 
-  Unknown types raise `Protocol.UndefinedError` — `Localize.Chars`
-  is declared with `@fallback_to_any false` so silent fallback to
-  `String.Chars`-style coercion does not happen. Pass values
-  through the appropriate Localize formatter explicitly if you
-  need a different conversion.
+  Types without a Localize-specific implementation fall through to
+  `Kernel.to_string/1`, which dispatches via `String.Chars`. This
+  mirrors the relationship between `Localize.Chars` and
+  `String.Chars`: where Localize knows how to format the type
+  in a locale-aware way it does so; otherwise it returns
+  `{:ok, Kernel.to_string(value)}`. Types with **no** `String.Chars`
+  implementation either (tuples, maps without an explicit impl,
+  PIDs, references, anonymous functions) raise the same
+  `Protocol.UndefinedError` they would from `Kernel.to_string/1`
+  — `Localize.Chars` does not invent a representation for them.
 
   ## Caveats
 
-  * The `List` implementation delegates to `Localize.List.to_string/2`,
-    which formats a list as a localized conjunction (`"a, b, and c"`).
-    The list elements are expected to be strings (or values whose
-    `String.Chars` form is meaningful). To format a list of
-    non-string values you usually want to format each element first
-    with `Localize.Chars.to_string/2` and then pass the resulting
-    list of strings.
+  * The `List` implementation formats the list as a locale-aware
+    conjunction (`"a, b, and c"`) by delegating to
+    `Localize.List.to_string/2`, which itself recursively formats
+    each element via `Localize.to_string/2` so dates, numbers,
+    units, etc. inside a list pick up the outer locale and other
+    options (e.g. `currency: :USD`). **Charlists** are special-cased:
+    a printable list of integer codepoints (`~c"hello"`) is
+    converted via `Kernel.to_string/1` rather than being joined
+    digit-by-digit, mirroring how `String.Chars`'s `List` impl
+    handles them.
 
   * The `Localize.LanguageTag` implementation produces the
     **localized display name** ("English (United States)"), not
@@ -83,7 +91,7 @@ defprotocol Localize.Chars do
 
   """
 
-  @fallback_to_any false
+  @fallback_to_any true
 
   @doc """
   Formats `value` as a localized string with default options.
@@ -123,6 +131,21 @@ defprotocol Localize.Chars do
   """
   @spec to_string(t(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(value, options)
+end
+
+# ── Fallback implementation ─────────────────────────────────────
+#
+# Any type without a Localize-specific impl falls through to
+# `Kernel.to_string/1`, which dispatches via `String.Chars`. This
+# means atoms, charlists, booleans, and `nil` work the same way
+# under `Localize.to_string/1` as they do under `Kernel.to_string/1`.
+# Types with no `String.Chars` impl (tuples, plain maps, PIDs,
+# references, anonymous functions) raise the same
+# `Protocol.UndefinedError` they would from `Kernel.to_string/1`.
+
+defimpl Localize.Chars, for: Any do
+  def to_string(value), do: {:ok, Kernel.to_string(value)}
+  def to_string(value, _options), do: {:ok, Kernel.to_string(value)}
 end
 
 # ── Built-in implementations ─────────────────────────────────────
@@ -173,8 +196,21 @@ defimpl Localize.Chars, for: BitString do
 end
 
 defimpl Localize.Chars, for: List do
-  def to_string(value), do: Localize.List.to_string(value, [])
-  def to_string(value, options), do: Localize.List.to_string(value, options)
+  # Charlists (e.g. `~c"hello"` = `[104, 101, 108, 108, 111]`) are
+  # treated as strings and converted via `Kernel.to_string/1`,
+  # mirroring how `String.Chars`'s `List` impl handles them.
+  # Anything else is formatted as a localized list-join.
+
+  def to_string(value), do: do_to_string(value, [])
+  def to_string(value, options), do: do_to_string(value, options)
+
+  defp do_to_string(list, options) do
+    if list != [] and List.ascii_printable?(list) do
+      {:ok, Kernel.to_string(list)}
+    else
+      Localize.List.to_string(list, options)
+    end
+  end
 end
 
 defimpl Localize.Chars, for: Localize.Unit do

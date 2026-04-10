@@ -347,8 +347,29 @@ Some functions have been renamed for clarity:
 | `Territory.from_subdivision_code/3` | `Territory.subdivision_name/2` |
 | `Territory.to_unicode_flag/1` | `Territory.unicode_flag/1` |
 | `Territory.country_codes/0` | `Territory.individual_territories/0` |
+| `List.known_list_formats/0` | `List.known_list_styles/0` |
+| `List.list_formats_for/1` | `List.list_styles_for/1` |
 
 Note that `Localize.Territory.individual_territories/0` returns a sorted list of leaf territory code atoms (actual territories, excluding macro-regions such as `:"001"` or `:"150"`). This is distinct from `Localize.Territory.territory_codes/0`, which returns a map of ISO 3166 Alpha-2 codes to their Alpha-3 and numeric equivalents for all territories.
+
+## Option renaming
+
+| Function | ex_cldr option | Localize option |
+|---|---|---|
+| `Localize.List.to_string/2`, `Localize.List.intersperse/2` | `:format` | `:list_style` |
+
+The `:format` option on `Localize.List.to_string/2` and `Localize.List.intersperse/2` has been renamed to `:list_style`. This frees up the `:format` keyword to be passed through to per-element formatters when the list contains values like dates or numbers — for example, `Localize.List.to_string([~D[2025-07-10], ~D[2025-08-15]], locale: :en, format: :long)` now produces `"July 10, 2025 and August 15, 2025"` because `:format` is forwarded to `Localize.Date.to_string/2` for each element while the list join uses the default `:standard` style. Migration is mechanical:
+
+```elixir
+# ex_cldr
+Cldr.List.to_string(["a", "b", "c"], MyApp.Cldr, format: :unit_narrow)
+
+# Localize
+iex> Localize.List.to_string(["a", "b", "c"], locale: :en, list_style: :unit_narrow)
+{:ok, "a b c"}
+```
+
+The companion helpers `Localize.List.known_list_styles/0` and `Localize.List.list_styles_for/1` (renamed from `known_list_formats/0` and `list_formats_for/1`) return the available `:list_style` values.
 
 ## Locale validation
 

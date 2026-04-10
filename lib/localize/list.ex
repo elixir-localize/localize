@@ -12,6 +12,32 @@ defmodule Localize.List do
       iex> Localize.List.to_string(["Monday", "Tuesday", "Wednesday"], locale: :fr)
       {:ok, "Monday, Tuesday et Wednesday"}
 
+  ## Element formatting
+
+  Each list element is formatted with `Localize.to_string/2`, which
+  dispatches via the `Localize.Chars` protocol. Strings pass through
+  unchanged. Numbers, dates, units, durations, currencies and any
+  other type with a `Localize.Chars` implementation are formatted
+  in a locale-aware way using the same locale (and any other
+  forwarded options) as the outer list call. Types with no
+  `Localize.Chars` implementation fall through to `Kernel.to_string/1`.
+
+      iex> Localize.List.to_string([~D[2025-07-10], ~D[2025-08-15]], locale: :en)
+      {:ok, "Jul 10, 2025 and Aug 15, 2025"}
+
+      iex> Localize.List.to_string([1234, 5678], locale: :de)
+      {:ok, "1.234 und 5.678"}
+
+  Options that are specific to list formatting (`:list_style`,
+  `:treat_middle_as_end`) are stripped before being passed to the
+  per-element formatters. Everything else (`:locale`, `:format`,
+  `:currency`, `:prefer`, etc.) is forwarded so that, for example,
+  a list of numbers can pick up a single `currency: :USD` option,
+  or a list of dates can pick up a single `format: :long` option:
+
+      iex> Localize.List.to_string([1234.56, 5678.90], locale: :en, currency: :USD)
+      {:ok, "$1,234.56 and $5,678.90"}
+
   """
 
   import Kernel, except: [to_string: 1]
@@ -30,7 +56,14 @@ defmodule Localize.List do
           | :unit_narrow
           | :unit_short
 
-  @default_format :standard
+  @default_list_style :standard
+
+  # Options consumed by `Localize.List` itself that must not be
+  # passed through to per-element formatters. `:list_style`
+  # selects the CLDR list pattern; `:treat_middle_as_end` controls
+  # which pattern is applied to the last element. Neither has a
+  # meaning for per-element formatters.
+  @list_specific_options [:list_style, :treat_middle_as_end]
 
   @doc """
   Formats a list into a string according to the list pattern
@@ -47,25 +80,30 @@ defmodule Localize.List do
 
   * `:locale` is a locale identifier. The default is `:en`.
 
-  * `:format` is an atom from `known_list_formats/0` or a
-    `t:Localize.List.Pattern.t/0`. The default is `:standard`.
+  * `:list_style` is an atom from `known_list_styles/0` or a
+    `t:Localize.List.Pattern.t/0`. Selects the CLDR list pattern
+    used to join the elements (`:standard`, `:or`, `:unit_narrow`,
+    etc.). The default is `:standard`.
 
   * `:treat_middle_as_end` is a boolean. When `true`, the
     `:middle` pattern is used for the last element instead
     of the `:end` pattern. The default is `false`.
 
+  All other options (e.g. `:format`, `:currency`, `:prefer`) are
+  forwarded to the per-element formatters via `Localize.to_string/2`.
+
   ### Returns
 
   * `{:ok, formatted_string}` on success.
 
-  * `{:error, exception}` if the locale or format is invalid.
+  * `{:error, exception}` if the locale or list style is invalid.
 
   ### Examples
 
       iex> Localize.List.to_string(["a", "b", "c"], locale: :en)
       {:ok, "a, b, and c"}
 
-      iex> Localize.List.to_string(["a", "b", "c"], locale: :en, format: :unit_narrow)
+      iex> Localize.List.to_string(["a", "b", "c"], locale: :en, list_style: :unit_narrow)
       {:ok, "a b c"}
 
       iex> Localize.List.to_string(["a"], locale: :en)
@@ -80,15 +118,29 @@ defmodule Localize.List do
   """
   @spec to_string([term()], Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(list, options \\ []) do
-    with {:ok, interspersed} <- intersperse(list, options) do
-      string =
-        interspersed
-        |> Enum.map(&Kernel.to_string/1)
-        |> :erlang.iolist_to_binary()
+    element_options = Keyword.drop(options, @list_specific_options)
 
-      {:ok, string}
+    with {:ok, interspersed} <- intersperse(list, options),
+         {:ok, parts} <- format_elements(interspersed, element_options) do
+      {:ok, :erlang.iolist_to_binary(parts)}
     end
   end
+
+  defp format_elements(elements, options) do
+    Enum.reduce_while(elements, {:ok, []}, fn elem, {:ok, acc} ->
+      case format_element(elem, options) do
+        {:ok, string} -> {:cont, {:ok, [acc, string]}}
+        {:error, _} = error -> {:halt, error}
+      end
+    end)
+  end
+
+  # Strings (both original list elements and the separator strings
+  # inserted by `intersperse/2`) pass through unchanged. Anything
+  # else is dispatched through the `Localize.Chars` protocol so
+  # that numbers, dates, units, etc. pick up the outer locale.
+  defp format_element(elem, _options) when is_binary(elem), do: {:ok, elem}
+  defp format_element(elem, options), do: Localize.to_string(elem, options)
 
   @doc """
   Same as `to_string/2` but raises on error.
@@ -142,7 +194,7 @@ defmodule Localize.List do
       iex> Localize.List.intersperse(["a", "b", "c"], locale: :en)
       {:ok, ["a", ", ", "b", ", and ", "c"]}
 
-      iex> Localize.List.intersperse(["a", "b", "c"], locale: :en, format: :unit_narrow)
+      iex> Localize.List.intersperse(["a", "b", "c"], locale: :en, list_style: :unit_narrow)
       {:ok, ["a", " ", "b", " ", "c"]}
 
       iex> Localize.List.intersperse(["a"], locale: :en)
@@ -235,7 +287,7 @@ defmodule Localize.List do
   end
 
   @doc """
-  Returns the available list format names for a locale.
+  Returns the list style names available for a locale.
 
   ### Arguments
 
@@ -243,19 +295,19 @@ defmodule Localize.List do
 
   ### Returns
 
-  * `{:ok, format_names}` where `format_names` is a sorted
+  * `{:ok, list_styles}` where `list_styles` is a sorted
     list of atoms.
 
   * `{:error, exception}` if the locale is invalid.
 
   ### Examples
 
-      iex> Localize.List.list_formats_for(:en)
+      iex> Localize.List.list_styles_for(:en)
       {:ok, [:or, :or_narrow, :or_short, :standard, :standard_narrow, :standard_short, :unit, :unit_narrow, :unit_short]}
 
   """
-  @spec list_formats_for(atom() | String.t()) :: {:ok, [atom()]} | {:error, Exception.t()}
-  def list_formats_for(locale) do
+  @spec list_styles_for(atom() | String.t()) :: {:ok, [atom()]} | {:error, Exception.t()}
+  def list_styles_for(locale) do
     locale_id = locale_id(locale)
 
     with {:ok, formats} <- Localize.Locale.get(locale_id, [:list_formats]) do
@@ -264,19 +316,19 @@ defmodule Localize.List do
   end
 
   @doc """
-  Returns the list of known list format types.
+  Returns the list of known list style names.
 
   ### Returns
 
-  * A list of atoms representing the known list format types.
+  * A list of atoms representing the known list style names.
 
   ### Examples
 
-      iex> Localize.List.known_list_formats()
+      iex> Localize.List.known_list_styles()
       [:or, :or_narrow, :or_short, :standard, :standard_narrow, :standard_short, :unit, :unit_narrow, :unit_short]
 
   """
-  @spec known_list_formats() :: [
+  @spec known_list_styles() :: [
           :or
           | :or_narrow
           | :or_short
@@ -288,7 +340,7 @@ defmodule Localize.List do
           | :unit_short,
           ...
         ]
-  def known_list_formats do
+  def known_list_styles do
     [
       :or,
       :or_narrow,
@@ -344,28 +396,28 @@ defmodule Localize.List do
 
   defp normalize_options(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    format = Keyword.get(options, :format, @default_format)
+    list_style = Keyword.get(options, :list_style, @default_list_style)
     middle_as_end? = !!Keyword.get(options, :treat_middle_as_end, false)
 
     locale_id = locale_id(locale)
 
-    with {:ok, pattern} <- resolve_format(locale_id, format) do
+    with {:ok, pattern} <- resolve_list_style(locale_id, list_style) do
       {:ok, pattern, middle_as_end?}
     end
   end
 
-  defp resolve_format(_locale_id, %Pattern{} = pattern) do
+  defp resolve_list_style(_locale_id, %Pattern{} = pattern) do
     {:ok, pattern}
   end
 
-  defp resolve_format(locale_id, format) when is_atom(format) do
+  defp resolve_list_style(locale_id, list_style) when is_atom(list_style) do
     with {:ok, formats} <- Localize.Locale.get(locale_id, [:list_formats]) do
-      case Map.get(formats, format) do
+      case Map.get(formats, list_style) do
         nil ->
           {:error,
            Localize.InvalidValueError.exception(
-             value: format,
-             expected: "a known list format",
+             value: list_style,
+             expected: "a known list style",
              context: "Localize.List"
            )}
 

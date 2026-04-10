@@ -10,9 +10,11 @@ The format is based on
 
 ### Added
 
-* `Localize.Chars` protocol — single dispatch point for locale-aware string formatting. Mirrors `String.Chars` from Elixir core but is locale-aware and returns the standard `{:ok, string}` / `{:error, exception}` Localize result tuple. Built-in implementations cover `Integer`, `Float`, `Decimal`, `Date`, `Time`, `DateTime`, `NaiveDateTime`, `Range`, `BitString`, `List`, `Localize.Unit`, `Localize.Duration`, `Localize.LanguageTag`, and `Localize.Currency`. Declared with `@fallback_to_any false` so unknown types raise `Protocol.UndefinedError` rather than producing surprising fallback output.
+* `Localize.Chars` protocol — single dispatch point for locale-aware string formatting. Mirrors `String.Chars` from Elixir core but is locale-aware and returns the standard `{:ok, string}` / `{:error, exception}` Localize result tuple. Built-in locale-aware implementations cover `Integer`, `Float`, `Decimal`, `Date`, `Time`, `DateTime`, `NaiveDateTime`, `Range`, `BitString`, `List`, `Localize.Unit`, `Localize.Duration`, `Localize.LanguageTag`, and `Localize.Currency`. Any type without a Localize-specific implementation falls through to `Kernel.to_string/1`, so atoms, charlists, booleans, and `nil` produce the same output they would from `Kernel.to_string/1`. Types with no `String.Chars` implementation either (tuples, plain maps, PIDs, references, anonymous functions) raise the same `Protocol.UndefinedError` they would from `Kernel.to_string/1`.
 
 * `Localize.to_string/1`, `Localize.to_string/2`, `Localize.to_string!/1`, `Localize.to_string!/2` — top-level entry points that delegate to `Localize.Chars`. Lets user code format heterogeneous values through a single function regardless of type. The bang variants raise on error; the non-bang variants return the standard result tuple.
+
+* `Localize.List.to_string/2` now formats each list element with `Localize.to_string/2` instead of `Kernel.to_string/1`. The locale (and other forwarded options like `:currency`, `:prefer`, etc.) propagate to every element, so a list of numbers, dates, units, etc. is rendered locale-aware end-to-end. List-specific options (`:format`, `:treat_middle_as_end`) are stripped before being passed to per-element formatters so they don't conflict with per-element formatter options of the same name. Strings still pass through unchanged. Charlists like `~c"hello"` are detected via `List.ascii_printable?/1` and converted via `Kernel.to_string/1` rather than being joined codepoint-by-codepoint, mirroring how `String.Chars`'s `List` impl handles them. `intersperse/2` is unchanged — it still returns the original term shapes for safe HTML and iolist rendering.
 
 * Number formatting — integers, decimals, percentages, currencies, and rule-based number formats (RBNF) for algorithmic systems such as Roman numerals and CJK ideographs.
 
@@ -91,6 +93,8 @@ The format is based on
 * `Localize.Exception.InvalidLanguageTag` renamed to `Localize.InvalidLanguageTagError` and relocated to `lib/localize/exception/` for consistency with all other exception modules.
 
 * Configuration option `:data_dir` renamed to `:locale_cache_dir`. Defaults to `Path.join(:code.priv_dir(:localize), "localize/locales")`.
+
+* `Localize.List.to_string/2` and `Localize.List.intersperse/2` option `:format` renamed to `:list_style`. The companion helpers `known_list_formats/0` and `list_formats_for/1` were renamed to `known_list_styles/0` and `list_styles_for/1` for consistency. Freeing `:format` from list-specific use means it now passes through to per-element formatters: `Localize.List.to_string([~D[2025-07-10], ~D[2025-08-15]], locale: :en, format: :long)` produces `"July 10, 2025 and August 15, 2025"` because `:format` reaches `Localize.Date.to_string/2` for each element while the list join uses the default `:standard` style. The `list_patterns_for/1` helper is unchanged — it returns the underlying CLDR pattern data, not the style names.
 
 ### Added exceptions
 

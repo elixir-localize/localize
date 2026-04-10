@@ -170,31 +170,41 @@ defmodule Localize.CharsTest do
 
   describe "fallback behaviour" do
     # Values are routed through `apply/3` to keep them opaque to
-    # the compiler's gradual type checker, which would otherwise
-    # warn that the literal value has no `Localize.Chars` impl.
-    # That's exactly what we are asserting at runtime.
+    # the compiler's gradual type checker so that the negative
+    # cases below cannot be flagged at compile time.
 
-    test "atoms raise Protocol.UndefinedError" do
-      assert_raise Protocol.UndefinedError, fn ->
-        apply(Localize.Chars, :to_string, [:not_supported])
-      end
+    test "atoms fall through to Kernel.to_string" do
+      assert {:ok, "some_atom"} = Localize.Chars.to_string(:some_atom)
     end
 
-    test "tuples raise Protocol.UndefinedError" do
+    test "nil falls through to Kernel.to_string and produces an empty string" do
+      assert {:ok, ""} = Localize.Chars.to_string(nil)
+    end
+
+    test "true and false fall through to Kernel.to_string" do
+      assert {:ok, "true"} = Localize.Chars.to_string(true)
+      assert {:ok, "false"} = Localize.Chars.to_string(false)
+    end
+
+    test "charlists fall through to Kernel.to_string" do
+      assert {:ok, "hello"} = Localize.Chars.to_string(~c"hello")
+    end
+
+    test "tuples raise Protocol.UndefinedError (no String.Chars impl)" do
       assert_raise Protocol.UndefinedError, fn ->
         apply(Localize.Chars, :to_string, [{1, 2, 3}])
       end
     end
 
-    test "plain maps raise Protocol.UndefinedError" do
+    test "plain maps raise Protocol.UndefinedError (no String.Chars impl)" do
       assert_raise Protocol.UndefinedError, fn ->
         apply(Localize.Chars, :to_string, [%{a: 1}])
       end
     end
 
-    test "nil raises Protocol.UndefinedError" do
+    test "anonymous functions raise Protocol.UndefinedError" do
       assert_raise Protocol.UndefinedError, fn ->
-        apply(Localize.Chars, :to_string, [nil])
+        apply(Localize.Chars, :to_string, [fn -> :ok end])
       end
     end
   end
@@ -212,6 +222,7 @@ defmodule Localize.CharsTest do
 
       results = Enum.map(values, &Localize.Chars.to_string(&1, locale: :en))
       assert Enum.all?(results, &match?({:ok, _}, &1))
+
       assert Enum.map(results, &elem(&1, 1)) == [
                "1,234.5",
                "Jul 10, 2025",
