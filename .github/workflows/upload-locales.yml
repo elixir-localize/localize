@@ -8,7 +8,9 @@ on:
 
 env:
   MIX_ENV: dev
-  R2_BUCKET: locales
+  R2_BUCKET: content
+  # Prefix within the bucket where locale ETF files are stored.
+  R2_PREFIX: locales
   # Maximum concurrent uploads to stay within Cloudflare API limits.
   # R2 allows ~1000 PUT requests/second; we use a conservative batch
   # size to avoid transient rate-limit errors.
@@ -82,8 +84,8 @@ jobs:
         env:
           DATA_VERSION: ${{ steps.version.outputs.data_version }}
         run: |
-          existing=$(rclone lsf "r2:${R2_BUCKET}/${DATA_VERSION}/" --include "*.etf" 2>/dev/null | wc -l | tr -d '[:space:]')
-          echo "Found ${existing} existing ETF file(s) at r2:${R2_BUCKET}/${DATA_VERSION}/"
+          existing=$(rclone lsf "r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/" --include "*.etf" 2>/dev/null | wc -l | tr -d '[:space:]')
+          echo "Found ${existing} existing ETF file(s) at r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/"
           if [ "${existing}" -gt 0 ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "::notice::Data version ${DATA_VERSION} already exists on R2 with ${existing} file(s); skipping generation and upload."
@@ -136,7 +138,7 @@ jobs:
         env:
           DATA_VERSION: ${{ steps.version.outputs.data_version }}
         run: |
-          echo "Uploading to r2:${R2_BUCKET}/${DATA_VERSION}/"
+          echo "Uploading to r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/"
           echo "Files: $(ls priv/localize/locales/*.etf | wc -l)"
 
           # Use rclone sync with bandwidth and concurrency limits.
@@ -146,7 +148,7 @@ jobs:
           # --s3-upload-concurrency: per-file multipart concurrency.
           rclone sync \
             priv/localize/locales/ \
-            "r2:${R2_BUCKET}/${DATA_VERSION}/" \
+            "r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/" \
             --include "*.etf" \
             --transfers ${BATCH_SIZE} \
             --checkers 8 \
@@ -160,18 +162,18 @@ jobs:
         env:
           DATA_VERSION: ${{ steps.version.outputs.data_version }}
         run: |
-          uploaded=$(rclone ls "r2:${R2_BUCKET}/${DATA_VERSION}/" | wc -l)
+          uploaded=$(rclone ls "r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/" | wc -l)
           local_count=$(ls priv/localize/locales/*.etf | wc -l)
           echo "Uploaded: ${uploaded}, Local: ${local_count}"
           if [ "$uploaded" -ne "$local_count" ]; then
             echo "::warning::Upload count mismatch: ${uploaded} uploaded vs ${local_count} local"
           fi
-          echo "Upload complete: ${uploaded} locale files to ${R2_BUCKET}/${DATA_VERSION}/"
+          echo "Upload complete: ${uploaded} locale files to ${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/"
 
       - name: Skipped summary
         if: steps.check_existing.outputs.skip == 'true'
         env:
           DATA_VERSION: ${{ steps.version.outputs.data_version }}
         run: |
-          echo "Skipped: data version ${DATA_VERSION} already present on R2 at ${R2_BUCKET}/${DATA_VERSION}/"
+          echo "Skipped: data version ${DATA_VERSION} already present on R2 at ${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/"
           echo "Nothing was regenerated or uploaded. Bump the CLDR or Localize patch version and push a new tag to trigger a real upload."

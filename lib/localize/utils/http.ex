@@ -232,7 +232,7 @@ defmodule Localize.Utils.Http do
       :ok = :httpc.set_options(ipfamily: ip_family)
     end
 
-    case :httpc.request(:get, {url, headers}, http_options, []) do
+    case :httpc.request(:get, {url, headers}, http_options, body_format: :binary) do
       {:ok, {{_version, 200, _}, headers, body}} ->
         {:ok, headers, body}
 

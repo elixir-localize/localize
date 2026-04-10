@@ -45,7 +45,8 @@ on:
         default: false
 
 env:
-  R2_BUCKET: locales
+  R2_BUCKET: content
+  R2_PREFIX: locales
 
 permissions:
   contents: read
@@ -134,7 +135,7 @@ jobs:
         env:
           DATA_VERSION: ${{ inputs.data_version }}
         run: |
-          prefix="r2:${R2_BUCKET}/${DATA_VERSION}/"
+          prefix="r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/"
           echo "Listing ${prefix}"
           count=$(rclone lsf "${prefix}" --recursive 2>/dev/null | wc -l | tr -d '[:space:]')
           echo "count=${count}" >> "$GITHUB_OUTPUT"
@@ -154,7 +155,7 @@ jobs:
           DATA_VERSION: ${{ inputs.data_version }}
           COUNT: ${{ steps.list.outputs.count }}
         run: |
-          echo "::notice::Dry run complete. ${COUNT} object(s) would be deleted from r2:${R2_BUCKET}/${DATA_VERSION}/"
+          echo "::notice::Dry run complete. ${COUNT} object(s) would be deleted from r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/"
           echo "To actually delete, re-run the workflow with dry_run: false."
 
       - name: Delete files
@@ -162,7 +163,7 @@ jobs:
         env:
           DATA_VERSION: ${{ inputs.data_version }}
         run: |
-          prefix="r2:${R2_BUCKET}/${DATA_VERSION}/"
+          prefix="r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/"
           echo "Deleting ${prefix}"
 
           # `rclone purge` removes the prefix and all objects below
@@ -178,7 +179,7 @@ jobs:
         env:
           DATA_VERSION: ${{ inputs.data_version }}
         run: |
-          prefix="r2:${R2_BUCKET}/${DATA_VERSION}/"
+          prefix="r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/"
           remaining=$(rclone lsf "${prefix}" --recursive 2>/dev/null | wc -l | tr -d '[:space:]')
           if [ "${remaining}" -ne 0 ]; then
             echo "::error::Expected 0 objects after purge, found ${remaining} at ${prefix}"
