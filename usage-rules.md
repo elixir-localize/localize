@@ -18,6 +18,7 @@ Rules for LLM coding agents using `Localize` as a dependency. These are not exha
 
 | Task | Use |
 |---|---|
+| **Format any supported value (polymorphic)** | `Localize.to_string/2` (delegates via `Localize.Chars` protocol) |
 | Numbers, decimals, percentages, currencies | `Localize.Number.to_string/2` |
 | Dates | `Localize.Date.to_string/2` |
 | Times | `Localize.Time.to_string/2` |
@@ -76,7 +77,16 @@ Localize.Message.format(
 
 # Validation
 {:ok, %Localize.LanguageTag{cldr_locale_id: :en}} = Localize.validate_locale("en-US")
+
+# Polymorphic formatting via Localize.Chars
+# Same call site, different value types — dispatch is by protocol.
+{:ok, "1.234,5"} = Localize.to_string(1234.5, locale: :de)
+{:ok, "Jul 10, 2025"} = Localize.to_string(~D[2025-07-10], locale: :en)
+{:ok, "42 km"} = Localize.to_string(unit, format: :short, locale: :en)
+"1.234,5" = Localize.to_string!(1234.5, locale: :de)   # bang variant
 ```
+
+`Localize.to_string/{1,2}` and `Localize.to_string!/{1,2}` delegate to the `Localize.Chars` protocol, which has built-in implementations for `Integer`, `Float`, `Decimal`, `Date`, `Time`, `DateTime`, `NaiveDateTime`, `Range`, `BitString`, `List`, `Localize.Unit`, `Localize.Duration`, `Localize.LanguageTag`, and `Localize.Currency`. Unknown types raise `Protocol.UndefinedError`. Use the polymorphic entry point when the value's type isn't known until runtime; use the dedicated module functions (`Localize.Number.to_string/2`, etc.) when the type is known and you want unambiguous error messages.
 
 ## Performance rules
 

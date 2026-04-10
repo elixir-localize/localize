@@ -10,6 +10,10 @@ The format is based on
 
 ### Added
 
+* `Localize.Chars` protocol — single dispatch point for locale-aware string formatting. Mirrors `String.Chars` from Elixir core but is locale-aware and returns the standard `{:ok, string}` / `{:error, exception}` Localize result tuple. Built-in implementations cover `Integer`, `Float`, `Decimal`, `Date`, `Time`, `DateTime`, `NaiveDateTime`, `Range`, `BitString`, `List`, `Localize.Unit`, `Localize.Duration`, `Localize.LanguageTag`, and `Localize.Currency`. Declared with `@fallback_to_any false` so unknown types raise `Protocol.UndefinedError` rather than producing surprising fallback output.
+
+* `Localize.to_string/1`, `Localize.to_string/2`, `Localize.to_string!/1`, `Localize.to_string!/2` — top-level entry points that delegate to `Localize.Chars`. Lets user code format heterogeneous values through a single function regardless of type. The bang variants raise on error; the non-bang variants return the standard result tuple.
+
 * Number formatting — integers, decimals, percentages, currencies, and rule-based number formats (RBNF) for algorithmic systems such as Roman numerals and CJK ideographs.
 
 * Number formatting of ranges

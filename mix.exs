@@ -96,6 +96,13 @@ defmodule Localize.MixProject do
 
   def groups_for_modules do
     [
+      # Catches `Localize.Chars` and all its `defimpl` modules
+      # (e.g. `Localize.Chars.Integer`, `Localize.Chars.Localize.Currency`).
+      # Placed first so the impl modules are routed here instead of
+      # being absorbed by the per-domain groups below (e.g.
+      # `Localize.Chars.Localize.Currency` would otherwise match the
+      # `Currencies` group's regex).
+      Protocols: ~r/^Localize\.Chars(\.|$)/,
       Numbers: ~r/Localize.Number/,
       "Dates and Times": ~r/^Localize\.(Date|Time|Interval|Duration)(?!\w*Error)/,
       Locale: ~r/Localize\.Locale(?!\w*Error)/,

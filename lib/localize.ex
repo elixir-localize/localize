@@ -437,6 +437,109 @@ defmodule Localize do
   end
 
   @doc """
+  Formats `value` as a localized string.
+
+  Delegates to `Localize.Chars.to_string/1`. Equivalent to
+  calling `Localize.to_string(value, [])`.
+
+  Built-in implementations exist for `Integer`, `Float`,
+  `Decimal`, `Date`, `Time`, `DateTime`, `NaiveDateTime`, `Range`,
+  `BitString`, `List`, `Localize.Unit`, `Localize.Duration`,
+  `Localize.LanguageTag`, and `Localize.Currency`. Unknown types
+  raise `Protocol.UndefinedError`. See `Localize.Chars` for the
+  full list and instructions on adding implementations for your
+  own types.
+
+  > #### `Kernel.to_string/1` shadowing {: .info}
+  >
+  > `Kernel.to_string/1` is auto-imported into every module. If
+  > you `import Localize` in your own code, the import shadows
+  > the kernel function inside that module. Use the qualified
+  > form `Localize.to_string/1` (recommended) or
+  > `import Localize, except: [to_string: 1, to_string: 2]`.
+
+  ### Returns
+
+  * `{:ok, formatted_string}` on success.
+
+  * `{:error, exception}` on failure.
+
+  ### Examples
+
+      iex> Localize.to_string(1234.5, locale: :de)
+      {:ok, "1.234,5"}
+
+      iex> Localize.to_string(~D[2025-07-10], locale: :en)
+      {:ok, "Jul 10, 2025"}
+
+  """
+  @spec to_string(term()) :: {:ok, String.t()} | {:error, Exception.t()}
+  def to_string(value), do: Localize.Chars.to_string(value)
+
+  @doc """
+  Formats `value` as a localized string with the given options.
+
+  Delegates to `Localize.Chars.to_string/2`. See `to_string/1`
+  for the list of supported types and the `Kernel.to_string/1`
+  shadowing note.
+
+  ### Arguments
+
+  * `value` is any term that has a `Localize.Chars` implementation.
+
+  * `options` is a keyword list of options forwarded to the
+    underlying formatter. Every implementation accepts at least
+    `:locale`.
+
+  ### Returns
+
+  * `{:ok, formatted_string}` on success.
+
+  * `{:error, exception}` on failure.
+
+  ### Examples
+
+      iex> Localize.to_string(1234.5, locale: :en)
+      {:ok, "1,234.5"}
+
+      iex> {:ok, unit} = Localize.Unit.new(42, "kilometer")
+      iex> Localize.to_string(unit, format: :short, locale: :en)
+      {:ok, "42 km"}
+
+  """
+  @spec to_string(term(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
+  def to_string(value, options), do: Localize.Chars.to_string(value, options)
+
+  @doc """
+  Same as `to_string/1` but returns the formatted string directly
+  or raises on error.
+
+  ### Examples
+
+      iex> Localize.to_string!(1234.5, locale: :de)
+      "1.234,5"
+
+  """
+  @spec to_string!(term()) :: String.t()
+  def to_string!(value), do: unwrap_chars!(Localize.Chars.to_string(value))
+
+  @doc """
+  Same as `to_string/2` but returns the formatted string directly
+  or raises on error.
+
+  ### Examples
+
+      iex> Localize.to_string!(~D[2025-07-10], locale: :de, format: :long)
+      "10. Juli 2025"
+
+  """
+  @spec to_string!(term(), Keyword.t()) :: String.t()
+  def to_string!(value, options), do: unwrap_chars!(Localize.Chars.to_string(value, options))
+
+  defp unwrap_chars!({:ok, string}), do: string
+  defp unwrap_chars!({:error, exception}), do: raise(exception)
+
+  @doc """
   Wraps a string in locale-specific quotation marks.
 
   Uses the CLDR delimiters data for the given locale to apply
