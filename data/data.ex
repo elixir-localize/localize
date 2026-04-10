@@ -34,7 +34,6 @@ defmodule Localize.Data do
   @dialyzer {:nowarn_function, read_json_path: 1}
 
   @supplemental_etf_dir "priv/localize/supplemental_data"
-  @locales_etf_dir "priv/localize/locales"
   @cldr_supplemental_dir "priv/cldr/supplemental_data"
   @cldr_locales_dir "priv/cldr/locales"
   @cldr_collation_dir "priv/cldr/collation"
@@ -631,16 +630,27 @@ defmodule Localize.Data do
   @doc """
   Returns the output directory for generated locale ETF files.
 
-  Resolves against the `:localize` application's own priv path
-  (via `:code.priv_dir/1`) rather than `File.cwd!/0` so that
-  `mix localize.generate_locales` works when Localize is pulled
-  in as a dependency and the task is run from the dependent
-  project's working directory.
+  Delegates to `Localize.Locale.Provider.locale_cache_dir/0` so
+  that `mix localize.generate_locales` writes to the same
+  directory that the runtime cache reads from.
+
+  By default the value is
+  `Application.app_dir(:localize, "priv/localize/locales")`
+  (equivalent to `:code.priv_dir(:localize) |> Path.join("localize/locales")`).
+
+  End users can redirect generated output to a persistent
+  location by configuring it in their application environment:
+
+      config :localize, locale_cache_dir: "/var/lib/myapp/localize_cache"
+
+  With that set, regenerating locales from a dependent project
+  populates the configured path, and Localize's runtime cache
+  reads from the same place on the next request.
 
   """
   @spec locales_output_dir() :: String.t()
   def locales_output_dir do
-    priv_relative_path(@locales_etf_dir)
+    Localize.Locale.Provider.locale_cache_dir()
   end
 
   @doc """
