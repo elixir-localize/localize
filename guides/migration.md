@@ -20,7 +20,35 @@ In Localize there is no equivalent. Delete your backend module. All 766 CLDR loc
 
 ## Configuration
 
-Localize has minimal configuration. The only supported setting is the default locale.
+Localize requires no compile-time configuration. All options are set in your application config and take effect at runtime.
+
+### Recommended migration config
+
+Most ex_cldr projects configure a fixed set of locales in the backend module. The Localize equivalent is `:supported_locales` (constrains validation) and `:preload_locales` (eagerly loads locale data at startup):
+
+```elixir
+# config/config.exs
+config :localize,
+  default_locale: :en,
+  supported_locales: [:en, :fr, :de, :ja],
+  preload_locales: [:en, :fr, :de, :ja]
+```
+
+In ex_cldr, these were declared inside `use Cldr, locales: [...]`. In Localize they are application environment keys, so no recompilation is needed when the list changes.
+
+### Full options reference
+
+| Option | Default | Description |
+|---|---|---|
+| `:default_locale` | Derived from `LOCALIZE_DEFAULT_LOCALE` env var → `LANG` env var → `:en` | Application-wide default locale. |
+| `:supported_locales` | `nil` (all 766 CLDR locales) | List of locale atoms and/or wildcard strings (e.g. `"en-*"`). When set, `validate_locale/1` resolves against this list instead of all CLDR locales. |
+| `:preload_locales` | `nil` | List of locales to load into `:persistent_term` at application startup. Anything in `:preload_locales` is automatically considered supported. |
+| `:locale_cache_dir` | `Application.app_dir(:localize, "priv/localize/locales")` | Directory where downloaded locale ETF files are cached. |
+| `:locale_provider` | `Localize.Locale.Provider.PersistentTerm` | Module implementing `Localize.Locale.Provider` for locale data loading. |
+| `:nif` | `false` | Enable the optional ICU4C NIF backend. Also settable via `LOCALIZE_NIF=true`. |
+| `:mf2_functions` | `%{}` | Map of custom MF2 function modules (see `Localize.Message.Function`). |
+| `:cacertfile` | System default | Path to a custom CA certificate file for HTTPS connections. |
+| `:https_proxy` | `nil` | HTTPS proxy URL. Also reads `HTTPS_PROXY` env var. |
 
 ### Default locale resolution
 
@@ -58,6 +86,10 @@ iex> Localize.with_locale(:ja, fn ->
 ...> end)
 {:ok, "1,234"}
 ```
+
+### Supported and preload locale interaction
+
+When `:supported_locales` is configured, the effective supported locale list is the **union** of `:supported_locales` and `:preload_locales`. Any locale you preload is automatically considered supported — you don't need to list it in both places.
 
 ## Dependency changes
 
@@ -396,22 +428,15 @@ iex> Localize.Locale.gettext_locale_id(:en, MyApp.Gettext)
 
 ## Optional NIF
 
-Localize includes an optional NIF binding for ICU4C that provides native-speed implementations of some operations. Currently the NIF supports MessageFormat 2 parsing and formatting. Future releases will extend NIF support to additional formatting functions.
+Localize includes an optional NIF binding for ICU4C. When enabled, specific functions can use the NIF for formatting by passing `backend: :nif`. The default backend is always `:elixir` — no NIF is required. Functions that support the NIF include `Localize.Number.to_string/2`, `Localize.Unit.to_string/2`, `Localize.Number.PluralRule.plural_type/2`, `Localize.Message.format/3`, and `Localize.Collation.compare/3`.
 
-The NIF is opt-in. Enable it by setting:
+Enable by setting:
 
 ```elixir
-# config/config.exs
 config :localize, :nif, true
 ```
 
-Or via environment variable:
-
-```bash
-export LOCALIZE_NIF=true
-```
-
-When the NIF is not available, Localize falls back to pure Elixir implementations automatically. You can check availability with `Localize.Nif.available?/0`.
+Or: `export LOCALIZE_NIF=true` at compile time. When the NIF is not available, Localize falls back to pure Elixir automatically. Check availability with `Localize.Nif.available?/0`.
 
 ## Collation
 
@@ -426,15 +451,36 @@ iex> Localize.Collation.sort(["banana", "apple", "cherry"])
 
 The collation table is loaded into `:persistent_term` on first use. No compile-time configuration is needed.
 
+## Polymorphic formatting
+
+Localize provides `Localize.to_string/2` and `Localize.to_string!/2`, which format any supported value type through the `Localize.Chars` protocol. This replaces the need to dispatch to the correct module by hand:
+
+```elixir
+# Format any value — the protocol picks the right formatter
+iex> Localize.to_string(1234.5, locale: :de)
+{:ok, "1.234,5"}
+
+iex> Localize.to_string(~D[2025-07-10], locale: :en)
+{:ok, "Jul 10, 2025"}
+
+iex> {:ok, unit} = Localize.Unit.new(42, "kilometer")
+iex> Localize.to_string(unit, format: :short, locale: :en)
+{:ok, "42 km"}
+```
+
+Built-in implementations cover `Integer`, `Float`, `Decimal`, `Date`, `Time`, `DateTime`, `NaiveDateTime`, `Range`, `BitString`, `List`, `Localize.Unit`, `Localize.Duration`, `Localize.LanguageTag`, and `Localize.Currency`. Add implementations for your own types with `defimpl Localize.Chars, for: MyApp.Money`.
+
 ## Summary of key differences
 
 | Aspect | ex_cldr | Localize |
 |---|---|---|
 | Setup | `use Cldr` backend module | None required |
-| Available locales | Pre-configured list | All 766 CLDR locales |
-| Locale data loading | Compile-time embedding | Runtime lazy loading |
-| Locale argument | Backend module required | Not needed |
-| Default locale | Per-backend config | Process dictionary + app config |
+| Available locales | Pre-configured list | All 766 CLDR locales (constrainable via `:supported_locales`) |
+| Locale data loading | Compile-time embedding | Runtime lazy loading + on-demand download |
+| Locale argument | Backend module required | Not needed — defaults to `Localize.get_locale()` |
+| Default locale | Per-backend config | Process dictionary + app config + env vars |
 | Error format | `{:error, {Module, string}}` | `{:error, %Exception{}}` |
 | Dependencies | 11+ packages | Single package |
-| NIF support | None | Optional (MF2, expanding) |
+| Polymorphic API | None | `Localize.to_string/2` via `Localize.Chars` protocol |
+| Custom MF2 functions | None | `Localize.Message.Function` behaviour + `:functions` option |
+| NIF support | None | Optional (number, unit, plural, MF2, collation) |
