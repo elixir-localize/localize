@@ -33,6 +33,19 @@ defmodule Localize.Message.Interpreter do
 
   * `:unit` — format a number with a unit of measure.
 
+  ### Localize extensions (not in the MF2 specification)
+
+  * `:list` — format a list operand as a locale-aware
+    conjunction or disjunction by delegating to
+    `Localize.List.to_string/2`. Each element is itself
+    formatted via `Localize.Chars`, so a list of dates,
+    numbers, units, etc. picks up the message's locale and
+    any forwarded options. Accepts a `style` (or `type`)
+    option whose value is one of `"and"`, `"and-short"`,
+    `"and-narrow"`, `"or"`, `"or-short"`, `"or-narrow"`,
+    `"unit"`, `"unit-short"`, `"unit-narrow"`. The default
+    is `"and"` (the CLDR `:standard` list style).
+
   """
 
   # ── Public API ─────────────────────────────────────────────────
@@ -401,6 +414,18 @@ defmodule Localize.Message.Interpreter do
           end
       end
     end
+  end
+
+  # ── List formatting ────────────────────────────────────────────
+
+  defp format_with_function("list", value, func_opts, options) when is_list(value) do
+    localize_opts = resolve_locale_options(options)
+    localize_opts = map_list_options(localize_opts, func_opts)
+    Localize.List.to_string(value, localize_opts)
+  end
+
+  defp format_with_function("list", value, _func_opts, _options) do
+    {:error, "the :list function requires a list operand, got #{inspect(value)}"}
   end
 
   # ── Fallback formatting ────────────────────────────────────────
@@ -902,6 +927,48 @@ defmodule Localize.Message.Interpreter do
       "narrow" -> Keyword.put(localize_opts, :style, :narrow)
       _other -> localize_opts
     end
+  end
+
+  # ── List option mapping ────────────────────────────────────────
+  #
+  # Maps the MF2 `:list` function options onto the keyword
+  # arguments expected by `Localize.List.to_string/2`. Recognised
+  # MF2 option names:
+  #
+  #   * `style` — short for `:list_style`. Accepts any of the atoms
+  #     returned by `Localize.List.known_list_styles/0` (`"and"`,
+  #     `"or"`, `"unit"`, etc., plus the `"_short"`/`"_narrow"`
+  #     variants). Maps to the corresponding `:standard`/`:or`/
+  #     `:unit*` CLDR list style. The shorthands `"and"`, `"or"`,
+  #     and `"unit"` are translated to `:standard`, `:or`, and
+  #     `:unit` respectively.
+  #
+  #   * `type` — alias for `style`, accepted for symmetry with
+  #     other MF2 functions that use `type` to switch presentation
+  #     mode.
+
+  defp map_list_options(localize_opts, func_opts) do
+    style = func_opts[:style] || func_opts[:type]
+    add_list_style(localize_opts, style)
+  end
+
+  defp add_list_style(opts, nil), do: opts
+  defp add_list_style(opts, "and"), do: Keyword.put(opts, :list_style, :standard)
+  defp add_list_style(opts, "and-short"), do: Keyword.put(opts, :list_style, :standard_short)
+  defp add_list_style(opts, "and-narrow"), do: Keyword.put(opts, :list_style, :standard_narrow)
+  defp add_list_style(opts, "or"), do: Keyword.put(opts, :list_style, :or)
+  defp add_list_style(opts, "or-short"), do: Keyword.put(opts, :list_style, :or_short)
+  defp add_list_style(opts, "or-narrow"), do: Keyword.put(opts, :list_style, :or_narrow)
+  defp add_list_style(opts, "unit"), do: Keyword.put(opts, :list_style, :unit)
+  defp add_list_style(opts, "unit-short"), do: Keyword.put(opts, :list_style, :unit_short)
+  defp add_list_style(opts, "unit-narrow"), do: Keyword.put(opts, :list_style, :unit_narrow)
+
+  defp add_list_style(opts, value) when is_binary(value) do
+    # Pass the value through unchanged so that any future CLDR
+    # list style atom (e.g. a new `"foo"` style) is forwarded to
+    # `Localize.List.to_string/2`. Invalid styles surface there
+    # as an `InvalidValueError`.
+    Keyword.put(opts, :list_style, String.to_atom(value))
   end
 
   # ── Type coercion and validation ───────────────────────────────

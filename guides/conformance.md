@@ -471,6 +471,12 @@ Two areas are explicitly out of scope:
 | `:datetime` | Implemented | Delegates to `Localize.DateTime.to_string/2`. |
 | `:offset` | Implemented | Subtracts offset from operand for plural selection while formatting the original value. Used for patterns like "you and N other people". |
 
+### Localize-specific MF2 functions (not in the spec)
+
+| Function | Notes |
+|----------|-------|
+| `:list` | Formats a list operand by delegating to `Localize.List.to_string/2`. Each element is itself formatted via `Localize.Chars`, so a list of dates, numbers, units, etc. picks up the message's locale and forwarded options. Supports a `style` (or `type`) option whose values map to CLDR list styles: `"and"`, `"and-short"`, `"and-narrow"`, `"or"`, `"or-short"`, `"or-narrow"`, `"unit"`, `"unit-short"`, `"unit-narrow"`. Default is `"and"`. |
+
 ### MF2 Error Handling
 
 | Feature | Status | Notes |

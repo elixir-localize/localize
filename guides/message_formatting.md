@@ -520,3 +520,54 @@ The Localize MF2 implementation targets the [Unicode MessageFormat 2.0 specifica
 | `:percent` | Extended | Percent format via `Localize.Number` |
 | `:currency` | Extended | Currency format via `Localize.Number` |
 | `:unit` | Extended | Unit format via `Localize.Unit` |
+| `:list` | Localize | Locale-aware list join via `Localize.List` |
+
+### `:list` — locale-aware list formatting
+
+`:list` is a Localize-specific extension that takes a list operand and formats it as a localized conjunction or disjunction by delegating to `Localize.List.to_string/2`. Each element of the list is itself formatted via `Localize.Chars`, so a list of dates, numbers, units, currencies, or any other type with a `Localize.Chars` implementation is rendered locale-aware end-to-end with no extra work from the message author.
+
+```elixir
+iex> Localize.Message.format("{$items :list}", %{"items" => ["apple", "banana", "cherry"]}, locale: :en)
+{:ok, "apple, banana, and cherry"}
+
+iex> Localize.Message.format("{$items :list}", %{"items" => [1234, 5678]}, locale: :de)
+{:ok, "1.234 und 5.678"}
+
+iex> Localize.Message.format("{$items :list}", %{"items" => [~D[2025-07-10], ~D[2025-08-15]]}, locale: :en)
+{:ok, "Jul 10, 2025 and Aug 15, 2025"}
+```
+
+The function accepts a `style` (or `type`) option that maps to a CLDR list style. Recognised values:
+
+| `style` value | CLDR list style | Use |
+|---|---|---|
+| `"and"` *(default)* | `:standard` | Conjunction with the locale's "and"/"und"/"et" word |
+| `"and-short"` | `:standard_short` | Shorter conjunction (e.g. abbreviated "&") |
+| `"and-narrow"` | `:standard_narrow` | Narrowest conjunction |
+| `"or"` | `:or` | Disjunction with "or"/"oder"/"ou" |
+| `"or-short"` | `:or_short` | Shorter disjunction |
+| `"or-narrow"` | `:or_narrow` | Narrowest disjunction |
+| `"unit"` | `:unit` | Used for unit lists ("3 ft 7 in") |
+| `"unit-short"` | `:unit_short` | Shorter unit-list join |
+| `"unit-narrow"` | `:unit_narrow` | Narrowest unit-list join |
+
+```elixir
+iex> Localize.Message.format(~S({$items :list style=or}), %{"items" => ["red", "green", "blue"]}, locale: :en)
+{:ok, "red, green, or blue"}
+
+iex> Localize.Message.format(~S({$items :list style=unit-narrow}), %{"items" => ["3", "ft", "7", "in"]}, locale: :en)
+{:ok, "3 ft 7 in"}
+```
+
+Embedding `:list` in a larger message is straightforward:
+
+```elixir
+iex> Localize.Message.format(
+...>   "You have {$items :list} in your cart.",
+...>   %{"items" => ["apple", "banana", "cherry"]},
+...>   locale: :en
+...> )
+{:ok, "You have apple, banana, and cherry in your cart."}
+```
+
+Passing a non-list operand returns a format error rather than crashing.

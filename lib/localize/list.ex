@@ -272,9 +272,8 @@ defmodule Localize.List do
   """
   @spec list_patterns_for(atom() | String.t()) :: {:ok, map()} | {:error, Exception.t()}
   def list_patterns_for(locale) do
-    locale_id = locale_id(locale)
-
-    with {:ok, formats} <- Localize.Locale.get(locale_id, [:list_formats]) do
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, formats} <- Localize.Locale.get(locale_id, [:list_formats]) do
       patterns =
         formats
         |> Enum.map(fn {format_name, data} ->
@@ -308,9 +307,8 @@ defmodule Localize.List do
   """
   @spec list_styles_for(atom() | String.t()) :: {:ok, [atom()]} | {:error, Exception.t()}
   def list_styles_for(locale) do
-    locale_id = locale_id(locale)
-
-    with {:ok, formats} <- Localize.Locale.get(locale_id, [:list_formats]) do
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, formats} <- Localize.Locale.get(locale_id, [:list_formats]) do
       {:ok, formats |> Map.keys() |> Enum.sort()}
     end
   end
@@ -399,10 +397,25 @@ defmodule Localize.List do
     list_style = Keyword.get(options, :list_style, @default_list_style)
     middle_as_end? = !!Keyword.get(options, :treat_middle_as_end, false)
 
-    locale_id = locale_id(locale)
-
-    with {:ok, pattern} <- resolve_list_style(locale_id, list_style) do
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, pattern} <- resolve_list_style(locale_id, list_style) do
       {:ok, pattern, middle_as_end?}
+    end
+  end
+
+  # Resolves the `:locale` option (atom, string, or `LanguageTag`)
+  # into a CLDR locale ID atom by routing through
+  # `Localize.validate_locale/1`. This is the canonical Localize
+  # locale resolver and avoids the `String.to_existing_atom/1`
+  # pitfall where a locale string like `"en-US"` may not yet
+  # have been interned as an atom.
+  defp resolve_locale_id(%Localize.LanguageTag{cldr_locale_id: id}) when not is_nil(id) do
+    {:ok, id}
+  end
+
+  defp resolve_locale_id(locale) when is_atom(locale) or is_binary(locale) do
+    with {:ok, %Localize.LanguageTag{cldr_locale_id: id}} <- Localize.validate_locale(locale) do
+      {:ok, id}
     end
   end
 
@@ -429,7 +442,4 @@ defmodule Localize.List do
 
   # ── Helpers ────────────────────────────────────────────────
 
-  defp locale_id(%Localize.LanguageTag{cldr_locale_id: id}) when not is_nil(id), do: id
-  defp locale_id(locale) when is_atom(locale), do: locale
-  defp locale_id(locale) when is_binary(locale), do: String.to_existing_atom(locale)
 end
