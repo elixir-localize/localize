@@ -466,7 +466,10 @@ defmodule Localize.Collation do
   defp resolve_options(options) when is_list(options) do
     case Keyword.get(options, :locale) do
       nil ->
-        Options.new(options)
+        # Default to the current process locale so that collation
+        # respects `Localize.put_locale/1` the same way every other
+        # formatting module does.
+        options_from_language_tag(Localize.get_locale(), options)
 
       locale when is_binary(locale) ->
         rest = Keyword.delete(options, :locale)
@@ -529,12 +532,26 @@ defmodule Localize.Collation do
     normalization =
       if tailoring_overlay != nil, do: [normalization: true], else: []
 
+    # Resolve shorthand options (`casing:`, `ignore_accents:`,
+    # `ignore_case:`, `ignore_punctuation:`) into their canonical
+    # struct fields (`:strength`, `:alternate`, etc.) by running
+    # them through `Options.new/1`. Then extract only the fields
+    # that differ from the defaults so we don't overwrite locale,
+    # U-extension, or tailoring-derived values.
+    defaults = Options.new()
+    resolved_extra = Options.new(extra_options)
+
+    extra_overrides =
+      resolved_extra
+      |> Map.from_struct()
+      |> Enum.reject(fn {key, value} -> Map.get(defaults, key) == value end)
+
     Options.new()
     |> struct(tailoring_option_overrides)
     |> struct(locale_defaults)
     |> struct(normalization)
     |> struct(u_options)
-    |> struct(extra_options)
+    |> struct(extra_overrides)
     |> Map.put(:type, type)
     |> Map.put(:tailoring, tailoring_overlay)
   end

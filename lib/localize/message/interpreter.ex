@@ -1148,8 +1148,8 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp resolve_locale_options(options) do
-    locale = Keyword.get(options, :locale)
-    opts = if locale, do: [locale: locale], else: []
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    opts = [locale: locale]
     maybe_add_backend(opts, options)
   end
 

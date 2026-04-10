@@ -137,7 +137,7 @@ defmodule Localize.Number.Format.Options do
   @spec validate_options(number() | Decimal.t(), Keyword.t()) ::
           {:ok, t()} | {:error, Exception.t()}
   def validate_options(number, options) do
-    locale = Keyword.get(options, :locale, :en)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, :standard)
     currency = Keyword.get(options, :currency)
     number_system = Keyword.get(options, :number_system, :default)

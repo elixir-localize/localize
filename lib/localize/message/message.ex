@@ -81,7 +81,7 @@ defmodule Localize.Message do
          {:ok, parsed} <- Parser.parse(message) do
       format_options =
         options
-        |> Keyword.put_new(:locale, Keyword.get(options, :locale))
+        |> Keyword.put_new(:locale, Localize.get_locale())
 
       case Interpreter.format_list(parsed, bindings, format_options) do
         {:ok, iolist, _bound, []} ->
@@ -202,20 +202,13 @@ defmodule Localize.Message do
   end
 
   defp resolve_locale_string(options) do
-    case Keyword.get(options, :locale) do
-      nil ->
-        "en"
-
-      name when is_binary(name) ->
-        name
-
-      name when is_atom(name) ->
-        Atom.to_string(name)
-
-      %{language: language} ->
-        Kernel.to_string(language)
-    end
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    locale_to_string(locale)
   end
+
+  defp locale_to_string(name) when is_binary(name), do: name
+  defp locale_to_string(name) when is_atom(name), do: Atom.to_string(name)
+  defp locale_to_string(%{language: language}), do: Kernel.to_string(language)
 
   defp normalize_bindings(bindings) when is_map(bindings) do
     Map.new(bindings, fn
