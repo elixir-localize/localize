@@ -291,7 +291,7 @@ mix localize.upload_locale              # Generate one locale and upload to Clou
 
 # ── User tasks (lib/ tree, shipped with the hex package) ────────
 mix localize.download_locales en fr de  # Download specific locale ETFs from the CDN
-mix localize.download_locales --preload # Download the :preload_locales from config
+mix localize.download_locales            # Download configured :supported_locales (default)
 mix localize.download_locales --all     # Download all 766 CLDR locales
 ```
 

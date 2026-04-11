@@ -117,7 +117,6 @@ Localize requires no compile-time configuration. All options are set in your app
 config :localize,
   default_locale: :fr,
   supported_locales: [:en, :fr, :de, :ja, :es, "zh-*"],
-  preload_locales: [:en, :de, :ja, "fr-*"],
   locale_provider: MyApp.LocaleProvider,
   locale_cache_max_entries: 2_000,
   format_cache_max_entries: 5_000,
@@ -130,8 +129,8 @@ config :localize,
 | Option | Default | Description |
 |--------|---------|-------------|
 | `:default_locale` | Derived from `LOCALIZE_DEFAULT_LOCALE` env var, then `LANG` env var, then `:en`. | The application-wide default locale. Can also be set at runtime with `Localize.put_default_locale/1`. |
-| `:supported_locales` | `nil` | A list of locale identifiers that your application supports. Each entry is an atom matching a known CLDR locale (e.g., `:en`, `:"fr-CA"`) or a wildcard string (e.g., `"en-*"`) that expands to all matching CLDR locales. Invalid entries log a warning and are skipped. When set, `validate_locale/1` resolves locale identifiers against this list rather than all ~766 CLDR locales. Accessible at runtime via `Localize.supported_locales/0`. See below for how this interacts with `:preload_locales`. |
-| `:preload_locales` | `nil` | A list of locale identifiers to load at application startup. Accepts atoms and wildcard strings like `:supported_locales`. Locale data is fetched and cached in `:persistent_term` before any formatting calls. Invalid entries log a warning and are skipped. See below for how this interacts with `:supported_locales`. |
+| `:supported_locales` | `nil` | A list of locale identifiers that your application supports. Each entry is an atom matching a known CLDR locale (e.g., `:en`, `:"fr-CA"`), a wildcard string (e.g., `"en-*"`), a coverage-level keyword (`:modern`, `:moderate`, `:basic`), or a Gettext-style string (e.g., `"pt_BR"`, `"zh_Hans"`). POSIX-style underscores are normalised to hyphens and entries are resolved to their CLDR canonical form via likely-subtag resolution (e.g. `"pt_BR"` → `:pt`). Only exact matches (score 0) are accepted — entries that cannot be resolved log a warning with `domain: :localize` and are skipped. When set, `validate_locale/1` resolves locale identifiers against this list rather than all ~766 CLDR locales. Accessible at runtime via `Localize.supported_locales/0`. |
+| `:preload_locales` | **deprecated** | Deprecated and ignored. Use `:supported_locales` to declare your locale set and `mix localize.download_locales` to pre-populate the cache at build time. |
 | `:locale_provider` | `Localize.Locale.Provider.PersistentTerm` | Module that implements the `Localize.Locale.Provider` behaviour for loading and caching per-locale data. |
 | `:locale_cache_max_entries` | `1_000` | Maximum number of validated locales to hold in the ETS cache. A background sweeper runs every 10 seconds and evicts excess entries to prevent unbounded growth. |
 | `:format_cache_max_entries` | `2_000` | Maximum number of compiled format patterns (number and date/time) to hold in the ETS cache. A background sweeper runs every 10 seconds and evicts excess entries to prevent unbounded growth. |
@@ -141,20 +140,30 @@ config :localize,
 | `:cacertfile` | System default | Path to a custom CA certificate file for HTTPS connections (used when downloading locale data). |
 | `:https_proxy` | `nil` | HTTPS proxy URL. Also reads the `HTTPS_PROXY` environment variable. |
 
-### Supported and preload locale interaction
+### Using Gettext locales
 
-When `:supported_locales` is configured, the effective supported locale list is the **union** of `:supported_locales` and `:preload_locales`. This means any locale you preload is automatically considered supported — you don't need to list it in both places.
+If your application uses Gettext, you can derive `:supported_locales` from your Gettext backend in `config/runtime.exs` (where the module is already compiled and available):
 
 ```elixir
+# config/runtime.exs
 config :localize,
-  supported_locales: [:en, :fr, :de],
-  preload_locales: [:ja]
-
-# Effective supported locales: [:en, :fr, :de, :ja]
-# Locale data for :ja is preloaded at startup
+  supported_locales: Gettext.known_locales(MyApp.Gettext)
 ```
 
-When `:supported_locales` is **not** configured (the default), `validate_locale/1` matches against all ~766 CLDR locales and `:preload_locales` simply controls which locale data is loaded eagerly.
+POSIX-style locale names returned by Gettext (e.g. `"pt_BR"`, `"zh_Hans"`) are automatically normalized to BCP 47 and resolved to their CLDR canonical form (`:pt`, `:zh`). No manual mapping is needed.
+
+### Pre-populating the locale cache
+
+Use `mix localize.download_locales` at build time to download locale data into the on-disk cache. By default it downloads the configured `:supported_locales`:
+
+```bash
+# Dockerfile
+RUN mix localize.download_locales
+```
+
+Specific locales can also be downloaded explicitly: `mix localize.download_locales en fr de`. Use `--all` for all CLDR locales. Locale data is loaded lazily into `:persistent_term` on first access from the cache.
+
+When `:supported_locales` is **not** configured (the default), `validate_locale/1` matches against all ~766 CLDR locales.
 
 ## Environment variables
 

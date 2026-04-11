@@ -417,6 +417,9 @@ defmodule Localize.LanguageTag do
                     |> MapSet.new()
   @default_distance 80
 
+  @doc false
+  def default_distance, do: @default_distance
+
   @doc """
   Find the best matching supported locale for a desired locale.
 
@@ -439,15 +442,33 @@ defmodule Localize.LanguageTag do
   ### Returns
 
   * `{:ok, matched_locale, score}` where `matched_locale` is
-    the best supported match and `score` is the numeric distance, or
+    the best supported match and `score` is the numeric distance.
 
   * `{:error, reason}` if no match is found within the threshold.
+
+  ### Fallback behaviour
+
+  When using the default threshold (#{@default_distance}), the CLDR
+  algorithm always returns a result when the supported list is
+  non-empty — even if the best match is very distant. This
+  matches the CLDR specification, which says the algorithm should
+  always select a locale rather than fail. The first supported
+  locale is returned as a last resort.
+
+  When an explicit threshold below the default is provided, no
+  fallback occurs. If nothing matches within the threshold, an
+  error is returned. This is useful for strict validation (e.g.
+  resolving configuration values) where a distant match would be
+  surprising.
 
   ### Examples
 
       iex> {:ok, match, _score} = Localize.LanguageTag.best_match("en-AU", ["en", "en-GB", "fr"])
       iex> match
       "en-GB"
+
+      iex> # Strict matching: threshold 0 rejects non-exact matches
+      iex> {:error, _} = Localize.LanguageTag.best_match("xyzzy", ["en", "fr"], 0)
 
   """
   @spec best_match(t() | String.t() | atom(), [t() | String.t() | atom()], non_neg_integer()) ::
@@ -500,10 +521,16 @@ defmodule Localize.LanguageTag do
           [{locale, _tag, score, _index, _paradigm} | _] ->
             {:ok, locale, score}
 
+          [] when distance < @default_distance ->
+            # Explicit threshold below the default: strict mode.
+            # No fallback — return an error if nothing matched.
+            {:error,
+             Localize.LocaleMatchError.exception(desired: desired, threshold: distance)}
+
           [] ->
-            # Default fallback: return first non-und supported locale.
-            # The CLDR matching algorithm always returns a result when there
-            # are supported locales available.
+            # Default threshold: the CLDR matching algorithm always
+            # returns a result when there are supported locales.
+            # Fall back to the first non-und supported locale.
             case first_non_und(supported) do
               nil ->
                 {:error,

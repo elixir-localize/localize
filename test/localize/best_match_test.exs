@@ -25,10 +25,16 @@ defmodule Localize.BestMatchTest do
       assert match == "de"
     end
 
-    test "returns default locale when no match within threshold" do
-      # When no match is within threshold, the CLDR algorithm returns
-      # the first supported locale as the default.
-      assert {:ok, "en", _} = LanguageTag.best_match("zh", ["en", "fr"], 5)
+    test "returns error when no match within explicit threshold" do
+      # With a threshold below the default, no fallback occurs —
+      # the function returns an error if nothing matches.
+      assert {:error, _} = LanguageTag.best_match("zh", ["en", "fr"], 5)
+    end
+
+    test "returns default locale when no match within default threshold" do
+      # With the default threshold (80), the CLDR algorithm always
+      # returns a result — the first supported locale as fallback.
+      assert {:ok, "en", _} = LanguageTag.best_match("zh", ["en", "fr"])
     end
 
     test "returns error for empty supported list" do
@@ -36,8 +42,8 @@ defmodule Localize.BestMatchTest do
     end
 
     test "respects custom distance threshold" do
-      # gsw → de has distance ~8, so threshold 5 returns de as default
-      assert {:ok, "de", _} = LanguageTag.best_match("gsw", ["de"], 5)
+      # gsw → de has distance ~8, so threshold 5 rejects it
+      assert {:error, _} = LanguageTag.best_match("gsw", ["de"], 5)
       # Threshold 10 accepts it as a proper match
       assert {:ok, "de", _} = LanguageTag.best_match("gsw", ["de"], 10)
     end

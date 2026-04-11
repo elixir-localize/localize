@@ -42,50 +42,35 @@ defmodule Localize.Application do
     end
   end
 
-  # ── Supported and preload locales ─────────────────────────────
+  # ── Supported locales ───────────────────────────────────────────
 
   defp resolve_supported_locales do
-    supported = expand_config_locales(:supported_locales)
-    preload = expand_config_locales(:preload_locales)
+    maybe_warn_deprecated_preload()
 
-    # Store the union of supported and preload locales, but only
-    # if :supported_locales was explicitly configured.
     case Application.get_env(:localize, :supported_locales) do
       nil ->
         :ok
 
-      _configured ->
-        merged =
-          (supported ++ preload)
-          |> Enum.uniq()
-
-        :persistent_term.put({:localize, :supported_locales}, merged)
+      locales when is_list(locales) ->
+        expanded = Localize.Locale.expand_locale_list(locales, :supported_locales)
+        :persistent_term.put({:localize, :supported_locales}, expanded)
     end
-
-    # Preload locale data for the preload list. Failures are
-    # logged as warnings rather than crashing the supervisor —
-    # the locale will be loaded on first access (or the user
-    # will get a clear error if downloads are disabled and the
-    # locale is not in the cache).
-    Enum.each(preload, fn locale ->
-      case Localize.Locale.Loader.load_and_store(locale) do
-        :ok ->
-          :ok
-
-        {:error, exception} ->
-          Logger.warning(
-            "Failed to preload locale #{inspect(locale)}: #{Exception.message(exception)}",
-            domain: [:localize]
-          )
-      end
-    end)
   end
 
-  defp expand_config_locales(config_key) do
-    case Application.get_env(:localize, config_key) do
-      nil -> []
-      [] -> []
-      locales when is_list(locales) -> Localize.Locale.expand_locale_list(locales, config_key)
+  defp maybe_warn_deprecated_preload do
+    case Application.get_env(:localize, :preload_locales) do
+      nil ->
+        :ok
+
+      _configured ->
+        Logger.warning(
+          "The :preload_locales configuration key is deprecated and ignored. " <>
+            "Use :supported_locales to declare your locale set, and " <>
+            "`mix localize.download_locales` to pre-populate the cache " <>
+            "at build time. Locale data is loaded lazily into " <>
+            ":persistent_term on first access.",
+          domain: [:localize]
+        )
     end
   end
 end

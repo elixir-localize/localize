@@ -1205,7 +1205,10 @@ defmodule Localize do
   locale. When given a binary locale identifier, it is parsed into
   a `t:Localize.LanguageTag.t/0`. When given an existing language tag
   whose `:cldr_locale_id` is not yet populated, a best-match
-  resolution is attempted using `Localize.LanguageTag.best_match/2`.
+  resolution is attempted using `Localize.LanguageTag.best_match/3`.
+
+  POSIX-style locale names (e.g. `"pt_BR"`, `"zh_Hans"`) are
+  accepted — underscores are normalized to hyphens before parsing.
 
   ## Locale resolution
 
@@ -1215,15 +1218,30 @@ defmodule Localize do
 
   * If `config :localize, supported_locales: [...]` is
     configured, the candidate list is the resolved supported
-    locales (the union of `:supported_locales` and
-    `:preload_locales`). This restricts matching to only the
-    locales your application explicitly supports.
+    locales. This restricts matching to only the locales your
+    application explicitly supports.
 
   * If `:supported_locales` is not configured, the candidate
     list is all CLDR locale IDs.
 
   Validated locale results are cached in an ETS table so
   repeated calls with the same identifier are fast (~1µs).
+
+  > #### Always returns a result {: .warning}
+  >
+  > This function uses the CLDR locale matching algorithm, which
+  > is designed to **always return a result** when the candidate
+  > list is non-empty — even if the match is very distant. For
+  > example, `validate_locale("xyzzy")` will succeed and return
+  > some CLDR locale (typically the first candidate), not an error.
+  > This is the correct CLDR behaviour for user-facing locale
+  > negotiation (a distant match is better than no match), but it
+  > means the returned locale may not be what the caller expected.
+  >
+  > For strict validation (e.g. resolving configuration values),
+  > use `Localize.LanguageTag.best_match/3` with a threshold of
+  > `0` to accept only exact matches after likely-subtag
+  > resolution.
 
   ### Arguments
 
@@ -1247,6 +1265,10 @@ defmodule Localize do
       iex> {:ok, tag} = Localize.validate_locale("en")
       iex> tag.cldr_locale_id
       :en
+
+      iex> {:ok, tag} = Localize.validate_locale("pt_BR")
+      iex> tag.cldr_locale_id
+      :pt
 
   """
   @spec validate_locale(Localize.LanguageTag.t() | String.t() | atom()) ::

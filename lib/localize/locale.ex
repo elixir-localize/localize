@@ -612,13 +612,15 @@ defmodule Localize.Locale do
   * `entries` is a list of atoms and/or strings.
 
   * `context` is an atom or string used in warning messages to
-    identify where the entry came from (e.g. `:preload_locales`).
+    identify where the entry came from (e.g. `:supported_locales`).
 
   ### Returns
 
   * A deduplicated list of locale ID atoms.
 
   """
+  @coverage_levels [:basic, :moderate, :modern]
+
   @spec expand_locale_list([atom() | String.t()], atom() | String.t()) :: [atom()]
   def expand_locale_list(entries, context \\ :locales) when is_list(entries) do
     all_ids = Localize.SupplementalData.all_locale_ids()
@@ -627,6 +629,12 @@ defmodule Localize.Locale do
     entries
     |> Enum.flat_map(fn entry -> expand_locale_entry(entry, all_ids, all_strings, context) end)
     |> Enum.uniq()
+  end
+
+  # Coverage-level keywords expand to all locales at or above that level.
+  defp expand_locale_entry(level, _all_ids, _all_strings, _context)
+       when level in @coverage_levels do
+    Localize.all_locale_ids(level)
   end
 
   defp expand_locale_entry(entry, all_ids, _all_strings, context) when is_atom(entry) do
@@ -645,27 +653,41 @@ defmodule Localize.Locale do
     end
   end
 
-  defp expand_locale_entry(entry, all_ids, all_strings, context) when is_binary(entry) do
-    if String.ends_with?(entry, "*") do
-      prefix = String.trim_trailing(entry, "*")
+  defp expand_locale_entry(entry, all_ids, _all_strings, context) when is_binary(entry) do
+    # Normalize POSIX-style locale IDs (e.g. "pt_BR" → "pt-BR")
+    # so that Gettext locale names work directly.
+    normalized = String.replace(entry, "_", "-")
+
+    if String.ends_with?(normalized, "*") do
+      prefix = String.trim_trailing(normalized, "*")
 
       Enum.filter(all_ids, fn id ->
         id |> Atom.to_string() |> String.starts_with?(prefix)
       end)
     else
-      if MapSet.member?(all_strings, entry) do
-        [String.to_existing_atom(entry)]
-      else
-        require Logger
+      # Use best_match with threshold 0: only accepts exact
+      # matches (score 0) after likely-subtag resolution. This
+      # maps Gettext locale names like "pt_BR" → :pt and
+      # "zh_Hans" → :zh, while rejecting junk strings like
+      # "not_a_locale" that have no score-0 match.
+      case Localize.LanguageTag.best_match(normalized, all_ids, 0) do
+        {:ok, cldr_id, 0} ->
+          [cldr_id]
 
-        Logger.warning(
-          "Ignoring unknown locale #{inspect(entry)} in #{inspect(context)} configuration. " <>
-            "Not found in known CLDR locales.",
-          domain: [:localize]
-        )
-
-        []
+        _no_match ->
+          warn_unknown_locale(entry, context)
+          []
       end
     end
+  end
+
+  defp warn_unknown_locale(entry, context) do
+    require Logger
+
+    Logger.warning(
+      "Ignoring unknown locale #{inspect(entry)} in #{inspect(context)} configuration. " <>
+        "Could not be resolved to a known CLDR locale.",
+      domain: [:localize]
+    )
   end
 end

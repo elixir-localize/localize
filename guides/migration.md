@@ -24,25 +24,50 @@ Localize requires no compile-time configuration. All options are set in your app
 
 ### Recommended migration config
 
-Most ex_cldr projects configure a fixed set of locales in the backend module. The Localize equivalent is `:supported_locales` (constrains validation) and `:preload_locales` (eagerly loads locale data at startup):
+Most ex_cldr projects configure a fixed set of locales in the backend module. The Localize equivalent is `:supported_locales` (constrains validation) plus `mix localize.download_locales` (pre-populates the cache at build time):
 
 ```elixir
 # config/config.exs
 config :localize,
   default_locale: :en,
-  supported_locales: [:en, :fr, :de, :ja],
-  preload_locales: [:en, :fr, :de, :ja]
+  supported_locales: [:en, :fr, :de, :ja]
 ```
 
-In ex_cldr, these were declared inside `use Cldr, locales: [...]`. In Localize they are application environment keys, so no recompilation is needed when the list changes.
+```bash
+# At build time (Dockerfile, CI, or local)
+mix localize.download_locales
+```
+
+In ex_cldr, locales were declared inside `use Cldr, locales: [...]` and embedded at compile time. In Localize, `:supported_locales` is an application environment key (no recompilation needed), and locale data is downloaded once at build time and loaded lazily into `:persistent_term` on first access.
+
+### Using Gettext locales
+
+If your application uses Gettext, you can derive `:supported_locales` from your Gettext backend. Since the Gettext module must be compiled first, use `config/runtime.exs`:
+
+```elixir
+# config/runtime.exs
+config :localize,
+  supported_locales: Gettext.known_locales(MyApp.Gettext)
+```
+
+POSIX-style locale names returned by Gettext (e.g. `"pt_BR"`, `"zh_Hans"`) are automatically normalised to BCP 47 and resolved to their CLDR canonical form via likely-subtag resolution. For example, `"pt_BR"` resolves to `:pt` (CLDR treats bare `pt` as Brazilian Portuguese) and `"zh_Hans"` resolves to `:zh`. No manual mapping is needed.
+
+Only exact matches (distance score 0 in the CLDR matching algorithm) are accepted for `:supported_locales` — this ensures that misspelled or unrecognised locale names are caught at startup rather than silently mapping to a distant locale. Entries that cannot be resolved log a warning with `domain: :localize` and are skipped.
+
+Coverage-level keywords (`:modern`, `:moderate`, `:basic`) are also accepted and expand to all CLDR locales at or above that level:
+
+```elixir
+config :localize,
+  supported_locales: [:modern]  # ~104 locales with modern CLDR coverage
+```
 
 ### Full options reference
 
 | Option | Default | Description |
 |---|---|---|
 | `:default_locale` | Derived from `LOCALIZE_DEFAULT_LOCALE` env var → `LANG` env var → `:en` | Application-wide default locale. |
-| `:supported_locales` | `nil` (all 766 CLDR locales) | List of locale atoms and/or wildcard strings (e.g. `"en-*"`). When set, `validate_locale/1` resolves against this list instead of all CLDR locales. |
-| `:preload_locales` | `nil` | List of locales to load into `:persistent_term` at application startup. Anything in `:preload_locales` is automatically considered supported. |
+| `:supported_locales` | `nil` (all 766 CLDR locales) | List of locale atoms, wildcard strings (e.g. `"en-*"`), coverage-level keywords (`:modern`, `:moderate`, `:basic`), or Gettext-style strings (e.g. `"pt_BR"`). POSIX underscores are normalised and entries are resolved via likely-subtag resolution — only exact matches (score 0) are accepted. Invalid entries log a warning and are skipped. When set, `validate_locale/1` resolves against this list instead of all CLDR locales. |
+| `:preload_locales` | **deprecated** | Deprecated and ignored. Use `:supported_locales` and `mix localize.download_locales`. |
 | `:locale_cache_dir` | `Application.app_dir(:localize, "priv/localize/locales")` | Directory where downloaded locale ETF files are cached. |
 | `:allow_runtime_locale_download` | `false` | When `true`, locales not in the cache are downloaded from the CDN on first access. Default `false` — use `mix localize.download_locales` to pre-populate at build time. |
 | `:locale_provider` | `Localize.Locale.Provider.PersistentTerm` | Module implementing `Localize.Locale.Provider` for locale data loading. |
@@ -88,9 +113,9 @@ iex> Localize.with_locale(:ja, fn ->
 {:ok, "1,234"}
 ```
 
-### Supported and preload locale interaction
+### Pre-populating the locale cache
 
-When `:supported_locales` is configured, the effective supported locale list is the **union** of `:supported_locales` and `:preload_locales`. Any locale you preload is automatically considered supported — you don't need to list it in both places.
+Run `mix localize.download_locales` at build time to download locale data for all configured `:supported_locales`. Locale data is then loaded lazily into `:persistent_term` on first access — no runtime downloads needed.
 
 ## Dependency changes
 

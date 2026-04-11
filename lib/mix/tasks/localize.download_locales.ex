@@ -12,18 +12,26 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
 
   ## Usage
 
+      mix localize.download_locales
+
+  Downloads the configured `:supported_locales`. When
+  `:supported_locales` is not configured (meaning all CLDR
+  locales are supported), prompts for confirmation before
+  downloading.
+
       mix localize.download_locales en fr de ja
 
   Downloads the specified locales.
 
-      mix localize.download_locales --preload
-
-  Downloads the locales listed in `config :localize, :preload_locales`.
-  Wildcard entries (e.g. `"en-*"`) are expanded.
-
       mix localize.download_locales --all
 
-  Downloads all 766 CLDR locales.
+  Downloads all CLDR locales without prompting.
+
+      mix localize.download_locales --force
+
+  When `:supported_locales` is not configured, downloads all
+  locales without prompting. Useful in CI/Docker where there
+  is no interactive terminal.
 
   ## Output directory
 
@@ -40,11 +48,15 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
   Pre-populate the cache for a Docker build:
 
       # Dockerfile
-      RUN mix localize.download_locales --preload
+      RUN mix localize.download_locales
 
   Download specific locales for testing:
 
       mix localize.download_locales en de ja zh
+
+  Download everything in a non-interactive environment:
+
+      mix localize.download_locales --force
 
   """
 
@@ -58,71 +70,118 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
     Mix.Task.run("app.start")
 
     {opts, locale_args} =
-      OptionParser.parse!(args, strict: [preload: :boolean, all: :boolean])
+      OptionParser.parse!(args, strict: [all: :boolean, force: :boolean])
 
     locales = resolve_locales(opts, locale_args)
 
     if locales == [] do
-      Mix.shell().error("No locales to download. Specify locale names, --preload, or --all.")
-      System.halt(1)
+      # User declined at the confirmation prompt
+      :ok
+    else
+      download_locales(locales)
     end
+  end
 
+  defp resolve_locales(opts, locale_args) do
+    cond do
+      # Explicit locale names on the command line
+      locale_args != [] ->
+        Enum.map(locale_args, &String.to_atom/1)
+
+      # --all: download everything, no questions asked
+      opts[:all] ->
+        Localize.SupplementalData.all_locale_ids()
+
+      # Default: download supported locales
+      true ->
+        resolve_supported(opts)
+    end
+  end
+
+  defp resolve_supported(opts) do
+    all_ids = Localize.SupplementalData.all_locale_ids()
+    supported = Localize.supported_locales()
+
+    if supported == all_ids do
+      # :supported_locales is not configured — all locales are
+      # supported. Confirm with the user before downloading
+      # everything, unless --force is set.
+      confirm_all_locales(all_ids, opts[:force])
+    else
+      supported
+    end
+  end
+
+  defp confirm_all_locales(all_ids, true = _force), do: all_ids
+
+  defp confirm_all_locales(all_ids, _no_force) do
+    count = length(all_ids)
+
+    Mix.shell().info(
+      ":supported_locales is not configured, so all #{count} CLDR locales " <>
+        "will be downloaded.\n\n" <>
+        "If this is intentional, enter \"y\" to continue.\n" <>
+        "Otherwise, enter \"n\" and configure :supported_locales in your " <>
+        "application environment to limit the download to the locales " <>
+        "your application needs.\n"
+    )
+
+    if Mix.shell().yes?("Download all #{count} locales?") do
+      all_ids
+    else
+      Mix.shell().info("Aborted. Configure :supported_locales and re-run.")
+      []
+    end
+  end
+
+  defp download_locales(locales) do
     cache_dir = Provider.locale_cache_dir()
     Mix.shell().info("Downloading #{length(locales)} locale(s) to #{cache_dir}")
     Mix.shell().info("Version: #{Localize.version()}\n")
 
-    {successes, failures} =
+    {downloaded, skipped, failures} =
       locales
       |> Enum.with_index(1)
-      |> Enum.reduce({0, 0}, fn {locale_id, index}, {ok, fail} ->
+      |> Enum.reduce({0, 0, 0}, fn {locale_id, index}, {ok, skip, fail} ->
         prefix = "[#{index}/#{length(locales)}]"
 
         case download_and_store(locale_id) do
           {:ok, path, size} ->
             Mix.shell().info("#{prefix} #{locale_id} (#{format_size(size)}) -> #{path}")
-            {ok + 1, fail}
+            {ok + 1, skip, fail}
+
+          {:skip, path} ->
+            Mix.shell().info("#{prefix} #{locale_id} (current) #{path}")
+            {ok, skip + 1, fail}
 
           {:error, reason} ->
             Mix.shell().error("#{prefix} #{locale_id} FAILED: #{reason}")
-            {ok, fail + 1}
+            {ok, skip, fail + 1}
         end
       end)
 
-    Mix.shell().info("\nDone. #{successes} downloaded, #{failures} failed.")
+    Mix.shell().info(
+      "\nDone. #{downloaded} downloaded, #{skipped} already current, #{failures} failed."
+    )
 
     if failures > 0 do
       System.halt(1)
     end
   end
 
-  defp resolve_locales(opts, locale_args) do
-    cond do
-      opts[:all] ->
-        Localize.SupplementalData.all_locale_ids()
+  defp download_and_store(locale_id) do
+    case Cache.get(locale_id) do
+      {:ok, _locale_data} ->
+        # Already cached and version matches — skip the download.
+        {:skip, Cache.path(locale_id)}
 
-      opts[:preload] ->
-        case Application.get_env(:localize, :preload_locales) do
-          nil ->
-            Mix.shell().error("No :preload_locales configured.")
-            []
-
-          [] ->
-            Mix.shell().error("The :preload_locales list is empty.")
-            []
-
-          entries ->
-            Localize.Locale.expand_locale_list(entries, :preload_locales)
-        end
-
-      locale_args != [] ->
-        Enum.map(locale_args, &String.to_atom/1)
-
-      true ->
-        []
+      {:error, _stale_or_missing} ->
+        # Missing or stale — download a fresh copy.
+        do_download(locale_id)
     end
   end
 
-  defp download_and_store(locale_id) do
+  defp do_download(locale_id) do
     case Provider.download_locale(locale_id) do
       {:ok, binary} ->
         case Cache.store(locale_id, binary) do

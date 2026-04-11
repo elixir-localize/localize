@@ -12,7 +12,7 @@ The format is based on
 
 * Runtime locale downloading is now **opt-in**. The new `:allow_runtime_locale_download` application config key (default `false`) gates whether the `PersistentTerm` provider may download locale ETF files from the CDN when a cache miss occurs. When disabled (the default), a missing locale returns `{:error, %Localize.LocaleNotFoundInCacheError{}}` with a message that tells the user how to fix it (either run `mix localize.download_locales` or enable the config key). The `Localize.Locale.Provider` behaviour gains an optional `allow_download?/0` callback so alternative providers can implement their own download-gating logic.
 
-* `mix localize.download_locales` — new Mix task (shipped with the hex package) that downloads locale ETF files from the Localize CDN and writes them to the configured cache directory. Three modes: `mix localize.download_locales en fr de` for specific locales, `--preload` to download the configured `:preload_locales`, and `--all` for all 766 CLDR locales. Intended for Dockerfiles, CI pipelines, and release builds.
+* `mix localize.download_locales` — new Mix task (shipped with the hex package) that downloads locale ETF files from the Localize CDN and writes them to the configured cache directory. With no arguments, downloads the configured `:supported_locales`. Also accepts explicit locale names (`mix localize.download_locales en fr de`) or `--all` for all CLDR locales. Intended for Dockerfiles, CI pipelines, and release builds.
 
 * `Localize.Locale.expand_locale_list/2` — extracted from `Localize.Application` as a public function so mix tasks and user code can expand wildcard locale lists (e.g. `"en-*"`) against the known CLDR locale set.
 
@@ -103,6 +103,8 @@ The format is based on
 * `Localize.Exception.InvalidLanguageTag` renamed to `Localize.InvalidLanguageTagError` and relocated to `lib/localize/exception/` for consistency with all other exception modules.
 
 * Configuration option `:data_dir` renamed to `:locale_cache_dir`. Defaults to `Path.join(:code.priv_dir(:localize), "localize/locales")`.
+
+* **`:preload_locales` is deprecated and ignored.** Use `:supported_locales` to declare your locale set and `mix localize.download_locales` to pre-populate the cache at build time. Locale data is loaded lazily into `:persistent_term` on first access. A deprecation warning is logged at application startup if `:preload_locales` is still configured.
 
 * `Localize.List.to_string/2` and `Localize.List.intersperse/2` option `:format` renamed to `:list_style`. The companion helpers `known_list_formats/0` and `list_formats_for/1` were renamed to `known_list_styles/0` and `list_styles_for/1` for consistency. Freeing `:format` from list-specific use means it now passes through to per-element formatters: `Localize.List.to_string([~D[2025-07-10], ~D[2025-08-15]], locale: :en, format: :long)` produces `"July 10, 2025 and August 15, 2025"` because `:format` reaches `Localize.Date.to_string/2` for each element while the list join uses the default `:standard` style. The `list_patterns_for/1` helper is unchanged — it returns the underlying CLDR pattern data, not the style names.
 
