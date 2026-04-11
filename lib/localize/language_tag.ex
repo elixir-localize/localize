@@ -524,8 +524,7 @@ defmodule Localize.LanguageTag do
           [] when distance < @default_distance ->
             # Explicit threshold below the default: strict mode.
             # No fallback — return an error if nothing matched.
-            {:error,
-             Localize.LocaleMatchError.exception(desired: desired, threshold: distance)}
+            {:error, Localize.LocaleMatchError.exception(desired: desired, threshold: distance)}
 
           [] ->
             # Default threshold: the CLDR matching algorithm always
