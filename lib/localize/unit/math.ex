@@ -647,11 +647,15 @@ defmodule Localize.Unit.Math do
   defp round_value(value, places) when is_float(value), do: Float.round(value, places)
   defp round_value(value, _places) when is_integer(value), do: value
 
-  defp ceil_value(%Decimal{} = value), do: Decimal.round(value, 0, :ceiling) |> Decimal.to_integer()
+  defp ceil_value(%Decimal{} = value),
+    do: Decimal.round(value, 0, :ceiling) |> Decimal.to_integer()
+
   defp ceil_value(value) when is_float(value), do: Kernel.ceil(value)
   defp ceil_value(value) when is_integer(value), do: value
 
-  defp floor_value(%Decimal{} = value), do: Decimal.round(value, 0, :floor) |> Decimal.to_integer()
+  defp floor_value(%Decimal{} = value),
+    do: Decimal.round(value, 0, :floor) |> Decimal.to_integer()
+
   defp floor_value(value) when is_float(value), do: Kernel.floor(value)
   defp floor_value(value) when is_integer(value), do: value
 

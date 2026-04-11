@@ -42,6 +42,7 @@ bench_unit_parser.sh
 
 # Claude
 .claude/
+/plans
 
 # private
 r2_setup.md
