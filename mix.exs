@@ -84,14 +84,14 @@ defmodule Localize.MixProject do
           "README.md",
           "LICENSE.md",
           "CHANGELOG.md"
-        ] ++ Path.wildcard("guides/*.md"),
+        ] ++ Path.wildcard("guides/*.md") ++ Path.wildcard("cheatsheets/*.md"),
       formatters: ["html", "markdown"],
       groups_for_modules: groups_for_modules(),
       groups_for_extras: groups_for_extras(),
       skip_undefined_reference_warnings_on:
         [
           "CHANGELOG.md"
-        ] ++ Path.wildcard("guides/*.md")
+        ] ++ Path.wildcard("guides/*.md") ++ Path.wildcard("cheatsheets/*.md")
     ]
   end
 
@@ -141,6 +141,12 @@ defmodule Localize.MixProject do
       "Migration from ex_cldr": [
         "guides/migration.md",
         "guides/performance_comparison.md"
+      ],
+      Cheatsheets: [
+        "cheatsheets/number_formatting.md",
+        "cheatsheets/date_time_formatting.md",
+        "cheatsheets/unit_formatting.md",
+        "cheatsheets/collation.md"
       ]
     ]
   end

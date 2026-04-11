@@ -122,8 +122,6 @@ config :localize,
 
 * Do not reach for `Cldr.*` modules or backend modules. Localize replaces the entire `ex_cldr_*` family with a single dependency and no compile-time configuration.
 
-* Do not use `Localize.Number.to_string` for currency parsing or `Localize.Number.parse` for formatting — they are separate functions in the same module.
-
 ## Companion packages
 
 When the user needs functionality outside Localize's core CLDR scope:
