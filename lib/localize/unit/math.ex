@@ -326,6 +326,288 @@ defmodule Localize.Unit.Math do
     end
   end
 
+  # ── Value-preserving functions ───────────────────────────────────────
+  #
+  # These apply a scalar function to the unit's value while keeping
+  # the unit type unchanged.
+
+  @doc """
+  Returns the absolute value of a unit.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, unit}` with the absolute value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(-5, "meter")
+      iex> {:ok, result} = Localize.Unit.Math.abs(u)
+      iex> result.value
+      5
+
+  """
+  @spec abs(Unit.t()) :: {:ok, Unit.t()} | {:error, Exception.t()}
+
+  def abs(%Unit{value: value} = unit) when not is_nil(value) do
+    {:ok, %{unit | value: abs_value(value)}}
+  end
+
+  def abs(%Unit{value: nil}) do
+    {:error, no_value_error("abs")}
+  end
+
+  @doc """
+  Rounds the value of a unit to the nearest integer or to the
+  specified number of decimal places.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  * `places` is the number of decimal places to round to. Defaults to 0.
+
+  ### Returns
+
+  * `{:ok, unit}` with the rounded value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(3.7, "kilogram")
+      iex> {:ok, result} = Localize.Unit.Math.round(u)
+      iex> result.value
+      4
+
+  """
+  @spec round(Unit.t(), non_neg_integer()) :: {:ok, Unit.t()} | {:error, Exception.t()}
+
+  def round(%Unit{value: value} = unit, places \\ 0) when not is_nil(value) do
+    {:ok, %{unit | value: round_value(value, places)}}
+  end
+
+  @doc """
+  Rounds the value of a unit up to the nearest integer.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, unit}` with the ceiling value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(3.2, "meter")
+      iex> {:ok, result} = Localize.Unit.Math.ceil(u)
+      iex> result.value
+      4
+
+  """
+  @spec ceil(Unit.t()) :: {:ok, Unit.t()} | {:error, Exception.t()}
+
+  def ceil(%Unit{value: value} = unit) when not is_nil(value) do
+    {:ok, %{unit | value: ceil_value(value)}}
+  end
+
+  def ceil(%Unit{value: nil}) do
+    {:error, no_value_error("ceil")}
+  end
+
+  @doc """
+  Rounds the value of a unit down to the nearest integer.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, unit}` with the floor value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(3.7, "meter")
+      iex> {:ok, result} = Localize.Unit.Math.floor(u)
+      iex> result.value
+      3
+
+  """
+  @spec floor(Unit.t()) :: {:ok, Unit.t()} | {:error, Exception.t()}
+
+  def floor(%Unit{value: value} = unit) when not is_nil(value) do
+    {:ok, %{unit | value: floor_value(value)}}
+  end
+
+  def floor(%Unit{value: nil}) do
+    {:error, no_value_error("floor")}
+  end
+
+  # ── Root functions ─────────────────────────────────────────────────
+  #
+  # sqrt and cbrt reduce the powers of each dimension component.
+  # For example sqrt(square-meter) → meter, sqrt(meter^4) → meter^2.
+  # All powers must be evenly divisible by the root degree.
+
+  @doc """
+  Computes the square root of a unit.
+
+  The unit must have even powers on all dimension components.
+  For example, `sqrt(9 square-meter)` produces `3 meter`, but
+  `sqrt(9 cubic-meter)` returns an error.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, unit}` with the square root of the value and halved unit
+    powers, or
+
+  * `{:error, reason}` if any dimension has an odd power.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(9, "square-meter")
+      iex> {:ok, result} = Localize.Unit.Math.sqrt(u)
+      iex> result.value
+      3.0
+      iex> result.name
+      "meter"
+
+  """
+  @spec sqrt(Unit.t()) :: {:ok, Unit.t() | number()} | {:error, String.t()}
+
+  def sqrt(%Unit{value: value, parsed: {:unit, kw}} = _unit) when not is_nil(value) do
+    root_unit(value, kw, 2, "square root")
+  end
+
+  def sqrt(%Unit{value: nil}) do
+    {:error, no_value_error("sqrt")}
+  end
+
+  @doc """
+  Computes the cube root of a unit.
+
+  The unit must have powers divisible by 3 on all dimension components.
+  For example, `cbrt(27 cubic-meter)` produces `3 meter`.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, unit}` with the cube root of the value and divided unit
+    powers, or
+
+  * `{:error, reason}` if any dimension has a power not divisible by 3.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(27, "cubic-meter")
+      iex> {:ok, result} = Localize.Unit.Math.cbrt(u)
+      iex> result.value
+      3.0
+      iex> result.name
+      "meter"
+
+  """
+  @spec cbrt(Unit.t()) :: {:ok, Unit.t() | number()} | {:error, String.t()}
+
+  def cbrt(%Unit{value: value, parsed: {:unit, kw}} = _unit) when not is_nil(value) do
+    root_unit(value, kw, 3, "cube root")
+  end
+
+  def cbrt(%Unit{value: nil}) do
+    {:error, no_value_error("cbrt")}
+  end
+
+  # ── Dimensionless functions ────────────────────────────────────────
+  #
+  # Trig and logarithmic functions require a dimensionless (bare number)
+  # or a unit whose dimensions have all cancelled. They return a bare
+  # number, not a unit.
+
+  @dimensionless_fns ~w(sin cos tan asin acos atan exp)a
+  @log_fns ~w(ln log log2)a
+
+  @doc """
+  Applies a trigonometric or transcendental function to a dimensionless
+  unit value.
+
+  Supported function names: `:sin`, `:cos`, `:tan`, `:asin`, `:acos`,
+  `:atan`, `:exp`, `:ln`, `:log`, `:log2`.
+
+  The unit must be dimensionless (e.g., `radian`, or a bare number
+  wrapped in a unit). The result is a plain number.
+
+  ### Arguments
+
+  * `name` is an atom naming the function.
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the function result, or
+
+  * `{:error, reason}` if the unit is not dimensionless.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(0, "radian")
+      iex> {:ok, result} = Localize.Unit.Math.apply_dimensionless(:sin, u)
+      iex> result
+      0.0
+
+  """
+  @spec apply_dimensionless(atom(), Unit.t()) :: {:ok, number()} | {:error, String.t()}
+
+  def apply_dimensionless(name, %Unit{value: value})
+      when name in @dimensionless_fns and not is_nil(value) do
+    float_val = to_float(value)
+
+    result =
+      case name do
+        :sin -> :math.sin(float_val)
+        :cos -> :math.cos(float_val)
+        :tan -> :math.tan(float_val)
+        :asin -> :math.asin(float_val)
+        :acos -> :math.acos(float_val)
+        :atan -> :math.atan(float_val)
+        :exp -> :math.exp(float_val)
+      end
+
+    {:ok, result}
+  end
+
+  def apply_dimensionless(name, %Unit{value: value})
+      when name in @log_fns and not is_nil(value) do
+    float_val = to_float(value)
+
+    result =
+      case name do
+        :ln -> :math.log(float_val)
+        :log -> :math.log10(float_val)
+        :log2 -> :math.log2(float_val)
+      end
+
+    {:ok, result}
+  end
+
+  def apply_dimensionless(name, %Unit{value: nil}) do
+    {:error, "cannot apply #{name} to a unit without a value"}
+  end
+
+  def apply_dimensionless(name, _unit) do
+    {:error, "unknown dimensionless function: #{name}"}
+  end
+
   # ── Private arithmetic ──────────────────────────────────────────────
 
   # All arithmetic helpers handle Decimal transparently: if either operand
@@ -356,7 +638,77 @@ defmodule Localize.Unit.Math do
   defp invert_value(%Decimal{} = value), do: Decimal.div(Decimal.new(1), value)
   defp invert_value(value), do: 1.0 / value
 
+  defp abs_value(%Decimal{} = value), do: Decimal.abs(value)
+  defp abs_value(value), do: Kernel.abs(value)
+
+  defp round_value(%Decimal{} = value, places), do: Decimal.round(value, places)
+  defp round_value(value, 0) when is_float(value), do: Kernel.round(value)
+  defp round_value(value, 0) when is_integer(value), do: value
+  defp round_value(value, places) when is_float(value), do: Float.round(value, places)
+  defp round_value(value, _places) when is_integer(value), do: value
+
+  defp ceil_value(%Decimal{} = value), do: Decimal.round(value, 0, :ceiling) |> Decimal.to_integer()
+  defp ceil_value(value) when is_float(value), do: Kernel.ceil(value)
+  defp ceil_value(value) when is_integer(value), do: value
+
+  defp floor_value(%Decimal{} = value), do: Decimal.round(value, 0, :floor) |> Decimal.to_integer()
+  defp floor_value(value) when is_float(value), do: Kernel.floor(value)
+  defp floor_value(value) when is_integer(value), do: value
+
+  defp to_float(%Decimal{} = d), do: Decimal.to_float(d)
+  defp to_float(value) when is_integer(value), do: value / 1
+  defp to_float(value) when is_float(value), do: value
+
   defp to_decimal(%Decimal{} = d), do: d
   defp to_decimal(value) when is_float(value), do: Decimal.from_float(value)
   defp to_decimal(value) when is_integer(value), do: Decimal.new(value)
+
+  # ── Root helpers ───────────────────────────────────────────────────
+
+  # Takes the nth root of a unit by dividing all dimension powers by n.
+  # Returns {:ok, result} where result is a Unit or bare number (if
+  # all dimensions cancel), or {:error, reason}.
+  defp root_unit(value, kw, degree, label) do
+    numerator = Keyword.get(kw, :numerator, [])
+    denominator = Keyword.get(kw, :denominator, [])
+
+    with {:ok, rooted_num} <- root_components(numerator, degree, label),
+         {:ok, rooted_den} <- root_components(denominator, degree, label) do
+      rooted_value = :math.pow(to_float(value), 1.0 / degree)
+      build_compound_result(rooted_value, rooted_num, rooted_den)
+    end
+  end
+
+  defp root_components(components, degree, label) do
+    Enum.reduce_while(components, {:ok, []}, fn {:single_unit, opts}, {:ok, acc} ->
+      power = power_to_integer(Keyword.get(opts, :power))
+
+      if rem(power, degree) == 0 do
+        new_power = Kernel.div(power, degree)
+        new_opts = Keyword.put(opts, :power, integer_to_power(new_power))
+        {:cont, {:ok, acc ++ [{:single_unit, new_opts}]}}
+      else
+        base = Keyword.get(opts, :base, "unknown")
+        {:halt, {:error, "cannot take #{label} of #{base} with power #{power}"}}
+      end
+    end)
+  end
+
+  defp power_to_integer(nil), do: 1
+  defp power_to_integer(:square), do: 2
+  defp power_to_integer(:cubic), do: 3
+  defp power_to_integer({:pow, n}), do: n
+
+  defp integer_to_power(1), do: nil
+  defp integer_to_power(2), do: :square
+  defp integer_to_power(3), do: :cubic
+  defp integer_to_power(n), do: {:pow, n}
+
+  defp no_value_error(operation) do
+    Localize.UnitConversionError.exception(
+      from: nil,
+      to: nil,
+      reason: "Cannot apply #{operation} to a unit without a value"
+    )
+  end
 end

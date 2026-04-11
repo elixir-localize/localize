@@ -165,6 +165,34 @@ inv.name   #=> "second-per-meter"
 inv.value  #=> 0.25
 ```
 
+## Operator syntax
+
+`use Localize.Unit.Operators` overrides `+`, `-`, `*`, `/` for units within the calling module:
+
+```elixir
+defmodule MyApp.Example do
+  use Localize.Unit.Operators
+
+  def run do
+    km = Localize.Unit.new!(1, "kilometer")
+    m  = Localize.Unit.new!(500, "meter")
+
+    km + m       #=> %Unit{value: 1.5, name: "kilometer"}
+    km - m       #=> %Unit{value: 0.5, name: "kilometer"}
+    km * 3       #=> %Unit{value: 3, name: "kilometer"}
+    3 * km       #=> %Unit{value: 3, name: "kilometer"}
+    km / 2       #=> %Unit{value: 0.5, name: "kilometer"}
+
+    dist = Localize.Unit.new!(100, "meter")
+    time = Localize.Unit.new!(10, "second")
+    dist / time  #=> %Unit{value: 10.0, name: "meter-per-second"}
+
+    # Standard operators still work
+    2 + 3        #=> 5
+  end
+end
+```
+
 ## Common options
 
 | Option | Values | Default |

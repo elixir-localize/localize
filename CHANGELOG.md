@@ -10,6 +10,8 @@ The format is based on
 
 ### Added
 
+* `Localize.Unit.Operators` — `use Localize.Unit.Operators` overrides `+`, `-`, `*`, `/` within the calling module for natural unit arithmetic (`km + m`, `dist / time`). Standard Elixir operators are preserved for non-unit types.
+
 * Runtime locale downloading is now **opt-in**. The new `:allow_runtime_locale_download` application config key (default `false`) gates whether the `PersistentTerm` provider may download locale ETF files from the CDN when a cache miss occurs. When disabled (the default), a missing locale returns `{:error, %Localize.LocaleNotFoundInCacheError{}}` with a message that tells the user how to fix it (either run `mix localize.download_locales` or enable the config key). The `Localize.Locale.Provider` behaviour gains an optional `allow_download?/0` callback so alternative providers can implement their own download-gating logic.
 
 * `mix localize.download_locales` — new Mix task (shipped with the hex package) that downloads locale ETF files from the Localize CDN and writes them to the configured cache directory. With no arguments, downloads the configured `:supported_locales`. Also accepts explicit locale names (`mix localize.download_locales en fr de`) or `--all` for all CLDR locales. Intended for Dockerfiles, CI pipelines, and release builds.

@@ -315,6 +315,40 @@ iex> inv.value
 0.25
 ```
 
+## Operator syntax
+
+`use Localize.Unit.Operators` overrides `+`, `-`, `*`, and `/` within the calling module so that unit arithmetic reads naturally. Standard Elixir operators are preserved for non-unit types.
+
+```elixir
+defmodule MyApp.Physics do
+  use Localize.Unit.Operators
+
+  def speed(distance, time), do: distance / time
+
+  def momentum(mass, velocity), do: mass * velocity
+end
+
+km = Localize.Unit.new!(1, "kilometer")
+m  = Localize.Unit.new!(500, "meter")
+
+km + m          #=> %Localize.Unit{value: 1.5, name: "kilometer"}
+km - m          #=> %Localize.Unit{value: 0.5, name: "kilometer"}
+km * 3          #=> %Localize.Unit{value: 3, name: "kilometer"}
+3 * km          #=> %Localize.Unit{value: 3, name: "kilometer"}
+km / 2          #=> %Localize.Unit{value: 0.5, name: "kilometer"}
+
+dist = Localize.Unit.new!(100, "meter")
+time = Localize.Unit.new!(10, "second")
+dist / time     #=> %Localize.Unit{value: 10.0, name: "meter-per-second"}
+dist * time     #=> %Localize.Unit{value: 50, name: "meter-second"}
+
+# Standard operators still work for non-unit types
+2 + 3           #=> 5
+10 / 2          #=> 5.0
+```
+
+The operators raise on error (matching the bang convention) so they can be chained in expressions without unwrapping tuples. Errors from incompatible unit conversions surface as raised exceptions.
+
 ## Supported unit categories
 
 Units are organized into dimensional categories. Common categories and representative units:

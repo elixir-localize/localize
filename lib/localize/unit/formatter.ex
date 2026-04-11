@@ -270,11 +270,16 @@ defmodule Localize.Unit.Formatter do
 
   # ── Number formatting ──────────────────────────────────────
 
-  defp format_number(value, options) do
-    number_options =
-      options
-      |> Keyword.take([:locale, :fractional_digits, :currency])
+  @number_format_options [
+    :locale,
+    :fractional_digits,
+    :min_fractional_digits,
+    :max_fractional_digits,
+    :currency
+  ]
 
+  defp format_number(value, options) do
+    number_options = Keyword.take(options, @number_format_options)
     Localize.Number.to_string(value, number_options)
   end
 
