@@ -1182,5 +1182,4 @@ defmodule Localize.Currency do
       end
     end)
   end
-
 end
