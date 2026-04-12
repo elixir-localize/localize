@@ -13,13 +13,24 @@ defmodule Localize.UnknownStyleError do
   end
 
   @impl true
-  def message(%__MODULE__{style: style, territory: territory}) do
-    base = "The style #{inspect(style)} is unknown"
+  def message(%__MODULE__{style: style, territory: nil}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "unknown style error",
+      "The style %{style} is unknown.",
+      style: inspect(style)
+    )
+  end
 
-    if territory do
-      base <> " for territory #{inspect(territory)}."
-    else
-      base <> "."
-    end
+  def message(%__MODULE__{style: style, territory: territory}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "unknown style error",
+      "The style %{style} is unknown for territory %{territory}.",
+      style: inspect(style),
+      territory: inspect(territory)
+    )
   end
 end

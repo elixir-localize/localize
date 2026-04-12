@@ -228,7 +228,7 @@ defmodule Localize.Unit.CustomUnitTest do
 
   describe "load_custom_units/1" do
     test "loads from fixture file" do
-      path = Path.join([__DIR__, "..", "..", "fixtures", "custom_units.exs"])
+      path = Path.join([__DIR__, "..", "..", "support", "fixtures", "custom_units.exs"])
       assert {:ok, 3} = Unit.load_custom_units(path)
       assert CustomRegistry.registered?("smoot")
       assert CustomRegistry.registered?("cubit")
