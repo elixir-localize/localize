@@ -191,6 +191,11 @@ defmodule Localize.Locale.DistanceTrie do
   end
 
   defp ensure_loaded do
+    # Not routed through DataLoader because build() itself calls
+    # DataLoader.load to fetch supplemental data, which would
+    # deadlock (GenServer calling itself). The check-then-act
+    # pattern here is safe: build() is idempotent and the worst
+    # case of a concurrent race is a redundant persistent_term.put.
     case :persistent_term.get(@persistent_term_key, :not_loaded) do
       :not_loaded ->
         result = build()

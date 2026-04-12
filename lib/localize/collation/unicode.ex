@@ -26,27 +26,15 @@ defmodule Localize.Collation.Unicode do
   end
 
   defp load_combining_classes do
-    case :persistent_term.get(@combining_classes_key, :not_loaded) do
-      :not_loaded ->
-        data = load_etf("combining_classes.etf")
-        :persistent_term.put(@combining_classes_key, data)
-        data
-
-      data ->
-        data
-    end
+    Localize.DataLoader.load(@combining_classes_key, fn ->
+      load_etf("combining_classes.etf")
+    end)
   end
 
   defp load_decimal_digit_ranges do
-    case :persistent_term.get(@decimal_digit_ranges_key, :not_loaded) do
-      :not_loaded ->
-        data = load_etf("decimal_digit_ranges.etf")
-        :persistent_term.put(@decimal_digit_ranges_key, data)
-        data
-
-      data ->
-        data
-    end
+    Localize.DataLoader.load(@decimal_digit_ranges_key, fn ->
+      load_etf("decimal_digit_ranges.etf")
+    end)
   end
 
   defp load_etf(filename) do
