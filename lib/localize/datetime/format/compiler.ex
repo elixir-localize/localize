@@ -71,7 +71,8 @@ defmodule Localize.DateTime.Format.Compiler do
     {:error,
      Localize.DateTimeFormatError.exception(
        format: format,
-       reason: "Could not tokenize. Error detected at #{inspect(error)}"
+       reason: :tokenize_error,
+       detail: error
      )}
   end
 

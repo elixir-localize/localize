@@ -55,7 +55,7 @@ defmodule Localize.Validity.Script do
          Localize.InvalidSubtagError.exception(
            key: "unicode_script",
            value: unicode,
-           reason: "No unicode language #{inspect(unicode)} found."
+           reason: :unknown_script
          )}
     end
   end

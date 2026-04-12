@@ -3,7 +3,8 @@ defmodule Localize.UnitConversionError do
   Exception raised when a unit conversion cannot be performed.
 
   This may occur because the units are not convertible, the unit
-  has no value, or a special conversion is not supported.
+  requires a special conversion that is not supported, or the
+  conversion involves mixed units.
 
   """
 
@@ -15,25 +16,33 @@ defmodule Localize.UnitConversionError do
   end
 
   @impl true
-  def message(%__MODULE__{from: nil, to: nil, reason: reason}) do
+  def message(%__MODULE__{from: from, to: to, reason: :not_convertible}) do
     Gettext.dpgettext(
       Localize.Gettext,
       "localize",
       "unit",
-      "{$reason}",
-      reason: reason
+      "Units {$from} and {$to} are not convertible.",
+      from: inspect(from),
+      to: inspect(to)
     )
   end
 
-  def message(%__MODULE__{from: from, to: to, reason: reason}) when not is_nil(reason) do
+  def message(%__MODULE__{from: from, reason: :special_conversion}) do
     Gettext.dpgettext(
       Localize.Gettext,
       "localize",
       "unit",
-      "Cannot convert from {$from} to {$to}: {$reason}",
-      from: inspect(from),
-      to: inspect(to),
-      reason: reason
+      "Special conversion is not supported for {$from}.",
+      from: inspect(from)
+    )
+  end
+
+  def message(%__MODULE__{reason: :mixed_units}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "unit",
+      "Cannot compute conversion factor for mixed units."
     )
   end
 
@@ -42,7 +51,7 @@ defmodule Localize.UnitConversionError do
       Localize.Gettext,
       "localize",
       "unit",
-      "Units {$from} and {$to} are not convertible",
+      "Cannot convert from {$from} to {$to}.",
       from: inspect(from),
       to: inspect(to)
     )

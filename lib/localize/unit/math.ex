@@ -43,12 +43,7 @@ defmodule Localize.Unit.Math do
   end
 
   def negate(%Unit{value: nil}) do
-    {:error,
-     Localize.UnitConversionError.exception(
-       from: nil,
-       to: nil,
-       reason: "Cannot negate a unit without a value"
-     )}
+    {:error, Localize.UnitNoValueError.exception(operation: :negate)}
   end
 
   @doc """
@@ -90,12 +85,7 @@ defmodule Localize.Unit.Math do
   end
 
   def add(%Unit{}, %Unit{}) do
-    {:error,
-     Localize.UnitConversionError.exception(
-       from: nil,
-       to: nil,
-       reason: "Both units must have values for addition"
-     )}
+    {:error, Localize.UnitNoValueError.exception(operation: :add)}
   end
 
   @doc """
@@ -137,12 +127,7 @@ defmodule Localize.Unit.Math do
   end
 
   def sub(%Unit{}, %Unit{}) do
-    {:error,
-     Localize.UnitConversionError.exception(
-       from: nil,
-       to: nil,
-       reason: "Both units must have values for subtraction"
-     )}
+    {:error, Localize.UnitNoValueError.exception(operation: :subtract)}
   end
 
   @doc """
@@ -187,12 +172,7 @@ defmodule Localize.Unit.Math do
   end
 
   def invert(%Unit{value: nil}) do
-    {:error,
-     Localize.UnitConversionError.exception(
-       from: nil,
-       to: nil,
-       reason: "Cannot invert a unit without a value"
-     )}
+    {:error, Localize.UnitNoValueError.exception(operation: :invert)}
   end
 
   @doc """
@@ -709,10 +689,6 @@ defmodule Localize.Unit.Math do
   defp integer_to_power(n), do: {:pow, n}
 
   defp no_value_error(operation) do
-    Localize.UnitConversionError.exception(
-      from: nil,
-      to: nil,
-      reason: "Cannot apply #{operation} to a unit without a value"
-    )
+    Localize.UnitNoValueError.exception(operation: operation)
   end
 end

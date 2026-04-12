@@ -340,7 +340,7 @@ defmodule Localize.Validity.U do
     Localize.InvalidSubtagError.exception(
       key: key,
       value: nil,
-      reason: "The key #{inspect(key)} is not valid for the -u- subtag"
+      reason: :invalid_key
     )
   end
 end

@@ -90,7 +90,7 @@ defmodule Localize.DateTime do
 
         true ->
           {:error,
-           Localize.DateTimeFormatError.exception(format: format, reason: "invalid format")}
+           Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)}
       end
     end
   end
@@ -105,20 +105,12 @@ defmodule Localize.DateTime do
         Localize.Time.to_string(datetime, options)
 
       true ->
-        {:error,
-         Localize.DateTimeFormatError.exception(
-           format: nil,
-           reason: "datetime must have date and/or time keys"
-         )}
+        {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}
     end
   end
 
   def to_string(_invalid, _options) do
-    {:error,
-     Localize.DateTimeFormatError.exception(
-       format: nil,
-       reason: "expected a map with date and/or time keys"
-     )}
+    {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}
   end
 
   @doc """

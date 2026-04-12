@@ -246,12 +246,7 @@ defmodule Localize.Unit do
   @spec convert(t(), String.t()) :: {:ok, t()} | {:error, Exception.t()}
 
   def convert(%__MODULE__{value: nil}, _target) do
-    {:error,
-     Localize.UnitConversionError.exception(
-       from: nil,
-       to: nil,
-       reason: "Cannot convert a unit without a value"
-     )}
+    {:error, Localize.UnitNoValueError.exception(operation: :convert)}
   end
 
   def convert(%__MODULE__{value: value, name: from_name} = source, target)
@@ -434,12 +429,7 @@ defmodule Localize.Unit do
           {:ok, t()} | {:error, String.t()}
 
   def convert_measurement_system(%__MODULE__{value: nil}, _system) do
-    {:error,
-     Localize.UnitConversionError.exception(
-       from: nil,
-       to: nil,
-       reason: "Cannot convert a unit without a value"
-     )}
+    {:error, Localize.UnitNoValueError.exception(operation: :convert)}
   end
 
   def convert_measurement_system(%__MODULE__{} = unit, system)
@@ -502,10 +492,8 @@ defmodule Localize.Unit do
       nil ->
         {:error,
          Localize.UnitPreferenceError.exception(
-           unit: base_unit,
-           region: nil,
-           usage: nil,
-           reason: "No quantity found for base unit: #{inspect(base_unit)}"
+           reason: :unknown_quantity,
+           unit: base_unit
          )}
 
       quantity ->
@@ -518,10 +506,8 @@ defmodule Localize.Unit do
       nil ->
         {:error,
          Localize.UnitPreferenceError.exception(
-           unit: nil,
-           region: nil,
-           usage: nil,
-           reason: "No unit preferences found for quantity: #{inspect(quantity)}"
+           reason: :unknown_category,
+           quantity: quantity
          )}
 
       category ->
@@ -548,11 +534,9 @@ defmodule Localize.Unit do
       nil ->
         {:error,
          Localize.UnitPreferenceError.exception(
-           unit: nil,
-           region: nil,
-           usage: usage,
-           reason:
-             "No unit preferences for category #{inspect(category)} and usage #{inspect(usage)}"
+           reason: :no_preference_for_usage,
+           category: category,
+           usage: usage
          )}
 
       %{preferences: preferences} ->
@@ -562,11 +546,9 @@ defmodule Localize.Unit do
           nil ->
             {:error,
              Localize.UnitPreferenceError.exception(
-               unit: nil,
-               region: region,
-               usage: nil,
-               reason:
-                 "No unit preference for region #{inspect(region)} in category #{inspect(category)}"
+               reason: :no_preference_for_region,
+               category: category,
+               region: region
              )}
 
           %{unit: unit} ->
@@ -1030,12 +1012,7 @@ defmodule Localize.Unit do
   @spec compare(t(), t()) :: :lt | :eq | :gt | {:error, Exception.t()}
   def compare(%__MODULE__{value: v1} = _unit_1, %__MODULE__{value: v2} = _unit_2)
       when is_nil(v1) or is_nil(v2) do
-    {:error,
-     Localize.UnitConversionError.exception(
-       from: nil,
-       to: nil,
-       reason: "Both units must have values for comparison"
-     )}
+    {:error, Localize.UnitNoValueError.exception(operation: :compare)}
   end
 
   def compare(%__MODULE__{} = unit_1, %__MODULE__{} = unit_2) do
@@ -1090,12 +1067,7 @@ defmodule Localize.Unit do
   """
   @spec decompose(t(), [String.t()]) :: {:ok, [t()]} | {:error, Exception.t()}
   def decompose(%__MODULE__{value: nil}, _targets) do
-    {:error,
-     Localize.UnitConversionError.exception(
-       from: nil,
-       to: nil,
-       reason: "Cannot decompose a unit without a value"
-     )}
+    {:error, Localize.UnitNoValueError.exception(operation: :decompose)}
   end
 
   def decompose(%__MODULE__{} = unit, [single]) do

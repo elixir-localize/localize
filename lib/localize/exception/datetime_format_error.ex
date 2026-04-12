@@ -5,7 +5,7 @@ defmodule Localize.DateTimeFormatError do
 
   """
 
-  defexception [:format, :reason]
+  defexception [:format, :reason, :detail]
 
   @impl true
   def exception(bindings) when is_list(bindings) do
@@ -13,14 +13,45 @@ defmodule Localize.DateTimeFormatError do
   end
 
   @impl true
-  def message(%__MODULE__{format: format, reason: reason}) do
+  def message(%__MODULE__{format: format, reason: :invalid_format}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "datetime",
+      "The format {$format} is invalid.",
+      format: inspect(format)
+    )
+  end
+
+  def message(%__MODULE__{format: format, reason: :tokenize_error, detail: detail}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "datetime",
+      "Could not tokenize the format {$format}: {$detail}.",
+      format: inspect(format),
+      detail: inspect(detail)
+    )
+  end
+
+  def message(%__MODULE__{format: format, reason: reason}) when not is_nil(reason) do
     Gettext.dpgettext(
       Localize.Gettext,
       "localize",
       "datetime",
       "The format {$format} is invalid: {$reason}.",
       format: inspect(format),
-      reason: reason
+      reason: inspect(reason)
+    )
+  end
+
+  def message(%__MODULE__{format: format}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "datetime",
+      "The format {$format} is invalid.",
+      format: inspect(format)
     )
   end
 end

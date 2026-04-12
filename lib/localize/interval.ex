@@ -151,7 +151,9 @@ defmodule Localize.Interval do
       nil ->
         {:error,
          Localize.DateTimeIntervalFormatError.exception(
-           reason: "unknown style #{inspect(style)} or format #{inspect(format)}"
+           reason: :unknown_style,
+           style: style,
+           format: format
          )}
 
       format_key ->
@@ -164,7 +166,8 @@ defmodule Localize.Interval do
       nil ->
         {:error,
          Localize.DateTimeIntervalFormatError.exception(
-           reason: "no interval format found for #{inspect(format_key)}"
+           reason: :no_format,
+           format_key: format_key
          )}
 
       format_map when is_map(format_map) ->
@@ -180,8 +183,9 @@ defmodule Localize.Interval do
         else
           {:error,
            Localize.DateTimeIntervalFormatError.exception(
-             reason:
-               "no interval pattern for difference #{inspect(greatest_diff)} in format #{inspect(format_key)}"
+             reason: :no_pattern,
+             format_key: format_key,
+             detail: greatest_diff
            )}
         end
 
@@ -211,7 +215,8 @@ defmodule Localize.Interval do
   defp do_split_interval("", _acc, left) do
     {:error,
      Localize.DateTimeIntervalFormatError.exception(
-       reason: "invalid interval format #{inspect(left)}"
+       reason: :invalid_format,
+       detail: left
      )}
   end
 
@@ -222,10 +227,7 @@ defmodule Localize.Interval do
         do_split_interval(rest, acc, left <> "'" <> literal <> "'")
 
       [_] ->
-        {:error,
-         Localize.DateTimeIntervalFormatError.exception(
-           reason: "unterminated quote in interval format"
-         )}
+        {:error, Localize.DateTimeIntervalFormatError.exception(reason: :unterminated_quote)}
     end
   end
 

@@ -236,7 +236,7 @@ defmodule Localize.Validity.T do
     Localize.InvalidSubtagError.exception(
       key: key,
       value: encoded,
-      reason: "The date #{inspect(encoded)} must be the last value in a subtag"
+      reason: :date_not_last
     )
   end
 end

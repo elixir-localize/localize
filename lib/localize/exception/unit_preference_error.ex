@@ -5,7 +5,7 @@ defmodule Localize.UnitPreferenceError do
 
   """
 
-  defexception [:unit, :region, :usage, :reason]
+  defexception [:unit, :region, :usage, :category, :quantity, :reason]
 
   @impl true
   def exception(bindings) when is_list(bindings) do
@@ -13,13 +13,45 @@ defmodule Localize.UnitPreferenceError do
   end
 
   @impl true
-  def message(%__MODULE__{reason: reason}) do
+  def message(%__MODULE__{reason: :unknown_quantity, unit: unit}) do
     Gettext.dpgettext(
       Localize.Gettext,
       "localize",
       "unit",
-      "No unit preference found: {$reason}",
-      reason: reason
+      "No quantity found for base unit {$unit}.",
+      unit: inspect(unit)
+    )
+  end
+
+  def message(%__MODULE__{reason: :unknown_category, quantity: quantity}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "unit",
+      "No unit preferences found for quantity {$quantity}.",
+      quantity: inspect(quantity)
+    )
+  end
+
+  def message(%__MODULE__{reason: :no_preference_for_usage, category: category, usage: usage}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "unit",
+      "No unit preferences for category {$category} and usage {$usage}.",
+      category: inspect(category),
+      usage: inspect(usage)
+    )
+  end
+
+  def message(%__MODULE__{reason: :no_preference_for_region, category: category, region: region}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "unit",
+      "No unit preference for region {$region} in category {$category}.",
+      region: inspect(region),
+      category: inspect(category)
     )
   end
 end

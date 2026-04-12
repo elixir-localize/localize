@@ -96,7 +96,7 @@ defmodule Localize.DateTimeTest do
 
   describe "to_string/2 error handling" do
     test "empty map returns error" do
-      assert {:error, %Localize.DateTimeFormatError{}} =
+      assert {:error, %Localize.DateTimeInvalidInputError{}} =
                Localize.DateTime.to_string(%{foo: :bar})
     end
   end
@@ -108,7 +108,7 @@ defmodule Localize.DateTimeTest do
     end
 
     test "raises on error" do
-      assert_raise Localize.DateTimeFormatError, fn ->
+      assert_raise Localize.DateTimeInvalidInputError, fn ->
         Localize.DateTime.to_string!(%{foo: :bar})
       end
     end

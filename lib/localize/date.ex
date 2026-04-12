@@ -128,11 +128,7 @@ defmodule Localize.Date do
   end
 
   def to_string(_date, _options) do
-    {:error,
-     Localize.DateTimeFormatError.exception(
-       format: nil,
-       reason: "date must have at least one of :year, :month, or :day keys"
-     )}
+    {:error, Localize.DateTimeInvalidInputError.exception(type: :date)}
   end
 
   @doc """
@@ -172,7 +168,7 @@ defmodule Localize.Date do
   end
 
   defp find_format(_date, format, _locale_id, _options) do
-    {:error, Localize.DateTimeFormatError.exception(format: format, reason: "invalid format")}
+    {:error, Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)}
   end
 
   defp resolve_skeleton(skeleton, locale_id, options) when is_atom(skeleton) do

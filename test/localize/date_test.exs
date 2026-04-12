@@ -151,12 +151,12 @@ defmodule Localize.DateTest do
 
   describe "to_string/2 error handling" do
     test "non-date map returns error" do
-      assert {:error, %Localize.DateTimeFormatError{}} =
+      assert {:error, %Localize.DateTimeInvalidInputError{}} =
                Localize.Date.to_string(%{foo: :bar})
     end
 
     test "string input returns error" do
-      assert {:error, %Localize.DateTimeFormatError{}} =
+      assert {:error, %Localize.DateTimeInvalidInputError{}} =
                Localize.Date.to_string("not a date")
     end
 
@@ -177,7 +177,7 @@ defmodule Localize.DateTest do
     end
 
     test "raises on error" do
-      assert_raise Localize.DateTimeFormatError, fn ->
+      assert_raise Localize.DateTimeInvalidInputError, fn ->
         Localize.Date.to_string!(%{foo: :bar})
       end
     end

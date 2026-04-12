@@ -116,11 +116,7 @@ defmodule Localize.Time do
   end
 
   def to_string(_time, _options) do
-    {:error,
-     Localize.DateTimeFormatError.exception(
-       format: nil,
-       reason: "time must have at least one of :hour, :minute, or :second keys"
-     )}
+    {:error, Localize.DateTimeInvalidInputError.exception(type: :time)}
   end
 
   @doc """
@@ -155,7 +151,7 @@ defmodule Localize.Time do
   end
 
   defp find_format(_time, format, _locale_id, _options) do
-    {:error, Localize.DateTimeFormatError.exception(format: format, reason: "invalid format")}
+    {:error, Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)}
   end
 
   defp resolve_skeleton(skeleton, locale_id, options) when is_atom(skeleton) do
