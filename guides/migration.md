@@ -72,7 +72,6 @@ config :localize,
 | `:allow_runtime_locale_download` | `false` | When `true`, locales not in the cache are downloaded from the CDN on first access. Default `false` — use `mix localize.download_locales` to pre-populate at build time. |
 | `:locale_provider` | `Localize.Locale.Provider.PersistentTerm` | Module implementing `Localize.Locale.Provider` for locale data loading. |
 | `:nif` | `false` | Enable the optional ICU4C NIF backend. Also settable via `LOCALIZE_NIF=true`. |
-| `:custom_currencies` | `nil` | List of `{code, options}` tuples to register as custom currencies at startup. See `Localize.Currency`. |
 | `:mf2_functions` | `%{}` | Map of custom MF2 function modules (see `Localize.Message.Function`). |
 | `:cacertfile` | System default | Path to a custom CA certificate file for HTTPS connections. |
 | `:https_proxy` | `nil` | HTTPS proxy URL. Also reads `HTTPS_PROXY` env var. |

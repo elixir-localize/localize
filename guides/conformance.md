@@ -213,7 +213,6 @@ Two areas are explicitly out of scope:
 | Currency digits/rounding | Implemented | Supplemental currency data. |
 | Territory currency history | Implemented | `Localize.Currency.territory_currencies/1` with date ranges. |
 | Current currency for territory | Implemented | `Localize.Currency.current_currency_for_territory/1`. |
-| Custom/private currencies | Implemented | `Localize.Currency.Store` GenServer. |
 
 ### Plural Rules
 

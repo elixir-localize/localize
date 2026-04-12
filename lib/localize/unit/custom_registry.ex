@@ -4,7 +4,7 @@ defmodule Localize.Unit.CustomRegistry do
 
   Custom units are stored in a single map keyed by unit name. The registry
   is checked by `Localize.Unit.Data`, `Localize.Unit.BaseUnit`,
-  `Localize.Unit.Conversion`, and `Localize.Unit.Formatter` to overlay
+  `Localize.Unit.Conversion`, and the unit formatter to overlay
   runtime definitions on top of the compile-time CLDR data.
 
   ## Definition structure

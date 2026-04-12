@@ -137,7 +137,6 @@ config :localize,
 | `:locale_cache_dir` | `Application.app_dir(:localize, "priv/localize/locales")` | Directory where downloaded per-locale ETF data files are cached. See `Localize.Locale.Provider.locale_cache_dir/0`. |
 | `:allow_runtime_locale_download` | `false` | When `true`, locales not found in the on-disk cache are downloaded from the Localize CDN on first access. When `false` (the default), missing locales return an error. Use `mix localize.download_locales` to pre-populate the cache at build time. |
 | `:nif` | `false` | Enable the optional NIF for faster Unicode normalisation and collation sort-key generation. Can also be enabled with the `LOCALIZE_NIF=true` environment variable at compile time. See `Localize.Nif` for details. |
-| `:custom_currencies` | `nil` | A list of `{code, options}` tuples to register as custom currencies at application startup. Codes must be either ISO 4217 private-use (`X[A-Z]{2}`, e.g. `:XAC`) or extended custom codes (`[A-Z][A-Z0-9]{3,10}`, e.g. `:MYZC`). Each tuple is passed to `Localize.Currency.new/2`. See `Localize.Currency` for available options. |
 | `:mf2_functions` | `%{}` | Map of custom MF2 formatting function modules. See `Localize.Message.Function`. |
 | `:cacertfile` | System default | Path to a custom CA certificate file for HTTPS connections (used when downloading locale data). |
 | `:https_proxy` | `nil` | HTTPS proxy URL. Also reads the `HTTPS_PROXY` environment variable. |
@@ -250,4 +249,4 @@ Localize is the core CLDR-backed formatting and validation library. The followin
 
 ## License
 
-Apache License 2.0. See the [LICENSE](LICENSE.md) file for details.
+Apache License 2.0. See the [LICENSE](https://github.com/elixir-localize/localize/blob/main/LICENSE.md) file for details.

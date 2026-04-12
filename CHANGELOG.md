@@ -44,4 +44,4 @@ Initial release.
 
 * All public API functions return a standardized `{:error, exception}` (except bang variants). The exception is a standard Elixir exception struct populated with semantic information about the error. The error message can be returned by `Exception.message(exception)`. The exception messages are all Gettext messages using the MF2 format and can be localized.
 
-See the [README](README.md) for full documentation, configuration options, and usage examples.
+See the [README](https://hexdocs.pm/localize/readme.html) for full documentation, configuration options, and usage examples.
