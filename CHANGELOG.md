@@ -16,6 +16,8 @@ The format is based on
 
 * `mix localize.download_locales` — new Mix task (shipped with the hex package) that downloads locale ETF files from the Localize CDN and writes them to the configured cache directory. With no arguments, downloads the configured `:supported_locales`. Also accepts explicit locale names (`mix localize.download_locales en fr de`) or `--all` for all CLDR locales. Intended for Dockerfiles, CI pipelines, and release builds.
 
+* Custom currency support — `Localize.Currency.new/2` accepts ISO 4217 private-use codes (`X[A-Z]{2}`, e.g. `:XAC`) and extended custom codes (`[A-Z][A-Z0-9]{3,10}`, e.g. `:MYZC`). Custom currencies are stored in `Localize.Currency.Store` and participate in all currency formatting and validation. The `:digits` option now defaults to `2` when omitted. The new `:custom_currencies` application config key registers a list of `{code, options}` tuples at startup.
+
 * `Localize.Locale.expand_locale_list/2` — extracted from `Localize.Application` as a public function so mix tasks and user code can expand wildcard locale lists (e.g. `"en-*"`) against the known CLDR locale set.
 
 * `Localize.Message.Function` behaviour — defines the callback shape for custom MF2 formatting functions. Custom functions can be registered per-call via the `:functions` option on `Localize.Message.format/3` or application-wide via `config :localize, :mf2_functions, %{"name" => Module}`. Per-call functions take precedence over application-level functions, which take precedence over built-in functions. Unknown function names with no registry entry fall back to `Kernel.to_string/1` on the operand value.

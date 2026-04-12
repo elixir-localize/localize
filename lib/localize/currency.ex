@@ -4,8 +4,8 @@ defmodule Localize.Currency do
   codes, validate currencies, and retrieve currency metadata.
 
   Currency data is derived from the Unicode CLDR repository and
-  includes all ISO 4217 currency codes, territory-to-currency
-  mappings, and support for custom (private use) currencies.
+  includes all ISO 4217 currency codes and territory-to-currency
+  mappings.
 
   Locale-specific currency data (display names, pluralized names,
   symbols) is loaded on demand from the locale data provider.
@@ -16,7 +16,7 @@ defmodule Localize.Currency do
 
   @type currency_code :: atom()
 
-  @type currency_status :: :all | :current | :historic | :tender | :unannotated | :private
+  @type currency_status :: :all | :current | :historic | :tender | :unannotated
 
   @type filter :: list(currency_status() | currency_code()) | currency_status() | currency_code()
 
@@ -58,86 +58,10 @@ defmodule Localize.Currency do
             from: nil,
             to: nil
 
-  @valid_custom_currency_code ~r/^[A-Z][A-Z0-9]{3,10}$/
-  @valid_private_currency_code ~r/^X[A-Z]{2}$/
-
   # ── Known currency codes (loaded from ETF at compile time) ───
 
   @currency_codes SupplementalData.currency_codes()
   @territory_currencies SupplementalData.territory_currencies()
-
-  # ── Creating custom currencies ───────────────────────────────
-
-  @doc """
-  Creates a new custom currency and stores it.
-
-  Custom currency codes must be either ISO 4217 private use codes
-  (matching `X[A-Z]{2}`) or extended codes with 4-11 uppercase
-  alphanumeric characters. The code must not already be defined.
-
-  ### Arguments
-
-  * `currency_code` is an atom or string currency code.
-
-  * `options` is a keyword list of currency attributes.
-
-  ### Options
-
-  * `:name` is the name of the currency. Required.
-
-  * `:digits` is the precision of the currency. Required.
-
-  * `:symbol` is the currency symbol. Optional.
-
-  * `:narrow_symbol` is an alternative narrow symbol. Optional.
-
-  * `:round_nearest` is the rounding precision such as `0.05`. Optional.
-
-  * `:alt_code` is an alternative currency code for application use. Optional.
-
-  * `:cash_digits` is the precision when used as cash. Optional.
-
-  * `:cash_round_nearest` is the cash rounding precision. Optional.
-
-  ### Returns
-
-  * `{:ok, Localize.Currency.t()}` on success.
-
-  * `{:error, exception}` if the code is invalid or already defined.
-
-  ### Examples
-
-      iex> Localize.Currency.new(:XAC, name: "XAC currency", digits: 0)
-      {:ok,
-       %Localize.Currency{
-        code: :XAC,
-        alt_code: :XAC,
-        name: "XAC currency",
-        symbol: "XAC",
-        narrow_symbol: nil,
-        digits: 0,
-        rounding: 0,
-        cash_digits: 0,
-        cash_rounding: nil,
-        iso_digits: 0,
-        decimal_separator: nil,
-        grouping_separator: nil,
-        tender: false,
-        count: %{other: "XAC currency"},
-        from: nil,
-        to: nil
-      }}
-
-  """
-  @spec new(atom() | String.t(), Keyword.t()) ::
-          {:ok, t()} | {:error, Exception.t()}
-  def new(currency_code, options \\ []) do
-    with {:ok, currency_code} <- validate_new_currency(currency_code),
-         {:ok, options} <- validate_options(currency_code, options) do
-      currency = struct(__MODULE__, [{:code, currency_code} | options])
-      Localize.Currency.Store.put(currency)
-    end
-  end
 
   # ── Currency validation ──────────────────────────────────────
 
@@ -183,61 +107,10 @@ defmodule Localize.Currency do
     end
   end
 
-  @doc """
-  Validates that a currency code is available for defining
-  as a new custom currency.
-
-  ### Arguments
-
-  * `currency_code` is an atom or string currency code.
-
-  ### Returns
-
-  * `{:ok, currency_code}` if the code is valid and not yet defined.
-
-  * `{:error, exception}` if the code is already defined or invalid.
-
-  ### Examples
-
-      iex> Localize.Currency.validate_new_currency(:XAD)
-      {:ok, :XAD}
-
-  """
-  @spec validate_new_currency(atom() | String.t()) ::
-          {:ok, currency_code()} | {:error, Exception.t()}
-  def validate_new_currency(currency_code) do
-    canonical_code = canonicalize_currency_code(currency_code)
-
-    if canonical_code in @currency_codes do
-      {:error, Localize.CurrencyAlreadyDefinedError.exception(currency: canonical_code)}
-    else
-      case validate_custom_currency_code(currency_code) do
-        {:ok, code} ->
-          if code in Localize.Currency.Store.codes() do
-            {:error, Localize.CurrencyAlreadyDefinedError.exception(currency: code)}
-          else
-            {:ok, code}
-          end
-
-        {:error, _} = error ->
-          error
-      end
-    end
-  end
-
-  defp canonicalize_currency_code(code) when is_atom(code), do: code
-
-  defp canonicalize_currency_code(code) when is_binary(code) do
-    code |> String.upcase() |> String.to_atom()
-  end
-
   # ── Known currencies ─────────────────────────────────────────
 
   @doc """
   Returns a list of all known currency codes.
-
-  This includes all ISO 4217 codes plus any custom currencies
-  that have been registered.
 
   ### Returns
 
@@ -252,7 +125,7 @@ defmodule Localize.Currency do
   """
   @spec known_currency_codes() :: [currency_code(), ...]
   def known_currency_codes do
-    @currency_codes ++ Localize.Currency.Store.codes()
+    @currency_codes
   end
 
   @doc """
@@ -281,32 +154,6 @@ defmodule Localize.Currency do
       {:ok, _} -> true
       {:error, _} -> false
     end
-  end
-
-  @doc """
-  Returns a list of all custom currency codes.
-
-  ### Returns
-
-  * A list of atom currency codes that were defined with `new/2`.
-
-  """
-  @spec private_currency_codes() :: [atom()]
-  def private_currency_codes do
-    Localize.Currency.Store.codes()
-  end
-
-  @doc """
-  Returns a map of all custom currencies.
-
-  ### Returns
-
-  * A map of `%{currency_code => Localize.Currency.t()}`.
-
-  """
-  @spec private_currencies() :: %{currency_code() => t()}
-  def private_currencies do
-    Localize.Currency.Store.all()
   end
 
   # ── Territory currency functions ─────────────────────────────
@@ -651,8 +498,7 @@ defmodule Localize.Currency do
   in the given locale.
 
   Looks up localized currency data (display name, symbol, plural
-  forms) for a specific currency code. Custom (private use)
-  currencies are also checked if not found in the locale data.
+  forms) for a specific currency code.
 
   ### Arguments
 
@@ -681,14 +527,8 @@ defmodule Localize.Currency do
     with {:ok, code} <- validate_currency(currency_code),
          {:ok, currencies} <- currencies_for_locale(locale) do
       case Map.get(currencies, code) do
-        nil ->
-          case Map.get(private_currencies(), code) do
-            nil -> {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
-            currency -> {:ok, currency}
-          end
-
-        currency ->
-          {:ok, currency}
+        nil -> {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
+        currency -> {:ok, currency}
       end
     end
   end
@@ -1166,9 +1006,6 @@ defmodule Localize.Currency do
       :unannotated ->
         Enum.filter(currencies_list, fn {_, c} -> unannotated?(c) end)
 
-      :private ->
-        Enum.to_list(private_currencies())
-
       code when is_atom(code) ->
         Enum.filter(currencies_list, fn {k, _} -> k == code end)
 
@@ -1272,21 +1109,6 @@ defmodule Localize.Currency do
 
   # ── Private helpers ──────────────────────────────────────────
 
-  defp validate_custom_currency_code(currency_code) when is_binary(currency_code) do
-    upcase_code = String.upcase(currency_code)
-
-    if Regex.match?(@valid_custom_currency_code, upcase_code) ||
-         Regex.match?(@valid_private_currency_code, upcase_code) do
-      {:ok, String.to_atom(upcase_code)}
-    else
-      {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
-    end
-  end
-
-  defp validate_custom_currency_code(currency_code) when is_atom(currency_code) do
-    validate_custom_currency_code(to_string(currency_code))
-  end
-
   @rtl_mark "\u200F"
 
   defp to_locale_id(locale), do: Localize.Locale.to_locale_id(locale)
@@ -1361,31 +1183,4 @@ defmodule Localize.Currency do
     end)
   end
 
-  defp validate_options(code, options) do
-    if options[:name] && options[:digits] do
-      validated = [
-        code: code,
-        alt_code: options[:alt_code] || code,
-        name: options[:name],
-        symbol: options[:symbol] || to_string(code),
-        narrow_symbol: options[:narrow_symbol] || options[:symbol],
-        digits: options[:digits],
-        rounding: options[:round_nearest] || 0,
-        cash_digits: options[:cash_digits] || options[:digits],
-        cash_rounding: options[:cash_round_nearest] || options[:round_nearest],
-        iso_digits: options[:digits],
-        tender: options[:tender] || false,
-        count: options[:count] || %{other: options[:name]}
-      ]
-
-      {:ok, validated}
-    else
-      {:error,
-       Localize.InvalidValueError.exception(
-         value: options,
-         expected: "options with :name and :digits keys",
-         context: "Localize.Currency.new/2"
-       )}
-    end
-  end
 end
