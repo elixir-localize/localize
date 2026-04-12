@@ -73,8 +73,32 @@ defmodule Localize.Locale.Provider.Cache do
   @spec get(locale_id()) ::
           {:ok, map()} | {:error, Exception.t()}
   def get(locale_id) when is_atom(locale_id) do
-    file_path = path(locale_id)
+    cache_dir = Provider.locale_cache_dir()
+    bundled_dir = Provider.default_locale_cache_dir()
+    file_name = Provider.locale_file_name(locale_id)
 
+    search_paths =
+      if cache_dir == bundled_dir do
+        [Path.join(cache_dir, file_name)]
+      else
+        [Path.join(cache_dir, file_name), Path.join(bundled_dir, file_name)]
+      end
+
+    read_first(locale_id, search_paths)
+  end
+
+  defp read_first(locale_id, [file_path]) do
+    read_and_validate(locale_id, file_path)
+  end
+
+  defp read_first(locale_id, [file_path | rest]) do
+    case read_and_validate(locale_id, file_path) do
+      {:ok, _locale_data} = success -> success
+      {:error, _} -> read_first(locale_id, rest)
+    end
+  end
+
+  defp read_and_validate(locale_id, file_path) do
     case File.read(file_path) do
       {:ok, binary} ->
         locale_data = :erlang.binary_to_term(binary)

@@ -33,6 +33,7 @@ mise.toml
 # Generated locale ETF files (populated via mix localize.generate_locales)
 /priv/localize/locales/
 !/priv/localize/locales/en.etf
+!/priv/localize/locales/und.etf
 
 # Experiment files
 bench_unit_parser.sh
