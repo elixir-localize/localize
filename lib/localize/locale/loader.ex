@@ -109,8 +109,8 @@ defmodule Localize.Locale.Loader do
         :ok
       else
         try do
-          case provider.load(locale) do
-            {:ok, locale_data} ->
+          case Localize.Locale.Provider.load_with_fallback(provider, locale) do
+            {:ok, locale_data, _resolved_locale_id} ->
               provider.store(locale, locale_data)
 
             {:error, _reason} = error ->

@@ -172,6 +172,96 @@ defmodule Localize.Locale.Provider do
   end
 
   @doc """
+  Loads locale data with fallback through the CLDR parent chain.
+
+  Attempts to load the requested locale via `provider.load/1`. If the
+  load fails, walks up the CLDR locale inheritance chain (e.g.
+  `en-AU` → `en` → `und`) trying each parent in turn. If the entire
+  chain is exhausted without success, falls back to `:en` which is
+  guaranteed to be present.
+
+  Returns `{:ok, locale_data, resolved_locale_id}` so the caller
+  knows which locale was actually loaded.
+
+  ### Arguments
+
+  * `provider` is the module implementing `Localize.Locale.Provider`.
+
+  * `locale` is a locale identifier atom or a `t:Localize.LanguageTag.t/0`.
+
+  ### Returns
+
+  * `{:ok, locale_data, resolved_locale_id}` on success.
+
+  * `{:error, exception}` if even the `:en` fallback fails (should not
+    happen in normal operation).
+
+  """
+  @spec load_with_fallback(module(), locale()) ::
+          {:ok, map(), locale_id()} | {:error, Exception.t()}
+  def load_with_fallback(provider, locale) do
+    locale_id = Localize.Locale.to_locale_id(locale)
+
+    case provider.load(locale) do
+      {:ok, locale_data} ->
+        {:ok, locale_data, locale_id}
+
+      {:error, _exception} ->
+        require Logger
+
+        Logger.debug(
+          "Locale #{inspect(locale_id)} not available, walking parent chain",
+          domain: [:localize]
+        )
+
+        walk_parent_chain(provider, locale_id)
+    end
+  end
+
+  defp walk_parent_chain(provider, locale_id) do
+    require Logger
+
+    case Localize.Locale.parent(to_string(locale_id)) do
+      {:ok, parent_tag} ->
+        parent_id = Localize.Locale.to_locale_id(parent_tag)
+
+        Logger.debug(
+          "Trying parent locale #{inspect(parent_id)} for #{inspect(locale_id)}",
+          domain: [:localize]
+        )
+
+        case provider.load(parent_id) do
+          {:ok, locale_data} ->
+            {:ok, locale_data, parent_id}
+
+          {:error, _} ->
+            walk_parent_chain(provider, parent_id)
+        end
+
+      {:error, _} ->
+        # Reached root (und) with no success — fall back to :en
+        fallback_to_en(provider, locale_id)
+    end
+  end
+
+  defp fallback_to_en(provider, original_locale_id) do
+    require Logger
+
+    Logger.debug(
+      "Parent chain exhausted for #{inspect(original_locale_id)}, falling back to :en",
+      domain: [:localize]
+    )
+
+    case provider.load(:en) do
+      {:ok, locale_data} ->
+        {:ok, locale_data, :en}
+
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  @doc """
   Returns the directory in which downloaded locale data is cached.
 
   The directory is resolved from the `:locale_cache_dir` application
