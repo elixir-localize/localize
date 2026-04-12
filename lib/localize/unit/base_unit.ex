@@ -89,8 +89,7 @@ defmodule Localize.Unit.BaseUnit do
   def base_unit!(input) do
     case base_unit(input) do
       {:ok, result} -> result
-      {:error, %{__exception__: true} = exception} -> raise exception
-      {:error, reason} -> raise ArgumentError, Kernel.to_string(reason)
+      {:error, exception} -> raise exception
     end
   end
 

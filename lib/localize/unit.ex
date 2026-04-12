@@ -176,8 +176,7 @@ defmodule Localize.Unit do
   def new!(amount, unit, options \\ []) when is_binary(unit) do
     case new(amount, unit, options) do
       {:ok, result} -> result
-      {:error, %{__exception__: true} = exception} -> raise exception
-      {:error, reason} -> raise ArgumentError, Kernel.to_string(reason)
+      {:error, exception} -> raise exception
     end
   end
 
@@ -207,8 +206,7 @@ defmodule Localize.Unit do
   def new!(name) when is_binary(name) do
     case new(name) do
       {:ok, unit} -> unit
-      {:error, %{__exception__: true} = exception} -> raise exception
-      {:error, reason} -> raise ArgumentError, Kernel.to_string(reason)
+      {:error, exception} -> raise exception
     end
   end
 
@@ -391,8 +389,7 @@ defmodule Localize.Unit do
   def convert!(%__MODULE__{} = unit, target) when is_binary(target) do
     case convert(unit, target) do
       {:ok, result} -> result
-      {:error, %{__exception__: true} = exception} -> raise exception
-      {:error, reason} -> raise ArgumentError, Kernel.to_string(reason)
+      {:error, exception} -> raise exception
     end
   end
 

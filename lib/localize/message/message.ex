@@ -257,7 +257,7 @@ defmodule Localize.Message do
       {:ok, binary} ->
         binary
 
-      {:error, %{__exception__: true} = exception} ->
+      {:error, exception} ->
         raise exception
     end
   end

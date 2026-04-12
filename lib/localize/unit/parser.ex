@@ -83,7 +83,7 @@ defmodule Localize.Unit.Parser do
   def parse!(input) when is_binary(input) do
     case parse(input) do
       {:ok, parsed} -> parsed
-      {:error, %{__exception__: true} = exception} -> raise exception
+      {:error, exception} -> raise exception
     end
   end
 

@@ -134,8 +134,7 @@ defmodule Localize.Unit.Conversion do
   def convert!(value, from, to) do
     case convert(value, from, to) do
       {:ok, result} -> result
-      {:error, %{__exception__: true} = exception} -> raise exception
-      {:error, reason} -> raise ArgumentError, Kernel.to_string(reason)
+      {:error, exception} -> raise exception
     end
   end
 

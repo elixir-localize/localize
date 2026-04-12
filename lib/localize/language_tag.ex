@@ -405,8 +405,7 @@ defmodule Localize.LanguageTag do
   def canonicalize!(%__MODULE__{} = language_tag) do
     case canonicalize(language_tag) do
       {:ok, tag} -> tag
-      {:error, %{__exception__: true} = exception} -> raise exception
-      {:error, reason} -> raise ArgumentError, "Failed to canonicalize: #{inspect(reason)}"
+      {:error, exception} -> raise exception
     end
   end
 

@@ -64,7 +64,7 @@ defmodule Localize.Validity.Script do
   def unicode_to_subtag!(unicode) do
     case unicode_to_subtag(unicode) do
       {:ok, subtag} -> subtag
-      {:error, %{__exception__: true} = exception} -> raise exception
+      {:error, exception} -> raise exception
     end
   end
 end
