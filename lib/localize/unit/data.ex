@@ -252,7 +252,7 @@ defmodule Localize.Unit.Data do
   Returns the conversion factor for a unit, checking custom registry first.
 
   """
-  @spec conversion_factor(String.t()) :: %{factor: number(), offset: number()} | nil
+  @spec conversion_factor(String.t()) :: %{factor: number() | :special, offset: number()} | nil
   def conversion_factor(unit_name) do
     case Localize.Unit.CustomRegistry.get(unit_name) do
       nil ->

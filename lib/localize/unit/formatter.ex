@@ -360,9 +360,9 @@ defmodule Localize.Unit.Formatter do
     end
   end
 
-  defp extract_locale_id(%Localize.LanguageTag{cldr_locale_id: id}) when not is_nil(id), do: id
-  defp extract_locale_id(locale) when is_atom(locale), do: locale
-  defp extract_locale_id(_), do: :en
+  defp extract_locale_id(locale) do
+    Localize.Locale.to_locale_id(locale)
+  end
 
   # ── Fallback formatting ────────────────────────────────────
 
