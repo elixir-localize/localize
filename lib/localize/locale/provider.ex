@@ -214,11 +214,11 @@ defmodule Localize.Locale.Provider do
           domain: [:localize]
         )
 
-        walk_parent_chain(provider, locale_id)
+        walk_parent_chain(provider, locale_id, locale_id)
     end
   end
 
-  defp walk_parent_chain(provider, locale_id) do
+  defp walk_parent_chain(provider, locale_id, original_locale_id) do
     require Logger
 
     case Localize.Locale.parent(to_string(locale_id)) do
@@ -232,6 +232,11 @@ defmodule Localize.Locale.Provider do
 
         case provider.load(parent_id) do
           {:ok, locale_data} ->
+            Logger.debug(
+              "Loaded and using locale #{inspect(parent_id)} (parent locale of #{inspect(locale_id)}) since #{inspect(original_locale_id)} is not available.",
+              domain: [:localize]
+            )
+
             {:ok, locale_data, parent_id}
 
           {:error, _} ->
@@ -242,12 +247,12 @@ defmodule Localize.Locale.Provider do
               domain: [:localize]
             )
 
-            walk_parent_chain(provider, parent_id)
+            walk_parent_chain(provider, parent_id, original_locale_id)
         end
 
       {:error, _} ->
         # Reached root (und) with no success — fall back to :en
-        fallback_to_en(provider, locale_id)
+        fallback_to_en(provider, original_locale_id)
     end
   end
 
@@ -261,6 +266,11 @@ defmodule Localize.Locale.Provider do
 
     case provider.load(:en) do
       {:ok, locale_data} ->
+        Logger.debug(
+          "Loaded and using locale :en (global default) since #{inspect(original_locale_id)} is not available.",
+          domain: [:localize]
+        )
+
         {:ok, locale_data, :en}
 
       {:error, _} = error ->
