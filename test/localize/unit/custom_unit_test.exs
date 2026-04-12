@@ -239,6 +239,20 @@ defmodule Localize.Unit.CustomUnitTest do
       assert {:error, message} = Unit.load_custom_units("nonexistent.exs")
       assert message =~ "file not found"
     end
+
+    test "returns error when file has valid syntax but wrong shape" do
+      path = Path.join([__DIR__, "..", "..", "support", "fixtures", "custom_units_bad_shape.exs"])
+      assert {:error, message} = Unit.load_custom_units(path)
+      assert message =~ "invalid definition"
+    end
+
+    test "returns error when file has invalid Elixir syntax" do
+      path =
+        Path.join([__DIR__, "..", "..", "support", "fixtures", "custom_units_bad_syntax.bad_exs"])
+
+      assert {:error, message} = Unit.load_custom_units(path)
+      assert message =~ "missing terminator"
+    end
   end
 
   describe "custom registry" do

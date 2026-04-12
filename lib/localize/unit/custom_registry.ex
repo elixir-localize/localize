@@ -96,6 +96,13 @@ defmodule Localize.Unit.CustomRegistry do
   The file must evaluate to a list of maps, each with a `:unit` key
   and the standard definition fields.
 
+  > #### Security {: .warning}
+  >
+  > This function uses `Code.eval_file/1` to evaluate the given
+  > file, which executes arbitrary Elixir code. Only load files
+  > from trusted sources. Never call this function with unsanitised
+  > user input or paths derived from external data.
+
   ### Arguments
 
   * `path` — path to the `.exs` file.
