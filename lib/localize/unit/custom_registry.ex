@@ -159,7 +159,7 @@ defmodule Localize.Unit.CustomRegistry do
 
   # ── Validation ──
 
-  @name_pattern ~r/^[a-z][a-z0-9-]*$/
+  @name_pattern ~r/^[a-z][a-z0-9_-]*$/
 
   defp validate_name(name) when is_binary(name) do
     if Regex.match?(@name_pattern, name) do
