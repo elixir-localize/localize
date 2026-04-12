@@ -38,7 +38,7 @@ Rules for LLM coding agents using `Localize` as a dependency. These are not exha
 
 ## Locale management
 
-* The current locale is per-process. Set it once at the start of a request (e.g. in a Plug) with `Localize.put_locale(:de)`. Every formatting function then defaults its `:locale` option to `Localize.get_locale()`.
+* The current locale is per-process. Set it once at the start of a request (e.g. in a Plug) with `Localize.put_locale(:de)`. Every formatting and parsing function then defaults its `:locale` option to `Localize.get_locale()`.
 
 * For temporary locale changes inside a function, use `Localize.with_locale/2` rather than save/put/restore.
 
