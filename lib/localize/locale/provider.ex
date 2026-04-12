@@ -210,7 +210,7 @@ defmodule Localize.Locale.Provider do
         require Logger
 
         Logger.debug(
-          "Locale #{inspect(locale_id)} not available, walking parent chain",
+          "Requested locale #{inspect(locale_id)} is not available. Trying parent locales.",
           domain: [:localize]
         )
 
@@ -226,7 +226,7 @@ defmodule Localize.Locale.Provider do
         parent_id = Localize.Locale.to_locale_id(parent_tag)
 
         Logger.debug(
-          "Trying parent locale #{inspect(parent_id)} for #{inspect(locale_id)}",
+          "Attempting to load locale #{inspect(parent_id)} (parent locale of #{inspect(locale_id)}).",
           domain: [:localize]
         )
 
@@ -235,6 +235,13 @@ defmodule Localize.Locale.Provider do
             {:ok, locale_data, parent_id}
 
           {:error, _} ->
+            allow_download = Application.get_env(:localize, :allow_runtime_locale_download, false)
+
+            Logger.debug(
+              "Unable to load locale #{inspect(parent_id)} and :allow_runtime_locale_download is set to #{inspect(allow_download)}.",
+              domain: [:localize]
+            )
+
             walk_parent_chain(provider, parent_id)
         end
 
@@ -248,7 +255,7 @@ defmodule Localize.Locale.Provider do
     require Logger
 
     Logger.debug(
-      "Parent chain exhausted for #{inspect(original_locale_id)}, falling back to :en",
+      "Parent chain exhausted at #{inspect(original_locale_id)}, falling back to global default :en.",
       domain: [:localize]
     )
 
