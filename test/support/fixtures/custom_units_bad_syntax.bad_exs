@@ -1,0 +1,3 @@
+# Invalid Elixir syntax — unterminated list and missing bracket
+[
+  %{unit: "broken", base_unit: "meter", factor: 1.0
