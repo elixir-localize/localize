@@ -2,9 +2,12 @@ defmodule Localize.Collation.Table do
   @moduledoc """
   Persistent-term-backed collation element table.
 
-  Stores the collation table parsed from `FractionalUCA.txt` for fast
-  concurrent lookups using `:persistent_term`, which provides zero-copy
-  reads for data that is written once and never modified.
+  Loads the pre-generated collation table from `priv/localize/collation_table.etf`
+  for fast concurrent lookups using `:persistent_term`, which provides
+  zero-copy reads for data that is written once and never modified.
+
+  The ETF file is generated from `FractionalUCA.txt` during the build
+  pipeline by `Localize.Data.Collation.generate_collation_table/0`.
 
   Handles both single codepoint mappings and contractions
   (multi-codepoint sequences).
@@ -20,13 +23,13 @@ defmodule Localize.Collation.Table do
   @contractions_table {:localize, :collation_contractions}
   @fast_latin_key {:localize, :collation_fast_latin}
 
-  @fractional_keys "FractionalUCA.txt"
+  @collation_etf "collation_table.etf"
 
   @doc """
   Ensure the collation table is loaded.
 
-  Loads the `FractionalUCA.txt` data file on first call. Subsequent calls
-  are no-ops.
+  Loads the pre-generated collation table ETF on first call. Subsequent
+  calls are no-ops.
 
   ### Returns
 
@@ -343,33 +346,28 @@ defmodule Localize.Collation.Table do
   end
 
   defp load_table do
-    fractional_path = data_path(@fractional_keys)
-    %{entries: all_entries} = Parser.parse(fractional_path)
+    etf_path = Application.app_dir(:localize, ["priv", "localize", @collation_etf])
 
-    contractions =
-      Enum.reduce(all_entries, %{}, fn {key, _elements}, acc ->
-        case key do
-          cp when is_integer(cp) ->
-            acc
+    case File.read(etf_path) do
+      {:ok, binary} ->
+        data = :erlang.binary_to_term(binary)
 
-          tuple when is_tuple(tuple) ->
-            first = elem(tuple, 0)
-            len = tuple_size(tuple)
-            existing = Map.get(acc, first, MapSet.new())
-            Map.put(acc, first, MapSet.put(existing, len))
-        end
-      end)
+        :persistent_term.put(@table_name, data.entries)
+        :persistent_term.put(@contractions_table, data.contractions)
+        :persistent_term.put(@fast_latin_key, data.fast_latin)
 
-    contractions =
-      Map.new(contractions, fn {cp, lengths} -> {cp, MapSet.to_list(lengths)} end)
+        # Store reorder data for Localize.Collation.Reorder
+        :persistent_term.put({:localize, :collation_primary_to_frac}, data.primary_to_frac)
+        :persistent_term.put({:localize, :collation_script_ranges}, data.script_ranges)
 
-    :persistent_term.put(@table_name, all_entries)
-    :persistent_term.put(@contractions_table, contractions)
+      {:error, :enoent} ->
+        require Logger
 
-    Localize.Collation.FastLatin.build()
-  end
-
-  defp data_path(filename) do
-    Application.app_dir(:localize, ["priv", "cldr", filename])
+        Logger.warning(
+          "Collation table ETF not found at #{etf_path}. " <>
+            "Run Localize.Data.Collation.generate_collation_table/0 to generate it.",
+          domain: [:localize]
+        )
+    end
   end
 end

@@ -173,16 +173,12 @@ defmodule Localize.Collation.Reorder do
           (integer() | {:sub, integer()}) => non_neg_integer()
         }
   def load_primary_to_fractional_lead do
-    path = fractional_uca_path()
-
-    if File.exists?(path) do
-      parse_primary_to_frac(path)
-    else
-      %{}
-    end
+    Localize.Collation.Table.ensure_loaded()
+    :persistent_term.get({:localize, :collation_primary_to_frac}, %{})
   end
 
-  defp parse_primary_to_frac(path) do
+  @doc false
+  def parse_primary_to_frac(path) do
     path
     |> File.stream!()
     |> Enum.reduce(%{}, fn line, acc ->
@@ -251,12 +247,11 @@ defmodule Localize.Collation.Reorder do
   """
   @spec load_script_ranges() :: %{String.t() => {non_neg_integer(), non_neg_integer()}}
   def load_script_ranges do
-    path = fractional_uca_path()
+    Localize.Collation.Table.ensure_loaded()
 
-    if File.exists?(path) do
-      parse_top_bytes(path)
-    else
-      default_script_ranges()
+    case :persistent_term.get({:localize, :collation_script_ranges}, nil) do
+      nil -> default_script_ranges()
+      ranges -> ranges
     end
   end
 
@@ -272,7 +267,8 @@ defmodule Localize.Collation.Reorder do
                             "reorder_reserved_after_latin"
                           ])
 
-  defp parse_top_bytes(path) do
+  @doc false
+  def parse_top_bytes(path) do
     path
     |> File.stream!()
     |> Enum.reduce(%{}, fn line, acc ->
@@ -298,10 +294,6 @@ defmodule Localize.Collation.Reorder do
           acc
       end
     end)
-  end
-
-  defp fractional_uca_path do
-    Application.app_dir(:localize, ["priv", "cldr", "FractionalUCA.txt"])
   end
 
   defp default_script_ranges do

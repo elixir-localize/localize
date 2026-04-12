@@ -79,6 +79,103 @@ defmodule Localize.Data.Collation do
     |> Map.new()
   end
 
+  @doc """
+  Pre-generates the UCA collation table from FractionalUCA.txt and
+  writes it as a compressed ETF file to `priv/localize/collation_table.etf`.
+
+  The ETF contains all data needed at runtime:
+
+  * `:entries` — the full codepoint-to-collation-element map.
+
+  * `:contractions` — contraction starter index.
+
+  * `:fast_latin` — pre-built fast lookup tuple for U+0000..U+017F.
+
+  * `:primary_to_frac` — primary weight to fractional lead byte mapping (for script reordering).
+
+  * `:script_ranges` — script-to-lead-byte-range mapping (for script reordering).
+
+  """
+  def generate_collation_table do
+    source_path = Application.app_dir(:localize, "priv/cldr/FractionalUCA.txt")
+
+    unless File.exists?(source_path) do
+      raise "FractionalUCA.txt not found at #{source_path}"
+    end
+
+    IO.puts("Parsing FractionalUCA.txt...")
+    %{entries: entries} = Localize.Collation.Table.Parser.parse(source_path)
+
+    IO.puts("Building contraction index...")
+    contractions = build_contractions(entries)
+
+    IO.puts("Building fast Latin table...")
+    fast_latin = build_fast_latin(entries, contractions)
+
+    IO.puts("Parsing reorder data...")
+    primary_to_frac = Localize.Collation.Reorder.parse_primary_to_frac(source_path)
+    script_ranges = Localize.Collation.Reorder.parse_top_bytes(source_path)
+
+    data = %{
+      entries: entries,
+      contractions: contractions,
+      fast_latin: fast_latin,
+      primary_to_frac: primary_to_frac,
+      script_ranges: script_ranges
+    }
+
+    binary = :erlang.term_to_binary(data, [:compressed])
+    size_kb = div(byte_size(binary), 1024)
+
+    # Write to the build output directory
+    build_path = Application.app_dir(:localize, "priv/localize/collation_table.etf")
+    File.mkdir_p!(Path.dirname(build_path))
+    File.write!(build_path, binary)
+    IO.puts("Wrote #{size_kb}KB to #{build_path}")
+
+    # Also write to the source priv directory so it ships with the package
+    source_path = Path.join([File.cwd!(), "priv", "localize", "collation_table.etf"])
+    File.mkdir_p!(Path.dirname(source_path))
+    File.write!(source_path, binary)
+    IO.puts("Wrote #{size_kb}KB to #{source_path}")
+
+    :ok
+  end
+
+  defp build_contractions(entries) do
+    entries
+    |> Enum.reduce(%{}, fn {key, _elements}, acc ->
+      case key do
+        cp when is_integer(cp) ->
+          acc
+
+        tuple when is_tuple(tuple) ->
+          first = elem(tuple, 0)
+          len = tuple_size(tuple)
+          existing = Map.get(acc, first, MapSet.new())
+          Map.put(acc, first, MapSet.put(existing, len))
+      end
+    end)
+    |> Map.new(fn {cp, lengths} -> {cp, MapSet.to_list(lengths)} end)
+  end
+
+  @latin_limit 0x0180
+
+  defp build_fast_latin(entries, contractions) do
+    for cp <- 0..(@latin_limit - 1) do
+      cond do
+        Map.has_key?(contractions, cp) -> nil
+        combining_mark?(cp) -> nil
+        true -> Map.get(entries, cp)
+      end
+    end
+    |> List.to_tuple()
+  end
+
+  defp combining_mark?(cp) do
+    Localize.Collation.Unicode.combining_class(cp) > 0
+  end
+
   # ── Private helpers ─────────────────────────────────────────────
 
   defp collation_source_dir do

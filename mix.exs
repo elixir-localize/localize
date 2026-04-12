@@ -61,7 +61,8 @@ defmodule Localize.MixProject do
         "priv/localize/supplemental_data",
         "priv/localize/validity",
         "priv/localize/locales/en.etf",
-        "priv/cldr/FractionalUCA.txt"
+        "priv/localize/locales/und.etf",
+        "priv/localize/collation_table.etf"
       ]
     ]
   end
