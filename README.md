@@ -111,7 +111,7 @@ All formatting functions default their `:locale` option to `Localize.get_locale(
 
 ## Configuration
 
-Localize requires no compile-time configuration. All options are set in your application config and take effect at runtime.
+Localize requires no compile-time configuration. All options are set in your application config and take effect at runtime. Its also perfectly reasonable to have no configuration, at least when you are just exploring the library. The `:en` locale is always installed so that will be used for formatting and parsing until you add some configuration.
 
 ```elixir
 config :localize,
@@ -214,11 +214,15 @@ Localize includes an optional NIF backend powered by ICU4C. When enabled, specif
 | `Localize.Message.format/3` | `backend: :nif` | ICU4C MessageFormat 2 |
 | `Localize.Collation.compare/3` | `backend: :nif` | ICU4C Collator |
 
-If `:nif` is specified but the NIF is not compiled or not available, it silently falls back to the pure Elixir implementation. See the [Performance Guide](guides/performance.md) for benchmarks and guidance.
+If `:nif` is specified but the NIF is not compiled or not available, it silently falls back to the pure Elixir implementation. See the [Performance Guide](https://hexdocs.pm/localize/performance.html) for benchmarks and guidance.
 
 ## Documentation
 
 Full documentation is available on [HexDocs](https://hexdocs.pm/localize).
+
+### Migrating from ex_cldr
+
+If you are migrating from the `ex_cldr` family of libraries, see the [Migration Guide](https://hexdocs.pm/localize/migration.html) for a detailed walkthrough of configuration changes, API differences, and upgrade steps.
 
 ## Additional Localize libraries
 
