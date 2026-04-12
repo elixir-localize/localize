@@ -20,7 +20,7 @@ defmodule Localize.UnknownPluralRulesError do
       Localize.Gettext,
       "localize",
       "plural_rules",
-      "No%{type} plural rules available for the locale %{locale_id}.",
+      "No{$type} plural rules available for the locale {$locale_id}.",
       locale_id: inspect(locale_id),
       type: type_name
     )

@@ -18,7 +18,7 @@ defmodule Localize.LocaleDisplayError do
       Localize.Gettext,
       "localize",
       "locale",
-      "No locale display data for %{locale}.",
+      "No locale display data for {$locale}.",
       locale: inspect(locale)
     )
   end

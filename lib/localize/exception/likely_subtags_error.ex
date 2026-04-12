@@ -18,7 +18,7 @@ defmodule Localize.LikelySubtagsError do
       Localize.Gettext,
       "localize",
       "language_tag",
-      "No likely subtags data found for %{locale}",
+      "No likely subtags data found for {$locale}",
       locale: inspect(locale)
     )
   end

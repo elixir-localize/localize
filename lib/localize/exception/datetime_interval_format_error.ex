@@ -17,7 +17,7 @@ defmodule Localize.DateTimeIntervalFormatError do
       Localize.Gettext,
       "localize",
       "datetime",
-      "Interval format error: %{reason}.",
+      "Interval format error: {$reason}.",
       reason: reason
     )
   end

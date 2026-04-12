@@ -18,7 +18,7 @@ defmodule Localize.ItemNotFoundError do
       Localize.Gettext,
       "localize",
       "locale",
-      "The key path %{keys} was not found in locale %{locale}.",
+      "The key path {$keys} was not found in locale {$locale}.",
       keys: inspect(keys),
       locale: inspect(locale)
     )

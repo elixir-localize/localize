@@ -18,7 +18,7 @@ defmodule Localize.InvalidSubtagError do
       Localize.Gettext,
       "localize",
       "language_tag",
-      "The value %{value} is not valid for the key %{key}",
+      "The value {$value} is not valid for the key {$key}",
       value: inspect(value),
       key: inspect(key)
     )
@@ -29,7 +29,7 @@ defmodule Localize.InvalidSubtagError do
       Localize.Gettext,
       "localize",
       "language_tag",
-      "%{reason}",
+      "{$reason}",
       reason: reason,
       key: inspect(key),
       value: inspect(value)

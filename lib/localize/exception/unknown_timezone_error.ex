@@ -18,7 +18,7 @@ defmodule Localize.UnknownTimezoneError do
       Localize.Gettext,
       "localize",
       "locale",
-      "Unknown timezone: %{timezone}",
+      "Unknown timezone: {$timezone}",
       timezone: inspect(timezone)
     )
   end

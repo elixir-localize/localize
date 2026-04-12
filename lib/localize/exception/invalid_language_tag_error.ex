@@ -17,7 +17,7 @@ defmodule Localize.InvalidLanguageTagError do
       Localize.Gettext,
       "localize",
       "language_tag",
-      "Invalid language tag %{language_tag}: %{reason}.",
+      "Invalid language tag {$language_tag}: {$reason}.",
       language_tag: inspect(language_tag),
       reason: to_string(reason)
     )
@@ -28,7 +28,7 @@ defmodule Localize.InvalidLanguageTagError do
       Localize.Gettext,
       "localize",
       "language_tag",
-      "Invalid language tag %{language_tag}.",
+      "Invalid language tag {$language_tag}.",
       language_tag: inspect(language_tag)
     )
   end

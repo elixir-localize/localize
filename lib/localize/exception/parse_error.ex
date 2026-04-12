@@ -17,7 +17,7 @@ defmodule Localize.ParseError do
       Localize.Gettext,
       "localize",
       "language_tag",
-      "Could not parse %{input}: %{reason}",
+      "Could not parse {$input}: {$reason}",
       input: inspect(input),
       reason: reason
     )

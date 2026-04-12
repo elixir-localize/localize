@@ -18,7 +18,7 @@ defmodule Localize.LocaleDownloadError do
       Localize.Gettext,
       "localize",
       "locale",
-      "The locale %{locale_id} could not be downloaded from %{url}: %{reason}.",
+      "The locale {$locale_id} could not be downloaded from {$url}: {$reason}.",
       locale_id: inspect(locale_id),
       url: inspect(url),
       reason: to_string(reason)

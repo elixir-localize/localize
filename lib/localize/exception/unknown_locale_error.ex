@@ -18,7 +18,7 @@ defmodule Localize.UnknownLocaleError do
       Localize.Gettext,
       "localize",
       "locale",
-      "The locale %{locale_id} is not known.",
+      "The locale {$locale_id} is not known.",
       locale_id: inspect(locale_id)
     )
   end

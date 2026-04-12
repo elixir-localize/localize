@@ -18,7 +18,7 @@ defmodule Localize.DateTimeUnresolvedFormatError do
       Localize.Gettext,
       "localize",
       "datetime",
-      "No available format resolved for %{format} in locale %{locale}.",
+      "No available format resolved for {$format} in locale {$locale}.",
       format: inspect(format),
       locale: inspect(locale)
     )

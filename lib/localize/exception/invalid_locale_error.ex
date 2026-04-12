@@ -18,7 +18,7 @@ defmodule Localize.InvalidLocaleError do
       Localize.Gettext,
       "localize",
       "locale",
-      "The locale %{locale_id} is not valid.",
+      "The locale {$locale_id} is not valid.",
       locale_id: inspect(locale_id)
     )
   end

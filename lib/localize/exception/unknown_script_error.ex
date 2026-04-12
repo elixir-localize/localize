@@ -18,7 +18,7 @@ defmodule Localize.UnknownScriptError do
       Localize.Gettext,
       "localize",
       "locale",
-      "The script %{script} is not known.",
+      "The script {$script} is not known.",
       script: inspect(script)
     )
   end

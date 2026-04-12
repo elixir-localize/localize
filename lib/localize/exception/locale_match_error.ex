@@ -18,7 +18,7 @@ defmodule Localize.LocaleMatchError do
       Localize.Gettext,
       "localize",
       "language_tag",
-      "No matching locale found for %{desired} within distance %{threshold}",
+      "No matching locale found for {$desired} within distance {$threshold}",
       desired: inspect(desired),
       threshold: threshold
     )

@@ -18,7 +18,7 @@ defmodule Localize.UnknownTerritoryError do
       Localize.Gettext,
       "localize",
       "locale",
-      "The territory %{territory} is not known.",
+      "The territory {$territory} is not known.",
       territory: inspect(territory)
     )
   end

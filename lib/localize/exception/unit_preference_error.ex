@@ -18,7 +18,7 @@ defmodule Localize.UnitPreferenceError do
       Localize.Gettext,
       "localize",
       "unit",
-      "No unit preference found: %{reason}",
+      "No unit preference found: {$reason}",
       reason: reason
     )
   end

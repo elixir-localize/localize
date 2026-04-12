@@ -18,7 +18,7 @@ defmodule Localize.UnknownMeasurementSystemError do
       Localize.Gettext,
       "localize",
       "unit",
-      "The measurement system %{measurement_system} is not known.",
+      "The measurement system {$measurement_system} is not known.",
       measurement_system: inspect(measurement_system)
     )
   end

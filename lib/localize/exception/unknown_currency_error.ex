@@ -18,7 +18,7 @@ defmodule Localize.UnknownCurrencyError do
       Localize.Gettext,
       "localize",
       "currency",
-      "The currency %{currency} is not known.",
+      "The currency {$currency} is not known.",
       currency: inspect(currency)
     )
   end

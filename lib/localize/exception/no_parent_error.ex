@@ -18,7 +18,7 @@ defmodule Localize.NoParentError do
       Localize.Gettext,
       "localize",
       "locale",
-      "The locale %{locale} has no parent locale",
+      "The locale {$locale} has no parent locale",
       locale: inspect(locale)
     )
   end

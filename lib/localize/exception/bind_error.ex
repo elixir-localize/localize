@@ -18,7 +18,7 @@ defmodule Localize.BindError do
       Localize.Gettext,
       "localize",
       "message",
-      "No binding was found for %{unbound}",
+      "No binding was found for {$unbound}",
       unbound: inspect(unbound)
     )
   end

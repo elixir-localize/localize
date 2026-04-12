@@ -18,7 +18,7 @@ defmodule Localize.InvalidValueError do
       Localize.Gettext,
       "localize",
       "unit",
-      "Expected %{expected}, got: %{value}",
+      "Expected {$expected}, got: {$value}",
       expected: expected,
       value: inspect(value)
     )
@@ -29,7 +29,7 @@ defmodule Localize.InvalidValueError do
       Localize.Gettext,
       "localize",
       "unit",
-      "Expected %{expected} for %{context}, got: %{value}",
+      "Expected {$expected} for {$context}, got: {$value}",
       expected: expected,
       context: context,
       value: inspect(value)

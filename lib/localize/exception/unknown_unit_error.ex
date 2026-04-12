@@ -18,7 +18,7 @@ defmodule Localize.UnknownUnitError do
       Localize.Gettext,
       "localize",
       "unit",
-      "Unknown unit: %{unit}",
+      "Unknown unit: {$unit}",
       unit: inspect(unit)
     )
   end

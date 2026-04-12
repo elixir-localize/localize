@@ -18,7 +18,7 @@ defmodule Localize.CurrencyNoDisplayNameError do
       Localize.Gettext,
       "localize",
       "currency",
-      "The currency %{currency} has no display name in locale %{locale}.",
+      "The currency {$currency} has no display name in locale {$locale}.",
       currency: inspect(currency),
       locale: inspect(locale)
     )

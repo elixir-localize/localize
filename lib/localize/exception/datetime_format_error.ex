@@ -18,7 +18,7 @@ defmodule Localize.DateTimeFormatError do
       Localize.Gettext,
       "localize",
       "datetime",
-      "The format %{format} is invalid: %{reason}.",
+      "The format {$format} is invalid: {$reason}.",
       format: inspect(format),
       reason: reason
     )

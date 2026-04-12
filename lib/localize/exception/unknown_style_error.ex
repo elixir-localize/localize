@@ -18,7 +18,7 @@ defmodule Localize.UnknownStyleError do
       Localize.Gettext,
       "localize",
       "unknown style error",
-      "The style %{style} is unknown.",
+      "The style {$style} is unknown.",
       style: inspect(style)
     )
   end
@@ -28,7 +28,7 @@ defmodule Localize.UnknownStyleError do
       Localize.Gettext,
       "localize",
       "unknown style error",
-      "The style %{style} is unknown for territory %{territory}.",
+      "The style {$style} is unknown for territory {$territory}.",
       style: inspect(style),
       territory: inspect(territory)
     )

@@ -20,7 +20,7 @@ defmodule Localize.UnitConversionError do
       Localize.Gettext,
       "localize",
       "unit",
-      "%{reason}",
+      "{$reason}",
       reason: reason
     )
   end
@@ -30,7 +30,7 @@ defmodule Localize.UnitConversionError do
       Localize.Gettext,
       "localize",
       "unit",
-      "Cannot convert from %{from} to %{to}: %{reason}",
+      "Cannot convert from {$from} to {$to}: {$reason}",
       from: inspect(from),
       to: inspect(to),
       reason: reason
@@ -42,7 +42,7 @@ defmodule Localize.UnitConversionError do
       Localize.Gettext,
       "localize",
       "unit",
-      "Units %{from} and %{to} are not convertible",
+      "Units {$from} and {$to} are not convertible",
       from: inspect(from),
       to: inspect(to)
     )

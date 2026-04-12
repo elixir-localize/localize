@@ -18,7 +18,7 @@ defmodule Localize.DateTimeOrderError do
       Localize.Gettext,
       "localize",
       "datetime",
-      "The start %{from} must be before the end %{to}.",
+      "The start {$from} must be before the end {$to}.",
       from: inspect(from),
       to: inspect(to)
     )

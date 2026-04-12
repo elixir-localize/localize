@@ -18,7 +18,7 @@ defmodule Localize.UnknownSubdivisionError do
       Localize.Gettext,
       "localize",
       "locale",
-      "The subdivision %{subdivision} is not known.",
+      "The subdivision {$subdivision} is not known.",
       subdivision: inspect(subdivision)
     )
   end

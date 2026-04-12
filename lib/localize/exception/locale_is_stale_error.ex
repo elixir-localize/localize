@@ -22,7 +22,7 @@ defmodule Localize.LocaleIsStaleError do
       Localize.Gettext,
       "localize",
       "locale",
-      "The cached locale %{locale_id} has version %{cached_version} but the current version is %{current_version}.",
+      "The cached locale {$locale_id} has version {$cached_version} but the current version is {$current_version}.",
       locale_id: inspect(locale_id),
       cached_version: inspect(cached_version),
       current_version: inspect(current_version)

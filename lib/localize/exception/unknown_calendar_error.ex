@@ -18,7 +18,7 @@ defmodule Localize.UnknownCalendarError do
       Localize.Gettext,
       "localize",
       "locale",
-      "The calendar %{calendar} is not known.",
+      "The calendar {$calendar} is not known.",
       calendar: inspect(calendar)
     )
   end

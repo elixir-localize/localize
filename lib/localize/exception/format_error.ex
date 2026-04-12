@@ -20,7 +20,7 @@ defmodule Localize.FormatError do
       Localize.Gettext,
       "localize",
       "message",
-      "Cannot format %{value} with function %{function}: %{reason}",
+      "Cannot format {$value} with function {$function}: {$reason}",
       value: inspect(value),
       function: inspect(function),
       reason: reason
@@ -32,7 +32,7 @@ defmodule Localize.FormatError do
       Localize.Gettext,
       "localize",
       "message",
-      "Cannot format %{value} with function %{function}",
+      "Cannot format {$value} with function {$function}",
       value: inspect(value),
       function: inspect(function)
     )

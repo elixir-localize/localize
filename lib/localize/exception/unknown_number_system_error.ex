@@ -18,7 +18,7 @@ defmodule Localize.UnknownNumberSystemError do
       Localize.Gettext,
       "localize",
       "number",
-      "The number system %{number_system} is not known.",
+      "The number system {$number_system} is not known.",
       number_system: inspect(number_system)
     )
   end

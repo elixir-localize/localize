@@ -18,7 +18,7 @@ defmodule Localize.LocaleCacheWriteError do
       Localize.Gettext,
       "localize",
       "locale",
-      "The locale %{locale_id} could not be written to the cache at %{path}: %{reason}.",
+      "The locale {$locale_id} could not be written to the cache at {$path}: {$reason}.",
       locale_id: inspect(locale_id),
       path: inspect(path),
       reason: to_string(reason)

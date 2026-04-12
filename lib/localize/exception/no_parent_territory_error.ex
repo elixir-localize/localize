@@ -18,7 +18,7 @@ defmodule Localize.NoParentTerritoryError do
       Localize.Gettext,
       "localize",
       "locale",
-      "No parent territory found for %{territory}.",
+      "No parent territory found for {$territory}.",
       territory: inspect(territory)
     )
   end
