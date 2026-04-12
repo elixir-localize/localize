@@ -108,15 +108,21 @@ defmodule Localize.Unit.Parser do
   defparsecp(:base_unit_p, base_unit())
   defparsecp(:si_prefix_p, si_prefix())
   defparsecp(:currency_unit_p, currency_unit())
+  defparsecp(:custom_base_unit_p, custom_base_unit())
 
-  # Rebuild single_unit to reference the defparsecp versions
+  # Rebuild single_unit to reference the defparsecp versions.
+  # The custom_base_unit_p fallback accepts any lowercase identifier,
+  # enabling custom unit names. A validation pass after parsing checks
+  # that all base names resolve to known CLDR units or registered custom units.
   single_unit_v =
     choice([
       parsec(:currency_unit_p),
       optional(power_prefix())
       |> choice([
         parsec(:base_unit_p),
-        parsec(:si_prefix_p) |> concat(parsec(:base_unit_p))
+        parsec(:si_prefix_p) |> concat(parsec(:base_unit_p)),
+        parsec(:custom_base_unit_p),
+        parsec(:si_prefix_p) |> concat(parsec(:custom_base_unit_p))
       ])
       |> reduce(:wrap_single_unit),
       unit_constant()

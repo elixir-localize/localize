@@ -15,7 +15,6 @@ defmodule Localize.Unit.Conversion do
 
   alias Localize.Unit.{BaseUnit, Parser}
 
-  @conversion_factors Localize.Unit.Data.conversion_factors()
   @si_prefix_multipliers Localize.Unit.Data.si_prefix_multipliers()
 
   # Beaufort scale: minimum m/s threshold for each Beaufort number (0–18).
@@ -225,7 +224,7 @@ defmodule Localize.Unit.Conversion do
         prefix = Keyword.get(keyword, :prefix)
         power = Keyword.get(keyword, :power)
 
-        case Map.get(@conversion_factors, base) do
+        case Localize.Unit.Data.conversion_factor(base) do
           nil ->
             {:error, Localize.UnknownUnitError.exception(unit: base)}
 
@@ -271,7 +270,7 @@ defmodule Localize.Unit.Conversion do
     prefix = Keyword.get(keyword, :prefix)
 
     if prefix == nil do
-      case Map.get(@conversion_factors, base) do
+      case Localize.Unit.Data.conversion_factor(base) do
         %{offset: offset} when offset != 0.0 -> offset
         _ -> 0.0
       end

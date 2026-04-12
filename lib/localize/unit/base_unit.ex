@@ -15,7 +15,6 @@ defmodule Localize.Unit.BaseUnit do
 
   """
 
-  @conversions Localize.Unit.Data.conversions()
   @simple_base_units Localize.Unit.Data.simple_base_units()
   @simple_unit_order @simple_base_units |> Enum.with_index() |> Map.new()
 
@@ -218,7 +217,7 @@ defmodule Localize.Unit.BaseUnit do
   end
 
   defp resolve_base_unit(name) do
-    case Map.get(@conversions, name) do
+    case Localize.Unit.Data.conversion(name) do
       nil ->
         {:error, Localize.UnknownUnitError.exception(unit: name)}
 

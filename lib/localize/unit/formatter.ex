@@ -95,7 +95,7 @@ defmodule Localize.Unit.Formatter do
 
         case find_unit_formats(unit_data, unit_name) do
           nil ->
-            format_fallback(value, name, options)
+            format_custom_or_fallback(value, name, locale, options)
 
           unit_formats ->
             grammatical_case = Keyword.get(options, :grammatical_case, :nominative)
@@ -317,6 +317,52 @@ defmodule Localize.Unit.Formatter do
   end
 
   defp normalize_unit_name(name) when is_atom(name), do: Atom.to_string(name)
+
+  # ── Custom unit formatting ─────────────────────────────────
+  #
+  # When a unit is not found in the CLDR locale data, check the
+  # custom registry for display patterns before falling back to
+  # the bare "value name" format.
+
+  defp format_custom_or_fallback(value, name, locale, options) do
+    locale_id = extract_locale_id(locale)
+    style = Keyword.get(options, :format, Keyword.get(options, :style, :long))
+
+    case Localize.Unit.CustomRegistry.get(name) do
+      %{display: display} when is_map(display) ->
+        locale_display = Map.get(display, locale_id, %{})
+        style_display = Map.get(locale_display, style, %{})
+
+        case style_display do
+          patterns when map_size(patterns) > 0 ->
+            format_custom_patterns(value, patterns, locale, options)
+
+          _ ->
+            format_fallback(value, name, options)
+        end
+
+      _ ->
+        format_fallback(value, name, options)
+    end
+  end
+
+  defp format_custom_patterns(value, patterns, locale, options) do
+    plural = plural_form(value, locale)
+
+    pattern =
+      Map.get(patterns, plural) ||
+        Map.get(patterns, :other) ||
+        "{0} #{Map.get(patterns, :display_name, "unknown")}"
+
+    with {:ok, number_str} <- format_number(value, options) do
+      formatted = String.replace(pattern, "{0}", number_str)
+      {:ok, formatted}
+    end
+  end
+
+  defp extract_locale_id(%Localize.LanguageTag{cldr_locale_id: id}) when not is_nil(id), do: id
+  defp extract_locale_id(locale) when is_atom(locale), do: locale
+  defp extract_locale_id(_), do: :en
 
   # ── Fallback formatting ────────────────────────────────────
 

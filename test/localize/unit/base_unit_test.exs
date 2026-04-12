@@ -221,7 +221,7 @@ defmodule Localize.Unit.BaseUnitTest do
     end
 
     test "base_unit! raises on unknown unit" do
-      assert_raise Localize.ParseError, fn ->
+      assert_raise Localize.UnknownUnitError, fn ->
         BaseUnit.base_unit!("foobar")
       end
     end

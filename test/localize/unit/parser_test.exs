@@ -298,14 +298,19 @@ defmodule Localize.Unit.ParserTest do
       assert {:error, _reason} = Parser.parse("")
     end
 
-    test "returns error for unknown unit" do
-      assert {:error, _reason} = Parser.parse("foobar")
+    test "parser accepts unknown identifiers (validation is in Unit.new)" do
+      # The parser accepts any lowercase identifier. Validation of
+      # whether the base name is a known unit happens in Unit.new/2.
+      assert {:ok, _ast} = Parser.parse("foobar")
     end
 
-    test "parse! raises on invalid input" do
-      assert_raise Localize.ParseError, fn ->
-        Parser.parse!("invalid-unit-xyz")
-      end
+    test "parser rejects empty input" do
+      assert {:error, _reason} = Parser.parse("")
+    end
+
+    test "Unit.new rejects unknown unit names" do
+      assert {:error, _reason} = Localize.Unit.new("foobar")
+      assert {:error, _reason} = Localize.Unit.new(1, "foobar")
     end
   end
 

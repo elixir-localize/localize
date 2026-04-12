@@ -66,9 +66,9 @@ defmodule Localize.UnitTest do
       assert unit.name == "kilogram"
     end
 
-    test "raises on invalid unit string" do
-      assert_raise Localize.ParseError, fn ->
-        Unit.new!(100, "not-a-unit")
+    test "raises on unknown unit string" do
+      assert_raise Localize.UnknownUnitError, fn ->
+        Unit.new!(100, "notaunit")
       end
     end
 

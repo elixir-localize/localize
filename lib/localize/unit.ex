@@ -101,6 +101,7 @@ defmodule Localize.Unit do
     with {:ok, _} <- validate_value(amount),
          {:ok, parsed} <- Localize.Unit.Parser.parse(unit),
          :ok <- validate_currency_codes(parsed),
+         :ok <- validate_base_names(parsed),
          {:ok, usage} <- validate_usage(Keyword.get(options, :usage)) do
       {canonical_name, normalised_ast} = Localize.Unit.Canonical.canonicalize(parsed)
 
@@ -139,7 +140,8 @@ defmodule Localize.Unit do
 
   def new(name) when is_binary(name) do
     with {:ok, parsed} <- Localize.Unit.Parser.parse(name),
-         :ok <- validate_currency_codes(parsed) do
+         :ok <- validate_currency_codes(parsed),
+         :ok <- validate_base_names(parsed) do
       {canonical_name, normalised_ast} = Localize.Unit.Canonical.canonicalize(parsed)
       {:ok, %__MODULE__{name: canonical_name, parsed: normalised_ast}}
     end
@@ -579,6 +581,83 @@ defmodule Localize.Unit do
     %__MODULE__{name: name, parsed: parsed, value: value}
   end
 
+  # ── Custom unit registration ────────────────────────────────────────
+
+  @doc """
+  Registers a custom unit definition at runtime.
+
+  Custom units extend the built-in CLDR unit database with user-defined
+  units. Each custom unit must specify a base unit it converts to, a
+  conversion factor, and a category.
+
+  ### Arguments
+
+  * `name` is a string unit identifier (e.g., `"smoot"`). Must start with
+    a lowercase letter and contain only lowercase letters, digits, and hyphens.
+
+  * `definition` is a map with the following keys:
+
+  ### Options
+
+  * `:base_unit` (required) — the CLDR base unit this custom unit converts
+    to (e.g., `"meter"`, `"kilogram"`).
+
+  * `:factor` (required) — conversion multiplier:
+    `1 custom_unit = factor * base_unit`.
+
+  * `:offset` (optional) — additive offset for temperature-like conversions.
+    Defaults to `0.0`.
+
+  * `:category` (required) — the unit category (e.g., `"length"`, `"mass"`).
+
+  * `:display` (optional) — locale-specific display patterns. A nested map
+    of `locale => style => plural_patterns`.
+
+  ### Returns
+
+  * `:ok` on success.
+
+  * `{:error, reason}` if validation fails.
+
+  ### Examples
+
+      iex> Localize.Unit.define_unit("smoot", %{
+      ...>   base_unit: "meter",
+      ...>   factor: 1.7018,
+      ...>   category: "length",
+      ...>   display: %{en: %{long: %{one: "{0} smoot", other: "{0} smoots"}}}
+      ...> })
+      :ok
+
+  """
+  @spec define_unit(String.t(), map()) :: :ok | {:error, String.t()}
+  def define_unit(name, definition) do
+    Localize.Unit.CustomRegistry.register(name, definition)
+  end
+
+  @doc """
+  Loads custom unit definitions from an Elixir term file (`.exs`).
+
+  The file must evaluate to a list of maps, each with a `:unit` key
+  and the standard definition fields (`:base_unit`, `:factor`,
+  `:category`, and optionally `:display`).
+
+  ### Arguments
+
+  * `path` is the path to the `.exs` file.
+
+  ### Returns
+
+  * `{:ok, count}` with the number of units loaded.
+
+  * `{:error, reason}` on failure.
+
+  """
+  @spec load_custom_units(String.t()) :: {:ok, non_neg_integer()} | {:error, String.t()}
+  def load_custom_units(path) do
+    Localize.Unit.CustomRegistry.load_file(path)
+  end
+
   # ── Private ─────────────────────────────────────────────────────────
 
   defp validate_value(value) when is_integer(value), do: {:ok, value}
@@ -641,6 +720,47 @@ defmodule Localize.Unit do
           _ ->
             {:cont, :ok}
         end
+
+      _, :ok ->
+        {:cont, :ok}
+    end)
+  end
+
+  @known_base_units MapSet.new(Localize.Unit.Data.base_units())
+
+  defp validate_base_names({:unit, keyword}) do
+    units = Keyword.get(keyword, :numerator, []) ++ Keyword.get(keyword, :denominator, [])
+    validate_base_names_in_list(units)
+  end
+
+  defp validate_base_names({:mixed_unit, units}) do
+    validate_base_names_in_list(units)
+  end
+
+  defp validate_base_names_in_list(units) do
+    Enum.reduce_while(units, :ok, fn
+      {:single_unit, kw}, :ok ->
+        base = Keyword.fetch!(kw, :base)
+
+        cond do
+          # Currency units are validated separately
+          String.starts_with?(base, "curr-") ->
+            {:cont, :ok}
+
+          # Known CLDR base unit
+          MapSet.member?(@known_base_units, base) ->
+            {:cont, :ok}
+
+          # Registered custom unit
+          Localize.Unit.CustomRegistry.registered?(base) ->
+            {:cont, :ok}
+
+          true ->
+            {:halt, {:error, Localize.UnknownUnitError.exception(unit: base)}}
+        end
+
+      {:constant, _}, :ok ->
+        {:cont, :ok}
 
       _, :ok ->
         {:cont, :ok}

@@ -46,6 +46,28 @@ defmodule Localize.Unit.Parser.Combinator do
     |> unwrap_and_tag(:base)
   end
 
+  # Matches any lowercase identifier that is NOT a CLDR category name.
+  # Category names are reserved for the long-form category-prefix syntax
+  # (e.g., "length-meter"). Without this exclusion, "mass" in
+  # "mass-kilogram" would be consumed as a custom unit name.
+  @category_set MapSet.new(@categories)
+
+  @doc false
+  def custom_base_unit do
+    ascii_string([?a..?z], min: 1)
+    |> post_traverse(:reject_categories)
+    |> unwrap_and_tag(:base)
+  end
+
+  @doc false
+  def reject_categories(rest, [name] = args, context, _line, _offset) do
+    if MapSet.member?(@category_set, name) do
+      {:error, "#{name} is a reserved category name"}
+    else
+      {rest, args, context}
+    end
+  end
+
   @doc false
   def unit_constant do
     choice([
@@ -81,11 +103,19 @@ defmodule Localize.Unit.Parser.Combinator do
     choice([
       # Currency unit (curr-USD, curr-EUR, etc.)
       currency_unit(),
-      # Unit with optional power prefix, optional SI prefix, and base unit
+      # Unit with optional power prefix, optional SI prefix, and known base unit
       optional(power_prefix())
       |> choice([
         base_unit(),
         si_prefix() |> concat(base_unit())
+      ])
+      |> reduce(:wrap_single_unit),
+      # Custom unit: optional power prefix, optional SI prefix, any lowercase identifier.
+      # Parsed the same way as a CLDR unit. Validated in a second pass.
+      optional(power_prefix())
+      |> choice([
+        custom_base_unit(),
+        si_prefix() |> concat(custom_base_unit())
       ])
       |> reduce(:wrap_single_unit),
       # Numeric constant (e.g., 100, 1e6)
