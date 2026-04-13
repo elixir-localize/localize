@@ -133,7 +133,9 @@ defmodule Localize.Unit.Parser.Combinator do
       # when an SI prefix is present.
       optional(power_prefix())
       |> choice([
-        si_prefix() |> concat(custom_base_unit()) |> post_traverse(:validate_prefixed_custom_unit),
+        si_prefix()
+        |> concat(custom_base_unit())
+        |> post_traverse(:validate_prefixed_custom_unit),
         custom_base_unit()
       ])
       |> reduce(:wrap_single_unit),
