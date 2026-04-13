@@ -17,13 +17,6 @@ defmodule Localize.Unit.Conversion do
 
   @si_prefix_multipliers Localize.Unit.Data.si_prefix_multipliers()
 
-  # Beaufort scale: minimum m/s threshold for each Beaufort number (0–18).
-  # Index 18 is an artificial end value to give a reasonable midpoint for B=17.
-  # Source: ICU4C units_converter.cpp minMetersPerSecForBeaufort[].
-  @beaufort_thresholds {0.0, 0.3, 1.6, 3.4, 5.5, 8.0, 10.8, 13.9, 17.2, 20.8, 24.5, 28.5, 32.7,
-                        36.9, 41.4, 46.1, 51.1, 55.8, 61.4}
-  @beaufort_max tuple_size(@beaufort_thresholds) - 2
-
   @doc """
   Checks whether two units are convertible (same dimensional base unit).
 
@@ -142,20 +135,19 @@ defmodule Localize.Unit.Conversion do
 
   defp do_convert(value, from_ast, to_ast) do
     case {special_unit(from_ast), special_unit(to_ast)} do
-      {:beaufort, nil} ->
-        # Beaufort → base (m/s) → target
-        base_value = beaufort_to_mps(value)
+      {{:special, fwd, _inv}, nil} ->
+        base_value = apply(elem(fwd, 0), elem(fwd, 1), [value])
         convert_from_base(base_value, to_ast)
 
-      {nil, :beaufort} ->
-        # Source → base (m/s) → Beaufort
+      {nil, {:special, _fwd, inv}} ->
         with {:ok, from_params} <- conversion_params(from_ast) do
           base_value = value * from_params.factor + from_params.offset
-          {:ok, mps_to_beaufort(base_value)}
+          {:ok, apply(elem(inv, 0), elem(inv, 1), [base_value])}
         end
 
-      {:beaufort, :beaufort} ->
-        {:ok, value}
+      {{:special, fwd, _}, {:special, _, inv}} ->
+        base_value = apply(elem(fwd, 0), elem(fwd, 1), [value])
+        {:ok, apply(elem(inv, 0), elem(inv, 1), [base_value])}
 
       {nil, nil} ->
         with {:ok, from_params} <- conversion_params(from_ast),
@@ -279,81 +271,45 @@ defmodule Localize.Unit.Conversion do
   defp apply_power_to_factor(factor, :cubic), do: factor * factor * factor
   defp apply_power_to_factor(factor, {:pow, n}), do: :math.pow(factor, n)
 
-  # ── Beaufort special conversion ───────────────────────────────────
+  # ── Special (nonlinear) conversion detection ─────────────────────
 
-  # Detect if a parsed AST represents the beaufort unit.
+  # Built-in special conversions compiled from CLDR data. These are
+  # always available without requiring CustomRegistry registration.
+  @built_in_special %{
+    "beaufort" => {
+      {Localize.Unit.Conversion.Beaufort, :forward},
+      {Localize.Unit.Conversion.Beaufort, :inverse}
+    }
+  }
+
+  # Detect if a parsed AST represents a unit with a registered special
+  # conversion (forward/inverse functions). Only simple units without
+  # SI prefixes or power prefixes qualify — compound units cannot be special.
   defp special_unit({:unit, keyword}) do
-    case Keyword.get(keyword, :numerator, []) do
-      [{:single_unit, opts}] ->
-        if Keyword.get(opts, :base) == "beaufort" and Keyword.get(opts, :denominator, []) == [],
-          do: :beaufort,
-          else: nil
+    with [{:single_unit, opts}] <- Keyword.get(keyword, :numerator, []),
+         [] <- Keyword.get(keyword, :denominator, []),
+         nil <- Keyword.get(opts, :prefix),
+         nil <- Keyword.get(opts, :power),
+         base when is_binary(base) <- Keyword.get(opts, :base),
+         %{factor: :special} <- Localize.Unit.Data.conversion_factor(base) do
+      lookup_special(base)
+    else
+      _ -> nil
+    end
+  end
+
+  defp special_unit({:mixed_unit, _}), do: nil
+
+  defp lookup_special(name) do
+    case Localize.Unit.CustomRegistry.get(name) do
+      %{forward: fwd, inverse: inv} ->
+        {:special, fwd, inv}
 
       _ ->
-        nil
-    end
-  end
-
-  defp special_unit(_), do: nil
-
-  # Convert a Beaufort scale value to meters per second.
-  # Values are clamped to the maximum defined Beaufort number (17).
-  # The result is the midpoint between the threshold for floor(B) and ceil(B).
-  defp beaufort_to_mps(beaufort) do
-    clamped = min(max(beaufort, 0.0), @beaufort_max * 1.0)
-    index = trunc(clamped)
-    fraction = clamped - index
-
-    low = elem(@beaufort_thresholds, index)
-    high = elem(@beaufort_thresholds, index + 1)
-
-    midpoint_low = (low + high) / 2.0
-
-    if fraction == 0.0 do
-      midpoint_low
-    else
-      next_index = min(index + 1, @beaufort_max)
-      next_low = elem(@beaufort_thresholds, next_index)
-      next_high = elem(@beaufort_thresholds, next_index + 1)
-      midpoint_high = (next_low + next_high) / 2.0
-      midpoint_low + fraction * (midpoint_high - midpoint_low)
-    end
-  end
-
-  # Convert meters per second to a Beaufort scale value.
-  # Finds the Beaufort band whose midpoint range contains the value.
-  defp mps_to_beaufort(mps) do
-    cond do
-      mps < 0.0 ->
-        0.0
-
-      true ->
-        find_beaufort_band(mps, 0)
-    end
-  end
-
-  defp find_beaufort_band(_mps, index) when index >= @beaufort_max do
-    @beaufort_max * 1.0
-  end
-
-  defp find_beaufort_band(mps, index) do
-    low = elem(@beaufort_thresholds, index)
-    high = elem(@beaufort_thresholds, index + 1)
-    midpoint = (low + high) / 2.0
-
-    next_low = elem(@beaufort_thresholds, index + 1)
-    next_high = elem(@beaufort_thresholds, min(index + 2, tuple_size(@beaufort_thresholds) - 1))
-    next_midpoint = (next_low + next_high) / 2.0
-
-    if mps < next_midpoint do
-      # Interpolate within this band
-      if next_midpoint == midpoint do
-        index * 1.0
-      else
-        index + (mps - midpoint) / (next_midpoint - midpoint)
-      end
-    else
-      find_beaufort_band(mps, index + 1)
+        case Map.get(@built_in_special, name) do
+          {fwd, inv} -> {:special, fwd, inv}
+          nil -> nil
+        end
     end
   end
 

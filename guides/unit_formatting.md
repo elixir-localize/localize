@@ -371,6 +371,154 @@ Units are organized into dimensional categories. Common categories and represent
 | Consumption | liter-per-100-kilometer, mile-per-gallon |
 | Acceleration | meter-per-square-second, g-force |
 
+## Custom units
+
+`Localize.Unit.define_unit/2` registers user-defined units at runtime via the `Localize.Unit.CustomRegistry`. Custom units participate in conversion, formatting, and arithmetic alongside built-in CLDR units.
+
+### Linear custom units
+
+Most custom units are linear conversions of the form `base_value = value * factor + offset`. Register them with a `:base_unit`, `:factor`, and `:category`:
+
+```elixir
+iex> Localize.Unit.define_unit("smoot", %{
+...>   base_unit: "meter",
+...>   factor: 1.7018,
+...>   category: "length"
+...> })
+:ok
+
+iex> {:ok, unit} = Localize.Unit.new(3, "smoot")
+iex> {:ok, meters} = Localize.Unit.convert(unit, "meter")
+iex> Float.round(meters.value, 4)
+5.1054
+```
+
+Custom units automatically support SI prefixes (`kilosmoot`, `millismoot`) and power prefixes (`square-smoot`, `cubic-smoot`).
+
+#### Definition fields
+
+* `:base_unit` (required) — the CLDR unit this converts to (e.g., `"meter"`, `"kilogram"`, `"second"`).
+
+* `:factor` (required) — the conversion multiplier: `1 custom_unit = factor × base_unit`.
+
+* `:offset` (optional) — additive offset for the conversion. Defaults to `0.0`.
+
+* `:category` (required) — the unit category (e.g., `"length"`, `"mass"`). Any non-empty string is accepted, allowing domain-specific categories like `"mass-density"` or `"thermal-conductivity"`.
+
+* `:display` (optional) — locale-specific display patterns. A nested map of `locale => style => plural_patterns`:
+
+```elixir
+Localize.Unit.define_unit("smoot", %{
+  base_unit: "meter",
+  factor: 1.7018,
+  category: "length",
+  display: %{
+    en: %{
+      long: %{one: "{0} smoot", other: "{0} smoots"}
+    }
+  }
+})
+```
+
+### Nonlinear custom units (special conversions)
+
+Some scales cannot be expressed as a linear factor — for example, decibels (logarithmic), wire gauges (exponential), and density hydrometers (reciprocal). These are registered with `factor: :special` and a pair of `{module, function}` tuples that implement the forward and inverse conversions.
+
+#### Building a conversion module
+
+A conversion module provides two public functions of arity 1:
+
+* A **forward** function that converts from the custom scale reading to the base unit value.
+
+* An **inverse** function that converts from the base unit value back to the custom scale reading.
+
+For example, a module for the Baumé hydrometer scale (which measures liquid density):
+
+```elixir
+defmodule MyApp.BaumeConversion do
+  @baumeconst 145.0
+  @g_per_cm3_to_kg_per_m3 1000.0
+
+  @doc "Baumé degrees to kg/m³."
+  @spec forward(number()) :: float()
+  def forward(degrees) do
+    @baumeconst / (@baumeconst - degrees) * @g_per_cm3_to_kg_per_m3
+  end
+
+  @doc "kg/m³ to Baumé degrees."
+  @spec inverse(number()) :: float()
+  def inverse(kg_per_m3) do
+    g_cm3 = kg_per_m3 / @g_per_cm3_to_kg_per_m3
+    @baumeconst - @baumeconst / g_cm3
+  end
+end
+```
+
+#### Registering a special conversion
+
+Register the unit with `factor: :special` and `:forward` / `:inverse` keys pointing to the conversion functions:
+
+```elixir
+iex> Localize.Unit.define_unit("baume", %{
+...>   base_unit: "kilogram-per-cubic-meter",
+...>   factor: :special,
+...>   category: "mass-density",
+...>   forward: {MyApp.BaumeConversion, :forward},
+...>   inverse: {MyApp.BaumeConversion, :inverse}
+...> })
+:ok
+
+iex> {:ok, unit} = Localize.Unit.new(10, "baume")
+iex> {:ok, density} = Localize.Unit.convert(unit, "kilogram-per-cubic-meter")
+iex> Float.round(density.value, 1)
+1074.1
+```
+
+The conversion pipeline calls the forward function to go from the custom scale to the base unit, then applies standard factor-based conversion to reach the target unit. For the reverse direction, it converts to the base unit first, then calls the inverse function.
+
+#### Definition fields for special conversions
+
+* `:base_unit` (required) — the CLDR unit that the forward function produces (e.g., `"kelvin"` for temperature scales, `"meter"` for wire gauges).
+
+* `:factor` (required) — must be the atom `:special`.
+
+* `:category` (required) — the unit category.
+
+* `:forward` (required) — a `{module, function_name}` tuple. The function must be exported with arity 1, accepting a number and returning the base unit value as a float.
+
+* `:inverse` (required) — a `{module, function_name}` tuple. The function must be exported with arity 1, accepting a base unit value and returning the custom scale reading as a float.
+
+* `:display` (optional) — locale-specific display patterns, same as linear units.
+
+#### Validation
+
+When registering a special conversion, the registry verifies that:
+
+* The module is loaded and the function is exported with arity 1 (for both `:forward` and `:inverse`).
+
+* The `:base_unit` is a valid CLDR base unit.
+
+* The `:category` is a non-empty string.
+
+### Batch registration
+
+For bulk loading, `Localize.Unit.CustomRegistry.register_batch/1` accepts a map of `%{name => definition}` and performs a single `persistent_term` update, avoiding the memory overhead of individual registrations:
+
+```elixir
+Localize.Unit.CustomRegistry.register_batch(%{
+  "smoot" => %{base_unit: "meter", factor: 1.7018, category: "length"},
+  "cubit" => %{base_unit: "meter", factor: 0.4572, category: "length"}
+})
+```
+
+### Loading from files
+
+`Localize.Unit.load_custom_units/1` loads definitions from an `.exs` file that evaluates to a list of definition maps (each with a `:unit` key):
+
+```elixir
+Localize.Unit.load_custom_units("priv/custom_units.exs")
+```
+
 ## Options reference
 
 ### `Localize.Unit.to_string/2`

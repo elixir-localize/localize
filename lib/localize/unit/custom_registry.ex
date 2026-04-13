@@ -220,6 +220,17 @@ defmodule Localize.Unit.CustomRegistry do
     {:error, "unit name must be a string, got #{inspect(name)}"}
   end
 
+  defp validate_definition(%{factor: :special} = definition) do
+    with :ok <- validate_required_key(definition, :base_unit, &is_binary/1),
+         :ok <- validate_required_key(definition, :category, &is_binary/1),
+         :ok <- validate_base_unit(definition.base_unit),
+         :ok <- validate_category(definition.category),
+         :ok <- validate_conversion_fun(definition, :forward),
+         :ok <- validate_conversion_fun(definition, :inverse) do
+      :ok
+    end
+  end
+
   defp validate_definition(definition) when is_map(definition) do
     with :ok <- validate_required_key(definition, :base_unit, &is_binary/1),
          :ok <- validate_required_key(definition, :factor, &is_number/1),
@@ -260,6 +271,25 @@ defmodule Localize.Unit.CustomRegistry do
 
   defp validate_category(category) do
     {:error, "invalid category: #{inspect(category)}, expected a non-empty string"}
+  end
+
+  defp validate_conversion_fun(definition, key) do
+    case Map.fetch(definition, key) do
+      {:ok, {module, function}} when is_atom(module) and is_atom(function) ->
+        Code.ensure_loaded(module)
+
+        if function_exported?(module, function, 1) do
+          :ok
+        else
+          {:error, "#{key}: #{inspect(module)}.#{function}/1 is not exported"}
+        end
+
+      {:ok, other} ->
+        {:error, "#{key}: expected {module, function} tuple, got #{inspect(other)}"}
+
+      :error ->
+        {:error, "missing required key: #{key} (required for special conversions)"}
+    end
   end
 
   defp validate_positive_factor(factor) when factor > 0, do: :ok
