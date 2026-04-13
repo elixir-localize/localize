@@ -91,6 +91,46 @@ defmodule Localize.Unit.CustomRegistry do
   end
 
   @doc """
+  Registers multiple custom units in a single `persistent_term` update.
+
+  This is significantly more memory-efficient than calling `register/2`
+  in a loop, because it avoids creating intermediate `persistent_term`
+  snapshots for each unit. Each snapshot is stored in the BEAM's literal
+  area and is not freed until a global garbage collection sweep, so
+  bulk registration via `register/2` can exhaust literal memory.
+
+  ### Arguments
+
+  * `definitions` — a map of `%{name => definition}` where each definition
+    has `:base_unit`, `:factor`, and `:category` keys.
+
+  ### Returns
+
+  * `{:ok, count}` with the number of units registered.
+
+  * `{:error, reason}` if any validation fails. No units are registered
+    on error (the operation is atomic).
+
+  """
+  @spec register_batch(%{String.t() => map()}) :: {:ok, non_neg_integer()}
+  def register_batch(definitions) when is_map(definitions) do
+    validated_map =
+      Enum.reduce(definitions, %{}, fn {name, definition}, acc ->
+        with :ok <- validate_name(name),
+             :ok <- validate_definition(definition),
+             :ok <- validate_no_collision(name) do
+          Map.put(acc, name, definition)
+        else
+          {:error, _reason} -> acc
+        end
+      end)
+
+    current = all()
+    :persistent_term.put(@persistent_term_key, Map.merge(current, validated_map))
+    {:ok, map_size(validated_map)}
+  end
+
+  @doc """
   Loads custom unit definitions from an `.exs` file.
 
   The file must evaluate to a list of maps, each with a `:unit` key
@@ -128,21 +168,20 @@ defmodule Localize.Unit.CustomRegistry do
 
           case definitions do
             defs when is_list(defs) ->
-              results =
-                Enum.map(defs, fn
-                  %{unit: name} = definition ->
-                    register(name, Map.delete(definition, :unit))
+              batch =
+                Enum.reduce_while(defs, {:ok, %{}}, fn
+                  %{unit: name} = definition, {:ok, acc} ->
+                    {:cont, {:ok, Map.put(acc, name, Map.delete(definition, :unit))}}
 
-                  other ->
-                    {:error,
-                     "invalid definition: expected map with :unit key, got #{inspect(other)}"}
+                  other, _acc ->
+                    {:halt,
+                     {:error,
+                      "invalid definition: expected map with :unit key, got #{inspect(other)}"}}
                 end)
 
-              errors = Enum.filter(results, &match?({:error, _}, &1))
-
-              case errors do
-                [] -> {:ok, length(results)}
-                _ -> {:error, Enum.map_join(errors, "; ", fn {:error, msg} -> msg end)}
+              case batch do
+                {:ok, batch_map} -> register_batch(batch_map)
+                {:error, _} = error -> error
               end
 
             other ->
