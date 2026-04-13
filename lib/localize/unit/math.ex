@@ -515,16 +515,99 @@ defmodule Localize.Unit.Math do
 
   @dimensionless_fns ~w(sin cos tan asin acos atan exp sinh cosh tanh asinh acosh atanh)a
   @log_fns ~w(ln log log2)a
+  @all_dimensionless_fns @dimensionless_fns ++ @log_fns
+
+  # Dimensionless base units — a unit is considered dimensionless for
+  # transcendental functions if it converts to one of these base units.
+  @dimensionless_bases ~w(revolution part)
+
+  # ── Public dimensionless function wrappers ──
 
   @doc """
-  Applies a trigonometric or transcendental function to a dimensionless
-  unit value.
+  Computes the sine of a dimensionless unit value (angle or ratio).
 
-  Supported function names: `:sin`, `:cos`, `:tan`, `:asin`, `:acos`,
-  `:atan`, `:exp`, `:ln`, `:log`, `:log2`.
+  ### Examples
 
-  The unit must be dimensionless (e.g., `radian`, or a bare number
-  wrapped in a unit). The result is a plain number.
+      iex> {:ok, u} = Localize.Unit.new(0, "radian")
+      iex> {:ok, result} = Localize.Unit.Math.sin(u)
+      iex> result
+      0.0
+
+  """
+  @spec sin(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def sin(unit), do: apply_dimensionless(:sin, unit)
+
+  @doc "Computes the cosine of a dimensionless unit value."
+  @spec cos(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def cos(unit), do: apply_dimensionless(:cos, unit)
+
+  @doc "Computes the tangent of a dimensionless unit value."
+  @spec tan(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def tan(unit), do: apply_dimensionless(:tan, unit)
+
+  @doc "Computes the arc sine of a dimensionless unit value."
+  @spec asin(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def asin(unit), do: apply_dimensionless(:asin, unit)
+
+  @doc "Computes the arc cosine of a dimensionless unit value."
+  @spec acos(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def acos(unit), do: apply_dimensionless(:acos, unit)
+
+  @doc "Computes the arc tangent of a dimensionless unit value."
+  @spec atan(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def atan(unit), do: apply_dimensionless(:atan, unit)
+
+  @doc "Computes the hyperbolic sine of a dimensionless unit value."
+  @spec sinh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def sinh(unit), do: apply_dimensionless(:sinh, unit)
+
+  @doc "Computes the hyperbolic cosine of a dimensionless unit value."
+  @spec cosh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def cosh(unit), do: apply_dimensionless(:cosh, unit)
+
+  @doc "Computes the hyperbolic tangent of a dimensionless unit value."
+  @spec tanh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def tanh(unit), do: apply_dimensionless(:tanh, unit)
+
+  @doc "Computes the inverse hyperbolic sine of a dimensionless unit value."
+  @spec asinh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def asinh(unit), do: apply_dimensionless(:asinh, unit)
+
+  @doc "Computes the inverse hyperbolic cosine of a dimensionless unit value."
+  @spec acosh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def acosh(unit), do: apply_dimensionless(:acosh, unit)
+
+  @doc "Computes the inverse hyperbolic tangent of a dimensionless unit value."
+  @spec atanh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def atanh(unit), do: apply_dimensionless(:atanh, unit)
+
+  @doc "Computes e^x for a dimensionless unit value."
+  @spec exp(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def exp(unit), do: apply_dimensionless(:exp, unit)
+
+  @doc "Computes the natural logarithm of a dimensionless unit value."
+  @spec ln(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def ln(unit), do: apply_dimensionless(:ln, unit)
+
+  @doc "Computes the base-10 logarithm of a dimensionless unit value."
+  @spec log(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def log(unit), do: apply_dimensionless(:log, unit)
+
+  @doc "Computes the base-2 logarithm of a dimensionless unit value."
+  @spec log2(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  def log2(unit), do: apply_dimensionless(:log2, unit)
+
+  # ── apply_dimensionless/2 ──
+
+  @doc """
+  Applies a trigonometric, hyperbolic, or transcendental function to
+  a dimensionless unit value.
+
+  The unit must be dimensionless — its base unit must reduce to an
+  angle (`revolution`) or a ratio (`part`). Units with physical
+  dimensions (length, mass, etc.) are rejected.
+
+  Supported function names: #{Enum.map_join(@all_dimensionless_fns, ", ", &"`:#{&1}`")}.
 
   ### Arguments
 
@@ -534,9 +617,9 @@ defmodule Localize.Unit.Math do
 
   ### Returns
 
-  * `{:ok, number}` with the function result, or
+  * `{:ok, number}` with the function result.
 
-  * `{:error, reason}` if the unit is not dimensionless.
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
 
   ### Examples
 
@@ -548,50 +631,57 @@ defmodule Localize.Unit.Math do
   """
   @spec apply_dimensionless(atom(), Unit.t()) :: {:ok, number()} | {:error, String.t()}
 
-  def apply_dimensionless(name, %Unit{value: value})
+  def apply_dimensionless(name, %Unit{value: value, parsed: parsed} = _unit)
       when name in @dimensionless_fns and not is_nil(value) do
-    float_val = to_float(value)
-
-    result =
-      case name do
-        :sin -> :math.sin(float_val)
-        :cos -> :math.cos(float_val)
-        :tan -> :math.tan(float_val)
-        :asin -> :math.asin(float_val)
-        :acos -> :math.acos(float_val)
-        :atan -> :math.atan(float_val)
-        :exp -> :math.exp(float_val)
-        :sinh -> :math.sinh(float_val)
-        :cosh -> :math.cosh(float_val)
-        :tanh -> :math.tanh(float_val)
-        :asinh -> :math.asinh(float_val)
-        :acosh -> :math.acosh(float_val)
-        :atanh -> :math.atanh(float_val)
-      end
-
-    {:ok, result}
+    with :ok <- check_dimensionless(name, parsed) do
+      {:ok, apply_math_fn(name, to_float(value))}
+    end
   end
 
-  def apply_dimensionless(name, %Unit{value: value})
+  def apply_dimensionless(name, %Unit{value: value, parsed: parsed} = _unit)
       when name in @log_fns and not is_nil(value) do
-    float_val = to_float(value)
-
-    result =
-      case name do
-        :ln -> :math.log(float_val)
-        :log -> :math.log10(float_val)
-        :log2 -> :math.log2(float_val)
-      end
-
-    {:ok, result}
+    with :ok <- check_dimensionless(name, parsed) do
+      {:ok, apply_math_fn(name, to_float(value))}
+    end
   end
 
-  def apply_dimensionless(name, %Unit{value: nil}) do
-    {:error, "cannot apply #{name} to a unit without a value"}
+  def apply_dimensionless(_name, %Unit{value: nil}) do
+    {:error, "function requires a unit with a value"}
   end
 
   def apply_dimensionless(name, _unit) do
     {:error, "unknown dimensionless function: #{name}"}
+  end
+
+  defp apply_math_fn(:sin, x), do: :math.sin(x)
+  defp apply_math_fn(:cos, x), do: :math.cos(x)
+  defp apply_math_fn(:tan, x), do: :math.tan(x)
+  defp apply_math_fn(:asin, x), do: :math.asin(x)
+  defp apply_math_fn(:acos, x), do: :math.acos(x)
+  defp apply_math_fn(:atan, x), do: :math.atan(x)
+  defp apply_math_fn(:exp, x), do: :math.exp(x)
+  defp apply_math_fn(:sinh, x), do: :math.sinh(x)
+  defp apply_math_fn(:cosh, x), do: :math.cosh(x)
+  defp apply_math_fn(:tanh, x), do: :math.tanh(x)
+  defp apply_math_fn(:asinh, x), do: :math.asinh(x)
+  defp apply_math_fn(:acosh, x), do: :math.acosh(x)
+  defp apply_math_fn(:atanh, x), do: :math.atanh(x)
+  defp apply_math_fn(:ln, x), do: :math.log(x)
+  defp apply_math_fn(:log, x), do: :math.log10(x)
+  defp apply_math_fn(:log2, x), do: :math.log2(x)
+
+  defp check_dimensionless(name, parsed) do
+    case Localize.Unit.BaseUnit.base_unit(parsed) do
+      {:ok, base} when base in @dimensionless_bases ->
+        :ok
+
+      {:ok, base} ->
+        {:error, "#{name} requires a dimensionless value, got unit with base: #{base}"}
+
+      {:error, _} ->
+        # If base unit resolution fails, allow it (might be a bare number)
+        :ok
+    end
   end
 
   # ── Private arithmetic ──────────────────────────────────────────────
