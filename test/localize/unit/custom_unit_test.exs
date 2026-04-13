@@ -70,15 +70,26 @@ defmodule Localize.Unit.CustomUnitTest do
       assert message =~ "unknown base unit"
     end
 
-    test "rejects unknown category" do
+    test "accepts custom category" do
+      assert :ok =
+               Unit.define_unit("smoot", %{
+                 base_unit: "meter",
+                 factor: 1.0,
+                 category: "custom-stuff"
+               })
+
+      assert CustomRegistry.get("smoot").category == "custom-stuff"
+    end
+
+    test "rejects empty category" do
       assert {:error, message} =
                Unit.define_unit("smoot", %{
                  base_unit: "meter",
                  factor: 1.0,
-                 category: "bogus"
+                 category: ""
                })
 
-      assert message =~ "unknown category"
+      assert message =~ "invalid category"
     end
 
     test "rejects negative factor" do
@@ -223,6 +234,106 @@ defmodule Localize.Unit.CustomUnitTest do
       {:ok, unit} = Unit.new(3, "smoot")
       {:ok, formatted} = Unit.to_string(unit, locale: :en)
       assert formatted == "3 smoot"
+    end
+  end
+
+  describe "SI prefix with custom unit" do
+    setup do
+      Unit.define_unit("smoot", %{base_unit: "meter", factor: 1.7018, category: "length"})
+      :ok
+    end
+
+    test "parses kilosmoot" do
+      assert {:ok, unit} = Unit.new(5, "kilosmoot")
+      assert unit.name == "kilosmoot"
+    end
+
+    test "parses millismoot" do
+      assert {:ok, unit} = Unit.new(3, "millismoot")
+      assert unit.name == "millismoot"
+    end
+
+    test "converts kilosmoot to meter" do
+      {:ok, unit} = Unit.new(5, "kilosmoot")
+      {:ok, result} = Unit.convert(unit, "meter")
+      assert_in_delta result.value, 8509.0, 0.1
+    end
+
+    test "converts kilosmoot to smoot" do
+      {:ok, unit} = Unit.new(2, "kilosmoot")
+      {:ok, result} = Unit.convert(unit, "smoot")
+      assert_in_delta result.value, 2000.0, 0.1
+    end
+  end
+
+  describe "power prefix with custom unit" do
+    setup do
+      Unit.define_unit("smoot", %{base_unit: "meter", factor: 1.7018, category: "length"})
+      :ok
+    end
+
+    test "parses square-smoot" do
+      assert {:ok, unit} = Unit.new(5, "square-smoot")
+      assert unit.name == "square-smoot"
+    end
+
+    test "parses cubic-smoot" do
+      assert {:ok, unit} = Unit.new(5, "cubic-smoot")
+      assert unit.name == "cubic-smoot"
+    end
+
+    test "parses pow4-smoot" do
+      assert {:ok, unit} = Unit.new(5, "pow4-smoot")
+      assert unit.name == "pow4-smoot"
+    end
+
+    test "converts square-smoot to square-meter" do
+      {:ok, unit} = Unit.new(5, "square-smoot")
+      {:ok, result} = Unit.convert(unit, "square-meter")
+      assert_in_delta result.value, 14.4806, 0.01
+    end
+  end
+
+  describe "combined SI + power prefix with custom unit" do
+    setup do
+      Unit.define_unit("smoot", %{base_unit: "meter", factor: 1.7018, category: "length"})
+      :ok
+    end
+
+    test "parses square-kilosmoot" do
+      assert {:ok, unit} = Unit.new(5, "square-kilosmoot")
+      assert unit.name == "square-kilosmoot"
+    end
+  end
+
+  describe "compound custom unit" do
+    setup do
+      Unit.define_unit("smoot", %{base_unit: "meter", factor: 1.7018, category: "length"})
+      :ok
+    end
+
+    test "parses smoot-per-second" do
+      assert {:ok, unit} = Unit.new(5, "smoot-per-second")
+      assert unit.name == "smoot-per-second"
+    end
+  end
+
+  describe "SI prefix guard against greedy consumption" do
+    test "decathlon is not split into deca + thlon" do
+      Unit.define_unit("decathlon", %{
+        base_unit: "second",
+        factor: 86400.0,
+        category: "duration"
+      })
+
+      {:ok, unit} = Unit.new(1, "decathlon")
+      assert unit.name == "decathlon"
+
+      # Verify it parsed as a bare unit, not deca-prefixed
+      {:unit, parts} = unit.parsed
+      [single_unit: props] = parts[:numerator]
+      assert props[:prefix] == nil
+      assert props[:base] == "decathlon"
     end
   end
 

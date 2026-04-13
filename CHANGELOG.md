@@ -2,9 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on
-[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
-[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.2.0] — April 13th, 2026
+
+### Bug Fixes
+
+* SI prefix parsing for custom units. Custom units can now be prefixed with SI prefixes and power prefixes.
+
+### Enhancements
+
+* Custom unit category validation relaxed from a fixed allowlist to any non-empty string. The faciliates importing a broader range of unit definitions such as those from Gnu units.
 
 ## [0.1.0] — April 13th, 2026
 

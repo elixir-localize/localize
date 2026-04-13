@@ -114,6 +114,13 @@ defmodule Localize.Unit.Parser do
   # The custom_base_unit_p fallback accepts any lowercase identifier,
   # enabling custom unit names. A validation pass after parsing checks
   # that all base names resolve to known CLDR units or registered custom units.
+  #
+  # SI-prefixed custom units are tried before bare custom units but are
+  # guarded by a post_traverse that validates the base (after stripping
+  # the prefix) is actually a registered custom unit. This prevents
+  # greedy consumption of the full name when an SI prefix happens to
+  # appear at the start (e.g., "decathlon" won't be split into
+  # "deca" + "thlon").
   single_unit_v =
     choice([
       parsec(:currency_unit_p),
@@ -121,8 +128,10 @@ defmodule Localize.Unit.Parser do
       |> choice([
         parsec(:base_unit_p),
         parsec(:si_prefix_p) |> concat(parsec(:base_unit_p)),
-        parsec(:custom_base_unit_p),
-        parsec(:si_prefix_p) |> concat(parsec(:custom_base_unit_p))
+        parsec(:si_prefix_p)
+        |> concat(parsec(:custom_base_unit_p))
+        |> post_traverse(:validate_prefixed_custom_unit),
+        parsec(:custom_base_unit_p)
       ])
       |> reduce(:wrap_single_unit),
       unit_constant()

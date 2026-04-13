@@ -69,6 +69,21 @@ defmodule Localize.Unit.Parser.Combinator do
   end
 
   @doc false
+  def validate_prefixed_custom_unit(rest, args, context, _line, _offset) do
+    case List.keyfind(args, :base, 0) do
+      {:base, base} when base != nil ->
+        if Localize.Unit.CustomRegistry.registered?(base) do
+          {rest, args, context}
+        else
+          {:error, "#{base} is not a registered custom unit"}
+        end
+
+      _ ->
+        {:error, "no base unit found"}
+    end
+  end
+
+  @doc false
   def unit_constant do
     choice([
       # Scientific notation: 1e6, 1e9, etc.
@@ -112,10 +127,14 @@ defmodule Localize.Unit.Parser.Combinator do
       |> reduce(:wrap_single_unit),
       # Custom unit: optional power prefix, optional SI prefix, any lowercase identifier.
       # Parsed the same way as a CLDR unit. Validated in a second pass.
+      # SI-prefixed custom units are tried first, but only match when the
+      # base (after stripping the prefix) is a registered custom unit.
+      # This prevents greedy consumption of the full name as a bare custom unit
+      # when an SI prefix is present.
       optional(power_prefix())
       |> choice([
-        custom_base_unit(),
-        si_prefix() |> concat(custom_base_unit())
+        si_prefix() |> concat(custom_base_unit()) |> post_traverse(:validate_prefixed_custom_unit),
+        custom_base_unit()
       ])
       |> reduce(:wrap_single_unit),
       # Numeric constant (e.g., 100, 1e6)

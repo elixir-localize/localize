@@ -1,7 +1,7 @@
 defmodule Localize.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.2.0"
   @cldr_version_path "priv/localize/version"
   @localize_patch_version_path "priv/localize/localize_patch_version"
 
@@ -220,7 +220,7 @@ defmodule Localize.MixProject do
     ] ++ maybe_json_polyfill()
   end
 
-  def maybe_json_polyfill do
+  defp maybe_json_polyfill do
     if Code.ensure_loaded?(:json) do
       []
     else

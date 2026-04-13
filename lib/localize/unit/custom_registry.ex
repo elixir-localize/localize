@@ -217,13 +217,10 @@ defmodule Localize.Unit.CustomRegistry do
     end
   end
 
+  defp validate_category(category) when is_binary(category) and category != "", do: :ok
+
   defp validate_category(category) do
-    if category in Localize.Unit.Data.categories() do
-      :ok
-    else
-      {:error,
-       "unknown category: #{inspect(category)}. Known categories: #{inspect(Localize.Unit.Data.categories())}"}
-    end
+    {:error, "invalid category: #{inspect(category)}, expected a non-empty string"}
   end
 
   defp validate_positive_factor(factor) when factor > 0, do: :ok
