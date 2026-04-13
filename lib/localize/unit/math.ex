@@ -513,7 +513,7 @@ defmodule Localize.Unit.Math do
   # or a unit whose dimensions have all cancelled. They return a bare
   # number, not a unit.
 
-  @dimensionless_fns ~w(sin cos tan asin acos atan exp)a
+  @dimensionless_fns ~w(sin cos tan asin acos atan exp sinh cosh tanh asinh acosh atanh)a
   @log_fns ~w(ln log log2)a
 
   @doc """
@@ -561,6 +561,12 @@ defmodule Localize.Unit.Math do
         :acos -> :math.acos(float_val)
         :atan -> :math.atan(float_val)
         :exp -> :math.exp(float_val)
+        :sinh -> :math.sinh(float_val)
+        :cosh -> :math.cosh(float_val)
+        :tanh -> :math.tanh(float_val)
+        :asinh -> :math.asinh(float_val)
+        :acosh -> :math.acosh(float_val)
+        :atanh -> :math.atanh(float_val)
       end
 
     {:ok, result}

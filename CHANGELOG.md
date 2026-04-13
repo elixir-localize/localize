@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `:special` conversion support in `CustomRegistry`. Custom units can now be registered with `factor: :special` plus `:forward` and `:inverse` `{module, function}` tuples for nonlinear conversions. This enables logarithmic scales (decibels), temperature functions, density hydrometers, wire gauges, and other conversions that cannot be expressed as `value * factor + offset`.
 
+* Hyperbolic trig functions in `Localize.Unit.Math.apply_dimensionless/2`: `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`.
+
 * `Localize.Unit.Conversion.Beaufort` — extracted from hardcoded logic in `Conversion` into a standalone module using the new `:special` registration mechanism.
 
 ### Changed
