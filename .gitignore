@@ -42,6 +42,7 @@ bench_unit_parser.sh
 /src/*.erl
 
 # Claude
+CLAUDE.md
 .claude/
 /plans
 
