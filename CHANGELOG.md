@@ -4,11 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — April 13th, 2026
+
+### Bug Fixes
+
+* `Localize.all_locale_ids/1` (`:modern`, `:moderate`, `:basic`) now returns the correct expanded list of locales. Thanks to @cw789 for the report.
+
 ## [0.3.0] — April 13th, 2026
 
 ### Bug Fixes
 
-* Load custom units in a single batch to avoid churning ``:persistent_store``
+* Load custom units in a single batch to avoid churning `:persistent_store`
 
 ## [0.2.0] — April 13th, 2026
 

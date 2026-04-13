@@ -744,9 +744,11 @@ defmodule Localize.Data.Supplemental do
 
   """
   def generate_coverage_levels do
+    # CLDR provides effectiveCoverageLevels which includes regional
+    # variants pre-expanded via the locale inheritance chain.
     raw =
       Localize.Data.read_json("coverageLevels.json")
-      |> Map.fetch!("coverageLevels")
+      |> Map.fetch!("effectiveCoverageLevels")
 
     grouped =
       Enum.group_by(raw, fn {_locale, level} -> level end, fn {locale, _level} -> locale end)
