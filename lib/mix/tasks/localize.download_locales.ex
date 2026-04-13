@@ -136,7 +136,15 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
 
   defp download_locales(locales) do
     cache_dir = Provider.locale_cache_dir()
-    Mix.shell().info("Downloading #{length(locales)} locale(s) to #{cache_dir}")
+    count = length(locales)
+
+    {:ok, message} =
+      Localize.Message.format(
+        ".input {$count :number}\n.match $count\n1 {{Downloading {$count} locale to {$dir}}}\n* {{Downloading {$count} locales to {$dir}}}",
+        %{"count" => count, "dir" => cache_dir}
+      )
+
+    Mix.shell().info(message)
     Mix.shell().info("Version: #{Localize.version()}\n")
 
     {downloaded, skipped, failures} =
