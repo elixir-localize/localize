@@ -103,6 +103,12 @@ defmodule Localize.Gettext.Messages do
         "datetime",
         "Unterminated quote in interval format."
       ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "datetime",
+        "No interval format fallback pattern available in the locale data."
+      ),
 
       # Language tag
       Gettext.Macros.dpgettext_noop_with_backend(

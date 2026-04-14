@@ -1,6 +1,6 @@
 # Date and Time Formatting Guide
 
-This guide explains how to use `Localize.Date`, `Localize.Time`, `Localize.DateTime`, `Localize.Interval`, and `Localize.DateTime.Relative` for locale-aware date and time formatting.
+This guide explains how to use `Localize.Date`, `Localize.Time`, `Localize.DateTime`, and `Localize.DateTime.Relative` for locale-aware date and time formatting. Date/time ranges and elapsed durations have their own guide — see [Interval and Duration Formatting](https://hexdocs.pm/localize/interval_and_duration_formatting.html).
 
 ## Overview
 
@@ -178,40 +178,9 @@ iex> Localize.DateTime.to_string(~N[2024-07-10 14:30:00], locale: :de, prefer: :
 
 When a map contains only date fields or only time fields, `Localize.DateTime.to_string/2` delegates to `Localize.Date` or `Localize.Time` automatically.
 
-## Interval formatting
+## Interval and Duration formatting
 
-`Localize.Interval.to_string/3` formats a range between two dates by identifying the greatest calendar field that differs and selecting a CLDR interval pattern.
-
-```elixir
-iex> {:ok, result} = Localize.Interval.to_string(~D[2024-04-22], ~D[2024-04-25], locale: :en)
-iex> String.contains?(result, "22") and String.contains?(result, "25")
-true
-
-iex> {:ok, result} = Localize.Interval.to_string(~D[2024-01-15], ~D[2024-03-20], locale: :en)
-iex> String.contains?(result, "Jan") and String.contains?(result, "Mar")
-true
-```
-
-### Interval styles
-
-The `:style` option controls which fields appear in the output:
-
-| Style | Description | Example skeleton |
-|-------|-------------|-----------------|
-| `:date` | Full date (default) | `:yMMMd` |
-| `:month` | Month only | `:MMM` |
-| `:month_and_day` | Month and day | `:MMMd` |
-| `:year_and_month` | Year and month | `:yMMM` |
-
-The `:format` option selects the detail level: `:short`, `:medium` (default), or `:long`.
-
-### How interval formatting works
-
-1. The greatest difference between the two dates is identified (year, month, or day).
-
-2. The style and format resolve to a skeleton atom.
-
-3. CLDR provides interval patterns that split the format at the repeat point so that shared fields are not repeated. For example, two dates in the same month produce "Apr 22 - 25, 2024" rather than "Apr 22, 2024 - Apr 25, 2024".
+Formatting ranges between two dates ("Apr 22 – 25, 2024"), open intervals ("Jan 1, 2020 –"), and elapsed durations ("11 months and 30 days" or "37:48:12") is covered in a dedicated guide — see [Interval and Duration Formatting](https://hexdocs.pm/localize/interval_and_duration_formatting.html).
 
 ## Relative time formatting
 

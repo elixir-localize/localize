@@ -87,6 +87,52 @@ defmodule Localize.IntervalTest do
     end
   end
 
+  describe "to_string/3 with open intervals" do
+    test "open-end date (to is nil) in English" do
+      assert {:ok, result} = Interval.to_string(~D[2020-01-01], nil, locale: :en)
+      assert String.starts_with?(result, "Jan 1, 2020")
+      assert String.contains?(result, "\u2013")
+      refute String.starts_with?(result, "\u2013")
+    end
+
+    test "open-start date (from is nil) in English" do
+      assert {:ok, result} = Interval.to_string(nil, ~D[2020-01-01], locale: :en)
+      assert String.ends_with?(result, "Jan 1, 2020")
+      assert String.contains?(result, "\u2013")
+      refute String.ends_with?(result, "\u2013")
+    end
+
+    test "open-end date (to is nil) in Japanese uses fullwidth tilde" do
+      assert {:ok, result} = Interval.to_string(~D[2020-01-01], nil, locale: :ja)
+      assert String.contains?(result, "2020")
+      assert String.ends_with?(result, "\uFF5E")
+    end
+
+    test "open-start date (from is nil) in Japanese uses fullwidth tilde" do
+      assert {:ok, result} = Interval.to_string(nil, ~D[2020-01-01], locale: :ja)
+      assert String.contains?(result, "2020")
+      assert String.starts_with?(result, "\uFF5E")
+    end
+
+    test "open-end time in English" do
+      assert {:ok, result} = Interval.to_string(~T[10:30:00], nil, locale: :en)
+      assert String.contains?(result, "10:30")
+      assert String.contains?(result, "\u2013")
+    end
+
+    test "open-end naive datetime in English" do
+      assert {:ok, result} = Interval.to_string(~N[2020-01-01 10:30:00], nil, locale: :en)
+      assert String.contains?(result, "Jan 1, 2020")
+      assert String.contains?(result, "10:30")
+      assert String.contains?(result, "\u2013")
+    end
+
+    test "both nil returns an invalid input error" do
+      assert {:error, %Localize.DateTimeInvalidInputError{type: :datetime}} =
+               Interval.to_string(nil, nil, locale: :en)
+    end
+  end
+
   describe "greatest_difference/2" do
     test "year difference" do
       assert {:ok, :y} = Interval.greatest_difference(~D[2022-04-22], ~D[2023-04-22])

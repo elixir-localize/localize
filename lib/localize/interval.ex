@@ -59,9 +59,23 @@ defmodule Localize.Interval do
       true
 
   """
-  @spec to_string(map(), map(), Keyword.t()) ::
+  @spec to_string(map() | nil, map() | nil, Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def to_string(from, to, options \\ []) do
+  def to_string(from, to, options \\ [])
+
+  def to_string(nil, nil, _options) do
+    {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}
+  end
+
+  def to_string(nil, to, options) when not is_nil(to) do
+    format_open_interval(to, :open_start, options)
+  end
+
+  def to_string(from, nil, options) when not is_nil(from) do
+    format_open_interval(from, :open_end, options)
+  end
+
+  def to_string(from, to, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
     style = Keyword.get(options, :style, @default_date_style)
@@ -87,6 +101,77 @@ defmodule Localize.Interval do
 
       {:error, _} = error ->
         error
+    end
+  end
+
+  # Open-ended intervals. One endpoint is `nil`; format the known
+  # endpoint using its normal single-value formatter, then substitute
+  # into the locale's `:interval_format_fallback` pattern (which is
+  # of the form `[0, " – ", 1]`). For `:open_start`, the known value
+  # goes into slot 1 and we trim the leading separator. For
+  # `:open_end`, it goes into slot 0 and we trim the trailing separator.
+  defp format_open_interval(value, side, options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
+         {:ok, pattern} <- get_fallback_pattern(formats),
+         {:ok, formatted} <- format_single_value(value, options) do
+      {a, b} =
+        case side do
+          :open_start -> {"", formatted}
+          :open_end -> {formatted, ""}
+        end
+
+      result =
+        [a, b]
+        |> Localize.Substitution.substitute(pattern)
+        |> IO.iodata_to_binary()
+        |> trim_open_interval(side)
+
+      {:ok, result}
+    end
+  end
+
+  defp trim_open_interval(string, :open_start), do: String.trim_leading(string)
+  defp trim_open_interval(string, :open_end), do: String.trim_trailing(string)
+
+  defp get_fallback_pattern(formats) do
+    case Map.get(formats, :interval_format_fallback) do
+      nil ->
+        {:error, Localize.DateTimeIntervalFormatError.exception(reason: :no_fallback)}
+
+      pattern ->
+        {:ok, pattern}
+    end
+  end
+
+  # Dispatch a single value to the appropriate formatter based on its shape.
+  # Pure time values (hour but no year) go to Time; pure date values (year but
+  # no hour) go to Date; everything else (including NaiveDateTime, DateTime,
+  # and generic maps with both date and time fields) goes to DateTime.
+  defp format_single_value(%Time{} = value, options), do: Localize.Time.to_string(value, options)
+  defp format_single_value(%Date{} = value, options), do: Localize.Date.to_string(value, options)
+
+  defp format_single_value(%DateTime{} = value, options),
+    do: Localize.DateTime.to_string(value, options)
+
+  defp format_single_value(%NaiveDateTime{} = value, options),
+    do: Localize.DateTime.to_string(value, options)
+
+  defp format_single_value(value, options) when is_map(value) do
+    cond do
+      Map.has_key?(value, :year) and Map.has_key?(value, :hour) ->
+        Localize.DateTime.to_string(value, options)
+
+      Map.has_key?(value, :year) ->
+        Localize.Date.to_string(value, options)
+
+      Map.has_key?(value, :hour) ->
+        Localize.Time.to_string(value, options)
+
+      true ->
+        {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}
     end
   end
 

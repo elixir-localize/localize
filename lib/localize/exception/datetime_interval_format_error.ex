@@ -62,4 +62,13 @@ defmodule Localize.DateTimeIntervalFormatError do
       "Unterminated quote in interval format."
     )
   end
+
+  def message(%__MODULE__{reason: :no_fallback}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "datetime",
+      "No interval format fallback pattern available in the locale data."
+    )
+  end
 end
