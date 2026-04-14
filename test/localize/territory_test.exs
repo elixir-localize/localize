@@ -64,37 +64,6 @@ defmodule Localize.TerritoryTest do
     end
   end
 
-  # ── subdivision_name ──────────────────────────────────────────
-
-  describe "subdivision_name/2" do
-    test "returns localized subdivision name" do
-      assert {:ok, "Ontario"} == Territory.subdivision_name(:caon, locale: :en)
-      assert {:ok, "Cumbria"} == Territory.subdivision_name("gbcma", locale: :en)
-      assert {:ok, "California"} == Territory.subdivision_name("usca", locale: :en)
-    end
-
-    test "returns name in another locale" do
-      assert {:ok, "Ontário"} == Territory.subdivision_name(:caon, locale: :pt)
-    end
-
-    test "returns error for unknown subdivision" do
-      assert {:error, %Localize.UnknownSubdivisionError{}} =
-               Territory.subdivision_name(:zzzzz, locale: :en)
-    end
-  end
-
-  describe "subdivision_name!/2" do
-    test "returns name on success" do
-      assert "Ontario" == Territory.subdivision_name!(:caon, locale: :en)
-    end
-
-    test "raises on unknown subdivision" do
-      assert_raise Localize.UnknownSubdivisionError, fn ->
-        Territory.subdivision_name!(:zzzzz, locale: :en)
-      end
-    end
-  end
-
   # ── translate_territory ───────────────────────────────────────
 
   describe "translate_territory/3" do
@@ -129,33 +98,6 @@ defmodule Localize.TerritoryTest do
     test "raises on unknown territory name" do
       assert_raise Localize.UnknownTerritoryError, fn ->
         Territory.translate_territory!("Unknown Country", :en, to: :pt)
-      end
-    end
-  end
-
-  # ── translate_subdivision ─────────────────────────────────────
-
-  describe "translate_subdivision/3" do
-    test "translates subdivision name between locales" do
-      assert {:ok, "Ontário"} ==
-               Territory.translate_subdivision("Ontario", :en, to: :pt)
-    end
-
-    test "returns error for unknown subdivision name" do
-      assert {:error, %Localize.UnknownSubdivisionError{}} =
-               Territory.translate_subdivision("Nonexistent Place", :en, to: :pt)
-    end
-  end
-
-  describe "translate_subdivision!/3" do
-    test "returns translated name on success" do
-      assert "Ontário" ==
-               Territory.translate_subdivision!("Ontario", :en, to: :pt)
-    end
-
-    test "raises on unknown subdivision name" do
-      assert_raise Localize.UnknownSubdivisionError, fn ->
-        Territory.translate_subdivision!("Nonexistent Place", :en, to: :pt)
       end
     end
   end

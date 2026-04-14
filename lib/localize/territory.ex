@@ -140,74 +140,6 @@ defmodule Localize.Territory do
     end
   end
 
-  # ── Subdivision display names ───────────────────────────────
-
-  @doc """
-  Returns the localized display name for a subdivision code.
-
-  ### Arguments
-
-  * `subdivision` is a subdivision code atom or string
-    (e.g., `"usca"`, `"gbcma"`, `:caon`).
-
-  * `options` is a keyword list of options.
-
-  ### Options
-
-  * `:locale` is a locale identifier. The default is
-    `Localize.get_locale()`.
-
-  ### Returns
-
-  * `{:ok, name}` where `name` is the localized subdivision name.
-
-  * `{:error, exception}` if the subdivision is unknown or the
-    locale has no translation for it.
-
-  ### Examples
-
-      iex> Localize.Territory.subdivision_name(:caon, locale: :en)
-      {:ok, "Ontario"}
-
-      iex> Localize.Territory.subdivision_name("gbcma", locale: :en)
-      {:ok, "Cumbria"}
-
-  """
-  @spec subdivision_name(atom() | String.t(), Keyword.t()) ::
-          {:ok, String.t()} | {:error, Exception.t()}
-  def subdivision_name(subdivision, options \\ []) do
-    locale = Keyword.get(options, :locale, Localize.get_locale())
-    locale_id = Localize.Locale.to_locale_id(locale)
-    code = normalize_subdivision_code(subdivision)
-
-    with {:ok, subdivisions} <- Localize.Locale.get(locale_id, [:subdivisions]) do
-      case Map.get(subdivisions, code) do
-        nil ->
-          {:error, Localize.UnknownSubdivisionError.exception(subdivision: code)}
-
-        name ->
-          {:ok, name}
-      end
-    end
-  end
-
-  @doc """
-  Same as `subdivision_name/2` but raises on error.
-
-  ### Examples
-
-      iex> Localize.Territory.subdivision_name!(:caon, locale: :en)
-      "Ontario"
-
-  """
-  @spec subdivision_name!(atom() | String.t(), Keyword.t()) :: String.t()
-  def subdivision_name!(subdivision, options \\ []) do
-    case subdivision_name(subdivision, options) do
-      {:ok, name} -> name
-      {:error, exception} -> raise exception
-    end
-  end
-
   # ── Translation ─────────────────────────────────────────────
 
   @doc """
@@ -272,77 +204,6 @@ defmodule Localize.Territory do
           String.t()
   def translate_territory!(name, from_locale, options \\ []) do
     case translate_territory(name, from_locale, options) do
-      {:ok, result} -> result
-      {:error, exception} -> raise exception
-    end
-  end
-
-  @doc """
-  Translates a subdivision name from one locale to another.
-
-  ### Arguments
-
-  * `name` is a localized subdivision name string.
-
-  * `from_locale` is the locale the name is in.
-
-  * `options` is a keyword list of options.
-
-  ### Options
-
-  * `:to` is the target locale. The default is
-    `Localize.get_locale()`.
-
-  ### Returns
-
-  * `{:ok, translated_name}` on success.
-
-  * `{:error, exception}` if the name cannot be found or
-    translated.
-
-  ### Examples
-
-      iex> Localize.Territory.translate_subdivision("Ontario", :en, to: :pt)
-      {:ok, "Ontário"}
-
-  """
-  @spec translate_subdivision(String.t(), atom() | String.t() | LanguageTag.t(), Keyword.t()) ::
-          {:ok, String.t()} | {:error, Exception.t()}
-  def translate_subdivision(name, from_locale, options \\ []) do
-    to_locale = Keyword.get(options, :to, Localize.get_locale())
-    from_locale_id = Localize.Locale.to_locale_id(from_locale)
-
-    with {:ok, subdivisions} <- Localize.Locale.get(from_locale_id, [:subdivisions]) do
-      normalized = normalize_name(name)
-
-      inverted =
-        for {code, sub_name} <- subdivisions,
-            into: %{},
-            do: {normalize_name(sub_name), code}
-
-      case Map.get(inverted, normalized) do
-        nil ->
-          {:error, Localize.UnknownSubdivisionError.exception(subdivision: name)}
-
-        code ->
-          subdivision_name(code, locale: to_locale)
-      end
-    end
-  end
-
-  @doc """
-  Same as `translate_subdivision/3` but raises on error.
-
-  ### Examples
-
-      iex> Localize.Territory.translate_subdivision!("Ontario", :en, to: :pt)
-      "Ontário"
-
-  """
-  @spec translate_subdivision!(String.t(), atom() | String.t() | LanguageTag.t(), Keyword.t()) ::
-          String.t()
-  def translate_subdivision!(name, from_locale, options \\ []) do
-    case translate_subdivision(name, from_locale, options) do
       {:ok, result} -> result
       {:error, exception} -> raise exception
     end
@@ -1086,12 +947,6 @@ defmodule Localize.Territory do
 
   defp validate_style(style) do
     {:error, Localize.UnknownStyleError.exception(style: style, territory: nil)}
-  end
-
-  defp normalize_subdivision_code(code) when is_atom(code), do: code
-
-  defp normalize_subdivision_code(code) when is_binary(code) do
-    code |> String.downcase() |> String.to_atom()
   end
 
   # ── Territory from locale ──────────────────────────────────────
