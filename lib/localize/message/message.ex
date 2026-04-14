@@ -393,9 +393,6 @@ defmodule Localize.Message do
     else
       {:error, reason} when is_binary(reason) ->
         {:error, Localize.ParseError.exception(input: message, reason: reason)}
-
-      {:error, exception} ->
-        {:error, exception}
     end
   end
 
