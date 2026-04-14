@@ -7,7 +7,7 @@ defmodule Localize.Territory.Subdivision do
   3166-2 codes (lowercase atoms like `:caon` for Ontario, Canada or
   `:gbeng` for England, United Kingdom).
 
-  ## The three lookup functions
+  ### Lookup functions
 
   This module provides three related but distinct functions for
   discovering subdivisions. Understanding the difference between them
@@ -32,7 +32,7 @@ defmodule Localize.Territory.Subdivision do
   (the structural hierarchy of administrative divisions is the same
   regardless of which locale is asking).
 
-  ## Display names
+  ### Display names
 
   * `display_name/2` returns the localized name for a single subdivision
     code in a specified locale.
