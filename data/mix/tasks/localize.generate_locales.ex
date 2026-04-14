@@ -24,7 +24,8 @@ defmodule Mix.Tasks.Localize.GenerateLocales do
 
   @impl Mix.Task
   def run(args) do
-    Mix.Task.run("app.start")
+    Mix.Task.run("app.config")
+    {:ok, _started} = Application.ensure_all_started(:localize)
 
     case args do
       [] ->

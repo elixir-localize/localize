@@ -42,7 +42,8 @@ defmodule Mix.Tasks.Localize.BumpPatchVersion do
 
   @impl Mix.Task
   def run(_args) do
-    Mix.Task.run("app.start")
+    Mix.Task.run("app.config")
+    {:ok, _started} = Application.ensure_all_started(:localize)
     _ = Localize.Data.bump_patch_version()
     :ok
   end

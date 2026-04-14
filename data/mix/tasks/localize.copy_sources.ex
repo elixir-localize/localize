@@ -46,7 +46,8 @@ defmodule Mix.Tasks.Localize.CopySources do
 
   @impl Mix.Task
   def run(args) do
-    Mix.Task.run("app.start")
+    Mix.Task.run("app.config")
+    {:ok, _started} = Application.ensure_all_started(:localize)
 
     {opts, _rest} =
       OptionParser.parse!(args, strict: [supplemental: :boolean, locales: :boolean])

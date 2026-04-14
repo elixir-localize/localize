@@ -37,7 +37,8 @@ defmodule Mix.Tasks.Localize.UploadLocale do
 
   @impl Mix.Task
   def run(args) do
-    Mix.Task.run("app.start")
+    Mix.Task.run("app.config")
+    {:ok, _started} = Application.ensure_all_started(:localize)
 
     {opts, locale_args} =
       OptionParser.parse!(args, strict: [version: :string, bucket: :string])

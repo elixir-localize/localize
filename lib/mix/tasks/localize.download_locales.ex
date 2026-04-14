@@ -67,7 +67,12 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
 
   @impl Mix.Task
   def run(args) do
-    Mix.Task.run("app.start")
+    # Compile and load runtime config without starting the consumer's
+    # own application — the consumer may not be startable in a build
+    # environment (no DB, no network endpoint, etc.). We only need
+    # `:localize` itself running for the download.
+    Mix.Task.run("app.config")
+    {:ok, _started} = Application.ensure_all_started(:localize)
 
     {opts, locale_args} =
       OptionParser.parse!(args, strict: [all: :boolean, force: :boolean])

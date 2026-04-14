@@ -23,7 +23,8 @@ defmodule Mix.Tasks.Localize.GenerateSupplemental do
 
   @impl Mix.Task
   def run(_args) do
-    Mix.Task.run("app.start")
+    Mix.Task.run("app.config")
+    {:ok, _started} = Application.ensure_all_started(:localize)
     Localize.Data.generate_all()
   end
 end
