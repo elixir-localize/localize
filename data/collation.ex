@@ -95,6 +95,10 @@ defmodule Localize.Data.Collation do
 
   * `:script_ranges` — script-to-lead-byte-range mapping (for script reordering).
 
+  * `:han_radicals` — map of CJK codepoint to
+    `{radical, residual_strokes, simplification}` for UAX #38
+    radical-stroke ordering.
+
   """
   def generate_collation_table do
     source_path = Application.app_dir(:localize, "priv/cldr/FractionalUCA.txt")
@@ -116,12 +120,16 @@ defmodule Localize.Data.Collation do
     primary_to_frac = Localize.Collation.Reorder.parse_primary_to_frac(source_path)
     script_ranges = Localize.Collation.Reorder.parse_top_bytes(source_path)
 
+    IO.puts("Parsing Han radical data...")
+    han_radicals = parse_han_radicals(source_path)
+
     data = %{
       entries: entries,
       contractions: contractions,
       fast_latin: fast_latin,
       primary_to_frac: primary_to_frac,
-      script_ranges: script_ranges
+      script_ranges: script_ranges,
+      han_radicals: han_radicals
     }
 
     binary = :erlang.term_to_binary(data, [:compressed])
@@ -174,6 +182,26 @@ defmodule Localize.Data.Collation do
 
   defp combining_mark?(cp) do
     Localize.Collation.Unicode.combining_class(cp) > 0
+  end
+
+  # Parse `[radical N=...:members]` lines from FractionalUCA.txt into a
+  # %{codepoint => {radical_number, residual_strokes, simplification}}
+  # map. Uses Localize.Collation.Han.parse_radical_line/1 which is
+  # already a pure parser (no I/O, no state).
+  defp parse_han_radicals(path) do
+    path
+    |> File.stream!()
+    |> Enum.reduce(%{}, fn line, acc ->
+      case Localize.Collation.Han.parse_radical_line(String.trim(line)) do
+        {:ok, radical_num, members} ->
+          Enum.reduce(members, acc, fn {cp, simplification, strokes}, acc ->
+            Map.put(acc, cp, {radical_num, strokes, simplification})
+          end)
+
+        :skip ->
+          acc
+      end
+    end)
   end
 
   # ── Private helpers ─────────────────────────────────────────────

@@ -19,6 +19,7 @@ defmodule Localize.Collation.Options do
             max_variable: :punct,
             type: :standard,
             tailoring: nil,
+            han_ordering: :implicit,
             backend: :elixir
 
   @type strength :: :primary | :secondary | :tertiary | :quaternary | :identical
@@ -40,6 +41,7 @@ defmodule Localize.Collation.Options do
           max_variable: max_variable(),
           type: atom(),
           tailoring: map() | nil,
+          han_ordering: :implicit | :radical_stroke,
           backend: backend()
         }
 

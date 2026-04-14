@@ -360,6 +360,9 @@ defmodule Localize.Collation.Table do
         :persistent_term.put({:localize, :collation_primary_to_frac}, data.primary_to_frac)
         :persistent_term.put({:localize, :collation_script_ranges}, data.script_ranges)
 
+        # Store Han radical data for Localize.Collation.Han
+        :persistent_term.put({:localize, :collation_han_radicals}, data.han_radicals)
+
       {:error, :enoent} ->
         require Logger
 

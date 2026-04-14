@@ -75,6 +75,7 @@ defmodule Localize.Collation do
 
   alias Localize.Collation.{
     FastLatin,
+    Han,
     ImplicitWeights,
     Nif,
     Normalizer,
@@ -305,43 +306,49 @@ defmodule Localize.Collation do
     if options.numeric do
       produce_with_numeric(codepoints, options)
     else
-      produce_standard(codepoints, options.tailoring, options.suppress_contractions)
+      produce_standard(
+        codepoints,
+        options.tailoring,
+        options.suppress_contractions,
+        options.han_ordering
+      )
     end
   end
 
-  defp produce_standard(codepoints, overlay, suppress) do
-    do_produce(codepoints, [], overlay, suppress)
+  defp produce_standard(codepoints, overlay, suppress, han_ordering) do
+    do_produce(codepoints, [], overlay, suppress, han_ordering)
   end
 
-  defp do_produce([], acc, _overlay, _suppress), do: Enum.reverse(acc) |> List.flatten()
+  defp do_produce([], acc, _overlay, _suppress, _han_ordering),
+    do: Enum.reverse(acc) |> List.flatten()
 
   # FastLatin shortcut: only when there is no tailoring overlay,
   # since overlays may remap characters in the Latin range.
-  defp do_produce([cp | rest], acc, nil, suppress) when cp < 0x0180 do
+  defp do_produce([cp | rest], acc, nil, suppress, han_ordering) when cp < 0x0180 do
     case FastLatin.lookup(cp) do
       nil ->
-        do_produce_full([cp | rest], acc, nil, suppress)
+        do_produce_full([cp | rest], acc, nil, suppress, han_ordering)
 
       elements ->
-        do_produce(rest, [elements | acc], nil, suppress)
+        do_produce(rest, [elements | acc], nil, suppress, han_ordering)
     end
   end
 
-  defp do_produce(codepoints, acc, overlay, suppress) do
-    do_produce_full(codepoints, acc, overlay, suppress)
+  defp do_produce(codepoints, acc, overlay, suppress, han_ordering) do
+    do_produce_full(codepoints, acc, overlay, suppress, han_ordering)
   end
 
-  defp do_produce_full([cp | rest] = codepoints, acc, overlay, suppress) do
+  defp do_produce_full([cp | rest] = codepoints, acc, overlay, suppress, han_ordering) do
     # When a codepoint is in the suppress list, skip contraction
     # lookup and look up only the single codepoint.
     if suppress != [] and cp in suppress do
       case Table.lookup(cp) do
         {:ok, elements} ->
-          do_produce(rest, [elements | acc], overlay, suppress)
+          do_produce(rest, [elements | acc], overlay, suppress, han_ordering)
 
         :unmapped ->
-          elements = resolve_unmapped(cp)
-          do_produce(rest, [elements | acc], overlay, suppress)
+          elements = resolve_unmapped(cp, han_ordering)
+          do_produce(rest, [elements | acc], overlay, suppress, han_ordering)
       end
     else
       case Table.longest_match_with_overlay(codepoints, overlay) do
@@ -349,15 +356,15 @@ defmodule Localize.Collation do
           {final_elements, final_remaining} =
             try_discontiguous_match(matched, elements, remaining)
 
-          do_produce(final_remaining, [final_elements | acc], overlay, suppress)
+          do_produce(final_remaining, [final_elements | acc], overlay, suppress, han_ordering)
 
         {:unmapped, cp, remaining} ->
-          elements = resolve_unmapped(cp)
+          elements = resolve_unmapped(cp, han_ordering)
 
           {final_elements, final_remaining} =
             try_discontiguous_match([cp], elements, remaining)
 
-          do_produce(final_remaining, [final_elements | acc], overlay, suppress)
+          do_produce(final_remaining, [final_elements | acc], overlay, suppress, han_ordering)
 
         :done ->
           Enum.reverse(acc) |> List.flatten()
@@ -427,39 +434,51 @@ defmodule Localize.Collation do
     Localize.Collation.Unicode.combining_class(cp)
   end
 
-  defp produce_with_numeric(codepoints, _options) do
-    pairs = collect_ce_pairs(codepoints, [])
+  defp produce_with_numeric(codepoints, options) do
+    pairs = collect_ce_pairs(codepoints, [], options.han_ordering)
     Localize.Collation.Numeric.process_elements(pairs)
   end
 
-  defp collect_ce_pairs([], acc), do: Enum.reverse(acc)
+  defp collect_ce_pairs([], acc, _han_ordering), do: Enum.reverse(acc)
 
-  defp collect_ce_pairs(codepoints, acc) do
+  defp collect_ce_pairs(codepoints, acc, han_ordering) do
     case Table.longest_match(codepoints) do
       {matched, elements, remaining} when is_list(elements) ->
-        collect_ce_pairs(remaining, [{matched, elements} | acc])
+        collect_ce_pairs(remaining, [{matched, elements} | acc], han_ordering)
 
       {:unmapped, cp, remaining} ->
-        elements = resolve_unmapped(cp)
-        collect_ce_pairs(remaining, [{[cp], elements} | acc])
+        elements = resolve_unmapped(cp, han_ordering)
+        collect_ce_pairs(remaining, [{[cp], elements} | acc], han_ordering)
 
       :done ->
         Enum.reverse(acc)
     end
   end
 
-  defp resolve_unmapped(cp) do
-    case ImplicitWeights.compute(cp) do
-      {:hangul_decompose, jamo} ->
-        Enum.flat_map(jamo, fn j ->
-          case Table.lookup(j) do
-            {:ok, elements} -> elements
-            :unmapped -> ImplicitWeights.compute(j)
-          end
-        end)
+  defp resolve_unmapped(cp, han_ordering) do
+    # For CJK Unified Ideographs, use radical-stroke ordering (UAX #38)
+    # when the locale has requested it via the `:han_ordering` option
+    # (set for the `-u-co-unihan` collation type). All other locales —
+    # including root — use UCA implicit weights, matching the CLDR
+    # root collation and the conformance test data.
+    if han_ordering == :radical_stroke and ImplicitWeights.unified_ideograph?(cp) do
+      case Han.collation_elements(cp) do
+        nil -> ImplicitWeights.compute(cp)
+        elements -> elements
+      end
+    else
+      case ImplicitWeights.compute(cp) do
+        {:hangul_decompose, jamo} ->
+          Enum.flat_map(jamo, fn j ->
+            case Table.lookup(j) do
+              {:ok, elements} -> elements
+              :unmapped -> ImplicitWeights.compute(j)
+            end
+          end)
 
-      elements when is_list(elements) ->
-        elements
+        elements when is_list(elements) ->
+          elements
+      end
     end
   end
 
@@ -554,7 +573,15 @@ defmodule Localize.Collation do
     |> struct(extra_overrides)
     |> Map.put(:type, type)
     |> Map.put(:tailoring, tailoring_overlay)
+    |> Map.put(:han_ordering, han_ordering_for(type))
   end
+
+  # Radical-stroke ordering for Han characters applies only when the
+  # collation type specifically requests it. CLDR's root collation and
+  # all other tailored locales use UCA implicit weights (codepoint
+  # order) for Han, matching the reference behaviour.
+  defp han_ordering_for(:unihan), do: :radical_stroke
+  defp han_ordering_for(_type), do: :implicit
 
   defp tag_language(%Localize.LanguageTag{} = tag) do
     cond do

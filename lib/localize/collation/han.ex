@@ -2,20 +2,22 @@ defmodule Localize.Collation.Han do
   @moduledoc """
   Han character ordering using radical-stroke indexes.
 
-  Implements the sorting algorithm from UAX #38, computing 64-bit collation
-  keys based on radical number, residual stroke count, simplification level,
-  Unicode block, and code point value.
+  Implements the sorting algorithm from UAX #38, computing 64-bit
+  collation keys based on radical number, residual stroke count,
+  simplification level, Unicode block, and code point value.
 
-  The radical data is parsed from FractionalUCA.txt `[radical N=...]` entries.
+  The radical data is pre-parsed from `FractionalUCA.txt`'s
+  `[radical N=...]` entries during the build pipeline and shipped
+  in `priv/localize/collation_table.etf`. At runtime it lives in
+  `:persistent_term` and is loaded alongside the main collation
+  table by `Localize.Collation.Table`.
 
   """
-
-  use GenServer
 
   import Bitwise
   alias Localize.Collation.Element
 
-  @table_name :collation_han_radicals
+  @han_radicals_key {:localize, :collation_han_radicals}
 
   @block_cjk_unified 0
   @block_ext_a 1
@@ -28,24 +30,20 @@ defmodule Localize.Collation.Han do
   @block_ext_h 8
   @block_compat 254
 
-  def start_link(options \\ []) do
-    GenServer.start_link(__MODULE__, options, name: __MODULE__)
-  end
-
   @doc """
-  Ensure the Han radical data is loaded into ETS.
+  Ensure the Han radical data is available.
+
+  The data is loaded as a side-effect of `Localize.Collation.Table.ensure_loaded/0`
+  because both share the same pre-generated ETF.
 
   ### Returns
 
-  * `:ok` - the radical data is loaded and ready.
+  * `:ok` — the radical data is loaded and ready.
 
   """
   @spec ensure_loaded() :: :ok
   def ensure_loaded do
-    case :ets.whereis(@table_name) do
-      :undefined -> GenServer.call(__MODULE__, :load, :infinity)
-      _ref -> :ok
-    end
+    Localize.Collation.Table.ensure_loaded()
   end
 
   @doc """
@@ -53,27 +51,31 @@ defmodule Localize.Collation.Han do
 
   ### Arguments
 
-  * `codepoint` - an integer codepoint for a CJK Unified Ideograph.
+  * `codepoint` — an integer codepoint for a CJK Unified Ideograph.
 
   ### Returns
 
-  * `[element, element]` - two CEs encoding the radical-stroke key.
+  * `[element, element]` — two CEs encoding the radical-stroke key.
 
-  * `nil` - if the character has no radical data.
+  * `nil` — if the character has no radical data.
 
   """
   @spec collation_elements(non_neg_integer()) :: [Element.t()] | nil
   def collation_elements(codepoint) do
-    ensure_loaded()
-
-    case :ets.lookup(@table_name, codepoint) do
-      [{_cp, radical, residual_strokes, simplification}] ->
-        block = block_index(codepoint)
-        key = compute_key(radical, residual_strokes, simplification, block, codepoint)
-        key_to_elements(key)
-
-      [] ->
+    case :persistent_term.get(@han_radicals_key, nil) do
+      nil ->
         nil
+
+      radicals ->
+        case Map.get(radicals, codepoint) do
+          {radical, residual_strokes, simplification} ->
+            block = block_index(codepoint)
+            key = compute_key(radical, residual_strokes, simplification, block, codepoint)
+            key_to_elements(key)
+
+          nil ->
+            nil
+        end
     end
   end
 
@@ -82,15 +84,15 @@ defmodule Localize.Collation.Han do
 
   ### Arguments
 
-  * `radical` - the Kangxi radical number (1-214).
+  * `radical` — the Kangxi radical number (1-214).
 
-  * `residual_strokes` - the residual stroke count after removing the radical.
+  * `residual_strokes` — the residual stroke count after removing the radical.
 
-  * `simplification` - the simplification level (0 for traditional).
+  * `simplification` — the simplification level (0 for traditional).
 
-  * `block` - the CJK block index.
+  * `block` — the CJK block index.
 
-  * `codepoint` - the Unicode codepoint.
+  * `codepoint` — the Unicode codepoint.
 
   ### Returns
 
@@ -122,7 +124,7 @@ defmodule Localize.Collation.Han do
 
   ### Arguments
 
-  * `key` - a 64-bit integer radical-stroke key from `compute_key/5`.
+  * `key` — a 64-bit integer radical-stroke key from `compute_key/5`.
 
   ### Returns
 
@@ -145,7 +147,7 @@ defmodule Localize.Collation.Han do
 
   ### Arguments
 
-  * `cp` - an integer codepoint.
+  * `cp` — an integer codepoint.
 
   ### Returns
 
@@ -177,61 +179,22 @@ defmodule Localize.Collation.Han do
     end
   end
 
-  # GenServer callbacks
-
-  @impl true
-  def init(_options), do: {:ok, %{loaded: false}}
-
-  @impl true
-  def handle_call(:load, _from, %{loaded: true} = state) do
-    {:reply, :ok, state}
-  end
-
-  def handle_call(:load, _from, %{loaded: false} = state) do
-    load_radical_data()
-    {:reply, :ok, %{state | loaded: true}}
-  end
-
-  defp load_radical_data do
-    table = :ets.new(@table_name, [:named_table, :set, :public, read_concurrency: true])
-    path = fractional_uca_path()
-
-    if File.exists?(path) do
-      parse_radicals(path, table)
-    end
-
-    table
-  end
-
-  @doc false
-  def parse_radicals(path, table) do
-    path
-    |> File.stream!()
-    |> Enum.each(fn line ->
-      case parse_radical_line(String.trim(line)) do
-        {:ok, radical_num, members} ->
-          Enum.each(members, fn {cp, simplification, strokes} ->
-            :ets.insert(table, {cp, radical_num, strokes, simplification})
-          end)
-
-        :skip ->
-          :ok
-      end
-    end)
-  end
-
   @doc """
   Parse a radical definition line from FractionalUCA.txt.
 
+  This function is used by the build pipeline (`data/collation.ex`)
+  to extract radical data from the CLDR source file. It is a pure
+  parser and does no I/O.
+
   ### Arguments
 
-  * `line` - a trimmed line from FractionalUCA.txt.
+  * `line` — a trimmed line from FractionalUCA.txt.
 
   ### Returns
 
-  * `{:ok, radical_num, members}` - the radical number and member list.
+  * `{:ok, radical_num, members}` — the radical number and member list.
 
-  * `:skip` - the line is not a radical definition.
+  * `:skip` — the line is not a radical definition.
 
   """
   @spec parse_radical_line(String.t()) ::
@@ -249,40 +212,41 @@ defmodule Localize.Collation.Han do
     end
   end
 
+  # CLDR lists members within each `[radical N=R:members]` line in
+  # UAX #38 radical-stroke order, so a member's 0-based position within
+  # that list is a faithful sort rank: lower index = fewer residual
+  # strokes. We use the index directly as the "residual_strokes" field
+  # fed into `compute_key/5`, giving correct within-radical ordering.
+  # (Across radicals, `radical` is the primary ranking factor, so exact
+  # stroke counts aren't needed — just the relative order within a
+  # radical, which is what the index provides.)
   defp parse_radical_members(str, _radical_num) do
     chars = String.to_charlist(str)
-    parse_member_chars(chars, [], 0)
+    members_no_rank = parse_member_chars(chars, [])
+    # Assign rank by position (clamped to the field width available in
+    # the compute_key encoding, which gives 8 bits for residual strokes).
+    members_no_rank
+    |> Enum.with_index()
+    |> Enum.map(fn {{cp, simp}, idx} -> {cp, simp, min(idx, 0xFF)} end)
   end
 
-  defp parse_member_chars([], acc, _stroke_group) do
+  defp parse_member_chars([], acc) do
     Enum.reverse(acc)
   end
 
-  defp parse_member_chars([cp | rest], acc, stroke_group) when cp == ?- do
+  defp parse_member_chars([cp | rest], acc) when cp == ?- do
     case {acc, rest} do
-      {[{prev_cp, simp, _strokes} | acc_rest], [next_cp | rest2]} ->
-        range_entries =
-          for c <- (prev_cp + 1)..next_cp do
-            {c, simp, stroke_group}
-          end
-
-        parse_member_chars(
-          rest2,
-          range_entries ++ acc_rest ++ [{prev_cp, simp, stroke_group}],
-          stroke_group
-        )
+      {[{prev_cp, simp} | _acc_rest], [next_cp | rest2]} ->
+        # Expand range (prev_cp+1..next_cp), preserving prev_cp already in acc.
+        range_entries = for c <- (prev_cp + 1)..next_cp, do: {c, simp}
+        parse_member_chars(rest2, Enum.reverse(range_entries) ++ acc)
 
       _ ->
-        parse_member_chars(rest, acc, stroke_group)
+        parse_member_chars(rest, acc)
     end
   end
 
-  defp parse_member_chars([cp | rest], acc, stroke_group) do
-    entry = {cp, 0, stroke_group}
-    parse_member_chars(rest, [entry | acc], stroke_group)
-  end
-
-  defp fractional_uca_path do
-    Application.app_dir(:localize, ["priv", "cldr", "FractionalUCA.txt"])
+  defp parse_member_chars([cp | rest], acc) do
+    parse_member_chars(rest, [{cp, 0} | acc])
   end
 end

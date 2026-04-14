@@ -14,8 +14,7 @@ defmodule Localize.Application do
       Localize.Locale.Loader,
       Localize.Locale.CacheSweeper,
       Localize.FormatCache,
-      Localize.Collation.Table,
-      Localize.Collation.Han
+      Localize.Collation.Table
     ]
 
     options = [strategy: :one_for_one, name: Localize.Supervisor]
