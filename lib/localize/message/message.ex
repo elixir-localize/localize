@@ -310,6 +310,109 @@ defmodule Localize.Message do
   end
 
   @doc """
+  Formats a message into a list of text and markup nodes preserving
+  markup structure.
+
+  Unlike `format/3`, which strips markup tags from the output, this
+  function returns a nested tree of `{:text, String.t()}` and
+  `{:markup, name, options, children}` tuples. This is the foundation
+  for HTML/HEEX renderers in companion packages.
+
+  The caller is responsible for turning markup nodes into actual
+  output (HTML elements, function components, etc.). Text nodes are
+  returned as raw strings — escaping is the renderer's responsibility.
+
+  ### Arguments
+
+  * `message` is an MF2 message in binary form.
+
+  * `bindings` is a map or keyword list of variable bindings.
+    The default is `%{}`.
+
+  * `options` is a keyword list of options. The default is `[]`.
+
+  ### Options
+
+  * `:locale` is a locale name or a `t:Localize.LanguageTag.t/0`.
+    The default is `Localize.get_locale/0`.
+
+  * `:trim` determines if the message is trimmed of whitespace
+    before formatting. The default is `false`.
+
+  * `:functions` is a map of custom MF2 function modules.
+    See `Localize.Message.Function`.
+
+  ### Returns
+
+  * `{:ok, nodes}` on success, where `nodes` is a list of
+    `safe_node()` tuples.
+
+  * `{:error, exception}` on parse or format error, including
+    unbalanced markup or unbound variables.
+
+  ### Examples
+
+      iex> Localize.Message.format_to_safe_list(
+      ...>   "Hello {$name}, click {#link href=|/home|}here{/link}!",
+      ...>   %{"name" => "Kip"}
+      ...> )
+      {:ok, [
+        {:text, "Hello Kip, click "},
+        {:markup, "link", %{"href" => "/home"}, [{:text, "here"}]},
+        {:text, "!"}
+      ]}
+
+      iex> Localize.Message.format_to_safe_list("Just text")
+      {:ok, [{:text, "Just text"}]}
+
+      iex> Localize.Message.format_to_safe_list("{#br/}")
+      {:ok, [{:markup, "br", %{}, []}]}
+
+  """
+  @type safe_node ::
+          {:text, String.t()}
+          | {:markup, String.t(), %{String.t() => term()}, [safe_node()]}
+
+  @spec format_to_safe_list(String.t(), bindings(), options()) ::
+          {:ok, [safe_node()]} | {:error, Exception.t()}
+
+  def format_to_safe_list(message, bindings \\ %{}, options \\ []) when is_binary(message) do
+    with {:ok, message} <- maybe_trim(message, options[:trim]),
+         {:ok, parsed} <- Parser.parse(message) do
+      case Interpreter.format_structured(parsed, bindings, options) do
+        {:ok, nodes, _bound, _unbound} ->
+          {:ok, nodes}
+
+        {:error, _nodes, _bound, unbound} ->
+          {:error, Localize.BindError.exception(unbound: unbound)}
+
+        {:format_error, reason} ->
+          {:error,
+           Localize.FormatError.exception(value: message, function: :format, reason: reason)}
+      end
+    else
+      {:error, reason} when is_binary(reason) ->
+        {:error, Localize.ParseError.exception(input: message, reason: reason)}
+
+      {:error, exception} ->
+        {:error, exception}
+    end
+  end
+
+  @doc """
+  Same as `format_to_safe_list/3` but raises on error.
+
+  """
+  @spec format_to_safe_list!(String.t(), bindings(), options()) :: [safe_node()]
+
+  def format_to_safe_list!(message, bindings \\ %{}, options \\ []) when is_binary(message) do
+    case format_to_safe_list(message, bindings, options) do
+      {:ok, nodes} -> nodes
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
   Formats a message into a canonical form.
 
   This allows for messages to be compared directly, or using

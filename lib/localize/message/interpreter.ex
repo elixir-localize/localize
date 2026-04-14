@@ -235,6 +235,273 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
+  # ── Structured formatting (preserves markup as nested nodes) ────
+
+  @doc """
+  Format an AST into a list of `safe_node()` tuples that preserve
+  markup structure as nested regions.
+
+  Unlike `format_list/3` which drops markup, this function produces
+  a flat list of `{:text, String.t()}` and `{:markup, name, options,
+  children}` tuples. This is the foundation for HTML/HEEX renderers
+  in companion packages.
+
+  ### Returns
+
+  * `{:ok, nodes, bound, unbound}` on success.
+
+  * `{:error, nodes, bound, unbound}` when one or more variables
+    could not be resolved (partial result in `nodes`).
+
+  * `{:format_error, reason}` on formatting error (including
+    unbalanced markup).
+
+  """
+  @spec format_structured(term(), map() | list(), Keyword.t()) ::
+          {:ok, list(), list(), list()}
+          | {:error, list(), list(), list()}
+          | {:format_error, String.t()}
+  def format_structured(ast, bindings \\ %{}, options \\ [])
+
+  def format_structured(ast, bindings, options) when is_list(bindings) do
+    format_structured(ast, Map.new(bindings), options)
+  end
+
+  def format_structured(ast, bindings, options) when is_map(bindings) do
+    bindings = normalize_binding_keys(bindings)
+    do_format_structured(ast, bindings, options)
+  end
+
+  defp do_format_structured([{:complex, _, _} = complex], bindings, options) do
+    do_format_structured(complex, bindings, options)
+  end
+
+  defp do_format_structured([{:match, _, _} = match], bindings, options) do
+    do_format_structured(match, bindings, options)
+  end
+
+  defp do_format_structured([{:quoted_pattern, _} = qp], bindings, options) do
+    do_format_structured(qp, bindings, options)
+  end
+
+  defp do_format_structured(ast, bindings, options) when is_list(ast) do
+    structured_pattern(ast, bindings, options, [])
+  end
+
+  defp do_format_structured({:complex, declarations, body}, bindings, options) do
+    case resolve_declarations(declarations, bindings, options) do
+      {:format_error, _} = err ->
+        err
+
+      {bindings, bound, selector_meta} ->
+        case body do
+          {:quoted_pattern, parts} ->
+            structured_pattern(parts, bindings, options, bound)
+
+          {:match, selectors, variants} ->
+            structured_match(selectors, variants, bindings, options, bound, selector_meta)
+        end
+    end
+  end
+
+  defp do_format_structured({:quoted_pattern, parts}, bindings, options) do
+    structured_pattern(parts, bindings, options, [])
+  end
+
+  defp do_format_structured({:match, selectors, variants}, bindings, options) do
+    structured_match(selectors, variants, bindings, options, [], %{})
+  end
+
+  defp structured_match(selectors, variants, bindings, options, bound, selector_meta) do
+    selector_info =
+      Enum.map(selectors, fn {:variable, name} ->
+        formatted =
+          case resolve_variable(name, bindings) do
+            {:ok, value} -> value
+            :error -> nil
+          end
+
+        {original_value, func} =
+          case Map.get(selector_meta, name) do
+            {orig, func} -> {orig, func}
+            nil -> {formatted, nil}
+          end
+
+        %{name: name, formatted: formatted, original: original_value, func: func}
+      end)
+
+    selector_names = Enum.map(selector_info, & &1.name)
+
+    case find_best_variant(selector_info, variants, options) do
+      {:ok, {:variant, _keys, {:quoted_pattern, parts}}} ->
+        case structured_pattern(parts, bindings, options, bound ++ selector_names) do
+          {:ok, nodes, more_bound, unbound} ->
+            {:ok, nodes, more_bound, unbound}
+
+          {:error, nodes, more_bound, unbound} ->
+            {:error, nodes, more_bound, unbound}
+
+          {:format_error, _} = err ->
+            err
+        end
+
+      :error ->
+        {:error, [], bound ++ selector_names, ["no matching variant"]}
+    end
+  end
+
+  # Walk the parts list pairing markup open/close tags into nested nodes.
+  # The stack holds in-progress markup frames: each frame is
+  # {name, options, accumulated_children, bound_acc, unbound_acc}.
+  defp structured_pattern(parts, bindings, options, bound_initial) do
+    do_structured_pattern(parts, bindings, options, [], [], bound_initial, [])
+  end
+
+  defp do_structured_pattern([], _bindings, _options, [_ | _], _acc, _bound, _unbound) do
+    # Stack non-empty at end of pattern = unbalanced open markup
+    {:format_error, "unbalanced markup: unclosed markup tag"}
+  end
+
+  defp do_structured_pattern([], _bindings, _options, [], acc, bound, unbound) do
+    nodes = acc |> Enum.reverse() |> merge_adjacent_text()
+
+    case unbound do
+      [] -> {:ok, nodes, Enum.uniq(bound), []}
+      _ -> {:error, nodes, Enum.uniq(bound), Enum.uniq(unbound)}
+    end
+  end
+
+  defp do_structured_pattern([part | rest], bindings, options, stack, acc, bound, unbound) do
+    case structured_part(part, bindings, options) do
+      {:text, text, new_bound} ->
+        do_structured_pattern(
+          rest,
+          bindings,
+          options,
+          stack,
+          [{:text, text} | acc],
+          new_bound ++ bound,
+          unbound
+        )
+
+      {:standalone, name, resolved_options, new_bound} ->
+        do_structured_pattern(
+          rest,
+          bindings,
+          options,
+          stack,
+          [{:markup, name, resolved_options, []} | acc],
+          new_bound ++ bound,
+          unbound
+        )
+
+      {:open, name, resolved_options, new_bound} ->
+        # Push current acc onto the stack and start a new children list.
+        frame = {name, resolved_options, acc}
+
+        do_structured_pattern(
+          rest,
+          bindings,
+          options,
+          [frame | stack],
+          [],
+          new_bound ++ bound,
+          unbound
+        )
+
+      {:close, name, _new_bound} ->
+        case stack do
+          [{^name, opts, parent_acc} | rest_stack] ->
+            children = acc |> Enum.reverse() |> merge_adjacent_text()
+            node = {:markup, name, opts, children}
+
+            do_structured_pattern(
+              rest,
+              bindings,
+              options,
+              rest_stack,
+              [node | parent_acc],
+              bound,
+              unbound
+            )
+
+          _ ->
+            {:format_error, "unbalanced markup: close tag '#{name}' does not match open"}
+        end
+
+      {:unbound, var_name} ->
+        do_structured_pattern(rest, bindings, options, stack, acc, bound, [var_name | unbound])
+
+      {:format_error, _} = err ->
+        err
+    end
+  end
+
+  defp structured_part({:text, text}, _bindings, _options) do
+    {:text, text, []}
+  end
+
+  defp structured_part({:escape, char}, _bindings, _options) do
+    {:text, char, []}
+  end
+
+  defp structured_part({:expression, operand, func, attrs}, bindings, options) do
+    case format_expression(operand, func, bindings, options) do
+      {:ok, formatted, bound_names} ->
+        bidi_mode = Keyword.get(options, :bidi, :none)
+        dir_override = extract_dir_attribute(attrs)
+        wrapped = apply_bidi_isolation(formatted, bidi_mode, dir_override, options)
+        {:text, IO.iodata_to_binary(wrapped), bound_names}
+
+      {:unbound, name} ->
+        {:unbound, name}
+
+      {:format_error, _} = err ->
+        err
+    end
+  end
+
+  defp structured_part({:markup_open, name, opts, _attrs}, bindings, _options) do
+    {resolved, bound} = resolve_markup_options(opts, bindings)
+    {:open, name, resolved, bound}
+  end
+
+  defp structured_part({:markup_close, name, _opts, _attrs}, _bindings, _options) do
+    {:close, name, []}
+  end
+
+  defp structured_part({:markup_standalone, name, opts, _attrs}, bindings, _options) do
+    {resolved, bound} = resolve_markup_options(opts, bindings)
+    {:standalone, name, resolved, bound}
+  end
+
+  defp resolve_markup_options(opts, bindings) do
+    Enum.reduce(opts, {%{}, []}, fn
+      {:option, name, {:literal, value}}, {acc, bound} ->
+        {Map.put(acc, name, value), bound}
+
+      {:option, name, {:number_literal, value}}, {acc, bound} ->
+        {Map.put(acc, name, parse_number(value)), bound}
+
+      {:option, name, {:variable, var_name}}, {acc, bound} ->
+        case resolve_variable(var_name, bindings) do
+          {:ok, value} -> {Map.put(acc, name, value), [var_name | bound]}
+          :error -> {acc, bound}
+        end
+    end)
+  end
+
+  # Coalesce consecutive {:text, _} nodes into one. Expression
+  # interpolation produces a {:text, _} node, and adjacent static
+  # text also produces one — combining them keeps the output tidy.
+  defp merge_adjacent_text(nodes) do
+    Enum.reduce(nodes, [], fn
+      {:text, t1}, [{:text, t2} | rest] -> [{:text, t2 <> t1} | rest]
+      node, acc -> [node | acc]
+    end)
+    |> Enum.reverse()
+  end
+
   defp format_part({:text, text}, _bindings, _options) do
     {:ok, text, []}
   end

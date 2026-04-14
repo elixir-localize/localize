@@ -345,7 +345,7 @@ The `:number` and `:integer` functions support plural category matching via the 
 
 ## Markup
 
-MF2 supports markup elements for structured output. Markup nodes are parsed but rendered as empty strings in the formatted output.
+MF2 supports markup elements for structured output. Markup is typically used to wrap regions of text that should become HTML elements, function components, or other host-format structures at render time.
 
 ```
 {#link}click here{/link}
@@ -354,6 +354,33 @@ MF2 supports markup elements for structured output. Markup nodes are parsed but 
 ```
 
 Markup elements accept the same option and attribute syntax as expressions.
+
+### `format/3` versus `format_to_safe_list/3`
+
+The standard `Localize.Message.format/3` function returns a string and **strips markup tags** from the output. Open and close tags are removed; their children remain:
+
+```elixir
+iex> Localize.Message.format("Click {#link href=|/home|}here{/link}!")
+{:ok, "Click here!"}
+```
+
+To preserve markup as structure, use `Localize.Message.format_to_safe_list/3`. It returns a nested list of `{:text, String.t()}` and `{:markup, name, options, children}` tuples that a renderer (HEEX component, EEx template, custom HTML builder, etc.) can turn into real output:
+
+```elixir
+iex> Localize.Message.format_to_safe_list(
+...>   "Hello {$name}, click {#link href=|/home|}here{/link}!",
+...>   %{"name" => "Kip"}
+...> )
+{:ok, [
+  {:text, "Hello Kip, click "},
+  {:markup, "link", %{"href" => "/home"}, [{:text, "here"}]},
+  {:text, "!"}
+]}
+```
+
+Variable interpolation, plural selection, and all other MF2 features work normally — only the markup tags themselves are preserved as structure instead of being stripped.
+
+Unbalanced markup (an open tag without a close, or a close tag without a matching open) returns `{:error, %Localize.FormatError{}}`.
 
 ## Escape sequences
 
