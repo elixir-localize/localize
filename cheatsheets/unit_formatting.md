@@ -137,19 +137,40 @@ b = Localize.Unit.new!(500, "meter")
 ### Multiplication
 
 ```elixir
+# Scalar
 u = Localize.Unit.new!(5, "meter")
 {:ok, result} = Localize.Unit.Math.mult(u, 3)
 result.value  #=> 15
+
+# Different dimensions produce a compound unit
+m = Localize.Unit.new!(2, "meter")
+s = Localize.Unit.new!(3, "second")
+{:ok, compound} = Localize.Unit.Math.mult(m, s)
+compound.name  #=> "meter-second"
+
+# Same dimension: operand 2 is aligned to operand 1, then squared
+a = Localize.Unit.new!(2, "millimeter")
+b = Localize.Unit.new!(3, "meter")
+{:ok, area} = Localize.Unit.Math.mult(a, b)
+area.name   #=> "square-millimeter"
+area.value  #=> 6000.0
 ```
 
-### Division (creates compound units)
+### Division
 
 ```elixir
+# Different dimensions produce a per-expression
 distance = Localize.Unit.new!(100, "meter")
 time = Localize.Unit.new!(10, "second")
 {:ok, speed} = Localize.Unit.Math.div(distance, time)
 speed.name   #=> "meter-per-second"
 speed.value  #=> 10.0
+
+# Same dimension: cancels to a bare dimensionless scalar
+km = Localize.Unit.new!(10, "kilometer")
+m = Localize.Unit.new!(2, "meter")
+{:ok, ratio} = Localize.Unit.Math.div(km, m)
+ratio  #=> 5000.0
 ```
 
 ### Negation and inversion

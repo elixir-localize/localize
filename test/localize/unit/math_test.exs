@@ -246,6 +246,57 @@ defmodule Localize.Unit.MathTest do
     end
   end
 
+  # ── same-dimension factoring ────────────────────────────────────────
+  #
+  # When two operands share the same base dimension but differ in
+  # prefix or base unit, the second operand is aligned to the first's
+  # unit before the math. The existing consolidation then correctly
+  # produces a squared/cubed form for mult or cancels for div.
+
+  describe "mult/2 with same-dimension units (different prefix or base)" do
+    test "mm * m produces square-millimeter with converted value" do
+      assert {:ok, result} = Math.mult(unit!(2, "millimeter"), unit!(3, "meter"))
+      assert result.name == "square-millimeter"
+      assert_in_delta result.value, 6000.0, 0.0001
+    end
+
+    test "m * mm produces square-meter with converted value" do
+      assert {:ok, result} = Math.mult(unit!(2, "meter"), unit!(3, "millimeter"))
+      assert result.name == "square-meter"
+      assert_in_delta result.value, 0.006, 1.0e-6
+    end
+
+    test "foot * meter produces square-foot with converted value" do
+      assert {:ok, result} = Math.mult(unit!(2, "foot"), unit!(3, "meter"))
+      assert result.name == "square-foot"
+      # 3 m ≈ 9.8425 ft; 2 * 9.8425 ≈ 19.685
+      assert_in_delta result.value, 19.685, 0.01
+    end
+
+    test "km * mile produces square-kilometer with converted value" do
+      assert {:ok, result} = Math.mult(unit!(2, "kilometer"), unit!(3, "mile"))
+      assert result.name == "square-kilometer"
+      # 3 mile ≈ 4.8280 km; 2 * 4.8280 ≈ 9.656
+      assert_in_delta result.value, 9.656, 0.01
+    end
+  end
+
+  describe "div/2 with same-dimension units (different prefix or base)" do
+    test "mm / m reduces to a dimensionless scalar" do
+      assert {:ok, value} = Math.div(unit!(2, "millimeter"), unit!(3, "meter"))
+      assert is_number(value)
+      # 2 mm / 3000 mm = 0.000666...
+      assert_in_delta value, 0.000666, 1.0e-5
+    end
+
+    test "km / mile reduces to a dimensionless scalar" do
+      assert {:ok, value} = Math.div(unit!(10, "kilometer"), unit!(5, "mile"))
+      assert is_number(value)
+      # 5 mile ≈ 8.0467 km; 10 / 8.0467 ≈ 1.2427
+      assert_in_delta value, 1.2427, 0.001
+    end
+  end
+
   # ── power consolidation ──────────────────────────────────────────────
 
   describe "power consolidation" do
@@ -287,9 +338,12 @@ defmodule Localize.Unit.MathTest do
       assert result.name == "kilogram-meter"
     end
 
-    test "SI-prefixed units only consolidate with same prefix" do
+    test "SI-prefixed units of the same dimension are aligned to the first operand's unit and consolidated" do
+      # kilometer * meter: meter is aligned to kilometer (3 m = 0.003 km),
+      # then consolidated into square-kilometer with value 2 * 0.003 = 0.006.
       assert {:ok, result} = Math.mult(unit!(2, "kilometer"), unit!(3, "meter"))
-      assert result.name == "kilometer-meter"
+      assert result.name == "square-kilometer"
+      assert_in_delta result.value, 0.006, 1.0e-6
     end
 
     test "same SI-prefixed units consolidate" do
@@ -348,10 +402,12 @@ defmodule Localize.Unit.MathTest do
                Math.mult(unit!(3, "meter-per-second"), unit!(2, "second-per-meter"))
     end
 
-    test "no cancellation when prefix differs: kilometer / meter" do
-      assert {:ok, result} = Math.div(unit!(10, "kilometer"), unit!(2, "meter"))
-      assert result.name == "kilometer-per-meter"
-      assert result.value == 5.0
+    test "same-dimension units with different prefixes cancel: kilometer / meter" do
+      # meter is aligned to kilometer (2 m = 0.002 km), then 10 km / 0.002 km
+      # cancels entirely and yields a dimensionless scalar.
+      assert {:ok, value} = Math.div(unit!(10, "kilometer"), unit!(2, "meter"))
+      assert is_number(value)
+      assert_in_delta value, 5000.0, 1.0e-6
     end
 
     test "chained div produces correct cancellation" do

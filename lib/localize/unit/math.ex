@@ -183,6 +183,12 @@ defmodule Localize.Unit.Math do
   unit is produced by combining the dimensions. For example,
   `meter * second` produces `meter-second`.
 
+  When both operands share the same base dimension (e.g. both are
+  lengths), the second operand is first converted to the first
+  operand's unit, then the result is consolidated into a squared
+  (or higher-power) form. So `millimeter * meter` produces
+  `square-millimeter`, not `millimeter-meter`.
+
   ### Arguments
 
   * `unit` is a `%Localize.Unit{}` struct with a value.
@@ -213,7 +219,7 @@ defmodule Localize.Unit.Math do
 
   """
   @spec mult(Unit.t(), number() | Decimal.t() | Unit.t()) ::
-          {:ok, Unit.t() | number() | Decimal.t()} | {:error, String.t()}
+          {:ok, Unit.t() | number() | Decimal.t()} | {:error, Exception.t() | String.t()}
   def mult(unit, multiplier)
 
   def mult(%Unit{value: value} = unit, number)
@@ -222,16 +228,19 @@ defmodule Localize.Unit.Math do
   end
 
   def mult(
-        %Unit{value: value_1, parsed: {:unit, kw_1}} = _unit_1,
-        %Unit{value: value_2, parsed: {:unit, kw_2}} = _unit_2
+        %Unit{value: value_1, parsed: {:unit, kw_1}} = unit_1,
+        %Unit{value: value_2} = unit_2
       )
       when not is_nil(value_1) and not is_nil(value_2) do
-    # (a/b) * (c/d) = (a*c) / (b*d)
-    new_num = Keyword.get(kw_1, :numerator, []) ++ Keyword.get(kw_2, :numerator, [])
-    new_den = Keyword.get(kw_1, :denominator, []) ++ Keyword.get(kw_2, :denominator, [])
-    result_value = mult_values(value_1, value_2)
+    with {:ok, aligned_unit_2} <- maybe_align_units(unit_2, unit_1) do
+      {:unit, kw_2} = aligned_unit_2.parsed
+      # (a/b) * (c/d) = (a*c) / (b*d)
+      new_num = Keyword.get(kw_1, :numerator, []) ++ Keyword.get(kw_2, :numerator, [])
+      new_den = Keyword.get(kw_1, :denominator, []) ++ Keyword.get(kw_2, :denominator, [])
+      result_value = mult_values(value_1, aligned_unit_2.value)
 
-    build_compound_result(result_value, new_num, new_den)
+      build_compound_result(result_value, new_num, new_den)
+    end
   end
 
   @doc """
@@ -241,6 +250,12 @@ defmodule Localize.Unit.Math do
   by that number. When it is a unit, the values are divided and a
   new compound unit is produced by combining the dimensions. For
   example, `meter / second` produces `meter-per-second`.
+
+  When both operands share the same base dimension, the second
+  operand is first converted to the first operand's unit, then the
+  dimensions cancel and the result is returned as a bare
+  dimensionless scalar. So `kilometer / meter` yields a number, not
+  a compound unit.
 
   ### Arguments
 
@@ -272,7 +287,7 @@ defmodule Localize.Unit.Math do
 
   """
   @spec div(Unit.t(), number() | Decimal.t() | Unit.t()) ::
-          {:ok, Unit.t() | number() | Decimal.t()} | {:error, String.t()}
+          {:ok, Unit.t() | number() | Decimal.t()} | {:error, Exception.t() | String.t()}
   def div(unit, divisor)
 
   def div(%Unit{value: value} = unit, number)
@@ -281,21 +296,37 @@ defmodule Localize.Unit.Math do
   end
 
   def div(
-        %Unit{value: value_1, parsed: {:unit, kw_1}} = _unit_1,
-        %Unit{value: value_2, parsed: {:unit, kw_2}} = _unit_2
+        %Unit{value: value_1, parsed: {:unit, kw_1}} = unit_1,
+        %Unit{value: value_2} = unit_2
       )
       when not is_nil(value_1) and not is_nil(value_2) do
-    # (a/b) / (c/d) = (a*d) / (b*c)
-    new_num = Keyword.get(kw_1, :numerator, []) ++ Keyword.get(kw_2, :denominator, [])
-    new_den = Keyword.get(kw_1, :denominator, []) ++ Keyword.get(kw_2, :numerator, [])
-    result_value = div_values(value_1, value_2)
+    with {:ok, aligned_unit_2} <- maybe_align_units(unit_2, unit_1) do
+      {:unit, kw_2} = aligned_unit_2.parsed
+      # (a/b) / (c/d) = (a*d) / (b*c)
+      new_num = Keyword.get(kw_1, :numerator, []) ++ Keyword.get(kw_2, :denominator, [])
+      new_den = Keyword.get(kw_1, :denominator, []) ++ Keyword.get(kw_2, :numerator, [])
+      result_value = div_values(value_1, aligned_unit_2.value)
 
-    build_compound_result(result_value, new_num, new_den)
+      build_compound_result(result_value, new_num, new_den)
+    end
   end
 
   # Build the result of a compound unit operation. When all dimensions
   # cancel (dimensionless), returns the bare scalar value. Otherwise
   # constructs a Unit directly from the canonical AST without re-parsing.
+  # When two operands share the same base dimension, align the second
+  # operand's unit to the first's before combining. This lets the
+  # canonical consolidation/cancellation correctly merge same-dimension
+  # units (e.g. mm * m -> square-millimeter, mm / m -> dimensionless).
+  # Operands with different base dimensions pass through unchanged.
+  defp maybe_align_units(unit_2, unit_1) do
+    if Localize.Unit.Conversion.convertible?(unit_1.parsed, unit_2.parsed) do
+      Unit.convert(unit_2, unit_1.name)
+    else
+      {:ok, unit_2}
+    end
+  end
+
   defp build_compound_result(value, numerator, denominator) do
     case Canonical.from_components(numerator, denominator) do
       {:dimensionless, nil} ->

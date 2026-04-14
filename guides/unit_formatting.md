@@ -264,7 +264,7 @@ Common usage values: `"default"`, `"person"`, `"person-height"`, `"person-weight
 
 ### Addition and subtraction
 
-Add or subtract compatible units. The result uses the first unit's type, converting the second unit automatically:
+Add or subtract units that share the same dimension. The second operand is automatically converted to the first operand's unit before the math, and the result inherits the first operand's unit:
 
 ```elixir
 iex> a = Localize.Unit.new!(1, "kilometer")
@@ -274,9 +274,21 @@ iex> {sum.name, sum.value}
 {"kilometer", 1.5}
 ```
 
+```elixir
+iex> a = Localize.Unit.new!(2, "millimeter")
+iex> b = Localize.Unit.new!(3, "meter")
+iex> {:ok, sum} = Localize.Unit.Math.add(a, b)
+iex> {sum.name, sum.value}
+{"millimeter", 3002.0}
+```
+
+Adding units of incompatible dimensions returns `{:error, %Localize.UnitConversionError{}}`.
+
 ### Multiplication
 
-Multiply by a scalar or by another unit (creating a compound):
+Multiply by a scalar or by another unit.
+
+Scalar multiplication:
 
 ```elixir
 iex> u = Localize.Unit.new!(5, "meter")
@@ -285,9 +297,46 @@ iex> result.value
 15
 ```
 
+When multiplying two units of **different** dimensions, a compound unit is produced:
+
+```elixir
+iex> m = Localize.Unit.new!(2, "meter")
+iex> s = Localize.Unit.new!(3, "second")
+iex> {:ok, result} = Localize.Unit.Math.mult(m, s)
+iex> result.name
+"meter-second"
+iex> result.value
+6
+```
+
+When multiplying two units of the **same** dimension, the second operand is first converted to the first operand's unit, then the result is consolidated into a squared (or higher-power) form. So `millimeter * meter` becomes `square-millimeter` — not `millimeter-meter`:
+
+```elixir
+iex> a = Localize.Unit.new!(2, "millimeter")
+iex> b = Localize.Unit.new!(3, "meter")
+iex> {:ok, result} = Localize.Unit.Math.mult(a, b)
+iex> result.name
+"square-millimeter"
+iex> result.value
+6000.0
+```
+
+The same applies across different base units in the same category (e.g. `foot * meter` → `square-foot`).
+
 ### Division
 
-Divide by a scalar or by another unit (creating a per-expression):
+Divide by a scalar or by another unit.
+
+Scalar division:
+
+```elixir
+iex> u = Localize.Unit.new!(10, "meter")
+iex> {:ok, result} = Localize.Unit.Math.div(u, 2)
+iex> result.value
+5.0
+```
+
+When dividing two units of **different** dimensions, a per-expression is produced:
 
 ```elixir
 iex> distance = Localize.Unit.new!(100, "meter")
@@ -297,6 +346,16 @@ iex> speed.name
 "meter-per-second"
 iex> speed.value
 10.0
+```
+
+When dividing two units of the **same** dimension, the second operand is first converted to the first operand's unit, the values cancel, and the result is returned as a bare dimensionless scalar:
+
+```elixir
+iex> km = Localize.Unit.new!(10, "kilometer")
+iex> m = Localize.Unit.new!(2, "meter")
+iex> {:ok, ratio} = Localize.Unit.Math.div(km, m)
+iex> ratio
+5000.0
 ```
 
 ### Negation and inversion
