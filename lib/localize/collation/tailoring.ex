@@ -50,9 +50,21 @@ defmodule Localize.Collation.Tailoring do
   """
   @spec get_tailoring(String.t(), atom()) :: {map(), keyword()} | nil
   def get_tailoring(language, type) do
-    case Map.get(@tailorings, {language, type}) do
-      nil -> get_tailoring_from_parent(language, type, MapSet.new([language]))
-      rules_str -> build_tailoring(rules_str)
+    cache_key = {:localize, :collation_tailoring, language, type}
+
+    case :persistent_term.get(cache_key, :unset) do
+      :unset ->
+        result =
+          case Map.get(@tailorings, {language, type}) do
+            nil -> get_tailoring_from_parent(language, type, MapSet.new([language]))
+            rules_str -> build_tailoring(rules_str)
+          end
+
+        :persistent_term.put(cache_key, result)
+        result
+
+      cached ->
+        cached
     end
   end
 
@@ -150,8 +162,30 @@ defmodule Localize.Collation.Tailoring do
     |> String.split("\n", trim: true)
     |> Enum.map(&String.trim/1)
     |> Enum.reject(&(&1 == ""))
+    # Strip `# ...` inline comments PER LINE, before line-continuation
+    # joining. If we left them in, the subsequent `.*$` regex in
+    # parse_ordering_rules would match the rest of the joined string
+    # (no newlines present after join) and silently eat thousands of
+    # CJK ordering rules. This bug hid the fact that large CJK
+    # tailorings (zh-pinyin, zh-stroke, zh-zhuyin) weren't producing
+    # overlay entries for Han characters.
+    |> Enum.map(&strip_inline_comment/1)
+    |> Enum.reject(&(&1 == ""))
     |> join_continuation_lines()
     |> Enum.flat_map(&parse_rule_line/1)
+  end
+
+  defp strip_inline_comment(line) do
+    # Match `<whitespace>#<whitespace>rest` or a line starting with `#`.
+    # The space before `#` matters: CLDR allows `#` inside quoted
+    # character data, but always has a separating space for comments.
+    case Regex.run(~r/^(.*?)\s+#\s/, line) do
+      [_, before] ->
+        String.trim_trailing(before)
+
+      nil ->
+        if String.starts_with?(line, "#"), do: "", else: line
+    end
   end
 
   # Join continuation lines onto the previous line. A continuation
@@ -476,6 +510,18 @@ defmodule Localize.Collation.Tailoring do
             adjusted = adjust_before(elements, level)
             {overlay, {:after, adjusted}}
 
+          # Positional anchors like `&[last regular]` or `&[first
+          # primary ignorable]`. Semantically these insert subsequent
+          # `<X<Y...` rules at a specific boundary in the primary-weight
+          # spectrum. We map each anchor to a synthetic element whose
+          # primary is outside the DUCET range so subsequent `<*` rules
+          # get incrementing primaries that won't collide with real
+          # DUCET entries. This unlocks thousands of Han ordering rules
+          # in the CJK tailorings (pinyin, stroke, zhuyin).
+          {:reset_special, anchor_str} ->
+            elements = synthetic_anchor_elements(anchor_str)
+            {overlay, {:after, elements}}
+
           # Expansion: target sorts at `level` relative to the
           # expansion's collation elements. E.g., ccs/cs means
           # ccs produces the same elements as cs but at tertiary
@@ -526,7 +572,14 @@ defmodule Localize.Collation.Tailoring do
                 {overlay, state}
             end
 
-          _ ->
+          other ->
+            require Logger
+
+            Logger.debug(
+              "Unhandled tailoring operation: #{inspect(other, limit: 3, printable_limit: 120)}",
+              domain: [:localize]
+            )
+
             {overlay, state}
         end
       end)
@@ -586,5 +639,67 @@ defmodule Localize.Collation.Tailoring do
   defp compute_tailored_elements(anchor_elements, :tertiary) do
     {init, [{p, s, t, v}]} = Enum.split(anchor_elements, -1)
     init ++ [{p, s, t + 1, v}]
+  end
+
+  # Synthetic primary weights for the CLDR positional anchors. These
+  # need to satisfy two constraints:
+  #
+  # 1. Subsequent `<X<Y...` rules increment the primary each time.
+  #    Large tailorings (e.g. zh-pinyin, zh-stroke) produce 20,000+
+  #    primary entries, so the anchor plus the largest expected
+  #    increment must stay within the 16-bit primary weight range
+  #    that our sort-key serialization uses. Anchors too close to
+  #    0xFFFF cause overflow and break comparison.
+  #
+  # 2. The anchor should not collide with real DUCET primary weights
+  #    for characters that aren't in the overlay. The overlay overrides
+  #    per-codepoint, so a collision only matters for chars NOT in the
+  #    tailoring — those fall through to DUCET weights directly.
+  #
+  # We pick 0x8000 (32768) for `[last regular]`. This leaves ~33K
+  # primary slots before hitting the implicit-weight boundary (0xFB40),
+  # comfortably fitting the largest observed CJK tailoring (~24K
+  # primaries for zh-stroke).
+  @synthetic_last_regular 0x8000
+  @synthetic_first_regular 0x0300
+  @synthetic_last_primary_ignorable 0x02FF
+  @synthetic_first_primary_ignorable 0x0100
+  @synthetic_last_secondary_ignorable 0x00
+  @synthetic_first_secondary_ignorable 0x00
+  @synthetic_last_tertiary_ignorable 0x00
+  @synthetic_first_tertiary_ignorable 0x00
+
+  defp synthetic_anchor_elements(str) do
+    primary =
+      cond do
+        String.contains?(str, "[last regular]") ->
+          @synthetic_last_regular
+
+        String.contains?(str, "[first regular]") ->
+          @synthetic_first_regular
+
+        String.contains?(str, "[last primary ignorable]") ->
+          @synthetic_last_primary_ignorable
+
+        String.contains?(str, "[first primary ignorable]") ->
+          @synthetic_first_primary_ignorable
+
+        String.contains?(str, "[last secondary ignorable]") ->
+          @synthetic_last_secondary_ignorable
+
+        String.contains?(str, "[first secondary ignorable]") ->
+          @synthetic_first_secondary_ignorable
+
+        String.contains?(str, "[last tertiary ignorable]") ->
+          @synthetic_last_tertiary_ignorable
+
+        String.contains?(str, "[first tertiary ignorable]") ->
+          @synthetic_first_tertiary_ignorable
+
+        true ->
+          @synthetic_last_regular
+      end
+
+    [Element.new(primary, 0x0020, 0x0002)]
   end
 end

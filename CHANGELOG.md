@@ -4,9 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.12.0] — April ___th, 2026
+## [0.12.0] — April 15th, 2026
 
+### Bug Fixes
 
+* Chinese collation tailorings (`zh-u-co-pinyin`, `zh-u-co-stroke`, `zh-u-co-zhuyin`) now produce correct locale-specific ordering for Han characters. .
+
+* Han radical-stroke ordering (UAX #38) under `-u-co-unihan` now applies correctly. The `Localize.Collation.Han` module was previously orphaned — its data was never loaded in consumer apps and the sort path never consulted it. Radical data is now pre-generated in the build pipeline and shipped in `priv/localize/collation_table.etf`; the sort path invokes `Han.collation_elements/1` for CJK codepoints when the `:han_ordering` option is `:radical_stroke` (set automatically for the `-u-co-unihan` collation type).
+
+### Added
+
+* `Localize.Collation.Options.han_ordering` option — `:implicit` (default, UCA codepoint-based) or `:radical_stroke` (UAX #38). Automatically set to `:radical_stroke` for `-u-co-unihan` locales.
+
+* Persistent-term cache for parsed tailorings. First call to `Tailoring.get_tailoring/2` parses the rule string (~70 ms for zh-pinyin); subsequent calls read from persistent_term in microseconds.
+
+* Differential tests for `zh-u-co-pinyin`, `zh-u-co-stroke`, `zh-u-co-zhuyin`, and `ja-u-co-unihan` that assert output differs from root codepoint order for specific character pairs — guards against silent regressions.
+
+### Changed
+
+* `Localize.Collation.Han` is no longer a GenServer. Radical data is loaded alongside the main collation table by `Localize.Collation.Table` (one ETF, one load step).
 
 ## [0.11.0] — April 14th, 2026
 
