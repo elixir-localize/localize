@@ -133,6 +133,82 @@ defmodule Localize.IntervalTest do
     end
   end
 
+  describe "to_string/3 datetime intervals (same-day vs different-day)" do
+    test "same-day interval shows date once and a time range" do
+      # Feature-compatible with ex_cldr: same-day NaiveDateTime interval
+      # formats as `date, time – time`, not as `date – date`.
+      assert {:ok, result} =
+               Interval.to_string(
+                 ~N[2026-04-08 12:00:00],
+                 ~N[2026-04-08 14:00:00],
+                 locale: :en,
+                 format: :medium,
+                 time_format: :short
+               )
+
+      assert String.contains?(result, "Apr 8, 2026")
+      assert String.contains?(result, "12:00")
+      assert String.contains?(result, "2:00")
+      # Date must appear only once (not on both sides).
+      assert length(String.split(result, "Apr 8")) == 2
+    end
+
+    test "different-day interval shows full datetime on both sides" do
+      assert {:ok, result} =
+               Interval.to_string(
+                 ~N[2026-04-15 00:49:00],
+                 ~N[2026-04-16 01:49:00],
+                 locale: :en,
+                 format: :medium,
+                 time_format: :short
+               )
+
+      assert String.contains?(result, "Apr 15, 2026")
+      assert String.contains?(result, "Apr 16, 2026")
+      assert String.contains?(result, "12:49")
+      assert String.contains?(result, "1:49")
+    end
+
+    test "different-month datetime interval shows full datetime on both sides" do
+      assert {:ok, result} =
+               Interval.to_string(
+                 ~N[2026-04-15 12:00:00],
+                 ~N[2026-05-15 12:00:00],
+                 locale: :en
+               )
+
+      assert String.contains?(result, "Apr 15, 2026")
+      assert String.contains?(result, "May 15, 2026")
+    end
+
+    test "same-day datetime interval in Japanese" do
+      assert {:ok, result} =
+               Interval.to_string(
+                 ~N[2026-04-08 12:00:00],
+                 ~N[2026-04-08 14:00:00],
+                 locale: :ja
+               )
+
+      assert String.contains?(result, "2026")
+      # Japanese interval fallback uses a fullwidth tilde.
+      assert String.contains?(result, "\uFF5E")
+    end
+  end
+
+  describe "to_string/3 with time-only intervals" do
+    test "hour difference in English" do
+      assert {:ok, result} = Interval.to_string(~T[10:00:00], ~T[12:30:00], locale: :en)
+      assert String.contains?(result, "10:00")
+      assert String.contains?(result, "12:30")
+    end
+
+    test "minute difference in English" do
+      assert {:ok, result} = Interval.to_string(~T[10:00:00], ~T[10:30:00], locale: :en)
+      assert String.contains?(result, "10:00")
+      assert String.contains?(result, "10:30")
+    end
+  end
+
   describe "greatest_difference/2" do
     test "year difference" do
       assert {:ok, :y} = Interval.greatest_difference(~D[2022-04-22], ~D[2023-04-22])

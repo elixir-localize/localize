@@ -70,12 +70,35 @@ true
 
 ### Intervals for times and datetimes
 
-`Localize.Interval.to_string/3` accepts `Date`, `Time`, `NaiveDateTime`, and `DateTime` values, as well as any map with the appropriate fields:
+`Localize.Interval.to_string/3` accepts `Date`, `Time`, `NaiveDateTime`, and `DateTime` values, as well as any map with the appropriate fields. The formatting strategy depends on what fields differ:
+
+* **Same-day datetime intervals** — format the date once with the start time and end time as a time range (`"Apr 8, 2026, 12:00 PM – 2:00 PM"`). The `:time_format` option (`:short`, `:medium`, `:long`) controls the time portion independently.
+
+* **Different-day datetime intervals** — format both endpoints as full datetimes separated by the locale's interval fallback separator (`"Apr 15, 2026, 12:49 AM – Apr 16, 2026, 1:49 AM"`).
+
+* **Time-only intervals** — use the locale's time-interval pattern (`"10:00 – 12:30 PM"`).
 
 ```elixir
 iex> {:ok, result} =
-...>   Localize.Interval.to_string(~N[2020-01-01 10:00:00], ~N[2020-01-01 14:30:00], locale: :en)
-iex> String.contains?(result, "10:00") and String.contains?(result, "2:30")
+...>   Localize.Interval.to_string(
+...>     ~N[2026-04-08 12:00:00],
+...>     ~N[2026-04-08 14:00:00],
+...>     locale: :en, format: :medium, time_format: :short
+...>   )
+iex> String.contains?(result, "Apr 8, 2026") and String.contains?(result, "2:00")
+true
+
+iex> {:ok, result} =
+...>   Localize.Interval.to_string(
+...>     ~N[2026-04-15 00:49:00],
+...>     ~N[2026-04-16 01:49:00],
+...>     locale: :en, format: :medium, time_format: :short
+...>   )
+iex> String.contains?(result, "Apr 15") and String.contains?(result, "Apr 16")
+true
+
+iex> {:ok, result} = Localize.Interval.to_string(~T[10:00:00], ~T[12:30:00], locale: :en)
+iex> String.contains?(result, "10:00") and String.contains?(result, "12:30")
 true
 ```
 

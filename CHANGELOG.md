@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Bug Fixes
 
+* `Localize.Interval.to_string/3` now correctly formats datetime intervals — matching `ex_cldr_dates_times` behaviour. Previously any interval between two datetime values was rendered as a date-only range, discarding the time portion. Now same-day intervals render as `"Apr 8, 2026, 12:00 PM – 2:00 PM"` (date once, time range) and different-day intervals render as `"Apr 15, 2026, 12:49 AM – Apr 16, 2026, 1:49 AM"` (full datetime on both sides). Time-only intervals (`Time` values on both sides) use the locale's time-interval patterns.
+
 * Chinese collation tailorings (`zh-u-co-pinyin`, `zh-u-co-stroke`, `zh-u-co-zhuyin`) now produce correct locale-specific ordering for Han characters. .
 
 * Han radical-stroke ordering (UAX #38) under `-u-co-unihan` now applies correctly. The `Localize.Collation.Han` module was previously orphaned — its data was never loaded in consumer apps and the sort path never consulted it. Radical data is now pre-generated in the build pipeline and shipped in `priv/localize/collation_table.etf`; the sort path invokes `Han.collation_elements/1` for CJK codepoints when the `:han_ordering` option is `:radical_stroke` (set automatically for the `-u-co-unihan` collation type).

@@ -76,13 +76,47 @@ defmodule Localize.Interval do
   end
 
   def to_string(from, to, options) do
+    cond do
+      datetime_value?(from) and datetime_value?(to) ->
+        format_datetime_interval(from, to, options)
+
+      time_value?(from) and time_value?(to) ->
+        format_time_interval(from, to, options)
+
+      true ->
+        format_date_interval(from, to, options)
+    end
+  end
+
+  # ── Type detection ───────────────────────────────────────────
+  #
+  # A "datetime" value has both a date part (year/month/day) and a
+  # time part (hour). Struct types Date/Time/NaiveDateTime/DateTime
+  # are handled explicitly; generic maps fall back to key-presence.
+
+  defp datetime_value?(%DateTime{}), do: true
+  defp datetime_value?(%NaiveDateTime{}), do: true
+  defp datetime_value?(%Date{}), do: false
+  defp datetime_value?(%Time{}), do: false
+  defp datetime_value?(%{year: _, hour: _}), do: true
+  defp datetime_value?(_), do: false
+
+  defp time_value?(%Time{}), do: true
+  defp time_value?(%DateTime{}), do: false
+  defp time_value?(%NaiveDateTime{}), do: false
+  defp time_value?(%Date{}), do: false
+  defp time_value?(%{hour: _} = map), do: not Map.has_key?(map, :year)
+  defp time_value?(_), do: false
+
+  # ── Date-only interval (the original path) ──────────────────
+
+  defp format_date_interval(from, to, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
     style = Keyword.get(options, :style, @default_date_style)
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, formats} <-
-           Localize.DateTime.Format.interval_formats(locale_id),
+         {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
          {:ok, greatest_diff} <- greatest_difference(from, to),
          {:ok, format_key} <- resolve_style(style, format),
          {:ok, interval_pattern} <- get_interval_pattern(formats, format_key, greatest_diff),
@@ -101,6 +135,158 @@ defmodule Localize.Interval do
 
       {:error, _} = error ->
         error
+    end
+  end
+
+  # ── Time-only interval ──────────────────────────────────────
+
+  defp format_time_interval(from, to, options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    format = Keyword.get(options, :format, @default_format)
+
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
+         {:ok, greatest_diff} <- greatest_difference(from, to),
+         {:ok, format_key} <- resolve_time_style(format),
+         # Time interval maps use lowercase `:h` for hour-level differences
+         # (the :hm/:h format maps use `h` as the key); callers/tests see
+         # the same pattern selected as greatest_difference returns :H.
+         time_diff = normalize_time_diff(greatest_diff),
+         {:ok, interval_pattern} <- get_interval_pattern(formats, format_key, time_diff),
+         {:ok, [left, right]} <- split_interval(interval_pattern) do
+      options_map = Map.new(options)
+
+      with {:ok, left_str} <-
+             Localize.DateTime.Formatter.format(from, left, locale_id, options_map),
+           {:ok, right_str} <-
+             Localize.DateTime.Formatter.format(to, right, locale_id, options_map) do
+        {:ok, left_str <> right_str}
+      end
+    else
+      {:error, :no_practical_difference} ->
+        Localize.Time.to_string(from, options)
+
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  # ── Datetime interval ───────────────────────────────────────
+  #
+  # Mirrors ex_cldr_dates_times' `Cldr.DateTime.Interval` behaviour:
+  #
+  # * Same day (hour/minute differs only) — format `from` as a full
+  #   datetime and `to` as a time-only string; combine with the locale's
+  #   `interval_format_fallback` pattern. Produces output like
+  #   `"Apr 8, 2026, 12:00 PM – 2:00 PM"`.
+  #
+  # * Different day (day/month/year differs) — format both endpoints
+  #   as full datetimes; combine with the same fallback pattern.
+  #   Produces `"Apr 15, 2026, 12:49 AM – Apr 16, 2026, 1:49 AM"`.
+
+  defp format_datetime_interval(from, to, options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
+         {:ok, fallback} <- get_fallback_pattern(formats),
+         {:ok, greatest_diff} <- greatest_difference(from, to) do
+      datetime_options = datetime_sub_options(options)
+      time_options = time_sub_options(options)
+
+      with {:ok, left_str, right_str} <-
+             format_datetime_parts(from, to, greatest_diff, datetime_options, time_options) do
+        result =
+          [left_str, right_str]
+          |> Localize.Substitution.substitute(fallback)
+          |> IO.iodata_to_binary()
+
+        {:ok, result}
+      end
+    else
+      {:error, :no_practical_difference} ->
+        Localize.DateTime.to_string(from, datetime_sub_options(options) |> Map.to_list())
+
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  # Same-day datetime interval: from is a full datetime, to is just time.
+  defp format_datetime_parts(from, to, diff, datetime_options, time_options)
+       when diff in [:H, :m] do
+    with {:ok, left} <- Localize.DateTime.to_string(from, Map.to_list(datetime_options)),
+         {:ok, right} <- Localize.Time.to_string(to, Map.to_list(time_options)) do
+      {:ok, left, right}
+    end
+  end
+
+  # Different-day datetime interval: both sides are full datetimes.
+  defp format_datetime_parts(from, to, diff, datetime_options, _time_options)
+       when diff in [:y, :M, :d] do
+    with {:ok, left} <- Localize.DateTime.to_string(from, Map.to_list(datetime_options)),
+         {:ok, right} <- Localize.DateTime.to_string(to, Map.to_list(datetime_options)) do
+      {:ok, left, right}
+    end
+  end
+
+  # Derive the datetime-format options from the interval options,
+  # applying `:date_format` and `:time_format` overrides if present.
+  defp datetime_sub_options(options) do
+    base =
+      options
+      |> Keyword.take([:locale, :prefer])
+      |> Map.new()
+
+    format = Keyword.get(options, :format, @default_format)
+    base = Map.put(base, :format, format)
+
+    base =
+      case Keyword.get(options, :date_format) do
+        nil -> base
+        date_format -> Map.put(base, :date_format, date_format)
+      end
+
+    case Keyword.get(options, :time_format) do
+      nil -> base
+      time_format -> Map.put(base, :time_format, time_format)
+    end
+  end
+
+  # Time-only options: use `:time_format` as the format if given,
+  # otherwise fall back to the main `:format` option.
+  defp time_sub_options(options) do
+    base =
+      options
+      |> Keyword.take([:locale, :prefer])
+      |> Map.new()
+
+    format =
+      Keyword.get(options, :time_format) ||
+        Keyword.get(options, :format, @default_format)
+
+    Map.put(base, :format, format)
+  end
+
+  # Time-only interval format maps use `:h` as the hour-level difference
+  # key (mirroring CLDR's `intervalFormatItem` notation). Our
+  # `greatest_difference/2` returns `:H` for any hour-level difference.
+  # Translate at the lookup boundary so the existing `get_interval_pattern`
+  # fallback chain (`:M → :d → :y`) still works unchanged.
+  defp normalize_time_diff(:H), do: :h
+  defp normalize_time_diff(diff), do: diff
+
+  # Time-only intervals use skeleton keys that contain time fields.
+  # Map `:short`/`:medium`/`:long` to a reasonable `h m` skeleton.
+  defp resolve_time_style(format) when is_atom(format) do
+    # Use `:hm` skeleton (hour + minute in the locale's 12/24-hour
+    # convention). CLDR provides `:hm`, `:Hm` (24-hour), `:h`, `:H`,
+    # `:hmv` (with timezone), etc. For simplicity default to `:hm`.
+    case format do
+      :short -> {:ok, :hm}
+      :medium -> {:ok, :hm}
+      :long -> {:ok, :hm}
+      other -> {:ok, other}
     end
   end
 
