@@ -532,7 +532,16 @@ defmodule Localize.Locale do
   end
 
   def to_locale_id(%LanguageTag{} = tag) do
-    tag |> LanguageTag.to_string() |> String.to_atom()
+    # When cldr_locale_id is nil, resolve it via validate_locale
+    # which populates the field through likely-subtag resolution.
+    # This ensures download URLs and cache paths always use the
+    # canonical CLDR locale identifier (e.g. :en, :"en-AU") rather
+    # than the full tag string which may include extensions, script,
+    # and other components that don't correspond to an ETF file name.
+    case Localize.validate_locale(tag) do
+      {:ok, %{cldr_locale_id: resolved}} when not is_nil(resolved) -> resolved
+      _ -> tag |> LanguageTag.to_string() |> String.to_atom()
+    end
   end
 
   def to_locale_id(locale_id) when is_atom(locale_id), do: locale_id

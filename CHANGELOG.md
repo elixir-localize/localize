@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] — April 16th, 2026
+
+### Breaking Change
+
+* Remove `@derive` for `Jason` since `Jason` is no longer configured or used anywhere in the application.
+
+### Bug Fixes
+
+* Fix locale downloader to ensure it only uses the `:cldr_locale_id` field to construct the download URL.
+
 ## [0.13.0] — April 15th, 2026
 
 ### Bug Fixes

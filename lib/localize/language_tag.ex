@@ -157,10 +157,6 @@ defmodule Localize.LanguageTag do
   alias Localize.SupplementalData
   alias Localize.LanguageTag.{Parser, U, T}
 
-  if Code.ensure_loaded?(Jason) do
-    @derive Jason.Encoder
-  end
-
   defstruct language: nil,
             language_subtags: [],
             script: nil,
