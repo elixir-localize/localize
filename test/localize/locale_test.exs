@@ -37,4 +37,18 @@ defmodule Localize.LocaleTest do
       assert locale_id in [:"zh-Hans", :"zh-Hans-CN", :zh]
     end
   end
+
+  describe "locale loading resolves non-canonical locale IDs" do
+    test "pt-BR resolves to :pt for loading" do
+      # pt-BR is a valid BCP 47 tag but not a canonical CLDR locale;
+      # CLDR maps it to :pt. The provider must resolve before
+      # attempting cache lookup or download so it doesn't produce
+      # 404s for pt-BR.etf.
+      assert {:ok, _data} = Localize.Locale.Provider.PersistentTerm.load(:"pt-BR")
+    end
+
+    test "en-US resolves to :en for loading" do
+      assert {:ok, _data} = Localize.Locale.Provider.PersistentTerm.load(:"en-US")
+    end
+  end
 end

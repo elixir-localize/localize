@@ -278,6 +278,18 @@ defmodule Localize.Locale.Provider do
     end
   end
 
+  # Resolve a locale_id atom to its canonical CLDR form via
+  # validate_locale. Non-canonical identifiers like :"pt-BR" (which
+  # CLDR maps to :pt) are replaced with the canonical form. If
+  # resolution fails, the original is returned unchanged — let the
+  # caller surface the error via the normal not-found path.
+  defp resolve_canonical_locale_id(locale_id) do
+    case Localize.validate_locale(locale_id) do
+      {:ok, %{cldr_locale_id: canonical}} when not is_nil(canonical) -> canonical
+      _ -> locale_id
+    end
+  end
+
   @doc """
   Returns the directory in which downloaded locale data is cached.
 
@@ -424,6 +436,11 @@ defmodule Localize.Locale.Provider do
   @spec download_locale(locale_id()) ::
           {:ok, binary()} | {:error, Exception.t()}
   def download_locale(locale_id) when is_atom(locale_id) do
+    # Resolve to the canonical CLDR locale ID before constructing the
+    # download URL. Non-canonical forms like :"pt-BR" (which CLDR maps
+    # to :pt) would otherwise produce 404s because the CDN only hosts
+    # files named after canonical locale IDs.
+    locale_id = resolve_canonical_locale_id(locale_id)
     url = locale_url(locale_id)
 
     case Localize.Utils.Http.get(url) do

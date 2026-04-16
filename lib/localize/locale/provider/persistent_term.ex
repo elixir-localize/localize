@@ -48,8 +48,32 @@ defmodule Localize.Locale.Provider.PersistentTerm do
     locale_id = to_locale_id(locale)
 
     case Cache.get(locale_id) do
-      {:ok, locale_data} -> {:ok, locale_data}
-      {:error, _exception} -> load_miss(locale_id, locale)
+      {:ok, locale_data} ->
+        {:ok, locale_data}
+
+      {:error, _exception} ->
+        # Resolve to the canonical CLDR locale ID before trying to
+        # generate or download. Non-canonical forms like :"pt-BR"
+        # (which CLDR maps to :pt) would otherwise 404 on the CDN.
+        canonical_id = resolve_canonical_id(locale_id)
+
+        if canonical_id != locale_id do
+          # Try the cache again with the canonical ID — it may already
+          # be present under the canonical name.
+          case Cache.get(canonical_id) do
+            {:ok, locale_data} -> {:ok, locale_data}
+            {:error, _} -> load_miss(canonical_id, canonical_id)
+          end
+        else
+          load_miss(locale_id, locale)
+        end
+    end
+  end
+
+  defp resolve_canonical_id(locale_id) do
+    case Localize.validate_locale(locale_id) do
+      {:ok, %{cldr_locale_id: canonical}} when not is_nil(canonical) -> canonical
+      _ -> locale_id
     end
   end
 
