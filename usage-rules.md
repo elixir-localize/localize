@@ -89,6 +89,18 @@ Localize.Message.format(
 
 `Localize.to_string/{1,2}` and `Localize.to_string!/{1,2}` delegate to the `Localize.Chars` protocol, which has built-in implementations for `Integer`, `Float`, `Decimal`, `Date`, `Time`, `DateTime`, `NaiveDateTime`, `Range`, `BitString`, `List`, `Localize.Unit`, `Localize.Duration`, `Localize.LanguageTag`, and `Localize.Currency`. Unknown types raise `Protocol.UndefinedError`. Use the polymorphic entry point when the value's type isn't known until runtime; use the dedicated module functions (`Localize.Number.to_string/2`, etc.) when the type is known and you want unambiguous error messages.
 
+## MF2 in source code
+
+* For MF2 messages embedded in Elixir, use the `~M` sigil (uppercase). It validates the message at compile time with precise line/column errors and canonicalises the string so `gettext` keys stay stable regardless of developer whitespace. Do not use the lowercase `~m` — interpolation via `#{…}` breaks MF2's grammar.
+
+* Enable the formatter plugin in `.formatter.exs` to auto-canonicalise `~M` sigils and `.mf2` files on `mix format`:
+
+  ```elixir
+  [plugins: [Localize.Message.Formatter.Plugin]]
+  ```
+
+  The plugin is idempotent — `mix format --check-formatted` is safe to run in CI.
+
 ## Performance rules
 
 * For hot loops formatting many numbers with the same locale and format, pre-validate options once via `Localize.Number.Format.Options.validate_options/2` and pass the resulting struct. This skips per-call locale resolution and currency lookup. Speedup is ~3x for plain decimals and ~50x for currency formatting.

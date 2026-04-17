@@ -744,3 +744,47 @@ Localize.Message.to_ansi("{$name}", palette: %{name_variable: [:red, :bright]})
 ### Custom formatters
 
 If you need a format not built in (e.g. LaTeX, a rich-text editor model), call `to_tokens/2` and render the tuples yourself. The Plain formatter (`Localize.Message.Formatter.Plain`) is the reference for the round-trip invariant and is used internally to emit the canonical string from a token stream.
+
+## `mix format` plugin
+
+Localize ships a [`mix format`](https://hexdocs.pm/mix/Mix.Tasks.Format.html) plugin that canonicalises MF2 messages. Enable it in `.formatter.exs`:
+
+```elixir
+[
+  plugins: [Localize.Message.Formatter.Plugin],
+  inputs: [
+    "{mix,.formatter}.exs",
+    "{config,lib,test}/**/*.{ex,exs}",
+    "priv/messages/**/*.mf2"
+  ]
+]
+```
+
+The plugin handles:
+
+* **`~M` sigils in Elixir source.** `mix format` rewrites each sigil body to its canonical MF2 form — the same form the `~M` sigil emits at compile time. Excess whitespace inside expressions is normalised, and multi-line complex messages (declarations, matchers) are pretty-printed onto consistent lines.
+
+* **Standalone `.mf2` files.** Any file matching the plugin's `.mf2` extension is rewritten in place, always ending with a single trailing newline.
+
+The lowercase `~m` sigil is intentionally **not** supported — `~m` permits `#{interpolation}`, which cannot be round-tripped through the MF2 parser without losing structure. Use `~M` for anything you want `mix format` to touch.
+
+### Options
+
+Plugin options live under the `:mf2` key:
+
+```elixir
+[
+  plugins: [Localize.Message.Formatter.Plugin],
+  mf2: [pretty: true]
+]
+```
+
+* `:pretty` — `true | false | :auto` (default `:auto`). `:auto` keeps single-line input compact and pretty-prints multi-line input; `true`/`false` force the behaviour regardless of the input shape.
+
+### Parse errors
+
+If a message fails to parse, the plugin **does not block `mix format`**. It leaves the message unchanged, emits a warning with the file, line, and column reported by the parser, and continues formatting the rest of the file. Fix the MF2 syntax and rerun `mix format`.
+
+### Idempotency
+
+Formatting is idempotent: running `mix format` twice produces identical output on the second run, so `mix format --check-formatted` is a reliable CI check. A property test in the Localize test-suite locks this in against future printer changes.
