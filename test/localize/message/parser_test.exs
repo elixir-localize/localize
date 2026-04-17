@@ -259,4 +259,67 @@ defmodule Localize.Message.ParserTest do
       assert {:error, _} = Parser.parse(".")
     end
   end
+
+  describe "error location tracking" do
+    test "single-line error reports line 1 and correct column" do
+      # The `{` is at byte 6 (0-indexed), so line 1, column 7.
+      assert {:error, error} = Parser.parse("Hello {")
+      assert %Localize.ParseError{line: 1, column: 7, offset: 6, rest: "{"} = error
+      assert error.input == "Hello {"
+      assert is_binary(error.reason)
+    end
+
+    test "multi-line error reports correct line and column" do
+      # After `Hello\n` (6 bytes) comes `world ` (6 chars) then `{`.
+      # The `{` is on line 2 at column 7.
+      assert {:error, error} = Parser.parse("Hello\nworld {unclosed")
+      assert %Localize.ParseError{line: 2, column: 7, offset: 12} = error
+    end
+
+    test "error at start of input reports line 1 column 1" do
+      assert {:error, %{line: 1, column: 1, offset: 0}} = Parser.parse(".")
+    end
+
+    test "error at end of third line reports correct position" do
+      # "a\nb\ncd{" — `{` is at offset 6, line 3, column 3.
+      assert {:error, %{line: 3, column: 3, offset: 6}} = Parser.parse("a\nb\ncd{")
+    end
+
+    test "exception message includes line and column" do
+      {:error, error} = Parser.parse("Hello\n{")
+      msg = Exception.message(error)
+      assert msg =~ "line 2"
+      assert msg =~ "column 1"
+    end
+
+    test "parse! raises exception with location fields populated" do
+      error =
+        try do
+          Parser.parse!("Hello\n{")
+        rescue
+          e in Localize.ParseError -> e
+        end
+
+      assert %Localize.ParseError{line: 2, column: 1, offset: 6} = error
+    end
+  end
+
+  describe "ParseError.line_column/2" do
+    test "computes positions across various byte offsets" do
+      assert {1, 1} = Localize.ParseError.line_column("", 0)
+      assert {1, 1} = Localize.ParseError.line_column("abc", 0)
+      assert {1, 4} = Localize.ParseError.line_column("abc", 3)
+      assert {2, 1} = Localize.ParseError.line_column("a\nb", 2)
+      assert {3, 2} = Localize.ParseError.line_column("a\nb\ncd", 5)
+    end
+
+    test "handles multibyte characters by column (grapheme count)" do
+      # "café" is 5 bytes, 4 graphemes. Offset 5 is column 5 (one past end).
+      assert {1, 5} = Localize.ParseError.line_column("café", 5)
+    end
+
+    test "clamps out-of-bounds offsets to the end of input" do
+      assert {1, 4} = Localize.ParseError.line_column("abc", 999)
+    end
+  end
 end

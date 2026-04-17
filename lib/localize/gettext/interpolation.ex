@@ -67,6 +67,9 @@ defmodule Localize.Gettext.Interpolation do
           )
         end
 
+      {:error, %_{} = exception} ->
+        raise ArgumentError, "could not parse MF2 message: #{Exception.message(exception)}"
+
       {:error, reason} ->
         raise ArgumentError, "could not parse MF2 message: #{inspect(reason)}"
     end

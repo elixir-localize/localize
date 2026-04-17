@@ -117,6 +117,14 @@ defmodule Localize.Gettext.Messages do
         "language_tag",
         "Could not parse {$input}: {$reason}"
       ),
+
+      # MF2 message parse error with line/column
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Could not parse {$input} at line {$line} column {$column}: {$reason}"
+      ),
       Gettext.Macros.dpgettext_noop_with_backend(
         Localize.Gettext,
         "localize",

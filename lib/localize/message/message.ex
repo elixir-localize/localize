@@ -391,6 +391,9 @@ defmodule Localize.Message do
            Localize.FormatError.exception(value: message, function: :format, reason: reason)}
       end
     else
+      {:error, %Localize.ParseError{}} = error ->
+        error
+
       {:error, reason} when is_binary(reason) ->
         {:error, Localize.ParseError.exception(input: message, reason: reason)}
     end
@@ -475,6 +478,7 @@ defmodule Localize.Message do
   def canonical_message!(message, options \\ []) do
     case canonical_message(message, options) do
       {:ok, message} -> message
+      {:error, %_{} = exception} -> raise exception
       {:error, reason} -> raise Localize.ParseError, input: message, reason: reason
     end
   end
@@ -665,6 +669,7 @@ defmodule Localize.Message do
   def jaro_distance!(message1, message2, options \\ []) do
     case jaro_distance(message1, message2, options) do
       {:ok, distance} -> distance
+      {:error, %_{} = exception} -> raise exception
       {:error, reason} -> raise Localize.ParseError, input: nil, reason: reason
     end
   end

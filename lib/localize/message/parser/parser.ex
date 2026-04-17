@@ -26,7 +26,7 @@ defmodule Localize.Message.Parser do
       {:ok, [{:complex, [], {:quoted_pattern, [{:text, "Hello, world!"}]}}]}
 
   """
-  @spec parse(String.t()) :: {:ok, list()} | {:error, String.t()}
+  @spec parse(String.t()) :: {:ok, list()} | {:error, Localize.ParseError.t()}
 
   def parse(input) when is_binary(input) do
     case message(input) do
@@ -35,11 +35,21 @@ defmodule Localize.Message.Parser do
 
       {:ok, _result, rest, _, _, offset} ->
         {:error,
-         "Could not parse the remaining #{inspect(rest)} starting at position #{offset + 1}"}
+         Localize.ParseError.exception(
+           input: input,
+           reason: "unexpected trailing input #{inspect(rest)}",
+           offset: offset,
+           rest: rest
+         )}
 
       {:error, reason, rest, _, _, offset} ->
         {:error,
-         "#{reason}. Could not parse the remaining #{inspect(rest)} at position #{offset + 1}"}
+         Localize.ParseError.exception(
+           input: input,
+           reason: reason,
+           offset: offset,
+           rest: rest
+         )}
     end
   end
 
@@ -68,7 +78,7 @@ defmodule Localize.Message.Parser do
   def parse!(input) when is_binary(input) do
     case parse(input) do
       {:ok, parsed} -> parsed
-      {:error, reason} -> raise Localize.ParseError, input: input, reason: reason
+      {:error, error} -> raise error
     end
   end
 
