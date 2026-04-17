@@ -722,6 +722,10 @@ pre.mf2-highlight {
 
 For a light theme, swap the palette to Makeup's default (Pygments) colours — `#19177C` for `.mf2-name_variable`, `#0000FF` for `.mf2-name_function`, `bold #008000` for `.mf2-name_builtin` / `.mf2-name_tag`, `#BA2121` for `.mf2-string`, `#666666` for punctuation. Because Localize uses the same Pygments-derived taxonomy as `makeup_elixir`, any of the ~30 themes bundled with Makeup maps directly onto the `mf2-*` classes.
 
+#### Ready-made stylesheets
+
+Pre-built CSS files for all 30 Makeup/Pygments themes (Monokai, Tango, Friendly, Native, Default, Xcode, Vim, and more) are available in the Localize GitHub repository at [`mf2_theme_css/`](https://github.com/elixir-localize/localize/tree/main/mf2_theme_css). Each file targets `.mf2-highlight` (the standalone wrapper) plus every `.mf2-<class>` span, so you can drop one into your application's static assets and pair it with `Localize.Message.to_html(message, standalone: true)` output. These stylesheets are reference material — they are not shipped in the Hex package.
+
 ### ANSI terminal output
 
 `Localize.Message.to_ansi/2` renders each token wrapped in `IO.ANSI` colour codes, suitable for `IO.puts/1` in IEx, mix tasks, or error reporting:
