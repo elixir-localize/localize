@@ -368,21 +368,26 @@ defmodule Localize.Number.System do
         Map.has_key?(number_systems, system_name) ->
           {:ok, Map.get(number_systems, system_name)}
 
-        # It's already a direct system name
+        # It's already a direct system name for this locale
         system_name in Map.values(number_systems) ->
           {:ok, system_name}
 
-        # It's a known system globally but not in this locale
+        # Known globally but NOT valid for this locale. The CLDR number
+        # formatting data is locale-scoped, so using a number system
+        # that isn't in the locale's `numberingSystem` list leaves
+        # the format unresolvable downstream. Surface a specific error
+        # here so the caller sees "not valid for this locale" instead
+        # of an unrelated downstream format-resolution failure.
         Map.has_key?(number_systems(), system_name) ->
-          {:ok, system_name}
+          {:error,
+           Localize.UnknownNumberSystemError.exception(
+             number_system: system_name,
+             locale: Localize.Locale.to_locale_id(locale),
+             reason: :not_for_locale
+           )}
 
         true ->
-          {:error,
-           Localize.InvalidValueError.exception(
-             value: system_name,
-             expected: "a valid number system or type",
-             context: "Localize.Number.System.system_name_from/2"
-           )}
+          {:error, Localize.UnknownNumberSystemError.exception(number_system: system_name)}
       end
     end
   end

@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.0] — April 17th, 2026
+
+### Added
+
+* MF2 syntax highlighter. `Localize.Message.to_tokens/2` returns a classified token stream ( `{class, text}` tuples with Pygments-style classes like `:name_variable`, `:name_function`, `:punctuation`, `:string`). `Localize.Message.to_html/2` renders HTML with per-token `<span class="mf2-…">` wrappers (configurable prefix, optional `<pre><code>` standalone wrapper), and `Localize.Message.to_ansi/2` renders ANSI-coloured terminal output with a customisable palette. The token stream round-trips to the canonical MF2 message via the built-in `:plain` formatter, so highlighting cannot corrupt the original message. Implemented as a post-parse AST walker in `Localize.Message.Highlighter`, leaving the canonical printer (`Localize.Message.Print`) untouched.
+
+### Bug Fixes
+
+* Fix the exception and message when formatting a number and specifying a number system that is not valid for the given locale.
+
 ## [0.14.0] — April 16th, 2026
 
 ### Breaking Change

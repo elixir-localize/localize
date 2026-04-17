@@ -70,6 +70,44 @@ defmodule Localize.Number.SystemTest do
     end
   end
 
+  describe "system_name_from/2 error cases" do
+    test "returns not-valid-for-locale error for a globally-known but locale-incompatible system" do
+      # :arab IS a known CLDR number system globally, but it is NOT
+      # in the numbering systems available for the :en locale. Must
+      # error with reason :not_for_locale, carrying both the system
+      # name and the locale — NOT fall through with an :ok that will
+      # later surface a confusing format-resolution error.
+      assert {:error, %Localize.UnknownNumberSystemError{} = err} =
+               System.system_name_from(:arab, :en)
+
+      assert err.reason == :not_for_locale
+      assert err.number_system == :arab
+      assert err.locale == :en
+      assert Exception.message(err) =~ "not valid for locale"
+    end
+
+    test "returns not-known error for a completely unknown system" do
+      assert {:error, %Localize.UnknownNumberSystemError{} = err} =
+               System.system_name_from(:nonsense_xyz, :en)
+
+      assert err.reason == nil
+      assert err.number_system == :nonsense_xyz
+      assert Exception.message(err) =~ "is not known"
+    end
+
+    test "accepts a system that IS valid for the locale" do
+      assert {:ok, :arab} = System.system_name_from(:arab, :ar)
+      assert {:ok, :latn} = System.system_name_from(:latn, :en)
+    end
+  end
+
+  describe "Localize.Number.to_string with invalid number system" do
+    test "returns UnknownNumberSystemError with :not_for_locale reason" do
+      assert {:error, %Localize.UnknownNumberSystemError{reason: :not_for_locale}} =
+               Localize.Number.to_string(1234, number_system: :arab)
+    end
+  end
+
   describe "generate_transliteration_map/2" do
     test "creates a correct mapping" do
       map = System.generate_transliteration_map("abc", "xyz")

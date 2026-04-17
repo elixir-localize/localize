@@ -480,6 +480,119 @@ defmodule Localize.Message do
   end
 
   @doc """
+  Parses an MF2 message and returns a classified token stream for
+  syntax highlighting.
+
+  Each token is a `{class, text}` tuple where `class` is one of the
+  atoms documented in `Localize.Message.Highlighter`. Concatenating
+  every token's text yields the canonical MF2 message.
+
+  Use this when you want to produce your own rendered output. For
+  HTML or ANSI output, prefer `to_html/2` or `to_ansi/2`.
+
+  ### Arguments
+
+  * `message` is an MF2 message in binary form.
+
+  * `options` is a keyword list. The `:trim` option (default `true`)
+    strips leading and trailing whitespace before parsing.
+
+  ### Returns
+
+  * `{:ok, tokens}` where `tokens` is a list of `{class, text}`
+    tuples.
+
+  * `{:error, reason}` if the message cannot be parsed.
+
+  ### Examples
+
+      iex> {:ok, tokens} = Localize.Message.to_tokens("Hello {$name}!")
+      iex> Enum.map(tokens, &elem(&1, 0))
+      [:text, :punctuation, :name_variable, :punctuation, :text]
+
+  """
+  @spec to_tokens(String.t(), Keyword.t()) ::
+          {:ok, [Localize.Message.Highlighter.token()]} | {:error, String.t()}
+
+  def to_tokens(message, options \\ []) do
+    options = Keyword.put_new(options, :trim, true)
+
+    with {:ok, message} <- maybe_trim(message, options[:trim]),
+         {:ok, ast} <- Parser.parse(message) do
+      {:ok, Localize.Message.Highlighter.to_tokens(ast)}
+    end
+  end
+
+  @doc """
+  Parses an MF2 message and returns it formatted as HTML with
+  per-token `<span>` wrappers for syntax highlighting.
+
+  ### Arguments
+
+  * `message` is an MF2 message in binary form.
+
+  * `options` is a keyword list.
+
+  ### Options
+
+  * `:trim` — whitespace trim before parse (default `true`).
+
+  * `:standalone` — wraps the output in a `<pre><code>` block
+    (default `false`).
+
+  * `:wrapper_tag`, `:wrapper_class`, `:span_tag`, `:class_prefix` —
+    see `Localize.Message.Formatter.HTML` for details.
+
+  ### Returns
+
+  * `{:ok, html}` on success.
+
+  * `{:error, reason}` if the message cannot be parsed.
+
+  """
+  @spec to_html(String.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, String.t()}
+
+  def to_html(message, options \\ []) do
+    with {:ok, tokens} <- to_tokens(message, options) do
+      {:ok, Localize.Message.Formatter.HTML.render(tokens, options)}
+    end
+  end
+
+  @doc """
+  Parses an MF2 message and returns it formatted with ANSI colour
+  codes for terminal display.
+
+  ### Arguments
+
+  * `message` is an MF2 message in binary form.
+
+  * `options` is a keyword list.
+
+  ### Options
+
+  * `:trim` — whitespace trim before parse (default `true`).
+
+  * `:palette` — a map overriding the default class-to-colour
+    mapping. See `Localize.Message.Formatter.ANSI`.
+
+  ### Returns
+
+  * `{:ok, ansi_string}` on success.
+
+  * `{:error, reason}` if the message cannot be parsed.
+
+  """
+  @spec to_ansi(String.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, String.t()}
+
+  def to_ansi(message, options \\ []) do
+    with {:ok, tokens} <- to_tokens(message, options) do
+      {:ok, Localize.Message.Formatter.ANSI.render(tokens, options)}
+    end
+  end
+
+  @doc """
   Returns the Jaro distance between two messages.
 
   This allows for fuzzy matching of messages which can be helpful

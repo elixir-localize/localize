@@ -5,7 +5,7 @@ defmodule Localize.UnknownNumberSystemError do
 
   """
 
-  defexception [:number_system]
+  defexception [:number_system, :locale, :reason]
 
   @impl true
   def exception(bindings) when is_list(bindings) do
@@ -13,6 +13,17 @@ defmodule Localize.UnknownNumberSystemError do
   end
 
   @impl true
+  def message(%__MODULE__{reason: :not_for_locale, number_system: number_system, locale: locale}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "number",
+      "The number system {$number_system} is not valid for locale {$locale}.",
+      number_system: inspect(number_system),
+      locale: inspect(locale)
+    )
+  end
+
   def message(%__MODULE__{number_system: number_system}) do
     Gettext.dpgettext(
       Localize.Gettext,

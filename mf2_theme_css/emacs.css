@@ -1,0 +1,78 @@
+/*
+ * MF2 highlighter theme: Emacs Style
+ *
+ * Ported from Makeup (`makeup_elixir`) theme "emacs".
+ * Apply to output from `Localize.Message.to_html/2`.
+ *
+ * Usage:
+ *   {:ok, html} = Localize.Message.to_html(message, standalone: true)
+ *
+ * The `:standalone` option wraps the tokens in
+ * `<pre class="mf2-highlight"><code>...</code></pre>`; this stylesheet
+ * targets that wrapper plus each `.mf2-<class>` span inside it.
+ */
+
+
+.mf2-highlight {
+  background-color: #f8f8f8;
+  color: inherit;
+  padding: 0.75em 1em;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  overflow-x: auto;
+}
+
+
+
+.mf2-text {}
+
+.mf2-punctuation {
+  color: #666666;
+}
+
+.mf2-name_variable {
+  color: #B8860B;
+}
+
+.mf2-name_function {
+  color: #00A000;
+}
+
+.mf2-name_builtin {
+  color: #AA22FF;
+}
+
+.mf2-name_tag {
+  color: #008000;
+  font-weight: bold;
+}
+
+.mf2-name_attribute {
+  color: #BB4444;
+}
+
+.mf2-name_label {
+  color: #A0A000;
+}
+
+.mf2-string {
+  color: #BB4444;
+}
+
+.mf2-number_integer {
+  color: #666666;
+}
+
+.mf2-number_float {
+  color: #666666;
+}
+
+.mf2-escape {
+  color: #BB6622;
+  font-weight: bold;
+}
+
+.mf2-keyword_constant {
+  color: #AA22FF;
+  font-weight: bold;
+}

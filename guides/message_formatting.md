@@ -648,3 +648,95 @@ end
 ```
 
 See `Localize.Message.Function` for the full callback specification.
+
+## Syntax highlighting
+
+For docs, playgrounds, editor tooling, or error reporting, Localize can render an MF2 message as a *classified token stream* and format it as HTML (with CSS classes) or ANSI-coloured terminal output. Highlighting runs after parsing, so only valid MF2 input is highlighted — parse errors surface the same `{:error, %ParseError{}}` tuple as elsewhere.
+
+### Token stream
+
+`Localize.Message.to_tokens/2` returns a flat list of `{class, text}` tuples. Concatenating the text fields in order reproduces the canonical MF2 message exactly — this invariant is enforced by tests and means highlighting cannot corrupt the original.
+
+```elixir
+iex> Localize.Message.to_tokens("Hello {$name}!")
+{:ok,
+ [
+   {:text, "Hello "},
+   {:punctuation, "{"},
+   {:name_variable, "$name"},
+   {:punctuation, "}"},
+   {:text, "!"}
+ ]}
+```
+
+Classes follow a Pygments-style taxonomy: `:text`, `:punctuation`, `:name_variable`, `:name_function`, `:name_builtin` (for `.input` / `.local` / `.match`), `:name_tag` (markup tag names), `:name_attribute` (`@translate`), `:name_label` (option names), `:string` (quoted literals), `:number_integer`, `:number_float`, `:escape`, `:keyword_constant` (the `*` catchall key).
+
+### HTML output
+
+`Localize.Message.to_html/2` wraps each token in `<span class="mf2-…">` with the text HTML-escaped:
+
+```elixir
+iex> {:ok, html} = Localize.Message.to_html("Hello {$name}")
+iex> html
+"<span class=\"mf2-text\">Hello </span><span class=\"mf2-punctuation\">{</span><span class=\"mf2-name_variable\">$name</span><span class=\"mf2-punctuation\">}</span>"
+```
+
+Options:
+
+* `:standalone` — when `true`, wraps the whole output in `<pre class="mf2-highlight"><code>…</code></pre>`. Defaults to `false` (fragment output).
+
+* `:class_prefix` — prefix applied to each token class. Defaults to `"mf2-"`. Change this if you need to coexist with another highlighter on the same page.
+
+Supply your own stylesheet targeting `.mf2-name_variable`, `.mf2-string`, etc.
+
+#### Rendered example
+
+Here is what the HTML output looks like once styled. The inline `style` attributes below map each class to a colour from Makeup's Monokai theme — a dark palette designed for high contrast on dark backgrounds (which is what ExDoc, Hexdocs, and most developer tools default to):
+
+<pre style="color:#f8f8f2;padding:0.75em 1em;border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:0.95em;line-height:1.5"><code style="background:transparent;color:inherit"><span style="color:#f8f8f2">.input </span><span style="color:#f8f8f2">{</span><span style="color:#fd971f">$count</span><span style="color:#f8f8f2"> </span><span style="color:#a6e22e">:number</span><span style="color:#f8f8f2">}</span><br><span style="color:#66d9ef;font-weight:bold">.match</span><span style="color:#f8f8f2"> </span><span style="color:#fd971f">$count</span><br><span style="color:#ae81ff">1</span><span style="color:#f8f8f2"> {{</span><span style="color:#f8f8f2">one message</span><span style="color:#f8f8f2">}}</span><br><span style="color:#f92672;font-weight:bold">*</span><span style="color:#f8f8f2"> {{</span><span style="color:#f8f8f2">you have </span><span style="color:#f8f8f2">{</span><span style="color:#fd971f">$count</span><span style="color:#f8f8f2">} </span><span style="color:#f92672">{#bold</span><span style="color:#f8f8f2">}</span><span style="color:#f8f8f2">messages</span><span style="color:#f92672">{/bold</span><span style="color:#f8f8f2">}}}</span></code></pre>
+
+The CSS-class version (produced by `to_html/2`) pairs with this stylesheet — a port of Makeup's Monokai theme onto the `mf2-` class namespace:
+
+```css
+pre.mf2-highlight {
+  color: #f8f8f2;
+  padding: 0.75em 1em;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.mf2-text             { color: #f8f8f2; }
+.mf2-punctuation      { color: #f8f8f2; }
+.mf2-name_variable    { color: #fd971f; }
+.mf2-name_function    { color: #a6e22e; }
+.mf2-name_builtin     { color: #66d9ef; font-weight: bold; }
+.mf2-name_tag         { color: #f92672; }
+.mf2-name_attribute   { color: #a6e22e; }
+.mf2-name_label       { color: #a6e22e; }
+.mf2-string           { color: #e6db74; }
+.mf2-number_integer,
+.mf2-number_float     { color: #ae81ff; }
+.mf2-escape           { color: #ae81ff; font-weight: bold; }
+.mf2-keyword_constant { color: #f92672; font-weight: bold; }
+```
+
+For a light theme, swap the palette to Makeup's default (Pygments) colours — `#19177C` for `.mf2-name_variable`, `#0000FF` for `.mf2-name_function`, `bold #008000` for `.mf2-name_builtin` / `.mf2-name_tag`, `#BA2121` for `.mf2-string`, `#666666` for punctuation. Because Localize uses the same Pygments-derived taxonomy as `makeup_elixir`, any of the ~30 themes bundled with Makeup maps directly onto the `mf2-*` classes.
+
+### ANSI terminal output
+
+`Localize.Message.to_ansi/2` renders each token wrapped in `IO.ANSI` colour codes, suitable for `IO.puts/1` in IEx, mix tasks, or error reporting:
+
+```elixir
+iex> {:ok, ansi} = Localize.Message.to_ansi("Hello {$name :string}!")
+iex> IO.puts(ansi)
+```
+
+The default palette uses 4-bit ANSI colours (legible on both light and dark terminals). Override per-class with the `:palette` option:
+
+```elixir
+Localize.Message.to_ansi("{$name}", palette: %{name_variable: [:red, :bright]})
+```
+
+### Custom formatters
+
+If you need a format not built in (e.g. LaTeX, a rich-text editor model), call `to_tokens/2` and render the tuples yourself. The Plain formatter (`Localize.Message.Formatter.Plain`) is the reference for the round-trip invariant and is used internally to emit the canonical string from a token stream.

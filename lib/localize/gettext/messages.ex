@@ -283,6 +283,12 @@ defmodule Localize.Gettext.Messages do
         Localize.Gettext,
         "localize",
         "number",
+        "The number system {$number_system} is not valid for locale {$locale}."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "number",
         "The measurement system {$measurement_system} is not known."
       ),
 
