@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-* MF2 syntax highlighter. `Localize.Message.to_tokens/2` returns a classified token stream ( `{class, text}` tuples with Pygments-style classes like `:name_variable`, `:name_function`, `:punctuation`, `:string`). `Localize.Message.to_html/2` renders HTML with per-token `<span class="mf2-…">` wrappers (configurable prefix, optional `<pre><code>` standalone wrapper), and `Localize.Message.to_ansi/2` renders ANSI-coloured terminal output with a customisable palette. The token stream round-trips to the canonical MF2 message via the built-in `:plain` formatter, so highlighting cannot corrupt the original message. Implemented as a post-parse AST walker in `Localize.Message.Highlighter`, leaving the canonical printer (`Localize.Message.Print`) untouched.
+* MF2 syntax highlighter. See `Localize.Message.to_tokens/2`, `Localize.Message.to_html/2` and `Localize.Message.to_ansi/2`. 
 
 ### Bug Fixes
 
