@@ -214,40 +214,74 @@ defmodule Localize.Locale.Provider do
           domain: [:localize]
         )
 
-        walk_parent_chain(provider, locale_id, locale_id)
+        walk_parent_chain(provider, locale_id, locale_id, [locale_id])
     end
   end
 
-  defp walk_parent_chain(provider, locale_id, original_locale_id) do
+  defp walk_parent_chain(provider, locale_id, original_locale_id, visited) do
     require Logger
 
     case Localize.Locale.parent(to_string(locale_id)) do
       {:ok, parent_tag} ->
         parent_id = Localize.Locale.to_locale_id(parent_tag)
 
-        Logger.debug(
-          "Attempting to load locale #{inspect(parent_id)} (parent locale of #{inspect(locale_id)}).",
-          domain: [:localize]
-        )
-
-        case provider.load(parent_id) do
-          {:ok, locale_data} ->
+        # Cycle guard. `Localize.Locale.parent/1` returns `und` for
+        # bare languages like `ja`, and `to_locale_id/1` used to run
+        # that tag through `validate_locale/1`/likely-subtag resolution,
+        # which maximized `und` back to a concrete locale id (e.g.
+        # `:en`, `:aa`, or the originally-requested locale depending on
+        # the environment). The upstream fix in `to_locale_id/1` maps
+        # bare `und` directly to `:und`, but this guard remains as
+        # defence-in-depth so any future resolver quirk cannot loop the
+        # provider.
+        cond do
+          parent_id == locale_id ->
             Logger.debug(
-              "Loaded and using locale #{inspect(parent_id)} (parent locale of #{inspect(locale_id)}) since #{inspect(original_locale_id)} is not available.",
+              "Parent of #{inspect(locale_id)} resolved back to itself — stopping parent-chain walk.",
               domain: [:localize]
             )
 
-            {:ok, locale_data, parent_id}
+            fallback_to_en(provider, original_locale_id)
 
-          {:error, _} ->
-            allow_download = Application.get_env(:localize, :allow_runtime_locale_download, false)
-
+          parent_id in visited ->
             Logger.debug(
-              "Unable to load locale #{inspect(parent_id)} and :allow_runtime_locale_download is set to #{inspect(allow_download)}.",
+              "Parent chain for #{inspect(original_locale_id)} revisited #{inspect(parent_id)} — stopping walk to avoid infinite recursion.",
               domain: [:localize]
             )
 
-            walk_parent_chain(provider, parent_id, original_locale_id)
+            fallback_to_en(provider, original_locale_id)
+
+          true ->
+            Logger.debug(
+              "Attempting to load locale #{inspect(parent_id)} (parent locale of #{inspect(locale_id)}).",
+              domain: [:localize]
+            )
+
+            case provider.load(parent_id) do
+              {:ok, locale_data} ->
+                Logger.debug(
+                  "Loaded and using locale #{inspect(parent_id)} (parent locale of #{inspect(locale_id)}) since #{inspect(original_locale_id)} is not available.",
+                  domain: [:localize]
+                )
+
+                {:ok, locale_data, parent_id}
+
+              {:error, _} ->
+                allow_download =
+                  Application.get_env(:localize, :allow_runtime_locale_download, false)
+
+                Logger.debug(
+                  "Unable to load locale #{inspect(parent_id)} and :allow_runtime_locale_download is set to #{inspect(allow_download)}.",
+                  domain: [:localize]
+                )
+
+                walk_parent_chain(
+                  provider,
+                  parent_id,
+                  original_locale_id,
+                  [parent_id | visited]
+                )
+            end
         end
 
       {:error, _} ->

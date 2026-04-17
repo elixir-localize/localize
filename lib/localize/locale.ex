@@ -531,6 +531,21 @@ defmodule Localize.Locale do
     locale_id
   end
 
+  # A root tag (`und` with no script/territory/variants) maps to `:und`
+  # unconditionally. Running it through likely-subtag resolution via
+  # `validate_locale/1` would maximize it back to e.g. `en-Latn-US` or,
+  # if the tag carries `-u-` extensions copied from a child during
+  # parent-chain walking, to whichever locale the extensions bias it
+  # toward — creating a cycle where the parent chain never terminates.
+  def to_locale_id(%LanguageTag{
+        language: :und,
+        script: nil,
+        territory: nil,
+        language_variants: []
+      }) do
+    :und
+  end
+
   def to_locale_id(%LanguageTag{} = tag) do
     # When cldr_locale_id is nil, resolve it via validate_locale
     # which populates the field through likely-subtag resolution.

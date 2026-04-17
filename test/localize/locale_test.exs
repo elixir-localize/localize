@@ -36,6 +36,24 @@ defmodule Localize.LocaleTest do
       # Must be the CLDR canonical form, not :"zh-Hans-CN"
       assert locale_id in [:"zh-Hans", :"zh-Hans-CN", :zh]
     end
+
+    test "bare und tag with nil cldr_locale_id resolves to :und" do
+      # Regression: `Localize.Locale.parent/1` returns `und` for bare
+      # languages (e.g. `ja`, `de`). The returned tag has
+      # `cldr_locale_id: nil`, so `to_locale_id/1` used to route through
+      # `validate_locale/1` and likely-subtag resolution. Maximizing
+      # `und` produces a concrete locale (`:en`, `:aa`, or in some
+      # environments the originally-requested locale depending on the
+      # likely-subtag table), which fed back into the provider's
+      # parent-chain walker and produced infinite recursion. A bare und
+      # tag must map directly to `:und` without likely-subtag
+      # resolution — independent of any `-u-` extensions.
+      {:ok, parent_tag} = Localize.Locale.parent("ja")
+      assert Localize.Locale.to_locale_id(parent_tag) == :und
+
+      {:ok, parent_tag} = Localize.Locale.parent("de")
+      assert Localize.Locale.to_locale_id(parent_tag) == :und
+    end
   end
 
   describe "locale loading resolves non-canonical locale IDs" do
