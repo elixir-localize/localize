@@ -1,6 +1,8 @@
 defmodule Localize.Locale.ProviderTest do
   use ExUnit.Case, async: true
 
+  import ExUnit.CaptureLog
+
   alias Localize.Locale.Provider
 
   describe "load_with_fallback/2 — parent-chain walking" do
@@ -41,37 +43,41 @@ defmodule Localize.Locale.ProviderTest do
     end
 
     test "terminates when every locale load fails (no infinite recursion)" do
-      task =
-        Task.async(fn ->
-          Provider.load_with_fallback(AlwaysFailProvider, :ja)
-        end)
+      capture_log(fn ->
+        task =
+          Task.async(fn ->
+            Provider.load_with_fallback(AlwaysFailProvider, :ja)
+          end)
 
-      case Task.yield(task, 2_000) || Task.shutdown(task) do
-        {:ok, {:error, _}} ->
-          :ok
+        case Task.yield(task, 2_000) || Task.shutdown(task) do
+          {:ok, {:error, _}} ->
+            :ok
 
-        {:ok, unexpected} ->
-          flunk("unexpected result: #{inspect(unexpected)}")
+          {:ok, unexpected} ->
+            flunk("unexpected result: #{inspect(unexpected)}")
 
-        nil ->
-          flunk(
-            "load_with_fallback/2 did not terminate within 2 seconds — " <>
-              "parent-chain walker is looping. See provider.ex/walk_parent_chain/4."
-          )
-      end
+          nil ->
+            flunk(
+              "load_with_fallback/2 did not terminate within 2 seconds — " <>
+                "parent-chain walker is looping. See provider.ex/walk_parent_chain/4."
+            )
+        end
+      end)
     end
 
     test "terminates for :de when every locale load fails" do
       # Second locale to make sure the guard isn't specific to `:ja`.
-      task =
-        Task.async(fn ->
-          Provider.load_with_fallback(AlwaysFailProvider, :de)
-        end)
+      capture_log(fn ->
+        task =
+          Task.async(fn ->
+            Provider.load_with_fallback(AlwaysFailProvider, :de)
+          end)
 
-      case Task.yield(task, 2_000) || Task.shutdown(task) do
-        {:ok, {:error, _}} -> :ok
-        nil -> flunk("load_with_fallback/2 looped for :de")
-      end
+        case Task.yield(task, 2_000) || Task.shutdown(task) do
+          {:ok, {:error, _}} -> :ok
+          nil -> flunk("load_with_fallback/2 looped for :de")
+        end
+      end)
     end
   end
 end
