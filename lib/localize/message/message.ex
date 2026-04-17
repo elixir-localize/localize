@@ -299,7 +299,7 @@ defmodule Localize.Message do
   @spec format_to_iolist(String.t(), bindings(), options()) ::
           {:ok, list(), list(), list()}
           | {:error, list(), list(), list()}
-          | {:error, String.t()}
+          | {:error, Localize.ParseError.t()}
           | {:format_error, String.t()}
 
   def format_to_iolist(message, bindings \\ %{}, options \\ []) when is_binary(message) do
@@ -393,9 +393,6 @@ defmodule Localize.Message do
     else
       {:error, %Localize.ParseError{}} = error ->
         error
-
-      {:error, reason} when is_binary(reason) ->
-        {:error, Localize.ParseError.exception(input: message, reason: reason)}
     end
   end
 
@@ -442,7 +439,7 @@ defmodule Localize.Message do
 
   """
   @spec canonical_message(String.t(), Keyword.t()) ::
-          {:ok, String.t()} | {:error, String.t()}
+          {:ok, String.t()} | {:error, Localize.ParseError.t()}
 
   def canonical_message(message, options \\ []) do
     options = Keyword.put_new(options, :trim, true)
@@ -478,8 +475,7 @@ defmodule Localize.Message do
   def canonical_message!(message, options \\ []) do
     case canonical_message(message, options) do
       {:ok, message} -> message
-      {:error, %_{} = exception} -> raise exception
-      {:error, reason} -> raise Localize.ParseError, input: message, reason: reason
+      {:error, exception} -> raise exception
     end
   end
 
@@ -516,7 +512,7 @@ defmodule Localize.Message do
 
   """
   @spec to_tokens(String.t(), Keyword.t()) ::
-          {:ok, [Localize.Message.Highlighter.token()]} | {:error, String.t()}
+          {:ok, [Localize.Message.Highlighter.token()]} | {:error, Localize.ParseError.t()}
 
   def to_tokens(message, options \\ []) do
     options = Keyword.put_new(options, :trim, true)
@@ -555,7 +551,7 @@ defmodule Localize.Message do
 
   """
   @spec to_html(String.t(), Keyword.t()) ::
-          {:ok, String.t()} | {:error, String.t()}
+          {:ok, String.t()} | {:error, Localize.ParseError.t()}
 
   def to_html(message, options \\ []) do
     with {:ok, tokens} <- to_tokens(message, options) do
@@ -588,7 +584,7 @@ defmodule Localize.Message do
 
   """
   @spec to_ansi(String.t(), Keyword.t()) ::
-          {:ok, String.t()} | {:error, String.t()}
+          {:ok, String.t()} | {:error, Localize.ParseError.t()}
 
   def to_ansi(message, options \\ []) do
     with {:ok, tokens} <- to_tokens(message, options) do
@@ -628,7 +624,7 @@ defmodule Localize.Message do
 
   """
   @spec jaro_distance(String.t(), String.t(), Keyword.t()) ::
-          {:ok, float()} | {:error, String.t()}
+          {:ok, float()} | {:error, Localize.ParseError.t()}
 
   def jaro_distance(message1, message2, options \\ []) do
     with {:ok, message1} <- maybe_trim(message1, options[:trim]),
@@ -669,8 +665,7 @@ defmodule Localize.Message do
   def jaro_distance!(message1, message2, options \\ []) do
     case jaro_distance(message1, message2, options) do
       {:ok, distance} -> distance
-      {:error, %_{} = exception} -> raise exception
-      {:error, reason} -> raise Localize.ParseError, input: nil, reason: reason
+      {:error, exception} -> raise exception
     end
   end
 
