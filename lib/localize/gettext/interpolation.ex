@@ -1,4 +1,5 @@
 defmodule Localize.Gettext.Interpolation do
+  require Logger
   alias Localize.Utils.Helpers
 
   @moduledoc """
@@ -49,8 +50,25 @@ defmodule Localize.Gettext.Interpolation do
         missing = Enum.map(unbound, &safe_to_atom/1)
         {:missing_bindings, message, missing}
 
+      {:error, %Localize.ParseError{} = error} ->
+        # A gettext string that isn't valid MF2 shouldn't crash the
+        # caller. Pass it through unchanged (matches gettext's own
+        # "fall back to the msgid" pattern for missing translations)
+        # and log a warning so devs can spot mis-authored messages.
+        Logger.warning(
+          "Localize.Gettext.Interpolation: returning message unchanged, " <>
+            "not valid MF2: #{Exception.message(error)}"
+        )
+
+        {:ok, message}
+
       {:error, exception} when is_exception(exception) ->
-        raise exception
+        Logger.warning(
+          "Localize.Gettext.Interpolation: returning message unchanged, " <>
+            "format failed: #{Exception.message(exception)}"
+        )
+
+        {:ok, message}
     end
   end
 

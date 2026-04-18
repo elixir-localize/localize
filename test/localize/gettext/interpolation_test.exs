@@ -1,6 +1,8 @@
 defmodule Localize.Gettext.InterpolationTest do
   use ExUnit.Case, async: true
 
+  import ExUnit.CaptureLog
+
   alias Localize.Gettext.Interpolation
 
   describe "runtime_interpolate/2" do
@@ -30,6 +32,19 @@ defmodule Localize.Gettext.InterpolationTest do
                  "{{Count: {$count}}}",
                  %{count: 42}
                )
+    end
+
+    test "passes non-MF2 strings through unchanged and logs a warning" do
+      # A library-safe failure mode: a gettext string that isn't valid
+      # MF2 (e.g. dev-facing UI copy that happens to contain `{{…}}`)
+      # must not crash the caller. Return the raw message and warn.
+      input = "Smart indent inside {{…}}, .match, variants"
+
+      {result, log} =
+        with_log(fn -> Interpolation.runtime_interpolate(input, %{}) end)
+
+      assert {:ok, ^input} = result
+      assert log =~ "not valid MF2"
     end
   end
 

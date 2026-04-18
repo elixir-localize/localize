@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.18.0] — April 18th, 2026
+
+### Breaking Change
+
+* MF2 highlighter token class atoms renamed to match the tree-sitter capture taxonomy used by [`mf2_wasm_editor`](https://hex.pm/packages/mf2_wasm_editor), so one stylesheet now styles both server-rendered HTML and the browser editor. 
+
+* `Localize.Message.to_html/2` now emits the new canonical class names with `_` converted to `-` on output (`.mf2-variable`, `.mf2-punctuation-bracket`, `.mf2-string-escape`, `.mf2-constant-builtin`, etc.). 
+
+* `Localize.Message.to_ansi/2` default palette keys renamed to the new atoms.
+
+### Removed
+
+* The `mf2_theme_css/` directory and `scripts/generate_mf2_themes.exs` generator. Themes now live canonically in [`mf2_wasm_editor`](https://hex.pm/packages/mf2_wasm_editor).
+
+### Bug Fixes
+
+* `Localize.Gettext.Interpolation.runtime_interpolate/2` no longer raises `Localize.ParseError` when a translated string is not valid MF2. It now returns the message unchanged and logs a warning, matching gettext's own "fall back to the msgid" behaviour for missing translations. Dev-facing UI copy that happens to contain MF2-like syntax (e.g. `{{…}}` or `.match`) no longer crashes callers.
+
 ## [0.17.0] — April 17th, 2026
 
 ### Added

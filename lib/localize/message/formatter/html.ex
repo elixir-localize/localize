@@ -7,9 +7,18 @@ defmodule Localize.Message.Formatter.HTML do
   whole output in `<pre class="mf2-highlight"><code>...</code></pre>`
   for standalone display.
 
-  The `mf2-` CSS class prefix avoids conflicts with other syntax
-  highlighters on the same page (e.g. `makeup`). Users supply their
-  own CSS to style the classes.
+  Class names use the same taxonomy as the tree-sitter highlight
+  captures consumed by [`mf2_wasm_editor`](https://hex.pm/packages/mf2_wasm_editor)
+  — `.mf2-variable`, `.mf2-punctuation-bracket`, `.mf2-string-escape`,
+  etc. — so a single stylesheet styles both the server-rendered HTML
+  produced here and the browser-side editor. Ready-made themes for
+  both are shipped with `mf2_wasm_editor` under its `priv/themes/`
+  directory.
+
+  Atoms from the highlighter carry underscores (`:punctuation_bracket`)
+  and are converted to hyphenated CSS classes (`.mf2-punctuation-bracket`)
+  on emission. The `mf2-` prefix avoids conflicts with other
+  highlighters on the same page (e.g. `makeup`).
 
   """
 
@@ -52,7 +61,7 @@ defmodule Localize.Message.Formatter.HTML do
   * `:span_tag` — tag used per token. Default `"span"`.
 
   * `:class_prefix` — prefix for per-token CSS classes. Default
-    `"mf2-"` (produces e.g. `mf2-name_variable`).
+    `"mf2-"` (produces e.g. `mf2-variable`, `mf2-punctuation-bracket`).
 
   ### Returns
 
@@ -72,7 +81,7 @@ defmodule Localize.Message.Formatter.HTML do
           span_tag,
           ~s( class="),
           class_prefix,
-          Atom.to_string(class),
+          class_name(class),
           ~s(">),
           escape(text),
           "</",
@@ -102,6 +111,16 @@ defmodule Localize.Message.Formatter.HTML do
       end
 
     IO.iodata_to_binary(output)
+  end
+
+  # Turn a class atom into its CSS-class form: underscores become
+  # hyphens so `:punctuation_bracket` emits `punctuation-bracket`,
+  # matching the tree-sitter capture taxonomy used by the browser
+  # editor's highlights.scm.
+  defp class_name(class) do
+    class
+    |> Atom.to_string()
+    |> String.replace("_", "-")
   end
 
   # HTML-escape the five reserved characters. We don't escape single

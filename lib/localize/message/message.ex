@@ -508,7 +508,7 @@ defmodule Localize.Message do
 
       iex> {:ok, tokens} = Localize.Message.to_tokens("Hello {$name}!")
       iex> Enum.map(tokens, &elem(&1, 0))
-      [:text, :punctuation, :name_variable, :punctuation, :text]
+      [:text, :punctuation_bracket, :variable, :punctuation_bracket, :text]
 
   """
   @spec to_tokens(String.t(), Keyword.t()) ::

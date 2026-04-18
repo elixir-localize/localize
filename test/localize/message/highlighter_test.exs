@@ -15,14 +15,14 @@ defmodule Localize.Message.HighlighterTest do
 
       assert Enum.map(tokens, &elem(&1, 0)) == [
                :text,
-               :punctuation,
-               :name_variable,
-               :punctuation,
+               :punctuation_bracket,
+               :variable,
+               :punctuation_bracket,
                :text
              ]
 
       assert Enum.find_value(tokens, fn
-               {:name_variable, t} -> t
+               {:variable, t} -> t
                _ -> nil
              end) == "$name"
     end
@@ -31,24 +31,24 @@ defmodule Localize.Message.HighlighterTest do
       assert {:ok, tokens} = Message.to_tokens("{$count :number}")
 
       assert [
-               {:punctuation, "{"},
-               {:name_variable, "$count"},
-               {:punctuation, " "},
-               {:name_function, ":number"},
-               {:punctuation, "}"}
+               {:punctuation_bracket, "{"},
+               {:variable, "$count"},
+               {:punctuation_bracket, " "},
+               {:function, ":number"},
+               {:punctuation_bracket, "}"}
              ] = tokens
     end
 
-    test "markup open/close produces :name_tag tokens" do
+    test "markup open/close produces :tag tokens" do
       assert {:ok, tokens} = Message.to_tokens("{#bold}text{/bold}")
 
       classes = Enum.map(tokens, &elem(&1, 0))
-      assert :name_tag in classes
-      assert :punctuation in classes
+      assert :tag in classes
+      assert :punctuation_bracket in classes
       assert :text in classes
 
       # Both the open and close tag names are classified.
-      tag_tokens = Enum.filter(tokens, &match?({:name_tag, _}, &1))
+      tag_tokens = Enum.filter(tokens, &match?({:tag, _}, &1))
       assert length(tag_tokens) == 2
       assert Enum.all?(tag_tokens, fn {_, t} -> t == "bold" end)
     end
@@ -57,7 +57,7 @@ defmodule Localize.Message.HighlighterTest do
       assert {:ok, tokens} = Message.to_tokens("before {#br /}after")
 
       punct_texts =
-        for {:punctuation, text} <- tokens, do: text
+        for {:punctuation_bracket, text} <- tokens, do: text
 
       assert "{#" in punct_texts
       assert " /}" in punct_texts
@@ -76,15 +76,15 @@ defmodule Localize.Message.HighlighterTest do
       assert String.ends_with?(concat, "|")
     end
 
-    test "number literal is classified as :number_integer or :number_float" do
+    test "number literal is classified as :number" do
       assert {:ok, tokens_int} = Message.to_tokens("{42}")
-      assert Enum.any?(tokens_int, &match?({:number_integer, "42"}, &1))
+      assert Enum.any?(tokens_int, &match?({:number, "42"}, &1))
 
       assert {:ok, tokens_float} = Message.to_tokens("{3.14}")
-      assert Enum.any?(tokens_float, &match?({:number_float, "3.14"}, &1))
+      assert Enum.any?(tokens_float, &match?({:number, "3.14"}, &1))
     end
 
-    test ".input / .local / .match keywords are :name_builtin" do
+    test ".input / .local / .match keywords are :keyword" do
       msg =
         ".input {$count :number}\n" <>
           ".local $x = {$count}\n" <>
@@ -94,33 +94,33 @@ defmodule Localize.Message.HighlighterTest do
 
       assert {:ok, tokens} = Message.to_tokens(msg)
 
-      builtins = for {:name_builtin, t} <- tokens, do: t
+      builtins = for {:keyword, t} <- tokens, do: t
       assert ".input" in builtins
       assert ".local" in builtins
       assert ".match" in builtins
     end
 
-    test "* catchall key is :keyword_constant" do
+    test "* catchall key is :constant_builtin" do
       msg = ".input {$x :number}\n.match $x\n1 {{one}}\n* {{other}}"
       assert {:ok, tokens} = Message.to_tokens(msg)
-      assert Enum.any?(tokens, &match?({:keyword_constant, "*"}, &1))
+      assert Enum.any?(tokens, &match?({:constant_builtin, "*"}, &1))
     end
 
-    test "option names are :name_label" do
+    test "option names are :property" do
       assert {:ok, tokens} = Message.to_tokens("{$x :number style=|short|}")
-      assert Enum.any?(tokens, &match?({:name_label, "style"}, &1))
+      assert Enum.any?(tokens, &match?({:property, "style"}, &1))
     end
 
-    test "attribute names are :name_attribute and include @" do
+    test "attribute names are :attribute and include @" do
       assert {:ok, tokens} = Message.to_tokens("{$x @translate}")
-      assert Enum.any?(tokens, &match?({:name_attribute, "@translate"}, &1))
+      assert Enum.any?(tokens, &match?({:attribute, "@translate"}, &1))
     end
 
-    test "text escapes split into :text and :escape tokens" do
+    test "text escapes split into :text and :string_escape tokens" do
       assert {:ok, tokens} = Message.to_tokens("plain \\{ escaped")
 
-      # The `{` in text requires escaping; should appear as :escape token.
-      assert Enum.any?(tokens, &match?({:escape, "\\{"}, &1))
+      # The `{` in text requires escaping; should appear as :string_escape.
+      assert Enum.any?(tokens, &match?({:string_escape, "\\{"}, &1))
       # Surrounding text remains :text.
       assert Enum.any?(tokens, &match?({:text, _}, &1))
     end

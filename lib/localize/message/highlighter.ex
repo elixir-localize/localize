@@ -17,51 +17,53 @@ defmodule Localize.Message.Highlighter do
 
   ### Token classes
 
-  Classes follow a Pygments-inspired taxonomy. The formatters map
-  classes to CSS classes / ANSI colours.
+  Classes follow the same taxonomy as tree-sitter highlight captures,
+  so one stylesheet can style both server-rendered HTML and the
+  browser-side [`mf2_wasm_editor`](https://hex.pm/packages/mf2_wasm_editor).
+  Atoms carry underscores; the HTML formatter converts them to hyphens
+  on emission (so `:punctuation_bracket` becomes `.mf2-punctuation-bracket`).
 
-  * `:punctuation` — `{`, `}`, `{{`, `}}`, `:`, `=`, `/`, `*`,
-    whitespace inside expressions and similar structural characters.
+  * `:punctuation_bracket` — `{`, `}`, `{{`, `}}`, `|`, `=`, `/`,
+    whitespace inside expressions, and similar structural characters.
 
-  * `:name_variable` — `$name` (entire token including `$`).
+  * `:variable` — `$name` (entire token including `$`).
 
-  * `:name_function` — `:number`, `:date`, custom function names
-    (entire token including `:`).
+  * `:function` — `:number`, `:date`, custom function names (entire
+    token including `:`).
 
-  * `:name_builtin` — `.input`, `.local`, `.match` keywords.
+  * `:keyword` — `.input`, `.local`, `.match` keywords.
 
-  * `:name_tag` — markup tag names (`bold` in `{#bold}`).
+  * `:tag` — markup tag names (`bold` in `{#bold}`).
 
-  * `:name_attribute` — attribute names (`@translate`).
+  * `:attribute` — attribute names (`@translate`).
 
-  * `:name_label` — option names (`style` in `style=|short|`).
+  * `:property` — option names (`style` in `style=|short|`).
 
   * `:string` — quoted literal content including the `|` delimiters.
 
-  * `:number_integer` / `:number_float` — numeric literals.
+  * `:number` — numeric literals (integer and float).
 
   * `:text` — pattern text (plain message content).
 
-  * `:escape` — `\\{`, `\\|`, `\\\\` escape sequences.
+  * `:string_escape` — `\\{`, `\\|`, `\\\\` escape sequences.
 
-  * `:keyword_constant` — `*` (catchall variant key).
+  * `:constant_builtin` — `*` (catchall variant key).
 
   """
 
   @type class ::
-          :punctuation
-          | :name_variable
-          | :name_function
-          | :name_builtin
-          | :name_tag
-          | :name_attribute
-          | :name_label
+          :punctuation_bracket
+          | :variable
+          | :function
+          | :keyword
+          | :tag
+          | :attribute
+          | :property
           | :string
-          | :number_integer
-          | :number_float
+          | :number
           | :text
-          | :escape
-          | :keyword_constant
+          | :string_escape
+          | :constant_builtin
 
   @type token :: {class(), String.t()}
 
@@ -98,16 +100,16 @@ defmodule Localize.Message.Highlighter do
 
   defp walk({:quoted_pattern, parts}) do
     [
-      tok(:punctuation, "{{"),
+      tok(:punctuation_bracket, "{{"),
       Enum.map(parts, &walk/1),
-      tok(:punctuation, "}}")
+      tok(:punctuation_bracket, "}}")
     ]
   end
 
   defp walk({:match, selectors, variants}) do
     sel_tokens =
       Enum.map(selectors, fn {:variable, name} ->
-        [tok(:punctuation, " "), variable_tokens(name)]
+        [tok(:punctuation_bracket, " "), variable_tokens(name)]
       end)
 
     var_tokens =
@@ -116,7 +118,7 @@ defmodule Localize.Message.Highlighter do
       |> Enum.intersperse(tok(:text, "\n"))
 
     [
-      tok(:name_builtin, ".match"),
+      tok(:keyword, ".match"),
       sel_tokens,
       tok(:text, "\n"),
       var_tokens
@@ -127,17 +129,17 @@ defmodule Localize.Message.Highlighter do
     key_tokens =
       keys
       |> Enum.map(&key_tokens/1)
-      |> Enum.intersperse(tok(:punctuation, " "))
+      |> Enum.intersperse(tok(:punctuation_bracket, " "))
 
-    [key_tokens, tok(:punctuation, " "), walk(pattern)]
+    [key_tokens, tok(:punctuation_bracket, " "), walk(pattern)]
   end
 
   # ── Declarations ───────────────────────────────────────────────
 
   defp walk({:input, expr}) do
     [
-      tok(:name_builtin, ".input"),
-      tok(:punctuation, " "),
+      tok(:keyword, ".input"),
+      tok(:punctuation_bracket, " "),
       expression_tokens(expr),
       tok(:text, "\n")
     ]
@@ -145,10 +147,10 @@ defmodule Localize.Message.Highlighter do
 
   defp walk({:local, {:variable, name}, expr}) do
     [
-      tok(:name_builtin, ".local"),
-      tok(:punctuation, " "),
+      tok(:keyword, ".local"),
+      tok(:punctuation_bracket, " "),
       variable_tokens(name),
-      tok(:punctuation, " = "),
+      tok(:punctuation_bracket, " = "),
       expression_tokens(expr),
       tok(:text, "\n")
     ]
@@ -158,14 +160,14 @@ defmodule Localize.Message.Highlighter do
 
   defp walk({:text, text}) do
     # `escape_text/1` inserts backslashes before `{`, `}`, `\`. We need
-    # to emit the backslashes as :escape tokens and the plain parts as
-    # :text so highlighters colour escapes distinctly.
+    # to emit the backslashes as :string_escape tokens and the plain
+    # parts as :text so highlighters colour escapes distinctly.
     text
     |> split_text_escapes()
   end
 
   defp walk({:escape, char}) do
-    [tok(:escape, "\\" <> char)]
+    [tok(:string_escape, "\\" <> char)]
   end
 
   defp walk({:expression, _, _, _} = expr) do
@@ -174,31 +176,31 @@ defmodule Localize.Message.Highlighter do
 
   defp walk({:markup_open, name, options, attrs}) do
     [
-      tok(:punctuation, "{#"),
-      identifier_tokens(name, :name_tag),
+      tok(:punctuation_bracket, "{#"),
+      identifier_tokens(name, :tag),
       options_tokens(options),
       attrs_tokens(attrs),
-      tok(:punctuation, "}")
+      tok(:punctuation_bracket, "}")
     ]
   end
 
   defp walk({:markup_close, name, options, attrs}) do
     [
-      tok(:punctuation, "{/"),
-      identifier_tokens(name, :name_tag),
+      tok(:punctuation_bracket, "{/"),
+      identifier_tokens(name, :tag),
       options_tokens(options),
       attrs_tokens(attrs),
-      tok(:punctuation, "}")
+      tok(:punctuation_bracket, "}")
     ]
   end
 
   defp walk({:markup_standalone, name, options, attrs}) do
     [
-      tok(:punctuation, "{#"),
-      identifier_tokens(name, :name_tag),
+      tok(:punctuation_bracket, "{#"),
+      identifier_tokens(name, :tag),
       options_tokens(options),
       attrs_tokens(attrs),
-      tok(:punctuation, " /}")
+      tok(:punctuation_bracket, " /}")
     ]
   end
 
@@ -209,7 +211,7 @@ defmodule Localize.Message.Highlighter do
       [operand_tokens(operand), func_tokens(func), attrs_tokens(attrs)]
       |> Enum.reject(&(&1 == []))
 
-    [tok(:punctuation, "{"), inner, tok(:punctuation, "}")]
+    [tok(:punctuation_bracket, "{"), inner, tok(:punctuation_bracket, "}")]
   end
 
   defp operand_tokens(nil), do: []
@@ -221,7 +223,7 @@ defmodule Localize.Message.Highlighter do
 
   defp func_tokens({:function, name, options}) do
     [
-      tok(:punctuation, " "),
+      tok(:punctuation_bracket, " "),
       function_identifier_tokens(name),
       options_tokens(options)
     ]
@@ -232,9 +234,9 @@ defmodule Localize.Message.Highlighter do
   defp options_tokens(options) do
     Enum.map(options, fn {:option, name, value} ->
       [
-        tok(:punctuation, " "),
-        tok(:name_label, name),
-        tok(:punctuation, "="),
+        tok(:punctuation_bracket, " "),
+        tok(:property, name),
+        tok(:punctuation_bracket, "="),
         value_tokens(value)
       ]
     end)
@@ -245,13 +247,13 @@ defmodule Localize.Message.Highlighter do
   defp attrs_tokens(attrs) do
     Enum.map(attrs, fn
       {:attribute, name, nil} ->
-        [tok(:punctuation, " "), tok(:name_attribute, "@" <> name)]
+        [tok(:punctuation_bracket, " "), tok(:attribute, "@" <> name)]
 
       {:attribute, name, value} ->
         [
-          tok(:punctuation, " "),
-          tok(:name_attribute, "@" <> name),
-          tok(:punctuation, "="),
+          tok(:punctuation_bracket, " "),
+          tok(:attribute, "@" <> name),
+          tok(:punctuation_bracket, "="),
           value_tokens(value)
         ]
     end)
@@ -262,7 +264,7 @@ defmodule Localize.Message.Highlighter do
   defp value_tokens({:number_literal, value}), do: [number_token(value)]
 
   # Variant keys
-  defp key_tokens(:catchall), do: [tok(:keyword_constant, "*")]
+  defp key_tokens(:catchall), do: [tok(:constant_builtin, "*")]
   defp key_tokens({:literal, value}), do: literal_tokens(value, :optional)
   defp key_tokens({:number_literal, value}), do: [number_token(value)]
 
@@ -288,16 +290,16 @@ defmodule Localize.Message.Highlighter do
 
   defp quoted_literal_tokens(value) do
     # Escape `\` and `|` inside the literal. Emit backslash-escapes
-    # separately so the highlighter colours them as :escape.
+    # separately so the highlighter colours them as :string_escape.
     escaped = split_quoted_escapes(value)
     [tok(:string, "|"), escaped, tok(:string, "|")]
   end
 
   defp number_token(value) do
     if String.contains?(value, ".") do
-      tok(:number_float, value)
+      tok(:number, value)
     else
-      tok(:number_integer, value)
+      tok(:number, value)
     end
   end
 
@@ -306,17 +308,17 @@ defmodule Localize.Message.Highlighter do
   # Function identifiers emit the leading `:` as part of the name,
   # matching the canonical syntax `:number`.
   defp function_identifier_tokens({:namespace, ns, name}) do
-    [tok(:name_function, ":" <> ns <> ":" <> name)]
+    [tok(:function, ":" <> ns <> ":" <> name)]
   end
 
   defp function_identifier_tokens(name) when is_binary(name) do
-    [tok(:name_function, ":" <> name)]
+    [tok(:function, ":" <> name)]
   end
 
   # Markup tag identifiers do NOT include their leading `#` / `/` —
   # those are emitted by the markup walker as :punctuation.
   defp identifier_tokens({:namespace, ns, name}, class) do
-    [tok(class, ns), tok(:punctuation, ":"), tok(class, name)]
+    [tok(class, ns), tok(:punctuation_bracket, ":"), tok(class, name)]
   end
 
   defp identifier_tokens(name, class) when is_binary(name) do
@@ -324,14 +326,14 @@ defmodule Localize.Message.Highlighter do
   end
 
   defp variable_tokens(name) do
-    [tok(:name_variable, "$" <> name)]
+    [tok(:variable, "$" <> name)]
   end
 
   # ── Text escape splitting ─────────────────────────────────────
 
   # When a `:text` node contains characters that need escaping in the
   # canonical form (`\`, `{`, `}`), we split them out so the `\`
-  # prefix is classed as :escape and the rest stays as :text. The
+  # prefix is classed as :string_escape and the rest stays as :text. The
   # concatenation of all tokens is identical to the output of
   # `Print.escape_text/1` — verified by round-trip tests.
   defp split_text_escapes(text) do
@@ -345,7 +347,7 @@ defmodule Localize.Message.Highlighter do
 
   defp split_text_chars([c | rest], buf, acc) when c in [?\\, ?{, ?}] do
     acc = if buf == [], do: acc, else: [flush(:text, buf) | acc]
-    escape = tok(:escape, <<?\\, c>>)
+    escape = tok(:string_escape, <<?\\, c>>)
     split_text_chars(rest, [], [escape | acc])
   end
 
@@ -370,7 +372,7 @@ defmodule Localize.Message.Highlighter do
 
   defp split_quoted_chars([c | rest], buf, acc) when c in [?\\, ?|] do
     acc = if buf == [], do: acc, else: [flush(:string, buf) | acc]
-    escape = tok(:escape, <<?\\, c>>)
+    escape = tok(:string_escape, <<?\\, c>>)
     split_quoted_chars(rest, [], [escape | acc])
   end
 

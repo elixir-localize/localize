@@ -8,8 +8,8 @@ defmodule Localize.Message.FormatterTest do
     test "wraps each token in a span with mf2- prefixed class" do
       {:ok, html} = Message.to_html("Hello {$name}")
       assert html =~ ~s(<span class="mf2-text">Hello </span>)
-      assert html =~ ~s(<span class="mf2-name_variable">$name</span>)
-      assert html =~ ~s(<span class="mf2-punctuation">{</span>)
+      assert html =~ ~s(<span class="mf2-variable">$name</span>)
+      assert html =~ ~s(<span class="mf2-punctuation-bracket">{</span>)
     end
 
     test "HTML-escapes token content" do
@@ -86,7 +86,7 @@ defmodule Localize.Message.FormatterTest do
     end
 
     test "custom palette overrides the default" do
-      custom = %{name_variable: [:red]}
+      custom = %{variable: [:red]}
       {:ok, default} = Message.to_ansi("{$name}")
       {:ok, custom_out} = Message.to_ansi("{$name}", palette: custom)
       refute default == custom_out

@@ -17,18 +17,17 @@ defmodule Localize.Message.Formatter.ANSI do
   # (applied in order, then the text, then :reset).
   @default_palette %{
     text: [:default_color],
-    escape: [:light_yellow],
-    punctuation: [:cyan],
-    name_variable: [:green],
-    name_function: [:blue],
-    name_builtin: [:magenta, :bright],
-    name_tag: [:magenta],
-    name_attribute: [:light_magenta],
-    name_label: [:light_blue],
+    string_escape: [:light_yellow],
+    punctuation_bracket: [:cyan],
+    variable: [:green],
+    function: [:blue],
+    keyword: [:magenta, :bright],
+    tag: [:magenta],
+    attribute: [:light_magenta],
+    property: [:light_blue],
     string: [:yellow],
-    number_integer: [:light_red],
-    number_float: [:light_red],
-    keyword_constant: [:cyan, :bright]
+    number: [:light_red],
+    constant_builtin: [:cyan, :bright]
   }
 
   @doc """

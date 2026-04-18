@@ -265,8 +265,17 @@ defmodule Localize.Message.Parser do
   # Rebuild match/complex
   key_v = choice([parsec(:literal_p), string("*") |> replace(:catchall)])
 
+  # variant = key *(s key) o quoted-pattern
+  #
+  # The `s` between successive keys is *required whitespace*, not
+  # optional. Using `o()` here (as we used to) made the parser
+  # accept adjacent-key inputs like `**` that the spec explicitly
+  # rejects as syntax errors — caught by the MF2 WG conformance
+  # suite at test/localize/message/conformance_test.exs.
   variant_v =
-    times(key_v |> concat(o()), min: 1)
+    key_v
+    |> repeat(s() |> concat(key_v))
+    |> concat(o())
     |> concat(quoted_pattern_v)
     |> reduce(:wrap_variant)
 

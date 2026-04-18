@@ -662,23 +662,23 @@ iex> Localize.Message.to_tokens("Hello {$name}!")
 {:ok,
  [
    {:text, "Hello "},
-   {:punctuation, "{"},
-   {:name_variable, "$name"},
-   {:punctuation, "}"},
+   {:punctuation_bracket, "{"},
+   {:variable, "$name"},
+   {:punctuation_bracket, "}"},
    {:text, "!"}
  ]}
 ```
 
-Classes follow a Pygments-style taxonomy: `:text`, `:punctuation`, `:name_variable`, `:name_function`, `:name_builtin` (for `.input` / `.local` / `.match`), `:name_tag` (markup tag names), `:name_attribute` (`@translate`), `:name_label` (option names), `:string` (quoted literals), `:number_integer`, `:number_float`, `:escape`, `:keyword_constant` (the `*` catchall key).
+Classes follow the same taxonomy as the tree-sitter highlight captures used by the browser-side [`mf2_wasm_editor`](https://hex.pm/packages/mf2_wasm_editor), so one stylesheet styles both renderers. The atoms are: `:text`, `:punctuation_bracket`, `:variable`, `:function`, `:keyword` (for `.input` / `.local` / `.match`), `:tag` (markup tag names), `:attribute` (`@translate`), `:property` (option names), `:string` (quoted literals), `:number`, `:string_escape`, `:constant_builtin` (the `*` catchall key).
 
 ### HTML output
 
-`Localize.Message.to_html/2` wraps each token in `<span class="mf2-…">` with the text HTML-escaped:
+`Localize.Message.to_html/2` wraps each token in `<span class="mf2-…">` with the text HTML-escaped. Atom underscores are converted to CSS-friendly hyphens on emission:
 
 ```elixir
 iex> {:ok, html} = Localize.Message.to_html("Hello {$name}")
 iex> html
-"<span class=\"mf2-text\">Hello </span><span class=\"mf2-punctuation\">{</span><span class=\"mf2-name_variable\">$name</span><span class=\"mf2-punctuation\">}</span>"
+"<span class=\"mf2-text\">Hello </span><span class=\"mf2-punctuation-bracket\">{</span><span class=\"mf2-variable\">$name</span><span class=\"mf2-punctuation-bracket\">}</span>"
 ```
 
 Options:
@@ -687,7 +687,7 @@ Options:
 
 * `:class_prefix` — prefix applied to each token class. Defaults to `"mf2-"`. Change this if you need to coexist with another highlighter on the same page.
 
-Supply your own stylesheet targeting `.mf2-name_variable`, `.mf2-string`, etc.
+Supply your own stylesheet targeting `.mf2-variable`, `.mf2-string`, etc. — or serve one of the 30 bundled themes described below.
 
 #### Rendered example
 
@@ -695,7 +695,7 @@ Here is what the HTML output looks like once styled. The inline `style` attribut
 
 <pre style="color:#f8f8f2;padding:0.75em 1em;border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:0.95em;line-height:1.5"><code style="background:transparent;color:inherit"><span style="color:#f8f8f2">.input </span><span style="color:#f8f8f2">{</span><span style="color:#fd971f">$count</span><span style="color:#f8f8f2"> </span><span style="color:#a6e22e">:number</span><span style="color:#f8f8f2">}</span><br><span style="color:#66d9ef;font-weight:bold">.match</span><span style="color:#f8f8f2"> </span><span style="color:#fd971f">$count</span><br><span style="color:#ae81ff">1</span><span style="color:#f8f8f2"> {{</span><span style="color:#f8f8f2">one message</span><span style="color:#f8f8f2">}}</span><br><span style="color:#f92672;font-weight:bold">*</span><span style="color:#f8f8f2"> {{</span><span style="color:#f8f8f2">you have </span><span style="color:#f8f8f2">{</span><span style="color:#fd971f">$count</span><span style="color:#f8f8f2">} </span><span style="color:#f92672">{#bold</span><span style="color:#f8f8f2">}</span><span style="color:#f8f8f2">messages</span><span style="color:#f92672">{/bold</span><span style="color:#f8f8f2">}}}</span></code></pre>
 
-The CSS-class version (produced by `to_html/2`) pairs with this stylesheet — a port of Makeup's Monokai theme onto the `mf2-` class namespace:
+The CSS-class version (produced by `to_html/2`) pairs with this stylesheet — a port of Makeup's Monokai theme onto the tree-sitter capture namespace:
 
 ```css
 pre.mf2-highlight {
@@ -705,26 +705,25 @@ pre.mf2-highlight {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-.mf2-text             { color: #f8f8f2; }
-.mf2-punctuation      { color: #f8f8f2; }
-.mf2-name_variable    { color: #fd971f; }
-.mf2-name_function    { color: #a6e22e; }
-.mf2-name_builtin     { color: #66d9ef; font-weight: bold; }
-.mf2-name_tag         { color: #f92672; }
-.mf2-name_attribute   { color: #a6e22e; }
-.mf2-name_label       { color: #a6e22e; }
-.mf2-string           { color: #e6db74; }
-.mf2-number_integer,
-.mf2-number_float     { color: #ae81ff; }
-.mf2-escape           { color: #ae81ff; font-weight: bold; }
-.mf2-keyword_constant { color: #f92672; font-weight: bold; }
+.mf2-highlight code                      { color: #f8f8f2; }
+.mf2-punctuation-bracket, .mf2-operator  { color: #f8f8f2; }
+.mf2-variable, .mf2-variable-builtin     { color: #fd971f; }
+.mf2-function                            { color: #a6e22e; }
+.mf2-keyword, .mf2-keyword-import        { color: #66d9ef; font-weight: bold; }
+.mf2-tag, .mf2-keyword-conditional       { color: #f92672; }
+.mf2-attribute, .mf2-punctuation-special { color: #a6e22e; }
+.mf2-property                            { color: #a6e22e; }
+.mf2-string                              { color: #e6db74; }
+.mf2-number                              { color: #ae81ff; }
+.mf2-string-escape                       { color: #ae81ff; font-weight: bold; }
+.mf2-constant-builtin                    { color: #f92672; font-weight: bold; }
 ```
 
-For a light theme, swap the palette to Makeup's default (Pygments) colours — `#19177C` for `.mf2-name_variable`, `#0000FF` for `.mf2-name_function`, `bold #008000` for `.mf2-name_builtin` / `.mf2-name_tag`, `#BA2121` for `.mf2-string`, `#666666` for punctuation. Because Localize uses the same Pygments-derived taxonomy as `makeup_elixir`, any of the ~30 themes bundled with Makeup maps directly onto the `mf2-*` classes.
+For a light theme, swap the palette to Makeup's default (Pygments) colours — `#19177C` for `.mf2-variable`, `#0000FF` for `.mf2-function`, `bold #008000` for `.mf2-keyword` / `.mf2-tag`, `#BA2121` for `.mf2-string`, `#666666` for punctuation. Because the class names match the tree-sitter capture taxonomy, any tree-sitter-style theme works directly.
 
 #### Ready-made stylesheets
 
-Pre-built CSS files for all 30 Makeup/Pygments themes (Monokai, Tango, Friendly, Native, Default, Xcode, Vim, and more) are available in the Localize GitHub repository at [`mf2_theme_css/`](https://github.com/elixir-localize/localize/tree/main/mf2_theme_css). Each file targets `.mf2-highlight` (the standalone wrapper) plus every `.mf2-<class>` span, so you can drop one into your application's static assets and pair it with `Localize.Message.to_html(message, standalone: true)` output. These stylesheets are reference material — they are not shipped in the Hex package.
+30 pre-built themes (Monokai, Tango, Friendly, Native, Default, Xcode, Vim, and more) ship with [`mf2_wasm_editor`](https://hex.pm/packages/mf2_wasm_editor) under its `priv/themes/` directory — see [its README](https://hexdocs.pm/mf2_wasm_editor/readme.html#themes) for the full list and wiring instructions. Each file targets `.mf2-highlight` (the standalone wrapper) plus every `.mf2-<capture>` span, so the **same file** styles both the server-rendered HTML produced by `Localize.Message.to_html(message, standalone: true)` *and* the browser-side editor. Pick the same theme in both places for a consistent look.
 
 ### ANSI terminal output
 
@@ -738,7 +737,7 @@ iex> IO.puts(ansi)
 The default palette uses 4-bit ANSI colours (legible on both light and dark terminals). Override per-class with the `:palette` option:
 
 ```elixir
-Localize.Message.to_ansi("{$name}", palette: %{name_variable: [:red, :bright]})
+Localize.Message.to_ansi("{$name}", palette: %{variable: [:red, :bright]})
 ```
 
 ### Custom formatters
