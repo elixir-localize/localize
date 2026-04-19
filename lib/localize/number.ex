@@ -15,6 +15,7 @@ defmodule Localize.Number do
   alias Localize.Number.Format
   alias Localize.Number.Format.Options
   alias Localize.Number.Formatter
+  alias Localize.Number.Rbnf
   alias Localize.Number.System
 
   @doc """
@@ -37,7 +38,13 @@ defmodule Localize.Number do
   * `:format` is a format style atom or a format pattern string.
     The default is `:standard`. Common styles include `:standard`,
     `:currency`, `:accounting`, `:percent`, `:scientific`,
-    `:decimal_short`, `:decimal_long`.
+    `:decimal_short`, `:decimal_long`. Any RBNF rule name atom
+    supported by the locale is also accepted (e.g.,
+    `:spellout_cardinal`, `:spellout_ordinal`, `:digits_ordinal`,
+    `:roman_upper`). The atoms `:spellout` and `:ordinal` resolve
+    to the best available spellout or ordinal rule for the locale.
+    See `Localize.Number.Rbnf.rule_names_for_locale/1` to discover
+    the rule names supported by a locale.
 
   * `:currency` is a currency code atom (e.g., `:USD`). When
     provided, currency formatting is applied.
@@ -142,6 +149,9 @@ defmodule Localize.Number do
 
       is_atom(format) and format in [:currency_long, :currency_long_with_symbol] ->
         Formatter.Currency.to_string(number, format, validated_options)
+
+      is_atom(format) ->
+        Rbnf.to_string(number, format, locale: validated_options.locale)
 
       true ->
         {:error,

@@ -25,7 +25,10 @@ defmodule Localize.Number.Rbnf do
   * `number` is an integer or float.
 
   * `rule_name` is the rule set name atom or string
-    (e.g., `:spellout_cardinal`, `"roman-upper"`).
+    (e.g., `:spellout_cardinal`, `"roman-upper"`). The atoms
+    `:spellout` and `:ordinal` are interpreted specially and
+    map to the best available spellout or ordinal rule for
+    the locale.
 
   * `options` is a keyword list of options.
 
@@ -44,18 +47,61 @@ defmodule Localize.Number.Rbnf do
       iex> Localize.Number.Rbnf.to_string(123, :spellout_cardinal, locale: :en)
       {:ok, "one hundred twenty-three"}
 
+      iex> Localize.Number.Rbnf.to_string(1, :spellout, locale: :en)
+      {:ok, "one"}
+
+      iex> Localize.Number.Rbnf.to_string(1, :ordinal, locale: :en)
+      {:ok, "1st"}
+
   """
   @spec to_string(number(), atom() | String.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def to_string(number, rule_name, options \\ []) do
-    locale = Keyword.get(options, :locale, Localize.get_locale())
-    locale_id = to_locale_id(locale)
-    rule_name_str = normalize_rule_name(rule_name)
+    requested_locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    case Localize.validate_locale(requested_locale) do
+      {:ok, language_tag} ->
+        lookup_and_format(number, rule_name, language_tag, language_tag)
+
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  # Walk the locale inheritance chain looking for a matching RBNF
+  # rule. If the current locale has no matching rule, fall back to
+  # its parent locale via `Localize.Locale.parent/1` and retry. When
+  # the chain terminates at `und`, return an `UnknownRbnfRuleError`
+  # that reports the originally requested locale.
+  defp lookup_and_format(number, rule_name, language_tag, requested_tag) do
+    locale_id = to_locale_id(language_tag)
 
     with {:ok, rbnf_data} <- load_rbnf_data(locale_id),
          {:ok, all_rule_sets} <- extract_rule_sets(rbnf_data),
-         {:ok, rule_set} <- find_rule_set(all_rule_sets, rule_name_str) do
-      Processor.process(number, rule_name_str, rule_set.rules, all_rule_sets)
+         {:ok, resolved_name} <- resolve_rule_name(rule_name, all_rule_sets, locale_id),
+         {:ok, rule_set} <- find_rule_set(all_rule_sets, resolved_name, locale_id) do
+      Processor.process(number, resolved_name, rule_set.rules, all_rule_sets)
+    else
+      {:error, %Localize.UnknownRbnfRuleError{}} ->
+        fallback_to_parent(number, rule_name, language_tag, requested_tag)
+
+      {:error, _other} ->
+        fallback_to_parent(number, rule_name, language_tag, requested_tag)
+    end
+  end
+
+  defp fallback_to_parent(number, rule_name, language_tag, requested_tag) do
+    case Localize.Locale.parent(language_tag) do
+      {:ok, parent_tag} ->
+        lookup_and_format(number, rule_name, parent_tag, requested_tag)
+
+      {:error, %Localize.NoParentError{}} ->
+        {:error,
+         Localize.UnknownRbnfRuleError.exception(
+           rule_name: rule_name,
+           locale: to_locale_id(requested_tag),
+           available: []
+         )}
     end
   end
 
@@ -118,7 +164,7 @@ defmodule Localize.Number.Rbnf do
 
   defp extract_rule_sets(_), do: {:error, "No RBNF data available"}
 
-  defp find_rule_set(all_rule_sets, rule_name_str) do
+  defp find_rule_set(all_rule_sets, rule_name_str, locale_id) do
     # Try various key forms: string, atom, hyphenated, underscored
     rule_set =
       Map.get(all_rule_sets, rule_name_str) ||
@@ -132,12 +178,72 @@ defmodule Localize.Number.Rbnf do
       {:ok, %{rules: extract_rules(rule_set), access: Map.get(rule_set, :access, :public)}}
     else
       {:error,
-       Localize.InvalidValueError.exception(
-         value: rule_name_str,
-         expected: "a known RBNF rule set",
-         context: "Available: #{inspect(Map.keys(all_rule_sets))}"
+       Localize.UnknownRbnfRuleError.exception(
+         rule_name: rule_name_str,
+         locale: locale_id,
+         available: all_rule_sets |> Map.keys() |> Enum.map(&to_string_key/1)
        )}
     end
+  end
+
+  # Resolve a rule_name argument to a concrete rule name string.
+  #
+  # The atoms `:spellout` and `:ordinal` are special: they map to
+  # the "best available" rule in the locale's public rule sets.
+  # Any other atom or string is returned unchanged in string form.
+  defp resolve_rule_name(:spellout, all_rule_sets, locale_id) do
+    resolve_best_rule(all_rule_sets, :spellout, locale_id, [
+      "spellout-cardinal",
+      ~r/^spellout-cardinal-/,
+      ~r/^spellout-/
+    ])
+  end
+
+  defp resolve_rule_name(:ordinal, all_rule_sets, locale_id) do
+    resolve_best_rule(all_rule_sets, :ordinal, locale_id, [
+      "digits-ordinal",
+      "spellout-ordinal",
+      ~r/^digits-ordinal-/,
+      ~r/^spellout-ordinal-/,
+      ~r/-ordinal(-|$)/
+    ])
+  end
+
+  defp resolve_rule_name(name, _all_rule_sets, _locale_id) do
+    {:ok, normalize_rule_name(name)}
+  end
+
+  defp resolve_best_rule(all_rule_sets, requested, locale_id, preferences) do
+    public_names = public_rule_names(all_rule_sets)
+
+    match =
+      Enum.find_value(preferences, fn preference ->
+        case preference do
+          name when is_binary(name) -> if name in public_names, do: name
+          %Regex{} = regex -> Enum.find(public_names, &Regex.match?(regex, &1))
+        end
+      end)
+
+    if match do
+      {:ok, match}
+    else
+      {:error,
+       Localize.UnknownRbnfRuleError.exception(
+         rule_name: requested,
+         locale: locale_id,
+         available: public_names
+       )}
+    end
+  end
+
+  defp public_rule_names(all_rule_sets) do
+    all_rule_sets
+    |> Enum.filter(fn {_key, rule_set} ->
+      is_map(rule_set) and Map.get(rule_set, :access, :public) == :public
+    end)
+    |> Enum.map(fn {key, _rule_set} ->
+      key |> to_string_key() |> String.replace("_", "-")
+    end)
   end
 
   defp extract_rules(%{rules: rules}) when is_list(rules), do: rules

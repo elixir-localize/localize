@@ -299,6 +299,12 @@ defmodule Localize.Gettext.Messages do
         "number",
         "The measurement system {$measurement_system} is not known."
       ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "number",
+        "The RBNF rule {$rule_name} is not known for locale {$locale}."
+      ),
 
       # Plural rules
       Gettext.Macros.dpgettext_noop_with_backend(
