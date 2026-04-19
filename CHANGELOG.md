@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.0] — April 19th, 2026
+
+### Bug Fixes
+
+* Restored the support of RBNF locales in `Localize.Number.to_string/2`. They are implemented in `Localize.Number.Rbnf.to_string/1` but the delegation was lost on the `ex_cldr` transition. Thanks to @tangulip for the report. Closes #11.
+
 ## [0.18.0] — April 18th, 2026
 
 ### Breaking Change
