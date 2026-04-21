@@ -977,7 +977,10 @@ defmodule Localize do
   Validates a calendar name.
 
   Checks the calendar against the list of known CLDR calendars.
-  The string `"gregory"` is accepted as an alias for `:gregorian`.
+  BCP 47 short forms are accepted as aliases: `"gregory"` for
+  `:gregorian`, `"ethioaa"` for `:ethiopic_amete_alem`, and
+  `"islamicc"` for `:islamic_civil`. Dash-separated identifiers
+  (e.g., `"islamic-umalqura"`) are normalised to underscore form.
 
   ### Arguments
 
@@ -998,6 +1001,15 @@ defmodule Localize do
       iex> Localize.validate_calendar("persian")
       {:ok, :persian}
 
+      iex> Localize.validate_calendar("islamic-umalqura")
+      {:ok, :islamic_umalqura}
+
+      iex> Localize.validate_calendar(:"islamic-umalqura")
+      {:ok, :islamic_umalqura}
+
+      iex> Localize.validate_calendar("ethioaa")
+      {:ok, :ethiopic_amete_alem}
+
       iex> Localize.validate_calendar(:unknown)
       {:error, %Localize.UnknownCalendarError{calendar: :unknown}}
 
@@ -1005,23 +1017,36 @@ defmodule Localize do
   @spec validate_calendar(atom() | String.t()) ::
           {:ok, atom()} | {:error, Exception.t()}
   def validate_calendar(calendar) when is_binary(calendar) do
-    calendar
-    |> normalize_calendar()
-    |> validate_calendar()
-  end
+    normalised = normalize_calendar(calendar)
 
-  def validate_calendar(calendar) when is_atom(calendar) do
-    if calendar in known_calendars() do
-      {:ok, calendar}
+    if normalised in known_calendars() do
+      {:ok, normalised}
     else
       {:error, Localize.UnknownCalendarError.exception(calendar: calendar)}
     end
   end
 
+  def validate_calendar(calendar) when is_atom(calendar) do
+    normalised = calendar |> Atom.to_string() |> normalize_calendar()
+
+    if normalised in known_calendars() do
+      {:ok, normalised}
+    else
+      {:error, Localize.UnknownCalendarError.exception(calendar: calendar)}
+    end
+  end
+
+  # BCP 47 short-form aliases that don't match the underscore form of
+  # the canonical CLDR identifier.
   defp normalize_calendar("gregory"), do: :gregorian
+  defp normalize_calendar("ethioaa"), do: :ethiopic_amete_alem
+  defp normalize_calendar("islamicc"), do: :islamic_civil
 
   defp normalize_calendar(name) when is_binary(name) do
-    String.to_atom(String.downcase(name))
+    name
+    |> String.downcase()
+    |> String.replace("-", "_")
+    |> String.to_atom()
   end
 
   @doc """
