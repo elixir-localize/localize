@@ -203,9 +203,24 @@ defmodule Localize.Number.Formatter.Decimal do
   defp round_fractional_digits({number, exponent}, %{fractional_digits: %{max: max}}, %{
          rounding_mode: rounding_mode
        }) do
-    number = Math.round(number, max, rounding_mode)
+    number =
+      number
+      |> Math.round(max, rounding_mode)
+      |> strip_trailing_zeros()
+
     {number, exponent}
   end
+
+  # `Decimal.round/3` returns a value with exactly the requested scale
+  # (e.g., rounding `Decimal.new("1234.56")` to 3 places yields
+  # `Decimal<1234.560>`). That surfaces later as a trailing `0` in the
+  # fraction tuple and diverges from float behaviour, where the rounding
+  # path preserves only the digits actually needed. Normalizing here
+  # drops the synthetic trailing zeros; `adjust_trailing_zeros/2` still
+  # pads back up to `fractional_digits[:min]` for formats (like
+  # currency) that mandate a minimum scale.
+  defp strip_trailing_zeros(%Decimal{} = number), do: Decimal.normalize(number)
+  defp strip_trailing_zeros(number), do: number
 
   defp output_to_tuple({coef, exponent}) do
     {integer, fraction, sign} = Digits.to_tuple(coef)

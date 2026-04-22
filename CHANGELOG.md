@@ -4,7 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.20.0] — April 22nd, 2026
+## [0.22.0] — April 22nd, 2026
+
+### Bug Fixes
+
+* Fix `Cldr.Number.to_string/2` for `Decimal` numbers to produce the correct decimal digits. 
+
+## [0.21.0] — April 22nd, 2026
 
 ### Bug Fixes
 
@@ -19,6 +25,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * `Localize.DateTime.to_string/2` with hour + minute (no second) under `:medium` no longer emits a stray trailing `:` before the AM/PM marker — the partial path derives the `:hm` skeleton instead of using the full `h:mm:ss a` pattern with an empty seconds slot.
 
 * The datetime formatter's AM/PM handler now accepts any map with `:hour`, not just maps that also have `:minute`.
+
+* `Localize.Number.to_string/2` now produces identical output for equivalent `Decimal` and float values. Previously `Decimal.new("1234.56")` rendered as `"1,234.560"` under the standard pattern because `Decimal.round/3` returns a result padded to the requested scale; the formatter now normalizes after rounding so only the digits actually needed are emitted. Currency and other formats with a mandatory minimum scale still pad correctly via `adjust_trailing_zeros/2`.
+
+## [0.20.0] — April 22nd, 2026
+
+### Bug Fixes
+
+* Fixes mapping CLDR calendar types to the implementation module name.
 
 ## [0.19.0] — April 19th, 2026
 

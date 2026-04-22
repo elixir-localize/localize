@@ -28,6 +28,13 @@ defmodule Localize.Number.ExponentTest do
       assert {:ok, "1.235E3"} =
                Localize.Number.to_string(Decimal.new("1234.5678"), format: "0.000E0")
     end
+
+    test "Decimal and float produce identical scientific output" do
+      for format <- ["0.0E0", "0.00E0", "0.000E0"] do
+        assert Localize.Number.to_string(1234.5678, format: format) ==
+                 Localize.Number.to_string(Decimal.new("1234.5678"), format: format)
+      end
+    end
   end
 
   describe "exponent precision" do

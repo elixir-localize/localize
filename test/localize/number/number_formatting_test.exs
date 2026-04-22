@@ -24,6 +24,14 @@ defmodule Localize.Number.FormattingTest do
       assert {:ok, "1.40"} = Localize.Number.to_string(1.4, fractional_digits: 2)
     end
 
+    test "formatted Decimal with rounding matches float output" do
+      assert {:ok, "1.40"} =
+               Localize.Number.to_string(Decimal.new("1.4"), fractional_digits: 2)
+
+      assert Localize.Number.to_string(1.4, fractional_digits: 2) ==
+               Localize.Number.to_string(Decimal.new("1.4"), fractional_digits: 2)
+    end
+
     test "that -0 Decimal formats" do
       number = Decimal.new("-0")
       {:ok, result} = Localize.Number.to_string(number)
@@ -37,9 +45,30 @@ defmodule Localize.Number.FormattingTest do
       assert {:ok, "56%"} = Localize.Number.to_string(0.56, format: :percent)
     end
 
+    test "percent format matches between Decimal and float" do
+      assert {:ok, "56%"} = Localize.Number.to_string(Decimal.new("0.56"), format: :percent)
+
+      assert Localize.Number.to_string(0.56, format: :percent) ==
+               Localize.Number.to_string(Decimal.new("0.56"), format: :percent)
+    end
+
     test "percent format with fractional digits" do
       {:ok, result} = Localize.Number.to_string(123.456, format: :percent, fractional_digits: 1)
       assert result == "12,345.6%"
+    end
+
+    test "percent format with fractional digits matches between Decimal and float" do
+      assert {:ok, "12,345.6%"} =
+               Localize.Number.to_string(Decimal.new("123.456"),
+                 format: :percent,
+                 fractional_digits: 1
+               )
+
+      assert Localize.Number.to_string(123.456, format: :percent, fractional_digits: 1) ==
+               Localize.Number.to_string(Decimal.new("123.456"),
+                 format: :percent,
+                 fractional_digits: 1
+               )
     end
 
     test "scientific format" do
@@ -77,6 +106,14 @@ defmodule Localize.Number.FormattingTest do
       assert String.contains?(result, "$")
       assert String.contains?(result, "50")
     end
+
+    test "fraction digits of 0 with currency matches between Decimal and float" do
+      assert Localize.Number.to_string(50.12, fractional_digits: 0, currency: :USD) ==
+               Localize.Number.to_string(Decimal.new("50.12"),
+                 fractional_digits: 0,
+                 currency: :USD
+               )
+    end
   end
 
   describe "grouping" do
@@ -107,9 +144,68 @@ defmodule Localize.Number.FormattingTest do
       assert result == "50"
     end
 
+    test "fraction digits of 0 matches between Decimal and float" do
+      assert {:ok, "50"} =
+               Localize.Number.to_string(Decimal.new("50.12"), fractional_digits: 0)
+
+      assert Localize.Number.to_string(50.12, fractional_digits: 0) ==
+               Localize.Number.to_string(Decimal.new("50.12"), fractional_digits: 0)
+    end
+
     test "fraction digits of 2" do
       {:ok, result} = Localize.Number.to_string(50.1, fractional_digits: 2)
       assert result == "50.10"
+    end
+
+    test "fraction digits of 2 matches between Decimal and float" do
+      assert {:ok, "50.10"} =
+               Localize.Number.to_string(Decimal.new("50.1"), fractional_digits: 2)
+
+      assert Localize.Number.to_string(50.1, fractional_digits: 2) ==
+               Localize.Number.to_string(Decimal.new("50.1"), fractional_digits: 2)
+    end
+  end
+
+  describe "Decimal and float produce identical output under the standard pattern" do
+    test "matching scale: 1234.56" do
+      assert Localize.Number.to_string(1234.56) ==
+               Localize.Number.to_string(Decimal.new("1234.56"))
+
+      assert {:ok, "1,234.56"} = Localize.Number.to_string(Decimal.new("1234.56"))
+    end
+
+    test "fewer fraction digits than max: 1234.5" do
+      assert {:ok, "1,234.5"} = Localize.Number.to_string(Decimal.new("1234.5"))
+    end
+
+    test "Decimal with synthetic trailing zeros: 1234.50" do
+      # Decimal.new("1234.50") has coef 123450, exp -2 — an explicit
+      # trailing zero. The standard pattern has max 3 / min 0 fraction
+      # digits so that zero should be stripped.
+      assert {:ok, "1,234.5"} = Localize.Number.to_string(Decimal.new("1234.50"))
+    end
+
+    test "integer-valued Decimal: 1234" do
+      assert {:ok, "1,234"} = Localize.Number.to_string(Decimal.new("1234"))
+      assert {:ok, "1,234"} = Localize.Number.to_string(Decimal.new("1234.00"))
+    end
+
+    test "currency still pads to mandatory minimum fraction digits" do
+      # USD requires 2 fraction digits — `adjust_trailing_zeros` pads
+      # after normalization strips them.
+      assert {:ok, "$1,234.50"} =
+               Localize.Number.to_string(Decimal.new("1234.5"),
+                 currency: :USD,
+                 locale: :en,
+                 prefer: :ascii
+               )
+
+      assert {:ok, "$1,234.00"} =
+               Localize.Number.to_string(Decimal.new("1234"),
+                 currency: :USD,
+                 locale: :en,
+                 prefer: :ascii
+               )
     end
   end
 
@@ -124,6 +220,15 @@ defmodule Localize.Number.FormattingTest do
       {:ok, result} = Localize.Number.to_string(-42.5)
       assert String.contains?(result, "42.5")
       assert String.contains?(result, "-")
+    end
+
+    test "negative Decimal matches negative float" do
+      {:ok, result} = Localize.Number.to_string(Decimal.new("-42.5"))
+      assert String.contains?(result, "42.5")
+      assert String.contains?(result, "-")
+
+      assert Localize.Number.to_string(-42.5) ==
+               Localize.Number.to_string(Decimal.new("-42.5"))
     end
   end
 

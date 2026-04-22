@@ -84,12 +84,14 @@ defmodule Localize.CharsTest do
     end
 
     test "Decimal formats with the requested locale" do
-      # `Decimal.new("1234.50")` preserves three significant
-      # fractional digits, so the formatter renders "1,234.500".
-      assert {:ok, "1,234.500"} =
+      # Decimal rendering matches float rendering: trailing zeros
+      # beyond the pattern's minimum fraction digits are stripped,
+      # so `Decimal.new("1234.50")` renders as "1,234.5" under the
+      # standard `#,##0.###` pattern (min 0, max 3).
+      assert {:ok, "1,234.5"} =
                Localize.Chars.to_string(Decimal.new("1234.50"), locale: :en)
 
-      assert {:ok, "1.234,500"} =
+      assert {:ok, "1.234,5"} =
                Localize.Chars.to_string(Decimal.new("1234.50"), locale: :de)
     end
 
