@@ -48,9 +48,35 @@ defmodule Localize.TimeTest do
                )
     end
 
-    test "standard format rejected for partial time" do
-      result = Localize.Time.to_string(%{hour: 14, minute: 30}, format: :medium, locale: :en)
-      assert match?({:error, _}, result)
+    test "standard format on partial time derives a skeleton from present fields" do
+      # Hour + minute under `:medium` should render as the `:hm` skeleton
+      # (`h:mm a` in English), not error with DateTimeUnresolvedFormatError
+      # and not include an empty `ss` slot.
+      assert {:ok, "2:30\u202FPM"} =
+               Localize.Time.to_string(%{hour: 14, minute: 30},
+                 format: :medium,
+                 locale: :en,
+                 prefer: :unicode
+               )
+
+      assert {:ok, "2:30 PM"} =
+               Localize.Time.to_string(%{hour: 14, minute: 30},
+                 format: :medium,
+                 locale: :en,
+                 prefer: :ascii
+               )
+    end
+
+    test "standard format on hour-only partial time derives :h skeleton" do
+      # Hour alone under `:medium` should render as the `:h` skeleton
+      # (`h a` in English). Previously returned
+      # DateTimeUnresolvedFormatError{format: :medium}.
+      assert {:ok, "2 PM"} =
+               Localize.Time.to_string(%{hour: 14},
+                 format: :medium,
+                 locale: :en,
+                 prefer: :ascii
+               )
     end
 
     test "derive_format_id/1 produces canonical order" do

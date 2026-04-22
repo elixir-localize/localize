@@ -92,6 +92,40 @@ defmodule Localize.DateTimeTest do
 
       assert String.contains?(result, "2:30")
     end
+
+    test "hour-only partial datetime renders both date and hour with AM/PM" do
+      # Previously this silently dropped the hour by dispatching to
+      # Localize.Date.to_string. Now it renders both portions and
+      # composes via the locale's datetime wrapper.
+      assert {:ok, "Jun 15, 2026, 12 AM"} =
+               Localize.DateTime.to_string(
+                 %{year: 2026, month: 6, day: 15, hour: 0, calendar: Calendar.ISO},
+                 format: :medium,
+                 locale: :en,
+                 prefer: :ascii
+               )
+
+      assert {:ok, "Jun 15, 2026, 2 PM"} =
+               Localize.DateTime.to_string(
+                 %{year: 2026, month: 6, day: 15, hour: 14, calendar: Calendar.ISO},
+                 format: :medium,
+                 locale: :en,
+                 prefer: :ascii
+               )
+    end
+
+    test "hour+minute partial datetime omits the empty seconds slot" do
+      # Previously the `:medium` full-time pattern `h:mm:ss a` was
+      # used, leaving a trailing `:` where seconds should have
+      # rendered. The partial path now derives the `:hm` skeleton.
+      assert {:ok, "Jun 15, 2026, 2:30 PM"} =
+               Localize.DateTime.to_string(
+                 %{year: 2026, month: 6, day: 15, hour: 14, minute: 30, calendar: Calendar.ISO},
+                 format: :medium,
+                 locale: :en,
+                 prefer: :ascii
+               )
+    end
   end
 
   describe "to_string/2 error handling" do

@@ -1062,8 +1062,7 @@ defmodule Localize.Calendar do
   defp iso_day_of_week(%{year: year, month: month, day: day, calendar: calendar})
        when is_integer(year) and is_integer(month) and is_integer(day) do
     if function_exported?(calendar, :day_of_week, 4) do
-      {day_of_week, _} = calendar.day_of_week(year, month, day, :monday)
-      day_of_week
+      calendar.day_of_week(year, month, day, :monday) |> elem(0)
     else
       Calendar.ISO.day_of_week(year, month, day, :monday) |> elem(0)
     end

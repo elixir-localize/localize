@@ -10,6 +10,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Fix normalizing CLDR locale names to our standard atom format in `Localize.validate_calendar/1`.
 
+* `Localize.Calendar.iso_day_of_week/1` no longer crashes with `MatchError` on non-ISO calendars. The generic branch destructured `calendar.day_of_week/4` as a 2-tuple but the `Calendar` behaviour returns `{day, first, last}`.
+
+* `Localize.Time.to_string/2` with a partial time and a standard format atom (`:short`/`:medium`/`:long`/`:full`) now derives a CLDR skeleton from the fields actually present (`:h`, `:hm`, `:ms`) instead of returning `DateTimeUnresolvedFormatError`.
+
+* `Localize.DateTime.to_string/2` no longer silently drops the hour when given a partial datetime such as `%{year: _, month: _, day: _, hour: _}` without `:minute`. Partial datetimes render via a split date + time path composed with the locale's datetime wrapper.
+
+* `Localize.DateTime.to_string/2` with hour + minute (no second) under `:medium` no longer emits a stray trailing `:` before the AM/PM marker — the partial path derives the `:hm` skeleton instead of using the full `h:mm:ss a` pattern with an empty seconds slot.
+
+* The datetime formatter's AM/PM handler now accepts any map with `:hour`, not just maps that also have `:minute`.
+
 ## [0.19.0] — April 19th, 2026
 
 ### Bug Fixes

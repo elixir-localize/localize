@@ -359,7 +359,9 @@ defmodule Localize.DateTime.Formatter do
   # ── Period AM/PM (a) ───────────────────────────────────────
 
   @doc false
-  def period_am_pm(time, count, locale_id, options) when is_time(time) do
+  # AM/PM depends only on `:hour`, so accept any map that has an hour
+  # (partial times like `%{hour: 14}` still produce a correct marker).
+  def period_am_pm(%{hour: _} = time, count, locale_id, options) do
     format = format_for_count(count)
 
     Localize.Calendar.localize(time, :am_pm,

@@ -1,9 +1,20 @@
+defmodule Localize.IntervalTest.GenericGregorian do
+  @moduledoc false
+  # Minimal non-ISO calendar module used to exercise the generic-calendar
+  # branch of `Localize.Calendar.iso_day_of_week/1`. Only implements the
+  # callbacks that path actually invokes.
+
+  def day_of_week(y, m, d, start), do: Calendar.ISO.day_of_week(y, m, d, start)
+  def cldr_calendar_type, do: :gregorian
+end
+
 defmodule Localize.IntervalTest do
   use ExUnit.Case, async: true
 
   doctest Localize.Interval
 
   alias Localize.Interval
+  alias Localize.IntervalTest.GenericGregorian
 
   describe "to_string/3 with dates" do
     test "same month different days" do
@@ -288,6 +299,44 @@ defmodule Localize.IntervalTest do
       assert Map.has_key?(styles, :month)
       assert Map.has_key?(styles, :month_and_day)
       assert Map.has_key?(styles, :year_and_month)
+    end
+  end
+
+  describe "regression: non-ISO calendar with :long date style" do
+    test "month-resolution :long does not crash on generic calendar day_of_week" do
+      # Previously `iso_day_of_week/1` destructured the `day_of_week/4`
+      # return value as a 2-tuple, but the Calendar behaviour returns
+      # `{day, first, last}`. Any non-ISO calendar carrying a
+      # `day_of_week/4` callback raised MatchError here.
+      from = %{year: 2026, month: 6, day: 1, calendar: GenericGregorian}
+      to = %{year: 2026, month: 6, day: 30, calendar: GenericGregorian}
+
+      assert {:ok, result} =
+               Interval.to_string(from, to, format: :long, style: :date, locale: :en)
+
+      assert String.contains?(result, "Mon")
+      assert String.contains?(result, "Tue")
+      assert String.contains?(result, "Jun")
+    end
+  end
+
+  describe "regression: partial-time endpoints" do
+    test "hour-carrying maps without minute/second format cleanly" do
+      # Tempo's fallback path produced either
+      # DateTimeUnresolvedFormatError{format: :medium} (from Time.to_string
+      # on partial times) or silently stripped the hour (from
+      # DateTime.to_string dispatching partial datetimes to Date).
+      from = %{year: 2026, month: 6, day: 15, hour: 9, calendar: Calendar.ISO}
+      to = %{year: 2026, month: 6, day: 15, hour: 17, calendar: Calendar.ISO}
+
+      assert {:ok, result} =
+               Interval.to_string(from, to, format: :medium, locale: :en, prefer: :ascii)
+
+      assert String.contains?(result, "9")
+      assert String.contains?(result, "5")
+      assert String.contains?(result, "AM")
+      assert String.contains?(result, "PM")
+      refute result =~ ~r/:\s/
     end
   end
 end

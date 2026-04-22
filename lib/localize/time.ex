@@ -91,26 +91,22 @@ defmodule Localize.Time do
     format = Keyword.get(options, :format)
 
     with {:ok, locale_id} <- resolve_locale_id(locale) do
+      # Standard format atoms (`:short`/`:medium`/`:long`/`:full`) are
+      # designed for full h/m/s times. For partial times we derive a
+      # CLDR skeleton from the fields that are actually present
+      # (`:h`, `:hm`, `:hms`, `:ms`, etc.) and resolve that instead.
       resolved_format =
         cond do
           is_binary(format) -> format
-          is_atom(format) and format != nil and format not in @standard_formats -> format
-          format in @standard_formats -> nil
+          is_atom(format) and format in @standard_formats -> derive_format_id(time)
+          is_atom(format) and not is_nil(format) -> format
           true -> derive_format_id(time)
         end
 
-      if resolved_format == nil do
-        {:error,
-         Localize.DateTimeUnresolvedFormatError.exception(
-           format: format,
-           locale: locale_id
-         )}
-      else
-        with {:ok, pattern} <- find_format(time, resolved_format, locale_id, options),
-             {:ok, formatted} <-
-               Localize.DateTime.Formatter.format(time, pattern, locale_id, Map.new(options)) do
-          {:ok, formatted}
-        end
+      with {:ok, pattern} <- find_format(time, resolved_format, locale_id, options),
+           {:ok, formatted} <-
+             Localize.DateTime.Formatter.format(time, pattern, locale_id, Map.new(options)) do
+        {:ok, formatted}
       end
     end
   end

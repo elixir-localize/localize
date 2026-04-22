@@ -67,7 +67,11 @@ defmodule Localize.DateTime do
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(datetime, options \\ [])
 
-  def to_string(%{year: _, month: _, day: _, hour: _, minute: _} = datetime, options) do
+  # Full datetime: year, month, day, hour, minute, second all present.
+  def to_string(
+        %{year: _, month: _, day: _, hour: _, minute: _, second: _} = datetime,
+        options
+      ) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
     style = Keyword.get(options, :style, :default)
@@ -93,6 +97,15 @@ defmodule Localize.DateTime do
            Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)}
       end
     end
+  end
+
+  # Partial datetime: full date plus at least one time field but not all.
+  # Render the date and time portions independently (each deriving a
+  # skeleton from the fields actually present, via the existing
+  # `Localize.Date` / `Localize.Time` partial paths) and compose them
+  # with the locale's datetime wrapper pattern.
+  def to_string(%{year: _, month: _, day: _, hour: _} = datetime, options) do
+    format_partial_datetime(datetime, options)
   end
 
   def to_string(datetime, options) when is_map(datetime) do
@@ -122,6 +135,45 @@ defmodule Localize.DateTime do
     case to_string(datetime, options) do
       {:ok, string} -> string
       {:error, exception} -> raise exception
+    end
+  end
+
+  defp format_partial_datetime(datetime, options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    format = Keyword.get(options, :format, @default_format)
+
+    date_format = Keyword.get(options, :date_format, format)
+    time_format = Keyword.get(options, :time_format, format)
+    # The wrapper level follows the date format when explicit, otherwise
+    # the requested top-level format. Non-standard atoms fall back to
+    # `:medium` for wrapper selection only.
+    wrapper_level =
+      cond do
+        date_format in @standard_formats -> date_format
+        format in @standard_formats -> format
+        true -> :medium
+      end
+
+    date_only = Map.drop(datetime, [:hour, :minute, :second, :microsecond])
+
+    time_only =
+      datetime
+      |> Map.take([:hour, :minute, :second, :microsecond, :calendar])
+
+    date_options = Keyword.put(options, :format, date_format)
+    time_options = Keyword.put(options, :format, time_format)
+
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, date_str} <- Localize.Date.to_string(date_only, date_options),
+         {:ok, time_str} <- Localize.Time.to_string(time_only, time_options) do
+      wrapper = fallback_wrapper(wrapper_level, locale_id)
+
+      result =
+        wrapper
+        |> String.replace("{1}", date_str)
+        |> String.replace("{0}", time_str)
+
+      {:ok, result}
     end
   end
 
