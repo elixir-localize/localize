@@ -44,15 +44,8 @@ defmodule Localize.Application do
 
   defp resolve_supported_locales do
     maybe_warn_deprecated_preload()
-
-    case Application.get_env(:localize, :supported_locales) do
-      nil ->
-        :ok
-
-      locales when is_list(locales) ->
-        expanded = Localize.Locale.expand_locale_list(locales, :supported_locales)
-        :persistent_term.put({:localize, :supported_locales}, expanded)
-    end
+    _ = Localize.supported_locales()
+    :ok
   end
 
   defp maybe_warn_deprecated_preload do
