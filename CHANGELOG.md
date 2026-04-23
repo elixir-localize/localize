@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Bug Fixes
+
+* `Localize.supported_locales/0` now lazily resolves `config :localize, supported_locales: [...]` from the application environment when the `:persistent_term` cache has not yet been populated, instead of falling back to the full CLDR locale list. The cache is populated on application startup, but callers that run before the application has started — notably compile-time macro expansion in dependent applications like `localize_web`'s `~q` sigil — previously saw the full CLDR list during partial recompiles. This caused `Localize.validate_locale/1` to best-match against all CLDR locales rather than the configured subset, producing incorrect `cldr_locale_id` resolutions (e.g. Gettext `"de"` resolving to `:de` instead of the configured `:"de-CH"`) and `CaseClauseError` at runtime when the resolved locale did not match any sigil-generated case clause.
+
 ## [0.22.0] — April 22nd, 2026
 
 ### Bug Fixes
