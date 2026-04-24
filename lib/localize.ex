@@ -847,7 +847,7 @@ defmodule Localize do
   end
 
   def available_locale_id?(locale_name) when is_binary(locale_name) do
-    available_locale_id?(String.to_atom(locale_name))
+    Enum.any?(all_locale_ids(), &(Atom.to_string(&1) == locale_name))
   end
 
   @doc """
@@ -1031,9 +1031,7 @@ defmodule Localize do
   @spec validate_calendar(atom() | String.t()) ::
           {:ok, atom()} | {:error, Exception.t()}
   def validate_calendar(calendar) when is_binary(calendar) do
-    normalised = normalize_calendar(calendar)
-
-    if normalised in known_calendars() do
+    if normalised = normalize_calendar(calendar) do
       {:ok, normalised}
     else
       {:error, Localize.UnknownCalendarError.exception(calendar: calendar)}
@@ -1041,9 +1039,7 @@ defmodule Localize do
   end
 
   def validate_calendar(calendar) when is_atom(calendar) do
-    normalised = calendar |> Atom.to_string() |> normalize_calendar()
-
-    if normalised in known_calendars() do
+    if normalised = calendar |> Atom.to_string() |> normalize_calendar() do
       {:ok, normalised}
     else
       {:error, Localize.UnknownCalendarError.exception(calendar: calendar)}
@@ -1052,15 +1048,20 @@ defmodule Localize do
 
   # BCP 47 short-form aliases that don't match the underscore form of
   # the canonical CLDR identifier.
-  defp normalize_calendar("gregory"), do: :gregorian
-  defp normalize_calendar("ethioaa"), do: :ethiopic_amete_alem
-  defp normalize_calendar("islamicc"), do: :islamic_civil
-
   defp normalize_calendar(name) when is_binary(name) do
-    name
-    |> String.downcase()
-    |> String.replace("-", "_")
-    |> String.to_atom()
+    normalised =
+      name
+      |> String.downcase()
+      |> String.replace("-", "_")
+
+    aliases = %{
+      "gregory" => :gregorian,
+      "ethioaa" => :ethiopic_amete_alem,
+      "islamicc" => :islamic_civil
+    }
+
+    Map.get(aliases, normalised) ||
+      Enum.find(known_calendars(), &(Atom.to_string(&1) == normalised))
   end
 
   @doc """
@@ -1095,7 +1096,13 @@ defmodule Localize do
   @spec validate_number_system(atom() | String.t()) ::
           {:ok, atom()} | {:error, Exception.t()}
   def validate_number_system(number_system) when is_binary(number_system) do
-    validate_number_system(String.to_atom(number_system))
+    case Enum.find(known_number_systems(), &(Atom.to_string(&1) == number_system)) do
+      nil ->
+        {:error, Localize.UnknownNumberSystemError.exception(number_system: number_system)}
+
+      number_system ->
+        {:ok, number_system}
+    end
   end
 
   def validate_number_system(number_system) when is_atom(number_system) do
