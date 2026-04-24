@@ -409,13 +409,21 @@ defmodule Localize.List do
   # locale resolver and avoids the `String.to_existing_atom/1`
   # pitfall where a locale string like `"en-US"` may not yet
   # have been interned as an atom.
-  defp resolve_locale_id(%Localize.LanguageTag{cldr_locale_id: id}) when not is_nil(id) do
+  defp resolve_locale_id(%Localize.LanguageTag{cldr_locale_id: nil} = locale) do
+    case Localize.validate_locale(locale) do
+      {:ok, %Localize.LanguageTag{cldr_locale_id: id}} -> {:ok, id}
+      error -> error
+    end
+  end
+
+  defp resolve_locale_id(%Localize.LanguageTag{cldr_locale_id: id}) do
     {:ok, id}
   end
 
   defp resolve_locale_id(locale) when is_atom(locale) or is_binary(locale) do
-    with {:ok, %Localize.LanguageTag{cldr_locale_id: id}} <- Localize.validate_locale(locale) do
-      {:ok, id}
+    case Localize.validate_locale(locale) do
+      {:ok, %Localize.LanguageTag{cldr_locale_id: id}} -> {:ok, id}
+      error -> error
     end
   end
 
