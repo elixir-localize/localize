@@ -460,14 +460,16 @@ defmodule Localize.Utils.Http do
     :ssl.eccs() -- (:ssl.eccs() -- preferred_eccs)
   end
 
-  defp secure_ssl? do
-    case System.get_env(@localize_unsafe_https) do
+  @doc false
+  @spec secure_ssl?(String.t() | nil) :: boolean()
+  def secure_ssl?(unsafe_https \\ System.get_env(@localize_unsafe_https)) do
+    case unsafe_https do
       nil -> true
-      "FALSE" -> false
-      "false" -> false
-      "nil" -> false
-      "NIL" -> false
-      _other -> true
+      "FALSE" -> true
+      "false" -> true
+      "nil" -> true
+      "NIL" -> true
+      _other -> false
     end
   end
 
