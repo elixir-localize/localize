@@ -177,19 +177,82 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
   """
   @impl Localize.Locale.Provider
-  def get(locale, keys, _options \\ []) when is_list(keys) do
+  def get(locale, keys, options \\ []) when is_list(keys) do
     locale_id = to_locale_id(locale)
-    locale_key = locale_key(locale_id)
-    locale_data = :persistent_term.get(locale_key)
 
-    if item = get_in(locale_data, keys) do
-      {:ok, item}
-    else
-      {:error, Localize.ItemNotFoundError.exception(locale: locale_id, keys: keys)}
+    case fetch(locale_id, keys) do
+      {:ok, item} ->
+        {:ok, item}
+
+      :error ->
+        if Keyword.get(options, :fallback, false) do
+          get_from_parent(locale_id, keys)
+        else
+          not_found(locale_id, keys)
+        end
     end
   end
 
   # ── Helpers ──────────────────────────────────────────────────
+
+  defp fetch(locale_id, keys) do
+    case :persistent_term.get(locale_key(locale_id), :localize_locale_not_loaded) do
+      :localize_locale_not_loaded ->
+        :error
+
+      locale_data ->
+        if item = get_in(locale_data, keys) do
+          {:ok, item}
+        else
+          :error
+        end
+    end
+  end
+
+  defp get_from_parent(locale_id, keys) do
+    get_from_parent(locale_id, locale_id, keys, MapSet.new([locale_id]))
+  end
+
+  defp get_from_parent(original_locale_id, current_locale_id, keys, visited) do
+    case next_parent(current_locale_id, visited) do
+      {:ok, parent_id} ->
+        case load_and_fetch(parent_id, keys) do
+          {:ok, item} ->
+            {:ok, item}
+
+          :error ->
+            get_from_parent(original_locale_id, parent_id, keys, MapSet.put(visited, parent_id))
+        end
+
+      :error ->
+        not_found(original_locale_id, keys)
+    end
+  end
+
+  defp next_parent(locale_id, visited) do
+    case Localize.Locale.parent(to_string(locale_id)) do
+      {:ok, parent_tag} ->
+        parent_id = to_locale_id(parent_tag)
+
+        if MapSet.member?(visited, parent_id) do
+          :error
+        else
+          {:ok, parent_id}
+        end
+
+      {:error, _} ->
+        :error
+    end
+  end
+
+  defp load_and_fetch(locale_id, keys) do
+    _ = Localize.Locale.load_and_store(locale_id, provider: __MODULE__)
+    fetch(locale_id, keys)
+  end
+
+  defp not_found(locale_id, keys) do
+    {:error, Localize.ItemNotFoundError.exception(locale: locale_id, keys: keys)}
+  end
 
   defp to_locale_id(locale) do
     Localize.Locale.to_locale_id(locale)
