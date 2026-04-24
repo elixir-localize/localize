@@ -354,7 +354,7 @@ defmodule Localize.Locale do
           {:ok, map()} | {:error, Exception.t()}
   def load(locale, options \\ []) do
     {provider, _options} = Keyword.pop(options, :provider, default_provider())
-    provider.store(locale, locale)
+    provider.load(locale)
   end
 
   @doc """
@@ -488,7 +488,7 @@ defmodule Localize.Locale do
   def get(locale, keys, options \\ []) do
     {provider, options} = Keyword.pop(options, :provider, default_provider())
 
-    case load_and_store(locale) do
+    case load_and_store(locale, provider: provider) do
       :ok -> provider.get(locale, keys, options)
       {:error, _} = error -> error
     end
