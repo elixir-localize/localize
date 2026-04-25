@@ -512,11 +512,20 @@ defmodule Localize.Locale do
   # `und` with `{:error, NoParentError}` so a normal walk always
   # ends, but the visited set guards against any future inheritance
   # graph that could close into a loop.
+  @spec fallback_through_parents(Provider.locale(), list(), module(), Keyword.t()) ::
+          {:ok, term()} | {:error, term()}
   defp fallback_through_parents(original_locale, keys, provider, options) do
     original_id = to_locale_id(original_locale)
-    walk_parents(original_id, original_id, keys, provider, options, MapSet.new([original_id]))
+    walk_parents(original_id, original_id, keys, provider, options, [original_id])
   end
 
+  # `visited` is a small list (the depth of the CLDR locale
+  # inheritance graph is typically 2–4) used to guard against any
+  # future inheritance cycle. We use a list rather than a `MapSet`
+  # so the type flows cleanly through the recursion under Elixir
+  # 1.20's stricter opacity checks.
+  @spec walk_parents(atom(), atom(), list(), module(), Keyword.t(), [atom(), ...]) ::
+          {:ok, term()} | {:error, term()}
   defp walk_parents(original_id, current_id, keys, provider, options, visited) do
     case next_parent(current_id, visited) do
       {:ok, parent_id} ->
@@ -533,7 +542,7 @@ defmodule Localize.Locale do
                   keys,
                   provider,
                   options,
-                  MapSet.put(visited, parent_id)
+                  [parent_id | visited]
                 )
 
               {:error, _} = error ->
@@ -549,12 +558,13 @@ defmodule Localize.Locale do
     end
   end
 
+  @spec next_parent(atom(), [atom(), ...]) :: {:ok, atom()} | :no_parent
   defp next_parent(locale_id, visited) do
     case parent(to_string(locale_id)) do
       {:ok, parent_tag} ->
         parent_id = to_locale_id(parent_tag)
 
-        if MapSet.member?(visited, parent_id) do
+        if parent_id in visited do
           :no_parent
         else
           {:ok, parent_id}
