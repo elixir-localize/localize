@@ -720,19 +720,74 @@ defmodule Localize do
   end
 
   @doc """
-  Returns the list of supported locales configured via
-  `config :localize, supported_locales: [...]` or
-  `Localize.all_locale_ids/0`.
+  Returns the list of supported locales.
 
-  The returned list contains canonical CLDR locale ID atoms.
-  The configured list is resolved and cached on application
-  startup, and lazily resolved on first access for callers
-  that run before the application has started (e.g. compile-time
-  macro expansion in dependent applications).
+  Resolution follows a three-step priority chain:
+
+  1. The cached list in `:persistent_term`, populated either by
+     `Localize.Application.start/2` at boot or by step 2 below.
+
+  2. `Application.get_env(:localize, :supported_locales)`, if it
+     is set to a list. The list is expanded through
+     `Localize.Locale.expand_locale_list/2` (so wildcards like
+     `"en-*"`, coverage-level keywords like `:modern`, and
+     POSIX-form aliases like `"pt_BR"` resolve identically to the
+     boot path) and the result is cached in `:persistent_term`
+     for subsequent calls.
+
+  3. `Localize.all_locale_ids/0` — the full set of CLDR locales,
+     used when no `supported_locales` configuration exists. This
+     result is **not** cached, so a later boot-time put can still
+     install the configured list.
+
+  ### Compile-time vs runtime resolution
+
+  Step 2 makes this function safe to call from compile-time
+  contexts (notably macro expansion in dependent applications,
+  such as `localize_web`'s `~q` sigil) before
+  `Localize.Application` has started. Without it, compile-time
+  callers would fall through to the full CLDR list and bake the
+  wrong `cldr_locale_id` into generated code (e.g.
+  `Localize.validate_locale("de")` resolving to `:de` rather
+  than the configured `:"de-CH"`), producing `CaseClauseError`
+  at runtime.
+
+  Compile-time resolution writes the expanded list to
+  `:persistent_term` as a side effect. This is intentional and
+  safe: when `Localize.Application.start/2` later runs (in the
+  same OS process, e.g. under `iex -S mix`) it computes the
+  same list from the same `Application.get_env/2` value and
+  re-puts it. `:persistent_term.put/2` is cheap when the value
+  is unchanged, so the boot-time put becomes a no-op.
+
+  ### Configuration sources
+
+  Compile-time resolution can only see configuration that Mix
+  has loaded by the time macros expand — that is, `config.exs`
+  and any environment-specific config file (`dev.exs`,
+  `test.exs`, `prod.exs`). Configuration set in
+  `config/runtime.exs` is **not** visible at compile time and
+  is also not seen by macros that ran during the build. If
+  `supported_locales` must be tunable at runtime, either:
+
+  * declare a sensible default in `config.exs` (so compile-time
+    macros see the right set) and override at runtime in
+    `runtime.exs`, or
+
+  * avoid macros that resolve locales at compile time and rely
+    on runtime resolution instead.
 
   ### Returns
 
-  * A list of locale ID atoms.
+  * A list of locale ID atoms. The list is the configured
+    supported set when `:supported_locales` is configured, or
+    the full CLDR locale list otherwise.
+
+  ### Examples
+
+      iex> locales = Localize.supported_locales()
+      iex> is_list(locales) and Enum.all?(locales, &is_atom/1)
+      true
 
   """
   @spec supported_locales() :: [atom()]
@@ -742,6 +797,11 @@ defmodule Localize do
       Localize.SupplementalData.all_locale_ids()
   end
 
+  # Reads `:supported_locales` from the application environment,
+  # expands it through `expand_locale_list/2` and caches the
+  # result in `:persistent_term`. Returns the expanded list, or
+  # `nil` when the env key is unset so the caller's `||` chain
+  # falls through to the full-CLDR default without caching it.
   defp load_supported_locales_from_env do
     locales = Application.get_env(:localize, :supported_locales)
 
