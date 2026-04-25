@@ -724,8 +724,11 @@ defmodule Localize do
   `config :localize, supported_locales: [...]` or
   `Localize.all_locale_ids/0`.
 
-  The returned list contains canonical CLDR locale ID atoms,
-  resolved and validated at application startup.
+  The returned list contains canonical CLDR locale ID atoms.
+  The configured list is resolved and cached on application
+  startup, and lazily resolved on first access for callers
+  that run before the application has started (e.g. compile-time
+  macro expansion in dependent applications).
 
   ### Returns
 
@@ -735,7 +738,18 @@ defmodule Localize do
   @spec supported_locales() :: [atom()]
   def supported_locales do
     :persistent_term.get({:localize, :supported_locales}, nil) ||
+      load_supported_locales_from_env() ||
       Localize.SupplementalData.all_locale_ids()
+  end
+
+  defp load_supported_locales_from_env do
+    locales = Application.get_env(:localize, :supported_locales)
+
+    if is_list(locales) do
+      expanded = Localize.Locale.expand_locale_list(locales, :supported_locales)
+      :persistent_term.put({:localize, :supported_locales}, expanded)
+      expanded
+    end
   end
 
   @doc """
