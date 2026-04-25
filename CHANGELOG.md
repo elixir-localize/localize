@@ -4,11 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.0] — April 25th, 2026
+
+### Bug Fixes
+
+* Fix `Cldr.Number.to_string/2` for `Decimal` numbers to produce the correct decimal digits.
+
+* Fix `LOCALIZE_UNSAFE_HTTPS` env-var contract — values like `"FALSE"`, `"nil"`, an empty string, or unset all keep TLS verification on; only a truthy value disables it. Thanks to @rubas for the PR. Closes #15.
+
+* Fix `Localize.Locale.load/2` and `Localize.Locale.get/3` to honor the `:provider` option — `load/2` no longer calls `provider.store/2` with the locale id, and `get/3` now loads through the same provider it reads from. Thanks to @rubas for the PR. Closes #16.
+
+* `Localize.Locale.get/3` now honors the `:fallback` option by walking the CLDR parent locale chain when a key is missing in the requested locale. Fallback is handled in `Localize.Locale` so provider modules stay focused on store-and-fetch semantics. Thanks to @rubas for the PR. Closes #17.
+
+* Public formatters (`Localize.Date`, `Localize.Time`, `Localize.DateTime`, `Localize.DateTime.Relative`, `Localize.Interval`, `Localize.List`, `Localize.Calendar`) now accept raw parsed `Localize.LanguageTag` structs whose `:cldr_locale_id` is not yet populated. The seven per-module locale resolvers collapse to one shared `Localize.Locale.cldr_locale_id_from/1`. Thanks to @rubas for the PR. Closes #18.
+
+* Fix `Localize.available_locale_id?/1`, `Localize.validate_calendar/1`, and `Localize.validate_number_system/1` to never intern caller-supplied strings as new atoms. Lookups now use compile-time string→atom maps for O(1) safe membership. Thanks to @rubas for the PR. Closes #19.
+
 ## [0.22.0] — April 22nd, 2026
 
 ### Bug Fixes
 
-* Fix `Cldr.Number.to_string/2` for `Decimal` numbers to produce the correct decimal digits. 
+* Fix Cldr.Number.to_string/2 for Decimal numbers to produce the correct decimal digits.
 
 ## [0.21.0] — April 22nd, 2026
 

@@ -403,21 +403,7 @@ defmodule Localize.List do
     end
   end
 
-  # Resolves the `:locale` option (atom, string, or `LanguageTag`)
-  # into a CLDR locale ID atom by routing through
-  # `Localize.validate_locale/1`. This is the canonical Localize
-  # locale resolver and avoids the `String.to_existing_atom/1`
-  # pitfall where a locale string like `"en-US"` may not yet
-  # have been interned as an atom.
-  defp resolve_locale_id(%Localize.LanguageTag{cldr_locale_id: id}) when not is_nil(id) do
-    {:ok, id}
-  end
-
-  defp resolve_locale_id(locale) when is_atom(locale) or is_binary(locale) do
-    with {:ok, %Localize.LanguageTag{cldr_locale_id: id}} <- Localize.validate_locale(locale) do
-      {:ok, id}
-    end
-  end
+  defp resolve_locale_id(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   defp resolve_list_style(_locale_id, %Pattern{} = pattern) do
     {:ok, pattern}

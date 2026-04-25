@@ -195,7 +195,7 @@ defmodule Localize.Number.PluralRule.Cardinal do
   """
   @spec plural_rule(
           number() | Decimal.t(),
-          String.t() | LanguageTag.t(),
+          atom() | String.t() | LanguageTag.t(),
           pos_integer()
         ) :: Localize.Number.PluralRule.plural_type() | {:error, Exception.t()}
 

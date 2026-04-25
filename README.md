@@ -1,5 +1,11 @@
 # Localize
 
+![Build status](https://github.com/elixir-localize/localize/actions/workflows/ci.yml/badge.svg)
+[![Hex.pm](https://img.shields.io/hexpm/v/localize.svg)](https://hex.pm/packages/localize)
+[![Hex.pm](https://img.shields.io/hexpm/dw/localize.svg?)](https://hex.pm/packages/localize)
+[![Hex.pm](https://img.shields.io/hexpm/dt/localize.svg?)](https://hex.pm/packages/localize)
+[![Hex.pm](https://img.shields.io/hexpm/l/localize.svg)](https://hex.pm/packages/localize)
+
 Locale-aware formatting, validation, and data access for Elixir, built on the [Unicode CLDR](https://cldr.unicode.org/) repository.
 
 Localize consolidates the functionality of the `ex_cldr_*` library family into a single package. No compile-time backend modules or code generation is required — all CLDR data is loaded at runtime and cached in `:persistent_term`.
@@ -175,7 +181,7 @@ The following environment variables influence Localize behaviour.
 |----------|-------------|
 | `LOCALIZE_DEFAULT_LOCALE` | Sets the application-wide default locale (e.g., `en-AU`, `ja`). Takes precedence over the `LANG` variable and the `:default_locale` application config. Evaluated once on first call to `Localize.get_locale/0` or `Localize.default_locale/0`. |
 | `LANG` | Standard POSIX locale variable (e.g., `en_US.UTF-8`). Used as a fallback when `LOCALIZE_DEFAULT_LOCALE` is not set and no `:default_locale` is configured. The value is converted from POSIX format (underscores replaced with hyphens, encoding suffix stripped). |
-| `LOCALIZE_UNSAFE_HTTPS` | When set to any value, disables SSL certificate verification for HTTPS connections (e.g., locale data downloads). Intended for development behind corporate proxies with self-signed certificates. Do not use in production. |
+| `LOCALIZE_UNSAFE_HTTPS` | When set to a truthy value, disables SSL certificate verification for HTTPS connections (e.g., locale data downloads). The values `nil`, `NIL`, `false`, `FALSE`, an empty string, or unset all keep verification enabled. Intended for development behind corporate proxies with self-signed certificates. Do not use in production. |
 | `LOCALIZE_HTTP_TIMEOUT` | HTTP request timeout in milliseconds for locale data downloads. Overrides the default timeout. |
 | `LOCALIZE_HTTP_CONNECTION_TIMEOUT` | HTTP connection timeout in milliseconds for locale data downloads. Overrides the default connection timeout. |
 | `HTTPS_PROXY` / `https_proxy` | HTTPS proxy URL for outbound connections. Also configurable via the `:https_proxy` application config key. |

@@ -98,6 +98,30 @@ defmodule Localize do
 
   @version_key {:localize, :version}
 
+  # Compile-time string→atom maps cached for the validators below so
+  # that validating a caller-supplied string never interns a new atom
+  # and never scans linearly over the known-values list at runtime.
+  @known_calendar_strings Map.new(
+                            Localize.Calendar.known_calendars(),
+                            fn atom -> {Atom.to_string(atom), atom} end
+                          )
+
+  @known_number_system_strings Map.new(
+                                 Localize.Number.System.known_number_systems(),
+                                 fn atom -> {Atom.to_string(atom), atom} end
+                               )
+
+  @all_locale_id_strings MapSet.new(
+                           Localize.SupplementalData.all_locale_ids(),
+                           &Atom.to_string/1
+                         )
+
+  @calendar_aliases %{
+    "gregory" => :gregorian,
+    "ethioaa" => :ethiopic_amete_alem,
+    "islamicc" => :islamic_civil
+  }
+
   @doc """
   Returns the CLDR version this build of Localize targets.
 
@@ -833,7 +857,9 @@ defmodule Localize do
   end
 
   def available_locale_id?(locale_name) when is_binary(locale_name) do
-    available_locale_id?(String.to_atom(locale_name))
+    # Use a compile-time MapSet of stringified locale ids so a
+    # caller-supplied unknown string never interns a new atom.
+    MapSet.member?(@all_locale_id_strings, locale_name)
   end
 
   @doc """
@@ -1017,36 +1043,35 @@ defmodule Localize do
   @spec validate_calendar(atom() | String.t()) ::
           {:ok, atom()} | {:error, Exception.t()}
   def validate_calendar(calendar) when is_binary(calendar) do
-    normalised = normalize_calendar(calendar)
-
-    if normalised in known_calendars() do
-      {:ok, normalised}
-    else
-      {:error, Localize.UnknownCalendarError.exception(calendar: calendar)}
+    case normalize_calendar(calendar) do
+      nil -> {:error, Localize.UnknownCalendarError.exception(calendar: calendar)}
+      atom -> {:ok, atom}
     end
   end
 
   def validate_calendar(calendar) when is_atom(calendar) do
-    normalised = calendar |> Atom.to_string() |> normalize_calendar()
+    # Fast path: the atom is already a canonical CLDR calendar identifier.
+    # Slow path: the atom is a BCP 47 short form like `:"islamic-umalqura"`
+    # — fall through to string normalization without interning anything new.
+    cond do
+      calendar in Localize.Calendar.known_calendars() ->
+        {:ok, calendar}
 
-    if normalised in known_calendars() do
-      {:ok, normalised}
-    else
-      {:error, Localize.UnknownCalendarError.exception(calendar: calendar)}
+      true ->
+        case calendar |> Atom.to_string() |> normalize_calendar() do
+          nil -> {:error, Localize.UnknownCalendarError.exception(calendar: calendar)}
+          atom -> {:ok, atom}
+        end
     end
   end
 
-  # BCP 47 short-form aliases that don't match the underscore form of
-  # the canonical CLDR identifier.
-  defp normalize_calendar("gregory"), do: :gregorian
-  defp normalize_calendar("ethioaa"), do: :ethiopic_amete_alem
-  defp normalize_calendar("islamicc"), do: :islamic_civil
-
+  # Returns a known-calendar atom for the given string, or nil when the
+  # string does not name a known calendar. Never interns a new atom.
   defp normalize_calendar(name) when is_binary(name) do
-    name
-    |> String.downcase()
-    |> String.replace("-", "_")
-    |> String.to_atom()
+    normalised = name |> String.downcase() |> String.replace("-", "_")
+
+    Map.get(@calendar_aliases, normalised) ||
+      Map.get(@known_calendar_strings, normalised)
   end
 
   @doc """
@@ -1081,11 +1106,17 @@ defmodule Localize do
   @spec validate_number_system(atom() | String.t()) ::
           {:ok, atom()} | {:error, Exception.t()}
   def validate_number_system(number_system) when is_binary(number_system) do
-    validate_number_system(String.to_atom(number_system))
+    case Map.get(@known_number_system_strings, number_system) do
+      nil ->
+        {:error, Localize.UnknownNumberSystemError.exception(number_system: number_system)}
+
+      atom ->
+        {:ok, atom}
+    end
   end
 
   def validate_number_system(number_system) when is_atom(number_system) do
-    if number_system in known_number_systems() do
+    if number_system in Localize.Number.System.known_number_systems() do
       {:ok, number_system}
     else
       {:error, Localize.UnknownNumberSystemError.exception(number_system: number_system)}

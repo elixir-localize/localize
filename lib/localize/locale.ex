@@ -354,7 +354,7 @@ defmodule Localize.Locale do
           {:ok, map()} | {:error, Exception.t()}
   def load(locale, options \\ []) do
     {provider, _options} = Keyword.pop(options, :provider, default_provider())
-    provider.store(locale, locale)
+    provider.load(locale)
   end
 
   @doc """
@@ -487,10 +487,81 @@ defmodule Localize.Locale do
           {:ok, term()} | {:error, term()}
   def get(locale, keys, options \\ []) do
     {provider, options} = Keyword.pop(options, :provider, default_provider())
+    {fallback?, options} = Keyword.pop(options, :fallback, false)
 
-    case load_and_store(locale) do
-      :ok -> provider.get(locale, keys, options)
-      {:error, _} = error -> error
+    with :ok <- load_and_store(locale, provider: provider) do
+      case provider.get(locale, keys, options) do
+        {:ok, _} = ok ->
+          ok
+
+        {:error, %Localize.ItemNotFoundError{}} when fallback? ->
+          fallback_through_parents(locale, keys, provider, options)
+
+        {:error, _} = error ->
+          error
+      end
+    end
+  end
+
+  # Walk the CLDR parent locale chain looking for `keys`. Each parent
+  # is loaded through the same provider before being read. The
+  # not-found error returned at the end of the chain references the
+  # originally requested locale, not the deepest parent walked.
+  #
+  # Cycle protection is belt-and-braces: `parent/1` terminates at
+  # `und` with `{:error, NoParentError}` so a normal walk always
+  # ends, but the visited set guards against any future inheritance
+  # graph that could close into a loop.
+  defp fallback_through_parents(original_locale, keys, provider, options) do
+    original_id = to_locale_id(original_locale)
+    walk_parents(original_id, original_id, keys, provider, options, MapSet.new([original_id]))
+  end
+
+  defp walk_parents(original_id, current_id, keys, provider, options, visited) do
+    case next_parent(current_id, visited) do
+      {:ok, parent_id} ->
+        case load_and_store(parent_id, provider: provider) do
+          :ok ->
+            case provider.get(parent_id, keys, options) do
+              {:ok, _} = ok ->
+                ok
+
+              {:error, %Localize.ItemNotFoundError{}} ->
+                walk_parents(
+                  original_id,
+                  parent_id,
+                  keys,
+                  provider,
+                  options,
+                  MapSet.put(visited, parent_id)
+                )
+
+              {:error, _} = error ->
+                error
+            end
+
+          {:error, _} = error ->
+            error
+        end
+
+      :no_parent ->
+        {:error, Localize.ItemNotFoundError.exception(locale: original_id, keys: keys)}
+    end
+  end
+
+  defp next_parent(locale_id, visited) do
+    case parent(to_string(locale_id)) do
+      {:ok, parent_tag} ->
+        parent_id = to_locale_id(parent_tag)
+
+        if MapSet.member?(visited, parent_id) do
+          :no_parent
+        else
+          {:ok, parent_id}
+        end
+
+      {:error, _} ->
+        :no_parent
     end
   end
 
@@ -562,6 +633,58 @@ defmodule Localize.Locale do
   def to_locale_id(locale_id) when is_atom(locale_id), do: locale_id
   def to_locale_id(locale_id) when is_binary(locale_id), do: String.to_atom(locale_id)
   def to_locale_id(locale_id), do: String.to_atom(inspect(locale_id))
+
+  @doc """
+  Resolves any locale input to its CLDR locale id, validating along
+  the way.
+
+  Accepts the same input shapes as `Localize.validate_locale/1` —
+  atom, string, or `t:Localize.LanguageTag.t/0` — and returns the
+  canonical CLDR locale id atom. A pre-validated language tag (whose
+  `:cldr_locale_id` is already populated) takes a fast path that
+  skips re-validation; raw parsed tags and other inputs go through
+  `Localize.validate_locale/1`.
+
+  Use this from formatter modules that need a CLDR locale id and
+  want invalid input to propagate as `{:error, exception}` rather
+  than coerce silently.
+
+  ### Arguments
+
+  * `locale` is a locale identifier atom, string, or
+    `t:Localize.LanguageTag.t/0`.
+
+  ### Returns
+
+  * `{:ok, locale_id}` where `locale_id` is the canonical CLDR
+    locale id atom.
+
+  * `{:error, exception}` if the locale cannot be validated.
+
+  ### Examples
+
+      iex> Localize.Locale.cldr_locale_id_from(:en)
+      {:ok, :en}
+
+      iex> {:ok, parsed} = Localize.LanguageTag.parse("fr")
+      iex> Localize.Locale.cldr_locale_id_from(parsed)
+      {:ok, :fr}
+
+      iex> Localize.Locale.cldr_locale_id_from("en-AU")
+      {:ok, :"en-AU"}
+
+  """
+  @spec cldr_locale_id_from(LanguageTag.t() | atom() | String.t()) ::
+          {:ok, atom()} | {:error, Exception.t()}
+  def cldr_locale_id_from(%LanguageTag{cldr_locale_id: id}) when not is_nil(id) do
+    {:ok, id}
+  end
+
+  def cldr_locale_id_from(locale) do
+    with {:ok, %LanguageTag{cldr_locale_id: id}} <- Localize.validate_locale(locale) do
+      {:ok, id}
+    end
+  end
 
   # ── Gettext integration ────────────────────────────────────────
 

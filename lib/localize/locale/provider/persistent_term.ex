@@ -179,13 +179,16 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   @impl Localize.Locale.Provider
   def get(locale, keys, _options \\ []) when is_list(keys) do
     locale_id = to_locale_id(locale)
-    locale_key = locale_key(locale_id)
-    locale_data = :persistent_term.get(locale_key)
 
-    if item = get_in(locale_data, keys) do
-      {:ok, item}
-    else
-      {:error, Localize.ItemNotFoundError.exception(locale: locale_id, keys: keys)}
+    case :persistent_term.get(locale_key(locale_id), :localize_locale_not_loaded) do
+      :localize_locale_not_loaded ->
+        {:error, Localize.ItemNotFoundError.exception(locale: locale_id, keys: keys)}
+
+      locale_data ->
+        case get_in(locale_data, keys) do
+          nil -> {:error, Localize.ItemNotFoundError.exception(locale: locale_id, keys: keys)}
+          item -> {:ok, item}
+        end
     end
   end
 

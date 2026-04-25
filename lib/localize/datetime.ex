@@ -339,16 +339,5 @@ defmodule Localize.DateTime do
     end
   end
 
-  defp resolve_locale_id(%Localize.LanguageTag{cldr_locale_id: id}), do: {:ok, id}
-
-  defp resolve_locale_id(locale) when is_atom(locale) or is_binary(locale) do
-    case Localize.validate_locale(locale) do
-      {:ok, tag} -> {:ok, tag.cldr_locale_id}
-      error -> error
-    end
-  end
-
-  defp resolve_locale_id(invalid) do
-    {:error, Localize.InvalidLocaleError.exception(locale_id: inspect(invalid))}
-  end
+  defp resolve_locale_id(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 end

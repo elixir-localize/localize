@@ -1016,20 +1016,7 @@ defmodule Localize.Calendar do
     Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, data_key])
   end
 
-  defp resolve_locale_id(%Localize.LanguageTag{cldr_locale_id: id}) when not is_nil(id),
-    do: {:ok, id}
-
-  defp resolve_locale_id(locale) when is_atom(locale), do: {:ok, locale}
-
-  defp resolve_locale_id(locale) when is_binary(locale) do
-    with {:ok, language_tag} <- Localize.validate_locale(locale) do
-      {:ok, language_tag.cldr_locale_id}
-    end
-  end
-
-  defp resolve_locale_id(invalid) do
-    {:error, Localize.InvalidLocaleError.exception(locale_id: inspect(invalid))}
-  end
+  defp resolve_locale_id(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   defp calendar_type_from(%{calendar: calendar}) do
     if function_exported?(calendar, :cldr_calendar_type, 0) do
