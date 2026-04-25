@@ -725,7 +725,7 @@ defmodule Localize do
   Resolution follows a three-step priority chain:
 
   1. The cached list in `:persistent_term`, populated either by
-     `Localize.Application.start/2` at boot or by step 2 below.
+     the application's boot callback or by step 2 below.
 
   2. `Application.get_env(:localize, :supported_locales)`, if it
      is set to a list. The list is expanded through
@@ -744,17 +744,17 @@ defmodule Localize do
 
   Step 2 makes this function safe to call from compile-time
   contexts (notably macro expansion in dependent applications,
-  such as `localize_web`'s `~q` sigil) before
-  `Localize.Application` has started. Without it, compile-time
-  callers would fall through to the full CLDR list and bake the
-  wrong `cldr_locale_id` into generated code (e.g.
+  such as `localize_web`'s `~q` sigil) before the `:localize`
+  application has started. Without it, compile-time callers
+  would fall through to the full CLDR list and bake the wrong
+  `cldr_locale_id` into generated code (e.g.
   `Localize.validate_locale("de")` resolving to `:de` rather
   than the configured `:"de-CH"`), producing `CaseClauseError`
   at runtime.
 
   Compile-time resolution writes the expanded list to
   `:persistent_term` as a side effect. This is intentional and
-  safe: when `Localize.Application.start/2` later runs (in the
+  safe: when the application boot callback later runs (in the
   same OS process, e.g. under `iex -S mix`) it computes the
   same list from the same `Application.get_env/2` value and
   re-puts it. `:persistent_term.put/2` is cheap when the value
