@@ -756,7 +756,11 @@ defmodule Localize.Unit do
   # ── Formatting ───────────────────────────────────────────────
 
   @doc """
-  Formats a unit as a localized string.
+  Formats a unit together with its value as a localized string.
+
+  The unit is rendered inline with its value using the locale's
+  pluralised pattern (e.g., "5 meters"). For the bare stand-alone
+  label without a value, use `display_name/2`.
 
   ### Arguments
 
@@ -1254,10 +1258,15 @@ defmodule Localize.Unit do
   end
 
   @doc """
-  Returns the localized display name for a unit.
+  Returns the localized stand-alone display name of a unit.
 
-  This returns the unit name as it would appear in the locale,
-  without any numeric value (e.g., "meters", "kilograms").
+  This is the CLDR `<displayName>` form — a bare label like
+  "meters" or "Meter", suitable for headings, form-field labels,
+  or column titles. It is distinct from the value-bearing inline
+  forms returned by `to_string/2`, which are pluralised and
+  grammatical-case aware (e.g., "5 meters"). If a
+  `t:Localize.Unit.t/0` struct carrying a value is passed, the
+  value is ignored.
 
   ### Arguments
 
