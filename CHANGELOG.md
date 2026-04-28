@@ -4,11 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.24.0] — April 29th, 2026
 
 ### Bug Fixes
 
-* `Localize.DateTime.Formatter` stand-alone pattern helpers (`standalone_day_of_week/4`, `standalone_month/4`, `standalone_quarter/4`) now pass `context: :stand_alone` to `Localize.Calendar.localize/3` instead of an invalid `type:` option. Lowercase LDML pattern letters `c`, `L`, and `q` therefore resolve to CLDR stand-alone data where it differs from format context (e.g. German `ccc` vs `EEE`).
+* `Localize.DateTime.Formatter` stand-alone pattern helpers now pass `context: :stand_alone` to `Localize.Calendar.localize/3` instead of an invalid `type:` option. Thanks to @timpritlove for the PR. Closes #20.
+
+* Rename calendar `:format`/`:stand_alone` typespec and docs from `:type` to `:context`.
+
+* Clarify `Unit.display_name/2` vs `to_string/2` in docs.
 
 ## [0.23.0] — April 25th, 2026
 
