@@ -59,7 +59,7 @@ defmodule Localize.Calendar do
 
   @type part :: :era | :quarter | :month | :day_of_week | :days_of_week | :am_pm | :day_periods
   @type format :: :wide | :abbreviated | :narrow
-  @type type :: :format | :stand_alone
+  @type context :: :format | :stand_alone
 
   @days 1..7 |> Enum.to_list()
   @the_world :"001"
@@ -432,7 +432,7 @@ defmodule Localize.Calendar do
   ### Returns
 
   * `{:ok, quarter_data}` where `quarter_data` is a map keyed
-    by type (`:format`, `:stand_alone`), then format, then quarter
+    by context (`:format`, `:stand_alone`), then format, then quarter
     number.
 
   * `{:error, exception}` if the locale or calendar is not found.
@@ -463,7 +463,7 @@ defmodule Localize.Calendar do
   ### Returns
 
   * `{:ok, month_data}` where `month_data` is a map keyed by
-    type (`:format`, `:stand_alone`), then format, then month
+    context (`:format`, `:stand_alone`), then format, then month
     number.
 
   * `{:error, exception}` if the locale or calendar is not found.
@@ -493,7 +493,7 @@ defmodule Localize.Calendar do
 
   ### Returns
 
-  * `{:ok, day_data}` where `day_data` is a map keyed by type
+  * `{:ok, day_data}` where `day_data` is a map keyed by context
     (`:format`, `:stand_alone`), then format, then ISO day number
     (1 = Monday through 7 = Sunday).
 
@@ -529,7 +529,7 @@ defmodule Localize.Calendar do
   ### Returns
 
   * `{:ok, day_period_data}` where `day_period_data` is a map
-    keyed by type, format, period, and variant.
+    keyed by context, format, period, and variant.
 
   * `{:error, exception}` if the locale or calendar is not found.
 
