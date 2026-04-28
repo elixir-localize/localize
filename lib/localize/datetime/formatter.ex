@@ -205,7 +205,7 @@ defmodule Localize.DateTime.Formatter do
 
     Localize.Calendar.localize(date, :quarter,
       locale: locale_id,
-      type: :stand_alone,
+      context: :stand_alone,
       format: format
     )
   end
@@ -238,7 +238,7 @@ defmodule Localize.DateTime.Formatter do
 
     Localize.Calendar.localize(date, :month,
       locale: locale_id,
-      type: :stand_alone,
+      context: :stand_alone,
       format: format
     )
   end
@@ -349,7 +349,7 @@ defmodule Localize.DateTime.Formatter do
 
     Localize.Calendar.localize(date, :day_of_week,
       locale: locale_id,
-      type: :stand_alone,
+      context: :stand_alone,
       format: format
     )
   end
