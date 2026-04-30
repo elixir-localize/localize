@@ -100,8 +100,6 @@ defmodule Localize.Locale do
 
   # ── Locale inheritance ────────────────────────────────────────
 
-  @parent_locales SupplementalData.parent_locales()
-
   @doc """
   Return the parent locale of the given language tag.
 
@@ -183,13 +181,15 @@ defmodule Localize.Locale do
     full_key =
       locale_id_from(tag.language, tag.script, tag.territory, tag.language_variants)
 
-    case Map.get(@parent_locales, full_key) do
+    parent_locales = SupplementalData.parent_locales()
+
+    case Map.get(parent_locales, full_key) do
       nil ->
         # Try without script (handles maximized tags like en-Latn-AU → en-AU)
         no_script_key =
           locale_id_from(tag.language, nil, tag.territory, tag.language_variants)
 
-        Map.get(@parent_locales, no_script_key)
+        Map.get(parent_locales, no_script_key)
 
       result ->
         result
@@ -848,3 +848,4 @@ defmodule Localize.Locale do
     )
   end
 end
+

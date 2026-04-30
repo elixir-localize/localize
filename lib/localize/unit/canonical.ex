@@ -150,19 +150,41 @@ defmodule Localize.Unit.Canonical do
   # The canonical order of simple base units from CLDR unitQuantities.
   # Units are sorted by the position of their base in this list.
   # Units not in this list sort to the end, using base name as tiebreaker.
-  @canonical_order Data.simple_base_units()
-                   |> Enum.with_index()
-                   |> Map.new()
+  defp canonical_order do
+    cached(:canonical_order, fn ->
+      Data.simple_base_units()
+      |> Enum.with_index()
+      |> Map.new()
+    end)
+  end
 
   defp canonical_sort(units) do
+    canonical_order = canonical_order()
+    fallback = map_size(canonical_order)
+
     Enum.sort_by(units, fn
       {:single_unit, opts} ->
         base = Keyword.get(opts, :base)
-        {1, Map.get(@canonical_order, base, map_size(@canonical_order)), base}
+        {1, Map.get(canonical_order, base, fallback), base}
 
       {:constant, _} ->
         {0, 0, ""}
     end)
+  end
+
+  @compile {:inline, cached: 2}
+  defp cached(key, build_fn) do
+    pt_key = {__MODULE__, key}
+
+    case :persistent_term.get(pt_key, :__not_loaded__) do
+      :__not_loaded__ ->
+        value = build_fn.()
+        :persistent_term.put(pt_key, value)
+        value
+
+      value ->
+        value
+    end
   end
 
   # ── Consolidation ──────────────────────────────────────────────────

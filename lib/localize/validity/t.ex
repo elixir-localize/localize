@@ -2,33 +2,18 @@ defmodule Localize.Validity.T do
   @moduledoc false
 
   alias Localize.Validity.U
+  alias Localize.Validity.T.Fields
 
-  @field_mapping %{
-    "language" => :language,
-    "m0" => :m0,
-    "s0" => :s0,
-    "d0" => :d0,
-    "i0" => :i0,
-    "k0" => :k0,
-    "t0" => :t0,
-    "h0" => :h0,
-    "x0" => :x0
-  }
-
-  @fields Map.values(@field_mapping)
-  @inverse_field_mapping Enum.map(@field_mapping, fn {k, v} -> {v, k} end) |> Map.new()
+  @field_mapping Fields.field_mapping()
+  @inverse_field_mapping Fields.inverse_field_mapping()
   @validity_data Localize.SupplementalData.validity(:t)
   @dont_process_keys ["language"]
   @valid_keys Map.keys(@validity_data) ++ @dont_process_keys
   @process_keys @valid_keys -- @dont_process_keys
 
-  def fields do
-    @fields
-  end
+  def fields, do: Fields.fields()
 
-  def field_mapping do
-    @field_mapping
-  end
+  def field_mapping, do: Fields.field_mapping()
 
   @doc """
   Decodes and validates that a given value is valid

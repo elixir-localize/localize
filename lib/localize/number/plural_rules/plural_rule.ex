@@ -19,7 +19,6 @@ defmodule Localize.Number.PluralRule do
   """
 
   alias Localize.LanguageTag
-  alias Localize.SupplementalData
 
   @type operand :: any()
 
@@ -168,14 +167,9 @@ defmodule Localize.Number.PluralRule do
   end
 
   # ── Compile-time data loading ─────────────────────────────────
-
-  @doc false
-  def load_plural_rules(type) when type in [:cardinal, :ordinal] do
-    SupplementalData.plural_rules(type)
-  end
-
-  @doc false
-  def load_plural_ranges do
-    SupplementalData.plural_ranges()
-  end
+  #
+  # Moved to `Localize.Number.PluralRule.Loader` so that the
+  # `Cardinal` and `Ordinal` modules can compile-time depend on a
+  # leaf module without inheriting this module's runtime back-edges
+  # into the broader compile-connected cycle.
 end

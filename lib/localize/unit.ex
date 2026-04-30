@@ -45,10 +45,29 @@ defmodule Localize.Unit do
           usage: String.t() | nil
         }
 
-  @valid_usages Localize.Unit.Data.unit_preferences()
-                |> Enum.map(& &1.usage)
-                |> Enum.uniq()
-                |> Enum.sort()
+  defp valid_usages do
+    cached(:valid_usages, fn ->
+      Localize.Unit.Data.unit_preferences()
+      |> Enum.map(& &1.usage)
+      |> Enum.uniq()
+      |> Enum.sort()
+    end)
+  end
+
+  @compile {:inline, cached: 2}
+  defp cached(key, build_fn) do
+    pt_key = {__MODULE__, key}
+
+    case :persistent_term.get(pt_key, :__not_loaded__) do
+      :__not_loaded__ ->
+        value = build_fn.()
+        :persistent_term.put(pt_key, value)
+        value
+
+      value ->
+        value
+    end
+  end
 
   @doc """
   Creates a new unit with a value and a CLDR unit identifier string.
@@ -470,9 +489,6 @@ defmodule Localize.Unit do
     "year-duration" => "year-duration"
   }
 
-  @unit_preferences Localize.Unit.Data.unit_preferences()
-  @base_unit_to_quantity Localize.Unit.Data.base_unit_to_quantity()
-
   defp preferred_unit(unit_name, system, usage) do
     region = Map.fetch!(@system_regions, system)
 
@@ -485,7 +501,7 @@ defmodule Localize.Unit do
   end
 
   defp lookup_quantity(base_unit) do
-    case Map.get(@base_unit_to_quantity, base_unit) do
+    case Map.get(Localize.Unit.Data.base_unit_to_quantity(), base_unit) do
       nil ->
         {:error,
          Localize.UnitPreferenceError.exception(
@@ -527,7 +543,7 @@ defmodule Localize.Unit do
   end
 
   defp find_preference_for_usage(category, region, usage) do
-    case Enum.find(@unit_preferences, &(&1.category == category and &1.usage == usage)) do
+    case Enum.find(Localize.Unit.Data.unit_preferences(), &(&1.category == category and &1.usage == usage)) do
       nil ->
         {:error,
          Localize.UnitPreferenceError.exception(
@@ -663,13 +679,15 @@ defmodule Localize.Unit do
   defp validate_usage(nil), do: {:ok, nil}
 
   defp validate_usage(usage) when is_binary(usage) do
-    if usage in @valid_usages do
+    valid = valid_usages()
+
+    if usage in valid do
       {:ok, usage}
     else
       {:error,
        Localize.InvalidValueError.exception(
          value: usage,
-         expected: "a valid usage (one of: #{Enum.join(@valid_usages, ", ")})",
+         expected: "a valid usage (one of: #{Enum.join(valid, ", ")})",
          context: "usage"
        )}
     end
@@ -712,7 +730,9 @@ defmodule Localize.Unit do
     end)
   end
 
-  @known_base_units MapSet.new(Localize.Unit.Data.base_units())
+  defp known_base_units do
+    cached(:known_base_units, fn -> MapSet.new(Localize.Unit.Data.base_units()) end)
+  end
 
   defp validate_base_names({:unit, keyword}) do
     units = Keyword.get(keyword, :numerator, []) ++ Keyword.get(keyword, :denominator, [])
@@ -734,7 +754,7 @@ defmodule Localize.Unit do
             {:cont, :ok}
 
           # Known CLDR base unit
-          MapSet.member?(@known_base_units, base) ->
+          MapSet.member?(known_base_units(), base) ->
             {:cont, :ok}
 
           # Registered custom unit
@@ -1372,7 +1392,7 @@ defmodule Localize.Unit do
   """
   @spec known_usages() :: [String.t()]
   def known_usages do
-    @valid_usages
+    valid_usages()
   end
 
   @doc """

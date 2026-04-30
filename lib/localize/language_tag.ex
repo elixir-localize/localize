@@ -258,8 +258,6 @@ defmodule Localize.LanguageTag do
       "zh-Hant"
 
   """
-  @all_locale_ids SupplementalData.all_locale_ids()
-
   @spec new(String.t()) :: {:ok, t()} | {:error, term()}
   def new(locale_id) when is_binary(locale_id) do
     with {:ok, parsed} <- parse(locale_id),
@@ -271,7 +269,7 @@ defmodule Localize.LanguageTag do
   end
 
   defp resolve_cldr_locale(%__MODULE__{} = tag) do
-    case best_match(tag, @all_locale_ids) do
+    case best_match(tag, SupplementalData.all_locale_ids()) do
       {:ok, cldr_locale, _score} ->
         %{tag | cldr_locale_id: cldr_locale}
 
@@ -407,9 +405,14 @@ defmodule Localize.LanguageTag do
 
   # ── Language matching ──────────────────────────────────────────
 
-  @paradigm_locales SupplementalData.language_matching()
-                    |> Map.fetch!(:paradigm_locales)
-                    |> MapSet.new()
+  defp paradigm_locales do
+    cached(:paradigm_locales, fn ->
+      SupplementalData.language_matching()
+      |> Map.fetch!(:paradigm_locales)
+      |> MapSet.new()
+    end)
+  end
+
   @default_distance 80
 
   @doc false
@@ -667,14 +670,12 @@ defmodule Localize.LanguageTag do
   end
 
   defp is_paradigm_locale?(locale) when is_binary(locale) do
-    MapSet.member?(@paradigm_locales, locale)
+    MapSet.member?(paradigm_locales(), locale)
   end
 
   defp is_paradigm_locale?(_), do: false
 
   # ── Likely subtags ──────────────────────────────────────────────
-
-  @likely_subtags SupplementalData.likely_subtags()
 
   @doc """
   Add likely subtags to a language tag.
@@ -888,8 +889,10 @@ defmodule Localize.LanguageTag do
       ]
       |> Enum.reject(&is_nil/1)
 
+    likely_subtags = SupplementalData.likely_subtags()
+
     Enum.find_value(candidates, :error, fn key ->
-      case Map.get(@likely_subtags, key) do
+      case Map.get(likely_subtags, key) do
         nil -> nil
         match -> {:ok, match}
       end
@@ -915,11 +918,10 @@ defmodule Localize.LanguageTag do
 
   # ── Alias resolution ──────────────────────────────────────────────
 
-  @aliases SupplementalData.aliases()
-  @language_aliases @aliases[:language]
-  @region_aliases @aliases[:region]
-  @script_aliases @aliases[:script]
-  @variant_aliases @aliases[:variant]
+  defp language_aliases, do: cached(:language_aliases, fn -> SupplementalData.aliases()[:language] end)
+  defp region_aliases, do: cached(:region_aliases, fn -> SupplementalData.aliases()[:region] end)
+  defp script_aliases, do: cached(:script_aliases, fn -> SupplementalData.aliases()[:script] end)
+  defp variant_aliases, do: cached(:variant_aliases, fn -> SupplementalData.aliases()[:variant] end)
 
   # Resolve aliased subtags to their canonical replacements.
   #
@@ -946,7 +948,7 @@ defmodule Localize.LanguageTag do
        when is_atom(language) do
     lang_str = Atom.to_string(language)
 
-    case Map.get(@language_aliases, lang_str) do
+    case Map.get(language_aliases(), lang_str) do
       nil ->
         tag
 
@@ -966,7 +968,7 @@ defmodule Localize.LanguageTag do
        when is_atom(language) and is_atom(territory) do
     compound_key = "#{language}-#{territory}"
 
-    case Map.get(@language_aliases, compound_key) do
+    case Map.get(language_aliases(), compound_key) do
       nil ->
         tag
 
@@ -1003,11 +1005,11 @@ defmodule Localize.LanguageTag do
             compound_key = "#{cur_lang}-#{variant}"
 
             result =
-              case Map.get(@language_aliases, compound_key) do
+              case Map.get(language_aliases(), compound_key) do
                 nil ->
                   und_key = "und-#{variant}"
 
-                  case Map.get(@language_aliases, und_key) do
+                  case Map.get(language_aliases(), und_key) do
                     nil -> nil
                     replacement -> {:ok, replacement}
                   end
@@ -1046,10 +1048,10 @@ defmodule Localize.LanguageTag do
       key = "#{lang_str}-#{v1}-#{v2}"
 
       result =
-        case Map.get(@language_aliases, key) do
+        case Map.get(language_aliases(), key) do
           nil ->
             und_key = "und-#{v1}-#{v2}"
-            Map.get(@language_aliases, und_key)
+            Map.get(language_aliases(), und_key)
 
           replacement ->
             replacement
@@ -1112,7 +1114,7 @@ defmodule Localize.LanguageTag do
   defp resolve_script_alias(%__MODULE__{script: script} = tag) when is_atom(script) do
     script_str = Atom.to_string(script)
 
-    case Map.get(@script_aliases, script_str) do
+    case Map.get(script_aliases(), script_str) do
       nil -> tag
       replacement -> %{tag | script: String.to_atom(replacement)}
     end
@@ -1124,7 +1126,7 @@ defmodule Localize.LanguageTag do
        when is_atom(territory) do
     territory_str = Atom.to_string(territory)
 
-    case Map.get(@region_aliases, territory_str) do
+    case Map.get(region_aliases(), territory_str) do
       nil ->
         tag
 
@@ -1142,7 +1144,7 @@ defmodule Localize.LanguageTag do
   defp resolve_variant_aliases(%__MODULE__{language_variants: variants} = tag) do
     resolved =
       Enum.map(variants, fn variant ->
-        case Map.get(@variant_aliases, variant) do
+        case Map.get(variant_aliases(), variant) do
           nil -> variant
           replacement -> replacement
         end
@@ -1238,6 +1240,25 @@ defmodule Localize.LanguageTag do
   def empty?([]), do: true
   def empty?(_other), do: false
 
+  # Lazily caches a derived value in `:persistent_term`. Used to
+  # replace compile-time module attributes that previously pulled
+  # from `SupplementalData`, so this module no longer has compile-
+  # time dependencies on it.
+  @compile {:inline, cached: 2}
+  defp cached(key, build_fn) do
+    pt_key = {__MODULE__, key}
+
+    case :persistent_term.get(pt_key, :__not_loaded__) do
+      :__not_loaded__ ->
+        value = build_fn.()
+        :persistent_term.put(pt_key, value)
+        value
+
+      value ->
+        value
+    end
+  end
+
   # This is primarily to support
   # implementing canonical locale names
   defimpl Localize.LanguageTag.Chars, for: Map do
@@ -1310,3 +1331,4 @@ defmodule Localize.LanguageTag do
     end
   end
 end
+
