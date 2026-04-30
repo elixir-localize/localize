@@ -15,8 +15,35 @@ defmodule Localize.Unit.BaseUnit do
 
   """
 
-  @simple_base_units Localize.Unit.Data.simple_base_units()
-  @simple_unit_order @simple_base_units |> Enum.with_index() |> Map.new()
+  defp simple_base_units do
+    cached(:simple_base_units_sorted, fn ->
+      Localize.Unit.Data.simple_base_units()
+      |> Enum.sort_by(&(-String.length(&1)))
+    end)
+  end
+
+  defp simple_unit_order do
+    cached(:simple_unit_order, fn ->
+      Localize.Unit.Data.simple_base_units()
+      |> Enum.with_index()
+      |> Map.new()
+    end)
+  end
+
+  @compile {:inline, cached: 2}
+  defp cached(key, build_fn) do
+    pt_key = {__MODULE__, key}
+
+    case :persistent_term.get(pt_key, :__not_loaded__) do
+      :__not_loaded__ ->
+        value = build_fn.()
+        :persistent_term.put(pt_key, value)
+        value
+
+      value ->
+        value
+    end
+  end
 
   @doc """
   Returns the base unit string for a parsed unit AST or a unit identifier string.
@@ -216,7 +243,7 @@ defmodule Localize.Unit.BaseUnit do
   end
 
   defp resolve_base_unit(name) do
-    case Localize.Unit.Data.conversion(name) do
+    case Localize.Unit.Data.Overlay.conversion(name) do
       nil ->
         {:error, Localize.UnknownUnitError.exception(unit: name)}
 
@@ -276,8 +303,7 @@ defmodule Localize.Unit.BaseUnit do
 
   defp consume_simple_unit(string) do
     match =
-      @simple_base_units
-      |> Enum.sort_by(&(-String.length(&1)))
+      simple_base_units()
       |> Enum.find(fn unit -> String.starts_with?(string, unit) end)
 
     case match do
@@ -305,8 +331,10 @@ defmodule Localize.Unit.BaseUnit do
   end
 
   defp sort_by_canonical_order(units) do
+    order = simple_unit_order()
+
     Enum.sort_by(units, fn {unit, _power} ->
-      Map.get(@simple_unit_order, unit, 999)
+      Map.get(order, unit, 999)
     end)
   end
 

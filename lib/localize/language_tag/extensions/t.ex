@@ -7,7 +7,7 @@ defmodule Localize.LanguageTag.T do
 
   import Localize.LanguageTag, only: [empty?: 1]
 
-  @fields Localize.Validity.T.fields()
+  @fields Localize.Validity.T.Fields.fields()
 
   typespec =
     {:%, [],

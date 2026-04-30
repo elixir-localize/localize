@@ -242,39 +242,17 @@ defmodule Localize.Unit.Data do
         ]
   def unit_preferences, do: @unit_preferences
 
-  # ── Runtime overlay functions ──────────────────────────────────────
-  #
-  # These functions check the custom unit registry first, then fall back
-  # to the compile-time data. Used by Conversion and BaseUnit modules
-  # to support user-defined units.
+  # Raw lookups against the compile-time data. The runtime overlay
+  # (custom registry first, then compile-time data) lives in
+  # `Localize.Unit.Data.Overlay` so this module remains a leaf
+  # without runtime back-edges into the broader cycle.
 
-  @doc """
-  Returns the conversion factor for a unit, checking custom registry first.
+  @doc false
+  @spec conversion_factor_raw(String.t()) ::
+          %{factor: number() | :special, offset: number()} | nil
+  def conversion_factor_raw(unit_name), do: Map.get(@conversion_factors, unit_name)
 
-  """
-  @spec conversion_factor(String.t()) :: %{factor: number() | :special, offset: number()} | nil
-  def conversion_factor(unit_name) do
-    case Localize.Unit.CustomRegistry.get(unit_name) do
-      nil ->
-        Map.get(@conversion_factors, unit_name)
-
-      definition ->
-        %{factor: definition.factor, offset: Map.get(definition, :offset, 0.0)}
-    end
-  end
-
-  @doc """
-  Returns the base unit for a unit, checking custom registry first.
-
-  """
-  @spec conversion(String.t()) :: String.t() | nil
-  def conversion(unit_name) do
-    case Localize.Unit.CustomRegistry.get(unit_name) do
-      nil ->
-        Map.get(@conversions, unit_name)
-
-      definition ->
-        definition.base_unit
-    end
-  end
+  @doc false
+  @spec conversion_raw(String.t()) :: String.t() | nil
+  def conversion_raw(unit_name), do: Map.get(@conversions, unit_name)
 end

@@ -825,8 +825,6 @@ defmodule Localize.Calendar do
 
   # ── Territory preferences ───────────────────────────────────────
 
-  @week_info Localize.SupplementalData.weeks()
-
   @doc """
   Returns the first day of the week for a territory.
 
@@ -853,9 +851,11 @@ defmodule Localize.Calendar do
   """
   @spec first_day_for_territory(atom()) :: integer() | {:error, Exception.t()}
   def first_day_for_territory(territory) when is_atom(territory) do
-    case get_in(@week_info, [:first_day, territory]) do
+    week_info = Localize.SupplementalData.weeks()
+
+    case get_in(week_info, [:first_day, territory]) do
       nil ->
-        get_in(@week_info, [:first_day, @the_world]) || 1
+        get_in(week_info, [:first_day, @the_world]) || 1
 
       day ->
         day
@@ -885,9 +885,11 @@ defmodule Localize.Calendar do
   """
   @spec min_days_for_territory(atom()) :: integer()
   def min_days_for_territory(territory) when is_atom(territory) do
-    case get_in(@week_info, [:min_days, territory]) do
+    week_info = Localize.SupplementalData.weeks()
+
+    case get_in(week_info, [:min_days, territory]) do
       nil ->
-        get_in(@week_info, [:min_days, @the_world]) || 1
+        get_in(week_info, [:min_days, @the_world]) || 1
 
       days ->
         days
@@ -917,13 +919,15 @@ defmodule Localize.Calendar do
   """
   @spec weekend(atom()) :: [integer()]
   def weekend(territory) when is_atom(territory) do
+    week_info = Localize.SupplementalData.weeks()
+
     starts =
-      get_in(@week_info, [:weekend_start, territory]) ||
-        get_in(@week_info, [:weekend_start, @the_world]) || 6
+      get_in(week_info, [:weekend_start, territory]) ||
+        get_in(week_info, [:weekend_start, @the_world]) || 6
 
     ends =
-      get_in(@week_info, [:weekend_end, territory]) ||
-        get_in(@week_info, [:weekend_end, @the_world]) || 7
+      get_in(week_info, [:weekend_end, territory]) ||
+        get_in(week_info, [:weekend_end, @the_world]) || 7
 
     Enum.to_list(starts..ends)
   end
