@@ -13,7 +13,7 @@ defmodule Localize.Number.PluralRule.NifCrossValidationTest do
 
   # Aliased outside the `if` block so the compiler does not warn when
   # the NIF is unavailable and the conditional body is compiled away.
-  alias Localize.Number.PluralRule
+  alias Localize.Number.PluralRule, warn: false
 
   if Localize.Nif.available?() do
     # Representative locales covering different plural rule categories

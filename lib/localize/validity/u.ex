@@ -1,41 +1,11 @@
 defmodule Localize.Validity.U do
   @moduledoc false
 
+  alias Localize.Validity.U.Fields
+
   # Map BCP47 string keys to their atom equivalents.
   # The struct fields use the original BCP47 key names.
-  @field_mapping %{
-    "ca" => :ca,
-    "cf" => :cf,
-    "co" => :co,
-    "cu" => :cu,
-    "dx" => :dx,
-    "em" => :em,
-    "fw" => :fw,
-    "hc" => :hc,
-    "ka" => :ka,
-    "kb" => :kb,
-    "kc" => :kc,
-    "kf" => :kf,
-    "kh" => :kh,
-    "kk" => :kk,
-    "kn" => :kn,
-    "kr" => :kr,
-    "ks" => :ks,
-    "kv" => :kv,
-    "lb" => :lb,
-    "lw" => :lw,
-    "ms" => :ms,
-    "mu" => :mu,
-    "nu" => :nu,
-    "rg" => :rg,
-    "sd" => :sd,
-    "ss" => :ss,
-    "tz" => :tz,
-    "va" => :va,
-    "vt" => :vt
-  }
-
-  @fields Map.values(@field_mapping) |> Enum.sort()
+  @field_mapping Fields.field_mapping()
   @validity_data Localize.SupplementalData.validity(:u)
   @dont_process_keys ["vt", "rg", "sd", "dx", "kr"]
   @valid_keys Map.keys(@validity_data)
@@ -44,13 +14,9 @@ defmodule Localize.Validity.U do
   @region_subtag_filler "zzzz"
 
   @doc false
-  def fields do
-    @fields
-  end
+  def fields, do: Fields.fields()
 
-  def field_mapping do
-    @field_mapping
-  end
+  def field_mapping, do: Fields.field_mapping()
 
   @doc """
   Decodes and validates that a given value is valid
