@@ -58,11 +58,6 @@ defmodule Localize.Currency do
             from: nil,
             to: nil
 
-  # ── Known currency codes (loaded from ETF at compile time) ───
-
-  @currency_codes SupplementalData.currency_codes()
-  @territory_currencies SupplementalData.territory_currencies()
-
   # ── Currency validation ──────────────────────────────────────
 
   @doc """
@@ -125,7 +120,7 @@ defmodule Localize.Currency do
   """
   @spec known_currency_codes() :: [currency_code(), ...]
   def known_currency_codes do
-    @currency_codes
+    SupplementalData.currency_codes()
   end
 
   @doc """
@@ -179,7 +174,7 @@ defmodule Localize.Currency do
   @dialyzer {:nowarn_function, territory_currencies: 0}
   @spec territory_currencies() :: %{required(atom()) => %{required(atom()) => map()}}
   def territory_currencies do
-    @territory_currencies
+    SupplementalData.territory_currencies()
   end
 
   @doc """

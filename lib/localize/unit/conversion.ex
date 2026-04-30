@@ -15,8 +15,6 @@ defmodule Localize.Unit.Conversion do
 
   alias Localize.Unit.{BaseUnit, Parser}
 
-  @si_prefix_multipliers Localize.Unit.Data.si_prefix_multipliers()
-
   @doc """
   Checks whether two units are convertible (same dimensional base unit).
 
@@ -210,7 +208,7 @@ defmodule Localize.Unit.Conversion do
         prefix = Keyword.get(keyword, :prefix)
         power = Keyword.get(keyword, :power)
 
-        case Localize.Unit.Data.conversion_factor(base) do
+        case Localize.Unit.Data.Overlay.conversion_factor(base) do
           nil ->
             {:error, Localize.UnknownUnitError.exception(unit: base)}
 
@@ -224,7 +222,8 @@ defmodule Localize.Unit.Conversion do
           %{factor: base_factor} ->
             prefix_mult =
               if prefix,
-                do: Map.get(@si_prefix_multipliers, Atom.to_string(prefix), 1.0),
+                do:
+                  Map.get(Localize.Unit.Data.si_prefix_multipliers(), Atom.to_string(prefix), 1.0),
                 else: 1.0
 
             total = base_factor * prefix_mult
@@ -255,7 +254,7 @@ defmodule Localize.Unit.Conversion do
     prefix = Keyword.get(keyword, :prefix)
 
     if prefix == nil do
-      case Localize.Unit.Data.conversion_factor(base) do
+      case Localize.Unit.Data.Overlay.conversion_factor(base) do
         %{offset: offset} when offset != 0.0 -> offset
         _ -> 0.0
       end
@@ -291,7 +290,7 @@ defmodule Localize.Unit.Conversion do
          nil <- Keyword.get(opts, :prefix),
          nil <- Keyword.get(opts, :power),
          base when is_binary(base) <- Keyword.get(opts, :base),
-         %{factor: :special} <- Localize.Unit.Data.conversion_factor(base) do
+         %{factor: :special} <- Localize.Unit.Data.Overlay.conversion_factor(base) do
       lookup_special(base)
     else
       _ -> nil

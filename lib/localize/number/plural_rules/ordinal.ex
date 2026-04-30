@@ -28,7 +28,7 @@ defmodule Localize.Number.PluralRule.Ordinal do
   # Load rules at compile time for function generation only.
   # The attribute is deleted after generation so the raw data
   # is not embedded in the BEAM file.
-  @rules_at_compile Localize.Number.PluralRule.load_plural_rules(:ordinal)
+  @rules_at_compile Localize.Number.PluralRule.Loader.load_plural_rules(:ordinal)
 
   @doc """
   Returns the locale names for which ordinal plural rules

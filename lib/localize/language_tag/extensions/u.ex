@@ -5,7 +5,7 @@ defmodule Localize.LanguageTag.U do
 
   """
 
-  @fields Localize.Validity.U.fields()
+  @fields Localize.Validity.U.Fields.fields()
 
   typespec =
     {:%, [],

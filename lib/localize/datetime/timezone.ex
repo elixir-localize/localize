@@ -10,10 +10,11 @@ defmodule Localize.DateTime.Timezone do
   """
 
   alias Localize.SupplementalData
+  alias Localize.DateTime.Timezone.Builder
 
   @timezones SupplementalData.timezones()
-  @timezones_by_territory SupplementalData.timezones_by_territory()
-  @territories_by_timezone SupplementalData.territories_by_timezone()
+  @timezones_by_territory Builder.timezones_by_territory(@timezones)
+  @territories_by_timezone Builder.territories_by_timezone(@timezones_by_territory)
 
   # ── Timezone Data Access ─────────────────────────────────────
 

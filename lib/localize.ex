@@ -98,23 +98,46 @@ defmodule Localize do
 
   @version_key {:localize, :version}
 
-  # Compile-time string→atom maps cached for the validators below so
+  # Lazily-built string→atom maps cached in `:persistent_term` so
   # that validating a caller-supplied string never interns a new atom
   # and never scans linearly over the known-values list at runtime.
-  @known_calendar_strings Map.new(
-                            Localize.Calendar.known_calendars(),
-                            fn atom -> {Atom.to_string(atom), atom} end
-                          )
+  # Built on first call (cost: a single small Map.new) and reused
+  # thereafter via persistent_term — keeps Localize free of compile-
+  # time dependencies on Calendar / Number.System / SupplementalData.
+  defp known_calendar_strings do
+    cached(:known_calendar_strings, fn ->
+      Map.new(Localize.Calendar.known_calendars(), fn atom -> {Atom.to_string(atom), atom} end)
+    end)
+  end
 
-  @known_number_system_strings Map.new(
-                                 Localize.Number.System.known_number_systems(),
-                                 fn atom -> {Atom.to_string(atom), atom} end
-                               )
+  defp known_number_system_strings do
+    cached(:known_number_system_strings, fn ->
+      Map.new(Localize.Number.System.known_number_systems(), fn atom ->
+        {Atom.to_string(atom), atom}
+      end)
+    end)
+  end
 
-  @all_locale_id_strings MapSet.new(
-                           Localize.SupplementalData.all_locale_ids(),
-                           &Atom.to_string/1
-                         )
+  defp all_locale_id_strings do
+    cached(:all_locale_id_strings, fn ->
+      MapSet.new(Localize.SupplementalData.all_locale_ids(), &Atom.to_string/1)
+    end)
+  end
+
+  @compile {:inline, cached: 2}
+  defp cached(key, build_fn) do
+    pt_key = {__MODULE__, key}
+
+    case :persistent_term.get(pt_key, :__not_loaded__) do
+      :__not_loaded__ ->
+        value = build_fn.()
+        :persistent_term.put(pt_key, value)
+        value
+
+      value ->
+        value
+    end
+  end
 
   @calendar_aliases %{
     "gregory" => :gregorian,
@@ -931,9 +954,9 @@ defmodule Localize do
   end
 
   def available_locale_id?(locale_name) when is_binary(locale_name) do
-    # Use a compile-time MapSet of stringified locale ids so a
+    # Use a runtime-cached MapSet of stringified locale ids so a
     # caller-supplied unknown string never interns a new atom.
-    MapSet.member?(@all_locale_id_strings, locale_name)
+    MapSet.member?(all_locale_id_strings(), locale_name)
   end
 
   @doc """
@@ -1145,7 +1168,7 @@ defmodule Localize do
     normalised = name |> String.downcase() |> String.replace("-", "_")
 
     Map.get(@calendar_aliases, normalised) ||
-      Map.get(@known_calendar_strings, normalised)
+      Map.get(known_calendar_strings(), normalised)
   end
 
   @doc """
@@ -1180,7 +1203,7 @@ defmodule Localize do
   @spec validate_number_system(atom() | String.t()) ::
           {:ok, atom()} | {:error, Exception.t()}
   def validate_number_system(number_system) when is_binary(number_system) do
-    case Map.get(@known_number_system_strings, number_system) do
+    case Map.get(known_number_system_strings(), number_system) do
       nil ->
         {:error, Localize.UnknownNumberSystemError.exception(number_system: number_system)}
 
