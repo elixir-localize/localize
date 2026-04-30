@@ -543,7 +543,10 @@ defmodule Localize.Unit do
   end
 
   defp find_preference_for_usage(category, region, usage) do
-    case Enum.find(Localize.Unit.Data.unit_preferences(), &(&1.category == category and &1.usage == usage)) do
+    case Enum.find(
+           Localize.Unit.Data.unit_preferences(),
+           &(&1.category == category and &1.usage == usage)
+         ) do
       nil ->
         {:error,
          Localize.UnitPreferenceError.exception(

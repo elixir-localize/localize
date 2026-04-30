@@ -1070,4 +1070,3 @@ defmodule Localize.Calendar do
     Localize.Territory.territory_from_locale(locale)
   end
 end
-

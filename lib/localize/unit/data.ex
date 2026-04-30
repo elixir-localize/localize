@@ -248,7 +248,8 @@ defmodule Localize.Unit.Data do
   # without runtime back-edges into the broader cycle.
 
   @doc false
-  @spec conversion_factor_raw(String.t()) :: %{factor: number() | :special, offset: number()} | nil
+  @spec conversion_factor_raw(String.t()) ::
+          %{factor: number() | :special, offset: number()} | nil
   def conversion_factor_raw(unit_name), do: Map.get(@conversion_factors, unit_name)
 
   @doc false

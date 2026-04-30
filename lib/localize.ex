@@ -112,7 +112,9 @@ defmodule Localize do
 
   defp known_number_system_strings do
     cached(:known_number_system_strings, fn ->
-      Map.new(Localize.Number.System.known_number_systems(), fn atom -> {Atom.to_string(atom), atom} end)
+      Map.new(Localize.Number.System.known_number_systems(), fn atom ->
+        {Atom.to_string(atom), atom}
+      end)
     end)
   end
 

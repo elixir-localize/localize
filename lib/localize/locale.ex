@@ -848,4 +848,3 @@ defmodule Localize.Locale do
     )
   end
 end
-
