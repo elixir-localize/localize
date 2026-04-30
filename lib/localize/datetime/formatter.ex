@@ -502,7 +502,13 @@ defmodule Localize.DateTime.Formatter do
     date_format = options[:date_format] || :medium
 
     with {:ok, pattern} <-
-           Localize.DateTime.Format.resolve_format(:date, date_format, locale_id),
+           Localize.DateTime.Format.resolve_format(
+             :date,
+             date_format,
+             locale_id,
+             :gregorian,
+             variant_options(options)
+           ),
          {:ok, formatted} <- format(datetime, pattern, locale_id, options) do
       formatted
     else
@@ -517,7 +523,6 @@ defmodule Localize.DateTime.Formatter do
   @doc false
   def time(datetime, _count, locale_id, options) when is_time(datetime) do
     time_format = options[:time_format] || :medium
-    prefer = if options[:prefer], do: [prefer: options[:prefer]], else: []
 
     with {:ok, pattern} <-
            Localize.DateTime.Format.resolve_format(
@@ -525,7 +530,7 @@ defmodule Localize.DateTime.Formatter do
              time_format,
              locale_id,
              :gregorian,
-             prefer
+             variant_options(options)
            ),
          {:ok, formatted} <- format(datetime, pattern, locale_id, options) do
       formatted
@@ -535,6 +540,19 @@ defmodule Localize.DateTime.Formatter do
   end
 
   def time(_datetime, _count, _locale_id, _options), do: ""
+
+  # Pulls the `:prefer` option (consumed by
+  # `Localize.DateTime.Format.resolve_variant/2`) out of the
+  # formatter's option bag, which may be a keyword list or a map.
+  defp variant_options(options) do
+    case fetch_option(options, :prefer) do
+      {:ok, value} -> [prefer: value]
+      :error -> []
+    end
+  end
+
+  defp fetch_option(options, key) when is_list(options), do: Keyword.fetch(options, key)
+  defp fetch_option(options, key) when is_map(options), do: Map.fetch(options, key)
 
   # ── Timezone symbols ─────────────────────────────────────
 

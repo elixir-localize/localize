@@ -48,8 +48,13 @@ defmodule Localize.Time do
 
   * `:locale` is a locale identifier. The default is `:en`.
 
-  * `:prefer` is `:unicode` or `:ascii` for variant selection.
-    The default is `:unicode`.
+  * `:prefer` selects between CLDR `alt` variants. Accepts an
+    atom or a list of atoms in priority order. Recognised values:
+    `:unicode` / `:ascii` (NBSP and curly quotes vs ASCII) and
+    `:standard` / `:variant` (a few locales publish two preferred
+    forms). Examples: `prefer: :ascii`,
+    `prefer: [:variant, :ascii]`. The default is
+    `[:standard, :unicode]`.
 
   ### Returns
 
@@ -151,8 +156,6 @@ defmodule Localize.Time do
   end
 
   defp resolve_skeleton(skeleton, locale_id, options) when is_atom(skeleton) do
-    prefer = Keyword.get(options, :prefer, :unicode)
-
     with {:ok, available} <-
            Localize.DateTime.Format.available_formats(locale_id, :gregorian) do
       case Map.get(available, skeleton) do
@@ -173,7 +176,7 @@ defmodule Localize.Time do
           end
 
         %{} = variant_map ->
-          case resolve_variant(variant_map, prefer) do
+          case Localize.DateTime.Format.resolve_variant(variant_map, options) do
             nil ->
               {:error,
                Localize.DateTimeUnresolvedFormatError.exception(
@@ -188,21 +191,6 @@ defmodule Localize.Time do
         pattern when is_binary(pattern) ->
           {:ok, pattern}
       end
-    end
-  end
-
-  defp resolve_variant(%{} = variant_map, prefer) do
-    cond do
-      Map.has_key?(variant_map, :unicode) or Map.has_key?(variant_map, :ascii) ->
-        Map.get(variant_map, prefer) || Map.get(variant_map, :unicode) ||
-          Map.get(variant_map, :ascii)
-
-      # CLDR plural-keyed variant — fall back to `:other`.
-      Map.has_key?(variant_map, :other) ->
-        Map.get(variant_map, :other)
-
-      true ->
-        nil
     end
   end
 

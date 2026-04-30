@@ -46,8 +46,14 @@ defmodule Localize.DateTime do
 
   * `:locale` is a locale identifier. The default is `:en`.
 
-  * `:prefer` is `:unicode` or `:ascii` for variant selection.
-    The default is `:unicode`.
+  * `:prefer` selects between CLDR `alt` variants. Accepts an
+    atom or a list of atoms in priority order. Recognised values:
+    `:standard` / `:variant` (locales like en-CA publish both an
+    ISO pattern `"y-MM-dd"` and a locale-variant `"d/M/yy"`),
+    and `:unicode` / `:ascii` (mostly time formats — NBSP and
+    curly quotes vs ASCII-only). Examples: `prefer: :variant`,
+    `prefer: [:variant, :ascii]`. The default is
+    `[:standard, :unicode]`.
 
   ### Returns
 
@@ -200,8 +206,6 @@ defmodule Localize.DateTime do
   end
 
   defp format_with_skeleton(datetime, options, locale_id, skeleton) do
-    prefer = Keyword.get(options, :prefer, :unicode)
-
     with {:ok, available} <- Localize.DateTime.Format.available_formats(locale_id) do
       case Map.get(available, skeleton) do
         nil ->
@@ -218,7 +222,7 @@ defmodule Localize.DateTime do
 
                 matched_pattern ->
                   format_resolved_pattern(
-                    resolve_prefer(matched_pattern, prefer),
+                    Localize.DateTime.Format.resolve_variant(matched_pattern, options),
                     datetime,
                     options,
                     locale_id,
@@ -227,8 +231,17 @@ defmodule Localize.DateTime do
               end
 
             {:ok, {date_skeleton, time_skeleton}} ->
-              date_pattern = resolve_prefer(Map.get(available, date_skeleton, ""), prefer)
-              time_pattern = resolve_prefer(Map.get(available, time_skeleton, ""), prefer)
+              date_pattern =
+                Localize.DateTime.Format.resolve_variant(
+                  Map.get(available, date_skeleton, ""),
+                  options
+                )
+
+              time_pattern =
+                Localize.DateTime.Format.resolve_variant(
+                  Map.get(available, time_skeleton, ""),
+                  options
+                )
 
               if is_binary(date_pattern) and is_binary(time_pattern) do
                 options_map =
@@ -260,7 +273,7 @@ defmodule Localize.DateTime do
 
         %{} = variant_map ->
           format_resolved_pattern(
-            resolve_prefer(variant_map, prefer),
+            Localize.DateTime.Format.resolve_variant(variant_map, options),
             datetime,
             options,
             locale_id,
@@ -285,29 +298,6 @@ defmodule Localize.DateTime do
        when is_binary(pattern) do
     Localize.DateTime.Formatter.format(datetime, pattern, locale_id, Map.new(options))
   end
-
-  defp resolve_prefer(%{} = variant_map, prefer) do
-    cond do
-      # `:unicode` / `:ascii` prefer-style variant.
-      Map.has_key?(variant_map, :unicode) or Map.has_key?(variant_map, :ascii) ->
-        Map.get(variant_map, prefer) || Map.get(variant_map, :unicode) ||
-          Map.get(variant_map, :ascii)
-
-      # CLDR plural-keyed variant (`:zero`, `:one`, `:two`, `:few`,
-      # `:many`, `:other`). These appear in skeleton-derived formats
-      # such as `MMMMW` ("week W of MMMM"). Without knowing the
-      # numeric value at this stage we fall back to the `:other`
-      # category, which CLDR guarantees to be present.
-      Map.has_key?(variant_map, :other) ->
-        Map.get(variant_map, :other)
-
-      true ->
-        nil
-    end
-  end
-
-  defp resolve_prefer(pattern, _prefer) when is_binary(pattern), do: pattern
-  defp resolve_prefer(_other, _prefer), do: nil
 
   defp resolve_wrapper(format, locale_id, style) do
     standard_format = if is_atom(format), do: format, else: :medium
