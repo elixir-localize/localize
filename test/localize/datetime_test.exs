@@ -49,6 +49,57 @@ defmodule Localize.DateTimeTest do
     end
   end
 
+  describe "to_string/2 with :variant / :standard locales" do
+    # en-CA's `:yyMd` skeleton publishes both an ISO standard form
+    # ("y-MM-dd") and a CLDR-marked variant form ("d/M/yy").
+    # Regression: prior to teaching `:prefer` about variant/standard,
+    # asking for `format: :short` on en-CA crashed because the
+    # resolver only knew about `:unicode`/`:ascii`.
+    test "en-CA short defaults to :standard pattern" do
+      assert {:ok, result} =
+               Localize.DateTime.to_string(~U[2026-04-30 19:42:26Z],
+                 locale: "en-CA",
+                 format: :short
+               )
+
+      assert String.contains?(result, "2026-04-30")
+    end
+
+    test "en-CA short with prefer: :variant returns the variant pattern" do
+      assert {:ok, result} =
+               Localize.DateTime.to_string(~U[2026-04-30 19:42:26Z],
+                 locale: "en-CA",
+                 format: :short,
+                 prefer: :variant
+               )
+
+      assert String.contains?(result, "30/4/26")
+    end
+
+    test "en-CA short with prefer list across both alt axes" do
+      assert {:ok, result} =
+               Localize.DateTime.to_string(~U[2026-04-30 19:42:26Z],
+                 locale: "en-CA",
+                 format: :short,
+                 prefer: [:variant, :ascii]
+               )
+
+      assert String.contains?(result, "30/4/26")
+    end
+
+    test "en-CA Date.to_string respects :prefer" do
+      assert {:ok, "2026-04-30"} =
+               Localize.Date.to_string(~D[2026-04-30], locale: "en-CA", format: :short)
+
+      assert {:ok, "30/4/26"} =
+               Localize.Date.to_string(~D[2026-04-30],
+                 locale: "en-CA",
+                 format: :short,
+                 prefer: :variant
+               )
+    end
+  end
+
   describe "to_string/2 with at-style formats" do
     test "long format uses at pattern" do
       {:ok, result} =

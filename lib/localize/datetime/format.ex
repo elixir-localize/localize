@@ -8,7 +8,14 @@ defmodule Localize.DateTime.Format do
 
   @default_calendar_type :gregorian
   @standard_formats [:short, :medium, :long, :full]
-  @default_prefer :unicode
+
+  # CLDR's `alt` attribute names two independent axes for date/time
+  # patterns: `:variant` / `:standard` (locale-preferred vs ISO-style)
+  # and `:unicode` / `:ascii` (NBSP and curly quotes vs ASCII-only).
+  # `:prefer` accepts an atom or list of atoms naming the alts the
+  # caller wants. The resolver picks the first match per axis,
+  # falling back to these defaults when no preference applies.
+  @default_prefer [:standard, :unicode]
 
   # # standard_formats/0
   #
@@ -140,8 +147,6 @@ defmodule Localize.DateTime.Format do
 
   def resolve_format(format_type, format_name, locale_id, calendar_type, options)
       when is_atom(format_name) do
-    prefer = Keyword.get(options, :prefer, @default_prefer)
-
     with {:ok, formats_map} <- formats_for_type(format_type, locale_id, calendar_type),
          {:ok, available} <- available_formats(locale_id, calendar_type) do
       # Standard format names resolve to skeleton atoms first
@@ -161,14 +166,81 @@ defmodule Localize.DateTime.Format do
            )}
 
         %{} = variant_map ->
-          # Time formats may have unicode/ascii variants
-          pattern = Map.get(variant_map, prefer) || Map.get(variant_map, :unicode)
-          {:ok, pattern}
+          case resolve_variant(variant_map, options) do
+            nil ->
+              {:error,
+               Localize.DateTimeUnresolvedFormatError.exception(
+                 format: format_name,
+                 locale: locale_id
+               )}
+
+            pattern ->
+              {:ok, pattern}
+          end
 
         pattern when is_binary(pattern) ->
           {:ok, pattern}
       end
     end
+  end
+
+  # # resolve_variant/2
+  #
+  # Picks one pattern from a CLDR `alt`-keyed variant map.
+  #
+  # CLDR puts several independent kinds of alternates under the
+  # same `alt` attribute, so the data we receive can be keyed by:
+  #
+  #   * `:variant` / `:standard` — locale-preferred pattern vs
+  #     ISO-style pattern (e.g. en-CA's `:yyMd` → `"d/M/yy"` vs
+  #     `"y-MM-dd"`).
+  #
+  #   * `:unicode` / `:ascii` — patterns that use Unicode quote /
+  #     space characters vs ASCII-only ones (mostly time formats).
+  #
+  #   * `:zero` / `:one` / `:two` / `:few` / `:many` / `:other` —
+  #     plural-keyed patterns (e.g. `MMMMW` → "week W of MMMM").
+  #     Without a numeric value at this stage we fall back to
+  #     `:other`, which CLDR guarantees to be present.
+  #
+  # `options[:prefer]` is an atom or list of atoms naming the
+  # alts the caller wants, in priority order — e.g.
+  # `prefer: :ascii`, `prefer: [:variant, :ascii]`. For each axis
+  # present in the variant map the first matching atom is used;
+  # if no preference matches that axis, falls back to the
+  # built-in default (`:standard` for variant axis, `:unicode` for
+  # unicode/ascii axis, `:other` for plural axis).
+  @doc false
+  @spec resolve_variant(map() | binary() | term(), Keyword.t()) :: binary() | nil
+  def resolve_variant(value, options \\ [])
+
+  def resolve_variant(pattern, _options) when is_binary(pattern), do: pattern
+
+  def resolve_variant(%{} = variant_map, options) do
+    prefer = options |> Keyword.get(:prefer, @default_prefer) |> List.wrap()
+
+    cond do
+      Map.has_key?(variant_map, :variant) or Map.has_key?(variant_map, :standard) ->
+        pick(variant_map, prefer, [:standard, :variant])
+
+      Map.has_key?(variant_map, :unicode) or Map.has_key?(variant_map, :ascii) ->
+        pick(variant_map, prefer, [:unicode, :ascii])
+
+      Map.has_key?(variant_map, :other) ->
+        Map.get(variant_map, :other)
+
+      true ->
+        nil
+    end
+  end
+
+  def resolve_variant(_other, _options), do: nil
+
+  # Picks the first key from `prefer` that names a value in
+  # `variant_map`; if none of the user's preferences apply to
+  # this axis, walks the axis's `defaults` list to find a value.
+  defp pick(variant_map, prefer, defaults) do
+    Enum.find_value(prefer ++ defaults, fn key -> Map.get(variant_map, key) end)
   end
 
   defp formats_for_type(:date, locale_id, calendar_type),
