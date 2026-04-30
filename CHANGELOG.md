@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Bug Fixes
 
+* Fix en-CA :short date crash; teach :prefer about CLDR variant/standard alts. Thanks to @dabaer for the report. Closes #21.
+
 ### Enhancements
 
 * Module refactoring to remove many compile-time cycles.
