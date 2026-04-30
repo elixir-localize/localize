@@ -222,7 +222,8 @@ defmodule Localize.Unit.Conversion do
           %{factor: base_factor} ->
             prefix_mult =
               if prefix,
-                do: Map.get(Localize.Unit.Data.si_prefix_multipliers(), Atom.to_string(prefix), 1.0),
+                do:
+                  Map.get(Localize.Unit.Data.si_prefix_multipliers(), Atom.to_string(prefix), 1.0),
                 else: 1.0
 
             total = base_factor * prefix_mult

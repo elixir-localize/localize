@@ -918,10 +918,14 @@ defmodule Localize.LanguageTag do
 
   # ── Alias resolution ──────────────────────────────────────────────
 
-  defp language_aliases, do: cached(:language_aliases, fn -> SupplementalData.aliases()[:language] end)
+  defp language_aliases,
+    do: cached(:language_aliases, fn -> SupplementalData.aliases()[:language] end)
+
   defp region_aliases, do: cached(:region_aliases, fn -> SupplementalData.aliases()[:region] end)
   defp script_aliases, do: cached(:script_aliases, fn -> SupplementalData.aliases()[:script] end)
-  defp variant_aliases, do: cached(:variant_aliases, fn -> SupplementalData.aliases()[:variant] end)
+
+  defp variant_aliases,
+    do: cached(:variant_aliases, fn -> SupplementalData.aliases()[:variant] end)
 
   # Resolve aliased subtags to their canonical replacements.
   #
@@ -1331,4 +1335,3 @@ defmodule Localize.LanguageTag do
     end
   end
 end
-

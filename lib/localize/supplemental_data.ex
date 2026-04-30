@@ -224,4 +224,3 @@ defmodule Localize.SupplementalData do
     |> Enum.sort()
   end
 end
-
