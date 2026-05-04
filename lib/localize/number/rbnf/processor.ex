@@ -32,12 +32,34 @@ defmodule Localize.Number.Rbnf.Processor do
       rule ->
         rule_struct = to_rule_struct(rule)
 
+        # Synthesize a leading "-" when a negative number falls
+        # through to a *special-base* rule (`0.x`, `x.x`, `x,x`,
+        # `Inf`, `NaN`) that isn't itself `-x`. Without this,
+        # locales whose rule set lacks a `-x` rule (e.g. ko
+        # `spellout-numbering`) silently drop the sign because the
+        # body's `<<` and `>>>` operate on the absolute-valued
+        # digits emitted by `Digits.to_digits/1`.
+        #
+        # We must NOT synthesize a minus when the matched rule has
+        # an integer base value: those rules typically delegate via
+        # `=%cardinal=` (e.g. ja `spellout-numbering` is one rule
+        # `=%spellout-cardinal=`), and the cardinal rule set has
+        # its own `-x` handler that produces the locale-correct
+        # word ("マイナス"/"moins"/"minus"/etc.). Stripping the
+        # sign here would hide that handler.
+        need_minus =
+          number < 0 and special_base_other_than_minus_x?(rule_struct.base_value)
+
+        effective_number = if need_minus, do: abs(number), else: number
+
         case Rule.parse(rule_struct.definition) do
           {:ok, parsed} ->
-            result = do_rule(number, rule_set_name, rule_struct, parsed, all_rule_sets)
+            result =
+              do_rule(effective_number, rule_set_name, rule_struct, parsed, all_rule_sets)
 
             case result do
               {:error, _} = error -> error
+              string when is_binary(string) and need_minus -> {:ok, "-" <> string}
               string -> {:ok, string}
             end
 
@@ -46,6 +68,20 @@ defmodule Localize.Number.Rbnf.Processor do
         end
     end
   end
+
+  # A "special-base" rule is one whose base value is a TR35-defined
+  # symbolic string rather than an integer: `-x`, `0.x`, `x.x`,
+  # `x,x`, `Inf`, `NaN`. We use this to decide whether to
+  # synthesize a leading minus on a fall-through path (see
+  # `process/4`): integer-base rules typically delegate to another
+  # rule set via `=%name=` which can find `-x` itself, but
+  # special-base rules apply directly and don't recurse for the
+  # sign.
+  defp special_base_other_than_minus_x?(base) when is_binary(base) do
+    base != "-x" and base in ["0.x", "x.x", "x,x", "Inf", "NaN"]
+  end
+
+  defp special_base_other_than_minus_x?(_), do: false
 
   # ── Rule matching ──────────────────────────────────────────
 

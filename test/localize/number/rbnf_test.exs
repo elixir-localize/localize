@@ -436,6 +436,105 @@ defmodule Localize.Number.RbnfTest do
     end
   end
 
+  # Bug F covers two related symptoms.
+  #
+  # 1. Original repro: `-0.5 ko spellout-numbering` produced
+  #    `공점공점오` because the `:modulo` clause's negative-handling
+  #    arm recursed via `apply_rule_set(abs(...), rule_set, ...)`,
+  #    which re-walked the entire `x.x` rule body. The doubling is
+  #    eliminated by Bug A (separate `:modulo_preceding` AST node)
+  #    plus Bug E (rerouting `0.5` through the `0.x` rule).
+  #
+  # 2. Residual issue: when a locale's rule set has no `-x` rule
+  #    (e.g. ko `spellout-numbering`), the sign was silently
+  #    dropped. Now `process/4` synthesizes a `-` prefix when the
+  #    matched rule is a *special-base* rule (`0.x`, `x.x`, `x,x`,
+  #    `Inf`, `NaN`) other than `-x`. Integer-base rules continue
+  #    to delegate to other rule sets (whose `-x` handler emits
+  #    the locale-correct word).
+  describe "negative floats (Bug F)" do
+    test "ko -0.5 (no -x; integer side delegates via 0.x — minus prefix synthesized)" do
+      assert {:ok, "-영점오"} = Rbnf.to_string(-0.5, "spellout-numbering", locale: :ko)
+    end
+
+    test "ko -0.05 (leading-zero fraction, sign preserved)" do
+      assert {:ok, "-영점공오"} = Rbnf.to_string(-0.05, "spellout-numbering", locale: :ko)
+    end
+
+    test "ko -0.123 (no doubling; sign preserved)" do
+      assert {:ok, "-영점일이삼"} = Rbnf.to_string(-0.123, "spellout-numbering", locale: :ko)
+    end
+
+    test "ko -3.14 falls through x.x; sign preserved with synthetic prefix" do
+      # ko spellout-numbering has no -x and matches x.x for >=1
+      # negative floats. The -x.x special base triggers the
+      # process-level minus synthesis.
+      assert {:ok, "-삼점일사"} = Rbnf.to_string(-3.14, "spellout-numbering", locale: :ko)
+    end
+
+    test "ko -123 delegates to spellout-cardinal-sinokorean which has -x" do
+      # base_value 0 (or another integer) matches; the rule body
+      # `=%spellout-cardinal-sinokorean=` recurses; that rule set
+      # has its own -x handler producing 마이너스. We must NOT
+      # synthesize a "-" prefix here.
+      assert {:ok, "마이너스 백이십삼"} =
+               Rbnf.to_string(-123, "spellout-numbering", locale: :ko)
+    end
+
+    test "en -3.14 keeps its locale-correct 'minus' word" do
+      assert {:ok, "minus three point one four"} =
+               Rbnf.to_string(-3.14, "spellout-numbering", locale: :en)
+    end
+
+    test "en -0.5 keeps its locale-correct 'minus' word" do
+      assert {:ok, "minus zero point five"} =
+               Rbnf.to_string(-0.5, "spellout-numbering", locale: :en)
+    end
+
+    test "en -1985 (integer) keeps its 'minus' word" do
+      assert {:ok, "minus one thousand nine hundred eighty-five"} =
+               Rbnf.to_string(-1985, "spellout-numbering", locale: :en)
+    end
+
+    test "de -3.14 keeps its 'minus' word" do
+      assert {:ok, "minus drei Komma eins vier"} =
+               Rbnf.to_string(-3.14, "spellout-numbering", locale: :de)
+    end
+
+    test "zh -3.14 keeps its '负' word (regression check for ja/zh delegation)" do
+      assert {:ok, "负三点一四"} = Rbnf.to_string(-3.14, "spellout-numbering", locale: :zh)
+    end
+
+    test "ja -3.14 delegates to spellout-cardinal whose -x emits マイナス" do
+      # Critical regression test. ja spellout-numbering is one
+      # rule (base_value 0) `=%spellout-cardinal=`. The cardinal
+      # rule set has -x. We must NOT synthesize a "-" prefix
+      # because that would suppress マイナス.
+      assert {:ok, "マイナス三・一四"} =
+               Rbnf.to_string(-3.14, "spellout-numbering", locale: :ja)
+    end
+
+    test "fr -3.14 spellout-cardinal-masculine keeps 'moins' (delegation)" do
+      assert {:ok, "moins trois virgule un quatre"} =
+               Rbnf.to_string(-3.14, "spellout-cardinal-masculine", locale: :fr)
+    end
+
+    test "ee -0.5 retains its -x word (suffix form)" do
+      # ee's -x rule appends a suffix rather than prefixing.
+      assert {:ok, result} = Rbnf.to_string(-0.5, "spellout-numbering", locale: :ee)
+      assert String.contains?(result, "xlẽyimegbee"),
+             "expected ee's negative-suffix word, got #{inspect(result)}"
+    end
+
+    test "positive cases are unaffected" do
+      assert {:ok, "영점오"} = Rbnf.to_string(0.5, "spellout-numbering", locale: :ko)
+      assert {:ok, "삼점일사"} = Rbnf.to_string(3.14, "spellout-numbering", locale: :ko)
+      assert {:ok, "three point one four"} =
+               Rbnf.to_string(3.14, "spellout-numbering", locale: :en)
+      assert {:ok, "三点一四"} = Rbnf.to_string(3.14, "spellout-numbering", locale: :zh)
+    end
+  end
+
   # Wider regression coverage for non-fraction operators that share
   # the parser/processor changes touched by Bug A: pure-integer paths
   # using >>, <<, =%name=, =#,##0=, [...], -x, $(ordinal,...), and
