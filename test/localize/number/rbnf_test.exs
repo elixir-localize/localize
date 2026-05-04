@@ -149,7 +149,10 @@ defmodule Localize.Number.RbnfTest do
     end
 
     test "Korean 0.123 has no space between fractional digits" do
-      assert {:ok, "공점일이삼"} = Rbnf.to_string(0.123, "spellout-numbering", locale: :ko)
+      # After Bug E, ko 0.123 routes through the `0.x` rule (sino-
+      # Korean integer zero `영` instead of native `공`); the
+      # important assertion for Bug A is the absence of a space.
+      assert {:ok, "영점일이삼"} = Rbnf.to_string(0.123, "spellout-numbering", locale: :ko)
     end
 
     test "Cantonese-Simplified 3.14 has no space (yue-Hans uses >>>)" do
@@ -236,20 +239,20 @@ defmodule Localize.Number.RbnfTest do
     end
 
     test "Korean preserves a leading zero in the fraction (0.05)" do
-      # ko spellout-numbering applies its `x.x` rule (the `0.x` rule
-      # is a separate Bug E and not yet routed). The integer-side
-      # fall-through formats fraction digit `0` as the locale's
-      # numbering-rule for 0 (`공`); this asserts the digit reaches
-      # the formatter at all rather than being silently dropped.
-      assert {:ok, "공점공오"} = Rbnf.to_string(0.05, "spellout-numbering", locale: :ko)
+      # After Bug E ko 0.05 routes through the `0.x` rule:
+      # integer 0 → sino-Korean `영`; fraction digits go via
+      # spellout-numbering selection (digit 0 → 공, digit 5 → 오).
+      # The test's job is to assert the leading-zero digit in the
+      # fraction reaches the formatter at all (Bug C).
+      assert {:ok, "영점공오"} = Rbnf.to_string(0.05, "spellout-numbering", locale: :ko)
     end
 
     test "Korean preserves multiple zeros in the fraction (0.005)" do
-      assert {:ok, "공점공공오"} = Rbnf.to_string(0.005, "spellout-numbering", locale: :ko)
+      assert {:ok, "영점공공오"} = Rbnf.to_string(0.005, "spellout-numbering", locale: :ko)
     end
 
     test "Korean preserves a leading zero followed by two more digits (0.025)" do
-      assert {:ok, "공점공이오"} = Rbnf.to_string(0.025, "spellout-numbering", locale: :ko)
+      assert {:ok, "영점공이오"} = Rbnf.to_string(0.025, "spellout-numbering", locale: :ko)
     end
 
     test "Japanese preserves an embedded zero in the fraction (3.04)" do
@@ -312,6 +315,124 @@ defmodule Localize.Number.RbnfTest do
       # preserved, magnitude not truncated.
       assert {:ok, "〇点〇〇〇〇〇一"} =
                Rbnf.to_string(0.000001, "spellout-numbering", locale: :zh)
+    end
+  end
+
+  # Per TR35, when the integer part is zero but the value is
+  # non-zero (e.g. `0.5`, `0.05`), the matcher must prefer a `0.x`
+  # rule over `x.x` if the locale defines one. Currently used by
+  # `ee` and `ko`. Folds in the float-quotient-with-rule clause
+  # (originally tracked separately as Bug H) because ko's `0.x`
+  # body uses `<%spellout-cardinal-sinokorean<` which crashed on
+  # floats.
+  describe "0.x rule selection for sub-1 floats (Bug E + folded Bug H)" do
+    test "ko 0.5 uses the 0.x rule (sino-Korean integer zero, 영)" do
+      assert {:ok, "영점오"} = Rbnf.to_string(0.5, "spellout-numbering", locale: :ko)
+    end
+
+    test "ko 0.05 uses the 0.x rule with leading-zero fraction" do
+      # Integer side: sino-Korean 0 = 영. Fraction digits go through
+      # spellout-numbering rule selection: digit 0 → 공 (rule `0`),
+      # digit 5 → 오 (rule `1` → spellout-cardinal-sinokorean).
+      assert {:ok, "영점공오"} = Rbnf.to_string(0.05, "spellout-numbering", locale: :ko)
+    end
+
+    test "ko 0.025 uses the 0.x rule" do
+      assert {:ok, "영점공이오"} = Rbnf.to_string(0.025, "spellout-numbering", locale: :ko)
+    end
+
+    test "ko 0.123 uses the 0.x rule" do
+      assert {:ok, "영점일이삼"} = Rbnf.to_string(0.123, "spellout-numbering", locale: :ko)
+    end
+
+    test "ee 0.5 uses the 0.x rule" do
+      # ee's 0.x body is `kakɛ →→` — `<<` is implicit via the
+      # literal, the integer part is dropped, and `→→` formats
+      # the digit via the same rule set.
+      assert {:ok, "kakɛ atɔ̃"} = Rbnf.to_string(0.5, "spellout-numbering", locale: :ee)
+    end
+
+    test "ee 0.05 uses the 0.x rule with leading-zero fraction" do
+      # `→→` (not `→→→`), so digits join with a space.
+      assert {:ok, "kakɛ ɖekeo atɔ̃"} =
+               Rbnf.to_string(0.05, "spellout-numbering", locale: :ee)
+    end
+
+    test "ko 1.5 must NOT match 0.x; falls back to x.x" do
+      assert {:ok, "일점오"} = Rbnf.to_string(1.5, "spellout-numbering", locale: :ko)
+    end
+
+    test "ko 3.14 must NOT match 0.x; falls back to x.x" do
+      assert {:ok, "삼점일사"} = Rbnf.to_string(3.14, "spellout-numbering", locale: :ko)
+    end
+
+    test "ko 0.0 must NOT match 0.x (value is zero); falls back to x.x" do
+      assert {:ok, "공점공"} = Rbnf.to_string(0.0, "spellout-numbering", locale: :ko)
+    end
+
+    test "locales without 0.x continue to use x.x for sub-1 floats" do
+      assert {:ok, "〇点五"} = Rbnf.to_string(0.5, "spellout-numbering", locale: :zh)
+      assert {:ok, "zero point five"} = Rbnf.to_string(0.5, "spellout-numbering", locale: :en)
+      assert {:ok, "null Komma fünf"} = Rbnf.to_string(0.5, "spellout-numbering", locale: :de)
+    end
+  end
+
+  # Bug H is folded into Bug E because ko's `0.x` rule body needs
+  # the float-quotient-with-rule clause to run end-to-end. Adding
+  # a synthetic standalone test pins the clause separately so a
+  # future regression that breaks one but not the other surfaces
+  # cleanly.
+  describe "float quotient with named rule and decimal format (Bug H)" do
+    alias Localize.Number.Rbnf.Processor
+
+    test "<%name< on a float dispatches to the named rule on the integer part" do
+      # Synthetic: rule body `←%spellout-cardinal← point →→`
+      # applied to 3.5. `<%spellout-cardinal<` should format the
+      # truncated integer 3 via spellout-cardinal.
+      rules = [
+        %{
+          base_value: "x.x",
+          definition: "←%spellout-cardinal← point →→",
+          divisor: 1,
+          radix: 10,
+          range: "undefined"
+        }
+      ]
+
+      # Use the en locale's rule sets so spellout-cardinal exists.
+      {:ok, rbnf} = Localize.Locale.get(:en, [:rbnf])
+
+      all_sets =
+        Enum.reduce(rbnf, %{}, fn {_group, sets}, acc ->
+          if is_map(sets), do: Map.merge(acc, sets), else: acc
+        end)
+
+      assert {:ok, result} = Processor.process(3.5, "synthetic", rules, all_sets)
+      assert String.starts_with?(result, "three"), "got #{inspect(result)}"
+      assert String.contains?(result, "point")
+    end
+
+    test "<#,##0< on a float dispatches to the decimal pattern" do
+      rules = [
+        %{
+          base_value: "x.x",
+          definition: "←#,##0← point →→",
+          divisor: 1,
+          radix: 10,
+          range: "undefined"
+        }
+      ]
+
+      {:ok, rbnf} = Localize.Locale.get(:en, [:rbnf])
+
+      all_sets =
+        Enum.reduce(rbnf, %{}, fn {_group, sets}, acc ->
+          if is_map(sets), do: Map.merge(acc, sets), else: acc
+        end)
+
+      assert {:ok, result} = Processor.process(1234.5, "synthetic", rules, all_sets)
+      assert String.starts_with?(result, "1,234"), "got #{inspect(result)}"
+      assert String.contains?(result, "point")
     end
   end
 

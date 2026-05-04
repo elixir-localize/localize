@@ -58,14 +58,23 @@ defmodule Localize.Number.Rbnf.Processor do
   end
 
   defp find_matching_rule(number, rules) when is_float(number) do
-    # Look for x.x rule first
-    fractional_rule =
+    # Per TR35: when the integer part is zero but the value is
+    # non-zero (e.g. `0.05`), prefer the `0.x` rule if the locale
+    # defines one. This is currently used by `ee` and `ko`. Falls
+    # back to the locale-conventional `x.x`/`x,x` rule, then to
+    # integer rule selection on `trunc(number)`.
+    zero_x_rule =
+      if trunc(number) == 0 and number != 0.0 do
+        Enum.find(rules, fn rule -> get_base_value(rule) == "0.x" end)
+      end
+
+    x_x_rule =
       Enum.find(rules, fn rule ->
         base = get_base_value(rule)
         base in ["x.x", "x,x"]
       end)
 
-    fractional_rule || find_matching_integer_rule(trunc(number), rules)
+    zero_x_rule || x_x_rule || find_matching_integer_rule(trunc(number), rules)
   end
 
   defp find_matching_rule(number, rules) when is_integer(number) do
@@ -188,10 +197,26 @@ defmodule Localize.Number.Rbnf.Processor do
     do_operation(:modulo, number, rule_set, rule, argument, all_sets)
   end
 
-  # Quotient for float (integer part)
+  # Quotient for float (integer part). The float case takes the
+  # integer part of the number (`trunc/1`) and then applies the
+  # caller-specified rule set, named rule, or decimal format. The
+  # named-rule and decimal-format variants are needed because
+  # locale `0.x` rules use `<%spellout-cardinal-sinokorean<` on
+  # the integer side (e.g. ko); without these clauses the `0.x`
+  # path crashes on a float input.
   defp do_operation(:quotient, number, rule_set, _rule, nil, all_sets)
        when is_float(number) do
     apply_rule_set(trunc(number), rule_set, all_sets)
+  end
+
+  defp do_operation(:quotient, number, _rule_set, _rule, {:rule, rule_name}, all_sets)
+       when is_float(number) do
+    apply_rule_set(trunc(number), to_string(rule_name), all_sets)
+  end
+
+  defp do_operation(:quotient, number, _rule_set, _rule, {:format, format}, _all_sets)
+       when is_float(number) do
+    format_with_pattern(trunc(number), format)
   end
 
   # Quotient for integers
