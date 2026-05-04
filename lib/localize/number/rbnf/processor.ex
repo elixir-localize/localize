@@ -307,12 +307,8 @@ defmodule Localize.Number.Rbnf.Processor do
 
   defp format_fraction(number, rule_set, all_sets, separator) do
     number
-    |> Digits.fraction_as_integer()
-    |> Integer.to_string()
-    |> String.split("", trim: true)
-    |> Enum.map(fn digit ->
-      n = String.to_integer(digit)
-
+    |> fractional_digit_list()
+    |> Enum.map(fn n ->
       # Try spellout_numbering first, fallback to the current rule set
       numbering_set = "spellout_numbering"
 
@@ -322,6 +318,29 @@ defmodule Localize.Number.Rbnf.Processor do
       end
     end)
     |> Enum.join(separator)
+  end
+
+  # Returns the fractional digits of a number as a list, preserving
+  # leading zeros that `Digits.fraction_as_integer/1` would discard.
+  # `Digits.to_digits/1` returns `{digits, exp, sign}` where `exp`
+  # is the position of the decimal point relative to the digit list:
+  #
+  #   * `exp >= length(digits)` — integer-valued float (e.g. `1.0`,
+  #     `100.0`); we emit a single `[0]` so the rule still produces
+  #     a "point zero" tail (preserving the prior behaviour rather
+  #     than silently dropping the literal in `←← point →→`).
+  #   * `exp >= 0` — slice off the integer part; the remainder may
+  #     start with zeros (e.g. `3.04` → `[3, 0, 4]` exp `1` →
+  #     fraction `[0, 4]`).
+  #   * `exp < 0` — the fraction has `-exp` leading zeros before the
+  #     first non-zero digit (e.g. `0.05` → `[5]` exp `-1` →
+  #     fraction `[0, 5]`).
+  defp fractional_digit_list(number) do
+    case Digits.to_digits(number) do
+      {digits, exp, _sign} when exp >= length(digits) -> [0]
+      {digits, exp, _sign} when exp >= 0 -> Enum.drop(digits, exp)
+      {digits, exp, _sign} -> List.duplicate(0, -exp) ++ digits
+    end
   end
 
   defp apply_rule_set_or_string(number, rule_set, all_sets) do
