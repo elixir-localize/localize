@@ -31,11 +31,14 @@ quotient_rule     ->  quotient_call quotient_call : {quotient, nil}.
 modulo_rule       ->  modulo_call rule modulo_call : {modulo, '$2'}.
 modulo_rule       ->  modulo_call modulo_call : {modulo, nil}.
 
-% Note that here we are treating >>> as equivalent to >>
-% This is not strictly true since the spec says we should
-% ... but bypass the normal rule-selection process and just
-% use the rule that precedes this one in this rule list.
-modulo_rule       ->  modulo_call modulo_call modulo_call : {modulo, nil}.
+% Per TR35, `>>>` bypasses normal rule selection and applies the
+% rule preceding this one in the rule list. In the fraction
+% context (the common case in CLDR data — used by ja, ko, zh, th,
+% lo, km, ak, yue, root) it also signals that the per-digit
+% results should be concatenated without a separator. We emit a
+% distinct AST tag so the runtime processor can handle both
+% effects.
+modulo_rule       ->  modulo_call modulo_call modulo_call : {modulo_preceding, nil}.
 
 
 invoke_rule       ->  rule_call rule rule_call : {call, '$2'}.
