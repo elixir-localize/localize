@@ -268,6 +268,53 @@ defmodule Localize.Number.RbnfTest do
     end
   end
 
+  # Regression: very small fractions used to truncate. Prior to the
+  # `fractional_digit_list/1` reshape (Bug C), `0.000001` rendered as
+  # `"zero point one"` because `Digits.fraction_as_integer/1` returned
+  # `1` and the `e-6` magnitude was discarded. The same root cause as
+  # Bug C, so the same fix closes both — these tests lock in the
+  # small-fraction behaviour separately so a regression in either
+  # direction (embedded zero vs leading-zero count) is caught
+  # independently.
+  describe "small-magnitude fractions (Bug D)" do
+    test "0.0001 (four leading zeros)" do
+      assert {:ok, "zero point zero zero zero one"} =
+               Rbnf.to_string(0.0001, "spellout-numbering", locale: :en)
+    end
+
+    test "0.00001 (five leading zeros)" do
+      assert {:ok, "zero point zero zero zero zero one"} =
+               Rbnf.to_string(0.00001, "spellout-numbering", locale: :en)
+    end
+
+    test "0.000001 (six leading zeros — original Bug D repro)" do
+      assert {:ok, "zero point zero zero zero zero zero one"} =
+               Rbnf.to_string(0.000001, "spellout-numbering", locale: :en)
+    end
+
+    test "1.0e-7 scientific-notation literal — seven leading zeros" do
+      assert {:ok, "zero point zero zero zero zero zero zero one"} =
+               Rbnf.to_string(1.0e-7, "spellout-numbering", locale: :en)
+    end
+
+    test "0.012345 mixed leading-zero plus more digits" do
+      assert {:ok, "zero point zero one two three four five"} =
+               Rbnf.to_string(0.012345, "spellout-numbering", locale: :en)
+    end
+
+    test "0.123456 no leading zero, full precision preserved" do
+      assert {:ok, "zero point one two three four five six"} =
+               Rbnf.to_string(0.123456, "spellout-numbering", locale: :en)
+    end
+
+    test "small Chinese fraction stays glued (zh + Bug A + Bug C + Bug D)" do
+      # Compounds three fixes: `>>>` no separator, leading zeros
+      # preserved, magnitude not truncated.
+      assert {:ok, "〇点〇〇〇〇〇一"} =
+               Rbnf.to_string(0.000001, "spellout-numbering", locale: :zh)
+    end
+  end
+
   # Wider regression coverage for non-fraction operators that share
   # the parser/processor changes touched by Bug A: pure-integer paths
   # using >>, <<, =%name=, =#,##0=, [...], -x, $(ordinal,...), and
