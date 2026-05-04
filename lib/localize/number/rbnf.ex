@@ -54,19 +54,39 @@ defmodule Localize.Number.Rbnf do
       {:ok, "1st"}
 
   """
-  @spec to_string(number(), atom() | String.t(), Keyword.t()) ::
+  @spec to_string(number() | Decimal.t(), atom() | String.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def to_string(number, rule_name, options \\ []) do
     requested_locale = Keyword.get(options, :locale, Localize.get_locale())
 
     case Localize.validate_locale(requested_locale) do
       {:ok, language_tag} ->
-        lookup_and_format(number, rule_name, language_tag, language_tag)
+        lookup_and_format(coerce_number(number), rule_name, language_tag, language_tag)
 
       {:error, _} = error ->
         error
     end
   end
+
+  # Coerce Decimal inputs to a native numeric type so the
+  # `Localize.Number.Rbnf.Processor` (whose dispatch is built on
+  # `is_integer/1`, `is_float/1`, `trunc/1`, `abs/1`, `<`, etc.)
+  # doesn't need its own Decimal-aware arithmetic. Whole-valued
+  # Decimals become integers (preserving exact integer-rule
+  # dispatch for very large numbers); fractional Decimals become
+  # floats. This means callers passing a Decimal whose value isn't
+  # representable in IEEE 754 may see floating-point rounding —
+  # acceptable for spellout output, where the typical use case is
+  # small or whole numbers.
+  defp coerce_number(%Decimal{} = decimal) do
+    if Decimal.integer?(decimal) do
+      Decimal.to_integer(decimal)
+    else
+      Decimal.to_float(decimal)
+    end
+  end
+
+  defp coerce_number(number), do: number
 
   # Walk the locale inheritance chain looking for a matching RBNF
   # rule. If the current locale has no matching rule, fall back to
