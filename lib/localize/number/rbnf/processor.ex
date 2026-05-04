@@ -36,7 +36,10 @@ defmodule Localize.Number.Rbnf.Processor do
         {:error, "No matching rule for #{inspect(number)} in #{rule_set_name}"}
 
       rule ->
-        rule_struct = to_rule_struct(rule)
+        rule_struct =
+          rule
+          |> to_rule_struct()
+          |> with_preceding_rule(rule, rules)
 
         # Synthesize a leading "-" when a negative number falls
         # through to a *special-base* rule (`0.x`, `x.x`, `x,x`,
@@ -95,6 +98,24 @@ defmodule Localize.Number.Rbnf.Processor do
   end
 
   defp special_base_other_than_minus_x?(_), do: false
+
+  # Stash the source-order preceding rule on the matched rule
+  # struct so `:modulo_preceding` (TR35 `>>>`) can apply it for
+  # integer modulo without re-running rule selection. Source
+  # order is the *original* `rules` list, not the descending-
+  # base-value sort produced by `find_matching_integer_rule/2`.
+  defp with_preceding_rule(rule_struct, original_rule, rules) do
+    target_base = get_base_value(original_rule)
+
+    preceding =
+      case Enum.find_index(rules, fn r -> get_base_value(r) == target_base end) do
+        nil -> nil
+        0 -> nil
+        i -> Enum.at(rules, i - 1)
+      end
+
+    %{rule_struct | preceding_rule: preceding}
+  end
 
   # ── Rule matching ──────────────────────────────────────────
 
@@ -277,6 +298,28 @@ defmodule Localize.Number.Rbnf.Processor do
   defp do_operation(:modulo_preceding, number, rule_set, _rule, nil, all_sets, locale)
        when is_float(number) do
     format_fraction(number, rule_set, all_sets, "", locale)
+  end
+
+  # `>>>` for integers: TR35 says "bypass normal rule selection
+  # and apply the rule preceding this one in the rule list".
+  # Compute the modulo and walk the *preceding* rule's body
+  # directly. Falls through to `:modulo` (same-rule-set selection)
+  # when no preceding rule is available — at-source-list-position
+  # 0, or for the synthesized special-base path that has no
+  # source neighbour.
+  defp do_operation(
+         :modulo_preceding,
+         number,
+         rule_set,
+         %Rule{preceding_rule: preceding} = rule,
+         argument,
+         all_sets,
+         locale
+       )
+       when is_integer(number) and not is_nil(preceding) do
+    mod = number - div(number, rule.divisor) * rule.divisor
+
+    apply_preceding_rule(mod, preceding, rule_set, all_sets, locale, argument)
   end
 
   defp do_operation(:modulo_preceding, number, rule_set, rule, argument, all_sets, locale) do
@@ -580,6 +623,26 @@ defmodule Localize.Number.Rbnf.Processor do
       {digits, exp, _sign} when exp >= length(digits) -> [0]
       {digits, exp, _sign} when exp >= 0 -> Enum.drop(digits, exp)
       {digits, exp, _sign} -> List.duplicate(0, -exp) ++ digits
+    end
+  end
+
+  # Apply a *specific* rule (typically the source-order preceding
+  # rule, found via `with_preceding_rule/3`) to a value, bypassing
+  # `find_matching_rule/2` rule selection. Used by `>>>` (TR35
+  # `:modulo_preceding`) for integers. Falls back to standard
+  # rule-selection on the same rule set on parse error.
+  defp apply_preceding_rule(value, preceding_rule, rule_set, all_sets, locale, _argument) do
+    rule_struct = to_rule_struct(preceding_rule)
+
+    case Rule.parse(rule_struct.definition) do
+      {:ok, parsed} ->
+        case do_rule(value, rule_set, rule_struct, parsed, all_sets, locale) do
+          {:error, _} -> apply_rule_set(value, rule_set, all_sets, locale)
+          string when is_binary(string) -> string
+        end
+
+      {:error, _} ->
+        apply_rule_set(value, rule_set, all_sets, locale)
     end
   end
 

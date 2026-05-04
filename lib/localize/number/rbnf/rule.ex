@@ -7,7 +7,15 @@ defmodule Localize.Number.Rbnf.Rule do
   # a radix (usually 10), a definition string containing the
   # formatting pattern, a range (upper bound), and a divisor.
 
-  defstruct [:base_value, :radix, :definition, :range, :divisor, :fraction_numerator]
+  defstruct [
+    :base_value,
+    :radix,
+    :definition,
+    :range,
+    :divisor,
+    :fraction_numerator,
+    :preceding_rule
+  ]
 
   @type t :: %__MODULE__{
           base_value: integer() | String.t(),
@@ -15,8 +23,17 @@ defmodule Localize.Number.Rbnf.Rule do
           definition: String.t(),
           range: integer() | String.t(),
           divisor: integer() | nil,
-          fraction_numerator: integer() | nil
+          fraction_numerator: integer() | nil,
+          preceding_rule: map() | nil
         }
+
+  # `preceding_rule` is set at `Localize.Number.Rbnf.Processor.process/5`
+  # time to the rule immediately before the matched rule in the
+  # *source* rule list (NOT the descending-base-value sort used by
+  # `find_matching_integer_rule/2`). It is consulted by the integer
+  # `:modulo_preceding` clause to implement TR35 §RBNF_Syntax's
+  # `>>>` operator: "bypass normal rule selection and apply the
+  # rule preceding this one in the rule list".
 
   # `fraction_numerator` is set only in the fraction-with-rule
   # numerator/denominator algorithm (see
