@@ -788,6 +788,64 @@ defmodule Localize.Number.RbnfTest do
     end
   end
 
+  # `Localize.Number.Rbnf.to_string/3` previously raised
+  # `FunctionClauseError` for Decimal inputs because
+  # `find_matching_rule/2` only dispatched on `is_integer`,
+  # `is_float`, and `is_number(_) and _ < 0`. The public entry
+  # point now coerces Decimal → integer (when whole-valued) or
+  # → float (otherwise) so the processor's existing dispatch
+  # works unchanged. Whole Decimals route through the integer
+  # path with no precision loss; fractional Decimals accept the
+  # IEEE 754 round-trip that any float input also has.
+  describe "Decimal input support (§4)" do
+    test "Decimal 3.14 en spellout-numbering" do
+      assert {:ok, "three point one four"} =
+               Rbnf.to_string(Decimal.new("3.14"), "spellout-numbering", locale: :en)
+    end
+
+    test "Decimal 3.04 zh preserves embedded fraction zero (Bug C path)" do
+      assert {:ok, "三点〇四"} =
+               Rbnf.to_string(Decimal.new("3.04"), "spellout-numbering", locale: :zh)
+    end
+
+    test "Decimal 0.05 ko routes through 0.x rule (Bug E path)" do
+      assert {:ok, "영점공오"} =
+               Rbnf.to_string(Decimal.new("0.05"), "spellout-numbering", locale: :ko)
+    end
+
+    test "Whole Decimal routes through the integer path" do
+      assert {:ok, "one hundred twenty-three"} =
+               Rbnf.to_string(Decimal.new("123"), "spellout-numbering", locale: :en)
+    end
+
+    test "Negative Decimal preserves the locale's -x word" do
+      assert {:ok, "minus three point one four"} =
+               Rbnf.to_string(Decimal.new("-3.14"), "spellout-numbering", locale: :en)
+    end
+
+    test "Decimal Bug L regression: fr 21 digits-ordinal-masculine = 21e" do
+      assert {:ok, "21e"} =
+               Rbnf.to_string(Decimal.new("21"), "digits-ordinal-masculine", locale: :fr)
+    end
+
+    test "Decimal §1 regression: ky 1.5 spellout-cardinal" do
+      assert {:ok, "бир бүтүн ондон беш"} =
+               Rbnf.to_string(Decimal.new("1.5"), "spellout-cardinal", locale: :ky)
+    end
+
+    test "Large whole Decimal (10^12) routes via integer path with no precision loss" do
+      # A float would lose precision around 2^53 (~9e15); this
+      # tests that the whole-Decimal → integer coercion takes
+      # effect for big-integer inputs.
+      assert {:ok, "one trillion"} =
+               Rbnf.to_string(
+                 Decimal.new("1000000000000"),
+                 "spellout-cardinal",
+                 locale: :en
+               )
+    end
+  end
+
   # Wider regression coverage for non-fraction operators that share
   # the parser/processor changes touched by Bug A: pure-integer paths
   # using >>, <<, =%name=, =#,##0=, [...], -x, $(ordinal,...), and
