@@ -535,6 +535,112 @@ defmodule Localize.Number.RbnfTest do
     end
   end
 
+  # `<#,##0<` (integer quotient via decimal format) used to raise
+  # `no case clause matching: {:format, "..."}` because the
+  # integer quotient handler's case had no `{:format, _}` clause.
+  # Real CLDR data exercises this in ky's `%%z-spellout-fraction`
+  # private rule set (called from the `x.x` rule). The same gap
+  # also existed for `:modulo` on floats with `{:rule, _}` and
+  # `{:format, _}` arguments, which used to raise
+  # `FunctionClauseError`.
+  describe "quotient/modulo with decimal-format and named-rule arguments (Bug G)" do
+    alias Localize.Number.Rbnf.{Processor, Rule}
+
+    test "<#,##0< on integer dispatches the divisor through the decimal pattern" do
+      # Synthetic rule: base 100 / divisor 100. For input 250
+      # the quotient is `div(250, 100) = 2`, formatted via the
+      # `#,##0` pattern → `"2"`.
+      {:ok, _} = Rule.parse("←#,##0←")
+
+      rules = [
+        %{
+          base_value: 100,
+          definition: "←#,##0←",
+          divisor: 100,
+          radix: 10,
+          range: "undefined"
+        }
+      ]
+
+      assert {:ok, "2"} = Processor.process(250, "synthetic", rules, %{})
+    end
+
+    test "<#,##0< on integer with larger divisor" do
+      {:ok, _} = Rule.parse("←#,##0← thousands")
+
+      rules = [
+        %{
+          base_value: 1_000,
+          definition: "←#,##0← thousands",
+          divisor: 1_000,
+          radix: 10,
+          range: "undefined"
+        }
+      ]
+
+      assert {:ok, "12 thousands"} = Processor.process(12_345, "synthetic", rules, %{})
+    end
+
+    test "ky 1_000_000_000_000 spellout-cardinal still works (regression)" do
+      # spellout-cardinal's 10^12 rule is just a literal "триллион";
+      # this test pins that path so a future `<#,##0<` regression in
+      # Processor doesn't break it.
+      assert {:ok, "триллион"} =
+               Rbnf.to_string(1_000_000_000_000, "spellout-cardinal", locale: :ky)
+    end
+
+    test "ky 1.5 spellout-cardinal does not crash on >%name>" do
+      # x.x rule body: `←← бүтүн →%%z-spellout-fraction→`.
+      # Pre-fix: FunctionClauseError. Post-fix: no crash.
+      # Output is best-effort (missing the locale's denominator
+      # word — see plans/rbnf.md for the full numerator/
+      # denominator implementation).
+      assert {:ok, result} = Rbnf.to_string(1.5, "spellout-cardinal", locale: :ky)
+      assert is_binary(result)
+      assert String.contains?(result, "бир"), "expected 'бир' (one), got #{inspect(result)}"
+      assert String.contains?(result, "бүтүн"), "expected 'бүтүн' (whole), got #{inspect(result)}"
+    end
+
+    test "ky 0.5 spellout-cardinal does not crash on >%name>" do
+      assert {:ok, result} = Rbnf.to_string(0.5, "spellout-cardinal", locale: :ky)
+      assert is_binary(result)
+      assert String.contains?(result, "нөл"), "expected 'нөл' (zero), got #{inspect(result)}"
+    end
+
+    test "ky 12.345 spellout-cardinal does not crash on multi-digit fraction" do
+      assert {:ok, result} = Rbnf.to_string(12.345, "spellout-cardinal", locale: :ky)
+      assert is_binary(result)
+      # Assertion is intentionally loose; specific output depends
+      # on the fractional-numerator algorithm.
+      refute String.starts_with?(result, "{:error"), "got #{inspect(result)}"
+    end
+
+    test "<#,##0< on float (synthetic) returns the truncated integer pattern" do
+      # Pre-Bug-H this crashed; Bug E + folded H added the float
+      # quotient clause. Pin it from this test as well.
+      rules = [
+        %{
+          base_value: "x.x",
+          definition: "←#,##0← point →→",
+          divisor: 1,
+          radix: 10,
+          range: "undefined"
+        }
+      ]
+
+      {:ok, rbnf} = Localize.Locale.get(:en, [:rbnf])
+
+      all_sets =
+        Enum.reduce(rbnf, %{}, fn {_g, s}, acc ->
+          if is_map(s), do: Map.merge(acc, s), else: acc
+        end)
+
+      assert {:ok, result} = Processor.process(1234.5, "synthetic", rules, all_sets)
+      assert String.starts_with?(result, "1,234")
+      assert String.contains?(result, "point")
+    end
+  end
+
   # Wider regression coverage for non-fraction operators that share
   # the parser/processor changes touched by Bug A: pure-integer paths
   # using >>, <<, =%name=, =#,##0=, [...], -x, $(ordinal,...), and
