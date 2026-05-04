@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.26.0] — May 5th, 2026
+
+### Bug Fixes
+
+* RBNF parser now distinguishes `>>` from `>>>` so CJK locales emit fractional digits without an inter-digit separator — `Localize.Number.Rbnf.to_string(3.14, "spellout-numbering", locale: :zh)` is `三点一四` instead of `三点一 四`.
+
+* RBNF leading and embedded zeros in fractional digits, and very small magnitudes, are now preserved — `0.05 en` is `"zero point zero five"`, `3.04 zh` is `三点〇四`, and `0.000001 en` is `"zero point zero zero zero zero zero one"`.
+
+* RBNF `0.x` special-base rule now matches when the integer part is zero and the value is non-zero, routing ko `0.5 spellout-numbering` through its locale-correct sino-Korean `영점오` instead of the previous `x.x`-fallback `공점공오`.
+
+* RBNF negative floats no longer double their output or silently drop the sign — ko `-0.5 spellout-numbering` is `-영점오` instead of `공점공점오`, and locales that lack a `-x` rule now get an ASCII `-` prefix.
+
+* RBNF integer `<#,##0<` quotient and float `>%name>` / `>#,##0>` / `<%name<` modulo and quotient no longer crash, completing case-clause coverage for every TR35 substitution-argument shape.
+
+* RBNF `$(cardinal,…)` and `$(ordinal,…)` plural-keyed substitutions now use the requested locale's plural rules instead of hard-coding English — fr `Localize.Number.Rbnf.to_string(21, "digits-ordinal-masculine", locale: :fr)` is `"21e"` instead of `"21er"`.
+
+* RBNF fraction-with-rule numerator/denominator algorithm is now spec-correct — ky `1.5 spellout-cardinal` is `бир бүтүн ондон беш` instead of `бир бүтүн беш`.
+
+### Enhancements
+
+* `Localize.Number.Rbnf.to_string/3` now accepts `Decimal` inputs in addition to native integers and floats, with whole-valued Decimals routed through the integer path with no precision loss.
+
+* RBNF `>>>` integer modulo now applies the source-preceding rule per TR35 §RBNF_Syntax, closing a latent gap; no current CLDR locale exercises this path.
+
 ## [0.25.0] — May 1st, 2026
 
 ### Bug Fixes
