@@ -197,6 +197,77 @@ defmodule Localize.Number.RbnfTest do
     end
   end
 
+  # Regression: leading and embedded zeros in the fractional part
+  # must be preserved. Prior to this fix `Digits.fraction_as_integer/1`
+  # collapsed `0.05` to `5` and `3.04` to `4`, so locales whose `x.x`
+  # rule formats the fraction digit-by-digit lost zeros and produced
+  # `三点四` instead of `三点〇四`.
+  describe "leading and embedded zeros in fractional digits (Bug C)" do
+    test "English preserves a single leading-zero fraction digit" do
+      assert {:ok, "zero point zero five"} =
+               Rbnf.to_string(0.05, "spellout-numbering", locale: :en)
+    end
+
+    test "English preserves an embedded zero (1.05)" do
+      assert {:ok, "one point zero five"} =
+               Rbnf.to_string(1.05, "spellout-numbering", locale: :en)
+    end
+
+    test "English preserves multiple zeros (1.005)" do
+      assert {:ok, "one point zero zero five"} =
+               Rbnf.to_string(1.005, "spellout-numbering", locale: :en)
+    end
+
+    test "English preserves a leading-zero fraction with two more digits (0.025)" do
+      assert {:ok, "zero point zero two five"} =
+               Rbnf.to_string(0.025, "spellout-numbering", locale: :en)
+    end
+
+    test "Chinese preserves an embedded zero (3.04 → 三点〇四)" do
+      assert {:ok, "三点〇四"} = Rbnf.to_string(3.04, "spellout-numbering", locale: :zh)
+    end
+
+    test "Chinese preserves an embedded zero with leading 1 (1.05 → 一点〇五)" do
+      assert {:ok, "一点〇五"} = Rbnf.to_string(1.05, "spellout-numbering", locale: :zh)
+    end
+
+    test "Chinese preserves two embedded zeros (1.005 → 一点〇〇五)" do
+      assert {:ok, "一点〇〇五"} = Rbnf.to_string(1.005, "spellout-numbering", locale: :zh)
+    end
+
+    test "Korean preserves a leading zero in the fraction (0.05)" do
+      # ko spellout-numbering applies its `x.x` rule (the `0.x` rule
+      # is a separate Bug E and not yet routed). The integer-side
+      # fall-through formats fraction digit `0` as the locale's
+      # numbering-rule for 0 (`공`); this asserts the digit reaches
+      # the formatter at all rather than being silently dropped.
+      assert {:ok, "공점공오"} = Rbnf.to_string(0.05, "spellout-numbering", locale: :ko)
+    end
+
+    test "Korean preserves multiple zeros in the fraction (0.005)" do
+      assert {:ok, "공점공공오"} = Rbnf.to_string(0.005, "spellout-numbering", locale: :ko)
+    end
+
+    test "Korean preserves a leading zero followed by two more digits (0.025)" do
+      assert {:ok, "공점공이오"} = Rbnf.to_string(0.025, "spellout-numbering", locale: :ko)
+    end
+
+    test "Japanese preserves an embedded zero in the fraction (3.04)" do
+      assert {:ok, result} = Rbnf.to_string(3.04, "spellout-numbering", locale: :ja)
+      # Two digits in the fraction should be present (one zero, one four).
+      assert String.length(result) >= 4,
+             "expected fractional digits preserved, got #{inspect(result)}"
+    end
+
+    test "Integer-valued floats keep the existing 'point zero' tail" do
+      # `1.0` matches the `x.x` rule even though the fraction is
+      # zero. Preserve the prior behaviour (a single 'zero' digit)
+      # rather than emitting a trailing literal-only 'point '.
+      assert {:ok, "one point zero"} = Rbnf.to_string(1.0, "spellout-numbering", locale: :en)
+      assert {:ok, "zero point zero"} = Rbnf.to_string(0.0, "spellout-numbering", locale: :en)
+    end
+  end
+
   # Wider regression coverage for non-fraction operators that share
   # the parser/processor changes touched by Bug A: pure-integer paths
   # using >>, <<, =%name=, =#,##0=, [...], -x, $(ordinal,...), and
