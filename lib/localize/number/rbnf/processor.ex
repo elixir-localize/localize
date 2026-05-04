@@ -190,10 +190,41 @@ defmodule Localize.Number.Rbnf.Processor do
     end
   end
 
-  # Modulo for float (fraction processing)
+  # Modulo for float (fraction processing).
+  #
+  # The `nil` arg case is the common one: `>>` on a fraction →
+  # spell each digit. The `{:rule, _}` and `{:format, _}` cases
+  # are exercised by a small number of locales (e.g. ky's
+  # `%spellout-cardinal x.x: ←← бүтүн →%%z-spellout-fraction→`).
+  # TR35 specifies a numerator/denominator algorithm for those
+  # cases; we provide non-crashing best-effort handling here and
+  # leave the full algorithm as a follow-up. See plans/rbnf.md.
   defp do_operation(:modulo, number, rule_set, _rule, nil, all_sets)
        when is_float(number) do
     format_fraction(number, rule_set, all_sets, " ")
+  end
+
+  defp do_operation(:modulo, number, _rule_set, _rule, {:rule, rule_name}, all_sets)
+       when is_float(number) do
+    # Best-effort: dispatch fractional digits through the named
+    # rule set instead of `spellout_numbering`.
+    format_fraction(number, to_string(rule_name), all_sets, " ")
+  end
+
+  defp do_operation(:modulo, number, _rule_set, _rule, {:format, format}, _all_sets)
+       when is_float(number) do
+    # Apply the decimal-format pattern to the fractional digits
+    # treated as an integer.
+    {digits, exp, _sign} = Digits.to_digits(number)
+
+    fraction =
+      cond do
+        exp >= length(digits) -> 0
+        exp >= 0 -> digits |> Enum.drop(exp) |> Integer.undigits()
+        exp < 0 -> Integer.undigits(List.duplicate(0, -exp) ++ digits)
+      end
+
+    format_with_pattern(fraction, format)
   end
 
   # Modulo for integers
@@ -255,7 +286,12 @@ defmodule Localize.Number.Rbnf.Processor do
     format_with_pattern(trunc(number), format)
   end
 
-  # Quotient for integers
+  # Quotient for integers. The TR35 syntax allows three argument
+  # shapes — `<<` (no descriptor), `<%name<` (named rule), and
+  # `<#,##0<` (decimal format). Real CLDR data exercises the third
+  # form in private rule sets such as ky's `%%z-spellout-fraction`
+  # at base 10^12. Without the `{:format, _}` clause the case
+  # raises `no case clause matching: {:format, "..."}`.
   defp do_operation(:quotient, number, rule_set, rule, argument, all_sets)
        when is_integer(number) do
     divisor = div(number, rule.divisor)
@@ -266,6 +302,9 @@ defmodule Localize.Number.Rbnf.Processor do
 
       nil ->
         apply_rule_set(divisor, rule_set, all_sets)
+
+      {:format, format} ->
+        format_with_pattern(divisor, format)
     end
   end
 
