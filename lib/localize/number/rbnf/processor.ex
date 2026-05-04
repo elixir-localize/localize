@@ -148,7 +148,7 @@ defmodule Localize.Number.Rbnf.Processor do
   # Modulo for float (fraction processing)
   defp do_operation(:modulo, number, rule_set, _rule, nil, all_sets)
        when is_float(number) do
-    format_fraction(number, rule_set, all_sets)
+    format_fraction(number, rule_set, all_sets, " ")
   end
 
   # Modulo for integers
@@ -166,6 +166,26 @@ defmodule Localize.Number.Rbnf.Processor do
       {:format, format} ->
         format_with_pattern(mod, format)
     end
+  end
+
+  # `>>>` (modulo-preceding): per TR35, bypasses normal rule
+  # selection and applies the rule preceding this one in the rule
+  # list. In the fraction context (the common case — ja, ko, zh,
+  # th, lo, km, ak, yue, root all use it for `x.x` rules) it also
+  # signals that the per-digit results should be concatenated
+  # without a separator, producing e.g. zh `三点一四` rather than
+  # `三点一 四`.
+  #
+  # The "preceding rule" semantic for non-fraction integer modulo
+  # is not exercised by any locale in current CLDR data; for that
+  # case we fall back to standard rule-selection on the remainder.
+  defp do_operation(:modulo_preceding, number, rule_set, _rule, nil, all_sets)
+       when is_float(number) do
+    format_fraction(number, rule_set, all_sets, "")
+  end
+
+  defp do_operation(:modulo_preceding, number, rule_set, rule, argument, all_sets) do
+    do_operation(:modulo, number, rule_set, rule, argument, all_sets)
   end
 
   # Quotient for float (integer part)
@@ -285,7 +305,7 @@ defmodule Localize.Number.Rbnf.Processor do
     end
   end
 
-  defp format_fraction(number, rule_set, all_sets) do
+  defp format_fraction(number, rule_set, all_sets, separator) do
     number
     |> Digits.fraction_as_integer()
     |> Integer.to_string()
@@ -301,7 +321,7 @@ defmodule Localize.Number.Rbnf.Processor do
         result -> result
       end
     end)
-    |> Enum.join(" ")
+    |> Enum.join(separator)
   end
 
   defp apply_rule_set_or_string(number, rule_set, all_sets) do
