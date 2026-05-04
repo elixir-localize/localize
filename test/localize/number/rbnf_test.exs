@@ -715,6 +715,79 @@ defmodule Localize.Number.RbnfTest do
     end
   end
 
+  # TR35 fraction-with-rule numerator/denominator algorithm.
+  # `>%name>` on a float dispatches by *denominator* (smallest
+  # power of the radix that admits the fractional part as an
+  # integer numerator) and substitutes the *numerator* for `<<`
+  # in the matched rule body. Replaces the prior best-effort
+  # digit-by-digit fallback added in Bug G.
+  describe "fraction-with-rule numerator/denominator algorithm (§1)" do
+    test "ky 1.5 spellout-cardinal = бир бүтүн ондон беш" do
+      # x.x rule: ←← бүтүн →%%z-spellout-fraction→
+      # `<<` on integer 1 → бир
+      # Literal " бүтүн "
+      # `>%%z-spellout-fraction>` on 0.5: numerator=5, denominator=10
+      #   matches base-10 rule `ондон ←%spellout-numbering←`
+      #   numerator override → ←%spellout-numbering← substitutes 5 → беш
+      #   → ондон беш
+      assert {:ok, "бир бүтүн ондон беш"} =
+               Rbnf.to_string(1.5, "spellout-cardinal", locale: :ky)
+    end
+
+    test "ky 0.5 spellout-cardinal = нөл бүтүн ондон беш" do
+      assert {:ok, "нөл бүтүн ондон беш"} =
+               Rbnf.to_string(0.5, "spellout-cardinal", locale: :ky)
+    end
+
+    test "ky 3.14 spellout-cardinal uses denominator 100" do
+      # Two fractional digits → denominator = 100 → matches base-100
+      # rule `жүздөн ←%spellout-numbering←`. numerator = 14.
+      assert {:ok, "үч бүтүн жүздөн он төрт"} =
+               Rbnf.to_string(3.14, "spellout-cardinal", locale: :ky)
+    end
+
+    test "ky 12.345 spellout-cardinal uses denominator 1000" do
+      # Three fractional digits → denominator = 1000 → matches base-1000
+      # rule `миңден ←%spellout-numbering←`. numerator = 345.
+      assert {:ok, "он эки бүтүн миңден үч жүз кырк беш"} =
+               Rbnf.to_string(12.345, "spellout-cardinal", locale: :ky)
+    end
+
+    test "ky -1.5 spellout-cardinal preserves the locale's -x word" do
+      assert {:ok, "минус бир бүтүн ондон беш"} =
+               Rbnf.to_string(-1.5, "spellout-cardinal", locale: :ky)
+    end
+
+    test "ky integer-only path unaffected" do
+      # spellout-cardinal's 10^12 rule is just literal "триллион";
+      # this test pins the no-fraction path against unintended
+      # interaction with the new numerator/denominator helper.
+      assert {:ok, "триллион"} =
+               Rbnf.to_string(1_000_000_000_000, "spellout-cardinal", locale: :ky)
+    end
+
+    test "locales using >> (not >%name>) still go through digit-by-digit format_fraction" do
+      # No regression: en/zh/de/fr/ko spellout-numbering all use
+      # `>>` or `>>>`, not `>%name>`, so they bypass the new
+      # numerator/denominator helper entirely.
+      assert {:ok, "three point one four"} =
+               Rbnf.to_string(3.14, "spellout-numbering", locale: :en)
+
+      assert {:ok, "三点一四"} = Rbnf.to_string(3.14, "spellout-numbering", locale: :zh)
+
+      assert {:ok, "drei Komma eins vier"} =
+               Rbnf.to_string(3.14, "spellout-numbering", locale: :de)
+
+      assert {:ok, "삼점일사"} = Rbnf.to_string(3.14, "spellout-numbering", locale: :ko)
+    end
+
+    test "ee 0.x rule with >> still uses simple digit-by-digit" do
+      # ee's 0.x body is `kakɛ →→` (>>, not >%name>). Must not
+      # accidentally route through format_fraction_via_rule.
+      assert {:ok, "kakɛ atɔ̃"} = Rbnf.to_string(0.5, "spellout-numbering", locale: :ee)
+    end
+  end
+
   # Wider regression coverage for non-fraction operators that share
   # the parser/processor changes touched by Bug A: pure-integer paths
   # using >>, <<, =%name=, =#,##0=, [...], -x, $(ordinal,...), and

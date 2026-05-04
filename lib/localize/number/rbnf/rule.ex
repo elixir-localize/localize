@@ -7,15 +7,27 @@ defmodule Localize.Number.Rbnf.Rule do
   # a radix (usually 10), a definition string containing the
   # formatting pattern, a range (upper bound), and a divisor.
 
-  defstruct [:base_value, :radix, :definition, :range, :divisor]
+  defstruct [:base_value, :radix, :definition, :range, :divisor, :fraction_numerator]
 
   @type t :: %__MODULE__{
           base_value: integer() | String.t(),
           radix: integer(),
           definition: String.t(),
           range: integer() | String.t(),
-          divisor: integer() | nil
+          divisor: integer() | nil,
+          fraction_numerator: integer() | nil
         }
+
+  # `fraction_numerator` is set only in the fraction-with-rule
+  # numerator/denominator algorithm (see
+  # `Localize.Number.Rbnf.Processor.format_fraction_via_rule/4`).
+  # When a rule is matched against the *denominator* of a
+  # fraction (for example ky's `%%z-spellout-fraction` base-10
+  # rule firing on `0.5`'s denominator `10`), any `<<` substitution
+  # in the rule body must use the *numerator* directly rather
+  # than computing `div(denominator, rule.divisor)`. The
+  # integer-quotient clause checks this field and short-circuits
+  # to the pre-computed numerator.
 
   # # tokenize/1
   # Tokenizes an RBNF rule definition string.

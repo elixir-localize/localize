@@ -219,9 +219,15 @@ defmodule Localize.Number.Rbnf.Processor do
 
   defp do_operation(:modulo, number, _rule_set, _rule, {:rule, rule_name}, all_sets, locale)
        when is_float(number) do
-    # Best-effort: dispatch fractional digits through the named
-    # rule set instead of `spellout_numbering`.
-    format_fraction(number, to_string(rule_name), all_sets, " ", locale)
+    # Full TR35 fraction-with-rule numerator/denominator
+    # algorithm: rule selection runs against the denominator
+    # (smallest power of the radix ≥ the fractional part's
+    # reciprocal), and `<<` in the matched rule body substitutes
+    # the numerator. Used by ky `%%z-spellout-fraction`
+    # (`x.x: ←← бүтүн →%%z-spellout-fraction→`); produces e.g.
+    # `1.5 ky → бир бүтүн ондон беш` instead of the prior
+    # best-effort `бир бүтүн беш`.
+    format_fraction_via_rule(number, to_string(rule_name), all_sets, locale)
   end
 
   defp do_operation(:modulo, number, _rule_set, _rule, {:format, format}, _all_sets, _locale)
@@ -313,9 +319,20 @@ defmodule Localize.Number.Rbnf.Processor do
   # form in private rule sets such as ky's `%%z-spellout-fraction`
   # at base 10^12. Without the `{:format, _}` clause the case
   # raises `no case clause matching: {:format, "..."}`.
+  #
+  # When the rule has a non-nil `:fraction_numerator` field
+  # (set by `format_fraction_via_rule/4`), `<<` substitutes the
+  # numerator directly rather than computing
+  # `div(denominator, rule.divisor)`. This implements the TR35
+  # numerator/denominator algorithm for `>%name>` substitutions
+  # on a float in a parent rule's body.
   defp do_operation(:quotient, number, rule_set, rule, argument, all_sets, locale)
        when is_integer(number) do
-    divisor = div(number, rule.divisor)
+    divisor =
+      case rule do
+        %{fraction_numerator: numerator} when is_integer(numerator) -> numerator
+        _ -> div(number, rule.divisor)
+      end
 
     case argument do
       {:rule, rule_name} ->
@@ -445,6 +462,102 @@ defmodule Localize.Number.Rbnf.Processor do
       end
     end)
     |> Enum.join(separator)
+  end
+
+  # TR35 fraction-with-rule numerator/denominator algorithm.
+  #
+  # When a rule body uses `>%name>` (or its arrow form `→%name→`) on
+  # a fractional value, ICU and TR35 specify that:
+  #
+  #   1. The denominator is the smallest power of the radix
+  #      (typically `10^digit_count`) that admits the fractional
+  #      part as an integer numerator.
+  #   2. Rule selection in the named rule set is run against the
+  #      *denominator*.
+  #   3. The matched rule's body executes against the denominator
+  #      as the formatted number, BUT any `<<` substitution
+  #      substitutes the numerator directly rather than computing
+  #      `div(denominator, rule.divisor)`.
+  #
+  # The numerator override is carried in `Rule.fraction_numerator`
+  # and read by `do_operation(:quotient, integer, ...)` below.
+  #
+  # Example — ky `1.5 spellout-cardinal`:
+  #
+  #   x.x rule body: `←← бүтүн →%%z-spellout-fraction→`
+  #
+  #   * `<<` on integer 1 → `бир`
+  #   * Literal ` бүтүн `
+  #   * `>%%z-spellout-fraction>` on fraction 0.5:
+  #       numerator = 5, denominator = 10
+  #       %%z-spellout-fraction base-10 rule body: `ондон ←%spellout-numbering←`
+  #       Apply with denominator 10, numerator override = 5:
+  #         literal `ондон `
+  #         `<%spellout-numbering<` → numerator override = 5 →
+  #           apply spellout-numbering(5) → `беш`
+  #       Result: `ондон беш`
+  #   * Final: `бир бүтүн ондон беш`
+  defp format_fraction_via_rule(number, rule_set_name, all_sets, locale) do
+    digits = fractional_digit_list(number)
+
+    cond do
+      digits == [] ->
+        ""
+
+      digits == [0] ->
+        # Integer-valued float (e.g. 1.0). No fraction to format.
+        ""
+
+      true ->
+        denominator = Integer.pow(10, length(digits))
+        numerator = Integer.undigits(digits)
+
+        case lookup_rule_set(all_sets, rule_set_name) do
+          nil ->
+            # Fall back to digit-by-digit through the named rule
+            # set if it can't be found.
+            format_fraction(number, rule_set_name, all_sets, " ", locale)
+
+          %{rules: rules} ->
+            apply_fraction_rule(
+              numerator,
+              denominator,
+              rule_set_name,
+              rules,
+              all_sets,
+              locale
+            )
+        end
+    end
+  end
+
+  defp apply_fraction_rule(numerator, denominator, rule_set_name, rules, all_sets, locale) do
+    case find_matching_rule(denominator, rules) do
+      nil ->
+        Integer.to_string(numerator)
+
+      rule ->
+        rule_struct = to_rule_struct(rule)
+        wrapped = %{rule_struct | fraction_numerator: numerator}
+
+        case Rule.parse(rule_struct.definition) do
+          {:ok, parsed} ->
+            case do_rule(denominator, rule_set_name, wrapped, parsed, all_sets, locale) do
+              {:error, _} -> Integer.to_string(numerator)
+              string when is_binary(string) -> string
+            end
+
+          {:error, _} ->
+            Integer.to_string(numerator)
+        end
+    end
+  end
+
+  defp lookup_rule_set(all_rule_sets, rule_set_name) do
+    normalized_name = String.replace(rule_set_name, "-", "_")
+
+    find_rule_set(all_rule_sets, rule_set_name) ||
+      find_rule_set(all_rule_sets, normalized_name)
   end
 
   # Returns the fractional digits of a number as a list, preserving
