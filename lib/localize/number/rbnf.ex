@@ -80,7 +80,13 @@ defmodule Localize.Number.Rbnf do
          {:ok, all_rule_sets} <- extract_rule_sets(rbnf_data),
          {:ok, resolved_name} <- resolve_rule_name(rule_name, all_rule_sets, locale_id),
          {:ok, rule_set} <- find_rule_set(all_rule_sets, resolved_name, locale_id) do
-      Processor.process(number, resolved_name, rule_set.rules, all_rule_sets)
+      Processor.process(
+        number,
+        resolved_name,
+        rule_set.rules,
+        all_rule_sets,
+        to_locale_id(requested_tag)
+      )
     else
       {:error, %Localize.UnknownRbnfRuleError{}} ->
         fallback_to_parent(number, rule_name, language_tag, requested_tag)

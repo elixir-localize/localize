@@ -641,6 +641,80 @@ defmodule Localize.Number.RbnfTest do
     end
   end
 
+  # `$(cardinal,…)` and `$(ordinal,…)` plural-keyed substitutions
+  # used to look up the plural form in English regardless of the
+  # caller's locale. Locales whose plural categories differ from
+  # English on the input number — most notably French ordinals,
+  # where every number ending in `1` other than `1` itself is
+  # `:other` (yielding `21e`, `31e`, …) while English's ordinal
+  # rule treats them as `:one` (yielding `21st`, `31st`) — produced
+  # wrong output. Now `process/5` threads the locale through to
+  # `do_operation/7` so the right plural rule fires.
+  describe "plural-keyed substitutions use the requested locale (Bug L)" do
+    test "fr 1 digits-ordinal-masculine = 1er (one → :one in fr too)" do
+      assert {:ok, "1er"} = Rbnf.to_string(1, "digits-ordinal-masculine", locale: :fr)
+    end
+
+    test "fr 21 digits-ordinal-masculine = 21e (was 21er — original Bug L repro)" do
+      assert {:ok, "21e"} = Rbnf.to_string(21, "digits-ordinal-masculine", locale: :fr)
+    end
+
+    test "fr 31 digits-ordinal-masculine = 31e" do
+      assert {:ok, "31e"} = Rbnf.to_string(31, "digits-ordinal-masculine", locale: :fr)
+    end
+
+    test "fr 101 digits-ordinal-masculine = 101e" do
+      assert {:ok, "101e"} = Rbnf.to_string(101, "digits-ordinal-masculine", locale: :fr)
+    end
+
+    test "fr 1001 digits-ordinal-masculine = 1,001e" do
+      assert {:ok, "1,001e"} = Rbnf.to_string(1001, "digits-ordinal-masculine", locale: :fr)
+    end
+
+    test "fr 2 digits-ordinal-masculine = 2e (en agrees here)" do
+      assert {:ok, "2e"} = Rbnf.to_string(2, "digits-ordinal-masculine", locale: :fr)
+    end
+
+    test "fr 1 digits-ordinal-feminine = 1re" do
+      assert {:ok, "1re"} = Rbnf.to_string(1, "digits-ordinal-feminine", locale: :fr)
+    end
+
+    test "fr 21 digits-ordinal-feminine = 21e (not 21re)" do
+      assert {:ok, "21e"} = Rbnf.to_string(21, "digits-ordinal-feminine", locale: :fr)
+    end
+
+    test "en 21 digits-ordinal = 21st (regression check — must keep en :one classification)" do
+      assert {:ok, "21st"} = Rbnf.to_string(21, "digits-ordinal", locale: :en)
+    end
+
+    test "en 22 digits-ordinal = 22nd" do
+      assert {:ok, "22nd"} = Rbnf.to_string(22, "digits-ordinal", locale: :en)
+    end
+
+    test "en 23 digits-ordinal = 23rd" do
+      assert {:ok, "23rd"} = Rbnf.to_string(23, "digits-ordinal", locale: :en)
+    end
+
+    test "en 11/12/13 digits-ordinal stays :other (teens are not :one/:two/:few)" do
+      assert {:ok, "11th"} = Rbnf.to_string(11, "digits-ordinal", locale: :en)
+      assert {:ok, "12th"} = Rbnf.to_string(12, "digits-ordinal", locale: :en)
+      assert {:ok, "13th"} = Rbnf.to_string(13, "digits-ordinal", locale: :en)
+    end
+
+    test "en 101 digits-ordinal = 101st (en :one classification preserved)" do
+      assert {:ok, "101st"} = Rbnf.to_string(101, "digits-ordinal", locale: :en)
+    end
+
+    test "Italian masculine ordinal still º (rule body uses same value for every key)" do
+      # Italian's $(ordinal,...) gives the same value regardless of
+      # which key is selected — U+00BA MASCULINE ORDINAL INDICATOR
+      # (`º`), not U+00B0 DEGREE SIGN. This test pins that the
+      # locale plumbing didn't accidentally break Italian.
+      assert {:ok, "1º"} = Rbnf.to_string(1, "digits-ordinal-masculine", locale: :it)
+      assert {:ok, "21º"} = Rbnf.to_string(21, "digits-ordinal-masculine", locale: :it)
+    end
+  end
+
   # Wider regression coverage for non-fraction operators that share
   # the parser/processor changes touched by Bug A: pure-integer paths
   # using >>, <<, =%name=, =#,##0=, [...], -x, $(ordinal,...), and
