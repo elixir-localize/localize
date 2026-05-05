@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Enhancements
 
+* Add `:minimum_significant_digits` and `:maximum_significant_digits` options to `Localize.Number.to_string/2`.
+
 * `Localize.Number.Rbnf.to_string/3` now accepts `Decimal` inputs in addition to native integers and floats, with whole-valued Decimals routed through the integer path with no precision loss.
 
 * RBNF `>>>` integer modulo now applies the source-preceding rule per TR35 §RBNF_Syntax, closing a latent gap; no current CLDR locale exercises this path.
