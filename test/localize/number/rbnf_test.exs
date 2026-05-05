@@ -522,6 +522,7 @@ defmodule Localize.Number.RbnfTest do
     test "ee -0.5 retains its -x word (suffix form)" do
       # ee's -x rule appends a suffix rather than prefixing.
       assert {:ok, result} = Rbnf.to_string(-0.5, "spellout-numbering", locale: :ee)
+
       assert String.contains?(result, "xlẽyimegbee"),
              "expected ee's negative-suffix word, got #{inspect(result)}"
     end
@@ -529,8 +530,10 @@ defmodule Localize.Number.RbnfTest do
     test "positive cases are unaffected" do
       assert {:ok, "영점오"} = Rbnf.to_string(0.5, "spellout-numbering", locale: :ko)
       assert {:ok, "삼점일사"} = Rbnf.to_string(3.14, "spellout-numbering", locale: :ko)
+
       assert {:ok, "three point one four"} =
                Rbnf.to_string(3.14, "spellout-numbering", locale: :en)
+
       assert {:ok, "三点一四"} = Rbnf.to_string(3.14, "spellout-numbering", locale: :zh)
     end
   end
