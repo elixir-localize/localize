@@ -72,6 +72,10 @@ defmodule Localize.Number do
   * `:maximum_integer_digits` is an integer specifying the maximum
     number of integer digits to display.
 
+  * `:minimum_significant_digits` is an integer in `1..21` specifying the minimum number of significant digits the formatted output should retain. When set, significant-digit precision overrides the format pattern's fractional-digit settings. Defaults to the value derived from the format pattern's `@@##` notation, or `nil` (no significant-digit constraint).
+
+  * `:maximum_significant_digits` is an integer in `1..21` specifying the maximum number of significant digits to display. Values are rounded to fit using the configured `:rounding_mode`. Pairs with `:minimum_significant_digits`; when only one is set the other defaults to the corresponding ECMA-402 boundary (`1` for minimum, `21` for maximum).
+
   * `:wrapper` is a function of arity 2 that wraps formatted
     components. Useful for adding HTML markup.
 

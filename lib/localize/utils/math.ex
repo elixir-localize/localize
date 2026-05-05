@@ -586,6 +586,14 @@ defmodule Localize.Utils.Math do
     number
   end
 
+  # Zero is special-cased: `:math.log10(0)` raises `ArithmeticError`
+  # but zero is its own significant-digit-rounded form regardless
+  # of `n`. Without this guard, formatting `0` (or `0.0`) with any
+  # significant-digit setting crashes.
+  def round_significant(0, _n), do: 0
+  def round_significant(+0.0, _n), do: +0.0
+  def round_significant(-0.0, _n), do: -0.0
+
   def round_significant(number, n) when is_number(number) and n > 0 do
     sign = if number < 0, do: -1, else: 1
     number = abs(number)

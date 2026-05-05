@@ -75,12 +75,43 @@ defmodule Localize.Number.Formatter.Decimal do
   @doc false
   def update_meta(meta, number, options) do
     meta
+    |> apply_significant_digit_options(options)
     |> adjust_fraction_for_currency(options.currency, options.currency_digits)
     |> adjust_fraction_for_significant_digits(number)
     |> adjust_for_fractional_digits(options)
     |> adjust_for_integer_digits(options.maximum_integer_digits)
     |> adjust_for_round_nearest(options.round_nearest)
     |> Map.put(:number, number)
+  end
+
+  # Caller-supplied `:minimum_significant_digits` /
+  # `:maximum_significant_digits` override whatever the format
+  # pattern's `@@##` metadata produced. Per TR35 / ECMA-402,
+  # significant-digit settings take precedence over fractional-
+  # digit settings — this is enforced naturally because the
+  # formatter applies `round_to_significant_digits/2` before any
+  # fractional-digit rounding, and `adjust_fraction_for_significant_digits/2`
+  # widens the fractional-digit envelope to `%{max: 10, min: 1}`
+  # whenever significant digits are active.
+  #
+  # When only one of the two options is set, the other defaults to
+  # the same value (single-digit precision) for `:minimum_significant_digits`
+  # and to `21` (the ECMA-402 upper bound) for unset
+  # `:maximum_significant_digits`. When neither is set, the meta
+  # struct is unchanged.
+  defp apply_significant_digit_options(meta, options) do
+    min = options.minimum_significant_digits
+    max = options.maximum_significant_digits
+
+    cond do
+      is_nil(min) and is_nil(max) ->
+        meta
+
+      true ->
+        resolved_min = min || 1
+        resolved_max = max || 21
+        %{meta | significant_digits: %{min: resolved_min, max: resolved_max}}
+    end
   end
 
   # ── Core formatting pipeline ──────────────────────────────
