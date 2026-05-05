@@ -27,6 +27,8 @@ defmodule Localize.Number.Format.Options do
     :min_fractional_digits,
     :max_fractional_digits,
     :maximum_integer_digits,
+    :minimum_significant_digits,
+    :maximum_significant_digits,
     :round_nearest,
     :wrapper,
     :separators
@@ -148,6 +150,7 @@ defmodule Localize.Number.Format.Options do
          {:ok, currency_struct} <- resolve_currency(format, currency, language_tag),
          format <- maybe_switch_currency_format(format, currency_struct, language_tag),
          :ok <- validate_rounding_mode(rounding_mode),
+         :ok <- validate_significant_digits(options),
          {:ok, symbols} <- resolve_symbols(language_tag, system_name),
          {:ok, resolved_format, formats} <- resolve_format(format, language_tag, system_name) do
       currency_symbol = resolve_currency_symbol(currency_struct, options[:currency_symbol])
@@ -262,6 +265,50 @@ defmodule Localize.Number.Format.Options do
      Localize.InvalidValueError.exception(
        value: mode,
        expected: "a valid rounding mode (#{inspect(@rounding_modes)})"
+     )}
+  end
+
+  # ── Significant-digit validation ────────────────────────────
+
+  # Per ECMA-402 / TR35, both options must be positive integers in
+  # 1..21, and `maximum` must be `>= minimum` when both are set.
+  # `nil` means "not set"; the formatter falls back to the format
+  # pattern's significant-digit metadata (which defaults to no
+  # rounding when the pattern has no `@`).
+  defp validate_significant_digits(options) do
+    min = Keyword.get(options, :minimum_significant_digits)
+    max = Keyword.get(options, :maximum_significant_digits)
+
+    cond do
+      not significant_digit_value?(min) ->
+        invalid_significant_digits(:minimum_significant_digits, min)
+
+      not significant_digit_value?(max) ->
+        invalid_significant_digits(:maximum_significant_digits, max)
+
+      is_integer(min) and is_integer(max) and max < min ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: {min, max},
+           expected:
+             "maximum_significant_digits (#{max}) to be >= minimum_significant_digits (#{min})"
+         )}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp significant_digit_value?(nil), do: true
+  defp significant_digit_value?(value) when is_integer(value) and value in 1..21, do: true
+  defp significant_digit_value?(_), do: false
+
+  defp invalid_significant_digits(option, value) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: value,
+       expected: "an integer in 1..21",
+       context: Atom.to_string(option)
      )}
   end
 
