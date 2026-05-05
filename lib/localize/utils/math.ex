@@ -590,9 +590,13 @@ defmodule Localize.Utils.Math do
   # but zero is its own significant-digit-rounded form regardless
   # of `n`. Without this guard, formatting `0` (or `0.0`) with any
   # significant-digit setting crashes.
-  def round_significant(0, _n), do: 0
-  def round_significant(+0.0, _n), do: +0.0
-  def round_significant(-0.0, _n), do: -0.0
+  #
+  # The single `number == 0` guard matches `0`, `+0.0`, and `-0.0`
+  # uniformly across Elixir versions. Pattern matching on
+  # `+0.0`/`-0.0` is strict in Elixir 1.20+ but equivalent on
+  # 1.17–1.19, where the distinct clauses produce a redundant-
+  # clause warning that fails CI's `--warnings-as-errors`.
+  def round_significant(number, _n) when is_number(number) and number == 0, do: number
 
   def round_significant(number, n) when is_number(number) and n > 0 do
     sign = if number < 0, do: -1, else: 1
