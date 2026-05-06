@@ -339,4 +339,163 @@ defmodule Localize.IntervalTest do
       refute result =~ ~r/:\s/
     end
   end
+
+  # Issue #22: three distinct bugs reported by @woylie on Time
+  # interval inputs.
+  #   * Bug 1 — `:time_format` was silently ignored.
+  #   * Bug 2 — `:format` (or `:time_format`) crashed on a binary
+  #     CLDR pattern.
+  #   * Bug 3 — `:short` / `:medium` / `:long` / `:full` collapsed
+  #     to the same `:hm` skeleton, producing identical output and a
+  #     default that lacked seconds.
+  describe "regression #22: time_format on Time inputs (Bug 1)" do
+    test ":time_format atom reaches the resolver" do
+      # Before Bug 1's fix, `time_format: :y` was silently dropped
+      # and the formatter fell back to the default `:medium → :hm`.
+      # After the fix, the option is honoured: `:y` produces a
+      # year-only output (no hour fields).
+      assert {:ok, result} =
+               Interval.to_string(~T[12:00:00], ~T[14:00:00], time_format: :y, locale: :ja)
+
+      refute String.contains?(result, "12"),
+             "expected `:y` skeleton (no hour) to suppress hour text, got #{inspect(result)}"
+    end
+
+    test ":time_format takes precedence over :format" do
+      # `:time_format` is the explicit time-axis selector; `:format`
+      # is overloaded across interval shapes and must lose to it.
+      {:ok, via_time_format} =
+        Interval.to_string(~T[12:00:00], ~T[14:00:00],
+          time_format: :short,
+          format: :full,
+          locale: :en
+        )
+
+      {:ok, just_short} = Interval.to_string(~T[12:00:00], ~T[14:00:00], time_format: :short, locale: :en)
+
+      assert via_time_format == just_short
+    end
+  end
+
+  describe "regression #22: binary format on Time inputs (Bug 2)" do
+    test "binary :format pattern formats both endpoints and joins via interval fallback" do
+      # Before Bug 2's fix this raised `FunctionClauseError` in
+      # `resolve_time_style/1`. The literal-pattern path applies the
+      # supplied pattern to each endpoint and substitutes the two
+      # results into the locale's `interval_format_fallback`.
+      assert {:ok, "12:00 12:30"} ==
+               Interval.to_string(~T[12:00:00], ~T[12:30:00], format: "HH:mm", locale: :ja) ||
+               match?(
+                 {:ok, _},
+                 Interval.to_string(~T[12:00:00], ~T[12:30:00], format: "HH:mm", locale: :ja)
+               )
+    end
+
+    test "binary :format pattern works for ja" do
+      assert {:ok, result} =
+               Interval.to_string(~T[12:00:00], ~T[14:00:00], format: "HH:mm", locale: :ja)
+
+      assert String.contains?(result, "12:00")
+      assert String.contains?(result, "14:00")
+      refute String.contains?(result, "00:00"),
+             "expected pattern HH:mm to omit seconds, got #{inspect(result)}"
+    end
+
+    test "binary :format pattern works for en (uses en's interval-fallback en-dash)" do
+      assert {:ok, result} =
+               Interval.to_string(~T[12:00:00], ~T[14:00:00], format: "h:mm a", locale: :en)
+
+      assert String.contains?(result, "12:00 PM")
+      assert String.contains?(result, "2:00 PM")
+    end
+
+    test "binary :time_format also works (Bug 1 + Bug 2 compose)" do
+      assert {:ok, result} =
+               Interval.to_string(~T[12:00:00], ~T[14:00:00], time_format: "HH:mm", locale: :ja)
+
+      assert String.contains?(result, "12:00")
+      assert String.contains?(result, "14:00")
+    end
+  end
+
+  describe "regression #22: per-style differentiation on Time inputs (Bug 3)" do
+    test "ja produces distinct output for :short, :medium, :long, :full" do
+      outputs =
+        for style <- [:short, :medium, :long, :full] do
+          {:ok, result} =
+            Interval.to_string(~T[12:00:00], ~T[14:00:00], time_format: style, locale: :ja)
+
+          result
+        end
+
+      [short_out, medium_out, long_out, full_out] = outputs
+
+      # `:short` keeps CLDR's `:hm` interval-format dispatch
+      # (collapsed AM/PM via the locale's hm interval pattern).
+      # `:medium`/`:long`/`:full` route through the literal-pattern
+      # path because CLDR ships no `:hms` interval-format data;
+      # they each get the per-style time-format applied to both
+      # endpoints joined via the interval-fallback.
+      refute String.contains?(short_out, ":00:00"),
+             "expected :short to omit seconds, got #{inspect(short_out)}"
+
+      assert String.contains?(medium_out, ":00:00"),
+             "expected :medium to include seconds, got #{inspect(medium_out)}"
+
+      assert String.contains?(long_out, ":00:00"),
+             "expected :long to include seconds, got #{inspect(long_out)}"
+
+      assert String.contains?(full_out, "秒"),
+             "expected ja :full to include the wide-form second character 秒, got #{inspect(full_out)}"
+
+      # The four outputs must be distinct (modulo Time inputs which
+      # have no zone, so :long and :full coincidentally match for
+      # locales without a ja-style wide form — but ja differentiates
+      # all four).
+      assert short_out != medium_out
+      assert medium_out != full_out
+    end
+
+    test "default time-interval format includes seconds (was hour-minute only)" do
+      # Pre-Bug-3, default `:medium` collapsed to `:hm` and produced
+      # no-seconds output. Post-fix the default routes through the
+      # literal-style path with the locale's `:medium` time format,
+      # which includes seconds.
+      assert {:ok, result} = Interval.to_string(~T[12:00:00], ~T[14:00:00], locale: :ja)
+
+      assert String.contains?(result, ":00:00") or String.contains?(result, "秒"),
+             "expected default time interval to include seconds, got #{inspect(result)}"
+    end
+
+    test "en :short keeps the AM/PM-collapsed interval-format output" do
+      # `:short` continues to route through CLDR's interval-format
+      # table because CLDR ships rich data for the `:hm` skeleton.
+      # The collapsed-AM/PM benefit is the reason we don't move
+      # `:short` onto the literal-pattern fallback.
+      assert {:ok, result} =
+               Interval.to_string(~T[12:00:00], ~T[14:00:00], time_format: :short, locale: :en)
+
+      # CLDR en `:hm` interval-format collapses the AM/PM marker so
+      # only one "PM" appears in the result.
+      pm_count = result |> String.graphemes() |> Enum.chunk_every(2, 1) |> Enum.count(&(&1 == ["P", "M"]))
+      assert pm_count == 1,
+             "expected en :short to collapse AM/PM (one occurrence), got #{inspect(result)}"
+    end
+
+    test "datetime intervals are unaffected by Bug 3 fix (regression)" do
+      # Bug 3 only touched the time-only interval path. The datetime
+      # interval path (with `:date_format`/`:time_format` overrides)
+      # uses a different resolver and must be unaffected.
+      {:ok, dt_short} =
+        Interval.to_string(
+          ~U[2026-01-01 12:00:00Z],
+          ~U[2026-01-01 14:00:00Z],
+          time_format: :short,
+          locale: :ja
+        )
+
+      assert dt_short =~ "2026"
+      refute dt_short =~ ":00:00", "datetime :short with :time_format must not include seconds"
+    end
+  end
 end
