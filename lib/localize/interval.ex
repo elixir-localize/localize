@@ -142,7 +142,14 @@ defmodule Localize.Interval do
 
   defp format_time_interval(from, to, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    format = Keyword.get(options, :format, @default_format)
+
+    # `:time_format` is the explicit time-axis selector and matches
+    # the option used on datetime intervals (where `time_sub_options/1`
+    # honours it). For time-only intervals it must take precedence
+    # over `:format`, which is overloaded across interval shapes.
+    format =
+      Keyword.get(options, :time_format) ||
+        Keyword.get(options, :format, @default_format)
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
