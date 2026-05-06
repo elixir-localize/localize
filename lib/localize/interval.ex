@@ -151,10 +151,19 @@ defmodule Localize.Interval do
       Keyword.get(options, :time_format) ||
         Keyword.get(options, :format, @default_format)
 
+    case resolve_time_style(format) do
+      {:ok, {:literal, pattern}} ->
+        format_time_interval_literal(from, to, pattern, locale, options)
+
+      {:ok, format_key} ->
+        format_time_interval_styled(from, to, format_key, locale, options)
+    end
+  end
+
+  defp format_time_interval_styled(from, to, format_key, locale, options) do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
          {:ok, greatest_diff} <- greatest_difference(from, to),
-         {:ok, format_key} <- resolve_time_style(format),
          # Time interval maps use lowercase `:h` for hour-level differences
          # (the :hm/:h format maps use `h` as the key); callers/tests see
          # the same pattern selected as greatest_difference returns :H.
@@ -175,6 +184,29 @@ defmodule Localize.Interval do
 
       {:error, _} = error ->
         error
+    end
+  end
+
+  # When the caller passes a literal CLDR pattern (e.g. `"HH:mm"`)
+  # via `:format` or `:time_format`, bypass the interval-format-key
+  # lookup (which is keyed by skeleton, not pattern) and format both
+  # endpoints with the literal pattern. The two formatted endpoints
+  # are then substituted into the locale's `interval_format_fallback`
+  # template — the same wrapper used by datetime intervals when the
+  # endpoints span more than one day. Mirrors ex_cldr's
+  # `Cldr.Time.Interval.to_string/3` behaviour for binary `:format`.
+  defp format_time_interval_literal(from, to, pattern, locale, options) do
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
+         {:ok, fallback} <- get_fallback_pattern(formats),
+         {:ok, left_str} <- Localize.Time.to_string(from, [{:format, pattern} | options]),
+         {:ok, right_str} <- Localize.Time.to_string(to, [{:format, pattern} | options]) do
+      result =
+        [left_str, right_str]
+        |> Localize.Substitution.substitute(fallback)
+        |> IO.iodata_to_binary()
+
+      {:ok, result}
     end
   end
 
@@ -285,6 +317,14 @@ defmodule Localize.Interval do
 
   # Time-only intervals use skeleton keys that contain time fields.
   # Map `:short`/`:medium`/`:long` to a reasonable `h m` skeleton.
+  # A binary input is a literal CLDR pattern; flagged with the
+  # `{:literal, pattern}` tag so the caller dispatches it through the
+  # `interval_format_fallback` path instead of attempting an
+  # interval-format-key lookup.
+  defp resolve_time_style(format) when is_binary(format) do
+    {:ok, {:literal, format}}
+  end
+
   defp resolve_time_style(format) when is_atom(format) do
     # Use `:hm` skeleton (hour + minute in the locale's 12/24-hour
     # convention). CLDR provides `:hm`, `:Hm` (24-hour), `:h`, `:H`,
