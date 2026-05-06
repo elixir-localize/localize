@@ -371,7 +371,8 @@ defmodule Localize.IntervalTest do
           locale: :en
         )
 
-      {:ok, just_short} = Interval.to_string(~T[12:00:00], ~T[14:00:00], time_format: :short, locale: :en)
+      {:ok, just_short} =
+        Interval.to_string(~T[12:00:00], ~T[14:00:00], time_format: :short, locale: :en)
 
       assert via_time_format == just_short
     end
@@ -397,6 +398,7 @@ defmodule Localize.IntervalTest do
 
       assert String.contains?(result, "12:00")
       assert String.contains?(result, "14:00")
+
       refute String.contains?(result, "00:00"),
              "expected pattern HH:mm to omit seconds, got #{inspect(result)}"
     end
@@ -477,7 +479,9 @@ defmodule Localize.IntervalTest do
 
       # CLDR en `:hm` interval-format collapses the AM/PM marker so
       # only one "PM" appears in the result.
-      pm_count = result |> String.graphemes() |> Enum.chunk_every(2, 1) |> Enum.count(&(&1 == ["P", "M"]))
+      pm_count =
+        result |> String.graphemes() |> Enum.chunk_every(2, 1) |> Enum.count(&(&1 == ["P", "M"]))
+
       assert pm_count == 1,
              "expected en :short to collapse AM/PM (one occurrence), got #{inspect(result)}"
     end
