@@ -6,9 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [0.26.0] — May 6th, 2026
 
-This release fixes one user-reported bug in time interval formatting and a number of RBNF conformance bugs arising from a more complete conformance testing process. The RBNF bugs have been around undiagnosed for many years.
+This release fixes user-reported bug #22 in time interval formatting and a number of RBNF conformance bugs arising from a more complete conformance testing process. The RBNF bugs have been around unreported and undiagnosed for many years.
+
+### Breaking Change
+
+* The default `Localize.Interval.to_string/3` format output (which is `:medium`) for time-only inputs now includes seconds. `Localize.Interval.to_string!(~T[12:00:00], ~T[14:00:00], locale: :ja)` shifts from `午後0時00分～2時00分` to `12:00:00～14:00:00`. `:en`'s `:medium` shifts from `12:00 – 2:00 PM` to `12:00:00 PM – 2:00:00 PM`. Users who relied on no-seconds output should explicitly pass time_format: `:short`.
 
 ### Bug Fixes
+
+* Fix `Localize.Interval.to_string/3` collapsing the `:short`, `:medium`, `:long`, and `:full` time styles to the same `:hm` skeleton on Time inputs. `:short` keeps CLDR's interval-format dispatch (collapsed AM/PM); `:medium` and above route through the locale's per-style time-format pattern, restoring per-style differentiation and including seconds in the default `:medium` output. Thanks to @woylie for the report. Fixes #22.
 
 * Fix `:time_format` being silently ignored on `Localize.Interval.to_string/3` for Time inputs. The option now takes precedence over `:format`, matching the precedence used on datetime intervals. Thanks to @woylie for the report. Fixes #22.
 
