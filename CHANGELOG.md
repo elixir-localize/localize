@@ -4,9 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.26.0] — May 5th, 2026
+## [0.26.0] — May 6th, 2026
+
+This release fixes one user-reported bug in time interval formatting and a number of RBNF conformance bugs arising from a more complete conformance testing process. The RBNF bugs have been around undiagnosed for many years.
 
 ### Bug Fixes
+
+* Fix `:time_format` being silently ignored on `Localize.Interval.to_string/3` for Time inputs. The option now takes precedence over `:format`, matching the precedence used on datetime intervals. Thanks to @woylie for the report. Fixes #22.
+
+* Fix `Localize.Interval.to_string/3` crashing with `FunctionClauseError` when called with a binary `:format` (or `:time_format`) on Time inputs. Binary patterns are now applied to both endpoints and joined via the locale's interval-format fallback template, matching the behaviour of datetime intervals. Thanks to @woylie for the report. Fixes #22.
 
 * RBNF parser now distinguishes `>>` from `>>>` so CJK locales emit fractional digits without an inter-digit separator — `Localize.Number.Rbnf.to_string(3.14, "spellout-numbering", locale: :zh)` is `三点一四` instead of `三点一 四`.
 
