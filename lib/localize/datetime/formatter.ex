@@ -18,6 +18,16 @@ defmodule Localize.DateTime.Formatter do
 
   alias Localize.DateTime.Format.Compiler
 
+  # Handler names that emit a timezone field. Used to elide
+  # empty-zone artefacts (and their bounding whitespace) when a
+  # zoneless input — a `Time` or a `NaiveDateTime` — is formatted
+  # against a pattern that ends in `" z"` / `" zzzz"` / etc.
+  @zone_handlers ~w(
+    zone_short zone_basic zone_gmt
+    generic_non_location specific_non_location
+    zone_iso zone_iso_z
+  )a
+
   defguardp is_date(date)
             when is_map_key(date, :year) and is_map_key(date, :month) and is_map_key(date, :day)
 
@@ -60,11 +70,64 @@ defmodule Localize.DateTime.Formatter do
         end)
 
       case Enum.find(results, &match?({:error, _}, &1)) do
-        {:error, _} = error -> error
-        nil -> {:ok, results |> Enum.map(&ensure_string/1) |> IO.iodata_to_binary()}
+        {:error, _} = error ->
+          error
+
+        nil ->
+          stripped = strip_empty_zone_padding(tokens, results, [])
+          {:ok, stripped |> Enum.map(&ensure_string/1) |> IO.iodata_to_binary()}
       end
     end
   end
+
+  # Drops empty zone-handler results from the parallel `tokens` and
+  # `results` lists, also stripping any trailing whitespace from the
+  # preceding literal and any leading whitespace from the following
+  # one. A zone handler returns `""` when the input lacks zone info
+  # (e.g., a `Time` or `NaiveDateTime` formatted against a `:long` /
+  # `:full` pattern that ends in `" z"` / `" zzzz"`). Without this
+  # pass the literal space remains and the output ends with a stray
+  # trailing space (e.g. `"21:00:00 "`, `"21時00分00秒 "`).
+  defp strip_empty_zone_padding([], [], acc), do: Enum.reverse(acc)
+
+  defp strip_empty_zone_padding(
+         [{handler, _line, _count} | rest_t],
+         ["" | rest_r],
+         acc
+       )
+       when handler in @zone_handlers do
+    acc = trim_trailing_whitespace_in_acc(acc)
+    {rest_t, rest_r} = trim_leading_whitespace_in_next(rest_t, rest_r)
+    strip_empty_zone_padding(rest_t, rest_r, acc)
+  end
+
+  defp strip_empty_zone_padding([_token | rest_t], [value | rest_r], acc) do
+    strip_empty_zone_padding(rest_t, rest_r, [value | acc])
+  end
+
+  defp trim_trailing_whitespace_in_acc([last | rest]) when is_binary(last) do
+    case String.trim_trailing(last) do
+      ^last -> [last | rest]
+      "" -> rest
+      trimmed -> [trimmed | rest]
+    end
+  end
+
+  defp trim_trailing_whitespace_in_acc(acc), do: acc
+
+  defp trim_leading_whitespace_in_next(
+         [{:literal, line, _} | rest_t],
+         [next | rest_r]
+       )
+       when is_binary(next) do
+    case String.trim_leading(next) do
+      ^next -> {[{:literal, line, next} | rest_t], [next | rest_r]}
+      "" -> {rest_t, rest_r}
+      trimmed -> {[{:literal, line, trimmed} | rest_t], [trimmed | rest_r]}
+    end
+  end
+
+  defp trim_leading_whitespace_in_next(rest_t, rest_r), do: {rest_t, rest_r}
 
   defp tokenize_cached(format_string) do
     key = {:localize, :datetime_format_tokens, format_string}

@@ -99,7 +99,8 @@ defmodule Localize.Time do
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          locale_id = language_tag.cldr_locale_id,
-         effective_format = apply_hc_override(format, language_tag),
+         hc_format = apply_hc_override(format, language_tag),
+         effective_format = strip_zone_for_time_struct(hc_format, time, format, locale_id),
          {:ok, pattern} <- find_format(time, effective_format, locale_id, options),
          {:ok, formatted} <-
            Localize.DateTime.Formatter.format(time, pattern, locale_id, Map.new(options)) do
@@ -255,6 +256,58 @@ defmodule Localize.Time do
   end
 
   defp apply_hc_override(format, _language_tag), do: format
+
+  # A `%Time{}` carries no zone information by construction, so a
+  # standard format whose CLDR pattern ends in a zone field can only
+  # render that field as an empty string. Sidestep the problem at the
+  # source: strip zone characters (`z`, `Z`, `O`, `v`, `V`, `x`, `X`)
+  # from the resolved skeleton ID before resolving it to a pattern.
+  # The downstream `resolve_skeleton/3` falls back to `best_match/3`
+  # if the stripped skeleton is not present directly in the locale's
+  # `available_formats` (e.g. ko's `:ahms`), so this works for every
+  # locale without per-locale special-casing.
+  #
+  # Only fires for genuine `%Time{}` structs and only when the user
+  # supplied a standard format atom (`:short`/`:medium`/`:long`/
+  # `:full`); arbitrary maps with `:hour`/`:minute`/`:second` may
+  # carry zone data the caller wants honoured, and explicit skeletons
+  # are the user's deliberate choice.
+  defp strip_zone_for_time_struct(format, %Time{}, original, locale_id)
+       when original in @standard_formats do
+    do_strip_zone_chars(format, locale_id)
+  end
+
+  defp strip_zone_for_time_struct(format, _time, _original, _locale_id), do: format
+
+  defp do_strip_zone_chars(format, locale_id) when format in @standard_formats do
+    case Localize.DateTime.Format.time_formats(locale_id) do
+      {:ok, %{} = formats} ->
+        case Map.get(formats, format) do
+          skeleton when is_atom(skeleton) -> strip_zone_chars_from_atom(skeleton, format)
+          _ -> format
+        end
+
+      _ ->
+        format
+    end
+  end
+
+  defp do_strip_zone_chars(format, _locale_id) when is_atom(format) do
+    strip_zone_chars_from_atom(format, format)
+  end
+
+  defp do_strip_zone_chars(format, _locale_id), do: format
+
+  defp strip_zone_chars_from_atom(skeleton, fallback) do
+    string = Atom.to_string(skeleton)
+    stripped = String.replace(string, ~r/[zZOvVxX]/, "")
+
+    cond do
+      stripped == "" -> fallback
+      stripped == string -> skeleton
+      true -> String.to_atom(stripped)
+    end
+  end
 
   defp find_format(_time, format, _locale_id, _options) when is_binary(format) do
     {:ok, format}
