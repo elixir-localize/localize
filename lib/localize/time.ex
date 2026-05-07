@@ -18,6 +18,21 @@ defmodule Localize.Time do
   @default_format :medium
   # Ordered by CLDR canonical skeleton order: hour, minute, second
   @time_fields_ordered [{:hour, "h"}, {:minute, "m"}, {:second, "s"}]
+  # Cycle-appropriate skeletons used when the locale carries a
+  # `-u-hc-` override. Both 12-hour (`:hm` family) and 24-hour
+  # (`:Hm` family) variants ship in every locale's
+  # `available_formats`, with locale-correct AM/PM markers.
+  @hc_override_skeletons %{
+    {:short, :h12} => :hm,
+    {:short, :h23} => :Hm,
+    {:medium, :h12} => :hms,
+    {:medium, :h23} => :Hms,
+    {:long, :h12} => :hmsv,
+    {:long, :h23} => :Hmsv,
+    {:full, :h12} => :hmsv,
+    {:full, :h23} => :Hmsv
+  }
+
   # @time_field_names Enum.map(@time_fields_ordered, &elem(&1, 0))
 
   defguardp is_full_time(time)
@@ -82,8 +97,10 @@ defmodule Localize.Time do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, pattern} <- find_format(time, format, locale_id, options),
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         locale_id = language_tag.cldr_locale_id,
+         effective_format = apply_hc_override(format, language_tag),
+         {:ok, pattern} <- find_format(time, effective_format, locale_id, options),
          {:ok, formatted} <-
            Localize.DateTime.Formatter.format(time, pattern, locale_id, Map.new(options)) do
       {:ok, formatted}
@@ -218,6 +235,26 @@ defmodule Localize.Time do
   defp hour_cycle_from_symbol("k"), do: :h24
 
   # ── Format resolution ──────────────────────────────────────
+
+  # When the locale carries a `-u-hc-` Unicode-extension override
+  # (e.g. `"fr-u-hc-h12"`), remap a standard format atom (`:short`,
+  # `:medium`, `:long`, `:full`) to the cycle-appropriate skeleton
+  # in the locale's `available_formats`. Every locale ships
+  # `:hm`/`:hms`/`:hmsv` (12-hour, with AM/PM) and `:Hm`/`:Hms`/
+  # `:Hmsv` (24-hour) variants, so the lookup always resolves to a
+  # locale-correct pattern. `:long`/`:full` map to the `v`-zone
+  # variant (CLDR doesn't ship the `zzzz` full-zone variant for the
+  # converse cycle), so the override-driven `:full` loses the
+  # full-name timezone presentation in exchange for the requested
+  # hour cycle. Non-standard formats (skeletons, literal patterns)
+  # are returned unchanged.
+  defp apply_hc_override(format, %{locale: %{hc: hc}})
+       when format in @standard_formats and hc in [:h11, :h12, :h23, :h24] do
+    cycle = if hc in [:h11, :h12], do: :h12, else: :h23
+    Map.fetch!(@hc_override_skeletons, {format, cycle})
+  end
+
+  defp apply_hc_override(format, _language_tag), do: format
 
   defp find_format(_time, format, _locale_id, _options) when is_binary(format) do
     {:ok, format}

@@ -4,11 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.27.0] — May 8th, 2026
 
 ### Bug Fixes
 
 * Fix `Localize.Interval.to_string/3` `:short` time-interval format using the wrong hour cycle on 24-hour locales. `:short` now picks `:hm` or `:Hm` per the locale's preferred hour cycle (honouring any `-u-hc-` Unicode-extension override), matching the cycle used by `Localize.Time.to_string/2` `:short`. Thanks to @woylie for the follow-up report. Fixes #22.
+
+* Fix `Localize.Time.to_string/2` standard formats (`:short`, `:medium`, `:long`, `:full`) silently ignoring the `-u-hc-` Unicode-extension override on the locale. The override now remaps the format to the locale's cycle-appropriate `:hm`/`:hms`/`:hmsv` (12-hour, with the locale's AM/PM marker) or `:Hm`/`:Hms`/`:Hmsv` (24-hour) skeleton. `:long`/`:full` use the `v` (generic) timezone variant when overridden, since CLDR doesn't ship the `zzzz` (full-name) variant for the converse cycle.
+
+* Adds support for `Decimal` version 3.0. Thanks to @mitchellhenke for the PR.
 
 ### Enhancements
 
