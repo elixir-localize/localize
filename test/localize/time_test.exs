@@ -233,11 +233,42 @@ defmodule Localize.TimeTest do
                Localize.Time.to_string(~T[21:00:00], format: :short, locale: :en, prefer: :ascii)
     end
 
-    test "non-standard format atom (skeleton) is not remapped by hc override" do
-      # Skeleton-style formats are not touched — the user explicitly
-      # asked for `:Hms`, the cycle is implicit in the symbol.
-      assert {:ok, "21:00:00"} =
+    test "skeleton atoms are also remapped by hc override (per ICU/CLDR)" do
+      # Per ICU/Intl reference behaviour, `hc` overrides the hour
+      # cycle in the rendered output regardless of which symbol the
+      # skeleton specifies — skeleton hour symbols are selectors for
+      # skeleton-matching, not assertions of the rendered cycle.
+      # `:Hms` on `fr-u-hc-h12` flips to the locale's 12-hour
+      # equivalent (`:hms` → `"h:mm:ss a"`) with AM/PM. fr
+      # ships only the unicode variant of this skeleton, so the NBSP
+      # (U+202F) before the marker is the only available form.
+      assert {:ok, "9:00:00 PM"} =
                Localize.Time.to_string(~T[21:00:00], format: :Hms, locale: "fr-u-hc-h12")
+
+      # Reverse direction: `:hms` (12h with AM/PM) on `en-u-hc-h23`
+      # flips to 24h, dropping the AM/PM marker.
+      assert {:ok, "21:00:00"} =
+               Localize.Time.to_string(~T[21:00:00], format: :hms, locale: "en-u-hc-h23")
+
+      # ja with h12 override: `:Hms` flips to `:hms` → ja's
+      # `"aK:mm:ss"` (12-hour, AM/PM marker BEFORE the time).
+      {:ok, ja_out} =
+        Localize.Time.to_string(~T[21:00:00], format: :Hms, locale: "ja-u-hc-h12")
+
+      assert ja_out =~ "午後"
+      assert ja_out =~ "9"
+      refute ja_out =~ "21"
+    end
+
+    test "binary patterns are NOT remapped by hc override (user assertion)" do
+      # The spec is silent on raw binary patterns. We treat them as
+      # the user's deliberate assertion of the exact pattern, so
+      # `"HH:mm:ss"` stays 24h even with hc=h12.
+      assert {:ok, "21:00:00"} =
+               Localize.Time.to_string(~T[21:00:00],
+                 format: "HH:mm:ss",
+                 locale: "fr-u-hc-h12"
+               )
     end
   end
 

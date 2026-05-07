@@ -100,7 +100,8 @@ defmodule Localize.Time do
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          locale_id = language_tag.cldr_locale_id,
          hc_format = apply_hc_override(format, language_tag),
-         effective_format = strip_zone_for_time_struct(hc_format, time, format, locale_id),
+         hc_skeleton = apply_hc_to_skeleton(hc_format, language_tag),
+         effective_format = strip_zone_for_time_struct(hc_skeleton, time, format, locale_id),
          {:ok, pattern} <- find_format(time, effective_format, locale_id, options),
          {:ok, formatted} <-
            Localize.DateTime.Formatter.format(time, pattern, locale_id, Map.new(options)) do
@@ -256,6 +257,42 @@ defmodule Localize.Time do
   end
 
   defp apply_hc_override(format, _language_tag), do: format
+
+  # Applies a locale's `-u-hc-` Unicode-extension override to a
+  # user-supplied skeleton atom by substituting the hour symbol per
+  # the override (`:h11` → `K`, `:h12` → `h`, `:h23` → `H`, `:h24`
+  # → `k`). Per ICU/Intl reference behaviour, `hc` overrides the
+  # hour cycle in the rendered output regardless of which symbol
+  # the skeleton specifies — skeleton hour symbols are selectors
+  # for skeleton-matching, not assertions of the rendered cycle.
+  #
+  # Standard format atoms have already been remapped by
+  # `apply_hc_override/2` above, and binary patterns are treated as
+  # the user's deliberate assertion (the spec is silent on those),
+  # so this only fires for non-standard skeleton atoms.
+  defp apply_hc_to_skeleton(format, %{locale: %{hc: hc}})
+       when is_atom(format) and hc in [:h11, :h12, :h23, :h24] do
+    if format in @standard_formats do
+      format
+    else
+      preferred = preferred_symbol_for_cycle(hc)
+      string = Atom.to_string(format)
+      substituted = Localize.DateTime.Format.Match.apply_hc_substitution(string, preferred)
+
+      if substituted == string or substituted == "" do
+        format
+      else
+        String.to_atom(substituted)
+      end
+    end
+  end
+
+  defp apply_hc_to_skeleton(format, _language_tag), do: format
+
+  defp preferred_symbol_for_cycle(:h11), do: "K"
+  defp preferred_symbol_for_cycle(:h12), do: "h"
+  defp preferred_symbol_for_cycle(:h23), do: "H"
+  defp preferred_symbol_for_cycle(:h24), do: "k"
 
   # A `%Time{}` carries no zone information by construction, so a
   # standard format whose CLDR pattern ends in a zone field can only
