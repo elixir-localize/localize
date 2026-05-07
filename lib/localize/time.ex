@@ -137,6 +137,86 @@ defmodule Localize.Time do
     end
   end
 
+  @doc """
+  Returns the locale's preferred hour cycle.
+
+  CLDR ships a per-territory (and per locale-territory) preference
+  for how time-of-day is presented. The four cycles are:
+
+  | Atom  | Range | Description                              |
+  | :---- | :---- | :--------------------------------------- |
+  | `:h11`| 0–11  | 12-hour clock, midnight is 0             |
+  | `:h12`| 1–12  | 12-hour clock, midnight is 12            |
+  | `:h23`| 0–23  | 24-hour clock, midnight is 0             |
+  | `:h24`| 1–24  | 24-hour clock, midnight is 24            |
+
+  A `-u-hc-` Unicode extension on the locale (e.g.
+  `"fr-u-hc-h12"`) overrides the territory default.
+
+  ### Arguments
+
+  * `locale` is a locale name (atom or binary) or a
+    `t:Localize.LanguageTag.t/0`.
+
+  ### Returns
+
+  * `{:ok, hour_cycle}` where `hour_cycle` is one of `:h11`,
+    `:h12`, `:h23`, `:h24`.
+
+  * `{:error, exception}` if the locale cannot be validated.
+
+  ### Examples
+
+      iex> Localize.Time.hour_format_from_locale(:ja)
+      {:ok, :h23}
+
+      iex> Localize.Time.hour_format_from_locale("en-AU")
+      {:ok, :h12}
+
+      iex> Localize.Time.hour_format_from_locale("fr-u-hc-h12")
+      {:ok, :h12}
+
+  """
+  @spec hour_format_from_locale(Localize.LanguageTag.t() | atom() | String.t()) ::
+          {:ok, :h11 | :h12 | :h23 | :h24} | {:error, Exception.t()}
+  def hour_format_from_locale(%Localize.LanguageTag{locale: %{hc: hc}}) when not is_nil(hc) do
+    {:ok, hc}
+  end
+
+  def hour_format_from_locale(%Localize.LanguageTag{cldr_locale_id: locale_id}) do
+    prefs = Localize.DateTime.Format.Match.time_preferences_for(locale_id)
+    {:ok, hour_cycle_from_symbol(prefs.preferred)}
+  end
+
+  def hour_format_from_locale(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      hour_format_from_locale(language_tag)
+    end
+  end
+
+  @doc """
+  Same as `hour_format_from_locale/1` but raises on error.
+
+  ### Examples
+
+      iex> Localize.Time.hour_format_from_locale!(:ja)
+      :h23
+
+  """
+  @spec hour_format_from_locale!(Localize.LanguageTag.t() | atom() | String.t()) ::
+          :h11 | :h12 | :h23 | :h24
+  def hour_format_from_locale!(locale) do
+    case hour_format_from_locale(locale) do
+      {:ok, cycle} -> cycle
+      {:error, exception} -> raise exception
+    end
+  end
+
+  defp hour_cycle_from_symbol("h"), do: :h12
+  defp hour_cycle_from_symbol("K"), do: :h11
+  defp hour_cycle_from_symbol("H"), do: :h23
+  defp hour_cycle_from_symbol("k"), do: :h24
+
   # ── Format resolution ──────────────────────────────────────
 
   defp find_format(_time, format, _locale_id, _options) when is_binary(format) do

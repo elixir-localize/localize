@@ -151,7 +151,7 @@ defmodule Localize.Interval do
       Keyword.get(options, :time_format) ||
         Keyword.get(options, :format, @default_format)
 
-    case resolve_time_style(format) do
+    case resolve_time_style(format, locale) do
       {:ok, {:literal, pattern}} ->
         format_time_interval_literal(from, to, pattern, locale, options)
 
@@ -163,6 +163,9 @@ defmodule Localize.Interval do
 
       {:ok, format_key} ->
         format_time_interval_styled(from, to, format_key, locale, options)
+
+      {:error, _} = error ->
+        error
     end
   end
 
@@ -170,10 +173,11 @@ defmodule Localize.Interval do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
          {:ok, greatest_diff} <- greatest_difference(from, to),
-         # Time interval maps use lowercase `:h` for hour-level differences
-         # (the :hm/:h format maps use `h` as the key); callers/tests see
-         # the same pattern selected as greatest_difference returns :H.
-         time_diff = normalize_time_diff(greatest_diff),
+         # `greatest_difference/2` returns `:H` for any hour-level
+         # difference. CLDR's interval-format maps key the entry by
+         # the skeleton's hour symbol — `:hm`/`:Bhm` use `:h`, while
+         # `:Hm`/`:Hmv` use `:H`. Pick the key that matches `format_key`.
+         time_diff = normalize_time_diff(greatest_diff, format_key),
          {:ok, interval_pattern} <- get_interval_pattern(formats, format_key, time_diff),
          {:ok, [left, right]} <- split_interval(interval_pattern) do
       options_map = Map.new(options)
@@ -321,29 +325,36 @@ defmodule Localize.Interval do
     Map.put(base, :format, format)
   end
 
-  # Time-only interval format maps use `:h` as the hour-level difference
-  # key (mirroring CLDR's `intervalFormatItem` notation). Our
-  # `greatest_difference/2` returns `:H` for any hour-level difference.
-  # Translate at the lookup boundary so the existing `get_interval_pattern`
-  # fallback chain (`:M → :d → :y`) still works unchanged.
-  defp normalize_time_diff(:H), do: :h
-  defp normalize_time_diff(diff), do: diff
+  # Time-only interval format maps key the hour-level entry by the
+  # skeleton's own hour symbol. 12-hour skeletons (`:hm`, `:Bhm`,
+  # `:hmv`) use `:h`; 24-hour skeletons (`:Hm`, `:Hmv`, `:H`) use
+  # `:H`. Our `greatest_difference/2` always returns `:H` for an
+  # hour-level difference, so collapse to `:h` only when the
+  # `format_key` doesn't contain an uppercase `H`.
+  defp normalize_time_diff(:H, format_key) when is_atom(format_key) do
+    if format_key |> Atom.to_string() |> String.contains?("H"), do: :H, else: :h
+  end
+
+  defp normalize_time_diff(diff, _format_key), do: diff
 
   # Time-only intervals use skeleton keys that contain time fields.
   # A binary input is a literal CLDR pattern; flagged with the
   # `{:literal, pattern}` tag so the caller dispatches it through the
   # `interval_format_fallback` path instead of attempting an
   # interval-format-key lookup.
-  defp resolve_time_style(format) when is_binary(format) do
+  defp resolve_time_style(format, _locale) when is_binary(format) do
     {:ok, {:literal, format}}
   end
 
   # The standard styles map as follows:
   #
-  # * `:short` → `:hm` skeleton, dispatched via CLDR's interval-format
-  #   table. CLDR ships `:hm` (and `:Hm`/`:hmv`/`:Hmv`/`:Bhm`) interval
-  #   patterns that collapse repeated parts (e.g. "12:00 – 12:30 PM"
-  #   for en, sharing the AM/PM marker between endpoints).
+  # * `:short` → `:hm` or `:Hm` skeleton, chosen from the locale's
+  #   preferred hour cycle (via `Localize.Time.hour_format_from_locale/1`,
+  #   which honours any `-u-hc-` Unicode-extension override).
+  #   12-hour locales (h11/h12) use `:hm`; 24-hour locales (h23/h24)
+  #   use `:Hm`. Both are dispatched via CLDR's interval-format table,
+  #   which ships per-locale collapsing — e.g. en's
+  #   "12:00 – 12:30 PM" sharing the AM/PM marker between endpoints.
   #
   # * `:medium`, `:long`, `:full` → tagged `{:fallback_style, style}`.
   #   CLDR does NOT ship `:hms` (or zone-bearing) interval patterns,
@@ -355,13 +366,21 @@ defmodule Localize.Interval do
   #   (`:short` → no seconds, `:medium`+ → with seconds), matching
   #   the precedent set by `Localize.Time.to_string/2`.
   #
-  # The previous implementation collapsed all atom styles to `:hm`,
-  # producing identical output for `:short` / `:medium` / `:long`.
-  defp resolve_time_style(:short), do: {:ok, :hm}
-  defp resolve_time_style(:medium), do: {:ok, {:fallback_style, :medium}}
-  defp resolve_time_style(:long), do: {:ok, {:fallback_style, :long}}
-  defp resolve_time_style(:full), do: {:ok, {:fallback_style, :full}}
-  defp resolve_time_style(format) when is_atom(format), do: {:ok, format}
+  # The previous implementation hard-coded `:short` to `:hm`, which
+  # ignored the locale's hour-cycle preference and produced 12-hour
+  # output for 24-hour locales like `:ja` and `:de`.
+  defp resolve_time_style(:short, locale) do
+    case Localize.Time.hour_format_from_locale(locale) do
+      {:ok, cycle} when cycle in [:h11, :h12] -> {:ok, :hm}
+      {:ok, cycle} when cycle in [:h23, :h24] -> {:ok, :Hm}
+      {:error, _} = error -> error
+    end
+  end
+
+  defp resolve_time_style(:medium, _locale), do: {:ok, {:fallback_style, :medium}}
+  defp resolve_time_style(:long, _locale), do: {:ok, {:fallback_style, :long}}
+  defp resolve_time_style(:full, _locale), do: {:ok, {:fallback_style, :full}}
+  defp resolve_time_style(format, _locale) when is_atom(format), do: {:ok, format}
 
   # Open-ended intervals. One endpoint is `nil`; format the known
   # endpoint using its normal single-value formatter, then substitute

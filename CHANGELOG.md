@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Bug Fixes
+
+* Fix `Localize.Interval.to_string/3` `:short` time-interval format using the wrong hour cycle on 24-hour locales. `:short` now picks `:hm` or `:Hm` per the locale's preferred hour cycle (honouring any `-u-hc-` Unicode-extension override), matching the cycle used by `Localize.Time.to_string/2` `:short`. Thanks to @woylie for the follow-up report. Fixes #22.
+
+### Enhancements
+
+* Add `Localize.Time.hour_format_from_locale/1` (and `!/1`) returning the locale's preferred hour cycle (`:h11`/`:h12`/`:h23`/`:h24`), honouring any `-u-hc-` Unicode-extension override.
+
 ## [0.26.0] — May 6th, 2026
 
 This release fixes user-reported bug #22 in time interval formatting and a number of RBNF conformance bugs arising from a more complete conformance testing process. The RBNF bugs have been around unreported and undiagnosed for many years.

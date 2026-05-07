@@ -426,7 +426,8 @@ defmodule Localize.DateTime.Format.Match do
     char <> do_replace_time_symbols(rest, preferred, allowed)
   end
 
-  defp time_preferences_for(locale_id) do
+  @doc false
+  def time_preferences_for(locale_id) do
     locale_atom =
       if is_atom(locale_id), do: locale_id, else: String.to_atom(Kernel.to_string(locale_id))
 
