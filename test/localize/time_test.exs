@@ -186,4 +186,58 @@ defmodule Localize.TimeTest do
       assert :h23 == Localize.Time.hour_format_from_locale!(:ja)
     end
   end
+
+  describe "to_string/2 honours -u-hc- on standard formats" do
+    # Reported by @woylie as a follow-up to #22. Standard formats
+    # (`:short`/`:medium`/`:long`/`:full`) used to read the locale's
+    # static `time_formats[:style]` skeleton with no awareness of any
+    # `-u-hc-` Unicode-extension override, so e.g. `"fr-u-hc-h12"`
+    # silently produced 24-hour output. The fix remaps the standard
+    # format to the locale's cycle-appropriate `:hm`/`:hms`/`:hmsv`
+    # (12-hour) or `:Hm`/`:Hms`/`:Hmsv` (24-hour) skeleton.
+
+    test "fr-u-hc-h12 flips :short/:medium to 12-hour with AM/PM" do
+      assert {:ok, "9:00 PM"} =
+               Localize.Time.to_string(~T[21:00:00], format: :short, locale: "fr-u-hc-h12")
+
+      assert {:ok, "9:00:00 PM"} =
+               Localize.Time.to_string(~T[21:00:00], format: :medium, locale: "fr-u-hc-h12")
+    end
+
+    test "en-u-hc-h23 flips :short/:medium to 24-hour, no AM/PM" do
+      assert {:ok, "21:00"} =
+               Localize.Time.to_string(~T[21:00:00], format: :short, locale: "en-u-hc-h23")
+
+      assert {:ok, "21:00:00"} =
+               Localize.Time.to_string(~T[21:00:00], format: :medium, locale: "en-u-hc-h23")
+    end
+
+    test "ja-u-hc-h12 emits Japanese AM/PM marker before the time" do
+      {:ok, short} =
+        Localize.Time.to_string(~T[21:00:00], format: :short, locale: "ja-u-hc-h12")
+
+      assert short =~ "午後"
+      assert short =~ "9"
+      refute short =~ "21"
+    end
+
+    test "no override: ja keeps its native 24-hour cycle" do
+      assert {:ok, "21:00"} = Localize.Time.to_string(~T[21:00:00], format: :short, locale: :ja)
+
+      assert {:ok, "21:00:00"} =
+               Localize.Time.to_string(~T[21:00:00], format: :medium, locale: :ja)
+    end
+
+    test "no override: en keeps its native 12-hour cycle" do
+      assert {:ok, "9:00 PM"} =
+               Localize.Time.to_string(~T[21:00:00], format: :short, locale: :en, prefer: :ascii)
+    end
+
+    test "non-standard format atom (skeleton) is not remapped by hc override" do
+      # Skeleton-style formats are not touched — the user explicitly
+      # asked for `:Hms`, the cycle is implicit in the symbol.
+      assert {:ok, "21:00:00"} =
+               Localize.Time.to_string(~T[21:00:00], format: :Hms, locale: "fr-u-hc-h12")
+    end
+  end
 end
