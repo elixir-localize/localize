@@ -502,4 +502,85 @@ defmodule Localize.IntervalTest do
       refute dt_short =~ ":00:00", "datetime :short with :time_format must not include seconds"
     end
   end
+
+  describe "regression #22: :short time interval honours locale's hour cycle" do
+    # Reported by @woylie after 0.26.0: `:short` was hard-coded to the
+    # `:hm` skeleton (12-hour), so 24-hour locales like `:ja` and `:de`
+    # got AM/PM 12-hour output for time intervals while their single
+    # `Localize.Time.to_string!(t, format: :short)` returned 24-hour.
+    # The fix routes `:short` through `Localize.Time.hour_format_from_locale/1`,
+    # picking `:hm` for h11/h12 and `:Hm` for h23/h24, and honours
+    # any `-u-hc-` Unicode-extension override.
+
+    test ":ja :short uses 24-hour digits and no AM/PM" do
+      # CLDR's :Hm interval skeleton for :ja is "H時mm分～H時mm分"
+      # (Japanese unit markers, distinct from the :short time pattern
+      # "H:mm"). The hour-cycle is what matters here: 21/23, not 9/11.
+      {:ok, interval} =
+        Interval.to_string(~T[21:00:00], ~T[23:30:00], format: :short, locale: :ja)
+
+      assert interval =~ "21"
+      assert interval =~ "23"
+      refute interval =~ "9", "ja :short interval must not use 12-hour digits (9 PM)"
+      refute interval =~ "11", "ja :short interval must not use 12-hour digits (11 PM)"
+      refute interval =~ "午前", "ja :short interval must not contain AM marker"
+      refute interval =~ "午後", "ja :short interval must not contain PM marker"
+    end
+
+    test ":de :short uses 24-hour with no AM/PM" do
+      {:ok, interval} =
+        Interval.to_string(~T[21:00:00], ~T[23:30:00], format: :short, locale: :de)
+
+      assert interval =~ "21:00"
+      assert interval =~ "23:30"
+      refute interval =~ "PM", "de :short interval must not contain English AM/PM"
+      refute interval =~ "AM", "de :short interval must not contain English AM/PM"
+    end
+
+    test ":en :short keeps CLDR's AM/PM collapsing for same-period intervals" do
+      {:ok, interval} =
+        Interval.to_string(
+          ~T[12:00:00],
+          ~T[12:30:00],
+          format: :short,
+          locale: :en,
+          prefer: :ascii
+        )
+
+      assert interval =~ "PM"
+      # CLDR's :hm interval-format collapses the shared AM/PM marker —
+      # one "PM" at the end, not two.
+      assert length(String.split(interval, "PM")) == 2
+    end
+
+    test "-u-hc-h12 override on a 24-hour locale flips :short to 12-hour" do
+      {:ok, interval} =
+        Interval.to_string(
+          ~T[21:00:00],
+          ~T[23:30:00],
+          format: :short,
+          locale: "fr-u-hc-h12"
+        )
+
+      assert interval =~ "9"
+      assert interval =~ "11"
+      assert interval =~ "PM"
+    end
+
+    test "-u-hc-h23 override on a 12-hour locale flips :short to 24-hour" do
+      {:ok, interval} =
+        Interval.to_string(
+          ~T[21:00:00],
+          ~T[23:30:00],
+          format: :short,
+          locale: "en-u-hc-h23",
+          prefer: :ascii
+        )
+
+      assert interval =~ "21:00"
+      assert interval =~ "23:30"
+      refute interval =~ "PM"
+      refute interval =~ "AM"
+    end
+  end
 end

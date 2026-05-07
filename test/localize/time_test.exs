@@ -152,4 +152,38 @@ defmodule Localize.TimeTest do
       end
     end
   end
+
+  describe "hour_format_from_locale/1" do
+    test "24-hour locales return :h23" do
+      assert {:ok, :h23} = Localize.Time.hour_format_from_locale(:ja)
+      assert {:ok, :h23} = Localize.Time.hour_format_from_locale(:de)
+      assert {:ok, :h23} = Localize.Time.hour_format_from_locale(:fr)
+    end
+
+    test "12-hour locales return :h12" do
+      assert {:ok, :h12} = Localize.Time.hour_format_from_locale(:en)
+      assert {:ok, :h12} = Localize.Time.hour_format_from_locale("en-AU")
+    end
+
+    test "honours -u-hc-h12 override on a 24-hour locale" do
+      assert {:ok, :h12} = Localize.Time.hour_format_from_locale("fr-u-hc-h12")
+    end
+
+    test "honours -u-hc-h23 override on a 12-hour locale" do
+      assert {:ok, :h23} = Localize.Time.hour_format_from_locale("en-u-hc-h23")
+    end
+
+    test "honours -u-hc-h11 override" do
+      assert {:ok, :h11} = Localize.Time.hour_format_from_locale("ja-u-hc-h11")
+    end
+
+    test "accepts a LanguageTag struct directly" do
+      {:ok, language_tag} = Localize.validate_locale("fr-u-hc-h12")
+      assert {:ok, :h12} = Localize.Time.hour_format_from_locale(language_tag)
+    end
+
+    test "bang variant returns the bare cycle atom" do
+      assert :h23 == Localize.Time.hour_format_from_locale!(:ja)
+    end
+  end
 end
