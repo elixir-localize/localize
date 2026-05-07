@@ -366,6 +366,19 @@ defmodule Localize.DateTime.Format.Match do
     end
   end
 
+  @doc false
+  # Applies the same hour-symbol substitution as the `j`/`J`/`C`
+  # meta-symbol resolution, but driven by an externally-supplied
+  # preferred hour symbol (one of `"h"`, `"H"`, `"K"`, `"k"`). Used
+  # by `Localize.Time` to honour a locale's `-u-hc-` Unicode-extension
+  # override on user-supplied skeleton atoms — per ICU/Intl reference
+  # behaviour, `hc` overrides the hour cycle in the rendered output
+  # regardless of what symbol the skeleton specifies.
+  def apply_hc_substitution(skeleton, preferred)
+      when is_binary(skeleton) and is_binary(preferred) do
+    do_replace_time_symbols(skeleton, preferred, preferred)
+  end
+
   defp do_replace_time_symbols("", _preferred, _allowed), do: ""
 
   defp do_replace_time_symbols(<<"j", rest::binary>>, preferred, allowed) do
