@@ -202,7 +202,7 @@ defmodule Localize.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:decimal, "~> 2.0"},
+      {:decimal, "~> 2.0 or ~> 3.0"},
       {:gettext, "~> 1.0"},
       {:ex_doc, "~> 0.18", only: [:dev, :release]},
       {:nimble_parsec, "~> 1.0", runtime: false},
