@@ -12,7 +12,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Fix `Localize.Time.to_string/2` standard formats (`:short`, `:medium`, `:long`, `:full`) silently ignoring the `-u-hc-` Unicode-extension override on the locale. The override now remaps the format to the locale's cycle-appropriate `:hm`/`:hms`/`:hmsv` (12-hour, with the locale's AM/PM marker) or `:Hm`/`:Hms`/`:Hmsv` (24-hour) skeleton. `:long`/`:full` use the `v` (generic) timezone variant when overridden, since CLDR doesn't ship the `zzzz` (full-name) variant for the converse cycle.
 
-* Adds support for `Decimal` version 3.0. Thanks to @mitchellhenke for the PR.
+* Fix zone-field artefacts on `%Time{}` standard formats. A `Time` carries no zone information, so `Localize.Time.to_string/2` now strips zone characters (`z`, `Z`, `O`, `v`, `V`, `x`, `X`) from the resolved skeleton ID before formatting. `Localize.Time.to_string!(~T[21:00:00], format: :long, locale: :ja)` returns `"21:00:00"` (was `"21:00:00 "` — trailing space), and `:es` `:full` returns `"21:00:00"` instead of `"21:00:00 ()"` (parens around the empty zone field). On a `Time`, `:long`/`:full` now resolve to the same skeleton as `:medium` for most locales — the only field distinguishing them in CLDR was the zone, and there is no zone to render. The formatter retains a defensive post-pass that elides empty zone results plus bounding whitespace for non-`%Time{}` zoneless inputs (notably `NaiveDateTime`).
+
+* Adds support for `Decimal` version 3.0 to address a [CVE](https://github.com/ericmj/decimal/security/advisories/GHSA-rhv4-8758-jx7v). Thanks to @mitchellhenke for the PR.
 
 ### Enhancements
 

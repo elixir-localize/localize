@@ -240,4 +240,55 @@ defmodule Localize.TimeTest do
                Localize.Time.to_string(~T[21:00:00], format: :Hms, locale: "fr-u-hc-h12")
     end
   end
+
+  describe "to_string/2 strips empty zone padding on zoneless inputs" do
+    # Several locales' `:long`/`:full` time patterns end in
+    # `" z"` / `" zzzz"`. With a `Time` (no zone) or `NaiveDateTime`
+    # (no zone), the zone field renders empty but the literal space
+    # used to remain, leaving outputs like `"21:00:00 "` and
+    # `"21時00分00秒 "`. The formatter now elides empty zone results
+    # along with their immediately-bounding whitespace.
+
+    test ":ja :long on a Time loses the trailing space" do
+      assert {:ok, out} = Localize.Time.to_string(~T[21:00:00], format: :long, locale: :ja)
+      refute String.ends_with?(out, " ")
+      assert out == "21:00:00"
+    end
+
+    test ":ja :full on a Time strips zone fields (and collapses with :medium)" do
+      # `:ja`'s `:full` skeleton (`:Hmmsszzzz`) is the only one that
+      # carries the Japanese unit chars `時/分/秒` — they live in the
+      # zone-bearing pattern, not the zone-free one. Stripping the
+      # zone falls back to ja's `:Hmmss` skeleton, which maps to the
+      # Western-style `"H:mm:ss"`. So `:full` on a `%Time{}` loses
+      # both the trailing space AND the Japanese unit chars; this
+      # collapses :long/:full with :medium for zoneless inputs, which
+      # is correct — there is no zone to differentiate them by.
+      assert {:ok, "21:00:00"} = Localize.Time.to_string(~T[21:00:00], format: :full, locale: :ja)
+      assert {:ok, "21:00:00"} = Localize.Time.to_string(~T[21:00:00], format: :long, locale: :ja)
+
+      assert {:ok, "21:00:00"} =
+               Localize.Time.to_string(~T[21:00:00], format: :medium, locale: :ja)
+    end
+
+    test ":de :long/:full on a Time loses the trailing space" do
+      assert {:ok, "21:00:00"} = Localize.Time.to_string(~T[21:00:00], format: :long, locale: :de)
+      assert {:ok, "21:00:00"} = Localize.Time.to_string(~T[21:00:00], format: :full, locale: :de)
+    end
+
+    test "DateTime with a real zone keeps the zone (no regression)" do
+      {:ok, out} =
+        Localize.DateTime.to_string(~U[2026-01-01 21:00:00Z], format: :long, locale: :de)
+
+      assert out =~ "GMT"
+      refute String.ends_with?(out, " ")
+    end
+
+    test "NaiveDateTime (no zone) loses the trailing space" do
+      assert {:ok, out} =
+               Localize.DateTime.to_string(~N[2026-01-01 21:00:00], format: :long, locale: :de)
+
+      refute String.ends_with?(out, " ")
+    end
+  end
 end
