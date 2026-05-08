@@ -286,6 +286,19 @@ defmodule Localize.TimeTest do
       assert out == "21:00:00"
     end
 
+    test "NaiveDateTime via Localize.Time.to_string also strips zone fields" do
+      # `%NaiveDateTime{}` is also zoneless by construction, so the
+      # same skeleton-strip applies when callers route a NaiveDateTime
+      # through `Localize.Time.to_string` (e.g., displaying just the
+      # time portion of a wall-clock value).
+      ndt = ~N[2026-05-08 21:00:00]
+
+      assert {:ok, "21:00:00"} = Localize.Time.to_string(ndt, format: :long, locale: :ja)
+      assert {:ok, "21:00:00"} = Localize.Time.to_string(ndt, format: :full, locale: :ja)
+      assert {:ok, "21:00:00"} = Localize.Time.to_string(ndt, format: :long, locale: :de)
+      assert {:ok, "21:00:00"} = Localize.Time.to_string(ndt, format: :full, locale: :es)
+    end
+
     test ":ja :full on a Time strips zone fields (and collapses with :medium)" do
       # `:ja`'s `:full` skeleton (`:Hmmsszzzz`) is the only one that
       # carries the Japanese unit chars `時/分/秒` — they live in the
