@@ -660,7 +660,7 @@ defmodule Localize.Utils.Math do
       4.812184355372417
 
       iex> Localize.Utils.Math.log(Decimal.new(9000))
-      Decimal.new("9.103886231350952380952380952")
+      Decimal.new("9.103886231350952380952380952380952")
 
   """
   def log(number) when is_number(number) do
@@ -719,7 +719,7 @@ defmodule Localize.Utils.Math do
       2.089905111439398
 
       iex> Localize.Utils.Math.log10(Decimal.new(9000))
-      Decimal.new("3.953767554157656512064441441")
+      Decimal.new("3.953767554157656512064441441036289")
 
   """
   @spec log10(number_or_decimal) :: float() | Decimal.t()
@@ -987,75 +987,97 @@ defmodule Localize.Utils.Math do
   end
 
   @doc """
-  Calculates the square root of a Decimal number using Newton's method.
+  Calculates the square root of a number using Newton's method.
 
-  For integers and floats, delegates to the erlang `:math` module.
-  For Decimals, an initial estimate from `:math.sqrt` is refined
-  iteratively.
+  For `Decimal` input the result is rounded to the precision of the current
+  process' `Decimal.Context` (see `Decimal.Context.get/0`). The Decimal 2.x
+  default is 28 digits; the IEEE 754 decimal128 default in Decimal 3.0 is 34.
+  Set a different precision with `Decimal.Context.set/1` or
+  `Decimal.Context.with/2` to change the result's precision.
+
+  Integer and float inputs are delegated to `:math.sqrt/1`.
 
   ### Arguments
 
-  * `number` is an integer, float, or Decimal.
+  * `number` is the number whose square root is to be calculated. May be an
+    integer, a float, or a `t:Decimal.t/0`.
 
-  * `precision` is the desired precision (default: 0.0001).
+  * `precision` is the absolute convergence threshold used by Newton's method
+    when `number` is a `t:Decimal.t/0`. When `nil` (the default), the threshold
+    is `10^-precision` where `precision` is the current `Decimal.Context`
+    precision. May also be passed as an integer, a float, or a
+    `t:Decimal.t/0`. Ignored for integer and float input.
 
   ### Returns
 
-  * The square root of the number.
+  * A `t:Decimal.t/0` rounded to the current `Decimal.Context` precision when
+    `number` is a `t:Decimal.t/0`.
+
+  * A float when `number` is an integer or float.
 
   ### Examples
 
       iex> Localize.Utils.Math.sqrt(Decimal.new(9))
       Decimal.new("3.0")
 
-      iex> Localize.Utils.Math.sqrt(Decimal.new("9.869"))
+      iex> Decimal.Context.with(%{Decimal.Context.get() | precision: 28}, fn ->
+      ...>   Localize.Utils.Math.sqrt(Decimal.new("9.869"))
+      ...> end)
       Decimal.new("3.141496458696078173887197038")
 
   """
-  @precision 0.0001
-  @decimal_precision Decimal.from_float(@precision)
-  def sqrt(number, precision \\ @precision)
+  @initial_old_estimate Decimal.from_float(0.0001)
+  def sqrt(number, precision \\ nil)
 
   def sqrt(%Decimal{sign: sign} = number, _precision)
       when sign == -1 do
     raise ArgumentError, "bad argument in arithmetic expression #{inspect(number)}"
   end
 
-  def sqrt(%Decimal{} = number, precision)
-      when is_number(precision) do
+  def sqrt(%Decimal{} = number, precision) do
     initial_estimate =
       number
       |> to_float
       |> :math.sqrt()
       |> Decimal.from_float()
 
-    decimal_precision =
-      if is_integer(precision) do
-        Decimal.new(precision)
-      else
-        Decimal.from_float(precision)
-      end
+    threshold = sqrt_threshold(precision)
 
-    do_sqrt(number, initial_estimate, @decimal_precision, decimal_precision)
+    number
+    |> do_sqrt(initial_estimate, @initial_old_estimate, threshold)
+    |> Decimal.apply_context()
   end
 
   def sqrt(number, _precision) do
     :math.sqrt(number)
   end
 
+  defp sqrt_threshold(nil) do
+    Decimal.new(1, 1, -Decimal.Context.get().precision)
+  end
+
+  defp sqrt_threshold(precision) when is_integer(precision) do
+    Decimal.new(precision)
+  end
+
+  defp sqrt_threshold(precision) when is_float(precision) do
+    Decimal.from_float(precision)
+  end
+
+  defp sqrt_threshold(%Decimal{} = precision), do: precision
+
   defp do_sqrt(
          %Decimal{} = number,
          %Decimal{} = estimate,
          %Decimal{} = old_estimate,
-         %Decimal{} = precision
+         %Decimal{} = threshold
        ) do
     diff =
       estimate
       |> Decimal.sub(old_estimate)
       |> Decimal.abs()
 
-    if Localize.Utils.Decimal.compare(diff, old_estimate) == :lt ||
-         Localize.Utils.Decimal.compare(diff, old_estimate) == :eq do
+    if Localize.Utils.Decimal.compare(diff, threshold) in [:lt, :eq] do
       estimate
     else
       new_estimate =
@@ -1064,7 +1086,20 @@ defmodule Localize.Utils.Math do
           Decimal.div(number, Decimal.mult(@two, estimate))
         )
 
-      do_sqrt(number, new_estimate, estimate, precision)
+      new_diff =
+        new_estimate
+        |> Decimal.sub(estimate)
+        |> Decimal.abs()
+
+      # Once Newton's method stops reducing the delta we've reached the
+      # precision floor of the active Decimal context — any further iteration
+      # would oscillate in the least significant digit. Return the best
+      # available estimate.
+      if Localize.Utils.Decimal.compare(new_diff, diff) in [:gt, :eq] do
+        new_estimate
+      else
+        do_sqrt(number, new_estimate, estimate, threshold)
+      end
     end
   end
 
