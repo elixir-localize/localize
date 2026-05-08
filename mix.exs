@@ -209,16 +209,8 @@ defmodule Localize.MixProject do
       {:elixir_make, "~> 0.4", runtime: false, optional: true},
       {:sweet_xml, "~> 0.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
-      {:stream_data, "~> 1.0", only: :test},
-
-      # Benchmark-only deps — used by the `:bench` environment to
-      # compare Localize with the ex_cldr_* libraries. These are
-      # never compiled into any non-benchmark build.
-      {:ex_cldr_numbers, "~> 2.0", only: :bench},
-      {:ex_cldr_dates_times, "~> 2.0", only: :bench},
-      {:ex_cldr_units, "~> 3.0", only: :bench},
-      {:benchee, "~> 1.3", only: :bench}
-    ] ++ maybe_json_polyfill()
+      {:stream_data, "~> 1.0", only: :test}
+    ] ++ maybe_json_polyfill() ++ maybe_cldr()
   end
 
   defp maybe_json_polyfill do
@@ -226,6 +218,22 @@ defmodule Localize.MixProject do
       []
     else
       [{:json_polyfill, "~> 0.2 or ~> 1.0"}]
+    end
+  end
+
+  defp maybe_cldr do
+    if Mix.env() == :bench do
+      [
+        # Benchmark-only deps — used by the `:bench` environment to
+        # compare Localize with the ex_cldr_* libraries. These are
+        # never compiled into any non-benchmark build.
+        {:ex_cldr_numbers, "~> 2.0", only: :bench},
+        {:ex_cldr_dates_times, "~> 2.0", only: :bench},
+        {:ex_cldr_units, "~> 3.0", only: :bench},
+        {:benchee, "~> 1.3", only: :bench}
+      ]
+    else
+      []
     end
   end
 
