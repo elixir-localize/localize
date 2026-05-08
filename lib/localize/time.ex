@@ -294,22 +294,28 @@ defmodule Localize.Time do
   defp preferred_symbol_for_cycle(:h23), do: "H"
   defp preferred_symbol_for_cycle(:h24), do: "k"
 
-  # A `%Time{}` carries no zone information by construction, so a
-  # standard format whose CLDR pattern ends in a zone field can only
-  # render that field as an empty string. Sidestep the problem at the
-  # source: strip zone characters (`z`, `Z`, `O`, `v`, `V`, `x`, `X`)
-  # from the resolved skeleton ID before resolving it to a pattern.
-  # The downstream `resolve_skeleton/3` falls back to `best_match/3`
-  # if the stripped skeleton is not present directly in the locale's
+  # A `%Time{}` and a `%NaiveDateTime{}` both carry no zone
+  # information by construction, so a standard format whose CLDR
+  # pattern ends in a zone field can only render that field as an
+  # empty string. Sidestep the problem at the source: strip zone
+  # characters (`z`, `Z`, `O`, `v`, `V`, `x`, `X`) from the resolved
+  # skeleton ID before resolving it to a pattern. The downstream
+  # `resolve_skeleton/3` falls back to `best_match/3` if the stripped
+  # skeleton is not present directly in the locale's
   # `available_formats` (e.g. ko's `:ahms`), so this works for every
   # locale without per-locale special-casing.
   #
-  # Only fires for genuine `%Time{}` structs and only when the user
-  # supplied a standard format atom (`:short`/`:medium`/`:long`/
-  # `:full`); arbitrary maps with `:hour`/`:minute`/`:second` may
-  # carry zone data the caller wants honoured, and explicit skeletons
-  # are the user's deliberate choice.
+  # Only fires for genuine `%Time{}` and `%NaiveDateTime{}` structs
+  # and only when the user supplied a standard format atom (`:short`/
+  # `:medium`/`:long`/`:full`); arbitrary maps with `:hour`/`:minute`/
+  # `:second` may carry zone data the caller wants honoured, and
+  # explicit skeletons are the user's deliberate choice.
   defp strip_zone_for_time_struct(format, %Time{}, original, locale_id)
+       when original in @standard_formats do
+    do_strip_zone_chars(format, locale_id)
+  end
+
+  defp strip_zone_for_time_struct(format, %NaiveDateTime{}, original, locale_id)
        when original in @standard_formats do
     do_strip_zone_chars(format, locale_id)
   end
