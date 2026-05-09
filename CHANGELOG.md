@@ -10,7 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Strip zone token for NaiveDateTime too in `Localize.Time.to_string/2` since they also do not have a time zone field. Relates to #22.
 
-* `Localize.Utils.Math.sqrt/2` now respects the current `Decimal.Context.get/0` precision when called with a `Decimal` — the result is rounded to the configured precision and Newton's-method convergence scales accordingly. The optional `precision` argument, previously inert, is now an absolute convergence threshold (default derived from the context).
+* Fix `Localize.Interval.to_string/3` silently ignoring the `:date_format` option on Date-only intervals. The option now overrides `:format` on the date axis, mirroring the precedence used for `:time_format` on time intervals. Relates to #22.
+
+* Fix `Localize.Interval.to_string/3` raising `Localize.DateTimeIntervalFormatError` when called with `format: :full` on a Date interval. Relates to #22.
+
+* `Localize.Utils.Math.sqrt/2` now respects the current `Decimal.Context.get/0` precision when called with a `Decimal` — the result is rounded to the configured precision and Newton's-method convergence scales accordingly. 
 
 * Added the test suite for `Localize.Utils` that are derived from the `Cldr.Util` equivalents.
 
