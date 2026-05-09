@@ -11,13 +11,12 @@ defmodule Localize.Interval do
 
   import Kernel, except: [to_string: 1]
 
+  # Locale-independent skeletons for the non-default `:style`
+  # options. The default `:date` style is resolved per-locale from
+  # `Localize.DateTime.Format.date_formats/1` (see `resolve_style/3`)
+  # so date intervals follow the same conventions single
+  # `Localize.Date.to_string/2` does for the same `:format`.
   @date_styles %{
-    date: %{
-      full: {:fallback_style, :full},
-      long: :yMMMEd,
-      medium: :yMMMd,
-      short: :yMd
-    },
     month: %{full: :MMM, long: :MMM, medium: :MMM, short: :M},
     month_and_day: %{full: :MMMEd, long: :MMMEd, medium: :MMMd, short: :Md},
     year_and_month: %{full: :yMMMM, long: :yMMMM, medium: :yMMM, short: :yM}
@@ -129,19 +128,23 @@ defmodule Localize.Interval do
 
     style = Keyword.get(options, :style, @default_date_style)
 
-    case resolve_style(style, format) do
-      {:ok, {:fallback_style, fallback_format}} ->
-        # CLDR ships no skeleton-keyed interval-format data for
-        # `:full` (no `:yMMMMEEEEd` etc.), so format each endpoint
-        # via `Localize.Date.to_string/2` with the requested style
-        # and join via the locale's `interval_format_fallback`.
-        format_date_interval_fallback(from, to, fallback_format, locale, options)
+    with {:ok, locale_id} <- resolve_locale_id(locale) do
+      case resolve_style(style, format, locale_id) do
+        {:ok, {:fallback_style, fallback_format}} ->
+          # CLDR ships no skeleton-keyed interval-format data for the
+          # per-locale skeleton (e.g. ja's `:yMMdd` for `:short`,
+          # en's `:yMMMMd` for `:long`, every locale's `:yMMMMEEEEd`
+          # for `:full`). Format each endpoint via
+          # `Localize.Date.to_string/2` with the requested style and
+          # join via the locale's `interval_format_fallback`.
+          format_date_interval_fallback(from, to, fallback_format, locale, options)
 
-      {:ok, format_key} ->
-        format_date_interval_styled(from, to, format_key, locale, options)
+        {:ok, format_key} ->
+          format_date_interval_styled(from, to, format_key, locale, options)
 
-      {:error, _} = error ->
-        error
+        {:error, _} = error ->
+          error
+      end
     end
   end
 
@@ -546,16 +549,16 @@ defmodule Localize.Interval do
   end
 
   @doc """
-  Returns the date interval style configurations.
+  Returns the locale-independent date interval style configurations.
+
+  Only the non-default `:style` options (`:month`,
+  `:month_and_day`, `:year_and_month`) appear here. The default
+  `:date` style resolves per-locale from
+  `Localize.DateTime.Format.date_formats/1`, mirroring
+  `Localize.Date.to_string/2`'s style → skeleton mapping.
 
   """
   @spec date_styles() :: %{
-          date: %{
-            short: :yMd,
-            medium: :yMMMd,
-            long: :yMMMEd,
-            full: {:fallback_style, :full}
-          },
           month: %{short: :M, medium: :MMM, long: :MMM, full: :MMM},
           month_and_day: %{short: :Md, medium: :MMMd, long: :MMMEd, full: :MMMEd},
           year_and_month: %{short: :yM, medium: :yMMM, long: :yMMMM, full: :yMMMM}
@@ -564,7 +567,41 @@ defmodule Localize.Interval do
 
   # ── Interval pattern resolution ────────────────────────────
 
-  defp resolve_style(style, format) when is_atom(style) and is_atom(format) do
+  # The `:date` style aligns with the per-locale skeleton single
+  # `Localize.Date.to_string/2` resolves for the same `:format`,
+  # ensuring date intervals use the same conventions as single
+  # dates. The locale's skeleton (e.g. ja's `:yMMdd` for `:medium`,
+  # en's `:yMMMMd` for `:long`) may not be shipped in CLDR's
+  # interval-format table; if not, the caller falls back to
+  # formatting each endpoint with `Localize.Date.to_string/2` and
+  # joining via the locale's `interval_format_fallback`.
+  #
+  # Other styles (`:month`, `:month_and_day`, `:year_and_month`)
+  # remain locale-independent — they describe a deliberate field
+  # selection unrelated to single Date's standard styles.
+  defp resolve_style(:date, format, locale_id) when format in [:short, :medium, :long, :full] do
+    with {:ok, date_formats} <- Localize.DateTime.Format.date_formats(locale_id),
+         {:ok, interval_formats} <- Localize.DateTime.Format.interval_formats(locale_id) do
+      case Map.get(date_formats, format) do
+        skeleton when is_atom(skeleton) ->
+          if Map.has_key?(interval_formats, skeleton) do
+            {:ok, skeleton}
+          else
+            {:ok, {:fallback_style, format}}
+          end
+
+        _ ->
+          {:error,
+           Localize.DateTimeIntervalFormatError.exception(
+             reason: :unknown_style,
+             style: :date,
+             format: format
+           )}
+      end
+    end
+  end
+
+  defp resolve_style(style, format, _locale_id) when is_atom(style) and is_atom(format) do
     case get_in(@date_styles, [style, format]) do
       nil ->
         {:error,

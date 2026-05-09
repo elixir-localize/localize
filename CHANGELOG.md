@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [0.28.0] — May 9th, 2026
 
+### Behaviour Change
+
+* `Localize.Interval.to_string/3` Date intervals (style `:date`, the default) now resolve their skeleton **per-locale** instead of using a hard-coded locale-independent mapping. The interval looks up `Localize.DateTime.Format.date_formats(locale_id)[format]` — the same mapping `Localize.Date.to_string/2` uses — so date intervals follow the same conventions as single dates for the same `:format`. Visible effect on locales whose single-Date skeletons differ from the previous Interval table — most notably:
+
+  - **ja `:medium`** is now numeric (`"2012/01/05～2012/01/06"`), aligning with single Date `:medium` (`"2012/01/05"`); was previously the abbreviated month form `"2012年1月5日～6日"`. The richer Japanese-character form is now `:long` (matching single Date `:long`).
+  - **de `:medium`** is now numeric (`"15.01.2022 – 20.03.2022"`); was previously the abbreviated month form. To get `"15. Jan. – 20. März 2022"` request the `:yMMMd` skeleton explicitly.
+  - **en `:long`** uses full month name with no weekday (`"January 5, 2012 – January 6, 2012"`); was previously the `:yMMMEd` form `"Thu, Jan 5 – Fri, Jan 6, 2012"`. The weekday now appears at `:full`. Per-locale skeletons that aren't shipped in CLDR's `interval_formats` data fall back to formatting each endpoint with `Localize.Date.to_string/2` and joining via the locale's `interval_format_fallback` template. Non-`:date` styles (`:month`, `:month_and_day`, `:year_and_month`) remain locale-independent — they describe a deliberate field selection unrelated to standard date styles. The static `Localize.Interval.date_styles/0` no longer includes a `:date` entry.
+
 ### Bug Fixes
 
 * Strip zone token for NaiveDateTime too in `Localize.Time.to_string/2` since they also do not have a time zone field. Relates to #22.
