@@ -49,9 +49,20 @@ defmodule Localize.IntervalTest do
     end
 
     test "German interval" do
-      assert {:ok, result} = Interval.to_string(~D[2022-01-15], ~D[2022-03-20], locale: :de)
-      assert String.contains?(result, "Jan.")
-      assert String.contains?(result, "März")
+      # Realigned with single Date's per-locale skeletons:
+      # de `:medium` is numeric (`:yMMdd` → `"15.01.2022"`), de
+      # `:long` is full month spelled out (`:yMMMMd` → `"Januar"`).
+      # The abbreviated `"Jan."` form is not a default style for de
+      # — request the `:yMMMd` skeleton explicitly to get it.
+      assert {:ok, medium} = Interval.to_string(~D[2022-01-15], ~D[2022-03-20], locale: :de)
+      assert medium =~ "15.01.2022"
+      assert medium =~ "20.03.2022"
+
+      assert {:ok, long_result} =
+               Interval.to_string(~D[2022-01-15], ~D[2022-03-20], format: :long, locale: :de)
+
+      assert String.contains?(long_result, "Januar")
+      assert String.contains?(long_result, "März")
     end
   end
 
@@ -293,26 +304,35 @@ defmodule Localize.IntervalTest do
   end
 
   describe "date_styles/0" do
-    test "returns expected styles" do
+    test "returns the locale-independent styles only" do
       styles = Interval.date_styles()
-      assert Map.has_key?(styles, :date)
+      # `:date` is now resolved per-locale from
+      # `Localize.DateTime.Format.date_formats/1` so it is NOT in
+      # this static map.
+      refute Map.has_key?(styles, :date)
       assert Map.has_key?(styles, :month)
       assert Map.has_key?(styles, :month_and_day)
       assert Map.has_key?(styles, :year_and_month)
     end
   end
 
-  describe "regression: non-ISO calendar with :long date style" do
-    test "month-resolution :long does not crash on generic calendar day_of_week" do
+  describe "regression: non-ISO calendar with weekday rendering" do
+    test "month-resolution :full does not crash on generic calendar day_of_week" do
       # Previously `iso_day_of_week/1` destructured the `day_of_week/4`
       # return value as a 2-tuple, but the Calendar behaviour returns
       # `{day, first, last}`. Any non-ISO calendar carrying a
       # `day_of_week/4` callback raised MatchError here.
+      #
+      # Originally tested via `:long` (which mapped to `:yMMMEd` with
+      # an `E` weekday symbol). After realigning `:date` style with
+      # single `Localize.Date.to_string/2`'s per-locale skeleton, en
+      # `:long` no longer renders a weekday — but `:full` does
+      # (skeleton `:yMMMMEEEEd`), so it covers the same regression.
       from = %{year: 2026, month: 6, day: 1, calendar: GenericGregorian}
       to = %{year: 2026, month: 6, day: 30, calendar: GenericGregorian}
 
       assert {:ok, result} =
-               Interval.to_string(from, to, format: :long, style: :date, locale: :en)
+               Interval.to_string(from, to, format: :full, style: :date, locale: :en)
 
       assert String.contains?(result, "Mon")
       assert String.contains?(result, "Tue")
@@ -672,6 +692,81 @@ defmodule Localize.IntervalTest do
       for style <- [:date, :month, :month_and_day, :year_and_month] do
         assert {:ok, _} = Interval.to_string(d1, d2, format: :full, style: style, locale: :en)
       end
+    end
+  end
+
+  describe "regression #22: Date interval :date style aligns with single Date" do
+    # Reported by @woylie. The Interval module previously used a
+    # locale-INDEPENDENT skeleton table for `:date` style — the
+    # same `:yMd`/`:yMMMd`/`:yMMMEd` skeletons for every locale.
+    # That misaligned with `Localize.Date.to_string/2`, which uses
+    # the locale's own `time_formats[:date]` mapping (e.g. ja
+    # `:medium` is `:yMMdd` → `"2012/01/05"`, en `:medium` is
+    # `:yMMMd` → `"Jan 5, 2012"`).
+    #
+    # The realignment looks up
+    # `Localize.DateTime.Format.date_formats(locale_id)[format]`
+    # to get the per-locale skeleton; if CLDR ships interval-format
+    # data for it, we use the styled path, otherwise we fall back
+    # to formatting each endpoint via `Localize.Date.to_string/2`
+    # and joining via `interval_format_fallback`.
+
+    test "ja :medium interval matches single Date :medium for ja (numeric form)" do
+      d1 = ~D[2012-01-05]
+      d2 = ~D[2012-01-06]
+
+      {:ok, single_medium} = Localize.Date.to_string(d1, format: :medium, locale: :ja)
+      assert single_medium == "2012/01/05"
+
+      {:ok, interval_medium} = Interval.to_string(d1, d2, format: :medium, locale: :ja)
+      # Numeric form, no Japanese unit chars 年/月/日 — same as single
+      # Date `:medium`. CLDR ja's `:yMd` interval data ships a
+      # full-repeat pattern for all greatest-diff levels, so the
+      # interval shows both endpoints in full.
+      assert interval_medium == "2012/01/05～2012/01/06"
+    end
+
+    test "en :medium interval keeps abbreviation (skeleton matches interval data)" do
+      d1 = ~D[2012-01-05]
+      d2 = ~D[2012-01-06]
+
+      # en's `:yMMMd` IS in interval_formats, so the styled path
+      # produces the abbreviated form `"Jan 5 – 6, 2012"`.
+      {:ok, out} = Interval.to_string(d1, d2, format: :medium, locale: :en, prefer: :ascii)
+      assert out =~ "Jan"
+      refute out =~ "Jan 5, 2012"
+      assert out =~ "5"
+      assert out =~ "6"
+    end
+
+    test "en :long interval uses full month (no weekday) per single Date :long" do
+      d1 = ~D[2012-01-05]
+      d2 = ~D[2012-01-06]
+
+      # en `:long` is `:yMMMMd` → not in interval_formats →
+      # fallback path → "January 5, 2012 – January 6, 2012". Matches
+      # single Date `:long` for en, no weekday.
+      {:ok, out} = Interval.to_string(d1, d2, format: :long, locale: :en, prefer: :ascii)
+      assert out =~ "January"
+      refute out =~ "Thu"
+      refute out =~ "Thursday"
+    end
+
+    test "non-:date styles remain locale-independent" do
+      d1 = ~D[2012-01-05]
+      d2 = ~D[2012-02-06]
+
+      # `:month`/`:month_and_day`/`:year_and_month` styles are not
+      # part of single-Date semantics; they describe a deliberate
+      # field selection unrelated to standard styles. They keep the
+      # locale-independent `@date_styles` mapping.
+      assert {:ok, _} = Interval.to_string(d1, d2, format: :medium, style: :month, locale: :ja)
+
+      assert {:ok, _} =
+               Interval.to_string(d1, d2, format: :medium, style: :month_and_day, locale: :ja)
+
+      assert {:ok, _} =
+               Interval.to_string(d1, d2, format: :medium, style: :year_and_month, locale: :ja)
     end
   end
 end
