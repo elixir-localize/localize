@@ -580,4 +580,98 @@ defmodule Localize.IntervalTest do
       refute interval =~ "AM"
     end
   end
+
+  describe "regression #22: Date interval :date_format and :full" do
+    # Reported by @woylie as part of the broader interval inconsistency
+    # report. Two separate defects on the Date-only interval path:
+    #
+    # * `:date_format` was silently ignored — the option works on
+    #   datetime intervals but the date-only path only read `:format`.
+    #
+    # * `:full` raised `Localize.DateTimeIntervalFormatError` because
+    #   `@date_styles` had no `:full` entry. CLDR ships no
+    #   `:yMMMMEEEEd` interval-format data; we now route `:full`
+    #   (and equivalent richer styles) through the literal-pattern
+    #   path used by `:medium`/`:long`/`:full` for time intervals.
+
+    test ":date_format takes precedence over :format on Date intervals" do
+      d1 = ~D[2012-01-05]
+      d2 = ~D[2012-01-06]
+
+      {:ok, with_short} =
+        Interval.to_string(d1, d2,
+          format: :short,
+          date_format: :long,
+          locale: :en,
+          prefer: :ascii
+        )
+
+      {:ok, with_long_only} =
+        Interval.to_string(d1, d2, format: :long, locale: :en, prefer: :ascii)
+
+      assert with_short == with_long_only
+    end
+
+    test ":date_format produces distinct output across :short/:medium/:long/:full" do
+      d1 = ~D[2012-01-05]
+      d2 = ~D[2012-01-06]
+
+      outputs =
+        for style <- [:short, :medium, :long, :full] do
+          {:ok, result} =
+            Interval.to_string(d1, d2, date_format: style, locale: :en, prefer: :ascii)
+
+          result
+        end
+
+      assert outputs == Enum.uniq(outputs),
+             "expected distinct output per :date_format, got #{inspect(outputs)}"
+    end
+
+    test ":full no longer crashes on Date intervals" do
+      d1 = ~D[2012-01-05]
+      d2 = ~D[2012-01-06]
+
+      assert {:ok, _} = Interval.to_string(d1, d2, format: :full, locale: :en)
+      assert {:ok, _} = Interval.to_string(d1, d2, format: :full, locale: :ja)
+      assert {:ok, _} = Interval.to_string(d1, d2, format: :full, locale: :de)
+    end
+
+    test ":full Date interval includes the weekday name (en)" do
+      d1 = ~D[2012-01-05]
+      d2 = ~D[2012-01-06]
+
+      {:ok, out} = Interval.to_string(d1, d2, format: :full, locale: :en, prefer: :ascii)
+
+      # `:full` on `:en` Date should produce the spelled-out weekday
+      # for both endpoints — the marker that distinguishes it from
+      # `:long` (which uses abbreviated weekday).
+      assert out =~ "Thursday"
+      assert out =~ "Friday"
+      assert out =~ "January"
+    end
+
+    test ":full Date interval on ja includes weekday with Japanese chars" do
+      d1 = ~D[2012-01-05]
+      d2 = ~D[2012-01-06]
+
+      {:ok, out} = Interval.to_string(d1, d2, format: :full, locale: :ja)
+
+      # ja `:full` Date includes the spelled-out weekday (木曜日 / 金曜日).
+      assert out =~ "木曜日"
+      assert out =~ "金曜日"
+      assert out =~ "年"
+      assert out =~ "月"
+      assert out =~ "日"
+    end
+
+    test ":full Date interval respects non-default :style options without crashing" do
+      d1 = ~D[2012-01-05]
+      d2 = ~D[2012-02-06]
+
+      for style <- [:date, :month, :month_and_day, :year_and_month] do
+        assert {:ok, _} = Interval.to_string(d1, d2, format: :full, style: style, locale: :en)
+      end
+    end
+  end
 end

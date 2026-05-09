@@ -12,10 +12,15 @@ defmodule Localize.Interval do
   import Kernel, except: [to_string: 1]
 
   @date_styles %{
-    date: %{long: :yMMMEd, medium: :yMMMd, short: :yMd},
-    month: %{long: :MMM, medium: :MMM, short: :M},
-    month_and_day: %{long: :MMMEd, medium: :MMMd, short: :Md},
-    year_and_month: %{long: :yMMMM, medium: :yMMM, short: :yM}
+    date: %{
+      full: {:fallback_style, :full},
+      long: :yMMMEd,
+      medium: :yMMMd,
+      short: :yMd
+    },
+    month: %{full: :MMM, long: :MMM, medium: :MMM, short: :M},
+    month_and_day: %{full: :MMMEd, long: :MMMEd, medium: :MMMd, short: :Md},
+    year_and_month: %{full: :yMMMM, long: :yMMMM, medium: :yMMM, short: :yM}
   }
 
   @default_date_style :date
@@ -112,13 +117,38 @@ defmodule Localize.Interval do
 
   defp format_date_interval(from, to, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    format = Keyword.get(options, :format, @default_format)
+
+    # `:date_format` is the explicit date-axis selector and matches
+    # the option used on datetime intervals (where `date_sub_options/1`
+    # honours it). For date-only intervals it must take precedence
+    # over `:format`, mirroring the precedence used on the time-only
+    # path with `:time_format`.
+    format =
+      Keyword.get(options, :date_format) ||
+        Keyword.get(options, :format, @default_format)
+
     style = Keyword.get(options, :style, @default_date_style)
 
+    case resolve_style(style, format) do
+      {:ok, {:fallback_style, fallback_format}} ->
+        # CLDR ships no skeleton-keyed interval-format data for
+        # `:full` (no `:yMMMMEEEEd` etc.), so format each endpoint
+        # via `Localize.Date.to_string/2` with the requested style
+        # and join via the locale's `interval_format_fallback`.
+        format_date_interval_fallback(from, to, fallback_format, locale, options)
+
+      {:ok, format_key} ->
+        format_date_interval_styled(from, to, format_key, locale, options)
+
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  defp format_date_interval_styled(from, to, format_key, locale, options) do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
          {:ok, greatest_diff} <- greatest_difference(from, to),
-         {:ok, format_key} <- resolve_style(style, format),
          {:ok, interval_pattern} <- get_interval_pattern(formats, format_key, greatest_diff),
          {:ok, [left, right]} <- split_interval(interval_pattern) do
       options_map = Map.new(options)
@@ -135,6 +165,26 @@ defmodule Localize.Interval do
 
       {:error, _} = error ->
         error
+    end
+  end
+
+  defp format_date_interval_fallback(from, to, format, locale, options) do
+    sub_options =
+      options
+      |> Keyword.take([:locale, :prefer])
+      |> Keyword.put(:format, format)
+
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
+         {:ok, fallback} <- get_fallback_pattern(formats),
+         {:ok, left_str} <- Localize.Date.to_string(from, sub_options),
+         {:ok, right_str} <- Localize.Date.to_string(to, sub_options) do
+      result =
+        [left_str, right_str]
+        |> Localize.Substitution.substitute(fallback)
+        |> IO.iodata_to_binary()
+
+      {:ok, result}
     end
   end
 
@@ -500,10 +550,15 @@ defmodule Localize.Interval do
 
   """
   @spec date_styles() :: %{
-          date: %{short: :yMd, medium: :yMMMd, long: :yMMMEd},
-          month: %{short: :M, medium: :MMM, long: :MMM},
-          month_and_day: %{short: :Md, medium: :MMMd, long: :MMMEd},
-          year_and_month: %{short: :yM, medium: :yMMM, long: :yMMMM}
+          date: %{
+            short: :yMd,
+            medium: :yMMMd,
+            long: :yMMMEd,
+            full: {:fallback_style, :full}
+          },
+          month: %{short: :M, medium: :MMM, long: :MMM, full: :MMM},
+          month_and_day: %{short: :Md, medium: :MMMd, long: :MMMEd, full: :MMMEd},
+          year_and_month: %{short: :yM, medium: :yMMM, long: :yMMMM, full: :yMMMM}
         }
   def date_styles, do: @date_styles
 
