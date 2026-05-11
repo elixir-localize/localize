@@ -13,6 +13,7 @@ defmodule Localize.Currency do
   """
 
   alias Localize.SupplementalData
+  alias Localize.Utils.Helpers
 
   @type currency_code :: atom()
 
@@ -88,10 +89,15 @@ defmodule Localize.Currency do
   @spec validate_currency(atom() | String.t()) ::
           {:ok, currency_code()} | {:error, Exception.t()}
   def validate_currency(currency_code) when is_binary(currency_code) do
-    currency_code
-    |> String.upcase()
-    |> String.to_atom()
-    |> validate_currency()
+    # Gate atomisation on membership in the validity set so unknown
+    # string codes can't grow the atom table on each call.
+    case currency_code |> String.upcase() |> Helpers.existing_atom() do
+      nil ->
+        {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
+
+      atom ->
+        validate_currency(atom)
+    end
   end
 
   def validate_currency(currency_code) when is_atom(currency_code) do
@@ -201,10 +207,16 @@ defmodule Localize.Currency do
   @spec territory_currencies(territory()) ::
           {:ok, map()} | {:error, Exception.t()}
   def territory_currencies(territory) when is_binary(territory) do
-    territory
-    |> String.upcase()
-    |> String.to_atom()
-    |> territory_currencies()
+    case territory |> String.upcase() |> Helpers.existing_atom() do
+      nil ->
+        {:error,
+         Localize.UnknownCurrencyError.exception(
+           currency: "No currencies for #{inspect(territory)} were found"
+         )}
+
+      atom ->
+        territory_currencies(atom)
+    end
   end
 
   def territory_currencies(territory) when is_atom(territory) do
@@ -246,10 +258,10 @@ defmodule Localize.Currency do
   @spec current_currency_for_territory(atom() | String.t()) ::
           currency_code() | nil
   def current_currency_for_territory(territory) when is_binary(territory) do
-    territory
-    |> String.upcase()
-    |> String.to_atom()
-    |> current_currency_for_territory()
+    case territory |> String.upcase() |> Helpers.existing_atom() do
+      nil -> nil
+      atom -> current_currency_for_territory(atom)
+    end
   end
 
   def current_currency_for_territory(territory) when is_atom(territory) do
@@ -1053,8 +1065,10 @@ defmodule Localize.Currency do
         Enum.filter(currencies_list, fn {k, _} -> k == code end)
 
       code when is_binary(code) ->
-        atom_code = String.to_atom(code)
-        Enum.filter(currencies_list, fn {k, _} -> k == atom_code end)
+        case Helpers.existing_atom(code) do
+          nil -> []
+          atom_code -> Enum.filter(currencies_list, fn {k, _} -> k == atom_code end)
+        end
     end)
     |> Enum.uniq()
   end
