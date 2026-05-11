@@ -352,12 +352,23 @@ defmodule Localize.Locale.LocaleDisplay.U do
 
     case String.split(iana_id, "/", parts: 2) do
       [region, city] ->
-        region_key = region |> String.downcase() |> String.to_atom()
-        city_key = city |> String.downcase() |> String.replace(" ", "_") |> String.to_atom()
+        # Gate atomisation on existing-atom membership. The zone data
+        # has pre-atomised keys for legitimate IANA components; an
+        # attacker-controlled `-u-tz-` extension value with unknown
+        # region or city must not be allowed to grow the atom table.
+        region_key = region |> String.downcase() |> Localize.Utils.Helpers.existing_atom()
 
-        case get_in(zone, [region_key, city_key]) do
-          %{city: city_name} -> city_name
-          _ -> nil
+        city_key =
+          city
+          |> String.downcase()
+          |> String.replace(" ", "_")
+          |> Localize.Utils.Helpers.existing_atom()
+
+        if region_key && city_key do
+          case get_in(zone, [region_key, city_key]) do
+            %{city: city_name} -> city_name
+            _ -> nil
+          end
         end
 
       _ ->

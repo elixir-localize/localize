@@ -83,4 +83,24 @@ defmodule Localize.Gettext.InterpolationTest do
       end
     end
   end
+
+  # Regression: `safe_to_atom/1` used to fall through to `String.to_atom/1`
+  # when no atom existed for a binding name. That defeated the helper's
+  # name and was an atom-table DOS vector if MF2 messages with unbound
+  # bindings could be attacker-controlled. The helper now returns the
+  # binary unchanged when no atom exists.
+  describe "atom-table bound on missing-binding report" do
+    test "unbound binding with no existing atom does not create an atom" do
+      bogus = "zzz_binding_#{Elixir.System.unique_integer([:positive])}"
+      message = "{{Hello {$" <> bogus <> "}!}}"
+
+      assert {:missing_bindings, _msg, missing} =
+               Interpolation.runtime_interpolate(message, %{})
+
+      # The binding name appears in the missing list (as a binary when
+      # no atom exists for it).
+      assert bogus in missing
+      assert nil == Localize.Utils.Helpers.existing_atom(bogus)
+    end
+  end
 end

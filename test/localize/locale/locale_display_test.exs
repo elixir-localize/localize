@@ -178,4 +178,23 @@ defmodule Localize.Locale.LocaleDisplayTest do
       assert match?({:error, _}, result)
     end
   end
+
+  # Regression: `find_exemplar_city/2` (in `LocaleDisplay.U`) and
+  # `to_atom_safe/1` (in `LocaleDisplay.T`) used to call
+  # `String.to_atom/1` on `-u-tz-` and `-t-` extension values from
+  # caller-controlled BCP-47 tags. Atomisation is now gated on
+  # `Helpers.existing_atom/1`.
+  describe "atom-table bound on extension parsing" do
+    test "unknown -t- script does not create an atom" do
+      seed = Elixir.System.unique_integer([:positive])
+      # 4-letter script subtag form so the grammar accepts it but the
+      # validity set rejects it. If parsing rejects, the call returns
+      # an error; the important assertion is no atom growth.
+      bogus = "Zsx" <> String.upcase(Integer.to_string(rem(seed, 26)))
+      _ = Localize.Locale.LocaleDisplay.display_name("en-t-ja-#{bogus}")
+      # The parser may downcase or otherwise normalise; check both forms.
+      assert nil == Localize.Utils.Helpers.existing_atom(bogus)
+      assert nil == Localize.Utils.Helpers.existing_atom(String.downcase(bogus))
+    end
+  end
 end

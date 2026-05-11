@@ -339,8 +339,15 @@ defmodule Localize.Locale.LocaleDisplay.T do
 
   defp capitalize_script(s), do: s
 
+  # Return the existing atom for the binary, OR the binary itself when
+  # no such atom exists. Callers use the result as a key into atom-keyed
+  # display-name maps; a string passed through `get_in` simply misses
+  # the lookup and falls back to the raw binary, which is the desired
+  # behaviour for unknown subtags. Falling through to `String.to_atom/1`
+  # here was an atom-table DOS vector since callers pass `-t-` extension
+  # values that originate in untrusted input.
   defp to_atom_safe(value) when is_binary(value),
-    do: Helpers.existing_atom(value) || String.to_atom(value)
+    do: Helpers.existing_atom(value) || value
 
   # CLDR 48.2: when key translation is missing, fall back to the
   # BCP47 key identifier string.

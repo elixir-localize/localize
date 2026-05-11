@@ -98,7 +98,7 @@ defmodule Localize.Gettext.Interpolation do
   @doc false
   @spec do_interpolate(term(), map()) ::
           {:ok, String.t()}
-          | {:missing_bindings, String.t(), [atom()]}
+          | {:missing_bindings, String.t(), [atom() | String.t()]}
   def do_interpolate(parsed_ast, bindings) do
     string_bindings = normalize_gettext_bindings(bindings)
 
@@ -128,8 +128,14 @@ defmodule Localize.Gettext.Interpolation do
     end)
   end
 
+  # Return the existing atom for the binding name when it exists; fall
+  # back to the binary itself otherwise. Used to build the
+  # `:missing_bindings` report for messages that reference an unbound
+  # variable. The previous fallback to `String.to_atom/1` was an
+  # atom-table DOS vector when binding names came from MF2 messages
+  # outside the developer's vocabulary.
   defp safe_to_atom(name) when is_binary(name),
-    do: Helpers.existing_atom(name) || String.to_atom(name)
+    do: Helpers.existing_atom(name) || name
 
   defp safe_to_atom(name) when is_atom(name), do: name
 
