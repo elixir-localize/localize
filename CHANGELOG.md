@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.System` (`system_name_from/2`, `number_system_digits/1`, `to_system/2`), `Localize.Number.Symbol.number_symbols_for/2`, and the datetime-formatter's `time_preferences_for/1` no longer atomise user-supplied binary number-system or locale names before validation. Lookups go through `Helpers.existing_atom/1` against pre-atomised CLDR data sets.
 
+* Closed remaining Atom DOS vectors in `Localize.Locale.LocaleDisplay.display_name/2` (now routes through `cldr_locale_id_from/1`), `Localize.Territory.Subdivision.display_name/2`, the `-u-co-` and `-u-kr-` extension parsers in `Localize.Collation.Options`, and the redundant `String.to_atom(to_string(...))` round-trip in plural-rule fallback. Items audited as safe (bounded by grammar, trusted CLDR data, or explicit caller opt-in) are documented in [plans/atom-dos-audit.md](plans/atom-dos-audit.md).
+
 ## [0.29.0] — May 11th, 2026
 
 ### Behaviour Change
