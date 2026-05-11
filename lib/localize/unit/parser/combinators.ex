@@ -157,7 +157,7 @@ defmodule Localize.Unit.Parser.Combinator do
 
     si_prefix =
       case Enum.find(parts, &match?({:si_prefix, _}, &1)) do
-        {:si_prefix, value} -> String.to_atom(value)
+        {:si_prefix, value} -> Localize.Unit.Data.si_prefix_atom(value)
         nil -> nil
       end
 

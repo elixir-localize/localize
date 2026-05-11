@@ -39,8 +39,20 @@ defmodule Localize.Message.Function do
         @impl true
         def format(value, func_opts, options) do
           locale = Keyword.get(options, :locale)
-          format = func_opts["format"] || "medium"
-          MyApp.PersonName.to_string(value, locale: locale, format: String.to_atom(format))
+
+          # MF2 function options arrive as strings from untrusted message
+          # input. Map them through an explicit case rather than calling
+          # `String.to_atom/1` on raw values, which would grow the atom
+          # table on every distinct attacker-supplied string.
+          format =
+            case func_opts["format"] do
+              "short" -> :short
+              "long" -> :long
+              "full" -> :full
+              _ -> :medium
+            end
+
+          MyApp.PersonName.to_string(value, locale: locale, format: format)
         end
       end
 

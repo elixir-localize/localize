@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Script.display_name/2` and `Localize.Unit.Formatter` no longer atomise binary input before checking validity. Unknown script codes return `Localize.UnknownScriptError` without growing the atom table; the unit formatter's currency atomisation is gated as defence-in-depth behind the upstream `Localize.Unit.validate_currency_codes/1` check.
 
+* MF2 `:list` function and unit parser no longer atomise user-controlled binaries. The `:list` function's binary `style=` fallthrough now sets a sentinel atom that surfaces as an `InvalidValueError` in `Localize.List`, and SI prefix names are resolved through a compile-time lookup map (`Localize.Unit.Data.si_prefix_atom/1`) rather than `String.to_atom/1` at parse time.
+
 ## [0.29.0] — May 11th, 2026
 
 ### Behaviour Change
