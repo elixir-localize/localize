@@ -504,28 +504,104 @@ defmodule Localize.Currency do
   ### Options
 
   * `:locale` is a locale identifier atom or a
-    `t:Localize.LanguageTag.t/0`. The default is `:en`.
+    `t:Localize.LanguageTag.t/0`. The default is the current
+    process locale (see `Localize.get_locale/0`).
+
+  * `:fallback` is a boolean. When `true`, if the currency has
+    no entry in the requested locale's currency map, the CLDR
+    parent locale chain is walked, followed by the application
+    default locale (`Localize.default_locale/0`), looking for
+    localized data. The default is `false`.
 
   ### Returns
 
   * `{:ok, Localize.Currency.t()}` with localized currency metadata.
 
-  * `{:error, exception}` if the currency code is unknown or
-    the locale data cannot be loaded.
+  * `{:error, %Localize.UnknownCurrencyError{}}` if the currency
+    code is not a known ISO 4217 or registered custom currency.
+
+  * `{:error, %Localize.CurrencyNotLocalizedError{}}` if the
+    currency code is valid but has no entry in the requested
+    locale (and, when `:fallback` is `true`, no entry in any
+    fallback locale either).
+
+  * `{:error, exception}` if the locale data cannot be loaded.
 
   """
   @spec currency_for_code(atom() | String.t(), Keyword.t()) ::
           {:ok, t()} | {:error, Exception.t()}
   def currency_for_code(currency_code, options \\ []) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
+    fallback? = Keyword.get(options, :fallback, false)
 
-    with {:ok, code} <- validate_currency(currency_code),
-         {:ok, currencies} <- currencies_for_locale(locale) do
+    with {:ok, code} <- validate_currency(currency_code) do
+      resolve_currency_for_code(code, locale, fallback?)
+    end
+  end
+
+  defp resolve_currency_for_code(code, locale, fallback?) do
+    with {:ok, currencies} <- currencies_for_locale(locale) do
       case Map.get(currencies, code) do
-        nil -> {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
+        nil when fallback? -> fallback_currency_for_code(code, locale)
+        nil -> {:error, currency_not_localized_error(code, locale)}
         currency -> {:ok, currency}
       end
     end
+  end
+
+  defp fallback_currency_for_code(code, locale) do
+    chain = parent_chain(locale) ++ [Localize.default_locale()]
+
+    # Walk the chain looking for the currency. We only treat
+    # "currency absent in this locale's map" as continuable — real
+    # provider/load errors from `currencies_for_locale/1` are
+    # propagated rather than masked as `CurrencyNotLocalizedError`.
+    Enum.reduce_while(chain, :error, fn fallback_locale, _acc ->
+      case currencies_for_locale(fallback_locale) do
+        {:ok, currencies} ->
+          case Map.get(currencies, code) do
+            nil -> {:cont, :error}
+            currency -> {:halt, {:ok, currency}}
+          end
+
+        {:error, _} = error ->
+          {:halt, error}
+      end
+    end)
+    |> case do
+      {:ok, _currency} = ok -> ok
+      {:error, _exception} = error -> error
+      :error -> {:error, currency_not_localized_error(code, locale)}
+    end
+  end
+
+  defp parent_chain(locale) do
+    locale
+    |> Localize.Locale.to_locale_id()
+    |> walk_parents([])
+  end
+
+  defp walk_parents(locale_id, acc) do
+    case Localize.Locale.parent(to_string(locale_id)) do
+      {:ok, parent_tag} ->
+        parent_id = Localize.Locale.to_locale_id(parent_tag)
+
+        if parent_id in acc do
+          Enum.reverse(acc)
+        else
+          walk_parents(parent_id, [parent_id | acc])
+        end
+
+      {:error, _} ->
+        Enum.reverse(acc)
+    end
+  end
+
+  defp currency_not_localized_error(code, locale) do
+    Localize.CurrencyNotLocalizedError.exception(
+      currency: code,
+      locale: Localize.Locale.to_locale_id(locale)
+    )
   end
 
   @doc """
