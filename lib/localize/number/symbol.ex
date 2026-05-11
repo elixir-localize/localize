@@ -65,8 +65,9 @@ defmodule Localize.Number.Symbol do
   @spec number_symbols_for(Localize.LanguageTag.t() | atom() | String.t()) ::
           {:ok, map()} | {:error, Exception.t()}
   def number_symbols_for(locale) do
-    locale_id = to_locale_id(locale)
-    Localize.Locale.get(locale_id, [:number_symbols])
+    with {:ok, locale_id} <- cldr_locale_id_from(locale) do
+      Localize.Locale.get(locale_id, [:number_symbols])
+    end
   end
 
   @doc """
@@ -94,11 +95,10 @@ defmodule Localize.Number.Symbol do
   def number_symbols_for(locale, number_system) do
     system_name = to_system_atom(number_system)
 
-    with {:ok, symbols} <- number_symbols_for(locale) do
+    with {:ok, locale_id} <- cldr_locale_id_from(locale),
+         {:ok, symbols} <- number_symbols_for(locale_id) do
       case Map.get(symbols, system_name) do
         nil ->
-          locale_id = to_locale_id(locale)
-
           {:error,
            Localize.InvalidValueError.exception(
              value: number_system,
@@ -114,7 +114,7 @@ defmodule Localize.Number.Symbol do
 
   # ── Private helpers ──────────────────────────────────────────
 
-  defp to_locale_id(locale), do: Localize.Locale.to_locale_id(locale)
+  defp cldr_locale_id_from(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   defp to_system_atom(system) when is_atom(system), do: system
   defp to_system_atom(system) when is_binary(system), do: String.to_atom(system)

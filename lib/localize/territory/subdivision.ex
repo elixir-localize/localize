@@ -76,10 +76,10 @@ defmodule Localize.Territory.Subdivision do
           {:ok, String.t()} | {:error, Exception.t()}
   def display_name(subdivision, options \\ []) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    locale_id = Localize.Locale.to_locale_id(locale)
     code = normalize_subdivision_code(subdivision)
 
-    with {:ok, subdivisions} <- Localize.Locale.get(locale_id, [:subdivisions]) do
+    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
+         {:ok, subdivisions} <- Localize.Locale.get(locale_id, [:subdivisions]) do
       case Map.get(subdivisions, code) do
         nil ->
           {:error, Localize.UnknownSubdivisionError.exception(subdivision: code)}
@@ -150,8 +150,10 @@ defmodule Localize.Territory.Subdivision do
           {:ok, %{atom() => String.t()}} | {:error, Exception.t()}
   def known_subdivisions(options \\ []) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    locale_id = Localize.Locale.to_locale_id(locale)
-    Localize.Locale.get(locale_id, [:subdivisions])
+
+    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
+      Localize.Locale.get(locale_id, [:subdivisions])
+    end
   end
 
   @doc """

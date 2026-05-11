@@ -194,9 +194,8 @@ defmodule Localize.Number.System do
   @spec number_systems_for(Localize.LanguageTag.t() | atom() | String.t()) ::
           {:ok, map()} | {:error, Exception.t()}
   def number_systems_for(locale) do
-    locale_id = to_locale_id(locale)
-
-    with {:ok, raw_systems} <- Localize.Locale.get(locale_id, [:number_systems]) do
+    with {:ok, locale_id} <- cldr_locale_id_from(locale),
+         {:ok, raw_systems} <- Localize.Locale.get(locale_id, [:number_systems]) do
       systems =
         raw_systems
         |> Enum.map(fn {key, value} ->
@@ -362,7 +361,8 @@ defmodule Localize.Number.System do
   def system_name_from(system_name, locale) do
     system_name = to_atom_key(system_name)
 
-    with {:ok, number_systems} <- number_systems_for(locale) do
+    with {:ok, locale_id} <- cldr_locale_id_from(locale),
+         {:ok, number_systems} <- number_systems_for(locale_id) do
       cond do
         # It's a type (default, native, etc.) — resolve to actual system name
         Map.has_key?(number_systems, system_name) ->
@@ -382,7 +382,7 @@ defmodule Localize.Number.System do
           {:error,
            Localize.UnknownNumberSystemError.exception(
              number_system: system_name,
-             locale: Localize.Locale.to_locale_id(locale),
+             locale: locale_id,
              reason: :not_for_locale
            )}
 
@@ -680,7 +680,7 @@ defmodule Localize.Number.System do
     end)
   end
 
-  defp to_locale_id(locale), do: Localize.Locale.to_locale_id(locale)
+  defp cldr_locale_id_from(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   defp to_atom_key(key) when is_atom(key), do: key
   defp to_atom_key(key) when is_binary(key), do: String.to_atom(key)

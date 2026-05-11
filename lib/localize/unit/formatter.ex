@@ -325,24 +325,25 @@ defmodule Localize.Unit.Formatter do
   # the bare "value name" format.
 
   defp format_custom_or_fallback(value, name, locale, options) do
-    locale_id = extract_locale_id(locale)
     style = Keyword.get(options, :format, Keyword.get(options, :style, :long))
 
-    case Localize.Unit.CustomRegistry.get(name) do
-      %{display: display} when is_map(display) ->
-        locale_display = Map.get(display, locale_id, %{})
-        style_display = Map.get(locale_display, style, %{})
+    with {:ok, locale_id} <- extract_locale_id(locale) do
+      case Localize.Unit.CustomRegistry.get(name) do
+        %{display: display} when is_map(display) ->
+          locale_display = Map.get(display, locale_id, %{})
+          style_display = Map.get(locale_display, style, %{})
 
-        case style_display do
-          patterns when map_size(patterns) > 0 ->
-            format_custom_patterns(value, patterns, locale, options)
+          case style_display do
+            patterns when map_size(patterns) > 0 ->
+              format_custom_patterns(value, patterns, locale, options)
 
-          _ ->
-            format_fallback(value, name, options)
-        end
+            _ ->
+              format_fallback(value, name, options)
+          end
 
-      _ ->
-        format_fallback(value, name, options)
+        _ ->
+          format_fallback(value, name, options)
+      end
     end
   end
 
@@ -361,7 +362,7 @@ defmodule Localize.Unit.Formatter do
   end
 
   defp extract_locale_id(locale) do
-    Localize.Locale.to_locale_id(locale)
+    Localize.Locale.cldr_locale_id_from(locale)
   end
 
   # ── Fallback formatting ────────────────────────────────────

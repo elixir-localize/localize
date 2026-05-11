@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.LanguageTag.parse/1` no longer calls `String.to_atom/1` on raw parser output, closing an atom-table-exhaustion DOS vector on untrusted locale inputs. Atomisation is now gated behind the CLDR validity sets after alias resolution, and unrecognised language/script/territory subtags return `Localize.InvalidSubtagError`.
 
+* `Localize.Locale.to_locale_id/1` renamed to `Localize.Locale.cldr_locale_id_from/1` and now returns `{:ok, atom()} | {:error, Exception.t()}`, gating atom creation behind `Localize.validate_locale/1` and closing a second atom-table-exhaustion vector on locale inputs.
+
 ## [0.29.0] — May 11th, 2026
 
 ### Behaviour Change
