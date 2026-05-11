@@ -204,6 +204,41 @@ defmodule Localize.CurrencyTest do
                Currency.currency_for_code(:ZZZ)
     end
 
+    test "currency_for_code returns CurrencyNotLocalizedError for valid currency missing in locale" do
+      # VED (Bolívar Soberano) and UYW (Uruguayan Nominal Wage Index Unit) are
+      # tender currencies whose CLDR display names exist in :en but not in many
+      # other locales. Without :fallback, the request must fail explicitly
+      # rather than returning {:ok, nil} or masking as UnknownCurrencyError.
+      assert {:error, %Localize.CurrencyNotLocalizedError{currency: :VED, locale: :es}} =
+               Currency.currency_for_code(:VED, locale: :es)
+
+      assert {:error, %Localize.CurrencyNotLocalizedError{currency: :UYW, locale: :de}} =
+               Currency.currency_for_code(:UYW, locale: :de)
+    end
+
+    test "currency_for_code with fallback: true walks the locale chain" do
+      assert {:ok, currency} = Currency.currency_for_code(:VED, locale: :es, fallback: true)
+      assert currency.code == :VED
+      assert is_binary(currency.name)
+
+      assert {:ok, currency} = Currency.currency_for_code(:UYW, locale: :de, fallback: true)
+      assert currency.code == :UYW
+      assert is_binary(currency.name)
+    end
+
+    test "currency_for_code with fallback: true still errors for unknown codes" do
+      assert {:error, %Localize.UnknownCurrencyError{}} =
+               Currency.currency_for_code(:ZZZ, locale: :es, fallback: true)
+    end
+
+    test "currency_for_code with fallback: true uses requested locale when data exists" do
+      # When the requested locale already has the currency, fallback must not
+      # change the answer.
+      assert {:ok, currency} = Currency.currency_for_code(:USD, locale: :fr, fallback: true)
+      assert currency.code == :USD
+      assert currency.name == "dollar des États-Unis"
+    end
+
     test "currencies_for_locale returns all currencies for a locale" do
       assert {:ok, currencies} = Currency.currencies_for_locale(:en)
       assert is_map(currencies)
