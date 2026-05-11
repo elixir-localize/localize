@@ -17,338 +17,368 @@ msgctxt "currency"
 msgid "The currency {$currency} has no display name in locale {$locale}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:21
+#: lib/localize/gettext/messages.ex:32
 #, elixir-autogen, icu-format
 msgctxt "currency"
 msgid "The currency {$currency} is not known."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:24
+#: lib/localize/gettext/messages.ex:40
 #, elixir-autogen, icu-format
 msgctxt "datetime"
 msgid "Could not tokenize the format {$format}: {$detail}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:25
+#: lib/localize/gettext/messages.ex:46
 #, elixir-autogen, icu-format
 msgctxt "datetime"
 msgid "Date must have at least one of :year, :month, or :day keys."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:26
+#: lib/localize/gettext/messages.ex:52
 #, elixir-autogen, icu-format
 msgctxt "datetime"
 msgid "Datetime must have date and/or time keys."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:27
+#: lib/localize/gettext/messages.ex:58
 #, elixir-autogen, icu-format
 msgctxt "datetime"
 msgid "Invalid interval format {$detail}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:28
+#: lib/localize/gettext/messages.ex:64
 #, elixir-autogen, icu-format
 msgctxt "datetime"
 msgid "No available format resolved for {$format} in locale {$locale}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:29
+#: lib/localize/gettext/messages.ex:70
 #, elixir-autogen, icu-format
 msgctxt "datetime"
 msgid "No interval format found for {$format_key}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:30
+#: lib/localize/gettext/messages.ex:76
 #, elixir-autogen, icu-format
 msgctxt "datetime"
 msgid "No interval pattern for difference {$detail} in format {$format_key}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:31
+#: lib/localize/gettext/messages.ex:82
 #, elixir-autogen, icu-format
 msgctxt "datetime"
 msgid "The format {$format} is invalid."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:32
+#: lib/localize/gettext/messages.ex:88
 #, elixir-autogen, icu-format
 msgctxt "datetime"
 msgid "The format {$format} is invalid: {$reason}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:33
+#: lib/localize/gettext/messages.ex:94
 #, elixir-autogen, icu-format
 msgctxt "datetime"
 msgid "Time must have at least one of :hour, :minute, or :second keys."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:34
+#: lib/localize/gettext/messages.ex:100
 #, elixir-autogen, icu-format
 msgctxt "datetime"
 msgid "Unknown interval style {$style} or format {$format}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:35
+#: lib/localize/gettext/messages.ex:106
 #, elixir-autogen, icu-format
 msgctxt "datetime"
 msgid "Unterminated quote in interval format."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:38
+#: lib/localize/gettext/messages.ex:120
 #, elixir-autogen, icu-format
 msgctxt "language_tag"
 msgid "Could not parse {$input}: {$reason}"
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:39
+#: lib/localize/gettext/messages.ex:134
 #, elixir-autogen, icu-format
 msgctxt "language_tag"
 msgid "No likely subtags data found for {$locale}"
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:40
+#: lib/localize/gettext/messages.ex:140
 #, elixir-autogen, icu-format
 msgctxt "language_tag"
 msgid "No matching locale found for {$desired} within distance {$threshold}"
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:41
+#: lib/localize/gettext/messages.ex:146
 #, elixir-autogen, icu-format
 msgctxt "language_tag"
 msgid "No unicode script {$value} found."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:42
+#: lib/localize/gettext/messages.ex:152
 #, elixir-autogen, icu-format
 msgctxt "language_tag"
 msgid "The date {$value} must be the last value in subtag {$key}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:43
+#: lib/localize/gettext/messages.ex:158
 #, elixir-autogen, icu-format
 msgctxt "language_tag"
 msgid "The key {$key} is not valid for the -u- subtag."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:44
+#: lib/localize/gettext/messages.ex:164
 #, elixir-autogen, icu-format
 msgctxt "language_tag"
 msgid "The value {$value} is not valid for the key {$key}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:47
+#: lib/localize/gettext/messages.ex:172
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "No locale display data for {$locale}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:48
+#: lib/localize/gettext/messages.ex:178
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "No parent territory found for {$territory}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:49
+#: lib/localize/gettext/messages.ex:184
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "The cached locale {$locale_id} has version {$cached_version} but the current version is {$current_version}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:50
+#: lib/localize/gettext/messages.ex:190
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "The calendar {$calendar} is not known."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:51
+#: lib/localize/gettext/messages.ex:196
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "The key path {$keys} was not found in locale {$locale}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:52
+#: lib/localize/gettext/messages.ex:202
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "The language {$language} is not known."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:53
+#: lib/localize/gettext/messages.ex:208
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "The locale {$locale_id} could not be downloaded from {$url}: {$reason}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:54
+#: lib/localize/gettext/messages.ex:214
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "The locale {$locale_id} could not be written to the cache at {$path}: {$reason}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:55
+#: lib/localize/gettext/messages.ex:220
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "The locale {$locale_id} is not known."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:56
+#: lib/localize/gettext/messages.ex:226
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "The locale {$locale_id} is not valid."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:57
+#: lib/localize/gettext/messages.ex:232
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "The locale {$locale_id} was not found in the cache at {$path}. Run `mix localize.download_locales {$locale_id_bare}` to download it, or set `config :localize, :allow_runtime_locale_download, true` to enable on-demand downloading."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:58
+#: lib/localize/gettext/messages.ex:238
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "The locale {$locale} has no parent locale"
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:59
+#: lib/localize/gettext/messages.ex:244
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "The script {$script} is not known."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:60
+#: lib/localize/gettext/messages.ex:250
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "The subdivision {$subdivision} is not known."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:61
+#: lib/localize/gettext/messages.ex:256
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "The territory {$territory} is not known."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:62
+#: lib/localize/gettext/messages.ex:262
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "Unknown timezone: {$timezone}"
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:65
+#: lib/localize/gettext/messages.ex:270
 #, elixir-autogen, icu-format
 msgctxt "message"
 msgid "Cannot format {$value} with function {$function}"
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:66
+#: lib/localize/gettext/messages.ex:276
 #, elixir-autogen, icu-format
 msgctxt "message"
 msgid "Cannot format {$value} with function {$function}: {$reason}"
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:67
+#: lib/localize/gettext/messages.ex:282
 #, elixir-autogen, icu-format
 msgctxt "message"
 msgid "No binding was found for {$unbound}"
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:71
+#: lib/localize/gettext/messages.ex:302
 #, elixir-autogen, icu-format
 msgctxt "number"
 msgid "The measurement system {$measurement_system} is not known."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:70
+#: lib/localize/gettext/messages.ex:290
 #, elixir-autogen, icu-format
 msgctxt "number"
 msgid "The number system {$number_system} is not known."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:74
+#: lib/localize/gettext/messages.ex:316
 #, elixir-autogen, icu-format
 msgctxt "plural_rules"
 msgid "No{$type} plural rules available for the locale {$locale_id}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:77
+#: lib/localize/gettext/messages.ex:324
 #, elixir-autogen, icu-format
 msgctxt "unit"
 msgid "Cannot apply {$operation} to a unit without a value."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:78
+#: lib/localize/gettext/messages.ex:330
 #, elixir-autogen, icu-format
 msgctxt "unit"
 msgid "Cannot compute conversion factor for mixed units."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:79
+#: lib/localize/gettext/messages.ex:336
 #, elixir-autogen, icu-format
 msgctxt "unit"
 msgid "Cannot convert from {$from} to {$to}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:80
+#: lib/localize/gettext/messages.ex:342
 #, elixir-autogen, icu-format
 msgctxt "unit"
 msgid "Expected {$expected} for {$context}, got: {$value}"
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:81
+#: lib/localize/gettext/messages.ex:348
 #, elixir-autogen, icu-format
 msgctxt "unit"
 msgid "Expected {$expected}, got: {$value}"
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:82
+#: lib/localize/gettext/messages.ex:354
 #, elixir-autogen, icu-format
 msgctxt "unit"
 msgid "No quantity found for base unit {$unit}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:83
+#: lib/localize/gettext/messages.ex:360
 #, elixir-autogen, icu-format
 msgctxt "unit"
 msgid "No unit preference for region {$region} in category {$category}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:84
+#: lib/localize/gettext/messages.ex:366
 #, elixir-autogen, icu-format
 msgctxt "unit"
 msgid "No unit preferences for category {$category} and usage {$usage}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:85
+#: lib/localize/gettext/messages.ex:372
 #, elixir-autogen, icu-format
 msgctxt "unit"
 msgid "No unit preferences found for quantity {$quantity}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:86
+#: lib/localize/gettext/messages.ex:378
 #, elixir-autogen, icu-format
 msgctxt "unit"
 msgid "Special conversion is not supported for {$from}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:87
+#: lib/localize/gettext/messages.ex:384
 #, elixir-autogen, icu-format
 msgctxt "unit"
 msgid "Units {$from} and {$to} are not convertible."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:88
+#: lib/localize/gettext/messages.ex:390
 #, elixir-autogen, icu-format
 msgctxt "unit"
 msgid "Unknown unit: {$unit}"
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:92
+#: lib/localize/gettext/messages.ex:404
 #, elixir-autogen, icu-format
 msgctxt "unknown style error"
 msgid "The style {$style} is unknown for territory {$territory}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:91
+#: lib/localize/gettext/messages.ex:398
 #, elixir-autogen, icu-format
 msgctxt "unknown style error"
 msgid "The style {$style} is unknown."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:26
+#, elixir-autogen, icu-format
+msgctxt "currency"
+msgid "The currency {$currency} has no localized data in locale {$locale}."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:112
+#, elixir-autogen, icu-format
+msgctxt "datetime"
+msgid "No interval format fallback pattern available in the locale data."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:128
+#, elixir-autogen, icu-format
+msgctxt "message"
+msgid "Could not parse {$input} at line {$line} column {$column}: {$reason}"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:308
+#, elixir-autogen, icu-format
+msgctxt "number"
+msgid "The RBNF rule {$rule_name} is not known for locale {$locale}."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:296
+#, elixir-autogen, icu-format
+msgctxt "number"
+msgid "The number system {$number_system} is not valid for locale {$locale}."
 msgstr ""
