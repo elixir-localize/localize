@@ -27,6 +27,12 @@ defmodule Localize.Gettext.Messages do
         Localize.Gettext,
         "localize",
         "currency",
+        "The currency {$currency} has no localized data in locale {$locale}."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "currency",
         "The currency {$currency} is not known."
       ),
 
