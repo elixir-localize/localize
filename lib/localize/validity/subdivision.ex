@@ -4,8 +4,6 @@ defmodule Localize.Validity.Subdivision do
   use Localize.Validity, :subdivisions
   @behaviour Localize.Validity
 
-  @doc since: "2.23.0"
-
   def validate(nil) do
     {:ok, nil, nil}
   end
@@ -19,8 +17,6 @@ defmodule Localize.Validity.Subdivision do
       {:ok, code, status} -> {:ok, String.to_atom(code), status}
     end
   end
-
-  @doc since: "2.23.0"
 
   def normalize(code) when is_binary(code) do
     String.downcase(code)

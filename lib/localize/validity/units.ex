@@ -4,8 +4,6 @@ defmodule Localize.Validity.Unit do
   use Localize.Validity, :units
   @behaviour Localize.Validity
 
-  @doc since: "2.37.0"
-
   def validate(nil) do
     {:ok, nil, nil}
   end
@@ -20,8 +18,6 @@ defmodule Localize.Validity.Unit do
       {:ok, code, status} -> {:ok, String.to_atom(code), status}
     end
   end
-
-  @doc since: "2.37.0"
 
   def normalize(code) when is_binary(code) do
     String.downcase(code)

@@ -4,8 +4,6 @@ defmodule Localize.Validity.Language do
   use Localize.Validity, :languages
   @behaviour Localize.Validity
 
-  @doc since: "2.23.0"
-
   def validate(nil) do
     {:ok, nil, nil}
   end
@@ -20,8 +18,6 @@ defmodule Localize.Validity.Language do
       other -> other
     end
   end
-
-  @doc since: "2.23.0"
 
   def normalize(code) when is_binary(code) do
     String.downcase(code)
