@@ -45,35 +45,17 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   @impl Localize.Locale.Provider
   @dialyzer {:nowarn_function, load: 1}
   def load(locale) do
-    locale_id = to_locale_id(locale)
-
-    case Cache.get(locale_id) do
-      {:ok, locale_data} ->
-        {:ok, locale_data}
-
-      {:error, _exception} ->
-        # Resolve to the canonical CLDR locale ID before trying to
-        # generate or download. Non-canonical forms like :"pt-BR"
-        # (which CLDR maps to :pt) would otherwise 404 on the CDN.
-        canonical_id = resolve_canonical_id(locale_id)
-
-        if canonical_id != locale_id do
-          # Try the cache again with the canonical ID — it may already
-          # be present under the canonical name.
-          case Cache.get(canonical_id) do
-            {:ok, locale_data} -> {:ok, locale_data}
-            {:error, _} -> load_miss(canonical_id, canonical_id)
-          end
-        else
-          load_miss(locale_id, locale)
-        end
-    end
-  end
-
-  defp resolve_canonical_id(locale_id) do
-    case Localize.validate_locale(locale_id) do
-      {:ok, %{cldr_locale_id: canonical}} when not is_nil(canonical) -> canonical
-      _ -> locale_id
+    # `cldr_locale_id_from/1` validates and canonicalises non-CLDR forms
+    # like `:"pt-BR"` (→ `:pt`), so the cache lookup and any
+    # subsequent download/generation work directly on the canonical
+    # id. `load_miss/2`'s second arg used to carry the raw input for
+    # `to_string/1` reasons; with canonicalisation done upstream the
+    # canonical id serves that role too.
+    with {:ok, locale_id} <- cldr_locale_id_from(locale) do
+      case Cache.get(locale_id) do
+        {:ok, locale_data} -> {:ok, locale_data}
+        {:error, _} -> load_miss(locale_id, locale_id)
+      end
     end
   end
 
@@ -142,9 +124,10 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   """
   @impl Localize.Locale.Provider
   def loaded?(locale) do
-    locale_id = to_locale_id(locale)
-    locale_key = locale_key(locale_id)
-    !!:persistent_term.get(locale_key, nil)
+    case cldr_locale_id_from(locale) do
+      {:ok, locale_id} -> !!:persistent_term.get(locale_key(locale_id), nil)
+      {:error, _} -> false
+    end
   end
 
   @doc """
@@ -178,24 +161,24 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   """
   @impl Localize.Locale.Provider
   def get(locale, keys, _options \\ []) when is_list(keys) do
-    locale_id = to_locale_id(locale)
+    with {:ok, locale_id} <- cldr_locale_id_from(locale) do
+      case :persistent_term.get(locale_key(locale_id), :localize_locale_not_loaded) do
+        :localize_locale_not_loaded ->
+          {:error, Localize.ItemNotFoundError.exception(locale: locale_id, keys: keys)}
 
-    case :persistent_term.get(locale_key(locale_id), :localize_locale_not_loaded) do
-      :localize_locale_not_loaded ->
-        {:error, Localize.ItemNotFoundError.exception(locale: locale_id, keys: keys)}
-
-      locale_data ->
-        case get_in(locale_data, keys) do
-          nil -> {:error, Localize.ItemNotFoundError.exception(locale: locale_id, keys: keys)}
-          item -> {:ok, item}
-        end
+        locale_data ->
+          case get_in(locale_data, keys) do
+            nil -> {:error, Localize.ItemNotFoundError.exception(locale: locale_id, keys: keys)}
+            item -> {:ok, item}
+          end
+      end
     end
   end
 
   # ── Helpers ──────────────────────────────────────────────────
 
-  defp to_locale_id(locale) do
-    Localize.Locale.to_locale_id(locale)
+  defp cldr_locale_id_from(locale) do
+    Localize.Locale.cldr_locale_id_from(locale)
   end
 
   defp locale_key(locale_id) do

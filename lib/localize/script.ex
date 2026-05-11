@@ -87,19 +87,22 @@ defmodule Localize.Script do
     fallback = validate_fallback!(Keyword.get(options, :fallback, false))
 
     script_atom = normalize_script_code(script)
-    locale_id = Localize.Locale.to_locale_id(locale)
 
-    case lookup_script(script_atom, locale_id, style) do
-      {:ok, _} = result ->
-        result
+    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
+      case lookup_script(script_atom, locale_id, style) do
+        {:ok, _} = result ->
+          result
 
-      {:error, _} = error ->
-        if fallback do
-          default_locale_id = Localize.Locale.to_locale_id(Localize.default_locale())
-          lookup_script(script_atom, default_locale_id, style)
-        else
-          error
-        end
+        {:error, _} = error ->
+          if fallback do
+            with {:ok, default_locale_id} <-
+                   Localize.Locale.cldr_locale_id_from(Localize.default_locale()) do
+              lookup_script(script_atom, default_locale_id, style)
+            end
+          else
+            error
+          end
+      end
     end
   end
 
@@ -155,9 +158,9 @@ defmodule Localize.Script do
           {:ok, [atom()]} | {:error, Exception.t()}
   def available_scripts(options \\ []) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    locale_id = Localize.Locale.to_locale_id(locale)
 
-    with {:ok, scripts} <- load_scripts(locale_id) do
+    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
+         {:ok, scripts} <- load_scripts(locale_id) do
       {:ok, scripts |> Map.keys() |> Enum.sort()}
     end
   end
@@ -193,8 +196,10 @@ defmodule Localize.Script do
           {:ok, %{atom() => map()}} | {:error, Exception.t()}
   def known_scripts(options \\ []) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    locale_id = Localize.Locale.to_locale_id(locale)
-    load_scripts(locale_id)
+
+    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
+      load_scripts(locale_id)
+    end
   end
 
   # ── Private helpers ─────────────────────────────────────────

@@ -94,9 +94,8 @@ defmodule Localize.Territory do
     style = Keyword.get(options, :style, :standard)
 
     with {:ok, territory_atom} <- resolve_territory(territory),
-         {:ok, style_atom} <- validate_style(style) do
-      locale_id = Localize.Locale.to_locale_id(locale)
-
+         {:ok, style_atom} <- validate_style(style),
+         {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
       case Localize.Locale.get(locale_id, [:territories]) do
         {:ok, territories} ->
           case territories do
@@ -238,9 +237,8 @@ defmodule Localize.Territory do
   @spec to_territory_code(String.t(), atom() | String.t() | LanguageTag.t()) ::
           {:ok, atom()} | {:error, Exception.t()}
   def to_territory_code(name, locale) do
-    locale_id = Localize.Locale.to_locale_id(locale)
-
-    with {:ok, territories} <- Localize.Locale.get(locale_id, [:territories]) do
+    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
+         {:ok, territories} <- Localize.Locale.get(locale_id, [:territories]) do
       normalized = normalize_name(name)
 
       inverted =

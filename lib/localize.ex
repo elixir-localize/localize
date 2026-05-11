@@ -632,9 +632,9 @@ defmodule Localize do
   def quote(string, options \\ []) when is_binary(string) do
     locale = Keyword.get(options, :locale, get_locale())
     style = Keyword.get(options, :style, :default)
-    locale_id = Locale.to_locale_id(locale)
 
-    with {:ok, delimiters} <- Localize.Locale.get(locale_id, [:delimiters]) do
+    with {:ok, locale_id} <- Locale.cldr_locale_id_from(locale),
+         {:ok, delimiters} <- Localize.Locale.get(locale_id, [:delimiters]) do
       open = get_in(delimiters, [:quotation_start, style]) || ""
       close = get_in(delimiters, [:quotation_end, style]) || ""
       {:ok, open <> string <> close}
@@ -695,9 +695,9 @@ defmodule Localize do
     locale = Keyword.get(options, :locale, get_locale())
     format = Keyword.get(options, :format, :sentence)
     location = Keyword.get(options, :location, default_ellipsis_location(string))
-    locale_id = Locale.to_locale_id(locale)
 
-    with {:ok, ellipsis_chars} <- Localize.Locale.get(locale_id, [:ellipsis]) do
+    with {:ok, locale_id} <- Locale.cldr_locale_id_from(locale),
+         {:ok, ellipsis_chars} <- Localize.Locale.get(locale_id, [:ellipsis]) do
       result = apply_ellipsis(string, ellipsis_chars, location, format)
       {:ok, result}
     end

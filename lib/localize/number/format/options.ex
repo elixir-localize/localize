@@ -325,9 +325,8 @@ defmodule Localize.Number.Format.Options do
 
   # Standard formats: load formats once, look up the pattern
   defp resolve_format(format, language_tag, system_name) when format in @standard_formats do
-    locale_id = Localize.Locale.to_locale_id(language_tag)
-
-    with {:ok, all_formats} <- Localize.Locale.get(locale_id, [:number_formats]) do
+    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(language_tag),
+         {:ok, all_formats} <- Localize.Locale.get(locale_id, [:number_formats]) do
       formats = Map.get(all_formats, system_name)
 
       case formats do
@@ -346,11 +345,11 @@ defmodule Localize.Number.Format.Options do
 
   # Short formats: no resolution needed, but load formats for currency_spacing
   defp resolve_format(format, language_tag, system_name) when format in @short_formats do
-    locale_id = Localize.Locale.to_locale_id(language_tag)
-
     formats =
-      case Localize.Locale.get(locale_id, [:number_formats]) do
-        {:ok, all} -> Map.get(all, system_name)
+      with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(language_tag),
+           {:ok, all} <- Localize.Locale.get(locale_id, [:number_formats]) do
+        Map.get(all, system_name)
+      else
         _ -> nil
       end
 

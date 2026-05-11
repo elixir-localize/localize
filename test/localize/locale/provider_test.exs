@@ -11,7 +11,7 @@ defmodule Localize.Locale.ProviderTest do
     # When a consumer's provider could not load the requested locale
     # AND could not load the parent-chain's resolved locale, the
     # walker called `Localize.Locale.parent/1` which returned the root
-    # `und` tag. `Localize.Locale.to_locale_id/1` then routed the
+    # `und` tag. `Localize.Locale.cldr_locale_id_from/1` then routed the
     # tag's `nil` cldr_locale_id through `validate_locale/1` and
     # likely-subtag resolution, which could map `und` back to the
     # originally-requested locale (or to `:aa` etc. in other
@@ -23,7 +23,7 @@ defmodule Localize.Locale.ProviderTest do
     #
     # Two guards now prevent this:
     #
-    #   1. `Localize.Locale.to_locale_id/1` maps a bare `und` tag
+    #   1. `Localize.Locale.cldr_locale_id_from/1` maps a bare `und` tag
     #      directly to `:und` without going through likely-subtag
     #      resolution.
     #

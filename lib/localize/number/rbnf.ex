@@ -94,9 +94,9 @@ defmodule Localize.Number.Rbnf do
   # the chain terminates at `und`, return an `UnknownRbnfRuleError`
   # that reports the originally requested locale.
   defp lookup_and_format(number, rule_name, language_tag, requested_tag) do
-    locale_id = to_locale_id(language_tag)
-
-    with {:ok, rbnf_data} <- load_rbnf_data(locale_id),
+    with {:ok, locale_id} <- cldr_locale_id_from(language_tag),
+         {:ok, requested_id} <- cldr_locale_id_from(requested_tag),
+         {:ok, rbnf_data} <- load_rbnf_data(locale_id),
          {:ok, all_rule_sets} <- extract_rule_sets(rbnf_data),
          {:ok, resolved_name} <- resolve_rule_name(rule_name, all_rule_sets, locale_id),
          {:ok, rule_set} <- find_rule_set(all_rule_sets, resolved_name, locale_id) do
@@ -105,7 +105,7 @@ defmodule Localize.Number.Rbnf do
         resolved_name,
         rule_set.rules,
         all_rule_sets,
-        to_locale_id(requested_tag)
+        requested_id
       )
     else
       {:error, %Localize.UnknownRbnfRuleError{}} ->
@@ -122,12 +122,14 @@ defmodule Localize.Number.Rbnf do
         lookup_and_format(number, rule_name, parent_tag, requested_tag)
 
       {:error, %Localize.NoParentError{}} ->
-        {:error,
-         Localize.UnknownRbnfRuleError.exception(
-           rule_name: rule_name,
-           locale: to_locale_id(requested_tag),
-           available: []
-         )}
+        with {:ok, requested_id} <- cldr_locale_id_from(requested_tag) do
+          {:error,
+           Localize.UnknownRbnfRuleError.exception(
+             rule_name: rule_name,
+             locale: requested_id,
+             available: []
+           )}
+        end
     end
   end
 
@@ -149,9 +151,8 @@ defmodule Localize.Number.Rbnf do
   @spec rule_names_for_locale(atom() | String.t()) ::
           {:ok, [String.t()]} | {:error, Exception.t()}
   def rule_names_for_locale(locale) do
-    locale_id = to_locale_id(locale)
-
-    with {:ok, rbnf_data} <- load_rbnf_data(locale_id),
+    with {:ok, locale_id} <- cldr_locale_id_from(locale),
+         {:ok, rbnf_data} <- load_rbnf_data(locale_id),
          {:ok, all_rule_sets} <- extract_rule_sets(rbnf_data) do
       names =
         all_rule_sets
@@ -279,7 +280,7 @@ defmodule Localize.Number.Rbnf do
   defp normalize_rule_name(name) when is_atom(name), do: Atom.to_string(name)
   defp normalize_rule_name(name) when is_binary(name), do: name
 
-  defp to_locale_id(locale), do: Localize.Locale.to_locale_id(locale)
+  defp cldr_locale_id_from(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   defp to_string_key(key) when is_atom(key), do: Atom.to_string(key)
   defp to_string_key(key) when is_binary(key), do: key

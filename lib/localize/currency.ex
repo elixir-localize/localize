@@ -553,27 +553,27 @@ defmodule Localize.Currency do
   end
 
   defp resolve_currency_for_code(code, locale, fallback?) do
-    locale_id = Localize.Locale.to_locale_id(locale)
+    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
+      case Localize.Locale.get(locale_id, [:currencies, code],
+             fallback: fallback?,
+             fallback_to_default: fallback?
+           ) do
+        {:ok, currency} ->
+          {:ok, currency}
 
-    case Localize.Locale.get(locale_id, [:currencies, code],
-           fallback: fallback?,
-           fallback_to_default: fallback?
-         ) do
-      {:ok, currency} ->
-        {:ok, currency}
+        {:error, %Localize.ItemNotFoundError{}} ->
+          {:error, currency_not_localized_error(code, locale_id)}
 
-      {:error, %Localize.ItemNotFoundError{}} ->
-        {:error, currency_not_localized_error(code, locale)}
-
-      {:error, _} = error ->
-        error
+        {:error, _} = error ->
+          error
+      end
     end
   end
 
-  defp currency_not_localized_error(code, locale) do
+  defp currency_not_localized_error(code, locale_id) do
     Localize.CurrencyNotLocalizedError.exception(
       currency: code,
-      locale: Localize.Locale.to_locale_id(locale)
+      locale: locale_id
     )
   end
 
@@ -610,9 +610,8 @@ defmodule Localize.Currency do
         ) ::
           {:ok, map()} | {:error, Exception.t()}
   def currencies_for_locale(locale, only \\ :all, except \\ nil) do
-    locale_id = to_locale_id(locale)
-
-    with {:ok, currencies} <- Localize.Locale.get(locale_id, [:currencies]) do
+    with {:ok, locale_id} <- cldr_locale_id_from(locale),
+         {:ok, currencies} <- Localize.Locale.get(locale_id, [:currencies]) do
       {:ok, currency_filter(currencies, only, except)}
     end
   end
@@ -1155,7 +1154,7 @@ defmodule Localize.Currency do
 
   @rtl_mark "\u200F"
 
-  defp to_locale_id(locale), do: Localize.Locale.to_locale_id(locale)
+  defp cldr_locale_id_from(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   defp build_currency_strings(currencies) do
     currency_string_pairs =
