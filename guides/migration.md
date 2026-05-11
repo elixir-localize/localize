@@ -139,7 +139,7 @@ defp deps do
     # {:ex_cldr_collation, "~> 2.0"},
 
     # Add this:
-    {:localize, "~> 0.1"}
+    {:localize, "~> 0.29"}
   ]
 end
 ```
@@ -408,7 +408,7 @@ Some functions have been renamed for clarity:
 | `List.known_list_formats/0` | `List.known_list_styles/0` |
 | `List.list_formats_for/1` | `List.list_styles_for/1` |
 
-Note that `Localize.Territory.individual_territories/0` returns a sorted list of leaf territory code atoms (actual territories, excluding macro-regions such as `:"001"` or `:"150"`). This is distinct from `Localize.Territory.territory_codes/0`, which returns a map of ISO 3166 Alpha-2 codes to their Alpha-3 and numeric equivalents for all territories.
+Note that `Localize.Territory.individual_territories/0` returns a sorted list of leaf territory code atoms (actual territories, excluding macro-regions such as `:"001"` or `:"150"`). This is distinct from `Localize.Territory.territory_codes/1`, which returns a map of ISO 3166 Alpha-2 codes to their Alpha-3 and numeric equivalents for all territories.
 
 ## Option renaming
 
