@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.30.0] — May 12th, 2026
+
+### Security
+
+* `Localize.LanguageTag.parse/1` no longer calls `String.to_atom/1` on raw parser output, closing an atom-table-exhaustion DOS vector on untrusted locale inputs. Atomisation is now gated behind the CLDR validity sets after alias resolution, and unrecognised language/script/territory subtags return `Localize.InvalidSubtagError`.
+
 ## [0.29.0] — May 11th, 2026
 
 ### Behaviour Change
