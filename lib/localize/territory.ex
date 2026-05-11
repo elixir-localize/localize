@@ -708,7 +708,7 @@ defmodule Localize.Territory do
 
   To retrieve the full map of ISO 3166 code mappings
   (Alpha-2, Alpha-3, numeric) for all territories, see
-  `territory_codes/0`.
+  `territory_codes/1`.
 
   ### Returns
 

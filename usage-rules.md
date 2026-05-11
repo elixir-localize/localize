@@ -130,7 +130,7 @@ config :localize,
 
 * Do not call `String.to_atom/1` on user-supplied locale strings. Use `Localize.validate_locale/1`, which canonicalizes and validates without atom-table pollution.
 
-* Do not assume `Localize.Territory.territory_codes/0` returns a list of territories — it returns a *map* of ISO 3166 code mappings. Use `Localize.Territory.individual_territories/0` for the sorted list of leaf territory atoms.
+* Do not assume `Localize.Territory.territory_codes/1` returns a list of territories — it returns a *map* of ISO 3166 code mappings. Use `Localize.Territory.individual_territories/0` for the sorted list of leaf territory atoms.
 
 * Do not reach for `Cldr.*` modules or backend modules. Localize replaces the entire `ex_cldr_*` family with a single dependency and no compile-time configuration.
 

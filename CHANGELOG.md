@@ -4,13 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.29.0] — Unreleased
+## [0.29.0] — May 11th, 2026
 
-### Bug Fixes
+### Behaviour Change
 
-* `Localize.Currency.currency_for_code/2` now returns `Localize.CurrencyNotLocalizedError` (instead of `UnknownCurrencyError`) when the currency code is valid but the locale has no display data for it. New :fallback option walks the CLDR parent locale chain and the default locale before failing.
+* `Localize.Currency.currency_for_code/2` now returns the new `Localize.CurrencyNotLocalizedError` (instead of `UnknownCurrencyError`) when the currency code is valid but the locale has no display data for it. `UnknownCurrencyError` is now reserved for codes that aren't recognised ISO 4217 or registered custom currencies.
 
 ### Enhancements
+
+* `Localize.Currency.currency_for_code/2` accepts a new `:fallback` option which walks the CLDR parent locale chain and the application default locale before failing. Thanks to @neilberkman for the PR.
+
+* `Localize.Locale.get/3` accepts a new `:fallback_to_default` option for a final-step fallback after any `:fallback` parent walk. Accepts `true` (use `Localize.default_locale/0`), or an atom/string/`Localize.LanguageTag` for a specific locale.
 
 * Add `:iso_3166` option to `Localize.Territory.territory_codes/1` to return only ISO 3166 codes (not aggregate territories).
 

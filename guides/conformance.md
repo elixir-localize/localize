@@ -403,7 +403,7 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Territory code mappings (alpha-2/3, FIPS, numeric) | Implemented | `Localize.Territory.territory_codes/0`. |
+| Territory code mappings (alpha-2/3, FIPS, numeric) | Implemented | `Localize.Territory.territory_codes/1`. |
 | Currency code mappings | Implemented | ISO 4217 via `Localize.Currency`. |
 
 ### Aliases
