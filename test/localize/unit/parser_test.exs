@@ -324,4 +324,16 @@ defmodule Localize.Unit.ParserTest do
       end
     end
   end
+
+  # Regression: the SI prefix part of a parsed `single_unit` used to
+  # be atomised via `String.to_atom/1`. The grammar bounds the prefix
+  # to a fixed list of ~32 names, but the runtime atomisation is now
+  # pre-built into a compile-time `string => atom` map so the parser
+  # creates zero atoms at runtime regardless of input.
+  describe "atom-table bound on SI prefix parsing" do
+    test "Unit.Data.si_prefix_atom returns nil for non-prefix strings" do
+      assert nil == Localize.Unit.Data.si_prefix_atom("not_an_si_prefix")
+      assert :kilo == Localize.Unit.Data.si_prefix_atom("kilo")
+    end
+  end
 end

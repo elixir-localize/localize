@@ -163,5 +163,19 @@ defmodule Localize.Message.ListOptionsTest do
       assert {:format_error, _reason} =
                Interpreter.format_list(parsed, %{"items" => ["a", "b"]}, locale: "en")
     end
+
+    # Regression: the binary-fallthrough in `add_list_style/2` used to
+    # call `String.to_atom/1` on the raw style name, which grew the
+    # atom table per distinct attacker-supplied string before the
+    # downstream `Localize.List` rejected the unknown style.
+    test "unknown style name does not create an atom" do
+      bogus = "ZZZ_list_style_#{System.unique_integer([:positive])}"
+      {:ok, parsed} = Parser.parse(~S({$items :list style=) <> bogus <> ~S(}))
+
+      assert {:format_error, _reason} =
+               Interpreter.format_list(parsed, %{"items" => ["a", "b"]}, locale: "en")
+
+      assert nil == Localize.Utils.Helpers.existing_atom(bogus)
+    end
   end
 end

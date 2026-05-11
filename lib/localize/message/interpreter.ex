@@ -1280,11 +1280,17 @@ defmodule Localize.Message.Interpreter do
   defp add_list_style(opts, "unit-narrow"), do: Keyword.put(opts, :list_style, :unit_narrow)
 
   defp add_list_style(opts, value) when is_binary(value) do
-    # Pass the value through unchanged so that any future CLDR
-    # list style atom (e.g. a new `"foo"` style) is forwarded to
-    # `Localize.List.to_string/2`. Invalid styles surface there
-    # as an `InvalidValueError`.
-    Keyword.put(opts, :list_style, String.to_atom(value))
+    # Surface unknown MF2 style names as an invalid value so messages
+    # with typos or attacker-supplied junk fail loudly rather than
+    # silently formatting with the default style. Previously this
+    # clause called `String.to_atom/1` on the raw binary, which grew
+    # the atom table for every distinct unknown string before the
+    # downstream `Localize.List` rejected it.
+    #
+    # The "invalid" sentinel is an atom that's guaranteed not to be
+    # a valid list style; `Localize.List.to_string/2` rejects it via
+    # its existing `InvalidValueError` path.
+    Keyword.put(opts, :list_style, :__invalid_mf2_list_style__)
   end
 
   # ── Type coercion and validation ───────────────────────────────
