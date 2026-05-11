@@ -469,4 +469,47 @@ defmodule Localize.CurrencyTest do
       assert is_nil(Currency.current_currency_for_territory(:AQ))
     end
   end
+
+  # Regression: each of these public entry points used to call
+  # `String.to_atom/1` on the binary input BEFORE checking membership
+  # in the validity set, so an attacker could grow the atom table
+  # unboundedly. Atomisation is now gated on `Helpers.existing_atom/1`.
+  #
+  # We verify by feeding a unique bogus string into each entry point
+  # and asserting the atom doesn't exist after the call — checking
+  # `:erlang.system_info(:atom_count)` would race with concurrent
+  # async tests creating unrelated atoms.
+  describe "atom-table bound on unknown binary input" do
+    test "validate_currency does not create an atom for unknown code" do
+      bogus = "ZZZ_validate_currency_#{System.unique_integer([:positive])}"
+      assert {:error, _} = Currency.validate_currency(bogus)
+      assert {:error, _} = Currency.validate_currency(String.downcase(bogus))
+      assert nil == Localize.Utils.Helpers.existing_atom(bogus)
+      assert nil == Localize.Utils.Helpers.existing_atom(String.upcase(bogus))
+    end
+
+    test "territory_currencies does not create an atom for unknown territory" do
+      bogus = "ZZZ_territory_#{System.unique_integer([:positive])}"
+      assert {:error, _} = Currency.territory_currencies(bogus)
+      assert nil == Localize.Utils.Helpers.existing_atom(bogus)
+      assert nil == Localize.Utils.Helpers.existing_atom(String.upcase(bogus))
+    end
+
+    test "current_currency_for_territory does not create an atom for unknown territory" do
+      bogus = "ZZZ_current_#{System.unique_integer([:positive])}"
+      assert is_nil(Currency.current_currency_for_territory(bogus))
+      assert nil == Localize.Utils.Helpers.existing_atom(bogus)
+      assert nil == Localize.Utils.Helpers.existing_atom(String.upcase(bogus))
+    end
+
+    test "currencies_for_locale filter does not create an atom for unknown code" do
+      bogus = "ZZZ_filter_#{System.unique_integer([:positive])}"
+      # `only` accepts a list of filter terms including bare currency
+      # codes. Unknown binary codes must filter to no rows without
+      # atomising.
+      assert {:ok, result} = Currency.currencies_for_locale(:en, [bogus])
+      assert result == %{}
+      assert nil == Localize.Utils.Helpers.existing_atom(bogus)
+    end
+  end
 end

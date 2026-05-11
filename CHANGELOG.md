@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Locale.to_locale_id/1` renamed to `Localize.Locale.cldr_locale_id_from/1` and now returns `{:ok, atom()} | {:error, Exception.t()}`, gating atom creation behind `Localize.validate_locale/1` and closing a second atom-table-exhaustion vector on locale inputs.
 
+* `Localize.Currency.validate_currency/1`, `territory_currencies/1`, `current_currency_for_territory/1`, and the binary-code branch of `currencies_for_locale/3`'s filter no longer atomise input before checking validity. Unknown currency or territory binaries are rejected via `Helpers.existing_atom/1` and never grow the atom table.
+
 ## [0.29.0] — May 11th, 2026
 
 ### Behaviour Change
