@@ -4,8 +4,6 @@ defmodule Localize.Validity.Variant do
   use Localize.Validity, :variants
   @behaviour Localize.Validity
 
-  @doc since: "2.23.0"
-
   def validate([]) do
     {:ok, [], nil}
   end
@@ -35,8 +33,6 @@ defmodule Localize.Validity.Variant do
       other -> other
     end
   end
-
-  @doc since: "2.23.0"
 
   def normalize(list) when is_list(list) do
     list

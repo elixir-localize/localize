@@ -11,15 +11,6 @@ defmodule Localize.Macros do
   end
 
   @doc """
-  Sets the `@doc since:` attribute for a function.
-  """
-  defmacro doc_since(version) do
-    quote do
-      @doc since: unquote(version)
-    end
-  end
-
-  @doc """
   Sets `@impl true` for a callback implementation.
   """
   defmacro calendar_impl do
