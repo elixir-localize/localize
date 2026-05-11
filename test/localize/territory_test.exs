@@ -269,11 +269,31 @@ defmodule Localize.TerritoryTest do
 
   # ── territory_codes ───────────────────────────────────────────
 
-  describe "territory_codes/0" do
+  describe "territory_codes/1" do
     test "returns map of territory codes with alpha3 and numeric" do
       codes = Territory.territory_codes()
       assert %{alpha3: "USA", numeric: "840"} = Map.get(codes, :US)
       assert %{alpha3: "GBR", numeric: "826"} = Map.get(codes, :GB)
+    end
+
+    test "iso_3166: true filters out CLDR-only and exceptional codes" do
+      codes = Territory.territory_codes(iso_3166: true)
+      assert Map.has_key?(codes, :US)
+      assert Map.has_key?(codes, :GB)
+      assert Map.has_key?(codes, :DE)
+      # CLDR-only / user-assigned codes are excluded.
+      refute Map.has_key?(codes, :IC)
+      refute Map.has_key?(codes, :EA)
+      refute Map.has_key?(codes, :XK)
+      # Exceptional reservations are excluded.
+      refute Map.has_key?(codes, :AC)
+      refute Map.has_key?(codes, :DG)
+      refute Map.has_key?(codes, :TA)
+    end
+
+    test "the ISO 3166 subset is smaller than the full territory map" do
+      assert map_size(Territory.territory_codes(iso_3166: true)) <
+               map_size(Territory.territory_codes())
     end
   end
 

@@ -505,8 +505,17 @@ defmodule Localize.Territory do
   end
 
   @doc """
-  Returns a map of territory codes (ISO 3166 Alpha-2) to their
-  Alpha-3, FIPS 10, and numeric code equivalents.
+  Returns a map of territory codes to their Alpha-3, FIPS 10, and numeric
+  code equivalents.
+
+  ### Options
+
+  * `:iso_3166` (boolean) — when `true`, filters the result to only those
+    territories that are part of ISO 3166-1 (i.e. have a numeric UN M.49
+    code less than 900; codes 900–999 are reserved by ISO for
+    user-assigned and exceptional codes such as `:XK` Kosovo). CLDR-only
+    codes like `:IC`, `:EA`, and reservations like `:AC`, `:DG`, `:TA`
+    are also excluded. Default `false` (full CLDR territory map).
 
   ### Returns
 
@@ -518,11 +527,32 @@ defmodule Localize.Territory do
       iex> Map.get(codes, :US)
       %{alpha3: "USA", numeric: "840"}
 
+      iex> codes = Localize.Territory.territory_codes(iso_3166: true)
+      iex> Map.has_key?(codes, :US)
+      true
+      iex> Map.has_key?(codes, :XK)
+      false
+
   """
-  @spec territory_codes() :: %{atom() => map()}
-  def territory_codes do
-    SupplementalData.territory_codes()
+  @spec territory_codes(Keyword.t()) :: %{atom() => map()}
+  def territory_codes(options \\ []) do
+    codes = SupplementalData.territory_codes()
+
+    if Keyword.get(options, :iso_3166, false) do
+      :maps.filter(fn _code, info -> iso_3166?(info) end, codes)
+    else
+      codes
+    end
   end
+
+  defp iso_3166?(%{numeric: numeric}) when is_binary(numeric) do
+    case Integer.parse(numeric) do
+      {n, ""} -> n < 900
+      _ -> false
+    end
+  end
+
+  defp iso_3166?(_), do: false
 
   # ── Currency helpers ────────────────────────────────────────
 

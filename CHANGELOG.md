@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.29.0] — Unreleased
+
+### Enhancements
+
+* Add `:iso_3166` option to `Localize.Territory.territory_codes/1` to return only ISO 3166 codes (not aggregate territories).
+
 ## [0.28.0] — May 9th, 2026
 
 ### Behaviour Change
@@ -22,7 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Fix `Localize.Interval.to_string/3` raising `Localize.DateTimeIntervalFormatError` when called with `format: :full` on a Date interval. Relates to #22.
 
-* `Localize.Utils.Math.sqrt/2` now respects the current `Decimal.Context.get/0` precision when called with a `Decimal` — the result is rounded to the configured precision and Newton's-method convergence scales accordingly. 
+* `Localize.Utils.Math.sqrt/2` now respects the current `Decimal.Context.get/0` precision when called with a `Decimal` — the result is rounded to the configured precision and Newton's-method convergence scales accordingly.
 
 * Added the test suite for `Localize.Utils` that are derived from the `Cldr.Util` equivalents.
 
