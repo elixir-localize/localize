@@ -527,6 +527,19 @@ defmodule Localize.Currency do
 
   * `{:error, exception}` if the locale data cannot be loaded.
 
+  ### Examples
+
+      iex> {:ok, currency} = Localize.Currency.currency_for_code(:USD, locale: :en)
+      iex> currency.name
+      "US Dollar"
+
+      iex> Localize.Currency.currency_for_code(:VED, locale: :es)
+      {:error, %Localize.CurrencyNotLocalizedError{currency: :VED, locale: :es}}
+
+      iex> {:ok, currency} = Localize.Currency.currency_for_code(:VED, locale: :es, fallback: true)
+      iex> currency.code
+      :VED
+
   """
   @spec currency_for_code(atom() | String.t(), Keyword.t()) ::
           {:ok, t()} | {:error, Exception.t()}
@@ -540,60 +553,20 @@ defmodule Localize.Currency do
   end
 
   defp resolve_currency_for_code(code, locale, fallback?) do
-    with {:ok, currencies} <- currencies_for_locale(locale) do
-      case Map.get(currencies, code) do
-        nil when fallback? -> fallback_currency_for_code(code, locale)
-        nil -> {:error, currency_not_localized_error(code, locale)}
-        currency -> {:ok, currency}
-      end
-    end
-  end
+    locale_id = Localize.Locale.to_locale_id(locale)
 
-  defp fallback_currency_for_code(code, locale) do
-    chain = parent_chain(locale) ++ [Localize.default_locale()]
+    case Localize.Locale.get(locale_id, [:currencies, code],
+           fallback: fallback?,
+           fallback_to_default: fallback?
+         ) do
+      {:ok, currency} ->
+        {:ok, currency}
 
-    # Walk the chain looking for the currency. We only treat
-    # "currency absent in this locale's map" as continuable — real
-    # provider/load errors from `currencies_for_locale/1` are
-    # propagated rather than masked as `CurrencyNotLocalizedError`.
-    Enum.reduce_while(chain, :error, fn fallback_locale, _acc ->
-      case currencies_for_locale(fallback_locale) do
-        {:ok, currencies} ->
-          case Map.get(currencies, code) do
-            nil -> {:cont, :error}
-            currency -> {:halt, {:ok, currency}}
-          end
+      {:error, %Localize.ItemNotFoundError{}} ->
+        {:error, currency_not_localized_error(code, locale)}
 
-        {:error, _} = error ->
-          {:halt, error}
-      end
-    end)
-    |> case do
-      {:ok, _currency} = ok -> ok
-      {:error, _exception} = error -> error
-      :error -> {:error, currency_not_localized_error(code, locale)}
-    end
-  end
-
-  defp parent_chain(locale) do
-    locale
-    |> Localize.Locale.to_locale_id()
-    |> walk_parents([])
-  end
-
-  defp walk_parents(locale_id, acc) do
-    case Localize.Locale.parent(to_string(locale_id)) do
-      {:ok, parent_tag} ->
-        parent_id = Localize.Locale.to_locale_id(parent_tag)
-
-        if parent_id in acc do
-          Enum.reverse(acc)
-        else
-          walk_parents(parent_id, [parent_id | acc])
-        end
-
-      {:error, _} ->
-        Enum.reverse(acc)
+      {:error, _} = error ->
+        error
     end
   end
 

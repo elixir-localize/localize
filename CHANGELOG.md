@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [0.29.0] — Unreleased
 
+### Bug Fixes
+
+* `Localize.Currency.currency_for_code/2` now returns `Localize.CurrencyNotLocalizedError` (instead of `UnknownCurrencyError`) when the currency code is valid but the locale has no display data for it. New :fallback option walks the CLDR parent locale chain and the default locale before failing.
+
 ### Enhancements
 
 * Add `:iso_3166` option to `Localize.Territory.territory_codes/1` to return only ISO 3166 codes (not aggregate territories).
