@@ -441,14 +441,24 @@ defmodule Localize.DateTime.Format.Match do
 
   @doc false
   def time_preferences_for(locale_id) do
+    # `@time_preferences` keys are pre-atomised at compile time (CLDR
+    # locale ids and territory codes), so `existing_atom/1` resolves
+    # any known locale and returns nil for everything else. Unknown
+    # binaries no longer grow the atom table.
     locale_atom =
-      if is_atom(locale_id), do: locale_id, else: String.to_atom(Kernel.to_string(locale_id))
+      cond do
+        is_atom(locale_id) -> locale_id
+        is_binary(locale_id) -> Localize.Utils.Helpers.existing_atom(locale_id)
+        true -> nil
+      end
 
     # Look up by locale name first, then by territory
     territory =
-      case Localize.validate_locale(locale_atom) do
-        {:ok, %{territory: t}} when not is_nil(t) -> t
-        _ -> nil
+      if locale_atom do
+        case Localize.validate_locale(locale_atom) do
+          {:ok, %{territory: t}} when not is_nil(t) -> t
+          _ -> nil
+        end
       end
 
     Map.get(@time_preferences, locale_atom) ||

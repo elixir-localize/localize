@@ -26,6 +26,7 @@ defmodule Localize.Number.System do
   """
 
   alias Localize.Number.Transliterate
+  alias Localize.Utils.Helpers
 
   @default_number_system_type :default
 
@@ -683,7 +684,13 @@ defmodule Localize.Number.System do
   defp cldr_locale_id_from(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   defp to_atom_key(key) when is_atom(key), do: key
-  defp to_atom_key(key) when is_binary(key), do: String.to_atom(key)
+  # Use `existing_atom/1` so attacker-supplied binary system names
+  # can't grow the atom table. Known number-system names and types
+  # are pre-atomised at startup (see `@known_number_system_types` and
+  # `known_number_systems/0`), so this lookup succeeds for legitimate
+  # input. Unknown binaries return nil; downstream callers' `Map.get`
+  # / `Map.has_key?` checks fall through to the existing error paths.
+  defp to_atom_key(key) when is_binary(key), do: Helpers.existing_atom(key)
 
   # Parse RBNF rule reference from algorithmic number system definition.
   # Can be "rule_name" or "locale/RuleGroup/rule_name"

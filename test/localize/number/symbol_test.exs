@@ -32,5 +32,14 @@ defmodule Localize.Number.SymbolTest do
     test "returns error for unknown number system" do
       {:error, _exception} = Symbol.number_symbols_for(:en, :nope)
     end
+
+    # Regression: `to_system_atom/1` used to call `String.to_atom/1`
+    # on unknown binary system names, growing the atom table on each
+    # call. Now gated by `Helpers.existing_atom/1`.
+    test "does not create an atom for unknown binary system name" do
+      bogus = "ZZZ_sym_#{Elixir.System.unique_integer([:positive])}"
+      assert {:error, _} = Symbol.number_symbols_for(:en, bogus)
+      assert nil == Localize.Utils.Helpers.existing_atom(bogus)
+    end
   end
 end

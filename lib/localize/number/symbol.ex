@@ -117,5 +117,12 @@ defmodule Localize.Number.Symbol do
   defp cldr_locale_id_from(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   defp to_system_atom(system) when is_atom(system), do: system
-  defp to_system_atom(system) when is_binary(system), do: String.to_atom(system)
+
+  # Use `existing_atom/1` so attacker-supplied binary system names
+  # can't grow the atom table. Known number systems are pre-atomised
+  # at startup; unknown binaries return nil and the caller's
+  # `Map.get(symbols, nil)` falls through to the existing error path.
+  defp to_system_atom(system) when is_binary(system) do
+    Localize.Utils.Helpers.existing_atom(system)
+  end
 end
