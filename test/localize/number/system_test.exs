@@ -118,4 +118,30 @@ defmodule Localize.Number.SystemTest do
       {:error, _exception} = System.generate_transliteration_map("abc", "xy")
     end
   end
+
+  # Regression: the three public APIs that accept a binary number-system
+  # name used to call `String.to_atom/1` on it before checking validity.
+  # Atomisation is now gated on `Helpers.existing_atom/1`.
+  describe "atom-table bound on unknown binary number-system name" do
+    test "system_name_from does not create an atom for unknown system" do
+      bogus = "ZZZ_system_name_from_#{Elixir.System.unique_integer([:positive])}"
+
+      assert {:error, %Localize.UnknownNumberSystemError{}} =
+               System.system_name_from(bogus, :en)
+
+      assert nil == Localize.Utils.Helpers.existing_atom(bogus)
+    end
+
+    test "number_system_digits does not create an atom for unknown system" do
+      bogus = "ZZZ_digits_#{Elixir.System.unique_integer([:positive])}"
+      assert {:error, _} = System.number_system_digits(bogus)
+      assert nil == Localize.Utils.Helpers.existing_atom(bogus)
+    end
+
+    test "to_system does not create an atom for unknown system" do
+      bogus = "ZZZ_to_system_#{Elixir.System.unique_integer([:positive])}"
+      assert {:error, _} = System.to_system(42, bogus)
+      assert nil == Localize.Utils.Helpers.existing_atom(bogus)
+    end
+  end
 end

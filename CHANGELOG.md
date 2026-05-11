@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * MF2 `:list` function and unit parser no longer atomise user-controlled binaries. The `:list` function's binary `style=` fallthrough now sets a sentinel atom that surfaces as an `InvalidValueError` in `Localize.List`, and SI prefix names are resolved through a compile-time lookup map (`Localize.Unit.Data.si_prefix_atom/1`) rather than `String.to_atom/1` at parse time.
 
+* `Localize.Number.System` (`system_name_from/2`, `number_system_digits/1`, `to_system/2`), `Localize.Number.Symbol.number_symbols_for/2`, and the datetime-formatter's `time_preferences_for/1` no longer atomise user-supplied binary number-system or locale names before validation. Lookups go through `Helpers.existing_atom/1` against pre-atomised CLDR data sets.
+
 ## [0.29.0] — May 11th, 2026
 
 ### Behaviour Change
