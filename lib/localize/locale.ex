@@ -476,6 +476,22 @@ defmodule Localize.Locale do
     according to the CLDR locale inheritance chain. The default is
     `false`.
 
+  * `:fallback_to_default` controls a final-step fallback after any
+    `:fallback` parent walk. Accepts:
+
+    * `false` (the default) — disabled.
+
+    * `true` — use the application default locale
+      (`Localize.default_locale/0`).
+
+    * an atom, string, or `t:Localize.LanguageTag.t/0` — use that
+      specific locale. The value is resolved through
+      `Localize.validate_locale/1`; an invalid value returns
+      `{:error, exception}` immediately.
+
+    Composes with `:fallback` — set both to walk parents and then
+    try the chosen locale.
+
   ### Returns
 
   * `{:ok, value}` if the key path resolves to a value.
@@ -488,17 +504,71 @@ defmodule Localize.Locale do
   def get(locale, keys, options \\ []) do
     {provider, options} = Keyword.pop(options, :provider, default_provider())
     {fallback?, options} = Keyword.pop(options, :fallback, false)
+    {fallback_to_default, options} = Keyword.pop(options, :fallback_to_default, false)
 
-    with :ok <- load_and_store(locale, provider: provider) do
+    with {:ok, default_fallback_id} <- resolve_default_fallback(fallback_to_default),
+         :ok <- load_and_store(locale, provider: provider) do
       case provider.get(locale, keys, options) do
         {:ok, _} = ok ->
           ok
 
         {:error, %Localize.ItemNotFoundError{}} when fallback? ->
-          fallback_through_parents(locale, keys, provider, options)
+          case fallback_through_parents(locale, keys, provider, options) do
+            {:error, %Localize.ItemNotFoundError{}} when not is_nil(default_fallback_id) ->
+              try_default_locale(locale, default_fallback_id, keys, provider, options)
+
+            other ->
+              other
+          end
+
+        {:error, %Localize.ItemNotFoundError{}} when not is_nil(default_fallback_id) ->
+          try_default_locale(locale, default_fallback_id, keys, provider, options)
 
         {:error, _} = error ->
           error
+      end
+    end
+  end
+
+  # Resolve the `:fallback_to_default` option to a locale id atom (or
+  # nil when the option is disabled). Strings and atoms are run through
+  # `Localize.validate_locale/1`, which performs no provider key-path
+  # lookups, so this cannot recurse back into `get/3`.
+  @spec resolve_default_fallback(boolean() | atom() | String.t() | Localize.LanguageTag.t()) ::
+          {:ok, atom() | nil} | {:error, Exception.t()}
+  defp resolve_default_fallback(false), do: {:ok, nil}
+  defp resolve_default_fallback(true), do: {:ok, to_locale_id(Localize.default_locale())}
+
+  defp resolve_default_fallback(locale) do
+    case Localize.validate_locale(locale) do
+      {:ok, tag} -> {:ok, to_locale_id(tag)}
+      {:error, _} = error -> error
+    end
+  end
+
+  # Try the resolved fallback locale as a final step. Returns an
+  # ItemNotFoundError referencing the *original* locale so callers see a
+  # consistent error identity regardless of which locale was actually
+  # visited last. Load errors against the fallback locale propagate.
+  @spec try_default_locale(Provider.locale(), atom(), list(), module(), Keyword.t()) ::
+          {:ok, term()} | {:error, term()}
+  defp try_default_locale(original_locale, fallback_id, keys, provider, options) do
+    original_id = to_locale_id(original_locale)
+
+    if fallback_id == original_id do
+      {:error, Localize.ItemNotFoundError.exception(locale: original_id, keys: keys)}
+    else
+      with :ok <- load_and_store(fallback_id, provider: provider) do
+        case provider.get(fallback_id, keys, options) do
+          {:ok, _} = ok ->
+            ok
+
+          {:error, %Localize.ItemNotFoundError{}} ->
+            {:error, Localize.ItemNotFoundError.exception(locale: original_id, keys: keys)}
+
+          {:error, _} = error ->
+            error
+        end
       end
     end
   end
