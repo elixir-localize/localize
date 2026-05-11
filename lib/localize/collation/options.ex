@@ -233,7 +233,7 @@ defmodule Localize.Collation.Options do
         "kc" -> [{:case_level, parse_bool(value)} | acc]
         "kf" -> [{:case_first, parse_case_first(value)} | acc]
         "kn" -> [{:numeric, parse_bool(value)} | acc]
-        "kr" -> [{:reorder, value |> String.split("-") |> Enum.map(&String.to_atom/1)} | acc]
+        "kr" -> [{:reorder, parse_reorder_codes(value)} | acc]
         "kv" -> [{:max_variable, parse_max_variable(value)} | acc]
         _ -> acc
       end
@@ -316,7 +316,26 @@ defmodule Localize.Collation.Options do
   defp parse_type("eor"), do: :eor
   defp parse_type("trad"), do: :traditional
   defp parse_type("tradnl"), do: :traditional
-  defp parse_type(other), do: String.to_atom(other)
+
+  # Unknown collation types from a `-u-co-` extension default to
+  # `:standard`. Previously this fallthrough called `String.to_atom/1`
+  # on the raw value, growing the atom table for every distinct
+  # attacker-supplied collation name. Tailoring lookup with an
+  # unknown type already produces nil → no tailoring overlay, which
+  # is the same end state as `:standard` for an unrecognised type.
+  defp parse_type(_other), do: :standard
+
+  # Parse `-u-kr-` reorder code list. Codes are script names (e.g.
+  # `latn`, `cyrl`) or category names (e.g. `digit`, `currency`).
+  # Use `existing_atom/1` so attacker-supplied codes can't grow the
+  # atom table; unknown codes are dropped silently (the consumer
+  # uses the list as a Map.get key, where nil entries miss).
+  defp parse_reorder_codes(value) when is_binary(value) do
+    value
+    |> String.split("-")
+    |> Enum.map(&Localize.Utils.Helpers.existing_atom/1)
+    |> Enum.reject(&is_nil/1)
+  end
 
   @doc """
   Return the maximum primary weight that counts as "variable" for the given setting.

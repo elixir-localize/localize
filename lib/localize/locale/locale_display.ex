@@ -439,13 +439,15 @@ defmodule Localize.Locale.LocaleDisplay do
   end
 
   defp resolve_locale_id(options) do
+    # Route through the canonical CLDR locale resolver so user-supplied
+    # binary or atom locales are validated against CLDR before any
+    # atomisation. Falls back to `:en` if the locale is unresolvable so
+    # that display formatting itself never raises on bad input.
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    case locale do
-      %Localize.LanguageTag{cldr_locale_id: id} when not is_nil(id) -> id
-      atom when is_atom(atom) -> atom
-      string when is_binary(string) -> String.to_atom(string)
-      _ -> :en
+    case Localize.Locale.cldr_locale_id_from(locale) do
+      {:ok, id} -> id
+      {:error, _} -> :en
     end
   end
 

@@ -350,7 +350,11 @@ defmodule Localize.Number.PluralRule.Ordinal do
 
   # If the locale doesn't have a plural rule, try the language
   defp do_plural_rule(%LanguageTag{} = language_tag, n, i, v, w, f, t, e) do
-    language_atom = String.to_atom(to_string(language_tag.language))
+    # `language_tag.language` is already a validated atom (or nil) after
+    # `LanguageTag.parse/1`. The previous `String.to_atom(to_string(...))`
+    # round-trip was a no-op for atoms but would atomise `""` from a nil
+    # language; using the field directly avoids both.
+    language_atom = language_tag.language
 
     if language_atom == language_tag.cldr_locale_id do
       {:error,

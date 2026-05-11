@@ -250,7 +250,13 @@ defmodule Localize.Territory.Subdivision do
 
   defp normalize_subdivision_code(code) when is_atom(code), do: code
 
+  # Use `existing_atom/1` so attacker-supplied binary codes can't
+  # grow the atom table. CLDR subdivision codes (`"usca"`, `"gbcma"`,
+  # etc.) are pre-atomised as keys of the per-locale subdivisions map
+  # at startup. Unknown binaries return nil; the caller's
+  # `Map.get(subdivisions, nil)` falls through to the
+  # `UnknownSubdivisionError` path.
   defp normalize_subdivision_code(code) when is_binary(code) do
-    code |> String.downcase() |> String.to_atom()
+    code |> String.downcase() |> Localize.Utils.Helpers.existing_atom()
   end
 end
