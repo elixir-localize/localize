@@ -188,6 +188,13 @@ defmodule Localize.LanguageTag do
   @doc """
   Parse a locale identifier into a `t:Localize.LanguageTag` struct.
 
+  Calls the internal grammar parser, then validates the language,
+  script, and territory subtags against the CLDR validity sets
+  before atomising them. Subtags that are grammatically valid but
+  not recognised return `{:error, %Localize.InvalidSubtagError{}}`
+  — this gates atomisation behind a bounded set so untrusted input
+  cannot exhaust the atom table.
+
   ## Arguments
 
   * `locale_id` is any [BCP 47](https://tools.ietf.org/search/bcp47)
@@ -202,7 +209,11 @@ defmodule Localize.LanguageTag do
   """
   @spec parse(String.t()) :: {:ok, t()} | {:error, Exception.t()}
   def parse(locale_id) when is_binary(locale_id) do
-    Parser.parse(locale_id)
+    with {:ok, map} <- Parser.parse(locale_id),
+         resolved = resolve_aliases(map),
+         {:ok, validated} <- validate_subtags(resolved) do
+      {:ok, struct(__MODULE__, validated)}
+    end
   end
 
   @doc """
@@ -222,7 +233,87 @@ defmodule Localize.LanguageTag do
   """
   @spec parse!(String.t()) :: t() | none()
   def parse!(locale_string) when is_binary(locale_string) do
-    Parser.parse!(locale_string)
+    case parse(locale_string) do
+      {:ok, tag} -> tag
+      {:error, exception} -> raise exception
+    end
+  end
+
+  # Lifts the parser's bare map into a struct, atomising the subtags
+  # safely with respect to atom-table growth. Each of language, script,
+  # and territory is gated through its respective validity module so
+  # atomisation is bounded by the CLDR validity sets. Unknown subtags
+  # return `Localize.InvalidSubtagError`.
+  @spec validate_subtags(map()) :: {:ok, map()} | {:error, Exception.t()}
+  defp validate_subtags(%{} = map) do
+    with {:ok, language} <- atomize_language(Map.get(map, :language)),
+         {:ok, script} <- atomize_script(Map.get(map, :script)),
+         {:ok, territory} <- atomize_territory(Map.get(map, :territory)) do
+      {:ok,
+       map
+       |> Map.put(:language, language)
+       |> Map.put(:script, script)
+       |> Map.put(:territory, territory)}
+    end
+  end
+
+  defp atomize_language(nil), do: {:ok, nil}
+
+  defp atomize_language(value) when is_binary(value) do
+    case Localize.Validity.Language.validate(value) do
+      {:ok, code, _status} ->
+        {:ok, String.to_atom(code)}
+
+      {:error, _} ->
+        {:error,
+         Localize.InvalidSubtagError.exception(
+           key: :language,
+           value: value,
+           reason: :unknown_language
+         )}
+    end
+  end
+
+  defp atomize_script(nil), do: {:ok, nil}
+  # Already atomised — comes from supplemental alias data, which mixes
+  # string and atom forms. Atoms from that source are part of a curated
+  # finite set, so no DOS risk.
+  defp atomize_script(value) when is_atom(value), do: {:ok, value}
+
+  defp atomize_script(value) when is_binary(value) do
+    case Localize.Validity.Script.validate(value) do
+      {:ok, code, _status} ->
+        {:ok, code}
+
+      {:error, _} ->
+        {:error,
+         Localize.InvalidSubtagError.exception(
+           key: :script,
+           value: value,
+           reason: :unknown_script
+         )}
+    end
+  end
+
+  defp atomize_territory(nil), do: {:ok, nil}
+  # Already atomised — comes from supplemental alias data, which mixes
+  # string and atom forms. Atoms from that source are part of a curated
+  # finite set, so no DOS risk.
+  defp atomize_territory(value) when is_atom(value), do: {:ok, value}
+
+  defp atomize_territory(value) when is_binary(value) do
+    case Localize.Validity.Territory.validate(value) do
+      {:ok, code, _status} ->
+        {:ok, code}
+
+      {:error, _} ->
+        {:error,
+         Localize.InvalidSubtagError.exception(
+           key: :territory,
+           value: value,
+           reason: :unknown_territory
+         )}
+    end
   end
 
   @doc """
@@ -336,7 +427,9 @@ defmodule Localize.LanguageTag do
 
   """
   @spec to_string(t()) :: String.t()
-  def to_string(%__MODULE__{canonical_locale_id: name}) when is_binary(name), do: name
+  def to_string(%__MODULE__{canonical_locale_id: name}) when is_binary(name) do
+    name
+  end
 
   def to_string(%__MODULE__{} = language_tag) do
     build_canonical_name(language_tag)
@@ -380,7 +473,6 @@ defmodule Localize.LanguageTag do
     with {:ok, tag} <- canonicalize_extensions(language_tag) do
       tag =
         tag
-        |> resolve_aliases()
         |> sort_variants()
         |> compute_canonical_name()
 
@@ -927,7 +1019,11 @@ defmodule Localize.LanguageTag do
   defp variant_aliases,
     do: cached(:variant_aliases, fn -> SupplementalData.aliases()[:variant] end)
 
-  # Resolve aliased subtags to their canonical replacements.
+  # Resolve aliased subtags to their canonical replacements on the
+  # bare parser-output map (strings, before atomisation). This must
+  # run before `validate_subtags/1` so deprecated aliases like "dut"
+  # → "nl" get rewritten before the validity gate, which only knows
+  # about current CLDR-registered codes.
   #
   # The order follows TR35 Locale ID Canonicalization:
   # 1. Resolve territory aliases (numeric codes, deprecated codes)
@@ -937,8 +1033,8 @@ defmodule Localize.LanguageTag do
   #    Also tries "und-variant" as fallback.
   # 5. Resolve script aliases
   # 6. Resolve variant aliases
-  defp resolve_aliases(%__MODULE__{} = tag) do
-    tag
+  defp resolve_aliases(%{} = map) do
+    map
     |> resolve_territory_alias()
     |> resolve_simple_language_alias()
     |> resolve_language_territory_alias()
@@ -948,64 +1044,56 @@ defmodule Localize.LanguageTag do
   end
 
   # Step 2: Simple language alias (e.g., "aar" → "aa", "iw" → "he")
-  defp resolve_simple_language_alias(%__MODULE__{language: language} = tag)
-       when is_atom(language) do
-    lang_str = Atom.to_string(language)
+  defp resolve_simple_language_alias(%{language: nil} = map), do: map
 
-    case Map.get(language_aliases(), lang_str) do
-      nil ->
-        tag
-
-      replacement ->
-        apply_language_replacement(tag, replacement)
+  defp resolve_simple_language_alias(%{language: language} = map) when is_binary(language) do
+    case Map.get(language_aliases(), language) do
+      nil -> map
+      replacement -> apply_language_replacement(map, replacement)
     end
   end
 
-  defp resolve_simple_language_alias(tag), do: tag
+  defp resolve_simple_language_alias(map), do: map
 
   # Step 3: Compound language+territory alias (e.g., "sgn-US" → "ase")
-  defp resolve_language_territory_alias(%__MODULE__{territory: nil} = tag), do: tag
+  defp resolve_language_territory_alias(%{territory: nil} = map), do: map
 
-  defp resolve_language_territory_alias(
-         %__MODULE__{language: language, territory: territory} = tag
-       )
-       when is_atom(language) and is_atom(territory) do
+  defp resolve_language_territory_alias(%{language: language, territory: territory} = map)
+       when is_binary(language) and is_binary(territory) do
     compound_key = "#{language}-#{territory}"
 
     case Map.get(language_aliases(), compound_key) do
       nil ->
-        tag
+        map
 
       replacement ->
         # Territory was consumed by the compound match — clear it unless
         # the replacement carries its own territory.
-        tag = %{tag | territory: nil}
-        apply_language_replacement(tag, replacement)
+        map = %{map | territory: nil}
+        apply_language_replacement(map, replacement)
     end
   end
 
-  defp resolve_language_territory_alias(tag), do: tag
+  defp resolve_language_territory_alias(map), do: map
 
   # Step 4: Compound language+variant aliases, applied iteratively.
   # Tries multi-variant compound keys (e.g., "und-hepburn-heploc"),
   # then single-variant keys ("lang-variant"), then "und-variant" as fallback.
-  # When matched, the consumed variants are removed from the tag.
+  # When matched, the consumed variants are removed from the map.
   # Repeat until stable (no more matches).
-  defp resolve_language_variant_aliases(%__MODULE__{language_variants: []} = tag), do: tag
+  defp resolve_language_variant_aliases(%{language_variants: []} = map), do: map
 
-  defp resolve_language_variant_aliases(%__MODULE__{} = tag) do
-    current_lang = Atom.to_string(tag.language)
-
+  defp resolve_language_variant_aliases(%{language: language} = map) when is_binary(language) do
     # First try multi-variant compound keys (pairs of variants)
-    case try_multi_variant_alias(tag, current_lang) do
-      {:ok, new_tag} ->
-        resolve_language_variant_aliases(new_tag)
+    case try_multi_variant_alias(map, language) do
+      {:ok, new_map} ->
+        resolve_language_variant_aliases(new_map)
 
       :none ->
         # Then try single-variant compound keys
-        {new_tag, changed?} =
-          Enum.reduce(tag.language_variants, {tag, false}, fn variant, {acc_tag, changed?} ->
-            cur_lang = Atom.to_string(acc_tag.language)
+        {new_map, changed?} =
+          Enum.reduce(map.language_variants, {map, false}, fn variant, {acc_map, changed?} ->
+            cur_lang = acc_map.language
             compound_key = "#{cur_lang}-#{variant}"
 
             result =
@@ -1024,25 +1112,27 @@ defmodule Localize.LanguageTag do
 
             case result do
               nil ->
-                {acc_tag, changed?}
+                {acc_map, changed?}
 
               {:ok, replacement} ->
-                remaining = Enum.reject(acc_tag.language_variants, &(&1 == variant))
-                acc_tag = %{acc_tag | language_variants: remaining}
-                {apply_language_replacement(acc_tag, replacement), true}
+                remaining = Enum.reject(acc_map.language_variants, &(&1 == variant))
+                acc_map = %{acc_map | language_variants: remaining}
+                {apply_language_replacement(acc_map, replacement), true}
             end
           end)
 
         if changed? do
-          resolve_language_variant_aliases(new_tag)
+          resolve_language_variant_aliases(new_map)
         else
-          new_tag
+          new_map
         end
     end
   end
 
+  defp resolve_language_variant_aliases(map), do: map
+
   # Try compound keys with two variants: "lang-v1-v2"
-  defp try_multi_variant_alias(%__MODULE__{language_variants: variants} = tag, lang_str) do
+  defp try_multi_variant_alias(%{language_variants: variants} = map, lang_str) do
     pairs =
       for v1 <- variants, v2 <- variants, v1 < v2 do
         {v1, v2}
@@ -1063,89 +1153,86 @@ defmodule Localize.LanguageTag do
 
       if result do
         remaining = Enum.reject(variants, &(&1 in [v1, v2]))
-        new_tag = %{tag | language_variants: remaining}
-        {:ok, apply_language_replacement(new_tag, result)}
+        new_map = %{map | language_variants: remaining}
+        {:ok, apply_language_replacement(new_map, result)}
       end
     end)
   end
 
-  # Apply a language alias replacement to a tag, filling in missing subtags.
-  defp apply_language_replacement(%__MODULE__{} = tag, %{} = replacement) do
+  # Apply a language alias replacement to the map, filling in missing
+  # subtags. Replacement values are strings (from supplemental data).
+  defp apply_language_replacement(%{} = map, %{} = replacement) do
     replacement_lang = replacement.language
     replacement_script = replacement[:script]
     replacement_territory = replacement[:territory]
     replacement_variants = replacement[:language_variants] || []
 
     # Replace language (unless replacement is "und", meaning keep original)
-    tag =
+    map =
       if replacement_lang != nil and replacement_lang != "und" do
-        %{tag | language: to_atom(replacement_lang)}
+        %{map | language: replacement_lang}
       else
-        tag
+        map
       end
 
     # Fill in script if not already present
-    tag =
-      if tag.script == nil and replacement_script != nil do
-        %{tag | script: to_atom(replacement_script)}
+    map =
+      if Map.get(map, :script) == nil and replacement_script != nil do
+        Map.put(map, :script, replacement_script)
       else
-        tag
+        map
       end
 
     # Fill in territory if not already present
-    tag =
-      if tag.territory == nil and replacement_territory != nil do
-        %{tag | territory: to_atom(replacement_territory)}
+    map =
+      if Map.get(map, :territory) == nil and replacement_territory != nil do
+        Map.put(map, :territory, replacement_territory)
       else
-        tag
+        map
       end
 
     # Add replacement variants if not already present
-    tag =
-      if replacement_variants != [] do
-        existing = tag.language_variants
-        new_variants = Enum.reject(replacement_variants, &(&1 in existing))
-        %{tag | language_variants: existing ++ new_variants}
-      else
-        tag
-      end
-
-    tag
-  end
-
-  defp resolve_script_alias(%__MODULE__{script: nil} = tag), do: tag
-
-  defp resolve_script_alias(%__MODULE__{script: script} = tag) when is_atom(script) do
-    script_str = Atom.to_string(script)
-
-    case Map.get(script_aliases(), script_str) do
-      nil -> tag
-      replacement -> %{tag | script: String.to_atom(replacement)}
+    if replacement_variants != [] do
+      existing = map.language_variants
+      new_variants = Enum.reject(replacement_variants, &(&1 in existing))
+      %{map | language_variants: existing ++ new_variants}
+    else
+      map
     end
   end
 
-  defp resolve_territory_alias(%__MODULE__{territory: nil} = tag), do: tag
+  defp resolve_script_alias(%{script: nil} = map), do: map
 
-  defp resolve_territory_alias(%__MODULE__{territory: territory} = tag)
-       when is_atom(territory) do
-    territory_str = Atom.to_string(territory)
+  defp resolve_script_alias(%{script: script} = map) when is_binary(script) do
+    case Map.get(script_aliases(), script) do
+      nil -> map
+      replacement -> %{map | script: replacement}
+    end
+  end
 
-    case Map.get(region_aliases(), territory_str) do
+  defp resolve_script_alias(map), do: map
+
+  defp resolve_territory_alias(%{territory: nil} = map), do: map
+
+  defp resolve_territory_alias(%{territory: territory} = map) when is_binary(territory) do
+    case Map.get(region_aliases(), territory) do
       nil ->
-        tag
+        map
 
       replacement when is_binary(replacement) ->
-        %{tag | territory: String.to_atom(replacement)}
+        %{map | territory: replacement}
 
       [first | _rest] ->
         # Multiple replacements — use the first one per CLDR spec.
-        %{tag | territory: String.to_atom(first)}
+        %{map | territory: first}
     end
   end
 
-  defp resolve_variant_aliases(%__MODULE__{language_variants: []} = tag), do: tag
+  defp resolve_territory_alias(map), do: map
 
-  defp resolve_variant_aliases(%__MODULE__{language_variants: variants} = tag) do
+  defp resolve_variant_aliases(%{language_variants: []} = map), do: map
+
+  defp resolve_variant_aliases(%{language_variants: variants} = map) do
     resolved =
       Enum.map(variants, fn variant ->
         case Map.get(variant_aliases(), variant) do
@@ -1154,7 +1241,7 @@ defmodule Localize.LanguageTag do
         end
       end)
 
-    %{tag | language_variants: resolved}
+    %{map | language_variants: resolved}
   end
 
   # ── Canonicalization helpers ──────────────────────────────────────
