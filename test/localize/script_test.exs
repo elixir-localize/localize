@@ -91,4 +91,15 @@ defmodule Localize.ScriptTest do
       assert %{standard: "Simplified", stand_alone: "Simplified Han"} = scripts[:Hans]
     end
   end
+
+  # Regression: `display_name/2` used to atomise binary script codes
+  # before checking the validity set, so unknown binaries grew the
+  # atom table. Atomisation is now gated on `Helpers.existing_atom/1`.
+  describe "atom-table bound on unknown binary input" do
+    test "display_name does not create an atom for unknown script code" do
+      bogus = "ZZZ_script_#{System.unique_integer([:positive])}"
+      assert {:error, %Localize.UnknownScriptError{}} = Script.display_name(bogus)
+      assert nil == Localize.Utils.Helpers.existing_atom(bogus)
+    end
+  end
 end

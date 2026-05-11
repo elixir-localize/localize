@@ -123,7 +123,35 @@ defmodule Localize.Unit.Formatter do
   defp currency_unit_parts(_), do: :not_currency
 
   defp format_currency_unit(value, currency_code, denominator_units, unit_data, locale, options) do
-    currency_atom = String.to_atom(currency_code)
+    # `currency_code` arrives upper-cased and validated by
+    # `Localize.Unit.validate_currency_codes/1` before parsing reaches
+    # the formatter, so the atom is guaranteed to exist. Use
+    # `existing_atom/1` defensively to keep this private function
+    # DOS-safe against any future caller that bypasses validation.
+    case Helpers.existing_atom(currency_code) do
+      nil ->
+        {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
+
+      currency_atom ->
+        format_currency_unit_with_atom(
+          value,
+          currency_atom,
+          denominator_units,
+          unit_data,
+          locale,
+          options
+        )
+    end
+  end
+
+  defp format_currency_unit_with_atom(
+         value,
+         currency_atom,
+         denominator_units,
+         unit_data,
+         locale,
+         options
+       ) do
     currency_options = Keyword.merge(options, currency: currency_atom, locale: locale)
 
     with {:ok, currency_string} <- format_number(value, currency_options) do
