@@ -29,6 +29,8 @@ defmodule Localize.Script do
 
   """
 
+  alias Localize.Utils.Helpers
+
   @styles [:standard, :short, :stand_alone, :variant]
 
   # ── Display names ───────────────────────────────────────────
@@ -86,9 +88,8 @@ defmodule Localize.Script do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     fallback = validate_fallback!(Keyword.get(options, :fallback, false))
 
-    script_atom = normalize_script_code(script)
-
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
+    with {:ok, script_atom} <- normalize_script_code(script),
+         {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
       case lookup_script(script_atom, locale_id, style) do
         {:ok, _} = result ->
           result
@@ -204,10 +205,16 @@ defmodule Localize.Script do
 
   # ── Private helpers ─────────────────────────────────────────
 
-  defp normalize_script_code(code) when is_atom(code), do: code
+  defp normalize_script_code(code) when is_atom(code), do: {:ok, code}
 
   defp normalize_script_code(code) when is_binary(code) do
-    String.to_atom(code)
+    # Gate atomisation on membership in the validity set so an unknown
+    # binary script code can't grow the atom table. Script atoms for
+    # known CLDR scripts are populated by SupplementalData at startup.
+    case Helpers.existing_atom(code) do
+      nil -> {:error, Localize.UnknownScriptError.exception(script: code)}
+      atom -> {:ok, atom}
+    end
   end
 
   defp load_scripts(locale_id) do

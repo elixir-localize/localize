@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Currency.validate_currency/1`, `territory_currencies/1`, `current_currency_for_territory/1`, and the binary-code branch of `currencies_for_locale/3`'s filter no longer atomise input before checking validity. Unknown currency or territory binaries are rejected via `Helpers.existing_atom/1` and never grow the atom table.
 
+* `Localize.Script.display_name/2` and `Localize.Unit.Formatter` no longer atomise binary input before checking validity. Unknown script codes return `Localize.UnknownScriptError` without growing the atom table; the unit formatter's currency atomisation is gated as defence-in-depth behind the upstream `Localize.Unit.validate_currency_codes/1` check.
+
 ## [0.29.0] — May 11th, 2026
 
 ### Behaviour Change
