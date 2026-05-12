@@ -27,6 +27,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `mix localize.download_locales` no longer pattern-matches on the result of `Localize.Message.format/2` when building its progress banner; if formatting fails for any reason the task falls back to a plain ASCII banner and continues with the actual download.
 
+### Bug Fixes
+
+* `mix localize.download_locales` no longer evaluates `config/runtime.exs` of the consumer application. Previously the task ran `Mix.Task.run("app.config")`, which transitively evaluated `runtime.exs`, which was not necessary. The task now loads only compile-time config (`config/config.exs` and any imported env-specific file), matching the build-time contract its docstring already advertised.
+
 ### Behaviour Changes
 
 * `Localize.InvalidValueError` gained an `:allowed_values` field and a new `Localize.NoCertificateStoreError` carries the searched paths; previously prose-stuffed `:expected`/`:currency` fields and bare-string `:reason` codes are now structural.
