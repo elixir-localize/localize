@@ -80,24 +80,26 @@ defmodule Localize.Message.SafeListTest do
 
   describe "format_to_safe_list/3 — error handling" do
     test "returns FormatError for an unclosed markup tag" do
-      assert {:error, %Localize.FormatError{reason: reason}} =
+      assert {:error, %Localize.FormatError{reason: :unbalanced_markup} = error} =
                Message.format_to_safe_list("{#open}no close")
 
-      assert reason =~ "unclosed"
+      assert Exception.message(error) =~ "unclosed"
     end
 
     test "returns FormatError for a close tag with no matching open" do
-      assert {:error, %Localize.FormatError{reason: reason}} =
+      assert {:error, %Localize.FormatError{reason: :mismatched_close, detail: detail} = error} =
                Message.format_to_safe_list("no open{/close}")
 
-      assert reason =~ "does not match"
+      assert detail =~ "close"
+      assert Exception.message(error) =~ "does not match"
     end
 
     test "returns FormatError for mismatched open and close names" do
-      assert {:error, %Localize.FormatError{reason: reason}} =
+      assert {:error, %Localize.FormatError{reason: :mismatched_close, detail: detail} = error} =
                Message.format_to_safe_list("{#a}text{/b}")
 
-      assert reason =~ "does not match"
+      assert detail =~ "b"
+      assert Exception.message(error) =~ "does not match"
     end
   end
 
