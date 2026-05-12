@@ -428,16 +428,36 @@ defmodule Localize do
   end
 
   defp resolve_and_cache_default_locale do
+    # Pre-seed the cache with `:en` so a recursive lookup during resolution sees a
+    # usable value instead of looping back here. The cache is overwritten below
+    # with the resolved default; concurrent callers will at worst see `:en`
+    # briefly before the real value lands. `validate_locale(:en)` itself does
+    # not depend on the default locale.
+    #
+    # Without this pre-seed, a hostile `LANG` (e.g. `POSIX` or `C` on minimal
+    # CI runners) causes `try_locale_from_env/1` to format a warning containing
+    # `Exception.message/1`, which routes through the Localize Gettext backend,
+    # which needs the default locale, which is what we're in the middle of
+    # resolving — manifesting as a 60-second hang behind the Gettext gen_server.
+    {:ok, en_tag} = validate_locale(:en)
+    :persistent_term.put(@default_locale_key, en_tag)
+
     language_tag =
       try_locale_from_env("LOCALIZE_DEFAULT_LOCALE") ||
         try_locale_from_app_config() ||
         try_locale_from_env("LANG") ||
-        validate_locale(:en) |> elem(1)
+        en_tag
 
     :persistent_term.put(@default_locale_key, language_tag)
     language_tag
   end
 
+  # Warnings emitted from inside locale resolution must not depend on having a
+  # resolved locale. We avoid `Exception.message/1` here because the exception's
+  # `message/1` callback routes through the Localize Gettext backend, which
+  # itself calls `get_locale/0`. A non-localised warning is fine — anyone
+  # reading these messages has access to logs anyway, and the bound values
+  # (env var name, raw value) carry the diagnostic content.
   defp try_locale_from_env(var_name) do
     if raw = System.get_env(var_name) do
       locale_id = locale_from_env_var(raw)
@@ -446,10 +466,9 @@ defmodule Localize do
         {:ok, tag} ->
           tag
 
-        {:error, exception} ->
+        {:error, _exception} ->
           Logger.warning(
-            "#{var_name}=#{inspect(raw)} is not a valid locale: " <>
-              Exception.message(exception),
+            "#{var_name}=#{inspect(raw)} is not a valid locale; ignoring",
             domain: :localize
           )
 
@@ -464,10 +483,9 @@ defmodule Localize do
         {:ok, tag} ->
           tag
 
-        {:error, exception} ->
+        {:error, _exception} ->
           Logger.warning(
-            "config :localize, default_locale: #{inspect(locale)} is not a valid locale: " <>
-              Exception.message(exception),
+            "config :localize, default_locale: #{inspect(locale)} is not a valid locale; ignoring",
             domain: :localize
           )
 

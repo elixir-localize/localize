@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Application.start/2` now eagerly reads every bundled supplemental dataset (languages, scripts, territories, variants, subdivisions, units, currency codes, calendars, timezones, territory subdivisions, locale ids, number systems) so the atoms they reference are interned at app start. The 0.30.0 atom-DOS hardening switched many lookups to `binary_to_existing_atom`, which assumes the legitimate atoms already exist. Without the eager-load, valid input like `numberingSystem=arab` could surface as a bogus "unknown numbering system" error on a fresh BEAM where no prior code path had triggered the relevant `binary_to_term/1` read. Manifested as a transient CI failure in `Localize.Message.NumberOptionsTest`; cause was identical in shape to issue #26.
 
+* `Localize.default_locale/0` no longer hangs when `LANG`/`LC_*` hold values that fail validation (e.g. `POSIX` on minimal CI runners): the resolver pre-seeds the `:persistent_term` cache with `:en` before walking the env-var/app-config chain so a recursive locale lookup during warning formatting short-circuits, and the two warning sites now use a non-localised message to avoid the `Exception.message/1` → Gettext-backend → `get_locale/0` recursion that produced the original 60-second hang in `localize_translate` CI.
+
 ## [0.32.0] — May 12th, 2026
 
 ### Bug Fixes
