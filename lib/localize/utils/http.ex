@@ -25,6 +25,18 @@ defmodule Localize.Utils.Http do
   @default_timeout "120000"
   @default_connection_timeout "60000"
 
+  # Maximum response body size accepted by `get/2` / `get_with_headers/2`.
+  # The largest legitimate locale ETF on the CDN is well under 5 MB; the
+  # default cap leaves generous headroom while preventing a malicious
+  # or compromised CDN from feeding a multi-gigabyte body that would
+  # OOM the BEAM. Override with `config :localize, :max_http_body_bytes,
+  # n` or pass `:max_body_bytes` as a per-call option.
+  @default_max_http_body_bytes 50 * 1024 * 1024
+
+  # Persistent-term key used to suppress repeated warnings when peer
+  # verification has been disabled via `LOCALIZE_UNSAFE_HTTPS`.
+  @unsafe_https_warned_key {__MODULE__, :unsafe_https_warned}
+
   @doc """
   Securely download HTTPS content from a URL.
 
@@ -234,7 +246,10 @@ defmodule Localize.Utils.Http do
 
     case :httpc.request(:get, {url, headers}, http_options, body_format: :binary) do
       {:ok, {{_version, 200, _}, headers, body}} ->
-        {:ok, headers, body}
+        case enforce_body_cap(body, options, url) do
+          :ok -> {:ok, headers, body}
+          {:error, _} = error -> error
+        end
 
       {:ok, {{_version, 304, _}, headers, _body}} ->
         {:not_modified, headers}
@@ -420,6 +435,8 @@ defmodule Localize.Utils.Http do
         ]
       ]
     else
+      warn_unsafe_https_once()
+
       [
         verify: :verify_none,
         server_name_indication: hostname,
@@ -429,6 +446,56 @@ defmodule Localize.Utils.Http do
         ciphers: preferred_ciphers()
       ]
     end
+  end
+
+  # Emit a single Logger.warning per BEAM lifetime when peer
+  # verification has been disabled. The first call records itself in
+  # `:persistent_term` so subsequent calls are silent — without the
+  # one-shot the warning would spam the log on every download.
+  # Operators see the policy downgrade in their logs and can choose
+  # to investigate, while the volume stays manageable.
+  defp warn_unsafe_https_once do
+    case :persistent_term.get(@unsafe_https_warned_key, :__not_warned__) do
+      :__not_warned__ ->
+        Logger.warning(
+          "Localize.Utils.Http: peer certificate verification is DISABLED " <>
+            "(LOCALIZE_UNSAFE_HTTPS is set). HTTPS connections are vulnerable " <>
+            "to man-in-the-middle attacks. This setting is intended for " <>
+            "development behind corporate proxies with self-signed certificates; " <>
+            "remove it in production."
+        )
+
+        :persistent_term.put(@unsafe_https_warned_key, true)
+
+      _ ->
+        :ok
+    end
+  end
+
+  # Enforce a per-call upper bound on response body size. The default
+  # is 50 MB (configurable via `:max_http_body_bytes` app env or
+  # per-call `:max_body_bytes` option). Without this cap a malicious
+  # or compromised CDN could feed an arbitrarily-large response and
+  # OOM the BEAM — `:httpc` reads the entire body into memory.
+  defp enforce_body_cap(body, options, url) when is_binary(body) do
+    cap = Keyword.get(options, :max_body_bytes, max_http_body_bytes())
+
+    if byte_size(body) > cap do
+      Logger.error(
+        "Refusing oversized HTTP response from #{url}: " <>
+          "#{byte_size(body)} bytes exceeds the cap of #{cap} bytes."
+      )
+
+      {:error, :response_too_large}
+    else
+      :ok
+    end
+  end
+
+  @doc false
+  @spec max_http_body_bytes() :: pos_integer()
+  def max_http_body_bytes do
+    Application.get_env(:localize, :max_http_body_bytes, @default_max_http_body_bytes)
   end
 
   defp preferred_ciphers do
