@@ -30,12 +30,6 @@ defmodule Localize.Collation.Tailoring do
                      "priv/localize/supplemental_data/collation_tailoring.etf"
                    )
   @external_resource @tailorings_path
-  # NOTE: `:safe` is intentionally NOT passed to `binary_to_term/1`
-  # here. The bundled tailoring ETF references script atoms (e.g.
-  # `:Laoo`, `:Adlm`, etc.) that aren't necessarily interned at this
-  # module's compile time, and `[:safe]` would refuse to create them.
-  # The file is shipped with the package and ingested at compile time,
-  # so the trust boundary is the package, not the runtime.
   @tailorings @tailorings_path |> File.read!() |> :erlang.binary_to_term()
 
   @doc """

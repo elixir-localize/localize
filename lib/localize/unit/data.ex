@@ -14,12 +14,6 @@ defmodule Localize.Unit.Data do
   @etf_path Application.app_dir(:localize, "priv/localize/supplemental_data/unit_data.etf")
   @external_resource @etf_path
 
-  # NOTE: `:safe` is intentionally NOT passed to `binary_to_term/1`
-  # here. The bundled unit-data ETF references unit, prefix and SI
-  # atoms which aren't necessarily interned at this module's compile
-  # time, and `[:safe]` would refuse to create them. The file is
-  # shipped with the package; the trust boundary is the package, not
-  # the runtime.
   @data @etf_path
         |> File.read!()
         |> :erlang.binary_to_term()
