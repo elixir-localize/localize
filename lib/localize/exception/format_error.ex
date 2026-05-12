@@ -13,6 +13,8 @@ defmodule Localize.FormatError do
 
   """
 
+  @behaviour Localize.Exception
+
   defexception [:value, :function, :reason, :detail, :cause]
 
   @type reason ::
@@ -28,6 +30,10 @@ defmodule Localize.FormatError do
           detail: String.t() | nil,
           cause: Exception.t() | nil
         }
+
+  @impl Localize.Exception
+  def reason_atoms,
+    do: [:unbalanced_markup, :mismatched_close, :formatter_failed, :downstream_failure]
 
   @impl true
   def exception(bindings) when is_list(bindings) do

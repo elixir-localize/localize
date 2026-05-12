@@ -406,6 +406,200 @@ defmodule Localize.Gettext.Messages do
         "localize",
         "unknown style error",
         "The style {$style} is unknown for territory {$territory}."
+      ),
+
+      # FormatError — structural reason atoms
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Cannot format {$value}: unbalanced markup: unclosed markup tag"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Cannot format {$value}: unbalanced markup: {$detail}"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Cannot format {$value}: unbalanced markup: close tag {$detail} does not match open"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Cannot format {$value} with function {$function}: {$detail}"
+      ),
+
+      # ParseError — structural reason atoms
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Could not parse {$input} at line {$line} column {$column}: unexpected trailing input {$rest}"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Could not parse {$input} at position {$position}: unexpected trailing input {$rest}"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Could not parse {$input}: unexpected trailing input {$rest}"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Could not parse {$input} at line {$line} column {$column}: {$detail}{$tail}"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Could not parse {$input} at position {$position}: {$detail}{$tail}"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Could not parse {$input}: {$detail}{$tail}"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Could not parse {$input}: input ended unexpectedly"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Could not parse {$input}: {$detail}"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Could not parse {$input}"
+      ),
+
+      # LocaleDownloadError — structural reason atoms
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "The locale {$locale_id} at {$url} is unchanged since the last download."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "The locale {$locale_id} could not be downloaded from {$url}: HTTP {$status}."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "The locale {$locale_id} could not be downloaded from {$url}: connection timed out."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "The locale {$locale_id} could not be downloaded from {$url}: request timed out."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "The locale {$locale_id} could not be downloaded from {$url}: host could not be resolved."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "The locale {$locale_id} was downloaded from {$url} but failed safe decoding."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "The locale {$locale_id} downloaded from {$url} does not match the expected version."
+      ),
+
+      # LocaleCacheWriteError — structural reason atoms
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "Cannot write locale {$locale_id} to {$path}: permission denied."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "Cannot write locale {$locale_id} to {$path}: parent directory does not exist."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "Cannot write locale {$locale_id} to {$path}: no space left on device."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "Cannot write locale {$locale_id} to {$path}: filesystem is read-only."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "Cannot write locale {$locale_id} to {$path}: file already exists."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "Cannot write locale {$locale_id} to {$path}: {$reason}."
+      ),
+
+      # LocaleNotFoundInCacheError — read-error variant
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "The locale {$locale_id} could not be read from the cache at {$path}: {$reason}."
+      ),
+
+      # InvalidValueError — atom :expected + :allowed_values
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "unit",
+        "Expected a valid {$expected}{$context_part}, got: {$value} (allowed values: {$allowed})"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "unit",
+        "Expected a valid {$expected}{$context_part}, got: {$value}"
+      ),
+
+      # NoCertificateStoreError
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "No certificate trust store was found. Tried looking for: {$searched}. Install the `castore` or `certifi` hex package, or configure `config :localize, cacertfile: \"/path/to/cacertfile\"`."
       )
     ]
   end

@@ -5,6 +5,8 @@ defmodule Localize.LocaleDownloadError do
 
   """
 
+  @behaviour Localize.Exception
+
   defexception [:locale_id, :url, :reason, :http_status, :cause]
 
   @type reason ::
@@ -24,6 +26,19 @@ defmodule Localize.LocaleDownloadError do
           http_status: 100..599 | nil,
           cause: term() | nil
         }
+
+  @impl Localize.Exception
+  def reason_atoms,
+    do: [
+      :not_modified,
+      :http_error,
+      :connection_timeout,
+      :request_timeout,
+      :nxdomain,
+      :network_error,
+      :safe_decode_failed,
+      :stale_version
+    ]
 
   @impl true
   def exception(bindings) when is_list(bindings) do

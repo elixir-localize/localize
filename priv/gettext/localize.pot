@@ -382,3 +382,183 @@ msgstr ""
 msgctxt "number"
 msgid "The number system {$number_system} is not valid for locale {$locale}."
 msgstr ""
+
+#: lib/localize/gettext/messages.ex:562
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "Cannot write locale {$locale_id} to {$path}: file already exists."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:556
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "Cannot write locale {$locale_id} to {$path}: filesystem is read-only."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:550
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "Cannot write locale {$locale_id} to {$path}: no space left on device."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:544
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "Cannot write locale {$locale_id} to {$path}: parent directory does not exist."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:538
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "Cannot write locale {$locale_id} to {$path}: permission denied."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:568
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "Cannot write locale {$locale_id} to {$path}: {$reason}."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:598
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "No certificate trust store was found. Tried looking for: {$searched}. Install the `castore` or `certifi` hex package, or configure `config :localize, cacertfile: \"/path/to/cacertfile\"`."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:494
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "The locale {$locale_id} at {$url} is unchanged since the last download."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:500
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "The locale {$locale_id} could not be downloaded from {$url}: HTTP {$status}."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:506
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "The locale {$locale_id} could not be downloaded from {$url}: connection timed out."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:518
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "The locale {$locale_id} could not be downloaded from {$url}: host could not be resolved."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:512
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "The locale {$locale_id} could not be downloaded from {$url}: request timed out."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:576
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "The locale {$locale_id} could not be read from the cache at {$path}: {$reason}."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:530
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "The locale {$locale_id} downloaded from {$url} does not match the expected version."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:524
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "The locale {$locale_id} was downloaded from {$url} but failed safe decoding."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:430
+#, elixir-autogen, icu-format
+msgctxt "message"
+msgid "Cannot format {$value} with function {$function}: {$detail}"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:424
+#, elixir-autogen, icu-format
+msgctxt "message"
+msgid "Cannot format {$value}: unbalanced markup: close tag {$detail} does not match open"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:412
+#, elixir-autogen, icu-format
+msgctxt "message"
+msgid "Cannot format {$value}: unbalanced markup: unclosed markup tag"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:418
+#, elixir-autogen, icu-format
+msgctxt "message"
+msgid "Cannot format {$value}: unbalanced markup: {$detail}"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:486
+#, elixir-autogen, icu-format
+msgctxt "message"
+msgid "Could not parse {$input}"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:438
+#, elixir-autogen, icu-format
+msgctxt "message"
+msgid "Could not parse {$input} at line {$line} column {$column}: unexpected trailing input {$rest}"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:456
+#, elixir-autogen, icu-format
+msgctxt "message"
+msgid "Could not parse {$input} at line {$line} column {$column}: {$detail}{$tail}"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:444
+#, elixir-autogen, icu-format
+msgctxt "message"
+msgid "Could not parse {$input} at position {$position}: unexpected trailing input {$rest}"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:462
+#, elixir-autogen, icu-format
+msgctxt "message"
+msgid "Could not parse {$input} at position {$position}: {$detail}{$tail}"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:474
+#, elixir-autogen, icu-format
+msgctxt "message"
+msgid "Could not parse {$input}: input ended unexpectedly"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:450
+#, elixir-autogen, icu-format
+msgctxt "message"
+msgid "Could not parse {$input}: unexpected trailing input {$rest}"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:480
+#, elixir-autogen, icu-format
+msgctxt "message"
+msgid "Could not parse {$input}: {$detail}"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:468
+#, elixir-autogen, icu-format
+msgctxt "message"
+msgid "Could not parse {$input}: {$detail}{$tail}"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:590
+#, elixir-autogen, icu-format
+msgctxt "unit"
+msgid "Expected a valid {$expected}{$context_part}, got: {$value}"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:584
+#, elixir-autogen, icu-format
+msgctxt "unit"
+msgid "Expected a valid {$expected}{$context_part}, got: {$value} (allowed values: {$allowed})"
+msgstr ""
