@@ -207,17 +207,6 @@ defmodule Localize.LanguageTag do
   * `{:error, reason}`
 
   """
-  # Maximum byte length accepted by `parse/1` and `new/1`. Even the
-  # most extravagant well-formed BCP-47 tag fits in well under this
-  # bound; the cap prevents unbounded grammar work on hostile input.
-  # Override with `config :localize, :max_locale_id_bytes, n`.
-  @default_max_locale_id_bytes 256
-
-  @doc false
-  def max_locale_id_bytes do
-    Application.get_env(:localize, :max_locale_id_bytes, @default_max_locale_id_bytes)
-  end
-
   @spec parse(String.t()) :: {:ok, t()} | {:error, Exception.t()}
   def parse(locale_id) when is_binary(locale_id) do
     if byte_size(locale_id) > max_locale_id_bytes() do
@@ -229,6 +218,17 @@ defmodule Localize.LanguageTag do
         {:ok, struct(__MODULE__, validated)}
       end
     end
+  end
+
+  # Maximum byte length accepted by `parse/1` and `new/1`. Even the
+  # most extravagant well-formed BCP-47 tag fits in well under this
+  # bound; the cap prevents unbounded grammar work on hostile input.
+  # Override with `config :localize, :max_locale_id_bytes, n`.
+  @default_max_locale_id_bytes 256
+
+  @doc false
+  def max_locale_id_bytes do
+    Application.get_env(:localize, :max_locale_id_bytes, @default_max_locale_id_bytes)
   end
 
   # Truncate a too-long input to a short representative form for the

@@ -26,17 +26,6 @@ defmodule Localize.Message.Parser do
       {:ok, [{:complex, [], {:quoted_pattern, [{:text, "Hello, world!"}]}}]}
 
   """
-  # Maximum byte length accepted by `parse/1` and `parse!/1`. Caps the
-  # parser's CPU exposure on hostile or accidentally-huge messages.
-  # Override with `config :localize, :max_message_bytes, n` (default
-  # 65 536 — generous for any human-authored message).
-  @default_max_message_bytes 65_536
-
-  @doc false
-  def max_message_bytes do
-    Application.get_env(:localize, :max_message_bytes, @default_max_message_bytes)
-  end
-
   @spec parse(String.t()) :: {:ok, list()} | {:error, Localize.ParseError.t()}
 
   def parse(input) when is_binary(input) do
@@ -51,6 +40,17 @@ defmodule Localize.Message.Parser do
     else
       do_parse(input)
     end
+  end
+
+  # Maximum byte length accepted by `parse/1` and `parse!/1`. Caps the
+  # parser's CPU exposure on hostile or accidentally-huge messages.
+  # Override with `config :localize, :max_message_bytes, n` (default
+  # 65 536 — generous for any human-authored message).
+  @default_max_message_bytes 65_536
+
+  @doc false
+  def max_message_bytes do
+    Application.get_env(:localize, :max_message_bytes, @default_max_message_bytes)
   end
 
   defp do_parse(input) do

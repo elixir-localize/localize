@@ -28,6 +28,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Public parser entry points now reject oversized input before invoking the grammar, capping the parser's CPU exposure on hostile input. Defaults are 256 bytes for `Localize.LanguageTag.parse/1` and `Localize.Unit.Parser.parse/1`, 64 KB for `Localize.Message.Parser.parse/1`, and 1 KB for `Localize.Number.Parser.parse/2`. Each cap is configurable via app env (`:max_locale_id_bytes`, `:max_message_bytes`, `:max_unit_bytes`, `:max_number_bytes`). `Number.Parser.parse/2` additionally rejects `Decimal` results whose exponent magnitude exceeds `:max_decimal_exponent` (default ±100) so downstream multiplication or formatting cannot materialise huge mantissas.
 
+* `Localize.FormatCache` ETS table switched from `:public` to `:protected`; writes are routed through the cache GenServer. The size cap (`:format_cache_max_entries`, default 2 000) is now enforced **synchronously on each insert** rather than by a 10-second sweeper, replacing the previous biased-random eviction that could leave the cache oversized. New `Localize.FormatCache.clear/0` and `size/0` helpers added for tests and maintenance.
+
 ### Behaviour Change
 
 * `Localize.Currency.currency_for_code/2` now returns the new `Localize.CurrencyNotLocalizedError` (instead of `UnknownCurrencyError`) when the currency code is valid but the locale has no display data for it. `UnknownCurrencyError` is now reserved for codes that aren't recognised ISO 4217 or registered custom currencies.
