@@ -219,11 +219,8 @@ defmodule Localize.Calendar do
       calendar_names = get_in(ldn, [:types, :calendar]) || %{}
 
       case Map.get(calendar_names, calendar_type) do
-        nil ->
-          {:error, Localize.UnknownCalendarError.exception(calendar: calendar_type)}
-
-        name when is_binary(name) ->
-          {:ok, name}
+        nil -> {:error, Localize.UnknownCalendarError.exception(calendar: calendar_type)}
+        name when is_binary(name) -> {:ok, name}
       end
     end
   end
@@ -234,150 +231,43 @@ defmodule Localize.Calendar do
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, date_fields} <- Localize.Locale.get(locale_id, [:date_fields]) do
-      field_data = Map.get(date_fields, field)
-
-      case get_in(field_data, [style, :display_name]) do
-        nil ->
-          {:error,
-           Localize.InvalidValueError.exception(
-             value: field,
-             expected: "a known date-time field",
-             context: "Calendar.display_name"
-           )}
-
-        %{default: name} ->
-          {:ok, name}
-
-        name when is_binary(name) ->
-          {:ok, name}
-      end
+      date_fields
+      |> Map.get(field)
+      |> get_in([style, :display_name])
+      |> unwrap_localized_name()
+      |> wrap_or_invalid(field, "a known date-time field")
     end
   end
 
   def display_name(:era, era_index, options) do
-    locale = Keyword.get(options, :locale, Localize.get_locale())
-    style = Keyword.get(options, :style, :wide)
-    calendar_type = Keyword.get(options, :calendar, @default_calendar_type)
-
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, eras_data} <- get_calendar_data_raw(locale_id, calendar_type, :eras) do
-      case get_in(eras_data, [style, era_index]) do
-        nil ->
-          {:error,
-           Localize.InvalidValueError.exception(
-             value: era_index,
-             expected: "a valid era index",
-             context: "Calendar.display_name"
-           )}
-
-        name ->
-          {:ok, name}
-      end
-    end
+    lookup_calendar_field(:eras, era_index, options, "a valid era index", style: :wide)
   end
 
   def display_name(:quarter, quarter, options) when quarter in 1..4 do
-    locale = Keyword.get(options, :locale, Localize.get_locale())
-    style = Keyword.get(options, :style, :wide)
-    context = Keyword.get(options, :context, :format)
-    calendar_type = Keyword.get(options, :calendar, @default_calendar_type)
-
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, quarters_data} <- get_calendar_data_raw(locale_id, calendar_type, :quarters) do
-      case get_in(quarters_data, [context, style, quarter]) do
-        nil ->
-          {:error,
-           Localize.InvalidValueError.exception(
-             value: quarter,
-             expected: "1..4",
-             context: "Calendar.display_name"
-           )}
-
-        name ->
-          {:ok, name}
-      end
-    end
+    lookup_calendar_field(:quarters, quarter, options, "1..4")
   end
 
   def display_name(:month, month, options) when month in 1..13 do
-    locale = Keyword.get(options, :locale, Localize.get_locale())
-    style = Keyword.get(options, :style, :wide)
-    context = Keyword.get(options, :context, :format)
-    calendar_type = Keyword.get(options, :calendar, @default_calendar_type)
-
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, months_data} <- get_calendar_data_raw(locale_id, calendar_type, :months) do
-      case get_in(months_data, [context, style, month]) do
-        nil ->
-          {:error,
-           Localize.InvalidValueError.exception(
-             value: month,
-             expected: "1..13",
-             context: "Calendar.display_name"
-           )}
-
-        name ->
-          {:ok, name}
-      end
-    end
+    lookup_calendar_field(:months, month, options, "1..13")
   end
 
   def display_name(:day, day, options) when day in 1..7 do
-    locale = Keyword.get(options, :locale, Localize.get_locale())
-    style = Keyword.get(options, :style, :wide)
-    context = Keyword.get(options, :context, :format)
-    calendar_type = Keyword.get(options, :calendar, @default_calendar_type)
-
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, days_data} <- get_calendar_data_raw(locale_id, calendar_type, :days) do
-      case get_in(days_data, [context, style, day]) do
-        nil ->
-          {:error,
-           Localize.InvalidValueError.exception(
-             value: day,
-             expected: "1..7 (ISO day)",
-             context: "Calendar.display_name"
-           )}
-
-        name ->
-          {:ok, name}
-      end
-    end
+    lookup_calendar_field(:days, day, options, "1..7 (ISO day)")
   end
 
   def display_name(:day_period, period, options) do
-    locale = Keyword.get(options, :locale, Localize.get_locale())
-    style = Keyword.get(options, :style, :abbreviated)
-    context = Keyword.get(options, :context, :format)
-    calendar_type = Keyword.get(options, :calendar, @default_calendar_type)
-
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, dp_data} <- get_calendar_data_raw(locale_id, calendar_type, :day_periods) do
-      case get_in(dp_data, [context, style, period]) do
-        nil ->
-          {:error,
-           Localize.InvalidValueError.exception(
-             value: period,
-             expected: "a day period atom (:am, :pm, :noon, :midnight, etc.)",
-             context: "Calendar.display_name"
-           )}
-
-        %{default: name} ->
-          {:ok, name}
-
-        name when is_binary(name) ->
-          {:ok, name}
-      end
-    end
+    lookup_calendar_field(
+      :day_periods,
+      period,
+      options,
+      "a day period atom (:am, :pm, :noon, :midnight, etc.)",
+      style: :abbreviated,
+      unwrap: true
+    )
   end
 
   def display_name(type, _value, _options) when type in @display_name_types do
-    {:error,
-     Localize.InvalidValueError.exception(
-       value: type,
-       expected: "a valid value for the given type",
-       context: "Calendar.display_name"
-     )}
+    {:error, invalid_display_value_error(type, "a valid value for the given type")}
   end
 
   # Map :wide/:short style names to date_fields width keys
@@ -385,6 +275,60 @@ defmodule Localize.Calendar do
   defp map_field_style(:short), do: :short
   defp map_field_style(:narrow), do: :narrow
   defp map_field_style(style), do: style
+
+  # Shared implementation for the calendar-data lookup clauses
+  # (:era, :quarter, :month, :day, :day_period). Each takes the same
+  # shape: resolve locale → load CLDR data for the given key → walk
+  # `[context, style, value]` (or `[style, value]` for :era) → return
+  # the localised name or an InvalidValueError. Per-clause variations
+  # are captured by the `defaults` keyword: `style:` overrides the
+  # default `:wide`, and `unwrap: true` peels the `%{default: name}`
+  # shape that day-period entries can take.
+  defp lookup_calendar_field(data_key, value, options, expected, defaults \\ []) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    style = Keyword.get(options, :style, Keyword.get(defaults, :style, :wide))
+    calendar_type = Keyword.get(options, :calendar, @default_calendar_type)
+    unwrap? = Keyword.get(defaults, :unwrap, false)
+
+    key_path =
+      case data_key do
+        :eras -> [style, value]
+        _ -> [Keyword.get(options, :context, :format), style, value]
+      end
+
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, data} <- get_calendar_data_raw(locale_id, calendar_type, data_key) do
+      data
+      |> get_in(key_path)
+      |> maybe_unwrap_name(unwrap?)
+      |> wrap_or_invalid(value, expected)
+    end
+  end
+
+  # Some CLDR fields (day-period names, date-field display names) wrap
+  # the binary in `%{default: name}` when an `alt` variant exists.
+  # Unwrap to the binary; pass plain binaries through; return nil
+  # for anything else so the caller's `wrap_or_invalid/3` produces
+  # the not-found error.
+  defp unwrap_localized_name(%{default: name}), do: name
+  defp unwrap_localized_name(name) when is_binary(name), do: name
+  defp unwrap_localized_name(_), do: nil
+
+  defp maybe_unwrap_name(value, true), do: unwrap_localized_name(value)
+  defp maybe_unwrap_name(value, false), do: value
+
+  defp wrap_or_invalid(nil, value, expected),
+    do: {:error, invalid_display_value_error(value, expected)}
+
+  defp wrap_or_invalid(name, _value, _expected), do: {:ok, name}
+
+  defp invalid_display_value_error(value, expected) do
+    Localize.InvalidValueError.exception(
+      value: value,
+      expected: expected,
+      context: "Calendar.display_name"
+    )
+  end
 
   # ── Locale data access ─────────────────────────────────────────
 

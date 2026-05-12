@@ -597,61 +597,69 @@ defmodule Localize.LanguageTag do
   end
 
   def best_match(desired, supported, distance) when is_binary(desired) and is_list(supported) do
-    # Handle bare "und" as desired — return default (first non-und supported)
-    # or exact match if "und" is in supported list.
+    # Bare "und" as desired short-circuits to the default-supported
+    # selection: it only ever exact-matches "und" in supported, and
+    # otherwise yields the first non-und entry.
     if desired == "und" do
       best_match_und(supported)
     else
       with {:ok, desired_tag} <- resolve_for_matching(desired, :desired) do
-        # Skip "und" in supported — it only matches desired "und" exactly
-        matchable_supported =
-          supported
-          |> Enum.with_index()
-          |> Enum.reject(fn {locale, _index} -> locale == "und" end)
-
-        matches =
-          matchable_supported
-          |> Enum.flat_map(fn {supported_locale, index} ->
-            case resolve_for_matching(supported_locale, :supported) do
-              {:ok, supported_tag} ->
-                score = compute_match_distance(desired_tag, supported_tag)
-
-                if score <= distance do
-                  is_paradigm = is_paradigm_locale?(supported_locale)
-                  [{supported_locale, supported_tag, score, index, is_paradigm}]
-                else
-                  []
-                end
-
-              {:error, _} ->
-                []
-            end
-          end)
-          |> Enum.sort(&match_comparator/2)
-
-        case matches do
-          [{locale, _tag, score, _index, _paradigm} | _] ->
-            {:ok, locale, score}
-
-          [] when distance < @default_distance ->
-            # Explicit threshold below the default: strict mode.
-            # No fallback — return an error if nothing matched.
-            {:error, Localize.LocaleMatchError.exception(desired: desired, threshold: distance)}
-
-          [] ->
-            # Default threshold: the CLDR matching algorithm always
-            # returns a result when there are supported locales.
-            # Fall back to the first non-und supported locale.
-            case first_non_und(supported) do
-              nil ->
-                {:error,
-                 Localize.LocaleMatchError.exception(desired: desired, threshold: distance)}
-
-              default ->
-                {:ok, default, distance}
-            end
-        end
+        desired_tag
+        |> compute_match_candidates(supported, distance)
+        |> select_best_match(desired, supported, distance)
       end
+    end
+  end
+
+  # Build the list of {locale, tag, score, index, is_paradigm} tuples
+  # for every supported locale within the distance threshold, sorted
+  # by `match_comparator/2`. "und" in supported is skipped (it only
+  # exact-matches a desired "und", handled above).
+  defp compute_match_candidates(desired_tag, supported, distance) do
+    supported
+    |> Enum.with_index()
+    |> Enum.reject(fn {locale, _index} -> locale == "und" end)
+    |> Enum.flat_map(&score_candidate(&1, desired_tag, distance))
+    |> Enum.sort(&match_comparator/2)
+  end
+
+  # Score one supported locale. Returns a one-element list when the
+  # distance is within the threshold (so the caller's `flat_map`
+  # builds the candidate set), or an empty list otherwise.
+  defp score_candidate({supported_locale, index}, desired_tag, distance) do
+    case resolve_for_matching(supported_locale, :supported) do
+      {:ok, supported_tag} ->
+        score = compute_match_distance(desired_tag, supported_tag)
+
+        if score <= distance do
+          [{supported_locale, supported_tag, score, index, is_paradigm_locale?(supported_locale)}]
+        else
+          []
+        end
+
+      {:error, _} ->
+        []
+    end
+  end
+
+  # Pick the best candidate (head of the sorted list). When no
+  # candidate is within range: a threshold below the default is
+  # strict and returns an error; the default threshold falls back
+  # to the first non-und supported locale, matching the CLDR
+  # algorithm's guarantee that a non-empty supported list always
+  # yields a match.
+  defp select_best_match([{locale, _tag, score, _idx, _paradigm} | _], _desired, _supported, _d) do
+    {:ok, locale, score}
+  end
+
+  defp select_best_match([], desired, _supported, distance) when distance < @default_distance do
+    {:error, Localize.LocaleMatchError.exception(desired: desired, threshold: distance)}
+  end
+
+  defp select_best_match([], desired, supported, distance) do
+    case first_non_und(supported) do
+      nil -> {:error, Localize.LocaleMatchError.exception(desired: desired, threshold: distance)}
+      default -> {:ok, default, distance}
     end
   end
 

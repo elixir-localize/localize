@@ -510,26 +510,76 @@ defmodule Localize.Locale do
     with {:ok, default_fallback_id} <- resolve_default_fallback(fallback_to_default),
          :ok <- load_and_store(locale, provider: provider) do
       case provider.get(locale, keys, options) do
+        # Hot path: a successful lookup returns directly, paying no
+        # cost for the fallback dispatch.
         {:ok, _} = ok ->
           ok
 
-        {:error, %Localize.ItemNotFoundError{}} when fallback? ->
-          case fallback_through_parents(locale, keys, provider, options) do
-            {:error, %Localize.ItemNotFoundError{}} when not is_nil(default_fallback_id) ->
-              try_default_locale(locale, default_fallback_id, keys, provider, options)
-
-            other ->
-              other
-          end
-
-        {:error, %Localize.ItemNotFoundError{}} when not is_nil(default_fallback_id) ->
-          try_default_locale(locale, default_fallback_id, keys, provider, options)
-
         {:error, _} = error ->
-          error
+          try_fallbacks(error, locale, keys, provider, options, fallback?, default_fallback_id)
       end
     end
   end
+
+  # Dispatch table for the `:fallback` and `:fallback_to_default`
+  # option combinations. The clause heads encode the policy so the
+  # bodies stay one or two lines each; the hot success path in `get/3`
+  # never reaches this function.
+
+  # Parent-chain walk requested. Walk, then maybe try the default
+  # locale if the walk also misses.
+  defp try_fallbacks(
+         {:error, %Localize.ItemNotFoundError{}},
+         locale,
+         keys,
+         provider,
+         options,
+         true,
+         default_fallback_id
+       ) do
+    locale
+    |> fallback_through_parents(keys, provider, options)
+    |> maybe_fallback_to_default(locale, default_fallback_id, keys, provider, options)
+  end
+
+  # No parent walk, but `:fallback_to_default` is set — try the
+  # default locale directly.
+  defp try_fallbacks(
+         {:error, %Localize.ItemNotFoundError{}},
+         locale,
+         keys,
+         provider,
+         options,
+         false,
+         default_fallback_id
+       )
+       when not is_nil(default_fallback_id) do
+    try_default_locale(locale, default_fallback_id, keys, provider, options)
+  end
+
+  # Either a non-`ItemNotFoundError` (load failure, etc.) or
+  # `ItemNotFoundError` with no fallback options enabled — propagate
+  # the error unchanged.
+  defp try_fallbacks({:error, _} = error, _locale, _keys, _provider, _options, _fb, _df_id),
+    do: error
+
+  # Final step after a parent-chain walk: only try the default locale
+  # when the walk produced a not-found AND a default-fallback id is
+  # set. Any other walk outcome (success, load error) propagates.
+  defp maybe_fallback_to_default(
+         {:error, %Localize.ItemNotFoundError{}},
+         locale,
+         default_fallback_id,
+         keys,
+         provider,
+         options
+       )
+       when not is_nil(default_fallback_id) do
+    try_default_locale(locale, default_fallback_id, keys, provider, options)
+  end
+
+  defp maybe_fallback_to_default(result, _locale, _df_id, _keys, _provider, _options),
+    do: result
 
   # Resolve the `:fallback_to_default` option to a locale id atom (or
   # nil when the option is disabled). Strings and atoms are run through
