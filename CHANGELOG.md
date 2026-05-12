@@ -5,9 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [0.32.0] — [Unreleased]
+## [0.32.0] — May 12th, 2026
 
 ### Bug Fixes
+
+* `mix localize.download_locales` no longer evaluates `config/runtime.exs` of the consumer application. Previously the task ran `Mix.Task.run("app.config")`, which transitively evaluated `runtime.exs`, which was not necessary. The task now loads only compile-time config (`config/config.exs` and any imported env-specific file), matching the build-time contract its docstring already advertised.
 
 * Hardened two further sites that pattern-matched `{:ok, _} = <fallible Localize call>` and could have surfaced the same `MatchError` class as issue #26: the per-unit format loop in `Localize.Duration.to_string/2` now short-circuits on the first formatter error, and `Localize.Number.Formatter.Decimal`'s digit-transliteration step now uses `with` to fall through to untransliterated digits if either the requested or `:latn` number-system data is unavailable.
 
@@ -26,10 +28,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * `Localize.Locale.Loader` now stores fallback locale data under the *requested* locale id rather than the *resolved* fallback id, restoring 0.29 behaviour. The regression introduced in 0.30.0 caused `provider.get(requested_locale, _)` to miss in-memory fallback data and surface as a spurious `ItemNotFoundError` — most visibly crashing `mix localize.download_locales` with a `MatchError` when `default_locale` named an unavailable locale. Locked down with `test/localize/locale/loader_fallback_test.exs`. Closes #26.
 
 * `mix localize.download_locales` no longer pattern-matches on the result of `Localize.Message.format/2` when building its progress banner; if formatting fails for any reason the task falls back to a plain ASCII banner and continues with the actual download.
-
-### Bug Fixes
-
-* `mix localize.download_locales` no longer evaluates `config/runtime.exs` of the consumer application. Previously the task ran `Mix.Task.run("app.config")`, which transitively evaluated `runtime.exs`, which was not necessary. The task now loads only compile-time config (`config/config.exs` and any imported env-specific file), matching the build-time contract its docstring already advertised.
 
 ### Behaviour Changes
 
