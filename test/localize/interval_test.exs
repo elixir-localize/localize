@@ -245,7 +245,7 @@ defmodule Localize.IntervalTest do
     end
 
     test "no difference" do
-      assert {:error, :no_practical_difference} =
+      assert {:error, %Localize.NoPracticalDifferenceError{}} =
                Interval.greatest_difference(~D[2022-04-22], ~D[2022-04-22])
     end
 

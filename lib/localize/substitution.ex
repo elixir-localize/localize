@@ -22,8 +22,6 @@ defmodule Localize.Substitution do
   * A list of tokens where substitution markers become integers
     and literal text remains as strings.
 
-  * `{:error, reason}` if the template is not a binary.
-
   ### Examples
 
       iex> Localize.Substitution.parse("{0}, {1}")
@@ -36,7 +34,7 @@ defmodule Localize.Substitution do
       []
 
   """
-  @spec parse(String.t()) :: [String.t() | integer()] | {:error, String.t()}
+  @spec parse(String.t()) :: [String.t() | integer()]
   def parse("") do
     []
   end
@@ -45,10 +43,6 @@ defmodule Localize.Substitution do
     template
     |> String.split(~r/{[0-9]}/, include_captures: true, trim: true)
     |> Enum.map(&item_from_token/1)
-  end
-
-  def parse(_template) do
-    {:error, "Localize.Substitution.parse/1 accepts only a binary parameter"}
   end
 
   @doc """
