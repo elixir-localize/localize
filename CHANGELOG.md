@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Bug Fixes
 
-* `mix localize.download_locales` no longer evaluates `config/runtime.exs` of the consumer application. Previously the task ran `Mix.Task.run("app.config")`, which transitively evaluated `runtime.exs`, which was not necessary. The task now loads only compile-time config (`config/config.exs` and any imported env-specific file), matching the build-time contract its docstring already advertised.
+* `mix localize.download_locales` no longer evaluates `config/runtime.exs` of the consumer application. Previously the task ran `Mix.Task.run("app.config")`, which transitively evaluated `runtime.exs`, which was not necessary. The task now loads only compile-time config (`config/config.exs` and any imported env-specific file), matching the build-time contract its docstring already advertised. Thanks to @whatyouhide for the PR.
 
 * Hardened two further sites that pattern-matched `{:ok, _} = <fallible Localize call>` and could have surfaced the same `MatchError` class as issue #26: the per-unit format loop in `Localize.Duration.to_string/2` now short-circuits on the first formatter error, and `Localize.Number.Formatter.Decimal`'s digit-transliteration step now uses `with` to fall through to untransliterated digits if either the requested or `:latn` number-system data is unavailable.
 
