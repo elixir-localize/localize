@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.33.0] — May 13th, 2026
+
+### Bug Fixes
+
+* `Localize.Application.start/2` now eagerly reads every bundled supplemental dataset (languages, scripts, territories, variants, subdivisions, units, currency codes, calendars, timezones, territory subdivisions, locale ids, number systems) so the atoms they reference are interned at app start. The 0.30.0 atom-DOS hardening switched many lookups to `binary_to_existing_atom`, which assumes the legitimate atoms already exist. Without the eager-load, valid input like `numberingSystem=arab` could surface as a bogus "unknown numbering system" error on a fresh BEAM where no prior code path had triggered the relevant `binary_to_term/1` read. Manifested as a transient CI failure in `Localize.Message.NumberOptionsTest`; cause was identical in shape to issue #26.
 
 ## [0.32.0] — May 12th, 2026
 
@@ -13,13 +18,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Hardened two further sites that pattern-matched `{:ok, _} = <fallible Localize call>` and could have surfaced the same `MatchError` class as issue #26: the per-unit format loop in `Localize.Duration.to_string/2` now short-circuits on the first formatter error, and `Localize.Number.Formatter.Decimal`'s digit-transliteration step now uses `with` to fall through to untransliterated digits if either the requested or `:latn` number-system data is unavailable.
 
-### Hardening
-
 * New `Localize.LintTest` source-level lint that scans `lib/` and fails the test suite if any file pattern-matches `{:ok, _} =` against a known-fallible Localize call. The list of fallible calls and an empty allowlist live in the test; future occurrences fail loudly on the offending PR rather than waiting for a runtime regression report.
 
 * New `Localize.Locale.FallbackResilienceTest` exercises the load → store → get pipeline for seven representative regional locales under a provider that only serves `:en`, asserting that the data ends up under the canonicalised requested key and that `provider.get/3` succeeds.
 
 * New `Mix.Tasks.Localize.DownloadLocalesTest` calls `DownloadLocales.banner/2` directly with `default_locale: :"en-ZA"` set, reproducing the exact scenario from issue #26 without invoking the network. `banner/2` is now `@doc false` so the test can reach it.
+
+* New `Localize.AtomInterningTest` exercises the public lookup paths that previously surfaced the supplemental-atom bug — `Localize.Number.System.system_name_from/2` and friends, plus `Localize.Currency.validate_currency/1`, `Localize.validate_calendar/1`, `Localize.validate_territory/1`, `Localize.validate_script/1` — each driven with binary input. A regression in `intern_supplemental_atoms/0` would surface here as a structured error from one of these accessors.
 
 ## [0.31.0] — May 12th, 2026
 
