@@ -336,4 +336,14 @@ defmodule Localize.Unit.ParserTest do
       assert :kilo == Localize.Unit.Data.si_prefix_atom("kilo")
     end
   end
+
+  describe "input length cap" do
+    test "rejects oversized unit identifier without invoking the grammar" do
+      cap = Parser.max_unit_bytes()
+      huge = String.duplicate("a", cap + 1)
+
+      assert {:error, %Localize.ParseError{reason: reason}} = Parser.parse(huge)
+      assert reason =~ "exceeds"
+    end
+  end
 end

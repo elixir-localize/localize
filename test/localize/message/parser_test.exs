@@ -322,4 +322,14 @@ defmodule Localize.Message.ParserTest do
       assert {1, 4} = Localize.ParseError.line_column("abc", 999)
     end
   end
+
+  describe "input length cap" do
+    test "rejects oversized message without invoking the grammar" do
+      cap = Parser.max_message_bytes()
+      huge = String.duplicate("a", cap + 1)
+
+      assert {:error, %Localize.ParseError{reason: reason}} = Parser.parse(huge)
+      assert reason =~ "exceeds"
+    end
+  end
 end
