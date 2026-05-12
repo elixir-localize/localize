@@ -553,9 +553,9 @@ defmodule Localize.Interval do
 
   Only the non-default `:style` options (`:month`,
   `:month_and_day`, `:year_and_month`) appear here. The default
-  `:date` style resolves per-locale from
-  `Localize.DateTime.Format.date_formats/1`, mirroring
-  `Localize.Date.to_string/2`'s style → skeleton mapping.
+  `:date` style is resolved per-locale, mirroring
+  `Localize.Date.to_string/2`'s style → skeleton mapping for that
+  locale.
 
   """
   @spec date_styles() :: %{

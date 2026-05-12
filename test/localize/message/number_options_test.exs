@@ -11,8 +11,17 @@ if Code.ensure_loaded?(Localize.Number) do
       options = [locale: locale]
 
       case Interpreter.format_list(parsed, bindings, options) do
-        {:ok, iolist, _, _} -> :erlang.iolist_to_binary(iolist)
-        {:error, iolist, _, _} -> :erlang.iolist_to_binary(iolist)
+        {:ok, iolist, _, _} ->
+          :erlang.iolist_to_binary(iolist)
+
+        {:error, iolist, _, _} ->
+          :erlang.iolist_to_binary(iolist)
+
+        {:format_error, payload} ->
+          # Don't crash with `CaseClauseError` on unexpected formatter
+          # failures — that hides the real diagnosis. Flunk with the
+          # payload visible so the cause is obvious in CI output.
+          flunk("MF2 interpreter returned :format_error → #{inspect(payload)}")
       end
     end
 
