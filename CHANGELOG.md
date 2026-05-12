@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [0.31.0] — May 13th, 2026
 
+### Bug Fixes
+
+* `mix localize.download_locales` no longer evaluates `config/runtime.exs` of the consumer application. Previously the task ran `Mix.Task.run("app.config")`, which transitively evaluated `runtime.exs`, which was not necessary. The task now loads only compile-time config (`config/config.exs` and any imported env-specific file), matching the build-time contract its docstring already advertised.
+
 ### Behaviour Changes
 
 * `Localize.InvalidValueError` gained an `:allowed_values` field and a new `Localize.NoCertificateStoreError` carries the searched paths; previously prose-stuffed `:expected`/`:currency` fields and bare-string `:reason` codes are now structural.

@@ -43,6 +43,15 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
 
       config :localize, locale_cache_dir: "/path/to/cache"
 
+  ## Compile-time configuration
+
+  The task only loads compile-time configuration (`config/config.exs` and any
+  imported env-specific files) and never evaluates `config/runtime.exs`. This
+  makes it safe to run inside "build-only" environments (such as Docker images)
+  where production-only environment variables are deliberately not available.
+
+  The task itself reads only `:localize`'s own compile-time config.
+
   ## Examples
 
   Pre-populate the cache for a Docker build:
@@ -65,13 +74,18 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
   alias Localize.Locale.Provider
   alias Localize.Locale.Provider.Cache
 
+  # Compile the consumer's code so `:localize` and its deps are
+  # available, and load compile-time config so `:supported_locales`
+  # and `:locale_cache_dir` are populated. We deliberately do NOT
+  # run `app.config`: that evaluates `config/runtime.exs`, which in
+  # build environments (Docker images, CI) typically requires
+  # production env vars that aren't available.
+  # `loadconfig` reads `config/config.exs` (and any imported
+  # env-specific file) but stops short of `runtime.exs`.
+  @requirements ["compile", "loadconfig"]
+
   @impl Mix.Task
   def run(args) do
-    # Compile and load runtime config without starting the consumer's
-    # own application — the consumer may not be startable in a build
-    # environment (no DB, no network endpoint, etc.). We only need
-    # `:localize` itself running for the download.
-    Mix.Task.run("app.config")
     {:ok, _started} = Application.ensure_all_started(:localize)
 
     {opts, locale_args} =
