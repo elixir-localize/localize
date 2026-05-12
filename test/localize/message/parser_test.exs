@@ -266,7 +266,7 @@ defmodule Localize.Message.ParserTest do
       assert {:error, error} = Parser.parse("Hello {")
       assert %Localize.ParseError{line: 1, column: 7, offset: 6, rest: "{"} = error
       assert error.input == "Hello {"
-      assert is_binary(error.reason)
+      assert is_atom(error.reason) and not is_nil(error.reason)
     end
 
     test "multi-line error reports correct line and column" do

@@ -486,7 +486,7 @@ defmodule Localize.Locale.Provider do
          Localize.LocaleDownloadError.exception(
            locale_id: locale_id,
            url: url,
-           reason: "not modified"
+           reason: :not_modified
          )}
 
       {:error, reason} ->
@@ -494,7 +494,7 @@ defmodule Localize.Locale.Provider do
          Localize.LocaleDownloadError.exception(
            locale_id: locale_id,
            url: url,
-           reason: inspect(reason)
+           cause: reason
          )}
     end
   end

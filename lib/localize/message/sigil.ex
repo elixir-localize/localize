@@ -116,12 +116,12 @@ defmodule Localize.Message.Sigil do
       end
 
     column = error.column || 1
-    reason = error.reason || "invalid MF2 message"
 
     raise CompileError,
       file: caller.file,
       line: error_line,
-      description: "invalid MF2 message in ~M sigil at column #{column}: #{reason}"
+      description:
+        "invalid MF2 message in ~M sigil at column #{column}: #{Exception.message(error)}"
   end
 
   defp unescape_tokens(tokens) do
