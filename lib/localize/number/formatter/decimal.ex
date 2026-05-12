@@ -480,14 +480,15 @@ defmodule Localize.Number.Formatter.Decimal do
 
   defp transliterate_string(number_string, %{number_system: number_system} = options) do
     translated =
-      case Localize.Number.System.number_system_digits(number_system) do
-        {:ok, digits} ->
-          {:ok, latn_digits} = Localize.Number.System.number_system_digits(:latn)
-          map = Localize.Number.System.generate_transliteration_map(latn_digits, digits)
-          Localize.Number.Transliterate.transliterate_digits(number_string, map)
-
-        _ ->
-          number_string
+      with {:ok, digits} <- Localize.Number.System.number_system_digits(number_system),
+           {:ok, latn_digits} <- Localize.Number.System.number_system_digits(:latn) do
+        map = Localize.Number.System.generate_transliteration_map(latn_digits, digits)
+        Localize.Number.Transliterate.transliterate_digits(number_string, map)
+      else
+        # `:latn` digits are bundled in the supplemental data and should
+        # always resolve, but if either side fails we leave the digits
+        # untransliterated rather than crashing the whole format pipeline.
+        _ -> number_string
       end
 
     transliterate_separators(translated, options)

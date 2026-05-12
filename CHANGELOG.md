@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Bug Fixes
+
+* Hardened two further sites that pattern-matched `{:ok, _} = <fallible Localize call>` and could have surfaced the same `MatchError` class as issue #26: the per-unit format loop in `Localize.Duration.to_string/2` now short-circuits on the first formatter error, and `Localize.Number.Formatter.Decimal`'s digit-transliteration step now uses `with` to fall through to untransliterated digits if either the requested or `:latn` number-system data is unavailable.
+
+### Hardening
+
+* New `Localize.LintTest` source-level lint that scans `lib/` and fails the test suite if any file pattern-matches `{:ok, _} =` against a known-fallible Localize call. The list of fallible calls and an empty allowlist live in the test; future occurrences fail loudly on the offending PR rather than waiting for a runtime regression report.
+
+* New `Localize.Locale.FallbackResilienceTest` exercises the load → store → get pipeline for seven representative regional locales under a provider that only serves `:en`, asserting that the data ends up under the canonicalised requested key and that `provider.get/3` succeeds.
+
+* New `Mix.Tasks.Localize.DownloadLocalesTest` calls `DownloadLocales.banner/2` directly with `default_locale: :"en-ZA"` set, reproducing the exact scenario from issue #26 without invoking the network. `banner/2` is now `@doc false` so the test can reach it.
+
 ## [0.31.0] — May 12th, 2026
 
 ### Bug Fixes

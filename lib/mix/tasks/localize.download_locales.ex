@@ -211,6 +211,7 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
 
   defp format_size(bytes), do: "#{bytes} B"
 
+  @doc false
   # Build the "Downloading N locale(s) to <dir>" banner.
   #
   # Tries to render with MF2 (so the singular/plural variant matches
@@ -219,7 +220,11 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
   # is the very thing the Mix task is about to download. The Mix
   # task must never crash on banner formatting; the download work
   # is the point.
-  defp banner(count, cache_dir) do
+  #
+  # Public-but-doc-false so the test suite can call it directly
+  # under fallback-triggering configurations without needing to
+  # stand up the full Mix task harness or HTTP stub.
+  def banner(count, cache_dir) do
     template =
       ".input {$count :number}\n" <>
         ".match $count\n" <>

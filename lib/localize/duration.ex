@@ -262,13 +262,25 @@ defmodule Localize.Duration do
         end
 
       units ->
-        formatted_parts =
-          Enum.map(units, fn unit ->
-            {:ok, str} = Localize.Unit.to_string(unit, locale: locale, style: style)
-            str
-          end)
+        with {:ok, formatted_parts} <- format_each(units, locale, style) do
+          Localize.List.to_string(formatted_parts, locale: locale, style: :and)
+        end
+    end
+  end
 
-        Localize.List.to_string(formatted_parts, locale: locale, style: :and)
+  # Format each unit, short-circuiting on the first error so a single
+  # bad locale or unit cannot crash duration formatting with a
+  # `MatchError`. Returns `{:ok, list}` only when every part formats.
+  defp format_each(units, locale, style) do
+    Enum.reduce_while(units, {:ok, []}, fn unit, {:ok, acc} ->
+      case Localize.Unit.to_string(unit, locale: locale, style: style) do
+        {:ok, formatted} -> {:cont, {:ok, [formatted | acc]}}
+        {:error, _} = error -> {:halt, error}
+      end
+    end)
+    |> case do
+      {:ok, parts} -> {:ok, Enum.reverse(parts)}
+      {:error, _} = error -> error
     end
   end
 
