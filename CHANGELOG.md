@@ -30,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.FormatCache` ETS table switched from `:public` to `:protected`; writes are routed through the cache GenServer. The size cap (`:format_cache_max_entries`, default 2 000) is now enforced **synchronously on each insert** rather than by a 10-second sweeper, replacing the previous biased-random eviction that could leave the cache oversized. New `Localize.FormatCache.clear/0` and `size/0` helpers added for tests and maintenance.
 
+* NIF (ICU bindings) hardened. All NIF entries except `nif_plural_rule` now run on the dirty CPU scheduler pool (`ERL_NIF_DIRTY_JOB_CPU_BOUND`); the collator pool is sized for `schedulers + dirty_cpu_schedulers` and `reserve_coll` refuses overflow rather than reading past the array end. The reorder-codes branch caps `numCodes` at 256 and checks `enif_alloc` before use; every `std::stoll`/`std::stod`/`std::stoi` is wrapped in `try/catch` so out-of-range C++ exceptions cannot unwind through the NIF boundary; the hand-rolled JSON arg parser guards each access after `skip_ws`; per-call input lengths are capped at the NIF boundary (`MAX_MF2_BYTES = 64 KB`, `MAX_COLLATION_BYTES = 1 MB`, `MAX_NUMBER_STR_BYTES = 1 KB`).
+
 ### Behaviour Change
 
 * `Localize.Currency.currency_for_code/2` now returns the new `Localize.CurrencyNotLocalizedError` (instead of `UnknownCurrencyError`) when the currency code is valid but the locale has no display data for it. `UnknownCurrencyError` is now reserved for codes that aren't recognised ISO 4217 or registered custom currencies.
