@@ -71,7 +71,21 @@ defmodule Localize.Locale.Provider.PersistentTerm do
         case Localize.Locale.Provider.download_locale(locale_id) do
           {:ok, binary} ->
             _ = Cache.store(locale_id, binary)
-            {:ok, :erlang.binary_to_term(binary)}
+            # Pass `[:safe]` to refuse atoms / funs / refs the BEAM
+            # hasn't already interned. Downloaded ETF files are a
+            # privileged trust source but a compromised CDN or MITM is
+            # still possible; the safe flag closes that door.
+            try do
+              {:ok, :erlang.binary_to_term(binary, [:safe])}
+            rescue
+              ArgumentError ->
+                {:error,
+                 Localize.LocaleDownloadError.exception(
+                   locale_id: locale_id,
+                   url: Localize.Locale.Provider.locale_url(locale_id),
+                   reason: "downloaded ETF failed safe decode"
+                 )}
+            end
 
           {:error, exception} ->
             {:error, exception}

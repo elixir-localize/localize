@@ -350,7 +350,7 @@ defmodule Localize.Collation.Table do
 
     case File.read(etf_path) do
       {:ok, binary} ->
-        data = :erlang.binary_to_term(binary)
+        data = :erlang.binary_to_term(binary, [:safe])
 
         :persistent_term.put(@table_name, data.entries)
         :persistent_term.put(@contractions_table, data.contractions)

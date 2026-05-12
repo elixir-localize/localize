@@ -47,6 +47,12 @@ defmodule Localize.DateTime.Format.Match do
                            "priv/localize/supplemental_data/time_preferences.etf"
                          )
 
+  # NOTE: `:safe` is intentionally NOT passed to `binary_to_term/1`
+  # here. The bundled time-preferences ETF references CLDR territory
+  # atoms (e.g. `:GG`, `:SI`) which aren't necessarily interned at
+  # this module's compile time, and `[:safe]` would refuse to create
+  # them. The file is shipped with the package; the trust boundary is
+  # the package, not the runtime.
   @time_preferences (if File.exists?(@time_preferences_path) do
                        @time_preferences_path
                        |> File.read!()

@@ -7,6 +7,14 @@ defmodule Localize.SupplementalData do
     Application.app_dir(:localize, "priv/localize")
   end
 
+  # NOTE: `:safe` is intentionally NOT passed to `binary_to_term/1`
+  # below. The bundled supplemental ETF files reference CLDR locale,
+  # script, territory, and rule atoms (and in plural-rule data, AST
+  # node atoms and module references) that aren't necessarily interned
+  # when these helpers run during dependent modules' compile time.
+  # `[:safe]` would refuse to create them. The files are shipped with
+  # the package; the trust boundary is the package, not the runtime.
+
   defp load_data(filename) do
     key = {:localize, :data, filename}
 
