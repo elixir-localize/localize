@@ -26,7 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Locale cache files and downloaded ETFs are decoded with `:erlang.binary_to_term(_, [:safe])`. Closes a node-crash vector for any deployment with `:locale_cache_dir` set to a writable directory: a malicious or corrupted cache file can no longer resurrect arbitrary atoms, funs, or refs. Failed safe decodes surface as `LocaleNotFoundInCacheError` (or `LocaleDownloadError` for the download path) and the file is treated as stale.
 
-## [0.29.0] — May 11th, 2026
+* Public parser entry points now reject oversized input before invoking the grammar, capping the parser's CPU exposure on hostile input. Defaults are 256 bytes for `Localize.LanguageTag.parse/1` and `Localize.Unit.Parser.parse/1`, 64 KB for `Localize.Message.Parser.parse/1`, and 1 KB for `Localize.Number.Parser.parse/2`. Each cap is configurable via app env (`:max_locale_id_bytes`, `:max_message_bytes`, `:max_unit_bytes`, `:max_number_bytes`). `Number.Parser.parse/2` additionally rejects `Decimal` results whose exponent magnitude exceeds `:max_decimal_exponent` (default ±100) so downstream multiplication or formatting cannot materialise huge mantissas.
 
 ### Behaviour Change
 

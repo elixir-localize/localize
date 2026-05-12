@@ -207,13 +207,35 @@ defmodule Localize.LanguageTag do
   * `{:error, reason}`
 
   """
+  # Maximum byte length accepted by `parse/1` and `new/1`. Even the
+  # most extravagant well-formed BCP-47 tag fits in well under this
+  # bound; the cap prevents unbounded grammar work on hostile input.
+  # Override with `config :localize, :max_locale_id_bytes, n`.
+  @default_max_locale_id_bytes 256
+
+  @doc false
+  def max_locale_id_bytes do
+    Application.get_env(:localize, :max_locale_id_bytes, @default_max_locale_id_bytes)
+  end
+
   @spec parse(String.t()) :: {:ok, t()} | {:error, Exception.t()}
   def parse(locale_id) when is_binary(locale_id) do
-    with {:ok, map} <- Parser.parse(locale_id),
-         resolved = resolve_aliases(map),
-         {:ok, validated} <- validate_subtags(resolved) do
-      {:ok, struct(__MODULE__, validated)}
+    if byte_size(locale_id) > max_locale_id_bytes() do
+      {:error, Localize.InvalidLocaleError.exception(locale_id: input_summary(locale_id))}
+    else
+      with {:ok, map} <- Parser.parse(locale_id),
+           resolved = resolve_aliases(map),
+           {:ok, validated} <- validate_subtags(resolved) do
+        {:ok, struct(__MODULE__, validated)}
+      end
     end
+  end
+
+  # Truncate a too-long input to a short representative form for the
+  # error message — never echo the full attacker-controlled binary.
+  defp input_summary(binary) when is_binary(binary) do
+    head = binary |> binary_part(0, min(32, byte_size(binary)))
+    "#{head}… (#{byte_size(binary)} bytes, exceeds #{max_locale_id_bytes()})"
   end
 
   @doc """

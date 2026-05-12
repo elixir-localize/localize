@@ -105,6 +105,44 @@ defmodule Localize.Number.Parser do
           {:ok, integer() | float() | Decimal.t()}
           | {:error, Exception.t()}
   def parse(string, options \\ []) when is_binary(string) and is_list(options) do
+    cap = max_number_bytes()
+
+    if byte_size(string) > cap do
+      {:error,
+       Localize.ParseError.exception(
+         input: "<#{byte_size(string)}-byte number>",
+         reason: "number string exceeds the configured maximum of #{cap} bytes"
+       )}
+    else
+      do_parse(string, options)
+    end
+  end
+
+  # Maximum byte length accepted by `parse/2`. A 1 KB cap fits even
+  # very long localised group/decimal-separated representations of a
+  # value with hundreds of digits. Override with
+  # `config :localize, :max_number_bytes, n`.
+  @default_max_number_bytes 1_024
+
+  @doc false
+  def max_number_bytes do
+    Application.get_env(:localize, :max_number_bytes, @default_max_number_bytes)
+  end
+
+  # Maximum absolute value of a parsed Decimal exponent. CLDR-shipped
+  # number formats never produce exponents this large; capping here
+  # prevents downstream operations (multiplication, formatting) from
+  # materialising mantissa-sized work for an attacker-controlled
+  # `"1e9999999999"`. Override with
+  # `config :localize, :max_decimal_exponent, n`.
+  @default_max_decimal_exponent 100
+
+  @doc false
+  def max_decimal_exponent do
+    Application.get_env(:localize, :max_decimal_exponent, @default_max_decimal_exponent)
+  end
+
+  defp do_parse(string, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
@@ -120,10 +158,26 @@ defmodule Localize.Number.Parser do
 
       case parse_number(normalized_string, Keyword.get(options, :number)) do
         {:error, _} -> {:error, parse_error(string)}
-        success -> success
+        success -> bound_decimal_exponent(success, string)
       end
     end
   end
+
+  # If the parsed value is a `Decimal` with an exponent magnitude that
+  # would make downstream operations expensive, reject the parse
+  # rather than return a value that will misbehave under multiplication
+  # or formatting. Integers and floats are bounded by their own range
+  # checks and do not need this guard.
+  defp bound_decimal_exponent({:ok, %Decimal{exp: exp}} = ok, _string)
+       when is_integer(exp) do
+    if abs(exp) > max_decimal_exponent() do
+      {:error, parse_error("Decimal exponent #{exp} exceeds limit of ±#{max_decimal_exponent()}")}
+    else
+      ok
+    end
+  end
+
+  defp bound_decimal_exponent(other, _string), do: other
 
   @doc """
   Resolves currencies from strings within a list.

@@ -451,4 +451,29 @@ defmodule Localize.LanguageTagTest do
       assert tag.requested_locale_id == "EN-us"
     end
   end
+
+  describe "input length cap" do
+    test "rejects oversized input without invoking the grammar" do
+      cap = LanguageTag.max_locale_id_bytes()
+      huge = String.duplicate("a", cap + 1)
+
+      assert {:error, %Localize.InvalidLocaleError{locale_id: msg}} =
+               LanguageTag.parse(huge)
+
+      assert msg =~ "exceeds"
+    end
+
+    test "input at the cap is not rejected by the length guard" do
+      cap = LanguageTag.max_locale_id_bytes()
+      # At-cap input. Grammar may accept or reject; the important
+      # assertion is that we don't see the cap-rejection error.
+      at_cap = String.duplicate("a", cap)
+
+      case LanguageTag.parse(at_cap) do
+        {:ok, _} -> :ok
+        {:error, %Localize.InvalidLocaleError{locale_id: msg}} -> refute msg =~ "exceeds"
+        {:error, _} -> :ok
+      end
+    end
+  end
 end

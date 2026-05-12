@@ -32,9 +32,35 @@ defmodule Localize.Unit.Parser do
       {:ok, {:unit, type: nil, numerator: [{:single_unit, prefix: nil, power: nil, base: "meter"}], denominator: [{:single_unit, prefix: nil, power: nil, base: "second"}]}}
 
   """
+  # Maximum byte length accepted by `parse/1`/`parse!/1`. Caps the
+  # parser's CPU exposure on hostile input. Override with
+  # `config :localize, :max_unit_bytes, n` (default 256 — even a
+  # heavily-compounded `meter-per-second-per-second-per-…` fits well
+  # under this).
+  @default_max_unit_bytes 256
+
+  @doc false
+  def max_unit_bytes do
+    Application.get_env(:localize, :max_unit_bytes, @default_max_unit_bytes)
+  end
+
   @spec parse(String.t()) :: {:ok, tuple()} | {:error, Exception.t()}
 
   def parse(input) when is_binary(input) do
+    cap = max_unit_bytes()
+
+    if byte_size(input) > cap do
+      {:error,
+       Localize.ParseError.exception(
+         input: "<#{byte_size(input)}-byte unit identifier>",
+         reason: "unit identifier exceeds the configured maximum of #{cap} bytes"
+       )}
+    else
+      do_parse(input)
+    end
+  end
+
+  defp do_parse(input) do
     case unit_identifier(input) do
       {:ok, [result], "", _, _, _} ->
         {:ok, result}
