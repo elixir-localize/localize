@@ -63,9 +63,7 @@ defmodule Localize.LocaleCacheWriteError do
 
   @impl true
   def message(%__MODULE__{reason: :permission_denied, locale_id: locale_id, path: path}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "Cannot write locale {$locale_id} to {$path}: permission denied.",
       locale_id: inspect(locale_id),
@@ -74,9 +72,7 @@ defmodule Localize.LocaleCacheWriteError do
   end
 
   def message(%__MODULE__{reason: :no_such_directory, locale_id: locale_id, path: path}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "Cannot write locale {$locale_id} to {$path}: parent directory does not exist.",
       locale_id: inspect(locale_id),
@@ -85,9 +81,7 @@ defmodule Localize.LocaleCacheWriteError do
   end
 
   def message(%__MODULE__{reason: :disk_full, locale_id: locale_id, path: path}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "Cannot write locale {$locale_id} to {$path}: no space left on device.",
       locale_id: inspect(locale_id),
@@ -96,9 +90,7 @@ defmodule Localize.LocaleCacheWriteError do
   end
 
   def message(%__MODULE__{reason: :read_only_filesystem, locale_id: locale_id, path: path}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "Cannot write locale {$locale_id} to {$path}: filesystem is read-only.",
       locale_id: inspect(locale_id),
@@ -107,9 +99,7 @@ defmodule Localize.LocaleCacheWriteError do
   end
 
   def message(%__MODULE__{reason: :file_exists, locale_id: locale_id, path: path}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "Cannot write locale {$locale_id} to {$path}: file already exists.",
       locale_id: inspect(locale_id),
@@ -123,9 +113,7 @@ defmodule Localize.LocaleCacheWriteError do
         path: path,
         posix_error: posix
       }) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "Cannot write locale {$locale_id} to {$path}: {$reason}.",
       locale_id: inspect(locale_id),
@@ -135,9 +123,7 @@ defmodule Localize.LocaleCacheWriteError do
   end
 
   def message(%__MODULE__{locale_id: locale_id, path: path, posix_error: posix}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "Cannot write locale {$locale_id} to {$path}: {$reason}.",
       locale_id: inspect(locale_id),

@@ -14,9 +14,7 @@ defmodule Localize.UnknownMeasurementSystemError do
 
   @impl true
   def message(%__MODULE__{measurement_system: measurement_system}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unit",
       "The measurement system {$measurement_system} is not known.",
       measurement_system: inspect(measurement_system)

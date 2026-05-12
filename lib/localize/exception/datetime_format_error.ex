@@ -14,9 +14,7 @@ defmodule Localize.DateTimeFormatError do
 
   @impl true
   def message(%__MODULE__{format: format, reason: :invalid_format}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "datetime",
       "The format {$format} is invalid.",
       format: inspect(format)
@@ -24,9 +22,7 @@ defmodule Localize.DateTimeFormatError do
   end
 
   def message(%__MODULE__{format: format, reason: :tokenize_error, detail: detail}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "datetime",
       "Could not tokenize the format {$format}: {$detail}.",
       format: inspect(format),
@@ -35,9 +31,7 @@ defmodule Localize.DateTimeFormatError do
   end
 
   def message(%__MODULE__{format: format, reason: reason}) when not is_nil(reason) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "datetime",
       "The format {$format} is invalid: {$reason}.",
       format: inspect(format),
@@ -46,9 +40,7 @@ defmodule Localize.DateTimeFormatError do
   end
 
   def message(%__MODULE__{format: format}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "datetime",
       "The format {$format} is invalid.",
       format: inspect(format)

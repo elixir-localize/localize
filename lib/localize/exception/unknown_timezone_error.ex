@@ -14,9 +14,7 @@ defmodule Localize.UnknownTimezoneError do
 
   @impl true
   def message(%__MODULE__{timezone: timezone}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "Unknown timezone: {$timezone}",
       timezone: inspect(timezone)

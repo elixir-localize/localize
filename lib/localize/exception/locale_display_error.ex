@@ -14,9 +14,7 @@ defmodule Localize.LocaleDisplayError do
 
   @impl true
   def message(%__MODULE__{locale: locale}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "No locale display data for {$locale}.",
       locale: inspect(locale)

@@ -14,9 +14,7 @@ defmodule Localize.UnitPreferenceError do
 
   @impl true
   def message(%__MODULE__{reason: :unknown_quantity, unit: unit}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unit",
       "No quantity found for base unit {$unit}.",
       unit: inspect(unit)
@@ -24,9 +22,7 @@ defmodule Localize.UnitPreferenceError do
   end
 
   def message(%__MODULE__{reason: :unknown_category, quantity: quantity}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unit",
       "No unit preferences found for quantity {$quantity}.",
       quantity: inspect(quantity)
@@ -34,9 +30,7 @@ defmodule Localize.UnitPreferenceError do
   end
 
   def message(%__MODULE__{reason: :no_preference_for_usage, category: category, usage: usage}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unit",
       "No unit preferences for category {$category} and usage {$usage}.",
       category: inspect(category),
@@ -45,9 +39,7 @@ defmodule Localize.UnitPreferenceError do
   end
 
   def message(%__MODULE__{reason: :no_preference_for_region, category: category, region: region}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unit",
       "No unit preference for region {$region} in category {$category}.",
       region: inspect(region),

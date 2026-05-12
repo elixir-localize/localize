@@ -14,9 +14,7 @@ defmodule Localize.LikelySubtagsError do
 
   @impl true
   def message(%__MODULE__{locale: locale}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "language_tag",
       "No likely subtags data found for {$locale}",
       locale: inspect(locale)

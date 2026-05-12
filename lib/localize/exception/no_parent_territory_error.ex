@@ -14,9 +14,7 @@ defmodule Localize.NoParentTerritoryError do
 
   @impl true
   def message(%__MODULE__{territory: territory}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "No parent territory found for {$territory}.",
       territory: inspect(territory)

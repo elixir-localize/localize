@@ -14,9 +14,7 @@ defmodule Localize.UnknownStyleError do
 
   @impl true
   def message(%__MODULE__{style: style, territory: nil}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unknown style error",
       "The style {$style} is unknown.",
       style: inspect(style)
@@ -24,9 +22,7 @@ defmodule Localize.UnknownStyleError do
   end
 
   def message(%__MODULE__{style: style, territory: territory}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unknown style error",
       "The style {$style} is unknown for territory {$territory}.",
       style: inspect(style),

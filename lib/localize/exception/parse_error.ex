@@ -67,9 +67,7 @@ defmodule Localize.ParseError do
         column: column
       })
       when is_integer(line) and is_integer(column) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "Could not parse {$input} at line {$line} column {$column}: unexpected trailing input {$rest}",
       input: inspect(input),
@@ -86,9 +84,7 @@ defmodule Localize.ParseError do
         offset: offset
       })
       when is_integer(offset) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "Could not parse {$input} at position {$position}: unexpected trailing input {$rest}",
       input: inspect(input),
@@ -98,9 +94,7 @@ defmodule Localize.ParseError do
   end
 
   def message(%__MODULE__{reason: :unexpected_trailing_input, input: input, rest: rest}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "Could not parse {$input}: unexpected trailing input {$rest}",
       input: inspect(input),
@@ -117,9 +111,7 @@ defmodule Localize.ParseError do
         column: column
       })
       when is_integer(line) and is_integer(column) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "Could not parse {$input} at line {$line} column {$column}: {$detail}{$tail}",
       input: inspect(input),
@@ -138,9 +130,7 @@ defmodule Localize.ParseError do
         offset: offset
       })
       when is_integer(offset) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "Could not parse {$input} at position {$position}: {$detail}{$tail}",
       input: inspect(input),
@@ -151,9 +141,7 @@ defmodule Localize.ParseError do
   end
 
   def message(%__MODULE__{reason: :unexpected_input, input: input, rest: rest, detail: detail}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "Could not parse {$input}: {$detail}{$tail}",
       input: inspect(input),
@@ -163,9 +151,7 @@ defmodule Localize.ParseError do
   end
 
   def message(%__MODULE__{reason: :incomplete_input, input: input}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "Could not parse {$input}: input ended unexpectedly",
       input: inspect(input)
@@ -173,9 +159,7 @@ defmodule Localize.ParseError do
   end
 
   def message(%__MODULE__{reason: :invalid_message_format, input: input, detail: detail}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "Could not parse {$input}: {$detail}",
       input: inspect(input),
@@ -184,9 +168,7 @@ defmodule Localize.ParseError do
   end
 
   def message(%__MODULE__{input: input, detail: detail}) when is_binary(detail) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "Could not parse {$input}: {$detail}",
       input: inspect(input),
@@ -195,9 +177,7 @@ defmodule Localize.ParseError do
   end
 
   def message(%__MODULE__{input: input}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "Could not parse {$input}",
       input: inspect(input)

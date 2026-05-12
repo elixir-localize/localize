@@ -14,9 +14,7 @@ defmodule Localize.UnknownCurrencyError do
 
   @impl true
   def message(%__MODULE__{currency: currency}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "currency",
       "The currency {$currency} is not known.",
       currency: inspect(currency)

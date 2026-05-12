@@ -14,9 +14,7 @@ defmodule Localize.UnknownRbnfRuleError do
 
   @impl true
   def message(%__MODULE__{rule_name: rule_name, locale: locale}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "number",
       "The RBNF rule {$rule_name} is not known for locale {$locale}.",
       rule_name: inspect(rule_name),

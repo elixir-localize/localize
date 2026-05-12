@@ -14,9 +14,7 @@ defmodule Localize.UnknownUnitError do
 
   @impl true
   def message(%__MODULE__{unit: unit}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unit",
       "Unknown unit: {$unit}",
       unit: inspect(unit)

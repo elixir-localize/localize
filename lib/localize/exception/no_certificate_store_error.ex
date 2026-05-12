@@ -21,9 +21,7 @@ defmodule Localize.NoCertificateStoreError do
 
   @impl true
   def message(%__MODULE__{searched: searched}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "No certificate trust store was found. Tried looking for: {$searched}. " <>
         "Install the `castore` or `certifi` hex package, or configure " <>

@@ -35,9 +35,7 @@ defmodule Localize.InvalidValueError do
       when is_atom(expected) and not is_nil(expected) and is_list(allowed) do
     humanized = expected |> Atom.to_string() |> String.replace("_", " ")
 
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unit",
       "Expected a valid {$expected}{$context_part}, got: {$value} (allowed values: {$allowed})",
       expected: humanized,
@@ -55,9 +53,7 @@ defmodule Localize.InvalidValueError do
       when is_atom(expected) and not is_nil(expected) do
     humanized = expected |> Atom.to_string() |> String.replace("_", " ")
 
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unit",
       "Expected a valid {$expected}{$context_part}, got: {$value}",
       expected: humanized,
@@ -67,9 +63,7 @@ defmodule Localize.InvalidValueError do
   end
 
   def message(%__MODULE__{value: value, expected: expected, context: nil}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unit",
       "Expected {$expected}, got: {$value}",
       expected: expected,
@@ -78,9 +72,7 @@ defmodule Localize.InvalidValueError do
   end
 
   def message(%__MODULE__{value: value, expected: expected, context: context}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unit",
       "Expected {$expected} for {$context}, got: {$value}",
       expected: expected,

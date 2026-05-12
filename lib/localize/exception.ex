@@ -58,4 +58,44 @@ defmodule Localize.Exception do
 
   """
   @callback reason_atoms() :: [atom()]
+
+  @doc """
+  Render an MF2-format Gettext message safely for use inside an
+  exception's `message/1` callback.
+
+  `Exception.message/1` is called from `raise`, `Exception.format/2`,
+  log handlers, and inspect paths — none of which can tolerate a
+  raise. This helper wraps `Gettext.dpgettext/5` so that any failure
+  in the message formatter (a NIF crash, a hostile `String.Chars` or
+  `Inspect` impl on a bound value, a future regression) falls back
+  to the raw msgid rather than propagating.
+
+  Use this only in `defexception` `message/1` callbacks. General MF2
+  formatting should call `Gettext.dpgettext/5` (or the higher-level
+  macros) directly so callers see the underlying formatter error.
+
+  ### Arguments
+
+  * `msgctxt` is the gettext context string (e.g. `"locale"`).
+
+  * `msgid` is the source-language MF2 message string.
+
+  * `bindings` is a keyword list of variable bindings for the
+    message. The default is `[]`.
+
+  ### Returns
+
+  * The interpolated message string, or `msgid` unchanged if
+    interpolation failed.
+
+  """
+  @spec safe_message(binary(), binary(), keyword()) :: binary()
+  def safe_message(msgctxt, msgid, bindings \\ [])
+      when is_binary(msgctxt) and is_binary(msgid) and is_list(bindings) do
+    Gettext.dpgettext(Localize.Gettext, "localize", msgctxt, msgid, bindings)
+  rescue
+    _exception -> msgid
+  catch
+    _kind, _reason -> msgid
+  end
 end

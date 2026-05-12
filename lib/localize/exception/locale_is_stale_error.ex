@@ -18,9 +18,7 @@ defmodule Localize.LocaleIsStaleError do
         cached_version: cached_version,
         current_version: current_version
       }) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The cached locale {$locale_id} has version {$cached_version} but the current version is {$current_version}.",
       locale_id: inspect(locale_id),

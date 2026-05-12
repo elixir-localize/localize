@@ -14,9 +14,7 @@ defmodule Localize.InvalidSubtagError do
 
   @impl true
   def message(%__MODULE__{reason: :date_not_last, key: key, value: value}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "language_tag",
       "The date {$value} must be the last value in subtag {$key}.",
       value: inspect(value),
@@ -25,9 +23,7 @@ defmodule Localize.InvalidSubtagError do
   end
 
   def message(%__MODULE__{reason: :unknown_script, value: value}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "language_tag",
       "No unicode script {$value} found.",
       value: inspect(value)
@@ -35,9 +31,7 @@ defmodule Localize.InvalidSubtagError do
   end
 
   def message(%__MODULE__{reason: :invalid_key, key: key}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "language_tag",
       "The key {$key} is not valid for the -u- subtag.",
       key: inspect(key)
@@ -45,9 +39,7 @@ defmodule Localize.InvalidSubtagError do
   end
 
   def message(%__MODULE__{key: key, value: value}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "language_tag",
       "The value {$value} is not valid for the key {$key}.",
       value: inspect(value),

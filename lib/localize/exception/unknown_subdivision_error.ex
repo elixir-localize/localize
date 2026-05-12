@@ -14,9 +14,7 @@ defmodule Localize.UnknownSubdivisionError do
 
   @impl true
   def message(%__MODULE__{subdivision: subdivision}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The subdivision {$subdivision} is not known.",
       subdivision: inspect(subdivision)

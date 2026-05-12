@@ -14,9 +14,7 @@ defmodule Localize.BindError do
 
   @impl true
   def message(%__MODULE__{unbound: unbound}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "No binding was found for {$unbound}",
       unbound: inspect(unbound)
