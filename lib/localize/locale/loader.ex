@@ -163,8 +163,16 @@ defmodule Localize.Locale.Loader do
       else
         try do
           case Localize.Locale.Provider.load_with_fallback(provider, locale) do
-            {:ok, locale_data, resolved_locale_id} ->
-              provider.store(resolved_locale_id, locale_data)
+            {:ok, locale_data, _resolved_locale_id} ->
+              # Store under the *requested* locale id, not the resolved
+              # fallback id. This is the behaviour of 0.29 — see
+              # `test/localize/locale/loader_fallback_test.exs` and
+              # issue #26. Storing under the resolved id meant that
+              # subsequent `provider.get(requested_locale, _)` calls
+              # missed the in-memory fallback data, surfacing as a
+              # spurious `ItemNotFoundError` even though the data was
+              # already loaded.
+              provider.store(locale, locale_data)
 
             {:error, _reason} = error ->
               error
