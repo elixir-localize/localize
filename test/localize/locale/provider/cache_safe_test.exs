@@ -9,7 +9,10 @@ defmodule Localize.Locale.Provider.CacheSafeTest do
 
   alias Localize.Locale.Provider.Cache
 
-  @tmp_dir Path.join(System.tmp_dir!(), "localize_cache_safe_test_#{:erlang.unique_integer([:positive])}")
+  @tmp_dir Path.join(
+             System.tmp_dir!(),
+             "localize_cache_safe_test_#{:erlang.unique_integer([:positive])}"
+           )
 
   setup do
     File.mkdir_p!(@tmp_dir)
@@ -31,7 +34,7 @@ defmodule Localize.Locale.Provider.CacheSafeTest do
   end
 
   test "rejects an ETF file referencing a never-seen atom rather than creating it" do
-    locale_id = :"localize_cache_safe_test_dummy"
+    locale_id = :localize_cache_safe_test_dummy
     file_path = Cache.path(locale_id)
 
     # Build an ETF that mentions a unique atom-like binary that has

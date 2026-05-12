@@ -96,5 +96,4 @@ defmodule Localize.Unit.FormatterTest do
       assert result == "meters"
     end
   end
-
 end
