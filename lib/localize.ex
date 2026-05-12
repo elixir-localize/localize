@@ -1482,13 +1482,11 @@ defmodule Localize do
   end
 
   defp locale_cache_store(locale_id, {:ok, _tag} = result) do
-    cache_key = locale_cache_key(locale_id)
-
-    if :ets.whereis(@locale_cache_table) != :undefined do
-      :ets.insert(@locale_cache_table, {cache_key, result})
-    end
-
-    :ok
+    # The table is `:protected` and owned by `Localize.Locale.Loader`;
+    # writes are routed through the owner. The latency cost (mailbox
+    # enqueue + `:ets.insert/2`) is negligible compared with the
+    # validation work that produced `result`.
+    Localize.Locale.Loader.cache_store({locale_cache_key(locale_id), result})
   end
 
   defp locale_cache_store(_cache_key, {:error, _}) do

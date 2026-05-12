@@ -7,10 +7,11 @@ defmodule Localize.Application do
 
   @impl true
   def start(_type \\ :normal, _args \\ []) do
-    ensure_locale_cache_table()
-
     children = [
       Localize.DataLoader,
+      # `Localize.Locale.Loader` owns the `:localize_locale_cache`
+      # ETS table (created in its `init/1`); it must start before any
+      # supervisor child that may need the table.
       Localize.Locale.Loader,
       Localize.Locale.CacheSweeper,
       Localize.FormatCache,
@@ -26,17 +27,6 @@ defmodule Localize.Application do
 
       error ->
         error
-    end
-  end
-
-  defp ensure_locale_cache_table do
-    if :ets.whereis(:localize_locale_cache) == :undefined do
-      :ets.new(:localize_locale_cache, [
-        :set,
-        :public,
-        :named_table,
-        read_concurrency: true
-      ])
     end
   end
 
