@@ -36,6 +36,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `:localize_locale_cache` ETS table switched from `:public` to `:protected`, owned by `Localize.Locale.Loader`. Writes are routed through the owner via `cast` (so the hot validate path doesn't block and writes triggered from inside the owner's own `handle_call` cannot deadlock). Reads remain direct ETS lookups. Combined with the format cache fix above, both ETS caches are now `:protected` against multi-tenant or other-library interference.
 
+* `Localize.Utils.Http.get/2` and `get_with_headers/2` now reject responses larger than 50 MB by default (configurable via `:max_http_body_bytes` app env or per-call `:max_body_bytes` option). Without the cap a malicious or compromised CDN could feed a multi-gigabyte response and OOM the BEAM. Oversized responses log an error and return `{:error, :response_too_large}`. Additionally, when peer certificate verification has been disabled (via `LOCALIZE_UNSAFE_HTTPS`), a one-time `Logger.warning` is emitted so a misconfigured production deployment cannot silently downgrade TLS without leaving an audit trail.
+
 ### Behaviour Change
 
 * `Localize.Currency.currency_for_code/2` now returns the new `Localize.CurrencyNotLocalizedError` (instead of `UnknownCurrencyError`) when the currency code is valid but the locale has no display data for it. `UnknownCurrencyError` is now reserved for codes that aren't recognised ISO 4217 or registered custom currencies.

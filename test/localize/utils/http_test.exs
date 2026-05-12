@@ -33,4 +33,36 @@ defmodule Localize.Utils.HttpTest do
       refute Localize.Utils.Http.secure_ssl?("yes")
     end
   end
+
+  describe "max_http_body_bytes/0" do
+    test "returns the default cap (50 MB) when unconfigured" do
+      original = Application.get_env(:localize, :max_http_body_bytes)
+      Application.delete_env(:localize, :max_http_body_bytes)
+
+      try do
+        assert Localize.Utils.Http.max_http_body_bytes() == 50 * 1024 * 1024
+      after
+        if original do
+          Application.put_env(:localize, :max_http_body_bytes, original)
+        else
+          Application.delete_env(:localize, :max_http_body_bytes)
+        end
+      end
+    end
+
+    test "honours an app-env override" do
+      original = Application.get_env(:localize, :max_http_body_bytes)
+      Application.put_env(:localize, :max_http_body_bytes, 1_024)
+
+      try do
+        assert Localize.Utils.Http.max_http_body_bytes() == 1_024
+      after
+        if original do
+          Application.put_env(:localize, :max_http_body_bytes, original)
+        else
+          Application.delete_env(:localize, :max_http_body_bytes)
+        end
+      end
+    end
+  end
 end
