@@ -114,7 +114,8 @@ defmodule Localize.Locale.Provider.Cache do
         {:error,
          Localize.LocaleNotFoundInCacheError.exception(
            locale_id: locale_id,
-           path: "#{file_path} (#{inspect(reason)})"
+           path: file_path,
+           posix_error: reason
          )}
     end
   end
@@ -171,7 +172,7 @@ defmodule Localize.Locale.Provider.Cache do
          Localize.LocaleCacheWriteError.exception(
            locale_id: locale_id,
            path: file_path,
-           reason: inspect(reason)
+           posix_error: reason
          )}
     end
   end

@@ -69,16 +69,19 @@ defmodule Localize.Unit.Parser do
         {:error,
          Localize.ParseError.exception(
            input: input,
-           reason:
-             "Could not parse the remaining #{inspect(rest)} starting at position #{offset + 1}"
+           reason: :unexpected_trailing_input,
+           offset: offset,
+           rest: rest
          )}
 
-      {:error, reason, rest, _, _, offset} ->
+      {:error, detail, rest, _, _, offset} ->
         {:error,
          Localize.ParseError.exception(
            input: input,
-           reason:
-             "#{reason}. Could not parse the remaining #{inspect(rest)} at position #{offset + 1}"
+           reason: :unexpected_input,
+           detail: detail,
+           offset: offset,
+           rest: rest
          )}
     end
   end

@@ -90,8 +90,8 @@ defmodule Localize.Message do
         {:error, _iolist, _bound, unbound} ->
           {:error, Localize.BindError.exception(unbound: unbound)}
 
-        {:format_error, reason} ->
-          {:error, Localize.FormatError.exception(reason: reason)}
+        {:format_error, payload} ->
+          {:error, format_error_from_payload(message, :format, payload)}
       end
     end
   end
@@ -118,8 +118,13 @@ defmodule Localize.Message do
             {:ok, formatted} ->
               {:ok, formatted}
 
-            {:error, reason} ->
-              {:error, Localize.ParseError.exception(input: message, reason: reason)}
+            {:error, detail} ->
+              {:error,
+               Localize.ParseError.exception(
+                 input: message,
+                 reason: :invalid_message_format,
+                 detail: detail
+               )}
           end
       end
     end
@@ -300,7 +305,7 @@ defmodule Localize.Message do
           {:ok, list(), list(), list()}
           | {:error, list(), list(), list()}
           | {:error, Localize.ParseError.t()}
-          | {:format_error, String.t()}
+          | {:format_error, Localize.Message.Interpreter.format_error_payload()}
 
   def format_to_iolist(message, bindings \\ %{}, options \\ []) when is_binary(message) do
     with {:ok, message} <- maybe_trim(message, options[:trim]),
@@ -386,14 +391,57 @@ defmodule Localize.Message do
         {:error, _nodes, _bound, unbound} ->
           {:error, Localize.BindError.exception(unbound: unbound)}
 
-        {:format_error, reason} ->
-          {:error,
-           Localize.FormatError.exception(value: message, function: :format, reason: reason)}
+        {:format_error, payload} ->
+          {:error, format_error_from_payload(message, :format, payload)}
       end
     else
       {:error, %Localize.ParseError{}} = error ->
         error
     end
+  end
+
+  defp format_error_from_payload(message, function, {:unbalanced_markup, :unclosed}) do
+    Localize.FormatError.exception(
+      value: message,
+      function: function,
+      reason: :unbalanced_markup
+    )
+  end
+
+  defp format_error_from_payload(
+         message,
+         function,
+         {:unbalanced_markup, {:mismatched_close, name}}
+       ) do
+    Localize.FormatError.exception(
+      value: message,
+      function: function,
+      reason: :mismatched_close,
+      detail: inspect(name)
+    )
+  end
+
+  defp format_error_from_payload(
+         message,
+         function,
+         {:formatter_failed, %{__exception__: true} = exception}
+       ) do
+    Localize.FormatError.exception(
+      value: message,
+      function: function,
+      reason: :formatter_failed,
+      cause: exception
+    )
+  end
+
+  defp format_error_from_payload(message, function, {:formatter_failed, detail})
+       when is_binary(detail) do
+    Localize.FormatError.exception(
+      value: message,
+      function: function,
+      reason: :formatter_failed,
+      detail: detail
+    )
   end
 
   @doc """

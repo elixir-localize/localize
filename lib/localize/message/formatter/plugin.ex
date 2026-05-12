@@ -161,12 +161,11 @@ defmodule Localize.Message.Formatter.Plugin do
     file = opts[:file] || "(unknown file)"
     line = (opts[:line] || 0) + (error.line || 1) - 1
     column = error.column || 1
-    reason = error.reason || "invalid MF2 message"
 
     shell = Mix.shell()
 
     shell.error(
-      "#{file}:#{line}:#{column}: warning: #{context}: #{reason}. " <>
+      "#{file}:#{line}:#{column}: warning: #{context}: #{Exception.message(error)}. " <>
         "The message was left unchanged; fix the MF2 syntax and run `mix format` again."
     )
   end

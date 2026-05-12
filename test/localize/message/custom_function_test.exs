@@ -89,14 +89,14 @@ defmodule Localize.Message.CustomFunctionTest do
     test "custom function can return an error" do
       {:ok, parsed} = Localize.Message.Parser.parse("{$val :fail}")
 
-      assert {:format_error, reason} =
+      assert {:format_error, {:formatter_failed, detail}} =
                Localize.Message.Interpreter.format_list(
                  parsed,
                  %{"val" => "x"},
                  functions: %{"fail" => ErrorFunction}
                )
 
-      assert reason =~ "custom function failed"
+      assert detail =~ "custom function failed"
     end
 
     test "multiple custom functions can coexist" do
