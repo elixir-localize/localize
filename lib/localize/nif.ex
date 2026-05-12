@@ -34,7 +34,17 @@ defmodule Localize.Nif do
       |> Application.app_dir("priv/localize_nif")
       |> String.to_charlist()
 
-    case :erlang.load_nif(path, :erlang.system_info(:schedulers)) do
+    # Size the NIF's collator pool for both regular and dirty CPU
+    # schedulers. NIFs tagged `ERL_NIF_DIRTY_JOB_CPU_BOUND` (used by
+    # collation, MF2, and number/unit formatting) run on the dirty CPU
+    # scheduler pool, which is independent of the regular schedulers.
+    # Sizing the collator pool for the sum prevents the bounded stack
+    # in `reserve_coll/2` from being exhausted when concurrent calls
+    # span both scheduler classes.
+    pool_size =
+      :erlang.system_info(:schedulers) + :erlang.system_info(:dirty_cpu_schedulers)
+
+    case :erlang.load_nif(path, pool_size) do
       :ok -> :ok
       {:error, _reason} -> :ok
     end

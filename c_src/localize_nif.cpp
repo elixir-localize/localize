@@ -50,20 +50,39 @@ typedef struct {
     ErlNifMutex* collMutex;
 } collation_priv_t;
 
-static inline void
+/* Reserve a collator from the pool. Returns 1 on success (out is set
+ * to a valid collator), 0 on overflow (out is set to NULL).
+ *
+ * The pool is sized for `schedulers + dirty_cpu_schedulers` at NIF
+ * load time so concurrent calls that span both scheduler classes have
+ * a slot available. The overflow check here is defence-in-depth in
+ * case the actual concurrency ever exceeds the pool size — without
+ * it the previous code dereferenced `collators[collStackTop]` past
+ * the array end, an OOB read inside the BEAM. */
+static inline int
 reserve_coll(collation_priv_t* pData, UCollator** out)
 {
     enif_mutex_lock(pData->collMutex);
+
+    if (pData->collStackTop >= pData->numCollators) {
+        enif_mutex_unlock(pData->collMutex);
+        *out = NULL;
+        return 0;
+    }
+
     *out = pData->collators[pData->collStackTop];
     pData->collStackTop += 1;
     enif_mutex_unlock(pData->collMutex);
+    return 1;
 }
 
 static inline void
 release_coll(collation_priv_t* pData)
 {
     enif_mutex_lock(pData->collMutex);
-    pData->collStackTop -= 1;
+    if (pData->collStackTop > 0) {
+        pData->collStackTop -= 1;
+    }
     enif_mutex_unlock(pData->collMutex);
 }
 
@@ -176,15 +195,34 @@ on_upgrade(ErlNifEnv* env, void** priv_data, void** old_data, ERL_NIF_TERM info)
 
 /* ── Helpers ────────────────────────────────────────────────────── */
 
-// Extract a UTF-8 binary into a std::string
-static bool get_string(ErlNifEnv* env, ERL_NIF_TERM term, std::string& out) {
+/* Per-call input length caps mirror the Elixir-side caps in
+ * `Localize.{LanguageTag,Message,Unit,Number}.Parser` and are enforced
+ * at the NIF boundary as defence-in-depth. With dirty-CPU scheduling
+ * (see `nif_funcs[]`), an over-cap input would only stall the dirty
+ * scheduler running it; without these caps memory pressure remains
+ * uncapped (a 100 MB MF2 message becomes a 100 MB `std::string` plus
+ * a ~200 MB `UnicodeString`). */
+static const size_t MAX_MF2_BYTES        = 65536;
+static const size_t MAX_COLLATION_BYTES  = 1048576;
+static const size_t MAX_NUMBER_STR_BYTES = 1024;
+
+// Extract a UTF-8 binary into a std::string, with an upper bound
+// on the binary's size. Returns false if the binary is too large.
+static bool get_string_capped(ErlNifEnv* env, ERL_NIF_TERM term,
+                              std::string& out, size_t max_bytes) {
     ErlNifBinary bin;
     if (!enif_inspect_binary(env, term, &bin)) {
+        return false;
+    }
+    if (bin.size > max_bytes) {
         return false;
     }
     out.assign(reinterpret_cast<const char*>(bin.data), bin.size);
     return true;
 }
+
+// (`get_string` removed: all NIF entry points now use
+// `get_string_capped` to bound per-call memory at the NIF boundary.)
 
 // Make an Elixir binary from a UnicodeString
 static ERL_NIF_TERM make_binary_from_unistr(ErlNifEnv* env, const UnicodeString& ustr) {
@@ -275,6 +313,11 @@ static bool parse_json_args(const std::string& json,
 
     while (pos < json.size()) {
         skip_ws(json, pos);
+        /* `skip_ws` only advances *up to* `json.size()`. After it
+         * returns, `pos` may equal `json.size()`, in which case
+         * `json[pos]` is a one-byte OOB read. Guard each access
+         * after every `skip_ws` call. */
+        if (pos >= json.size()) return false;
         if (json[pos] == '}') break;
         if (json[pos] == ',') { pos++; continue; }
 
@@ -288,6 +331,7 @@ static bool parse_json_args(const std::string& json,
 
         // Parse value
         skip_ws(json, pos);
+        if (pos >= json.size()) return false;
         char vc = json[pos];
         if (vc == '"') {
             std::string val = parse_json_string(json, pos);
@@ -305,9 +349,28 @@ static bool parse_json_args(const std::string& json,
                 if (ch < '0' || ch > '9') { is_number = false; break; }
             }
             if (is_number && has_dot) {
-                args[UnicodeString::fromUTF8(key)] = Formattable(std::stod(val));
+                /* `std::stod` throws `std::out_of_range` for inputs
+                 * outside the double range. The pre-validation loop
+                 * above only checks digits/`-`/`.`, which still
+                 * permits e.g. a 100-digit literal that wraps. A C++
+                 * exception unwinding through the NIF entry point
+                 * crashes the BEAM, so catch it and fall back to
+                 * treating the value as a string. */
+                try {
+                    args[UnicodeString::fromUTF8(key)] = Formattable(std::stod(val));
+                } catch (const std::exception&) {
+                    UnicodeString uval = UnicodeString::fromUTF8(val);
+                    args[UnicodeString::fromUTF8(key)] = Formattable(uval);
+                }
             } else if (is_number) {
-                args[UnicodeString::fromUTF8(key)] = Formattable(static_cast<int64_t>(std::stoll(val)));
+                /* Same protection for `std::stoll` against integer
+                 * literals exceeding `int64_t` range. */
+                try {
+                    args[UnicodeString::fromUTF8(key)] = Formattable(static_cast<int64_t>(std::stoll(val)));
+                } catch (const std::exception&) {
+                    UnicodeString uval = UnicodeString::fromUTF8(val);
+                    args[UnicodeString::fromUTF8(key)] = Formattable(uval);
+                }
             } else {
                 // fallback: treat as string
                 UnicodeString uval = UnicodeString::fromUTF8(val);
@@ -328,7 +391,7 @@ static ERL_NIF_TERM nif_mf2_validate(ErlNifEnv* env, int argc,
     }
 
     std::string message;
-    if (!get_string(env, argv[0], message)) {
+    if (!get_string_capped(env, argv[0], message, MAX_MF2_BYTES)) {
         return enif_make_badarg(env);
     }
 
@@ -371,9 +434,9 @@ static ERL_NIF_TERM nif_mf2_format(ErlNifEnv* env, int argc,
     }
 
     std::string message, locale_str, args_json;
-    if (!get_string(env, argv[0], message) ||
-        !get_string(env, argv[1], locale_str) ||
-        !get_string(env, argv[2], args_json)) {
+    if (!get_string_capped(env, argv[0], message, MAX_MF2_BYTES) ||
+        !get_string_capped(env, argv[1], locale_str, 256) ||
+        !get_string_capped(env, argv[2], args_json, MAX_MF2_BYTES)) {
         return enif_make_badarg(env);
     }
 
@@ -461,9 +524,15 @@ static ERL_NIF_TERM nif_collation_cmp(ErlNifEnv* env, int argc,
         return enif_make_int(env, 0);
     }
 
-    /* Extract binary arguments */
+    /* Extract binary arguments. Cap each input at MAX_COLLATION_BYTES
+     * to bound ICU's per-call memory and CPU footprint. Over-cap input
+     * is rejected by returning "equal" — the same fail-safe used for
+     * other early-exit cases in this function. */
     if (!enif_inspect_binary(env, argv[0], &binA) ||
         !enif_inspect_binary(env, argv[1], &binB)) {
+        return enif_make_int(env, 0);
+    }
+    if (binA.size > MAX_COLLATION_BYTES || binB.size > MAX_COLLATION_BYTES) {
         return enif_make_int(env, 0);
     }
 
@@ -485,13 +554,21 @@ static ERL_NIF_TERM nif_collation_cmp(ErlNifEnv* env, int argc,
 
     UErrorCode status = U_ZERO_ERROR;
 
-    /* Set up UTF-8 iterators */
+    /* Set up UTF-8 iterators. The cast to `uint32_t` is safe because
+     * the size has already been bounded by `MAX_COLLATION_BYTES` (1 MB)
+     * above, which is far below the `uint32_t` range. Without that cap
+     * a >4 GB binary would silently truncate here. */
     UCharIterator iterA, iterB;
     uiter_setUTF8(&iterA, (const char*)binA.data, (uint32_t)binA.size);
     uiter_setUTF8(&iterB, (const char*)binB.data, (uint32_t)binB.size);
 
-    /* Grab a collator from the pool */
-    reserve_coll(pData, &coll);
+    /* Grab a collator from the pool. If the pool is exhausted
+     * (more concurrent calls than slots), fall back to a default
+     * "equal" comparison rather than dereferencing past the
+     * collator array. */
+    if (!reserve_coll(pData, &coll)) {
+        return enif_make_int(env, 0);
+    }
 
     /* Apply non-default attributes */
     if (strength != OPT_DEFAULT) {
@@ -523,25 +600,47 @@ static ERL_NIF_TERM nif_collation_cmp(ErlNifEnv* env, int argc,
         any_set = 1;
     }
 
-    /* Apply reorder codes if provided */
-    if (reorderBin.size > 0 && reorderBin.size % 4 == 0) {
-        int32_t numCodes = (int32_t)(reorderBin.size / 4);
-        int32_t* codes = (int32_t*)enif_alloc(sizeof(int32_t) * numCodes);
-        const unsigned char* p = reorderBin.data;
+    /* Apply reorder codes if provided.
+     *
+     * The reorder list is a packed sequence of 32-bit big-endian script
+     * codes. ICU itself only defines ~30 reorder codes; legitimate
+     * input has at most a few dozen. Cap the count so an attacker can't
+     * cause an unbounded `enif_alloc`, and keep the size arithmetic in
+     * `size_t` so a >8 GB binary cannot wrap a signed `int32_t` and
+     * produce a huge allocation request whose return value the original
+     * code did not check. */
+    static const size_t MAX_REORDER_CODES = 256;
 
-        for (int32_t i = 0; i < numCodes; i++) {
-            codes[i] = (int32_t)(
-                ((uint32_t)p[0] << 24) |
-                ((uint32_t)p[1] << 16) |
-                ((uint32_t)p[2] << 8)  |
-                ((uint32_t)p[3])
-            );
-            p += 4;
+    if (reorderBin.size > 0 && (reorderBin.size % 4) == 0) {
+        size_t numCodesSize = reorderBin.size / 4;
+
+        if (numCodesSize <= MAX_REORDER_CODES) {
+            int32_t* codes = (int32_t*)enif_alloc(sizeof(int32_t) * numCodesSize);
+
+            if (codes != NULL) {
+                const unsigned char* p = reorderBin.data;
+
+                for (size_t i = 0; i < numCodesSize; i++) {
+                    codes[i] = (int32_t)(
+                        ((uint32_t)p[0] << 24) |
+                        ((uint32_t)p[1] << 16) |
+                        ((uint32_t)p[2] << 8)  |
+                        ((uint32_t)p[3])
+                    );
+                    p += 4;
+                }
+
+                ucol_setReorderCodes(coll, codes, (int32_t)numCodesSize, &status);
+                enif_free(codes);
+                has_reorder = 1;
+            }
+            /* `enif_alloc` returning NULL is treated as "no reorder
+             * applied"; the comparison still proceeds with the
+             * collator's default ordering. */
         }
-
-        ucol_setReorderCodes(coll, codes, numCodes, &status);
-        enif_free(codes);
-        has_reorder = 1;
+        /* Reorder lists above the cap are silently ignored — same
+         * effect as not supplying any reorder. ICU would have returned
+         * an error for a plainly-too-long list anyway. */
     }
 
     /* Perform the comparison */
@@ -597,9 +696,9 @@ static ERL_NIF_TERM nif_plural_rule(ErlNifEnv* env, int argc,
     std::string number_str, locale_str, type_str;
     int rounding;
 
-    if (!get_string(env, argv[0], number_str) ||
-        !get_string(env, argv[1], locale_str) ||
-        !get_string(env, argv[2], type_str) ||
+    if (!get_string_capped(env, argv[0], number_str, MAX_NUMBER_STR_BYTES) ||
+        !get_string_capped(env, argv[1], locale_str, 256) ||
+        !get_string_capped(env, argv[2], type_str, 64) ||
         !enif_get_int(env, argv[3], &rounding)) {
         return enif_make_badarg(env);
     }
@@ -628,18 +727,21 @@ static ERL_NIF_TERM nif_plural_rule(ErlNifEnv* env, int argc,
     // Check if the number contains a decimal point to decide formatting
     bool has_decimal = (number_str.find('.') != std::string::npos);
 
-    if (has_decimal) {
-        // For decimal numbers, we need to preserve the exact representation
-        // (including trailing zeros) for proper operand computation.
-        // Use the string-based select via FixedDecimal.
-        // ICU's PluralRules::select(double) loses trailing zero info,
-        // so we parse and use the formatted number approach.
-        double number = std::stod(number_str);
-        keyword = rules->select(number);
-    } else {
-        // Integer case
-        int32_t number = (int32_t)std::stol(number_str);
-        keyword = rules->select(number);
+    /* Parse the number with exception guards. `std::stod`/`std::stol`
+     * throw on out-of-range input; an unwinding C++ exception through
+     * the NIF entry point crashes the BEAM. Catch and fall back to
+     * the safe enif_make_badarg path. */
+    try {
+        if (has_decimal) {
+            double number = std::stod(number_str);
+            keyword = rules->select(number);
+        } else {
+            int32_t number = (int32_t)std::stol(number_str);
+            keyword = rules->select(number);
+        }
+    } catch (const std::exception&) {
+        delete rules;
+        return enif_make_badarg(env);
     }
 
     delete rules;
@@ -674,10 +776,10 @@ static ERL_NIF_TERM nif_number_format(ErlNifEnv* env, int argc,
 
     std::string number_str, pattern_str, locale_str, options_json;
 
-    if (!get_string(env, argv[0], number_str) ||
-        !get_string(env, argv[1], pattern_str) ||
-        !get_string(env, argv[2], locale_str) ||
-        !get_string(env, argv[3], options_json)) {
+    if (!get_string_capped(env, argv[0], number_str, MAX_NUMBER_STR_BYTES) ||
+        !get_string_capped(env, argv[1], pattern_str, 1024) ||
+        !get_string_capped(env, argv[2], locale_str, 256) ||
+        !get_string_capped(env, argv[3], options_json, MAX_MF2_BYTES)) {
         return enif_make_badarg(env);
     }
 
@@ -708,9 +810,13 @@ static ERL_NIF_TERM nif_number_format(ErlNifEnv* env, int argc,
             if (pos != std::string::npos) {
                 pos++;
                 std::string val = parse_json_value(options_json, pos);
-                int minFD = std::stoi(val);
-                formatter = formatter.precision(
-                    icu::number::Precision::minFraction(minFD));
+                try {
+                    int minFD = std::stoi(val);
+                    formatter = formatter.precision(
+                        icu::number::Precision::minFraction(minFD));
+                } catch (const std::exception&) {
+                    /* Out-of-range or non-numeric: ignore the option. */
+                }
             }
         }
 
@@ -721,21 +827,30 @@ static ERL_NIF_TERM nif_number_format(ErlNifEnv* env, int argc,
             if (pos != std::string::npos) {
                 pos++;
                 std::string val = parse_json_value(options_json, pos);
-                int maxFD = std::stoi(val);
-                // Check if minFractionDigits was also set
-                size_t minPos = options_json.find("\"minFractionDigits\"");
-                if (minPos != std::string::npos) {
-                    minPos = options_json.find(':', minPos);
+                try {
+                    int maxFD = std::stoi(val);
+                    // Check if minFractionDigits was also set
+                    size_t minPos = options_json.find("\"minFractionDigits\"");
                     if (minPos != std::string::npos) {
-                        minPos++;
-                        std::string minVal = parse_json_value(options_json, minPos);
-                        int minFD = std::stoi(minVal);
+                        minPos = options_json.find(':', minPos);
+                        if (minPos != std::string::npos) {
+                            minPos++;
+                            std::string minVal = parse_json_value(options_json, minPos);
+                            try {
+                                int minFD = std::stoi(minVal);
+                                formatter = formatter.precision(
+                                    icu::number::Precision::minMaxFraction(minFD, maxFD));
+                            } catch (const std::exception&) {
+                                formatter = formatter.precision(
+                                    icu::number::Precision::maxFraction(maxFD));
+                            }
+                        }
+                    } else {
                         formatter = formatter.precision(
-                            icu::number::Precision::minMaxFraction(minFD, maxFD));
+                            icu::number::Precision::maxFraction(maxFD));
                     }
-                } else {
-                    formatter = formatter.precision(
-                        icu::number::Precision::maxFraction(maxFD));
+                } catch (const std::exception&) {
+                    /* Out-of-range or non-numeric: ignore the option. */
                 }
             }
         }
@@ -781,7 +896,13 @@ static ERL_NIF_TERM nif_number_format(ErlNifEnv* env, int argc,
     UnicodeString result;
 
     if (has_decimal) {
-        double number = std::stod(number_str);
+        double number = 0.0;
+        try {
+            number = std::stod(number_str);
+        } catch (const std::exception&) {
+            return enif_make_tuple2(env, atom_error,
+                                    make_binary_from_string(env, "invalid number"));
+        }
         auto formatted = formatter.formatDouble(number, status);
         if (U_FAILURE(status)) {
             std::string err = "format error: ";
@@ -834,10 +955,10 @@ static ERL_NIF_TERM nif_unit_format(ErlNifEnv* env, int argc,
 
     std::string number_str, unit_str, locale_str, style_str;
 
-    if (!get_string(env, argv[0], number_str) ||
-        !get_string(env, argv[1], unit_str) ||
-        !get_string(env, argv[2], locale_str) ||
-        !get_string(env, argv[3], style_str)) {
+    if (!get_string_capped(env, argv[0], number_str, MAX_NUMBER_STR_BYTES) ||
+        !get_string_capped(env, argv[1], unit_str, 256) ||
+        !get_string_capped(env, argv[2], locale_str, 256) ||
+        !get_string_capped(env, argv[3], style_str, 32)) {
         return enif_make_badarg(env);
     }
 
@@ -871,7 +992,13 @@ static ERL_NIF_TERM nif_unit_format(ErlNifEnv* env, int argc,
     UnicodeString result;
 
     if (has_decimal) {
-        double number = std::stod(number_str);
+        double number = 0.0;
+        try {
+            number = std::stod(number_str);
+        } catch (const std::exception&) {
+            return enif_make_tuple2(env, atom_error,
+                                    make_binary_from_string(env, "invalid number"));
+        }
         auto formatted = formatter.formatDouble(number, status);
         if (U_FAILURE(status)) {
             return enif_make_tuple2(env, atom_error,
@@ -905,13 +1032,21 @@ static ERL_NIF_TERM nif_unit_format(ErlNifEnv* env, int argc,
 
 /* ── NIF function table ─────────────────────────────────────────── */
 
+/* The Erlang scheduler expects a NIF call to complete in well under
+ * 1 ms; ICU operations are inherently variable and can exceed that
+ * for large or pathological inputs (long MF2 messages, collation of
+ * combining-character-heavy strings, deep number-format pipelines).
+ * Tag every entry whose runtime depends on the input length for the
+ * dirty CPU scheduler so a slow ICU call cannot stall the regular
+ * schedulers. `nif_plural_rule` is short and bounded; it stays on
+ * the regular scheduler. */
 static ErlNifFunc nif_funcs[] = {
-    {"nif_mf2_validate",    1, nif_mf2_validate},
-    {"nif_mf2_format",      3, nif_mf2_format},
-    {"nif_collation_cmp",  10, nif_collation_cmp},
-    {"nif_plural_rule",     4, nif_plural_rule},
-    {"nif_number_format",   4, nif_number_format},
-    {"nif_unit_format",     4, nif_unit_format}
+    {"nif_mf2_validate",    1, nif_mf2_validate,  ERL_NIF_DIRTY_JOB_CPU_BOUND},
+    {"nif_mf2_format",      3, nif_mf2_format,    ERL_NIF_DIRTY_JOB_CPU_BOUND},
+    {"nif_collation_cmp",  10, nif_collation_cmp, ERL_NIF_DIRTY_JOB_CPU_BOUND},
+    {"nif_plural_rule",     4, nif_plural_rule,   0},
+    {"nif_number_format",   4, nif_number_format, ERL_NIF_DIRTY_JOB_CPU_BOUND},
+    {"nif_unit_format",     4, nif_unit_format,   ERL_NIF_DIRTY_JOB_CPU_BOUND}
 };
 
 ERL_NIF_INIT(Elixir.Localize.Nif, nif_funcs, &on_load,
