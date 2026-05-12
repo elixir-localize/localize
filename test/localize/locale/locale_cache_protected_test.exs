@@ -21,12 +21,13 @@ defmodule Localize.Locale.LocaleCacheProtectedTest do
     end
 
     test "non-owner processes can read directly (read-side stays unblocked)" do
-      # Trigger a write through the public API.
-      {:ok, _tag} = Localize.validate_locale("en-AU")
-      # Sync with the owner so the cast has been processed.
-      :sys.get_state(Localize.Locale.Loader)
-      # Now read directly.
-      assert [_ | _] = :ets.tab2list(:localize_locale_cache)
+      # The invariant this test asserts is that a `:protected` table
+      # still permits direct reads from a non-owner process. Cache
+      # contents are immaterial — `:ets.tab2list/1` raising would
+      # indicate the protection setting blocks reads, which it should
+      # not. Avoid coupling to GenServer state by not depending on a
+      # specific write having landed.
+      assert is_list(:ets.tab2list(:localize_locale_cache))
     end
   end
 end
