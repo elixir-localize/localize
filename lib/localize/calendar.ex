@@ -740,31 +740,32 @@ defmodule Localize.Calendar do
          {:ok, days_data} <- get_calendar_data_raw(locale_id, calendar_type, :days),
          {:ok, periods_data} <- get_calendar_data_raw(locale_id, calendar_type, :day_periods) do
       [
-        am_pm_names: fn am_pm ->
-          am_pm_map = get_in(periods_data, [:format, :abbreviated, am_pm])
-
-          if is_map(am_pm_map) do
-            Map.get(am_pm_map, :default, "")
-          else
-            am_pm_map || ""
-          end
-        end,
-        month_names: fn month ->
-          get_in(months_data, [:format, :wide, month])
-        end,
-        abbreviated_month_names: fn month ->
-          get_in(months_data, [:format, :abbreviated, month])
-        end,
-        day_of_week_names: fn day ->
-          get_in(days_data, [:format, :wide, day])
-        end,
-        abbreviated_day_of_week_names: fn day ->
-          get_in(days_data, [:format, :abbreviated, day])
-        end
+        am_pm_names: am_pm_callback(periods_data),
+        month_names: month_callback(months_data, :wide),
+        abbreviated_month_names: month_callback(months_data, :abbreviated),
+        day_of_week_names: day_callback(days_data, :wide),
+        abbreviated_day_of_week_names: day_callback(days_data, :abbreviated)
       ]
     else
       {:error, exception} -> raise exception
     end
+  end
+
+  defp am_pm_callback(periods_data) do
+    fn am_pm ->
+      case get_in(periods_data, [:format, :abbreviated, am_pm]) do
+        am_pm_map when is_map(am_pm_map) -> Map.get(am_pm_map, :default, "")
+        other -> other || ""
+      end
+    end
+  end
+
+  defp month_callback(months_data, width) do
+    fn month -> get_in(months_data, [:format, width, month]) end
+  end
+
+  defp day_callback(days_data, width) do
+    fn day -> get_in(days_data, [:format, width, day]) end
   end
 
   # ── Territory preferences ───────────────────────────────────────

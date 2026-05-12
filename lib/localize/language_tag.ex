@@ -924,42 +924,30 @@ defmodule Localize.LanguageTag do
   @spec remove_likely_subtags(t()) :: {:ok, t()} | {:error, Exception.t()}
   def remove_likely_subtags(%__MODULE__{} = language_tag) do
     with {:ok, maximized} <- add_likely_subtags(language_tag) do
-      max_lang = maximized.language
-      max_script = maximized.script
-      max_region = maximized.territory
-
-      # Try removing both script and region (language only)
-      trial_lang = %{maximized | script: nil, territory: nil}
-
       minimized_name =
-        cond do
-          matches_maximized?(trial_lang, max_lang, max_script, max_region) ->
-            build_canonical_name(trial_lang)
-
-          # Favor script: try language + script (remove region)
-          matches_maximized?(
-            %{maximized | territory: nil},
-            max_lang,
-            max_script,
-            max_region
-          ) ->
-            build_canonical_name(%{maximized | territory: nil})
-
-          # Try language + region (remove script)
-          matches_maximized?(
-            %{maximized | script: nil},
-            max_lang,
-            max_script,
-            max_region
-          ) ->
-            build_canonical_name(%{maximized | script: nil})
-
-          true ->
-            build_canonical_name(maximized)
+        with :no_match <- try_minimal_form(maximized, script: nil, territory: nil),
+             :no_match <- try_minimal_form(maximized, territory: nil),
+             :no_match <- try_minimal_form(maximized, script: nil) do
+          build_canonical_name(maximized)
+        else
+          {:match, name} -> name
         end
 
-      # Return the original tag with maximized fields but minimized canonical name
       {:ok, %{maximized | canonical_locale_id: minimized_name}}
+    end
+  end
+
+  # Build a trial tag by nilling the given fields, check whether it
+  # re-maximizes to the same lang/script/region triple, and if so return
+  # its canonical name. Order of attempts in the caller encodes the
+  # preference (e.g. favor script over region).
+  defp try_minimal_form(maximized, overrides) do
+    trial = struct(maximized, overrides)
+
+    if matches_maximized?(trial, maximized.language, maximized.script, maximized.territory) do
+      {:match, build_canonical_name(trial)}
+    else
+      :no_match
     end
   end
 
@@ -1120,36 +1108,8 @@ defmodule Localize.LanguageTag do
         resolve_language_variant_aliases(new_map)
 
       :none ->
-        # Then try single-variant compound keys
         {new_map, changed?} =
-          Enum.reduce(map.language_variants, {map, false}, fn variant, {acc_map, changed?} ->
-            cur_lang = acc_map.language
-            compound_key = "#{cur_lang}-#{variant}"
-
-            result =
-              case Map.get(language_aliases(), compound_key) do
-                nil ->
-                  und_key = "und-#{variant}"
-
-                  case Map.get(language_aliases(), und_key) do
-                    nil -> nil
-                    replacement -> {:ok, replacement}
-                  end
-
-                replacement ->
-                  {:ok, replacement}
-              end
-
-            case result do
-              nil ->
-                {acc_map, changed?}
-
-              {:ok, replacement} ->
-                remaining = Enum.reject(acc_map.language_variants, &(&1 == variant))
-                acc_map = %{acc_map | language_variants: remaining}
-                {apply_language_replacement(acc_map, replacement), true}
-            end
-          end)
+          Enum.reduce(map.language_variants, {map, false}, &try_single_variant_alias/2)
 
         if changed? do
           resolve_language_variant_aliases(new_map)
@@ -1160,6 +1120,26 @@ defmodule Localize.LanguageTag do
   end
 
   defp resolve_language_variant_aliases(map), do: map
+
+  # Try `lang-variant` then fall back to `und-variant`. On a hit, drop the
+  # consumed variant from the map and apply the replacement.
+  defp try_single_variant_alias(variant, {acc_map, changed?}) do
+    compound_key = "#{acc_map.language}-#{variant}"
+
+    replacement =
+      Map.get(language_aliases(), compound_key) ||
+        Map.get(language_aliases(), "und-#{variant}")
+
+    case replacement do
+      nil ->
+        {acc_map, changed?}
+
+      replacement ->
+        remaining = Enum.reject(acc_map.language_variants, &(&1 == variant))
+        acc_map = %{acc_map | language_variants: remaining}
+        {apply_language_replacement(acc_map, replacement), true}
+    end
+  end
 
   # Try compound keys with two variants: "lang-v1-v2"
   defp try_multi_variant_alias(%{language_variants: variants} = map, lang_str) do
