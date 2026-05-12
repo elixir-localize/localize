@@ -28,7 +28,6 @@ defmodule Localize.ParseError do
           :unexpected_trailing_input
           | :unexpected_input
           | :incomplete_input
-          | :invalid_subtag
           | :invalid_message_format
 
   @type t :: %__MODULE__{
@@ -159,18 +158,6 @@ defmodule Localize.ParseError do
       "message",
       "Could not parse {$input}: input ended unexpectedly",
       input: inspect(input)
-    )
-  end
-
-  def message(%__MODULE__{reason: :invalid_subtag, input: input, cause: cause})
-      when not is_nil(cause) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
-      "language_tag",
-      "Could not parse {$input}: {$detail}",
-      input: inspect(input),
-      detail: Exception.message(cause)
     )
   end
 
