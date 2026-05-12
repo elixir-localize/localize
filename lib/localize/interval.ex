@@ -537,7 +537,7 @@ defmodule Localize.Interval do
 
   """
   @spec greatest_difference(map(), map()) ::
-          {:ok, :y | :M | :d | :H | :m} | {:error, Localize.NoPracticalDifferenceError.t()}
+          {:ok, :y | :M | :d | :H | :m} | {:error, Exception.t()}
   def greatest_difference(from, to) do
     cond do
       Map.get(from, :year) != Map.get(to, :year) ->
