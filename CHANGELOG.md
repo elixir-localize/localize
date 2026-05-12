@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [0.33.0] — May 13th, 2026
 
+### Breaking Changes
+
+* `Localize.Message.Sigil` is renamed to `Localize.Message.Sigils` to make room for additional MF2 sigils. Update any `import Localize.Message.Sigil` to `import Localize.Message.Sigils`.
+
+### Enhancements
+
+* `Localize.Message.Sigils` adds a new `~t` sigil for compile-time MF2 translation. Elixir `#{expr}` interpolations are rewritten as MF2 `{$name}` placeholders with bindings derived automatically (`fruit.name → fruit_name`, `String.upcase(x) → string_upcase`, etc.), the canonical msgid is registered with Gettext for translation lookup, and modules opt in via `use Localize.Message.Sigils, backend: MyApp.Gettext`. Requires the backend to use `Localize.Gettext.Interpolation`.
+
 ### Bug Fixes
 
 * `Localize.Application.start/2` now eagerly reads every bundled supplemental dataset (languages, scripts, territories, variants, subdivisions, units, currency codes, calendars, timezones, territory subdivisions, locale ids, number systems) so the atoms they reference are interned at app start. The 0.30.0 atom-DOS hardening switched many lookups to `binary_to_existing_atom`, which assumes the legitimate atoms already exist. Without the eager-load, valid input like `numberingSystem=arab` could surface as a bogus "unknown numbering system" error on a fresh BEAM where no prior code path had triggered the relevant `binary_to_term/1` read. Manifested as a transient CI failure in `Localize.Message.NumberOptionsTest`; cause was identical in shape to issue #26.

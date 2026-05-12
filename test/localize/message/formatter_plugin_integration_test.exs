@@ -48,7 +48,7 @@ defmodule Localize.Message.Formatter.PluginIntegrationTest do
 
     File.write!(Path.join(tmp, "lib/sample.ex"), """
     defmodule Sample do
-      import Localize.Message.Sigil
+      import Localize.Message.Sigils
 
       def greet, do: ~M"Hello {$name}"
     end
