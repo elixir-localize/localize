@@ -112,7 +112,10 @@ defmodule Localize.Locale.CacheSweeper do
       evict_random(next_key, remaining)
     else
       if :rand.uniform() < 0.5 do
-        :ets.delete(@table, key)
+        # Table is `:protected` and owned by `Localize.Locale.Loader`;
+        # delete via the owner. Cast (not call) so the sweeper never
+        # blocks the owner's load_and_store handler.
+        GenServer.cast(Localize.Locale.Loader, {:cache_evict, key})
         evict_random(next_key, remaining - 1)
       else
         evict_random(next_key, remaining)

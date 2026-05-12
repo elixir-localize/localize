@@ -32,6 +32,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * NIF (ICU bindings) hardened. All NIF entries except `nif_plural_rule` now run on the dirty CPU scheduler pool (`ERL_NIF_DIRTY_JOB_CPU_BOUND`); the collator pool is sized for `schedulers + dirty_cpu_schedulers` and `reserve_coll` refuses overflow rather than reading past the array end. The reorder-codes branch caps `numCodes` at 256 and checks `enif_alloc` before use; every `std::stoll`/`std::stod`/`std::stoi` is wrapped in `try/catch` so out-of-range C++ exceptions cannot unwind through the NIF boundary; the hand-rolled JSON arg parser guards each access after `skip_ws`; per-call input lengths are capped at the NIF boundary (`MAX_MF2_BYTES = 64 KB`, `MAX_COLLATION_BYTES = 1 MB`, `MAX_NUMBER_STR_BYTES = 1 KB`).
 
+* `Localize.Unit.CustomRegistry.load_file/1` now refuses to evaluate the file in `:prod` (or any environment without a loaded `Mix` module — typical for releases) unless `config :localize, :allow_runtime_unit_files, true` is explicitly set. Outside `:prod` the function works as before. The flag exists so an unintended feature switch in production cannot accidentally surface arbitrary code execution via `Code.eval_file/1`.
+
+* `:localize_locale_cache` ETS table switched from `:public` to `:protected`, owned by `Localize.Locale.Loader`. Writes are routed through the owner via `cast` (so the hot validate path doesn't block and writes triggered from inside the owner's own `handle_call` cannot deadlock). Reads remain direct ETS lookups. Combined with the format cache fix above, both ETS caches are now `:protected` against multi-tenant or other-library interference.
+
 ### Behaviour Change
 
 * `Localize.Currency.currency_for_code/2` now returns the new `Localize.CurrencyNotLocalizedError` (instead of `UnknownCurrencyError`) when the currency code is valid but the locale has no display data for it. `UnknownCurrencyError` is now reserved for codes that aren't recognised ISO 4217 or registered custom currencies.

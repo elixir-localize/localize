@@ -142,6 +142,14 @@ defmodule Localize.Unit.CustomRegistry do
   > file, which executes arbitrary Elixir code. Only load files
   > from trusted sources. Never call this function with unsanitised
   > user input or paths derived from external data.
+  >
+  > In a `:prod` Mix environment this function additionally requires
+  > the `:localize, :allow_runtime_unit_files` config flag to be
+  > explicitly set to `true`. The flag exists so that an unintended
+  > feature switch in a production deployment cannot accidentally
+  > surface arbitrary code execution. Set it in `config/runtime.exs`
+  > (not `config/config.exs`) so the decision is visible at the same
+  > layer as other deployment-time policy.
 
   ### Arguments
 
@@ -151,45 +159,83 @@ defmodule Localize.Unit.CustomRegistry do
 
   * `{:ok, count}` with the number of units loaded.
 
-  * `{:error, reason}` on failure.
+  * `{:error, reason}` on failure, including a refusal in `:prod`
+    when the flag is not set.
 
   """
   @spec load_file(String.t()) :: {:ok, non_neg_integer()} | {:error, String.t()}
   def load_file(path) do
-    expanded = Path.expand(path)
+    with :ok <- check_runtime_eval_allowed(),
+         expanded = Path.expand(path),
+         true <- file_exists_or_error(expanded) do
+      do_load_file(expanded)
+    end
+  end
 
-    case File.exists?(expanded) do
-      false ->
-        {:error, "file not found: #{expanded}"}
+  defp file_exists_or_error(expanded) do
+    if File.exists?(expanded) do
+      true
+    else
+      {:error, "file not found: #{expanded}"}
+    end
+  end
 
-      true ->
-        try do
-          {definitions, _bindings} = Code.eval_file(expanded)
+  # Refuse to evaluate the file in `:prod` unless the operator has
+  # explicitly opted in via `config :localize, :allow_runtime_unit_files,
+  # true`. Outside `:prod` (development, test, runtime helpers) the
+  # function works as before — operators wiring custom units in dev
+  # don't need a flag to do so.
+  defp check_runtime_eval_allowed do
+    if production_env?() and
+         Application.get_env(:localize, :allow_runtime_unit_files, false) != true do
+      {:error,
+       "Localize.Unit.CustomRegistry.load_file/1 is disabled in :prod by default. " <>
+         "Set `config :localize, :allow_runtime_unit_files, true` in config/runtime.exs " <>
+         "to enable it explicitly."}
+    else
+      :ok
+    end
+  end
 
-          case definitions do
-            defs when is_list(defs) ->
-              batch =
-                Enum.reduce_while(defs, {:ok, %{}}, fn
-                  %{unit: name} = definition, {:ok, acc} ->
-                    {:cont, {:ok, Map.put(acc, name, Map.delete(definition, :unit))}}
+  # `Mix` is generally not available at runtime in a release. Treat
+  # "no Mix module" as production-equivalent — releases that bundle
+  # Mix (rare) keep their declared env, otherwise the safest default
+  # applies.
+  defp production_env? do
+    if Code.ensure_loaded?(Mix) and function_exported?(Mix, :env, 0) do
+      apply(Mix, :env, []) == :prod
+    else
+      true
+    end
+  end
 
-                  other, _acc ->
-                    {:halt,
-                     {:error,
-                      "invalid definition: expected map with :unit key, got #{inspect(other)}"}}
-                end)
+  defp do_load_file(expanded) do
+    try do
+      {definitions, _bindings} = Code.eval_file(expanded)
 
-              case batch do
-                {:ok, batch_map} -> register_batch(batch_map)
-                {:error, _} = error -> error
-              end
+      case definitions do
+        defs when is_list(defs) ->
+          batch =
+            Enum.reduce_while(defs, {:ok, %{}}, fn
+              %{unit: name} = definition, {:ok, acc} ->
+                {:cont, {:ok, Map.put(acc, name, Map.delete(definition, :unit))}}
 
-            other ->
-              {:error, "expected a list of definitions, got #{inspect(other, limit: 50)}"}
+              other, _acc ->
+                {:halt,
+                 {:error,
+                  "invalid definition: expected map with :unit key, got #{inspect(other)}"}}
+            end)
+
+          case batch do
+            {:ok, batch_map} -> register_batch(batch_map)
+            {:error, _} = error -> error
           end
-        rescue
-          error -> {:error, Exception.message(error)}
-        end
+
+        other ->
+          {:error, "expected a list of definitions, got #{inspect(other, limit: 50)}"}
+      end
+    rescue
+      error -> {:error, Exception.message(error)}
     end
   end
 
