@@ -1438,25 +1438,8 @@ defmodule Localize do
 
   def validate_locale(locale_id) when is_binary(locale_id) do
     case locale_cache_lookup(locale_id) do
-      {:ok, _tag} = cached ->
-        cached
-
-      :miss ->
-        result =
-          case Localize.LanguageTag.new(locale_id) do
-            {:ok, %Localize.LanguageTag{cldr_locale_id: cldr_locale_id} = language_tag}
-            when not is_nil(cldr_locale_id) ->
-              maybe_restrict_to_supported(language_tag)
-
-            {:ok, %Localize.LanguageTag{cldr_locale_id: nil} = language_tag} ->
-              resolve_cldr_locale(language_tag)
-
-            {:error, _reason} ->
-              {:error, Localize.InvalidLocaleError.exception(locale_id: locale_id)}
-          end
-
-        locale_cache_store(locale_id, result)
-        result
+      {:ok, _tag} = cached -> cached
+      :miss -> resolve_and_cache_locale(locale_id)
     end
   end
 
@@ -1466,6 +1449,24 @@ defmodule Localize do
 
   def validate_locale(invalid) do
     {:error, Localize.InvalidLocaleError.exception(locale_id: inspect(invalid))}
+  end
+
+  defp resolve_and_cache_locale(locale_id) do
+    result =
+      case Localize.LanguageTag.new(locale_id) do
+        {:ok, %Localize.LanguageTag{cldr_locale_id: cldr_locale_id} = language_tag}
+        when not is_nil(cldr_locale_id) ->
+          maybe_restrict_to_supported(language_tag)
+
+        {:ok, %Localize.LanguageTag{cldr_locale_id: nil} = language_tag} ->
+          resolve_cldr_locale(language_tag)
+
+        {:error, _reason} ->
+          {:error, Localize.InvalidLocaleError.exception(locale_id: locale_id)}
+      end
+
+    locale_cache_store(locale_id, result)
+    result
   end
 
   defp locale_cache_lookup(locale_id) do

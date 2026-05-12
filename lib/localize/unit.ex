@@ -266,24 +266,23 @@ defmodule Localize.Unit do
     {:error, Localize.UnitNoValueError.exception(operation: :convert)}
   end
 
-  def convert(%__MODULE__{value: value, name: from_name} = source, target)
-      when is_binary(target) do
+  def convert(%__MODULE__{} = source, target) when is_binary(target) do
     with {:ok, target_parsed} <- Localize.Unit.Parser.parse(target) do
-      case target_parsed do
-        {:mixed_unit, _units} ->
-          convert_to_mixed(source, target, target_parsed)
+      convert_parsed(source, target, target_parsed)
+    end
+  end
 
-        _ ->
-          # For mixed source units, convert the list of values to a scalar
-          # in the primary component, then convert from that component.
-          {source_value, effective_from} = effective_source(value, from_name, source.parsed)
+  defp convert_parsed(source, target, {:mixed_unit, _units} = target_parsed) do
+    convert_to_mixed(source, target, target_parsed)
+  end
 
-          with {:ok, converted} <-
-                 Localize.Unit.Conversion.convert(source_value, effective_from, target),
-               {:ok, target_unit} <- new(converted, target) do
-            {:ok, target_unit}
-          end
-      end
+  defp convert_parsed(%__MODULE__{value: value, name: from_name} = source, target, _target_parsed) do
+    {source_value, effective_from} = effective_source(value, from_name, source.parsed)
+
+    with {:ok, converted} <-
+           Localize.Unit.Conversion.convert(source_value, effective_from, target),
+         {:ok, target_unit} <- new(converted, target) do
+      {:ok, target_unit}
     end
   end
 
@@ -752,29 +751,23 @@ defmodule Localize.Unit do
       {:single_unit, kw}, :ok ->
         base = Keyword.fetch!(kw, :base)
 
-        cond do
-          # Currency units are validated separately
-          String.starts_with?(base, "curr-") ->
-            {:cont, :ok}
-
-          # Known CLDR base unit
-          MapSet.member?(known_base_units(), base) ->
-            {:cont, :ok}
-
-          # Registered custom unit
-          Localize.Unit.CustomRegistry.registered?(base) ->
-            {:cont, :ok}
-
-          true ->
-            {:halt, {:error, Localize.UnknownUnitError.exception(unit: base)}}
+        if valid_base_unit?(base) do
+          {:cont, :ok}
+        else
+          {:halt, {:error, Localize.UnknownUnitError.exception(unit: base)}}
         end
-
-      {:constant, _}, :ok ->
-        {:cont, :ok}
 
       _, :ok ->
         {:cont, :ok}
     end)
+  end
+
+  # A base name is valid if it's a currency placeholder, a known CLDR
+  # base unit, or a runtime-registered custom unit.
+  defp valid_base_unit?(base) do
+    String.starts_with?(base, "curr-") or
+      MapSet.member?(known_base_units(), base) or
+      Localize.Unit.CustomRegistry.registered?(base)
   end
 
   # ── Formatting ───────────────────────────────────────────────

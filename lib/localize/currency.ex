@@ -1039,35 +1039,36 @@ defmodule Localize.Currency do
   defp expand_filter(currencies, _, filter_list) do
     currencies_list = Enum.to_list(currencies)
 
-    Enum.flat_map(filter_list, fn
-      :all ->
-        currencies_list
-
-      :historic ->
-        Enum.filter(currencies_list, fn {_, c} -> historic?(c) end)
-
-      :tender ->
-        Enum.filter(currencies_list, fn {_, c} -> tender?(c) end)
-
-      :current ->
-        Enum.filter(currencies_list, fn {_, c} -> current?(c) end)
-
-      :annotated ->
-        Enum.filter(currencies_list, fn {_, c} -> annotated?(c) end)
-
-      :unannotated ->
-        Enum.filter(currencies_list, fn {_, c} -> unannotated?(c) end)
-
-      code when is_atom(code) ->
-        Enum.filter(currencies_list, fn {k, _} -> k == code end)
-
-      code when is_binary(code) ->
-        case Helpers.existing_atom(code) do
-          nil -> []
-          atom_code -> Enum.filter(currencies_list, fn {k, _} -> k == atom_code end)
-        end
-    end)
+    filter_list
+    |> Enum.flat_map(&expand_one_filter(&1, currencies_list))
     |> Enum.uniq()
+  end
+
+  defp expand_one_filter(:all, currencies_list), do: currencies_list
+
+  defp expand_one_filter(:historic, currencies_list),
+    do: Enum.filter(currencies_list, fn {_, c} -> historic?(c) end)
+
+  defp expand_one_filter(:tender, currencies_list),
+    do: Enum.filter(currencies_list, fn {_, c} -> tender?(c) end)
+
+  defp expand_one_filter(:current, currencies_list),
+    do: Enum.filter(currencies_list, fn {_, c} -> current?(c) end)
+
+  defp expand_one_filter(:annotated, currencies_list),
+    do: Enum.filter(currencies_list, fn {_, c} -> annotated?(c) end)
+
+  defp expand_one_filter(:unannotated, currencies_list),
+    do: Enum.filter(currencies_list, fn {_, c} -> unannotated?(c) end)
+
+  defp expand_one_filter(code, currencies_list) when is_atom(code),
+    do: Enum.filter(currencies_list, fn {k, _} -> k == code end)
+
+  defp expand_one_filter(code, currencies_list) when is_binary(code) do
+    case Helpers.existing_atom(code) do
+      nil -> []
+      atom_code -> Enum.filter(currencies_list, fn {k, _} -> k == atom_code end)
+    end
   end
 
   # ── Currency status predicates ───────────────────────────────
@@ -1200,27 +1201,36 @@ defmodule Localize.Currency do
   defp do_resolve_duplicates([pair], _currencies), do: [pair]
 
   defp do_resolve_duplicates(
-         [{string, code1}, {string, code2} | rest],
+         [{string, code1} = pair1, {string, code2} = pair2 | rest],
          currencies
        ) do
-    currency1 = Map.get(currencies, code1)
-    currency2 = Map.get(currencies, code2)
-
-    cond do
-      currency1 != nil and currency2 != nil and historic?(currency1) and current?(currency2) ->
-        do_resolve_duplicates([{string, code2} | rest], currencies)
-
-      currency1 != nil and currency2 != nil and current?(currency1) and historic?(currency2) ->
-        do_resolve_duplicates([{string, code1} | rest], currencies)
-
-      true ->
-        do_resolve_duplicates(rest, currencies)
+    case prefer_currency(
+           pair1,
+           Map.get(currencies, code1),
+           pair2,
+           Map.get(currencies, code2)
+         ) do
+      {:keep, kept} -> do_resolve_duplicates([kept | rest], currencies)
+      :drop_both -> do_resolve_duplicates(rest, currencies)
     end
   end
 
   defp do_resolve_duplicates([pair | rest], currencies) do
     [pair | do_resolve_duplicates(rest, currencies)]
   end
+
+  # Pick the surviving (string -> code) pair when two share the same
+  # string. A current currency wins over a historic one; otherwise both
+  # are dropped so the string remains ambiguous and is not auto-resolved.
+  defp prefer_currency(pair1, %{} = c1, pair2, %{} = c2) do
+    cond do
+      historic?(c1) and current?(c2) -> {:keep, pair2}
+      current?(c1) and historic?(c2) -> {:keep, pair1}
+      true -> :drop_both
+    end
+  end
+
+  defp prefer_currency(_pair1, _c1, _pair2, _c2), do: :drop_both
 
   defp add_unique_narrow_symbols(string_map, currencies) do
     Enum.reduce(currencies, string_map, fn {code, currency}, acc ->
