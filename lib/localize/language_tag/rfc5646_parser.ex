@@ -8,24 +8,25 @@ defmodule Localize.Rfc5646.Parser do
 
   """
 
-  alias Localize.LanguageTag
-
   import Localize.Rfc5646.Helpers
 
   def parse(rule \\ :language_tag, input) when is_atom(rule) and is_binary(input) do
     apply(__MODULE__, rule, [input])
-    |> unwrap
+    |> unwrap(input)
   end
 
-  defp unwrap({:ok, acc, "", _, _, _}) when is_list(acc),
+  defp unwrap({:ok, acc, "", _, _, _}, _input) when is_list(acc),
     do: {:ok, acc}
 
-  defp unwrap({:error, <<first::binary-size(1), reason::binary>>, rest, _, _, offset}) do
-    message =
-      "#{String.capitalize(first)}#{reason}. Could not parse the remaining #{inspect(rest)} " <>
-        "starting at position #{offset + 1}"
-
-    {:error, LanguageTag.ParseError.exception(message)}
+  defp unwrap({:error, detail, rest, _, _, offset}, input) do
+    {:error,
+     Localize.ParseError.exception(
+       input: input,
+       reason: :unexpected_input,
+       detail: detail,
+       offset: offset,
+       rest: rest
+     )}
   end
 
   # parsec:Localize.Rfc5646.Parser
