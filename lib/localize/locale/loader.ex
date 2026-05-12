@@ -149,24 +149,6 @@ defmodule Localize.Locale.Loader do
   end
 
   @impl GenServer
-  def handle_cast({:cache_store, {key, value}}, state) do
-    if :ets.whereis(:localize_locale_cache) != :undefined do
-      :ets.insert(:localize_locale_cache, {key, value})
-    end
-
-    {:noreply, state}
-  end
-
-  @impl GenServer
-  def handle_cast({:cache_evict, key}, state) do
-    if :ets.whereis(:localize_locale_cache) != :undefined do
-      :ets.delete(:localize_locale_cache, key)
-    end
-
-    {:noreply, state}
-  end
-
-  @impl GenServer
   def handle_call({:load_and_store, locale, provider}, _from, state) do
     # Double-check inside the serialized context — another
     # request may have loaded it while we were queued.
@@ -194,5 +176,23 @@ defmodule Localize.Locale.Loader do
       end
 
     {:reply, result, state}
+  end
+
+  @impl GenServer
+  def handle_cast({:cache_store, {key, value}}, state) do
+    if :ets.whereis(:localize_locale_cache) != :undefined do
+      :ets.insert(:localize_locale_cache, {key, value})
+    end
+
+    {:noreply, state}
+  end
+
+  @impl GenServer
+  def handle_cast({:cache_evict, key}, state) do
+    if :ets.whereis(:localize_locale_cache) != :undefined do
+      :ets.delete(:localize_locale_cache, key)
+    end
+
+    {:noreply, state}
   end
 end
