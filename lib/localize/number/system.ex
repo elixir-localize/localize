@@ -662,6 +662,11 @@ defmodule Localize.Number.System do
 
   defp load_number_systems do
     Localize.DataLoader.load(@persistent_term_key, fn ->
+      # NOTE: `:safe` is intentionally NOT passed. The bundled
+      # number-systems ETF references CLDR number-system atoms
+      # (`:roman`, `:hanidec`, etc.) that are introduced by this very
+      # file at first access; `[:safe]` would refuse to create them.
+      # File ships with the package; trust boundary is the package.
       systems = @number_systems_path |> File.read!() |> :erlang.binary_to_term()
 
       numeric =

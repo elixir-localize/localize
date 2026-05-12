@@ -20,9 +20,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.System` (`system_name_from/2`, `number_system_digits/1`, `to_system/2`), `Localize.Number.Symbol.number_symbols_for/2`, and the datetime-formatter's `time_preferences_for/1` no longer atomise user-supplied binary number-system or locale names before validation. Lookups go through `Helpers.existing_atom/1` against pre-atomised CLDR data sets.
 
-* Closed additional Atom DOS vectors in `Localize.Locale.LocaleDisplay.display_name/2` (now routes through `cldr_locale_id_from/1`), `Localize.Territory.Subdivision.display_name/2`, the `-u-co-` and `-u-kr-` extension parsers in `Localize.Collation.Options`, and the redundant `String.to_atom(to_string(...))` round-trip in plural-rule fallback. Items audited as safe (bounded by grammar, trusted CLDR data, or explicit caller opt-in) are documented in [plans/atom-dos-audit.md](plans/atom-dos-audit.md).
+* Closed additional Atom DOS vectors in `Localize.Locale.LocaleDisplay.display_name/2` (now routes through `cldr_locale_id_from/1`), `Localize.Territory.Subdivision.display_name/2`, the `-u-co-` and `-u-kr-` extension parsers in `Localize.Collation.Options`, and the redundant `String.to_atom(to_string(...))` round-trip in plural-rule fallback.
 
 * Closed three further atom-DOS sites called out by the security audit's findings 1.4 and 1.5: `LocaleDisplay.U.find_exemplar_city/2` (`-u-tz-` IANA region/city splitter), `LocaleDisplay.T.to_atom_safe/1` (`-t-` extension subtag normalisation), and `Gettext.Interpolation.safe_to_atom/1` (missing-binding name reporting). All three previously fell through to `String.to_atom/1` on a miss, which defeated the helper's name; they now return the original binary unchanged when no atom exists.
+
+* Locale cache files and downloaded ETFs are decoded with `:erlang.binary_to_term(_, [:safe])`. Closes a node-crash vector for any deployment with `:locale_cache_dir` set to a writable directory: a malicious or corrupted cache file can no longer resurrect arbitrary atoms, funs, or refs. Failed safe decodes surface as `LocaleNotFoundInCacheError` (or `LocaleDownloadError` for the download path) and the file is treated as stale.
 
 ## [0.29.0] — May 11th, 2026
 

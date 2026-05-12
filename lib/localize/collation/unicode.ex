@@ -41,7 +41,7 @@ defmodule Localize.Collation.Unicode do
     :localize
     |> Application.app_dir(["priv", "localize", "supplemental_data", filename])
     |> File.read!()
-    |> :erlang.binary_to_term()
+    |> :erlang.binary_to_term([:safe])
   end
 
   # Binary search over sorted {start, finish} ranges.
