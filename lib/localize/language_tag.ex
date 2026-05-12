@@ -882,7 +882,7 @@ defmodule Localize.LanguageTag do
   def add_likely_subtags!(%__MODULE__{} = language_tag) do
     case add_likely_subtags(language_tag) do
       {:ok, tag} -> tag
-      {:error, reason} -> raise ArgumentError, Kernel.to_string(reason)
+      {:error, exception} -> raise exception
     end
   end
 
@@ -963,7 +963,7 @@ defmodule Localize.LanguageTag do
   def remove_likely_subtags!(%__MODULE__{} = language_tag) do
     case remove_likely_subtags(language_tag) do
       {:ok, tag} -> tag
-      {:error, reason} -> raise ArgumentError, Kernel.to_string(reason)
+      {:error, exception} -> raise exception
     end
   end
 

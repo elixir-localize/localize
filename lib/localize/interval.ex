@@ -163,7 +163,7 @@ defmodule Localize.Interval do
         {:ok, left_str <> right_str}
       end
     else
-      {:error, :no_practical_difference} ->
+      {:error, %Localize.NoPracticalDifferenceError{}} ->
         Localize.Date.to_string(from, options)
 
       {:error, _} = error ->
@@ -242,7 +242,7 @@ defmodule Localize.Interval do
         {:ok, left_str <> right_str}
       end
     else
-      {:error, :no_practical_difference} ->
+      {:error, %Localize.NoPracticalDifferenceError{}} ->
         Localize.Time.to_string(from, options)
 
       {:error, _} = error ->
@@ -314,7 +314,7 @@ defmodule Localize.Interval do
         {:ok, result}
       end
     else
-      {:error, :no_practical_difference} ->
+      {:error, %Localize.NoPracticalDifferenceError{}} ->
         Localize.DateTime.to_string(from, datetime_sub_options(options) |> Map.to_list())
 
       {:error, _} = error ->
@@ -532,19 +532,31 @@ defmodule Localize.Interval do
 
   * `{:ok, field}` where field is `:y`, `:M`, `:d`, `:H`, or `:m`.
 
-  * `{:error, :no_practical_difference}` if the values are equal.
+  * `{:error, %Localize.NoPracticalDifferenceError{}}` if the values
+    are equal at every field considered.
 
   """
   @spec greatest_difference(map(), map()) ::
-          {:ok, :y | :M | :d | :H | :m} | {:error, :no_practical_difference}
+          {:ok, :y | :M | :d | :H | :m} | {:error, Localize.NoPracticalDifferenceError.t()}
   def greatest_difference(from, to) do
     cond do
-      Map.get(from, :year) != Map.get(to, :year) -> {:ok, :y}
-      Map.get(from, :month) != Map.get(to, :month) -> {:ok, :M}
-      Map.get(from, :day) != Map.get(to, :day) -> {:ok, :d}
-      Map.get(from, :hour) != Map.get(to, :hour) -> {:ok, :H}
-      Map.get(from, :minute) != Map.get(to, :minute) -> {:ok, :m}
-      true -> {:error, :no_practical_difference}
+      Map.get(from, :year) != Map.get(to, :year) ->
+        {:ok, :y}
+
+      Map.get(from, :month) != Map.get(to, :month) ->
+        {:ok, :M}
+
+      Map.get(from, :day) != Map.get(to, :day) ->
+        {:ok, :d}
+
+      Map.get(from, :hour) != Map.get(to, :hour) ->
+        {:ok, :H}
+
+      Map.get(from, :minute) != Map.get(to, :minute) ->
+        {:ok, :m}
+
+      true ->
+        {:error, Localize.NoPracticalDifferenceError.exception(from: from, to: to)}
     end
   end
 
