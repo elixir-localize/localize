@@ -172,6 +172,36 @@ defmodule Localize.Locale do
     end
   end
 
+  @doc """
+  Return the parent locale of the given language tag, or raise.
+
+  Same as `parent/1` but returns the parent `t:Localize.LanguageTag.t/0`
+  directly on success or raises the error exception on failure.
+
+  ### Arguments
+
+  * `locale` is a `%Localize.LanguageTag{}` struct or a BCP 47
+    locale identifier string.
+
+  ### Returns
+
+  * A `%Localize.LanguageTag{}` representing the parent locale.
+
+  ### Examples
+
+      iex> parent = Localize.Locale.parent!("en-AU")
+      iex> parent.language
+      :en
+
+  """
+  @spec parent!(LanguageTag.t() | String.t()) :: LanguageTag.t() | no_return()
+  def parent!(locale) do
+    case parent(locale) do
+      {:ok, tag} -> tag
+      {:error, exception} -> raise exception
+    end
+  end
+
   # Look up a parent locale in the parent_locales map.
   # The map uses minimal keys (e.g., "en-AU" not "en-Latn-AU"),
   # so we also try without the script since maximized tags include
@@ -518,6 +548,40 @@ defmodule Localize.Locale do
         {:error, _} = error ->
           try_fallbacks(error, locale, keys, provider, options, fallback?, default_fallback_id)
       end
+    end
+  end
+
+  @doc """
+  Retrieves a value from locale data, raising on error.
+
+  Same as `get/3` but returns the value directly on success or raises
+  the error exception on failure.
+
+  ### Arguments
+
+  * `locale` is a locale identifier atom or a `t:Localize.LanguageTag.t/0`.
+
+  * `keys` is a list of keys to traverse in the locale data map.
+
+  * `options` is a keyword list of options. See `get/3` for supported
+    options.
+
+  ### Returns
+
+  * The value at the requested key path.
+
+  """
+  @spec get!(Provider.locale(), list(), Keyword.t()) :: term() | no_return()
+  def get!(locale, keys, options \\ []) do
+    case get(locale, keys, options) do
+      {:ok, value} ->
+        value
+
+      {:error, %_{} = exception} ->
+        raise exception
+
+      {:error, other} ->
+        raise ArgumentError, inspect(other)
     end
   end
 
