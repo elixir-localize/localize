@@ -14,17 +14,32 @@ defmodule Localize.ParseError do
   For other uses (language tag / unit identifier parsing) the location
   fields may be `nil`.
 
+  The `:reason` field is a documented atom describing the parser
+  failure category. The `:detail` field optionally carries additional
+  context (for example, a NimbleParsec expectation string) and
+  `:cause` carries an underlying exception when a higher-level parser
+  has wrapped a lower-level one.
+
   """
 
-  defexception [:input, :reason, :offset, :line, :column, :rest]
+  defexception [:input, :reason, :offset, :line, :column, :rest, :detail, :cause]
+
+  @type reason ::
+          :unexpected_trailing_input
+          | :unexpected_input
+          | :incomplete_input
+          | :invalid_subtag
+          | :invalid_message_format
 
   @type t :: %__MODULE__{
           input: String.t() | nil,
-          reason: String.t() | nil,
+          reason: reason() | nil,
           offset: non_neg_integer() | nil,
           line: pos_integer() | nil,
           column: pos_integer() | nil,
-          rest: String.t() | nil
+          rest: String.t() | nil,
+          detail: String.t() | nil,
+          cause: Exception.t() | nil
         }
 
   @impl true
@@ -34,30 +49,169 @@ defmodule Localize.ParseError do
   end
 
   @impl true
-  def message(%__MODULE__{input: input, reason: reason, line: line, column: column})
+  def message(%__MODULE__{
+        reason: :unexpected_trailing_input,
+        input: input,
+        rest: rest,
+        line: line,
+        column: column
+      })
       when is_integer(line) and is_integer(column) do
     Gettext.dpgettext(
       Localize.Gettext,
       "localize",
       "message",
-      "Could not parse {$input} at line {$line} column {$column}: {$reason}",
+      "Could not parse {$input} at line {$line} column {$column}: unexpected trailing input {$rest}",
       input: inspect(input),
       line: line,
       column: column,
-      reason: reason
+      rest: inspect(rest)
     )
   end
 
-  def message(%__MODULE__{input: input, reason: reason}) do
+  def message(%__MODULE__{
+        reason: :unexpected_trailing_input,
+        input: input,
+        rest: rest,
+        offset: offset
+      })
+      when is_integer(offset) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "message",
+      "Could not parse {$input} at position {$position}: unexpected trailing input {$rest}",
+      input: inspect(input),
+      position: offset + 1,
+      rest: inspect(rest)
+    )
+  end
+
+  def message(%__MODULE__{reason: :unexpected_trailing_input, input: input, rest: rest}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "message",
+      "Could not parse {$input}: unexpected trailing input {$rest}",
+      input: inspect(input),
+      rest: inspect(rest)
+    )
+  end
+
+  def message(%__MODULE__{
+        reason: :unexpected_input,
+        input: input,
+        rest: rest,
+        detail: detail,
+        line: line,
+        column: column
+      })
+      when is_integer(line) and is_integer(column) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "message",
+      "Could not parse {$input} at line {$line} column {$column}: {$detail}{$tail}",
+      input: inspect(input),
+      line: line,
+      column: column,
+      detail: detail_or_default(detail),
+      tail: rest_suffix(rest)
+    )
+  end
+
+  def message(%__MODULE__{
+        reason: :unexpected_input,
+        input: input,
+        rest: rest,
+        detail: detail,
+        offset: offset
+      })
+      when is_integer(offset) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "message",
+      "Could not parse {$input} at position {$position}: {$detail}{$tail}",
+      input: inspect(input),
+      position: offset + 1,
+      detail: detail_or_default(detail),
+      tail: rest_suffix(rest)
+    )
+  end
+
+  def message(%__MODULE__{reason: :unexpected_input, input: input, rest: rest, detail: detail}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "message",
+      "Could not parse {$input}: {$detail}{$tail}",
+      input: inspect(input),
+      detail: detail_or_default(detail),
+      tail: rest_suffix(rest)
+    )
+  end
+
+  def message(%__MODULE__{reason: :incomplete_input, input: input}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "message",
+      "Could not parse {$input}: input ended unexpectedly",
+      input: inspect(input)
+    )
+  end
+
+  def message(%__MODULE__{reason: :invalid_subtag, input: input, cause: cause})
+      when not is_nil(cause) do
     Gettext.dpgettext(
       Localize.Gettext,
       "localize",
       "language_tag",
-      "Could not parse {$input}: {$reason}",
+      "Could not parse {$input}: {$detail}",
       input: inspect(input),
-      reason: reason
+      detail: Exception.message(cause)
     )
   end
+
+  def message(%__MODULE__{reason: :invalid_message_format, input: input, detail: detail}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "message",
+      "Could not parse {$input}: {$detail}",
+      input: inspect(input),
+      detail: detail_or_default(detail)
+    )
+  end
+
+  def message(%__MODULE__{input: input, detail: detail}) when is_binary(detail) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "message",
+      "Could not parse {$input}: {$detail}",
+      input: inspect(input),
+      detail: detail
+    )
+  end
+
+  def message(%__MODULE__{input: input}) do
+    Gettext.dpgettext(
+      Localize.Gettext,
+      "localize",
+      "message",
+      "Could not parse {$input}",
+      input: inspect(input)
+    )
+  end
+
+  defp detail_or_default(nil), do: ""
+  defp detail_or_default(detail) when is_binary(detail), do: detail
+
+  defp rest_suffix(nil), do: ""
+  defp rest_suffix(""), do: ""
+  defp rest_suffix(rest) when is_binary(rest), do: " (remaining: #{inspect(rest)})"
 
   @doc """
   Computes 1-indexed line and column for a byte offset into `input`.

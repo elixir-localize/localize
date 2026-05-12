@@ -151,10 +151,10 @@ defmodule Localize.Message.ListOptionsTest do
     test "non-list operand returns a format error" do
       {:ok, parsed} = Parser.parse("{$item :list}")
 
-      assert {:format_error, reason} =
+      assert {:format_error, {:formatter_failed, detail}} =
                Interpreter.format_list(parsed, %{"item" => "not a list"}, locale: "en")
 
-      assert reason =~ "requires a list operand"
+      assert detail =~ "requires a list operand"
     end
 
     test "invalid style atom surfaces as an error from Localize.List" do

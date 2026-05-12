@@ -62,16 +62,17 @@ defmodule Localize.Message.Parser do
         {:error,
          Localize.ParseError.exception(
            input: input,
-           reason: "unexpected trailing input #{inspect(rest)}",
+           reason: :unexpected_trailing_input,
            offset: offset,
            rest: rest
          )}
 
-      {:error, reason, rest, _, _, offset} ->
+      {:error, detail, rest, _, _, offset} ->
         {:error,
          Localize.ParseError.exception(
            input: input,
-           reason: reason,
+           reason: :unexpected_input,
+           detail: detail,
            offset: offset,
            rest: rest
          )}

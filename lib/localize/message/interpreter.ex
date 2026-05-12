@@ -89,10 +89,25 @@ defmodule Localize.Message.Interpreter do
     could not be resolved. The `iolist` contains a partial result.
 
   """
+  @typedoc """
+  Structured payload carried inside a `{:format_error, payload}` tuple.
+
+  * `{:unbalanced_markup, sub}` where `sub` is `:unclosed` or
+    `{:mismatched_close, name}` — markup nesting violation.
+
+  * `{:formatter_failed, term()}` — a function formatter raised or
+    returned an error. The term is the original exception or string
+    detail produced by the formatter.
+
+  """
+  @type format_error_payload ::
+          {:unbalanced_markup, :unclosed | {:mismatched_close, String.t()}}
+          | {:formatter_failed, Exception.t() | String.t()}
+
   @spec format_list(term(), map() | list(), Keyword.t()) ::
           {:ok, list(), list(), list()}
           | {:error, list(), list(), list()}
-          | {:format_error, String.t()}
+          | {:format_error, format_error_payload()}
   def format_list(ast, bindings \\ %{}, options \\ [])
 
   def format_list(ast, bindings, options) when is_list(bindings) do
@@ -176,7 +191,7 @@ defmodule Localize.Message.Interpreter do
                   {:cont, {bindings_acc, [name | bound_acc], sel_meta}}
 
                 {:error, reason} ->
-                  {:halt, {:format_error, format_error_reason(reason)}}
+                  {:halt, {:format_error, {:formatter_failed, reason}}}
               end
 
             :error ->
@@ -194,7 +209,7 @@ defmodule Localize.Message.Interpreter do
                   {:cont, {bindings_acc, [name | bound_acc], sel_meta}}
 
                 {:error, reason} ->
-                  {:halt, {:format_error, format_error_reason(reason)}}
+                  {:halt, {:format_error, {:formatter_failed, reason}}}
               end
 
             {:unbound, _} ->
@@ -260,7 +275,7 @@ defmodule Localize.Message.Interpreter do
   @spec format_structured(term(), map() | list(), Keyword.t()) ::
           {:ok, list(), list(), list()}
           | {:error, list(), list(), list()}
-          | {:format_error, String.t()}
+          | {:format_error, format_error_payload()}
   def format_structured(ast, bindings \\ %{}, options \\ [])
 
   def format_structured(ast, bindings, options) when is_list(bindings) do
@@ -359,7 +374,7 @@ defmodule Localize.Message.Interpreter do
 
   defp do_structured_pattern([], _bindings, _options, [_ | _], _acc, _bound, _unbound) do
     # Stack non-empty at end of pattern = unbalanced open markup
-    {:format_error, "unbalanced markup: unclosed markup tag"}
+    {:format_error, {:unbalanced_markup, :unclosed}}
   end
 
   defp do_structured_pattern([], _bindings, _options, [], acc, bound, unbound) do
@@ -426,7 +441,7 @@ defmodule Localize.Message.Interpreter do
             )
 
           _ ->
-            {:format_error, "unbalanced markup: close tag '#{name}' does not match open"}
+            {:format_error, {:unbalanced_markup, {:mismatched_close, name}}}
         end
 
       {:unbound, var_name} ->
@@ -542,7 +557,7 @@ defmodule Localize.Message.Interpreter do
       {:ok, value, bound_names} ->
         case apply_function(value, func, Keyword.put(options, :bindings, bindings)) do
           {:ok, formatted} -> {:ok, formatted, bound_names}
-          {:error, reason} -> {:format_error, format_error_reason(reason)}
+          {:error, reason} -> {:format_error, {:formatter_failed, reason}}
         end
 
       {:unbound, name} ->
@@ -1437,9 +1452,6 @@ defmodule Localize.Message.Interpreter do
   end
 
   # ── General utilities ──────────────────────────────────────────
-
-  defp format_error_reason(%{__exception__: true} = exception), do: Exception.message(exception)
-  defp format_error_reason(reason) when is_binary(reason), do: reason
 
   defp option_key(name) do
     Helpers.existing_atom(name) || name

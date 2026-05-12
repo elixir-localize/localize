@@ -51,7 +51,8 @@ defmodule Localize.LanguageTag.Parser do
         {:error,
          Localize.ParseError.exception(
            input: locale,
-           reason: Exception.message(exception)
+           reason: :invalid_subtag,
+           cause: exception
          )}
     end
   end
