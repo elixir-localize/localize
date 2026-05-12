@@ -264,7 +264,8 @@ defmodule Localize.Number.Format.Options do
     {:error,
      Localize.InvalidValueError.exception(
        value: mode,
-       expected: "a valid rounding mode (#{inspect(@rounding_modes)})"
+       expected: :rounding_mode,
+       allowed_values: @rounding_modes
      )}
   end
 

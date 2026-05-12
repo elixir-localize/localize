@@ -256,7 +256,8 @@ defmodule Localize.DateTime.Relative do
     {:error,
      Localize.InvalidValueError.exception(
        value: unit,
-       expected: "a valid time unit: #{inspect(@unit_keys)}",
+       expected: :time_unit,
+       allowed_values: @unit_keys,
        context: "Localize.DateTime.Relative"
      )}
   end
@@ -267,7 +268,8 @@ defmodule Localize.DateTime.Relative do
     {:error,
      Localize.InvalidValueError.exception(
        value: format,
-       expected: "one of #{inspect(@known_formats)}",
+       expected: :format,
+       allowed_values: @known_formats,
        context: "Localize.DateTime.Relative"
      )}
   end

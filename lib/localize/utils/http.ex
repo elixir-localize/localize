@@ -368,31 +368,7 @@ defmodule Localize.Utils.Http do
   end
 
   defp raise_if_no_cacertfile!(nil) do
-    raise RuntimeError, """
-    No certificate trust store was found.
-    Tried looking for: #{inspect(certificate_locations())}
-
-    A certificate trust store is required in
-    order to download data for your configuration.
-
-    Since Localize could not detect a system
-    installed certificate trust store one of the
-    following actions may be taken:
-
-    1. Install the hex package `castore`. It will
-       be automatically detected after recompilation.
-
-    2. Install the hex package `certifi`. It will
-       be automatically detected after recompilation.
-
-    3. Specify the location of a certificate trust store
-       by configuring it in `config.exs` or `runtime.exs`:
-
-       config :localize,
-         cacertfile: "/path/to/cacertfile",
-         ...
-
-    """
+    raise Localize.NoCertificateStoreError.exception(searched: certificate_locations())
   end
 
   defp raise_if_no_cacertfile!(file) do

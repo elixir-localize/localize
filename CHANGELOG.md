@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Behaviour Changes
 
+* `Localize.InvalidValueError` gained an `:allowed_values` field and a new `Localize.NoCertificateStoreError` carries the searched paths; previously prose-stuffed `:expected`/`:currency` fields and bare-string `:reason` codes are now structural.
+
+* Eight option-validation sites across `Localize.Language`, `Localize.Script`, `Localize.Collation`, `Localize.Utils.Map`, and `Localize.Utils.Http` now raise structured Localize exceptions rather than `ArgumentError`/`RuntimeError`.
 
 ## [0.30.1] — May 12th, 2026
 

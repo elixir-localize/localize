@@ -250,10 +250,7 @@ defmodule Localize.Number.Parser do
       currency
     else
       {:error, _} ->
-        {:error,
-         Localize.UnknownCurrencyError.exception(
-           currency: "#{string} is unknown or not supported"
-         )}
+        {:error, Localize.UnknownCurrencyError.exception(currency: string)}
     end
   end
 
