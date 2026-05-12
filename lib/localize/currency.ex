@@ -209,10 +209,7 @@ defmodule Localize.Currency do
   def territory_currencies(territory) when is_binary(territory) do
     case territory |> String.upcase() |> Helpers.existing_atom() do
       nil ->
-        {:error,
-         Localize.UnknownCurrencyError.exception(
-           currency: "No currencies for #{inspect(territory)} were found"
-         )}
+        {:error, Localize.UnknownTerritoryError.exception(territory: territory)}
 
       atom ->
         territory_currencies(atom)

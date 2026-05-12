@@ -50,7 +50,7 @@ defmodule Localize.ScriptTest do
     end
 
     test "raises on invalid style" do
-      assert_raise ArgumentError, fn ->
+      assert_raise Localize.InvalidValueError, fn ->
         Script.display_name(:Latn, style: :invalid)
       end
     end

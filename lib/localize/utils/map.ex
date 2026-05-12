@@ -1080,9 +1080,10 @@ defmodule Localize.Utils.Map do
   end
 
   defp validate_options(function, _options) do
-    raise ArgumentError,
-          "function parameter must be a function or a 2-tuple " <>
-            "consisting of a key_function and a value_function. Found #{inspect(function)}"
+    raise Localize.InvalidValueError.exception(
+            value: function,
+            expected: :function_or_key_value_function_pair
+          )
   end
 
   defp validate_options(options) do
@@ -1097,7 +1098,11 @@ defmodule Localize.Utils.Map do
         level
 
       other ->
-        raise ArgumentError, ":level must be an integer or a range. Found #{inspect(other)}"
+        raise Localize.InvalidValueError.exception(
+                value: other,
+                expected: :integer_or_range,
+                context: :level
+              )
     end)
   end
 

@@ -170,8 +170,11 @@ defmodule Localize.Collation.Options do
         options
 
       {other, _options} ->
-        raise ArgumentError,
-              "invalid casing option #{inspect(other)}, expected :sensitive or :insensitive"
+        raise Localize.InvalidValueError.exception(
+                value: other,
+                expected: :casing,
+                allowed_values: [:sensitive, :insensitive]
+              )
     end
   end
 

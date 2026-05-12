@@ -264,16 +264,20 @@ defmodule Localize.Language do
   defp validate_style!(style) when style in @styles, do: style
 
   defp validate_style!(style) do
-    raise ArgumentError,
-          "Invalid :style option #{inspect(style)} supplied. " <>
-            "Valid styles are #{inspect(@styles)}."
+    raise Localize.InvalidValueError.exception(
+            value: style,
+            expected: :style,
+            allowed_values: @styles
+          )
   end
 
   defp validate_fallback!(fallback) when is_boolean(fallback), do: fallback
 
   defp validate_fallback!(fallback) do
-    raise ArgumentError,
-          "Invalid :fallback option #{inspect(fallback)} supplied. " <>
-            "Valid fallbacks are #{inspect([true, false])}."
+    raise Localize.InvalidValueError.exception(
+            value: fallback,
+            expected: :fallback,
+            allowed_values: [true, false]
+          )
   end
 end

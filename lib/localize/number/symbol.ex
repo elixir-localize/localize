@@ -102,8 +102,9 @@ defmodule Localize.Number.Symbol do
           {:error,
            Localize.InvalidValueError.exception(
              value: number_system,
-             expected: "a valid number system for locale #{inspect(locale_id)}",
-             context: "Localize.Number.Symbol.number_symbols_for/2"
+             expected: :number_system,
+             allowed_values: Map.keys(symbols),
+             context: locale_id
            )}
 
         symbol ->

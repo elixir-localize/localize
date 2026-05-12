@@ -133,13 +133,13 @@ defmodule Localize.LanguageTest do
 
   describe "invalid options" do
     test "raises on invalid :style" do
-      assert_raise ArgumentError, fn ->
+      assert_raise Localize.InvalidValueError, fn ->
         Language.display_name("de", style: :invalid)
       end
     end
 
     test "raises on invalid :fallback" do
-      assert_raise ArgumentError, fn ->
+      assert_raise Localize.InvalidValueError, fn ->
         Language.display_name("de", fallback: :invalid)
       end
     end

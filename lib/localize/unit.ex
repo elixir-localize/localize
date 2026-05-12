@@ -690,7 +690,8 @@ defmodule Localize.Unit do
       {:error,
        Localize.InvalidValueError.exception(
          value: usage,
-         expected: "a valid usage (one of: #{Enum.join(valid, ", ")})",
+         expected: :usage,
+         allowed_values: valid,
          context: "usage"
        )}
     end
