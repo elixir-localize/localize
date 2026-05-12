@@ -14,9 +14,7 @@ defmodule Localize.UnitNoValueError do
 
   @impl true
   def message(%__MODULE__{operation: operation}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unit",
       "Cannot apply {$operation} to a unit without a value.",
       operation: to_string(operation)

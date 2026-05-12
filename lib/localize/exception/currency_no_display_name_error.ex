@@ -14,9 +14,7 @@ defmodule Localize.CurrencyNoDisplayNameError do
 
   @impl true
   def message(%__MODULE__{currency: currency, locale: locale}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "currency",
       "The currency {$currency} has no display name in locale {$locale}.",
       currency: inspect(currency),

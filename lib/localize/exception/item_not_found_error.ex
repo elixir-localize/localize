@@ -14,9 +14,7 @@ defmodule Localize.ItemNotFoundError do
 
   @impl true
   def message(%__MODULE__{locale: locale, keys: keys}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The key path {$keys} was not found in locale {$locale}.",
       keys: inspect(keys),

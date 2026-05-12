@@ -73,9 +73,7 @@ defmodule Localize.LocaleDownloadError do
 
   @impl true
   def message(%__MODULE__{reason: :not_modified, locale_id: locale_id, url: url}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} at {$url} is unchanged since the last download.",
       locale_id: inspect(locale_id),
@@ -89,9 +87,7 @@ defmodule Localize.LocaleDownloadError do
         url: url,
         http_status: status
       }) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} could not be downloaded from {$url}: HTTP {$status}.",
       locale_id: inspect(locale_id),
@@ -101,9 +97,7 @@ defmodule Localize.LocaleDownloadError do
   end
 
   def message(%__MODULE__{reason: :connection_timeout, locale_id: locale_id, url: url}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} could not be downloaded from {$url}: connection timed out.",
       locale_id: inspect(locale_id),
@@ -112,9 +106,7 @@ defmodule Localize.LocaleDownloadError do
   end
 
   def message(%__MODULE__{reason: :request_timeout, locale_id: locale_id, url: url}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} could not be downloaded from {$url}: request timed out.",
       locale_id: inspect(locale_id),
@@ -123,9 +115,7 @@ defmodule Localize.LocaleDownloadError do
   end
 
   def message(%__MODULE__{reason: :nxdomain, locale_id: locale_id, url: url}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} could not be downloaded from {$url}: host could not be resolved.",
       locale_id: inspect(locale_id),
@@ -134,9 +124,7 @@ defmodule Localize.LocaleDownloadError do
   end
 
   def message(%__MODULE__{reason: :network_error, locale_id: locale_id, url: url, cause: cause}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} could not be downloaded from {$url}: {$reason}.",
       locale_id: inspect(locale_id),
@@ -146,9 +134,7 @@ defmodule Localize.LocaleDownloadError do
   end
 
   def message(%__MODULE__{reason: :safe_decode_failed, locale_id: locale_id, url: url}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} was downloaded from {$url} but failed safe decoding.",
       locale_id: inspect(locale_id),
@@ -157,9 +143,7 @@ defmodule Localize.LocaleDownloadError do
   end
 
   def message(%__MODULE__{reason: :stale_version, locale_id: locale_id, url: url}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} downloaded from {$url} does not match the expected version.",
       locale_id: inspect(locale_id),
@@ -168,9 +152,7 @@ defmodule Localize.LocaleDownloadError do
   end
 
   def message(%__MODULE__{locale_id: locale_id, url: url, cause: cause}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} could not be downloaded from {$url}: {$reason}.",
       locale_id: inspect(locale_id),

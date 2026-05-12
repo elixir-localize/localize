@@ -14,9 +14,7 @@ defmodule Localize.UnknownLanguageError do
 
   @impl true
   def message(%__MODULE__{language: language}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The language {$language} is not known.",
       language: inspect(language)

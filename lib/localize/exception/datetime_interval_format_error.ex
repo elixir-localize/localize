@@ -13,9 +13,7 @@ defmodule Localize.DateTimeIntervalFormatError do
 
   @impl true
   def message(%__MODULE__{reason: :unknown_style, style: style, format: format}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "datetime",
       "Unknown interval style {$style} or format {$format}.",
       style: inspect(style),
@@ -24,9 +22,7 @@ defmodule Localize.DateTimeIntervalFormatError do
   end
 
   def message(%__MODULE__{reason: :no_format, format_key: format_key}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "datetime",
       "No interval format found for {$format_key}.",
       format_key: inspect(format_key)
@@ -34,9 +30,7 @@ defmodule Localize.DateTimeIntervalFormatError do
   end
 
   def message(%__MODULE__{reason: :no_pattern, format_key: format_key, detail: detail}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "datetime",
       "No interval pattern for difference {$detail} in format {$format_key}.",
       detail: inspect(detail),
@@ -45,9 +39,7 @@ defmodule Localize.DateTimeIntervalFormatError do
   end
 
   def message(%__MODULE__{reason: :invalid_format, detail: detail}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "datetime",
       "Invalid interval format {$detail}.",
       detail: inspect(detail)
@@ -55,18 +47,14 @@ defmodule Localize.DateTimeIntervalFormatError do
   end
 
   def message(%__MODULE__{reason: :unterminated_quote}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "datetime",
       "Unterminated quote in interval format."
     )
   end
 
   def message(%__MODULE__{reason: :no_fallback}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "datetime",
       "No interval format fallback pattern available in the locale data."
     )

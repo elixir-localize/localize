@@ -14,9 +14,7 @@ defmodule Localize.DateTimeUnresolvedFormatError do
 
   @impl true
   def message(%__MODULE__{format: format, locale: locale}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "datetime",
       "No available format resolved for {$format} in locale {$locale}.",
       format: inspect(format),

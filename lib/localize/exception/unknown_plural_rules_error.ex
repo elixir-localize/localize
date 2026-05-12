@@ -16,9 +16,7 @@ defmodule Localize.UnknownPluralRulesError do
   def message(%__MODULE__{locale_id: locale_id, type: type}) do
     type_name = if type, do: " #{type}", else: ""
 
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "plural_rules",
       "No{$type} plural rules available for the locale {$locale_id}.",
       locale_id: inspect(locale_id),

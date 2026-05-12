@@ -42,9 +42,7 @@ defmodule Localize.FormatError do
 
   @impl true
   def message(%__MODULE__{reason: :unbalanced_markup, detail: nil, value: value}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "Cannot format {$value}: unbalanced markup: unclosed markup tag",
       value: inspect(value)
@@ -52,9 +50,7 @@ defmodule Localize.FormatError do
   end
 
   def message(%__MODULE__{reason: :unbalanced_markup, detail: detail, value: value}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "Cannot format {$value}: unbalanced markup: {$detail}",
       value: inspect(value),
@@ -63,9 +59,7 @@ defmodule Localize.FormatError do
   end
 
   def message(%__MODULE__{reason: :mismatched_close, detail: detail, value: value}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "Cannot format {$value}: unbalanced markup: close tag {$detail} does not match open",
       value: inspect(value),
@@ -90,9 +84,7 @@ defmodule Localize.FormatError do
 
   def message(%__MODULE__{value: value, function: function, detail: detail})
       when is_binary(detail) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "Cannot format {$value} with function {$function}: {$detail}",
       value: inspect(value),
@@ -102,9 +94,7 @@ defmodule Localize.FormatError do
   end
 
   def message(%__MODULE__{value: value, function: function}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "message",
       "Cannot format {$value} with function {$function}",
       value: inspect(value),

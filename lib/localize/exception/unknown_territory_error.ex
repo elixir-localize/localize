@@ -14,9 +14,7 @@ defmodule Localize.UnknownTerritoryError do
 
   @impl true
   def message(%__MODULE__{territory: territory}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The territory {$territory} is not known.",
       territory: inspect(territory)

@@ -14,27 +14,21 @@ defmodule Localize.DateTimeInvalidInputError do
 
   @impl true
   def message(%__MODULE__{type: :time}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "datetime",
       "Time must have at least one of :hour, :minute, or :second keys."
     )
   end
 
   def message(%__MODULE__{type: :date}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "datetime",
       "Date must have at least one of :year, :month, or :day keys."
     )
   end
 
   def message(%__MODULE__{type: :datetime}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "datetime",
       "Datetime must have date and/or time keys."
     )

@@ -15,9 +15,7 @@ defmodule Localize.NoPracticalDifferenceError do
 
   @impl true
   def message(%__MODULE__{from: from, to: to}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "interval",
       "There is no practical difference between {$from} and {$to}",
       from: inspect(from),

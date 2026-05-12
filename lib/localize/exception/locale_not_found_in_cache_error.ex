@@ -20,9 +20,7 @@ defmodule Localize.LocaleNotFoundInCacheError do
 
   @impl true
   def message(%__MODULE__{locale_id: locale_id, path: path, posix_error: nil}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} was not found in the cache at {$path}. " <>
         "Run `mix localize.download_locales {$locale_id_bare}` to download it, " <>
@@ -35,9 +33,7 @@ defmodule Localize.LocaleNotFoundInCacheError do
   end
 
   def message(%__MODULE__{locale_id: locale_id, path: path, posix_error: posix}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} could not be read from the cache at {$path}: {$reason}.",
       locale_id: inspect(locale_id),

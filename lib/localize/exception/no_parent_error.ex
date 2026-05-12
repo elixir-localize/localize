@@ -14,9 +14,7 @@ defmodule Localize.NoParentError do
 
   @impl true
   def message(%__MODULE__{locale: locale}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The locale {$locale} has no parent locale",
       locale: inspect(locale)

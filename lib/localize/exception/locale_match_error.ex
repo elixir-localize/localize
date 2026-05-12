@@ -14,9 +14,7 @@ defmodule Localize.LocaleMatchError do
 
   @impl true
   def message(%__MODULE__{desired: desired, threshold: threshold}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "language_tag",
       "No matching locale found for {$desired} within distance {$threshold}",
       desired: inspect(desired),

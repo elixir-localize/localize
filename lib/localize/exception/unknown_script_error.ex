@@ -14,9 +14,7 @@ defmodule Localize.UnknownScriptError do
 
   @impl true
   def message(%__MODULE__{script: script}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The script {$script} is not known.",
       script: inspect(script)

@@ -14,9 +14,7 @@ defmodule Localize.UnknownNumberSystemError do
 
   @impl true
   def message(%__MODULE__{reason: :not_for_locale, number_system: number_system, locale: locale}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "number",
       "The number system {$number_system} is not valid for locale {$locale}.",
       number_system: inspect(number_system),
@@ -25,9 +23,7 @@ defmodule Localize.UnknownNumberSystemError do
   end
 
   def message(%__MODULE__{number_system: number_system}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "number",
       "The number system {$number_system} is not known.",
       number_system: inspect(number_system)

@@ -14,9 +14,7 @@ defmodule Localize.UnknownCalendarError do
 
   @impl true
   def message(%__MODULE__{calendar: calendar}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "locale",
       "The calendar {$calendar} is not known.",
       calendar: inspect(calendar)

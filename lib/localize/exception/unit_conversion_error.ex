@@ -17,9 +17,7 @@ defmodule Localize.UnitConversionError do
 
   @impl true
   def message(%__MODULE__{from: from, to: to, reason: :not_convertible}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unit",
       "Units {$from} and {$to} are not convertible.",
       from: inspect(from),
@@ -28,9 +26,7 @@ defmodule Localize.UnitConversionError do
   end
 
   def message(%__MODULE__{from: from, reason: :special_conversion}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unit",
       "Special conversion is not supported for {$from}.",
       from: inspect(from)
@@ -38,18 +34,14 @@ defmodule Localize.UnitConversionError do
   end
 
   def message(%__MODULE__{reason: :mixed_units}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unit",
       "Cannot compute conversion factor for mixed units."
     )
   end
 
   def message(%__MODULE__{from: from, to: to}) do
-    Gettext.dpgettext(
-      Localize.Gettext,
-      "localize",
+    Localize.Exception.safe_message(
       "unit",
       "Cannot convert from {$from} to {$to}.",
       from: inspect(from),
