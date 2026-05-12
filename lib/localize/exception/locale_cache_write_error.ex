@@ -5,6 +5,8 @@ defmodule Localize.LocaleCacheWriteError do
 
   """
 
+  @behaviour Localize.Exception
+
   defexception [:locale_id, :path, :reason, :posix_error]
 
   @type reason ::
@@ -21,6 +23,17 @@ defmodule Localize.LocaleCacheWriteError do
           reason: reason() | nil,
           posix_error: :file.posix() | term() | nil
         }
+
+  @impl Localize.Exception
+  def reason_atoms,
+    do: [
+      :permission_denied,
+      :no_such_directory,
+      :disk_full,
+      :read_only_filesystem,
+      :file_exists,
+      :other_io_error
+    ]
 
   @posix_to_reason %{
     eacces: :permission_denied,

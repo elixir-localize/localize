@@ -22,6 +22,8 @@ defmodule Localize.ParseError do
 
   """
 
+  @behaviour Localize.Exception
+
   defexception [:input, :reason, :offset, :line, :column, :rest, :detail, :cause]
 
   @type reason ::
@@ -40,6 +42,15 @@ defmodule Localize.ParseError do
           detail: String.t() | nil,
           cause: Exception.t() | nil
         }
+
+  @impl Localize.Exception
+  def reason_atoms,
+    do: [
+      :unexpected_trailing_input,
+      :unexpected_input,
+      :incomplete_input,
+      :invalid_message_format
+    ]
 
   @impl true
   def exception(bindings) when is_list(bindings) do
