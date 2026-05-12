@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Bug Fixes
 
-* Revert the `[:safe]` option on `:binary_to_term/2` since we cannot guarantee all the required atoms are materialized at application start.
+* Revert the `[:safe]` option on `:binary_to_term/2` since we cannot guarantee all the required atoms are materialized at application start. Thanks to @bigardone for the report. Closes #25.
 
 ## [0.30.0] — May 12th, 2026
 
