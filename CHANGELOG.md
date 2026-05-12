@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.30.1] — May 12th, 2026
+
+### Bug Fixes
+
+* Revert the `[:safe]` option on `:binary_to_term/2` since we cannot guarantee all the required atoms are materialized at application start.
+
 ## [0.30.0] — May 12th, 2026
 
 ### Security

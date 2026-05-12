@@ -101,23 +101,7 @@ defmodule Localize.Locale.Provider.Cache do
   defp read_and_validate(locale_id, file_path) do
     case File.read(file_path) do
       {:ok, binary} ->
-        # `binary_to_term/1` without `[:safe]` resurrects atoms, funs,
-        # and references from the encoded term — a malicious cache file
-        # can crash the BEAM by exhausting the atom table. Pass
-        # `[:safe]` so only existing atoms can be decoded; legitimate
-        # cache files only reference atoms produced by `store/2` at
-        # build time, all of which are interned at module load.
-        case safe_binary_to_term(binary) do
-          {:ok, locale_data} ->
-            validate_version(locale_id, locale_data)
-
-          :error ->
-            {:error,
-             Localize.LocaleNotFoundInCacheError.exception(
-               locale_id: locale_id,
-               path: "#{file_path} (corrupt or untrusted ETF)"
-             )}
-        end
+        validate_version(locale_id, :erlang.binary_to_term(binary))
 
       {:error, :enoent} ->
         {:error,
@@ -149,15 +133,6 @@ defmodule Localize.Locale.Provider.Cache do
          current_version: current_version
        )}
     end
-  end
-
-  # Decodes a cache binary with `[:safe]` so untrusted files cannot
-  # grow the atom table or instantiate funs/references. Returns
-  # `:error` on any decode failure (corrupt binary, unknown atom, etc).
-  defp safe_binary_to_term(binary) do
-    {:ok, :erlang.binary_to_term(binary, [:safe])}
-  rescue
-    ArgumentError -> :error
   end
 
   @doc """
@@ -224,13 +199,13 @@ defmodule Localize.Locale.Provider.Cache do
   def stale?(locale_id) when is_atom(locale_id) do
     file_path = path(locale_id)
 
-    with {:ok, binary} <- File.read(file_path),
-         {:ok, locale_data} <- safe_binary_to_term(binary) do
-      not versions_match?(Map.get(locale_data, :version), Localize.version())
-    else
-      # Treat a corrupt or unsafe cache file as stale so the caller
-      # re-fetches it rather than trying to use whatever it contains.
-      _ -> true
+    case File.read(file_path) do
+      {:ok, binary} ->
+        locale_data = :erlang.binary_to_term(binary)
+        not versions_match?(Map.get(locale_data, :version), Localize.version())
+
+      {:error, _reason} ->
+        true
     end
   end
 
