@@ -48,7 +48,7 @@ defmodule Localize.Gettext.Interpolation do
   for markup-aware rendering). Not intended for direct use by
   application code.
   """
-  @spec skip_interpolation_sentinel() :: map()
+  @spec skip_interpolation_sentinel() :: %{__localize_skip_interpolation__: true}
   def skip_interpolation_sentinel, do: %{__localize_skip_interpolation__: true}
 
   @impl Gettext.Interpolation
