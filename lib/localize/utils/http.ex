@@ -375,6 +375,105 @@ defmodule Localize.Utils.Http do
     file
   end
 
+  @ca_trust_key {__MODULE__, :ca_trust_option}
+
+  @doc """
+  Resolve the trust source to hand to `:ssl` for peer verification.
+
+  Returns an SSL option pair — either `{:cacerts, list}` carrying
+  DER-encoded certs from the platform trust store, or
+  `{:cacertfile, path}` pointing at a PEM bundle on disk. The result
+  is resolved once and cached in `:persistent_term`.
+
+  Precedence:
+
+  * an explicit `config :localize, cacertfile: path`,
+
+  * `:public_key.cacerts_get/0`,
+
+  * the `CAStore` hex package, if installed,
+
+  * the `:certifi` hex package, if installed,
+
+  * a well-known Unix file path that exists on disk.
+
+  Raises `Localize.NoCertificateStoreError` if none of these yield a
+  usable trust source.
+
+  """
+  @spec ca_trust_option() ::
+          {:cacerts, [binary()]} | {:cacertfile, String.t()} | no_return()
+  def ca_trust_option do
+    case :persistent_term.get(@ca_trust_key, :__not_resolved__) do
+      :__not_resolved__ ->
+        option = resolve_ca_trust_option()
+        :persistent_term.put(@ca_trust_key, option)
+        option
+
+      option ->
+        option
+    end
+  end
+
+  @doc false
+  @spec resolve_ca_trust_option() ::
+          {:cacerts, [binary()]} | {:cacertfile, String.t()} | no_return()
+  def resolve_ca_trust_option do
+    with :continue <- configured_cacertfile(),
+         :continue <- otp_cacerts(),
+         :continue <- castore_cacertfile(),
+         :continue <- certifi_cacertfile(),
+         :continue <- static_cacertfile() do
+      raise Localize.NoCertificateStoreError.exception(searched: certificate_locations())
+    end
+  end
+
+  defp configured_cacertfile do
+    case Application.get_env(:localize, :cacertfile) do
+      nil -> :continue
+      file when is_binary(file) -> {:cacertfile, file}
+    end
+  end
+
+  # `:public_key.cacerts_get/0` returns the platform-native trust list
+  # (Windows store on Windows, system keychain on macOS, and a
+  # well-known PEM bundle on Linux). It raises `:enoent` rather than
+  # returning an empty list when no source has been loaded; treat both
+  # cases as "fall through".
+  defp otp_cacerts do
+    case :public_key.cacerts_get() do
+      [_ | _] = cacerts -> {:cacerts, cacerts}
+      [] -> :continue
+    end
+  rescue
+    _ -> :continue
+  catch
+    _, _ -> :continue
+  end
+
+  defp castore_cacertfile do
+    if Code.ensure_loaded?(CAStore) do
+      {:cacertfile, apply(CAStore, :file_path, [])}
+    else
+      :continue
+    end
+  end
+
+  defp certifi_cacertfile do
+    if Code.ensure_loaded?(:certifi) do
+      {:cacertfile, apply(:certifi, :cacertfile, []) |> List.to_string()}
+    else
+      :continue
+    end
+  end
+
+  defp static_cacertfile do
+    case Enum.find(@static_certificate_locations, &File.exists?/1) do
+      nil -> :continue
+      file -> {:cacertfile, file}
+    end
+  end
+
   defp http_options(hostname, options) do
     default_timeout =
       "LOCALIZE_HTTP_TIMEOUT"
@@ -397,8 +496,8 @@ defmodule Localize.Utils.Http do
   defp https_ssl_options(hostname, verify_peer?) do
     if secure_ssl?() and verify_peer? do
       [
+        ca_trust_option(),
         verify: :verify_peer,
-        cacertfile: certificate_store(),
         depth: 4,
         ciphers: preferred_ciphers(),
         versions: protocol_versions(),

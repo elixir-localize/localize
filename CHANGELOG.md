@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.34.0] — May 14th, 2026
+
+### Bug Fixes
+
+* `Localize.Utils.Http` now resolves the HTTPS trust store via `:public_key.cacerts_get/0` before falling back to the existing `cacertfile` chain (configured path → `CAStore` → `:certifi` → well-known Unix paths). `mix localize.download_locales` previously failed on Windows because the resolver only searched Unix file paths even though the OS-native trust store was reachable. Thanks to @lostkobrakai for the report. Closes #30.
+
 ## [0.33.0] — May 13th, 2026
 
 ### Breaking Changes
