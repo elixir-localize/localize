@@ -10,6 +10,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Utils.Http` now resolves the HTTPS trust store via `:public_key.cacerts_get/0` before falling back to the existing `cacertfile` chain (configured path → `CAStore` → `:certifi` → well-known Unix paths). `mix localize.download_locales` previously failed on Windows because the resolver only searched Unix file paths even though the OS-native trust store was reachable. Thanks to @lostkobrakai for the report. Closes #30.
 
+* `Localize.Number.System` no longer bakes the build host's absolute ETF path into its compiled BEAM causing exceptions when the build host and deployment host are different. The lookup now happens at runtime via `Application.app_dir/2` from a function body. Thanks to @neilberkman for the PR. Closes #28.
+
+### Enhancements
+
+* `Localize.Supervisor` is now a publicly documented module that owns the library's runtime supervision tree and runs the one-time post-start work (supplemental-atom interning, `:supported_locales` resolution). Consumers can keep the default OTP auto-start, or mark the dependency `runtime: false` and mount `Localize.Supervisor` directly under their own application supervisor. See the new `guides/supervision.md` for the full pattern.
+
 ## [0.33.0] — May 13th, 2026
 
 ### Breaking Changes

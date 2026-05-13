@@ -1,6 +1,8 @@
 defmodule Localize.Exception.SafeMessageTest do
   use ExUnit.Case, async: true
 
+  import ExUnit.CaptureLog
+
   # A binding whose value isn't JSON-encodable (functions can't be
   # serialised to JSON). The NIF formatter path encodes bindings as
   # JSON before crossing the NIF boundary, so this is the simplest
@@ -29,42 +31,55 @@ defmodule Localize.Exception.SafeMessageTest do
       # The MF2 NIF pipeline `:json.encode`-s bindings before crossing
       # the NIF boundary; a function can't be JSON-encoded and would
       # otherwise propagate as a raise out of `Exception.message/1`.
-      result =
-        Localize.Exception.safe_message(
-          "locale",
-          "Value is {$value}",
-          value: hostile_binding()
-        )
+      # Gettext's interpolation adapter logs the failure at :error
+      # level before degrading; capture it so it doesn't pollute the
+      # test output.
+      capture_log(fn ->
+        result =
+          Localize.Exception.safe_message(
+            "locale",
+            "Value is {$value}",
+            value: hostile_binding()
+          )
 
-      assert is_binary(result)
+        assert is_binary(result)
+      end)
     end
 
     test "returns a string when bindings are missing for the msgid" do
       # The msgid references {$missing} but no binding is supplied.
-      # Gettext's interpolation adapter degrades gracefully; safe_message
+      # Gettext's interpolation adapter degrades gracefully and logs
+      # the missing-binding event at :error level; safe_message
       # forwards that string-or-msgid result without raising.
-      result = Localize.Exception.safe_message("locale", "Hello {$missing}", [])
+      capture_log(fn ->
+        result = Localize.Exception.safe_message("locale", "Hello {$missing}", [])
 
-      assert is_binary(result)
+        assert is_binary(result)
+      end)
     end
   end
 
   describe "Exception.message/1 resilience" do
     test "produces a string for every fixture exception even with a hostile binding" do
-      exceptions = [
-        Localize.UnknownLocaleError.exception(locale_id: hostile_binding()),
-        Localize.UnknownCurrencyError.exception(currency: hostile_binding()),
-        Localize.InvalidValueError.exception(
-          value: hostile_binding(),
-          expected: :integer,
-          context: :test
-        )
-      ]
+      # Each fixture's `message/1` clause routes the hostile binding
+      # through Gettext, which logs the formatter failure at :error
+      # level. Capture so the test output stays clean.
+      capture_log(fn ->
+        exceptions = [
+          Localize.UnknownLocaleError.exception(locale_id: hostile_binding()),
+          Localize.UnknownCurrencyError.exception(currency: hostile_binding()),
+          Localize.InvalidValueError.exception(
+            value: hostile_binding(),
+            expected: :integer,
+            context: :test
+          )
+        ]
 
-      for exception <- exceptions do
-        assert is_binary(Exception.message(exception)),
-               "Exception.message/1 must return a string for #{inspect(exception.__struct__)}"
-      end
+        for exception <- exceptions do
+          assert is_binary(Exception.message(exception)),
+                 "Exception.message/1 must return a string for #{inspect(exception.__struct__)}"
+        end
+      end)
     end
   end
 end
