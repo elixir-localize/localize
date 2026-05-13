@@ -65,4 +65,54 @@ defmodule Localize.Utils.HttpTest do
       end
     end
   end
+
+  # `resolve_ca_trust_option/0` is the uncached resolver behind
+  # `ca_trust_option/0`. Tests target the resolver so each variant
+  # can be exercised without persistent_term cache interference.
+  #
+  # Regression: issue #30 — Windows users hit
+  # `Localize.NoCertificateStoreError` because the resolver only
+  # searched Unix file paths. The OTP `cacerts_get` branch closes
+  # that gap.
+  describe "resolve_ca_trust_option/0" do
+    test "honours an explicit :cacertfile app config" do
+      original = Application.get_env(:localize, :cacertfile)
+      Application.put_env(:localize, :cacertfile, "/tmp/localize-fake.pem")
+
+      try do
+        assert {:cacertfile, "/tmp/localize-fake.pem"} =
+                 Localize.Utils.Http.resolve_ca_trust_option()
+      after
+        if original do
+          Application.put_env(:localize, :cacertfile, original)
+        else
+          Application.delete_env(:localize, :cacertfile)
+        end
+      end
+    end
+
+    test "falls through to OTP cacerts_get when no override is configured" do
+      original = Application.get_env(:localize, :cacertfile)
+      Application.delete_env(:localize, :cacertfile)
+
+      try do
+        # The CI environment we run on has either an OS trust store
+        # (macOS/Windows) or a populated Unix path. Either way, we
+        # must get a usable option pair back — never raise.
+        assert {tag, value} = Localize.Utils.Http.resolve_ca_trust_option()
+        assert tag in [:cacerts, :cacertfile]
+
+        case tag do
+          :cacerts -> assert is_list(value) and value != []
+          :cacertfile -> assert is_binary(value)
+        end
+      after
+        if original do
+          Application.put_env(:localize, :cacertfile, original)
+        else
+          Application.delete_env(:localize, :cacertfile)
+        end
+      end
+    end
+  end
 end
