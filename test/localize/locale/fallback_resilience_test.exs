@@ -84,12 +84,40 @@ defmodule Localize.Locale.FallbackResilienceTest do
   end
 
   setup do
-    case OnlyEnProvider.start_link() do
-      {:ok, _pid} -> :ok
-      {:error, {:already_started, _}} -> OnlyEnProvider.reset()
-    end
-
+    ensure_only_en_provider_alive!()
+    OnlyEnProvider.reset()
     :ok
+  end
+
+  # The provider is started linked to the test process. When that process exits,
+  # the linked agent is told to die, but the registered-name removal is async to
+  # the test process exit. The next test's setup races: `start_link/0` may see
+  # the name still registered to a pid that's mid-exit, returning
+  # `{:error, {:already_started, OldPid}}` — then `Agent.update/2` against
+  # `OldPid` crashes with "no process". Detect that window via
+  # `Process.alive?/1` and wait for the unregister to complete before starting
+  # a fresh agent.
+  defp ensure_only_en_provider_alive! do
+    case Process.whereis(OnlyEnProvider) do
+      nil ->
+        {:ok, _pid} = OnlyEnProvider.start_link()
+        :ok
+
+      pid ->
+        if Process.alive?(pid) do
+          :ok
+        else
+          ref = Process.monitor(pid)
+
+          receive do
+            {:DOWN, ^ref, :process, _, _} -> :ok
+          after
+            100 -> Process.demonitor(ref, [:flush])
+          end
+
+          ensure_only_en_provider_alive!()
+        end
+    end
   end
 
   # Locales that exercise different parent-walk shapes. Each one was
