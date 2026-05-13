@@ -458,8 +458,11 @@ defmodule Localize.CurrencyTest do
     test "display_name! raises for currency with no name" do
       currency = %Currency{name: nil, code: :XYZ}
 
+      # `apply/3` is type-opaque so the Elixir 1.20 type checker does
+      # not flag this deliberate contract-violation test — we want to
+      # exercise the runtime guard against a name-less currency.
       assert_raise Localize.CurrencyNoDisplayNameError, fn ->
-        Currency.display_name!(currency)
+        apply(Currency, :display_name!, [currency])
       end
     end
   end

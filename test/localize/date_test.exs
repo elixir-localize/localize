@@ -177,8 +177,10 @@ defmodule Localize.DateTest do
     end
 
     test "raises on error" do
+      # `apply/3` is type-opaque so the Elixir 1.20 type checker does
+      # not flag this deliberate contract-violation test.
       assert_raise Localize.DateTimeInvalidInputError, fn ->
-        Localize.Date.to_string!(%{foo: :bar})
+        apply(Localize.Date, :to_string!, [%{foo: :bar}])
       end
     end
   end
