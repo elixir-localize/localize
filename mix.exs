@@ -1,7 +1,7 @@
 defmodule Localize.MixProject do
   use Mix.Project
 
-  @version "0.33.0"
+  @version "0.34.0"
   @cldr_version_path "priv/localize/version"
   @localize_patch_version_path "priv/localize/localize_patch_version"
 
@@ -137,6 +137,7 @@ defmodule Localize.MixProject do
       ],
       Advanced: [
         "guides/architecture.md",
+        "guides/supervision.md",
         "guides/conformance.md",
         "guides/performance.md"
       ],

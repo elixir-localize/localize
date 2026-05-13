@@ -468,7 +468,7 @@ defmodule Localize do
 
         {:error, _exception} ->
           Logger.warning(
-            "#{var_name}=#{inspect(raw)} is not a valid locale; ignoring",
+            "#{var_name}=#{inspect(raw)} is not a valid CLDR locale; ignoring",
             domain: :localize
           )
 
@@ -485,7 +485,7 @@ defmodule Localize do
 
         {:error, _exception} ->
           Logger.warning(
-            "config :localize, default_locale: #{inspect(locale)} is not a valid locale; ignoring",
+            "config :localize, default_locale: #{inspect(locale)} is not a valid CLDR locale; ignoring",
             domain: :localize
           )
 
