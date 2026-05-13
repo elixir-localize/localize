@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.34.0] — Unreleased
+
+### Enhancements
+
+
+* `Localize.Supervisor` is now a publicly documented module that owns the library's runtime supervision tree and runs the one-time post-start work (supplemental-atom interning, `:supported_locales` resolution). Consumers can keep the default OTP auto-start, or mark the dependency `runtime: false` and mount `Localize.Supervisor` directly under their own application supervisor. See the new `guides/supervision.md` for the full pattern.
+
 ## [0.33.0] — May 13th, 2026
 
 ### Breaking Changes
@@ -15,8 +22,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * `Localize.Message.Sigils` adds a new `~t` sigil for compile-time MF2 translation. Elixir `#{expr}` interpolations are rewritten as MF2 `{$name}` placeholders with bindings derived automatically (`fruit.name → fruit_name`, `String.upcase(x) → string_upcase`, etc.), the canonical msgid is registered with Gettext for translation lookup, and modules opt in via `use Localize.Message.Sigils, backend: MyApp.Gettext`. Requires the backend to use `Localize.Gettext.Interpolation`.
 
 * `Localize.Gettext.Interpolation.skip_interpolation_sentinel/0` — public sentinel used by `Localize.HTML.t/1` (and other markup-aware renderers) to retrieve a translated MF2 source without running the markup-stripping interpolation. Both `runtime_interpolate/2` and `compile_interpolate/3` short-circuit when this sentinel is passed as bindings.
-
-* `Localize.Supervisor` is now a publicly documented module that owns the library's runtime supervision tree and runs the one-time post-start work (supplemental-atom interning, `:supported_locales` resolution). Consumers can keep the default OTP auto-start, or mark the dependency `runtime: false` and mount `Localize.Supervisor` directly under their own application supervisor. See the new `guides/supervision.md` for the full pattern.
 
 ### Bug Fixes
 
