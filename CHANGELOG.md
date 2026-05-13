@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [0.34.0] — Unreleased
 
+### Bug Fixes
+
+* `Localize.Number.System` no longer bakes the build host's absolute ETF path into its compiled BEAM. `@number_systems_path` was assigned `Application.app_dir/2` at compile time, which meant a Mix release built on one host and run on another (e.g. a CI runner producing a release that ships to a production VM) crashed on `Application.start/2` when the 0.33.0 eager-intern hook called `load_number_systems/0` against the frozen build-host path with `File.Error` / `:enoent`. The lookup now happens at runtime via `Application.app_dir/2` from a function body.
+
 ### Enhancements
 
 
