@@ -35,11 +35,6 @@ defmodule Localize.Number.System do
 
   @known_number_system_types [:default, :native, :traditional, :finance]
 
-  @number_systems_path Application.app_dir(
-                         :localize,
-                         "priv/localize/supplemental_data/number_systems.etf"
-                       )
-
   # Lazy-load number systems from ETF at runtime and cache in persistent_term.
   @persistent_term_key {:localize, :number_systems}
   @numeric_systems_key {:localize, :numeric_systems}
@@ -660,9 +655,17 @@ defmodule Localize.Number.System do
 
   # ── Private helpers ──────────────────────────────────────────
 
+  # Resolve the ETF path at runtime. Storing `Application.app_dir/2` in a
+  # module attribute bakes the build host's absolute path into the BEAM,
+  # which then fails to read on the target host of a Mix release built on
+  # a different machine (e.g. CI runner -> production VM).
+  defp number_systems_path do
+    Application.app_dir(:localize, "priv/localize/supplemental_data/number_systems.etf")
+  end
+
   defp load_number_systems do
     Localize.DataLoader.load(@persistent_term_key, fn ->
-      systems = @number_systems_path |> File.read!() |> :erlang.binary_to_term()
+      systems = number_systems_path() |> File.read!() |> :erlang.binary_to_term()
 
       numeric =
         systems
