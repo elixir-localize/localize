@@ -109,4 +109,51 @@ defmodule Localize.LintTest do
       |> Path.wildcard()
     end
   end
+
+  describe "no compile-time-frozen Application.app_dir/2 in a module attribute" do
+    # Issue #28: storing `Application.app_dir/2` in a module attribute
+    # bakes the build host's absolute path into the compiled BEAM. A
+    # Mix release built on one host and run on another then crashes on
+    # any runtime read of that attribute, because the path doesn't
+    # exist on the target machine.
+    #
+    # The safe patterns are either (a) inline the `Application.app_dir/2`
+    # call at each compile-time use site so no attribute survives, or
+    # (b) wrap the lookup in a function body so it resolves against the
+    # runtime application controller.
+    #
+    # This lint catches new `@<something>_path Application.app_dir(`
+    # declarations in `lib/` before they ship.
+
+    test "no source file declares `@<name>_path Application.app_dir(...)`" do
+      offenders =
+        File.cwd!()
+        |> Path.join("lib")
+        |> Path.join("**/*.ex")
+        |> Path.wildcard()
+        |> Enum.flat_map(&scan_app_dir_attribute/1)
+
+      assert offenders == [],
+             "\n\nCompile-time-frozen `Application.app_dir/2` declarations " <>
+               "found:\n\n" <>
+               Enum.map_join(offenders, "\n", fn {file, line, snippet} ->
+                 "  #{Path.relative_to(file, File.cwd!())}:#{line}\n    #{snippet}"
+               end) <>
+               "\n\nEach of these bakes the build host's absolute path " <>
+               "into the compiled BEAM and crashes on any release shipped " <>
+               "to a different host. Either inline `Application.app_dir/2` " <>
+               "at the use site, or wrap the lookup in a function body. " <>
+               "See `test/localize/lint_test.exs` for context."
+    end
+
+    defp scan_app_dir_attribute(path) do
+      path
+      |> File.stream!()
+      |> Stream.with_index(1)
+      |> Stream.filter(fn {line, _} ->
+        Regex.match?(~r/^\s*@\w+_path\s+Application\.app_dir\s*\(/, line)
+      end)
+      |> Enum.map(fn {line, line_number} -> {path, line_number, String.trim(line)} end)
+    end
+  end
 end

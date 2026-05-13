@@ -11,10 +11,17 @@ defmodule Localize.Unit.Data do
 
   # alias Localize.Unit.Data.Expression
 
-  @etf_path Application.app_dir(:localize, "priv/localize/supplemental_data/unit_data.etf")
-  @external_resource @etf_path
+  # Inlining the `Application.app_dir/2` call at each compile-time use
+  # site avoids leaving a `@etf_path` module attribute that a future
+  # maintainer could accidentally reference at runtime — which would
+  # crash on any host that differs from the build host. Issue #28.
+  @external_resource Application.app_dir(
+                       :localize,
+                       "priv/localize/supplemental_data/unit_data.etf"
+                     )
 
-  @data @etf_path
+  @data :localize
+        |> Application.app_dir("priv/localize/supplemental_data/unit_data.etf")
         |> File.read!()
         |> :erlang.binary_to_term()
 
