@@ -25,12 +25,20 @@ defmodule Localize.Collation.Tailoring do
   alias Localize.Collation.{Element, Table}
   alias Localize.Collation.Table.Parser
 
-  @tailorings_path Application.app_dir(
-                     :localize,
-                     "priv/localize/supplemental_data/collation_tailoring.etf"
-                   )
-  @external_resource @tailorings_path
-  @tailorings @tailorings_path |> File.read!() |> :erlang.binary_to_term()
+  # Inlining the `Application.app_dir/2` call at each compile-time use
+  # site avoids leaving a `@tailorings_path` module attribute that a
+  # future maintainer could accidentally reference at runtime — which
+  # would crash on any host that differs from the build host. Issue
+  # #28.
+  @external_resource Application.app_dir(
+                       :localize,
+                       "priv/localize/supplemental_data/collation_tailoring.etf"
+                     )
+
+  @tailorings :localize
+              |> Application.app_dir("priv/localize/supplemental_data/collation_tailoring.etf")
+              |> File.read!()
+              |> :erlang.binary_to_term()
 
   @doc """
   Get a tailoring overlay for the given locale and collation type.

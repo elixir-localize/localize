@@ -8,9 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Bug Fixes
 
-* `Localize.Utils.Http` now resolves the HTTPS trust store via `:public_key.cacerts_get/0` before falling back to the existing `cacertfile` chain (configured path → `CAStore` → `:certifi` → well-known Unix paths). `mix localize.download_locales` previously failed on Windows because the resolver only searched Unix file paths even though the OS-native trust store was reachable. Thanks to @lostkobrakai for the report. Closes #30.
+* `Localize.Utils.Http` now resolves the HTTPS trust store via `:public_key.cacerts_get/0` before falling back to the existing `cacertfile` chain (configured path → `CAStore` → `:certifi` → well-known Unix paths). `mix localize.download_locales` previously failed on Windows because the resolver only searched Unix file paths even though the OS-native trust store was reachable. Thanks to @LostKobrakai for the report. Closes #30.
 
-* `Localize.Number.System` no longer bakes the build host's absolute ETF path into its compiled BEAM causing exceptions when the build host and deployment host are different. The lookup now happens at runtime via `Application.app_dir/2` from a function body. Thanks to @neilberkman for the PR. Closes #28.
+* `Localize.Number.System` no longer bakes the build host's absolute ETF path into its compiled BEAM which caused exceptions when the build host and deployment host were different. The lookup now happens at runtime via `Application.app_dir/2` from a function body. Thanks to @neilberkman for the PR. Closes #28.
 
 ### Enhancements
 

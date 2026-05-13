@@ -42,18 +42,26 @@ defmodule Localize.DateTime.Format.Match do
   @prefer_cycle_24 ["H", "k"]
   # @prefer_cycle_12 ["h", "K"]
 
-  @time_preferences_path Application.app_dir(
-                           :localize,
-                           "priv/localize/supplemental_data/time_preferences.etf"
-                         )
+  # Inlining the `Application.app_dir/2` call at each compile-time use
+  # site avoids leaving a `@time_preferences_path` module attribute
+  # that a future maintainer could accidentally reference at runtime —
+  # which would crash on any host that differs from the build host.
+  # Issue #28.
+  @time_preferences (
+                      path =
+                        Application.app_dir(
+                          :localize,
+                          "priv/localize/supplemental_data/time_preferences.etf"
+                        )
 
-  @time_preferences (if File.exists?(@time_preferences_path) do
-                       @time_preferences_path
-                       |> File.read!()
-                       |> :erlang.binary_to_term()
-                     else
-                       %{:"001" => %{preferred: "H", allowed: ["H", "h"]}}
-                     end)
+                      if File.exists?(path) do
+                        path
+                        |> File.read!()
+                        |> :erlang.binary_to_term()
+                      else
+                        %{:"001" => %{preferred: "H", allowed: ["H", "h"]}}
+                      end
+                    )
 
   @spec best_match(atom() | String.t(), atom(), atom()) ::
           {:ok, atom()} | {:ok, {atom(), atom()}} | {:error, Exception.t()}
