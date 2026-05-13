@@ -402,7 +402,9 @@ defmodule Localize.Utils.Http do
 
   """
   @spec ca_trust_option() ::
-          {:cacerts, [binary()]} | {:cacertfile, String.t()} | no_return()
+          {:cacerts, [:public_key.combined_cert()]}
+          | {:cacertfile, String.t()}
+          | no_return()
   def ca_trust_option do
     case :persistent_term.get(@ca_trust_key, :__not_resolved__) do
       :__not_resolved__ ->
@@ -417,7 +419,9 @@ defmodule Localize.Utils.Http do
 
   @doc false
   @spec resolve_ca_trust_option() ::
-          {:cacerts, [binary()]} | {:cacertfile, String.t()} | no_return()
+          {:cacerts, [:public_key.combined_cert()]}
+          | {:cacertfile, String.t()}
+          | no_return()
   def resolve_ca_trust_option do
     with :continue <- configured_cacertfile(),
          :continue <- otp_cacerts(),
