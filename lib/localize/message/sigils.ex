@@ -270,7 +270,8 @@ defmodule Localize.Message.Sigils do
         "invalid MF2 message in #{sigil_name} sigil at column #{column}: #{Exception.message(error)}"
   end
 
-  defp caller_line(meta, caller) do
+  @doc false
+  def caller_line(meta, caller) do
     Keyword.get(meta, :line, caller.line)
   end
 
@@ -283,7 +284,8 @@ defmodule Localize.Message.Sigils do
 
   # --- ~t helpers ---------------------------------------------------------
 
-  defp fetch_config!(caller, meta) do
+  @doc false
+  def fetch_config!(caller, meta) do
     case Module.get_attribute(caller.module, :__localize_message_sigils_config__) do
       nil ->
         raise CompileError,
@@ -302,7 +304,8 @@ defmodule Localize.Message.Sigils do
   # interpolation AST), replace each interpolation with a `{$name}`
   # MF2 placeholder, and accumulate `{key, value_ast}` bindings in
   # source order.
-  defp extract_interpolations!(pieces, caller, meta) do
+  @doc false
+  def extract_interpolations!(pieces, caller, meta) do
     {ids_rev, bindings_rev, _seen} =
       Enum.reduce(pieces, {[], [], %{}}, fn
         piece, {ids, bindings, seen} when is_binary(piece) ->
@@ -365,6 +368,46 @@ defmodule Localize.Message.Sigils do
     {name, expr}
   end
 
+  # HEEx rewrites `@foo` to `assigns.foo` before the t/1 macro sees it.
+  # Drop the `assigns` prefix so `#{@user.name}` and `#{@count}` derive
+  # the same names a developer would naturally write.
+  #
+  # Single-level: assigns.foo → foo
+  defp derive_binding!(
+         {{:., _, [{:assigns, _, ctx}, key]}, _, []} = expr,
+         _caller,
+         _meta
+       )
+       when is_atom(key) and (is_atom(ctx) or is_nil(ctx)) do
+    {key, expr}
+  end
+
+  # Multi-level chain rooted at `assigns` (HEEx-injected from @assign).
+  # E.g. assigns.user.address.city → user_address_city.
+  # Matches when the receiver is itself a call AST (i.e. another dot).
+  defp derive_binding!(
+         {{:., _, [{{:., _, [_, _]}, _, []} = parent, key]}, _, []} = expr,
+         caller,
+         meta
+       )
+       when is_atom(key) do
+    case strip_assigns_prefix(parent) do
+      {:ok, parts} ->
+        all = parts ++ [key]
+        joined = Enum.map_join(all, "_", &Atom.to_string/1)
+        {String.to_atom(joined), expr}
+
+      :error ->
+        raise CompileError,
+          file: caller.file,
+          line: caller_line(meta, caller),
+          description:
+            "cannot derive a binding name for `#{Macro.to_string(expr)}` " <>
+              "(nested dot access not rooted at `assigns`). " <>
+              "Use `key = expr` to name the binding explicitly."
+    end
+  end
+
   # Dot access on a simple parent: parent.child → parent_child.
   defp derive_binding!(
          {{:., _, [{parent, _, parent_ctx}, key]}, _, []} = expr,
@@ -375,7 +418,8 @@ defmodule Localize.Message.Sigils do
     {:"#{parent}_#{key}", expr}
   end
 
-  # Dot access on an assign: @assigns.name → assigns_name.
+  # Dot access on an explicit `@assign.field` (sigil source path).
+  # Derives the same flat key as `assigns.parent.key` does in HEEx.
   defp derive_binding!(
          {{:., _, [{:@, _, [{parent, _, _}]}, key]}, _, []} = expr,
          _caller,
@@ -423,6 +467,23 @@ defmodule Localize.Message.Sigils do
         "cannot derive a binding name for `#{Macro.to_string(expr)}` in ~t sigil. " <>
           "Use `key = expr` to name the binding explicitly."
   end
+
+  # Walk an AST chain rooted at the `assigns` variable (HEEx's
+  # expansion of `@`). Returns {:ok, parts} where parts is the list of
+  # keys traversed after `assigns` in order, or :error when the chain
+  # isn't rooted at `assigns`.
+  defp strip_assigns_prefix({:assigns, _, ctx}) when is_atom(ctx) or is_nil(ctx) do
+    {:ok, []}
+  end
+
+  defp strip_assigns_prefix({{:., _, [parent, key]}, _, []}) when is_atom(key) do
+    case strip_assigns_prefix(parent) do
+      {:ok, parts} -> {:ok, parts ++ [key]}
+      :error -> :error
+    end
+  end
+
+  defp strip_assigns_prefix(_), do: :error
 
   defp strip_meta(ast) do
     Macro.prewalk(ast, fn

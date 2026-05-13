@@ -38,7 +38,25 @@ defmodule Localize.Gettext.Interpolation do
 
   @behaviour Gettext.Interpolation
 
+  @doc """
+  Sentinel bindings that cause `runtime_interpolate/2` and
+  `do_interpolate/2` to return the translated msgid unchanged,
+  bypassing MF2 evaluation entirely.
+
+  Used by `Localize.HTML.t/1` (and any caller that needs the raw
+  translated MF2 source so it can run `format_to_safe_list/3` itself
+  for markup-aware rendering). Not intended for direct use by
+  application code.
+  """
+  @spec skip_interpolation_sentinel() :: map()
+  def skip_interpolation_sentinel, do: %{__localize_skip_interpolation__: true}
+
   @impl Gettext.Interpolation
+  def runtime_interpolate(message, %{__localize_skip_interpolation__: _})
+      when is_binary(message) do
+    {:ok, message}
+  end
+
   def runtime_interpolate(message, bindings) when is_binary(message) do
     string_bindings = normalize_gettext_bindings(bindings)
 
@@ -79,10 +97,16 @@ defmodule Localize.Gettext.Interpolation do
     case Localize.Message.Parser.parse(message) do
       {:ok, parsed} ->
         quote do
-          Localize.Gettext.Interpolation.do_interpolate(
-            unquote(Macro.escape(parsed)),
-            unquote(bindings)
-          )
+          case unquote(bindings) do
+            %{__localize_skip_interpolation__: _} ->
+              {:ok, unquote(message)}
+
+            regular_bindings ->
+              Localize.Gettext.Interpolation.do_interpolate(
+                unquote(Macro.escape(parsed)),
+                regular_bindings
+              )
+          end
         end
 
       {:error, exception} ->
