@@ -52,6 +52,8 @@ def deps do
 end
 ```
 
+By default the `:localize` OTP application starts automatically and brings up its own supervision tree. Applications that prefer to mount Localize under their own supervisor can do so by marking the dependency `runtime: false` and adding `Localize.Supervisor` to their `children` list — see the [Supervision](https://hexdocs.pm/localize/supervision.html) guide.
+
 ## Quick start
 
 ```elixir

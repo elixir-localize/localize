@@ -137,6 +137,7 @@ defmodule Localize.MixProject do
       ],
       Advanced: [
         "guides/architecture.md",
+        "guides/supervision.md",
         "guides/conformance.md",
         "guides/performance.md"
       ],
