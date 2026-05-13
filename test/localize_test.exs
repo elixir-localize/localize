@@ -5,6 +5,8 @@ defmodule LocalizeTest do
   use ExUnit.Case, async: false
   doctest Localize
 
+  import ExUnit.CaptureLog
+
   describe "to_string/1 — protocol delegation" do
     test "Integer delegates to Localize.Chars" do
       assert Localize.to_string(1234) == Localize.Chars.to_string(1234)
@@ -120,14 +122,20 @@ defmodule LocalizeTest do
       # locale via the Localize Gettext backend, and the resolver is in the
       # middle of computing that very value. With the cache pre-seed, the
       # recursive lookup short-circuits to `:en` and resolution completes.
+      #
+      # The fallback path emits a `Logger.warning/2` ("LANG=\"POSIX\" is
+      # not a valid CLDR locale; ignoring") — capture it so the test
+      # output stays clean.
       :persistent_term.erase(@default_locale_key)
       System.put_env("LANG", "POSIX")
       System.delete_env("LOCALIZE_DEFAULT_LOCALE")
       Application.delete_env(:localize, :default_locale)
 
-      task = Task.async(fn -> Localize.default_locale() end)
+      capture_log(fn ->
+        task = Task.async(fn -> Localize.default_locale() end)
 
-      assert %Localize.LanguageTag{cldr_locale_id: :en} = Task.await(task, 5_000)
+        assert %Localize.LanguageTag{cldr_locale_id: :en} = Task.await(task, 5_000)
+      end)
     end
   end
 end
