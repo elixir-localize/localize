@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Gettext.Interpolation.skip_interpolation_sentinel/0` — public sentinel used by `Localize.HTML.t/1` (and other markup-aware renderers) to retrieve a translated MF2 source without running the markup-stripping interpolation. Both `runtime_interpolate/2` and `compile_interpolate/3` short-circuit when this sentinel is passed as bindings.
 
+* `Localize.Supervisor` is now a publicly documented module that owns the library's runtime supervision tree and runs the one-time post-start work (supplemental-atom interning, `:supported_locales` resolution). Consumers can keep the default OTP auto-start, or mark the dependency `runtime: false` and mount `Localize.Supervisor` directly under their own application supervisor. See the new `guides/supervision.md` for the full pattern.
+
 ### Bug Fixes
 
 * `Localize.Application.start/2` now eagerly reads every bundled supplemental dataset (languages, scripts, territories, variants, subdivisions, units, currency codes, calendars, timezones, territory subdivisions, locale ids, number systems) so the atoms they reference are interned at app start. The 0.30.0 atom-DOS hardening switched many lookups to `binary_to_existing_atom`, which assumes the legitimate atoms already exist. Without the eager-load, valid input like `numberingSystem=arab` could surface as a bogus "unknown numbering system" error on a fresh BEAM where no prior code path had triggered the relevant `binary_to_term/1` read. Manifested as a transient CI failure in `Localize.Message.NumberOptionsTest`; cause was identical in shape to issue #26.
