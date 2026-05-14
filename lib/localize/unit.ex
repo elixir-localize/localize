@@ -29,12 +29,11 @@ defmodule Localize.Unit do
 
   """
 
-  defstruct [
-    :name,
-    :parsed,
-    :value,
-    :usage
-  ]
+  defstruct name: nil,
+            parsed: nil,
+            value: nil,
+            usage: nil,
+            format_options: []
 
   @type value :: number() | Decimal.t() | [number()] | nil
 
@@ -42,7 +41,8 @@ defmodule Localize.Unit do
           name: String.t(),
           parsed: tuple(),
           value: value(),
-          usage: String.t() | nil
+          usage: String.t() | nil,
+          format_options: Keyword.t()
         }
 
   defp valid_usages do
@@ -775,28 +775,56 @@ defmodule Localize.Unit do
   @doc """
   Formats a unit together with its value as a localized string.
 
-  The unit is rendered inline with its value using the locale's
-  pluralised pattern (e.g., "5 meters"). For the bare stand-alone
-  label without a value, use `display_name/2`.
+  Accepts either a single `t:Localize.Unit.t/0` struct or a list of them.
+  A single unit is rendered inline with its value using the locale's
+  pluralised pattern (e.g., `"5 meters"`). A list is rendered by
+  formatting each element and joining via `Localize.List.to_string/2`,
+  which is what produces mixed-unit output like `"6 feet, 0.047 inches"`.
+
+  When `:usage` is supplied for a *single* unit — or the unit's struct
+  carries a non-`nil` `:usage` field set at `new/3` time — this function
+  first calls `localize/2` to convert the value into the locale-preferred
+  unit set, then formats the resulting list. This is the one-call
+  shortcut for the
+  preference-resolution → conversion → decomposition → format pipeline.
+
+  The territory used for preference resolution is derived from the
+  `:locale` option (via `Localize.Territory.territory_from_locale/1`).
+  There is no `:territory` option on `to_string/2`; if you need to
+  override the territory independently of the locale, call
+  `localize/2` directly and pipe the result back into `to_string/2`.
+
+  For the bare stand-alone unit label without a value, use `display_name/2`.
 
   ### Arguments
 
-  * `unit` is a `t:Localize.Unit.t/0` struct.
+  * `unit_or_units` is a `t:Localize.Unit.t/0` struct or a non-empty
+    list of `t:Localize.Unit.t/0` structs.
 
   * `options` is a keyword list of options.
 
   ### Options
 
   * `:locale` is a locale identifier atom, string, or a
-    `t:Localize.LanguageTag.t/0`. The default is `:en`.
+    `t:Localize.LanguageTag.t/0`. The default is the current process
+    locale.
 
   * `:format` is `:long`, `:short`, or `:narrow`.
     The default is `:long`.
 
-  * `:backend` is `:nif` or `:elixir`. When `:nif` is
-    specified and the NIF is available, ICU4C is used for
-    formatting. Otherwise falls back to the pure-Elixir
-    formatter. The default is `:elixir`.
+  * `:usage` (single unit only) is the unit's intended usage. When
+    given, triggers `localize/2` before formatting. Accepts an atom
+    (`:person_height`) or a CLDR-style string (`"person-height"`). If
+    the option is omitted but the struct's `:usage` field is set,
+    `localize/2` is still triggered using that value.
+
+  * `:list_options` is a keyword list passed to `Localize.List.to_string/2`
+    when rendering a unit list. Use it to pick a unit-specific list style
+    (e.g. `list_options: [list_style: :unit_short]`).
+
+  * `:backend` is `:nif` or `:elixir`. When `:nif` is specified and the
+    NIF is available, ICU4C is used for formatting. Otherwise falls
+    back to the pure-Elixir formatter. The default is `:elixir`.
 
   ### Returns
 
@@ -818,10 +846,68 @@ defmodule Localize.Unit do
       iex> Localize.Unit.to_string(unit, format: :short)
       {:ok, "42 m"}
 
+      iex> unit = Localize.Unit.new!(1.83, "meter")
+      iex> Localize.Unit.to_string(unit, usage: :person_height, locale: "en-US")
+      {:ok, "6 feet and 0.047 inches"}
+
+      iex> unit = Localize.Unit.new!(2_000, "meter")
+      iex> Localize.Unit.to_string(unit, usage: :road, locale: "de-DE")
+      {:ok, "2 Kilometer"}
+
   """
-  @spec to_string(t(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
-  def to_string(%__MODULE__{} = unit, options \\ []) do
-    Localize.Unit.Formatter.to_string(unit, options)
+  @spec to_string(t() | [t(), ...], Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
+  def to_string(unit_or_units, options \\ [])
+
+  def to_string([%__MODULE__{} | _] = units, options) do
+    format_unit_list(units, options)
+  end
+
+  def to_string(%__MODULE__{} = unit, options) do
+    if Keyword.has_key?(options, :usage) or not is_nil(unit.usage) do
+      preference_options = Keyword.take(options, [:usage, :locale])
+      list_options = Keyword.drop(options, [:usage])
+
+      with {:ok, parts} <- localize(unit, preference_options) do
+        format_unit_list(parts, list_options)
+      end
+    else
+      Localize.Unit.Formatter.to_string(unit, merge_struct_format_options(unit, options))
+    end
+  end
+
+  # The unit's struct may carry `:format_options` — typically `[round_nearest: N]`
+  # stamped on by `localize/2` from CLDR's unitPreferenceData skeleton. Caller-
+  # supplied options on `to_string/2` win, so the struct's options act as a
+  # default that the caller can override.
+  defp merge_struct_format_options(%__MODULE__{format_options: []}, options), do: options
+
+  defp merge_struct_format_options(%__MODULE__{format_options: struct_options}, options) do
+    Keyword.merge(struct_options, options)
+  end
+
+  defp format_unit_list(units, options) do
+    {list_options, element_options} = Keyword.pop(options, :list_options, [])
+
+    list_options =
+      list_options
+      |> Keyword.put_new(:locale, Keyword.get(element_options, :locale, Localize.get_locale()))
+
+    Enum.reduce_while(units, {:ok, []}, fn unit, {:ok, acc} ->
+      case Localize.Unit.Formatter.to_string(
+             unit,
+             merge_struct_format_options(unit, element_options)
+           ) do
+        {:ok, formatted} -> {:cont, {:ok, [formatted | acc]}}
+        {:error, _} = error -> {:halt, error}
+      end
+    end)
+    |> case do
+      {:ok, formatted_reversed} ->
+        Localize.List.to_string(Enum.reverse(formatted_reversed), list_options)
+
+      {:error, _} = error ->
+        error
+    end
   end
 
   @doc """
@@ -829,7 +915,8 @@ defmodule Localize.Unit do
 
   ### Arguments
 
-  * `unit` is a `t:Localize.Unit.t/0` struct.
+  * `unit_or_units` is a `t:Localize.Unit.t/0` struct or a non-empty
+    list of `t:Localize.Unit.t/0` structs.
 
   * `options` is a keyword list of options.
 
@@ -842,9 +929,9 @@ defmodule Localize.Unit do
   * Raises an exception if the unit cannot be formatted.
 
   """
-  @spec to_string!(t(), Keyword.t()) :: String.t()
-  def to_string!(%__MODULE__{} = unit, options \\ []) do
-    case to_string(unit, options) do
+  @spec to_string!(t() | [t(), ...], Keyword.t()) :: String.t()
+  def to_string!(unit_or_units, options \\ []) do
+    case to_string(unit_or_units, options) do
       {:ok, string} -> string
       {:error, exception} -> raise exception
     end
@@ -1050,6 +1137,92 @@ defmodule Localize.Unit do
     end
   end
 
+  # ── Localize ──────────────────────────────────────────────────
+
+  @doc """
+  Converts a unit into the locale-preferred unit set for a given usage.
+
+  Resolves the preferred unit list with `Localize.Unit.Preference.preferred_units/2`
+  (driven by `:usage` and `:territory`), then decomposes the value across
+  that list. The result is a list of `t:Localize.Unit.t/0` structs ready
+  to be rendered with `to_string/2`.
+
+  This is the convenience wrapper for the common
+  preference-resolution → conversion → decomposition pipeline. Pass the
+  returned list straight to `Localize.Unit.to_string/2` to render it as
+  a localized unit list (e.g. `"6 feet, 0.047 inches"`).
+
+  ### Arguments
+
+  * `unit` is a `t:Localize.Unit.t/0` struct with a value.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:usage` is the unit's intended usage. Accepts an atom
+    (`:person_height`) or a CLDR-style string (`"person-height"`).
+    If omitted, falls back to the struct's `:usage` field, then to
+    `:default`.
+
+  * `:territory` is a territory code atom (e.g. `:US`, `:DE`). If
+    omitted, derived from the current locale.
+
+  * `:locale` is a locale identifier used to derive `:territory` when
+    `:territory` is not given.
+
+  ### Returns
+
+  * `{:ok, units}` where `units` is a list of `t:Localize.Unit.t/0`
+    structs, in preference order (largest unit first).
+
+  * `{:error, exception}` if preferences cannot be resolved or the
+    decomposition fails.
+
+  ### Examples
+
+      iex> unit = Localize.Unit.new!(1.83, "meter")
+      iex> {:ok, parts} = Localize.Unit.localize(unit, usage: :person_height, territory: :US)
+      iex> Enum.map(parts, fn u -> u.name end)
+      ["foot", "inch"]
+
+      iex> unit = Localize.Unit.new!(2_000, "meter")
+      iex> {:ok, [km]} = Localize.Unit.localize(unit, usage: :road, territory: :DE)
+      iex> {km.name, km.value}
+      {"kilometer", 2.0}
+
+  """
+  @spec localize(t(), Keyword.t()) :: {:ok, [t()]} | {:error, Exception.t()}
+  def localize(unit, options \\ [])
+
+  def localize(%__MODULE__{value: nil}, _options) do
+    {:error, Localize.UnitNoValueError.exception(operation: :localize)}
+  end
+
+  def localize(%__MODULE__{} = unit, options) do
+    with {:ok, target_atoms, format_options} <-
+           Localize.Unit.Preference.preferred_units(unit, options) do
+      resolved_usage = resolved_usage_string(options, unit)
+
+      with {:ok, parts} <- decompose(unit, Enum.map(target_atoms, &Atom.to_string/1)) do
+        {:ok, Enum.map(parts, &%{&1 | usage: resolved_usage, format_options: format_options})}
+      end
+    end
+  end
+
+  # Mirror cldr_units: stamp the resolved usage onto each decomposed child so
+  # downstream formatting (or struct comparisons in tests) can see it. The
+  # struct stores usage as the canonical CLDR-style hyphenated string
+  # (e.g. "person-height"), so atoms passed via the options keyword list
+  # are converted accordingly.
+  defp resolved_usage_string(options, %__MODULE__{usage: struct_usage}) do
+    case Keyword.get(options, :usage) do
+      nil -> struct_usage
+      explicit when is_atom(explicit) -> explicit |> Atom.to_string() |> String.replace("_", "-")
+      explicit when is_binary(explicit) -> explicit
+    end
+  end
+
   # ── Decompose ─────────────────────────────────────────────────
 
   @doc """
@@ -1061,6 +1234,10 @@ defmodule Localize.Unit do
 
   Each target unit receives the integer part of the remaining value,
   except the last unit which receives the remainder.
+
+  When the input value is a `Decimal`, the truncate/remainder math runs
+  in `Decimal` arithmetic (not float), so precision is preserved
+  through the decomposition.
 
   ### Arguments
 
@@ -1082,6 +1259,11 @@ defmodule Localize.Unit do
       iex> Enum.map(parts, fn u -> {u.name, u.value} end)
       [{"meter", 1}, {"centimeter", 75.0}]
 
+      iex> {:ok, m} = Localize.Unit.new(Decimal.new("1.75"), "meter")
+      iex> {:ok, parts} = Localize.Unit.decompose(m, ["meter", "centimeter"])
+      iex> Enum.map(parts, fn u -> {u.name, u.value} end)
+      [{"meter", 1}, {"centimeter", Decimal.new("75.0")}]
+
   """
   @spec decompose(t(), [String.t()]) :: {:ok, [t()]} | {:error, Exception.t()}
   def decompose(%__MODULE__{value: nil}, _targets) do
@@ -1097,23 +1279,39 @@ defmodule Localize.Unit do
 
   def decompose(%__MODULE__{} = unit, [target | rest]) do
     case convert(unit, target) do
-      {:ok, converted} ->
-        float_value = to_float(converted.value)
-        integer_part = trunc(float_value)
-        remainder = float_value - integer_part
-
-        with {:ok, remainder_unit} <- new(remainder, target),
-             {:ok, rest_parts} <- decompose(remainder_unit, rest) do
-          {:ok, [%{converted | value: integer_part} | rest_parts]}
-        end
-
-      error ->
-        error
+      {:ok, converted} -> split_for_decompose(converted, target, rest)
+      error -> error
     end
   end
 
   def decompose(%__MODULE__{}, []) do
     {:ok, []}
+  end
+
+  defp split_for_decompose(%__MODULE__{value: %Decimal{} = d} = converted, target, rest) do
+    # Truncate toward zero; Decimal.round/3 with :down is the equivalent
+    # of `trunc/1` for floats. The remainder stays in Decimal so any
+    # subsequent recursion preserves precision instead of round-tripping
+    # through float.
+    trunc_decimal = Decimal.round(d, 0, :down)
+    integer_part = Decimal.to_integer(trunc_decimal)
+    remainder = Decimal.sub(d, trunc_decimal)
+
+    with {:ok, remainder_unit} <- new(remainder, target),
+         {:ok, rest_parts} <- decompose(remainder_unit, rest) do
+      {:ok, [%{converted | value: integer_part} | rest_parts]}
+    end
+  end
+
+  defp split_for_decompose(%__MODULE__{value: value} = converted, target, rest) do
+    float_value = to_float(value)
+    integer_part = trunc(float_value)
+    remainder = float_value - integer_part
+
+    with {:ok, remainder_unit} <- new(remainder, target),
+         {:ok, rest_parts} <- decompose(remainder_unit, rest) do
+      {:ok, [%{converted | value: integer_part} | rest_parts]}
+    end
   end
 
   # ── Accessors ─────────────────────────────────────────────────

@@ -248,13 +248,82 @@ iex> result.name
 
 ### Usage preferences
 
-The optional `:usage` parameter on `new/3` provides context for more specific conversions. For example, "person-height" in the US uses feet and inches rather than miles:
+The optional `:usage` parameter on `new/3` records a unit's *context* (e.g. `"person-height"`, `"road"`, `"food"`) so that conversions can pick a locale-appropriate target. The usage field round-trips on the struct:
 
 ```elixir
 iex> {:ok, height} = Localize.Unit.new(180, "centimeter", usage: "person-height")
 iex> height.usage
 "person-height"
 ```
+
+The mechanism that actually consumes `:usage` is `Localize.Unit.Preference.preferred_units/2`. For each `{usage, territory}` pair, CLDR ships an ordered list of `geq` ("greater-or-equal") thresholds keyed against the unit's value in the category's base unit (metres for length, kilograms for mass, etc.). The first threshold the value clears selects the preferred unit set — so **the same usage in the same territory can resolve to different units depending on the magnitude of the value**.
+
+The canonical demonstration is `:person_height` in the US. Adult-sized values clear the 3-foot threshold and render as feet+inches; smaller values fall through to inches alone:
+
+```elixir
+iex> adult = Localize.Unit.new!(180, "centimeter")
+iex> Localize.Unit.Preference.preferred_units(adult, usage: :person_height, territory: :US)
+{:ok, [:foot, :inch], []}
+
+iex> infant = Localize.Unit.new!(60, "centimeter")
+iex> Localize.Unit.Preference.preferred_units(infant, usage: :person_height, territory: :US)
+{:ok, [:inch], []}
+```
+
+Same locale, same `usage:`, different output — the only thing that changed is the value crossing CLDR's `geq` boundary. This is how CLDR encodes the everyday convention that an adult's height is quoted as `5'11"` while a newborn's is quoted as `20 in`.
+
+The returned unit list is the *target* set; convert the source unit to it (and format with a mixed-unit pattern) to render in the preferred form. Locales without such a threshold simply return the same unit set for every magnitude — `:person_height` in `:AT`, for example, is always `[:meter, :centimeter]`.
+
+The same pattern applies to `:road` distances. In the US, short distances render in feet, longer ones in miles; in Germany, short distances render in metres, longer ones in kilometres:
+
+```elixir
+iex> short = Localize.Unit.new!(200, "meter")
+iex> long  = Localize.Unit.new!(2_000, "meter")
+
+iex> Localize.Unit.Preference.preferred_units(short, usage: :road, territory: :US)
+{:ok, [:foot], []}
+iex> Localize.Unit.Preference.preferred_units(long,  usage: :road, territory: :US)
+{:ok, [:mile], []}
+
+iex> Localize.Unit.Preference.preferred_units(short, usage: :road, territory: :DE)
+{:ok, [:meter], []}
+iex> Localize.Unit.Preference.preferred_units(long,  usage: :road, territory: :DE)
+{:ok, [:kilometer], []}
+```
+
+This example shows both axes of preference resolution at once: territory selects the unit family (imperial vs. metric), and magnitude selects which member of that family applies.
+
+#### Formatting with the resolved preference
+
+`preferred_units/2` returns just the *target* unit set; for end-to-end rendering pass `:usage` directly to `Localize.Unit.to_string/2`. The territory is derived from the `:locale` option via `Localize.Territory.territory_from_locale/1`, so a single locale-aware call resolves the preference, decomposes the value across the preferred unit list, and joins the parts with the locale's standard list pattern:
+
+```elixir
+iex> distance = Localize.Unit.new!(2_000, "meter")
+iex> Localize.Unit.to_string(distance, usage: :road, locale: "en-US", format: :short)
+{:ok, "1.243 mi"}
+iex> Localize.Unit.to_string(distance, usage: :road, locale: "de-DE")
+{:ok, "2 Kilometer"}
+```
+
+Mixed-unit results — the case where preferred_units returns more than one unit, like `[:foot, :inch]` for adult heights in the US — are handled the same way; `to_string/2` decomposes the value across the list and joins the parts:
+
+```elixir
+iex> height = Localize.Unit.new!(1.83, "meter")
+iex> Localize.Unit.to_string(height, usage: :person_height, locale: "en-US")
+{:ok, "6 feet and 0.047 inches"}
+```
+
+To use CLDR's dedicated unit-list patterns instead of the standard list pattern (e.g. comma-joined `"6 feet, 0.047 inches"` instead of `"6 feet and 0.047 inches"`), pass `list_options: [list_style: :unit]` (or `:unit_short` / `:unit_narrow`).
+
+If you need to override the territory independently of the locale (for example showing US units to a German-locale UI), call `Localize.Unit.localize/2` directly with `:territory` and pipe the result back into `to_string/2`:
+
+```elixir
+iex> {:ok, parts} = Localize.Unit.localize(height, usage: :person_height, territory: :US)
+iex> Localize.Unit.to_string(parts, locale: "de")
+{:ok, "6 Fuß und 0,047 Zoll"}
+```
+
+The `:usage` option also accepts the CLDR-style hyphenated string (`"person-height"`) for convenience, and `to_string/2` automatically uses the `:usage` field set on the struct at construction time, so `Localize.Unit.new!(1.83, "meter", usage: "person-height") |> Localize.Unit.to_string(locale: "en-US")` works too.
 
 Common usage values: `"default"`, `"person"`, `"person-height"`, `"person-weight"`, `"road"`, `"food"`, `"vehicle-fuel"`, `"cooking-volume"`.
 

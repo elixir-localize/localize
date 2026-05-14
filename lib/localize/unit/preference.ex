@@ -133,7 +133,7 @@ defmodule Localize.Unit.Preference do
   @spec preferred_units(Unit.t(), Keyword.t()) ::
           {:ok, [atom()], Keyword.t()} | {:error, Exception.t()}
   def preferred_units(%Unit{} = unit, options \\ []) do
-    usage = Keyword.get(options, :usage, :default)
+    usage = resolve_usage(options, unit)
     territory = resolve_territory(options)
 
     with {:ok, category} <- unit_category(unit),
@@ -142,6 +142,24 @@ defmodule Localize.Unit.Preference do
       usage_chain = build_usage_chain(usage)
       find_preference(category, usage_chain, territory_chain, abs(base_value))
     end
+  end
+
+  # Usage may be supplied via the options keyword list (atom or string) or
+  # carried on the struct's `:usage` field (set at `Localize.Unit.new/3` time
+  # as a CLDR-style hyphenated string, e.g. `"person-height"`). Options win;
+  # the struct field is the fallback; `:default` covers the no-info case.
+  defp resolve_usage(options, %Unit{usage: struct_usage}) do
+    case Keyword.get(options, :usage) do
+      nil -> normalize_usage(struct_usage) || :default
+      explicit -> normalize_usage(explicit)
+    end
+  end
+
+  defp normalize_usage(nil), do: nil
+  defp normalize_usage(usage) when is_atom(usage), do: usage
+
+  defp normalize_usage(usage) when is_binary(usage) do
+    usage |> String.replace("-", "_") |> String.to_atom()
   end
 
   @doc """

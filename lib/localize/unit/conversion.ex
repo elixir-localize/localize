@@ -77,15 +77,18 @@ defmodule Localize.Unit.Conversion do
       {:ok, 0.0}
 
   """
-  @spec convert(number(), String.t(), String.t()) ::
-          {:ok, float()} | {:error, Exception.t() | String.t()}
+  @spec convert(number() | Decimal.t(), String.t(), String.t()) ::
+          {:ok, float() | Decimal.t()} | {:error, Exception.t() | String.t()}
   @dialyzer {:nowarn_function, convert: 3}
 
   def convert(value, from, to) do
     with {:ok, parsed_from} <- Parser.parse(from),
          {:ok, parsed_to} <- Parser.parse(to),
          true <- convertible?(parsed_from, parsed_to) do
-      do_convert(to_float(value), parsed_from, parsed_to)
+      case value do
+        %Decimal{} -> do_convert_decimal(value, parsed_from, parsed_to)
+        _ -> do_convert(to_float(value), parsed_from, parsed_to)
+      end
     else
       false ->
         {:error,
@@ -130,6 +133,43 @@ defmodule Localize.Unit.Conversion do
   end
 
   # ── Private ─────────────────────────────────────────────────────────
+
+  # Decimal-typed conversion path. Conversion factors and offsets are
+  # stored as floats (CLDR ships them as exact rationals but our pipeline
+  # collapses them to floats during ingestion); we coerce them to Decimal
+  # at the boundary via `Decimal.from_float/1`. Intermediate arithmetic
+  # then runs in Decimal so we don't accumulate float-rounding error
+  # across the multiply/divide chain. Special (nonlinear) conversions
+  # like Beaufort fall back to the float path because their forward/
+  # inverse functions aren't Decimal-aware.
+  defp do_convert_decimal(value, from_ast, to_ast) do
+    case {special_unit(from_ast), special_unit(to_ast)} do
+      {nil, nil} ->
+        with {:ok, from_params} <- conversion_params(from_ast),
+             {:ok, to_params} <- conversion_params(to_ast) do
+          base_value =
+            value
+            |> Decimal.mult(Decimal.from_float(from_params.factor))
+            |> add_offset(from_params.offset)
+
+          result =
+            base_value
+            |> sub_offset(to_params.offset)
+            |> Decimal.div(Decimal.from_float(to_params.factor))
+
+          {:ok, result}
+        end
+
+      _special ->
+        do_convert(Decimal.to_float(value), from_ast, to_ast)
+    end
+  end
+
+  defp add_offset(value, +0.0), do: value
+  defp add_offset(value, offset), do: Decimal.add(value, Decimal.from_float(offset))
+
+  defp sub_offset(value, +0.0), do: value
+  defp sub_offset(value, offset), do: Decimal.sub(value, Decimal.from_float(offset))
 
   defp do_convert(value, from_ast, to_ast) do
     case {special_unit(from_ast), special_unit(to_ast)} do
@@ -316,8 +356,4 @@ defmodule Localize.Unit.Conversion do
 
   defp to_float(value) when is_integer(value), do: value * 1.0
   defp to_float(value) when is_float(value), do: value
-
-  defp to_float(%Decimal{} = value) do
-    Decimal.to_float(value)
-  end
 end

@@ -226,7 +226,8 @@ defmodule Localize.Data.XmlExtractors do
           ~x"./unitPreference"l,
           regions: ~x"./@regions"s,
           unit: ~x"./text()"s,
-          geq: ~x"./@geq"os
+          geq: ~x"./@geq"os,
+          skeleton: ~x"./@skeleton"os
         ]
       )
 

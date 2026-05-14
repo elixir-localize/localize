@@ -303,6 +303,10 @@ defmodule Localize.Unit.Formatter do
     :fractional_digits,
     :min_fractional_digits,
     :max_fractional_digits,
+    :minimum_significant_digits,
+    :maximum_significant_digits,
+    :round_nearest,
+    :rounding_mode,
     :currency
   ]
 
