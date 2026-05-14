@@ -123,7 +123,8 @@ defmodule Localize.Unit.Conversion do
       1.0
 
   """
-  @spec convert!(number(), String.t(), String.t()) :: float() | no_return()
+  @spec convert!(number() | Decimal.t(), String.t(), String.t()) ::
+          float() | Decimal.t() | no_return()
 
   def convert!(value, from, to) do
     case convert(value, from, to) do
