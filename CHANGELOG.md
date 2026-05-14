@@ -22,7 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Unit.to_string/2` documents `:grammatical_gender` and `:grammatical_case` as accepted options, matching the naming used by `Cldr.Unit.to_string/3`. `:grammatical_case` selects a case-keyed pattern variant (existing functionality, now documented). `:grammatical_gender` is accepted for cldr_units API parity but only meaningful for compound-unit patterns; for simple units the gender is fixed by CLDR data and the option has no effect on output.
 
-* `Localize.Unit.Preference.preferred_units/2` documents `:scope` and `:alt` as forward-compatible placeholder options accepted but unused, matching cldr_units' API surface. CLDR 48 ships no `<unitPreference>` carrying these attributes; cldr_units' own `validate_preference_options` ignores them too.
+* `Localize.Unit.Preference.preferred_units/2` documents `:scope` and `:alt` as forward-compatible placeholder options accepted but unused, matching `cldr_units` API surface. CLDR 48 ships no `<unitPreference>` carrying these attributes.
 
 ## [0.34.0] — May 14th, 2026
 
