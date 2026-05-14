@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.35.0] — May 14th, 2026
+
+### Bug Fixes
+
+* `Localize.Unit.localize/2` and a list-of-units overload of `Localize.Unit.to_string/2` close the parity gap with `Cldr.Unit.localize/3`: passing `:usage` to `to_string/2` now resolves the locale-preferred unit set (territory derived from `:locale` via `Localize.Territory.territory_from_locale/1`), decomposes the value across it, and joins the parts with the locale's standard list pattern in a single call (e.g. `Localize.Unit.to_string(Localize.Unit.new!(1.83, "meter"), usage: :person_height, locale: "en-US")` returns `{:ok, "6 feet and 0.047 inches"}`). `to_string/2` also auto-triggers the same pipeline when the unit's struct carries a `:usage` field set at `new/3` time; pass `list_options: [list_style: :unit]` for CLDR's dedicated unit-list patterns.
+
+* `Localize.Unit.Conversion.convert/3` and `Localize.Unit.decompose/2` now preserve `Decimal` precision end-to-end: `Decimal` inputs flow through Decimal arithmetic instead of round-tripping through float, so `Localize.Unit.localize(Localize.Unit.new!(Decimal.new(20), "meter"), territory: :US)` returns `{:ok, [Localize.Unit.new!(Decimal.new("65.61679790026246719160104986876640"), "foot")]}`. Conversion factors are still float-precision in the underlying CLDR data, so the trailing digits carry the float-quantisation artefact.
+
+* `Localize.Unit` gains a `:format_options` struct field that `localize/2` populates from the `skeleton` attribute on CLDR's `unitPreferenceData` (e.g. `[round_nearest: 50]` for `usage: :road` distances of 300 m+ in region 001). `to_string/2` merges these per-unit options with caller-supplied options and forwards them to the number formatter, so a 311 m road distance now renders as `"300 meters"` rather than `"311 meters"`. Caller-supplied options win on conflict; usages whose CLDR preferences carry no skeleton (e.g. `person-height`) are unchanged.
+
 ## [0.34.0] — May 14th, 2026
 
 ### Bug Fixes
