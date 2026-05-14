@@ -373,13 +373,21 @@ defmodule Localize.Unit.Math do
 
   @doc """
   Rounds the value of a unit to the nearest integer or to the
-  specified number of decimal places.
+  specified number of decimal places using the given rounding mode.
+
+  Float inputs are routed through `Decimal` so every mode produces
+  consistent results; the return value preserves the input value's
+  numeric type (float in / float out, Decimal in / Decimal out,
+  integer in / integer out).
 
   ### Arguments
 
   * `unit` is a `%Localize.Unit{}` struct with a value.
 
   * `places` is the number of decimal places to round to. Defaults to 0.
+
+  * `mode` is the rounding mode. One of `:half_up` (default),
+    `:half_even`, `:half_down`, `:up`, `:down`, `:ceiling`, or `:floor`.
 
   ### Returns
 
@@ -390,13 +398,24 @@ defmodule Localize.Unit.Math do
       iex> {:ok, u} = Localize.Unit.new(3.7, "kilogram")
       iex> {:ok, result} = Localize.Unit.Math.round(u)
       iex> result.value
-      4
+      4.0
+
+      iex> {:ok, u} = Localize.Unit.new(2.5, "kilogram")
+      iex> {:ok, result} = Localize.Unit.Math.round(u, 0, :half_even)
+      iex> result.value
+      2.0
 
   """
-  @spec round(Unit.t(), non_neg_integer()) :: {:ok, Unit.t()} | {:error, Exception.t()}
+  @spec round(Unit.t(), non_neg_integer(), atom()) :: {:ok, Unit.t()} | {:error, Exception.t()}
 
-  def round(%Unit{value: value} = unit, places \\ 0) when not is_nil(value) do
-    {:ok, %{unit | value: round_value(value, places)}}
+  def round(unit, places \\ 0, mode \\ :half_up)
+
+  def round(%Unit{value: value} = unit, places, mode) when not is_nil(value) do
+    {:ok, %{unit | value: round_value(value, places, mode)}}
+  end
+
+  def round(%Unit{value: nil}, _places, _mode) do
+    {:error, no_value_error("round")}
   end
 
   @doc """
@@ -455,6 +474,40 @@ defmodule Localize.Unit.Math do
 
   def floor(%Unit{value: nil}) do
     {:error, no_value_error("floor")}
+  end
+
+  @doc """
+  Truncates the value of a unit toward zero.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, unit}` with the truncated value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(3.7, "meter")
+      iex> {:ok, result} = Localize.Unit.Math.trunc(u)
+      iex> result.value
+      3
+
+      iex> {:ok, u} = Localize.Unit.new(-3.7, "meter")
+      iex> {:ok, result} = Localize.Unit.Math.trunc(u)
+      iex> result.value
+      -3
+
+  """
+  @spec trunc(Unit.t()) :: {:ok, Unit.t()} | {:error, Exception.t()}
+
+  def trunc(%Unit{value: value} = unit) when not is_nil(value) do
+    {:ok, %{unit | value: trunc_value(value)}}
+  end
+
+  def trunc(%Unit{value: nil}) do
+    {:error, no_value_error("trunc")}
   end
 
   # ── Root functions ─────────────────────────────────────────────────
@@ -748,11 +801,20 @@ defmodule Localize.Unit.Math do
   defp abs_value(%Decimal{} = value), do: Decimal.abs(value)
   defp abs_value(value), do: Kernel.abs(value)
 
-  defp round_value(%Decimal{} = value, places), do: Decimal.round(value, places)
-  defp round_value(value, 0) when is_float(value), do: Kernel.round(value)
-  defp round_value(value, 0) when is_integer(value), do: value
-  defp round_value(value, places) when is_float(value), do: Float.round(value, places)
-  defp round_value(value, _places) when is_integer(value), do: value
+  # Decimal supports every rounding mode natively. Floats are routed
+  # through Decimal so we get consistent semantics for `:half_even`,
+  # `:ceiling`, `:floor`, and `:down` — Erlang/Elixir's built-in float
+  # round only handles `:half_up`.
+  defp round_value(%Decimal{} = value, places, mode), do: Decimal.round(value, places, mode)
+
+  defp round_value(value, _places, _mode) when is_integer(value), do: value
+
+  defp round_value(value, places, mode) when is_float(value) do
+    value
+    |> Decimal.from_float()
+    |> Decimal.round(places, mode)
+    |> Decimal.to_float()
+  end
 
   defp ceil_value(%Decimal{} = value),
     do: Decimal.round(value, 0, :ceiling) |> Decimal.to_integer()
@@ -765,6 +827,12 @@ defmodule Localize.Unit.Math do
 
   defp floor_value(value) when is_float(value), do: Kernel.floor(value)
   defp floor_value(value) when is_integer(value), do: value
+
+  defp trunc_value(%Decimal{} = value),
+    do: Decimal.round(value, 0, :down) |> Decimal.to_integer()
+
+  defp trunc_value(value) when is_float(value), do: Kernel.trunc(value)
+  defp trunc_value(value) when is_integer(value), do: value
 
   defp to_float(%Decimal{} = d), do: Decimal.to_float(d)
   defp to_float(value) when is_integer(value), do: value / 1
