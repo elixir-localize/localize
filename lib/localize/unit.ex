@@ -822,6 +822,16 @@ defmodule Localize.Unit do
     when rendering a unit list. Use it to pick a unit-specific list style
     (e.g. `list_options: [list_style: :unit_short]`).
 
+  * `:grammatical_case` selects a case-keyed pattern variant for the
+    unit (e.g. `:nominative`, `:dative`, `:genitive`). Defaults to
+    `:nominative`.
+
+  * `:grammatical_gender` is accepted on the public API for cldr_units
+    parity. Only meaningful for compound-unit patterns
+    (`compound_unit_pattern` keyed by gender); for simple units the
+    gender is a fixed property of the unit in CLDR data and the option
+    has no effect on output.
+
   * `:backend` is `:nif` or `:elixir`. When `:nif` is specified and the
     NIF is available, ICU4C is used for formatting. Otherwise falls
     back to the pure-Elixir formatter. The default is `:elixir`.
@@ -1203,9 +1213,10 @@ defmodule Localize.Unit do
     with {:ok, target_atoms, format_options} <-
            Localize.Unit.Preference.preferred_units(unit, options) do
       resolved_usage = resolved_usage_string(options, unit)
+      target_strings = Enum.map(target_atoms, &Atom.to_string/1)
 
-      with {:ok, parts} <- decompose(unit, Enum.map(target_atoms, &Atom.to_string/1)) do
-        {:ok, Enum.map(parts, &%{&1 | usage: resolved_usage, format_options: format_options})}
+      with {:ok, parts} <- decompose(unit, target_strings, format_options) do
+        {:ok, Enum.map(parts, &%{&1 | usage: resolved_usage})}
       end
     end
   end
@@ -1239,12 +1250,26 @@ defmodule Localize.Unit do
   in `Decimal` arithmetic (not float), so precision is preserved
   through the decomposition.
 
+  Intermediate units whose integer part rounds to zero are skipped (so
+  decomposing 1.5 m into `["meter", "kilometer", "centimeter"]` skips
+  the kilometer entry). The trailing unit is also skipped if its value
+  is zero.
+
+  When `format_options` is given, those options are attached to the
+  final (trailing) unit's `:format_options` field — typically a
+  `[round_nearest: N]` skeleton lifted from CLDR's preference data.
+  `Localize.Unit.localize/2` uses this to thread CLDR's skeletons
+  through to `to_string/2`.
+
   ### Arguments
 
   * `unit` is a `%Localize.Unit{}` struct with a value.
 
   * `target_units` is a list of unit name strings, ordered from
     largest to smallest (e.g., `["foot", "inch"]`).
+
+  * `format_options` is an optional keyword list attached to the final
+    unit's `:format_options`. Defaults to `[]`.
 
   ### Returns
 
@@ -1264,31 +1289,60 @@ defmodule Localize.Unit do
       iex> Enum.map(parts, fn u -> {u.name, u.value} end)
       [{"meter", 1}, {"centimeter", Decimal.new("75.0")}]
 
+      iex> {:ok, m} = Localize.Unit.new(2.0, "meter")
+      iex> {:ok, parts} = Localize.Unit.decompose(m, ["meter", "centimeter"])
+      iex> Enum.map(parts, fn u -> u.name end)
+      ["meter"]
+
+      iex> {:ok, m} = Localize.Unit.new(0.5, "meter")
+      iex> {:ok, parts} = Localize.Unit.decompose(m, ["meter", "centimeter"])
+      iex> Enum.map(parts, fn u -> u.name end)
+      ["centimeter"]
+
+      iex> {:ok, m} = Localize.Unit.new(1.83, "meter")
+      iex> {:ok, parts} = Localize.Unit.decompose(m, ["foot", "inch"], round_nearest: 1)
+      iex> List.last(parts).format_options
+      [round_nearest: 1]
+
   """
-  @spec decompose(t(), [String.t()]) :: {:ok, [t()]} | {:error, Exception.t()}
-  def decompose(%__MODULE__{value: nil}, _targets) do
+  @spec decompose(t(), [String.t()], Keyword.t()) :: {:ok, [t()]} | {:error, Exception.t()}
+  def decompose(unit, target_units, format_options \\ [])
+
+  def decompose(%__MODULE__{value: nil}, _targets, _format_options) do
     {:error, Localize.UnitNoValueError.exception(operation: :decompose)}
   end
 
-  def decompose(%__MODULE__{} = unit, [single]) do
+  def decompose(%__MODULE__{} = unit, [single], format_options) do
     case convert(unit, single) do
-      {:ok, converted} -> {:ok, [converted]}
-      error -> error
+      {:ok, converted} ->
+        if zero?(converted) do
+          {:ok, []}
+        else
+          {:ok, [%{converted | format_options: format_options}]}
+        end
+
+      error ->
+        error
     end
   end
 
-  def decompose(%__MODULE__{} = unit, [target | rest]) do
+  def decompose(%__MODULE__{} = unit, [target | rest], format_options) do
     case convert(unit, target) do
-      {:ok, converted} -> split_for_decompose(converted, target, rest)
+      {:ok, converted} -> split_for_decompose(converted, target, rest, format_options)
       error -> error
     end
   end
 
-  def decompose(%__MODULE__{}, []) do
+  def decompose(%__MODULE__{}, [], _format_options) do
     {:ok, []}
   end
 
-  defp split_for_decompose(%__MODULE__{value: %Decimal{} = d} = converted, target, rest) do
+  defp split_for_decompose(
+         %__MODULE__{value: %Decimal{} = d} = converted,
+         target,
+         rest,
+         format_options
+       ) do
     # Truncate toward zero; Decimal.round/3 with :down is the equivalent
     # of `trunc/1` for floats. The remainder stays in Decimal so any
     # subsequent recursion preserves precision instead of round-tripping
@@ -1297,20 +1351,27 @@ defmodule Localize.Unit do
     integer_part = Decimal.to_integer(trunc_decimal)
     remainder = Decimal.sub(d, trunc_decimal)
 
-    with {:ok, remainder_unit} <- new(remainder, target),
-         {:ok, rest_parts} <- decompose(remainder_unit, rest) do
-      {:ok, [%{converted | value: integer_part} | rest_parts]}
-    end
+    cons_part(converted, integer_part, remainder, target, rest, format_options)
   end
 
-  defp split_for_decompose(%__MODULE__{value: value} = converted, target, rest) do
+  defp split_for_decompose(%__MODULE__{value: value} = converted, target, rest, format_options) do
     float_value = to_float(value)
     integer_part = trunc(float_value)
     remainder = float_value - integer_part
 
+    cons_part(converted, integer_part, remainder, target, rest, format_options)
+  end
+
+  # Build the [head | rest] result while skipping intermediate units whose
+  # integer part rounded to zero. Mirrors cldr_units' decompose behaviour.
+  defp cons_part(converted, integer_part, remainder, target, rest, format_options) do
     with {:ok, remainder_unit} <- new(remainder, target),
-         {:ok, rest_parts} <- decompose(remainder_unit, rest) do
-      {:ok, [%{converted | value: integer_part} | rest_parts]}
+         {:ok, rest_parts} <- decompose(remainder_unit, rest, format_options) do
+      if integer_part == 0 do
+        {:ok, rest_parts}
+      else
+        {:ok, [%{converted | value: integer_part} | rest_parts]}
+      end
     end
   end
 
@@ -1609,13 +1670,61 @@ defmodule Localize.Unit do
       iex> Localize.Unit.measurement_system_for_territory(:FR)
       :metric
 
-  """
-  @spec measurement_system_for_territory(atom()) :: atom()
-  def measurement_system_for_territory(territory) when is_atom(territory) do
-    measurement_data = Localize.SupplementalData.measurement_data()
+      iex> Localize.Unit.measurement_system_for_territory(:US, :temperature)
+      :us
 
-    Map.get(measurement_data.measurement_system, territory) ||
-      Map.get(measurement_data.measurement_system, :"001", :metric)
+      iex> Localize.Unit.measurement_system_for_territory(:LR, :temperature)
+      :metric
+
+      iex> Localize.Unit.measurement_system_for_territory(:US, :paper_size)
+      :us_letter
+
+      iex> Localize.Unit.measurement_system_for_territory(:FR, :paper_size)
+      :a4
+
+  """
+  @spec measurement_system_for_territory(atom(), :default | :temperature | :paper_size) :: atom()
+  def measurement_system_for_territory(territory, category \\ :default)
+
+  def measurement_system_for_territory(territory, :default) when is_atom(territory) do
+    default_system_for(territory)
+  end
+
+  # Per CLDR's measurementData.json, the category-specific maps list
+  # only the *exceptions* — territories whose temperature/paper-size
+  # system differs from their default measurement system. So for any
+  # territory not in the category map, the answer is the territory's
+  # default system (e.g. US/temperature isn't listed because Fahrenheit
+  # falls out naturally from US/default = :us).
+  def measurement_system_for_territory(territory, :temperature) when is_atom(territory) do
+    lookup_with_default_fallback(:measurement_system_temperature, territory)
+  end
+
+  def measurement_system_for_territory(territory, :paper_size) when is_atom(territory) do
+    case category_lookup(:paper_size, territory) do
+      nil -> Map.get(category_map(:paper_size), :"001", :a4)
+      explicit -> explicit
+    end
+  end
+
+  defp default_system_for(territory) do
+    Map.get(category_map(:measurement_system), territory) ||
+      Map.get(category_map(:measurement_system), :"001", :metric)
+  end
+
+  defp lookup_with_default_fallback(category_key, territory) do
+    case category_lookup(category_key, territory) do
+      nil -> default_system_for(territory)
+      explicit -> explicit
+    end
+  end
+
+  defp category_lookup(category_key, territory) do
+    Map.get(category_map(category_key), territory)
+  end
+
+  defp category_map(key) do
+    Map.fetch!(Localize.SupplementalData.measurement_data(), key)
   end
 
   # ── Private helpers ───────────────────────────────────────────

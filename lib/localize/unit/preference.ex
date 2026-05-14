@@ -109,6 +109,17 @@ defmodule Localize.Unit.Preference do
   * `:locale` is a locale identifier. Used to derive the territory when
     `:territory` is not provided.
 
+  * `:scope` is `:small` or `nil`. Forward-compatible placeholder for
+    CLDR's planned scope-keyed preferences (small-quantity contexts);
+    accepted but currently has no effect because no `<unitPreference>`
+    in the shipped CLDR data carries a `scope` attribute. Same shape
+    as `Cldr.Unit.Preference.preferred_units/3`.
+
+  * `:alt` is `:informal` or `nil`. Forward-compatible placeholder for
+    CLDR's planned alt-keyed preferences (informal-context units);
+    accepted but currently has no effect because no `<unitPreference>`
+    in the shipped CLDR data carries an `alt` attribute.
+
   ### Returns
 
   * `{:ok, units, options}` where `units` is a list of unit name atoms

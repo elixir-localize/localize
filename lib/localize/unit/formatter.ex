@@ -99,6 +99,11 @@ defmodule Localize.Unit.Formatter do
 
           unit_formats ->
             grammatical_case = Keyword.get(options, :grammatical_case, :nominative)
+            # `:grammatical_gender` is accepted on the public API but only
+            # meaningful for compound-unit patterns (`compound_unit_pattern`
+            # keyed by gender). For simple units the gender of the unit
+            # itself is fixed by CLDR data and the option has no effect —
+            # same as cldr_units' simple-unit path.
             format_with_pattern(value, unit_formats, locale, grammatical_case, options)
         end
     end
@@ -307,6 +312,8 @@ defmodule Localize.Unit.Formatter do
     :maximum_significant_digits,
     :round_nearest,
     :rounding_mode,
+    :grammatical_case,
+    :grammatical_gender,
     :currency
   ]
 
