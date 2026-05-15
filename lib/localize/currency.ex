@@ -750,6 +750,69 @@ defmodule Localize.Currency do
   end
 
   @doc """
+  Returns the currency symbol of the requested kind.
+
+  The same resolution rules that `Localize.Number.to_string/2`'s
+  `:currency_symbol` option applies, surfaced as a standalone
+  function so callers building locale-aware UIs can resolve a
+  symbol without going through the full number formatter.
+
+  ### Arguments
+
+  * `currency` is a `t/0` (already locale-resolved) or a
+    currency code (atom or string).
+
+  * `kind` is one of `:standard` (default), `:symbol`,
+    `:narrow`, `:iso`, `:none`, or a literal binary which is
+    returned as-is. `:standard` and `:symbol` both pick the
+    locale's standard symbol; `:narrow` prefers the
+    narrow-form symbol; `:iso` returns the ISO 4217 code;
+    `:none` returns an empty string.
+
+  ### Returns
+
+  * `{:ok, binary}` on success.
+
+  * `{:error, exception}` when the currency code can't be
+    resolved.
+
+  ### Examples
+
+      iex> {:ok, c} = Localize.Currency.currency_for_code(:USD)
+      iex> Localize.Currency.symbol(c, :standard)
+      {:ok, "$"}
+
+      iex> Localize.Currency.symbol(:USD, :iso)
+      {:ok, "USD"}
+
+      iex> Localize.Currency.symbol(:USD, :none)
+      {:ok, ""}
+
+  """
+  @spec symbol(t() | atom() | String.t(), atom() | String.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def symbol(currency, kind \\ :standard)
+
+  def symbol(%__MODULE__{} = currency, kind), do: {:ok, do_symbol(currency, kind)}
+
+  def symbol(currency_code, kind) do
+    with {:ok, currency} <- currency_for_code(currency_code) do
+      symbol(currency, kind)
+    end
+  end
+
+  defp do_symbol(%__MODULE__{} = c, :narrow), do: c.narrow_symbol || c.symbol || iso_code(c)
+  defp do_symbol(%__MODULE__{} = c, :iso), do: iso_code(c)
+  defp do_symbol(%__MODULE__{} = c, :symbol), do: c.symbol || iso_code(c)
+  defp do_symbol(%__MODULE__{} = c, :standard), do: c.symbol || iso_code(c)
+  defp do_symbol(%__MODULE__{}, :none), do: ""
+  defp do_symbol(%__MODULE__{} = c, nil), do: c.symbol || iso_code(c)
+  defp do_symbol(%__MODULE__{}, other) when is_binary(other), do: other
+  defp do_symbol(%__MODULE__{} = c, _other), do: c.symbol || iso_code(c)
+
+  defp iso_code(%__MODULE__{code: code}), do: Atom.to_string(code)
+
+  @doc """
   Returns the appropriate currency display name based on
   plural rules for the locale.
 
