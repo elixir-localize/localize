@@ -37,12 +37,18 @@ defmodule Localize.Locale.LoaderFallbackTest do
   defmodule FallbackProvider do
     @behaviour Localize.Locale.Provider
 
-    def start_link do
-      Agent.start_link(fn -> %{} end, name: __MODULE__)
+    # Started via `start_supervised!/1` so ExUnit owns the process
+    # lifetime. Previously this used `Agent.start_link` linked to the
+    # test process plus an `{:already_started, _}` reset branch — a
+    # race where the named registration outlived the dead linked pid
+    # surfaced as a 5-second `no process` GenServer call timeout in
+    # CI.
+    def child_spec(_opts) do
+      %{id: __MODULE__, start: {__MODULE__, :start_link, []}, restart: :temporary}
     end
 
-    def reset do
-      Agent.update(__MODULE__, fn _ -> %{} end)
+    def start_link do
+      Agent.start_link(fn -> %{} end, name: __MODULE__)
     end
 
     def stored_keys do
@@ -86,11 +92,7 @@ defmodule Localize.Locale.LoaderFallbackTest do
   end
 
   setup do
-    case FallbackProvider.start_link() do
-      {:ok, _pid} -> :ok
-      {:error, {:already_started, _}} -> FallbackProvider.reset()
-    end
-
+    start_supervised!(FallbackProvider)
     :ok
   end
 
