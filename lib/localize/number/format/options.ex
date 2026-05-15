@@ -148,7 +148,13 @@ defmodule Localize.Number.Format.Options do
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, system_name} <- resolve_number_system(language_tag, number_system),
          {:ok, currency_struct} <- resolve_currency(format, currency, language_tag),
-         format <- maybe_switch_currency_format(format, currency_struct, language_tag),
+         format <-
+           maybe_switch_currency_format(
+             format,
+             currency_struct,
+             language_tag,
+             options[:currency_symbol]
+           ),
          :ok <- validate_rounding_mode(rounding_mode),
          :ok <- validate_significant_digits(options),
          {:ok, symbols} <- resolve_symbols(language_tag, system_name),
@@ -246,14 +252,28 @@ defmodule Localize.Number.Format.Options do
 
   # ── Format auto-switch ──────────────────────────────────────
 
-  defp maybe_switch_currency_format(:standard, %Localize.Currency{}, language_tag) do
+  # `currency_symbol: :none` flips any currency-shaped format to
+  # the corresponding no-symbol variant. The result uses the
+  # CLDR `currency_no_symbol` (or `accounting_no_symbol`) pattern
+  # so spacing, grouping and decimal separators stay locale-
+  # correct — only the symbol character is omitted.
+  defp maybe_switch_currency_format(:standard, %Localize.Currency{}, _language_tag, :none),
+    do: :currency_no_symbol
+
+  defp maybe_switch_currency_format(:currency, %Localize.Currency{}, _language_tag, :none),
+    do: :currency_no_symbol
+
+  defp maybe_switch_currency_format(:accounting, %Localize.Currency{}, _language_tag, :none),
+    do: :accounting_no_symbol
+
+  defp maybe_switch_currency_format(:standard, %Localize.Currency{}, language_tag, _symbol) do
     case Localize.Currency.currency_format_from_locale(language_tag) do
       {:ok, format} -> format
       _ -> :currency
     end
   end
 
-  defp maybe_switch_currency_format(format, _currency, _language_tag), do: format
+  defp maybe_switch_currency_format(format, _currency, _language_tag, _symbol), do: format
 
   # ── Rounding mode validation ────────────────────────────────
 
@@ -409,6 +429,12 @@ defmodule Localize.Number.Format.Options do
 
   defp resolve_currency_symbol(%Localize.Currency{} = c, :iso), do: iso_code(c)
   defp resolve_currency_symbol(%Localize.Currency{} = c, :symbol), do: c.symbol || iso_code(c)
+  defp resolve_currency_symbol(%Localize.Currency{} = c, :standard), do: c.symbol || iso_code(c)
+  # `:none` switches the format to `:currency_no_symbol` (handled
+  # in `maybe_switch_currency_format/3`), so the resolved symbol
+  # is never actually rendered. We still return an empty string
+  # here as a defensive measure.
+  defp resolve_currency_symbol(%Localize.Currency{}, :none), do: ""
   defp resolve_currency_symbol(%Localize.Currency{} = c, nil), do: c.symbol || iso_code(c)
   defp resolve_currency_symbol(_currency, other) when is_binary(other), do: other
   defp resolve_currency_symbol(%Localize.Currency{} = c, _), do: c.symbol || iso_code(c)
