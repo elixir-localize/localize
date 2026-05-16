@@ -195,7 +195,11 @@ defmodule Localize.DateTest do
     # explicitly and `resolve_skeleton` carries a `seen` set
     # to terminate any degenerate match cycle. Without the
     # fix this test timed out at 60s.
-    test "skeleton :yMMMM under ja-JP locale completes in under a second" do
+    test "skeleton :yMMMM under ja-JP locale terminates instead of looping" do
+      # Pre-fix this hung indefinitely (60s ExUnit timeout).
+      # Locales used by tests are pre-downloaded in
+      # `test/test_helper.exs`, so the call here only
+      # exercises the formatter / skeleton-resolution path.
       start = System.monotonic_time(:millisecond)
       result = Localize.Date.to_string(~D[2024-07-01], locale: :"ja-JP", format: :yMMMM)
       elapsed = System.monotonic_time(:millisecond) - start
