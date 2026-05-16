@@ -4,9 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.37.0] — May 16th, 2026
+## [0.37.0] — May17th, 2026
 
 ### Bug Fixes
+
+* `Localize.DateTime.Formatter` audit: removed remaining `:gregorian` / `Calendar.ISO` hardcoding. The `{0}` / `{1}` date-time placeholders now derive the CLDR calendar from the date instead of always asking for the gregorian pattern, ISO week-of-year (`w` / `Y`) prefers the date's own `iso_week_of_year/3` callback before falling back to converting to `Calendar.ISO`, and `iso_day/1`'s dead silent-fallback clause for unknown calendars was removed.
 
 * `Localize.Date.to_string/2` now honours CLDR `number_system` overrides carried alongside date patterns — Hebrew dates render in Hebrew numerals (`י״ב באייר ה׳תשפ״ד`), Japanese imperial year-1 renders as `元年`, and numeric overrides like `:arab` transliterate per-field via the system's digit set. Algorithmic systems resolve through CLDR's `numberingSystems.json` to the right RBNF rule (`:hebr` → `:hebrew`, `:jpanyear` → `:spellout-numbering-year-latn` under `:ja`).
 

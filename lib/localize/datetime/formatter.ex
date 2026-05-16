@@ -708,7 +708,7 @@ defmodule Localize.DateTime.Formatter do
              :date,
              date_format,
              locale_id,
-             :gregorian,
+             cldr_calendar_for_datetime(datetime),
              variant_options(options)
            ),
          {:ok, formatted} <- format(datetime, pattern, locale_id, options) do
@@ -731,7 +731,7 @@ defmodule Localize.DateTime.Formatter do
              :time,
              time_format,
              locale_id,
-             :gregorian,
+             cldr_calendar_for_datetime(datetime),
              variant_options(options)
            ),
          {:ok, formatted} <- format(datetime, pattern, locale_id, options) do
@@ -742,6 +742,22 @@ defmodule Localize.DateTime.Formatter do
   end
 
   def time(_datetime, _count, _locale_id, _options), do: ""
+
+  # Resolve the CLDR calendar key from a datetime's `:calendar`
+  # module — same probe as `Localize.Date.cldr_calendar_for/1`.
+  defp cldr_calendar_for_datetime(%{calendar: Calendar.ISO}), do: :gregorian
+
+  defp cldr_calendar_for_datetime(%{calendar: module}) when is_atom(module) do
+    Code.ensure_loaded?(module)
+
+    if function_exported?(module, :cldr_calendar_type, 0) do
+      module.cldr_calendar_type()
+    else
+      :gregorian
+    end
+  end
+
+  defp cldr_calendar_for_datetime(_), do: :gregorian
 
   # Pulls the `:prefer` option (consumed by
   # `Localize.DateTime.Format.resolve_variant/2`) out of the
@@ -906,8 +922,37 @@ defmodule Localize.DateTime.Formatter do
 
   defp calendar_year(year) when is_integer(year), do: year
 
+  # Prefer the date's own calendar callback. Calendrical calendars
+  # that implement ISO weeks (Gregorian, Julian, composites)
+  # return `{year, week}`. Calendars without ISO-week semantics
+  # (Hebrew, Islamic, Persian, Japanese imperial, …) return
+  # `{:error, :not_defined}` from the Calendrical Behaviour
+  # default — in that case we convert to Calendar.ISO and use
+  # the Erlang stdlib helper. For plain `Calendar.ISO` dates,
+  # which don't carry the callback at all, the stdlib helper
+  # is the direct path.
+  defp iso_week_of_year(%{year: year, month: month, day: day, calendar: calendar} = date) do
+    if function_exported?(calendar, :iso_week_of_year, 3) do
+      case calendar.iso_week_of_year(year, month, day) do
+        {y, w} when is_integer(y) and is_integer(w) -> {y, w}
+        _ -> iso_week_via_stdlib(date)
+      end
+    else
+      iso_week_via_stdlib(date)
+    end
+  end
+
   defp iso_week_of_year(%{year: year, month: month, day: day}) do
     :calendar.iso_week_number({year, month, day})
+  end
+
+  defp iso_week_via_stdlib(%{calendar: Calendar.ISO, year: year, month: month, day: day}) do
+    :calendar.iso_week_number({year, month, day})
+  end
+
+  defp iso_week_via_stdlib(%{} = date) do
+    %Date{year: y, month: m, day: d} = Date.convert!(date, Calendar.ISO)
+    :calendar.iso_week_number({y, m, d})
   end
 
   defp compute_day_of_year(%{year: year, month: month, day: day, calendar: calendar})
@@ -933,19 +978,14 @@ defmodule Localize.DateTime.Formatter do
     days_before + day
   end
 
-  defp iso_day(%{year: year, month: month, day: day, calendar: Calendar.ISO}) do
-    {dow, _, _} = Calendar.ISO.day_of_week(year, month, day, :monday)
-    dow
-  end
-
+  # Calendar protocol requires every implementation to export
+  # `day_of_week/4` — dispatch through the date's own calendar.
+  # The bare-map clause is for non-`Date` shapes (raw
+  # `%{year:, month:, day:}` maps with no `:calendar`); we
+  # assume Gregorian for those since there's no other signal.
   defp iso_day(%{year: year, month: month, day: day, calendar: calendar}) do
-    if function_exported?(calendar, :day_of_week, 4) do
-      {dow, _, _} = calendar.day_of_week(year, month, day, :monday)
-      dow
-    else
-      {dow, _, _} = Calendar.ISO.day_of_week(year, month, day, :monday)
-      dow
-    end
+    {dow, _, _} = calendar.day_of_week(year, month, day, :monday)
+    dow
   end
 
   defp iso_day(%{year: year, month: month, day: day}) do
