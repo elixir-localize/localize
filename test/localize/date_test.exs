@@ -208,6 +208,86 @@ defmodule Localize.DateTest do
       assert elapsed < 1000, "expected under 1s, got #{elapsed}ms"
     end
 
+    test "number_system override transliterates numeric fields" do
+      # `Localize.DateTime.Format.number_system_overrides/4`
+      # extracts the CLDR `:number_system` companion from
+      # variant maps; the formatter applies it per-field.
+      # Test directly against the formatter with a numeric
+      # system (`:arab`) since we control the override map
+      # without needing a calendar that ships one.
+      opts = %{number_system_overrides: %{"all" => :arab}}
+
+      assert {:ok, "٢٠٢٤ ٠٧ ٠١"} =
+               Localize.DateTime.Formatter.format(~D[2024-07-01], "yyyy MM dd", :"ar-SA", opts)
+    end
+
+    test "number_system override on one field only" do
+      opts = %{number_system_overrides: %{"y" => :arab}}
+
+      # Year transliterated, month/day stay ASCII.
+      assert {:ok, "٢٠٢٤ 07 01"} =
+               Localize.DateTime.Formatter.format(~D[2024-07-01], "yyyy MM dd", :en, opts)
+    end
+
+    test "algorithmic number_system applies via RBNF rule lookup" do
+      # `:hebr` resolves to the `hebrew` RBNF rule via
+      # `numberingSystems.json` `_rules: "hebrew"`. The
+      # `:hebrew` rule lives in `:und`'s NumberingSystemRules.
+      opts = %{number_system_overrides: %{"all" => :hebr}}
+
+      # 2024 in Hebrew numerals is ב׳כ״ד; the `y` token plus the
+      # override should render Hebrew letters in the year slot.
+      assert {:ok, year_string} =
+               Localize.DateTime.Formatter.format(~D[2024-07-01], "y", :he, opts)
+
+      assert year_string != "2024"
+      assert String.printable?(year_string)
+    end
+
+    test "jpanyear renders 元年 for Reiwa year 1" do
+      # `:jpanyear` resolves to
+      # `ja/SpelloutRules/spellout-numbering-year-latn`. Year 1
+      # in this rule set renders as 元 (gan), not "1".
+      opts = %{number_system_overrides: %{"y" => :jpanyear}}
+
+      assert {:ok, "元"} =
+               Localize.DateTime.Formatter.format(
+                 %{year: 1, month: 1, day: 1, calendar: Calendar.ISO},
+                 "y",
+                 :"ja-JP",
+                 opts
+               )
+    end
+
+    test "Localize.DateTime.Format.number_system_overrides/4 extracts CLDR data" do
+      # Hebrew dates carry an "all" → :hebr override.
+      assert %{"all" => :hebr} =
+               Localize.DateTime.Format.number_system_overrides(
+                 :date,
+                 :medium,
+                 :"he-IL",
+                 :hebrew
+               )
+
+      # Japanese imperial carries a "y" → :jpanyear override.
+      assert %{"y" => :jpanyear} =
+               Localize.DateTime.Format.number_system_overrides(
+                 :date,
+                 :medium,
+                 :"ja-JP",
+                 :japanese
+               )
+
+      # Gregorian formats don't carry any.
+      assert %{} ==
+               Localize.DateTime.Format.number_system_overrides(
+                 :date,
+                 :medium,
+                 :en,
+                 :gregorian
+               )
+    end
+
     test "skeleton :yMMMM falls back to gregorian patterns when calendar lacks it" do
       # Japanese calendar's `available_formats` doesn't carry
       # the bare `:yMMMM` skeleton (every Japanese skeleton

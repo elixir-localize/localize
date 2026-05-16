@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Bug Fixes
 
+* `Localize.Date.to_string/2` now honours CLDR `number_system` overrides carried alongside date patterns — Hebrew dates render in Hebrew numerals (`י״ב באייר ה׳תשפ״ד`), Japanese imperial year-1 renders as `元年`, and numeric overrides like `:arab` transliterate per-field via the system's digit set. Algorithmic systems resolve through CLDR's `numberingSystems.json` to the right RBNF rule (`:hebr` → `:hebrew`, `:jpanyear` → `:spellout-numbering-year-latn` under `:ja`).
+
 * `Localize.Date.to_string/2` with a skeleton format (e.g. `:yMMMM`) against a non-Gregorian calendar no longer infinite-loops. `Match.best_match/3` now receives the calendar explicitly and falls back to gregorian patterns; `resolve_skeleton` carries a `seen` set to terminate any residual match cycle.
 
 * `Localize.Date.to_string/2` now honours non-Gregorian calendars carried in the date's `:calendar` field — previously every call hard-coded `:gregorian`. A `Date` built with `Calendrical.Japanese` now formats as `平成12年1月1日` under `:"ja-JP"` instead of `2000/01/01`.
