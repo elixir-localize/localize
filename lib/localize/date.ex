@@ -87,8 +87,10 @@ defmodule Localize.Date do
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, pattern} <- find_format(date, format, locale_id, options),
+         overrides = number_system_overrides_for(date, format, locale_id),
+         formatter_options = options |> Map.new() |> Map.put(:number_system_overrides, overrides),
          {:ok, formatted} <-
-           Localize.DateTime.Formatter.format(date, pattern, locale_id, Map.new(options)) do
+           Localize.DateTime.Formatter.format(date, pattern, locale_id, formatter_options) do
       {:ok, formatted}
     end
   end
@@ -124,8 +126,11 @@ defmodule Localize.Date do
          )}
       else
         with {:ok, pattern} <- find_format(date, resolved_format, locale_id, options),
+             overrides = number_system_overrides_for(date, resolved_format, locale_id),
+             formatter_options =
+               options |> Map.new() |> Map.put(:number_system_overrides, overrides),
              {:ok, formatted} <-
-               Localize.DateTime.Formatter.format(date, pattern, locale_id, Map.new(options)) do
+               Localize.DateTime.Formatter.format(date, pattern, locale_id, formatter_options) do
           {:ok, formatted}
         end
       end
@@ -182,6 +187,23 @@ defmodule Localize.Date do
   defp find_format(_date, format, _locale_id, _options) do
     {:error, Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)}
   end
+
+  # Look up the per-field number-system overrides for the
+  # date's calendar. Returns `%{}` for ordinary patterns,
+  # `%{"all" => :hebr}` for Hebrew dates, `%{"y" => :jpanyear}`
+  # for Japanese imperial, etc. The formatter consults this
+  # map when emitting numeric fields and applies the right
+  # digit set or RBNF rule.
+  defp number_system_overrides_for(date, format, locale_id) when is_atom(format) do
+    Localize.DateTime.Format.number_system_overrides(
+      :date,
+      format,
+      locale_id,
+      cldr_calendar_for(date)
+    )
+  end
+
+  defp number_system_overrides_for(_date, _format, _locale_id), do: %{}
 
   # Resolve the CLDR calendar key from a date's `:calendar`
   # module. `Calendar.ISO` is Gregorian. Other calendar modules

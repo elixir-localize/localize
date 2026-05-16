@@ -184,6 +184,60 @@ defmodule Localize.DateTime.Format do
     end
   end
 
+  @doc """
+  Extracts the CLDR `number_system` overrides for a resolved
+  `(format_type, format_name, locale, calendar)` tuple.
+
+  Some CLDR date patterns carry per-field number-system overrides
+  alongside the pattern string (e.g. Japanese imperial year via
+  `jpanyear`, Hebrew dates via `hebr`). The variant map shape is
+  `%{format: "<pattern>", number_system: %{"all" | "y" | "M" |
+  "d" | ... => ns_atom}}`. This function returns just that
+  per-field map — `%{}` when the format has no overrides or
+  isn't a variant of that shape.
+
+  ### Returns
+
+  * A map `%{String.t() => atom()}` keyed by CLDR field symbol
+    ("y", "M", "d", …) or `"all"` meaning every numeric field.
+
+  ### Examples
+
+      iex> Localize.DateTime.Format.number_system_overrides(:date, :medium, :"ja-JP", :japanese)
+      %{"y" => :jpanyear}
+
+      iex> Localize.DateTime.Format.number_system_overrides(:date, :medium, :en, :gregorian)
+      %{}
+
+  """
+  @spec number_system_overrides(
+          :date | :time | :date_time,
+          atom() | String.t(),
+          atom(),
+          atom()
+        ) :: %{String.t() => atom()}
+  def number_system_overrides(format_type, format_name, locale_id, calendar_type)
+      when is_atom(format_name) do
+    with {:ok, formats_map} <- formats_for_type(format_type, locale_id, calendar_type),
+         {:ok, available} <- available_formats(locale_id, calendar_type) do
+      skeleton =
+        if format_name in @standard_formats do
+          Map.get(formats_map, format_name)
+        else
+          format_name
+        end
+
+      case Map.get(available, skeleton) do
+        %{number_system: %{} = overrides} -> overrides
+        _ -> %{}
+      end
+    else
+      _ -> %{}
+    end
+  end
+
+  def number_system_overrides(_format_type, _format_name, _locale_id, _calendar_type), do: %{}
+
   # # resolve_variant/2
   #
   # Picks one pattern from a CLDR `alt`-keyed variant map.

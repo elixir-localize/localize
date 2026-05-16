@@ -180,19 +180,120 @@ defmodule Localize.DateTime.Formatter do
   # the calendar's `year_of_era/3` callback to derive it.
 
   @doc false
-  def year(%{year: _} = date, 1, _locale_id, _options) do
-    era_year(date) |> calendar_year()
+  def year(%{year: _} = date, 1, locale_id, options) do
+    era_year(date) |> calendar_year() |> apply_ns(locale_id, options, "y")
   end
 
-  def year(%{year: _} = date, 2, _locale_id, _options) do
-    era_year(date) |> calendar_year() |> rem(100) |> abs() |> pad(2)
+  def year(%{year: _} = date, 2, locale_id, options) do
+    era_year(date)
+    |> calendar_year()
+    |> rem(100)
+    |> abs()
+    |> pad(2)
+    |> apply_ns(locale_id, options, "y")
   end
 
-  def year(%{year: _} = date, count, _locale_id, _options) do
-    era_year(date) |> calendar_year() |> pad(count)
+  def year(%{year: _} = date, count, locale_id, options) do
+    era_year(date) |> calendar_year() |> pad(count) |> apply_ns(locale_id, options, "y")
   end
 
   def year(_date, _count, _locale_id, _options), do: ""
+
+  # Apply a CLDR `number_system` override for one field. The
+  # overrides map (from `Localize.DateTime.Format.number_system_overrides/4`)
+  # is keyed by field symbol — `"y"`, `"M"`, `"d"`, … — plus
+  # `"all"` meaning every numeric field. Resolution order:
+  # field-specific override → `"all"` override → no override.
+  #
+  # The value is a number-system atom. Numeric systems
+  # (`:arab`, `:beng`, `:deva`, etc.) have a fixed 10-digit set
+  # so we transliterate per ASCII digit. Algorithmic systems
+  # (`:hebr`, `:jpanyear`, `:roman`, etc.) need the RBNF rule
+  # set for the locale — we delegate to
+  # `Localize.Number.to_string/2` which loads RBNF on demand.
+  # If neither path produces output (no RBNF rule for the
+  # locale, malformed digit set) we fall back to ASCII.
+  defp apply_ns(value, locale_id, options, field) do
+    string = ensure_string(value)
+
+    case fetch_override(options, field) do
+      nil ->
+        string
+
+      system ->
+        transliterate_to_number_system(string, system, locale_id) || string
+    end
+  end
+
+  defp fetch_override(options, field) do
+    overrides = options[:number_system_overrides] || options["number_system_overrides"] || %{}
+    Map.get(overrides, field) || Map.get(overrides, "all")
+  end
+
+  # Resolve a CLDR number-system atom (`:hebr`, `:jpanyear`,
+  # `:arab`, …) to a renderer. Numeric systems get a digit
+  # table; algorithmic systems get a CLDR RBNF rule name that
+  # `Localize.Number.to_string/2` knows how to invoke via its
+  # `:format` option.
+  defp transliterate_to_number_system(string, system, locale_id) do
+    case Map.get(Localize.Number.System.number_systems(), system) do
+      %{type: :numeric, digits: digits} ->
+        transliterate_via_digits(string, digits)
+
+      %{type: :algorithmic, rules: rule_path} when is_binary(rule_path) ->
+        case Integer.parse(string) do
+          {n, ""} -> apply_rbnf_rule(n, rule_path, locale_id)
+          _ -> nil
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  # Algorithmic rules are referenced either as a bare rule
+  # name (`"hebrew"` — resolved against the locale's RBNF set,
+  # falling back to root) or as a fully-qualified path
+  # (`"ja/SpelloutRules/spellout-numbering-year-latn"`). The
+  # path form names a specific locale and rule set; we pass
+  # the trailing rule name as the `:format` option and use
+  # the locale embedded in the path.
+  defp apply_rbnf_rule(n, rule_path, locale_id) do
+    {target_locale, rule_name} =
+      case String.split(rule_path, "/", parts: 3) do
+        [locale, _group, rule] -> {String.to_atom(locale), rule}
+        [rule] -> {locale_id, rule}
+        _ -> {locale_id, rule_path}
+      end
+
+    rule_atom = String.to_atom(rule_name)
+
+    case Localize.Number.to_string(n, locale: target_locale, format: rule_atom) do
+      {:ok, formatted} -> formatted
+      _ -> nil
+    end
+  end
+
+  defp transliterate_via_digits(string, digits) when byte_size(digits) > 0 do
+    digit_list = String.graphemes(digits)
+
+    if length(digit_list) == 10 do
+      string
+      |> String.graphemes()
+      |> Enum.map(fn
+        c when c in ~w(0 1 2 3 4 5 6 7 8 9) ->
+          Enum.at(digit_list, String.to_integer(c))
+
+        c ->
+          c
+      end)
+      |> Enum.join()
+    else
+      nil
+    end
+  end
+
+  defp transliterate_via_digits(_, _), do: nil
 
   # For era-aware calendars implementing the Calendrical
   # behaviour, `calendar_year/3` returns the displayed
@@ -312,9 +413,11 @@ defmodule Localize.DateTime.Formatter do
   # ── Month (M) ──────────────────────────────────────────────
 
   @doc false
-  def month(%{month: month}, 1, _locale_id, _options), do: month
+  def month(%{month: month}, 1, locale_id, options),
+    do: month |> apply_ns(locale_id, options, "M")
 
-  def month(%{month: month}, 2, _locale_id, _options), do: pad(month, 2)
+  def month(%{month: month}, 2, locale_id, options),
+    do: pad(month, 2) |> apply_ns(locale_id, options, "M")
 
   def month(date, count, locale_id, _options) when has_month(date) and count in 3..5 do
     format = format_for_count(count)
@@ -369,9 +472,11 @@ defmodule Localize.DateTime.Formatter do
   # ── Day of Month (d) ───────────────────────────────────────
 
   @doc false
-  def day_of_month(%{day: day}, 1, _locale_id, _options), do: day
+  def day_of_month(%{day: day}, 1, locale_id, options),
+    do: day |> apply_ns(locale_id, options, "d")
 
-  def day_of_month(%{day: day}, 2, _locale_id, _options), do: pad(day, 2)
+  def day_of_month(%{day: day}, 2, locale_id, options),
+    do: pad(day, 2) |> apply_ns(locale_id, options, "d")
 
   def day_of_month(_date, _count, _locale_id, _options), do: ""
 
