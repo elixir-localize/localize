@@ -226,6 +226,16 @@ defmodule Localize.DateTime.Format do
       Map.has_key?(variant_map, :unicode) or Map.has_key?(variant_map, :ascii) ->
         pick(variant_map, prefer, [:unicode, :ascii])
 
+      # CLDR `{format: "<pattern>", number_system: %{...}}`
+      # shape — the pattern is the format string; the
+      # `:number_system` companion tells the formatter which
+      # digit set to render numeric fields with (e.g.
+      # `jpanyear` for Japanese imperial year). We surface
+      # the pattern here and rely on the formatter to read
+      # the number_system separately when it needs to.
+      Map.has_key?(variant_map, :format) ->
+        Map.get(variant_map, :format)
+
       Map.has_key?(variant_map, :other) ->
         Map.get(variant_map, :other)
 

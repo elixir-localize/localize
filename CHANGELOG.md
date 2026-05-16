@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.37.0] — May 16th, 2026
+
+### Bug Fixes
+
+* `Localize.Date.to_string/2` with a skeleton format (e.g. `:yMMMM`) against a non-Gregorian calendar no longer infinite-loops. The previous behaviour: `resolve_skeleton` looked up the skeleton in the calendar's `available_formats`, didn't find it, called `Match.best_match/3` **without the calendar argument** (so it searched gregorian and found the skeleton there), returned the same skeleton, then `resolve_skeleton` recursed — and the cycle repeated forever. The fix passes the calendar to `best_match`, falls back to gregorian patterns when the calendar-specific match is empty, and guards `resolve_skeleton` with a `seen` set to terminate any residual match cycle. Without this, `Localize.Date.to_string(~D[2024-07-01], locale: :"ja-JP", format: :yMMMM)` hung indefinitely; it now returns `{:ok, "令和6年7月"}` in milliseconds.
+
+* `Localize.Date.to_string/2` now honours non-Gregorian calendars carried in the date's `:calendar` field — previously every call hard-coded `:gregorian`. A `Date` built with `Calendrical.Japanese` (or any other Calendar behaviour module exposing `cldr_calendar_type/0`) now renders calendar-correct output: `Date.new(2000, 1, 1, Calendrical.Japanese)` formats as `平成12年1月1日` under `:"ja-JP"` instead of `2000/01/01`.
+
+* `Localize.Calendar.localize/3` for `:era` now derives the correct era by delegating to the date's calendar `year_of_era/3` callback. Previously it always returned era 1, producing `白雉` (Hakuchi, AD 650) for every `Calendrical.Japanese` date instead of the correct emperor's era.
+
+* `Localize.DateTime.Formatter` `y` token now uses the calendar's `calendar_year/3` (or `year_of_era/3` as fallback) for non-`Calendar.ISO` dates, so era-relative year numbering — Heisei 12, Reiwa 6, AH 1420, BE 2543 — renders correctly.
+
+* `Localize.DateTime.Format.resolve_variant/2` now handles the CLDR `%{format: "<pattern>", number_system: %{...}}` variant shape. Without this, locales whose date patterns carry a `number_system` override (Japanese imperial year via `jpanyear`, Hebrew dates via `hebr`) silently fell back to Gregorian patterns.
+
 ## [0.36.0] — May 15th, 2026
 
 ### Bug Fixes

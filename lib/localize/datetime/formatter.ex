@@ -171,19 +171,53 @@ defmodule Localize.DateTime.Formatter do
   def era(_date, _count, _locale_id, _options), do: ""
 
   # ── Year (y) ───────────────────────────────────────────────
+  #
+  # CLDR `y` is the era-relative year. For Calendar.ISO this
+  # is the same as the proleptic year for AD dates (and the
+  # absolute value for BC). For era-aware calendars like
+  # `Calendrical.Japanese`, the era-year (Heisei 12, Reiwa 6,
+  # …) differs from the proleptic year and we must consult
+  # the calendar's `year_of_era/3` callback to derive it.
 
   @doc false
-  def year(%{year: year}, 1, _locale_id, _options), do: calendar_year(year)
-
-  def year(%{year: year}, 2, _locale_id, _options) do
-    calendar_year(year) |> rem(100) |> abs() |> pad(2)
+  def year(%{year: _} = date, 1, _locale_id, _options) do
+    era_year(date) |> calendar_year()
   end
 
-  def year(%{year: year}, count, _locale_id, _options) do
-    calendar_year(year) |> pad(count)
+  def year(%{year: _} = date, 2, _locale_id, _options) do
+    era_year(date) |> calendar_year() |> rem(100) |> abs() |> pad(2)
+  end
+
+  def year(%{year: _} = date, count, _locale_id, _options) do
+    era_year(date) |> calendar_year() |> pad(count)
   end
 
   def year(_date, _count, _locale_id, _options), do: ""
+
+  # For era-aware calendars implementing the Calendrical
+  # behaviour, `calendar_year/3` returns the displayed
+  # calendar year (Heisei 12, BE 2543, AH 1420) — which is
+  # what CLDR's `y` token wants. We prefer it over
+  # `year_of_era/3` because the latter returns a Julian-day-
+  # derived counter that varies by calendar convention.
+  defp era_year(%{year: year, month: month, day: day, calendar: calendar})
+       when is_atom(calendar) and calendar != Calendar.ISO do
+    cond do
+      function_exported?(calendar, :calendar_year, 3) ->
+        calendar.calendar_year(year, month, day)
+
+      function_exported?(calendar, :year_of_era, 3) ->
+        case calendar.year_of_era(year, month, day) do
+          {era_year, _era} -> era_year
+          _ -> year
+        end
+
+      true ->
+        year
+    end
+  end
+
+  defp era_year(%{year: year}), do: year
 
   # ── Week-aligned year (Y) ──────────────────────────────────
 
