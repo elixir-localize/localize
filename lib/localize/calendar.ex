@@ -977,9 +977,28 @@ defmodule Localize.Calendar do
 
   defp calendar_type_from(_), do: @default_calendar_type
 
-  defp day_of_era(%{year: year}) when year > 0, do: {:current, 1}
-  defp day_of_era(%{year: _year}), do: {:before_current, 0}
+  # For dates carrying a non-`Calendar.ISO` calendar module
+  # (e.g. `Calendrical.Japanese`, `Calendrical.Buddhist`), the
+  # calendar's `year_of_era/3` callback returns the correct
+  # `{era_year, era_index}` for the date. The earlier
+  # year>0 → era 1 fallback is only safe for Gregorian.
+  defp day_of_era(%{year: year, month: month, day: day, calendar: calendar})
+       when is_atom(calendar) and calendar != Calendar.ISO do
+    if function_exported?(calendar, :year_of_era, 3) do
+      case calendar.year_of_era(year, month, day) do
+        {era_year, era} when is_integer(era) -> {era_year, era}
+        _ -> default_day_of_era(year)
+      end
+    else
+      default_day_of_era(year)
+    end
+  end
+
+  defp day_of_era(%{year: year}), do: default_day_of_era(year)
   defp day_of_era(_), do: {:current, 1}
+
+  defp default_day_of_era(year) when year > 0, do: {:current, 1}
+  defp default_day_of_era(_), do: {:before_current, 0}
 
   defp quarter_of_year(%{month: month}) when is_integer(month) do
     div(month - 1, 3) + 1

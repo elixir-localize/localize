@@ -163,12 +163,19 @@ defmodule Localize.Date do
   end
 
   defp find_format(date, format, locale_id, options) when is_atom(format) do
+    cldr_calendar = cldr_calendar_for(date)
+
     # For standard formats on full dates, resolve via the standard format map
     if format in @standard_formats and is_full_date(date) do
-      Localize.DateTime.Format.resolve_format(:date, format, locale_id, :gregorian, options)
+      Localize.DateTime.Format.resolve_format(:date, format, locale_id, cldr_calendar, options)
     else
       # Skeleton format — look up in available_formats
-      resolve_skeleton(format, locale_id, options)
+      resolve_skeleton(
+        skeleton: format,
+        locale_id: locale_id,
+        calendar: cldr_calendar,
+        options: options
+      )
     end
   end
 
@@ -176,27 +183,43 @@ defmodule Localize.Date do
     {:error, Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)}
   end
 
-  defp resolve_skeleton(skeleton, locale_id, options) when is_atom(skeleton) do
+  # Resolve the CLDR calendar key from a date's `:calendar`
+  # module. `Calendar.ISO` is Gregorian. Other calendar modules
+  # (e.g. Calendrical's `Calendrical.Japanese`,
+  # `Calendrical.Buddhist`) expose `cldr_calendar_type/0` —
+  # probe it via `function_exported?/3` so Localize itself
+  # doesn't need a hard dep on the calendar library.
+  defp cldr_calendar_for(%{calendar: Calendar.ISO}), do: :gregorian
+
+  defp cldr_calendar_for(%{calendar: module}) when is_atom(module) do
+    Code.ensure_loaded?(module)
+
+    if function_exported?(module, :cldr_calendar_type, 0) do
+      module.cldr_calendar_type()
+    else
+      :gregorian
+    end
+  end
+
+  defp cldr_calendar_for(_), do: :gregorian
+
+  defp resolve_skeleton(opts) when is_list(opts) do
+    skeleton = Keyword.fetch!(opts, :skeleton)
+    locale_id = Keyword.fetch!(opts, :locale_id)
+    calendar = Keyword.get(opts, :calendar, :gregorian)
+    options = Keyword.get(opts, :options, [])
+    # Internal: skeletons already attempted in this resolution
+    # chain. Prevents an infinite loop where `best_match`
+    # returns the same skeleton it was given because the
+    # candidate set already contains it (and we then re-look-up
+    # in the calendar's available_formats where it's missing).
+    seen = Keyword.get(opts, :seen, MapSet.new())
+
     with {:ok, available} <-
-           Localize.DateTime.Format.available_formats(locale_id, :gregorian) do
+           Localize.DateTime.Format.available_formats(locale_id, calendar) do
       case Map.get(available, skeleton) do
         nil ->
-          # Try best match
-          case Localize.DateTime.Format.Match.best_match(skeleton, locale_id) do
-            {:ok, matched_id} when is_atom(matched_id) ->
-              resolve_skeleton(matched_id, locale_id, options)
-
-            {:ok, {_date_id, _time_id}} ->
-              # Combined date+time skeleton — not applicable for date-only formatting
-              {:error,
-               Localize.DateTimeUnresolvedFormatError.exception(
-                 format: skeleton,
-                 locale: locale_id
-               )}
-
-            {:error, _} = error ->
-              error
-          end
+          resolve_skeleton_via_best_match(skeleton, locale_id, calendar, options, seen)
 
         %{} = variant_map ->
           case Localize.DateTime.Format.resolve_variant(variant_map, options) do
@@ -214,6 +237,80 @@ defmodule Localize.Date do
         pattern when is_binary(pattern) ->
           {:ok, pattern}
       end
+    end
+  end
+
+  # Two-step fallback when the exact skeleton isn't in the
+  # calendar's `available_formats`:
+  #
+  # 1. Ask `best_match` for the nearest skeleton in the
+  #    **same calendar's** format set. Pass the calendar
+  #    explicitly — the default of `:gregorian` is what
+  #    caused the infinite loop for non-Gregorian dates
+  #    (best_match found the skeleton in gregorian, returned
+  #    it, and resolve_skeleton re-looked-up in the original
+  #    non-Gregorian calendar where it's still missing).
+  #
+  # 2. If best_match for the calendar finds nothing, fall back
+  #    to gregorian's pattern set. Skeletons are
+  #    calendar-agnostic by design, so a user requesting
+  #    `:yMMMM` against a Japanese date should still get
+  #    "MMMM y" rendering rather than an error.
+  #
+  # In both cases the recursion is guarded by a `seen` set
+  # so a degenerate match cycle (`a → b → a`) terminates.
+  defp resolve_skeleton_via_best_match(skeleton, locale_id, calendar, options, seen) do
+    cond do
+      MapSet.member?(seen, skeleton) ->
+        {:error,
+         Localize.DateTimeUnresolvedFormatError.exception(
+           format: skeleton,
+           locale: locale_id
+         )}
+
+      true ->
+        seen = MapSet.put(seen, skeleton)
+
+        case Localize.DateTime.Format.Match.best_match(skeleton, locale_id, calendar) do
+          {:ok, matched_id} when is_atom(matched_id) and matched_id != skeleton ->
+            resolve_skeleton(
+              skeleton: matched_id,
+              locale_id: locale_id,
+              calendar: calendar,
+              options: options,
+              seen: seen
+            )
+
+          {:ok, {_date_id, _time_id}} ->
+            # Combined date+time skeleton — not applicable for
+            # date-only formatting.
+            {:error,
+             Localize.DateTimeUnresolvedFormatError.exception(
+               format: skeleton,
+               locale: locale_id
+             )}
+
+          _ when calendar != :gregorian ->
+            # Calendar-specific match exhausted — fall back to
+            # gregorian patterns. The displayed values will
+            # still be calendar-correct because the formatter's
+            # `y` / `G` tokens read from `date.calendar`; only
+            # the pattern selection switches to gregorian.
+            resolve_skeleton(
+              skeleton: skeleton,
+              locale_id: locale_id,
+              calendar: :gregorian,
+              options: options,
+              seen: seen
+            )
+
+          _ ->
+            {:error,
+             Localize.DateTimeUnresolvedFormatError.exception(
+               format: skeleton,
+               locale: locale_id
+             )}
+        end
     end
   end
 

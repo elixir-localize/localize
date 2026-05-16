@@ -184,4 +184,35 @@ defmodule Localize.DateTest do
       end
     end
   end
+
+  describe "to_string/2 — skeleton fallback for non-Gregorian calendars" do
+    # Regression: `:yMMMM` (or any skeleton not in the
+    # locale's calendar `available_formats`) used to
+    # infinite-loop via `Match.best_match/3` falling back to
+    # gregorian patterns and `resolve_skeleton` re-looking-up
+    # in the original calendar where the skeleton still
+    # wasn't found. `best_match` now receives the calendar
+    # explicitly and `resolve_skeleton` carries a `seen` set
+    # to terminate any degenerate match cycle. Without the
+    # fix this test timed out at 60s.
+    test "skeleton :yMMMM under ja-JP locale completes in under a second" do
+      start = System.monotonic_time(:millisecond)
+      result = Localize.Date.to_string(~D[2024-07-01], locale: :"ja-JP", format: :yMMMM)
+      elapsed = System.monotonic_time(:millisecond) - start
+
+      assert {:ok, _} = result
+      assert elapsed < 1000, "expected under 1s, got #{elapsed}ms"
+    end
+
+    test "skeleton :yMMMM falls back to gregorian patterns when calendar lacks it" do
+      # Japanese calendar's `available_formats` doesn't carry
+      # the bare `:yMMMM` skeleton (every Japanese skeleton
+      # has the `G` era marker prefix). Falling back to
+      # gregorian's `"MMMM y"` pattern is the correct
+      # behaviour — the formatter's `y` token still pulls
+      # the calendar-correct year from `date.calendar`.
+      assert {:ok, "July 2017"} =
+               Localize.Date.to_string(~D[2017-07-10], locale: :en, format: :yMMMM)
+    end
+  end
 end
