@@ -86,6 +86,7 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
 
   @impl Mix.Task
   def run(args) do
+    Mix.Task.run("app.config")
     {:ok, _started} = Application.ensure_all_started(:localize)
 
     {opts, locale_args} =
