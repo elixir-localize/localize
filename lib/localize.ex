@@ -771,10 +771,11 @@ defmodule Localize do
   2. `Application.get_env(:localize, :supported_locales)`, if it
      is set to a list. The list is expanded through
      `Localize.Locale.expand_locale_list/2` (so wildcards like
-     `"en-*"`, coverage-level keywords like `:modern`, and
-     POSIX-form aliases like `"pt_BR"` resolve identically to the
-     boot path) and the result is cached in `:persistent_term`
-     for subsequent calls.
+     `"en-*"`, coverage-level keywords like `:modern`, POSIX-form
+     aliases like `"pt_BR"`, and **Gettext backend modules** like
+     `MyApp.Gettext` resolve identically to the boot path) and
+     the result is cached in `:persistent_term` for subsequent
+     calls.
 
   3. `Localize.all_locale_ids/0` — the full set of CLDR locales,
      used when no `supported_locales` configuration exists. This

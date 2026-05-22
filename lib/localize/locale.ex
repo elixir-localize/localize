@@ -900,18 +900,38 @@ defmodule Localize.Locale do
   end
 
   @doc """
-  Expands a list of locale identifiers (atoms and wildcard strings)
-  into a list of known CLDR locale ID atoms.
+  Expands a list of locale identifiers into a list of known CLDR
+  locale ID atoms.
 
-  Each entry is either an atom matching a known CLDR locale
-  (e.g. `:en`, `:"fr-CA"`) or a string with a trailing `*`
-  wildcard (e.g. `"en-*"`) that expands to all matching locales.
+  Each entry can be:
+
+  * A **CLDR locale ID atom** like `:en`, `:"fr-CA"`.
+
+  * A **coverage-level keyword** — `:basic`, `:moderate`, or
+    `:modern` — that expands to all locales at or above that
+    level.
+
+  * A **Gettext backend module** (a module that has called
+    `use Gettext.Backend` or `use Gettext, otp_app: ...`) which
+    expands to the backend's `Gettext.known_locales/1`. Each
+    returned string is re-expanded as a locale ID, so POSIX-style
+    names like `"pt_BR"` resolve to `:"pt-BR"`.
+
+  * A **string locale ID** like `"en"`, `"pt_BR"`, or
+    `"zh_Hans"`. POSIX underscores are normalised to hyphens, then
+    the string is matched against the CLDR set via likely-subtag
+    resolution.
+
+  * A **wildcard string** like `"en-*"` that expands to all
+    matching CLDR locales.
 
   Invalid entries log a warning and are skipped.
 
   ### Arguments
 
-  * `entries` is a list of atoms and/or strings.
+  * `entries` is a list of atoms (locale IDs, coverage keywords,
+    or Gettext backend modules) and/or strings (locale IDs or
+    wildcards).
 
   * `context` is an atom or string used in warning messages to
     identify where the entry came from (e.g. `:supported_locales`).
@@ -939,19 +959,27 @@ defmodule Localize.Locale do
     Localize.all_locale_ids(level)
   end
 
-  defp expand_locale_entry(entry, all_ids, _all_strings, context) when is_atom(entry) do
-    if entry in all_ids do
-      [entry]
-    else
-      require Logger
+  defp expand_locale_entry(entry, all_ids, all_strings, context) when is_atom(entry) do
+    cond do
+      entry in all_ids ->
+        [entry]
 
-      Logger.warning(
-        "Ignoring unknown locale #{inspect(entry)} in #{inspect(context)} configuration. " <>
-          "Not found in known CLDR locales.",
-        domain: [:localize]
-      )
+      gettext_backend?(entry) ->
+        entry
+        |> Gettext.known_locales()
+        |> Enum.flat_map(&expand_locale_entry(&1, all_ids, all_strings, context))
 
-      []
+      true ->
+        require Logger
+
+        Logger.warning(
+          "Ignoring unknown locale #{inspect(entry)} in #{inspect(context)} " <>
+            "configuration. Not a known CLDR locale, coverage-level keyword, " <>
+            "or Gettext backend module.",
+          domain: [:localize]
+        )
+
+        []
     end
   end
 
@@ -991,5 +1019,18 @@ defmodule Localize.Locale do
         "Could not be resolved to a known CLDR locale.",
       domain: [:localize]
     )
+  end
+
+  # `Code.ensure_compiled/1` (not `Code.ensure_loaded/1`) so this is
+  # safe to call from either compile-time contexts (where the host
+  # app's `MyApp.Gettext` may not yet exist as a BEAM file) or runtime
+  # contexts (where the module exists but may not yet be loaded).
+  # Returns `false` for unavailable modules so an unresolvable backend
+  # entry falls through to the existing `warn_unknown_locale` path.
+  defp gettext_backend?(module) when is_atom(module) do
+    case Code.ensure_compiled(module) do
+      {:module, _} -> function_exported?(module, :__gettext__, 1)
+      {:error, _} -> false
+    end
   end
 end
