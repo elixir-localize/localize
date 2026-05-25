@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.38.0] — May 23rd, 2026
+
+### Enhancements
+
+* `Localize.Locale.expand_locale_list/2` (and therefore the `:supported_locales` configuration) now accepts a Gettext backend module like `MyApp.Gettext` as an entry; it expands to `Gettext.known_locales/1` with each returned string re-resolved through the existing POSIX-normalisation and likely-subtag canonicalisation path. The check uses `Code.ensure_compiled/1` so the entry is safe to place in either `config.exs` or `runtime.exs`.
+
 ## [0.37.0] — May 17th, 2026
 
 ### Bug Fixes
