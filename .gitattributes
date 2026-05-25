@@ -1,0 +1,35 @@
+# GitHub Linguist overrides.
+#
+# Linguist (https://github.com/github-linguist/linguist) drives the
+# language-mix bar on github.com and the "Languages" sidebar. It
+# counts bytes per file and attributes each to a detected language.
+# These rules exclude vendored, generated, and build-glue files so
+# the displayed mix reflects the project's own source — not the
+# third-party ICU SDK we ship for build convenience or the data
+# files compiled from CLDR.
+
+# ── Vendored third-party C++ ─────────────────────────────────────
+#
+# `c_src/platform/osx/icu/unicode/` contains 200+ ICU header files
+# (~5 MB) bundled so the NIF can be built without a system-wide ICU
+# install. They are not part of the Localize source.
+c_src/platform/**          linguist-vendored
+
+# ── Build glue ───────────────────────────────────────────────────
+#
+# The NIF Makefile and its included env file are infrastructure,
+# not project source.
+c_src/Makefile             linguist-vendored
+c_src/env.mk               linguist-vendored
+
+# ── Generated CLDR data ──────────────────────────────────────────
+#
+# Erlang Term Format files compiled from upstream CLDR data. They
+# ship with the package so consumers don't need a build-time CLDR
+# pipeline, but they are not source code authored in this repo.
+*.etf                      linguist-generated
+priv/gettext/**.po         linguist-generated
+priv/gettext/**.pot        linguist-generated
+
+# ── Treat ETF as binary in diffs ─────────────────────────────────
+*.etf                      binary
