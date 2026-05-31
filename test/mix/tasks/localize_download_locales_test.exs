@@ -69,4 +69,63 @@ defmodule Mix.Tasks.Localize.DownloadLocalesTest do
       assert DownloadLocales.banner(7, "/tmp/cache") =~ "locales"
     end
   end
+
+  describe "skip decision is target-dir-scoped — issue #35" do
+    # Issue #35: with a custom `:locale_cache_dir`, the task reported
+    # every locale "(current)" and skipped it — because the old skip
+    # check used `Cache.get/1`, which falls back to the bundled
+    # package dir (`Application.app_dir(:localize, …)`). A locale
+    # present in the dependency's `_build` priv was therefore treated
+    # as current and never written to the user's (empty) configured
+    # dir.
+    #
+    # The fix switches the skip decision to `Cache.stale?/1`, which
+    # reads ONLY the configured `Cache.path/1`. These tests lock down
+    # the divergence the fix relies on: `stale?/1` ignores the
+    # bundled fallback; `get/1` still uses it (correct for runtime
+    # reads). `:en` is shipped in the bundled dir, so it's the ideal
+    # probe.
+
+    alias Localize.Locale.Provider.Cache
+
+    setup do
+      previous = Application.get_env(:localize, :locale_cache_dir)
+
+      tmp =
+        Path.join(System.tmp_dir!(), "localize_mcp_issue35_#{System.unique_integer([:positive])}")
+
+      File.mkdir_p!(tmp)
+      Application.put_env(:localize, :locale_cache_dir, tmp)
+
+      on_exit(fn ->
+        File.rm_rf(tmp)
+
+        case previous do
+          nil -> Application.delete_env(:localize, :locale_cache_dir)
+          dir -> Application.put_env(:localize, :locale_cache_dir, dir)
+        end
+      end)
+
+      {:ok, tmp: tmp}
+    end
+
+    test "Cache.stale?/1 reports a locale stale when the configured dir is empty, " <>
+           "even though the bundled dir ships it" do
+      # The configured dir is the fresh empty tmp dir. `:en` is in the
+      # bundled package dir but NOT in the configured dir, so the
+      # download decision must treat it as needing a download.
+      assert Cache.stale?(:en) == true
+    end
+
+    test "Cache.get/1 still finds the locale via the bundled fallback (runtime read)" do
+      # Same configured (empty) dir, but the runtime read SHOULD fall
+      # back to the bundled dir so the app still works. This is the
+      # behaviour we deliberately keep out of the download decision.
+      assert {:ok, _data} = Cache.get(:en)
+    end
+
+    test "Cache.path/1 points at the configured dir, not the bundled dir", %{tmp: tmp} do
+      assert Cache.path(:en) == Path.join(tmp, "en.etf")
+    end
+  end
 end

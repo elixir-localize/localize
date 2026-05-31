@@ -29,9 +29,12 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
 
       mix localize.download_locales --force
 
-  When `:supported_locales` is not configured, downloads all
-  locales without prompting. Useful in CI/Docker where there
-  is no interactive terminal.
+  `--force` does two things: (1) when `:supported_locales` is not
+  configured, it downloads all locales without prompting (useful in
+  CI/Docker where there is no interactive terminal); and (2) it
+  re-downloads every requested locale even if a current copy already
+  exists in the configured cache directory, bypassing the
+  "already current" skip.
 
   ## Output directory
 
@@ -42,6 +45,17 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
   Override with:
 
       config :localize, locale_cache_dir: "/path/to/cache"
+
+  ## Skip behaviour
+
+  A locale is reported `(current)` and skipped only when a
+  version-matching copy already exists **in the configured cache
+  directory** — the same directory the task writes to. The bundled
+  fallback directory inside the `:localize` dependency
+  (`Application.app_dir(:localize, …)`) is deliberately *not*
+  consulted for this decision, so a copy shipped with the dependency
+  never prevents the task from populating your configured directory.
+  Use `--force` to re-download regardless of the current copy.
 
   ## Compile-time configuration
 
@@ -97,7 +111,7 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
       # User declined at the confirmation prompt
       :ok
     else
-      download_locales(locales)
+      download_locales(locales, force: opts[:force] || false)
     end
   end
 
@@ -153,7 +167,8 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
     end
   end
 
-  defp download_locales(locales) do
+  defp download_locales(locales, options) do
+    force? = Keyword.get(options, :force, false)
     cache_dir = Provider.locale_cache_dir()
     count = length(locales)
 
@@ -166,7 +181,7 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
       |> Enum.reduce({0, 0, 0}, fn {locale_id, index}, {ok, skip, fail} ->
         prefix = "[#{index}/#{length(locales)}]"
 
-        case download_and_store(locale_id) do
+        case download_and_store(locale_id, force?) do
           {:ok, path, size} ->
             Mix.shell().info("#{prefix} #{locale_id} (#{format_size(size)}) -> #{path}")
             {ok + 1, skip, fail}
@@ -190,15 +205,34 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
     end
   end
 
-  defp download_and_store(locale_id) do
-    case Cache.get(locale_id) do
-      {:ok, _locale_data} ->
-        # Already cached and version matches — skip the download.
-        {:skip, Cache.path(locale_id)}
+  # Decide whether to download or skip, scoped to the **configured
+  # target directory only**. We use `Cache.stale?/1` (which reads
+  # `Cache.path/1` in the configured `:locale_cache_dir`) rather than
+  # `Cache.get/1` — the latter falls back to the bundled package dir
+  # (`Application.app_dir(:localize, …)`), which is the right
+  # behaviour for a *runtime read* but wrong for a *download* command.
+  #
+  # Using `Cache.get/1` here caused issue #35: a locale already
+  # present in the dependency's `_build` priv was reported "(current)"
+  # and skipped, so it was never written to the user's configured
+  # cache dir even though that dir was empty. The skip decision must
+  # only consider the target dir.
+  #
+  # `--force` bypasses the staleness check entirely and always
+  # re-downloads.
+  defp download_and_store(locale_id, true = _force) do
+    do_download(locale_id)
+  end
 
-      {:error, _stale_or_missing} ->
-        # Missing or stale — download a fresh copy.
-        do_download(locale_id)
+  defp download_and_store(locale_id, _force) do
+    if Cache.stale?(locale_id) do
+      # Missing or stale in the *target* dir — download a fresh copy.
+      do_download(locale_id)
+    else
+      # Present and current in the target dir — skip. `Cache.path/1`
+      # is now an accurate report: staleness was checked against
+      # exactly this path.
+      {:skip, Cache.path(locale_id)}
     end
   end
 
