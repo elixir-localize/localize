@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.39.0] — May 31st, 2026
+
+### Bug Fixes
+
+* Scope download_locales skip check to the configured cache dir, not the bundled fallback. Thanks to @allenwyma for the issue. Closes #35
+
 ## [0.38.0] — May 23rd, 2026
 
 ### Enhancements
