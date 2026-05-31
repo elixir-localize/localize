@@ -77,7 +77,17 @@ def load(locale) do
 end
 ```
 
-The cache directory is configurable via `Localize.Locale.Provider.locale_cache_dir/0`, which reads the `:locale_cache_dir` application environment key, falling back to `Path.join(:code.priv_dir(:localize), "localize/locales")`. Cached files are tagged with the current `Localize.version/0` so stale files are detected and re-downloaded on upgrade.
+The cache directory is configurable via `Localize.Locale.Provider.locale_cache_dir/0`. There are three supported configuration forms:
+
+1. **`:otp_app` only** (recommended) — caches in `Application.app_dir(<otp_app>, "priv/localize/locales")`. The Elixir/Phoenix/Ecto/Gettext convention. `Application.app_dir/2` is re-resolved on every read, so a single config value produces the correct path in mix tasks (`_build/<env>/lib/<app>/priv/...`), `mix test`, and releases (`<release>/lib/<app>-X.Y.Z/priv/...`) without per-phase duplication.
+
+2. **`:otp_app` + relative `:locale_cache_dir`** — caches in `Application.app_dir(<otp_app>, <relative>)`. Same app-anchored resolution, but the consumer picks the subpath under `priv/`.
+
+3. **Absolute `:locale_cache_dir`** — used verbatim. `:otp_app` is ignored. Use for shared mounts or fixed system paths.
+
+With neither key set, Localize falls back to `Application.app_dir(:localize, "priv/localize/locales")` inside its own dependency directory. A relative `:locale_cache_dir` **without** an `:otp_app` anchor is refused at app start with `Localize.LocaleCacheDirError`: a relative path with no anchor resolves against the BEAM's current working directory, which differs between mix tasks, `mix test`, and a release, so one value cannot be correct in all phases.
+
+Cached files are tagged with the current `Localize.version/0` so stale files are detected and re-downloaded on upgrade.
 
 This means:
 

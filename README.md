@@ -128,11 +128,41 @@ config :localize,
   locale_provider: MyApp.LocaleProvider,
   locale_cache_max_entries: 2_000,
   format_cache_max_entries: 5_000,
-  locale_cache_dir: "/path/to/locale/cache",
+  otp_app: :my_app,
   nif: true,
   cacertfile: "/path/to/cacerts.pem",
   https_proxy: "http://proxy.example.com:8080"
 ```
+
+### Configuring the locale cache directory
+
+Where Localize writes downloaded locale ETF files is controlled by two application-environment keys, `:otp_app` and `:locale_cache_dir`. **There are three supported forms** — pick the one that matches your situation:
+
+**1. `:otp_app` only (recommended).** Caches under your app's runtime `priv/` directory at the conventional subpath:
+
+```elixir
+config :localize, otp_app: :my_app
+# → Application.app_dir(:my_app, "priv/localize/locales")
+```
+
+**2. `:otp_app` + a relative `:locale_cache_dir`.** Same app-anchored resolution, but you choose the subpath:
+
+```elixir
+config :localize,
+  otp_app: :my_app,
+  locale_cache_dir: "priv/i18n/cache"
+# → Application.app_dir(:my_app, "priv/i18n/cache")
+```
+
+**3. An absolute `:locale_cache_dir`.** Used verbatim — `:otp_app` is ignored. Use this for a shared mount or a fixed system path:
+
+```elixir
+config :localize, locale_cache_dir: "/var/lib/localize/locales"
+```
+
+Why `:otp_app` is the recommended anchor: `Application.app_dir/2` is re-resolved on every read, so a single config value works correctly in every runtime phase — mix tasks land files in `_build/<env>/lib/<app>/priv/...`, `mix test` reads the same path, and releases read from `/path/to/release/lib/<app>-X.Y.Z/priv/...`. No `config/runtime.exs` duplication is needed.
+
+> **Why a bare relative `:locale_cache_dir` is refused.** A relative path *without* an `:otp_app` anchor resolves against the BEAM's current working directory, which differs between mix tasks (project root), `mix test`, and a release (release root) — one value cannot be correct in all phases. If you set a relative `:locale_cache_dir` without `:otp_app`, Localize raises `Localize.LocaleCacheDirError` at app start. Fix it by pairing the relative path with `:otp_app` (form 2 above) or by switching to an absolute path (form 3).
 
 | Option | Default | Description |
 |--------|---------|-------------|
@@ -141,7 +171,8 @@ config :localize,
 | `:locale_provider` | `Localize.Locale.Provider.PersistentTerm` | Module that implements the `Localize.Locale.Provider` behaviour for loading and caching per-locale data. |
 | `:locale_cache_max_entries` | `1_000` | Maximum number of validated locales to hold in the ETS cache. A background sweeper runs every 10 seconds and evicts excess entries to prevent unbounded growth. |
 | `:format_cache_max_entries` | `2_000` | Maximum number of compiled format patterns (number and date/time) to hold in the ETS cache. A background sweeper runs every 10 seconds and evicts excess entries to prevent unbounded growth. |
-| `:locale_cache_dir` | `Application.app_dir(:localize, "priv/localize/locales")` | Directory where downloaded per-locale ETF data files are cached. See `Localize.Locale.Provider.locale_cache_dir/0`. |
+| `:otp_app` | `nil` | **Recommended.** Atom naming your application. Localize stores downloaded locale data under `Application.app_dir(<otp_app>, "priv/localize/locales")` — the same `:otp_app` convention used by `Ecto.Repo`, `Phoenix.Endpoint`, and `Gettext.Backend`. Resolved at every read, so it works correctly in mix tasks, `mix test`, and releases without per-phase config. See **Configuring the locale cache directory** above for all three supported forms. |
+| `:locale_cache_dir` | `Application.app_dir(:localize, "priv/localize/locales")` | Path to the on-disk cache. Absolute paths are used verbatim and override `:otp_app`. **Relative** paths are valid only when paired with `:otp_app` — they resolve against the app's runtime root via `Application.app_dir/2`. A bare relative path with no `:otp_app` raises `Localize.LocaleCacheDirError` at app start. See `Localize.Locale.Provider.locale_cache_dir/0`. |
 | `:allow_runtime_locale_download` | `false` | When `true`, locales not found in the on-disk cache are downloaded from the Localize CDN on first access. When `false` (the default), missing locales return an error. Use `mix localize.download_locales` to pre-populate the cache at build time. |
 | `:nif` | `false` | Enable the optional NIF for faster Unicode normalisation and collation sort-key generation. Can also be enabled with the `LOCALIZE_NIF=true` environment variable at compile time. See `Localize.Nif` for details. |
 | `:mf2_functions` | `%{}` | Map of custom MF2 formatting function modules. See `Localize.Message.Function`. |

@@ -112,9 +112,20 @@ defmodule Localize.Supervisor do
   # under a consumer's supervision tree. Idempotent — running twice
   # is harmless.
   defp after_start do
+    validate_locale_cache_dir!()
     resolve_supported_locales()
     intern_supplemental_atoms()
     :ok
+  end
+
+  # Refuse `:locale_cache_dir` configurations that would silently
+  # break in at least one runtime phase — chiefly relative path
+  # strings, which resolve against the BEAM's current working
+  # directory and therefore point at different filesystems in mix
+  # tasks vs `mix test` vs a release. See
+  # `Localize.LocaleCacheDirError` for the recommended form.
+  defp validate_locale_cache_dir! do
+    Localize.Locale.Provider.validate_locale_cache_dir!()
   end
 
   # Force-load every bundled supplemental data set whose constituent

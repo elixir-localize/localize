@@ -325,9 +325,56 @@ defmodule Localize.Locale.Provider do
   @doc """
   Returns the directory in which downloaded locale data is cached.
 
-  The directory is resolved from the `:locale_cache_dir` application
-  environment key for `:localize`, falling back to
-  `default_locale_cache_dir/0` when unset.
+  ## Configuration summary
+
+  There are three supported configurations:
+
+  1. **`:otp_app` only** (recommended) — caches in
+     `Application.app_dir(<otp_app>, "priv/localize/locales")`.
+
+         config :localize, otp_app: :my_app
+
+  2. **`:otp_app` + relative `:locale_cache_dir`** — caches in
+     `Application.app_dir(<otp_app>, <relative>)`. Use this when you
+     want the app-resolved anchor but a non-default subpath.
+
+         config :localize,
+           otp_app: :my_app,
+           locale_cache_dir: "priv/i18n/cache"
+
+  3. **Absolute `:locale_cache_dir`** — used verbatim. `:otp_app`
+     is ignored. Use for fully custom locations such as a shared
+     mount or a fixed system path.
+
+         config :localize, locale_cache_dir: "/var/lib/localize/locales"
+
+  With neither key set, Localize falls back to
+  `default_locale_cache_dir/0` (the bundled `:localize` package's
+  `priv/localize/locales/`).
+
+  ## Why `:otp_app` is recommended
+
+  `Application.app_dir/2` is re-resolved on every read, so a single
+  config value computes the correct path in every runtime phase:
+
+  * Mix tasks land files in `_build/<env>/lib/<app>/priv/...`.
+
+  * `mix test` reads from the same `_build` path.
+
+  * Releases read from `/path/to/release/lib/<app>-X.Y.Z/priv/...`.
+
+  No per-phase config duplication is required.
+
+  ## Why a bare relative `:locale_cache_dir` is refused
+
+  A relative `:locale_cache_dir` without `:otp_app` is **refused**
+  and raises `Localize.LocaleCacheDirError` at app start (see
+  `Localize.Supervisor`). A relative path with no anchor resolves
+  against the BEAM's current working directory, which differs
+  between mix tasks (project root), `mix test`, and a release
+  (release root) — one value cannot be correct in all phases. Either
+  pair the relative path with `:otp_app` (form 2 above) or use an
+  absolute path (form 3).
 
   ### Returns
 
@@ -341,7 +388,83 @@ defmodule Localize.Locale.Provider do
   """
   @spec locale_cache_dir() :: String.t()
   def locale_cache_dir do
-    Application.get_env(:localize, :locale_cache_dir, default_locale_cache_dir())
+    case Application.fetch_env(:localize, :locale_cache_dir) do
+      {:ok, path} when is_binary(path) ->
+        if absolute_path?(path) do
+          # Form 3: absolute literal. `:otp_app` is ignored.
+          path
+        else
+          # Relative `:locale_cache_dir`. Only valid when paired with
+          # `:otp_app` — that supplies the anchor (form 2). Without an
+          # anchor, refuse it (form 2 prerequisite missing).
+          case configured_otp_app() do
+            {:ok, otp_app} ->
+              Application.app_dir(otp_app, path)
+
+            :error ->
+              raise Localize.LocaleCacheDirError,
+                reason: :relative_path,
+                value: path
+          end
+        end
+
+      {:ok, other} ->
+        raise Localize.LocaleCacheDirError,
+          reason: :invalid_form,
+          value: other
+
+      :error ->
+        # No explicit cache dir — fall back to :otp_app-derived path
+        # at the conventional subpath, or the bundled :localize default
+        # if no :otp_app is set.
+        case configured_otp_app() do
+          {:ok, otp_app} -> Application.app_dir(otp_app, "priv/localize/locales")
+          :error -> default_locale_cache_dir()
+        end
+    end
+  end
+
+  # Reads `:otp_app` from the application environment. Returns
+  # `{:ok, atom}` when set to a non-nil atom, `:error` when the key is
+  # absent, or raises `Localize.LocaleCacheDirError` with reason
+  # `:invalid_otp_app` when set to anything else. Used by both the
+  # form-1 fallback (no `:locale_cache_dir`) and the form-2 anchor
+  # (relative `:locale_cache_dir`).
+  defp configured_otp_app do
+    case Application.fetch_env(:localize, :otp_app) do
+      {:ok, otp_app} when is_atom(otp_app) and not is_nil(otp_app) ->
+        {:ok, otp_app}
+
+      {:ok, other} ->
+        raise Localize.LocaleCacheDirError,
+          reason: :invalid_otp_app,
+          value: other
+
+      :error ->
+        :error
+    end
+  end
+
+  # `Path.type/1` returns `:absolute` for paths beginning with `/`
+  # (POSIX) or a drive letter (Windows). `:relative` covers everything
+  # else, including `"./foo"` and `"~/foo"` (Localize does not expand
+  # `~` — that's a shell convention, not a path one).
+  defp absolute_path?(path), do: Path.type(path) == :absolute
+
+  @doc """
+  Validates the `:locale_cache_dir` / `:otp_app` configuration and
+  raises if it is malformed. Called once from
+  `Localize.Supervisor.start_link/1` at app start so misconfiguration
+  surfaces immediately rather than at the first locale lookup.
+
+  Returns `:ok` for any valid configuration (including both keys
+  unset).
+
+  """
+  @spec validate_locale_cache_dir!() :: :ok
+  def validate_locale_cache_dir! do
+    _ = locale_cache_dir()
+    :ok
   end
 
   @doc """
