@@ -42,9 +42,36 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
   `Localize.Locale.Provider.locale_cache_dir/0`, which defaults
   to `Application.app_dir(:localize, "priv/localize/locales")`.
 
-  Override with:
+  Three configuration forms are recognised (see
+  `Localize.Locale.Provider.locale_cache_dir/0`):
 
-      config :localize, locale_cache_dir: "/path/to/cache"
+      # 1. Recommended. The Elixir/Phoenix/Ecto/Gettext :otp_app
+      #    convention. Resolved as
+      #    `Application.app_dir(:my_app, "priv/localize/locales")` at
+      #    every read, so it computes the right path in mix tasks
+      #    (`_build/<env>/lib/my_app/priv/...`) and releases
+      #    (`/path/to/release/lib/my_app-X.Y.Z/priv/...`).
+      config :localize, otp_app: :my_app
+
+      # 2. :otp_app + a *relative* :locale_cache_dir. The relative
+      #    path is resolved against the app's runtime root, i.e.
+      #    `Application.app_dir(:my_app, "priv/i18n/cache")`. Use
+      #    this when you want app-anchored resolution but a custom
+      #    subpath.
+      config :localize,
+        otp_app: :my_app,
+        locale_cache_dir: "priv/i18n/cache"
+
+      # 3. Absolute literal path. Use for fully custom locations (a
+      #    shared mount, a fixed system path). :otp_app is ignored
+      #    in this form.
+      config :localize, locale_cache_dir: "/var/lib/localize/locales"
+
+  A relative `:locale_cache_dir` **without** an `:otp_app` anchor is
+  refused and raises `Localize.LocaleCacheDirError` at app start —
+  with no anchor, a relative path resolves against the BEAM's
+  current working directory, which differs between mix tasks, `mix
+  test`, and a release, so one value cannot be correct in all phases.
 
   ## Skip behaviour
 
