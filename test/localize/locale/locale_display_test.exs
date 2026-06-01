@@ -177,6 +177,24 @@ defmodule Localize.Locale.LocaleDisplayTest do
       result = Localize.Locale.LocaleDisplay.display_name("xyz-invalid-totally-bad")
       assert match?({:error, _}, result)
     end
+
+    # Regression: a generic BCP 47 extension with an odd number of
+    # subtags (e.g. `cr-s-7b` — extension singleton `s` carrying a
+    # single subtag `7b`) crashed in
+    # `Localize.Locale.LocaleDisplay.Extension.display_name/3` because
+    # `Enum.chunk_every(2)` produced a singleton chunk that did not
+    # match the `[key, value]` pattern. Caught by the
+    # `LocaleDisplay.display_name/2 adversarial` property — atom input
+    # `:Cr_S_7B` normalised to `cr-s-7b`.
+    test "odd-length generic extension subtag list renders without crashing" do
+      assert {:ok, name} = Localize.Locale.LocaleDisplay.display_name("cr-s-7b")
+      assert String.contains?(name, "Cree")
+      assert String.contains?(name, "7b")
+    end
+
+    test "atom form of the same input does not raise" do
+      assert {:ok, _name} = Localize.Locale.LocaleDisplay.display_name(:Cr_S_7B)
+    end
   end
 
   # Regression: `find_exemplar_city/2` (in `LocaleDisplay.U`) and

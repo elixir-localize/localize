@@ -30,10 +30,21 @@ defmodule Localize.Locale.LocaleDisplay.Extension do
         Localize.Substitution.substitute(["x", value_names], key_type_pattern)
 
       {extension, key_value_pairs} when is_list(key_value_pairs) ->
+        # Generic BCP 47 extensions (singletons other than `u` and `t`)
+        # carry one or more 2–8 alphanumeric subtags. CLDR's locale
+        # display pattern pairs them as key/type, but an odd-length
+        # subtag list is well-formed BCP 47 — render the trailing
+        # singleton as a bare subtag rather than crashing. (Property
+        # regression: `Cr-S-7B` parses to extension `s` with value
+        # `["7b"]`, which chunked to `[["7b"]]` did not match the
+        # 2-element pattern.)
         value_names =
           key_value_pairs
           |> Enum.chunk_every(2)
-          |> Enum.map(fn [key, value] -> "#{key}-#{value}" end)
+          |> Enum.map(fn
+            [key, value] -> "#{key}-#{value}"
+            [value] -> "#{value}"
+          end)
           |> join_field_values(display_names)
 
         Localize.Substitution.substitute([extension, value_names], key_type_pattern)
