@@ -4,21 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.39.0] — May 31st, 2026
+## [0.40.0] — May 31st, 2026
 
 ### Breaking Changes
 
 * A *bare* relative `:locale_cache_dir` (no `:otp_app` set) is now refused at app start with `Localize.LocaleCacheDirError` — it resolved against the BEAM's CWD, which differs between mix tasks, `mix test`, and a release. Fix: add `:otp_app` to anchor the relative path, or use an absolute path.
 
+### Bug Fixes
+
+* `Localize.Locale.Provider.locale_cache_dir/0` validates its configuration at app start (via `Localize.Supervisor`) and raises `Localize.LocaleCacheDirError` instead of silently reading from the wrong directory at runtime.
+
 ### Enhancements
 
 * New `:otp_app` config key. Three supported forms for the locale cache directory: (1) `:otp_app` only → `Application.app_dir(<otp_app>, "priv/localize/locales")`; (2) `:otp_app` + relative `:locale_cache_dir` → `Application.app_dir(<otp_app>, <relative>)`; (3) absolute `:locale_cache_dir` → used verbatim, `:otp_app` ignored.
 
+## [0.39.0] — May 31st, 2026
+
 ### Bug Fixes
 
 * Scope download_locales skip check to the configured cache dir, not the bundled fallback. Thanks to @allenwyma for the issue. Closes #35.
-
-* `Localize.Locale.Provider.locale_cache_dir/0` validates its configuration at app start (via `Localize.Supervisor`) and raises `Localize.LocaleCacheDirError` instead of silently reading from the wrong directory at runtime.
 
 ## [0.38.0] — May 23rd, 2026
 
