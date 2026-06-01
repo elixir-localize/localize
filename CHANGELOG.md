@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Locale.Provider.locale_cache_dir/0` validates its configuration at app start (via `Localize.Supervisor`) and raises `Localize.LocaleCacheDirError` instead of silently reading from the wrong directory at runtime.
 
+* `Localize.Locale.LocaleDisplay.display_name/2` no longer raises `FunctionClauseError` on a BCP 47 generic extension carrying an odd number of subtags (e.g. `cr-s-7b`); the trailing singleton chunk now renders as a bare subtag.
+
 ### Enhancements
 
 * New `:otp_app` config key. Three supported forms for the locale cache directory: (1) `:otp_app` only → `Application.app_dir(<otp_app>, "priv/localize/locales")`; (2) `:otp_app` + relative `:locale_cache_dir` → `Application.app_dir(<otp_app>, <relative>)`; (3) absolute `:locale_cache_dir` → used verbatim, `:otp_app` ignored.
