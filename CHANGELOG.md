@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.0] — June 3rd, 2026
+
+### Breaking Changes
+
+* `Localize.Number.Format.Compiler` now rejects scientific patterns that contain a grouping separator (e.g. `"#,##0.###E0"`) at compile time. TR35 forbids grouping in scientific patterns; the comma was previously silently ignored at output time. Fix: drop the comma, or use a non-scientific pattern.
+
+### Enhancements
+
+* TR35 engineering notation. Patterns like `"##0.#####E0"` now correctly shift the mantissa so the exponent is a multiple of the pattern's max integer-digit count: `12345 → "12.345E3"`, `123456 → "123.456E3"`. Fixed-width mantissa patterns (`"00.###E0"`) similarly shift to expose `min_integer_digits` integer digits. The shift is exact for `Decimal` (via the `%Decimal{exp: …}` field) and lossless for `Decimal`-promoted floats/integers.
+
+* New `:engineering` format atom resolving to `"##0.######E0"`. CLDR ships no engineering pattern, so this is a Localize-supplied default — pass an explicit pattern string for different mantissa precision.
+
+* Scientific-pattern emission now reads `options.symbols.exponential`, `options.symbols.minus_sign`, and `options.symbols.plus_sign` from the locale's CLDR data instead of hardcoding ASCII `"E"`, `"+"`, `"-"`. `ar/arab` renders `"أس"` with Arabic Letter Mark signs, `fa/arabext` renders the `"×۱۰^"` superscripting form, `ar/latn` wraps signs with U+200E LRM.
+
+* `Localize.Number.Format.Compiler` now normalises `@`-significant scientific patterns per TR35: `"@@###E0"` ≡ `"0.0###E0"`, `"@@@##E0"` ≡ `"0.00##E0"`, etc. The compiler rewrites these to the canonical `0`-prefixed form so the runtime formatter does not need a separate `@`-aware path.
+
+### Bug Fixes
+
+* `Localize.Utils.Math.round_significant/2` no longer crashes when called with a `Decimal` and `n <= 0` or with a Decimal zero of any sign. Previously these reached `:math.log10/1` deep in the Decimal square-root path and raised `:invalid_operation`; both cases now return the input unchanged.
+
+* `Localize.Number.Format.Compiler.compile/1` propagates compile-time errors from `format_to_metadata/1` instead of crashing with `MatchError`.
+
 ## [0.40.0] — June 1st, 2026
 
 ### Breaking Changes
