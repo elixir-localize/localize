@@ -504,8 +504,8 @@ defmodule Localize.Number.Formatter.Decimal do
 
     exp_sign =
       cond do
-        exponent_sign < 0 -> @minus_placeholder
-        meta.exponent_sign -> @exponent_sign
+        exponent_sign < 0 -> exponent_minus_symbol(options)
+        meta.exponent_sign -> exponent_plus_symbol(options)
         true -> ~c""
       end
 
@@ -516,7 +516,7 @@ defmodule Localize.Number.Formatter.Decimal do
           |> List.to_string()
           |> String.pad_leading(meta.exponent_digits, "0")
 
-        [@exponent_separator, exp_sign, digits]
+        [exponent_separator_symbol(options), exp_sign, digits]
       else
         []
       end
@@ -524,6 +524,30 @@ defmodule Localize.Number.Formatter.Decimal do
     [integer, fraction, exponent_part]
     |> :erlang.iolist_to_binary()
   end
+
+  # Locale-aware exponent symbols. CLDR's `symbols-numberSystem-…`
+  # block carries `exponential` (e.g. "E" in `en`, "أس" in `ar/arab`,
+  # "×۱۰^" in `fa/arabext`), `minusSign`, and `plusSign`. When no
+  # symbol set is configured — raw `Format.to_string/2` callers, the
+  # compiler-only tests, etc. — we fall back to the compile-time ASCII
+  # placeholders.
+  defp exponent_separator_symbol(%{symbols: %{exponential: e}})
+       when is_binary(e) and e != "",
+       do: e
+
+  defp exponent_separator_symbol(_options), do: @exponent_separator
+
+  defp exponent_minus_symbol(%{symbols: %{minus_sign: m}})
+       when is_binary(m) and m != "",
+       do: m
+
+  defp exponent_minus_symbol(_options), do: @minus_placeholder
+
+  defp exponent_plus_symbol(%{symbols: %{plus_sign: p}})
+       when is_binary(p) and p != "",
+       do: p
+
+  defp exponent_plus_symbol(_options), do: @exponent_sign
 
   defp transliterate_string(number_string, %{number_system: :latn} = options) do
     transliterate_separators(number_string, options)

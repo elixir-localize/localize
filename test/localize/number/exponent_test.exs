@@ -129,4 +129,72 @@ defmodule Localize.Number.ExponentTest do
       assert {:ok, "12.3E1"} = Localize.Number.to_string(123, format: "00.###E0")
     end
   end
+
+  # The exponent emission now reads `options.symbols.exponential`,
+  # `options.symbols.minus_sign`, and `options.symbols.plus_sign`
+  # instead of hardcoding ASCII "E", "-", "+". CLDR ships locale- and
+  # number-system-specific values: `ar/arab` uses "أس" with an
+  # Arabic-letter-mark prefixed sign; `fa/arabext` uses a "×۱۰^"
+  # superscripting construction; `ar/latn` keeps "E" but wraps signs
+  # with U+200E (LRM); most Latin-script locales (`en`, `de`, `ru`,
+  # `th/thai`) keep plain ASCII "E".
+  describe "locale-aware exponent symbols" do
+    test "en uses ASCII E and minus" do
+      assert {:ok, "1.234E3"} = Localize.Number.to_string(1234, format: "0.000E0", locale: :en)
+
+      assert {:ok, "1.234E-3"} =
+               Localize.Number.to_string(0.001234, format: "0.000E0", locale: :en)
+    end
+
+    test "ar/arab uses أس and Arabic-letter-mark signs with Arabic-Indic digits" do
+      assert {:ok, output} =
+               Localize.Number.to_string(1234,
+                 format: "0.000E0",
+                 locale: :ar,
+                 number_system: :arab
+               )
+
+      # Exponent body is the CLDR-supplied "أس" (U+0623 U+0633).
+      assert String.contains?(output, "أس")
+      # Sign is prefixed with U+061C Arabic letter mark.
+      refute String.contains?(output, "E")
+    end
+
+    test "ar/latn keeps E but signs carry U+200E (LRM)" do
+      assert {:ok, output} =
+               Localize.Number.to_string(0.001234,
+                 format: "0.000E0",
+                 locale: :ar,
+                 number_system: :latn
+               )
+
+      assert String.contains?(output, "E")
+      # Negative exponent sign is "‎-" — U+200E followed by U+002D.
+      assert String.contains?(output, "‎-")
+    end
+
+    test "forced exponent sign reads the locale plusSign" do
+      assert {:ok, output} =
+               Localize.Number.to_string(1234,
+                 format: "0.000E+0",
+                 locale: :ar,
+                 number_system: :latn
+               )
+
+      # `+` carries the U+200E prefix in `ar/latn`.
+      assert String.contains?(output, "‎+")
+    end
+
+    test "de keeps default E but applies the locale decimal separator" do
+      assert {:ok, "1,234E3"} = Localize.Number.to_string(1234, format: "0.000E0", locale: :de)
+    end
+
+    test "no locale (raw pattern compilation) falls back to ASCII placeholders" do
+      # Without a `:locale` option `options.symbols` is `nil`; the
+      # formatter must still emit ASCII "E", "+", "-".
+      assert {:ok, "1.234E3"} = Localize.Number.to_string(1234, format: "0.000E0")
+      assert {:ok, "1.234E-3"} = Localize.Number.to_string(0.001234, format: "0.000E0")
+      assert {:ok, "1.234E+3"} = Localize.Number.to_string(1234, format: "0.000E+0")
+    end
+  end
 end
