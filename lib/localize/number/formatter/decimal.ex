@@ -215,10 +215,65 @@ defmodule Localize.Number.Formatter.Decimal do
 
   defp set_exponent(number, %{exponent_digits: 0}), do: {number, 0}
 
+  # TR35 scientific notation. Three flavours, all routed here:
+  #
+  #   1. Pure scientific (`0.###E0`): mantissa has 1 integer digit, no
+  #      shift after `Math.coef_exponent/1`.
+  #
+  #   2. Engineering (`##0.###E0`, `engineering_grouping = 3`): exponent
+  #      forced to a multiple of `engineering_grouping`. The mantissa
+  #      shifts right by `exp - floor_div(exp, grouping) * grouping`
+  #      positions to absorb the difference.
+  #
+  #   3. Fixed-width mantissa (`00.###E0`, `min_integer_digits > 1`,
+  #      `max == min`, `engineering_grouping = 0`): the mantissa always
+  #      shows exactly `min_integer_digits` integer digits, so shift by
+  #      `min - 1` regardless of the original exponent.
+  #
+  # Rounding to the pattern's mantissa precision (`scientific_rounding`)
+  # happens BEFORE the shift, on the canonical 1-integer-digit form, so
+  # round-up carries cannot perturb the engineering grouping.
+  #
+  # All numeric inputs are promoted to `%Decimal{}` up front so the
+  # shift (a single `exp` field bump on the struct, multiplying by
+  # `10^k` exactly) preserves every digit. Float inputs that pass
+  # through `Math.coef_exponent/1` directly would surface IEEE 754
+  # representation noise once the mantissa is shifted into the visible
+  # range — e.g. 12345 → 1.2345 (float) → 12.344999999999999E3 — which
+  # the scientific short-circuit in `round_fractional_digits/3` can no
+  # longer mask.
   defp set_exponent(number, meta) do
-    {coef, exponent} = Math.coef_exponent(number)
+    {coef, exponent} = number |> promote_to_decimal() |> Math.coef_exponent()
     coef = Math.round_significant(coef, meta.scientific_rounding)
-    {coef, exponent}
+    shift = mantissa_shift(exponent, meta)
+    {shift_decimal_point_right(coef, shift), exponent - shift}
+  end
+
+  defp promote_to_decimal(%Decimal{} = decimal), do: decimal
+  defp promote_to_decimal(n) when is_integer(n), do: Decimal.new(n)
+  defp promote_to_decimal(n) when is_float(n), do: Decimal.from_float(n)
+
+  # Pure scientific: 1 integer digit, no shift.
+  defp mantissa_shift(_exponent, %{engineering_grouping: 0, integer_digits: %{min: min}})
+       when min <= 1,
+       do: 0
+
+  # Fixed-width mantissa (e.g. `00.###E0`): exactly `min` integer digits.
+  defp mantissa_shift(_exponent, %{engineering_grouping: 0, integer_digits: %{min: min}}),
+    do: min - 1
+
+  # Engineering (e.g. `##0.###E0`): exponent ≡ 0 (mod grouping).
+  defp mantissa_shift(exponent, %{engineering_grouping: group}) when group > 0 do
+    exponent - Integer.floor_div(exponent, group) * group
+  end
+
+  defp shift_decimal_point_right(%Decimal{} = decimal, 0), do: decimal
+
+  defp shift_decimal_point_right(%Decimal{} = decimal, shift) do
+    # `%Decimal{sign, coef, exp}` represents `sign * coef * 10^exp`.
+    # Bumping `exp` by `shift` multiplies the value by `10^shift` exactly
+    # — no arithmetic, no rounding, no precision loss.
+    %{decimal | exp: decimal.exp + shift}
   end
 
   defp round_fractional_digits({number, exponent}, _meta, _options)
