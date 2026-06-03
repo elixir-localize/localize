@@ -502,13 +502,6 @@ defmodule Localize.Number.Formatter.Decimal do
     integer = if integer == [], do: [~c"0"], else: integer
     fraction = if fraction == [], do: fraction, else: [decimal_sep, fraction]
 
-    exp_sign =
-      cond do
-        exponent_sign < 0 -> exponent_minus_symbol(options)
-        meta.exponent_sign -> exponent_plus_symbol(options)
-        true -> ~c""
-      end
-
     exponent_part =
       if meta.exponent_digits > 0 do
         digits =
@@ -516,7 +509,10 @@ defmodule Localize.Number.Formatter.Decimal do
           |> List.to_string()
           |> String.pad_leading(meta.exponent_digits, "0")
 
-        [exponent_separator_symbol(options), exp_sign, digits]
+        case Map.get(options, :exponent_style) do
+          :superscript -> superscript_exponent_part(exponent_sign, digits, meta, options)
+          _ -> default_exponent_part(exponent_sign, digits, meta, options)
+        end
       else
         []
       end
@@ -524,6 +520,62 @@ defmodule Localize.Number.Formatter.Decimal do
     [integer, fraction, exponent_part]
     |> :erlang.iolist_to_binary()
   end
+
+  defp default_exponent_part(exponent_sign, digits, meta, options) do
+    exp_sign =
+      cond do
+        exponent_sign < 0 -> exponent_minus_symbol(options)
+        meta.exponent_sign -> exponent_plus_symbol(options)
+        true -> ~c""
+      end
+
+    [exponent_separator_symbol(options), exp_sign, digits]
+  end
+
+  # `:exponent_style => :superscript` renders the `1.23 × 10⁴` form
+  # advertised by TR35 via the `superscriptingExponent` symbol (CLDR
+  # universally ships `"×"` / U+00D7). The `10` is rendered in Latin
+  # digits up front and transliterated later by `transliterate_string/2`
+  # to the active number system. The exponent itself uses Unicode
+  # superscript characters — these are not in any number-system digit
+  # set, so they pass through the digit transliteration map unchanged.
+  defp superscript_exponent_part(exponent_sign, digits, meta, options) do
+    sign_glyph =
+      cond do
+        exponent_sign < 0 -> "⁻"
+        meta.exponent_sign -> "⁺"
+        true -> ""
+      end
+
+    super_digits =
+      digits
+      |> String.graphemes()
+      |> Enum.map(&superscript_digit/1)
+      |> Enum.join()
+
+    [superscripting_symbol(options), "10", sign_glyph, super_digits]
+  end
+
+  defp superscripting_symbol(%{symbols: %{superscripting_exponent: s}})
+       when is_binary(s) and s != "",
+       do: s
+
+  defp superscripting_symbol(_options), do: "×"
+
+  @superscript_digits %{
+    "0" => "⁰",
+    "1" => "¹",
+    "2" => "²",
+    "3" => "³",
+    "4" => "⁴",
+    "5" => "⁵",
+    "6" => "⁶",
+    "7" => "⁷",
+    "8" => "⁸",
+    "9" => "⁹"
+  }
+
+  defp superscript_digit(grapheme), do: Map.get(@superscript_digits, grapheme, grapheme)
 
   # Locale-aware exponent symbols. CLDR's `symbols-numberSystem-…`
   # block carries `exponential` (e.g. "E" in `en`, "أس" in `ar/arab`,
