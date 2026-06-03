@@ -38,13 +38,19 @@ defmodule Localize.Number do
   * `:format` is a format style atom or a format pattern string.
     The default is `:standard`. Common styles include `:standard`,
     `:currency`, `:accounting`, `:percent`, `:scientific`,
-    `:decimal_short`, `:decimal_long`. Any RBNF rule name atom
-    supported by the locale is also accepted (e.g.,
-    `:spellout_cardinal`, `:spellout_ordinal`, `:digits_ordinal`,
-    `:roman_upper`). The atoms `:spellout` and `:ordinal` resolve
-    to the best available spellout or ordinal rule for the locale.
-    See `Localize.Number.Rbnf.rule_names_for_locale/1` to discover
-    the rule names supported by a locale.
+    `:engineering`, `:decimal_short`, `:decimal_long`. `:scientific`
+    resolves to the locale's CLDR `scientificFormats/standard` pattern
+    (e.g. `"#E0"`). `:engineering` resolves to `"##0.######E0"`,
+    forcing the exponent to a multiple of 3 — CLDR ships no
+    engineering pattern, so this is a Localize-supplied default;
+    pass an explicit pattern string for a different mantissa
+    precision. Any RBNF rule name atom supported by the locale is
+    also accepted (e.g., `:spellout_cardinal`, `:spellout_ordinal`,
+    `:digits_ordinal`, `:roman_upper`). The atoms `:spellout` and
+    `:ordinal` resolve to the best available spellout or ordinal
+    rule for the locale. See
+    `Localize.Number.Rbnf.rule_names_for_locale/1` to discover the
+    rule names supported by a locale.
 
   * `:currency` is a currency code atom (e.g., `:USD`). When
     provided, currency formatting is applied.

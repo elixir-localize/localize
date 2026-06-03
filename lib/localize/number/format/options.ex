@@ -49,12 +49,22 @@ defmodule Localize.Number.Format.Options do
     :accounting,
     :currency,
     :scientific,
+    :engineering,
     :percent,
     :currency_no_symbol,
     :accounting_no_symbol,
     :currency_alpha_next_to_number,
     :accounting_alpha_next_to_number
   ]
+
+  # TR35 specifies the engineering rule but CLDR ships no
+  # `scientificFormats/engineering` block. When the user passes
+  # `format: :engineering`, we synthesize this pattern: max 3 integer
+  # digits → exponent forced to a multiple of 3; up to 6 fraction
+  # digits in the mantissa for full `Decimal` precision through the
+  # exponent shift. Users wanting different precision should pass an
+  # explicit pattern string such as `"##0.###E0"`.
+  @default_engineering_pattern "##0.######E0"
 
   @short_formats [
     :currency_short,
@@ -343,6 +353,29 @@ defmodule Localize.Number.Format.Options do
   end
 
   # ── Format resolution ───────────────────────────────────────
+
+  # `:engineering` is intercepted before the generic standard-formats
+  # lookup. We still load the locale's `Format` struct (so caller-side
+  # downstream resolutions — currency spacing, etc. — still work), but
+  # use either the struct's `:engineering` pattern when it is populated
+  # or the synthesised default, never the atom literal.
+  defp resolve_format(:engineering, language_tag, system_name) do
+    formats =
+      with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(language_tag),
+           {:ok, all_formats} <- Localize.Locale.get(locale_id, [:number_formats]) do
+        Map.get(all_formats, system_name)
+      else
+        _ -> nil
+      end
+
+    pattern =
+      case formats do
+        %Format{engineering: p} when is_binary(p) -> p
+        _ -> @default_engineering_pattern
+      end
+
+    {:ok, pattern, formats}
+  end
 
   # Standard formats: load formats once, look up the pattern
   defp resolve_format(format, language_tag, system_name) when format in @standard_formats do

@@ -197,4 +197,54 @@ defmodule Localize.Number.ExponentTest do
       assert {:ok, "1.234E+3"} = Localize.Number.to_string(1234, format: "0.000E+0")
     end
   end
+
+  # `:engineering` is a Localize-supplied default that resolves to
+  # `"##0.######E0"` regardless of locale (CLDR ships no engineering
+  # format). It produces TR35-correct engineering output (exponent ≡ 0
+  # mod 3) while still honouring the locale's number system, exponent
+  # symbol, decimal separator, and sign markers.
+  describe "format: :engineering" do
+    test "matches the explicit pattern for representative values" do
+      for value <- [12345, 123_456, 1_234_567, 0.000123, -12345] do
+        atom_result = Localize.Number.to_string(value, format: :engineering)
+        string_result = Localize.Number.to_string(value, format: "##0.######E0")
+        assert atom_result == string_result, "diverged on #{inspect(value)}"
+      end
+    end
+
+    test "TR35 example: 12345 → 12.345E3" do
+      assert {:ok, "12.345E3"} = Localize.Number.to_string(12345, format: :engineering)
+    end
+
+    test "Decimal precision preserved" do
+      assert {:ok, "12.345E3"} =
+               Localize.Number.to_string(Decimal.new("12345"), format: :engineering)
+    end
+
+    test "honours the locale decimal separator" do
+      assert {:ok, "12,345E3"} =
+               Localize.Number.to_string(12345, format: :engineering, locale: :de)
+    end
+
+    test "honours locale exponent symbol and number system" do
+      assert {:ok, output} =
+               Localize.Number.to_string(12345,
+                 format: :engineering,
+                 locale: :ar,
+                 number_system: :arab
+               )
+
+      # `ar/arab` uses the "أس" exponent symbol — never the ASCII "E".
+      assert String.contains?(output, "أس")
+      refute String.contains?(output, "E")
+    end
+
+    test ":scientific is unchanged (resolves to the locale's CLDR pattern)" do
+      # `:scientific` resolves to `#E0` for `en`, so 12345 → "1.2345E4"
+      # (no significant-digit rounding applied). This must NOT shift
+      # like `:engineering` would.
+      assert {:ok, "1.2345E4"} =
+               Localize.Number.to_string(12345, format: :scientific, locale: :en)
+    end
+  end
 end
