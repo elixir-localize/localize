@@ -208,11 +208,11 @@ defmodule Localize.Number.Format.Compiler do
   defp analyse(format, positive_format) do
     format_parts = split_format(positive_format)
 
+    min_int = required_integer_digits(format_parts)
+    max_int = max_integer_digits(format_parts)
+
     meta = %Meta{
-      integer_digits: %{
-        min: required_integer_digits(format_parts),
-        max: max_integer_digits(format_parts)
-      },
+      integer_digits: %{min: min_int, max: max_int},
       fractional_digits: %{
         min: required_fraction_digits(format_parts),
         max: optional_fraction_digits(format_parts) + required_fraction_digits(format_parts)
@@ -220,6 +220,7 @@ defmodule Localize.Number.Format.Compiler do
       significant_digits: significant_digits(format_parts),
       exponent_digits: exponent_digits(format_parts),
       exponent_sign: exponent_sign(format_parts),
+      engineering_grouping: engineering_grouping(format_parts, min_int, max_int),
       scientific_rounding: scientific_rounding(format_parts),
       grouping: grouping(format_parts),
       round_nearest: round_nearest(format_parts),
@@ -259,7 +260,54 @@ defmodule Localize.Number.Format.Compiler do
 
   defp required_integer_digits(_), do: @min_integer_digits
 
-  defp max_integer_digits(_), do: @max_integer_digits
+  # For non-scientific patterns we leave `max_integer_digits` at 0 — the
+  # sentinel meaning "no upper limit", consumed by the formatter's
+  # `set_max_integer_digits/2` (see `Localize.Number.Formatter.Decimal`).
+  #
+  # For scientific patterns (`E` present) TR35 uses the count of integer
+  # placeholders in the pattern to drive both the mantissa width and the
+  # engineering grouping. For `0.###E0` it is 1 (scientific); for
+  # `##0.###E0` it is 3 (engineering with exponent ≡ 0 mod 3); for
+  # `00.###E0` it is 2 (fixed-width mantissa, exponent shift = min - 1).
+  #
+  # Significant-digit patterns (`@@##E0`) are handled by
+  # `reconcile_significant_and_scientific_digits/1` after analysis; we do
+  # not count `@` placeholders here because TR35 forces those to a
+  # 1-integer-digit mantissa regardless of the `@` count.
+  defp max_integer_digits(format_parts) do
+    cond do
+      exponent_digits(format_parts) == 0 -> @max_integer_digits
+      has_significant_placeholder?(format_parts) -> @max_integer_digits
+      true -> pattern_integer_placeholder_count(format_parts)
+    end
+  end
+
+  defp has_significant_placeholder?(%{"compact_integer" => integer_format})
+       when is_binary(integer_format) do
+    String.contains?(integer_format, @significant_digit)
+  end
+
+  defp has_significant_placeholder?(_), do: false
+
+  defp pattern_integer_placeholder_count(%{"compact_integer" => integer_format})
+       when is_binary(integer_format) do
+    String.length(integer_format)
+  end
+
+  defp pattern_integer_placeholder_count(_), do: 0
+
+  # TR35 engineering rule (one sentence): when `maxIntegerDigits >
+  # minIntegerDigits`, the exponent is forced to a multiple of
+  # `maxIntegerDigits`. Otherwise the format is pure scientific (mantissa
+  # has exactly `minIntegerDigits` integer digits) and no grouping
+  # constraint applies, so we return 0.
+  defp engineering_grouping(format_parts, min_int, max_int) do
+    cond do
+      exponent_digits(format_parts) == 0 -> 0
+      max_int > min_int -> max_int
+      true -> 0
+    end
+  end
 
   # ── Fraction digit extraction ───────────────────────────────
 

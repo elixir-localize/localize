@@ -56,6 +56,64 @@ defmodule Localize.Number.Format.CompilerTest do
     end
   end
 
+  # TR35 scientific notation analysis. Engineering grouping is the count
+  # of mantissa integer digits the exponent must be a multiple of, and
+  # only applies when the pattern's max integer-digit count exceeds its
+  # min. Phase 2 consumes these fields to do the actual mantissa shift.
+  describe "compile/1 with scientific patterns" do
+    test "0.###E0 is pure scientific (min == max == 1, no engineering grouping)" do
+      assert {:ok, meta} = Compiler.compile("0.###E0")
+      assert meta.exponent_digits == 1
+      assert meta.integer_digits == %{min: 1, max: 1}
+      assert meta.engineering_grouping == 0
+    end
+
+    test "##0.###E0 is engineering with grouping = 3" do
+      assert {:ok, meta} = Compiler.compile("##0.###E0")
+      assert meta.exponent_digits == 1
+      assert meta.integer_digits == %{min: 1, max: 3}
+      assert meta.engineering_grouping == 3
+    end
+
+    test "#0.###E0 is engineering with grouping = 2" do
+      assert {:ok, meta} = Compiler.compile("#0.###E0")
+      assert meta.integer_digits == %{min: 1, max: 2}
+      assert meta.engineering_grouping == 2
+    end
+
+    test "00.###E0 is fixed-width mantissa (min == max == 2, no engineering grouping)" do
+      assert {:ok, meta} = Compiler.compile("00.###E0")
+      assert meta.integer_digits == %{min: 2, max: 2}
+      assert meta.engineering_grouping == 0
+    end
+
+    test "min-exponent-digits flows through (E00 → 2)" do
+      assert {:ok, meta} = Compiler.compile("##0.###E00")
+      assert meta.exponent_digits == 2
+      assert meta.engineering_grouping == 3
+    end
+
+    test "forced exponent sign flows through (E+0)" do
+      assert {:ok, meta} = Compiler.compile("##0.###E+0")
+      assert meta.exponent_sign == true
+      assert meta.engineering_grouping == 3
+    end
+
+    test "significant-digit scientific patterns leave max_integer_digits at 0" do
+      # TR35 forces these to a 1-integer-digit mantissa; the @ count is
+      # not engineering grouping. The full transformation lands in Phase 5.
+      assert {:ok, meta} = Compiler.compile("@@###E0")
+      assert meta.integer_digits.max == 0
+      assert meta.engineering_grouping == 0
+    end
+
+    test "non-scientific patterns keep max_integer_digits at 0 (no clipping)" do
+      assert {:ok, meta} = Compiler.compile("##0.###")
+      assert meta.integer_digits == %{min: 1, max: 0}
+      assert meta.engineering_grouping == 0
+    end
+  end
+
   describe "format_to_metadata/1" do
     test "extracts metadata from a format string" do
       assert {:ok, meta} = Compiler.format_to_metadata("#,##0.###")
