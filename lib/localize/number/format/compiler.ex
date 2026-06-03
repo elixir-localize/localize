@@ -496,9 +496,34 @@ defmodule Localize.Number.Format.Compiler do
 
   # ── Reconciliation ──────────────────────────────────────────
 
+  # TR35 significant-digit scientific patterns. Per the spec, `@@###E0`
+  # is equivalent to `0.0###E0` with the integer part fixed at 1 digit
+  # and the fraction width = (max_sig - 1). Apply the canonical
+  # transformation here so the runtime formatter — which already
+  # handles `integer_digits`, `fractional_digits`, and
+  # `scientific_rounding` — does not need a separate `@`-aware branch.
+  #
+  #   integer_digits       → %{min: 1, max: 1}
+  #   fractional_digits    → %{min: min_sig - 1, max: max_sig - 1}
+  #   significant_digits   → cleared (so `round_to_significant_digits/2`
+  #                          is a no-op; mantissa rounding flows via
+  #                          `scientific_rounding`)
+  #   engineering_grouping → 0 (max == min, no engineering shift)
+  #   scientific_rounding  → max_sig (the TR35 "n+1 significant digits"
+  #                          rule, where n is max fraction = max_sig - 1)
   defp reconcile_significant_and_scientific_digits(%Meta{} = meta) do
     if meta.significant_digits[:min] > 0 && meta.exponent_digits > 0 do
-      %{meta | scientific_rounding: 0}
+      min_sig = meta.significant_digits[:min]
+      max_sig = meta.significant_digits[:max]
+
+      %{
+        meta
+        | integer_digits: %{min: 1, max: 1},
+          fractional_digits: %{min: max(min_sig - 1, 0), max: max(max_sig - 1, 0)},
+          significant_digits: %{min: 0, max: 0},
+          engineering_grouping: 0,
+          scientific_rounding: max_sig
+      }
     else
       meta
     end
