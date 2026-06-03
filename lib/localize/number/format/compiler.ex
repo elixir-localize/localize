@@ -120,11 +120,10 @@ defmodule Localize.Number.Format.Compiler do
   """
   @spec compile(String.t()) :: {:ok, Meta.t()} | {:error, String.t()}
   def compile(definition) when is_binary(definition) do
-    case parse(definition) do
-      {:ok, format} ->
-        {:ok, meta_data} = format_to_metadata(format)
-        {:ok, meta_data}
-
+    with {:ok, format} <- parse(definition),
+         {:ok, meta_data} <- format_to_metadata(format) do
+      {:ok, meta_data}
+    else
       {:error, {_line, _parser, [message, context]}} ->
         {:error, "Decimal format compiler: #{message}#{Enum.join(context)}"}
 
@@ -161,7 +160,11 @@ defmodule Localize.Number.Format.Compiler do
 
   def format_to_metadata(format) when is_list(format) do
     metadata = analyse(format, format[:positive][:format])
-    {:ok, metadata}
+
+    case validate_scientific_constraints(metadata) do
+      :ok -> {:ok, metadata}
+      {:error, _} = error -> error
+    end
   end
 
   @doc """
@@ -493,6 +496,36 @@ defmodule Localize.Number.Format.Compiler do
   end
 
   defp adjust_location(location, _count), do: location
+
+  # ── Scientific-pattern validation ──────────────────────────
+
+  # TR35 forbids grouping separators in scientific patterns:
+  # `#,##0.###E0` is a malformed format. The grouping decision is
+  # made on the mantissa (which has only `min..max` integer digits,
+  # at most), so the comma is silently ignored at output time and the
+  # result is misleading. Reject these patterns at compile time with a
+  # clear error so the caller can fix the pattern rather than
+  # debugging a wrong value at runtime.
+  #
+  # **Breaking change in 0.41.0.** Patterns like `#,##0.###E0` that
+  # previously silently round-tripped to the no-grouping form will now
+  # return `{:error, …}` from `Localize.Number.to_string/2`.
+  defp validate_scientific_constraints(%Meta{exponent_digits: 0}), do: :ok
+
+  defp validate_scientific_constraints(%Meta{
+         exponent_digits: e,
+         grouping: %{integer: %{first: first}}
+       })
+       when e > 0 and first > 0 do
+    {:error,
+     "Scientific number patterns must not contain a grouping separator. " <>
+       "TR35 disallows grouping in scientific patterns because the mantissa " <>
+       "never has enough integer digits to trigger a group; the separator is " <>
+       "silently ignored at output time and the result is misleading. " <>
+       "Remove the comma from the pattern, or use a non-scientific pattern."}
+  end
+
+  defp validate_scientific_constraints(_meta), do: :ok
 
   # ── Reconciliation ──────────────────────────────────────────
 

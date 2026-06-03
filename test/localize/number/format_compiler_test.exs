@@ -120,6 +120,45 @@ defmodule Localize.Number.Format.CompilerTest do
     end
   end
 
+  # TR35 forbids grouping separators in scientific patterns. Previously
+  # accepted silently (the comma was ignored at output time, producing
+  # a misleading result); now rejected at compile time with a clear
+  # error. Breaking change in 0.41.0.
+  describe "scientific patterns reject grouping (TR35)" do
+    test "primary grouping with E is refused" do
+      assert {:error, message} = Compiler.compile("#,##0.###E0")
+      assert message =~ "Scientific"
+      assert message =~ "grouping"
+    end
+
+    test "Indian-style grouping with E is also refused" do
+      assert {:error, _} = Compiler.compile("#,##,##0.###E0")
+    end
+
+    test "grouping in non-scientific patterns is unaffected" do
+      assert {:ok, _meta} = Compiler.compile("#,##0.###")
+      assert {:ok, _meta} = Compiler.compile("#,##,##0.###")
+    end
+
+    test "scientific patterns without grouping compile successfully" do
+      for pattern <- ["0.###E0", "##0.###E0", "##0.#####E0", "@@###E0", "0.0E+00"] do
+        assert {:ok, _meta} = Compiler.compile(pattern), "rejected #{pattern}"
+      end
+    end
+
+    test "format_to_metadata/1 surfaces the same error for parsed-list input" do
+      {:ok, parsed} = Compiler.parse("#,##0.###E0")
+      assert {:error, message} = Compiler.format_to_metadata(parsed)
+      assert message =~ "Scientific"
+    end
+
+    test "format_to_metadata!/1 raises ArgumentError on the same input" do
+      assert_raise ArgumentError, ~r/Scientific.*grouping/, fn ->
+        Compiler.format_to_metadata!("#,##0.###E0")
+      end
+    end
+  end
+
   describe "format_to_metadata/1" do
     test "extracts metadata from a format string" do
       assert {:ok, meta} = Compiler.format_to_metadata("#,##0.###")
