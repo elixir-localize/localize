@@ -586,6 +586,21 @@ defmodule Localize.Utils.Math do
     number
   end
 
+  # Decimal counterpart of the `n <= 0` fast return above. Without this
+  # clause, formatting a Decimal with a scientific pattern that has no
+  # explicit mantissa precision (e.g. CLDR's default `#E0`) crashes
+  # because `Localize.Number.Formatter.Decimal.set_exponent/2` calls
+  # `round_significant(coef, 0)` and only the `is_number/1` n=0 clause
+  # exists.
+  def round_significant(%Decimal{} = number, n) when n <= 0, do: number
+
+  # Decimal zero (any sign): every significant-digit rounding of zero is
+  # zero. Without this guard the n > 0 clauses below fall into
+  # `log10(0)`, which raises `:invalid_operation` deep inside the
+  # Decimal square-root path. Matches the `number == 0` shortcut for
+  # native numbers at the top of this function.
+  def round_significant(%Decimal{coef: 0} = number, _n), do: number
+
   # Zero is special-cased: `:math.log10(0)` raises `ArithmeticError`
   # but zero is its own significant-digit-rounded form regardless
   # of `n`. Without this guard, formatting `0` (or `0.0`) with any
