@@ -99,12 +99,18 @@ defmodule Localize.Number.Format.CompilerTest do
       assert meta.engineering_grouping == 3
     end
 
-    test "significant-digit scientific patterns leave max_integer_digits at 0" do
-      # TR35 forces these to a 1-integer-digit mantissa; the @ count is
-      # not engineering grouping. The full transformation lands in Phase 5.
+    test "significant-digit scientific patterns are normalised to integer=1 (TR35)" do
+      # `@@###E0` is the significant-digit form of a scientific pattern.
+      # TR35 declares it equivalent to `0.0###E0`: integer part fixed
+      # at one digit and the fraction width derived from the @ count.
+      # The compiler applies that equivalence in
+      # `reconcile_significant_and_scientific_digits/1` so the
+      # formatter doesn't need a separate @-aware path.
       assert {:ok, meta} = Compiler.compile("@@###E0")
-      assert meta.integer_digits.max == 0
+      assert meta.integer_digits == %{min: 1, max: 1}
       assert meta.engineering_grouping == 0
+      # `@` count cleared after the rewrite.
+      assert meta.significant_digits == %{min: 0, max: 0}
     end
 
     test "non-scientific patterns keep max_integer_digits at 0 (no clipping)" do

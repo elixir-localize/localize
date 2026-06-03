@@ -247,4 +247,47 @@ defmodule Localize.Number.ExponentTest do
                Localize.Number.to_string(12345, format: :scientific, locale: :en)
     end
   end
+
+  # TR35 declares that significant-digit scientific patterns are
+  # equivalent to the `0...` form with `min/max integer = 1`:
+  #
+  #     @@###E0  ≡  0.0###E0
+  #     @@@##E0  ≡  0.00##E0
+  #     @@@E0    ≡  0.00E0
+  #     @@E0     ≡  0.0E0
+  #     @E0      ≡  0E0
+  #
+  # `Localize.Number.Format.Compiler.reconcile_significant_and_scientific_digits/1`
+  # applies the equivalence at compile time. Each row below asserts
+  # that both pattern shapes produce identical output for a fixed
+  # value, across float / Decimal / integer inputs.
+  describe "TR35 @-significant ≡ 0-prefixed scientific equivalence" do
+    @equivalences [
+      {"@@###E0", "0.0###E0"},
+      {"@@@##E0", "0.00##E0"},
+      {"@@@E0", "0.00E0"},
+      {"@@E0", "0.0E0"},
+      {"@E0", "0E0"}
+    ]
+
+    test "every (@-form, 0-form) pair produces identical output for all input types" do
+      for {sig_pattern, equiv_pattern} <- @equivalences,
+          value <- [1234, 0.001234, -1234.5678, 0, Decimal.new("12345")] do
+        sig_result = Localize.Number.to_string(value, format: sig_pattern)
+        equiv_result = Localize.Number.to_string(value, format: equiv_pattern)
+
+        assert sig_result == equiv_result,
+               "#{sig_pattern} ≢ #{equiv_pattern} on #{inspect(value)}: " <>
+                 "#{inspect(sig_result)} vs #{inspect(equiv_result)}"
+      end
+    end
+
+    test "@@###E0 rounds 12345 to 4 sig figs → 1.2345E4" do
+      assert {:ok, "1.2345E4"} = Localize.Number.to_string(12345, format: "@@###E0")
+    end
+
+    test "@@E0 rounds 1234 to 2 sig figs → 1.2E3" do
+      assert {:ok, "1.2E3"} = Localize.Number.to_string(1234, format: "@@E0")
+    end
+  end
 end
