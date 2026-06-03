@@ -15,6 +15,7 @@ defmodule Localize.Number.Format.Meta do
             significant_digits: %{max: 0, min: 0},
             exponent_digits: 0,
             exponent_sign: false,
+            engineering_grouping: 0,
             scientific_rounding: 0,
             grouping: %{
               fraction: %{first: 0, rest: 0},
@@ -33,6 +34,7 @@ defmodule Localize.Number.Format.Meta do
 
   @type t :: %__MODULE__{
           currency: nil | map(),
+          engineering_grouping: non_neg_integer(),
           exponent_digits: non_neg_integer(),
           exponent_sign: boolean(),
           format: [{:negative, [any(), ...]} | {:positive, [any(), ...]}, ...],
@@ -95,6 +97,17 @@ defmodule Localize.Number.Format.Meta do
   @spec put_exponent_sign(t(), boolean()) :: t()
   def put_exponent_sign(%__MODULE__{} = meta, flag) when is_boolean(flag) do
     %{meta | exponent_sign: flag}
+  end
+
+  @doc false
+  # Engineering grouping is the count of mantissa integer digits that the
+  # exponent must be a multiple of. Set only for scientific patterns whose
+  # mantissa pattern has more allowed integer digits than required, e.g.
+  # `##0.###E0` → 3. For pure-scientific (`0.###E0`), fixed-width-mantissa
+  # (`00.###E0`), and non-scientific patterns this is 0.
+  @spec put_engineering_grouping(t(), non_neg_integer()) :: t()
+  def put_engineering_grouping(%__MODULE__{} = meta, group) when is_integer(group) do
+    %{meta | engineering_grouping: group}
   end
 
   @doc false
