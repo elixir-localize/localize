@@ -82,6 +82,14 @@ defmodule Localize.Number do
 
   * `:maximum_significant_digits` is an integer in `1..21` specifying the maximum number of significant digits to display. Values are rounded to fit using the configured `:rounding_mode`. Pairs with `:minimum_significant_digits`; when only one is set the other defaults to the corresponding ECMA-402 boundary (`1` for minimum, `21` for maximum).
 
+  * `:exponent_style` controls how scientific patterns render the
+    exponent. `:e` (the default) emits the standard `1.234E3` form
+    using the locale's `exponential` symbol and minus/plus signs.
+    `:superscript` emits the `1.234 × 10³` form using CLDR's
+    `superscriptingExponent` symbol (universally `×`, U+00D7) and
+    Unicode superscript digits (`⁰¹²³⁴⁵⁶⁷⁸⁹`, with `⁻` and `⁺`
+    for signs). The option is ignored for non-scientific patterns.
+
   * `:wrapper` is a function of arity 2 that wraps formatted
     components. Useful for adding HTML markup.
 

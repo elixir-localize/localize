@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.Format.Compiler` now normalises `@`-significant scientific patterns per TR35: `"@@###E0"` ≡ `"0.0###E0"`, `"@@@##E0"` ≡ `"0.00##E0"`, etc. The compiler rewrites these to the canonical `0`-prefixed form so the runtime formatter does not need a separate `@`-aware path.
 
+* New `:exponent_style` option on `Localize.Number.to_string/2`. `:e` (the default) emits the standard `1.234E3` form; `:superscript` emits `1.234 × 10³` using CLDR's `superscriptingExponent` symbol and Unicode superscript digits (`⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺`). Ignored for non-scientific patterns.
+
 ### Bug Fixes
 
 * `Localize.Utils.Math.round_significant/2` no longer crashes when called with a `Decimal` and `n <= 0` or with a Decimal zero of any sign. Previously these reached `:math.log10/1` deep in the Decimal square-root path and raised `:invalid_operation`; both cases now return the input unchanged.

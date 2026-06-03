@@ -290,4 +290,73 @@ defmodule Localize.Number.ExponentTest do
       assert {:ok, "1.2E3"} = Localize.Number.to_string(1234, format: "@@E0")
     end
   end
+
+  # `:exponent_style => :superscript` renders the `1.23 × 10⁴` form
+  # advertised by TR35 via CLDR's `superscriptingExponent` symbol
+  # (universally `×` / U+00D7). Exponent digits use Unicode superscript
+  # characters; the `10` is in Latin digits and is transliterated by
+  # the existing digit-translation pass for non-Latn number systems.
+  describe ":exponent_style" do
+    test "default style emits the standard E form" do
+      assert {:ok, "1.234E3"} = Localize.Number.to_string(1234, format: "0.000E0")
+
+      assert {:ok, "1.234E3"} =
+               Localize.Number.to_string(1234, format: "0.000E0", exponent_style: :e)
+    end
+
+    test ":superscript emits the × 10ⁿ form" do
+      assert {:ok, "1.234×10³"} =
+               Localize.Number.to_string(1234, format: "0.000E0", exponent_style: :superscript)
+    end
+
+    test "engineering pattern + superscript style" do
+      assert {:ok, "12.345×10³"} =
+               Localize.Number.to_string(12345, format: "##0.###E0", exponent_style: :superscript)
+    end
+
+    test "negative exponent uses superscript minus (U+207B)" do
+      assert {:ok, "1.234×10⁻³"} =
+               Localize.Number.to_string(0.001234,
+                 format: "0.000E0",
+                 exponent_style: :superscript
+               )
+    end
+
+    test "forced exponent sign emits superscript plus (U+207A)" do
+      assert {:ok, "1.234×10⁺³"} =
+               Localize.Number.to_string(1234, format: "0.000E+0", exponent_style: :superscript)
+    end
+
+    test "non-Latn number system transliterates `10` but leaves superscript digits" do
+      assert {:ok, output} =
+               Localize.Number.to_string(1234,
+                 format: "0.000E0",
+                 locale: :ar,
+                 number_system: :arab,
+                 exponent_style: :superscript
+               )
+
+      # `10` becomes Arabic-Indic `١٠`; the superscript exponent `³`
+      # passes through the digit-translation map unchanged.
+      assert String.contains?(output, "١٠")
+      assert String.contains?(output, "³")
+      assert String.contains?(output, "×")
+    end
+
+    test ":superscript is ignored when the pattern is not scientific" do
+      assert {:ok, "1,234"} = Localize.Number.to_string(1234, exponent_style: :superscript)
+    end
+
+    test "invalid style returns an error" do
+      assert {:error, exception} =
+               Localize.Number.to_string(1234, format: "0.000E0", exponent_style: :bogus)
+
+      message = Exception.message(exception)
+      # `Localize.InvalidValueError` humanises the option atom to
+      # "exponent style".
+      assert message =~ "exponent"
+      assert message =~ ":bogus"
+      assert message =~ ":superscript"
+    end
+  end
 end

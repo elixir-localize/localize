@@ -31,8 +31,11 @@ defmodule Localize.Number.Format.Options do
     :maximum_significant_digits,
     :round_nearest,
     :wrapper,
-    :separators
+    :separators,
+    :exponent_style
   ]
+
+  @exponent_styles [:e, :superscript]
 
   @rounding_modes [
     :down,
@@ -167,6 +170,7 @@ defmodule Localize.Number.Format.Options do
            ),
          :ok <- validate_rounding_mode(rounding_mode),
          :ok <- validate_significant_digits(options),
+         :ok <- validate_exponent_style(Keyword.get(options, :exponent_style)),
          {:ok, symbols} <- resolve_symbols(language_tag, system_name),
          {:ok, resolved_format, formats} <- resolve_format(format, language_tag, system_name) do
       currency_symbol = resolve_currency_symbol(currency_struct, options[:currency_symbol])
@@ -340,6 +344,27 @@ defmodule Localize.Number.Format.Options do
        value: value,
        expected: "an integer in 1..21",
        context: Atom.to_string(option)
+     )}
+  end
+
+  # ── Exponent style validation ──────────────────────────────
+
+  # Controls how scientific patterns render the exponent. `:e` (the
+  # default, including `nil`) emits `<exp_symbol><sign><digits>` per
+  # `Localize.Number.Formatter.Decimal.reassemble_number_string/3`.
+  # `:superscript` emits `<superscriptingExponent>10<superscript_digits>`
+  # — the `1.23 × 10⁴` form. Anything else is rejected so unfamiliar
+  # values surface as clear errors rather than silently emitting the
+  # default.
+  defp validate_exponent_style(nil), do: :ok
+  defp validate_exponent_style(style) when style in @exponent_styles, do: :ok
+
+  defp validate_exponent_style(style) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: style,
+       expected: :exponent_style,
+       allowed_values: @exponent_styles
      )}
   end
 
