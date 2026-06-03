@@ -23,6 +23,7 @@ defmodule Localize.Number.Format do
                    :currency,
                    :accounting,
                    :scientific,
+                   :engineering,
                    :percent,
                    :accounting_alpha_next_to_number,
                    :accounting_no_symbol,
@@ -375,7 +376,7 @@ defmodule Localize.Number.Format do
 
   Format styles standardise access to formats for common use cases
   such as `:standard`, `:currency`, `:accounting`, `:scientific`,
-  `:percent`, etc.
+  `:engineering`, `:percent`, etc.
 
   ### Arguments
 
