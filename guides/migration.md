@@ -161,6 +161,7 @@ end
 | `Cldr.LocaleDisplay` | `Localize.Locale.LocaleDisplay` |
 | `Cldr.Message` | `Localize.Message` |
 | `Cldr.Collation` | `Localize.Collation` |
+| `Cldr.Calendar` | `Localize.Calendar` (localized name/part strings) **and** `Calendrical` (date conversion, intervals) — see [Calendar conversion and intervals moved to Calendrical](#calendar-conversion-and-intervals-moved-to-calendrical) |
 | `Cldr` (core) | `Localize` |
 
 ## API differences
@@ -199,6 +200,48 @@ Update any `case` or `with` clauses that pattern match on the two-element error 
 ### Locale option defaults
 
 All formatting functions default their `:locale` option to `Localize.get_locale()` (which returns a `LanguageTag`). You no longer need to pass `:locale` if you have set the process locale.
+
+### Calendar conversion and intervals moved to Calendrical
+
+`ex_cldr_calendars` bundled two distinct kinds of functionality under `Cldr.Calendar`: producing localized *strings* for calendar parts (era, month, day-of-week names), and *calendar arithmetic* (converting a date into a locale's calendar, generating date sequences). Localize splits these across two packages. The string functions live in `Localize.Calendar`; the calendar arithmetic lives in the `calendrical` package, whose `Calendrical` module builds on top of Localize.
+
+If you use `Cldr.Calendar.localize/1` (date-to-calendar conversion) or `Cldr.Calendar.interval/3`, add `calendrical` as a dependency:
+
+```elixir
+# mix.exs
+{:calendrical, "~> 0.9"}
+```
+
+Function mapping:
+
+| ex_cldr_calendars | Localize replacement |
+|---|---|
+| `Cldr.Calendar.localize(date)` (convert date to locale's calendar) | `Calendrical.localize/1`, `Calendrical.localize/2` |
+| `Cldr.Calendar.localize(date, part, options)` (localized part string) | `Localize.Calendar.localize/3` or `Calendrical.localize/3` |
+| `Cldr.Calendar.interval(date, date_or_count, precision)` | `Calendrical.interval/3` |
+| `Cldr.Calendar.interval_stream(date, date_or_count, precision)` | `Calendrical.interval_stream/3` |
+
+Note the return shape of the conversion function changed — `Calendrical.localize/1,2` wraps `Date.convert/2` and returns an `{:ok, date}` tuple rather than a bare date:
+
+```elixir
+# ex_cldr_calendars — returns the date directly
+MyApp.Cldr.Calendar.localize(~D[2022-06-09], locale: "fr")
+#=> %Date{year: 2022, month: 6, day: 9, calendar: Cldr.Calendar.FR}
+
+# Localize — returns {:ok, date}
+iex> Calendrical.localize(~D[2022-06-09], locale: "fr")
+{:ok, %Date{year: 2022, month: 6, day: 9, calendar: Calendrical.FR}}
+```
+
+`interval/3` keeps the same `date_from`, `date_to`-or-`count`, `precision` signature (`:years`, `:quarters`, `:months`, `:weeks`, `:days`):
+
+```elixir
+iex> Calendrical.interval(~D[2019-01-31], 3, :months)
+[~D[2019-01-31], ~D[2019-02-28], ~D[2019-03-31]]
+
+iex> Calendrical.interval(~D[2019-01-31], ~D[2019-05-31], :months)
+[~D[2019-01-31], ~D[2019-02-28], ~D[2019-03-31], ~D[2019-04-30], ~D[2019-05-31]]
+```
 
 ## Formatting examples
 
