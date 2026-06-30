@@ -43,11 +43,11 @@ jobs:
             otp: "28"
 
           # Elixir 1.20 — supports OTP 27–29
-          - elixir: "1.20.0-rc.6-otp-27"
+          - elixir: "1.20.2-otp-27"
             otp: "27"
-          - elixir: "1.20.0-rc.6-otp-28"
+          - elixir: "1.20.2-otp-28"
             otp: "28"
-          - elixir: "1.20.0-rc.6-otp-29"
+          - elixir: "1.20.2-otp-29"
             otp: "29"
             lint: true
 
