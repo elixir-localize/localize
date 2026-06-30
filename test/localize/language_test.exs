@@ -36,9 +36,29 @@ defmodule Localize.LanguageTest do
       assert {:ok, "Deutsch"} == Language.display_name("de", locale: :de)
     end
 
-    test "returns error tuple for unknown language code" do
-      assert {:error, %Localize.UnknownLanguageError{language: "zzzzzzz"}} =
+    test "returns error tuple for a malformed locale" do
+      assert {:error, %Localize.InvalidLocaleError{locale_id: "zzzzzzz"}} =
                Language.display_name("zzzzzzz")
+    end
+
+    test "returns error tuple for a valid language with no display name" do
+      assert {:error, %Localize.UnknownLanguageError{language: "mis"}} =
+               Language.display_name("mis")
+    end
+
+    test "is consistent between a string and a language tag" do
+      assert Language.display_name("en-GB") ==
+               Language.display_name(Localize.LanguageTag.new!("en-GB"))
+
+      assert Language.display_name("ar-SA") ==
+               Language.display_name(Localize.LanguageTag.new!("ar-SA"))
+    end
+
+    test "resolves a region-specific name and falls back to the base language" do
+      assert {:ok, "British English"} == Language.display_name("en-GB")
+      assert {:ok, "Brazilian Portuguese"} == Language.display_name("pt-BR", style: :menu)
+      assert {:ok, "European Portuguese"} == Language.display_name("pt-PT", style: :menu)
+      assert {:ok, "Arabic"} == Language.display_name("ar-SA")
     end
 
     test "falls back to default locale when fallback is true" do
@@ -62,8 +82,14 @@ defmodule Localize.LanguageTest do
       assert "UK English" == Language.display_name!("en-GB", style: :short)
     end
 
-    test "raises on unknown language" do
+    test "raises on a valid language with no display name" do
       assert_raise Localize.UnknownLanguageError, fn ->
+        Language.display_name!("mis")
+      end
+    end
+
+    test "raises on a malformed locale" do
+      assert_raise Localize.InvalidLocaleError, fn ->
         Language.display_name!("zzzzzzz")
       end
     end

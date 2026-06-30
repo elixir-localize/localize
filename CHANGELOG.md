@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.1] — June 30th, 2026
+
+### Bug Fixes
+
+* `Localize.Language.display_name/2` now normalises its input through `Localize.validate_locale/1`, so a string and an equivalent `Localize.LanguageTag` return the same name (`"en-GB"` and `LanguageTag.new!("en-GB")` both give `"British English"`) and region-specific codes resolve with fallback (`"pt-BR"` → `"Brazilian Portuguese"`, `"ar-SA"` → `"Arabic"` instead of raising). A malformed locale now returns `Localize.InvalidLocaleError` rather than `Localize.UnknownLanguageError`. Thanks to @DVSLabs for the report. Closes #36.
+
 ## [0.41.0] — June 3rd, 2026
 
 ### Breaking Changes

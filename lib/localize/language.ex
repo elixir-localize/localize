@@ -79,6 +79,12 @@ defmodule Localize.Language do
       iex> Localize.Language.display_name("en", locale: :de)
       {:ok, "Englisch"}
 
+      iex> Localize.Language.display_name("pt-BR")
+      {:ok, "Brazilian Portuguese"}
+
+      iex> Localize.Language.display_name("ar-SA")
+      {:ok, "Arabic"}
+
       iex> Localize.Language.display_name("ja")
       {:ok, "Japanese"}
 
@@ -90,10 +96,9 @@ defmodule Localize.Language do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     fallback = validate_fallback!(Keyword.get(options, :fallback, false))
 
-    language_code = extract_language_code(language)
-
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
-      case lookup_language(language_code, locale_id, style) do
+    with {:ok, language_tag} <- Localize.validate_locale(language),
+         {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
+      case lookup_language(language_tag, locale_id, style) do
         {:ok, _} = result ->
           result
 
@@ -101,7 +106,7 @@ defmodule Localize.Language do
           if fallback do
             with {:ok, default_locale_id} <-
                    Localize.Locale.cldr_locale_id_from(Localize.default_locale()) do
-              lookup_language(language_code, default_locale_id, style)
+              lookup_language(language_tag, default_locale_id, style)
             end
           else
             error
@@ -216,31 +221,63 @@ defmodule Localize.Language do
 
   # ── Private helpers ─────────────────────────────────────────
 
-  defp extract_language_code(%LanguageTag{language: language}), do: Atom.to_string(language)
-  defp extract_language_code(code) when is_binary(code), do: code
-  defp extract_language_code(code) when is_atom(code), do: Atom.to_string(code)
-
-  defp lookup_language(language_code, locale_id, style) do
+  defp lookup_language(language_tag, locale_id, style) do
     with {:ok, languages} <- Localize.Locale.get(locale_id, [:languages]) do
-      case Map.fetch(languages, language_code) do
-        {:ok, names} ->
-          case resolve_style(names, style) do
-            {:ok, _} = result ->
-              result
-
-            :error ->
-              case Map.fetch(names, :standard) do
-                {:ok, _} = result ->
-                  result
-
-                :error ->
-                  {:error, Localize.UnknownLanguageError.exception(language: language_code)}
-              end
-          end
+      language_tag
+      |> candidate_codes()
+      |> first_matching_name(languages, style)
+      |> case do
+        {:ok, _} = result ->
+          result
 
         :error ->
-          {:error, Localize.UnknownLanguageError.exception(language: language_code)}
+          {:error,
+           Localize.UnknownLanguageError.exception(language: language_tag.canonical_locale_id)}
       end
+    end
+  end
+
+  # Builds candidate CLDR language keys from the most specific subtag
+  # combination to the least, mirroring the CLDR locale display name
+  # fallback order used by `Localize.Locale.LocaleDisplay`:
+  # lang-script-territory → lang-territory → lang-script → lang. The
+  # subtags are taken from the maximized (likely-subtags) language tag,
+  # so `"pt"` resolves through `pt-BR` and `"en-GB"` through `en-GB`.
+  defp candidate_codes(%LanguageTag{language: language, script: script, territory: territory}) do
+    [
+      code_from(language, script, territory),
+      code_from(language, nil, territory),
+      code_from(language, script, nil),
+      code_from(language, nil, nil)
+    ]
+    |> Enum.uniq()
+  end
+
+  defp code_from(language, script, territory) do
+    [language, script, territory]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map_join("-", &to_string/1)
+  end
+
+  # Returns the localized name for the first candidate code present in
+  # the locale data, honoring the requested style and falling back to
+  # the standard style for that same code before moving to the next,
+  # less specific, candidate.
+  defp first_matching_name([], _languages, _style), do: :error
+
+  defp first_matching_name([code | rest], languages, style) do
+    with {:ok, names} <- Map.fetch(languages, code),
+         {:ok, _} = result <- resolve_style_with_standard(names, style) do
+      result
+    else
+      _ -> first_matching_name(rest, languages, style)
+    end
+  end
+
+  defp resolve_style_with_standard(names, style) do
+    case resolve_style(names, style) do
+      {:ok, _} = result -> result
+      :error -> resolve_style(names, :standard)
     end
   end
 
