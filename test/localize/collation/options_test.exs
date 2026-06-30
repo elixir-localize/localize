@@ -87,5 +87,19 @@ defmodule Localize.Collation.OptionsTest do
       options = Options.from_locale("en")
       assert options == Options.new()
     end
+
+    test "a string, atom, and equivalent language tag yield the same options" do
+      for locale <- ["da", "en-u-ks-level2", "pt_BR", "iw"] do
+        {:ok, tag} = Localize.validate_locale(locale)
+
+        assert Options.from_locale(locale) == Options.from_locale(tag)
+        assert Options.from_locale(locale) == Options.from_locale(String.to_atom(locale))
+      end
+    end
+
+    test "canonicalizes legacy aliases before resolving defaults" do
+      # `iw` is the legacy alias for `he`; both must resolve identically.
+      assert Options.from_locale("iw") == Options.from_locale("he")
+    end
   end
 end

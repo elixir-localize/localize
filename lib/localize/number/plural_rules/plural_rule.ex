@@ -120,33 +120,9 @@ defmodule Localize.Number.PluralRule do
     type = Keyword.get(options, :type, :cardinal)
 
     locale =
-      case locale do
-        %LanguageTag{} ->
-          locale
-
-        locale_id when is_binary(locale_id) ->
-          case LanguageTag.parse(locale_id) do
-            {:ok, parsed} ->
-              case LanguageTag.canonicalize(parsed) do
-                {:ok, canonical} -> canonical
-                _ -> parsed
-              end
-
-            _ ->
-              nil
-          end
-
-        locale_id when is_atom(locale_id) ->
-          case LanguageTag.parse(to_string(locale_id)) do
-            {:ok, parsed} ->
-              case LanguageTag.canonicalize(parsed) do
-                {:ok, canonical} -> canonical
-                _ -> parsed
-              end
-
-            _ ->
-              nil
-          end
+      case Localize.validate_locale(locale) do
+        {:ok, language_tag} -> language_tag
+        {:error, _} -> nil
       end
 
     if locale do
