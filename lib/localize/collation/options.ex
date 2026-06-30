@@ -200,8 +200,34 @@ defmodule Localize.Collation.Options do
       :upper
 
   """
-  @spec from_locale(String.t()) :: t()
-  def from_locale(locale) when is_binary(locale) do
+  @spec from_locale(String.t() | atom() | Localize.LanguageTag.t()) :: t()
+  def from_locale(locale) do
+    locale
+    |> canonical_locale_string()
+    |> from_canonical_locale()
+  end
+
+  # Normalize any locale representation to a canonical BCP47 string via
+  # `Localize.validate_locale/1` before parsing. This resolves legacy
+  # aliases (`"iw"` → `"he"`, `"pt_BR"` → `"pt"`), POSIX separators, and
+  # `%LanguageTag{}` inputs to a single canonical form, so a string, an
+  # atom, and an equivalent tag all yield the same collation options. The
+  # raw input is used only as a last resort when validation fails.
+  defp canonical_locale_string(%Localize.LanguageTag{} = tag) do
+    case Localize.validate_locale(tag) do
+      {:ok, validated} -> Localize.LanguageTag.to_string(validated)
+      {:error, _} -> Localize.LanguageTag.to_string(tag)
+    end
+  end
+
+  defp canonical_locale_string(locale) when is_binary(locale) or is_atom(locale) do
+    case Localize.validate_locale(locale) do
+      {:ok, tag} -> Localize.LanguageTag.to_string(tag)
+      {:error, _} -> to_string(locale)
+    end
+  end
+
+  defp from_canonical_locale(locale) when is_binary(locale) do
     alias Localize.Collation.Tailoring
     alias Localize.Collation.Tailoring.LocaleDefaults
 

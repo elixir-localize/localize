@@ -89,8 +89,7 @@ defmodule Localize.Number.PluralRule.Ordinal do
 
   def pluralize(number, locale_name, substitutions)
       when is_atom(locale_name) or is_binary(locale_name) do
-    with {:ok, parsed} <- LanguageTag.parse(to_string(locale_name)),
-         {:ok, language_tag} <- LanguageTag.canonicalize(parsed) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale_name) do
       pluralize(number, language_tag, substitutions)
     end
   end
@@ -149,8 +148,7 @@ defmodule Localize.Number.PluralRule.Ordinal do
   end
 
   def plural_rules_for(locale_name) when is_atom(locale_name) or is_binary(locale_name) do
-    with {:ok, parsed} <- LanguageTag.parse(to_string(locale_name)),
-         {:ok, locale} <- LanguageTag.canonicalize(parsed) do
+    with {:ok, locale} <- Localize.validate_locale(locale_name) do
       plural_rules_for(locale)
     end
   end
@@ -304,8 +302,7 @@ defmodule Localize.Number.PluralRule.Ordinal do
   # Fallback: parse locale string and retry
   def plural_rule(number, locale_name, rounding)
       when is_binary(locale_name) or is_atom(locale_name) do
-    with {:ok, parsed} <- LanguageTag.parse(to_string(locale_name)),
-         {:ok, locale} <- LanguageTag.canonicalize(parsed) do
+    with {:ok, locale} <- Localize.validate_locale(locale_name) do
       plural_rule(number, locale, rounding)
     end
   end

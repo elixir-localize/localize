@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.2] — July 1st, 2026
+
+### Bug Fixes
+
+* Plural rules now resolve likely subtags before selecting a rule set. `Localize.Number.PluralRule.Cardinal` and `Ordinal` (`pluralize/3`, `plural_rules_for/1`, `plural_rule/3`) and `Localize.Number.PluralRule.plural_type/2` validate the locale through `Localize.validate_locale/1` instead of a bare parse, so a string and an equivalent `Localize.LanguageTag` select the same category and region-specific rules apply — e.g. `plural_rule(0, "pt-PT")` is now `:other` (Portugal) rather than `:one` (the base `pt`/Brazil rule). This also corrects plural selection in message formatting.
+
+* `Localize.Territory.contains?/2` now validates both arguments, so string and atom territories are equivalent (`contains?("EU", "DK")` matches `contains?(:EU, :DK)`); it returns `false` for an invalid territory instead of silently treating a string as unmatched. It now also accepts territory strings, matching its sibling relationship functions.
+
+* `Localize.Collation.Options.from_locale/1` now canonicalises its input through `Localize.validate_locale/1`, so a string, atom, and equivalent `Localize.LanguageTag` yield identical collation options and legacy aliases resolve correctly (`"iw"` behaves as `"he"`, `"pt_BR"` as `"pt-BR"`).
+
 ## [0.41.1] — June 30th, 2026
 
 ### Bug Fixes

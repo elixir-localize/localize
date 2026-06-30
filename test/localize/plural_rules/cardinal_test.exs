@@ -92,4 +92,23 @@ defmodule Localize.Number.PluralRule.CardinalTest do
       {:error, _} -> :ok
     end
   end
+
+  # A string locale must resolve its likely subtags (via Localize.validate_locale/1)
+  # so that region-specific CLDR rules apply. Portuguese (Portugal) differs from the
+  # base `pt` (Brazil) rules at n = 0: pt-PT is :other, pt/pt-BR is :one. A previous
+  # parse-and-canonicalize path left cldr_locale_id nil and silently used base rules.
+  test "string locale resolves region-specific rules (pt-PT vs pt)" do
+    assert Cardinal.plural_rule(0, "pt-PT") == :other
+    assert Cardinal.plural_rule(0, "pt") == :one
+    assert Cardinal.plural_rule(0, "pt-BR") == :one
+  end
+
+  test "a string and an equivalent language tag select the same plural category" do
+    for locale <- ["pt-PT", "es-419", "lv", "en"], number <- [0, 1, 2, 11] do
+      {:ok, tag} = Localize.validate_locale(locale)
+
+      assert Cardinal.plural_rule(number, locale) == Cardinal.plural_rule(number, tag),
+             "mismatch for #{locale} / #{number}"
+    end
+  end
 end

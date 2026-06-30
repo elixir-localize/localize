@@ -405,35 +405,48 @@ defmodule Localize.Territory do
 
   ### Arguments
 
-  * `parent_territory` is a territory code atom.
+  * `parent_territory` is a territory code atom, a territory code
+    string, or a `t:Localize.LanguageTag.t/0`.
 
-  * `child_territory` is a territory code atom.
+  * `child_territory` is a territory code atom, a territory code
+    string, or a `t:Localize.LanguageTag.t/0`.
 
   ### Returns
 
   * `true` if the parent contains the child.
 
-  * `false` otherwise.
+  * `false` otherwise, including when either territory is invalid.
 
   ### Examples
 
       iex> Localize.Territory.contains?(:EU, :DK)
       true
 
+      iex> Localize.Territory.contains?("EU", "DK")
+      true
+
       iex> Localize.Territory.contains?(:DK, :EU)
       false
 
   """
-  @spec contains?(atom() | LanguageTag.t(), atom() | LanguageTag.t()) :: boolean()
+  @spec contains?(
+          atom() | String.t() | LanguageTag.t(),
+          atom() | String.t() | LanguageTag.t()
+        ) :: boolean()
   def contains?(%LanguageTag{territory: parent}, child), do: contains?(parent, child)
   def contains?(parent, %LanguageTag{territory: child}), do: contains?(parent, child)
 
   def contains?(parent, child) do
-    containers = SupplementalData.territory_containers()
+    with {:ok, parent} <- Localize.validate_territory(parent),
+         {:ok, child} <- Localize.validate_territory(child) do
+      containers = SupplementalData.territory_containers()
 
-    case Map.get(containers, parent) do
-      nil -> false
-      children -> child in children
+      case Map.get(containers, parent) do
+        nil -> false
+        children -> child in children
+      end
+    else
+      _ -> false
     end
   end
 

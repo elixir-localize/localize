@@ -225,6 +225,17 @@ defmodule Localize.TerritoryTest do
       refute Territory.contains?(:DK, :EU)
       refute Territory.contains?(:US, :GB)
     end
+
+    test "string and atom territories are equivalent" do
+      assert Territory.contains?("EU", "DK") == Territory.contains?(:EU, :DK)
+      assert Territory.contains?("eu", "dk")
+      refute Territory.contains?("DK", "EU")
+    end
+
+    test "returns false for an invalid territory instead of raising" do
+      refute Territory.contains?("not-a-territory", :DK)
+      refute Territory.contains?(:EU, "not-a-territory")
+    end
   end
 
   # ── info ──────────────────────────────────────────────────────
