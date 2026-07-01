@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.3] — July 1st, 2026
+
+### Changed
+
+* `Localize.LanguageTag`'s `canonical_locale_id` field — and therefore `Localize.LanguageTag.to_string/1` — now holds the *canonical-syntax* form of the requested locale (aliases resolved and subtags ordered, but neither maximized nor minimized), so `"en"` stays `"en"` and `"en-US"` stays `"en-US"` instead of collapsing to the minimal identity form. Locale identity and data lookup are unaffected; they key off `cldr_locale_id`.
+
+* `Localize.Language.display_name/2` now follows the TR35 display-name algorithm, which canonicalizes rather than adds likely subtags: a bare language keeps its own name (`"en"` → `"English"`, `"es"` → `"Spanish"`), while an explicitly supplied region or script still resolves to the region-specific CLDR name (`"en-GB"` → `"British English"`, `"pt-BR"` → `"Brazilian Portuguese"`). A string and an equivalent `Localize.LanguageTag` return the same result.
+
+* `Localize.Language.display_name/2` and `Localize.Locale.LocaleDisplay.display_name/2` both now validate their input through `Localize.validate_locale/1` and drive the display off `canonical_locale_id`, so a string and an equivalent (maximized) `Localize.LanguageTag` render identically and no likely subtags leak into the output (a validated `"en"` tag is `"English"`, not `"English (United States)"`).
+
+### Fixed
+
+* `Localize.Language.display_name/2` and `Localize.Locale.LocaleDisplay.display_name/2` now break the two-subtag candidate tie toward the earlier subtag per TR35, trying `lang-script` before `lang-region`.
+
+* `Localize.validate_locale/1` now accepts a `-u-rg-` region override that uses a subdivision id (e.g. `"en-u-rg-gbeng"`). The subdivision value was being suffixed with the `"zzzz"` region filler and rejected as an unknown locale.
+
 ## [0.41.2] — July 1st, 2026
 
 ### Bug Fixes

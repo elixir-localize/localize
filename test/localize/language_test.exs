@@ -61,6 +61,31 @@ defmodule Localize.LanguageTest do
       assert {:ok, "Arabic"} == Language.display_name("ar-SA")
     end
 
+    # Per TR35 the display lookup canonicalizes but does not add likely
+    # subtags: a bare language keeps its own name, and only an explicitly
+    # supplied region/script resolves to a region-specific CLDR name.
+    test "a bare language is not maximized to a region-specific name" do
+      assert {:ok, "English"} == Language.display_name("en")
+      assert {:ok, "Spanish"} == Language.display_name("es")
+      assert {:ok, "Chinese"} == Language.display_name("zh")
+      assert {:ok, "Portuguese"} == Language.display_name("pt")
+
+      assert {:ok, "American English"} == Language.display_name("en-US")
+      assert {:ok, "Simplified Chinese"} == Language.display_name("zh-Hans")
+    end
+
+    # Per TR35, the candidate cascade tries lang-script before lang-region
+    # (the two-subtag tie is broken toward the earlier subtag). No CLDR
+    # language currently has both a lang-script and lang-region name, so the
+    # tie itself is untriggerable — but the reordering must not shadow a
+    # region-specific name (`en-GB`) behind the always-present maximized
+    # script candidate (`en-Latn`), nor break a script-specific name.
+    test "candidate order does not shadow region- or script-specific names" do
+      assert {:ok, "British English"} == Language.display_name("en-GB")
+      assert {:ok, "Traditional Chinese"} == Language.display_name("zh-Hant")
+      assert {:ok, "English"} == Language.display_name("en-IN")
+    end
+
     test "falls back to default locale when fallback is true" do
       # "ccp" (Chakma) may not exist in all locales but should be in :en
       assert {:ok, _name} = Language.display_name("ccp", locale: :de, fallback: true)

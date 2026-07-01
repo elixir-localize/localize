@@ -341,11 +341,14 @@ defmodule Localize.LanguageTag do
   @doc """
   Create a fully resolved language tag from a locale string.
 
-  Parses the input, canonicalizes extensions, adds likely subtags
-  to populate missing fields, then computes the minimized
-  canonical locale name via remove likely subtags. The resulting
-  struct has all fields populated but the `canonical_locale_id`
-  is the shortest unambiguous form.
+  Parses the input, canonicalizes extensions, and adds likely
+  subtags to populate the `language`, `script`, and `territory`
+  fields with the maximized resolution. The `canonical_locale_id`
+  is set to the *canonical syntax* of the caller's request — the
+  input with aliases replaced and subtags ordered, but neither
+  maximized nor minimized — so `"en"` stays `"en"` and `"en-US"`
+  stays `"en-US"`. Locale identity and data lookup key off
+  `cldr_locale_id`, not `canonical_locale_id`.
 
   ### Arguments
 
@@ -368,7 +371,7 @@ defmodule Localize.LanguageTag do
       iex> tag.territory
       :TW
       iex> tag.canonical_locale_id
-      "zh-Hant"
+      "zh-TW"
 
   """
   @spec new(String.t()) :: {:ok, t()} | {:error, term()}
@@ -376,7 +379,17 @@ defmodule Localize.LanguageTag do
     with {:ok, parsed} <- parse(locale_id),
          {:ok, canonical} <- canonicalize(parsed),
          {:ok, resolved} <- remove_likely_subtags(canonical) do
-      tag = resolve_cldr_locale(resolved)
+      # `remove_likely_subtags/1` maximizes the subtag fields but leaves
+      # `canonical_locale_id` set to the minimized form. Restore the
+      # canonical-syntax id computed by `canonicalize/1` so the field
+      # faithfully reflects the caller's request (`en` stays `en`,
+      # `en-US` stays `en-US`) rather than collapsing to the minimal
+      # identity form. Locale identity/data lookup keys off
+      # `cldr_locale_id`, not this field.
+      tag =
+        %{resolved | canonical_locale_id: canonical.canonical_locale_id}
+        |> resolve_cldr_locale()
+
       {:ok, tag}
     end
   end
