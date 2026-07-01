@@ -47,7 +47,7 @@ Add `localize` to your dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:localize, "~> 0.29"}
+    {:localize, "~> 0.41"}
   ]
 end
 ```
