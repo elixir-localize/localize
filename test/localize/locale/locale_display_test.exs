@@ -95,6 +95,23 @@ defmodule Localize.Locale.LocaleDisplayTest do
       assert {:ok, "English"} = Localize.Locale.LocaleDisplay.display_name("en")
     end
 
+    test "a string and an equivalent (maximized) language tag are equivalent" do
+      # Both inputs are routed through Localize.validate_locale/1 and the
+      # display is driven off canonical_locale_id, so no likely subtags leak.
+      for locale <- ["en", "en-US", "pt", "pt-BR", "zh-Hant"] do
+        {:ok, tag} = Localize.validate_locale(locale)
+
+        assert Localize.Locale.LocaleDisplay.display_name(locale) ==
+                 Localize.Locale.LocaleDisplay.display_name(tag)
+      end
+    end
+
+    test "a bare language does not gain a likely region" do
+      assert {:ok, "English"} = Localize.Locale.LocaleDisplay.display_name("en")
+      {:ok, tag} = Localize.validate_locale("en")
+      assert {:ok, "English"} = Localize.Locale.LocaleDisplay.display_name(tag)
+    end
+
     test "language with territory in standard mode" do
       assert {:ok, "English (United States)"} =
                Localize.Locale.LocaleDisplay.display_name("en-US")
@@ -166,7 +183,7 @@ defmodule Localize.Locale.LocaleDisplayTest do
     end
 
     test "raises on invalid input" do
-      assert_raise Localize.ParseError, fn ->
+      assert_raise Localize.InvalidLocaleError, fn ->
         Localize.Locale.LocaleDisplay.display_name!("xyz-invalid-totally-bad")
       end
     end

@@ -63,17 +63,49 @@ defmodule Localize.Locale.LocaleDisplay do
   """
   @spec display_name(Localize.LanguageTag.t() | String.t() | atom(), display_options()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def display_name(language_tag, options \\ [])
-
-  def display_name(language_tag, options)
-      when is_binary(language_tag) or is_atom(language_tag) do
-    with {:ok, parsed} <- Localize.LanguageTag.parse(to_string(language_tag)),
-         {:ok, canonical} <- Localize.LanguageTag.canonicalize(parsed) do
-      display_name(canonical, options)
+  def display_name(locale, options \\ []) do
+    # Validate/normalize every input through the one canonical path
+    # (`Localize.validate_locale/1`), then drive the display off the
+    # canonical-syntax subtags carried in `canonical_locale_id`. This
+    # keeps a string and an equivalent (maximized) `%LanguageTag{}`
+    # rendering identically and prevents likely-subtags from leaking into
+    # the output — bare `"en"` is "English", not "English (United States)".
+    with {:ok, validated} <- Localize.validate_locale(locale) do
+      validated
+      |> canonical_display_tag()
+      |> do_display_name(options)
     end
   end
 
-  def display_name(%Localize.LanguageTag{} = language_tag, options) do
+  # Reduce the maximized subtag fields to the canonical-syntax form held
+  # in `canonical_locale_id` (the caller's explicit request), keeping the
+  # validated tag's resolved `-u-`/`-t-` extensions and private use.
+  defp canonical_display_tag(%Localize.LanguageTag{canonical_locale_id: id} = validated)
+       when is_binary(id) do
+    case Localize.LanguageTag.parse(id) do
+      {:ok,
+       %Localize.LanguageTag{
+         language: language,
+         script: script,
+         territory: territory,
+         language_variants: variants
+       }} ->
+        %{
+          validated
+          | language: language,
+            script: script,
+            territory: territory,
+            language_variants: variants
+        }
+
+      _ ->
+        validated
+    end
+  end
+
+  defp canonical_display_tag(%Localize.LanguageTag{} = validated), do: validated
+
+  defp do_display_name(%Localize.LanguageTag{} = language_tag, options) do
     locale_id = resolve_locale_id(options)
     prefer = Keyword.get(options, :prefer, :standard)
     prefer = if prefer == :default, do: :standard, else: prefer
@@ -178,7 +210,9 @@ defmodule Localize.Locale.LocaleDisplay do
   # ── First Match (locale name specificity cascade) ────────────
 
   # Tries locale name combinations from most specific to least:
-  # lang-script-territory → lang-territory → lang-script → lang
+  # lang-script-territory → lang-script → lang-territory → lang
+  # Per TR35 the two-subtag tie is broken toward the subtag matching
+  # earlier in the identifier, so lang-script precedes lang-territory.
 
   defp first_match(language_tag, match_fun, :dialect) do
     do_first_match(language_tag, match_fun)
@@ -217,8 +251,8 @@ defmodule Localize.Locale.LocaleDisplay do
 
   defp try_matches(language, script, territory, fun) do
     locale_name_from(language, script, territory) |> fun.([:language, :script, :territory]) ||
-      locale_name_from(language, nil, territory) |> fun.([:language, :territory]) ||
       locale_name_from(language, script, nil) |> fun.([:language, :script]) ||
+      locale_name_from(language, nil, territory) |> fun.([:language, :territory]) ||
       locale_name_from(language, nil, nil) |> fun.([:language])
   end
 
@@ -227,10 +261,10 @@ defmodule Localize.Locale.LocaleDisplay do
 
     locale_name_from(language, script, territory, variant_str)
     |> fun.([:language, :script, :territory, :language_variants]) ||
-      locale_name_from(language, nil, territory, variant_str)
-      |> fun.([:language, :territory, :language_variants]) ||
       locale_name_from(language, script, nil, variant_str)
       |> fun.([:language, :script, :language_variants]) ||
+      locale_name_from(language, nil, territory, variant_str)
+      |> fun.([:language, :territory, :language_variants]) ||
       locale_name_from(language, nil, nil, variant_str)
       |> fun.([:language, :language_variants])
   end

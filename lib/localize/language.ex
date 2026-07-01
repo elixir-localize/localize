@@ -88,6 +88,16 @@ defmodule Localize.Language do
       iex> Localize.Language.display_name("ja")
       {:ok, "Japanese"}
 
+  A bare language keeps its own name; an explicit region resolves to
+  the region-specific name where CLDR defines one (per TR35 the display
+  lookup canonicalizes but does not add likely subtags):
+
+      iex> Localize.Language.display_name("en")
+      {:ok, "English"}
+
+      iex> Localize.Language.display_name("en-US")
+      {:ok, "American English"}
+
   """
   @spec display_name(String.t() | LanguageTag.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
@@ -240,18 +250,42 @@ defmodule Localize.Language do
   # Builds candidate CLDR language keys from the most specific subtag
   # combination to the least, mirroring the CLDR locale display name
   # fallback order used by `Localize.Locale.LocaleDisplay`:
-  # lang-script-territory → lang-territory → lang-script → lang. The
-  # subtags are taken from the maximized (likely-subtags) language tag,
-  # so `"pt"` resolves through `pt-BR` and `"en-GB"` through `en-GB`.
-  defp candidate_codes(%LanguageTag{language: language, script: script, territory: territory}) do
+  # lang-script-territory → lang-script → lang-territory → lang. Per
+  # TR35 the tie between the two-subtag forms is broken in favour of the
+  # subtag matching earlier in the identifier, so `lang-script` is tried
+  # before `lang-territory`.
+  #
+  # The subtags are taken from the canonical-syntax form carried in
+  # `canonical_locale_id` — the caller's request with aliases resolved
+  # but no likely-subtags added — rather than the maximized struct
+  # fields. Per TR35 the display algorithm canonicalizes but does not
+  # maximize, so bare `"en"` resolves to "English" (not "American
+  # English") while an explicit `"en-GB"` still resolves to "British
+  # English". Falls back to the maximized fields when no canonical id is
+  # present (e.g. a hand-built tag).
+  defp candidate_codes(%LanguageTag{} = tag) do
+    {language, script, territory} = display_subtags(tag)
+
     [
       code_from(language, script, territory),
-      code_from(language, nil, territory),
       code_from(language, script, nil),
+      code_from(language, nil, territory),
       code_from(language, nil, nil)
     ]
     |> Enum.uniq()
   end
+
+  defp display_subtags(%LanguageTag{canonical_locale_id: id} = tag) when is_binary(id) do
+    case LanguageTag.parse(id) do
+      {:ok, %LanguageTag{language: language, script: script, territory: territory}} ->
+        {language, script, territory}
+
+      _ ->
+        {tag.language, tag.script, tag.territory}
+    end
+  end
+
+  defp display_subtags(%LanguageTag{} = tag), do: {tag.language, tag.script, tag.territory}
 
   defp code_from(language, script, territory) do
     [language, script, territory]

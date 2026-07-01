@@ -247,7 +247,9 @@ defmodule Localize.LanguageTagTest do
       assert tag.language == :zh
       assert tag.script == :Hant
       assert tag.territory == :TW
-      assert tag.canonical_locale_id == "zh-Hant"
+      # canonical_locale_id preserves the caller's explicit subtags in
+      # canonical syntax; the fields carry the maximized resolution.
+      assert tag.canonical_locale_id == "zh-TW"
       assert tag.cldr_locale_id != nil
     end
 
@@ -267,8 +269,19 @@ defmodule Localize.LanguageTagTest do
       assert tag.language == :en
       assert tag.script == :Latn
       assert tag.territory == :US
-      assert tag.canonical_locale_id == "en-u-ca-gregory"
+      assert tag.canonical_locale_id == "en-US-u-ca-gregory"
       assert tag.cldr_locale_id != nil
+    end
+
+    test "accepts a -u-rg- subdivision region override without corrupting it" do
+      # A subdivision override (gbeng = GB-ENG) must not have the region
+      # filler "zzzz" appended, which would produce an unresolvable value.
+      {:ok, tag} = LanguageTag.new("en-u-rg-gbeng")
+      assert tag.canonical_locale_id == "en-u-rg-gbeng"
+
+      # The 2-letter region override form still round-trips with the filler.
+      {:ok, region} = LanguageTag.new("en-u-rg-uszzzz")
+      assert region.canonical_locale_id == "en-u-rg-uszzzz"
     end
 
     test "preserves requested_locale_id" do

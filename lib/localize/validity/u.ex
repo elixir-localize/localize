@@ -97,11 +97,21 @@ defmodule Localize.Validity.U do
     |> String.downcase()
   end
 
+  # An `rg` region override is a 2-letter region suffixed with "zzzz"
+  # (e.g. `:US` → "uszzzz"). A subdivision override (e.g. `:gbeng` for
+  # GB-ENG) is emitted as-is — appending the filler would corrupt it into
+  # an unresolvable value like "gbengzzzz".
   defp encode_key("rg", value) when is_atom(value) do
-    value
-    |> Atom.to_string()
-    |> String.downcase()
-    |> Kernel.<>(@region_subtag_filler)
+    encoded =
+      value
+      |> Atom.to_string()
+      |> String.downcase()
+
+    if String.length(encoded) == 2 do
+      encoded <> @region_subtag_filler
+    else
+      encoded
+    end
   end
 
   defp encode_key("rg", value) do
