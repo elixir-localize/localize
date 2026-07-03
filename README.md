@@ -40,6 +40,8 @@ Localize consolidates the functionality of the `ex_cldr_*` library family into a
 
 Localize requires **Elixir 1.17+** and **Erlang/OTP 26+**.
 
+On OTP 26, also add the [json_polyfill](https://hex.pm/packages/json_polyfill) package — it provides the OTP 27+ `:json` module that Localize uses for JSON decoding. OTP 27 and later need no extra dependency.
+
 ## Installation
 
 Add `localize` to your dependencies in `mix.exs`:
@@ -48,6 +50,17 @@ Add `localize` to your dependencies in `mix.exs`:
 def deps do
   [
     {:localize, "~> 0.41"}
+  ]
+end
+```
+
+On OTP 26 only:
+
+```elixir
+def deps do
+  [
+    {:localize, "~> 0.41"},
+    {:json_polyfill, "~> 0.2 or ~> 1.0"}
   ]
 end
 ```

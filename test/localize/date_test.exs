@@ -57,6 +57,17 @@ defmodule Localize.DateTest do
 
       assert String.contains?(result, "CE")
     end
+
+    test "BCE years render era-relative, not signed proleptic" do
+      # TR35: the `y` field is the year of the era. ISO year -1 is
+      # 2 BC and ISO year 0 is 1 BC — never "-1 BC" or "0 BC".
+      minus_one = %Date{year: -1, month: 6, day: 15, calendar: Calendar.ISO}
+      zero = %Date{year: 0, month: 6, day: 15, calendar: Calendar.ISO}
+
+      assert {:ok, "2 BC"} = Localize.Date.to_string(minus_one, format: "y G")
+      assert {:ok, "1 BC"} = Localize.Date.to_string(zero, format: "y G")
+      assert {:ok, "2023 AD"} = Localize.Date.to_string(~D[2023-06-15], format: "y G")
+    end
   end
 
   describe "to_string/2 with partial dates" do

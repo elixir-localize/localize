@@ -112,9 +112,28 @@ defmodule Localize.Supervisor do
   # under a consumer's supervision tree. Idempotent — running twice
   # is harmless.
   defp after_start do
+    ensure_json_module!()
     validate_locale_cache_dir!()
     resolve_supported_locales()
     intern_supplemental_atoms()
+    :ok
+  end
+
+  # Localize decodes JSON with the OTP 27+ `:json` module. On OTP 26
+  # the `json_polyfill` package provides it, but the dependency is
+  # optional so OTP 27+ consumers carry no extra dependency. Failing
+  # here with instructions beats a mystifying UndefinedFunctionError
+  # on first JSON use deep inside a formatting call.
+  defp ensure_json_module! do
+    unless Code.ensure_loaded?(:json) do
+      raise """
+      The :json module is not available. Localize requires the OTP 27+ \
+      :json module. On OTP 26, add the polyfill to your dependencies:
+
+          {:json_polyfill, "~> 0.2 or ~> 1.0"}
+      """
+    end
+
     :ok
   end
 

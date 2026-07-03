@@ -162,15 +162,22 @@ defmodule Localize.Unit.Preference do
   defp resolve_usage(options, %Unit{usage: struct_usage}) do
     case Keyword.get(options, :usage) do
       nil -> normalize_usage(struct_usage) || :default
-      explicit -> normalize_usage(explicit)
+      explicit -> normalize_usage(explicit) || :default
     end
   end
 
   defp normalize_usage(nil), do: nil
   defp normalize_usage(usage) when is_atom(usage), do: usage
 
+  # Every valid CLDR usage already exists as an atom (interned from the
+  # unit preference data at compile time), so an unknown string must not
+  # create a new atom — `:usage` may carry user input and unbounded
+  # `String.to_atom/1` is an atom-table exhaustion vector. Unknown usages
+  # resolve to `nil` and the caller falls back to `:default` per TR35.
   defp normalize_usage(usage) when is_binary(usage) do
-    usage |> String.replace("-", "_") |> String.to_atom()
+    usage
+    |> String.replace("-", "_")
+    |> Localize.Utils.Helpers.existing_atom()
   end
 
   @doc """

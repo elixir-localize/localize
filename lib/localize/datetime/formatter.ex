@@ -301,8 +301,13 @@ defmodule Localize.DateTime.Formatter do
   # what CLDR's `y` token wants. We prefer it over
   # `year_of_era/3` because the latter returns a Julian-day-
   # derived counter that varies by calendar convention.
+  #
+  # `Calendar.ISO` takes the `year_of_era/3` branch (it exports
+  # no `calendar_year/3`), so BCE dates render era-relative per
+  # TR35: year -1 is "2" (with era "BC"), year 0 is "1" — never
+  # a signed proleptic year like "-1 BC".
   defp era_year(%{year: year, month: month, day: day, calendar: calendar})
-       when is_atom(calendar) and calendar != Calendar.ISO do
+       when is_atom(calendar) do
     cond do
       function_exported?(calendar, :calendar_year, 3) ->
         calendar.calendar_year(year, month, day)

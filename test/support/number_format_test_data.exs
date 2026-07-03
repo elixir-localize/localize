@@ -132,37 +132,43 @@ defmodule Localize.Test.Number.FormatData do
       {1234, "34", [format: "00", maximum_integer_digits: 2]},
       {1, "01.00", [format: "00.00"]},
 
-      # Short/long decimal formats (use :decimal_short/:decimal_long)
+      # Short/long decimal formats (use :decimal_short/:decimal_long).
+      # Expected values verified against ICU (Intl.NumberFormat with
+      # notation: :compact): the compact default precision is at most
+      # two significant digits on the mantissa, and the plural category
+      # is selected from the mantissa as displayed.
       {123, "123", [format: :decimal_short]},
-      {1234, "1K", [format: :decimal_short]},
+      {1234, "1.2K", [format: :decimal_short]},
       {12345, "12K", [format: :decimal_short]},
-      {1234.5, "1K", [format: :decimal_short]},
+      {1234.5, "1.2K", [format: :decimal_short]},
       {1234.5, "1.234", [format: :decimal_short, locale: "de"]},
       {123_456, "123.456", [format: :decimal_short, locale: "de"]},
       {12_345_678, "12M", [format: :decimal_short]},
-      {1_234_567_890, "1B", [format: :decimal_short]},
-      {1_234_567_890_000, "1T", [format: :decimal_short]},
-      {1234, "1 thousand", [format: :decimal_long]},
-      {1_234_567_890, "1 billion", [format: :decimal_long]},
+      {1_234_567_890, "1.2B", [format: :decimal_short]},
+      {1_234_567_890_000, "1.2T", [format: :decimal_short]},
+      {1234, "1.2 thousand", [format: :decimal_long]},
+      {1_234_567_890, "1.2 billion", [format: :decimal_long]},
 
       # Short/long currency formats
-      {1234, "$1K", [format: :currency_short, currency: :USD]},
-      {1234, "ZAR#{@nbsp}1K", [format: :currency_short, currency: :ZAR]},
+      {1234, "$1.2K", [format: :currency_short, currency: :USD]},
+      {1234, "ZAR#{@nbsp}1.2K", [format: :currency_short, currency: :ZAR]},
       {12345, "12,345 US dollars", [format: :currency_long, currency: :USD]},
       {123, "A$123", [format: :currency_short, currency: :AUD]},
       {12, "12 Thai baht", [format: :currency_long, currency: :THB]},
       {12, "12 bahts thaïlandais", [format: :currency_long, currency: :THB, locale: "fr"]},
-      {2134, "A$2K", [format: :currency_short, currency: :AUD]},
+      {2134, "A$2.1K", [format: :currency_short, currency: :AUD]},
       {2134, "2,134 Australian dollars", [format: :currency_long, currency: :AUD]},
 
-      # Short/long formats in French
+      # Short/long formats in French. 1000 and 1001 round to a mantissa
+      # of exactly 1 and select the exact-match count-"1" pattern
+      # ("mille"), matching ICU.
       {499_999_999, "500 millions", [format: :decimal_long, locale: "fr"]},
       {500_000_000, "500 millions", [format: :decimal_long, locale: "fr"]},
-      {9_900_000_000, "10 milliards", [format: :decimal_long, locale: "fr"]},
+      {9_900_000_000, "9,9 milliards", [format: :decimal_long, locale: "fr"]},
       {1_000, "mille", [format: :decimal_long, locale: "fr"]},
-      {1_001, "1 millier", [format: :decimal_long, locale: "fr"]},
-      {1_499, "1 millier", [format: :decimal_long, locale: "fr"]},
-      {1_500, "2 mille", [format: :decimal_long, locale: "fr"]},
+      {1_001, "mille", [format: :decimal_long, locale: "fr"]},
+      {1_499, "1,5 millier", [format: :decimal_long, locale: "fr"]},
+      {1_500, "1,5 millier", [format: :decimal_long, locale: "fr"]},
 
       # Negative short formats
       {1_000_000, "1M", [format: :decimal_short]},
