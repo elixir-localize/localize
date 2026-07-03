@@ -901,18 +901,25 @@ defmodule Localize.Number.Formatter.Decimal do
     meta
   end
 
-  defp adjust_fraction_for_significant_digits(%{significant_digits: _} = meta, number)
-       when is_integer(number) do
-    meta
-  end
+  # When significant digits are active they own the fraction display,
+  # per TR35/ICU. Enough fraction digits are forced to reach `min`
+  # significant digits (1.0 at min 3 → "1.00") and none are forced when
+  # the rounded value already carries them in its integer part
+  # (1234.567 at max 3 → "1,230", not "1,230.0"). The max of 10 stops
+  # the pattern's fractional limit from clipping small values like
+  # 0.00123 whose significant digits sit deep in the fraction.
+  # `number_of_integer_digits/1` returns 0 for |value| < 1, so sub-one
+  # values force `min` fraction digits — the integer zero in "0.5" is
+  # not a significant digit.
+  defp adjust_fraction_for_significant_digits(
+         %{significant_digits: %{min: min_sig, max: max_sig}} = meta,
+         number
+       ) do
+    rounded = Math.round_significant(number, max_sig)
+    integer_digit_count = Digits.number_of_integer_digits(rounded)
+    fraction_min = max(min_sig - integer_digit_count, 0)
 
-  defp adjust_fraction_for_significant_digits(%{significant_digits: _} = meta, %Decimal{exp: exp})
-       when exp >= 0 do
-    meta
-  end
-
-  defp adjust_fraction_for_significant_digits(%{significant_digits: _} = meta, _number) do
-    %{meta | fractional_digits: %{max: 10, min: 1}}
+    %{meta | fractional_digits: %{max: 10, min: fraction_min}}
   end
 
   defp adjust_for_fractional_digits(meta, options) do

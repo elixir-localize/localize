@@ -494,7 +494,16 @@ defmodule Localize.Utils.Http do
     timeout = Keyword.get(options, :timeout, default_timeout)
     connection_timeout = Keyword.get(options, :connection_timeout, default_connection_timeout)
 
-    [timeout: timeout, connect_timeout: connection_timeout, ssl: ssl_options]
+    # autoredirect is disabled because every URL this module fetches is a
+    # fully-known, versioned CDN location. A redirect response can only
+    # send the download to a host we did not choose, so it is always
+    # refused rather than followed.
+    [
+      timeout: timeout,
+      connect_timeout: connection_timeout,
+      ssl: ssl_options,
+      autoredirect: false
+    ]
   end
 
   defp https_ssl_options(hostname, verify_peer?) do

@@ -215,15 +215,25 @@ defmodule Localize.Number.PluralRule.Cardinal do
     do_plural_rule(locale, n, i, v, w, f, t, e)
   end
 
-  # For a compact integer
-  def plural_rule({number, e}, %LanguageTag{} = locale, _rounding) when is_integer(number) do
-    n = abs(number)
-    i = n
-    v = 0
-    w = 0
-    f = 0
-    t = 0
-    do_plural_rule(locale, n, i, v, w, f, t, e)
+  # For a compact value `{mantissa, exponent}` — the "1.2c6" notation
+  # used by compact decimal formatting. Per TR35 the n, i, f, t, v and
+  # w operands are computed *after* shifting the decimal point by the
+  # exponent (1.2c6 has the operands of 1200000), and the exponent
+  # becomes the `e` operand. The shift is exact: the mantissa is
+  # converted to `Decimal` and the exponent added to `Decimal.exp`.
+  def plural_rule({number, e}, %LanguageTag{} = locale, rounding)
+      when is_integer(number) and is_integer(e) and e >= 0 do
+    plural_rule_with_exponent(Decimal.new(number), e, locale, rounding)
+  end
+
+  def plural_rule({number, e}, %LanguageTag{} = locale, rounding)
+      when is_float(number) and is_integer(e) and e >= 0 do
+    plural_rule_with_exponent(Decimal.from_float(number), e, locale, rounding)
+  end
+
+  def plural_rule({%Decimal{} = number, e}, %LanguageTag{} = locale, rounding)
+      when is_integer(e) and e >= 0 do
+    plural_rule_with_exponent(number, e, locale, rounding)
   end
 
   # Plural rule for a float
@@ -239,71 +249,11 @@ defmodule Localize.Number.PluralRule.Cardinal do
     do_plural_rule(locale, n, i, v, w, f, t, e)
   end
 
-  # Plural rule for a compact float
-  def plural_rule({number, e}, %LanguageTag{} = locale, rounding)
-      when is_float(number) and is_integer(rounding) and rounding > 0 do
-    n = Float.round(abs(number), rounding)
-    i = trunc(n)
-    v = rounding
-    t = fraction_as_integer(n - i, rounding)
-    w = number_of_integer_digits(t)
-    f = trunc(t * Math.power_of_10(v - w))
-    do_plural_rule(locale, n, i, v, w, f, t, e)
-  end
-
   # Plural rule for a %Decimal{}
   def plural_rule(%Decimal{} = number, %LanguageTag{} = locale, rounding)
       when is_integer(rounding) and rounding > 0 do
-    # n absolute value of the source number (integer and decimals).
-    n = Decimal.abs(number)
-
-    # i integer digits of n.
-    i = Decimal.round(n, 0, :floor)
-
-    # v number of visible fraction digits in n, with trailing zeros.
-    v = abs(n.exp)
-
-    # f visible fractional digits in n, with trailing zeros.
-    f =
-      n
-      |> Decimal.sub(i)
-      |> Decimal.mult(Decimal.new(Math.power_of_10(v)))
-      |> Decimal.round(0, :floor)
-      |> Decimal.to_integer()
-
-    # t visible fractional digits in n, without trailing zeros.
-    t = remove_trailing_zeros(f)
-
-    # w number of visible fraction digits in n, without trailing zeros.
-    w = number_of_integer_digits(t)
-
-    i = Decimal.to_integer(i)
-    n = Math.to_float(n)
-    e = 0
-
-    do_plural_rule(locale, n, i, v, w, f, t, e)
-  end
-
-  # Plural rule for a compact %Decimal{}
-  def plural_rule({%Decimal{} = number, e}, %LanguageTag{} = locale, rounding)
-      when is_integer(rounding) and rounding > 0 do
-    n = Decimal.abs(number)
-    i = Decimal.round(n, 0, :floor)
-    v = abs(n.exp)
-
-    f =
-      n
-      |> Decimal.sub(i)
-      |> Decimal.mult(Decimal.new(Math.power_of_10(v)))
-      |> Decimal.round(0, :floor)
-      |> Decimal.to_integer()
-
-    t = remove_trailing_zeros(f)
-    w = number_of_integer_digits(t)
-    i = Decimal.to_integer(i)
-    n = Math.to_float(n)
-
-    do_plural_rule(locale, n, i, v, w, f, t, e)
+    {n, i, v, w, f, t} = decimal_operands(number)
+    do_plural_rule(locale, n, i, v, w, f, t, 0)
   end
 
   # Fallback: validate the locale identifier and retry
@@ -312,6 +262,40 @@ defmodule Localize.Number.PluralRule.Cardinal do
     with {:ok, locale} <- Localize.validate_locale(locale_name) do
       plural_rule(number, locale, rounding)
     end
+  end
+
+  defp plural_rule_with_exponent(%Decimal{} = number, e, locale, _rounding) do
+    shifted = %{number | exp: number.exp + e}
+    {n, i, v, w, f, t} = decimal_operands(shifted)
+    do_plural_rule(locale, n, i, v, w, f, t, e)
+  end
+
+  # Computes the TR35 plural operands from a Decimal:
+  #
+  # * n — absolute value of the source (integer and decimals).
+  # * i — integer digits of n.
+  # * v — count of visible fraction digits, with trailing zeros. Only a
+  #   negative Decimal exponent contributes fraction digits; a positive
+  #   exponent (e.g. `12e5`) is an integer with v = 0.
+  # * w — count of visible fraction digits, without trailing zeros.
+  # * f — visible fraction digits as an integer, with trailing zeros.
+  # * t — visible fraction digits as an integer, without trailing zeros.
+  defp decimal_operands(%Decimal{} = number) do
+    n = Decimal.abs(number)
+    i = Decimal.round(n, 0, :floor)
+    v = max(0, -n.exp)
+
+    f =
+      n
+      |> Decimal.sub(i)
+      |> Decimal.mult(Decimal.new(Math.power_of_10(v)))
+      |> Decimal.round(0, :floor)
+      |> Decimal.to_integer()
+
+    t = remove_trailing_zeros(f)
+    w = number_of_integer_digits(t)
+
+    {Math.to_float(n), Decimal.to_integer(i), v, w, f, t}
   end
 
   # ── Generated plural rule functions ───────────────────────────

@@ -101,7 +101,20 @@ defmodule Localize.Locale.Provider.Cache do
   defp read_and_validate(locale_id, file_path) do
     case File.read(file_path) do
       {:ok, binary} ->
-        validate_version(locale_id, :erlang.binary_to_term(binary))
+        case decode_etf(binary) do
+          {:ok, locale_data} ->
+            validate_version(locale_id, locale_data)
+
+          {:error, :undecodable} ->
+            # A corrupt or truncated cache file (torn write, disk
+            # corruption) is a cache miss, not a crash — callers fall
+            # back to download or the bundled data.
+            {:error,
+             Localize.LocaleNotFoundInCacheError.exception(
+               locale_id: locale_id,
+               path: file_path
+             )}
+        end
 
       {:error, :enoent} ->
         {:error,
@@ -118,6 +131,16 @@ defmodule Localize.Locale.Provider.Cache do
            posix_error: reason
          )}
     end
+  end
+
+  # `binary_to_term/1` raises on anything that is not a complete,
+  # well-formed external term — this is the only place pattern
+  # matching cannot replace the raise, so the rescue is a true
+  # system boundary around corrupt file content.
+  defp decode_etf(binary) do
+    {:ok, :erlang.binary_to_term(binary)}
+  rescue
+    ArgumentError -> {:error, :undecodable}
   end
 
   defp validate_version(locale_id, locale_data) do
@@ -163,8 +186,19 @@ defmodule Localize.Locale.Provider.Cache do
     file_path = path(locale_id)
     dir = Path.dirname(file_path)
 
+    # Write-then-rename so the cache file appears atomically. A crash
+    # or SIGKILL mid-write, or two OS processes sharing a cache dir,
+    # can otherwise leave a truncated `.etf` that later reads as
+    # corrupt. `File.rename/2` within one directory is atomic on
+    # POSIX filesystems. The temp name carries the writer's pid and a
+    # unique suffix so concurrent writers never collide.
+    temp_path =
+      file_path <>
+        ".tmp.#{System.pid()}.#{System.unique_integer([:positive])}"
+
     with :ok <- File.mkdir_p(dir),
-         :ok <- File.write(file_path, content) do
+         :ok <- File.write(temp_path, content),
+         :ok <- rename_or_cleanup(temp_path, file_path) do
       {:ok, file_path}
     else
       {:error, reason} ->
@@ -177,12 +211,23 @@ defmodule Localize.Locale.Provider.Cache do
     end
   end
 
+  defp rename_or_cleanup(temp_path, file_path) do
+    case File.rename(temp_path, file_path) do
+      :ok ->
+        :ok
+
+      {:error, _reason} = error ->
+        _ = File.rm(temp_path)
+        error
+    end
+  end
+
   @doc """
   Returns whether a cached locale file is stale.
 
   A cache file is considered stale if its `:version` field does
-  not equal `Localize.version/0`. A file that is missing or
-  unreadable is also considered stale.
+  not equal `Localize.version/0`. A file that is missing,
+  unreadable, or undecodable (corrupt) is also considered stale.
 
   ### Arguments
 
@@ -202,8 +247,15 @@ defmodule Localize.Locale.Provider.Cache do
 
     case File.read(file_path) do
       {:ok, binary} ->
-        locale_data = :erlang.binary_to_term(binary)
-        not versions_match?(Map.get(locale_data, :version), Localize.version())
+        case decode_etf(binary) do
+          {:ok, locale_data} ->
+            not versions_match?(Map.get(locale_data, :version), Localize.version())
+
+          # A corrupt cache file is stale by definition — it will be
+          # re-downloaded and rewritten.
+          {:error, :undecodable} ->
+            true
+        end
 
       {:error, _reason} ->
         true

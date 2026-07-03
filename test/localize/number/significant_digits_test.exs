@@ -123,17 +123,35 @@ defmodule Localize.Number.SignificantDigitsTest do
 
     test "zero formats cleanly with significant-digit options (no crash)" do
       # Pre-fix this crashed with ArithmeticError because
-      # `:math.log10(0)` is undefined. The output for `0.0` keeps a
-      # trailing `.0` because `adjust_fraction_for_significant_digits`
-      # widens the fractional envelope to `%{min: 1}` whenever
-      # significant digits are active on a non-integer input.
+      # `:math.log10(0)` is undefined. Integer and float zero both
+      # render "0" per ECMA-402/ICU: with only a maximum set, the
+      # minimum significant digits default to 1 and zero carries no
+      # forced fraction. A minimum forces trailing zeros instead.
       assert {:ok, "0"} = Localize.Number.to_string(0, maximum_significant_digits: 3)
-      assert {:ok, "0.0"} = Localize.Number.to_string(0.0, maximum_significant_digits: 3)
+      assert {:ok, "0"} = Localize.Number.to_string(0.0, maximum_significant_digits: 3)
+      assert {:ok, "0.00"} = Localize.Number.to_string(0.0, minimum_significant_digits: 3)
     end
 
     test "no significant-digit option leaves output identical to default" do
       assert Localize.Number.to_string(1234.5678) ==
                Localize.Number.to_string(1234.5678, [])
+    end
+
+    test "no fraction digit is forced when rounding yields an integral value" do
+      # ICU renders 1234.567 at 3 significant digits as "1,230" — the
+      # significant digits are satisfied by the integer part, so no
+      # trailing ".0" may be forced (TR35; previously "1,230.0").
+      assert {:ok, "1,230"} = Localize.Number.to_string(1234.567, maximum_significant_digits: 3)
+
+      assert {:ok, "1,230"} =
+               Localize.Number.to_string(Decimal.new("1234.567"), maximum_significant_digits: 3)
+    end
+
+    test "minimum significant digits force trailing fraction zeros" do
+      assert {:ok, "1.00"} = Localize.Number.to_string(1.0, minimum_significant_digits: 3)
+      assert {:ok, "1.00"} = Localize.Number.to_string(1, minimum_significant_digits: 3)
+      assert {:ok, "12.3"} = Localize.Number.to_string(12.3, minimum_significant_digits: 3)
+      assert {:ok, "0.500"} = Localize.Number.to_string(0.5, minimum_significant_digits: 3)
     end
 
     test "Decimal input honours significant-digit options" do

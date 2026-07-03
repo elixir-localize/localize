@@ -256,7 +256,7 @@ Two areas are explicitly out of scope:
 | DateTime combined patterns | Implemented | `Localize.DateTime.to_string/2`. |
 | All date format pattern symbols (y, M, d, E, G, etc.) | Implemented | Full symbol set in `Localize.DateTime.Formatter`. |
 | Hour cycle (h, H, k, K) | Implemented | Including territory-based preferences. |
-| Day periods (a, b, B) | Implemented | AM/PM and flexible day periods. |
+| Day periods (a, b, B) | Partial | `a` (AM/PM) is implemented. `b` and `B` currently fall back to AM/PM — flexible day-period selection ("in the morning", "noon") is not yet applied, although the localized names are available via `Localize.Calendar.day_periods/2`. |
 | Available formats (skeletons) | Implemented | `Localize.DateTime.Format.Match` for skeleton matching. |
 | Interval formats | Implemented | `Localize.Interval.to_string/3` for date/time/datetime intervals. |
 | Append items (missing fields) | Not implemented | |
@@ -282,7 +282,7 @@ Two areas are explicitly out of scope:
 | Week data (firstDay, minDays) | Implemented | `Localize.SupplementalData.weeks/0`. |
 | Weekend data | Implemented | Via week data. |
 | Time data (preferred hour cycle) | Implemented | Time preferences data from ETF. |
-| Day period rules | Implemented | Day period rule sets loaded from supplemental data. |
+| Day period rules | Not implemented | The CLDR day-period rule data (dayPeriods.xml) is not yet part of the data pipeline; the `b` and `B` format symbols fall back to AM/PM. |
 
 ### Time Zones
 

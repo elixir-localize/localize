@@ -4,11 +4,11 @@ defmodule Localize.Collation.ConformanceTest do
   @moduletag :conformance
   @moduletag timeout: 600_000
 
-  # Known failure thresholds. Remaining failures are:
-  # - Tibetan vowel decomposition edge cases (F81→F71+F80, etc.)
-  # - Musical symbol multi-codepoint CE sequences
-  # - Variation selector-256 (E01EF) ordering
-  # - Hangul + combining mark + jamo sequences
+  # Failure thresholds are zero: the implementation passes every case
+  # in both CLDR UCA conformance files. Historical failure classes
+  # (Tibetan vowel decomposition, musical-symbol CE sequences,
+  # variation selector-256 ordering, Hangul + combining mark + jamo)
+  # have all been fixed — any new failure is a regression.
   # Surrogate codepoint pairs (D800-DFFF) are excluded since they are
   # not valid Unicode scalar values and cannot appear in Elixir strings.
   @max_non_ignorable_failures 0

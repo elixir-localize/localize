@@ -1,7 +1,7 @@
 defmodule Localize.MixProject do
   use Mix.Project
 
-  @version "0.41.3"
+  @version "0.42.0"
   @cldr_version_path "priv/localize/version"
   @localize_patch_version_path "priv/localize/localize_patch_version"
 
@@ -48,21 +48,26 @@ defmodule Localize.MixProject do
       links: links(),
       files: [
         "lib",
-        "src/*xrl",
+        "src/*.xrl",
         "src/*.yrl",
         "mix.exs",
         "README*",
         "CHANGELOG*",
         "LICENSE*",
         "usage-rules.md",
+        # NIF sources so `LOCALIZE_NIF=true` builds from the hex package.
+        # The vendored ICU headers under c_src/platform are not needed —
+        # the Makefile locates ICU via pkg-config or Homebrew.
+        "c_src/Makefile",
+        "c_src/env.mk",
+        "c_src/*.cpp",
         "priv/localize/*.etf",
         "priv/localize/version",
         "priv/localize/localize_patch_version",
         "priv/localize/supplemental_data",
         "priv/localize/validity",
         "priv/localize/locales/en.etf",
-        "priv/localize/locales/und.etf",
-        "priv/localize/collation_table.etf"
+        "priv/localize/locales/und.etf"
       ]
     ]
   end
@@ -208,18 +213,19 @@ defmodule Localize.MixProject do
       {:ex_doc, "~> 0.18", only: [:dev, :release]},
       {:nimble_parsec, "~> 1.0", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false, optional: true},
+      # NOTE: json_polyfill (the EEP 68 :json module for OTP 26) is
+      # deliberately NOT a dependency, not even optional. A
+      # `Code.ensure_loaded?(:json)` conditional here is evaluated on the
+      # *publishing* machine, and listing it at all makes it build in this
+      # project's own dev/test environment, where its erlc hook fails on
+      # OTP >= 27. OTP 26 consumers add {:json_polyfill, "~> 0.2 or ~> 1.0"}
+      # to their own deps (see README); the supervisor verifies :json is
+      # present at application start and raises with instructions if not.
       {:sweet_xml, "~> 0.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:stream_data, "~> 1.0", only: :test}
-    ] ++ maybe_json_polyfill() ++ maybe_cldr()
-  end
-
-  defp maybe_json_polyfill do
-    if Code.ensure_loaded?(:json) do
-      []
-    else
-      [{:json_polyfill, "~> 0.2 or ~> 1.0"}]
-    end
+    ] ++ maybe_cldr()
   end
 
   defp maybe_cldr do

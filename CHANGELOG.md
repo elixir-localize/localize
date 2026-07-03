@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.42.0] — July 4th, 2026
+
+### Changed
+
+* Compact decimal/currency formats (`:decimal_short`, `:decimal_long`, `:currency_short`) now apply the ECMA-402/ICU default precision of at most two significant digits on the mantissa: `1234` renders "1.2K" (previously "1K"). Pass `:fractional_digits` or `:max_fractional_digits` to override.
+
+* The `json_polyfill` dependency is no longer declared conditionally at publish time. On OTP 26, add `{:json_polyfill, "~> 0.2 or ~> 1.0"}` to your own dependencies; the supervisor raises at application start with instructions if the `:json` module is missing.
+
+### Fixed
+
+* Compact-format plural selection now uses the mantissa as displayed, per TR35, fixing grammatically impossible output such as es "1 millones" for 1,050,000. Exact-match `count="1"` compact patterns (fr 1000 → "mille") are now selected, matching ICU.
+
+* Plural rules for compact values `{mantissa, exponent}` now compute the n/i/v/w/f/t operands after shifting by the exponent per the TR35 operand table, and Decimals with positive exponents (`1e6`) no longer report phantom visible fraction digits.
+
+* BCE years render era-relative for `Calendar.ISO` dates: ISO year -1 formats as "2 BC", year 0 as "1 BC" (previously "-1 BC"/"0 BC").
+
+* Significant-digit rounding no longer forces a trailing fraction digit when the rounded value is integral: 1234.567 at 3 significant digits renders "1,230" (previously "1,230.0"), and minimum significant digits now pad trailing zeros ("1.00" at min 3).
+
+* A corrupt or truncated locale cache file is treated as a cache miss/stale instead of raising, and cache writes are atomic (write-temp-then-rename) so a crash mid-write can no longer tear a cache file.
+
+* Locale downloads no longer follow HTTP redirects — the CDN URL is fully known, so a redirect is always refused.
+
+* An unknown `:usage` option to `Localize.Unit.Preference.preferred_units/2` no longer creates atoms from user input; it falls back to `:default` preferences per TR35.
+
+### Added
+
+* The hex package now includes the NIF sources (`c_src/`), so `LOCALIZE_NIF=true` builds from the published package.
+
 ## [0.41.3] — July 1st, 2026
 
 ### Changed

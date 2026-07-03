@@ -59,7 +59,7 @@ defmodule Localize.Number.Formatter.Short do
 
         options =
           options
-          |> maybe_set_fractional_digits()
+          |> maybe_set_fractional_digits(normalized_number)
           |> Map.put(:format, format)
 
         Formatter.Decimal.to_string(normalized_number, format, options)
@@ -67,11 +67,33 @@ defmodule Localize.Number.Formatter.Short do
     end
   end
 
-  defp maybe_set_fractional_digits(%{fractional_digits: nil} = options) do
-    Map.put(options, :fractional_digits, 0)
+  # When the caller supplies no fraction-digit options, apply the
+  # ECMA-402/ICU compact default: at most two significant digits on
+  # the mantissa, never clipping its integer digits and never forcing
+  # a trailing zero — "1.2M", "12M", "123M" and "1M" (not "1.0M").
+  # That reduces to max one fraction digit while the mantissa is a
+  # single integer digit, none afterwards.
+  defp maybe_set_fractional_digits(
+         %{fractional_digits: nil, min_fractional_digits: nil, max_fractional_digits: nil} =
+           options,
+         mantissa
+       ) do
+    %{options | min_fractional_digits: 0, max_fractional_digits: compact_max_fraction(mantissa)}
   end
 
-  defp maybe_set_fractional_digits(options), do: options
+  defp maybe_set_fractional_digits(options, _mantissa), do: options
+
+  defp compact_max_fraction(mantissa) do
+    if single_integer_digit?(mantissa), do: 1, else: 0
+  end
+
+  defp single_integer_digit?(%Decimal{} = mantissa) do
+    mantissa |> Decimal.abs() |> Decimal.compare(10) == :lt
+  end
+
+  defp single_integer_digit?(mantissa) when is_number(mantissa) do
+    abs(mantissa) < 10
+  end
 
   # ── Format selection ────────────────────────────────────────
 
@@ -176,19 +198,43 @@ defmodule Localize.Number.Formatter.Short do
 
   # ── Pluralization key ──────────────────────────────────────
 
-  defp pluralization_key(number, _options) when is_number(number) do
-    rounded = Localize.Utils.Math.round(number, 0, :half_even)
+  # Per TR35 (Compact Number Formats, step 8) the plural category is
+  # determined from the mantissa *as it will be displayed* — after the
+  # numeric precision settings are applied. Selecting on the unrounded
+  # mantissa while rendering the rounded one produced grammatically
+  # impossible output such as es "1 millones" for 1_050_000.
+  defp pluralization_key(number, options) do
+    round_to_display(number, effective_max_fraction(number, options))
+  end
 
-    if rounded <= number do
-      number
+  defp effective_max_fraction(mantissa, options) do
+    options.fractional_digits || options.max_fractional_digits ||
+      compact_max_fraction(mantissa)
+  end
+
+  # The rounded value must also carry the *visible fraction digits*
+  # operand (v) of the displayed form: with a minimum of zero fraction
+  # digits an integral mantissa displays as "2" (v = 0), so it is
+  # returned as an integer / normalized Decimal, never a float `2.0`
+  # whose fraction would leak into plural selection.
+  defp round_to_display(%Decimal{} = number, max_fraction) do
+    number
+    |> Decimal.round(max_fraction, :half_even)
+    |> Decimal.normalize()
+  end
+
+  defp round_to_display(number, max_fraction) when is_float(number) do
+    rounded = Float.round(number, max_fraction)
+    truncated = trunc(rounded)
+
+    if truncated == rounded do
+      truncated
     else
-      rounded + 0.1
+      Decimal.from_float(rounded)
     end
   end
 
-  defp pluralization_key(%Decimal{} = number, options) do
+  defp round_to_display(number, _max_fraction) when is_integer(number) do
     number
-    |> Decimal.to_float()
-    |> pluralization_key(options)
   end
 end

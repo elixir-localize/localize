@@ -3,7 +3,9 @@ defmodule Localize.Number.ShortFormatterTest do
 
   describe "short decimal formatting" do
     test "short format for thousands" do
-      assert {:ok, "1K"} = Localize.Number.to_string(1234, format: :decimal_short)
+      # ICU compact default: at most two significant digits on the
+      # mantissa, so 1234 renders "1.2K" (not "1K").
+      assert {:ok, "1.2K"} = Localize.Number.to_string(1234, format: :decimal_short)
     end
 
     test "short format for millions" do
@@ -11,7 +13,7 @@ defmodule Localize.Number.ShortFormatterTest do
     end
 
     test "short format for billions" do
-      assert {:ok, "7B"} = Localize.Number.to_string(7_234_567_890, format: :decimal_short)
+      assert {:ok, "7.2B"} = Localize.Number.to_string(7_234_567_890, format: :decimal_short)
     end
 
     test "short format below 1000 uses standard" do
