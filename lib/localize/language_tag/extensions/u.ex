@@ -86,6 +86,18 @@ defmodule Localize.LanguageTag.U do
   @doc """
   Same as `parse/1` but raises on error.
 
+  ### Arguments
+
+  * `u_extension` is the string content of a `-u-` extension.
+
+  ### Returns
+
+  * A `t:Localize.LanguageTag.U.t/0` struct.
+
+  ### Raises
+
+  * Raises an exception if the extension cannot be parsed.
+
   ### Examples
 
       iex> u = Localize.LanguageTag.U.parse!("ca-iso8601")

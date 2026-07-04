@@ -40,7 +40,7 @@ Localize.Date.to_string(~D[2025-07-10], format: "dd/MM/yyyy", locale: :en)
 #=> {:ok, "10/07/2025"}
 
 Localize.Date.to_string(~D[2025-07-10], format: "EEEE d MMMM y", locale: :en)
-#=> {:ok, "Wednesday 10 July 2025"}
+#=> {:ok, "Thursday 10 July 2025"}
 ```
 
 ### Partial dates (maps)
@@ -94,7 +94,7 @@ Localize.DateTime.to_string(~N[2025-07-10 14:30:45], prefer: :ascii)
 ```elixir
 Localize.DateTime.to_string(~N[2025-07-10 14:30:45],
   date_format: :full, time_format: :short, locale: :en, prefer: :ascii)
-#=> {:ok, "Wednesday, July 10, 2025, 2:30 PM"}
+#=> {:ok, "Thursday, July 10, 2025, 2:30 PM"}
 ```
 
 ## Relative time formatting
@@ -117,10 +117,10 @@ Localize.DateTime.Relative.to_string(604800, locale: :en)
 
 ```elixir
 Localize.Interval.to_string(~D[2025-04-22], ~D[2025-04-25], locale: :en)
-#=> {:ok, "Apr 22 – 25, 2025"}
+#=> {:ok, "Apr 22\u2009–\u200925, 2025"}
 
 Localize.Interval.to_string(~D[2025-01-15], ~D[2025-03-20], locale: :en)
-#=> {:ok, "Jan 15 – Mar 20, 2025"}
+#=> {:ok, "Jan 15\u2009–\u2009Mar 20, 2025"}
 ```
 
 ## Date field symbols quick reference

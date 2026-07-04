@@ -1660,6 +1660,12 @@ defmodule Localize.Unit do
   @doc """
   Same as `display_name/2` but raises on error.
 
+  ### Arguments
+
+  * `unit_or_name` is a `t:Localize.Unit.t/0` or a unit name string.
+
+  * `options` is a keyword list of options.
+
   ### Options
 
   See `display_name/2` for the supported options.

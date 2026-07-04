@@ -24,7 +24,7 @@ Localize.Number.to_string(1234.56, currency: :USD, locale: :en)
 #=> {:ok, "$1,234.56"}
 
 Localize.Number.to_string(1234.56, currency: :EUR, locale: :de)
-#=> {:ok, "1.234,56 €"}
+#=> {:ok, "1.234,56\u00A0€"}
 
 Localize.Number.to_string(1234, currency: :JPY, locale: :ja)
 #=> {:ok, "￥1,234"}
@@ -47,7 +47,7 @@ Localize.Number.to_string(0.456, format: :percent, locale: :en)
 #=> {:ok, "46%"}
 
 Localize.Number.to_string(0.456, format: :percent, locale: :de)
-#=> {:ok, "46 %"}
+#=> {:ok, "46\u00A0%"}
 ```
 
 ### Scientific notation
@@ -61,16 +61,16 @@ Localize.Number.to_string(1234567.89, format: :scientific)
 
 ```elixir
 Localize.Number.to_string(1234567, format: :decimal_short)
-#=> {:ok, "1M"}
+#=> {:ok, "1.2M"}
 
 Localize.Number.to_string(1234567890, format: :decimal_short)
-#=> {:ok, "1B"}
+#=> {:ok, "1.2B"}
 
 Localize.Number.to_string(1234567, format: :decimal_long)
-#=> {:ok, "1 million"}
+#=> {:ok, "1.2 million"}
 
 Localize.Number.to_string(1234567, format: :currency_short, currency: :USD)
-#=> {:ok, "$1M"}
+#=> {:ok, "$1.2M"}
 ```
 
 ### Fractional digit control
@@ -89,7 +89,7 @@ Localize.Number.to_string(3.1, min_fractional_digits: 3)
 ### Number ranges
 
 ```elixir
-Localize.Number.to_range_string(3..5)
+Localize.Number.to_range_string(3..5, [])
 #=> {:ok, "3–5"}
 
 Localize.Number.to_range_string(3, 5, locale: :de)

@@ -208,14 +208,14 @@ Localize.DateTime.Relative.to_string(~D[2024-01-01], relative_to: ~D[2024-01-04]
 ### Format styles
 
 ```elixir
-iex> Localize.DateTime.Relative.to_string(-86400, format: :standard, locale: :en)
-{:ok, "1 day ago"}
+iex> Localize.DateTime.Relative.to_string(-18000, format: :standard, locale: :en)
+{:ok, "5 hours ago"}
 
-iex> Localize.DateTime.Relative.to_string(-86400, format: :short, locale: :en)
-{:ok, "1 day ago"}
+iex> Localize.DateTime.Relative.to_string(-18000, format: :short, locale: :en)
+{:ok, "5 hr. ago"}
 
-iex> Localize.DateTime.Relative.to_string(-86400, format: :narrow, locale: :en)
-{:ok, "1 day ago"}
+iex> Localize.DateTime.Relative.to_string(-18000, format: :narrow, locale: :en)
+{:ok, "5h ago"}
 ```
 
 ### Special ordinal forms

@@ -477,6 +477,14 @@ defmodule Localize.Message do
   @doc """
   Same as `format_to_safe_list/3` but raises on error.
 
+  ### Arguments
+
+  * `message` is an MF2 message string.
+
+  * `bindings` is a map of variable bindings.
+
+  * `options` is a keyword list of options.
+
   ### Options
 
   * See `format_to_safe_list/3` for the supported options.

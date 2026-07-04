@@ -395,7 +395,7 @@ MyApp.Cldr.Calendar.localize(~D[2024-01-15], :month, type: :stand_alone)
 
 # Localize (option :type renamed to :context)
 iex> Localize.Calendar.localize(~D[2024-01-15], :month, context: :stand_alone)
-"January"
+"Jan"
 
 # New unified display_name API
 iex> Localize.Calendar.display_name(:month, 1)

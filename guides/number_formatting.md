@@ -55,10 +55,10 @@ iex> Localize.Number.to_string(1234.56, currency: :USD)
 {:ok, "$1,234.56"}
 
 iex> Localize.Number.to_string(1234.56, currency: :EUR, locale: :de)
-{:ok, "1.234,56 €"}
+{:ok, "1.234,56\u00A0€"}
 
 iex> Localize.Number.to_string(1234.56, currency: :JPY, locale: :ja)
-{:ok, "￥1,234.56"}
+{:ok, "￥1,235"}
 ```
 
 ### Accounting
@@ -79,16 +79,16 @@ Abbreviate large numbers with magnitude suffixes:
 
 ```elixir
 iex> Localize.Number.to_string(1234567, format: :decimal_short)
-{:ok, "1M"}
+{:ok, "1.2M"}
 
 iex> Localize.Number.to_string(1234567, format: :decimal_short, locale: :de)
-{:ok, "1 Mio."}
+{:ok, "1,2\u00A0Mio."}
 
 iex> Localize.Number.to_string(1234567, format: :decimal_short, locale: :ja)
 {:ok, "123万"}
 
 iex> Localize.Number.to_string(1234567, format: :currency_short, currency: :USD)
-{:ok, "$1M"}
+{:ok, "$1.2M"}
 ```
 
 ### Long (word) formats
@@ -97,10 +97,10 @@ Spell out the magnitude in words:
 
 ```elixir
 iex> Localize.Number.to_string(1234567, format: :decimal_long)
-{:ok, "1 million"}
+{:ok, "1.2 million"}
 
 iex> Localize.Number.to_string(1234567, format: :decimal_long, locale: :de)
-{:ok, "1 Millionen"}
+{:ok, "1,2 Millionen"}
 
 iex> Localize.Number.to_string(1234567, format: :currency_long, currency: :USD)
 {:ok, "1,234,567 US dollars"}
@@ -126,9 +126,9 @@ Available RBNF rules vary by locale. Query them with:
 ```elixir
 iex> {:ok, rules} = Localize.Number.Rbnf.rule_names_for_locale(:en)
 iex> rules
-["digits_ordinal", "spellout_cardinal", "spellout_cardinal_verbose",
- "spellout_numbering", "spellout_numbering_verbose", "spellout_numbering_year",
- "spellout_ordinal", "spellout_ordinal_verbose"]
+["digits_ordinal", "spellout_cardinal", "spellout_numbering",
+ "spellout_numbering_year", "spellout_ordinal", "spellout_cardinal_verbose",
+ "spellout_numbering_verbose", "spellout_ordinal_verbose"]
 ```
 
 The root locale (`:und`) provides universal rules like `roman_upper`, `roman_lower`, `hebrew`, `ethiopic`, `greek_upper`, `greek_lower`, `armenian_upper`, `armenian_lower`, `cyrillic_lower`, `georgian`, and `tamil`.
@@ -266,7 +266,7 @@ Each locale defines up to four number system types: `:default`, `:native`, `:tra
 
 ```elixir
 iex> Localize.Number.System.number_systems_for(:ar)
-{:ok, %{default: :arab, native: :arab}}
+{:ok, %{default: :latn, native: :arab}}
 
 iex> Localize.Number.to_string(1234, number_system: :arab, locale: :ar)
 {:ok, "١٬٢٣٤"}
@@ -310,13 +310,13 @@ Short and long formats vary dramatically by locale. Japanese uses 万 (ten-thous
 
 ```elixir
 iex> Localize.Number.to_string(1234567, format: :decimal_short, locale: :en)
-{:ok, "1M"}
+{:ok, "1.2M"}
 
 iex> Localize.Number.to_string(1234567, format: :decimal_short, locale: :ja)
 {:ok, "123万"}
 
 iex> Localize.Number.to_string(1234567, format: :decimal_short, locale: :de)
-{:ok, "1 Mio."}
+{:ok, "1,2\u00A0Mio."}
 ```
 
 ## Options reference
@@ -451,7 +451,7 @@ iex> Localize.Number.parse("1,234.56")
 {:ok, 1234.56}
 
 iex> Localize.Number.scan("The price is $1,234.56 per unit")
-["The price is ", 1234.56, " per unit"]
+["The price is $", 1234.56, " per unit"]
 ```
 
 Parsing respects locale-specific separators and can resolve embedded currency symbols and percent signs. See `Localize.Number.parse/2` and `Localize.Number.scan/2` for details.
