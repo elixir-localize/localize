@@ -240,12 +240,10 @@ defmodule Localize.Message.Sigils do
   # start line + MF2 error line - 1) so IDEs jump to the right spot.
   @doc false
   def compile_time_parse_or_raise!(message, options, caller, meta, sigil_name \\ "~M") do
-    try do
-      Localize.Message.canonical_message!(message, options)
-    rescue
-      error in Localize.ParseError ->
-        reraise_as_compile_error(error, caller, meta, sigil_name)
-    end
+    Localize.Message.canonical_message!(message, options)
+  rescue
+    error in Localize.ParseError ->
+      reraise_as_compile_error(error, caller, meta, sigil_name)
   end
 
   @spec reraise_as_compile_error(
@@ -311,39 +309,9 @@ defmodule Localize.Message.Sigils do
         piece, {ids, bindings, seen} when is_binary(piece) ->
           {[Macro.unescape_string(piece) | ids], bindings, seen}
 
-        {:"::", _, [{{:., _, [Kernel, :to_string]}, _, [expr]}, {:binary, _, _}]} = _node,
+        {:"::", _, [{{:., _, [Kernel, :to_string]}, _, [expr]}, {:binary, _, _}]},
         {ids, bindings, seen} ->
-          {key, value_ast} = derive_binding!(expr, caller, meta)
-          placeholder = "{$" <> Atom.to_string(key) <> "}"
-
-          normalized_ast = strip_meta(value_ast)
-
-          seen =
-            case Map.fetch(seen, key) do
-              :error ->
-                Map.put(seen, key, normalized_ast)
-
-              {:ok, existing_ast} ->
-                if existing_ast == normalized_ast do
-                  seen
-                else
-                  raise CompileError,
-                    file: caller.file,
-                    line: caller_line(meta, caller),
-                    description:
-                      "binding `#{key}` is derived from two different expressions in the ~t sigil. " <>
-                        "Use `#{key}1 = expr1` and `#{key}2 = expr2` to give them distinct names."
-                end
-            end
-
-          bindings =
-            if Enum.any?(bindings, fn {k, _} -> k == key end) do
-              bindings
-            else
-              [{key, value_ast} | bindings]
-            end
-
-          {[placeholder | ids], bindings, seen}
+          accumulate_interpolation(expr, ids, bindings, seen, caller, meta)
 
         other, {_ids, _bindings, _seen} ->
           raise CompileError,
@@ -354,6 +322,43 @@ defmodule Localize.Message.Sigils do
 
     msgid = ids_rev |> Enum.reverse() |> IO.iodata_to_binary()
     {msgid, Enum.reverse(bindings_rev)}
+  end
+
+  defp accumulate_interpolation(expr, ids, bindings, seen, caller, meta) do
+    {key, value_ast} = derive_binding!(expr, caller, meta)
+    placeholder = "{$" <> Atom.to_string(key) <> "}"
+
+    normalized_ast = strip_meta(value_ast)
+    seen = check_duplicate_binding!(seen, key, normalized_ast, caller, meta)
+    bindings = put_new_binding(bindings, key, value_ast)
+
+    {[placeholder | ids], bindings, seen}
+  end
+
+  defp check_duplicate_binding!(seen, key, normalized_ast, caller, meta) do
+    case Map.fetch(seen, key) do
+      :error ->
+        Map.put(seen, key, normalized_ast)
+
+      {:ok, existing_ast} when existing_ast == normalized_ast ->
+        seen
+
+      {:ok, _existing_ast} ->
+        raise CompileError,
+          file: caller.file,
+          line: caller_line(meta, caller),
+          description:
+            "binding `#{key}` is derived from two different expressions in the ~t sigil. " <>
+              "Use `#{key}1 = expr1` and `#{key}2 = expr2` to give them distinct names."
+    end
+  end
+
+  defp put_new_binding(bindings, key, value_ast) do
+    if Enum.any?(bindings, fn {existing_key, _} -> existing_key == key end) do
+      bindings
+    else
+      [{key, value_ast} | bindings]
+    end
   end
 
   # Explicit `key = expr` always wins.

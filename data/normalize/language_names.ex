@@ -1,8 +1,8 @@
 defmodule Localize.Data.Normalize.LanguageNames do
   @moduledoc false
 
-  alias Localize.Utils.Map, as: LMap
   alias Localize.Data.Normalize.Helpers
+  alias Localize.Utils.Map, as: LMap
 
   def normalize(content, _locale) do
     languages =

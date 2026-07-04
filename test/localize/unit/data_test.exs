@@ -5,7 +5,7 @@ defmodule Localize.Unit.DataTest do
 
   describe "prefix_components/0" do
     test "returns a non-empty list" do
-      assert length(Data.prefix_components()) > 0
+      assert Data.prefix_components() != []
     end
 
     test "includes known prefix components" do
@@ -20,7 +20,7 @@ defmodule Localize.Unit.DataTest do
 
   describe "suffix_components/0" do
     test "returns a non-empty list" do
-      assert length(Data.suffix_components()) > 0
+      assert Data.suffix_components() != []
     end
 
     test "includes known suffix components" do

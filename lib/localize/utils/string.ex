@@ -7,7 +7,7 @@ defmodule Localize.Utils.String do
   #
   @moduledoc false
 
-  @p 99991
+  @p 99_991
   @m trunc(1.0e9) + 9
 
   @doc """

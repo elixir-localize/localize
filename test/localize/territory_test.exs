@@ -15,6 +15,8 @@ defmodule Localize.TerritoryTest do
   end
 
   test "deprecated available_styles/0 delegates to known_styles/0" do
+    # Deprecated name called via apply/3 to avoid the deprecation warning.
+    # credo:disable-for-next-line Credo.Check.Refactor.Apply
     assert apply(Territory, :available_styles, []) == Territory.known_styles()
   end
 

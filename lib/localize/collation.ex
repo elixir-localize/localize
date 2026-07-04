@@ -409,15 +409,7 @@ defmodule Localize.Collation do
       Enum.reduce(combiners, {base_elements, MapSet.new(), 0, base_cps}, fn
         {cp, ccc}, {elems, consumed, last_ccc, current_base} ->
           if ccc > 0 and (last_ccc == 0 or ccc > last_ccc) do
-            candidate = current_base ++ [cp]
-
-            case Table.lookup(candidate) do
-              {:ok, new_elements} ->
-                {new_elements, MapSet.put(consumed, cp), ccc, candidate}
-
-              :unmapped ->
-                {elems, consumed, ccc, current_base}
-            end
+            extend_with_combiner(current_base ++ [cp], cp, ccc, elems, consumed, current_base)
           else
             {elems, consumed, last_ccc, current_base}
           end
@@ -428,6 +420,16 @@ defmodule Localize.Collation do
       |> Enum.map(fn {cp, _ccc} -> cp end)
 
     {final_elements, consumed_set, unconsumed}
+  end
+
+  defp extend_with_combiner(candidate, cp, ccc, elements, consumed, current_base) do
+    case Table.lookup(candidate) do
+      {:ok, new_elements} ->
+        {new_elements, MapSet.put(consumed, cp), ccc, candidate}
+
+      :unmapped ->
+        {elements, consumed, ccc, current_base}
+    end
   end
 
   defp combining_class(cp) do
@@ -467,18 +469,22 @@ defmodule Localize.Collation do
         elements -> elements
       end
     else
-      case ImplicitWeights.compute(cp) do
-        {:hangul_decompose, jamo} ->
-          Enum.flat_map(jamo, fn j ->
-            case Table.lookup(j) do
-              {:ok, elements} -> elements
-              :unmapped -> ImplicitWeights.compute(j)
-            end
-          end)
+      resolve_implicit_weights(ImplicitWeights.compute(cp))
+    end
+  end
 
-        elements when is_list(elements) ->
-          elements
-      end
+  defp resolve_implicit_weights({:hangul_decompose, jamo}) do
+    Enum.flat_map(jamo, &jamo_collation_elements/1)
+  end
+
+  defp resolve_implicit_weights(elements) when is_list(elements) do
+    elements
+  end
+
+  defp jamo_collation_elements(jamo) do
+    case Table.lookup(jamo) do
+      {:ok, elements} -> elements
+      :unmapped -> ImplicitWeights.compute(jamo)
     end
   end
 

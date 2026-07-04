@@ -41,7 +41,7 @@ defmodule Localize.AtomInterningTest do
     end
 
     test "to_system/2 resolves a binary system name" do
-      assert {:ok, formatted} = Localize.Number.System.to_system(12345, "arab")
+      assert {:ok, formatted} = Localize.Number.System.to_system(12_345, "arab")
       assert is_binary(formatted)
     end
   end

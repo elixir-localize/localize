@@ -138,19 +138,19 @@ defmodule Localize.Collation.Options do
     case Keyword.pop(options, :ignore_punctuation) do
       {true, options} ->
         options
-        |> then(fn opts ->
-          if Keyword.has_key?(opts, :strength),
-            do: opts,
-            else: Keyword.put(opts, :strength, :tertiary)
-        end)
-        |> then(fn opts ->
-          if Keyword.has_key?(opts, :alternate),
-            do: opts,
-            else: Keyword.put(opts, :alternate, :shifted)
-        end)
+        |> put_default(:strength, :tertiary)
+        |> put_default(:alternate, :shifted)
 
       {_, options} ->
         options
+    end
+  end
+
+  defp put_default(options, key, value) do
+    if Keyword.has_key?(options, key) do
+      options
+    else
+      Keyword.put(options, key, value)
     end
   end
 
@@ -251,6 +251,9 @@ defmodule Localize.Collation.Options do
     |> Map.put(:tailoring, tailoring_overlay)
   end
 
+  # BCP 47 -u- extension dispatch: one branch per collation keyword
+  # (co/ks/ka/kb/kk/kc/kf/kn/kr/kv).
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp u_pairs_to_opts(pairs) do
     Enum.reduce(pairs, [], fn {key, value}, acc ->
       case key do

@@ -1,8 +1,8 @@
 defmodule Localize.Data.Normalize.LocaleDisplayNames do
   @moduledoc false
 
-  alias Localize.Utils.Map, as: LMap
   alias Localize.Data.Normalize.Helpers
+  alias Localize.Utils.Map, as: LMap
 
   def normalize(content, _locale) do
     locale_display_names =

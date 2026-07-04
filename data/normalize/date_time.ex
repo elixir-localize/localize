@@ -1,8 +1,8 @@
 defmodule Localize.Data.Normalize.DateTime do
   @moduledoc false
 
-  alias Localize.Utils.Map, as: LMap
   alias Localize.Data.Normalize.Helpers
+  alias Localize.Utils.Map, as: LMap
 
   @normalize_number_systems_for [
     "date_formats",

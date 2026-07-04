@@ -86,12 +86,10 @@ defmodule Localize.Date do
     format = Keyword.get(options, :format, @default_format)
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, pattern} <- find_format(date, format, locale_id, options),
-         overrides = number_system_overrides_for(date, format, locale_id),
-         formatter_options = options |> Map.new() |> Map.put(:number_system_overrides, overrides),
-         {:ok, formatted} <-
-           Localize.DateTime.Formatter.format(date, pattern, locale_id, formatter_options) do
-      {:ok, formatted}
+         {:ok, pattern} <- find_format(date, format, locale_id, options) do
+      overrides = number_system_overrides_for(date, format, locale_id)
+      formatter_options = options |> Map.new() |> Map.put(:number_system_overrides, overrides)
+      Localize.DateTime.Formatter.format(date, pattern, locale_id, formatter_options)
     end
   end
 
@@ -101,44 +99,52 @@ defmodule Localize.Date do
     format = Keyword.get(options, :format)
 
     with {:ok, locale_id} <- resolve_locale_id(locale) do
-      resolved_format =
-        cond do
-          is_binary(format) ->
-            format
-
-          is_atom(format) and format != nil and format not in @standard_formats ->
-            format
-
-          format in @standard_formats ->
-            # Standard formats not accepted for partial dates
-            nil
-
-          true ->
-            # Derive format skeleton from available fields
-            derive_format_id(date)
-        end
-
-      if resolved_format == nil do
-        {:error,
-         Localize.DateTimeUnresolvedFormatError.exception(
-           format: format,
-           locale: locale_id
-         )}
-      else
-        with {:ok, pattern} <- find_format(date, resolved_format, locale_id, options),
-             overrides = number_system_overrides_for(date, resolved_format, locale_id),
-             formatter_options =
-               options |> Map.new() |> Map.put(:number_system_overrides, overrides),
-             {:ok, formatted} <-
-               Localize.DateTime.Formatter.format(date, pattern, locale_id, formatter_options) do
-          {:ok, formatted}
-        end
-      end
+      resolved_format = resolve_partial_format(format, date)
+      format_partial_date(resolved_format, date, format, locale_id, options)
     end
   end
 
   def to_string(_date, _options) do
     {:error, Localize.DateTimeInvalidInputError.exception(type: :date)}
+  end
+
+  # Resolve the format for a partial date. Standard formats are
+  # not accepted for partial dates; when no format is given the
+  # format skeleton is derived from the available fields.
+  defp resolve_partial_format(format, _date) when is_binary(format) do
+    format
+  end
+
+  defp resolve_partial_format(format, _date)
+       when is_atom(format) and format != nil and format not in @standard_formats do
+    format
+  end
+
+  defp resolve_partial_format(format, _date) when format in @standard_formats do
+    nil
+  end
+
+  defp resolve_partial_format(_format, date) do
+    derive_format_id(date)
+  end
+
+  defp format_partial_date(nil, _date, format, locale_id, _options) do
+    {:error,
+     Localize.DateTimeUnresolvedFormatError.exception(
+       format: format,
+       locale: locale_id
+     )}
+  end
+
+  defp format_partial_date(resolved_format, date, _format, locale_id, options) do
+    with {:ok, pattern} <- find_format(date, resolved_format, locale_id, options) do
+      overrides = number_system_overrides_for(date, resolved_format, locale_id)
+
+      formatter_options =
+        options |> Map.new() |> Map.put(:number_system_overrides, overrides)
+
+      Localize.DateTime.Formatter.format(date, pattern, locale_id, formatter_options)
+    end
   end
 
   @doc """
@@ -244,22 +250,26 @@ defmodule Localize.Date do
           resolve_skeleton_via_best_match(skeleton, locale_id, calendar, options, seen)
 
         %{} = variant_map ->
-          case Localize.DateTime.Format.resolve_variant(variant_map, options) do
-            nil ->
-              {:error,
-               Localize.DateTimeUnresolvedFormatError.exception(
-                 format: skeleton,
-                 locale: locale_id
-               )}
-
-            pattern ->
-              {:ok, pattern}
-          end
+          variant_map
+          |> Localize.DateTime.Format.resolve_variant(options)
+          |> variant_pattern_result(skeleton, locale_id)
 
         pattern when is_binary(pattern) ->
           {:ok, pattern}
       end
     end
+  end
+
+  defp variant_pattern_result(nil, skeleton, locale_id) do
+    {:error,
+     Localize.DateTimeUnresolvedFormatError.exception(
+       format: skeleton,
+       locale: locale_id
+     )}
+  end
+
+  defp variant_pattern_result(pattern, _skeleton, _locale_id) do
+    {:ok, pattern}
   end
 
   # Two-step fallback when the exact skeleton isn't in the
@@ -282,57 +292,55 @@ defmodule Localize.Date do
   # In both cases the recursion is guarded by a `seen` set
   # so a degenerate match cycle (`a → b → a`) terminates.
   defp resolve_skeleton_via_best_match(skeleton, locale_id, calendar, options, seen) do
-    cond do
-      MapSet.member?(seen, skeleton) ->
-        {:error,
-         Localize.DateTimeUnresolvedFormatError.exception(
-           format: skeleton,
-           locale: locale_id
-         )}
+    if MapSet.member?(seen, skeleton) do
+      {:error,
+       Localize.DateTimeUnresolvedFormatError.exception(
+         format: skeleton,
+         locale: locale_id
+       )}
+    else
+      seen = MapSet.put(seen, skeleton)
 
-      true ->
-        seen = MapSet.put(seen, skeleton)
+      case Localize.DateTime.Format.Match.best_match(skeleton, locale_id, calendar) do
+        {:ok, matched_id} when is_atom(matched_id) and matched_id != skeleton ->
+          resolve_skeleton(
+            skeleton: matched_id,
+            locale_id: locale_id,
+            calendar: calendar,
+            options: options,
+            seen: seen
+          )
 
-        case Localize.DateTime.Format.Match.best_match(skeleton, locale_id, calendar) do
-          {:ok, matched_id} when is_atom(matched_id) and matched_id != skeleton ->
-            resolve_skeleton(
-              skeleton: matched_id,
-              locale_id: locale_id,
-              calendar: calendar,
-              options: options,
-              seen: seen
-            )
+        {:ok, {_date_id, _time_id}} ->
+          # Combined date+time skeleton — not applicable for
+          # date-only formatting.
+          {:error,
+           Localize.DateTimeUnresolvedFormatError.exception(
+             format: skeleton,
+             locale: locale_id
+           )}
 
-          {:ok, {_date_id, _time_id}} ->
-            # Combined date+time skeleton — not applicable for
-            # date-only formatting.
-            {:error,
-             Localize.DateTimeUnresolvedFormatError.exception(
-               format: skeleton,
-               locale: locale_id
-             )}
+        _ when calendar != :gregorian ->
+          # Calendar-specific match exhausted — fall back to
+          # gregorian patterns. The displayed values will
+          # still be calendar-correct because the formatter's
+          # `y` / `G` tokens read from `date.calendar`; only
+          # the pattern selection switches to gregorian.
+          resolve_skeleton(
+            skeleton: skeleton,
+            locale_id: locale_id,
+            calendar: :gregorian,
+            options: options,
+            seen: seen
+          )
 
-          _ when calendar != :gregorian ->
-            # Calendar-specific match exhausted — fall back to
-            # gregorian patterns. The displayed values will
-            # still be calendar-correct because the formatter's
-            # `y` / `G` tokens read from `date.calendar`; only
-            # the pattern selection switches to gregorian.
-            resolve_skeleton(
-              skeleton: skeleton,
-              locale_id: locale_id,
-              calendar: :gregorian,
-              options: options,
-              seen: seen
-            )
-
-          _ ->
-            {:error,
-             Localize.DateTimeUnresolvedFormatError.exception(
-               format: skeleton,
-               locale: locale_id
-             )}
-        end
+        _ ->
+          {:error,
+           Localize.DateTimeUnresolvedFormatError.exception(
+             format: skeleton,
+             locale: locale_id
+           )}
+      end
     end
   end
 
@@ -340,8 +348,7 @@ defmodule Localize.Date do
   def derive_format_id(date) do
     @date_fields_ordered
     |> Enum.filter(fn {field, _symbol} -> Map.has_key?(date, field) end)
-    |> Enum.map(fn {_field, symbol} -> symbol end)
-    |> Enum.join()
+    |> Enum.map_join(fn {_field, symbol} -> symbol end)
     |> String.to_atom()
   end
 

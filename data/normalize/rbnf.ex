@@ -102,9 +102,8 @@ defmodule Localize.Data.Normalize.Rbnf do
   end
 
   defp to_integer(value) do
-    with {int, ""} <- Integer.parse(value) do
-      int
-    else
+    case Integer.parse(value) do
+      {int, ""} -> int
       _ -> value
     end
   end

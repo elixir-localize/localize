@@ -48,9 +48,7 @@ defmodule Localize.Data.Collation do
         entries = parse_collation_file(collation_dir, filename)
 
         if filename == "root.xml" do
-          entries
-          |> Enum.filter(fn {_lang, type, _rules} -> type == :search end)
-          |> Enum.map(fn {"root", type, rules} -> {"und", type, rules} end)
+          root_search_entries(entries)
         else
           entries
         end
@@ -77,6 +75,12 @@ defmodule Localize.Data.Collation do
       not has_ordering_rules?(rules) or rules == ""
     end)
     |> Map.new()
+  end
+
+  defp root_search_entries(entries) do
+    entries
+    |> Enum.filter(fn {_lang, type, _rules} -> type == :search end)
+    |> Enum.map(fn {"root", type, rules} -> {"und", type, rules} end)
   end
 
   @doc """
@@ -194,13 +198,17 @@ defmodule Localize.Data.Collation do
     |> Enum.reduce(%{}, fn line, acc ->
       case Localize.Collation.Han.parse_radical_line(String.trim(line)) do
         {:ok, radical_num, members} ->
-          Enum.reduce(members, acc, fn {cp, simplification, strokes}, acc ->
-            Map.put(acc, cp, {radical_num, strokes, simplification})
-          end)
+          add_radical_members(members, radical_num, acc)
 
         :skip ->
           acc
       end
+    end)
+  end
+
+  defp add_radical_members(members, radical_num, acc) do
+    Enum.reduce(members, acc, fn {cp, simplification, strokes}, acc ->
+      Map.put(acc, cp, {radical_num, strokes, simplification})
     end)
   end
 
@@ -231,19 +239,21 @@ defmodule Localize.Data.Collation do
       if MapSet.member?(@skip_types, type) or cr == "" do
         []
       else
-        rules = clean_rules(cr)
-
-        if has_ordering_rules?(rules) and rules != "" do
-          [{language, String.to_atom(type), rules}]
-        else
-          []
-        end
+        collation_entry(language, type, clean_rules(cr))
       end
     end)
   rescue
     e ->
       IO.puts(:stderr, "Warning: Could not parse #{filename}: #{Exception.message(e)}")
       []
+  end
+
+  defp collation_entry(language, type, rules) do
+    if has_ordering_rules?(rules) and rules != "" do
+      [{language, String.to_atom(type), rules}]
+    else
+      []
+    end
   end
 
   defp clean_rules(cdata) do
@@ -270,16 +280,18 @@ defmodule Localize.Data.Collation do
     rules
     |> String.split("\n")
     |> Enum.any?(fn line ->
-      String.starts_with?(line, "&") or
-        String.starts_with?(line, "[caseFirst") or
-        String.starts_with?(line, "[caseLevel") or
-        String.starts_with?(line, "[alternate") or
-        String.starts_with?(line, "[backwards") or
-        String.starts_with?(line, "[normalization") or
-        String.starts_with?(line, "[strength") or
-        String.starts_with?(line, "[suppressContractions") or
-        String.starts_with?(line, "[reorder") or
-        String.starts_with?(line, "[import")
+      String.starts_with?(line, [
+        "&",
+        "[caseFirst",
+        "[caseLevel",
+        "[alternate",
+        "[backwards",
+        "[normalization",
+        "[strength",
+        "[suppressContractions",
+        "[reorder",
+        "[import"
+      ])
     end)
   end
 
@@ -289,21 +301,7 @@ defmodule Localize.Data.Collation do
     |> Enum.flat_map(fn line ->
       case Regex.run(~r/^\[import\s+(.+)\]$/, line) do
         [_, tag] ->
-          case parse_import_tag(tag) do
-            {lang, type} ->
-              case Map.get(raw_map, {lang, type}) do
-                nil ->
-                  []
-
-                imported_rules ->
-                  imported_rules
-                  |> String.split("\n")
-                  |> Enum.reject(&String.starts_with?(&1, "[import"))
-              end
-
-            nil ->
-              []
-          end
+          resolve_import_tag(parse_import_tag(tag), raw_map)
 
         nil ->
           [line]
@@ -311,6 +309,20 @@ defmodule Localize.Data.Collation do
     end)
     |> Enum.join("\n")
     |> String.trim()
+  end
+
+  defp resolve_import_tag({lang, type}, raw_map) do
+    imported_rule_lines(Map.get(raw_map, {lang, type}))
+  end
+
+  defp resolve_import_tag(nil, _raw_map), do: []
+
+  defp imported_rule_lines(nil), do: []
+
+  defp imported_rule_lines(imported_rules) do
+    imported_rules
+    |> String.split("\n")
+    |> Enum.reject(&String.starts_with?(&1, "[import"))
   end
 
   defp parse_import_tag(tag) do

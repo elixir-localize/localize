@@ -671,21 +671,28 @@ defmodule Localize.Locale do
       if fallback_id == original_id do
         {:error, Localize.ItemNotFoundError.exception(locale: original_id, keys: keys)}
       else
-        with :ok <- load_and_store(fallback_id, provider: provider) do
-          case provider.get(fallback_id, keys, options) do
-            {:ok, _} = ok ->
-              ok
-
-            {:error, %Localize.ItemNotFoundError{}} ->
-              {:error, Localize.ItemNotFoundError.exception(locale: original_id, keys: keys)}
-
-            {:error, _} = error ->
-              error
-          end
-        end
+        get_from_default_locale(fallback_id, original_id, keys, provider, options)
       end
     end
   end
+
+  # Load the fallback locale and read `keys` from it, rewriting any
+  # not-found error to reference the originally requested locale.
+  @spec get_from_default_locale(atom(), atom(), list(), module(), Keyword.t()) ::
+          {:ok, term()} | {:error, term()}
+  defp get_from_default_locale(fallback_id, original_id, keys, provider, options) do
+    with :ok <- load_and_store(fallback_id, provider: provider) do
+      default_locale_result(provider.get(fallback_id, keys, options), original_id, keys)
+    end
+  end
+
+  defp default_locale_result({:ok, _} = ok, _original_id, _keys), do: ok
+
+  defp default_locale_result({:error, %Localize.ItemNotFoundError{}}, original_id, keys) do
+    {:error, Localize.ItemNotFoundError.exception(locale: original_id, keys: keys)}
+  end
+
+  defp default_locale_result({:error, _} = error, _original_id, _keys), do: error
 
   # Walk the CLDR parent locale chain looking for `keys`. Each parent
   # is loaded through the same provider before being read. The

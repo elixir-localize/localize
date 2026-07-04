@@ -203,6 +203,9 @@ defmodule Localize.Unit.CustomRegistry do
   # applies.
   defp production_env? do
     if Code.ensure_loaded?(Mix) and function_exported?(Mix, :env, 0) do
+      # Mix is absent at runtime in releases; a direct call trips the
+      # missing-:mix-dependency compiler warning.
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
       apply(Mix, :env, []) == :prod
     else
       true
@@ -210,33 +213,30 @@ defmodule Localize.Unit.CustomRegistry do
   end
 
   defp do_load_file(expanded) do
-    try do
-      {definitions, _bindings} = Code.eval_file(expanded)
+    {definitions, _bindings} = Code.eval_file(expanded)
 
-      case definitions do
-        defs when is_list(defs) ->
-          batch =
-            Enum.reduce_while(defs, {:ok, %{}}, fn
-              %{unit: name} = definition, {:ok, acc} ->
-                {:cont, {:ok, Map.put(acc, name, Map.delete(definition, :unit))}}
+    case definitions do
+      defs when is_list(defs) ->
+        batch =
+          Enum.reduce_while(defs, {:ok, %{}}, fn
+            %{unit: name} = definition, {:ok, acc} ->
+              {:cont, {:ok, Map.put(acc, name, Map.delete(definition, :unit))}}
 
-              other, _acc ->
-                {:halt,
-                 {:error,
-                  "invalid definition: expected map with :unit key, got #{inspect(other)}"}}
-            end)
+            other, _acc ->
+              {:halt,
+               {:error, "invalid definition: expected map with :unit key, got #{inspect(other)}"}}
+          end)
 
-          case batch do
-            {:ok, batch_map} -> register_batch(batch_map)
-            {:error, _} = error -> error
-          end
+        case batch do
+          {:ok, batch_map} -> register_batch(batch_map)
+          {:error, _} = error -> error
+        end
 
-        other ->
-          {:error, "expected a list of definitions, got #{inspect(other, limit: 50)}"}
-      end
-    rescue
-      error -> {:error, Exception.message(error)}
+      other ->
+        {:error, "expected a list of definitions, got #{inspect(other, limit: 50)}"}
     end
+  rescue
+    error -> {:error, Exception.message(error)}
   end
 
   @doc """
@@ -271,9 +271,8 @@ defmodule Localize.Unit.CustomRegistry do
          :ok <- validate_required_key(definition, :category, &is_binary/1),
          :ok <- validate_base_unit(definition.base_unit),
          :ok <- validate_category(definition.category),
-         :ok <- validate_conversion_fun(definition, :forward),
-         :ok <- validate_conversion_fun(definition, :inverse) do
-      :ok
+         :ok <- validate_conversion_fun(definition, :forward) do
+      validate_conversion_fun(definition, :inverse)
     end
   end
 
@@ -282,9 +281,8 @@ defmodule Localize.Unit.CustomRegistry do
          :ok <- validate_required_key(definition, :factor, &is_number/1),
          :ok <- validate_required_key(definition, :category, &is_binary/1),
          :ok <- validate_base_unit(definition.base_unit),
-         :ok <- validate_category(definition.category),
-         :ok <- validate_positive_factor(definition.factor) do
-      :ok
+         :ok <- validate_category(definition.category) do
+      validate_positive_factor(definition.factor)
     end
   end
 

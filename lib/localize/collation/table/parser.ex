@@ -59,52 +59,7 @@ defmodule Localize.Collation.Table.Parser do
           last_variable_primary: @default_last_variable_primary
         },
         fn line, acc ->
-          line = String.trim(line)
-
-          cond do
-            line == "" or String.starts_with?(line, "#") ->
-              acc
-
-            String.starts_with?(line, "[UCA version") ->
-              case Regex.run(~r/\[UCA version = (.+)\]/, line) do
-                [_, version] -> %{acc | version: String.trim(version)}
-                _ -> acc
-              end
-
-            String.starts_with?(line, "[first variable") ->
-              case parse_variable_boundary(line) do
-                {:ok, primary} -> %{acc | first_variable_primary: primary}
-                :skip -> acc
-              end
-
-            String.starts_with?(line, "[last variable") ->
-              case parse_variable_boundary(line) do
-                {:ok, primary} -> %{acc | last_variable_primary: primary}
-                :skip -> acc
-              end
-
-            String.starts_with?(line, "[") ->
-              acc
-
-            String.starts_with?(line, "FDD") ->
-              acc
-
-            String.contains?(line, ";") ->
-              case parse_fractional_entry(line) do
-                {:ok, codepoints, elements} when elements != [] ->
-                  key = codepoints_to_key(codepoints)
-                  %{acc | entries: Map.put(acc.entries, key, elements)}
-
-                {:context, context_cp, target_cp, elements} ->
-                  %{acc | contexts: [{context_cp, target_cp, elements} | acc.contexts]}
-
-                _ ->
-                  acc
-              end
-
-            true ->
-              acc
-          end
+          parse_line(String.trim(line), acc)
         end
       )
 
@@ -113,6 +68,56 @@ defmodule Localize.Collation.Table.Parser do
     entries = resolve_context_entries(acc.contexts, entries, variable_range)
 
     %{entries: entries, version: acc.version}
+  end
+
+  # FractionalUCA.txt line dispatch: one branch per directive or entry
+  # line shape in the source file.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
+  defp parse_line(line, acc) do
+    cond do
+      line == "" or String.starts_with?(line, "#") ->
+        acc
+
+      String.starts_with?(line, "[UCA version") ->
+        case Regex.run(~r/\[UCA version = (.+)\]/, line) do
+          [_, version] -> %{acc | version: String.trim(version)}
+          _ -> acc
+        end
+
+      String.starts_with?(line, "[first variable") ->
+        case parse_variable_boundary(line) do
+          {:ok, primary} -> %{acc | first_variable_primary: primary}
+          :skip -> acc
+        end
+
+      String.starts_with?(line, "[last variable") ->
+        case parse_variable_boundary(line) do
+          {:ok, primary} -> %{acc | last_variable_primary: primary}
+          :skip -> acc
+        end
+
+      String.starts_with?(line, "[") ->
+        acc
+
+      String.starts_with?(line, "FDD") ->
+        acc
+
+      String.contains?(line, ";") ->
+        case parse_fractional_entry(line) do
+          {:ok, codepoints, elements} when elements != [] ->
+            key = codepoints_to_key(codepoints)
+            %{acc | entries: Map.put(acc.entries, key, elements)}
+
+          {:context, context_cp, target_cp, elements} ->
+            %{acc | contexts: [{context_cp, target_cp, elements} | acc.contexts]}
+
+          _ ->
+            acc
+        end
+
+      true ->
+        acc
+    end
   end
 
   @doc """
@@ -134,24 +139,26 @@ defmodule Localize.Collation.Table.Parser do
   def parse_fractional_entry(line) do
     case String.split(line, ";", parts: 2) do
       [cp_part, rest] ->
-        cp_str = String.trim(cp_part)
-
-        if String.contains?(cp_str, "|") do
-          parse_context_entry(cp_str, rest)
-        else
-          codepoints = parse_codepoints(cp_str)
-
-          case extract_allkeys_weights(rest) do
-            elements when elements != [] ->
-              {:ok, codepoints, elements}
-
-            _ ->
-              :skip
-          end
-        end
+        parse_entry_body(String.trim(cp_part), rest)
 
       _ ->
         :skip
+    end
+  end
+
+  defp parse_entry_body(cp_str, rest) do
+    if String.contains?(cp_str, "|") do
+      parse_context_entry(cp_str, rest)
+    else
+      codepoints = parse_codepoints(cp_str)
+
+      case extract_allkeys_weights(rest) do
+        elements when elements != [] ->
+          {:ok, codepoints, elements}
+
+        _ ->
+          :skip
+      end
     end
   end
 
@@ -284,35 +291,31 @@ defmodule Localize.Collation.Table.Parser do
     end
   end
 
-  defp apply_variable_flags(entries, {first_variable, last_variable}) do
+  defp apply_variable_flags(entries, variable_range) do
     Map.new(entries, fn {key, elements} ->
-      flagged =
-        Enum.map(elements, fn {p, s, t, _v} ->
-          variable = p >= first_variable and p <= last_variable
-          {p, s, t, variable}
-        end)
-
-      {key, flagged}
+      {key, flag_variable_elements(elements, variable_range)}
     end)
   end
 
-  defp resolve_context_entries(contexts, entries, {first_variable, last_variable}) do
+  defp resolve_context_entries(contexts, entries, variable_range) do
     Enum.reduce(contexts, entries, fn {context_cp, target_cp, modified_elements}, acc ->
       case Map.get(acc, context_cp) do
         nil ->
           acc
 
         context_elements ->
-          flagged =
-            Enum.map(modified_elements, fn {p, s, t, _v} ->
-              variable = p >= first_variable and p <= last_variable
-              {p, s, t, variable}
-            end)
-
+          flagged = flag_variable_elements(modified_elements, variable_range)
           contraction_key = {context_cp, target_cp}
           contraction_elements = context_elements ++ flagged
           Map.put(acc, contraction_key, contraction_elements)
       end
+    end)
+  end
+
+  defp flag_variable_elements(elements, {first_variable, last_variable}) do
+    Enum.map(elements, fn {p, s, t, _v} ->
+      variable = p >= first_variable and p <= last_variable
+      {p, s, t, variable}
     end)
   end
 

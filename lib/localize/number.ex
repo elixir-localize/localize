@@ -285,19 +285,27 @@ defmodule Localize.Number do
          {:ok, number_system} <- System.number_system_from_locale(language_tag),
          {:ok, patterns} <- Format.misc_patterns_for(language_tag, number_system) do
       if approximate or number_start == number_end do
-        with {:ok, formatted} <- to_string(number_start, format_options) do
-          result = Localize.Substitution.substitute([formatted], patterns.approximately)
-          {:ok, IO.iodata_to_binary(result)}
-        end
+        format_approximate_range(number_start, format_options, patterns)
       else
-        with {:ok, formatted_start} <- to_string(number_start, format_options),
-             {:ok, formatted_end} <- to_string(number_end, format_options) do
-          result =
-            Localize.Substitution.substitute([formatted_start, formatted_end], patterns.range)
-
-          {:ok, IO.iodata_to_binary(result)}
-        end
+        format_full_range(number_start, number_end, format_options, patterns)
       end
+    end
+  end
+
+  defp format_approximate_range(number_start, format_options, patterns) do
+    with {:ok, formatted} <- to_string(number_start, format_options) do
+      result = Localize.Substitution.substitute([formatted], patterns.approximately)
+      {:ok, IO.iodata_to_binary(result)}
+    end
+  end
+
+  defp format_full_range(number_start, number_end, format_options, patterns) do
+    with {:ok, formatted_start} <- to_string(number_start, format_options),
+         {:ok, formatted_end} <- to_string(number_end, format_options) do
+      result =
+        Localize.Substitution.substitute([formatted_start, formatted_end], patterns.range)
+
+      {:ok, IO.iodata_to_binary(result)}
     end
   end
 

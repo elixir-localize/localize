@@ -9,8 +9,8 @@ defmodule Localize.DateTime.Timezone do
 
   """
 
-  alias Localize.SupplementalData
   alias Localize.DateTime.Timezone.Builder
+  alias Localize.SupplementalData
 
   @timezones SupplementalData.timezones()
   @timezones_by_territory Builder.timezones_by_territory(@timezones)
@@ -320,17 +320,7 @@ defmodule Localize.DateTime.Timezone do
     with {:ok, tz_data} <- Localize.Locale.get(locale_id, [:dates, :time_zone_names]) do
       # Try metazone lookup first
       metazone_key = Map.get(@zone_to_metazone, time_zone)
-
-      result =
-        if metazone_key do
-          metazone_data = tz_data[:metazone][metazone_key]
-
-          if metazone_data do
-            format_key = if format == :short, do: :short, else: :long
-            type_key = resolve_type(type, datetime)
-            get_in(metazone_data, [format_key, type_key])
-          end
-        end
+      result = metazone_name(metazone_key, tz_data, format, type, datetime)
 
       if result do
         {:ok, result}
@@ -339,6 +329,23 @@ defmodule Localize.DateTime.Timezone do
         gmt_format(datetime, locale_id, format: format)
       end
     end
+  end
+
+  # Look up the non-location name for a metazone. Returns `nil`
+  # when the zone has no metazone mapping or the locale has no
+  # data for it, triggering the GMT format fallback.
+  defp metazone_name(nil, _tz_data, _format, _type, _datetime), do: nil
+
+  defp metazone_name(metazone_key, tz_data, format, type, datetime) do
+    metazone_data_name(tz_data[:metazone][metazone_key], format, type, datetime)
+  end
+
+  defp metazone_data_name(nil, _format, _type, _datetime), do: nil
+
+  defp metazone_data_name(metazone_data, format, type, datetime) do
+    format_key = if format == :short, do: :short, else: :long
+    type_key = resolve_type(type, datetime)
+    get_in(metazone_data, [format_key, type_key])
   end
 
   # # gmt_format/3

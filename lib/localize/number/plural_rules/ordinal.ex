@@ -126,7 +126,8 @@ defmodule Localize.Number.PluralRule.Ordinal do
 
   defp do_pluralize(number, %LanguageTag{} = locale, %{} = substitutions) do
     plural = plural_rule(number, locale)
-    number = if (truncated = trunc(number)) == number, do: truncated, else: number
+    truncated = trunc(number)
+    number = if truncated == number, do: truncated, else: number
     substitutions[number] || substitutions[plural] || substitutions[@default_substitution]
   end
 

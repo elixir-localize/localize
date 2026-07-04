@@ -166,22 +166,26 @@ defmodule Localize.DateTime.Format do
            )}
 
         %{} = variant_map ->
-          case resolve_variant(variant_map, options) do
-            nil ->
-              {:error,
-               Localize.DateTimeUnresolvedFormatError.exception(
-                 format: format_name,
-                 locale: locale_id
-               )}
-
-            pattern ->
-              {:ok, pattern}
-          end
+          variant_map
+          |> resolve_variant(options)
+          |> variant_pattern_result(format_name, locale_id)
 
         pattern when is_binary(pattern) ->
           {:ok, pattern}
       end
     end
+  end
+
+  defp variant_pattern_result(nil, format_name, locale_id) do
+    {:error,
+     Localize.DateTimeUnresolvedFormatError.exception(
+       format: format_name,
+       locale: locale_id
+     )}
+  end
+
+  defp variant_pattern_result(pattern, _format_name, _locale_id) do
+    {:ok, pattern}
   end
 
   @doc """

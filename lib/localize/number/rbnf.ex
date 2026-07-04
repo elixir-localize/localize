@@ -245,10 +245,7 @@ defmodule Localize.Number.Rbnf do
 
     match =
       Enum.find_value(preferences, fn preference ->
-        case preference do
-          name when is_binary(name) -> if name in public_names, do: name
-          %Regex{} = regex -> Enum.find(public_names, &Regex.match?(regex, &1))
-        end
+        preferred_rule_name(preference, public_names)
       end)
 
     if match do
@@ -261,6 +258,14 @@ defmodule Localize.Number.Rbnf do
          available: public_names
        )}
     end
+  end
+
+  defp preferred_rule_name(name, public_names) when is_binary(name) do
+    if name in public_names, do: name
+  end
+
+  defp preferred_rule_name(%Regex{} = regex, public_names) do
+    Enum.find(public_names, &Regex.match?(regex, &1))
   end
 
   defp public_rule_names(all_rule_sets) do

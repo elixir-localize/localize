@@ -271,18 +271,21 @@ defmodule Localize.Data.Supplemental do
     |> get_in(["supplemental", "currencyData", "region"])
     |> Enum.map(fn {territory, currency_list} ->
       currencies =
-        Enum.map(currency_list, fn currency_map ->
-          Enum.map(currency_map, fn {currency_code, attrs} ->
-            parsed = parse_currency_attrs(attrs)
-            {String.to_atom(currency_code), parsed}
-          end)
-        end)
+        currency_list
+        |> Enum.map(&currency_code_entries/1)
         |> List.flatten()
         |> Map.new()
 
       {String.to_atom(territory), currencies}
     end)
     |> Map.new()
+  end
+
+  defp currency_code_entries(currency_map) do
+    Enum.map(currency_map, fn {currency_code, attrs} ->
+      parsed = parse_currency_attrs(attrs)
+      {String.to_atom(currency_code), parsed}
+    end)
   end
 
   # ── Complex generators ────────────────────────────────────────────
@@ -615,15 +618,7 @@ defmodule Localize.Data.Supplemental do
         {:currency, []}
 
       {"currency", currency_list} when is_list(currency_list) ->
-        currencies =
-          Enum.flat_map(currency_list, fn currency_map ->
-            Enum.map(currency_map, fn {currency_code, attrs} ->
-              parsed_attrs = parse_territory_currency_attrs(attrs)
-              {String.to_atom(currency_code), parsed_attrs}
-            end)
-          end)
-
-        {:currency, currencies}
+        {:currency, Enum.flat_map(currency_list, &territory_currency_entries/1)}
 
       {"language_population", nil} ->
         {:language_population, %{}}
@@ -635,6 +630,13 @@ defmodule Localize.Data.Supplemental do
         {key, value}
     end)
     |> Map.new()
+  end
+
+  defp territory_currency_entries(currency_map) do
+    Enum.map(currency_map, fn {currency_code, attrs} ->
+      parsed_attrs = parse_territory_currency_attrs(attrs)
+      {String.to_atom(currency_code), parsed_attrs}
+    end)
   end
 
   defp parse_territory_currency_attrs(attrs) when is_map(attrs) do

@@ -134,6 +134,12 @@ Confirmed good: zero TODO/FIXME/@deprecated in lib; exception convention uniform
 14. Docs depth: doctest wiring, missing @doc/@spec, Options/Examples backfill, README feature list, CHANGELOG normalization, new guides (plurals, lists, locale matching, display names).
 15. Full release review per house checklist; 1.0.0-rc.1; soak; 1.0.0.
 
+### Feature backlog surfaced during cleanup (post-1.0 candidates)
+
+* Multi-`¤` currency patterns (`¤¤` ISO code, `¤¤¤` display name, `¤¤¤¤` narrow symbol) are not yet supported by the number formatter (noted in test/support/number_format_test_data.exs).
+
+* Digital tokens (ISO 24165, e.g. BTC) are not supported; would require integrating a digital-token identifier registry.
+
 ### Scheduled: drop OTP 26 support on December 31st, 2026 (announced)
 
 On or after 2026-12-31: remove `maybe_json_polyfill/0` from mix.exs; remove the three OTP 26 rows from the CI matrix; update the README supported-versions section to OTP 27+ and delete the json_polyfill consumer instructions; remove (or downgrade) the supervisor `ensure_json_module!` check; changelog entry. Until then the `only: [:dev, :test]` json_polyfill conditional stays so OTP 26 CI compiles warning-free. This coincides with the removal window for the deprecated `known_/available_` delegates ("no later than December 2026").

@@ -1219,15 +1219,13 @@ defmodule Localize do
     # Fast path: the atom is already a canonical CLDR calendar identifier.
     # Slow path: the atom is a BCP 47 short form like `:"islamic-umalqura"`
     # — fall through to string normalization without interning anything new.
-    cond do
-      calendar in Localize.Calendar.known_calendars() ->
-        {:ok, calendar}
-
-      true ->
-        case calendar |> Atom.to_string() |> normalize_calendar() do
-          nil -> {:error, Localize.UnknownCalendarError.exception(calendar: calendar)}
-          atom -> {:ok, atom}
-        end
+    if calendar in Localize.Calendar.known_calendars() do
+      {:ok, calendar}
+    else
+      case calendar |> Atom.to_string() |> normalize_calendar() do
+        nil -> {:error, Localize.UnknownCalendarError.exception(calendar: calendar)}
+        atom -> {:ok, atom}
+      end
     end
   end
 

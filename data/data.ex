@@ -360,22 +360,7 @@ defmodule Localize.Data do
       File.mkdir_p!(locale_dest)
 
       # Copy JSON files from each -full dir
-      for dir <- full_dirs do
-        locale_src = Path.join([source_root, dir, "main", locale])
-
-        case File.ls(locale_src) do
-          {:ok, files} ->
-            for file <- files, String.ends_with?(file, ".json") do
-              File.cp!(
-                Path.join(locale_src, file),
-                Path.join(locale_dest, "#{dir}__#{file}")
-              )
-            end
-
-          {:error, _} ->
-            :skip
-        end
-      end
+      copy_locale_json_files(source_root, full_dirs, locale, locale_dest)
 
       # Copy per-locale subdivision XML directly from CLDR_REPO if
       # one exists. Not every locale has subdivision data.
@@ -395,6 +380,26 @@ defmodule Localize.Data do
 
     IO.puts("Copied locale sources for #{total} locales to #{dest_root}")
     :ok
+  end
+
+  defp copy_locale_json_files(source_root, full_dirs, locale, locale_dest) do
+    for dir <- full_dirs do
+      locale_src = Path.join([source_root, dir, "main", locale])
+      copy_json_files(File.ls(locale_src), locale_src, locale_dest, dir)
+    end
+  end
+
+  defp copy_json_files({:ok, files}, locale_src, locale_dest, dir) do
+    for file <- files, String.ends_with?(file, ".json") do
+      File.cp!(
+        Path.join(locale_src, file),
+        Path.join(locale_dest, "#{dir}__#{file}")
+      )
+    end
+  end
+
+  defp copy_json_files({:error, _}, _locale_src, _locale_dest, _dir) do
+    :skip
   end
 
   @doc """

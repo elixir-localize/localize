@@ -262,37 +262,64 @@ defmodule Localize.Locale.Provider do
             domain: [:localize]
           )
 
-          case provider.load(parent_id) do
-            {:ok, locale_data} ->
-              Logger.debug(
-                "Loaded and using locale #{inspect(parent_id)} (parent locale of #{inspect(locale_id)}) since #{inspect(original_locale_id)} is not available.",
-                domain: [:localize]
-              )
-
-              {:ok, locale_data, parent_id}
-
-            {:error, _} ->
-              allow_download =
-                Application.get_env(:localize, :allow_runtime_locale_download, false)
-
-              Logger.debug(
-                "Unable to load locale #{inspect(parent_id)} and :allow_runtime_locale_download is set to #{inspect(allow_download)}.",
-                domain: [:localize]
-              )
-
-              walk_parent_chain(
-                provider,
-                parent_id,
-                original_locale_id,
-                [parent_id | visited]
-              )
-          end
+          handle_parent_load(
+            provider.load(parent_id),
+            provider,
+            parent_id,
+            locale_id,
+            original_locale_id,
+            visited
+          )
       end
     else
       {:error, _} ->
         # Reached root (und) with no success — fall back to :en
         fallback_to_en(provider, original_locale_id)
     end
+  end
+
+  defp handle_parent_load(
+         {:ok, locale_data},
+         _provider,
+         parent_id,
+         locale_id,
+         original_locale_id,
+         _visited
+       ) do
+    require Logger
+
+    Logger.debug(
+      "Loaded and using locale #{inspect(parent_id)} (parent locale of #{inspect(locale_id)}) since #{inspect(original_locale_id)} is not available.",
+      domain: [:localize]
+    )
+
+    {:ok, locale_data, parent_id}
+  end
+
+  defp handle_parent_load(
+         {:error, _},
+         provider,
+         parent_id,
+         _locale_id,
+         original_locale_id,
+         visited
+       ) do
+    require Logger
+
+    allow_download =
+      Application.get_env(:localize, :allow_runtime_locale_download, false)
+
+    Logger.debug(
+      "Unable to load locale #{inspect(parent_id)} and :allow_runtime_locale_download is set to #{inspect(allow_download)}.",
+      domain: [:localize]
+    )
+
+    walk_parent_chain(
+      provider,
+      parent_id,
+      original_locale_id,
+      [parent_id | visited]
+    )
   end
 
   defp fallback_to_en(provider, original_locale_id) do
@@ -403,23 +430,7 @@ defmodule Localize.Locale.Provider do
   def locale_cache_dir do
     case Application.fetch_env(:localize, :locale_cache_dir) do
       {:ok, path} when is_binary(path) ->
-        if absolute_path?(path) do
-          # Form 3: absolute literal. `:otp_app` is ignored.
-          path
-        else
-          # Relative `:locale_cache_dir`. Only valid when paired with
-          # `:otp_app` — that supplies the anchor (form 2). Without an
-          # anchor, refuse it (form 2 prerequisite missing).
-          case configured_otp_app() do
-            {:ok, otp_app} ->
-              Application.app_dir(otp_app, path)
-
-            :error ->
-              raise Localize.LocaleCacheDirError,
-                reason: :relative_path,
-                value: path
-          end
-        end
+        resolve_configured_cache_dir(path)
 
       {:ok, other} ->
         raise Localize.LocaleCacheDirError,
@@ -435,6 +446,27 @@ defmodule Localize.Locale.Provider do
           :error -> default_locale_cache_dir()
         end
     end
+  end
+
+  # Resolve an explicit `:locale_cache_dir` string. An absolute path
+  # is used literally (form 3, `:otp_app` is ignored). A relative
+  # path is only valid when paired with `:otp_app` — that supplies
+  # the anchor (form 2). Without an anchor, refuse it (form 2
+  # prerequisite missing).
+  defp resolve_configured_cache_dir(path) do
+    if absolute_path?(path) do
+      path
+    else
+      resolve_relative_cache_dir(path, configured_otp_app())
+    end
+  end
+
+  defp resolve_relative_cache_dir(path, {:ok, otp_app}), do: Application.app_dir(otp_app, path)
+
+  defp resolve_relative_cache_dir(path, :error) do
+    raise Localize.LocaleCacheDirError,
+      reason: :relative_path,
+      value: path
   end
 
   # Reads `:otp_app` from the application environment. Returns

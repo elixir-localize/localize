@@ -1,8 +1,8 @@
 defmodule Localize.Utils.Math.CoefExponentTest do
   use ExUnit.Case, async: true
 
-  alias Localize.Utils.Math
   alias Localize.Utils.Decimal, as: LDecimal
+  alias Localize.Utils.Math
 
   @test [
     1.23004,
@@ -27,7 +27,7 @@ defmodule Localize.Utils.Math.CoefExponentTest do
     1000,
     1007,
     2345,
-    40000
+    40_000
   ]
 
   @ten Decimal.new(10)

@@ -79,6 +79,10 @@ jobs:
         if: matrix.lint
         run: mix format --check-formatted
 
+      - name: Run credo
+        if: matrix.lint
+        run: mix credo --strict
+
       - name: Compile (warnings as errors)
         run: mix compile --warnings-as-errors
 

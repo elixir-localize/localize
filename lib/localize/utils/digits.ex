@@ -677,23 +677,31 @@ defmodule Localize.Utils.Digits do
     tc1 = if low_ok, do: r <= m_minus, else: r < m_minus
     tc2 = if high_ok, do: r + m_plus >= s, else: r + m_plus > s
 
-    if not tc1 do
-      if not tc2 do
-        [d | generate(r * 10, s, m_plus * 10, m_minus * 10, low_ok, high_ok)]
-      else
-        [d + 1]
-      end
+    generate_digits({tc1, tc2}, d, r, s, m_plus, m_minus, low_ok, high_ok)
+  end
+
+  # Emit the next digit (or terminate) based on the two boundary
+  # conditions computed in `generate/6`: `tc1` (within the low
+  # boundary) and `tc2` (within the high boundary), passed together
+  # as a `{tc1, tc2}` tuple.
+  defp generate_digits({true, true}, d, r, s, _m_plus, _m_minus, _low_ok, _high_ok) do
+    if r * 2 < s do
+      [d]
     else
-      if not tc2 do
-        [d]
-      else
-        if r * 2 < s do
-          [d]
-        else
-          [d + 1]
-        end
-      end
+      [d + 1]
     end
+  end
+
+  defp generate_digits({true, false}, d, _r, _s, _m_plus, _m_minus, _low_ok, _high_ok) do
+    [d]
+  end
+
+  defp generate_digits({false, true}, d, _r, _s, _m_plus, _m_minus, _low_ok, _high_ok) do
+    [d + 1]
+  end
+
+  defp generate_digits({false, false}, d, r, s, m_plus, m_minus, low_ok, high_ok) do
+    [d | generate(r * 10, s, m_plus * 10, m_minus * 10, low_ok, high_ok)]
   end
 
   ############################################################################

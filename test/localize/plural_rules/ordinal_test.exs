@@ -50,7 +50,7 @@ defmodule Localize.Number.PluralRule.OrdinalTest do
   test "available_locale_names returns a non-empty sorted list" do
     locales = Ordinal.available_locale_names()
     assert is_list(locales)
-    assert length(locales) > 0
+    assert locales != []
     assert locales == Enum.sort(locales)
     assert :en in locales
   end

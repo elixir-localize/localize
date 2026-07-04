@@ -16,7 +16,7 @@ defmodule Localize.Unit.Preference do
   """
 
   alias Localize.Unit
-  alias Localize.Unit.{Conversion, Data, Parser, BaseUnit}
+  alias Localize.Unit.{BaseUnit, Conversion, Data, Parser}
 
   @unit_preferences (
                       geq_to_base = fn unit_name, geq_string ->
@@ -332,21 +332,12 @@ defmodule Localize.Unit.Preference do
 
   @dialyzer {:nowarn_function, converted_value_gte_1?: 2}
   defp converted_value_gte_1?(base_value, unit_name) do
-    case Parser.parse(unit_name) do
-      {:ok, parsed} ->
-        case BaseUnit.base_unit(parsed) do
-          {:ok, base} ->
-            case Conversion.convert(base_value, base, unit_name) do
-              {:ok, converted} -> abs(converted) >= 1.0 - 1.0e-8
-              _ -> false
-            end
-
-          _ ->
-            false
-        end
-
-      _ ->
-        false
+    with {:ok, parsed} <- Parser.parse(unit_name),
+         {:ok, base} <- BaseUnit.base_unit(parsed),
+         {:ok, converted} <- Conversion.convert(base_value, base, unit_name) do
+      abs(converted) >= 1.0 - 1.0e-8
+    else
+      _ -> false
     end
   end
 

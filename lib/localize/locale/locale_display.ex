@@ -294,10 +294,7 @@ defmodule Localize.Locale.LocaleDisplay do
     case Map.get(locale, subtag) do
       [_ | _] = values ->
         values
-        |> Enum.map(fn value ->
-          display = get_in(display_names, [subtag, value]) || value
-          if display == "FONIPA", do: "fonipa", else: display
-        end)
+        |> Enum.map(&subtag_value_display(display_names, subtag, &1))
         |> Enum.sort()
 
       nil ->
@@ -307,6 +304,11 @@ defmodule Localize.Locale.LocaleDisplay do
         get_in(display_names, [subtag, value]) || value
     end
     |> get_display_preference(prefer)
+  end
+
+  defp subtag_value_display(display_names, subtag, value) do
+    display = get_in(display_names, [subtag, value]) || value
+    if display == "FONIPA", do: "fonipa", else: display
   end
 
   # ── Extension Display Names ──────────────────────────────────

@@ -109,21 +109,22 @@ defmodule Localize.Language do
          {:ok, language_tag} <- Localize.validate_locale(language),
          {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
       case lookup_language(language_tag, locale_id, style) do
-        {:ok, _} = result ->
-          result
-
-        {:error, _} = error ->
-          if fallback do
-            with {:ok, default_locale_id} <-
-                   Localize.Locale.cldr_locale_id_from(Localize.default_locale()) do
-              lookup_language(language_tag, default_locale_id, style)
-            end
-          else
-            error
-          end
+        {:ok, _} = result -> result
+        {:error, _} = error -> maybe_fallback_lookup(error, fallback, language_tag, style)
       end
     end
   end
+
+  # When `:fallback` is enabled, retry the lookup against the default
+  # locale; otherwise propagate the original error unchanged.
+  defp maybe_fallback_lookup(_error, true, language_tag, style) do
+    with {:ok, default_locale_id} <-
+           Localize.Locale.cldr_locale_id_from(Localize.default_locale()) do
+      lookup_language(language_tag, default_locale_id, style)
+    end
+  end
+
+  defp maybe_fallback_lookup(error, false, _language_tag, _style), do: error
 
   @doc """
   Same as `display_name/2` but raises on error.

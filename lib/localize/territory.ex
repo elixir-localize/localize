@@ -125,24 +125,28 @@ defmodule Localize.Territory do
          {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
       case Localize.Locale.get(locale_id, [:territories]) do
         {:ok, territories} ->
-          case territories do
-            %{^territory_atom => %{^style_atom => name}} ->
-              {:ok, name}
-
-            %{^territory_atom => _} ->
-              {:error,
-               Localize.UnknownStyleError.exception(
-                 style: style,
-                 territory: territory_atom
-               )}
-
-            _ ->
-              {:error, Localize.UnknownTerritoryError.exception(territory: territory_atom)}
-          end
+          territory_name_for_style(territories, territory_atom, style_atom, style)
 
         {:error, _} = error ->
           error
       end
+    end
+  end
+
+  defp territory_name_for_style(territories, territory_atom, style_atom, style) do
+    case territories do
+      %{^territory_atom => %{^style_atom => name}} ->
+        {:ok, name}
+
+      %{^territory_atom => _} ->
+        {:error,
+         Localize.UnknownStyleError.exception(
+           style: style,
+           territory: territory_atom
+         )}
+
+      _ ->
+        {:error, Localize.UnknownTerritoryError.exception(territory: territory_atom)}
     end
   end
 

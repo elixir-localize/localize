@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.45.0] — July 4th, 2026
+
+An internal code-quality release: the codebase now passes `mix credo --strict` with zero findings, enforced in CI. No public API changes.
+
+### Changed
+
+* Credo (strict) added to the CI lint stage with a committed `.credo.exs`. Policy: the `Design.AliasUsage` check is disabled (Localize module names such as `List`, `Date` and `String` shadow the stdlib when aliased; aliasing is applied opportunistically where safe), nesting depth stays at the default maximum of 2, and complexity/apply/arity exceptions are documented inline at each site.
+
+* Deeply nested functions across the library were refactored into multi-clause private helpers with pattern matching (~120 helpers). Behavior is unchanged; the full test suite, dialyzer and doc builds gate the refactor.
+
+* Logger configuration for this project's dev/test environments now renders the `domain: :localize` metadata attached to Localize log messages.
+
+### Fixed
+
+* A duplicated boolean assertion in the message custom-function tests masked half of an intended check; general mechanical cleanups (map_join, empty-enum checks, number underscores, redundant with clauses) applied throughout.
+
 ## [0.44.0] — July 4th, 2026
 
 This release closes the TR35 conformance gaps in the date/time formatting layer and fixes locale-fidelity bugs surfaced by newly-wired conformance data.

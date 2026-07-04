@@ -54,18 +54,22 @@ defmodule Localize.Collation.Tailoring.LocaleDefaults do
   defp options_from_parent(language) do
     case Localize.validate_locale(language) do
       {:ok, tag} ->
-        case Localize.Locale.parent(tag) do
-          {:ok, parent_tag} ->
-            parent_lang = parent_tag.language |> to_string()
+        options_from_parent_tag(tag, language)
 
-            if parent_lang != language and parent_lang != "und" do
-              options_for(parent_lang)
-            else
-              []
-            end
+      {:error, _} ->
+        []
+    end
+  end
 
-          {:error, _} ->
-            []
+  defp options_from_parent_tag(tag, language) do
+    case Localize.Locale.parent(tag) do
+      {:ok, parent_tag} ->
+        parent_language = parent_tag.language |> to_string()
+
+        if parent_language != language and parent_language != "und" do
+          options_for(parent_language)
+        else
+          []
         end
 
       {:error, _} ->

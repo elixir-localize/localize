@@ -172,11 +172,14 @@ defmodule Localize.LanguageTest do
     test "available_languages/1 delegates to languages_for/1" do
       # Called via apply/3 so the deliberate use of the deprecated
       # name does not emit a compile-time deprecation warning.
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
       assert apply(Language, :available_languages, [[locale: :en]]) ==
                Language.languages_for(locale: :en)
     end
 
     test "known_languages/1 delegates to language_names_for/1" do
+      # Deprecated name called via apply/3 to avoid the deprecation warning.
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
       assert apply(Language, :known_languages, [[locale: :en]]) ==
                Language.language_names_for(locale: :en)
     end

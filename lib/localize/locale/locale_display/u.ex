@@ -116,26 +116,7 @@ defmodule Localize.Locale.LocaleDisplay.U do
         if v == field, do: k
       end)
 
-    canonical =
-      if bcp47_key do
-        validity = Localize.SupplementalData.validity(:u)
-        # Try the value as-is first (short BCP47 alias like "islamicc")
-        # Then try the de-hyphenated form
-        dehyphenated = String.replace(value, "-", "")
-
-        case get_in(validity, [bcp47_key, value]) do
-          nil ->
-            case get_in(validity, [bcp47_key, dehyphenated]) do
-              nil -> value
-              c -> unwrap_deprecated(c)
-            end
-
-          c ->
-            unwrap_deprecated(c)
-        end
-      else
-        value
-      end
+    canonical = canonical_validity_value(bcp47_key, value)
 
     # Convert hyphens to underscores for CLDR type key lookup
     canonical = String.replace(canonical, "-", "_")
@@ -144,6 +125,29 @@ defmodule Localize.Locale.LocaleDisplay.U do
 
   defp canonicalize_value(_field, value) when is_atom(value), do: value
   defp canonicalize_value(_field, value), do: value
+
+  # Look up the canonical form of a value in the validity data.
+  # Try the value as-is first (short BCP47 alias like "islamicc"),
+  # then try the de-hyphenated form.
+  defp canonical_validity_value(nil, value), do: value
+
+  defp canonical_validity_value(bcp47_key, value) do
+    validity = Localize.SupplementalData.validity(:u)
+
+    case get_in(validity, [bcp47_key, value]) do
+      nil -> canonical_dehyphenated_value(validity, bcp47_key, value)
+      canonical -> unwrap_deprecated(canonical)
+    end
+  end
+
+  defp canonical_dehyphenated_value(validity, bcp47_key, value) do
+    dehyphenated = String.replace(value, "-", "")
+
+    case get_in(validity, [bcp47_key, dehyphenated]) do
+      nil -> value
+      canonical -> unwrap_deprecated(canonical)
+    end
+  end
 
   defp safe_to_atom(string) when is_binary(string) do
     Localize.Utils.Helpers.existing_atom(string) || string
@@ -311,29 +315,29 @@ defmodule Localize.Locale.LocaleDisplay.U do
   defp get_timezone_display_name(iana_id, locale_id) when is_binary(iana_id) do
     alias Localize.DateTime.Timezone
 
-    with {:ok, tz_data} <- Localize.Locale.get(locale_id, [:dates, :time_zone_names]) do
-      region_format = get_in(tz_data, [:region_format, :generic])
-      territory = Map.get(Timezone.territories_by_timezone(), iana_id)
+    case Localize.Locale.get(locale_id, [:dates, :time_zone_names]) do
+      {:ok, tz_data} ->
+        region_format = get_in(tz_data, [:region_format, :generic])
+        territory = Map.get(Timezone.territories_by_timezone(), iana_id)
 
-      location =
-        cond do
-          # If the territory has a single timezone, use the country name
-          territory && Timezone.timezone_count_for_territory(territory) == {:ok, 1} ->
+        location =
+          if territory && Timezone.timezone_count_for_territory(territory) == {:ok, 1} do
+            # If the territory has a single timezone, use the country name
             get_territory_name(territory, locale_id)
-
-          # Otherwise use the exemplar city
-          true ->
+          else
+            # Otherwise use the exemplar city
             find_exemplar_city(iana_id, tz_data) || derive_city_from_id(iana_id)
+          end
+
+        if location && region_format do
+          Localize.Substitution.substitute(location, region_format)
+          |> :erlang.iolist_to_binary()
+        else
+          nil
         end
 
-      if location && region_format do
-        Localize.Substitution.substitute(location, region_format)
-        |> :erlang.iolist_to_binary()
-      else
+      _ ->
         nil
-      end
-    else
-      _ -> nil
     end
   end
 
@@ -364,15 +368,19 @@ defmodule Localize.Locale.LocaleDisplay.U do
           |> String.replace(" ", "_")
           |> Localize.Utils.Helpers.existing_atom()
 
-        if region_key && city_key do
-          case get_in(zone, [region_key, city_key]) do
-            %{city: city_name} -> city_name
-            _ -> nil
-          end
-        end
+        exemplar_city_name(zone, region_key, city_key)
 
       _ ->
         nil
+    end
+  end
+
+  defp exemplar_city_name(zone, region_key, city_key) do
+    if region_key && city_key do
+      case get_in(zone, [region_key, city_key]) do
+        %{city: city_name} -> city_name
+        _ -> nil
+      end
     end
   end
 

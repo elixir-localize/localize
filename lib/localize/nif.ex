@@ -216,6 +216,10 @@ defmodule Localize.Nif do
 
   """
   @dialyzer {:no_return, nif_collation_cmp: 10}
+  # The arity mirrors the C NIF signature one-to-one; collapsing the
+  # collation options into a map would add per-call marshalling on a
+  # hot path.
+  # credo:disable-for-next-line Credo.Check.Refactor.FunctionArity
   def nif_collation_cmp(
         _string_a,
         _string_b,

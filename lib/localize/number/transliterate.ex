@@ -36,9 +36,8 @@ defmodule Localize.Number.Transliterate do
   def transliterate_digits(string, transliteration_map) do
     string
     |> String.graphemes()
-    |> Enum.map(fn grapheme ->
+    |> Enum.map_join(fn grapheme ->
       Map.get(transliteration_map, grapheme, grapheme)
     end)
-    |> Enum.join()
   end
 end

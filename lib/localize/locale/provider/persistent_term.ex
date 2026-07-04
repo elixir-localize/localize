@@ -12,7 +12,7 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
   alias Localize.Locale.Provider.Cache
 
-  @env apply(Mix, :env, [])
+  @env Mix.env()
 
   @doc """
   Loads locale data for the given locale.
@@ -62,7 +62,7 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   if @env in [:dev, :test] do
     defp load_miss(_locale_id, locale) do
       locale_string = to_string(locale)
-      locale_data = apply(Localize.Data.Locale, :generate_and_transform, [locale_string])
+      locale_data = Localize.Data.Locale.generate_and_transform(locale_string)
       {:ok, locale_data}
     end
   else
@@ -167,13 +167,15 @@ defmodule Localize.Locale.Provider.PersistentTerm do
           {:error, Localize.ItemNotFoundError.exception(locale: locale_id, keys: keys)}
 
         locale_data ->
-          case get_in(locale_data, keys) do
-            nil -> {:error, Localize.ItemNotFoundError.exception(locale: locale_id, keys: keys)}
-            item -> {:ok, item}
-          end
+          get_item(get_in(locale_data, keys), locale_id, keys)
       end
     end
   end
+
+  defp get_item(nil, locale_id, keys),
+    do: {:error, Localize.ItemNotFoundError.exception(locale: locale_id, keys: keys)}
+
+  defp get_item(item, _locale_id, _keys), do: {:ok, item}
 
   # ── Helpers ──────────────────────────────────────────────────
 

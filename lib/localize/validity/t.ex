@@ -1,8 +1,8 @@
 defmodule Localize.Validity.T do
   @moduledoc false
 
-  alias Localize.Validity.U
   alias Localize.Validity.T.Fields
+  alias Localize.Validity.U
 
   @field_mapping Fields.field_mapping()
   @inverse_field_mapping Fields.inverse_field_mapping()
@@ -36,9 +36,10 @@ defmodule Localize.Validity.T do
   end
 
   def decode(key, value) do
-    with {:ok, value} <- valid(key, value) do
-      {:ok, {map(key), atomize(value)}}
-    else
+    case valid(key, value) do
+      {:ok, value} ->
+        {:ok, {map(key), atomize(value)}}
+
       {:error, _value} ->
         {:error, U.invalid_value_error(key, value)}
     end
@@ -75,8 +76,7 @@ defmodule Localize.Validity.T do
 
   defp encode_key(key, values) when is_list(values) do
     values
-    |> Enum.map(&encode_key(key, &1))
-    |> Enum.join("-")
+    |> Enum.map_join("-", &encode_key(key, &1))
   end
 
   defp encode_key(_key, {year}) do
@@ -165,15 +165,19 @@ defmodule Localize.Validity.T do
       # if we push a date tuple on a prior round then the
       # date tuple isn't in last place which it is required to
       # be so we return an error
-      if length(acc) > 0 && is_tuple(hd(acc)) do
+      if acc != [] && is_tuple(hd(acc)) do
         {:halt, {:error, invalid_date_order(key, hd(acc))}}
       else
-        case valid(key, value) do
-          {:ok, value} -> {:cont, {:ok, [value | acc]}}
-          {:error, _value} -> {:halt, {:error, U.invalid_value_error(key, value)}}
-        end
+        accumulate_valid_value(key, value, acc)
       end
     end)
+  end
+
+  defp accumulate_valid_value(key, value, acc) do
+    case valid(key, value) do
+      {:ok, valid_value} -> {:cont, {:ok, [valid_value | acc]}}
+      {:error, _value} -> {:halt, {:error, U.invalid_value_error(key, value)}}
+    end
   end
 
   def wrap(term, atom) do

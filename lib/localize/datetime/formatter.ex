@@ -280,14 +280,13 @@ defmodule Localize.DateTime.Formatter do
     if length(digit_list) == 10 do
       string
       |> String.graphemes()
-      |> Enum.map(fn
+      |> Enum.map_join(fn
         c when c in ~w(0 1 2 3 4 5 6 7 8 9) ->
           Enum.at(digit_list, String.to_integer(c))
 
         c ->
           c
       end)
-      |> Enum.join()
     else
       nil
     end
@@ -680,14 +679,16 @@ defmodule Localize.DateTime.Formatter do
   defp day_period_name(period, count, locale_id) do
     width = format_for_count(count)
 
-    with {:ok, day_periods} <- Localize.Calendar.day_periods(locale_id) do
-      names = Map.get(day_periods, :format, %{})
+    case Localize.Calendar.day_periods(locale_id) do
+      {:ok, day_periods} ->
+        names = Map.get(day_periods, :format, %{})
 
-      Enum.find_value([width, :abbreviated, :wide], fn w ->
-        names |> Map.get(w, %{}) |> Map.get(period)
-      end)
-    else
-      _ -> nil
+        Enum.find_value([width, :abbreviated, :wide], fn w ->
+          names |> Map.get(w, %{}) |> Map.get(period)
+        end)
+
+      _ ->
+        nil
     end
   end
 

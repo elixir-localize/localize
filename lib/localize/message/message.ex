@@ -117,27 +117,30 @@ defmodule Localize.Message do
 
         :ok ->
           json_binary = IO.iodata_to_binary(:json.encode(bindings_map))
-
-          case Localize.Nif.mf2_format(message, locale_string, json_binary) do
-            {:ok, ""} ->
-              # ICU MF2 (tech preview) may return empty strings for
-              # messages with declarations. Fall back to the Elixir
-              # interpreter for a correct result.
-              format_elixir(message, bindings, options)
-
-            {:ok, formatted} ->
-              {:ok, formatted}
-
-            {:error, detail} ->
-              {:error,
-               Localize.ParseError.exception(
-                 input: message,
-                 reason: :invalid_message_format,
-                 detail: detail
-               )}
-          end
+          nif_result = Localize.Nif.mf2_format(message, locale_string, json_binary)
+          handle_nif_format(nif_result, message, bindings, options)
       end
     end
+  end
+
+  defp handle_nif_format({:ok, ""}, message, bindings, options) do
+    # ICU MF2 (tech preview) may return empty strings for
+    # messages with declarations. Fall back to the Elixir
+    # interpreter for a correct result.
+    format_elixir(message, bindings, options)
+  end
+
+  defp handle_nif_format({:ok, formatted}, _message, _bindings, _options) do
+    {:ok, formatted}
+  end
+
+  defp handle_nif_format({:error, detail}, message, _bindings, _options) do
+    {:error,
+     Localize.ParseError.exception(
+       input: message,
+       reason: :invalid_message_format,
+       detail: detail
+     )}
   end
 
   @dialyzer {:nowarn_function, check_unbound_variables: 2}

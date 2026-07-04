@@ -35,18 +35,20 @@ defmodule Localize.Validity.U do
 
   @dont_atomize ["tz", "rg", "sd", "kr"]
   def decode(key, value) when key in @dont_atomize do
-    with {:ok, value} <- valid(key, value) do
-      {:ok, {map(key), value}}
-    else
+    case valid(key, value) do
+      {:ok, value} ->
+        {:ok, {map(key), value}}
+
       {:error, _value} ->
         {:error, invalid_value_error(key, value)}
     end
   end
 
   def decode(key, value) do
-    with {:ok, value} <- valid(key, value) do
-      {:ok, {map(key), atomize(value)}}
-    else
+    case valid(key, value) do
+      {:ok, value} ->
+        {:ok, {map(key), atomize(value)}}
+
       {:error, _value} ->
         {:error, invalid_value_error(key, value)}
     end
@@ -145,8 +147,7 @@ defmodule Localize.Validity.U do
   defp encode_key("kr", values) when is_list(values) do
     values
     |> Enum.map(&to_string/1)
-    |> Enum.map(&String.downcase/1)
-    |> Enum.join("-")
+    |> Enum.map_join("-", &String.downcase/1)
   end
 
   defp encode_key("dx", value) when is_atom(value) do
@@ -158,8 +159,7 @@ defmodule Localize.Validity.U do
   defp encode_key("dx", values) when is_list(values) do
     values
     |> Enum.map(&to_string/1)
-    |> Enum.map(&String.downcase/1)
-    |> Enum.join("-")
+    |> Enum.map_join("-", &String.downcase/1)
   end
 
   # valid function check that the value provided
@@ -255,15 +255,13 @@ defmodule Localize.Validity.U do
 
   @kr_valid_values @validity_data["kr"] |> Map.delete("REORDER_CODE")
   defp valid("kr", value) when is_binary(value) do
-    cond do
-      Map.has_key?(@kr_valid_values, value) ->
-        {:ok, [atomize(value)]}
-
-      true ->
-        case Localize.Validity.Script.validate(value) do
-          {:ok, script, _status} -> {:ok, [script]}
-          other -> other
-        end
+    if Map.has_key?(@kr_valid_values, value) do
+      {:ok, [atomize(value)]}
+    else
+      case Localize.Validity.Script.validate(value) do
+        {:ok, script, _status} -> {:ok, [script]}
+        other -> other
+      end
     end
   end
 

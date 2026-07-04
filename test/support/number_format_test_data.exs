@@ -46,7 +46,7 @@ defmodule Localize.Test.Number.FormatData do
 
       # Minimum grouping digits
       {1000, "1000", [format: "#,##0.##", locale: "pl"]},
-      {10000, "10#{@nbsp}000", [format: "#,##0.##", locale: "pl"]},
+      {10_000, "10#{@nbsp}000", [format: "#,##0.##", locale: "pl"]},
 
       # Secondary grouping
       {1_234_567, "12,34,567", [format: "#,##,###"]},
@@ -63,7 +63,7 @@ defmodule Localize.Test.Number.FormatData do
       {123.4, "123.40 A$", [format: "#,##0.00 ¤", currency: :AUD]},
       {1234, "A$1,234.00", [currency: :AUD]},
 
-      # TODO: Multi-¤ patterns (¤¤ = ISO, ¤¤¤ = display name, ¤¤¤¤ = narrow)
+      # Multi-¤ patterns (¤¤ = ISO, ¤¤¤ = display name, ¤¤¤¤ = narrow)
       # not yet supported
       # {123.4, "123.40 AUD", [format: "#,##0.00 ¤¤", currency: :AUD]},
       # {123.4, "123.40 Australian dollars", [format: "#,##0.00 ¤¤¤", currency: :AUD]},
@@ -103,7 +103,7 @@ defmodule Localize.Test.Number.FormatData do
       {-1234, "(1234.00)", [format: "#.00;(#.00)"]},
 
       # Significant digits format
-      {12345, "12300", [format: "@@#"]},
+      {12_345, "12300", [format: "@@#"]},
       {0.12345, "0.123", [format: "@@#"]},
       {3.14159, "3.142", [format: "@@##"]},
       {1.23004, "1.23", [format: "@@##"]},
@@ -122,7 +122,7 @@ defmodule Localize.Test.Number.FormatData do
       {123.4, "1.234E2", [format: "#E0"]},
       {1234, "1.234E3", [format: "#E0"]},
       {1234, "1.234E3", [format: :scientific]},
-      {12345, "1,2345E4", [format: "0.0000E0", locale: "fr"]},
+      {12_345, "1,2345E4", [format: "0.0000E0", locale: "fr"]},
 
       # Scientific with exponent sign
       {1234, "1.234E+3", [format: "#E+0"]},
@@ -139,7 +139,7 @@ defmodule Localize.Test.Number.FormatData do
       # is selected from the mantissa as displayed.
       {123, "123", [format: :decimal_short]},
       {1234, "1.2K", [format: :decimal_short]},
-      {12345, "12K", [format: :decimal_short]},
+      {12_345, "12K", [format: :decimal_short]},
       {1234.5, "1.2K", [format: :decimal_short]},
       {1234.5, "1.234", [format: :decimal_short, locale: "de"]},
       {123_456, "123.456", [format: :decimal_short, locale: "de"]},
@@ -152,7 +152,7 @@ defmodule Localize.Test.Number.FormatData do
       # Short/long currency formats
       {1234, "$1.2K", [format: :currency_short, currency: :USD]},
       {1234, "ZAR#{@nbsp}1.2K", [format: :currency_short, currency: :ZAR]},
-      {12345, "12,345 US dollars", [format: :currency_long, currency: :USD]},
+      {12_345, "12,345 US dollars", [format: :currency_long, currency: :USD]},
       {123, "A$123", [format: :currency_short, currency: :AUD]},
       {12, "12 Thai baht", [format: :currency_long, currency: :THB]},
       {12, "12 bahts thaïlandais", [format: :currency_long, currency: :THB, locale: "fr"]},
@@ -194,13 +194,13 @@ defmodule Localize.Test.Number.FormatData do
       {-1234, "-1,234", [format: "#,##0"]},
 
       # Various locales
-      {12345, "12#{@fr_group}345", [locale: "fr"]},
-      {12345, "12.345", [locale: "de"]}
+      {12_345, "12#{@fr_group}345", [locale: "fr"]},
+      {12_345, "12.345", [locale: "de"]}
     ]
     |> merge_crypto_tests(System.otp_release())
   end
 
-  # TODO: BTC (Bitcoin) and other digital tokens are not yet supported.
+  # BTC (Bitcoin) and other digital tokens are not yet supported.
   # The `digital_token` library (which maps ISO 24165 digital token
   # identifiers to currency data) is not currently integrated.
   # These tests should be re-enabled when digital token support is added.

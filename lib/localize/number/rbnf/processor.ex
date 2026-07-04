@@ -36,52 +36,56 @@ defmodule Localize.Number.Rbnf.Processor do
         {:error, "No matching rule for #{inspect(number)} in #{rule_set_name}"}
 
       rule ->
-        rule_struct =
-          rule
-          |> to_rule_struct()
-          |> with_preceding_rule(rule, rules)
+        process_matched_rule(number, rule, rule_set_name, rules, all_rule_sets, locale)
+    end
+  end
 
-        # Synthesize a leading "-" when a negative number falls
-        # through to a *special-base* rule (`0.x`, `x.x`, `x,x`,
-        # `Inf`, `NaN`) that isn't itself `-x`. Without this,
-        # locales whose rule set lacks a `-x` rule (e.g. ko
-        # `spellout-numbering`) silently drop the sign because the
-        # body's `<<` and `>>>` operate on the absolute-valued
-        # digits emitted by `Digits.to_digits/1`.
-        #
-        # We must NOT synthesize a minus when the matched rule has
-        # an integer base value: those rules typically delegate via
-        # `=%cardinal=` (e.g. ja `spellout-numbering` is one rule
-        # `=%spellout-cardinal=`), and the cardinal rule set has
-        # its own `-x` handler that produces the locale-correct
-        # word ("マイナス"/"moins"/"minus"/etc.). Stripping the
-        # sign here would hide that handler.
-        need_minus =
-          number < 0 and special_base_other_than_minus_x?(rule_struct.base_value)
+  defp process_matched_rule(number, rule, rule_set_name, rules, all_rule_sets, locale) do
+    rule_struct =
+      rule
+      |> to_rule_struct()
+      |> with_preceding_rule(rule, rules)
 
-        effective_number = if need_minus, do: abs(number), else: number
+    # Synthesize a leading "-" when a negative number falls
+    # through to a *special-base* rule (`0.x`, `x.x`, `x,x`,
+    # `Inf`, `NaN`) that isn't itself `-x`. Without this,
+    # locales whose rule set lacks a `-x` rule (e.g. ko
+    # `spellout-numbering`) silently drop the sign because the
+    # body's `<<` and `>>>` operate on the absolute-valued
+    # digits emitted by `Digits.to_digits/1`.
+    #
+    # We must NOT synthesize a minus when the matched rule has
+    # an integer base value: those rules typically delegate via
+    # `=%cardinal=` (e.g. ja `spellout-numbering` is one rule
+    # `=%spellout-cardinal=`), and the cardinal rule set has
+    # its own `-x` handler that produces the locale-correct
+    # word ("マイナス"/"moins"/"minus"/etc.). Stripping the
+    # sign here would hide that handler.
+    need_minus =
+      number < 0 and special_base_other_than_minus_x?(rule_struct.base_value)
 
-        case Rule.parse(rule_struct.definition) do
-          {:ok, parsed} ->
-            result =
-              do_rule(
-                effective_number,
-                rule_set_name,
-                rule_struct,
-                parsed,
-                all_rule_sets,
-                locale
-              )
+    effective_number = if need_minus, do: abs(number), else: number
 
-            case result do
-              {:error, _} = error -> error
-              string when is_binary(string) and need_minus -> {:ok, "-" <> string}
-              string -> {:ok, string}
-            end
+    case Rule.parse(rule_struct.definition) do
+      {:ok, parsed} ->
+        result =
+          do_rule(
+            effective_number,
+            rule_set_name,
+            rule_struct,
+            parsed,
+            all_rule_sets,
+            locale
+          )
 
-          {:error, reason} ->
-            {:error, "Failed to parse rule: #{inspect(reason)}"}
+        case result do
+          {:error, _} = error -> error
+          string when is_binary(string) and need_minus -> {:ok, "-" <> string}
+          string -> {:ok, string}
         end
+
+      {:error, reason} ->
+        {:error, "Failed to parse rule: #{inspect(reason)}"}
     end
   end
 
@@ -189,17 +193,15 @@ defmodule Localize.Number.Rbnf.Processor do
       errors =
         results
         |> Enum.filter(&match?({:error, _}, &1))
-        |> Enum.map(fn {:error, msg} -> msg end)
-        |> Enum.join(", ")
+        |> Enum.map_join(", ", fn {:error, msg} -> msg end)
 
       {:error, errors}
     else
       results
-      |> Enum.map(fn
+      |> Enum.map_join(fn
         s when is_binary(s) -> s
         other -> to_string(other)
       end)
-      |> Enum.join()
     end
   end
 
@@ -500,7 +502,7 @@ defmodule Localize.Number.Rbnf.Processor do
   defp format_fraction(number, rule_set, all_sets, separator, locale) do
     number
     |> fractional_digit_list()
-    |> Enum.map(fn n ->
+    |> Enum.map_join(separator, fn n ->
       # Try spellout_numbering first, fallback to the current rule set
       numbering_set = "spellout_numbering"
 
@@ -509,7 +511,6 @@ defmodule Localize.Number.Rbnf.Processor do
         result -> result
       end
     end)
-    |> Enum.join(separator)
   end
 
   # TR35 fraction-with-rule numerator/denominator algorithm.
@@ -585,19 +586,37 @@ defmodule Localize.Number.Rbnf.Processor do
         Integer.to_string(numerator)
 
       rule ->
-        rule_struct = to_rule_struct(rule)
-        wrapped = %{rule_struct | fraction_numerator: numerator}
+        apply_matched_fraction_rule(
+          rule,
+          numerator,
+          denominator,
+          rule_set_name,
+          all_sets,
+          locale
+        )
+    end
+  end
 
-        case Rule.parse(rule_struct.definition) do
-          {:ok, parsed} ->
-            case do_rule(denominator, rule_set_name, wrapped, parsed, all_sets, locale) do
-              {:error, _} -> Integer.to_string(numerator)
-              string when is_binary(string) -> string
-            end
+  defp apply_matched_fraction_rule(
+         rule,
+         numerator,
+         denominator,
+         rule_set_name,
+         all_sets,
+         locale
+       ) do
+    rule_struct = to_rule_struct(rule)
+    wrapped = %{rule_struct | fraction_numerator: numerator}
 
-          {:error, _} ->
-            Integer.to_string(numerator)
+    case Rule.parse(rule_struct.definition) do
+      {:ok, parsed} ->
+        case do_rule(denominator, rule_set_name, wrapped, parsed, all_sets, locale) do
+          {:error, _} -> Integer.to_string(numerator)
+          string when is_binary(string) -> string
         end
+
+      {:error, _} ->
+        Integer.to_string(numerator)
     end
   end
 

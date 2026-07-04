@@ -2,8 +2,8 @@ defmodule Localize.Message.HighlighterTest do
   use ExUnit.Case, async: true
 
   alias Localize.Message
-  alias Localize.Message.Highlighter
   alias Localize.Message.Formatter.Plain
+  alias Localize.Message.Highlighter
 
   describe "token classification" do
     test "plain text produces a single :text token" do
@@ -68,9 +68,9 @@ defmodule Localize.Message.HighlighterTest do
 
       string_tokens = Enum.filter(tokens, &match?({:string, _}, &1))
       # Both `|` delimiters AND the content show as :string.
-      assert length(string_tokens) > 0
+      assert string_tokens != []
       # Concatenated string tokens surround the content.
-      concat = string_tokens |> Enum.map(&elem(&1, 1)) |> Enum.join()
+      concat = Enum.map_join(string_tokens, &elem(&1, 1))
       assert concat =~ "hello world"
       assert String.starts_with?(concat, "|")
       assert String.ends_with?(concat, "|")

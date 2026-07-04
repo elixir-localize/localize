@@ -194,6 +194,9 @@ defmodule Localize.DateTime.Format.Match do
 
   # ── Distance calculation ────────────────────────────────────
 
+  # UTS #35 skeleton distance: guard clauses per symbol-class and
+  # numeric/alpha width-class combination.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp distance_from({token_id, tokens}, skeleton) do
     distance =
       Enum.zip_reduce(tokens, skeleton, 0, fn
@@ -282,7 +285,7 @@ defmodule Localize.DateTime.Format.Match do
         {date_fields, time_fields}
       end)
 
-    if length(date_fields) > 0 and length(time_fields) > 0 do
+    if date_fields != [] and time_fields != [] do
       {date_fields |> Enum.reverse() |> List.to_string(),
        time_fields |> Enum.reverse() |> List.to_string()}
     else
@@ -448,6 +451,9 @@ defmodule Localize.DateTime.Format.Match do
   end
 
   @doc false
+  # Locale -> territory -> root (:"001") fallback chain over the CLDR
+  # time-preference data, with atom/binary input normalisation.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def time_preferences_for(locale_id) do
     # `@time_preferences` keys are pre-atomised at compile time (CLDR
     # locale ids and territory codes), so `existing_atom/1` resolves

@@ -11,7 +11,7 @@ defmodule Localize.DateTime.Relative do
   @second 1
   @minute 60
   @hour 3600
-  @day 86400
+  @day 86_400
   @week 604_800
   @month 2_629_743.83
   @year 31_556_926
@@ -130,17 +130,24 @@ defmodule Localize.DateTime.Relative do
 
         # Special ordinal forms: "yesterday", "tomorrow", "today", etc.
         relative in -2..2 and is_map(unit_data[:relative_ordinal]) ->
-          case Map.get(unit_data[:relative_ordinal], relative) do
-            nil ->
-              format_with_pattern(relative, unit_data, locale_id)
-
-            result ->
-              {:ok, result}
-          end
+          format_ordinal_or_pattern(relative, unit_data, locale_id)
 
         true ->
           format_with_pattern(relative, unit_data, locale_id)
       end
+    end
+  end
+
+  # Use the special ordinal form ("yesterday", "tomorrow", ...)
+  # when one exists for the value, otherwise fall back to the
+  # plural-rule pattern.
+  defp format_ordinal_or_pattern(relative, unit_data, locale_id) do
+    case Map.get(unit_data[:relative_ordinal], relative) do
+      nil ->
+        format_with_pattern(relative, unit_data, locale_id)
+
+      result ->
+        {:ok, result}
     end
   end
 

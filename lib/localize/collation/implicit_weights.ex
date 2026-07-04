@@ -75,6 +75,8 @@ defmodule Localize.Collation.ImplicitWeights do
 
   """
   @spec unified_ideograph?(non_neg_integer()) :: boolean()
+  # One range test per CJK block assigned implicit weights by UTS #10.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def unified_ideograph?(cp) do
     (cp >= @cjk_unified_start and cp <= @cjk_unified_end) or
       (cp >= @cjk_ext_a_start and cp <= @cjk_ext_a_end) or

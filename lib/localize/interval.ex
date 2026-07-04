@@ -596,11 +596,7 @@ defmodule Localize.Interval do
          {:ok, interval_formats} <- Localize.DateTime.Format.interval_formats(locale_id) do
       case Map.get(date_formats, format) do
         skeleton when is_atom(skeleton) ->
-          if Map.has_key?(interval_formats, skeleton) do
-            {:ok, skeleton}
-          else
-            {:ok, {:fallback_style, format}}
-          end
+          skeleton_or_fallback_style(skeleton, interval_formats, format)
 
         _ ->
           {:error,
@@ -625,6 +621,16 @@ defmodule Localize.Interval do
 
       format_key ->
         {:ok, format_key}
+    end
+  end
+
+  # Use the locale's skeleton when CLDR ships an interval format
+  # for it, otherwise signal the endpoint-formatting fallback.
+  defp skeleton_or_fallback_style(skeleton, interval_formats, format) do
+    if Map.has_key?(interval_formats, skeleton) do
+      {:ok, skeleton}
+    else
+      {:ok, {:fallback_style, format}}
     end
   end
 

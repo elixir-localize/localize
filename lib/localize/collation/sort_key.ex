@@ -144,12 +144,15 @@ defmodule Localize.Collation.SortKey do
     elements
     |> Enum.reduce(<<>>, fn {elem, _q}, acc ->
       if Element.primary(elem) > 0 do
-        case_bit = if (Element.tertiary(elem) &&& 0x08) != 0, do: 1, else: 0
-        acc <> <<case_bit::16>>
+        acc <> <<case_bit(elem)::16>>
       else
         acc
       end
     end)
+  end
+
+  defp case_bit(elem) do
+    if (Element.tertiary(elem) &&& 0x08) != 0, do: 1, else: 0
   end
 
   defp build_quaternary(elements) do

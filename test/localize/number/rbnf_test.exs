@@ -42,7 +42,7 @@ defmodule Localize.Number.RbnfTest do
       assert {:ok, "one thousand"} = Rbnf.to_string(1000, :spellout_cardinal, locale: :en)
 
       assert {:ok, "twelve thousand three hundred forty-five"} =
-               Rbnf.to_string(12345, :spellout_cardinal, locale: :en)
+               Rbnf.to_string(12_345, :spellout_cardinal, locale: :en)
     end
 
     test "millions" do

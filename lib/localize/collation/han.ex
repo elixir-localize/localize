@@ -162,6 +162,8 @@ defmodule Localize.Collation.Han do
 
   """
   @spec block_index(non_neg_integer()) :: non_neg_integer()
+  # UTS #10 Han implicit weights: one cond branch per CJK Unicode block.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def block_index(cp) do
     cond do
       cp >= 0x4E00 and cp <= 0x9FFF -> @block_cjk_unified

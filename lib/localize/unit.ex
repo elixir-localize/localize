@@ -280,9 +280,8 @@ defmodule Localize.Unit do
     {source_value, effective_from} = effective_source(value, from_name, source.parsed)
 
     with {:ok, converted} <-
-           Localize.Unit.Conversion.convert(source_value, effective_from, target),
-         {:ok, target_unit} <- new(converted, target) do
-      {:ok, target_unit}
+           Localize.Unit.Conversion.convert(source_value, effective_from, target) do
+      new(converted, target)
     end
   end
 
@@ -493,9 +492,8 @@ defmodule Localize.Unit do
 
     with {:ok, base_unit} <- Localize.Unit.BaseUnit.base_unit(unit_name),
          {:ok, quantity} <- lookup_quantity(base_unit),
-         {:ok, category} <- lookup_category(quantity),
-         {:ok, target} <- find_preference(category, region, usage) do
-      {:ok, target}
+         {:ok, category} <- lookup_category(quantity) do
+      find_preference(category, region, usage)
     end
   end
 
@@ -555,20 +553,22 @@ defmodule Localize.Unit do
          )}
 
       %{preferences: preferences} ->
-        case Enum.find(preferences, fn pref ->
-               region in String.split(pref.regions)
-             end) do
-          nil ->
-            {:error,
-             Localize.UnitPreferenceError.exception(
-               reason: :no_preference_for_region,
-               category: category,
-               region: region
-             )}
+        find_preference_for_region(preferences, category, region)
+    end
+  end
 
-          %{unit: unit} ->
-            {:ok, unit}
-        end
+  defp find_preference_for_region(preferences, category, region) do
+    case Enum.find(preferences, fn pref -> region in String.split(pref.regions) end) do
+      nil ->
+        {:error,
+         Localize.UnitPreferenceError.exception(
+           reason: :no_preference_for_region,
+           category: category,
+           region: region
+         )}
+
+      %{unit: unit} ->
+        {:ok, unit}
     end
   end
 
@@ -716,21 +716,23 @@ defmodule Localize.Unit do
 
   defp validate_currency_codes_in_list(units) do
     Enum.reduce_while(units, :ok, fn
-      {:single_unit, kw}, :ok ->
-        case Keyword.fetch!(kw, :base) do
-          "curr-" <> code ->
-            case Localize.Currency.validate_currency(code) do
-              {:ok, _} -> {:cont, :ok}
-              {:error, _} = error -> {:halt, error}
-            end
-
-          _ ->
-            {:cont, :ok}
-        end
+      {:single_unit, keyword}, :ok ->
+        validate_single_unit_currency(Keyword.fetch!(keyword, :base))
 
       _, :ok ->
         {:cont, :ok}
     end)
+  end
+
+  defp validate_single_unit_currency("curr-" <> code) do
+    case Localize.Currency.validate_currency(code) do
+      {:ok, _} -> {:cont, :ok}
+      {:error, _} = error -> {:halt, error}
+    end
+  end
+
+  defp validate_single_unit_currency(_base) do
+    {:cont, :ok}
   end
 
   defp known_base_units do
@@ -1475,24 +1477,25 @@ defmodule Localize.Unit do
     btq = Localize.Unit.Data.base_unit_to_quantity()
 
     case Map.get(btq, name) do
-      nil ->
-        with {:ok, parsed} <- Localize.Unit.Parser.parse(name),
-             {:ok, base} <- Localize.Unit.BaseUnit.base_unit(parsed) do
-          case Map.get(btq, base) do
-            nil ->
-              {:error,
-               Localize.InvalidValueError.exception(
-                 value: name,
-                 expected: "a unit with a known category"
-               )}
+      nil -> derived_unit_category(name, btq)
+      category -> {:ok, category}
+    end
+  end
 
-            category ->
-              {:ok, category}
-          end
-        end
+  defp derived_unit_category(name, base_unit_to_quantity) do
+    with {:ok, parsed} <- Localize.Unit.Parser.parse(name),
+         {:ok, base} <- Localize.Unit.BaseUnit.base_unit(parsed) do
+      case Map.get(base_unit_to_quantity, base) do
+        nil ->
+          {:error,
+           Localize.InvalidValueError.exception(
+             value: name,
+             expected: "a unit with a known category"
+           )}
 
-      category ->
-        {:ok, category}
+        category ->
+          {:ok, category}
+      end
     end
   end
 

@@ -1,8 +1,8 @@
 defmodule Localize.Utils.Math.PowerTest do
   use ExUnit.Case, async: true
 
-  alias Localize.Utils.Math
   alias Localize.Utils.Decimal, as: LDecimal
+  alias Localize.Utils.Math
 
   @significance 15
 
@@ -45,7 +45,7 @@ defmodule Localize.Utils.Math.PowerTest do
     assert LDecimal.compare(p, Decimal.new(1000)) == :eq
 
     p = Math.power(Decimal.new(10), 4)
-    assert LDecimal.compare(p, Decimal.new(10000)) == :eq
+    assert LDecimal.compare(p, Decimal.new(10_000)) == :eq
   end
 
   test "Short cut decimal power of 10 for a negative number" do

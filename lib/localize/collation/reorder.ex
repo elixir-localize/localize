@@ -35,44 +35,44 @@ defmodule Localize.Collation.Reorder do
     else
       primary_to_frac_lead = load_primary_to_fractional_lead()
 
-      fn primary ->
-        if primary == 0 do
-          0
-        else
-          case Map.get(primary_to_frac_lead, primary) do
-            nil ->
-              # Tailored weight — find the nearest base weight and
-              # preserve the offset so relative ordering is maintained.
-              case find_nearest_base(primary, primary_to_frac_lead) do
-                {base_primary, frac_lead} ->
-                  offset = primary - base_primary
-
-                  case Map.get(lead_byte_remap, frac_lead) do
-                    nil ->
-                      primary
-
-                    new_lead ->
-                      base_sub = Map.get(primary_to_frac_lead, {:sub, base_primary}, 0)
-                      (new_lead <<< 8 ||| base_sub) + offset
-                  end
-
-                nil ->
-                  primary
-              end
-
-            frac_lead ->
-              case Map.get(lead_byte_remap, frac_lead) do
-                nil ->
-                  primary
-
-                new_lead ->
-                  frac_sub = Map.get(primary_to_frac_lead, {:sub, primary}, 0)
-                  new_lead <<< 8 ||| frac_sub
-              end
-          end
-        end
-      end
+      fn primary -> remap_primary(primary, primary_to_frac_lead, lead_byte_remap) end
     end
+  end
+
+  defp remap_primary(0, _frac_map, _lead_byte_remap), do: 0
+
+  defp remap_primary(primary, frac_map, lead_byte_remap) do
+    case Map.get(frac_map, primary) do
+      nil ->
+        # Tailored weight — find the nearest base weight and
+        # preserve the offset so relative ordering is maintained.
+        base = find_nearest_base(primary, frac_map)
+        remap_tailored_primary(base, primary, frac_map, lead_byte_remap)
+
+      frac_lead ->
+        remap_base_primary(Map.get(lead_byte_remap, frac_lead), primary, frac_map)
+    end
+  end
+
+  defp remap_tailored_primary(nil, primary, _frac_map, _lead_byte_remap), do: primary
+
+  defp remap_tailored_primary({base_primary, frac_lead}, primary, frac_map, lead_byte_remap) do
+    case Map.get(lead_byte_remap, frac_lead) do
+      nil ->
+        primary
+
+      new_lead ->
+        offset = primary - base_primary
+        base_sub = Map.get(frac_map, {:sub, base_primary}, 0)
+        (new_lead <<< 8 ||| base_sub) + offset
+    end
+  end
+
+  defp remap_base_primary(nil, primary, _frac_map), do: primary
+
+  defp remap_base_primary(new_lead, primary, frac_map) do
+    frac_sub = Map.get(frac_map, {:sub, primary}, 0)
+    new_lead <<< 8 ||| frac_sub
   end
 
   defp build_lead_byte_permutation(reorder_codes, script_ranges) do
@@ -273,24 +273,24 @@ defmodule Localize.Collation.Reorder do
     |> Enum.reduce(%{}, fn line, acc ->
       case Regex.run(~r/^\[top_byte\s+([0-9A-Fa-f]+)\s+(.+?)\s*\]/, line) do
         [_, hex, group_name] ->
-          byte = String.to_integer(hex, 16)
-
-          groups =
-            group_name
-            |> String.downcase()
-            |> String.split()
-            |> Enum.map(&String.trim/1)
-            |> Enum.reject(&MapSet.member?(@non_reorderable_groups, &1))
-
-          Enum.reduce(groups, acc, fn group, inner_acc ->
-            case Map.get(inner_acc, group) do
-              nil -> Map.put(inner_acc, group, {byte, byte})
-              {start, _end} -> Map.put(inner_acc, group, {start, byte})
-            end
-          end)
+          add_top_byte_groups(acc, String.to_integer(hex, 16), group_name)
 
         _ ->
           acc
+      end
+    end)
+  end
+
+  defp add_top_byte_groups(acc, byte, group_name) do
+    group_name
+    |> String.downcase()
+    |> String.split()
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&MapSet.member?(@non_reorderable_groups, &1))
+    |> Enum.reduce(acc, fn group, inner_acc ->
+      case Map.get(inner_acc, group) do
+        nil -> Map.put(inner_acc, group, {byte, byte})
+        {start, _end} -> Map.put(inner_acc, group, {start, byte})
       end
     end)
   end
