@@ -1,17 +1,16 @@
 defmodule Localize.Collation.Insensitive do
-  @moduledoc """
-  Case-insensitive string comparator for use with `Enum.sort/2`.
-
-  Implements the `compare/2` callback so this module can be passed directly
-  to `Enum.sort/2` as a comparator:
-
-      Enum.sort(strings, Localize.Collation.Insensitive)
-
-  Uses the NIF backend when available for maximum performance, otherwise
-  falls back to the pure Elixir implementation at secondary strength
-  (which ignores case distinctions).
-
-  """
+  # Case-insensitive string comparator for use with `Enum.sort/2`.
+  #
+  # Implements the `compare/2` callback so this module can be passed directly
+  # to `Enum.sort/2` as a comparator:
+  #
+  #     Enum.sort(strings, Localize.Collation.Insensitive)
+  #
+  # Uses the NIF backend when available for maximum performance, otherwise
+  # falls back to the pure Elixir implementation at secondary strength
+  # (which ignores case distinctions).
+  #
+  @moduledoc false
 
   @doc """
   Compare two strings in a case-insensitive manner.

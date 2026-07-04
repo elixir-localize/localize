@@ -31,7 +31,7 @@ defmodule Localize.Territory do
   # ── Styles ──────────────────────────────────────────────────
 
   @doc """
-  Returns the list of available territory display name styles.
+  Returns the list of territory display name styles known to CLDR.
 
   ### Returns
 
@@ -39,12 +39,39 @@ defmodule Localize.Territory do
 
   ### Examples
 
-      iex> Localize.Territory.available_styles()
+      iex> Localize.Territory.known_styles()
       [:short, :standard, :variant]
 
   """
+  @spec known_styles() :: [:short | :standard | :variant, ...]
+  def known_styles, do: @styles
+
+  @deprecated "Use known_styles/0 instead. This function will be removed by Localize 1.0 and no later than December 2026."
   @spec available_styles() :: [:short | :standard | :variant, ...]
-  def available_styles, do: @styles
+  def available_styles, do: known_styles()
+
+  @doc """
+  Returns the list of all territory code atoms known to CLDR.
+
+  The list covers every territory in the CLDR supplemental data,
+  including containment codes such as `:EU` and the world code
+  `:"001"`. It is locale-independent.
+
+  ### Returns
+
+  * A list of territory code atoms.
+
+  ### Examples
+
+      iex> territories = Localize.Territory.known_territories()
+      iex> :US in territories and :EU in territories
+      true
+
+  """
+  @spec known_territories() :: [atom(), ...]
+  def known_territories do
+    Localize.SupplementalData.known_territories()
+  end
 
   # ── Display names ───────────────────────────────────────────
 

@@ -1,29 +1,28 @@
 defmodule Localize.Utils do
-  @moduledoc """
-  Utility functions and namespace for Localize utility submodules.
-
-  This module provides general-purpose utility functions. Specialized
-  utilities are organized in submodules:
-
-  * `Localize.Utils.Math` — mathematical operations.
-
-  * `Localize.Utils.Digits` — number decomposition and digit manipulation.
-
-  * `Localize.Utils.String` — string transformation utilities.
-
-  * `Localize.Utils.Enum` — enumerable utilities with lookahead.
-
-  * `Localize.Utils.Map` — deep map transformation and manipulation.
-
-  * `Localize.Utils.Helpers` — general-purpose helper functions.
-
-  * `Localize.Utils.Decimal` — `Decimal` library compatibility layer.
-
-  * `Localize.Utils.Json` — JSON decoding utilities.
-
-  * `Localize.Utils.Http` — secure HTTPS downloading.
-
-  """
+  # Utility functions and namespace for Localize utility submodules.
+  #
+  # This module provides general-purpose utility functions. Specialized
+  # utilities are organized in submodules:
+  #
+  # * `Localize.Utils.Math` — mathematical operations.
+  #
+  # * `Localize.Utils.Digits` — number decomposition and digit manipulation.
+  #
+  # * `Localize.Utils.String` — string transformation utilities.
+  #
+  # * `Localize.Utils.Enum` — enumerable utilities with lookahead.
+  #
+  # * `Localize.Utils.Map` — deep map transformation and manipulation.
+  #
+  # * `Localize.Utils.Helpers` — general-purpose helper functions.
+  #
+  # * `Localize.Utils.Decimal` — `Decimal` library compatibility layer.
+  #
+  # * `Localize.Utils.Json` — JSON decoding utilities.
+  #
+  # * `Localize.Utils.Http` — secure HTTPS downloading.
+  #
+  @moduledoc false
 
   @doc """
   Returns the current OTP version as a string.

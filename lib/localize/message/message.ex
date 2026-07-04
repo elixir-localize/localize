@@ -12,6 +12,16 @@ defmodule Localize.Message do
   @type bindings :: list() | map()
   @type options :: Keyword.t()
 
+  @typedoc """
+  The payload of a `{:format_error, payload}` return: either
+  unbalanced markup in the message, or a formatter failure with the
+  underlying exception or reason.
+
+  """
+  @type format_error_payload ::
+          {:unbalanced_markup, :unclosed | {:mismatched_close, String.t()}}
+          | {:formatter_failed, Exception.t() | String.t()}
+
   @doc """
   Format an MF2 message into a string.
 
@@ -97,8 +107,8 @@ defmodule Localize.Message do
   end
 
   defp format_nif(message, bindings, options) do
-    with {:ok, message} <- maybe_trim(message, options[:trim]) do
-      locale_string = resolve_locale_string(options)
+    with {:ok, message} <- maybe_trim(message, options[:trim]),
+         {:ok, locale_string} <- resolve_locale_string(options) do
       bindings_map = normalize_bindings(bindings)
 
       case check_unbound_variables(message, bindings_map) do
@@ -206,14 +216,17 @@ defmodule Localize.Message do
     end)
   end
 
+  # The NIF backend validates the locale through the same canonical
+  # path as the Elixir backend (`Localize.validate_locale/1`) and hands
+  # ICU the canonical BCP 47 string, so both backends resolve aliases,
+  # likely subtags and `-u-` extensions identically.
   defp resolve_locale_string(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    locale_to_string(locale)
-  end
 
-  defp locale_to_string(name) when is_binary(name), do: name
-  defp locale_to_string(name) when is_atom(name), do: Atom.to_string(name)
-  defp locale_to_string(%{language: language}), do: Kernel.to_string(language)
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      {:ok, Localize.LanguageTag.to_string(language_tag)}
+    end
+  end
 
   defp normalize_bindings(bindings) when is_map(bindings) do
     Map.new(bindings, fn
@@ -305,7 +318,7 @@ defmodule Localize.Message do
           {:ok, list(), list(), list()}
           | {:error, list(), list(), list()}
           | {:error, Localize.ParseError.t()}
-          | {:format_error, Localize.Message.Interpreter.format_error_payload()}
+          | {:format_error, format_error_payload()}
 
   def format_to_iolist(message, bindings \\ %{}, options \\ []) when is_binary(message) do
     with {:ok, message} <- maybe_trim(message, options[:trim]),

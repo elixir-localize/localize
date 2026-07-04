@@ -1,11 +1,10 @@
 defmodule Localize.Utils.Decimal do
-  @moduledoc """
-  Compatibility layer for `Decimal` library operations.
-
-  Provides normalized function signatures for common `Decimal`
-  operations used throughout Localize.
-
-  """
+  # Compatibility layer for `Decimal` library operations.
+  #
+  # Provides normalized function signatures for common `Decimal`
+  # operations used throughout Localize.
+  #
+  @moduledoc false
 
   @doc """
   Normalizes a `Decimal` value by removing trailing zeros from the coefficient.

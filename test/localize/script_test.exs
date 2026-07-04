@@ -49,9 +49,14 @@ defmodule Localize.ScriptTest do
       assert {:ok, _name} = Script.display_name(:Latn, locale: :de, fallback: true)
     end
 
-    test "raises on invalid style" do
+    test "returns an error tuple on invalid style" do
+      assert {:error, %Localize.InvalidValueError{value: :invalid}} =
+               Script.display_name(:Latn, style: :invalid)
+    end
+
+    test "display_name! raises on invalid style" do
       assert_raise Localize.InvalidValueError, fn ->
-        Script.display_name(:Latn, style: :invalid)
+        Script.display_name!(:Latn, style: :invalid)
       end
     end
   end
@@ -69,9 +74,9 @@ defmodule Localize.ScriptTest do
     end
   end
 
-  describe "available_scripts/1" do
+  describe "scripts_for/1" do
     test "returns sorted list of script codes" do
-      assert {:ok, codes} = Script.available_scripts()
+      assert {:ok, codes} = Script.scripts_for()
       assert is_list(codes)
       assert :Latn in codes
       assert :Cyrl in codes
@@ -79,14 +84,14 @@ defmodule Localize.ScriptTest do
     end
 
     test "returns scripts for a specific locale" do
-      assert {:ok, codes} = Script.available_scripts(locale: :de)
+      assert {:ok, codes} = Script.scripts_for(locale: :de)
       assert :Latn in codes
     end
   end
 
-  describe "known_scripts/1" do
+  describe "script_names_for/1" do
     test "returns map of script codes to name maps" do
-      assert {:ok, scripts} = Script.known_scripts()
+      assert {:ok, scripts} = Script.script_names_for()
       assert %{standard: "Latin"} = scripts[:Latn]
       assert %{standard: "Simplified", stand_alone: "Simplified Han"} = scripts[:Hans]
     end

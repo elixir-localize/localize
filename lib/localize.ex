@@ -626,37 +626,55 @@ defmodule Localize do
   * `:locale` is a locale identifier atom, string, or a
     `t:Localize.LanguageTag.t/0`. The default is `:en`.
 
-  * `:style` is either `:default` or `:variant`. The default
-    style uses the primary quotation marks for the locale. The
-    `:variant` style uses the alternate (nested) quotation marks.
+  * `:format` is either `:default` or `:variant`. The default
+    format uses the primary quotation marks for the locale. The
+    `:variant` format uses the alternate (nested) quotation marks.
+    (`:style` is accepted as a deprecated alias and will be removed
+    by Localize 1.0 and no later than December 2026.)
 
   ### Returns
 
   * `{:ok, quoted_string}` where `quoted_string` has locale-specific
     quotation marks added.
 
-  * `{:error, exception}` if the locale data cannot be loaded.
+  * `{:error, exception}` if the format is invalid or the locale
+    data cannot be loaded.
 
   ### Examples
 
       iex> Localize.quote("Hello")
       {:ok, "\u201CHello\u201D"}
 
-      iex> Localize.quote("Hello", style: :variant)
+      iex> Localize.quote("Hello", format: :variant)
       {:ok, "\u2018Hello\u2019"}
 
   """
   @spec quote(String.t(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def quote(string, options \\ []) when is_binary(string) do
     locale = Keyword.get(options, :locale, get_locale())
-    style = Keyword.get(options, :style, :default)
+    format = Keyword.get(options, :format, Keyword.get(options, :style, :default))
 
-    with {:ok, locale_id} <- Locale.cldr_locale_id_from(locale),
+    with {:ok, format} <- validate_quote_format(format),
+         {:ok, locale_id} <- Locale.cldr_locale_id_from(locale),
          {:ok, delimiters} <- Localize.Locale.get(locale_id, [:delimiters]) do
-      open = get_in(delimiters, [:quotation_start, style]) || ""
-      close = get_in(delimiters, [:quotation_end, style]) || ""
+      open = get_in(delimiters, [:quotation_start, format]) || ""
+      close = get_in(delimiters, [:quotation_end, format]) || ""
       {:ok, open <> string <> close}
     end
+  end
+
+  # An unknown format previously fell through to empty delimiters and
+  # returned the input unchanged with `{:ok, _}` \u2014 a typo in the option
+  # produced wrong output with no signal.
+  defp validate_quote_format(format) when format in [:default, :variant], do: {:ok, format}
+
+  defp validate_quote_format(format) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: format,
+       expected: :format,
+       allowed_values: [:default, :variant]
+     )}
   end
 
   @doc """
@@ -1070,6 +1088,38 @@ defmodule Localize do
         {:error, Localize.UnknownTerritoryError.exception(territory: territory)}
     end
   end
+
+  @doc """
+  Validates a currency code.
+
+  Delegates to `Localize.Currency.validate_currency/1` so that all
+  of the `validate_*` functions are available on the top-level
+  module.
+
+  ### Arguments
+
+  * `currency` is a currency code atom or string (e.g., `:USD` or
+    `"usd"`).
+
+  ### Returns
+
+  * `{:ok, currency_atom}` where `currency_atom` is the normalised
+    upper-case currency atom.
+
+  * `{:error, exception}` if the currency is not known.
+
+  ### Examples
+
+      iex> Localize.validate_currency(:USD)
+      {:ok, :USD}
+
+      iex> Localize.validate_currency("usd")
+      {:ok, :USD}
+
+  """
+  @spec validate_currency(atom() | String.t()) ::
+          {:ok, atom()} | {:error, Exception.t()}
+  defdelegate validate_currency(currency), to: Localize.Currency
 
   @doc """
   Validates a script code.

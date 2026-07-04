@@ -1,16 +1,15 @@
 defmodule Localize.Collation.Variable do
-  @moduledoc """
-  Variable weight handling for the collation algorithm.
-
-  In the UCA, "variable" collation elements are those for spaces, punctuation,
-  and optionally symbols and currency signs. The `alternate` setting controls
-  how these are handled:
-
-  * `:non_ignorable` - Variable CEs keep all their weights (default for CLDR).
-
-  * `:shifted` - Variable CEs have L1/L2/L3 zeroed, original L1 moves to L4.
-
-  """
+  # Variable weight handling for the collation algorithm.
+  #
+  # In the UCA, "variable" collation elements are those for spaces, punctuation,
+  # and optionally symbols and currency signs. The `alternate` setting controls
+  # how these are handled:
+  #
+  # * `:non_ignorable` - Variable CEs keep all their weights (default for CLDR).
+  #
+  # * `:shifted` - Variable CEs have L1/L2/L3 zeroed, original L1 moves to L4.
+  #
+  @moduledoc false
 
   alias Localize.Collation.Element
 

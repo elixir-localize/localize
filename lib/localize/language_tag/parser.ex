@@ -1,18 +1,17 @@
 defmodule Localize.LanguageTag.Parser do
-  @moduledoc """
-  Parses a CLDR language tag (also referred to as locale string).
-
-  The applicable specification is from [CLDR](http://unicode.org/reports/tr35/#Unicode_Language_and_Locale_Identifiers)
-  which is similar based upon [RFC5646](https://tools.ietf.org/html/rfc5646) with some variations.
-
-  This module performs grammar-level parsing only. It returns a bare
-  map with `language`, `script`, and `territory` as **strings** (no
-  atomization). Validity checking and atomization happen in
-  `Localize.LanguageTag.parse/1`, which gates atomization behind the
-  bounded validity sets so untrusted input cannot exhaust the atom
-  table.
-
-  """
+  # Parses a CLDR language tag (also referred to as locale string).
+  #
+  # The applicable specification is from [CLDR](http://unicode.org/reports/tr35/#Unicode_Language_and_Locale_Identifiers)
+  # which is similar based upon [RFC5646](https://tools.ietf.org/html/rfc5646) with some variations.
+  #
+  # This module performs grammar-level parsing only. It returns a bare
+  # map with `language`, `script`, and `territory` as **strings** (no
+  # atomization). Validity checking and atomization happen in
+  # `Localize.LanguageTag.parse/1`, which gates atomization behind the
+  # bounded validity sets so untrusted input cannot exhaust the atom
+  # table.
+  #
+  @moduledoc false
   alias Localize.Locale
 
   @doc """

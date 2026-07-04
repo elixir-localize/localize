@@ -1,12 +1,11 @@
 defmodule Localize.Utils.String do
-  @moduledoc """
-  String manipulation functions not provided in the standard library.
-
-  Provides utilities for hashing strings, converting between
-  naming conventions (camelCase to snake_case), and character
-  case conversion.
-
-  """
+  # String manipulation functions not provided in the standard library.
+  #
+  # Provides utilities for hashing strings, converting between
+  # naming conventions (camelCase to snake_case), and character
+  # case conversion.
+  #
+  @moduledoc false
 
   @p 99991
   @m trunc(1.0e9) + 9

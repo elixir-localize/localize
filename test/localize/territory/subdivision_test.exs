@@ -34,23 +34,23 @@ defmodule Localize.Territory.SubdivisionTest do
     end
   end
 
-  describe "known_subdivisions/1" do
+  describe "subdivision_names_for/1" do
     test "returns map of all subdivision code to name pairs for a locale" do
-      assert {:ok, subdivisions} = Subdivision.known_subdivisions(locale: :en)
+      assert {:ok, subdivisions} = Subdivision.subdivision_names_for(locale: :en)
       assert is_map(subdivisions)
       assert Map.get(subdivisions, :caon) == "Ontario"
       assert Map.get(subdivisions, :gbeng) == "England"
     end
 
     test "returns translations in the requested locale" do
-      assert {:ok, subdivisions} = Subdivision.known_subdivisions(locale: :fr)
+      assert {:ok, subdivisions} = Subdivision.subdivision_names_for(locale: :fr)
       assert Map.get(subdivisions, :gbeng) == "Angleterre"
     end
   end
 
-  describe "available_subdivisions/1" do
+  describe "subdivisions_for/1" do
     test "returns sorted list of subdivision codes for a locale" do
-      assert {:ok, codes} = Subdivision.available_subdivisions(locale: :en)
+      assert {:ok, codes} = Subdivision.subdivisions_for(locale: :en)
       assert is_list(codes)
       assert :caon in codes
       assert :gbeng in codes

@@ -1,33 +1,32 @@
 defmodule Localize.FormatCache do
-  @moduledoc """
-  An ETS-backed cache for compiled format patterns.
-
-  Number format metadata and datetime format tokens are cached
-  here after first compilation. The cache is hard-bounded: when
-  inserting an entry would exceed the configured maximum, an
-  existing entry is evicted synchronously, keeping the cache at
-  or below the cap at all times.
-
-  The maximum number of entries defaults to 2,000 and can be
-  overridden with:
-
-      config :localize, :format_cache_max_entries, 5_000
-
-  ## Trust model
-
-  The ETS table is `:protected` — only the cache GenServer can
-  write to it; any process can read directly. This keeps the
-  cache from being polluted by other libraries running in the
-  same BEAM, and ensures the size invariant cannot be violated
-  by a non-owner write.
-
-  Writes go through `store/2`, which is a `GenServer.call` to the
-  owner. A miss-then-store pattern from a hot path therefore pays
-  one gen-server round-trip per *first-time* format compilation;
-  subsequent lookups are direct ETS reads with no synchronisation
-  cost.
-
-  """
+  # An ETS-backed cache for compiled format patterns.
+  #
+  # Number format metadata and datetime format tokens are cached
+  # here after first compilation. The cache is hard-bounded: when
+  # inserting an entry would exceed the configured maximum, an
+  # existing entry is evicted synchronously, keeping the cache at
+  # or below the cap at all times.
+  #
+  # The maximum number of entries defaults to 2,000 and can be
+  # overridden with:
+  #
+  #     config :localize, :format_cache_max_entries, 5_000
+  #
+  # ## Trust model
+  #
+  # The ETS table is `:protected` — only the cache GenServer can
+  # write to it; any process can read directly. This keeps the
+  # cache from being polluted by other libraries running in the
+  # same BEAM, and ensures the size invariant cannot be violated
+  # by a non-owner write.
+  #
+  # Writes go through `store/2`, which is a `GenServer.call` to the
+  # owner. A miss-then-store pattern from a hot path therefore pays
+  # one gen-server round-trip per *first-time* format compilation;
+  # subsequent lookups are direct ETS reads with no synchronisation
+  # cost.
+  #
+  @moduledoc false
 
   use GenServer
 

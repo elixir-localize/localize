@@ -1,23 +1,22 @@
 defmodule Localize.Utils.Http do
-  @moduledoc """
-  Supports securely downloading HTTPS content.
-
-  This module provides HTTP GET functionality using the built-in `:httpc`
-  client with certificate verification enabled by default. It follows
-  the [erlef security guidelines](https://erlef.github.io/security-wg/secure_coding_and_deployment_hardening/ssl)
-  for secure TLS connections.
-
-  The primary public API consists of:
-
-  * `get/2` - download content from a URL, returning the body on success.
-
-  * `get_with_headers/2` - download content from a URL, returning both
-    headers and body on success.
-
-  * `certificate_locations/0` - return the list of possible certificate
-    store locations.
-
-  """
+  # Supports securely downloading HTTPS content.
+  #
+  # This module provides HTTP GET functionality using the built-in `:httpc`
+  # client with certificate verification enabled by default. It follows
+  # the [erlef security guidelines](https://erlef.github.io/security-wg/secure_coding_and_deployment_hardening/ssl)
+  # for secure TLS connections.
+  #
+  # The primary public API consists of:
+  #
+  # * `get/2` - download content from a URL, returning the body on success.
+  #
+  # * `get_with_headers/2` - download content from a URL, returning both
+  #   headers and body on success.
+  #
+  # * `certificate_locations/0` - return the list of possible certificate
+  #   store locations.
+  #
+  @moduledoc false
 
   require Logger
 

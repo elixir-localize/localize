@@ -1,9 +1,8 @@
 defmodule Localize.Collation.Normalizer do
-  @moduledoc """
-  Unicode NFD normalization for collation.
-  Delegates to Erlang's `:unicode` module.
-
-  """
+  # Unicode NFD normalization for collation.
+  # Delegates to Erlang's `:unicode` module.
+  #
+  @moduledoc false
 
   @doc """
   Normalize a string to NFD (Canonical Decomposition) form.

@@ -270,6 +270,30 @@ defmodule Localize.Calendar do
     {:error, invalid_display_value_error(type, "a valid value for the given type")}
   end
 
+  @doc """
+  Same as `display_name/3` but raises on error.
+
+  ### Examples
+
+      iex> Localize.Calendar.display_name!(:month, 1)
+      "January"
+
+      iex> Localize.Calendar.display_name!(:quarter, 1, style: :abbreviated)
+      "Q1"
+
+  """
+  @spec display_name!(
+          :calendar | :era | :quarter | :month | :day | :day_period | :date_time_field,
+          term(),
+          Keyword.t()
+        ) :: String.t()
+  def display_name!(type, value, options \\ []) do
+    case display_name(type, value, options) do
+      {:ok, name} -> name
+      {:error, exception} -> raise exception
+    end
+  end
+
   # Map :wide/:short style names to date_fields width keys
   defp map_field_style(:wide), do: :standard
   defp map_field_style(:short), do: :short

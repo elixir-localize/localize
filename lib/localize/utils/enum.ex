@@ -1,10 +1,9 @@
 defmodule Localize.Utils.Enum do
-  @moduledoc """
-  Enumerable utility functions not provided in the standard library.
-
-  Provides reduce with lookahead and list combination operations.
-
-  """
+  # Enumerable utility functions not provided in the standard library.
+  #
+  # Provides reduce with lookahead and list combination operations.
+  #
+  @moduledoc false
 
   @doc """
   Reduces a list with lookahead by passing both the current

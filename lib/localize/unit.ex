@@ -1554,7 +1554,9 @@ defmodule Localize.Unit do
 
   * `:locale` is a locale identifier. The default is `Localize.get_locale()`.
 
-  * `:format` is `:long`, `:short`, or `:narrow`. The default is `:long`.
+  * `:style` is `:long`, `:short`, or `:narrow`. The default is `:long`.
+    (`:format` is accepted as a deprecated alias and will be removed by
+    Localize 1.0 and no later than December 2026.)
 
   ### Returns
 
@@ -1565,7 +1567,7 @@ defmodule Localize.Unit do
       iex> Localize.Unit.display_name("meter", locale: :en)
       {:ok, "meters"}
 
-      iex> Localize.Unit.display_name("meter", locale: :en, format: :short)
+      iex> Localize.Unit.display_name("meter", locale: :en, style: :short)
       {:ok, "m"}
 
   """
@@ -1581,10 +1583,41 @@ defmodule Localize.Unit do
   def display_name(name, options) when is_binary(name) do
     case new(name) do
       {:ok, unit} ->
-        Localize.Unit.Formatter.to_string(unit, options)
+        Localize.Unit.Formatter.to_string(unit, translate_style_option(options))
 
       error ->
         error
+    end
+  end
+
+  @doc """
+  Same as `display_name/2` but raises on error.
+
+  ### Examples
+
+      iex> Localize.Unit.display_name!("meter", locale: :en)
+      "meters"
+
+      iex> Localize.Unit.display_name!("meter", locale: :en, style: :short)
+      "m"
+
+  """
+  @spec display_name!(t() | String.t(), Keyword.t()) :: String.t()
+  def display_name!(unit_or_name, options \\ []) do
+    case display_name(unit_or_name, options) do
+      {:ok, name} -> name
+      {:error, exception} -> raise exception
+    end
+  end
+
+  # `display_name` names a thing, so its width option is `:style` in
+  # line with the other display-name functions (Territory, Language,
+  # Script, Calendar); the underlying formatter takes `:format`. The
+  # `:format` key remains accepted as a deprecated alias until 1.0.
+  defp translate_style_option(options) do
+    case Keyword.pop(options, :style) do
+      {nil, options} -> options
+      {style, options} -> Keyword.put(options, :format, style)
     end
   end
 

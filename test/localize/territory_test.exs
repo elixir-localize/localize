@@ -5,10 +5,21 @@ defmodule Localize.TerritoryTest do
 
   doctest Localize.Territory
 
-  # ── available_styles ──────────────────────────────────────────
+  # ── known_styles / known_territories ──────────────────────────
 
-  test "available_styles/0 returns known styles" do
-    assert [:short, :standard, :variant] == Territory.available_styles()
+  test "known_territories/0 returns all CLDR territory codes" do
+    territories = Territory.known_territories()
+    assert :US in territories
+    assert :EU in territories
+    assert :"001" in territories
+  end
+
+  test "deprecated available_styles/0 delegates to known_styles/0" do
+    assert apply(Territory, :available_styles, []) == Territory.known_styles()
+  end
+
+  test "known_styles/0 returns the CLDR style set" do
+    assert [:short, :standard, :variant] == Territory.known_styles()
   end
 
   # ── display_name ──────────────────────────────────────────────

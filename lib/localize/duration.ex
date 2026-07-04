@@ -222,8 +222,10 @@ defmodule Localize.Duration do
   * `:locale` is a locale identifier. The default is
     `Localize.get_locale()`.
 
-  * `:style` is one of `:long`, `:short`, or `:narrow`.
-    The default is `:long`.
+  * `:format` is one of `:long`, `:short`, or `:narrow`.
+    The default is `:long`. (`:style` is accepted as a deprecated
+    alias and will be removed by Localize 1.0 and no later than
+    December 2026.)
 
   ### Returns
 
@@ -237,12 +239,16 @@ defmodule Localize.Duration do
       iex> Localize.Duration.to_string(d, locale: :en)
       {:ok, "11 months and 30 days"}
 
+      iex> {:ok, d} = Localize.Duration.new(~D[2019-01-01], ~D[2019-12-31])
+      iex> Localize.Duration.to_string(d, locale: :en, format: :narrow)
+      {:ok, "11m and 30d"}
+
   """
   @spec to_string(t(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(%__MODULE__{} = duration, options \\ []) do
     except = Keyword.get(options, :except, [:microsecond])
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    style = Keyword.get(options, :style, :long)
+    format = Keyword.get(options, :format, Keyword.get(options, :style, :long))
 
     units =
       for key <- @keys,
@@ -257,13 +263,14 @@ defmodule Localize.Duration do
         # All parts are zero — format as "0 seconds"
         unit = Localize.Unit.new!(0, "second")
 
-        with {:ok, formatted} <- Localize.Unit.to_string(unit, locale: locale, style: style) do
+        with {:ok, formatted} <- Localize.Unit.to_string(unit, locale: locale, format: format) do
           {:ok, formatted}
         end
 
       units ->
-        with {:ok, formatted_parts} <- format_each(units, locale, style) do
-          Localize.List.to_string(formatted_parts, locale: locale, style: :and)
+        with {:ok, formatted_parts} <- format_each(units, locale, format) do
+          # :standard is the "and"-conjunction list style.
+          Localize.List.to_string(formatted_parts, locale: locale, list_style: :standard)
         end
     end
   end
@@ -271,9 +278,9 @@ defmodule Localize.Duration do
   # Format each unit, short-circuiting on the first error so a single
   # bad locale or unit cannot crash duration formatting with a
   # `MatchError`. Returns `{:ok, list}` only when every part formats.
-  defp format_each(units, locale, style) do
+  defp format_each(units, locale, format) do
     Enum.reduce_while(units, {:ok, []}, fn unit, {:ok, acc} ->
-      case Localize.Unit.to_string(unit, locale: locale, style: style) do
+      case Localize.Unit.to_string(unit, locale: locale, format: format) do
         {:ok, formatted} -> {:cont, {:ok, [formatted | acc]}}
         {:error, _} = error -> {:halt, error}
       end

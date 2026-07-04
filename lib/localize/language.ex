@@ -102,11 +102,11 @@ defmodule Localize.Language do
   @spec display_name(String.t() | LanguageTag.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def display_name(language, options \\ []) do
-    style = validate_style!(Keyword.get(options, :style, :standard))
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    fallback = validate_fallback!(Keyword.get(options, :fallback, false))
 
-    with {:ok, language_tag} <- Localize.validate_locale(language),
+    with {:ok, style} <- validate_style(Keyword.get(options, :style, :standard)),
+         {:ok, fallback} <- validate_fallback(Keyword.get(options, :fallback, false)),
+         {:ok, language_tag} <- Localize.validate_locale(language),
          {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
       case lookup_language(language_tag, locale_id, style) do
         {:ok, _} = result ->
@@ -145,10 +145,11 @@ defmodule Localize.Language do
     end
   end
 
-  # ── Available and known languages ───────────────────────────
+  # ── Per-locale language data ─────────────────────────────────
 
   @doc """
-  Returns a sorted list of language codes available in a locale.
+  Returns a sorted list of language codes that have localized
+  names in a locale.
 
   ### Arguments
 
@@ -168,18 +169,18 @@ defmodule Localize.Language do
 
   ### Examples
 
-      iex> {:ok, codes} = Localize.Language.available_languages()
+      iex> {:ok, codes} = Localize.Language.languages_for()
       iex> "en" in codes
       true
 
-      iex> {:ok, codes} = Localize.Language.available_languages(locale: :de)
+      iex> {:ok, codes} = Localize.Language.languages_for(locale: :de)
       iex> "en" in codes
       true
 
   """
-  @spec available_languages(Keyword.t()) ::
+  @spec languages_for(Keyword.t()) ::
           {:ok, [String.t()]} | {:error, Exception.t()}
-  def available_languages(options \\ []) do
+  def languages_for(options \\ []) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
@@ -188,9 +189,16 @@ defmodule Localize.Language do
     end
   end
 
+  @deprecated "Use languages_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
+  @spec available_languages(Keyword.t()) ::
+          {:ok, [String.t()]} | {:error, Exception.t()}
+  def available_languages(options \\ []) do
+    languages_for(options)
+  end
+
   @doc """
-  Returns a map of all language codes to their localized names
-  in a locale.
+  Returns a map of language codes to their localized names in a
+  locale.
 
   ### Arguments
 
@@ -210,23 +218,30 @@ defmodule Localize.Language do
 
   ### Examples
 
-      iex> {:ok, languages} = Localize.Language.known_languages()
+      iex> {:ok, languages} = Localize.Language.language_names_for()
       iex> languages["de"]
       %{standard: "German"}
 
-      iex> {:ok, languages} = Localize.Language.known_languages(locale: :de)
+      iex> {:ok, languages} = Localize.Language.language_names_for(locale: :de)
       iex> languages["en"]
       %{standard: "Englisch"}
 
   """
-  @spec known_languages(Keyword.t()) ::
+  @spec language_names_for(Keyword.t()) ::
           {:ok, %{String.t() => map()}} | {:error, Exception.t()}
-  def known_languages(options \\ []) do
+  def language_names_for(options \\ []) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
       Localize.Locale.get(locale_id, [:languages])
     end
+  end
+
+  @deprecated "Use language_names_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
+  @spec known_languages(Keyword.t()) ::
+          {:ok, %{String.t() => map()}} | {:error, Exception.t()}
+  def known_languages(options \\ []) do
+    language_names_for(options)
   end
 
   # ── Private helpers ─────────────────────────────────────────
@@ -332,23 +347,28 @@ defmodule Localize.Language do
     end
   end
 
-  defp validate_style!(style) when style in @styles, do: style
+  # Invalid option values return error tuples like every other input
+  # error, so the same failure class always exits through the same
+  # channel; the `!` variants raise for all of them uniformly.
+  defp validate_style(style) when style in @styles, do: {:ok, style}
 
-  defp validate_style!(style) do
-    raise Localize.InvalidValueError.exception(
-            value: style,
-            expected: :style,
-            allowed_values: @styles
-          )
+  defp validate_style(style) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: style,
+       expected: :style,
+       allowed_values: @styles
+     )}
   end
 
-  defp validate_fallback!(fallback) when is_boolean(fallback), do: fallback
+  defp validate_fallback(fallback) when is_boolean(fallback), do: {:ok, fallback}
 
-  defp validate_fallback!(fallback) do
-    raise Localize.InvalidValueError.exception(
-            value: fallback,
-            expected: :fallback,
-            allowed_values: [true, false]
-          )
+  defp validate_fallback(fallback) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: fallback,
+       expected: :fallback,
+       allowed_values: [true, false]
+     )}
   end
 end

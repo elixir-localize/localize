@@ -1,13 +1,12 @@
 defmodule Localize.Substitution do
-  @moduledoc """
-  Compiles substitution templates of the form `"{0} something {1}"`
-  into token lists for efficient parameter substitution at runtime.
-
-  Templates are parsed once into a list of string literals and
-  integer indices. At runtime, values are substituted for the
-  integer indices to produce the final output.
-
-  """
+  # Compiles substitution templates of the form `"{0} something {1}"`
+  # into token lists for efficient parameter substitution at runtime.
+  #
+  # Templates are parsed once into a list of string literals and
+  # integer indices. At runtime, values are substituted for the
+  # integer indices to produce the final output.
+  #
+  @moduledoc false
 
   @doc """
   Parses a substitution template into a list of tokens.

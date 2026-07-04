@@ -34,8 +34,10 @@ defmodule Localize.Unit.Formatter do
     case Localize.Backend.resolve(options) do
       :nif ->
         locale = Keyword.get(options, :locale, Localize.get_locale())
-        locale_string = locale_to_string(locale)
-        Localize.Nif.unit_format(unit.value, unit.name, locale_string, options)
+
+        with {:ok, locale_string} <- validated_locale_string(locale) do
+          Localize.Nif.unit_format(unit.value, unit.name, locale_string, options)
+        end
 
       :elixir ->
         locale = Keyword.get(options, :locale, Localize.get_locale())
@@ -421,8 +423,13 @@ defmodule Localize.Unit.Formatter do
 
   defp safe_to_atom(string) when is_binary(string), do: Helpers.existing_atom(string) || string
 
-  defp locale_to_string(%Localize.LanguageTag{} = tag), do: Localize.LanguageTag.to_string(tag)
-  defp locale_to_string(locale) when is_atom(locale), do: Atom.to_string(locale)
-  defp locale_to_string(locale) when is_binary(locale), do: locale
-  defp locale_to_string(_), do: "en"
+  # The NIF backend validates the locale through the same canonical
+  # path as the Elixir backend (`Localize.validate_locale/1`) and hands
+  # ICU the canonical BCP 47 string, so both backends resolve aliases,
+  # likely subtags and `-u-` extensions identically.
+  defp validated_locale_string(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      {:ok, Localize.LanguageTag.to_string(language_tag)}
+    end
+  end
 end

@@ -1,26 +1,25 @@
 defmodule Localize.Collation.Tailoring do
-  @moduledoc """
-  CLDR locale-specific collation tailoring.
-
-  Parses and applies CLDR tailoring rules that modify the root collation order
-  for specific locales. Rules use the ICU/CLDR syntax defined in UTS #35:
-
-  * `&X` - reset position to after character X.
-
-  * `&[before N]X` - reset to just before X at level N.
-
-  * `<` - primary difference (new letter).
-
-  * `<<` - secondary difference (accent variant).
-
-  * `<<<` - tertiary difference (case variant).
-
-  * `[caseFirst upper]` - option overrides.
-
-  Tailoring data is embedded directly from CLDR XML sources, covering common
-  European and Asian locales.
-
-  """
+  # CLDR locale-specific collation tailoring.
+  #
+  # Parses and applies CLDR tailoring rules that modify the root collation order
+  # for specific locales. Rules use the ICU/CLDR syntax defined in UTS #35:
+  #
+  # * `&X` - reset position to after character X.
+  #
+  # * `&[before N]X` - reset to just before X at level N.
+  #
+  # * `<` - primary difference (new letter).
+  #
+  # * `<<` - secondary difference (accent variant).
+  #
+  # * `<<<` - tertiary difference (case variant).
+  #
+  # * `[caseFirst upper]` - option overrides.
+  #
+  # Tailoring data is embedded directly from CLDR XML sources, covering common
+  # European and Asian locales.
+  #
+  @moduledoc false
 
   alias Localize.Collation.{Element, Table}
   alias Localize.Collation.Table.Parser

@@ -1,18 +1,17 @@
 defmodule Localize.Utils.Math do
-  @moduledoc """
-  Mathematical helper functions for number formatting and
-  Localize subsystems.
-
-  Provides arithmetic operations (add, subtract, multiply, divide),
-  modulo, rounding (to arbitrary precision with selectable rounding
-  modes), logarithms, powers, roots, square roots, significant-digit
-  rounding, coefficient/exponent decomposition, and float-to-rational
-  conversion.
-
-  All arithmetic operations accept integers, floats, and Decimals and
-  return the most appropriate type.
-
-  """
+  # Mathematical helper functions for number formatting and
+  # Localize subsystems.
+  #
+  # Provides arithmetic operations (add, subtract, multiply, divide),
+  # modulo, rounding (to arbitrary precision with selectable rounding
+  # modes), logarithms, powers, roots, square roots, significant-digit
+  # rounding, coefficient/exponent decomposition, and float-to-rational
+  # conversion.
+  #
+  # All arithmetic operations accept integers, floats, and Decimals and
+  # return the most appropriate type.
+  #
+  @moduledoc false
 
   import Kernel, except: [div: 2]
   alias Localize.Utils.Digits

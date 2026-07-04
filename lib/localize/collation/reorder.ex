@@ -1,12 +1,11 @@
 defmodule Localize.Collation.Reorder do
-  @moduledoc """
-  Script reordering for collation (kr= / reorder option).
-
-  Remaps primary weights to change the relative order of scripts.
-  For example, `reorder: [:Grek, :Latn]` would sort Greek characters
-  before Latin characters.
-
-  """
+  # Script reordering for collation (kr= / reorder option).
+  #
+  # Remaps primary weights to change the relative order of scripts.
+  # For example, `reorder: [:Grek, :Latn]` would sort Greek characters
+  # before Latin characters.
+  #
+  @moduledoc false
 
   import Bitwise
 
