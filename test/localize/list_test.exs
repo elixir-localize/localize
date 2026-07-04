@@ -182,5 +182,114 @@ defmodule Localize.ListTest do
       assert {:error, _exception} =
                ListFormatter.to_string(["a"], locale: :en, list_style: :nonexistent)
     end
+
+    test "invalid list_style error identifies the value and context" do
+      assert {:error, %Localize.InvalidValueError{} = exception} =
+               ListFormatter.to_string(["a"], locale: :en, list_style: :nonexistent)
+
+      assert exception.value == :nonexistent
+      assert exception.context == "Localize.List"
+    end
+
+    test "invalid locale returns error from to_string/2" do
+      assert {:error, %Localize.InvalidLocaleError{}} =
+               ListFormatter.to_string(["a"], locale: "no-such-locale-xx")
+    end
+
+    test "invalid locale returns error from intersperse/2" do
+      assert {:error, %Localize.InvalidLocaleError{}} =
+               ListFormatter.intersperse(["a", "b"], locale: "no-such-locale-xx")
+    end
+
+    test "invalid locale returns error from list_patterns_for/1" do
+      assert {:error, %Localize.InvalidLocaleError{}} =
+               ListFormatter.list_patterns_for("qq-ZX")
+    end
+
+    test "invalid locale returns error from list_styles_for/1" do
+      assert {:error, %Localize.InvalidLocaleError{}} =
+               ListFormatter.list_styles_for(12_345)
+    end
+
+    test "to_string!/2 raises on an invalid list_style" do
+      assert_raise Localize.InvalidValueError, fn ->
+        ListFormatter.to_string!(["a"], locale: :en, list_style: :nonexistent)
+      end
+    end
+
+    test "intersperse!/2 raises on an invalid locale" do
+      assert_raise Localize.InvalidLocaleError, fn ->
+        ListFormatter.intersperse!(["a", "b"], locale: "no-such-locale-xx")
+      end
+    end
+
+    test "an empty list skips option validation" do
+      # `intersperse/2` short-circuits on `[]` before options are
+      # normalized, so even an invalid style formats successfully.
+      assert {:ok, ""} = ListFormatter.to_string([], locale: :en, list_style: :nonexistent)
+      assert {:ok, []} = ListFormatter.intersperse([], locale: :en, list_style: :nonexistent)
+    end
+  end
+
+  describe "intersperse/2 element counts and options" do
+    test "intersperses an empty list" do
+      assert {:ok, []} = ListFormatter.intersperse([], locale: :en)
+    end
+
+    test "intersperses a single element unchanged" do
+      assert {:ok, ["a"]} = ListFormatter.intersperse(["a"], locale: :en)
+    end
+
+    test "intersperses four elements" do
+      assert {:ok, ["a", ", ", "b", ", ", "c", ", and ", "d"]} =
+               ListFormatter.intersperse(["a", "b", "c", "d"], locale: :en)
+    end
+
+    test "treat_middle_as_end uses the start pattern for two elements" do
+      assert {:ok, ["a", ", ", "b"]} =
+               ListFormatter.intersperse(["a", "b"], locale: :en, treat_middle_as_end: true)
+
+      assert {:ok, "a, b"} =
+               ListFormatter.to_string(["a", "b"], locale: :en, treat_middle_as_end: true)
+    end
+
+    test "treat_middle_as_end uses the middle pattern for the last pair of three" do
+      assert {:ok, ["a", ", ", "b", ", ", "c"]} =
+               ListFormatter.intersperse(["a", "b", "c"], locale: :en, treat_middle_as_end: true)
+    end
+  end
+
+  describe "custom Localize.List.Pattern as list_style" do
+    test "formats using a caller-supplied pattern" do
+      {:ok, pattern} =
+        Localize.List.Pattern.new(
+          two: "{0}+{1}",
+          start: "{0};{1}",
+          middle: "{0};{1}",
+          end: "{0}+{1}"
+        )
+
+      assert {:ok, "a;b+c"} =
+               ListFormatter.to_string(["a", "b", "c"], locale: :en, list_style: pattern)
+
+      assert {:ok, "a+b"} =
+               ListFormatter.to_string(["a", "b"], locale: :en, list_style: pattern)
+    end
+  end
+
+  describe "known_list_styles/0" do
+    test "returns the full sorted set of styles" do
+      assert ListFormatter.known_list_styles() == [
+               :or,
+               :or_narrow,
+               :or_short,
+               :standard,
+               :standard_narrow,
+               :standard_short,
+               :unit,
+               :unit_narrow,
+               :unit_short
+             ]
+    end
   end
 end

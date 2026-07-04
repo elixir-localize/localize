@@ -165,5 +165,149 @@ defmodule Localize.DurationTest do
       d = Localize.Duration.new_from_seconds(136_092)
       assert "37:48:12" = Localize.Duration.to_time_string!(d)
     end
+
+    test "defaults the options argument" do
+      d = Localize.Duration.new_from_seconds(10)
+      assert "00:00:10" = Localize.Duration.to_time_string!(d)
+    end
+
+    test "single s field renders unpadded seconds" do
+      d = Localize.Duration.new_from_seconds(65)
+      assert {:ok, "5"} = Localize.Duration.to_time_string(d, format: "s")
+    end
+  end
+
+  # ── new/2 negative time-of-day carry ──────────────────────────
+
+  describe "new/2 borrows a day when the time of day decreases" do
+    test "borrows one day across a month boundary" do
+      {:ok, duration} = Localize.Duration.new(~U[2020-01-31 23:00:00Z], ~U[2020-02-01 01:00:00Z])
+      assert {duration.year, duration.month, duration.day, duration.hour} == {0, 0, 0, 2}
+    end
+
+    test "borrows through day zero into the previous month" do
+      {:ok, duration} = Localize.Duration.new(~U[2020-03-01 23:00:00Z], ~U[2020-04-01 01:00:00Z])
+      assert {duration.year, duration.month, duration.day, duration.hour} == {0, 0, 29, 2}
+    end
+
+    test "borrows through month zero into the previous year" do
+      {:ok, duration} = Localize.Duration.new(~U[2021-01-01 23:00:00Z], ~U[2022-01-01 01:00:00Z])
+      assert {duration.year, duration.month, duration.day, duration.hour} == {0, 11, 31, 2}
+    end
+  end
+
+  # ── new/2 day and month borrow on date-only inputs ────────────
+
+  describe "new/2 date borrow arithmetic" do
+    test "borrows a month when the from day exceeds the to day" do
+      {:ok, duration} = Localize.Duration.new(~D[2020-01-31], ~D[2020-02-01])
+      assert {duration.year, duration.month, duration.day} == {0, 0, 1}
+    end
+
+    test "borrows a year when the from month exceeds the to month" do
+      {:ok, duration} = Localize.Duration.new(~D[2020-11-15], ~D[2021-02-15])
+      assert {duration.year, duration.month, duration.day} == {0, 3, 0}
+    end
+  end
+
+  # ── new/2 validation ──────────────────────────────────────────
+
+  describe "new/2 validation of datetime pairs" do
+    test "accepts differing time zones" do
+      to = %{~U[2020-01-02 10:00:00Z] | time_zone: "Australia/Sydney", zone_abbr: "AEST"}
+      {:ok, duration} = Localize.Duration.new(~U[2020-01-01 10:00:00Z], to)
+      assert duration.day == 1
+    end
+
+    test "rejects mismatched calendars" do
+      to = %{~N[2020-06-01 00:00:00] | calendar: :not_a_real_calendar}
+
+      assert {:error, %ArgumentError{}} =
+               Localize.Duration.new(~N[2020-01-01 00:00:00], to)
+    end
+
+    test "rejects reversed datetime order" do
+      assert {:error, %ArgumentError{}} =
+               Localize.Duration.new(~U[2020-01-02 00:00:00Z], ~U[2020-01-01 00:00:00Z])
+    end
+  end
+
+  # ── to_string/2 variants and error paths ──────────────────────
+
+  describe "to_string/2 formats and errors" do
+    test "defaults the options argument" do
+      duration = Localize.Duration.new!(~D[2019-01-01], ~D[2019-12-31])
+      assert {:ok, "11 months and 30 days"} = Localize.Duration.to_string(duration)
+    end
+
+    test "an all-zero duration formats as zero seconds" do
+      duration = Localize.Duration.new_from_seconds(0)
+      assert {:ok, "0 seconds"} = Localize.Duration.to_string(duration, locale: :en)
+    end
+
+    test "the deprecated :style option is accepted as a :format alias" do
+      duration = Localize.Duration.new!(~D[2019-01-01], ~D[2019-12-31])
+
+      assert {:ok, "11m and 30d"} =
+               Localize.Duration.to_string(duration, locale: :en, style: :narrow)
+    end
+
+    test "short format abbreviates unit names" do
+      duration = Localize.Duration.new!(~D[2019-01-01], ~D[2019-12-31])
+
+      assert {:ok, "11 mths and 30 days"} =
+               Localize.Duration.to_string(duration, locale: :en, format: :short)
+    end
+
+    test "an invalid locale returns an error tuple" do
+      duration = Localize.Duration.new_from_seconds(3661)
+
+      assert {:error, %Localize.InvalidLocaleError{}} =
+               Localize.Duration.to_string(duration, locale: :zzz)
+    end
+
+    test "an invalid locale on a zero duration returns an error tuple" do
+      duration = Localize.Duration.new_from_seconds(0)
+
+      assert {:error, %Localize.InvalidLocaleError{}} =
+               Localize.Duration.to_string(duration, locale: :zzz)
+    end
+  end
+
+  describe "to_string!/2" do
+    test "returns the formatted string" do
+      duration = Localize.Duration.new_from_seconds(60)
+      assert Localize.Duration.to_string!(duration, locale: :en) == "1 minute"
+    end
+
+    test "raises on an invalid locale" do
+      duration = Localize.Duration.new_from_seconds(60)
+
+      assert_raise Localize.InvalidLocaleError, fn ->
+        Localize.Duration.to_string!(duration, locale: :zzz)
+      end
+    end
+  end
+
+  # ── microsecond precision ─────────────────────────────────────
+
+  describe "new_from_seconds/1 microsecond precision" do
+    test "precision tracks the magnitude of the fractional part" do
+      fractions = [1.000001, 1.00005, 1.0005, 1.005, 1.05, 1.5]
+
+      microseconds =
+        for fraction <- fractions do
+          Localize.Duration.new_from_seconds(fraction).microsecond
+        end
+
+      assert microseconds == [
+               {1, 1},
+               {50, 2},
+               {500, 3},
+               {5000, 4},
+               {50_000, 5},
+               {500_000, 6}
+             ]
+    end
   end
 end
