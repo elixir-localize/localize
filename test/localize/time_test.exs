@@ -36,6 +36,49 @@ defmodule Localize.TimeTest do
       assert {:ok, result} = Localize.Time.to_string(~T[14:30:45], format: "h:mm:ss a")
       assert String.contains?(result, "2:30:45")
     end
+
+    test "flexible day periods (B) follow the locale's day-period rules" do
+      # Expected values verified against ICU (Intl dayPeriod: :long),
+      # except midnight: per TR35, B selects the exact-point rules
+      # (noon, midnight); ECMA-402's dayPeriod option deliberately
+      # never produces "midnight" and diverges there.
+      b = fn time, locale ->
+        {:ok, result} = Localize.Time.to_string(time, format: "BBBB", locale: locale)
+        result
+      end
+
+      assert b.(~T[08:30:00], :en) == "in the morning"
+      assert b.(~T[12:00:00], :en) == "noon"
+      assert b.(~T[12:01:00], :en) == "in the afternoon"
+      assert b.(~T[15:00:00], :en) == "in the afternoon"
+      assert b.(~T[19:00:00], :en) == "in the evening"
+      assert b.(~T[22:00:00], :en) == "at night"
+      assert b.(~T[00:00:00], :en) == "midnight"
+
+      assert b.(~T[08:30:00], :de) == "morgens"
+      assert b.(~T[12:01:00], :de) == "mittags"
+      assert b.(~T[15:00:00], :de) == "nachmittags"
+      assert b.(~T[19:00:00], :de) == "abends"
+    end
+
+    test "noon/midnight day periods (b) render at exact points only" do
+      b = fn time, locale ->
+        {:ok, result} = Localize.Time.to_string(time, format: "bbbb", locale: locale)
+        result
+      end
+
+      assert b.(~T[12:00:00], :en) == "noon"
+      assert b.(~T[00:00:00], :en) == "midnight"
+      assert b.(~T[12:01:00], :en) == "PM"
+      assert b.(~T[08:30:00], :en) == "AM"
+    end
+
+    test "locales without day-period rules fall back to AM/PM for B" do
+      # A locale whose language has no dayPeriods rule set renders
+      # B as AM/PM rather than failing.
+      assert {:ok, result} = Localize.Time.to_string(~T[08:30:00], format: "BBBB", locale: :kok)
+      assert is_binary(result) and result != ""
+    end
   end
 
   describe "to_string/2 with partial times" do

@@ -328,18 +328,18 @@ defmodule Localize.DateTime.Formatter do
   # ── Week-aligned year (Y) ──────────────────────────────────
 
   @doc false
-  def week_aligned_year(date, 1, _locale_id, _options) when is_date(date) do
-    {year, _week} = iso_week_of_year(date)
+  def week_aligned_year(date, 1, locale_id, _options) when is_date(date) do
+    {year, _week} = locale_week_of_year(date, locale_id)
     Kernel.to_string(year)
   end
 
-  def week_aligned_year(date, 2, _locale_id, _options) when is_date(date) do
-    {year, _week} = iso_week_of_year(date)
+  def week_aligned_year(date, 2, locale_id, _options) when is_date(date) do
+    {year, _week} = locale_week_of_year(date, locale_id)
     year |> rem(100) |> pad(2)
   end
 
-  def week_aligned_year(date, count, _locale_id, _options) when is_date(date) and count in 3..5 do
-    {year, _week} = iso_week_of_year(date)
+  def week_aligned_year(date, count, locale_id, _options) when is_date(date) and count in 3..5 do
+    {year, _week} = locale_week_of_year(date, locale_id)
     pad(year, count)
   end
 
@@ -453,13 +453,13 @@ defmodule Localize.DateTime.Formatter do
   # ── Week of Year (w) ───────────────────────────────────────
 
   @doc false
-  def week_of_year(date, 1, _locale_id, _options) when is_date(date) do
-    {_year, week} = iso_week_of_year(date)
+  def week_of_year(date, 1, locale_id, _options) when is_date(date) do
+    {_year, week} = locale_week_of_year(date, locale_id)
     week
   end
 
-  def week_of_year(date, 2, _locale_id, _options) when is_date(date) do
-    {_year, week} = iso_week_of_year(date)
+  def week_of_year(date, 2, locale_id, _options) when is_date(date) do
+    {_year, week} = locale_week_of_year(date, locale_id)
     pad(week, 2)
   end
 
@@ -468,7 +468,24 @@ defmodule Localize.DateTime.Formatter do
   # ── Week of Month (W) ──────────────────────────────────────
 
   @doc false
-  def week_of_month(%{day: day}, _count, _locale_id, _options) do
+  def week_of_month(
+        %{year: year, month: month, day: day, calendar: Calendar.ISO},
+        _count,
+        locale_id,
+        _options
+      ) do
+    {first_day, min_days} = week_config(locale_id)
+    first_of_month_dow = :calendar.day_of_the_week({year, month, 1})
+    offset = rem(first_of_month_dow - first_day + 7, 7)
+    raw_week = div(day - 1 + offset, 7) + 1
+
+    # Week 1 exists only when the first (possibly partial) week of the
+    # month holds at least min_days days; otherwise that partial week
+    # counts as week 0 per ICU.
+    if 7 - offset >= min_days, do: raw_week, else: raw_week - 1
+  end
+
+  def week_of_month(%{day: day}, _count, _locale_id, _options) when is_integer(day) do
     div(day - 1, 7) + 1
   end
 
@@ -583,9 +600,19 @@ defmodule Localize.DateTime.Formatter do
   # ── Period noon/midnight (b) ───────────────────────────────
 
   @doc false
+  # TR35 `b`: am, pm, noon, midnight. The exact-point (`at`) rules
+  # from the locale's day-period rule set select noon/midnight; any
+  # other time renders as AM/PM.
   def period_noon_midnight(time, count, locale_id, options) when is_time(time) do
-    # Delegate to am_pm for now
-    period_am_pm(time, count, locale_id, options)
+    minutes = minutes_of_day(time)
+
+    with rules when is_map(rules) <- day_period_rules(locale_id),
+         period when period != nil <- at_period(rules, minutes),
+         name when is_binary(name) <- day_period_name(period, count, locale_id) do
+      name
+    else
+      _ -> period_am_pm(time, count, locale_id, options)
+    end
   end
 
   def period_noon_midnight(_time, _count, _locale_id, _options), do: ""
@@ -593,12 +620,76 @@ defmodule Localize.DateTime.Formatter do
   # ── Flexible period (B) ────────────────────────────────────
 
   @doc false
+  # TR35 `B`: flexible day periods ("in the morning", "noon"). Exact
+  # (`at`) rules take precedence, then the from/before range the time
+  # falls in. Locales without day-period rules, and periods without a
+  # localized name, fall back to AM/PM.
   def period_flex(time, count, locale_id, options) when is_time(time) do
-    # Delegate to am_pm for now
-    period_am_pm(time, count, locale_id, options)
+    minutes = minutes_of_day(time)
+
+    with rules when is_map(rules) <- day_period_rules(locale_id),
+         period when period != nil <- at_period(rules, minutes) || flex_period(rules, minutes),
+         name when is_binary(name) <- day_period_name(period, count, locale_id) do
+      name
+    else
+      _ -> period_am_pm(time, count, locale_id, options)
+    end
   end
 
   def period_flex(_time, _count, _locale_id, _options), do: ""
+
+  defp minutes_of_day(%{hour: hour} = time) do
+    hour * 60 + Map.get(time, :minute, 0)
+  end
+
+  # The locale's day-period rules are keyed by language code.
+  defp day_period_rules(locale_id) do
+    language =
+      locale_id
+      |> Kernel.to_string()
+      |> String.split("-")
+      |> hd()
+
+    Map.get(Localize.SupplementalData.day_periods().format, language)
+  end
+
+  defp at_period(rules, minutes) do
+    Enum.find_value(rules, fn
+      {period, %{at: at}} when at == minutes -> period
+      _ -> nil
+    end)
+  end
+
+  defp flex_period(rules, minutes) do
+    Enum.find_value(rules, fn
+      {period, %{from: from, before: before}} when from <= before ->
+        if minutes >= from and minutes < before, do: period
+
+      # Ranges that wrap midnight (e.g. night from 23:00 before 04:00).
+      {period, %{from: from, before: before}} ->
+        if minutes >= from or minutes < before, do: period
+
+      _ ->
+        nil
+    end)
+  end
+
+  # The localized name for a day period at the requested width,
+  # falling back through abbreviated and wide before giving up (the
+  # caller then renders AM/PM instead).
+  defp day_period_name(period, count, locale_id) do
+    width = format_for_count(count)
+
+    with {:ok, day_periods} <- Localize.Calendar.day_periods(locale_id) do
+      names = Map.get(day_periods, :format, %{})
+
+      Enum.find_value([width, :abbreviated, :wide], fn w ->
+        names |> Map.get(w, %{}) |> Map.get(period)
+      end)
+    else
+      _ -> nil
+    end
+  end
 
   # ── Hour 1-12 (h) ─────────────────────────────────────────
 
@@ -936,6 +1027,68 @@ defmodule Localize.DateTime.Formatter do
   # the Erlang stdlib helper. For plain `Calendar.ISO` dates,
   # which don't carry the callback at all, the stdlib helper
   # is the direct path.
+  # CLDR week-of-year per TR35: weeks begin on the locale's first day
+  # of the week, and week 1 is the first week containing at least the
+  # locale's minimum number of days of the new year. Days before week 1
+  # belong to the last week of the previous week-aligned year. Applied
+  # to `Calendar.ISO` dates; calendars with their own week schemes keep
+  # their `iso_week_of_year/3` callback path.
+  defp locale_week_of_year(
+         %{year: year, month: month, day: day, calendar: Calendar.ISO},
+         locale_id
+       ) do
+    {first_day, min_days} = week_config(locale_id)
+    gregorian_day = :calendar.date_to_gregorian_days({year, month, day})
+    this_year_start = week_one_start(year, first_day, min_days)
+
+    cond do
+      gregorian_day < this_year_start ->
+        previous_start = week_one_start(year - 1, first_day, min_days)
+        {year - 1, div(gregorian_day - previous_start, 7) + 1}
+
+      gregorian_day >= week_one_start(year + 1, first_day, min_days) ->
+        {year + 1, 1}
+
+      true ->
+        {year, div(gregorian_day - this_year_start, 7) + 1}
+    end
+  end
+
+  defp locale_week_of_year(date, _locale_id) do
+    iso_week_of_year(date)
+  end
+
+  # The gregorian day number on which week 1 of the given year starts.
+  defp week_one_start(year, first_day, min_days) do
+    jan1 = :calendar.date_to_gregorian_days({year, 1, 1})
+    offset = rem(:calendar.day_of_the_week({year, 1, 1}) - first_day + 7, 7)
+
+    if 7 - offset >= min_days do
+      jan1 - offset
+    else
+      jan1 - offset + 7
+    end
+  end
+
+  # The locale's week configuration. The CLDR world default (firstDay
+  # monday, minDays 1) applies when the locale's territory cannot be
+  # resolved.
+  defp week_config(locale_id) do
+    first_day =
+      case Localize.Calendar.first_day_for_locale(locale_id) do
+        day when is_integer(day) -> day
+        _ -> 1
+      end
+
+    min_days =
+      case Localize.Calendar.min_days_for_locale(locale_id) do
+        days when is_integer(days) -> days
+        _ -> 1
+      end
+
+    {first_day, min_days}
+  end
+
   defp iso_week_of_year(%{year: year, month: month, day: day, calendar: calendar} = date) do
     if function_exported?(calendar, :iso_week_of_year, 3) do
       case calendar.iso_week_of_year(year, month, day) do

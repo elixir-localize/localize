@@ -1,7 +1,7 @@
 defmodule Localize.MixProject do
   use Mix.Project
 
-  @version "0.43.0"
+  @version "0.44.0"
   @cldr_version_path "priv/localize/version"
   @localize_patch_version_path "priv/localize/localize_patch_version"
 
@@ -20,6 +20,7 @@ defmodule Localize.MixProject do
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
+      test_coverage: [ignore_modules: coverage_ignore_modules()],
       compilers: maybe_elixir_make() ++ [:yecc, :leex] ++ Mix.compilers(),
       make_makefile: "c_src/Makefile",
       dialyzer: [
@@ -205,6 +206,41 @@ defmodule Localize.MixProject do
   defp elixirc_paths(:test), do: ["lib", "data", "test/support"]
   defp elixirc_paths(:bench), do: ["lib", "ex_cldr"]
   defp elixirc_paths(_), do: ["lib"]
+
+  # Modules excluded from `mix test --cover` measurement so the
+  # coverage number reflects the runtime library, not build tooling:
+  #
+  # * `Localize.Data.*` — the locale-data generation pipeline, run by
+  #   `mix localize.generate_locales`, never at library runtime.
+  #
+  # * `Mix.Tasks.*` — mix tasks.
+  #
+  # * Compile-time-only modules — macros, parser generators and
+  #   loaders that execute during compilation, which the coverage
+  #   tool cannot observe.
+  #
+  # * `:leex`/`:yecc` generated lexers and parsers — generated code.
+  defp coverage_ignore_modules do
+    [
+      ~r/^Localize\.Data(\.|$)/,
+      ~r/^Mix\.Tasks\./,
+      Localize.Macros,
+      Localize.Gettext.Messages,
+      Localize.Message.Parser.Combinator,
+      Localize.Unit.Parser.Combinator,
+      Localize.Rfc5646.Grammar,
+      Localizer.Rfc5646.Core,
+      Localize.Number.PluralRule.Loader,
+      Localize.Number.PluralRule.Transformer,
+      :rbnf_lexer,
+      :rbnf_parser,
+      :plural_rules_lexer,
+      :plural_rules_parser,
+      :decimal_formats_lexer,
+      :decimal_formats_parser,
+      :date_time_format_lexer
+    ]
+  end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do

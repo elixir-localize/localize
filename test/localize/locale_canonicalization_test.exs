@@ -5,6 +5,31 @@ defmodule Localize.LocaleCanonicalizationTest do
 
   alias Localize.LanguageTag
 
+  # TR35 Annex C "Territory Exception": multi-replacement territory
+  # aliases are disambiguated by the base language's likely territory
+  # when it appears in the replacement list, otherwise the first
+  # entry. The CLDR test file only exercises `und-SU`-style inputs,
+  # which never trigger the disambiguation, so these are hand-written.
+  describe "multi-replacement territory alias disambiguation" do
+    @annex_c_cases [
+      {"hy-SU", "hy-AM"},
+      {"ru-SU", "ru-RU"},
+      {"und-SU", "und-RU"},
+      {"uk-SU", "uk-UA"},
+      {"kk-SU", "kk-KZ"},
+      {"tg-SU", "tg-TJ"},
+      {"sr-YU", "sr-RS"},
+      {"sr-CS", "sr-RS"}
+    ]
+
+    for {source, expected} <- @annex_c_cases do
+      test "#{source} canonicalizes to #{expected}" do
+        assert {:ok, tag} = Localize.validate_locale(unquote(source))
+        assert tag.canonical_locale_id == unquote(expected)
+      end
+    end
+  end
+
   @data_file Path.join([__DIR__, "..", "support", "data", "locale_canonicalization.txt"])
 
   @test_cases @data_file

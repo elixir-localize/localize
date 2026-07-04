@@ -91,6 +91,16 @@ defmodule Localize.SupplementalData do
     load_supplemental("parent_locales.etf")
   end
 
+  # Day-period rules from CLDR dayPeriods.xml, keyed by rule-set type
+  # (:format for the B/b format symbols, :selection for name
+  # selection), then by language code string. Times are minutes since
+  # midnight; a rule is either %{at: t} or %{from: t, before: t}.
+  @doc false
+  @spec day_periods() :: %{format: map(), selection: map()}
+  def day_periods do
+    load_supplemental("day_periods.etf")
+  end
+
   @doc false
   @spec timezones() :: map()
   def timezones do

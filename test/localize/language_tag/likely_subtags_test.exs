@@ -72,4 +72,29 @@ defmodule Localize.LanguageTag.LikelySubtagsTest do
       end
     end
   end
+
+  describe "FAIL rows against CLDR test data" do
+    # Rows whose expected AddLikely value is the literal "FAIL" have
+    # no likely-subtags mapping. TR35 permits either signalling an
+    # error or returning the input unmodified — what it forbids is
+    # fabricating subtags. The assertion is therefore that the result
+    # (when not an error) is identical to the canonicalized input.
+    for {source, "FAIL", _remove_script, _remove_region} <- @test_cases,
+        source not in @skip_sources do
+      @tag_source source
+
+      test "add_likely_subtags(#{source}) does not invent subtags" do
+        {:ok, tag} = LanguageTag.parse(@tag_source)
+        {:ok, canonical} = LanguageTag.canonicalize(tag)
+
+        case LanguageTag.add_likely_subtags(canonical) do
+          {:error, _} ->
+            :ok
+
+          {:ok, result} ->
+            assert result.canonical_locale_id == canonical.canonical_locale_id
+        end
+      end
+    end
+  end
 end

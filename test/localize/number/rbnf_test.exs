@@ -670,8 +670,11 @@ defmodule Localize.Number.RbnfTest do
       assert {:ok, "101e"} = Rbnf.to_string(101, "digits-ordinal-masculine", locale: :fr)
     end
 
-    test "fr 1001 digits-ordinal-masculine = 1,001e" do
-      assert {:ok, "1,001e"} = Rbnf.to_string(1001, "digits-ordinal-masculine", locale: :fr)
+    test "fr 1001 digits-ordinal-masculine uses the French group separator" do
+      # The digit substitution formats with the rule's locale, so the
+      # grouping separator is the French narrow no-break space, not
+      # the English comma.
+      assert {:ok, "1 001e"} = Rbnf.to_string(1001, "digits-ordinal-masculine", locale: :fr)
     end
 
     test "fr 2 digits-ordinal-masculine = 2e (en agrees here)" do
