@@ -208,6 +208,9 @@ defmodule Localize.Locale.LocaleDisplay.T do
   # CLDR 48.2: Do not use localePattern; append subtag display names directly.
   # Use longest locale name match (e.g., "fr-CA" → "Canadian French"),
   # then only include subtags NOT consumed by the match.
+  # CLDR 48.2 T-extension display: dialect vs standard mode plus
+  # consumed/unconsumed branching for each of script, territory, variants.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp flatten_t_language(
          %Localize.LanguageTag{} = tag,
          _locale_id,

@@ -145,22 +145,7 @@ defmodule Localize.Message.Interpreter do
         err
 
       {bindings, bound, selector_meta} ->
-        case body do
-          {:quoted_pattern, parts} ->
-            case format_pattern(parts, bindings, options) do
-              {:ok, iolist, more_bound, unbound} ->
-                {:ok, iolist, bound ++ more_bound, unbound}
-
-              {:error, iolist, more_bound, unbound} ->
-                {:error, iolist, bound ++ more_bound, unbound}
-
-              {:format_error, _} = err ->
-                err
-            end
-
-          {:match, selectors, variants} ->
-            evaluate_match(selectors, variants, bindings, options, bound, selector_meta)
-        end
+        format_complex_body(body, bindings, options, bound, selector_meta)
     end
   end
 
@@ -172,49 +157,70 @@ defmodule Localize.Message.Interpreter do
     evaluate_match(selectors, variants, bindings, options, [], %{})
   end
 
+  defp format_complex_body({:quoted_pattern, parts}, bindings, options, bound, _selector_meta) do
+    case format_pattern(parts, bindings, options) do
+      {:ok, iolist, more_bound, unbound} ->
+        {:ok, iolist, bound ++ more_bound, unbound}
+
+      {:error, iolist, more_bound, unbound} ->
+        {:error, iolist, bound ++ more_bound, unbound}
+
+      {:format_error, _} = err ->
+        err
+    end
+  end
+
+  defp format_complex_body({:match, selectors, variants}, bindings, options, bound, sel_meta) do
+    evaluate_match(selectors, variants, bindings, options, bound, sel_meta)
+  end
+
   # ── Declaration resolution ───────────────────────────────────
 
   defp resolve_declarations(declarations, bindings, options) do
-    Enum.reduce_while(declarations, {bindings, [], %{}}, fn decl,
-                                                            {bindings_acc, bound_acc, sel_meta} ->
-      case decl do
-        {:input, {:expression, {:variable, name}, func, _attrs}} ->
-          case resolve_variable(name, bindings_acc) do
-            {:ok, value} ->
-              case apply_function(value, func, Keyword.put(options, :bindings, bindings_acc)) do
-                {:ok, formatted} ->
-                  sel_value = selector_value(value, func)
-                  sel_meta = Map.put(sel_meta, name, {sel_value, func})
-                  bindings_acc = Map.put(bindings_acc, name, formatted)
-                  {:cont, {bindings_acc, [name | bound_acc], sel_meta}}
-
-                {:error, reason} ->
-                  {:halt, {:format_error, {:formatter_failed, reason}}}
-              end
-
-            :error ->
-              {:cont, {bindings_acc, bound_acc, sel_meta}}
-          end
-
-        {:local, {:variable, name}, {:expression, operand, func, _attrs}} ->
-          case resolve_operand(operand, bindings_acc) do
-            {:ok, value, _} ->
-              case apply_function(value, func, Keyword.put(options, :bindings, bindings_acc)) do
-                {:ok, formatted} ->
-                  sel_value = selector_value(value, func)
-                  sel_meta = Map.put(sel_meta, name, {sel_value, func})
-                  bindings_acc = Map.put(bindings_acc, name, formatted)
-                  {:cont, {bindings_acc, [name | bound_acc], sel_meta}}
-
-                {:error, reason} ->
-                  {:halt, {:format_error, {:formatter_failed, reason}}}
-              end
-
-            {:unbound, _} ->
-              {:cont, {bindings_acc, bound_acc, sel_meta}}
-          end
-      end
+    Enum.reduce_while(declarations, {bindings, [], %{}}, fn declaration, accumulator ->
+      resolve_declaration(declaration, accumulator, options)
     end)
+  end
+
+  defp resolve_declaration(
+         {:input, {:expression, {:variable, name}, func, _attrs}},
+         {bindings_acc, bound_acc, sel_meta} = accumulator,
+         options
+       ) do
+    case resolve_variable(name, bindings_acc) do
+      {:ok, value} ->
+        bind_declaration(name, value, func, accumulator, options)
+
+      :error ->
+        {:cont, {bindings_acc, bound_acc, sel_meta}}
+    end
+  end
+
+  defp resolve_declaration(
+         {:local, {:variable, name}, {:expression, operand, func, _attrs}},
+         {bindings_acc, bound_acc, sel_meta} = accumulator,
+         options
+       ) do
+    case resolve_operand(operand, bindings_acc) do
+      {:ok, value, _} ->
+        bind_declaration(name, value, func, accumulator, options)
+
+      {:unbound, _} ->
+        {:cont, {bindings_acc, bound_acc, sel_meta}}
+    end
+  end
+
+  defp bind_declaration(name, value, func, {bindings_acc, bound_acc, sel_meta}, options) do
+    case apply_function(value, func, Keyword.put(options, :bindings, bindings_acc)) do
+      {:ok, formatted} ->
+        sel_value = selector_value(value, func)
+        sel_meta = Map.put(sel_meta, name, {sel_value, func})
+        bindings_acc = Map.put(bindings_acc, name, formatted)
+        {:cont, {bindings_acc, [name | bound_acc], sel_meta}}
+
+      {:error, reason} ->
+        {:halt, {:format_error, {:formatter_failed, reason}}}
+    end
   end
 
   # ── Pattern formatting ──────────────────────────────────────────
@@ -325,6 +331,9 @@ defmodule Localize.Message.Interpreter do
     structured_match(selectors, variants, bindings, options, [], %{})
   end
 
+  # MF2 selector resolution: per-selector formatted/original/function
+  # fallbacks plus each variant-formatting outcome.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp structured_match(selectors, variants, bindings, options, bound, selector_meta) do
     selector_info =
       Enum.map(selectors, fn {:variable, name} ->
@@ -698,17 +707,7 @@ defmodule Localize.Message.Interpreter do
 
   defp format_with_function("unit", value, func_opts, options) do
     with {:ok, number} <- ensure_number(value) do
-      case func_opts[:unit] do
-        nil ->
-          {:error, "the :unit function requires a `unit` option"}
-
-        name ->
-          with {:ok, unit} <- Localize.Unit.new(number, name) do
-            localize_opts = resolve_locale_options(options)
-            localize_opts = map_unit_options(localize_opts, func_opts)
-            Localize.Unit.to_string(unit, localize_opts)
-          end
-      end
+      format_number_as_unit(number, func_opts[:unit], func_opts, options)
     end
   end
 
@@ -746,6 +745,18 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
+  defp format_number_as_unit(_number, nil, _func_opts, _options) do
+    {:error, "the :unit function requires a `unit` option"}
+  end
+
+  defp format_number_as_unit(number, unit_name, func_opts, options) do
+    with {:ok, unit} <- Localize.Unit.new(number, unit_name) do
+      localize_opts = resolve_locale_options(options)
+      localize_opts = map_unit_options(localize_opts, func_opts)
+      Localize.Unit.to_string(unit, localize_opts)
+    end
+  end
+
   defp resolve_custom_function(name, options) do
     per_call = Keyword.get(options, :functions, %{})
 
@@ -765,6 +776,9 @@ defmodule Localize.Message.Interpreter do
 
   # ── Match evaluation ───────────────────────────────────────────
 
+  # MF2 match evaluation: per-selector formatted/original/function
+  # fallbacks plus each variant-formatting outcome.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp evaluate_match(selectors, variants, bindings, options, bound, selector_meta) do
     selector_info =
       Enum.map(selectors, fn {:variable, name} ->
@@ -1326,25 +1340,8 @@ defmodule Localize.Message.Interpreter do
 
   defp ensure_date(value) when is_binary(value) do
     case Date.from_iso8601(value) do
-      {:ok, date} ->
-        {:ok, date}
-
-      {:error, _} ->
-        case NaiveDateTime.from_iso8601(value) do
-          {:ok, ndt} ->
-            {:ok, NaiveDateTime.to_date(ndt)}
-
-          {:error, _} ->
-            case DateTime.from_iso8601(value) do
-              {:ok, dt, _offset} ->
-                {:ok, DateTime.to_date(dt)}
-
-              {:error, _} ->
-                {:error,
-                 "cannot parse #{inspect(value)} as a date. " <>
-                   "Expected an ISO 8601 date string."}
-            end
-        end
+      {:ok, date} -> {:ok, date}
+      {:error, _} -> date_from_naive_datetime_string(value)
     end
   end
 
@@ -1358,27 +1355,29 @@ defmodule Localize.Message.Interpreter do
        "Expected a Date, NaiveDateTime, DateTime, or ISO 8601 date string."}
   end
 
-  defp ensure_datetime(value) when is_binary(value) do
+  defp date_from_naive_datetime_string(value) do
     case NaiveDateTime.from_iso8601(value) do
-      {:ok, ndt} ->
-        {:ok, ndt}
+      {:ok, ndt} -> {:ok, NaiveDateTime.to_date(ndt)}
+      {:error, _} -> date_from_datetime_string(value)
+    end
+  end
+
+  defp date_from_datetime_string(value) do
+    case DateTime.from_iso8601(value) do
+      {:ok, dt, _offset} ->
+        {:ok, DateTime.to_date(dt)}
 
       {:error, _} ->
-        case DateTime.from_iso8601(value) do
-          {:ok, dt, _offset} ->
-            {:ok, dt}
+        {:error,
+         "cannot parse #{inspect(value)} as a date. " <>
+           "Expected an ISO 8601 date string."}
+    end
+  end
 
-          {:error, _} ->
-            case Date.from_iso8601(value) do
-              {:ok, date} ->
-                {:ok, NaiveDateTime.new!(date, ~T[00:00:00])}
-
-              {:error, _} ->
-                {:error,
-                 "cannot parse #{inspect(value)} as a datetime. " <>
-                   "Expected an ISO 8601 datetime string."}
-            end
-        end
+  defp ensure_datetime(value) when is_binary(value) do
+    case NaiveDateTime.from_iso8601(value) do
+      {:ok, ndt} -> {:ok, ndt}
+      {:error, _} -> datetime_from_datetime_string(value)
     end
   end
 
@@ -1390,6 +1389,25 @@ defmodule Localize.Message.Interpreter do
     {:error,
      "cannot format #{inspect(value)} as a datetime. " <>
        "Expected a NaiveDateTime, DateTime, Date, or ISO 8601 datetime string."}
+  end
+
+  defp datetime_from_datetime_string(value) do
+    case DateTime.from_iso8601(value) do
+      {:ok, dt, _offset} -> {:ok, dt}
+      {:error, _} -> datetime_from_date_string(value)
+    end
+  end
+
+  defp datetime_from_date_string(value) do
+    case Date.from_iso8601(value) do
+      {:ok, date} ->
+        {:ok, NaiveDateTime.new!(date, ~T[00:00:00])}
+
+      {:error, _} ->
+        {:error,
+         "cannot parse #{inspect(value)} as a datetime. " <>
+           "Expected an ISO 8601 datetime string."}
+    end
   end
 
   # ── Variable and binding helpers ───────────────────────────────

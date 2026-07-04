@@ -105,15 +105,17 @@ defmodule Localize.Data.Locale do
         files
         |> Enum.filter(&String.ends_with?(&1, ".json"))
         |> Enum.sort()
-        |> Enum.map(fn file ->
-          content = File.read!(Path.join(locale_dir, file))
-          if content == "", do: %{}, else: :json.decode(content)
-        end)
+        |> Enum.map(&decode_locale_file(locale_dir, &1))
         |> merge_maps()
 
       {:error, _} ->
         %{}
     end
+  end
+
+  defp decode_locale_file(locale_dir, file) do
+    content = File.read!(Path.join(locale_dir, file))
+    if content == "", do: %{}, else: :json.decode(content)
   end
 
   defp merge_maps([]), do: %{}

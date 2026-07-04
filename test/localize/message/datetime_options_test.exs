@@ -2,7 +2,7 @@ if Code.ensure_loaded?(Localize.DateTime.Formatter) do
   defmodule Localize.Message.DateTimeOptionsTest do
     use ExUnit.Case, async: true
 
-    alias Localize.Message.{Parser, Interpreter}
+    alias Localize.Message.{Interpreter, Parser}
 
     defp format(source, bindings), do: format_with_locale(source, bindings, "en-US")
 

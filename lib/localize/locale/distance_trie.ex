@@ -12,6 +12,9 @@ defmodule Localize.Locale.DistanceTrie do
 
   @doc false
   @spec lookup(String.t(), atom(), atom(), String.t(), atom(), atom()) :: number()
+  # ICU XLocaleDistance trie walk: match/wildcard/default fallbacks at
+  # each of the language, script, and territory levels.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def lookup(
         desired_lang,
         desired_script,
@@ -244,10 +247,10 @@ defmodule Localize.Locale.DistanceTrie do
 
       acc = put_lang_entry(acc, desired_lang, supported_lang, distance)
 
-      if not one_way do
-        put_lang_entry(acc, supported_lang, desired_lang, distance)
-      else
+      if one_way do
         acc
+      else
+        put_lang_entry(acc, supported_lang, desired_lang, distance)
       end
     end)
   end
@@ -276,7 +279,9 @@ defmodule Localize.Locale.DistanceTrie do
           distance
         )
 
-      if not one_way do
+      if one_way do
+        acc
+      else
         put_script_entry(
           acc,
           supported_lang,
@@ -285,8 +290,6 @@ defmodule Localize.Locale.DistanceTrie do
           desired_script,
           distance
         )
-      else
-        acc
       end
     end)
   end
@@ -316,47 +319,70 @@ defmodule Localize.Locale.DistanceTrie do
 
   defp insert_territory_rules(trie, rules, variables) do
     Enum.reduce(rules, trie, fn rule, acc ->
-      [desired_lang, desired_script, desired_terr] = rule.desired
-      [supported_lang, supported_script, supported_terr] = rule.supported
-      one_way = Map.get(rule, :one_way, false)
-      distance = rule.distance
-
-      desired_keys = expand_territory_keys(desired_terr, variables)
-      supported_keys = expand_territory_keys(supported_terr, variables)
-
-      acc =
-        for dk <- desired_keys, sk <- supported_keys, reduce: acc do
-          acc ->
-            put_territory_entry(
-              acc,
-              desired_lang,
-              supported_lang,
-              desired_script,
-              supported_script,
-              dk,
-              sk,
-              distance
-            )
-        end
-
-      if not one_way do
-        for dk <- supported_keys, sk <- desired_keys, reduce: acc do
-          acc ->
-            put_territory_entry(
-              acc,
-              supported_lang,
-              desired_lang,
-              supported_script,
-              desired_script,
-              dk,
-              sk,
-              distance
-            )
-        end
-      else
-        acc
-      end
+      insert_territory_rule(acc, rule, variables)
     end)
+  end
+
+  defp insert_territory_rule(trie, rule, variables) do
+    [desired_lang, desired_script, desired_terr] = rule.desired
+    [supported_lang, supported_script, supported_terr] = rule.supported
+    one_way = Map.get(rule, :one_way, false)
+    distance = rule.distance
+
+    desired_keys = expand_territory_keys(desired_terr, variables)
+    supported_keys = expand_territory_keys(supported_terr, variables)
+
+    trie =
+      put_territory_entries(
+        trie,
+        desired_lang,
+        supported_lang,
+        desired_script,
+        supported_script,
+        desired_keys,
+        supported_keys,
+        distance
+      )
+
+    if one_way do
+      trie
+    else
+      put_territory_entries(
+        trie,
+        supported_lang,
+        desired_lang,
+        supported_script,
+        desired_script,
+        supported_keys,
+        desired_keys,
+        distance
+      )
+    end
+  end
+
+  defp put_territory_entries(
+         trie,
+         desired_lang,
+         supported_lang,
+         desired_script,
+         supported_script,
+         desired_keys,
+         supported_keys,
+         distance
+       ) do
+    for desired_key <- desired_keys, supported_key <- supported_keys, reduce: trie do
+      acc ->
+        put_territory_entry(
+          acc,
+          desired_lang,
+          supported_lang,
+          desired_script,
+          supported_script,
+          desired_key,
+          supported_key,
+          distance
+        )
+    end
   end
 
   # Expand territory patterns to trie keys.

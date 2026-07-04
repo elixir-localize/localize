@@ -95,16 +95,20 @@ defmodule Localize.Script do
           result
 
         {:error, _} = error ->
-          if fallback do
-            with {:ok, default_locale_id} <-
-                   Localize.Locale.cldr_locale_id_from(Localize.default_locale()) do
-              lookup_script(script_atom, default_locale_id, style)
-            end
-          else
-            error
-          end
+          display_name_fallback(fallback, script_atom, style, error)
       end
     end
+  end
+
+  defp display_name_fallback(true, script_atom, style, _error) do
+    with {:ok, default_locale_id} <-
+           Localize.Locale.cldr_locale_id_from(Localize.default_locale()) do
+      lookup_script(script_atom, default_locale_id, style)
+    end
+  end
+
+  defp display_name_fallback(false, _script_atom, _style, error) do
+    error
   end
 
   @doc """
@@ -242,20 +246,24 @@ defmodule Localize.Script do
     with {:ok, scripts} <- load_scripts(locale_id) do
       case Map.fetch(scripts, script_atom) do
         {:ok, names} ->
-          case resolve_style(names, style) do
-            {:ok, _} = result ->
-              result
-
-            :error ->
-              case Map.fetch(names, :standard) do
-                {:ok, _} = result -> result
-                :error -> {:error, Localize.UnknownScriptError.exception(script: script_atom)}
-              end
-          end
+          resolve_script_name(names, style, script_atom)
 
         :error ->
           {:error, Localize.UnknownScriptError.exception(script: script_atom)}
       end
+    end
+  end
+
+  defp resolve_script_name(names, style, script_atom) do
+    case resolve_style(names, style) do
+      {:ok, _} = result ->
+        result
+
+      :error ->
+        case Map.fetch(names, :standard) do
+          {:ok, _} = result -> result
+          :error -> {:error, Localize.UnknownScriptError.exception(script: script_atom)}
+        end
     end
   end
 

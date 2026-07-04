@@ -16,8 +16,8 @@ defmodule Localize.Message.Formatter do
 
   """
 
-  alias Localize.Message.Highlighter
   alias Localize.Message.Formatter.{ANSI, HTML, Plain}
+  alias Localize.Message.Highlighter
 
   @type format :: :plain | :html | :ansi
 

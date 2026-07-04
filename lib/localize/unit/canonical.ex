@@ -53,8 +53,7 @@ defmodule Localize.Unit.Canonical do
     # Each component is formatted individually and joined with "-and-".
     canonical_name =
       units
-      |> Enum.map(&format_single_unit/1)
-      |> Enum.join("-and-")
+      |> Enum.map_join("-and-", &format_single_unit/1)
 
     {canonical_name, {:mixed_unit, units}}
   end
@@ -117,8 +116,7 @@ defmodule Localize.Unit.Canonical do
 
   defp format_unit_list(units) do
     units
-    |> Enum.map(&format_single_unit/1)
-    |> Enum.join("-")
+    |> Enum.map_join("-", &format_single_unit/1)
   end
 
   defp format_single_unit({:single_unit, opts}) do
@@ -241,30 +239,7 @@ defmodule Localize.Unit.Canonical do
     # Walk numerator in order, cancelling against denominator powers
     {final_num, remaining_den_map} =
       Enum.reduce(num_singles, {[], den_map}, fn {:single_unit, opts}, {num_acc, d_map} ->
-        key = {Keyword.get(opts, :prefix), Keyword.get(opts, :base)}
-        num_power = power_to_integer(Keyword.get(opts, :power))
-
-        case Map.get(d_map, key) do
-          nil ->
-            {[{:single_unit, opts} | num_acc], d_map}
-
-          {den_power, _den_opts} ->
-            net = num_power - den_power
-            updated_d_map = Map.delete(d_map, key)
-
-            cond do
-              net > 0 ->
-                unit = {:single_unit, Keyword.put(opts, :power, integer_to_power(net))}
-                {[unit | num_acc], updated_d_map}
-
-              net < 0 ->
-                # Remainder goes back to denominator map with updated power
-                {num_acc, Map.put(updated_d_map, key, {abs(net), opts})}
-
-              true ->
-                {num_acc, updated_d_map}
-            end
-        end
+        cancel_numerator_unit(opts, num_acc, d_map)
       end)
 
     # Remaining denominator entries that were not cancelled, in original order
@@ -281,6 +256,35 @@ defmodule Localize.Unit.Canonical do
       end)
 
     {Enum.reverse(final_num) ++ num_constants, final_den ++ den_constants}
+  end
+
+  # Cancel one numerator unit against the denominator power map.
+  defp cancel_numerator_unit(options, num_acc, den_map) do
+    key = {Keyword.get(options, :prefix), Keyword.get(options, :base)}
+    num_power = power_to_integer(Keyword.get(options, :power))
+
+    case Map.get(den_map, key) do
+      nil ->
+        {[{:single_unit, options} | num_acc], den_map}
+
+      {den_power, _den_options} ->
+        net = num_power - den_power
+        apply_net_power(net, key, options, num_acc, Map.delete(den_map, key))
+    end
+  end
+
+  defp apply_net_power(net, _key, options, num_acc, den_map) when net > 0 do
+    unit = {:single_unit, Keyword.put(options, :power, integer_to_power(net))}
+    {[unit | num_acc], den_map}
+  end
+
+  # Negative remainder goes back to the denominator map with updated power
+  defp apply_net_power(net, key, options, num_acc, den_map) when net < 0 do
+    {num_acc, Map.put(den_map, key, {abs(net), options})}
+  end
+
+  defp apply_net_power(0, _key, _options, num_acc, den_map) do
+    {num_acc, den_map}
   end
 
   defp split_constants(units) do

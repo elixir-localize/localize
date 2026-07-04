@@ -263,9 +263,7 @@ defmodule Localize.Duration do
         # All parts are zero — format as "0 seconds"
         unit = Localize.Unit.new!(0, "second")
 
-        with {:ok, formatted} <- Localize.Unit.to_string(unit, locale: locale, format: format) do
-          {:ok, formatted}
-        end
+        Localize.Unit.to_string(unit, locale: locale, format: format)
 
       units ->
         with {:ok, formatted_parts} <- format_each(units, locale, format) do

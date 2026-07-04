@@ -55,11 +55,14 @@ defmodule Localize.Collation.Variable do
             {[{zeroed, 0} | acc], true}
 
           true ->
-            l4 = if Element.primary(elem) > 0, do: 0xFFFF, else: 0
-            {[{elem, l4} | acc], false}
+            {[{elem, default_quaternary(elem)} | acc], false}
         end
       end)
 
     Enum.reverse(result)
+  end
+
+  defp default_quaternary(elem) do
+    if Element.primary(elem) > 0, do: 0xFFFF, else: 0
   end
 end

@@ -210,66 +210,7 @@ defmodule Localize.DateTime do
       case Map.get(available, skeleton) do
         nil ->
           # Try best-match algorithm for skeletons not found exactly
-          case Localize.DateTime.Format.Match.best_match(skeleton, locale_id) do
-            {:ok, matched_skeleton} when is_atom(matched_skeleton) ->
-              case Map.get(available, matched_skeleton) do
-                nil ->
-                  {:error,
-                   Localize.DateTimeUnresolvedFormatError.exception(
-                     format: skeleton,
-                     locale: locale_id
-                   )}
-
-                matched_pattern ->
-                  format_resolved_pattern(
-                    Localize.DateTime.Format.resolve_variant(matched_pattern, options),
-                    datetime,
-                    options,
-                    locale_id,
-                    skeleton
-                  )
-              end
-
-            {:ok, {date_skeleton, time_skeleton}} ->
-              date_pattern =
-                Localize.DateTime.Format.resolve_variant(
-                  Map.get(available, date_skeleton, ""),
-                  options
-                )
-
-              time_pattern =
-                Localize.DateTime.Format.resolve_variant(
-                  Map.get(available, time_skeleton, ""),
-                  options
-                )
-
-              if is_binary(date_pattern) and is_binary(time_pattern) do
-                options_map =
-                  options
-                  |> Map.new()
-                  |> Map.put(:date_format, :medium)
-                  |> Map.put(:time_format, :medium)
-
-                with {:ok, wrapper} <- resolve_wrapper(:medium, locale_id, :default) do
-                  combined = String.replace(wrapper, "{0}", time_pattern)
-                  combined = String.replace(combined, "{1}", date_pattern)
-                  Localize.DateTime.Formatter.format(datetime, combined, locale_id, options_map)
-                end
-              else
-                {:error,
-                 Localize.DateTimeUnresolvedFormatError.exception(
-                   format: skeleton,
-                   locale: locale_id
-                 )}
-              end
-
-            _ ->
-              {:error,
-               Localize.DateTimeUnresolvedFormatError.exception(
-                 format: skeleton,
-                 locale: locale_id
-               )}
-          end
+          format_with_best_match(datetime, options, locale_id, skeleton, available)
 
         %{} = variant_map ->
           format_resolved_pattern(
@@ -284,6 +225,103 @@ defmodule Localize.DateTime do
           Localize.DateTime.Formatter.format(datetime, pattern, locale_id, Map.new(options))
       end
     end
+  end
+
+  defp format_with_best_match(datetime, options, locale_id, skeleton, available) do
+    case Localize.DateTime.Format.Match.best_match(skeleton, locale_id) do
+      {:ok, matched_skeleton} when is_atom(matched_skeleton) ->
+        format_matched_skeleton(
+          Map.get(available, matched_skeleton),
+          datetime,
+          options,
+          locale_id,
+          skeleton
+        )
+
+      {:ok, {date_skeleton, time_skeleton}} ->
+        date_pattern =
+          Localize.DateTime.Format.resolve_variant(
+            Map.get(available, date_skeleton, ""),
+            options
+          )
+
+        time_pattern =
+          Localize.DateTime.Format.resolve_variant(
+            Map.get(available, time_skeleton, ""),
+            options
+          )
+
+        format_combined_patterns(
+          date_pattern,
+          time_pattern,
+          datetime,
+          options,
+          locale_id,
+          skeleton
+        )
+
+      _ ->
+        {:error,
+         Localize.DateTimeUnresolvedFormatError.exception(
+           format: skeleton,
+           locale: locale_id
+         )}
+    end
+  end
+
+  defp format_matched_skeleton(nil, _datetime, _options, locale_id, skeleton) do
+    {:error,
+     Localize.DateTimeUnresolvedFormatError.exception(
+       format: skeleton,
+       locale: locale_id
+     )}
+  end
+
+  defp format_matched_skeleton(matched_pattern, datetime, options, locale_id, skeleton) do
+    format_resolved_pattern(
+      Localize.DateTime.Format.resolve_variant(matched_pattern, options),
+      datetime,
+      options,
+      locale_id,
+      skeleton
+    )
+  end
+
+  defp format_combined_patterns(
+         date_pattern,
+         time_pattern,
+         datetime,
+         options,
+         locale_id,
+         _skeleton
+       )
+       when is_binary(date_pattern) and is_binary(time_pattern) do
+    options_map =
+      options
+      |> Map.new()
+      |> Map.put(:date_format, :medium)
+      |> Map.put(:time_format, :medium)
+
+    with {:ok, wrapper} <- resolve_wrapper(:medium, locale_id, :default) do
+      combined = String.replace(wrapper, "{0}", time_pattern)
+      combined = String.replace(combined, "{1}", date_pattern)
+      Localize.DateTime.Formatter.format(datetime, combined, locale_id, options_map)
+    end
+  end
+
+  defp format_combined_patterns(
+         _date_pattern,
+         _time_pattern,
+         _datetime,
+         _options,
+         locale_id,
+         skeleton
+       ) do
+    {:error,
+     Localize.DateTimeUnresolvedFormatError.exception(
+       format: skeleton,
+       locale: locale_id
+     )}
   end
 
   defp format_resolved_pattern(nil, _datetime, _options, locale_id, skeleton) do
@@ -305,15 +343,16 @@ defmodule Localize.DateTime do
     case style do
       :at ->
         # Use at-style format (e.g., "{1} 'at' {0}")
-        with {:ok, at_formats} <-
-               Localize.DateTime.Format.date_time_at_formats(locale_id) do
-          pattern =
-            get_in(at_formats, [:standard, standard_format]) ||
-              fallback_wrapper(standard_format, locale_id)
+        case Localize.DateTime.Format.date_time_at_formats(locale_id) do
+          {:ok, at_formats} ->
+            pattern =
+              get_in(at_formats, [:standard, standard_format]) ||
+                fallback_wrapper(standard_format, locale_id)
 
-          {:ok, pattern}
-        else
-          _ -> {:ok, fallback_wrapper(standard_format, locale_id)}
+            {:ok, pattern}
+
+          _ ->
+            {:ok, fallback_wrapper(standard_format, locale_id)}
         end
 
       _ ->

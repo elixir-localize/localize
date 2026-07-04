@@ -85,37 +85,41 @@ defmodule Localize.Collation.Tailoring do
     end
   end
 
-  @dialyzer {:nowarn_function, walk_parent_chain: 3}
+  @dialyzer {:nowarn_function, walk_parent_chain: 3, resolve_parent_tailoring: 3}
   defp walk_parent_chain(tag, type, visited) do
     case Localize.Locale.parent(tag) do
       {:ok, parent_tag} ->
-        parent_language = parent_tag.language |> to_string()
-        parent_id = Localize.LanguageTag.to_string(parent_tag)
-
-        cond do
-          parent_id in visited ->
-            # Chain exhausted — try und as final fallback
-            check_und_fallback(type)
-
-          parent_language == "und" ->
-            # Reached und — check for und tailoring (e.g., und:search)
-            case Map.get(@tailorings, {"und", type}) do
-              nil -> nil
-              rules_str -> build_tailoring(rules_str)
-            end
-
-          true ->
-            case Map.get(@tailorings, {parent_language, type}) do
-              nil ->
-                walk_parent_chain(parent_tag, type, MapSet.put(visited, parent_id))
-
-              rules_str ->
-                build_tailoring(rules_str)
-            end
-        end
+        resolve_parent_tailoring(parent_tag, type, visited)
 
       {:error, _} ->
         check_und_fallback(type)
+    end
+  end
+
+  defp resolve_parent_tailoring(parent_tag, type, visited) do
+    parent_language = parent_tag.language |> to_string()
+    parent_id = Localize.LanguageTag.to_string(parent_tag)
+
+    cond do
+      parent_id in visited ->
+        # Chain exhausted — try und as final fallback
+        check_und_fallback(type)
+
+      parent_language == "und" ->
+        # Reached und — check for und tailoring (e.g., und:search)
+        case Map.get(@tailorings, {"und", type}) do
+          nil -> nil
+          rules_str -> build_tailoring(rules_str)
+        end
+
+      true ->
+        case Map.get(@tailorings, {parent_language, type}) do
+          nil ->
+            walk_parent_chain(parent_tag, type, MapSet.put(visited, parent_id))
+
+          rules_str ->
+            build_tailoring(rules_str)
+        end
     end
   end
 
@@ -203,18 +207,7 @@ defmodule Localize.Collation.Tailoring do
     {result, current} =
       Enum.reduce(lines, {[], nil}, fn line, {acc, current} ->
         stripped = strip_bidi_marks(line)
-
-        if continuation_line?(stripped) do
-          case current do
-            nil -> {acc, line}
-            prev -> {acc, prev <> line}
-          end
-        else
-          case current do
-            nil -> {acc, line}
-            prev -> {[prev | acc], line}
-          end
-        end
+        accumulate_rule_line(continuation_line?(stripped), line, acc, current)
       end)
 
     result =
@@ -225,6 +218,13 @@ defmodule Localize.Collation.Tailoring do
 
     Enum.reverse(result)
   end
+
+  # A continuation line is appended to the current rule; any other
+  # line flushes the current rule and starts a new one.
+  defp accumulate_rule_line(true, line, acc, nil), do: {acc, line}
+  defp accumulate_rule_line(true, line, acc, previous), do: {acc, previous <> line}
+  defp accumulate_rule_line(false, line, acc, nil), do: {acc, line}
+  defp accumulate_rule_line(false, line, acc, previous), do: {[previous | acc], line}
 
   defp continuation_line?(line) do
     String.starts_with?(line, "<<<*") or
@@ -261,6 +261,9 @@ defmodule Localize.Collation.Tailoring do
     {overlay, option_overrides}
   end
 
+  # CLDR collation rule dispatch: one branch per [option] directive
+  # plus the ordering-rule and comment line shapes.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp parse_rule_line(line) do
     line = String.trim(line)
 
@@ -353,20 +356,21 @@ defmodule Localize.Collation.Tailoring do
     |> String.split(~r/\s+/, trim: true)
     |> Enum.flat_map(fn token ->
       case String.split(token, "-", parts: 2) do
-        [from, to] ->
-          from_cp = from |> String.to_charlist() |> List.first()
-          to_cp = to |> String.to_charlist() |> List.first()
-
-          if from_cp && to_cp && to_cp >= from_cp do
-            Enum.to_list(from_cp..to_cp)
-          else
-            String.to_charlist(token)
-          end
-
-        [single] ->
-          String.to_charlist(single)
+        [from, to] -> expand_range_token(token, from, to)
+        [single] -> String.to_charlist(single)
       end
     end)
+  end
+
+  defp expand_range_token(token, from, to) do
+    from_cp = from |> String.to_charlist() |> List.first()
+    to_cp = to |> String.to_charlist() |> List.first()
+
+    if from_cp && to_cp && to_cp >= from_cp do
+      Enum.to_list(from_cp..to_cp)
+    else
+      String.to_charlist(token)
+    end
   end
 
   defp parse_reset_and_rules(str) do
@@ -426,34 +430,37 @@ defmodule Localize.Collation.Tailoring do
       [full, op, chars | _] ->
         {level, star?} = parse_operator(op)
         rest = String.trim_leading(str, full)
-
-        if star? do
-          # Star syntax: each grapheme cluster gets its own entry
-          entries =
-            chars
-            |> String.trim()
-            |> String.graphemes()
-            |> Enum.map(fn grapheme ->
-              cps = target_to_codepoints(grapheme)
-              {level, cps}
-            end)
-
-          entries ++ parse_ordering_rules(rest)
-        else
-          # Regular syntax — handle slash expansion
-          {target_chars, expansion} = split_expansion(chars)
-          cps = target_to_codepoints(target_chars)
-
-          if expansion do
-            expansion_cps = target_to_codepoints(expansion)
-            [{level, cps, expansion_cps} | parse_ordering_rules(rest)]
-          else
-            [{level, cps} | parse_ordering_rules(rest)]
-          end
-        end
+        parse_rule_targets(star?, level, chars, rest)
 
       nil ->
         []
+    end
+  end
+
+  # Star syntax: each grapheme cluster gets its own entry
+  defp parse_rule_targets(true, level, chars, rest) do
+    entries =
+      chars
+      |> String.trim()
+      |> String.graphemes()
+      |> Enum.map(fn grapheme ->
+        cps = target_to_codepoints(grapheme)
+        {level, cps}
+      end)
+
+    entries ++ parse_ordering_rules(rest)
+  end
+
+  # Regular syntax — handle slash expansion
+  defp parse_rule_targets(false, level, chars, rest) do
+    {target_chars, expansion} = split_expansion(chars)
+    cps = target_to_codepoints(target_chars)
+
+    if expansion do
+      expansion_cps = target_to_codepoints(expansion)
+      [{level, cps, expansion_cps} | parse_ordering_rules(rest)]
+    else
+      [{level, cps} | parse_ordering_rules(rest)]
     end
   end
 
@@ -507,91 +514,96 @@ defmodule Localize.Collation.Tailoring do
 
     {overlay, _state} =
       Enum.reduce(ops, {%{}, nil}, fn op, {overlay, state} ->
-        case op do
-          {:reset, cps} ->
-            elements = lookup_elements(cps)
-            {overlay, {:after, elements}}
-
-          {:reset_before, level, cps} ->
-            elements = lookup_elements(cps)
-            adjusted = adjust_before(elements, level)
-            {overlay, {:after, adjusted}}
-
-          # Positional anchors like `&[last regular]` or `&[first
-          # primary ignorable]`. Semantically these insert subsequent
-          # `<X<Y...` rules at a specific boundary in the primary-weight
-          # spectrum. We map each anchor to a synthetic element whose
-          # primary is outside the DUCET range so subsequent `<*` rules
-          # get incrementing primaries that won't collide with real
-          # DUCET entries. This unlocks thousands of Han ordering rules
-          # in the CJK tailorings (pinyin, stroke, zhuyin).
-          {:reset_special, anchor_str} ->
-            elements = synthetic_anchor_elements(anchor_str)
-            {overlay, {:after, elements}}
-
-          # Expansion: target sorts at `level` relative to the
-          # expansion's collation elements. E.g., ccs/cs means
-          # ccs produces the same elements as cs but at tertiary
-          # level below.
-          {level, target_cps, expansion_cps}
-          when level in [:primary, :secondary, :tertiary, :identical] ->
-            expansion_key = Parser.codepoints_to_key(expansion_cps)
-
-            expansion_elements =
-              case Map.get(overlay, expansion_key) do
-                nil -> lookup_elements(expansion_cps)
-                elements -> elements
-              end
-
-            new_elements =
-              if level == :identical do
-                expansion_elements
-              else
-                compute_tailored_elements(expansion_elements, level)
-              end
-
-            key = Parser.codepoints_to_key(target_cps)
-            new_overlay = Map.put(overlay, key, new_elements)
-            {new_overlay, {:after, new_elements}}
-
-          # Identical (=): target gets the same elements as the anchor
-          {:identical, cps} ->
-            case state do
-              {:after, anchor_elements} ->
-                key = Parser.codepoints_to_key(cps)
-                new_overlay = Map.put(overlay, key, anchor_elements)
-                # State stays the same — next entry still relative to anchor
-                {new_overlay, state}
-
-              nil ->
-                {overlay, state}
-            end
-
-          {level, cps} when level in [:primary, :secondary, :tertiary] ->
-            case state do
-              {:after, anchor_elements} ->
-                new_elements = compute_tailored_elements(anchor_elements, level)
-                key = Parser.codepoints_to_key(cps)
-                new_overlay = Map.put(overlay, key, new_elements)
-                {new_overlay, {:after, new_elements}}
-
-              nil ->
-                {overlay, state}
-            end
-
-          other ->
-            require Logger
-
-            Logger.debug(
-              "Unhandled tailoring operation: #{inspect(other, limit: 3, printable_limit: 120)}",
-              domain: [:localize]
-            )
-
-            {overlay, state}
-        end
+        apply_operation(op, overlay, state)
       end)
 
     overlay
+  end
+
+  defp apply_operation({:reset, cps}, overlay, _state) do
+    elements = lookup_elements(cps)
+    {overlay, {:after, elements}}
+  end
+
+  defp apply_operation({:reset_before, level, cps}, overlay, _state) do
+    elements = lookup_elements(cps)
+    adjusted = adjust_before(elements, level)
+    {overlay, {:after, adjusted}}
+  end
+
+  # Positional anchors like `&[last regular]` or `&[first
+  # primary ignorable]`. Semantically these insert subsequent
+  # `<X<Y...` rules at a specific boundary in the primary-weight
+  # spectrum. We map each anchor to a synthetic element whose
+  # primary is outside the DUCET range so subsequent `<*` rules
+  # get incrementing primaries that won't collide with real
+  # DUCET entries. This unlocks thousands of Han ordering rules
+  # in the CJK tailorings (pinyin, stroke, zhuyin).
+  defp apply_operation({:reset_special, anchor_str}, overlay, _state) do
+    elements = synthetic_anchor_elements(anchor_str)
+    {overlay, {:after, elements}}
+  end
+
+  # Expansion: target sorts at `level` relative to the
+  # expansion's collation elements. E.g., ccs/cs means
+  # ccs produces the same elements as cs but at tertiary
+  # level below.
+  defp apply_operation({level, target_cps, expansion_cps}, overlay, _state)
+       when level in [:primary, :secondary, :tertiary, :identical] do
+    expansion_key = Parser.codepoints_to_key(expansion_cps)
+
+    expansion_elements =
+      case Map.get(overlay, expansion_key) do
+        nil -> lookup_elements(expansion_cps)
+        elements -> elements
+      end
+
+    new_elements =
+      if level == :identical do
+        expansion_elements
+      else
+        compute_tailored_elements(expansion_elements, level)
+      end
+
+    key = Parser.codepoints_to_key(target_cps)
+    new_overlay = Map.put(overlay, key, new_elements)
+    {new_overlay, {:after, new_elements}}
+  end
+
+  # Identical (=): target gets the same elements as the anchor
+  defp apply_operation({:identical, cps}, overlay, {:after, anchor_elements} = state) do
+    key = Parser.codepoints_to_key(cps)
+    new_overlay = Map.put(overlay, key, anchor_elements)
+    # State stays the same — next entry still relative to anchor
+    {new_overlay, state}
+  end
+
+  defp apply_operation({:identical, _cps}, overlay, nil) do
+    {overlay, nil}
+  end
+
+  defp apply_operation({level, cps}, overlay, {:after, anchor_elements})
+       when level in [:primary, :secondary, :tertiary] do
+    new_elements = compute_tailored_elements(anchor_elements, level)
+    key = Parser.codepoints_to_key(cps)
+    new_overlay = Map.put(overlay, key, new_elements)
+    {new_overlay, {:after, new_elements}}
+  end
+
+  defp apply_operation({level, _cps}, overlay, nil)
+       when level in [:primary, :secondary, :tertiary] do
+    {overlay, nil}
+  end
+
+  defp apply_operation(other, overlay, state) do
+    require Logger
+
+    Logger.debug(
+      "Unhandled tailoring operation: #{inspect(other, limit: 3, printable_limit: 120)}",
+      domain: [:localize]
+    )
+
+    {overlay, state}
   end
 
   defp lookup_elements(cps) do
@@ -600,12 +612,14 @@ defmodule Localize.Collation.Tailoring do
         elements
 
       :unmapped ->
-        Enum.flat_map(cps, fn cp ->
-          case Table.lookup(cp) do
-            {:ok, elems} -> elems
-            :unmapped -> [Element.new(0, 0x0020, 0x0002)]
-          end
-        end)
+        Enum.flat_map(cps, &lookup_single_codepoint/1)
+    end
+  end
+
+  defp lookup_single_codepoint(cp) do
+    case Table.lookup(cp) do
+      {:ok, elements} -> elements
+      :unmapped -> [Element.new(0, 0x0020, 0x0002)]
     end
   end
 
@@ -676,6 +690,9 @@ defmodule Localize.Collation.Tailoring do
   @synthetic_last_tertiary_ignorable 0x00
   @synthetic_first_tertiary_ignorable 0x00
 
+  # One branch per CLDR logical-position anchor ([first/last regular,
+  # primary/secondary/tertiary ignorable]).
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp synthetic_anchor_elements(str) do
     primary =
       cond do

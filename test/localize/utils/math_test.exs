@@ -2,8 +2,8 @@ defmodule Localize.Utils.MathTest do
   use ExUnit.Case, async: true
   use ExUnitProperties
 
-  alias Localize.Utils.Math
   alias Localize.Utils.Digits
+  alias Localize.Utils.Math
 
   doctest Localize.Utils.Math
 

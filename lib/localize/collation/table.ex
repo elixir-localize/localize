@@ -145,10 +145,7 @@ defmodule Localize.Collation.Table do
     lengths = contraction_starters(cp)
 
     if lengths == [] do
-      case lookup(cp) do
-        {:ok, elements} -> {[cp], elements, rest}
-        :unmapped -> {:unmapped, cp, rest}
-      end
+      match_single_codepoint(cp, rest)
     else
       max_len = Enum.max(lengths)
       available = [cp | Enum.take(rest, max_len - 1)]
@@ -156,36 +153,41 @@ defmodule Localize.Collation.Table do
       result =
         max_len..2//-1
         |> Enum.reduce_while(nil, fn len, _acc ->
-          if len <= length(available) do
-            candidate = Enum.take(available, len)
-
-            case lookup(candidate) do
-              {:ok, elements} ->
-                remaining = Enum.drop([cp | rest], len)
-                {:halt, {candidate, elements, remaining}}
-
-              :unmapped ->
-                {:cont, nil}
-            end
-          else
-            {:cont, nil}
-          end
+          match_contraction(len, available, cp, rest)
         end)
 
       case result do
-        nil ->
-          case lookup(cp) do
-            {:ok, elements} -> {[cp], elements, rest}
-            :unmapped -> {:unmapped, cp, rest}
-          end
-
-        match ->
-          match
+        nil -> match_single_codepoint(cp, rest)
+        match -> match
       end
     end
   end
 
   def longest_match([]), do: :done
+
+  defp match_single_codepoint(cp, rest) do
+    case lookup(cp) do
+      {:ok, elements} -> {[cp], elements, rest}
+      :unmapped -> {:unmapped, cp, rest}
+    end
+  end
+
+  defp match_contraction(len, available, cp, rest) do
+    if len <= length(available) do
+      candidate = Enum.take(available, len)
+
+      case lookup(candidate) do
+        {:ok, elements} ->
+          remaining = Enum.drop([cp | rest], len)
+          {:halt, {candidate, elements, remaining}}
+
+        :unmapped ->
+          {:cont, nil}
+      end
+    else
+      {:cont, nil}
+    end
+  end
 
   @doc """
   Look up collation elements with a tailoring overlay checked first.
@@ -266,21 +268,7 @@ defmodule Localize.Collation.Table do
 
         overlay_max_len..1//-1
         |> Enum.reduce_while(nil, fn len, _acc ->
-          if len <= length(available) do
-            candidate = Enum.take(available, len)
-            key = Parser.codepoints_to_key(candidate)
-
-            case Map.get(overlay, key) do
-              nil ->
-                {:cont, nil}
-
-              elements ->
-                remaining = Enum.drop([cp | rest], len)
-                {:halt, {candidate, elements, remaining}}
-            end
-          else
-            {:cont, nil}
-          end
+          match_overlay_contraction(len, available, cp, rest, overlay)
         end)
       else
         nil
@@ -296,6 +284,24 @@ defmodule Localize.Collation.Table do
   end
 
   def longest_match_with_overlay([], _overlay), do: :done
+
+  defp match_overlay_contraction(len, available, cp, rest, overlay) do
+    if len <= length(available) do
+      candidate = Enum.take(available, len)
+      key = Parser.codepoints_to_key(candidate)
+
+      case Map.get(overlay, key) do
+        nil ->
+          {:cont, nil}
+
+        elements ->
+          remaining = Enum.drop([cp | rest], len)
+          {:halt, {candidate, elements, remaining}}
+      end
+    else
+      {:cont, nil}
+    end
+  end
 
   defp overlay_max_contraction_length(cp, overlay) do
     overlay

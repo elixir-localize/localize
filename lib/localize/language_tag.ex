@@ -153,9 +153,9 @@ defmodule Localize.LanguageTag do
   """
   import Kernel, except: [to_string: 1]
 
+  alias Localize.LanguageTag.{Parser, T, U}
   alias Localize.Locale
   alias Localize.SupplementalData
-  alias Localize.LanguageTag.{Parser, U, T}
 
   defstruct language: nil,
             language_subtags: [],
@@ -653,7 +653,7 @@ defmodule Localize.LanguageTag do
         score = compute_match_distance(desired_tag, supported_tag)
 
         if score <= distance do
-          [{supported_locale, supported_tag, score, index, is_paradigm_locale?(supported_locale)}]
+          [{supported_locale, supported_tag, score, index, paradigm_locale?(supported_locale)}]
         else
           []
         end
@@ -745,24 +745,21 @@ defmodule Localize.LanguageTag do
     # But "und-TW", "und-Cyrl" etc. should be maximized normally since
     # the "und" language means "fill in from likely subtags".
     if locale == "und" do
-      with {:ok, parsed} <- parse(locale),
-           {:ok, canonical} <- canonicalize(parsed) do
-        {:ok, canonical}
+      with {:ok, parsed} <- parse(locale) do
+        canonicalize(parsed)
       end
     else
       with {:ok, parsed} <- parse(locale),
-           {:ok, canonical} <- canonicalize(parsed),
-           {:ok, maximized} <- add_likely_subtags(canonical) do
-        {:ok, maximized}
+           {:ok, canonical} <- canonicalize(parsed) do
+        add_likely_subtags(canonical)
       end
     end
   end
 
   defp resolve_for_matching(locale, :supported) when is_binary(locale) do
     with {:ok, parsed} <- parse(locale),
-         {:ok, canonical} <- canonicalize(parsed),
-         {:ok, maximized} <- add_likely_subtags(canonical) do
-      {:ok, maximized}
+         {:ok, canonical} <- canonicalize(parsed) do
+      add_likely_subtags(canonical)
     end
   end
 
@@ -812,11 +809,11 @@ defmodule Localize.LanguageTag do
     end
   end
 
-  defp is_paradigm_locale?(locale) when is_binary(locale) do
+  defp paradigm_locale?(locale) when is_binary(locale) do
     MapSet.member?(paradigm_locales(), locale)
   end
 
-  defp is_paradigm_locale?(_), do: false
+  defp paradigm_locale?(_), do: false
 
   # ── Likely subtags ──────────────────────────────────────────────
 
@@ -853,6 +850,9 @@ defmodule Localize.LanguageTag do
 
   """
   @spec add_likely_subtags(t()) :: {:ok, t()} | {:error, Exception.t()}
+  # CLDR likely-subtags maximization: per-subtag presence checks plus
+  # matched/unmatched and und/non-und fallback outcomes.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def add_likely_subtags(%__MODULE__{} = language_tag) do
     language = language_tag.language || :und
     script = strip_sentinel(language_tag.script, :Zzzz)
@@ -1314,9 +1314,8 @@ defmodule Localize.LanguageTag do
   end
 
   defp canonicalize_extensions(tag) do
-    with {:ok, tag} <- U.canonicalize_locale_keys(tag),
-         {:ok, tag} <- T.canonicalize_transform_keys(tag) do
-      {:ok, tag}
+    with {:ok, tag} <- U.canonicalize_locale_keys(tag) do
+      T.canonicalize_transform_keys(tag)
     end
   end
 

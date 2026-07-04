@@ -48,33 +48,27 @@ defmodule Localize.Collation.Numeric do
     {groups, current} =
       Enum.reduce(ce_pairs, {[], nil}, fn {cps, elements}, {groups, current} ->
         if digit_codepoints?(cps) do
-          case current do
-            {:digits, acc_cps} ->
-              {groups, {:digits, acc_cps ++ cps}}
-
-            nil ->
-              {groups, {:digits, cps}}
-
-            other ->
-              {[other | groups], {:digits, cps}}
-          end
+          add_digit_run(current, cps, groups)
         else
-          case current do
-            nil ->
-              {groups, {:other, elements}}
-
-            {:other, acc_elems} ->
-              {groups, {:other, acc_elems ++ elements}}
-
-            digit_group ->
-              {[digit_group | groups], {:other, elements}}
-          end
+          add_other_run(current, elements, groups)
         end
       end)
 
     result = if current, do: [current | groups], else: groups
     Enum.reverse(result)
   end
+
+  defp add_digit_run({:digits, acc_cps}, cps, groups), do: {groups, {:digits, acc_cps ++ cps}}
+  defp add_digit_run(nil, cps, groups), do: {groups, {:digits, cps}}
+  defp add_digit_run(other, cps, groups), do: {[other | groups], {:digits, cps}}
+
+  defp add_other_run(nil, elements, groups), do: {groups, {:other, elements}}
+
+  defp add_other_run({:other, acc_elems}, elements, groups),
+    do: {groups, {:other, acc_elems ++ elements}}
+
+  defp add_other_run(digit_group, elements, groups),
+    do: {[digit_group | groups], {:other, elements}}
 
   defp digit_codepoints?(cps) do
     Enum.all?(cps, fn cp ->
@@ -104,9 +98,10 @@ defmodule Localize.Collation.Numeric do
   def encode_numeric_value(codepoints) do
     digits =
       Enum.map(codepoints, fn cp ->
-        cond do
-          cp >= 0x0030 and cp <= 0x0039 -> cp - 0x0030
-          true -> numeric_digit_value(cp)
+        if cp >= 0x0030 and cp <= 0x0039 do
+          cp - 0x0030
+        else
+          numeric_digit_value(cp)
         end
       end)
 

@@ -147,9 +147,10 @@ defmodule Localize.Number.Format.Compiler do
   """
   @spec format_to_metadata(String.t() | Keyword.t()) :: {:ok, Meta.t()} | {:error, String.t()}
   def format_to_metadata(format) when is_binary(format) do
-    with {:ok, parsed} <- parse(format) do
-      format_to_metadata(parsed)
-    else
+    case parse(format) do
+      {:ok, parsed} ->
+        format_to_metadata(parsed)
+
       {:error, {_line, _parser, [message, context]}} ->
         {:error, "Decimal format compiler: #{message}#{Enum.join(context)}"}
 

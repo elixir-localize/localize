@@ -166,15 +166,13 @@ defmodule Localize.AdversarialTest do
   # exceptions, exits, and throws. Returns the result or a
   # tagged failure tuple.
   defp safe_call(fun) do
-    try do
-      {:returned, fun.()}
-    rescue
-      exception ->
-        {:rescued, exception.__struct__, Exception.message(exception)}
-    catch
-      :exit, reason -> {:exit, reason}
-      :throw, value -> {:throw, value}
-    end
+    {:returned, fun.()}
+  rescue
+    exception ->
+      {:rescued, exception.__struct__, Exception.message(exception)}
+  catch
+    :exit, reason -> {:exit, reason}
+    :throw, value -> {:throw, value}
   end
 
   # Asserts that a safe_call result is acceptable:
@@ -182,6 +180,9 @@ defmodule Localize.AdversarialTest do
   # - {:returned, {:error, exception}} — expected error
   # - {:rescued, FunctionClauseError, _} — acceptable for garbage types
   # Everything else is a bug.
+  # One clause per safe_call failure mode, each with a distinct flunk
+  # message for diagnosis.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp assert_no_crash(safe_result, label) do
     case safe_result do
       {:returned, {:ok, string}} when is_binary(string) ->

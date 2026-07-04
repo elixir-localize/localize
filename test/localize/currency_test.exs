@@ -9,7 +9,7 @@ defmodule Localize.CurrencyTest do
     test "returns a non-empty list" do
       codes = Currency.known_currency_codes()
       assert is_list(codes)
-      assert length(codes) > 0
+      assert codes != []
     end
 
     test "includes common currency codes" do
@@ -462,6 +462,7 @@ defmodule Localize.CurrencyTest do
       # not flag this deliberate contract-violation test — we want to
       # exercise the runtime guard against a name-less currency.
       assert_raise Localize.CurrencyNoDisplayNameError, fn ->
+        # credo:disable-for-next-line Credo.Check.Refactor.Apply
         apply(Currency, :display_name!, [currency])
       end
     end

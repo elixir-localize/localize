@@ -102,10 +102,8 @@ defmodule Localize.Time do
          hc_format = apply_hc_override(format, language_tag),
          hc_skeleton = apply_hc_to_skeleton(hc_format, language_tag),
          effective_format = strip_zone_for_time_struct(hc_skeleton, time, format, locale_id),
-         {:ok, pattern} <- find_format(time, effective_format, locale_id, options),
-         {:ok, formatted} <-
-           Localize.DateTime.Formatter.format(time, pattern, locale_id, Map.new(options)) do
-      {:ok, formatted}
+         {:ok, pattern} <- find_format(time, effective_format, locale_id, options) do
+      Localize.DateTime.Formatter.format(time, pattern, locale_id, Map.new(options))
     end
   end
 
@@ -127,10 +125,8 @@ defmodule Localize.Time do
           true -> derive_format_id(time)
         end
 
-      with {:ok, pattern} <- find_format(time, resolved_format, locale_id, options),
-           {:ok, formatted} <-
-             Localize.DateTime.Formatter.format(time, pattern, locale_id, Map.new(options)) do
-        {:ok, formatted}
+      with {:ok, pattern} <- find_format(time, resolved_format, locale_id, options) do
+        Localize.DateTime.Formatter.format(time, pattern, locale_id, Map.new(options))
       end
     end
   end
@@ -373,33 +369,12 @@ defmodule Localize.Time do
            Localize.DateTime.Format.available_formats(locale_id, :gregorian) do
       case Map.get(available, skeleton) do
         nil ->
-          case Localize.DateTime.Format.Match.best_match(skeleton, locale_id) do
-            {:ok, matched_id} when is_atom(matched_id) ->
-              resolve_skeleton(matched_id, locale_id, options)
-
-            {:ok, {_date_id, _time_id}} ->
-              {:error,
-               Localize.DateTimeUnresolvedFormatError.exception(
-                 format: skeleton,
-                 locale: locale_id
-               )}
-
-            {:error, _} = error ->
-              error
-          end
+          resolve_skeleton_via_best_match(skeleton, locale_id, options)
 
         %{} = variant_map ->
-          case Localize.DateTime.Format.resolve_variant(variant_map, options) do
-            nil ->
-              {:error,
-               Localize.DateTimeUnresolvedFormatError.exception(
-                 format: skeleton,
-                 locale: locale_id
-               )}
-
-            pattern ->
-              {:ok, pattern}
-          end
+          variant_map
+          |> Localize.DateTime.Format.resolve_variant(options)
+          |> variant_pattern_result(skeleton, locale_id)
 
         pattern when is_binary(pattern) ->
           {:ok, pattern}
@@ -407,12 +382,43 @@ defmodule Localize.Time do
     end
   end
 
+  # Ask `best_match` for the nearest skeleton when the exact
+  # skeleton is not in `available_formats`. A combined date+time
+  # match is not applicable for time-only formatting.
+  defp resolve_skeleton_via_best_match(skeleton, locale_id, options) do
+    case Localize.DateTime.Format.Match.best_match(skeleton, locale_id) do
+      {:ok, matched_id} when is_atom(matched_id) ->
+        resolve_skeleton(matched_id, locale_id, options)
+
+      {:ok, {_date_id, _time_id}} ->
+        {:error,
+         Localize.DateTimeUnresolvedFormatError.exception(
+           format: skeleton,
+           locale: locale_id
+         )}
+
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  defp variant_pattern_result(nil, skeleton, locale_id) do
+    {:error,
+     Localize.DateTimeUnresolvedFormatError.exception(
+       format: skeleton,
+       locale: locale_id
+     )}
+  end
+
+  defp variant_pattern_result(pattern, _skeleton, _locale_id) do
+    {:ok, pattern}
+  end
+
   @doc false
   def derive_format_id(time) do
     @time_fields_ordered
     |> Enum.filter(fn {field, _symbol} -> Map.has_key?(time, field) end)
-    |> Enum.map(fn {_field, symbol} -> symbol end)
-    |> Enum.join()
+    |> Enum.map_join(fn {_field, symbol} -> symbol end)
     |> String.to_atom()
   end
 

@@ -239,38 +239,14 @@ defmodule Localize.Unit.Conversion do
   end
 
   defp single_factor({:single_unit, keyword}) do
-    base = Keyword.fetch!(keyword, :base)
-
-    case base do
+    case Keyword.fetch!(keyword, :base) do
       "curr-" <> _code ->
         {:ok, 1.0}
 
-      _ ->
+      base ->
         prefix = Keyword.get(keyword, :prefix)
         power = Keyword.get(keyword, :power)
-
-        case Localize.Unit.Data.Overlay.conversion_factor(base) do
-          nil ->
-            {:error, Localize.UnknownUnitError.exception(unit: base)}
-
-          %{factor: :special} ->
-            {:error,
-             Localize.UnitConversionError.exception(
-               from: base,
-               reason: :special_conversion
-             )}
-
-          %{factor: base_factor} ->
-            prefix_mult =
-              if prefix,
-                do:
-                  Map.get(Localize.Unit.Data.si_prefix_multipliers(), Atom.to_string(prefix), 1.0),
-                else: 1.0
-
-            total = base_factor * prefix_mult
-            powered = apply_power_to_factor(total, power)
-            {:ok, powered}
-        end
+        factor_for_base(base, Localize.Unit.Data.Overlay.conversion_factor(base), prefix, power)
     end
   end
 
@@ -285,6 +261,29 @@ defmodule Localize.Unit.Conversion do
       end
 
     {:ok, value}
+  end
+
+  defp factor_for_base(base, nil, _prefix, _power) do
+    {:error, Localize.UnknownUnitError.exception(unit: base)}
+  end
+
+  defp factor_for_base(base, %{factor: :special}, _prefix, _power) do
+    {:error,
+     Localize.UnitConversionError.exception(
+       from: base,
+       reason: :special_conversion
+     )}
+  end
+
+  defp factor_for_base(_base, %{factor: base_factor}, prefix, power) do
+    total = base_factor * prefix_multiplier(prefix)
+    {:ok, apply_power_to_factor(total, power)}
+  end
+
+  defp prefix_multiplier(nil), do: 1.0
+
+  defp prefix_multiplier(prefix) do
+    Map.get(Localize.Unit.Data.si_prefix_multipliers(), Atom.to_string(prefix), 1.0)
   end
 
   # Offset only applies when there is exactly one simple unit in the

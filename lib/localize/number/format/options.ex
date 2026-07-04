@@ -6,7 +6,7 @@ defmodule Localize.Number.Format.Options do
   # options and produces a normalized options struct for the
   # formatter pipeline.
 
-  alias Localize.Number.{System, Symbol, Format}
+  alias Localize.Number.{Format, Symbol, System}
 
   @options [
     :locale,

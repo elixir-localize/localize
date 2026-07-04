@@ -13,7 +13,7 @@ defmodule Localize.Number.SignificantDigitsTest do
     end
 
     test "round 12345 to 3 significant digits" do
-      assert 12300 == Math.round_significant(12345, 3)
+      assert 12_300 == Math.round_significant(12_345, 3)
     end
   end
 
@@ -41,8 +41,8 @@ defmodule Localize.Number.SignificantDigitsTest do
 
   describe "Decimal significant digit rounding" do
     test "round decimal 12345 to 3 significant digits" do
-      result = Math.round_significant(Decimal.new(12345), 3)
-      assert Decimal.equal?(result, Decimal.new(12300))
+      result = Math.round_significant(Decimal.new(12_345), 3)
+      assert Decimal.equal?(result, Decimal.new(12_300))
     end
 
     test "round decimal 0.12345 to 3 significant digits" do

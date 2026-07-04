@@ -252,13 +252,11 @@ defmodule Localize.ParseError do
     input = Keyword.get(bindings, :input)
     offset = Keyword.get(bindings, :offset)
 
-    cond do
-      is_binary(input) and is_integer(offset) and not Keyword.has_key?(bindings, :line) ->
-        {line, column} = line_column(input, offset)
-        [line: line, column: column]
-
-      true ->
-        []
+    if is_binary(input) and is_integer(offset) and not Keyword.has_key?(bindings, :line) do
+      {line, column} = line_column(input, offset)
+      [line: line, column: column]
+    else
+      []
     end
   end
 

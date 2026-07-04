@@ -75,8 +75,7 @@ defmodule Localize.LanguageTag.T do
     params =
       t_extension
       |> encode()
-      |> Enum.map(fn {k, v} -> "#{k}-#{v}" end)
-      |> Enum.join("-")
+      |> Enum.map_join("-", fn {k, v} -> "#{k}-#{v}" end)
 
     [language, params]
     |> Enum.reject(&empty?/1)

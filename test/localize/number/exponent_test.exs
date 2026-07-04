@@ -58,7 +58,7 @@ defmodule Localize.Number.ExponentTest do
   # `min - 1`).
   describe "engineering notation (##0.#####E0)" do
     test "TR35 example: 12345 → 12.345E3" do
-      assert {:ok, "12.345E3"} = Localize.Number.to_string(12345, format: "##0.#####E0")
+      assert {:ok, "12.345E3"} = Localize.Number.to_string(12_345, format: "##0.#####E0")
     end
 
     test "TR35 example: 123456 → 123.456E3" do
@@ -70,7 +70,7 @@ defmodule Localize.Number.ExponentTest do
     end
 
     test "negative number: -12345 → -12.345E3" do
-      assert {:ok, "-12.345E3"} = Localize.Number.to_string(-12345, format: "##0.#####E0")
+      assert {:ok, "-12.345E3"} = Localize.Number.to_string(-12_345, format: "##0.#####E0")
     end
 
     test "small value: 0.000123 → 123E-6 (engineering, mantissa shifted)" do
@@ -86,7 +86,7 @@ defmodule Localize.Number.ExponentTest do
     end
 
     test "Decimal and float produce identical engineering output" do
-      for value <- [12345, 123_456, 1_234_567, 0.000123] do
+      for value <- [12_345, 123_456, 1_234_567, 0.000123] do
         decimal_value =
           if is_float(value), do: Decimal.from_float(value), else: Decimal.new(value)
 
@@ -205,7 +205,7 @@ defmodule Localize.Number.ExponentTest do
   # symbol, decimal separator, and sign markers.
   describe "format: :engineering" do
     test "matches the explicit pattern for representative values" do
-      for value <- [12345, 123_456, 1_234_567, 0.000123, -12345] do
+      for value <- [12_345, 123_456, 1_234_567, 0.000123, -12_345] do
         atom_result = Localize.Number.to_string(value, format: :engineering)
         string_result = Localize.Number.to_string(value, format: "##0.######E0")
         assert atom_result == string_result, "diverged on #{inspect(value)}"
@@ -213,7 +213,7 @@ defmodule Localize.Number.ExponentTest do
     end
 
     test "TR35 example: 12345 → 12.345E3" do
-      assert {:ok, "12.345E3"} = Localize.Number.to_string(12345, format: :engineering)
+      assert {:ok, "12.345E3"} = Localize.Number.to_string(12_345, format: :engineering)
     end
 
     test "Decimal precision preserved" do
@@ -223,12 +223,12 @@ defmodule Localize.Number.ExponentTest do
 
     test "honours the locale decimal separator" do
       assert {:ok, "12,345E3"} =
-               Localize.Number.to_string(12345, format: :engineering, locale: :de)
+               Localize.Number.to_string(12_345, format: :engineering, locale: :de)
     end
 
     test "honours locale exponent symbol and number system" do
       assert {:ok, output} =
-               Localize.Number.to_string(12345,
+               Localize.Number.to_string(12_345,
                  format: :engineering,
                  locale: :ar,
                  number_system: :arab
@@ -244,7 +244,7 @@ defmodule Localize.Number.ExponentTest do
       # (no significant-digit rounding applied). This must NOT shift
       # like `:engineering` would.
       assert {:ok, "1.2345E4"} =
-               Localize.Number.to_string(12345, format: :scientific, locale: :en)
+               Localize.Number.to_string(12_345, format: :scientific, locale: :en)
     end
   end
 
@@ -283,7 +283,7 @@ defmodule Localize.Number.ExponentTest do
     end
 
     test "@@###E0 rounds 12345 to 4 sig figs → 1.2345E4" do
-      assert {:ok, "1.2345E4"} = Localize.Number.to_string(12345, format: "@@###E0")
+      assert {:ok, "1.2345E4"} = Localize.Number.to_string(12_345, format: "@@###E0")
     end
 
     test "@@E0 rounds 1234 to 2 sig figs → 1.2E3" do
@@ -311,7 +311,10 @@ defmodule Localize.Number.ExponentTest do
 
     test "engineering pattern + superscript style" do
       assert {:ok, "12.345×10³"} =
-               Localize.Number.to_string(12345, format: "##0.###E0", exponent_style: :superscript)
+               Localize.Number.to_string(12_345,
+                 format: "##0.###E0",
+                 exponent_style: :superscript
+               )
     end
 
     test "negative exponent uses superscript minus (U+207B)" do

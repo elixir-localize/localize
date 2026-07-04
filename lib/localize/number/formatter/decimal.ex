@@ -9,7 +9,7 @@ defmodule Localize.Number.Formatter.Decimal do
 
   alias Localize.Number.Format.Compiler
   alias Localize.Number.Format.Options
-  alias Localize.Utils.{Math, Digits}
+  alias Localize.Utils.{Digits, Math}
 
   @empty_string ""
 
@@ -103,14 +103,12 @@ defmodule Localize.Number.Formatter.Decimal do
     min = options.minimum_significant_digits
     max = options.maximum_significant_digits
 
-    cond do
-      is_nil(min) and is_nil(max) ->
-        meta
-
-      true ->
-        resolved_min = min || 1
-        resolved_max = max || 21
-        %{meta | significant_digits: %{min: resolved_min, max: resolved_max}}
+    if is_nil(min) and is_nil(max) do
+      meta
+    else
+      resolved_min = min || 1
+      resolved_max = max || 21
+      %{meta | significant_digits: %{min: resolved_min, max: resolved_max}}
     end
   end
 
@@ -320,8 +318,10 @@ defmodule Localize.Number.Formatter.Decimal do
   defp adjust_leading_zeros({sign, integer, fraction, exp_sign, exponent}, %{
          integer_digits: integer_digits
        }) do
+    count = integer_digits[:min] - length(integer)
+
     integer =
-      if (count = integer_digits[:min] - length(integer)) > 0 do
+      if count > 0 do
         :lists.duplicate(count, ?0) ++ integer
       else
         integer
@@ -550,8 +550,7 @@ defmodule Localize.Number.Formatter.Decimal do
     super_digits =
       digits
       |> String.graphemes()
-      |> Enum.map(&superscript_digit/1)
-      |> Enum.join()
+      |> Enum.map_join(&superscript_digit/1)
 
     [superscripting_symbol(options), "10", sign_glyph, super_digits]
   end
@@ -641,12 +640,11 @@ defmodule Localize.Number.Formatter.Decimal do
       # swap (e.g., German: "," → "." and "." → ",")
       number_string
       |> String.graphemes()
-      |> Enum.map(fn
+      |> Enum.map_join(fn
         @group_separator -> group_sym || @group_separator
         @decimal_separator -> decimal_sym || @decimal_separator
         char -> char
       end)
-      |> Enum.join()
     end
   end
 

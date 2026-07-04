@@ -44,9 +44,8 @@ defmodule Localize.Unit.Formatter do
         format = Keyword.get(options, :format, Keyword.get(options, :style, :long))
 
         with {:ok, language_tag} <- Localize.validate_locale(locale),
-             {:ok, unit_data} <- load_unit_data(language_tag, format),
-             {:ok, formatted} <- format_unit(unit, unit_data, language_tag, format, options) do
-          {:ok, formatted}
+             {:ok, unit_data} <- load_unit_data(language_tag, format) do
+          format_unit(unit, unit_data, language_tag, format, options)
         end
     end
   end
@@ -168,27 +167,29 @@ defmodule Localize.Unit.Formatter do
 
         {count, denominator_base} ->
           denominator_name = normalize_unit_name(denominator_base)
-
-          case find_per_unit_pattern(unit_data, denominator_name, value, locale) do
-            nil ->
-              per_part = if count, do: "#{count} #{denominator_base}", else: denominator_base
-              {:ok, "#{currency_string} per #{per_part}"}
-
-            pattern ->
-              currency_with_count =
-                if count do
-                  result = Localize.Substitution.substitute(currency_string, pattern)
-                  per_string = result |> :erlang.iolist_to_binary() |> String.trim()
-                  # Insert the count before the denominator unit name in the pattern
-                  String.replace(per_string, "per ", "per #{count} ")
-                else
-                  result = Localize.Substitution.substitute(currency_string, pattern)
-                  result |> :erlang.iolist_to_binary() |> String.trim()
-                end
-
-              {:ok, currency_with_count}
-          end
+          pattern = find_per_unit_pattern(unit_data, denominator_name, value, locale)
+          format_currency_per_unit(currency_string, pattern, count, denominator_base)
       end
+    end
+  end
+
+  defp format_currency_per_unit(currency_string, nil, count, denominator_base) do
+    per_part = if count, do: "#{count} #{denominator_base}", else: denominator_base
+    {:ok, "#{currency_string} per #{per_part}"}
+  end
+
+  defp format_currency_per_unit(currency_string, pattern, count, _denominator_base) do
+    per_string =
+      currency_string
+      |> Localize.Substitution.substitute(pattern)
+      |> :erlang.iolist_to_binary()
+      |> String.trim()
+
+    if count do
+      # Insert the count before the denominator unit name in the pattern
+      {:ok, String.replace(per_string, "per ", "per #{count} ")}
+    else
+      {:ok, per_string}
     end
   end
 
@@ -248,6 +249,9 @@ defmodule Localize.Unit.Formatter do
     format_with_pattern(hd(value), unit_formats, locale, grammatical_case, options)
   end
 
+  # CLDR unit pattern resolution: grammatical-case, plural-form, and
+  # pattern-shape fallbacks each contribute a branch.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp format_with_pattern(value, unit_formats, locale, grammatical_case, options) do
     # Determine plural form
     plural = plural_form(value, locale)
@@ -373,19 +377,21 @@ defmodule Localize.Unit.Formatter do
         %{display: display} when is_map(display) ->
           locale_display = Map.get(display, locale_id, %{})
           style_display = Map.get(locale_display, style, %{})
-
-          case style_display do
-            patterns when map_size(patterns) > 0 ->
-              format_custom_patterns(value, patterns, locale, options)
-
-            _ ->
-              format_fallback(value, name, options)
-          end
+          format_custom_display(style_display, value, name, locale, options)
 
         _ ->
           format_fallback(value, name, options)
       end
     end
+  end
+
+  defp format_custom_display(patterns, value, _name, locale, options)
+       when map_size(patterns) > 0 do
+    format_custom_patterns(value, patterns, locale, options)
+  end
+
+  defp format_custom_display(_patterns, value, name, _locale, options) do
+    format_fallback(value, name, options)
   end
 
   defp format_custom_patterns(value, patterns, locale, options) do

@@ -2,7 +2,7 @@ if Code.ensure_loaded?(Localize.Number) do
   defmodule Localize.Message.NumberOptionsTest do
     use ExUnit.Case, async: true
 
-    alias Localize.Message.{Parser, Interpreter}
+    alias Localize.Message.{Interpreter, Parser}
 
     defp format(source, bindings), do: format_with_locale(source, bindings, "en-US")
 
@@ -27,17 +27,17 @@ if Code.ensure_loaded?(Localize.Number) do
 
     describe "useGrouping option" do
       test "useGrouping=auto uses locale default (grouped)" do
-        assert format("{{The total is {$n :number useGrouping=auto}}}", %{"n" => 12345}) ==
+        assert format("{{The total is {$n :number useGrouping=auto}}}", %{"n" => 12_345}) ==
                  "The total is 12,345"
       end
 
       test "useGrouping=always uses locale default (grouped)" do
-        assert format("{{The total is {$n :number useGrouping=always}}}", %{"n" => 12345}) ==
+        assert format("{{The total is {$n :number useGrouping=always}}}", %{"n" => 12_345}) ==
                  "The total is 12,345"
       end
 
       test "useGrouping=never suppresses grouping separators" do
-        assert format("{{The total is {$n :number useGrouping=never}}}", %{"n" => 12345}) ==
+        assert format("{{The total is {$n :number useGrouping=never}}}", %{"n" => 12_345}) ==
                  "The total is 12345"
       end
 
@@ -67,7 +67,7 @@ if Code.ensure_loaded?(Localize.Number) do
       end
 
       test "useGrouping with :integer function" do
-        assert format("{{{$n :integer useGrouping=never}}}", %{"n" => 12345}) ==
+        assert format("{{{$n :integer useGrouping=never}}}", %{"n" => 12_345}) ==
                  "12345"
       end
 
@@ -136,7 +136,7 @@ if Code.ensure_loaded?(Localize.Number) do
       test "numberingSystem=arab formats with Arabic-Indic digits" do
         assert format_with_locale(
                  "{{{$n :number numberingSystem=arab}}}",
-                 %{"n" => 12345},
+                 %{"n" => 12_345},
                  "ar"
                ) ==
                  "\u{0661}\u{0662}\u{066C}\u{0663}\u{0664}\u{0665}"
@@ -145,7 +145,7 @@ if Code.ensure_loaded?(Localize.Number) do
       test "numberingSystem=latn overrides native system" do
         assert format_with_locale(
                  "{{{$n :number numberingSystem=latn}}}",
-                 %{"n" => 12345},
+                 %{"n" => 12_345},
                  "ar"
                ) ==
                  "12,345"
@@ -164,7 +164,7 @@ if Code.ensure_loaded?(Localize.Number) do
         result =
           format_with_locale(
             "{{{$n :number numberingSystem=arab useGrouping=never}}}",
-            %{"n" => 12345},
+            %{"n" => 12_345},
             "ar"
           )
 

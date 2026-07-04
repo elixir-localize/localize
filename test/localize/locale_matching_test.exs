@@ -175,23 +175,25 @@ defmodule Localize.LocaleMatchingTest do
     desired_list
     |> Enum.with_index()
     |> Enum.reduce(nil, fn {desired, position}, best ->
-      case LanguageTag.best_match(desired, supported, threshold) do
-        {:ok, matched, score} ->
-          effective = score + position * @demotion_per_locale
-
-          if best == nil or effective < elem(best, 2) do
-            {:ok, matched, effective}
-          else
-            best
-          end
-
-        {:error, _} ->
-          best
-      end
+      pick_better_match(LanguageTag.best_match(desired, supported, threshold), position, best)
     end)
     |> case do
       nil -> {:error, "No match for any desired locale"}
       result -> result
     end
   end
+
+  # Keep whichever of the current best and the new match has the
+  # lower effective distance (actual distance + per-position demotion).
+  defp pick_better_match({:ok, matched, score}, position, best) do
+    effective = score + position * @demotion_per_locale
+
+    if best == nil or effective < elem(best, 2) do
+      {:ok, matched, effective}
+    else
+      best
+    end
+  end
+
+  defp pick_better_match({:error, _}, _position, best), do: best
 end

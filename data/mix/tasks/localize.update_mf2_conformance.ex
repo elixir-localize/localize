@@ -132,24 +132,30 @@ defmodule Mix.Tasks.Localize.UpdateMf2Conformance do
 
     with {:ok, upstream_body} <- download(url),
          :ok <- validate_json(upstream_body, name) do
-      local_body =
-        case File.read(local_path) do
-          {:ok, body} -> body
-          {:error, _} -> ""
-        end
-
-      if local_body == upstream_body do
-        {:ok, name}
-      else
-        unless check? do
-          File.write!(local_path, upstream_body)
-        end
-
-        {:changed, name, test_count(local_body), test_count(upstream_body)}
-      end
+      compare_and_write(name, local_path, upstream_body, check?)
     else
       {:error, reason} ->
         {:missing, "#{name}: #{reason}"}
+    end
+  end
+
+  # Compares the vendored file against the upstream body and, unless
+  # running with --check, writes the upstream body over the local file.
+  defp compare_and_write(name, local_path, upstream_body, check?) do
+    local_body =
+      case File.read(local_path) do
+        {:ok, body} -> body
+        {:error, _} -> ""
+      end
+
+    if local_body == upstream_body do
+      {:ok, name}
+    else
+      unless check? do
+        File.write!(local_path, upstream_body)
+      end
+
+      {:changed, name, test_count(local_body), test_count(upstream_body)}
     end
   end
 

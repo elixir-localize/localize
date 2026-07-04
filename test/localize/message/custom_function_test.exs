@@ -141,7 +141,7 @@ defmodule Localize.Message.CustomFunctionTest do
                  locale: :de
                )
 
-      assert result =~ "style=bold" or result =~ "style=bold"
+      assert result =~ "style=bold"
       assert result =~ "locale=de"
     end
   end

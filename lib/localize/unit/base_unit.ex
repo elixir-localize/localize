@@ -342,8 +342,7 @@ defmodule Localize.Unit.BaseUnit do
 
   defp format_product(units) do
     units
-    |> Enum.map(fn {unit, power} -> format_powered_unit(unit, power) end)
-    |> Enum.join("-")
+    |> Enum.map_join("-", fn {unit, power} -> format_powered_unit(unit, power) end)
   end
 
   defp format_powered_unit(unit, 1), do: unit

@@ -25,8 +25,7 @@ defmodule Localize.Number.String do
   # * A string of hex escape sequences.
   def hex_string(string) do
     String.to_charlist(string)
-    |> Enum.map(&("\\x" <> Integer.to_string(&1)))
-    |> Enum.join()
+    |> Enum.map_join(&("\\x" <> Integer.to_string(&1)))
   end
 
   # # pad_leading_zeros/2

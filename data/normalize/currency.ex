@@ -87,12 +87,7 @@ defmodule Localize.Data.Normalize.Currency do
       )
       |> Enum.reject(fn %{code: code} -> code == nil or code == "" end)
       |> Enum.map(fn %{code: code, digits: digits} ->
-        digit_value =
-          case Integer.parse(to_string(digits)) do
-            {n, _} -> n
-            :error -> 0
-          end
-
+        digit_value = parse_currency_digits(Integer.parse(to_string(digits)))
         {String.to_atom(to_string(code)), digit_value}
       end)
       |> Enum.uniq_by(fn {code, _} -> code end)
@@ -101,4 +96,7 @@ defmodule Localize.Data.Normalize.Currency do
       %{}
     end
   end
+
+  defp parse_currency_digits({digits, _remainder}), do: digits
+  defp parse_currency_digits(:error), do: 0
 end

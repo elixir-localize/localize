@@ -322,7 +322,7 @@ defmodule Localize.Unit.CustomUnitTest do
     test "decathlon is not split into deca + thlon" do
       Unit.define_unit("decathlon", %{
         base_unit: "second",
-        factor: 86400.0,
+        factor: 86_400.0,
         category: "duration"
       })
 

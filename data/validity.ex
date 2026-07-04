@@ -154,20 +154,19 @@ defmodule Localize.Data.Validity do
 
   defp maybe_transform_units(data, "validity_units") do
     Enum.map(data, fn {status, list} ->
-      list =
-        Enum.map(list, fn v ->
-          case String.split(v, "-", parts: 2) do
-            [v] -> v
-            [_category, unit] -> underscore(unit)
-          end
-        end)
-
-      {status, list}
+      {status, Enum.map(list, &strip_unit_category/1)}
     end)
     |> Map.new()
   end
 
   defp maybe_transform_units(data, _name), do: data
+
+  defp strip_unit_category(value) do
+    case String.split(value, "-", parts: 2) do
+      [value] -> value
+      [_category, unit] -> underscore(unit)
+    end
+  end
 
   defp extract_u(bcp47_dir, file) do
     bcp47_dir

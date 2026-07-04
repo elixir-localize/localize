@@ -44,12 +44,15 @@ defmodule Localize.DateTime.Timezone.Builder do
   @spec territories_by_timezone(%{atom() => [map()]}) :: %{String.t() => atom()}
   def territories_by_timezone(timezones_by_territory) do
     timezones_by_territory
-    |> Enum.flat_map(fn {territory, zones} ->
-      Enum.flat_map(zones, fn zone ->
-        Enum.map(zone.aliases, fn zone_alias -> {zone_alias, territory} end)
-      end)
-    end)
+    |> Enum.flat_map(fn {territory, zones} -> territory_zone_aliases(territory, zones) end)
     |> Enum.reject(fn {_zone, territory} -> territory == :UT end)
     |> Map.new()
+  end
+
+  # Pairs each alias of each zone with its territory.
+  defp territory_zone_aliases(territory, zones) do
+    Enum.flat_map(zones, fn zone ->
+      Enum.map(zone.aliases, fn zone_alias -> {zone_alias, territory} end)
+    end)
   end
 end

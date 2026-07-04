@@ -23,7 +23,7 @@ defmodule Localize.Validity do
         {code_ranges, simple_codes} = Localize.Validity.partition(codes)
 
         simple_check =
-          if length(simple_codes) > 0 do
+          if simple_codes != [] do
             defp valid(code) when code in unquote(simple_codes) do
               {:ok, code, unquote(status)}
             end
@@ -73,19 +73,19 @@ defmodule Localize.Validity do
 
     for {_status, codes} <- validity_data do
       {code_ranges, simple_codes} = partition(codes)
-
-      range_check =
-        for range <- code_ranges, range != [] do
-          {base, range_start, range_end} = range_from(range)
-
-          for char <- range_start..range_end do
-            base <> <<char::utf8>>
-          end
-        end
-
+      range_check = for range <- code_ranges, range != [], do: expand_range(range)
       simple_codes ++ range_check
     end
     |> List.flatten()
+  end
+
+  # Expands a code range like "aa~c" into the list of codes it covers.
+  defp expand_range(range) do
+    {base, range_start, range_end} = range_from(range)
+
+    for char <- range_start..range_end do
+      base <> <<char::utf8>>
+    end
   end
 
   # Returns a list of known data that omits
@@ -100,16 +100,7 @@ defmodule Localize.Validity do
 
     for {status, codes} <- validity_data, status not in @omit_status do
       {code_ranges, simple_codes} = partition(codes)
-
-      range_check =
-        for range <- code_ranges, range != [] do
-          {base, range_start, range_end} = range_from(range)
-
-          for char <- range_start..range_end do
-            base <> <<char::utf8>>
-          end
-        end
-
+      range_check = for range <- code_ranges, range != [], do: expand_range(range)
       simple_codes ++ range_check
     end
     |> List.flatten()

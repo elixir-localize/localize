@@ -217,6 +217,9 @@ defmodule Localize.Utils.Http do
     get_with_headers({url, []}, options)
   end
 
+  # One branch per :httpc response/error shape, each with distinct
+  # logging and error tagging.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def get_with_headers({url, headers}, options)
       when is_binary(url) and is_list(headers) and is_list(options) do
     hostname = String.to_charlist(URI.parse(url).host)
@@ -331,11 +334,15 @@ defmodule Localize.Utils.Http do
       # Configured cacertfile
       Application.get_env(:localize, :cacertfile),
 
-      # Populated if hex package CAStore is configured
+      # Populated if hex package CAStore is configured. CAStore is an
+      # optional dep; a direct call warns when the package is absent.
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
       if(Code.ensure_loaded?(CAStore), do: apply(CAStore, :file_path, [])),
 
-      # Populated if hex package certifi is configured
+      # Populated if hex package certifi is configured. :certifi is an
+      # optional dep; a direct call warns when the package is absent.
       if(Code.ensure_loaded?(:certifi),
+        # credo:disable-for-next-line Credo.Check.Refactor.Apply
         do: apply(:certifi, :cacertfile, []) |> List.to_string()
       )
     ]
@@ -456,6 +463,8 @@ defmodule Localize.Utils.Http do
 
   defp castore_cacertfile do
     if Code.ensure_loaded?(CAStore) do
+      # CAStore is an optional dep; a direct call warns when absent.
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
       {:cacertfile, apply(CAStore, :file_path, [])}
     else
       :continue
@@ -464,6 +473,8 @@ defmodule Localize.Utils.Http do
 
   defp certifi_cacertfile do
     if Code.ensure_loaded?(:certifi) do
+      # :certifi is an optional dep; a direct call warns when absent.
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
       {:cacertfile, apply(:certifi, :cacertfile, []) |> List.to_string()}
     else
       :continue

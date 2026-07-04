@@ -160,8 +160,7 @@ defmodule Localize.LanguageTag.U do
   def to_string(%__MODULE__{} = u_extension) do
     u_extension
     |> encode()
-    |> Enum.map(fn {k, v} -> "#{k}-#{v}" end)
-    |> Enum.join("-")
+    |> Enum.map_join("-", fn {k, v} -> "#{k}-#{v}" end)
   end
 
   @doc false

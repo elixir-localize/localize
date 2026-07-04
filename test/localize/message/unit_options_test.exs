@@ -2,7 +2,7 @@ if Code.ensure_loaded?(Localize.Unit.Formatter) do
   defmodule Localize.Message.UnitOptionsTest do
     use ExUnit.Case, async: true
 
-    alias Localize.Message.{Parser, Interpreter}
+    alias Localize.Message.{Interpreter, Parser}
 
     defp format(source, bindings) do
       {:ok, parsed} = Parser.parse(source)

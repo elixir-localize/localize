@@ -202,7 +202,10 @@ defmodule Localize.Utils.Map do
   end
 
   # Here we are in range so we conditionally execute the function
-  # if the options for `:only` and `:except` are matched
+  # if the options for `:only` and `:except` are matched.
+  # Traversal branches on process_type outcome x value shape (nested
+  # vs leaf) — five outcomes for each of the two shapes.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp deep_map(map, function, options, level) when is_map(map) and is_function(function) do
     Enum.reduce(map, [], fn
       {k, v}, acc when is_map(v) or is_list(v) ->
@@ -247,6 +250,9 @@ defmodule Localize.Utils.Map do
     |> Map.new()
   end
 
+  # Same process_type-outcome x value-shape branching for the
+  # {key_function, value_function} pair form.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp deep_map(map, {key_function, value_function}, options, level) when is_map(map) do
     Enum.reduce(map, [], fn
       {k, v}, acc when is_map(v) or is_list(v) ->

@@ -1,8 +1,8 @@
 defmodule Localize.Utils.Math.LogTest do
   use ExUnit.Case, async: false
 
-  alias Localize.Utils.Math
   alias Localize.Utils.Decimal, as: LDecimal
+  alias Localize.Utils.Math
 
   # Pin tests to a fixed Decimal.Context precision so high-precision fixtures
   # remain stable across Decimal versions whose default precision differs
@@ -33,7 +33,7 @@ defmodule Localize.Utils.Math.LogTest do
 
   random =
     for _i <- 1..500 do
-      :rand.uniform(10000) / 10
+      :rand.uniform(10_000) / 10
     end
     |> Enum.uniq()
 

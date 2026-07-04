@@ -212,6 +212,7 @@ defmodule Localize.DateTest do
       # `apply/3` is type-opaque so the Elixir 1.20 type checker does
       # not flag this deliberate contract-violation test.
       assert_raise Localize.DateTimeInvalidInputError, fn ->
+        # credo:disable-for-next-line Credo.Check.Refactor.Apply
         apply(Localize.Date, :to_string!, [%{foo: :bar}])
       end
     end

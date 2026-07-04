@@ -63,7 +63,7 @@ defmodule Localize.Collation.ConformanceTest do
   end
 
   defp format_codepoints(cps) do
-    Enum.map(cps, &Integer.to_string(&1, 16)) |> Enum.join(" ")
+    Enum.map_join(cps, " ", &Integer.to_string(&1, 16))
   end
 
   describe "NON_IGNORABLE conformance" do
@@ -97,10 +97,9 @@ defmodule Localize.Collation.ConformanceTest do
         sample =
           failures
           |> Enum.take(10)
-          |> Enum.map(fn {line, a, b} ->
+          |> Enum.map_join("\n", fn {line, a, b} ->
             "  line #{line}: #{format_codepoints(a)} > #{format_codepoints(b)}"
           end)
-          |> Enum.join("\n")
 
         flunk(
           "#{failure_count}/#{total} pairs failed NON_IGNORABLE ordering " <>
@@ -146,10 +145,9 @@ defmodule Localize.Collation.ConformanceTest do
         sample =
           failures
           |> Enum.take(10)
-          |> Enum.map(fn {line, a, b} ->
+          |> Enum.map_join("\n", fn {line, a, b} ->
             "  line #{line}: #{format_codepoints(a)} > #{format_codepoints(b)}"
           end)
-          |> Enum.join("\n")
 
         flunk(
           "#{failure_count}/#{total} pairs failed SHIFTED ordering " <>

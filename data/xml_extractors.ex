@@ -359,30 +359,35 @@ defmodule Localize.Data.XmlExtractors do
         canonical = Map.fetch!(canonical_name_map, bcp47_name)
         systems_acc = Map.put(systems_acc, canonical, type.description)
 
-        # Add the BCP 47 name as an alias if it differs from the canonical short name
         aliases_acc =
-          if String.to_atom(bcp47_name) != canonical do
-            Map.put(aliases_acc, String.to_atom(bcp47_name), canonical)
-          else
-            aliases_acc
-          end
-
-        # Add any explicit aliases from the XML
-        aliases_acc =
-          if type.alias != "" do
-            type.alias
-            |> String.split(" ")
-            |> Enum.reduce(aliases_acc, fn alias_name, acc ->
-              Map.put(acc, String.to_atom(alias_name), canonical)
-            end)
-          else
-            aliases_acc
-          end
+          aliases_acc
+          |> add_bcp47_name_alias(bcp47_name, canonical)
+          |> add_explicit_aliases(type.alias, canonical)
 
         {systems_acc, aliases_acc}
       end)
 
     %{systems: systems, aliases: aliases}
+  end
+
+  # Adds the BCP 47 name as an alias if it differs from the canonical short name.
+  defp add_bcp47_name_alias(aliases, bcp47_name, canonical) do
+    if String.to_atom(bcp47_name) != canonical do
+      Map.put(aliases, String.to_atom(bcp47_name), canonical)
+    else
+      aliases
+    end
+  end
+
+  # Adds any explicit aliases from the XML.
+  defp add_explicit_aliases(aliases, "", _canonical), do: aliases
+
+  defp add_explicit_aliases(aliases, alias_string, canonical) do
+    alias_string
+    |> String.split(" ")
+    |> Enum.reduce(aliases, fn alias_name, acc ->
+      Map.put(acc, String.to_atom(alias_name), canonical)
+    end)
   end
 
   @doc """
@@ -480,40 +485,44 @@ defmodule Localize.Data.XmlExtractors do
   defp parents(_territory_parents, nil), do: []
 
   defp parents(territory_parents, territory) do
-    parent = :proplists.get_value(territory, territory_parents, nil)
+    case :proplists.get_value(territory, territory_parents, nil) do
+      nil -> parents_without_direct_parent(territory_parents, territory)
+      parent -> [territory | parents(territory_parents, parent)]
+    end
+  end
 
-    case parent do
-      nil ->
-        # Check if it's a top-level territory (2-char code)
-        if is_atom(territory) do
-          atom_str = Atom.to_string(territory)
+  # Check if it's a top-level territory (2-char code)
+  defp parents_without_direct_parent(territory_parents, territory) when is_atom(territory) do
+    atom_string = Atom.to_string(territory)
 
-          if String.length(atom_str) <= 3 and String.upcase(atom_str) == atom_str do
-            [territory]
-          else
-            # Find parent by prefix matching
-            parent_key =
-              Enum.find_value(territory_parents, fn {child, p} ->
-                child_str = if is_atom(child), do: Atom.to_string(child), else: child
-                t_str = Atom.to_string(territory)
+    if String.length(atom_string) <= 3 and String.upcase(atom_string) == atom_string do
+      [territory]
+    else
+      parents_by_matching_child(territory_parents, territory)
+    end
+  end
 
-                if child_str == t_str do
-                  p
-                end
-              end)
+  defp parents_without_direct_parent(_territory_parents, territory) do
+    [territory]
+  end
 
-            if parent_key do
-              [territory | parents(territory_parents, parent_key)]
-            else
-              [territory]
-            end
-          end
-        else
-          [territory]
-        end
+  # Find parent by prefix matching
+  defp parents_by_matching_child(territory_parents, territory) do
+    parent_key = Enum.find_value(territory_parents, &matching_parent(&1, territory))
 
-      p ->
-        [territory | parents(territory_parents, p)]
+    if parent_key do
+      [territory | parents(territory_parents, parent_key)]
+    else
+      [territory]
+    end
+  end
+
+  defp matching_parent({child, parent}, territory) do
+    child_string = if is_atom(child), do: Atom.to_string(child), else: child
+    territory_string = Atom.to_string(territory)
+
+    if child_string == territory_string do
+      parent
     end
   end
 

@@ -7,8 +7,7 @@ defmodule Localize.LocaleDisplayNameGenerator do
     |> File.read!()
     |> String.split("\n")
     |> Enum.with_index(1)
-    |> Enum.reject(fn {elem, _index} -> String.starts_with?(elem, "#") end)
-    |> Enum.reject(fn {elem, _index} -> elem == "" end)
+    |> Enum.reject(fn {elem, _index} -> elem == "" or String.starts_with?(elem, "#") end)
     |> Enum.map(fn {line, index} ->
       line
       |> String.split(";")

@@ -1289,12 +1289,12 @@ defmodule Localize.Utils.Math do
     {List.flatten(digits), place, sign}
   end
 
-  defp round_digits(digits_t = {_, place, _}, options = %{decimals: dp}) do
+  defp round_digits({_, place, _} = digits_t, %{decimals: dp} = options) do
     {digits, place, sign} = do_round(digits_t, dp + place - 1, options)
     {List.flatten(digits), place, sign}
   end
 
-  defp round_digits(digits_t, options = %{scientific: dp}) do
+  defp round_digits(digits_t, %{scientific: dp} = options) do
     {digits, place, sign} = do_round(digits_t, dp, options)
     {List.flatten(digits), place, sign}
   end

@@ -1,8 +1,8 @@
 defmodule Localize.Utils.Math.SqrtTest do
   use ExUnit.Case, async: false
 
-  alias Localize.Utils.Math
   alias Localize.Utils.Decimal, as: LDecimal
+  alias Localize.Utils.Math
 
   # Each of these is validated to return the original number when squared.
   # Computed at a fixed Decimal.Context precision of 28 so the expected values
