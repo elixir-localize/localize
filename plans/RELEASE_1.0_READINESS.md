@@ -134,4 +134,8 @@ Confirmed good: zero TODO/FIXME/@deprecated in lib; exception convention uniform
 14. Docs depth: doctest wiring, missing @doc/@spec, Options/Examples backfill, README feature list, CHANGELOG normalization, new guides (plurals, lists, locale matching, display names).
 15. Full release review per house checklist; 1.0.0-rc.1; soak; 1.0.0.
 
+### Scheduled: drop OTP 26 support on December 31st, 2026 (announced)
+
+On or after 2026-12-31: remove `maybe_json_polyfill/0` from mix.exs; remove the three OTP 26 rows from the CI matrix; update the README supported-versions section to OTP 27+ and delete the json_polyfill consumer instructions; remove (or downgrade) the supervisor `ensure_json_module!` check; changelog entry. Until then the `only: [:dev, :test]` json_polyfill conditional stays so OTP 26 CI compiles warning-free. This coincides with the removal window for the deprecated `known_/available_` delegates ("no later than December 2026").
+
 Sizing (rough): M1 ≈ days; M2 ≈ days but decision-heavy; M3 ≈ the long pole (day periods + week fields + coverage are real builds); M4 ≈ steady background work. The only item needing genuine design discussion before work starts is S1 (integrity manifest) and the B4 naming scheme.
