@@ -206,6 +206,18 @@ defmodule Localize.LanguageTag do
 
   * `{:error, reason}`
 
+  ### Examples
+
+      iex> {:ok, tag} = Localize.LanguageTag.parse("en-US")
+      iex> tag.language
+      :en
+      iex> tag.territory
+      :US
+
+      iex> {:error, error} = Localize.LanguageTag.parse("not a locale")
+      iex> is_exception(error)
+      true
+
   """
   @spec parse(String.t()) :: {:ok, t()} | {:error, Exception.t()}
   def parse(locale_id) when is_binary(locale_id) do
@@ -251,6 +263,14 @@ defmodule Localize.LanguageTag do
   * `t:Localize.LanguageTag` or
 
   * raises an exception
+
+  ### Examples
+
+      iex> tag = Localize.LanguageTag.parse!("fr-CA")
+      iex> tag.language
+      :fr
+      iex> tag.territory
+      :CA
 
   """
   @spec parse!(String.t()) :: t() | none()
@@ -418,6 +438,14 @@ defmodule Localize.LanguageTag do
   Same as `new/1` but returns the struct directly or raises
   an exception.
 
+  ### Examples
+
+      iex> tag = Localize.LanguageTag.new!("zh-TW")
+      iex> tag.script
+      :Hant
+      iex> tag.canonical_locale_id
+      "zh-TW"
+
   """
   @spec new!(String.t()) :: t() | no_return()
   def new!(locale_id) when is_binary(locale_id) do
@@ -528,6 +556,13 @@ defmodule Localize.LanguageTag do
 
   Same as `canonicalize/1` but returns the struct directly
   or raises an exception.
+
+  ### Examples
+
+      iex> tag = Localize.LanguageTag.parse!("en-US-u-nu-arab-ca-gregory")
+      iex> canonical = Localize.LanguageTag.canonicalize!(tag)
+      iex> canonical.canonical_locale_id
+      "en-US-u-ca-gregory-nu-arab"
 
   """
   @spec canonicalize!(t()) :: t() | no_return()
@@ -904,6 +939,13 @@ defmodule Localize.LanguageTag do
   Same as `add_likely_subtags/1` but returns the struct directly
   or raises an exception.
 
+  ### Examples
+
+      iex> tag = Localize.LanguageTag.parse!("en")
+      iex> maximized = Localize.LanguageTag.add_likely_subtags!(tag)
+      iex> maximized.canonical_locale_id
+      "en-Latn-US"
+
   """
   @spec add_likely_subtags!(t()) :: t() | no_return()
   @dialyzer {:nowarn_function, add_likely_subtags!: 1}
@@ -984,6 +1026,13 @@ defmodule Localize.LanguageTag do
 
   Same as `remove_likely_subtags/1` but returns the struct directly
   or raises an exception.
+
+  ### Examples
+
+      iex> tag = Localize.LanguageTag.parse!("zh-Hant-TW")
+      iex> minimized = Localize.LanguageTag.remove_likely_subtags!(tag)
+      iex> minimized.canonical_locale_id
+      "zh-Hant"
 
   """
   @spec remove_likely_subtags!(t()) :: t() | no_return()

@@ -83,8 +83,13 @@ defmodule Localize.Rfc5646.Grammar do
       |> ignore(dash())
       |> concat(script()),
       extlang() |> ignore(dash()) |> tag(:language_subtags) |> concat(script()),
-      extlang() |> ignore(dash()) |> concat(extlang()) |> ignore(dash()) |> concat(extlang()),
-      extlang() |> ignore(dash()) |> concat(extlang()),
+      extlang()
+      |> ignore(dash())
+      |> concat(extlang())
+      |> ignore(dash())
+      |> concat(extlang())
+      |> tag(:language_subtags),
+      extlang() |> ignore(dash()) |> concat(extlang()) |> tag(:language_subtags),
       extlang() |> tag(:language_subtags)
     ])
     |> label("an ISO-639 language code of between one and three three alphabetic characters")

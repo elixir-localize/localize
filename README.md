@@ -14,9 +14,19 @@ Localize consolidates the functionality of the `ex_cldr_*` library family into a
 
 * **Numbers** — format integers, decimals, percentages, and currencies with locale-appropriate grouping, decimal separators, and symbols.
 
+* **Number parsing** — parse locale-formatted strings back into numbers, including scanning numbers out of arbitrary text.
+
+* **RBNF** — rule-based number formatting: spell-out ("one hundred twenty-three"), ordinals ("42nd"), Roman numerals, and other algorithmic systems.
+
+* **Plural rules** — classify numbers into CLDR cardinal and ordinal plural categories for grammatically correct pluralization.
+
 * **Dates and times** — format `Date`, `Time`, `DateTime`, and `NaiveDateTime` values using CLDR calendar patterns.
 
+* **Relative times** — format time differences as human-readable phrases like "2 hours ago" or "in 3 days".
+
 * **Intervals** — format date, time, and datetime ranges.
+
+* **Durations** — format elapsed time as calendar-unit strings ("11 months and 30 days") or numeric time strings ("37:48:12").
 
 * **Units** — format units of measure with plural-aware patterns and territory-based usage preferences.
 
@@ -25,6 +35,8 @@ Localize consolidates the functionality of the `ex_cldr_*` library family into a
 * **Territories** — display names, containment hierarchies, subdivisions, and emoji flags.
 
 * **Languages** — localized language display names.
+
+* **Scripts** — localized script display names.
 
 * **Currencies** — validation, territory-to-currency mapping, and currency history.
 
@@ -132,7 +144,7 @@ All formatting functions default their `:locale` option to `Localize.get_locale(
 
 ## Configuration
 
-Localize requires no compile-time configuration. All options are set in your application config and take effect at runtime. Its also perfectly reasonable to have no configuration, at least when you are just exploring the library. The `:en` locale is always installed so that will be used for formatting and parsing until you add some configuration.
+Localize requires no compile-time configuration. All options are set in your application config and take effect at runtime. It is also perfectly reasonable to have no configuration, at least when you are just exploring the library. The `:en` locale is always installed so that will be used for formatting and parsing until you add some configuration.
 
 ```elixir
 config :localize,

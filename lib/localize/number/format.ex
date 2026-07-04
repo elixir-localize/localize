@@ -68,6 +68,11 @@ defmodule Localize.Number.Format do
 
   * A list of atoms: `[:decimal_long, :decimal_short, :currency_short, :currency_long]`.
 
+  ### Examples
+
+      iex> Localize.Number.Format.short_format_styles()
+      [:decimal_long, :decimal_short, :currency_short, :currency_long]
+
   """
   @spec short_format_styles() :: [
           :decimal_long | :decimal_short | :currency_short | :currency_long,
@@ -124,6 +129,12 @@ defmodule Localize.Number.Format do
 
   * Raises an exception if the locale data cannot be loaded.
 
+  ### Examples
+
+      iex> formats = Localize.Number.Format.all_formats_for!(:en)
+      iex> formats[:latn].standard
+      "#,##0.###"
+
   """
   @spec all_formats_for!(Localize.LanguageTag.t() | atom() | String.t()) :: map()
   def all_formats_for!(locale) do
@@ -150,6 +161,12 @@ defmodule Localize.Number.Format do
 
   * `{:error, exception}` if the locale data cannot be loaded or
     the number system is not available.
+
+  ### Examples
+
+      iex> {:ok, formats} = Localize.Number.Format.formats_for(:en)
+      iex> formats.standard
+      "#,##0.###"
 
   """
   @spec formats_for(
@@ -193,6 +210,11 @@ defmodule Localize.Number.Format do
   ### Raises
 
   * Raises an exception if the locale or number system is invalid.
+
+  ### Examples
+
+      iex> Localize.Number.Format.formats_for!(:en).percent
+      "#,##0%"
 
   """
   @spec formats_for!(
@@ -360,6 +382,12 @@ defmodule Localize.Number.Format do
 
   * `{:error, exception}` if the locale data cannot be loaded.
 
+  ### Examples
+
+      iex> spacing = Localize.Number.Format.currency_spacing(:en)
+      iex> spacing.before_currency.insert_between
+      "\u00A0"
+
   """
   @spec currency_spacing(
           Localize.LanguageTag.t() | atom() | String.t(),
@@ -392,6 +420,12 @@ defmodule Localize.Number.Format do
     style atoms.
 
   * `{:error, exception}` if the locale data cannot be loaded.
+
+  ### Examples
+
+      iex> {:ok, styles} = Localize.Number.Format.format_styles_for(:en)
+      iex> :standard in styles and :currency in styles
+      true
 
   """
   @spec format_styles_for(
@@ -429,6 +463,12 @@ defmodule Localize.Number.Format do
 
   * `{:error, exception}` if the locale data cannot be loaded.
 
+  ### Examples
+
+      iex> {:ok, styles} = Localize.Number.Format.short_format_styles_for(:en)
+      iex> Enum.sort(styles)
+      [:currency_short, :decimal_long, :decimal_short]
+
   """
   @dialyzer {:nowarn_function, short_format_styles_for: 1}
   @dialyzer {:nowarn_function, short_format_styles_for: 2}
@@ -463,6 +503,11 @@ defmodule Localize.Number.Format do
 
   * `{:error, exception}` if the locale data cannot be loaded.
 
+  ### Examples
+
+      iex> Localize.Number.Format.format_system_types_for(:en)
+      {:ok, [:default, :native]}
+
   """
   @spec format_system_types_for(Localize.LanguageTag.t() | atom() | String.t()) ::
           {:ok, [atom()]} | {:error, Exception.t()}
@@ -486,6 +531,11 @@ defmodule Localize.Number.Format do
     system name atoms.
 
   * `{:error, exception}` if the locale data cannot be loaded.
+
+  ### Examples
+
+      iex> Localize.Number.Format.format_system_names_for(:th)
+      {:ok, [:latn, :thai]}
 
   """
   @spec format_system_names_for(Localize.LanguageTag.t() | atom() | String.t()) ::

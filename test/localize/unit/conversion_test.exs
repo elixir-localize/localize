@@ -2,6 +2,7 @@ defmodule Localize.Unit.ConversionTest do
   use ExUnit.Case, async: true
 
   doctest Localize.Unit.Conversion
+  doctest Localize.Unit.Conversion.Beaufort
 
   alias Localize.Unit.Conversion
 

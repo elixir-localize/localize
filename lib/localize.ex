@@ -561,6 +561,25 @@ defmodule Localize do
     underlying formatter. Every implementation accepts at least
     `:locale`.
 
+  ### Options
+
+  * The options are forwarded unchanged to the type-specific
+    formatter for `value`: `Localize.Number.to_string/2` for
+    `Integer`, `Float`, and `Decimal`; `Localize.Date.to_string/2`
+    for `Date`; `Localize.Time.to_string/2` for `Time`;
+    `Localize.DateTime.to_string/2` for `DateTime` and
+    `NaiveDateTime`; `Localize.List.to_string/2` for `List`;
+    `Localize.Unit.to_string/2` for `Localize.Unit`;
+    `Localize.Duration.to_string/2` for `Localize.Duration`;
+    `Localize.Locale.LocaleDisplay.display_name/2` for
+    `Localize.LanguageTag`; and `Localize.Currency.display_name/2`
+    for `Localize.Currency`. See those functions for the option
+    set each one supports.
+
+  * `:locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0` and is accepted by every
+    implementation. The default is `Localize.get_locale/0`.
+
   ### Returns
 
   * `{:ok, formatted_string}` on success.
@@ -596,6 +615,11 @@ defmodule Localize do
   @doc """
   Same as `to_string/2` but returns the formatted string directly
   or raises on error.
+
+  ### Options
+
+  * See `to_string/2` for the supported options. They are forwarded
+    unchanged to the type-specific formatter for `value`.
 
   ### Examples
 
@@ -1447,16 +1471,21 @@ defmodule Localize do
   Validated locale results are cached in an ETS table so
   repeated calls with the same identifier are fast (~1µs).
 
-  > #### Always returns a result {: .warning}
+  > #### Valid tags always match {: .warning}
   >
   > This function uses the CLDR locale matching algorithm, which
-  > is designed to **always return a result** when the candidate
-  > list is non-empty — even if the match is very distant. For
-  > example, `validate_locale("xyzzy")` will succeed and return
-  > some CLDR locale (typically the first candidate), not an error.
-  > This is the correct CLDR behaviour for user-facing locale
-  > negotiation (a distant match is better than no match), but it
-  > means the returned locale may not be what the caller expected.
+  > is designed to **always return a result** for a syntactically
+  > valid language tag — even when CLDR has no data for the
+  > language. For example, `validate_locale("tlh")` (Klingon, a
+  > valid ISO 639 code with no CLDR data) succeeds with a
+  > `:cldr_locale_id` of `:und`, not an error. This is the correct
+  > CLDR behaviour for user-facing locale negotiation (a distant
+  > match is better than no match), but the resolved locale may
+  > not be what the caller expected.
+  >
+  > Identifiers that do not parse as a valid language tag —
+  > including unknown language subtags such as `"xyzzy"` — are
+  > rejected with `Localize.InvalidLocaleError` before matching.
   >
   > For strict validation (e.g. resolving configuration values),
   > use `Localize.LanguageTag.best_match/3` with a threshold of

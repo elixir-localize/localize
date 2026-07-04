@@ -47,6 +47,12 @@ defmodule Localize.Unit.Operators do
 
   alias Localize.Unit
 
+  @doc """
+  Imports the overloaded `+`, `-`, `*`, and `/` operators into the
+  calling module, excluding the corresponding `Kernel` operators
+  from the default import so the overrides take effect.
+
+  """
   defmacro __using__(_options) do
     quote do
       import Kernel, except: [+: 2, -: 2, *: 2, /: 2]

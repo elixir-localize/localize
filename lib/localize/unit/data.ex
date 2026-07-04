@@ -53,6 +53,11 @@ defmodule Localize.Unit.Data do
 
   * A list of strings such as `["arc", "british", "dessert", ...]`.
 
+  ### Examples
+
+      iex> "arc" in Localize.Unit.Data.prefix_components()
+      true
+
   """
   @spec prefix_components() :: [String.t()]
   def prefix_components, do: @prefix_components
@@ -63,6 +68,11 @@ defmodule Localize.Unit.Data do
   ### Returns
 
   * A list of strings such as `["force", "imperial", ...]`.
+
+  ### Examples
+
+      iex> "force" in Localize.Unit.Data.suffix_components()
+      true
 
   """
   @spec suffix_components() :: [String.t()]
@@ -75,6 +85,11 @@ defmodule Localize.Unit.Data do
 
   * A list of strings such as `["square", "cubic", "pow2", ...]`.
 
+  ### Examples
+
+      iex> "square" in Localize.Unit.Data.power_components()
+      true
+
   """
   @spec power_components() :: [String.t()]
   def power_components, do: @power_components
@@ -85,6 +100,11 @@ defmodule Localize.Unit.Data do
   ### Returns
 
   * A list of strings such as `["kilo", "milli", "mega", ...]`.
+
+  ### Examples
+
+      iex> "kilo" in Localize.Unit.Data.si_prefix_names()
+      true
 
   """
   @spec si_prefix_names() :: [String.t()]
@@ -101,6 +121,22 @@ defmodule Localize.Unit.Data do
   Returns the atom form of a parsed SI prefix string, or `nil` if
   the string is not a known SI prefix.
 
+  ### Arguments
+
+  * `name` is an SI prefix string such as `"kilo"`.
+
+  ### Returns
+
+  * The prefix as an atom, or `nil` if `name` is not a known SI prefix.
+
+  ### Examples
+
+      iex> Localize.Unit.Data.si_prefix_atom("kilo")
+      :kilo
+
+      iex> Localize.Unit.Data.si_prefix_atom("bogus")
+      nil
+
   """
   @spec si_prefix_atom(String.t()) :: atom() | nil
   def si_prefix_atom(name) when is_binary(name), do: Map.get(@si_prefix_atom_map, name)
@@ -111,6 +147,12 @@ defmodule Localize.Unit.Data do
   ### Returns
 
   * A list of maps with keys `:type`, `:symbol`, `:power10`, and `:power2`.
+
+  ### Examples
+
+      iex> kilo = Enum.find(Localize.Unit.Data.si_prefix_data(), &(&1.type == "kilo"))
+      iex> {kilo.symbol, kilo.power10}
+      {"k", "3"}
 
   """
   @spec si_prefix_data() :: [
@@ -126,6 +168,11 @@ defmodule Localize.Unit.Data do
 
   * A list of strings such as `["meter", "kilogram", "second", ...]`.
 
+  ### Examples
+
+      iex> "meter" in Localize.Unit.Data.base_units()
+      true
+
   """
   @spec base_units() :: [String.t()]
   def base_units, do: @base_units
@@ -136,6 +183,11 @@ defmodule Localize.Unit.Data do
   ### Returns
 
   * A list of strings such as `["length-kilometer", "mass-kilogram", ...]`.
+
+  ### Examples
+
+      iex> "length-kilometer" in Localize.Unit.Data.valid_unit_identifiers()
+      true
 
   """
   @spec valid_unit_identifiers() :: [String.t()]
@@ -148,6 +200,11 @@ defmodule Localize.Unit.Data do
 
   * A list of strings.
 
+  ### Examples
+
+      iex> "acceleration-meter-per-second-squared" in Localize.Unit.Data.deprecated_unit_identifiers()
+      true
+
   """
   @spec deprecated_unit_identifiers() :: [String.t()]
   def deprecated_unit_identifiers, do: @deprecated_unit_identifiers
@@ -159,6 +216,11 @@ defmodule Localize.Unit.Data do
 
   * A list of strings such as `["acceleration", "angle", "area", ...]`.
 
+  ### Examples
+
+      iex> "length" in Localize.Unit.Data.categories()
+      true
+
   """
   @spec categories() :: [String.t()]
   def categories, do: @categories
@@ -169,6 +231,11 @@ defmodule Localize.Unit.Data do
   ### Returns
 
   * A map such as `%{"foot" => "meter", "newton" => "kilogram-meter-per-square-second", ...}`.
+
+  ### Examples
+
+      iex> Localize.Unit.Data.conversions()["foot"]
+      "meter"
 
   """
   @spec conversions() :: %{String.t() => String.t()}
@@ -184,6 +251,11 @@ defmodule Localize.Unit.Data do
 
   * A list of strings such as `["candela", "kilogram", "meter", "second", ...]`.
 
+  ### Examples
+
+      iex> "kilogram" in Localize.Unit.Data.simple_base_units()
+      true
+
   """
   @spec simple_base_units() :: [String.t()]
   def simple_base_units, do: @simple_base_units
@@ -197,6 +269,14 @@ defmodule Localize.Unit.Data do
 
   * A list of base unit strings in canonical order.
 
+  ### Examples
+
+      iex> hd(Localize.Unit.Data.base_unit_order())
+      "candela"
+
+      iex> "meter" in Localize.Unit.Data.base_unit_order()
+      true
+
   """
   @spec base_unit_order() :: [String.t()]
   def base_unit_order, do: @base_unit_order
@@ -207,6 +287,11 @@ defmodule Localize.Unit.Data do
   ### Returns
 
   * A map such as `%{"ft_to_m" => 0.3048, "lb_to_kg" => 0.45359237, ...}`.
+
+  ### Examples
+
+      iex> Localize.Unit.Data.unit_constants()["ft_to_m"]
+      0.3048
 
   """
   @spec unit_constants() :: %{String.t() => float()}
@@ -221,6 +306,11 @@ defmodule Localize.Unit.Data do
 
   * A map such as `%{"foot" => %{factor: 0.3048, offset: 0.0}, ...}`.
 
+  ### Examples
+
+      iex> Localize.Unit.Data.conversion_factors()["foot"].factor
+      0.3048
+
   """
   @spec conversion_factors() :: %{String.t() => %{factor: float() | :special, offset: float()}}
   def conversion_factors, do: @conversion_factors
@@ -232,6 +322,11 @@ defmodule Localize.Unit.Data do
 
   * A map such as `%{"kilo" => 1000.0, "milli" => 0.001, ...}`.
 
+  ### Examples
+
+      iex> Localize.Unit.Data.si_prefix_multipliers()["kilo"]
+      1000.0
+
   """
   @spec si_prefix_multipliers() :: %{String.t() => float()}
   def si_prefix_multipliers, do: @si_prefix_multipliers
@@ -242,6 +337,11 @@ defmodule Localize.Unit.Data do
   ### Returns
 
   * A map such as `%{"meter" => "length", "kilogram" => "mass", ...}`.
+
+  ### Examples
+
+      iex> Localize.Unit.Data.base_unit_to_quantity()["meter"]
+      "length"
 
   """
   @spec base_unit_to_quantity() :: %{String.t() => String.t()}
@@ -256,6 +356,12 @@ defmodule Localize.Unit.Data do
   ### Returns
 
   * A list of maps with keys `:category`, `:usage`, and `:preferences`.
+
+  ### Examples
+
+      iex> [entry | _] = Localize.Unit.Data.unit_preferences()
+      iex> Map.keys(entry) |> Enum.sort()
+      [:category, :preferences, :usage]
 
   """
   @spec unit_preferences() :: [

@@ -194,6 +194,10 @@ defmodule Localize.Number do
 
   * `options` is a keyword list of options.
 
+  ### Options
+
+  See `to_string/2` for the supported options.
+
   ### Returns
 
   * A formatted string.
@@ -217,13 +221,42 @@ defmodule Localize.Number do
   end
 
   @doc """
+  Formats an Elixir `t:Range.t/0` as a localized string.
+
+  Equivalent to `to_range_string(range.first, range.last, options)`.
+  See `to_range_string/3` for the full description and options.
+
+  ### Arguments
+
+  * `range` is an Elixir `t:Range.t/0` (e.g., `3..5`).
+
+  * `options` is a keyword list of options. See `to_range_string/3`.
+
+  ### Returns
+
+  * `{:ok, formatted_range}` on success.
+
+  * `{:error, exception}` if formatting fails.
+
+  ### Examples
+
+      iex> Localize.Number.to_range_string(3..5, locale: :en)
+      {:ok, "3–5"}
+
+  """
+  @spec to_range_string(Range.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def to_range_string(%Range{first: first, last: last}, options) do
+    to_range_string(first, last, options)
+  end
+
+  @doc """
   Formats a numeric range as a localized string.
 
-  Accepts either two numbers or an Elixir `Range`. Uses the
-  locale's range pattern (e.g., `"3–5"` in English, `"3～5"` in
-  Japanese) to combine two formatted numbers. When the start and
-  end are equal, the locale's approximately pattern is used
-  instead (e.g., `"~5"`).
+  Uses the locale's range pattern (e.g., `"3–5"` in English,
+  `"3～5"` in Japanese) to combine two formatted numbers. When the
+  start and end are equal, the locale's approximately pattern is
+  used instead (e.g., `"~5"`).
 
   ### Arguments
 
@@ -232,12 +265,6 @@ defmodule Localize.Number do
 
   * `number_end` is the end of the range (integer, float, or
     Decimal).
-
-  * `options` is a keyword list of options.
-
-  Alternatively:
-
-  * `range` is an Elixir `t:Range.t/0` (e.g., `3..5`).
 
   * `options` is a keyword list of options.
 
@@ -261,19 +288,10 @@ defmodule Localize.Number do
       iex> Localize.Number.to_range_string(3, 5, locale: :en)
       {:ok, "3–5"}
 
-      iex> Localize.Number.to_range_string(3..5, locale: :en)
-      {:ok, "3–5"}
-
       iex> Localize.Number.to_range_string(5, 5, locale: :en)
       {:ok, "~5"}
 
   """
-  @spec to_range_string(Range.t(), Keyword.t()) ::
-          {:ok, String.t()} | {:error, Exception.t()}
-  def to_range_string(%Range{first: first, last: last}, options) do
-    to_range_string(first, last, options)
-  end
-
   @spec to_range_string(number() | Decimal.t(), number() | Decimal.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def to_range_string(number_start, number_end, options \\ []) do
@@ -310,12 +328,9 @@ defmodule Localize.Number do
   end
 
   @doc """
-  Same as `to_range_string/3` but raises on error.
+  Same as `to_range_string/2` but raises on error.
 
   ### Examples
-
-      iex> Localize.Number.to_range_string!(3, 5, locale: :en)
-      "3–5"
 
       iex> Localize.Number.to_range_string!(3..5, locale: :en)
       "3–5"
@@ -329,6 +344,33 @@ defmodule Localize.Number do
     end
   end
 
+  @doc """
+  Same as `to_range_string/3` but raises on error.
+
+  ### Arguments
+
+  * `number_start` is the start of the range (integer, float,
+    or Decimal).
+
+  * `number_end` is the end of the range (integer, float, or
+    Decimal).
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `to_range_string/3` for the supported options.
+
+  ### Returns
+
+  * A formatted string.
+
+  ### Examples
+
+      iex> Localize.Number.to_range_string!(3, 5, locale: :en)
+      "3–5"
+
+  """
   @spec to_range_string!(number() | Decimal.t(), number() | Decimal.t(), Keyword.t()) ::
           String.t()
   def to_range_string!(number_start, number_end, options \\ []) do
@@ -347,8 +389,11 @@ defmodule Localize.Number do
 
   * `number` is an integer, float, or Decimal.
 
-  * `options` is a keyword list of options accepted by
-    `to_string/2`.
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `to_string/2` for the supported options.
 
   ### Returns
 
@@ -370,6 +415,20 @@ defmodule Localize.Number do
 
   @doc """
   Same as `to_at_least_string/2` but raises on error.
+
+  ### Arguments
+
+  * `number` is an integer, float, or Decimal.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `to_string/2` for the supported options.
+
+  ### Returns
+
+  * A formatted string.
 
   ### Examples
 
@@ -394,8 +453,11 @@ defmodule Localize.Number do
 
   * `number` is an integer, float, or Decimal.
 
-  * `options` is a keyword list of options accepted by
-    `to_string/2`.
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `to_string/2` for the supported options.
 
   ### Returns
 
@@ -417,6 +479,20 @@ defmodule Localize.Number do
 
   @doc """
   Same as `to_at_most_string/2` but raises on error.
+
+  ### Arguments
+
+  * `number` is an integer, float, or Decimal.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `to_string/2` for the supported options.
+
+  ### Returns
+
+  * A formatted string.
 
   ### Examples
 
@@ -441,8 +517,11 @@ defmodule Localize.Number do
 
   * `number` is an integer, float, or Decimal.
 
-  * `options` is a keyword list of options accepted by
-    `to_string/2`.
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `to_string/2` for the supported options.
 
   ### Returns
 
@@ -464,6 +543,20 @@ defmodule Localize.Number do
 
   @doc """
   Same as `to_approximately_string/2` but raises on error.
+
+  ### Arguments
+
+  * `number` is an integer, float, or Decimal.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `to_string/2` for the supported options.
+
+  ### Returns
+
+  * A formatted string.
 
   ### Examples
 
@@ -558,6 +651,10 @@ defmodule Localize.Number do
 
   * `options` is a keyword list of options.
 
+  ### Options
+
+  See `to_ratio_string/2` for the supported options.
+
   ### Returns
 
   * The formatted ratio string.
@@ -565,6 +662,11 @@ defmodule Localize.Number do
   ### Raises
 
   * Raises an exception if the number cannot be converted.
+
+  ### Examples
+
+      iex> Localize.Number.to_ratio_string!(0.5)
+      "1⁄2"
 
   """
   @spec to_ratio_string!(number() | Decimal.t(), Keyword.t()) :: String.t()
@@ -586,11 +688,34 @@ defmodule Localize.Number do
 
   * `options` is a keyword list of options.
 
+  ### Options
+
+  * `:number` is one of `:integer`, `:float`, `:decimal`, or
+    `nil`. The default is `nil` (auto-detect).
+
+  * `:locale` is a locale identifier. The default is the locale
+    returned by `Localize.get_locale/0`.
+
+  * `:number_system` is a number system name or type.
+
   ### Returns
 
   * A list of strings and numbers.
 
+  * `{:error, exception}` if the locale or number system is invalid.
+
+  ### Examples
+
+      iex> Localize.Number.scan("The prize is 23")
+      ["The prize is ", 23]
+
+      iex> Localize.Number.scan("1kg")
+      [1, "kg"]
+
   """
+  @spec scan(String.t(), Keyword.t()) ::
+          list(String.t() | integer() | float() | Decimal.t())
+          | {:error, Exception.t()}
   defdelegate scan(string, options \\ []), to: Localize.Number.Parser
 
   @doc """
@@ -604,11 +729,34 @@ defmodule Localize.Number do
 
   * `options` is a keyword list of options.
 
+  ### Options
+
+  * `:number` is one of `:integer`, `:float`, `:decimal`, or
+    `nil`. The default is `nil` (auto-detect).
+
+  * `:locale` is a locale identifier. The default is the locale
+    returned by `Localize.get_locale/0`.
+
+  * `:number_system` is a number system name or type.
+
   ### Returns
 
-  * `{:ok, number}` or `{:error, exception}`.
+  * `{:ok, number}` on success.
+
+  * `{:error, exception}` if parsing fails.
+
+  ### Examples
+
+      iex> Localize.Number.parse("+1.000,34", locale: :de)
+      {:ok, 1000.34}
+
+      iex> Localize.Number.parse("-1_000_000.34")
+      {:ok, -1000000.34}
 
   """
+  @spec parse(String.t(), Keyword.t()) ::
+          {:ok, integer() | float() | Decimal.t()}
+          | {:error, Exception.t()}
   defdelegate parse(string, options \\ []), to: Localize.Number.Parser
 
   @doc """
@@ -616,7 +764,37 @@ defmodule Localize.Number do
 
   Delegates to `Localize.Number.Parser.resolve_currencies/2`.
 
+  ### Arguments
+
+  * `list` is a list of strings and numbers, typically the output
+    of `scan/2`.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier. The default is the locale
+    returned by `Localize.get_locale/0`.
+
+  * `:only` is a filter for currencies to include.
+
+  * `:except` is a filter for currencies to exclude.
+
+  * `:fuzzy` is a float between `0.0` and `1.0` for fuzzy matching
+    via `String.jaro_distance/2`.
+
+  ### Returns
+
+  * A list with currency strings replaced by currency code atoms.
+
+  ### Examples
+
+      iex> Localize.Number.scan("100 US dollars") |> Localize.Number.resolve_currencies()
+      [100, :USD]
+
   """
+  @spec resolve_currencies([String.t() | number()], Keyword.t()) ::
+          list(atom() | String.t() | number())
   defdelegate resolve_currencies(list, options \\ []), to: Localize.Number.Parser
 
   @doc """
@@ -624,7 +802,39 @@ defmodule Localize.Number do
 
   Delegates to `Localize.Number.Parser.resolve_currency/2`.
 
+  ### Arguments
+
+  * `string` is a string potentially containing a currency name
+    or symbol.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier. The default is the locale
+    returned by `Localize.get_locale/0`.
+
+  * `:only` is a filter for currencies to include.
+
+  * `:except` is a filter for currencies to exclude.
+
+  * `:fuzzy` is a float between `0.0` and `1.0` for fuzzy matching
+    via `String.jaro_distance/2`.
+
+  ### Returns
+
+  * A list with the currency code and any remaining string.
+
+  * `{:error, exception}` if no currency can be resolved.
+
+  ### Examples
+
+      iex> Localize.Number.resolve_currency("US dollars")
+      [:USD]
+
   """
+  @spec resolve_currency(String.t(), Keyword.t()) ::
+          list(atom() | String.t()) | {:error, Exception.t()}
   defdelegate resolve_currency(string, options \\ []), to: Localize.Number.Parser
 
   @doc """
@@ -632,7 +842,33 @@ defmodule Localize.Number do
 
   Delegates to `Localize.Number.Parser.resolve_pers/2`.
 
+  ### Arguments
+
+  * `list` is a list of strings and numbers, typically the output
+    of `scan/2`.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier. The default is the locale
+    returned by `Localize.get_locale/0`.
+
+  * `:number_system` is a number system name or type.
+
+  ### Returns
+
+  * A list with percent/permille strings replaced by `:percent`
+    or `:permille` atoms.
+
+  ### Examples
+
+      iex> Localize.Number.scan("11%") |> Localize.Number.resolve_pers()
+      [11, :percent]
+
   """
+  @spec resolve_pers([String.t() | number()], Keyword.t()) ::
+          list(atom() | String.t() | number())
   defdelegate resolve_pers(list, options \\ []), to: Localize.Number.Parser
 
   @doc """
@@ -640,7 +876,34 @@ defmodule Localize.Number do
 
   Delegates to `Localize.Number.Parser.resolve_per/2`.
 
+  ### Arguments
+
+  * `string` is a string potentially containing percent or
+    permille symbols.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier. The default is the locale
+    returned by `Localize.get_locale/0`.
+
+  * `:number_system` is a number system name or type.
+
+  ### Returns
+
+  * A list with the symbol replaced by `:percent` or `:permille`.
+
+  * `{:error, exception}` if no symbol is found.
+
+  ### Examples
+
+      iex> Localize.Number.resolve_per("11%")
+      ["11", :percent]
+
   """
+  @spec resolve_per(String.t(), Keyword.t()) ::
+          list(atom() | String.t()) | {:error, Exception.t()}
   defdelegate resolve_per(string, options \\ []), to: Localize.Number.Parser
 
   # The NIF backend validates the locale through the same canonical

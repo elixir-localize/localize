@@ -1,6 +1,8 @@
 defmodule Localize.Number.FormattingTest do
   use ExUnit.Case, async: true
 
+  doctest Localize.Number.Formatter.Ratio
+
   # Adapted from ex_cldr_numbers number_format_test.exs
   # Tests ported from backend-based calls to Localize.Number.to_string/2
 

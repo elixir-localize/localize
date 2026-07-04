@@ -50,6 +50,11 @@ defmodule Localize.Number.Format.Compiler do
 
   * `{:ok, tokens, end_line}` or an error tuple.
 
+  ### Examples
+
+      iex> Localize.Number.Format.Compiler.tokenize("0.00")
+      {:ok, [{:format, 1, ~c"0.00"}], 1}
+
   """
   @spec tokenize(String.t()) :: {:ok, list(), integer()} | {:error, term(), integer()}
   def tokenize(definition) when is_binary(definition) do
@@ -117,6 +122,14 @@ defmodule Localize.Number.Format.Compiler do
 
   * `{:error, reason}` if parsing fails.
 
+  ### Examples
+
+      iex> {:ok, meta} = Localize.Number.Format.Compiler.compile("#,##0.###")
+      iex> meta.fractional_digits
+      %{min: 0, max: 3}
+      iex> meta.grouping
+      %{integer: %{first: 3, rest: 3}, fraction: %{first: 0, rest: 0}}
+
   """
   @spec compile(String.t()) :: {:ok, Meta.t()} | {:error, String.t()}
   def compile(definition) when is_binary(definition) do
@@ -143,6 +156,12 @@ defmodule Localize.Number.Format.Compiler do
   ### Returns
 
   * `{:ok, meta}` where `meta` is a `Localize.Number.Format.Meta.t()`.
+
+  ### Examples
+
+      iex> {:ok, meta} = Localize.Number.Format.Compiler.format_to_metadata("0.00")
+      iex> meta.fractional_digits
+      %{min: 2, max: 2}
 
   """
   @spec format_to_metadata(String.t() | Keyword.t()) :: {:ok, Meta.t()} | {:error, String.t()}
@@ -184,6 +203,12 @@ defmodule Localize.Number.Format.Compiler do
 
   * Raises `ArgumentError` if the format cannot be parsed.
 
+  ### Examples
+
+      iex> meta = Localize.Number.Format.Compiler.format_to_metadata!("#,##0.###")
+      iex> meta.integer_digits
+      %{min: 1, max: 0}
+
   """
   @spec format_to_metadata!(String.t() | Keyword.t()) :: Meta.t()
   def format_to_metadata!(format) do
@@ -197,12 +222,24 @@ defmodule Localize.Number.Format.Compiler do
   Returns a regex that can be used to split a number format
   or number string into integer, fraction, and exponent parts.
 
+  ### Returns
+
+  * A `t:Regex.t/0` with the named captures `integer`, `fraction`,
+    `exponent_sign`, and `exponent_digits`.
+
+  ### Examples
+
+      iex> regex = Localize.Number.Format.Compiler.number_match_regex()
+      iex> Regex.named_captures(regex, "1234.567")["fraction"]
+      "567"
+
   """
   @integer_digits "(?<integer>[@#0-9,]+)"
   @fraction_digits "([.](?<fraction>[#0-9,]+))?"
   @exponent "([Ee](?<exponent_sign>[+-])?(?<exponent_digits>[0-9]+))?"
   @format_regex @integer_digits <> @fraction_digits <> @exponent
 
+  @spec number_match_regex() :: Regex.t()
   def number_match_regex do
     ~r/#{@format_regex}/
   end

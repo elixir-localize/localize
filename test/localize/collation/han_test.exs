@@ -32,6 +32,101 @@ defmodule Localize.Collation.HanTest do
     test "extension B" do
       assert Localize.Collation.Han.block_index(0x20000) == 2
     end
+
+    test "extensions C through H" do
+      assert Localize.Collation.Han.block_index(0x2A700) == 3
+      assert Localize.Collation.Han.block_index(0x2B820) == 4
+      assert Localize.Collation.Han.block_index(0x2CEB0) == 5
+      assert Localize.Collation.Han.block_index(0x2EBF0) == 6
+      assert Localize.Collation.Han.block_index(0x30000) == 7
+      assert Localize.Collation.Han.block_index(0x31350) == 8
+    end
+
+    test "compatibility ideographs block sorts last" do
+      assert Localize.Collation.Han.block_index(0xF900) == 254
+      assert Localize.Collation.Han.block_index(0xFAFF) == 254
+    end
+
+    test "codepoints outside all CJK blocks default to the core block" do
+      assert Localize.Collation.Han.block_index(0x0041) == 0
+    end
+  end
+
+  describe "compute_key/5 ordering" do
+    test "radical number dominates all other components" do
+      lower_radical = Localize.Collation.Han.compute_key(1, 0xFF, 0xFF, 254, 0x10FFFF)
+      higher_radical = Localize.Collation.Han.compute_key(2, 0, 0, 0, 0)
+      assert lower_radical < higher_radical
+    end
+
+    test "residual strokes rank within a radical" do
+      fewer_strokes = Localize.Collation.Han.compute_key(9, 1, 0, 0, 0x9FFF)
+      more_strokes = Localize.Collation.Han.compute_key(9, 2, 0, 0, 0x4E00)
+      assert fewer_strokes < more_strokes
+    end
+
+    test "block index ranks below strokes and above codepoint" do
+      core_block = Localize.Collation.Han.compute_key(9, 1, 0, 0, 0x9FFF)
+      ext_a_block = Localize.Collation.Han.compute_key(9, 1, 0, 1, 0x3400)
+      assert core_block < ext_a_block
+    end
+  end
+
+  describe "key_to_elements/1" do
+    test "produces two collation elements" do
+      key = Localize.Collation.Han.compute_key(1, 0, 0, 0, 0x4E00)
+
+      assert [{p1, 0x0020, 0x0002, false}, {p2, 0x0000, 0x0000, false}] =
+               Localize.Collation.Han.key_to_elements(key)
+
+      # First element lands in the Han implicit-weight lead range.
+      assert p1 >= 0xFB40
+      # Second element has the continuation high bit set.
+      assert Bitwise.band(p2, 0x8000) == 0x8000
+    end
+
+    test "element pairs preserve key ordering" do
+      key_a = Localize.Collation.Han.compute_key(1, 0, 0, 0, 0x4E00)
+      key_b = Localize.Collation.Han.compute_key(1, 1, 0, 0, 0x4E01)
+
+      assert Localize.Collation.Han.key_to_elements(key_a) <
+               Localize.Collation.Han.key_to_elements(key_b)
+    end
+  end
+
+  describe "parse_radical_line/1" do
+    test "parses a radical definition with member ranks by position" do
+      assert {:ok, 1, members} =
+               Localize.Collation.Han.parse_radical_line("[radical 1=⼀一:一丁万]")
+
+      assert [{0x4E00, 0, 0}, {0x4E01, 0, 1}, {0x4E07, 0, 2}] = members
+    end
+
+    test "expands codepoint ranges in the member list" do
+      assert {:ok, 7, members} = Localize.Collation.Han.parse_radical_line("[radical 7=⼆二:a-d]")
+
+      assert [{?a, 0, 0}, {?b, 0, 1}, {?c, 0, 2}, {?d, 0, 3}] = members
+    end
+
+    test "skips lines that are not radical definitions" do
+      assert :skip = Localize.Collation.Han.parse_radical_line("# comment")
+      assert :skip = Localize.Collation.Han.parse_radical_line("0041; [2B, 05, 9C]")
+      assert :skip = Localize.Collation.Han.parse_radical_line("[UCA version = 17.0.0]")
+    end
+  end
+
+  describe "missing radical data" do
+    test "collation_elements/1 returns nil and ensure_loaded/0 restores the data" do
+      # Erase the radical data plus one of the keys Table.ensure_loaded/0
+      # checks, so the reload path restores everything from the ETF.
+      :persistent_term.erase({:localize, :collation_han_radicals})
+      :persistent_term.erase({:localize, :collation_fast_latin})
+
+      assert Localize.Collation.Han.collation_elements(0x4E00) == nil
+
+      assert :ok = Localize.Collation.Han.ensure_loaded()
+      assert [_ce1, _ce2] = Localize.Collation.Han.collation_elements(0x4E00)
+    end
   end
 
   describe "collation_elements/1" do

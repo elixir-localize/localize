@@ -621,63 +621,198 @@ defmodule Localize.Unit.Math do
   @spec sin(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def sin(unit), do: apply_dimensionless(:sin, unit)
 
-  @doc "Computes the cosine of a dimensionless unit value."
+  @doc """
+  Computes the cosine of a dimensionless unit value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(0, "radian")
+      iex> Localize.Unit.Math.cos(u)
+      {:ok, 1.0}
+
+  """
   @spec cos(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def cos(unit), do: apply_dimensionless(:cos, unit)
 
-  @doc "Computes the tangent of a dimensionless unit value."
+  @doc """
+  Computes the tangent of a dimensionless unit value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(0, "radian")
+      iex> Localize.Unit.Math.tan(u)
+      {:ok, 0.0}
+
+  """
   @spec tan(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def tan(unit), do: apply_dimensionless(:tan, unit)
 
-  @doc "Computes the arc sine of a dimensionless unit value."
+  @doc """
+  Computes the arc sine of a dimensionless unit value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(0, "radian")
+      iex> Localize.Unit.Math.asin(u)
+      {:ok, 0.0}
+
+  """
   @spec asin(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def asin(unit), do: apply_dimensionless(:asin, unit)
 
-  @doc "Computes the arc cosine of a dimensionless unit value."
+  @doc """
+  Computes the arc cosine of a dimensionless unit value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(1, "radian")
+      iex> Localize.Unit.Math.acos(u)
+      {:ok, 0.0}
+
+  """
   @spec acos(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def acos(unit), do: apply_dimensionless(:acos, unit)
 
-  @doc "Computes the arc tangent of a dimensionless unit value."
+  @doc """
+  Computes the arc tangent of a dimensionless unit value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(0, "radian")
+      iex> Localize.Unit.Math.atan(u)
+      {:ok, 0.0}
+
+  """
   @spec atan(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def atan(unit), do: apply_dimensionless(:atan, unit)
 
-  @doc "Computes the hyperbolic sine of a dimensionless unit value."
+  @doc """
+  Computes the hyperbolic sine of a dimensionless unit value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(0, "radian")
+      iex> Localize.Unit.Math.sinh(u)
+      {:ok, 0.0}
+
+  """
   @spec sinh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def sinh(unit), do: apply_dimensionless(:sinh, unit)
 
-  @doc "Computes the hyperbolic cosine of a dimensionless unit value."
+  @doc """
+  Computes the hyperbolic cosine of a dimensionless unit value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(0, "radian")
+      iex> Localize.Unit.Math.cosh(u)
+      {:ok, 1.0}
+
+  """
   @spec cosh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def cosh(unit), do: apply_dimensionless(:cosh, unit)
 
-  @doc "Computes the hyperbolic tangent of a dimensionless unit value."
+  @doc """
+  Computes the hyperbolic tangent of a dimensionless unit value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(0, "radian")
+      iex> Localize.Unit.Math.tanh(u)
+      {:ok, 0.0}
+
+  """
   @spec tanh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def tanh(unit), do: apply_dimensionless(:tanh, unit)
 
-  @doc "Computes the inverse hyperbolic sine of a dimensionless unit value."
+  @doc """
+  Computes the inverse hyperbolic sine of a dimensionless unit value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(0, "radian")
+      iex> Localize.Unit.Math.asinh(u)
+      {:ok, 0.0}
+
+  """
   @spec asinh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def asinh(unit), do: apply_dimensionless(:asinh, unit)
 
-  @doc "Computes the inverse hyperbolic cosine of a dimensionless unit value."
+  @doc """
+  Computes the inverse hyperbolic cosine of a dimensionless unit value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(1, "radian")
+      iex> Localize.Unit.Math.acosh(u)
+      {:ok, 0.0}
+
+  """
   @spec acosh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def acosh(unit), do: apply_dimensionless(:acosh, unit)
 
-  @doc "Computes the inverse hyperbolic tangent of a dimensionless unit value."
+  @doc """
+  Computes the inverse hyperbolic tangent of a dimensionless unit value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(0, "radian")
+      iex> Localize.Unit.Math.atanh(u)
+      {:ok, 0.0}
+
+  """
   @spec atanh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def atanh(unit), do: apply_dimensionless(:atanh, unit)
 
-  @doc "Computes e^x for a dimensionless unit value."
+  @doc """
+  Computes e^x for a dimensionless unit value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(0, "radian")
+      iex> Localize.Unit.Math.exp(u)
+      {:ok, 1.0}
+
+  """
   @spec exp(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def exp(unit), do: apply_dimensionless(:exp, unit)
 
-  @doc "Computes the natural logarithm of a dimensionless unit value."
+  @doc """
+  Computes the natural logarithm of a dimensionless unit value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(1, "radian")
+      iex> Localize.Unit.Math.ln(u)
+      {:ok, 0.0}
+
+  """
   @spec ln(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def ln(unit), do: apply_dimensionless(:ln, unit)
 
-  @doc "Computes the base-10 logarithm of a dimensionless unit value."
+  @doc """
+  Computes the base-10 logarithm of a dimensionless unit value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(100, "radian")
+      iex> Localize.Unit.Math.log(u)
+      {:ok, 2.0}
+
+  """
   @spec log(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def log(unit), do: apply_dimensionless(:log, unit)
 
-  @doc "Computes the base-2 logarithm of a dimensionless unit value."
+  @doc """
+  Computes the base-2 logarithm of a dimensionless unit value.
+
+  ### Examples
+
+      iex> {:ok, u} = Localize.Unit.new(8, "radian")
+      iex> Localize.Unit.Math.log2(u)
+      {:ok, 3.0}
+
+  """
   @spec log2(Unit.t()) :: {:ok, number()} | {:error, String.t()}
   def log2(unit), do: apply_dimensionless(:log2, unit)
 

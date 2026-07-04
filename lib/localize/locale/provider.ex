@@ -164,6 +164,11 @@ defmodule Localize.Locale.Provider do
 
   * `false` otherwise.
 
+  ### Examples
+
+      iex> Localize.Locale.Provider.allow_download?()
+      false
+
   """
   @spec allow_download?(module()) :: boolean()
   def allow_download?(provider_module \\ configured_provider()) do
@@ -608,6 +613,11 @@ defmodule Localize.Locale.Provider do
 
   * A string of the form `"v{major}.{minor}.{patch}"` matching
     `Localize.version/0` with a `v` prefix.
+
+  ### Examples
+
+      iex> Localize.Locale.Provider.version_segment() =~ ~r/^v\\d+\\.\\d+\\.\\d+$/
+      true
 
   """
   @spec version_segment() :: String.t()

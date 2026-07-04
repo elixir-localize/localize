@@ -90,6 +90,10 @@ defmodule Localize.Locale do
   @doc """
   Same as `display_name/2` but raises on error.
 
+  ### Options
+
+  * See `display_name/2` for the supported options.
+
   ### Examples
 
       iex> Localize.Locale.display_name!("en-AU")
@@ -349,6 +353,11 @@ defmodule Localize.Locale do
 
   * The module implementing `Localize.Locale.Provider`.
 
+  ### Examples
+
+      iex> Localize.Locale.default_provider()
+      Localize.Locale.Provider.PersistentTerm
+
   """
   @spec default_provider() :: module()
   def default_provider do
@@ -379,6 +388,12 @@ defmodule Localize.Locale do
 
   * `{:error, Localize.UnknownLocaleError.t()}` if the locale is not
     recognized.
+
+  ### Examples
+
+      iex> {:ok, locale_data} = Localize.Locale.load(:en)
+      iex> is_map(locale_data)
+      true
 
   """
   @spec load(Provider.locale(), Keyword.t()) ::
@@ -411,6 +426,12 @@ defmodule Localize.Locale do
   * `:ok` on success.
 
   * `{:error, reason}` on failure.
+
+  ### Examples
+
+      iex> {:ok, locale_data} = Localize.Locale.load(:en)
+      iex> Localize.Locale.store(:en, locale_data)
+      :ok
 
   """
   @spec store(locale_id(), map(), Keyword.t()) ::
@@ -447,6 +468,11 @@ defmodule Localize.Locale do
   * `{:error, Localize.UnknownLocaleError.t()}` if the locale data
     could not be loaded.
 
+  ### Examples
+
+      iex> Localize.Locale.load_and_store(:en)
+      :ok
+
   """
   @spec load_and_store(Provider.locale(), Keyword.t()) ::
           :ok | {:error, Exception.t()}
@@ -475,6 +501,13 @@ defmodule Localize.Locale do
   * `true` if the locale data has been loaded and stored.
 
   * `false` otherwise.
+
+  ### Examples
+
+      iex> Localize.Locale.load_and_store(:en)
+      :ok
+      iex> Localize.Locale.loaded?(:en)
+      true
 
   """
   @spec loaded?(Provider.locale(), Keyword.t()) :: boolean()
@@ -529,6 +562,15 @@ defmodule Localize.Locale do
 
   * `{:error, reason}` if the key path cannot be resolved.
 
+  ### Examples
+
+      iex> {:ok, names} = Localize.Locale.get(:en, [:locale_display_names])
+      iex> is_map(names)
+      true
+
+      iex> Localize.Locale.get(:en, [:delimiters, :quotation_start, :default])
+      {:ok, "“"}
+
   """
   @spec get(Provider.locale(), list(), Keyword.t()) ::
           {:ok, term()} | {:error, term()}
@@ -566,9 +608,18 @@ defmodule Localize.Locale do
   * `options` is a keyword list of options. See `get/3` for supported
     options.
 
+  ### Options
+
+  * See `get/3` for the supported options.
+
   ### Returns
 
   * The value at the requested key path.
+
+  ### Examples
+
+      iex> Localize.Locale.get!(:en, [:delimiters, :quotation_start, :default])
+      "“"
 
   """
   @spec get!(Provider.locale(), list(), Keyword.t()) :: term() | no_return()
@@ -946,6 +997,14 @@ defmodule Localize.Locale do
   ### Returns
 
   * A deduplicated list of locale ID atoms.
+
+  ### Examples
+
+      iex> Localize.Locale.expand_locale_list([:en, :"fr-CA"])
+      [:en, :"fr-CA"]
+
+      iex> Localize.Locale.expand_locale_list(["en_AU"])
+      [:"en-AU"]
 
   """
   @coverage_levels [:basic, :moderate, :modern]

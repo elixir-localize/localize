@@ -611,6 +611,16 @@ defmodule Localize.Currency do
 
   * `{:error, exception}` if the locale data cannot be loaded.
 
+  ### Examples
+
+      iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en)
+      iex> Map.has_key?(currencies, :USD)
+      true
+
+      iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en, :all, :historic)
+      iex> {map_size(currencies) > 0, Map.has_key?(currencies, :SDP)}
+      {true, false}
+
   """
   @spec currencies_for_locale(
           Localize.LanguageTag.t() | atom() | String.t(),
@@ -650,6 +660,16 @@ defmodule Localize.Currency do
 
   * `{:error, exception}` if the locale data cannot be loaded.
 
+  ### Examples
+
+      iex> {:ok, strings} = Localize.Currency.currency_strings(:en)
+      iex> Map.get(strings, "us dollar")
+      :USD
+
+      iex> {:ok, strings} = Localize.Currency.currency_strings(:en)
+      iex> Map.get(strings, "aud")
+      :AUD
+
   """
   @spec currency_strings(
           Localize.LanguageTag.t() | atom() | String.t(),
@@ -685,6 +705,12 @@ defmodule Localize.Currency do
 
   * `{:error, exception}` if the currency is unknown or the
     locale data cannot be loaded.
+
+  ### Examples
+
+      iex> {:ok, strings} = Localize.Currency.strings_for_currency(:USD, :en)
+      iex> Enum.sort(strings)
+      ["$", "us dollar", "us dollars", "usd"]
 
   """
   @spec strings_for_currency(
@@ -729,6 +755,14 @@ defmodule Localize.Currency do
 
   * `{:error, exception}` if the currency has no display name
     or is unknown.
+
+  ### Examples
+
+      iex> Localize.Currency.display_name(:USD, locale: :en)
+      {:ok, "US Dollar"}
+
+      iex> Localize.Currency.display_name(:AUD, locale: :en)
+      {:ok, "Australian Dollar"}
 
   """
   @spec display_name(atom() | String.t() | t(), Keyword.t()) ::
@@ -840,6 +874,14 @@ defmodule Localize.Currency do
   * `{:error, exception}` if the currency is unknown or the
     locale data cannot be loaded.
 
+  ### Examples
+
+      iex> Localize.Currency.pluralize(1, :USD, locale: :en)
+      {:ok, "US dollar"}
+
+      iex> Localize.Currency.pluralize(3, :USD, locale: :en)
+      {:ok, "US dollars"}
+
   """
   @spec pluralize(number(), currency_code(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
@@ -884,6 +926,16 @@ defmodule Localize.Currency do
   * Raises an exception if the currency code is unknown or the
     locale data cannot be loaded.
 
+  ### Examples
+
+      iex> currency = Localize.Currency.currency_for_code!(:USD, locale: :en)
+      iex> currency.name
+      "US Dollar"
+
+      iex> currency = Localize.Currency.currency_for_code!(:USD, locale: :en)
+      iex> currency.digits
+      2
+
   """
   @spec currency_for_code!(atom() | String.t(), Keyword.t()) :: t()
   def currency_for_code!(currency_code, options \\ []) do
@@ -913,6 +965,12 @@ defmodule Localize.Currency do
   ### Raises
 
   * Raises an exception if the locale data cannot be loaded.
+
+  ### Examples
+
+      iex> currencies = Localize.Currency.currencies_for_locale!(:en)
+      iex> Map.has_key?(currencies, :USD)
+      true
 
   """
   @spec currencies_for_locale!(
@@ -947,6 +1005,12 @@ defmodule Localize.Currency do
   ### Raises
 
   * Raises an exception if the locale data cannot be loaded.
+
+  ### Examples
+
+      iex> strings = Localize.Currency.currency_strings!(:en)
+      iex> Map.get(strings, "us dollar")
+      :USD
 
   """
   @spec currency_strings!(
@@ -985,6 +1049,14 @@ defmodule Localize.Currency do
   * Raises an exception if the currency has no display name
     or is unknown.
 
+  ### Examples
+
+      iex> Localize.Currency.display_name!(:USD, locale: :en)
+      "US Dollar"
+
+      iex> Localize.Currency.display_name!(:AUD, locale: :en)
+      "Australian Dollar"
+
   """
   @spec display_name!(atom() | String.t() | t(), Keyword.t()) :: String.t()
   def display_name!(currency, options \\ []) do
@@ -1014,6 +1086,12 @@ defmodule Localize.Currency do
   * Raises an exception if the currency is unknown or the
     locale data cannot be loaded.
 
+  ### Examples
+
+      iex> strings = Localize.Currency.strings_for_currency!(:AUD, :en)
+      iex> "australian dollar" in strings
+      true
+
   """
   @spec strings_for_currency!(
           currency_code() | String.t(),
@@ -1041,6 +1119,12 @@ defmodule Localize.Currency do
   ### Raises
 
   * Raises an exception if no currencies are found for the territory.
+
+  ### Examples
+
+      iex> currencies = Localize.Currency.territory_currencies!(:US)
+      iex> Map.has_key?(currencies, :USD)
+      true
 
   """
   @spec territory_currencies!(territory()) :: map()
@@ -1070,6 +1154,18 @@ defmodule Localize.Currency do
 
   * A filtered map of currencies.
 
+  ### Examples
+
+      iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en)
+      iex> historic = Localize.Currency.currency_filter(currencies, :historic)
+      iex> Map.has_key?(historic, :SDP)
+      true
+
+      iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en)
+      iex> current = Localize.Currency.currency_filter(currencies, :all, :historic)
+      iex> {Map.has_key?(current, :USD), Map.has_key?(current, :SDP)}
+      {true, false}
+
   """
   @spec currency_filter(map(), filter(), filter()) :: map()
   def currency_filter(currencies, only \\ :all, except \\ nil)
@@ -1085,10 +1181,6 @@ defmodule Localize.Currency do
     included
     |> Kernel.--(excluded)
     |> Map.new()
-  end
-
-  defp expand_filter(_currencies, :only, [:all]) do
-    []
   end
 
   defp expand_filter(currencies, :only, [:all | _]) do
@@ -1147,6 +1239,16 @@ defmodule Localize.Currency do
 
   * `true` or `false`.
 
+  ### Examples
+
+      iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en)
+      iex> Localize.Currency.historic?(currencies[:SDP])
+      true
+
+      iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en)
+      iex> Localize.Currency.historic?(currencies[:USD])
+      false
+
   """
   @spec historic?(t()) :: boolean()
   def historic?(%__MODULE__{} = currency) do
@@ -1165,6 +1267,12 @@ defmodule Localize.Currency do
 
   * `true` or `false`.
 
+  ### Examples
+
+      iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en)
+      iex> Localize.Currency.tender?(currencies[:USD])
+      true
+
   """
   @spec tender?(t()) :: boolean()
   def tender?(%__MODULE__{} = currency) do
@@ -1181,6 +1289,16 @@ defmodule Localize.Currency do
   ### Returns
 
   * `true` or `false`.
+
+  ### Examples
+
+      iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en)
+      iex> Localize.Currency.current?(currencies[:USD])
+      true
+
+      iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en)
+      iex> Localize.Currency.current?(currencies[:SDP])
+      false
 
   """
   @spec current?(t()) :: boolean()
@@ -1202,6 +1320,16 @@ defmodule Localize.Currency do
 
   * `true` or `false`.
 
+  ### Examples
+
+      iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en)
+      iex> Localize.Currency.annotated?(currencies[:USN])
+      true
+
+      iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en)
+      iex> Localize.Currency.annotated?(currencies[:USD])
+      false
+
   """
   @spec annotated?(t()) :: boolean()
   def annotated?(%__MODULE__{} = currency) do
@@ -1218,6 +1346,16 @@ defmodule Localize.Currency do
   ### Returns
 
   * `true` or `false`.
+
+  ### Examples
+
+      iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en)
+      iex> Localize.Currency.unannotated?(currencies[:USD])
+      true
+
+      iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en)
+      iex> Localize.Currency.unannotated?(currencies[:USN])
+      false
 
   """
   @spec unannotated?(t()) :: boolean()

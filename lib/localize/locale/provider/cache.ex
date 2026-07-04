@@ -240,6 +240,11 @@ defmodule Localize.Locale.Provider.Cache do
 
   * `false` if the cache file is present and its version matches.
 
+  ### Examples
+
+      iex> Localize.Locale.Provider.Cache.stale?(:"xx-NOPE")
+      true
+
   """
   @spec stale?(locale_id()) :: boolean()
   def stale?(locale_id) when is_atom(locale_id) do

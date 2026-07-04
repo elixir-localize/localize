@@ -29,6 +29,18 @@ defmodule Localize.Unit.Canonical do
   * `{canonical_name, normalised_ast}` where `canonical_name` is a
     string and `normalised_ast` has canonically ordered components.
 
+  ### Examples
+
+      iex> {:ok, parsed} = Localize.Unit.Parser.parse("meter-kilogram")
+      iex> {name, _ast} = Localize.Unit.Canonical.canonicalize(parsed)
+      iex> name
+      "kilogram-meter"
+
+      iex> {:ok, parsed} = Localize.Unit.Parser.parse("second-per-meter")
+      iex> {name, _ast} = Localize.Unit.Canonical.canonicalize(parsed)
+      iex> name
+      "second-per-meter"
+
   """
   @spec canonicalize({:unit, keyword()} | {:mixed_unit, term()}) ::
           {String.t(), {:unit, keyword()} | {:mixed_unit, term()}}
@@ -75,6 +87,18 @@ defmodule Localize.Unit.Canonical do
 
   * `{canonical_name, normalised_ast}` or `{:dimensionless, nil}`
     when all units cancel.
+
+  ### Examples
+
+      iex> numerator = [{:single_unit, [prefix: nil, power: nil, base: "meter"]}]
+      iex> denominator = [{:single_unit, [prefix: nil, power: nil, base: "second"]}]
+      iex> {name, _ast} = Localize.Unit.Canonical.from_components(numerator, denominator)
+      iex> name
+      "meter-per-second"
+
+      iex> numerator = [{:single_unit, [prefix: nil, power: nil, base: "meter"]}]
+      iex> Localize.Unit.Canonical.from_components(numerator, numerator)
+      {:dimensionless, nil}
 
   """
   @spec from_components(list(), list()) :: {:dimensionless, nil} | {String.t(), tuple()}

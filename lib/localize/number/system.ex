@@ -93,6 +93,11 @@ defmodule Localize.Number.System do
 
   * A map of `%{system_name => %{type: :numeric, digits: String.t()}}`.
 
+  ### Examples
+
+      iex> Localize.Number.System.numeric_systems()[:thai]
+      %{type: :numeric, digits: "๐๑๒๓๔๕๖๗๘๙"}
+
   """
   @spec numeric_systems() :: map()
   def numeric_systems do
@@ -115,6 +120,11 @@ defmodule Localize.Number.System do
   ### Returns
 
   * A map of `%{system_name => %{type: :algorithmic, rules: String.t()}}`.
+
+  ### Examples
+
+      iex> Localize.Number.System.algorithmic_systems()[:roman]
+      %{type: :algorithmic, rules: "roman-upper"}
 
   """
   @spec algorithmic_systems() :: map()
@@ -219,6 +229,11 @@ defmodule Localize.Number.System do
 
   * Raises an exception if the locale data cannot be loaded.
 
+  ### Examples
+
+      iex> Localize.Number.System.number_systems_for!(:en)
+      %{default: :latn, native: :latn}
+
   """
   @spec number_systems_for!(Localize.LanguageTag.t() | atom() | String.t()) :: map()
   def number_systems_for!(locale) do
@@ -272,6 +287,11 @@ defmodule Localize.Number.System do
   ### Raises
 
   * Raises an exception if the locale data cannot be loaded.
+
+  ### Examples
+
+      iex> Localize.Number.System.number_system_names_for!(:th)
+      [:latn, :thai]
 
   """
   @spec number_system_names_for!(Localize.LanguageTag.t() | atom() | String.t()) ::
@@ -348,6 +368,14 @@ defmodule Localize.Number.System do
 
   * `{:error, exception}` if the system name cannot be resolved.
 
+  ### Examples
+
+      iex> Localize.Number.System.system_name_from(:default, :en)
+      {:ok, :latn}
+
+      iex> Localize.Number.System.system_name_from(:thai, :th)
+      {:ok, :thai}
+
   """
   @spec system_name_from(
           system_name() | system_type(),
@@ -406,6 +434,11 @@ defmodule Localize.Number.System do
 
   * Raises an exception if the system name cannot be resolved.
 
+  ### Examples
+
+      iex> Localize.Number.System.system_name_from!(:native, :ar)
+      :arab
+
   """
   @spec system_name_from!(
           system_name() | system_type(),
@@ -438,6 +471,14 @@ defmodule Localize.Number.System do
   * `{:ok, system_definition}` with the system's type and digits/rules.
 
   * `{:error, exception}` if the system cannot be resolved.
+
+  ### Examples
+
+      iex> Localize.Number.System.number_system_for(:en, :default)
+      {:ok, %{type: :numeric, digits: "0123456789"}}
+
+      iex> Localize.Number.System.number_system_for(:th, :thai)
+      {:ok, %{type: :numeric, digits: "๐๑๒๓๔๕๖๗๘๙"}}
 
   """
   @spec number_system_for(
@@ -534,7 +575,7 @@ defmodule Localize.Number.System do
   number system.
 
   For numeric systems, transliterates the digits. For algorithmic
-  systems, returns an error (RBNF support is not yet implemented).
+  systems, formats the number using the system's RBNF rules.
 
   ### Arguments
 
@@ -544,9 +585,17 @@ defmodule Localize.Number.System do
 
   ### Returns
 
-  * `{:ok, string}` with the transliterated number.
+  * `{:ok, string}` with the number in the requested number system.
 
-  * `{:error, exception}` if the system is unknown or algorithmic.
+  * `{:error, exception}` if the system is unknown.
+
+  ### Examples
+
+      iex> Localize.Number.System.to_system(123, :thai)
+      {:ok, "๑๒๓"}
+
+      iex> Localize.Number.System.to_system(1234, :roman)
+      {:ok, "MCCXXXIV"}
 
   """
   @spec to_system(number() | Decimal.t(), system_name()) ::
@@ -588,11 +637,16 @@ defmodule Localize.Number.System do
 
   ### Returns
 
-  * A string with the transliterated number.
+  * A string with the number in the requested number system.
 
   ### Raises
 
-  * Raises an exception if the system is unknown or algorithmic.
+  * Raises an exception if the system is unknown.
+
+  ### Examples
+
+      iex> Localize.Number.System.to_system!(123, :deva)
+      "१२३"
 
   """
   @spec to_system!(number() | Decimal.t(), system_name()) :: String.t()

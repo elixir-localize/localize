@@ -176,4 +176,112 @@ defmodule Localize.Message.SigilsTest do
       assert Exception.message(error) =~ "invalid MF2 message in ~t sigil"
     end
   end
+
+  describe "sigil_M/2 and sigil_m/2 modifiers" do
+    test "u modifier returns the compact canonical form" do
+      assert ~M(.input {$c :number} {{{$c}}})u == ".input {$c :number}\n{{{$c}}}"
+    end
+
+    test "~m canonicalises a static message at compile time" do
+      assert ~m(Hello   {$name}) == "Hello   {$name}"
+    end
+
+    test "~m unescapes string escapes before parsing" do
+      assert ~m(Tab\tseparated) == "Tab\tseparated"
+    end
+
+    test "~m with interpolation canonicalises at runtime" do
+      name = "name"
+      assert ~m(Hello {$#{name}}) == "Hello {$name}"
+    end
+
+    test "~m with interpolation raises at runtime for invalid MF2" do
+      variable = "{oops"
+
+      assert_raise Localize.ParseError, fn ->
+        ~m(Hello #{variable})
+      end
+    end
+
+    test "options/1 maps the u modifier to pretty: false" do
+      assert Localize.Message.Sigils.options(~c"u") == [pretty: false]
+      assert Localize.Message.Sigils.options(~c"U") == [pretty: false]
+      assert Localize.Message.Sigils.options([]) == [pretty: true]
+    end
+  end
+
+  describe "sigil_t/2 — assigns-rooted derivation" do
+    defmodule AssignsFixture do
+      use Localize.Message.Sigils, backend: Localize.Gettext
+
+      @user %{name: "Kip"}
+
+      # HEEx rewrites `@count` to `assigns.count` before the sigil
+      # macro sees it; these fixtures exercise that AST shape without
+      # a Phoenix dependency.
+      def single_level(assigns), do: ~t"Count: #{assigns.count}"
+      def multi_level(assigns), do: ~t"City: #{assigns.user.address.city}"
+      def attribute_dot_access, do: ~t"Hello, #{@user.name}!"
+      def atom_module_call, do: ~t"Pi is #{:math.pi()}"
+    end
+
+    test "assigns.key derives the bare key name" do
+      assert AssignsFixture.single_level(%{count: 3}) == "Count: 3"
+    end
+
+    test "assigns.a.b.c chain derives an underscore-joined key" do
+      assigns = %{user: %{address: %{city: "Tokyo"}}}
+      assert AssignsFixture.multi_level(assigns) == "City: Tokyo"
+    end
+
+    test "@attribute.field derives parent_key like assigns access" do
+      assert AssignsFixture.attribute_dot_access() == "Hello, Kip!"
+    end
+
+    test "remote call on an atom module derives mod_fun" do
+      assert AssignsFixture.atom_module_call() =~ "Pi is 3.14159"
+    end
+
+    test "nested dot access not rooted at assigns raises" do
+      error =
+        assert_raise CompileError, fn ->
+          Code.eval_string("""
+          defmodule NotAssignsRooted do
+            use Localize.Message.Sigils, backend: Localize.Gettext
+            def go(x), do: ~t"Value: \#{x.a.b}"
+          end
+          """)
+        end
+
+      assert Exception.message(error) =~ "not rooted at `assigns`"
+    end
+
+    test "underivable expression raises with a hint to use key = expr" do
+      error =
+        assert_raise CompileError, fn ->
+          Code.eval_string("""
+          defmodule Underivable do
+            use Localize.Message.Sigils, backend: Localize.Gettext
+            def go, do: ~t"Sum: \#{1 + 2}"
+          end
+          """)
+        end
+
+      assert Exception.message(error) =~ "cannot derive a binding name"
+    end
+  end
+
+  describe "sigil_t/2 — domain and context options" do
+    defmodule DomainFixture do
+      use Localize.Message.Sigils,
+        backend: Localize.Gettext,
+        sigils: [domain: "localize", context: "test"]
+
+      def greeting(name), do: ~t"Hello, #{name}!"
+    end
+
+    test "messages route through the configured domain and context" do
+      assert DomainFixture.greeting("Kip") == "Hello, Kip!"
+    end
+  end
 end

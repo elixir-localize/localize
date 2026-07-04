@@ -88,6 +88,11 @@ defmodule Localize.Exception do
   * The interpolated message string, or `msgid` unchanged if
     interpolation failed.
 
+  ### Examples
+
+      iex> Localize.Exception.safe_message("number", "Could not parse {$input}", input: "abc")
+      "Could not parse abc"
+
   """
   @spec safe_message(binary(), binary(), keyword()) :: binary()
   def safe_message(msgctxt, msgid, bindings \\ [])

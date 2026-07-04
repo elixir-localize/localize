@@ -1,6 +1,8 @@
 defmodule Localize.Exception.StructuralTest do
   use ExUnit.Case, async: true
 
+  doctest Localize.ParseError
+
   # Every Localize exception that adopts `Localize.Exception` exposes
   # the exhaustive list of `:reason` atoms it supports. This test
   # iterates that list and asserts that `Exception.message/1`

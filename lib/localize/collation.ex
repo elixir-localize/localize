@@ -181,6 +181,46 @@ defmodule Localize.Collation do
 
   * `options` - a keyword list of collation options, or a `t:Localize.Collation.Options.t/0` struct.
 
+  ### Options
+
+  * `:locale` - a BCP47 locale string, atom, or a `Localize.LanguageTag` struct.
+    The default is `Localize.get_locale/0`. Collation settings from the locale's
+    `-u-` extension (e.g. `-u-ks-level2`) and its CLDR tailoring are combined
+    with the explicitly given options.
+
+  * `:strength` - comparison level: `:primary`, `:secondary`, `:tertiary` (default),
+    `:quaternary`, or `:identical`.
+
+  * `:alternate` - variable weight handling: `:non_ignorable` (default) or `:shifted`.
+
+  * `:backwards` - reverse secondary weights for French sorting: `false` (default) or `true`.
+
+  * `:normalization` - NFD normalize input: `false` (default) or `true`.
+
+  * `:case_level` - insert case-only comparison level: `false` (default) or `true`.
+
+  * `:case_first` - case ordering: `false` (default), `:upper`, or `:lower`.
+
+  * `:numeric` - numeric string comparison: `false` (default) or `true`.
+
+  * `:reorder` - a script code atom or list of script code atoms to reorder: `[]` (default).
+
+  * `:max_variable` - variable weight boundary: `:punct` (default), `:space`,
+    `:symbol`, or `:currency`.
+
+  * `:type` - collation type: `:standard` (default), `:search`, `:phonebook`,
+    `:pinyin`, `:stroke`, `:unihan`, `:zhuyin`, `:searchjl`, `:eor`, or `:traditional`.
+
+  * `:ignore_accents` - `true` to ignore accent differences.
+
+  * `:ignore_case` - `true` to ignore case differences.
+
+  * `:ignore_punctuation` - `true` to ignore punctuation and whitespace.
+
+  * `:casing` - `:sensitive` or `:insensitive`.
+
+  * `:backend` - `:nif` or `:elixir`. The default is `:elixir`.
+
   ### Returns
 
   A binary sort key that can be compared with standard binary comparison operators.
@@ -252,6 +292,46 @@ defmodule Localize.Collation do
   * `strings` - a list of UTF-8 strings to sort.
 
   * `options` - a keyword list of collation options.
+
+  ### Options
+
+  * `:locale` - a BCP47 locale string, atom, or a `Localize.LanguageTag` struct.
+    The default is `Localize.get_locale/0`. Collation settings from the locale's
+    `-u-` extension (e.g. `-u-ks-level2`) and its CLDR tailoring are combined
+    with the explicitly given options.
+
+  * `:strength` - comparison level: `:primary`, `:secondary`, `:tertiary` (default),
+    `:quaternary`, or `:identical`.
+
+  * `:alternate` - variable weight handling: `:non_ignorable` (default) or `:shifted`.
+
+  * `:backwards` - reverse secondary weights for French sorting: `false` (default) or `true`.
+
+  * `:normalization` - NFD normalize input: `false` (default) or `true`.
+
+  * `:case_level` - insert case-only comparison level: `false` (default) or `true`.
+
+  * `:case_first` - case ordering: `false` (default), `:upper`, or `:lower`.
+
+  * `:numeric` - numeric string comparison: `false` (default) or `true`.
+
+  * `:reorder` - a script code atom or list of script code atoms to reorder: `[]` (default).
+
+  * `:max_variable` - variable weight boundary: `:punct` (default), `:space`,
+    `:symbol`, or `:currency`.
+
+  * `:type` - collation type: `:standard` (default), `:search`, `:phonebook`,
+    `:pinyin`, `:stroke`, `:unihan`, `:zhuyin`, `:searchjl`, `:eor`, or `:traditional`.
+
+  * `:ignore_accents` - `true` to ignore accent differences.
+
+  * `:ignore_case` - `true` to ignore case differences.
+
+  * `:ignore_punctuation` - `true` to ignore punctuation and whitespace.
+
+  * `:casing` - `:sensitive` or `:insensitive`.
+
+  * `:backend` - `:nif` or `:elixir`. The default is `:elixir`.
 
   ### Returns
 

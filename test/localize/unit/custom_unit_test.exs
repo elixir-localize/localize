@@ -1,6 +1,12 @@
 defmodule Localize.Unit.CustomUnitTest do
   use ExUnit.Case, async: false
 
+  # Doctests for the registry are wired here (not in an async module)
+  # because they mutate the global :persistent_term registry. The
+  # setup block clears the registry around every test, doctests
+  # included.
+  doctest Localize.Unit.CustomRegistry
+
   alias Localize.Unit
   alias Localize.Unit.CustomRegistry
 

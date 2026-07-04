@@ -293,23 +293,55 @@ defmodule Localize.DateTime.Timezone do
     "UTC" => :gmt
   }
 
-  # # non_location_format/3
-  #
-  # Returns the specific or generic non-location timezone name.
-  #
-  # ### Arguments
-  #
-  # * `datetime` is a map with `:time_zone`, `:utc_offset`, `:std_offset` keys.
-  #
-  # * `locale_id` is a locale identifier atom.
-  #
-  # * `options` is a keyword list with `:format` (`:short` or `:long`)
-  #   and `:type` (`:specific`, `:generic`, or `:standard`).
-  #
-  # ### Returns
-  #
-  # * `{:ok, timezone_name}` or `{:ok, gmt_offset_string}` as fallback.
-  #
+  @doc """
+  Returns the specific or generic non-location timezone name.
+
+  Looks up the metazone name for the datetime's timezone in the
+  locale's timezone data (e.g., "Eastern Standard Time"). When the
+  timezone has no metazone mapping, or the locale carries no name
+  for it, falls back to `gmt_format/3`.
+
+  ### Arguments
+
+  * `datetime` is a map with `:time_zone`, `:utc_offset`, and
+    `:std_offset` keys (a `t:DateTime.t/0` satisfies this shape).
+
+  * `locale_id` is a **resolved** locale identifier atom (e.g., `:en`),
+    such as the `cldr_locale_id` of a validated
+    `t:Localize.LanguageTag.t/0`. It is passed directly to
+    `Localize.Locale.get/2` and is not validated or canonicalized
+    by this function.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:format` is `:short` (e.g., `"EST"`) or `:long` (e.g.,
+    `"Eastern Standard Time"`). The default is `:long`.
+
+  * `:type` is `:specific` (standard or daylight name chosen from
+    the datetime's `:std_offset`), `:generic`, `:standard`, or
+    `:daylight`. The default is `:specific`.
+
+  ### Returns
+
+  * `{:ok, timezone_name}` with the localized non-location name, or
+    `{:ok, gmt_offset_string}` when falling back to the GMT format.
+
+  * `{:error, exception}` if the locale's timezone data cannot be
+    loaded.
+
+  ### Examples
+
+      iex> datetime = %{time_zone: "America/New_York", utc_offset: -18000, std_offset: 0}
+      iex> Localize.DateTime.Timezone.non_location_format(datetime, :en, format: :long)
+      {:ok, "Eastern Standard Time"}
+
+      iex> datetime = %{time_zone: "America/New_York", utc_offset: -18000, std_offset: 0}
+      iex> Localize.DateTime.Timezone.non_location_format(datetime, :en, format: :short)
+      {:ok, "EST"}
+
+  """
   @spec non_location_format(map(), atom(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def non_location_format(datetime, locale_id, options \\ []) do
@@ -348,25 +380,53 @@ defmodule Localize.DateTime.Timezone do
     get_in(metazone_data, [format_key, type_key])
   end
 
-  # # gmt_format/3
-  #
-  # Returns the localized GMT offset format.
-  #
-  # Uses the locale's `gmt_format` pattern (e.g., `["GMT", 0]`)
-  # and `hour_format` pattern.
-  #
-  # ### Arguments
-  #
-  # * `datetime` is a map with `:utc_offset` and optionally `:std_offset`.
-  #
-  # * `locale_id` is a locale identifier atom.
-  #
-  # * `options` is a keyword list with `:format` (`:short` or `:long`).
-  #
-  # ### Returns
-  #
-  # * `{:ok, formatted_string}` (e.g., "GMT+01:00" or "GMT").
-  #
+  @doc """
+  Returns the localized GMT offset format.
+
+  Uses the locale's `gmt_format` pattern (e.g., `["GMT", 0]`) and
+  `hour_format` pattern to render the datetime's total UTC offset.
+
+  ### Arguments
+
+  * `datetime` is a map with an integer `:utc_offset` in seconds
+    and optionally an integer `:std_offset` in seconds (a
+    `t:DateTime.t/0` satisfies this shape).
+
+  * `locale_id` is a **resolved** locale identifier atom (e.g., `:en`),
+    such as the `cldr_locale_id` of a validated
+    `t:Localize.LanguageTag.t/0`. It is passed directly to
+    `Localize.Locale.get/2` and is not validated or canonicalized
+    by this function.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:format` is `:long` (e.g., `"GMT+01:00"`) or `:short` (e.g.,
+    `"GMT+1"`; minutes are dropped when zero). The default is
+    `:long`.
+
+  * `:zero_format` controls rendering of a zero offset. The default,
+    `:gmt_zero`, uses the locale's zero pattern (e.g., `"GMT"`); any
+    other value formats the zero offset through the hour pattern
+    (e.g., `"GMT+00:00"`).
+
+  ### Returns
+
+  * `{:ok, formatted_string}` (e.g., `"GMT+01:00"` or `"GMT"`).
+
+  * `{:error, exception}` if the locale's timezone data cannot be
+    loaded.
+
+  ### Examples
+
+      iex> Localize.DateTime.Timezone.gmt_format(%{utc_offset: 3600, std_offset: 0}, :en)
+      {:ok, "GMT+01:00"}
+
+      iex> Localize.DateTime.Timezone.gmt_format(%{utc_offset: -28800, std_offset: 0}, :en, format: :short)
+      {:ok, "GMT-8"}
+
+  """
   @spec gmt_format(map(), atom(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def gmt_format(datetime, locale_id, options \\ []) do
@@ -390,23 +450,49 @@ defmodule Localize.DateTime.Timezone do
     end
   end
 
-  # # iso_format/2
-  #
-  # Returns the ISO 8601 timezone offset format.
-  #
-  # ### Arguments
-  #
-  # * `datetime` is a map with `:utc_offset` and optionally `:std_offset`.
-  #
-  # * `options` is a keyword list with:
-  #   * `:format` — `:short`, `:long`, or `:full`
-  #   * `:type` — `:basic` or `:extended`
-  #   * `:z_for_zero` — boolean, whether to use "Z" for zero offset
-  #
-  # ### Returns
-  #
-  # * `{:ok, formatted_string}` (e.g., "+0500", "Z", "+05:00").
-  #
+  @doc """
+  Returns the ISO 8601 timezone offset format.
+
+  This function is locale-independent — ISO 8601 offsets are the
+  same in every locale.
+
+  ### Arguments
+
+  * `datetime` is a map with an integer `:utc_offset` in seconds
+    and optionally an integer `:std_offset` in seconds (a
+    `t:DateTime.t/0` satisfies this shape).
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:format` is `:short` (minutes omitted when zero), `:long`
+    (hours and minutes), or `:full` (like `:long`, with seconds
+    appended when non-zero). The default is `:long`.
+
+  * `:type` is `:basic` (no separator, e.g., `"+0500"`) or
+    `:extended` (colon separator, e.g., `"+05:00"`). The default
+    is `:basic`.
+
+  * `:z_for_zero` is a boolean controlling whether a zero offset
+    renders as `"Z"`. The default is `true`.
+
+  ### Returns
+
+  * `{:ok, formatted_string}` (e.g., `"+0500"`, `"Z"`, `"+05:00"`).
+
+  ### Examples
+
+      iex> Localize.DateTime.Timezone.iso_format(%{utc_offset: 18000, std_offset: 0})
+      {:ok, "+0500"}
+
+      iex> Localize.DateTime.Timezone.iso_format(%{utc_offset: 19800, std_offset: 0}, type: :extended)
+      {:ok, "+05:30"}
+
+      iex> Localize.DateTime.Timezone.iso_format(%{utc_offset: 0, std_offset: 0})
+      {:ok, "Z"}
+
+  """
   @spec iso_format(map(), Keyword.t()) :: {:ok, String.t()}
   def iso_format(datetime, options \\ []) do
     offset = total_offset(datetime)

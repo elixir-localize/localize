@@ -6,9 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [0.45.0] — July 4th, 2026
 
-An internal code-quality release: the codebase now passes `mix credo --strict` with zero findings, enforced in CI. No public API changes.
+A quality release: the codebase now passes `mix credo --strict` with zero findings (enforced in CI), the full MessageFormat 2 working-group conformance suite runs against the formatter, and the documentation gains four new guides.
+
+### Added
+
+* The complete MessageFormat 2 working-group conformance suite (16 test files including all nine `functions/` suites) now runs against the formatter: 250 cases asserting formatted output and expected errors, with unimplemented features excluded and documented per case.
+
+* Four new guides: plural rules, list formatting, locale validation and matching, and display names. Every example is execution-verified.
+
+* `Localize.Territory.territory_names_for/1` and `territories_for/1` return the localized territory-name inventory for a locale, completing the `*_for` family across languages, scripts, subdivisions and territories.
+
+* A documentation depth pass adds around 150 execution-verified doctest examples and 40 `### Options` sections across the number, unit, date/time, locale, territory, list, collation and message modules, and corrects stale claims (RBNF number-system conversion, locale defaults, the `validate_locale/1` matching warning).
+
+* A test-coverage push adds around 1,000 tests across exceptions, collation, date/time formatting, MessageFormat 2 tooling, language-tag validity and number/unit internals, raising runtime-library line coverage from 70% to 84%.
 
 ### Changed
+
+* The MF2 `:offset` function follows the specification: it takes exactly one of the `add` or `subtract` options (non-negative integer) and adjusts the operand for both formatting and selection. The previous ICU-style `offset=` option, which only subtracted during selection, is replaced.
 
 * Credo (strict) added to the CI lint stage with a committed `.credo.exs`. Policy: the `Design.AliasUsage` check is disabled (Localize module names such as `List`, `Date` and `String` shadow the stdlib when aliased; aliasing is applied opportunistically where safe), nesting depth stays at the default maximum of 2, and complexity/apply/arity exceptions are documented inline at each site.
 
@@ -17,6 +31,20 @@ An internal code-quality release: the codebase now passes `mix credo --strict` w
 * Logger configuration for this project's dev/test environments now renders the `domain: :localize` metadata attached to Localize log messages.
 
 ### Fixed
+
+* Date/time skeleton matching compared candidate format fields against the wrong skeleton fields, making format selection nondeterministic across VM runs (`format: :yMdHm` could render "Jul" or "July" run to run). Selection is now deterministic, prefers the exact skeleton, and matches text-field widths by class (`E` ≡ `EEE`) per TR35.
+
+* The "alt" language code (Southern Altai) was unreachable: the data pipeline stored it as the atom `:alt` (a collision with the alt-variant style key), so `Localize.Language.display_name("alt")` returned an error. Fixed at data load; the pipeline fix lands with the next CLDR data regeneration.
+
+* `-t-` extension dates encode with zero padding (`ja-t-it-m0-ungegn-20070315` round-trips exactly); previously single-digit months and days encoded with an embedded space, producing an invalid tag.
+
+* `Localize.validate_locale("en-u-vt-00a4")` no longer raises during canonical-id formatting, and `Localize.LanguageTag.parse("zh-min-nan")` no longer raises `ArgumentError` (the grammar dropped the extended-language tags for multi-subtag forms).
+
+* CLDR `{1}…{0}…` substitution patterns with two literals placed the substituted items in the wrong order.
+
+* MF2 `:percent` selection multiplies the operand by 100 before plural-category selection, matching the formatted value per the specification.
+
+* An MF2 `.match` on an unbound variable returns an unresolved-variable error instead of silently selecting the fallback variant.
 
 * A duplicated boolean assertion in the message custom-function tests masked half of an intended check; general mechanical cleanups (map_join, empty-enum checks, number underscores, redundant with clauses) applied throughout.
 
@@ -128,7 +156,7 @@ This release settles the public API naming and error conventions ahead of 1.0. E
 
 ## [0.41.2] — July 1st, 2026
 
-### Bug Fixes
+### Fixed
 
 * Plural rules now resolve likely subtags before selecting a rule set. `Localize.Number.PluralRule.Cardinal` and `Ordinal` (`pluralize/3`, `plural_rules_for/1`, `plural_rule/3`) and `Localize.Number.PluralRule.plural_type/2` validate the locale through `Localize.validate_locale/1` instead of a bare parse, so a string and an equivalent `Localize.LanguageTag` select the same category and region-specific rules apply — e.g. `plural_rule(0, "pt-PT")` is now `:other` (Portugal) rather than `:one` (the base `pt`/Brazil rule). This also corrects plural selection in message formatting.
 
@@ -138,17 +166,17 @@ This release settles the public API naming and error conventions ahead of 1.0. E
 
 ## [0.41.1] — June 30th, 2026
 
-### Bug Fixes
+### Fixed
 
 * `Localize.Language.display_name/2` now normalises its input through `Localize.validate_locale/1`, so a string and an equivalent `Localize.LanguageTag` return the same name (`"en-GB"` and `LanguageTag.new!("en-GB")` both give `"British English"`) and region-specific codes resolve with fallback (`"pt-BR"` → `"Brazilian Portuguese"`, `"ar-SA"` → `"Arabic"` instead of raising). A malformed locale now returns `Localize.InvalidLocaleError` rather than `Localize.UnknownLanguageError`. Thanks to @DVSLabs for the report. Closes #36.
 
 ## [0.41.0] — June 3rd, 2026
 
-### Breaking Changes
+### Changed
 
-* `Localize.Number.Format.Compiler` now rejects scientific patterns that contain a grouping separator (e.g. `"#,##0.###E0"`) at compile time. TR35 forbids grouping in scientific patterns; the comma was previously silently ignored at output time. Fix: drop the comma, or use a non-scientific pattern.
+* **Breaking:** `Localize.Number.Format.Compiler` now rejects scientific patterns that contain a grouping separator (e.g. `"#,##0.###E0"`) at compile time. TR35 forbids grouping in scientific patterns; the comma was previously silently ignored at output time. Fix: drop the comma, or use a non-scientific pattern.
 
-### Enhancements
+### Added
 
 * TR35 engineering notation. Patterns like `"##0.#####E0"` now correctly shift the mantissa so the exponent is a multiple of the pattern's max integer-digit count: `12345 → "12.345E3"`, `123456 → "123.456E3"`. Fixed-width mantissa patterns (`"00.###E0"`) similarly shift to expose `min_integer_digits` integer digits. The shift is exact for `Decimal` (via the `%Decimal{exp: …}` field) and lossless for `Decimal`-promoted floats/integers.
 
@@ -160,7 +188,7 @@ This release settles the public API naming and error conventions ahead of 1.0. E
 
 * New `:exponent_style` option on `Localize.Number.to_string/2`. `:e` (the default) emits the standard `1.234E3` form; `:superscript` emits `1.234 × 10³` using CLDR's `superscriptingExponent` symbol and Unicode superscript digits (`⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺`). Ignored for non-scientific patterns.
 
-### Bug Fixes
+### Fixed
 
 * `Localize.Utils.Math.round_significant/2` no longer crashes when called with a `Decimal` and `n <= 0` or with a Decimal zero of any sign. Previously these reached `:math.log10/1` deep in the Decimal square-root path and raised `:invalid_operation`; both cases now return the input unchanged.
 
@@ -168,35 +196,35 @@ This release settles the public API naming and error conventions ahead of 1.0. E
 
 ## [0.40.0] — June 1st, 2026
 
-### Breaking Changes
+### Changed
 
-* A *bare* relative `:locale_cache_dir` (no `:otp_app` set) is now refused at app start with `Localize.LocaleCacheDirError` — it resolved against the BEAM's CWD, which differs between mix tasks, `mix test`, and a release. Fix: add `:otp_app` to anchor the relative path, or use an absolute path.
+* **Breaking:** A *bare* relative `:locale_cache_dir` (no `:otp_app` set) is now refused at app start with `Localize.LocaleCacheDirError` — it resolved against the BEAM's CWD, which differs between mix tasks, `mix test`, and a release. Fix: add `:otp_app` to anchor the relative path, or use an absolute path.
 
-### Bug Fixes
+### Fixed
 
 * `Localize.Locale.Provider.locale_cache_dir/0` validates its configuration at app start (via `Localize.Supervisor`) and raises `Localize.LocaleCacheDirError` instead of silently reading from the wrong directory at runtime.
 
 * `Localize.Locale.LocaleDisplay.display_name/2` no longer raises `FunctionClauseError` on a BCP 47 generic extension carrying an odd number of subtags (e.g. `cr-s-7b`); the trailing singleton chunk now renders as a bare subtag.
 
-### Enhancements
+### Added
 
 * New `:otp_app` config key. Three supported forms for the locale cache directory: (1) `:otp_app` only → `Application.app_dir(<otp_app>, "priv/localize/locales")`; (2) `:otp_app` + relative `:locale_cache_dir` → `Application.app_dir(<otp_app>, <relative>)`; (3) absolute `:locale_cache_dir` → used verbatim, `:otp_app` ignored.
 
 ## [0.39.0] — May 31st, 2026
 
-### Bug Fixes
+### Fixed
 
 * Scope download_locales skip check to the configured cache dir, not the bundled fallback. Thanks to @allenwyma for the issue. Closes #35.
 
 ## [0.38.0] — May 23rd, 2026
 
-### Enhancements
+### Added
 
 * `Localize.Locale.expand_locale_list/2` (and therefore the `:supported_locales` configuration) now accepts a Gettext backend module like `MyApp.Gettext` as an entry; it expands to `Gettext.known_locales/1` with each returned string re-resolved through the existing POSIX-normalisation and likely-subtag canonicalisation path. The check uses `Code.ensure_compiled/1` so the entry is safe to place in either `config.exs` or `runtime.exs`.
 
 ## [0.37.0] — May 17th, 2026
 
-### Bug Fixes
+### Fixed
 
 * `Localize.DateTime.Formatter` audit: removed remaining `:gregorian` / `Calendar.ISO` hardcoding. The `{0}` / `{1}` date-time placeholders now derive the CLDR calendar from the date instead of always asking for the gregorian pattern, ISO week-of-year (`w` / `Y`) prefers the date's own `iso_week_of_year/3` callback before falling back to converting to `Calendar.ISO`, and `iso_day/1`'s dead silent-fallback clause for unknown calendars was removed.
 
@@ -214,13 +242,13 @@ This release settles the public API naming and error conventions ahead of 1.0. E
 
 ## [0.36.0] — May 15th, 2026
 
-### Bug Fixes
+### Fixed
 
 * Fix `currency_symbol: :none` when processing options for `Localize.Number.to_string/2`.
 
 ## [0.35.0] — May 14th, 2026
 
-### Bug Fixes
+### Fixed
 
 * `Localize.Unit.localize/2` and a list-of-units overload of `Localize.Unit.to_string/2` close the parity gap with `Cldr.Unit.localize/3`: passing `:usage` to `to_string/2` now resolves the locale-preferred unit set (territory derived from `:locale` via `Localize.Territory.territory_from_locale/1`), decomposes the value across it, and joins the parts with the locale's standard list pattern in a single call (e.g. `Localize.Unit.to_string(Localize.Unit.new!(1.83, "meter"), usage: :person_height, locale: "en-US")` returns `{:ok, "6 feet and 0.047 inches"}`).
 
@@ -240,29 +268,29 @@ This release settles the public API naming and error conventions ahead of 1.0. E
 
 ## [0.34.0] — May 14th, 2026
 
-### Bug Fixes
+### Fixed
 
 * `Localize.Utils.Http` now resolves the HTTPS trust store via `:public_key.cacerts_get/0` before falling back to the existing `cacertfile` chain (configured path → `CAStore` → `:certifi` → well-known Unix paths). `mix localize.download_locales` previously failed on Windows because the resolver only searched Unix file paths even though the OS-native trust store was reachable. Thanks to @LostKobrakai for the report. Closes #30.
 
 * `Localize.Number.System` no longer bakes the build host's absolute ETF path into its compiled BEAM which caused exceptions when the build host and deployment host were different. The lookup now happens at runtime via `Application.app_dir/2` from a function body. Thanks to @neilberkman for the PR. Closes #28.
 
-### Enhancements
+### Added
 
 * `Localize.Supervisor` is now a publicly documented module that owns the library's runtime supervision tree and runs the one-time post-start work (supplemental-atom interning, `:supported_locales` resolution). Consumers can keep the default OTP auto-start, or mark the dependency `runtime: false` and mount `Localize.Supervisor` directly under their own application supervisor. See the new `guides/supervision.md` for the full pattern.
 
 ## [0.33.0] — May 13th, 2026
 
-### Breaking Changes
+### Changed
 
-* `Localize.Message.Sigil` is renamed to `Localize.Message.Sigils` to make room for additional MF2 sigils. Update any `import Localize.Message.Sigil` to `import Localize.Message.Sigils`.
+* **Breaking:** `Localize.Message.Sigil` is renamed to `Localize.Message.Sigils` to make room for additional MF2 sigils. Update any `import Localize.Message.Sigil` to `import Localize.Message.Sigils`.
 
-### Enhancements
+### Added
 
 * `Localize.Message.Sigils` adds a new `~t` sigil for compile-time MF2 translation. Elixir `#{expr}` interpolations are rewritten as MF2 `{$name}` placeholders with bindings derived automatically (`fruit.name → fruit_name`, `String.upcase(x) → string_upcase`, etc.), the canonical msgid is registered with Gettext for translation lookup, and modules opt in via `use Localize.Message.Sigils, backend: MyApp.Gettext`. Requires the backend to use `Localize.Gettext.Interpolation`.
 
 * `Localize.Gettext.Interpolation.skip_interpolation_sentinel/0` — public sentinel used by `Localize.HTML.t/1` (and other markup-aware renderers) to retrieve a translated MF2 source without running the markup-stripping interpolation. Both `runtime_interpolate/2` and `compile_interpolate/3` short-circuit when this sentinel is passed as bindings.
 
-### Bug Fixes
+### Fixed
 
 * `Localize.Application.start/2` now eagerly reads every bundled supplemental dataset (languages, scripts, territories, variants, subdivisions, units, currency codes, calendars, timezones, territory subdivisions, locale ids, number systems) so the atoms they reference are interned at app start. The 0.30.0 atom-DOS hardening switched many lookups to `binary_to_existing_atom`, which assumes the legitimate atoms already exist. Without the eager-load, valid input like `numberingSystem=arab` could surface as a bogus "unknown numbering system" error on a fresh BEAM where no prior code path had triggered the relevant `binary_to_term/1` read. Manifested as a transient CI failure in `Localize.Message.NumberOptionsTest`; cause was identical in shape to issue #26.
 
@@ -270,7 +298,7 @@ This release settles the public API naming and error conventions ahead of 1.0. E
 
 ## [0.32.0] — May 12th, 2026
 
-### Bug Fixes
+### Fixed
 
 * `mix localize.download_locales` no longer evaluates `config/runtime.exs` of the consumer application. Previously the task ran `Mix.Task.run("app.config")`, which transitively evaluated `runtime.exs`, which was not necessary. The task now loads only compile-time config (`config/config.exs` and any imported env-specific file), matching the build-time contract its docstring already advertised. Thanks to @whatyouhide for the PR.
 
@@ -286,13 +314,13 @@ This release settles the public API naming and error conventions ahead of 1.0. E
 
 ## [0.31.0] — May 12th, 2026
 
-### Bug Fixes
+### Fixed
 
 * `Localize.Locale.Loader` now stores fallback locale data under the *requested* locale id rather than the *resolved* fallback id, restoring 0.29 behaviour. The regression introduced in 0.30.0 caused `provider.get(requested_locale, _)` to miss in-memory fallback data and surface as a spurious `ItemNotFoundError` — most visibly crashing `mix localize.download_locales` with a `MatchError` when `default_locale` named an unavailable locale. Locked down with `test/localize/locale/loader_fallback_test.exs`. Closes #26.
 
 * `mix localize.download_locales` no longer pattern-matches on the result of `Localize.Message.format/2` when building its progress banner; if formatting fails for any reason the task falls back to a plain ASCII banner and continues with the actual download.
 
-### Behaviour Changes
+### Changed
 
 * `Localize.InvalidValueError` gained an `:allowed_values` field and a new `Localize.NoCertificateStoreError` carries the searched paths; previously prose-stuffed `:expected`/`:currency` fields and bare-string `:reason` codes are now structural.
 
@@ -300,7 +328,7 @@ This release settles the public API naming and error conventions ahead of 1.0. E
 
 ## [0.30.1] — May 12th, 2026
 
-### Bug Fixes
+### Fixed
 
 * Revert the `[:safe]` option on `:binary_to_term/2` since we cannot guarantee all the required atoms are materialized at application start. Thanks to @bigardone for the report. Closes #25.
 
@@ -340,11 +368,11 @@ This release settles the public API naming and error conventions ahead of 1.0. E
 
 ## [0.29.0] — May 11th, 2026
 
-### Behaviour Change
+### Changed
 
 * `Localize.Currency.currency_for_code/2` now returns the new `Localize.CurrencyNotLocalizedError` (instead of `UnknownCurrencyError`) when the currency code is valid but the locale has no display data for it. `UnknownCurrencyError` is now reserved for codes that aren't recognised ISO 4217 or registered custom currencies.
 
-### Enhancements
+### Added
 
 * `Localize.Currency.currency_for_code/2` accepts a new `:fallback` option which walks the CLDR parent locale chain and the application default locale before failing. Thanks to @neilberkman for the PR.
 
@@ -354,7 +382,7 @@ This release settles the public API naming and error conventions ahead of 1.0. E
 
 ## [0.28.0] — May 9th, 2026
 
-### Behaviour Change
+### Changed
 
 * `Localize.Interval.to_string/3` Date intervals (style `:date`, the default) now resolve their skeleton **per-locale** instead of using a hard-coded locale-independent mapping. The interval looks up `Localize.DateTime.Format.date_formats(locale_id)[format]` — the same mapping `Localize.Date.to_string/2` uses — so date intervals follow the same conventions as single dates for the same `:format`. Visible effect on locales whose single-Date skeletons differ from the previous Interval table — most notably:
 
@@ -362,7 +390,7 @@ This release settles the public API naming and error conventions ahead of 1.0. E
   - **de `:medium`** is now numeric (`"15.01.2022 – 20.03.2022"`); was previously the abbreviated month form. To get `"15. Jan. – 20. März 2022"` request the `:yMMMd` skeleton explicitly.
   - **en `:long`** uses full month name with no weekday (`"January 5, 2012 – January 6, 2012"`); was previously the `:yMMMEd` form `"Thu, Jan 5 – Fri, Jan 6, 2012"`. The weekday now appears at `:full`. Per-locale skeletons that aren't shipped in CLDR's `interval_formats` data fall back to formatting each endpoint with `Localize.Date.to_string/2` and joining via the locale's `interval_format_fallback` template. Non-`:date` styles (`:month`, `:month_and_day`, `:year_and_month`) remain locale-independent — they describe a deliberate field selection unrelated to standard date styles. The static `Localize.Interval.date_styles/0` no longer includes a `:date` entry.
 
-### Bug Fixes
+### Fixed
 
 * Strip zone token for NaiveDateTime too in `Localize.Time.to_string/2` since they also do not have a time zone field. Relates to #22.
 
@@ -376,7 +404,7 @@ This release settles the public API naming and error conventions ahead of 1.0. E
 
 ## [0.27.0] — May 8th, 2026
 
-### Bug Fixes
+### Fixed
 
 * Fix `Localize.Interval.to_string/3` `:short` time-interval format using the wrong hour cycle on 24-hour locales. `:short` now picks `:hm` or `:Hm` per the locale's preferred hour cycle (honouring any `-u-hc-` Unicode-extension override), matching the cycle used by `Localize.Time.to_string/2` `:short`. Thanks to @woylie for the follow-up report. Fixes #22.
 
@@ -386,7 +414,7 @@ This release settles the public API naming and error conventions ahead of 1.0. E
 
 * Adds support for `Decimal` version 3.0 to address a [CVE](https://github.com/ericmj/decimal/security/advisories/GHSA-rhv4-8758-jx7v). Thanks to @mitchellhenke for the PR.
 
-### Enhancements
+### Added
 
 * Add `Localize.Time.hour_format_from_locale/1` (and `!/1`) returning the locale's preferred hour cycle (`:h11`/`:h12`/`:h23`/`:h24`), honouring any `-u-hc-` Unicode-extension override.
 
@@ -394,11 +422,11 @@ This release settles the public API naming and error conventions ahead of 1.0. E
 
 This release fixes user-reported bug #22 in time interval formatting and a number of RBNF conformance bugs arising from a more complete conformance testing process. The RBNF bugs have been around unreported and undiagnosed for many years.
 
-### Breaking Change
+### Changed
 
-* The default `Localize.Interval.to_string/3` format output (which is `:medium`) for time-only inputs now includes seconds. `Localize.Interval.to_string!(~T[12:00:00], ~T[14:00:00], locale: :ja)` shifts from `午後0時00分～2時00分` to `12:00:00～14:00:00`. `:en`'s `:medium` shifts from `12:00 – 2:00 PM` to `12:00:00 PM – 2:00:00 PM`. Users who relied on no-seconds output should explicitly pass time_format: `:short`.
+* **Breaking:** The default `Localize.Interval.to_string/3` format output (which is `:medium`) for time-only inputs now includes seconds. `Localize.Interval.to_string!(~T[12:00:00], ~T[14:00:00], locale: :ja)` shifts from `午後0時00分～2時00分` to `12:00:00～14:00:00`. `:en`'s `:medium` shifts from `12:00 – 2:00 PM` to `12:00:00 PM – 2:00:00 PM`. Users who relied on no-seconds output should explicitly pass time_format: `:short`.
 
-### Bug Fixes
+### Fixed
 
 * Fix `Localize.Interval.to_string/3` collapsing the `:short`, `:medium`, `:long`, and `:full` time styles to the same `:hm` skeleton on Time inputs. `:short` keeps CLDR's interval-format dispatch (collapsed AM/PM); `:medium` and above route through the locale's per-style time-format pattern, restoring per-style differentiation and including seconds in the default `:medium` output. Thanks to @woylie for the report. Fixes #22.
 
@@ -420,7 +448,7 @@ This release fixes user-reported bug #22 in time interval formatting and a numbe
 
 * RBNF fraction-with-rule numerator/denominator algorithm is now spec-correct — ky `1.5 spellout-cardinal` is `бир бүтүн ондон беш` instead of `бир бүтүн беш`.
 
-### Enhancements
+### Added
 
 * Add `:minimum_significant_digits` and `:maximum_significant_digits` options to `Localize.Number.to_string/2`.
 
@@ -430,17 +458,17 @@ This release fixes user-reported bug #22 in time interval formatting and a numbe
 
 ## [0.25.0] — May 1st, 2026
 
-### Bug Fixes
+### Fixed
 
 * Fix en-CA :short date crash; teach :prefer about CLDR variant/standard alts. Thanks to @dabaer for the report. Closes #21.
 
-### Enhancements
+### Changed
 
 * Module refactoring to remove many compile-time cycles.
 
 ## [0.24.0] — April 29th, 2026
 
-### Bug Fixes
+### Fixed
 
 * `Localize.DateTime.Formatter` stand-alone pattern helpers now pass `context: :stand_alone` to `Localize.Calendar.localize/3` instead of an invalid `type:` option. Thanks to @timpritlove for the PR. Closes #20.
 
@@ -450,7 +478,7 @@ This release fixes user-reported bug #22 in time interval formatting and a numbe
 
 ## [0.23.0] — April 25th, 2026
 
-### Bug Fixes
+### Fixed
 
 * Fix `Cldr.Number.to_string/2` for `Decimal` numbers to produce the correct decimal digits.
 
@@ -468,13 +496,13 @@ This release fixes user-reported bug #22 in time interval formatting and a numbe
 
 ## [0.22.0] — April 22nd, 2026
 
-### Bug Fixes
+### Fixed
 
 * Fix Cldr.Number.to_string/2 for Decimal numbers to produce the correct decimal digits.
 
 ## [0.21.0] — April 22nd, 2026
 
-### Bug Fixes
+### Fixed
 
 * Fix normalizing CLDR locale names to our standard atom format in `Localize.validate_calendar/1`.
 
@@ -492,31 +520,31 @@ This release fixes user-reported bug #22 in time interval formatting and a numbe
 
 ## [0.20.0] — April 22nd, 2026
 
-### Bug Fixes
+### Fixed
 
 * Fixes mapping CLDR calendar types to the implementation module name.
 
 ## [0.19.0] — April 19th, 2026
 
-### Bug Fixes
+### Fixed
 
 * Restored the support of RBNF locales in `Localize.Number.to_string/2`. They are implemented in `Localize.Number.Rbnf.to_string/1` but the delegation was lost on the `ex_cldr` transition. Thanks to @tangulip for the report. Closes #11.
 
 ## [0.18.0] — April 18th, 2026
 
-### Breaking Change
+### Changed
 
-* MF2 highlighter token class atoms renamed to match the tree-sitter capture taxonomy used by [`mf2_wasm_editor`](https://hex.pm/packages/mf2_wasm_editor), so one stylesheet now styles both server-rendered HTML and the browser editor.
+* **Breaking:** MF2 highlighter token class atoms renamed to match the tree-sitter capture taxonomy used by [`mf2_wasm_editor`](https://hex.pm/packages/mf2_wasm_editor), so one stylesheet now styles both server-rendered HTML and the browser editor.
 
-* `Localize.Message.to_html/2` now emits the new canonical class names with `_` converted to `-` on output (`.mf2-variable`, `.mf2-punctuation-bracket`, `.mf2-string-escape`, `.mf2-constant-builtin`, etc.).
+* **Breaking:** `Localize.Message.to_html/2` now emits the new canonical class names with `_` converted to `-` on output (`.mf2-variable`, `.mf2-punctuation-bracket`, `.mf2-string-escape`, `.mf2-constant-builtin`, etc.).
 
-* `Localize.Message.to_ansi/2` default palette keys renamed to the new atoms.
+* **Breaking:** `Localize.Message.to_ansi/2` default palette keys renamed to the new atoms.
 
 ### Removed
 
 * The `mf2_theme_css/` directory and `scripts/generate_mf2_themes.exs` generator. Themes now live canonically in [`mf2_wasm_editor`](https://hex.pm/packages/mf2_wasm_editor).
 
-### Bug Fixes
+### Fixed
 
 * `Localize.Gettext.Interpolation.runtime_interpolate/2` no longer raises `Localize.ParseError` when a translated string is not valid MF2. It now returns the message unchanged and logs a warning, matching gettext's own "fall back to the msgid" behaviour for missing translations. Dev-facing UI copy that happens to contain MF2-like syntax (e.g. `{{…}}` or `.match`) no longer crashes callers.
 
@@ -528,7 +556,7 @@ This release fixes user-reported bug #22 in time interval formatting and a numbe
 
 ## [0.16.0] — April 17th, 2026
 
-### Bug Fixes
+### Fixed
 
 * Fix locale download infinite recursion loop. Thanks to @woylie for the report. Closes #10.
 
@@ -538,29 +566,29 @@ This release fixes user-reported bug #22 in time interval formatting and a numbe
 
 * MF2 syntax highlighter. See `Localize.Message.to_tokens/2`, `Localize.Message.to_html/2` and `Localize.Message.to_ansi/2`.
 
-### Bug Fixes
+### Fixed
 
 * Fix the exception and message when formatting a number and specifying a number system that is not valid for the given locale.
 
 ## [0.14.0] — April 16th, 2026
 
-### Breaking Change
+### Changed
 
-* Remove `@derive` for `Jason` since `Jason` is no longer configured or used anywhere in the application.
+* **Breaking:** Remove `@derive` for `Jason` since `Jason` is no longer configured or used anywhere in the application.
 
-### Bug Fixes
+### Fixed
 
 * Fix locale downloader to ensure it only uses the `:cldr_locale_id` field to construct the download URL.
 
 ## [0.13.0] — April 15th, 2026
 
-### Bug Fixes
+### Fixed
 
 * `Localize.Interval.to_string/3` now correctly formats datetime intervals — matching `ex_cldr_dates_times` behaviour. Previously any interval between two datetime values was rendered as a date-only range, discarding the time portion. Now same-day intervals render as `"Apr 8, 2026, 12:00 PM – 2:00 PM"` (date once, time range) and different-day intervals render as `"Apr 15, 2026, 12:49 AM – Apr 16, 2026, 1:49 AM"` (full datetime on both sides). Time-only intervals (`Time` values on both sides) use the locale's time-interval patterns.
 
 ## [0.12.0] — April 15th, 2026
 
-### Bug Fixes
+### Fixed
 
 * Chinese collation tailorings (`zh-u-co-pinyin`, `zh-u-co-stroke`, `zh-u-co-zhuyin`) now produce correct locale-specific ordering for Han characters. .
 
@@ -616,7 +644,7 @@ This release fixes user-reported bug #22 in time interval formatting and a numbe
 
 * Public function wrappers in `Localize.Unit.Math` for all dimensionless functions: `sin/1`, `cos/1`, `tan/1`, `asin/1`, `acos/1`, `atan/1`, `sinh/1`, `cosh/1`, `tanh/1`, `asinh/1`, `acosh/1`, `atanh/1`, `exp/1`, `ln/1`, `log/1`, `log2/1`. Previously these were only accessible via `apply_dimensionless/2`.
 
-### Bug Fixes
+### Fixed
 
 * `apply_dimensionless/2` now validates that the unit is actually dimensionless before computing. Previously `sin(1 meter)` would silently return a result; it now returns `{:error, "sin requires a dimensionless value, got unit with base: meter"}`. Units must reduce to `revolution` (angles) or `part` (ratios) to be accepted.
 
@@ -630,23 +658,23 @@ This release fixes user-reported bug #22 in time interval formatting and a numbe
 
 ## [0.4.0] — April 13th, 2026
 
-### Bug Fixes
+### Fixed
 
 * `Localize.all_locale_ids/1` (`:modern`, `:moderate`, `:basic`) now returns the correct expanded list of locales. Thanks to @cw789 for the report.
 
 ## [0.3.0] — April 13th, 2026
 
-### Bug Fixes
+### Fixed
 
 * Load custom units in a single batch to avoid churning `:persistent_store`
 
 ## [0.2.0] — April 13th, 2026
 
-### Bug Fixes
+### Fixed
 
 * SI prefix parsing for custom units. Custom units can now be prefixed with SI prefixes and power prefixes.
 
-### Enhancements
+### Changed
 
 * Custom unit category validation relaxed from a fixed allowlist to any non-empty string. The faciliates importing a broader range of unit definitions such as those from Gnu units.
 

@@ -135,6 +135,18 @@ defmodule Localize.DateTime do
   @doc """
   Same as `to_string/2` but raises on error.
 
+  ### Options
+
+  See `to_string/2` for the supported options.
+
+  ### Examples
+
+      iex> Localize.DateTime.to_string!(~N[2017-07-10 14:30:00], locale: :en, prefer: :ascii)
+      "Jul 10, 2017, 2:30:00 PM"
+
+      iex> Localize.DateTime.to_string!(~N[2017-07-10 14:30:00], format: :short, locale: :en, prefer: :ascii)
+      "7/10/17, 2:30 PM"
+
   """
   @spec to_string!(map(), Keyword.t()) :: String.t()
   def to_string!(datetime, options \\ []) do

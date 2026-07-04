@@ -78,7 +78,8 @@ defmodule Localize.List do
 
   ### Options
 
-  * `:locale` is a locale identifier. The default is `:en`.
+  * `:locale` is a locale identifier. The default is
+    `Localize.get_locale/0`.
 
   * `:list_style` is an atom from `known_list_styles/0` or a
     `t:Localize.List.Pattern.t/0`. Selects the CLDR list pattern
@@ -151,6 +152,10 @@ defmodule Localize.List do
 
   * `options` is a keyword list of options.
 
+  ### Options
+
+  * See `to_string/2` for the supported options.
+
   ### Returns
 
   * A formatted string.
@@ -180,8 +185,23 @@ defmodule Localize.List do
 
   * `list` is a list of terms.
 
-  * `options` is a keyword list of options. Same options as
-    `to_string/2`.
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier. The default is
+    `Localize.get_locale/0`.
+
+  * `:list_style` is an atom from `known_list_styles/0` or a
+    `t:Localize.List.Pattern.t/0`. Selects the CLDR list pattern
+    used to derive the separators. The default is `:standard`.
+
+  * `:treat_middle_as_end` is a boolean. When `true`, the
+    `:middle` pattern is used for the last element instead
+    of the `:end` pattern. The default is `false`.
+
+  Unlike `to_string/2`, elements are not formatted, so
+  per-element formatter options have no effect here.
 
   ### Returns
 
@@ -230,6 +250,10 @@ defmodule Localize.List do
   * `list` is a list of terms.
 
   * `options` is a keyword list of options.
+
+  ### Options
+
+  * See `intersperse/2` for the supported options.
 
   ### Returns
 

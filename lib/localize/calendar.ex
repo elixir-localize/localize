@@ -273,6 +273,10 @@ defmodule Localize.Calendar do
   @doc """
   Same as `display_name/3` but raises on error.
 
+  ### Options
+
+  See `display_name/3` for the supported options.
+
   ### Examples
 
       iex> Localize.Calendar.display_name!(:month, 1)
@@ -534,6 +538,16 @@ defmodule Localize.Calendar do
 
   * `{:error, exception}` if the locale or calendar is not found.
 
+  ### Examples
+
+      iex> {:ok, cyclic} = Localize.Calendar.cyclic_years(:en, :chinese)
+      iex> Map.keys(cyclic) |> Enum.sort()
+      [:day_parts, :days, :months, :solar_terms, :years, :zodiacs]
+
+      iex> {:ok, cyclic} = Localize.Calendar.cyclic_years(:en, :chinese)
+      iex> get_in(cyclic, [:zodiacs, :format, :abbreviated, 1])
+      "Rat"
+
   """
   @spec cyclic_years(Localize.locale(), atom()) :: {:ok, map()} | {:error, Exception.t()}
   def cyclic_years(locale, calendar_type \\ @default_calendar_type) do
@@ -562,6 +576,12 @@ defmodule Localize.Calendar do
 
   * `{:error, exception}` if the locale or calendar is not found.
 
+  ### Examples
+
+      iex> {:ok, patterns} = Localize.Calendar.month_patterns(:en, :chinese)
+      iex> get_in(patterns, [:format, :narrow, :leap])
+      [0, "b"]
+
   """
   @spec month_patterns(Localize.locale(), atom()) :: {:ok, map()} | {:error, Exception.t()}
   def month_patterns(locale, calendar_type \\ @default_calendar_type) do
@@ -574,6 +594,11 @@ defmodule Localize.Calendar do
   ### Returns
 
   * A list of atoms.
+
+  ### Examples
+
+      iex> Localize.Calendar.acceptable_calendars()
+      [:gregorian, :buddhist, :chinese, :coptic, :dangi, :ethiopic, :ethiopic_amete_alem, :hebrew, :indian, :islamic, :islamic_civil, :islamic_rgsa, :islamic_tbla, :islamic_umalqura, :japanese, :persian, :roc]
 
   """
   @spec acceptable_calendars() :: [atom(), ...]
@@ -640,6 +665,11 @@ defmodule Localize.Calendar do
       "Q1"
 
   """
+  @spec localize(
+          map(),
+          :era | :quarter | :month | :day_of_week | :days_of_week | :am_pm,
+          Keyword.t()
+        ) :: String.t() | nil | [{1..7, String.t() | nil}] | {:error, Exception.t()}
   def localize(datetime, part, options \\ [])
 
   def localize(datetime, part, options) do
@@ -968,6 +998,14 @@ defmodule Localize.Calendar do
   * An integer from 1 to 7.
 
   * `{:error, exception}` if the locale is invalid.
+
+  ### Examples
+
+      iex> Localize.Calendar.min_days_for_locale(:en)
+      1
+
+      iex> Localize.Calendar.min_days_for_locale(:de)
+      4
 
   """
   @spec min_days_for_locale(Localize.locale()) :: integer() | {:error, Exception.t()}

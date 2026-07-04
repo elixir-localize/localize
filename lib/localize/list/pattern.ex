@@ -44,6 +44,20 @@ defmodule Localize.List.Pattern do
     template string like `"{0}, and {1}"` or a pre-parsed
     token list.
 
+  ### Options
+
+  * `:two` is the pattern used when the list has exactly two
+    elements. Required.
+
+  * `:start` is the pattern used for the first pair of elements
+    in lists with three or more elements. Required.
+
+  * `:middle` is the pattern used for pairs in the middle of
+    lists with four or more elements. Required.
+
+  * `:end` is the pattern used for the last pair of elements
+    in lists with three or more elements. Required.
+
   ### Returns
 
   * `{:ok, pattern}` where pattern is a `t:t/0`.
@@ -91,6 +105,21 @@ defmodule Localize.List.Pattern do
   ### Returns
 
   * A `t:t/0` struct.
+
+  ### Examples
+
+      iex> Localize.List.Pattern.from_locale_data(%{
+      ...>   2 => [0, " and ", 1],
+      ...>   start: [0, ", ", 1],
+      ...>   middle: [0, ", ", 1],
+      ...>   end: [0, ", and ", 1]
+      ...> })
+      %Localize.List.Pattern{
+        two: [0, " and ", 1],
+        start: [0, ", ", 1],
+        middle: [0, ", ", 1],
+        end: [0, ", and ", 1]
+      }
 
   """
   @spec from_locale_data(map()) :: t()

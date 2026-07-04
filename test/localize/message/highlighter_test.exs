@@ -167,11 +167,153 @@ defmodule Localize.Message.HighlighterTest do
       assert is_list(tokens)
       assert Enum.all?(tokens, fn {c, t} -> is_atom(c) and is_binary(t) end)
     end
+
+    test "empty AST produces an empty token list" do
+      assert Highlighter.to_tokens([]) == []
+    end
+
+    test "text nodes containing brace characters split out :string_escape tokens" do
+      # A parsed AST never contains unescaped braces in :text nodes,
+      # but ASTs built programmatically (e.g. via JSON.from_json/1) can.
+      assert Highlighter.to_tokens([{:text, "a{b"}]) ==
+               [text: "a", string_escape: "\\{", text: "b"]
+    end
+
+    test "text node ending on an escapable character flushes cleanly" do
+      assert Highlighter.to_tokens([{:text, "a{"}]) == [text: "a", string_escape: "\\{"]
+    end
+
+    test "quoted operand literal ending on an escapable character flushes cleanly" do
+      assert Highlighter.to_tokens([{:expression, {:literal, "ab|"}, nil, []}]) ==
+               [
+                 punctuation_bracket: "{",
+                 string: "|ab",
+                 string_escape: "\\|",
+                 string: "|",
+                 punctuation_bracket: "}"
+               ]
+    end
   end
 
   describe "error handling" do
     test "returns error for invalid MF2" do
       assert {:error, _reason} = Message.to_tokens("{unclosed")
+    end
+  end
+
+  describe "token classification — namespaces, literals and declarations" do
+    test "namespaced function name is one :function token including both colons" do
+      assert {:ok, tokens} = Message.to_tokens("{$v :ns:func}")
+      assert {:function, ":ns:func"} in tokens
+    end
+
+    test "namespaced markup tag splits into tag, colon punctuation, tag" do
+      assert {:ok, tokens} = Message.to_tokens("{#html:b}x{/html:b}")
+
+      assert [
+               {:punctuation_bracket, "{#"},
+               {:tag, "html"},
+               {:punctuation_bracket, ":"},
+               {:tag, "b"},
+               {:punctuation_bracket, "}"},
+               {:text, "x"},
+               {:punctuation_bracket, "{/"},
+               {:tag, "html"},
+               {:punctuation_bracket, ":"},
+               {:tag, "b"},
+               {:punctuation_bracket, "}"}
+             ] = tokens
+    end
+
+    test "escaped pipe inside a quoted literal is a :string_escape token" do
+      assert {:ok, tokens} = Message.to_tokens("{|a\\|b|}")
+
+      assert [
+               {:punctuation_bracket, "{"},
+               {:string, "|a"},
+               {:string_escape, "\\|"},
+               {:string, "b|"},
+               {:punctuation_bracket, "}"}
+             ] = tokens
+    end
+
+    test "empty literal is the two-pipe :string token" do
+      assert {:ok, tokens} = Message.to_tokens("{||}")
+      assert {:string, "||"} in tokens
+    end
+
+    test ".local declaration produces keyword, variable and equals tokens" do
+      assert {:ok, tokens} = Message.to_tokens(".local $x = {|42| :number} {{Result {$x}}}")
+
+      assert {:keyword, ".local"} in tokens
+      assert {:punctuation_bracket, " = {"} in tokens
+      assert {:string, "|42|"} in tokens
+      assert {:function, ":number"} in tokens
+    end
+
+    test "multi-selector match classifies number keys and catchalls" do
+      message =
+        ".input {$a :number} .input {$b :number} " <>
+          ".match $a $b 0 0 {{none}} * * {{other}}"
+
+      assert {:ok, tokens} = Message.to_tokens(message)
+
+      assert Enum.count(tokens, &(&1 == {:keyword, ".input"})) == 2
+      assert {:keyword, ".match"} in tokens
+      assert Enum.count(tokens, &(&1 == {:number, "0"})) == 2
+      assert Enum.count(tokens, &(&1 == {:constant_builtin, "*"})) == 2
+    end
+
+    test "function-only expression has no operand tokens" do
+      assert Message.to_tokens("{:number}") ==
+               {:ok,
+                [
+                  punctuation_bracket: "{ ",
+                  function: ":number",
+                  punctuation_bracket: "}"
+                ]}
+    end
+
+    test "option values classify as variable, number, empty and unquoted literals" do
+      assert {:ok, tokens} =
+               Message.to_tokens("{$x :number opt=$y min=2 empty=|| dash=v2.0 uni=café}")
+
+      assert {:variable, "$y"} in tokens
+      assert {:number, "2"} in tokens
+      assert {:string, "||"} in tokens
+      # Values made of name characters (including digits, dots and
+      # non-ASCII name-start characters) emit unquoted.
+      assert {:string, "v2.0"} in tokens
+      assert {:string, "café"} in tokens
+    end
+
+    test "non-numeric literal variant keys emit as :string" do
+      assert {:ok, tokens} =
+               Message.to_tokens(".input {$x :number} .match $x one {{a}} * {{b}}")
+
+      assert {:string, "one"} in tokens
+    end
+
+    test "unquoted option literal value has no pipe delimiters" do
+      assert {:ok, tokens} = Message.to_tokens("{$x :number style=short}")
+
+      assert {:property, "style"} in tokens
+      assert {:string, "short"} in tokens
+      refute Enum.any?(tokens, &match?({:string, "|" <> _}, &1))
+    end
+
+    test "attribute with a quoted literal value" do
+      assert {:ok, tokens} = Message.to_tokens("{$x @val=|two words|}")
+
+      assert [
+               {:punctuation_bracket, "{"},
+               {:variable, "$x"},
+               {:punctuation_bracket, " "},
+               {:attribute, "@val"},
+               {:punctuation_bracket, "="},
+               {:string, "|two words|"},
+               {:punctuation_bracket, "}"}
+             ] = tokens
     end
   end
 end

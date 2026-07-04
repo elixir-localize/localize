@@ -133,6 +133,29 @@ defmodule Localize.Duration do
     end
   end
 
+  @doc """
+  Calculates the calendar duration of a `t:Date.Range.t/0`.
+
+  Equivalent to `new(range.first, range.last)`.
+
+  ### Arguments
+
+  * `range` is a `t:Date.Range.t/0` (e.g., `Date.range/2`).
+
+  ### Returns
+
+  * `{:ok, duration}` where `duration` is a `t:t/0` struct.
+
+  * `{:error, exception}` if the range endpoints are incompatible.
+
+  ### Examples
+
+      iex> {:ok, d} = Localize.Duration.new(Date.range(~D[2019-01-01], ~D[2019-12-31]))
+      iex> d.month
+      11
+
+  """
+  @spec new(Date.Range.t()) :: {:ok, t()} | {:error, Exception.t() | atom()}
   def new(%Date.Range{first: first, last: last}) do
     new(first, last)
   end
@@ -292,6 +315,16 @@ defmodule Localize.Duration do
   @doc """
   Same as `to_string/2` but raises on error.
 
+  ### Options
+
+  See `to_string/2` for the supported options.
+
+  ### Examples
+
+      iex> {:ok, d} = Localize.Duration.new(~D[2019-01-01], ~D[2019-12-31])
+      iex> Localize.Duration.to_string!(d, locale: :en)
+      "11 months and 30 days"
+
   """
   @spec to_string!(t(), Keyword.t()) :: String.t() | no_return()
   def to_string!(%__MODULE__{} = duration, options \\ []) do
@@ -343,6 +376,20 @@ defmodule Localize.Duration do
 
   @doc """
   Same as `to_time_string/2` but raises on error.
+
+  ### Options
+
+  See `to_time_string/2` for the supported options.
+
+  ### Examples
+
+      iex> d = Localize.Duration.new_from_seconds(136_092)
+      iex> Localize.Duration.to_time_string!(d)
+      "37:48:12"
+
+      iex> d = Localize.Duration.new_from_seconds(65)
+      iex> Localize.Duration.to_time_string!(d, format: "m:ss")
+      "1:05"
 
   """
   @spec to_time_string!(t(), Keyword.t()) :: String.t()

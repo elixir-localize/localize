@@ -4,6 +4,7 @@ defmodule LocalizeTest do
   # can be mutated by concurrent tests.
   use ExUnit.Case, async: false
   doctest Localize
+  doctest Localize.Supervisor
 
   import ExUnit.CaptureLog
 

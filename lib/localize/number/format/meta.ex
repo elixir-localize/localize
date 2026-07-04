@@ -63,6 +63,14 @@ defmodule Localize.Number.Format.Meta do
 
   * A `Localize.Number.Format.Meta.t()` struct.
 
+  ### Examples
+
+      iex> meta = Localize.Number.Format.Meta.new()
+      iex> meta.integer_digits
+      %{min: 1, max: 0}
+      iex> meta.multiplier
+      1
+
   """
   @spec new() :: t()
   def new do

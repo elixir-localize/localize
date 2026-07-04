@@ -202,6 +202,12 @@ defmodule Localize.Number.Parser do
 
   * A list with currency strings replaced by currency code atoms.
 
+  ### Examples
+
+      iex> Localize.Number.Parser.scan("100 US dollars")
+      ...> |> Localize.Number.Parser.resolve_currencies()
+      [100, :USD]
+
   """
   @spec resolve_currencies([String.t() | number()], Keyword.t()) ::
           list(atom() | String.t() | number())
@@ -233,6 +239,14 @@ defmodule Localize.Number.Parser do
   * A list with the currency code and remainder, or
     `{:error, exception}`.
 
+  ### Examples
+
+      iex> Localize.Number.Parser.resolve_currency("US dollars")
+      [:USD]
+
+      iex> Localize.Number.Parser.resolve_currency("$100")
+      [:USD, "100"]
+
   """
   @spec resolve_currency(String.t(), Keyword.t()) ::
           list(atom() | String.t()) | {:error, Exception.t()}
@@ -263,10 +277,25 @@ defmodule Localize.Number.Parser do
 
   * `options` is a keyword list of options.
 
+  ### Options
+
+  * `:locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0`. The default is
+    `Localize.get_locale()`.
+
+  * `:number_system` is a number system name or type atom.
+    The default is the number system of `:locale`.
+
   ### Returns
 
   * A list with percent/permille strings replaced by `:percent`
     or `:permille` atoms.
+
+  ### Examples
+
+      iex> Localize.Number.Parser.scan("100%")
+      ...> |> Localize.Number.Parser.resolve_pers()
+      [100, :percent]
 
   """
   @spec resolve_pers([String.t() | number()], Keyword.t()) ::
@@ -284,6 +313,15 @@ defmodule Localize.Number.Parser do
     or permille symbols.
 
   * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0`. The default is
+    `Localize.get_locale()`.
+
+  * `:number_system` is a number system name or type atom.
+    The default is the number system of `:locale`.
 
   ### Returns
 
@@ -328,9 +366,22 @@ defmodule Localize.Number.Parser do
 
   * `options` is a keyword list passed to the resolver.
 
+  ### Options
+
+  * The options are passed through unchanged to `resolver` for each
+    binary element. See the resolver function (for example
+    `resolve_currency/2` or `resolve_per/2`) for the options it
+    supports.
+
   ### Returns
 
   * The list with binary elements resolved.
+
+  ### Examples
+
+      iex> resolver = &Localize.Number.Parser.resolve_currency/2
+      iex> Localize.Number.Parser.resolve(["100", "USD"], resolver, locale: :en)
+      ["100", :USD]
 
   """
   @spec resolve(list(), (String.t(), Keyword.t() -> term()), Keyword.t()) :: list()
@@ -365,6 +416,14 @@ defmodule Localize.Number.Parser do
   * `{:ok, list}` with replacements applied.
 
   * `{:error, exception}` if no match found.
+
+  ### Examples
+
+      iex> Localize.Number.Parser.find_and_replace(%{"usd" => :USD}, "USD 100")
+      {:ok, [:USD, " 100"]}
+
+      iex> Localize.Number.Parser.find_and_replace(%{"%" => :percent}, "11%")
+      {:ok, ["11", :percent]}
 
   """
   @spec find_and_replace(map(), String.t(), float() | nil) ::
@@ -513,6 +572,11 @@ defmodule Localize.Number.Parser do
         {:ok, Enum.reject([starting_code, remainder, ending_code], &(&1 == ""))}
       end
     end
+  end
+
+  defp do_find_and_replace(string_map, _search, fuzzy)
+       when map_size(string_map) == 0 and is_float(fuzzy) and fuzzy > 0.0 and fuzzy <= 1.0 do
+    {:error, parse_error("No match was found")}
   end
 
   defp do_find_and_replace(string_map, search, fuzzy)

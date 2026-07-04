@@ -179,6 +179,12 @@ defmodule Localize.Unit do
 
   * `unit` is a unit identifier string.
 
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `new/3` for the supported options.
+
   ### Returns
 
   * A `%Localize.Unit{}` struct.
@@ -656,6 +662,12 @@ defmodule Localize.Unit do
 
   * `{:error, reason}` on failure.
 
+  ### Examples
+
+      iex> {:error, message} = Localize.Unit.load_custom_units("no/such/file.exs")
+      iex> message =~ "file not found"
+      true
+
   """
   @spec load_custom_units(String.t()) :: {:ok, non_neg_integer()} | {:error, String.t()}
   def load_custom_units(path) do
@@ -932,6 +944,10 @@ defmodule Localize.Unit do
 
   * `options` is a keyword list of options.
 
+  ### Options
+
+  See `to_string/2` for the supported options.
+
   ### Returns
 
   * A formatted string.
@@ -939,6 +955,16 @@ defmodule Localize.Unit do
   ### Raises
 
   * Raises an exception if the unit cannot be formatted.
+
+  ### Examples
+
+      iex> unit = Localize.Unit.new!(42, "meter")
+      iex> Localize.Unit.to_string!(unit)
+      "42 meters"
+
+      iex> unit = Localize.Unit.new!(42, "meter")
+      iex> Localize.Unit.to_string!(unit, format: :short)
+      "42 m"
 
   """
   @spec to_string!(t() | [t(), ...], Keyword.t()) :: String.t()
@@ -961,9 +987,19 @@ defmodule Localize.Unit do
 
   * `options` is a keyword list of formatting options (same as `to_string/2`).
 
+  ### Options
+
+  See `to_string/2` for the supported options.
+
   ### Returns
 
   * `{:ok, iolist}` or `{:error, exception}`.
+
+  ### Examples
+
+      iex> {:ok, unit} = Localize.Unit.new(42, "meter")
+      iex> Localize.Unit.to_iolist(unit)
+      {:ok, ["42 meters"]}
 
   """
   @spec to_iolist(t(), Keyword.t()) :: {:ok, iolist()} | {:error, Exception.t()}
@@ -1095,6 +1131,13 @@ defmodule Localize.Unit do
   ### Returns
 
   * `{:ok, unit}` or `{:error, exception}`.
+
+  ### Examples
+
+      iex> {:ok, m} = Localize.Unit.new(10, "meter")
+      iex> {:ok, negated} = Localize.Unit.negate(m)
+      iex> negated.value
+      -10
 
   """
   @spec negate(t()) :: {:ok, t()} | {:error, Exception.t()}
@@ -1272,6 +1315,14 @@ defmodule Localize.Unit do
 
   * `format_options` is an optional keyword list attached to the final
     unit's `:format_options`. Defaults to `[]`.
+
+  ### Options
+
+  The options are not interpreted by this function; they are attached
+  verbatim to the trailing unit's `:format_options` field and merged
+  into any later `to_string/2` call for that unit. The typical content
+  is `[round_nearest: n]` lifted from CLDR's unit preference skeletons.
+  See `to_string/2` for the options that formatting supports.
 
   ### Returns
 
@@ -1595,6 +1646,10 @@ defmodule Localize.Unit do
 
   @doc """
   Same as `display_name/2` but raises on error.
+
+  ### Options
+
+  See `display_name/2` for the supported options.
 
   ### Examples
 
