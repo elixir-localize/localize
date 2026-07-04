@@ -35,7 +35,7 @@ iex> unit.value
 
 iex> {:ok, unit} = Localize.Unit.new(Decimal.new("99.99"), "liter")
 iex> unit.value
-#Decimal<99.99>
+Decimal.new("99.99")
 ```
 
 ### Without a value
@@ -281,12 +281,12 @@ iex> short = Localize.Unit.new!(200, "meter")
 iex> long  = Localize.Unit.new!(2_000, "meter")
 
 iex> Localize.Unit.Preference.preferred_units(short, usage: :road, territory: :US)
-{:ok, [:foot], []}
+{:ok, [:foot], [round_nearest: 50]}
 iex> Localize.Unit.Preference.preferred_units(long,  usage: :road, territory: :US)
 {:ok, [:mile], []}
 
 iex> Localize.Unit.Preference.preferred_units(short, usage: :road, territory: :DE)
-{:ok, [:meter], []}
+{:ok, [:meter], [round_nearest: 10]}
 iex> Localize.Unit.Preference.preferred_units(long,  usage: :road, territory: :DE)
 {:ok, [:kilometer], []}
 ```

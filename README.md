@@ -61,7 +61,7 @@ Add `localize` to your dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:localize, "~> 0.41"}
+    {:localize, "~> 0.45"}
   ]
 end
 ```
@@ -71,7 +71,7 @@ On OTP 26 only:
 ```elixir
 def deps do
   [
-    {:localize, "~> 0.41"},
+    {:localize, "~> 0.45"},
     {:json_polyfill, "~> 0.2 or ~> 1.0"}
   ]
 end

@@ -68,7 +68,7 @@ A quality release: the codebase now passes `mix credo --strict` with zero findin
 
 * The `:spellout` format resolves to `spellout-numbering` (ICU's default ruleset) deterministically; previously the choice among a locale's gendered rulesets varied across OTP releases (German 1.5 could spell "eine", "ein" or "eins" depending on the VM).
 
-* Numeric collation values non-ASCII digits from their Unicode block zero: Arabic-Indic "٢" sorts before "١٠" and "٠" compares equal to "0"; previously digit values were computed modulo 10 of the codepoint, wrapping mid-block.
+* Numeric collation computes the value of non-ASCII digits from their Unicode block's zero digit: Arabic-Indic "٢" sorts before "١٠" and "٠" compares equal to "0"; previously digit values were computed modulo 10 of the codepoint, wrapping mid-block.
 
 * `:fractional_digits` applies to numbers with a zero integer part: `Number.to_string(0.4, fractional_digits: 0)` returns "0" (previously "0.4"), with float and Decimal inputs rounding identically across all rounding modes.
 

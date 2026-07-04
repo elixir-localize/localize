@@ -237,9 +237,24 @@ defmodule Localize.Territory do
   @doc """
   Same as `display_name/2` but raises on error.
 
+  ### Arguments
+
+  * `territory` is a territory code atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  * `options` is a keyword list of options.
+
   ### Options
 
   * See `display_name/2` for the supported options.
+
+  ### Returns
+
+  * The localized territory name.
+
+  ### Raises
+
+  * Raises an exception if the territory name cannot be returned.
 
   ### Examples
 
@@ -312,9 +327,26 @@ defmodule Localize.Territory do
   @doc """
   Same as `translate_territory/3` but raises on error.
 
+  ### Arguments
+
+  * `name` is a localized territory name string.
+
+  * `from_locale` is the locale identifier in which `name` is
+    expressed.
+
+  * `options` is a keyword list of options.
+
   ### Options
 
   * See `translate_territory/3` for the supported options.
+
+  ### Returns
+
+  * The translated territory name.
+
+  ### Raises
+
+  * Raises an exception if the name cannot be translated.
 
   ### Examples
 
@@ -383,6 +415,21 @@ defmodule Localize.Territory do
   @doc """
   Same as `to_territory_code/2` but raises on error.
 
+  ### Arguments
+
+  * `name` is a localized territory name string.
+
+  * `locale` is the locale identifier in which `name` is
+    expressed.
+
+  ### Returns
+
+  * The territory code atom.
+
+  ### Raises
+
+  * Raises an exception if the name cannot be resolved.
+
   ### Examples
 
       iex> Localize.Territory.to_territory_code!("United Kingdom", :en)
@@ -450,6 +497,19 @@ defmodule Localize.Territory do
   @doc """
   Same as `parent/1` but raises on error.
 
+  ### Arguments
+
+  * `territory` is a territory code atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  ### Returns
+
+  * A sorted list of parent territory atoms.
+
+  ### Raises
+
+  * Raises an exception if the territory is unknown.
+
   ### Examples
 
       iex> Localize.Territory.parent!(:GB)
@@ -507,6 +567,19 @@ defmodule Localize.Territory do
 
   @doc """
   Same as `children/1` but raises on error.
+
+  ### Arguments
+
+  * `territory` is a territory code atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  ### Returns
+
+  * A list of child territory atoms.
+
+  ### Raises
+
+  * Raises an exception if the territory is unknown.
 
   ### Examples
 
@@ -623,6 +696,19 @@ defmodule Localize.Territory do
   @doc """
   Same as `info/1` but raises on error.
 
+  ### Arguments
+
+  * `territory` is a territory code atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  ### Returns
+
+  * A map of territory information.
+
+  ### Raises
+
+  * Raises an exception if the territory is unknown.
+
   ### Examples
 
       iex> info = Localize.Territory.info!(:US)
@@ -641,6 +727,10 @@ defmodule Localize.Territory do
   @doc """
   Returns a map of territory codes to their Alpha-3, FIPS 10, and numeric
   code equivalents.
+
+  ### Arguments
+
+  * `options` is a keyword list of options.
 
   ### Options
 
@@ -730,6 +820,19 @@ defmodule Localize.Territory do
   @doc """
   Same as `to_currency_code/1` but raises on error.
 
+  ### Arguments
+
+  * `territory` is a territory code atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  ### Returns
+
+  * The current currency code atom for the territory.
+
+  ### Raises
+
+  * Raises an exception if the territory is unknown.
+
   ### Examples
 
       iex> Localize.Territory.to_currency_code!(:US)
@@ -789,6 +892,19 @@ defmodule Localize.Territory do
 
   @doc """
   Same as `to_currency_codes/1` but raises on error.
+
+  ### Arguments
+
+  * `territory` is a territory code atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  ### Returns
+
+  * A list of currency code atoms.
+
+  ### Raises
+
+  * Raises an exception if the territory is unknown.
 
   ### Examples
 
@@ -940,6 +1056,19 @@ defmodule Localize.Territory do
 
   @doc """
   Same as `unicode_flag/1` but raises on error.
+
+  ### Arguments
+
+  * `territory` is a territory code atom, string, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  ### Returns
+
+  * The emoji flag string for the territory.
+
+  ### Raises
+
+  * Raises an exception if the territory is unknown.
 
   ### Examples
 

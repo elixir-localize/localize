@@ -91,7 +91,7 @@ defmodule Localize.MixProject do
           "README.md",
           "LICENSE.md",
           "CHANGELOG.md"
-        ] ++ Path.wildcard("guides/*.md") ++ Path.wildcard("cheatsheets/*.md"),
+        ] ++ Path.wildcard("guides/*.md") ++ cheatsheet_extras(),
       formatters: ["html", "markdown"],
       groups_for_modules: groups_for_modules(),
       groups_for_extras: groups_for_extras(),
@@ -100,6 +100,17 @@ defmodule Localize.MixProject do
           "CHANGELOG.md"
         ] ++ Path.wildcard("guides/*.md") ++ Path.wildcard("cheatsheets/*.md")
     ]
+  end
+
+  # Cheatsheets share basenames with guides (e.g. `collation.md`), which
+  # would make ex_doc emit unstable, suffixed page names such as
+  # `collation-1.html`. Giving each cheatsheet an explicit `:filename`
+  # keeps the guide URLs stable (`collation.html`) and the cheatsheet
+  # URLs predictable (`collation_cheatsheet.html`).
+  defp cheatsheet_extras do
+    for path <- Path.wildcard("cheatsheets/*.md") do
+      {path, filename: Path.basename(path, ".md") <> "_cheatsheet"}
+    end
   end
 
   def groups_for_modules do
