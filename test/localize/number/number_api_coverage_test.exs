@@ -42,7 +42,8 @@ defmodule Localize.Number.ApiCoverageTest do
 
   describe "range and approximation wrappers" do
     test "to_range_string/3 with approximate: true uses the approximately pattern" do
-      assert Number.to_range_string(3, 5, approximate: true) == {:ok, "~3"}
+      # Regression: the range end used to be silently dropped ("~3").
+      assert Number.to_range_string(3, 5, approximate: true) == {:ok, "~3–5"}
     end
 
     test "to_range_string!/3 returns the string directly" do

@@ -55,6 +55,31 @@ defmodule Localize.Unit.FormatterCoverageTest do
       assert Unit.to_string(unit!(10, "curr-eur-per-day"), locale: "de") ==
                {:ok, "10,00 € pro Tag"}
     end
+
+    test "currency-per-unit includes the SI prefix of the denominator" do
+      # Regression: extract_denominator_parts/1 dropped the :prefix of
+      # the denominator single unit, rendering "per meter".
+      assert Unit.to_string(unit!(1, "curr-usd-per-kilometer")) ==
+               {:ok, "$1.00 per kilometer"}
+    end
+
+    test "currency-per-unit includes the power of the denominator" do
+      assert Unit.to_string(unit!(5, "curr-usd-per-square-kilometer")) ==
+               {:ok, "$5.00 per square kilometer"}
+    end
+
+    test "currency-per-unit with a denominator constant pluralizes the unit" do
+      # Regression: rendered "per 100 meter" — the prefix was dropped and
+      # the noun stayed singular. With a constant the denominator noun is
+      # plural in en, as in ICU's "liter-per-100-kilometer" pattern.
+      assert Unit.to_string(unit!(5, "curr-usd-per-100-kilometer")) ==
+               {:ok, "$5.00 per 100 kilometers"}
+    end
+
+    test "currency-per-unit with a denominator constant localizes the plural noun" do
+      assert Unit.to_string(unit!(5, "curr-usd-per-100-kilometer"), locale: "de") ==
+               {:ok, "5,00 $ pro 100 Kilometer"}
+    end
   end
 
   describe "styles and style aliases" do

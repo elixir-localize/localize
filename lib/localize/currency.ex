@@ -90,13 +90,21 @@ defmodule Localize.Currency do
           {:ok, currency_code()} | {:error, Exception.t()}
   def validate_currency(currency_code) when is_binary(currency_code) do
     # Gate atomisation on membership in the validity set so unknown
-    # string codes can't grow the atom table on each call.
+    # string codes can't grow the atom table on each call. The error
+    # always carries the caller's binary, never the atom — whether
+    # the atom happens to exist depends on unrelated prior code.
     case currency_code |> String.upcase() |> Helpers.existing_atom() do
       nil ->
         {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
 
       atom ->
-        validate_currency(atom)
+        case validate_currency(atom) do
+          {:ok, code} ->
+            {:ok, code}
+
+          {:error, _} ->
+            {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
+        end
     end
   end
 

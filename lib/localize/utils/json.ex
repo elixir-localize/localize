@@ -39,8 +39,10 @@ defmodule Localize.Utils.Json do
   """
   @spec decode!(String.t() | charlist()) :: term()
   def decode!(string) when is_binary(string) do
-    {json, :ok, ""} = :json.decode(string, :ok, %{null: nil})
-    json
+    case :json.decode(string, :ok, %{null: nil}) do
+      {json, :ok, ""} -> json
+      {_json, :ok, rest} -> raise_trailing_data!(rest)
+    end
   end
 
   def decode!(charlist) when is_list(charlist) do
@@ -60,13 +62,22 @@ defmodule Localize.Utils.Json do
       object_push: push
     }
 
-    {json, :ok, ""} = :json.decode(string, :ok, decoders)
-    json
+    case :json.decode(string, :ok, decoders) do
+      {json, :ok, ""} -> json
+      {_json, :ok, rest} -> raise_trailing_data!(rest)
+    end
   end
 
   def decode!(charlist, options) when is_list(charlist) do
     charlist
     |> :erlang.iolist_to_binary()
     |> decode!(options)
+  end
+
+  @spec raise_trailing_data!(binary()) :: no_return()
+  defp raise_trailing_data!(rest) do
+    raise ArgumentError,
+          "unexpected trailing data after the JSON document: " <>
+            inspect(rest, printable_limit: 50)
   end
 end

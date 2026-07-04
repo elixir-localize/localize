@@ -462,6 +462,10 @@ defmodule Localize.Utils.Map do
     {k, deep_map(value, &atomize_value(&1, map_options), options)}
   end
 
+  def atomize_values(other, _options) do
+    other
+  end
+
   @doc """
   Transforms a `map`'s `String.t` keys to `Integer.t` keys.
 

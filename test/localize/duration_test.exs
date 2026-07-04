@@ -49,6 +49,35 @@ defmodule Localize.DurationTest do
       assert d.minute == 0
       assert d.second == 0
     end
+
+    test "returns error when from is after to" do
+      assert {:error, %ArgumentError{}} =
+               Localize.Duration.new(~T[12:30:45], ~T[10:00:00])
+    end
+  end
+
+  # ── new/2 with naive datetimes ─────────────────────────────────
+
+  describe "new/2 with naive datetimes" do
+    test "calculates duration between two naive datetimes" do
+      {:ok, d} = Localize.Duration.new(~N[2024-01-01 10:00:00], ~N[2024-06-15 12:30:00])
+      assert d.year == 0
+      assert d.month == 5
+      assert d.day == 14
+      assert d.hour == 2
+      assert d.minute == 30
+    end
+
+    test "returns zero duration for equal naive datetimes" do
+      {:ok, d} = Localize.Duration.new(~N[2024-01-01 10:00:00], ~N[2024-01-01 10:00:00])
+      assert d.year == 0
+      assert d.hour == 0
+    end
+
+    test "returns error when from is after to" do
+      assert {:error, %ArgumentError{}} =
+               Localize.Duration.new(~N[2024-06-15 12:30:00], ~N[2024-01-01 10:00:00])
+    end
   end
 
   # ── new/1 with Date.Range ──────────────────────────────────────

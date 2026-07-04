@@ -194,6 +194,14 @@ defmodule Localize.Locale.LocaleDisplay.U do
       get_territory(value, display_names)
   end
 
+  defp get_special(:dx, _key_name, values, _locale_ext, _locale_id, display_names)
+       when is_list(values) do
+    Enum.map(values, fn value ->
+      get_script(value, display_names) || to_string(value)
+    end)
+    |> join_field_values(display_names)
+  end
+
   defp get_special(:dx, _key_name, value, _locale_ext, _locale_id, display_names) do
     case get_script(value, display_names) do
       nil -> nil

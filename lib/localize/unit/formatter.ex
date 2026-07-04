@@ -166,32 +166,96 @@ defmodule Localize.Unit.Formatter do
           {:ok, currency_string}
 
         {count, denominator_base} ->
-          denominator_name = normalize_unit_name(denominator_base)
-          pattern = find_per_unit_pattern(unit_data, denominator_name, value, locale)
-          format_currency_per_unit(currency_string, pattern, count, denominator_base)
+          format_currency_denominator(
+            currency_string,
+            count,
+            denominator_base,
+            unit_data,
+            value,
+            locale
+          )
       end
     end
   end
 
-  defp format_currency_per_unit(currency_string, nil, count, denominator_base) do
-    per_part = if count, do: "#{count} #{denominator_base}", else: denominator_base
+  defp format_currency_denominator(
+         currency_string,
+         count,
+         denominator_base,
+         unit_data,
+         value,
+         locale
+       ) do
+    denominator_name = normalize_unit_name(denominator_base)
+    pattern = find_per_unit_pattern(unit_data, denominator_name, value, locale)
+    nouns = if count, do: denominator_nouns(unit_data, denominator_name)
+    format_currency_per_unit(currency_string, pattern, count, denominator_base, nouns)
+  end
+
+  defp format_currency_per_unit(currency_string, nil, count, denominator_base, nouns) do
+    fallback_noun = String.replace(denominator_base, "-", " ")
+
+    per_part =
+      case {count, nouns} do
+        {nil, _nouns} -> fallback_noun
+        {count, {_singular, plural}} -> "#{count} #{plural}"
+        {count, nil} -> "#{count} #{fallback_noun}"
+      end
+
     {:ok, "#{currency_string} per #{per_part}"}
   end
 
-  defp format_currency_per_unit(currency_string, pattern, count, _denominator_base) do
+  defp format_currency_per_unit(currency_string, pattern, count, _denominator_base, nouns) do
     per_string =
       currency_string
       |> Localize.Substitution.substitute(pattern)
       |> :erlang.iolist_to_binary()
       |> String.trim()
 
-    if count do
-      # Insert the count before the denominator unit name in the pattern
-      {:ok, String.replace(per_string, "per ", "per #{count} ")}
-    else
-      {:ok, per_string}
+    cond do
+      is_nil(count) ->
+        {:ok, per_string}
+
+      # With a denominator constant the unit noun is plural (compare
+      # ICU: "liter-per-100-kilometer" → "per 100 kilometers"), so
+      # replace the singular noun from the per-pattern with the count
+      # and the plural noun.
+      is_tuple(nouns) and String.contains?(per_string, elem(nouns, 0)) ->
+        {singular, plural} = nouns
+        {:ok, String.replace(per_string, singular, "#{count} #{plural}")}
+
+      true ->
+        # Insert the count before the denominator unit name in the pattern
+        {:ok, String.replace(per_string, "per ", "per #{count} ")}
     end
   end
+
+  # Extracts the singular and plural nouns for the denominator unit
+  # from its CLDR nominative plural patterns, e.g. {"kilometer",
+  # "kilometers"} for :kilometer in "en". Returns nil when the unit or
+  # either plural form is not present in the locale data.
+  defp denominator_nouns(unit_data, denominator_name) do
+    with %{nominative: %{one: one_pattern, other: other_pattern}} <-
+           find_unit_formats(unit_data, denominator_name),
+         singular when is_binary(singular) <- pattern_noun(one_pattern),
+         plural when is_binary(plural) <- pattern_noun(other_pattern) do
+      {singular, plural}
+    else
+      _other -> nil
+    end
+  end
+
+  defp pattern_noun(pattern) when is_list(pattern) do
+    noun =
+      pattern
+      |> Enum.filter(&is_binary/1)
+      |> Enum.join()
+      |> String.trim()
+
+    if noun == "", do: nil, else: noun
+  end
+
+  defp pattern_noun(_pattern), do: nil
 
   defp extract_denominator_parts([]), do: {nil, nil}
 
@@ -202,13 +266,27 @@ defmodule Localize.Unit.Formatter do
         _ -> nil
       end)
 
-    single_unit_base =
+    single_unit_name =
       Enum.find_value(units, fn
-        {:single_unit, kw} -> Keyword.fetch!(kw, :base)
+        {:single_unit, keyword} -> denominator_unit_name(keyword)
         _ -> nil
       end)
 
-    {constant, single_unit_base}
+    {constant, single_unit_name}
+  end
+
+  # Builds the full unit name for a denominator single unit, including
+  # the SI prefix (kilo + meter → "kilometer") and the power
+  # (square + kilometer → "square-kilometer"), so CLDR data lookups
+  # resolve the actual unit rather than only its base.
+  defp denominator_unit_name(keyword) do
+    base = Keyword.fetch!(keyword, :base)
+    prefix = Keyword.get(keyword, :prefix)
+    power = Keyword.get(keyword, :power)
+
+    prefixed = if prefix, do: "#{prefix}#{base}", else: base
+
+    if power, do: "#{power}-#{prefixed}", else: prefixed
   end
 
   defp find_per_unit_pattern(unit_data, denominator_name, _value, _locale) do
@@ -334,8 +412,13 @@ defmodule Localize.Unit.Formatter do
     Localize.Number.PluralRule.Cardinal.plural_rule(value, locale)
   end
 
+  # Decimals are passed through unconverted: the plural rule engine
+  # computes the CLDR operands (including the visible-fraction operands
+  # v, w, f and t) from the Decimal itself. Converting to float first
+  # would lose those operands — Decimal "1" (v=0, :one in en) and
+  # Decimal "1.0" (v=1, :other in en) both become the float 1.0.
   defp plural_form(%Decimal{} = value, locale) do
-    Localize.Number.PluralRule.Cardinal.plural_rule(Decimal.to_float(value), locale)
+    Localize.Number.PluralRule.Cardinal.plural_rule(value, locale)
   end
 
   defp plural_form(_value, _locale), do: :other

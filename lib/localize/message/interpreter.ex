@@ -345,14 +345,15 @@ defmodule Localize.Message.Interpreter do
             match_result(nodes, more_bound, unbound ++ unbound_selectors)
 
           {:error, nodes, more_bound, unbound} ->
-            {:error, nodes, more_bound, Enum.uniq(unbound ++ unbound_selectors)}
+            {:error, nodes, Enum.uniq(more_bound), Enum.uniq(unbound ++ unbound_selectors)}
 
           {:format_error, _} = err ->
             err
         end
 
       :error ->
-        {:error, [], bound ++ selector_names, ["no matching variant" | unbound_selectors]}
+        {:error, [], Enum.uniq(bound ++ selector_names),
+         ["no matching variant" | unbound_selectors]}
     end
   end
 
@@ -388,8 +389,10 @@ defmodule Localize.Message.Interpreter do
     {selector_info, unbound}
   end
 
-  defp match_result(output, bound, []), do: {:ok, output, bound, []}
-  defp match_result(output, bound, unbound), do: {:error, output, bound, Enum.uniq(unbound)}
+  defp match_result(output, bound, []), do: {:ok, output, Enum.uniq(bound), []}
+
+  defp match_result(output, bound, unbound),
+    do: {:error, output, Enum.uniq(bound), Enum.uniq(unbound)}
 
   # Walk the parts list pairing markup open/close tags into nested nodes.
   # The stack holds in-progress markup frames: each frame is
@@ -815,7 +818,7 @@ defmodule Localize.Message.Interpreter do
             )
 
           {:error, iolist, more_bound, unbound} ->
-            {:error, iolist, bound ++ selector_names ++ more_bound,
+            {:error, iolist, Enum.uniq(bound ++ selector_names ++ more_bound),
              Enum.uniq(unbound ++ unbound_selectors)}
 
           {:format_error, _} = err ->
@@ -823,7 +826,8 @@ defmodule Localize.Message.Interpreter do
         end
 
       :error ->
-        {:error, [], bound ++ selector_names, ["no matching variant" | unbound_selectors]}
+        {:error, [], Enum.uniq(bound ++ selector_names),
+         ["no matching variant" | unbound_selectors]}
     end
   end
 

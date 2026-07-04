@@ -301,18 +301,31 @@ defmodule Localize.Unit do
 
   defp effective_source(value, name, _parsed), do: {value, name}
 
+  # The unit name conversions should be performed in: the first (primary)
+  # component for a mixed unit, otherwise the unit's own name. The scalar
+  # produced by `mixed_to_scalar/3` for a mixed unit is denominated in
+  # this first component, so conversions must use it rather than the
+  # mixed name (which `Conversion.convert/3` rejects with :mixed_units).
+  defp effective_source_name(_name, {:mixed_unit, units}) do
+    {:single_unit, first_opts} = hd(units)
+    format_single_unit_name(first_opts)
+  end
+
+  defp effective_source_name(name, _parsed), do: name
+
   # Convert a scalar value from a source unit to a mixed target unit.
   # For example, 180 centimeter → foot-and-inch = [5, 11.024...]
   # Each component gets the integer part except the last which gets the remainder.
   defp convert_to_mixed(source, _target_name, {:mixed_unit, target_units}) do
     source_value = mixed_to_scalar(source.value, source.name, source.parsed)
+    effective_from = effective_source_name(source.name, source.parsed)
 
     # Get the first target component name to check convertibility
     {:single_unit, first_opts} = hd(target_units)
     first_name = format_single_unit_name(first_opts)
 
     with {:ok, full_in_first} <-
-           Localize.Unit.Conversion.convert(source_value, source.name, first_name) do
+           Localize.Unit.Conversion.convert(source_value, effective_from, first_name) do
       values = distribute_mixed_values(full_in_first, target_units)
 
       {canonical_name, canonical_ast} =

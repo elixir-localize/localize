@@ -273,9 +273,11 @@ defmodule Localize.Number do
   All options accepted by `to_string/2` are supported and applied
   to both numbers. Additional options:
 
-  * `:approximate` is a boolean. When `true`, forces use of the
-    approximately pattern regardless of whether start equals end.
-    The default is `false`.
+  * `:approximate` is a boolean. When `true` and the start and end
+    differ, the formatted range is wrapped in the locale's
+    approximately pattern (e.g. `"~3–5"`). When the start and end
+    are equal, the approximately pattern is applied to the single
+    number (which also happens by default). The default is `false`.
 
   ### Returns
 
@@ -291,6 +293,9 @@ defmodule Localize.Number do
       iex> Localize.Number.to_range_string(5, 5, locale: :en)
       {:ok, "~5"}
 
+      iex> Localize.Number.to_range_string(3, 5, locale: :en, approximate: true)
+      {:ok, "~3–5"}
+
   """
   @spec to_range_string(number() | Decimal.t(), number() | Decimal.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
@@ -302,11 +307,28 @@ defmodule Localize.Number do
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, number_system} <- System.number_system_from_locale(language_tag),
          {:ok, patterns} <- Format.misc_patterns_for(language_tag, number_system) do
-      if approximate or number_start == number_end do
-        format_approximate_range(number_start, format_options, patterns)
-      else
-        format_full_range(number_start, number_end, format_options, patterns)
+      cond do
+        number_start == number_end ->
+          format_approximate_range(number_start, format_options, patterns)
+
+        approximate ->
+          format_approximate_full_range(number_start, number_end, format_options, patterns)
+
+        true ->
+          format_full_range(number_start, number_end, format_options, patterns)
       end
+    end
+  end
+
+  # A genuine range formatted approximately: format the full range
+  # first, then wrap it in the locale's approximately pattern
+  # (e.g. "~3–5"). Previously the range end was silently dropped,
+  # producing "~3".
+  defp format_approximate_full_range(number_start, number_end, format_options, patterns) do
+    with {:ok, range_string} <-
+           format_full_range(number_start, number_end, format_options, patterns) do
+      result = Localize.Substitution.substitute([range_string], patterns.approximately)
+      {:ok, IO.iodata_to_binary(result)}
     end
   end
 

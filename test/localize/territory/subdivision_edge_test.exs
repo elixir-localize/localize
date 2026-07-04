@@ -9,10 +9,10 @@ defmodule Localize.Territory.SubdivisionEdgeTest do
       assert {:ok, "Ontario"} = Subdivision.display_name("CaOn", locale: :en)
     end
 
-    test "unknown string codes normalize to nil in the error" do
-      # `existing_atom/1` returns nil for unknown binaries, so the
-      # error reports the normalized (nil) code rather than the input.
-      assert {:error, %Localize.UnknownSubdivisionError{subdivision: nil}} =
+    test "unknown string codes are reported verbatim in the error" do
+      # `existing_atom/1` returns nil for unknown binaries; the error
+      # carries the original input, never the normalized nil.
+      assert {:error, %Localize.UnknownSubdivisionError{subdivision: "zzzznotasubdivision"}} =
                Subdivision.display_name("zzzznotasubdivision", locale: :en)
     end
 

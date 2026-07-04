@@ -68,7 +68,13 @@ defmodule Localize.Utils.Enum do
       iex> Localize.Utils.Enum.combine_list([:a, :b, :c])
       ["a", "a_b", "a_b_c"]
 
+      iex> Localize.Utils.Enum.combine_list([])
+      []
+
   """
+  def combine_list([]),
+    do: []
+
   def combine_list([head]),
     do: [to_string(head)]
 

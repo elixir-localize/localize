@@ -973,4 +973,37 @@ defmodule Localize.Number.RbnfTest do
                Rbnf.to_string(-21, "spellout-cardinal", locale: :en)
     end
   end
+
+  describe "spellout requests are not satisfied by und digit stubs" do
+    test "ru :spellout_cardinal returns an UnknownRbnfRuleError listing the locale's rule sets" do
+      # Regression: ru has only gendered spellout rule sets, so
+      # :spellout_cardinal used to fall back to und's digit-format
+      # stub and silently return "2 000 000". The error's :available
+      # field also used to be empty.
+      assert {:error, %Localize.UnknownRbnfRuleError{locale: :ru, available: available}} =
+               Rbnf.to_string(2_000_000, :spellout_cardinal, locale: :ru)
+
+      assert "spellout_cardinal_masculine" in available
+    end
+
+    test "the same error surfaces through Number.to_string/2" do
+      assert {:error, %Localize.UnknownRbnfRuleError{available: [_ | _]}} =
+               Localize.Number.to_string(2_000_000, format: :spellout_cardinal, locale: "ru")
+    end
+
+    test ":spellout still resolves to a gendered rule set for ru" do
+      assert {:ok, string} = Rbnf.to_string(2, :spellout, locale: :ru)
+      refute string == "2"
+    end
+
+    test "non-spellout rules still fall back to und (roman numerals)" do
+      assert {:ok, "V"} = Rbnf.to_string(5, "roman-upper", locale: :ru)
+    end
+
+    test "requesting :und resolves via likely subtags to English spellout" do
+      # `Localize.validate_locale(:und)` resolves to :en, so an
+      # explicit :und request never reaches the und digit stubs.
+      assert {:ok, "five"} = Rbnf.to_string(5, :spellout_cardinal, locale: :und)
+    end
+  end
 end

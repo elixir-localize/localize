@@ -108,6 +108,15 @@ defmodule Localize.DateTime.FormatterSymbolTest do
     test "localized wide quarter" do
       assert date_format(@january, "QQQQ", :de) == "1. Quartal"
     end
+
+    test "Q selects format context and q selects stand-alone context" do
+      # :blo is one of the few locales whose wide quarter names differ
+      # between the format and stand-alone contexts, so it detects a
+      # swapped Q/q mapping that :en (identical names) cannot.
+      # "ɩŋɔrɩriu ɩriutaja" (format) versus "ɩŋɔrɩriu 3ja" (stand-alone).
+      assert date_format(@date, "QQQQ", :blo) == "ɩŋɔrɩriu ɩriutaja"
+      assert date_format(@date, "qqqq", :blo) == "ɩŋɔrɩriu 3ja"
+    end
   end
 
   describe "month (M, L)" do
@@ -315,6 +324,19 @@ defmodule Localize.DateTime.FormatterSymbolTest do
     test "empty format string produces empty output" do
       assert time_format(@time, "") == ""
     end
+
+    test "doubled quote inside quoted text renders a literal apostrophe" do
+      assert time_format(~T[14:00:00], "h 'o''clock'") == "2 o'clock"
+    end
+
+    test "standalone doubled quote renders a literal apostrophe" do
+      assert time_format(~T[14:00:00], "h''") == "2'"
+      assert time_format(~T[14:00:00], "h '' m") == "2 ' 0"
+    end
+
+    test "quoted text containing only doubled quotes renders apostrophes" do
+      assert time_format(~T[14:00:00], "h ''''") == "2 '"
+    end
   end
 
   describe "lenient formatting of missing fields" do
@@ -324,6 +346,44 @@ defmodule Localize.DateTime.FormatterSymbolTest do
 
     test "date symbols render empty against a Time" do
       assert time_format(@time, "y G Q M d E w a") == "       PM"
+    end
+
+    test "all zone symbols render empty for a zoneless NaiveDateTime" do
+      # A zoneless input must not fabricate a UTC zone. Every zone
+      # symbol renders "" (with the bounding whitespace stripped),
+      # matching the lenient behaviour `z` already had.
+      for symbol <- ~w(z zzzz Z ZZZZ ZZZZZ O OOOO v vvvv V VV VVVV x xxx X XXX) do
+        assert {:ok, "14:00"} =
+                 Localize.DateTime.to_string(~N[2024-07-06 14:00:00],
+                   format: "HH:mm #{symbol}",
+                   locale: :en
+                 ),
+               "expected zone symbol #{symbol} to render empty for a NaiveDateTime"
+      end
+    end
+
+    test "all zone symbols render empty for a zoneless Time" do
+      for symbol <- ~w(z Z O v V x X) do
+        assert {:ok, "14:00"} =
+                 Localize.Time.to_string(~T[14:00:00],
+                   format: "HH:mm #{symbol}",
+                   locale: :en
+                 ),
+               "expected zone symbol #{symbol} to render empty for a Time"
+      end
+    end
+
+    test "zone symbols still render for a DateTime with a zone" do
+      {:ok, datetime} = DateTime.from_naive(~N[2024-07-06 14:00:00], "Etc/UTC")
+
+      assert {:ok, "14:00 +0000"} =
+               Localize.DateTime.to_string(datetime, format: "HH:mm Z", locale: :en)
+
+      assert {:ok, "14:00 Z"} =
+               Localize.DateTime.to_string(datetime, format: "HH:mm X", locale: :en)
+
+      assert {:ok, "14:00 Etc/UTC"} =
+               Localize.DateTime.to_string(datetime, format: "HH:mm VV", locale: :en)
     end
   end
 

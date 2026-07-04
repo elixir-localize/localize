@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [0.45.0] — July 4th, 2026
 
-A quality release: the codebase now passes `mix credo --strict` with zero findings (enforced in CI), the full MessageFormat 2 working-group conformance suite runs against the formatter, and the documentation gains four new guides.
+A quality release: the codebase now passes `mix credo --strict` with zero findings (enforced in CI), the full MessageFormat 2 working-group conformance suite runs against the formatter, and the documentation gains four new guides. A test-coverage push from 70% toward 90% surfaced — and this release fixes — more than twenty conformance and correctness bugs across date/time, number, unit, collation and language-tag handling.
 
 ### Added
 
@@ -50,7 +50,37 @@ A quality release: the codebase now passes `mix credo --strict` with zero findin
 
 * `:currency_long_with_symbol` renders both the symbol-formatted number and the currency name ("$123.00 US dollars"); both long currency formats now derive the currency from the locale when no `:currency` option is given.
 
-* `Localize.Interval.to_string/3` returns an error for mixed endpoint kinds (e.g. a `Date` and a `Time`) instead of rendering malformed output.
+* `Localize.Interval.to_string/3` returns an error for mixed endpoint kinds (e.g. a `Date` and a `Time`) instead of rendering malformed output, and equal `Time` endpoints honour the `:time_format` option in the single-time fallback.
+
+* The `Q` and `q` date-format symbols were swapped: `Q` now renders the format-context quarter and `q` the stand-alone quarter per TR35. Visible only in locales whose quarter names differ by context.
+
+* Doubled apostrophes inside quoted date-format text render a literal apostrophe (`'o''clock'` → "o'clock"); previously the escape was dropped.
+
+* Zone format symbols (`Z`, `O`, `v`, `V`, `x`, `X`) render empty for values without a time zone, matching `z`; previously they fabricated a UTC zone.
+
+* `Localize.Duration.new/2` accepts `NaiveDateTime` pairs (previously raised) and rejects reversed `Time` pairs with an error instead of returning a negative duration.
+
+* RBNF plural substitutions (`$(cardinal,…)$`) select the plural category on the quotient of the rule divisor per ICU: Russian 2,000,000 spells out as "два миллиона", not "два миллионов".
+
+* Requesting a spellout ruleset a locale does not have returns `Localize.UnknownRbnfRuleError` — with its `available:` field now populated — instead of silently formatting digits.
+
+* `Number.to_range_string/3` with `approximate: true` formats the full range ("~3–5"); previously the range end was silently dropped.
+
+* `Number.PluralRule.plural_type/2` returns a bare category atom on both backends; the NIF backend previously returned an `{:ok, atom}` tuple.
+
+* Converting a mixed unit to another mixed unit works (`foot-and-inch` → `yard-and-foot-and-inch`); previously it always returned a `:mixed_units` error.
+
+* Unit plural categories for `Decimal` values honour the visible fraction (Decimal "1" renders "1 meter"), and denominator units keep their SI prefix and power ("per 100 kilometers", not "per 100 meter").
+
+* `Localize.Utils.Math.power/2` with a fractional exponent between 0 and 1 returned the reciprocal (`power(4, 0.5)` gave 0.5); Decimal bases now always return Decimals.
+
+* Locale downloads run in a dedicated `:localize` httpc profile with the proxy set per request, so a configured proxy no longer leaks into later requests or into the host application's default httpc profile.
+
+* Display names of parsed (unvalidated) language tags with `-t-` extensions or multi-part `-u-` values no longer crash or mangle subtags, and multiple `-u-dx-` scripts render translated and list-separated.
+
+* `Localize.Date.to_string/2` no longer overwrites a user-supplied `:number_system_overrides` option.
+
+* Small fixes: `UnknownSubdivisionError` carries the original input instead of nil; `UnknownCurrencyError` for a binary code always carries the binary (previously the atom when it happened to exist); MF2 match results deduplicate their bound-variable lists; `Localize.Utils.Json.decode!/1` raises `ArgumentError` on trailing data instead of a bare `MatchError`.
 
 * MF2 `:percent` selection multiplies the operand by 100 before plural-category selection, matching the formatted value per the specification.
 

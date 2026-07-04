@@ -119,6 +119,28 @@ defmodule Localize.Locale.LocaleDisplayUTest do
                 "Prevent Line Breaks In Phrases)"} =
                LocaleDisplay.display_name("en-u-em-text-lb-loose-lw-phrase")
     end
+
+    test "renders multiple dictionary break exclusion scripts translated and joined" do
+      # Regression: list-valued dx concatenated the untranslated
+      # script codes ("LaooThai") instead of translating each script
+      # and joining with the list separator like -u-kr does.
+      assert {:ok, "English (Dictionary Break Exclusions: Lao, Thai)"} =
+               LocaleDisplay.display_name("en-u-dx-thai-laoo")
+    end
+  end
+
+  describe "display_name/1 on a parsed (unvalidated) tag with -u-" do
+    test "joins multi-part -u- values with hyphens in the canonical id" do
+      # Regression: list values were flattened without hyphens,
+      # producing "en-u-ca-islamiccivil-nu-thai" and an
+      # UnknownLocaleError.
+      {:ok, language_tag} = Localize.LanguageTag.parse("en-u-ca-islamic-civil-nu-thai")
+
+      assert Localize.LanguageTag.to_string(language_tag) == "en-u-ca-islamic-civil-nu-thai"
+
+      assert {:ok, "English (Hijri Calendar [tabular, civil epoch], Thai Digits)"} =
+               LocaleDisplay.display_name(language_tag)
+    end
   end
 
   describe "U.display_name/4 with a plain (unvalidated) extension map" do

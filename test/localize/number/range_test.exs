@@ -21,8 +21,16 @@ defmodule Localize.Number.RangeTest do
     end
 
     test "uses approximately pattern with :approximate option" do
+      # Regression: the range end used to be silently dropped,
+      # producing "~3". The approximately pattern now wraps the
+      # formatted range instead.
       {:ok, result} = Localize.Number.to_range_string(3, 5, locale: :en, approximate: true)
-      assert result == "~3"
+      assert result == "~3–5"
+    end
+
+    test ":approximate with equal start and end formats a single number" do
+      {:ok, result} = Localize.Number.to_range_string(5, 5, locale: :en, approximate: true)
+      assert result == "~5"
     end
 
     test "formats range in Japanese" do

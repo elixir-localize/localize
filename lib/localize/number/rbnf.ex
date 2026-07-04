@@ -99,6 +99,7 @@ defmodule Localize.Number.Rbnf do
          {:ok, rbnf_data} <- load_rbnf_data(locale_id),
          {:ok, all_rule_sets} <- extract_rule_sets(rbnf_data),
          {:ok, resolved_name} <- resolve_rule_name(rule_name, all_rule_sets, locale_id),
+         :ok <- reject_und_spellout_stub(locale_id, requested_id, resolved_name),
          {:ok, rule_set} <- find_rule_set(all_rule_sets, resolved_name, locale_id) do
       Processor.process(
         number,
@@ -127,9 +128,46 @@ defmodule Localize.Number.Rbnf do
            Localize.UnknownRbnfRuleError.exception(
              rule_name: rule_name,
              locale: requested_id,
-             available: []
+             available: available_rule_names(requested_id)
            )}
         end
+    end
+  end
+
+  # The `und` (root) locale's spellout rule sets are digit-format
+  # stubs (`=#,##0.#=`). Falling back to them for a spellout request
+  # would silently format digits instead of words — e.g. `ru` has
+  # only gendered spellout rule sets, so `:spellout_cardinal` used
+  # to fall through to `und` and return "2 000 000". Refuse the
+  # `und` fallback for spellout-family rules (unless `und` was the
+  # requested locale) so the caller gets an `UnknownRbnfRuleError`
+  # listing the locale's actual rule sets. Non-spellout rules
+  # (roman numerals, hebrew, digit ordinals, …) genuinely live in
+  # `und` and still fall back normally.
+  defp reject_und_spellout_stub(locale_id, requested_id, resolved_name) do
+    if und?(locale_id) and not und?(requested_id) and spellout_family?(resolved_name) do
+      {:error, :und_spellout_stub}
+    else
+      :ok
+    end
+  end
+
+  # `cldr_locale_id_from/1` always returns an atom locale id.
+  defp und?(locale_id), do: locale_id == :und
+
+  defp spellout_family?(rule_name) do
+    rule_name
+    |> normalize_rule_name()
+    |> String.starts_with?("spellout")
+  end
+
+  # The public rule set names for a locale, used to populate the
+  # `available:` field of `UnknownRbnfRuleError`. Sorted for
+  # deterministic output; empty when the locale has no RBNF data.
+  defp available_rule_names(locale_id) do
+    case rule_names_for_locale(locale_id) do
+      {:ok, names} -> Enum.sort(names)
+      {:error, _} -> []
     end
   end
 
