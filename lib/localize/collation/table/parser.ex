@@ -16,14 +16,26 @@ defmodule Localize.Collation.Table.Parser do
   # contraction entries (e.g., `{0x004C, 0x00B7} => L's CEs ++ modified CEs`).
   #
   # Variable status (spaces, punctuation, symbols, currency) is derived from the
-  # `[last variable]` header line rather than per-entry markers.
+  # `[first variable]` and `[last variable]` header lines rather than per-entry
+  # markers. Those lines carry fractional byte weights, e.g.
+  # `[first variable [03 04, 05, 05]]` / `[last variable [0B 8E 64, 05, 05]]`,
+  # so the parser extracts the fractional primary lead bytes (0x03 and 0x0B for
+  # the vendored file) and maps them back into allkeys primary space using the
+  # per-entry fractional-lead-to-allkeys-primary pairs collected while parsing.
   #
   @moduledoc false
 
   alias Localize.Collation.Element
 
-  @default_first_variable_primary 0x0201
-  @default_last_variable_primary 0x04E0
+  # Fractional primary lead bytes of the variable section, used when the
+  # header lines are absent. These match the vendored FractionalUCA.txt
+  # (`[first variable [03 04, ...]]` and `[last variable [0B 8E 64, ...]]`).
+  @default_first_variable_lead 0x03
+  @default_last_variable_lead 0x0B
+
+  # Allkeys-space fallback when no entry carries fractional lead data
+  # (0x0201 is U+0009 TAB, the first variable; 0x04E0 is U+1E5FF, the last).
+  @default_variable_primary_range {0x0201, 0x04E0}
 
   @doc """
   Parse FractionalUCA.txt into a collation table.
@@ -55,15 +67,16 @@ defmodule Localize.Collation.Table.Parser do
           entries: %{},
           contexts: [],
           version: nil,
-          first_variable_primary: @default_first_variable_primary,
-          last_variable_primary: @default_last_variable_primary
+          first_variable_lead: @default_first_variable_lead,
+          last_variable_lead: @default_last_variable_lead,
+          lead_primaries: %{}
         },
         fn line, acc ->
           parse_line(String.trim(line), acc)
         end
       )
 
-    variable_range = {acc.first_variable_primary, acc.last_variable_primary}
+    variable_range = variable_primary_range(acc)
     entries = apply_variable_flags(acc.entries, variable_range)
     entries = resolve_context_entries(acc.contexts, entries, variable_range)
 
@@ -86,13 +99,13 @@ defmodule Localize.Collation.Table.Parser do
 
       String.starts_with?(line, "[first variable") ->
         case parse_variable_boundary(line) do
-          {:ok, primary} -> %{acc | first_variable_primary: primary}
+          {:ok, lead} -> %{acc | first_variable_lead: lead}
           :skip -> acc
         end
 
       String.starts_with?(line, "[last variable") ->
         case parse_variable_boundary(line) do
-          {:ok, primary} -> %{acc | last_variable_primary: primary}
+          {:ok, lead} -> %{acc | last_variable_lead: lead}
           :skip -> acc
         end
 
@@ -106,6 +119,7 @@ defmodule Localize.Collation.Table.Parser do
         case parse_fractional_entry(line) do
           {:ok, codepoints, elements} when elements != [] ->
             key = codepoints_to_key(codepoints)
+            acc = track_lead_primary(acc, line)
             %{acc | entries: Map.put(acc.entries, key, elements)}
 
           {:context, context_cp, target_cp, elements} ->
@@ -221,11 +235,60 @@ defmodule Localize.Collation.Table.Parser do
     end)
   end
 
+  # Extracts the fractional primary lead byte from a variable boundary
+  # header line, e.g. `[first variable [03 04, 05, 05]]` yields 0x03 and
+  # `[last variable [0B 8E 64, 05, 05]]` yields 0x0B.
   defp parse_variable_boundary(line) do
-    case Regex.run(~r/\[([0-9A-Fa-f]{4})\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\]/, line) do
-      [_, primary_hex] -> {:ok, String.to_integer(primary_hex, 16)}
+    case Regex.run(~r/\[(?:first|last) variable\s+\[([0-9A-Fa-f]{2})[ ,\]]/, line) do
+      [_, lead_hex] -> {:ok, String.to_integer(lead_hex, 16)}
       _ -> :skip
     end
+  end
+
+  # Records the pairing between an entry's fractional primary lead byte and
+  # its allkeys primary weight, accumulating the min/max allkeys primaries
+  # seen per lead byte. This lets the variable boundary lead bytes be mapped
+  # back into allkeys primary space once the whole file has been read (the
+  # boundary header lines appear after the data lines in FractionalUCA.txt).
+  defp track_lead_primary(acc, line) do
+    with [_cp_part, rest] <- String.split(line, ";", parts: 2),
+         [_, frac_hex] <- Regex.run(~r/\[([0-9A-Fa-f][0-9A-Fa-f ]*),/, rest),
+         [_, allkeys_hex] <-
+           Regex.run(~r/\[([0-9A-Fa-f]{4})\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\]/, rest),
+         primary = String.to_integer(allkeys_hex, 16),
+         true <- primary > 0 do
+      lead =
+        frac_hex
+        |> String.split()
+        |> hd()
+        |> String.to_integer(16)
+
+      lead_primaries =
+        Map.update(acc.lead_primaries, lead, {primary, primary}, fn {min_p, max_p} ->
+          {min(min_p, primary), max(max_p, primary)}
+        end)
+
+      %{acc | lead_primaries: lead_primaries}
+    else
+      _ -> acc
+    end
+  end
+
+  # Maps the variable boundary lead bytes into an allkeys `{min, max}` primary
+  # range using the per-lead-byte primaries collected during parsing. Falls
+  # back to the vendored file's known range when no lead data is available.
+  defp variable_primary_range(acc) do
+    bounds =
+      acc.lead_primaries
+      |> Enum.filter(fn {lead, _range} ->
+        lead >= acc.first_variable_lead and lead <= acc.last_variable_lead
+      end)
+      |> Enum.reduce(nil, fn
+        {_lead, {min_p, max_p}}, nil -> {min_p, max_p}
+        {_lead, {min_p, max_p}}, {acc_min, acc_max} -> {min(acc_min, min_p), max(acc_max, max_p)}
+      end)
+
+    bounds || @default_variable_primary_range
   end
 
   defp parse_context_entry(cp_str, rest) do

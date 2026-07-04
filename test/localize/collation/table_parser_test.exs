@@ -143,6 +143,71 @@ defmodule Localize.Collation.Table.ParserTest do
     end
   end
 
+  describe "parse/1 variable boundary headers in the vendored format" do
+    # The header and data lines below are literal lines from
+    # priv/cldr/FractionalUCA.txt (UCA 17.0.0). The boundary headers carry
+    # fractional byte weights, not dotted allkeys triples, and appear after
+    # the data lines — exactly as in the vendored file.
+    @vendored_fixture """
+    [UCA version = 17.0.0]
+    0009; [03 04, 05, 05]\t# Zyyy Cc\t[0201.0020.0002]\t* <CHARACTER TABULATION>
+    0021; [07 5A, 05, 05]\t# Zyyy Po\t[0269.0020.0002]\t* EXCLAMATION MARK
+    1E5FF; [0B 8E 64, 05, 05]\t# Onao Po\t[04E0.0020.0002]\t* OL ONAL ABBREVIATION SIGN
+    0060; [0C 04, 05, 05]\t# Zyyy Sk\t[04E1.0020.0002]\t* GRAVE ACCENT
+    0041; [2B, 05, 9C]\t# Latn Lu\t[23EC.0020.0008]\t* LATIN CAPITAL LETTER A
+    [first variable [03 04, 05, 05]] # U+0009 <CHARACTER TABULATION>
+    [last variable [0B 8E 64, 05, 05]] # U+1E5FF OL ONAL ABBREVIATION SIGN
+    [variable top = 0B FF FF FF]
+    """
+
+    setup %{tmp_dir: tmp_dir} do
+      path = Path.join(tmp_dir, "fractional_uca_vendored.txt")
+      File.write!(path, @vendored_fixture)
+      {:ok, parsed: Parser.parse(path)}
+    end
+
+    test "flags the first variable boundary character (lead 0x03)", %{parsed: parsed} do
+      assert [{0x0201, 0x0020, 0x0002, true}] = parsed.entries[0x0009]
+    end
+
+    test "flags the last variable boundary character (lead 0x0B)", %{parsed: parsed} do
+      assert [{0x04E0, 0x0020, 0x0002, true}] = parsed.entries[0x1E5FF]
+    end
+
+    test "flags characters between the boundary leads", %{parsed: parsed} do
+      assert [{0x0269, 0x0020, 0x0002, true}] = parsed.entries[0x0021]
+    end
+
+    test "does not flag the first regular character just above the range", %{parsed: parsed} do
+      # GRAVE ACCENT has allkeys primary 0x04E1 (one above the last variable
+      # 0x04E0) and fractional lead 0x0C (one above the last variable lead).
+      assert [{0x04E1, 0x0020, 0x0002, false}] = parsed.entries[0x0060]
+    end
+
+    test "does not flag ordinary letters", %{parsed: parsed} do
+      assert [{0x23EC, 0x0020, 0x0008, false}] = parsed.entries[0x0041]
+    end
+
+    test "derives the range from the headers rather than the defaults", %{tmp_dir: tmp_dir} do
+      # Narrow the last variable lead to 0x07: EXCLAMATION MARK (lead 0x07)
+      # stays variable but U+1E5FF (lead 0x0B) no longer is.
+      narrowed =
+        String.replace(
+          @vendored_fixture,
+          "[last variable [0B 8E 64, 05, 05]] # U+1E5FF OL ONAL ABBREVIATION SIGN",
+          "[last variable [07 5A, 05, 05]] # U+0021 EXCLAMATION MARK"
+        )
+
+      path = Path.join(tmp_dir, "fractional_uca_narrowed.txt")
+      File.write!(path, narrowed)
+      parsed = Parser.parse(path)
+
+      assert [{0x0201, 0x0020, 0x0002, true}] = parsed.entries[0x0009]
+      assert [{0x0269, 0x0020, 0x0002, true}] = parsed.entries[0x0021]
+      assert [{0x04E0, 0x0020, 0x0002, false}] = parsed.entries[0x1E5FF]
+    end
+  end
+
   describe "parse/1 without variable boundary headers" do
     test "falls back to the default variable range", %{tmp_dir: tmp_dir} do
       path = Path.join(tmp_dir, "fractional_uca_defaults.txt")

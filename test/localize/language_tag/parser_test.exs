@@ -69,10 +69,10 @@ defmodule Localize.LanguageTag.ParserTest do
     end
 
     test "returns a ParseError with position detail on failure" do
-      assert {:error, %Localize.ParseError{} = exception} = Rfc5646.Parser.parse("en-gb-oed")
-      assert exception.input == "en-gb-oed"
+      assert {:error, %Localize.ParseError{} = exception} = Rfc5646.Parser.parse("en-gb-oxx")
+      assert exception.input == "en-gb-oxx"
       assert exception.reason == :unexpected_input
-      assert exception.rest == "-oed"
+      assert exception.rest == "-oxx"
       assert exception.offset == 5
       assert exception.detail =~ "BCP47"
     end
@@ -90,14 +90,20 @@ defmodule Localize.LanguageTag.ParserTest do
       assert tag.language == :xtg
     end
 
-    test "regular grandfathered tags with extlang-shaped subtags keep them" do
+    test "regular grandfathered tags resolve to their preferred language" do
       assert {:ok, tag} = LanguageTag.parse("zh-min")
-      assert tag.language == :zh
-      assert tag.language_subtags == ["min"]
+      assert tag.language == :nan
+      assert tag.language_subtags == []
+
+      assert {:ok, tag} = LanguageTag.parse("zh-min-nan")
+      assert tag.language == :nan
+      assert tag.language_subtags == []
 
       assert {:ok, tag} = LanguageTag.parse("no-bok")
-      assert tag.language == :no
-      assert tag.language_subtags == ["bok"]
+      assert tag.language == :nb
+
+      assert {:ok, tag} = LanguageTag.parse("no-nyn")
+      assert tag.language == :nn
     end
 
     test "art-lojban validates to its modern replacement" do
@@ -105,15 +111,70 @@ defmodule Localize.LanguageTag.ParserTest do
       assert tag.canonical_locale_id == "jbo"
     end
 
-    test "irregular i- tags parse but carry no language" do
+    test "zh-min-nan validates to its modern replacement" do
+      assert {:ok, tag} = Localize.validate_locale("zh-min-nan")
+      assert tag.canonical_locale_id == "nan"
+    end
+
+    test "irregular i- tags resolve to their preferred language" do
       assert {:ok, tag} = LanguageTag.parse("i-klingon")
-      assert tag.language == nil
+      assert tag.language == :tlh
+      assert tag.requested_locale_id == "i-klingon"
+
+      assert {:ok, tag} = LanguageTag.parse("i-navajo")
+      assert tag.language == :nv
+
+      assert {:ok, tag} = LanguageTag.parse("i-lux")
+      assert tag.language == :lb
+    end
+
+    test "i-klingon validates to tlh" do
+      assert {:ok, tag} = Localize.validate_locale("i-klingon")
+      assert tag.canonical_locale_id == "tlh"
       assert tag.requested_locale_id == "i-klingon"
     end
 
-    test "unsupported irregular tags return a ParseError" do
-      assert {:error, %Localize.ParseError{}} = LanguageTag.parse("en-GB-oed")
-      assert {:error, %Localize.ParseError{}} = LanguageTag.parse("sgn-BE-FR")
+    test "irregular multi-subtag grandfathered tags resolve to their preferred value" do
+      assert {:ok, tag} = Localize.validate_locale("en-GB-oed")
+      assert tag.canonical_locale_id == "en-GB-oxendict"
+      assert tag.language == :en
+      assert tag.territory == :GB
+      assert tag.language_variants == ["oxendict"]
+
+      assert {:ok, tag} = Localize.validate_locale("sgn-BE-FR")
+      assert tag.canonical_locale_id == "sfb"
+
+      assert {:ok, tag} = Localize.validate_locale("sgn-BE-NL")
+      assert tag.canonical_locale_id == "vgt"
+
+      assert {:ok, tag} = Localize.validate_locale("sgn-CH-DE")
+      assert tag.canonical_locale_id == "sgg"
+    end
+
+    test "grandfathered tags with no BCP 47 preferred value follow the CLDR alias" do
+      # These four have no preferred value in the BCP 47 registry, but
+      # CLDR languageAlias maps them anyway: cel-gaulish -> xtg,
+      # i-default -> en, i-enochian -> und, i-mingo -> see.
+      assert {:ok, tag} = Localize.validate_locale("cel-gaulish")
+      assert tag.canonical_locale_id == "xtg"
+
+      assert {:ok, tag} = Localize.validate_locale("i-default")
+      assert tag.canonical_locale_id == "en"
+
+      assert {:ok, tag} = Localize.validate_locale("i-enochian")
+      assert tag.canonical_locale_id == "und"
+
+      assert {:ok, tag} = Localize.validate_locale("i-mingo")
+      assert tag.canonical_locale_id == "see"
+    end
+
+    test "a grandfathered prefix with more subtags is not a grandfathered tag" do
+      # "zh-min-nan-x-foo" is not the grandfathered tag "zh-min-nan";
+      # it parses via the langtag production with extlang subtags.
+      assert {:ok, tag} = LanguageTag.parse("zh-min-nan-x-foo")
+      assert tag.language == :zh
+      assert tag.language_subtags == ["min", "nan"]
+      assert tag.private_use == ["foo"]
     end
   end
 
@@ -130,11 +191,40 @@ defmodule Localize.LanguageTag.ParserTest do
       assert {:error, %Localize.ParseError{}} = LanguageTag.parse("x-")
     end
 
-    test "keeps the first of two repeated -u- extensions" do
-      # RFC 5646 forbids repeated singletons; the grammar currently
-      # accepts the tag and the first -u- extension wins.
-      assert {:ok, tag} = LanguageTag.parse("en-u-ca-gregory-u-nu-thai")
+    test "rejects a repeated -u- singleton" do
+      # RFC 5646 section 2.2.6 forbids repeated singleton subtags.
+      assert {:error, %Localize.ParseError{} = exception} =
+               LanguageTag.parse("en-u-ca-gregory-u-nu-thai")
+
+      assert Exception.message(exception) =~ ~s(duplicate singleton "u")
+    end
+
+    test "rejects a repeated -t- singleton" do
+      assert {:error, %Localize.ParseError{} = exception} =
+               LanguageTag.parse("en-t-de-t-fr")
+
+      assert Exception.message(exception) =~ ~s(duplicate singleton "t")
+    end
+
+    test "rejects a repeated generic singleton" do
+      assert {:error, %Localize.ParseError{} = exception} =
+               LanguageTag.parse("en-a-foo-a-bar")
+
+      assert Exception.message(exception) =~ ~s(duplicate singleton "a")
+
+      assert {:error, %Localize.ParseError{} = exception} =
+               LanguageTag.parse("en-b-foo-a-bar-b-baz")
+
+      assert Exception.message(exception) =~ ~s(duplicate singleton "b")
+    end
+
+    test "accepts distinct singletons" do
+      assert {:ok, tag} = LanguageTag.parse("en-a-foo-b-bar")
+      assert tag.extensions == %{"a" => ["foo"], "b" => ["bar"]}
+
+      assert {:ok, tag} = LanguageTag.parse("en-t-de-u-ca-gregory")
       assert tag.locale["ca"] == "gregory"
+      assert %{} = tag.transform
     end
   end
 end

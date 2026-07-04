@@ -144,6 +144,9 @@ defmodule Localize.Message.Interpreter do
       {:format_error, _} = err ->
         err
 
+      {:unbound_declaration, var_name} ->
+        {:error, [], [], [var_name]}
+
       {bindings, bound, selector_meta} ->
         format_complex_body(body, bindings, options, bound, selector_meta)
     end
@@ -217,6 +220,9 @@ defmodule Localize.Message.Interpreter do
         sel_meta = Map.put(sel_meta, name, {sel_value, func})
         bindings_acc = Map.put(bindings_acc, name, formatted)
         {:cont, {bindings_acc, [name | bound_acc], sel_meta}}
+
+      {:unbound, var_name} ->
+        {:halt, {:unbound_declaration, var_name}}
 
       {:error, reason} ->
         {:halt, {:format_error, {:formatter_failed, reason}}}
@@ -311,6 +317,9 @@ defmodule Localize.Message.Interpreter do
     case resolve_declarations(declarations, bindings, options) do
       {:format_error, _} = err ->
         err
+
+      {:unbound_declaration, var_name} ->
+        {:error, [], [], [var_name]}
 
       {bindings, bound, selector_meta} ->
         case body do
@@ -586,6 +595,7 @@ defmodule Localize.Message.Interpreter do
       {:ok, value, bound_names} ->
         case apply_function(value, func, Keyword.put(options, :bindings, bindings)) do
           {:ok, formatted} -> {:ok, formatted, bound_names}
+          {:unbound, var_name} -> {:unbound, var_name}
           {:error, reason} -> {:format_error, {:formatter_failed, reason}}
         end
 
@@ -621,8 +631,11 @@ defmodule Localize.Message.Interpreter do
 
   defp apply_function(value, {:function, name, func_options}, options) do
     bindings = Keyword.get(options, :bindings, %{})
-    func_opts = resolve_func_options(func_options, bindings)
-    format_with_function(name, value, func_opts, options)
+
+    case resolve_func_options(func_options, bindings) do
+      {:ok, func_opts} -> format_with_function(name, value, func_opts, options)
+      {:unbound, var_name} -> {:unbound, var_name}
+    end
   end
 
   # ── Number formatting ──────────────────────────────────────────
@@ -919,9 +932,11 @@ defmodule Localize.Message.Interpreter do
   defp selector_value(value, _func), do: value
 
   defp offset_selector_value(number, func_options) do
-    case offset_adjustment(resolve_func_options(func_options, %{})) do
-      {:ok, adjustment} -> number + adjustment
-      {:error, _reason} -> number
+    with {:ok, func_opts} <- resolve_func_options(func_options, %{}),
+         {:ok, adjustment} <- offset_adjustment(func_opts) do
+      number + adjustment
+    else
+      _other -> number
     end
   end
 
@@ -1062,7 +1077,7 @@ defmodule Localize.Message.Interpreter do
   defp build_number_options(options, func_opts, overrides \\ []) do
     with {:ok, locale} <- resolve_locale(options),
          {:ok, number_system} <- resolve_number_system(locale, func_opts),
-         {:ok, symbols} <- Localize.Number.Symbol.number_symbols_for(locale, number_system) do
+         {:ok, symbols} <- number_symbols_with_fallback(locale, number_system) do
       min_fd = get_integer_option(func_opts, :minimumFractionDigits)
       max_fd = get_integer_option(func_opts, :maximumFractionDigits)
       use_grouping = Map.get(func_opts, :useGrouping)
@@ -1100,7 +1115,7 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp resolve_number_format(format_atom, locale, number_system) when is_atom(format_atom) do
-    case Localize.Number.Format.formats_for(locale, number_system) do
+    case formats_with_fallback(locale, number_system) do
       {:ok, formats} ->
         case Map.get(formats, format_atom) do
           nil -> "#,##0.###"
@@ -1109,6 +1124,42 @@ defmodule Localize.Message.Interpreter do
 
       _ ->
         "#,##0.###"
+    end
+  end
+
+  # The MF2 `numberingSystem` option may name a system the locale carries
+  # no symbol or format data for (any CLDR system is honoured, matching
+  # Intl/ICU). Fall back to the locale's default-system data — digit
+  # transliteration still uses the requested system.
+  defp number_symbols_with_fallback(locale, number_system) do
+    case Localize.Number.Symbol.number_symbols_for(locale, number_system) do
+      {:ok, symbols} ->
+        {:ok, symbols}
+
+      {:error, _} = error ->
+        case Localize.Number.System.number_system_from_locale(locale) do
+          {:ok, default_system} when default_system != number_system ->
+            Localize.Number.Symbol.number_symbols_for(locale, default_system)
+
+          _ ->
+            error
+        end
+    end
+  end
+
+  defp formats_with_fallback(locale, number_system) do
+    case Localize.Number.Format.formats_for(locale, number_system) do
+      {:ok, formats} ->
+        {:ok, formats}
+
+      {:error, _} = error ->
+        case Localize.Number.System.number_system_from_locale(locale) do
+          {:ok, default_system} when default_system != number_system ->
+            Localize.Number.Format.formats_for(locale, default_system)
+
+          _ ->
+            error
+        end
     end
   end
 
@@ -1131,7 +1182,7 @@ defmodule Localize.Message.Interpreter do
 
     with {:ok, locale} <- resolve_locale(options),
          {:ok, number_system} <- resolve_number_system(locale, func_opts),
-         {:ok, symbols} <- Localize.Number.Symbol.number_symbols_for(locale, number_system),
+         {:ok, symbols} <- number_symbols_with_fallback(locale, number_system),
          {:ok, format_string} <- resolve_currency_format(locale, number_system, format),
          {:ok, currency_struct} <- resolve_currency_struct(currency_code, locale) do
       min_fd = get_integer_option(func_opts, :minimumFractionDigits)
@@ -1180,9 +1231,18 @@ defmodule Localize.Message.Interpreter do
         # may not yet have been created on this BEAM instance —
         # numbering system atoms are created lazily when the
         # supplemental data is first read.
+        #
+        # The MF2 `numberingSystem` option matches Intl/ICU semantics:
+        # any numbering system in the CLDR inventory is honoured even
+        # when the locale does not list it (`:not_for_locale`), so
+        # `numberingSystem=thai` renders Thai digits in an `en` locale.
+        # Genuinely unknown system names are still an error.
         case Localize.Number.System.system_name_from(system, locale) do
           {:ok, _} = ok ->
             ok
+
+          {:error, %Localize.UnknownNumberSystemError{reason: :not_for_locale} = error} ->
+            {:ok, error.number_system}
 
           {:error, _exception} ->
             {:error, "unknown numbering system #{inspect(system)}"}
@@ -1213,7 +1273,7 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp resolve_currency_format(locale, number_system, format_atom) do
-    with {:ok, formats} <- Localize.Number.Format.formats_for(locale, number_system) do
+    with {:ok, formats} <- formats_with_fallback(locale, number_system) do
       case Map.get(formats, format_atom) do
         nil -> {:ok, Map.get(formats, :currency) || "¤#,##0.00"}
         format -> {:ok, format}
@@ -1255,7 +1315,19 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp resolve_currency_spacing(locale, number_system) do
-    Localize.Number.Format.currency_spacing(locale, number_system)
+    case Localize.Number.Format.currency_spacing(locale, number_system) do
+      {:error, _} ->
+        case Localize.Number.System.number_system_from_locale(locale) do
+          {:ok, default_system} when default_system != number_system ->
+            Localize.Number.Format.currency_spacing(locale, default_system)
+
+          _ ->
+            nil
+        end
+
+      spacing ->
+        spacing
+    end
   end
 
   # ── Date/time option mapping ───────────────────────────────────
@@ -1490,18 +1562,23 @@ defmodule Localize.Message.Interpreter do
     end)
   end
 
+  # Resolves function option values against the bindings. An option
+  # whose value is an unbound variable is an MF2 resolution error
+  # (see "Unresolved Variable" in tr35-messageFormat.md), surfaced
+  # as `{:unbound, var_name}` so callers report it like an unbound
+  # operand rather than silently dropping the option.
   defp resolve_func_options(func_options, bindings) do
-    Enum.reduce(func_options, %{}, fn
-      {:option, name, {:literal, value}}, acc ->
-        Map.put(acc, option_key(name), value)
+    Enum.reduce_while(func_options, {:ok, %{}}, fn
+      {:option, name, {:literal, value}}, {:ok, acc} ->
+        {:cont, {:ok, Map.put(acc, option_key(name), value)}}
 
-      {:option, name, {:number_literal, value}}, acc ->
-        Map.put(acc, option_key(name), parse_number(value))
+      {:option, name, {:number_literal, value}}, {:ok, acc} ->
+        {:cont, {:ok, Map.put(acc, option_key(name), parse_number(value))}}
 
-      {:option, name, {:variable, var_name}}, acc ->
+      {:option, name, {:variable, var_name}}, {:ok, acc} ->
         case resolve_variable(var_name, bindings) do
-          {:ok, value} -> Map.put(acc, option_key(name), value)
-          :error -> Map.put(acc, option_key(name), nil)
+          {:ok, value} -> {:cont, {:ok, Map.put(acc, option_key(name), value)}}
+          :error -> {:halt, {:unbound, var_name}}
         end
     end)
   end

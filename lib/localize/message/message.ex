@@ -87,7 +87,11 @@ defmodule Localize.Message do
   end
 
   defp format_elixir(message, bindings, options) do
+    # Validate the locale up front so an invalid `:locale` option is
+    # reported on the Elixir backend just as it is on the NIF backend,
+    # even for messages that never reach a locale-sensitive function.
     with {:ok, message} <- maybe_trim(message, options[:trim]),
+         {:ok, _language_tag} <- validate_locale_option(options),
          {:ok, parsed} <- Parser.parse(message) do
       format_options =
         options
@@ -217,6 +221,12 @@ defmodule Localize.Message do
       _, acc ->
         acc
     end)
+  end
+
+  defp validate_locale_option(options) do
+    options
+    |> Keyword.get(:locale, Localize.get_locale())
+    |> Localize.validate_locale()
   end
 
   # The NIF backend validates the locale through the same canonical

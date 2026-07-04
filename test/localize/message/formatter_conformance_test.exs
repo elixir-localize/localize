@@ -84,6 +84,9 @@ defmodule Localize.Message.FormatterConformanceTest do
         [90]
     },
     "data-model-errors.json" => %{
+      # Cases 16 and 17 (a declaration option referencing a not-yet-declared
+      # variable) now pass: the unresolved option variable is reported as an
+      # unbound-variable error.
       "known gap: duplicate-declaration data-model validation not implemented" => [
         8,
         9,
@@ -92,9 +95,7 @@ defmodule Localize.Message.FormatterConformanceTest do
         12,
         13,
         14,
-        15,
-        16,
-        17
+        15
       ],
       "known gap: duplicate-option-name data-model validation not implemented" => [18, 19]
     },

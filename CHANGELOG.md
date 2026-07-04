@@ -24,6 +24,8 @@ A quality release: the codebase now passes `mix credo --strict` with zero findin
 
 * The MF2 `:offset` function follows the specification: it takes exactly one of the `add` or `subtract` options (non-negative integer) and adjusts the operand for both formatting and selection. The previous ICU-style `offset=` option, which only subtracted during selection, is replaced.
 
+* The MF2 `numberingSystem` function option accepts any valid CLDR numbering system, matching Intl/ICU: `{$n :number numberingSystem=thai}` renders Thai digits in any locale. Unknown system names still return an error; the `:number_system` option of `Localize.Number.to_string/2` is unchanged.
+
 * Credo (strict) added to the CI lint stage with a committed `.credo.exs`. Policy: the `Design.AliasUsage` check is disabled (Localize module names such as `List`, `Date` and `String` shadow the stdlib when aliased; aliasing is applied opportunistically where safe), nesting depth stays at the default maximum of 2, and complexity/apply/arity exceptions are documented inline at each site.
 
 * Deeply nested functions across the library were refactored into multi-clause private helpers with pattern matching (~120 helpers). Behavior is unchanged; the full test suite, dialyzer and doc builds gate the refactor.
@@ -81,6 +83,14 @@ A quality release: the codebase now passes `mix credo --strict` with zero findin
 * `Localize.Date.to_string/2` no longer overwrites a user-supplied `:number_system_overrides` option.
 
 * Small fixes: `UnknownSubdivisionError` carries the original input instead of nil; `UnknownCurrencyError` for a binary code always carries the binary (previously the atom when it happened to exist); MF2 match results deduplicate their bound-variable lists; `Localize.Utils.Json.decode!/1` raises `ArgumentError` on trailing data instead of a bare `MatchError`.
+
+* Language tags with duplicate singleton subtags (`en-u-ca-gregory-u-nu-thai`) are rejected with a parse error per RFC 5646; previously the second occurrence was silently dropped.
+
+* Grandfathered language tags resolve to their preferred values from the CLDR alias data: `i-klingon` canonicalizes to `tlh` (displaying "Klingon"), `zh-min-nan` to `nan`, `en-GB-oed` to `en-GB-oxendict`, and the sign-language tags to their ISO codes. Previously irregular grandfathered tags parsed to an empty tag.
+
+* The MF2 Elixir backend reports the same errors as the NIF backend: an unbound variable used as a function option value returns a bind error, and an invalid `:locale` option returns a locale error; both were previously silently ignored.
+
+* Per-compound units without a direct CLDR pattern compose from the numerator and the per-pattern: `foot-per-second` renders "2 feet per second" instead of the raw identifier.
 
 * MF2 `:percent` selection multiplies the operand by 100 before plural-category selection, matching the formatted value per the specification.
 

@@ -157,6 +157,40 @@ defmodule Localize.LanguageTag do
   alias Localize.Locale
   alias Localize.SupplementalData
 
+  # The grandfathered tags of RFC 5646 section 2.1 - a closed list
+  # registered under RFC 3066 that can never change. The spellings
+  # here use the registry case because that is how the CLDR
+  # languageAlias supplemental data keys them; lookups are performed
+  # on the downcased form (the grammar only sees downcased input).
+  @grandfathered_tags [
+    "art-lojban",
+    "cel-gaulish",
+    "en-GB-oed",
+    "i-ami",
+    "i-bnn",
+    "i-default",
+    "i-enochian",
+    "i-hak",
+    "i-klingon",
+    "i-lux",
+    "i-mingo",
+    "i-navajo",
+    "i-pwn",
+    "i-tao",
+    "i-tay",
+    "i-tsu",
+    "no-bok",
+    "no-nyn",
+    "sgn-BE-FR",
+    "sgn-BE-NL",
+    "sgn-CH-DE",
+    "zh-guoyu",
+    "zh-hakka",
+    "zh-min",
+    "zh-min-nan",
+    "zh-xiang"
+  ]
+
   defstruct language: nil,
             language_subtags: [],
             script: nil,
@@ -1122,6 +1156,7 @@ defmodule Localize.LanguageTag do
   # about current CLDR-registered codes.
   #
   # The order follows TR35 Locale ID Canonicalization:
+  # 0. Resolve grandfathered tags to their modern replacements
   # 1. Resolve territory aliases (numeric codes, deprecated codes)
   # 2. Resolve simple language aliases (3-letter codes, deprecated codes)
   # 3. Resolve compound language+territory aliases (e.g., "sgn-US" → "ase")
@@ -1131,12 +1166,54 @@ defmodule Localize.LanguageTag do
   # 6. Resolve variant aliases
   defp resolve_aliases(%{} = map) do
     map
+    |> resolve_grandfathered_tag()
     |> resolve_territory_alias()
     |> resolve_simple_language_alias()
     |> resolve_language_territory_alias()
     |> resolve_language_variant_aliases()
     |> resolve_script_alias()
     |> resolve_variant_aliases()
+  end
+
+  # Step 0: Grandfathered tags. The grammar surfaces a grandfathered
+  # tag as `grandfathered: [irregular: tag]` (or `regular:`) with no
+  # other subtag fields, so the replacement subtags are installed
+  # wholesale. Every grandfathered tag has a replacement in the CLDR
+  # languageAlias data - including the four with no BCP 47 preferred
+  # value, which CLDR maps anyway (cel-gaulish → xtg, i-default → en,
+  # i-enochian → und, i-mingo → see). Should a future data release
+  # ever drop an entry, the tag degrades to the root language "und"
+  # rather than producing an empty tag.
+  defp resolve_grandfathered_tag(%{grandfathered: [{_class, tag}]} = map) do
+    map = Map.delete(map, :grandfathered)
+
+    case Map.get(grandfathered_aliases(), tag) do
+      %{language: language} = replacement ->
+        %{
+          map
+          | language: language,
+            script: replacement.script,
+            territory: replacement.territory,
+            language_variants: replacement.language_variants
+        }
+
+      nil ->
+        %{map | language: "und"}
+    end
+  end
+
+  defp resolve_grandfathered_tag(map), do: map
+
+  # Maps each downcased grandfathered tag to its CLDR languageAlias
+  # replacement (a map of language/script/territory/language_variants).
+  defp grandfathered_aliases do
+    cached(:grandfathered_aliases, fn ->
+      aliases = language_aliases()
+
+      Map.new(@grandfathered_tags, fn tag ->
+        {String.downcase(tag), Map.get(aliases, tag)}
+      end)
+    end)
   end
 
   # Step 2: Simple language alias (e.g., "aar" → "aa", "iw" → "he")

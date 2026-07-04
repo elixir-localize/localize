@@ -137,6 +137,14 @@ defmodule Localize.Locale.LocaleDisplayTest do
       assert {:ok, "anglais"} = Localize.Locale.LocaleDisplay.display_name("en", locale: :fr)
     end
 
+    test "grandfathered tags display under their preferred language" do
+      assert {:ok, "Klingon"} =
+               Localize.Locale.LocaleDisplay.display_name("i-klingon", locale: "en")
+
+      assert {:ok, "Min Nan Chinese"} =
+               Localize.Locale.LocaleDisplay.display_name("zh-min-nan", locale: "en")
+    end
+
     test "display in German" do
       {:ok, name} = Localize.Locale.LocaleDisplay.display_name("en-US", locale: :de)
       assert String.contains?(name, "Englisch")

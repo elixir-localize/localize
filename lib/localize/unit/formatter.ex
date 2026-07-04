@@ -96,7 +96,7 @@ defmodule Localize.Unit.Formatter do
 
         case find_unit_formats(unit_data, unit_name) do
           nil ->
-            format_custom_or_fallback(value, name, locale, options)
+            format_compound_or_fallback(value, name, parsed, unit_data, locale, options)
 
           unit_formats ->
             grammatical_case = Keyword.get(options, :grammatical_case, :nominative)
@@ -166,7 +166,7 @@ defmodule Localize.Unit.Formatter do
           {:ok, currency_string}
 
         {count, denominator_base} ->
-          format_currency_denominator(
+          format_per_denominator(
             currency_string,
             count,
             denominator_base,
@@ -178,8 +178,11 @@ defmodule Localize.Unit.Formatter do
     end
   end
 
-  defp format_currency_denominator(
-         currency_string,
+  # Composes a formatted numerator string ("$2.00", "2 feet") with the
+  # denominator's per-unit pattern ("{0} per second"). Shared by the
+  # currency-unit path and pattern-less per-compounds like "foot-per-second".
+  defp format_per_denominator(
+         numerator_string,
          count,
          denominator_base,
          unit_data,
@@ -189,10 +192,10 @@ defmodule Localize.Unit.Formatter do
     denominator_name = normalize_unit_name(denominator_base)
     pattern = find_per_unit_pattern(unit_data, denominator_name, value, locale)
     nouns = if count, do: denominator_nouns(unit_data, denominator_name)
-    format_currency_per_unit(currency_string, pattern, count, denominator_base, nouns)
+    format_per_unit(numerator_string, pattern, count, denominator_base, nouns)
   end
 
-  defp format_currency_per_unit(currency_string, nil, count, denominator_base, nouns) do
+  defp format_per_unit(numerator_string, nil, count, denominator_base, nouns) do
     fallback_noun = String.replace(denominator_base, "-", " ")
 
     per_part =
@@ -202,12 +205,12 @@ defmodule Localize.Unit.Formatter do
         {count, nil} -> "#{count} #{fallback_noun}"
       end
 
-    {:ok, "#{currency_string} per #{per_part}"}
+    {:ok, "#{numerator_string} per #{per_part}"}
   end
 
-  defp format_currency_per_unit(currency_string, pattern, count, _denominator_base, nouns) do
+  defp format_per_unit(numerator_string, pattern, count, _denominator_base, nouns) do
     per_string =
-      currency_string
+      numerator_string
       |> Localize.Substitution.substitute(pattern)
       |> :erlang.iolist_to_binary()
       |> String.trim()
@@ -445,6 +448,68 @@ defmodule Localize.Unit.Formatter do
   end
 
   defp normalize_unit_name(name) when is_atom(name), do: Atom.to_string(name)
+
+  # ── Compound per-unit formatting ───────────────────────────
+  #
+  # CLDR has direct patterns only for a small set of per-compounds
+  # (e.g. "meter-per-second"). When a per-compound has no direct
+  # pattern (e.g. "foot-per-second"), compose the formatted numerator
+  # ("2 feet") with the denominator's per-unit pattern ("{0} per
+  # second"), the same composition the currency-unit path uses.
+
+  defp format_compound_or_fallback(value, name, parsed, unit_data, locale, options) do
+    with {:ok, numerator_name, denominator_units} <- compound_per_parts(parsed),
+         numerator_formats when not is_nil(numerator_formats) <-
+           find_unit_formats(unit_data, normalize_unit_name(numerator_name)),
+         {_count, denominator_base} when not is_nil(denominator_base) <-
+           extract_denominator_parts(denominator_units) do
+      format_compound_per_unit(
+        value,
+        numerator_formats,
+        denominator_units,
+        unit_data,
+        locale,
+        options
+      )
+    else
+      _ -> format_custom_or_fallback(value, name, locale, options)
+    end
+  end
+
+  defp format_compound_per_unit(
+         value,
+         numerator_formats,
+         denominator_units,
+         unit_data,
+         locale,
+         options
+       ) do
+    grammatical_case = Keyword.get(options, :grammatical_case, :nominative)
+
+    with {:ok, numerator_string} <-
+           format_with_pattern(value, numerator_formats, locale, grammatical_case, options) do
+      {count, denominator_base} = extract_denominator_parts(denominator_units)
+      format_per_denominator(numerator_string, count, denominator_base, unit_data, value, locale)
+    end
+  end
+
+  # Extracts the single numerator unit name and the denominator units
+  # from a parsed per-compound. Returns `:not_compound` for anything
+  # other than a single-unit numerator with a non-empty denominator.
+  defp compound_per_parts({:unit, keyword}) do
+    numerator = Keyword.get(keyword, :numerator, [])
+    denominator = Keyword.get(keyword, :denominator, [])
+
+    case {numerator, denominator} do
+      {[{:single_unit, kw}], [_ | _]} ->
+        {:ok, denominator_unit_name(kw), denominator}
+
+      _ ->
+        :not_compound
+    end
+  end
+
+  defp compound_per_parts(_parsed), do: :not_compound
 
   # ── Custom unit formatting ─────────────────────────────────
   #

@@ -53,6 +53,43 @@ defmodule Localize.Unit.FormatterTest do
     end
   end
 
+  describe "to_string/2 with per-compounds that have no direct CLDR pattern" do
+    test "composes foot-per-second from the numerator and per-pattern" do
+      {:ok, unit} = Unit.new(2, "foot-per-second")
+      assert {:ok, "2 feet per second"} = Unit.to_string(unit)
+    end
+
+    test "composes a singular pattern-less per-compound" do
+      {:ok, unit} = Unit.new(1, "foot-per-second")
+      assert {:ok, "1 foot per second"} = Unit.to_string(unit)
+    end
+
+    test "composes gram-per-hour" do
+      {:ok, unit} = Unit.new(2, "gram-per-hour")
+      assert {:ok, "2 grams per hour"} = Unit.to_string(unit)
+    end
+
+    test "composes a pattern-less per-compound in short style" do
+      {:ok, unit} = Unit.new(2, "foot-per-second")
+      assert {:ok, "2 ft/s"} = Unit.to_string(unit, format: :short)
+    end
+
+    test "composes with a powered denominator" do
+      {:ok, unit} = Unit.new(2, "pound-per-square-inch")
+      assert {:ok, "2 pounds per square inch"} = Unit.to_string(unit)
+    end
+
+    test "composes in German using the locale per-pattern" do
+      {:ok, unit} = Unit.new(2, "foot-per-second")
+      assert {:ok, "2 Fuß pro Sekunde"} = Unit.to_string(unit, locale: :de)
+    end
+
+    test "still prefers a direct CLDR pattern when one exists" do
+      {:ok, unit} = Unit.new(3, "meter-per-second")
+      assert {:ok, "3 meters per second"} = Unit.to_string(unit)
+    end
+  end
+
   describe "to_string/2 with locales" do
     test "formats in German" do
       {:ok, unit} = Unit.new(2.5, "kilogram")
