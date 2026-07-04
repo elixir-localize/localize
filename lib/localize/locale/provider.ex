@@ -741,7 +741,10 @@ defmodule Localize.Locale.Provider do
       Logger.warning(
         "No locale hash manifest found (priv/localize/locale_hashes.etf). " <>
           "Downloaded locale files will not be integrity-verified. " <>
-          "Run `mix localize.generate_locale_hashes` to create the manifest.",
+          "The manifest is generated as part of the Localize release " <>
+          "process and is bundled with the published hex package; it is " <>
+          "normal for it to be absent when Localize is a git or path " <>
+          "dependency built from source.",
         domain: :localize
       )
     end
