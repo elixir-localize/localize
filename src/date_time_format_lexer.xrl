@@ -11,8 +11,8 @@ YearExtended        = u
 CyclicYear          = U
 RelatedYear         = r
 
-Quarter             = q
-StandAloneQuarter   = Q
+Quarter             = Q
+StandAloneQuarter   = q
 
 Month               = M
 StandAloneMonth     = L
@@ -55,7 +55,7 @@ Date                = ({1})
 Time                = ({0})
 
 Quote               = ''
-Quoted              = '[^']+'
+Quoted              = '([^']|'')+'
 Char                = [^a-zA-Z{}']
 
 Rules.
@@ -119,6 +119,13 @@ Erlang code.
 
 count(Chars) -> string:len(Chars).
 
+% Strips the bounding quotes, then collapses each doubled
+% quote ('') inside the quoted text to a literal apostrophe,
+% per TR35 date format pattern syntax.
 unquote([_ | Tail]) ->
   [_ | Rev] = lists:reverse(Tail),
-  lists:reverse(Rev).
+  collapse_quotes(lists:reverse(Rev)).
+
+collapse_quotes([$', $' | Rest]) -> [$' | collapse_quotes(Rest)];
+collapse_quotes([Char | Rest]) -> [Char | collapse_quotes(Rest)];
+collapse_quotes([]) -> [].

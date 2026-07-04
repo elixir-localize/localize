@@ -43,6 +43,10 @@ defmodule Localize.Number.Formatter.Currency do
          {:ok, formats} <- Format.formats_for(locale, number_system) do
       currency_long_formats = Map.get(formats, :currency_long)
 
+      # Believed unreachable with current CLDR data: every locale
+      # inherits `:currency_long` from root (verified against en, ja,
+      # ar, agq, kkj and und). Kept as a defensive guard in case a
+      # future data pipeline change drops the inherited formats.
       if is_nil(currency_long_formats) do
         {:error,
          Localize.InvalidValueError.exception(
@@ -63,6 +67,8 @@ defmodule Localize.Number.Formatter.Currency do
          {:ok, formats} <- Format.formats_for(options.locale, number_system) do
       currency_long_formats = Map.get(formats, :currency_long)
 
+      # Believed unreachable — see the note in the :currency_long
+      # clause above. Kept as a defensive guard.
       if is_nil(currency_long_formats) do
         {:error,
          Localize.InvalidValueError.exception(
@@ -118,11 +124,19 @@ defmodule Localize.Number.Formatter.Currency do
     end
   end
 
-  defp currency_display_name(number, %{currency: %Localize.Currency{count: count}, locale: locale}) do
+  # The `:count` field is `map() | nil` (see `t:Localize.Currency.t/0`).
+  # Pluralized display names apply only when the plural-count map is
+  # populated; otherwise fall back to the currency's base name. Without
+  # the guard this first clause matched every `Currency` struct (the
+  # field always exists), making the name fallback unreachable and
+  # crashing `pluralize/3` when `count` was `nil`.
+  defp currency_display_name(number, %{currency: %Localize.Currency{count: count}, locale: locale})
+       when is_map(count) and map_size(count) > 0 do
     Localize.Number.PluralRule.Cardinal.pluralize(number, locale, count)
   end
 
-  defp currency_display_name(_number, %{currency: %Localize.Currency{name: name}}) do
+  defp currency_display_name(_number, %{currency: %Localize.Currency{name: name}})
+       when is_binary(name) do
     name
   end
 

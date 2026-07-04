@@ -82,6 +82,25 @@ defmodule Localize.Unit.FormatterTest do
     end
   end
 
+  describe "to_string/2 with Decimal values" do
+    test "an integer-valued Decimal selects the :one plural form" do
+      # Regression: plural_form/2 converted Decimals to float before
+      # plural selection, losing the CLDR visible-fraction operands.
+      # Decimal "1" has v=0 so it is :one in en → "1 meter".
+      assert Unit.to_string(Unit.new!(Decimal.new("1"), "meter")) == {:ok, "1 meter"}
+    end
+
+    test "a Decimal with a visible fraction selects the :other plural form" do
+      # Decimal "1.0" has v=1 so it is :other in en, even though the
+      # number itself renders as "1" with default number options.
+      assert Unit.to_string(Unit.new!(Decimal.new("1.0"), "meter")) == {:ok, "1 meters"}
+    end
+
+    test "a Decimal greater than one selects the :other plural form" do
+      assert Unit.to_string(Unit.new!(Decimal.new("2"), "meter")) == {:ok, "2 meters"}
+    end
+  end
+
   describe "to_string!/2" do
     test "returns string directly" do
       {:ok, unit} = Unit.new(42, "meter")

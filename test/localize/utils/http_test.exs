@@ -163,6 +163,71 @@ defmodule Localize.Utils.HttpTest do
     end
   end
 
+  describe "proxy_configuration/1" do
+    test "returns :no_proxy when no proxy is configured" do
+      assert Localize.Utils.Http.proxy_configuration(nil) == :no_proxy
+    end
+
+    test "parses a valid proxy URL into a host/port pair" do
+      assert Localize.Utils.Http.proxy_configuration("http://proxy.example.com:8080") ==
+               {:proxy, {~c"proxy.example.com", 8080}}
+    end
+
+    test "uses the scheme default port when none is given" do
+      assert Localize.Utils.Http.proxy_configuration("http://proxy.example.com") ==
+               {:proxy, {~c"proxy.example.com", 80}}
+    end
+
+    test "tags an unparseable proxy URL as invalid" do
+      assert Localize.Utils.Http.proxy_configuration("not a url") ==
+               {:invalid, "not a url"}
+    end
+  end
+
+  describe "configure_proxy/3" do
+    # Regression: a https_proxy resolved for one download used to be
+    # set as global `:httpc` state and was never cleared, so it leaked
+    # into every later proxy-less download in the same BEAM. The proxy
+    # must now be cleared whenever no proxy is configured. A dedicated
+    # scratch profile keeps this test free of network calls and
+    # isolated from concurrent tests.
+    test "a proxy set by one call does not leak into a later proxy-less call" do
+      profile = :localize_http_test_proxy_leak
+
+      try do
+        :ok =
+          Localize.Utils.Http.configure_proxy(
+            {:proxy, {~c"proxy.example.com", 8080}},
+            :inet6fb4,
+            profile
+          )
+
+        assert {:ok, [https_proxy: {{~c"proxy.example.com", 8080}, []}]} =
+                 :httpc.get_options([:https_proxy], profile)
+
+        :ok = Localize.Utils.Http.configure_proxy(:no_proxy, :inet6fb4, profile)
+
+        assert {:ok, [https_proxy: {:undefined, []}]} =
+                 :httpc.get_options([:https_proxy], profile)
+      after
+        _ = :inets.stop(:httpc, profile)
+      end
+    end
+
+    test "configuring no proxy on a fresh profile leaves the default" do
+      profile = :localize_http_test_no_proxy
+
+      try do
+        :ok = Localize.Utils.Http.configure_proxy(:no_proxy, :inet6fb4, profile)
+
+        assert {:ok, [https_proxy: {:undefined, []}]} =
+                 :httpc.get_options([:https_proxy], profile)
+      after
+        _ = :inets.stop(:httpc, profile)
+      end
+    end
+  end
+
   # `resolve_ca_trust_option/0` is the uncached resolver behind
   # `ca_trust_option/0`. Tests target the resolver so each variant
   # can be exercised without persistent_term cache interference.

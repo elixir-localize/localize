@@ -118,6 +118,13 @@ defmodule Localize.Utils.MapTest do
       value = "localize_map_test_value_that_does_not_exist"
       assert MapUtils.atomize_values(%{a: value}, only_existing: true) == %{a: value}
     end
+
+    test "returns non-map, non-list input unchanged" do
+      # Regression: atomize_values/2 raised FunctionClauseError where
+      # the sibling atomize_keys/2 returned the input unchanged.
+      assert MapUtils.atomize_values(:other, []) == :other
+      assert MapUtils.atomize_values("binary", []) == "binary"
+    end
   end
 
   describe "integerize and floatize" do

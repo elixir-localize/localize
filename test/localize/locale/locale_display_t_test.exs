@@ -93,6 +93,27 @@ defmodule Localize.Locale.LocaleDisplayTTest do
     end
   end
 
+  describe "display_name/1 on a parsed (unvalidated) tag with -t-" do
+    test "renders a tokenized transform language instead of crashing" do
+      # Regression: the raw transform map stores the tlang as a
+      # tokenized LanguageTag under the "language" key. Stringifying
+      # it returned nil (no canonical_locale_id) and crashed
+      # Enum.join with an ArgumentError.
+      {:ok, language_tag} = Localize.LanguageTag.parse("en-t-de-m0-ungegn")
+
+      assert {:ok, "English (Transform: German, UN GEGN Transliteration)"} =
+               LocaleDisplay.display_name(language_tag)
+    end
+
+    test "to_string/1 renders the tlang first and without its map key" do
+      {:ok, language_tag} = Localize.LanguageTag.parse("en-t-de-m0-ungegn")
+      assert Localize.LanguageTag.to_string(language_tag) == "en-t-de-m0-ungegn"
+
+      {:ok, language_tag} = Localize.LanguageTag.parse("en-t-zh-hans-cn-m0-ungegn")
+      assert Localize.LanguageTag.to_string(language_tag) == "en-t-zh-hans-cn-m0-ungegn"
+    end
+  end
+
   describe "T.display_name/4 with a plain (unvalidated) transform map" do
     test "renders known fields from a parsed transform map" do
       {:ok, language_tag} = Localize.LanguageTag.parse("en-t-de-m0-ungegn")

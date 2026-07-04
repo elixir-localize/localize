@@ -103,8 +103,12 @@ defmodule Localize.Number.PluralRule do
         locale = Keyword.get(options, :locale, Localize.get_locale())
         type = Keyword.get(options, :type, :cardinal)
 
-        with {:ok, locale_string} <- validated_locale_string(locale) do
-          Localize.Nif.plural_rule(number, locale_string, type)
+        # The NIF returns `{:ok, plural_type}` — unwrap it so both
+        # backends return a bare plural category atom on success,
+        # as documented by the `@spec`. Error tuples pass through.
+        with {:ok, locale_string} <- validated_locale_string(locale),
+             {:ok, plural} <- Localize.Nif.plural_rule(number, locale_string, type) do
+          plural
         end
 
       :elixir ->

@@ -811,7 +811,7 @@ defmodule Localize.Utils.Math do
 
   # n is between 0 and 1
   def power(%Decimal{} = number, n) do
-    do_power(number, n, mod(number, n))
+    do_power(number, n, mod(n, 2))
   end
 
   # For integers and floats
@@ -827,8 +827,13 @@ defmodule Localize.Utils.Math do
     do_power(number, n, mod(n, 2))
   end
 
-  def power(number, n) when n < 1 do
+  def power(number, n) when n < 0 do
     1 / do_power(number, abs(n), mod(abs(n), 2))
+  end
+
+  # n is between 0 and 1
+  def power(number, n) do
+    :math.pow(number, n)
   end
 
   # Decimal number and decimal n
@@ -866,11 +871,14 @@ defmodule Localize.Utils.Math do
     Decimal.mult(number, power(number, n - 1))
   end
 
-  # Escape hatch for when the exponent < 1
+  # Escape hatch for when the exponent < 1. Computed via float
+  # exponentiation, then converted back so that a Decimal base
+  # always returns a Decimal result.
   defp do_power(%Decimal{} = number, n, _mod) when n < 1 do
     number
     |> Decimal.to_float()
     |> :math.pow(n)
+    |> Decimal.from_float()
   end
 
   # integer/float number and integer/float n

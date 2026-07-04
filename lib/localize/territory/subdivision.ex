@@ -82,7 +82,7 @@ defmodule Localize.Territory.Subdivision do
          {:ok, subdivisions} <- Localize.Locale.get(locale_id, [:subdivisions]) do
       case Map.get(subdivisions, code) do
         nil ->
-          {:error, Localize.UnknownSubdivisionError.exception(subdivision: code)}
+          {:error, Localize.UnknownSubdivisionError.exception(subdivision: subdivision)}
 
         name ->
           {:ok, name}
@@ -285,7 +285,8 @@ defmodule Localize.Territory.Subdivision do
   # etc.) are pre-atomised as keys of the per-locale subdivisions map
   # at startup. Unknown binaries return nil; the caller's
   # `Map.get(subdivisions, nil)` falls through to the
-  # `UnknownSubdivisionError` path.
+  # `UnknownSubdivisionError` path, which reports the original
+  # (un-normalized) input.
   defp normalize_subdivision_code(code) when is_binary(code) do
     code |> String.downcase() |> Localize.Utils.Helpers.existing_atom()
   end

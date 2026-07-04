@@ -407,13 +407,23 @@ defmodule Localize.Number.Rbnf.Processor do
   # Locales whose ordinal/cardinal categories differ from English
   # for the input number (notably fr where `21` is `:other` not
   # `:one`, producing `21e` not `21er`) now select the right key.
-  defp do_operation(:ordinal, number, _rule_set, _rule, plurals, _all_sets, locale) do
-    plural = Localize.Number.PluralRule.Ordinal.plural_rule(number, locale)
+  # Per TR35/ICU (`NFRule::doFormat`), the plural category for a
+  # `$(cardinal,…)$` / `$(ordinal,…)$` substitution is selected on
+  # the value divided by the rule's divisor — the quotient the rule
+  # body spells out — not on the full number. Russian `2_000_000`
+  # with the base-1000000 rule spells the quotient `2`, so the
+  # plural is `plural(2)` → `:few` → "миллиона", not
+  # `plural(2_000_000)` → `:many` → "миллионов". For values below 1
+  # (fraction rules) ICU selects on `round(number * divisor)`.
+  defp do_operation(:ordinal, number, _rule_set, rule, plurals, _all_sets, locale) do
+    plural = Localize.Number.PluralRule.Ordinal.plural_rule(plural_operand(number, rule), locale)
     Map.get(plurals, plural) || Map.get(plurals, :other, "")
   end
 
-  defp do_operation(:cardinal, number, _rule_set, _rule, plurals, _all_sets, locale) do
-    plural = Localize.Number.PluralRule.Cardinal.plural_rule(number, locale)
+  defp do_operation(:cardinal, number, _rule_set, rule, plurals, _all_sets, locale) do
+    plural =
+      Localize.Number.PluralRule.Cardinal.plural_rule(plural_operand(number, rule), locale)
+
     Map.get(plurals, plural) || Map.get(plurals, :other, "")
   end
 
@@ -434,6 +444,19 @@ defmodule Localize.Number.Rbnf.Processor do
   end
 
   # ── Helpers ────────────────────────────────────────────────
+
+  # The value on which `$(cardinal,…)$` / `$(ordinal,…)$` selects
+  # its plural category: the number divided by the rule's divisor
+  # (see the comment on `do_operation(:ordinal, …)` above).
+  defp plural_operand(number, %Rule{divisor: divisor}) when is_integer(divisor) and divisor > 0 do
+    cond do
+      number >= 0 and number < 1 -> round(number * divisor)
+      is_integer(number) -> div(number, divisor)
+      true -> trunc(number / divisor)
+    end
+  end
+
+  defp plural_operand(number, _rule), do: number
 
   defp apply_rule_set(number, rule_set_name, all_rule_sets, locale) do
     # Normalize rule set name (CLDR uses hyphens, we may use underscores)

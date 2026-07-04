@@ -88,7 +88,7 @@ defmodule Localize.Date do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, pattern} <- find_format(date, format, locale_id, options) do
       overrides = number_system_overrides_for(date, format, locale_id)
-      formatter_options = options |> Map.new() |> Map.put(:number_system_overrides, overrides)
+      formatter_options = options |> Map.new() |> merge_number_system_overrides(overrides)
       Localize.DateTime.Formatter.format(date, pattern, locale_id, formatter_options)
     end
   end
@@ -141,7 +141,7 @@ defmodule Localize.Date do
       overrides = number_system_overrides_for(date, resolved_format, locale_id)
 
       formatter_options =
-        options |> Map.new() |> Map.put(:number_system_overrides, overrides)
+        options |> Map.new() |> merge_number_system_overrides(overrides)
 
       Localize.DateTime.Formatter.format(date, pattern, locale_id, formatter_options)
     end
@@ -214,6 +214,19 @@ defmodule Localize.Date do
   end
 
   defp number_system_overrides_for(_date, _format, _locale_id), do: %{}
+
+  # Combine the calendar-derived overrides with any overrides the
+  # caller supplied in options. User-supplied entries win over the
+  # derived ones; derived entries fill any remaining fields.
+  defp merge_number_system_overrides(options_map, overrides) do
+    Map.update(options_map, :number_system_overrides, overrides, fn user_overrides ->
+      if is_map(user_overrides) do
+        Map.merge(overrides, user_overrides)
+      else
+        user_overrides
+      end
+    end)
+  end
 
   # Resolve the CLDR calendar key from a date's `:calendar`
   # module. `Calendar.ISO` is Gregorian. Other calendar modules

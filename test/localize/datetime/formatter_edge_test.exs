@@ -200,6 +200,30 @@ defmodule Localize.DateTime.FormatterEdgeTest do
                  "number_system_overrides" => %{"d" => :arab}
                })
     end
+
+    test "a user-supplied override survives Localize.Date.to_string/2" do
+      # Localize.Date.to_string/2 computes calendar-derived overrides
+      # internally; it must merge them under (not clobber) an override
+      # the caller passed in options.
+      assert {:ok, "Jul ٦, ٢٠٢٤"} =
+               Localize.Date.to_string(~D[2024-07-06],
+                 format: :medium,
+                 locale: :en,
+                 number_system_overrides: %{"all" => :arab}
+               )
+    end
+
+    test "a user-supplied override wins over a calendar-derived one per field" do
+      # For a partial date the derived overrides map is empty for
+      # :en/gregorian; the user's field-specific override must be
+      # honoured on that path too.
+      assert {:ok, "٢٠٢٤"} =
+               Localize.Date.to_string(%{year: 2024},
+                 format: "y",
+                 locale: :en,
+                 number_system_overrides: %{"y" => :arab}
+               )
+    end
   end
 
   describe "format/3 and option-bag flexibility" do

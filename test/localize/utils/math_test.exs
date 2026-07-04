@@ -296,4 +296,42 @@ defmodule Localize.Utils.MathTest do
       assert Math.power(3, 1) == 3
     end
   end
+
+  describe "power/2 with fractional and negative exponents" do
+    test "an exponent between 0 and 1 is a root, not a reciprocal" do
+      # Regression: power(4, 0.5) used to return 0.5 (the reciprocal
+      # path applied to every n < 1) instead of 2.0.
+      assert Math.power(4, 0.5) == 2.0
+      assert Math.power(9, 0.5) == 3.0
+      assert_in_delta Math.power(8, 1 / 3), 2.0, 1.0e-12
+    end
+
+    test "a negative exponent returns the reciprocal" do
+      assert Math.power(4, -2) == 0.0625
+      assert Math.power(4, -0.5) == 0.5
+      assert Math.power(2.0, -1) == 0.5
+    end
+
+    test "a Decimal base with a fractional exponent returns a Decimal" do
+      # Regression: the fractional-exponent escape hatch returned a
+      # bare float for a Decimal base.
+      result = Math.power(Decimal.new(4), 0.5)
+      assert %Decimal{} = result
+      assert Decimal.equal?(result, Decimal.new("2.0"))
+    end
+
+    test "a Decimal base with a negative fractional exponent returns a Decimal" do
+      result = Math.power(Decimal.new(4), -0.5)
+      assert %Decimal{} = result
+      assert Decimal.equal?(result, Decimal.new("0.5"))
+    end
+
+    test "a Decimal base with a non-integer exponent greater than one" do
+      # Previously crashed: Decimal.mult/2 received the float produced
+      # by the fractional-exponent escape hatch.
+      result = Math.power(Decimal.new(2), 2.5)
+      assert %Decimal{} = result
+      assert_in_delta Decimal.to_float(result), :math.pow(2, 2.5), 1.0e-9
+    end
+  end
 end

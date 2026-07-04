@@ -123,6 +123,20 @@ defmodule Localize.Message.InterpreterEdgeTest do
 
       assert {:ok, ["fewth"], _bound, []} = format(message, %{"n" => 3}, locale: :en)
     end
+
+    test "match results deduplicate bound variables like format_pattern does" do
+      # Regression: evaluate_match returned the same variable once per
+      # use (e.g. ["count", "count", "count"]) while simple patterns
+      # deduplicated with Enum.uniq.
+      message =
+        ".input {$count :number}\n.match $count\none {{{$count} item}}\n* {{{$count} items}}"
+
+      assert {:ok, ["3", " items"], ["count"], []} =
+               format(message, %{"count" => 3}, locale: :en)
+
+      assert {:ok, [text: "3 items"], ["count"], []} =
+               format_structured(message, %{"count" => 3}, locale: :en)
+    end
   end
 
   describe "declarations" do

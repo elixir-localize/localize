@@ -21,8 +21,10 @@ defmodule Localize.Utils.JsonTest do
       end
     end
 
-    test "raises on trailing garbage after a valid document" do
-      assert_raise MatchError, fn ->
+    test "raises ArgumentError on trailing garbage after a valid document" do
+      # Regression: trailing data raised a bare MatchError from the
+      # unpinned `{json, :ok, ""}` match instead of a meaningful error.
+      assert_raise ArgumentError, ~r/unexpected trailing data/, fn ->
         Json.decode!(~s({"a": 1} trailing))
       end
     end
@@ -36,6 +38,12 @@ defmodule Localize.Utils.JsonTest do
     test "decodes nested objects with atom keys" do
       assert Json.decode!(~s({"outer": {"inner": null}}), keys: :atoms) ==
                %{outer: %{inner: nil}}
+    end
+
+    test "raises ArgumentError on trailing garbage after a valid document" do
+      assert_raise ArgumentError, ~r/unexpected trailing data/, fn ->
+        Json.decode!(~s({"a": 1} trailing), keys: :atoms)
+      end
     end
   end
 end

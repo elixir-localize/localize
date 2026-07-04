@@ -36,6 +36,13 @@ defmodule Localize.Utils.Http do
   # verification has been disabled via `LOCALIZE_UNSAFE_HTTPS`.
   @unsafe_https_warned_key {__MODULE__, :unsafe_https_warned}
 
+  # All Localize downloads run in a dedicated `:httpc` profile. Proxy
+  # settings are per-profile *global* state in `:httpc`; using our own
+  # profile means a configured proxy never leaks into (or from) the
+  # host application's default profile, and the profile can be
+  # restarted to clear a previously-set proxy.
+  @httpc_profile :localize
+
   @doc """
   Securely download HTTPS content from a URL.
 
@@ -225,28 +232,27 @@ defmodule Localize.Utils.Http do
     hostname = String.to_charlist(URI.parse(url).host)
     url = String.to_charlist(url)
     http_options = http_options(hostname, options)
-    https_proxy = https_proxy(options)
     ip_family = :inet6fb4
 
-    if https_proxy do
-      case URI.parse(https_proxy) do
-        %{host: host, port: port} when is_binary(host) and is_integer(port) ->
-          :ok =
-            :httpc.set_options(
-              https_proxy: {{String.to_charlist(host), port}, []},
-              ipfamily: ip_family
-            )
+    case proxy_configuration(https_proxy(options)) do
+      {:invalid, invalid_proxy} ->
+        Logger.warning(
+          "https_proxy was set to an invalid value. Found #{inspect(invalid_proxy)}."
+        )
 
-        _other ->
-          Logger.warning(
-            "https_proxy was set to an invalid value. Found #{inspect(https_proxy)}."
-          )
-      end
-    else
-      :ok = :httpc.set_options(ipfamily: ip_family)
+        :ok = configure_proxy(:no_proxy, ip_family)
+
+      configuration ->
+        :ok = configure_proxy(configuration, ip_family)
     end
 
-    case :httpc.request(:get, {url, headers}, http_options, body_format: :binary) do
+    case :httpc.request(
+           :get,
+           {url, headers},
+           http_options,
+           [body_format: :binary],
+           @httpc_profile
+         ) do
       {:ok, {{_version, 200, _}, headers, body}} ->
         case enforce_body_cap(body, options, url) do
           :ok -> {:ok, headers, body}
@@ -641,5 +647,69 @@ defmodule Localize.Utils.Http do
       Application.get_env(:localize, :https_proxy) ||
       System.get_env("HTTPS_PROXY") ||
       System.get_env("https_proxy")
+  end
+
+  @doc false
+  # Parse a proxy URL (or its absence) into a proxy configuration.
+  # Pure function — the seam used by tests to verify proxy resolution
+  # without any network traffic.
+  @spec proxy_configuration(String.t() | nil) ::
+          {:proxy, {charlist(), pos_integer()}} | :no_proxy | {:invalid, String.t()}
+  def proxy_configuration(nil) do
+    :no_proxy
+  end
+
+  def proxy_configuration(proxy) when is_binary(proxy) do
+    case URI.parse(proxy) do
+      %{host: host, port: port} when is_binary(host) and host != "" and is_integer(port) ->
+        {:proxy, {String.to_charlist(host), port}}
+
+      _other ->
+        {:invalid, proxy}
+    end
+  end
+
+  @doc false
+  # Apply a proxy configuration to an `:httpc` profile. The proxy is
+  # set (or cleared) explicitly on *every* call so a proxy configured
+  # for one download can never leak into a later proxy-less download
+  # in the same BEAM.
+  #
+  # `:httpc.set_options/2` rejects the `{:undefined, []}` "no proxy"
+  # default, so a previously-set proxy cannot be unset in place; the
+  # profile is owned by Localize, so it is restarted instead, which
+  # restores the default (proxy-less) options.
+  @spec configure_proxy(
+          {:proxy, {charlist(), pos_integer()}} | :no_proxy,
+          atom(),
+          atom()
+        ) :: :ok
+  def configure_proxy(configuration, ip_family, profile \\ @httpc_profile)
+
+  def configure_proxy({:proxy, {host, port}}, ip_family, profile) do
+    :ok = ensure_httpc_profile(profile)
+    :ok = :httpc.set_options([https_proxy: {{host, port}, []}, ipfamily: ip_family], profile)
+  end
+
+  def configure_proxy(:no_proxy, ip_family, profile) do
+    :ok = ensure_httpc_profile(profile)
+
+    case :httpc.get_options([:https_proxy], profile) do
+      {:ok, [https_proxy: {:undefined, _no_proxy_list}]} ->
+        :ok
+
+      _proxy_currently_set ->
+        _ = :inets.stop(:httpc, profile)
+        :ok = ensure_httpc_profile(profile)
+    end
+
+    :ok = :httpc.set_options([ipfamily: ip_family], profile)
+  end
+
+  defp ensure_httpc_profile(profile) do
+    case :inets.start(:httpc, profile: profile) do
+      {:ok, _pid} -> :ok
+      {:error, {:already_started, _pid}} -> :ok
+    end
   end
 end

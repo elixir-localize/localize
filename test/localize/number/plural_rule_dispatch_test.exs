@@ -49,10 +49,19 @@ defmodule Localize.Number.PluralRuleDispatchTest do
 
     test "returns the plural category for a valid locale" do
       if Localize.Nif.available?() do
-        # NOTE: the NIF backend wraps the category in an :ok tuple while
-        # the Elixir backend returns the bare atom. See the coverage
-        # report for this inconsistency.
-        assert PluralRule.plural_type(1, locale: "en", backend: :nif) == {:ok, :one}
+        # Regression: the NIF backend used to leak the NIF's `{:ok, atom}`
+        # tuple while the Elixir backend returned the bare atom. Both
+        # backends now return the bare category atom per the @spec.
+        assert PluralRule.plural_type(1, locale: "en", backend: :nif) == :one
+      end
+    end
+
+    test "returns the same bare atom as the Elixir backend" do
+      if Localize.Nif.available?() do
+        assert PluralRule.plural_type(2, locale: "ru", backend: :nif) ==
+                 PluralRule.plural_type(2, locale: "ru", backend: :elixir)
+
+        assert PluralRule.plural_type(2, locale: "ru", backend: :nif) == :few
       end
     end
 

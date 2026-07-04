@@ -254,10 +254,21 @@ defmodule Localize.Interval do
       end
     else
       {:error, %Localize.NoPracticalDifferenceError{}} ->
-        Localize.Time.to_string(from, options)
+        Localize.Time.to_string(from, single_time_options(options))
 
       {:error, _} = error ->
         error
+    end
+  end
+
+  # Options for formatting a single time endpoint (the equal-endpoint
+  # fallback). `:time_format` is the explicit time-axis selector and
+  # must win over the overloaded `:format` option, mirroring the
+  # precedence applied in `format_time_interval/3`.
+  defp single_time_options(options) do
+    case Keyword.get(options, :time_format) do
+      nil -> options
+      time_format -> Keyword.put(options, :format, time_format)
     end
   end
 

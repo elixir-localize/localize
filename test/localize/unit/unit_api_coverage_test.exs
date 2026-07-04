@@ -27,14 +27,32 @@ defmodule Localize.UnitApiCoverageTest do
       assert_in_delta back.value, 180.0, 1.0e-9
     end
 
-    test "mixed to mixed conversion currently returns an error" do
-      # BUG (reported): convert_to_mixed/3 passes the mixed source name
+    test "converts a mixed unit to another mixed unit" do
+      # Regression: convert_to_mixed/3 used to pass the mixed source name
       # ("foot-and-inch") to Conversion.convert/3 instead of the effective
-      # first-component name, so mixed → mixed conversion always fails.
-      {:ok, mixed} = Unit.convert(unit!(180, "centimeter"), "foot-and-inch")
+      # first-component name, so mixed → mixed conversion always failed
+      # with {:error, %UnitConversionError{reason: :mixed_units}}.
+      #
+      # 5 feet 10 inches = 70 inches = 1 yard 2 feet 10 inches.
+      {:ok, mixed} = Unit.convert(unit!(70, "inch"), "foot-and-inch")
+      assert [5, source_inches] = mixed.value
+      assert_in_delta source_inches, 10.0, 1.0e-9
 
-      assert {:error, %Localize.UnitConversionError{reason: :mixed_units}} =
-               Unit.convert(mixed, "yard-and-foot-and-inch")
+      {:ok, remixed} = Unit.convert(mixed, "yard-and-foot-and-inch")
+
+      assert remixed.name == "yard-and-foot-and-inch"
+      assert [1, 2, inches] = remixed.value
+      assert_in_delta inches, 10.0, 1.0e-9
+    end
+
+    test "converts a mixed unit with a fractional component to another mixed unit" do
+      # 180 centimeters = 70.8661... inches = 1 yard 2 feet 10.8661... inches.
+      {:ok, mixed} = Unit.convert(unit!(180, "centimeter"), "foot-and-inch")
+      {:ok, remixed} = Unit.convert(mixed, "yard-and-foot-and-inch")
+
+      assert remixed.name == "yard-and-foot-and-inch"
+      assert [1, 2, inches] = remixed.value
+      assert_in_delta inches, 10.866141732283467, 1.0e-9
     end
 
     test "convert!/2 raises when units are not convertible" do

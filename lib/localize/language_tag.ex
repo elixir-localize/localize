@@ -1408,15 +1408,27 @@ defmodule Localize.LanguageTag do
     if extension == %{} do
       nil
     else
-      # Raw map (not yet canonicalized) — format keys sorted alphabetically
+      # Raw map (not yet canonicalized) — format keys sorted alphabetically.
+      # A raw `-t-` extension stores its transform source under the
+      # "language" key; per BCP47 the tlang is rendered first and
+      # without its key.
+      {transform_language, fields} = Map.pop(extension, "language")
+
       parts =
-        extension
+        fields
         |> Enum.sort_by(fn {k, _v} -> k end)
         |> Enum.flat_map(fn
           {key, nil} -> [key]
           {key, "true"} -> [key]
-          {key, value} -> [key, value]
+          {key, value} -> [key, format_extension_value(value)]
         end)
+
+      parts =
+        if transform_language do
+          [format_extension_value(transform_language) | parts]
+        else
+          parts
+        end
 
       if parts == [], do: nil, else: "#{singleton}-#{Enum.join(parts, "-")}"
     end
@@ -1424,6 +1436,22 @@ defmodule Localize.LanguageTag do
 
   defp format_extension({_singleton, _other}) do
     nil
+  end
+
+  # Raw extension values may be multi-part lists (e.g. a `-u-` value
+  # like ["islamic", "civil"]) or a tokenized LanguageTag (the raw
+  # `-t-` transform source). Both must render as their hyphenated
+  # canonical string form.
+  defp format_extension_value(%__MODULE__{} = language_tag) do
+    __MODULE__.to_string(language_tag)
+  end
+
+  defp format_extension_value(list) when is_list(list) do
+    Enum.join(list, "-")
+  end
+
+  defp format_extension_value(value) do
+    value
   end
 
   defp maybe_append(parts, []), do: parts

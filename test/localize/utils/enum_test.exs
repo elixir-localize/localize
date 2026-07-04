@@ -56,5 +56,10 @@ defmodule Localize.Utils.EnumTest do
     test "works with string elements" do
       assert EnumUtils.combine_list(["x", "y"]) == ["x", "x_y"]
     end
+
+    test "an empty list returns an empty list" do
+      # Regression: combine_list([]) raised FunctionClauseError.
+      assert EnumUtils.combine_list([]) == []
+    end
   end
 end

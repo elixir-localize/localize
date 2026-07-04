@@ -117,7 +117,8 @@ defmodule Localize.Duration do
         %{hour: _, minute: _, second: _} = to
       ) do
     with {:ok, from_dt} <- cast_to_datetime(from),
-         {:ok, to_dt} <- cast_to_datetime(to) do
+         {:ok, to_dt} <- cast_to_datetime(to),
+         :ok <- confirm_order(DateTime.compare(from_dt, to_dt), from, to) do
       time_diff = time_duration(from_dt, to_dt)
       {seconds, microseconds} = div_mod(time_diff, @microseconds_in_second)
       {minutes, seconds} = div_mod(seconds, 60)
@@ -556,8 +557,16 @@ defmodule Localize.Duration do
   defp confirm_same_time_zone(%{time_zone: _}, %{time_zone: _} = _to), do: :ok
   defp confirm_same_time_zone(_, _), do: :ok
 
+  defp confirm_date_order(%{utc_offset: _} = from, %{utc_offset: _} = to) do
+    confirm_order(DateTime.compare(from, to), from, to)
+  end
+
   defp confirm_date_order(from, to) do
-    if DateTime.compare(from, to) in [:lt, :eq] do
+    confirm_order(NaiveDateTime.compare(from, to), from, to)
+  end
+
+  defp confirm_order(comparison, from, to) do
+    if comparison in [:lt, :eq] do
       :ok
     else
       {:error,

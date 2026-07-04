@@ -108,5 +108,24 @@ defmodule Localize.Number.CurrencyLongCoverageTest do
       assert Currency.to_string(123, :currency_long, options_without_currency) ==
                {:ok, "123 "}
     end
+
+    test "a currency without plural counts falls back to its name" do
+      # Regression: the pluralized clause matched every Currency struct
+      # (the :count field always exists), so the name fallback was
+      # unreachable and a nil :count crashed pluralize/3.
+      {:ok, options} = Options.validate_options(123, currency: :USD, format: :currency_long)
+      currency_without_counts = %{options.currency | count: nil}
+      options = Map.put(options, :currency, currency_without_counts)
+
+      assert Currency.to_string(123, :currency_long, options) == {:ok, "123 US Dollar"}
+    end
+
+    test "a currency with an empty plural count map falls back to its name" do
+      {:ok, options} = Options.validate_options(123, currency: :USD, format: :currency_long)
+      currency_with_empty_counts = %{options.currency | count: %{}}
+      options = Map.put(options, :currency, currency_with_empty_counts)
+
+      assert Currency.to_string(123, :currency_long, options) == {:ok, "123 US Dollar"}
+    end
   end
 end

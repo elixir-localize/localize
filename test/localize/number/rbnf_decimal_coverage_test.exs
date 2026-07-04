@@ -68,6 +68,21 @@ defmodule Localize.Number.RbnfDecimalCoverageTest do
                {:ok, "пять миллионов"}
     end
 
+    test "Russian plural category is selected on the quotient, not the full number" do
+      # Regression: per TR35/ICU the $(cardinal,...)$ plural is selected
+      # on the number divided by the rule's divisor. 2_000_000 spells
+      # the quotient 2 (:few → "миллиона"); selecting on 2_000_000
+      # (:many) wrongly produced "два миллионов".
+      assert Number.to_string(2_000_000, format: :spellout_numbering, locale: "ru") ==
+               {:ok, "два миллиона"}
+
+      assert Number.to_string(1_000_000, format: :spellout_numbering, locale: "ru") ==
+               {:ok, "один миллион"}
+
+      assert Number.to_string(21_000_000, format: :spellout_numbering, locale: "ru") ==
+               {:ok, "двадцать один миллион"}
+    end
+
     test "German millions singular and plural" do
       assert Number.to_string(1_000_000, format: :spellout, locale: "de") ==
                {:ok, "eine Million"}

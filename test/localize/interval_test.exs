@@ -229,6 +229,22 @@ defmodule Localize.IntervalTest do
       assert String.contains?(result, "10:00")
       assert String.contains?(result, "10:30")
     end
+
+    test "equal endpoints honour :time_format in the fallback" do
+      # With equal Time endpoints there is no practical difference and
+      # the interval collapses to a single formatted time. That single
+      # time must be rendered with the requested `:time_format`, not
+      # the default (:medium, which includes seconds).
+      assert {:ok, result} =
+               Interval.to_string(~T[14:00:00], ~T[14:00:00],
+                 time_format: :short,
+                 locale: :en
+               )
+
+      {:ok, expected} = Localize.Time.to_string(~T[14:00:00], format: :short, locale: :en)
+      assert result == expected
+      refute String.contains?(result, ":00:00")
+    end
   end
 
   describe "greatest_difference/2" do
