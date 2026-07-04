@@ -25,6 +25,50 @@ defmodule Localize.Data.Supplemental do
   end
 
   @doc """
+  Generates day period rules from `dayPeriods.json`.
+
+  Returns a map with `:format` and `:selection` keys, each mapping a
+  language code string to its day-period rules. A rule maps a period
+  key atom (`:morning1`, `:noon`, …) to a map with `:at`, or `:from`
+  and `:before`, times expressed as minutes since midnight.
+
+  """
+  def generate_day_periods do
+    data = Localize.Data.read_json("dayPeriods.json")
+
+    %{
+      format: day_period_rule_set(get_in(data, ["supplemental", "dayPeriodRuleSet"])),
+      selection:
+        day_period_rule_set(get_in(data, ["supplemental", "dayPeriodRuleSet-type-selection"]))
+    }
+  end
+
+  defp day_period_rule_set(rule_set) do
+    Map.new(rule_set, fn {locale, rules} ->
+      parsed =
+        Map.new(rules, fn {period, spec} ->
+          {String.to_atom(period), day_period_spec(spec)}
+        end)
+
+      {locale, parsed}
+    end)
+  end
+
+  defp day_period_spec(spec) do
+    Map.new(spec, fn
+      {"_at", time} -> {:at, day_period_minutes(time)}
+      {"_from", time} -> {:from, day_period_minutes(time)}
+      {"_before", time} -> {:before, day_period_minutes(time)}
+    end)
+  end
+
+  # "13:00" → 780 minutes since midnight; "24:00" → 1440.
+  defp day_period_minutes(time) do
+    [hours, minutes] = String.split(time, ":")
+    String.to_integer(hours) * 60 + String.to_integer(minutes)
+  end
+
+  @doc """
   Generates territory code mappings from `codeMappings.json`.
 
   Returns a map of territory atoms to maps with `:alpha3`, `:numeric`,

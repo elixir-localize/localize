@@ -8,7 +8,7 @@ defmodule Localize.Number.RbnfDataTest do
 
   alias Localize.Number.Rbnf
 
-  @test_locales ["en"]
+  @test_locales ["en", "de", "es", "fr"]
   @support_dir Path.join([__DIR__, "..", "..", "support", "rbnf"])
 
   for locale <- @test_locales do

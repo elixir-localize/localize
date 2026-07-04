@@ -208,8 +208,13 @@ defmodule Localize.Number.Formatter.Short do
   end
 
   defp effective_max_fraction(mantissa, options) do
-    options.fractional_digits || options.max_fractional_digits ||
-      compact_max_fraction(mantissa)
+    max_fraction =
+      options.fractional_digits || options.max_fractional_digits ||
+        compact_max_fraction(mantissa)
+
+    # A caller-supplied negative value must not reach Float.round/2
+    # (it raises); the formatter itself treats negatives as zero.
+    max(max_fraction, 0)
   end
 
   # The rounded value must also carry the *visible fraction digits*

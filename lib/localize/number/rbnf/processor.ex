@@ -220,7 +220,7 @@ defmodule Localize.Number.Rbnf.Processor do
         apply_rule_set(abs(number), rule_set, all_sets, locale)
 
       {:format, format} ->
-        format_with_pattern(abs(number), format)
+        format_with_pattern(abs(number), format, locale)
     end
   end
 
@@ -251,7 +251,7 @@ defmodule Localize.Number.Rbnf.Processor do
     format_fraction_via_rule(number, to_string(rule_name), all_sets, locale)
   end
 
-  defp do_operation(:modulo, number, _rule_set, _rule, {:format, format}, _all_sets, _locale)
+  defp do_operation(:modulo, number, _rule_set, _rule, {:format, format}, _all_sets, locale)
        when is_float(number) do
     # Apply the decimal-format pattern to the fractional digits
     # treated as an integer.
@@ -264,7 +264,7 @@ defmodule Localize.Number.Rbnf.Processor do
         exp < 0 -> Integer.undigits(List.duplicate(0, -exp) ++ digits)
       end
 
-    format_with_pattern(fraction, format)
+    format_with_pattern(fraction, format, locale)
   end
 
   # Modulo for integers
@@ -280,7 +280,7 @@ defmodule Localize.Number.Rbnf.Processor do
         apply_rule_set(mod, rule_set, all_sets, locale)
 
       {:format, format} ->
-        format_with_pattern(mod, format)
+        format_with_pattern(mod, format, locale)
     end
   end
 
@@ -350,10 +350,10 @@ defmodule Localize.Number.Rbnf.Processor do
          _rule,
          {:format, format},
          _all_sets,
-         _locale
+         locale
        )
        when is_float(number) do
-    format_with_pattern(trunc(number), format)
+    format_with_pattern(trunc(number), format, locale)
   end
 
   # Quotient for integers. The TR35 syntax allows three argument
@@ -385,13 +385,13 @@ defmodule Localize.Number.Rbnf.Processor do
         apply_rule_set(divisor, rule_set, all_sets, locale)
 
       {:format, format} ->
-        format_with_pattern(divisor, format)
+        format_with_pattern(divisor, format, locale)
     end
   end
 
   # Call another rule or format
-  defp do_operation(:call, number, _rule_set, _rule, {:format, format}, _all_sets, _locale) do
-    format_with_pattern(number, format)
+  defp do_operation(:call, number, _rule_set, _rule, {:format, format}, _all_sets, locale) do
+    format_with_pattern(number, format, locale)
   end
 
   defp do_operation(:call, number, _rule_set, _rule, {:rule, rule_name}, all_sets, locale) do
@@ -485,8 +485,13 @@ defmodule Localize.Number.Rbnf.Processor do
 
   defp strip_r_prefix(name), do: name
 
-  defp format_with_pattern(number, format) do
-    case Localize.Number.to_string(number, format: format) do
+  # Decimal-format substitutions (`=#,##0=`, `<#,##0<`, `>#,##0>`)
+  # format with the RBNF rule's locale, not the process locale — the
+  # grouping separator must be the locale's own (fr "1 141e",
+  # de "1.141."). English's comma masked this when the locale was
+  # dropped.
+  defp format_with_pattern(number, format, locale) do
+    case Localize.Number.to_string(number, format: format, locale: locale) do
       {:ok, result} -> result
       {:error, _} -> to_string(number)
     end

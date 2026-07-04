@@ -396,11 +396,19 @@ defmodule Localize.LanguageTag do
 
   defp resolve_cldr_locale(%__MODULE__{} = tag) do
     case best_match(tag, SupplementalData.all_locale_ids()) do
+      # A score of 80 or more is the CLDR language-mismatch distance:
+      # the best "match" speaks a different language. Another
+      # language's data is never the right source for a tag (Klingon
+      # must not format with Afar data), so per TR35 the tag falls
+      # back to the root locale.
+      {:ok, _cldr_locale, score} when score >= 80 ->
+        %{tag | cldr_locale_id: :und}
+
       {:ok, cldr_locale, _score} ->
         %{tag | cldr_locale_id: cldr_locale}
 
       {:error, _} ->
-        tag
+        %{tag | cldr_locale_id: :und}
     end
   end
 
@@ -876,6 +884,13 @@ defmodule Localize.LanguageTag do
 
           {:ok, compute_canonical_name(tag)}
 
+        :error when language != :und ->
+          # A valid language with no likely-subtags mapping (e.g. the
+          # private-use range `qaa`..`qtz`). Maximization adds
+          # nothing; the tag passes through unchanged rather than
+          # inheriting the `und` mapping's script and region.
+          {:ok, compute_canonical_name(language_tag)}
+
         :error ->
           locale_name = build_canonical_name(language_tag)
           {:error, Localize.LikelySubtagsError.exception(locale: locale_name)}
@@ -998,17 +1013,18 @@ defmodule Localize.LanguageTag do
   # Lookup likely subtags in the CLDR data.
   # Tries keys in order: lang-script-region, lang-script, lang-region, lang.
   defp lookup_likely_subtags(language, script, region) do
+    # Per TR35 (Likely Subtags, Lookup) the candidate list for a
+    # non-und language is language-based only. Falling back to the
+    # `und` entries for an unmatched language would fabricate
+    # subtags — CLDR's test data marks e.g. `qaa-Cyrl` as FAIL, not
+    # `qaa-Cyrl-RU` via und-Cyrl. The und-based candidates apply
+    # only when the source language itself is `und`.
     candidates =
       [
         build_lookup_key(language, script, region),
         build_lookup_key(language, script, nil),
         build_lookup_key(language, nil, region),
-        build_lookup_key(language, nil, nil),
-        # Fall back to und variants
-        if(language != "und", do: build_lookup_key("und", script, region)),
-        if(language != "und", do: build_lookup_key("und", script, nil)),
-        if(language != "und", do: build_lookup_key("und", nil, region)),
-        if(language != "und", do: build_lookup_key("und", nil, nil))
+        build_lookup_key(language, nil, nil)
       ]
       |> Enum.reject(&is_nil/1)
 
@@ -1245,13 +1261,37 @@ defmodule Localize.LanguageTag do
       replacement when is_binary(replacement) ->
         %{map | territory: replacement}
 
-      [first | _rest] ->
-        # Multiple replacements — use the first one per CLDR spec.
-        %{map | territory: first}
+      [_ | _] = replacements ->
+        %{map | territory: disambiguate_territory_replacement(map, replacements)}
     end
   end
 
   defp resolve_territory_alias(map), do: map
+
+  # TR35 Annex C ("Territory Exception"): when a territory alias has
+  # multiple replacement values, use the most likely territory for the
+  # base language (and script, when present) if it appears in the
+  # replacement list; otherwise the first entry. `hy-SU` resolves to
+  # `hy-AM` because the likely territory for `hy` is AM, while
+  # `und-SU` resolves to `und-RU` (the first entry).
+  defp disambiguate_territory_replacement(map, [first | _] = replacements) do
+    with language when is_binary(language) <- Map.get(map, :language),
+         %{territory: likely} when not is_nil(likely) <-
+           likely_territory_entry(language, Map.get(map, :script)),
+         likely = Kernel.to_string(likely),
+         true <- likely in replacements do
+      likely
+    else
+      _ -> first
+    end
+  end
+
+  defp likely_territory_entry(language, script) do
+    likely_subtags = SupplementalData.likely_subtags()
+
+    (script && Map.get(likely_subtags, build_lookup_key(language, script, nil))) ||
+      Map.get(likely_subtags, build_lookup_key(language, nil, nil))
+  end
 
   defp resolve_variant_aliases(%{language_variants: []} = map), do: map
 

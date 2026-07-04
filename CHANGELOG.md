@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.44.0] — July 4th, 2026
+
+This release closes the TR35 conformance gaps in the date/time formatting layer and fixes locale-fidelity bugs surfaced by newly-wired conformance data.
+
+### Added
+
+* Flexible day periods: the `B` format symbol selects CLDR day periods ("in the morning", "mittags", "noon", "midnight") from the day-period rules now in the supplemental data pipeline, and `b` renders noon/midnight at the exact points. Languages without rules fall back to AM/PM.
+
+* The rbnf conformance suite now runs the vendored ICU reference data for `de`, `es` and `fr` in addition to `en`, and the likely-subtags suite asserts the CLDR FAIL rows.
+
+### Fixed
+
+* Week fields honour the locale's week configuration: `w` and `Y` compute week-of-year from the locale's first day and minimum days (2023-01-01 is week 1 in en, week 52 of 2022 in de), and `W` computes week-of-month accordingly. Previously all three were ISO-only.
+
+* Multi-replacement territory aliases follow TR35 Annex C: `hy-SU` canonicalizes to `hy-AM` via the likely territory, `uk-SU` to `uk-UA`, `sr-YU` to `sr-RS`; previously the first entry (RU) was always taken.
+
+* RBNF decimal-format substitutions (`=#,##0=`) format with the rule's locale instead of the process locale, so fr digits-ordinal renders "1 141e" and de "1.141." rather than the English "1,141".
+
+* Likely-subtags no longer fabricates mappings for languages without one: private-use languages (`qaa`) pass through unmaximized per the CLDR test data instead of inheriting the `und` mapping.
+
+* Locales whose language has no CLDR match resolve to root (`und`) data instead of the alphabetically nearest wrong language — `tlh` no longer formats with Afar data.
+
+* Compact formats no longer raise on a negative `:fractional_digits` option.
+
+### Changed
+
+* `mix test --cover` now excludes build-time tooling (the data-generation pipeline, mix tasks, compile-time parser generators) from coverage measurement so the number reflects the runtime library.
+
 ## [0.43.0] — July 4th, 2026
 
 This release settles the public API naming and error conventions ahead of 1.0. Every renamed function keeps its old name as a deprecated delegate that will be removed by Localize 1.0 and no later than December 2026.
