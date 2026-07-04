@@ -52,6 +52,10 @@ defmodule Localize.Locale.Provider.DownloadIntegrityTest do
 
   describe "verify_locale_integrity/3 without a manifest" do
     test "passes the body through and warns once" do
+      # Clear the warn-once flag first: a no-manifest download earlier
+      # in this VM (test-order dependent) would otherwise swallow the
+      # warning this test asserts.
+      Provider.reset_locale_hashes()
       Provider.put_locale_hashes(:no_manifest)
 
       log =
