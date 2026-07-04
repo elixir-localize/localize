@@ -45,7 +45,9 @@ defmodule Localize.Number.RbnfDecimalCoverageTest do
     end
 
     test "German decimal spellout uses Komma" do
-      assert Number.to_string(1.5, format: :spellout, locale: "de") == {:ok, "eine Komma fünf"}
+      # :spellout resolves to spellout-numbering (the ICU default),
+      # deterministically across OTP releases.
+      assert Number.to_string(1.5, format: :spellout, locale: "de") == {:ok, "eins Komma fünf"}
     end
 
     test "French decimal spellout spells fraction digits individually" do

@@ -238,7 +238,10 @@ defmodule Localize.DateTest do
       elapsed = System.monotonic_time(:millisecond) - start
 
       assert {:ok, _} = result
-      assert elapsed < 1000, "expected under 1s, got #{elapsed}ms"
+      # Generous bound: the regression this guards against looped
+      # indefinitely (60s ExUnit timeout); slow CI runners have
+      # exceeded 1s on the healthy path.
+      assert elapsed < 10_000, "expected under 10s, got #{elapsed}ms"
     end
 
     test "number_system override transliterates numeric fields" do

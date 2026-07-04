@@ -163,6 +163,10 @@ defmodule Localize.Utils.MapTest do
                %{"a_key" => %{"this_one" => 1}}
     end
 
+    test "underscore_keys of nil returns nil" do
+      assert MapUtils.underscore_keys(nil) == nil
+    end
+
     test "underscore handles dashes and dots" do
       assert MapUtils.underscore("thisOne-that.Other") == "this_one_that/other"
     end
@@ -258,6 +262,17 @@ defmodule Localize.Utils.MapTest do
 
     test "extract_strings of an empty list is an empty list" do
       assert MapUtils.extract_strings([]) == []
+    end
+
+    test "extract_strings keeps strings preceding a nested list or map" do
+      assert Enum.sort(MapUtils.extract_strings(["a", 1, ["b"]])) == ["a", "b"]
+
+      assert Enum.sort(MapUtils.extract_strings(["a", %{b: "b"}, ["c"], "d"])) == [
+               "a",
+               "b",
+               "c",
+               "d"
+             ]
     end
 
     test "prune removes branches for which the function returns true" do

@@ -45,6 +45,19 @@ defmodule Localize.Utils.MathTest do
     assert Math.round(0.959999999999809) == 1.0
   end
 
+  test "rounding floats < 1 rounds at the requested decimal place" do
+    assert Math.round(0.4, 0, :half_even) == 0.0
+    assert Math.round(0.5, 0, :half_even) == 0.0
+    assert Math.round(0.6, 0, :half_even) == 1.0
+    assert Math.round(-0.6, 0, :half_even) == -1.0
+    assert Math.round(0.06, 1, :half_even) == 0.1
+    assert Math.round(0.04, 1, :half_even) == 0.0
+    assert Math.round(0.04, 0, :up) == 1.0
+    assert Math.round(0.04, 0, :ceiling) == 1.0
+    assert Math.round(-0.04, 0, :floor) == -1.0
+    assert Math.round(0.04, 0, :down) == 0.0
+  end
+
   test "integer number of digits for a decimal fixnum" do
     decimal = Decimal.from_float(1234.5678)
     assert Digits.number_of_integer_digits(decimal) == 4

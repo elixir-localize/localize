@@ -991,9 +991,8 @@ defmodule Localize.Number.RbnfTest do
                Localize.Number.to_string(2_000_000, format: :spellout_cardinal, locale: "ru")
     end
 
-    test ":spellout still resolves to a gendered rule set for ru" do
-      assert {:ok, string} = Rbnf.to_string(2, :spellout, locale: :ru)
-      refute string == "2"
+    test ":spellout resolves to spellout-numbering for ru" do
+      assert {:ok, "два"} = Rbnf.to_string(2, :spellout, locale: :ru)
     end
 
     test "non-spellout rules still fall back to und (roman numerals)" do

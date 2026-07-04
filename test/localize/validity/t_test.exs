@@ -148,4 +148,36 @@ defmodule Localize.Validity.TTest do
       assert T.wrap([:a], :ok) == {:ok, [:a]}
     end
   end
+
+  describe "round trips through Localize.validate_locale/1" do
+    test "a year-month date value encodes with zero padding" do
+      assert {:ok, tag} = Localize.validate_locale("en-t-de-m0-202401")
+      assert to_string(tag) == "en-t-de-m0-202401"
+    end
+
+    test "a year-month-day date value round trips" do
+      assert {:ok, tag} = Localize.validate_locale("en-t-de-m0-20240102")
+      assert to_string(tag) == "en-t-de-m0-20240102"
+    end
+
+    test "the t language subtag round trips in lower case" do
+      assert {:ok, tag} = Localize.validate_locale("en-t-DE")
+      assert to_string(tag) == "en-t-de"
+    end
+
+    test "list values sort with the date last" do
+      assert {:ok, tag} = Localize.validate_locale("en-t-de-m0-ungegn-bgn-2007")
+      assert to_string(tag) == "en-t-de-m0-bgn-ungegn-2007"
+    end
+
+    test "two dates in one field are invalid" do
+      assert {:error, %Localize.InvalidLocaleError{}} =
+               Localize.validate_locale("en-t-de-m0-2007-2008")
+    end
+
+    test "private use values round trip" do
+      assert {:ok, tag} = Localize.validate_locale("en-t-de-x0-foo-bar")
+      assert to_string(tag) == "en-t-de-x0-foo-bar"
+    end
+  end
 end

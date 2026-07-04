@@ -87,7 +87,12 @@ jobs:
         run: mix compile --warnings-as-errors
 
       - name: Run tests
+        if: ${{ !matrix.lint }}
         run: mix test
+
+      - name: Run tests with coverage
+        if: matrix.lint
+        run: mix test --cover
 
       - name: Restore PLT cache
         if: matrix.lint

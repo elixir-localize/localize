@@ -684,7 +684,11 @@ defmodule Localize.Utils.Map do
   """
   def underscore_keys(map, options \\ [])
 
-  def underscore_keys(map, options) when is_map(map) or is_nil(map) do
+  def underscore_keys(nil, _options) do
+    nil
+  end
+
+  def underscore_keys(map, options) when is_map(map) do
     deep_map(map, &underscore_key/1, options)
   end
 
@@ -961,8 +965,8 @@ defmodule Localize.Utils.Map do
   def extract_strings(list, _options) when is_list(list) do
     Enum.reduce(list, [], fn
       v, acc when is_binary(v) -> [v | acc]
-      v, acc when is_map(v) -> extract_strings(v, acc)
-      v, acc when is_list(v) -> extract_strings(v, acc)
+      v, acc when is_map(v) -> [extract_strings(v) | acc]
+      v, acc when is_list(v) -> [extract_strings(v) | acc]
       _other, acc -> acc
     end)
     |> List.flatten()

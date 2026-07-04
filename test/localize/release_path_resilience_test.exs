@@ -23,7 +23,7 @@ defmodule Localize.ReleasePathResilienceTest do
 
       beam_bytes =
         Localize.Number.System
-        |> :code.which()
+        |> beam_path()
         |> File.read!()
 
       refute String.contains?(beam_bytes, absolute),
@@ -37,6 +37,19 @@ defmodule Localize.ReleasePathResilienceTest do
              resolved at runtime via `Application.app_dir/2` called from a
              function body, not from a module attribute.
              """
+    end
+  end
+
+  # Under `mix test --cover` `:code.which/1` returns `:cover_compiled`
+  # instead of a path; resolve the on-disk beam directly so this
+  # regression check also runs under coverage.
+  defp beam_path(module) do
+    case :code.which(module) do
+      :cover_compiled ->
+        Path.join([Application.app_dir(:localize), "ebin", "#{module}.beam"])
+
+      path ->
+        path
     end
   end
 end

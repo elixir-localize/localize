@@ -18,7 +18,7 @@ A quality release: the codebase now passes `mix credo --strict` with zero findin
 
 * A documentation depth pass adds around 150 execution-verified doctest examples and 40 `### Options` sections across the number, unit, date/time, locale, territory, list, collation and message modules, and corrects stale claims (RBNF number-system conversion, locale defaults, the `validate_locale/1` matching warning).
 
-* A test-coverage push adds around 1,000 tests across exceptions, collation, date/time formatting, MessageFormat 2 tooling, language-tag validity and number/unit internals, raising runtime-library line coverage from 70% to 84%.
+* A test-coverage push adds around 1,700 tests across exceptions, collation, date/time formatting, MessageFormat 2 tooling, language-tag validity, number/unit internals and the runtime plumbing, raising runtime-library line coverage from 70% to 91%. The 90% threshold is now enforced in CI.
 
 ### Changed
 
@@ -65,6 +65,14 @@ A quality release: the codebase now passes `mix credo --strict` with zero findin
 * RBNF plural substitutions (`$(cardinal,…)$`) select the plural category on the quotient of the rule divisor per ICU: Russian 2,000,000 spells out as "два миллиона", not "два миллионов".
 
 * Requesting a spellout ruleset a locale does not have returns `Localize.UnknownRbnfRuleError` — with its `available:` field now populated — instead of silently formatting digits.
+
+* The `:spellout` format resolves to `spellout-numbering` (ICU's default ruleset) deterministically; previously the choice among a locale's gendered rulesets varied across OTP releases (German 1.5 could spell "eine", "ein" or "eins" depending on the VM).
+
+* Numeric collation values non-ASCII digits from their Unicode block zero: Arabic-Indic "٢" sorts before "١٠" and "٠" compares equal to "0"; previously digit values were computed modulo 10 of the codepoint, wrapping mid-block.
+
+* `:fractional_digits` applies to numbers with a zero integer part: `Number.to_string(0.4, fractional_digits: 0)` returns "0" (previously "0.4"), with float and Decimal inputs rounding identically across all rounding modes.
+
+* `Localize.Utils.Map.extract_strings/2` no longer drops strings that precede a nested list or map, and `underscore_keys(nil)` returns nil instead of raising.
 
 * `Number.to_range_string/3` with `approximate: true` formats the full range ("~3–5"); previously the range end was silently dropped.
 

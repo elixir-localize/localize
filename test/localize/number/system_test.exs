@@ -144,4 +144,43 @@ defmodule Localize.Number.SystemTest do
       assert nil == Localize.Utils.Helpers.existing_atom(bogus)
     end
   end
+
+  describe "bang variants raise on error" do
+    test "number_systems_for!/1 raises for an invalid locale" do
+      assert_raise Localize.InvalidLocaleError, fn ->
+        System.number_systems_for!("zz-invalid")
+      end
+    end
+
+    test "number_system_names_for!/1 raises for an invalid locale" do
+      assert_raise Localize.InvalidLocaleError, fn ->
+        System.number_system_names_for!("zz-invalid")
+      end
+    end
+
+    test "system_name_from!/2 raises for an unknown system" do
+      assert_raise Localize.UnknownNumberSystemError, fn ->
+        System.system_name_from!(:nosuch, :en)
+      end
+    end
+
+    test "number_system_digits!/1 raises for an unknown system" do
+      assert_raise Localize.InvalidValueError, fn ->
+        System.number_system_digits!(:nosuch)
+      end
+    end
+
+    test "to_system!/2 raises for an unknown system" do
+      assert_raise Localize.InvalidValueError, fn ->
+        System.to_system!(123, :nosuch)
+      end
+    end
+  end
+
+  describe "number_system_from_locale/1 with a -u-nu- override" do
+    test "returns the nu extension system" do
+      {:ok, tag} = Localize.validate_locale("en-u-nu-thai")
+      assert System.number_system_from_locale(tag) == {:ok, :thai}
+    end
+  end
 end

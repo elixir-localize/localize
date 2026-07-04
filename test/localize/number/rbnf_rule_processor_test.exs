@@ -199,4 +199,181 @@ defmodule Localize.Number.RbnfRuleProcessorTest do
       end
     end
   end
+
+  describe "Processor.process/5 with string-keyed rule maps" do
+    alias Localize.Number.Rbnf.Processor
+
+    defp units do
+      [
+        %{
+          "base_value" => 0,
+          "radix" => 10,
+          "definition" => "zero",
+          "range" => "undefined",
+          "divisor" => 1
+        },
+        %{
+          "base_value" => 1,
+          "radix" => 10,
+          "definition" => "one",
+          "range" => 2,
+          "divisor" => 1
+        },
+        %{
+          "base_value" => 2,
+          "radix" => 10,
+          "definition" => "two",
+          "range" => "undefined",
+          "divisor" => 1
+        },
+        %{
+          "base_value" => 20,
+          "radix" => 10,
+          "definition" => "twenty[->>]",
+          "range" => "undefined",
+          "divisor" => 10
+        }
+      ]
+    end
+
+    test "returns an error when no rule matches" do
+      assert Processor.process(5, "empty", [], %{}) ==
+               {:error, "No matching rule for 5 in empty"}
+    end
+
+    test "selects rules by integer base value" do
+      all_rule_sets = %{"units" => %{rules: units()}}
+
+      assert Processor.process(0, "units", units(), all_rule_sets) == {:ok, "zero"}
+      assert Processor.process(1, "units", units(), all_rule_sets) == {:ok, "one"}
+      assert Processor.process(20, "units", units(), all_rule_sets) == {:ok, "twenty"}
+    end
+
+    test "applies a conditional modulo remainder" do
+      all_rule_sets = %{"units" => %{rules: units()}}
+
+      assert Processor.process(21, "units", units(), all_rule_sets) == {:ok, "twenty-one"}
+    end
+
+    test "a -x rule formats negative numbers" do
+      rules = [
+        %{
+          "base_value" => "-x",
+          "radix" => 10,
+          "definition" => "minus >>",
+          "range" => "undefined",
+          "divisor" => 1
+        }
+        | units()
+      ]
+
+      all_rule_sets = %{"units" => %{rules: rules}}
+
+      assert Processor.process(-2, "units", rules, all_rule_sets) == {:ok, "minus two"}
+    end
+
+    test "fractions use the 0.x rule and synthesize a minus sign" do
+      rules = [
+        %{
+          "base_value" => "0.x",
+          "radix" => 10,
+          "definition" => "point >>",
+          "range" => "undefined",
+          "divisor" => 1
+        },
+        %{
+          "base_value" => "x.x",
+          "radix" => 10,
+          "definition" => "<< point >>",
+          "range" => "undefined",
+          "divisor" => 1
+        }
+        | units()
+      ]
+
+      all_rule_sets = %{"units" => %{rules: rules}}
+
+      assert Processor.process(0.5, "units", rules, all_rule_sets) == {:ok, "point two"}
+      assert Processor.process(-0.5, "units", rules, all_rule_sets) == {:ok, "-point two"}
+      assert Processor.process(2.5, "units", rules, all_rule_sets) == {:ok, "two point two"}
+    end
+
+    test "an unparseable definition returns an error" do
+      rules = [
+        %{
+          "base_value" => 0,
+          "radix" => 10,
+          "definition" => "=%",
+          "range" => "undefined",
+          "divisor" => 1
+        }
+      ]
+
+      assert {:error, "Failed to parse rule: " <> _rest} =
+               Processor.process(0, "bad", rules, %{})
+    end
+
+    test "a decimal-format call formats with the pattern" do
+      rules = [
+        %{
+          "base_value" => 0,
+          "radix" => 10,
+          "definition" => "=#,##0=",
+          "range" => "undefined",
+          "divisor" => 1
+        }
+      ]
+
+      assert Processor.process(1234, "fmt", rules, %{}, :en) == {:ok, "1,234"}
+    end
+
+    test "ruleset calls resolve string, atom, dashed and underscored names" do
+      call_rules = [
+        %{
+          "base_value" => 0,
+          "radix" => 10,
+          "definition" => "=%units=",
+          "range" => "undefined",
+          "divisor" => 1
+        }
+      ]
+
+      assert Processor.process(2, "call", call_rules, %{"units" => %{rules: units()}}) ==
+               {:ok, "two"}
+
+      assert Processor.process(2, "call", call_rules, %{units: %{rules: units()}}) ==
+               {:ok, "two"}
+
+      dashed_rules = [
+        %{
+          "base_value" => 0,
+          "radix" => 10,
+          "definition" => "=%my-units=",
+          "range" => "undefined",
+          "divisor" => 1
+        }
+      ]
+
+      assert Processor.process(2, "call2", dashed_rules, %{"my-units" => %{rules: units()}}) ==
+               {:ok, "two"}
+
+      assert Processor.process(2, "call2", dashed_rules, %{"my_units" => %{rules: units()}}) ==
+               {:ok, "two"}
+    end
+
+    test "a missing ruleset is an error" do
+      call_rules = [
+        %{
+          "base_value" => 0,
+          "radix" => 10,
+          "definition" => "=%units=",
+          "range" => "undefined",
+          "divisor" => 1
+        }
+      ]
+
+      assert Processor.process(2, "call", call_rules, %{}) ==
+               {:error, "Rule set \"units\" not found"}
+    end
+  end
 end
