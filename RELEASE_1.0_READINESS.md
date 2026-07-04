@@ -120,12 +120,13 @@ Confirmed good: zero TODO/FIXME/@deprecated in lib; exception convention uniform
 7. Error-shape policy: validators return tuples not raises; fix `quote/2` silent fallback and `:style`→`:format`; add the 5 bang variants; `validate_currency` delegate; Currency positional args.
 8. NIF-branch locale validation (close the last §3 deferral); LocaleDefaults goes internal with B5.
 
-### Milestone 3 — Conformance and coverage depth
+### Milestone 3 — Conformance and coverage depth — DONE (July 4, 2026)
 
-9. C2 day periods (import dayPeriods data, implement B/b) and C3 week fields (use firstDay/minDays) — the two larger conformance builds.
-10. C5 alias disambiguation (Annex C) + hand-written SU/YU/CS tests.
-11. Coverage: ignore_modules re-baseline, then DateTime.Formatter / Unit.Formatter / Utils.Http / exception-message tests; wire dark rbnf + ICU number data; MF2 formatter conformance suite. Ratchet CI threshold.
-12. S1 download integrity manifest (design needed: manifest format, signing, rollout — the one security item with real design work).
+9. ~~C2 day periods and C3 week fields~~ — done: B/b select from the CLDR day-period rules (data in the supplemental pipeline); w/Y/W honour locale firstDay/minDays. ICU-verified.
+10. ~~C5 alias disambiguation~~ — done per Annex C with SU/YU/CS tests.
+11. Coverage: ignore_modules re-baseline done (honest runtime baseline 70.42%); rbnf de/es/fr wired (found and fixed the RBNF process-locale separator bug); likely-subtags FAIL rows asserted (found and fixed the und-fallback fabrication for private-use languages); unwired icu_test_cases.txt deleted — re-vendor with a dedicated harness is an M4 candidate alongside the MF2 formatter suite and the DateTime.Formatter / Unit.Formatter / Utils.Http coverage push.
+12. ~~S1 download integrity~~ — done as Option C: SHA-256 manifest bundled in the package (`priv/localize/locale_hashes.etf` via `mix localize.generate_locale_hashes`), verified in `download_locale/1` before decode and cache write; fail-closed with `LocaleIntegrityError` when the manifest is present, warn-once transitional when absent. Add manifest generation to the release checklist.
+13. Bonus from this sprint: `LanguageTag.U.parse/1`/`parse!/1` public entry point (for Tempo); `Validity.U` encode prefers non-deprecated BCP 47 spellings and decode accepts atom keys + hyphenated calendar values (needs validity data regen); wrong-language locale resolution now falls back to root instead of the nearest wrong language.
 
 ### Milestone 4 — Polish and RC
 

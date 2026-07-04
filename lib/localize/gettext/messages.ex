@@ -179,6 +179,18 @@ defmodule Localize.Gettext.Messages do
         Localize.Gettext,
         "localize",
         "locale",
+        "The locale {$locale_id} downloaded from {$url} has no entry in the locale hash manifest."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "The locale {$locale_id} downloaded from {$url} failed integrity verification. Expected SHA-256 {$expected} but the content hashes to {$actual}."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
         "No parent territory found for {$territory}."
       ),
       Gettext.Macros.dpgettext_noop_with_backend(

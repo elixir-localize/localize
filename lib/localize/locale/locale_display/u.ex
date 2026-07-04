@@ -127,11 +127,11 @@ defmodule Localize.Locale.LocaleDisplay.U do
           nil ->
             case get_in(validity, [bcp47_key, dehyphenated]) do
               nil -> value
-              c -> c
+              c -> unwrap_deprecated(c)
             end
 
           c ->
-            c
+            unwrap_deprecated(c)
         end
       else
         value
@@ -391,4 +391,10 @@ defmodule Localize.Locale.LocaleDisplay.U do
         |> String.replace("_", " ")
     end
   end
+
+  # Validity values for deprecated spellings are tagged
+  # `{:deprecated, preferred}`; display always uses the preferred
+  # form.
+  defp unwrap_deprecated({:deprecated, preferred}), do: preferred
+  defp unwrap_deprecated(value), do: value
 end
