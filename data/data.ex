@@ -710,24 +710,6 @@ defmodule Localize.Data do
   end
 
   @doc """
-  Generates `priv/localize/locale_hashes.etf`, the SHA-256 manifest
-  used by `Localize.Locale.Provider.download_locale/1` to verify
-  locale files downloaded from the CDN.
-
-  Called automatically at the end of `generate_all_locales/0`, and
-  directly by `mix localize.generate_locale_hashes`.
-
-  ### Arguments
-
-  * `locales_dir` is the directory containing the generated locale
-    `.etf` files.
-
-  ### Returns
-
-  * `:ok`. Raises if the directory contains no locale files.
-
-  """
-  @doc """
   Generates the locale hash manifest from the bytes currently served
   by the CDN rather than from locally generated files.
 
@@ -775,6 +757,24 @@ defmodule Localize.Data do
     write_locale_hashes(hashes, "the CDN at #{Localize.Locale.Provider.base_url()}")
   end
 
+  @doc """
+  Generates `priv/localize/locale_hashes.etf`, the SHA-256 manifest
+  used by `Localize.Locale.Provider.download_locale/1` to verify
+  locale files downloaded from the CDN.
+
+  Called automatically at the end of `generate_all_locales/0`, and
+  directly by `mix localize.generate_locale_hashes`.
+
+  ### Arguments
+
+  * `locales_dir` is the directory containing the generated locale
+    `.etf` files.
+
+  ### Returns
+
+  * `:ok`. Raises if the directory contains no locale files.
+
+  """
   @spec generate_locale_hashes(String.t()) :: :ok
   def generate_locale_hashes(locales_dir) do
     etf_files =
