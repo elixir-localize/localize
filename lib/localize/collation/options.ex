@@ -370,32 +370,6 @@ defmodule Localize.Collation.Options do
   end
 
   @doc """
-  Return the maximum primary weight that counts as "variable" for the given setting.
-
-  ### Arguments
-
-  * `options` - a `%Localize.Collation.Options{}` struct.
-
-  ### Returns
-
-  A non-negative integer representing the maximum primary weight boundary.
-
-  ### Examples
-
-      iex> Localize.Collation.Options.max_variable_primary(%Localize.Collation.Options{max_variable: :punct})
-      0x0B61
-
-      iex> Localize.Collation.Options.max_variable_primary(%Localize.Collation.Options{max_variable: :space})
-      0x0209
-
-  """
-  @spec max_variable_primary(t()) :: non_neg_integer()
-  def max_variable_primary(%__MODULE__{max_variable: :space}), do: 0x0209
-  def max_variable_primary(%__MODULE__{max_variable: :punct}), do: 0x0B61
-  def max_variable_primary(%__MODULE__{max_variable: :symbol}), do: 0x0EE3
-  def max_variable_primary(%__MODULE__{max_variable: :currency}), do: 0x0EFF
-
-  @doc """
   Returns whether the given options can be handled by the NIF backend.
 
   ### Arguments

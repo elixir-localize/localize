@@ -267,8 +267,8 @@ defmodule Localize.Collation do
   defp build_sort_key(codepoints, options, original_string) do
     elements = produce_collation_elements(codepoints, options)
 
-    max_var_primary = Options.max_variable_primary(options)
-    processed = Variable.process(elements, options.alternate, max_var_primary)
+    variable_range = Variable.primary_range(options.max_variable)
+    processed = Variable.process(elements, options.alternate, variable_range)
 
     processed =
       case Reorder.build_mapping(options.reorder) do

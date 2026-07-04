@@ -77,21 +77,9 @@ defmodule Localize.Collation.Reorder do
 
   defp build_lead_byte_permutation(reorder_codes, script_ranges) do
     {ordered_ranges, remaining} =
-      Enum.reduce(reorder_codes, {[], script_ranges}, fn code, {ordered, remaining} ->
-        normalized = normalize_code(code)
-
-        case Map.pop(remaining, normalized) do
-          {nil, remaining} ->
-            {ordered, remaining}
-
-          {range, remaining} ->
-            {[{normalized, range} | ordered], remaining}
-        end
-      end)
+      Enum.reduce(reorder_codes, {[], script_ranges}, &collect_reorder_code/2)
 
     ordered_ranges = Enum.reverse(ordered_ranges)
-
-    has_others = Enum.any?(reorder_codes, fn c -> c in [:others, :Zzzz] end)
 
     core_codes = ["space", "punctuation", "symbol", "currency", "digit"]
 
@@ -110,21 +98,44 @@ defmodule Localize.Collation.Reorder do
       end)
       |> dedup_by_range()
 
+    # All scripts not explicitly mentioned, in their default order.
+    # Per TR35 these splice in at the position of the :others code,
+    # or append after the mentioned scripts when :others is absent.
     others_entries =
-      if has_others do
-        []
+      remaining
+      |> Map.drop(core_codes)
+      |> Enum.sort_by(fn {_k, {start, _end}} -> start end)
+      |> dedup_by_range()
+
+    ordered_with_others =
+      if :others in ordered_ranges do
+        Enum.flat_map(ordered_ranges, fn
+          :others -> others_entries
+          entry -> [entry]
+        end)
       else
-        remaining
-        |> Map.drop(core_codes)
-        |> Enum.sort_by(fn {_k, {start, _end}} -> start end)
-        |> dedup_by_range()
+        ordered_ranges ++ others_entries
       end
 
     all_entries =
-      (core_entries ++ ordered_ranges ++ others_entries)
+      (core_entries ++ ordered_with_others)
       |> dedup_by_range()
 
     build_lead_byte_remap(all_entries)
+  end
+
+  defp collect_reorder_code(code, {ordered, remaining}) when code in [:others, :Zzzz] do
+    {[:others | ordered], remaining}
+  end
+
+  defp collect_reorder_code(code, {ordered, remaining}) do
+    case Map.pop(remaining, normalize_code(code)) do
+      {nil, remaining} ->
+        {ordered, remaining}
+
+      {range, remaining} ->
+        {[{normalize_code(code), range} | ordered], remaining}
+    end
   end
 
   defp dedup_by_range(entries) do

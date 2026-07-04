@@ -59,4 +59,12 @@ defmodule Localize.DateTimeIntervalFormatError do
       "No interval format fallback pattern available in the locale data."
     )
   end
+
+  def message(%__MODULE__{reason: :mixed_endpoints, detail: detail}) do
+    Localize.Exception.safe_message(
+      "datetime",
+      "Interval endpoints must be the same kind of value. Found {$detail}.",
+      detail: detail
+    )
+  end
 end

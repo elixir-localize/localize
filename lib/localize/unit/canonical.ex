@@ -169,12 +169,16 @@ defmodule Localize.Unit.Canonical do
 
   # ── Canonical sorting ──────────────────────────────────────────────
 
-  # The canonical order of simple base units from CLDR unitQuantities.
-  # Units are sorted by the position of their base in this list.
-  # Units not in this list sort to the end, using base name as tiebreaker.
+  # TR35 unit identifier normalization rule 4: single units sort by
+  # the position of their quantity's base unit among the unitQuantity
+  # elements of units.xml (power sorts before duration, so
+  # "kilowatt-hour" is canonical, not "hour-kilowatt"). The sort key
+  # is the order index of the unit's conversion target, not of the
+  # unit name itself. Units without a conversion (private use,
+  # currency) sort after all others, alphabetically.
   defp canonical_order do
     cached(:canonical_order, fn ->
-      Data.simple_base_units()
+      Data.base_unit_order()
       |> Enum.with_index()
       |> Map.new()
     end)
@@ -187,7 +191,8 @@ defmodule Localize.Unit.Canonical do
     Enum.sort_by(units, fn
       {:single_unit, opts} ->
         base = Keyword.get(opts, :base)
-        {1, Map.get(canonical_order, base, fallback), base}
+        conversion_target = Data.conversion_raw(base)
+        {1, Map.get(canonical_order, conversion_target, fallback), base}
 
       {:constant, _} ->
         {0, 0, ""}

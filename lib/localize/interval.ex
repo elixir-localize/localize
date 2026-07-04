@@ -87,8 +87,15 @@ defmodule Localize.Interval do
       time_value?(from) and time_value?(to) ->
         format_time_interval(from, to, options)
 
-      true ->
+      date_value?(from) and date_value?(to) ->
         format_date_interval(from, to, options)
+
+      true ->
+        {:error,
+         Localize.DateTimeIntervalFormatError.exception(
+           reason: :mixed_endpoints,
+           detail: "#{inspect(from)} and #{inspect(to)}"
+         )}
     end
   end
 
@@ -104,6 +111,10 @@ defmodule Localize.Interval do
   defp datetime_value?(%Time{}), do: false
   defp datetime_value?(%{year: _, hour: _}), do: true
   defp datetime_value?(_), do: false
+
+  defp date_value?(%Date{}), do: true
+  defp date_value?(%{year: _} = map), do: not Map.has_key?(map, :hour)
+  defp date_value?(_), do: false
 
   defp time_value?(%Time{}), do: true
   defp time_value?(%DateTime{}), do: false
