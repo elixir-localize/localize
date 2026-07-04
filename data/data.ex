@@ -727,6 +727,54 @@ defmodule Localize.Data do
   * `:ok`. Raises if the directory contains no locale files.
 
   """
+  @doc """
+  Generates the locale hash manifest from the bytes currently served
+  by the CDN rather than from locally generated files.
+
+  This exists to (re)establish the manifest baseline when the local
+  generation predates or postdates the uploaded data — for example
+  when a newer OTP re-encodes value-identical ETF files with
+  different bytes. The published data for a version is immutable, so
+  hashing what the CDN serves pins exactly what consumers download.
+
+  Every locale must download successfully; any failure raises and no
+  manifest is written.
+
+  ### Returns
+
+  * `:ok`.
+
+  """
+  @spec generate_locale_hashes_from_cdn() :: :ok
+  def generate_locale_hashes_from_cdn do
+    locale_ids = Localize.SupplementalData.all_locale_ids()
+    total = length(locale_ids)
+    IO.puts("Hashing #{total} locales from #{Localize.Locale.Provider.base_url()}...")
+
+    hashes =
+      locale_ids
+      |> Task.async_stream(
+        fn locale_id ->
+          url = Localize.Locale.Provider.locale_url(locale_id)
+
+          case Localize.Utils.Http.get(url) do
+            {:ok, body} when is_binary(body) ->
+              {locale_id, :crypto.hash(:sha256, body)}
+
+            other ->
+              raise "download failed for #{inspect(locale_id)} from #{url}: #{inspect(other)}"
+          end
+        end,
+        max_concurrency: 8,
+        timeout: 120_000,
+        ordered: false
+      )
+      |> Enum.map(fn {:ok, pair} -> pair end)
+      |> Map.new()
+
+    write_locale_hashes(hashes, "the CDN at #{Localize.Locale.Provider.base_url()}")
+  end
+
   @spec generate_locale_hashes(String.t()) :: :ok
   def generate_locale_hashes(locales_dir) do
     etf_files =
@@ -751,12 +799,16 @@ defmodule Localize.Data do
         {locale_id, :crypto.hash(:sha256, File.read!(path))}
       end)
 
+    write_locale_hashes(hashes, inspect(locales_dir))
+  end
+
+  defp write_locale_hashes(hashes, source_description) do
     manifest_path = Path.join(File.cwd!(), "priv/localize/locale_hashes.etf")
     File.write!(manifest_path, :erlang.term_to_binary(hashes))
 
     IO.puts(
       "Wrote #{map_size(hashes)} locale hashes to priv/localize/locale_hashes.etf " <>
-        "from #{inspect(locales_dir)}"
+        "from #{source_description}"
     )
 
     :ok
