@@ -9,6 +9,8 @@ defmodule Localize.Utils.HttpTest do
 
   use ExUnit.Case, async: true
 
+  import ExUnit.CaptureLog
+
   doctest Localize.Utils.Http
 
   describe "secure_ssl?/1" do
@@ -63,6 +65,101 @@ defmodule Localize.Utils.HttpTest do
           Application.delete_env(:localize, :max_http_body_bytes)
         end
       end
+    end
+  end
+
+  describe "certificate_locations/0" do
+    test "ends with the well-known static locations" do
+      locations = Localize.Utils.Http.certificate_locations()
+
+      assert "/etc/ssl/cert.pem" in locations
+      assert "/etc/ssl/certs/ca-certificates.crt" in locations
+    end
+
+    test "includes a configured :cacertfile ahead of the static locations" do
+      original = Application.get_env(:localize, :cacertfile)
+      Application.put_env(:localize, :cacertfile, "/tmp/localize-http-test.pem")
+
+      try do
+        assert List.first(Localize.Utils.Http.dynamic_certificate_locations()) ==
+                 "/tmp/localize-http-test.pem"
+
+        assert List.first(Localize.Utils.Http.certificate_locations()) ==
+                 "/tmp/localize-http-test.pem"
+      after
+        if original do
+          Application.put_env(:localize, :cacertfile, original)
+        else
+          Application.delete_env(:localize, :cacertfile)
+        end
+      end
+    end
+  end
+
+  describe "certificate_store/0" do
+    @tag :tmp_dir
+    test "returns the first candidate file that exists", %{tmp_dir: tmp_dir} do
+      certificate_file = Path.join(tmp_dir, "fake-store.pem")
+      File.write!(certificate_file, "not really a certificate")
+
+      original = Application.get_env(:localize, :cacertfile)
+      Application.put_env(:localize, :cacertfile, certificate_file)
+
+      try do
+        assert Localize.Utils.Http.certificate_store() == certificate_file
+      after
+        if original do
+          Application.put_env(:localize, :cacertfile, original)
+        else
+          Application.delete_env(:localize, :cacertfile)
+        end
+      end
+    end
+  end
+
+  # These requests target a local port on which nothing listens, so
+  # the connection is refused immediately without any external
+  # network traffic. They exercise the request-building and error
+  # normalization paths in `get_with_headers/2`.
+  describe "get/2 and get_with_headers/2 error normalization" do
+    test "a refused local connection returns a failed_connect error and logs" do
+      {result, log} =
+        with_log(fn ->
+          Localize.Utils.Http.get("https://127.0.0.1:9/nothing.etf",
+            connection_timeout: 2_000,
+            timeout: 3_000
+          )
+        end)
+
+      assert {:error, {:failed_connect, _details}} = result
+      assert log =~ "Failed to download"
+    end
+
+    test "the {url, headers} tuple form takes charlist headers" do
+      {result, _log} =
+        with_log(fn ->
+          Localize.Utils.Http.get_with_headers(
+            {"https://127.0.0.1:9/nothing.etf", [{~c"accept", ~c"*/*"}]},
+            connection_timeout: 2_000,
+            timeout: 3_000
+          )
+        end)
+
+      assert {:error, {:failed_connect, _details}} = result
+    end
+
+    test "an invalid https_proxy option logs a warning and continues" do
+      {result, log} =
+        with_log(fn ->
+          Localize.Utils.Http.get_with_headers({"https://127.0.0.1:9/x", []},
+            https_proxy: "not a url",
+            connection_timeout: 2_000,
+            timeout: 3_000
+          )
+        end)
+
+      assert {:error, _reason} = result
+      assert log =~ "https_proxy was set to an invalid value"
     end
   end
 

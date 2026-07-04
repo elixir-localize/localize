@@ -769,4 +769,179 @@ defmodule Localize.IntervalTest do
                Interval.to_string(d1, d2, format: :medium, style: :year_and_month, locale: :ja)
     end
   end
+
+  describe "to_string/3 argument defaults and endpoint validation" do
+    test "options default to the current locale" do
+      assert {:ok, result} = Interval.to_string(~D[2022-04-22], ~D[2022-04-25])
+      assert result =~ "Apr"
+    end
+
+    test "a Date and a Time endpoint return a :mixed_endpoints error" do
+      assert {:error, %Localize.DateTimeIntervalFormatError{reason: :mixed_endpoints}} =
+               Interval.to_string(~D[2022-01-01], ~T[10:00:00], locale: :en)
+    end
+
+    test "a NaiveDateTime and a Time endpoint return a :mixed_endpoints error" do
+      assert {:error, %Localize.DateTimeIntervalFormatError{reason: :mixed_endpoints}} =
+               Interval.to_string(~N[2022-01-01 10:00:00], ~T[12:00:00], locale: :en)
+    end
+
+    test "to_string!/3 raises on mixed endpoints" do
+      assert_raise Localize.DateTimeIntervalFormatError, fn ->
+        Interval.to_string!(~D[2022-01-01], ~T[10:00:00], locale: :en)
+      end
+    end
+
+    test "partial time-only maps format as a time interval" do
+      assert {:ok, result} =
+               Interval.to_string(%{hour: 10, minute: 0}, %{hour: 12, minute: 30},
+                 locale: :en,
+                 prefer: :ascii
+               )
+
+      assert result =~ "10:00 AM"
+      assert result =~ "12:30 PM"
+    end
+  end
+
+  describe "to_string/3 error propagation" do
+    test "an invalid locale on the :short time path returns an error" do
+      assert {:error, %Localize.InvalidLocaleError{}} =
+               Interval.to_string(~T[10:00:00], ~T[12:00:00], format: :short, locale: :zzz)
+    end
+
+    test "an invalid locale on the datetime path returns an error" do
+      assert {:error, %Localize.InvalidLocaleError{}} =
+               Interval.to_string(
+                 ~N[2022-01-01 10:00:00],
+                 ~N[2022-01-02 10:00:00],
+                 locale: :zzz
+               )
+    end
+
+    test "an unknown time skeleton returns a :no_format error" do
+      assert {:error,
+              %Localize.DateTimeIntervalFormatError{reason: :no_format, format_key: :bogus}} =
+               Interval.to_string(~T[10:00:00], ~T[12:00:00], time_format: :bogus, locale: :en)
+    end
+  end
+
+  describe "to_string/3 with equal endpoints" do
+    test "equal times with a skeleton format collapse to a single time" do
+      assert {:ok, result} =
+               Interval.to_string(~T[10:00:00], ~T[10:00:00],
+                 time_format: :short,
+                 locale: :en,
+                 prefer: :ascii
+               )
+
+      assert result =~ "10:00"
+      refute result =~ "–"
+    end
+
+    test "equal datetimes collapse to a single datetime" do
+      assert {:ok, "Jan 1, 2022, 10:00:00 AM"} =
+               Interval.to_string(
+                 ~N[2022-01-01 10:00:00],
+                 ~N[2022-01-01 10:00:00],
+                 locale: :en,
+                 prefer: :ascii
+               )
+    end
+  end
+
+  describe "to_string/3 datetime interval sub-format options" do
+    test ":date_format shortens the date side of a same-day interval" do
+      assert {:ok, "4/8/26, 12:00 PM – 2:00 PM"} =
+               Interval.to_string(
+                 ~N[2026-04-08 12:00:00],
+                 ~N[2026-04-08 14:00:00],
+                 locale: :en,
+                 date_format: :short,
+                 time_format: :short,
+                 prefer: :ascii
+               )
+    end
+  end
+
+  describe "to_string/3 open intervals for remaining value shapes" do
+    test "open-end DateTime formats the known endpoint" do
+      assert {:ok, result} =
+               Interval.to_string(~U[2020-01-01 10:30:00Z], nil, locale: :en, prefer: :ascii)
+
+      assert result =~ "Jan 1, 2020"
+      assert result =~ "10:30:00 AM"
+      assert String.ends_with?(result, "–")
+    end
+
+    test "open-start map with date and time fields formats as a datetime" do
+      value = %{year: 2020, month: 1, day: 1, hour: 10, minute: 30, calendar: Calendar.ISO}
+
+      assert {:ok, result} = Interval.to_string(nil, value, locale: :en, prefer: :ascii)
+      assert result =~ "Jan 1, 2020"
+      assert result =~ "10:30 AM"
+    end
+
+    test "open-end map with only date fields formats as a date" do
+      value = %{year: 2020, month: 1, day: 2, calendar: Calendar.ISO}
+
+      assert {:ok, result} = Interval.to_string(value, nil, locale: :en, prefer: :ascii)
+      assert result =~ "Jan 2, 2020"
+    end
+
+    test "open-start map with only time fields formats as a time" do
+      value = %{hour: 9, minute: 5, calendar: Calendar.ISO}
+
+      assert {:ok, result} = Interval.to_string(nil, value, locale: :en, prefer: :ascii)
+      assert result =~ "9:05 AM"
+    end
+
+    test "a map with neither date nor time fields returns an invalid input error" do
+      assert {:error, %Localize.DateTimeInvalidInputError{type: :datetime}} =
+               Interval.to_string(%{foo: 1}, nil, locale: :en)
+    end
+  end
+
+  describe "split_interval/1 error paths and repeat widths" do
+    test "a pattern without a repeated field is an invalid format" do
+      assert {:error,
+              %Localize.DateTimeIntervalFormatError{reason: :invalid_format, detail: "MMM d"}} =
+               Interval.split_interval("MMM d")
+    end
+
+    test "an unterminated quote returns an error" do
+      assert {:error, %Localize.DateTimeIntervalFormatError{reason: :unterminated_quote}} =
+               Interval.split_interval("MMM 'x d")
+    end
+
+    test "splits at a five-character repeat" do
+      assert {:ok, ["yyyyy-", "yyyyy"]} = Interval.split_interval("yyyyy-yyyyy")
+    end
+
+    test "splits at a four-character repeat" do
+      assert {:ok, ["EEEE d - ", "EEEE d"]} = Interval.split_interval("EEEE d - EEEE d")
+    end
+  end
+
+  describe "split_interval/1 symbol equivalence classes" do
+    test "L and M are the same field for split purposes" do
+      assert {:ok, ["MMM-", "LLL"]} = Interval.split_interval("MMM-LLL")
+    end
+
+    test "Q repeats split" do
+      assert {:ok, ["QQQ-", "QQQ"]} = Interval.split_interval("QQQ-QQQ")
+    end
+
+    test "q and Q are the same field for split purposes" do
+      assert {:ok, ["qqq-", "QQQ"]} = Interval.split_interval("qqq-QQQ")
+    end
+
+    test "e and c are the same field for split purposes" do
+      assert {:ok, ["eee-", "ccc"]} = Interval.split_interval("eee-ccc")
+    end
+
+    test "c and E are the same field for split purposes" do
+      assert {:ok, ["ccc-", "EEE"]} = Interval.split_interval("ccc-EEE")
+    end
+  end
 end

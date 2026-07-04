@@ -395,4 +395,107 @@ defmodule Localize.Unit.CustomUnitTest do
       assert Map.has_key?(all, "cubit")
     end
   end
+
+  describe "register/2 validation errors" do
+    test "a non-string unit name is rejected" do
+      assert {:error, "unit name must be a string, got :smoot"} =
+               CustomRegistry.register(:smoot, %{
+                 base_unit: "meter",
+                 factor: 1.0,
+                 category: "length"
+               })
+    end
+
+    test "a non-map definition is rejected" do
+      assert {:error, "definition must be a map"} =
+               CustomRegistry.register("gadget", base_unit: "meter")
+    end
+
+    test "a non-numeric factor is rejected" do
+      assert {:error, "factor has invalid type: \"x\""} =
+               CustomRegistry.register("gadget", %{
+                 base_unit: "meter",
+                 factor: "x",
+                 category: "length"
+               })
+    end
+  end
+
+  describe "register/2 special conversions" do
+    test "a special definition requires forward and inverse functions" do
+      assert {:error, "missing required key: forward (required for special conversions)"} =
+               CustomRegistry.register("gadget", %{
+                 factor: :special,
+                 base_unit: "meter",
+                 category: "length"
+               })
+    end
+
+    test "a special conversion function must be exported" do
+      assert {:error, "forward: Enum.nope/1 is not exported"} =
+               CustomRegistry.register("gadget", %{
+                 factor: :special,
+                 base_unit: "meter",
+                 category: "length",
+                 forward: {Enum, :nope},
+                 inverse: {Enum, :nope}
+               })
+    end
+
+    test "a special conversion must be a module-function tuple" do
+      assert {:error, "forward: expected {module, function} tuple, got \"f\""} =
+               CustomRegistry.register("gadget", %{
+                 factor: :special,
+                 base_unit: "meter",
+                 category: "length",
+                 forward: "f",
+                 inverse: "g"
+               })
+    end
+
+    test "a valid special definition registers" do
+      assert :ok =
+               CustomRegistry.register("windforce", %{
+                 factor: :special,
+                 base_unit: "meter-per-second",
+                 category: "speed",
+                 forward: {Localize.Unit.Conversion.Beaufort, :forward},
+                 inverse: {Localize.Unit.Conversion.Beaufort, :inverse}
+               })
+
+      assert CustomRegistry.registered?("windforce")
+    end
+  end
+
+  describe "register_batch/1" do
+    test "registers valid definitions and skips invalid ones" do
+      definitions = %{
+        "glorp" => %{base_unit: "meter", factor: 3.0, category: "length"},
+        "bad name!" => %{base_unit: "meter", factor: 1.0, category: "length"}
+      }
+
+      assert CustomRegistry.register_batch(definitions) == {:ok, 1}
+      assert CustomRegistry.registered?("glorp")
+      refute CustomRegistry.registered?("bad name!")
+    end
+  end
+
+  describe "load_file/1 evaluation errors" do
+    test "a file that does not evaluate to a list is rejected" do
+      path = Path.join(System.tmp_dir!(), "localize_custom_units_notlist.exs")
+      File.write!(path, "%{}")
+      on_exit(fn -> File.rm(path) end)
+
+      assert {:error, "expected a list of definitions, got %{}"} =
+               CustomRegistry.load_file(path)
+    end
+
+    test "an exception raised while evaluating is returned as an error" do
+      path = Path.join(System.tmp_dir!(), "localize_custom_units_raise.exs")
+      File.write!(path, ~s[raise "boom"])
+      on_exit(fn -> File.rm(path) end)
+
+      assert {:error, "boom"} = CustomRegistry.load_file(path)
+    end
+  end
 end
