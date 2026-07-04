@@ -250,19 +250,28 @@ defmodule Localize.MixProject do
       {:ex_doc, "~> 0.18", only: [:dev, :release]},
       {:nimble_parsec, "~> 1.0", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false, optional: true},
-      # NOTE: json_polyfill (the EEP 68 :json module for OTP 26) is
-      # deliberately NOT a dependency, not even optional. A
-      # `Code.ensure_loaded?(:json)` conditional here is evaluated on the
-      # *publishing* machine, and listing it at all makes it build in this
-      # project's own dev/test environment, where its erlc hook fails on
-      # OTP >= 27. OTP 26 consumers add {:json_polyfill, "~> 0.2 or ~> 1.0"}
-      # to their own deps (see README); the supervisor verifies :json is
-      # present at application start and raises with instructions if not.
       {:sweet_xml, "~> 0.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:stream_data, "~> 1.0", only: :test}
-    ] ++ maybe_cldr()
+    ] ++ maybe_json_polyfill() ++ maybe_cldr()
+  end
+
+  # json_polyfill (the EEP 68 :json module for OTP 26) is provided for
+  # THIS project's own dev/test/CI only — `only:` dependencies never
+  # enter the hex package requirements, so which machine publishes is
+  # irrelevant. It is deliberately NOT a package dependency: OTP 26
+  # consumers add {:json_polyfill, "~> 0.2 or ~> 1.0"} to their own
+  # deps (see README) and the supervisor raises with instructions at
+  # application start when :json is missing. The conditional avoids
+  # fetching it on OTP >= 27, where :json is built in and the
+  # polyfill's own build fails.
+  defp maybe_json_polyfill do
+    if Code.ensure_loaded?(:json) do
+      []
+    else
+      [{:json_polyfill, "~> 0.2 or ~> 1.0", only: [:dev, :test]}]
+    end
   end
 
   defp maybe_cldr do
