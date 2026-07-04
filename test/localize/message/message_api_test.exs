@@ -29,6 +29,40 @@ defmodule Localize.Message.ApiTest do
     end
   end
 
+  describe "format/3 unresolved variables in function options (Elixir backend)" do
+    test "unbound variable used as a function option value is a BindError" do
+      message = "{$n :number minimumFractionDigits=$digits}"
+
+      assert {:error, %Localize.BindError{unbound: ["digits"]}} =
+               Message.format(message, %{"n" => 3})
+    end
+
+    test "unbound option variable in a declaration is a BindError" do
+      message = ".local $x = {$n :number minimumFractionDigits=$digits} {{{$x}}}"
+
+      assert {:error, %Localize.BindError{unbound: ["digits"]}} =
+               Message.format(message, %{"n" => 3})
+    end
+
+    test "bound function option variables format normally" do
+      message = "{$n :number minimumFractionDigits=$digits}"
+
+      assert Message.format(message, %{"n" => 3, "digits" => 2}) == {:ok, "3.00"}
+    end
+  end
+
+  describe "format/3 locale validation (Elixir backend)" do
+    test "an invalid locale is rejected even for plain-text messages" do
+      assert {:error, %Localize.InvalidLocaleError{locale_id: "zz-invalid!"}} =
+               Message.format("hello", %{}, locale: "zz-invalid!")
+    end
+
+    test "an invalid locale is rejected for messages with functions" do
+      assert {:error, %Localize.InvalidLocaleError{}} =
+               Message.format("hello {$n :number}", %{"n" => 3}, locale: "not a locale")
+    end
+  end
+
   describe "format/3 with backend: :nif (falls back to :elixir when unavailable)" do
     # These assertions hold whether the NIF is present (ICU formats)
     # or not (Localize.Backend.resolve/1 falls back to the Elixir

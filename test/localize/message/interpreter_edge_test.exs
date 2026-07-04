@@ -174,8 +174,11 @@ defmodule Localize.Message.InterpreterEdgeTest do
                )
     end
 
-    test "an unbound variable option resolves to nil and is ignored" do
-      assert {:ok, ["3"], ["n"], []} =
+    test "an unbound variable option is an unresolved-variable error" do
+      # Per the MF2 spec ("Unresolved Variable" resolution error), an
+      # option value referencing an unbound variable is reported, not
+      # silently dropped.
+      assert {:error, [], [], ["missing"]} =
                format("{$n :number minimumFractionDigits=$missing}", %{"n" => 3}, locale: :en)
     end
 

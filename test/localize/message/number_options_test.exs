@@ -172,6 +172,39 @@ if Code.ensure_loaded?(Localize.Number) do
         refute String.contains?(result, ",")
         refute String.contains?(result, "\u{066C}")
       end
+
+      test "numberingSystem=thai renders Thai digits in an en locale (Intl/ICU semantics)" do
+        assert Localize.Message.format(
+                 "{$n :number numberingSystem=thai}",
+                 %{"n" => 5},
+                 locale: :en
+               ) == {:ok, "\u{0E55}"}
+      end
+
+      test "a foreign numberingSystem keeps the locale's symbols" do
+        assert Localize.Message.format(
+                 "{$n :number numberingSystem=arab}",
+                 %{"n" => 1234.5},
+                 locale: :en
+               ) == {:ok, "\u{0661},\u{0662}\u{0663}\u{0664}.\u{0665}"}
+      end
+
+      test "a foreign numberingSystem works with :currency" do
+        assert Localize.Message.format(
+                 "{$n :currency currency=USD numberingSystem=thai}",
+                 %{"n" => 2},
+                 locale: :en
+               ) == {:ok, "$\u{0E52}.\u{0E50}\u{0E50}"}
+      end
+
+      test "an unknown numberingSystem name is still an error" do
+        assert {:error, %Localize.FormatError{}} =
+                 Localize.Message.format(
+                   "{$n :number numberingSystem=bogus}",
+                   %{"n" => 5},
+                   locale: :en
+                 )
+      end
     end
   end
 end

@@ -106,12 +106,19 @@ defmodule Localize.Rfc5646.Helpers do
     []
   end
 
+  # When two extension maps share a singleton key the input carried a
+  # duplicate singleton subtag (e.g. "en-a-foo-a-bar"), which RFC 5646
+  # forbids. A blind `Map.merge/2` would silently drop one occurrence,
+  # so the collision is recorded as a `:duplicate_singleton` entry that
+  # `Localize.Rfc5646.Parser` turns into a parse error.
   def do_collapse_extensions([{:extensions, var1}, {:extension, var2} | rest]) do
-    do_collapse_extensions([{:extensions, Map.merge(var1, var2)} | rest])
+    duplicate_singletons(var1, var2) ++
+      do_collapse_extensions([{:extensions, Map.merge(var1, var2)} | rest])
   end
 
   def do_collapse_extensions([{:extension, var1}, {:extension, var2} | rest]) do
-    do_collapse_extensions([{:extensions, Map.merge(var1, var2)} | rest])
+    duplicate_singletons(var1, var2) ++
+      do_collapse_extensions([{:extensions, Map.merge(var1, var2)} | rest])
   end
 
   def do_collapse_extensions([{:extension, var1} | rest]) when is_map(var1) do
@@ -120,6 +127,13 @@ defmodule Localize.Rfc5646.Helpers do
 
   def do_collapse_extensions([head | rest]) do
     [head | do_collapse_extensions(rest)]
+  end
+
+  defp duplicate_singletons(extension_map_1, extension_map_2) do
+    for singleton <- Map.keys(extension_map_2),
+        Map.has_key?(extension_map_1, singleton) do
+      {:duplicate_singleton, singleton}
+    end
   end
 
   def collapse_variants([]) do

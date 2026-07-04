@@ -284,10 +284,14 @@ defmodule Localize.Rfc5646.Grammar do
     |> label("a grandfathered language tag")
   end
 
+  # The tag strings are matched in their lowercase form: input is
+  # downcased by `Localize.LanguageTag.Parser.normalize_locale_id/1`
+  # before it reaches this grammar, so the registry-cased spellings
+  # ("en-GB-oed", "sgn-BE-FR") would never match.
   @spec irregular :: NimbleParsec.t()
   def irregular do
     choice([
-      string("en-GB-oed"),
+      string("en-gb-oed"),
       string("i-ami"),
       string("i-bnn"),
       string("i-default"),
@@ -301,14 +305,17 @@ defmodule Localize.Rfc5646.Grammar do
       string("i-tao"),
       string("i-tay"),
       string("i-tsu"),
-      string("sgn-BE-FR"),
-      string("sgn-BE-NL"),
-      string("sgn-CH-DE")
+      string("sgn-be-fr"),
+      string("sgn-be-nl"),
+      string("sgn-ch-de")
     ])
     |> unwrap_and_tag(:irregular)
     |> label("one of the irregular language tags in BCP-47")
   end
 
+  # "zh-min-nan" must be tried before its prefix "zh-min": a
+  # NimbleParsec choice commits to the first matching string, and the
+  # caller's end-of-input guard does not backtrack into this choice.
   @spec regular :: NimbleParsec.t()
   def regular do
     choice([
@@ -318,8 +325,8 @@ defmodule Localize.Rfc5646.Grammar do
       string("no-nyn"),
       string("zh-guoyu"),
       string("zh-hakka"),
-      string("zh-min"),
       string("zh-min-nan"),
+      string("zh-min"),
       string("zh-xiang")
     ])
     |> unwrap_and_tag(:regular)
