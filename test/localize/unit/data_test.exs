@@ -1,6 +1,8 @@
 defmodule Localize.Unit.DataTest do
   use ExUnit.Case, async: true
 
+  doctest Localize.Unit.Data
+
   alias Localize.Unit.Data
 
   describe "prefix_components/0" do

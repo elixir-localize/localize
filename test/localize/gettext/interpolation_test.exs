@@ -5,6 +5,8 @@ defmodule Localize.Gettext.InterpolationTest do
 
   alias Localize.Gettext.Interpolation
 
+  doctest Localize.Gettext.Interpolation
+
   describe "runtime_interpolate/2" do
     test "formats a simple MF2 message with bindings" do
       assert {:ok, "Hello World!"} =
@@ -101,6 +103,101 @@ defmodule Localize.Gettext.InterpolationTest do
       # no atom exists for it).
       assert bogus in missing
       assert nil == Localize.Utils.Helpers.existing_atom(bogus)
+    end
+  end
+
+  describe "runtime_interpolate/2 — skip sentinel and format failures" do
+    test "the skip-interpolation sentinel returns the message unchanged" do
+      message = "{{Hello {$name}!}}"
+      sentinel = Interpolation.skip_interpolation_sentinel()
+
+      assert Interpolation.runtime_interpolate(message, sentinel) == {:ok, message}
+    end
+
+    test "a formatting failure returns the message unchanged and logs a warning" do
+      # `:number` cannot format the string "abc"; the FormatError is
+      # swallowed so a bad translation cannot crash the caller.
+      message = "{{Num {$n :number}}}"
+
+      {result, log} =
+        with_log(fn -> Interpolation.runtime_interpolate(message, %{n: "abc"}) end)
+
+      assert result == {:ok, message}
+      assert log =~ "format failed"
+    end
+
+    test "accepts keyword-list bindings" do
+      assert {:ok, "Hello World!"} =
+               Interpolation.runtime_interpolate("{{Hello {$name}!}}", name: "World")
+    end
+
+    test "accepts string-keyed map bindings" do
+      assert {:ok, "Hello World!"} =
+               Interpolation.runtime_interpolate("{{Hello {$name}!}}", %{"name" => "World"})
+    end
+
+    test "accepts string-keyed tuple-list bindings" do
+      assert {:ok, "Hello World!"} =
+               Interpolation.runtime_interpolate("{{Hello {$name}!}}", [{"name", "World"}])
+    end
+  end
+
+  describe "compile_interpolate/3 (compile-time AST)" do
+    defmodule CompiledFixture do
+      require Localize.Gettext.Interpolation
+
+      def hello(bindings) do
+        Localize.Gettext.Interpolation.compile_interpolate(
+          :translation,
+          "{{Hello {$name}!}}",
+          bindings
+        )
+      end
+    end
+
+    test "interpolates bindings against the compile-time parsed AST" do
+      assert CompiledFixture.hello(%{name: "World"}) == {:ok, "Hello World!"}
+    end
+
+    test "reports missing bindings with a partial message" do
+      assert CompiledFixture.hello(%{}) == {:missing_bindings, "Hello !", [:name]}
+    end
+
+    test "the skip-interpolation sentinel bypasses MF2 evaluation" do
+      sentinel = Localize.Gettext.Interpolation.skip_interpolation_sentinel()
+      assert CompiledFixture.hello(sentinel) == {:ok, "{{Hello {$name}!}}"}
+    end
+
+    test "an invalid MF2 message raises ArgumentError at compile time" do
+      error =
+        assert_raise ArgumentError, fn ->
+          Code.eval_string("""
+          defmodule BadCompiledFixture do
+            require Localize.Gettext.Interpolation
+
+            def bad(bindings) do
+              Localize.Gettext.Interpolation.compile_interpolate(:translation, "bad {", bindings)
+            end
+          end
+          """)
+        end
+
+      assert Exception.message(error) =~ "could not parse MF2 message"
+    end
+  end
+
+  describe "expand_to_binary!/2 with binary-piece AST" do
+    test "joins a <<>> AST whose pieces are all binaries" do
+      assert Interpolation.expand_to_binary!({:<<>>, [], ["Hello ", "World"]}, __ENV__) ==
+               "Hello World"
+    end
+
+    test "raises when a <<>> AST contains non-binary pieces" do
+      pieces = [{:"::", [], [{:name, [], nil}, {:binary, [], nil}]}]
+
+      assert_raise ArgumentError, ~r/expand to strings at compile-time/, fn ->
+        Interpolation.expand_to_binary!({:<<>>, [], pieces}, __ENV__)
+      end
     end
   end
 end

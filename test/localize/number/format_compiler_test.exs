@@ -2,6 +2,7 @@ defmodule Localize.Number.Format.CompilerTest do
   use ExUnit.Case, async: true
 
   doctest Localize.Number.Format.Compiler
+  doctest Localize.Number.Format.Meta
 
   alias Localize.Number.Format.Compiler
 

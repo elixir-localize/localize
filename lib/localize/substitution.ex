@@ -136,7 +136,7 @@ defmodule Localize.Substitution do
   end
 
   def substitute([item_0, item_1], [1, string1, 0, string2]) do
-    [item_0, string1, item_1, string2]
+    [item_1, string1, item_0, string2]
   end
 
   # Three parameters: {0}string{1}string{2}

@@ -39,6 +39,10 @@ defmodule Localize.DateTime.Format.Match do
   @day_of_week ["c", "E"]
   @time_zone ["x", "X", "v", "V", "z", "Z", "O"]
 
+  # Symbols with no numeric form (TR35): every width is text, so a
+  # width difference is never a numeric-vs-alpha type mismatch.
+  @always_alpha ["E", "a", "b", "B", "G", "x", "X", "v", "V", "z", "Z", "O"]
+
   @prefer_cycle_24 ["H", "k"]
   # @prefer_cycle_12 ["h", "K"]
 
@@ -195,11 +199,19 @@ defmodule Localize.DateTime.Format.Match do
   # ── Distance calculation ────────────────────────────────────
 
   # UTS #35 skeleton distance: guard clauses per symbol-class and
-  # numeric/alpha width-class combination.
+  # numeric/alpha width-class combination. The candidate tokens are
+  # in pattern-string order; the skeleton is canonically sorted, so
+  # the candidate must be sorted the same way or the zip compares
+  # unrelated fields.
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp distance_from({token_id, tokens}, skeleton) do
     distance =
-      Enum.zip_reduce(tokens, skeleton, 0, fn
+      Enum.zip_reduce(sort_tokens(tokens), skeleton, 0, fn
+        # Same always-text symbol: widths 1-3 are the same
+        # (abbreviated) class per TR35, wider counts differ mildly
+        {symbol, count_a}, {symbol, count_b}, distance when symbol in @always_alpha ->
+          distance + abs(max(count_a, 3) - max(count_b, 3))
+
         # Same symbol, both numeric or both alpha
         {symbol, count_a}, {symbol, count_b}, distance
         when (count_a in [1, 2] and count_b in [1, 2]) or

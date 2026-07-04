@@ -210,6 +210,33 @@ defmodule Localize.Unit.Parser do
     ])
     |> eos()
 
+  @doc """
+  Parses the given `binary` as a CLDR unit identifier, returning the
+  raw NimbleParsec result tuple.
+
+  This is the low-level parsec entry point. Most callers should use
+  `parse/1`, which unwraps the result and returns tagged
+  `{:ok, ast}` / `{:error, exception}` tuples.
+
+  ### Arguments
+
+  * `binary` is a unit identifier string such as `"meter"`.
+
+  * `opts` is a keyword list of NimbleParsec options (`:byte_offset`,
+    `:line`, and `:context`).
+
+  ### Returns
+
+  * `{:ok, [token], rest, context, position, byte_offset}` on success.
+
+  * `{:error, reason, rest, context, line, byte_offset}` on failure.
+
+  ### Examples
+
+      iex> Localize.Unit.Parser.unit_identifier("meter")
+      {:ok, [unit: [type: nil, numerator: [single_unit: [prefix: nil, power: nil, base: "meter"]], denominator: []]], "", %{}, {1, 0}, 5}
+
+  """
   defparsec(:unit_identifier, unit_identifier_v)
 
   # parsec:Localize.Unit.Parser

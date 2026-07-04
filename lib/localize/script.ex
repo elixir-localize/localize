@@ -114,6 +114,10 @@ defmodule Localize.Script do
   @doc """
   Same as `display_name/2` but raises on error.
 
+  ### Options
+
+  * See `display_name/2` for the supported options.
+
   ### Examples
 
       iex> Localize.Script.display_name!(:Latn)
@@ -171,6 +175,12 @@ defmodule Localize.Script do
     end
   end
 
+  @doc """
+  Returns the list of script codes for which a locale has display names.
+
+  Deprecated — use `scripts_for/1` instead.
+
+  """
   @deprecated "Use scripts_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
   @spec available_scripts(Keyword.t()) ::
           {:ok, [atom()]} | {:error, Exception.t()}
@@ -215,6 +225,12 @@ defmodule Localize.Script do
     end
   end
 
+  @doc """
+  Returns a map of script codes to their localized names in a locale.
+
+  Deprecated — use `script_names_for/1` instead.
+
+  """
   @deprecated "Use script_names_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
   @spec known_scripts(Keyword.t()) ::
           {:ok, %{atom() => map()}} | {:error, Exception.t()}

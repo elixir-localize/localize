@@ -259,7 +259,11 @@ defmodule Localize.Message do
 
   * `bindings` is a map or keyword list of arguments.
 
-  * `options` is a keyword list of options. See `format/3`.
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * See `format/3` for the supported options.
 
   ### Returns
 
@@ -463,6 +467,15 @@ defmodule Localize.Message do
   @doc """
   Same as `format_to_safe_list/3` but raises on error.
 
+  ### Options
+
+  * See `format_to_safe_list/3` for the supported options.
+
+  ### Examples
+
+      iex> Localize.Message.format_to_safe_list!("Hello {$name}!", %{"name" => "World"})
+      [text: "Hello World!"]
+
   """
   @spec format_to_safe_list!(String.t(), bindings(), options()) :: [safe_node()]
 
@@ -613,6 +626,12 @@ defmodule Localize.Message do
 
   * `{:error, reason}` if the message cannot be parsed.
 
+  ### Examples
+
+      iex> {:ok, html} = Localize.Message.to_html("Hello {$name}!")
+      iex> String.contains?(html, ~s(<span class="mf2-variable">$name</span>))
+      true
+
   """
   @spec to_html(String.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Localize.ParseError.t()}
@@ -645,6 +664,12 @@ defmodule Localize.Message do
   * `{:ok, ansi_string}` on success.
 
   * `{:error, reason}` if the message cannot be parsed.
+
+  ### Examples
+
+      iex> {:ok, ansi} = Localize.Message.to_ansi("Hello {$name}!")
+      iex> String.contains?(ansi, "\\e[")
+      true
 
   """
   @spec to_ansi(String.t(), Keyword.t()) ::

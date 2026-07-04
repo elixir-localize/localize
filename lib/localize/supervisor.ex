@@ -56,9 +56,13 @@ defmodule Localize.Supervisor do
 
   ### Arguments
 
-  * `options` is a keyword list. Currently no options are honoured —
-    the argument exists so callers can use the
-    `{Localize.Supervisor, []}` child-spec shape without surprise.
+  * `options` is a keyword list.
+
+  ### Options
+
+  * No options are currently honoured — the argument exists so
+    callers can use the `{Localize.Supervisor, []}` child-spec
+    shape without surprise.
 
   ### Returns
 
@@ -95,6 +99,23 @@ defmodule Localize.Supervisor do
 
   Lets callers add `Localize.Supervisor` (or `{Localize.Supervisor, []}`)
   directly to their own application's `children` list.
+
+  ### Arguments
+
+  * `options` is a keyword list passed through to `start_link/1`.
+
+  ### Options
+
+  * No options are currently honoured. See `start_link/1`.
+
+  ### Returns
+
+  * A `t:Supervisor.child_spec/0` map.
+
+  ### Examples
+
+      iex> Localize.Supervisor.child_spec([]).type
+      :supervisor
 
   """
   @spec child_spec(keyword()) :: Supervisor.child_spec()

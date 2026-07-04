@@ -468,7 +468,7 @@ Two areas are explicitly out of scope:
 | `:date` | Implemented | Delegates to `Localize.Date.to_string/2`. |
 | `:time` | Implemented | Delegates to `Localize.Time.to_string/2`. |
 | `:datetime` | Implemented | Delegates to `Localize.DateTime.to_string/2`. |
-| `:offset` | Implemented | Subtracts offset from operand for plural selection while formatting the original value. Used for patterns like "you and N other people". |
+| `:offset` | Implemented | Adjusts a numeric operand with the required `add` or `subtract` option (a non-negative integer) for both formatting and selection, per the MF2 `:offset` function. Used for patterns like "you and N other people". |
 
 ### Localize-specific MF2 functions (not in the spec)
 

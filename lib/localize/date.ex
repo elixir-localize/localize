@@ -150,6 +150,10 @@ defmodule Localize.Date do
   @doc """
   Same as `to_string/2` but raises on error.
 
+  ### Options
+
+  See `to_string/2` for the supported options.
+
   ### Examples
 
       iex> Localize.Date.to_string!(~D[2017-07-10], locale: :en)

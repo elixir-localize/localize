@@ -143,6 +143,10 @@ defmodule Localize.Locale.LocaleDisplay do
 
   * `options` is a keyword list of options.
 
+  ### Options
+
+  * See `display_name/2` for the supported options.
+
   ### Returns
 
   * A string representation of the language tag suitable for
@@ -151,6 +155,14 @@ defmodule Localize.Locale.LocaleDisplay do
   ### Raises
 
   * Raises an exception if the display name cannot be produced.
+
+  ### Examples
+
+      iex> Localize.Locale.LocaleDisplay.display_name!("en-US")
+      "English (United States)"
+
+      iex> Localize.Locale.LocaleDisplay.display_name!("en-US", language_display: :dialect)
+      "American English"
 
   """
   @spec display_name!(Localize.LanguageTag.t() | String.t() | atom(), display_options()) ::

@@ -509,6 +509,18 @@ defmodule Localize.Interval do
   @doc """
   Same as `to_string/3` but raises on error.
 
+  ### Options
+
+  See `to_string/3` for the supported options.
+
+  ### Examples
+
+      iex> Localize.Interval.to_string!(~D[2022-04-22], ~D[2022-04-25], locale: :en)
+      "Apr 22\u2009–\u200925, 2022"
+
+      iex> Localize.Interval.to_string!(~D[2022-01-15], ~D[2022-03-20], locale: :en)
+      "Jan 15\u2009–\u2009Mar 20, 2022"
+
   """
   @spec to_string!(map(), map(), Keyword.t()) :: String.t()
   def to_string!(from, to, options \\ []) do
@@ -534,6 +546,14 @@ defmodule Localize.Interval do
 
   * `{:error, %Localize.NoPracticalDifferenceError{}}` if the values
     are equal at every field considered.
+
+  ### Examples
+
+      iex> Localize.Interval.greatest_difference(~D[2022-04-22], ~D[2022-04-27])
+      {:ok, :d}
+
+      iex> Localize.Interval.greatest_difference(~D[2021-12-31], ~D[2022-01-01])
+      {:ok, :y}
 
   """
   @spec greatest_difference(map(), map()) ::
@@ -568,6 +588,15 @@ defmodule Localize.Interval do
   `:date` style is resolved per-locale, mirroring
   `Localize.Date.to_string/2`'s style → skeleton mapping for that
   locale.
+
+  ### Examples
+
+      iex> Localize.Interval.date_styles()
+      %{
+        month: %{short: :M, full: :MMM, long: :MMM, medium: :MMM},
+        month_and_day: %{short: :Md, full: :MMMEd, long: :MMMEd, medium: :MMMd},
+        year_and_month: %{short: :yM, full: :yMMMM, long: :yMMMM, medium: :yMMM}
+      }
 
   """
   @spec date_styles() :: %{
@@ -672,6 +701,11 @@ defmodule Localize.Interval do
   @doc """
   Splits an interval format string into `[left, right]` halves
   at the point where a format character repeats.
+
+  ### Examples
+
+      iex> Localize.Interval.split_interval("MMM d – d")
+      {:ok, ["MMM d – ", "d"]}
 
   """
   @spec split_interval(String.t()) :: {:ok, [String.t()]} | {:error, Exception.t()}

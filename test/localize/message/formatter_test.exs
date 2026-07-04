@@ -113,4 +113,45 @@ defmodule Localize.Message.FormatterTest do
       assert is_binary(ansi)
     end
   end
+
+  describe "HTML formatter — wrapper and tag options" do
+    test ":wrapper_tag and :wrapper_class change the standalone wrapper" do
+      tokens = [{:text, "Hello"}]
+
+      html =
+        Formatter.HTML.render(tokens,
+          standalone: true,
+          wrapper_tag: "div",
+          wrapper_class: "code-sample"
+        )
+
+      assert String.starts_with?(html, ~s(<div class="code-sample"><code>))
+      assert String.ends_with?(html, "</code></div>")
+    end
+
+    test ":span_tag changes the per-token element" do
+      tokens = [{:variable, "$name"}]
+      html = Formatter.HTML.render(tokens, span_tag: "em")
+
+      assert html == ~s(<em class="mf2-variable">$name</em>)
+    end
+
+    test "empty token list renders as an empty fragment" do
+      assert Formatter.HTML.render([]) == ""
+    end
+  end
+
+  describe "ANSI formatter — palette edge cases" do
+    test "a class mapped to an empty colour list is emitted bare" do
+      tokens = [{:text, "Hello "}, {:variable, "$name"}]
+      ansi = Formatter.ANSI.render(tokens, palette: %{text: []})
+
+      assert String.starts_with?(ansi, "Hello ")
+      assert ansi =~ IO.ANSI.green() <> "$name"
+    end
+
+    test "empty token list renders as an empty string" do
+      assert Formatter.ANSI.render([]) == ""
+    end
+  end
 end

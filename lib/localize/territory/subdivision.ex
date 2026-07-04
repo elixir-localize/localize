@@ -93,6 +93,10 @@ defmodule Localize.Territory.Subdivision do
   @doc """
   Same as `display_name/2` but raises on error.
 
+  ### Options
+
+  * See `display_name/2` for the supported options.
+
   ### Examples
 
       iex> Localize.Territory.Subdivision.display_name!(:caon, locale: :en)
@@ -156,6 +160,12 @@ defmodule Localize.Territory.Subdivision do
     end
   end
 
+  @doc """
+  Returns a map of subdivision codes to their localized names in a locale.
+
+  Deprecated — use `subdivision_names_for/1` instead.
+
+  """
   @deprecated "Use subdivision_names_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
   @spec known_subdivisions(Keyword.t()) ::
           {:ok, %{atom() => String.t()}} | {:error, Exception.t()}
@@ -203,6 +213,12 @@ defmodule Localize.Territory.Subdivision do
     end
   end
 
+  @doc """
+  Returns the sorted list of subdivision codes that have translations in a given locale.
+
+  Deprecated — use `subdivisions_for/1` instead.
+
+  """
   @deprecated "Use subdivisions_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
   @spec available_subdivisions(Keyword.t()) ::
           {:ok, [atom()]} | {:error, Exception.t()}

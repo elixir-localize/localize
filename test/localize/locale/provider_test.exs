@@ -5,6 +5,9 @@ defmodule Localize.Locale.ProviderTest do
 
   alias Localize.Locale.Provider
 
+  doctest Localize.Locale.Provider
+  doctest Localize.Locale.Provider.Cache
+
   describe "load_with_fallback/2 — parent-chain walking" do
     # Regression test for infinite recursion reported against v0.15.0.
     #

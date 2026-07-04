@@ -184,7 +184,19 @@ defmodule Localize.Data.Locale do
     |> LMap.atomize_keys(level: 1)
     |> LMap.atomize_keys(filter: :languages, only: @alt_keys)
     |> LMap.atomize_keys(filter: :lenient_parse, only: @lenient_parse_keys)
+    |> restore_alt_language_code()
   end
+
+  # The "alt" language code (Southern Altai) collides with the
+  # "alt" style key in @alt_keys, so the :languages atomize pass
+  # above converts the language code itself to :alt. Restore the
+  # binary code — language codes are binary keys.
+  defp restore_alt_language_code(%{languages: %{alt: name} = languages} = content) do
+    languages = languages |> Map.delete(:alt) |> Map.put("alt", name)
+    %{content | languages: languages}
+  end
+
+  defp restore_alt_language_code(content), do: content
 
   # ── Normalization pipeline ────────────────────────────────────
 

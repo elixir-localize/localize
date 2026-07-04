@@ -136,10 +136,14 @@ defmodule Localize.MixProject do
     [
       Guides: [
         "guides/number_formatting.md",
+        "guides/plural_rules.md",
         "guides/date_time_formatting.md",
         "guides/interval_and_duration_formatting.md",
         "guides/unit_formatting.md",
+        "guides/list_formatting.md",
         "guides/message_formatting.md",
+        "guides/locale_validation.md",
+        "guides/display_names.md",
         "guides/collation.md"
       ],
       Advanced: [
@@ -220,10 +224,17 @@ defmodule Localize.MixProject do
   #   tool cannot observe.
   #
   # * `:leex`/`:yecc` generated lexers and parsers — generated code.
+  #
+  # * Test-support modules under `test/support` — test harness code.
   defp coverage_ignore_modules do
     [
       ~r/^Localize\.Data(\.|$)/,
       ~r/^Mix\.Tasks\./,
+      GenerateNumber,
+      Localize.DateTime.TestData,
+      Localize.LocaleDisplayNameGenerator,
+      Localize.Test.PreferenceData,
+      Localize.DateTime.Timezone.Builder,
       Localize.Macros,
       Localize.Gettext.Messages,
       Localize.Message.Parser.Combinator,

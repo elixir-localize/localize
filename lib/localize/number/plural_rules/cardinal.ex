@@ -38,6 +38,11 @@ defmodule Localize.Number.PluralRule.Cardinal do
 
   * A sorted list of locale name atoms.
 
+  ### Examples
+
+      iex> :en in Localize.Number.PluralRule.Cardinal.available_locale_names()
+      true
+
   """
   @spec available_locale_names :: [atom(), ...]
   def available_locale_names do
@@ -51,7 +56,14 @@ defmodule Localize.Number.PluralRule.Cardinal do
 
   * A map of locale names to their parsed plural rule definitions.
 
+  ### Examples
+
+      iex> rules = Localize.Number.PluralRule.Cardinal.plural_rules()
+      iex> rules[:en] |> Keyword.keys() |> Enum.sort()
+      [:one, :other]
+
   """
+  @spec plural_rules() :: %{optional(atom()) => Keyword.t()}
   def plural_rules do
     SupplementalData.plural_rules(:cardinal)
   end
@@ -87,6 +99,11 @@ defmodule Localize.Number.PluralRule.Cardinal do
   """
   @default_substitution :other
 
+  @spec pluralize(
+          number() | Decimal.t(),
+          atom() | String.t() | LanguageTag.t(),
+          map()
+        ) :: term()
   def pluralize(number, locale_name, substitutions)
       when is_atom(locale_name) or is_binary(locale_name) do
     with {:ok, language_tag} <- Localize.validate_locale(locale_name) do
@@ -141,9 +158,19 @@ defmodule Localize.Number.PluralRule.Cardinal do
 
   ### Returns
 
-  * A keyword list of `{category, parsed_rule}` pairs.
+  * A keyword list of `{category, parsed_rule}` pairs, or `nil` if
+    the locale has no cardinal plural rules.
+
+  * `{:error, exception}` if the locale identifier is invalid.
+
+  ### Examples
+
+      iex> Localize.Number.PluralRule.Cardinal.plural_rules_for(:en) |> Keyword.keys() |> Enum.sort()
+      [:one, :other]
 
   """
+  @spec plural_rules_for(atom() | String.t() | LanguageTag.t()) ::
+          Keyword.t() | nil | {:error, Exception.t()}
   def plural_rules_for(%LanguageTag{cldr_locale_id: cldr_locale_id, language: language}) do
     plural_rules()[cldr_locale_id] || plural_rules()[language]
   end

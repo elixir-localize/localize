@@ -39,6 +39,15 @@ defmodule Localize.Unit.CustomRegistry do
 
   * A definition map or `nil`.
 
+  ### Examples
+
+      iex> :ok = Localize.Unit.CustomRegistry.register("smoot", %{base_unit: "meter", factor: 1.7018, category: "length"})
+      iex> Localize.Unit.CustomRegistry.get("smoot").base_unit
+      "meter"
+
+      iex> Localize.Unit.CustomRegistry.get("no-such-unit")
+      nil
+
   """
   @spec get(String.t()) :: map() | nil
   def get(unit_name) do
@@ -48,6 +57,23 @@ defmodule Localize.Unit.CustomRegistry do
   @doc """
   Returns whether a unit name is registered in the custom registry.
 
+  ### Arguments
+
+  * `unit_name` — the unit identifier string.
+
+  ### Returns
+
+  * `true` if the unit is registered, otherwise `false`.
+
+  ### Examples
+
+      iex> Localize.Unit.CustomRegistry.registered?("no-such-unit")
+      false
+
+      iex> :ok = Localize.Unit.CustomRegistry.register("smoot", %{base_unit: "meter", factor: 1.7018, category: "length"})
+      iex> Localize.Unit.CustomRegistry.registered?("smoot")
+      true
+
   """
   @spec registered?(String.t()) :: boolean()
   def registered?(unit_name) do
@@ -56,6 +82,17 @@ defmodule Localize.Unit.CustomRegistry do
 
   @doc """
   Returns all registered custom units as a map of name to definition.
+
+  ### Returns
+
+  * A map of unit name to definition map. Empty when no custom units
+    are registered.
+
+  ### Examples
+
+      iex> :ok = Localize.Unit.CustomRegistry.register("smoot", %{base_unit: "meter", factor: 1.7018, category: "length"})
+      iex> Localize.Unit.CustomRegistry.all()["smoot"].factor
+      1.7018
 
   """
   @spec all() :: %{String.t() => map()}
@@ -77,6 +114,15 @@ defmodule Localize.Unit.CustomRegistry do
   * `:ok` on success.
 
   * `{:error, reason}` if validation fails.
+
+  ### Examples
+
+      iex> Localize.Unit.CustomRegistry.register("smoot", %{base_unit: "meter", factor: 1.7018, category: "length"})
+      :ok
+
+      iex> {:error, message} = Localize.Unit.CustomRegistry.register("123bad", %{base_unit: "meter", factor: 1.0, category: "length"})
+      iex> message =~ "invalid unit name"
+      true
 
   """
   @spec register(String.t(), map()) :: :ok | {:error, String.t()}
@@ -110,6 +156,15 @@ defmodule Localize.Unit.CustomRegistry do
 
   * `{:error, reason}` if any validation fails. No units are registered
     on error (the operation is atomic).
+
+  ### Examples
+
+      iex> definitions = %{
+      ...>   "smoot" => %{base_unit: "meter", factor: 1.7018, category: "length"},
+      ...>   "sheppey" => %{base_unit: "meter", factor: 1400.0, category: "length"}
+      ...> }
+      iex> Localize.Unit.CustomRegistry.register_batch(definitions)
+      {:ok, 2}
 
   """
   @spec register_batch(%{String.t() => map()}) :: {:ok, non_neg_integer()}
@@ -161,6 +216,12 @@ defmodule Localize.Unit.CustomRegistry do
 
   * `{:error, reason}` on failure, including a refusal in `:prod`
     when the flag is not set.
+
+  ### Examples
+
+      iex> {:error, message} = Localize.Unit.CustomRegistry.load_file("no/such/file.exs")
+      iex> message =~ "file not found"
+      true
 
   """
   @spec load_file(String.t()) :: {:ok, non_neg_integer()} | {:error, String.t()}
@@ -241,6 +302,18 @@ defmodule Localize.Unit.CustomRegistry do
 
   @doc """
   Removes all custom unit registrations. Primarily for testing.
+
+  ### Returns
+
+  * `:ok`.
+
+  ### Examples
+
+      iex> :ok = Localize.Unit.CustomRegistry.register("smoot", %{base_unit: "meter", factor: 1.7018, category: "length"})
+      iex> Localize.Unit.CustomRegistry.clear()
+      :ok
+      iex> Localize.Unit.CustomRegistry.registered?("smoot")
+      false
 
   """
   @spec clear() :: :ok

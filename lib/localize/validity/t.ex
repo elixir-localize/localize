@@ -184,7 +184,7 @@ defmodule Localize.Validity.T do
     {atom, term}
   end
 
-  def pad(number) when number < 10, do: " "
+  def pad(number) when number < 10, do: "0"
   def pad(_number), do: ""
 
   defp make_date_tuple(<<year::binary-4, month::binary-2, day::binary-2>>) do

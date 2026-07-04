@@ -335,12 +335,38 @@ defmodule Localize.Message.Interpreter do
   # fallbacks plus each variant-formatting outcome.
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp structured_match(selectors, variants, bindings, options, bound, selector_meta) do
+    {selector_info, unbound_selectors} = resolve_selector_info(selectors, bindings, selector_meta)
+    selector_names = for info <- selector_info, not info.unbound, do: info.name
+
+    case find_best_variant(selector_info, variants, options) do
+      {:ok, {:variant, _keys, {:quoted_pattern, parts}}} ->
+        case structured_pattern(parts, bindings, options, bound ++ selector_names) do
+          {:ok, nodes, more_bound, unbound} ->
+            match_result(nodes, more_bound, unbound ++ unbound_selectors)
+
+          {:error, nodes, more_bound, unbound} ->
+            {:error, nodes, more_bound, Enum.uniq(unbound ++ unbound_selectors)}
+
+          {:format_error, _} = err ->
+            err
+        end
+
+      :error ->
+        {:error, [], bound ++ selector_names, ["no matching variant" | unbound_selectors]}
+    end
+  end
+
+  # Resolves each `.match` selector variable against the current
+  # bindings. Selectors that cannot be resolved are reported in the
+  # second element so the caller can surface an unresolved-variable
+  # error alongside the fallback variant, as MF2 requires.
+  defp resolve_selector_info(selectors, bindings, selector_meta) do
     selector_info =
       Enum.map(selectors, fn {:variable, name} ->
-        formatted =
+        {formatted, unbound?} =
           case resolve_variable(name, bindings) do
-            {:ok, value} -> value
-            :error -> nil
+            {:ok, value} -> {value, false}
+            :error -> {nil, true}
           end
 
         {original_value, func} =
@@ -349,28 +375,21 @@ defmodule Localize.Message.Interpreter do
             nil -> {formatted, nil}
           end
 
-        %{name: name, formatted: formatted, original: original_value, func: func}
+        %{
+          name: name,
+          formatted: formatted,
+          original: original_value,
+          func: func,
+          unbound: unbound?
+        }
       end)
 
-    selector_names = Enum.map(selector_info, & &1.name)
-
-    case find_best_variant(selector_info, variants, options) do
-      {:ok, {:variant, _keys, {:quoted_pattern, parts}}} ->
-        case structured_pattern(parts, bindings, options, bound ++ selector_names) do
-          {:ok, nodes, more_bound, unbound} ->
-            {:ok, nodes, more_bound, unbound}
-
-          {:error, nodes, more_bound, unbound} ->
-            {:error, nodes, more_bound, unbound}
-
-          {:format_error, _} = err ->
-            err
-        end
-
-      :error ->
-        {:error, [], bound ++ selector_names, ["no matching variant"]}
-    end
+    unbound = for info <- selector_info, info.unbound, do: info.name
+    {selector_info, unbound}
   end
+
+  defp match_result(output, bound, []), do: {:ok, output, bound, []}
+  defp match_result(output, bound, unbound), do: {:error, output, bound, Enum.uniq(unbound)}
 
   # Walk the parts list pairing markup open/close tags into nested nodes.
   # The stack holds in-progress markup frames: each frame is
@@ -631,8 +650,10 @@ defmodule Localize.Message.Interpreter do
 
   defp format_with_function("offset", value, func_opts, options) do
     with {:ok, number} <- ensure_number(value),
+         {:ok, adjustment} <- offset_adjustment(func_opts),
          {:ok, options_struct} <- build_number_options(options, func_opts) do
-      Localize.Number.to_string(number, set_number_pattern(options_struct, number))
+      adjusted = apply_offset(number, adjustment)
+      Localize.Number.to_string(adjusted, set_number_pattern(options_struct, adjusted))
     end
   end
 
@@ -780,40 +801,29 @@ defmodule Localize.Message.Interpreter do
   # fallbacks plus each variant-formatting outcome.
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp evaluate_match(selectors, variants, bindings, options, bound, selector_meta) do
-    selector_info =
-      Enum.map(selectors, fn {:variable, name} ->
-        formatted =
-          case resolve_variable(name, bindings) do
-            {:ok, value} -> value
-            :error -> nil
-          end
-
-        {original_value, func} =
-          case Map.get(selector_meta, name) do
-            {orig, func} -> {orig, func}
-            nil -> {formatted, nil}
-          end
-
-        %{name: name, formatted: formatted, original: original_value, func: func}
-      end)
-
-    selector_names = Enum.map(selector_info, & &1.name)
+    {selector_info, unbound_selectors} = resolve_selector_info(selectors, bindings, selector_meta)
+    selector_names = for info <- selector_info, not info.unbound, do: info.name
 
     case find_best_variant(selector_info, variants, options) do
       {:ok, {:variant, _keys, {:quoted_pattern, parts}}} ->
         case format_pattern(parts, bindings, options) do
           {:ok, iolist, more_bound, unbound} ->
-            {:ok, iolist, bound ++ selector_names ++ more_bound, unbound}
+            match_result(
+              iolist,
+              bound ++ selector_names ++ more_bound,
+              unbound ++ unbound_selectors
+            )
 
           {:error, iolist, more_bound, unbound} ->
-            {:error, iolist, bound ++ selector_names ++ more_bound, unbound}
+            {:error, iolist, bound ++ selector_names ++ more_bound,
+             Enum.uniq(unbound ++ unbound_selectors)}
 
           {:format_error, _} = err ->
             err
         end
 
       :error ->
-        {:error, [], bound ++ selector_names, ["no matching variant"]}
+        {:error, [], bound ++ selector_names, ["no matching variant" | unbound_selectors]}
     end
   end
 
@@ -881,48 +891,89 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp selector_value(value, {:function, "offset", func_options}) when is_number(value) do
-    offset = extract_offset(func_options)
-    value - offset
+    offset_selector_value(value, func_options)
   end
 
   defp selector_value(value, {:function, "offset", func_options}) when is_binary(value) do
     case parse_number(value) do
-      num when is_number(num) ->
-        offset = extract_offset(func_options)
-        num - offset
+      num when is_number(num) -> offset_selector_value(num, func_options)
+      _ -> value
+    end
+  end
 
-      _ ->
-        value
+  defp selector_value(value, {:function, "percent", _}) when is_number(value) do
+    integerize(value * 100)
+  end
+
+  defp selector_value(value, {:function, "percent", _} = func) when is_binary(value) do
+    case parse_number(value) do
+      num when is_number(num) -> selector_value(num, func)
+      _ -> value
     end
   end
 
   defp selector_value(value, _func), do: value
 
-  defp extract_offset(func_options) do
-    Enum.find_value(func_options, 0, fn
-      {:option, "offset", {:number_literal, val}} ->
-        case parse_number(val) do
-          num when is_number(num) -> num
-          _ -> 0
-        end
-
-      {:option, "offset", {:literal, val}} ->
-        case parse_number(val) do
-          num when is_number(num) -> num
-          _ -> 0
-        end
-
-      _ ->
-        nil
-    end)
+  defp offset_selector_value(number, func_options) do
+    case offset_adjustment(resolve_func_options(func_options, %{})) do
+      {:ok, adjustment} -> number + adjustment
+      {:error, _reason} -> number
+    end
   end
+
+  # The MF2 `:offset` function requires exactly one of the `add` or
+  # `subtract` options, each a digit size option (a non-negative
+  # integer). See "The `:offset` function" in tr35-messageFormat.md.
+
+  defp offset_adjustment(func_opts) do
+    add = func_opts[:add] || func_opts["add"]
+    subtract = func_opts[:subtract] || func_opts["subtract"]
+    resolve_offset_adjustment(add, subtract)
+  end
+
+  defp resolve_offset_adjustment(add, nil) when is_integer(add) and add >= 0 do
+    {:ok, add}
+  end
+
+  defp resolve_offset_adjustment(nil, subtract) when is_integer(subtract) and subtract >= 0 do
+    {:ok, -subtract}
+  end
+
+  defp resolve_offset_adjustment(nil, nil) do
+    {:error, "the :offset function requires one of the `add` or `subtract` options"}
+  end
+
+  defp resolve_offset_adjustment(add, subtract) do
+    {:error,
+     "the :offset function requires exactly one of `add` or `subtract` " <>
+       "as a non-negative integer, got add=#{inspect(add)} subtract=#{inspect(subtract)}"}
+  end
+
+  defp apply_offset(%Decimal{} = number, adjustment), do: Decimal.add(number, adjustment)
+  defp apply_offset(number, adjustment), do: number + adjustment
+
+  # The MF2 `:percent` function multiplies its operand by 100 at the
+  # start of selection. The default fraction digits are zero, so an
+  # exactly-integral scaled value selects as an integer.
+
+  defp integerize(value) when is_float(value) do
+    truncated = trunc(value)
+
+    if truncated == value do
+      truncated
+    else
+      value
+    end
+  end
+
+  defp integerize(value), do: value
 
   # ── Plural category resolution ────────────────────────────────
 
   defp plural_match_type(nil), do: nil
 
   defp plural_match_type({:function, name, func_options})
-       when name in ["number", "integer", "offset"] do
+       when name in ["number", "integer", "offset", "percent"] do
     select_opt =
       Enum.find_value(func_options, fn
         {:option, "select", {:literal, value}} -> value

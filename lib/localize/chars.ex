@@ -105,6 +105,14 @@ defprotocol Localize.Chars do
   * `{:error, exception}` if formatting fails. The exception is a
     struct (e.g. `%Localize.UnknownLocaleError{}`).
 
+  ### Examples
+
+      iex> Localize.Chars.to_string("hello")
+      {:ok, "hello"}
+
+      iex> Localize.Chars.to_string(:hello)
+      {:ok, "hello"}
+
   """
   @spec to_string(t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(value)
@@ -122,11 +130,30 @@ defprotocol Localize.Chars do
   * `options` is a keyword list of options forwarded to the
     underlying formatter.
 
+  ### Options
+
+  * The options are forwarded unchanged to the formatter for the
+    implementing type — see the table of built-in implementations
+    in the module documentation for which formatter handles each
+    type, and that formatter's documentation for its option set.
+
+  * `:locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0` and is accepted by every
+    implementation. The default is `Localize.get_locale/0`.
+
   ### Returns
 
   * `{:ok, formatted_string}` on success.
 
   * `{:error, exception}` if formatting fails.
+
+  ### Examples
+
+      iex> Localize.Chars.to_string(1234.5, locale: :de)
+      {:ok, "1.234,5"}
+
+      iex> Localize.Chars.to_string(~D[2025-07-10], locale: :en)
+      {:ok, "Jul 10, 2025"}
 
   """
   @spec to_string(t(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}

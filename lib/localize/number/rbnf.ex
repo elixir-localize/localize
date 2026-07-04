@@ -147,6 +147,16 @@ defmodule Localize.Number.Rbnf do
 
   * `{:error, exception}` if RBNF data is not available.
 
+  ### Examples
+
+      iex> {:ok, names} = Localize.Number.Rbnf.rule_names_for_locale(:en)
+      iex> "spellout_cardinal" in names
+      true
+
+      iex> {:ok, names} = Localize.Number.Rbnf.rule_names_for_locale(:en)
+      iex> "digits_ordinal" in names
+      true
+
   """
   @spec rule_names_for_locale(atom() | String.t()) ::
           {:ok, [String.t()]} | {:error, Exception.t()}

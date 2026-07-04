@@ -27,6 +27,95 @@ defmodule Localize.Collation.ReorderTest do
       mapping = Localize.Collation.Reorder.build_mapping([:Grek])
       assert mapping.(0) == 0
     end
+
+    test "lowercase script codes are equivalent to titlecase codes" do
+      assert Localize.Collation.compare("α", "a", reorder: [:grek], backend: :elixir) == :lt
+    end
+
+    test "the punct alias normalizes to punctuation" do
+      mapping = Localize.Collation.Reorder.build_mapping([:punct])
+      assert is_function(mapping, 1)
+    end
+
+    test "unknown script codes leave the default order unchanged" do
+      assert Localize.Collation.compare("a", "α", reorder: [:Xxquestionable], backend: :elixir) ==
+               :lt
+
+      assert Localize.Collation.compare("a", "б", reorder: [:Xxquestionable], backend: :elixir) ==
+               :lt
+    end
+
+    test "builds a mapping when :others or :Zzzz is present" do
+      assert is_function(Localize.Collation.Reorder.build_mapping([:Grek, :others]), 1)
+      assert is_function(Localize.Collation.Reorder.build_mapping([:Grek, :Zzzz]), 1)
+    end
+  end
+
+  describe "Reorder.apply_mapping/2" do
+    test "nil mapping returns the primary unchanged" do
+      assert Localize.Collation.Reorder.apply_mapping(nil, 0x23EC) == 0x23EC
+    end
+
+    test "a mapping function is applied to the primary" do
+      double = fn primary -> primary * 2 end
+      assert Localize.Collation.Reorder.apply_mapping(double, 21) == 42
+    end
+  end
+
+  describe "Reorder.parse_primary_to_frac/1" do
+    @tag :tmp_dir
+    test "extracts fractional lead and sub bytes from data lines", %{tmp_dir: tmp_dir} do
+      path = Path.join(tmp_dir, "frac_fixture.txt")
+
+      File.write!(path, """
+      # comment line
+      [top_byte\t03\tSPACE ]
+      FDD0 0041; marker line, skipped
+      0020; [03 05, 05, 05]\t# Zyyy Zs\t[0209.0020.0002]\t* SPACE
+      0041; [2B, 05, 9C]\t# Latn Lu\t[23EC.0020.0008]\t* LATIN CAPITAL LETTER A
+      00E9; [33 45, 05, 05]\t# Latn Ll\t[2453.0020.0002]\t* TWO-BYTE LEAD
+      0345; [, 97, 05]\t# combining, no fractional primary\t[0000.005C.0002]
+      FFF0; [05 05, 05, 05]\t# zero allkeys primary is skipped\t[0000.0020.0002]
+      not a data line
+      """)
+
+      mapping = Localize.Collation.Reorder.parse_primary_to_frac(path)
+
+      assert mapping[0x23EC] == 0x2B
+      assert mapping[{:sub, 0x23EC}] == 0
+      assert mapping[0x2453] == 0x33
+      assert mapping[{:sub, 0x2453}] == 0x45
+      assert mapping[0x0209] == 0x03
+
+      # Entries without a fractional primary or with a zero allkeys
+      # primary are not recorded.
+      refute Map.has_key?(mapping, 0x0000)
+      refute Map.has_key?(mapping, {:sub, 0x0000})
+    end
+  end
+
+  describe "Reorder.parse_top_bytes/1" do
+    @tag :tmp_dir
+    test "builds script ranges and filters non-reorderable groups", %{tmp_dir: tmp_dir} do
+      path = Path.join(tmp_dir, "top_bytes_fixture.txt")
+
+      File.write!(path, """
+      [top_byte\t00\tTERMINATOR ]
+      [top_byte\t01\tLEVEL-SEPARATOR ]
+      [top_byte\t03\tSPACE PUNCTUATION ]
+      [top_byte\t04\tSPACE PUNCTUATION ]
+      [top_byte\t0F\tDIGIT ]
+      0041; [2B, 05, 9C]\t# not a top_byte line
+      """)
+
+      ranges = Localize.Collation.Reorder.parse_top_bytes(path)
+
+      assert ranges["space"] == {0x03, 0x04}
+      assert ranges["punctuation"] == {0x03, 0x04}
+      assert ranges["digit"] == {0x0F, 0x0F}
+      refute Map.has_key?(ranges, "terminator")
+      refute Map.has_key?(ranges, "level-separator")
+    end
   end
 
   describe "Reorder.load_script_ranges/0" do

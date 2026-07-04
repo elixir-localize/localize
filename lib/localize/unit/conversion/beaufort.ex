@@ -25,6 +25,14 @@ defmodule Localize.Unit.Conversion.Beaufort do
   Values are clamped to the range [0, 17]. Fractional Beaufort numbers
   are interpolated between adjacent midpoints.
 
+  ### Examples
+
+      iex> Localize.Unit.Conversion.Beaufort.forward(0)
+      0.15
+
+      iex> Localize.Unit.Conversion.Beaufort.forward(5)
+      9.4
+
   """
   @spec forward(number()) :: float()
   def forward(beaufort) do
@@ -51,7 +59,15 @@ defmodule Localize.Unit.Conversion.Beaufort do
   Converts meters per second to a Beaufort scale value.
 
   Finds the Beaufort band whose midpoint range contains the given
-  speed and interpolates within it.
+  speed and interpolates within it. Negative speeds return `0.0`.
+
+  ### Examples
+
+      iex> Localize.Unit.Conversion.Beaufort.inverse(9.4)
+      5.0
+
+      iex> Localize.Unit.Conversion.Beaufort.inverse(-3)
+      0.0
 
   """
   @spec inverse(number()) :: float()

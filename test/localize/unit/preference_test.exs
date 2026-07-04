@@ -3,6 +3,8 @@ defmodule Localize.Unit.PreferenceTest do
 
   alias Localize.Test.PreferenceData
 
+  doctest Localize.Unit.Preference
+
   describe "usage option hardening" do
     test "an unknown usage string falls back to default preferences" do
       unit = Localize.Unit.new!(100, "meter")

@@ -129,6 +129,10 @@ defmodule Localize.Language do
   @doc """
   Same as `display_name/2` but raises on error.
 
+  ### Options
+
+  * See `display_name/2` for the supported options.
+
   ### Examples
 
       iex> Localize.Language.display_name!("de")
@@ -190,6 +194,12 @@ defmodule Localize.Language do
     end
   end
 
+  @doc """
+  Returns the list of language codes for which a locale has display names.
+
+  Deprecated — use `languages_for/1` instead.
+
+  """
   @deprecated "Use languages_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
   @spec available_languages(Keyword.t()) ::
           {:ok, [String.t()]} | {:error, Exception.t()}
@@ -238,6 +248,12 @@ defmodule Localize.Language do
     end
   end
 
+  @doc """
+  Returns a map of language codes to their localized names in a locale.
+
+  Deprecated — use `language_names_for/1` instead.
+
+  """
   @deprecated "Use language_names_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
   @spec known_languages(Keyword.t()) ::
           {:ok, %{String.t() => map()}} | {:error, Exception.t()}

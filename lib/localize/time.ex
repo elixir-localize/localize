@@ -138,6 +138,10 @@ defmodule Localize.Time do
   @doc """
   Same as `to_string/2` but raises on error.
 
+  ### Options
+
+  See `to_string/2` for the supported options.
+
   ### Examples
 
       iex> Localize.Time.to_string!(~T[14:30:00], locale: :en, prefer: :ascii)

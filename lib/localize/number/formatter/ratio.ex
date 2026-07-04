@@ -100,6 +100,14 @@ defmodule Localize.Number.Formatter.Ratio do
   * `{:error, exception}` if the number cannot be converted to
     a ratio or locale data is unavailable.
 
+  ### Examples
+
+      iex> Localize.Number.Formatter.Ratio.to_ratio_string(0.5, locale: :en)
+      {:ok, "1⁄2"}
+
+      iex> Localize.Number.Formatter.Ratio.to_ratio_string(3.25, locale: :en)
+      {:ok, "3\u202F1⁄4"}
+
   """
   @spec to_ratio_string(number() | Decimal.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}

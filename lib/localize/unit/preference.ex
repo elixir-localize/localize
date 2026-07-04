@@ -183,6 +183,30 @@ defmodule Localize.Unit.Preference do
   @doc """
   Same as `preferred_units/2` but raises on error.
 
+  ### Arguments
+
+  * `unit` is a `t:Localize.Unit.t/0` struct.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `preferred_units/2` for the supported options.
+
+  ### Returns
+
+  * A list of unit name atoms.
+
+  ### Examples
+
+      iex> meter = Localize.Unit.new!(1, "meter")
+      iex> Localize.Unit.Preference.preferred_units!(meter, usage: :person, territory: :US)
+      [:inch]
+
+      iex> many_meters = Localize.Unit.new!(10_000, "meter")
+      iex> Localize.Unit.Preference.preferred_units!(many_meters, usage: :road, territory: :US)
+      [:mile]
+
   """
   @spec preferred_units!(Unit.t(), Keyword.t()) :: [atom()] | no_return()
   def preferred_units!(%Unit{} = unit, options \\ []) do

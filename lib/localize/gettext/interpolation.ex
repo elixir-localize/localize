@@ -47,6 +47,16 @@ defmodule Localize.Gettext.Interpolation do
   translated MF2 source so it can run `format_to_safe_list/3` itself
   for markup-aware rendering). Not intended for direct use by
   application code.
+
+  ### Returns
+
+  * The sentinel map `%{__localize_skip_interpolation__: true}`.
+
+  ### Examples
+
+      iex> Localize.Gettext.Interpolation.skip_interpolation_sentinel()
+      %{__localize_skip_interpolation__: true}
+
   """
   @spec skip_interpolation_sentinel() :: %{__localize_skip_interpolation__: true}
   def skip_interpolation_sentinel, do: %{__localize_skip_interpolation__: true}

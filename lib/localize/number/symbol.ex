@@ -61,6 +61,12 @@ defmodule Localize.Number.Symbol do
 
   * `{:error, exception}` if the locale data cannot be loaded.
 
+  ### Examples
+
+      iex> {:ok, symbols} = Localize.Number.Symbol.number_symbols_for(:en)
+      iex> symbols[:latn].decimal
+      %{standard: "."}
+
   """
   @spec number_symbols_for(Localize.LanguageTag.t() | atom() | String.t()) ::
           {:ok, map()} | {:error, Exception.t()}
@@ -88,6 +94,14 @@ defmodule Localize.Number.Symbol do
 
   * `{:error, exception}` if the locale data cannot be loaded or
     no symbols exist for the number system.
+
+  ### Examples
+
+      iex> {:ok, symbols} = Localize.Number.Symbol.number_symbols_for(:en, :latn)
+      iex> symbols.percent_sign
+      "%"
+      iex> symbols.group
+      %{standard: ","}
 
   """
   @spec number_symbols_for(Localize.LanguageTag.t() | atom() | String.t(), atom() | String.t()) ::

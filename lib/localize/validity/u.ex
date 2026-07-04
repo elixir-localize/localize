@@ -33,7 +33,7 @@ defmodule Localize.Validity.U do
     decode(unmap(key), value)
   end
 
-  @dont_atomize ["tz", "rg", "sd", "kr"]
+  @dont_atomize ["tz", "rg", "sd", "kr", "vt"]
   def decode(key, value) when key in @dont_atomize do
     case valid(key, value) do
       {:ok, value} ->

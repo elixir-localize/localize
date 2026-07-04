@@ -44,6 +44,8 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   """
   @impl Localize.Locale.Provider
   @dialyzer {:nowarn_function, load: 1}
+  @spec load(atom() | Localize.LanguageTag.t()) ::
+          {:ok, map()} | {:error, Exception.t()}
   def load(locale) do
     # `cldr_locale_id_from/1` validates and canonicalises non-CLDR forms
     # like `:"pt-BR"` (→ `:pt`), so the cache lookup and any
@@ -97,16 +99,28 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
   ### Returns
 
-  * `:ok` on success.
-
-  * `{:error, reason}` on failure.
+  * `:ok`.
 
   """
   @impl Localize.Locale.Provider
+  @spec store(atom(), map()) :: :ok
   def store(locale_id, locale_data) do
     locale_key = locale_key(locale_id)
-    :ok = :persistent_term.put(locale_key, locale_data)
+    :ok = :persistent_term.put(locale_key, fix_alt_language_key(locale_data))
   end
+
+  # CLDR 48 locale data stores the "alt" language code (Southern
+  # Altai) as the atom :alt — the generation pipeline's alt-variant
+  # key atomization collides with the language code. Restore the
+  # binary key so it is reachable like every other language code.
+  # Remove once the data is regenerated with the pipeline fix
+  # (next CLDR release cycle).
+  defp fix_alt_language_key(%{languages: %{alt: name} = languages} = locale_data) do
+    languages = languages |> Map.delete(:alt) |> Map.put("alt", name)
+    %{locale_data | languages: languages}
+  end
+
+  defp fix_alt_language_key(locale_data), do: locale_data
 
   @doc """
   Returns whether locale data has been loaded into `:persistent_term`.
@@ -123,6 +137,7 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
   """
   @impl Localize.Locale.Provider
+  @spec loaded?(atom() | Localize.LanguageTag.t()) :: boolean()
   def loaded?(locale) do
     case cldr_locale_id_from(locale) do
       {:ok, locale_id} -> !!:persistent_term.get(locale_key(locale_id), nil)
@@ -160,6 +175,8 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
   """
   @impl Localize.Locale.Provider
+  @spec get(atom() | Localize.LanguageTag.t(), [atom()], Keyword.t()) ::
+          {:ok, term()} | {:error, Exception.t()}
   def get(locale, keys, _options \\ []) when is_list(keys) do
     with {:ok, locale_id} <- cldr_locale_id_from(locale) do
       case :persistent_term.get(locale_key(locale_id), :localize_locale_not_loaded) do

@@ -102,6 +102,18 @@ defmodule Localize.DateTime.Relative do
   @doc """
   Same as `to_string/2` but raises on error.
 
+  ### Options
+
+  See `to_string/2` for the supported options.
+
+  ### Examples
+
+      iex> Localize.DateTime.Relative.to_string!(-3, unit: :day, locale: :en)
+      "3 days ago"
+
+      iex> Localize.DateTime.Relative.to_string!(~D[2024-06-14], relative_to: ~D[2024-06-15], locale: :en)
+      "yesterday"
+
   """
   @spec to_string!(integer() | Date.t() | DateTime.t() | Time.t(), Keyword.t()) :: String.t()
   def to_string!(relative, options \\ []) do
@@ -113,6 +125,11 @@ defmodule Localize.DateTime.Relative do
 
   @doc """
   Returns the list of known time units.
+
+  ### Examples
+
+      iex> Localize.DateTime.Relative.known_units()
+      [:day, :fri, :hour, :minute, :mon, :month, :quarter, :sat, :second, :sun, :thu, :tue, :wed, :week, :year]
 
   """
   @spec known_units() :: [atom(), ...]

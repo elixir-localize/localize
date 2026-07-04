@@ -46,6 +46,12 @@ defmodule Localize.Territory do
   @spec known_styles() :: [:short | :standard | :variant, ...]
   def known_styles, do: @styles
 
+  @doc """
+  Returns the list of territory display name styles known to CLDR.
+
+  Deprecated — use `known_styles/0` instead.
+
+  """
   @deprecated "Use known_styles/0 instead. This function will be removed by Localize 1.0 and no later than December 2026."
   @spec available_styles() :: [:short | :standard | :variant, ...]
   def available_styles, do: known_styles()
@@ -71,6 +77,84 @@ defmodule Localize.Territory do
   @spec known_territories() :: [atom(), ...]
   def known_territories do
     Localize.SupplementalData.known_territories()
+  end
+
+  # ── Per-locale territory data ───────────────────────────────
+
+  @doc """
+  Returns a sorted list of territory codes that have localized
+  names in a locale.
+
+  ### Arguments
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier. The default is
+    `Localize.get_locale()`.
+
+  ### Returns
+
+  * `{:ok, codes}` where `codes` is a sorted list of territory
+    code atoms.
+
+  * `{:error, exception}` if the locale data cannot be loaded.
+
+  ### Examples
+
+      iex> {:ok, codes} = Localize.Territory.territories_for()
+      iex> :US in codes
+      true
+
+  """
+  @spec territories_for(Keyword.t()) ::
+          {:ok, [atom()]} | {:error, Exception.t()}
+  def territories_for(options \\ []) do
+    with {:ok, territories} <- territory_names_for(options) do
+      {:ok, territories |> Map.keys() |> Enum.sort()}
+    end
+  end
+
+  @doc """
+  Returns a map of territory codes to their localized names in a
+  locale.
+
+  ### Arguments
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier. The default is
+    `Localize.get_locale()`.
+
+  ### Returns
+
+  * `{:ok, territories_map}` where `territories_map` is a map of
+    `%{territory_atom => %{standard: name, ...}}`.
+
+  * `{:error, exception}` if the locale data cannot be loaded.
+
+  ### Examples
+
+      iex> {:ok, territories} = Localize.Territory.territory_names_for()
+      iex> territories[:NZ].standard
+      "New Zealand"
+
+      iex> {:ok, territories} = Localize.Territory.territory_names_for(locale: :de)
+      iex> territories[:AT]
+      %{standard: "Österreich"}
+
+  """
+  @spec territory_names_for(Keyword.t()) ::
+          {:ok, %{atom() => map()}} | {:error, Exception.t()}
+  def territory_names_for(options \\ []) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
+      Localize.Locale.get(locale_id, [:territories])
+    end
   end
 
   # ── Display names ───────────────────────────────────────────
@@ -153,6 +237,10 @@ defmodule Localize.Territory do
   @doc """
   Same as `display_name/2` but raises on error.
 
+  ### Options
+
+  * See `display_name/2` for the supported options.
+
   ### Examples
 
       iex> Localize.Territory.display_name!(:GB)
@@ -223,6 +311,10 @@ defmodule Localize.Territory do
 
   @doc """
   Same as `translate_territory/3` but raises on error.
+
+  ### Options
+
+  * See `translate_territory/3` for the supported options.
 
   ### Examples
 

@@ -2,6 +2,7 @@ defmodule Localize.Unit.ParserTest do
   use ExUnit.Case, async: true
 
   doctest Localize.Unit.Parser
+  doctest Localize.Unit.Canonical
 
   alias Localize.Unit.Parser
 

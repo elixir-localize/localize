@@ -3,6 +3,8 @@ defmodule Localize.Exception.SafeMessageTest do
 
   import ExUnit.CaptureLog
 
+  doctest Localize.Exception
+
   # A binding whose value isn't JSON-encodable (functions can't be
   # serialised to JSON). The NIF formatter path encodes bindings as
   # JSON before crossing the NIF boundary, so this is the simplest

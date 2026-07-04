@@ -51,7 +51,21 @@ defmodule Mix.Tasks.Localize.UpdateMf2Conformance do
   @default_ref "main"
   @files [
     {"syntax.json", "test/tests/syntax.json"},
-    {"syntax-errors.json", "test/tests/syntax-errors.json"}
+    {"syntax-errors.json", "test/tests/syntax-errors.json"},
+    {"data-model-errors.json", "test/tests/data-model-errors.json"},
+    {"pattern-selection.json", "test/tests/pattern-selection.json"},
+    {"fallback.json", "test/tests/fallback.json"},
+    {"bidi.json", "test/tests/bidi.json"},
+    {"u-options.json", "test/tests/u-options.json"},
+    {"functions/currency.json", "test/tests/functions/currency.json"},
+    {"functions/date.json", "test/tests/functions/date.json"},
+    {"functions/datetime.json", "test/tests/functions/datetime.json"},
+    {"functions/integer.json", "test/tests/functions/integer.json"},
+    {"functions/number.json", "test/tests/functions/number.json"},
+    {"functions/offset.json", "test/tests/functions/offset.json"},
+    {"functions/percent.json", "test/tests/functions/percent.json"},
+    {"functions/string.json", "test/tests/functions/string.json"},
+    {"functions/time.json", "test/tests/functions/time.json"}
   ]
 
   @vendored_dir "test/support/data/mf2_conformance"
@@ -152,6 +166,8 @@ defmodule Mix.Tasks.Localize.UpdateMf2Conformance do
       {:ok, name}
     else
       unless check? do
+        # Names such as "functions/number.json" nest below dest_dir.
+        File.mkdir_p!(Path.dirname(local_path))
         File.write!(local_path, upstream_body)
       end
 

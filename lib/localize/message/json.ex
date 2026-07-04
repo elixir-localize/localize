@@ -265,7 +265,7 @@ defmodule Localize.Message.JSON do
 
       iex> json = %{"type" => "message", "declarations" => [], "pattern" => ["Hello!"]}
       iex> Localize.Message.JSON.from_json(json)
-      {:ok, [{:complex, [], {:quoted_pattern, [{:text, "Hello!"}]}}]}
+      {:ok, [quoted_pattern: [text: "Hello!"]]}
 
   """
   @spec from_json(map() | String.t()) :: {:ok, list()} | {:error, String.t()}
