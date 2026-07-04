@@ -26,6 +26,12 @@ defmodule Mix.Tasks.Localize.GenerateLocaleHashes do
     directory (the same directory `mix localize.generate_locales`
     writes to).
 
+  * `--from-cdn` — hash the bytes currently served by the CDN
+    instead of local files. Use this to (re)establish the baseline
+    when the published data predates the current local generation
+    (for example after an OTP upgrade re-encodes value-identical
+    files with different bytes).
+
   """
 
   use Mix.Task
@@ -35,11 +41,16 @@ defmodule Mix.Tasks.Localize.GenerateLocaleHashes do
     Mix.Task.run("app.config")
     {:ok, _started} = Application.ensure_all_started(:localize)
 
-    {options, _rest} = OptionParser.parse!(args, strict: [locales_dir: :string])
+    {options, _rest} =
+      OptionParser.parse!(args, strict: [locales_dir: :string, from_cdn: :boolean])
 
-    locales_dir =
-      Keyword.get(options, :locales_dir) || Localize.Data.locales_output_dir()
+    if Keyword.get(options, :from_cdn, false) do
+      Localize.Data.generate_locale_hashes_from_cdn()
+    else
+      locales_dir =
+        Keyword.get(options, :locales_dir) || Localize.Data.locales_output_dir()
 
-    Localize.Data.generate_locale_hashes(locales_dir)
+      Localize.Data.generate_locale_hashes(locales_dir)
+    end
   end
 end
