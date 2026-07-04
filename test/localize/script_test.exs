@@ -107,4 +107,34 @@ defmodule Localize.ScriptTest do
       assert nil == Localize.Utils.Helpers.existing_atom(bogus)
     end
   end
+
+  describe "fallback option" do
+    test "fallback: true resolves through the default locale" do
+      assert {:error, %Localize.UnknownScriptError{script: :Dupl}} =
+               Script.display_name(:Dupl, locale: "agq")
+
+      assert Script.display_name(:Dupl, locale: "agq", fallback: true) ==
+               {:ok, "Duployan shorthand"}
+    end
+
+    test "a non-boolean fallback is an invalid value" do
+      assert {:error, %Localize.InvalidValueError{value: "yes", expected: :fallback}} =
+               Script.display_name(:Latn, fallback: "yes")
+    end
+  end
+
+  describe "deprecated wrappers" do
+    # Deprecated names called via apply/3 to avoid the deprecation warning.
+    test "available_scripts/1 delegates to scripts_for/1" do
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
+      assert {:ok, scripts} = apply(Script, :available_scripts, [])
+      assert :Latn in scripts
+    end
+
+    test "known_scripts/1 delegates to script_names_for/1" do
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
+      assert {:ok, names} = apply(Script, :known_scripts, [])
+      assert is_map(names)
+    end
+  end
 end

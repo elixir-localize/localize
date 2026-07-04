@@ -9,6 +9,7 @@ defmodule Localize.Collation.Numeric do
   @moduledoc false
 
   alias Localize.Collation.Element
+  alias Localize.Collation.Unicode
 
   @doc """
   Process codepoint/element pairs, replacing digit sequence CEs with
@@ -73,7 +74,7 @@ defmodule Localize.Collation.Numeric do
   defp digit_codepoints?(cps) do
     Enum.all?(cps, fn cp ->
       (cp >= 0x0030 and cp <= 0x0039) or
-        Localize.Collation.Unicode.decimal_digit?(cp)
+        Unicode.decimal_digit?(cp)
     end)
   end
 
@@ -125,7 +126,11 @@ defmodule Localize.Collation.Numeric do
 
   defp numeric_digit_value(cp) when cp >= 0x0030 and cp <= 0x0039, do: cp - 0x0030
 
+  # Non-ASCII decimal digits take their value from the offset within
+  # their Unicode decimal digit block, which always starts at the digit
+  # zero. `rem(cp, 10)` would be wrong: the blocks are not aligned
+  # modulo 10 (Arabic-Indic zero is U+0660, which is 2 mod 10).
   defp numeric_digit_value(cp) do
-    rem(cp, 10)
+    Unicode.decimal_digit_value(cp) || 0
   end
 end

@@ -266,8 +266,13 @@ defmodule Localize.Number.Rbnf do
   # The atoms `:spellout` and `:ordinal` are special: they map to
   # the "best available" rule in the locale's public rule sets.
   # Any other atom or string is returned unchanged in string form.
+  # spellout-numbering leads the preferences: it is ICU's default
+  # rule set for SPELLOUT formatting, and it exists in every locale
+  # with spellout rules — including locales like de and ru that have
+  # only gendered spellout-cardinal variants.
   defp resolve_rule_name(:spellout, all_rule_sets, locale_id) do
     resolve_best_rule(all_rule_sets, :spellout, locale_id, [
+      "spellout-numbering",
       "spellout-cardinal",
       ~r/^spellout-cardinal-/,
       ~r/^spellout-/
@@ -316,6 +321,9 @@ defmodule Localize.Number.Rbnf do
     Enum.find(public_names, &Regex.match?(regex, &1))
   end
 
+  # Sorted so regex-preference matching is deterministic — map
+  # iteration order varies across OTP releases, which once made
+  # `:spellout` pick a different gendered rule set per OTP version.
   defp public_rule_names(all_rule_sets) do
     all_rule_sets
     |> Enum.filter(fn {_key, rule_set} ->
@@ -324,6 +332,7 @@ defmodule Localize.Number.Rbnf do
     |> Enum.map(fn {key, _rule_set} ->
       key |> to_string_key() |> String.replace("_", "-")
     end)
+    |> Enum.sort()
   end
 
   defp extract_rules(%{rules: rules}) when is_list(rules), do: rules

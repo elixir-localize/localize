@@ -407,4 +407,101 @@ defmodule Localize.TerritoryTest do
       assert "st helena" == Territory.normalize_name("St. Helena")
     end
   end
+
+  # ── LanguageTag-accepting heads ────────────────────────────────
+
+  describe "functions accepting a LanguageTag" do
+    setup do
+      {:ok, tag} = Localize.validate_locale("en-GB")
+      %{tag: tag}
+    end
+
+    test "parent/1 resolves the tag territory", %{tag: tag} do
+      assert Territory.parent(tag) == {:ok, [:"154", :UN]}
+    end
+
+    test "children/1 resolves the tag territory", %{tag: tag} do
+      assert Territory.children(tag) ==
+               {:error, Localize.UnknownTerritoryError.exception(territory: :GB)}
+    end
+
+    test "contains?/2 accepts a tag on either side", %{tag: tag} do
+      refute Territory.contains?(tag, :GB)
+      assert Territory.contains?(:"154", tag)
+    end
+
+    test "info/1 resolves the tag territory", %{tag: tag} do
+      assert {:ok, info} = Territory.info(tag)
+      assert is_map(info)
+    end
+
+    test "to_currency_code/1 resolves the tag territory", %{tag: tag} do
+      assert Territory.to_currency_code(tag) == {:ok, :GBP}
+    end
+
+    test "to_currency_codes/1 resolves the tag territory", %{tag: tag} do
+      assert Territory.to_currency_codes(tag) == {:ok, [:GBP]}
+    end
+
+    test "default_territory/1 returns the tag territory", %{tag: tag} do
+      assert Territory.default_territory(tag) == {:ok, :GB}
+    end
+
+    test "territory_from_locale/1 returns the tag territory", %{tag: tag} do
+      assert Territory.territory_from_locale(tag) == {:ok, :GB}
+    end
+
+    test "territory_from_locale/1 prefers the -u-rg- override" do
+      {:ok, tag} = Localize.validate_locale("en-u-rg-eszzzz")
+      assert Territory.territory_from_locale(tag) == {:ok, :ES}
+    end
+
+    test "unicode_flag/1 uses the tag territory", %{tag: tag} do
+      assert Territory.unicode_flag(tag) == {:ok, "🇬🇧"}
+    end
+
+    test "unicode_flag/1 without a territory is an error" do
+      {:ok, parsed} = Localize.LanguageTag.parse("en")
+      assert parsed.territory == nil
+
+      assert Territory.unicode_flag(parsed) ==
+               {:error, Localize.UnknownTerritoryError.exception(territory: nil)}
+    end
+  end
+
+  describe "translate_territory/2" do
+    test "defaults the target to the current locale" do
+      assert Territory.translate_territory("United Kingdom", :en) == {:ok, "United Kingdom"}
+    end
+
+    test "translate_territory!/3 returns the translation" do
+      assert Territory.translate_territory!("United Kingdom", :en, to: :pt) == "Reino Unido"
+    end
+  end
+
+  describe "error and edge branches" do
+    test "to_currency_code/1 for a territory with no currency" do
+      assert Territory.to_currency_code(:AQ) ==
+               {:error, Localize.UnknownCurrencyError.exception(currency: :AQ)}
+    end
+
+    test "territory_chain/1 for the world root" do
+      assert Territory.territory_chain(:"001") == {:ok, [:"001"]}
+    end
+
+    test "unicode_flag!/1 raises for an invalid territory" do
+      assert_raise Localize.UnknownTerritoryError, fn ->
+        Territory.unicode_flag!("not-a-territory")
+      end
+    end
+
+    test "territory_codes/1 filters to ISO 3166 codes" do
+      iso_codes = Territory.territory_codes(iso_3166: true)
+      all_codes = Territory.territory_codes()
+
+      assert Map.has_key?(iso_codes, :GB)
+      refute Map.has_key?(iso_codes, :"001")
+      assert map_size(all_codes) > map_size(iso_codes)
+    end
+  end
 end

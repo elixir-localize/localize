@@ -1288,13 +1288,18 @@ defmodule Localize.Utils.Math do
   defp round_digits(digits_t, %{scientific: true}), do: digits_t
   defp round_digits(digits_t, %{decimals: true}), do: digits_t
 
-  defp round_digits({_, place, _}, %{decimals: dp}) when dp + place <= 0 and place < 0 do
-    {[0], 1, 1}
-  end
-
-  defp round_digits({_, place, _} = digits_t, %{decimals: dp} = options) when dp + place <= 0 do
-    {digits, place, sign} = do_round(digits_t, dp, options)
-    {List.flatten(digits), place, sign}
+  # The rounding point falls at or before the first significant digit
+  # (`dp + place <= 0`, e.g. 0.4 rounded to 0 places, or 0.06 rounded
+  # to 1 place). Pad the digit list with leading zeros so the general
+  # rounding path sees a kept digit at the rounding point and the first
+  # significant digit as the tie-decider. The result is either zero or
+  # a carry up to 10^-dp (0.6 rounded to 0 places is 1; 0.06 rounded
+  # to 1 place is 0.1).
+  defp round_digits({digits, place, sign}, %{decimals: dp} = options) when dp + place <= 0 do
+    pad = 1 - dp - place
+    padded_digits_t = {List.duplicate(0, pad) ++ digits, place + pad, sign}
+    {rounded_digits, place, sign} = do_round(padded_digits_t, 0, options)
+    {List.flatten(rounded_digits), place, sign}
   end
 
   defp round_digits({_, place, _} = digits_t, %{decimals: dp} = options) do

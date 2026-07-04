@@ -56,4 +56,11 @@ defmodule Localize.DataLoaderTest do
       assert GenServer.call(DataLoader, {:load, key, fn -> :ignored end}) == :preexisting
     end
   end
+
+  describe "start_link/1" do
+    test "returns already_started when the supervised server is running" do
+      assert {:error, {:already_started, pid}} = DataLoader.start_link()
+      assert Process.whereis(DataLoader) == pid
+    end
+  end
 end

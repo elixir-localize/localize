@@ -171,6 +171,66 @@ defmodule Localize.Locale.LocaleDisplayUTest do
     end
   end
 
+  describe "display_name/2 -u- field rendering" do
+    test "renders the rg region override with a territory name" do
+      assert LocaleDisplay.display_name("en-u-rg-uszzzz", locale: :en) ==
+               {:ok, "English (Region For Supplemental Data: United States)"}
+    end
+
+    test "renders the cu currency with its symbol" do
+      assert LocaleDisplay.display_name("en-u-cu-usd", locale: :en) ==
+               {:ok, "English (Currency: $)"}
+    end
+
+    test "renders the tz timezone with its city-based name" do
+      assert LocaleDisplay.display_name("en-u-tz-ausyd", locale: :en) ==
+               {:ok, "English (Time Zone: Sydney Time)"}
+
+      assert LocaleDisplay.display_name("en-u-tz-usnyc", locale: :en) ==
+               {:ok, "English (Time Zone: New York Time)"}
+    end
+
+    test "renders the sd subdivision with the raw code when unnamed" do
+      assert LocaleDisplay.display_name("en-u-sd-usca", locale: :en) ==
+               {:ok, "English (Region Subdivision: usca)"}
+    end
+
+    test "renders the fw first-day-of-week value" do
+      assert LocaleDisplay.display_name("en-u-fw-mon", locale: :en) ==
+               {:ok, "English (First day of week: Monday)"}
+    end
+
+    test "renders the hc hour-cycle value" do
+      assert LocaleDisplay.display_name("en-u-hc-h23", locale: :en) ==
+               {:ok, "English (24 Hour System [0–23])"}
+    end
+
+    test "renders the ms measurement system value" do
+      assert LocaleDisplay.display_name("en-u-ms-metric", locale: :en) ==
+               {:ok, "English (Metric System)"}
+    end
+
+    test "renders the cf currency format value" do
+      assert LocaleDisplay.display_name("en-u-cf-account", locale: :en) ==
+               {:ok, "English (Accounting Currency Format)"}
+    end
+
+    test "renders the em emoji presentation value" do
+      assert LocaleDisplay.display_name("en-u-em-emoji", locale: :en) ==
+               {:ok, "English (Emoji Presentation For Emoji)"}
+    end
+
+    test "renders the va posix variant value" do
+      assert LocaleDisplay.display_name("en-u-va-posix", locale: :en) ==
+               {:ok, "English (POSIX Compliant Locale)"}
+    end
+
+    test "renders the dx dictionary-break value with the raw script code" do
+      assert LocaleDisplay.display_name("en-u-dx-thai", locale: :en) ==
+               {:ok, "English (Dictionary Break Exclusions: thai)"}
+    end
+  end
+
   defp render(iodata), do: :erlang.iolist_to_binary(iodata)
 
   defp display_names(locale_id \\ :en) do

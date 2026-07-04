@@ -182,4 +182,59 @@ defmodule Localize.Exception.StructuralTest do
       end
     end
   end
+
+  describe "LocaleIntegrityError.reason_atoms/0" do
+    test "lists the supported integrity failure reasons" do
+      assert Localize.LocaleIntegrityError.reason_atoms() == [
+               :hash_mismatch,
+               :no_manifest_entry
+             ]
+    end
+  end
+
+  describe "LocaleDownloadError cause normalization" do
+    test "a :connection_timeout cause sets the reason" do
+      exception =
+        Localize.LocaleDownloadError.exception(
+          locale_id: :en,
+          url: "http://example.com",
+          cause: :connection_timeout
+        )
+
+      assert exception.reason == :connection_timeout
+    end
+
+    test "a :timeout cause maps to :request_timeout" do
+      exception =
+        Localize.LocaleDownloadError.exception(
+          locale_id: :en,
+          url: "http://example.com",
+          cause: :timeout
+        )
+
+      assert exception.reason == :request_timeout
+    end
+
+    test "an :nxdomain cause sets the reason" do
+      exception =
+        Localize.LocaleDownloadError.exception(
+          locale_id: :en,
+          url: "http://example.com",
+          cause: :nxdomain
+        )
+
+      assert exception.reason == :nxdomain
+    end
+
+    test "any other cause maps to :network_error" do
+      exception =
+        Localize.LocaleDownloadError.exception(
+          locale_id: :en,
+          url: "http://example.com",
+          cause: {:tls_alert, :handshake_failure}
+        )
+
+      assert exception.reason == :network_error
+    end
+  end
 end

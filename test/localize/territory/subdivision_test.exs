@@ -81,4 +81,39 @@ defmodule Localize.Territory.SubdivisionTest do
                Subdivision.for_territory(:NOPE)
     end
   end
+
+  describe "default options" do
+    test "display_name/1 uses the current locale" do
+      assert Subdivision.display_name(:caon) == {:ok, "Ontario"}
+    end
+
+    test "display_name!/1 uses the current locale" do
+      assert Subdivision.display_name!(:caon) == "Ontario"
+    end
+
+    test "subdivision_names_for/0 uses the current locale" do
+      assert {:ok, names} = Subdivision.subdivision_names_for()
+      assert names[:caon] == "Ontario"
+    end
+
+    test "subdivisions_for/0 uses the current locale" do
+      assert {:ok, codes} = Subdivision.subdivisions_for()
+      assert :caon in codes
+    end
+  end
+
+  describe "deprecated wrappers" do
+    # Deprecated names called via apply/3 to avoid the deprecation warning.
+    test "known_subdivisions/1 delegates to subdivision_names_for/1" do
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
+      assert {:ok, names} = apply(Subdivision, :known_subdivisions, [])
+      assert names[:caon] == "Ontario"
+    end
+
+    test "available_subdivisions/1 delegates to subdivisions_for/1" do
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
+      assert {:ok, codes} = apply(Subdivision, :available_subdivisions, [])
+      assert :caon in codes
+    end
+  end
 end

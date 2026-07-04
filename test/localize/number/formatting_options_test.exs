@@ -71,6 +71,24 @@ defmodule Localize.Number.FormattingOptionsTest do
     end
   end
 
+  describe "fractional_digits with a zero integer part" do
+    test "sub-one floats round at the requested fraction size" do
+      assert Number.to_string(0.4, fractional_digits: 0) == {:ok, "0"}
+      assert Number.to_string(-0.4, fractional_digits: 0) == {:ok, "0"}
+      assert Number.to_string(0.5, fractional_digits: 0) == {:ok, "0"}
+      assert Number.to_string(0.6, fractional_digits: 0) == {:ok, "1"}
+      assert Number.to_string(0.06, fractional_digits: 1) == {:ok, "0.1"}
+      assert Number.to_string(0.04, fractional_digits: 1) == {:ok, "0.0"}
+    end
+
+    test "sub-one floats agree with the Decimal path" do
+      for {number, digits} <- [{0.4, 0}, {0.5, 0}, {0.6, 0}, {0.06, 1}, {0.04, 1}] do
+        assert Number.to_string(number, fractional_digits: digits) ==
+                 Number.to_string(Decimal.from_float(number), fractional_digits: digits)
+      end
+    end
+  end
+
   describe "round_nearest option" do
     test "rounds to the nearest 25" do
       assert Number.to_string(1234, round_nearest: 25) == {:ok, "1,225"}
