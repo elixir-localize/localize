@@ -24,11 +24,18 @@ defmodule Localize.Locale.Provider do
 
   """
 
+  require Logger
+
   @typedoc "A locale identifier as an atom."
   @type locale_id :: atom()
 
   @typedoc "A locale reference: either a locale identifier atom or a language tag struct."
   @type locale :: locale_id() | Localize.LanguageTag.t()
+
+  # Persistent-term keys for the bundled locale hash manifest and
+  # the once-only warning when the manifest is absent.
+  @locale_hashes_key {:localize, :locale_hashes}
+  @locale_hashes_warned_key {:localize, :locale_hashes_warned}
 
   # ── Behaviour callbacks ────────────────────────────────────────
 
@@ -600,7 +607,7 @@ defmodule Localize.Locale.Provider do
 
     case Localize.Utils.Http.get(url) do
       {:ok, body} when is_binary(body) ->
-        {:ok, body}
+        verify_locale_integrity(locale_id, url, body)
 
       {:not_modified, _headers} ->
         {:error,
@@ -617,6 +624,126 @@ defmodule Localize.Locale.Provider do
            url: url,
            cause: reason
          )}
+    end
+  end
+
+  # ── Download integrity ───────────────────────────────────────────
+  #
+  # Downloaded locale files are verified against the SHA-256 hash
+  # manifest bundled with the package (`priv/localize/locale_hashes.etf`,
+  # produced by `mix localize.generate_locale_hashes` at release time).
+  # The CDN data for a given data version is immutable, so the hashes
+  # pin exactly the bytes this package release was built against —
+  # integrity holds independently of TLS (including under
+  # `LOCALIZE_UNSAFE_HTTPS`).
+  #
+  # Verification runs before any decode and before the cache write,
+  # so the on-disk cache only ever contains verified content. When the
+  # manifest is present, verification is strict: a missing entry or a
+  # hash mismatch fails the download. A missing manifest file logs a
+  # one-time warning and skips verification (transitional, for builds
+  # from source before the manifest has been generated).
+
+  @doc false
+  @spec verify_locale_integrity(locale_id(), String.t(), binary()) ::
+          {:ok, binary()} | {:error, Exception.t()}
+  def verify_locale_integrity(locale_id, url, body) do
+    case locale_hash(locale_id) do
+      :no_manifest ->
+        warn_missing_hash_manifest()
+        {:ok, body}
+
+      nil ->
+        {:error,
+         Localize.LocaleIntegrityError.exception(
+           locale_id: locale_id,
+           url: url,
+           reason: :no_manifest_entry
+         )}
+
+      expected when is_binary(expected) ->
+        actual = :crypto.hash(:sha256, body)
+
+        if actual == expected do
+          {:ok, body}
+        else
+          {:error,
+           Localize.LocaleIntegrityError.exception(
+             locale_id: locale_id,
+             url: url,
+             reason: :hash_mismatch,
+             expected: Base.encode16(expected, case: :lower),
+             actual: Base.encode16(actual, case: :lower)
+           )}
+        end
+    end
+  end
+
+  defp locale_hash(locale_id) do
+    case locale_hashes() do
+      :no_manifest -> :no_manifest
+      hashes -> Map.get(hashes, locale_id)
+    end
+  end
+
+  @doc false
+  @spec locale_hashes() :: %{locale_id() => binary()} | :no_manifest
+  def locale_hashes do
+    case :persistent_term.get(@locale_hashes_key, :unset) do
+      :unset ->
+        hashes = load_locale_hashes()
+        :persistent_term.put(@locale_hashes_key, hashes)
+        hashes
+
+      hashes ->
+        hashes
+    end
+  end
+
+  # Test seam: inject a manifest (or `:no_manifest`) without touching
+  # the priv file.
+  @doc false
+  def put_locale_hashes(hashes) do
+    :persistent_term.put(@locale_hashes_key, hashes)
+  end
+
+  @doc false
+  def reset_locale_hashes do
+    :persistent_term.erase(@locale_hashes_key)
+    :persistent_term.erase(@locale_hashes_warned_key)
+    :ok
+  end
+
+  defp load_locale_hashes do
+    path = Application.app_dir(:localize, "priv/localize/locale_hashes.etf")
+
+    with {:ok, binary} <- File.read(path),
+         {:ok, hashes} <- decode_hash_manifest(binary) do
+      hashes
+    else
+      _ -> :no_manifest
+    end
+  end
+
+  # `binary_to_term/1` raises on malformed content; a corrupt manifest
+  # is treated as absent (with the warning) rather than crashing every
+  # download.
+  defp decode_hash_manifest(binary) do
+    {:ok, :erlang.binary_to_term(binary)}
+  rescue
+    ArgumentError -> :error
+  end
+
+  defp warn_missing_hash_manifest do
+    unless :persistent_term.get(@locale_hashes_warned_key, false) do
+      :persistent_term.put(@locale_hashes_warned_key, true)
+
+      Logger.warning(
+        "No locale hash manifest found (priv/localize/locale_hashes.etf). " <>
+          "Downloaded locale files will not be integrity-verified. " <>
+          "Run `mix localize.generate_locale_hashes` to create the manifest.",
+        domain: :localize
+      )
     end
   end
 end

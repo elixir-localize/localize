@@ -116,6 +116,7 @@ defmodule Localize.Data.Validity do
     |> LMap.deep_map(fn
       k when is_binary(k) -> k
       {k, "quaternary quarternary"} -> {k, "quaternary"}
+      {k, {:deprecated, v}} -> {underscore(k), {:deprecated, underscore(v)}}
       {k, v} when is_binary(v) -> {underscore(k), underscore(v)}
       {k, v} -> {underscore(k), v}
     end)
@@ -175,7 +176,13 @@ defmodule Localize.Data.Validity do
     |> String.replace(~r/<!DOCTYPE.*>\n/, "")
     |> xpath(~x"//keyword/key"l,
       name: ~x"./@name"s,
-      valid: [~x"./type"l, name: ~x"./@name"s, alias: ~x"./@alias"s]
+      valid: [
+        ~x"./type"l,
+        name: ~x"./@name"s,
+        alias: ~x"./@alias"s,
+        deprecated: ~x"./@deprecated"s,
+        preferred: ~x"./@preferred"s
+      ]
     )
   end
 
@@ -194,11 +201,22 @@ defmodule Localize.Data.Validity do
     {name, flatten_u_valid(valid)}
   end
 
+  # A deprecated type with a preferred replacement is tagged so the
+  # runtime accepts it for decoding but never selects it when
+  # encoding — `islamicc` decodes to islamic_civil, while encoding
+  # emits "islamic-civil". Deprecated types without a `preferred`
+  # attribute (some timezone ids) keep their alias behaviour.
   defp flatten_u_valid(list) do
     list
     |> Enum.map(fn
-      %{name: name, alias: ""} -> {name, nil}
-      %{name: name, alias: aliass} -> {name, aliass}
+      %{name: name, deprecated: "true", preferred: preferred} when preferred != "" ->
+        {name, {:deprecated, preferred}}
+
+      %{name: name, alias: ""} ->
+        {name, nil}
+
+      %{name: name, alias: aliass} ->
+        {name, aliass}
     end)
     |> Map.new()
   end

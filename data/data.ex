@@ -700,6 +700,65 @@ defmodule Localize.Data do
     end)
 
     IO.puts("All #{total} locale ETF files generated.")
+
+    # Regenerate the download-integrity manifest so it always matches
+    # the freshly generated data — a CLDR refresh cannot leave stale
+    # hashes behind.
+    generate_locale_hashes(output)
+
+    :ok
+  end
+
+  @doc """
+  Generates `priv/localize/locale_hashes.etf`, the SHA-256 manifest
+  used by `Localize.Locale.Provider.download_locale/1` to verify
+  locale files downloaded from the CDN.
+
+  Called automatically at the end of `generate_all_locales/0`, and
+  directly by `mix localize.generate_locale_hashes`.
+
+  ### Arguments
+
+  * `locales_dir` is the directory containing the generated locale
+    `.etf` files.
+
+  ### Returns
+
+  * `:ok`. Raises if the directory contains no locale files.
+
+  """
+  @spec generate_locale_hashes(String.t()) :: :ok
+  def generate_locale_hashes(locales_dir) do
+    etf_files =
+      locales_dir
+      |> Path.join("*.etf")
+      |> Path.wildcard()
+      |> Enum.sort()
+
+    if etf_files == [] do
+      raise ArgumentError,
+            "no locale .etf files found in #{inspect(locales_dir)}. " <>
+              "Run `mix localize.generate_locales` first."
+    end
+
+    hashes =
+      Map.new(etf_files, fn path ->
+        locale_id =
+          path
+          |> Path.basename(".etf")
+          |> String.to_atom()
+
+        {locale_id, :crypto.hash(:sha256, File.read!(path))}
+      end)
+
+    manifest_path = Path.join(File.cwd!(), "priv/localize/locale_hashes.etf")
+    File.write!(manifest_path, :erlang.term_to_binary(hashes))
+
+    IO.puts(
+      "Wrote #{map_size(hashes)} locale hashes to priv/localize/locale_hashes.etf " <>
+        "from #{inspect(locales_dir)}"
+    )
+
     :ok
   end
 

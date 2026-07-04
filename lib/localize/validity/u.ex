@@ -26,6 +26,13 @@ defmodule Localize.Validity.U do
   and the canonical value or an error.
 
   """
+  # Struct-field atom keys (`:ca`) are accepted alongside the BCP 47
+  # string keys (`"ca"`) so consumers of `Localize.LanguageTag.U`
+  # can decode with the same keys the struct uses.
+  def decode(key, value) when is_atom(key) do
+    decode(unmap(key), value)
+  end
+
   @dont_atomize ["tz", "rg", "sd", "kr"]
   def decode(key, value) when key in @dont_atomize do
     with {:ok, value} <- valid(key, value) do
@@ -52,6 +59,10 @@ defmodule Localize.Validity.U do
 
   """
 
+  def encode(key, value) when is_binary(key) do
+    encode(map(key), value)
+  end
+
   # Calendar names may be compound like
   # islamic-rgsa
   def encode(:ca = key, value) do
@@ -75,9 +86,13 @@ defmodule Localize.Validity.U do
   # back to what is required in a textual form of
   # the locale.
 
+  # Deprecated spellings decode (see `get_value/3`) but are never
+  # encode candidates: `:islamic_civil` encodes as "islamic-civil",
+  # not the deprecated "islamicc".
   for {key, values} <- @validity_data, key in @process_keys do
     inverted_values =
       Enum.map(values, fn
+        {_k, {:deprecated, _preferred}} -> []
         {k, v} when is_list(v) -> Enum.map(v, fn tz -> {tz, k} end)
         {k, nil} -> {String.to_atom(k), k}
         {k, v} -> {String.to_atom(v), k}
@@ -165,10 +180,13 @@ defmodule Localize.Validity.U do
   @tz_values @validity_data["tz"]
   defp valid("tz", value) do
     case Map.fetch(@tz_values, value) do
-      {:ok, nil} ->
-        {:ok, preferred} = preferred_timezone(value)
-        {:ok, %{aliases: aliases}} = Map.fetch(Localize.SupplementalData.timezones(), preferred)
-        {:ok, hd(aliases)}
+      # A deprecated timezone id carries its preferred replacement
+      # directly; resolve through the replacement's alias list.
+      {:ok, {:deprecated, preferred}} ->
+        case Map.fetch(@tz_values, preferred) do
+          {:ok, values} when is_list(values) -> {:ok, hd(values)}
+          _ -> {:ok, preferred}
+        end
 
       {:ok, values} when is_list(values) ->
         {:ok, hd(values)}
@@ -179,6 +197,17 @@ defmodule Localize.Validity.U do
   # islamic-rgsa
   defp valid("ca", values) when is_list(values) do
     valid("ca", Enum.join(values, "_"))
+  end
+
+  # The canonical BCP 47 spelling of compound calendar values is
+  # hyphenated ("islamic-civil"); the validity data stores them
+  # underscored. Accept the hyphenated form directly so decode/2
+  # round-trips encode/2 output.
+  defp valid("ca", value) when is_binary(value) do
+    case String.replace(value, "-", "_") do
+      ^value -> {:error, value}
+      underscored -> valid("ca", underscored)
+    end
   end
 
   # Codepoints?
@@ -259,19 +288,20 @@ defmodule Localize.Validity.U do
     {:error, invalid_key_error(key)}
   end
 
-  defp preferred_timezone(timezone) do
-    Localize.SupplementalData.timezones()
-    |> Map.fetch!(timezone)
-    |> Map.fetch(:preferred)
-  end
-
   defp get_value(values_map, "cu", value) do
-    (Map.get(values_map, value) || value)
-    |> String.upcase()
+    case Map.get(values_map, value) do
+      {:deprecated, preferred} -> String.upcase(preferred)
+      nil -> String.upcase(value)
+      other -> String.upcase(other)
+    end
   end
 
   defp get_value(map, _key, value) do
-    Map.get(map, value) || value
+    case Map.get(map, value) do
+      {:deprecated, preferred} -> preferred
+      nil -> value
+      other -> other
+    end
   end
 
   defp map(key) do
