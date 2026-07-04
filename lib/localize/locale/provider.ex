@@ -322,6 +322,12 @@ defmodule Localize.Locale.Provider do
   # CLDR maps to :pt) are replaced with the canonical form. If
   # resolution fails, the original is returned unchanged — let the
   # caller surface the error via the normal not-found path.
+  # The root locale must never be canonicalized: `validate_locale/1`
+  # maximizes `und` through likely subtags (to en-Latn-US and hence a
+  # cldr_locale_id of :en), which would download English data in place
+  # of the root locale. `und` is its own CLDR locale with its own file.
+  defp resolve_canonical_locale_id(:und), do: :und
+
   defp resolve_canonical_locale_id(locale_id) do
     case Localize.validate_locale(locale_id) do
       {:ok, %{cldr_locale_id: canonical}} when not is_nil(canonical) -> canonical
