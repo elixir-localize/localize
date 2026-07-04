@@ -115,6 +115,12 @@ defmodule Localize.Gettext.Messages do
         "datetime",
         "No interval format fallback pattern available in the locale data."
       ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "datetime",
+        "Interval endpoints must be the same kind of value. Found {$detail}."
+      ),
 
       # Language tag
       Gettext.Macros.dpgettext_noop_with_backend(

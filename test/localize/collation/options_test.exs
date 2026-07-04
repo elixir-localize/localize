@@ -209,12 +209,50 @@ defmodule Localize.Collation.OptionsTest do
     end
   end
 
-  describe "max_variable_primary/1" do
-    test "returns the boundary for every max_variable setting" do
-      assert Options.max_variable_primary(%Options{max_variable: :space}) == 0x0209
-      assert Options.max_variable_primary(%Options{max_variable: :punct}) == 0x0B61
-      assert Options.max_variable_primary(%Options{max_variable: :symbol}) == 0x0EE3
-      assert Options.max_variable_primary(%Options{max_variable: :currency}) == 0x0EFF
+  describe "Variable.primary_range/1" do
+    test "each wider setting extends the range without moving its start" do
+      {space_min, space_max} = Localize.Collation.Variable.primary_range(:space)
+      {punct_min, punct_max} = Localize.Collation.Variable.primary_range(:punct)
+      {symbol_min, symbol_max} = Localize.Collation.Variable.primary_range(:symbol)
+      {currency_min, currency_max} = Localize.Collation.Variable.primary_range(:currency)
+
+      assert space_min == punct_min
+      assert punct_min == symbol_min
+      assert symbol_min == currency_min
+
+      assert space_max < punct_max
+      assert punct_max < symbol_max
+      assert symbol_max < currency_max
+    end
+
+    test "max_variable controls which characters shift" do
+      # "!" (punctuation) shifts at :punct but not at :space
+      assert Localize.Collation.compare("ab", "a!b", alternate: :shifted) == :eq
+
+      assert Localize.Collation.compare("ab", "a!b", alternate: :shifted, max_variable: :space) ==
+               :gt
+
+      # A space always shifts, even at :space
+      assert Localize.Collation.compare("ab", "a b",
+               alternate: :shifted,
+               max_variable: :space
+             ) == :eq
+
+      # "$" (currency) shifts only once max_variable reaches :currency
+      assert Localize.Collation.compare("ab", "a$b", alternate: :shifted) == :gt
+
+      assert Localize.Collation.compare("ab", "a$b",
+               alternate: :shifted,
+               max_variable: :currency
+             ) == :eq
+
+      # "+" (symbol) shifts at :symbol but not at :punct
+      assert Localize.Collation.compare("ab", "a+b", alternate: :shifted) == :gt
+
+      assert Localize.Collation.compare("ab", "a+b",
+               alternate: :shifted,
+               max_variable: :symbol
+             ) == :eq
     end
   end
 

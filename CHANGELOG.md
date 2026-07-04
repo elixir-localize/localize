@@ -42,6 +42,16 @@ A quality release: the codebase now passes `mix credo --strict` with zero findin
 
 * CLDR `{1}…{0}…` substitution patterns with two literals placed the substituted items in the wrong order.
 
+* Collation `reorder: [..., :others]` places unmentioned scripts at the `:others` position per TR35; previously they kept unremapped weights, producing orderings incomparable with the reordered scripts.
+
+* The collation `max_variable` option takes effect in the Elixir backend: `:space` narrows and `:symbol`/`:currency` widen the shifted range per the UCA. Previously the setting was ignored and shifting was fixed at the punctuation boundary.
+
+* Compound unit identifiers canonicalize in the TR35 unitQuantity order, so `"kilowatt-hour"` keeps its CLDR pattern and renders "2 kilowatt-hours" instead of "2 hour-kilowatt".
+
+* `:currency_long_with_symbol` renders both the symbol-formatted number and the currency name ("$123.00 US dollars"); both long currency formats now derive the currency from the locale when no `:currency` option is given.
+
+* `Localize.Interval.to_string/3` returns an error for mixed endpoint kinds (e.g. a `Date` and a `Time`) instead of rendering malformed output.
+
 * MF2 `:percent` selection multiplies the operand by 100 before plural-category selection, matching the formatted value per the specification.
 
 * An MF2 `.match` on an unbound variable returns an unresolved-variable error instead of silently selecting the fallback variant.

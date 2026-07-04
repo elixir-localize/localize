@@ -136,7 +136,7 @@ defmodule Localize.Validity.U do
   end
 
   defp encode_key("sd", value) do
-    value
+    to_string(value)
   end
 
   defp encode_key("vt", value) do

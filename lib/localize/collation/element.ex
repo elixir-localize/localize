@@ -167,32 +167,35 @@ defmodule Localize.Collation.Element do
   Check if a collation element is a variable element.
 
   Variable elements represent spaces, punctuation, symbols, and currency signs.
-  They are identified by the `variable: true` flag set during parsing of the
-  collation table (derived from the `[first variable]` and `[last variable]`
-  boundaries in FractionalUCA.txt).
+  An element is variable when its primary weight falls within the
+  `{min, max}` range computed by `Localize.Collation.Variable.primary_range/1`
+  for the configured `max_variable` setting. The table's parsed variable
+  flag is not consulted — it only reflects the default (punctuation)
+  boundary and cannot express the other settings.
 
   ### Arguments
 
   * `element` - a collation element tuple.
 
-  * `max_variable_primary` - the maximum primary weight for variable elements (unused, retained for API compatibility).
+  * `primary_range` - the `{min, max}` primary weight range for variable elements.
 
   ### Returns
 
-  * `true` if the element is marked as variable and has a non-zero primary weight.
+  * `true` if the element's primary weight lies within the range.
 
   * `false` otherwise.
 
   ### Examples
 
-      iex> Localize.Collation.Element.variable?({0x0269, 0x0020, 0x0002, true}, 0x0B61)
+      iex> Localize.Collation.Element.variable?({0x0269, 0x0020, 0x0002, true}, {0x0209, 0x0B61})
       true
 
-      iex> Localize.Collation.Element.variable?({0x23EC, 0x0020, 0x0002, false}, 0x0B61)
+      iex> Localize.Collation.Element.variable?({0x23EC, 0x0020, 0x0002, false}, {0x0209, 0x0B61})
       false
 
   """
-  @spec variable?(t(), non_neg_integer()) :: boolean()
-  def variable?({p, _, _, true}, _max_variable_primary) when p > 0, do: true
-  def variable?(_, _), do: false
+  @spec variable?(t(), {pos_integer(), non_neg_integer()}) :: boolean()
+  def variable?({p, _, _, _}, {min_primary, max_primary}) do
+    p >= min_primary and p <= max_primary
+  end
 end

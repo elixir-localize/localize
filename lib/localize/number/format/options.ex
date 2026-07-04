@@ -237,7 +237,8 @@ defmodule Localize.Number.Format.Options do
     {:ok, currency}
   end
 
-  defp resolve_currency(:currency, nil, %Localize.LanguageTag{} = language_tag) do
+  defp resolve_currency(format, nil, %Localize.LanguageTag{} = language_tag)
+       when format in [:currency, :currency_long, :currency_long_with_symbol] do
     with {:ok, code} <- Localize.Currency.currency_from_locale(language_tag) do
       Localize.Currency.currency_for_code(code, locale: language_tag)
     end

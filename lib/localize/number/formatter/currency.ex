@@ -57,19 +57,37 @@ defmodule Localize.Number.Formatter.Currency do
   end
 
   def to_string(number, :currency_long_with_symbol, options) do
-    # First format as currency_long, then wrap in the currency format
-    with {:ok, long_string} <- to_string(number, :currency_long, Map.put(options, :currency, nil)) do
-      # Get the currency format and substitute
-      with {:ok, number_system} <- System.system_name_from(options.number_system, options.locale),
-           {:ok, formats} <- Format.formats_for(options.locale, number_system) do
-        currency_format = Map.get(formats, :currency) || "¤#,##0.00"
+    # The long plural pattern ("{0} US dollars") is filled with the
+    # symbol-formatted number ("$123.00") instead of the bare number.
+    with {:ok, number_system} <- System.system_name_from(options.number_system, options.locale),
+         {:ok, formats} <- Format.formats_for(options.locale, number_system) do
+      currency_long_formats = Map.get(formats, :currency_long)
 
-        Localize.Number.Formatter.Decimal.to_string(
-          long_string,
-          currency_format,
-          options
-        )
+      if is_nil(currency_long_formats) do
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: :currency_long_with_symbol,
+           expected: "a locale with currency_long formats",
+           context: "Localize.Number.Formatter.Currency"
+         )}
+      else
+        format_long_with_symbol(number, formats, currency_long_formats, options)
       end
+    end
+  end
+
+  defp format_long_with_symbol(number, formats, currency_long_formats, options) do
+    currency_format = Map.get(formats, :currency) || "¤#,##0.00"
+
+    case Localize.Number.Formatter.Decimal.to_string(number, currency_format, options) do
+      {:ok, currency_string} ->
+        name_string = currency_display_name(number, options)
+        plural_format = plural_format(number, currency_long_formats, options)
+        result = substitute([currency_string, name_string], plural_format)
+        {:ok, :erlang.iolist_to_binary(result)}
+
+      error ->
+        error
     end
   end
 
