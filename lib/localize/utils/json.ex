@@ -1,12 +1,11 @@
 defmodule Localize.Utils.Json do
-  @moduledoc """
-  JSON decoding utilities wrapping the OTP `:json` module.
-
-  Provides a `Jason`-compatible `decode!/1,2` interface suitable
-  for decoding JSON data in Localize. Uses the built-in `:json`
-  module available in OTP 27+.
-
-  """
+  # JSON decoding utilities wrapping the OTP `:json` module.
+  #
+  # Provides a `Jason`-compatible `decode!/1,2` interface suitable
+  # for decoding JSON data in Localize. Uses the built-in `:json`
+  # module available in OTP 27+.
+  #
+  @moduledoc false
 
   @doc """
   Decodes a JSON string into an Elixir term.

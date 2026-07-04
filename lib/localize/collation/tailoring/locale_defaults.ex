@@ -1,12 +1,11 @@
 defmodule Localize.Collation.Tailoring.LocaleDefaults do
-  @moduledoc """
-  Preset collation option defaults for common locales.
-
-  Maps BCP47 language tags to their standard collation option overrides
-  as defined by CLDR. These defaults are applied before any explicit
-  BCP47 `-u-` extension keys.
-
-  """
+  # Preset collation option defaults for common locales.
+  #
+  # Maps BCP47 language tags to their standard collation option overrides
+  # as defined by CLDR. These defaults are applied before any explicit
+  # BCP47 `-u-` extension keys.
+  #
+  @moduledoc false
 
   @locale_defaults %{
     "cu" => [case_first: :upper],

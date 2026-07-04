@@ -1,38 +1,37 @@
 defmodule Localize.Utils.Map do
-  @moduledoc """
-  Functions for transforming maps, keys and values.
-
-  This module provides recursive map traversal and transformation utilities
-  including key/value type conversion (atomize, stringify, integerize, floatize),
-  deep merging, key renaming, and `camelCase` to `snake_case` conversion.
-
-  The primary public API includes:
-
-  * `deep_map/3` - Recursively traverse and transform a map.
-
-  * `atomize_keys/2` and `atomize_values/2` - Convert string keys/values to atoms.
-
-  * `stringify_keys/2` and `stringify_values/2` - Convert atom keys/values to strings.
-
-  * `integerize_keys/2` and `integerize_values/2` - Convert string keys/values to integers.
-
-  * `floatize_keys/2` and `floatize_values/2` - Convert string keys/values to floats.
-
-  * `underscore_keys/2` - Convert camelCase string keys to snake_case.
-
-  * `rename_keys/4` - Rename specific map keys.
-
-  * `deep_merge/3` - Deep merge two maps.
-
-  * `merge_map_list/2` - Deep merge a list of maps.
-
-  * `delete_in/2` - Delete map members by key list.
-
-  * `invert/2` - Invert a map's keys and values.
-
-  * `underscore/1` - Convert a camelCase string to snake_case.
-
-  """
+  # Functions for transforming maps, keys and values.
+  #
+  # This module provides recursive map traversal and transformation utilities
+  # including key/value type conversion (atomize, stringify, integerize, floatize),
+  # deep merging, key renaming, and `camelCase` to `snake_case` conversion.
+  #
+  # The primary public API includes:
+  #
+  # * `deep_map/3` - Recursively traverse and transform a map.
+  #
+  # * `atomize_keys/2` and `atomize_values/2` - Convert string keys/values to atoms.
+  #
+  # * `stringify_keys/2` and `stringify_values/2` - Convert atom keys/values to strings.
+  #
+  # * `integerize_keys/2` and `integerize_values/2` - Convert string keys/values to integers.
+  #
+  # * `floatize_keys/2` and `floatize_values/2` - Convert string keys/values to floats.
+  #
+  # * `underscore_keys/2` - Convert camelCase string keys to snake_case.
+  #
+  # * `rename_keys/4` - Rename specific map keys.
+  #
+  # * `deep_merge/3` - Deep merge two maps.
+  #
+  # * `merge_map_list/2` - Deep merge a list of maps.
+  #
+  # * `delete_in/2` - Delete map members by key list.
+  #
+  # * `invert/2` - Invert a map's keys and values.
+  #
+  # * `underscore/1` - Convert a camelCase string to snake_case.
+  #
+  @moduledoc false
 
   alias Localize.Utils.Helpers
 

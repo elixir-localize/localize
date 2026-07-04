@@ -1,13 +1,12 @@
 defmodule Localize.Collation.SortKey do
-  @moduledoc """
-  Constructs binary sort keys from processed collation elements.
-
-  Sort keys are multi-level byte sequences that can be compared with
-  binary comparison (`<`, `>`, `==`) to determine string ordering.
-
-  Structure: [L1 weights] 0000 [L2 weights] 0000 [L3 weights] [0000 L4 weights]
-
-  """
+  # Constructs binary sort keys from processed collation elements.
+  #
+  # Sort keys are multi-level byte sequences that can be compared with
+  # binary comparison (`<`, `>`, `==`) to determine string ordering.
+  #
+  # Structure: [L1 weights] 0000 [L2 weights] 0000 [L3 weights] [0000 L4 weights]
+  #
+  @moduledoc false
 
   import Bitwise
 

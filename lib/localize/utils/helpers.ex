@@ -1,11 +1,10 @@
 defmodule Localize.Utils.Helpers do
-  @moduledoc """
-  General purpose helper functions for Localize.
-
-  Provides utility functions for checking empty data structures
-  and wrapping `:persistent_term` operations.
-
-  """
+  # General purpose helper functions for Localize.
+  #
+  # Provides utility functions for checking empty data structures
+  # and wrapping `:persistent_term` operations.
+  #
+  @moduledoc false
 
   @doc """
   Returns a boolean indicating if a data structure is semantically empty.

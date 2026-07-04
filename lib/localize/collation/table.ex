@@ -1,18 +1,17 @@
 defmodule Localize.Collation.Table do
-  @moduledoc """
-  Persistent-term-backed collation element table.
-
-  Loads the pre-generated collation table from `priv/localize/collation_table.etf`
-  for fast concurrent lookups using `:persistent_term`, which provides
-  zero-copy reads for data that is written once and never modified.
-
-  The ETF file is generated from `FractionalUCA.txt` during the build
-  pipeline by `Localize.Data.Collation.generate_collation_table/0`.
-
-  Handles both single codepoint mappings and contractions
-  (multi-codepoint sequences).
-
-  """
+  # Persistent-term-backed collation element table.
+  #
+  # Loads the pre-generated collation table from `priv/localize/collation_table.etf`
+  # for fast concurrent lookups using `:persistent_term`, which provides
+  # zero-copy reads for data that is written once and never modified.
+  #
+  # The ETF file is generated from `FractionalUCA.txt` during the build
+  # pipeline by `Localize.Data.Collation.generate_collation_table/0`.
+  #
+  # Handles both single codepoint mappings and contractions
+  # (multi-codepoint sequences).
+  #
+  @moduledoc false
 
   use GenServer
 

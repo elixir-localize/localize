@@ -1,21 +1,20 @@
 defmodule Localize.Utils.Digits do
-  @moduledoc """
-  Abstract representation of number (integer, float, Decimal) in tuple form
-  and functions for transformations on number parts.
-
-  Representing a number as a list of its digits, an integer representing
-  where the decimal point is placed, and an integer representing the sign
-  of the number allow more efficient transforms on the various parts of
-  the number as happens during the formatting of a number for string output.
-
-  A number in integer, float or Decimal form can be converted
-  to digit form with `to_digits/1`.
-
-  The digits can be converted back to normal form with
-  `Localize.Utils.Digits.to_integer/1`, `Localize.Utils.Digits.to_float/1`
-  and `Localize.Utils.Digits.to_decimal/1`.
-
-  """
+  # Abstract representation of number (integer, float, Decimal) in tuple form
+  # and functions for transformations on number parts.
+  #
+  # Representing a number as a list of its digits, an integer representing
+  # where the decimal point is placed, and an integer representing the sign
+  # of the number allow more efficient transforms on the various parts of
+  # the number as happens during the formatting of a number for string output.
+  #
+  # A number in integer, float or Decimal form can be converted
+  # to digit form with `to_digits/1`.
+  #
+  # The digits can be converted back to normal form with
+  # `Localize.Utils.Digits.to_integer/1`, `Localize.Utils.Digits.to_float/1`
+  # and `Localize.Utils.Digits.to_decimal/1`.
+  #
+  @moduledoc false
 
   import Bitwise
   import Localize.Utils.Math, only: [power_of_10: 1]

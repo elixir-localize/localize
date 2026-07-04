@@ -1,18 +1,17 @@
 defmodule Localize.DataLoader do
-  @moduledoc """
-  A GenServer that serializes ETF data file loading to prevent
-  race conditions.
-
-  When multiple processes request the same data concurrently,
-  the first request triggers the load and subsequent requests
-  wait for it to complete. This avoids duplicate file reads and
-  redundant `:persistent_term.put/2` calls (each of which
-  triggers a global GC).
-
-  The server is started as part of the `Localize` supervision
-  tree. All ETF file loading goes through `load/2`.
-
-  """
+  # A GenServer that serializes ETF data file loading to prevent
+  # race conditions.
+  #
+  # When multiple processes request the same data concurrently,
+  # the first request triggers the load and subsequent requests
+  # wait for it to complete. This avoids duplicate file reads and
+  # redundant `:persistent_term.put/2` calls (each of which
+  # triggers a global GC).
+  #
+  # The server is started as part of the `Localize` supervision
+  # tree. All ETF file loading goes through `load/2`.
+  #
+  @moduledoc false
 
   use GenServer
 

@@ -1,25 +1,24 @@
 defmodule Localize.Collation.Table.Parser do
-  @moduledoc """
-  Parses the FractionalUCA.txt file into a map of codepoint sequences to collation elements.
-
-  FractionalUCA.txt is the single source of truth for the collation table. Each data line
-  contains both fractional weights (used for script reordering) and allkeys-format decimal
-  weights (used for collation element construction) in the comment:
-
-  * Single codepoint: `0041; [2B, 05, 9C]  # Latn Lu  [23EC.0020.0008]  * LATIN CAPITAL LETTER A`.
-
-  * Multi-CE: `00E9; [2B 86, 05, 05]  # Latn Ll  [2453.0020.0002][0000.0024.0002]  * LATIN SMALL LETTER E WITH ACUTE`.
-
-  * Context entry: `004C | 00B7; [, FB B6, 05]  # Zyyy Po  [0000.011F.0002]  * MIDDLE DOT`.
-
-  Context entries represent CLDR-specific contractions where a target codepoint's weights
-  change depending on the preceding context codepoint. These are converted to explicit
-  contraction entries (e.g., `{0x004C, 0x00B7} => L's CEs ++ modified CEs`).
-
-  Variable status (spaces, punctuation, symbols, currency) is derived from the
-  `[last variable]` header line rather than per-entry markers.
-
-  """
+  # Parses the FractionalUCA.txt file into a map of codepoint sequences to collation elements.
+  #
+  # FractionalUCA.txt is the single source of truth for the collation table. Each data line
+  # contains both fractional weights (used for script reordering) and allkeys-format decimal
+  # weights (used for collation element construction) in the comment:
+  #
+  # * Single codepoint: `0041; [2B, 05, 9C]  # Latn Lu  [23EC.0020.0008]  * LATIN CAPITAL LETTER A`.
+  #
+  # * Multi-CE: `00E9; [2B 86, 05, 05]  # Latn Ll  [2453.0020.0002][0000.0024.0002]  * LATIN SMALL LETTER E WITH ACUTE`.
+  #
+  # * Context entry: `004C | 00B7; [, FB B6, 05]  # Zyyy Po  [0000.011F.0002]  * MIDDLE DOT`.
+  #
+  # Context entries represent CLDR-specific contractions where a target codepoint's weights
+  # change depending on the preceding context codepoint. These are converted to explicit
+  # contraction entries (e.g., `{0x004C, 0x00B7} => L's CEs ++ modified CEs`).
+  #
+  # Variable status (spaces, punctuation, symbols, currency) is derived from the
+  # `[last variable]` header line rather than per-entry markers.
+  #
+  @moduledoc false
 
   alias Localize.Collation.Element
 

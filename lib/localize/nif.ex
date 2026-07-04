@@ -3,9 +3,14 @@ defmodule Localize.Nif do
   Optional NIF interface to ICU4C for high-performance locale operations.
 
   This module provides NIF bindings for ICU4C functions including
-  MessageFormat 2.0 parsing and formatting. Additional functions for
-  number, date/time, and unit formatting will be added as the library
-  grows.
+  MessageFormat 2.0 parsing and formatting, number formatting, plural
+  rules, unit formatting and collation.
+
+  The stable way to use the NIF backend is the `backend: :nif` option
+  on the corresponding public formatting functions (for example
+  `Localize.Number.to_string/2` and `Localize.Message.format/3`); the
+  individual functions in this module are a low-level surface whose
+  signatures may change with the underlying ICU API.
 
   The NIF is opt-in and requires:
 
@@ -180,8 +185,8 @@ defmodule Localize.Nif do
   @doc """
   Compare two strings using ICU collation with full option support.
 
-  This is the raw NIF function. Use `Localize.Collation.Nif.nif_compare/3`
-  for the higher-level interface that handles option encoding.
+  This is the raw NIF function. Use `Localize.Collation.compare/3`
+  for the public interface that handles option encoding.
 
   ### Arguments
 

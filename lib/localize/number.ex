@@ -123,8 +123,10 @@ defmodule Localize.Number do
     case Localize.Backend.resolve(options) do
       :nif ->
         locale = Keyword.get(options, :locale, Localize.get_locale())
-        locale_string = locale_to_string(locale)
-        Localize.Nif.number_format(number, locale_string, options)
+
+        with {:ok, locale_string} <- validated_locale_string(locale) do
+          Localize.Nif.number_format(number, locale_string, options)
+        end
 
       :elixir ->
         with {:ok, validated_options} <- Options.validate_options(number, options) do
@@ -137,8 +139,10 @@ defmodule Localize.Number do
     case Localize.Backend.resolve(options) do
       :nif ->
         locale = Keyword.get(options, :locale, Localize.get_locale())
-        locale_string = locale_to_string(locale)
-        Localize.Nif.number_format(number, locale_string, options)
+
+        with {:ok, locale_string} <- validated_locale_string(locale) do
+          Localize.Nif.number_format(number, locale_string, options)
+        end
 
       :elixir ->
         with {:ok, validated_options} <- Options.validate_options(number, options) do
@@ -357,6 +361,23 @@ defmodule Localize.Number do
   end
 
   @doc """
+  Same as `to_at_least_string/2` but raises on error.
+
+  ### Examples
+
+      iex> Localize.Number.to_at_least_string!(5, locale: :en)
+      "5+"
+
+  """
+  @spec to_at_least_string!(number() | Decimal.t(), Keyword.t()) :: String.t()
+  def to_at_least_string!(number, options \\ []) do
+    case to_at_least_string(number, options) do
+      {:ok, string} -> string
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
   Formats a number with the locale's "at most" pattern.
 
   Produces strings like `"≤5"` (English) or `"5以下"` (Japanese).
@@ -387,6 +408,23 @@ defmodule Localize.Number do
   end
 
   @doc """
+  Same as `to_at_most_string/2` but raises on error.
+
+  ### Examples
+
+      iex> Localize.Number.to_at_most_string!(5, locale: :en)
+      "≤5"
+
+  """
+  @spec to_at_most_string!(number() | Decimal.t(), Keyword.t()) :: String.t()
+  def to_at_most_string!(number, options \\ []) do
+    case to_at_most_string(number, options) do
+      {:ok, string} -> string
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
   Formats a number with the locale's approximately pattern.
 
   Produces strings like `"~5"` (English) or `"約 5"` (Japanese).
@@ -414,6 +452,23 @@ defmodule Localize.Number do
           {:ok, String.t()} | {:error, Exception.t()}
   def to_approximately_string(number, options \\ []) do
     format_misc_pattern(number, :approximately, options)
+  end
+
+  @doc """
+  Same as `to_approximately_string/2` but raises on error.
+
+  ### Examples
+
+      iex> Localize.Number.to_approximately_string!(5, locale: :en)
+      "~5"
+
+  """
+  @spec to_approximately_string!(number() | Decimal.t(), Keyword.t()) :: String.t()
+  def to_approximately_string!(number, options \\ []) do
+    case to_approximately_string(number, options) do
+      {:ok, string} -> string
+      {:error, exception} -> raise exception
+    end
   end
 
   defp format_misc_pattern(number, pattern_key, options) do
@@ -580,8 +635,13 @@ defmodule Localize.Number do
   """
   defdelegate resolve_per(string, options \\ []), to: Localize.Number.Parser
 
-  defp locale_to_string(%Localize.LanguageTag{} = tag), do: Localize.LanguageTag.to_string(tag)
-  defp locale_to_string(locale) when is_atom(locale), do: Atom.to_string(locale)
-  defp locale_to_string(locale) when is_binary(locale), do: locale
-  defp locale_to_string(_), do: "en"
+  # The NIF backend validates the locale through the same canonical
+  # path as the Elixir backend (`Localize.validate_locale/1`) and hands
+  # ICU the canonical BCP 47 string, so both backends resolve aliases,
+  # likely subtags and `-u-` extensions identically.
+  defp validated_locale_string(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      {:ok, Localize.LanguageTag.to_string(language_tag)}
+    end
+  end
 end

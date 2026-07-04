@@ -137,18 +137,18 @@ defmodule Localize.Territory.Subdivision do
 
   ### Examples
 
-      iex> {:ok, subdivisions} = Localize.Territory.Subdivision.known_subdivisions(locale: :en)
+      iex> {:ok, subdivisions} = Localize.Territory.Subdivision.subdivision_names_for(locale: :en)
       iex> Map.get(subdivisions, :caon)
       "Ontario"
 
-      iex> {:ok, subdivisions} = Localize.Territory.Subdivision.known_subdivisions(locale: :fr)
+      iex> {:ok, subdivisions} = Localize.Territory.Subdivision.subdivision_names_for(locale: :fr)
       iex> Map.get(subdivisions, :gbeng)
       "Angleterre"
 
   """
-  @spec known_subdivisions(Keyword.t()) ::
+  @spec subdivision_names_for(Keyword.t()) ::
           {:ok, %{atom() => String.t()}} | {:error, Exception.t()}
-  def known_subdivisions(options \\ []) do
+  def subdivision_names_for(options \\ []) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
@@ -156,11 +156,18 @@ defmodule Localize.Territory.Subdivision do
     end
   end
 
+  @deprecated "Use subdivision_names_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
+  @spec known_subdivisions(Keyword.t()) ::
+          {:ok, %{atom() => String.t()}} | {:error, Exception.t()}
+  def known_subdivisions(options \\ []) do
+    subdivision_names_for(options)
+  end
+
   @doc """
   Returns the sorted list of subdivision codes that have translations
   in a given locale.
 
-  Equivalent to the keys of `known_subdivisions/1`, sorted.
+  Equivalent to the keys of `subdivision_names_for/1`, sorted.
 
   For the structural subdivisions of a specific territory regardless
   of locale, use `for_territory/1`.
@@ -183,17 +190,24 @@ defmodule Localize.Territory.Subdivision do
 
   ### Examples
 
-      iex> {:ok, codes} = Localize.Territory.Subdivision.available_subdivisions(locale: :en)
+      iex> {:ok, codes} = Localize.Territory.Subdivision.subdivisions_for(locale: :en)
       iex> :caon in codes
       true
 
   """
+  @spec subdivisions_for(Keyword.t()) ::
+          {:ok, [atom()]} | {:error, Exception.t()}
+  def subdivisions_for(options \\ []) do
+    with {:ok, subdivisions} <- subdivision_names_for(options) do
+      {:ok, subdivisions |> Map.keys() |> Enum.sort()}
+    end
+  end
+
+  @deprecated "Use subdivisions_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
   @spec available_subdivisions(Keyword.t()) ::
           {:ok, [atom()]} | {:error, Exception.t()}
   def available_subdivisions(options \\ []) do
-    with {:ok, subdivisions} <- known_subdivisions(options) do
-      {:ok, subdivisions |> Map.keys() |> Enum.sort()}
-    end
+    subdivisions_for(options)
   end
 
   @doc """
@@ -205,7 +219,7 @@ defmodule Localize.Territory.Subdivision do
   asking.
 
   For the set of subdivisions that have translations in a specific
-  locale, use `known_subdivisions/1` or `available_subdivisions/1`.
+  locale, use `subdivision_names_for/1` or `subdivisions_for/1`.
 
   ### Arguments
 

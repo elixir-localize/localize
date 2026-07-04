@@ -6,7 +6,10 @@ defmodule Localize.Number.Format.Meta do
   The metadata is derived from parsing a number format pattern
   (e.g., `"#,##0.###"`) and captures all the information needed
   to format a number: digit counts, grouping, rounding, padding,
-  multiplier, and the positive/negative format templates.
+  multiplier, and the positive/negative format templates. It is
+  returned by `Localize.Number.Format.Compiler.format_to_metadata/1`
+  and its type appears in that module's public interface, so it is
+  part of the documented API.
 
   """
 

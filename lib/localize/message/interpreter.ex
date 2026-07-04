@@ -1,68 +1,66 @@
 defmodule Localize.Message.Interpreter do
-  @moduledoc """
-  Interprets a MessageFormat 2 AST and produces formatted output.
-
-  The AST is produced by `Localize.Message.Parser` and uses tuples like
-  `{:text, "..."}`, `{:expression, operand, function, attrs}`,
-  `{:complex, declarations, body}`, `{:match, selectors, variants}`, etc.
-
-  ## Supported MF2 Functions
-
-  The following functions are available in MF2 expressions:
-
-  ### Stable (per MF2 specification)
-
-  * `:number` — format a number using locale-aware decimal formatting.
-
-  * `:integer` — format a number as an integer (truncates fractional part).
-
-  * `:string` — format a value as a string (identity for strings).
-
-  * `:currency` — format a number as a currency amount. Requires a
-    `currency` option (ISO 4217 code).
-
-  * `:percent` — format a number as a percentage.
-
-  ### Draft
-
-  * `:date` — format a date using CLDR date patterns.
-
-  * `:time` — format a time using CLDR time patterns.
-
-  * `:datetime` — format a datetime using CLDR datetime patterns.
-
-  * `:unit` — format a number with a unit of measure.
-
-  ### Localize extensions (not in the MF2 specification)
-
-  * `:list` — format a list operand as a locale-aware
-    conjunction or disjunction by delegating to
-    `Localize.List.to_string/2`. Each element is itself
-    formatted via `Localize.Chars`, so a list of dates,
-    numbers, units, etc. picks up the message's locale and
-    any forwarded options. Accepts a `style` (or `type`)
-    option whose value is one of `"and"`, `"and-short"`,
-    `"and-narrow"`, `"or"`, `"or-short"`, `"or-narrow"`,
-    `"unit"`, `"unit-short"`, `"unit-narrow"`. The default
-    is `"and"` (the CLDR `:standard` list style).
-
-  ## Custom function registry
-
-  When a function name is not matched by any built-in function
-  above, the interpreter looks for a custom function module in
-  two places (in order of precedence):
-
-  1. The per-call `:functions` option on `Localize.Message.format/3`.
-  2. The application-level `config :localize, :mf2_functions` map.
-
-  Custom function modules must implement the
-  `Localize.Message.Function` behaviour. See that module's
-  documentation for details and examples.
-
-  If no custom function is found, the interpreter falls back to
-  `Kernel.to_string/1` on the operand value.
-
-  """
+  # Interprets a MessageFormat 2 AST and produces formatted output.
+  #
+  # The AST is produced by `Localize.Message.Parser` and uses tuples like
+  # `{:text, "..."}`, `{:expression, operand, function, attrs}`,
+  # `{:complex, declarations, body}`, `{:match, selectors, variants}`, etc.
+  #
+  # ## Supported MF2 Functions
+  #
+  # The following functions are available in MF2 expressions:
+  #
+  # ### Stable (per MF2 specification)
+  #
+  # * `:number` — format a number using locale-aware decimal formatting.
+  #
+  # * `:integer` — format a number as an integer (truncates fractional part).
+  #
+  # * `:string` — format a value as a string (identity for strings).
+  #
+  # * `:currency` — format a number as a currency amount. Requires a
+  #   `currency` option (ISO 4217 code).
+  #
+  # * `:percent` — format a number as a percentage.
+  #
+  # ### Draft
+  #
+  # * `:date` — format a date using CLDR date patterns.
+  #
+  # * `:time` — format a time using CLDR time patterns.
+  #
+  # * `:datetime` — format a datetime using CLDR datetime patterns.
+  #
+  # * `:unit` — format a number with a unit of measure.
+  #
+  # ### Localize extensions (not in the MF2 specification)
+  #
+  # * `:list` — format a list operand as a locale-aware
+  #   conjunction or disjunction by delegating to
+  #   `Localize.List.to_string/2`. Each element is itself
+  #   formatted via `Localize.Chars`, so a list of dates,
+  #   numbers, units, etc. picks up the message's locale and
+  #   any forwarded options. Accepts a `style` (or `type`)
+  #   option whose value is one of `"and"`, `"and-short"`,
+  #   `"and-narrow"`, `"or"`, `"or-short"`, `"or-narrow"`,
+  #   `"unit"`, `"unit-short"`, `"unit-narrow"`. The default
+  #   is `"and"` (the CLDR `:standard` list style).
+  #
+  # ## Custom function registry
+  #
+  # When a function name is not matched by any built-in function
+  # above, the interpreter looks for a custom function module in
+  # two places (in order of precedence):
+  #
+  # 1. The per-call `:functions` option on `Localize.Message.format/3`.
+  # 2. The application-level `config :localize, :mf2_functions` map.
+  #
+  # Custom function modules must implement the
+  # `Localize.Message.Function` behaviour. See that module's
+  # documentation for details and examples.
+  #
+  # If no custom function is found, the interpreter falls back to
+  # `Kernel.to_string/1` on the operand value.
+  @moduledoc false
 
   # ── Public API ─────────────────────────────────────────────────
 

@@ -1,18 +1,17 @@
 defmodule Localize.Collation.Han do
-  @moduledoc """
-  Han character ordering using radical-stroke indexes.
-
-  Implements the sorting algorithm from UAX #38, computing 64-bit
-  collation keys based on radical number, residual stroke count,
-  simplification level, Unicode block, and code point value.
-
-  The radical data is pre-parsed from `FractionalUCA.txt`'s
-  `[radical N=...]` entries during the build pipeline and shipped
-  in `priv/localize/collation_table.etf`. At runtime it lives in
-  `:persistent_term` and is loaded alongside the main collation
-  table by `Localize.Collation.Table`.
-
-  """
+  # Han character ordering using radical-stroke indexes.
+  #
+  # Implements the sorting algorithm from UAX #38, computing 64-bit
+  # collation keys based on radical number, residual stroke count,
+  # simplification level, Unicode block, and code point value.
+  #
+  # The radical data is pre-parsed from `FractionalUCA.txt`'s
+  # `[radical N=...]` entries during the build pipeline and shipped
+  # in `priv/localize/collation_table.etf`. At runtime it lives in
+  # `:persistent_term` and is loaded alongside the main collation
+  # table by `Localize.Collation.Table`.
+  #
+  @moduledoc false
 
   import Bitwise
   alias Localize.Collation.Element

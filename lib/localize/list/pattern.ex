@@ -2,6 +2,10 @@ defmodule Localize.List.Pattern do
   @moduledoc """
   Defines the structure for list formatting patterns.
 
+  Custom patterns of this type may be passed to
+  `Localize.List.to_string/2` via the `:list_style` option, so the
+  struct is part of the documented API.
+
   Each pattern has four components used for different list sizes:
 
   * `:two` — used when the list has exactly two elements.
@@ -15,8 +19,7 @@ defmodule Localize.List.Pattern do
   * `:end` — used for the last pair of elements in lists
     with three or more elements.
 
-  Each component is a pre-parsed token list from
-  `Localize.Substitution.parse/1`.
+  Each component is a pre-parsed token list.
 
   """
 

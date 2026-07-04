@@ -1,12 +1,11 @@
 defmodule Localize.Rfc5646.Parser do
-  @moduledoc """
-  Implements parsing for [RFC5646](https://datatracker.ietf.org/doc/html/rfc5646) language
-  tags with [BCP47](https://tools.ietf.org/search/bcp47) extensions.
-
-  The primary interface to this module is the function
-  `Localize.LanguageTag.parse/1`.
-
-  """
+  # Implements parsing for [RFC5646](https://datatracker.ietf.org/doc/html/rfc5646) language
+  # tags with [BCP47](https://tools.ietf.org/search/bcp47) extensions.
+  #
+  # The primary interface to this module is the function
+  # `Localize.LanguageTag.parse/1`.
+  #
+  @moduledoc false
 
   import Localize.Rfc5646.Helpers
 

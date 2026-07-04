@@ -1,14 +1,12 @@
 defmodule Localize.Collation.Numeric do
-  @moduledoc """
-  Numeric collation support (kn=true / numeric=true).
-
-  When enabled, sequences of decimal digits are treated as numeric values
-  for primary sorting, ensuring "file2" sorts before "file10".
-
-  The numeric value is encoded as a length-prefixed big-endian number
-  in the primary weight.
-
-  """
+  # Numeric collation support (kn=true / numeric=true).
+  #
+  # When enabled, sequences of decimal digits are treated as numeric values
+  # for primary sorting, ensuring "file2" sorts before "file10".
+  #
+  # The numeric value is encoded as a length-prefixed big-endian number
+  # in the primary weight.
+  @moduledoc false
 
   alias Localize.Collation.Element
 

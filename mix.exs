@@ -1,7 +1,7 @@
 defmodule Localize.MixProject do
   use Mix.Project
 
-  @version "0.42.0"
+  @version "0.43.0"
   @cldr_version_path "priv/localize/version"
   @localize_patch_version_path "priv/localize/localize_patch_version"
 
@@ -75,8 +75,8 @@ defmodule Localize.MixProject do
   def links do
     %{
       "GitHub" => "https://github.com/elixir-localize/localize",
-      "Readme" => "https://github.com/elixir-localize/localize/blob/v#{@version}/README.md",
-      "Changelog" => "https://github.com/elixir-localize/localize/blob/v#{@version}/CHANGELOG.md"
+      "Readme" => "https://hexdocs.pm/localize/readme.html",
+      "Changelog" => "https://hexdocs.pm/localize/changelog.html"
     }
   end
 
@@ -126,7 +126,8 @@ defmodule Localize.MixProject do
       Collation: ~r/Localize.Collation(?!\w*Error)/,
       Utilities: ~r/Localize.Util(?!\w*Error)/,
       NIF: ~r/Localize.Nif(?!\w*Error)/,
-      Exceptions: ~r/^Localize\.\w+Error$/
+      Application: ~r/^(Localize\.Supervisor$|Mix\.Tasks\.Localize)/,
+      Exceptions: ~r/^Localize\.(\w+Error|Exception)$/
     ]
   end
 

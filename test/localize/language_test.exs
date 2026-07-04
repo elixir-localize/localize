@@ -120,11 +120,11 @@ defmodule Localize.LanguageTest do
     end
   end
 
-  # ── available_languages ───────────────────────────────────────
+  # ── languages_for ─────────────────────────────────────────────
 
-  describe "available_languages/1" do
+  describe "languages_for/1" do
     test "returns sorted list of language codes" do
-      assert {:ok, codes} = Language.available_languages()
+      assert {:ok, codes} = Language.languages_for()
       assert is_list(codes)
       assert "en" in codes
       assert "de" in codes
@@ -133,36 +133,52 @@ defmodule Localize.LanguageTest do
     end
 
     test "returns codes for another locale" do
-      assert {:ok, codes} = Language.available_languages(locale: :de)
+      assert {:ok, codes} = Language.languages_for(locale: :de)
       assert "en" in codes
     end
 
     test "defaults to current locale" do
-      assert {:ok, default_codes} = Language.available_languages()
-      assert {:ok, en_codes} = Language.available_languages(locale: :en)
+      assert {:ok, default_codes} = Language.languages_for()
+      assert {:ok, en_codes} = Language.languages_for(locale: :en)
       assert default_codes == en_codes
     end
   end
 
-  # ── known_languages ───────────────────────────────────────────
+  # ── language_names_for ────────────────────────────────────────
 
-  describe "known_languages/1" do
+  describe "language_names_for/1" do
     test "returns map of language codes to name maps" do
-      assert {:ok, languages} = Language.known_languages()
+      assert {:ok, languages} = Language.language_names_for()
       assert is_map(languages)
       assert %{standard: "German"} = languages["de"]
       assert %{standard: "Japanese"} = languages["ja"]
     end
 
     test "returns languages for another locale" do
-      assert {:ok, languages} = Language.known_languages(locale: :de)
+      assert {:ok, languages} = Language.language_names_for(locale: :de)
       assert %{standard: "Englisch"} = languages["en"]
     end
 
     test "defaults to current locale" do
-      assert {:ok, default_langs} = Language.known_languages()
-      assert {:ok, en_langs} = Language.known_languages(locale: :en)
+      assert {:ok, default_langs} = Language.language_names_for()
+      assert {:ok, en_langs} = Language.language_names_for(locale: :en)
       assert default_langs == en_langs
+    end
+  end
+
+  # ── deprecated delegates ──────────────────────────────────────
+
+  describe "deprecated known_/available_ delegates" do
+    test "available_languages/1 delegates to languages_for/1" do
+      # Called via apply/3 so the deliberate use of the deprecated
+      # name does not emit a compile-time deprecation warning.
+      assert apply(Language, :available_languages, [[locale: :en]]) ==
+               Language.languages_for(locale: :en)
+    end
+
+    test "known_languages/1 delegates to language_names_for/1" do
+      assert apply(Language, :known_languages, [[locale: :en]]) ==
+               Language.language_names_for(locale: :en)
     end
   end
 
@@ -183,15 +199,19 @@ defmodule Localize.LanguageTest do
   # ── Invalid options ──────────────────────────────────────────
 
   describe "invalid options" do
-    test "raises on invalid :style" do
-      assert_raise Localize.InvalidValueError, fn ->
-        Language.display_name("de", style: :invalid)
-      end
+    test "returns an error tuple on invalid :style" do
+      assert {:error, %Localize.InvalidValueError{value: :invalid}} =
+               Language.display_name("de", style: :invalid)
     end
 
-    test "raises on invalid :fallback" do
+    test "returns an error tuple on invalid :fallback" do
+      assert {:error, %Localize.InvalidValueError{value: :invalid}} =
+               Language.display_name("de", fallback: :invalid)
+    end
+
+    test "display_name! raises on invalid options" do
       assert_raise Localize.InvalidValueError, fn ->
-        Language.display_name("de", fallback: :invalid)
+        Language.display_name!("de", style: :invalid)
       end
     end
   end

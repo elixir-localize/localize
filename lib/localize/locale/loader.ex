@@ -1,19 +1,18 @@
 defmodule Localize.Locale.Loader do
-  @moduledoc """
-  A GenServer that serializes locale data loading to prevent
-  race conditions.
-
-  When multiple processes request the same locale concurrently,
-  the first request triggers the load and subsequent requests
-  wait for it to complete. This avoids duplicate loads and
-  redundant `:persistent_term.put/2` calls (each of which
-  triggers a global GC).
-
-  The server is started as part of the `Localize` supervision
-  tree. All locale loading goes through `load_and_store/2` which
-  delegates to this server.
-
-  """
+  # A GenServer that serializes locale data loading to prevent
+  # race conditions.
+  #
+  # When multiple processes request the same locale concurrently,
+  # the first request triggers the load and subsequent requests
+  # wait for it to complete. This avoids duplicate loads and
+  # redundant `:persistent_term.put/2` calls (each of which
+  # triggers a global GC).
+  #
+  # The server is started as part of the `Localize` supervision
+  # tree. All locale loading goes through `load_and_store/2` which
+  # delegates to this server.
+  #
+  @moduledoc false
 
   use GenServer
 

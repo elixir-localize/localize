@@ -84,11 +84,11 @@ defmodule Localize.Script do
   @spec display_name(atom() | String.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def display_name(script, options \\ []) do
-    style = validate_style!(Keyword.get(options, :style, :standard))
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    fallback = validate_fallback!(Keyword.get(options, :fallback, false))
 
-    with {:ok, script_atom} <- normalize_script_code(script),
+    with {:ok, style} <- validate_style(Keyword.get(options, :style, :standard)),
+         {:ok, fallback} <- validate_fallback(Keyword.get(options, :fallback, false)),
+         {:ok, script_atom} <- normalize_script_code(script),
          {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
       case lookup_script(script_atom, locale_id, style) do
         {:ok, _} = result ->
@@ -127,10 +127,11 @@ defmodule Localize.Script do
     end
   end
 
-  # ── Available and known scripts ─────────────────────────────
+  # ── Per-locale script data ──────────────────────────────────
 
   @doc """
-  Returns a sorted list of script codes available in a locale.
+  Returns a sorted list of script codes that have localized names
+  in a locale.
 
   ### Arguments
 
@@ -150,14 +151,14 @@ defmodule Localize.Script do
 
   ### Examples
 
-      iex> {:ok, codes} = Localize.Script.available_scripts()
+      iex> {:ok, codes} = Localize.Script.scripts_for()
       iex> :Latn in codes
       true
 
   """
-  @spec available_scripts(Keyword.t()) ::
+  @spec scripts_for(Keyword.t()) ::
           {:ok, [atom()]} | {:error, Exception.t()}
-  def available_scripts(options \\ []) do
+  def scripts_for(options \\ []) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
@@ -166,9 +167,16 @@ defmodule Localize.Script do
     end
   end
 
+  @deprecated "Use scripts_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
+  @spec available_scripts(Keyword.t()) ::
+          {:ok, [atom()]} | {:error, Exception.t()}
+  def available_scripts(options \\ []) do
+    scripts_for(options)
+  end
+
   @doc """
-  Returns a map of all script codes to their localized names
-  in a locale.
+  Returns a map of script codes to their localized names in a
+  locale.
 
   ### Arguments
 
@@ -188,19 +196,26 @@ defmodule Localize.Script do
 
   ### Examples
 
-      iex> {:ok, scripts} = Localize.Script.known_scripts()
+      iex> {:ok, scripts} = Localize.Script.script_names_for()
       iex> scripts[:Latn]
       %{standard: "Latin"}
 
   """
-  @spec known_scripts(Keyword.t()) ::
+  @spec script_names_for(Keyword.t()) ::
           {:ok, %{atom() => map()}} | {:error, Exception.t()}
-  def known_scripts(options \\ []) do
+  def script_names_for(options \\ []) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
       load_scripts(locale_id)
     end
+  end
+
+  @deprecated "Use script_names_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
+  @spec known_scripts(Keyword.t()) ::
+          {:ok, %{atom() => map()}} | {:error, Exception.t()}
+  def known_scripts(options \\ []) do
+    script_names_for(options)
   end
 
   # ── Private helpers ─────────────────────────────────────────
@@ -251,23 +266,28 @@ defmodule Localize.Script do
     end
   end
 
-  defp validate_style!(style) when style in @styles, do: style
+  # Invalid option values return error tuples like every other input
+  # error, so the same failure class always exits through the same
+  # channel; the `!` variants raise for all of them uniformly.
+  defp validate_style(style) when style in @styles, do: {:ok, style}
 
-  defp validate_style!(style) do
-    raise Localize.InvalidValueError.exception(
-            value: style,
-            expected: :style,
-            allowed_values: @styles
-          )
+  defp validate_style(style) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: style,
+       expected: :style,
+       allowed_values: @styles
+     )}
   end
 
-  defp validate_fallback!(fallback) when is_boolean(fallback), do: fallback
+  defp validate_fallback(fallback) when is_boolean(fallback), do: {:ok, fallback}
 
-  defp validate_fallback!(fallback) do
-    raise Localize.InvalidValueError.exception(
-            value: fallback,
-            expected: :fallback,
-            allowed_values: [true, false]
-          )
+  defp validate_fallback(fallback) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: fallback,
+       expected: :fallback,
+       allowed_values: [true, false]
+     )}
   end
 end

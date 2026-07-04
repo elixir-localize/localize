@@ -43,7 +43,7 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Language validity | Implemented | `Localize.Validity` with ETF data. |
+| Language validity | Implemented | Subtags are checked against the CLDR validity data by `Localize.validate_locale/1` and the other `Localize.validate_*` functions. |
 | Script validity | Implemented | |
 | Territory validity | Implemented | |
 | Variant validity | Implemented | |
@@ -279,7 +279,7 @@ Two areas are explicitly out of scope:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Calendar preferences per territory | Implemented | Supplemental data loaded from ETF. |
-| Week data (firstDay, minDays) | Implemented | `Localize.SupplementalData.weeks/0`. |
+| Week data (firstDay, minDays) | Implemented | `Localize.Calendar.first_day_for_locale/1` and `Localize.Calendar.min_days_for_locale/1`. |
 | Weekend data | Implemented | Via week data. |
 | Time data (preferred hour cycle) | Implemented | Time preferences data from ETF. |
 | Day period rules | Not implemented | The CLDR day-period rule data (dayPeriods.xml) is not yet part of the data pipeline; the `b` and `B` format symbols fall back to AM/PM. |
@@ -342,7 +342,7 @@ Two areas are explicitly out of scope:
 | Normalization (kk) | Implemented | |
 | Case level (kc) | Implemented | |
 | Case first (kf) | Implemented | `upper` and `lower`. |
-| Numeric collation (kn) | Implemented | `Localize.Collation.Numeric` for number-aware sorting. |
+| Numeric collation (kn) | Implemented | Number-aware sorting via the `:numeric` option to `Localize.Collation.sort/3` and `compare/3`, or the `-u-kn` locale extension. |
 | Reorder (kr) | Implemented | Script reordering with weight remapping. |
 | Max variable (kv) | Implemented | `space`, `punct`, `symbol`, `currency`. |
 | Hiragana quaternary (kh) | Not implemented | Deprecated in recent UCA. |
@@ -448,7 +448,7 @@ Two areas are explicitly out of scope:
 | Complex messages | Implemented | |
 | Quoted patterns (`{{...}}`) | Implemented | |
 | Text and escape sequences | Implemented | |
-| Declarations (`.input`, `.local`) | Implemented | `Localize.Message.Interpreter` handles all declaration types. |
+| Declarations (`.input`, `.local`) | Implemented | All declaration types are handled by `Localize.Message.format/3`. |
 | Pattern selection (`.match`) | Implemented | With selector resolution and variant ranking. |
 | Expressions (literal, variable, function) | Implemented | |
 | Options on functions | Implemented | |

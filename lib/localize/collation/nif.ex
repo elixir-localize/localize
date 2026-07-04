@@ -1,11 +1,10 @@
 defmodule Localize.Collation.Nif do
-  @moduledoc """
-  Collation NIF interface providing high-performance Unicode collation via ICU4C.
-
-  This module wraps the `nif_collation_cmp/10` function from `Localize.Nif` and
-  provides encoding of collation options to ICU enum values.
-
-  """
+  # Collation NIF interface providing high-performance Unicode collation via ICU4C.
+  #
+  # This module wraps the `nif_collation_cmp/10` function from `Localize.Nif` and
+  # provides encoding of collation options to ICU enum values.
+  #
+  @moduledoc false
 
   alias Localize.Collation.Options
 

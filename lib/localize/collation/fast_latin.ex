@@ -1,17 +1,16 @@
 defmodule Localize.Collation.FastLatin do
-  @moduledoc """
-  Fast lookup table for Basic Latin and Latin Extended-A codepoints.
-
-  Provides O(1) collation element lookup for codepoints U+0000..U+017F
-  by pre-computing a tuple indexed by codepoint value. This bypasses
-  the full contraction-checking path in `Localize.Collation.Table` for the
-  most commonly encountered characters.
-
-  Codepoints that are contraction starters (e.g., `L` and `l` for Catalan
-  l·l) or combining marks (CCC > 0) are excluded from the fast table and
-  fall back to the normal lookup path.
-
-  """
+  # Fast lookup table for Basic Latin and Latin Extended-A codepoints.
+  #
+  # Provides O(1) collation element lookup for codepoints U+0000..U+017F
+  # by pre-computing a tuple indexed by codepoint value. This bypasses
+  # the full contraction-checking path in `Localize.Collation.Table` for the
+  # most commonly encountered characters.
+  #
+  # Codepoints that are contraction starters (e.g., `L` and `l` for Catalan
+  # l·l) or combining marks (CCC > 0) are excluded from the fast table and
+  # fall back to the normal lookup path.
+  #
+  @moduledoc false
 
   @table_name {:localize, :collation_fast_latin}
   @latin_limit 0x0180

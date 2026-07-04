@@ -1,18 +1,17 @@
 defmodule Localize.Collation.ImplicitWeights do
-  @moduledoc """
-  Computes implicit collation elements for codepoints not in the DUCET/CLDR allkeys table.
-
-  The UCA defines an algorithm for computing implicit weights for:
-
-  * CJK Unified Ideographs (Han characters).
-
-  * Hangul syllables (decomposed algorithmically).
-
-  * Unassigned codepoints.
-
-  See UTS #10 Section 10.1 for the implicit weight computation.
-
-  """
+  # Computes implicit collation elements for codepoints not in the DUCET/CLDR allkeys table.
+  #
+  # The UCA defines an algorithm for computing implicit weights for:
+  #
+  # * CJK Unified Ideographs (Han characters).
+  #
+  # * Hangul syllables (decomposed algorithmically).
+  #
+  # * Unassigned codepoints.
+  #
+  # See UTS #10 Section 10.1 for the implicit weight computation.
+  #
+  @moduledoc false
 
   import Bitwise
   alias Localize.Collation.Element

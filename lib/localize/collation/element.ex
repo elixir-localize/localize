@@ -1,20 +1,19 @@
 defmodule Localize.Collation.Element do
-  @moduledoc """
-  A Collation Element (CE) with primary, secondary, and tertiary weights.
-
-  Elements are represented as `{primary, secondary, tertiary, variable}` tuples
-  for compact persistent_term storage. Constructor and accessor functions provide
-  a readable interface.
-
-  Weights follow the CLDR/UCA specification:
-
-  * Primary: base character identity (0x0000-0xFFFF).
-
-  * Secondary: accent/diacritic differences (0x0000-0x01FF).
-
-  * Tertiary: case/width/variant differences (0x0000-0x003F).
-
-  """
+  # A Collation Element (CE) with primary, secondary, and tertiary weights.
+  #
+  # Elements are represented as `{primary, secondary, tertiary, variable}` tuples
+  # for compact persistent_term storage. Constructor and accessor functions provide
+  # a readable interface.
+  #
+  # Weights follow the CLDR/UCA specification:
+  #
+  # * Primary: base character identity (0x0000-0xFFFF).
+  #
+  # * Secondary: accent/diacritic differences (0x0000-0x01FF).
+  #
+  # * Tertiary: case/width/variant differences (0x0000-0x003F).
+  #
+  @moduledoc false
 
   @type t :: {non_neg_integer(), non_neg_integer(), non_neg_integer(), boolean()}
 

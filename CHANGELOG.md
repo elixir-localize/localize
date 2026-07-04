@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.43.0] — July 4th, 2026
+
+This release settles the public API naming and error conventions ahead of 1.0. Every renamed function keeps its old name as a deprecated delegate that will be removed by Localize 1.0 and no later than December 2026.
+
+### Deprecated
+
+* `Language.available_languages/1` → `Language.languages_for/1`; `Language.known_languages/1` → `Language.language_names_for/1`; `Script.available_scripts/1` → `Script.scripts_for/1`; `Script.known_scripts/1` → `Script.script_names_for/1`; `Subdivision.available_subdivisions/1` → `Subdivision.subdivisions_for/1`; `Subdivision.known_subdivisions/1` → `Subdivision.subdivision_names_for/1`; `Territory.available_styles/0` → `Territory.known_styles/0`. The naming rule is now uniform: `known_*` is the locale-independent CLDR universe, `supported_*` reflects configuration, and `*_for` is data localized into a display locale.
+
+* The `:style` option of `Localize.Duration.to_string/2` is deprecated in favour of `:format`; the `:format` option of `Localize.Unit.display_name/2` is deprecated in favour of `:style`; the `:style` option of `Localize.quote/2` is deprecated in favour of `:format`. The deprecated option keys remain accepted until 1.0.
+
+### Changed
+
+* `Language.display_name/2` and `Script.display_name/2` return `{:error, %Localize.InvalidValueError{}}` for an invalid `:style` or `:fallback` option instead of raising; the `!` variants raise as before.
+
+* `Localize.quote/2` returns an error for an unknown format instead of silently returning the input string unquoted.
+
+* The `backend: :nif` paths of `Number.to_string/2`, `Number.PluralRule.plural_type/2`, `Unit.to_string/2` and `Message.format/3` now validate the locale through `Localize.validate_locale/1` and pass ICU the canonical BCP 47 string, so both backends resolve aliases and `-u-` extensions identically.
+
+* Internal implementation modules (`Localize.Utils.*`, collation internals, data plumbing) are no longer part of the documented API. The hex package metadata links now point at hexdocs.
+
+### Added
+
+* `Localize.Territory.known_territories/0` returns all CLDR territory codes.
+
+* `Localize.validate_currency/1` delegates to `Localize.Currency.validate_currency/1` so all validators are available on the top module.
+
+* Bang variants: `Number.to_at_least_string!/2`, `Number.to_at_most_string!/2`, `Number.to_approximately_string!/2`, `Calendar.display_name!/3` and `Unit.display_name!/2`.
+
 ## [0.42.0] — July 4th, 2026
 
 ### Changed
