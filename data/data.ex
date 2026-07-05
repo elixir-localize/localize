@@ -52,6 +52,7 @@ defmodule Localize.Data do
     "languageMatching.json",
     "likelySubtags.json",
     "measurementData.json",
+    "metaZones.json",
     "numberingSystems.json",
     "ordinals.json",
     "parentLocales.json",
@@ -110,6 +111,7 @@ defmodule Localize.Data do
     {"territory_currencies.etf", &Localize.Data.Supplemental.generate_territory_currencies/0},
     # language_matching must come after territory_containers (it needs container data)
     {"language_matching.etf", &Localize.Data.Supplemental.generate_language_matching/0},
+    {"metazones.etf", &Localize.Data.Supplemental.generate_metazones/0},
     {"time_preferences.etf", &Localize.Data.Supplemental.generate_time_preferences/0},
     {"weeks.etf", &Localize.Data.Supplemental.generate_weeks/0},
     {"plural_rules_cardinal.etf", &Localize.Data.PluralRules.generate_plural_rules_cardinal/0},

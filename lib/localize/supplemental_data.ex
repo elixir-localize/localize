@@ -107,6 +107,14 @@ defmodule Localize.SupplementalData do
     load_supplemental("timezones.etf")
   end
 
+  # Metazone data with :mapzones (metazone → territory → IANA zone)
+  # and :metazone_info (IANA zone → metazone usage periods).
+  @doc false
+  @spec metazones() :: %{mapzones: map(), metazone_info: map()}
+  def metazones do
+    load_supplemental("metazones.etf")
+  end
+
   @doc false
   @spec unicode_script_to_subtag_mapping() :: map()
   def unicode_script_to_subtag_mapping do

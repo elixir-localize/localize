@@ -245,6 +245,85 @@ defmodule Localize.Data.Supplemental do
   end
 
   @doc """
+  Generates metazone data from `metaZones.json`.
+
+  Returns a map with two keys. `:mapzones` maps each metazone atom
+  (underscored to match the locale `time_zone_names.metazone` keys)
+  to a map of territory atoms to IANA zone names, where territory
+  `:"001"` is the metazone's golden zone. `:metazone_info` maps each
+  IANA zone name to its chronological list of metazone usage periods,
+  each a map with `:metazone`, `:from` and `:to` (`NaiveDateTime` UTC
+  instants, `nil` for an open boundary).
+
+  """
+  def generate_metazones do
+    meta_zones =
+      Localize.Data.read_json("metaZones.json")
+      |> get_in(["supplemental", "metaZones"])
+
+    %{
+      mapzones: metazone_mapzones(meta_zones),
+      metazone_info: metazone_info(meta_zones)
+    }
+  end
+
+  defp metazone_mapzones(meta_zones) do
+    meta_zones
+    |> Map.fetch!("metazones")
+    |> Enum.reduce(%{}, fn %{"mapZone" => map_zone}, acc ->
+      metazone = metazone_atom(map_zone["_other"])
+      territory = String.to_atom(map_zone["_territory"])
+
+      Map.update(acc, metazone, %{territory => map_zone["_type"]}, fn territories ->
+        Map.put(territories, territory, map_zone["_type"])
+      end)
+    end)
+  end
+
+  defp metazone_info(meta_zones) do
+    meta_zones
+    |> get_in(["metazoneInfo", "timezone"])
+    |> collect_zone_periods([])
+    |> Map.new()
+  end
+
+  # The metazoneInfo hierarchy nests zone-name segments to varying
+  # depth ("America" → "Indiana" → "Knox"); a list marks a leaf
+  # holding that zone's usage periods.
+  defp collect_zone_periods(node, path) when is_map(node) do
+    Enum.flat_map(node, fn {segment, child} ->
+      collect_zone_periods(child, [segment | path])
+    end)
+  end
+
+  defp collect_zone_periods(periods, path) when is_list(periods) do
+    zone_name = path |> Enum.reverse() |> Enum.join("/")
+
+    usage =
+      Enum.map(periods, fn %{"usesMetazone" => uses} ->
+        %{
+          metazone: metazone_atom(uses["_mzone"]),
+          from: metazone_instant(uses["_from"]),
+          to: metazone_instant(uses["_to"])
+        }
+      end)
+
+    [{zone_name, usage}]
+  end
+
+  defp metazone_atom(name) do
+    name
+    |> Localize.Utils.String.underscore()
+    |> String.to_atom()
+  end
+
+  defp metazone_instant(nil), do: nil
+
+  defp metazone_instant(string) do
+    NaiveDateTime.from_iso8601!(string <> ":00")
+  end
+
+  @doc """
   Generates sorted list of currency code atoms from `currencyData.json`.
 
   """

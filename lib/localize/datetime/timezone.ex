@@ -16,6 +16,20 @@ defmodule Localize.DateTime.Timezone do
   @timezones_by_territory Builder.timezones_by_territory(@timezones)
   @territories_by_timezone Builder.territories_by_timezone(@timezones_by_territory)
 
+  @metazone_data SupplementalData.metazones()
+  @metazone_mapzones @metazone_data.mapzones
+  @metazone_info @metazone_data.metazone_info
+
+  # CLDR metazone data keys zones by their canonical IANA name; the
+  # first alias of a BCP 47 timezone entry is that canonical name,
+  # so map every alias (including the canonical name itself) to it.
+  @zone_canonical_names for {_bcp47, %{aliases: aliases}} <- @timezones,
+                            is_list(aliases) and aliases != [],
+                            canonical = hd(aliases),
+                            alias_name <- aliases,
+                            into: %{},
+                            do: {alias_name, canonical}
+
   # ── Timezone Data Access ─────────────────────────────────────
 
   @doc """
@@ -267,31 +281,129 @@ defmodule Localize.DateTime.Timezone do
   #   X (1-5) - ISO8601 with Z for zero offset
   #   x (1-5) - ISO8601 without Z for zero offset
 
-  # Mapping from IANA timezone to CLDR metazone
-  # This is a simplified mapping covering the most common zones.
-  # A full implementation would load this from CLDR supplemental data.
-  @zone_to_metazone %{
-    "America/New_York" => :america_eastern,
-    "America/Chicago" => :america_central,
-    "America/Denver" => :america_mountain,
-    "America/Los_Angeles" => :america_pacific,
-    "America/Anchorage" => :alaska,
-    "Pacific/Honolulu" => :hawaii_aleutian,
-    "Europe/London" => :gmt,
-    "Europe/Paris" => :europe_central,
-    "Europe/Berlin" => :europe_central,
-    "Europe/Moscow" => :moscow,
-    "Asia/Tokyo" => :japan,
-    "Asia/Shanghai" => :china,
-    "Asia/Kolkata" => :india,
-    "Asia/Dubai" => :gulf,
-    "Australia/Sydney" => :australia_eastern,
-    "Australia/Melbourne" => :australia_eastern,
-    "Australia/Perth" => :australia_western,
-    "Etc/UTC" => :gmt,
-    "Etc/GMT" => :gmt,
-    "UTC" => :gmt
-  }
+  @doc """
+  Returns the CLDR metazone for an IANA timezone name.
+
+  Zones move between metazones over time (for example
+  `America/Indiana/Knox` has alternated between the central and
+  eastern metazones), so the datetime selects the applicable usage
+  period.
+
+  ### Arguments
+
+  * `time_zone` is an IANA timezone name (e.g., `"America/New_York"`)
+    or any of its CLDR aliases (e.g., `"Asia/Calcutta"`).
+
+  * `datetime` is a map that may carry `:year` .. `:second` fields
+    selecting the metazone in effect at that instant. When the fields
+    are absent (or `datetime` is `nil`), the currently effective
+    metazone is returned. The default is `nil`.
+
+  ### Returns
+
+  * The metazone as an atom (e.g., `:america_eastern`), matching the
+    keys of the locale `time_zone_names.metazone` data.
+
+  * `nil` when the zone has no metazone mapping for the instant.
+
+  ### Examples
+
+      iex> Localize.DateTime.Timezone.metazone_for("America/New_York")
+      :america_eastern
+
+      iex> Localize.DateTime.Timezone.metazone_for("Asia/Calcutta")
+      :india
+
+      iex> Localize.DateTime.Timezone.metazone_for("America/Indiana/Knox", ~N[2000-06-01 00:00:00])
+      :america_eastern
+
+      iex> Localize.DateTime.Timezone.metazone_for("America/Indiana/Knox", ~N[2020-06-01 00:00:00])
+      :america_central
+
+  """
+  @spec metazone_for(String.t(), map() | nil) :: atom() | nil
+  def metazone_for(time_zone, datetime \\ nil) do
+    canonical = Map.get(@zone_canonical_names, time_zone, time_zone)
+
+    # CLDR assigns no metazone to Etc/UTC, but its conformance data
+    # expects the GMT metazone names for it ("Greenwich Mean Time").
+    canonical = if canonical == "Etc/UTC", do: "Etc/GMT", else: canonical
+
+    periods = Map.get(@metazone_info, canonical, [])
+    instant = metazone_instant(datetime)
+
+    Enum.find_value(periods, fn %{metazone: metazone, from: from, to: to} ->
+      if within_period?(instant, from, to), do: metazone
+    end)
+  end
+
+  @doc """
+  Returns the IANA timezone that represents a CLDR metazone.
+
+  ### Arguments
+
+  * `metazone` is a metazone atom as returned by `metazone_for/2`
+    (e.g., `:america_pacific`).
+
+  * `territory` is a territory atom used to select a
+    territory-specific representative zone (e.g., `:CA` selects
+    `"America/Vancouver"` for `:america_pacific`). The default is
+    `:"001"`, the metazone's golden zone.
+
+  ### Returns
+
+  * The IANA timezone name for the territory, falling back to the
+    metazone's golden zone when the territory has no specific
+    mapping.
+
+  * `nil` when the metazone is unknown.
+
+  ### Examples
+
+      iex> Localize.DateTime.Timezone.zone_for_metazone(:america_pacific)
+      "America/Los_Angeles"
+
+      iex> Localize.DateTime.Timezone.zone_for_metazone(:america_pacific, :CA)
+      "America/Vancouver"
+
+      iex> Localize.DateTime.Timezone.zone_for_metazone(:no_such_metazone)
+      nil
+
+  """
+  @spec zone_for_metazone(atom(), atom()) :: String.t() | nil
+  def zone_for_metazone(metazone, territory \\ :"001") do
+    case Map.get(@metazone_mapzones, metazone) do
+      nil -> nil
+      territories -> Map.get(territories, territory) || Map.get(territories, :"001")
+    end
+  end
+
+  # A metazone usage period is selected by a UTC instant; when the
+  # datetime carries no date fields (or is nil) the open-ended
+  # current period matches via the nil instant.
+  defp metazone_instant(%{year: year} = datetime) when is_integer(year) do
+    {:ok, instant} =
+      NaiveDateTime.new(
+        year,
+        Map.get(datetime, :month, 1),
+        Map.get(datetime, :day, 1),
+        Map.get(datetime, :hour, 0),
+        Map.get(datetime, :minute, 0),
+        Map.get(datetime, :second, 0)
+      )
+
+    offset = Map.get(datetime, :utc_offset, 0) + Map.get(datetime, :std_offset, 0)
+    NaiveDateTime.add(instant, -offset, :second)
+  end
+
+  defp metazone_instant(_datetime), do: nil
+
+  defp within_period?(nil, _from, to), do: is_nil(to)
+
+  defp within_period?(instant, from, to) do
+    (is_nil(from) or NaiveDateTime.compare(instant, from) != :lt) and
+      (is_nil(to) or NaiveDateTime.compare(instant, to) == :lt)
+  end
 
   @doc """
   Returns the specific or generic non-location timezone name.
@@ -351,7 +463,7 @@ defmodule Localize.DateTime.Timezone do
 
     with {:ok, tz_data} <- Localize.Locale.get(locale_id, [:dates, :time_zone_names]) do
       # Try metazone lookup first
-      metazone_key = Map.get(@zone_to_metazone, time_zone)
+      metazone_key = metazone_for(time_zone, datetime)
       result = metazone_name(metazone_key, tz_data, format, type, datetime)
 
       if result do
