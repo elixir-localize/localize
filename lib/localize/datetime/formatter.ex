@@ -356,15 +356,77 @@ defmodule Localize.DateTime.Formatter do
 
   # ── Cyclic year (U) ────────────────────────────────────────
 
+  # Renders the sexagesimal cycle name (e.g. 丙午, "bing-wu") from
+  # the locale's cyclic name sets for the date's calendar type.
+  # Counts 1..3 select the abbreviated width, 4 wide and 5 narrow
+  # per TR35. When the calendar module exports `cyclic_year/3`
+  # (the Calendrical protocol, probed like `cldr_calendar_type/0`)
+  # its elapsed cyclic year is used; otherwise the date's year is
+  # assumed to already be an elapsed year. CLDR keys cyclic names
+  # by cycle position 1..60, so the elapsed year reduces via
+  # `amod/2` before lookup. Calendars without cyclic name data
+  # fall back to the numeric year per TR35.
   @doc false
-  def cyclic_year(%{year: year}, _count, _locale_id, _options), do: year
+  def cyclic_year(%{year: year} = date, count, locale_id, _options)
+      when is_integer(year) and count in 1..5 do
+    calendar_type = cldr_calendar_for_datetime(date)
+    position = Localize.Utils.Math.amod(cyclic_year_number(date), 60)
+
+    with {:ok, cyclic_data} <- Localize.Calendar.cyclic_years(locale_id, calendar_type),
+         name when is_binary(name) <-
+           get_in(cyclic_data, [:years, :format, cyclic_year_width(count), position]) do
+      name
+    else
+      _no_cyclic_names -> Kernel.to_string(year)
+    end
+  end
+
   def cyclic_year(_date, _count, _locale_id, _options), do: ""
+
+  defp cyclic_year_width(count) when count in 1..3, do: :abbreviated
+  defp cyclic_year_width(4), do: :wide
+  defp cyclic_year_width(5), do: :narrow
+
+  defp cyclic_year_number(%{calendar: calendar, year: year} = date)
+       when is_atom(calendar) and is_date(date) do
+    Code.ensure_loaded?(calendar)
+
+    if function_exported?(calendar, :cyclic_year, 3) do
+      calendar.cyclic_year(year, date.month, date.day)
+    else
+      year
+    end
+  end
+
+  defp cyclic_year_number(%{year: year}), do: year
 
   # ── Related year (r) ───────────────────────────────────────
 
+  # The Gregorian year in which the date's calendar year begins
+  # (TR35): Chinese year 4663 began on 2026-02-17, so its related
+  # year is 2026. When the calendar module exports
+  # `related_gregorian_year/3` (the Calendrical protocol) it is
+  # authoritative; for `Calendar.ISO` and unknown calendars the
+  # date's own year is the best available value.
   @doc false
-  def related_year(%{year: year}, _count, _locale_id, _options), do: year
+  def related_year(%{year: year} = date, count, _locale_id, _options) when is_integer(year) do
+    pad(related_year_number(date), count)
+  end
+
   def related_year(_date, _count, _locale_id, _options), do: ""
+
+  defp related_year_number(%{calendar: calendar, year: year} = date)
+       when is_atom(calendar) and is_date(date) do
+    Code.ensure_loaded?(calendar)
+
+    if function_exported?(calendar, :related_gregorian_year, 3) do
+      calendar.related_gregorian_year(year, date.month, date.day)
+    else
+      year
+    end
+  end
+
+  defp related_year_number(%{year: year}), do: year
 
   # ── Quarter (Q) ────────────────────────────────────────────
 
