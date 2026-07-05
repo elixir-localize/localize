@@ -51,6 +51,14 @@ defmodule Localize.DateTime.Format.Match do
   # that a future maintainer could accidentally reference at runtime —
   # which would crash on any host that differs from the build host.
   # Issue #28.
+  #
+  # The data is embedded at compile time, so an ETF regeneration must
+  # trigger recompilation of this module.
+  @external_resource Application.app_dir(
+                       :localize,
+                       "priv/localize/supplemental_data/time_preferences.etf"
+                     )
+
   @time_preferences (
                       path =
                         Application.app_dir(

@@ -4,6 +4,14 @@ defmodule Localize.Validity.Script do
   use Localize.Validity, :scripts
   @behaviour Localize.Validity
 
+  # The mapping is embedded at compile time, so an ETF regeneration
+  # must trigger recompilation of this module.
+  @external_resource Application.app_dir(
+                       :localize,
+                       "priv/localize/unicode_script_to_subtag_mapping.etf"
+                     )
+  @unicode_to_subtag_mapping Localize.SupplementalData.unicode_script_to_subtag_mapping()
+
   def validate(nil) do
     {:ok, nil, nil}
   end
@@ -32,8 +40,6 @@ defmodule Localize.Validity.Script do
     |> Atom.to_string()
     |> normalize()
   end
-
-  @unicode_to_subtag_mapping Localize.SupplementalData.unicode_script_to_subtag_mapping()
 
   @doc false
   def unicode_to_subtag_map do

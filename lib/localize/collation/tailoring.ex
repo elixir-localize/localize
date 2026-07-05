@@ -24,20 +24,20 @@ defmodule Localize.Collation.Tailoring do
   alias Localize.Collation.{Element, Table}
   alias Localize.Collation.Table.Parser
 
-  # Inlining the `Application.app_dir/2` call at each compile-time use
-  # site avoids leaving a `@tailorings_path` module attribute that a
-  # future maintainer could accidentally reference at runtime — which
-  # would crash on any host that differs from the build host. Issue
-  # #28.
-  @external_resource Application.app_dir(
-                       :localize,
-                       "priv/localize/supplemental_data/collation_tailoring.etf"
-                     )
-
-  @tailorings :localize
-              |> Application.app_dir("priv/localize/supplemental_data/collation_tailoring.etf")
-              |> File.read!()
-              |> :erlang.binary_to_term()
+  # The tailoring table (~500KB of rule strings) is loaded at runtime
+  # on first use rather than embedded at compile time — embedding it
+  # made this the largest beam in the library (~1.7MB) for data that
+  # many applications never touch. `Localize.DataLoader` deduplicates
+  # concurrent first loads; per-{language, type} results are then
+  # cached in `:persistent_term` by `get_tailoring/2`.
+  defp tailorings do
+    Localize.DataLoader.load({:localize, :collation_tailorings}, fn ->
+      :localize
+      |> Application.app_dir("priv/localize/supplemental_data/collation_tailoring.etf")
+      |> File.read!()
+      |> :erlang.binary_to_term()
+    end)
+  end
 
   @doc """
   Get a tailoring overlay for the given locale and collation type.
@@ -62,7 +62,7 @@ defmodule Localize.Collation.Tailoring do
     case :persistent_term.get(cache_key, :unset) do
       :unset ->
         result =
-          case Map.get(@tailorings, {language, type}) do
+          case Map.get(tailorings(), {language, type}) do
             nil -> get_tailoring_from_parent(language, type, MapSet.new([language]))
             rules_str -> build_tailoring(rules_str)
           end
@@ -107,13 +107,13 @@ defmodule Localize.Collation.Tailoring do
 
       parent_language == "und" ->
         # Reached und — check for und tailoring (e.g., und:search)
-        case Map.get(@tailorings, {"und", type}) do
+        case Map.get(tailorings(), {"und", type}) do
           nil -> nil
           rules_str -> build_tailoring(rules_str)
         end
 
       true ->
-        case Map.get(@tailorings, {parent_language, type}) do
+        case Map.get(tailorings(), {parent_language, type}) do
           nil ->
             walk_parent_chain(parent_tag, type, MapSet.put(visited, parent_id))
 
@@ -124,7 +124,7 @@ defmodule Localize.Collation.Tailoring do
   end
 
   defp check_und_fallback(type) do
-    case Map.get(@tailorings, {"und", type}) do
+    case Map.get(tailorings(), {"und", type}) do
       nil -> nil
       rules_str -> build_tailoring(rules_str)
     end
@@ -146,7 +146,7 @@ defmodule Localize.Collation.Tailoring do
   """
   @spec supported_locales() :: [{String.t(), atom()}]
   def supported_locales do
-    Map.keys(@tailorings)
+    Map.keys(tailorings())
   end
 
   @doc """

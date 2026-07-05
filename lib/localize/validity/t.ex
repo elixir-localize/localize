@@ -6,6 +6,10 @@ defmodule Localize.Validity.T do
 
   @field_mapping Fields.field_mapping()
   @inverse_field_mapping Fields.inverse_field_mapping()
+
+  # The validity data is embedded at compile time, so an ETF
+  # regeneration must trigger recompilation of this module.
+  @external_resource Application.app_dir(:localize, "priv/localize/validity/validity_t.etf")
   @validity_data Localize.SupplementalData.validity(:t)
   @dont_process_keys ["language"]
   @valid_keys Map.keys(@validity_data) ++ @dont_process_keys
