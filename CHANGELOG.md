@@ -18,6 +18,8 @@ A quality release: the codebase now passes `mix credo --strict` with zero findin
 
 * `Localize.Territory.territory_names_for/1` and `territories_for/1` return the localized territory-name inventory for a locale, completing the `*_for` family across languages, scripts, subdivisions and territories.
 
+* CLDR metazone data joins the supplemental-data pipeline: `Localize.DateTime.Timezone.metazone_for/2` returns the metazone for an IANA zone at a given instant, and `zone_for_metazone/2` returns a metazone's representative zone per territory. The `z`/`v` format symbols now draw on the full 191-metazone CLDR mapping instead of a 20-zone builtin table.
+
 * A documentation depth pass adds around 150 execution-verified doctest examples and 40 `### Options` sections across the number, unit, date/time, locale, territory, list, collation and message modules, and corrects stale claims (RBNF number-system conversion, locale defaults, the `validate_locale/1` matching warning).
 
 * A test-coverage push adds around 1,700 tests across exceptions, collation, date/time formatting, MessageFormat 2 tooling, language-tag validity, number/unit internals and the runtime plumbing, raising runtime-library line coverage from 70% to 91%. The 90% threshold is now enforced in CI.
