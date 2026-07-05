@@ -38,6 +38,8 @@ A quality release: the codebase now passes `mix credo --strict` with zero findin
 
 ### Fixed
 
+* The `U` (cyclic year) and `r` (related Gregorian year) format symbols work: `U` renders the localized sexagesimal name (丙午, "bing-wu") from the calendar's cyclic name sets and `r` the Gregorian year in which the calendar year begins, both probing the date's calendar module per the Calendrical protocol. Previously both rendered the raw year number.
+
 * Date/time skeleton matching compared candidate format fields against the wrong skeleton fields, making format selection nondeterministic across VM runs (`format: :yMdHm` could render "Jul" or "July" run to run). Selection is now deterministic, prefers the exact skeleton, and matches text-field widths by class (`E` ≡ `EEE`) per TR35.
 
 * The "alt" language code (Southern Altai) was unreachable: the data pipeline stored it as the atom `:alt` (a collision with the alt-variant style key), so `Localize.Language.display_name("alt")` returned an error. Fixed at data load; the pipeline fix lands with the next CLDR data regeneration.
