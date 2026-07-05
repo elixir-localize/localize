@@ -4,9 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.45.0] — July 4th, 2026
+## [0.45.0] — July 5th, 2026
 
 A quality release: the codebase now passes `mix credo --strict` with zero findings (enforced in CI), the full MessageFormat 2 working-group conformance suite runs against the formatter, and the documentation gains four new guides. A test-coverage push from 70% toward 90% surfaced — and this release fixes — more than twenty conformance and correctness bugs across date/time, number, unit, collation and language-tag handling.
+
+**Upgrading from 0.42 or earlier?** Version 0.43.0 renamed the inventory functions from the `available_*`/`known_*` names to the uniform `known_*`/`supported_*`/`*_for` scheme and swapped two `:format`/`:style` option names. Every old name still works as a deprecated delegate until Localize 1.0 — see the 0.43.0 entry below for the full list.
 
 ### Added
 
@@ -146,9 +148,27 @@ This release settles the public API naming and error conventions ahead of 1.0. E
 
 ### Deprecated
 
-* `Language.available_languages/1` → `Language.languages_for/1`; `Language.known_languages/1` → `Language.language_names_for/1`; `Script.available_scripts/1` → `Script.scripts_for/1`; `Script.known_scripts/1` → `Script.script_names_for/1`; `Subdivision.available_subdivisions/1` → `Subdivision.subdivisions_for/1`; `Subdivision.known_subdivisions/1` → `Subdivision.subdivision_names_for/1`; `Territory.available_styles/0` → `Territory.known_styles/0`. The naming rule is now uniform: `known_*` is the locale-independent CLDR universe, `supported_*` reflects configuration, and `*_for` is data localized into a display locale.
+The naming rule is now uniform: `known_*` is the locale-independent CLDR universe, `supported_*` reflects configuration, and `*_for` is data localized into a display locale. The renamed functions are:
 
-* The `:style` option of `Localize.Duration.to_string/2` is deprecated in favour of `:format`; the `:format` option of `Localize.Unit.display_name/2` is deprecated in favour of `:style`; the `:style` option of `Localize.quote/2` is deprecated in favour of `:format`. The deprecated option keys remain accepted until 1.0.
+* `Language.available_languages/1` → `Language.languages_for/1`.
+
+* `Language.known_languages/1` → `Language.language_names_for/1`.
+
+* `Script.available_scripts/1` → `Script.scripts_for/1`.
+
+* `Script.known_scripts/1` → `Script.script_names_for/1`.
+
+* `Subdivision.available_subdivisions/1` → `Subdivision.subdivisions_for/1`.
+
+* `Subdivision.known_subdivisions/1` → `Subdivision.subdivision_names_for/1`.
+
+* `Territory.available_styles/0` → `Territory.known_styles/0`.
+
+Two option names are also swapped for consistency; the deprecated keys remain accepted until 1.0:
+
+* The `:style` option of `Localize.Duration.to_string/2` and of `Localize.quote/2` is deprecated in favour of `:format`.
+
+* The `:format` option of `Localize.Unit.display_name/2` is deprecated in favour of `:style`.
 
 ### Changed
 
