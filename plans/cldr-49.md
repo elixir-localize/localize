@@ -1,6 +1,8 @@
 # CLDR 49 upgrade plan
 
-**Status:** draft, last updated 2026-05-05
+> **Process note (2026-07-06):** the repeatable update mechanics (source refresh, generation, verification gates, CDN upload, hash manifest, release order) are consolidated in [CLDR_UPDATE_INTEGRATION.md](../CLDR_UPDATE_INTEGRATION.md) — the CLDR Update Guide. This plan now carries only the CLDR-49-specific work items. Item 13 (CDN checksum manifests) shipped early in Localize 0.44.0 as the hash-manifest system; see the guide's "Hash manifest and the OTP encoding trap" section.
+
+**Status:** draft, last updated 2026-07-06
 
 **Owner:** Localize maintainers
 
