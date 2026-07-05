@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Full compile time drops from ~66s to ~3.5s: the RBNF lexer grammar no longer explodes the generated DFA (its generated Erlang shrinks from 891KB to 41KB), and the language/subdivision validity checks compile to a single map lookup instead of thousands of guard clauses. Token streams and validation results are unchanged.
 
+* The collation tailoring table loads at runtime on first use instead of being embedded at compile time, shrinking the library's largest beam from 1.7MB to 44KB.
+
+* Every module that embeds ETF data at compile time now declares the file with `@external_resource`, so a CLDR data regeneration correctly recompiles the timezone, time-preference, validity and script-mapping modules.
+
 ## [0.45.0] — July 5th, 2026
 
 A quality release: the codebase now passes `mix credo --strict` with zero findings (enforced in CI), the full MessageFormat 2 working-group conformance suite runs against the formatter, and the documentation gains four new guides. A test-coverage push from 70% toward 90% surfaced — and this release fixes — more than twenty conformance and correctness bugs across date/time, number, unit, collation and language-tag handling.

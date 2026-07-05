@@ -6,6 +6,10 @@ defmodule Localize.Validity.U do
   # Map BCP47 string keys to their atom equivalents.
   # The struct fields use the original BCP47 key names.
   @field_mapping Fields.field_mapping()
+
+  # The validity data is embedded at compile time, so an ETF
+  # regeneration must trigger recompilation of this module.
+  @external_resource Application.app_dir(:localize, "priv/localize/validity/validity_u.etf")
   @validity_data Localize.SupplementalData.validity(:u)
   @dont_process_keys ["vt", "rg", "sd", "dx", "kr"]
   @valid_keys Map.keys(@validity_data)

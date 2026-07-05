@@ -13,7 +13,7 @@ defmodule Localize.Validity do
 
   defmacro __using__(type) do
     validity_data = Localize.SupplementalData.validity(type)
-    Localize.Validity.generate_validity_checks(validity_data)
+    Localize.Validity.generate_validity_checks(type, validity_data)
   end
 
   # A single map literal with one lookup function instead of a
@@ -22,8 +22,15 @@ defmodule Localize.Validity do
   # The map compiles in milliseconds and a hash lookup matches or
   # beats the long guard chains at these set sizes.
   @doc false
-  def generate_validity_checks(validity_data) do
-    quote bind_quoted: [validity_data: Macro.escape(validity_data)] do
+  def generate_validity_checks(type, validity_data) do
+    quote bind_quoted: [type: type, validity_data: Macro.escape(validity_data)] do
+      # The validity data is embedded at compile time, so an ETF
+      # regeneration must trigger recompilation of this module.
+      @external_resource Application.app_dir(
+                           :localize,
+                           "priv/localize/validity/validity_#{type}.etf"
+                         )
+
       @validity_status_map Localize.Validity.status_map(validity_data)
 
       defp valid(code) do

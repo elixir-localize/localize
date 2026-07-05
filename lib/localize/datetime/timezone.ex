@@ -12,6 +12,17 @@ defmodule Localize.DateTime.Timezone do
   alias Localize.DateTime.Timezone.Builder
   alias Localize.SupplementalData
 
+  # The timezone and metazone data is embedded at compile time, so an
+  # ETF regeneration must trigger recompilation of this module.
+  @external_resource Application.app_dir(
+                       :localize,
+                       "priv/localize/supplemental_data/timezones.etf"
+                     )
+  @external_resource Application.app_dir(
+                       :localize,
+                       "priv/localize/supplemental_data/metazones.etf"
+                     )
+
   @timezones SupplementalData.timezones()
   @timezones_by_territory Builder.timezones_by_territory(@timezones)
   @territories_by_timezone Builder.territories_by_timezone(@timezones_by_territory)
