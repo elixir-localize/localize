@@ -59,6 +59,7 @@ scripts/
 
 | Task / script | Purpose |
 |---------------|---------|
+| `mix localize.update_cldr` | **Orchestrates phases 1–3** (copy sources → generate supplemental → compile gate → generate locales → test gate), each step in a fresh VM. `--check` runs the preflight and prints the plan without changing anything; `--locales en,fr` trials a subset. |
 | `scripts/ldml2json_v2` | Converts the CLDR XML repo to production JSON (all packages). Run once per CLDR drop. |
 | `mix localize.copy_sources` | Copies raw CLDR sources into `priv/cldr/` and writes the CLDR version to `priv/localize/version`. `--supplemental` / `--locales` scope the copy. |
 | `mix localize.generate_supplemental` | Regenerates supplemental, validity, collation and top-level ETFs under `priv/localize/`. |
@@ -81,6 +82,17 @@ Run the phases in order. Every phase ends with a verification gate; do not proce
 2. Walk the translators' guide (<https://cldr.unicode.org/translation>) section by section into `plans/cldr-<N>-translator-guide-checklist.md`, marking each section *correct / partial / missing / N/A* against our implementation.
 3. Diff the conformance fixtures: `diff -r $CLDR_REPO_old/common/testData $CLDR_REPO_new/common/testData --brief`. For each delta: re-import updated fixtures we already ingest, add loaders for new ones in directories we cover, and log new directories as work items.
 4. Diff the TR35 spec chapters relevant to shipped features (dates, numbers, collation, messageFormat) and file work items for behavioural changes. After release, walk the TR35 §Modifications log into `plans/cldr-<N>-retrospective.md` (template: `plans/cldr-48-retrospective.md`) classifying every entry as data-only / code-applied / code-pending / skipped-with-reason.
+
+### Phases 1–3 in one command
+
+Once the upstream checkouts are refreshed (the first two commands of Phase 1), the copy → generate → verify sequence can run as a single orchestrated task:
+
+```bash
+mix localize.update_cldr --check    # preflight: verify sources, report versions, print the plan
+mix localize.update_cldr            # copy sources, generate supplemental (compile gate), generate locales (test gate)
+```
+
+The task stops after Phase 3 and prints the remaining manual phases. The sections below describe what it runs, for when a phase needs to be run or debugged individually.
 
 ### Phase 1 — Refresh vendored sources
 
