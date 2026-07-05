@@ -13,7 +13,12 @@ Definitions.
 
 Rule_cardinal_start     = (cardinal)
 Rule_ordinal_start      = (ordinal)
-Plural_rules            = (zero\{.+\})?(one\{.+\})?(two\{.+\})?(few\{.+\})?(many\{.+\})?(other\{.+\})?
+% One repeated group instead of six optional groups: the greedy `.+`
+% in each optional group overlapped the literal prefixes of every
+% following group, exploding the leex DFA to ~890KB of generated
+% Erlang that took ~50s to compile. This form emits the identical
+% token text for well-formed input and compiles in milliseconds.
+Plural_rules            = ((zero|one|two|few|many|other)\{[^}]*\})+
 
 Rule_name               = (%[%a-zA-Z0-9\-]+)
 Number_format           = ([0#]([0#,]+)?)(\.([0#]+))?([eE]([-+]?[0#]+))?

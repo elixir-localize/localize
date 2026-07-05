@@ -16,34 +16,39 @@ defmodule Localize.Validity do
     Localize.Validity.generate_validity_checks(validity_data)
   end
 
+  # A single map literal with one lookup function instead of a
+  # per-code clause fan: `code in [thousands of codes]` guards
+  # compiled the languages and subdivisions modules in ~11s each.
+  # The map compiles in milliseconds and a hash lookup matches or
+  # beats the long guard chains at these set sizes.
   @doc false
   def generate_validity_checks(validity_data) do
     quote bind_quoted: [validity_data: Macro.escape(validity_data)] do
-      for {status, codes} <- validity_data do
-        {code_ranges, simple_codes} = Localize.Validity.partition(codes)
-
-        simple_check =
-          if simple_codes != [] do
-            defp valid(code) when code in unquote(simple_codes) do
-              {:ok, code, unquote(status)}
-            end
-          end
-
-        range_check =
-          for range <- code_ranges, range != [] do
-            {base, range_start, range_end} = Localize.Validity.range_from(range)
-
-            defp valid(unquote(base) <> <<char::utf8>> = code)
-                 when char in unquote(range_start)..unquote(range_end) do
-              {:ok, code, unquote(status)}
-            end
-          end
-      end
+      @validity_status_map Localize.Validity.status_map(validity_data)
 
       defp valid(code) do
-        {:error, code}
+        case @validity_status_map do
+          %{^code => status} -> {:ok, code, status}
+          _no_match -> {:error, code}
+        end
       end
     end
+  end
+
+  @doc false
+  def status_map(validity_data) do
+    for {status, codes} <- validity_data,
+        code <- expand_codes(codes),
+        reduce: %{} do
+      acc -> Map.put_new(acc, code, status)
+    end
+  end
+
+  @doc false
+  def expand_codes(codes) do
+    {code_ranges, simple_codes} = partition(codes)
+    expanded = for range <- code_ranges, range != [], do: expand_range(range)
+    simple_codes ++ List.flatten(expanded)
   end
 
   @doc false
