@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+* Full compile time drops from ~66s to ~3.5s: the RBNF lexer grammar no longer explodes the generated DFA (its generated Erlang shrinks from 891KB to 41KB), and the language/subdivision validity checks compile to a single map lookup instead of thousands of guard clauses. Token streams and validation results are unchanged.
+
 ## [0.45.0] — July 5th, 2026
 
 A quality release: the codebase now passes `mix credo --strict` with zero findings (enforced in CI), the full MessageFormat 2 working-group conformance suite runs against the formatter, and the documentation gains four new guides. A test-coverage push from 70% toward 90% surfaced — and this release fixes — more than twenty conformance and correctness bugs across date/time, number, unit, collation and language-tag handling.
