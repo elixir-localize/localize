@@ -48,6 +48,17 @@ Localize consolidates the functionality of the `ex_cldr_*` library family into a
 
 * **MessageFormat 2** — parse and evaluate ICU MessageFormat 2 message strings.
 
+## Claude Code skill
+
+Localize ships a [Claude Code](https://claude.com/claude-code) skill that teaches Claude the library's APIs and localization-first patterns — every example execution-verified against the library. With the skill installed, Claude writes plural-correct, currency-correct, collation-correct Elixir by default, even for single-locale applications.
+
+```
+/plugin marketplace add elixir-localize/localize
+/plugin install localize@localize
+```
+
+The skill source lives in [skills/localize](https://github.com/elixir-localize/localize/blob/main/skills/localize/SKILL.md).
+
 ## Supported Elixir and OTP versions
 
 Localize requires **Elixir 1.17+** and **Erlang/OTP 26+**.
