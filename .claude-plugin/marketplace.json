@@ -1,0 +1,14 @@
+{
+  "name": "localize",
+  "owner": {
+    "name": "Kip Cole"
+  },
+  "description": "Skills for building localized Elixir applications with the Localize library",
+  "plugins": [
+    {
+      "name": "localize",
+      "source": "./",
+      "description": "Write localized Elixir applications with Localize: numbers, currencies, dates/times, units, lists, collation and MessageFormat 2"
+    }
+  ]
+}

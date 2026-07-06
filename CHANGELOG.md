@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `mix localize.update_cldr` orchestrates the CLDR data-update pipeline (copy sources → generate supplemental → compile gate → generate locales → test gate), with `--check` preflight, `--locales` subsetting, and each step isolated in a fresh VM. The full update process is documented in the consolidated CLDR Update Guide (`CLDR_UPDATE_INTEGRATION.md`).
 
+* A Claude Code skill covering all major subsystems (numbers, dates/times, units, lists, collation, MessageFormat 2, locale validation and configuration), installable via `/plugin marketplace add elixir-localize/localize`. All 300+ skill examples are execution-verified against the library.
+
 ## [0.46.0] — July 6th, 2026
 
 ### Changed

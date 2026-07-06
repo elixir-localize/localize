@@ -1,0 +1,12 @@
+{
+  "name": "localize",
+  "displayName": "Localize",
+  "description": "Write localized Elixir applications with Localize: numbers, currencies, dates/times, units, lists, collation and MessageFormat 2",
+  "author": {
+    "name": "Kip Cole"
+  },
+  "homepage": "https://hexdocs.pm/localize",
+  "repository": "https://github.com/elixir-localize/localize",
+  "license": "Apache-2.0",
+  "keywords": ["elixir", "localization", "i18n", "cldr", "formatting", "collation", "messageformat"]
+}
