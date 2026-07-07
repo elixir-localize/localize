@@ -170,7 +170,7 @@ defmodule Localize.Message.InterpreterCoverageTest do
     end
 
     test "time style full formats a DateTime through the time function" do
-      assert {:ok, ["10:30:00 AM Greenwich Mean Time"], ["t"], []} =
+      assert {:ok, ["10:30:00 AM Coordinated Universal Time"], ["t"], []} =
                format("{$t :time style=full}", %{"t" => ~U[2024-01-01 10:30:00Z]}, locale: :en)
     end
 

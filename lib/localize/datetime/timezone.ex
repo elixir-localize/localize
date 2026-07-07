@@ -419,10 +419,9 @@ defmodule Localize.DateTime.Timezone do
   @doc """
   Returns the specific or generic non-location timezone name.
 
-  Looks up the metazone name for the datetime's timezone in the
+  Looks up the zone's own name, then its metazone name, in the
   locale's timezone data (e.g., "Eastern Standard Time"). When the
-  timezone has no metazone mapping, or the locale carries no name
-  for it, falls back to `gmt_format/3`.
+  locale carries neither, falls back to `gmt_format/3`.
 
   ### Arguments
 
@@ -473,9 +472,9 @@ defmodule Localize.DateTime.Timezone do
     type = Keyword.get(options, :type, :specific)
 
     with {:ok, tz_data} <- Localize.Locale.get(locale_id, [:dates, :time_zone_names]) do
-      # Try metazone lookup first
-      metazone_key = metazone_for(time_zone, datetime)
-      result = metazone_name(metazone_key, tz_data, format, type, datetime)
+      result =
+        zone_name(time_zone, tz_data, format, type, datetime) ||
+          metazone_name(metazone_for(time_zone, datetime), tz_data, format, type, datetime)
 
       if result do
         {:ok, result}
@@ -485,6 +484,37 @@ defmodule Localize.DateTime.Timezone do
       end
     end
   end
+
+  defp zone_name(time_zone, tz_data, format, type, datetime) when is_binary(time_zone) do
+    keys =
+      @zone_canonical_names
+      |> Map.get(time_zone, time_zone)
+      |> String.downcase()
+      |> String.split("/")
+      |> Enum.map(&existing_atom/1)
+
+    zone_data = get_in(tz_data[:zone], keys)
+
+    metazone_data_name(zone_data, format, type, datetime) ||
+      zone_standard_for_generic(zone_data, format, type)
+  end
+
+  defp zone_name(_time_zone, _tz_data, _format, _type, _datetime), do: nil
+
+  defp existing_atom(string) do
+    String.to_existing_atom(string)
+  rescue
+    ArgumentError -> nil
+  end
+
+  defp zone_standard_for_generic(%{} = zone_data, format, :generic) do
+    unless get_in(zone_data, [:long, :daylight]) || get_in(zone_data, [:short, :daylight]) do
+      format_key = if format == :short, do: :short, else: :long
+      get_in(zone_data, [format_key, :standard])
+    end
+  end
+
+  defp zone_standard_for_generic(_zone_data, _format, _type), do: nil
 
   # Look up the non-location name for a metazone. Returns `nil`
   # when the zone has no metazone mapping or the locale has no
