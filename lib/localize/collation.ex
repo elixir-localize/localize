@@ -625,8 +625,13 @@ defmodule Localize.Collation do
         Keyword.get(extra_options, :type) ||
         LocaleDefaults.default_type(language)
 
+    # Look up the tailoring from the most specific identifier —
+    # CLDR keys some tailorings by language-territory (fr-CA carries
+    # `[backwards 2]` while plain fr has no tailoring at all); the
+    # parent chain inside get_tailoring falls back to the bare
+    # language when there is no territory-specific entry.
     {tailoring_overlay, tailoring_option_overrides} =
-      case Tailoring.get_tailoring(language, type) do
+      case Tailoring.get_tailoring(tag_tailoring_locale(tag), type) do
         {overlay, overrides} -> {overlay, overrides}
         nil -> {nil, []}
       end
@@ -679,6 +684,15 @@ defmodule Localize.Collation do
 
       true ->
         "und"
+    end
+  end
+
+  defp tag_tailoring_locale(%Localize.LanguageTag{} = tag) do
+    language = tag_language(tag)
+
+    case tag.territory do
+      nil -> language
+      territory -> language <> "-" <> to_string(territory)
     end
   end
 

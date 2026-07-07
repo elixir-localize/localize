@@ -152,7 +152,7 @@ French Canadian uses "backwards" level-2 comparison, meaning accents are compare
 iex> # French Canadian: accent on later syllable sorts first
 iex> Localize.Collation.sort(["côte", "coté", "cote", "côté"],
 ...>   locale: "fr-CA")
-["cote", "coté", "côte", "côté"]
+["cote", "côte", "coté", "côté"]
 
 iex> # Default (non-backwards): accent on earlier syllable sorts first
 iex> Localize.Collation.sort(["côte", "coté", "cote", "côté"])

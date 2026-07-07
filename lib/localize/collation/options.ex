@@ -238,8 +238,13 @@ defmodule Localize.Collation.Options do
 
     type = Keyword.get(bcp47_opts, :type, LocaleDefaults.default_type(locale))
 
+    # Look up the tailoring from the most specific identifier —
+    # CLDR keys some tailorings by language-territory (fr-CA carries
+    # `[backwards 2]` while plain fr has no tailoring at all); the
+    # parent chain inside get_tailoring falls back to the bare
+    # language when there is no territory-specific entry.
     {tailoring_overlay, tailoring_option_overrides} =
-      case Tailoring.get_tailoring(language, type) do
+      case Tailoring.get_tailoring(tailoring_locale(locale, language), type) do
         {overlay, overrides} -> {overlay, overrides}
         nil -> {nil, []}
       end
@@ -249,6 +254,23 @@ defmodule Localize.Collation.Options do
     |> struct(locale_defaults)
     |> struct(bcp47_opts)
     |> Map.put(:tailoring, tailoring_overlay)
+  end
+
+  # Reduce a canonical locale string to its language-territory pair
+  # ("fr-CA-u-kb-true" -> "fr-CA"), or the bare language when no
+  # territory subtag is present.
+  defp tailoring_locale(canonical_locale, language) do
+    base =
+      canonical_locale
+      |> String.split(["-u-", "-t-", "-x-"], parts: 2)
+      |> hd()
+
+    territory =
+      base
+      |> String.split("-")
+      |> Enum.find(&Regex.match?(~r/^([A-Z]{2}|\d{3})$/, &1))
+
+    if territory, do: language <> "-" <> territory, else: language
   end
 
   # BCP 47 -u- extension dispatch: one branch per collation keyword

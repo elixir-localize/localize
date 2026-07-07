@@ -117,4 +117,30 @@ defmodule Localize.CollationTest do
       assert Enum.sort(["AAAA", "AAAa"], Localize.Collation.Sensitive) == ["AAAa", "AAAA"]
     end
   end
+
+  describe "territory-specific tailorings" do
+    # fr-CA's tailoring is keyed by language-territory and consists
+    # solely of the `[backwards 2]` option override; plain fr has no
+    # tailoring at all. Resolution must start from the most specific
+    # identifier or the override is silently lost.
+    test "fr-CA enables backwards accent comparison from locale data" do
+      words = ["côte", "coté", "cote", "côté"]
+
+      assert Localize.Collation.sort(words, locale: "fr-CA") ==
+               ["cote", "côte", "coté", "côté"]
+
+      assert Localize.Collation.sort(words, locale: "fr-CA") ==
+               Localize.Collation.sort(words, backwards: true)
+
+      # Plain fr does not sort backwards
+      assert Localize.Collation.sort(words, locale: "fr") ==
+               ["cote", "coté", "côte", "côté"]
+    end
+
+    test "a territory without its own tailoring falls back to the language" do
+      # de-AT has no tailoring of its own; the parent chain resolves de
+      assert Localize.Collation.sort(["äpfel", "apfel"], locale: "de-AT") ==
+               Localize.Collation.sort(["äpfel", "apfel"], locale: "de")
+    end
+  end
 end

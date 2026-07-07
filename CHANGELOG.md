@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * A Claude Code skill covering all major subsystems (numbers, dates/times, units, lists, collation, MessageFormat 2, locale validation and configuration), installable via `/plugin marketplace add elixir-localize/localize`. All 300+ skill examples are execution-verified against the library.
 
+### Fixed
+
+* Territory-specific collation tailorings apply from locale data: sorting with `locale: "fr-CA"` now uses French Canadian backwards accent comparison. Previously the lookup used only the bare language, silently dropping fr-CA's `[backwards 2]` override.
+
+* `Localize.Calendar.first_day_for_locale/1` honours the `-u-fw-` extension per TR35: `"en-u-fw-mon"` returns 1 (Monday) instead of the territory default.
+
 ## [0.46.0] — July 6th, 2026
 
 ### Changed
