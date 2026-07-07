@@ -35,6 +35,8 @@ defmodule Localize.Calendar do
 
   """
 
+  alias Localize.LanguageTag
+
   @default_calendar_type :gregorian
 
   @acceptable_calendars [
@@ -63,6 +65,9 @@ defmodule Localize.Calendar do
 
   @days 1..7 |> Enum.to_list()
   @the_world :"001"
+
+  # ISO day numbers for the -u-fw- (first day of week) extension values.
+  @first_day_from_fw %{mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 7}
 
   @doc """
   Returns the list of known CLDR calendar types.
@@ -957,8 +962,9 @@ defmodule Localize.Calendar do
   @doc """
   Returns the first day of the week for a locale.
 
-  Derives the territory from the locale and returns the
-  first day of the week for that territory.
+  A `fw` value in the locale's `-u-` extension takes precedence
+  per TR35; otherwise the territory derived from the locale
+  determines the first day.
 
   ### Arguments
 
@@ -967,7 +973,7 @@ defmodule Localize.Calendar do
 
   ### Returns
 
-  * An integer from 1 to 7.
+  * An integer from 1 to 7 (Monday is 1).
 
   * `{:error, exception}` if the locale is invalid.
 
@@ -976,11 +982,24 @@ defmodule Localize.Calendar do
       iex> Localize.Calendar.first_day_for_locale(:en)
       7
 
+      iex> Localize.Calendar.first_day_for_locale("en-u-fw-mon")
+      1
+
   """
   @spec first_day_for_locale(Localize.locale()) :: integer() | {:error, Exception.t()}
-  def first_day_for_locale(locale) do
+  def first_day_for_locale(%LanguageTag{locale: %{fw: fw}}) when not is_nil(fw) do
+    Map.fetch!(@first_day_from_fw, fw)
+  end
+
+  def first_day_for_locale(%LanguageTag{} = locale) do
     with {:ok, territory} <- territory_from_locale(locale) do
       first_day_for_territory(territory)
+    end
+  end
+
+  def first_day_for_locale(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      first_day_for_locale(language_tag)
     end
   end
 

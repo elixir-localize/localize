@@ -321,6 +321,15 @@ defmodule Localize.CalendarTest do
       assert Localize.Calendar.first_day_for_locale(:en) == 7
     end
 
+    test "the -u-fw- extension overrides the territory default" do
+      assert Localize.Calendar.first_day_for_locale("en-u-fw-mon") == 1
+      assert Localize.Calendar.first_day_for_locale("en-u-fw-sat") == 6
+      assert Localize.Calendar.first_day_for_locale("de-u-fw-sun") == 7
+
+      {:ok, tag} = Localize.validate_locale("en-u-fw-wed")
+      assert Localize.Calendar.first_day_for_locale(tag) == 3
+    end
+
     test "returns an error for an invalid locale" do
       assert {:error, %Localize.InvalidLocaleError{}} =
                Localize.Calendar.first_day_for_locale(:zzz)
