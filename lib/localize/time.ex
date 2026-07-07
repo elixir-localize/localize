@@ -103,7 +103,8 @@ defmodule Localize.Time do
          hc_skeleton = apply_hc_to_skeleton(hc_format, language_tag),
          effective_format = strip_zone_for_time_struct(hc_skeleton, time, format, locale_id),
          {:ok, pattern} <- find_format(time, effective_format, locale_id, options) do
-      Localize.DateTime.Formatter.format(time, pattern, locale_id, Map.new(options))
+      formatter_options = options |> Map.new() |> Map.put_new(:locale, language_tag)
+      Localize.DateTime.Formatter.format(time, pattern, locale_id, formatter_options)
     end
   end
 
@@ -126,7 +127,8 @@ defmodule Localize.Time do
         end
 
       with {:ok, pattern} <- find_format(time, resolved_format, locale_id, options) do
-        Localize.DateTime.Formatter.format(time, pattern, locale_id, Map.new(options))
+        formatter_options = options |> Map.new() |> Map.put_new(:locale, locale)
+        Localize.DateTime.Formatter.format(time, pattern, locale_id, formatter_options)
       end
     end
   end

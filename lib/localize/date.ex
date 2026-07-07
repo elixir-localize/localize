@@ -88,7 +88,13 @@ defmodule Localize.Date do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, pattern} <- find_format(date, format, locale_id, options) do
       overrides = number_system_overrides_for(date, format, locale_id)
-      formatter_options = options |> Map.new() |> merge_number_system_overrides(overrides)
+
+      formatter_options =
+        options
+        |> Map.new()
+        |> Map.put_new(:locale, locale)
+        |> merge_number_system_overrides(overrides)
+
       Localize.DateTime.Formatter.format(date, pattern, locale_id, formatter_options)
     end
   end
@@ -100,6 +106,7 @@ defmodule Localize.Date do
 
     with {:ok, locale_id} <- resolve_locale_id(locale) do
       resolved_format = resolve_partial_format(format, date)
+      options = Keyword.put_new(options, :locale, locale)
       format_partial_date(resolved_format, date, format, locale_id, options)
     end
   end

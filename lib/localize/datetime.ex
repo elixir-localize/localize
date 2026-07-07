@@ -81,6 +81,7 @@ defmodule Localize.DateTime do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
     style = Keyword.get(options, :style, :default)
+    options = Keyword.put_new(options, :locale, locale)
 
     with {:ok, locale_id} <- resolve_locale_id(locale) do
       cond do
@@ -158,6 +159,7 @@ defmodule Localize.DateTime do
 
   defp format_partial_datetime(datetime, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
+    options = Keyword.put_new(options, :locale, locale)
     format = Keyword.get(options, :format, @default_format)
 
     date_format = Keyword.get(options, :date_format, format)
