@@ -101,7 +101,7 @@ Localize.Number.to_range_string(3, 5, locale: :de)
 | Option | Values | Default | Description |
 |---|---|---|---|
 | `:locale` | atom, string, `LanguageTag` | `Localize.get_locale()` | Formatting locale |
-| `:format` | `:standard`, `:percent`, `:scientific`, `:currency`, `:accounting`, `:decimal_short`, `:decimal_long`, `:currency_short`, or a pattern string | `:standard` | Number format style |
+| `:format` | `:standard`, `:percent`, `:scientific`, `:currency`, `:accounting`, `:decimal_short`, `:decimal_long`, `:currency_short`, or a pattern string; `:short` / `:long` alias the compact decimal (or currency) formats | `:standard` | Number format style |
 | `:currency` | ISO 4217 atom (`:USD`, `:EUR`, etc.) | `nil` | Currency code (auto-selects currency format) |
 | `:number_system` | `:default`, `:native`, `:traditional`, or a system name | `:default` | Digit system |
 | `:rounding_mode` | `:half_even`, `:half_up`, `:down`, `:up`, `:ceiling`, `:floor` | `:half_even` | Rounding mode |

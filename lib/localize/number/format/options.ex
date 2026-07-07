@@ -153,8 +153,8 @@ defmodule Localize.Number.Format.Options do
           {:ok, t()} | {:error, Exception.t()}
   def validate_options(number, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    format = Keyword.get(options, :format, :standard)
     currency = Keyword.get(options, :currency)
+    format = options |> Keyword.get(:format, :standard) |> resolve_format_alias(currency)
     number_system = Keyword.get(options, :number_system, :default)
     rounding_mode = Keyword.get(options, :rounding_mode, :half_even)
 
@@ -205,6 +205,17 @@ defmodule Localize.Number.Format.Options do
       {:ok, result}
     end
   end
+
+  # ── Format aliases ──────────────────────────────────────────
+
+  # `:short` and `:long` are accepted for compatibility with ex_cldr,
+  # resolving to the compact decimal formats or, when a currency is
+  # specified, to the compact currency formats.
+  defp resolve_format_alias(:short, nil), do: :decimal_short
+  defp resolve_format_alias(:short, _currency), do: :currency_short
+  defp resolve_format_alias(:long, nil), do: :decimal_long
+  defp resolve_format_alias(:long, _currency), do: :currency_long
+  defp resolve_format_alias(format, _currency), do: format
 
   # ── Number system resolution ────────────────────────────────
 
