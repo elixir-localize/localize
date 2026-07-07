@@ -66,6 +66,8 @@ defmodule Localize.DateTime.Formatter do
   @spec format(map(), String.t(), atom(), map()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def format(datetime, format_string, locale_id, options \\ %{}) do
+    options = with_default_number_system(options, locale_id)
+
     with {:ok, tokens, _} <- tokenize_cached(format_string) do
       results =
         Enum.map(tokens, fn
@@ -135,6 +137,21 @@ defmodule Localize.DateTime.Formatter do
   end
 
   defp trim_leading_whitespace_in_next(rest_t, rest_r), do: {rest_t, rest_r}
+
+  defp with_default_number_system(options, locale_id) when is_map(options) do
+    overrides = options[:number_system_overrides] || options["number_system_overrides"] || %{}
+
+    with %{} <- overrides,
+         false <- Map.has_key?(overrides, "all"),
+         {:ok, system} when system != :latn <-
+           Localize.Number.System.system_name_from(:default, locale_id) do
+      Map.put(options, :number_system_overrides, Map.put(overrides, "all", system))
+    else
+      _ -> options
+    end
+  end
+
+  defp with_default_number_system(options, _locale_id), do: options
 
   defp tokenize_cached(format_string) do
     key = {:localize, :datetime_format_tokens, format_string}
@@ -328,19 +345,19 @@ defmodule Localize.DateTime.Formatter do
   # ── Week-aligned year (Y) ──────────────────────────────────
 
   @doc false
-  def week_aligned_year(date, 1, locale_id, _options) when is_date(date) do
+  def week_aligned_year(date, 1, locale_id, options) when is_date(date) do
     {year, _week} = locale_week_of_year(date, locale_id)
-    Kernel.to_string(year)
+    year |> Kernel.to_string() |> apply_ns(locale_id, options, "Y")
   end
 
-  def week_aligned_year(date, 2, locale_id, _options) when is_date(date) do
+  def week_aligned_year(date, 2, locale_id, options) when is_date(date) do
     {year, _week} = locale_week_of_year(date, locale_id)
-    year |> rem(100) |> pad(2)
+    year |> rem(100) |> pad(2) |> apply_ns(locale_id, options, "Y")
   end
 
-  def week_aligned_year(date, count, locale_id, _options) when is_date(date) and count in 3..5 do
+  def week_aligned_year(date, count, locale_id, options) when is_date(date) and count in 3..5 do
     {year, _week} = locale_week_of_year(date, locale_id)
-    pad(year, count)
+    year |> pad(count) |> apply_ns(locale_id, options, "Y")
   end
 
   def week_aligned_year(_date, _count, _locale_id, _options), do: ""
@@ -348,8 +365,8 @@ defmodule Localize.DateTime.Formatter do
   # ── Extended year (u) ──────────────────────────────────────
 
   @doc false
-  def extended_year(%{year: year}, count, _locale_id, _options) do
-    pad(year, count)
+  def extended_year(%{year: year}, count, locale_id, options) do
+    year |> pad(count) |> apply_ns(locale_id, options, "u")
   end
 
   def extended_year(_date, _count, _locale_id, _options), do: ""
@@ -431,12 +448,12 @@ defmodule Localize.DateTime.Formatter do
   # ── Quarter (Q) ────────────────────────────────────────────
 
   @doc false
-  def quarter(date, 1, _locale_id, _options) when has_month(date) do
-    quarter_of_year(date)
+  def quarter(date, 1, locale_id, options) when has_month(date) do
+    quarter_of_year(date) |> apply_ns(locale_id, options, "Q")
   end
 
-  def quarter(date, 2, _locale_id, _options) when has_month(date) do
-    quarter_of_year(date) |> pad(2)
+  def quarter(date, 2, locale_id, options) when has_month(date) do
+    quarter_of_year(date) |> pad(2) |> apply_ns(locale_id, options, "Q")
   end
 
   def quarter(date, 3, locale_id, _options) when has_month(date) do
@@ -456,12 +473,12 @@ defmodule Localize.DateTime.Formatter do
   # ── Standalone Quarter (q) ─────────────────────────────────
 
   @doc false
-  def standalone_quarter(date, 1, _locale_id, _options) when has_month(date) do
-    quarter_of_year(date)
+  def standalone_quarter(date, 1, locale_id, options) when has_month(date) do
+    quarter_of_year(date) |> apply_ns(locale_id, options, "q")
   end
 
-  def standalone_quarter(date, 2, _locale_id, _options) when has_month(date) do
-    quarter_of_year(date) |> pad(2)
+  def standalone_quarter(date, 2, locale_id, options) when has_month(date) do
+    quarter_of_year(date) |> pad(2) |> apply_ns(locale_id, options, "q")
   end
 
   def standalone_quarter(date, count, locale_id, _options)
@@ -496,9 +513,11 @@ defmodule Localize.DateTime.Formatter do
   # ── Standalone Month (L) ───────────────────────────────────
 
   @doc false
-  def standalone_month(%{month: month}, 1, _locale_id, _options), do: month
+  def standalone_month(%{month: month}, 1, locale_id, options),
+    do: month |> apply_ns(locale_id, options, "L")
 
-  def standalone_month(%{month: month}, 2, _locale_id, _options), do: pad(month, 2)
+  def standalone_month(%{month: month}, 2, locale_id, options),
+    do: pad(month, 2) |> apply_ns(locale_id, options, "L")
 
   def standalone_month(date, count, locale_id, _options) when has_month(date) and count in 3..5 do
     format = format_for_count(count)
@@ -515,14 +534,14 @@ defmodule Localize.DateTime.Formatter do
   # ── Week of Year (w) ───────────────────────────────────────
 
   @doc false
-  def week_of_year(date, 1, locale_id, _options) when is_date(date) do
+  def week_of_year(date, 1, locale_id, options) when is_date(date) do
     {_year, week} = locale_week_of_year(date, locale_id)
-    week
+    apply_ns(week, locale_id, options, "w")
   end
 
-  def week_of_year(date, 2, locale_id, _options) when is_date(date) do
+  def week_of_year(date, 2, locale_id, options) when is_date(date) do
     {_year, week} = locale_week_of_year(date, locale_id)
-    pad(week, 2)
+    week |> pad(2) |> apply_ns(locale_id, options, "w")
   end
 
   def week_of_year(_date, _count, _locale_id, _options), do: ""
@@ -534,7 +553,7 @@ defmodule Localize.DateTime.Formatter do
         %{year: year, month: month, day: day, calendar: Calendar.ISO},
         _count,
         locale_id,
-        _options
+        options
       ) do
     {first_day, min_days} = week_config(locale_id)
     first_of_month_dow = :calendar.day_of_the_week({year, month, 1})
@@ -544,11 +563,12 @@ defmodule Localize.DateTime.Formatter do
     # Week 1 exists only when the first (possibly partial) week of the
     # month holds at least min_days days; otherwise that partial week
     # counts as week 0 per ICU.
-    if 7 - offset >= min_days, do: raw_week, else: raw_week - 1
+    week = if 7 - offset >= min_days, do: raw_week, else: raw_week - 1
+    apply_ns(week, locale_id, options, "W")
   end
 
-  def week_of_month(%{day: day}, _count, _locale_id, _options) when is_integer(day) do
-    div(day - 1, 7) + 1
+  def week_of_month(%{day: day}, _count, locale_id, options) when is_integer(day) do
+    (div(day - 1, 7) + 1) |> apply_ns(locale_id, options, "W")
   end
 
   def week_of_month(_date, _count, _locale_id, _options), do: ""
@@ -567,9 +587,10 @@ defmodule Localize.DateTime.Formatter do
   # ── Day of Year (D) ────────────────────────────────────────
 
   @doc false
-  def day_of_year(date, count, _locale_id, _options) when is_date(date) do
+  def day_of_year(date, count, locale_id, options) when is_date(date) do
     doy = compute_day_of_year(date)
-    if count == 1, do: doy, else: pad(doy, count)
+    doy = if count == 1, do: doy, else: pad(doy, count)
+    apply_ns(doy, locale_id, options, "D")
   end
 
   def day_of_year(_date, _count, _locale_id, _options), do: ""
@@ -577,8 +598,8 @@ defmodule Localize.DateTime.Formatter do
   # ── Day of Week in Month (F) ───────────────────────────────
 
   @doc false
-  def day_of_week_in_month(%{day: day}, _count, _locale_id, _options) do
-    div(day - 1, 7) + 1
+  def day_of_week_in_month(%{day: day}, _count, locale_id, options) do
+    (div(day - 1, 7) + 1) |> apply_ns(locale_id, options, "F")
   end
 
   def day_of_week_in_month(_date, _count, _locale_id, _options), do: ""
@@ -604,12 +625,12 @@ defmodule Localize.DateTime.Formatter do
   # ── Day of Week number (e) ─────────────────────────────────
 
   @doc false
-  def day_of_week(date, 1, _locale_id, _options) when is_date(date) do
-    iso_day(date)
+  def day_of_week(date, 1, locale_id, options) when is_date(date) do
+    iso_day(date) |> apply_ns(locale_id, options, "e")
   end
 
-  def day_of_week(date, 2, _locale_id, _options) when is_date(date) do
-    pad(iso_day(date), 2)
+  def day_of_week(date, 2, locale_id, options) when is_date(date) do
+    iso_day(date) |> pad(2) |> apply_ns(locale_id, options, "e")
   end
 
   def day_of_week(date, count, locale_id, options) when is_date(date) and count >= 3 do
@@ -621,12 +642,12 @@ defmodule Localize.DateTime.Formatter do
   # ── Standalone Day of Week (c) ─────────────────────────────
 
   @doc false
-  def standalone_day_of_week(date, 1, _locale_id, _options) when is_date(date) do
-    iso_day(date)
+  def standalone_day_of_week(date, 1, locale_id, options) when is_date(date) do
+    iso_day(date) |> apply_ns(locale_id, options, "c")
   end
 
-  def standalone_day_of_week(date, 2, _locale_id, _options) when is_date(date) do
-    pad(iso_day(date), 2)
+  def standalone_day_of_week(date, 2, locale_id, options) when is_date(date) do
+    iso_day(date) |> pad(2) |> apply_ns(locale_id, options, "c")
   end
 
   def standalone_day_of_week(date, count, locale_id, _options)
@@ -758,15 +779,16 @@ defmodule Localize.DateTime.Formatter do
   # ── Hour 1-12 (h) ─────────────────────────────────────────
 
   @doc false
-  def h12(%{hour: hour}, 1, _locale_id, _options) do
-    h = rem(hour, 12)
-    if h == 0, do: 12, else: h
-  end
-
-  def h12(%{hour: hour}, count, _locale_id, _options) do
+  def h12(%{hour: hour}, 1, locale_id, options) do
     h = rem(hour, 12)
     h = if h == 0, do: 12, else: h
-    pad(h, count)
+    apply_ns(h, locale_id, options, "h")
+  end
+
+  def h12(%{hour: hour}, count, locale_id, options) do
+    h = rem(hour, 12)
+    h = if h == 0, do: 12, else: h
+    h |> pad(count) |> apply_ns(locale_id, options, "h")
   end
 
   def h12(_time, _count, _locale_id, _options), do: ""
@@ -774,10 +796,11 @@ defmodule Localize.DateTime.Formatter do
   # ── Hour 0-11 (K) ─────────────────────────────────────────
 
   @doc false
-  def h11(%{hour: hour}, 1, _locale_id, _options), do: rem(hour, 12)
+  def h11(%{hour: hour}, 1, locale_id, options),
+    do: rem(hour, 12) |> apply_ns(locale_id, options, "K")
 
-  def h11(%{hour: hour}, count, _locale_id, _options) do
-    rem(hour, 12) |> pad(count)
+  def h11(%{hour: hour}, count, locale_id, options) do
+    rem(hour, 12) |> pad(count) |> apply_ns(locale_id, options, "K")
   end
 
   def h11(_time, _count, _locale_id, _options), do: ""
@@ -785,22 +808,24 @@ defmodule Localize.DateTime.Formatter do
   # ── Hour 0-23 (H) ─────────────────────────────────────────
 
   @doc false
-  def h23(%{hour: hour}, 1, _locale_id, _options), do: hour
+  def h23(%{hour: hour}, 1, locale_id, options), do: apply_ns(hour, locale_id, options, "H")
 
-  def h23(%{hour: hour}, count, _locale_id, _options), do: pad(hour, count)
+  def h23(%{hour: hour}, count, locale_id, options),
+    do: hour |> pad(count) |> apply_ns(locale_id, options, "H")
 
   def h23(_time, _count, _locale_id, _options), do: ""
 
   # ── Hour 1-24 (k) ─────────────────────────────────────────
 
   @doc false
-  def h24(%{hour: hour}, 1, _locale_id, _options) do
-    if hour == 0, do: 24, else: hour
+  def h24(%{hour: hour}, 1, locale_id, options) do
+    h = if hour == 0, do: 24, else: hour
+    apply_ns(h, locale_id, options, "k")
   end
 
-  def h24(%{hour: hour}, count, _locale_id, _options) do
+  def h24(%{hour: hour}, count, locale_id, options) do
     h = if hour == 0, do: 24, else: hour
-    pad(h, count)
+    h |> pad(count) |> apply_ns(locale_id, options, "k")
   end
 
   def h24(_time, _count, _locale_id, _options), do: ""
@@ -808,29 +833,33 @@ defmodule Localize.DateTime.Formatter do
   # ── Minute (m) ─────────────────────────────────────────────
 
   @doc false
-  def minute(%{minute: minute}, 1, _locale_id, _options), do: minute
+  def minute(%{minute: minute}, 1, locale_id, options),
+    do: apply_ns(minute, locale_id, options, "m")
 
-  def minute(%{minute: minute}, count, _locale_id, _options), do: pad(minute, count)
+  def minute(%{minute: minute}, count, locale_id, options),
+    do: minute |> pad(count) |> apply_ns(locale_id, options, "m")
 
   def minute(_time, _count, _locale_id, _options), do: ""
 
   # ── Second (s) ─────────────────────────────────────────────
 
   @doc false
-  def second(%{second: second}, 1, _locale_id, _options), do: second
+  def second(%{second: second}, 1, locale_id, options),
+    do: apply_ns(second, locale_id, options, "s")
 
-  def second(%{second: second}, count, _locale_id, _options), do: pad(second, count)
+  def second(%{second: second}, count, locale_id, options),
+    do: second |> pad(count) |> apply_ns(locale_id, options, "s")
 
   def second(_time, _count, _locale_id, _options), do: ""
 
   # ── Fractional Second (S) ──────────────────────────────────
 
   @doc false
-  def fractional_second(%{microsecond: {microsecond, precision}}, count, _locale_id, _options) do
+  def fractional_second(%{microsecond: {microsecond, precision}}, count, locale_id, options) do
     # Display `count` digits of the fractional second
     digits = min(count, max(precision, 1))
     fraction = div(microsecond, trunc(:math.pow(10, 6 - digits)))
-    pad(fraction, digits)
+    fraction |> pad(digits) |> apply_ns(locale_id, options, "S")
   end
 
   def fractional_second(_time, _count, _locale_id, _options), do: ""
@@ -843,7 +872,7 @@ defmodule Localize.DateTime.Formatter do
   # ── Millisecond (A) ────────────────────────────────────────
 
   @doc false
-  def millisecond(%{hour: h, minute: m, second: s} = time, count, _locale_id, _options) do
+  def millisecond(%{hour: h, minute: m, second: s} = time, count, locale_id, options) do
     ms = (h * 3600 + m * 60 + s) * 1000
 
     ms =
@@ -852,7 +881,7 @@ defmodule Localize.DateTime.Formatter do
         _ -> ms
       end
 
-    pad(ms, count)
+    ms |> pad(count) |> apply_ns(locale_id, options, "A")
   end
 
   def millisecond(_time, _count, _locale_id, _options), do: ""
