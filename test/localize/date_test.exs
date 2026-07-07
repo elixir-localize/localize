@@ -335,4 +335,30 @@ defmodule Localize.DateTest do
                Localize.Date.to_string(~D[2017-07-10], locale: :en, format: :yMMMM)
     end
   end
+
+  describe "to_string/2 with a locale default numbering system" do
+    test "numeric date and time fields use the locale's default numbering system" do
+      assert {:ok, "१५ मार्च, २०२१"} =
+               Localize.Date.to_string(~D[2021-03-15], format: :long, locale: :mr)
+
+      assert {:ok, "३:००:०० AM"} =
+               Localize.Time.to_string(~T[03:00:00], format: :medium, locale: :mr)
+    end
+
+    test "a caller \"all\" override wins over the locale default" do
+      assert {:ok, "15 मार्च, 2021"} =
+               Localize.Date.to_string(~D[2021-03-15],
+                 format: :long,
+                 locale: :mr,
+                 number_system_overrides: %{"all" => :latn}
+               )
+    end
+
+    test "an \"all\" override reaches the time fields" do
+      assert {:ok, "०३:०९:०५"} =
+               Localize.DateTime.Formatter.format(~T[03:09:05], "HH:mm:ss", :en, %{
+                 number_system_overrides: %{"all" => :deva}
+               })
+    end
+  end
 end
