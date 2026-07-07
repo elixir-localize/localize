@@ -18,6 +18,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* Timezone formatting consults zone-level names before metazone names per TR35, so a UTC `DateTime` renders "UTC" / "Coordinated Universal Time" instead of "GMT" / "Greenwich Mean Time", and Europe/London in summer renders "British Summer Time" instead of "GMT+01:00". Thanks to @gmile for the PR. Closes #37.
+
+* Date and time formatting applies the locale's default numbering system to all numeric fields, so `locale: :mr` renders "१५ मार्च, २०२१" (likewise bn, fa, my and others) matching ICU. Pattern-level `numbers=` and caller `:number_system_overrides` keep precedence. Thanks to @gmile for the PR.
+
+* A `-u-nu-` locale extension overrides the default numbering system in date and time formatting per TR35: `"mr-u-nu-latn"` renders latn digits and `"en-u-nu-deva"` renders deva digits, including when the locale is set with `Localize.put_locale/1`.
+
 * Territory-specific collation tailorings apply from locale data: sorting with `locale: "fr-CA"` now uses French Canadian backwards accent comparison. Previously the lookup used only the bare language, silently dropping fr-CA's `[backwards 2]` override.
 
 * `Localize.Calendar.first_day_for_locale/1` honours the `-u-fw-` extension per TR35: `"en-u-fw-mon"` returns 1 (Monday) instead of the territory default.
