@@ -43,6 +43,7 @@ test_locales = [
   "ja-JP",
   "ko",
   "ky",
+  "mr",
   "nl-BE",
   "pt",
   "pt-AO",
