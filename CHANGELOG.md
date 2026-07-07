@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* `Localize.Unit.humanize/2` and `humanize!/2` convert a byte- or bit-based unit to the prefix that best fits its magnitude, so `1_500_000 byte` formats as "1.5MB" with `format: :narrow`. The `:system` option selects `:si` (powers of 1000, default) or `:iec` (powers of 1024) prefixes.
+
+* `Localize.Number.to_string/2` accepts `format: :short` and `format: :long` as ex_cldr-compatible aliases, resolving to `:decimal_short` / `:decimal_long`, or to `:currency_short` / `:currency_long` when a `:currency` is specified.
+
 * `mix localize.update_cldr` orchestrates the CLDR data-update pipeline (copy sources → generate supplemental → compile gate → generate locales → test gate), with `--check` preflight, `--locales` subsetting, and each step isolated in a fresh VM. The full update process is documented in the consolidated CLDR Update Guide (`CLDR_UPDATE_INTEGRATION.md`).
 
 * A Claude Code skill covering all major subsystems (numbers, dates/times, units, lists, collation, MessageFormat 2, locale validation and configuration), installable via `/plugin marketplace add elixir-localize/localize`. All 300+ skill examples are execution-verified against the library.

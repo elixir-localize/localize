@@ -86,4 +86,121 @@ defmodule Localize.UnitTest do
       assert unit.name == "meter"
     end
   end
+
+  describe "humanize/2" do
+    test "scales bytes with SI prefixes" do
+      assert {:ok, unit} = Unit.new(1_500, "byte")
+      assert {:ok, humanized} = Unit.humanize(unit)
+      assert humanized.name == "kilobyte"
+      assert humanized.value == 1.5
+
+      assert {:ok, unit} = Unit.new(2_750_000_000, "byte")
+      assert {:ok, humanized} = Unit.humanize(unit)
+      assert humanized.name == "gigabyte"
+      assert humanized.value == 2.75
+
+      assert {:ok, unit} = Unit.new(3_100_000_000_000, "byte")
+      assert {:ok, humanized} = Unit.humanize(unit)
+      assert humanized.name == "terabyte"
+      assert humanized.value == 3.1
+    end
+
+    test "scales with IEC binary prefixes" do
+      assert {:ok, unit} = Unit.new(1_048_576, "byte")
+      assert {:ok, humanized} = Unit.humanize(unit, system: :iec)
+      assert humanized.name == "mebibyte"
+      assert humanized.value == 1.0
+
+      assert {:ok, unit} = Unit.new(2048, "byte")
+      assert {:ok, humanized} = Unit.humanize(unit, system: :iec)
+      assert humanized.name == "kibibyte"
+      assert humanized.value == 2.0
+    end
+
+    test "scales bit-based units" do
+      assert {:ok, unit} = Unit.new(2_000_000, "bit")
+      assert {:ok, humanized} = Unit.humanize(unit)
+      assert humanized.name == "megabit"
+      assert humanized.value == 2.0
+    end
+
+    test "leaves values below one kilobyte unchanged" do
+      assert {:ok, unit} = Unit.new(512, "byte")
+      assert {:ok, humanized} = Unit.humanize(unit)
+      assert humanized.name == "byte"
+      assert humanized.value == 512
+
+      assert {:ok, unit} = Unit.new(0, "byte")
+      assert {:ok, humanized} = Unit.humanize(unit)
+      assert humanized.name == "byte"
+    end
+
+    test "rescales an already-prefixed unit" do
+      assert {:ok, unit} = Unit.new(2_500, "kilobyte")
+      assert {:ok, humanized} = Unit.humanize(unit)
+      assert humanized.name == "megabyte"
+      assert humanized.value == 2.5
+    end
+
+    test "scales negative values by magnitude" do
+      assert {:ok, unit} = Unit.new(-3_500_000_000, "byte")
+      assert {:ok, humanized} = Unit.humanize(unit)
+      assert humanized.name == "gigabyte"
+      assert humanized.value == -3.5
+    end
+
+    test "preserves Decimal values" do
+      assert {:ok, unit} = Unit.new(Decimal.new(1_500_000), "byte")
+      assert {:ok, humanized} = Unit.humanize(unit)
+      assert humanized.name == "megabyte"
+      assert Decimal.equal?(humanized.value, Decimal.new("1.5"))
+    end
+
+    test "clamps at the largest prefix" do
+      assert {:ok, unit} = Unit.new(5_000_000_000_000_000_000_000_000_000, "byte")
+      assert {:ok, humanized} = Unit.humanize(unit)
+      assert humanized.name == "yottabyte"
+      assert humanized.value == 5000.0
+    end
+
+    test "returns an error for non-digital units" do
+      assert {:ok, unit} = Unit.new(5, "meter")
+      assert {:error, %Localize.InvalidValueError{}} = Unit.humanize(unit)
+    end
+
+    test "returns an error for compound digital units" do
+      assert {:ok, unit} = Unit.new(100, "byte-per-second")
+      assert {:error, %Localize.InvalidValueError{}} = Unit.humanize(unit)
+    end
+
+    test "returns an error for an invalid prefix system" do
+      assert {:ok, unit} = Unit.new(1_500, "byte")
+      assert {:error, %Localize.InvalidValueError{}} = Unit.humanize(unit, system: :decimal)
+    end
+
+    test "returns an error for a unit without a value" do
+      assert {:ok, unit} = Unit.new("byte")
+      assert {:error, %Localize.UnitNoValueError{}} = Unit.humanize(unit)
+    end
+
+    test "formats as a compact file size with narrow width" do
+      assert {:ok, unit} = Unit.new(1_500_000, "byte")
+      assert {:ok, humanized} = Unit.humanize(unit)
+      assert Unit.to_string(humanized, format: :narrow, locale: :en) == {:ok, "1.5MB"}
+    end
+  end
+
+  describe "humanize!/2" do
+    test "returns the scaled unit directly on success" do
+      unit = Unit.new!(1_500_000, "byte") |> Unit.humanize!()
+      assert unit.name == "megabyte"
+      assert unit.value == 1.5
+    end
+
+    test "raises on a non-digital unit" do
+      assert_raise Localize.InvalidValueError, fn ->
+        Unit.new!(5, "meter") |> Unit.humanize!()
+      end
+    end
+  end
 end

@@ -591,6 +591,175 @@ defmodule Localize.Unit do
     end
   end
 
+  # Prefix ladders for humanize/2, largest factor first so the first
+  # match is the prefix that scales the value into [1, 1000) or [1, 1024).
+  @si_humanize_prefixes ~w(kilo mega giga tera peta exa zetta yotta)
+  @iec_humanize_prefixes ~w(kibi mebi gibi tebi pebi exbi zebi yobi)
+
+  @si_humanize_ladder @si_humanize_prefixes
+                      |> Enum.with_index(1)
+                      |> Enum.map(fn {prefix, index} -> {prefix, Integer.pow(1000, index)} end)
+                      |> Enum.reverse()
+
+  @iec_humanize_ladder @iec_humanize_prefixes
+                       |> Enum.with_index(1)
+                       |> Enum.map(fn {prefix, index} -> {prefix, Integer.pow(1024, index)} end)
+                       |> Enum.reverse()
+
+  @doc """
+  Converts a digital unit (bytes or bits) to the prefixed unit that
+  best fits its magnitude, suitable for human-readable file sizes.
+
+  Selects the largest SI prefix (kilobyte, megabyte, gigabyte, ...)
+  or IEC binary prefix (kibibyte, mebibyte, gibibyte, ...) such that
+  the converted value is at least `1`. Values smaller than one
+  kilobyte (or kibibyte) are returned unchanged.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value, based on
+    `"byte"` or `"bit"` (a bare or already-prefixed unit such as
+    `"byte"`, `"kilobyte"` or `"megabit"`).
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:system` is the prefix system to scale with: `:si` (powers of
+    1000, the default) or `:iec` (powers of 1024). Note that CLDR
+    provides compact display patterns (like `"MB"`) only for
+    SI-prefixed digital units; IEC units format with their full
+    names in all format widths.
+
+  ### Returns
+
+  * `{:ok, unit}` where `unit` is a new `%Localize.Unit{}` with the
+    scaled value and prefixed unit name, or
+
+  * `{:error, reason}` if the unit has no value, is not a digital
+    (bit- or byte-based) unit, or the prefix system is invalid.
+
+  ### Examples
+
+      iex> {:ok, unit} = Localize.Unit.new(1_500_000, "byte")
+      iex> {:ok, humanized} = Localize.Unit.humanize(unit)
+      iex> {humanized.name, humanized.value}
+      {"megabyte", 1.5}
+      iex> Localize.Unit.to_string(humanized, format: :narrow, locale: :en)
+      {:ok, "1.5MB"}
+
+      iex> {:ok, unit} = Localize.Unit.new(1_048_576, "byte")
+      iex> {:ok, humanized} = Localize.Unit.humanize(unit, system: :iec)
+      iex> {humanized.name, humanized.value}
+      {"mebibyte", 1.0}
+
+  """
+  @spec humanize(t(), Keyword.t()) :: {:ok, t()} | {:error, Exception.t()}
+  def humanize(unit, options \\ [])
+
+  def humanize(%__MODULE__{value: nil}, _options) do
+    {:error, Localize.UnitNoValueError.exception(operation: :humanize)}
+  end
+
+  def humanize(%__MODULE__{} = unit, options) do
+    system = Keyword.get(options, :system, :si)
+
+    with :ok <- validate_prefix_system(system),
+         {:ok, base_name} <- digital_base_unit(unit),
+         {:ok, base_unit} <- convert_unless_same(unit, base_name) do
+      target_name = humanized_unit_name(base_unit.value, system, base_name)
+      convert_unless_same(base_unit, target_name)
+    end
+  end
+
+  @doc """
+  Converts a digital unit (bytes or bits) to the prefixed unit that
+  best fits its magnitude, raising on error.
+
+  See `humanize/2` for details.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value, based on
+    `"byte"` or `"bit"`.
+
+  * `options` is a keyword list of options. See `humanize/2`.
+
+  ### Returns
+
+  * A new `%Localize.Unit{}` with the scaled value and prefixed
+    unit name, or
+
+  * raises an exception if the unit has no value, is not a digital
+    unit, or the prefix system is invalid.
+
+  ### Examples
+
+      iex> Localize.Unit.new!(2_750_000_000, "byte")
+      ...> |> Localize.Unit.humanize!()
+      ...> |> Localize.Unit.to_string!(format: :narrow, fractional_digits: 1, locale: :en)
+      "2.8GB"
+
+  """
+  @spec humanize!(t(), Keyword.t()) :: t() | no_return()
+  def humanize!(%__MODULE__{} = unit, options \\ []) do
+    case humanize(unit, options) do
+      {:ok, result} -> result
+      {:error, exception} -> raise exception
+    end
+  end
+
+  defp validate_prefix_system(system) when system in [:si, :iec], do: :ok
+
+  defp validate_prefix_system(system) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: system,
+       expected: ":si or :iec",
+       context: "prefix system"
+     )}
+  end
+
+  defp digital_base_unit(%__MODULE__{parsed: {:unit, parts}} = unit) do
+    with [single_unit: single_unit] <- Keyword.get(parts, :numerator),
+         [] <- Keyword.get(parts, :denominator),
+         base when base in ["bit", "byte"] <- Keyword.get(single_unit, :base),
+         power when power in [nil, 1] <- Keyword.get(single_unit, :power) do
+      {:ok, base}
+    else
+      _other -> not_digital_error(unit)
+    end
+  end
+
+  defp digital_base_unit(%__MODULE__{} = unit), do: not_digital_error(unit)
+
+  defp not_digital_error(unit) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: unit.name,
+       expected: "a bit- or byte-based unit",
+       context: "humanize"
+     )}
+  end
+
+  defp convert_unless_same(%__MODULE__{name: name} = unit, name), do: {:ok, unit}
+  defp convert_unless_same(unit, target_name), do: convert(unit, target_name)
+
+  defp humanized_unit_name(value, system, base_name) do
+    ladder = if system == :si, do: @si_humanize_ladder, else: @iec_humanize_ladder
+
+    case Enum.find(ladder, fn {_prefix, factor} -> value_gte?(value, factor) end) do
+      {prefix, _factor} -> prefix <> base_name
+      nil -> base_name
+    end
+  end
+
+  defp value_gte?(%Decimal{} = value, factor) do
+    Decimal.compare(Decimal.abs(value), Decimal.new(factor)) != :lt
+  end
+
+  defp value_gte?(value, factor) when is_number(value), do: abs(value) >= factor
+
   @doc false
   @spec from_ast(number() | Decimal.t(), String.t(), tuple()) :: t()
   def from_ast(value, name, parsed) do

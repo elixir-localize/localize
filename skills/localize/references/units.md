@@ -76,6 +76,20 @@ Localize.Unit.new!(1, "meter") |> Localize.Unit.convert("kilogram")
 
 `convert_measurement_system/2` targets `:metric`, `:us`, or `:uk` preferred units (1000 meters → mile for `:us`).
 
+## Humanizing digital units (file sizes)
+
+`humanize/2` and `humanize!/2` convert a byte- or bit-based unit to the prefix that best fits its magnitude — the idiomatic way to render file sizes. `system: :si` (powers of 1000, default) or `system: :iec` (powers of 1024); CLDR has compact narrow patterns (`"MB"`) only for SI prefixes, IEC units render with full names. Non-digital units return `InvalidValueError`.
+
+```elixir
+Localize.Unit.new!(1_500_000, "byte") |> Localize.Unit.humanize!() |> Localize.Unit.to_string(format: :narrow)
+#=> {:ok, "1.5MB"}
+Localize.Unit.new!(2_750_000_000, "byte") |> Localize.Unit.humanize!() |> Localize.Unit.to_string(format: :narrow, fractional_digits: 1)
+#=> {:ok, "2.8GB"}
+{:ok, iec} = Localize.Unit.new!(1_048_576, "byte") |> Localize.Unit.humanize(system: :iec)
+{iec.name, iec.value}
+#=> {"mebibyte", 1.0}
+```
+
 ## Usage-based preferences
 
 Pass `usage:` to `to_string/2` and the value renders in the unit people actually use for that context in the locale's territory — CLDR picks by territory AND magnitude (US road distances are feet when short, miles when long).
