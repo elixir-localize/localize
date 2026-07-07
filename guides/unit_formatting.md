@@ -229,6 +229,47 @@ iex> {:ok, m} = Localize.Unit.new(1, "meter")
 iex> {:error, _} = Localize.Unit.convert(m, "kilogram")
 ```
 
+## Humanizing digital units
+
+`Localize.Unit.humanize/2` converts a byte- or bit-based unit to the prefixed unit that best fits its magnitude — the conventional way to display file sizes. It selects the largest prefix such that the converted value is at least 1:
+
+```elixir
+iex> {:ok, unit} = Localize.Unit.new(1_500_000, "byte")
+iex> {:ok, humanized} = Localize.Unit.humanize(unit)
+iex> {humanized.name, humanized.value}
+{"megabyte", 1.5}
+```
+
+Combined with the `:narrow` format width this produces compact file sizes:
+
+```elixir
+iex> Localize.Unit.new!(1_500_000, "byte")
+...> |> Localize.Unit.humanize!()
+...> |> Localize.Unit.to_string!(format: :narrow)
+"1.5MB"
+
+iex> Localize.Unit.new!(2_750_000_000, "byte")
+...> |> Localize.Unit.humanize!()
+...> |> Localize.Unit.to_string!(format: :narrow, fractional_digits: 1)
+"2.8GB"
+```
+
+The `:system` option selects the prefix ladder: `:si` (powers of 1000 — kilobyte, megabyte, gigabyte, the default) or `:iec` (powers of 1024 — kibibyte, mebibyte, gibibyte):
+
+```elixir
+iex> {:ok, unit} = Localize.Unit.new(1_048_576, "byte")
+iex> {:ok, humanized} = Localize.Unit.humanize(unit, system: :iec)
+iex> {humanized.name, humanized.value}
+{"mebibyte", 1.0}
+```
+
+Note that CLDR provides display patterns (like `"MB"` in the narrow width) only for SI-prefixed digital units; IEC units format with their full names in all widths. Values below one kilobyte (or kibibyte) are returned unchanged, and already-prefixed units are rescaled from their base value. Non-digital units return an error:
+
+```elixir
+iex> {:ok, meters} = Localize.Unit.new(5, "meter")
+iex> {:error, _} = Localize.Unit.humanize(meters)
+```
+
 ## Measurement system preferences
 
 `Localize.Unit.convert_measurement_system/2` converts a unit to the preferred unit for a measurement system. CLDR defines preferences for three systems:

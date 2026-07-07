@@ -264,6 +264,16 @@ iex> Localize.Number.to_string(100, currency: :USD)
 {:ok, "$100.00"}
 ```
 
+Compact formats carry over unchanged: `format: :short` and `format: :long` are accepted as in ex_cldr, resolving to Localize's canonical `:decimal_short` / `:decimal_long` formats (or `:currency_short` / `:currency_long` when a `:currency` is specified):
+
+```elixir
+iex> Localize.Number.to_string(1234.5, format: :short, rounding_mode: :floor, fractional_digits: 1)
+{:ok, "1.2K"}
+
+iex> Localize.Number.to_string(1234.5, format: :short, currency: :USD)
+{:ok, "$1.2K"}
+```
+
 ### Dates
 
 ```elixir
@@ -326,6 +336,20 @@ iex> Localize.Unit.to_string(unit, format: :short)
 iex> {:ok, converted} = Localize.Unit.convert(unit, "kilometer")
 iex> converted.value
 0.1
+```
+
+In ex_cldr_units, passing `format: :short` to `Cldr.Unit.to_string/3` compact-formatted the *number* while `style: :narrow` selected the narrow unit pattern, so `1_500_000` bytes rendered as `"2MB"` — the value was never converted to megabytes; English compact suffixes just coincide with SI prefixes (the trick breaks in locales like Japanese where compact notation scales by 10⁴). Localize replaces this with `Localize.Unit.humanize/2`, which genuinely converts to the best-fitting prefixed unit in every locale:
+
+```elixir
+# ex_cldr
+Cldr.Unit.new!(1_500_000, :byte) |> Cldr.Unit.to_string!(format: :short, style: :narrow)
+#=> "2MB"
+
+# Localize
+iex> Localize.Unit.new!(1_500_000, "byte")
+...> |> Localize.Unit.humanize!()
+...> |> Localize.Unit.to_string!(format: :narrow)
+"1.5MB"
 ```
 
 ### Lists

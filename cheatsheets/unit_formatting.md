@@ -123,6 +123,23 @@ result.name  #=> "mile"
 | `:us` | United States | mile, pound, fahrenheit |
 | `:uk` | United Kingdom | mile, stone, celsius |
 
+### Humanizing digital units (file sizes)
+
+```elixir
+Localize.Unit.new!(1_500_000, "byte")
+|> Localize.Unit.humanize!()
+|> Localize.Unit.to_string!(format: :narrow)
+#=> "1.5MB"
+
+{:ok, unit} = Localize.Unit.new(1_048_576, "byte")
+{:ok, humanized} = Localize.Unit.humanize(unit, system: :iec)
+{humanized.name, humanized.value}  #=> {"mebibyte", 1.0}
+```
+
+| Option | Values | Notes |
+|---|---|---|
+| `:system` | `:si` (default), `:iec` | `:si` scales by 1000 (kilobyte, megabyte, ...); `:iec` by 1024 (kibibyte, mebibyte, ...) |
+
 ## Arithmetic
 
 ### Addition and subtraction
