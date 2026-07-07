@@ -1119,16 +1119,20 @@ defmodule Localize.Unit do
 
   def to_string(%__MODULE__{} = unit, options) do
     with {:ok, unit, options} <- maybe_humanize(unit, options) do
-      if Keyword.has_key?(options, :usage) or not is_nil(unit.usage) do
-        preference_options = Keyword.take(options, [:usage, :locale])
-        list_options = Keyword.drop(options, [:usage])
+      format_single_unit(unit, options)
+    end
+  end
 
-        with {:ok, parts} <- localize(unit, preference_options) do
-          format_unit_list(parts, list_options)
-        end
-      else
-        Localize.Unit.Formatter.to_string(unit, merge_struct_format_options(unit, options))
+  defp format_single_unit(unit, options) do
+    if Keyword.has_key?(options, :usage) or not is_nil(unit.usage) do
+      preference_options = Keyword.take(options, [:usage, :locale])
+      list_options = Keyword.drop(options, [:usage])
+
+      with {:ok, parts} <- localize(unit, preference_options) do
+        format_unit_list(parts, list_options)
       end
+    else
+      Localize.Unit.Formatter.to_string(unit, merge_struct_format_options(unit, options))
     end
   end
 
