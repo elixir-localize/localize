@@ -124,6 +124,26 @@ defmodule Localize.UnitTest do
       assert humanized.value == 2.0
     end
 
+    test "scales hertz- and watt-based units" do
+      assert {:ok, unit} = Unit.new(2_500_000_000, "hertz")
+      assert {:ok, humanized} = Unit.humanize(unit)
+      assert humanized.name == "gigahertz"
+      assert humanized.value == 2.5
+
+      assert {:ok, unit} = Unit.new(1_500, "watt")
+      assert {:ok, humanized} = Unit.humanize(unit)
+      assert humanized.name == "kilowatt"
+      assert humanized.value == 1.5
+    end
+
+    test "rejects IEC prefixes for hertz- and watt-based units" do
+      assert {:ok, unit} = Unit.new(1_500, "watt")
+      assert {:error, %Localize.InvalidValueError{}} = Unit.humanize(unit, system: :iec)
+
+      assert {:ok, unit} = Unit.new(1_500, "hertz")
+      assert {:error, %Localize.InvalidValueError{}} = Unit.humanize(unit, system: :iec)
+    end
+
     test "leaves values below one kilobyte unchanged" do
       assert {:ok, unit} = Unit.new(512, "byte")
       assert {:ok, humanized} = Unit.humanize(unit)
@@ -187,6 +207,61 @@ defmodule Localize.UnitTest do
       assert {:ok, unit} = Unit.new(1_500_000, "byte")
       assert {:ok, humanized} = Unit.humanize(unit)
       assert Unit.to_string(humanized, format: :narrow, locale: :en) == {:ok, "1.5MB"}
+    end
+  end
+
+  describe "to_string/2 with humanize: true" do
+    test "scales digital units through the prefix ladder" do
+      unit = Unit.new!(1_500_000, "byte")
+
+      assert Unit.to_string(unit, humanize: true, format: :narrow, locale: :en) ==
+               {:ok, "1.5MB"}
+    end
+
+    test "honours the :system option for digital units" do
+      unit = Unit.new!(1_048_576, "byte")
+
+      assert Unit.to_string(unit, humanize: true, system: :iec, locale: :en) ==
+               {:ok, "1 mebibyte"}
+    end
+
+    test "scales hertz and watts through the prefix ladder" do
+      assert Unit.new!(2_500_000, "hertz")
+             |> Unit.to_string(humanize: true, format: :narrow, locale: :en) ==
+               {:ok, "2.5MHz"}
+
+      assert Unit.new!(3_200_000_000, "watt") |> Unit.to_string(humanize: true, locale: :en) ==
+               {:ok, "3.2 gigawatts"}
+    end
+
+    test "renders physical units through usage-based preferences" do
+      assert Unit.new!(1_500, "meter") |> Unit.to_string(humanize: true, locale: :de) ==
+               {:ok, "1,5 Kilometer"}
+
+      assert Unit.new!(1_500_000, "gram") |> Unit.to_string(humanize: true, locale: :en) ==
+               {:ok, "1.653 tons"}
+    end
+
+    test "an explicit :usage option wins for physical units" do
+      assert Unit.new!(1_500, "meter")
+             |> Unit.to_string(humanize: true, usage: :road, locale: "en-US") ==
+               {:ok, "0.932 miles"}
+    end
+
+    test "the struct usage field is used when set" do
+      assert Unit.new!(1.83, "meter", usage: "person-height")
+             |> Unit.to_string(humanize: true, locale: "en-US") ==
+               {:ok, "6 feet and 0.047 inches"}
+    end
+
+    test "a non-true value is ignored" do
+      assert Unit.new!(1_500, "meter") |> Unit.to_string(humanize: "yes", locale: :de) ==
+               {:ok, "1.500 Meter"}
+    end
+
+    test "an invalid :system returns an error tuple" do
+      assert {:error, %Localize.InvalidValueError{}} =
+               Unit.new!(1_500, "byte") |> Unit.to_string(humanize: true, system: :bogus)
     end
   end
 

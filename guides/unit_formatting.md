@@ -229,15 +229,20 @@ iex> {:ok, m} = Localize.Unit.new(1, "meter")
 iex> {:error, _} = Localize.Unit.convert(m, "kilogram")
 ```
 
-## Humanizing digital units
+## Humanizing prefix-scaled units
 
-`Localize.Unit.humanize/2` converts a byte- or bit-based unit to the prefixed unit that best fits its magnitude — the conventional way to display file sizes. It selects the largest prefix such that the converted value is at least 1:
+`Localize.Unit.humanize/2` converts a bit-, byte-, hertz- or watt-based unit to the prefixed unit that best fits its magnitude — the conventional way to display file sizes, frequencies and power figures. It selects the largest prefix such that the converted value is at least 1:
 
 ```elixir
 iex> {:ok, unit} = Localize.Unit.new(1_500_000, "byte")
 iex> {:ok, humanized} = Localize.Unit.humanize(unit)
 iex> {humanized.name, humanized.value}
 {"megabyte", 1.5}
+
+iex> {:ok, unit} = Localize.Unit.new(2_500_000_000, "hertz")
+iex> {:ok, humanized} = Localize.Unit.humanize(unit)
+iex> {humanized.name, humanized.value}
+{"gigahertz", 2.5}
 ```
 
 Combined with the `:narrow` format width this produces compact file sizes:
@@ -254,7 +259,7 @@ iex> Localize.Unit.new!(2_750_000_000, "byte")
 "2.8GB"
 ```
 
-The `:system` option selects the prefix ladder: `:si` (powers of 1000 — kilobyte, megabyte, gigabyte, the default) or `:iec` (powers of 1024 — kibibyte, mebibyte, gibibyte):
+The `:system` option selects the prefix ladder: `:si` (powers of 1000 — kilobyte, megabyte, gigabyte, the default) or `:iec` (powers of 1024 — kibibyte, mebibyte, gibibyte). IEC prefixes apply only to bit- and byte-based units:
 
 ```elixir
 iex> {:ok, unit} = Localize.Unit.new(1_048_576, "byte")
@@ -263,12 +268,36 @@ iex> {humanized.name, humanized.value}
 {"mebibyte", 1.0}
 ```
 
-Note that CLDR provides display patterns (like `"MB"` in the narrow width) only for SI-prefixed digital units; IEC units format with their full names in all widths. Values below one kilobyte (or kibibyte) are returned unchanged, and already-prefixed units are rescaled from their base value. Non-digital units return an error:
+Note that CLDR provides display patterns (like `"MB"` in the narrow width) only for SI-prefixed units; IEC units format with their full names in all widths. Values below one kilo-unit (or kibi-unit) are returned unchanged, and already-prefixed units are rescaled from their base value. Units with any other base return an error — physical quantities are covered by usage-based preferences instead (see below):
 
 ```elixir
 iex> {:ok, meters} = Localize.Unit.new(5, "meter")
 iex> {:error, _} = Localize.Unit.humanize(meters)
 ```
+
+### Humanizing any unit: `humanize: true`
+
+The simplest way to render *any* unit in the unit people expect for its magnitude is the `:humanize` option on `to_string/2`:
+
+```elixir
+iex> Localize.Unit.new!(1_500_000, "byte") |> Localize.Unit.to_string(humanize: true, format: :narrow)
+{:ok, "1.5MB"}
+
+iex> Localize.Unit.new!(1_500, "meter") |> Localize.Unit.to_string(humanize: true, locale: :de)
+{:ok, "1,5 Kilometer"}
+
+iex> Localize.Unit.new!(1_500_000, "gram") |> Localize.Unit.to_string(humanize: true, locale: :en)
+{:ok, "1.653 tons"}
+```
+
+Underneath, the option dispatches by unit kind. Bit-, byte-, hertz- and watt-based units scale through the `humanize/2` prefix ladder above — the locale-invariant quantities that CLDR's unit-preference data does not cover ("kB", "MHz" and "GW" mean the same thing in every locale). Every other unit is rendered through the usage-based preference pipeline (see [Usage preferences](#usage-preferences) below) with the struct's usage or `:default`. CLDR unit preferences pick the display unit by territory *and* magnitude, which does more than prefix scaling could: grams scale to kilograms and then to tonnes (not to the technically-correct-but-unidiomatic megagram), and a US-locale reader sees miles, tons, feet and inches rather than SI units at all:
+
+```elixir
+iex> Localize.Unit.new!(1_500, "meter") |> Localize.Unit.to_string(humanize: true, usage: :road, locale: "en-US")
+{:ok, "0.932 miles"}
+```
+
+An explicit `:usage` option (as above) takes precedence for preference-scaled units, and is the ICU-compatible precise control — ICU triggers the same behaviour with the `usage()` setting on `NumberFormatter`. Use `humanize/2` directly when you want the scaled `%Localize.Unit{}` itself rather than a formatted string.
 
 ## Measurement system preferences
 

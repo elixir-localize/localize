@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+* `Localize.Unit.to_string/2` accepts `humanize: true` to render any unit in the unit people expect for its magnitude: bit-, byte-, hertz- and watt-based units scale through the `humanize/2` prefix ladder (honouring `system: :si | :iec`) and all other units render through usage-based preferences. An explicit `:usage` option keeps precedence for preference-scaled units.
+
+* `Localize.Unit.humanize/2` and `humanize!/2` also scale hertz- and watt-based units through the SI prefix ladder ("2.5 gigahertz", "3.2 gigawatts") — like bits and bytes, these are locale-invariant quantities that CLDR's unit preferences do not cover. IEC prefixes remain restricted to bit- and byte-based units.
+
 ## [0.47.0] — July 7th, 2026
 
 ### Added
