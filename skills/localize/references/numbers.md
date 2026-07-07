@@ -40,6 +40,8 @@ Localize.Number.to_string(1_234_000, format: :currency_short, currency: :USD)
 #=> {:ok, "$1.2M"}
 ```
 
+`:short` and `:long` are accepted as aliases (ex_cldr compatibility): they resolve to `:decimal_short` / `:decimal_long`, or to `:currency_short` / `:currency_long` when `currency:` is given.
+
 There is no `:permille` style atom — use a pattern with the `‰` symbol (multiplies by 1000):
 
 ```elixir

@@ -181,6 +181,8 @@ Atom values map to named patterns in the locale's number format data:
 | `:currency_short` | (magnitude table) | Compact currency: "$1M". |
 | `:currency_long` | (pattern) | Pluralized: "123 US dollars". |
 
+The aliases `:short` and `:long` resolve to `:decimal_short` and `:decimal_long`, or to `:currency_short` and `:currency_long` when a `:currency` is specified.
+
 ### Custom format patterns
 
 Pass a pattern string directly:

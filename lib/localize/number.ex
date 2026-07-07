@@ -38,7 +38,10 @@ defmodule Localize.Number do
   * `:format` is a format style atom or a format pattern string.
     The default is `:standard`. Common styles include `:standard`,
     `:currency`, `:accounting`, `:percent`, `:scientific`,
-    `:engineering`, `:decimal_short`, `:decimal_long`. `:scientific`
+    `:engineering`, `:decimal_short`, `:decimal_long`. The aliases
+    `:short` and `:long` resolve to `:decimal_short` and
+    `:decimal_long`, or to `:currency_short` and `:currency_long`
+    when a `:currency` is specified. `:scientific`
     resolves to the locale's CLDR `scientificFormats/standard` pattern
     (e.g. `"#E0"`). `:engineering` resolves to `"##0.######E0"`,
     forcing the exponent to a multiple of 3 — CLDR ships no
