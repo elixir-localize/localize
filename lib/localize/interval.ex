@@ -165,7 +165,7 @@ defmodule Localize.Interval do
          {:ok, greatest_diff} <- greatest_difference(from, to),
          {:ok, interval_pattern} <- get_interval_pattern(formats, format_key, greatest_diff),
          {:ok, [left, right]} <- split_interval(interval_pattern) do
-      options_map = Map.new(options)
+      options_map = options |> Map.new() |> Map.put_new(:locale, locale)
 
       with {:ok, left_str} <-
              Localize.DateTime.Formatter.format(from, left, locale_id, options_map),
@@ -244,7 +244,7 @@ defmodule Localize.Interval do
          time_diff = normalize_time_diff(greatest_diff, format_key),
          {:ok, interval_pattern} <- get_interval_pattern(formats, format_key, time_diff),
          {:ok, [left, right]} <- split_interval(interval_pattern) do
-      options_map = Map.new(options)
+      options_map = options |> Map.new() |> Map.put_new(:locale, locale)
 
       with {:ok, left_str} <-
              Localize.DateTime.Formatter.format(from, left, locale_id, options_map),

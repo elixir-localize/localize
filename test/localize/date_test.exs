@@ -360,5 +360,27 @@ defmodule Localize.DateTest do
                  number_system_overrides: %{"all" => :deva}
                })
     end
+
+    test "a -u-nu- locale extension wins over the locale default" do
+      assert {:ok, "15 मार्च, 2021"} =
+               Localize.Date.to_string(~D[2021-03-15], format: :long, locale: "mr-u-nu-latn")
+
+      assert {:ok, "3:00:00 AM"} =
+               Localize.Time.to_string(~T[03:00:00], format: :medium, locale: "mr-u-nu-latn")
+    end
+
+    test "a -u-nu- locale extension applies a non-default numbering system" do
+      assert {:ok, "March १५, २०२१"} =
+               Localize.Date.to_string(~D[2021-03-15], format: :long, locale: "en-u-nu-deva")
+    end
+
+    test "a -u-nu- extension on the process locale is honoured" do
+      # The process dictionary is per test process, so the locale
+      # set here does not leak into other tests.
+      Localize.put_locale("mr-u-nu-latn")
+
+      assert {:ok, "15 मार्च, 2021"} =
+               Localize.Date.to_string(~D[2021-03-15], format: :long)
+    end
   end
 end

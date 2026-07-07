@@ -138,13 +138,20 @@ defmodule Localize.DateTime.Formatter do
 
   defp trim_leading_whitespace_in_next(rest_t, rest_r), do: {rest_t, rest_r}
 
+  # The locale's number system is resolved from the original locale
+  # (options `:locale`) rather than the resolved locale id so that a
+  # `-u-nu-` extension is honoured: `"mr-u-nu-latn"` formats with
+  # latn digits even though mr defaults to deva. Entry points put
+  # their resolved locale into the options for this purpose; the
+  # locale id is the fallback for direct `format/4` callers.
   defp with_default_number_system(options, locale_id) when is_map(options) do
     overrides = options[:number_system_overrides] || options["number_system_overrides"] || %{}
+    locale = formatting_locale(options[:locale] || options["locale"], locale_id)
 
     with %{} <- overrides,
          false <- Map.has_key?(overrides, "all"),
          {:ok, system} when system != :latn <-
-           Localize.Number.System.system_name_from(:default, locale_id) do
+           Localize.Number.System.number_system_from_locale(locale) do
       Map.put(options, :number_system_overrides, Map.put(overrides, "all", system))
     else
       _ -> options
@@ -152,6 +159,17 @@ defmodule Localize.DateTime.Formatter do
   end
 
   defp with_default_number_system(options, _locale_id), do: options
+
+  # An options `:locale` of any other shape (nil, an integer, a
+  # malformed term) falls back to the resolved locale id rather
+  # than raising downstream.
+  defp formatting_locale(%Localize.LanguageTag{} = language_tag, _locale_id), do: language_tag
+  defp formatting_locale(locale, _locale_id) when is_binary(locale), do: locale
+
+  defp formatting_locale(locale, _locale_id) when is_atom(locale) and not is_nil(locale),
+    do: locale
+
+  defp formatting_locale(_other, locale_id), do: locale_id
 
   defp tokenize_cached(format_string) do
     key = {:localize, :datetime_format_tokens, format_string}
