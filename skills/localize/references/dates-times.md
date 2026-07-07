@@ -106,7 +106,7 @@ Localize.DateTime.to_string(~N[2026-07-06 14:30:00], format: "B")
 
 ## Time zones
 
-Zone symbols read the `DateTime`'s own zone fields plus CLDR zone-name data — the value must already be in the target zone (shift with `DateTime.shift_zone!/2` and a tz database first; Localize does not shift). A UTC `DateTime` formats with GMT names. `NaiveDateTime` has no zone, so zone symbols render empty.
+Zone symbols read the `DateTime`'s own zone fields plus CLDR zone-name data — the value must already be in the target zone (shift with `DateTime.shift_zone!/2` and a tz database first; Localize does not shift). Zone-level names take precedence over metazone names, so a UTC `DateTime` formats as "UTC" (`z`) / "Coordinated Universal Time" (`zzzz`). `NaiveDateTime` has no zone, so zone symbols render empty.
 
 ```elixir
 nyc = %DateTime{year: 2026, month: 7, day: 6, hour: 10, minute: 30, second: 0, microsecond: {0, 0},
@@ -121,7 +121,7 @@ Localize.DateTime.to_string(nyc, format: "HH:mm vvvv")                          
 Localize.DateTime.to_string(nyc, format: "ZZZZ")
 #=> {:ok, "GMT-04:00"}
 Localize.DateTime.to_string(~U[2026-07-06 14:30:00Z], format: :full, prefer: :ascii)
-#=> {:ok, "Monday, July 6, 2026, 2:30:00 PM Greenwich Mean Time"}
+#=> {:ok, "Monday, July 6, 2026, 2:30:00 PM Coordinated Universal Time"}
 ```
 
 ## Hour cycle, calendars, digits
