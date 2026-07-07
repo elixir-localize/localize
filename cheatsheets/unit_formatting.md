@@ -123,14 +123,23 @@ result.name  #=> "mile"
 | `:us` | United States | mile, pound, fahrenheit |
 | `:uk` | United Kingdom | mile, stone, celsius |
 
-### Humanizing digital units (file sizes)
+### Humanizing (auto-scaling to the expected unit)
 
 ```elixir
+# One call for any unit kind
 Localize.Unit.new!(1_500_000, "byte")
-|> Localize.Unit.humanize!()
-|> Localize.Unit.to_string!(format: :narrow)
+|> Localize.Unit.to_string!(humanize: true, format: :narrow)
 #=> "1.5MB"
 
+Localize.Unit.new!(2_500_000, "hertz")
+|> Localize.Unit.to_string!(humanize: true, format: :narrow)
+#=> "2.5MHz"
+
+Localize.Unit.new!(1_500, "meter")
+|> Localize.Unit.to_string!(humanize: true, locale: :de)
+#=> "1,5 Kilometer"
+
+# Struct-level scaling for bit/byte/hertz/watt units
 {:ok, unit} = Localize.Unit.new(1_048_576, "byte")
 {:ok, humanized} = Localize.Unit.humanize(unit, system: :iec)
 {humanized.name, humanized.value}  #=> {"mebibyte", 1.0}
@@ -138,7 +147,8 @@ Localize.Unit.new!(1_500_000, "byte")
 
 | Option | Values | Notes |
 |---|---|---|
-| `:system` | `:si` (default), `:iec` | `:si` scales by 1000 (kilobyte, megabyte, ...); `:iec` by 1024 (kibibyte, mebibyte, ...) |
+| `:humanize` | `true`, `false` (default) | On `to_string/2`: bit/byte/hertz/watt units scale through the prefix ladder, all others use usage-based preferences |
+| `:system` | `:si` (default), `:iec` | `:si` scales by 1000 (kilobyte, megahertz, ...); `:iec` by 1024 (kibibyte, mebibyte, ...) — bits and bytes only |
 
 ## Arithmetic
 

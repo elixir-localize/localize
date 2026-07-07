@@ -591,6 +591,13 @@ defmodule Localize.Unit do
     end
   end
 
+  # Base units humanize/2 scales through the prefix ladder: the
+  # locale-invariant SI-prefixed quantities that CLDR's unit
+  # preference data does not cover. IEC binary prefixes are
+  # meaningful only for the digital bases.
+  @si_humanize_bases ~w(bit byte hertz watt)
+  @iec_humanize_bases ~w(bit byte)
+
   # Prefix ladders for humanize/2, largest factor first so the first
   # match is the prefix that scales the value into [1, 1000) or [1, 1024).
   @si_humanize_prefixes ~w(kilo mega giga tera peta exa zetta yotta)
@@ -607,37 +614,46 @@ defmodule Localize.Unit do
                        |> Enum.reverse()
 
   @doc """
-  Converts a digital unit (bytes or bits) to the prefixed unit that
-  best fits its magnitude, suitable for human-readable file sizes.
+  Converts a bit-, byte-, hertz- or watt-based unit to the prefixed
+  unit that best fits its magnitude — human-readable file sizes,
+  frequencies and power figures.
 
-  Selects the largest SI prefix (kilobyte, megabyte, gigabyte, ...)
-  or IEC binary prefix (kibibyte, mebibyte, gibibyte, ...) such that
-  the converted value is at least `1`. Values smaller than one
-  kilobyte (or kibibyte) are returned unchanged.
+  Selects the largest SI prefix (kilobyte, megahertz, gigawatt, ...)
+  or, for bits and bytes, IEC binary prefix (kibibyte, mebibyte, ...)
+  such that the converted value is at least `1`. Values smaller than
+  one kilo-unit (or kibi-unit) are returned unchanged.
+
+  These bases are the locale-invariant SI-prefixed quantities that
+  CLDR's unit preference data does not cover. For physical
+  quantities such as length or mass, use the `:usage` option on
+  `to_string/2` instead — CLDR preferences pick the display unit by
+  territory and magnitude.
 
   ### Arguments
 
   * `unit` is a `%Localize.Unit{}` struct with a value, based on
-    `"byte"` or `"bit"` (a bare or already-prefixed unit such as
-    `"byte"`, `"kilobyte"` or `"megabit"`).
+    `"bit"`, `"byte"`, `"hertz"` or `"watt"` (a bare or
+    already-prefixed unit such as `"byte"`, `"kilobyte"` or
+    `"megahertz"`).
 
   * `options` is a keyword list of options.
 
   ### Options
 
   * `:system` is the prefix system to scale with: `:si` (powers of
-    1000, the default) or `:iec` (powers of 1024). Note that CLDR
-    provides compact display patterns (like `"MB"`) only for
-    SI-prefixed digital units; IEC units format with their full
-    names in all format widths.
+    1000, the default) or `:iec` (powers of 1024, bit- and
+    byte-based units only). Note that CLDR provides compact display
+    patterns (like `"MB"`) only for SI-prefixed units; IEC units
+    format with their full names in all format widths.
 
   ### Returns
 
   * `{:ok, unit}` where `unit` is a new `%Localize.Unit{}` with the
     scaled value and prefixed unit name, or
 
-  * `{:error, reason}` if the unit has no value, is not a digital
-    (bit- or byte-based) unit, or the prefix system is invalid.
+  * `{:error, reason}` if the unit has no value, has an unsupported
+    base unit, or the prefix system is invalid or does not apply to
+    the base unit.
 
   ### Examples
 
@@ -647,6 +663,11 @@ defmodule Localize.Unit do
       {"megabyte", 1.5}
       iex> Localize.Unit.to_string(humanized, format: :narrow, locale: :en)
       {:ok, "1.5MB"}
+
+      iex> {:ok, unit} = Localize.Unit.new(2_500_000_000, "hertz")
+      iex> {:ok, humanized} = Localize.Unit.humanize(unit)
+      iex> {humanized.name, humanized.value}
+      {"gigahertz", 2.5}
 
       iex> {:ok, unit} = Localize.Unit.new(1_048_576, "byte")
       iex> {:ok, humanized} = Localize.Unit.humanize(unit, system: :iec)
@@ -665,7 +686,8 @@ defmodule Localize.Unit do
     system = Keyword.get(options, :system, :si)
 
     with :ok <- validate_prefix_system(system),
-         {:ok, base_name} <- digital_base_unit(unit),
+         {:ok, base_name} <- humanizable_base_unit(unit),
+         :ok <- validate_system_for_base(system, base_name),
          {:ok, base_unit} <- convert_unless_same(unit, base_name) do
       target_name = humanized_unit_name(base_unit.value, system, base_name)
       convert_unless_same(base_unit, target_name)
@@ -673,15 +695,15 @@ defmodule Localize.Unit do
   end
 
   @doc """
-  Converts a digital unit (bytes or bits) to the prefixed unit that
-  best fits its magnitude, raising on error.
+  Converts a bit-, byte-, hertz- or watt-based unit to the prefixed
+  unit that best fits its magnitude, raising on error.
 
   See `humanize/2` for details.
 
   ### Arguments
 
   * `unit` is a `%Localize.Unit{}` struct with a value, based on
-    `"byte"` or `"bit"`.
+    `"bit"`, `"byte"`, `"hertz"` or `"watt"`.
 
   * `options` is a keyword list of options. See `humanize/2`.
 
@@ -690,8 +712,8 @@ defmodule Localize.Unit do
   * A new `%Localize.Unit{}` with the scaled value and prefixed
     unit name, or
 
-  * raises an exception if the unit has no value, is not a digital
-    unit, or the prefix system is invalid.
+  * raises an exception if the unit has no value, has an unsupported
+    base unit, or the prefix system is invalid.
 
   ### Examples
 
@@ -720,24 +742,34 @@ defmodule Localize.Unit do
      )}
   end
 
-  defp digital_base_unit(%__MODULE__{parsed: {:unit, parts}} = unit) do
+  defp validate_system_for_base(:iec, base_name) when base_name not in @iec_humanize_bases do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: base_name,
+       expected: "a bit- or byte-based unit when system: :iec"
+     )}
+  end
+
+  defp validate_system_for_base(_system, _base_name), do: :ok
+
+  defp humanizable_base_unit(%__MODULE__{parsed: {:unit, parts}} = unit) do
     with [single_unit: single_unit] <- Keyword.get(parts, :numerator),
          [] <- Keyword.get(parts, :denominator),
-         base when base in ["bit", "byte"] <- Keyword.get(single_unit, :base),
+         base when base in @si_humanize_bases <- Keyword.get(single_unit, :base),
          power when power in [nil, 1] <- Keyword.get(single_unit, :power) do
       {:ok, base}
     else
-      _other -> not_digital_error(unit)
+      _other -> not_humanizable_error(unit)
     end
   end
 
-  defp digital_base_unit(%__MODULE__{} = unit), do: not_digital_error(unit)
+  defp humanizable_base_unit(%__MODULE__{} = unit), do: not_humanizable_error(unit)
 
-  defp not_digital_error(unit) do
+  defp not_humanizable_error(unit) do
     {:error,
      Localize.InvalidValueError.exception(
        value: unit.name,
-       expected: "a bit- or byte-based unit",
+       expected: "a bit-, byte-, hertz- or watt-based unit",
        context: "humanize"
      )}
   end
@@ -1008,6 +1040,15 @@ defmodule Localize.Unit do
   * `:format` is `:long`, `:short`, or `:narrow`.
     The default is `:long`.
 
+  * `:humanize` (single unit only) when `true` renders the unit in
+    the unit people expect for its magnitude: bit-, byte-, hertz-
+    and watt-based units are scaled through `humanize/2` (honouring
+    the `:system` option for `:si` or `:iec` prefixes), and all
+    other units are rendered through the usage-based preference
+    pipeline using the struct's `:usage` field or `:default`. An
+    explicit `:usage` option takes precedence for preference-scaled
+    units. The default is `false`.
+
   * `:usage` (single unit only) is the unit's intended usage. When
     given, triggers `localize/2` before formatting. Accepts an atom
     (`:person_height`) or a CLDR-style string (`"person-height"`). If
@@ -1060,6 +1101,14 @@ defmodule Localize.Unit do
       iex> Localize.Unit.to_string(unit, usage: :road, locale: "de-DE")
       {:ok, "2 Kilometer"}
 
+      iex> Localize.Unit.new!(1_500_000, "byte")
+      ...> |> Localize.Unit.to_string(humanize: true, format: :narrow)
+      {:ok, "1.5MB"}
+
+      iex> Localize.Unit.new!(1_500, "meter")
+      ...> |> Localize.Unit.to_string(humanize: true, locale: :de)
+      {:ok, "1,5 Kilometer"}
+
   """
   @spec to_string(t() | [t(), ...], Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(unit_or_units, options \\ [])
@@ -1069,15 +1118,40 @@ defmodule Localize.Unit do
   end
 
   def to_string(%__MODULE__{} = unit, options) do
-    if Keyword.has_key?(options, :usage) or not is_nil(unit.usage) do
-      preference_options = Keyword.take(options, [:usage, :locale])
-      list_options = Keyword.drop(options, [:usage])
+    with {:ok, unit, options} <- maybe_humanize(unit, options) do
+      if Keyword.has_key?(options, :usage) or not is_nil(unit.usage) do
+        preference_options = Keyword.take(options, [:usage, :locale])
+        list_options = Keyword.drop(options, [:usage])
 
-      with {:ok, parts} <- localize(unit, preference_options) do
-        format_unit_list(parts, list_options)
+        with {:ok, parts} <- localize(unit, preference_options) do
+          format_unit_list(parts, list_options)
+        end
+      else
+        Localize.Unit.Formatter.to_string(unit, merge_struct_format_options(unit, options))
       end
-    else
-      Localize.Unit.Formatter.to_string(unit, merge_struct_format_options(unit, options))
+    end
+  end
+
+  # `humanize: true` renders the unit the way people expect for its
+  # kind: bit-, byte-, hertz- and watt-based units scale through the
+  # `humanize/2` prefix ladder, every other unit goes through the
+  # usage-based preference pipeline with the struct's usage or
+  # `:default`. An explicit `:usage` option still wins for
+  # preference-scaled units.
+  defp maybe_humanize(unit, options) do
+    {humanize?, options} = Keyword.pop(options, :humanize, false)
+
+    cond do
+      humanize? != true ->
+        {:ok, unit, options}
+
+      match?({:ok, _base}, humanizable_base_unit(unit)) ->
+        with {:ok, humanized} <- humanize(unit, Keyword.take(options, [:system])) do
+          {:ok, humanized, options}
+        end
+
+      true ->
+        {:ok, unit, Keyword.put_new(options, :usage, unit.usage || :default)}
     end
   end
 

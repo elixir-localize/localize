@@ -76,13 +76,24 @@ Localize.Unit.new!(1, "meter") |> Localize.Unit.convert("kilogram")
 
 `convert_measurement_system/2` targets `:metric`, `:us`, or `:uk` preferred units (1000 meters → mile for `:us`).
 
-## Humanizing digital units (file sizes)
+## Humanizing (auto-scaling to the expected unit)
 
-`humanize/2` and `humanize!/2` convert a byte- or bit-based unit to the prefix that best fits its magnitude — the idiomatic way to render file sizes. `system: :si` (powers of 1000, default) or `system: :iec` (powers of 1024); CLDR has compact narrow patterns (`"MB"`) only for SI prefixes, IEC units render with full names. Non-digital units return `InvalidValueError`.
+`to_string(unit, humanize: true)` renders any unit in the unit people expect for its magnitude: bit-, byte-, hertz- and watt-based units scale through the SI prefix ladder (or IEC with `system: :iec`, bits/bytes only), all other units go through usage-based preferences (struct usage or `:default`; an explicit `usage:` wins).
 
 ```elixir
-Localize.Unit.new!(1_500_000, "byte") |> Localize.Unit.humanize!() |> Localize.Unit.to_string(format: :narrow)
+Localize.Unit.new!(1_500_000, "byte") |> Localize.Unit.to_string(humanize: true, format: :narrow)
 #=> {:ok, "1.5MB"}
+Localize.Unit.new!(2_500_000, "hertz") |> Localize.Unit.to_string(humanize: true, format: :narrow)
+#=> {:ok, "2.5MHz"}
+Localize.Unit.new!(1_500, "meter") |> Localize.Unit.to_string(humanize: true, locale: :de)
+#=> {:ok, "1,5 Kilometer"}
+Localize.Unit.new!(1_500_000, "gram") |> Localize.Unit.to_string(humanize: true, locale: :en)
+#=> {:ok, "1.653 tons"}
+```
+
+`humanize/2` and `humanize!/2` are the struct-level API for the prefix-scaled bases (bit, byte, hertz, watt) — they convert to the prefixed unit that best fits the magnitude and return the scaled `%Localize.Unit{}`. `system: :si` (powers of 1000, default) or `system: :iec` (powers of 1024, bits/bytes only); CLDR has compact narrow patterns (`"MB"`, `"MHz"`) only for SI prefixes, IEC units render with full names. Other bases return `InvalidValueError`.
+
+```elixir
 Localize.Unit.new!(2_750_000_000, "byte") |> Localize.Unit.humanize!() |> Localize.Unit.to_string(format: :narrow, fractional_digits: 1)
 #=> {:ok, "2.8GB"}
 {:ok, iec} = Localize.Unit.new!(1_048_576, "byte") |> Localize.Unit.humanize(system: :iec)
