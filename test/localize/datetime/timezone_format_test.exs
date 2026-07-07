@@ -94,6 +94,24 @@ defmodule Localize.DateTime.TimezoneFormatTest do
       assert {:ok, name} = Timezone.non_location_format(@new_york_standard, :fr)
       assert name =~ "Est"
     end
+
+    test "zone-level names take precedence over the metazone" do
+      utc = %{time_zone: "Etc/UTC", utc_offset: 0, std_offset: 0}
+
+      assert {:ok, "Coordinated Universal Time"} = Timezone.non_location_format(utc, :en)
+      assert {:ok, "UTC"} = Timezone.non_location_format(utc, :en, format: :short)
+
+      assert {:ok, "Coordinated Universal Time"} =
+               Timezone.non_location_format(utc, :en, type: :generic)
+
+      assert {:ok, "UTC"} = Timezone.non_location_format(utc, :bg, format: :short)
+
+      london = %{time_zone: "Europe/London", utc_offset: 0, std_offset: 3600}
+      assert {:ok, "British Summer Time"} = Timezone.non_location_format(london, :en)
+
+      gmt = %{time_zone: "Etc/GMT", utc_offset: 0, std_offset: 0}
+      assert {:ok, "Greenwich Mean Time"} = Timezone.non_location_format(gmt, :en)
+    end
   end
 
   describe "gmt_format/3" do

@@ -70,9 +70,9 @@ defmodule Localize.DateTime.ZoneSymbolTest do
       assert zone_format(@new_york_daylight, "zzzz") == "Eastern Daylight Time"
     end
 
-    test "UTC renders as GMT names" do
-      assert zone_format(@utc, "z") == "GMT"
-      assert zone_format(@utc, "zzzz") == "Greenwich Mean Time"
+    test "UTC renders its zone-level names" do
+      assert zone_format(@utc, "z") == "UTC"
+      assert zone_format(@utc, "zzzz") == "Coordinated Universal Time"
     end
 
     test "zone with a long metazone name but no short one falls back to GMT format" do

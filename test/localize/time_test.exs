@@ -370,7 +370,7 @@ defmodule Localize.TimeTest do
       {:ok, out} =
         Localize.DateTime.to_string(~U[2026-01-01 21:00:00Z], format: :long, locale: :de)
 
-      assert out =~ "GMT"
+      assert out =~ "UTC"
       refute String.ends_with?(out, " ")
     end
 

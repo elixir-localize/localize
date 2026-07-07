@@ -123,8 +123,14 @@ defmodule Localize.DateTime.TestData do
     {:ok, datetime, _} = DateTime.from_iso8601(datetime)
 
     case DateTime.shift_zone(datetime, timezone) do
-      {:ok, shifted} -> shifted
-      {:error, _} -> datetime
+      {:ok, shifted} ->
+        shifted
+
+      {:error, _} when timezone == "Etc/GMT" ->
+        %{datetime | time_zone: "Etc/GMT", zone_abbr: "GMT"}
+
+      {:error, _} ->
+        datetime
     end
   end
 

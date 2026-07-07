@@ -269,8 +269,8 @@ defmodule Localize.DateTime.FormatterEdgeTest do
 
   describe "timezone symbols on a UTC DateTime" do
     test "z widths render the specific non-location name" do
-      assert datetime_format(@utc_datetime, "z") == "GMT"
-      assert datetime_format(@utc_datetime, "zzzz") == "Greenwich Mean Time"
+      assert datetime_format(@utc_datetime, "z") == "UTC"
+      assert datetime_format(@utc_datetime, "zzzz") == "Coordinated Universal Time"
     end
 
     test "Z widths render basic, GMT, and extended ISO forms" do
@@ -290,8 +290,8 @@ defmodule Localize.DateTime.FormatterEdgeTest do
     end
 
     test "v widths render the generic non-location name" do
-      assert datetime_format(@utc_datetime, "v") == "GMT"
-      assert datetime_format(@utc_datetime, "vvvv") == "GMT"
+      assert datetime_format(@utc_datetime, "v") == "UTC"
+      assert datetime_format(@utc_datetime, "vvvv") == "Coordinated Universal Time"
     end
 
     test "V widths render zone id and location formats" do
