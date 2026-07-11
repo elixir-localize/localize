@@ -59,7 +59,7 @@ defmodule Localize.Number.Rbnf.Rule do
     definition
     |> String.trim_leading("'")
     |> String.to_charlist()
-    |> :rbnf_lexer.string()
+    |> :localize_rbnf_lexer.string()
   end
 
   def tokenize(%__MODULE__{definition: definition}) do
@@ -86,6 +86,6 @@ defmodule Localize.Number.Rbnf.Rule do
   end
 
   def parse(tokens) when is_list(tokens) do
-    :rbnf_parser.parse(tokens)
+    :localize_rbnf_parser.parse(tokens)
   end
 end
