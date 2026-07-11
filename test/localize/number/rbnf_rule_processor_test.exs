@@ -62,7 +62,7 @@ defmodule Localize.Number.RbnfRuleProcessorTest do
     end
 
     test "returns a parser error for an unterminated construct" do
-      assert {:error, {1, :rbnf_parser, _reason}} = Rule.parse("twenty[->>];")
+      assert {:error, {1, :localize_rbnf_parser, _reason}} = Rule.parse("twenty[->>];")
     end
   end
 

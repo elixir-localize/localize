@@ -34,7 +34,7 @@ defmodule Localize.DateTime.Format.Compiler do
   def tokenize(format_string) when is_binary(format_string) do
     format_string
     |> String.to_charlist()
-    |> :date_time_format_lexer.string()
+    |> :localize_date_time_format_lexer.string()
     |> maybe_add_decimal_separator()
     |> maybe_return_error(format_string)
   end
@@ -67,7 +67,7 @@ defmodule Localize.DateTime.Format.Compiler do
     [first | seconds_followed_by_fraction(rest)]
   end
 
-  defp maybe_return_error({:error, {_, :date_time_format_lexer, {_, error}}, _}, format) do
+  defp maybe_return_error({:error, {_, :localize_date_time_format_lexer, {_, error}}, _}, format) do
     {:error,
      Localize.DateTimeFormatError.exception(
        format: format,
