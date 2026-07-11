@@ -60,7 +60,7 @@ defmodule Localize.Number.Format.Compiler do
   def tokenize(definition) when is_binary(definition) do
     definition
     |> String.to_charlist()
-    |> :decimal_formats_lexer.string()
+    |> :localize_decimal_formats_lexer.string()
   end
 
   @doc """
@@ -88,7 +88,7 @@ defmodule Localize.Number.Format.Compiler do
   """
   @spec parse(String.t() | list()) :: {:ok, Keyword.t()} | {:error, term()}
   def parse(tokens) when is_list(tokens) do
-    :decimal_formats_parser.parse(tokens)
+    :localize_decimal_formats_parser.parse(tokens)
   end
 
   def parse("") do
@@ -97,7 +97,7 @@ defmodule Localize.Number.Format.Compiler do
 
   def parse(definition) when is_binary(definition) do
     {:ok, tokens, _end_line} = tokenize(definition)
-    :decimal_formats_parser.parse(tokens)
+    :localize_decimal_formats_parser.parse(tokens)
   end
 
   def parse(nil) do

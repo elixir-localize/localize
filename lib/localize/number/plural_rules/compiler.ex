@@ -3,8 +3,8 @@ defmodule Localize.Number.PluralRule.Compiler do
 
   # Compiles CLDR plural rule definitions into Elixir AST.
   #
-  # Uses the Erlang leex lexer (`:plural_rules_lexer`) and yecc parser
-  # (`:plural_rules_parser`) to tokenize and parse rule definitions
+  # Uses the Erlang leex lexer (`:localize_plural_rules_lexer`) and yecc parser
+  # (`:localize_plural_rules_parser`) to tokenize and parse rule definitions
   # from the ICU/CLDR plural rules syntax.
 
   @doc """
@@ -27,7 +27,7 @@ defmodule Localize.Number.PluralRule.Compiler do
   def tokenize(definition) when is_binary(definition) do
     definition
     |> String.to_charlist()
-    |> :plural_rules_lexer.string()
+    |> :localize_plural_rules_lexer.string()
   end
 
   @doc """
@@ -49,11 +49,11 @@ defmodule Localize.Number.PluralRule.Compiler do
 
   """
   def parse(tokens) when is_list(tokens) do
-    :plural_rules_parser.parse(tokens)
+    :localize_plural_rules_parser.parse(tokens)
   end
 
   def parse(definition) when is_binary(definition) do
     {:ok, tokens, _end_line} = tokenize(definition)
-    :plural_rules_parser.parse(tokens)
+    :localize_plural_rules_parser.parse(tokens)
   end
 end
