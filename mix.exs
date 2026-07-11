@@ -254,13 +254,13 @@ defmodule Localize.MixProject do
       Localizer.Rfc5646.Core,
       Localize.Number.PluralRule.Loader,
       Localize.Number.PluralRule.Transformer,
-      :rbnf_lexer,
-      :rbnf_parser,
-      :plural_rules_lexer,
-      :plural_rules_parser,
-      :decimal_formats_lexer,
-      :decimal_formats_parser,
-      :date_time_format_lexer
+      :localize_rbnf_lexer,
+      :localize_rbnf_parser,
+      :localize_plural_rules_lexer,
+      :localize_plural_rules_parser,
+      :localize_decimal_formats_lexer,
+      :localize_decimal_formats_parser,
+      :localize_date_time_format_lexer
     ]
   end
 

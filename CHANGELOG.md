@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Change the namespaces on the `leex` lexers and `yecc` parsers to avoid module name clash with `ex_cldr` versions. Thanks to @jerryluk for the PR. Closes #40.
 
+* The coverage ignore list follows the renamed lexer/parser modules, restoring measured coverage above the 90% CI threshold; a guard test now fails when an ignore-list entry names a module that no longer exists.
+
 ## [0.48.0] — July 8th, 2026
 
 ### Added
