@@ -259,7 +259,10 @@ defmodule Localize.Number.Parser do
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          locale_id <- locale_id(language_tag),
          {:ok, currency_strings} <-
-           Localize.Currency.currency_strings(locale_id, only_filter, except_filter),
+           Localize.Currency.currency_strings(locale_id,
+             only: only_filter,
+             except: except_filter
+           ),
          {:ok, currency} <- find_and_replace(currency_strings, string, fuzzy) do
       currency
     else
