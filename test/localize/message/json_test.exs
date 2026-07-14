@@ -5,11 +5,7 @@ defmodule Localize.Message.JSONTest do
   alias Localize.Message.Parser
   alias Localize.Message.Print
 
-  # Note: `doctest Localize.Message.JSON` is intentionally omitted.
-  # The `from_json/1` doctest in lib/localize/message/json.ex documents a
-  # `{:complex, [], {:quoted_pattern, ...}}` return for a message with no
-  # declarations, but the implementation returns `[{:quoted_pattern, ...}]`
-  # in that case. The `to_json/2` doctest is covered by the tests below.
+  doctest Localize.Message.JSON
 
   defp to_json!(message) do
     {:ok, ast} = Parser.parse(message)

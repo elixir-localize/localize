@@ -8,6 +8,20 @@ defmodule Localize.Locale.ProviderTest do
   doctest Localize.Locale.Provider
   doctest Localize.Locale.Provider.Cache
 
+  describe "locale_file_name/1 — path-component shape guard" do
+    test "accepts well-formed locale identifiers" do
+      assert Provider.locale_file_name(:en) == "en.etf"
+      assert Provider.locale_file_name(:"en-001") == "en-001.etf"
+      assert Provider.locale_file_name(:"ca-ES-valencia") == "ca-ES-valencia.etf"
+    end
+
+    test "raises on identifiers that could traverse the cache path or URL" do
+      assert_raise ArgumentError, fn -> Provider.locale_file_name(:"../../etc/passwd") end
+      assert_raise ArgumentError, fn -> Provider.locale_file_name(:"en/../und") end
+      assert_raise ArgumentError, fn -> Provider.locale_file_name(:"en?v=1") end
+    end
+  end
+
   describe "load_with_fallback/2 — parent-chain walking" do
     # Regression test for infinite recursion reported against v0.15.0.
     #

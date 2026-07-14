@@ -481,15 +481,27 @@ Two areas are explicitly out of scope:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Syntax errors | Implemented | Parser returns `{:error, reason}`. |
-| Resolution errors (unknown function, unresolved variable) | Partial | Unknown functions fall back to string conversion rather than error. |
-| Data model errors | Partial | Duplicate declarations and options not explicitly validated. |
+| Resolution errors (unknown function, unresolved variable) | Partial | Unresolved variables error per spec; unknown functions fall back to formatting the operand rather than producing an unknown-function error. |
+| Data model errors | Partial | Duplicate declarations and duplicate option names are not validated. A declaration option referencing a not-yet-declared variable errors per spec. |
 
 ### MF2 Data Model
 
 | Feature | Status | Notes |
 |---------|--------|-------|
 | JSON interchange format | Implemented | `Localize.Message.JSON.to_json/2` and `from_json/1` for round-trip serialization to the TR35 §8 data model. |
-| Bidirectional text handling | Implemented | `:bidi` option (`:none`, `:isolate`, `:auto`) wraps placeholder output in Unicode isolate characters (FSI/PDI). Supports `u:dir` attribute for per-expression overrides. |
+| Bidirectional text handling | Partial | `:bidi` option (`:none`, `:isolate`, `:auto`) wraps placeholder output in Unicode isolate characters (FSI/PDI), and the `@u:dir` expression *attribute* overrides direction per expression. The `u:dir` / `u:id` expression *options* are not implemented, and the `:isolate` strategy isolates every placeholder where the WG default strategy leaves known-LTR placeholders unisolated. |
+
+### MF2 known conformance gaps
+
+The MessageFormat working group conformance suite runs against both the parser and the formatter (`test/localize/message/formatter_conformance_test.exs`); the cases the implementation cannot yet satisfy are excluded there, each with a documented reason. Beyond the Partial rows above, the excluded cases are:
+
+* Unknown functions fall back to formatting the operand instead of producing an unknown-function error, and the WG `:test:select` / `:test:format` registry functions used by some suite cases are not implemented.
+
+* Declarations bind the formatted string, so re-annotating an already-annotated variable in a later declaration fails.
+
+* Select option validation (literal-only restrictions and operand restrictions on `:integer` / `:number` selection) is not implemented, number-literal operand validation (leading zero or plus sign) is not enforced, and invalid digit size option values are ignored instead of producing a bad-option error.
+
+* `:currency` is not rejected as a selector (no bad-selector error), the `:offset` function's `signDisplay` option is not implemented, and variant keys are not NFC-normalized so duplicate variants differing only in normalization are not detected.
 
 ---
 

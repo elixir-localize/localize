@@ -8,6 +8,10 @@ on:
 
 env:
   MIX_ENV: dev
+  # Toolchain pins — also part of the dependency cache key, since
+  # cached BEAMs are only valid for the OTP/Elixir that built them.
+  ELIXIR_VERSION: "1.19"
+  OTP_VERSION: "28"
   R2_BUCKET: content
   # Prefix within the bucket where locale ETF files are stored.
   R2_PREFIX: locales
@@ -97,8 +101,8 @@ jobs:
         if: steps.check_existing.outputs.skip != 'true'
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.19"
-          otp-version: "28"
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
 
       - name: Restore dependency cache
         if: steps.check_existing.outputs.skip != 'true'
@@ -107,9 +111,9 @@ jobs:
           path: |
             deps
             _build
-          key: mix-locales-${{ hashFiles('mix.lock') }}
+          key: mix-locales-otp${{ env.OTP_VERSION }}-elixir${{ env.ELIXIR_VERSION }}-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            mix-locales-
+            mix-locales-otp${{ env.OTP_VERSION }}-elixir${{ env.ELIXIR_VERSION }}-
 
       - name: Install dependencies
         if: steps.check_existing.outputs.skip != 'true'

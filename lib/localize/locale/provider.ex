@@ -37,6 +37,8 @@ defmodule Localize.Locale.Provider do
   @locale_hashes_key {:localize, :locale_hashes}
   @locale_hashes_warned_key {:localize, :locale_hashes_warned}
 
+  @default_locale_base_url "https://elixir-localize.com/locales"
+
   # ── Behaviour callbacks ────────────────────────────────────────
 
   @doc """
@@ -543,6 +545,10 @@ defmodule Localize.Locale.Provider do
   @doc """
   Returns the base URL from which locale data files are downloaded.
 
+  The default is the Localize CDN. It can be overridden with the `:locale_base_url` application configuration key, for deployments that mirror the locale files on their own infrastructure (downloads are still verified against the bundled SHA-256 hash manifest regardless of the source):
+
+      config :localize, locale_base_url: "https://mirror.example.com/locales"
+
   ### Returns
 
   * A string URL.
@@ -555,7 +561,7 @@ defmodule Localize.Locale.Provider do
   """
   @spec base_url() :: String.t()
   def base_url do
-    "https://elixir-localize.com/locales"
+    Application.get_env(:localize, :locale_base_url, @default_locale_base_url)
   end
 
   @doc """
@@ -569,6 +575,8 @@ defmodule Localize.Locale.Provider do
 
   * A string file name of the form `"{locale_id}.etf"`.
 
+  Raises `ArgumentError` if the locale identifier does not have the shape of a CLDR locale id (letters, digits, `-` and `_` only). Locale ids reaching this function have already been validated, so this is a defense-in-depth guard: the file name is interpolated into cache paths and download URLs, and a tampered identifier must not be able to traverse outside them.
+
   ### Examples
 
       iex> Localize.Locale.Provider.locale_file_name(:en)
@@ -577,7 +585,14 @@ defmodule Localize.Locale.Provider do
   """
   @spec locale_file_name(locale_id()) :: String.t()
   def locale_file_name(locale_id) when is_atom(locale_id) do
-    "#{locale_id}.etf"
+    name = Atom.to_string(locale_id)
+
+    if String.match?(name, ~r/^[A-Za-z0-9_-]+$/) do
+      name <> ".etf"
+    else
+      raise ArgumentError,
+            "locale identifier #{inspect(locale_id)} is not a valid locale file name component"
+    end
   end
 
   @doc """

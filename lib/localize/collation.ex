@@ -71,6 +71,10 @@ defmodule Localize.Collation do
 
   * `backend` - `:nif` or `:elixir`. The default is `:elixir`.
 
+  ## Return value convention
+
+  Unlike the rest of Localize, the functions in this module return bare values rather than `{:ok, result}` tuples: `compare/3` returns `:lt`, `:eq` or `:gt` (the shape `Enum.sort/2` and friends expect for a comparator), `sort/2` returns the sorted list, and `sort_key/2` returns a binary. This deviation is deliberate — collation functions are designed to be passed directly to `Enum` and used in hot paths, where a wrapping tuple would defeat their purpose. Consistent with that design, unrecognised option values fall back to their defaults rather than producing an error.
+
   """
 
   alias Localize.Collation.{
