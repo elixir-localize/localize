@@ -1049,6 +1049,8 @@ defmodule Localize.Calendar do
   defp resolve_locale_id(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   defp calendar_type_from(%{calendar: calendar}) do
+    Code.ensure_loaded?(calendar)
+
     if function_exported?(calendar, :cldr_calendar_type, 0) do
       calendar.cldr_calendar_type()
     else
@@ -1065,6 +1067,8 @@ defmodule Localize.Calendar do
   # year>0 → era 1 fallback is only safe for Gregorian.
   defp day_of_era(%{year: year, month: month, day: day, calendar: calendar})
        when is_atom(calendar) and calendar != Calendar.ISO do
+    Code.ensure_loaded?(calendar)
+
     if function_exported?(calendar, :year_of_era, 3) do
       case calendar.year_of_era(year, month, day) do
         {era_year, era} when is_integer(era) -> {era_year, era}
@@ -1097,6 +1101,8 @@ defmodule Localize.Calendar do
 
   defp iso_day_of_week(%{year: year, month: month, day: day, calendar: calendar})
        when is_integer(year) and is_integer(month) and is_integer(day) do
+    Code.ensure_loaded?(calendar)
+
     if function_exported?(calendar, :day_of_week, 4) do
       calendar.day_of_week(year, month, day, :monday) |> elem(0)
     else
