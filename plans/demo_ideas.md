@@ -32,6 +32,10 @@ Sorting as spectator sport. The audience submits words — names, band names, wo
 
 ## Recommendation
 
+**Superseded (2026-07-12): the chosen direction is Contraption — see [plans/contraption.md](contraption.md)** — a BEAM-native automation platform (IFTTT/Node-RED category) with home/industrial reach, media pipelines, localization-native output, and the Mousetrap audience mechanic. It absorbs the best parts of the ideas below: the Emoji DJ becomes a connector cameo, and the Collation Race spirit lives on in the visible-cascade staging. Original recommendation kept for the record:
+
+### Original recommendation
+
 **Idea 1 (Emoji DJ) as the spine, with idea 4 as a segment.** It is the only option that leaves a real artifact behind — a new library launched on stage, born from the existing roadmap — and emoji provide festival-mood visuals without manufactured whimsy. The participation mechanic is robust (worst case, people search emoji on their phones, which is already fun), whereas live audio has the highest failure risk. A successful talk doubles as `localize_emoji`'s launch day.
 
 ## Timeline sketch
