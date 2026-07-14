@@ -282,44 +282,98 @@ defmodule Localize.CurrencyTest do
     end
   end
 
-  describe "currency_filter/3" do
-    test "filtering by :current excludes historic currencies" do
-      {:ok, current} = Currency.currencies_for_locale(:en, :current)
+  describe "currencies_for_locale/2 filtering options" do
+    test "filtering by only: :current excludes historic currencies" do
+      {:ok, current} = Currency.currencies_for_locale(:en, only: :current)
       refute Map.has_key?(current, :SDP)
       assert Map.has_key?(current, :USD)
     end
 
-    test "filtering by :historic includes historic currencies" do
-      {:ok, historic} = Currency.currencies_for_locale(:en, :historic)
+    test "filtering by only: :historic includes historic currencies" do
+      {:ok, historic} = Currency.currencies_for_locale(:en, only: :historic)
       assert Map.has_key?(historic, :SDP)
       assert Map.has_key?(historic, :ZWR)
     end
 
-    test "filtering by :tender includes only tender currencies" do
-      {:ok, tender} = Currency.currencies_for_locale(:en, :tender)
+    test "filtering by only: :tender includes only tender currencies" do
+      {:ok, tender} = Currency.currencies_for_locale(:en, only: :tender)
 
       Enum.each(tender, fn {_code, currency} ->
         assert Currency.tender?(currency)
       end)
     end
 
-    test "filtering by :unannotated excludes annotated currencies" do
-      {:ok, unannotated} = Currency.currencies_for_locale(:en, :unannotated)
+    test "filtering by only: :unannotated excludes annotated currencies" do
+      {:ok, unannotated} = Currency.currencies_for_locale(:en, only: :unannotated)
 
       Enum.each(unannotated, fn {_code, currency} ->
         refute String.contains?(currency.name, "(")
       end)
     end
 
-    test "filtering with :all returns all currencies" do
-      {:ok, all} = Currency.currencies_for_locale(:en, :all)
+    test "filtering with only: :all returns all currencies" do
+      {:ok, all} = Currency.currencies_for_locale(:en, only: :all)
       assert map_size(all) > 200
     end
 
-    test "filtering with except removes currencies" do
+    test "filtering with :except removes currencies" do
       {:ok, all} = Currency.currencies_for_locale(:en)
-      {:ok, no_historic} = Currency.currencies_for_locale(:en, :all, :historic)
+      {:ok, no_historic} = Currency.currencies_for_locale(:en, except: :historic)
       assert map_size(no_historic) < map_size(all)
+    end
+
+    test "a list filter combines statuses and currency codes" do
+      {:ok, filtered} = Currency.currencies_for_locale(:en, only: [:current, :ZWR])
+      assert Map.has_key?(filtered, :USD)
+      assert Map.has_key?(filtered, :ZWR)
+      refute Map.has_key?(filtered, :SDP)
+    end
+  end
+
+  describe "deprecated positional filter forms" do
+    import ExUnit.CaptureIO
+
+    test "a positional :only filter still works and warns" do
+      {result, warning} =
+        with_io(:stderr, fn -> Currency.currencies_for_locale(:en, :historic) end)
+
+      assert {:ok, historic} = result
+      assert Map.has_key?(historic, :SDP)
+      assert warning =~ "currencies_for_locale/2 is deprecated"
+    end
+
+    test "a positional list filter is treated as :only, not as options" do
+      {result, warning} =
+        with_io(:stderr, fn -> Currency.currencies_for_locale(:en, [:current, :ZWR]) end)
+
+      assert {:ok, filtered} = result
+      assert Map.has_key?(filtered, :ZWR)
+      refute Map.has_key?(filtered, :SDP)
+      assert warning =~ "deprecated"
+    end
+
+    test "the positional arity-3 forms still work" do
+      # Wrapped in apply/3 so the @deprecated compile-time warning
+      # does not fire for this intentional call.
+      assert {:ok, no_historic} =
+               apply(Currency, :currencies_for_locale, [:en, :all, :historic])
+
+      refute Map.has_key?(no_historic, :SDP)
+
+      assert {:ok, strings} = apply(Currency, :currency_strings, [:en, :all, :historic])
+      assert is_map(strings)
+
+      no_historic! = apply(Currency, :currencies_for_locale!, [:en, :all, :historic])
+      refute Map.has_key?(no_historic!, :SDP)
+
+      strings! = apply(Currency, :currency_strings!, [:en, :all, :historic])
+      assert is_map(strings!)
+    end
+
+    test "options and positional forms return identical results" do
+      {:ok, from_options} = Currency.currencies_for_locale(:en, only: :all, except: :historic)
+      {:ok, from_positional} = apply(Currency, :currencies_for_locale, [:en, :all, :historic])
+      assert from_options == from_positional
     end
   end
 

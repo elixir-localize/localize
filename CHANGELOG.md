@@ -16,6 +16,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * The TR35 conformance guide documents the MessageFormat 2 working-group suite exclusions precisely: unknown-function fallback, duplicate declaration/option validation, select and digit-size option validation, `u:dir`/`u:id` expression options, and the `:isolate` bidi strategy deviation.
 
+### Deprecated
+
+* `Localize.Currency.currencies_for_locale/2,3`, `currencies_for_locale!/2,3`, `currency_strings/2,3` and `currency_strings!/2,3` take the include/exclude filters as `:only` and `:except` options instead of positional arguments. The positional forms still work but are deprecated and will be removed by Localize 1.0 and no later than December 2026.
+
 ### Fixed
 
 * Calendar- and provider-module probes in date/datetime formatting (era year, day of era, ISO week and day of year, day of week, CLDR calendar type) and `Localize.Locale.Provider.allow_download?/1` ensure the module is loaded before `function_exported?/3`, so a cold module no longer silently takes the gregorian or default fallback branch.

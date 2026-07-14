@@ -44,7 +44,7 @@ The July 4 plan is almost entirely executed. Milestones 1–3 are done and verif
 
 ### A. API decisions (freeze at 1.0)
 
-1. **`Currency.currencies_for_locale/3` and `!/3` still take positional `only \\ :all, except \\ nil` filter args** (`lib/localize/currency.ex:639`, `:989`). The plan called for an options keyword list. This is the last remaining breaking-shaped API decision; decide (convert with deprecated positional heads, or explicitly accept the positional form) before RC.
+1. **`Currency.currencies_for_locale/3` and `!/3` positional filter args** — DONE July 15, including `currency_strings/3` and `!/3` which shared the pattern. All four take `:only` / `:except` options; the positional arity-3 forms remain as `@deprecated` delegates (house message, removal by 1.0 / December 2026) and a positional second argument warns at runtime via `IO.warn`. Note a bare `is_list/1` guard could not discriminate the forms because a `filter()` may itself be a list (`[:current, :ZWR]`) — discrimination is by keyword shape (`[{atom, _} | _]`), with a plain list still treated as a positional `:only` filter.
 
 2. **Four deviations from the frozen B5 visibility list** — RESOLVED July 15. Three confirmed correct: `List.Pattern` public (its struct is documented API in `Localize.List`), `Number.Format.Meta` public (its type appears in the public `Format.Compiler` specs), `Utils.Code` hidden (nothing public references it). One was wrong: `Number.Format.Options` was hidden while `validate_options/2` is a documented performance idiom in the Performance guide, the number cheatsheet and usage-rules.md — its moduledoc is restored and its doctest wired.
 
@@ -84,9 +84,9 @@ The July 4 plan is almost entirely executed. Milestones 1–3 are done and verif
 
 ## Suggested order
 
-Updated July 15: items 2, 4, 5 (documentation half), 7, 8, and 10–13 are done as annotated above. Remaining:
+Updated July 15: items 1, 2, 4, 5 (documentation half), 7, 8, and 10–13 are done as annotated above. Remaining:
 
-1. Item 1 (Currency positional args) and item 3 (delegate removal timing) — the two decisions that freeze.
+1. Item 3 — delegate removal timing: decide whether 1.0 removes all deprecated delegates (the known_/available_ set, Duration `:style`, and the new Currency positional forms) in one sweep or carries them to a later release. All messages promise removal by 1.0 and no later than December 2026.
 2. Scope decisions: close or accept the MF2 conformance gaps now documented in the guide (item 5), and implement-or-drop favor-region (item 6).
 3. Item 9 — `localize_mcp` release (repo, review, hex publish); README MCP section.
 4. Full house release review; 1.0.0-rc.1; soak; 1.0.0.

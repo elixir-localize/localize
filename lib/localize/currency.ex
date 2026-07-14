@@ -594,6 +594,29 @@ defmodule Localize.Currency do
     )
   end
 
+  # Normalizes the second argument of the filter-taking public
+  # functions: a keyword list carries the :only and :except options;
+  # anything else (an atom, or a plain list of statuses and currency
+  # codes, which is why a bare is_list/1 guard cannot discriminate)
+  # is the deprecated positional :only filter.
+  defp filter_options(_fun, [{key, _} | _] = options) when is_atom(key) do
+    {Keyword.get(options, :only, :all), Keyword.get(options, :except)}
+  end
+
+  defp filter_options(_fun, []) do
+    {:all, nil}
+  end
+
+  defp filter_options(fun, only) do
+    IO.warn(
+      "passing the :only filter positionally to Localize.Currency.#{fun} is deprecated. " <>
+        "Use the :only and :except options instead. Positional filters will be removed " <>
+        "by Localize 1.0 and no later than December 2026."
+    )
+
+    {only, nil}
+  end
+
   @doc """
   Returns a map of all currencies for a given locale.
 
@@ -607,10 +630,17 @@ defmodule Localize.Currency do
   * `locale` is a locale identifier atom, string, or a
     `t:Localize.LanguageTag.t/0`.
 
-  * `only` is a filter for currency status. The default is `:all`.
+  * `options` is a keyword list of options.
 
-  * `except` is a filter for currencies to exclude. The default
-    is `nil`.
+  ### Options
+
+  * `:only` is a filter of currencies to include: a currency
+    status (`:all`, `:current`, `:historic`, `:tender` or
+    `:unannotated`), a currency code, or a list combining them.
+    The default is `:all`.
+
+  * `:except` is a filter of currencies to exclude, in the same
+    form as `:only`. The default is `nil` (exclude none).
 
   ### Returns
 
@@ -625,18 +655,37 @@ defmodule Localize.Currency do
       iex> Map.has_key?(currencies, :USD)
       true
 
-      iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en, :all, :historic)
+      iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en, except: :historic)
       iex> {map_size(currencies) > 0, Map.has_key?(currencies, :SDP)}
       {true, false}
 
   """
   @spec currencies_for_locale(
           Localize.LanguageTag.t() | atom() | String.t(),
+          Keyword.t() | filter()
+        ) ::
+          {:ok, map()} | {:error, Exception.t()}
+  def currencies_for_locale(locale, options \\ []) do
+    {only, except} = filter_options("currencies_for_locale/2", options)
+    do_currencies_for_locale(locale, only, except)
+  end
+
+  @doc """
+  Same as `currencies_for_locale/2` but with the `:only` and `:except` filters as positional arguments.
+
+  """
+  @deprecated "Use currencies_for_locale/2 with the :only and :except options instead. This function will be removed by Localize 1.0 and no later than December 2026."
+  @spec currencies_for_locale(
+          Localize.LanguageTag.t() | atom() | String.t(),
           filter(),
           filter()
         ) ::
           {:ok, map()} | {:error, Exception.t()}
-  def currencies_for_locale(locale, only \\ :all, except \\ nil) do
+  def currencies_for_locale(locale, only, except) do
+    do_currencies_for_locale(locale, only, except)
+  end
+
+  defp do_currencies_for_locale(locale, only, except) do
     with {:ok, locale_id} <- cldr_locale_id_from(locale),
          {:ok, currencies} <- Localize.Locale.get(locale_id, [:currencies]) do
       {:ok, currency_filter(currencies, only, except)}
@@ -656,10 +705,17 @@ defmodule Localize.Currency do
   * `locale` is a locale identifier atom, string, or a
     `t:Localize.LanguageTag.t/0`.
 
-  * `only` is a filter for currency status. The default is `:all`.
+  * `options` is a keyword list of options.
 
-  * `except` is a filter for currencies to exclude. The default
-    is `nil`.
+  ### Options
+
+  * `:only` is a filter of currencies to include: a currency
+    status (`:all`, `:current`, `:historic`, `:tender` or
+    `:unannotated`), a currency code, or a list combining them.
+    The default is `:all`.
+
+  * `:except` is a filter of currencies to exclude, in the same
+    form as `:only`. The default is `nil` (exclude none).
 
   ### Returns
 
@@ -681,12 +737,31 @@ defmodule Localize.Currency do
   """
   @spec currency_strings(
           Localize.LanguageTag.t() | atom() | String.t(),
+          Keyword.t() | filter()
+        ) ::
+          {:ok, map()} | {:error, Exception.t()}
+  def currency_strings(locale, options \\ []) do
+    {only, except} = filter_options("currency_strings/2", options)
+    do_currency_strings(locale, only, except)
+  end
+
+  @doc """
+  Same as `currency_strings/2` but with the `:only` and `:except` filters as positional arguments.
+
+  """
+  @deprecated "Use currency_strings/2 with the :only and :except options instead. This function will be removed by Localize 1.0 and no later than December 2026."
+  @spec currency_strings(
+          Localize.LanguageTag.t() | atom() | String.t(),
           filter(),
           filter()
         ) ::
           {:ok, map()} | {:error, Exception.t()}
-  def currency_strings(locale, only \\ :all, except \\ nil) do
-    with {:ok, currencies} <- currencies_for_locale(locale, only, except) do
+  def currency_strings(locale, only, except) do
+    do_currency_strings(locale, only, except)
+  end
+
+  defp do_currency_strings(locale, only, except) do
+    with {:ok, currencies} <- do_currencies_for_locale(locale, only, except) do
       {:ok, build_currency_strings(currencies)}
     end
   end
@@ -695,7 +770,7 @@ defmodule Localize.Currency do
   Returns the list of strings that map to a given currency
   code in a locale.
 
-  This is the inverse of `currency_strings/3` filtered to a
+  This is the inverse of `currency_strings/2` filtered to a
   single currency. It returns all localized representations
   (name, symbol, plural forms) that identify the currency.
 
@@ -954,17 +1029,24 @@ defmodule Localize.Currency do
   end
 
   @doc """
-  Same as `currencies_for_locale/3` but raises on error.
+  Same as `currencies_for_locale/2` but raises on error.
 
   ### Arguments
 
   * `locale` is a locale identifier atom, string, or a
     `t:Localize.LanguageTag.t/0`.
 
-  * `only` is a filter for currency status. The default is `:all`.
+  * `options` is a keyword list of options.
 
-  * `except` is a filter for currencies to exclude. The default
-    is `nil`.
+  ### Options
+
+  * `:only` is a filter of currencies to include: a currency
+    status (`:all`, `:current`, `:historic`, `:tender` or
+    `:unannotated`), a currency code, or a list combining them.
+    The default is `:all`.
+
+  * `:except` is a filter of currencies to exclude, in the same
+    form as `:only`. The default is `nil` (exclude none).
 
   ### Returns
 
@@ -983,28 +1065,53 @@ defmodule Localize.Currency do
   """
   @spec currencies_for_locale!(
           Localize.LanguageTag.t() | atom() | String.t(),
-          filter(),
-          filter()
+          Keyword.t() | filter()
         ) :: map()
-  def currencies_for_locale!(locale, only \\ :all, except \\ nil) do
-    case currencies_for_locale(locale, only, except) do
+  def currencies_for_locale!(locale, options \\ []) do
+    {only, except} = filter_options("currencies_for_locale!/2", options)
+
+    case do_currencies_for_locale(locale, only, except) do
       {:ok, currencies} -> currencies
       {:error, exception} -> raise exception
     end
   end
 
   @doc """
-  Same as `currency_strings/3` but raises on error.
+  Same as `currencies_for_locale!/2` but with the `:only` and `:except` filters as positional arguments.
+
+  """
+  @deprecated "Use currencies_for_locale!/2 with the :only and :except options instead. This function will be removed by Localize 1.0 and no later than December 2026."
+  @spec currencies_for_locale!(
+          Localize.LanguageTag.t() | atom() | String.t(),
+          filter(),
+          filter()
+        ) :: map()
+  def currencies_for_locale!(locale, only, except) do
+    case do_currencies_for_locale(locale, only, except) do
+      {:ok, currencies} -> currencies
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Same as `currency_strings/2` but raises on error.
 
   ### Arguments
 
   * `locale` is a locale identifier atom, string, or a
     `t:Localize.LanguageTag.t/0`.
 
-  * `only` is a filter for currency status. The default is `:all`.
+  * `options` is a keyword list of options.
 
-  * `except` is a filter for currencies to exclude. The default
-    is `nil`.
+  ### Options
+
+  * `:only` is a filter of currencies to include: a currency
+    status (`:all`, `:current`, `:historic`, `:tender` or
+    `:unannotated`), a currency code, or a list combining them.
+    The default is `:all`.
+
+  * `:except` is a filter of currencies to exclude, in the same
+    form as `:only`. The default is `nil` (exclude none).
 
   ### Returns
 
@@ -1023,11 +1130,29 @@ defmodule Localize.Currency do
   """
   @spec currency_strings!(
           Localize.LanguageTag.t() | atom() | String.t(),
+          Keyword.t() | filter()
+        ) :: map()
+  def currency_strings!(locale, options \\ []) do
+    {only, except} = filter_options("currency_strings!/2", options)
+
+    case do_currency_strings(locale, only, except) do
+      {:ok, strings} -> strings
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Same as `currency_strings!/2` but with the `:only` and `:except` filters as positional arguments.
+
+  """
+  @deprecated "Use currency_strings!/2 with the :only and :except options instead. This function will be removed by Localize 1.0 and no later than December 2026."
+  @spec currency_strings!(
+          Localize.LanguageTag.t() | atom() | String.t(),
           filter(),
           filter()
         ) :: map()
-  def currency_strings!(locale, only \\ :all, except \\ nil) do
-    case currency_strings(locale, only, except) do
+  def currency_strings!(locale, only, except) do
+    case do_currency_strings(locale, only, except) do
       {:ok, strings} -> strings
       {:error, exception} -> raise exception
     end
