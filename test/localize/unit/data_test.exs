@@ -7,7 +7,7 @@ defmodule Localize.Unit.DataTest do
 
   describe "prefix_components/0" do
     test "returns a non-empty list" do
-      assert Data.prefix_components() != []
+      refute Enum.empty?(Data.prefix_components())
     end
 
     test "includes known prefix components" do
@@ -22,7 +22,7 @@ defmodule Localize.Unit.DataTest do
 
   describe "suffix_components/0" do
     test "returns a non-empty list" do
-      assert Data.suffix_components() != []
+      refute Enum.empty?(Data.suffix_components())
     end
 
     test "includes known suffix components" do

@@ -6,9 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+* The locale download base URL can be overridden with `config :localize, locale_base_url: "..."` for deployments mirroring the locale files; downloads are verified against the bundled hash manifest regardless of source.
+
+### Changed
+
+* `Localize.Number.Format.Options` is documented again: `validate_options/2` is the supported way to pre-resolve formatting options for hot loops (as the Performance guide describes), so the module is part of the public API.
+
+* The TR35 conformance guide documents the MessageFormat 2 working-group suite exclusions precisely: unknown-function fallback, duplicate declaration/option validation, select and digit-size option validation, `u:dir`/`u:id` expression options, and the `:isolate` bidi strategy deviation.
+
 ### Fixed
 
 * Calendar- and provider-module probes in date/datetime formatting (era year, day of era, ISO week and day of year, day of week, CLDR calendar type) and `Localize.Locale.Provider.allow_download?/1` ensure the module is loaded before `function_exported?/3`, so a cold module no longer silently takes the gregorian or default fallback branch.
+
+### Security
+
+* `Localize.Locale.Provider.locale_file_name/1` rejects locale identifiers that do not have the shape of a CLDR locale id, as defense in depth for the cache-path and download-URL interpolations.
 
 ## [0.49.0] — July 12th, 2026
 

@@ -1,10 +1,10 @@
 defmodule Localize.Number.Format.Options do
-  @moduledoc false
+  @moduledoc """
+  Validation and resolution of number formatting options.
 
-  # Options validation and transformation for number formatting.
-  # This is an internal module that validates user-supplied
-  # options and produces a normalized options struct for the
-  # formatter pipeline.
+  `validate_options/2` resolves a keyword list of the options accepted by `Localize.Number.to_string/2` into a `t:Localize.Number.Format.Options.t/0` struct — locale validation, number system resolution, format pattern lookup, currency data loading and symbol resolution all happen once. Passing the resulting struct to `Localize.Number.to_string/2` bypasses that resolution on every call, which is significantly faster when formatting many numbers with the same locale and format. See the [Performance and optimization](number_formatting.html#performance-and-optimization) section of the Number Formatting guide for benchmarks.
+
+  """
 
   alias Localize.Number.{Format, Symbol, System}
 

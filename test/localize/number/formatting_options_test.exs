@@ -1,6 +1,8 @@
 defmodule Localize.Number.FormattingOptionsTest do
   use ExUnit.Case, async: true
 
+  doctest Localize.Number.Format.Options
+
   alias Localize.Number
 
   describe "permille patterns" do
