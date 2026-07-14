@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+* Calendar- and provider-module probes in date/datetime formatting (era year, day of era, ISO week and day of year, day of week, CLDR calendar type) and `Localize.Locale.Provider.allow_download?/1` ensure the module is loaded before `function_exported?/3`, so a cold module no longer silently takes the gregorian or default fallback branch.
+
 ## [0.49.0] — July 12th, 2026
 
 ### Fixed
