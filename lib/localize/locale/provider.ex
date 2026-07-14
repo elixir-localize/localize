@@ -172,6 +172,8 @@ defmodule Localize.Locale.Provider do
   """
   @spec allow_download?(module()) :: boolean()
   def allow_download?(provider_module \\ configured_provider()) do
+    Code.ensure_loaded?(provider_module)
+
     if function_exported?(provider_module, :allow_download?, 0) do
       provider_module.allow_download?()
     else

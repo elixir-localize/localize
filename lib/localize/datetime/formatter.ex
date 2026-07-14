@@ -343,6 +343,8 @@ defmodule Localize.DateTime.Formatter do
   # a signed proleptic year like "-1 BC".
   defp era_year(%{year: year, month: month, day: day, calendar: calendar})
        when is_atom(calendar) do
+    Code.ensure_loaded?(calendar)
+
     cond do
       function_exported?(calendar, :calendar_year, 3) ->
         calendar.calendar_year(year, month, day)
@@ -1212,6 +1214,8 @@ defmodule Localize.DateTime.Formatter do
   end
 
   defp iso_week_of_year(%{year: year, month: month, day: day, calendar: calendar} = date) do
+    Code.ensure_loaded?(calendar)
+
     if function_exported?(calendar, :iso_week_of_year, 3) do
       case calendar.iso_week_of_year(year, month, day) do
         {y, w} when is_integer(y) and is_integer(w) -> {y, w}
@@ -1237,6 +1241,8 @@ defmodule Localize.DateTime.Formatter do
 
   defp compute_day_of_year(%{year: year, month: month, day: day, calendar: calendar})
        when is_integer(year) and is_integer(month) and is_integer(day) do
+    Code.ensure_loaded?(calendar)
+
     if function_exported?(calendar, :day_of_year, 3) do
       calendar.day_of_year(year, month, day)
     else
