@@ -59,6 +59,10 @@ Localize ships a [Claude Code](https://claude.com/claude-code) skill that teache
 
 The skill source lives in [skills/localize](https://github.com/elixir-localize/localize/blob/main/skills/localize/SKILL.md).
 
+## MCP server
+
+The companion [localize_mcp](https://hexdocs.pm/localize_mcp/readme.html) package is a Model Context Protocol server that lets any MCP host — Claude Code, Claude Desktop, Codex, Zed — search, browse, and invoke the Localize API through eleven typed tools, so agents discover the right function, options, and atom forms without grepping source. Add `{:localize_mcp, "~> 0.1", only: :dev}` to your project and run `claude mcp add localize -- mix localize_mcp`; the [host configuration guide](https://hexdocs.pm/localize_mcp/host_configuration.html) covers the other hosts.
+
 ## Supported Elixir and OTP versions
 
 Localize requires **Elixir 1.17+** and **Erlang/OTP 26+**.
