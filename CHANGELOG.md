@@ -12,9 +12,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * The MessageFormat working group's `:test:function`, `:test:format` and `:test:select` registry functions are implemented, so the WG conformance suite's selection-mechanics and fallback cases now run.
 
+* The MF2 numeric functions accept the `signDisplay` option (`auto`, `always`, `exceptZero`, `negative`, `never`), with the plus sign taken from the locale's number symbols.
+
+* An MF2 pattern expression that re-annotates a declared variable operates on the declaration's original value, and numeric functions inherit unset options from a numeric declaration — `.local $x = {41 :integer signDisplay=always}` rendered with `{$x :offset add=1}` produces "+42".
+
 * The locale download base URL can be overridden with `config :localize, locale_base_url: "..."` for deployments mirroring the locale files; downloads are verified against the bundled hash manifest regardless of source.
 
 ### Changed
+
+* An unannotated MF2 placeholder with a numeric operand formats with the locale-aware `:number` default (`{$pi}` renders "3.142" in en and "3,142" in fr), matching the MF2 implicit formatting rules; previously the value was stringified verbatim.
 
 * MessageFormat 2 follows the specification's error semantics: unknown functions are an error (`Localize.FormatError` reason `:unknown_function`) instead of formatting the operand, and data-model validation rejects duplicate declarations, duplicate option names, and duplicate variants (NFC-normalized keys) with dedicated error reasons.
 

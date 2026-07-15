@@ -460,7 +460,7 @@ Two areas are explicitly out of scope:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | `:string` | Implemented | |
-| `:number` | Implemented | Delegates to `Localize.Number.to_string/2`. |
+| `:number` | Implemented | Delegates to `Localize.Number.to_string/2`. All numeric functions support `signDisplay`, and an unannotated numeric operand formats with the locale-aware `:number` default. |
 | `:integer` | Implemented | |
 | `:percent` | Implemented | |
 | `:currency` | Implemented | |
@@ -496,15 +496,9 @@ Two areas are explicitly out of scope:
 
 The MessageFormat working group conformance suite — including the WG `:test:function` / `:test:format` / `:test:select` registry functions it uses to exercise selection mechanics — runs against both the parser and the formatter (`test/localize/message/formatter_conformance_test.exs`). The few cases the implementation cannot yet satisfy are excluded there, each with a documented reason:
 
-* Declarations bind the formatted string, so re-annotating an already-annotated variable in a later declaration fails (one case each in the currency, date, time and percent suites).
-
 * The `u:dir` / `u:id` expression *options* are not implemented (the `@u:dir` attribute form is).
 
 * The `:isolate` bidi strategy isolates every placeholder where the WG default strategy leaves known-LTR placeholders unisolated (three cases).
-
-* The `:offset` function's `signDisplay` option is not implemented (two cases).
-
-* Unannotated number operands are not implicitly formatted with the locale-aware `:number` function (one case).
 
 ---
 

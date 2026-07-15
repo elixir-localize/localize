@@ -156,6 +156,7 @@ defmodule Localize.Message.Interpreter do
         {:error, [], [], [var_name]}
 
       {bindings, bound, selector_meta} ->
+        options = Keyword.put(options, :declaration_meta, selector_meta)
         format_complex_body(body, bindings, options, bound, selector_meta)
     end
   end
@@ -403,6 +404,8 @@ defmodule Localize.Message.Interpreter do
         {:error, [], [], [var_name]}
 
       {bindings, bound, selector_meta} ->
+        options = Keyword.put(options, :declaration_meta, selector_meta)
+
         case body do
           {:quoted_pattern, parts} ->
             structured_pattern(parts, bindings, options, bound)
@@ -720,6 +723,8 @@ defmodule Localize.Message.Interpreter do
   defp format_expression(operand, func, bindings, options) do
     case resolve_operand(operand, bindings) do
       {:ok, value, bound_names} ->
+        {value, func} = reannotate_from_declaration(operand, value, func, options)
+
         case apply_function(value, func, Keyword.put(options, :bindings, bindings)) do
           {:ok, formatted} -> {:ok, formatted, bound_names}
           {:unbound, var_name} -> {:unbound, var_name}
@@ -730,6 +735,40 @@ defmodule Localize.Message.Interpreter do
       {:unbound, name} ->
         {:unbound, name}
     end
+  end
+
+  # A pattern expression that re-annotates a declared variable
+  # operates on the declaration's original (unformatted) value —
+  # not the formatted string the declaration bound — and a numeric
+  # function inherits unset options from a numeric declaration, so
+  # `.local $x = {41 :integer signDisplay=always}` rendered with
+  # `{$x :offset add=1}` produces "+42".
+  defp reannotate_from_declaration({:variable, name}, value, {:function, _, _} = func, options) do
+    case options |> Keyword.get(:declaration_meta, %{}) |> Map.get(name) do
+      {original, declared_func} ->
+        {original, merge_declared_options(normalize_function(func), declared_func)}
+
+      nil ->
+        {value, func}
+    end
+  end
+
+  defp reannotate_from_declaration(_operand, value, func, _options) do
+    {value, func}
+  end
+
+  defp merge_declared_options(
+         {:function, name, options},
+         {:function, declared_name, declared_options}
+       )
+       when name in ["number", "integer", "offset", "percent", "currency"] and
+              declared_name in ["number", "integer", "offset", "percent", "currency"] do
+    merged = Enum.uniq_by(options ++ declared_options, fn {:option, key, _value} -> key end)
+    {:function, name, merged}
+  end
+
+  defp merge_declared_options(func, _declared_func) do
+    func
   end
 
   defp resolve_operand(nil, _bindings) do
@@ -752,6 +791,16 @@ defmodule Localize.Message.Interpreter do
   end
 
   # ── Function dispatch ──────────────────────────────────────────
+
+  defp apply_function(value, nil, options) when is_number(value) do
+    # An unannotated placeholder with a numeric operand formats with
+    # the locale-aware default, as if annotated with `:number`.
+    Localize.Number.to_string(value, resolve_locale_options(options))
+  end
+
+  defp apply_function(%Decimal{} = value, nil, options) do
+    Localize.Number.to_string(value, resolve_locale_options(options))
+  end
 
   defp apply_function(value, nil, _options) do
     {:ok, to_string_value(value)}
@@ -817,15 +866,14 @@ defmodule Localize.Message.Interpreter do
   defp format_with_function("number", value, func_opts, options) do
     with {:ok, number} <- ensure_number(value),
          {:ok, options_struct} <- build_number_options(options, func_opts) do
-      Localize.Number.to_string(number, set_number_pattern(options_struct, number))
+      format_number_result(number, options_struct, func_opts)
     end
   end
 
   defp format_with_function("integer", value, func_opts, options) do
     with {:ok, number} <- ensure_number(value),
          {:ok, options_struct} <- build_number_options(options, func_opts) do
-      integer = trunc(number)
-      Localize.Number.to_string(integer, set_number_pattern(options_struct, integer))
+      format_number_result(trunc(number), options_struct, func_opts)
     end
   end
 
@@ -833,22 +881,21 @@ defmodule Localize.Message.Interpreter do
     with {:ok, number} <- ensure_number(value),
          {:ok, adjustment} <- offset_adjustment(func_opts),
          {:ok, options_struct} <- build_number_options(options, func_opts) do
-      adjusted = apply_offset(number, adjustment)
-      Localize.Number.to_string(adjusted, set_number_pattern(options_struct, adjusted))
+      format_number_result(apply_offset(number, adjustment), options_struct, func_opts)
     end
   end
 
   defp format_with_function("percent", value, func_opts, options) do
     with {:ok, number} <- ensure_number(value),
          {:ok, options_struct} <- build_number_options(options, func_opts, format: :percent) do
-      Localize.Number.to_string(number, set_number_pattern(options_struct, number))
+      format_number_result(number, options_struct, func_opts)
     end
   end
 
   defp format_with_function("currency", value, func_opts, options) do
     with {:ok, number} <- ensure_number(value),
          {:ok, options_struct} <- build_currency_options(options, func_opts) do
-      Localize.Number.to_string(number, set_number_pattern(options_struct, number))
+      format_number_result(number, options_struct, func_opts)
     end
   end
 
@@ -1036,6 +1083,76 @@ defmodule Localize.Message.Interpreter do
 
   defp to_float(%Decimal{} = number), do: Decimal.to_float(number)
   defp to_float(number) when is_number(number), do: number * 1.0
+
+  # Formats a resolved numeric value honouring the MF2 `signDisplay`
+  # option (auto | always | exceptZero | negative | never). The plus
+  # sign comes from the locale's number symbols.
+  defp format_number_result(number, options_struct, func_opts) do
+    with {:ok, sign_display} <- sign_display_option(func_opts) do
+      format_with_sign_display(number, options_struct, sign_display)
+    end
+  end
+
+  defp format_with_sign_display(number, options_struct, "auto") do
+    Localize.Number.to_string(number, set_number_pattern(options_struct, number))
+  end
+
+  defp format_with_sign_display(number, options_struct, "never") do
+    magnitude = number_abs(number)
+    Localize.Number.to_string(magnitude, set_number_pattern(options_struct, magnitude))
+  end
+
+  defp format_with_sign_display(number, options_struct, "always") do
+    if number_negative?(number) do
+      format_with_sign_display(number, options_struct, "auto")
+    else
+      with {:ok, formatted} <- format_with_sign_display(number, options_struct, "auto") do
+        {:ok, plus_sign(options_struct) <> formatted}
+      end
+    end
+  end
+
+  defp format_with_sign_display(number, options_struct, "exceptZero") do
+    cond do
+      number_zero?(number) -> format_with_sign_display(number, options_struct, "never")
+      number_negative?(number) -> format_with_sign_display(number, options_struct, "auto")
+      true -> format_with_sign_display(number, options_struct, "always")
+    end
+  end
+
+  defp format_with_sign_display(number, options_struct, "negative") do
+    if number_zero?(number) do
+      format_with_sign_display(number, options_struct, "never")
+    else
+      format_with_sign_display(number, options_struct, "auto")
+    end
+  end
+
+  defp sign_display_option(func_opts) do
+    case func_opts[:signDisplay] || func_opts["signDisplay"] do
+      nil ->
+        {:ok, "auto"}
+
+      value when value in ["auto", "always", "exceptZero", "negative", "never"] ->
+        {:ok, value}
+
+      value ->
+        {:error,
+         "the signDisplay option must be one of auto, always, exceptZero, negative " <>
+           "or never, got #{inspect(value)}"}
+    end
+  end
+
+  defp plus_sign(%{symbols: %{plus_sign: plus}}), do: plus
+
+  defp number_negative?(%Decimal{sign: sign}), do: sign < 0
+  defp number_negative?(number), do: number < 0
+
+  defp number_zero?(%Decimal{} = decimal), do: Decimal.equal?(decimal, 0)
+  defp number_zero?(number), do: number == 0
+
+  defp number_abs(%Decimal{} = decimal), do: Decimal.abs(decimal)
+  defp number_abs(number), do: abs(number)
 
   defp resolve_custom_function(name, options) do
     per_call = Keyword.get(options, :functions, %{})
