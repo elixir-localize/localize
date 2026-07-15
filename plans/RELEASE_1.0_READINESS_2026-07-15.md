@@ -87,7 +87,7 @@ The July 4 plan is almost entirely executed. Milestones 1–3 are done and verif
 Updated July 15 (second pass): items 1, 2, 4, 5, 6, 7, 8, and 10–13 are all done as annotated above. Remaining:
 
 1. Item 3 — delegate removal timing: decide whether 1.0 removes all deprecated delegates (the known_/available_ set, Duration `:style`, and the new Currency positional forms) in one sweep or carries them to a later release. All messages promise removal by 1.0 and no later than December 2026.
-2. The MF2 additive bucket (post-1.0 candidates or pre-1.0 polish): re-annotation of annotated variables (declarations bind formatted strings — an interpreter design change), `u:dir`/`u:id` expression options, WG-default bidi strategy, `:offset` `signDisplay`, implicit locale-aware number formatting of unannotated operands.
+2. The MF2 additive bucket — mostly CLOSED July 15 (third pass): `signDisplay` on all numeric functions, implicit locale-aware `:number` formatting of unannotated numeric operands, and re-annotation of declared variables (pattern expressions operate on the declaration's original value with numeric option inheritance). Remaining: `u:dir`/`u:id` expression options and the WG-default bidi strategy (five excluded suite cases in total).
 3. Item 9 — `localize_mcp` release (repo, review, hex publish); README MCP section.
 4. Full house release review; 1.0.0-rc.1; soak; 1.0.0.
 

@@ -77,35 +77,12 @@ defmodule Localize.Message.FormatterConformanceTest do
   # Every exclusion is a real, documented implementation gap; the
   # remaining cases in each file are asserted.
   @exclusion_groups %{
-    "syntax.json" => %{
-      "known gap: unannotated number operands are not implicitly formatted with the locale-aware :number function" =>
-        [90]
-    },
     "bidi.json" => %{
       "WG default bidi strategy leaves known-LTR placeholders unisolated; :isolate wraps all placeholders" =>
         [16, 19, 20]
     },
     "u-options.json" => %{
       "u:dir/u:id expression options not implemented" => [1, 2, 3, 5, 6, 8]
-    },
-    "functions/currency.json" => %{
-      "known gap: declarations bind the formatted string, so re-annotating an annotated variable fails" =>
-        [7]
-    },
-    "functions/date.json" => %{
-      "known gap: declarations bind the formatted string, so re-annotating an annotated variable fails" =>
-        [6]
-    },
-    "functions/offset.json" => %{
-      "known gap: signDisplay option not implemented" => [10, 11]
-    },
-    "functions/percent.json" => %{
-      "known gap: declarations bind the formatted string, so re-annotating an annotated variable fails" =>
-        [5]
-    },
-    "functions/time.json" => %{
-      "known gap: declarations bind the formatted string, so re-annotating an annotated variable fails" =>
-        [5]
     }
   }
 

@@ -239,7 +239,10 @@ defmodule Localize.Message.SigilsTest do
     end
 
     test "remote call on an atom module derives mod_fun" do
-      assert AssignsFixture.atom_module_call() =~ "Pi is 3.14159"
+      # An unannotated numeric operand formats with the locale-aware
+      # :number default (at most three fraction digits, matching the
+      # MF2 implicit formatting behaviour and Intl.NumberFormat).
+      assert AssignsFixture.atom_module_call() =~ "Pi is 3.142"
     end
 
     test "nested dot access not rooted at assigns raises" do
