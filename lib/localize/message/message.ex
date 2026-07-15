@@ -474,6 +474,25 @@ defmodule Localize.Message do
     )
   end
 
+  defp format_error_from_payload(message, function, {:data_model, {reason, detail}})
+       when reason in [:duplicate_declaration, :duplicate_option_name, :duplicate_variant] do
+    Localize.FormatError.exception(
+      value: message,
+      function: function,
+      reason: reason,
+      detail: detail
+    )
+  end
+
+  defp format_error_from_payload(message, function, {:unknown_function, name}) do
+    Localize.FormatError.exception(
+      value: message,
+      function: function,
+      reason: :unknown_function,
+      detail: name
+    )
+  end
+
   @doc """
   Same as `format_to_safe_list/3` but raises on error.
 

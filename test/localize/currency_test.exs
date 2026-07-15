@@ -354,24 +354,29 @@ defmodule Localize.CurrencyTest do
 
     test "the positional arity-3 forms still work" do
       # Wrapped in apply/3 so the @deprecated compile-time warning
-      # does not fire for this intentional call.
-      assert {:ok, no_historic} =
-               apply(Currency, :currencies_for_locale, [:en, :all, :historic])
-
+      # does not fire for these intentional calls.
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
+      result = apply(Currency, :currencies_for_locale, [:en, :all, :historic])
+      assert {:ok, no_historic} = result
       refute Map.has_key?(no_historic, :SDP)
 
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
       assert {:ok, strings} = apply(Currency, :currency_strings, [:en, :all, :historic])
       assert is_map(strings)
 
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
       no_historic! = apply(Currency, :currencies_for_locale!, [:en, :all, :historic])
       refute Map.has_key?(no_historic!, :SDP)
 
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
       strings! = apply(Currency, :currency_strings!, [:en, :all, :historic])
       assert is_map(strings!)
     end
 
     test "options and positional forms return identical results" do
       {:ok, from_options} = Currency.currencies_for_locale(:en, only: :all, except: :historic)
+
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
       {:ok, from_positional} = apply(Currency, :currencies_for_locale, [:en, :all, :historic])
       assert from_options == from_positional
     end
@@ -494,7 +499,7 @@ defmodule Localize.CurrencyTest do
     end
 
     test "currencies_for_locale! with filter" do
-      current = Currency.currencies_for_locale!(:en, :current)
+      current = Currency.currencies_for_locale!(:en, only: :current)
       assert Map.has_key?(current, :USD)
       refute Map.has_key?(current, :SDP)
     end
@@ -565,7 +570,7 @@ defmodule Localize.CurrencyTest do
       # `only` accepts a list of filter terms including bare currency
       # codes. Unknown binary codes must filter to no rows without
       # atomising.
-      assert {:ok, result} = Currency.currencies_for_locale(:en, [bogus])
+      assert {:ok, result} = Currency.currencies_for_locale(:en, only: [bogus])
       assert result == %{}
       assert nil == Localize.Utils.Helpers.existing_atom(bogus)
     end

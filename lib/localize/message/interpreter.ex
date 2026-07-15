@@ -101,6 +101,8 @@ defmodule Localize.Message.Interpreter do
   @type format_error_payload ::
           {:unbalanced_markup, :unclosed | {:mismatched_close, String.t()}}
           | {:formatter_failed, Exception.t() | String.t()}
+          | {:data_model, Localize.Message.Validator.error()}
+          | {:unknown_function, String.t()}
 
   @spec format_list(term(), map() | list(), Keyword.t()) ::
           {:ok, list(), list(), list()}
@@ -113,8 +115,14 @@ defmodule Localize.Message.Interpreter do
   end
 
   def format_list(ast, bindings, options) when is_map(bindings) do
-    bindings = normalize_binding_keys(bindings)
-    do_format_list(ast, bindings, options)
+    case Localize.Message.Validator.validate(ast) do
+      :ok ->
+        bindings = normalize_binding_keys(bindings)
+        do_format_list(ast, bindings, options)
+
+      {:error, payload} ->
+        {:format_error, {:data_model, payload}}
+    end
   end
 
   # ── Top-level AST dispatch ────────────────────────────────────
@@ -192,7 +200,8 @@ defmodule Localize.Message.Interpreter do
        ) do
     case resolve_variable(name, bindings_acc) do
       {:ok, value} ->
-        bind_declaration(name, value, func, accumulator, options)
+        func = normalize_function(func)
+        bind_declaration(name, value, func, func, accumulator, options)
 
       :error ->
         {:cont, {bindings_acc, bound_acc, sel_meta}}
@@ -206,23 +215,89 @@ defmodule Localize.Message.Interpreter do
        ) do
     case resolve_operand(operand, bindings_acc) do
       {:ok, value, _} ->
-        bind_declaration(name, value, func, accumulator, options)
+        func = normalize_function(func)
+
+        case operand_select_conflict(operand, func, sel_meta) do
+          :ok ->
+            selector_func = merge_test_function(func, operand, sel_meta)
+            bind_declaration(name, value, func, selector_func, accumulator, options)
+
+          {:error, reason} ->
+            {:halt, {:format_error, {:formatter_failed, reason}}}
+        end
 
       {:unbound, _} ->
         {:cont, {bindings_acc, bound_acc, sel_meta}}
     end
   end
 
-  defp bind_declaration(name, value, func, {bindings_acc, bound_acc, sel_meta}, options) do
+  # The WG `:test:*` functions read unset options from the resolved
+  # value of a variable operand (a re-annotation such as
+  # `.local $y = {$x :test:select}` inherits $x's decimalPlaces).
+  # Options set directly on the expression take precedence.
+  defp merge_test_function({:function, name, options} = func, {:variable, operand_name}, sel_meta)
+       when name in ["test:select", "test:function", "test:format"] do
+    case Map.get(sel_meta, operand_name) do
+      {_value, {:function, operand_name_string, operand_options}}
+      when operand_name_string in ["test:select", "test:function", "test:format"] ->
+        merged = Enum.uniq_by(options ++ operand_options, fn {:option, key, _value} -> key end)
+        {:function, name, merged}
+
+      _other ->
+        func
+    end
+  end
+
+  defp merge_test_function(func, _operand, _sel_meta) do
+    func
+  end
+
+  # TR35: "if the `select` option is set by an implementation-defined
+  # type used as an operand, a Bad Option error is emitted and the
+  # resolved value MUST NOT support selection" — re-annotating a
+  # variable whose declaration carried a `select` option cannot carry
+  # that option through the resolved operand.
+  defp operand_select_conflict({:variable, operand_name}, {:function, name, _options}, sel_meta)
+       when name in ["number", "integer", "offset", "percent"] do
+    case Map.get(sel_meta, operand_name) do
+      {_value, {:function, _declared_name, declared_options}} ->
+        if Enum.any?(declared_options, &match?({:option, "select", _}, &1)) do
+          {:error,
+           "the select option of :#{name} cannot be set through the resolved value " <>
+             "of the operand ${#{operand_name}}"}
+        else
+          :ok
+        end
+
+      _other ->
+        :ok
+    end
+  end
+
+  defp operand_select_conflict(_operand, _func, _sel_meta) do
+    :ok
+  end
+
+  defp bind_declaration(
+         name,
+         value,
+         func,
+         selector_func,
+         {bindings_acc, bound_acc, sel_meta},
+         options
+       ) do
     case apply_function(value, func, Keyword.put(options, :bindings, bindings_acc)) do
       {:ok, formatted} ->
         sel_value = selector_value(value, func)
-        sel_meta = Map.put(sel_meta, name, {sel_value, func})
+        sel_meta = Map.put(sel_meta, name, {sel_value, selector_func})
         bindings_acc = Map.put(bindings_acc, name, formatted)
         {:cont, {bindings_acc, [name | bound_acc], sel_meta}}
 
       {:unbound, var_name} ->
         {:halt, {:unbound_declaration, var_name}}
+
+      {:error, {:unknown_function, _} = payload} ->
+        {:halt, {:format_error, payload}}
 
       {:error, reason} ->
         {:halt, {:format_error, {:formatter_failed, reason}}}
@@ -293,8 +368,14 @@ defmodule Localize.Message.Interpreter do
   end
 
   def format_structured(ast, bindings, options) when is_map(bindings) do
-    bindings = normalize_binding_keys(bindings)
-    do_format_structured(ast, bindings, options)
+    case Localize.Message.Validator.validate(ast) do
+      :ok ->
+        bindings = normalize_binding_keys(bindings)
+        do_format_structured(ast, bindings, options)
+
+      {:error, payload} ->
+        {:format_error, {:data_model, payload}}
+    end
   end
 
   defp do_format_structured([{:complex, _, _} = complex], bindings, options) do
@@ -347,6 +428,20 @@ defmodule Localize.Message.Interpreter do
     {selector_info, unbound_selectors} = resolve_selector_info(selectors, bindings, selector_meta)
     selector_names = for info <- selector_info, not info.unbound, do: info.name
 
+    with :ok <- selectable_selectors(selector_info) do
+      structured_matched_variant(
+        selector_info,
+        variants,
+        bindings,
+        options,
+        {bound, selector_names, unbound_selectors}
+      )
+    end
+  end
+
+  defp structured_matched_variant(selector_info, variants, bindings, options, names) do
+    {bound, selector_names, unbound_selectors} = names
+
     case find_best_variant(selector_info, variants, options) do
       {:ok, {:variant, _keys, {:quoted_pattern, parts}}} ->
         case structured_pattern(parts, bindings, options, bound ++ selector_names) do
@@ -364,6 +459,38 @@ defmodule Localize.Message.Interpreter do
         {:error, [], Enum.uniq(bound ++ selector_names),
          ["no matching variant" | unbound_selectors]}
     end
+  end
+
+  # TR35 Bad Selector: functions whose resolved values do not support
+  # selection cannot be used as `.match` selectors, and a `:test:*`
+  # selector with fails=select|always fails selection by design.
+  defp selectable_selectors(selector_info) do
+    Enum.find_value(selector_info, :ok, fn
+      %{func: {:function, name, _options}}
+      when name in ["currency", "unit", "date", "time", "datetime", "test:format"] ->
+        {:format_error, {:formatter_failed, "the :#{name} function does not support selection"}}
+
+      %{func: {:function, name, options}} when name in ["test:select", "test:function"] ->
+        case raw_option_value(options, "fails") do
+          fails when fails in ["select", "always"] ->
+            {:format_error,
+             {:formatter_failed, "the :#{name} selector failed to select (fails=#{fails})"}}
+
+          _other ->
+            nil
+        end
+
+      _info ->
+        nil
+    end)
+  end
+
+  defp raw_option_value(options, name) do
+    Enum.find_value(options, fn
+      {:option, ^name, {:literal, value}} -> value
+      {:option, ^name, {:number_literal, value}} -> value
+      _other -> nil
+    end)
   end
 
   # Resolves each `.match` selector variable against the current
@@ -596,6 +723,7 @@ defmodule Localize.Message.Interpreter do
         case apply_function(value, func, Keyword.put(options, :bindings, bindings)) do
           {:ok, formatted} -> {:ok, formatted, bound_names}
           {:unbound, var_name} -> {:unbound, var_name}
+          {:error, {:unknown_function, _} = payload} -> {:format_error, payload}
           {:error, reason} -> {:format_error, {:formatter_failed, reason}}
         end
 
@@ -629,13 +757,50 @@ defmodule Localize.Message.Interpreter do
     {:ok, to_string_value(value)}
   end
 
-  defp apply_function(value, {:function, name, func_options}, options) do
+  defp apply_function(value, {:function, raw_name, func_options}, options) do
     bindings = Keyword.get(options, :bindings, %{})
+    name = function_name(raw_name)
 
-    case resolve_func_options(func_options, bindings) do
-      {:ok, func_opts} -> format_with_function(name, value, func_opts, options)
-      {:unbound, var_name} -> {:unbound, var_name}
+    case validate_select_option(name, func_options) do
+      :ok ->
+        case resolve_func_options(func_options, bindings) do
+          {:ok, func_opts} -> format_with_function(name, value, func_opts, options)
+          {:unbound, var_name} -> {:unbound, var_name}
+        end
+
+      {:error, _} = error ->
+        error
     end
+  end
+
+  # The parser represents a namespaced function name (`:ns:name`) as
+  # `{:namespace, ns, name}`; everywhere downstream works with the
+  # flat "ns:name" string form.
+  defp function_name({:namespace, namespace, name}), do: namespace <> ":" <> name
+  defp function_name(name) when is_binary(name), do: name
+
+  defp normalize_function({:function, raw_name, options}) do
+    {:function, function_name(raw_name), options}
+  end
+
+  defp normalize_function(func), do: func
+
+  # TR35: "The option value of the `select` option MUST be set by a
+  # literal" — a variable-valued `select` is a Bad Option error, since
+  # the set of variant keys is tied to the selection mode chosen.
+  defp validate_select_option(name, func_options)
+       when name in ["number", "integer", "offset", "percent"] do
+    Enum.find_value(func_options, :ok, fn
+      {:option, "select", {:variable, _var_name}} ->
+        {:error, "the select option of :#{name} must be set by a literal value"}
+
+      _other ->
+        nil
+    end)
+  end
+
+  defp validate_select_option(_name, _func_options) do
+    :ok
   end
 
   # ── Number formatting ──────────────────────────────────────────
@@ -760,7 +925,34 @@ defmodule Localize.Message.Interpreter do
     {:error, "the :list function requires a list operand, got #{inspect(value)}"}
   end
 
-  # ── Custom function registry + fallback ─────────────────────────
+  # ── MF2 WG test registry functions ───────────────────────────────
+  #
+  # The `:test:function`, `:test:format` and `:test:select` functions
+  # are defined by the MessageFormat working group solely so its
+  # conformance suite can exercise selection and formatting mechanics.
+  # Operand: a number or number-literal string. Options:
+  # `decimalPlaces` (0 or 1) and `fails` (never | select | format |
+  # always). Formatting truncates toward zero to the requested number
+  # of decimal places. Deviation: this implementation resolves
+  # declarations eagerly, so `:test:select` formats like
+  # `:test:function` instead of emitting a not-formattable error, and
+  # its `fails=format` mode is ignored — selection is its only
+  # observable behaviour in the suite.
+
+  defp format_with_function(name, value, func_opts, _options)
+       when name in ["test:function", "test:format", "test:select"] do
+    with {:ok, number} <- ensure_number(value),
+         {:ok, decimal_places} <- test_decimal_places(func_opts),
+         {:ok, fails} <- test_fails(func_opts) do
+      if name != "test:select" and fails in ["format", "always"] do
+        {:error, "the :#{name} function failed to format (fails=#{fails})"}
+      else
+        {:ok, test_format_number(number, decimal_places)}
+      end
+    end
+  end
+
+  # ── Custom function registry ─────────────────────────────────────
   #
   # When a function name is not matched by any built-in clause
   # above, look for a custom function module in two places:
@@ -770,7 +962,8 @@ defmodule Localize.Message.Interpreter do
   #
   # If found, the module must implement the
   # `Localize.Message.Function` behaviour. If no custom function
-  # is registered for the name, fall back to `to_string_value/1`.
+  # is registered for the name, the reference is an Unknown
+  # Function resolution error per TR35.
 
   defp format_with_function(name, value, func_opts, options) do
     case resolve_custom_function(name, options) do
@@ -778,7 +971,10 @@ defmodule Localize.Message.Interpreter do
         module.format(value, func_opts, options)
 
       :not_found ->
-        {:ok, to_string_value(value)}
+        # TR35 resolution error: a function that cannot be resolved
+        # is an Unknown Function error, not a pass-through format of
+        # the operand.
+        {:error, {:unknown_function, ":" <> name}}
     end
   end
 
@@ -793,6 +989,53 @@ defmodule Localize.Message.Interpreter do
       Localize.Unit.to_string(unit, localize_opts)
     end
   end
+
+  defp test_decimal_places(func_opts) do
+    case func_opts[:decimalPlaces] || func_opts["decimalPlaces"] do
+      nil ->
+        {:ok, 0}
+
+      value when value in [0, 1] ->
+        {:ok, value}
+
+      value ->
+        {:error,
+         "the decimalPlaces option of the :test functions must be 0 or 1, got #{inspect(value)}"}
+    end
+  end
+
+  defp test_fails(func_opts) do
+    case func_opts[:fails] || func_opts["fails"] do
+      nil ->
+        {:ok, "never"}
+
+      value when value in ["never", "select", "format", "always"] ->
+        {:ok, value}
+
+      value ->
+        {:error,
+         "the fails option of the :test functions must be one of never, select, format or always, got #{inspect(value)}"}
+    end
+  end
+
+  defp test_format_number(number, decimal_places) do
+    float = to_float(number)
+    sign = if float < 0, do: "-", else: ""
+    magnitude = abs(float)
+    integer_part = trunc(magnitude)
+
+    case decimal_places do
+      0 ->
+        sign <> Integer.to_string(integer_part)
+
+      1 ->
+        tenths = trunc(magnitude * 10) - integer_part * 10
+        sign <> Integer.to_string(integer_part) <> "." <> Integer.to_string(tenths)
+    end
+  end
+
+  defp to_float(%Decimal{} = number), do: Decimal.to_float(number)
+  defp to_float(number) when is_number(number), do: number * 1.0
 
   defp resolve_custom_function(name, options) do
     per_call = Keyword.get(options, :functions, %{})
@@ -819,6 +1062,20 @@ defmodule Localize.Message.Interpreter do
   defp evaluate_match(selectors, variants, bindings, options, bound, selector_meta) do
     {selector_info, unbound_selectors} = resolve_selector_info(selectors, bindings, selector_meta)
     selector_names = for info <- selector_info, not info.unbound, do: info.name
+
+    with :ok <- selectable_selectors(selector_info) do
+      evaluate_matched_variant(
+        selector_info,
+        variants,
+        bindings,
+        options,
+        {bound, selector_names, unbound_selectors}
+      )
+    end
+  end
+
+  defp evaluate_matched_variant(selector_info, variants, bindings, options, names) do
+    {bound, selector_names, unbound_selectors} = names
 
     case find_best_variant(selector_info, variants, options) do
       {:ok, {:variant, _keys, {:quoted_pattern, parts}}} ->
@@ -851,7 +1108,7 @@ defmodule Localize.Message.Interpreter do
         match_keys?(selector_info, keys, options)
       end)
       |> Enum.sort_by(fn {:variant, keys, _} ->
-        Enum.count(keys, &(&1 == :catchall))
+        {Enum.count(keys, &(&1 == :catchall)), test_select_penalty(selector_info, keys)}
       end)
 
     case sorted do
@@ -859,6 +1116,26 @@ defmodule Localize.Message.Interpreter do
       [] -> :error
     end
   end
+
+  # WG `:test:select` key preference: among matching keys, `1.0`
+  # is better than `1`. Zero penalty for a `1.0` key on a test
+  # selector position, so those variants sort first.
+  defp test_select_penalty(selector_info, keys) do
+    selector_info
+    |> Enum.zip(keys)
+    |> Enum.count(fn
+      {%{func: {:function, name, _options}}, key}
+      when name in ["test:select", "test:function"] ->
+        key_literal(key) != "1.0"
+
+      _pair ->
+        false
+    end)
+  end
+
+  defp key_literal({:literal, value}), do: value
+  defp key_literal({:number_literal, value}), do: value
+  defp key_literal(:catchall), do: "*"
 
   defp match_keys?(selector_info, keys, options) do
     if length(selector_info) != length(keys) do
@@ -869,6 +1146,26 @@ defmodule Localize.Message.Interpreter do
         {_info, :catchall} -> true
         {info, key} -> match_selector?(info, key, options)
       end)
+    end
+  end
+
+  # WG `:test:select` / `:test:function` selection: the value matches
+  # only when it is exactly 1 — key `1` always, key `1.0` only when
+  # decimalPlaces=1. Any other value matches only the catch-all.
+  defp match_selector?(%{func: {:function, name, options}} = info, key, _options_kw)
+       when name in ["test:select", "test:function"] do
+    value =
+      case info.original do
+        binary when is_binary(binary) -> parse_number(binary)
+        other -> other
+      end
+
+    decimal_places = raw_option_value(options, "decimalPlaces")
+
+    cond do
+      not (is_number(value) and value == 1) -> false
+      decimal_places == "1" -> key_literal(key) in ["1.0", "1"]
+      true -> key_literal(key) == "1"
     end
   end
 
@@ -1077,9 +1374,9 @@ defmodule Localize.Message.Interpreter do
   defp build_number_options(options, func_opts, overrides \\ []) do
     with {:ok, locale} <- resolve_locale(options),
          {:ok, number_system} <- resolve_number_system(locale, func_opts),
-         {:ok, symbols} <- number_symbols_with_fallback(locale, number_system) do
-      min_fd = get_integer_option(func_opts, :minimumFractionDigits)
-      max_fd = get_integer_option(func_opts, :maximumFractionDigits)
+         {:ok, symbols} <- number_symbols_with_fallback(locale, number_system),
+         {:ok, min_fd} <- digit_size_option(func_opts, :minimumFractionDigits),
+         {:ok, max_fd} <- digit_size_option(func_opts, :maximumFractionDigits) do
       use_grouping = Map.get(func_opts, :useGrouping)
 
       {format, minimum_grouping_digits} =
@@ -1184,10 +1481,9 @@ defmodule Localize.Message.Interpreter do
          {:ok, number_system} <- resolve_number_system(locale, func_opts),
          {:ok, symbols} <- number_symbols_with_fallback(locale, number_system),
          {:ok, format_string} <- resolve_currency_format(locale, number_system, format),
-         {:ok, currency_struct} <- resolve_currency_struct(currency_code, locale) do
-      min_fd = get_integer_option(func_opts, :minimumFractionDigits)
-      max_fd = get_integer_option(func_opts, :maximumFractionDigits)
-
+         {:ok, currency_struct} <- resolve_currency_struct(currency_code, locale),
+         {:ok, min_fd} <- digit_size_option(func_opts, :minimumFractionDigits),
+         {:ok, max_fd} <- digit_size_option(func_opts, :maximumFractionDigits) do
       actual_symbol = resolve_currency_symbol(currency_struct, currency_symbol)
 
       # Default fractional digits from currency when not explicitly set
@@ -1453,9 +1749,16 @@ defmodule Localize.Message.Interpreter do
   defp ensure_number(%Decimal{} = value), do: {:ok, value}
 
   defp ensure_number(value) when is_binary(value) do
-    case parse_number(value) do
-      num when is_number(num) -> {:ok, num}
-      _ -> {:error, "cannot parse #{inspect(value)} as a number."}
+    # TR35 Bad Operand: a string operand must match the MF2
+    # `number-literal` production — no leading zeros, no leading
+    # plus sign, no grouping separators.
+    if String.match?(value, ~r/^-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?$/) do
+      case parse_number(value) do
+        num when is_number(num) -> {:ok, num}
+        _ -> {:error, "cannot parse #{inspect(value)} as a number."}
+      end
+    else
+      {:error, "#{inspect(value)} is not a valid number-literal operand."}
     end
   end
 
@@ -1605,26 +1908,29 @@ defmodule Localize.Message.Interpreter do
     Helpers.existing_atom(name) || name
   end
 
-  defp get_integer_option(func_opts, key) do
+  # TR35 Bad Option: a digit size option must be a non-negative
+  # integer (the `digit-size-option` production).
+  defp digit_size_option(func_opts, key) do
     case Map.get(func_opts, key) do
       nil ->
-        nil
+        {:ok, nil}
 
-      value when is_integer(value) ->
-        value
-
-      value when is_float(value) ->
-        round(value)
+      value when is_integer(value) and value >= 0 ->
+        {:ok, value}
 
       value when is_binary(value) ->
         case Integer.parse(value) do
-          {int, ""} -> int
-          _ -> nil
+          {int, ""} when int >= 0 -> {:ok, int}
+          _ -> digit_size_error(key, value)
         end
 
-      _ ->
-        nil
+      value ->
+        digit_size_error(key, value)
     end
+  end
+
+  defp digit_size_error(key, value) do
+    {:error, "the #{key} option must be a non-negative integer, got #{inspect(value)}"}
   end
 
   defp atom_key_exists?(name) do

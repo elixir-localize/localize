@@ -451,6 +451,30 @@ defmodule Localize.Gettext.Messages do
         "message",
         "Cannot format {$value} with function {$function}: {$detail}"
       ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Invalid message: the variable {$detail} is declared more than once"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Invalid message: the option {$detail} appears more than once in the same expression"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Invalid message: more than one variant has the keys {$detail}"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
+        "Cannot format message: unknown function {$detail}"
+      ),
 
       # ParseError — structural reason atoms
       Gettext.Macros.dpgettext_noop_with_backend(

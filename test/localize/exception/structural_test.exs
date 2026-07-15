@@ -45,6 +45,30 @@ defmodule Localize.Exception.StructuralTest do
       reason: :downstream_failure,
       cause: %RuntimeError{message: "underlying failure"}
     ],
+    {Localize.FormatError, :duplicate_declaration} => [
+      value: ".input {$var} .input {$var} {{_}}",
+      function: :format,
+      reason: :duplicate_declaration,
+      detail: "var"
+    ],
+    {Localize.FormatError, :duplicate_option_name} => [
+      value: "{42 :number style=percent style=decimal}",
+      function: :format,
+      reason: :duplicate_option_name,
+      detail: "style"
+    ],
+    {Localize.FormatError, :duplicate_variant} => [
+      value: ".input {$x :string} .match $x * {{a}} * {{b}}",
+      function: :format,
+      reason: :duplicate_variant,
+      detail: "*"
+    ],
+    {Localize.FormatError, :unknown_function} => [
+      value: "{$x :nonexistent}",
+      function: :format,
+      reason: :unknown_function,
+      detail: ":nonexistent"
+    ],
     {Localize.LocaleCacheWriteError, :permission_denied} => [
       locale_id: :en,
       path: "/tmp/en.etf",

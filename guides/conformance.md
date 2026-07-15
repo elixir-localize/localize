@@ -34,7 +34,7 @@ Two areas are explicitly out of scope:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Parent locale chain | Implemented | `Localize.Locale.parent/1` uses CLDR parent locale data. |
-| Likely subtags | Implemented | `Localize.LanguageTag.add_likely_subtags/1` and `remove_likely_subtags/1`. |
+| Likely subtags | Implemented | `Localize.LanguageTag.add_likely_subtags/1` and `remove_likely_subtags/2`, including both the favor-script (default) and favor-region removal variants, verified against the CLDR likely-subtags test data. |
 | Locale matching / best match | Implemented | `Localize.LanguageTag.best_match/3` using CLDR language matching data. |
 | Default content locales | Not implemented | |
 | Locale inheritance for data lookup | Partial | `Locale.get/3` supports `:fallback` option to walk parent chain. Not all data accessors use it consistently. |
@@ -481,8 +481,9 @@ Two areas are explicitly out of scope:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Syntax errors | Implemented | Parser returns `{:error, reason}`. |
-| Resolution errors (unknown function, unresolved variable) | Partial | Unresolved variables error per spec; unknown functions fall back to formatting the operand rather than producing an unknown-function error. |
-| Data model errors | Partial | Duplicate declarations and duplicate option names are not validated. A declaration option referencing a not-yet-declared variable errors per spec. |
+| Resolution errors (unknown function, unresolved variable) | Implemented | Unresolved variables error per spec; an unknown function is a `Localize.FormatError` with reason `:unknown_function`. |
+| Data model errors | Implemented | Duplicate declarations (including implicit-use-then-declare and self-reference), duplicate option names, and duplicate variants (NFC-normalized keys) are validated before interpretation. |
+| Function option and operand validation | Implemented | The `select` option must be a literal set directly on the expression; digit size options must be non-negative integers; string operands of the numeric functions must match the `number-literal` production; `:currency`, `:unit` and the date/time functions are rejected as selectors. |
 
 ### MF2 Data Model
 
@@ -493,15 +494,17 @@ Two areas are explicitly out of scope:
 
 ### MF2 known conformance gaps
 
-The MessageFormat working group conformance suite runs against both the parser and the formatter (`test/localize/message/formatter_conformance_test.exs`); the cases the implementation cannot yet satisfy are excluded there, each with a documented reason. Beyond the Partial rows above, the excluded cases are:
+The MessageFormat working group conformance suite — including the WG `:test:function` / `:test:format` / `:test:select` registry functions it uses to exercise selection mechanics — runs against both the parser and the formatter (`test/localize/message/formatter_conformance_test.exs`). The few cases the implementation cannot yet satisfy are excluded there, each with a documented reason:
 
-* Unknown functions fall back to formatting the operand instead of producing an unknown-function error, and the WG `:test:select` / `:test:format` registry functions used by some suite cases are not implemented.
+* Declarations bind the formatted string, so re-annotating an already-annotated variable in a later declaration fails (one case each in the currency, date, time and percent suites).
 
-* Declarations bind the formatted string, so re-annotating an already-annotated variable in a later declaration fails.
+* The `u:dir` / `u:id` expression *options* are not implemented (the `@u:dir` attribute form is).
 
-* Select option validation (literal-only restrictions and operand restrictions on `:integer` / `:number` selection) is not implemented, number-literal operand validation (leading zero or plus sign) is not enforced, and invalid digit size option values are ignored instead of producing a bad-option error.
+* The `:isolate` bidi strategy isolates every placeholder where the WG default strategy leaves known-LTR placeholders unisolated (three cases).
 
-* `:currency` is not rejected as a selector (no bad-selector error), the `:offset` function's `signDisplay` option is not implemented, and variant keys are not NFC-normalized so duplicate variants differing only in normalization are not detected.
+* The `:offset` function's `signDisplay` option is not implemented (two cases).
+
+* Unannotated number operands are not implicitly formatted with the locale-aware `:number` function (one case).
 
 ---
 

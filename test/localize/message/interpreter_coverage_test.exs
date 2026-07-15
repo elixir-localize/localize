@@ -250,23 +250,29 @@ defmodule Localize.Message.InterpreterCoverageTest do
                format("{$n :currency currency=$c}", %{"n" => 2, "c" => :USD}, locale: :en)
     end
 
-    test "minimumFractionDigits as a float is rounded" do
-      assert {:ok, ["1.00"], ["n"], []} =
+    test "minimumFractionDigits as a float is a bad option error" do
+      assert {:format_error, {:formatter_failed, reason}} =
                format("{$n :number minimumFractionDigits=$f}", %{"n" => 1, "f" => 2.0},
                  locale: :en
                )
+
+      assert reason =~ "minimumFractionDigits option must be a non-negative integer"
     end
 
-    test "minimumFractionDigits with an unparseable literal is ignored" do
-      assert {:ok, ["1"], ["n"], []} =
+    test "minimumFractionDigits with an unparseable literal is a bad option error" do
+      assert {:format_error, {:formatter_failed, reason}} =
                format("{$n :number minimumFractionDigits=abc}", %{"n" => 1}, locale: :en)
+
+      assert reason =~ "minimumFractionDigits option must be a non-negative integer"
     end
 
-    test "minimumFractionDigits with a non-numeric variable value is ignored" do
-      assert {:ok, ["1"], ["n"], []} =
+    test "minimumFractionDigits with a non-numeric variable value is a bad option error" do
+      assert {:format_error, {:formatter_failed, reason}} =
                format("{$n :number minimumFractionDigits=$f}", %{"n" => 1, "f" => :two},
                  locale: :en
                )
+
+      assert reason =~ "minimumFractionDigits option must be a non-negative integer"
     end
 
     test "numberingSystem not carried by the locale still transliterates digits" do
@@ -292,16 +298,16 @@ defmodule Localize.Message.InterpreterCoverageTest do
       assert {:format_error, {:formatter_failed, reason}} =
                format(message, %{"n" => "abc"}, locale: :en)
 
-      assert reason =~ "cannot parse"
+      assert reason =~ "not a valid number-literal operand"
     end
 
-    test "a float-only numeric string parses through the float branch" do
+    test "a bare-fraction string is not a valid number-literal operand" do
       message = ".input {$n :integer}\n.match $n\n0 {{zero}}\n* {{other}}"
 
       assert {:format_error, {:formatter_failed, reason}} =
                format(message, %{"n" => ".5"}, locale: :en)
 
-      assert reason =~ "cannot parse"
+      assert reason =~ "not a valid number-literal operand"
     end
   end
 

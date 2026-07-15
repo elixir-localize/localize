@@ -22,6 +22,10 @@ defmodule Localize.FormatError do
           | :mismatched_close
           | :formatter_failed
           | :downstream_failure
+          | :duplicate_declaration
+          | :duplicate_option_name
+          | :duplicate_variant
+          | :unknown_function
 
   @type t :: %__MODULE__{
           value: term() | nil,
@@ -33,7 +37,16 @@ defmodule Localize.FormatError do
 
   @impl Localize.Exception
   def reason_atoms,
-    do: [:unbalanced_markup, :mismatched_close, :formatter_failed, :downstream_failure]
+    do: [
+      :unbalanced_markup,
+      :mismatched_close,
+      :formatter_failed,
+      :downstream_failure,
+      :duplicate_declaration,
+      :duplicate_option_name,
+      :duplicate_variant,
+      :unknown_function
+    ]
 
   @impl true
   def exception(bindings) when is_list(bindings) do
@@ -80,6 +93,38 @@ defmodule Localize.FormatError do
   def message(%__MODULE__{reason: :downstream_failure, cause: cause})
       when not is_nil(cause) do
     Exception.message(cause)
+  end
+
+  def message(%__MODULE__{reason: :duplicate_declaration, detail: detail}) do
+    Localize.Exception.safe_message(
+      "message",
+      "Invalid message: the variable {$detail} is declared more than once",
+      detail: detail || "(unknown)"
+    )
+  end
+
+  def message(%__MODULE__{reason: :duplicate_option_name, detail: detail}) do
+    Localize.Exception.safe_message(
+      "message",
+      "Invalid message: the option {$detail} appears more than once in the same expression",
+      detail: detail || "(unknown)"
+    )
+  end
+
+  def message(%__MODULE__{reason: :duplicate_variant, detail: detail}) do
+    Localize.Exception.safe_message(
+      "message",
+      "Invalid message: more than one variant has the keys {$detail}",
+      detail: detail || "(unknown)"
+    )
+  end
+
+  def message(%__MODULE__{reason: :unknown_function, detail: detail}) do
+    Localize.Exception.safe_message(
+      "message",
+      "Cannot format message: unknown function {$detail}",
+      detail: detail || "(unknown)"
+    )
   end
 
   def message(%__MODULE__{value: value, function: function, detail: detail})

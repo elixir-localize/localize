@@ -168,10 +168,10 @@ defmodule Localize.Message.CustomFunctionTest do
                Message.format("{$n :number}", %{"n" => 1234}, locale: :en)
     end
 
-    test "unknown function with no registry entry falls back to to_string" do
+    test "unknown function with no registry entry is an unknown-function error" do
       Application.delete_env(:localize, :mf2_functions)
 
-      assert {:ok, "hello"} =
+      assert {:error, %Localize.FormatError{reason: :unknown_function, detail: ":nonexistent"}} =
                Message.format("{$val :nonexistent}", %{"val" => "hello"})
     end
   end

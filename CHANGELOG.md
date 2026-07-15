@@ -8,9 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* `Localize.LanguageTag.remove_likely_subtags/2` and `!/2` accept `favor: :script | :region` to select the TR35 removal variant (`zh-Hant-TW` minimizes to "zh-Hant" or "zh-TW"), verified against the full CLDR likely-subtags test data.
+
+* The MessageFormat working group's `:test:function`, `:test:format` and `:test:select` registry functions are implemented, so the WG conformance suite's selection-mechanics and fallback cases now run.
+
 * The locale download base URL can be overridden with `config :localize, locale_base_url: "..."` for deployments mirroring the locale files; downloads are verified against the bundled hash manifest regardless of source.
 
 ### Changed
+
+* MessageFormat 2 follows the specification's error semantics: unknown functions are an error (`Localize.FormatError` reason `:unknown_function`) instead of formatting the operand, and data-model validation rejects duplicate declarations, duplicate option names, and duplicate variants (NFC-normalized keys) with dedicated error reasons.
+
+* MessageFormat 2 function validation is strict per TR35: the `select` option must be a literal set directly on the selector expression, digit-size options must be non-negative integers, string operands of numeric functions must match the `number-literal` production, and `:currency`, `:unit`, `:date`, `:time` and `:datetime` are rejected as selectors.
 
 * `Localize.Number.Format.Options` is documented again: `validate_options/2` is the supported way to pre-resolve formatting options for hot loops (as the Performance guide describes), so the module is part of the public API.
 

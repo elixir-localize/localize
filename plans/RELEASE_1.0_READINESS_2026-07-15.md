@@ -54,9 +54,9 @@ The July 4 plan is almost entirely executed. Milestones 1–3 are done and verif
 
 4. **`Provider.download_locale/1` happy path has no end-to-end test.** — DONE July 15: `test/localize/locale/download_test.exs` drives HTTP 200 → integrity verify → cache write → read-back against a local `:httpd` server, plus 404, tampered-content and missing-manifest-entry failure paths. Required a `:locale_base_url` config seam in `Provider.base_url/0` (also useful for self-hosted mirrors).
 
-5. **MF2 formatter conformance exclusion groups** — DOCUMENTED July 15: `guides/conformance.md` Part 9 now lists every exclusion group precisely (Error Handling and Data Model rows corrected, new "MF2 known conformance gaps" section; bidi row downgraded to Partial since `u:dir`/`u:id` expression *options* are unimplemented — only the `@u:dir` attribute form works). Closing the gaps themselves remains an explicit 1.0 scope decision.
+5. **MF2 formatter conformance exclusion groups** — CLOSED July 15 (second pass): the error-strictness gaps are implemented (unknown-function errors, duplicate declaration/option/variant data-model validation with NFC keys, literal-only `select`, digit-size and number-literal validation, non-selectable functions rejected as selectors — new `FormatError` reasons `:duplicate_declaration`, `:duplicate_option_name`, `:duplicate_variant`, `:unknown_function`), and the WG `:test:*` registry functions are implemented so the suite's selection cases run. Remaining exclusions are the additive bucket only: re-annotation binding, `u:dir`/`u:id` options, bidi default strategy, `signDisplay`, implicit locale-aware number formatting.
 
-6. **Favor-region column parsed but never asserted** in `likely_subtags_test.exs` (`_remove_region` in every comprehension); the feature is unimplemented. Either implement + assert, or drop the parse and note it as out of scope.
+6. **Favor-region column parsed but never asserted** — DONE July 15: `remove_likely_subtags/2` accepts `favor: :script | :region` and the RemoveFavorRegion column is asserted across the full CLDR test file (~1,800 cases).
 
 ### C. Documentation nits
 
@@ -84,10 +84,10 @@ The July 4 plan is almost entirely executed. Milestones 1–3 are done and verif
 
 ## Suggested order
 
-Updated July 15: items 1, 2, 4, 5 (documentation half), 7, 8, and 10–13 are done as annotated above. Remaining:
+Updated July 15 (second pass): items 1, 2, 4, 5, 6, 7, 8, and 10–13 are all done as annotated above. Remaining:
 
 1. Item 3 — delegate removal timing: decide whether 1.0 removes all deprecated delegates (the known_/available_ set, Duration `:style`, and the new Currency positional forms) in one sweep or carries them to a later release. All messages promise removal by 1.0 and no later than December 2026.
-2. Scope decisions: close or accept the MF2 conformance gaps now documented in the guide (item 5), and implement-or-drop favor-region (item 6).
+2. The MF2 additive bucket (post-1.0 candidates or pre-1.0 polish): re-annotation of annotated variables (declarations bind formatted strings — an interpreter design change), `u:dir`/`u:id` expression options, WG-default bidi strategy, `:offset` `signDisplay`, implicit locale-aware number formatting of unannotated operands.
 3. Item 9 — `localize_mcp` release (repo, review, hex publish); README MCP section.
 4. Full house release review; 1.0.0-rc.1; soak; 1.0.0.
 
