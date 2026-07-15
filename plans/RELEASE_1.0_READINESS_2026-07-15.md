@@ -80,7 +80,7 @@ The July 4 plan is almost entirely executed. Milestones 1–3 are done and verif
 
 * **Claude Code skill** — shipped in 0.47.0, committed, README-documented, marketplace manifest in place. Done.
 
-* **`localize_mcp`** — implemented (11 tools, 52 tests passing on 1.20.1-otp-29, version 0.1.0) but a single local "Initial commit": no GitHub remote, not published to hex. Remaining: create repo + push, release review per house checklist, publish, cross-link from README (item 9).
+* **`localize_mcp`** — RELEASED July 15: 0.1.0 published to hex after a full release review. The review found and fixed release blockers: the hermes_mcp stdio transport was broken (migrated to anubis_mcp 1.6, Elixir 1.18 floor), logs polluted the protocol stdout (redirected to stderr), and the escript/archive channel could not work (`Application.app_dir` fails inside archives — removed; the hex dep + `mix localize_mcp` is the supported channel). Verified end-to-end over live stdio JSON-RPC; docs cover Claude Code, Claude Desktop, Codex CLI, ChatGPT and Zed; CI added; tracks localize 0.50 with an execution-verified examples runner; cross-linked from the localize README.
 
 ## Suggested order
 
@@ -88,7 +88,7 @@ Updated July 15 (second pass): items 1, 2, 4, 5, 6, 7, 8, and 10–13 are all do
 
 1. Item 3 — delegate removal timing: decide whether 1.0 removes all deprecated delegates (the known_/available_ set, Duration `:style`, and the new Currency positional forms) in one sweep or carries them to a later release. All messages promise removal by 1.0 and no later than December 2026.
 2. The MF2 additive bucket — mostly CLOSED July 15 (third pass): `signDisplay` on all numeric functions, implicit locale-aware `:number` formatting of unannotated numeric operands, and re-annotation of declared variables (pattern expressions operate on the declaration's original value with numeric option inheritance). Remaining: `u:dir`/`u:id` expression options and the WG-default bidi strategy (five excluded suite cases in total).
-3. Item 9 — `localize_mcp` release (repo, review, hex publish); README MCP section.
+3. ~~Item 9 — `localize_mcp` release~~ — DONE July 15: 0.1.0 on hex, README MCP section published.
 4. Full house release review; 1.0.0-rc.1; soak; 1.0.0.
 
 Nothing found in this pass contradicts the stability-period intent: items 1–3 are decisions plus small diffs, and everything else is additive tests/docs.
