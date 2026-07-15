@@ -160,11 +160,11 @@ iex> Localize.Duration.to_string(d, locale: :en)
 {:ok, "11 months and 30 days"}
 ```
 
-The `:style` option switches between `:long` (default), `:short`, and `:narrow` unit forms:
+The `:format` option switches between `:long` (default), `:short`, and `:narrow` unit forms:
 
 ```elixir
 iex> {:ok, d} = Localize.Duration.new(~D[2019-01-01], ~D[2019-12-31])
-iex> Localize.Duration.to_string(d, locale: :en, style: :short)
+iex> Localize.Duration.to_string(d, locale: :en, format: :short)
 {:ok, "11 mths and 30 days"}
 ```
 

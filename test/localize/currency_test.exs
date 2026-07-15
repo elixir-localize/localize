@@ -330,55 +330,23 @@ defmodule Localize.CurrencyTest do
     end
   end
 
-  describe "deprecated positional filter forms" do
-    import ExUnit.CaptureIO
-
-    test "a positional :only filter still works and warns" do
-      {result, warning} =
-        with_io(:stderr, fn -> Currency.currencies_for_locale(:en, :historic) end)
-
-      assert {:ok, historic} = result
-      assert Map.has_key?(historic, :SDP)
-      assert warning =~ "currencies_for_locale/2 is deprecated"
+  describe "removed positional filter forms" do
+    test "a positional :only filter raises ArgumentError" do
+      assert_raise ArgumentError, ~r/removed in Localize 1.0/, fn ->
+        Currency.currencies_for_locale(:en, :historic)
+      end
     end
 
-    test "a positional list filter is treated as :only, not as options" do
-      {result, warning} =
-        with_io(:stderr, fn -> Currency.currencies_for_locale(:en, [:current, :ZWR]) end)
-
-      assert {:ok, filtered} = result
-      assert Map.has_key?(filtered, :ZWR)
-      refute Map.has_key?(filtered, :SDP)
-      assert warning =~ "deprecated"
+    test "a positional list filter raises rather than being misread as options" do
+      assert_raise ArgumentError, ~r/keyword list of options/, fn ->
+        Currency.currencies_for_locale(:en, [:current, :ZWR])
+      end
     end
 
-    test "the positional arity-3 forms still work" do
-      # Wrapped in apply/3 so the @deprecated compile-time warning
-      # does not fire for these intentional calls.
-      # credo:disable-for-next-line Credo.Check.Refactor.Apply
-      result = apply(Currency, :currencies_for_locale, [:en, :all, :historic])
-      assert {:ok, no_historic} = result
-      refute Map.has_key?(no_historic, :SDP)
-
-      # credo:disable-for-next-line Credo.Check.Refactor.Apply
-      assert {:ok, strings} = apply(Currency, :currency_strings, [:en, :all, :historic])
-      assert is_map(strings)
-
-      # credo:disable-for-next-line Credo.Check.Refactor.Apply
-      no_historic! = apply(Currency, :currencies_for_locale!, [:en, :all, :historic])
-      refute Map.has_key?(no_historic!, :SDP)
-
-      # credo:disable-for-next-line Credo.Check.Refactor.Apply
-      strings! = apply(Currency, :currency_strings!, [:en, :all, :historic])
-      assert is_map(strings!)
-    end
-
-    test "options and positional forms return identical results" do
-      {:ok, from_options} = Currency.currencies_for_locale(:en, only: :all, except: :historic)
-
-      # credo:disable-for-next-line Credo.Check.Refactor.Apply
-      {:ok, from_positional} = apply(Currency, :currencies_for_locale, [:en, :all, :historic])
-      assert from_options == from_positional
+    test "the bang and strings variants reject positional filters too" do
+      assert_raise ArgumentError, fn -> Currency.currencies_for_locale!(:en, :current) end
+      assert_raise ArgumentError, fn -> Currency.currency_strings(:en, :current) end
+      assert_raise ArgumentError, fn -> Currency.currency_strings!(:en, :current) end
     end
   end
 

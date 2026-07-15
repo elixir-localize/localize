@@ -653,8 +653,6 @@ defmodule Localize do
   * `:format` is either `:default` or `:variant`. The default
     format uses the primary quotation marks for the locale. The
     `:variant` format uses the alternate (nested) quotation marks.
-    (`:style` is accepted as a deprecated alias and will be removed
-    by Localize 1.0 and no later than December 2026.)
 
   ### Returns
 
@@ -676,7 +674,7 @@ defmodule Localize do
   @spec quote(String.t(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def quote(string, options \\ []) when is_binary(string) do
     locale = Keyword.get(options, :locale, get_locale())
-    format = Keyword.get(options, :format, Keyword.get(options, :style, :default))
+    format = Keyword.get(options, :format, :default)
 
     with {:ok, format} <- validate_quote_format(format),
          {:ok, locale_id} <- Locale.cldr_locale_id_from(locale),

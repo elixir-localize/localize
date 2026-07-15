@@ -247,9 +247,7 @@ defmodule Localize.Duration do
     `Localize.get_locale()`.
 
   * `:format` is one of `:long`, `:short`, or `:narrow`.
-    The default is `:long`. (`:style` is accepted as a deprecated
-    alias and will be removed by Localize 1.0 and no later than
-    December 2026.)
+    The default is `:long`.
 
   ### Returns
 
@@ -272,7 +270,7 @@ defmodule Localize.Duration do
   def to_string(%__MODULE__{} = duration, options \\ []) do
     except = Keyword.get(options, :except, [:microsecond])
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    format = Keyword.get(options, :format, Keyword.get(options, :style, :long))
+    format = Keyword.get(options, :format, :long)
 
     units =
       for key <- @keys,

@@ -176,19 +176,6 @@ defmodule Localize.Script do
   end
 
   @doc """
-  Returns the list of script codes for which a locale has display names.
-
-  Deprecated — use `scripts_for/1` instead.
-
-  """
-  @deprecated "Use scripts_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
-  @spec available_scripts(Keyword.t()) ::
-          {:ok, [atom()]} | {:error, Exception.t()}
-  def available_scripts(options \\ []) do
-    scripts_for(options)
-  end
-
-  @doc """
   Returns a map of script codes to their localized names in a
   locale.
 
@@ -223,19 +210,6 @@ defmodule Localize.Script do
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
       load_scripts(locale_id)
     end
-  end
-
-  @doc """
-  Returns a map of script codes to their localized names in a locale.
-
-  Deprecated — use `script_names_for/1` instead.
-
-  """
-  @deprecated "Use script_names_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
-  @spec known_scripts(Keyword.t()) ::
-          {:ok, %{atom() => map()}} | {:error, Exception.t()}
-  def known_scripts(options \\ []) do
-    script_names_for(options)
   end
 
   # ── Private helpers ─────────────────────────────────────────

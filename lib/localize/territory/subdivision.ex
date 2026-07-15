@@ -13,14 +13,14 @@ defmodule Localize.Territory.Subdivision do
   discovering subdivisions. Understanding the difference between them
   is important:
 
-  * `known_subdivisions/1` — takes a **locale**, returns a map of every
-    subdivision code to its display name in that locale. Answers:
-    "what subdivisions can I display in Japanese?"
+  * `subdivision_names_for/1` — takes a **locale**, returns a map of
+    every subdivision code to its display name in that locale.
+    Answers: "what subdivisions can I display in Japanese?"
 
-  * `available_subdivisions/1` — takes a **locale**, returns the sorted
+  * `subdivisions_for/1` — takes a **locale**, returns the sorted
     list of subdivision codes that have translations in that locale.
-    This is just the keys of `known_subdivisions/1`. Answers: "which
-    subdivision codes does my locale's data cover?"
+    This is just the keys of `subdivision_names_for/1`. Answers:
+    "which subdivision codes does my locale's data cover?"
 
   * `for_territory/1` — takes a **territory**, returns the structural
     subdivisions that belong to that territory from CLDR supplemental
@@ -161,19 +161,6 @@ defmodule Localize.Territory.Subdivision do
   end
 
   @doc """
-  Returns a map of subdivision codes to their localized names in a locale.
-
-  Deprecated — use `subdivision_names_for/1` instead.
-
-  """
-  @deprecated "Use subdivision_names_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
-  @spec known_subdivisions(Keyword.t()) ::
-          {:ok, %{atom() => String.t()}} | {:error, Exception.t()}
-  def known_subdivisions(options \\ []) do
-    subdivision_names_for(options)
-  end
-
-  @doc """
   Returns the sorted list of subdivision codes that have translations
   in a given locale.
 
@@ -211,19 +198,6 @@ defmodule Localize.Territory.Subdivision do
     with {:ok, subdivisions} <- subdivision_names_for(options) do
       {:ok, subdivisions |> Map.keys() |> Enum.sort()}
     end
-  end
-
-  @doc """
-  Returns the sorted list of subdivision codes that have translations in a given locale.
-
-  Deprecated — use `subdivisions_for/1` instead.
-
-  """
-  @deprecated "Use subdivisions_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
-  @spec available_subdivisions(Keyword.t()) ::
-          {:ok, [atom()]} | {:error, Exception.t()}
-  def available_subdivisions(options \\ []) do
-    subdivisions_for(options)
   end
 
   @doc """

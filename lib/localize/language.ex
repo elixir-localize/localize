@@ -195,19 +195,6 @@ defmodule Localize.Language do
   end
 
   @doc """
-  Returns the list of language codes for which a locale has display names.
-
-  Deprecated — use `languages_for/1` instead.
-
-  """
-  @deprecated "Use languages_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
-  @spec available_languages(Keyword.t()) ::
-          {:ok, [String.t()]} | {:error, Exception.t()}
-  def available_languages(options \\ []) do
-    languages_for(options)
-  end
-
-  @doc """
   Returns a map of language codes to their localized names in a
   locale.
 
@@ -246,19 +233,6 @@ defmodule Localize.Language do
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
       Localize.Locale.get(locale_id, [:languages])
     end
-  end
-
-  @doc """
-  Returns a map of language codes to their localized names in a locale.
-
-  Deprecated — use `language_names_for/1` instead.
-
-  """
-  @deprecated "Use language_names_for/1 instead. This function will be removed by Localize 1.0 and no later than December 2026."
-  @spec known_languages(Keyword.t()) ::
-          {:ok, %{String.t() => map()}} | {:error, Exception.t()}
-  def known_languages(options \\ []) do
-    language_names_for(options)
   end
 
   # ── Private helpers ─────────────────────────────────────────
