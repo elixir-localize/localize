@@ -73,6 +73,32 @@ defmodule Localize.LanguageTag.LikelySubtagsTest do
     end
   end
 
+  describe "remove_likely_subtags (favor region) against CLDR test data" do
+    for {source, expected_add, _remove_script, expected_remove_region} <- @test_cases,
+        source not in @skip_sources,
+        expected_add != "FAIL" do
+      @tag_source source
+      @tag_expected_remove_region expected_remove_region
+
+      test "remove_likely_subtags(#{source}, favor: :region) == #{expected_remove_region}" do
+        {:ok, tag} = LanguageTag.parse(@tag_source)
+        {:ok, result} = LanguageTag.remove_likely_subtags(tag, favor: :region)
+        assert result.canonical_locale_id == @tag_expected_remove_region
+      end
+    end
+  end
+
+  describe "remove_likely_subtags :favor option validation" do
+    test "an invalid :favor value returns an error tuple" do
+      {:ok, tag} = LanguageTag.parse("zh-Hant-TW")
+
+      assert {:error, %Localize.InvalidValueError{} = error} =
+               LanguageTag.remove_likely_subtags(tag, favor: :language)
+
+      assert Exception.message(error) =~ ":script"
+    end
+  end
+
   describe "FAIL rows against CLDR test data" do
     # Rows whose expected AddLikely value is the literal "FAIL" have
     # no likely-subtags mapping. TR35 permits either signalling an

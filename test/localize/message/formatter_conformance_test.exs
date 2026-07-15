@@ -78,51 +78,8 @@ defmodule Localize.Message.FormatterConformanceTest do
   # remaining cases in each file are asserted.
   @exclusion_groups %{
     "syntax.json" => %{
-      "known gap: unknown functions fall back to formatting the operand instead of an unknown-function error" =>
-        [12, 13, 17, 18, 27, 34, 35, 36, 37, 38, 45, 46, 47, 57, 58, 59, 60],
       "known gap: unannotated number operands are not implicitly formatted with the locale-aware :number function" =>
         [90]
-    },
-    "data-model-errors.json" => %{
-      # Cases 16 and 17 (a declaration option referencing a not-yet-declared
-      # variable) now pass: the unresolved option variable is reported as an
-      # unbound-variable error.
-      "known gap: duplicate-declaration data-model validation not implemented" => [
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15
-      ],
-      "known gap: duplicate-option-name data-model validation not implemented" => [18, 19]
-    },
-    "pattern-selection.json" => %{
-      "WG :test:select/:test:format registry functions not implemented" => [
-        2,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        14,
-        20,
-        21
-      ]
-    },
-    "fallback.json" => %{
-      "WG :test:* registry functions and unknown-function errors not implemented" => [
-        0,
-        1,
-        4,
-        5,
-        6,
-        7
-      ]
     },
     "bidi.json" => %{
       "WG default bidi strategy leaves known-LTR placeholders unisolated; :isolate wraps all placeholders" =>
@@ -132,7 +89,6 @@ defmodule Localize.Message.FormatterConformanceTest do
       "u:dir/u:id expression options not implemented" => [1, 2, 3, 5, 6, 8]
     },
     "functions/currency.json" => %{
-      "known gap: :currency is not rejected as a selector (no bad-selector error)" => [11],
       "known gap: declarations bind the formatted string, so re-annotating an annotated variable fails" =>
         [7]
     },
@@ -140,35 +96,12 @@ defmodule Localize.Message.FormatterConformanceTest do
       "known gap: declarations bind the formatted string, so re-annotating an annotated variable fails" =>
         [6]
     },
-    "functions/integer.json" => %{
-      "known gap: select option validation (literal-only, operand restrictions) not implemented" =>
-        [8, 9, 11, 12]
-    },
-    "functions/number.json" => %{
-      "known gap: number-literal operand validation (leading zero or plus sign) not enforced" => [
-        18,
-        19
-      ],
-      "known gap: invalid digit size option values are ignored instead of a bad-option error" => [
-        28,
-        32
-      ],
-      "known gap: select option validation (literal-only, operand restrictions) not implemented" =>
-        [35, 36, 38, 39]
-    },
     "functions/offset.json" => %{
       "known gap: signDisplay option not implemented" => [10, 11]
     },
     "functions/percent.json" => %{
       "known gap: declarations bind the formatted string, so re-annotating an annotated variable fails" =>
         [5]
-    },
-    "functions/string.json" => %{
-      "known gap: variant keys are not NFC-normalized, so duplicate-variant is not detected" => [
-        4,
-        5,
-        6
-      ]
     },
     "functions/time.json" => %{
       "known gap: declarations bind the formatted string, so re-annotating an annotated variable fails" =>

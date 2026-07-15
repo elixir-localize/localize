@@ -160,7 +160,7 @@ defmodule Localize.Message.InterpreterEdgeTest do
       assert {:format_error, {:formatter_failed, reason}} =
                format(message, %{"n" => "not-a-number"}, locale: :en)
 
-      assert reason =~ "cannot parse"
+      assert reason =~ "not a valid number-literal operand"
     end
   end
 
@@ -237,8 +237,9 @@ defmodule Localize.Message.InterpreterEdgeTest do
   end
 
   describe "unknown functions" do
-    test "fall back to string conversion when no custom function is registered" do
-      assert {:ok, ["7"], ["n"], []} = format("{$n :no_such_function}", %{"n" => 7}, [])
+    test "are an unknown-function error when no custom function is registered" do
+      assert {:format_error, {:unknown_function, ":no_such_function"}} =
+               format("{$n :no_such_function}", %{"n" => 7}, [])
     end
   end
 

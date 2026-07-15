@@ -627,7 +627,7 @@ config :localize, :mf2_functions, %{
 }
 ```
 
-Per-call functions take precedence over application-level functions, which take precedence over built-in functions. Unknown function names with no registry entry fall back to `Kernel.to_string/1`.
+Per-call functions take precedence over application-level functions, which take precedence over built-in functions. A function name with no built-in implementation and no registry entry is an unknown-function error, per the MF2 specification: `format/3` returns `{:error, %Localize.FormatError{reason: :unknown_function}}`.
 
 **Implementing a custom function:**
 

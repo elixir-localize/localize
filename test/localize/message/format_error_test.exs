@@ -18,8 +18,7 @@ if Code.ensure_loaded?(Localize.Message.Interpreter) do
       describe "invalid bindings for :number" do
         test "non-numeric string returns error" do
           {:error, reason} = format_error("{$x :number}", %{"x" => "hello"})
-          assert reason =~ "cannot parse"
-          assert reason =~ "as a number"
+          assert reason =~ "not a valid number-literal operand"
         end
 
         test "list returns error" do
@@ -44,16 +43,14 @@ if Code.ensure_loaded?(Localize.Message.Interpreter) do
       describe "invalid bindings for :integer" do
         test "non-numeric string returns error" do
           {:error, reason} = format_error("{$x :integer}", %{"x" => "abc"})
-          assert reason =~ "cannot parse"
-          assert reason =~ "as a number"
+          assert reason =~ "not a valid number-literal operand"
         end
       end
 
       describe "invalid bindings for :percent" do
         test "non-numeric string returns error" do
           {:error, reason} = format_error("{$x :percent}", %{"x" => "xyz"})
-          assert reason =~ "cannot parse"
-          assert reason =~ "as a number"
+          assert reason =~ "not a valid number-literal operand"
         end
 
         test "Date struct returns error" do
@@ -68,7 +65,7 @@ if Code.ensure_loaded?(Localize.Message.Interpreter) do
           {:error, reason} =
             format_error("{$x :currency currency=USD}", %{"x" => "abc"})
 
-          assert reason =~ "as a number"
+          assert reason =~ "not a valid number-literal operand"
         end
 
         test "Date struct returns error" do
@@ -99,7 +96,7 @@ if Code.ensure_loaded?(Localize.Message.Interpreter) do
           """
 
           {:error, reason} = format_error(message, %{"count" => "hello"})
-          assert reason =~ "as a number"
+          assert reason =~ "not a valid number-literal operand"
         end
       end
 
@@ -207,7 +204,7 @@ if Code.ensure_loaded?(Localize.Message.Interpreter) do
           {:error, reason} =
             format_error("{$x :unit unit=kilometer}", %{"x" => "abc"})
 
-          assert reason =~ "as a number"
+          assert reason =~ "not a valid number-literal operand"
         end
       end
 

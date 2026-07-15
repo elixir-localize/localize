@@ -995,7 +995,8 @@ defmodule Localize.LanguageTag do
 
   Implements the *Remove Likely Subtags* algorithm from
   [Unicode TR35](https://www.unicode.org/reports/tr35/tr35.html#Likely_Subtags),
-  using the "favor script" variant.
+  supporting both the "favor script" (default) and "favor region"
+  variants.
 
   This removes script and/or region subtags that can be inferred
   from the remaining subtags using the likely subtags data, producing
@@ -1005,12 +1006,20 @@ defmodule Localize.LanguageTag do
 
   * `language_tag` is a `%Localize.LanguageTag{}` struct.
 
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:favor` selects which subtag survives when either the script
+    or the region alone is enough to identify the locale: `:script`
+    (the default) keeps the script, `:region` keeps the region.
+
   ### Returns
 
   * `{:ok, minimized_tag}` with redundant subtags removed and
     `canonical_locale_id` updated, or
 
-  * `{:error, reason}` if maximization fails.
+  * `{:error, reason}` if maximization fails or `:favor` is invalid.
 
   ### Examples
 
@@ -1024,21 +1033,53 @@ defmodule Localize.LanguageTag do
       iex> min.canonical_locale_id
       "zh-Hant"
 
-  """
-  @spec remove_likely_subtags(t()) :: {:ok, t()} | {:error, Exception.t()}
-  def remove_likely_subtags(%__MODULE__{} = language_tag) do
-    with {:ok, maximized} <- add_likely_subtags(language_tag) do
-      minimized_name =
-        with :no_match <- try_minimal_form(maximized, script: nil, territory: nil),
-             :no_match <- try_minimal_form(maximized, territory: nil),
-             :no_match <- try_minimal_form(maximized, script: nil) do
-          build_canonical_name(maximized)
-        else
-          {:match, name} -> name
-        end
+      iex> {:ok, tag} = Localize.LanguageTag.parse("zh-Hant-TW")
+      iex> {:ok, min} = Localize.LanguageTag.remove_likely_subtags(tag, favor: :region)
+      iex> min.canonical_locale_id
+      "zh-TW"
 
-      {:ok, %{maximized | canonical_locale_id: minimized_name}}
+  """
+  @spec remove_likely_subtags(t(), Keyword.t()) :: {:ok, t()} | {:error, Exception.t()}
+  def remove_likely_subtags(language_tag, options \\ [])
+
+  def remove_likely_subtags(%__MODULE__{} = language_tag, options) do
+    with {:ok, favor} <- validate_favor(Keyword.get(options, :favor, :script)),
+         {:ok, maximized} <- add_likely_subtags(language_tag) do
+      {:ok, %{maximized | canonical_locale_id: minimized_name(maximized, favor)}}
     end
+  end
+
+  # The favor variant decides which subtag survives when either the
+  # script or the territory alone round-trips through maximization:
+  # :script tries dropping the territory first (keeping the script),
+  # :region tries dropping the script first (keeping the territory).
+  defp minimized_name(maximized, favor) do
+    {second_attempt, third_attempt} =
+      case favor do
+        :script -> {[territory: nil], [script: nil]}
+        :region -> {[script: nil], [territory: nil]}
+      end
+
+    with :no_match <- try_minimal_form(maximized, script: nil, territory: nil),
+         :no_match <- try_minimal_form(maximized, second_attempt),
+         :no_match <- try_minimal_form(maximized, third_attempt) do
+      build_canonical_name(maximized)
+    else
+      {:match, name} -> name
+    end
+  end
+
+  defp validate_favor(favor) when favor in [:script, :region] do
+    {:ok, favor}
+  end
+
+  defp validate_favor(favor) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: favor,
+       expected: :favor,
+       allowed_values: [:script, :region]
+     )}
   end
 
   # Build a trial tag by nilling the given fields, check whether it
@@ -1058,7 +1099,7 @@ defmodule Localize.LanguageTag do
   @doc """
   Remove likely subtags from a language tag, raising on error.
 
-  Same as `remove_likely_subtags/1` but returns the struct directly
+  Same as `remove_likely_subtags/2` but returns the struct directly
   or raises an exception.
 
   ### Examples
@@ -1069,10 +1110,10 @@ defmodule Localize.LanguageTag do
       "zh-Hant"
 
   """
-  @spec remove_likely_subtags!(t()) :: t() | no_return()
-  @dialyzer {:nowarn_function, remove_likely_subtags!: 1}
-  def remove_likely_subtags!(%__MODULE__{} = language_tag) do
-    case remove_likely_subtags(language_tag) do
+  @spec remove_likely_subtags!(t(), Keyword.t()) :: t() | no_return()
+  @dialyzer {:nowarn_function, remove_likely_subtags!: 2}
+  def remove_likely_subtags!(%__MODULE__{} = language_tag, options \\ []) do
+    case remove_likely_subtags(language_tag, options) do
       {:ok, tag} -> tag
       {:error, exception} -> raise exception
     end
