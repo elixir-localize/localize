@@ -274,13 +274,6 @@ defmodule Localize.DurationTest do
       assert {:ok, "0 seconds"} = Localize.Duration.to_string(duration, locale: :en)
     end
 
-    test "the deprecated :style option is accepted as a :format alias" do
-      duration = Localize.Duration.new!(~D[2019-01-01], ~D[2019-12-31])
-
-      assert {:ok, "11m and 30d"} =
-               Localize.Duration.to_string(duration, locale: :en, style: :narrow)
-    end
-
     test "short format abbreviates unit names" do
       duration = Localize.Duration.new!(~D[2019-01-01], ~D[2019-12-31])
 

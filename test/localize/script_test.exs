@@ -122,19 +122,4 @@ defmodule Localize.ScriptTest do
                Script.display_name(:Latn, fallback: "yes")
     end
   end
-
-  describe "deprecated wrappers" do
-    # Deprecated names called via apply/3 to avoid the deprecation warning.
-    test "available_scripts/1 delegates to scripts_for/1" do
-      # credo:disable-for-next-line Credo.Check.Refactor.Apply
-      assert {:ok, scripts} = apply(Script, :available_scripts, [])
-      assert :Latn in scripts
-    end
-
-    test "known_scripts/1 delegates to script_names_for/1" do
-      # credo:disable-for-next-line Credo.Check.Refactor.Apply
-      assert {:ok, names} = apply(Script, :known_scripts, [])
-      assert is_map(names)
-    end
-  end
 end

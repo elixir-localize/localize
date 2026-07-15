@@ -595,10 +595,11 @@ defmodule Localize.Currency do
   end
 
   # Normalizes the second argument of the filter-taking public
-  # functions: a keyword list carries the :only and :except options;
-  # anything else (an atom, or a plain list of statuses and currency
-  # codes, which is why a bare is_list/1 guard cannot discriminate)
-  # is the deprecated positional :only filter.
+  # functions. Only a keyword list is accepted; the pre-1.0
+  # positional :only filter (an atom, or a plain list of statuses
+  # and currency codes — which a bare is_list/1 guard cannot
+  # discriminate from a keyword list) raises so it cannot be
+  # silently misread as empty options.
   defp filter_options(_fun, [{key, _} | _] = options) when is_atom(key) do
     {Keyword.get(options, :only, :all), Keyword.get(options, :except)}
   end
@@ -607,14 +608,11 @@ defmodule Localize.Currency do
     {:all, nil}
   end
 
-  defp filter_options(fun, only) do
-    IO.warn(
-      "passing the :only filter positionally to Localize.Currency.#{fun} is deprecated. " <>
-        "Use the :only and :except options instead. Positional filters will be removed " <>
-        "by Localize 1.0 and no later than December 2026."
-    )
-
-    {only, nil}
+  defp filter_options(fun, other) do
+    raise ArgumentError,
+          "Localize.Currency.#{fun} takes a keyword list of options. " <>
+            "The positional :only/:except filter arguments were removed in Localize 1.0 — " <>
+            "use the :only and :except options instead. Got: #{inspect(other)}"
   end
 
   @doc """
@@ -667,21 +665,6 @@ defmodule Localize.Currency do
           {:ok, map()} | {:error, Exception.t()}
   def currencies_for_locale(locale, options \\ []) do
     {only, except} = filter_options("currencies_for_locale/2", options)
-    do_currencies_for_locale(locale, only, except)
-  end
-
-  @doc """
-  Same as `currencies_for_locale/2` but with the `:only` and `:except` filters as positional arguments.
-
-  """
-  @deprecated "Use currencies_for_locale/2 with the :only and :except options instead. This function will be removed by Localize 1.0 and no later than December 2026."
-  @spec currencies_for_locale(
-          Localize.LanguageTag.t() | atom() | String.t(),
-          filter(),
-          filter()
-        ) ::
-          {:ok, map()} | {:error, Exception.t()}
-  def currencies_for_locale(locale, only, except) do
     do_currencies_for_locale(locale, only, except)
   end
 
@@ -742,21 +725,6 @@ defmodule Localize.Currency do
           {:ok, map()} | {:error, Exception.t()}
   def currency_strings(locale, options \\ []) do
     {only, except} = filter_options("currency_strings/2", options)
-    do_currency_strings(locale, only, except)
-  end
-
-  @doc """
-  Same as `currency_strings/2` but with the `:only` and `:except` filters as positional arguments.
-
-  """
-  @deprecated "Use currency_strings/2 with the :only and :except options instead. This function will be removed by Localize 1.0 and no later than December 2026."
-  @spec currency_strings(
-          Localize.LanguageTag.t() | atom() | String.t(),
-          filter(),
-          filter()
-        ) ::
-          {:ok, map()} | {:error, Exception.t()}
-  def currency_strings(locale, only, except) do
     do_currency_strings(locale, only, except)
   end
 
@@ -1077,23 +1045,6 @@ defmodule Localize.Currency do
   end
 
   @doc """
-  Same as `currencies_for_locale!/2` but with the `:only` and `:except` filters as positional arguments.
-
-  """
-  @deprecated "Use currencies_for_locale!/2 with the :only and :except options instead. This function will be removed by Localize 1.0 and no later than December 2026."
-  @spec currencies_for_locale!(
-          Localize.LanguageTag.t() | atom() | String.t(),
-          filter(),
-          filter()
-        ) :: map()
-  def currencies_for_locale!(locale, only, except) do
-    case do_currencies_for_locale(locale, only, except) do
-      {:ok, currencies} -> currencies
-      {:error, exception} -> raise exception
-    end
-  end
-
-  @doc """
   Same as `currency_strings/2` but raises on error.
 
   ### Arguments
@@ -1135,23 +1086,6 @@ defmodule Localize.Currency do
   def currency_strings!(locale, options \\ []) do
     {only, except} = filter_options("currency_strings!/2", options)
 
-    case do_currency_strings(locale, only, except) do
-      {:ok, strings} -> strings
-      {:error, exception} -> raise exception
-    end
-  end
-
-  @doc """
-  Same as `currency_strings!/2` but with the `:only` and `:except` filters as positional arguments.
-
-  """
-  @deprecated "Use currency_strings!/2 with the :only and :except options instead. This function will be removed by Localize 1.0 and no later than December 2026."
-  @spec currency_strings!(
-          Localize.LanguageTag.t() | atom() | String.t(),
-          filter(),
-          filter()
-        ) :: map()
-  def currency_strings!(locale, only, except) do
     case do_currency_strings(locale, only, except) do
       {:ok, strings} -> strings
       {:error, exception} -> raise exception

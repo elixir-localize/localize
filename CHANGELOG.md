@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Removed
+
+* The deprecated locale-scoped delegates are removed: `Language.available_languages/1` and `known_languages/1` (use `languages_for/1` / `language_names_for/1`), `Script.available_scripts/1` and `known_scripts/1` (use `scripts_for/1` / `script_names_for/1`), `Subdivision.available_subdivisions/1` and `known_subdivisions/1` (use `subdivisions_for/1` / `subdivision_names_for/1`), and `Territory.available_styles/0` (use `known_styles/0`).
+
+* The Currency positional filter forms are removed: `currencies_for_locale/3`, `currencies_for_locale!/3`, `currency_strings/3` and `currency_strings!/3`, along with the positional second argument of the arity-2 forms. Pass the `:only` and `:except` options instead; a positional filter now raises `ArgumentError` so it cannot be silently misread as empty options.
+
+* The deprecated option aliases are removed: `Localize.Duration.to_string/2` `:style` (use `:format`), `Localize.quote/2` `:style` (use `:format`), and `Localize.Unit.display_name/2` `:format` (use `:style`). The former alias keys are now ignored like any other unknown option.
+
 ## [0.50.0] — July 15th, 2026
 
 ### Added

@@ -47,16 +47,6 @@ defmodule Localize.Territory do
   def known_styles, do: @styles
 
   @doc """
-  Returns the list of territory display name styles known to CLDR.
-
-  Deprecated — use `known_styles/0` instead.
-
-  """
-  @deprecated "Use known_styles/0 instead. This function will be removed by Localize 1.0 and no later than December 2026."
-  @spec available_styles() :: [:short | :standard | :variant, ...]
-  def available_styles, do: known_styles()
-
-  @doc """
   Returns the list of all territory code atoms known to CLDR.
 
   The list covers every territory in the CLDR supplemental data,

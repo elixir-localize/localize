@@ -1869,8 +1869,6 @@ defmodule Localize.Unit do
   * `:locale` is a locale identifier. The default is `Localize.get_locale()`.
 
   * `:style` is `:long`, `:short`, or `:narrow`. The default is `:long`.
-    (`:format` is accepted as a deprecated alias and will be removed by
-    Localize 1.0 and no later than December 2026.)
 
   ### Returns
 
@@ -1937,12 +1935,11 @@ defmodule Localize.Unit do
   # `display_name` names a thing, so its width option is `:style` in
   # line with the other display-name functions (Territory, Language,
   # Script, Calendar); the underlying formatter takes `:format`. The
-  # `:format` key remains accepted as a deprecated alias until 1.0.
+  # caller's `:format` (a deprecated alias removed in 1.0) is
+  # overwritten so it is an unknown option like any other.
   defp translate_style_option(options) do
-    case Keyword.pop(options, :style) do
-      {nil, options} -> options
-      {style, options} -> Keyword.put(options, :format, style)
-    end
+    {style, options} = Keyword.pop(options, :style, :long)
+    Keyword.put(options, :format, style)
   end
 
   @doc """

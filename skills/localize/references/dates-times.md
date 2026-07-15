@@ -173,7 +173,7 @@ Localize.Duration.new(~D[2026-01-01], ~D[2026-12-31])
 #=> {:ok, %Localize.Duration{year: 0, month: 11, day: 30, hour: 0, minute: 0, second: 0, microsecond: {0, 6}}}
 Localize.Duration.new!(~D[2026-01-01], ~D[2026-12-31]) |> Localize.Duration.to_string()
 #=> {:ok, "11 months and 30 days"}
-Localize.Duration.new!(~D[2026-01-01], ~D[2026-12-31]) |> Localize.Duration.to_string(style: :narrow)
+Localize.Duration.new!(~D[2026-01-01], ~D[2026-12-31]) |> Localize.Duration.to_string(format: :narrow)
 #=> {:ok, "11m and 30d"}
 Localize.Duration.new_from_seconds(3665) |> Localize.Duration.to_string()
 #=> {:ok, "1 hour, 1 minute, and 5 seconds"}
