@@ -31,18 +31,19 @@ defmodule Localize.Unit.Formatter do
   @spec to_string(Localize.Unit.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def to_string(%Localize.Unit{} = unit, options \\ []) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    format = Keyword.get(options, :format, :long)
+
     case Localize.Backend.resolve(options) do
       :nif ->
-        locale = Keyword.get(options, :locale, Localize.get_locale())
-
+        # `Localize.Nif.unit_format/4` takes the ICU option name
+        # `:style`; translate the public `:format` option so both
+        # backends honour the same width.
         with {:ok, locale_string} <- validated_locale_string(locale) do
-          Localize.Nif.unit_format(unit.value, unit.name, locale_string, options)
+          Localize.Nif.unit_format(unit.value, unit.name, locale_string, style: format)
         end
 
       :elixir ->
-        locale = Keyword.get(options, :locale, Localize.get_locale())
-        format = Keyword.get(options, :format, Keyword.get(options, :style, :long))
-
         with {:ok, language_tag} <- Localize.validate_locale(locale),
              {:ok, unit_data} <- load_unit_data(language_tag, format) do
           format_unit(unit, unit_data, language_tag, format, options)

@@ -1805,9 +1805,9 @@ defmodule Localize.Message.Interpreter do
 
   defp map_unit_options(localize_opts, func_opts) do
     case func_opts[:unitDisplay] do
-      "long" -> Keyword.put(localize_opts, :style, :long)
-      "short" -> Keyword.put(localize_opts, :style, :short)
-      "narrow" -> Keyword.put(localize_opts, :style, :narrow)
+      "long" -> Keyword.put(localize_opts, :format, :long)
+      "short" -> Keyword.put(localize_opts, :format, :short)
+      "narrow" -> Keyword.put(localize_opts, :format, :narrow)
       _other -> localize_opts
     end
   end

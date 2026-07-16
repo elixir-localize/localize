@@ -528,6 +528,10 @@ defmodule Localize do
   > form `Localize.to_string/1` (recommended) or
   > `import Localize, except: [to_string: 1, to_string: 2]`.
 
+  ### Arguments
+
+  * `value` is any term that has a `Localize.Chars` implementation.
+
   ### Returns
 
   * `{:ok, formatted_string}` on success.
@@ -603,6 +607,16 @@ defmodule Localize do
   Same as `to_string/1` but returns the formatted string directly
   or raises on error.
 
+  ### Arguments
+
+  * `value` is any term that has a `Localize.Chars` implementation.
+
+  ### Returns
+
+  * The formatted string.
+
+  * Raises an exception if formatting fails.
+
   ### Examples
 
       iex> Localize.to_string!(1234.5, locale: :de)
@@ -616,10 +630,24 @@ defmodule Localize do
   Same as `to_string/2` but returns the formatted string directly
   or raises on error.
 
+  ### Arguments
+
+  * `value` is any term that has a `Localize.Chars` implementation.
+
+  * `options` is a keyword list of options forwarded to the
+    underlying formatter. Every implementation accepts at least
+    `:locale`.
+
   ### Options
 
   * See `to_string/2` for the supported options. They are forwarded
     unchanged to the type-specific formatter for `value`.
+
+  ### Returns
+
+  * The formatted string.
+
+  * Raises an exception if formatting fails.
 
   ### Examples
 

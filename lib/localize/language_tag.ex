@@ -229,12 +229,12 @@ defmodule Localize.LanguageTag do
   — this gates atomisation behind a bounded set so untrusted input
   cannot exhaust the atom table.
 
-  ## Arguments
+  ### Arguments
 
   * `locale_id` is any [BCP 47](https://tools.ietf.org/search/bcp47)
     string.
 
-  ## Returns
+  ### Returns
 
   * `{:ok, t:Localize.LanguageTag}` or
 
@@ -287,12 +287,12 @@ defmodule Localize.LanguageTag do
   @doc """
   Parse a locale identifier into a `Localize.LanguageTag` struct and raises on error
 
-  ## Arguments
+  ### Arguments
 
   * `locale_id` is any [BCP 47](https://tools.ietf.org/search/bcp47)
     string.
 
-  ## Returns
+  ### Returns
 
   * `t:Localize.LanguageTag` or
 
@@ -472,6 +472,17 @@ defmodule Localize.LanguageTag do
   Same as `new/1` but returns the struct directly or raises
   an exception.
 
+  ### Arguments
+
+  * `locale_id` is any BCP 47 locale string.
+
+  ### Returns
+
+  * A fully resolved `t:Localize.LanguageTag.t/0` struct.
+
+  * Raises an exception if parsing, canonicalization, or likely
+    subtag resolution fails.
+
   ### Examples
 
       iex> tag = Localize.LanguageTag.new!("zh-TW")
@@ -590,6 +601,17 @@ defmodule Localize.LanguageTag do
 
   Same as `canonicalize/1` but returns the struct directly
   or raises an exception.
+
+  ### Arguments
+
+  * `language_tag` is a `%Localize.LanguageTag{}` struct.
+
+  ### Returns
+
+  * The canonicalized tag with the `canonical_locale_id` field
+    populated.
+
+  * Raises an exception if extension validation fails.
 
   ### Examples
 
@@ -973,6 +995,17 @@ defmodule Localize.LanguageTag do
   Same as `add_likely_subtags/1` but returns the struct directly
   or raises an exception.
 
+  ### Arguments
+
+  * `language_tag` is a `%Localize.LanguageTag{}` struct.
+
+  ### Returns
+
+  * The maximized tag with all subtags filled in and
+    `canonical_locale_id` updated.
+
+  * Raises an exception if no likely subtags data is found.
+
   ### Examples
 
       iex> tag = Localize.LanguageTag.parse!("en")
@@ -1101,6 +1134,26 @@ defmodule Localize.LanguageTag do
 
   Same as `remove_likely_subtags/2` but returns the struct directly
   or raises an exception.
+
+  ### Arguments
+
+  * `language_tag` is a `%Localize.LanguageTag{}` struct.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:favor` selects which subtag survives when either the script
+    or the region alone is enough to identify the locale: `:script`
+    (the default) keeps the script, `:region` keeps the region.
+
+  ### Returns
+
+  * The minimized tag with redundant subtags removed and
+    `canonical_locale_id` updated.
+
+  * Raises an exception if maximization fails or `:favor` is
+    invalid.
 
   ### Examples
 

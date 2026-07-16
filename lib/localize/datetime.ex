@@ -136,9 +136,22 @@ defmodule Localize.DateTime do
   @doc """
   Same as `to_string/2` but raises on error.
 
+  ### Arguments
+
+  * `datetime` is a `t:DateTime.t/0`, `t:NaiveDateTime.t/0`,
+    or any map with date and time keys.
+
+  * `options` is a keyword list of options.
+
   ### Options
 
   See `to_string/2` for the supported options.
+
+  ### Returns
+
+  * A formatted string.
+
+  * Raises an exception if the datetime cannot be formatted.
 
   ### Examples
 

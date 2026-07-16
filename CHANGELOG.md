@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+* `Localize.Unit.to_string/2` with `backend: :nif` honours the `:format` option: the NIF call now receives the requested width, so `format: :short` renders "100 m" on both backends instead of falling back to the long form.
+
 ### Removed
 
 * The deprecated locale-scoped delegates are removed: `Language.available_languages/1` and `known_languages/1` (use `languages_for/1` / `language_names_for/1`), `Script.available_scripts/1` and `known_scripts/1` (use `scripts_for/1` / `script_names_for/1`), `Subdivision.available_subdivisions/1` and `known_subdivisions/1` (use `subdivisions_for/1` / `subdivision_names_for/1`), and `Territory.available_styles/0` (use `known_styles/0`).

@@ -355,6 +355,18 @@ defmodule Localize.Number do
   @doc """
   Same as `to_range_string/2` but raises on error.
 
+  ### Arguments
+
+  * `range` is an Elixir `t:Range.t/0` (e.g., `3..5`).
+
+  * `options` is a keyword list of options. See `to_range_string/3`.
+
+  ### Returns
+
+  * A formatted string.
+
+  * Raises an exception if formatting fails.
+
   ### Examples
 
       iex> Localize.Number.to_range_string!(3..5, locale: :en)
