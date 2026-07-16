@@ -1915,6 +1915,12 @@ defmodule Localize.Unit do
 
   See `display_name/2` for the supported options.
 
+  ### Returns
+
+  * The localized display name string.
+
+  * Raises an exception if the display name cannot be produced.
+
   ### Examples
 
       iex> Localize.Unit.display_name!("meter", locale: :en)

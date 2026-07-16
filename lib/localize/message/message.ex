@@ -508,6 +508,13 @@ defmodule Localize.Message do
 
   * See `format_to_safe_list/3` for the supported options.
 
+  ### Returns
+
+  * A list of `safe_node()` tuples.
+
+  * Raises an exception on parse or format error, including
+    unbalanced markup or unbound variables.
+
   ### Examples
 
       iex> Localize.Message.format_to_safe_list!("Hello {$name}!", %{"name" => "World"})

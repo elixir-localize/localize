@@ -157,9 +157,22 @@ defmodule Localize.Date do
   @doc """
   Same as `to_string/2` but raises on error.
 
+  ### Arguments
+
+  * `date` is a `t:Date.t/0` or any map with one or more of
+    `:year`, `:month`, `:day` keys.
+
+  * `options` is a keyword list of options.
+
   ### Options
 
   See `to_string/2` for the supported options.
+
+  ### Returns
+
+  * A formatted string.
+
+  * Raises an exception if the date cannot be formatted.
 
   ### Examples
 

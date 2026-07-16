@@ -83,8 +83,8 @@ defmodule Localize.Unit.FormatterCoverageTest do
   end
 
   describe "styles and style aliases" do
-    test ":style is accepted as an alias for :format" do
-      assert Unit.to_string(unit!(2, "meter"), style: :short) == {:ok, "2 m"}
+    test "the removed :style alias is ignored like any unknown option" do
+      assert Unit.to_string(unit!(2, "meter"), style: :short) == {:ok, "2 meters"}
     end
 
     test "invalid style returns an InvalidValueError" do
