@@ -180,9 +180,9 @@ defmodule Localize.Test.Number.FormatData do
 
       # Formats with literals
       {123, "This is a 123.00 format", [format: "This is a #,##0.00 format"]},
-      {-123, "This is a -123.00 format", [format: "This is a #,##0.00 format"]},
+      {-123, "-This is a 123.00 format", [format: "This is a #,##0.00 format"]},
       {0.1, "This is a 10% format", [format: "This is a #,##0% format"]},
-      {-0.1, "This is a -10% format", [format: "This is a #,##0% format"]},
+      {-0.1, "-This is a 10% format", [format: "This is a #,##0% format"]},
 
       # Specify a currency in the locale
       {123.4, "123.40 $", [format: "#,##0.00 ¤", locale: "en-AU-u-cu-aud"]},
