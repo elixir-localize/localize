@@ -274,6 +274,16 @@ iex> Localize.Number.to_string(1234, number_system: :arab, locale: :ar)
 {:ok, "١٬٢٣٤"}
 ```
 
+Following TR35 and ICU, any numbering system in the CLDR inventory may be requested by name — via the `:number_system` option or the `-u-nu-` locale keyword — even when the locale does not list it. Format patterns and symbols inherit from the locale's default system while the digits come from the requested system. For an algorithmic system, the standard format is produced by the system's RBNF rules; other formats (currency, percent, scientific, compact) fall back to the default system's patterns.
+
+```elixir
+iex> Localize.Number.to_string(1234.5, locale: "en-u-nu-thai")
+{:ok, "๑,๒๓๔.๕"}
+
+iex> Localize.Number.to_string(1234, locale: :en, number_system: :roman)
+{:ok, "MCCXXXIV"}
+```
+
 ## How locale influences formatting
 
 ### Locale-specific patterns

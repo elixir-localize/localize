@@ -419,13 +419,7 @@ defmodule Localize.Number.Format.Options do
   # use either the struct's `:engineering` pattern when it is populated
   # or the synthesised default, never the atom literal.
   defp resolve_format(:engineering, language_tag, system_name) do
-    formats =
-      with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(language_tag),
-           {:ok, all_formats} <- Localize.Locale.get(locale_id, [:number_formats]) do
-        Map.get(all_formats, system_name)
-      else
-        _ -> nil
-      end
+    formats = formats_for_system(language_tag, system_name)
 
     pattern =
       case formats do
@@ -436,42 +430,49 @@ defmodule Localize.Number.Format.Options do
     {:ok, pattern, formats}
   end
 
-  # Standard formats: load formats once, look up the pattern
+  # Standard formats: look up the pattern in the locale's formats for
+  # the number system. `Format.formats_for/2` inherits per-field from
+  # the locale's default system when the requested system has no data
+  # of its own, so a numeric system requested via `-u-nu-` (for
+  # example `en-u-nu-thai`) always resolves to a pattern string.
+  #
+  # `:standard` with an algorithmic system (`:hans`, `:roman`, …) is
+  # the exception: it stays an atom so `Localize.Number.to_string/2`
+  # dispatches to the system's RBNF rules instead of the decimal
+  # formatter — matching ICU, where plain decimal formatting in an
+  # algorithmic numbering system is rule-based. All other standard
+  # formats degrade to the default system's pattern (with latin
+  # digits) since algorithmic systems define no patterns for them.
   defp resolve_format(format, language_tag, system_name) when format in @standard_formats do
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(language_tag),
-         {:ok, all_formats} <- Localize.Locale.get(locale_id, [:number_formats]) do
-      formats = Map.get(all_formats, system_name)
-
-      case formats do
-        nil ->
-          {:ok, format, nil}
-
-        %Format{} = f ->
-          resolved = Map.get(f, format, format)
-          {:ok, resolved, f}
-
-        %{} = f ->
-          {:ok, Map.get(f, format, format), f}
+    if format == :standard and algorithmic_system?(system_name) do
+      {:ok, :standard, nil}
+    else
+      case formats_for_system(language_tag, system_name) do
+        nil -> {:ok, format, nil}
+        f -> {:ok, Map.get(f, format) || format, f}
       end
     end
   end
 
   # Short formats: no resolution needed, but load formats for currency_spacing
   defp resolve_format(format, language_tag, system_name) when format in @short_formats do
-    formats =
-      with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(language_tag),
-           {:ok, all} <- Localize.Locale.get(locale_id, [:number_formats]) do
-        Map.get(all, system_name)
-      else
-        _ -> nil
-      end
-
-    {:ok, format, formats}
+    {:ok, format, formats_for_system(language_tag, system_name)}
   end
 
   # Custom string or other: no format resolution needed
   defp resolve_format(format, _language_tag, _system_name) do
     {:ok, format, nil}
+  end
+
+  defp formats_for_system(language_tag, system_name) do
+    case Format.formats_for(language_tag, system_name) do
+      {:ok, formats} -> formats
+      {:error, _} -> nil
+    end
+  end
+
+  defp algorithmic_system?(system_name) do
+    Map.has_key?(System.algorithmic_systems(), system_name)
   end
 
   # ── Currency symbol resolution ──────────────────────────────
@@ -528,9 +529,6 @@ defmodule Localize.Number.Format.Options do
   defp resolve_currency_spacing(nil, _formats), do: nil
 
   defp resolve_currency_spacing(%Localize.Currency{}, %Format{currency_spacing: spacing}),
-    do: spacing
-
-  defp resolve_currency_spacing(%Localize.Currency{}, %{currency_spacing: spacing}),
     do: spacing
 
   defp resolve_currency_spacing(%Localize.Currency{}, _formats), do: nil

@@ -355,6 +355,12 @@ defmodule Localize.Number.System do
   etc.) or directly by name (`:latn`, `:arab`, etc.). This function
   resolves the reference to the actual system name.
 
+  Following TR35 and ICU, any numbering system in the CLDR inventory
+  is accepted by name even when the locale does not list it — the
+  `-u-nu-` locale keyword and the `:number_system` formatting option
+  may request, for example, `:thai` digits in an `:en` locale. Only
+  genuinely unknown system names return an error.
+
   ### Arguments
 
   * `system_name` is a number system name atom or type atom.
@@ -374,6 +380,9 @@ defmodule Localize.Number.System do
       {:ok, :latn}
 
       iex> Localize.Number.System.system_name_from(:thai, :th)
+      {:ok, :thai}
+
+      iex> Localize.Number.System.system_name_from(:thai, :en)
       {:ok, :thai}
 
   """
@@ -396,19 +405,14 @@ defmodule Localize.Number.System do
         system_name in Map.values(number_systems) ->
           {:ok, system_name}
 
-        # Known globally but NOT valid for this locale. The CLDR number
-        # formatting data is locale-scoped, so using a number system
-        # that isn't in the locale's `numberingSystem` list leaves
-        # the format unresolvable downstream. Surface a specific error
-        # here so the caller sees "not valid for this locale" instead
-        # of an unrelated downstream format-resolution failure.
+        # Known globally even though the locale does not list it.
+        # Per TR35/ICU an explicit numbering-system request (the
+        # `-u-nu-` keyword or a direct option) is honoured for any
+        # CLDR numbering system: formats and symbols inherit from
+        # the locale's default system (root aliases them to `latn`)
+        # while digits come from the requested system.
         Map.has_key?(number_systems(), system_name) ->
-          {:error,
-           Localize.UnknownNumberSystemError.exception(
-             number_system: system_name,
-             locale: locale_id,
-             reason: :not_for_locale
-           )}
+          {:ok, system_name}
 
         true ->
           {:error, Localize.UnknownNumberSystemError.exception(number_system: system_name)}

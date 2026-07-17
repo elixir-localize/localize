@@ -162,9 +162,19 @@ defmodule Localize.Number.Format do
   * `{:error, exception}` if the locale data cannot be loaded or
     the number system is not available.
 
+  When the requested number system has no format data of its own in
+  the locale, the formats inherit per-field from the locale's default
+  number system. This mirrors CLDR inheritance, where root aliases
+  every other numbering system's formats to `latn`, and is what makes
+  a `-u-nu-` override such as `en-u-nu-thai` formattable.
+
   ### Examples
 
       iex> {:ok, formats} = Localize.Number.Format.formats_for(:en)
+      iex> formats.standard
+      "#,##0.###"
+
+      iex> {:ok, formats} = Localize.Number.Format.formats_for(:en, :thai)
       iex> formats.standard
       "#,##0.###"
 
@@ -177,7 +187,9 @@ defmodule Localize.Number.Format do
   def formats_for(locale, number_system \\ :default) do
     with {:ok, system_name} <- System.system_name_from(number_system, locale),
          {:ok, formats} <- all_formats_for(locale) do
-      case Map.get(formats, system_name) do
+      requested = Map.get(formats, system_name)
+
+      case merge_with_default_formats(requested, formats, locale, system_name) do
         nil ->
           {:error,
            Localize.InvalidValueError.exception(
@@ -189,6 +201,37 @@ defmodule Localize.Number.Format do
         format ->
           {:ok, format}
       end
+    end
+  end
+
+  # CLDR inheritance: format elements for a numbering system the locale
+  # carries no data for (or only partial data for) inherit from the
+  # locale's default numbering system — root aliases them to `latn`.
+  # Each field inherits independently, so a partially-populated entry
+  # (for example `zh`'s `:hans` entry, which is present but empty) is
+  # filled from the default system rather than left with `nil` patterns.
+  defp merge_with_default_formats(requested, all_formats, locale, system_name) do
+    # The locale's default system must be read from the locale data,
+    # not from `number_system_from_locale/1` — the latter honours a
+    # `-u-nu-` override, which is exactly the system we may be
+    # trying to find a fallback for.
+    case System.number_systems_for(locale) do
+      {:ok, %{default: default_system}} when default_system != system_name ->
+        case {requested, Map.get(all_formats, default_system)} do
+          {nil, default_formats} ->
+            default_formats
+
+          {requested, nil} ->
+            requested
+
+          {requested, default_formats} ->
+            Map.merge(default_formats, requested, fn _field, default, override ->
+              override || default
+            end)
+        end
+
+      _default_or_error ->
+        requested
     end
   end
 
