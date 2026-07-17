@@ -1503,7 +1503,18 @@ defmodule Localize.Message.Interpreter do
 
       raw_format = Keyword.get(overrides, :format, format)
 
-      resolved_format = resolve_number_format(raw_format, locale, number_system)
+      # An algorithmic numbering system (`hans`, `roman`, …) defines no
+      # decimal patterns — plain `:number`/`:integer` formatting uses the
+      # system's RBNF rules, matching `Localize.Number.to_string/2` and
+      # ICU. Grouping options don't apply to rule-based output. Explicit
+      # format overrides (`:percent`) degrade to the default system's
+      # pattern, as in `Localize.Number.Format.Options.resolve_format/3`.
+      resolved_format =
+        if Keyword.get(overrides, :format) == nil and algorithmic_system?(number_system) do
+          :standard
+        else
+          resolve_number_format(raw_format, locale, number_system)
+        end
 
       options_struct = %NumberOptions{
         locale: locale,
@@ -1522,6 +1533,10 @@ defmodule Localize.Message.Interpreter do
 
       {:ok, options_struct}
     end
+  end
+
+  defp algorithmic_system?(system_name) do
+    Map.has_key?(Localize.Number.System.algorithmic_systems(), system_name)
   end
 
   defp resolve_number_format(format, _locale, _number_system) when is_binary(format) do

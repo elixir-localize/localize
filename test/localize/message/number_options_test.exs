@@ -197,6 +197,70 @@ if Code.ensure_loaded?(Localize.Number) do
                ) == {:ok, "$\u{0E52}.\u{0E50}\u{0E50}"}
       end
 
+      test "a numeric numberingSystem transliterates digits with the locale's grouping" do
+        assert Localize.Message.format(
+                 "{$n :number numberingSystem=thai}",
+                 %{"n" => 1234.5},
+                 locale: :en
+               ) == {:ok, "\u{0E51},\u{0E52}\u{0E53}\u{0E54}.\u{0E55}"}
+      end
+
+      test "an algorithmic numberingSystem formats via RBNF (hans)" do
+        assert Localize.Message.format(
+                 "{$n :number numberingSystem=hans}",
+                 %{"n" => 1234},
+                 locale: :en
+               ) == {:ok, "一千二百三十四"}
+      end
+
+      test "an algorithmic numberingSystem formats via RBNF (roman)" do
+        assert Localize.Message.format(
+                 "{$n :number numberingSystem=roman}",
+                 %{"n" => 1234},
+                 locale: :en
+               ) == {:ok, "MCCXXXIV"}
+      end
+
+      test "an algorithmic numberingSystem works with :integer" do
+        assert Localize.Message.format(
+                 "{$n :integer numberingSystem=roman}",
+                 %{"n" => 42},
+                 locale: :en
+               ) == {:ok, "XLII"}
+      end
+
+      test "an algorithmic numberingSystem matches Localize.Number.to_string/2" do
+        assert Localize.Message.format(
+                 "{$n :number numberingSystem=hans}",
+                 %{"n" => 1234},
+                 locale: :en
+               ) == Localize.Number.to_string(1234, number_system: :hans, locale: :en)
+      end
+
+      test "an algorithmic numberingSystem formats negative numbers via RBNF" do
+        assert Localize.Message.format(
+                 "{$n :number numberingSystem=hans}",
+                 %{"n" => -1234},
+                 locale: :en
+               ) == {:ok, "负一千二百三十四"}
+      end
+
+      test "useGrouping is ignored for an algorithmic numberingSystem" do
+        assert Localize.Message.format(
+                 "{$n :number numberingSystem=hans useGrouping=never}",
+                 %{"n" => 1234},
+                 locale: :en
+               ) == {:ok, "一千二百三十四"}
+      end
+
+      test ":percent with an algorithmic numberingSystem degrades to the default system's pattern" do
+        assert Localize.Message.format(
+                 "{$n :percent numberingSystem=hans}",
+                 %{"n" => 0.5},
+                 locale: :en
+               ) == {:ok, "50%"}
+      end
+
       test "an unknown numberingSystem name is still an error" do
         assert {:error, %Localize.FormatError{}} =
                  Localize.Message.format(
