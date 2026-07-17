@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* The implicit negative subpattern is now the minus sign prefixed to the whole positive pattern per TR35, so `Localize.Number.to_string(-1, currency: :USD)` renders "-$1.00" (previously "$-1.00") matching ICU and `Intl.NumberFormat`.
+
 * `Localize.Number.to_string/2` honours any CLDR numbering system via `-u-nu-` or `:number_system`, per TR35/ICU: `en-u-nu-thai` renders Thai digits instead of an `UnknownRbnfRuleError`, and algorithmic systems (`zh` with `:hans`, `en-u-nu-roman`) format via their RBNF rules.
 
 * `Localize.Unit.to_string/2` with `backend: :nif` honours the `:format` option: the NIF call now receives the requested width, so `format: :short` renders "100 m" on both backends instead of falling back to the long form.

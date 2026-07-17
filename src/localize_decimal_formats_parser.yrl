@@ -51,15 +51,12 @@ currency_symbol   -> currency_4 : '$1'.
 
 Erlang code.
 
-% If there is no negative pattern then build the default one. The default
-% is an exact copy of the positive one except we put `{minus, "-"}`
-% in front of the `format` token.
+% If there is no explicit negative subpattern then build the implicit
+% one. Per TR35 it is the minus sign prefixed to the whole positive
+% subpattern: "0.00" is equivalent to "0.00;-0.00", and "¤0.00" to
+% "¤0.00;-¤0.00".
 negative(Positive) ->
-  {negative, copy_positive(Positive)}.
-
-copy_positive([]) -> [];
-copy_positive([{format, Format} | Rest]) -> [{minus, "-"}, {format, Format} | copy_positive(Rest)];
-copy_positive([Head | Rest]) -> [Head | copy_positive(Rest)].
+  {negative, [{minus, "-"} | Positive]}.
 
 % Append list items.  Consolidate literals if possible into
 % a single list element.

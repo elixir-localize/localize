@@ -98,9 +98,9 @@ defmodule Localize.Number.SignDisplayTest do
     end
 
     test "currency places the plus where the derived negative pattern places the minus" do
-      assert {:ok, "$-1.00"} = Localize.Number.to_string(-1, currency: :USD)
+      assert {:ok, "-$1.00"} = Localize.Number.to_string(-1, currency: :USD)
 
-      assert {:ok, "$+1.00"} =
+      assert {:ok, "+$1.00"} =
                Localize.Number.to_string(1, currency: :USD, sign_display: :always)
 
       assert {:ok, "$1.00"} =
