@@ -134,10 +134,17 @@ defmodule Localize.Number.ApiCoverageTest do
     end
   end
 
-  describe "number system errors" do
-    test "a number system not used by the locale returns an error" do
-      assert {:error, %Localize.UnknownNumberSystemError{number_system: :thai}} =
+  describe "number system overrides" do
+    test "a number system the locale does not list formats with that system's digits" do
+      # Per TR35/ICU any CLDR numbering system is honoured; formats
+      # and symbols inherit from the locale's default system.
+      assert {:ok, "๑,๒๓๔"} =
                Number.to_string(1234, format: :standard, number_system: :thai)
+    end
+
+    test "an unknown number system returns an error" do
+      assert {:error, %Localize.UnknownNumberSystemError{}} =
+               Number.to_string(1234, format: :standard, number_system: :nonsense_xyz)
     end
   end
 end

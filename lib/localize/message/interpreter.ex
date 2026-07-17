@@ -1543,38 +1543,15 @@ defmodule Localize.Message.Interpreter do
 
   # The MF2 `numberingSystem` option may name a system the locale carries
   # no symbol or format data for (any CLDR system is honoured, matching
-  # Intl/ICU). Fall back to the locale's default-system data — digit
+  # Intl/ICU). `Symbol.number_symbols_for/2` and `Format.formats_for/2`
+  # fall back to the locale's default-system data themselves — digit
   # transliteration still uses the requested system.
   defp number_symbols_with_fallback(locale, number_system) do
-    case Localize.Number.Symbol.number_symbols_for(locale, number_system) do
-      {:ok, symbols} ->
-        {:ok, symbols}
-
-      {:error, _} = error ->
-        case Localize.Number.System.number_system_from_locale(locale) do
-          {:ok, default_system} when default_system != number_system ->
-            Localize.Number.Symbol.number_symbols_for(locale, default_system)
-
-          _ ->
-            error
-        end
-    end
+    Localize.Number.Symbol.number_symbols_for(locale, number_system)
   end
 
   defp formats_with_fallback(locale, number_system) do
-    case Localize.Number.Format.formats_for(locale, number_system) do
-      {:ok, formats} ->
-        {:ok, formats}
-
-      {:error, _} = error ->
-        case Localize.Number.System.number_system_from_locale(locale) do
-          {:ok, default_system} when default_system != number_system ->
-            Localize.Number.Format.formats_for(locale, default_system)
-
-          _ ->
-            error
-        end
-    end
+    Localize.Number.Format.formats_for(locale, number_system)
   end
 
   defp build_currency_options(options, func_opts) do
@@ -1647,15 +1624,12 @@ defmodule Localize.Message.Interpreter do
         #
         # The MF2 `numberingSystem` option matches Intl/ICU semantics:
         # any numbering system in the CLDR inventory is honoured even
-        # when the locale does not list it (`:not_for_locale`), so
-        # `numberingSystem=thai` renders Thai digits in an `en` locale.
-        # Genuinely unknown system names are still an error.
+        # when the locale does not list it, so `numberingSystem=thai`
+        # renders Thai digits in an `en` locale. Genuinely unknown
+        # system names are still an error.
         case Localize.Number.System.system_name_from(system, locale) do
           {:ok, _} = ok ->
             ok
-
-          {:error, %Localize.UnknownNumberSystemError{reason: :not_for_locale} = error} ->
-            {:ok, error.number_system}
 
           {:error, _exception} ->
             {:error, "unknown numbering system #{inspect(system)}"}

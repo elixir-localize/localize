@@ -71,19 +71,15 @@ defmodule Localize.Number.SystemTest do
   end
 
   describe "system_name_from/2 error cases" do
-    test "returns not-valid-for-locale error for a globally-known but locale-incompatible system" do
-      # :arab IS a known CLDR number system globally, but it is NOT
-      # in the numbering systems available for the :en locale. Must
-      # error with reason :not_for_locale, carrying both the system
-      # name and the locale — NOT fall through with an :ok that will
-      # later surface a confusing format-resolution error.
-      assert {:error, %Localize.UnknownNumberSystemError{} = err} =
-               System.system_name_from(:arab, :en)
-
-      assert err.reason == :not_for_locale
-      assert err.number_system == :arab
-      assert err.locale == :en
-      assert Exception.message(err) =~ "not valid for locale"
+    test "accepts a globally-known system the locale does not list" do
+      # :arab IS a known CLDR number system globally even though it
+      # is NOT in the numbering systems available for the :en locale.
+      # Per TR35/ICU an explicit numbering-system request is honoured
+      # for any CLDR system — formats and symbols inherit from the
+      # locale's default system while digits come from the requested
+      # system.
+      assert {:ok, :arab} = System.system_name_from(:arab, :en)
+      assert {:ok, :thai} = System.system_name_from(:thai, :en)
     end
 
     test "returns not-known error for a completely unknown system" do
@@ -101,10 +97,14 @@ defmodule Localize.Number.SystemTest do
     end
   end
 
-  describe "Localize.Number.to_string with invalid number system" do
-    test "returns UnknownNumberSystemError with :not_for_locale reason" do
-      assert {:error, %Localize.UnknownNumberSystemError{reason: :not_for_locale}} =
-               Localize.Number.to_string(1234, number_system: :arab)
+  describe "Localize.Number.to_string with a number system the locale does not list" do
+    test "formats with the requested system's digits" do
+      assert {:ok, "١,٢٣٤"} = Localize.Number.to_string(1234, locale: :en, number_system: :arab)
+    end
+
+    test "returns UnknownNumberSystemError for an unknown system" do
+      assert {:error, %Localize.UnknownNumberSystemError{}} =
+               Localize.Number.to_string(1234, locale: :en, number_system: :nonsense_xyz)
     end
   end
 

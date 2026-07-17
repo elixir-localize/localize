@@ -54,8 +54,10 @@ defmodule Localize.Number.CurrencyLongCoverageTest do
                )
     end
 
-    test "number system not defined for the locale returns an error" do
-      assert {:error, %Localize.UnknownNumberSystemError{number_system: :arab}} =
+    test "a number system the locale does not list formats with that system's digits" do
+      # Per TR35/ICU any CLDR numbering system is honoured; formats
+      # and symbols inherit from the locale's default system.
+      assert {:ok, "$١٢٣.٠٠ US dollars"} =
                Number.to_string(123,
                  format: :currency_long_with_symbol,
                  currency: :USD,

@@ -191,6 +191,14 @@ defmodule Localize.Number do
       is_atom(format) and format in [:currency_long, :currency_long_with_symbol] ->
         Formatter.Currency.to_string(number, format, validated_options)
 
+      # `:standard` survives options resolution as an atom only when
+      # the number system is algorithmic (`:hans`, `:roman`, …) —
+      # numeric systems always resolve it to a pattern string. Per
+      # ICU, decimal formatting in an algorithmic system uses the
+      # system's RBNF rules.
+      format == :standard and algorithmic_system?(validated_options.number_system) ->
+        System.to_system(number, validated_options.number_system)
+
       is_atom(format) ->
         Rbnf.to_string(number, format, locale: validated_options.locale)
 
@@ -202,6 +210,10 @@ defmodule Localize.Number do
            context: "Localize.Number.to_string/2"
          )}
     end
+  end
+
+  defp algorithmic_system?(system_name) do
+    Map.has_key?(System.algorithmic_systems(), system_name)
   end
 
   @doc """
