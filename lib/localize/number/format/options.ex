@@ -32,10 +32,13 @@ defmodule Localize.Number.Format.Options do
     :round_nearest,
     :wrapper,
     :separators,
-    :exponent_style
+    :exponent_style,
+    :sign_display
   ]
 
   @exponent_styles [:e, :superscript]
+
+  @sign_displays [:auto, :always, :except_zero, :negative, :never]
 
   @rounding_modes [
     :down,
@@ -171,6 +174,7 @@ defmodule Localize.Number.Format.Options do
          :ok <- validate_rounding_mode(rounding_mode),
          :ok <- validate_significant_digits(options),
          :ok <- validate_exponent_style(Keyword.get(options, :exponent_style)),
+         :ok <- validate_sign_display(Keyword.get(options, :sign_display)),
          {:ok, symbols} <- resolve_symbols(language_tag, system_name),
          {:ok, resolved_format, formats} <- resolve_format(format, language_tag, system_name) do
       currency_symbol = resolve_currency_symbol(currency_struct, options[:currency_symbol])
@@ -377,6 +381,24 @@ defmodule Localize.Number.Format.Options do
        value: style,
        expected: :exponent_style,
        allowed_values: @exponent_styles
+     )}
+  end
+
+  # ── Sign display validation ────────────────────────────────
+
+  # Mirrors ECMA-402 `signDisplay` (auto | always | exceptZero |
+  # negative | never) as snake_case atoms. `nil` means "not set"
+  # and behaves as `:auto` — the format pattern's own sign
+  # handling applies unchanged.
+  defp validate_sign_display(nil), do: :ok
+  defp validate_sign_display(sign_display) when sign_display in @sign_displays, do: :ok
+
+  defp validate_sign_display(sign_display) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: sign_display,
+       expected: :sign_display,
+       allowed_values: @sign_displays
      )}
   end
 

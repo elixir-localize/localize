@@ -115,11 +115,15 @@ defmodule Localize.Number.Formatter.Decimal do
   # ── Core formatting pipeline ──────────────────────────────
 
   defp do_to_string(%Decimal{coef: :NaN}, meta, options) do
+    options = resolve_sign_display_for_nan(options)
+
     options.symbols.nan
     |> assemble_format(meta, options)
   end
 
-  defp do_to_string(%Decimal{coef: :inf}, meta, options) do
+  defp do_to_string(%Decimal{coef: :inf} = number, meta, options) do
+    options = resolve_sign_display(options, number, false)
+
     options.symbols.infinity
     |> assemble_format(meta, options)
   end
@@ -129,17 +133,22 @@ defmodule Localize.Number.Formatter.Decimal do
   end
 
   defp do_to_string(number, %{integer_digits: _} = meta, options) do
-    number
-    |> absolute_value()
-    |> multiply_by_factor(meta)
-    |> round_to_significant_digits(meta)
-    |> round_to_nearest(meta, options)
-    |> set_exponent(meta)
-    |> round_fractional_digits(meta, options)
-    |> output_to_tuple()
-    |> adjust_leading_zeros(meta)
-    |> adjust_trailing_zeros(meta)
-    |> set_max_integer_digits(meta)
+    digit_tuple =
+      number
+      |> absolute_value()
+      |> multiply_by_factor(meta)
+      |> round_to_significant_digits(meta)
+      |> round_to_nearest(meta, options)
+      |> set_exponent(meta)
+      |> round_fractional_digits(meta, options)
+      |> output_to_tuple()
+      |> adjust_leading_zeros(meta)
+      |> adjust_trailing_zeros(meta)
+      |> set_max_integer_digits(meta)
+
+    options = resolve_sign_display(options, number, rounds_to_zero?(digit_tuple))
+
+    digit_tuple
     |> apply_grouping(meta, options)
     |> reassemble_number_string(meta, options)
     |> transliterate_string(options)
@@ -148,6 +157,59 @@ defmodule Localize.Number.Formatter.Decimal do
 
   defp do_to_string(number, meta, options) do
     assemble_format(number, meta, options)
+  end
+
+  # ── Sign display ────────────────────────────────────────────
+
+  # ECMA-402 `signDisplay` semantics. The `:sign_display` option
+  # overrides the sign pattern chosen by `Options.validate_options/2`:
+  # `:positive` and `:negative` select the format's subpatterns as
+  # usual; the derived `:positive_plus` pattern renders the locale's
+  # plus sign (see `pattern_parts/2`). Zero-ness is judged on the
+  # digits after rounding, matching ICU — `-0.001` at zero fractional
+  # digits is a zero for `:except_zero` and `:negative`.
+  defp resolve_sign_display(%{sign_display: sign_display} = options, number, zero?)
+       when sign_display in [:always, :except_zero, :negative, :never] do
+    %{options | pattern: sign_display_pattern(sign_display, negative_number?(number), zero?)}
+  end
+
+  defp resolve_sign_display(options, _number, _zero?) do
+    options
+  end
+
+  defp sign_display_pattern(:never, _negative?, _zero?), do: :positive
+  defp sign_display_pattern(:always, true, _zero?), do: :negative
+  defp sign_display_pattern(:always, false, _zero?), do: :positive_plus
+  defp sign_display_pattern(:except_zero, _negative?, true), do: :positive
+  defp sign_display_pattern(:except_zero, true, false), do: :negative
+  defp sign_display_pattern(:except_zero, false, false), do: :positive_plus
+  defp sign_display_pattern(:negative, _negative?, true), do: :positive
+  defp sign_display_pattern(:negative, true, false), do: :negative
+  defp sign_display_pattern(:negative, false, false), do: :positive
+
+  # Per ECMA-402, NaN takes a plus sign under `:always` and no sign
+  # under the other explicit modes; `:auto` (and `nil`) keeps the
+  # pattern already resolved from the input's sign.
+  defp resolve_sign_display_for_nan(%{sign_display: :always} = options) do
+    %{options | pattern: :positive_plus}
+  end
+
+  defp resolve_sign_display_for_nan(%{sign_display: sign_display} = options)
+       when sign_display in [:except_zero, :negative, :never] do
+    %{options | pattern: :positive}
+  end
+
+  defp resolve_sign_display_for_nan(options) do
+    options
+  end
+
+  defp negative_number?(%Decimal{sign: sign}), do: sign < 0
+  defp negative_number?(number), do: number < 0
+
+  # True when every rounded digit is zero — the displayed value is
+  # zero regardless of the exponent.
+  defp rounds_to_zero?({_sign, integer, fraction, _exp_sign, _exponent}) do
+    Enum.all?(integer, &(&1 == ?0)) and Enum.all?(fraction, &(&1 == ?0))
   end
 
   # ── Pipeline stages ─────────────────────────────────────────
@@ -653,12 +715,36 @@ defmodule Localize.Number.Formatter.Decimal do
   defp extract_symbol(_), do: ""
 
   defp assemble_format(number_string, meta, options) do
-    format = meta.format[options.pattern]
+    format = pattern_parts(meta.format, options.pattern)
     number = meta.number
 
     assemble_parts(format, number_string, number, meta, options)
     |> :erlang.iolist_to_binary()
     |> String.trim_trailing()
+  end
+
+  # The `:positive_plus` pattern is derived, not compiled: it is the
+  # negative subpattern with the minus token replaced by the locale's
+  # plus sign. When the negative subpattern carries no minus token
+  # (an explicit subpattern such as accounting's `(¤#,##0.00)`), the
+  # plus sign is prefixed to the positive subpattern instead — the
+  # ICU behaviour behind ECMA-402's `+$1.00` / `($1.00)` pairing for
+  # accounting formats with `signDisplay: "always"`.
+  defp pattern_parts(format, :positive_plus) do
+    negative = format[:negative] || []
+
+    if Enum.any?(negative, &match?({:minus, _}, &1)) do
+      Enum.map(negative, fn
+        {:minus, _} -> {:plus, nil}
+        part -> part
+      end)
+    else
+      [{:plus, nil} | format[:positive]]
+    end
+  end
+
+  defp pattern_parts(format, pattern) do
+    format[pattern]
   end
 
   # ── Format assembly ─────────────────────────────────────────
@@ -780,8 +866,14 @@ defmodule Localize.Number.Formatter.Decimal do
          meta,
          %{wrapper: wrapper} = options
        ) do
+    # In `:auto` mode a bare zero drops the minus sign. With an
+    # explicit `:sign_display`, `resolve_sign_display/3` has already
+    # decided whether this zero shows its sign (`:always` keeps the
+    # minus on `-0`), so the pattern choice is final.
+    auto_sign_display? = options.sign_display in [nil, :auto]
+
     sign =
-      if(number_string == "0", do: "", else: options.symbols.minus_sign)
+      if(number_string == "0" and auto_sign_display?, do: "", else: options.symbols.minus_sign)
       |> maybe_wrap(:minus, wrapper)
 
     [sign | assemble_parts(rest, number_string, number, meta, options)]
