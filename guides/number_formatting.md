@@ -335,6 +335,10 @@ All options accepted by `Localize.Number.to_string/2`:
 | `:min_fractional_digits` | integer | `nil` | Minimum trailing zeros after decimal. Overrides `:fractional_digits` for the minimum. |
 | `:max_fractional_digits` | integer | `nil` | Maximum decimal digits (rounds to this). Overrides `:fractional_digits` for the maximum. |
 | `:maximum_integer_digits` | integer | `nil` | Maximum integer digits to display. |
+| `:minimum_significant_digits` | integer | `nil` | Minimum significant digits (1–21). Takes precedence over fractional digit settings. |
+| `:maximum_significant_digits` | integer | `nil` | Maximum significant digits (1–21). Values are rounded to fit. |
+| `:sign_display` | atom | `:auto` | When to show the sign: `:auto`, `:always`, `:except_zero`, `:negative`, or `:never`. Mirrors ECMA-402 `signDisplay`. |
+| `:exponent_style` | atom | `:e` | Scientific exponent rendering: `:e` (`1.234E3`) or `:superscript` (`1.234 × 10³`). |
 | `:rounding_mode` | atom | `:half_even` | One of `:down`, `:up`, `:half_up`, `:half_down`, `:half_even`, `:ceiling`, `:floor`. |
 | `:round_nearest` | integer | `nil` | Round to nearest increment (e.g., 5 for rounding to nearest 5). |
 | `:minimum_grouping_digits` | integer | `0` | Minimum integer digits before grouping is applied. |
@@ -357,6 +361,29 @@ iex> Localize.Number.to_string(1234.5, min_fractional_digits: 3)
 iex> Localize.Number.to_string(1234.56789, min_fractional_digits: 1, max_fractional_digits: 3)
 {:ok, "1,234.568"}
 ```
+
+### Sign display examples
+
+`:sign_display` mirrors ECMA-402's `signDisplay` option. `:auto` (the default) shows the sign for negative numbers only; `:always` shows a sign on every number, using the locale's plus sign for positive numbers and zero; `:except_zero` shows a sign on everything except values that round to zero; `:negative` suppresses the sign on negative values that round to zero; `:never` shows no sign at all. Zero-ness is judged after rounding.
+
+```elixir
+iex> Localize.Number.to_string(1234, sign_display: :always)
+{:ok, "+1,234"}
+
+iex> Localize.Number.to_string(0, sign_display: :except_zero)
+{:ok, "0"}
+
+iex> Localize.Number.to_string(-1234, sign_display: :never)
+{:ok, "1,234"}
+
+iex> Localize.Number.to_string(-0.2, sign_display: :negative, fractional_digits: 0)
+{:ok, "0"}
+
+iex> Localize.Number.to_string(0.5, format: :percent, sign_display: :always)
+{:ok, "+50%"}
+```
+
+The sign is placed where the format's negative subpattern places the minus sign, so `format: :accounting` keeps parentheses for negative numbers and prefixes the plus sign for positive ones.
 
 ### Rounding mode examples
 

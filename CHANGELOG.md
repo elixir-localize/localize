@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+* `Localize.Number.to_string/2` accepts a `:sign_display` option (`:auto`, `:always`, `:except_zero`, `:negative`, `:never`) mirroring ECMA-402's `signDisplay` across decimal, currency, percent, scientific and compact formats.
+
 ### Fixed
 
 * `Localize.Unit.to_string/2` with `backend: :nif` honours the `:format` option: the NIF call now receives the requested width, so `format: :short` renders "100 m" on both backends instead of falling back to the long form.

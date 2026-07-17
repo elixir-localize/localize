@@ -85,6 +85,22 @@ defmodule Localize.Number do
 
   * `:maximum_significant_digits` is an integer in `1..21` specifying the maximum number of significant digits to display. Values are rounded to fit using the configured `:rounding_mode`. Pairs with `:minimum_significant_digits`; when only one is set the other defaults to the corresponding ECMA-402 boundary (`1` for minimum, `21` for maximum).
 
+  * `:sign_display` controls when the number's sign is shown,
+    mirroring ECMA-402's `signDisplay` option. `:auto` (the
+    default) shows the sign for negative numbers only. `:always`
+    shows a sign for every number, rendering the locale's plus
+    sign for positive numbers and zero. `:except_zero` shows a
+    sign for every number except those that round to zero.
+    `:negative` is like `:auto` except that negative numbers
+    rounding to zero display no sign. `:never` never shows a
+    sign. Zero-ness is judged after rounding, so `-0.2` with
+    `fractional_digits: 0` counts as zero. Sign placement follows
+    the format's negative subpattern — `format: :accounting`
+    keeps parentheses for negative numbers and prefixes the plus
+    sign for positive ones. The option applies to decimal,
+    currency, percent, scientific and compact formats; it is
+    ignored by RBNF formats such as `:spellout`.
+
   * `:exponent_style` controls how scientific patterns render the
     exponent. `:e` (the default) emits the standard `1.234E3` form
     using the locale's `exponential` symbol and minus/plus signs.
