@@ -181,14 +181,19 @@ defmodule Localize.Number do
   defp dispatch_format(number, validated_options) do
     format = validated_options.format
 
-    cond do
-      is_binary(format) ->
-        Formatter.Decimal.to_string(number, format, validated_options)
+    if is_binary(format) do
+      Formatter.Decimal.to_string(number, format, validated_options)
+    else
+      dispatch_format_style(number, format, validated_options)
+    end
+  end
 
-      is_atom(format) and format in [:decimal_short, :decimal_long, :currency_short] ->
+  defp dispatch_format_style(number, format, validated_options) do
+    cond do
+      format in [:decimal_short, :decimal_long, :currency_short] ->
         Formatter.Short.to_string(number, format, validated_options)
 
-      is_atom(format) and format in [:currency_long, :currency_long_with_symbol] ->
+      format in [:currency_long, :currency_long_with_symbol] ->
         Formatter.Currency.to_string(number, format, validated_options)
 
       # `:standard` survives options resolution as an atom only when

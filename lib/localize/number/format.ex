@@ -217,22 +217,20 @@ defmodule Localize.Number.Format do
     # trying to find a fallback for.
     case System.number_systems_for(locale) do
       {:ok, %{default: default_system}} when default_system != system_name ->
-        case {requested, Map.get(all_formats, default_system)} do
-          {nil, default_formats} ->
-            default_formats
-
-          {requested, nil} ->
-            requested
-
-          {requested, default_formats} ->
-            Map.merge(default_formats, requested, fn _field, default, override ->
-              override || default
-            end)
-        end
+        merge_formats(requested, Map.get(all_formats, default_system))
 
       _default_or_error ->
         requested
     end
+  end
+
+  defp merge_formats(nil, default_formats), do: default_formats
+  defp merge_formats(requested, nil), do: requested
+
+  defp merge_formats(requested, default_formats) do
+    Map.merge(default_formats, requested, fn _field, default, override ->
+      override || default
+    end)
   end
 
   @doc """

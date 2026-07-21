@@ -140,7 +140,7 @@ defmodule Localize.Number.SignDisplayTest do
 
     test "scientific format" do
       assert {:ok, "+1.2345E4"} =
-               Localize.Number.to_string(12345, format: "#E0", sign_display: :always)
+               Localize.Number.to_string(12_345, format: "#E0", sign_display: :always)
     end
   end
 
