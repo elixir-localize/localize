@@ -62,6 +62,16 @@ defmodule Localize.Message.Interpreter do
   # `Kernel.to_string/1` on the operand value.
   @moduledoc false
 
+  # MF2 `signDisplay` values mapped to the `:sign_display` option of
+  # `Localize.Number.to_string/2`.
+  @mf2_sign_displays %{
+    "auto" => :auto,
+    "always" => :always,
+    "exceptZero" => :except_zero,
+    "negative" => :negative,
+    "never" => :never
+  }
+
   # ── Public API ─────────────────────────────────────────────────
 
   @doc """
@@ -1085,56 +1095,24 @@ defmodule Localize.Message.Interpreter do
   defp to_float(number) when is_number(number), do: number * 1.0
 
   # Formats a resolved numeric value honouring the MF2 `signDisplay`
-  # option (auto | always | exceptZero | negative | never). The plus
-  # sign comes from the locale's number symbols.
+  # option (auto | always | exceptZero | negative | never) by mapping
+  # it to the `:sign_display` option of `Localize.Number.to_string/2`.
+  # All sign handling — pattern selection, plus-sign placement, zero
+  # and NaN semantics — is done by the number formatter, never here.
   defp format_number_result(number, options_struct, func_opts) do
     with {:ok, sign_display} <- sign_display_option(func_opts) do
-      format_with_sign_display(number, options_struct, sign_display)
-    end
-  end
-
-  defp format_with_sign_display(number, options_struct, "auto") do
-    Localize.Number.to_string(number, set_number_pattern(options_struct, number))
-  end
-
-  defp format_with_sign_display(number, options_struct, "never") do
-    magnitude = number_abs(number)
-    Localize.Number.to_string(magnitude, set_number_pattern(options_struct, magnitude))
-  end
-
-  defp format_with_sign_display(number, options_struct, "always") do
-    if number_negative?(number) do
-      format_with_sign_display(number, options_struct, "auto")
-    else
-      with {:ok, formatted} <- format_with_sign_display(number, options_struct, "auto") do
-        {:ok, plus_sign(options_struct) <> formatted}
-      end
-    end
-  end
-
-  defp format_with_sign_display(number, options_struct, "exceptZero") do
-    cond do
-      number_zero?(number) -> format_with_sign_display(number, options_struct, "never")
-      number_negative?(number) -> format_with_sign_display(number, options_struct, "auto")
-      true -> format_with_sign_display(number, options_struct, "always")
-    end
-  end
-
-  defp format_with_sign_display(number, options_struct, "negative") do
-    if number_zero?(number) do
-      format_with_sign_display(number, options_struct, "never")
-    else
-      format_with_sign_display(number, options_struct, "auto")
+      options_struct = %{options_struct | sign_display: sign_display}
+      Localize.Number.to_string(number, set_number_pattern(options_struct, number))
     end
   end
 
   defp sign_display_option(func_opts) do
     case func_opts[:signDisplay] || func_opts["signDisplay"] do
       nil ->
-        {:ok, "auto"}
+        {:ok, nil}
 
-      value when value in ["auto", "always", "exceptZero", "negative", "never"] ->
-        {:ok, value}
+      value when is_map_key(@mf2_sign_displays, value) ->
+        {:ok, Map.fetch!(@mf2_sign_displays, value)}
 
       value ->
         {:error,
@@ -1142,17 +1120,6 @@ defmodule Localize.Message.Interpreter do
            "or never, got #{inspect(value)}"}
     end
   end
-
-  defp plus_sign(%{symbols: %{plus_sign: plus}}), do: plus
-
-  defp number_negative?(%Decimal{sign: sign}), do: sign < 0
-  defp number_negative?(number), do: number < 0
-
-  defp number_zero?(%Decimal{} = decimal), do: Decimal.equal?(decimal, 0)
-  defp number_zero?(number), do: number == 0
-
-  defp number_abs(%Decimal{} = decimal), do: Decimal.abs(decimal)
-  defp number_abs(number), do: abs(number)
 
   defp resolve_custom_function(name, options) do
     per_call = Keyword.get(options, :functions, %{})
