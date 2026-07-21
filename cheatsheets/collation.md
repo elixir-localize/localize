@@ -99,7 +99,7 @@ Localize.Collation.sort(["ñ", "n", "o"], locale: "es")
 
 ```elixir
 Localize.Collation.sort(["côte", "coté", "cote", "côté"], locale: "fr-CA")
-#=> ["cote", "coté", "côte", "côté"]
+#=> ["cote", "côte", "coté", "côté"]
 ```
 
 ### Danish: uppercase first by default

@@ -126,8 +126,8 @@ Available RBNF rules vary by locale. Query them with:
 ```elixir
 iex> {:ok, rules} = Localize.Number.Rbnf.rule_names_for_locale(:en)
 iex> rules
-["digits_ordinal", "spellout_cardinal", "spellout_numbering",
- "spellout_numbering_year", "spellout_ordinal", "spellout_cardinal_verbose",
+["spellout_cardinal", "spellout_ordinal", "digits_ordinal",
+ "spellout_numbering", "spellout_numbering_year", "spellout_cardinal_verbose",
  "spellout_numbering_verbose", "spellout_ordinal_verbose"]
 ```
 
@@ -294,7 +294,7 @@ Different locales use different format patterns, grouping rules, and symbols:
 |--------|-----------------|---------|----------|---------|
 | `:en` | `#,##0.###` | `.` | `,` | 1,234,567.89 |
 | `:de` | `#,##0.###` | `,` | `.` | 1.234.567,89 |
-| `:fr` | `#,##0.###` | `,` | ` ` (narrow no-break space) | 1 234 567,89 |
+| `:fr` | `#,##0.###` | `,` | ` ` (narrow no-break space) | 1 234 567,89 |
 | `:hi` | `#,##,##0.###` | `.` | `,` | 12,34,567.89 |
 | `:ja` | `#,##0.###` | `.` | `,` | 1,234,567.89 |
 

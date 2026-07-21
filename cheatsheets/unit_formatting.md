@@ -69,7 +69,7 @@ Localize.Unit.to_string(unit, format: :narrow)  #=> {:ok, "42m"}
 unit = Localize.Unit.new!(2.5, "kilogram")
 Localize.Unit.to_string(unit, locale: :en)   #=> {:ok, "2.5 kilograms"}
 Localize.Unit.to_string(unit, locale: :de)   #=> {:ok, "2,5 Kilogramm"}
-Localize.Unit.to_string(unit, locale: :fr)   #=> {:ok, "2,5 kilogrammes"}
+Localize.Unit.to_string(unit, locale: :fr)   #=> {:ok, "2,5 kilogrammes"}
 ```
 
 ### Plural-aware patterns

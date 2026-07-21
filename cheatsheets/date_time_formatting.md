@@ -14,7 +14,7 @@ Localize.Date.to_string(~D[2025-07-10])
 | `:short` | `"7/10/25"` | `"10.07.25"` | `"2025/07/10"` |
 | `:medium` | `"Jul 10, 2025"` | `"10.07.2025"` | `"2025/07/10"` |
 | `:long` | `"July 10, 2025"` | `"10. Juli 2025"` | `"2025年7月10日"` |
-| `:full` | `"Wednesday, July 10, 2025"` | `"Donnerstag, 10. Juli 2025"` | `"2025年7月10日木曜日"` |
+| `:full` | `"Thursday, July 10, 2025"` | `"Donnerstag, 10. Juli 2025"` | `"2025年7月10日木曜日"` |
 
 ### Skeleton formats
 
