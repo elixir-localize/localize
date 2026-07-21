@@ -185,6 +185,21 @@ defmodule Localize.DurationTest do
       d = Localize.Duration.new_from_seconds(0)
       assert {:ok, "00:00:00"} = Localize.Duration.to_time_string(d)
     end
+
+    test "single-quoted text is literal per TR35" do
+      d = Localize.Duration.new_from_seconds(136_092)
+      assert {:ok, "37h 48m"} = Localize.Duration.to_time_string(d, format: "h'h' m'm'")
+    end
+
+    test "a doubled quote is a literal quote character" do
+      d = Localize.Duration.new_from_seconds(59)
+      assert {:ok, "59''"} = Localize.Duration.to_time_string(d, format: "s''''")
+    end
+
+    test "an unterminated quote takes the rest of the pattern as literal" do
+      d = Localize.Duration.new_from_seconds(59)
+      assert {:ok, "59 sec"} = Localize.Duration.to_time_string(d, format: "s' sec")
+    end
   end
 
   # ── to_time_string!/2 ─────────────────────────────────────────

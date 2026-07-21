@@ -416,14 +416,39 @@ defmodule Localize.Duration do
     |> IO.iodata_to_binary()
   end
 
-  defp chunk_pattern(graphemes) do
-    graphemes
-    |> Enum.chunk_by(fn g -> g in ~w(h m s) end)
-    |> Enum.map(fn
-      [c | _] = chars when c in ~w(h m s) -> {:field, Enum.join(chars)}
-      chars -> {:literal, Enum.join(chars)}
-    end)
+  # TR35 pattern quoting: text between single quotes is literal, and
+  # a doubled quote is a literal quote character, so "h'h' m'm'"
+  # renders as "37h 48m".
+  defp chunk_pattern(graphemes), do: chunk_pattern(graphemes, [])
+
+  defp chunk_pattern([], acc), do: Enum.reverse(acc)
+
+  defp chunk_pattern(["'", "'" | rest], acc) do
+    chunk_pattern(rest, [{:literal, "'"} | acc])
   end
+
+  defp chunk_pattern(["'" | rest], acc) do
+    {literal, rest} = quoted_span(rest, [])
+    chunk_pattern(rest, [{:literal, literal} | acc])
+  end
+
+  defp chunk_pattern([c | _] = graphemes, acc) when c in ~w(h m s) do
+    {field, rest} = Enum.split_while(graphemes, &(&1 == c))
+    chunk_pattern(rest, [{:field, Enum.join(field)} | acc])
+  end
+
+  defp chunk_pattern(graphemes, acc) do
+    {literal, rest} = Enum.split_while(graphemes, fn g -> g not in ~w(h m s ') end)
+    chunk_pattern(rest, [{:literal, Enum.join(literal)} | acc])
+  end
+
+  # Consume up to the closing quote; a doubled quote inside the span
+  # is a literal quote. An unterminated quote takes the rest of the
+  # pattern as literal text.
+  defp quoted_span(["'", "'" | rest], acc), do: quoted_span(rest, ["'" | acc])
+  defp quoted_span(["'" | rest], acc), do: {acc |> Enum.reverse() |> Enum.join(), rest}
+  defp quoted_span([g | rest], acc), do: quoted_span(rest, [g | acc])
+  defp quoted_span([], acc), do: {acc |> Enum.reverse() |> Enum.join(), []}
 
   defp pad(number, width) do
     number

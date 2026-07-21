@@ -91,4 +91,6 @@ Updated July 15 (second pass): items 1, 2, 4, 5, 6, 7, 8, and 10–13 are all do
 3. ~~Item 9 — `localize_mcp` release~~ — DONE July 15: 0.1.0 on hex, README MCP section published.
 4. Schedule: **1.0.0-rc.0 on Monday July 20, 2026** (after the delegate removal and a full house release review); **1.0.0 on August 1, 2026** unless outstanding issues emerge during the soak.
 
+5. Full rc.0 release review — DONE July 22: all six gates clean (format, compile, test 31k, dialyzer, credo strict, release docs), `mix hex.build` verified at 1.0.0-rc.0, README install snippet moved to the pre-release requirement form, changelog completed (MF2 RBNF numbering systems, accessor inheritance), and ~600 documentation examples execution-verified across README, guides and cheatsheets — five doc defects fixed and one implementation fix (TR35 quote literals in `Duration.to_time_string/2` patterns). The unplanned RC-window changes (numbering-system overrides, `:sign_display`, TR35 negative subpattern, MF2 formatting delegation) are all changelog-recorded and example-verified.
+
 Nothing found in this pass contradicts the stability-period intent: items 1–3 are decisions plus small diffs, and everything else is additive tests/docs.

@@ -15,7 +15,7 @@ Localize.Number.to_string(1234567.89)
 | `:de` | `"1.234.567,89"` | Period grouping, comma decimal |
 | `:ja` | `"1,234,567.89"` | Western (same as English) |
 | `:hi` | `"12,34,567.89"` | Indian (lakhs/crores) |
-| `:fr` | `"1 234 567,89"` | Thin-space grouping, comma decimal |
+| `:fr` | `"1 234 567,89"` | Thin-space grouping, comma decimal |
 
 ### Currency formatting
 

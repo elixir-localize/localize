@@ -4,11 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0-rc.0] — July 22nd, 2026
 
 ### Added
 
 * `Localize.Number.to_string/2` accepts a `:sign_display` option (`:auto`, `:always`, `:except_zero`, `:negative`, `:never`) mirroring ECMA-402's `signDisplay` across decimal, currency, percent, scientific and compact formats.
+
+### Changed
+
+* `Number.System.system_name_from/2` resolves any CLDR numbering system for any locale instead of returning a `:not_for_locale` error, and `Format.formats_for/2` and `Symbol.number_symbols_for/2` inherit missing data from the locale's default system per CLDR root aliasing.
 
 ### Fixed
 
@@ -16,7 +20,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.to_string/2` honours any CLDR numbering system via `-u-nu-` or `:number_system`, per TR35/ICU: `en-u-nu-thai` renders Thai digits instead of an `UnknownRbnfRuleError`, and algorithmic systems (`zh` with `:hans`, `en-u-nu-roman`) format via their RBNF rules.
 
+* The MF2 numeric functions honour an algorithmic `numberingSystem` (`hans`, `roman`, …) via the system's RBNF rules, matching `Localize.Number.to_string/2` and ICU.
+
 * `Localize.Unit.to_string/2` with `backend: :nif` honours the `:format` option: the NIF call now receives the requested width, so `format: :short` renders "100 m" on both backends instead of falling back to the long form.
+
+* `Localize.Duration.to_time_string/2` honours TR35 single-quote literals in patterns, so `format: "h'h' m'm'"` renders "37h 48m" instead of substituting the quoted letters as field symbols.
 
 ### Removed
 

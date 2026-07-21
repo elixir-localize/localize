@@ -538,7 +538,7 @@ km / 2          #=> %Localize.Unit{value: 0.5, name: "kilometer"}
 dist = Localize.Unit.new!(100, "meter")
 time = Localize.Unit.new!(10, "second")
 dist / time     #=> %Localize.Unit{value: 10.0, name: "meter-per-second"}
-dist * time     #=> %Localize.Unit{value: 50, name: "meter-second"}
+dist * time     #=> %Localize.Unit{value: 1000, name: "meter-second"}
 
 # Standard operators still work for non-unit types
 2 + 3           #=> 5
