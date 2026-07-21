@@ -270,5 +270,63 @@ if Code.ensure_loaded?(Localize.Number) do
                  )
       end
     end
+
+    # The MF2 `signDisplay` option delegates to the `:sign_display`
+    # option of `Localize.Number.to_string/2` — the interpreter does
+    # no sign handling of its own.
+    describe "signDisplay option" do
+      test "auto shows only the negative sign" do
+        assert format("{{{$n :number signDisplay=auto}}}", %{"n" => -1234.5}) == "-1,234.5"
+        assert format("{{{$n :number signDisplay=auto}}}", %{"n" => 1234.5}) == "1,234.5"
+      end
+
+      test "always shows a sign on every value including zero" do
+        assert format("{{{$n :number signDisplay=always}}}", %{"n" => 1234.5}) == "+1,234.5"
+        assert format("{{{$n :number signDisplay=always}}}", %{"n" => -1234.5}) == "-1,234.5"
+        assert format("{{{$n :number signDisplay=always}}}", %{"n" => 0}) == "+0"
+      end
+
+      test "exceptZero shows a sign except on zero" do
+        assert format("{{{$n :number signDisplay=exceptZero}}}", %{"n" => 1234.5}) == "+1,234.5"
+        assert format("{{{$n :number signDisplay=exceptZero}}}", %{"n" => -1234.5}) == "-1,234.5"
+        assert format("{{{$n :number signDisplay=exceptZero}}}", %{"n" => 0}) == "0"
+      end
+
+      test "negative shows a sign only on negative non-zero values" do
+        assert format("{{{$n :number signDisplay=negative}}}", %{"n" => -1234.5}) == "-1,234.5"
+        assert format("{{{$n :number signDisplay=negative}}}", %{"n" => 1234.5}) == "1,234.5"
+        assert format("{{{$n :number signDisplay=negative}}}", %{"n" => 0}) == "0"
+      end
+
+      test "never suppresses the sign entirely" do
+        assert format("{{{$n :number signDisplay=never}}}", %{"n" => -1234.5}) == "1,234.5"
+        assert format("{{{$n :number signDisplay=never}}}", %{"n" => 1234.5}) == "1,234.5"
+      end
+
+      test "signDisplay composes with numberingSystem" do
+        assert Localize.Message.format(
+                 "{$n :number signDisplay=always numberingSystem=thai}",
+                 %{"n" => 1234.5},
+                 locale: :en
+               ) == {:ok, "+๑,๒๓๔.๕"}
+      end
+
+      test "signDisplay matches Localize.Number.to_string/2" do
+        assert Localize.Message.format(
+                 "{$n :number signDisplay=exceptZero}",
+                 %{"n" => 1234.5},
+                 locale: :en
+               ) == Localize.Number.to_string(1234.5, locale: :en, sign_display: :except_zero)
+      end
+
+      test "an invalid signDisplay value is an error" do
+        assert {:error, %Localize.FormatError{}} =
+                 Localize.Message.format(
+                   "{$n :number signDisplay=sometimes}",
+                   %{"n" => 5},
+                   locale: :en
+                 )
+      end
+    end
   end
 end
