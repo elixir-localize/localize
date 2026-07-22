@@ -328,5 +328,78 @@ if Code.ensure_loaded?(Localize.Number) do
                  )
       end
     end
+
+    # The TR35 digit-control options map onto the corresponding
+    # `Localize.Number.to_string/2` options; the interpreter only
+    # maps names and values, the number formatter does the work.
+    describe "digit-control options" do
+      test "minimumIntegerDigits zero-pads with grouping" do
+        assert format("{{{$n :number minimumIntegerDigits=5}}}", %{"n" => 123}) == "00,123"
+        assert format("{{{$n :integer minimumIntegerDigits=3}}}", %{"n" => 7}) == "007"
+      end
+
+      test "minimumIntegerDigits applies to currency" do
+        assert Localize.Message.format(
+                 "{$p :currency currency=USD minimumIntegerDigits=5}",
+                 %{"p" => 1.5},
+                 locale: :en
+               ) == {:ok, "$00,001.50"}
+      end
+
+      test "trailingZeroDisplay stripIfInteger drops an integral fraction" do
+        assert format(
+                 "{{{$n :number minimumFractionDigits=2 trailingZeroDisplay=stripIfInteger}}}",
+                 %{"n" => 1000}
+               ) == "1,000"
+
+        assert Localize.Message.format(
+                 "{$p :currency currency=USD trailingZeroDisplay=stripIfInteger}",
+                 %{"p" => 1000},
+                 locale: :en
+               ) == {:ok, "$1,000"}
+      end
+
+      test "significant digits options are honoured" do
+        assert format("{{{$n :number maximumSignificantDigits=3}}}", %{"n" => 1234.567}) ==
+                 "1,230"
+      end
+
+      test "roundingPriority resolves fraction versus significant bounds" do
+        source =
+          "{$n :number maximumFractionDigits=3 maximumSignificantDigits=2 roundingPriority=%s}"
+
+        assert format("{{#{String.replace(source, "%s", "morePrecision")}}}", %{"n" => 1.23456}) ==
+                 "1.235"
+
+        assert format("{{#{String.replace(source, "%s", "lessPrecision")}}}", %{"n" => 1.23456}) ==
+                 "1.2"
+      end
+
+      test "matches Localize.Number.to_string/2" do
+        assert Localize.Message.format(
+                 "{$n :number minimumIntegerDigits=4 trailingZeroDisplay=stripIfInteger minimumFractionDigits=2}",
+                 %{"n" => 42},
+                 locale: :en
+               ) ==
+                 Localize.Number.to_string(42,
+                   locale: :en,
+                   minimum_integer_digits: 4,
+                   trailing_zero_display: :strip_if_integer,
+                   min_fractional_digits: 2
+                 )
+      end
+
+      test "invalid option values are errors" do
+        for source <- [
+              "{$n :number minimumIntegerDigits=0}",
+              "{$n :number minimumSignificantDigits=0}",
+              "{$n :number trailingZeroDisplay=sometimes}",
+              "{$n :number roundingPriority=sometimes}"
+            ] do
+          assert {:error, %Localize.FormatError{}} =
+                   Localize.Message.format(source, %{"n" => 5}, locale: :en)
+        end
+      end
+    end
   end
 end

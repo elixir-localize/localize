@@ -12,4 +12,4 @@ All items from the July 22 list are DONE (July 22, 2026, post-rc.0): `:minimum_i
 
 * **Compact affix split.** `to_parts/2` tags the whole compact affix as one `:compact` part (" million"); `Intl` splits the leading space into a `:literal`. Callers needing exact JS part boundaries should split on leading/trailing whitespace.
 
-* **MF2 option mapping.** TR35 MessageFormat lists `minimumIntegerDigits`, `trailingZeroDisplay` and `roundingPriority` as `:number`/`:currency` function options; the MF2 interpreter does not map them yet. Localize.Number now supports all three natively, so this is a camelCase-to-option mapping in `build_number_options`.
+* ~~**MF2 option mapping.**~~ DONE July 22: the MF2 `:number`/`:integer`/`:currency` functions map `minimumIntegerDigits`, `minimumSignificantDigits`, `maximumSignificantDigits`, `trailingZeroDisplay` and `roundingPriority` onto the corresponding `Localize.Number` options.
