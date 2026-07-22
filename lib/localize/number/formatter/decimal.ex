@@ -13,6 +13,15 @@ defmodule Localize.Number.Formatter.Decimal do
 
   @empty_string ""
 
+  # Compile-time pattern placeholders and the zero-width currency
+  # sentinel, defined ahead of every function per house style.
+  @group_separator Compiler.placeholder(:group)
+  @decimal_separator Compiler.placeholder(:decimal)
+  @exponent_separator Compiler.placeholder(:exponent)
+  @exponent_sign Compiler.placeholder(:exponent_sign)
+  @minus_placeholder Compiler.placeholder(:minus)
+  @nbsp "\u200b"
+
   # # to_string/3
   # Formats a number using a format string and validated options.
   #
@@ -31,6 +40,30 @@ defmodule Localize.Number.Formatter.Decimal do
         meta = update_meta(meta, number, options)
         result = do_to_string(number, meta, options)
         {:ok, result}
+
+      {:error, reason} ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: format,
+           expected: "a valid number format",
+           context: reason
+         )}
+    end
+  end
+
+  # # to_parts/3
+  # Formats a number into a list of typed parts per ECMA-402
+  # `formatToParts`: `[%{type: atom(), value: String.t()}]`. The
+  # pipeline mirrors `to_string/3` exactly — same metadata, same
+  # rounding, same grouping — but the assembly stage emits tagged
+  # segments instead of a concatenated binary.
+  @spec to_parts(number() | Decimal.t(), String.t(), Options.t()) ::
+          {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
+  def to_parts(number, format, %Options{} = options) when is_binary(format) do
+    case metadata(format) do
+      {:ok, meta} ->
+        meta = update_meta(meta, number, options)
+        {:ok, do_to_parts(number, meta, options)}
 
       {:error, reason} ->
         {:error,
@@ -74,12 +107,15 @@ defmodule Localize.Number.Formatter.Decimal do
 
   @doc false
   def update_meta(meta, number, options) do
+    options = resolve_rounding_priority(options, number)
+
     meta
     |> apply_significant_digit_options(options)
     |> adjust_fraction_for_currency(options.currency, options.currency_digits)
     |> adjust_fraction_for_significant_digits(number)
     |> adjust_for_fractional_digits(options)
     |> adjust_for_integer_digits(options.maximum_integer_digits)
+    |> adjust_for_minimum_integer_digits(options.minimum_integer_digits)
     |> adjust_for_round_nearest(options.round_nearest)
     |> Map.put(:number, number)
   end
@@ -109,6 +145,81 @@ defmodule Localize.Number.Formatter.Decimal do
       resolved_min = min || 1
       resolved_max = max || 21
       %{meta | significant_digits: %{min: resolved_min, max: resolved_max}}
+    end
+  end
+
+  # ECMA-402 `roundingPriority`. Meaningful only when both
+  # significant-digit and fraction-digit bounds are present; the
+  # default (`nil` / `:auto`) keeps the significant digits winning
+  # as `apply_significant_digit_options/2` implements. For
+  # `:more_precision` / `:less_precision` the spec compares the
+  # rounding position each bound implies for this value —
+  # significant digits round at `magnitude - (max_sd - 1)`,
+  # fraction digits at `-max_fd` — and the winner's bounds apply
+  # while the loser's are discarded. Ties go to the significant-
+  # digit bounds, matching `Intl.NumberFormat`.
+  defp resolve_rounding_priority(%{rounding_priority: priority} = options, number)
+       when priority in [:more_precision, :less_precision] do
+    significant? =
+      not is_nil(options.minimum_significant_digits) or
+        not is_nil(options.maximum_significant_digits)
+
+    max_fd = options.max_fractional_digits || options.fractional_digits
+
+    fractional? = not is_nil(max_fd) or not is_nil(options.min_fractional_digits)
+
+    if significant? and fractional? do
+      apply_rounding_priority(options, number, priority, max_fd)
+    else
+      options
+    end
+  end
+
+  defp resolve_rounding_priority(options, _number), do: options
+
+  defp apply_rounding_priority(options, number, priority, max_fd) do
+    max_sd = options.maximum_significant_digits || 21
+    resolved_max_fd = max_fd || max(options.min_fractional_digits || 0, 3)
+
+    significant_position = magnitude(number) - (max_sd - 1)
+    fractional_position = -resolved_max_fd
+
+    significant_wins? =
+      case priority do
+        :more_precision -> significant_position <= fractional_position
+        :less_precision -> significant_position >= fractional_position
+      end
+
+    if significant_wins? do
+      %{
+        options
+        | fractional_digits: nil,
+          min_fractional_digits: nil,
+          max_fractional_digits: nil
+      }
+    else
+      %{options | minimum_significant_digits: nil, maximum_significant_digits: nil}
+    end
+  end
+
+  # The exponent of the most significant digit: floor(log10(|x|)),
+  # with 0 for zero and non-finite values (rounding does not apply
+  # to them).
+  defp magnitude(%Decimal{coef: coef}) when coef in [:NaN, :inf], do: 0
+
+  defp magnitude(%Decimal{coef: 0}), do: 0
+
+  defp magnitude(%Decimal{coef: coef, exp: exp}) when is_integer(coef) do
+    Integer.digits(coef) |> length() |> Kernel.+(exp - 1)
+  end
+
+  defp magnitude(number) when is_number(number) do
+    absolute = abs(number)
+
+    cond do
+      absolute == 0 -> 0
+      absolute >= 1 -> Digits.number_of_integer_digits(absolute) - 1
+      true -> floor(:math.log10(absolute))
     end
   end
 
@@ -143,7 +254,7 @@ defmodule Localize.Number.Formatter.Decimal do
       |> round_fractional_digits(meta, options)
       |> output_to_tuple()
       |> adjust_leading_zeros(meta)
-      |> adjust_trailing_zeros(meta)
+      |> adjust_trailing_zeros(meta, options)
       |> set_max_integer_digits(meta)
 
     options = resolve_sign_display(options, number, rounds_to_zero?(digit_tuple))
@@ -158,6 +269,280 @@ defmodule Localize.Number.Formatter.Decimal do
   defp do_to_string(number, meta, options) do
     assemble_format(number, meta, options)
   end
+
+  # ── Parts pipeline ─────────────────────────────────────────
+
+  # Mirrors `do_to_string/3`: the digit pipeline is identical up to
+  # `apply_grouping/3`; the number body is then split into typed
+  # segments instead of fused into a binary. The plain formatted
+  # number string is still computed — the currency-spacing
+  # predicates, padding width, and the zero-suppressed minus all
+  # depend on it.
+  defp do_to_parts(%Decimal{coef: :NaN}, meta, options) do
+    options = resolve_sign_display_for_nan(options)
+    body = [%{type: :nan, value: options.symbols.nan}]
+    walk_format_parts(body, options.symbols.nan, meta, options)
+  end
+
+  defp do_to_parts(%Decimal{coef: :inf} = number, meta, options) do
+    options = resolve_sign_display(options, number, false)
+    body = [%{type: :infinity, value: options.symbols.infinity}]
+    walk_format_parts(body, options.symbols.infinity, meta, options)
+  end
+
+  defp do_to_parts(number, %{integer_digits: _} = meta, options) do
+    digit_tuple =
+      number
+      |> absolute_value()
+      |> multiply_by_factor(meta)
+      |> round_to_significant_digits(meta)
+      |> round_to_nearest(meta, options)
+      |> set_exponent(meta)
+      |> round_fractional_digits(meta, options)
+      |> output_to_tuple()
+      |> adjust_leading_zeros(meta)
+      |> adjust_trailing_zeros(meta, options)
+      |> set_max_integer_digits(meta)
+
+    options = resolve_sign_display(options, number, rounds_to_zero?(digit_tuple))
+    grouped_tuple = apply_grouping(digit_tuple, meta, options)
+
+    number_string =
+      grouped_tuple
+      |> reassemble_number_string(meta, options)
+      |> transliterate_string(options)
+
+    body = number_body_parts(grouped_tuple, meta, options)
+    walk_format_parts(body, number_string, meta, options)
+  end
+
+  defp number_body_parts({_sign, integer, fraction, exponent_sign, exponent}, meta, options) do
+    digit_map = parts_transliteration_map(options)
+    group_symbol = parts_symbol(options, :group, @group_separator)
+    decimal_symbol = parts_symbol(options, :decimal, @decimal_separator)
+
+    integer = if integer == [], do: [?0], else: integer
+    integer_parts = split_grouped_digits(integer, :integer, group_symbol, digit_map)
+
+    fraction_parts =
+      if fraction == [] do
+        []
+      else
+        [
+          %{type: :decimal, value: decimal_symbol}
+          | split_grouped_digits(fraction, :fraction, group_symbol, digit_map)
+        ]
+      end
+
+    integer_parts ++ fraction_parts ++ exponent_parts(exponent_sign, exponent, meta, options)
+  end
+
+  # The grouped charlists interleave digit codepoints with the
+  # group-separator placeholder; each digit run becomes one part.
+  defp split_grouped_digits(grouped, part_type, group_symbol, digit_map) do
+    grouped
+    |> List.flatten()
+    |> Enum.chunk_by(&(&1 == @group_separator or &1 == [@group_separator]))
+    |> Enum.map(fn
+      [sep | _] = chunk when sep == @group_separator or not is_integer(sep) ->
+        List.duplicate(%{type: :group, value: group_symbol}, length(chunk))
+
+      digits ->
+        [%{type: part_type, value: transliterate_part_value(List.to_string(digits), digit_map)}]
+    end)
+    |> List.flatten()
+  end
+
+  defp exponent_parts(_exponent_sign, _exponent, %{exponent_digits: 0}, _options), do: []
+
+  defp exponent_parts(exponent_sign, exponent, meta, options) do
+    digit_map = parts_transliteration_map(options)
+
+    digits =
+      exponent
+      |> List.to_string()
+      |> String.pad_leading(meta.exponent_digits, "0")
+      |> transliterate_part_value(digit_map)
+
+    sign_parts =
+      cond do
+        exponent_sign < 0 ->
+          [
+            %{
+              type: :exponent_minus_sign,
+              value: IO.iodata_to_binary(exponent_minus_symbol(options))
+            }
+          ]
+
+        meta.exponent_sign ->
+          [
+            %{
+              type: :exponent_plus_sign,
+              value: IO.iodata_to_binary(exponent_plus_symbol(options))
+            }
+          ]
+
+        true ->
+          []
+      end
+
+    separator = IO.iodata_to_binary(exponent_separator_symbol(options))
+
+    [%{type: :exponent_separator, value: separator}] ++
+      sign_parts ++ [%{type: :exponent_integer, value: digits}]
+  end
+
+  defp parts_symbol(%{symbols: nil}, _kind, placeholder), do: placeholder
+
+  defp parts_symbol(%{symbols: symbols}, kind, placeholder) do
+    extract_symbol(Map.fetch!(symbols, kind)) || placeholder
+  end
+
+  defp parts_transliteration_map(%{number_system: system})
+       when system not in [nil, :latn] do
+    with {:ok, digits} <- Localize.Number.System.number_system_digits(system),
+         {:ok, latn_digits} <- Localize.Number.System.number_system_digits(:latn) do
+      Localize.Number.System.generate_transliteration_map(latn_digits, digits)
+    else
+      _ -> nil
+    end
+  end
+
+  defp parts_transliteration_map(_options), do: nil
+
+  defp transliterate_part_value(value, nil), do: value
+
+  defp transliterate_part_value(value, digit_map) do
+    Localize.Number.Transliterate.transliterate_digits(value, digit_map)
+  end
+
+  # The parts counterpart of `assemble_parts/5`: walks the same
+  # affix token list, emitting typed parts. Part type names follow
+  # ECMA-402 `formatToParts` in snake_case (`:minus_sign`,
+  # `:percent_sign`, `:currency`, …); currency spacing and padding
+  # surface as `:literal` parts, as in `Intl.NumberFormat`.
+  defp walk_format_parts(body_parts, number_string, meta, options) do
+    tokens = pattern_parts(meta.format, options.pattern)
+
+    tokens
+    |> walk_tokens(body_parts, number_string, meta, options)
+    |> List.flatten()
+    |> Enum.reject(&(&1.value in [nil, ""]))
+  end
+
+  defp walk_tokens([], _body, _number_string, _meta, _options), do: []
+
+  defp walk_tokens(
+         [{:format, _}, {:currency, _type} | rest],
+         body,
+         number_string,
+         meta,
+         %{currency_spacing: spacing} = options
+       )
+       when not is_nil(spacing) do
+    symbol = options.currency_symbol
+    before_spacing = spacing[:before_currency]
+
+    spacing_parts =
+      if before_spacing && before_currency_match?(number_string, symbol, before_spacing) do
+        [%{type: :literal, value: before_spacing[:insert_between]}]
+      else
+        []
+      end
+
+    [body, spacing_parts, currency_part(symbol)] ++
+      [walk_tokens(rest, body, number_string, meta, options)]
+  end
+
+  defp walk_tokens(
+         [{:currency, _type}, {:format, _} | rest],
+         body,
+         number_string,
+         meta,
+         %{currency_spacing: spacing} = options
+       )
+       when not is_nil(spacing) do
+    symbol = options.currency_symbol
+    after_spacing = spacing[:after_currency]
+
+    spacing_parts =
+      if after_spacing && after_currency_match?(number_string, symbol, after_spacing) do
+        [%{type: :literal, value: after_spacing[:insert_between]}]
+      else
+        []
+      end
+
+    [currency_part(symbol), spacing_parts, body] ++
+      [walk_tokens(rest, body, number_string, meta, options)]
+  end
+
+  defp walk_tokens([{:currency, _type} | rest], body, number_string, meta, options) do
+    [
+      currency_part(options.currency_symbol)
+      | walk_tokens(rest, body, number_string, meta, options)
+    ]
+  end
+
+  defp walk_tokens([{:format, _} | rest], body, number_string, meta, options) do
+    [body | walk_tokens(rest, body, number_string, meta, options)]
+  end
+
+  defp walk_tokens([{:pad, _} | rest], body, number_string, meta, options) do
+    [
+      %{type: :literal, value: padding_string(meta, number_string)}
+      | walk_tokens(rest, body, number_string, meta, options)
+    ]
+  end
+
+  defp walk_tokens([{:plus, _} | rest], body, number_string, meta, options) do
+    [
+      %{type: :plus_sign, value: options.symbols.plus_sign}
+      | walk_tokens(rest, body, number_string, meta, options)
+    ]
+  end
+
+  defp walk_tokens([{:minus, _} | rest], body, number_string, meta, options) do
+    # Mirrors the `{:minus, _}` clause of `assemble_parts/5`: in
+    # `:auto` mode a bare zero drops the minus sign.
+    auto_sign_display? = options.sign_display in [nil, :auto]
+
+    sign =
+      if number_string == "0" and auto_sign_display?, do: "", else: options.symbols.minus_sign
+
+    [
+      %{type: :minus_sign, value: sign}
+      | walk_tokens(rest, body, number_string, meta, options)
+    ]
+  end
+
+  defp walk_tokens([{:percent, _} | rest], body, number_string, meta, options) do
+    [
+      %{type: :percent_sign, value: options.symbols.percent_sign}
+      | walk_tokens(rest, body, number_string, meta, options)
+    ]
+  end
+
+  defp walk_tokens([{:permille, _} | rest], body, number_string, meta, options) do
+    [
+      %{type: :per_mille, value: options.symbols.per_mille}
+      | walk_tokens(rest, body, number_string, meta, options)
+    ]
+  end
+
+  defp walk_tokens([{:literal, literal} | rest], body, number_string, meta, options) do
+    [%{type: :literal, value: literal} | walk_tokens(rest, body, number_string, meta, options)]
+  end
+
+  defp walk_tokens([{:quote, _} | rest], body, number_string, meta, options) do
+    [%{type: :literal, value: "'"} | walk_tokens(rest, body, number_string, meta, options)]
+  end
+
+  defp walk_tokens([{:quoted_char, char} | rest], body, number_string, meta, options) do
+    [%{type: :literal, value: char} | walk_tokens(rest, body, number_string, meta, options)]
+  end
+
+  defp currency_part(@nbsp), do: []
+  defp currency_part(symbol), do: [%{type: :currency, value: symbol}]
 
   # ── Sign display ────────────────────────────────────────────
 
@@ -392,9 +777,22 @@ defmodule Localize.Number.Formatter.Decimal do
     {sign, integer, fraction, exp_sign, exponent}
   end
 
-  defp adjust_trailing_zeros({sign, integer, fraction, exp_sign, exponent}, %{
-         fractional_digits: fraction_digits
+  # ECMA-402 `trailingZeroDisplay: "stripIfInteger"`: when the
+  # rounded value is an integer (its fraction has stripped to
+  # nothing), suppress the minimum-fraction padding entirely —
+  # 1000 with a fraction minimum of 2 renders "1,000" while
+  # 1000.5 still renders "1,000.50".
+  defp adjust_trailing_zeros({_sign, _integer, [], _exp_sign, _exponent} = digit_tuple, _meta, %{
+         trailing_zero_display: :strip_if_integer
        }) do
+    digit_tuple
+  end
+
+  defp adjust_trailing_zeros(
+         {sign, integer, fraction, exp_sign, exponent},
+         %{fractional_digits: fraction_digits},
+         _options
+       ) do
     count = fraction_digits[:min] - length(fraction)
 
     fraction =
@@ -420,8 +818,6 @@ defmodule Localize.Number.Formatter.Decimal do
 
     {sign, integer, fraction, exp_sign, exponent}
   end
-
-  @group_separator Compiler.placeholder(:group)
 
   defp apply_grouping(
          {sign, integer, [] = fraction, exp_sign, exponent},
@@ -549,11 +945,6 @@ defmodule Localize.Number.Formatter.Decimal do
 
   defp add_last_group(groups, [], _separator), do: groups
   defp add_last_group(groups, last, separator), do: [groups, separator, last]
-
-  @decimal_separator Compiler.placeholder(:decimal)
-  @exponent_separator Compiler.placeholder(:exponent)
-  @exponent_sign Compiler.placeholder(:exponent_sign)
-  @minus_placeholder Compiler.placeholder(:minus)
 
   defp reassemble_number_string(
          {_sign, integer, fraction, exponent_sign, exponent},
@@ -813,8 +1204,6 @@ defmodule Localize.Number.Formatter.Decimal do
     end
   end
 
-  @nbsp "\u200b"
-
   defp assemble_parts([{:currency, _type} | rest], number_string, number, meta, options) do
     %{currency_symbol: symbol, wrapper: wrapper} = options
 
@@ -1038,6 +1427,17 @@ defmodule Localize.Number.Formatter.Decimal do
 
   defp adjust_for_integer_digits(meta, digits) do
     integer_digits = Map.put(meta.integer_digits, :max, digits)
+    %{meta | integer_digits: integer_digits}
+  end
+
+  # ECMA-402 `minimumIntegerDigits`: zero-pad the integer part to
+  # the requested width. The pipeline pads via
+  # `adjust_leading_zeros/2` before grouping is applied, so the
+  # padding digits group like ordinary digits ("00,123").
+  defp adjust_for_minimum_integer_digits(meta, nil), do: meta
+
+  defp adjust_for_minimum_integer_digits(meta, digits) do
+    integer_digits = Map.put(meta.integer_digits, :min, digits)
     %{meta | integer_digits: integer_digits}
   end
 

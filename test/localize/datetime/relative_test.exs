@@ -251,6 +251,37 @@ defmodule Localize.DateTime.RelativeTest do
     end
   end
 
+  describe "to_string/2 with numeric: :always" do
+    test "forces numeric output inside the named-form window" do
+      assert {:ok, "1 day ago"} =
+               Relative.to_string(-1, unit: :day, locale: :en, numeric: :always)
+
+      assert {:ok, "in 1 day"} = Relative.to_string(1, unit: :day, locale: :en, numeric: :always)
+
+      assert {:ok, "in 2 days"} =
+               Relative.to_string(2, unit: :day, locale: :en, numeric: :always)
+    end
+
+    test "zero formats with the future pattern per ECMA-402" do
+      assert {:ok, "in 0 days"} = Relative.to_string(0, unit: :day, locale: :en, numeric: :always)
+    end
+
+    test "numeric: :auto keeps named forms" do
+      assert {:ok, "yesterday"} = Relative.to_string(-1, unit: :day, locale: :en, numeric: :auto)
+      assert {:ok, "today"} = Relative.to_string(0, unit: :day, locale: :en)
+    end
+
+    test "applies in other locales" do
+      assert {:ok, "il y a 1 jour"} =
+               Relative.to_string(-1, unit: :day, locale: :fr, numeric: :always)
+    end
+
+    test "an invalid numeric value is an error" do
+      assert {:error, %Localize.InvalidValueError{}} =
+               Relative.to_string(1, unit: :day, numeric: :sometimes)
+    end
+  end
+
   describe "known_units/0" do
     test "returns expected units" do
       units = Relative.known_units()

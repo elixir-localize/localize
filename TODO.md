@@ -2,18 +2,14 @@
 
 Feature requests from the Intl library (elixir-localize/intl), which maps the JS `Intl` API onto Localize. Each item closes a documented conformance gap in Intl's [compatibility guide](https://hexdocs.pm/intl/compatibility.html).
 
-## Number formatting
+All items from the July 22 list are DONE (July 22, 2026, post-rc.0): `:minimum_integer_digits`, `:trailing_zero_display`, `:rounding_priority`, `Localize.Number.to_parts/2`, relative time `numeric: :always`, `known_collations/0` / `known_timezones/0`, plus the `:currency_long` fraction-digits gap found in the same review.
 
-* **`:minimum_integer_digits` option for `Localize.Number.to_string/2`.** Zero-pads the integer part to the given width (ECMA-402 `minimumIntegerDigits`, 1..21). CLDR patterns express this as leading `0` digits (`00,000.###`); the option should synthesize that on top of the resolved format pattern.
+## Remaining follow-ups (post-1.0 candidates)
 
-* **`:trailing_zero_display` option (`:auto` | `:strip_if_integer`).** ECMA-402 `trailingZeroDisplay`: `:strip_if_integer` drops fraction digits when the rounded value is an integer, even when `:min_fractional_digits` would otherwise pad them (JS: 1000 with minimumFractionDigits 2 and stripIfInteger renders "1,000", 1000.5 renders "1,000.50").
+* **`to_parts/2` for the `:currency_long` formats.** The long plural pattern composes by substitution after formatting, so its parts path needs `Localize.Substitution` to carry parts through. `to_parts/2` returns a clear error for these formats today.
 
-* **`:rounding_priority` option (`:auto` | `:more_precision` | `:less_precision`).** ECMA-402 `roundingPriority` resolves conflicts when both fraction-digit and significant-digit bounds are given. Current behavior (significant digits win) matches `:auto`; `:more_precision`/`:less_precision` pick the bound that yields more/fewer digits per the spec algorithm.
+* **`to_parts/2` for units** (`Localize.Unit.to_parts/2`) and **`to_range_parts/3`** (ECMA-402 `formatRangeToParts`).
 
-* **Structured format parts (`to_parts/2`).** A parts pipeline for number formatting returning typed segments (integer, group, decimal, fraction, currency, unit, sign, …) per ECMA-402 `formatToParts`. This is the largest remaining Intl gap and also blocks `formatRangeToParts`. Likely a variant of the decimal formatter's reassembly stage that tags instead of concatenates.
+* **Compact affix split.** `to_parts/2` tags the whole compact affix as one `:compact` part (" million"); `Intl` splits the leading space into a `:literal`. Callers needing exact JS part boundaries should split on leading/trailing whitespace.
 
-## Other
-
-* **Force numeric output in relative time formatting.** `Localize.DateTime.Relative.to_string/2` always auto-selects named forms ("yesterday", "tomorrow"); ECMA-402 `numeric: "always"` needs an option to force "1 day ago" / "in 1 day".
-
-* **Collation and time zone inventories.** `known_collations/0` and `known_timezones/0` (the full IANA zone list backing the metazone data), so `Intl.supported_values_of/1` can support `:collation` and `:time_zone`.
+* **MF2 option mapping.** TR35 MessageFormat lists `minimumIntegerDigits`, `trailingZeroDisplay` and `roundingPriority` as `:number`/`:currency` function options; the MF2 interpreter does not map them yet. Localize.Number now supports all three natively, so this is a camelCase-to-option mapping in `build_number_options`.

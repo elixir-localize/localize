@@ -81,6 +81,12 @@ defmodule Localize.Number do
   * `:maximum_integer_digits` is an integer specifying the maximum
     number of integer digits to display.
 
+  * `:minimum_integer_digits` is an integer in `1..21` specifying the minimum number of integer digits to display, mirroring ECMA-402's `minimumIntegerDigits`. The integer part is zero-padded to the requested width and the padding digits group normally, so `123` with `minimum_integer_digits: 5` renders "00,123". The default is the width implied by the format pattern's leading `0` placeholders.
+
+  * `:trailing_zero_display` is `:auto` (the default) or `:strip_if_integer`, mirroring ECMA-402's `trailingZeroDisplay`. With `:strip_if_integer` the fraction is dropped entirely when the rounded value is an integer, even when a fraction minimum would otherwise pad it: `1000` with `fractional_digits: 2` renders "1,000" while `1000.5` renders "1,000.50".
+
+  * `:rounding_priority` is `:auto` (the default), `:more_precision`, or `:less_precision`, mirroring ECMA-402's `roundingPriority`. It applies only when both fraction-digit and significant-digit bounds are given: `:auto` lets significant digits win, while `:more_precision`/`:less_precision` pick whichever bound yields more/fewer digits for the value being formatted.
+
   * `:minimum_significant_digits` is an integer in `1..21` specifying the minimum number of significant digits the formatted output should retain. When set, significant-digit precision overrides the format pattern's fractional-digit settings. Defaults to the value derived from the format pattern's `@@##` notation, or `nil` (no significant-digit constraint).
 
   * `:maximum_significant_digits` is an integer in `1..21` specifying the maximum number of significant digits to display. Values are rounded to fit using the configured `:rounding_mode`. Pairs with `:minimum_significant_digits`; when only one is set the other defaults to the corresponding ECMA-402 boundary (`1` for minimum, `21` for maximum).
@@ -253,6 +259,119 @@ defmodule Localize.Number do
     case to_string(number, options) do
       {:ok, string} -> string
       {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Formats a number into a list of typed parts, mirroring ECMA-402's `formatToParts`.
+
+  The parts concatenate to exactly the string `to_string/2` produces with the same options, but each segment is tagged with its role so callers can style, wrap, or reorder individual pieces. Part types follow ECMA-402 in snake_case: `:integer`, `:group`, `:decimal`, `:fraction`, `:currency`, `:percent_sign`, `:per_mille`, `:minus_sign`, `:plus_sign`, `:exponent_separator`, `:exponent_minus_sign`, `:exponent_plus_sign`, `:exponent_integer`, `:compact`, `:literal`, `:nan`, and `:infinity`.
+
+  ### Arguments
+
+  * `number` is an integer, float, or Decimal.
+
+  * `options` is a keyword list of options. All `to_string/2` options are supported except `:wrapper` and `backend: :nif` (parts are produced by the Elixir formatting pipeline).
+
+  ### Returns
+
+  * `{:ok, parts}` where `parts` is a list of `%{type: atom(), value: String.t()}` maps.
+
+  * `{:error, exception}` for invalid options, or for formats that do not decompose into parts (`:currency_long`, `:currency_long_with_symbol`, and the RBNF rule-name formats).
+
+  ### Examples
+
+      iex> Localize.Number.to_parts(-1234.5)
+      {:ok,
+       [
+         %{type: :minus_sign, value: "-"},
+         %{type: :integer, value: "1"},
+         %{type: :group, value: ","},
+         %{type: :integer, value: "234"},
+         %{type: :decimal, value: "."},
+         %{type: :fraction, value: "5"}
+       ]}
+
+      iex> Localize.Number.to_parts(1234.5, currency: :USD)
+      {:ok,
+       [
+         %{type: :currency, value: "$"},
+         %{type: :integer, value: "1"},
+         %{type: :group, value: ","},
+         %{type: :integer, value: "234"},
+         %{type: :decimal, value: "."},
+         %{type: :fraction, value: "50"}
+       ]}
+
+  """
+  @spec to_parts(number() | Decimal.t(), Keyword.t()) ::
+          {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
+  def to_parts(number, options \\ []) do
+    with {:ok, validated_options} <- Options.validate_options(number, options) do
+      dispatch_parts(number, validated_options)
+    end
+  end
+
+  @doc """
+  Same as `to_parts/2` but raises on error.
+
+  ### Arguments
+
+  * `number` is an integer, float, or Decimal.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `to_parts/2` for the supported options.
+
+  ### Returns
+
+  * A list of `%{type: atom(), value: String.t()}` maps.
+
+  ### Raises
+
+  * Raises an exception if formatting fails.
+
+  ### Examples
+
+      iex> Localize.Number.to_parts!(42, minimum_integer_digits: 3)
+      [%{type: :integer, value: "042"}]
+
+  """
+  @spec to_parts!(number() | Decimal.t(), Keyword.t()) :: [%{type: atom(), value: String.t()}]
+  def to_parts!(number, options \\ []) do
+    case to_parts(number, options) do
+      {:ok, parts} -> parts
+      {:error, exception} -> raise exception
+    end
+  end
+
+  defp dispatch_parts(number, validated_options) do
+    format = validated_options.format
+
+    cond do
+      is_binary(format) ->
+        Formatter.Decimal.to_parts(number, format, validated_options)
+
+      format in [:decimal_short, :decimal_long, :currency_short] ->
+        Formatter.Short.to_parts(number, format, validated_options)
+
+      # Algorithmic numbering systems format via RBNF; the rendered
+      # numeral is a single opaque token, so it is one integer part —
+      # the same shape ICU produces.
+      format == :standard and algorithmic_system?(validated_options.number_system) ->
+        with {:ok, formatted} <- System.to_system(number, validated_options.number_system) do
+          {:ok, [%{type: :integer, value: formatted}]}
+        end
+
+      true ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: format,
+           expected: "a format that decomposes into parts",
+           context: "Localize.Number.to_parts/2"
+         )}
     end
   end
 

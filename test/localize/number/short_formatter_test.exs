@@ -70,7 +70,7 @@ defmodule Localize.Number.ShortFormatterTest do
       assert Localize.Number.to_string(1234, format: :long, currency: :USD) ==
                Localize.Number.to_string(1234, format: :currency_long, currency: :USD)
 
-      assert {:ok, "1,234 US dollars"} =
+      assert {:ok, "1,234.00 US dollars"} =
                Localize.Number.to_string(1234, format: :long, currency: :USD)
     end
 

@@ -66,6 +66,37 @@ defmodule Localize.DateTime.Timezone do
   def timezones, do: @timezones
 
   @doc """
+  Returns the canonical IANA time zone names known to CLDR.
+
+  The canonical name is the first alias of each BCP 47 short zone in the CLDR timezone data; short zones with no IANA mapping are omitted. This is the inventory backing ECMA-402's `Intl.supportedValuesOf("timeZone")`.
+
+  ### Returns
+
+  * A sorted list of IANA time zone name strings.
+
+  ### Examples
+
+      iex> zones = Localize.DateTime.Timezone.known_timezones()
+      iex> "Australia/Sydney" in zones and "America/New_York" in zones
+      true
+
+      iex> Localize.DateTime.Timezone.known_timezones() |> hd()
+      "Africa/Abidjan"
+
+  """
+  @spec known_timezones() :: [String.t(), ...]
+  def known_timezones do
+    @timezones
+    |> Map.values()
+    |> Enum.flat_map(fn
+      %{aliases: [canonical | _]} -> [canonical]
+      _no_aliases -> []
+    end)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  @doc """
   Returns a mapping of territories to their known IANA
   timezone names.
 

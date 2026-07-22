@@ -367,6 +367,33 @@ defmodule Localize.Collation do
   end
 
   @doc """
+  Returns the CLDR collation identifiers.
+
+  These are the BCP 47 `-u-co-` values from the CLDR inventory, the same identifiers accepted by the `-u-co-` locale keyword. The full inventory is returned, including `"standard"` and `"search"` — callers implementing ECMA-402's `Intl.supportedValuesOf("collation")` should exclude those two per that specification. Note that not every identifier has tailoring data in every locale; identifiers without a tailoring for a locale fall back to the root collation.
+
+  ### Returns
+
+  * A sorted list of collation identifier strings.
+
+  ### Examples
+
+      iex> collations = Localize.Collation.known_collations()
+      iex> "phonebk" in collations and "pinyin" in collations
+      true
+
+      iex> Localize.Collation.known_collations() |> Enum.take(4)
+      ["big5han", "compat", "dict", "direct"]
+
+  """
+  @spec known_collations() :: [String.t(), ...]
+  def known_collations do
+    Localize.SupplementalData.validity(:u)
+    |> Map.fetch!("co")
+    |> Map.keys()
+    |> Enum.sort()
+  end
+
+  @doc """
   Ensure the collation tables are loaded into persistent term storage.
 
   ### Returns

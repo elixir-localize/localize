@@ -4,14 +4,26 @@ defmodule Localize.Number.CurrencyFormatTest do
   alias Localize.Number
 
   describe ":currency_long format" do
-    test "pluralized currency name for a plural amount" do
+    test "applies the currency fraction digits per ECMA-402 currencyDisplay name" do
       assert Number.to_string(123, format: :currency_long, currency: :USD) ==
-               {:ok, "123 US dollars"}
+               {:ok, "123.00 US dollars"}
     end
 
-    test "singular currency name for one" do
+    test "plural selection follows the displayed value" do
+      # "1.00" carries plural operand v=2 and selects :other in en,
+      # matching Intl.NumberFormat: "1.00 US dollars".
       assert Number.to_string(1, format: :currency_long, currency: :USD) ==
+               {:ok, "1.00 US dollars"}
+    end
+
+    test "singular currency name for one with no fraction digits" do
+      assert Number.to_string(1, format: :currency_long, currency: :USD, fractional_digits: 0) ==
                {:ok, "1 US dollar"}
+    end
+
+    test "a zero-digit currency shows no fraction" do
+      assert Number.to_string(1, format: :currency_long, currency: :JPY) ==
+               {:ok, "1 Japanese yen"}
     end
 
     test "explicit fractional digits are honoured" do
@@ -21,17 +33,23 @@ defmodule Localize.Number.CurrencyFormatTest do
 
     test "German locale with euro" do
       assert Number.to_string(123, format: :currency_long, currency: :EUR, locale: "de") ==
-               {:ok, "123 Euro"}
+               {:ok, "123,00 Euro"}
     end
 
     test "French locale with pounds sterling" do
       assert Number.to_string(2, format: :currency_long, currency: :GBP, locale: "fr") ==
-               {:ok, "2 livres sterling"}
+               {:ok, "2,00 livres sterling"}
+    end
+
+    test "French singular for one with displayed fraction digits" do
+      # fr selects :one for "1,00" (the i=1 rule ignores v), unlike en.
+      assert Number.to_string(1, format: :currency_long, currency: :GBP, locale: "fr") ==
+               {:ok, "1,00 livre sterling"}
     end
 
     test "Decimal amount is formatted with the currency default digits" do
       assert Number.to_string(Decimal.new("123.45"), format: :currency_long, currency: :USD) ==
-               {:ok, "123 US dollars"}
+               {:ok, "123.45 US dollars"}
     end
 
     test "string input returns an InvalidValueError" do

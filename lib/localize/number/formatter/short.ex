@@ -36,15 +36,34 @@ defmodule Localize.Number.Formatter.Short do
   end
 
   def to_string(number, style, options) do
-    locale = options.locale
-
-    with {:ok, number_system} <- System.system_name_from(options.number_system, locale) do
-      short_format_string(number, style, locale, number_system, options)
+    with {:ok, normalized_number, format, options} <- resolve_short_format(number, style, options) do
+      Formatter.Decimal.to_string(normalized_number, format, options)
     end
   end
 
-  defp short_format_string(number, style, locale, number_system, options) do
-    with {:ok, formats} <- Format.formats_for(locale, number_system) do
+  # Formats a compact number into typed parts per ECMA-402
+  # `formatToParts`. The compact affix is carried by the pattern's
+  # literal tokens, so the decimal formatter's `:literal` parts are
+  # retagged `:compact` — everything else in a compact pattern is
+  # digits and separators.
+  @spec to_parts(number() | Decimal.t(), atom(), Options.t()) ::
+          {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
+  def to_parts(number, style, options) do
+    with {:ok, normalized_number, format, options} <- resolve_short_format(number, style, options),
+         {:ok, parts} <- Formatter.Decimal.to_parts(normalized_number, format, options) do
+      {:ok,
+       Enum.map(parts, fn
+         %{type: :literal} = part -> %{part | type: :compact}
+         part -> part
+       end)}
+    end
+  end
+
+  defp resolve_short_format(number, style, options) do
+    locale = options.locale
+
+    with {:ok, number_system} <- System.system_name_from(options.number_system, locale),
+         {:ok, formats} <- Format.formats_for(locale, number_system) do
       format_rules = Map.get(formats, style)
 
       if is_nil(format_rules) do
@@ -62,7 +81,7 @@ defmodule Localize.Number.Formatter.Short do
           |> maybe_set_fractional_digits(normalized_number)
           |> Map.put(:format, format)
 
-        Formatter.Decimal.to_string(normalized_number, format, options)
+        {:ok, normalized_number, format, options}
       end
     end
   end
