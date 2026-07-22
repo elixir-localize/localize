@@ -10,7 +10,7 @@ defmodule Localize.Number.Formatter.Currency do
   #
   # Example:
   #   Standard: "$123.00"
-  #   Long:     "123 US dollars"
+  #   Long:     "123.00 US dollars"
 
   alias Localize.Number.{Format, System}
   alias Localize.Number.Format.Options
@@ -87,8 +87,9 @@ defmodule Localize.Number.Formatter.Currency do
 
     case Localize.Number.Formatter.Decimal.to_string(number, currency_format, options) do
       {:ok, currency_string} ->
-        name_string = currency_display_name(number, options)
-        plural_format = plural_format(number, currency_long_formats, options)
+        display_number = display_value_for_plural(number, options)
+        name_string = currency_display_name(display_number, options)
+        plural_format = plural_format(display_number, currency_long_formats, options)
         result = substitute([currency_string, name_string], plural_format)
         {:ok, :erlang.iolist_to_binary(result)}
 
@@ -113,8 +114,9 @@ defmodule Localize.Number.Formatter.Currency do
 
       case Localize.Number.Formatter.Decimal.to_string(number, standard_format, number_options) do
         {:ok, number_string} ->
-          currency_string = currency_display_name(number, options)
-          plural_format = plural_format(number, formats, options)
+          display_number = display_value_for_plural(number, number_options)
+          currency_string = currency_display_name(display_number, options)
+          plural_format = plural_format(display_number, formats, options)
           result = substitute([number_string, currency_string], plural_format)
           {:ok, :erlang.iolist_to_binary(result)}
 
@@ -132,7 +134,7 @@ defmodule Localize.Number.Formatter.Currency do
   # crashing `pluralize/3` when `count` was `nil`.
   defp currency_display_name(number, %{currency: %Localize.Currency{count: count}, locale: locale})
        when is_map(count) and map_size(count) > 0 do
-    Localize.Number.PluralRule.Cardinal.pluralize(number, locale, count)
+    select_plural(number, locale, count)
   end
 
   defp currency_display_name(_number, %{currency: %Localize.Currency{name: name}})
@@ -143,8 +145,33 @@ defmodule Localize.Number.Formatter.Currency do
   defp currency_display_name(_number, _options), do: ""
 
   defp plural_format(number, formats, %{locale: locale}) do
-    Localize.Number.PluralRule.Cardinal.pluralize(number, locale, formats)
+    select_plural(number, locale, formats)
   end
+
+  # Select by plural category directly rather than via
+  # `Cardinal.pluralize/3`, which normalizes away trailing zeros
+  # and would collapse "1.00" (operand v=2, category :other in en)
+  # back to the integer 1 (category :one).
+  defp select_plural(number, locale, substitutions) do
+    category = Localize.Number.PluralRule.Cardinal.plural_rule(number, locale)
+    Map.get(substitutions, category) || Map.get(substitutions, :other)
+  end
+
+  # Plural selection follows the value as displayed, per the CLDR
+  # plural operands and matching ICU/Intl: "1.00" carries the
+  # operand v=2 and selects :other ("1.00 US dollars"), while a
+  # bare "1" selects :one ("1 US dollar"). Rescaling the number to
+  # the displayed fraction digits makes the plural rule see the
+  # same operands the reader sees.
+  defp display_value_for_plural(number, %{fractional_digits: digits}) when is_integer(digits) do
+    number |> to_decimal() |> Decimal.round(digits)
+  end
+
+  defp display_value_for_plural(number, _options), do: number
+
+  defp to_decimal(%Decimal{} = decimal), do: decimal
+  defp to_decimal(number) when is_integer(number), do: Decimal.new(number)
+  defp to_decimal(number) when is_float(number), do: Decimal.from_float(number)
 
   defp maybe_set_fractional_digits(options, %Localize.Currency{}, nil) do
     Map.put(options, :fractional_digits, 0)

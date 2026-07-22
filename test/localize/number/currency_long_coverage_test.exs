@@ -11,9 +11,9 @@ defmodule Localize.Number.CurrencyLongCoverageTest do
                {:ok, "$123.00 US dollars"}
     end
 
-    test "singular currency name for one" do
+    test "plural name for one per the displayed value" do
       assert Number.to_string(1, format: :currency_long_with_symbol, currency: :USD) ==
-               {:ok, "$1.00 US dollar"}
+               {:ok, "$1.00 US dollars"}
     end
 
     test "Decimal input in a German locale" do
@@ -83,10 +83,10 @@ defmodule Localize.Number.CurrencyLongCoverageTest do
 
     test "zero uses the plural currency name" do
       assert Number.to_string(0, format: :currency_long, currency: :USD) ==
-               {:ok, "0 US dollars"}
+               {:ok, "0.00 US dollars"}
     end
 
-    test "explicit fractional digits override the currency-long default of zero" do
+    test "explicit fractional digits match the currency default here" do
       assert Number.to_string(123, format: :currency_long, currency: :USD, fractional_digits: 2) ==
                {:ok, "123.00 US dollars"}
     end
@@ -108,7 +108,7 @@ defmodule Localize.Number.CurrencyLongCoverageTest do
       options_without_currency = Map.put(options, :currency, nil)
 
       assert Currency.to_string(123, :currency_long, options_without_currency) ==
-               {:ok, "123 "}
+               {:ok, "123.00 "}
     end
 
     test "a currency without plural counts falls back to its name" do
@@ -119,7 +119,7 @@ defmodule Localize.Number.CurrencyLongCoverageTest do
       currency_without_counts = %{options.currency | count: nil}
       options = Map.put(options, :currency, currency_without_counts)
 
-      assert Currency.to_string(123, :currency_long, options) == {:ok, "123 US Dollar"}
+      assert Currency.to_string(123, :currency_long, options) == {:ok, "123.00 US Dollar"}
     end
 
     test "a currency with an empty plural count map falls back to its name" do
@@ -127,7 +127,7 @@ defmodule Localize.Number.CurrencyLongCoverageTest do
       currency_with_empty_counts = %{options.currency | count: %{}}
       options = Map.put(options, :currency, currency_with_empty_counts)
 
-      assert Currency.to_string(123, :currency_long, options) == {:ok, "123 US Dollar"}
+      assert Currency.to_string(123, :currency_long, options) == {:ok, "123.00 US Dollar"}
     end
   end
 end

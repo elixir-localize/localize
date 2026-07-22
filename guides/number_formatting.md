@@ -103,7 +103,7 @@ iex> Localize.Number.to_string(1234567, format: :decimal_long, locale: :de)
 {:ok, "1,2 Millionen"}
 
 iex> Localize.Number.to_string(1234567, format: :currency_long, currency: :USD)
-{:ok, "1,234,567 US dollars"}
+{:ok, "1,234,567.00 US dollars"}
 ```
 
 ### Rule-based number formatting (RBNF)
@@ -179,7 +179,7 @@ Atom values map to named patterns in the locale's number format data:
 | `:decimal_short` | (magnitude table) | Compact form: "1M", "2K". |
 | `:decimal_long` | (magnitude table) | Word form: "1 million". |
 | `:currency_short` | (magnitude table) | Compact currency: "$1M". |
-| `:currency_long` | (pattern) | Pluralized: "123 US dollars". |
+| `:currency_long` | (pattern) | Pluralized: "123.00 US dollars". |
 
 The aliases `:short` and `:long` resolve to `:decimal_short` and `:decimal_long`, or to `:currency_short` and `:currency_long` when a `:currency` is specified.
 
@@ -345,8 +345,11 @@ All options accepted by `Localize.Number.to_string/2`:
 | `:min_fractional_digits` | integer | `nil` | Minimum trailing zeros after decimal. Overrides `:fractional_digits` for the minimum. |
 | `:max_fractional_digits` | integer | `nil` | Maximum decimal digits (rounds to this). Overrides `:fractional_digits` for the maximum. |
 | `:maximum_integer_digits` | integer | `nil` | Maximum integer digits to display. |
+| `:minimum_integer_digits` | integer | `nil` | Minimum integer digits (1–21); zero-pads and groups the padding. Mirrors ECMA-402 `minimumIntegerDigits`. |
 | `:minimum_significant_digits` | integer | `nil` | Minimum significant digits (1–21). Takes precedence over fractional digit settings. |
 | `:maximum_significant_digits` | integer | `nil` | Maximum significant digits (1–21). Values are rounded to fit. |
+| `:rounding_priority` | atom | `:auto` | Conflict resolution when both fraction and significant bounds are set: `:auto`, `:more_precision`, or `:less_precision`. Mirrors ECMA-402 `roundingPriority`. |
+| `:trailing_zero_display` | atom | `:auto` | `:strip_if_integer` drops the fraction when the rounded value is an integer. Mirrors ECMA-402 `trailingZeroDisplay`. |
 | `:sign_display` | atom | `:auto` | When to show the sign: `:auto`, `:always`, `:except_zero`, `:negative`, or `:never`. Mirrors ECMA-402 `signDisplay`. |
 | `:exponent_style` | atom | `:e` | Scientific exponent rendering: `:e` (`1.234E3`) or `:superscript` (`1.234 × 10³`). |
 | `:rounding_mode` | atom | `:half_even` | One of `:down`, `:up`, `:half_up`, `:half_down`, `:half_even`, `:ceiling`, `:floor`. |
@@ -394,6 +397,55 @@ iex> Localize.Number.to_string(0.5, format: :percent, sign_display: :always)
 ```
 
 The sign is placed where the format's negative subpattern places the minus sign, so `format: :accounting` keeps parentheses for negative numbers and prefixes the plus sign for positive ones.
+
+### Integer width, trailing zeros, and rounding priority
+
+Three options mirror their ECMA-402 counterparts for fine control over digit display. `:minimum_integer_digits` zero-pads the integer part (the padding digits group normally); `:trailing_zero_display` with `:strip_if_integer` drops the fraction when the rounded value is an integer; and `:rounding_priority` resolves the conflict when both fraction-digit and significant-digit bounds are given — `:auto` (the default) lets significant digits win, while `:more_precision` and `:less_precision` pick the bound yielding more or fewer digits for the value at hand.
+
+```elixir
+iex> Localize.Number.to_string(123, minimum_integer_digits: 5)
+{:ok, "00,123"}
+
+iex> Localize.Number.to_string(1000, fractional_digits: 2, trailing_zero_display: :strip_if_integer)
+{:ok, "1,000"}
+
+iex> Localize.Number.to_string(1000.5, fractional_digits: 2, trailing_zero_display: :strip_if_integer)
+{:ok, "1,000.50"}
+
+iex> Localize.Number.to_string(1.23456, max_fractional_digits: 3, maximum_significant_digits: 2, rounding_priority: :more_precision)
+{:ok, "1.235"}
+
+iex> Localize.Number.to_string(1.23456, max_fractional_digits: 3, maximum_significant_digits: 2, rounding_priority: :less_precision)
+{:ok, "1.2"}
+```
+
+### Structured format parts
+
+`Localize.Number.to_parts/2` mirrors ECMA-402's `formatToParts`: it produces the same output as `to_string/2` but as a list of typed segments, so callers can style or wrap individual pieces. Part types follow ECMA-402 in snake_case; compact affixes are tagged `:compact` and currency spacing surfaces as `:literal`.
+
+```elixir
+iex> Localize.Number.to_parts(1234.5, currency: :USD)
+{:ok,
+ [
+   %{type: :currency, value: "$"},
+   %{type: :integer, value: "1"},
+   %{type: :group, value: ","},
+   %{type: :integer, value: "234"},
+   %{type: :decimal, value: "."},
+   %{type: :fraction, value: "50"}
+ ]}
+
+iex> Localize.Number.to_parts(1234567, format: :decimal_short)
+{:ok,
+ [
+   %{type: :integer, value: "1"},
+   %{type: :decimal, value: "."},
+   %{type: :fraction, value: "2"},
+   %{type: :compact, value: "M"}
+ ]}
+```
+
+The `:currency_long` formats and the RBNF rule-name formats do not decompose into parts and return an error from `to_parts/2`.
 
 ### Rounding mode examples
 

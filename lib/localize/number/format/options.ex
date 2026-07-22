@@ -27,13 +27,16 @@ defmodule Localize.Number.Format.Options do
     :min_fractional_digits,
     :max_fractional_digits,
     :maximum_integer_digits,
+    :minimum_integer_digits,
     :minimum_significant_digits,
     :maximum_significant_digits,
     :round_nearest,
     :wrapper,
     :separators,
     :exponent_style,
-    :sign_display
+    :sign_display,
+    :trailing_zero_display,
+    :rounding_priority
   ]
 
   @exponent_styles [:e, :superscript]
@@ -173,8 +176,11 @@ defmodule Localize.Number.Format.Options do
            ),
          :ok <- validate_rounding_mode(rounding_mode),
          :ok <- validate_significant_digits(options),
+         :ok <- validate_minimum_integer_digits(Keyword.get(options, :minimum_integer_digits)),
          :ok <- validate_exponent_style(Keyword.get(options, :exponent_style)),
          :ok <- validate_sign_display(Keyword.get(options, :sign_display)),
+         :ok <- validate_trailing_zero_display(Keyword.get(options, :trailing_zero_display)),
+         :ok <- validate_rounding_priority(Keyword.get(options, :rounding_priority)),
          {:ok, symbols} <- resolve_symbols(language_tag, system_name),
          {:ok, resolved_format, formats} <- resolve_format(format, language_tag, system_name) do
       currency_symbol = resolve_currency_symbol(currency_struct, options[:currency_symbol])
@@ -384,6 +390,64 @@ defmodule Localize.Number.Format.Options do
      )}
   end
 
+  # ── Minimum integer digits validation ──────────────────────
+
+  # ECMA-402 `minimumIntegerDigits`: a positive integer in 1..21.
+  # `nil` means "not set" — the format pattern's own minimum
+  # integer width (its leading `0` placeholders) applies unchanged.
+  defp validate_minimum_integer_digits(nil), do: :ok
+
+  defp validate_minimum_integer_digits(digits) when is_integer(digits) and digits in 1..21 do
+    :ok
+  end
+
+  defp validate_minimum_integer_digits(digits) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: digits,
+       expected: "minimum_integer_digits to be an integer in 1..21"
+     )}
+  end
+
+  # ── Rounding priority validation ───────────────────────────
+
+  # ECMA-402 `roundingPriority`: resolves the conflict when both
+  # fraction-digit and significant-digit bounds are given. `:auto`
+  # (or `nil`, the default) lets significant digits win;
+  # `:more_precision` / `:less_precision` pick the bound that
+  # yields more/fewer digits for the value being formatted.
+  defp validate_rounding_priority(priority)
+       when priority in [nil, :auto, :more_precision, :less_precision] do
+    :ok
+  end
+
+  defp validate_rounding_priority(priority) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: priority,
+       expected: :rounding_priority,
+       allowed_values: [:auto, :more_precision, :less_precision]
+     )}
+  end
+
+  # ── Trailing zero display validation ───────────────────────
+
+  # ECMA-402 `trailingZeroDisplay`: `:auto` (or `nil`, the default)
+  # keeps the minimum-fraction padding; `:strip_if_integer` drops
+  # the fraction entirely when the rounded value is an integer.
+  defp validate_trailing_zero_display(display) when display in [nil, :auto, :strip_if_integer] do
+    :ok
+  end
+
+  defp validate_trailing_zero_display(display) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: display,
+       expected: :trailing_zero_display,
+       allowed_values: [:auto, :strip_if_integer]
+     )}
+  end
+
   # ── Sign display validation ────────────────────────────────
 
   # Mirrors ECMA-402 `signDisplay` (auto | always | exceptZero |
@@ -491,7 +555,12 @@ defmodule Localize.Number.Format.Options do
     :currency_no_symbol,
     :accounting_no_symbol,
     :currency_alpha_next_to_number,
-    :accounting_alpha_next_to_number
+    :accounting_alpha_next_to_number,
+    # The long forms apply the currency's fraction digits to the
+    # number portion per ECMA-402 `currencyDisplay: "name"`:
+    # "1,234.50 US dollars", not "1,234.5 US dollars".
+    :currency_long,
+    :currency_long_with_symbol
   ]
 
   defp default_currency_fractional_digits(format, %Localize.Currency{} = currency, :accounting)

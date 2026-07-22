@@ -8,11 +8,13 @@ Updated: July 22, 2026, after the full 1.0.0-rc.0 release review. This document 
 
 ## Remaining release steps (mechanical, in order)
 
-1. Tag `v1.0.0-rc.0` and push the tag (the docs `source_ref` and the README source links expect it), then `mix hex.publish`.
+1. ~~Tag `v1.0.0-rc.0`, push the tag, `mix hex.publish`~~ — DONE July 22 (published, hexdocs verified, fresh-install verified).
 
-2. Soak the RC. Any issue reported during the soak is triaged here; a fix ships as rc.1.
+2. **rc.1: the Intl conformance batch** — DONE July 22 (in `main`, unreleased): the six TODO items from the Intl compatibility guide (`:minimum_integer_digits`, `:trailing_zero_display`, `:rounding_priority`, `Number.to_parts/2`, relative `numeric: :always`, `known_collations/0` / `known_timezones/0`) plus the `:currency_long` fraction-digits/plural fix. Release as **1.0.0-rc.1** after a standard release review; remaining `to_parts` follow-ups are post-1.0 (see `TODO.md`).
 
-3. Publish **1.0.0 final — target August 1, 2026** — after a standard release review of whatever changed during the soak. Bump the README install snippet from the pre-release requirement `{:localize, "~> 1.0.0-rc.0"}` to `{:localize, "~> 1.0"}` as part of this step.
+3. Soak the RC. Any issue reported during the soak is triaged here.
+
+4. Publish **1.0.0 final — target August 1, 2026** — after a standard release review of whatever changed during the soak. Bump the README install snippet from the pre-release requirement form to `{:localize, "~> 1.0"}` as part of this step.
 
 ## Post-1.0 backlog (explicitly not blockers)
 

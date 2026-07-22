@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+* `Localize.Number.to_parts/2` and `to_parts!/2` format a number into typed segments per ECMA-402 `formatToParts`, covering decimal, currency, percent, scientific, compact and algorithmic-system output.
+
+* `Localize.Number.to_string/2` accepts `:minimum_integer_digits` (zero-pad the integer part, ECMA-402 `minimumIntegerDigits`), `:trailing_zero_display` (`:strip_if_integer` per `trailingZeroDisplay`), and `:rounding_priority` (`:more_precision` / `:less_precision` per `roundingPriority`).
+
+* `Localize.DateTime.Relative.to_string/2` accepts `numeric: :always` to force numeric output ("1 day ago" instead of "yesterday"), per ECMA-402 `RelativeTimeFormat`.
+
+* `Localize.Collation.known_collations/0` and `Localize.DateTime.Timezone.known_timezones/0` (re-exported on `Localize`) return the CLDR collation and canonical IANA time zone inventories for `Intl.supportedValuesOf/1`.
+
+### Changed
+
+* The `:currency_long` formats apply the currency's fraction digits and select the plural name from the displayed value per ECMA-402 `currencyDisplay: "name"`: `to_string(1, format: :currency_long, currency: :USD)` renders "1.00 US dollars" (previously "1 US dollar").
+
+* Relative time offsets of zero format with the future pattern ("in 0 days") per ECMA-402 and ICU.
+
 ## [1.0.0-rc.0] — July 22nd, 2026
 
 ### Added

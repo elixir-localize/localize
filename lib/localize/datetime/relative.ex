@@ -53,6 +53,12 @@ defmodule Localize.DateTime.Relative do
     `:mon`, `:tue`, `:wed`, `:thu`, `:fri`, `:sat`, `:sun`,
     `:quarter`. If omitted, a unit is derived automatically.
 
+  * `:numeric` is `:auto` or `:always`, mirroring ECMA-402's
+    `numeric` option. With `:auto` (the default), named forms
+    such as "yesterday" and "tomorrow" are used when the locale
+    defines them. With `:always`, output is always numeric:
+    "1 day ago" instead of "yesterday".
+
   * `:relative_to` is the baseline date/datetime from which
     the difference is calculated. Defaults to now.
 
@@ -76,6 +82,12 @@ defmodule Localize.DateTime.Relative do
       iex> Localize.DateTime.Relative.to_string(2, unit: :hour, locale: :en)
       {:ok, "in 2 hours"}
 
+      iex> Localize.DateTime.Relative.to_string(-1, unit: :day, locale: :en, numeric: :always)
+      {:ok, "1 day ago"}
+
+      iex> Localize.DateTime.Relative.to_string(1, unit: :day, locale: :en, numeric: :always)
+      {:ok, "in 1 day"}
+
   """
   @spec to_string(integer() | Date.t() | DateTime.t() | Time.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
@@ -83,16 +95,18 @@ defmodule Localize.DateTime.Relative do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, :standard)
     unit = Keyword.get(options, :unit)
+    numeric = Keyword.get(options, :numeric, :auto)
     relative_to = Keyword.get_lazy(options, :relative_to, &DateTime.utc_now/0)
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, unit} <- validate_unit(unit),
          {:ok, format} <- validate_format(format),
+         {:ok, numeric} <- validate_numeric(numeric),
          {:ok, time_difference} <- time_difference(relative, relative_to) do
       {scaled, resolved_unit} =
         derive_unit(relative, relative_to, time_difference, unit)
 
-      case format_relative(scaled, resolved_unit, format, locale_id) do
+      case format_relative(scaled, resolved_unit, format, locale_id, numeric) do
         {:ok, _} = result -> result
         {:error, _} -> {:ok, Kernel.to_string(scaled)}
       end
@@ -137,7 +151,7 @@ defmodule Localize.DateTime.Relative do
 
   # ── Core formatting ───────────────────────────────────────
 
-  defp format_relative(relative, unit, format, locale_id) do
+  defp format_relative(relative, unit, format, locale_id, numeric) do
     with {:ok, date_fields} <- Localize.Locale.get(locale_id, [:date_fields]) do
       unit_data = get_in(date_fields, [unit, format])
 
@@ -146,7 +160,9 @@ defmodule Localize.DateTime.Relative do
           {:ok, Kernel.to_string(relative)}
 
         # Special ordinal forms: "yesterday", "tomorrow", "today", etc.
-        relative in -2..2 and is_map(unit_data[:relative_ordinal]) ->
+        # Skipped entirely under `numeric: :always` (ECMA-402), which
+        # forces the plural-rule pattern path below.
+        numeric == :auto and relative in -2..2 and is_map(unit_data[:relative_ordinal]) ->
           format_ordinal_or_pattern(relative, unit_data, locale_id)
 
         true ->
@@ -169,7 +185,9 @@ defmodule Localize.DateTime.Relative do
   end
 
   defp format_with_pattern(relative, unit_data, locale_id) do
-    direction = if relative > 0, do: :relative_future, else: :relative_past
+    # Zero formats with the future pattern ("in 0 days") per
+    # ECMA-402 and ICU.
+    direction = if relative >= 0, do: :relative_future, else: :relative_past
     rules = unit_data[direction]
 
     if is_nil(rules) do
@@ -294,6 +312,18 @@ defmodule Localize.DateTime.Relative do
        value: format,
        expected: :format,
        allowed_values: @known_formats,
+       context: "Localize.DateTime.Relative"
+     )}
+  end
+
+  defp validate_numeric(numeric) when numeric in [:auto, :always], do: {:ok, numeric}
+
+  defp validate_numeric(numeric) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: numeric,
+       expected: :numeric,
+       allowed_values: [:auto, :always],
        context: "Localize.DateTime.Relative"
      )}
   end

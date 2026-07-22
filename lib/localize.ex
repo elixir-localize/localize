@@ -1095,6 +1095,46 @@ defmodule Localize do
   end
 
   @doc """
+  Returns the CLDR collation identifiers.
+
+  See `Localize.Collation.known_collations/0` for details.
+
+  ### Returns
+
+  * A sorted list of collation identifier strings.
+
+  ### Examples
+
+      iex> "phonebk" in Localize.known_collations()
+      true
+
+  """
+  @spec known_collations() :: [String.t(), ...]
+  def known_collations do
+    Localize.Collation.known_collations()
+  end
+
+  @doc """
+  Returns the canonical IANA time zone names known to CLDR.
+
+  See `Localize.DateTime.Timezone.known_timezones/0` for details.
+
+  ### Returns
+
+  * A sorted list of IANA time zone name strings.
+
+  ### Examples
+
+      iex> "Australia/Sydney" in Localize.known_timezones()
+      true
+
+  """
+  @spec known_timezones() :: [String.t(), ...]
+  def known_timezones do
+    Localize.DateTime.Timezone.known_timezones()
+  end
+
+  @doc """
   Validates a territory code.
 
   Normalises the territory code and checks it against the CLDR

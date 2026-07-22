@@ -226,6 +226,16 @@ For offsets of -2 to +2 days, many locales provide special names:
 * 0 days: "today"
 * +1 day: "tomorrow"
 
+The `:numeric` option controls whether these named forms are used, mirroring ECMA-402's `RelativeTimeFormat` `numeric` option. `:auto` (the default) prefers the named forms; `:always` forces numeric output:
+
+```elixir
+iex> Localize.DateTime.Relative.to_string(-1, unit: :day, locale: :en, numeric: :always)
+{:ok, "1 day ago"}
+
+iex> Localize.DateTime.Relative.to_string(0, unit: :day, locale: :en, numeric: :always)
+{:ok, "in 0 days"}
+```
+
 ## Format pattern reference
 
 CLDR format patterns use field symbols to represent date and time components. Each symbol can be repeated to control the output width.

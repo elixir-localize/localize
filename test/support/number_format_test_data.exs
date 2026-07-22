@@ -152,12 +152,12 @@ defmodule Localize.Test.Number.FormatData do
       # Short/long currency formats
       {1234, "$1.2K", [format: :currency_short, currency: :USD]},
       {1234, "ZAR#{@nbsp}1.2K", [format: :currency_short, currency: :ZAR]},
-      {12_345, "12,345 US dollars", [format: :currency_long, currency: :USD]},
+      {12_345, "12,345.00 US dollars", [format: :currency_long, currency: :USD]},
       {123, "A$123", [format: :currency_short, currency: :AUD]},
-      {12, "12 Thai baht", [format: :currency_long, currency: :THB]},
-      {12, "12 bahts thaïlandais", [format: :currency_long, currency: :THB, locale: "fr"]},
+      {12, "12.00 Thai baht", [format: :currency_long, currency: :THB]},
+      {12, "12,00 bahts thaïlandais", [format: :currency_long, currency: :THB, locale: "fr"]},
       {2134, "A$2.1K", [format: :currency_short, currency: :AUD]},
-      {2134, "2,134 Australian dollars", [format: :currency_long, currency: :AUD]},
+      {2134, "2,134.00 Australian dollars", [format: :currency_long, currency: :AUD]},
 
       # Short/long formats in French. 1000 and 1001 round to a mantissa
       # of exactly 1 and select the exact-match count-"1" pattern
