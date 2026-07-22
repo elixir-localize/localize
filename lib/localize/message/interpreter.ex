@@ -72,6 +72,19 @@ defmodule Localize.Message.Interpreter do
     "never" => :never
   }
 
+  # MF2 `trailingZeroDisplay` and `roundingPriority` values mapped to
+  # the corresponding `Localize.Number.to_string/2` options.
+  @mf2_trailing_zero_displays %{
+    "auto" => :auto,
+    "stripIfInteger" => :strip_if_integer
+  }
+
+  @mf2_rounding_priorities %{
+    "auto" => :auto,
+    "morePrecision" => :more_precision,
+    "lessPrecision" => :less_precision
+  }
+
   # ── Public API ─────────────────────────────────────────────────
 
   @doc """
@@ -1121,6 +1134,64 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
+  # TR35 MF2 `minimumIntegerDigits` is a digit size option with a
+  # default of 1. Zero is rejected: the underlying ECMA-402 range is
+  # 1..21 and a zero minimum would let the integer part vanish.
+  defp minimum_integer_digits_option(func_opts) do
+    case digit_size_option(func_opts, :minimumIntegerDigits) do
+      {:ok, nil} ->
+        {:ok, nil}
+
+      {:ok, value} when value >= 1 ->
+        {:ok, value}
+
+      {:ok, value} ->
+        {:error, "the minimumIntegerDigits option must be a positive integer, got #{value}"}
+
+      error ->
+        error
+    end
+  end
+
+  # TR35 MF2 `minimumSignificantDigits` / `maximumSignificantDigits`
+  # are digit size options; the ECMA-402 range they map onto is 1..21,
+  # so an explicit zero is a bad option value.
+  defp significant_digits_option(func_opts, key) do
+    case digit_size_option(func_opts, key) do
+      {:ok, 0} -> {:error, "the #{key} option must be a positive integer, got 0"}
+      other -> other
+    end
+  end
+
+  defp trailing_zero_display_option(func_opts) do
+    case func_opts[:trailingZeroDisplay] || func_opts["trailingZeroDisplay"] do
+      nil ->
+        {:ok, nil}
+
+      value when is_map_key(@mf2_trailing_zero_displays, value) ->
+        {:ok, Map.fetch!(@mf2_trailing_zero_displays, value)}
+
+      value ->
+        {:error,
+         "the trailingZeroDisplay option must be auto or stripIfInteger, got #{inspect(value)}"}
+    end
+  end
+
+  defp rounding_priority_option(func_opts) do
+    case func_opts[:roundingPriority] || func_opts["roundingPriority"] do
+      nil ->
+        {:ok, nil}
+
+      value when is_map_key(@mf2_rounding_priorities, value) ->
+        {:ok, Map.fetch!(@mf2_rounding_priorities, value)}
+
+      value ->
+        {:error,
+         "the roundingPriority option must be one of auto, morePrecision or lessPrecision, " <>
+           "got #{inspect(value)}"}
+    end
+  end
+
   defp resolve_custom_function(name, options) do
     per_call = Keyword.get(options, :functions, %{})
 
@@ -1460,7 +1531,12 @@ defmodule Localize.Message.Interpreter do
          {:ok, number_system} <- resolve_number_system(locale, func_opts),
          {:ok, symbols} <- number_symbols_with_fallback(locale, number_system),
          {:ok, min_fd} <- digit_size_option(func_opts, :minimumFractionDigits),
-         {:ok, max_fd} <- digit_size_option(func_opts, :maximumFractionDigits) do
+         {:ok, max_fd} <- digit_size_option(func_opts, :maximumFractionDigits),
+         {:ok, min_sd} <- significant_digits_option(func_opts, :minimumSignificantDigits),
+         {:ok, max_sd} <- significant_digits_option(func_opts, :maximumSignificantDigits),
+         {:ok, min_id} <- minimum_integer_digits_option(func_opts),
+         {:ok, trailing_zero} <- trailing_zero_display_option(func_opts),
+         {:ok, rounding_priority} <- rounding_priority_option(func_opts) do
       use_grouping = Map.get(func_opts, :useGrouping)
 
       {format, minimum_grouping_digits} =
@@ -1491,6 +1567,11 @@ defmodule Localize.Message.Interpreter do
         rounding_mode: :half_even,
         min_fractional_digits: min_fd,
         max_fractional_digits: max_fd,
+        minimum_integer_digits: min_id,
+        minimum_significant_digits: min_sd,
+        maximum_significant_digits: max_sd,
+        trailing_zero_display: trailing_zero,
+        rounding_priority: rounding_priority,
         minimum_grouping_digits: minimum_grouping_digits,
         pattern: pattern,
         currency: Keyword.get(overrides, :currency),
@@ -1559,7 +1640,12 @@ defmodule Localize.Message.Interpreter do
          {:ok, format_string} <- resolve_currency_format(locale, number_system, format),
          {:ok, currency_struct} <- resolve_currency_struct(currency_code, locale),
          {:ok, min_fd} <- digit_size_option(func_opts, :minimumFractionDigits),
-         {:ok, max_fd} <- digit_size_option(func_opts, :maximumFractionDigits) do
+         {:ok, max_fd} <- digit_size_option(func_opts, :maximumFractionDigits),
+         {:ok, min_sd} <- significant_digits_option(func_opts, :minimumSignificantDigits),
+         {:ok, max_sd} <- significant_digits_option(func_opts, :maximumSignificantDigits),
+         {:ok, min_id} <- minimum_integer_digits_option(func_opts),
+         {:ok, trailing_zero} <- trailing_zero_display_option(func_opts),
+         {:ok, rounding_priority} <- rounding_priority_option(func_opts) do
       actual_symbol = resolve_currency_symbol(currency_struct, currency_symbol)
 
       # Default fractional digits from currency when not explicitly set
@@ -1574,6 +1660,11 @@ defmodule Localize.Message.Interpreter do
         fractional_digits: if(min_fd == nil and max_fd == nil, do: default_fd, else: nil),
         min_fractional_digits: min_fd,
         max_fractional_digits: max_fd,
+        minimum_integer_digits: min_id,
+        minimum_significant_digits: min_sd,
+        maximum_significant_digits: max_sd,
+        trailing_zero_display: trailing_zero,
+        rounding_priority: rounding_priority,
         minimum_grouping_digits: nil,
         pattern: :positive,
         currency: currency_struct,

@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Collation.known_collations/0` and `Localize.DateTime.Timezone.known_timezones/0` (re-exported on `Localize`) return the CLDR collation and canonical IANA time zone inventories for `Intl.supportedValuesOf/1`.
 
+* The MF2 numeric functions accept the TR35 `minimumIntegerDigits`, `minimumSignificantDigits`, `maximumSignificantDigits`, `trailingZeroDisplay` and `roundingPriority` options, mapped onto the corresponding `Localize.Number.to_string/2` options.
+
 ### Changed
 
 * The `:currency_long` formats apply the currency's fraction digits and select the plural name from the displayed value per ECMA-402 `currencyDisplay: "name"`: `to_string(1, format: :currency_long, currency: :USD)` renders "1.00 US dollars" (previously "1 US dollar").

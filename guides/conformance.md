@@ -460,7 +460,7 @@ Two areas are explicitly out of scope:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | `:string` | Implemented | |
-| `:number` | Implemented | Delegates to `Localize.Number.to_string/2`. All numeric functions support `signDisplay`, and an unannotated numeric operand formats with the locale-aware `:number` default. |
+| `:number` | Implemented | Delegates to `Localize.Number.to_string/2`. All numeric functions support `signDisplay`, `minimumIntegerDigits`, the significant-digit options, `trailingZeroDisplay` and `roundingPriority`; an unannotated numeric operand formats with the locale-aware `:number` default. |
 | `:integer` | Implemented | |
 | `:percent` | Implemented | |
 | `:currency` | Implemented | |
