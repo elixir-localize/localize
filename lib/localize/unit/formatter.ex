@@ -134,6 +134,71 @@ defmodule Localize.Unit.Formatter do
     end
   end
 
+  # # to_range_parts/3
+  #
+  # The parts sibling of `to_range_string/3`: the numeric range's
+  # parts (with their `:start_range` / `:end_range` / `:shared`
+  # sources) substituted into the unit pattern, whose text becomes
+  # `:unit` and `:literal` parts with source `:shared` per ECMA-402
+  # `formatRangeToParts` for unit style.
+  @spec to_range_parts(Localize.Unit.t(), Localize.Unit.t(), Keyword.t()) ::
+          {:ok, [%{type: atom(), value: String.t(), source: atom()}]} | {:error, Exception.t()}
+  def to_range_parts(unit_1, unit_2, options \\ [])
+
+  def to_range_parts(
+        %Localize.Unit{name: name} = unit_1,
+        %Localize.Unit{name: name} = unit_2,
+        options
+      ) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    format = Keyword.get(options, :format, :long)
+
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, unit_data} <- load_unit_data(language_tag, format),
+         {:ok, tokens} <- range_pattern_tokens(unit_data, unit_1, unit_2, language_tag, options),
+         {:ok, range_parts} <-
+           Localize.Number.to_range_parts(
+             unit_1.value,
+             unit_2.value,
+             Keyword.take(options, @number_format_options)
+           ) do
+      parts =
+        [range_parts]
+        |> Localize.Substitution.substitute_parts(tokens, :unit)
+        |> split_unit_whitespace()
+        |> Enum.map(&Map.put_new(&1, :source, :shared))
+        |> trim_edge_whitespace()
+
+      {:ok, parts}
+    end
+  end
+
+  def to_range_parts(%Localize.Unit{} = unit_1, %Localize.Unit{} = unit_2, _options) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: {unit_1.name, unit_2.name},
+       expected: "two units of the same kind",
+       context: "Localize.Unit.to_range_parts/3"
+     )}
+  end
+
+  # `to_range_string/3` trims outer whitespace from the substituted
+  # result; drop the equivalent whitespace-only edge literals so the
+  # parts concatenate to the same string.
+  defp trim_edge_whitespace(parts) do
+    parts
+    |> drop_edge_whitespace()
+    |> Enum.reverse()
+    |> drop_edge_whitespace()
+    |> Enum.reverse()
+  end
+
+  defp drop_edge_whitespace([%{type: :literal, value: value} | rest] = parts) do
+    if String.trim(value) == "", do: drop_edge_whitespace(rest), else: parts
+  end
+
+  defp drop_edge_whitespace(parts), do: parts
+
   # # to_parts/2
   #
   # Formats a unit into typed parts: the number's parts from

@@ -104,9 +104,8 @@ defmodule Localize.DateTime.Formatter do
   @spec format(map(), String.t(), atom(), map()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def format(datetime, format_string, locale_id, options \\ %{}) do
-    options = with_default_number_system(options, locale_id)
-
-    with {:ok, tokens, _} <- tokenize_cached(format_string) do
+    with {:ok, options} <- with_number_system(options, locale_id),
+         {:ok, tokens, _} <- tokenize_cached(format_string) do
       results =
         Enum.map(tokens, fn
           {:literal, _line, string} ->
@@ -142,9 +141,8 @@ defmodule Localize.DateTime.Formatter do
   @spec format_to_parts(map(), String.t(), atom(), map()) ::
           {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
   def format_to_parts(datetime, format_string, locale_id, options \\ %{}) do
-    options = with_default_number_system(options, locale_id)
-
-    with {:ok, tokens, _} <- tokenize_cached(format_string) do
+    with {:ok, options} <- with_number_system(options, locale_id),
+         {:ok, tokens, _} <- tokenize_cached(format_string) do
       results =
         Enum.map(tokens, fn
           {:literal, _line, string} ->
@@ -276,6 +274,28 @@ defmodule Localize.DateTime.Formatter do
 
   defp trim_leading_whitespace_in_next(rest_t, rest_r), do: {rest_t, rest_r}
 
+  # A caller-supplied `:number_system` option overrides all numeric
+  # fields, validated as a known CLDR numbering system. Without the
+  # option, the locale's default system applies (below).
+  defp with_number_system(options, locale_id) when is_map(options) do
+    case options[:number_system] || options["number_system"] do
+      nil ->
+        {:ok, with_default_number_system(options, locale_id)}
+
+      system ->
+        locale = formatting_locale(options[:locale] || options["locale"], locale_id)
+
+        with {:ok, system_name} <- Localize.Number.System.system_name_from(system, locale) do
+          overrides = options[:number_system_overrides] || %{}
+
+          {:ok,
+           Map.put(options, :number_system_overrides, Map.put(overrides, "all", system_name))}
+        end
+    end
+  end
+
+  defp with_number_system(options, _locale_id), do: {:ok, options}
+
   # The locale's number system is resolved from the original locale
   # (options `:locale`) rather than the resolved locale id so that a
   # `-u-nu-` extension is honoured: `"mr-u-nu-latn"` formats with
@@ -295,8 +315,6 @@ defmodule Localize.DateTime.Formatter do
       _ -> options
     end
   end
-
-  defp with_default_number_system(options, _locale_id), do: options
 
   # An options `:locale` of any other shape (nil, an integer, a
   # malformed term) falls back to the resolved locale id rather

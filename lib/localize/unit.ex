@@ -1314,6 +1314,80 @@ defmodule Localize.Unit do
   end
 
   @doc """
+  Formats two units of the same kind into typed range parts, mirroring ECMA-402's `formatRangeToParts` for unit style.
+
+  The parts concatenate to exactly the string `to_range_string/3` produces with the same options. The numeric range's parts keep their `:start_range` / `:end_range` / `:shared` sources; the unit pattern's text carries source `:shared` with the unit name tagged `:unit`.
+
+  ### Arguments
+
+  * `unit_start` is a `t:Localize.Unit.t/0` struct for the range start.
+
+  * `unit_end` is a `t:Localize.Unit.t/0` struct for the range end. Must have the same unit name as `unit_start`.
+
+  * `options` is a keyword list of options. See `to_range_string/3`.
+
+  ### Returns
+
+  * `{:ok, parts}` where `parts` is a list of `%{type: atom(), value: String.t(), source: atom()}` maps.
+
+  * `{:error, exception}` if the units differ, the unit has no direct CLDR pattern, or the options are invalid.
+
+  ### Examples
+
+      iex> {:ok, unit_start} = Localize.Unit.new(2, "kilometer")
+      iex> {:ok, unit_end} = Localize.Unit.new(5, "kilometer")
+      iex> Localize.Unit.to_range_parts(unit_start, unit_end, locale: :en)
+      {:ok,
+       [
+         %{type: :integer, value: "2", source: :start_range},
+         %{type: :literal, value: "–", source: :shared},
+         %{type: :integer, value: "5", source: :end_range},
+         %{type: :literal, value: " ", source: :shared},
+         %{type: :unit, value: "kilometers", source: :shared}
+       ]}
+
+  """
+  @spec to_range_parts(t(), t(), Keyword.t()) ::
+          {:ok, [%{type: atom(), value: String.t(), source: atom()}]} | {:error, Exception.t()}
+  def to_range_parts(%__MODULE__{} = unit_start, %__MODULE__{} = unit_end, options \\ []) do
+    Localize.Unit.Formatter.to_range_parts(unit_start, unit_end, options)
+  end
+
+  @doc """
+  Same as `to_range_parts/3` but raises on error.
+
+  ### Arguments
+
+  * `unit_start` is a `t:Localize.Unit.t/0` struct for the range start.
+
+  * `unit_end` is a `t:Localize.Unit.t/0` struct for the range end.
+
+  * `options` is a keyword list of options. See `to_range_parts/3`.
+
+  ### Returns
+
+  * A list of `%{type: atom(), value: String.t(), source: atom()}` maps.
+
+  ### Raises
+
+  * Raises an exception if the range cannot be decomposed into parts.
+
+  ### Examples
+
+      iex> Localize.Unit.to_range_parts!(Localize.Unit.new!(2, "kilometer"), Localize.Unit.new!(5, "kilometer"), locale: :en) |> length()
+      5
+
+  """
+  @spec to_range_parts!(t(), t(), Keyword.t()) ::
+          [%{type: atom(), value: String.t(), source: atom()}]
+  def to_range_parts!(%__MODULE__{} = unit_start, %__MODULE__{} = unit_end, options \\ []) do
+    case to_range_parts(unit_start, unit_end, options) do
+      {:ok, parts} -> parts
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
   Formats a unit into a list of typed parts, mirroring ECMA-402's `formatToParts` for unit style.
 
   The parts concatenate to exactly the string `to_string/2` produces with the same options. The number's segments come from `Localize.Number.to_parts/2`; the unit pattern text is tagged `:unit` with its surrounding whitespace as `:literal` parts.

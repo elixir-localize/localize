@@ -46,6 +46,8 @@ defmodule Localize.DateTime do
 
   * `:locale` is a locale identifier. The default is `:en`.
 
+  * `:number_system` is a CLDR numbering system name (for example, `:thai`). All numeric fields render in that system; a `-u-nu-` locale extension may be used instead. The default is the locale's number system.
+
   * `:prefer` selects between CLDR `alt` variants. Accepts an
     atom or a list of atoms in priority order. Recognised values:
     `:standard` / `:variant` (locales like en-CA publish both an

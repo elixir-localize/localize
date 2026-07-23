@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+* `Localize.Interval.to_parts/3` and `to_parts!/3` decompose date, time, and datetime intervals into typed parts with ECMA-402 `:source` tagging, across split patterns, fallback patterns, and equal-endpoint collapse. Open intervals (a `nil` endpoint) are not supported in parts form.
+
+* `Localize.Unit.to_range_parts/3` and `to_range_parts!/3` decompose a unit range: the numeric range parts keep their sources and the unit pattern text carries source `:shared`.
+
+* `Localize.Duration.to_parts/2` and `to_parts!/2` decompose a duration into per-field unit parts (numeric segments carry a `:unit` key) joined by `:literal` list separators.
+
+* Date, time, and datetime formatting accept a `:number_system` option: any CLDR numbering system renders all numeric fields ("Mar ๑๕, ๒๐๒๕" with `:thai`), equivalent to a `-u-nu-` locale extension.
+
 ## [1.0.0-rc.2] — July 23rd, 2026
 
 ### Added

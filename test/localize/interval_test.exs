@@ -960,4 +960,51 @@ defmodule Localize.IntervalTest do
       assert {:ok, ["ccc-", "EEE"]} = Interval.split_interval("ccc-EEE")
     end
   end
+
+  describe "to_parts/3" do
+    test "split-pattern date interval tags sources with a shared separator" do
+      {:ok, parts} = Localize.Interval.to_parts(~D[2022-04-22], ~D[2022-04-25], locale: :en)
+
+      assert %{type: :day, value: "22", source: :start_range} in parts
+      assert %{type: :day, value: "25", source: :end_range} in parts
+      assert Enum.any?(parts, &(&1.type == :literal and &1.source == :shared))
+    end
+
+    test "parts concatenate to the interval string across shapes" do
+      cases = [
+        {~D[2022-04-22], ~D[2022-04-25], [locale: :en]},
+        {~D[2022-01-15], ~D[2022-03-20], [locale: :en]},
+        {~D[2021-01-15], ~D[2022-03-20], [locale: :fr]},
+        {~D[2022-01-15], ~D[2022-03-20], [locale: :en, format: :long]},
+        {~T[09:00:00], ~T[14:30:00], [locale: :en]},
+        {~N[2026-04-08 12:00:00], ~N[2026-04-08 14:00:00], [locale: :en]},
+        {~N[2026-04-15 00:49:00], ~N[2026-04-16 01:49:00], [locale: :de]}
+      ]
+
+      for {from, to, options} <- cases do
+        {:ok, parts} = Localize.Interval.to_parts(from, to, options)
+        {:ok, string} = Localize.Interval.to_string(from, to, options)
+
+        assert Enum.map_join(parts, & &1.value) == string,
+               "parts != string for #{inspect(from)}..#{inspect(to)} #{inspect(options)}"
+      end
+    end
+
+    test "equal endpoints are a single shared-source value" do
+      {:ok, parts} = Localize.Interval.to_parts(~D[2022-04-22], ~D[2022-04-22], locale: :en)
+
+      assert Enum.all?(parts, &(&1.source == :shared))
+
+      assert Enum.map_join(parts, & &1.value) ==
+               Localize.Date.to_string!(~D[2022-04-22], locale: :en)
+    end
+
+    test "nil endpoints are errors" do
+      assert {:error, %Localize.DateTimeInvalidInputError{}} =
+               Localize.Interval.to_parts(nil, ~D[2022-04-22], locale: :en)
+
+      assert {:error, %Localize.DateTimeInvalidInputError{}} =
+               Localize.Interval.to_parts(~D[2022-04-22], nil, locale: :en)
+    end
+  end
 end
