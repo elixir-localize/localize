@@ -445,7 +445,9 @@ iex> Localize.Number.to_parts(1234567, format: :decimal_short)
  ]}
 ```
 
-The `:currency_long` formats and the RBNF rule-name formats do not decompose into parts and return an error from `to_parts/2`.
+The RBNF rule-name formats (`:spellout_cardinal` and friends) do not decompose into parts and return an error from `to_parts/2`.
+
+One known deviation from `Intl.NumberFormat.formatToParts`: the compact affix is a single `:compact` part including any adjoining space (`" million"`), where JS emits the space as a separate `:literal` part. Callers needing exact JS part boundaries can split leading/trailing whitespace off the `:compact` part.
 
 ### Rounding mode examples
 
