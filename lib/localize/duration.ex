@@ -35,6 +35,9 @@ defmodule Localize.Duration do
   @keys Keyword.keys(@struct_list)
   defstruct @struct_list
 
+  @display_values [:auto, :always]
+  @style_values [:long, :short, :narrow]
+
   @typedoc "Duration in calendar units."
   @type t :: %__MODULE__{
           year: non_neg_integer(),
@@ -249,6 +252,17 @@ defmodule Localize.Duration do
   * `:format` is one of `:long`, `:short`, or `:narrow`.
     The default is `:long`.
 
+  * `:display` is a keyword list of per-unit display control,
+    mirroring ECMA-402's per-unit `*Display` options. Each key is
+    a unit atom (`:year`, `:month`, `:day`, `:hour`, `:minute`,
+    `:second`, `:microsecond`) and each value is `:auto` (omit
+    the unit when zero, the default) or `:always` (render the
+    unit even when zero).
+
+  * `:styles` is a keyword list of per-unit format overrides.
+    Each key is a unit atom and each value is `:long`, `:short`,
+    or `:narrow`, overriding `:format` for that unit only.
+
   ### Returns
 
   * `{:ok, formatted_string}` on success.
@@ -265,42 +279,96 @@ defmodule Localize.Duration do
       iex> Localize.Duration.to_string(d, locale: :en, format: :narrow)
       {:ok, "11m and 30d"}
 
+      iex> duration = %Localize.Duration{hour: 2}
+      iex> Localize.Duration.to_string(duration, locale: :en, display: [minute: :always])
+      {:ok, "2 hours and 0 minutes"}
+
+      iex> duration = %Localize.Duration{hour: 2, minute: 30}
+      iex> Localize.Duration.to_string(duration, locale: :en, styles: [hour: :narrow])
+      {:ok, "2h and 30 minutes"}
+
   """
   @spec to_string(t(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(%__MODULE__{} = duration, options \\ []) do
     except = Keyword.get(options, :except, [:microsecond])
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, :long)
+    display = Keyword.get(options, :display, [])
+    styles = Keyword.get(options, :styles, [])
 
-    units =
-      for key <- @keys,
-          value = Map.get(duration, key),
-          extract_microseconds(key, value) != 0 && key not in except do
-        value = extract_microseconds(key, value)
-        Localize.Unit.new!(value, Atom.to_string(key))
-      end
-
-    case units do
-      [] ->
-        # All parts are zero — format as "0 seconds"
-        unit = Localize.Unit.new!(0, "second")
-
-        Localize.Unit.to_string(unit, locale: locale, format: format)
-
-      units ->
-        with {:ok, formatted_parts} <- format_each(units, locale, format) do
-          # :standard is the "and"-conjunction list style.
-          Localize.List.to_string(formatted_parts, locale: locale, list_style: :standard)
-        end
+    with :ok <- validate_per_unit(display, :display, @display_values),
+         :ok <- validate_per_unit(styles, :styles, @style_values) do
+      duration
+      |> duration_units(display, except)
+      |> format_units(locale, format, styles)
     end
+  end
+
+  defp duration_units(duration, display, except) do
+    for key <- @keys,
+        value = extract_microseconds(key, Map.get(duration, key)),
+        include_unit?(key, value, display, except) do
+      {key, Localize.Unit.new!(value, Atom.to_string(key))}
+    end
+  end
+
+  # All parts are zero — format as "0 seconds"
+  defp format_units([], locale, format, styles) do
+    unit = Localize.Unit.new!(0, "second")
+    Localize.Unit.to_string(unit, locale: locale, format: unit_format(:second, styles, format))
+  end
+
+  defp format_units(units, locale, format, styles) do
+    with {:ok, formatted_parts} <- format_each(units, locale, format, styles) do
+      # :standard is the "and"-conjunction list style.
+      Localize.List.to_string(formatted_parts, locale: locale, list_style: :standard)
+    end
+  end
+
+  # A unit renders when its per-unit display is :always, and is
+  # otherwise omitted when zero or excluded.
+  defp include_unit?(key, value, display, except) do
+    cond do
+      Keyword.get(display, key) == :always -> true
+      key in except -> false
+      true -> value != 0
+    end
+  end
+
+  defp unit_format(key, styles, format) do
+    Keyword.get(styles, key, format)
+  end
+
+  defp validate_per_unit(per_unit, option_name, allowed) when is_list(per_unit) do
+    Enum.find_value(per_unit, :ok, fn
+      {key, value} when key in @keys and value in [:auto, :always, :long, :short, :narrow] ->
+        if value in allowed, do: nil, else: per_unit_error(option_name, {key, value}, allowed)
+
+      entry ->
+        per_unit_error(option_name, entry, allowed)
+    end)
+  end
+
+  defp validate_per_unit(other, option_name, allowed) do
+    per_unit_error(option_name, other, allowed)
+  end
+
+  defp per_unit_error(option_name, entry, allowed) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: entry,
+       expected: option_name,
+       allowed_values: allowed,
+       context: "Localize.Duration.to_string/2"
+     )}
   end
 
   # Format each unit, short-circuiting on the first error so a single
   # bad locale or unit cannot crash duration formatting with a
   # `MatchError`. Returns `{:ok, list}` only when every part formats.
-  defp format_each(units, locale, format) do
-    Enum.reduce_while(units, {:ok, []}, fn unit, {:ok, acc} ->
-      case Localize.Unit.to_string(unit, locale: locale, format: format) do
+  defp format_each(units, locale, format, styles) do
+    Enum.reduce_while(units, {:ok, []}, fn {key, unit}, {:ok, acc} ->
+      case Localize.Unit.to_string(unit, locale: locale, format: unit_format(key, styles, format)) do
         {:ok, formatted} -> {:cont, {:ok, [formatted | acc]}}
         {:error, _} = error -> {:halt, error}
       end

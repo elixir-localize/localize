@@ -78,10 +78,15 @@ defmodule Localize.Date do
 
   """
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
-  def to_string(date, options \\ [])
+  def to_string(date, options \\ []) do
+    with {:ok, pattern, locale_id, formatter_options} <- formatting_plan(date, options) do
+      Localize.DateTime.Formatter.format(date, pattern, locale_id, formatter_options)
+    end
+  end
 
-  # Full date
-  def to_string(%{year: _, month: _, day: _} = date, options) do
+  # Resolves the format pattern, locale, and formatter options for a
+  # date — the shared front half of `to_string/2` and `to_parts/2`.
+  defp formatting_plan(%{year: _, month: _, day: _} = date, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
 
@@ -95,23 +100,23 @@ defmodule Localize.Date do
         |> Map.put_new(:locale, locale)
         |> merge_number_system_overrides(overrides)
 
-      Localize.DateTime.Formatter.format(date, pattern, locale_id, formatter_options)
+      {:ok, pattern, locale_id, formatter_options}
     end
   end
 
   # Partial date
-  def to_string(date, options) when has_date_field(date) do
+  defp formatting_plan(date, options) when has_date_field(date) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format)
 
     with {:ok, locale_id} <- resolve_locale_id(locale) do
       resolved_format = resolve_partial_format(format, date)
       options = Keyword.put_new(options, :locale, locale)
-      format_partial_date(resolved_format, date, format, locale_id, options)
+      partial_formatting_plan(resolved_format, date, format, locale_id, options)
     end
   end
 
-  def to_string(_date, _options) do
+  defp formatting_plan(_date, _options) do
     {:error, Localize.DateTimeInvalidInputError.exception(type: :date)}
   end
 
@@ -135,7 +140,7 @@ defmodule Localize.Date do
     derive_format_id(date)
   end
 
-  defp format_partial_date(nil, _date, format, locale_id, _options) do
+  defp partial_formatting_plan(nil, _date, format, locale_id, _options) do
     {:error,
      Localize.DateTimeUnresolvedFormatError.exception(
        format: format,
@@ -143,14 +148,14 @@ defmodule Localize.Date do
      )}
   end
 
-  defp format_partial_date(resolved_format, date, _format, locale_id, options) do
+  defp partial_formatting_plan(resolved_format, date, _format, locale_id, options) do
     with {:ok, pattern} <- find_format(date, resolved_format, locale_id, options) do
       overrides = number_system_overrides_for(date, resolved_format, locale_id)
 
       formatter_options =
         options |> Map.new() |> merge_number_system_overrides(overrides)
 
-      Localize.DateTime.Formatter.format(date, pattern, locale_id, formatter_options)
+      {:ok, pattern, locale_id, formatter_options}
     end
   end
 
@@ -187,6 +192,79 @@ defmodule Localize.Date do
   def to_string!(date, options \\ []) do
     case to_string(date, options) do
       {:ok, string} -> string
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Formats a date into typed parts, mirroring ECMA-402's `formatToParts`.
+
+  The parts concatenate to exactly the string `to_string/2` produces with the same options. Each pattern field is tagged with its type: `:year`, `:month`, `:day`, `:weekday`, `:era`, and `:literal` for separators.
+
+  ### Arguments
+
+  * `date` is a `t:Date.t/0` or any map with date keys.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `to_string/2` for the supported options.
+
+  ### Returns
+
+  * `{:ok, parts}` where `parts` is a list of `%{type: atom(), value: String.t()}` maps.
+
+  * `{:error, exception}` if the date cannot be formatted.
+
+  ### Examples
+
+      iex> Localize.Date.to_parts(~D[2017-07-10], locale: :en)
+      {:ok,
+       [
+         %{type: :month, value: "Jul"},
+         %{type: :literal, value: " "},
+         %{type: :day, value: "10"},
+         %{type: :literal, value: ", "},
+         %{type: :year, value: "2017"}
+       ]}
+
+  """
+  @spec to_parts(map(), Keyword.t()) ::
+          {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
+  def to_parts(date, options \\ []) do
+    with {:ok, pattern, locale_id, formatter_options} <- formatting_plan(date, options) do
+      Localize.DateTime.Formatter.format_to_parts(date, pattern, locale_id, formatter_options)
+    end
+  end
+
+  @doc """
+  Same as `to_parts/2` but raises on error.
+
+  ### Arguments
+
+  * `date` is a `t:Date.t/0` or any map with date keys.
+
+  * `options` is a keyword list of options. See `to_parts/2`.
+
+  ### Returns
+
+  * A list of `%{type: atom(), value: String.t()}` maps.
+
+  ### Raises
+
+  * Raises an exception if the date cannot be formatted.
+
+  ### Examples
+
+      iex> Localize.Date.to_parts!(~D[2017-07-10], locale: :en) |> length()
+      5
+
+  """
+  @spec to_parts!(map(), Keyword.t()) :: [%{type: atom(), value: String.t()}]
+  def to_parts!(date, options \\ []) do
+    case to_parts(date, options) do
+      {:ok, parts} -> parts
       {:error, exception} -> raise exception
     end
   end

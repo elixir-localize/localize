@@ -71,13 +71,19 @@ defmodule Localize.DateTime do
 
   """
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
-  def to_string(datetime, options \\ [])
+  def to_string(datetime, options \\ []) do
+    do_format(datetime, options, :string)
+  end
 
   # Full datetime: year, month, day, hour, minute, second all present.
-  def to_string(
-        %{year: _, month: _, day: _, hour: _, minute: _, second: _} = datetime,
-        options
-      ) do
+  # The `output` mode (:string | :parts) selects the formatter entry
+  # point at each terminal, so `to_string/2` and `to_parts/2` share
+  # every resolution path.
+  defp do_format(
+         %{year: _, month: _, day: _, hour: _, minute: _, second: _} = datetime,
+         options,
+         output
+       ) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
     style = Keyword.get(options, :style, :default)
@@ -87,17 +93,17 @@ defmodule Localize.DateTime do
       cond do
         # Explicit pattern string — format directly
         is_binary(format) ->
-          Localize.DateTime.Formatter.format(datetime, format, locale_id, Map.new(options))
+          invoke_formatter(output, datetime, format, locale_id, Map.new(options))
 
         # Standard format with separate date/time formats — use wrapper
         format in @standard_formats or
             (Keyword.has_key?(options, :date_format) and
                Keyword.has_key?(options, :time_format)) ->
-          format_with_wrapper(datetime, options, locale_id, format, style)
+          format_with_wrapper(datetime, options, locale_id, format, style, output)
 
         # Skeleton atom — resolve to a pattern from available_formats
         is_atom(format) ->
-          format_with_skeleton(datetime, options, locale_id, format)
+          format_with_skeleton(datetime, options, locale_id, format, output)
 
         true ->
           {:error,
@@ -111,26 +117,40 @@ defmodule Localize.DateTime do
   # skeleton from the fields actually present, via the existing
   # `Localize.Date` / `Localize.Time` partial paths) and compose them
   # with the locale's datetime wrapper pattern.
-  def to_string(%{year: _, month: _, day: _, hour: _} = datetime, options) do
-    format_partial_datetime(datetime, options)
+  defp do_format(%{year: _, month: _, day: _, hour: _} = datetime, options, output) do
+    format_partial_datetime(datetime, options, output)
   end
 
-  def to_string(datetime, options) when is_map(datetime) do
+  defp do_format(datetime, options, output) when is_map(datetime) do
     # Try as date-only or time-only
     cond do
       Map.has_key?(datetime, :year) and Map.has_key?(datetime, :month) ->
-        Localize.Date.to_string(datetime, options)
+        case output do
+          :string -> Localize.Date.to_string(datetime, options)
+          :parts -> Localize.Date.to_parts(datetime, options)
+        end
 
       Map.has_key?(datetime, :hour) ->
-        Localize.Time.to_string(datetime, options)
+        case output do
+          :string -> Localize.Time.to_string(datetime, options)
+          :parts -> Localize.Time.to_parts(datetime, options)
+        end
 
       true ->
         {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}
     end
   end
 
-  def to_string(_invalid, _options) do
+  defp do_format(_invalid, _options, _output) do
     {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}
+  end
+
+  defp invoke_formatter(:string, datetime, pattern, locale_id, options_map) do
+    Localize.DateTime.Formatter.format(datetime, pattern, locale_id, options_map)
+  end
+
+  defp invoke_formatter(:parts, datetime, pattern, locale_id, options_map) do
+    Localize.DateTime.Formatter.format_to_parts(datetime, pattern, locale_id, options_map)
   end
 
   @doc """
@@ -170,7 +190,78 @@ defmodule Localize.DateTime do
     end
   end
 
-  defp format_partial_datetime(datetime, options) do
+  @doc """
+  Formats a datetime into typed parts, mirroring ECMA-402's `formatToParts`.
+
+  The parts concatenate to exactly the string `to_string/2` produces with the same options. Each pattern field is tagged with its type (`:year`, `:month`, `:day`, `:weekday`, `:hour`, `:minute`, `:second`, `:day_period`, `:time_zone_name`, `:era`, `:fractional_second`, `:literal`, …). Standard formats, skeleton atoms, explicit pattern strings, and combined date+time wrappers all decompose.
+
+  ### Arguments
+
+  * `datetime` is a `t:DateTime.t/0`, `t:NaiveDateTime.t/0`, or any map with date and time keys.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `to_string/2` for the supported options.
+
+  ### Returns
+
+  * `{:ok, parts}` where `parts` is a list of `%{type: atom(), value: String.t()}` maps.
+
+  * `{:error, exception}` if the datetime cannot be formatted.
+
+  ### Examples
+
+      iex> Localize.DateTime.to_parts(~N[2017-07-10 14:30:00], format: :hm, locale: :en, prefer: :ascii)
+      {:ok,
+       [
+         %{type: :hour, value: "2"},
+         %{type: :literal, value: ":"},
+         %{type: :minute, value: "30"},
+         %{type: :literal, value: " "},
+         %{type: :day_period, value: "PM"}
+       ]}
+
+  """
+  @spec to_parts(map(), Keyword.t()) ::
+          {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
+  def to_parts(datetime, options \\ []) do
+    do_format(datetime, options, :parts)
+  end
+
+  @doc """
+  Same as `to_parts/2` but raises on error.
+
+  ### Arguments
+
+  * `datetime` is a `t:DateTime.t/0`, `t:NaiveDateTime.t/0`, or any map with date and time keys.
+
+  * `options` is a keyword list of options. See `to_parts/2`.
+
+  ### Returns
+
+  * A list of `%{type: atom(), value: String.t()}` maps.
+
+  ### Raises
+
+  * Raises an exception if the datetime cannot be formatted.
+
+  ### Examples
+
+      iex> Localize.DateTime.to_parts!(~N[2017-07-10 14:30:00], format: :hm, locale: :en, prefer: :ascii) |> length()
+      5
+
+  """
+  @spec to_parts!(map(), Keyword.t()) :: [%{type: atom(), value: String.t()}]
+  def to_parts!(datetime, options \\ []) do
+    case to_parts(datetime, options) do
+      {:ok, parts} -> parts
+      {:error, exception} -> raise exception
+    end
+  end
+
+  defp format_partial_datetime(datetime, options, output) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     options = Keyword.put_new(options, :locale, locale)
     format = Keyword.get(options, :format, @default_format)
@@ -196,11 +287,15 @@ defmodule Localize.DateTime do
     date_options = Keyword.put(options, :format, date_format)
     time_options = Keyword.put(options, :format, time_format)
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, date_str} <- Localize.Date.to_string(date_only, date_options),
-         {:ok, time_str} <- Localize.Time.to_string(time_only, time_options) do
+    with {:ok, locale_id} <- resolve_locale_id(locale) do
       wrapper = fallback_wrapper(wrapper_level, locale_id)
+      compose_partial(output, wrapper, date_only, time_only, date_options, time_options)
+    end
+  end
 
+  defp compose_partial(:string, wrapper, date_only, time_only, date_options, time_options) do
+    with {:ok, date_str} <- Localize.Date.to_string(date_only, date_options),
+         {:ok, time_str} <- Localize.Time.to_string(time_only, time_options) do
       result =
         wrapper
         |> String.replace("{1}", date_str)
@@ -210,7 +305,17 @@ defmodule Localize.DateTime do
     end
   end
 
-  defp format_with_wrapper(datetime, options, locale_id, format, style) do
+  # The wrapper indexes time as {0} and date as {1}, so the parts
+  # lists are supplied in that order.
+  defp compose_partial(:parts, wrapper, date_only, time_only, date_options, time_options) do
+    with {:ok, date_parts} <- Localize.Date.to_parts(date_only, date_options),
+         {:ok, time_parts} <- Localize.Time.to_parts(time_only, time_options) do
+      tokens = Localize.Substitution.parse(wrapper)
+      {:ok, Localize.Substitution.substitute_parts([time_parts, date_parts], tokens)}
+    end
+  end
+
+  defp format_with_wrapper(datetime, options, locale_id, format, style, output) do
     date_format = Keyword.get(options, :date_format, format)
     time_format = Keyword.get(options, :time_format, format)
 
@@ -228,14 +333,14 @@ defmodule Localize.DateTime do
       |> Map.put(:time_format, time_format)
 
     with {:ok, wrapper} <- resolve_wrapper(wrapper_format, locale_id, style) do
-      Localize.DateTime.Formatter.format(datetime, wrapper, locale_id, options_map)
+      invoke_formatter(output, datetime, wrapper, locale_id, options_map)
     end
   end
 
   # Fractional seconds (S) never participate in skeleton matching
   # per TR35: the S field is stripped before resolution and appended
   # to the seconds field of the resolved pattern afterwards.
-  defp format_with_skeleton(datetime, options, locale_id, skeleton) do
+  defp format_with_skeleton(datetime, options, locale_id, skeleton, output) do
     {skeleton, fraction_count} =
       Localize.DateTime.Format.Match.split_fractional_seconds(skeleton)
 
@@ -249,24 +354,33 @@ defmodule Localize.DateTime do
             locale_id,
             skeleton,
             available,
-            fraction_count
+            fraction_count,
+            output
           )
 
         %{} = variant_map ->
           variant_map
           |> Localize.DateTime.Format.resolve_variant(options)
           |> Localize.DateTime.Format.Match.append_fractional_seconds(fraction_count, locale_id)
-          |> format_resolved_pattern(datetime, options, locale_id, skeleton)
+          |> format_resolved_pattern(datetime, options, locale_id, skeleton, output)
 
         pattern when is_binary(pattern) ->
           pattern
           |> Localize.DateTime.Format.Match.append_fractional_seconds(fraction_count, locale_id)
-          |> then(&Localize.DateTime.Formatter.format(datetime, &1, locale_id, Map.new(options)))
+          |> then(&invoke_formatter(output, datetime, &1, locale_id, Map.new(options)))
       end
     end
   end
 
-  defp format_with_best_match(datetime, options, locale_id, skeleton, available, fraction_count) do
+  defp format_with_best_match(
+         datetime,
+         options,
+         locale_id,
+         skeleton,
+         available,
+         fraction_count,
+         output
+       ) do
     case Localize.DateTime.Format.Match.best_match(skeleton, locale_id) do
       {:ok, matched_skeleton} when is_atom(matched_skeleton) ->
         format_matched_skeleton(
@@ -275,7 +389,8 @@ defmodule Localize.DateTime do
           options,
           locale_id,
           skeleton,
-          fraction_count
+          fraction_count,
+          output
         )
 
       {:ok, {date_skeleton, time_skeleton}} ->
@@ -296,7 +411,8 @@ defmodule Localize.DateTime do
           datetime,
           options,
           locale_id,
-          skeleton
+          skeleton,
+          output
         )
 
       _ ->
@@ -308,7 +424,15 @@ defmodule Localize.DateTime do
     end
   end
 
-  defp format_matched_skeleton(nil, _datetime, _options, locale_id, skeleton, _fraction_count) do
+  defp format_matched_skeleton(
+         nil,
+         _datetime,
+         _options,
+         locale_id,
+         skeleton,
+         _fraction_count,
+         _output
+       ) do
     {:error,
      Localize.DateTimeUnresolvedFormatError.exception(
        format: skeleton,
@@ -322,12 +446,13 @@ defmodule Localize.DateTime do
          options,
          locale_id,
          skeleton,
-         fraction_count
+         fraction_count,
+         output
        ) do
     matched_pattern
     |> Localize.DateTime.Format.resolve_variant(options)
     |> Localize.DateTime.Format.Match.append_fractional_seconds(fraction_count, locale_id)
-    |> format_resolved_pattern(datetime, options, locale_id, skeleton)
+    |> format_resolved_pattern(datetime, options, locale_id, skeleton, output)
   end
 
   defp format_combined_patterns(
@@ -336,7 +461,8 @@ defmodule Localize.DateTime do
          datetime,
          options,
          locale_id,
-         _skeleton
+         _skeleton,
+         output
        )
        when is_binary(date_pattern) and is_binary(time_pattern) do
     options_map =
@@ -348,7 +474,7 @@ defmodule Localize.DateTime do
     with {:ok, wrapper} <- resolve_wrapper(:medium, locale_id, :default) do
       combined = String.replace(wrapper, "{0}", time_pattern)
       combined = String.replace(combined, "{1}", date_pattern)
-      Localize.DateTime.Formatter.format(datetime, combined, locale_id, options_map)
+      invoke_formatter(output, datetime, combined, locale_id, options_map)
     end
   end
 
@@ -358,7 +484,8 @@ defmodule Localize.DateTime do
          _datetime,
          _options,
          locale_id,
-         skeleton
+         skeleton,
+         _output
        ) do
     {:error,
      Localize.DateTimeUnresolvedFormatError.exception(
@@ -367,7 +494,7 @@ defmodule Localize.DateTime do
      )}
   end
 
-  defp format_resolved_pattern(nil, _datetime, _options, locale_id, skeleton) do
+  defp format_resolved_pattern(nil, _datetime, _options, locale_id, skeleton, _output) do
     {:error,
      Localize.DateTimeUnresolvedFormatError.exception(
        format: skeleton,
@@ -375,9 +502,9 @@ defmodule Localize.DateTime do
      )}
   end
 
-  defp format_resolved_pattern(pattern, datetime, options, locale_id, _skeleton)
+  defp format_resolved_pattern(pattern, datetime, options, locale_id, _skeleton, output)
        when is_binary(pattern) do
-    Localize.DateTime.Formatter.format(datetime, pattern, locale_id, Map.new(options))
+    invoke_formatter(output, datetime, pattern, locale_id, Map.new(options))
   end
 
   defp resolve_wrapper(format, locale_id, style) do

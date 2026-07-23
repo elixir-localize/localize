@@ -28,6 +28,44 @@ defmodule Localize.DateTime.Formatter do
     zone_iso zone_iso_z
   )a
 
+  # ECMA-402 part types for each pattern-token handler. Handlers not
+  # listed keep their own name as the part type (quarter, week
+  # fields, and other symbols ECMA-402 has no name for).
+  @part_types %{
+    literal: :literal,
+    era: :era,
+    year: :year,
+    week_aligned_year: :year,
+    extended_year: :year,
+    cyclic_year: :year_name,
+    related_year: :related_year,
+    month: :month,
+    standalone_month: :month,
+    day_of_month: :day,
+    day_of_week: :weekday,
+    day_name: :weekday,
+    standalone_day_of_week: :weekday,
+    period_am_pm: :day_period,
+    period_flex: :day_period,
+    period_noon_midnight: :day_period,
+    h11: :hour,
+    h12: :hour,
+    h23: :hour,
+    h24: :hour,
+    minute: :minute,
+    second: :second,
+    fractional_second: :fractional_second,
+    millisecond: :fractional_second,
+    decimal_separator: :literal,
+    zone_short: :time_zone_name,
+    zone_basic: :time_zone_name,
+    zone_gmt: :time_zone_name,
+    zone_iso: :time_zone_name,
+    zone_iso_z: :time_zone_name,
+    generic_non_location: :time_zone_name,
+    specific_non_location: :time_zone_name
+  }
+
   defguardp is_date(date)
             when is_map_key(date, :year) and is_map_key(date, :month) and is_map_key(date, :day)
 
@@ -83,11 +121,111 @@ defmodule Localize.DateTime.Formatter do
           error
 
         nil ->
-          stripped = strip_empty_zone_padding(tokens, results, [])
+          stripped =
+            tokens
+            |> strip_empty_zone_padding(results, [])
+            |> Enum.map(&elem(&1, 1))
+
           {:ok, stripped |> Enum.map(&ensure_string/1) |> IO.iodata_to_binary()}
       end
     end
   end
+
+  # # format_to_parts/4
+  #
+  # The parts sibling of `format/4`: formats a date/time/datetime
+  # into a list of `%{type: atom(), value: String.t()}` maps per
+  # ECMA-402 `formatToParts`. Each pattern token's output is tagged
+  # with its field type; the `{0}`/`{1}` wrapper placeholders recurse
+  # so combined date+time patterns decompose fully. The parts
+  # concatenate to exactly the `format/4` result.
+  @spec format_to_parts(map(), String.t(), atom(), map()) ::
+          {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
+  def format_to_parts(datetime, format_string, locale_id, options \\ %{}) do
+    options = with_default_number_system(options, locale_id)
+
+    with {:ok, tokens, _} <- tokenize_cached(format_string) do
+      results =
+        Enum.map(tokens, fn
+          {:literal, _line, string} ->
+            string
+
+          {handler, _line, count} when handler in [:date, :time] ->
+            placeholder_parts(handler, datetime, count, locale_id, options)
+
+          {handler, _line, count} ->
+            apply(__MODULE__, handler, [datetime, count, locale_id, options])
+        end)
+
+      case Enum.find(results, &match?({:error, _}, &1)) do
+        {:error, _} = error ->
+          error
+
+        nil ->
+          parts =
+            tokens
+            |> strip_empty_zone_padding(results, [])
+            |> Enum.flat_map(&pair_to_parts/1)
+
+          {:ok, parts}
+      end
+    end
+  end
+
+  # The `{1}` (date) and `{0}` (time) wrapper placeholders resolve
+  # their sub-pattern exactly like the `date/4` and `time/4` handlers
+  # and recurse into `format_to_parts/4`.
+  defp placeholder_parts(:date, datetime, _count, locale_id, options)
+       when is_date(datetime) do
+    date_format = options[:date_format] || :medium
+
+    with {:ok, pattern} <-
+           Localize.DateTime.Format.resolve_format(
+             :date,
+             date_format,
+             locale_id,
+             cldr_calendar_for_datetime(datetime),
+             variant_options(options)
+           ),
+         {:ok, parts} <- format_to_parts(datetime, pattern, locale_id, options) do
+      parts
+    else
+      {:error, _} = error -> error
+    end
+  end
+
+  defp placeholder_parts(:time, datetime, _count, locale_id, options)
+       when is_time(datetime) do
+    time_format = options[:time_format] || :medium
+
+    with {:ok, pattern} <-
+           Localize.DateTime.Format.resolve_format(
+             :time,
+             time_format,
+             locale_id,
+             cldr_calendar_for_datetime(datetime),
+             variant_options(options)
+           ),
+         {:ok, parts} <- format_to_parts(datetime, pattern, locale_id, options) do
+      parts
+    else
+      {:error, _} = error -> error
+    end
+  end
+
+  defp placeholder_parts(_placeholder, _datetime, _count, _locale_id, _options), do: ""
+
+  defp pair_to_parts({_name, [%{} | _] = parts}), do: parts
+  defp pair_to_parts({_name, []}), do: []
+
+  defp pair_to_parts({name, value}) do
+    case ensure_string(value) do
+      "" -> []
+      string -> [%{type: part_type(name), value: string}]
+    end
+  end
+
+  defp part_type(name), do: Map.get(@part_types, name, name)
 
   # Drops empty zone-handler results from the parallel `tokens` and
   # `results` lists, also stripping any trailing whitespace from the
@@ -110,15 +248,15 @@ defmodule Localize.DateTime.Formatter do
     strip_empty_zone_padding(rest_t, rest_r, acc)
   end
 
-  defp strip_empty_zone_padding([_token | rest_t], [value | rest_r], acc) do
-    strip_empty_zone_padding(rest_t, rest_r, [value | acc])
+  defp strip_empty_zone_padding([{name, _line, _count} | rest_t], [value | rest_r], acc) do
+    strip_empty_zone_padding(rest_t, rest_r, [{name, value} | acc])
   end
 
-  defp trim_trailing_whitespace_in_acc([last | rest]) when is_binary(last) do
+  defp trim_trailing_whitespace_in_acc([{name, last} | rest]) when is_binary(last) do
     case String.trim_trailing(last) do
-      ^last -> [last | rest]
+      ^last -> [{name, last} | rest]
       "" -> rest
-      trimmed -> [trimmed | rest]
+      trimmed -> [{name, trimmed} | rest]
     end
   end
 

@@ -106,4 +106,45 @@ defmodule Localize.Number.RangeTest do
       assert result == "~1,000"
     end
   end
+
+  describe "to_range_parts/3" do
+    test "tags start, shared, and end sources" do
+      assert {:ok,
+              [
+                %{type: :integer, value: "3", source: :start_range},
+                %{type: :literal, value: "–", source: :shared},
+                %{type: :integer, value: "5", source: :end_range}
+              ]} = Localize.Number.to_range_parts(3, 5, locale: :en)
+    end
+
+    test "equal endpoints use the approximately pattern with shared source" do
+      assert {:ok,
+              [
+                %{type: :approximately_sign, value: "~", source: :shared},
+                %{type: :integer, value: "5", source: :shared}
+              ]} = Localize.Number.to_range_parts(5, 5, locale: :en)
+    end
+
+    test "approximate wraps the full range" do
+      assert {:ok,
+              [
+                %{type: :approximately_sign, value: "~", source: :shared},
+                %{type: :integer, value: "3", source: :start_range},
+                %{type: :literal, value: "–", source: :shared},
+                %{type: :integer, value: "5", source: :end_range}
+              ]} = Localize.Number.to_range_parts(3, 5, locale: :en, approximate: true)
+    end
+
+    test "parts concatenate to the range string" do
+      {:ok, parts} = Localize.Number.to_range_parts(100, 200, locale: :en, currency: :USD)
+      {:ok, string} = Localize.Number.to_range_string(100, 200, locale: :en, currency: :USD)
+
+      assert Enum.map_join(parts, & &1.value) == string
+    end
+
+    test "formats that do not decompose return an error" do
+      assert {:error, %Localize.InvalidValueError{}} =
+               Localize.Number.to_range_parts(1, 2, locale: :en, format: :spellout)
+    end
+  end
 end

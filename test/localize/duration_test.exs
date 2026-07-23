@@ -347,4 +347,44 @@ defmodule Localize.DurationTest do
              ]
     end
   end
+
+  describe "to_string/2 per-unit options" do
+    test "display :always renders zero-valued units" do
+      assert {:ok, "2 hours and 0 minutes"} =
+               Localize.Duration.to_string(%Localize.Duration{hour: 2},
+                 locale: :en,
+                 display: [minute: :always]
+               )
+    end
+
+    test "display :always applies to an all-zero duration" do
+      assert {:ok, "0 hours"} =
+               Localize.Duration.to_string(%Localize.Duration{},
+                 locale: :en,
+                 display: [hour: :always]
+               )
+    end
+
+    test "per-unit styles override the format" do
+      assert {:ok, "2h and 30 minutes"} =
+               Localize.Duration.to_string(%Localize.Duration{hour: 2, minute: 30},
+                 locale: :en,
+                 styles: [hour: :narrow]
+               )
+    end
+
+    test "invalid per-unit values are errors" do
+      assert {:error, %Localize.InvalidValueError{}} =
+               Localize.Duration.to_string(%Localize.Duration{hour: 2},
+                 locale: :en,
+                 display: [minute: :sometimes]
+               )
+
+      assert {:error, %Localize.InvalidValueError{}} =
+               Localize.Duration.to_string(%Localize.Duration{hour: 2},
+                 locale: :en,
+                 styles: [hour: :digital]
+               )
+    end
+  end
 end

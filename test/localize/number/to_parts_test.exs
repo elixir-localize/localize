@@ -94,15 +94,12 @@ defmodule Localize.Number.ToPartsTest do
 
     test "unsupported formats return an error" do
       assert {:error, %Localize.InvalidValueError{}} =
-               Localize.Number.to_parts(1234, format: :currency_long, currency: :USD)
-
-      assert {:error, %Localize.InvalidValueError{}} =
                Localize.Number.to_parts(1234, format: :spellout_cardinal)
     end
 
     test "to_parts!/2 raises on error" do
       assert_raise Localize.InvalidValueError, fn ->
-        Localize.Number.to_parts!(1234, format: :currency_long, currency: :USD)
+        Localize.Number.to_parts!(1234, format: :spellout_cardinal)
       end
     end
   end
@@ -144,6 +141,58 @@ defmodule Localize.Number.ToPartsTest do
         {:ok, parts} = Localize.Number.to_parts(float, locale: locale)
         assert concat(parts) == string
       end
+    end
+  end
+
+  describe "currency_long parts" do
+    test "the currency name is a :currency part" do
+      assert {:ok,
+              [
+                %{type: :integer, value: "1"},
+                %{type: :group, value: ","},
+                %{type: :integer, value: "234"},
+                %{type: :decimal, value: "."},
+                %{type: :fraction, value: "50"},
+                %{type: :literal, value: " "},
+                %{type: :currency, value: "US dollars"}
+              ]} =
+               Localize.Number.to_parts(1234.5,
+                 locale: :en,
+                 format: :currency_long,
+                 currency: :USD
+               )
+    end
+
+    test "currency_long_with_symbol has both symbol and name parts" do
+      {:ok, parts} =
+        Localize.Number.to_parts(123,
+          locale: :en,
+          format: :currency_long_with_symbol,
+          currency: :USD
+        )
+
+      assert %{type: :currency, value: "$"} in parts
+      assert %{type: :currency, value: "US dollars"} in parts
+    end
+
+    test "parts concatenate to the formatted string" do
+      for options <- [
+            [locale: :en, format: :currency_long, currency: :USD],
+            [locale: :de, format: :currency_long, currency: :EUR],
+            [locale: :en, format: :currency_long_with_symbol, currency: :USD]
+          ] do
+        {:ok, parts} = Localize.Number.to_parts(1234.5, options)
+        {:ok, string} = Localize.Number.to_string(1234.5, options)
+
+        assert concat(parts) == string
+      end
+    end
+
+    test "plural selection follows the displayed value" do
+      {:ok, parts} =
+        Localize.Number.to_parts(1, locale: :en, format: :currency_long, currency: :USD)
+
+      assert %{type: :currency, value: "US dollars"} in parts
     end
   end
 end

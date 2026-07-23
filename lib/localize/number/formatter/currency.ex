@@ -82,6 +82,108 @@ defmodule Localize.Number.Formatter.Currency do
     end
   end
 
+  # # to_parts/3
+  #
+  # The parts sibling of `to_string/3`: the number decomposes through
+  # `Formatter.Decimal.to_parts/3` and the pluralized currency name
+  # becomes a `:currency` part, substituted into the same plural
+  # pattern. The parts concatenate to the `to_string/3` result.
+  @spec to_parts(number() | Decimal.t(), atom(), Options.t()) ::
+          {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
+  def to_parts(number, _style, _options) when is_binary(number) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: number,
+       expected: "a number (not a string)",
+       context: "Currency long formats only support number or Decimal arguments"
+     )}
+  end
+
+  def to_parts(number, :currency_long, options) do
+    locale = options.locale
+
+    with {:ok, number_system} <- System.system_name_from(options.number_system, locale),
+         {:ok, formats} <- Format.formats_for(locale, number_system),
+         {:ok, currency_long_formats} <- fetch_currency_long_formats(formats, :currency_long) do
+      parts_currency_long(number, currency_long_formats, options)
+    end
+  end
+
+  def to_parts(number, :currency_long_with_symbol, options) do
+    with {:ok, number_system} <- System.system_name_from(options.number_system, options.locale),
+         {:ok, formats} <- Format.formats_for(options.locale, number_system),
+         {:ok, currency_long_formats} <-
+           fetch_currency_long_formats(formats, :currency_long_with_symbol) do
+      parts_long_with_symbol(number, formats, currency_long_formats, options)
+    end
+  end
+
+  # Believed unreachable with current CLDR data — see the note in
+  # `to_string/3`. Kept as a defensive guard.
+  defp fetch_currency_long_formats(formats, style) do
+    case Map.get(formats, :currency_long) do
+      nil ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: style,
+           expected: "a locale with currency_long formats",
+           context: "Localize.Number.Formatter.Currency"
+         )}
+
+      currency_long_formats ->
+        {:ok, currency_long_formats}
+    end
+  end
+
+  defp parts_currency_long(number, formats, options) do
+    number_options =
+      options
+      |> Map.put(:format, :standard)
+      |> Map.put(:currency, nil)
+      |> maybe_set_fractional_digits(options.currency, options.fractional_digits)
+
+    with {:ok, standard_formats} <- Format.formats_for(options.locale, options.number_system) do
+      standard_format = Map.get(standard_formats, :standard) || "#,##0.###"
+
+      case Localize.Number.Formatter.Decimal.to_parts(number, standard_format, number_options) do
+        {:ok, number_parts} ->
+          display_number = display_value_for_plural(number, number_options)
+          name = currency_display_name(display_number, options)
+          plural_format = plural_format(display_number, formats, options)
+          {:ok, substitute_as_parts([number_parts, currency_part(name)], plural_format)}
+
+        error ->
+          error
+      end
+    end
+  end
+
+  defp parts_long_with_symbol(number, formats, currency_long_formats, options) do
+    currency_format = Map.get(formats, :currency) || "¤#,##0.00"
+
+    case Localize.Number.Formatter.Decimal.to_parts(number, currency_format, options) do
+      {:ok, currency_parts} ->
+        display_number = display_value_for_plural(number, options)
+        name = currency_display_name(display_number, options)
+        plural_format = plural_format(display_number, currency_long_formats, options)
+        {:ok, substitute_as_parts([currency_parts, currency_part(name)], plural_format)}
+
+      error ->
+        error
+    end
+  end
+
+  defp currency_part(""), do: []
+  defp currency_part(name), do: [%{type: :currency, value: name}]
+
+  defp substitute_as_parts(parts_lists, format) when is_list(format) do
+    Localize.Substitution.substitute_parts(parts_lists, format)
+  end
+
+  defp substitute_as_parts(_parts_lists, format) when is_binary(format) do
+    [%{type: :literal, value: format}]
+  end
+
   defp format_long_with_symbol(number, formats, currency_long_formats, options) do
     currency_format = Map.get(formats, :currency) || "¤#,##0.00"
 
