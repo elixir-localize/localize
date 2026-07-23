@@ -16,6 +16,21 @@ defmodule Localize.Number.RoundingPriorityTest do
                Localize.Number.to_string(1.23456, @bounds ++ [rounding_priority: :auto])
     end
 
+    test "the default ignores a binding fraction bound when significant digits are set" do
+      bounds = [max_fractional_digits: 1, maximum_significant_digits: 3]
+
+      assert {:ok, "4.32"} = Localize.Number.to_string(4.321, bounds)
+
+      assert {:ok, "4.32"} =
+               Localize.Number.to_string(4.321, bounds ++ [rounding_priority: :auto])
+
+      assert {:ok, "1.00"} =
+               Localize.Number.to_string(1,
+                 max_fractional_digits: 1,
+                 minimum_significant_digits: 3
+               )
+    end
+
     test ":more_precision picks the bound yielding more digits" do
       assert {:ok, "1.235"} =
                Localize.Number.to_string(1.23456, @bounds ++ [rounding_priority: :more_precision])
