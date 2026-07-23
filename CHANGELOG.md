@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+* `Localize.Unit.parse/2` and `parse_unit_name/2` (with bang variants) parse strings like "1kg", "2,5 kg" or a localized "2 Tage" into units, matching locale unit names, canonical identifiers and custom units, with `:only`/`:except` filters disambiguating names like "2w" (watt versus week) — the migration path from `Cldr.Unit.parse/2`.
+
 ## [1.0.0-rc.3] — July 23rd, 2026
 
 ### Added

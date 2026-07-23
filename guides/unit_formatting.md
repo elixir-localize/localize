@@ -58,6 +58,24 @@ iex> unit.value
 42
 ```
 
+### Parsing unit strings
+
+`Localize.Unit.parse/2` turns user input like "1kg" back into a unit. The number is parsed with the locale's number symbols and the name is matched case-insensitively against the locale's unit names (display names and the text of the long, short and narrow patterns), the canonical CLDR identifiers, and any custom units. Ambiguous names — "2w" matches watt and week via their narrow forms — resolve alphabetically unless `:only`/`:except` narrow the candidates by category or unit name. `parse_unit_name/2` resolves a bare name without a value:
+
+```elixir
+iex> Localize.Unit.parse("1kg")
+Localize.Unit.new(1, "kilogram")
+
+iex> Localize.Unit.parse("2w", only: :duration)
+Localize.Unit.new(2, "week")
+
+iex> Localize.Unit.parse("2,5 kg", locale: :de)
+Localize.Unit.new(2.5, "kilogram")
+
+iex> Localize.Unit.parse_unit_name("kg")
+{:ok, "kilogram"}
+```
+
 ## Unit naming
 
 Unit identifiers follow CLDR syntax. Names are lowercase, hyphen-separated strings.
