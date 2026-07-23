@@ -589,7 +589,7 @@ Units are organized into dimensional categories. Common categories and represent
 
 ## Custom units
 
-`Localize.Unit.define_unit/2` registers user-defined units at runtime via the `Localize.Unit.CustomRegistry`. Custom units participate in conversion, formatting, and arithmetic alongside built-in CLDR units.
+`Localize.Unit.define_unit/2` registers user-defined units at runtime via the `Localize.Unit.CustomRegistry`. Custom units participate in conversion, formatting, arithmetic, and parsing alongside built-in CLDR units. Hyphenated names ("double-cubit") are supported — a registered name matches wholesale before the unit grammar interprets hyphens as compound separators, just as CLDR's own hyphenated identifiers ("g-force", "kilowatt-hour") do.
 
 ### Linear custom units
 
