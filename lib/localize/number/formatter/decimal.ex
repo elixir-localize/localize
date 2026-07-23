@@ -149,9 +149,7 @@ defmodule Localize.Number.Formatter.Decimal do
   end
 
   # ECMA-402 `roundingPriority`. Meaningful only when both
-  # significant-digit and fraction-digit bounds are present; the
-  # default (`nil` / `:auto`) keeps the significant digits winning
-  # as `apply_significant_digit_options/2` implements. For
+  # significant-digit and fraction-digit bounds are present. For
   # `:more_precision` / `:less_precision` the spec compares the
   # rounding position each bound implies for this value —
   # significant digits round at `magnitude - (max_sd - 1)`,
@@ -175,7 +173,26 @@ defmodule Localize.Number.Formatter.Decimal do
     end
   end
 
-  defp resolve_rounding_priority(options, _number), do: options
+  # The default (`nil` / `:auto`): per ECMA-402
+  # SetNumberFormatDigitOptions, a significant-digit bound causes
+  # the fraction-digit bounds to be ignored entirely — significant
+  # digits win outright, not merely round first.
+  defp resolve_rounding_priority(options, _number) do
+    significant? =
+      not is_nil(options.minimum_significant_digits) or
+        not is_nil(options.maximum_significant_digits)
+
+    if significant? do
+      %{
+        options
+        | fractional_digits: nil,
+          min_fractional_digits: nil,
+          max_fractional_digits: nil
+      }
+    else
+      options
+    end
+  end
 
   defp apply_rounding_priority(options, number, priority, max_fd) do
     max_sd = options.maximum_significant_digits || 21
