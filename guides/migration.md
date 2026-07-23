@@ -352,6 +352,36 @@ iex> Localize.Unit.new!(1_500_000, "byte")
 "1.5MB"
 ```
 
+### Custom units (`:additional_units`)
+
+ex_cldr_units defined custom units at compile time — `:additional_units` in the backend configuration plus a `Cldr.Unit.Additional` module supplying `unit_localization/4` callbacks — and changing a unit meant recompiling the backend. Localize replaces this with a runtime registry: `Localize.Unit.define_unit/2` registers a unit with its conversion (`:base_unit`, `:factor`, optional `:offset`), its `:category`, and its localizations in one definition, and `Localize.Unit.load_custom_units/1` loads a list of definitions from an `.exs` file at application start:
+
+```elixir
+# ex_cldr: config :my_app, MyApp.Cldr, providers: [...], additional_units: [...]
+# plus a Cldr.Unit.Additional module with unit_localization/4 callbacks
+
+# Localize — at runtime, typically in Application.start/2
+iex> Localize.Unit.define_unit("smoot", %{
+...>   base_unit: "meter",
+...>   factor: 1.7018,
+...>   category: "length",
+...>   display: %{en: %{long: %{one: "{0} smoot", other: "{0} smoots"}}}
+...> })
+:ok
+
+iex> Localize.Unit.new!(100, "smoot") |> Localize.Unit.to_string!()
+"100 smoots"
+
+iex> Localize.Unit.new!(100, "smoot") |> Localize.Unit.convert!("meter") |> Localize.Unit.to_string!()
+"170.18 meters"
+```
+
+The `:display` map plays the role of the `unit_localization/4` callbacks (locale → style → plural-category patterns), and unlisted locales fall back to the unit identifier. Because registration is runtime, custom units can also come from configuration or a database rather than being baked into a backend module.
+
+### Parsing unit strings (`Cldr.Unit.parse/2`)
+
+`Cldr.Unit.parse/2` and `Cldr.Unit.parse_unit_name/2` — parsing "1kg" or a localized "1 tages" back into a unit, with `:only`/`:except` to disambiguate strings like "2w" (weeks versus watts) — do not yet have a direct Localize equivalent. What exists today covers the two halves separately: `Localize.Unit.new/1` parses any canonical CLDR unit identifier including compounds ("kilometer-per-hour"), and `Localize.Number.Parser.scan/2` performs locale-aware number extraction from mixed text (`scan("1kg")` returns `[1, "kg"]`), leaving the unit-name resolution to the caller. A `Localize.Unit.parse/2` with localized unit-name resolution and `:only`/`:except` disambiguation is on the roadmap; until it lands, applications parsing user input can scan the number and match the remaining token against the inventory from `Localize.Unit.known_units_by_category/0` or their own accepted-units list.
+
 ### Lists
 
 ```elixir
