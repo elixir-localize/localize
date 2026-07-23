@@ -232,29 +232,41 @@ defmodule Localize.DateTime do
     end
   end
 
+  # Fractional seconds (S) never participate in skeleton matching
+  # per TR35: the S field is stripped before resolution and appended
+  # to the seconds field of the resolved pattern afterwards.
   defp format_with_skeleton(datetime, options, locale_id, skeleton) do
+    {skeleton, fraction_count} =
+      Localize.DateTime.Format.Match.split_fractional_seconds(skeleton)
+
     with {:ok, available} <- Localize.DateTime.Format.available_formats(locale_id) do
       case Map.get(available, skeleton) do
         nil ->
           # Try best-match algorithm for skeletons not found exactly
-          format_with_best_match(datetime, options, locale_id, skeleton, available)
-
-        %{} = variant_map ->
-          format_resolved_pattern(
-            Localize.DateTime.Format.resolve_variant(variant_map, options),
+          format_with_best_match(
             datetime,
             options,
             locale_id,
-            skeleton
+            skeleton,
+            available,
+            fraction_count
           )
 
+        %{} = variant_map ->
+          variant_map
+          |> Localize.DateTime.Format.resolve_variant(options)
+          |> Localize.DateTime.Format.Match.append_fractional_seconds(fraction_count, locale_id)
+          |> format_resolved_pattern(datetime, options, locale_id, skeleton)
+
         pattern when is_binary(pattern) ->
-          Localize.DateTime.Formatter.format(datetime, pattern, locale_id, Map.new(options))
+          pattern
+          |> Localize.DateTime.Format.Match.append_fractional_seconds(fraction_count, locale_id)
+          |> then(&Localize.DateTime.Formatter.format(datetime, &1, locale_id, Map.new(options)))
       end
     end
   end
 
-  defp format_with_best_match(datetime, options, locale_id, skeleton, available) do
+  defp format_with_best_match(datetime, options, locale_id, skeleton, available, fraction_count) do
     case Localize.DateTime.Format.Match.best_match(skeleton, locale_id) do
       {:ok, matched_skeleton} when is_atom(matched_skeleton) ->
         format_matched_skeleton(
@@ -262,7 +274,8 @@ defmodule Localize.DateTime do
           datetime,
           options,
           locale_id,
-          skeleton
+          skeleton,
+          fraction_count
         )
 
       {:ok, {date_skeleton, time_skeleton}} ->
@@ -273,10 +286,9 @@ defmodule Localize.DateTime do
           )
 
         time_pattern =
-          Localize.DateTime.Format.resolve_variant(
-            Map.get(available, time_skeleton, ""),
-            options
-          )
+          Map.get(available, time_skeleton, "")
+          |> Localize.DateTime.Format.resolve_variant(options)
+          |> Localize.DateTime.Format.Match.append_fractional_seconds(fraction_count, locale_id)
 
         format_combined_patterns(
           date_pattern,
@@ -296,7 +308,7 @@ defmodule Localize.DateTime do
     end
   end
 
-  defp format_matched_skeleton(nil, _datetime, _options, locale_id, skeleton) do
+  defp format_matched_skeleton(nil, _datetime, _options, locale_id, skeleton, _fraction_count) do
     {:error,
      Localize.DateTimeUnresolvedFormatError.exception(
        format: skeleton,
@@ -304,14 +316,18 @@ defmodule Localize.DateTime do
      )}
   end
 
-  defp format_matched_skeleton(matched_pattern, datetime, options, locale_id, skeleton) do
-    format_resolved_pattern(
-      Localize.DateTime.Format.resolve_variant(matched_pattern, options),
-      datetime,
-      options,
-      locale_id,
-      skeleton
-    )
+  defp format_matched_skeleton(
+         matched_pattern,
+         datetime,
+         options,
+         locale_id,
+         skeleton,
+         fraction_count
+       ) do
+    matched_pattern
+    |> Localize.DateTime.Format.resolve_variant(options)
+    |> Localize.DateTime.Format.Match.append_fractional_seconds(fraction_count, locale_id)
+    |> format_resolved_pattern(datetime, options, locale_id, skeleton)
   end
 
   defp format_combined_patterns(

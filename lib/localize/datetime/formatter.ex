@@ -886,8 +886,24 @@ defmodule Localize.DateTime.Formatter do
 
   # ── Decimal separator between seconds and fractional ───────
 
+  # TR35: the separator between seconds and fractional seconds is
+  # the locale's decimal separator, from the default number system.
   @doc false
-  def decimal_separator(_datetime, _count, _locale_id, _options), do: "."
+  def decimal_separator(_datetime, _count, locale_id, _options) do
+    with {:ok, %{default: default_system}} <-
+           Localize.Number.System.number_systems_for(locale_id),
+         {:ok, %{decimal: decimal}} <-
+           Localize.Number.Symbol.number_symbols_for(locale_id, default_system),
+         separator when is_binary(separator) <- standard_separator(decimal) do
+      separator
+    else
+      _no_symbol_data -> "."
+    end
+  end
+
+  defp standard_separator(%{standard: separator}), do: separator
+  defp standard_separator(separator) when is_binary(separator), do: separator
+  defp standard_separator(_other), do: nil
 
   # ── Millisecond (A) ────────────────────────────────────────
 

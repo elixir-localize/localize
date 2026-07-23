@@ -153,6 +153,72 @@ defmodule Localize.DateTime.Format.Match do
     {:ok, adjusted}
   end
 
+  # # split_fractional_seconds/1
+  #
+  # Splits the fractional-second field (S) out of a requested
+  # skeleton, per TR35 skeleton matching: fractional seconds do not
+  # participate in matching (no CLDR format contains them); they are
+  # appended to the matched pattern's seconds field afterwards.
+  #
+  # Returns `{skeleton_without_s_field, fraction_digit_count}`. The
+  # count is 0 — and the skeleton unchanged — when the skeleton has
+  # no S field or no s field to attach the fraction to.
+  @spec split_fractional_seconds(atom() | String.t()) :: {atom(), non_neg_integer()}
+  def split_fractional_seconds(skeleton) do
+    skeleton_string = Kernel.to_string(skeleton)
+
+    with [s_run] <- Regex.run(~r/S+/, skeleton_string),
+         true <- String.contains?(skeleton_string, "s") do
+      stripped = String.replace(skeleton_string, ~r/S+/, "")
+      {String.to_atom(stripped), String.length(s_run)}
+    else
+      _no_fraction_or_no_seconds -> {to_atom(skeleton), 0}
+    end
+  end
+
+  defp to_atom(skeleton) when is_atom(skeleton), do: skeleton
+  defp to_atom(skeleton) when is_binary(skeleton), do: String.to_atom(skeleton)
+
+  # # append_fractional_seconds/3
+  #
+  # Appends `count` fractional-second symbols (S) directly after the
+  # last unquoted seconds field (s) of a format pattern. The format
+  # compiler inserts the decimal-separator token between adjacent
+  # `s` and `S` fields, so no literal separator is added here.
+  #
+  # A count of 0, a pattern without an unquoted seconds field, or a
+  # non-binary pattern passes through unchanged.
+  @spec append_fractional_seconds(term(), non_neg_integer(), atom()) :: term()
+  def append_fractional_seconds(pattern, 0, _locale_id), do: pattern
+
+  def append_fractional_seconds(pattern, count, _locale_id) when is_binary(pattern) do
+    case last_unquoted_seconds_index(pattern) do
+      nil ->
+        pattern
+
+      index ->
+        {prefix, suffix} = String.split_at(pattern, index + 1)
+        prefix <> String.duplicate("S", count) <> suffix
+    end
+  end
+
+  def append_fractional_seconds(pattern, _count, _locale_id), do: pattern
+
+  # Index (in graphemes) of the last "s" outside single-quoted
+  # literal text. A doubled apostrophe toggles the quote state twice,
+  # so it does not affect the outcome.
+  defp last_unquoted_seconds_index(pattern) do
+    pattern
+    |> String.graphemes()
+    |> Enum.with_index()
+    |> Enum.reduce({false, nil}, fn
+      {"'", _index}, {in_quote, last} -> {not in_quote, last}
+      {"s", index}, {false, _last} -> {false, index}
+      {_grapheme, _index}, state -> state
+    end)
+    |> elem(1)
+  end
+
   # ── Token helpers ──────────────────────────────────────────
 
   defp tokenize_skeleton(skeleton) when is_binary(skeleton) do
