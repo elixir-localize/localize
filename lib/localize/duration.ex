@@ -325,6 +325,142 @@ defmodule Localize.Duration do
     end
   end
 
+  @doc """
+  Formats a duration into typed parts, mirroring ECMA-402's `formatToParts` for `Intl.DurationFormat`.
+
+  The parts concatenate to exactly the string `to_string/2` produces with the same options. Each duration field contributes its unit parts (from `Localize.Unit.to_parts/2`) with the numeric segments carrying a `:unit` key naming the field; the list separators between fields are `:literal` parts.
+
+  ### Arguments
+
+  * `duration` is a `t:t/0` struct.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `to_string/2` for the supported options.
+
+  ### Returns
+
+  * `{:ok, parts}` where `parts` is a list of `%{type: atom(), value: String.t()}` maps; numeric parts also carry a `:unit` key.
+
+  * `{:error, exception}` if formatting fails.
+
+  ### Examples
+
+      iex> duration = %Localize.Duration{hour: 2, minute: 30}
+      iex> Localize.Duration.to_parts(duration, locale: :en)
+      {:ok,
+       [
+         %{type: :integer, value: "2", unit: :hour},
+         %{type: :literal, value: " "},
+         %{type: :unit, value: "hours"},
+         %{type: :literal, value: " and "},
+         %{type: :integer, value: "30", unit: :minute},
+         %{type: :literal, value: " "},
+         %{type: :unit, value: "minutes"}
+       ]}
+
+  """
+  @spec to_parts(t(), Keyword.t()) ::
+          {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
+  def to_parts(%__MODULE__{} = duration, options \\ []) do
+    except = Keyword.get(options, :except, [:microsecond])
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    format = Keyword.get(options, :format, :long)
+    display = Keyword.get(options, :display, [])
+    styles = Keyword.get(options, :styles, [])
+
+    with :ok <- validate_per_unit(display, :display, @display_values),
+         :ok <- validate_per_unit(styles, :styles, @style_values) do
+      duration
+      |> duration_units(display, except)
+      |> units_to_parts(locale, format, styles)
+    end
+  end
+
+  @doc """
+  Same as `to_parts/2` but raises on error.
+
+  ### Arguments
+
+  * `duration` is a `t:t/0` struct.
+
+  * `options` is a keyword list of options. See `to_parts/2`.
+
+  ### Returns
+
+  * A list of `%{type: atom(), value: String.t()}` maps.
+
+  ### Raises
+
+  * Raises an exception if formatting fails.
+
+  ### Examples
+
+      iex> Localize.Duration.to_parts!(%Localize.Duration{hour: 2}, locale: :en) |> length()
+      3
+
+  """
+  @spec to_parts!(t(), Keyword.t()) :: [%{type: atom(), value: String.t()}]
+  def to_parts!(%__MODULE__{} = duration, options \\ []) do
+    case to_parts(duration, options) do
+      {:ok, parts} -> parts
+      {:error, exception} -> raise exception
+    end
+  end
+
+  # All parts are zero — the "0 seconds" fallback, as parts.
+  defp units_to_parts([], locale, format, styles) do
+    unit = Localize.Unit.new!(0, "second")
+
+    with {:ok, parts} <-
+           Localize.Unit.to_parts(unit,
+             locale: locale,
+             format: unit_format(:second, styles, format)
+           ) do
+      {:ok, tag_numeric_parts(parts, :second)}
+    end
+  end
+
+  # `intersperse/2` flattens, interleaving the field part maps with
+  # separator strings — each separator becomes a `:literal` part.
+  defp units_to_parts(units, locale, format, styles) do
+    with {:ok, parts_lists} <- parts_each(units, locale, format, styles),
+         {:ok, interspersed} <-
+           Localize.List.intersperse(parts_lists, locale: locale, list_style: :standard) do
+      parts =
+        Enum.map(interspersed, fn
+          separator when is_binary(separator) -> %{type: :literal, value: separator}
+          part when is_map(part) -> part
+        end)
+
+      {:ok, parts}
+    end
+  end
+
+  defp parts_each(units, locale, format, styles) do
+    Enum.reduce_while(units, {:ok, []}, fn {key, unit}, {:ok, acc} ->
+      case Localize.Unit.to_parts(unit, locale: locale, format: unit_format(key, styles, format)) do
+        {:ok, parts} -> {:cont, {:ok, [tag_numeric_parts(parts, key) | acc]}}
+        {:error, _} = error -> {:halt, error}
+      end
+    end)
+    |> case do
+      {:ok, parts_lists} -> {:ok, Enum.reverse(parts_lists)}
+      {:error, _} = error -> error
+    end
+  end
+
+  # Numeric segments carry the duration field they belong to,
+  # matching the JS `DurationFormat` part shape.
+  defp tag_numeric_parts(parts, key) do
+    Enum.map(parts, fn
+      %{type: type} = part when type in [:literal, :unit] -> part
+      part -> Map.put(part, :unit, key)
+    end)
+  end
+
   # A unit renders when its per-unit display is :always, and is
   # otherwise omitted when zero or excluded.
   defp include_unit?(key, value, display, except) do

@@ -80,15 +80,101 @@ defmodule Localize.Interval do
   end
 
   def to_string(from, to, options) do
+    format_closed_interval(from, to, options, :string)
+  end
+
+  @doc """
+  Formats a date, time, or datetime interval into typed parts, mirroring ECMA-402's `formatRangeToParts`.
+
+  The parts concatenate to exactly the string `to_string/3` produces with the same options. Every part carries a `:source` key: `:start_range` for parts of the interval start, `:end_range` for parts of the interval end, and `:shared` for the separators between them. When the endpoints have no practical difference the single formatted value carries source `:shared` throughout.
+
+  Unlike `to_string/3`, open intervals (a `nil` endpoint) are not supported — both endpoints are required, matching the JS API.
+
+  ### Arguments
+
+  * `from` is a `Date`, `Time`, `DateTime`, `NaiveDateTime`, or compatible map for the interval start.
+
+  * `to` is a value of the same kind for the interval end.
+
+  * `options` is a keyword list of options. See `to_string/3`.
+
+  ### Returns
+
+  * `{:ok, parts}` where `parts` is a list of `%{type: atom(), value: String.t(), source: atom()}` maps.
+
+  * `{:error, exception}` on failure or when an endpoint is `nil`.
+
+  ### Examples
+
+      iex> Localize.Interval.to_parts(~D[2022-04-22], ~D[2022-04-25], locale: :en)
+      {:ok,
+       [
+         %{type: :month, value: "Apr", source: :start_range},
+         %{type: :literal, value: " ", source: :start_range},
+         %{type: :day, value: "22", source: :start_range},
+         %{type: :literal, value: " – ", source: :shared},
+         %{type: :day, value: "25", source: :end_range},
+         %{type: :literal, value: ", ", source: :end_range},
+         %{type: :year, value: "2022", source: :end_range}
+       ]}
+
+  """
+  @spec to_parts(map(), map(), Keyword.t()) ::
+          {:ok, [%{type: atom(), value: String.t(), source: atom()}]} | {:error, Exception.t()}
+  def to_parts(from, to, options \\ [])
+
+  def to_parts(from, to, _options) when is_nil(from) or is_nil(to) do
+    {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}
+  end
+
+  def to_parts(from, to, options) do
+    format_closed_interval(from, to, options, :parts)
+  end
+
+  @doc """
+  Same as `to_parts/3` but raises on error.
+
+  ### Arguments
+
+  * `from` is the interval start.
+
+  * `to` is the interval end.
+
+  * `options` is a keyword list of options. See `to_parts/3`.
+
+  ### Returns
+
+  * A list of `%{type: atom(), value: String.t(), source: atom()}` maps.
+
+  ### Raises
+
+  * Raises an exception if the interval cannot be decomposed into parts.
+
+  ### Examples
+
+      iex> Localize.Interval.to_parts!(~D[2022-04-22], ~D[2022-04-25], locale: :en) |> length()
+      7
+
+  """
+  @spec to_parts!(map(), map(), Keyword.t()) ::
+          [%{type: atom(), value: String.t(), source: atom()}]
+  def to_parts!(from, to, options \\ []) do
+    case to_parts(from, to, options) do
+      {:ok, parts} -> parts
+      {:error, exception} -> raise exception
+    end
+  end
+
+  defp format_closed_interval(from, to, options, output) do
     cond do
       datetime_value?(from) and datetime_value?(to) ->
-        format_datetime_interval(from, to, options)
+        format_datetime_interval(from, to, options, output)
 
       time_value?(from) and time_value?(to) ->
-        format_time_interval(from, to, options)
+        format_time_interval(from, to, options, output)
 
       date_value?(from) and date_value?(to) ->
-        format_date_interval(from, to, options)
+        format_date_interval(from, to, options, output)
 
       true ->
         {:error,
@@ -125,7 +211,7 @@ defmodule Localize.Interval do
 
   # ── Date-only interval (the original path) ──────────────────
 
-  defp format_date_interval(from, to, options) do
+  defp format_date_interval(from, to, options, output) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     # `:date_format` is the explicit date-axis selector and matches
@@ -148,10 +234,10 @@ defmodule Localize.Interval do
           # for `:full`). Format each endpoint via
           # `Localize.Date.to_string/2` with the requested style and
           # join via the locale's `interval_format_fallback`.
-          format_date_interval_fallback(from, to, fallback_format, locale, options)
+          format_date_interval_fallback(from, to, fallback_format, locale, options, output)
 
         {:ok, format_key} ->
-          format_date_interval_styled(from, to, format_key, locale, options)
+          format_date_interval_styled(from, to, format_key, locale, options, output)
 
         {:error, _} = error ->
           error
@@ -159,30 +245,24 @@ defmodule Localize.Interval do
     end
   end
 
-  defp format_date_interval_styled(from, to, format_key, locale, options) do
+  defp format_date_interval_styled(from, to, format_key, locale, options, output) do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
          {:ok, greatest_diff} <- greatest_difference(from, to),
          {:ok, interval_pattern} <- get_interval_pattern(formats, format_key, greatest_diff),
          {:ok, [left, right]} <- split_interval(interval_pattern) do
       options_map = options |> Map.new() |> Map.put_new(:locale, locale)
-
-      with {:ok, left_str} <-
-             Localize.DateTime.Formatter.format(from, left, locale_id, options_map),
-           {:ok, right_str} <-
-             Localize.DateTime.Formatter.format(to, right, locale_id, options_map) do
-        {:ok, left_str <> right_str}
-      end
+      format_split(output, from, to, left, right, locale_id, options_map)
     else
       {:error, %Localize.NoPracticalDifferenceError{}} ->
-        Localize.Date.to_string(from, options)
+        format_single(output, Localize.Date, from, options)
 
       {:error, _} = error ->
         error
     end
   end
 
-  defp format_date_interval_fallback(from, to, format, locale, options) do
+  defp format_date_interval_fallback(from, to, format, locale, options, output) do
     sub_options =
       options
       |> Keyword.take([:locale, :prefer])
@@ -190,21 +270,19 @@ defmodule Localize.Interval do
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
-         {:ok, fallback} <- get_fallback_pattern(formats),
-         {:ok, left_str} <- Localize.Date.to_string(from, sub_options),
-         {:ok, right_str} <- Localize.Date.to_string(to, sub_options) do
-      result =
-        [left_str, right_str]
-        |> Localize.Substitution.substitute(fallback)
-        |> IO.iodata_to_binary()
-
-      {:ok, result}
+         {:ok, fallback} <- get_fallback_pattern(formats) do
+      format_fallback(
+        output,
+        {Localize.Date, from, sub_options},
+        {Localize.Date, to, sub_options},
+        fallback
+      )
     end
   end
 
   # ── Time-only interval ──────────────────────────────────────
 
-  defp format_time_interval(from, to, options) do
+  defp format_time_interval(from, to, options, output) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     # `:time_format` is the explicit time-axis selector and matches
@@ -217,23 +295,23 @@ defmodule Localize.Interval do
 
     case resolve_time_style(format, locale) do
       {:ok, {:literal, pattern}} ->
-        format_time_interval_literal(from, to, pattern, locale, options)
+        format_time_interval_literal(from, to, pattern, locale, options, output)
 
       {:ok, {:fallback_style, style}} ->
         # CLDR ships no interval-format data for `:hms` / `:hmsv`
         # skeletons. Format each endpoint via `Localize.Time.to_string/2`
         # with the requested style and join with the interval fallback.
-        format_time_interval_literal(from, to, style, locale, options)
+        format_time_interval_literal(from, to, style, locale, options, output)
 
       {:ok, format_key} ->
-        format_time_interval_styled(from, to, format_key, locale, options)
+        format_time_interval_styled(from, to, format_key, locale, options, output)
 
       {:error, _} = error ->
         error
     end
   end
 
-  defp format_time_interval_styled(from, to, format_key, locale, options) do
+  defp format_time_interval_styled(from, to, format_key, locale, options, output) do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
          {:ok, greatest_diff} <- greatest_difference(from, to),
@@ -246,15 +324,10 @@ defmodule Localize.Interval do
          {:ok, [left, right]} <- split_interval(interval_pattern) do
       options_map = options |> Map.new() |> Map.put_new(:locale, locale)
 
-      with {:ok, left_str} <-
-             Localize.DateTime.Formatter.format(from, left, locale_id, options_map),
-           {:ok, right_str} <-
-             Localize.DateTime.Formatter.format(to, right, locale_id, options_map) do
-        {:ok, left_str <> right_str}
-      end
+      format_split(output, from, to, left, right, locale_id, options_map)
     else
       {:error, %Localize.NoPracticalDifferenceError{}} ->
-        Localize.Time.to_string(from, single_time_options(options))
+        format_single(output, Localize.Time, from, single_time_options(options))
 
       {:error, _} = error ->
         error
@@ -288,18 +361,18 @@ defmodule Localize.Interval do
   # datetime intervals when the endpoints span more than one day.
   # Mirrors ex_cldr's `Cldr.Time.Interval.to_string/3` behaviour for
   # binary `:format`.
-  defp format_time_interval_literal(from, to, time_format, locale, options) do
+  defp format_time_interval_literal(from, to, time_format, locale, options, output) do
+    sub_options = [{:format, time_format} | options]
+
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
-         {:ok, fallback} <- get_fallback_pattern(formats),
-         {:ok, left_str} <- Localize.Time.to_string(from, [{:format, time_format} | options]),
-         {:ok, right_str} <- Localize.Time.to_string(to, [{:format, time_format} | options]) do
-      result =
-        [left_str, right_str]
-        |> Localize.Substitution.substitute(fallback)
-        |> IO.iodata_to_binary()
-
-      {:ok, result}
+         {:ok, fallback} <- get_fallback_pattern(formats) do
+      format_fallback(
+        output,
+        {Localize.Time, from, sub_options},
+        {Localize.Time, to, sub_options},
+        fallback
+      )
     end
   end
 
@@ -316,49 +389,39 @@ defmodule Localize.Interval do
   #   as full datetimes; combine with the same fallback pattern.
   #   Produces `"Apr 15, 2026, 12:49 AM – Apr 16, 2026, 1:49 AM"`.
 
-  defp format_datetime_interval(from, to, options) do
+  defp format_datetime_interval(from, to, options, output) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
          {:ok, fallback} <- get_fallback_pattern(formats),
          {:ok, greatest_diff} <- greatest_difference(from, to) do
-      datetime_options = datetime_sub_options(options)
-      time_options = time_sub_options(options)
+      datetime_options = datetime_sub_options(options) |> Map.to_list()
+      time_options = time_sub_options(options) |> Map.to_list()
 
-      with {:ok, left_str, right_str} <-
-             format_datetime_parts(from, to, greatest_diff, datetime_options, time_options) do
-        result =
-          [left_str, right_str]
-          |> Localize.Substitution.substitute(fallback)
-          |> IO.iodata_to_binary()
+      left_spec = {Localize.DateTime, from, datetime_options}
 
-        {:ok, result}
-      end
+      # Same-day intervals render the end as a time only; different-day
+      # intervals render both endpoints as full datetimes.
+      right_spec =
+        if greatest_diff in [:H, :m] do
+          {Localize.Time, to, time_options}
+        else
+          {Localize.DateTime, to, datetime_options}
+        end
+
+      format_fallback(output, left_spec, right_spec, fallback)
     else
       {:error, %Localize.NoPracticalDifferenceError{}} ->
-        Localize.DateTime.to_string(from, datetime_sub_options(options) |> Map.to_list())
+        format_single(
+          output,
+          Localize.DateTime,
+          from,
+          datetime_sub_options(options) |> Map.to_list()
+        )
 
       {:error, _} = error ->
         error
-    end
-  end
-
-  # Same-day datetime interval: from is a full datetime, to is just time.
-  defp format_datetime_parts(from, to, diff, datetime_options, time_options)
-       when diff in [:H, :m] do
-    with {:ok, left} <- Localize.DateTime.to_string(from, Map.to_list(datetime_options)),
-         {:ok, right} <- Localize.Time.to_string(to, Map.to_list(time_options)) do
-      {:ok, left, right}
-    end
-  end
-
-  # Different-day datetime interval: both sides are full datetimes.
-  defp format_datetime_parts(from, to, diff, datetime_options, _time_options)
-       when diff in [:y, :M, :d] do
-    with {:ok, left} <- Localize.DateTime.to_string(from, Map.to_list(datetime_options)),
-         {:ok, right} <- Localize.DateTime.to_string(to, Map.to_list(datetime_options)) do
-      {:ok, left, right}
     end
   end
 
@@ -488,6 +551,105 @@ defmodule Localize.Interval do
 
   defp trim_open_interval(string, :open_start), do: String.trim_leading(string)
   defp trim_open_interval(string, :open_end), do: String.trim_trailing(string)
+
+  # ── Output-mode terminals (string | parts) ──────────────────
+
+  # A split interval pattern: the left half formats `from`, the right
+  # half formats `to`, concatenated directly.
+  defp format_split(:string, from, to, left, right, locale_id, options_map) do
+    with {:ok, left_str} <-
+           Localize.DateTime.Formatter.format(from, left, locale_id, options_map),
+         {:ok, right_str} <-
+           Localize.DateTime.Formatter.format(to, right, locale_id, options_map) do
+      {:ok, left_str <> right_str}
+    end
+  end
+
+  defp format_split(:parts, from, to, left, right, locale_id, options_map) do
+    with {:ok, left_parts} <-
+           Localize.DateTime.Formatter.format_to_parts(from, left, locale_id, options_map),
+         {:ok, right_parts} <-
+           Localize.DateTime.Formatter.format_to_parts(to, right, locale_id, options_map) do
+      {:ok, join_split_parts(left_parts, right_parts)}
+    end
+  end
+
+  # The split pattern's separator (" – ") sits at the boundary of the
+  # two halves as literal text; retag those bridging literals as
+  # `:shared` per ECMA-402.
+  defp join_split_parts(left_parts, right_parts) do
+    left = tag_source(left_parts, :start_range)
+    right = tag_source(right_parts, :end_range)
+
+    {left_body, left_bridge} = split_trailing_literals(left)
+    {right_bridge, right_body} = split_leading_literals(right)
+
+    bridge = Enum.map(left_bridge ++ right_bridge, &Map.put(&1, :source, :shared))
+    left_body ++ bridge ++ right_body
+  end
+
+  defp split_trailing_literals(parts) do
+    {reversed_bridge, reversed_body} =
+      parts
+      |> Enum.reverse()
+      |> Enum.split_while(&(&1.type == :literal))
+
+    {Enum.reverse(reversed_body), Enum.reverse(reversed_bridge)}
+  end
+
+  defp split_leading_literals(parts) do
+    Enum.split_while(parts, &(&1.type == :literal))
+  end
+
+  # Each endpoint formatted by its own {module, value, options} spec,
+  # substituted into the locale's interval fallback pattern.
+  defp format_fallback(
+         :string,
+         {left_module, from, from_options},
+         {right_module, to, to_options},
+         fallback
+       ) do
+    with {:ok, left_str} <- left_module.to_string(from, from_options),
+         {:ok, right_str} <- right_module.to_string(to, to_options) do
+      result =
+        [left_str, right_str]
+        |> Localize.Substitution.substitute(fallback)
+        |> IO.iodata_to_binary()
+
+      {:ok, result}
+    end
+  end
+
+  defp format_fallback(
+         :parts,
+         {left_module, from, from_options},
+         {right_module, to, to_options},
+         fallback
+       ) do
+    with {:ok, left_parts} <- left_module.to_parts(from, from_options),
+         {:ok, right_parts} <- right_module.to_parts(to, to_options) do
+      parts =
+        [tag_source(left_parts, :start_range), tag_source(right_parts, :end_range)]
+        |> Localize.Substitution.substitute_parts(fallback)
+        |> Enum.map(&Map.put_new(&1, :source, :shared))
+
+      {:ok, parts}
+    end
+  end
+
+  # The equal-endpoints fallback: a single formatted value, tagged
+  # `:shared` throughout in parts mode.
+  defp format_single(:string, module, value, options), do: module.to_string(value, options)
+
+  defp format_single(:parts, module, value, options) do
+    with {:ok, parts} <- module.to_parts(value, options) do
+      {:ok, tag_source(parts, :shared)}
+    end
+  end
+
+  defp tag_source(parts, source) do
+    Enum.map(parts, &Map.put(&1, :source, source))
+  end
 
   defp get_fallback_pattern(formats) do
     case Map.get(formats, :interval_format_fallback) do

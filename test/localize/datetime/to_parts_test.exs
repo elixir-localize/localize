@@ -97,6 +97,32 @@ defmodule Localize.DateTime.ToPartsTest do
       assert Enum.map_join(parts, & &1.value) == string
     end
 
+    test "the :number_system option renders all numeric fields" do
+      assert {:ok, "Mar ๑๕, ๒๐๒๕"} =
+               Localize.Date.to_string(~D[2025-03-15], locale: :en, number_system: :thai)
+
+      {:ok, parts} = Localize.Date.to_parts(~D[2025-03-15], locale: :en, number_system: :thai)
+      assert %{type: :day, value: "๑๕"} in parts
+
+      assert {:ok, string} =
+               Localize.DateTime.to_string(~N[2025-03-15 14:30:00],
+                 locale: :en,
+                 number_system: :thai
+               )
+
+      assert String.contains?(string, "๑๕")
+    end
+
+    test "an unknown :number_system is an error" do
+      assert {:error, %Localize.UnknownNumberSystemError{}} =
+               Localize.Date.to_string(~D[2025-03-15], locale: :en, number_system: :bogus)
+    end
+
+    test "a -u-nu- locale extension still applies without the option" do
+      {:ok, string} = Localize.Date.to_string(~D[2025-03-15], locale: "en-u-nu-deva")
+      assert String.contains?(string, "१५")
+    end
+
     test "fractional-second skeletons tag the fraction" do
       {:ok, parts} =
         Localize.Time.to_parts(~T[09:30:12.345], locale: :en, format: :hmsSS)
