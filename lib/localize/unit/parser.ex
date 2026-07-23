@@ -37,15 +37,40 @@ defmodule Localize.Unit.Parser do
   def parse(input) when is_binary(input) do
     cap = max_unit_bytes()
 
-    if byte_size(input) > cap do
-      {:error,
-       Localize.ParseError.exception(
-         input: "<#{byte_size(input)}-byte unit identifier>",
-         reason: "unit identifier exceeds the configured maximum of #{cap} bytes"
-       )}
-    else
-      do_parse(input)
+    cond do
+      byte_size(input) > cap ->
+        {:error,
+         Localize.ParseError.exception(
+           input: "<#{byte_size(input)}-byte unit identifier>",
+           reason: "unit identifier exceeds the configured maximum of #{cap} bytes"
+         )}
+
+      custom_unit_name?(input) ->
+        {:ok, custom_unit_ast(String.trim(input))}
+
+      true ->
+        do_parse(input)
     end
+  end
+
+  # A runtime-registered custom unit name matches wholesale before
+  # the grammar runs: hyphenated custom names ("double-cubit") would
+  # otherwise be split at the hyphens, which the grammar treats as
+  # the compound product operator. Standard hyphenated identifiers
+  # ("g-force", "kilowatt-hour") are compiled into the grammar's
+  # base-unit alternation and take the normal path. The AST shape is
+  # exactly what the grammar produces for a bare custom base.
+  defp custom_unit_name?(input) do
+    Localize.Unit.CustomRegistry.registered?(String.trim(input))
+  end
+
+  defp custom_unit_ast(name) do
+    {:unit,
+     [
+       type: nil,
+       numerator: [{:single_unit, [prefix: nil, power: nil, base: name]}],
+       denominator: []
+     ]}
   end
 
   # Maximum byte length accepted by `parse/1`/`parse!/1`. Caps the

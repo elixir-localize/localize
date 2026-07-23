@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Unit.parse/2` and `parse_unit_name/2` (with bang variants) parse strings like "1kg", "2,5 kg" or a localized "2 Tage" into units, matching locale unit names, canonical identifiers and custom units, with `:only`/`:except` filters disambiguating names like "2w" (watt versus week) — the migration path from `Cldr.Unit.parse/2`.
 
+### Fixed
+
+* Custom units with hyphenated names ("double-cubit") resolve everywhere a unit identifier is accepted: registered names match wholesale in the unit parser instead of being split at hyphens by the compound grammar.
+
 ## [1.0.0-rc.3] — July 23rd, 2026
 
 ### Added
