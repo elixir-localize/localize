@@ -380,7 +380,30 @@ The `:display` map plays the role of the `unit_localization/4` callbacks (locale
 
 ### Parsing unit strings (`Cldr.Unit.parse/2`)
 
-`Cldr.Unit.parse/2` and `Cldr.Unit.parse_unit_name/2` — parsing "1kg" or a localized "1 tages" back into a unit, with `:only`/`:except` to disambiguate strings like "2w" (weeks versus watts) — do not yet have a direct Localize equivalent. What exists today covers the two halves separately: `Localize.Unit.new/1` parses any canonical CLDR unit identifier including compounds ("kilometer-per-hour"), and `Localize.Number.Parser.scan/2` performs locale-aware number extraction from mixed text (`scan("1kg")` returns `[1, "kg"]`), leaving the unit-name resolution to the caller. A `Localize.Unit.parse/2` with localized unit-name resolution and `:only`/`:except` disambiguation is on the roadmap; until it lands, applications parsing user input can scan the number and match the remaining token against the inventory from `Localize.Unit.known_units_by_category/0` or their own accepted-units list.
+`Localize.Unit.parse/2` and `parse_unit_name/2` are the direct equivalents of `Cldr.Unit.parse/2` and `Cldr.Unit.parse_unit_name/2`, with the same `:only`/`:except` disambiguation. The number is parsed with the locale's number symbols and the unit name is matched case-insensitively against the locale's unit names, the canonical CLDR identifiers, and any custom units registered with `define_unit/2`; ambiguous names resolve to the first candidate in alphabetical order unless the filters narrow them:
+
+```elixir
+# ex_cldr
+Cldr.Unit.parse("1kg")
+#=> {:ok, Cldr.Unit.new!(1, :kilogram)}
+Cldr.Unit.parse("1w", only: :duration)
+#=> {:ok, Cldr.Unit.new!(1, :week)}
+
+# Localize
+iex> Localize.Unit.parse("1kg")
+Localize.Unit.new(1, "kilogram")
+
+iex> Localize.Unit.parse("2w", only: :duration)
+Localize.Unit.new(2, "week")
+
+iex> Localize.Unit.parse("2,5 kg", locale: :de)
+Localize.Unit.new(2.5, "kilogram")
+
+iex> Localize.Unit.parse_unit_name("Tage", locale: :de)
+{:ok, "day"}
+```
+
+The one shape difference: Localize unit identifiers are strings, not atoms, so `parse_unit_name/2` returns `{:ok, "kilogram"}` rather than `{:ok, :kilogram}`.
 
 ### Lists
 

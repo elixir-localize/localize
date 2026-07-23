@@ -6,7 +6,9 @@ All items are DONE and published as of localize 1.0.0-rc.3 / intl 1.0.0-rc.0 (Ju
 
 ## Open items
 
-* **`Localize.Unit.parse/2` and `parse_unit_name/2`** (from a user migration question, July 24): ex_cldr_units parses "1kg" / localized "1 tages" into a unit, with `:only`/`:except` category filters disambiguating strings like "2w" (weeks vs watts). Localize has the halves — `Number.Parser.scan/2` for locale-aware number extraction and `Unit.new/1` for canonical identifiers — but no localized unit-name resolution. Needs a display-name-to-unit index per locale (long/short/narrow patterns inverted), category filtering, and custom-unit awareness. The migration guide documents the interim workaround.
+* ~~**`Localize.Unit.parse/2` and `parse_unit_name/2`**~~ DONE July 24 (unreleased): localized unit-string parsing with a per-locale inverted name index, `:only`/`:except` category/name filters, canonical-grammar fallback for compounds, and custom-unit awareness. The migration guide documents the `Cldr.Unit.parse/2` mapping.
+
+* **Hyphenated custom unit names.** `define_unit/2` accepts names containing hyphens ("parse-test-cubit") but `new/2` cannot resolve them — the unit-identifier grammar consumes hyphens as compound separators before the custom registry is consulted. Either reject hyphenated names at registration or check the registry for the full name before grammar parsing.
 
 ## Known deviation (accepted)
 

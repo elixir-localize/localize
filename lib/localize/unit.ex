@@ -236,6 +236,240 @@ defmodule Localize.Unit do
   end
 
   @doc """
+  Parses a string containing a number and a unit name into a unit.
+
+  The number is parsed with the locale's number symbols and the unit name is matched against the locale's unit names — display names and the text of the long, short and narrow patterns — as well as the canonical CLDR identifiers and any units registered with `define_unit/2`. Matching is case-insensitive; when a name is ambiguous ("2 w" matches both watt and week via their narrow forms) the candidates are filtered by the `:only`/`:except` options and the first remaining unit in alphabetical order is chosen.
+
+  ### Arguments
+
+  * `unit_string` is a string containing a number and a unit name, in either order (e.g., `"1kg"`, `"1 kilogram"`, `"2,5 kg"` in a locale with comma decimals).
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier atom, string, or a `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale()`. Both the number symbols and the unit names follow this locale.
+
+  * `:only` is a category, a unit name, or a list of either (atoms or strings). Only matching candidates are considered: `only: :duration` resolves `"2w"` to weeks rather than watts.
+
+  * `:except` is the complement of `:only`: matching candidates are excluded.
+
+  ### Returns
+
+  * `{:ok, unit}` where `unit` is a `t:t/0` with the parsed value.
+
+  * `{:error, exception}` if no number is found, the unit name is unknown, or the filters exclude every candidate.
+
+  ### Examples
+
+      iex> Localize.Unit.parse("1kg")
+      Localize.Unit.new(1, "kilogram")
+
+      iex> Localize.Unit.parse("1 kilogram")
+      Localize.Unit.new(1, "kilogram")
+
+      iex> Localize.Unit.parse("2w", only: :duration)
+      Localize.Unit.new(2, "week")
+
+      iex> Localize.Unit.parse("2 Tage", locale: :de)
+      Localize.Unit.new(2, "day")
+
+      iex> {:error, %Localize.UnknownUnitError{}} = Localize.Unit.parse("1 blorb")
+
+  """
+  @spec parse(String.t(), Keyword.t()) :: {:ok, t()} | {:error, Exception.t()}
+  def parse(unit_string, options \\ []) when is_binary(unit_string) and is_list(options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, value, name_token} <- split_value_and_name(unit_string, language_tag),
+         {:ok, unit_name} <- resolve_unit_name(name_token, language_tag, options) do
+      new(value, unit_name)
+    end
+  end
+
+  @doc """
+  Same as `parse/2` but raises on error.
+
+  ### Arguments
+
+  * `unit_string` is a string containing a number and a unit name.
+
+  * `options` is a keyword list of options. See `parse/2`.
+
+  ### Returns
+
+  * A `t:t/0` with the parsed value.
+
+  ### Raises
+
+  * Raises an exception if the string cannot be parsed.
+
+  ### Examples
+
+      iex> Localize.Unit.parse!("1kg").name
+      "kilogram"
+
+  """
+  @spec parse!(String.t(), Keyword.t()) :: t() | no_return()
+  def parse!(unit_string, options \\ []) do
+    case parse(unit_string, options) do
+      {:ok, unit} -> unit
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Parses a unit name string into its canonical unit identifier.
+
+  Like `parse/2` but for a bare unit name with no numeric value: `"kg"` resolves to `"kilogram"`. The same locale-aware matching and `:only`/`:except` disambiguation apply.
+
+  ### Arguments
+
+  * `unit_name_string` is a unit name string (e.g., `"kg"`, `"kilograms"`, `"Tage"`).
+
+  * `options` is a keyword list of options. See `parse/2`.
+
+  ### Returns
+
+  * `{:ok, unit_name}` where `unit_name` is the canonical unit identifier string.
+
+  * `{:error, exception}` if the name is unknown or the filters exclude every candidate.
+
+  ### Examples
+
+      iex> Localize.Unit.parse_unit_name("kg")
+      {:ok, "kilogram"}
+
+      iex> Localize.Unit.parse_unit_name("w", only: :duration)
+      {:ok, "week"}
+
+      iex> Localize.Unit.parse_unit_name("Tage", locale: :de)
+      {:ok, "day"}
+
+  """
+  @spec parse_unit_name(String.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def parse_unit_name(unit_name_string, options \\ [])
+      when is_binary(unit_name_string) and is_list(options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      resolve_unit_name(unit_name_string, language_tag, options)
+    end
+  end
+
+  @doc """
+  Same as `parse_unit_name/2` but raises on error.
+
+  ### Arguments
+
+  * `unit_name_string` is a unit name string.
+
+  * `options` is a keyword list of options. See `parse_unit_name/2`.
+
+  ### Returns
+
+  * The canonical unit identifier string.
+
+  ### Raises
+
+  * Raises an exception if the name cannot be resolved.
+
+  ### Examples
+
+      iex> Localize.Unit.parse_unit_name!("kg")
+      "kilogram"
+
+  """
+  @spec parse_unit_name!(String.t(), Keyword.t()) :: String.t() | no_return()
+  def parse_unit_name!(unit_name_string, options \\ []) do
+    case parse_unit_name(unit_name_string, options) do
+      {:ok, unit_name} -> unit_name
+      {:error, exception} -> raise exception
+    end
+  end
+
+  # The scan yields interleaved text and number tokens; a parseable
+  # unit string has exactly one number and one non-empty text token,
+  # in either order ("1kg", "kg 1").
+  defp split_value_and_name(unit_string, language_tag) do
+    tokens = Localize.Number.Parser.scan(unit_string, locale: language_tag)
+
+    numbers = Enum.filter(tokens, &is_number/1)
+
+    texts =
+      tokens |> Enum.filter(&is_binary/1) |> Enum.map(&String.trim/1) |> Enum.reject(&(&1 == ""))
+
+    case {numbers, texts} do
+      {[value], [name]} ->
+        {:ok, value, name}
+
+      _other ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: unit_string,
+           expected: "a string containing one number and one unit name"
+         )}
+    end
+  end
+
+  defp resolve_unit_name(name_token, language_tag, options) do
+    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(language_tag) do
+      only = List.wrap(Keyword.get(options, :only, [])) |> Enum.map(&Kernel.to_string/1)
+      except = List.wrap(Keyword.get(options, :except, [])) |> Enum.map(&Kernel.to_string/1)
+
+      candidates =
+        name_token
+        |> Localize.Unit.NameIndex.candidates(locale_id)
+        |> apply_unit_filter(only, except)
+
+      case candidates do
+        [%{unit: unit} | _rest] ->
+          {:ok, unit}
+
+        [] ->
+          canonical_fallback(name_token, only, except)
+      end
+    end
+  end
+
+  defp apply_unit_filter(candidates, only, except) do
+    candidates
+    |> Enum.filter(fn candidate ->
+      only == [] or candidate.unit in only or candidate.category in only
+    end)
+    |> Enum.reject(fn candidate ->
+      candidate.unit in except or candidate.category in except
+    end)
+  end
+
+  # Compound identifiers such as "kilometer-per-hour" have no single
+  # display name; when the index misses, the canonical unit grammar
+  # is the fallback. The filters still apply — by name only, since a
+  # compound has no single category.
+  defp canonical_fallback(name_token, only, except) do
+    trimmed = String.trim(name_token)
+
+    case new(trimmed) do
+      {:ok, %__MODULE__{name: name}} ->
+        cond do
+          name in except ->
+            {:error, Localize.UnknownUnitError.exception(unit: trimmed)}
+
+          only != [] and name not in only ->
+            {:error, Localize.UnknownUnitError.exception(unit: trimmed)}
+
+          true ->
+            {:ok, name}
+        end
+
+      {:error, _} ->
+        {:error, Localize.UnknownUnitError.exception(unit: trimmed)}
+    end
+  end
+
+  @doc """
   Converts a unit to a different target unit.
 
   The source and target units must be convertible (same dimensional
