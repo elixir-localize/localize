@@ -498,4 +498,41 @@ defmodule Localize.Unit.CustomUnitTest do
       assert {:error, "boom"} = CustomRegistry.load_file(path)
     end
   end
+
+  describe "hyphenated custom unit names" do
+    # Regression: hyphenated names were split at the hyphens by the
+    # unit grammar (hyphen is the compound product operator) before
+    # the registry was consulted, so a registered "double-cubit"
+    # raised UnknownUnitError for "double". Registered names now
+    # match wholesale in the parser, ahead of the grammar.
+    test "create, format, convert and parse end to end" do
+      :ok =
+        Unit.define_unit("double-cubit", %{
+          base_unit: "meter",
+          factor: 0.9144,
+          category: "length",
+          display: %{en: %{long: %{one: "{0} double cubit", other: "{0} double cubits"}}}
+        })
+
+      assert {:ok, unit} = Unit.new(3, "double-cubit")
+      assert unit.name == "double-cubit"
+      assert Unit.to_string!(unit) == "3 double cubits"
+
+      converted = Unit.convert!(unit, "meter")
+      assert_in_delta converted.value, 2.743, 0.001
+
+      assert {:ok, parsed} = Unit.parse("4 double cubits")
+      assert parsed.name == "double-cubit"
+    end
+
+    test "standard hyphenated identifiers still take the grammar path" do
+      assert Unit.new!(2, "g-force").name == "g-force"
+      assert Unit.new!(1, "kilowatt-hour").name == "kilowatt-hour"
+      assert Unit.new!(5, "kilometer-per-hour").name == "kilometer-per-hour"
+    end
+
+    test "unregistered hyphenated names remain errors" do
+      assert {:error, %Localize.UnknownUnitError{}} = Unit.new(1, "not-a-unit")
+    end
+  end
 end

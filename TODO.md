@@ -8,7 +8,7 @@ All items are DONE and published as of localize 1.0.0-rc.3 / intl 1.0.0-rc.0 (Ju
 
 * ~~**`Localize.Unit.parse/2` and `parse_unit_name/2`**~~ DONE July 24 (unreleased): localized unit-string parsing with a per-locale inverted name index, `:only`/`:except` category/name filters, canonical-grammar fallback for compounds, and custom-unit awareness. The migration guide documents the `Cldr.Unit.parse/2` mapping.
 
-* **Hyphenated custom unit names.** `define_unit/2` accepts names containing hyphens ("parse-test-cubit") but `new/2` cannot resolve them — the unit-identifier grammar consumes hyphens as compound separators before the custom registry is consulted. Either reject hyphenated names at registration or check the registry for the full name before grammar parsing.
+* ~~**Hyphenated custom unit names.**~~ DONE July 24 (unreleased): registered names now match wholesale in `Localize.Unit.Parser.parse/1` before the grammar runs, so hyphenated custom units ("double-cubit") create, format, convert and parse like the standard hyphenated identifiers ("g-force") that are compiled into the grammar.
 
 ## Known deviation (accepted)
 
