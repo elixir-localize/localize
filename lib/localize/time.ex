@@ -370,7 +370,24 @@ defmodule Localize.Time do
     {:error, Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)}
   end
 
+  # Fractional seconds (S) never participate in skeleton matching
+  # per TR35: the S field is stripped before resolution and appended
+  # to the seconds field of the resolved pattern afterwards.
   defp resolve_skeleton(skeleton, locale_id, options) when is_atom(skeleton) do
+    {skeleton, fraction_count} =
+      Localize.DateTime.Format.Match.split_fractional_seconds(skeleton)
+
+    with {:ok, pattern} <- do_resolve_skeleton(skeleton, locale_id, options) do
+      {:ok,
+       Localize.DateTime.Format.Match.append_fractional_seconds(
+         pattern,
+         fraction_count,
+         locale_id
+       )}
+    end
+  end
+
+  defp do_resolve_skeleton(skeleton, locale_id, options) when is_atom(skeleton) do
     with {:ok, available} <-
            Localize.DateTime.Format.available_formats(locale_id, :gregorian) do
       case Map.get(available, skeleton) do

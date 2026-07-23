@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+* Date/time skeletons accept fractional seconds (`S`–`SSS`): per TR35 the field is stripped for matching and appended to the resolved pattern's seconds field ("9:30:12.34 AM" for `:hmsSS` in en).
+
+### Fixed
+
+* `:rounding_priority` `:auto` (and the unset default) ignores fraction-digit bounds entirely when a significant-digit bound is present, per ECMA-402; previously a binding fraction bound still truncated the significant-digit result.
+
+* The separator between adjacent seconds and fractional-second pattern fields is the locale's decimal separator per TR35 (de renders "09:30:12,34"); previously a period was hardcoded.
+
 ## [1.0.0-rc.1] — July 23rd, 2026
 
 ### Added

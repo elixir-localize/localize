@@ -235,4 +235,62 @@ defmodule Localize.DateTime.FormatResolutionTest do
       assert %{preferred: "H", allowed: ["H", "h"]} = Match.time_preferences_for(nil)
     end
   end
+
+  describe "Match.split_fractional_seconds/1" do
+    test "splits the S field from a skeleton with seconds" do
+      assert {:hms, 2} = Match.split_fractional_seconds(:hmsSS)
+      assert {:yMdHms, 3} = Match.split_fractional_seconds(:yMdHmsSSS)
+    end
+
+    test "a skeleton without an S field passes through" do
+      assert {:hms, 0} = Match.split_fractional_seconds(:hms)
+    end
+
+    test "an S field without a seconds field passes through" do
+      assert {:hmSS, 0} = Match.split_fractional_seconds(:hmSS)
+    end
+  end
+
+  describe "Match.append_fractional_seconds/3" do
+    test "appends after the seconds field" do
+      assert "h:mm:ssSS a" = Match.append_fractional_seconds("h:mm:ss a", 2, :en)
+    end
+
+    test "a quoted s is not a seconds field" do
+      assert "h 'hours' m:ssS" = Match.append_fractional_seconds("h 'hours' m:ss", 1, :en)
+      assert "h 'sos' m" = Match.append_fractional_seconds("h 'sos' m", 2, :en)
+    end
+
+    test "count 0 passes through" do
+      assert "h:mm:ss" = Match.append_fractional_seconds("h:mm:ss", 0, :en)
+    end
+  end
+
+  describe "fractional-second skeleton resolution (TR35)" do
+    test "time skeleton with fractional seconds renders the locale format" do
+      assert {:ok, "9:30:12.34 AM"} =
+               Localize.Time.to_string(~T[09:30:12.345], locale: :en, format: :hmsSS)
+
+      assert {:ok, "9:30:12.345 AM"} =
+               Localize.Time.to_string(~T[09:30:12.345678], locale: :en, format: :hmsSSS)
+    end
+
+    test "the separator is the locale's decimal separator" do
+      assert {:ok, "09:30:12,34"} =
+               Localize.Time.to_string(~T[09:30:12.345], locale: :de, format: :HmsSS)
+    end
+
+    test "datetime skeleton with fractional seconds" do
+      assert {:ok, "3/15/2025, 14:30:12.34"} =
+               Localize.DateTime.to_string(~N[2025-03-15 14:30:12.345],
+                 locale: :en,
+                 format: :yMdHmsSS
+               )
+    end
+
+    test "fractional seconds without a seconds field remain unresolved" do
+      assert {:error, %Localize.DateTimeUnresolvedFormatError{}} =
+               Localize.Time.to_string(~T[09:30:12.345], locale: :en, format: :hmSS)
+    end
+  end
 end
