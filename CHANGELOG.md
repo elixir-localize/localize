@@ -10,6 +10,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Date/time skeletons accept fractional seconds (`S`–`SSS`): per TR35 the field is stripped for matching and appended to the resolved pattern's seconds field ("9:30:12.34 AM" for `:hmsSS` in en).
 
+* `Localize.Date.to_parts/2`, `Localize.Time.to_parts/2` and `Localize.DateTime.to_parts/2` (plus bang variants) decompose dates and times into typed field parts per ECMA-402 `formatToParts`, across standard formats, skeletons, pattern strings and combined date+time wrappers.
+
+* `Localize.Number.to_range_parts/3` and `to_range_parts!/3` return typed range parts with ECMA-402 `:source` tagging (`:start_range`, `:end_range`, `:shared`) and `:approximately_sign` handling.
+
+* `Localize.Number.to_parts/2` decomposes the `:currency_long` and `:currency_long_with_symbol` formats; the pluralized currency name is a `:currency` part.
+
+* `Localize.Unit.to_parts/2` and `to_parts!/2` decompose a unit into its number parts plus `:unit` and `:literal` segments per ECMA-402.
+
+* `Localize.Unit.to_range_string/3` and `to_range_string!/3` format two like units as a range ("2–5 kilometers", fr "0–1 jour"), selecting the pattern's plural category from the TR35 plural-range rules.
+
+* `Localize.Number.PluralRule.Range` selects the TR35 plural category for numeric ranges (`plural_rule/3` for categories, `plural_rule_for/3` for numbers).
+
+* `Localize.List.to_parts/2` and `to_parts!/2` return `:element` and `:literal` parts for list formatting per ECMA-402 `Intl.ListFormat` `formatToParts`.
+
+* `Localize.DateTime.Relative.to_parts/2` and `to_parts!/2` return relative-time parts; the number part carries a `:unit` key matching the JS part shape.
+
+* `Localize.Duration.to_string/2` accepts per-unit `:display` (`:auto` / `:always`) and `:styles` (`:long` / `:short` / `:narrow`) overrides, mirroring ECMA-402 `DurationFormat` per-unit options.
+
 ### Fixed
 
 * `:rounding_priority` `:auto` (and the unset default) ignores fraction-digit bounds entirely when a significant-digit bound is present, per ECMA-402; previously a binding fraction bound still truncated the significant-digit result.

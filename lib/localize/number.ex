@@ -277,7 +277,7 @@ defmodule Localize.Number do
 
   * `{:ok, parts}` where `parts` is a list of `%{type: atom(), value: String.t()}` maps.
 
-  * `{:error, exception}` for invalid options, or for formats that do not decompose into parts (`:currency_long`, `:currency_long_with_symbol`, and the RBNF rule-name formats).
+  * `{:error, exception}` for invalid options, or for formats that do not decompose into parts (the RBNF rule-name formats such as `:spellout`).
 
   ### Examples
 
@@ -356,6 +356,9 @@ defmodule Localize.Number do
 
       format in [:decimal_short, :decimal_long, :currency_short] ->
         Formatter.Short.to_parts(number, format, validated_options)
+
+      format in [:currency_long, :currency_long_with_symbol] ->
+        Formatter.Currency.to_parts(number, format, validated_options)
 
       # Algorithmic numbering systems format via RBNF; the rendered
       # numeral is a single opaque token, so it is one integer part —
@@ -567,6 +570,147 @@ defmodule Localize.Number do
       {:ok, string} -> string
       {:error, exception} -> raise exception
     end
+  end
+
+  @doc """
+  Formats a numeric range into a list of typed parts, mirroring ECMA-402's `formatRangeToParts`.
+
+  The parts concatenate to exactly the string `to_range_string/3` produces with the same options. In addition to the `:type` and `:value` keys of `to_parts/2`, every part carries a `:source` key: `:start_range` for parts of the range start, `:end_range` for parts of the range end, and `:shared` for separators and signs belonging to neither.
+
+  ### Arguments
+
+  * `number_start` is the start of the range (integer, float, or Decimal).
+
+  * `number_end` is the end of the range (integer, float, or Decimal).
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  All options accepted by `to_parts/2` are supported and applied to both numbers, plus the `:approximate` option of `to_range_string/3`. When the start and end are equal the locale's approximately pattern applies and the approximately sign is tagged `:approximately_sign`, matching ECMA-402.
+
+  ### Returns
+
+  * `{:ok, parts}` where `parts` is a list of `%{type: atom(), value: String.t(), source: atom()}` maps.
+
+  * `{:error, exception}` if the options are invalid or the format does not decompose into parts.
+
+  ### Examples
+
+      iex> Localize.Number.to_range_parts(3, 5, locale: :en)
+      {:ok,
+       [
+         %{type: :integer, value: "3", source: :start_range},
+         %{type: :literal, value: "–", source: :shared},
+         %{type: :integer, value: "5", source: :end_range}
+       ]}
+
+      iex> Localize.Number.to_range_parts(5, 5, locale: :en)
+      {:ok,
+       [
+         %{type: :approximately_sign, value: "~", source: :shared},
+         %{type: :integer, value: "5", source: :shared}
+       ]}
+
+  """
+  @spec to_range_parts(number() | Decimal.t(), number() | Decimal.t(), Keyword.t()) ::
+          {:ok, [%{type: atom(), value: String.t(), source: atom()}]} | {:error, Exception.t()}
+  def to_range_parts(number_start, number_end, options \\ []) do
+    {approximate, format_options} = Keyword.pop(options, :approximate, false)
+    locale = Keyword.get(format_options, :locale, Localize.get_locale())
+    format_options = Keyword.put_new(format_options, :locale, locale)
+
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, number_system} <- System.number_system_from_locale(language_tag),
+         {:ok, patterns} <- Format.misc_patterns_for(language_tag, number_system) do
+      cond do
+        number_start == number_end ->
+          approximate_single_parts(number_start, format_options, patterns)
+
+        approximate ->
+          approximate_full_range_parts(number_start, number_end, format_options, patterns)
+
+        true ->
+          full_range_parts(number_start, number_end, format_options, patterns)
+      end
+    end
+  end
+
+  @doc """
+  Same as `to_range_parts/3` but raises on error.
+
+  ### Arguments
+
+  * `number_start` is the start of the range.
+
+  * `number_end` is the end of the range.
+
+  * `options` is a keyword list of options. See `to_range_parts/3`.
+
+  ### Returns
+
+  * A list of `%{type: atom(), value: String.t(), source: atom()}` maps.
+
+  ### Raises
+
+  * Raises an exception if formatting fails.
+
+  ### Examples
+
+      iex> Localize.Number.to_range_parts!(3, 5, locale: :en) |> length()
+      3
+
+  """
+  @spec to_range_parts!(number() | Decimal.t(), number() | Decimal.t(), Keyword.t()) ::
+          [%{type: atom(), value: String.t(), source: atom()}]
+  def to_range_parts!(number_start, number_end, options \\ []) do
+    case to_range_parts(number_start, number_end, options) do
+      {:ok, parts} -> parts
+      {:error, exception} -> raise exception
+    end
+  end
+
+  defp full_range_parts(number_start, number_end, format_options, patterns) do
+    with {:ok, start_parts} <- to_parts(number_start, format_options),
+         {:ok, end_parts} <- to_parts(number_end, format_options) do
+      parts =
+        [put_source(start_parts, :start_range), put_source(end_parts, :end_range)]
+        |> Localize.Substitution.substitute_parts(patterns.range)
+        |> put_default_source(:shared)
+
+      {:ok, parts}
+    end
+  end
+
+  defp approximate_full_range_parts(number_start, number_end, format_options, patterns) do
+    with {:ok, range_parts} <-
+           full_range_parts(number_start, number_end, format_options, patterns) do
+      parts =
+        [range_parts]
+        |> Localize.Substitution.substitute_parts(patterns.approximately, :approximately_sign)
+        |> put_default_source(:shared)
+
+      {:ok, parts}
+    end
+  end
+
+  defp approximate_single_parts(number_start, format_options, patterns) do
+    with {:ok, number_parts} <- to_parts(number_start, format_options) do
+      parts =
+        [number_parts]
+        |> Localize.Substitution.substitute_parts(patterns.approximately, :approximately_sign)
+        |> put_source(:shared)
+
+      {:ok, parts}
+    end
+  end
+
+  defp put_source(parts, source) do
+    Enum.map(parts, &Map.put(&1, :source, source))
+  end
+
+  defp put_default_source(parts, source) do
+    Enum.map(parts, &Map.put_new(&1, :source, source))
   end
 
   @doc """

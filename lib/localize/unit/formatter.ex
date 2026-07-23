@@ -5,6 +5,20 @@ defmodule Localize.Unit.Formatter do
 
   import Kernel, except: [to_string: 1]
 
+  @number_format_options [
+    :locale,
+    :fractional_digits,
+    :min_fractional_digits,
+    :max_fractional_digits,
+    :minimum_significant_digits,
+    :maximum_significant_digits,
+    :round_nearest,
+    :rounding_mode,
+    :grammatical_case,
+    :grammatical_gender,
+    :currency
+  ]
+
   # Formats a Localize.Unit struct into a localized string.
   #
   # The formatter:
@@ -50,6 +64,150 @@ defmodule Localize.Unit.Formatter do
         end
     end
   end
+
+  # # to_range_string/3
+  #
+  # Formats two units of the same kind as a localized range,
+  # applying the unit pattern once per TR35: the numeric range is
+  # substituted into the unit pattern for the range's plural
+  # category (from the TR35 plural-range rules).
+  @spec to_range_string(Localize.Unit.t(), Localize.Unit.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def to_range_string(unit_1, unit_2, options \\ [])
+
+  def to_range_string(
+        %Localize.Unit{name: name} = unit_1,
+        %Localize.Unit{name: name} = unit_2,
+        options
+      ) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    format = Keyword.get(options, :format, :long)
+
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, unit_data} <- load_unit_data(language_tag, format),
+         {:ok, tokens} <- range_pattern_tokens(unit_data, unit_1, unit_2, language_tag, options),
+         {:ok, range_string} <-
+           Localize.Number.to_range_string(
+             unit_1.value,
+             unit_2.value,
+             Keyword.take(options, @number_format_options)
+           ) do
+      result = Localize.Substitution.substitute(range_string, tokens)
+      {:ok, result |> :erlang.iolist_to_binary() |> String.trim()}
+    end
+  end
+
+  def to_range_string(%Localize.Unit{} = unit_1, %Localize.Unit{} = unit_2, _options) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: {unit_1.name, unit_2.name},
+       expected: "two units of the same kind",
+       context: "Localize.Unit.to_range_string/3"
+     )}
+  end
+
+  defp range_pattern_tokens(unit_data, unit_1, unit_2, language_tag, options) do
+    unit_name = normalize_unit_name(unit_1.name)
+
+    with unit_formats when is_map(unit_formats) <- find_unit_formats(unit_data, unit_name),
+         {:ok, range_category} <-
+           Localize.Number.PluralRule.Range.plural_rule_for(
+             unit_1.value,
+             unit_2.value,
+             language_tag
+           ),
+         grammatical_case = Keyword.get(options, :grammatical_case, :nominative),
+         tokens when is_list(tokens) <-
+           pattern_tokens(resolve_pattern(unit_formats, grammatical_case, range_category)) do
+      {:ok, tokens}
+    else
+      {:error, _reason} = error ->
+        error
+
+      _no_pattern ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: unit_1.name,
+           expected: "a unit with a direct CLDR pattern",
+           context: "Localize.Unit.to_range_string/3"
+         )}
+    end
+  end
+
+  # # to_parts/2
+  #
+  # Formats a unit into typed parts: the number's parts from
+  # `Localize.Number.to_parts/2` plus the unit pattern text as
+  # `:unit` parts, with surrounding whitespace tagged `:literal`,
+  # matching ECMA-402 `formatToParts` for unit style.
+  @spec to_parts(Localize.Unit.t(), Keyword.t()) ::
+          {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
+  def to_parts(%Localize.Unit{value: value, name: name}, options \\ []) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    format = Keyword.get(options, :format, :long)
+
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, unit_data} <- load_unit_data(language_tag, format),
+         {:ok, tokens} <- parts_pattern_tokens(unit_data, name, value, language_tag, options),
+         {:ok, number_parts} <-
+           Localize.Number.to_parts(value, Keyword.take(options, @number_format_options)) do
+      parts =
+        [number_parts]
+        |> Localize.Substitution.substitute_parts(tokens, :unit)
+        |> split_unit_whitespace()
+
+      {:ok, parts}
+    end
+  end
+
+  defp parts_pattern_tokens(unit_data, name, value, language_tag, options) do
+    unit_name = normalize_unit_name(name)
+
+    with unit_formats when is_map(unit_formats) <- find_unit_formats(unit_data, unit_name),
+         plural = plural_form(value, language_tag),
+         grammatical_case = Keyword.get(options, :grammatical_case, :nominative),
+         tokens when is_list(tokens) <-
+           pattern_tokens(resolve_pattern(unit_formats, grammatical_case, plural)) do
+      {:ok, tokens}
+    else
+      _no_pattern ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: name,
+           expected: "a unit with a direct CLDR pattern",
+           context: "Localize.Unit.to_parts/2"
+         )}
+    end
+  end
+
+  # A CLDR unit pattern literal carries its spacing (" meters");
+  # ECMA-402 tags the spacing as a separate :literal part.
+  defp split_unit_whitespace(parts) do
+    Enum.flat_map(parts, fn
+      %{type: :unit, value: value} ->
+        trimmed_leading = String.trim_leading(value)
+        trimmed = String.trim_trailing(trimmed_leading)
+        leading = binary_part(value, 0, byte_size(value) - byte_size(trimmed_leading))
+
+        trailing =
+          binary_part(
+            trimmed_leading,
+            byte_size(trimmed),
+            byte_size(trimmed_leading) - byte_size(trimmed)
+          )
+
+        literal_part(leading) ++ unit_part(trimmed) ++ literal_part(trailing)
+
+      part ->
+        [part]
+    end)
+  end
+
+  defp literal_part(""), do: []
+  defp literal_part(whitespace), do: [%{type: :literal, value: whitespace}]
+
+  defp unit_part(""), do: []
+  defp unit_part(text), do: [%{type: :unit, value: text}]
 
   # ── Data loading ───────────────────────────────────────────
 
@@ -333,29 +491,9 @@ defmodule Localize.Unit.Formatter do
 
   # CLDR unit pattern resolution: grammatical-case, plural-form, and
   # pattern-shape fallbacks each contribute a branch.
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp format_with_pattern(value, unit_formats, locale, grammatical_case, options) do
-    # Determine plural form
     plural = plural_form(value, locale)
-
-    # Get case forms, falling back to nominative
-    case_forms =
-      Map.get(unit_formats, grammatical_case) ||
-        Map.get(unit_formats, :nominative) ||
-        Map.get(unit_formats, :other)
-
-    # Get the pattern for this plural form, falling back to :other
-    pattern =
-      cond do
-        is_map(case_forms) ->
-          Map.get(case_forms, plural) || Map.get(case_forms, :other)
-
-        is_list(case_forms) ->
-          case_forms
-
-        true ->
-          nil
-      end
+    pattern = resolve_pattern(unit_formats, grammatical_case, plural)
 
     case pattern do
       [position, pattern_str] when is_integer(position) and is_binary(pattern_str) ->
@@ -383,6 +521,32 @@ defmodule Localize.Unit.Formatter do
     end
   end
 
+  # Resolves the CLDR pattern for a grammatical case and plural
+  # category, with nominative and :other fallbacks per CLDR.
+  defp resolve_pattern(unit_formats, grammatical_case, plural) do
+    case_forms =
+      Map.get(unit_formats, grammatical_case) ||
+        Map.get(unit_formats, :nominative) ||
+        Map.get(unit_formats, :other)
+
+    cond do
+      is_map(case_forms) -> Map.get(case_forms, plural) || Map.get(case_forms, :other)
+      is_list(case_forms) -> case_forms
+      true -> nil
+    end
+  end
+
+  # Normalizes any CLDR unit pattern shape to a Substitution token
+  # list, or nil when there is no pattern.
+  defp pattern_tokens([position, pattern_str])
+       when is_integer(position) and is_binary(pattern_str) do
+    unit_pattern_to_tokens(position, pattern_str)
+  end
+
+  defp pattern_tokens(tokens) when is_list(tokens), do: tokens
+  defp pattern_tokens(pattern) when is_binary(pattern), do: [0, " " <> pattern]
+  defp pattern_tokens(_other), do: nil
+
   # Converts the CLDR unit pattern [position, suffix] into a
   # Localize.Substitution-compatible token list.
   defp unit_pattern_to_tokens(0, pattern_str), do: [0, pattern_str]
@@ -390,20 +554,6 @@ defmodule Localize.Unit.Formatter do
   defp unit_pattern_to_tokens(_, pattern_str), do: [0, pattern_str]
 
   # ── Number formatting ──────────────────────────────────────
-
-  @number_format_options [
-    :locale,
-    :fractional_digits,
-    :min_fractional_digits,
-    :max_fractional_digits,
-    :minimum_significant_digits,
-    :maximum_significant_digits,
-    :round_nearest,
-    :rounding_mode,
-    :grammatical_case,
-    :grammatical_gender,
-    :currency
-  ]
 
   defp format_number(value, options) do
     number_options = Keyword.take(options, @number_format_options)

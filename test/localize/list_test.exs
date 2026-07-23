@@ -231,6 +231,46 @@ defmodule Localize.ListTest do
     end
   end
 
+  describe "to_parts/2" do
+    test "elements and separators are tagged" do
+      assert {:ok,
+              [
+                %{type: :element, value: "a"},
+                %{type: :literal, value: ", "},
+                %{type: :element, value: "b"},
+                %{type: :literal, value: ", and "},
+                %{type: :element, value: "c"}
+              ]} = Localize.List.to_parts(["a", "b", "c"], locale: :en)
+    end
+
+    test "single element and empty list" do
+      assert {:ok, [%{type: :element, value: "a"}]} = Localize.List.to_parts(["a"], locale: :en)
+      assert {:ok, []} = Localize.List.to_parts([], locale: :en)
+    end
+
+    test "non-string elements format through the element dispatch" do
+      assert {:ok,
+              [
+                %{type: :element, value: "1,234"},
+                %{type: :literal, value: " and "},
+                %{type: :element, value: "2"}
+              ]} = Localize.List.to_parts([1234, 2], locale: :en)
+    end
+
+    test "parts concatenate to the formatted string for longer lists" do
+      list = ~w(one two three four five)
+      {:ok, parts} = Localize.List.to_parts(list, locale: :en)
+      {:ok, string} = Localize.List.to_string(list, locale: :en)
+
+      assert Enum.map_join(parts, & &1.value) == string
+    end
+
+    test "list styles apply" do
+      assert {:ok, parts} = Localize.List.to_parts(["a", "b"], locale: :en, list_style: :or)
+      assert Enum.map_join(parts, & &1.value) == "a or b"
+    end
+  end
+
   describe "intersperse/2 element counts and options" do
     test "intersperses an empty list" do
       assert {:ok, []} = ListFormatter.intersperse([], locale: :en)

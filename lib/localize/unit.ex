@@ -1236,6 +1236,158 @@ defmodule Localize.Unit do
   end
 
   @doc """
+  Formats two units of the same kind as a localized range.
+
+  The unit pattern is applied once to the formatted numeric range per TR35: the pattern's plural category comes from the TR35 plural-range rules (`Localize.Number.PluralRule.Range`), so "0–1 jour" is singular in French while "1–2 jours" is plural.
+
+  ### Arguments
+
+  * `unit_start` is a `t:Localize.Unit.t/0` struct for the range start.
+
+  * `unit_end` is a `t:Localize.Unit.t/0` struct for the range end. Must have the same unit name as `unit_start`.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier. The default is `Localize.get_locale/0`.
+
+  * `:format` is `:long`, `:short`, or `:narrow`. The default is `:long`.
+
+  * The number-formatting options of `to_string/2` (`:fractional_digits`, `:rounding_mode`, and friends) apply to both endpoints.
+
+  ### Returns
+
+  * `{:ok, formatted_string}` on success.
+
+  * `{:error, exception}` if the units differ, the unit has no direct CLDR pattern, or the options are invalid.
+
+  ### Examples
+
+      iex> {:ok, unit_start} = Localize.Unit.new(2, "kilometer")
+      iex> {:ok, unit_end} = Localize.Unit.new(5, "kilometer")
+      iex> Localize.Unit.to_range_string(unit_start, unit_end, locale: :en)
+      {:ok, "2–5 kilometers"}
+
+      iex> {:ok, unit_start} = Localize.Unit.new(2, "kilometer")
+      iex> {:ok, unit_end} = Localize.Unit.new(5, "kilometer")
+      iex> Localize.Unit.to_range_string(unit_start, unit_end, locale: :en, format: :short)
+      {:ok, "2–5 km"}
+
+  """
+  @spec to_range_string(t(), t(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
+  def to_range_string(%__MODULE__{} = unit_start, %__MODULE__{} = unit_end, options \\ []) do
+    Localize.Unit.Formatter.to_range_string(unit_start, unit_end, options)
+  end
+
+  @doc """
+  Same as `to_range_string/3` but raises on error.
+
+  ### Arguments
+
+  * `unit_start` is a `t:Localize.Unit.t/0` struct for the range start.
+
+  * `unit_end` is a `t:Localize.Unit.t/0` struct for the range end.
+
+  * `options` is a keyword list of options. See `to_range_string/3`.
+
+  ### Returns
+
+  * A formatted string.
+
+  ### Raises
+
+  * Raises an exception if the range cannot be formatted.
+
+  ### Examples
+
+      iex> Localize.Unit.to_range_string!(Localize.Unit.new!(2, "kilometer"), Localize.Unit.new!(5, "kilometer"), locale: :en)
+      "2–5 kilometers"
+
+  """
+  @spec to_range_string!(t(), t(), Keyword.t()) :: String.t()
+  def to_range_string!(%__MODULE__{} = unit_start, %__MODULE__{} = unit_end, options \\ []) do
+    case to_range_string(unit_start, unit_end, options) do
+      {:ok, string} -> string
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Formats a unit into a list of typed parts, mirroring ECMA-402's `formatToParts` for unit style.
+
+  The parts concatenate to exactly the string `to_string/2` produces with the same options. The number's segments come from `Localize.Number.to_parts/2`; the unit pattern text is tagged `:unit` with its surrounding whitespace as `:literal` parts.
+
+  ### Arguments
+
+  * `unit` is a `t:Localize.Unit.t/0` struct.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier. The default is `Localize.get_locale/0`.
+
+  * `:format` is `:long`, `:short`, or `:narrow`. The default is `:long`.
+
+  * The number-formatting options of `to_string/2` apply to the numeric segments.
+
+  ### Returns
+
+  * `{:ok, parts}` where `parts` is a list of `%{type: atom(), value: String.t()}` maps.
+
+  * `{:error, exception}` if the unit has no direct CLDR pattern or the options are invalid.
+
+  ### Examples
+
+      iex> {:ok, unit} = Localize.Unit.new(42, "meter")
+      iex> Localize.Unit.to_parts(unit, locale: :en)
+      {:ok,
+       [
+         %{type: :integer, value: "42"},
+         %{type: :literal, value: " "},
+         %{type: :unit, value: "meters"}
+       ]}
+
+  """
+  @spec to_parts(t(), Keyword.t()) ::
+          {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
+  def to_parts(%__MODULE__{} = unit, options \\ []) do
+    Localize.Unit.Formatter.to_parts(unit, options)
+  end
+
+  @doc """
+  Same as `to_parts/2` but raises on error.
+
+  ### Arguments
+
+  * `unit` is a `t:Localize.Unit.t/0` struct.
+
+  * `options` is a keyword list of options. See `to_parts/2`.
+
+  ### Returns
+
+  * A list of `%{type: atom(), value: String.t()}` maps.
+
+  ### Raises
+
+  * Raises an exception if the unit cannot be decomposed into parts.
+
+  ### Examples
+
+      iex> Localize.Unit.to_parts!(Localize.Unit.new!(42, "meter"), locale: :en) |> length()
+      3
+
+  """
+  @spec to_parts!(t(), Keyword.t()) :: [%{type: atom(), value: String.t()}]
+  def to_parts!(%__MODULE__{} = unit, options \\ []) do
+    case to_parts(unit, options) do
+      {:ok, parts} -> parts
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
   Formats a unit as an iolist.
 
   Same as `to_string/2` but returns an iolist for efficient

@@ -90,10 +90,15 @@ defmodule Localize.Time do
 
   """
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
-  def to_string(time, options \\ [])
+  def to_string(time, options \\ []) do
+    with {:ok, pattern, locale_id, formatter_options} <- formatting_plan(time, options) do
+      Localize.DateTime.Formatter.format(time, pattern, locale_id, formatter_options)
+    end
+  end
 
-  # Full time
-  def to_string(%{hour: _, minute: _, second: _} = time, options) do
+  # Resolves the format pattern, locale, and formatter options for a
+  # time — the shared front half of `to_string/2` and `to_parts/2`.
+  defp formatting_plan(%{hour: _, minute: _, second: _} = time, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
 
@@ -104,20 +109,20 @@ defmodule Localize.Time do
          effective_format = strip_zone_for_time_struct(hc_skeleton, time, format, locale_id),
          {:ok, pattern} <- find_format(time, effective_format, locale_id, options) do
       formatter_options = options |> Map.new() |> Map.put_new(:locale, language_tag)
-      Localize.DateTime.Formatter.format(time, pattern, locale_id, formatter_options)
+      {:ok, pattern, locale_id, formatter_options}
     end
   end
 
-  # Partial time (has at least one time field but not all three)
-  def to_string(time, options) when has_time_field(time) do
+  # Partial time (has at least one time field but not all three).
+  # Standard format atoms (`:short`/`:medium`/`:long`/`:full`) are
+  # designed for full h/m/s times. For partial times we derive a
+  # CLDR skeleton from the fields that are actually present
+  # (`:h`, `:hm`, `:hms`, `:ms`, etc.) and resolve that instead.
+  defp formatting_plan(time, options) when has_time_field(time) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format)
 
     with {:ok, locale_id} <- resolve_locale_id(locale) do
-      # Standard format atoms (`:short`/`:medium`/`:long`/`:full`) are
-      # designed for full h/m/s times. For partial times we derive a
-      # CLDR skeleton from the fields that are actually present
-      # (`:h`, `:hm`, `:hms`, `:ms`, etc.) and resolve that instead.
       resolved_format =
         cond do
           is_binary(format) -> format
@@ -128,12 +133,12 @@ defmodule Localize.Time do
 
       with {:ok, pattern} <- find_format(time, resolved_format, locale_id, options) do
         formatter_options = options |> Map.new() |> Map.put_new(:locale, locale)
-        Localize.DateTime.Formatter.format(time, pattern, locale_id, formatter_options)
+        {:ok, pattern, locale_id, formatter_options}
       end
     end
   end
 
-  def to_string(_time, _options) do
+  defp formatting_plan(_time, _options) do
     {:error, Localize.DateTimeInvalidInputError.exception(type: :time)}
   end
 
@@ -154,6 +159,77 @@ defmodule Localize.Time do
   def to_string!(time, options \\ []) do
     case to_string(time, options) do
       {:ok, string} -> string
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Formats a time into typed parts, mirroring ECMA-402's `formatToParts`.
+
+  The parts concatenate to exactly the string `to_string/2` produces with the same options. Each pattern field is tagged with its type: `:hour`, `:minute`, `:second`, `:fractional_second`, `:day_period`, `:time_zone_name`, and `:literal` for separators.
+
+  ### Arguments
+
+  * `time` is a `t:Time.t/0` or any map with time keys.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `to_string/2` for the supported options.
+
+  ### Returns
+
+  * `{:ok, parts}` where `parts` is a list of `%{type: atom(), value: String.t()}` maps.
+
+  * `{:error, exception}` if the time cannot be formatted.
+
+  ### Examples
+
+      iex> Localize.Time.to_parts(~T[14:30:05], locale: :en, format: "HH:mm")
+      {:ok,
+       [
+         %{type: :hour, value: "14"},
+         %{type: :literal, value: ":"},
+         %{type: :minute, value: "30"}
+       ]}
+
+  """
+  @spec to_parts(map(), Keyword.t()) ::
+          {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
+  def to_parts(time, options \\ []) do
+    with {:ok, pattern, locale_id, formatter_options} <- formatting_plan(time, options) do
+      Localize.DateTime.Formatter.format_to_parts(time, pattern, locale_id, formatter_options)
+    end
+  end
+
+  @doc """
+  Same as `to_parts/2` but raises on error.
+
+  ### Arguments
+
+  * `time` is a `t:Time.t/0` or any map with time keys.
+
+  * `options` is a keyword list of options. See `to_parts/2`.
+
+  ### Returns
+
+  * A list of `%{type: atom(), value: String.t()}` maps.
+
+  ### Raises
+
+  * Raises an exception if the time cannot be formatted.
+
+  ### Examples
+
+      iex> Localize.Time.to_parts!(~T[14:30:05], locale: :en, format: "HH:mm") |> length()
+      3
+
+  """
+  @spec to_parts!(map(), Keyword.t()) :: [%{type: atom(), value: String.t()}]
+  def to_parts!(time, options \\ []) do
+    case to_parts(time, options) do
+      {:ok, parts} -> parts
       {:error, exception} -> raise exception
     end
   end

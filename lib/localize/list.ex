@@ -175,6 +175,133 @@ defmodule Localize.List do
   end
 
   @doc """
+  Formats a list into typed parts, mirroring ECMA-402's `formatToParts` for `Intl.ListFormat`.
+
+  The parts concatenate to exactly the string `to_string/2` produces with the same options. Each list element becomes an `:element` part (formatted through the same per-element dispatch as `to_string/2`) and each pattern separator becomes a `:literal` part.
+
+  ### Arguments
+
+  * `list` is a list of terms.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `to_string/2` for the supported options.
+
+  ### Returns
+
+  * `{:ok, parts}` where `parts` is a list of `%{type: atom(), value: String.t()}` maps.
+
+  * `{:error, exception}` if the locale or list style is invalid.
+
+  ### Examples
+
+      iex> Localize.List.to_parts(["a", "b", "c"], locale: :en)
+      {:ok,
+       [
+         %{type: :element, value: "a"},
+         %{type: :literal, value: ", "},
+         %{type: :element, value: "b"},
+         %{type: :literal, value: ", and "},
+         %{type: :element, value: "c"}
+       ]}
+
+      iex> Localize.List.to_parts(["a"], locale: :en)
+      {:ok, [%{type: :element, value: "a"}]}
+
+  """
+  @spec to_parts([term()], Keyword.t()) ::
+          {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
+  def to_parts(list, options \\ []) do
+    element_options = Keyword.drop(options, @list_specific_options)
+
+    with {:ok, pattern, middle_as_end?} <- normalize_options(options),
+         {:ok, element_parts} <- elements_to_parts(list, element_options) do
+      {:ok, do_intersperse_parts(element_parts, pattern, middle_as_end?)}
+    end
+  end
+
+  @doc """
+  Same as `to_parts/2` but raises on error.
+
+  ### Arguments
+
+  * `list` is a list of terms.
+
+  * `options` is a keyword list of options. See `to_parts/2`.
+
+  ### Returns
+
+  * A list of `%{type: atom(), value: String.t()}` maps.
+
+  ### Raises
+
+  * Raises an exception if the list cannot be formatted.
+
+  ### Examples
+
+      iex> Localize.List.to_parts!(["a", "b"], locale: :en)
+      [
+        %{type: :element, value: "a"},
+        %{type: :literal, value: " and "},
+        %{type: :element, value: "b"}
+      ]
+
+  """
+  @spec to_parts!([term()], Keyword.t()) :: [%{type: atom(), value: String.t()}]
+  def to_parts!(list, options \\ []) do
+    case to_parts(list, options) do
+      {:ok, parts} -> parts
+      {:error, exception} -> raise exception
+    end
+  end
+
+  defp elements_to_parts(list, options) do
+    result =
+      Enum.reduce_while(list, {:ok, []}, fn elem, {:ok, acc} ->
+        case format_element(elem, options) do
+          {:ok, string} -> {:cont, {:ok, [[%{type: :element, value: string}] | acc]}}
+          {:error, _} = error -> {:halt, error}
+        end
+      end)
+
+    case result do
+      {:ok, reversed} -> {:ok, Enum.reverse(reversed)}
+      {:error, _} = error -> error
+    end
+  end
+
+  # The parts sibling of `do_intersperse/3`: identical recursion over
+  # the CLDR list pattern tree with parts lists in place of iodata.
+  defp do_intersperse_parts([], _pattern, _middle_as_end?), do: []
+
+  defp do_intersperse_parts([single], _pattern, _middle_as_end?), do: single
+
+  defp do_intersperse_parts([first, last], pattern, false = _middle_as_end?) do
+    Substitution.substitute_parts([first, last], pattern.two)
+  end
+
+  defp do_intersperse_parts([first, last], pattern, true = _middle_as_end?) do
+    Substitution.substitute_parts([first, last], pattern.start)
+  end
+
+  defp do_intersperse_parts([first, middle, last], pattern, false = _middle_as_end?) do
+    last_pair = Substitution.substitute_parts([middle, last], pattern.end)
+    Substitution.substitute_parts([first, last_pair], pattern.start)
+  end
+
+  defp do_intersperse_parts([first, middle, last], pattern, true = _middle_as_end?) do
+    last_pair = Substitution.substitute_parts([middle, last], pattern.middle)
+    Substitution.substitute_parts([first, last_pair], pattern.start)
+  end
+
+  defp do_intersperse_parts([first | rest], pattern, middle_as_end?) do
+    remaining = do_intersperse_parts(rest, pattern, middle_as_end?)
+    Substitution.substitute_parts([first, remaining], pattern.start)
+  end
+
+  @doc """
   Intersperses list elements with locale-appropriate separators.
 
   This function returns a list with separator strings inserted

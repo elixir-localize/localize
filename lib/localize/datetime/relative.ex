@@ -138,6 +138,104 @@ defmodule Localize.DateTime.Relative do
   end
 
   @doc """
+  Formats a relative time into typed parts, mirroring ECMA-402's `formatToParts` for `Intl.RelativeTimeFormat`.
+
+  The parts concatenate to exactly the string `to_string/2` produces with the same options. Named forms ("yesterday") are a single `:literal` part; pattern forms tag the number as an `:integer` part carrying a `:unit` key ("3 days ago" is `:integer` "3" plus `:literal` " days ago"), matching the JS part shape.
+
+  ### Arguments
+
+  * `relative` is an integer, float, `Date`, `Time`, `DateTime`, or `NaiveDateTime`.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `to_string/2` for the supported options.
+
+  ### Returns
+
+  * `{:ok, parts}` where `parts` is a list of `%{type: atom(), value: String.t()}` maps; `:integer` parts also carry a `:unit` key.
+
+  * `{:error, exception}` if the options are invalid.
+
+  ### Examples
+
+      iex> Localize.DateTime.Relative.to_parts(-1, unit: :day, locale: :en)
+      {:ok, [%{type: :literal, value: "yesterday"}]}
+
+      iex> Localize.DateTime.Relative.to_parts(-3, unit: :day, locale: :en)
+      {:ok,
+       [
+         %{type: :integer, value: "3", unit: :day},
+         %{type: :literal, value: " days ago"}
+       ]}
+
+      iex> Localize.DateTime.Relative.to_parts(1, unit: :day, locale: :en, numeric: :always)
+      {:ok,
+       [
+         %{type: :literal, value: "in "},
+         %{type: :integer, value: "1", unit: :day},
+         %{type: :literal, value: " day"}
+       ]}
+
+  """
+  @spec to_parts(integer() | Date.t() | DateTime.t() | Time.t(), Keyword.t()) ::
+          {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
+  def to_parts(relative, options \\ []) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    format = Keyword.get(options, :format, :standard)
+    unit = Keyword.get(options, :unit)
+    numeric = Keyword.get(options, :numeric, :auto)
+    relative_to = Keyword.get_lazy(options, :relative_to, &DateTime.utc_now/0)
+
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, unit} <- validate_unit(unit),
+         {:ok, format} <- validate_format(format),
+         {:ok, numeric} <- validate_numeric(numeric),
+         {:ok, time_difference} <- time_difference(relative, relative_to) do
+      {scaled, resolved_unit} =
+        derive_unit(relative, relative_to, time_difference, unit)
+
+      case parts_relative(scaled, resolved_unit, format, locale_id, numeric) do
+        {:ok, _} = result -> result
+        {:error, _} -> {:ok, [number_part(scaled, resolved_unit)]}
+      end
+    end
+  end
+
+  @doc """
+  Same as `to_parts/2` but raises on error.
+
+  ### Arguments
+
+  * `relative` is an integer, float, `Date`, `Time`, `DateTime`, or `NaiveDateTime`.
+
+  * `options` is a keyword list of options. See `to_parts/2`.
+
+  ### Returns
+
+  * A list of `%{type: atom(), value: String.t()}` maps.
+
+  ### Raises
+
+  * Raises an exception if the options are invalid.
+
+  ### Examples
+
+      iex> Localize.DateTime.Relative.to_parts!(-1, unit: :day, locale: :en)
+      [%{type: :literal, value: "yesterday"}]
+
+  """
+  @spec to_parts!(integer() | Date.t() | DateTime.t() | Time.t(), Keyword.t()) ::
+          [%{type: atom(), value: String.t()}]
+  def to_parts!(relative, options \\ []) do
+    case to_parts(relative, options) do
+      {:ok, parts} -> parts
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
   Returns the list of known time units.
 
   ### Examples
@@ -207,6 +305,66 @@ defmodule Localize.DateTime.Relative do
         {:ok, Kernel.to_string(relative)}
       end
     end
+  end
+
+  # ── Parts formatting ──────────────────────────────────────
+
+  # The parts sibling of `format_relative/5`: identical selection
+  # logic, producing tagged parts instead of a string. The number is
+  # rendered the same way `format_with_pattern/3` renders it so the
+  # parts always concatenate to the `to_string/2` result.
+  defp parts_relative(relative, unit, format, locale_id, numeric) do
+    with {:ok, date_fields} <- Localize.Locale.get(locale_id, [:date_fields]) do
+      unit_data = get_in(date_fields, [unit, format])
+
+      cond do
+        is_nil(unit_data) ->
+          {:ok, [number_part(relative, unit)]}
+
+        numeric == :auto and relative in -2..2 and is_map(unit_data[:relative_ordinal]) ->
+          parts_ordinal_or_pattern(relative, unit, unit_data, locale_id)
+
+        true ->
+          parts_with_pattern(relative, unit, unit_data, locale_id)
+      end
+    end
+  end
+
+  defp parts_ordinal_or_pattern(relative, unit, unit_data, locale_id) do
+    case Map.get(unit_data[:relative_ordinal], relative) do
+      nil -> parts_with_pattern(relative, unit, unit_data, locale_id)
+      result -> {:ok, [%{type: :literal, value: result}]}
+    end
+  end
+
+  defp parts_with_pattern(relative, unit, unit_data, locale_id) do
+    direction = if relative >= 0, do: :relative_future, else: :relative_past
+    rules = unit_data[direction]
+
+    if is_nil(rules) do
+      {:ok, [number_part(relative, unit)]}
+    else
+      plural_form =
+        Localize.Number.PluralRule.Cardinal.plural_rule(abs(relative), locale_id)
+
+      pattern = Map.get(rules, plural_form) || Map.get(rules, :other)
+
+      if pattern do
+        number_parts = [
+          %{type: :integer, value: Kernel.to_string(abs(trunc(relative))), unit: unit}
+        ]
+
+        {:ok, Localize.Substitution.substitute_parts([number_parts], pattern)}
+      else
+        {:ok, [number_part(relative, unit)]}
+      end
+    end
+  end
+
+  # Fallback rendering mirrors `to_string/2` exactly: the signed,
+  # untruncated value.
+  defp number_part(relative, unit) do
+    %{type: :integer, value: Kernel.to_string(relative), unit: unit}
   end
 
   # ── Time difference calculation ────────────────────────────
