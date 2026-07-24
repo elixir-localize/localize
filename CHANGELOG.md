@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* Generated locale ETF files and the download-integrity hash manifest are now serialized with the `term_to_binary` `:deterministic` option, making the bytes reproducible across operating systems, architectures, and OTP versions. This lets the manifest generated during development match the data generated in CI and served from the CDN, so runtime download verification succeeds regardless of where each was produced.
+
 * Compiling a number format pattern is ~40% faster on a cache miss: the regexes used to analyse the pattern are compiled once at startup rather than recompiled on every call. Formatting is unaffected (compiled patterns are already cached).
 
 ## [1.0.0-rc.4] — July 24th, 2026

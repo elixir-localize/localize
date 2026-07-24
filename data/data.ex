@@ -572,7 +572,7 @@ defmodule Localize.Data do
     IO.puts("Generating unicode_script_to_subtag_mapping.etf...")
     script_data = Localize.Data.ScriptMetadata.generate_unicode_script_to_subtag_mapping()
     path = Path.join(output_dir(), "unicode_script_to_subtag_mapping.etf")
-    File.write!(path, :erlang.term_to_binary(script_data))
+    File.write!(path, :erlang.term_to_binary(script_data, [:deterministic]))
 
     # Generate all_locale_names.etf — list of all locale name atoms
     IO.puts("Generating all_locale_names.etf...")
@@ -811,7 +811,7 @@ defmodule Localize.Data do
 
   defp write_locale_hashes(hashes, source_description) do
     manifest_path = Path.join(File.cwd!(), "priv/localize/locale_hashes.etf")
-    File.write!(manifest_path, :erlang.term_to_binary(hashes))
+    File.write!(manifest_path, :erlang.term_to_binary(hashes, [:deterministic]))
 
     IO.puts(
       "Wrote #{map_size(hashes)} locale hashes to priv/localize/locale_hashes.etf " <>
@@ -1098,7 +1098,7 @@ defmodule Localize.Data do
   @spec save_etf(String.t(), term()) :: :ok
   def save_etf(filename, data) do
     path = Path.join(output_dir(), filename)
-    File.write!(path, :erlang.term_to_binary(data))
+    File.write!(path, :erlang.term_to_binary(data, [:deterministic]))
     :ok
   end
 end
