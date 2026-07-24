@@ -27,6 +27,17 @@ jobs:
     uses: ./.github/workflows/upload-locales.yml
     secrets: inherit
 
+  # Inflection data is versioned by the pin in
+  # priv/localize/localize_inflection_sha. When that version is not
+  # yet on R2 this generates and uploads it; otherwise it is a quick
+  # no-op. Runs independently of the test matrix, which regenerates
+  # inflection data locally for the conformance suites.
+  publish-inflection:
+    name: Publish inflection data
+    if: github.event_name == 'push' || !github.event.pull_request.head.repo.fork
+    uses: ./.github/workflows/upload-inflection.yml
+    secrets: inherit
+
   test:
     name: "Elixir ${{ matrix.elixir }} / OTP ${{ matrix.otp }}${{ matrix.lint && ' (lint)' || '' }}"
     runs-on: ubuntu-latest
@@ -108,7 +119,7 @@ jobs:
       - name: Read inflection data pin
         id: inflection
         run: |
-          sha=$(grep -o '@upstream_sha "[0-9a-f]*"' lib/localize/inflection/provider.ex | grep -o '[0-9a-f]\{40\}')
+          sha=$(tr -d '[:space:]' < priv/localize/localize_inflection_sha)
           echo "upstream_sha=${sha}" >> "$GITHUB_OUTPUT"
 
       - name: Cache upstream inflection sources
@@ -127,8 +138,8 @@ jobs:
       - name: Download and generate inflection data
         if: steps.inflection-artifacts.outputs.cache-hit != 'true'
         run: |
-          mix localize.inflection.download ar bg bn ca cs da de el en es fi fr gu he hi hr hu id is it ja kk kn ko lt ml mr ms nb nl or pa pl pt ro ru sk sr sv ta te th tr uk ur vi yue zh
-          mix localize.inflection.generate ar bg bn ca cs da de el en es fi fr gu he hi hr hu id is it ja kk kn ko lt ml mr ms nb nl or pa pl pt ro ru sk sr sv ta te th tr uk ur vi yue zh
+          mix localize.inflection.download
+          mix localize.inflection.generate
 
       - name: Run tests
         if: ${{ !matrix.lint }}

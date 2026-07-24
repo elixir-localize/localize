@@ -3,8 +3,13 @@ defmodule Mix.Tasks.Localize.Inflection.Generate do
   Compiles downloaded upstream source data into per-locale runtime
   artifacts under `priv/localize/inflection/`.
 
-      mix localize.inflection.generate
-      mix localize.inflection.generate en es
+  With no arguments it generates every locale in
+  `Localize.Inflection.Locale.supported/0` — the complete set the
+  packaged hash manifest and the CDN publish expect. Pass locales
+  explicitly only to scope a partial regeneration while iterating.
+
+      mix localize.inflection.generate          # all supported locales
+      mix localize.inflection.generate en es    # just these
 
   Run `mix localize.inflection.download` first.
 
@@ -12,13 +17,13 @@ defmodule Mix.Tasks.Localize.Inflection.Generate do
 
   use Mix.Task
 
-  @shortdoc "Generates per-locale inflection data artifacts"
+  alias Localize.Inflection.Locale
 
-  @default_locales ["en", "es"]
+  @shortdoc "Generates per-locale inflection data artifacts"
 
   @impl true
   def run(argv) do
-    locales = if argv == [], do: @default_locales, else: argv
+    locales = if argv == [], do: Locale.supported(), else: argv
 
     Enum.each(locales, fn locale ->
       if File.exists?("data/inflection/dictionary/dictionary_#{locale}.lst") or
@@ -58,7 +63,7 @@ defmodule Mix.Tasks.Localize.Inflection.Generate do
 
       File.write!(
         Path.join("priv/localize/inflection", "pronouns.etf"),
-        :erlang.term_to_binary(pack, [:compressed])
+        :erlang.term_to_binary(pack, [:compressed, :deterministic])
       )
     end
   end

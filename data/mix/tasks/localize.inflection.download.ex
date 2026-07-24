@@ -1,31 +1,39 @@
 defmodule Mix.Tasks.Localize.Inflection.Download do
   @moduledoc """
-  Downloads the upstream unicode-org/inflection source data for the
-  configured locales into `data/inflection/`.
+  Downloads the upstream unicode-org/inflection source data into
+  `data/inflection/`.
 
   Large files (lexicons and inflection pattern XML) are stored in
   the upstream repository with git-lfs and are fetched through the
   GitHub media endpoint at a pinned commit.
 
-      mix localize.inflection.download
-      mix localize.inflection.download en es fr
+  With no arguments it downloads every locale in
+  `Localize.Inflection.Locale.supported/0` — the complete set the
+  generator, the conformance suites, and the CDN publish all expect.
+  Pass locales explicitly only to scope a partial download while
+  iterating.
+
+      mix localize.inflection.download          # all supported locales
+      mix localize.inflection.download en es fr # just these
 
   """
 
   use Mix.Task
 
+  alias Localize.Inflection.{Locale, Provider}
+
   @shortdoc "Downloads upstream inflection source data"
 
-  # The pinned unicode-org/inflection commit the data is built
-  # from. Bump when adopting new upstream data, then regenerate
-  # with mix localize.inflection.generate.
-  @upstream_sha "2333a964e53a840cd2ce2df419da5306e0cb9dff"
+  # The pinned unicode-org/inflection commit lives in
+  # priv/localize/localize_inflection_sha and is read through
+  # Localize.Inflection.Provider, so the pin has a single source of
+  # truth. Bump it there when adopting new upstream data, then
+  # regenerate with mix localize.inflection.generate.
   @media "https://media.githubusercontent.com/media/unicode-org/inflection"
   @raw "https://raw.githubusercontent.com/unicode-org/inflection"
   @resources "inflection/resources/org/unicode/inflection"
   @test_resources "inflection/test/resources/inflection/dialog/inflection"
   @pronoun_test_resources "inflection/test/resources/inflection/dialog/pronoun"
-  @default_locales ["en", "es"]
 
   # Pronoun test suites exist for regional locales whose pronoun
   # tables resolve through the locale fallback chain.
@@ -34,7 +42,7 @@ defmodule Mix.Tasks.Localize.Inflection.Download do
 
   @impl true
   def run(argv) do
-    locales = if argv == [], do: @default_locales, else: argv
+    locales = if argv == [], do: Locale.supported(), else: argv
 
     downloads =
       [
@@ -75,7 +83,7 @@ defmodule Mix.Tasks.Localize.Inflection.Download do
     bases = if kind in [:media, :optional_media], do: [@media, @raw], else: [@raw, @media]
 
     Enum.reduce_while(bases, :error, fn base, _acc ->
-      url = "#{base}/#{@upstream_sha}/#{remote}"
+      url = "#{base}/#{Provider.upstream_sha()}/#{remote}"
 
       with 0 <- Mix.shell().cmd("curl -fsSL -o #{destination} #{url}", quiet: true),
            {:ok, file} <- File.open(destination, [:read, :binary]),

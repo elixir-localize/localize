@@ -37,7 +37,7 @@ defmodule Localize.Unit.InflectionTest do
       assert format!(3, "kilometer", locale: :fi) == "3 kilometriä"
 
       assert format!(5, "kilometer", locale: :ru, grammatical_case: :prepositional) ==
-               "5 километров"
+               "5 километрах"
     end
   end
 

@@ -38,7 +38,7 @@ defmodule Mix.Tasks.Localize.Inflection.GenerateHashes do
         from_local()
       end
 
-    File.write!(@manifest_path, :erlang.term_to_binary(hashes))
+    File.write!(@manifest_path, :erlang.term_to_binary(hashes, [:deterministic]))
     Mix.shell().info("Wrote #{@manifest_path} with #{map_size(hashes)} entries.")
   end
 

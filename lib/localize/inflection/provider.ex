@@ -19,12 +19,22 @@ defmodule Localize.Inflection.Provider do
 
   alias Localize.Inflection.DataDir
 
-  # The pinned unicode-org/inflection commit the data is built
-  # from, and the pipeline revision. Bump the revision when the
-  # generation pipeline changes the artifacts without an upstream
-  # commit bump; the CDN path carries both so objects stay
-  # immutable. The upload workflow greps both values.
-  @upstream_sha "2333a964e53a840cd2ce2df419da5306e0cb9dff"
+  # The pinned unicode-org/inflection commit the data is built from
+  # lives in priv/localize/localize_inflection_sha, mirroring the
+  # CLDR release in priv/localize/version. Recording it in a data
+  # file gives the pin a single source of truth that the CI upload
+  # workflow reads without compiling Elixir.
+  @external_resource Application.app_dir(:localize, "priv/localize/localize_inflection_sha")
+
+  @upstream_sha :localize
+                |> Application.app_dir("priv/localize/localize_inflection_sha")
+                |> File.read!()
+                |> String.trim()
+
+  # The pipeline revision. Bump it when the generation pipeline
+  # changes the artifacts without an upstream commit bump; the CDN
+  # path carries both the sha and the revision so objects stay
+  # immutable.
   @data_revision 1
 
   @default_base_url "https://elixir-localize.com/inflection"
@@ -97,13 +107,25 @@ defmodule Localize.Inflection.Provider do
       {:ok, body} when is_binary(body) ->
         verify(file_name, url, body)
 
-      {:error, _reason} = error ->
-        error
+      {:error, reason} ->
+        {:error, download_error(reason, file_name, url)}
 
       other ->
-        {:error,
-         Localize.LocaleDownloadError.exception(locale_id: file_name, url: url, cause: other)}
+        {:error, download_error(other, file_name, url)}
     end
+  end
+
+  # `Localize.Utils.Http.get/1` reports transport failures as bare
+  # terms (e.g. an HTTP status integer like `404`). Localize's error
+  # convention is `{:error, exception}`, so any non-exception reason
+  # is wrapped in a `LocaleDownloadError`; an already-formed exception
+  # (for example from `verify/3`) passes through unchanged. Returning
+  # a bare term here previously crashed callers that called
+  # `Exception.message/1` on it.
+  defp download_error(%{__exception__: true} = exception, _file_name, _url), do: exception
+
+  defp download_error(reason, file_name, url) do
+    Localize.LocaleDownloadError.exception(locale_id: file_name, url: url, cause: reason)
   end
 
   # Verification runs before any cache write, so the data

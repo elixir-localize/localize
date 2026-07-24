@@ -278,7 +278,7 @@ defmodule Localize.Inflection.DataGen.Generate do
   defp write_artifact(locale, artifact) do
     directory = Path.join([File.cwd!(), "priv", "localize", "inflection"])
     File.mkdir_p!(directory)
-    binary = :erlang.term_to_binary(artifact, [:compressed])
+    binary = :erlang.term_to_binary(artifact, [:compressed, :deterministic])
     File.write!(Path.join(directory, "#{locale}.etf"), binary)
   end
 end
