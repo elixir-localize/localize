@@ -5,6 +5,28 @@ defmodule Localize.Data.Normalize.Units do
 
   @unit_types ["short", "long", "narrow"]
 
+  # Grammatical cases that appear as "<case>-count-<plural>" unit
+  # pattern keys in the CLDR source data. Nominative patterns arrive
+  # as "unit_pattern_count_<plural>" and are handled separately.
+  @grammatical_cases %{
+    "ablative" => :ablative,
+    "accusative" => :accusative,
+    "dative" => :dative,
+    "elative" => :elative,
+    "ergative" => :ergative,
+    "genitive" => :genitive,
+    "illative" => :illative,
+    "instrumental" => :instrumental,
+    "locative" => :locative,
+    "oblique" => :oblique,
+    "partitive" => :partitive,
+    "prepositional" => :prepositional,
+    "sociative" => :sociative,
+    "terminative" => :terminative,
+    "translative" => :translative,
+    "vocative" => :vocative
+  }
+
   def normalize(content, locale) do
     units =
       units_for_locale(locale)
@@ -42,27 +64,6 @@ defmodule Localize.Data.Normalize.Units do
         {"unit_pattern_count_" <> count, template} ->
           {:nominative, {count, Localize.Substitution.parse(template)}}
 
-        {"genitive_count_" <> count, template} ->
-          {:genitive, {count, Localize.Substitution.parse(template)}}
-
-        {"accusative_count_" <> count, template} ->
-          {:accusative, {count, Localize.Substitution.parse(template)}}
-
-        {"dative_count_" <> count, template} ->
-          {:dative, {count, Localize.Substitution.parse(template)}}
-
-        {"locative_count_" <> count, template} ->
-          {:locative, {count, Localize.Substitution.parse(template)}}
-
-        {"prepositional_count_" <> count, template} ->
-          {:prepositional, {count, Localize.Substitution.parse(template)}}
-
-        {"instrumental_count_" <> count, template} ->
-          {:instrumental, {count, Localize.Substitution.parse(template)}}
-
-        {"vocative_count_" <> count, template} ->
-          {:vocative, {count, Localize.Substitution.parse(template)}}
-
         {"display_name", display_name} ->
           {"display_name", display_name}
 
@@ -73,7 +74,13 @@ defmodule Localize.Data.Normalize.Units do
           {"compound_unit_pattern", compound_unit(rest, template)}
 
         {type, template} ->
-          {type, Localize.Substitution.parse(template)}
+          case grammatical_case_count(type) do
+            {grammatical_case, count} ->
+              {grammatical_case, {count, Localize.Substitution.parse(template)}}
+
+            nil ->
+              {type, Localize.Substitution.parse(template)}
+          end
       end)
       |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
       |> Enum.map(fn
@@ -89,6 +96,18 @@ defmodule Localize.Data.Normalize.Units do
       |> Map.new()
 
     %{unit => parsed_formats}
+  end
+
+  # Splits a "<case>_count_<plural>" format key into its grammatical
+  # case atom and plural category, or returns nil for keys that are
+  # not case-keyed unit patterns.
+  defp grammatical_case_count(key) do
+    with [case_name, count] <- String.split(key, "_count_", parts: 2),
+         {:ok, grammatical_case} <- Map.fetch(@grammatical_cases, case_name) do
+      {grammatical_case, count}
+    else
+      _other -> nil
+    end
   end
 
   def compound_unit("_" <> rest, template), do: compound_unit(rest, template)

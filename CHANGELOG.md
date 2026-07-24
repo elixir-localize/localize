@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
-* CLDR `prepositional` unit grammar keys are now normalized into the locale data, so `Localize.Unit.to_string/2` with `grammatical_case: :prepositional` formats correctly for Russian instead of silently falling back to nominative. Requires regenerated locale data (a data patch-version bump) to take effect.
+* All sixteen CLDR unit grammar cases are now normalized into the locale data (previously only seven were), so `Localize.Unit.to_string/2` with `grammatical_case:` values like `:prepositional` (ru), `:partitive` (fi), or `:terminative` (hu) formats correctly instead of silently falling back to nominative. Already-published locale data is fixed up at load time, so no locale data regeneration is required.
 
 ### Changed
 

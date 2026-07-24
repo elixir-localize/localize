@@ -14,6 +14,40 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
   @env Mix.env()
 
+  # Locale data published before all sixteen CLDR unit grammar cases
+  # were normalized carries flat unit format keys like
+  # `:prepositional_count_one` instead of the nested
+  # `prepositional: %{one: ...}` form. `store/2` nests such keys at
+  # load time so published data works unchanged; freshly generated
+  # data is already nested and passes through untouched.
+  @unit_grammar_cases %{
+    "ablative" => :ablative,
+    "accusative" => :accusative,
+    "dative" => :dative,
+    "elative" => :elative,
+    "ergative" => :ergative,
+    "genitive" => :genitive,
+    "illative" => :illative,
+    "instrumental" => :instrumental,
+    "locative" => :locative,
+    "oblique" => :oblique,
+    "partitive" => :partitive,
+    "prepositional" => :prepositional,
+    "sociative" => :sociative,
+    "terminative" => :terminative,
+    "translative" => :translative,
+    "vocative" => :vocative
+  }
+
+  @plural_categories %{
+    "zero" => :zero,
+    "one" => :one,
+    "two" => :two,
+    "few" => :few,
+    "many" => :many,
+    "other" => :other
+  }
+
   @doc """
   Loads locale data for the given locale.
 
@@ -106,7 +140,8 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   @spec store(atom(), map()) :: :ok
   def store(locale_id, locale_data) do
     locale_key = locale_key(locale_id)
-    :ok = :persistent_term.put(locale_key, fix_alt_language_key(locale_data))
+    locale_data = locale_data |> fix_alt_language_key() |> nest_unit_grammar_cases()
+    :ok = :persistent_term.put(locale_key, locale_data)
   end
 
   # CLDR 48 locale data stores the "alt" language code (Southern
@@ -121,6 +156,41 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   end
 
   defp fix_alt_language_key(locale_data), do: locale_data
+
+  # Public-but-doc-false so the shim can be tested directly against
+  # pre-fix flat locale data; not part of the provider API.
+  @doc false
+  def nest_unit_grammar_cases(%{units: units} = locale_data) do
+    %{locale_data | units: nest_flat_case_keys(units)}
+  end
+
+  def nest_unit_grammar_cases(locale_data), do: locale_data
+
+  defp nest_flat_case_keys(%{} = map) do
+    Enum.reduce(map, %{}, fn {key, value}, acc ->
+      value = if is_map(value), do: nest_flat_case_keys(value), else: value
+
+      case flat_case_key(key) do
+        {grammatical_case, plural} ->
+          Map.update(acc, grammatical_case, %{plural => value}, &Map.put(&1, plural, value))
+
+        nil ->
+          Map.put(acc, key, value)
+      end
+    end)
+  end
+
+  defp flat_case_key(key) when is_atom(key) do
+    with [case_name, count] <- String.split(Atom.to_string(key), "_count_", parts: 2),
+         {:ok, grammatical_case} <- Map.fetch(@unit_grammar_cases, case_name),
+         {:ok, plural} <- Map.fetch(@plural_categories, count) do
+      {grammatical_case, plural}
+    else
+      _other -> nil
+    end
+  end
+
+  defp flat_case_key(_key), do: nil
 
   @doc """
   Returns whether locale data has been loaded into `:persistent_term`.
