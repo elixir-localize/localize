@@ -1,10 +1,14 @@
 name: Upload Locales to Cloudflare R2
 
-# Triggered on version tag pushes (e.g., v0.1.0, v1.0.0-rc.1)
+# Called synchronously from the CI workflow ahead of the test matrix:
+# when the data version in priv/localize/localize_patch_version is not
+# yet on R2, this generates and uploads it so the test jobs (and
+# users) can download it. When the version is already published the
+# run is a quick no-op. workflow_dispatch is the manual recovery path
+# after a transient upload failure.
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_call:
+  workflow_dispatch:
 
 env:
   MIX_ENV: dev
@@ -31,6 +35,12 @@ jobs:
   generate-and-upload:
     name: Generate and upload locale ETFs
     runs-on: ubuntu-latest
+    # Serialize publish runs so overlapping pushes cannot upload
+    # concurrently; the second run in the queue sees the version
+    # already on R2 and skips.
+    concurrency:
+      group: locale-publish
+      cancel-in-progress: false
 
     steps:
       - name: Checkout
@@ -84,9 +94,8 @@ jobs:
 
       # Short-circuit: if the target R2 prefix already contains ETF
       # files for this data_version, there is nothing to do. This
-      # avoids re-generating and re-uploading the same data when a
-      # release tag is pushed without a corresponding CLDR or patch
-      # version bump.
+      # makes the CI-invoked run a cheap no-op on every push that
+      # does not change the CLDR or patch version.
       - name: Check if data version already exists on R2
         id: check_existing
         env:
@@ -141,6 +150,35 @@ jobs:
             exit 1
           fi
 
+      # The committed manifest pins the exact bytes downloads are
+      # verified against. If the files generated here do not match it
+      # (for example a toolchain difference changed term serialization),
+      # uploading them would make every download fail integrity
+      # verification — fail loudly before touching R2 instead.
+      # Generation rewrites the manifest in the working tree, so the
+      # comparison must read the committed manifest from git.
+      - name: Verify generated locales match the committed hash manifest
+        if: steps.check_existing.outputs.skip != 'true'
+        run: |
+          git show HEAD:priv/localize/locale_hashes.etf > /tmp/committed_locale_hashes.etf
+          mix run --no-start -e '
+          hashes = File.read!("/tmp/committed_locale_hashes.etf") |> :erlang.binary_to_term()
+
+          mismatches =
+            Enum.filter(hashes, fn {locale, expected} ->
+              actual = :crypto.hash(:sha256, File.read!("priv/localize/locales/#{locale}.etf"))
+              actual != expected
+            end)
+
+          if mismatches == [] do
+            IO.puts("All #{map_size(hashes)} generated files match the committed manifest.")
+          else
+            IO.puts("::error::Generated files do not match the committed locale_hashes.etf: #{inspect(Enum.map(mismatches, &elem(&1, 0)))}")
+            IO.puts("Regenerate the manifest on the same toolchain as this workflow, or align the toolchains.")
+            System.halt(1)
+          end
+          '
+
       - name: Upload locales to R2
         if: steps.check_existing.outputs.skip != 'true'
         env:
@@ -184,4 +222,4 @@ jobs:
           DATA_VERSION: ${{ steps.version.outputs.data_version }}
         run: |
           echo "Skipped: data version ${DATA_VERSION} already present on R2 at ${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/"
-          echo "Nothing was regenerated or uploaded. Bump the CLDR or Localize patch version and push a new tag to trigger a real upload."
+          echo "Nothing was regenerated or uploaded. Bump the CLDR or Localize patch version and push to trigger a real upload."
