@@ -90,6 +90,38 @@ defmodule Localize.Unit.FormatterTest do
     end
   end
 
+  describe "to_string/2 with times-compounds that have no direct CLDR pattern (issue #43)" do
+    test "composes tonne-kilometer from the component nouns and times pattern" do
+      {:ok, unit} = Unit.new(5, "tonne-kilometer")
+      assert {:ok, "5 metric ton-kilometers"} = Unit.to_string(unit)
+    end
+
+    test "keeps the leading component singular and pluralizes the trailing one" do
+      {:ok, unit} = Unit.new(1, "tonne-kilometer")
+      assert {:ok, "1 metric ton-kilometer"} = Unit.to_string(unit)
+    end
+
+    test "composes a times-compound in short style with the ⋅ pattern" do
+      {:ok, unit} = Unit.new(5, "tonne-kilometer")
+      # U+22C5 DOT OPERATOR joins the short unit symbols.
+      assert {:ok, "5 t⋅km"} = Unit.to_string(unit, format: :short)
+    end
+
+    test "pluralizes every component in French per its CLDR times derivation" do
+      {:ok, unit} = Unit.new(5, "tonne-kilometer")
+      # French's grammaticalFeatures derivation sets times value0="compound",
+      # so both components are plural (unlike the root default's leading
+      # singular), and the number is separated by a non-breaking space
+      # (U+00A0). This matches ICU exactly.
+      assert {:ok, "5 tonnes-kilomètres"} = Unit.to_string(unit, locale: :fr)
+    end
+
+    test "still prefers a direct CLDR pattern for a precomposed times-compound" do
+      {:ok, unit} = Unit.new(5, "newton-meter")
+      assert {:ok, "5 newton-meters"} = Unit.to_string(unit)
+    end
+  end
+
   describe "to_string/2 with locales" do
     test "formats in German" do
       {:ok, unit} = Unit.new(2.5, "kilogram")

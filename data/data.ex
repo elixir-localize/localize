@@ -68,6 +68,7 @@ defmodule Localize.Data do
     {"common/supplemental/pluralRanges.xml", "pluralRanges.xml"},
     {"common/supplemental/subdivisions.xml", "subdivisions.xml"},
     {"common/supplemental/units.xml", "units.xml"},
+    {"common/supplemental/grammaticalFeatures.xml", "grammaticalFeatures.xml"},
     {"common/bcp47/timezone.xml", "bcp47_timezone.xml"}
   ]
 
@@ -123,6 +124,8 @@ defmodule Localize.Data do
     {"territory_subdivision_containment.etf",
      &Localize.Data.XmlExtractors.generate_territory_subdivision_containment/0},
     {"unit_data.etf", &Localize.Data.XmlExtractors.generate_unit_data/0},
+    {"unit_grammatical_derivations.etf",
+     &Localize.Data.XmlExtractors.generate_unit_grammatical_derivations/0},
     {"collation_tailoring.etf", &Localize.Data.Collation.generate_collation_tailoring/0},
     {"coverage_levels.etf", &Localize.Data.Supplemental.generate_coverage_levels/0},
     {"measurement_systems.etf", &Localize.Data.XmlExtractors.generate_measurement_systems/0},

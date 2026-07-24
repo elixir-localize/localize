@@ -195,6 +195,48 @@ defmodule Localize.Unit.CustomUnitTest do
     end
   end
 
+  describe "define_unit/2 with a derived base_unit (issue #44)" do
+    test "folds a derived base_unit down to its fundamental base" do
+      # "day" is not a base unit; its fundamental base is "second"
+      # (1 day = 86400 s). The definition is folded so the stored base is
+      # comparable with every CLDR unit in the category.
+      :ok = Unit.define_unit("guestnight", %{base_unit: "day", factor: 1, category: "duration"})
+
+      assert %{base_unit: "second", factor: 86_400.0, offset: 0.0} =
+               CustomRegistry.get("guestnight")
+    end
+
+    test "is convertible against the derived unit it was defined from" do
+      :ok = Unit.define_unit("guestnight", %{base_unit: "day", factor: 1, category: "duration"})
+
+      {:ok, result} = Unit.convert(Unit.new!(2, "guestnight"), "day")
+      assert result.name == "day"
+      assert_in_delta result.value, 2.0, 0.0001
+
+      {:ok, in_hours} = Unit.convert(Unit.new!(2, "guestnight"), "hour")
+      assert_in_delta in_hours.value, 48.0, 0.0001
+    end
+
+    test "is compatible with units in the same category but not others" do
+      :ok = Unit.define_unit("guestnight", %{base_unit: "day", factor: 1, category: "duration"})
+
+      assert Unit.compatible?("guestnight", "day")
+      assert Unit.compatible?("guestnight", "hour")
+      refute Unit.compatible?("guestnight", "meter")
+    end
+
+    test "a non-unit factor over a derived base scales correctly" do
+      # 1 guest-fortnight = 14 days = 1209600 s.
+      :ok =
+        Unit.define_unit("guest-fortnight", %{base_unit: "day", factor: 14, category: "duration"})
+
+      assert %{base_unit: "second", factor: 1_209_600.0} = CustomRegistry.get("guest-fortnight")
+
+      {:ok, result} = Unit.convert(Unit.new!(1, "guest-fortnight"), "week")
+      assert_in_delta result.value, 2.0, 0.0001
+    end
+  end
+
   describe "to_string/2 with custom unit" do
     test "formats with custom display patterns" do
       Unit.define_unit("smoot", %{

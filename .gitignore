@@ -35,6 +35,11 @@ mise.toml
 !/priv/localize/locales/en.etf
 !/priv/localize/locales/und.etf
 
+# Inflection data (sources and generated ETFs) — belongs to the
+# inflection feature branch, not main
+/data/inflection/
+/priv/localize/inflection/
+
 # Experiment files
 bench_unit_parser.sh
 

@@ -320,6 +320,103 @@ defmodule Localize.Data.XmlExtractors do
   end
 
   @doc """
+  Generates the compound-unit grammatical-derivation table from
+  `grammaticalFeatures.xml`.
+
+  CLDR derives the plural category, grammatical case, and gender of a
+  compound unit's components from the compound as a whole (TR35
+  "Compound Units"). For example the default "times" derivation makes
+  the leading component singular and lets the trailing component carry
+  the count (`newton-meters`), while French pluralizes every component
+  (`tonnes-kilomètres`). The unit formatter reads this table to compose
+  the localized name of a compound unit that has no precomposed pattern.
+
+  Returns a map keyed by the base language subtag string (plus `"root"`
+  for the default), each value a map of the form:
+
+      %{
+        plural: %{times: {:one, :compound}, per: {:compound, :one}, ...},
+        case: %{times: {:nominative, :compound}, ...},
+        gender: %{times: 1, per: 0, ...}
+      }
+
+  For `deriveComponent` features (`:plural`, `:case`) the value is a
+  `{value0, value1}` tuple where `:compound` means "use the compound's
+  own category" and any other atom is a fixed category. For the
+  `deriveCompound` `:gender` feature the value is the `0`/`1` index of
+  the component whose gender the compound inherits. Each locale's block
+  is merged over `"root"` so per-feature fallbacks are already resolved.
+
+  """
+  def generate_unit_grammatical_derivations do
+    raw =
+      "grammatical_features.xml"
+      |> read_xml()
+      |> SweetXml.parse()
+      |> xpath(~x"//grammaticalDerivations"l,
+        locales: ~x"./@locales"s,
+        components: [
+          ~x"./deriveComponent"l,
+          feature: ~x"./@feature"s,
+          structure: ~x"./@structure"s,
+          value0: ~x"./@value0"s,
+          value1: ~x"./@value1"s
+        ],
+        compounds: [
+          ~x"./deriveCompound"l,
+          feature: ~x"./@feature"s,
+          structure: ~x"./@structure"s,
+          value: ~x"./@value"s
+        ]
+      )
+      |> Map.new(fn %{locales: locales, components: components, compounds: compounds} ->
+        {locales, build_derivation_map(components, compounds)}
+      end)
+
+    root = Map.get(raw, "root", %{})
+
+    raw
+    |> Enum.flat_map(fn {locales, derivations} ->
+      merged = deep_merge_derivations(root, derivations)
+      for locale <- String.split(locales), do: {locale, merged}
+    end)
+    |> Map.new()
+  end
+
+  # Folds a block's `deriveComponent`/`deriveCompound` rows into the
+  # nested `%{feature => %{structure => value}}` shape.
+  defp build_derivation_map(components, compounds) do
+    from_components =
+      Enum.reduce(components, %{}, fn %{feature: feature, structure: structure} = row, acc ->
+        value = {derivation_atom(row.value0), derivation_atom(row.value1)}
+        put_derivation(acc, feature, structure, value)
+      end)
+
+    Enum.reduce(compounds, from_components, fn %{feature: feature, structure: structure} = row,
+                                               acc ->
+      put_derivation(acc, feature, structure, String.to_integer(row.value))
+    end)
+  end
+
+  defp put_derivation(acc, feature, structure, value) do
+    feature = String.to_atom(feature)
+    structure = String.to_atom(structure)
+    Map.update(acc, feature, %{structure => value}, &Map.put(&1, structure, value))
+  end
+
+  defp derivation_atom(""), do: nil
+  defp derivation_atom(value), do: String.to_atom(value)
+
+  # Merges a locale block over `root` at the feature level, so a locale
+  # that overrides only some features (French overrides plural but not
+  # case) inherits the rest from root.
+  defp deep_merge_derivations(root, override) do
+    Map.merge(root, override, fn _feature, root_structures, override_structures ->
+      Map.merge(root_structures, override_structures)
+    end)
+  end
+
+  @doc """
   Generates measurement system data from `bcp47/measure.xml`.
 
   Returns a map with two keys:
@@ -453,6 +550,7 @@ defmodule Localize.Data.XmlExtractors do
     "bcp47/timezone.xml" => {:bcp47, "timezone.xml"},
     "bcp47/measure.xml" => {:bcp47, "measure.xml"},
     "units.xml" => {:supplemental, "units.xml"},
+    "grammatical_features.xml" => {:supplemental, "grammaticalFeatures.xml"},
     "validity/unit.xml" => {:validity, "unit.xml"}
   }
 
