@@ -11,8 +11,12 @@ defmodule Localize.Unit.CustomRegistry do
 
   Each definition is a map with the following keys:
 
-  * `:base_unit` (required) — the CLDR base unit this custom unit converts to
-    (e.g., `"meter"`, `"kilogram"`, `"second"`).
+  * `:base_unit` (required) — the CLDR unit this custom unit converts to
+    (e.g., `"meter"`, `"kilogram"`, `"second"`). It need not be a
+    fundamental base unit: a derived unit such as `"day"` is accepted and
+    folded down to its fundamental base (`"second"`) at registration, with
+    the factor and offset adjusted accordingly, so the custom unit stays
+    convertible against every CLDR unit in the same category.
 
   * `:factor` (required) — the conversion factor:
     `1 custom_unit = factor * base_unit`.
@@ -129,9 +133,10 @@ defmodule Localize.Unit.CustomRegistry do
   def register(name, definition) do
     with :ok <- validate_name(name),
          :ok <- validate_definition(definition),
-         :ok <- validate_no_collision(name) do
+         :ok <- validate_no_collision(name),
+         {:ok, normalized} <- normalize_base(definition) do
       current = all()
-      :persistent_term.put(@persistent_term_key, Map.put(current, name, definition))
+      :persistent_term.put(@persistent_term_key, Map.put(current, name, normalized))
       :ok
     end
   end
@@ -173,8 +178,9 @@ defmodule Localize.Unit.CustomRegistry do
       Enum.reduce(definitions, %{}, fn {name, definition}, acc ->
         with :ok <- validate_name(name),
              :ok <- validate_definition(definition),
-             :ok <- validate_no_collision(name) do
-          Map.put(acc, name, definition)
+             :ok <- validate_no_collision(name),
+             {:ok, normalized} <- normalize_base(definition) do
+          Map.put(acc, name, normalized)
         else
           {:error, _reason} -> acc
         end
@@ -320,6 +326,67 @@ defmodule Localize.Unit.CustomRegistry do
   def clear do
     :persistent_term.put(@persistent_term_key, %{})
     :ok
+  end
+
+  # ── Base-unit normalization ──
+
+  # A custom unit's `:base_unit` must be a fundamental CLDR base unit,
+  # because compatibility and conversion compare fully-reduced base
+  # units: `compatible?/2` succeeds only when both units reduce to the
+  # same base. When a definition is expressed in terms of a *derived*
+  # unit (e.g. `%{base_unit: "day", factor: 1}`), storing "day"
+  # verbatim leaves the custom unit reducing to "day" while every CLDR
+  # unit reduces "day" to "second" — so the two never match.
+  #
+  # Fold the derived unit's own conversion into the custom factor and
+  # offset so the stored base becomes the fundamental base with an
+  # equivalent factor: `guestnight` given as `base_unit: "day",
+  # factor: 1` is stored as `base_unit: "second", factor: 86400.0`.
+  # A definition already expressed against a fundamental base is stored
+  # unchanged, and `:special` (function-based) definitions — which do
+  # not convert via a linear factor — are left untouched.
+  defp normalize_base(%{factor: factor} = definition) when is_number(factor) do
+    base = definition.base_unit
+
+    case Localize.Unit.BaseUnit.base_unit(base) do
+      {:ok, ^base} ->
+        {:ok, definition}
+
+      {:ok, true_base} ->
+        with {:ok, base_factor, base_offset} <- base_conversion(base, true_base) do
+          offset = Map.get(definition, :offset, 0.0)
+
+          {:ok,
+           definition
+           |> Map.put(:base_unit, true_base)
+           |> Map.put(:factor, factor * base_factor)
+           |> Map.put(:offset, offset * base_factor + base_offset)}
+        end
+
+      {:error, _reason} ->
+        {:error, "unknown base unit: #{inspect(base)}"}
+    end
+  end
+
+  defp normalize_base(definition), do: {:ok, definition}
+
+  # The linear parameters `{factor, offset}` that convert one unit of
+  # `base` into `true_base`, such that
+  # `value_in_true_base = value_in_base * factor + offset`. For a simple
+  # derived unit CLDR stores these directly; for a compound derived unit
+  # they are recovered from two reference conversions (the offset is the
+  # image of zero, the factor the difference across one unit).
+  defp base_conversion(base, true_base) do
+    case Localize.Unit.Data.conversion_factor_raw(base) do
+      %{factor: factor, offset: offset} when is_number(factor) ->
+        {:ok, factor, offset}
+
+      _other ->
+        with {:ok, at_zero} <- Localize.Unit.Conversion.convert(0, base, true_base),
+             {:ok, at_one} <- Localize.Unit.Conversion.convert(1, base, true_base) do
+          {:ok, at_one - at_zero, at_zero}
+        end
+    end
   end
 
   # ── Validation ──

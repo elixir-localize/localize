@@ -53,6 +53,16 @@ defmodule Localize.Unit.ParseTest do
       assert unit.name == "kilometer-per-hour"
     end
 
+    test "unit symbols resolving to compound names parse (issue #42)" do
+      # The locale name index keys compound units with underscores
+      # (:meter_per_second); resolving a symbol must yield the canonical
+      # hyphenated identifier the grammar accepts, not the raw key.
+      assert {:ok, %{name: "meter-per-second"}} = Localize.Unit.parse("1 m/s")
+      assert {:ok, %{name: "kilowatt-hour"}} = Localize.Unit.parse("3 kWh")
+      assert {:ok, %{name: "kilometer-per-hour"}} = Localize.Unit.parse("5 km/h")
+      assert {:ok, %{name: "mile-per-hour"}} = Localize.Unit.parse("2 mph")
+    end
+
     test "parses units registered at runtime" do
       :ok =
         Localize.Unit.define_unit("cubit", %{

@@ -71,11 +71,24 @@ defmodule Localize.Unit.NameIndex do
             {category, category_units} <- Map.get(units, style, %{}),
             {unit, unit_data} <- category_units,
             name <- unit_names(unit_data),
-            do: {normalize(name), %{unit: to_string(unit), category: to_string(category)}}
+            do: {normalize(name), %{unit: unit_identifier(unit), category: to_string(category)}}
 
       {:error, _} ->
         []
     end
+  end
+
+  # Locale unit data keys compound identifiers with underscores
+  # (`:meter_per_second`, `:kilowatt_hour`), but the canonical CLDR
+  # identifier that the parser and `new/1` accept uses hyphens
+  # (`meter-per-second`, `kilowatt-hour`). Emit the canonical form so
+  # a symbol like "m/s" or "kWh" resolves to a parseable identifier.
+  # The transformation is the exact inverse of the identifier→key
+  # mapping CLDR applies, so it round-trips every real unit; the only
+  # underscore-free pseudo-units ("per", "times", "power2") are never
+  # valid identifiers either way.
+  defp unit_identifier(unit) do
+    unit |> to_string() |> String.replace("_", "-")
   end
 
   # The canonical identifiers themselves always parse, in every

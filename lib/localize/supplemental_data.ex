@@ -40,6 +40,16 @@ defmodule Localize.SupplementalData do
   end
 
   @doc false
+  # The CLDR compound-unit grammatical-derivation table, keyed by base
+  # language subtag string (with `"root"` as the default). Read by the
+  # unit formatter to derive each component's plural/case when composing
+  # a compound unit that has no precomposed pattern.
+  @spec unit_grammatical_derivations() :: %{String.t() => map()}
+  def unit_grammatical_derivations do
+    load_supplemental("unit_grammatical_derivations.etf")
+  end
+
+  @doc false
   @spec aliases() :: map()
   def aliases do
     load_supplemental("aliases.etf")

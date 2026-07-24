@@ -688,6 +688,22 @@ defmodule Localize.Unit.Formatter do
         options
       )
     else
+      _ -> format_times_or_fallback(value, name, parsed, unit_data, locale, options)
+    end
+  end
+
+  # A "times" compound is a product of two or more single units with no
+  # denominator (e.g. "tonne-kilometer"). CLDR has direct patterns only
+  # for a subset (e.g. "newton-meter"); the rest are composed at runtime
+  # from the component nouns and the locale's `compound.times` pattern.
+  # When composition is not possible (a component has no locale pattern,
+  # or the times pattern is absent) fall back to the custom-unit / raw
+  # path so nothing regresses to an error.
+  defp format_times_or_fallback(value, name, parsed, unit_data, locale, options) do
+    with {:ok, single_units} <- compound_times_parts(parsed),
+         {:ok, string} <- format_times_compound(value, single_units, unit_data, locale, options) do
+      {:ok, string}
+    else
       _ -> format_custom_or_fallback(value, name, locale, options)
     end
   end
@@ -726,6 +742,156 @@ defmodule Localize.Unit.Formatter do
   end
 
   defp compound_per_parts(_parsed), do: :not_compound
+
+  # ── Compound times-unit formatting ─────────────────────────
+  #
+  # Composes the localized name of a product unit ("tonne-kilometer")
+  # per the CLDR algorithm (TR35 "Compound Units", `patternTimes`):
+  # each component is formatted to its noun in the grammatically-derived
+  # plural/case, and the nouns are joined with the locale's
+  # `compound.times` pattern. The count is carried by the trailing
+  # component (and, in French, by every component); the number is then
+  # placed using the leading component's own pattern so its position and
+  # spacing match a simple unit in that locale.
+
+  # Extracts the product's single units, or `:not_compound` for anything
+  # that is not a two-or-more single-unit numerator with an empty
+  # denominator (a `:constant` factor, or a per-compound, is excluded).
+  defp compound_times_parts({:unit, keyword}) do
+    numerator = Keyword.get(keyword, :numerator, [])
+    denominator = Keyword.get(keyword, :denominator, [])
+
+    case {numerator, denominator} do
+      {[_, _ | _] = single_units, []} ->
+        if Enum.all?(single_units, &match?({:single_unit, _keyword}, &1)) do
+          {:ok, single_units}
+        else
+          :not_compound
+        end
+
+      _ ->
+        :not_compound
+    end
+  end
+
+  defp compound_times_parts(_parsed), do: :not_compound
+
+  defp format_times_compound(value, single_units, unit_data, locale, options) do
+    grammatical_case = Keyword.get(options, :grammatical_case, :nominative)
+    count_plural = plural_form(value, locale)
+
+    # CLDR derives each component's plural and case from the compound as a
+    # whole (grammaticalFeatures.xml `deriveComponent structure="times"`):
+    # value0 governs every component but the last, value1 the last, and a
+    # `:compound` derivation means "carry the compound's own category". The
+    # root default renders leading components singular so the trailing one
+    # carries the count ("5 newton-meters"); French pluralizes every
+    # component ("5 tonnes-kilomètres"). The table is loaded from CLDR data.
+    {{plural0, plural1}, {case0, case1}} = times_derivations(locale)
+
+    leading_plural = resolve_derived_category(plural0, count_plural)
+    leading_case = resolve_derived_category(case0, grammatical_case)
+    trailing_plural = resolve_derived_category(plural1, count_plural)
+    trailing_case = resolve_derived_category(case1, grammatical_case)
+
+    {leading_units, [trailing_unit]} = Enum.split(single_units, -1)
+
+    specs =
+      Enum.map(leading_units, &{&1, leading_case, leading_plural}) ++
+        [{trailing_unit, trailing_case, trailing_plural}]
+
+    with times_tokens when is_list(times_tokens) <- times_pattern_tokens(unit_data),
+         {:ok, [leading_pattern | _] = patterns} <- resolve_times_components(specs, unit_data),
+         nouns = Enum.map(patterns, &pattern_noun/1),
+         true <- Enum.all?(nouns, &is_binary/1) do
+      combined_noun = combine_times_nouns(nouns, times_tokens)
+
+      final_tokens =
+        splice_combined_noun(pattern_tokens(leading_pattern), hd(nouns), combined_noun)
+
+      with {:ok, number_str} <- format_number(value, options) do
+        result = Localize.Substitution.substitute(number_str, final_tokens)
+        {:ok, result |> :erlang.iolist_to_binary() |> String.trim()}
+      end
+    else
+      _ -> :error
+    end
+  end
+
+  # Resolves each `{single_unit, case, plural}` spec to its CLDR pattern,
+  # or `:error` if any component has no pattern in the locale (an exotic
+  # component the composed path cannot name).
+  defp resolve_times_components(specs, unit_data) do
+    patterns =
+      Enum.map(specs, fn {{:single_unit, keyword}, grammatical_case, plural} ->
+        unit_name = normalize_unit_name(denominator_unit_name(keyword))
+
+        case find_unit_formats(unit_data, unit_name) do
+          nil -> nil
+          formats -> resolve_pattern(formats, grammatical_case, plural)
+        end
+      end)
+
+    if Enum.all?(patterns, &is_list/1), do: {:ok, patterns}, else: :error
+  end
+
+  # Joins component nouns left-to-right with the two-placeholder
+  # `compound.times` pattern (`[0, "⋅", 1]`), matching CLDR's
+  # left-associative combination for three-or-more-unit products.
+  defp combine_times_nouns([first | rest], times_tokens) do
+    Enum.reduce(rest, first, &apply_times_pattern(&2, &1, times_tokens))
+  end
+
+  defp apply_times_pattern(left, right, times_tokens) do
+    Enum.map_join(times_tokens, "", fn
+      0 -> left
+      1 -> right
+      literal when is_binary(literal) -> literal
+      _other -> ""
+    end)
+  end
+
+  # Substitutes the combined product noun for the leading component's own
+  # noun inside the leading pattern, so the number keeps that component's
+  # placeholder position and spacing.
+  defp splice_combined_noun(leading_tokens, leading_noun, combined_noun) do
+    Enum.map(leading_tokens, fn
+      token when is_binary(token) ->
+        String.replace(token, leading_noun, combined_noun, global: false)
+
+      token ->
+        token
+    end)
+  end
+
+  defp times_pattern_tokens(unit_data) do
+    case get_in(unit_data, [:compound, :times, :compound_unit_pattern]) do
+      tokens when is_list(tokens) -> tokens
+      _other -> nil
+    end
+  end
+
+  # The `{plural, case}` derivations for a "times" compound in the given
+  # locale, each a `{value0, value1}` tuple. Looks up the locale's base
+  # language in the CLDR derivation table, falling back to `"root"` and
+  # then to the hard-coded root defaults if the table is unavailable.
+  defp times_derivations(locale) do
+    table = Localize.SupplementalData.unit_grammatical_derivations()
+    language_table = Map.get(table, times_language(locale)) || Map.get(table, "root") || %{}
+
+    {
+      get_in(language_table, [:plural, :times]) || {:one, :compound},
+      get_in(language_table, [:case, :times]) || {:nominative, :compound}
+    }
+  end
+
+  # A `:compound` derivation resolves to the compound's own category (the
+  # count's plural category or the requested case); any other value is a
+  # fixed category used verbatim.
+  defp resolve_derived_category(:compound, compound_category), do: compound_category
+  defp resolve_derived_category(category, _compound_category), do: category
+
+  defp times_language(%Localize.LanguageTag{language: language}), do: Atom.to_string(language)
 
   # ── Custom unit formatting ─────────────────────────────────
   #
