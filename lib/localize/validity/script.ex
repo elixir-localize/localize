@@ -8,7 +8,7 @@ defmodule Localize.Validity.Script do
   # must trigger recompilation of this module.
   @external_resource Application.app_dir(
                        :localize,
-                       "priv/localize/unicode_script_to_subtag_mapping.etf"
+                       "priv/localize/supplemental_data/unicode_script_to_subtag_mapping.etf"
                      )
   @unicode_to_subtag_mapping Localize.SupplementalData.unicode_script_to_subtag_mapping()
 

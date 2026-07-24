@@ -234,6 +234,11 @@ defmodule Localize.Data.Validity do
       |> Map.fetch!("tz")
       |> Enum.map(fn
         {k, nil} -> {k, nil}
+        # A deprecated timezone code carries a `{:deprecated, preferred}`
+        # tag rather than a name string; pass it through untouched so
+        # the downstream deep_map can normalize it (String.split/1 would
+        # raise on the tuple).
+        {k, {:deprecated, _preferred} = deprecated} -> {k, deprecated}
         {k, v} -> {k, String.split(v)}
       end)
       |> Map.new()

@@ -7,17 +7,6 @@ defmodule Localize.SupplementalData do
     Application.app_dir(:localize, "priv/localize")
   end
 
-  defp load_data(filename) do
-    key = {:localize, :data, filename}
-
-    Localize.DataLoader.load(key, fn ->
-      localize_dir()
-      |> Path.join(filename)
-      |> File.read!()
-      |> :erlang.binary_to_term()
-    end)
-  end
-
   defp load_supplemental(filename) do
     key = {:localize, :supplemental, filename}
 
@@ -65,7 +54,7 @@ defmodule Localize.SupplementalData do
   @doc false
   @spec all_locale_ids() :: [atom()]
   def all_locale_ids do
-    load_data("all_locale_names.etf")
+    load_supplemental("all_locale_names.etf")
   end
 
   @doc false
@@ -118,7 +107,7 @@ defmodule Localize.SupplementalData do
   @doc false
   @spec unicode_script_to_subtag_mapping() :: map()
   def unicode_script_to_subtag_mapping do
-    load_data("unicode_script_to_subtag_mapping.etf")
+    load_supplemental("unicode_script_to_subtag_mapping.etf")
   end
 
   @doc false
@@ -165,7 +154,7 @@ defmodule Localize.SupplementalData do
   @doc false
   @spec known_territories() :: [atom()]
   def known_territories do
-    load_data("known_territories.etf")
+    load_supplemental("known_territories.etf")
   end
 
   @doc false
