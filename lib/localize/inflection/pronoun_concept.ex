@@ -13,6 +13,12 @@ defmodule Localize.Inflection.PronounConcept do
 
   """
 
+  # The per-language synthesizers and conformance harnesses are ported
+  # from the upstream C++ linguistic rule tables; their branchiness and
+  # nesting mirror the reference implementation they are verified
+  # against (see guides/inflection.md).
+  # credo:disable-for-this-file Credo.Check.Refactor.Nesting
+
   alias Localize.Inflection.{
     Concept,
     Data,
@@ -127,11 +133,11 @@ defmodule Localize.Inflection.PronounConcept do
          :ok <- Data.ensure_loaded(atom) do
       {:ok, atom}
     else
-      {:error, {reason, _locale}} when reason in [:unknown_locale, :data_not_available] ->
-        {:error, {reason, locale}}
+      {:error, %_struct{} = exception} ->
+        {:error, exception}
 
       _error ->
-        {:error, {:data_not_available, locale}}
+        {:error, Localize.InflectionDataNotAvailableError.exception(locale: locale)}
     end
   end
 
@@ -144,7 +150,7 @@ defmodule Localize.Inflection.PronounConcept do
     |> resolve_table_locale()
     |> case do
       nil ->
-        {:error, {:no_pronoun_table, locale}}
+        {:error, Localize.InflectionNotSupportedError.exception(locale: locale)}
 
       table_locale ->
         key = {__MODULE__, model_locale, table_locale}
@@ -258,7 +264,7 @@ defmodule Localize.Inflection.PronounConcept do
       end)
 
     if index == nil do
-      {:error, {:unknown_pronoun, pronoun}}
+      {:error, Localize.UnknownPronounError.exception(pronoun: pronoun, locale: concept.locale)}
     else
       defaults = defaults |> Enum.reject(fn {_name, value} -> value == "" end) |> Map.new()
       {:ok, %{concept | default_constraints: defaults, default_index: index}}
@@ -297,13 +303,19 @@ defmodule Localize.Inflection.PronounConcept do
 
     case FeatureModel.feature(concept.locale, name) do
       nil ->
-        {:error, {:unknown_feature, name}}
+        {:error, Localize.UnknownFeatureError.exception(feature: name, locale: concept.locale)}
 
       %{type: :bounded, values: values} ->
         if MapSet.member?(values, value) do
           {:ok, %{concept | constraints: Map.put(concept.constraints, name, value)}}
         else
-          {:error, {:invalid_feature_value, name, value}}
+          {:error,
+           Localize.InvalidValueError.exception(
+             value: value,
+             expected: :grammeme,
+             allowed_values: Enum.sort(values),
+             context: name
+           )}
         end
 
       %{type: :unbounded} ->

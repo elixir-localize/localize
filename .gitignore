@@ -36,6 +36,11 @@ mise.toml
 
 # Generated inflection data (populated via mix localize.inflection.generate)
 /priv/localize/inflection/
+
+# Upstream inflection source data (populated via mix localize.inflection.download),
+# except the conformance test files which are checked in
+/data/inflection/*
+!/data/inflection/test/
 !/priv/localize/locales/und.etf
 
 # Inflection data (sources and generated ETFs) — belongs to the

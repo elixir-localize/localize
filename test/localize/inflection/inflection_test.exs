@@ -10,10 +10,10 @@ defmodule Localize.InflectionTest do
   doctest Localize.Inflection.Quantify
 
   test "inflects with invalid constraints" do
-    assert {:error, {:unknown_feature, "sizzle"}} =
+    assert {:error, %Localize.UnknownFeatureError{feature: "sizzle"}} =
              Localize.Inflection.inflect("cat", :en, sizzle: "plural")
 
-    assert {:error, {:invalid_feature_value, "number", "dual"}} =
+    assert {:error, %Localize.InvalidValueError{value: "dual", context: "number"}} =
              Localize.Inflection.inflect("cat", :en, number: "dual")
   end
 
@@ -32,10 +32,11 @@ defmodule Localize.InflectionTest do
   end
 
   test "pronoun errors" do
-    assert {:error, {:unknown_pronoun, "garbage"}} =
+    assert {:error, %Localize.UnknownPronounError{pronoun: "garbage"}} =
              Localize.Inflection.pronoun(:en, "garbage", person: "first")
 
-    assert {:error, {:unknown_locale, :tlh}} = Localize.Inflection.pronoun(:tlh, person: "first")
+    assert {:error, %Localize.InflectionNotSupportedError{locale: :tlh}} =
+             Localize.Inflection.pronoun(:tlh, person: "first")
   end
 
   test "locales are accepted as strings, matching LanguageTag canonical_locale_id" do
@@ -48,7 +49,7 @@ defmodule Localize.InflectionTest do
     assert {:ok, _values} = Localize.Inflection.feature_values("de", :case)
 
     assert Localize.Inflection.inflect("cat", "tlh", number: :plural) ==
-             {:error, {:unknown_locale, "tlh"}}
+             {:error, %Localize.InflectionNotSupportedError{locale: "tlh"}}
   end
 
   test "regional locales fall back to their base language" do

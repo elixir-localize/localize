@@ -1,6 +1,12 @@
 defmodule Localize.Inflection.DataGen.Generate do
   @moduledoc false
 
+  # The per-language synthesizers and conformance harnesses are ported
+  # from the upstream C++ linguistic rule tables; their branchiness and
+  # nesting mirror the reference implementation they are verified
+  # against (see guides/inflection.md).
+  # credo:disable-for-this-file Credo.Check.Refactor.Nesting
+
   # Compiles the parsed upstream source data into a per-locale
   # artifact stored as compressed ETF under `priv/data/`.
   #
@@ -11,7 +17,7 @@ defmodule Localize.Inflection.DataGen.Generate do
 
   alias Localize.Inflection.DataGen.{Features, Lexicon, Paradigms}
 
-  @source_dir "data/source"
+  @source_dir "data/inflection"
 
   @doc """
   Generates the artifact for one locale and writes it to
@@ -270,7 +276,7 @@ defmodule Localize.Inflection.DataGen.Generate do
   end
 
   defp write_artifact(locale, artifact) do
-    directory = Path.join([File.cwd!(), "priv", "data"])
+    directory = Path.join([File.cwd!(), "priv", "localize", "inflection"])
     File.mkdir_p!(directory)
     binary = :erlang.term_to_binary(artifact, [:compressed])
     File.write!(Path.join(directory, "#{locale}.etf"), binary)

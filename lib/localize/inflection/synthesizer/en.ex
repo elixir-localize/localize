@@ -1,6 +1,12 @@
 defmodule Localize.Inflection.Synthesizer.En do
   @moduledoc false
 
+  # The per-language synthesizers and conformance harnesses are ported
+  # from the upstream C++ linguistic rule tables; their branchiness and
+  # nesting mirror the reference implementation they are verified
+  # against (see guides/inflection.md).
+  # credo:disable-for-this-file Credo.Check.Refactor.Nesting
+
   # The English grammar synthesizer, ported from
   # `EnGrammarSynthesizer` and its lookup and display functions.
 

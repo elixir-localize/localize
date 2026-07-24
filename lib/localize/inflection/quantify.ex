@@ -134,7 +134,7 @@ defmodule Localize.Inflection.Quantify do
   defp resolve_category(internal, number, options) do
     case Keyword.get(options, :plural) do
       nil when is_nil(number) ->
-        {:error, :no_plural_category}
+        {:error, Localize.NoPluralCategoryError.exception(locale: internal)}
 
       nil ->
         bcp47 = String.replace(internal, "_", "-")
@@ -148,7 +148,12 @@ defmodule Localize.Inflection.Quantify do
         {:ok, category}
 
       other ->
-        {:error, {:invalid_plural_category, other}}
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: other,
+           expected: :plural_category,
+           allowed_values: @categories
+         )}
     end
   end
 

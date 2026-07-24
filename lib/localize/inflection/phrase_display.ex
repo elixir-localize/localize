@@ -1,6 +1,12 @@
 defmodule Localize.Inflection.PhraseDisplay do
   @moduledoc false
 
+  # The per-language synthesizers and conformance harnesses are ported
+  # from the upstream C++ linguistic rule tables; their branchiness and
+  # nesting mirror the reference implementation they are verified
+  # against (see guides/inflection.md).
+  # credo:disable-for-this-file Credo.Check.Refactor.Nesting
+
   # Port of the upstream `PhraseDisplayFunction`, the generic
   # dictionary-driven display function shared by Urdu, Gujarati,
   # Kannada, Marathi, Punjabi and Telugu. There is no heuristic

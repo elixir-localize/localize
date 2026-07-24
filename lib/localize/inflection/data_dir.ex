@@ -3,8 +3,9 @@ defmodule Localize.Inflection.DataDir do
   Resolves the directory holding the compiled inflection data.
 
   Inflection data is optional: when it has not been downloaded,
-  inflection functions return `{:error, {:data_not_available,
-  locale}}` rather than raising. Three configuration forms are
+  inflection functions return
+  `{:error, %Localize.InflectionDataNotAvailableError{}}` rather
+  than raising. Three configuration forms are
   recognised, following the locale-cache convention (see
   `Localize.Locale.Provider.locale_cache_dir/0`):
 

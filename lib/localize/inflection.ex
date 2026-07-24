@@ -70,10 +70,7 @@ defmodule Localize.Inflection do
     constraints = Feature.normalize_constraints(constraints)
 
     with {:ok, concept} <- Concept.new(locale, phrase, constraints: constraints) do
-      case Concept.to_speakable_string(concept) do
-        nil -> {:error, :not_inflectable}
-        speakable -> {:ok, SpeakableString.print(speakable)}
-      end
+      {:ok, concept |> Concept.to_speakable_string() |> SpeakableString.print()}
     end
   end
 
@@ -167,13 +164,14 @@ defmodule Localize.Inflection do
       {:ok, [:accusative, :genitive, :nominative]}
 
       iex> Localize.Inflection.feature_values(:en, :sizzle)
-      {:error, {:unknown_feature, :sizzle}}
+      {:error, %Localize.UnknownFeatureError{feature: :sizzle, locale: :en}}
 
   """
   def feature_values(locale, feature) do
-    with {:ok, features} <- features(locale) do
+    with {:ok, locale} <- Localize.Inflection.Locale.resolve(locale),
+         {:ok, features} <- features(locale) do
       case Map.get(features, feature) do
-        nil -> {:error, {:unknown_feature, feature}}
+        nil -> {:error, Localize.UnknownFeatureError.exception(feature: feature, locale: locale)}
         %{values: values} -> {:ok, values}
       end
     end
@@ -218,7 +216,7 @@ defmodule Localize.Inflection do
     with {:ok, concept} <- PronounConcept.new(locale, options),
          {:ok, concept} <- put_pronoun_constraints(concept, constraints) do
       case PronounConcept.to_speakable_string(concept) do
-        nil -> {:error, :no_matching_pronoun}
+        nil -> {:error, Localize.ItemNotFoundError.exception(locale: locale, keys: [:pronoun])}
         speakable -> {:ok, SpeakableString.print(speakable)}
       end
     end

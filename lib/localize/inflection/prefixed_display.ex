@@ -1,6 +1,12 @@
 defmodule Localize.Inflection.PrefixedDisplay do
   @moduledoc false
 
+  # The per-language synthesizers and conformance harnesses are ported
+  # from the upstream C++ linguistic rule tables; their branchiness and
+  # nesting mirror the reference implementation they are verified
+  # against (see guides/inflection.md).
+  # credo:disable-for-this-file Credo.Check.Refactor.Nesting
+
   # Port of the upstream `PrefixedDisplayFunction` shared by
   # Ukrainian and Czech: whole-string dictionary-only inflection
   # with an optional detachable superlative prefix (най/nej).

@@ -1,6 +1,13 @@
 defmodule Localize.Inflection.Synthesizer.Nl do
   @moduledoc false
 
+  # The per-language synthesizers and conformance harnesses are ported
+  # from the upstream C++ linguistic rule tables; their branchiness and
+  # nesting mirror the reference implementation they are verified
+  # against (see guides/inflection.md).
+  # credo:disable-for-this-file Credo.Check.Refactor.CyclomaticComplexity
+  # credo:disable-for-this-file Credo.Check.Refactor.Nesting
+
   # The Dutch grammar synthesizer, ported from
   # `NlGrammarSynthesizer` and its lookup and inflection patterns.
   # Article choice is de/het (het for singular neuter or

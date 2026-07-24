@@ -1,6 +1,12 @@
 defmodule Localize.Inflection.Lookup do
   @moduledoc false
 
+  # The per-language synthesizers and conformance harnesses are ported
+  # from the upstream C++ linguistic rule tables; their branchiness and
+  # nesting mirror the reference implementation they are verified
+  # against (see guides/inflection.md).
+  # credo:disable-for-this-file Credo.Check.Refactor.Nesting
+
   # Port of the upstream `DictionaryLookupFunction`: determines the
   # value of one grammatical category (such as number or gender) for
   # a word or phrase from the dictionary, with optional

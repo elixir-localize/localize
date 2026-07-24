@@ -46,11 +46,13 @@ defmodule Localize.Inflection.Locale do
 
   * `{:ok, atom}` when the data is available.
 
-  * `{:error, {:data_not_available, locale}}` when the language is
-    supported but its inflection data has not been downloaded.
+  * `{:error, %Localize.InflectionDataNotAvailableError{}}` when
+    the language is supported but its inflection data has not been
+    downloaded.
 
-  * `{:error, {:unknown_locale, locale}}` when no language in the
-    fallback chain is supported by the inflection data.
+  * `{:error, %Localize.InflectionNotSupportedError{}}` when no
+    language in the fallback chain is supported by the inflection
+    data.
 
   """
   def resolve(locale) do
@@ -61,10 +63,10 @@ defmodule Localize.Inflection.Locale do
         {:ok, String.to_atom(match)}
 
       Enum.any?(candidates, &(&1 in @supported)) ->
-        {:error, {:data_not_available, locale}}
+        {:error, Localize.InflectionDataNotAvailableError.exception(locale: locale)}
 
       true ->
-        {:error, {:unknown_locale, locale}}
+        {:error, Localize.InflectionNotSupportedError.exception(locale: locale)}
     end
   end
 

@@ -65,8 +65,11 @@ defmodule Localize.Inflection.Concept do
       iex> Localize.Inflection.Concept.to_speakable_string(concept)
       "cats"
 
-      iex> Localize.Inflection.Concept.new(:en, "cat", constraints: %{number: :dual})
-      {:error, {:invalid_feature_value, "number", "dual"}}
+      iex> {:error, error} = Localize.Inflection.Concept.new(:en, "cat", constraints: %{number: :dual})
+      iex> error.value
+      "dual"
+      iex> error.allowed_values
+      ["plural", "singular"]
 
   """
   def new(locale, value, options \\ []) do
@@ -127,13 +130,19 @@ defmodule Localize.Inflection.Concept do
   defp validate_constraint(concept, name, value) do
     case FeatureModel.feature(concept.locale, name) do
       nil ->
-        {:error, {:unknown_feature, name}}
+        {:error, Localize.UnknownFeatureError.exception(feature: name, locale: concept.locale)}
 
       %{type: :bounded, values: values} ->
         if MapSet.member?(values, value) do
           :ok
         else
-          {:error, {:invalid_feature_value, name, value}}
+          {:error,
+           Localize.InvalidValueError.exception(
+             value: value,
+             expected: :grammeme,
+             allowed_values: Enum.sort(values),
+             context: name
+           )}
         end
 
       %{type: :unbounded} ->

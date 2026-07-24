@@ -24,7 +24,7 @@ defmodule Localize.MixProject do
       compilers: maybe_elixir_make() ++ [:yecc, :leex] ++ Mix.compilers(),
       make_makefile: "c_src/Makefile",
       dialyzer: [
-        plt_add_apps: ~w(gettext inets mix sweet_xml nimble_parsec)a,
+        plt_add_apps: ~w(gettext inets mix sweet_xml nimble_parsec xmerl)a,
         ignore_warnings: ".dialyzer_ignore.exs",
         flags: [
           :error_handling,
@@ -132,6 +132,7 @@ defmodule Localize.MixProject do
       Territories: ~r/Localize.Territory(?!\w*Error)/,
       Scripts: ~r/Localize.Script(?!\w*Error)/,
       "Units of Measure": ~r/^Localize\.Unit?(?:\.|$)/,
+      Inflection: ~r/Localize.Inflection(?!\w*Error)/,
       Messages: ~r/Localize.Message(?!\w*Error)/,
       Gettext: ~r/Gettext(?!\w*Error)/,
       Lists: ~r/Localize.List(?!\w*Error)/,
@@ -153,6 +154,9 @@ defmodule Localize.MixProject do
         "guides/unit_formatting.md",
         "guides/list_formatting.md",
         "guides/message_formatting.md",
+        "guides/inflection.md",
+        "guides/what_is_inflection.md",
+        "guides/grammatical_features.md",
         "guides/locale_validation.md",
         "guides/display_names.md",
         "guides/collation.md"
