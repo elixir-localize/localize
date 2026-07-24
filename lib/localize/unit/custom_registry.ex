@@ -26,7 +26,14 @@ defmodule Localize.Unit.CustomRegistry do
   * `:category` (required) — the unit category (e.g., `"length"`, `"mass"`).
 
   * `:display` (optional) — locale-specific display patterns. A nested map of
-    `locale => style => plural_patterns`.
+    `locale => style => plural_patterns`, where each pattern is a `"{0}"`
+    placeholder string (`%{one: "{0} smoot", other: "{0} smoots"}`). For
+    locales with grammatical case, the plural patterns may instead be nested
+    under case keys (`%{nominative: %{one: ...}, dative: %{one: ...}}`);
+    `Localize.Unit.to_string/2` selects the map matching its
+    `:grammatical_case` option, falling back to the nominative. When a case
+    has no patterns, the `:inflect` option of `Localize.Unit.to_string/2`
+    can inflect the nominative pattern through `Localize.Inflection`.
 
   """
 

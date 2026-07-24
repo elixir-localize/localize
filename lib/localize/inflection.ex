@@ -24,6 +24,9 @@ defmodule Localize.Inflection do
   """
 
   alias Localize.Inflection.{Concept, Data, Feature, PronounConcept, Quantify, SpeakableString}
+  alias Localize.Inflection.{Dictionary, Tokenizer}
+
+  @digits_only ~r/^[[:digit:]]+$/u
 
   @doc """
   Inflects a word or phrase according to grammatical constraints.
@@ -109,6 +112,62 @@ defmodule Localize.Inflection do
         value when is_atom(value) -> {:ok, value}
         value -> {:ok, SpeakableString.print(value)}
       end
+    end
+  end
+
+  @doc """
+  Returns true when every significant word of a phrase is in the
+  locale's inflection dictionary.
+
+  A phrase that is dictionary-known inflects from attested
+  inflection tables. A phrase that is not may still inflect — the
+  synthesizers fall back to suffix-exemplar guessing, which is
+  usually right and occasionally very wrong — so this predicate is
+  the confidence gate for callers that must never emit a guessed
+  form (see the `:inflect` option of `Localize.Unit.to_string/2`).
+
+  Digit-only words are skipped; a phrase with no words at all
+  returns false, as does an unavailable locale or missing
+  inflection data (the gate fails closed).
+
+  ### Arguments
+
+  * `phrase` is the word or phrase to check.
+
+  * `locale` is a locale atom or string, canonically BCP47.
+
+  ### Returns
+
+  * `true` when every significant word is dictionary-known,
+    otherwise `false`.
+
+  ### Examples
+
+      iex> Localize.Inflection.known?("cat", :en)
+      true
+
+      iex> Localize.Inflection.known?("xyzzy cat", :en)
+      false
+
+      iex> Localize.Inflection.known?("metr", :pl)
+      false
+
+  """
+  def known?(phrase, locale) when is_binary(phrase) do
+    with {:ok, locale} <- Localize.Inflection.Locale.resolve(locale),
+         :ok <- Data.ensure_loaded(locale) do
+      words =
+        locale
+        |> Tokenizer.word_tokens(phrase)
+        |> Enum.reject(&Regex.match?(@digits_only, &1.clean))
+
+      words != [] and
+        Enum.all?(words, fn token ->
+          Dictionary.combined_grammemes(locale, token.value) != nil or
+            Dictionary.combined_grammemes(locale, token.clean) != nil
+        end)
+    else
+      {:error, _reason} -> false
     end
   end
 

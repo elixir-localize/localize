@@ -193,6 +193,37 @@ iex> Localize.Unit.to_string(unit, locale: :fr)
 {:ok, "2,5\u00A0kilogrammes"}
 ```
 
+### Grammatical case
+
+Languages with case systems decline the unit noun to fit its role in the sentence. The `:grammatical_case` option selects a case-keyed CLDR pattern where one exists:
+
+```elixir
+iex> unit = Localize.Unit.new!(2, "kilometer")
+iex> Localize.Unit.to_string(unit, locale: :ru, grammatical_case: :instrumental)
+{:ok, "2 \u043A\u0438\u043B\u043E\u043C\u0435\u0442\u0440\u0430\u043C\u0438"}
+
+iex> Localize.Unit.to_string(unit, locale: :de, grammatical_case: :dative)
+{:ok, "2 Kilometern"}
+```
+
+CLDR case-variant patterns exist for roughly thirty locales and not for every unit or case. When the requested case has no pattern, the nominative pattern is used silently \u2014 unless the `:inflect` option enables the [inflection engine](https://hexdocs.pm/localize/inflection.html) as a fallback. `inflect: :safe` changes a form only through attested dictionary paths, so a guessed form can never reach the output; `inflect: :always` also allows the engine's suffix-exemplar guessing. The engine fallback requires the optional inflection data (`mix localize.download_inflection`).
+
+```elixir
+# Russian prepositional has no CLDR unit pattern; the engine supplies it.
+iex> unit = Localize.Unit.new!(2, "kilometer")
+iex> Localize.Unit.to_string(unit, locale: :ru, grammatical_case: :prepositional, inflect: :safe)
+{:ok, "2 \u043A\u0438\u043B\u043E\u043C\u0435\u0442\u0440\u0430\u0445"}
+```
+
+### Grammatical gender
+
+`Localize.Unit.grammatical_gender/2` returns the gender of a simple unit \u2014 from the CLDR data when recorded, otherwise derived through the inflection engine (never guessed):
+
+```elixir
+iex> Localize.Unit.grammatical_gender(Localize.Unit.new!(1, "hour"), locale: :de)
+{:ok, :feminine}
+```
+
 ## Unit conversion
 
 ### Basic conversion

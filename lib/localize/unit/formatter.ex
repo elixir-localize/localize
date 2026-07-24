@@ -231,10 +231,14 @@ defmodule Localize.Unit.Formatter do
     with unit_formats when is_map(unit_formats) <- find_unit_formats(unit_data, unit_name),
          plural = plural_form(value, language_tag),
          grammatical_case = Keyword.get(options, :grammatical_case, :nominative),
-         tokens when is_list(tokens) <-
-           pattern_tokens(resolve_pattern(unit_formats, grammatical_case, plural)) do
+         {:ok, pattern} <-
+           select_pattern(unit_formats, grammatical_case, plural, language_tag, options),
+         tokens when is_list(tokens) <- pattern_tokens(pattern) do
       {:ok, tokens}
     else
+      {:error, _reason} = error ->
+        error
+
       _no_pattern ->
         {:error,
          Localize.InvalidValueError.exception(
@@ -273,6 +277,33 @@ defmodule Localize.Unit.Formatter do
 
   defp unit_part(""), do: []
   defp unit_part(text), do: [%{type: :unit, value: text}]
+
+  # ── Grammatical gender ─────────────────────────────────────
+
+  # Resolves the grammatical gender of a simple unit: the CLDR
+  # `gender` field when present, otherwise the inflection engine
+  # (see `Localize.Unit.Inflection.gender/3`).
+  def grammatical_gender(%Localize.Unit{name: name}, options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, unit_data} <- load_unit_data(language_tag, :long) do
+      unit_name = normalize_unit_name(name)
+
+      case find_unit_formats(unit_data, unit_name) do
+        nil ->
+          {:error,
+           Localize.InvalidValueError.exception(
+             value: name,
+             expected: "a unit with a direct CLDR pattern",
+             context: "Localize.Unit.grammatical_gender/2"
+           )}
+
+        unit_formats ->
+          Localize.Unit.Inflection.gender(unit_formats, language_tag, unit_name)
+      end
+    end
+  end
 
   # ── Data loading ───────────────────────────────────────────
 
@@ -592,8 +623,13 @@ defmodule Localize.Unit.Formatter do
   # pattern-shape fallbacks each contribute a branch.
   defp format_with_pattern(value, unit_formats, locale, grammatical_case, options) do
     plural = plural_form(value, locale)
-    pattern = resolve_pattern(unit_formats, grammatical_case, plural)
 
+    with {:ok, pattern} <- select_pattern(unit_formats, grammatical_case, plural, locale, options) do
+      format_selected_pattern(pattern, value, unit_formats, options)
+    end
+  end
+
+  defp format_selected_pattern(pattern, value, unit_formats, options) do
     case pattern do
       [position, pattern_str] when is_integer(position) and is_binary(pattern_str) ->
         with {:ok, number_str} <- format_number(value, options) do
@@ -617,6 +653,23 @@ defmodule Localize.Unit.Formatter do
         with {:ok, number_str} <- format_number(value, options) do
           {:ok, "#{number_str} #{other}"}
         end
+    end
+  end
+
+  # The engine fallback (`:inflect` option) synthesizes a pattern
+  # only when the requested case is absent from the CLDR data;
+  # otherwise the normal resolve path applies.
+  defp select_pattern(unit_formats, grammatical_case, plural, locale, options) do
+    case Localize.Unit.Inflection.maybe_inflect_pattern(
+           unit_formats,
+           grammatical_case,
+           plural,
+           locale,
+           options
+         ) do
+      {:ok, pattern} -> {:ok, pattern}
+      :no_inflection -> {:ok, resolve_pattern(unit_formats, grammatical_case, plural)}
+      {:error, _reason} = error -> error
     end
   end
 
@@ -1115,18 +1168,63 @@ defmodule Localize.Unit.Formatter do
     format_fallback(value, name, options)
   end
 
+  # Custom display patterns are "{0}"-style strings keyed by plural
+  # category, optionally nested under grammatical-case keys. They are
+  # normalized to the CLDR pattern shape so case resolution and the
+  # `:inflect` engine fallback work exactly as for CLDR units.
   defp format_custom_patterns(value, patterns, locale, options) do
     plural = plural_form(value, locale)
+    grammatical_case = Keyword.get(options, :grammatical_case, :nominative)
+    unit_formats = custom_unit_formats(patterns)
 
-    pattern =
-      Map.get(patterns, plural) ||
-        Map.get(patterns, :other) ||
-        "{0} #{Map.get(patterns, :display_name, "unknown")}"
+    with {:ok, pattern} <- select_pattern(unit_formats, grammatical_case, plural, locale, options),
+         {:ok, number_str} <- format_number(value, options) do
+      case pattern do
+        [0, literal] when is_binary(literal) ->
+          {:ok, number_str <> literal}
 
-    with {:ok, number_str} <- format_number(value, options) do
-      formatted = String.replace(pattern, "{0}", number_str)
-      {:ok, formatted}
+        [1, literal] when is_binary(literal) ->
+          {:ok, literal <> number_str}
+
+        pattern when is_binary(pattern) ->
+          {:ok, String.replace(pattern, "{0}", number_str)}
+
+        nil ->
+          default = "{0} #{Map.get(patterns, :display_name, "unknown")}"
+          {:ok, String.replace(default, "{0}", number_str)}
+      end
     end
+  end
+
+  # Splits the custom display map into case-keyed submaps (map
+  # values) and flat plural patterns (binary values, the original
+  # registry shape, which reads as the nominative).
+  defp custom_unit_formats(patterns) do
+    {cases, plurals} = Enum.split_with(patterns, fn {_key, value} -> is_map(value) end)
+    case_formats = Map.new(cases, fn {name, plural_map} -> {name, custom_plurals(plural_map)} end)
+    flat = Enum.filter(plurals, fn {_key, value} -> is_binary(value) end)
+
+    if flat == [] do
+      case_formats
+    else
+      Map.put_new(case_formats, :nominative, custom_plurals(Map.new(flat)))
+    end
+  end
+
+  # "{0} noun" and "noun {0}" convert to the CLDR [position, literal]
+  # shape (making them inflectable); patterns with infix "{0}" stay
+  # binary and format by substitution.
+  defp custom_plurals(plural_map) do
+    Map.new(plural_map, fn {plural, pattern} ->
+      converted =
+        case String.split(pattern, "{0}", parts: 2) do
+          ["", literal] -> [0, literal]
+          [literal, ""] -> [1, literal]
+          _infix_or_absent -> pattern
+        end
+
+      {plural, converted}
+    end)
   end
 
   defp extract_locale_id(locale) do

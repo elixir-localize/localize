@@ -85,6 +85,27 @@ defmodule Localize.Message.Interpreter do
     "lessPrecision" => :less_precision
   }
 
+  # MF2 `grammaticalCase`/`grammaticalGender` values for the `:unit`
+  # function. Fixed tables rather than String.to_existing_atom: the
+  # grammeme atoms otherwise exist only after the locale or
+  # inflection data is loaded, which happens later than option
+  # mapping.
+  @mf2_unit_grammar %{
+    grammatical_case:
+      Map.new(
+        ~w(nominative genitive dative accusative instrumental prepositional locative
+           vocative ablative ergative oblique essive translative partitive inessive
+           elative illative adessive abessive allative comitative terminative sociative
+           causal)a,
+        &{Atom.to_string(&1), &1}
+      ),
+    grammatical_gender:
+      Map.new(
+        ~w(masculine feminine neuter common animate inanimate personal)a,
+        &{Atom.to_string(&1), &1}
+      )
+  }
+
   # ── Public API ─────────────────────────────────────────────────
 
   @doc """
@@ -1849,15 +1870,50 @@ defmodule Localize.Message.Interpreter do
   end
 
   # ── Unit option mapping ────────────────────────────────────────
+  #
+  # Maps the MF2 `:unit` function options onto the keyword
+  # arguments of `Localize.Unit.to_string/2`. Recognised MF2
+  # option names:
+  #
+  #   * `unitDisplay` — `"long"`, `"short"` or `"narrow"`; maps to
+  #     `:format`.
+  #
+  #   * `grammaticalCase` — a case name such as `"dative"`; maps to
+  #     `:grammatical_case`. Names that are not known atoms are
+  #     ignored, like every other unrecognised option value.
+  #
+  #   * `grammaticalGender` — maps to `:grammatical_gender`, same
+  #     handling.
+  #
+  #   * `inflect` — `"safe"` or `"always"`; enables the inflection
+  #     engine fallback for cases the CLDR data does not provide
+  #     (see the `:inflect` option of `Localize.Unit.to_string/2`).
 
   defp map_unit_options(localize_opts, func_opts) do
-    case func_opts[:unitDisplay] do
-      "long" -> Keyword.put(localize_opts, :format, :long)
-      "short" -> Keyword.put(localize_opts, :format, :short)
-      "narrow" -> Keyword.put(localize_opts, :format, :narrow)
-      _other -> localize_opts
+    localize_opts
+    |> add_unit_display(func_opts[:unitDisplay])
+    |> add_unit_grammar(:grammatical_case, func_opts[:grammaticalCase])
+    |> add_unit_grammar(:grammatical_gender, func_opts[:grammaticalGender])
+    |> add_unit_inflect(func_opts[:inflect])
+  end
+
+  defp add_unit_display(opts, "long"), do: Keyword.put(opts, :format, :long)
+  defp add_unit_display(opts, "short"), do: Keyword.put(opts, :format, :short)
+  defp add_unit_display(opts, "narrow"), do: Keyword.put(opts, :format, :narrow)
+  defp add_unit_display(opts, _other), do: opts
+
+  defp add_unit_grammar(opts, key, value) when is_binary(value) do
+    case get_in(@mf2_unit_grammar, [key, value]) do
+      nil -> opts
+      atom -> Keyword.put(opts, key, atom)
     end
   end
+
+  defp add_unit_grammar(opts, _key, _value), do: opts
+
+  defp add_unit_inflect(opts, "safe"), do: Keyword.put(opts, :inflect, :safe)
+  defp add_unit_inflect(opts, "always"), do: Keyword.put(opts, :inflect, :always)
+  defp add_unit_inflect(opts, _other), do: opts
 
   # ── List option mapping ────────────────────────────────────────
   #

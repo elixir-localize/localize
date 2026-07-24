@@ -22,13 +22,14 @@ defmodule Localize.Inflection.Concept do
     Synthesizer
   }
 
-  defstruct [:locale, :value, constraints: %{}, initial: %{}]
+  defstruct [:locale, :value, constraints: %{}, initial: %{}, guess: true]
 
   @type t :: %__MODULE__{
           locale: atom,
           value: SpeakableString.t(),
           constraints: %{optional(binary) => binary},
-          initial: %{optional(binary) => binary}
+          initial: %{optional(binary) => binary},
+          guess: boolean
         }
 
   @speak "speak"
@@ -190,6 +191,13 @@ defmodule Localize.Inflection.Concept do
   Returns true when the concept can be rendered with its
   constraints without guessing.
 
+  Rendering without guessing includes the synthesizers' unchanged
+  passthrough: a word the dictionary does not know may still render
+  as itself, so `exists?/1` answers "does rendering produce
+  something?", not "is the requested form attested in the
+  dictionary?". Use `Localize.Inflection.known?/2` to test
+  dictionary membership.
+
   ### Examples
 
       iex> {:ok, concept} = Localize.Inflection.Concept.new(:en, "cat", constraints: %{number: :plural})
@@ -204,6 +212,12 @@ defmodule Localize.Inflection.Concept do
   @doc """
   Renders the concept with all constraints applied.
 
+  The synthesizers may fall back to suffix-exemplar guessing for
+  words the dictionary does not know. Setting the concept's
+  `guess` field to false disables guessing: forms then change
+  only through attested dictionary paths, and a failed render
+  returns the value unchanged.
+
   ### Returns
 
   * A speakable string (a binary, or `{print, speak}` when the
@@ -217,9 +231,15 @@ defmodule Localize.Inflection.Concept do
 
   """
   def to_speakable_string(%__MODULE__{} = concept) do
-    case display_value(concept, true) do
-      nil -> nil
-      display_value -> DisplayValue.to_speakable_string(display_value)
+    case display_value(concept, concept.guess) do
+      nil ->
+        concept.value
+        |> DisplayValue.new(concept.initial)
+        |> apply_speak(concept.constraints)
+        |> DisplayValue.to_speakable_string()
+
+      display_value ->
+        DisplayValue.to_speakable_string(display_value)
     end
   end
 

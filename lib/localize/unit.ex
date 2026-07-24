@@ -1310,7 +1310,20 @@ defmodule Localize.Unit do
 
   * `:grammatical_case` selects a case-keyed pattern variant for the
     unit (e.g. `:nominative`, `:dative`, `:genitive`). Defaults to
-    `:nominative`.
+    `:nominative`. When the CLDR data has no pattern for the requested
+    case, the nominative pattern is used unless the `:inflect` option
+    enables the inflection engine fallback.
+
+  * `:inflect` controls the `Localize.Inflection` fallback when the
+    requested `:grammatical_case` has no CLDR pattern. `false` (the
+    default) keeps the silent nominative fallback. `:safe` inflects
+    the pattern text with the engine's guessing disabled, so a form
+    changes only through attested dictionary paths; anything else
+    falls back to the nominative pattern. `:always` also enables
+    suffix-exemplar guessing for dictionary-unknown words, which is
+    usually right and occasionally wrong. Requires the optional
+    inflection data (`mix localize.download_inflection`); without it
+    the option degrades to the nominative fallback.
 
   * `:grammatical_gender` is accepted on the public API for cldr_units
     parity. Only meaningful for compound-unit patterns
@@ -1653,6 +1666,8 @@ defmodule Localize.Unit do
 
   * `:format` is `:long`, `:short`, or `:narrow`. The default is `:long`.
 
+  * `:grammatical_case` and `:inflect` behave as in `to_string/2`.
+
   * The number-formatting options of `to_string/2` apply to the numeric segments.
 
   ### Returns
@@ -1743,6 +1758,53 @@ defmodule Localize.Unit do
       {:ok, string} -> {:ok, [string]}
       error -> error
     end
+  end
+
+  @doc """
+  Returns the grammatical gender of a simple unit in a locale.
+
+  The gender recorded in the CLDR unit data is authoritative when
+  present. For units or locales without it, the gender is derived
+  through `Localize.Inflection.feature/3` from the unit's
+  nominative singular pattern text, but only when that text is in
+  the locale's inflection dictionary — gender is never guessed.
+
+  ### Arguments
+
+  * `unit` is a `t:Localize.Unit.t/0` struct.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0`. The default is the current process
+    locale.
+
+  ### Returns
+
+  * `{:ok, gender}` with a gender atom such as `:masculine`,
+    `:feminine`, `:neuter` or `:common`, or
+
+  * `{:error, exception}` when the unit has no CLDR pattern data or
+    the gender cannot be determined for the locale.
+
+  ### Examples
+
+      iex> Localize.Unit.grammatical_gender(Localize.Unit.new!(1, "kilometer"), locale: :de)
+      {:ok, :masculine}
+
+      iex> Localize.Unit.grammatical_gender(Localize.Unit.new!(1, "hour"), locale: :es)
+      {:ok, :feminine}
+
+      iex> {:error, error} = Localize.Unit.grammatical_gender(Localize.Unit.new!(1, "kilometer"), locale: :en)
+      iex> error.keys
+      [:grammatical_gender, "kilometer"]
+
+  """
+  @spec grammatical_gender(t(), Keyword.t()) :: {:ok, atom()} | {:error, Exception.t()}
+  def grammatical_gender(%__MODULE__{} = unit, options \\ []) do
+    Localize.Unit.Formatter.grammatical_gender(unit, options)
   end
 
   # ── Arithmetic ────────────────────────────────────────────────
