@@ -1,0 +1,502 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2021-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="he">
+    <test><source>אובססיה</source><result gender="feminine"/></test>
+    <test><source>אגם</source><result gender="masculine"/></test>
+    <test><source>אחות</source><result gender="feminine"/></test>
+    <test><source>חברה</source><result gender="feminine"/></test>
+    <test><source>מנהלת</source><result gender="feminine"/></test>
+    <test><source>מלונה</source><result gender="feminine"/></test>
+    <test><source>ידידה</source><result gender="feminine"/></test>
+    <test><source>אפשרות</source><result gender="feminine"/></test>
+    <test><source>העדפה</source><result gender="feminine"/></test>
+    <test><source>מכונית</source><result gender="feminine"/></test>
+    <test><source>חבר</source><result gender="masculine"/></test>
+    <test><source>ידיד</source><result gender="masculine"/></test>
+    <test><source>מנהל</source><result gender="masculine"/></test>
+    <test><source>מלון</source><result gender="masculine"/></test>
+    <test><source>רעיון</source><result gender="masculine"/></test>
+    <test><source>אוטו</source><result gender="masculine"/></test>
+    <test><source>אח</source><result gender="masculine"/></test>
+
+    <test><source>תשואה</source><result definiteness="indefinite"/></test>
+    <test><source>שרבה</source><result definiteness=""/></test>
+    <test><source>הסטונהנג׳</source><result definiteness="definite"/></test>
+    <test><source>סטונהנג׳</source><result definiteness="indefinite"/></test>
+    <test><source>תרומת</source><result definiteness="construct"/></test>
+    <test><source>תתרענן</source><result definiteness=""/></test>
+    <test><source>תתתתתתתתתתתת</source><result definiteness="definite"/></test> <!-- unknown word -->
+    <test><source>תתעלל</source><result definiteness=""/></test> <!-- verbs don't have definiteness -->
+    <test><source>word</source><result definiteness=""/></test> <!-- Not a Hebrew word -->
+
+    <test><source number="plural">דלת</source><result>דלתות</result></test>
+
+    <test><source>ספרים</source><result>ספרים</result></test>
+    <test><source definiteness="indefinite">ספרים</source><result>ספרים</result></test>
+    <test><source definiteness="definite">ספרים</source><result>הספרים</result></test>
+
+    <test><source>מחשב</source><result>מחשב</result></test>
+    <test><source definiteness="indefinite">מחשב</source><result>מחשב</result></test>
+    <test><source definiteness="definite">מחשב</source><result>המחשב</result></test>
+
+    <test><source>משרד מכירות</source><result>משרד מכירות</result></test>
+    <test><source definiteness="indefinite">משרד מכירות</source><result>משרד מכירות</result></test>
+    <test><source definiteness="definite">משרד מכירות</source><result>משרד המכירות</result></test>
+
+    <test><source>משרד עורכי-דין</source><result>משרד עורכי-דין</result></test>
+    <test><source definiteness="indefinite">משרד עורכי-דין</source><result>משרד עורכי-דין</result></test>
+    <test><source definiteness="definite">משרד עורכי-דין</source><result>משרד עורכי-הדין</result></test>
+
+    <test><source>בית-משפט</source><result>בית-משפט</result></test>
+    <test><source definiteness="indefinite">בית-משפט</source><result>בית-משפט</result></test>
+    <test><source definiteness="definite">בית-משפט</source><result>בית-המשפט</result></test>
+
+    <test><source>חבר</source><result>חבר</result></test>
+    <test><source number="singular">חבר</source><result>חבר</result></test>
+    <test><source number="dual">חבר</source><result>חברים</result></test>
+    <test><source number="plural">חבר</source><result>חברים</result></test>
+
+    <test><source>מכונית</source><result>מכונית</result></test>
+    <test><source number="singular">מכונית</source><result>מכונית</result></test>
+    <test><source number="dual">מכונית</source><result>מכוניות</result></test>
+    <test><source number="plural">מכונית</source><result>מכוניות</result></test>
+
+    <test><source>חברה</source><result>חברה</result></test>
+    <test><source number="singular">חברה</source><result>חברה</result></test>
+    <test><source number="dual">חברה</source><result>חברות</result></test>
+    <test><source number="plural">חברה</source><result>חברות</result></test>
+
+    <test><source>דרך</source><result>דרך</result></test>
+    <test><source number="singular">דרך</source><result>דרך</result></test>
+    <test><source number="dual">דרך</source><result>דרכים</result></test>
+    <test><source number="plural">דרך</source><result>דרכים</result></test>
+
+    <test><source>מכונית</source><result>מכונית</result></test>
+    <test><source number="singular">מכונית</source><result>מכונית</result></test>
+    <test><source number="dual">מכונית</source><result>מכוניות</result></test>
+    <test><source number="plural">מכונית</source><result>מכוניות</result></test>
+
+    <test><source>חשבון</source><result>חשבון</result></test>
+    <test><source number="singular">חשבון</source><result>חשבון</result></test>
+    <test><source number="dual">חשבון</source><result>חשבונות</result></test>
+    <test><source number="plural">חשבון</source><result>חשבונות</result></test>
+
+    <test><source>רעיון</source><result>רעיון</result></test>
+    <test><source number="singular">רעיון</source><result>רעיון</result></test>
+    <test><source number="dual">רעיון</source><result>רעיונות</result></test>
+    <test><source number="plural">רעיון</source><result>רעיונות</result></test>
+
+    <test><source>צל</source><result>צל</result></test>
+    <test><source number="singular">צל</source><result>צל</result></test>
+    <test><source number="dual">צל</source><result>צללים</result></test>
+    <test><source number="plural">צל</source><result>צללים</result></test>
+
+    <test><source>אפשרות</source><result>אפשרות</result></test>
+    <test><source number="singular">אפשרות</source><result>אפשרות</result></test>
+    <test><source number="dual">אפשרות</source><result>אפשרויות</result></test>
+    <test><source number="plural">אפשרות</source><result>אפשרויות</result></test>
+
+    <test><source>חלון</source><result>חלון</result></test>
+    <test><source number="singular">חלון</source><result>חלון</result></test>
+    <test><source number="dual">חלון</source><result>חלונות</result></test>
+    <test><source number="plural">חלון</source><result>חלונות</result></test>
+
+    <test><source>שבוע</source><result>שבוע</result></test>
+    <test><source number="singular">שבוע</source><result>שבוע</result></test>
+    <test><source number="dual">שבוע</source><result>שבועיים</result></test>
+    <test><source number="plural">שבוע</source><result>שבועות</result></test>
+
+    <test><source>איש קשר</source><result>איש קשר</result></test>
+    <test><source number="singular">איש קשר</source><result>איש קשר</result></test>
+    <test><source number="dual">איש קשר</source><result>אנשי קשר</result></test>
+    <test><source number="plural">איש קשר</source><result>אנשי קשר</result></test>
+
+    <test><source>הודעת טקסט</source><result>הודעת טקסט</result></test>
+    <test><source number="singular">הודעת טקסט</source><result>הודעת טקסט</result></test>
+    <test><source number="dual">הודעת טקסט</source><result>הודעות טקסט</result></test>
+    <test><source number="plural">הודעת טקסט</source><result>הודעות טקסט</result></test>
+
+    <test><source>מספר טלפון</source><result>מספר טלפון</result></test>
+    <test><source number="singular">מספר טלפון</source><result>מספר טלפון</result></test>
+    <test><source number="dual">מספר טלפון</source><result>מספרי טלפון</result></test>
+    <test><source number="plural">מספר טלפון</source><result>מספרי טלפון</result></test>
+
+    <test><source>שעון מעורר</source><result>שעון מעורר</result></test>
+    <test><source number="singular">שעון מעורר</source><result>שעון מעורר</result></test>
+    <test><source number="dual">שעון מעורר</source><result>שעונים מעוררים</result></test>
+    <test><source number="plural">שעון מעורר</source><result>שעונים מעוררים</result></test>
+
+    <test><source>מסעדה צרפתית</source><result>מסעדה צרפתית</result></test>
+    <test><source number="singular">מסעדה צרפתית</source><result>מסעדה צרפתית</result></test>
+    <test><source number="dual">מסעדה צרפתית</source><result>מסעדות צרפתיות</result></test>
+    <test><source number="plural">מסעדה צרפתית</source><result>מסעדות צרפתיות</result></test>
+
+    <test><source>פרק הבא</source><result>פרק הבא</result></test>
+    <test><source number="singular">פרק הבא</source><result>פרק הבא</result></test>
+    <test><source number="dual">פרק הבא</source><result>פרקים הבאים</result></test>
+    <test><source number="plural">פרק הבא</source><result>פרקים הבאים</result></test>
+
+    <test><source>אובססיה</source><result withConditionalHyphen="אובססיה"/></test>
+    <test><source>test</source><result withConditionalHyphen="-test"/></test>
+    <test><source>9</source><result withConditionalHyphen="-9"/></test>
+    <test><source>9אובססיה</source><result withConditionalHyphen="-9אובססיה"/></test>
+
+    <!-- Test pluralization of <noun> <noun> compounds (smixut) case in point: "garage door" -->
+    <test><source number="plural">דלת מוסך</source><result>דלתות מוסך</result></test>
+    <test><source definiteness="definite">דלת מוסך</source><result>דלת המוסך</result></test>
+    <test><source number="plural" definiteness="definite">דלת מוסך</source><result>דלתות המוסך</result></test>  <!-- several doors single garage -->
+
+    <!-- Test definiteness of prepositional phrases -->
+    <test><source definiteness="definite">מודעות לשיחות</source><result>המודעות לשיחות</result></test>
+    <test><source definiteness="definite">המודעות לשיחות</source><result>המודעות לשיחות</result></test> <!-- already definite -->
+    <test><source definiteness="definite">הזמנות לאירועים גדולים</source><result>הזמנות לאירועים גדולים</result></test> <!-- already definite, 3+ words -->
+
+    <!-- Test heuristic plurals via noun+adjective compounds (forces singleWordStemToPlural) -->
+    <test><source number="plural">אישה חדשה</source><result>נשים חדשות</result></test>
+    <test><source number="plural">שנה טובה</source><result>שנים טובות</result></test>
+    <test><source number="plural">מילה חדשה</source><result>מילים חדשות</result></test>
+    <test><source number="plural">תקווה חדשה</source><result>תקוות חדשות</result></test> <!-- ends in וה -->
+    <test><source number="plural">ספורטאי מקצועי</source><result>ספורטאים מקצועיים</result></test> <!-- ends in אי -->
+
+    <!-- Organizer -->
+    <test><source gender="feminine">מארגן</source><result>מארגנת</result></test>
+
+    <!-- Verbs -->
+
+    <!-- Accept/Decline -->
+    <test><source gender="feminine">משתתף</source><result>משתתפת</result></test>
+
+    <!-- Adjectives -->
+    <!-- Big -->
+    <test><source gender="feminine" number="plural">גדולים</source><result>גדולות</result></test>
+    <test><source gender="masculine" number="singular">גדולה</source><result>גדול</result></test>
+    <!-- Ready -->
+    <test><source gender="feminine" number="plural">מוכנים</source><result>מוכנות</result></test>
+    <!-- Closed -->
+    <test><source gender="feminine">סגור</source><result>סגורה</result></test>
+    <test><source gender="feminine" number="plural">סגורים</source><result>סגורות</result></test>
+    <!-- Pretty -->
+    <test><source gender="feminine" number="plural">יפים</source><result>יפות</result></test>
+    <!-- Are you sure -->
+    <test><source gender="feminine">בטוח</source><result>בטוחה</result></test>
+    <!-- Busy -->
+    <test><source gender="feminine">עסוק</source><result>עסוקה</result></test>
+
+    <!-- Adjective -->
+    <!-- Open -->
+    <test><source gender="masculine" number="singular">פתוחה</source><result>פתוח</result></test>
+    <test><source gender="masculine" number="plural">פתוחות</source><result>פתוחים</result></test>
+    <!-- New -->
+    <test><source gender="masculine" number="singular">חדשה</source><result>חדש</result></test>
+    <test><source gender="masculine" number="plural">חדשות</source><result>חדשים</result></test>
+
+    <!-- Ready -->
+    <test><source gender="masculine" number="singular">מוכנה</source><result>מוכן</result></test>
+    <test><source gender="masculine" number="plural">מוכנות</source><result>מוכנים</result></test>
+    <!-- Active -->
+    <test><source gender="feminine" number="singular">פעיל</source><result>פעילה</result></test>
+    <test><source gender="feminine" number="plural">פעילים</source><result>פעילות</result></test>
+    <!--On -->
+    <test><source gender="feminine" number="singular">פועל</source><result>פועלת</result></test>
+    <test><source gender="feminine" number="plural">פועלים</source><result>פועלות</result></test>
+    <!--Off -->
+    <test><source gender="feminine" number="singular">כבוי</source><result>כבויה</result></test>
+    <test><source gender="feminine" number="plural">כבויים</source><result>כבויות</result></test>
+    <test><source gender="masculine" number="singular">מבוטלת</source><result>מבוטל</result></test>
+    <test><source gender="masculine" number="plural">מבוטלות</source><result>מבוטלים</result></test>
+
+    <!-- Past particle -->
+    <!-- Locked/Unlocked -->
+    <test><source gender="masculine" number="singular">נעולה</source><result>נעול</result></test>
+    <test><source gender="feminine" number="plural">נעולים</source><result>נעולות</result></test>
+
+    <!-- Jammed -->
+    <test><source gender="masculine" number="singular">תקועה</source><result>תקוע</result></test>
+    <test><source gender="feminine" number="plural">תקועים</source><result>תקועות</result></test>
+    <!-- Close -->
+    <test><source gender="masculine" number="singular">סגורה</source><result>סגור</result></test>
+    <test><source gender="masculine" number="plural">סגורות</source><result>סגורים</result></test>
+
+    <!-- Connected/Disconnected -->
+    <test><source gender="masculine" number="singular">מנותקת</source><result>מנותק</result></test>
+    <test><source gender="masculine" number="plural">מנותקות</source><result>מנותקים</result></test>
+    <!-- Authorized -->
+    <test><source gender="feminine" number="singular">מאושר</source><result>מאושרת</result></test>
+    <test><source gender="feminine" number="plural">מאושרים</source><result>מאושרות</result></test>
+
+    <!-- Obstructed -->
+    <test><source gender="masculine" number="singular">חסומה</source><result>חסום</result></test>
+
+    <test><source gender="masculine" number="plural">חסומות</source><result>חסומים</result></test>
+
+    <!-- Editing -->
+    <test><source gender="feminine">עורך</source><result>עורכת</result></test>
+    <!-- Sharing -->
+    <test><source gender="feminine">משתף</source><result>משתפת</result></test>
+
+    <!-- Accepting -->
+    <test><source gender="masculine">מקבלת</source><result>מקבל</result></test>
+
+    <!-- Starting -->
+    <test><source gender="masculine">מתחילה</source><result>מתחיל</result></test>
+    <test><source gender="feminine" number="plural">מתחילים</source><result>מתחילות</result></test>
+
+    <!-- Verbs -->
+    <!-- Agree/Disagree -->
+    <test><source gender="feminine">מסכים</source><result>מסכימה</result></test>
+    <test><source gender="feminine">לא מסכים</source><result>לא מסכימה</result></test>
+    <!-- Accept/Decline -->
+    <test><source gender="feminine">לא משתתף</source><result>לא משתתפת</result></test>
+    <!-- Allow/Don't Allow -->
+    <test><source gender="feminine">אפשר</source><result>אפשרי</result></test>
+    <test><source gender="feminine" person="second">אל תאפשר</source><result>אל תאפשרי</result></test>
+
+    <!-- Enter -->
+    <test><source gender="feminine">הזן</source><result>הזיני</result></test>
+    <!-- Copy -->
+    <test><source gender="feminine">העתק</source><result>העתיקי</result></test>
+    <!-- Delete -->
+    <test><source gender="feminine">מחק</source><result>מחקי</result></test>
+    <!-- Make sure -->
+    <test><source gender="feminine">ודא</source><result>ודאי</result></test>
+    <!-- Select/Choose -->
+    <test><source gender="feminine">בחר</source><result>בחרי</result></test>
+
+    <!-- Confirm/Approve -->
+    <test><source gender="feminine">אשר</source><result>אשרי</result></test>
+    <!-- Get ready -->
+    <test><source gender="feminine">התכונן</source><result>התכונני</result></test>
+    <!-- Tap -->
+    <test><source gender="feminine">הקש</source><result>הקישי</result></test>
+    <!-- Click/Press -->
+    <test><source gender="feminine">לחץ</source><result>לחצי</result></test>
+
+    <!-- Sign in -->
+    <test><source gender="feminine">התחבר</source><result>התחברי</result></test>
+    <!-- Turn on/Turn off -->
+    <test><source gender="feminine">הפעל</source><result>הפעילי</result></test>
+    <test><source gender="feminine" person="second">כבה</source><result>כבי</result></test>
+    <!-- Continue -->
+    <test><source gender="feminine">המשך</source><result>המשיכי</result></test>
+    <!-- Rent -->
+    <test><source gender="masculine">השכירי</source><result>השכר</result></test>
+    <!-- Visit -->
+    <test><source gender="masculine" pos="verb">בקרי</source><result>בקר</result></test>
+    <!-- Demonstrative adjectives -->
+    <!-- This/That/These are -->
+    <test><source gender="feminine">זה</source><result>זו</result></test>
+<!--     <test><source gender="feminine">אלו הם</source><result>אלו הן</result></test> -->
+
+    <!-- Adjectives -->
+    <!-- Take -->
+    <test><source gender="feminine">קח</source><result>קחי</result></test>
+    <!-- Slow -->
+    <test><source gender="feminine">האט</source><result>האטי</result></test>
+    <!-- Recall -->
+    <test><source gender="masculine">היזכרי</source><result>היזכר</result></test>
+    <!-- Imagine -->
+    <test><source gender="feminine" person="second">דמיין</source><result>דמייני</result></test>
+    <!-- Feel -->
+    <test><source gender="masculine">מרגישה</source><result>מרגיש</result></test>
+    <!-- Enjoy -->
+    <test><source gender="masculine">תיהני</source><result>תיהנה</result></test>
+    <!-- Stay/Carry -->
+    <test><source gender="feminine">הישאר</source><result>הישארי</result></test>
+
+    <!-- Sit -->
+    <test><source gender="feminine" pos="verb" person="second">שב</source><result>שבי</result></test>
+    <test><source gender="feminine">שב</source><result>שבה</result></test>
+    <!-- Close (eyes) -->
+    <test><source gender="feminine" pos="verb">עצום</source><result>עצמי</result></test>
+    <!-- Move -->
+    <test><source gender="feminine">התנועע</source><result>התנועעי</result></test>
+    <!-- Begin -->
+    <test><source gender="feminine">התחל</source><result>התחילי</result></test>
+
+    <!-- Focus/Strengthen your focus -->
+    <test><source gender="feminine">התרכז</source><result>התרכזי</result></test>
+    <!-- Inhale/Breathe in -->
+    <test><source gender="feminine">שואף</source><result>שואפת</result></test>
+    <!-- Exhale/Breathe out -->
+    <test><source gender="feminine">נושף</source><result>נושפת</result></test>
+    <!-- Ground -->
+    <test><source gender="feminine">העמק</source><result>העמיקי</result></test>
+    <!-- Breathe -->
+    <test><source gender="feminine">נושם</source><result>נושמת</result></test>
+    <!-- Find -->
+    <test><source gender="masculine" pos="verb">מצאי</source><result>מצא</result></test>
+    <!-- Notice/Be aware -->
+    <test><source gender="masculine">שימי לב</source><result>שים לב</result></test>
+    <!-- Let -->
+    <test><source gender="masculine" pos="verb">תני</source><result>תן</result></test>
+
+    <!-- Adjective -->
+    <!-- Open -->
+    <test><source gender="masculine" number="singular">פתוחה</source><result>פתוח</result></test>
+    <test><source gender="masculine" number="plural">פתוחות</source><result>פתוחים</result></test>
+    <!-- New -->
+    <test><source gender="masculine" number="singular">חדשה</source><result>חדש</result></test>
+    <test><source gender="masculine" number="plural">חדשות</source><result>חדשים</result></test>
+
+    <!-- Ready -->
+    <test><source gender="masculine" number="singular">מוכנה</source><result>מוכן</result></test>
+    <test><source gender="masculine" number="plural">מוכנות</source><result>מוכנים</result></test>
+    <!-- Active -->
+    <test><source gender="feminine" number="singular">פעיל</source><result>פעילה</result></test>
+    <test><source gender="feminine" number="plural">פעילים</source><result>פעילות</result></test>
+    <!--On -->
+    <test><source gender="feminine" number="singular">פועל</source><result>פועלת</result></test>
+    <test><source gender="feminine" number="plural">פועלים</source><result>פועלות</result></test>
+    <!--Off -->
+    <test><source gender="feminine" number="singular">כבוי</source><result>כבויה</result></test>
+    <test><source gender="feminine" number="plural">כבויים</source><result>כבויות</result></test>
+    <test><source gender="masculine" number="singular">מבוטלת</source><result>מבוטל</result></test>
+    <test><source gender="masculine" number="plural">מבוטלות</source><result>מבוטלים</result></test>
+
+    <!-- Past particle -->
+    <!-- Locked/Unlocked -->
+
+    <test><source gender="masculine" number="singular">לא נעולה</source><result>לא נעול</result></test>
+
+    <test><source gender="feminine" number="plural">לא נעולים</source><result>לא נעולות</result></test>
+
+    <!-- Connected/Disconnected -->
+    <test><source gender="masculine" number="singular">מחוברת</source><result>מחובר</result></test>
+    <test><source gender="masculine" number="plural">מחוברות</source><result>מחוברים</result></test>
+    <test><source gender="feminine" number="singular">לא מחובר</source><result>לא מחוברת</result></test>
+    <test><source gender="feminine" number="plural">לא מחוברים</source><result>לא מחוברות</result></test>
+    <!-- Authorized -->
+    <test><source gender="feminine" number="singular">אושר</source><result>אושרה</result></test>
+
+    <!-- Turned on/off -->
+    <test><source gender="masculine" number="singular">הופעלה</source><result>הופעל</result></test>
+    <test><source gender="feminine" number="singular">כובה</source><result>כובתה</result></test>
+    <test><source gender="feminine" number="singular">בוטל</source><result>בוטלה</result></test>
+
+    <!-- Stopped -->
+    <test><source gender="masculine" number="singular">נעצרה</source><result>נעצר</result></test>
+    <test><source gender="masculine" number="singular">עצרה</source><result>עצר</result></test>
+    <!-- Obstructed -->
+    <test><source gender="masculine">נחסמה</source><result>נחסם</result></test>
+    <test><source gender="masculine">נחסמת</source><result>נחסמת</result></test>
+
+    <!-- Called -->
+    <test><source gender="feminine" pos="verb" person="third">התקשר</source><result>התקשרה</result></test>
+    <!-- Accepted -->
+    <test><source gender="feminine">קיבל</source><result>קיבלה</result></test>
+    <!-- Added -->
+    <test><source gender="feminine">הוסיף</source><result>הוסיפה</result></test>
+    <!-- Assigned -->
+    <test><source gender="masculine">הקצתה</source><result>הקצה</result></test>
+    <!-- Cancelled -->
+    <test><source gender="masculine">ביטלה</source><result>ביטל</result></test>
+    <!-- Completed -->
+    <test><source gender="masculine">השלימה</source><result>השלים</result></test>
+    <!-- Declined -->
+    <test><source gender="feminine">סירב</source><result>סירבה</result></test>
+    <!-- Earned -->
+    <test><source gender="feminine" pos="verb" person="third">זכה</source><result>זכתה</result></test>
+    <!-- Earned - Wallet -->
+    <test><source gender="feminine">הרוויח</source><result>הרוויחה</result></test>
+    <!-- Invited -->
+    <test><source gender="feminine">הזמין</source><result>הזמינה</result></test>
+    <!-- Requested -->
+    <test><source gender="masculine">ביקשה</source><result>ביקש</result></test>
+    <!-- Updated -->
+    <test><source gender="masculine">עדכנה</source><result>עדכן</result></test>
+    <!-- Edited -->
+    <test><source gender="feminine">ערך</source><result>ערכה</result></test>
+    <!-- Shared -->
+    <test><source gender="feminine">שיתף</source><result>שיתפה</result></test>
+
+    <!-- Mentioned -->
+    <test><source gender="feminine" pos="verb" person="third">אזכר</source><result>אזכרה</result></test>
+    <!-- Was Mentioned -->
+    <test><source gender="feminine">אוזכר</source><result>אוזכרה</result></test>
+    <!-- Moved -->
+    <test><source gender="feminine">העביר</source><result>העבירה</result></test>
+    <!-- Selected -->
+    <test><source gender="feminine" pos="verb" person="third">בחר</source><result>בחרה</result></test>
+    <!-- Attempted -->
+    <test><source gender="feminine">ניסה</source><result>ניסתה</result></test>
+
+    <!-- Changed -->
+    <test><source gender="feminine" pos="verb" person="third">שינה</source><result>שינתה</result></test>
+    <!-- Created -->
+    <test><source gender="masculine">יצרה</source><result>יצר</result></test>
+    <!-- Deleted -->
+    <test><source gender="feminine" pos="verb" person="third">מחק</source><result>מחקה</result></test>
+    <!-- Edited -->
+    <test><source gender="feminine">ערך</source><result>ערכה</result></test>
+
+    <!-- Did -->
+    <test><source gender="feminine">ביצע</source><result>ביצעה</result></test>
+    <!-- Ended -->
+    <test><source gender="feminine" person="third">סיים</source><result>סיימה</result></test>
+    <!-- Finished -->
+    <test><source gender="feminine">השלים</source><result>השלימה</result></test>
+    <!-- Blocked -->
+    <test><source gender="feminine">חסם</source><result>חסמה</result></test>
+    <!-- Confirmed -->
+    <test><source gender="feminine">אישר</source><result>אישרה</result></test>
+
+    <!-- Removed -->
+    <test><source gender="feminine">הסיר</source><result>הסירה</result></test>
+    <!-- Stopped -->
+    <test><source gender="feminine">הפסיק</source><result>הפסיקה</result></test>
+    <!-- Suspended -->
+    <test><source gender="feminine" person="third">השעה</source><result>השעתה</result></test>
+    <!-- Purchased -->
+    <test><source gender="feminine">רכש</source><result>רכשה</result></test>
+
+    <!-- Broadcasting -->
+    <test><source gender="feminine">משדר</source><result>משדרת</result></test>
+    <!-- Liked/Loved -->
+    <test><source gender="masculine">אהבה</source><result>אהב</result></test>
+    <!-- Laughed -->
+    <test><source gender="masculine">צחקה</source><result>צחק</result></test>
+    <!-- Stopping -->
+    <test><source gender="masculine">עוצרת</source><result>עוצר</result></test>
+    <test><source gender="feminine" number="plural">עוצרים</source><result>עוצרות</result></test>
+    <!-- Left -->
+    <test><source gender="masculine">עזבה</source><result>עזב</result></test>
+
+    <!-- Made -->
+    <test><source gender="masculine">ביצעה</source><result>ביצע</result></test>
+    <!-- Paused -->
+    <test><source gender="masculine">השהתה</source><result>השהה</result></test>
+    <!-- Requested -->
+    <test><source gender="masculine">ביקשה</source><result>ביקש</result></test>
+    <!-- Requesting -->
+    <test><source gender="masculine">מבקשת</source><result>מבקש</result></test>
+    <!-- Resumed -->
+    <test><source gender="masculine">חידשה</source><result>חידש</result></test>
+
+    <!-- Sent -->
+    <test><source gender="masculine">שלחה</source><result>שלח</result></test>
+    <!-- Skipped -->
+    <test><source gender="masculine">דילגה</source><result>דילג</result></test>
+    <!-- Started -->
+    <test><source gender="masculine">התחילה</source><result>התחיל</result></test>
+
+    <!-- Took (a photo) -->
+    <test><source gender="masculine">צילמה</source><result>צילם</result></test>
+    <!-- Went (for a walk/run) -->
+    <test><source gender="masculine" person="third">יצאה</source><result>יצא</result></test>
+    <!-- Copied -->
+    <test><source gender="feminine">העתיק</source><result>העתיקה</result></test>
+    <!-- Duplicated -->
+    <test><source gender="feminine" person="third">שכפל</source><result>שכפלה</result></test>
+
+    <!-- Was Mentioned -->
+    <test><source gender="feminine">אוזכר</source><result>אוזכרה</result></test>
+    <!-- Burned -->
+    <test><source gender="feminine">שרף</source><result>שרפה</result></test>
+    <!-- Spent (time) -->
+    <test><source gender="feminine">השקיע</source><result>השקיעה</result></test>
+    <!-- Spent (money) -->
+    <test><source gender="feminine">הוציא</source><result>הוציאה</result></test>
+
+</inflectionTest>

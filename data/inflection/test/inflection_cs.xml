@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2025-2025 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="cs">
+    <test><source>šťáva</source><result gender="feminine" number="singular"/></test>
+    <test><source number="plural">film</source><result gender="masculine" number="plural">filmy</result></test>
+    <test><source case="dative">film</source><result number="singular">filmu</result></test>
+    <test><source case="dative" number="plural">film</source><result>filmům</result></test>
+    <test><source animacy="animate" case="accusative">nový</source><result>nového</result></test>
+    <test><source case="dative">nový</source><result>novému</result></test>
+    <test><source animacy="animate" case="accusative">nejnový</source><result>nejnového</result></test>
+    <test><source case="dative">nejnový</source><result>nejnovému</result></test>
+</inflectionTest>

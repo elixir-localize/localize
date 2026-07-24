@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="ar">
+    <!-- Simple inflection -->
+    <test><source/><result>هُم</result></test>
+    <test><source person="first"/><result>نحن</result></test>
+    <test><source number="plural"/><result>هُم</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="first" case="genitive"/><result>ـنَا</result></test>
+    <test><source person="first" number="plural"/><result>نحن</result></test>
+    <test><source person="second"/><result>أنتم</result></test>
+    <test><source person="second" number="dual"/><result>أنتما</result></test>
+    <test><source person="second" number="plural"/><result>أنتم</result></test>
+    <test><source person="third"/><result>هُم</result></test> <!-- You didn't specify a gender. So you get something generic in the third person. -->
+    <test><source person="third" number="plural"/><result gender="masculine">هُم</result></test>
+    <test><source person="third" gender="masculine"/><result gender="masculine">هُم</result></test>
+    <test><source person="third" gender="feminine"/><result gender="feminine">هنَّ</result></test>
+    <test><source person="third" number="plural" gender="masculine" case="nominative"/><result>هُم</result></test>
+    <test><source person="third" number="plural" gender="feminine" case="nominative"/><result>هنَّ</result></test>
+    <test><source person="third" number="singular" gender="masculine" case="nominative"/><result>هو</result></test>
+    <test><source person="third" number="singular" gender="feminine" case="nominative"/><result>هي</result></test>
+    <test><source person="third" number="dual" case="nominative"/><result>هُمَا</result></test>
+    <test><source person="second" number="plural" gender="masculine" case="nominative"/><result>أنتم</result></test>
+    <test><source person="second" number="plural" gender="feminine" case="nominative"/><result>أنتن</result></test>
+    <test><source person="second" number="singular" gender="masculine" case="nominative"/><result>أنتَ</result></test>
+    <test><source person="second" number="singular" gender="feminine" case="nominative"/><result>أنتِ</result></test>
+    <test><source person="second" number="dual" case="nominative"/><result>أنتما</result></test>
+    <test><source person="first" number="dual" case="nominative"/><result>نحن</result></test>
+    <test><source person="first" number="singular" case="nominative"/><result>أنا</result></test>
+    <test><source person="third" number="plural" gender="masculine" case="accusative"/><result>ـهم</result></test>
+    <test><source person="third" number="plural" gender="feminine" case="accusative"/><result>ـهنَّ</result></test>
+    <test><source person="third" number="singular" gender="masculine" case="accusative"/><result>ـه</result></test>
+    <test><source person="third" number="singular" gender="feminine" case="accusative"/><result>ـها</result></test>
+    <test><source person="third" number="dual" case="accusative"/><result>ـهمَا</result></test>
+    <test><source person="second" number="plural" gender="masculine" case="accusative"/><result>كُمْ</result></test>
+    <test><source person="second" number="plural" gender="feminine" case="accusative"/><result>كُنَّ</result></test>
+    <test><source person="second" number="singular" gender="masculine" case="accusative"/><result>كَ</result></test>
+    <test><source person="second" number="singular" gender="feminine" case="accusative"/><result>كِ</result></test>
+    <test><source person="second" number="dual" case="accusative"/><result>كُمَا</result></test>
+    <test><source person="first" case="accusative"/><result>ـنَا</result></test>
+    <test><source person="first" number="singular" case="accusative"/><result>ـنِي</result></test>
+    <test><source person="third" number="plural" gender="masculine" case="genitive"/><result>ـهم</result></test>
+    <test><source person="third" number="plural" gender="feminine" case="genitive"/><result>ـهنَّ</result></test>
+    <test><source person="third" number="singular" gender="masculine" case="genitive"/><result>ـه</result></test>
+    <test><source person="third" number="singular" gender="feminine" case="genitive"/><result>ـها</result></test>
+    <test><source person="third" number="dual" case="genitive"/><result>ـهمَا</result></test>
+    <test><source person="second" number="plural" gender="masculine" case="genitive"/><result>كُمْ</result></test>
+    <test><source person="second" number="plural" gender="feminine" case="genitive"/><result>كُنَّ</result></test>
+    <test><source person="second" number="singular" gender="masculine" case="genitive"/><result>كَ</result></test>
+    <test><source person="second" number="singular" gender="feminine" case="genitive"/><result>كِ</result></test>
+    <test><source person="second" number="dual" case="genitive"/><result>كُمَا</result></test>
+    <test><source person="first" case="genitive"/><result>ـنَا</result></test>
+    <test><source person="first" number="singular" case="genitive"/><result>ـنِي</result></test>
+    <test><source person="second" number="singular" pronounType="reflexive"/><result>نفسكَ</result></test>
+    <test><source person="second" number="singular" pronounType="reflexive" gender="masculine"/><result>نفسكَ</result></test>
+    <test><source person="second" number="singular" pronounType="reflexive" gender="feminine"/><result>نفسكِ</result></test>
+
+    <!-- reinflection -->
+    <test><source person="third">أنا</source><result gender="masculine">هو</result></test>
+    <test><source person="second">أنا</source><result gender="masculine">أنتَ</result></test>
+    <test><source person="second">هو</source><result gender="masculine">أنتَ</result></test>
+    <test><source person="second">هي</source><result gender="feminine">أنتِ</result></test>
+    <test><source case="accusative">أنا</source><result>ـنِي</result></test>
+    <test><source gender="masculine" case="genitive">كَ</source><result>كَ</result></test>
+    <test><source gender="masculine" case="genitive">كِ</source><result>كَ</result></test>
+    <test><source gender="feminine" case="genitive">كَ</source><result>كِ</result></test>
+</inflectionTest>

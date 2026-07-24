@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="yue_CN">
+    <test><source/><result>佢</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="first"/><result>我</result></test>
+    <test><source person="second"/><result>你</result></test>
+    <test><source person="third"/><result>佢</result></test>
+</inflectionTest>

@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="da">
+    <!-- Simple inflection -->
+    <test><source/><result>den</result></test>
+    <test><source person="first"/><result>jeg</result></test>
+    <test><source number="plural"/><result>de</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="first" case="accusative"/><result>mig</result></test>
+    <test><source person="first" case="genitive"/><result>mig</result></test>
+    <test><source person="first" number="singular" case="genitive"/><result>mig</result></test>
+    <test><source person="first" number="plural"/><result>vi</result></test>
+    <test><source person="first" number="singular"/><result>jeg</result></test>
+    <test><source person="first" number="singular" gender="masculine"/><result>jeg</result></test>
+    <test><source person="first" number="singular" gender="feminine"/><result>jeg</result></test>
+    <test><source person="second"/><result>du</result></test>
+    <test><source person="second" number="plural"/><result>I</result></test>
+    <test><source person="third"/><result>den</result></test> <!-- You didn't specify a gender. So you get something generic in the third person. -->
+    <test><source person="third" gender="masculine"/><result gender="masculine">han</result></test>
+    <test><source person="third" gender="feminine"/><result gender="feminine">hun</result></test>
+    <test><source person="first" pronounType="reflexive"/><result>den</result></test> <!-- Doesn't exist. Get the default. -->
+    <test><source person="second" pronounType="reflexive"/><result>den</result></test> <!-- Doesn't exist. Get the default. -->
+    <test><source person="third" pronounType="reflexive"/><result>sig</result></test>
+    <test><source person="third" number="singular" pronounType="reflexive"/><result>sin</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive"/><result>deres</result></test>
+
+    <test><source person="second" case="genitive"/><result>din</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="masculine"/><result>dine</result></test> <!-- Yes, it's plural, but the singular forms are looking for common and neuter -->
+    <test><source person="second" case="genitive"/><codependent gender="masculine" number="plural"/><result>dine</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="feminine"/><result>dine</result></test> <!-- Yes, it's plural, but the singular forms are looking for common and neuter -->
+    <test><source person="second" case="genitive"/><codependent gender="feminine" number="plural"/><result>dine</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="common"/><result>din</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="common" number="plural"/><result>dine</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="neuter"/><result>dit</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="neuter" number="plural"/><result>dine</result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="masculine"/><result>jeres</result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="masculine" number="plural"/><result>jeres</result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="feminine"/><result>jeres</result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="feminine" number="plural"/><result>jeres</result></test>
+
+    <test><source person="third" pronounType="reflexive"/><result>sig</result></test>
+    <test><source person="third" case="accusative" pronounType="reflexive"/><result>sig</result></test>
+    <test><source person="third" case="genitive" pronounType="reflexive"/><codependent gender="masculine"/><result>sine</result></test> <!-- Not really a valid state -->
+    <test><source person="third" case="genitive" pronounType="reflexive"/><codependent gender="masculine" number="plural"/><result>sine</result></test>
+    <test><source person="third" case="genitive" pronounType="reflexive"/><codependent gender="feminine"/><result>sine</result></test> <!-- Not really a valid state -->
+    <test><source person="third" case="genitive" pronounType="reflexive"/><codependent gender="feminine" number="plural"/><result>sine</result></test>
+    <test><source person="third" case="genitive" pronounType="reflexive"/><codependent gender="common"/><result>sin</result></test>
+    <test><source person="third" case="genitive" pronounType="reflexive"/><codependent gender="common" number="plural"/><result>sine</result></test>
+    <test><source person="third" case="genitive" pronounType="reflexive"/><codependent gender="neuter"/><result>sit</result></test>
+    <test><source person="third" case="genitive" pronounType="reflexive"/><codependent gender="neuter" number="plural"/><result>sine</result></test>
+    <test><source person="third" case="genitive" number="plural" pronounType="reflexive"/><codependent gender="masculine"/><result>deres</result></test>
+    <test><source person="third" case="genitive" number="plural" pronounType="reflexive"/><codependent gender="masculine" number="plural"/><result>deres</result></test>
+    <test><source person="third" case="genitive" number="plural" pronounType="reflexive"/><codependent gender="feminine"/><result>deres</result></test>
+    <test><source person="third" case="genitive" number="plural" pronounType="reflexive"/><codependent gender="feminine" number="plural"/><result>deres</result></test>
+
+    <!-- reinflection -->
+    <test><source person="third">jeg</source><result gender="common">den</result></test><!-- There is no ungendered/epicene form -->
+    <test><source person="second">jeg</source><result gender="">du</result></test>
+    <test><source person="second">Jeg</source><result gender="">du</result></test>
+    <test><source case="accusative">jeg</source><result>mig</result></test>
+    <test><source pronounType="reflexive">jeg</source><result>sig</result></test>
+    <test><source gender="masculine" case="nominative">han</source><result>han</result></test>
+    <test><source gender="masculine" case="nominative">hAn</source><result>han</result></test>
+    <test><source gender="feminine" case="nominative">han</source><result>hun</result></test>
+    <test><source gender="neuter" case="nominative">han</source><result>det</result></test>
+    <test><source gender="common" case="nominative">han</source><result>den</result></test>
+    <test><source gender="masculine" case="nominative">dens</source><result>han</result></test>
+    <test><source gender="feminine" case="nominative">dens</source><result>hun</result></test>
+    <test><source gender="neuter">dens</source><result>dets</result></test>
+    <test><source person="third" pronounType="reflexive">jeg</source><result gender="">sig</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive">jeg</source><result gender="">deres</result></test>
+    <test><source person="third" number="plural" case="accusative" pronounType="reflexive">jeg</source><result gender="">sig</result></test>
+</inflectionTest>

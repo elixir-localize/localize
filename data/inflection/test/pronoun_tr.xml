@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="tr">
+    <!-- Simple inflection -->
+    <test><source/><result>onlar</result></test>
+    <test><source person="third"/><result>onlar</result></test>
+    <test><source person="third" case="nominative"/><result>onlar</result></test>
+    <test><source person="third" number="plural"/><result>onlar</result></test>
+    <test><source number="plural"/><result>onlar</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source number="singular"/><result>o</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="third" number="plural" case="nominative"/><result>onlar</result></test>
+    <test><source person="third" number="singular" case="nominative"/><result>o</result></test>
+    <test><source person="second" number="plural" case="nominative"/><result>siz</result></test>
+    <test><source person="second" number="singular" case="nominative"/><result>sen</result></test>
+    <test><source person="first" number="plural" case="nominative"/><result>biz</result></test>
+    <test><source person="first" number="singular" case="nominative"/><result>ben</result></test>
+    <test><source person="third" number="plural" case="accusative"/><result>onları</result></test>
+    <test><source person="third" number="singular" case="accusative"/><result>onu</result></test>
+    <test><source person="second" number="plural" case="accusative"/><result>sizi</result></test>
+    <test><source person="second" number="singular" case="accusative"/><result>seni</result></test>
+    <test><source person="first" number="plural" case="accusative"/><result>bizi</result></test>
+    <test><source person="first" number="singular" case="accusative"/><result>beni</result></test>
+    <test><source person="third" number="plural" case="dative"/><result>onlara</result></test>
+    <test><source person="third" number="singular" case="dative"/><result>ona</result></test>
+    <test><source person="second" number="plural" case="dative"/><result>size</result></test>
+    <test><source person="second" number="singular" case="dative"/><result>sana</result></test>
+    <test><source person="first" number="plural" case="dative"/><result>bize</result></test>
+    <test><source person="first" number="singular" case="dative"/><result>bana</result></test>
+    <test><source person="third" number="plural" case="locative"/><result>onlarda</result></test>
+    <test><source person="third" number="singular" case="locative"/><result>onda</result></test>
+    <test><source person="second" number="plural" case="locative"/><result>sizde</result></test>
+    <test><source person="second" number="singular" case="locative"/><result>sende</result></test>
+    <test><source person="first" number="plural" case="locative"/><result>bizde</result></test>
+    <test><source person="first" number="singular" case="locative"/><result>bende</result></test>
+    <test><source person="third" number="plural" case="ablative"/><result>onlardan</result></test>
+    <test><source person="third" number="singular" case="ablative"/><result>ondan</result></test>
+    <test><source person="second" number="plural" case="ablative"/><result>sizden</result></test>
+    <test><source person="second" number="singular" case="ablative"/><result>senden</result></test>
+    <test><source person="first" number="plural" case="ablative"/><result>bizden</result></test>
+    <test><source person="first" number="singular" case="ablative"/><result>benden</result></test>
+    <test><source person="third" number="plural" case="genitive"/><result>onların</result></test>
+    <test><source person="third" number="singular" case="genitive"/><result>onun</result></test>
+    <test><source person="second" number="plural" case="genitive"/><result>sizin</result></test>
+    <test><source person="second" number="singular" case="genitive"/><result>senin</result></test>
+    <test><source person="first" number="plural" case="genitive"/><result>bizim</result></test>
+    <test><source person="first" number="singular" case="genitive"/><result>benim</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive"/><result>kendileri</result></test>
+    <test><source person="second" number="plural" pronounType="reflexive"/><result>kendiniz</result></test>
+    <test><source person="first" number="plural" pronounType="reflexive"/><result>kendimiz</result></test>
+    <test><source person="third" number="singular" pronounType="reflexive"/><result>kendisi</result></test>
+    <test><source person="second" number="singular" pronounType="reflexive"/><result>kendin</result></test>
+    <test><source person="first" number="singular" pronounType="reflexive"/><result>kendim</result></test>
+    <!-- reinflection -->
+    <test><source person="third">ben</source><result>o</result></test>
+    <test><source person="second">ben</source><result>sen</result></test>
+    <test><source person="second">Ben</source><result>sen</result></test>
+    <test><source person="first">o</source><result>ben</result></test>
+    <test><source person="first">O</source><result>ben</result></test>
+    <test><source case="genitive">ben</source><result>benim</result></test>
+    <test><source case="nominative">benden</source><result>ben</result></test>
+    <test><source person="third">bana</source><result>ona</result></test>
+    <test><source person="third" number="plural">bana</source><result>onlara</result></test>
+</inflectionTest>

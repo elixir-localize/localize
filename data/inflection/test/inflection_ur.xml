@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2026 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="ur">
+    <!-- Number Lookup Tests -->
+    <!-- FIXME: <test><source>کتاب</source><result number="singular"/></test> -->
+    <!-- FIXME: <test><source>کتابیں</source><result number="plural"/></test> -->
+    <test><source>گھنٹہ</source><result number="singular"/></test>
+    <test><source>لڑکا</source><result number="singular"/></test>
+    <test><source>لڑکی</source><result number="singular"/></test>
+    <test><source>ڈگری</source><result number="singular"/></test>
+    <test><source>ڈگریاں</source><result number="plural"/></test>
+
+    <!-- Gender Lookup Tests -->
+    <!-- FIXME: <test><source>کتاب</source><result gender="feminine"/></test> -->
+    <test><source>گھر</source><result gender="masculine"/></test>
+    <test><source>لڑکا</source><result gender="masculine"/></test>
+    <test><source>لڑکی</source><result gender="feminine"/></test>
+    <test><source>منٹ</source><result gender="masculine"/></test>
+    <test><source>تصویر</source><result gender="feminine"/></test>
+    <test><source>پیغام</source><result gender="masculine"/></test>
+    <test><source>گھنٹہ</source><result gender="masculine"/></test>
+    <test><source>ڈگری</source><result gender="feminine"/></test>
+
+    <!-- Identity Inflection Tests -->
+    <test><source number="singular">کتاب</source><result>کتاب</result></test>
+    <test><source number="singular">گھر</source><result>گھر</result></test>
+    <test><source number="singular">لڑکا</source><result>لڑکا</result></test>
+    <test><source number="plural">کتابیں</source><result>کتابیں</result></test>
+
+    <!-- Singular to Plural Inflection -->
+    <!-- FIXME: <test><source number="plural">کتاب</source><result>کتابیں</result></test> -->
+    <test><source number="plural">تصویر</source><result>تصویریں</result></test>
+    <test><source number="plural">ڈگری</source><result>ڈگریاں</result></test>
+    <test><source number="plural">لڑکا</source><result>لڑکے</result></test>
+    <test><source number="plural">لڑکی</source><result>لڑکیاں</result></test>
+
+    <!-- Plural to Singular Inflection -->
+    <!-- FIXME: <test><source number="singular">کتابیں</source><result>کتاب</result></test> -->
+    <test><source number="singular">تصویریں</source><result>تصویر</result></test>
+    <test><source number="singular">ڈگریاں</source><result>ڈگری</result></test>
+    <test><source number="singular">لڑکے</source><result>لڑکا</result></test>
+    <test><source number="singular">لڑکیاں</source><result>لڑکی</result></test>
+
+    <!-- Oblique Case Inflection -->
+    <test><source case="oblique">گھنٹہ</source><result>گھنٹے</result></test>
+    <test><source case="oblique">لڑکا</source><result>لڑکے</result></test>
+    <test><source case="oblique" number="plural">گھر</source><result>گھروں</result></test>
+    <!-- FIXME: <test><source case="oblique" number="plural">کتاب</source><result>کتابوں</result></test> -->
+    <test><source case="oblique" number="plural">لڑکا</source><result>لڑکوں</result></test>
+    <test><source case="oblique" number="plural">لڑکی</source><result>لڑکیوں</result></test>
+    <test><source case="oblique" number="plural">ڈگری</source><result>ڈگریوں</result></test>
+    <test><source case="oblique" number="plural">میٹر</source><result>میٹروں</result></test>
+    <test><source case="oblique" number="plural">کلومیٹر</source><result>کلومیٹروں</result></test>
+    <test><source case="oblique" number="plural">سیکنڈ</source><result>سیکنڈوں</result></test>
+
+    <!-- Direct Case (identity) -->
+    <test><source case="direct">لڑکا</source><result>لڑکا</result></test>
+    <test><source case="direct">کتاب</source><result>کتاب</result></test>
+
+    <!-- Adjective Gender Inflection -->
+    <test><source gender="masculine">بڑا</source><result>بڑا</result></test>
+    <test><source gender="feminine">بڑا</source><result>بڑی</result></test>
+    <test><source gender="masculine">نیا</source><result>نیا</result></test>
+    <!-- FIXME: <test><source gender="feminine">نیا</source><result>نئی</result></test> -->
+
+    <!-- Adjective Oblique Case -->
+    <test><source case="oblique">بڑا</source><result>بڑے</result></test>
+    <!-- FIXME: <test><source case="oblique">نیا</source><result>نئے</result></test> -->
+
+    <!-- Adjective Gender + Plural -->
+    <test><source gender="masculine" number="plural">بڑا</source><result>بڑے</result></test>
+    <!-- FIXME: <test><source gender="feminine" number="plural">نیا</source><result>نئی</result></test> -->
+    <!-- FIXME: <test><source gender="masculine" number="plural">نیا</source><result>نئے</result></test> -->
+
+    <!-- Latin Script Words -->
+    <test><source number="singular">apples</source><result>apples</result></test>
+    <test><source number="plural">apple</source><result>apple</result></test>
+
+</inflectionTest>

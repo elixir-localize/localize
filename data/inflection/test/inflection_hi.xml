@@ -1,0 +1,250 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2023-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="hi">
+    <!-- Singular Plural Lookup Tests -->
+    <test><source>लड़का</source><result number="singular"/></test>
+    <test><source>आशिया</source><result number="singular"/></test>
+    <test><source>दुकान</source><result number="singular"/></test>
+    <test><source>दुकानें</source><result number="plural"/></test>
+    <test><source>लड़का</source><result number="singular"/></test>
+    <test><source>दरवाज़ा</source><result number="singular"/></test>
+    <test><source>छोटा कमरा</source><result number="singular"/></test>
+    <test><source>लाल बत्ती</source><result number="singular"/></test>
+    <test><source>लाल बत्तियाँ</source><result number="plural"/></test>
+    <test><source>लम्बी लड़कियाँ</source><result number="plural"/></test>
+    <test><source>कमरे की बत्ती</source><result number="singular"/></test>
+    <test><source>कमरे की बत्तियाँ</source><result number="plural"/></test>
+    <test><source>कमरों की बत्ती</source><result number="singular"/></test>
+
+    <!-- Singular Plural Inflection Tests -->
+    <test><source number="plural">दुकान</source><result>दुकानें</result></test>
+    <test><source number="plural">तस्वीर</source><result>तस्वीरें</result></test>
+    <test><source number="plural">संदेश</source><result>संदेश</result></test>
+    <test><source number="plural">दरवाज़ा</source><result>दरवाज़े</result></test>
+    <test><source number="plural">कमरा</source><result>कमरे</result></test>
+    <test><source number="plural">पंखा</source><result>पंखे</result></test>
+    <test><source number="singular">ऐपलए</source><result>ऐपलआ</result></test> <!-- Madeup -->
+    <test><source number="singular">अप्पलके</source><result>अप्पलका</result></test> <!-- Madeup -->
+    <test><source number="plural">मोरफ़ूनु</source><result>मोरफ़ूनुएँ</result></test> <!-- Madeup -->
+    <test><source number="plural">अप्पलेकी</source><result>अप्पलेकियाँ</result></test> <!-- Madeup -->
+    <test><source number="plural">अबकया</source><result>अबकयाँ</result></test> <!-- Madeup -->
+    <test><source number="plural">क्ष्यजआ</source><result>क्ष्यजए</result></test> <!-- Madeup -->
+    <test><source number="plural">क्ष्यजा</source><result>क्ष्यजे</result></test> <!-- Madeup -->
+    <test><source number="singular">कीबें</source><result>कीबे</result></test> <!-- Madeup -->
+    <test><source number="singular">FaceTime</source><result>FaceTime</result></test> <!-- Latin -->
+    <test><source number="plural">Apple</source><result>Apple</result></test> <!-- Latin -->
+
+    <!-- Masculine Feminine Lookup Tests -->
+    <test><source>लड़का</source><result gender="masculine"/></test>
+    <test><source>लड़की</source><result gender="feminine"/></test>
+    <test><source>आपका</source><result gender="masculine"/></test>
+    <test><source>आपकी</source><result gender="feminine"/></test>
+    <test><source>रहा</source><result gender="masculine"/></test>
+    <test><source>कुत्ता</source><result gender="masculine"/></test>
+    <test><source>गाना</source><result gender="masculine"/></test>
+    <test><source>गाड़ी</source><result gender="feminine"/></test>
+    <test><source>चलाया</source><result gender="masculine"/></test>
+    <test><source>चलायी</source><result gender="feminine"/></test>
+    <test><source>चल</source><result gender="masculine"/></test>
+    <test><source>लम्बी लड़कियाँ</source><result gender="feminine"/></test>
+    <test><source>ऊँचा पहाड़</source><result gender="masculine"/></test>
+
+    <!--    Couldn't inflect possessive pronouns using dictionary-->
+<!--    Waiting for Inconsistent number labeling of genitive second person Hindi pronouns -->
+<!--    <test><source gender="feminine">आपका</source><result exists="true"/>आपकी</test>-->
+
+<!-- Masculine Feminine Inflection Tests -->
+<!--    support for ordinal numbers inflections)-->
+
+    <!-- first -->
+    <test><source gender="feminine">पहला</source><result exists="true">पहली</result></test>
+    <test><source gender="masculine">पहली</source><result exists="true">पहला</result></test>
+
+    <!-- second -->
+    <test><source gender="feminine">दूसरा</source><result exists="true">दूसरी</result></test>
+    <test><source gender="masculine">दूसरी</source><result exists="true">दूसरा</result></test>
+
+    <!-- third -->
+    <test><source gender="feminine">तीसरा</source><result exists="true">तीसरी</result></test>
+    <test><source gender="masculine">तीसरी</source><result exists="true">तीसरा</result></test>
+
+    <!-- qualifying and possessive adjective inflections -->
+    <!-- open -->
+    <test><source gender="feminine">खुला</source><result exists="true">खुली</result></test>
+    <test><source gender="masculine">खुली</source><result exists="true">खुला</result></test>
+
+    <!-- new -->
+    <test><source gender="feminine">नया</source><result exists="true">नई</result></test>
+    <test><source gender="masculine">नई</source><result exists="true">नया</result></test>
+
+    <!-- hidden-->
+    <test><source gender="feminine">छिपा</source><result exists="true">छिपी</result></test>
+    <test><source gender="masculine">छिपी</source><result exists="true">छिपा</result></test>
+
+    <!-- verb inflections -->
+    <!-- done -->
+    <test><source gender="feminine">गया</source><result exists="true">गई</result></test>
+    <test><source gender="masculine">गई</source><result exists="true">गया</result></test>
+
+    <!-- pressed -->
+    <!-- FIXME: <test><source gender="feminine">दबाया</source><result exists="true">दबाई</result></test> -->
+    <!-- FIXME: <test><source gender="masculine">दबाई</source><result exists="true">दबाया</result></test> -->
+
+    <test><source gender="masculine">Calculator</source><result>Calculator</result></test> <!-- Latin Words -->
+    <test><source gender="feminine">Clock</source><result>Clock</result></test> <!-- Latin Words -->
+
+    <!-- Combination Lookup Tests -->
+    <!-- boy -->
+    <test><source>लड़का</source><result gender="masculine" number="singular"/></test>
+    <!-- girls-->
+    <test><source>लड़कियाँ</source><result gender="feminine" number="plural"/></test>
+
+    <!-- Combination Inflection Tests -->
+    <test><source gender="feminine" number="plural">आबका</source><result>आबकियाँ</result></test>
+    <test><source gender="masculine" number="plural">कबकी</source><result>कबके</result></test>
+
+    <!-- adposition का with morphological information -->
+    <test><source gender="feminine">का</source><result exists="true">की</result></test>
+    <test><source number="singular">के</source><result exists="true">का</result></test>
+    <test><source number="plural">का</source><result exists="true">के</result></test>
+
+    <test><source gender="masculine">की</source><result exists="true">का</result></test>
+    <test><source number="singular">की</source><result exists="true">की</result></test>
+    <test><source number="plural">की</source><result exists="true">की</result></test>
+
+    <!-- Feminine preview is incorrect for सकते and करते)-->
+    <test><source gender="feminine">सकता</source><result exists="true">सकती</result></test>
+    <test><source gender="feminine">सकते</source><result exists="true">सकतीं</result></test>
+    <!-- FIXME: <test><source gender="feminine">सकते हैं</source><result exists="true">सकती हैं</result></test> -->
+
+    <test><source gender="feminine">करता</source><result exists="true">करती</result></test>
+    <test><source gender="feminine">करते</source><result exists="true">करतीं</result></test>
+    <!-- FIXME: <test><source gender="feminine">करते हैं</source><result exists="true">करती हैं</result></test> -->
+
+    <test><source gender="feminine">चाहता</source><result exists="true">चाहती</result></test>
+    <test><source gender="feminine">चाहते</source><result exists="true">चाहतीं</result></test>
+    <!-- FIXME: <test><source gender="feminine">चाहते हैं</source><result exists="true">चाहती हैं</result></test> -->
+
+    <test><source gender="feminine">रहा</source><result exists="true">रही</result></test>
+    <test><source gender="feminine">रहे</source><result exists="true">रहीं</result></test>
+    <!-- FIXME: <test><source gender="feminine">रहे हैं</source><result exists="true">रही हैं</result></test> -->
+
+    <test><source gender="feminine">चलते</source><result exists="true">चलतीं</result></test>
+    <test><source gender="feminine">चलते रहते</source><result exists="true">चलती रहतीं</result></test>
+    <!-- FIXME: <test><source gender="feminine">चलते रहते हैं</source><result exists="true">चलती रहती हैं</result></test> -->
+
+    <!-- Oblique Case for Hindi Phrases -->
+    <test><source number="singular">गलियारा में</source><result exists="true">गलियारे में</result></test>
+    <test><source number="singular">दरवाज़ा का</source><result exists="true">दरवाज़े का</result></test>
+    <test><source gender="feminine">दरवाज़ा का बात</source><result exists="true">दरवाज़े की बात</result></test>
+
+    <!-- lemmas for verb था -->
+    <!-- FIXME: <test><source gender="feminine">सकते थे</source><result>सकती थीं</result></test> -->
+    <!-- FIXME: <test><source gender="feminine">करते थे</source><result>करती थीं</result></test> -->
+    <!-- FIXME: <test><source gender="feminine">चाहते थे</source><result>चाहती थीं</result></test> -->
+
+    <!-- noun inflections -->
+    <test><source gender="feminine">आयोजक</source><result>आयोजिका</result></test>
+    <test><source gender="feminine">बच्चा</source><result>बच्ची</result></test>
+    <test><source gender="feminine">निर्माता</source><result>निर्मात्री</result></test>
+    <test><source gender="feminine">शिक्षक</source><result>शिक्षिका</result></test>
+    <test><source gender="feminine">गायक</source><result>गायिका</result></test>
+    <test><source gender="feminine">लेखक</source><result>लेखिका</result></test>
+    <test><source gender="feminine">सदस्य</source><result>सदस्या</result></test>
+    <test><source gender="feminine">अभिभावक</source><result>अभिभाविका</result></test>
+
+    <!-- inflecting possessive pronouns -->
+    <!-- For possessive pronoun we assume that the inflection constraints are coming from the referenced concept of the input -->
+    <test><source gender="masculine">तुम्हारा</source><result>तुम्हारा</result></test>
+    <!-- FIXME: <test><source gender="masculine">तुम्हारी</source><result>तुम्हारा</result></test> -->
+    <test><source gender="masculine">तुम्हारे</source><result>तुम्हारे</result></test>
+
+    <!-- FIXME: <test><source gender="feminine">तुम्हारा</source><result>तुम्हारी</result></test> -->
+    <test><source gender="feminine">तुम्हारी</source><result>तुम्हारी</result></test>
+    <!-- FIXME: <test><source gender="feminine">तुम्हारे</source><result>तुम्हारी</result></test> -->
+
+    <test><source gender="masculine">आपका</source><result>आपका</result></test>
+    <!-- FIXME: <test><source gender="masculine">आपकी</source><result>आपका</result></test> -->
+    <test><source gender="masculine">आपके</source><result>आपके</result></test>
+
+    <test><source gender="feminine">आपका</source><result>आपकी</result></test>
+    <test><source gender="feminine">आपकी</source><result>आपकी</result></test>
+    <test><source gender="feminine">आपके</source><result>आपकी</result></test>
+
+    <test><source gender="masculine">उसका</source><result>उसका</result></test>
+    <!-- FIXME: <test><source gender="masculine">उसकी</source><result>उसका</result></test> -->
+    <test><source gender="masculine">उसके</source><result>उसके</result></test>
+
+    <!-- FIXME: <test><source gender="feminine">उसका</source><result>उसकी</result></test> -->
+    <test><source gender="feminine">उसकी</source><result>उसकी</result></test>
+    <!-- FIXME: <test><source gender="feminine">उसके</source><result>उसकी</result></test> -->
+
+    <test><source gender="masculine">उनका</source><result>उनका</result></test>
+    <!-- FIXME: <test><source gender="masculine">उनकी</source><result>उनका</result></test> -->
+    <test><source gender="masculine">उनके</source><result>उनके</result></test>
+
+    <!-- FIXME: <test><source gender="feminine">उनका</source><result>उनकी</result></test> -->
+    <test><source gender="feminine">उनकी</source><result>उनकी</result></test>
+    <!-- FIXME: <test><source gender="feminine">उनके</source><result>उनकी</result></test> -->
+
+    <test><source gender="masculine">इसका</source><result>इसका</result></test>
+    <!-- FIXME: <test><source gender="masculine">इसकी</source><result>इसका</result></test> -->
+    <test><source gender="masculine">इसके</source><result>इसके</result></test>
+
+    <!-- FIXME: <test><source gender="feminine">इसका</source><result>इसकी</result></test> -->
+    <test><source gender="feminine">इसकी</source><result>इसकी</result></test>
+    <!-- FIXME: <test><source gender="feminine">इसके</source><result>इसकी</result></test> -->
+
+    <test><source gender="masculine">इनका</source><result>इनका</result></test>
+    <test><source gender="masculine">इनकी</source><result>इनका</result></test>
+    <test><source gender="masculine">इनके</source><result>इनके</result></test>
+
+    <test><source gender="feminine">इनका</source><result>इनकी</result></test>
+    <test><source gender="feminine">इनकी</source><result>इनकी</result></test>
+    <test><source gender="feminine">इनके</source><result>इनकी</result></test>
+
+    <test><source gender="masculine">किसका</source><result>किसका</result></test>
+    <!-- FIXME: <test><source gender="masculine">किसकी</source><result>किसका</result></test> -->
+    <test><source gender="masculine">किसके</source><result>किसके</result></test>
+
+    <!-- FIXME: <test><source gender="feminine">किसका</source><result>किसकी</result></test> -->
+    <test><source gender="feminine">किसकी</source><result>किसकी</result></test>
+    <!-- FIXME: <test><source gender="feminine">किसके</source><result>किसकी</result></test> -->
+
+    <test><source gender="masculine">किनका</source><result>किनका</result></test>
+    <!-- FIXME: <test><source gender="masculine">किनकी</source><result>किनका</result></test> -->
+    <test><source gender="masculine">किनके</source><result>किनके</result></test>
+
+    <!-- FIXME: <test><source gender="feminine">किनका</source><result>किनकी</result></test> -->
+    <test><source gender="feminine">किनकी</source><result>किनकी</result></test>
+    <!-- FIXME: <test><source gender="feminine">किनके</source><result>किनकी</result></test> -->
+
+    <test><source gender="masculine">जिसका</source><result>जिसका</result></test>
+    <!-- FIXME: <test><source gender="masculine">जिसकी</source><result>जिसका</result></test> -->
+    <test><source gender="masculine">जिसके</source><result>जिसके</result></test>
+
+    <!-- FIXME: <test><source gender="feminine">जिसका</source><result>जिसकी</result></test> -->
+    <test><source gender="feminine">जिसकी</source><result>जिसकी</result></test>
+    <!-- FIXME: <test><source gender="feminine">जिसके</source><result>जिसकी</result></test> -->
+
+    <test><source gender="masculine">जिनका</source><result>जिनका</result></test>
+    <!-- FIXME: <test><source gender="masculine">जिनकी</source><result>जिनका</result></test> -->
+    <test><source gender="masculine">जिनके</source><result>जिनके</result></test>
+
+    <!-- FIXME: <test><source gender="feminine">जिनका</source><result>जिनकी</result></test> -->
+    <test><source gender="feminine">जिनकी</source><result>जिनकी</result></test>
+    <!-- FIXME: <test><source gender="feminine">जिनके</source><result>जिनकी</result></test> -->
+
+    <test><source case="direct">लड़का</source><result>लड़का</result></test>
+    <test><source case="oblique">लड़का</source><result>लड़के</result></test>
+    <test><source case="direct" number="singular">लड़के</source><result>लड़का</result></test>
+    <test><source case="oblique" number="singular">लड़के</source><result>लड़के</result></test>
+    <test><source case="direct">लड़के</source><result>लड़के</result></test>
+    <test><source case="oblique">लड़के</source><result>लड़कों</result></test>
+    <test><source case="direct">लड़कों</source><result>लड़के</result></test>
+    <test><source case="oblique">लड़कों</source><result>लड़कों</result></test>
+    <test><source case="oblique" number="plural">लड़का</source><result>लड़कों</result></test>
+
+</inflectionTest>

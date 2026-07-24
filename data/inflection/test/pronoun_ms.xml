@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="ms">
+    <test><source/><result>mereka</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="first"/><result>kami</result></test>
+    <test><source person="first" number="singular"/><result>saya</result></test>
+    <test><source person="first" number="plural"/><result>kami</result></test>
+    <test><source person="first" number="plural" clusivity="inclusive"/><result>kita</result></test>
+    <test><source person="first" number="plural" clusivity="exclusive"/><result>kami</result></test>
+    <test><source person="second"/><result>kalian</result></test>
+    <test><source person="second" number="singular"/><result>anda</result></test>
+    <test><source person="third"/><result>mereka</result></test>
+    <test><source person="third" number="singular"/><result>dia</result></test>
+    <test><source person="third" number="plural"/><result>mereka</result></test>
+</inflectionTest>

@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="th">
+    <!-- Simple inflection -->
+    <test><source/><result>เขา</result></test>
+    <test><source person="first"/><result>ฉัน</result></test>
+    <test><source number="plural"/><result>พวกเขา</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="first" pronounType="reflexive"/><result>ฉัน</result></test>
+    <test><source person="third" number="singular" case="nominative" animacy="human"/><result>เขา</result></test>
+    <test><source person="third" number="singular" case="nominative" animacy="nonhuman"/><result>มัน</result></test>
+    <test><source person="third" number="plural" case="nominative" animacy="human"/><result>พวกเขา</result></test>
+    <test><source person="third" number="plural" case="nominative" animacy="nonhuman"/><result>พวกมัน</result></test>
+    <test><source person="second" number="singular" case="nominative"/><result>คุณ</result></test>
+    <test><source person="second" number="plural" case="nominative"/><result>พวกคุณ</result></test>
+    <test><source person="first" number="singular" case="nominative"/><result>ฉัน</result></test>
+    <test><source person="first" number="plural" case="nominative"/><result>พวกเรา</result></test>
+    <test><source person="third" number="singular" case="genitive" animacy="human"/><result>ของเขา</result></test>
+    <test><source person="third" number="singular" case="genitive" animacy="nonhuman"/><result>ของมัน</result></test>
+    <test><source person="third" number="plural" case="genitive" animacy="human"/><result>ของพวกเขา</result></test>
+    <test><source person="third" number="plural" case="genitive" animacy="nonhuman"/><result>ของพวกมัน</result></test>
+    <test><source person="second" number="singular" case="genitive"/><result>ของคุณ</result></test>
+    <test><source person="second" number="plural" case="genitive"/><result>ของพวกคุณ</result></test>
+    <test><source person="first" number="singular" case="genitive"/><result>ของฉัน</result></test>
+    <test><source person="first" number="plural" case="genitive"/><result>ของพวกเรา</result></test>
+    <test><source person="third" number="singular" pronounType="reflexive" animacy="human"/><result>เขาเอง</result></test>
+    <test><source person="third" number="singular" pronounType="reflexive" animacy="nonhuman"/><result>มันเอง</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive" animacy="human"/><result>พวกเขาเอง</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive" animacy="nonhuman"/><result>พวกมันเอง</result></test>
+    <test><source person="second" number="singular" pronounType="reflexive"/><result>คุณเอง</result></test>
+    <test><source person="second" number="plural" pronounType="reflexive"/><result>พวกคุณเอง</result></test>
+    <test><source person="first" number="singular" pronounType="reflexive"/><result>ฉัน</result></test>
+    <test><source person="first" number="plural" pronounType="reflexive"/><result>พวกเราเอง</result></test>
+
+    <!-- reinflection -->
+    <test><source person="third">ฉัน</source><result>เขา</result></test>
+    <test><source person="second">ฉัน</source><result>คุณ</result></test>
+    <test><source case="genitive">ฉัน</source><result>ของฉัน</result></test>
+    <test><source pronounType="reflexive">ฉัน</source><result>ฉัน</result></test>
+    <test><source pronounType="reflexive" number="plural">ฉัน</source><result>พวกเราเอง</result></test>
+    <test><source animacy="human">เขา</source><result>เขา</result></test>
+    <test><source animacy="nonhuman">เขา</source><result>มัน</result></test>
+    <test><source animacy="human">เขาเอง</source><result>เขาเอง</result></test>
+    <test><source animacy="nonhuman">เขาเอง</source><result>มันเอง</result></test>
+    <test><source person="third" pronounType="reflexive">ฉัน</source><result>เขาเอง</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive">ฉัน</source><result>พวกเขาเอง</result></test>
+</inflectionTest>

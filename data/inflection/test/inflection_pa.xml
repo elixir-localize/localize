@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2026 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="pa">
+    <!-- Number Lookup Tests -->
+    <test><source>ਮੁੰਡਾ</source><result number="singular"/></test>
+    <test><source>ਮੁੰਡਿਆਂ</source><result number="plural"/></test>
+    <test><source>ਕੁੜੀ</source><result number="singular"/></test>
+    <test><source>ਕੁੜੀਆਂ</source><result number="plural"/></test>
+    <test><source>ਮਿੰਟਾਂ</source><result number="plural"/></test>
+    <test><source>ਘੰਟਾ</source><result number="singular"/></test>
+    <test><source>ਸਕਿੰਟਾਂ</source><result number="plural"/></test>
+    <test><source>ਤਸਵੀਰ</source><result number="singular"/></test>
+    <test><source>ਤਸਵੀਰਾਂ</source><result number="plural"/></test>
+
+    <!-- Gender Lookup Tests -->
+    <test><source>ਮੁੰਡਾ</source><result gender="masculine"/></test>
+    <test><source>ਕੁੜੀ</source><result gender="feminine"/></test>
+    <test><source>ਘਰ</source><result gender="masculine"/></test>
+    <test><source>ਘੰਟਾ</source><result gender="masculine"/></test>
+    <test><source>ਮਿੰਟ</source><result gender="masculine"/></test>
+    <test><source>ਡਿਗਰੀ</source><result gender="feminine"/></test>
+    <test><source>ਤਸਵੀਰ</source><result gender="feminine"/></test>
+    <test><source>ਸੁਨੇਹਾ</source><result gender="masculine"/></test>
+
+    <!-- Identity Inflection Tests (no change expected) -->
+    <test><source number="singular">ਮੁੰਡਾ</source><result>ਮੁੰਡਾ</result></test>
+    <test><source number="singular">ਕੁੜੀ</source><result>ਕੁੜੀ</result></test>
+    <test><source number="singular">ਮਿੰਟ</source><result>ਮਿੰਟ</result></test>
+    <test><source number="plural">ਮੁੰਡੇ</source><result>ਮੁੰਡੇ</result></test>
+    <test><source number="plural">ਕੁੜੀਆਂ</source><result>ਕੁੜੀਆਂ</result></test>
+
+    <!-- Singular to Plural Inflection (masculine pattern 3: ਾ → ੇ) -->
+    <test><source number="plural">ਮੁੰਡਾ</source><result>ਮੁੰਡੇ</result></test>
+    <test><source number="plural">ਘੰਟਾ</source><result>ਘੰਟੇ</result></test>
+    <test><source number="plural">ਸੁਨੇਹਾ</source><result>ਸੁਨੇਹੇ</result></test>
+
+    <!-- Singular to Plural Inflection (masculine pattern 1: no change in direct) -->
+    <!-- FIXME: <test><source number="plural">ਮਿੰਟ</source><result>ਮਿੰਟ</result></test> -->
+    <test><source number="plural">ਮੀਟਰ</source><result>ਮੀਟਰ</result></test>
+    <test><source number="plural">ਸਕਿੰਟ</source><result>ਸਕਿੰਟ</result></test>
+
+    <!-- Singular to Plural Inflection (feminine: ਆਂ suffix) -->
+    <test><source number="plural">ਕੁੜੀ</source><result>ਕੁੜੀਆਂ</result></test>
+    <test><source number="plural">ਡਿਗਰੀ</source><result>ਡਿਗਰੀਆਂ</result></test>
+    <test><source number="plural">ਤਸਵੀਰ</source><result>ਤਸਵੀਰਾਂ</result></test>
+
+    <!-- Plural to Singular Inflection -->
+    <test><source number="singular">ਮੁੰਡੇ</source><result>ਮੁੰਡਾ</result></test>
+    <test><source number="singular">ਘੰਟੇ</source><result>ਘੰਟਾ</result></test>
+    <test><source number="singular">ਕੁੜੀਆਂ</source><result>ਕੁੜੀ</result></test>
+    <test><source number="singular">ਡਿਗਰੀਆਂ</source><result>ਡਿਗਰੀ</result></test>
+    <test><source number="singular">ਤਸਵੀਰਾਂ</source><result>ਤਸਵੀਰ</result></test>
+
+    <!-- Oblique Case Inflection -->
+    <test><source case="oblique">ਮੁੰਡਾ</source><result>ਮੁੰਡੇ</result></test>
+    <test><source case="oblique" number="plural">ਮੁੰਡਾ</source><result>ਮੁੰਡਿਆਂ</result></test>
+    <!-- FIXME: <test><source case="oblique" number="plural">ਮਿੰਟ</source><result>ਮਿੰਟਾਂ</result></test> -->
+    <test><source case="oblique" number="plural">ਮੀਟਰ</source><result>ਮੀਟਰਾਂ</result></test>
+    <test><source case="oblique" number="plural">ਸਕਿੰਟ</source><result>ਸਕਿੰਟਾਂ</result></test>
+    <test><source case="oblique" number="plural">ਘਰ</source><result>ਘਰਾਂ</result></test>
+
+    <!-- Direct Case (identity) -->
+    <test><source case="direct">ਮੁੰਡਾ</source><result>ਮੁੰਡਾ</result></test>
+    <test><source case="direct">ਕੁੜੀ</source><result>ਕੁੜੀ</result></test>
+
+    <!-- Adjective Inflection (pattern 8: gender-inflecting adjective) -->
+    <test><source gender="masculine">ਸੋਹਣਾ</source><result>ਸੋਹਣਾ</result></test>
+    <test><source gender="feminine">ਸੋਹਣਾ</source><result>ਸੋਹਣੀ</result></test>
+    <test><source gender="masculine" number="plural">ਸੋਹਣਾ</source><result>ਸੋਹਣੇ</result></test>
+    <test><source gender="feminine" number="plural">ਸੋਹਣਾ</source><result>ਸੋਹਣੀਆਂ</result></test>
+
+    <!-- Adjective Inflection (pattern 1a: ਾ-ending adjective, masculine forms only) -->
+    <test><source gender="masculine">ਛੋਟਾ</source><result>ਛੋਟਾ</result></test>
+    <test><source gender="masculine" number="plural">ਛੋਟਾ</source><result>ਛੋਟੇ</result></test>
+    <test><source gender="masculine">ਵੱਡਾ</source><result>ਵੱਡਾ</result></test>
+    <!-- FIXME: <test><source gender="masculine" number="plural">ਵੱਡਾ</source><result>ਵੱਡੇ</result></test> -->
+    <test><source gender="masculine">ਪੁਰਾਣਾ</source><result>ਪੁਰਾਣਾ</result></test>
+    <test><source gender="masculine" number="plural">ਪੁਰਾਣਾ</source><result>ਪੁਰਾਣੇ</result></test>
+
+    <!-- Adjective Oblique Case -->
+    <test><source case="oblique">ਛੋਟਾ</source><result>ਛੋਟੇ</result></test>
+    <!-- FIXME: <test><source case="oblique">ਵੱਡਾ</source><result>ਵੱਡੀ</result></test> -->
+    <test><source case="oblique">ਸੋਹਣਾ</source><result>ਸੋਹਣੇ</result></test>
+
+    <!-- Multi-word Phrases -->
+    <!-- FIXME: <test><source number="plural">ਨਵਾਂ ਸੁਨੇਹਾ</source><result>ਨਵੇਂ ਸੁਨੇਹੇ</result></test> -->
+    <test><source number="plural">ਛੋਟਾ ਮੁੰਡਾ</source><result>ਛੋਟੇ ਮੁੰਡੇ</result></test>
+    <test><source number="plural">ਸੋਹਣੀ ਕੁੜੀ</source><result>ਸੋਹਣੀਆਂ ਕੁੜੀਆਂ</result></test>
+
+    <!-- Latin Script Words (no inflection expected) -->
+    <test><source number="singular">apples</source><result>apples</result></test>
+    <test><source number="plural">apple</source><result>apple</result></test>
+
+</inflectionTest>

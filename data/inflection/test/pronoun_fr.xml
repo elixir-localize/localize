@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="fr">
+    <!-- Simple inflection -->
+    <test><source/><result>on </result></test>
+    <test><source person="first"/><result>je </result></test>
+    <test><source person="first"/><codependent sound="vowel-start"/><result>j’</result></test>
+    <test><source number="plural"/><result>ils </result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="first" case="accusative"/><result>me </result></test>
+    <test><source person="first" case="accusative"/><codependent sound="vowel-start"/><result>m’</result></test>
+    <test><source person="third" case="accusative"/><result>le </result></test>
+    <test><source person="third" case="accusative" gender="feminine"/><result>la </result></test>
+    <test><source person="third" case="accusative"/><codependent sound="vowel-start"/><result>l’</result></test>
+    <test><source person="third" case="dative"/><result>lui </result></test>
+    <test><source person="first" pronounType="reflexive"/><result>me </result></test>
+    <test><source person="first" pronounType="reflexive"/><codependent sound="vowel-start"/><result>m’</result></test>
+    <test><source person="first" pronounType="disjunctive"/><result>moi </result></test>
+    <test><source person="first" number="plural"/><result>nous </result></test>
+    <test><source person="first" number="plural" gender="masculine"/><result>nous </result></test>
+    <test><source person="first" number="plural" gender="feminine"/><result>nous </result></test>
+    <test><source person="second"/><result>vous </result></test>
+    <test><source person="second" number="singular"/><result>tu </result></test>
+    <test><source person="second" number="plural"/><result>vous </result></test>
+    <test><source person="third"/><result>on </result></test> <!-- You didn't specify a gender. So you get something generic in the third person. -->
+    <test><source person="third" number="plural"/><result gender="masculine">ils </result></test>
+    <test><source person="third" gender="masculine"/><result gender="masculine">il </result></test>
+    <test><source person="third" gender="feminine"/><result gender="feminine">elle </result></test>
+    <test><source person="first" pronounType="reflexive"/><result>me </result></test>
+    <test><source person="second" pronounType="reflexive"/><result>te </result></test>
+    <test><source person="second" pronounType="reflexive"/><codependent sound="vowel-start"/><result>t’</result></test>
+    <test><source person="second" number="plural" pronounType="reflexive"/><result>vous </result></test>
+    <test><source person="third" pronounType="reflexive"/><result>se </result></test>
+    <test><source person="first" number="singular" pronounType="reflexive"/><result>me </result></test>
+    <test><source person="first" number="plural" pronounType="reflexive"/><result>nous </result></test>
+    <test><source person="third" number="singular" pronounType="reflexive"/><result>se </result></test>
+    <test><source person="third" number="plural" pronounType="reflexive"/><result>se </result></test>
+    <test><source person="third" number="plural" pronounType="reflexive"/><codependent sound="vowel-start"/><result>s’</result></test>
+    <test><source person="third" gender="masculine" pronounType="reflexive"/><result>se </result></test>
+    <test><source person="third" gender="masculine" number="plural" pronounType="reflexive"/><result>se </result></test>
+    <test><source person="third" gender="feminine" pronounType="reflexive"/><result>se </result></test>
+    <test><source person="third" gender="feminine" number="plural" pronounType="reflexive"/><result>se </result></test>
+    <test><source person="third" pronounType="reflexive"/><result>se </result></test>
+    <test><source person="third" number="plural" pronounType="reflexive"/><result>se </result></test>
+
+    <test><source person="second" pronounType="disjunctive"/><result>toi </result></test>
+    <test><source person="second" number="singular" pronounType="disjunctive"/><result>toi </result></test>
+    <test><source person="second" pronounType="disjunctive" gender="masculine"/><result>toi </result></test>
+    <test><source person="second" number="singular" pronounType="disjunctive" gender="masculine"/><result>toi </result></test>
+    <test><source person="second" pronounType="disjunctive" gender="feminine"/><result>toi </result></test>
+    <test><source person="second" number="singular" pronounType="disjunctive" gender="feminine"/><result>toi </result></test>
+
+    <test><source person="second" number="plural" pronounType="disjunctive"/><result>vous </result></test>
+    <test><source person="second" number="plural" pronounType="disjunctive" gender="masculine"/><result>vous </result></test>
+    <test><source person="second" number="plural" pronounType="disjunctive" gender="feminine"/><result>vous </result></test>
+
+    <test><source person="third" pronounType="disjunctive"/><result>soi </result></test>
+    <test><source person="third" pronounType="disjunctive" gender="masculine"/><result>lui </result></test>
+    <test><source person="third" pronounType="disjunctive" gender="feminine"/><result>elle </result></test>
+
+    <test><source person="first" case="genitive"/><result>mon </result></test>
+    <test><source person="first" case="genitive"/><codependent gender="masculine"/><result>mon </result></test>
+    <test><source person="first" case="genitive"/><codependent gender="feminine"/><result>ma </result></test>
+    <test><source person="first" case="genitive"/><codependent gender="feminine" number="plural"/><result>mes </result></test>
+
+    <test><source person="second" case="genitive"/><result>ton </result></test>
+    <test><source person="second" case="genitive"/><codependent gender="masculine"/><result>ton </result></test>
+    <test><source person="second" case="genitive"/><codependent gender="feminine"/><result>ta </result></test>
+    <test><source person="second" case="genitive"/><codependent gender="feminine" number="plural"/><result>tes </result></test>
+
+    <test><source person="third" case="genitive"/><result>son </result></test>
+    <test><source person="third" case="genitive"/><codependent gender="masculine"/><result>son </result></test>
+    <test><source person="third" case="genitive"/><codependent gender="feminine"/><result>sa </result></test>
+    <test><source person="third" case="genitive"/><codependent gender="feminine" number="plural"/><result>ses </result></test>
+
+    <!-- reinflection -->
+    <test><source person="third">je</source><result gender="">on </result></test>
+    <test><source person="third">j’</source><result gender="">on </result></test>
+    <test><source person="third" gender="masculine">on</source><result gender="masculine">il </result></test>
+    <test><source person="third" gender="feminine">on</source><result gender="feminine">elle </result></test>
+    <test><source person="second">je</source><result gender="">tu </result></test>
+    <test><source person="second">Je</source><result gender="">tu </result></test>
+    <test><source case="accusative">je</source><result>me </result></test>
+    <test><source pronounType="reflexive">je</source><result>me </result></test>
+    <test><source gender="masculine">on</source><result>il </result></test>
+    <test><source gender="masculine">On</source><result>il </result></test>
+    <test><source gender="feminine">on</source><result>elle </result></test>
+    <test><source gender="masculine">il</source><result>il </result></test>
+    <test><source gender="feminine">il</source><result>elle </result></test>
+    <test><source>il</source><result gender="masculine">il </result></test>
+    <test><source pronounType="disjunctive">il</source><result gender="masculine">lui </result></test>
+    <test><source person="third" pronounType="reflexive">je</source><result gender="">se </result></test>
+    <test><source person="third" number="plural" pronounType="reflexive">je</source><result gender="">se </result></test>
+</inflectionTest>

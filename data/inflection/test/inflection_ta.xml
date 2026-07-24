@@ -1,0 +1,88 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2026 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="ta">
+    <!-- Number Lookup Tests -->
+    <test><source>பள்ளி</source><result number="singular"/></test>
+    <test><source>பள்ளிகள்</source><result number="plural"/></test>
+    <test><source>வீடு</source><result number="singular"/></test>
+    <test><source>வீடுகள்</source><result number="plural"/></test>
+    <test><source>நாள்</source><result number="singular"/></test>
+    <test><source>நாட்கள்</source><result number="plural"/></test>
+    <test><source>பையன்</source><result number="singular"/></test>
+    <test><source>பையன்கள்</source><result number="plural"/></test>
+
+    <!-- Identity Inflection Tests -->
+    <test><source number="singular">பள்ளி</source><result>பள்ளி</result></test>
+    <test><source number="singular">வீடு</source><result>வீடு</result></test>
+    <test><source number="singular">நாள்</source><result>நாள்</result></test>
+    <test><source number="singular">பையன்</source><result>பையன்</result></test>
+    <test><source number="plural">பள்ளிகள்</source><result>பள்ளிகள்</result></test>
+
+    <!-- Singular to Plural Inflection -->
+    <test><source number="plural">பள்ளி</source><result>பள்ளிகள்</result></test>
+    <test><source number="plural">வீடு</source><result>வீடுகள்</result></test>
+    <test><source number="plural">நாள்</source><result>நாட்கள்</result></test>
+    <test><source number="plural">பையன்</source><result>பையன்கள்</result></test>
+
+    <!-- Plural to Singular Inflection -->
+    <test><source number="singular">பள்ளிகள்</source><result>பள்ளி</result></test>
+    <test><source number="singular">வீடுகள்</source><result>வீடு</result></test>
+    <test><source number="singular">நாட்கள்</source><result>நாள்</result></test>
+    <test><source number="singular">பையன்கள்</source><result>பையன்</result></test>
+
+    <!-- Accusative Case Inflection -->
+    <test><source case="accusative">பள்ளி</source><result>பள்ளியை</result></test>
+    <test><source case="accusative">வீடு</source><result>வீட்டை</result></test>
+    <test><source case="accusative">பையன்</source><result>பையனை</result></test>
+
+    <!-- Dative Case Inflection -->
+    <test><source case="dative">பள்ளி</source><result>பள்ளிக்கு</result></test>
+    <test><source case="dative">வீடு</source><result>வீட்டுக்கு</result></test>
+    <test><source case="dative">நாள்</source><result>நாளுக்கு</result></test>
+    <test><source case="dative">பையன்</source><result>பையனுக்கு</result></test>
+
+    <!-- Genitive Case Inflection -->
+    <!-- FIXME: <test><source case="genitive">பள்ளி</source><result>பள்ளியின்</result></test> -->
+    <test><source case="genitive">பையன்</source><result>பையனது</result></test>
+    <!-- FIXME: <test><source case="genitive">நாள்</source><result>நாளது</result></test> -->
+
+    <!-- Instrumental Case Inflection -->
+    <test><source case="instrumental">பள்ளி</source><result>பள்ளியால்</result></test>
+    <test><source case="instrumental">வீடு</source><result>வீட்டால்</result></test>
+    <test><source case="instrumental">பையன்</source><result>பையன்கொண்டு</result></test>
+
+    <!-- Locative Case Inflection -->
+    <test><source case="locative">பள்ளி</source><result>பள்ளியில்</result></test>
+    <test><source case="locative">வீடு</source><result>வீட்டில்</result></test>
+
+    <!-- Ablative Case Inflection -->
+    <test><source case="ablative">பள்ளி</source><result>பள்ளியிலிருந்து</result></test>
+    <test><source case="ablative">வீடு</source><result>வீட்டிலிருந்து</result></test>
+
+    <!-- Sociative Case Inflection -->
+    <!-- FIXME: <test><source case="sociative">பள்ளி</source><result>பள்ளியோடு</result></test> -->
+
+    <!-- Benefactive Case Inflection -->
+    <test><source case="benefactive">பள்ளி</source><result>பள்ளிக்காக</result></test>
+
+    <!-- Nominative Case (identity) -->
+    <test><source case="nominative">பள்ளி</source><result>பள்ளி</result></test>
+    <test><source case="nominative">வீடு</source><result>வீடு</result></test>
+
+    <!-- Combined Case + Plural -->
+    <test><source case="accusative" number="plural">பள்ளி</source><result>பள்ளிகளை</result></test>
+    <test><source case="dative" number="plural">பள்ளி</source><result>பள்ளிகளுக்கு</result></test>
+    <!-- FIXME: <test><source case="genitive" number="plural">பள்ளி</source><result>பள்ளிகளது</result></test> -->
+    <test><source case="dative" number="plural">நாள்</source><result>நாட்களுக்கு</result></test>
+    <test><source case="accusative" number="plural">பையன்</source><result>பையன்களை</result></test>
+    <test><source case="dative" number="plural">பையன்</source><result>பையன்களுக்கு</result></test>
+    <test><source case="genitive" number="plural">பையன்</source><result>பையன்களது</result></test>
+    <test><source case="benefactive" number="plural">பள்ளி</source><result>பள்ளிகளுக்காக</result></test>
+
+    <!-- Latin Script Words -->
+    <test><source number="singular">apples</source><result>apples</result></test>
+    <test><source number="plural">apple</source><result>apple</result></test>
+
+</inflectionTest>

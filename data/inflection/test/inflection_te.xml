@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2026 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="te">
+    <!-- Number Lookup Tests -->
+    <test><source>గంట</source><result number="singular"/></test>
+    <test><source>గంటలు</source><result number="plural"/></test>
+    <test><source>నిమిషం</source><result number="singular"/></test>
+    <test><source>నిమిషాలు</source><result number="plural"/></test>
+    <test><source>పుస్తకం</source><result number="singular"/></test>
+    <test><source>పుస్తకాలు</source><result number="plural"/></test>
+    <test><source>అబ్బాయి</source><result number="singular"/></test>
+
+    <!-- Gender Lookup Tests -->
+    <test><source>గంట</source><result gender="neuter"/></test>
+    <test><source>నిమిషం</source><result gender="neuter"/></test>
+    <test><source>పుస్తకం</source><result gender="neuter"/></test>
+    <test><source>అబ్బాయి</source><result gender="masculine"/></test>
+    <test><source>అమ్మాయి</source><result gender="feminine"/></test>
+
+    <!-- Identity Inflection Tests -->
+    <test><source number="singular">గంట</source><result>గంట</result></test>
+    <test><source number="singular">నిమిషం</source><result>నిమిషం</result></test>
+    <test><source number="plural">గంటలు</source><result>గంటలు</result></test>
+    <test><source number="plural">నిమిషాలు</source><result>నిమిషాలు</result></test>
+
+    <!-- Singular to Plural Inflection -->
+    <test><source number="plural">గంట</source><result>గంటలు</result></test>
+    <test><source number="plural">నిమిషం</source><result>నిమిషాలు</result></test>
+    <test><source number="plural">పుస్తకం</source><result>పుస్తకాలు</result></test>
+    <test><source number="plural">కిలోమీటరు</source><result>కిలోమీటర్లు</result></test>
+    <test><source number="plural">డిగ్రీ</source><result>డిగ్రీలు</result></test>
+    <test><source number="plural">అబ్బాయి</source><result>అబ్బాయిలు</result></test>
+    <test><source number="plural">అమ్మాయి</source><result>అమ్మాయిలు</result></test>
+
+    <!-- Plural to Singular Inflection -->
+    <test><source number="singular">గంటలు</source><result>గంట</result></test>
+    <test><source number="singular">నిమిషాలు</source><result>నిమిషం</result></test>
+    <test><source number="singular">పుస్తకాలు</source><result>పుస్తకం</result></test>
+    <test><source number="singular">కిలోమీటర్లు</source><result>కిలోమీటరు</result></test>
+
+    <!-- Oblique Case Inflection -->
+    <test><source case="oblique" number="plural">గంట</source><result>గంటల</result></test>
+    <test><source case="oblique" number="plural">నిమిషం</source><result>నిమిషాల</result></test>
+    <test><source case="oblique" number="plural">పుస్తకం</source><result>పుస్తకాల</result></test>
+    <test><source case="oblique" number="plural">అబ్బాయి</source><result>అబ్బాయిల</result></test>
+    <test><source case="oblique" number="plural">అమ్మాయి</source><result>అమ్మాయిల</result></test>
+
+    <!-- Direct Case Inflection -->
+    <test><source case="direct">గంట</source><result>గంట</result></test>
+    <test><source case="direct" number="plural">గంట</source><result>గంటలు</result></test>
+
+    <!-- Multi-word Compound Phrases -->
+    <test><source number="plural">కొత్త పుస్తకం</source><result>కొత్త పుస్తకాలు</result></test>
+    <test><source number="plural">పాత గంట</source><result>పాత గంటలు</result></test>
+
+    <!-- Latin Script Words -->
+    <test><source number="singular">apples</source><result>apples</result></test>
+    <test><source number="plural">apple</source><result>apple</result></test>
+
+</inflectionTest>

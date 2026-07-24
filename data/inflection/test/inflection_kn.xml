@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2026 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="kn">
+    <!-- Number Lookup Tests -->
+    <test><source>ಗಂಟೆ</source><result number="singular"/></test>
+    <test><source>ಗಂಟೆಗಳು</source><result number="plural"/></test>
+    <test><source>ನಿಮಿಷ</source><result number="singular"/></test>
+    <test><source>ನಿಮಿಷಗಳು</source><result number="plural"/></test>
+    <test><source>ಪುಸ್ತಕ</source><result number="singular"/></test>
+    <test><source>ಪುಸ್ತಕಗಳು</source><result number="plural"/></test>
+    <test><source>ಮನೆ</source><result number="singular"/></test>
+    <test><source>ಮನೆಗಳು</source><result number="plural"/></test>
+    <test><source>ಹುಡುಗ</source><result number="singular"/></test>
+
+    <!-- Gender Lookup Tests -->
+    <test><source>ಗಂಟೆ</source><result gender="neuter"/></test>
+    <test><source>ಪುಸ್ತಕ</source><result gender="neuter"/></test>
+    <test><source>ಮನೆ</source><result gender="neuter"/></test>
+    <test><source>ಹುಡುಗ</source><result gender="masculine"/></test>
+    <test><source>ಹುಡುಗಿ</source><result gender="feminine"/></test>
+
+    <!-- Identity Inflection Tests -->
+    <test><source number="singular">ಗಂಟೆ</source><result>ಗಂಟೆ</result></test>
+    <test><source number="singular">ನಿಮಿಷ</source><result>ನಿಮಿಷ</result></test>
+    <test><source number="plural">ಗಂಟೆಗಳು</source><result>ಗಂಟೆಗಳು</result></test>
+
+    <!-- Singular to Plural Inflection -->
+    <test><source number="plural">ಗಂಟೆ</source><result>ಗಂಟೆಗಳು</result></test>
+    <test><source number="plural">ನಿಮಿಷ</source><result>ನಿಮಿಷಗಳು</result></test>
+    <test><source number="plural">ಪುಸ್ತಕ</source><result>ಪುಸ್ತಕಗಳು</result></test>
+    <test><source number="plural">ಮನೆ</source><result>ಮನೆಗಳು</result></test>
+    <test><source number="plural">ಹುಡುಗ</source><result>ಹುಡುಗರು</result></test>
+    <test><source number="plural">ಹುಡುಗಿ</source><result>ಹುಡುಗಿಯರು</result></test>
+
+    <!-- Plural to Singular Inflection -->
+    <test><source number="singular">ಗಂಟೆಗಳು</source><result>ಗಂಟೆ</result></test>
+    <test><source number="singular">ನಿಮಿಷಗಳು</source><result>ನಿಮಿಷ</result></test>
+    <test><source number="singular">ಪುಸ್ತಕಗಳು</source><result>ಪುಸ್ತಕ</result></test>
+    <test><source number="singular">ಮನೆಗಳು</source><result>ಮನೆ</result></test>
+    <test><source number="singular">ಹುಡುಗರು</source><result>ಹುಡುಗ</result></test>
+
+    <!-- Genitive Case Inflection -->
+    <test><source case="genitive">ಗಂಟೆ</source><result>ಗಂಟೆಯ</result></test>
+    <test><source case="genitive">ನಿಮಿಷ</source><result>ನಿಮಿಷದ</result></test>
+    <test><source case="genitive">ಪುಸ್ತಕ</source><result>ಪುಸ್ತಕದ</result></test>
+    <test><source case="genitive">ಮನೆ</source><result>ಮನೆಯ</result></test>
+    <test><source case="genitive">ಹುಡುಗ</source><result>ಹುಡುಗನ</result></test>
+    <test><source case="genitive">ಹುಡುಗಿ</source><result>ಹುಡುಗಿಯ</result></test>
+
+    <!-- Genitive + Plural -->
+    <test><source case="genitive" number="plural">ಗಂಟೆ</source><result>ಗಂಟೆಗಳ</result></test>
+    <test><source case="genitive" number="plural">ನಿಮಿಷ</source><result>ನಿಮಿಷಗಳ</result></test>
+    <test><source case="genitive" number="plural">ಪುಸ್ತಕ</source><result>ಪುಸ್ತಕಗಳ</result></test>
+    <test><source case="genitive" number="plural">ಹುಡುಗ</source><result>ಹುಡುಗರ</result></test>
+    <test><source case="genitive" number="plural">ಹುಡುಗಿ</source><result>ಹುಡುಗಿಯರ</result></test>
+
+    <!-- Vocative Case Inflection -->
+    <test><source case="vocative" number="plural">ಗಂಟೆ</source><result>ಗಂಟೆಗಳೆ</result></test>
+    <test><source case="vocative" number="plural">ಹುಡುಗ</source><result>ಹುಡುಗರೇ</result></test>
+    <test><source case="nominative">ಗಂಟೆ</source><result>ಗಂಟೆ</result></test>
+
+    <!-- Latin Script Words -->
+    <test><source number="singular">apples</source><result>apples</result></test>
+    <test><source number="plural">apple</source><result>apple</result></test>
+
+</inflectionTest>

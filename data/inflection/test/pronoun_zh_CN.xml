@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="zh_CN">
+    <test><source/><result>他</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="first"/><result>我</result></test>
+    <test><source person="second"/><result>你</result></test>
+    <test><source person="third"/><result>他</result></test>
+    <test><source person="third" gender="masculine"/><result>他</result></test>
+    <test><source person="third" gender="feminine"/><result>她</result></test>
+    <test><source person="third" gender="neuter"/><result>它</result></test>
+</inflectionTest>

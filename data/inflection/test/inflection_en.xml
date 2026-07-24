@@ -1,0 +1,198 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2021-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="en">
+    <!-- semantic feature inferencing -->
+    <test><source>qzxyzq</source><result number=""/></test>
+    <test><source>sheep</source><result number=""/></test>
+    <test><source>light</source><result number="singular"/></test>
+    <test><source>lights</source><result number="plural"/></test>
+    <test><source>qzxyzq lights</source><result number="plural"/></test>
+    <test><source>patio</source><result number="singular"/></test>
+    <test><source>patio lights</source><result number="plural"/></test>
+    <test><source>patio light</source><result number="singular"/></test>
+    <test><source>lights on the patio</source><result number="plural"/></test>
+    <test><source>lights around the garden</source><result number="plural"/></test>
+    <test><source>light between the houses</source><result number="singular"/></test>
+    <test><source>to the light on the patio</source><result number="singular"/></test>
+    <test><source>to the lights on the patio</source><result number="plural"/></test>
+    <test><source>❄️ on the patio</source><result number="singular"/></test>
+    <test><source>❄️ on the patios</source><result number="plural"/></test> <!-- Yes, it's a little awkward because it's an emoji. We switch to the final word.-->
+
+    <test><source>the cat</source><result definiteness="definite"/></test>
+    <test><source>The Cat</source><result definiteness="definite"/></test>
+    <test><source>THE CAT</source><result definiteness="definite"/></test>
+    <test><source>the  cat</source><result definiteness="definite"/></test>
+    <test><source>a cat</source><result definiteness="indefinite"/></test>
+    <test><source>an cat</source><result definiteness="indefinite"/></test> <!-- Yes, it's not grammatically correct. -->
+    <test><source>an orange</source><result definiteness="indefinite"/></test>
+    <test><source>thesis</source><result definiteness=""/></test>
+    <test><source>animal</source><result definiteness=""/></test>
+    <test><source>QQQQQQ</source><result definiteness=""/></test>
+
+    <test><source definiteness="definite">the cat</source><result>the cat</result></test>
+    <test><source definiteness="definite">The Cat</source><result>The Cat</result></test>
+    <test><source definiteness="definite">THE CAT</source><result>THE CAT</result></test>
+    <test><source definiteness="definite">the  cat</source><result>the  cat</result></test>
+    <test><source definiteness="definite">a</source><result>the a</result></test>
+    <test><source definiteness="definite">a </source><result>the a </result></test>
+    <test><source definiteness="definite">an</source><result>the an</result></test>
+    <test><source definiteness="definite">an </source><result>the an </result></test>
+    <test><source definiteness="indefinite">the</source><result>a the</result></test>
+    <test><source definiteness="indefinite">the </source><result>a the </result></test>
+    <test><source definiteness="indefinite">a cat</source><result>a cat</result></test>
+    <test><source definiteness="indefinite">an cat</source><result>an cat</result></test> <!-- Yes, it's not grammatically correct, but it's already indefinite. Perhaps there is ambiguity. So we leave it as is. -->
+    <test><source definiteness="indefinite">an ZZZ</source><result>an ZZZ</result></test> <!-- Yes, it's not grammatically correct. It's also not a known word. Leave it. -->
+    <test><source definiteness="indefinite">an orange</source><result>an orange</result></test>
+    <test><source definiteness="indefinite">the cat</source><result>a cat</result></test>
+    <test><source definiteness="definite">a cat</source><result>the cat</result></test>
+
+    <test><source definiteness="definite">cat</source><result>the cat</result></test>
+    <test><source definiteness="definite">the cat</source><result>the cat</result></test>
+    <test><source definiteness="definite">thesis</source><result>the thesis</result></test>
+    <test><source definiteness="definite" number="plural">cat</source><result>the cats</result></test>
+    <test><source definiteness="definite"/><result/></test>
+    <test><source definiteness="indefinite">cat</source><result>a cat</result></test>
+    <test><source definiteness="indefinite">orange</source><result>an orange</result></test>
+    <test><source definiteness="indefinite">a</source><result>an a</result></test>
+    <test><source definiteness="indefinite">1</source><result>a 1</result></test>
+    <test><source definiteness="indefinite">1st</source><result>a 1st</result></test>
+    <test><source definiteness="indefinite">2</source><result>a 2</result></test>
+    <test><source definiteness="indefinite">7</source><result>a 7</result></test>
+    <test><source definiteness="indefinite">8</source><result>an 8</result></test>
+    <test><source definiteness="indefinite">8th</source><result>an 8th</result></test>
+    <test><source definiteness="indefinite">9</source><result>a 9</result></test>
+    <test><source definiteness="indefinite">8-day</source><result>an 8-day</result></test>
+    <test><source definiteness="indefinite">10</source><result>a 10</result></test>
+    <test><source definiteness="indefinite">11</source><result>an 11</result></test>
+    <test><source definiteness="indefinite">12</source><result>a 12</result></test>
+    <test><source definiteness="indefinite">18</source><result>an 18</result></test>
+    <test><source definiteness="indefinite">19</source><result>a 19</result></test>
+    <test><source definiteness="indefinite">21</source><result>a 21</result></test>
+    <test><source definiteness="indefinite">110,000</source><result>a 110,000</result></test>
+    <test><source definiteness="indefinite">11,0000</source><result>a 11,0000</result></test> <!-- Yeah, it's a weird format. Still pronounced as one hundred ten thousand. -->
+    <test><source definiteness="indefinite">11,000</source><result>an 11,000</result></test>
+    <test><source definiteness="indefinite">18000000</source><result>an 18000000</result></test>
+    <test><source definiteness="indefinite">12</source><result>a 12</result></test>
+    <test><source definiteness="indefinite">12-hour</source><result>a 12-hour</result></test>
+    <test><source definiteness="indefinite">plural</source><result>a plural</result></test>
+    <test><source definiteness="indefinite">plurals</source><result>plurals</result></test>
+    <test><source definiteness="indefinite">sheep</source><result>a sheep</result></test> <!-- Ambiguous grammatical number -->
+    <test><source definiteness="indefinite"/><result/></test>
+
+    <test><source>qzxyzq</source><result case=""/></test>
+    <test><source>qzxyzq's</source><result case="genitive"/></test>
+    <test><source>qzxyzq’s</source><result case="genitive"/></test>
+    <test><source>qzxyzqs'</source><result case="genitive"/></test>
+    <test><source>qzxyzqs’</source><result case="genitive"/></test>
+    <test><source>'s</source><result case=""/></test>
+    <test><source>’s</source><result case=""/></test>
+    <test><source>s'</source><result case=""/></test>
+    <test><source>s’</source><result case=""/></test>
+    <test><source case="genitive">A</source><result>A’s</result></test>
+    <test><source case="genitive">😀</source><result>😀’s</result></test>
+    <test><source case="genitive">'semantic</source><result>'semantic’s</result></test>
+
+    <!-- semantic feature request -->
+    <test><source>qzxyzq</source><result indefArticle="a"/></test>
+    <test><source>aqzxyzq</source><result indefArticle="an"/></test>
+    <test><source>cat</source><result indefArticle="a"/></test>
+    <test><source>unicorn</source><result indefArticle="a"/></test>
+    <test><source>umbrella</source><result indefArticle="an"/></test>
+
+    <!-- semantic feature request with inflection -->
+    <test><source case="genitive" definiteness="indefinite">umbrella</source><result>an umbrella’s</result></test>
+    <test><source case="genitive" definiteness="indefinite">unicorn</source><result>a unicorn’s</result></test>
+
+    <!-- word inflection -->
+    <test><source>goose</source><result>goose</result></test>
+    <test><source number="singular">goose</source><result>goose</result></test>
+    <test><source number="plural">goose</source><result>geese</result></test>
+    <test><source number="singular">geese</source><result>goose</result></test>
+    <test><source number="plural">noun</source><result>nouns</result></test>
+    <test><source number="plural">truss</source><result>trusses</result></test>
+    <test><source number="plural">church</source><result>churches</result></test>
+    <test><source number="plural">siriology</source><result>siriologies</result></test>
+    <test><source number="plural">yen</source><result>yen</result></test>
+    <test><source number="singular">yen</source><result>yen</result></test>
+    <test><source number="plural">word phrase</source><result>word phrases</result></test>
+    <test><source number="singular" case="genitive">goose</source><result>goose’s</result></test>
+    <test><source number="plural" case="genitive">goose</source><result>geese’s</result></test>
+    <test><source case="genitive"/><result/></test>
+    <test><source case="genitive">Ylkdajhf</source><result>Ylkdajhf’s</result></test>
+    <test><source case="genitive">it</source><result>its</result></test>
+    <test><source case="genitive">Siri's</source><result>Siri's</result></test>
+    <test><source case="genitive">Siri’s</source><result>Siri’s</result></test>
+    <test><source case="genitive">Cities</source><result>Cities’</result></test>
+    <test><source case="genitive">Spatula City</source><result>Spatula City’s</result></test>
+    <test><source case="genitive">Spatula Cities</source><result>Spatula Cities’</result></test>
+    <test><source case="genitive">Jones</source><result>Jones’s</result></test>
+    <test><source case="genitive">Charles</source><result>Charles’s</result></test>
+    <test><source case="genitive">Niagara Falls</source><result>Niagara Falls’</result></test>
+    <test><source number="plural">day</source><result>days</result></test>
+    <test><source number="plural">boy</source><result>boys</result></test>
+    <test><source number="plural">fan</source><result>fans</result></test>
+    <test><source number="plural">SAG</source><result>SAGS</result></test>
+    <test><source number="plural"/><result/></test>
+    <test><source number="plural">bean</source><result>beans</result></test>
+    <test><source number="plural">beans</source><result>beans</result></test>
+    <test><source number="plural">kidney bean</source><result>kidney beans</result></test>
+    <test><source number="plural">kidney beans</source><result>kidney beans</result></test>
+    <test><source number="plural">red kidney bean</source><result>red kidney beans</result></test>
+    <test><source number="plural">bean of kidney</source><result>beans of kidney</result></test>
+    <test><source number="plural">beans of kidney</source><result>beans of kidney</result></test>
+    <test><source number="plural">red bean of kidney</source><result>red beans of kidney</result></test>
+    <test><source number="plural">red beans of kidney</source><result>red beans of kidney</result></test>
+    <test><source number="singular">sheep of a flock</source><result>sheep of a flock</result></test>
+    <test><source number="plural">sheep of a flock</source><result>sheep of a flock</result></test>
+    <test><source number="singular">leading sheep of a flock</source><result>leading sheep of a flock</result></test>
+    <test><source number="plural">leading sheep of a flock</source><result>leading sheep of a flock</result></test>
+    <test><source number="singular">good friends</source><result>good friend</result></test>
+    <test><source number="singular">pies</source><result>pie</result></test>
+    <test><source number="singular">goods qqqqches</source><result>goods qqqqch</result></test>
+    <test><source number="singular">goods qqqqes</source><result>goods qqqqe</result></test>
+    <test><source number="singular">goods qqqqs</source><result>goods qqqq</result></test>
+    <test><source number="singular">goods qqqqies</source><result>goods qqqqy</result></test>
+    <test><source number="singular">goods qqqq</source><result>goods qqqq</result></test>
+    <test><source number="plural">glutei maximi</source><result>glutei maximi</result></test>
+    <test><source number="plural">gluteus maximus</source><result>glutei maximi</result></test> <!-- You're inflecting an entire phrase instead of a word, which is unusual. -->
+    <test><source number="plural">sister</source><result>sisters</result></test> <!-- Incorrect pluralization of “sister” in English (“sistren”) -->
+    <test><source number="plural"><text print="Jose" speak="Joes"/></source><result>Joses</result></test>
+    <test><source number="plural" case="genitive"><text print="Jose" speak="Joes"/></source><result>Joses’</result></test>
+    <test><source case="genitive"><text print="Jose" speak="Joes"/></source><result><text print="Jose’s" speak="Joes’s"/></result></test>
+    <test><source case="genitive"><text print="Jesus" speak="hay suess"/></source><result><text print="Jesus’s" speak="hay suess’s"/></result></test>
+    <test><source definiteness="definite"><text print="Jose" speak="Joes"/></source><result><text print="the Jose" speak="the Joes"/></result></test>
+    <test><source definiteness="indefinite"><text print="Jose" speak="Joes"/></source><result><text print="a Jose" speak="a Joes"/></result></test>
+    <test><source case="genitive" definiteness="definite"><text print="Jose" speak="Joes"/></source><result><text print="the Jose’s" speak="the Joes’s"/></result></test>
+    <test><source number="plural" definiteness="definite"><text print="Jose" speak="Joes"/></source><result>the Joses</result></test>
+
+    <!-- verb inflection -->
+    <test><source number="plural">is</source><result>are</result></test>
+    <test><source number="plural">has</source><result>have</result></test>
+    <test><source number="plural">creates</source><result>create</result></test>
+    <test><source number="plural">create</source><result>create</result></test>
+    <test><source number="singular">creates</source><result>creates</result></test>
+
+    <!-- Specifying it's a verb-->
+    <test><source number="plural" pos="verb">works</source><result>work</result></test>
+    <test><source number="plural" pos="verb">work</source><result>work</result></test>
+    <test><source number="singular" pos="verb">works</source><result>works</result></test>
+    <test><source number="singular" pos="verb">work</source><result>works</result></test>
+
+    <!-- By default it assumes it's a noun-->
+    <test><source number="plural">work</source><result>works</result></test>
+    <test><source number="plural">works</source><result>works</result></test>
+    <test><source number="singular">work</source><result>work</result></test>
+    <test><source number="singular">works</source><result>work</result></test>
+
+    <test><source number="plural">this</source><result>these</result></test>
+    <test><source number="plural">that</source><result>those</result></test>
+    <test><source number="plural">these</source><result>these</result></test>
+    <test><source number="plural">those</source><result>those</result></test>
+
+    <test><source number="singular">these</source><result>this</result></test>
+    <test><source number="singular">those</source><result>that</result></test>
+    <test><source number="singular">this</source><result>this</result></test>
+    <test><source number="singular">that</source><result>that</result></test>
+</inflectionTest>

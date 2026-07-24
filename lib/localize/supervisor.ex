@@ -81,7 +81,10 @@ defmodule Localize.Supervisor do
       Localize.Locale.Loader,
       Localize.Locale.CacheSweeper,
       Localize.FormatCache,
-      Localize.Collation.Table
+      Localize.Collation.Table,
+      # Owns the per-locale inflection dictionary ETS tables,
+      # loaded lazily on first use of an inflection function.
+      Localize.Inflection.Data
     ]
 
     case Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__) do

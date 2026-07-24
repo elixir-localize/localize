@@ -1,0 +1,244 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2021-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="nb">
+    <test><source>lampe</source><result definiteness="indefinite"/></test>
+    <test><source>lampa</source><result definiteness="definite"/></test>
+    <test><source>vogntoga</source><result number="plural" definiteness="definite"/></test>
+    <test><source>snørekjørende</source><result definiteness=""/></test>
+    <test><source>QQQQQQ</source><result definiteness=""/></test>
+
+    <test><source>value</source><result possArticle="din"/></test>
+    <test><source number="singular" gender="masculine">value</source><result possArticle="din"/></test>
+    <test><source number="singular" gender="feminine">value</source><result possArticle="di"/></test>
+    <test><source number="singular" gender="neuter">value</source><result possArticle="ditt"/></test>
+    <test><source number="plural">value</source><result possArticle="dine"/></test>
+    <test><source>møte</source><result possArticle="ditt"/></test>
+    <test><source>avtale</source><result possArticle="din"/></test>
+    <test><source>øvinga</source><result possArticle="di"/></test>
+    <test><source>møter</source><result possArticle="dine"/></test>
+
+    <test><source number="singular" definiteness="indefinite">administrasjon</source><result>administrasjon</result></test>
+    <test><source number="singular" definiteness="definite">administrasjon</source><result>administrasjonen</result></test>
+    <test><source number="plural" definiteness="indefinite">administrasjon</source><result>administrasjoner</result></test>
+    <test><source number="plural" definiteness="definite">administrasjon</source><result>administrasjonene</result></test>
+    <test><source number="singular" definiteness="indefinite">belte</source><result>belte</result></test>
+    <test><source number="singular" definiteness="definite">belte</source><result>beltet</result></test>
+    <test><source number="plural" definiteness="indefinite">belte</source><result>belter</result></test>
+    <test><source number="plural" definiteness="definite">belte</source><result>belta</result></test> <!-- beltene or belta -->
+    <test><source number="plural" definiteness="definite">belta</source><result>belta</result></test> <!-- Don't switch belta to the alternative beltene -->
+    <test><source number="plural" definiteness="definite">beltene</source><result>beltene</result></test>
+    <test><source number="singular" definiteness="indefinite">høyest administrasjon</source><result>høyest administrasjon</result></test>
+    <test><source number="singular" definiteness="definite">høyest administrasjon</source><result>høyeste administrasjonen</result></test>
+    <test><source number="plural" definiteness="indefinite">høyest administrasjon</source><result>høyest administrasjoner</result></test>
+    <test><source number="plural" definiteness="definite">høyest administrasjon</source><result>høyeste administrasjonene</result></test>
+    <test><source number="singular" definiteness="indefinite">høyest belte</source><result>høyest belte</result></test>
+    <test><source number="singular" definiteness="definite">høyest belte</source><result>høyeste beltet</result></test>
+    <test><source number="plural" definiteness="indefinite">høyest belte</source><result>høyest belter</result></test>
+    <test><source number="plural" definiteness="definite">høyest belte</source><result>høyeste belta</result></test> <!-- beltene or belta -->
+    <test><source number="plural">belte</source><result>belter</result></test>
+    <test><source definiteness="definite">administrasjon</source><result>administrasjonen</result></test>
+    <test><source>belte</source><result>belte</result></test>
+    <test><source case="genitive">belte</source><result>beltes</result></test>
+    <test><source number="singular" definiteness="indefinite" case="genitive">belte</source><result>beltes</result></test>
+    <test><source number="singular" definiteness="definite" case="genitive">belte</source><result>beltets</result></test>
+    <test><source number="plural" definiteness="indefinite" case="genitive">belte</source><result>belters</result></test>
+    <test><source number="plural" definiteness="definite" case="genitive">belte</source><result>beltas</result></test> <!-- beltenes or beltas -->
+    <test><source case="genitive">ås</source><result>ås’</result></test>
+    <test><source case="genitive">jazz</source><result>jazz’</result></test>
+    <test><source case="genitive">crux</source><result>crux’</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="singular">god</source><result>god</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="singular">god</source><result>god</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">god</source><result>godt</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="singular">god</source><result>gode</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="singular">god</source><result>gode</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">god</source><result>gode</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="plural">god</source><result>gode</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="plural">god</source><result>gode</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">god</source><result>gode</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="plural">god</source><result>gode</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="plural">god</source><result>gode</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">god</source><result>gode</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="singular">norsk</source><result>norsk</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="singular">norsk</source><result>norsk</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">norsk</source><result>norsk</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="singular">norsk</source><result>norske</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="singular">norsk</source><result>norske</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">norsk</source><result>norske</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="plural">norsk</source><result>norske</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="plural">norsk</source><result>norske</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">norsk</source><result>norske</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="plural">norsk</source><result>norske</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="plural">norsk</source><result>norske</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">norsk</source><result>norske</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="singular">ekte</source><result>ekte</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="singular">ekte</source><result>ekte</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">ekte</source><result>ekte</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="singular">ekte</source><result>ekte</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="singular">ekte</source><result>ekte</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">ekte</source><result>ekte</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="plural">ekte</source><result>ekte</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="plural">ekte</source><result>ekte</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">ekte</source><result>ekte</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="plural">ekte</source><result>ekte</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="plural">ekte</source><result>ekte</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">ekte</source><result>ekte</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="singular">praktisk</source><result>praktisk</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="singular">praktisk</source><result>praktisk</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">praktisk</source><result>praktisk</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="singular">praktisk</source><result>praktiske</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="singular">praktisk</source><result>praktiske</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">praktisk</source><result>praktiske</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="plural">praktisk</source><result>praktiske</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="plural">praktisk</source><result>praktiske</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">praktisk</source><result>praktiske</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="plural">praktisk</source><result>praktiske</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="plural">praktisk</source><result>praktiske</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">praktisk</source><result>praktiske</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="singular">vennlig</source><result>vennlig</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="singular">vennlig</source><result>vennlig</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">vennlig</source><result>vennlig</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="singular">vennlig</source><result>vennlige</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="singular">vennlig</source><result>vennlige</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">vennlig</source><result>vennlige</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="plural">vennlig</source><result>vennlige</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="plural">vennlig</source><result>vennlige</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">vennlig</source><result>vennlige</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="plural">vennlig</source><result>vennlige</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="plural">vennlig</source><result>vennlige</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">vennlig</source><result>vennlige</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="singular">tykk</source><result>tykk</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="singular">tykk</source><result>tykk</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">tykk</source><result>tykt</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="singular">tykk</source><result>tykke</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="singular">tykk</source><result>tykke</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">tykk</source><result>tykke</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="plural">tykk</source><result>tykke</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="plural">tykk</source><result>tykke</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">tykk</source><result>tykke</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="plural">tykk</source><result>tykke</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="plural">tykk</source><result>tykke</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">tykk</source><result>tykke</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="singular">oppskjørtet</source><result>oppskjørtet</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="singular">oppskjørtet</source><result>oppskjørtet</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">oppskjørtet</source><result>oppskjørtet</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="singular">oppskjørtet</source><result>oppskjørtede</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="singular">oppskjørtet</source><result>oppskjørtede</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">oppskjørtet</source><result>oppskjørtede</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="plural">oppskjørtet</source><result>oppskjørtede</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="plural">oppskjørtet</source><result>oppskjørtede</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">oppskjørtet</source><result>oppskjørtede</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="plural">oppskjørtet</source><result>oppskjørtede</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="plural">oppskjørtet</source><result>oppskjørtede</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">oppskjørtet</source><result>oppskjørtede</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="singular">makaber</source><result>makaber</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="singular">makaber</source><result>makaber</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">makaber</source><result>makabert</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="singular">makaber</source><result>makabre</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="singular">makaber</source><result>makabre</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">makaber</source><result>makabre</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="plural">makaber</source><result>makabre</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="plural">makaber</source><result>makabre</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">makaber</source><result>makabre</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="plural">makaber</source><result>makabre</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="plural">makaber</source><result>makabre</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">makaber</source><result>makabre</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="singular">lunken</source><result>lunken</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="singular">lunken</source><result>lunken</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">lunken</source><result>lunkent</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="singular">lunken</source><result>lunkne</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="singular">lunken</source><result>lunkne</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">lunken</source><result>lunkne</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="plural">lunken</source><result>lunkne</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="plural">lunken</source><result>lunkne</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">lunken</source><result>lunkne</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="plural">lunken</source><result>lunkne</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="plural">lunken</source><result>lunkne</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">lunken</source><result>lunkne</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="singular">gammel</source><result>gammel</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="singular">gammel</source><result>gammel</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">gammel</source><result>gammelt</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="singular">gammel</source><result>gamle</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="singular">gammel</source><result>gamle</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">gammel</source><result>gamle</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="plural">gammel</source><result>gamle</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="plural">gammel</source><result>gamle</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">gammel</source><result>gamle</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="plural">gammel</source><result>gamle</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="plural">gammel</source><result>gamle</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">gammel</source><result>gamle</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="singular">fast</source><result>fast</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="singular">fast</source><result>fast</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">fast</source><result>fast</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="singular">fast</source><result>faste</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="singular">fast</source><result>faste</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">fast</source><result>faste</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="plural">fast</source><result>faste</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="plural">fast</source><result>faste</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">fast</source><result>faste</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="plural">fast</source><result>faste</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="plural">fast</source><result>faste</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">fast</source><result>faste</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="singular">absurd</source><result>absurd</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="singular">absurd</source><result>absurd</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">absurd</source><result>absurd</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="singular">absurd</source><result>absurde</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="singular">absurd</source><result>absurde</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">absurd</source><result>absurde</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="plural">absurd</source><result>absurde</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="plural">absurd</source><result>absurde</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">absurd</source><result>absurde</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="plural">absurd</source><result>absurde</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="plural">absurd</source><result>absurde</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">absurd</source><result>absurde</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="singular">rosa</source><result>rosa</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="singular">rosa</source><result>rosa</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">rosa</source><result>rosa</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="singular">rosa</source><result>rosa</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="singular">rosa</source><result>rosa</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">rosa</source><result>rosa</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="masculine" number="plural">rosa</source><result>rosa</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="feminine" number="plural">rosa</source><result>rosa</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">rosa</source><result>rosa</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="masculine" number="plural">rosa</source><result>rosa</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="feminine" number="plural">rosa</source><result>rosa</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">rosa</source><result>rosa</result></test>
+
+    <test><source number="singular" definiteness="definite" gender="masculine">mor</source><result>moren</result></test>
+    <test><source number="singular" definiteness="definite" gender="masculine">moren</source><result>moren</result></test>
+    <test><source number="singular" definiteness="definite" gender="feminine">mor</source><result>mora</result></test>
+    <test><source number="singular" definiteness="definite">mor</source><result>mora</result></test>
+    <test><source number="singular" definiteness="definite">moren</source><result>moren</result></test>
+    <test><source number="singular" definiteness="indefinite">mor</source><result>mor</result></test>
+    <test><source number="singular" definiteness="indefinite">moren</source><result>mor</result></test>
+    <test><source number="plural" definiteness="definite">mor</source><result>mødrene</result></test>
+    <test><source number="plural" definiteness="definite">moren</source><result>mødrene</result></test>
+    <test><source number="plural" definiteness="indefinite">mor</source><result>mødre</result></test>
+    <test><source number="plural" definiteness="indefinite">moren</source><result>mødre</result></test>
+
+    <test><source number="plural">ny</source><result>ny</result></test>
+    <test><source number="plural" pos="adjective">ny</source><result>nye</result></test>
+    <test><source number="plural">fremtidig</source><result>fremtidige</result></test>
+    <test><source number="plural">fremtidig beskjed</source><result>fremtidige beskjeder</result></test>
+    <test><source number="plural">fremtidig beskjeden</source><result>fremtidige beskjedene</result></test>
+
+    <test><source number="singular" definiteness="indefinite">ny påminnelse</source><result>ny påminnelse</result></test>
+    <test><source number="singular" definiteness="definite">ny påminnelse</source><result>nye påminnelsen</result></test>
+    <test><source number="plural" definiteness="indefinite">ny påminnelse</source><result>nye påminnelser</result></test>
+    <test><source number="plural" definiteness="definite">ny påminnelse</source><result>nye påminnelsene</result></test>
+    <test><source number="plural">fremtidig påminnelse</source><result>fremtidige påminnelser</result></test>
+</inflectionTest>

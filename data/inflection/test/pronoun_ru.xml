@@ -1,0 +1,115 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="ru">
+    <!-- Simple inflection -->
+    <test><source/><result>они</result></test>
+    <test><source person="first"/><result>мы</result></test>
+    <test><source number="plural"/><result>они</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="third" number="plural" case="nominative"/><result>они</result></test>
+    <test><source person="third" number="singular" case="nominative"/><result>они</result></test>
+    <test><source person="third" number="singular" gender="neuter" case="nominative"/><result>оно</result></test>
+    <test><source person="third" number="singular" gender="masculine" case="nominative"/><result>он</result></test>
+    <test><source person="third" number="singular" gender="feminine" case="nominative"/><result>она</result></test>
+    <test><source person="second" number="plural" case="nominative"/><result>вы</result></test>
+    <test><source person="second" number="singular" case="nominative"/><result>ты</result></test>
+    <test><source person="first" number="plural"/><result>мы</result></test>
+    <test><source person="first" number="singular"/><result>я</result></test>
+    <test><source person="first" number="plural" case="nominative"/><result>мы</result></test>
+    <test><source person="first" number="singular" case="nominative"/><result>я</result></test>
+    <test><source person="third" number="plural" case="genitive"/><result>их</result></test>
+    <test><source person="third" number="plural" case="genitive" pos="adposition"/><result>них</result></test>
+    <test><source person="third" number="singular" case="genitive"/><result>их</result></test>
+    <test><source person="third" number="singular" case="genitive" pos="adposition"/><result>них</result></test>
+    <test><source person="third" number="singular" gender="masculine" case="genitive"/><result>его</result></test>
+    <test><source person="third" number="singular" gender="masculine" case="genitive" pos="adposition"/><result>него</result></test>
+    <test><source person="third" number="singular" gender="neuter" case="genitive"/><result>его</result></test>
+    <test><source person="third" number="singular" gender="neuter" case="genitive" pos="adposition"/><result>него</result></test>
+    <test><source person="third" number="singular" gender="feminine" case="genitive"/><result>её</result></test>
+    <test><source person="third" number="singular" gender="feminine" case="genitive" pos="adposition"/><result>неё</result></test>
+    <test><source person="second" number="plural" case="genitive"/><result>вас</result></test>
+    <test><source person="second" number="singular" case="genitive"/><result>тебя</result></test>
+    <test><source person="first" number="plural" case="genitive"/><result>нас</result></test>
+    <test><source person="first" number="singular" case="genitive"/><result>меня</result></test>
+    <test><source person="third" number="plural" case="dative"/><result>им</result></test>
+    <test><source person="third" number="plural" case="dative" pos="adposition"/><result>ним</result></test>
+    <test><source person="third" number="singular" case="dative"/><result>им</result></test>
+    <test><source person="third" number="singular" case="dative" pos="adposition"/><result>ним</result></test>
+    <test><source person="third" number="singular" gender="masculine" case="dative"/><result>ему</result></test>
+    <test><source person="third" number="singular" gender="masculine" case="dative" pos="adposition"/><result>нему</result></test>
+    <test><source person="third" number="singular" gender="neuter" case="dative"/><result>ему</result></test>
+    <test><source person="third" number="singular" gender="neuter" case="dative" pos="adposition"/><result>нему</result></test>
+    <test><source person="third" number="singular" gender="feminine" case="dative"/><result>ей</result></test>
+    <test><source person="third" number="singular" gender="feminine" case="dative" pos="adposition"/><result>ней</result></test>
+    <test><source person="second" number="plural" case="dative"/><result>вам</result></test>
+    <test><source person="second" number="singular" case="dative"/><result>тебе</result></test>
+    <test><source person="first" number="plural" case="dative"/><result>нам</result></test>
+    <test><source person="first" number="singular" case="dative"/><result>мне</result></test>
+    <test><source person="third" number="plural" case="accusative"/><result>их</result></test>
+    <test><source person="third" number="plural" case="accusative" pos="adposition"/><result>них</result></test>
+    <test><source person="third" number="singular" case="accusative"/><result>их</result></test>
+    <test><source person="third" number="singular" case="accusative" pos="adposition"/><result>них</result></test>
+    <test><source person="third" number="singular" gender="masculine" case="accusative"/><result>его</result></test>
+    <test><source person="third" number="singular" gender="masculine" case="accusative" pos="adposition"/><result>него</result></test>
+    <test><source person="third" number="singular" gender="neuter" case="accusative"/><result>его</result></test>
+    <test><source person="third" number="singular" gender="neuter" case="accusative" pos="adposition"/><result>него</result></test>
+    <test><source person="third" number="singular" gender="feminine" case="accusative"/><result>её</result></test>
+    <test><source person="third" number="singular" gender="feminine" case="accusative" pos="adposition"/><result>неё</result></test>
+    <test><source person="second" number="plural" case="accusative"/><result>вас</result></test>
+    <test><source person="second" number="singular" case="accusative"/><result>тебя</result></test>
+    <test><source person="first" number="plural" case="accusative"/><result>нас</result></test>
+    <test><source person="first" number="singular" case="accusative"/><result>меня</result></test>
+    <test><source person="third" number="plural" case="instrumental"/><result>ими</result></test>
+    <test><source person="third" number="plural" case="instrumental" pos="adposition"/><result>ними</result></test>
+    <test><source person="third" number="singular" case="instrumental"/><result>ими</result></test>
+    <test><source person="third" number="singular" case="instrumental" pos="adposition"/><result>ними</result></test>
+    <test><source person="third" number="singular" gender="masculine" case="instrumental"/><result>им</result></test>
+    <test><source person="third" number="singular" gender="masculine" case="instrumental" pos="adposition"/><result>ним</result></test>
+    <test><source person="third" number="singular" gender="neuter" case="instrumental"/><result>им</result></test>
+    <test><source person="third" number="singular" gender="neuter" case="instrumental" pos="adposition"/><result>ним</result></test>
+    <test><source person="third" number="singular" gender="feminine" case="instrumental"/><result>ей</result></test>
+    <test><source person="third" number="singular" gender="feminine" case="instrumental" pos="adposition"/><result>ней</result></test>
+    <test><source person="second" number="plural" case="instrumental"/><result>вами</result></test>
+    <test><source person="second" number="singular" case="instrumental"/><result>тобой</result></test>
+    <test><source person="first" number="plural" case="instrumental"/><result>нами</result></test>
+    <test><source person="first" number="singular" case="instrumental"/><result>мной</result></test>
+    <test><source person="third" number="plural" case="prepositional"/><result>них</result></test>
+    <test><source person="third" number="singular" case="prepositional"/><result>них</result></test>
+    <test><source person="third" number="singular" gender="masculine" case="prepositional"/><result>нём</result></test>
+    <test><source person="third" number="singular" gender="neuter" case="prepositional"/><result>нём</result></test>
+    <test><source person="third" number="singular" gender="feminine" case="prepositional"/><result>ней</result></test>
+    <test><source person="second" number="plural" case="prepositional"/><result>вас</result></test>
+    <test><source person="second" number="singular" case="prepositional"/><result>тебе</result></test>
+    <test><source person="first" number="plural" case="prepositional"/><result>нас</result></test>
+    <test><source person="first" number="singular" case="prepositional"/><result>мне</result></test>
+    <test><source pronounType="reflexive"/><result>себя</result></test>
+    <test><source case="instrumental" pronounType="reflexive"/><result>себе</result></test>
+    <test><source case="prepositional" pronounType="reflexive"/><result>собой</result></test>
+    <test><source person="first" pronounType="reflexive"/><result>себя</result></test>
+    <test><source person="first" case="instrumental" pronounType="reflexive"/><result>себе</result></test>
+    <test><source person="first" case="prepositional" pronounType="reflexive"/><result>собой</result></test>
+    <test><source person="second" pronounType="reflexive"/><result>себя</result></test>
+    <test><source person="second" case="instrumental" pronounType="reflexive"/><result>себе</result></test>
+    <test><source person="second" case="prepositional" pronounType="reflexive"/><result>собой</result></test>
+    <test><source person="first" number="singular" pronounType="possessive"/><result>моё</result></test>
+    <test><source person="first" number="singular" case="genitive" pronounType="possessive"/><result>моё</result></test>
+    <test><source person="first" number="singular" case="genitive" pronounType="possessive"/><codependent case="genitive"/><result>моего</result></test>
+    <test><source person="first" number="singular" pronounType="possessive"/><codependent case="genitive"/><result>моего</result></test>
+
+    <!-- reinflection -->
+    <test><source person="third">я</source><result gender="">они</result></test>
+    <test><source person="second">я</source><result gender="">ты</result></test>
+    <test><source person="second">Я</source><result gender="">ты</result></test>
+    <test><source case="accusative">я</source><result>меня</result></test>
+    <test><source pronounType="reflexive">я</source><result>себя</result></test>
+    <test><source gender="masculine">они</source><result>он</result></test>
+    <test><source gender="masculine">оНи</source><result>он</result></test>
+    <test><source gender="feminine">они</source><result>она</result></test>
+    <test><source gender="neuter">они</source><result>оно</result></test>
+    <test><source gender="masculine" case="genitive">их</source><result>его</result></test>
+    <test><source gender="feminine" case="genitive">их</source><result>её</result></test>
+    <test><source gender="neuter" case="genitive">их</source><result>его</result></test>
+    <test><source person="third" pronounType="reflexive">я</source><result gender="">себя</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive">я</source><result gender="">себя</result></test>
+</inflectionTest>

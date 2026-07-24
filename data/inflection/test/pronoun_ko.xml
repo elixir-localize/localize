@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="ko">
+    <!-- Simple inflection -->
+    <test><source/><result>그</result></test>
+    <test><source person="first"/><result>내</result></test>
+    <test><source number="plural"/><result>그들</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="first" case="accusative"/><result>나</result></test>
+    <test><source person="third" number="singular" case="nominative" register="casual"/><result>그</result></test>
+    <test><source person="third" number="singular" case="nominative" register="formal"/><result>그분</result></test>
+    <test><source person="third" number="singular" case="nominative" register="casual" gender="masculine"/><result>그</result></test>
+    <test><source person="third" number="singular" case="nominative" register="formal" gender="masculine"/><result>그분</result></test>
+    <test><source person="third" number="singular" case="nominative" register="casual" gender="feminine"/><result>그녀</result></test>
+    <test><source person="third" number="singular" case="nominative" register="formal" gender="feminine"/><result>그분</result></test>
+    <test><source person="third" number="plural" case="nominative" register="casual"/><result>그들</result></test>
+    <test><source person="third" number="plural" case="nominative" register="formal"/><result>그분들</result></test>
+    <test><source person="second" number="singular" case="nominative"/><result>너</result></test>
+    <test><source person="second" number="singular" case="nominative" register="casual"/><result>너</result></test>
+    <test><source person="second" number="singular" case="nominative" register="formal"/><result>당신</result></test>
+    <test><source person="second" number="singular" case="nominative" register="formal"/><codependent pos="proper-noun"/><result>님</result></test>
+    <test><source person="second" number="plural" case="nominative" register="casual"/><result>너희</result></test>
+    <test><source person="second" number="plural" case="nominative" register="formal"/><result>여러분</result></test>
+    <test><source person="first" number="singular" case="nominative" register="casual"/><result>내</result></test>
+    <test><source person="first" number="singular" case="nominative" register="formal"/><result>제</result></test>
+    <test><source person="first" number="plural" case="nominative" register="casual"/><result>우리</result></test>
+    <test><source person="first" number="plural" case="nominative" register="formal"/><result>우리</result></test>
+    <test><source person="first" number="plural" case="nominative" clusivity="exclusive"/><result>저희</result></test>
+    <test><source person="third" number="singular" case="accusative" register="casual"/><result>그</result></test>
+    <test><source person="third" number="singular" case="accusative" register="formal"/><result>그분</result></test>
+    <test><source person="third" number="singular" case="accusative" register="casual" gender="masculine"/><result>그</result></test>
+    <test><source person="third" number="singular" case="accusative" register="formal" gender="masculine"/><result>그분</result></test>
+    <test><source person="third" number="singular" case="accusative" register="casual" gender="feminine"/><result>그녀</result></test>
+    <test><source person="third" number="singular" case="accusative" register="formal" gender="feminine"/><result>그분</result></test>
+    <test><source person="third" number="plural" case="accusative" register="casual"/><result>그들</result></test>
+    <test><source person="third" number="plural" case="accusative" register="formal"/><result>그분들</result></test>
+    <test><source person="second" number="singular" case="accusative"/><result>너</result></test>
+    <test><source person="second" number="singular" case="accusative" register="formal"/><result>당신</result></test>
+    <test><source person="second" number="singular" case="accusative" register="formal"/><codependent pos="proper-noun"/><result>님</result></test>
+    <test><source person="second" number="plural" case="accusative"/><result>너희</result></test>
+    <test><source person="second" number="plural" case="accusative" register="formal"/><result>여러분</result></test>
+    <test><source person="first" number="singular" case="accusative"/><result>나</result></test>
+    <test><source person="first" number="singular" case="accusative" register="formal"/><result>저</result></test>
+    <test><source person="first" number="plural" case="accusative"/><result>우리</result></test>
+    <test><source person="first" number="plural" case="accusative" register="formal"/><result>우리</result></test>
+    <test><source person="first" number="plural" case="accusative" clusivity="exclusive"/><result>저희</result></test>
+    <test><source person="third" number="singular" case="genitive" register="casual"/><result>그의 것</result></test>
+    <test><source person="third" number="singular" case="genitive" register="formal"/><result>그분의 것</result></test>
+    <test><source person="third" number="singular" case="genitive" register="casual" gender="masculine"/><result>그의 것</result></test>
+    <test><source person="third" number="singular" case="genitive" register="formal" gender="masculine"/><result>그분의 것</result></test>
+    <test><source person="third" number="singular" case="genitive" register="casual" gender="feminine"/><result>그녀의 것</result></test>
+    <test><source person="third" number="singular" case="genitive" register="formal" gender="feminine"/><result>그분의 것</result></test>
+    <test><source person="third" number="plural" case="genitive"/><result>그들의 것</result></test>
+    <test><source person="third" number="plural" case="genitive" register="formal"/><result>그분들의 것</result></test>
+    <test><source person="second" number="singular" case="genitive"/><result>너의 것</result></test>
+    <test><source person="second" number="singular" case="genitive" register="formal"/><result>당신의 것</result></test>
+    <test><source person="second" number="singular" case="genitive" register="formal"/><codependent pos="proper-noun"/><result>님의 것</result></test>
+    <test><source person="second" number="plural" case="genitive"/><result>너희 것</result></test>
+    <test><source person="second" number="plural" case="genitive" register="formal"/><result>여러분의 것</result></test>
+    <test><source person="first" number="singular" case="genitive"/><result>나의 것</result></test>
+    <test><source person="first" number="singular" case="genitive" register="formal"/><result>저의 것</result></test>
+    <test><source person="first" number="plural" case="genitive"/><result>우리 것</result></test>
+    <test><source person="first" number="plural" case="genitive" register="formal"/><result>우리 것</result></test>
+    <test><source person="first" number="plural" case="genitive" clusivity="exclusive"/><result>저희 것</result></test>
+
+    <!-- reinflection -->
+    <test><source person="third">내</source><result gender="masculine">그</result></test>
+    <test><source person="third">제</source><result gender="masculine">그분</result></test>
+    <test><source person="second">내</source><result gender="">너</result></test>
+    <test><source person="second">제</source><result gender="">당신</result></test>
+    <test><source case="accusative">내</source><result>나</result></test>
+    <test><source case="genitive">내</source><result>나의 것</result></test>
+    <test><source gender="masculine">그</source><result>그</result></test>
+    <test><source gender="feminine">그</source><result>그녀</result></test>
+    <test><source gender="masculine" >그분</source><result>그분</result></test>
+    <test><source gender="feminine">그분</source><result>그분</result></test>
+    <test><source person="third" case="genitive">내</source><result gender="masculine">그의 것</result></test>
+</inflectionTest>

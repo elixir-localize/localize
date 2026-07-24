@@ -1,0 +1,150 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2025-2026 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="pl">
+    <test><source case="genitive">nowy</source><result>nowego</result></test>
+    <test><source case="genitive">nowy.</source><result>nowego.</result></test>
+    <test><source case="genitive">nienowy</source><result>nienowego</result></test>
+    <test><source case="genitive">Nienowy</source><result>Nienowego</result></test>
+    <test><source case="genitive">najnowy</source><result>najnowego</result></test>
+    <test><source case="genitive">Najnowy</source><result>Najnowego</result></test>
+    <test><source number="plural">nowy</source><result>nowi</result></test> <!-- Could be nowe too -->
+    <test><source number="plural">nowemu</source><result>nowym</result></test>
+    <test><source case="genitive">najnowszy</source><result>najnowszego</result></test>
+    <test><source case="genitive">kilometr</source><result gender="masculine" animacy="inanimate">kilometra</result></test>
+    <test><source number="plural">światło</source><result>światła</result></test> <!-- nominative inflection -->
+    <test><source number="plural">światłu</source><result gender="neuter">światłom</result></test> <!-- dative inflection -->
+    <test><source case="genitive">ten</source><result>tego</result></test>
+    <test><source case="nominative">ten restauracja</source><result>ta restauracja</result></test>
+    <test><source case="genitive">ten restauracja</source><result>tej restauracji</result></test>
+    <test><source case="dative" number="plural">ten restauracja</source><result>tym restauracjom</result></test>
+    <test><source number="singular">duży czerwony światło</source><result>duże czerwone światło</result></test>
+    <test><source number="plural">duży czerwony światło</source><result>duże czerwone światła</result></test>
+    <test><source case="accusative">duży człowiek</source><result exists="true">dużego człowieka</result></test>
+    <test><source case="accusative">duży kobieta</source><result>dużą kobietę</result></test>
+    <test><source case="accusative">nowy dach</source><result exists="true">nowy dach</result></test>
+    <test><source case="nominative">w</source><result>w</result></test>
+    <test><source case="locative">w mnie</source><result>we mnie</result></test>
+    <test><source case="nominative">w własność</source><result>we własność</result></test>
+    <test><source case="nominative">w Własność</source><result>we Własność</result></test>
+    <test><source case="nominative">w wolność</source><result>w wolność</result></test>
+    <test><source case="nominative">w mnie wolność</source><result>we mnie wolność</result></test>
+    <test><source case="genitive">w tabela</source><result>w tabeli</result></test>
+    <test><source case="genitive">w włość</source><result>we włości</result></test>
+
+    <test><source withPreposition="w">własność</source><result>we własność</result></test>
+    <test><source withPreposition="w">Własność</source><result>we Własność</result></test>
+    <test><source withPreposition="w">wolność</source><result>w wolność</result></test>
+    <test><source withPreposition="z">wzgórze</source><result>ze wzgórze</result></test>
+    <test><source withPreposition="z">wojna</source><result>z wojna</result></test>
+
+    <test><source gender="masculine">Twojego</source><result>Twojego</result></test>
+    <test><source gender="feminine">Twojego</source><result>Twojej</result></test>
+    <test><source gender="masculine" number="plural">Twojego</source><result>Twoich</result></test>
+    <test><source gender="feminine" number="plural">Twojego</source><result>Twoich</result></test>
+    <test><source gender="masculine" case="accusative">Twojego</source><result>Twojego</result></test>
+    <test><source gender="feminine" case="accusative">Twojego</source><result>Twoją</result></test>
+    <!-- Masculine accusative plural is ambiguous by virility: masculine-personal (human/virile)
+         gives Twoichwhile non-masculine-personal (non-virile) gives Twoje. Specify animacy=human
+         to pin the virile reading rather than relying on an arbitrary default. The non-virile
+         accusative plural form (Twoje) is asserted unambiguously by the feminine case below. -->
+    <test><source gender="masculine" case="accusative" number="plural" animacy="human">Twojego</source><result>Twoich</result></test>
+    <test><source gender="masculine" case="accusative" number="plural" animacy="inanimate">Twojego</source><result>Twoje</result></test>
+    <test><source gender="feminine" case="accusative" number="plural">Twojego</source><result>Twoje</result></test>
+\u0078\u0030\u0078\u003a\u003e\u0025\u403e\u003e\u0100\u003b\u0025\u403e\u003a\u003e\u003b\u003e\u003b\u003b\u003c\u0030\u003c\u003c\u003e
+    <!-- Ordinal numbers: drugi (second)trzeci (third) -->
+    <test><source case="nominative" gender="masculine">drugi</source><result>drugi</result></test>
+    <test><source case="genitive" gender="masculine">drugi</source><result>drugiego</result></test>
+    <test><source case="dative" gender="masculine">drugi</source><result>drugiemu</result></test>
+    <test><source case="accusative" gender="masculine">drugi</source><result>drugiego</result></test>
+    <test><source case="accusative" gender="masculine" animacy="animate">drugi</source><result>drugiego</result></test>
+    <test><source case="accusative" gender="masculine" animacy="inanimate">drugi</source><result>drugi</result></test>
+    <test><source case="instrumental" gender="masculine">drugi</source><result>drugim</result></test>
+    <test><source case="locative" gender="masculine">drugi</source><result>drugim</result></test>
+
+    <test><source case="nominative" gender="feminine">drugi</source><result>druga</result></test>
+    <test><source case="genitive" gender="feminine">drugi</source><result>drugiej</result></test>
+    <test><source case="dative" gender="feminine">drugi</source><result>drugiej</result></test>
+    <test><source case="accusative" gender="feminine">drugi</source><result>drugą</result></test>
+    <test><source case="instrumental" gender="feminine">drugi</source><result>drugą</result></test>
+    <test><source case="locative" gender="feminine">drugi</source><result>drugiej</result></test>
+
+    <test><source case="nominative" gender="neuter">drugi</source><result>drugie</result></test>
+    <test><source case="genitive" gender="neuter">drugi</source><result>drugiego</result></test>
+    <test><source case="dative" gender="neuter">drugi</source><result>drugiemu</result></test>
+    <test><source case="accusative" gender="neuter">drugi</source><result>drugie</result></test>
+    <test><source case="instrumental" gender="neuter">drugi</source><result>drugim</result></test>
+    <test><source case="locative" gender="neuter">drugi</source><result>drugim</result></test>
+
+    <test><source case="nominative" gender="masculine">trzeci</source><result>trzeci</result></test>
+    <test><source case="genitive" gender="masculine">trzeci</source><result>trzeciego</result></test>
+    <test><source case="dative" gender="masculine">trzeci</source><result>trzeciemu</result></test>
+    <test><source case="accusative" gender="masculine">trzeci</source><result>trzeciego</result></test>
+    <test><source case="accusative" gender="masculine" animacy="animate">trzeci</source><result>trzeciego</result></test>
+    <test><source case="accusative" gender="masculine" animacy="inanimate">trzeci</source><result>trzeci</result></test>
+    <test><source case="instrumental" gender="masculine">trzeci</source><result>trzecim</result></test>
+    <test><source case="locative" gender="masculine">trzeci</source><result>trzecim</result></test>
+
+    <test><source case="nominative" gender="feminine">trzeci</source><result>trzecia</result></test>
+    <test><source case="genitive" gender="feminine">trzeci</source><result>trzeciej</result></test>
+    <test><source case="dative" gender="feminine">trzeci</source><result>trzeciej</result></test>
+    <test><source case="accusative" gender="feminine">trzeci</source><result>trzecią</result></test>
+    <test><source case="instrumental" gender="feminine">trzeci</source><result>trzecią</result></test>
+    <test><source case="locative" gender="feminine">trzeci</source><result>trzeciej</result></test>
+
+    <test><source case="nominative" gender="neuter">trzeci</source><result>trzecie</result></test>
+    <test><source case="genitive" gender="neuter">trzeci</source><result>trzeciego</result></test>
+    <test><source case="dative" gender="neuter">trzeci</source><result>trzeciemu</result></test>
+    <test><source case="accusative" gender="neuter">trzeci</source><result>trzecie</result></test>
+    <test><source case="instrumental" gender="neuter">trzeci</source><result>trzecim</result></test>
+    <test><source case="locative" gender="neuter">trzeci</source><result>trzecim</result></test>
+
+    <!-- present tense -->
+    <test><source number="plural" person="first">łapię</source><result>łapiemy</result></test>
+    <test><source number="plural" person="second">łapiesz</source><result>łapiecie</result></test>
+    <test><source number="plural" person="third" pos="verb">łapie</source><result>łapią</result></test>
+
+    <!-- first personpast tense -->
+    <test><source number="plural">łapałem</source><result>łapałyśmy</result></test>
+    <test><source number="plural" animacy="human">łapałem</source><result>łapaliśmy</result></test>
+    <test><source number="singular">łapaliśmy</source><result>łapałem</result></test>
+    <test><source number="singular" gender="masculine">łapaliśmy</source><result>łapałem</result></test>
+    <test><source number="singular" gender="feminine">łapaliśmy</source><result>łapałam</result></test>
+    <test><source number="singular" gender="neuter">łapaliśmy</source><result>łapałom</result></test>
+    <test><source number="singular" gender="masculine">łapałyśmy</source><result>łapałem</result></test>
+    <test><source number="singular" gender="feminine">łapałyśmy</source><result>łapałam</result></test>
+    <test><source number="singular" gender="neuter">łapałyśmy</source><result>łapałom</result></test>
+
+    <!-- second personpast tense -->
+    <test><source number="plural">łapałeś</source><result>łapałyście</result></test>
+    <test><source number="plural" animacy="human">łapałeś</source><result>łapaliście</result></test>
+    <test><source number="singular">łapaliście</source><result>łapałeś</result></test>
+    <test><source number="singular" gender="masculine">łapaliście</source><result>łapałeś</result></test>
+    <test><source number="singular" gender="feminine">łapaliście</source><result>łapałaś</result></test>
+    <test><source number="singular" gender="neuter">łapaliście</source><result>łapałoś</result></test>
+    <test><source number="singular" gender="masculine">łapałyście</source><result>łapałeś</result></test>
+    <test><source number="singular" gender="feminine">łapałyście</source><result>łapałaś</result></test>
+    <test><source number="singular" gender="neuter">łapałyście</source><result>łapałoś</result></test>
+
+    <!-- third personpast tense -->
+    <test><source number="plural">łapał</source><result>łapały</result></test>
+    <test><source number="plural" animacy="human">łapał</source><result>łapali</result></test>
+    <test><source number="singular">łapali</source><result>łapał</result></test>
+    <test><source number="singular" gender="masculine">łapali</source><result>łapał</result></test>
+    <test><source number="singular" gender="feminine">łapali</source><result>łapała</result></test>
+    <test><source number="singular" gender="neuter">łapali</source><result>łapało</result></test>
+    <test><source number="singular" gender="masculine">łapały</source><result>łapał</result></test>
+    <test><source number="singular" gender="feminine">łapały</source><result>łapała</result></test>
+    <test><source number="singular" gender="neuter">łapały</source><result>łapało</result></test>
+
+    <!-- Inflection guessing for words not in the dictionary -->
+    <test><source case="genitive">qqqość</source><result>qqqości</result></test>
+    <test><source case="instrumental">qqqość</source><result>qqqością</result></test>
+    <test><source case="genitive">qqqista</source><result>qqqisty</result></test>
+    <test><source case="instrumental">qqqista</source><result>qqqistą</result></test>
+    <test><source case="genitive">qqqyka</source><result>qqqyki</result></test>
+    <test><source case="dative">qqqyka</source><result>qqqyce</result></test>
+    <!-- Word too short to guess. Return the original. -->
+    <test><source case="genitive">qq</source><result>qq</result></test>
+</inflectionTest>

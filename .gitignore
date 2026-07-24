@@ -33,6 +33,9 @@ mise.toml
 # Generated locale ETF files (populated via mix localize.generate_locales)
 /priv/localize/locales/
 !/priv/localize/locales/en.etf
+
+# Generated inflection data (populated via mix localize.inflection.generate)
+/priv/localize/inflection/
 !/priv/localize/locales/und.etf
 
 # Inflection data (sources and generated ETFs) — belongs to the

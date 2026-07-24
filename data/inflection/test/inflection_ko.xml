@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2021-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="ko">
+    <test><source case="accusative">home</source><result exists="true"/></test>
+    <test><source case="accusative">'home'</source><result exists="true"/></test>
+    <test><source case="accusative">'qqqa'</source><result exists="true"/></test>
+    <test><source case="accusative">월</source><result exists="true"/></test>
+    <test><source case="accusative">'월'</source><result exists="true"/></test>
+    <test><source case="accusative">😃</source><result exists="false"/></test>
+    <test><source case="accusative">'😃'</source><result exists="false"/></test>
+    <test><source case="accusative">-.-</source><result exists="false"/></test>
+
+
+    <test><source case="nominative">Richard</source><result exists="true">Richard는</result></test>
+    <test><source case="nominative">Richard는</source><result exists="true">Richard는</result></test>
+    <test><source case="nominative">Richard은</source><result exists="true">Richard는</result></test>
+    <test><source case="nominative" clusivity="exclusive">Richard</source><result exists="true">Richard는</result></test>
+    <test><source case="nominative" clusivity="exclusive">Richard는</source><result exists="true">Richard는</result></test>
+    <test><source case="nominative" clusivity="exclusive">Richard은</source><result exists="true">Richard는</result></test>
+    <test><source case="nominative">리차드</source><result exists="true">리차드는</result></test>
+    <test><source case="nominative">KT</source><result exists="true">KT는</result></test>
+    <test><source case="nominative">케이티</source><result exists="true">케이티는</result></test>
+    <test><source case="nominative">NHN</source><result exists="true">NHN은</result></test>
+    <test><source case="nominative">엔에이치엔</source><result exists="true">엔에이치엔은</result></test>
+    <test><source case="nominative">Hans'</source><result exists="true">Hans'는</result></test>
+    <test><source case="nominative">한스'</source><result exists="true">한스'는</result></test>
+    <test><source case="nominative">Eric</source><result exists="true">Eric은</result></test>
+    <test><source case="nominative">Eric는</source><result exists="true">Eric은</result></test>
+    <test><source case="nominative">Eric은</source><result exists="true">Eric은</result></test>
+    <test><source case="nominative">에릭</source><result exists="true">에릭은</result></test>
+    <test><source case="nominative">George</source><result exists="true">George는</result></test>
+    <test><source case="nominative">조지</source><result exists="true">조지는</result></test>
+    <test><source case="nominative">Apple</source><result exists="true">Apple은</result></test>
+    <test><source case="nominative">애플</source><result exists="true">애플은</result></test>
+
+    <test><source case="nominative" clusivity="inclusive">Richard</source><result exists="true">Richard가</result></test>
+    <test><source case="nominative" clusivity="inclusive">리차드</source><result exists="true">리차드가</result></test>
+    <test><source case="nominative" clusivity="inclusive">KT</source><result exists="true">KT가</result></test>
+    <test><source case="nominative" clusivity="inclusive">케이티</source><result exists="true">케이티가</result></test>
+    <test><source case="nominative" clusivity="inclusive">NHN</source><result exists="true">NHN이</result></test>
+    <test><source case="nominative" clusivity="inclusive">엔에이치엔</source><result exists="true">엔에이치엔이</result></test>
+    <test><source case="nominative" clusivity="inclusive">Hans'</source><result exists="true">Hans'가</result></test>
+    <test><source case="nominative" clusivity="inclusive">한스'</source><result exists="true">한스'가</result></test>
+    <test><source case="nominative" clusivity="inclusive">Eric</source><result exists="true">Eric이</result></test>
+    <test><source case="nominative" clusivity="inclusive">에릭</source><result exists="true">에릭이</result></test>
+    <test><source case="nominative" clusivity="inclusive">George</source><result exists="true">George가</result></test>
+    <test><source case="nominative" clusivity="inclusive">조지</source><result exists="true">조지가</result></test>
+    <test><source case="nominative" clusivity="inclusive">Apple</source><result exists="true">Apple이</result></test>
+    <test><source case="nominative" clusivity="inclusive">애플</source><result exists="true">애플이</result></test>
+
+    <test><source case="accusative">Richard</source><result exists="true">Richard를</result></test>
+    <test><source case="accusative">리차드</source><result exists="true">리차드를</result></test>
+    <test><source case="accusative">KT</source><result exists="true">KT를</result></test>
+    <test><source case="accusative">케이티</source><result exists="true">케이티를</result></test>
+    <test><source case="accusative">NHN</source><result exists="true">NHN을</result></test>
+    <test><source case="accusative">엔에이치엔</source><result exists="true">엔에이치엔을</result></test>
+    <test><source case="accusative">Hans'</source><result exists="true">Hans'를</result></test>
+    <test><source case="accusative">한스'</source><result exists="true">한스'를</result></test>
+    <test><source case="accusative">Eric</source><result exists="true">Eric을</result></test>
+    <test><source case="accusative">에릭</source><result exists="true">에릭을</result></test>
+    <test><source case="accusative">George</source><result exists="true">George를</result></test>
+    <test><source case="accusative">조지</source><result exists="true">조지를</result></test>
+    <test><source case="accusative">Apple</source><result exists="true">Apple을</result></test>
+    <test><source case="accusative">애플</source><result exists="true">애플을</result></test>
+    <test><source case="accusative">Presents</source><result exists="true">Presents를</result></test>
+    <test><source case="accusative">Chris Tall Presents</source><result exists="true">Chris Tall Presents를</result></test>
+    <test><source case="accusative">스페인어(미국)을</source><result exists="true">스페인어(미국)를</result></test>
+    <test><source case="accusative">엔에이치엔(미국)을</source><result exists="true">엔에이치엔(미국)을</result></test>
+    <test><source case="accusative">스페인어{미국}을</source><result exists="true">스페인어{미국}를</result></test>
+    <test><source case="accusative">스페인어〘미국〙을</source><result exists="true">스페인어〘미국〙를</result></test>
+    <test><source case="accusative">(미국)을</source><result exists="false">(미국)을</result></test> <!-- It's a particle with a chunk of text to ignore. You can't really check an empty string. -->
+    <test><source case="accusative">Eric(미국)을</source><result exists="true">Eric(미국)을</result></test>
+    <test><source case="accusative">Eric(미국)를</source><result exists="true">Eric(미국)을</result></test>
+    <test><source case="accusative">George(미국)을</source><result exists="true">George(미국)를</result></test>
+    <test><source case="accusative">George(미국)를</source><result exists="true">George(미국)를</result></test>
+
+    <test><source case="comitative">Richard</source><result exists="true">Richard와</result></test>
+    <test><source case="comitative">리차드</source><result exists="true">리차드와</result></test>
+    <test><source case="comitative">KT</source><result exists="true">KT와</result></test>
+    <test><source case="comitative">케이티</source><result exists="true">케이티와</result></test>
+    <test><source case="comitative">NHN</source><result exists="true">NHN과</result></test>
+    <test><source case="comitative">엔에이치엔</source><result exists="true">엔에이치엔과</result></test>
+    <test><source case="comitative">Hans'</source><result exists="true">Hans'와</result></test>
+    <test><source case="comitative">한스'</source><result exists="true">한스'와</result></test>
+    <test><source case="comitative">Eric</source><result exists="true">Eric과</result></test>
+    <test><source case="comitative">에릭</source><result exists="true">에릭과</result></test>
+    <test><source case="comitative">George</source><result exists="true">George와</result></test>
+    <test><source case="comitative">조지</source><result exists="true">조지와</result></test>
+    <test><source case="comitative">Apple</source><result exists="true">Apple과</result></test>
+    <test><source case="comitative">애플</source><result exists="true">애플과</result></test>
+
+    <test><source case="instrumental">안타</source><result exists="true">안타로</result></test>
+    <test><source case="instrumental">장타율</source><result exists="true">장타율로</result></test>
+    <test><source case="instrumental">홈런</source><result exists="true">홈런으로</result></test>
+    <test><source case="instrumental">Eric</source><result exists="true">Eric으로</result></test>
+    <test><source case="instrumental">George</source><result exists="true">George로</result></test>
+    <test><source case="instrumental">ChatGPT</source><result exists="true">ChatGPT로</result></test>
+    <test><source case="instrumental">23</source><result exists="false">23으로</result></test>
+    <test><source case="instrumental">23로</source><result exists="false">23으로</result></test>
+    <test><source case="instrumental">word 23로</source><result exists="false">word 23으로</result></test>
+
+    <test><source adjectival="predicative">매출</source><result exists="true">매출이라</result></test>
+    <test><source adjectival="predicative">매출이라</source><result exists="true">매출이라</result></test>
+    <test><source adjectival="predicative">매출라</source><result exists="true">매출이라</result></test>
+    <test><source adjectival="predicative">회의</source><result exists="true">회의라</result></test>
+    <test><source adjectival="predicative">회의이라</source><result exists="true">회의라</result></test>
+    <test><source adjectival="predicative">회의라</source><result exists="true">회의라</result></test>
+
+</inflectionTest>

@@ -1,0 +1,298 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2021-2026 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="nl">
+    <test><source>een huis</source><result definiteness="indefinite"/></test>
+    <test><source>de man</source><result definiteness="definite"/></test>
+    <test><source>de vrouw</source><result definiteness="definite"/></test>
+    <test><source>het huis</source><result definiteness="definite"/></test>
+    <test><source>zakenkrant</source><result definiteness=""/></test>
+    <test><source>QQQQQQ</source><result definiteness=""/></test>
+
+    <test><source definiteness="definite" number="singular" gender="masculine">value</source><result>de value</result></test>
+    <test><source definiteness="definite" number="singular" gender="neuter">value</source><result>het value</result></test>
+    <test><source definiteness="definite" number="singular" sizeness="diminutive">value</source><result>het value</result></test>
+    <test><source definiteness="definite" number="plural">value</source><result>de value</result></test>
+    <test><source definiteness="definite">huis</source><result>het huis</result></test>
+    <test><source definiteness="definite">tuinhuis</source><result>het tuinhuis</result></test>
+    <test><source definiteness="definite">boek</source><result>het boek</result></test>
+    <test><source definiteness="definite">tafel</source><result>de tafel</result></test>
+    <test><source definiteness="definite">keukentafel</source><result>de keukentafel</result></test>
+    <test><source definiteness="definite">boekenkast</source><result>de boekenkast</result></test>
+    <test><source definiteness="definite">huizen</source><result>de huizen</result></test>
+    <test><source definiteness="definite">tuinhuizen</source><result>de tuinhuizen</result></test>
+    <test><source definiteness="definite">boekenkastje</source><result>het boekenkastje</result></test>
+    <test><source definiteness="definite">boekenkastjes</source><result>de boekenkastjes</result></test>
+    <test><source definiteness="definite">bureaulampje</source><result>het bureaulampje</result></test>
+    <test><source definiteness="definite">bureaulampjes</source><result>de bureaulampjes</result></test>
+    <test><source definiteness="definite">stadscentrum</source><result>het stadscentrum</result></test>
+    <test><source definiteness="definite">stadscentra</source><result>de stadscentra</result></test>
+    <test><source definiteness="definite">appelblauwzeegroene huis</source><result>het appelblauwzeegroene huis</result></test>
+    <test><source definiteness="definite">vervallen huis</source><result>het vervallen huis</result></test>
+    <test><source definiteness="definite">grote tuinhuis</source><result>het grote tuinhuis</result></test>
+    <test><source definiteness="definite">dikke boek</source><result>het dikke boek</result></test>
+    <test><source definiteness="definite">bruine tafel</source><result>de bruine tafel</result></test>
+    <test><source definiteness="definite">nieuwe keukentafel</source><result>de nieuwe keukentafel</result></test>
+    <test><source definiteness="definite">lege boekenkast</source><result>de lege boekenkast</result></test>
+    <test><source definiteness="definite">vervallen huizen</source><result>de vervallen huizen</result></test>
+    <test><source definiteness="definite">grote tuinhuizen</source><result>de grote tuinhuizen</result></test>
+    <test><source definiteness="definite">lege boekenkastje</source><result>het lege boekenkastje</result></test>
+    <test><source definiteness="definite">lege boekenkastjes</source><result>de lege boekenkastjes</result></test>
+    <test><source definiteness="definite">kleine bureaulampje</source><result>het kleine bureaulampje</result></test>
+    <test><source definiteness="definite">kleine bureaulampjes</source><result>de kleine bureaulampjes</result></test>
+    <test><source definiteness="definite">oude stadscentrum</source><result>het oude stadscentrum</result></test>
+    <test><source definiteness="definite">moderne stadscentra</source><result>de moderne stadscentra</result></test>
+    <test><source definiteness="definite">appelblauwzeegroene huis in de stad</source><result>het appelblauwzeegroene huis in de stad</result></test>
+    <test><source definiteness="definite">vervallen huis dat gebouwd is in 1977</source><result>het vervallen huis dat gebouwd is in 1977</result></test>
+    <test><source definiteness="definite">grote tuinhuis van de buren</source><result>het grote tuinhuis van de buren</result></test>
+    <test><source definiteness="definite">dikke boek over Steve Jobs</source><result>het dikke boek over Steve Jobs</result></test>
+    <test><source definiteness="definite">bruine tafel waaop het boek ligt</source><result>de bruine tafel waaop het boek ligt</result></test>
+    <test><source definiteness="definite">nieuwe keukentafel in de living</source><result>de nieuwe keukentafel in de living</result></test>
+    <test><source definiteness="definite">lege boekenkast uit Ikea</source><result>de lege boekenkast uit Ikea</result></test>
+    <test><source definiteness="definite">vervallen huizen in Gent</source><result>de vervallen huizen in Gent</result></test>
+    <test><source definiteness="definite">grote tuinhuizen van de buren</source><result>de grote tuinhuizen van de buren</result></test>
+    <test><source definiteness="definite">lege boekenkastje van de winkel</source><result>het lege boekenkastje van de winkel</result></test>
+    <test><source definiteness="definite">lege boekenkastjes met boeken</source><result>de lege boekenkastjes met boeken</result></test>
+    <test><source definiteness="definite">kleine bureaulampje van mijn zus</source><result>het kleine bureaulampje van mijn zus</result></test>
+    <test><source definiteness="definite">kleine bureaulampjes van mijn broer</source><result>de kleine bureaulampjes van mijn broer</result></test>
+    <test><source definiteness="definite">oude stadscentrum van Gent</source><result>het oude stadscentrum van Gent</result></test>
+    <test><source definiteness="definite">moderne stadscentra in Europa</source><result>de moderne stadscentra in Europa</result></test>
+    <test><source definiteness="definite">kamer van Tom</source><result>de kamer van Tom</result></test>
+    <test><source definiteness="definite">huis van Tom</source><result>het huis van Tom</result></test>
+
+    <test><source number="singular">reis</source><result>reis</result></test>
+    <test><source number="plural">reis</source><result>reizen</result></test>
+    <test><source number="singular">feestdag</source><result>feestdag</result></test>
+    <test><source number="plural">feestdag</source><result>feestdagen</result></test>
+    <test><source number="singular">schip</source><result>schip</result></test>
+    <test><source number="plural">schip</source><result>schepen</result></test>
+    <test><source number="singular">uitstapje</source><result>uitstapje</result></test>
+    <test><source number="plural">uitstapje</source><result>uitstapjes</result></test>
+    <test><source declension="undeclined">vegetarisch</source><result>vegetarisch</result></test>
+    <test><source declension="declined">vegetarisch</source><result>vegetarische</result></test>
+    <test><source number="singular">ouder</source><result>ouder</result></test>
+    <test><source number="plural">ouder</source><result>ouders</result></test>
+    <test><source number="singular">zakelijk nummer</source><result>zakelijk nummer</result></test>
+    <test><source number="plural">zakelijk nummer</source><result>zakelijke nummers</result></test>
+    <test><source number="plural" declension="declined">groot rood</source><result>grote rode</result></test>
+
+    <test><source case="genitive">ik</source><result>mijn</result></test>
+    <test><source case="genitive" number="singular">zij</source><result>haar</result></test>
+    <test><source case="genitive" number="plural">zij</source><result>hun</result></test>
+    <test><source case="genitive">Tom</source><result>Tom’s</result></test>
+    <test><source case="genitive">Yasser</source><result>Yasser’s</result></test>
+    <test><source case="genitive">Alex</source><result>Alex’</result></test>
+    <test><source case="genitive">ik</source><result>mijn</result></test>
+    <test><source case="genitive">me</source><result>mijn</result></test>
+    <test><source case="genitive">mij</source><result>mijn</result></test>
+    <test><source case="genitive">je</source><result>jouw</result></test>
+    <test><source case="genitive">jij</source><result>jouw</result></test>
+    <test><source case="genitive">jou</source><result>jouw</result></test>
+    <test><source case="genitive">hij</source><result>zijn</result></test>
+    <test><source case="genitive">hem</source><result>zijn</result></test>
+    <test><source case="genitive">haar</source><result>haar</result></test>
+    <test><source case="genitive">hen</source><result>hun</result></test>
+    <test><source case="genitive">hun</source><result>hun</result></test>
+    <test><source case="genitive" number="singular">ze</source><result>haar</result></test>
+    <test><source case="genitive" number="singular">zij</source><result>haar</result></test>
+    <test><source case="genitive" number="plural">ze</source><result>hun</result></test>
+    <test><source case="genitive" number="plural">zij</source><result>hun</result></test>
+    <test><source case="genitive" declension="undeclined">we</source><result>ons</result></test>
+    <test><source case="genitive" declension="undeclined">wij</source><result>ons</result></test>
+    <test><source case="genitive" declension="declined">we</source><result>onze</result></test>
+    <test><source case="genitive" declension="declined">wij</source><result>onze</result></test>
+    <test><source case="genitive">Tom</source><result>Tom’s</result></test>
+    <test><source case="genitive">Eric</source><result>Eric’s</result></test>
+    <test><source case="genitive">Ellen</source><result>Ellen’s</result></test>
+    <test><source case="genitive">Tom's</source><result>Tom's</result></test>
+    <test><source case="genitive">Eric's</source><result>Eric's</result></test>
+    <test><source case="genitive">Ellen's</source><result>Ellen's</result></test>
+    <test><source case="genitive">Jezus</source><result>Jezus’</result></test>
+    <test><source case="genitive">Inez</source><result>Inez’</result></test>
+    <test><source case="genitive">Chris</source><result>Chris’</result></test>
+    <test><source case="genitive">Bush</source><result>Bush’</result></test>
+    <test><source case="genitive">Alex</source><result>Alex’</result></test>
+    <test><source case="genitive">Vermeesch</source><result>Vermeesch’</result></test>
+    <test><source case="genitive">Jezus'</source><result>Jezus'</result></test>
+    <test><source case="genitive">Inez'</source><result>Inez'</result></test>
+    <test><source case="genitive">Chris'</source><result>Chris'</result></test>
+    <test><source case="genitive">Bush'</source><result>Bush'</result></test>
+    <test><source case="genitive">Alex'</source><result>Alex'</result></test>
+    <test><source case="genitive">Vermeesch'</source><result>Vermeesch'</result></test>
+    <test><source case="genitive">BRB'</source><result>BRB's</result></test>
+    <test><source case="genitive">JK'</source><result>JK's</result></test>
+    <test><source definiteness="definite">huis</source><result>het huis</result></test>
+    <test><source definiteness="definite">vrouw</source><result>de vrouw</result></test>
+    <test><source definiteness="definite">man</source><result>de man</result></test>
+    <test><source definiteness="indefinite">huis</source><result>een huis</result></test>
+    <test><source definiteness="indefinite">vrouw</source><result>een vrouw</result></test>
+    <test><source definiteness="indefinite">man</source><result>een man</result></test>
+    <test><source number="plural">dag</source><result>dagen</result></test>
+
+    <test><source declension="undeclined">oud</source><result>oud</result></test>
+    <test><source declension="declined">oud</source><result>oude</result></test>
+    <test><source declension="undeclined">jong</source><result>jong</result></test>
+    <test><source declension="declined">jong</source><result>jonge</result></test>
+    <test><source declension="undeclined">saai</source><result>saai</result></test>
+    <test><source declension="declined">saai</source><result>saaie</result></test>
+    <test><source declension="undeclined">lui</source><result>lui</result></test>
+    <test><source declension="declined">lui</source><result>luie</result></test>
+    <test><source declension="undeclined">blij</source><result>blij</result></test>
+    <test><source declension="declined">blij</source><result>blije</result></test>
+    <test><source declension="undeclined">mooi</source><result>mooi</result></test>
+    <test><source declension="declined">mooi</source><result>mooie</result></test>
+    <test><source declension="undeclined">vers</source><result>vers</result></test>
+    <test><source declension="declined">vers</source><result>verse</result></test>
+    <test><source declension="undeclined">beschonken</source><result>beschonken</result></test>
+    <test><source declension="declined">beschonken</source><result>beschonken</result></test>
+    <test><source declension="undeclined">roze</source><result>roze</result></test>
+    <test><source declension="declined">roze</source><result>roze</result></test>
+    <test><source declension="undeclined">duur</source><result>duur</result></test>
+    <test><source declension="declined">dure</source><result>dure</result></test>
+    <test><source declension="undeclined">kaal</source><result>kaal</result></test>
+    <test><source declension="declined">kaal</source><result>kale</result></test>
+    <test><source declension="undeclined">boos</source><result>boos</result></test>
+    <test><source declension="declined">boos</source><result>boze</result></test>
+    <test><source declension="undeclined">veel</source><result>veel</result></test>
+    <test><source declension="declined">veel</source><result>vele</result></test>
+    <test><source declension="undeclined">wijs</source><result>wijs</result></test>
+    <test><source declension="declined">wijs</source><result>wijze</result></test>
+    <test><source declension="undeclined">grijs</source><result>grijs</result></test>
+    <test><source declension="declined">grijs</source><result>grijze</result></test>
+    <test><source declension="undeclined">dik</source><result>dik</result></test>
+    <test><source declension="declined">dik</source><result>dikke</result></test>
+    <test><source declension="undeclined">wit</source><result>wit</result></test>
+    <test><source declension="declined">wit</source><result>witte</result></test>
+
+    <test><source declension="undeclined">oud jong beschonken roze duur kaal boos</source><result>oud jong beschonken roze duur kaal boos</result></test>
+    <test><source declension="declined">oud jong beschonken roze duur kaal boos</source><result>oude jonge beschonken roze dure kale boze</result></test>
+
+    <test><source number="singular">koelkast</source><result>koelkast</result></test>
+    <test><source number="plural">koelkast</source><result>koelkasten</result></test>
+    <test><source number="singular">vergadering</source><result>vergadering</result></test>
+    <test><source number="plural">vergadering</source><result>vergaderingen</result></test>
+    <test><source number="singular">contact</source><result>contact</result></test>
+    <test><source number="plural">contact</source><result>contacten</result></test>
+    <test><source number="singular">industrie</source><result>industrie</result></test>
+    <test><source number="plural">industrie</source><result>industrieën</result></test>
+    <test><source number="singular">knie</source><result>knie</result></test>
+    <test><source number="plural">knie</source><result>knieën</result></test>
+    <test><source number="singular">idee</source><result>idee</result></test>
+    <test><source number="plural">idee</source><result>ideeën</result></test>
+    <test><source number="singular">porie</source><result>porie</result></test>
+    <test><source number="plural">poriën</source><result>poriën</result></test>
+    <test><source number="singular">bacterie</source><result>bacterie</result></test>
+    <test><source number="plural">bacterie</source><result>bacteriën</result></test>
+    <test><source number="singular">beer</source><result>beer</result></test>
+    <test><source number="plural">beer</source><result>beren</result></test>
+    <test><source number="singular">contactpersoon</source><result>contactpersoon</result></test>
+    <test><source number="plural">contactpersoon</source><result>contactpersonen</result></test>
+    <test><source number="singular">persoon</source><result>persoon</result></test>
+    <test><source number="plural">persoon</source><result>personen</result></test>
+    <test><source number="singular">egel</source><result>egel</result></test>
+    <test><source number="plural">egel</source><result>egels</result></test>
+    <test><source number="singular">cadeau</source><result>cadeau</result></test>
+    <test><source number="singular">auto</source><result>auto</result></test>
+    <test><source number="plural">auto</source><result>auto’s</result></test>
+    <test><source number="singular">programma</source><result>programma</result></test>
+    <test><source number="plural">programma</source><result>programma’s</result></test>
+    <test><source number="singular">baby</source><result>baby</result></test>
+    <test><source number="plural">baby</source><result>baby’s</result></test>
+
+    <test><source number="singular">saai lang programma</source><result>saai lang programma</result></test>
+    <test><source number="plural">saai lang programma</source><result>saaie lange programma’s</result></test>
+
+    <test><source pos="adjective">lang saai programma</source><result>lang saai programma</result></test>
+    <test><source declension="declined">lang saai programma</source><result>lang saai programma</result></test>
+    <test><source declension="undeclined">lang saai programma</source><result>lang saai programma</result></test>
+    <test><source number="singular">lang saai programma</source><result>lang saai programma</result></test>
+    <test><source number="singular" declension="declined">lang saai programma</source><result>lang saai programma</result></test>
+    <test><source number="singular" declension="undeclined">lang saai programma</source><result>lang saai programma</result></test>
+    <test><source number="plural">lang saai programma</source><result>lange saaie programma’s</result></test>
+    <test><source number="plural" declension="declined">lang saai programma</source><result>lange saaie programma’s</result></test>
+    <test><source number="plural" declension="undeclined">lang saai programma</source><result>lange saaie programma’s</result></test>
+
+    <test><source pos="adjective">groot boos wolf</source><result>groot boos wolf</result></test>
+    <test><source declension="declined">groot boos wolf</source><result>groot boos wolf</result></test>
+    <test><source declension="undeclined">groot boos wolf</source><result>groot boos wolf</result></test>
+    <test><source number="singular">groot boos wolf</source><result>grote boze wolf</result></test>
+    <test><source number="singular" declension="declined">groot boos wolf</source><result>grote boze wolf</result></test>
+    <test><source number="singular" declension="undeclined">groot boos wolf</source><result>grote boze wolf</result></test>
+    <test><source number="plural">groot boos wolf</source><result>grote boze wolven</result></test>
+    <test><source number="plural" declension="declined">groot boos wolf</source><result>grote boze wolven</result></test>
+    <test><source number="plural" declension="undeclined">groot boos wolf</source><result>grote boze wolven</result></test>
+
+    <test><source>xxx</source><result>xxx</result></test>
+    <test><source declension="declined">xxx</source><result>xxx</result></test>
+    <test><source declension="undeclined">xxx</source><result>xxx</result></test>
+    <test><source number="singular">xxx</source><result>xxx</result></test>
+    <test><source number="plural">xxx</source><result>xxx</result></test>
+    <test><source declension="declined" number="singular">xxx</source><result>xxx</result></test>
+    <test><source declension="undeclined" number="plural">xxx</source><result>xxx</result></test>
+
+    <test><source>kamer van jan</source><result>kamer van jan</result></test>
+    <test><source declension="declined">kamer van jan</source><result>kamer van jan</result></test>
+    <test><source declension="undeclined">kamer van jan</source><result>kamer van jan</result></test>
+    <test><source number="singular">kamer van jan</source><result>kamer van jan</result></test>
+    <test><source number="plural">kamer van jan</source><result>kamer van jan</result></test>
+    <test><source declension="declined" number="singular">kamer van jan</source><result>kamer van jan</result></test>
+    <test><source declension="undeclined" number="plural">kamer van jan</source><result>kamer van jan</result></test>
+
+    <test><source>Jan groot kamer</source><result>Jan groot kamer</result></test>
+    <test><source declension="declined">Jan groot kamer</source><result>Jan groot kamer</result></test>
+    <test><source declension="undeclined">Jan groot kamer</source><result>Jan groot kamer</result></test>
+    <test><source number="singular">Jan groot kamer</source><result>Jan groot kamer</result></test>
+    <test><source number="plural">Jan groot kamer</source><result>Jan groot kamer</result></test>
+    <test><source declension="declined" number="singular">Jan groot kamer</source><result>Jan groot kamer</result></test>
+    <test><source declension="undeclined" number="plural">Jan groot kamer</source><result>Jan groot kamer</result></test>
+
+    <test><source>kamer lelijk</source><result>kamer lelijk</result></test>
+    <test><source declension="declined">kamer lelijk</source><result>kamer lelijk</result></test>
+    <test><source declension="undeclined">kamer lelijk</source><result>kamer lelijk</result></test>
+    <test><source number="singular">kamer lelijk</source><result>kamer lelijk</result></test>
+    <test><source number="plural">kamer lelijk</source><result>kamer lelijk</result></test>
+    <test><source declension="declined" number="singular">kamer lelijk</source><result>kamer lelijk</result></test>
+    <test><source declension="undeclined" number="plural">kamer lelijk</source><result>kamer lelijk</result></test>
+
+    <test><source>auto oud jong beschonken</source><result>auto oud jong beschonken</result></test>
+    <test><source declension="declined">auto oud jong beschonken</source><result>auto oud jong beschonken</result></test>
+    <test><source declension="undeclined">auto oud jong beschonken</source><result>auto oud jong beschonken</result></test>
+    <test><source number="singular">auto oud jong beschonken</source><result>auto oud jong beschonken</result></test>
+    <test><source number="plural">auto oud jong beschonken</source><result>auto oud jong beschonken</result></test>
+    <test><source declension="declined" number="singular">auto oud jong beschonken</source><result>auto oud jong beschonken</result></test>
+    <test><source declension="undeclined" number="plural">auto oud jong beschonken</source><result>auto oud jong beschonken</result></test>
+
+    <test><source number="singular">bewilligde</source><result>bewilligde</result></test>
+    <test><source number="singular">bewilligden</source><result>bewilligde</result></test>
+    <test><source number="plural">bewilligde</source><result>bewilligden</result></test>
+    <test><source number="plural">bewilligden</source><result>bewilligden</result></test>
+
+    <test><source number="singular">zat</source><result>zat</result></test>
+    <test><source number="singular">zaten</source><result>zate</result></test>
+    <test><source number="singular" pos="noun">zaten</source><result>zate</result></test>
+    <test><source number="singular" pos="verb">zaten</source><result>zat</result></test>
+    <test><source number="plural">zat</source><result>zaten</result></test>
+    <test><source number="plural">zaten</source><result>zaten</result></test>
+
+    <test><source definiteness="definite">rood boek</source><result>het rode boek</result></test>
+    <test><source definiteness="definite">rode boek</source><result>het rode boek</result></test>
+    <test><source definiteness="indefinite">rood boek</source><result>een rood boek</result></test>
+    <test><source definiteness="indefinite">rode boek</source><result>een rood boek</result></test>
+
+    <test><source definiteness="definite">groot familie</source><result>de grote familie</result></test>
+    <test><source definiteness="definite">grote familie</source><result>de grote familie</result></test>
+    <test><source definiteness="indefinite">groot familie</source><result>een grote familie</result></test>
+    <test><source definiteness="indefinite">grote familie</source><result>een grote familie</result></test>
+
+    <test><source definiteness="definite">oud auto’s</source><result>de oude auto’s</result></test>
+    <test><source definiteness="definite">oude auto’s</source><result>de oude auto’s</result></test>
+    <test><source definiteness="indefinite">oud auto’s</source><result>een oude auto’s</result></test>
+    <test><source definiteness="indefinite">oude auto’s</source><result>een oude auto’s</result></test>
+
+    <test><source definiteness="definite">oud autootje</source><result>het oude autootje</result></test>
+    <test><source definiteness="definite">oude autootje</source><result>het oude autootje</result></test>
+    <!-- FIXME: <test><source definiteness="definite" number="singular">oude autootjes</source><result>het oude autootje</result></test> -->
+    <test><source definiteness="indefinite">oud autootje</source><result>een oud autootje</result></test>
+    <test><source definiteness="indefinite">oude autootje</source><result>een oud autootje</result></test>
+</inflectionTest>

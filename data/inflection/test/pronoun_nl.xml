@@ -1,0 +1,93 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="ru">
+    <!-- Simple inflection -->
+    <test><source/><result>ze</result></test>
+    <test><source person="first"/><result>ik</result></test>
+    <test><source number="plural"/><result>zij</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+
+    <test><source person="third" number="singular" case="nominative"/><result>ze</result></test>
+    <test><source person="third" number="singular" emphasis="stressed" case="nominative" gender="masculine"/><result>hij</result></test>
+    <test><source person="third" number="singular" emphasis="unstressed" case="nominative" gender="masculine"/><result>ie</result></test>
+    <test><source person="third" number="singular" emphasis="stressed" case="nominative" gender="feminine"/><result>zij</result></test>
+    <test><source person="third" number="singular" emphasis="unstressed" case="nominative" gender="feminine"/><result>ze</result></test>
+    <test><source person="third" number="singular" emphasis="stressed" case="nominative" gender="neuter"/><result>het</result></test>
+    <test><source person="third" number="singular" emphasis="unstressed" case="nominative" gender="neuter"/><result>'t</result></test>
+    <test><source person="third" number="plural" emphasis="stressed" case="nominative"/><result>zij</result></test>
+    <test><source person="third" number="plural" emphasis="unstressed" case="nominative"/><result>ze</result></test>
+    <test><source person="second" number="singular" emphasis="stressed" case="nominative"/><result>jij</result></test>
+    <test><source person="second" number="singular" emphasis="unstressed" case="nominative"/><result>je</result></test>
+    <test><source person="second" number="plural" emphasis="stressed" case="nominative"/><result>jullie</result></test>
+    <test><source person="second" number="plural" emphasis="unstressed" case="nominative"/><result>je</result></test>
+    <test><source person="first" number="singular" emphasis="stressed" case="nominative"/><result>ik</result></test>
+    <test><source person="first" number="singular" emphasis="unstressed" case="nominative"/><result>'k</result></test>
+    <test><source person="first" number="plural" emphasis="stressed" case="nominative"/><result>wij</result></test>
+    <test><source person="first" number="plural" emphasis="unstressed" case="nominative"/><result>we</result></test>
+    <test><source person="third" number="singular" case="accusative"/><result>ze</result></test>
+    <test><source person="third" number="singular" emphasis="stressed" case="accusative" gender="masculine"/><result>hem</result></test>
+    <test><source person="third" number="singular" emphasis="unstressed" case="accusative" gender="masculine"/><result>'m</result></test>
+    <test><source person="third" number="singular" emphasis="stressed" case="accusative" gender="feminine"/><result>haar</result></test>
+    <test><source person="third" number="singular" emphasis="unstressed" case="accusative" gender="feminine"/><result>h'r</result></test>
+    <test><source person="third" number="singular" emphasis="stressed" case="accusative" gender="neuter"/><result>het</result></test>
+    <test><source person="third" number="singular" emphasis="unstressed" case="accusative" gender="neuter"/><result>'t</result></test>
+    <test><source person="third" number="plural" emphasis="stressed" case="accusative"/><result>hen</result></test>
+    <test><source person="third" number="plural" emphasis="unstressed" case="accusative"/><result>ze</result></test>
+    <test><source person="second" number="singular" emphasis="stressed" case="accusative"/><result>jou</result></test>
+    <test><source person="second" number="singular" emphasis="unstressed" case="accusative"/><result>je</result></test>
+    <test><source person="second" number="plural" emphasis="stressed" case="accusative"/><result>jullie</result></test>
+    <test><source person="second" number="plural" emphasis="unstressed" case="accusative"/><result>je</result></test>
+    <test><source person="first" number="singular" emphasis="stressed" case="accusative"/><result>mij</result></test>
+    <test><source person="first" number="singular" emphasis="unstressed" case="accusative"/><result>me</result></test>
+    <test><source person="first" number="plural" case="accusative"/><result>ons</result></test>
+    <test><source person="third" number="plural" emphasis="stressed" case="dative"/><result>hun</result></test>
+    <test><source person="third" number="singular" determination="dependent" case="genitive"/><result>ze</result></test>
+    <test><source person="third" number="singular" emphasis="stressed" determination="dependent" case="genitive" gender="masculine"/><result>zijn</result></test>
+    <test><source person="third" number="singular" emphasis="unstressed" determination="dependent" case="genitive" gender="masculine"/><result>z'n</result></test>
+    <test><source person="third" number="singular" emphasis="stressed" determination="dependent" case="genitive" gender="feminine"/><result>haar</result></test>
+    <test><source person="third" number="singular" emphasis="unstressed" determination="dependent" case="genitive" gender="feminine"/><result>h'r</result></test>
+    <test><source person="third" number="singular" emphasis="stressed" determination="dependent" case="genitive" gender="neuter"/><result>zijn</result></test>
+    <test><source person="third" number="singular" emphasis="unstressed" determination="dependent" case="genitive" gender="neuter"/><result>z'n</result></test>
+    <test><source person="third" number="plural" emphasis="stressed" determination="dependent" case="genitive"/><result>hun</result></test>
+    <test><source person="third" number="plural" emphasis="unstressed" determination="dependent" case="genitive"/><result>ze</result></test>
+    <test><source person="second" number="singular" emphasis="stressed" determination="dependent" case="genitive"/><result>jouw</result></test>
+    <test><source person="second" number="singular" emphasis="unstressed" determination="dependent" case="genitive"/><result>je</result></test>
+    <test><source person="second" number="plural" emphasis="stressed" determination="dependent" case="genitive"/><result>jullie</result></test>
+    <test><source person="second" number="plural" emphasis="unstressed" determination="dependent" case="genitive"/><result>je</result></test>
+    <test><source person="first" number="singular" emphasis="stressed" determination="dependent" case="genitive"/><result>mijn</result></test>
+    <test><source person="first" number="singular" emphasis="unstressed" determination="dependent" case="genitive"/><result>m'n</result></test>
+    <test><source person="first" number="plural" determination="dependent" case="genitive"/><result>ons</result></test>
+    <test><source person="third" number="singular" determination="independent" case="genitive" gender="masculine"/><result>zijne</result></test>
+    <test><source person="third" number="singular" determination="independent" case="genitive" gender="feminine"/><result>hare</result></test>
+    <test><source person="third" number="singular" determination="independent" case="genitive" gender="neuter"/><result>zijne</result></test>
+    <test><source person="third" number="plural" determination="independent" case="genitive"/><result>hunne</result></test>
+    <test><source person="second" number="singular" determination="independent" case="genitive"/><result>jouwe</result></test>
+    <test><source person="second" number="plural" determination="independent" case="genitive"/><result>uwe</result></test>
+    <test><source person="first" number="singular" determination="independent" case="genitive"/><result>mijne</result></test>
+    <test><source person="first" number="plural" determination="independent" case="genitive"/><result>onze</result></test>
+    <test><source person="third" pronounType="reflexive"/><result>zich</result></test>
+    <test><source person="second" pronounType="reflexive"/><result>je</result></test>
+    <test><source person="second" number="singular" pronounType="reflexive"/><result>je</result></test>
+    <test><source person="first" number="singular" pronounType="reflexive"/><result>me</result></test>
+    <test><source person="first" number="plural" pronounType="reflexive"/><result>ons</result></test>
+
+    <!-- reinflection -->
+    <test><source person="third">ik</source><result gender="">ze</result></test>
+    <test><source person="second">ik</source><result gender="">jij</result></test>
+    <test><source person="second">Ik</source><result gender="">jij</result></test>
+    <test><source case="accusative">ik</source><result>mij</result></test>
+    <test><source pronounType="reflexive">ik</source><result>me</result></test>
+    <test><source gender="masculine" case="nominative">ze</source><result>hij</result></test>
+    <test><source gender="masculine" case="nominative">Ze</source><result>hij</result></test>
+    <test><source gender="feminine" case="nominative">ze</source><result>zij</result></test>
+    <test><source gender="neuter" case="nominative">ze</source><result>het</result></test>
+    <test><source gender="masculine" case="genitive">z'n</source><result>z'n</result></test>
+    <test><source gender="feminine" case="genitive">z'n</source><result>h'r</result></test>
+    <test><source gender="neuter" case="genitive">z'n</source><result>z'n</result></test>
+    <test><source person="third" pronounType="reflexive">ik</source><result gender="">zich</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive">ik</source><result gender="">zich</result></test>
+    <test><source gender="feminine">hem</source><result>haar</result></test>
+    <test><source gender="masculine">haar</source><result>zijn</result></test> <!-- This is ambiguous. This is defaulting to the possessive form. -->
+    <test><source gender="masculine" case="accusative">haar</source><result>hem</result></test>
+</inflectionTest>

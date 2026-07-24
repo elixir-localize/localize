@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2025-2025 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="uk">
+    <test><source>новий</source><result gender="masculine" number="singular"/></test>
+    <test><source>нове</source><result gender="neuter" number="singular"/></test>
+    <test><source>нова</source><result gender="feminine" number="singular"/></test>
+    <test><source>нові</source><result gender="" number="plural"/></test>
+    <test><source number="plural">повідомлення</source><result>повідомлення</result></test>
+    <test><source case="genitive" number="plural">повідомлення</source><result>повідомлень</result></test>
+    <test><source case="dative" number="plural">повідомлення</source><result>повідомленням</result></test>
+    <test><source number="plural">новий</source><result>нові</result></test>
+    <test><source number="plural">найновий</source><result>найнові</result></test>
+    <test><source case="genitive" gender="neuter">новий</source><result>нового</result></test>
+</inflectionTest>

@@ -1,0 +1,375 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2021-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="de">
+    <test><source>Termin</source><result gender="masculine"/></test>
+    <test><source>Besprechung</source><result gender="feminine"/></test>
+    <test><source>Ereignis</source><result gender="neuter"/></test>
+
+    <test><source number="singular" case="nominative">qzxyzq</source><result indefArticle=""/></test>
+    <test><source number="singular" case="nominative">Alp</source><result indefArticle=""/></test>
+    <test><source number="singular" case="nominative">Fundort</source><result indefArticle="ein"/></test>
+    <test><source number="singular" case="genitive">Fundort</source><result indefArticle="eines"/></test>
+    <test><source number="singular" case="dative">Fundort</source><result indefArticle="einem"/></test>
+    <test><source number="singular" case="accusative">Fundort</source><result indefArticle="einen"/></test>
+    <test><source number="singular" case="nominative">Bank</source><result indefArticle="eine"/></test>
+    <test><source number="singular" case="genitive">Bank</source><result indefArticle="einer"/></test>
+    <test><source number="singular" case="dative">Bank</source><result indefArticle="einer"/></test>
+    <test><source number="singular" case="accusative">Bank</source><result indefArticle="eine"/></test>
+    <test><source number="singular" case="nominative">Wort</source><result indefArticle="ein"/></test>
+    <test><source number="singular" case="genitive">Wort</source><result indefArticle="eines"/></test>
+    <test><source number="singular" case="dative">Wort</source><result indefArticle="einem"/></test>
+    <test><source number="singular" case="accusative">Wort</source><result indefArticle="ein"/></test>
+    <test><source number="singular" case="genitive">Spieltisch</source><result indefArticle="eines"/></test>
+    <test><source number="singular" case="genitive">Spielbank</source><result indefArticle="einer"/></test>
+    <test><source number="singular" case="dative">Spielzimmer</source><result indefArticle="einem"/></test>
+
+    <test><source number="singular" case="dative">Fundort</source><result defArticleInPreposition="im"/></test>
+    <test><source number="singular" case="dative">Bank</source><result defArticleInPreposition="in der"/></test>
+    <test><source number="singular" case="nominative">Wort</source><result defArticleInPreposition="ins"/></test>
+
+    <test><source number="singular" case="dative">Fundort</source><result withDefArticleInPreposition="im Fundort"/></test>
+    <test><source number="singular" case="dative">Bank</source><result withDefArticleInPreposition="in der Bank"/></test>
+    <test><source number="singular" case="nominative">Wort</source><result withDefArticleInPreposition="ins Wort"/></test>
+
+    <test><source>neu</source><result>neu</result></test>
+    <test><source case="genitive" number="plural" gender="masculine" declension="weak">neu</source><result>neuen</result></test>
+    <test><source case="nominative" number="singular" gender="neuter" declension="weak">ander</source><result>andere</result></test>
+    <test><source case="nominative" number="singular">Katze</source><result>Katze</result></test>
+    <test><source case="accusative" number="singular">Katze</source><result>Katze</result></test>
+    <test><source case="dative" number="singular">Katze</source><result>Katze</result></test>
+    <test><source case="genitive" number="singular">Katze</source><result>Katze</result></test>
+    <test><source case="nominative" number="plural">Katze</source><result>Katzen</result></test>
+    <test><source case="accusative" number="plural">Katze</source><result>Katzen</result></test>
+    <test><source case="dative" number="plural">Katze</source><result>Katzen</result></test>
+    <test><source case="genitive" number="plural">Katze</source><result>Katzen</result></test>
+    <test><source case="nominative" number="singular" declension="strong">schön Katze</source><result>schöne Katze</result></test>
+    <test><source case="genitive" number="singular" declension="strong">schön Katze</source><result>schöner Katze</result></test>
+    <test><source case="dative" number="singular" declension="strong">schön Katze</source><result>schöner Katze</result></test>
+    <test><source case="accusative" number="singular" declension="strong">schön Katze</source><result>schöne Katze</result></test>
+    <test><source case="nominative" number="plural" declension="strong">schön Katze</source><result>schöne Katzen</result></test>
+    <test><source case="genitive" number="plural" declension="strong">schön Katze</source><result>schöner Katzen</result></test>
+    <test><source case="dative" number="plural" declension="strong">schön Katze</source><result>schönen Katzen</result></test>
+    <test><source case="accusative" number="plural" declension="strong">schön Katze</source><result>schöne Katzen</result></test>
+    <test><source case="nominative" number="singular" declension="strong">regulär Zeit</source><result>reguläre Zeit</result></test>
+    <test><source case="genitive" number="singular" declension="strong">regulär Zeit</source><result>regulärer Zeit</result></test>
+    <test><source case="dative" number="singular" declension="strong">regulär Zeit</source><result>regulärer Zeit</result></test>
+    <test><source case="accusative" number="singular" declension="strong">regulär Zeit</source><result>reguläre Zeit</result></test>
+    <test><source case="nominative" number="plural" declension="strong">regulär Zeit</source><result>reguläre Zeiten</result></test>
+    <test><source case="genitive" number="plural" declension="strong">regulär Zeit</source><result>regulärer Zeiten</result></test>
+    <test><source case="dative" number="plural" declension="strong">regulär Zeit</source><result>regulären Zeiten</result></test>
+    <test><source case="accusative" number="plural" declension="strong">regulär Zeit</source><result>reguläre Zeiten</result></test>
+    <test><source case="nominative" number="singular" declension="weak">regulär Zeit</source><result>reguläre Zeit</result></test>
+    <test><source case="genitive" number="singular" declension="weak">regulär Zeit</source><result>regulären Zeit</result></test>
+    <test><source case="dative" number="singular" declension="weak">regulär Zeit</source><result>regulären Zeit</result></test>
+    <test><source case="accusative" number="singular" declension="weak">regulär Zeit</source><result>reguläre Zeit</result></test>
+    <test><source case="nominative" number="plural" declension="weak">regulär Zeit</source><result>regulären Zeiten</result></test>
+    <test><source case="genitive" number="plural" declension="weak">regulär Zeit</source><result>regulären Zeiten</result></test>
+    <test><source case="dative" number="plural" declension="weak">regulär Zeit</source><result>regulären Zeiten</result></test>
+    <test><source case="accusative" number="plural" declension="weak">regulär Zeit</source><result>regulären Zeiten</result></test>
+    <test><source case="nominative" number="singular" declension="mixed">regulär Zeit</source><result>reguläre Zeit</result></test>
+    <test><source case="genitive" number="singular" declension="mixed">regulär Zeit</source><result>regulären Zeit</result></test>
+    <test><source case="dative" number="singular" declension="mixed">regulär Zeit</source><result>regulären Zeit</result></test>
+    <test><source case="accusative" number="singular" declension="mixed">regulär Zeit</source><result>reguläre Zeit</result></test>
+    <test><source case="nominative" number="plural" declension="mixed">regulär Zeit</source><result>regulären Zeiten</result></test>
+    <test><source case="genitive" number="plural" declension="mixed">regulär Zeit</source><result>regulären Zeiten</result></test>
+    <test><source case="dative" number="plural" declension="mixed">regulär Zeit</source><result>regulären Zeiten</result></test>
+    <test><source case="accusative" number="plural" declension="mixed">regulär Zeit</source><result>regulären Zeiten</result></test>
+    <test><source case="nominative" number="singular" declension="weak">motorisiert Fenster</source><result>motorisierte Fenster</result></test>
+    <test><source case="genitive" number="singular" declension="weak">motorisiert Fenster</source><result>motorisierten Fensters</result></test>
+    <test><source case="dative" number="singular" declension="weak">motorisiert Fenster</source><result>motorisierten Fenster</result></test>
+    <test><source case="accusative" number="singular" declension="weak">motorisiert Fenster</source><result>motorisierte Fenster</result></test>
+    <test><source case="nominative" number="plural" declension="weak">motorisiert Fenster</source><result>motorisierten Fenster</result></test>
+    <test><source case="genitive" number="plural" declension="weak">motorisiert Fenster</source><result>motorisierten Fenster</result></test>
+    <test><source case="dative" number="plural" declension="weak">motorisiert Fenster</source><result>motorisierten Fenstern</result></test>
+    <test><source case="accusative" number="plural" declension="weak">motorisiert Fenster</source><result>motorisierten Fenster</result></test>
+    <test><source case="nominative" number="singular" declension="strong">motorisiert Fenster</source><result>motorisiertes Fenster</result></test>
+    <test><source case="accusative" number="singular" declension="strong">motorisiert Fenster</source><result>motorisiertes Fenster</result></test>
+    <test><source case="genitive" number="singular" declension="strong">motorisiert Fenster</source><result>motorisierten Fensters</result></test>
+    <test><source case="dative" number="singular" declension="strong">motorisiert Fenster</source><result>motorisiertem Fenster</result></test>
+    <test><source case="nominative" number="plural" declension="strong">motorisiert Fenster</source><result>motorisierte Fenster</result></test>
+    <test><source case="accusative" number="plural" declension="strong">motorisiert Fenster</source><result>motorisierte Fenster</result></test>
+    <test><source case="genitive" number="plural" declension="strong">motorisiert Fenster</source><result>motorisierter Fenster</result></test>
+    <test><source case="dative" number="plural" declension="strong">motorisiert Fenster</source><result>motorisierten Fenstern</result></test>
+    <test><source case="nominative" number="singular" declension="mixed">motorisiert Fenster</source><result>motorisiertes Fenster</result></test>
+    <test><source case="accusative" number="singular" declension="mixed">motorisiert Fenster</source><result>motorisiertes Fenster</result></test>
+    <test><source case="genitive" number="singular" declension="mixed">motorisiert Fenster</source><result>motorisierten Fensters</result></test>
+    <test><source case="dative" number="singular" declension="mixed">motorisiert Fenster</source><result>motorisierten Fenster</result></test>
+    <test><source case="nominative" number="plural" declension="mixed">motorisiert Fenster</source><result>motorisierten Fenster</result></test>
+    <test><source case="accusative" number="plural" declension="mixed">motorisiert Fenster</source><result>motorisierten Fenster</result></test>
+    <test><source case="genitive" number="plural" declension="mixed">motorisiert Fenster</source><result>motorisierten Fenster</result></test>
+    <test><source case="dative" number="plural" declension="mixed">motorisiert Fenster</source><result>motorisierten Fenstern</result></test>
+    <test><source case="nominative" number="singular" declension="strong">gefrierend Regen</source><result>gefrierender Regen</result></test>
+    <test><source case="genitive" number="singular" declension="strong">gefrierend Regen</source><result>gefrierenden Regens</result></test>
+    <test><source case="dative" number="singular" declension="strong">gefrierend Regen</source><result>gefrierendem Regen</result></test>
+    <test><source case="accusative" number="singular" declension="strong">gefrierend Regen</source><result>gefrierenden Regen</result></test>
+    <test><source case="nominative" number="plural" declension="strong">gefrierend Regen</source><result>gefrierende Regen</result></test>
+    <test><source case="genitive" number="plural" declension="strong">gefrierend Regen</source><result>gefrierender Regen</result></test>
+    <test><source case="dative" number="plural" declension="strong">gefrierend Regen</source><result>gefrierenden Regen</result></test>
+    <test><source case="accusative" number="plural" declension="strong">gefrierend Regen</source><result>gefrierende Regen</result></test>
+    <test><source case="nominative" number="singular" declension="weak">gefrierend Regen</source><result>gefrierende Regen</result></test>
+    <test><source case="genitive" number="singular" declension="weak">gefrierend Regen</source><result>gefrierenden Regens</result></test>
+    <test><source case="dative" number="singular" declension="weak">gefrierend Regen</source><result>gefrierenden Regen</result></test>
+    <test><source case="accusative" number="singular" declension="weak">gefrierend Regen</source><result>gefrierenden Regen</result></test>
+    <test><source case="nominative" number="plural" declension="weak">gefrierend Regen</source><result>gefrierenden Regen</result></test>
+    <test><source case="genitive" number="plural" declension="weak">gefrierend Regen</source><result>gefrierenden Regen</result></test>
+    <test><source case="dative" number="plural" declension="weak">gefrierend Regen</source><result>gefrierenden Regen</result></test>
+    <test><source case="accusative" number="plural" declension="weak">gefrierend Regen</source><result>gefrierenden Regen</result></test>
+    <test><source case="nominative" number="singular" declension="mixed">gefrierend Regen</source><result>gefrierender Regen</result></test>
+    <test><source case="genitive" number="singular" declension="mixed">gefrierend Regen</source><result>gefrierenden Regens</result></test>
+    <test><source case="dative" number="singular" declension="mixed">gefrierend Regen</source><result>gefrierenden Regen</result></test>
+    <test><source case="accusative" number="singular" declension="mixed">gefrierend Regen</source><result>gefrierenden Regen</result></test>
+    <test><source case="nominative" number="plural" declension="mixed">gefrierend Regen</source><result>gefrierenden Regen</result></test>
+    <test><source case="genitive" number="plural" declension="mixed">gefrierend Regen</source><result>gefrierenden Regen</result></test>
+    <test><source case="dative" number="plural" declension="mixed">gefrierend Regen</source><result>gefrierenden Regen</result></test>
+    <test><source case="accusative" number="plural" declension="mixed">gefrierend Regen</source><result>gefrierenden Regen</result></test>
+    <test><source number="singular" case="nominative" declension="strong">olympisch Spiel</source><result>olympisches Spiel</result></test>
+    <test><source case="nominative" number="singular">Termin</source><result>Termin</result></test>
+    <test><source case="accusative" number="singular">Termin</source><result>Termin</result></test>
+    <test><source case="dative" number="singular">Termin</source><result>Termin</result></test>
+    <test><source case="genitive" number="singular">Termin</source><result>Termines</result></test>
+    <test><source case="nominative" number="plural">Termin</source><result>Termine</result></test>
+    <test><source case="accusative" number="plural">Termin</source><result>Termine</result></test>
+    <test><source case="dative" number="plural">Termin</source><result>Terminen</result></test>
+    <test><source case="genitive" number="plural">Termin</source><result>Termine</result></test>
+    <test><source definiteness="definite">Mann</source><result>der Mann</result></test>
+    <test><source case="nominative" definiteness="definite">Mann</source><result>der Mann</result></test>
+    <test><source number="singular" case="nominative" definiteness="definite">Lampe</source><result>die Lampe</result></test>
+    <test><source case="accusative" definiteness="definite">Mann</source><result>den Mann</result></test>
+    <test><source case="dative" definiteness="definite">Mann</source><result>dem Mann</result></test>
+    <test><source case="genitive" definiteness="definite">Mann</source><result>des Mannes</result></test>
+    <test><source definiteness="indefinite">Mann</source><result>ein Mann</result></test>
+    <test><source case="nominative" definiteness="indefinite">Mann</source><result>ein Mann</result></test>
+    <test><source case="accusative" definiteness="indefinite">Mann</source><result>einen Mann</result></test>
+    <test><source case="dative" definiteness="indefinite">Mann</source><result>einem Mann</result></test>
+    <test><source case="genitive" definiteness="indefinite">Mann</source><result>eines Mannes</result></test>
+    <test><source number="plural" definiteness="definite">Mann</source><result>die Männer</result></test>
+    <test><source case="nominative" number="plural" definiteness="definite">Mann</source><result>die Männer</result></test>
+    <test><source case="accusative" number="plural" definiteness="definite">Mann</source><result>die Männer</result></test>
+    <test><source case="dative" number="plural" definiteness="definite">Mann</source><result>den Männern</result></test>
+    <test><source case="genitive" number="plural" definiteness="definite">Mann</source><result>der Männer</result></test>
+    <test><source definiteness="definite">Frau</source><result>die Frau</result></test>
+    <test><source case="nominative" definiteness="definite">Frau</source><result>die Frau</result></test>
+    <test><source case="accusative" definiteness="definite">Frau</source><result>die Frau</result></test>
+    <test><source case="dative" definiteness="definite">Frau</source><result>der Frau</result></test>
+    <test><source case="genitive" definiteness="definite">Frau</source><result>der Frau</result></test>
+    <test><source definiteness="indefinite">Frau</source><result>eine Frau</result></test>
+    <test><source case="nominative" definiteness="indefinite">Frau</source><result>eine Frau</result></test>
+    <test><source case="accusative" definiteness="indefinite">Frau</source><result>eine Frau</result></test>
+    <test><source case="dative" definiteness="indefinite">Frau</source><result>einer Frau</result></test>
+    <test><source case="genitive" definiteness="indefinite">Frau</source><result>einer Frau</result></test>
+    <test><source case="nominative" number="plural" definiteness="definite">Frau</source><result>die Frauen</result></test>
+    <test><source case="accusative" number="plural" definiteness="definite">Frau</source><result>die Frauen</result></test>
+    <test><source case="dative" number="plural" definiteness="definite">Frau</source><result>den Frauen</result></test>
+    <test><source case="genitive" number="plural" definiteness="definite">Frau</source><result>der Frauen</result></test>
+    <test><source pos="proper-noun">Tim</source><result>Tim</result></test>
+    <test><source case="genitive">Herz</source><result>Herzens</result></test>
+    <test><source case="genitive" pos="proper-noun">Herz</source><result>Herz’</result></test>
+
+    <test><source number="plural">Herz</source><result>Herzen</result></test>
+    <test><source case="genitive" pos="proper-noun">Tim</source><result>Tims</result></test>
+    <test><source case="genitive" pos="proper-noun">Bruce</source><result>Bruce’</result></test>
+    <test><source case="genitive" pos="proper-noun">Bruce’</source><result>Bruce’</result></test>
+    <test><source case="genitive" pos="proper-noun">Klaus</source><result>Klaus’</result></test>
+    <test><source case="genitive" pos="proper-noun">Marx</source><result>Marx’</result></test>
+    <test><source case="genitive" pos="proper-noun">Peter</source><result>Peters</result></test>
+    <test><source case="genitive" pos="proper-noun">Champions League</source><result>Champions Leagues</result></test>
+    <test><source case="genitive" pos="proper-noun">Bad boy</source><result>Bad boys</result></test>
+    <test><source case="genitive" pos="proper-noun">Peter ❄️</source><result>Peter ❄️s</result></test>
+    <test><source case="genitive" pos="proper-noun">стол</source><result>столs</result></test>
+
+    <!--    isExists() checks-->
+    <!--    Word doesn't exist in dictionary-->
+    <test><source gender="neuter">sfshdfvahsfhasvfh</source><result exists="false"/></test>
+    <!--    We don't inflect verbs-->
+    <test><source gender="masculine">spielen</source><result exists="false"/></test>
+    <!--    Words exists in dictionary and we can inflect it-->
+    <test><source gender="feminine">Organspender</source><result exists="true"/></test>
+
+    <test><source case="nominative" number="singular" gender="masculine">Organisator</source><result exists="true">Organisator</result></test>
+    <test><source case="nominative" number="singular" gender="feminine">Organisator</source><result exists="true">Organisatorin</result></test>
+    <test><source case="nominative" number="singular" gender="masculine">Organisatorin</source><result exists="true">Organisator</result></test>
+    <test><source gender="feminine">Organisator</source><result exists="true">Organisatorin</result></test>
+    <test><source gender="masculine">Organisatorin</source><result exists="true">Organisator</result></test>
+    <test><source gender="neuter">Organisatorin</source><result exists="false">Organisatorin</result></test>
+
+    <test><source case="nominative" number="singular" gender="masculine">Organisator</source><result exists="true">Organisator</result></test>
+    <test><source case="nominative" number="singular" gender="feminine">Organisator</source><result exists="true">Organisatorin</result></test>
+    <test><source case="nominative">Organisators</source><result exists="true">Organisator</result></test>
+    <test><source gender="feminine">Organisators</source><result exists="true">Organisatorin</result></test>
+
+    <test><source case="nominative" number="singular" gender="masculine">Eigentümer</source><result exists="true">Eigentümer</result></test>
+    <test><source case="nominative" number="singular" gender="feminine">Eigentümer</source><result exists="true">Eigentümerin</result></test>
+    <test><source gender="feminine">Eigentümer</source><result exists="true">Eigentümerin</result></test>
+
+    <test><source case="nominative" number="singular" gender="masculine">Autor</source><result exists="true">Autor</result></test>
+    <test><source case="nominative" number="singular" gender="feminine">Autor</source><result exists="true">Autorin</result></test>
+    <test><source gender="feminine">Autor</source><result exists="true">Autorin</result></test>
+    <test><source gender="feminine">Autors</source><result exists="true">Autorin</result></test>
+    <test><source gender="feminine">Autoren</source><result exists="true">Autorinnen</result></test>
+
+    <test><source case="nominative" number="singular" gender="masculine">Teilnehmer</source><result exists="true">Teilnehmer</result></test>
+    <test><source case="nominative" number="singular" gender="feminine">Teilnehmer</source><result exists="true">Teilnehmerin</result></test>
+    <test><source gender="feminine">Teilnehmer</source><result exists="true">Teilnehmerin</result></test>
+
+    <test><source case="nominative" number="singular" gender="masculine">Freund</source><result exists="true">Freund</result></test>
+    <test><source case="nominative" number="singular" gender="feminine">Freund</source><result exists="true">Freundin</result></test>
+    <test><source gender="feminine">Freundes</source><result exists="true">Freundin</result></test>
+
+    <!--  Incorrect inflection in German for words with the suffix "frau" “Ehefrau” inflections: Singular: Ehefraufrau, correct would be Ehefrau Plural: Ehefraufrauen, correct would be Ehefrauen Can be reproduced for other  -->
+    <test><source case="nominative" number="singular" gender="feminine">Ehemann</source><result exists="true">Ehefrau</result></test>
+    <test><source case="nominative" number="singular" gender="feminine">Ehefrau</source><result exists="true">Ehefrau</result></test>
+    <test><source case="nominative" number="plural" gender="feminine">Ehefrau</source><result exists="true">Ehefrauen</result></test>
+    <test><source case="nominative" number="singular" gender="feminine">Ehefrauen</source><result exists="true">Ehefrau</result></test>
+    <test><source case="nominative" number="plural" gender="feminine">Ehemann</source><result exists="true">Ehefrauen</result></test>
+    <test><source gender="feminine">Ehemann</source><result exists="true">Ehefrau</result></test>
+    <test><source gender="feminine">Ehemänner</source><result exists="true">Ehefrauen</result></test>
+
+    <test><source case="nominative" number="plural" gender="feminine">Sängerin</source><result exists="true">Sängerinnen</result></test>
+
+    <test><source case="nominative" number="singular">Innenhofes</source><result exists="true">Innenhof</result></test>
+    <test><source case="dative" number="plural">Innenhofes</source><result exists="true">Innenhöfen</result></test>
+
+    <test><source case="genitive" number="plural">Zeiten</source><result exists="true">Zeiten</result></test>
+    <test><source case="genitive" number="singular">Untersuchungsausschüsse</source><result exists="true">Untersuchungsausschusses</result></test>
+
+    <!--
+    Could mean the verb, could mean the noun.
+    First word is capitalized, which indicates a noun and it should not use inflection rules for the verb:
+    -->
+    <test><source case="accusative" number="singular">Decken</source><result exists="true">Decke</result></test>
+    <!-- Can't inflect the verb-->
+    <test><source case="accusative" number="singular">decken</source><result exists="false">decken</result></test>
+
+    <!--  Disfavoring the associated lemma containing ß  -->
+    <test><source case="accusative" number="plural">Überschusses</source><result exists="true">Überschüsse</result></test>
+    <test><source case="nominative" number="plural">Schlosses</source><result exists="true">Schlösser</result></test>
+    <test><source case="dative" number="plural">Schlosses</source><result exists="true">Schlössern</result></test>
+    <test><source case="genitive" number="singular">Füße</source><result exists="true">Fußes</result></test>
+
+    <!--
+    "Autos" can be used in many ways, e.g. Gen.sg. "Des Autos" or Nom.pl. "Die Autos"
+    -->
+    <test><source case="nominative" number="singular">Autos</source><result exists="true">Auto</result></test>
+    <test><source case="accusative" number="singular">Autos</source><result exists="true">Auto</result></test>
+    <test><source number="plural">des Autos</source><result exists="true">der Autos</result></test>
+
+    <test><source number="plural">Überblick</source><result exists="true">Überblicke</result></test>
+    <test><source number="plural">Überblick</source><result exists="true">Überblicke</result></test>
+    <test><source case="accusative">Überblicks</source><result exists="true">Überblick</result></test>
+    <test><source case="accusative">Überblicke</source><result exists="true">Überblicke</result></test>
+    <test><source case="accusative">Überblicken</source><result exists="true">Überblicke</result></test>
+
+    <!-- Incorrect inflection for Eigentümer in neuter Term of Address setting -->
+    <test><source gender="neuter">Eigentümer</source><result exists="true">Eigentümer</result></test>
+    <test><source gender="masculine">Eigentümer</source><result exists="true">Eigentümer</result></test>
+    <test><source gender="feminine">Eigentümer</source><result exists="true">Eigentümerin</result></test>
+
+    <test><source gender="feminine">zyxzyx</source><result>zyxzyx</result></test>
+    <test><source gender="feminine">zyxzyxe</source><result>zyxzyxe</result></test>
+    <test><source number="singular">zyxzyxen</source><result>zyxzyxen</result></test>
+
+    <!--  Inflecting Adjectives and Nouns  -->
+    <test><source number="plural">schöne Katze</source><result exists="true">schöne Katzen</result></test>
+
+    <test><source case="genitive">schönen Katzen</source><result exists="true">schöner Katzen</result></test>
+
+    <test><source case="dative" number="plural">regulärer Zeit</source><result exists="true">regulären Zeiten</result></test>
+    <test><source case="genitive" declension="mixed">reguläre Zeit</source><result exists="true">regulären Zeit</result></test>
+
+    <test><source case="nominative">motorisierten Fenstern</source><result exists="true">motorisiertes Fenster</result></test>
+    <test><source number="plural">motorisiertes Fenster</source><result exists="true">motorisierte Fenster</result></test>
+
+    <test><source case="accusative" gender="feminine">neuen Benutzer</source><result exists="true">neue Benutzerin</result></test>
+
+    <!--  Inflection of standalone adjectives, sometimes additional info might be needed for disambiguation. -->
+    <test><source gender="masculine" case="nominative" declension="strong">hart</source><result exists="true">harter</result></test>
+    <test><source gender="feminine">harter</source><result exists="true">harte</result></test>
+    <test><source gender="neuter" case="nominative">harter</source><result exists="true">hartes</result></test>
+    <test><source gender="neuter" case="nominative">harte</source><result exists="true">hartes</result></test>
+    <test><source gender="neuter" case="nominative" declension="weak">hartes</source><result exists="true">harte</result></test>
+
+    <test><source gender="feminine">schön</source><result exists="true">schöne</result></test>
+    <test><source gender="feminine">schönes</source><result exists="true">schöne</result></test>
+
+    <test><source gender="feminine">neuer</source><result exists="true">neue</result></test>
+    <test><source gender="neuter">neuer</source><result exists="true">neues</result></test>
+        <!-- This tests works because we prefer disambiguation of declension class over gender  -->
+    <test><source gender="neuter">neue</source><result exists="true">neues</result></test>
+
+    <test><source gender="feminine">schneller</source><result exists="true">schnelle</result></test>
+    <test><source gender="neuter">schneller</source><result exists="true">schnelles</result></test>
+    <test><source gender="neuter">schnelle</source><result exists="true">schnelles</result></test>
+
+    <!--  Article and Noun in agreement  -->
+    <test><source number="plural">dem Überblick</source><result exists="true">den Überblicken</result></test>
+
+    <test><source case="genitive" gender="masculine" number="singular">der Organisatorin</source><result exists="true">des Organisators</result></test>
+    <test><source case="genitive" gender="masculine" number="singular">einer Organisatorin</source><result exists="true">eines Organisators</result></test>
+    <test><source gender="masculine" case="genitive">der Organisatorin</source><result exists="true">des Organisators</result></test>
+    <test><source gender="masculine">einer Organisatorin</source><result exists="true">eines Organisators</result></test>
+    <test><source gender="masculine">Einer Organisatorin</source><result exists="true">Eines Organisators</result></test>
+
+    <test><source case="genitive" gender="masculine" number="singular">der</source><result exists="true">des</result></test>
+    <test><source case="genitive" gender="masculine" number="singular">einer</source><result exists="true">eines</result></test>
+    <test><source case="genitive" gender="masculine" number="singular">ein</source><result exists="true">eines</result></test>
+    <test><source case="genitive" number="singular">ein</source><result exists="true">eines</result></test>
+    <test><source case="genitive">ein</source><result exists="true">eines</result></test>
+
+
+    <test><source case="accusative" number="singular" gender="feminine">den Ehefrauen</source><result exists="true">die Ehefrau</result></test>
+    <test><source case="accusative" number="singular" gender="feminine">einer Ehefrau</source><result exists="true">eine Ehefrau</result></test>
+    <test><source number="singular" case="dative">den Ehefrauen</source><result exists="true">der Ehefrau</result></test>
+
+    <test><source case="accusative" number="singular" gender="feminine">den</source><result exists="true">die</result></test>
+    <test><source case="accusative" number="singular" gender="feminine">einer</source><result exists="true">eine</result></test>
+
+
+    <test><source case="dative" definiteness="definite" number="singular" gender="neuter">Handy</source><result exists="true">dem Handy</result></test>
+    <test><source case="dative" number="singular" gender="neuter">des Handys</source><result exists="true">dem Handy</result></test>
+    <test><source case="dative" number="singular" gender="neuter">ein Handy</source><result exists="true">einem Handy</result></test>
+    <test><source case="dative" number="singular" gender="neuter">eines Handys</source><result exists="true">einem Handy</result></test>
+    <test><source case="dative" number="singular">eines Handys</source><result exists="true">einem Handy</result></test>
+
+    <test><source number="plural">des Vaters</source><result exists="true">der Väter</result></test>
+
+    <!--  Stays nominative but switches to masculine -->
+    <test><source number="plural">der Ball</source><result exists="true">die Bälle</result></test>
+
+    <!--  Stays genitive but switches to neuter  -->
+    <test><source case="genitive">der Holz</source><result exists="true">des Holzes</result></test>
+
+    <!--  Stays genitive  but switches to feminine -->
+    <test><source number="plural">des Zelle</source><result exists="true">der Zellen</result></test>
+
+    <test><source case="accusative">der Ball</source><result exists="true">den Ball</result></test>
+    <test><source case="accusative">der Bälle</source><result exists="true">die Bälle</result></test>
+
+    <test><source gender="feminine">der Domain-Eigentümer</source><result exists="true">die Domain-Eigentümerin</result></test>
+    <test><source gender="feminine">den Domain-Eigentümer</source><result exists="true">die Domain-Eigentümerin</result></test>
+    <test><source gender="feminine">dem Domain-Eigentümer</source><result exists="true">der Domain-Eigentümerin</result></test>
+
+    <test><source gender="feminine">dieser Freund</source><result exists="true">diese Freundin</result></test>
+
+    <!-- German: Inflections and Alternative Inflections are not applied correctly (only one inflection is shown for all genders) -->
+    <test><source gender="feminine">Organspender</source><result exists="true">Organspenderin</result></test>
+    <test><source gender="feminine">Besucher</source><result exists="true">Besucherin</result></test>
+    <test><source case="nominative" number="singular">Schwester</source><result withPossArticle="deine Schwester"/></test>
+    <test><source case="nominative" number="singular">Bruder</source><result withPossArticle="dein Bruder"/></test>
+
+    <!-- Articles &amp; Nouns -->
+    <test><source case="dative" definiteness="definite">Wohnzimmer</source><result exists="true">dem Wohnzimmer</result></test>
+    <test><source case="dative" definiteness="indefinite">Wohnzimmer</source><result exists="true">einem Wohnzimmer</result></test>
+    <test><source case="dative" definiteness="definite">das Wohnzimmer</source><result exists="true">dem Wohnzimmer</result></test>
+    <test><source case="dative" definiteness="indefinite">ein Wohnzimmer</source><result exists="true">einem Wohnzimmer</result></test>
+    <test><source case="dative">mein Wohnzimmer</source><result exists="true">meinem Wohnzimmer</result></test>
+
+    <!-- Adjectives &amp; Nouns -->
+    <test><source case="nominative" number="plural" declension="strong">groß Wohnzimmer</source><result>große Wohnzimmer</result></test>
+    <test><source case="nominative" number="plural" declension="weak">groß Wohnzimmer</source><result>großen Wohnzimmer</result></test>
+    <test><source case="nominative" number="plural" declension="mixed">groß Wohnzimmer</source><result>großen Wohnzimmer</result></test>
+
+    <!-- There is a conflict here. The word Albanischs should go to the noun Albanisch, which is not the same as the adjective albanisch -->
+    <test><source case="nominative">albanischs</source><result>albanisch</result></test>
+</inflectionTest>

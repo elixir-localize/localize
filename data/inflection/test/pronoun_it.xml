@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="it">
+    <!-- Simple inflection -->
+    <test><source/><result>loro </result></test>
+    <test><source person="first"/><result>Io </result></test> <!-- You didn't specify the number. So you get something very generic. -->
+    <test><source number="plural"/><result>loro </result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="first" case="accusative"/><result>mi </result></test>
+    <test><source person="first" case="accusative"/><codependent sound="vowel-start"/><result>m’</result></test>
+    <test><source person="third" case="accusative"/><result>lo </result></test>
+    <test><source person="third" case="accusative" gender="feminine"/><result>la </result></test>
+    <test><source person="third" case="dative"/><result>gli </result></test>
+    <test><source person="third" case="dative" gender="feminine"/><result>le </result></test>
+    <test><source person="first" pronounType="reflexive"/><result>mi </result></test>
+    <test><source person="first" pronounType="reflexive"/><codependent sound="vowel-start"/><result>m’</result></test>
+    <test><source person="first" number="plural"/><result>Noi </result></test>
+    <test><source person="first" number="plural" gender="masculine"/><result>Noi </result></test>
+    <test><source person="first" number="plural" gender="feminine"/><result>Noi </result></test>
+    <test><source person="second"/><result>Tu </result></test>
+    <test><source person="second" number="singular"/><result>Tu </result></test>
+    <test><source person="second" number="plural"/><result>Voi </result></test>
+    <test><source person="third"/><result>loro </result></test> <!-- You didn't specify a gender. So you get something generic in the third person. -->
+    <test><source person="third" number="plural"/><result gender="">loro </result></test>
+    <test><source person="third" number="singular"/><result gender="masculine">lui </result></test>
+    <test><source person="third" gender="masculine"/><result gender="masculine">lui </result></test>
+    <test><source person="third" gender="feminine"/><result gender="feminine">lei </result></test>
+    <test><source person="first" pronounType="reflexive"/><result>mi </result></test>
+    <test><source person="second" pronounType="reflexive"/><result>ti </result></test>
+    <test><source person="second" pronounType="reflexive"/><codependent sound="vowel-start"/><result>t’</result></test>
+    <test><source person="second" number="plural" pronounType="reflexive"/><result>vi </result></test>
+    <test><source person="third" pronounType="reflexive"/><result>si </result></test>
+    <test><source person="first" number="singular" pronounType="reflexive"/><result>mi </result></test>
+    <test><source person="first" number="plural" pronounType="reflexive"/><result>ci </result></test>
+    <test><source person="third" number="singular" pronounType="reflexive"/><result>si </result></test>
+    <test><source person="third" number="plural" pronounType="reflexive"/><result>si </result></test>
+    <test><source person="third" number="plural" pronounType="reflexive"/><codependent sound="vowel-start"/><result>s’</result></test>
+    <test><source person="third" gender="masculine" pronounType="reflexive"/><result>si </result></test>
+    <test><source person="third" gender="masculine" number="plural" pronounType="reflexive"/><result>si </result></test>
+    <test><source person="third" gender="feminine" pronounType="reflexive"/><result>si </result></test>
+    <test><source person="third" gender="feminine" number="plural" pronounType="reflexive"/><result>si </result></test>
+    <test><source person="third" pronounType="reflexive"/><result>si </result></test>
+    <test><source person="third" number="plural" pronounType="reflexive"/><result>si </result></test>
+
+    <test><source person="first" case="genitive"/><result>mio </result></test>
+    <test><source person="first" case="genitive"/><codependent gender="masculine"/><result>mio </result></test>
+    <test><source person="first" case="genitive"/><codependent gender="masculine" number="plural"/><result>miei </result></test>
+    <test><source person="first" case="genitive"/><codependent gender="feminine"/><result>mia </result></test>
+    <test><source person="first" case="genitive"/><codependent gender="feminine" number="plural"/><result>mie </result></test>
+    <test><source person="first" number="plural" case="genitive"/><codependent gender="masculine"/><result>nostro </result></test>
+    <test><source person="first" number="plural" case="genitive"/><codependent gender="masculine" number="plural"/><result>nostri </result></test>
+    <test><source person="first" number="plural" case="genitive"/><codependent gender="feminine"/><result>nostra </result></test>
+    <test><source person="first" number="plural" case="genitive"/><codependent gender="feminine" number="plural"/><result>nostre </result></test>
+
+    <test><source person="second" case="genitive"/><result>tuo </result></test>
+    <test><source person="second" case="genitive"/><codependent gender="masculine"/><result>tuo </result></test>
+    <test><source person="second" case="genitive"/><codependent gender="masculine" number="plural"/><result>tuoi </result></test>
+    <test><source person="second" case="genitive"/><codependent gender="feminine"/><result>tua </result></test>
+    <test><source person="second" case="genitive"/><codependent gender="feminine" number="plural"/><result>tue </result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="masculine"/><result>vostro </result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="masculine" number="plural"/><result>vostri </result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="feminine"/><result>vostra </result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="feminine" number="plural"/><result>vostre </result></test>
+
+    <test><source person="third" case="genitive"/><result>suo </result></test>
+    <test><source person="third" case="genitive"/><codependent gender="masculine"/><result>suo </result></test>
+    <test><source person="third" case="genitive"/><codependent gender="masculine" number="plural"/><result>suoi </result></test>
+    <test><source person="third" case="genitive"/><codependent gender="feminine"/><result>sua </result></test>
+    <test><source person="third" case="genitive"/><codependent gender="feminine" number="plural"/><result>sue </result></test>
+    <test><source person="third" number="plural" case="genitive"/><codependent gender="masculine"/><result>loro </result></test>
+    <test><source person="third" number="plural" case="genitive"/><codependent gender="masculine" number="plural"/><result>loro </result></test>
+    <test><source person="third" number="plural" case="genitive"/><codependent gender="feminine"/><result>loro </result></test>
+    <test><source person="third" number="plural" case="genitive"/><codependent gender="feminine" number="plural"/><result>loro </result></test>
+
+    <!-- reinflection -->
+    <test><source person="third">io</source><result gender="masculine">lui </result></test> <!-- There isn't a gender neutral form. -->
+    <test><source person="third">Tu</source><result gender="masculine">lui </result></test> <!-- There isn't a gender neutral form. -->
+    <test><source person="third" number="singular" gender="masculine">loro</source><result gender="masculine">lui </result></test>
+    <test><source person="third" number="singular" gender="feminine">loro</source><result gender="feminine">lei </result></test>
+    <test><source person="second">io</source><result gender="">Tu </result></test>
+    <test><source person="second">Io</source><result gender="">Tu </result></test>
+    <test><source case="accusative">io</source><result>mi </result></test>
+    <test><source pronounType="reflexive">io</source><result>mi </result></test>
+    <test><source pronounType="reflexive" emphasis="unstressed">io</source><result>mi </result></test>
+    <test><source pronounType="reflexive" emphasis="stressed">io</source><result>me </result></test>
+    <test><source gender="masculine">esse</source><result>essi </result></test>
+    <test><source gender="masculine">Esse</source><result>essi </result></test>
+    <test><source gender="feminine">essi</source><result>esse </result></test>
+    <test><source gender="masculine">lui</source><result>lui </result></test>
+    <test><source gender="masculine">lei</source><result>lui </result></test>
+    <test><source gender="feminine">lei</source><result>lei </result></test>
+    <test><source gender="feminine">lui</source><result>lei </result></test>
+    <test><source>lui</source><result gender="masculine">lui </result></test>
+    <test><source emphasis="stressed">lui</source><result gender="masculine">lui </result></test>
+    <test><source person="third" pronounType="reflexive">io</source><result gender="">si </result></test>
+    <test><source person="third" number="plural" pronounType="reflexive">io</source><result gender="">si </result></test>
+</inflectionTest>

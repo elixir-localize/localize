@@ -1,0 +1,106 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2021-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="sv">
+    <test><source>lampa</source><result definiteness="indefinite"/></test>
+    <test><source>lampan</source><result definiteness="definite"/></test>
+    <test><source>slampiga</source><result definiteness="definite"/></test>
+    <test><source>Landqvist</source><result definiteness=""/></test>
+    <test><source>QQQQQQ</source><result definiteness=""/></test>
+
+    <test><source >value</source><result defArticle="den"/></test>
+    <test><source number="singular" gender="common">value</source><result defArticle="den"/></test>
+    <test><source number="singular" gender="neuter">value</source><result defArticle="det"/></test>
+    <test><source number="plural">value</source><result defArticle="de"/></test>
+    <test><source >hund</source><result defArticle="den"/></test>
+    <test><source >äpple</source><result defArticle="det"/></test>
+    <test><source >hus</source><result defArticle="det"/></test>
+    <test><source >hundar</source><result defArticle="de"/></test>
+
+    <test><source>katt</source><result>katt</result></test>
+    <test><source number="plural">ny</source><result>nya</result></test>
+    <test><source number="plural">ny påminnelse</source><result>nya påminnelser</result></test>
+    <test><source number="singular" definiteness="indefinite">flicka</source><result>flicka</result></test>
+    <test><source number="singular" definiteness="definite">flicka</source><result>flickan</result></test>
+    <test><source number="plural" definiteness="indefinite">flicka</source><result>flickor</result></test>
+    <test><source number="plural" definiteness="definite">flicka</source><result>flickorna</result></test>
+    <test><source number="singular" definiteness="indefinite" case="genitive">flicka</source><result>flickas</result></test>
+    <test><source number="singular" definiteness="definite" case="genitive">flicka</source><result>flickans</result></test>
+    <test><source number="plural" definiteness="indefinite" case="genitive">flicka</source><result>flickors</result></test>
+    <test><source number="plural" definiteness="definite" case="genitive">flicka</source><result>flickornas</result></test>
+    <test><source number="singular" definiteness="indefinite">hund</source><result>hund</result></test>
+    <test><source number="singular" definiteness="definite">hund</source><result>hunden</result></test>
+    <test><source number="plural" definiteness="indefinite">hund</source><result>hundar</result></test>
+    <test><source number="plural" definiteness="definite">hund</source><result>hundarna</result></test>
+    <test><source number="singular" definiteness="indefinite" case="genitive">hund</source><result>hunds</result></test>
+    <test><source number="singular" definiteness="definite" case="genitive">hund</source><result>hundens</result></test>
+    <test><source number="plural" definiteness="indefinite" case="genitive">hund</source><result>hundars</result></test>
+    <test><source number="plural" definiteness="definite" case="genitive">hund</source><result>hundarnas</result></test>
+    <test><source number="singular" definiteness="indefinite">katt</source><result>katt</result></test>
+    <test><source number="singular" definiteness="definite">katt</source><result>katten</result></test>
+    <test><source number="plural" definiteness="indefinite">katt</source><result>katter</result></test>
+    <test><source number="plural" definiteness="definite">katt</source><result>katterna</result></test>
+    <test><source number="singular" definiteness="indefinite" case="genitive">katt</source><result>katts</result></test>
+    <test><source number="singular" definiteness="definite" case="genitive">katt</source><result>kattens</result></test>
+    <test><source number="plural" definiteness="indefinite" case="genitive">katt</source><result>katters</result></test>
+    <test><source number="plural" definiteness="definite" case="genitive">katt</source><result>katternas</result></test>
+    <test><source number="singular" definiteness="indefinite">sko</source><result>sko</result></test>
+    <test><source number="singular" definiteness="definite">sko</source><result>skon</result></test>
+    <test><source number="plural" definiteness="indefinite">sko</source><result>skor</result></test>
+    <test><source number="plural" definiteness="definite">sko</source><result>skorna</result></test>
+    <test><source number="singular" definiteness="indefinite" case="genitive">sko</source><result>skos</result></test>
+    <test><source number="singular" definiteness="definite" case="genitive">sko</source><result>skons</result></test>
+    <test><source number="plural" definiteness="indefinite" case="genitive">sko</source><result>skors</result></test>
+    <test><source number="plural" definiteness="definite" case="genitive">sko</source><result>skornas</result></test>
+    <test><source number="singular" definiteness="indefinite">hjärta</source><result>hjärta</result></test>
+    <test><source number="singular" definiteness="definite">hjärta</source><result>hjärtat</result></test>
+    <test><source number="plural" definiteness="indefinite">hjärta</source><result>hjärtan</result></test>
+    <test><source number="plural" definiteness="definite">hjärta</source><result>hjärtana</result></test>
+    <test><source number="singular" definiteness="indefinite" case="genitive">hjärta</source><result>hjärtas</result></test>
+    <test><source number="singular" definiteness="definite" case="genitive">hjärta</source><result>hjärtats</result></test>
+    <test><source number="plural" definiteness="indefinite" case="genitive">hjärta</source><result>hjärtans</result></test>
+    <test><source number="plural" definiteness="definite" case="genitive">hjärta</source><result>hjärtanas</result></test>
+    <test><source number="singular" definiteness="indefinite">skydd</source><result>skydd</result></test>
+    <test><source number="singular" definiteness="definite">skydd</source><result>skyddet</result></test>
+    <test><source number="plural" definiteness="indefinite">skydd</source><result>skydd</result></test>
+    <test><source number="plural" definiteness="definite">skydd</source><result>skydden</result></test>
+    <test><source number="singular" definiteness="indefinite" case="genitive">skydd</source><result>skydds</result></test>
+    <test><source number="singular" definiteness="definite" case="genitive">skydd</source><result>skyddets</result></test>
+    <test><source number="plural" definiteness="indefinite" case="genitive">skydd</source><result>skydds</result></test>
+    <test><source number="plural" definiteness="definite" case="genitive">skydd</source><result>skyddens</result></test>
+    <test><source number="singular" definiteness="indefinite">röd hjärta</source><result>rött hjärta</result></test>
+    <test><source number="singular" definiteness="definite">röd hjärta</source><result>röda hjärtat</result></test>
+    <test><source number="plural" definiteness="indefinite">röd hjärta</source><result>röda hjärtan</result></test>
+    <test><source number="plural" definiteness="definite">röd hjärta</source><result>röda hjärtana</result></test>
+    <test><source number="singular" definiteness="indefinite">röd kort</source><result>rött kort</result></test>
+    <test><source number="singular" definiteness="definite">röd kort</source><result>röda kortet</result></test>
+    <test><source number="plural" definiteness="indefinite">röd kort</source><result>röda kort</result></test>
+    <test><source number="plural" definiteness="definite">röd kort</source><result>röda korten</result></test>
+    <test><source number="singular" definiteness="indefinite">XXX YYY kort</source><result>XXX YYY kort</result></test>
+    <test><source number="singular" definiteness="definite">XXX YYY kort</source><result>XXX YYY kortet</result></test>
+    <test><source number="plural" definiteness="indefinite">XXX YYY kort</source><result>XXX YYY kort</result></test>
+    <test><source number="plural" definiteness="definite">XXX YYY kort</source><result>XXX YYY korten</result></test>
+    <test><source number="singular" definiteness="indefinite">XYXYXY</source><result>XYXYXY</result></test>
+    <test><source number="singular" definiteness="definite">XYXYXY</source><result>XYXYXY</result></test>
+    <test><source number="plural" definiteness="indefinite">XYXYXY</source><result>XYXYXY</result></test>
+    <test><source number="plural" definiteness="definite">XYXYXY</source><result>XYXYXY</result></test>
+
+    <test><source number="singular">grundbemanningar</source><result>grundbemanning</result></test>
+    <test><source number="singular" definiteness="definite">grundbemanningar</source><result>grundbemanningen</result></test>
+    <test><source case="genitive">grundbemanningar</source><result>grundbemanningars</result></test>
+    <test><source number="singular" definiteness="definite" case="genitive">grundbemanningar</source><result>grundbemanningens</result></test>
+
+    <!-- Swedish genitive for unknown words -->
+    <test><source case="genitive">Gunilla</source><result>Gunillas</result></test>
+    <test><source case="genitive">Södermalm</source><result>Södermalms</result></test>
+    <test><source case="genitive">Kungsholmen</source><result>Kungsholmens</result></test>
+    <test><source case="genitive">Klas</source><result>Klas</result></test>
+    <test><source case="genitive">SMC</source><result>SMC:s</result></test>
+    <test><source case="genitive">Halmstads BK</source><result>Halmstads BK:s</result></test>
+    <test><source case="genitive">Kalmar FF</source><result>Kalmar FF:s</result></test>
+    <test><source case="genitive">Malmö FF</source><result>Malmö FF:s</result></test>
+    <test><source case="genitive">Örebro SK</source><result>Örebro SK:s</result></test>
+    <test><source case="genitive">BK Häcken</source><result>BK Häckens</result></test>
+    <test><source case="genitive">Rädda Barnen</source><result>Rädda Barnens</result></test>
+</inflectionTest>

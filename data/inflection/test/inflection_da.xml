@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2021-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="da">
+    <test><source>lampes</source><result definiteness="indefinite"/></test>
+    <test><source>lampen</source><result definiteness="definite"/></test>
+    <test><source>ølbrikken</source><result definiteness="definite"/></test>
+    <test><source>spinklere</source><result definiteness=""/></test>
+    <test><source>QQQQQQ</source><result definiteness=""/></test>
+
+    <test><source>value</source><result withPossArticle="din value"/></test>
+    <test><source number="singular" gender="neuter">value</source><result withPossArticle="dit value"/></test>
+    <test><source number="plural">value</source><result withPossArticle="dine value"/></test>
+
+    <test><source>value</source><result withInterrogativeArticle="hvilken value"/></test>
+    <test><source number="singular" gender="neuter">value</source><result withInterrogativeArticle="hvilket value"/></test>
+    <test><source number="plural">value</source><result withInterrogativeArticle="hvilke value"/></test>
+
+    <test><source number="singular" definiteness="indefinite">torsdag</source><result>en torsdag</result></test>
+    <test><source number="singular" definiteness="definite">torsdag</source><result>torsdagen</result></test>
+    <test><source number="plural" definiteness="indefinite">torsdag</source><result>torsdage</result></test>
+    <test><source number="plural" definiteness="definite">torsdag</source><result>torsdagene</result></test>
+    <test><source number="singular" definiteness="indefinite" case="genitive">torsdag</source><result>en torsdags</result></test>
+    <test><source number="singular" definiteness="definite" case="genitive">torsdag</source><result>torsdagens</result></test>
+    <test><source number="plural" definiteness="indefinite" case="genitive">torsdag</source><result>torsdages</result></test>
+    <test><source number="plural" definiteness="definite" case="genitive">torsdag</source><result>torsdagenes</result></test>
+    <test><source definiteness="definite">torsdag</source><result>torsdagen</result></test>
+    <test><source number="plural">torsdag</source><result>torsdage</result></test>
+    <test><source case="genitive">torsdag</source><result>torsdags</result></test>
+    <test><source definiteness="definite">sarkom</source><result>sarkomet</result></test>
+    <test><source number="plural">sarkom</source><result>sarkomer</result></test>
+    <test><source case="genitive">sarkom</source><result>sarkoms</result></test>
+    <test><source number="singular" definiteness="indefinite">sarkom</source><result>et sarkom</result></test>
+    <test><source number="singular" definiteness="definite">sarkom</source><result>sarkomet</result></test>
+    <test><source number="plural" definiteness="indefinite">sarkom</source><result>sarkomer</result></test>
+    <test><source number="plural" definiteness="definite">sarkom</source><result>sarkomerne</result></test>
+    <test><source number="singular" definiteness="indefinite" case="genitive">sarkom</source><result>et sarkoms</result></test>
+    <test><source number="singular" definiteness="definite" case="genitive">sarkom</source><result>sarkomets</result></test>
+    <test><source number="plural" definiteness="indefinite" case="genitive">sarkom</source><result>sarkomers</result></test>
+    <test><source number="plural" definiteness="definite" case="genitive">sarkom</source><result>sarkomernes</result></test>
+    <test><source number="singular" definiteness="indefinite">stor torsdag</source><result>en stor torsdag</result></test>
+    <test><source number="singular" definiteness="definite">stor torsdag</source><result><text print="den store torsdag" speak="dén store torsdag"/></result></test>
+    <test><source number="plural" definiteness="indefinite">stor torsdag</source><result>store torsdage</result></test>
+    <test><source number="plural" definiteness="definite">stor torsdag</source><result>de store torsdage</result></test>
+    <test><source number="singular" definiteness="indefinite" case="genitive">stor torsdag</source><result>en stor torsdags</result></test>
+    <test><source number="singular" definiteness="definite" case="genitive">stor torsdag</source><result><text print="den store torsdags" speak="dén store torsdags"/></result></test>
+    <test><source number="plural" definiteness="indefinite" case="genitive">stor torsdag</source><result>store torsdages</result></test>
+    <test><source number="plural" definiteness="definite" case="genitive">stor torsdag</source><result>de store torsdages</result></test>
+    <test><source number="singular" definiteness="indefinite">stor sarkom</source><result>et stort sarkom</result></test>
+    <test><source number="singular" definiteness="definite">stor sarkom</source><result>det store sarkom</result></test>
+    <test><source number="plural" definiteness="indefinite">stor sarkom</source><result>store sarkomer</result></test>
+    <test><source number="plural" definiteness="definite">stor sarkom</source><result>de store sarkomer</result></test>
+    <test><source number="singular" definiteness="indefinite" case="genitive">stor sarkom</source><result>et stort sarkoms</result></test>
+    <test><source number="singular" definiteness="definite" case="genitive">stor sarkom</source><result>det store sarkoms</result></test>
+    <test><source number="plural" definiteness="indefinite" case="genitive">stor sarkom</source><result>store sarkomers</result></test>
+    <test><source number="plural" definiteness="definite" case="genitive">stor sarkom</source><result>de store sarkomers</result></test>
+    <test><source number="singular" definiteness="indefinite" gender="common">stor</source><result>stor</result></test>
+    <test><source number="singular" definiteness="definite" gender="common">stor</source><result>store</result></test>
+    <test><source number="plural" definiteness="indefinite" gender="common">stor</source><result>store</result></test>
+    <test><source number="plural" definiteness="definite" gender="common">stor</source><result>store</result></test>
+    <test><source number="singular" definiteness="indefinite" gender="neuter">stor</source><result>stort</result></test>
+    <test><source number="singular" definiteness="definite" gender="neuter">stor</source><result>store</result></test>
+    <test><source number="plural" definiteness="indefinite" gender="neuter">stor</source><result>store</result></test>
+    <test><source number="plural" definiteness="definite" gender="neuter">stor</source><result>store</result></test>
+    <test><source case="genitive">Andrea</source><result>Andreas</result></test>
+    <test><source case="genitive">Andreas</source><result>Andreas’</result></test>
+    <test><source case="genitive">Julie Olsen</source><result>Julie Olsens</result></test>
+    <test><source case="genitive">Olga Kals</source><result>Olga Kals’</result></test>
+    <test><source case="genitive">Channel 10</source><result>Channel 10’s</result></test>
+    <test><source case="genitive">NATO</source><result>NATO’s</result></test>
+    <test><source case="genitive">SAS</source><result>SAS’</result></test>
+    <test><source case="genitive">Kbh.</source><result>Kbh.s</result></test>
+    <test><source case="genitive">Christian 4.</source><result>Christian 4.s</result></test>
+    <test><source case="genitive">burger.dk</source><result>burger.dk’s</result></test>
+    <test><source case="genitive">saxo.com</source><result>saxo.coms</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="common" number="singular">Ajax</source><result>Ajax</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">Ajax</source><result>Ajaxt</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="common" number="plural">Ajax</source><result>Ajaxe</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">Ajax</source><result>Ajaxe</result></test>
+
+    <test><source pos="adjective" definiteness="definite" gender="common" number="singular">Ajax</source><result>Ajaxe</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">Ajax</source><result>Ajaxe</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="common" number="plural">Ajax</source><result>Ajaxe</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">Ajax</source><result>Ajaxe</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="common" number="singular">taxa</source><result>taxa</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">taxa</source><result>taxa</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="common" number="plural">taxa</source><result>taxa</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">taxa</source><result>taxa</result></test>
+
+    <test><source pos="adjective" definiteness="definite" gender="common" number="singular">taxa</source><result>taxa</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">taxa</source><result>taxa</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="common" number="plural">taxa</source><result>taxa</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">taxa</source><result>taxa</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="common" number="singular">abefest</source><result>abefest</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">abefest</source><result>abefest</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="common" number="plural">abefest</source><result>abefeste</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">abefest</source><result>abefeste</result></test>
+
+    <test><source pos="adjective" definiteness="definite" gender="common" number="singular">abefest</source><result>abefeste</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">abefest</source><result>abefeste</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="common" number="plural">abefest</source><result>abefeste</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">abefest</source><result>abefeste</result></test>
+
+    <test><source pos="adjective" definiteness="indefinite" gender="common" number="singular">parcel</source><result>parcel</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="singular">parcel</source><result>parcelt</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="common" number="plural">parcel</source><result>parcele</result></test>
+    <test><source pos="adjective" definiteness="indefinite" gender="neuter" number="plural">parcel</source><result>parcele</result></test>
+
+    <test><source pos="adjective" definiteness="definite" gender="common" number="singular">parcel</source><result>parcele</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="singular">parcel</source><result>parcele</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="common" number="plural">parcel</source><result>parcele</result></test>
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">parcel</source><result>parcele</result></test>
+
+    <test><source pos="adjective" definiteness="definite" gender="neuter" number="plural">michael</source><result>michaele</result></test>
+    
+    <!-- inflection of .definiteness('definite') sometimes unexpectedly returns definite+genitiv/possessive (lys -> lysets, gods -> godsets) -->
+    <test><source definiteness="definite">lys'</source><result>lysets</result></test>
+    <test><source definiteness="definite">lys</source><result>lyset</result></test>
+    <test><source definiteness="definite" case="genitive">lys</source><result>lysets</result></test>
+    <test><source definiteness="definite" case="genitive">lyset</source><result>lysets</result></test>
+    <test><source definiteness="definite">gods</source><result>godset</result></test>
+    <test><source definiteness="definite" case="genitive">gods</source><result>godsets</result></test>
+    <test><source definiteness="definite" case="genitive">godset</source><result>godsets</result></test>
+    
+</inflectionTest>

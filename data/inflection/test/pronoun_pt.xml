@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="pt">
+    <!-- Simple inflection -->
+    <test><source/><result>ele</result></test>
+    <test><source person="first"/><result>eu</result></test>
+    <test><source number="plural"/><result>eles</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="first" case="accusative"/><result>me</result></test>
+    <test><source person="first" pronounType="reflexive"/><result>me</result></test>
+    <test><source person="first" case="genitive"/><result>meu</result></test>
+    <test><source person="first" number="plural"/><result>nós</result></test>
+    <test><source person="first" number="plural" gender="masculine"/><result>nós</result></test>
+    <test><source person="first" number="plural" gender="feminine"/><result>nós</result></test>
+    <test><source person="second"/><result>tu</result></test>
+    <test><source person="second" number="plural"/><result>vós</result></test>
+    <test><source person="third"/><result>ele</result></test> <!-- You didn't specify a gender. So you get something generic in the third person. -->
+    <test><source person="third" case="dative"/><result>lhe</result></test>
+    <test><source person="third" gender="masculine"/><result gender="masculine">ele</result></test>
+    <test><source person="third" gender="feminine"/><result gender="feminine">ela</result></test>
+    <test><source person="first" pronounType="reflexive"/><result>me</result></test>
+    <test><source person="second" pronounType="reflexive"/><result>te</result></test>
+    <test><source person="second" number="plural" pronounType="reflexive"/><result>vos</result></test>
+    <test><source person="third" pronounType="reflexive"/><result>se</result></test>
+    <test><source person="first" number="singular" pronounType="reflexive"/><result>me</result></test>
+    <test><source person="first" number="plural" pronounType="reflexive"/><result>nos</result></test>
+    <test><source person="third" number="singular" pronounType="reflexive"/><result>se</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive"/><result>se</result></test>
+    <test><source person="third" gender="masculine" pronounType="reflexive"/><result>se</result></test>
+    <test><source person="third" gender="masculine" number="plural" pronounType="reflexive"/><result>se</result></test>
+    <test><source person="third" gender="feminine" pronounType="reflexive"/><result>se</result></test>
+    <test><source person="third" gender="feminine" number="plural" pronounType="reflexive"/><result>se</result></test>
+
+    <test><source person="second" case="genitive"/><result>teu</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="masculine"/><result>teu</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="masculine" number="plural"/><result>teus</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="feminine"/><result>tua</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="feminine" number="plural"/><result>tuas</result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="masculine"/><result>vosso</result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="masculine" number="plural"/><result>vossos</result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="feminine"/><result>vossa</result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="feminine" number="plural"/><result>vossas</result></test>
+
+    <test><source person="third" case="genitive"/><result>seu</result></test>
+    <test><source person="third" case="genitive"/><codependent gender="masculine"/><result>seu</result></test>
+    <test><source person="third" case="genitive"/><codependent gender="masculine" number="plural"/><result>seus</result></test>
+    <test><source person="third" case="genitive"/><codependent gender="feminine"/><result>sua</result></test>
+    <test><source person="third" case="genitive"/><codependent gender="feminine" number="plural"/><result>suas</result></test>
+    <test><source person="third" number="plural" case="genitive"/><codependent gender="masculine"/><result>seu</result></test>
+    <test><source person="third" number="plural" case="genitive"/><codependent gender="masculine" number="plural"/><result>seus</result></test>
+    <test><source person="third" number="plural" case="genitive"/><codependent gender="feminine"/><result>sua</result></test>
+    <test><source person="third" number="plural" case="genitive"/><codependent gender="feminine" number="plural"/><result>suas</result></test>
+
+    <!-- reinflection -->
+    <test><source person="third">eu</source><result gender="masculine">ele</result></test><!-- There is no gender neutral form -->
+    <test><source person="second">eu</source><result gender="">tu</result></test>
+    <test><source person="second">Eu</source><result gender="">tu</result></test>
+    <test><source case="accusative">eu</source><result>me</result></test>
+    <test><source pronounType="reflexive">eu</source><result>me</result></test>
+    <test><source gender="masculine">o</source><result>o</result></test>
+    <test><source gender="feminine">o</source><result>a</result></test>
+    <test><source gender="masculine">a</source><result>o</result></test>
+    <test><source gender="feminine">a</source><result>a</result></test>
+    <test><source gender="masculine">ele</source><result>ele</result></test>
+    <test><source gender="feminine">ele</source><result>ela</result></test>
+    <test><source gender="masculine">ela</source><result>ele</result></test>
+    <test><source gender="feminine">ela</source><result>ela</result></test>
+    <test><source person="third" pronounType="reflexive">eu</source><result gender="">se</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive">eu</source><result gender="">se</result></test>
+</inflectionTest>
