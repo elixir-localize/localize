@@ -332,8 +332,10 @@ defmodule Localize.CurrencyTest do
 
   describe "removed positional filter forms" do
     test "a positional :only filter raises ArgumentError" do
+      # apply/3 keeps the deliberately removed positional form out of
+      # the compiler's type analysis, which would otherwise warn.
       assert_raise ArgumentError, ~r/removed in Localize 1.0/, fn ->
-        Currency.currencies_for_locale(:en, :historic)
+        apply(Currency, :currencies_for_locale, [:en, :historic])
       end
     end
 
@@ -344,9 +346,17 @@ defmodule Localize.CurrencyTest do
     end
 
     test "the bang and strings variants reject positional filters too" do
-      assert_raise ArgumentError, fn -> Currency.currencies_for_locale!(:en, :current) end
-      assert_raise ArgumentError, fn -> Currency.currency_strings(:en, :current) end
-      assert_raise ArgumentError, fn -> Currency.currency_strings!(:en, :current) end
+      assert_raise ArgumentError, fn ->
+        apply(Currency, :currencies_for_locale!, [:en, :current])
+      end
+
+      assert_raise ArgumentError, fn ->
+        apply(Currency, :currency_strings, [:en, :current])
+      end
+
+      assert_raise ArgumentError, fn ->
+        apply(Currency, :currency_strings!, [:en, :current])
+      end
     end
   end
 
