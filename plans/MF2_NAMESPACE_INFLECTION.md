@@ -67,6 +67,22 @@ Parsing already exists; the work is routing and semantics. Independent of inflec
 * **Precedence:** CLDR pattern data is authoritative when present; the engine fills gaps only. Insertion point is `resolve_pattern/3` and the `:grammatical_case` reads in `unit/formatter.ex`. Caveat: words absent from the inflection lexicon pass through unchanged, so the engine must never *worsen* output vs. the CLDR fallback.
 * This is the most speculative phase — recommend prototyping against a few high-value locales (de, ru, pl) and measuring against CLDR output before committing.
 
+## Runtime data provisioning — on-demand download (prerequisite, independent of the MF2 phases)
+
+**Preferred design (Kip): model inflection as an `:inflection` locale-data category, riding the existing locale access pattern** — do not build a bespoke loader/fallback. Expose inflection data through the same per-locale access path as CLDR data, with `:inflection` as the top-level key, so that:
+
+* the locale **fallback chain** (`en-AU` → `en` → `und`) is inherited from `Localize.Locale` for free, rather than reimplemented in `Localize.Inflection.Locale.resolve/chain`;
+* per-locale **load + cache** and the `allow_download?`-gated **runtime download** come from `Localize.Locale.Provider` unchanged;
+* only the **download source differs**: inflection artifacts live on a distinct CDN path (`/inflection/<data_version>/<locale>.etf`, versioned by `priv/localize/localize_inflection_sha`) with their own SHA-256 manifest — so the provider needs a per-category base URL / cache location, not a new provider strategy. This satisfies the "don't proliferate provider strategies" constraint by construction.
+
+**Current state (what this replaces).** Today the runtime never fetches inflection data: `Localize.Inflection.Data.load/1` (`lib/localize/inflection/data.ex`) only does `File.read/1`, and `Localize.Inflection.Locale.resolve/1` (`lib/localize/inflection/locale.ex`) returns `{:error, %Localize.InflectionDataNotAvailableError{}}` when the artifact is absent. `Provider.download_file/1` (CDN + manifest verify against `priv/localize/inflection_hashes.etf`) is called only from the `mix localize.download_inflection` task, never at runtime. CLDR locale data already downloads on demand via `Localize.Locale.Provider.allow_download?/0` + `download_locale/1` (`lib/localize/locale/provider/persistent_term.ex`).
+
+**Open questions / feasibility ("if possible").**
+
+* **Second artifact per locale.** The provider loads one ETF per locale today (CLDR data). An `:inflection` category means a second per-locale artifact with its own base URL, cache file, and manifest — a category-aware extension of `Localize.Locale.Provider`, not a parallel provider.
+
+* **Lexicon storage.** Inflection splits into small, map-like metadata (grammemes, patterns, features — a natural fit for the persistent_term nested map that backs locale data) and a large per-locale lexicon (100k–500k surface forms) currently held in **ETS** for O(1) surface-form lookup (`Localize.Inflection.Data`). Decide whether the lexicon also rides the persistent_term/map model, or stays ETS-backed while only its *provisioning* (download + fallback + cache location) is unified under the `:inflection` category. This is the main thing that determines whether "same access pattern" is fully achievable or partial.
+
 ## Sequencing and upstream prerequisites
 
 0. **Complete the `unicode_inflection` → `Localize.Inflection` merge** (in progress in another session) — the gate for Phases B and C.
@@ -74,12 +90,13 @@ Parsing already exists; the work is routing and semantics. Independent of inflec
 2. **Phase B** (`:l:inflect`/`:l:pronoun`) — after the merge; wires the in-tree engine into `Localize.Message`.
 3. **Phase C** (unit engine) — experimental, config-gated, after B proves the adapter.
 4. Track **#202**: add the `:u:inflect` alias only when/if CLDR blesses it. Track the in-tree `CommonConceptFactory` work for `:l:quantify`.
+5. **Runtime data provisioning** (on-demand download) — independent of the MF2 phases and a prerequisite for shipping inflection to users; can proceed in parallel with Phase A. See its section above.
 
 ## Risks and open questions
 
 * **The Technical Preview doc is unread** (auth-gated). Confirm with Kip: the proposed function names, namespace, and option set — they may differ from the `:localize:inflect` recommendation here, and the doc may pre-empt the #202 decision.
 * **Namespace `l:`** is decided (Kip); the only residual is the reserved-vs-custom nuance recorded in the Namespace decision section, accepted as low-risk and reversible.
 * **`:l:quantify` has no engine** yet — decide whether to implement `CommonConceptFactory` in-tree or defer the function.
-* **Data-availability ergonomics**: the ~41 MB inflection data is out-of-package and installed separately, with a per-locale first-touch load (up to ~0.5 s for Arabic). Document the install path clearly and ensure `:l:inflect` degrades cleanly when the data is absent; consider a warm-up hook.
+* **Data-availability ergonomics**: the ~41 MB inflection data is out-of-package and installed separately, with a per-locale first-touch load (up to ~0.5 s for Arabic). Document the install path clearly and ensure `:l:inflect` degrades cleanly when the data is absent; consider a warm-up hook. See *Runtime data provisioning — on-demand download*: wiring runtime auto-download (reusing the locale provider harness) is what turns "installed separately" into first-touch-and-it-just-works.
 * **Locale coverage**: 31 languages have synthesizers (100% conformance); 17 more ship data without one; the rest are unsupported — `:localize:inflect` must degrade gracefully (Unknown-locale → pass through or error, by policy) for locales the engine can't inflect.
 * **Option-name reconciliation** (`:grammatical_case` vs `:case`) must be consistent between the MF2 functions and any Unit engine use, to avoid two spellings of the same concept.
