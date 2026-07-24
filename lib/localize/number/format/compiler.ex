@@ -241,7 +241,7 @@ defmodule Localize.Number.Format.Compiler do
 
   @spec number_match_regex() :: Regex.t()
   def number_match_regex do
-    ~r/#{@format_regex}/
+    format_re()
   end
 
   # ── Analysis ─────────────────────────────────────────────────
@@ -280,7 +280,7 @@ defmodule Localize.Number.Format.Compiler do
   defp split_format(nil), do: %{}
 
   defp split_format(format) do
-    parts = Regex.named_captures(~r/#{@format_regex}/, format)
+    parts = Regex.named_captures(format_re(), format)
 
     parts
     |> Map.put("compact_integer", String.replace(parts["integer"], @grouping_separator, ""))
@@ -292,7 +292,7 @@ defmodule Localize.Number.Format.Compiler do
   @digits_match "(?<digits>" <> @digits <> "+)"
 
   defp required_integer_digits(%{"compact_integer" => integer_format}) do
-    if captures = Regex.named_captures(~r/#{@digits_match}/, integer_format) do
+    if captures = Regex.named_captures(digits_re(), integer_format) do
       String.length(captures["digits"])
     else
       @min_integer_digits
@@ -355,7 +355,7 @@ defmodule Localize.Number.Format.Compiler do
   defp required_fraction_digits(%{"compact_fraction" => nil}), do: 0
 
   defp required_fraction_digits(%{"compact_fraction" => fraction_format}) do
-    if captures = Regex.named_captures(~r/#{@digits_match}/, fraction_format) do
+    if captures = Regex.named_captures(digits_re(), fraction_format) do
       String.length(captures["digits"])
     else
       @min_fraction_digits
@@ -369,7 +369,7 @@ defmodule Localize.Number.Format.Compiler do
   defp optional_fraction_digits(%{"compact_fraction" => ""}), do: 0
 
   defp optional_fraction_digits(%{"compact_fraction" => fraction_format}) do
-    if captures = Regex.named_captures(~r/#{@hashes_match}/, fraction_format) do
+    if captures = Regex.named_captures(hashes_re(), fraction_format) do
       String.length(captures["hashes"])
     else
       0
@@ -401,7 +401,7 @@ defmodule Localize.Number.Format.Compiler do
        }) do
     format = integer_format <> fraction_format
 
-    if captures = Regex.named_captures(~r/#{@scientific_match}/, format) do
+    if captures = Regex.named_captures(scientific_re(), format) do
       String.length(captures["scientific_rounding"])
     else
       0
@@ -459,7 +459,7 @@ defmodule Localize.Number.Format.Compiler do
        }) do
     format = integer_format <> fraction_format
 
-    if captures = Regex.named_captures(~r/#{@significant_digits_match}/, format) do
+    if captures = Regex.named_captures(significant_re(), format) do
       minimum = String.length(captures["ats"])
       maximum = minimum + String.length(captures["hashes"])
       %{min: minimum, max: maximum}
@@ -475,7 +475,7 @@ defmodule Localize.Number.Format.Compiler do
   defp round_nearest(%{"integer" => integer_format, "fraction" => fraction_format}) do
     format =
       (integer_format <> @decimal_separator <> fraction_format)
-      |> String.replace(~r/#{@rounding_pattern}/, "")
+      |> String.replace(rounding_re(), "")
       |> String.trim_trailing(@decimal_separator)
 
     case Float.parse(format) do
@@ -597,6 +597,54 @@ defmodule Localize.Number.Format.Compiler do
       }
     else
       meta
+    end
+  end
+
+  # ── Compiled regexes ────────────────────────────────────────
+  #
+  # These patterns are composed from module attributes, so they cannot
+  # be written as `~r//` sigil literals, and on OTP 29 a compiled regex
+  # cannot be stored as a module-attribute constant either. The
+  # interpolating sigil `~r/#{@attr}/` recompiles the pattern on every
+  # call, which dominated `format_to_metadata/1` (Regex.compile is
+  # ~1-2us each, and `analyse/2` runs eight of them). They are instead
+  # compiled once into `:persistent_term` — at supervisor start via
+  # `precompile_regexes/0`, while the term table is still small — and
+  # read on every use. A direct caller that skips application start
+  # falls back to a one-time lazy compile.
+  @regex_sources %{
+    format: @format_regex,
+    digits: @digits_match,
+    hashes: @hashes_match,
+    scientific: @scientific_match,
+    significant: @significant_digits_match,
+    rounding: @rounding_pattern
+  }
+
+  @doc false
+  @spec precompile_regexes() :: :ok
+  def precompile_regexes do
+    Enum.each(@regex_sources, fn {key, source} ->
+      :persistent_term.put({__MODULE__, :regex, key}, Regex.compile!(source))
+    end)
+  end
+
+  defp format_re, do: regex(:format)
+  defp digits_re, do: regex(:digits)
+  defp hashes_re, do: regex(:hashes)
+  defp scientific_re, do: regex(:scientific)
+  defp significant_re, do: regex(:significant)
+  defp rounding_re, do: regex(:rounding)
+
+  defp regex(key) do
+    case :persistent_term.get({__MODULE__, :regex, key}, nil) do
+      nil ->
+        compiled = Regex.compile!(Map.fetch!(@regex_sources, key))
+        :persistent_term.put({__MODULE__, :regex, key}, compiled)
+        compiled
+
+      compiled ->
+        compiled
     end
   end
 end

@@ -137,6 +137,7 @@ defmodule Localize.Supervisor do
     validate_locale_cache_dir!()
     resolve_supported_locales()
     intern_supplemental_atoms()
+    Localize.Number.Format.Compiler.precompile_regexes()
     :ok
   end
 
