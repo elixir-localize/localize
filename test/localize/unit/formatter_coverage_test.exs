@@ -36,6 +36,19 @@ defmodule Localize.Unit.FormatterCoverageTest do
       assert nominative == "3 метри"
     end
 
+    test "Russian prepositional differs from nominative" do
+      # Regression: Localize.Data.Normalize.Units.process_formats/1 had no
+      # clause for prepositional_count_* keys, so they stayed flat in the
+      # locale data and :prepositional silently fell back to :nominative.
+      {:ok, prepositional} =
+        Unit.to_string(unit!(1, "kilometer"), locale: "ru", grammatical_case: :prepositional)
+
+      {:ok, nominative} = Unit.to_string(unit!(1, "kilometer"), locale: "ru")
+
+      assert prepositional == "1 километре"
+      assert nominative == "1 километр"
+    end
+
     test "unknown grammatical case falls back to nominative" do
       assert Unit.to_string(unit!(3, "meter"), locale: "de", grammatical_case: :vocative) ==
                {:ok, "3 Meter"}

@@ -54,6 +54,9 @@ defmodule Localize.Data.Normalize.Units do
         {"locative_count_" <> count, template} ->
           {:locative, {count, Localize.Substitution.parse(template)}}
 
+        {"prepositional_count_" <> count, template} ->
+          {:prepositional, {count, Localize.Substitution.parse(template)}}
+
         {"instrumental_count_" <> count, template} ->
           {:instrumental, {count, Localize.Substitution.parse(template)}}
 

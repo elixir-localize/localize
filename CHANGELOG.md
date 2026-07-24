@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+* CLDR `prepositional` unit grammar keys are now normalized into the locale data, so `Localize.Unit.to_string/2` with `grammatical_case: :prepositional` formats correctly for Russian instead of silently falling back to nominative. Requires regenerated locale data (a data patch-version bump) to take effect.
+
 ### Changed
 
 * Compiling a number format pattern is ~40% faster on a cache miss: the regexes used to analyse the pattern are compiled once at startup rather than recompiled on every call. Formatting is unaffected (compiled patterns are already cached).
