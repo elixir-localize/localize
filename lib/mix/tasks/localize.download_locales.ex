@@ -144,9 +144,15 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
 
   defp resolve_locales(opts, locale_args) do
     cond do
-      # Explicit locale names on the command line
+      # Explicit locale names on the command line. Canonicalised
+      # because only canonical CLDR locale ids exist as generated
+      # files on the CDN — a non-CLDR form like "en-US" or "zh-TW"
+      # resolves to the file the runtime will actually load
+      # ("en", "zh-Hant").
       locale_args != [] ->
-        Enum.map(locale_args, &String.to_atom/1)
+        locale_args
+        |> Enum.map(&canonical_locale_id/1)
+        |> Enum.uniq()
 
       # --all: download everything, no questions asked
       opts[:all] ->
@@ -155,6 +161,13 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
       # Default: download supported locales
       true ->
         resolve_supported(opts)
+    end
+  end
+
+  defp canonical_locale_id(locale_name) do
+    case Localize.Locale.cldr_locale_id_from(locale_name) do
+      {:ok, locale_id} -> locale_id
+      {:error, _reason} -> String.to_atom(locale_name)
     end
   end
 

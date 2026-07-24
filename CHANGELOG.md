@@ -8,9 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
-* All sixteen CLDR unit grammar cases are now normalized into the locale data (previously only seven were), so `Localize.Unit.to_string/2` with `grammatical_case:` values like `:prepositional` (ru), `:partitive` (fi), or `:terminative` (hu) formats correctly instead of silently falling back to nominative. Already-published locale data is fixed up at load time, so no locale data regeneration is required.
+* All sixteen CLDR unit grammar cases are now normalized into the locale data (previously only seven were), so `Localize.Unit.to_string/2` with `grammatical_case:` values like `:prepositional` (ru), `:partitive` (fi), or `:terminative` (hu) formats correctly instead of silently falling back to nominative. The locale data version is bumped to 48.2:2 and all locale data is regenerated.
 
-* Compound unit grammatical-case and gender patterns are now merged deterministically during locale data generation; the previous shallow merge silently dropped case entries, with the surviving subset depending on OTP map iteration order. Takes effect in newly generated locale data; published data is unaffected.
+* Compound unit grammatical-case and gender patterns are now merged deterministically during locale data generation; the previous shallow merge silently dropped case entries, with the surviving subset depending on OTP map iteration order.
 
 ### Changed
 
