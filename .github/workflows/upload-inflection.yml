@@ -1,0 +1,166 @@
+name: Upload Inflection Data to Cloudflare R2
+
+# Triggered on version tag pushes, like upload-locales. The
+# inflection data is versioned by the pinned unicode-org/inflection
+# commit plus a pipeline revision, so most release tags find the
+# data already uploaded and skip.
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  MIX_ENV: test
+  ELIXIR_VERSION: "1.20.1"
+  OTP_VERSION: "29.0.1"
+  R2_BUCKET: content
+  R2_PREFIX: inflection
+  LOCALES: >-
+    ar bg bn ca cs da de el en es fi fr gu he hi hr hu id is it ja kk kn ko
+    lt ml mr ms nb nl or pa pl pt ro ru sk sr sv ta te th tr uk ur vi yue zh
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-upload:
+    name: Build and upload inflection data
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # The data version comes from Localize.Inflection.Provider —
+      # no Elixir compile needed for the short-circuit check.
+      - name: Read data version
+        id: version
+        run: |
+          sha=$(grep -o '@upstream_sha "[0-9a-f]*"' lib/localize/inflection/provider.ex | grep -o '[0-9a-f]\{40\}')
+          revision=$(grep -o '@data_revision [0-9]*' lib/localize/inflection/provider.ex | grep -o '[0-9]*')
+          data_version="${sha:0:12}-r${revision}"
+          echo "data_version=${data_version}" >> "$GITHUB_OUTPUT"
+          echo "upstream_sha=${sha}" >> "$GITHUB_OUTPUT"
+          echo "Data version: ${data_version}"
+
+      - name: Install rclone
+        run: |
+          curl -fsSL https://rclone.org/install.sh | sudo bash
+
+      - name: Configure rclone for Cloudflare R2
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+        run: |
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf << RCLONE
+          [r2]
+          type = s3
+          provider = Cloudflare
+          access_key_id = ${R2_ACCESS_KEY_ID}
+          secret_access_key = ${R2_SECRET_ACCESS_KEY}
+          endpoint = https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com
+          acl = private
+          no_check_bucket = true
+          RCLONE
+
+      - name: Check if data version already exists on R2
+        id: check_existing
+        env:
+          DATA_VERSION: ${{ steps.version.outputs.data_version }}
+        run: |
+          existing=$(rclone lsf "r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/" --include "*.etf" 2>/dev/null | wc -l | tr -d '[:space:]')
+          if [ "${existing}" -gt 0 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Inflection data ${DATA_VERSION} already exists on R2 with ${existing} file(s); skipping."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Elixir
+        if: steps.check_existing.outputs.skip != 'true'
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+
+      - name: Cache deps and build
+        if: steps.check_existing.outputs.skip != 'true'
+        uses: actions/cache@v5
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-otp${{ env.OTP_VERSION }}-elixir${{ env.ELIXIR_VERSION }}-mix-inflection-upload-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-otp${{ env.OTP_VERSION }}-elixir${{ env.ELIXIR_VERSION }}-mix-inflection-upload-
+
+      - name: Cache upstream inflection sources
+        if: steps.check_existing.outputs.skip != 'true'
+        uses: actions/cache@v5
+        with:
+          path: data/inflection
+          key: inflection-source-${{ steps.version.outputs.upstream_sha }}-${{ hashFiles('data/mix/tasks/localize.inflection.download.ex') }}
+
+      - name: Cache generated artifacts
+        if: steps.check_existing.outputs.skip != 'true'
+        uses: actions/cache@v5
+        id: artifact-cache
+        with:
+          path: priv/localize/inflection
+          key: inflection-artifacts-${{ steps.version.outputs.upstream_sha }}-${{ hashFiles('data/inflection_gen/**', 'data/mix/tasks/localize.inflection.*.ex') }}
+
+      - name: Install dependencies
+        if: steps.check_existing.outputs.skip != 'true'
+        run: mix deps.get
+
+      - name: Compile
+        if: steps.check_existing.outputs.skip != 'true'
+        run: mix compile --warnings-as-errors
+
+      - name: Download and generate inflection data
+        if: steps.check_existing.outputs.skip != 'true' && steps.artifact-cache.outputs.cache-hit != 'true'
+        run: |
+          mix localize.inflection.download $LOCALES
+          mix localize.inflection.generate $LOCALES
+
+      - name: Run inflection conformance suites
+        if: steps.check_existing.outputs.skip != 'true'
+        run: mix test test/localize/inflection/
+
+      - name: Upload to R2
+        if: steps.check_existing.outputs.skip != 'true'
+        env:
+          DATA_VERSION: ${{ steps.version.outputs.data_version }}
+        run: |
+          echo "Uploading to r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/"
+          rclone sync \
+            priv/localize/inflection/ \
+            "r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/" \
+            --include "*.etf" \
+            --transfers 16 \
+            --s3-upload-concurrency 2 \
+            --stats 10s \
+            --stats-one-line \
+            --verbose
+
+      # The uploaded bytes are canonical. If they differ from the
+      # committed manifest (they will when CI built the data), the
+      # maintainer refreshes it from the CDN before publishing.
+      - name: Compare hash manifest
+        if: steps.check_existing.outputs.skip != 'true'
+        run: |
+          cp priv/localize/inflection_hashes.etf /tmp/committed_hashes.etf || true
+          mix localize.inflection.generate_hashes
+          if ! cmp -s priv/localize/inflection_hashes.etf /tmp/committed_hashes.etf; then
+            echo "::warning::The uploaded inflection data does not match the committed hash manifest. Run 'mix localize.inflection.generate_hashes --from-cdn' locally and commit the result before publishing."
+          fi
+
+      - name: Skipped summary
+        if: steps.check_existing.outputs.skip == 'true'
+        env:
+          DATA_VERSION: ${{ steps.version.outputs.data_version }}
+        run: |
+          echo "Skipped: inflection data ${DATA_VERSION} already present."
+          echo "Bump the upstream pin or data revision in Localize.Inflection.Provider and push a new tag to trigger a real upload."

@@ -68,7 +68,8 @@ defmodule Localize.MixProject do
         "priv/localize/supplemental_data",
         "priv/localize/validity",
         "priv/localize/locales/en.etf",
-        "priv/localize/locales/und.etf"
+        "priv/localize/locales/und.etf",
+        "priv/localize/inflection_hashes.etf"
       ]
     ]
   end

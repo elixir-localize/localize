@@ -42,11 +42,24 @@ defmodule Mix.Tasks.Localize.Inflection.Generate do
   end
 
   # Pronoun tables are small runtime CSVs parsed lazily against the
-  # locale feature model; ship them verbatim under priv/localize/inflection/.
+  # locale feature model; ship them verbatim under
+  # priv/localize/inflection/, plus a single pronouns.etf pack (one
+  # CDN object) that the download task unpacks.
   defp copy_pronoun_tables do
-    for path <- Path.wildcard("data/inflection/pronoun/pronoun_*.csv") do
-      File.mkdir_p!("priv/localize/inflection")
+    File.mkdir_p!("priv/localize/inflection")
+    paths = Path.wildcard("data/inflection/pronoun/pronoun_*.csv")
+
+    for path <- paths do
       File.cp!(path, Path.join("priv/localize/inflection", Path.basename(path)))
+    end
+
+    if paths != [] do
+      pack = Map.new(paths, fn path -> {Path.basename(path), File.read!(path)} end)
+
+      File.write!(
+        Path.join("priv/localize/inflection", "pronouns.etf"),
+        :erlang.term_to_binary(pack, [:compressed])
+      )
     end
   end
 

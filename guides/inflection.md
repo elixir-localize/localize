@@ -4,7 +4,14 @@ This guide covers the practical use of `Localize.Inflection`: inflecting words a
 
 ## Inflection data
 
-Inflection is part of Localize, and its data is optional: nothing is downloaded unless you use it. The compiled data (about 42 MB of per-locale dictionaries and pronoun tables, built from the [Unicode inflection project](https://github.com/unicode-org/inflection) at a pinned commit) lives in the inflection data directory, and inflection functions return `{:error, %Localize.InflectionDataNotAvailableError{}}` when the data for a locale is not present — distinct from `%Localize.InflectionNotSupportedError{}` for languages the Unicode inflection project does not cover.
+Inflection is part of Localize, and its data is optional: nothing is downloaded unless you ask for it. The compiled data (per-locale dictionaries and pronoun tables, built from the [Unicode inflection project](https://github.com/unicode-org/inflection) at a pinned commit) downloads per locale from the Localize CDN at build time:
+
+```
+mix localize.download_inflection            # the configured :supported_locales
+mix localize.download_inflection en de ru   # specific locales
+```
+
+Each file is verified against a SHA-256 manifest shipped in the package before it is written. Locales you never download cost nothing; inflection functions return `{:error, %Localize.InflectionDataNotAvailableError{}}` when a locale's data is not present — distinct from `%Localize.InflectionNotSupportedError{}` for languages the Unicode inflection project does not cover.
 
 The data directory follows the locale-cache configuration convention:
 
