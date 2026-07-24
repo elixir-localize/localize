@@ -14,9 +14,24 @@ permissions:
   contents: read
 
 jobs:
+  # Publish the locale data version to R2 before any test job runs.
+  # `mix test` downloads locale ETFs pinned to the version in
+  # priv/localize/localize_patch_version — the same path users take —
+  # so an unpublished version must be generated and uploaded first.
+  # When the version is already on R2 this is a quick no-op check.
+  # Fork PRs have no access to the R2 secrets, so they skip the
+  # check and test against whatever data version is already published.
+  publish-locales:
+    name: Publish locale data
+    if: github.event_name == 'push' || !github.event.pull_request.head.repo.fork
+    uses: ./.github/workflows/upload-locales.yml
+    secrets: inherit
+
   test:
     name: "Elixir ${{ matrix.elixir }} / OTP ${{ matrix.otp }}${{ matrix.lint && ' (lint)' || '' }}"
     runs-on: ubuntu-latest
+    needs: publish-locales
+    if: ${{ !cancelled() && (needs.publish-locales.result == 'success' || needs.publish-locales.result == 'skipped') }}
 
     strategy:
       fail-fast: false
