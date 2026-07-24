@@ -49,6 +49,30 @@ defmodule Localize.Unit.FormatterCoverageTest do
       assert nominative == "1 километр"
     end
 
+    test "Finnish partitive differs from nominative" do
+      # Regression: Localize.Data.Normalize.Units.process_formats/1 only
+      # recognised seven grammatical cases, so partitive (and eight other
+      # CLDR cases) stayed flat in the locale data and silently fell back
+      # to nominative.
+      {:ok, partitive} =
+        Unit.to_string(unit!(1, "kilometer"), locale: "fi", grammatical_case: :partitive)
+
+      {:ok, nominative} = Unit.to_string(unit!(1, "kilometer"), locale: "fi")
+
+      assert partitive == "1 kilometriä"
+      assert nominative == "1 kilometri"
+    end
+
+    test "Hungarian terminative differs from nominative" do
+      {:ok, terminative} =
+        Unit.to_string(unit!(1, "kilometer"), locale: "hu", grammatical_case: :terminative)
+
+      {:ok, nominative} = Unit.to_string(unit!(1, "kilometer"), locale: "hu")
+
+      assert terminative == "1 kilométerig"
+      assert nominative == "1 kilométer"
+    end
+
     test "unknown grammatical case falls back to nominative" do
       assert Unit.to_string(unit!(3, "meter"), locale: "de", grammatical_case: :vocative) ==
                {:ok, "3 Meter"}

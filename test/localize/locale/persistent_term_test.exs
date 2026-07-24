@@ -47,4 +47,62 @@ defmodule Localize.Locale.PersistentTermTest do
                Locale.get(:"en-AU", @missing_key, fallback: true)
     end
   end
+
+  describe "nest_unit_grammar_cases/1" do
+    alias Localize.Locale.Provider.PersistentTerm
+
+    test "nests flat grammar-case keys from pre-fix published locale data" do
+      # Locale data published before all sixteen CLDR unit grammar
+      # cases were normalized carries flat keys like
+      # :prepositional_count_one; store/2 must nest them at load time.
+      flat_data = %{
+        units: %{
+          long: %{
+            length: %{
+              kilometer: %{
+                nominative: %{one: [0, " километр"], other: [0, " километра"]},
+                prepositional_count_one: [0, " километре"],
+                prepositional_count_other: [0, " километрах"],
+                display_name: "километры"
+              }
+            }
+          }
+        }
+      }
+
+      %{units: units} = PersistentTerm.nest_unit_grammar_cases(flat_data)
+      kilometer = units.long.length.kilometer
+
+      assert kilometer.prepositional == %{
+               one: [0, " километре"],
+               other: [0, " километрах"]
+             }
+
+      refute Map.has_key?(kilometer, :prepositional_count_one)
+      refute Map.has_key?(kilometer, :prepositional_count_other)
+      assert kilometer.nominative == %{one: [0, " километр"], other: [0, " километра"]}
+      assert kilometer.display_name == "километры"
+    end
+
+    test "already-nested locale data passes through unchanged" do
+      nested_data = %{
+        units: %{
+          long: %{
+            length: %{
+              kilometer: %{
+                nominative: %{one: [0, " kilometri"]},
+                partitive: %{one: [0, " kilometriä"]}
+              }
+            }
+          }
+        }
+      }
+
+      assert PersistentTerm.nest_unit_grammar_cases(nested_data) == nested_data
+    end
+
+    test "locale data without a units key passes through unchanged" do
+      assert PersistentTerm.nest_unit_grammar_cases(%{languages: %{}}) == %{languages: %{}}
+    end
+  end
 end
