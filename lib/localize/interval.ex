@@ -693,9 +693,23 @@ defmodule Localize.Interval do
   @doc """
   Same as `to_string/3` but raises on error.
 
+  ### Arguments
+
+  * `from` is a `t:Date.t/0`.
+
+  * `to` is a `t:Date.t/0`.
+
+  * `options` is a keyword list of options.
+
   ### Options
 
   See `to_string/3` for the supported options.
+
+  ### Returns
+
+  * The formatted interval as a string.
+
+  * Raises an exception if the interval cannot be formatted.
 
   ### Examples
 
@@ -772,6 +786,13 @@ defmodule Localize.Interval do
   `:date` style is resolved per-locale, mirroring
   `Localize.Date.to_string/2`'s style → skeleton mapping for that
   locale.
+
+  ### Returns
+
+  * A map keyed by style (`:month`, `:month_and_day`,
+    `:year_and_month`), each value a map of format
+    (`:short`, `:medium`, `:long`, `:full`) to the CLDR
+    skeleton atom used for that combination.
 
   ### Examples
 
@@ -885,6 +906,18 @@ defmodule Localize.Interval do
   @doc """
   Splits an interval format string into `[left, right]` halves
   at the point where a format character repeats.
+
+  ### Arguments
+
+  * `interval` is an interval format pattern string.
+
+  ### Returns
+
+  * `{:ok, [left, right]}` where `left` and `right` are the two
+    halves of the interval pattern.
+
+  * `{:error, exception}` if the pattern is malformed or has no
+    repeating field.
 
   ### Examples
 

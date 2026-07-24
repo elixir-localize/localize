@@ -278,9 +278,26 @@ defmodule Localize.Calendar do
   @doc """
   Same as `display_name/3` but raises on error.
 
+  ### Arguments
+
+  * `type` is the type of calendar item (`:calendar`, `:era`,
+    `:quarter`, `:month`, `:day`, `:day_period`, or
+    `:date_time_field`). See `display_name/3`.
+
+  * `value` is the value to look up. The type depends on the
+    `type` argument.
+
+  * `options` is a keyword list of options.
+
   ### Options
 
   See `display_name/3` for the supported options.
+
+  ### Returns
+
+  * The localized display name as a string.
+
+  * Raises an exception if the value is not found.
 
   ### Examples
 

@@ -610,6 +610,16 @@ defmodule Localize.Unit.Math do
   @doc """
   Computes the sine of a dimensionless unit value (angle or ratio).
 
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the sine of the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
+
   ### Examples
 
       iex> {:ok, u} = Localize.Unit.new(0, "radian")
@@ -624,6 +634,16 @@ defmodule Localize.Unit.Math do
   @doc """
   Computes the cosine of a dimensionless unit value.
 
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the cosine of the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
+
   ### Examples
 
       iex> {:ok, u} = Localize.Unit.new(0, "radian")
@@ -636,6 +656,16 @@ defmodule Localize.Unit.Math do
 
   @doc """
   Computes the tangent of a dimensionless unit value.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the tangent of the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
 
   ### Examples
 
@@ -650,6 +680,16 @@ defmodule Localize.Unit.Math do
   @doc """
   Computes the arc sine of a dimensionless unit value.
 
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the arc sine of the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
+
   ### Examples
 
       iex> {:ok, u} = Localize.Unit.new(0, "radian")
@@ -662,6 +702,16 @@ defmodule Localize.Unit.Math do
 
   @doc """
   Computes the arc cosine of a dimensionless unit value.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the arc cosine of the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
 
   ### Examples
 
@@ -676,6 +726,16 @@ defmodule Localize.Unit.Math do
   @doc """
   Computes the arc tangent of a dimensionless unit value.
 
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the arc tangent of the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
+
   ### Examples
 
       iex> {:ok, u} = Localize.Unit.new(0, "radian")
@@ -688,6 +748,16 @@ defmodule Localize.Unit.Math do
 
   @doc """
   Computes the hyperbolic sine of a dimensionless unit value.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the hyperbolic sine of the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
 
   ### Examples
 
@@ -702,6 +772,16 @@ defmodule Localize.Unit.Math do
   @doc """
   Computes the hyperbolic cosine of a dimensionless unit value.
 
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the hyperbolic cosine of the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
+
   ### Examples
 
       iex> {:ok, u} = Localize.Unit.new(0, "radian")
@@ -714,6 +794,16 @@ defmodule Localize.Unit.Math do
 
   @doc """
   Computes the hyperbolic tangent of a dimensionless unit value.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the hyperbolic tangent of the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
 
   ### Examples
 
@@ -728,6 +818,16 @@ defmodule Localize.Unit.Math do
   @doc """
   Computes the inverse hyperbolic sine of a dimensionless unit value.
 
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the inverse hyperbolic sine of the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
+
   ### Examples
 
       iex> {:ok, u} = Localize.Unit.new(0, "radian")
@@ -740,6 +840,16 @@ defmodule Localize.Unit.Math do
 
   @doc """
   Computes the inverse hyperbolic cosine of a dimensionless unit value.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the inverse hyperbolic cosine of the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
 
   ### Examples
 
@@ -754,6 +864,16 @@ defmodule Localize.Unit.Math do
   @doc """
   Computes the inverse hyperbolic tangent of a dimensionless unit value.
 
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the inverse hyperbolic tangent of the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
+
   ### Examples
 
       iex> {:ok, u} = Localize.Unit.new(0, "radian")
@@ -766,6 +886,16 @@ defmodule Localize.Unit.Math do
 
   @doc """
   Computes e^x for a dimensionless unit value.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with e raised to the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
 
   ### Examples
 
@@ -780,6 +910,16 @@ defmodule Localize.Unit.Math do
   @doc """
   Computes the natural logarithm of a dimensionless unit value.
 
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the natural logarithm of the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
+
   ### Examples
 
       iex> {:ok, u} = Localize.Unit.new(1, "radian")
@@ -793,6 +933,16 @@ defmodule Localize.Unit.Math do
   @doc """
   Computes the base-10 logarithm of a dimensionless unit value.
 
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the base-10 logarithm of the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
+
   ### Examples
 
       iex> {:ok, u} = Localize.Unit.new(100, "radian")
@@ -805,6 +955,16 @@ defmodule Localize.Unit.Math do
 
   @doc """
   Computes the base-2 logarithm of a dimensionless unit value.
+
+  ### Arguments
+
+  * `unit` is a `%Localize.Unit{}` struct with a value.
+
+  ### Returns
+
+  * `{:ok, number}` with the base-2 logarithm of the value.
+
+  * `{:error, reason}` if the unit is not dimensionless or has no value.
 
   ### Examples
 

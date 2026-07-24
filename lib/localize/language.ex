@@ -129,9 +129,23 @@ defmodule Localize.Language do
   @doc """
   Same as `display_name/2` but raises on error.
 
+  ### Arguments
+
+  * `language` is a language code string (e.g., `"de"`,
+    `"en-GB"`) or a `t:Localize.LanguageTag.t/0`.
+
+  * `options` is a keyword list of options.
+
   ### Options
 
   * See `display_name/2` for the supported options.
+
+  ### Returns
+
+  * The localized language name as a string.
+
+  * Raises an exception if the language code is not found
+    in the locale.
 
   ### Examples
 
