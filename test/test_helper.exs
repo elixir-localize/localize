@@ -17,6 +17,11 @@ Application.put_env(:localize, :default_locale, :en)
 # fixtures for non-Gregorian calendars (e.g. ja-JP for the
 # Japanese imperial calendar, ar-SA for Islamic, th-TH for
 # Buddhist).
+#
+# List the *canonical CLDR locale id* for each referenced locale:
+# non-CLDR forms canonicalise at load time (en-US -> en,
+# pt-BR -> pt, th-TH -> th, zh-TW -> zh-Hant, zh-HK -> zh-Hant-HK),
+# and only canonical ids exist as generated ETF files on the CDN.
 test_locales = [
   "aa",
   "am",
@@ -29,7 +34,6 @@ test_locales = [
   "en-AU",
   "en-CA",
   "en-GB",
-  "en-US",
   "en-ZA",
   "es",
   "es-AR",
@@ -42,24 +46,20 @@ test_locales = [
   "it",
   "it-CH",
   "ja",
-  "ja-JP",
   "ko",
   "ky",
   "mr",
   "nl-BE",
   "pt",
   "pt-AO",
-  "pt-BR",
   "pt-PT",
   "ru",
-  "th-TH",
+  "th",
   "yue-Hans",
   "zh",
-  "zh-CN",
-  "zh-HK",
   "zh-Hans",
-  "zh-Hant-TW",
-  "zh-TW"
+  "zh-Hant",
+  "zh-Hant-HK"
 ]
 
 Mix.Tasks.Localize.DownloadLocales.run(test_locales)
