@@ -142,23 +142,32 @@ defmodule Localize.Data.Normalize.Units do
 
   def map_nested_compounds([{key, value} | rest], acc) do
     mapped_value = map_nested_compounds(value)
-
-    acc =
-      Map.update(acc, key, mapped_value, fn
-        current when is_map(current) and is_map(mapped_value) ->
-          Map.merge(current, mapped_value)
-
-        current when is_map(current) ->
-          Map.put(current, :nominative, mapped_value)
-
-        current when is_list(current) ->
-          value
-          |> map_nested_compounds()
-          |> Map.put(:nominative, current)
-      end)
-
+    acc = Map.update(acc, key, mapped_value, &merge_compound_values(&1, mapped_value))
     map_nested_compounds(rest, acc)
   end
+
+  # Merges two values arriving under the same compound pattern key.
+  # Maps merge recursively, and a bare pattern colliding with a map
+  # of variants becomes that map's :nominative entry, so the result
+  # does not depend on the order entries arrive in. The previous
+  # shallow merge silently dropped case entries in gender-nested
+  # compounds, with the surviving subset determined by map iteration
+  # order (which differs across OTP releases).
+  defp merge_compound_values(%{} = current, %{} = incoming) do
+    Map.merge(current, incoming, fn _key, left, right ->
+      merge_compound_values(left, right)
+    end)
+  end
+
+  defp merge_compound_values(%{} = current, incoming) do
+    Map.put_new(current, :nominative, incoming)
+  end
+
+  defp merge_compound_values(current, %{} = incoming) do
+    Map.put_new(incoming, :nominative, current)
+  end
+
+  defp merge_compound_values(_current, incoming), do: incoming
 
   defp units_for_locale(locale) do
     path = units_locale_path(locale)
