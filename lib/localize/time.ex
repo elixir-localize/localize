@@ -147,9 +147,22 @@ defmodule Localize.Time do
   @doc """
   Same as `to_string/2` but raises on error.
 
+  ### Arguments
+
+  * `time` is a `t:Time.t/0` or any map with one or more of
+    `:hour`, `:minute`, `:second` keys.
+
+  * `options` is a keyword list of options.
+
   ### Options
 
   See `to_string/2` for the supported options.
+
+  ### Returns
+
+  * The formatted time as a string.
+
+  * Raises an exception if the time cannot be formatted.
 
   ### Examples
 

@@ -167,6 +167,18 @@ defmodule Localize.Duration do
   @doc """
   Same as `new/2` but raises on error.
 
+  ### Arguments
+
+  * `from` is a date, time, or datetime representing the start.
+
+  * `to` is a date, time, or datetime representing the end.
+
+  ### Returns
+
+  * A `t:t/0` duration struct.
+
+  * Raises an exception if the arguments are incompatible.
+
   ### Examples
 
       iex> d = Localize.Duration.new!(~D[2019-01-01], ~D[2019-12-31])
@@ -518,9 +530,21 @@ defmodule Localize.Duration do
   @doc """
   Same as `to_string/2` but raises on error.
 
+  ### Arguments
+
+  * `duration` is a `t:t/0` struct.
+
+  * `options` is a keyword list of options.
+
   ### Options
 
   See `to_string/2` for the supported options.
+
+  ### Returns
+
+  * The formatted duration as a string.
+
+  * Raises an exception if formatting fails.
 
   ### Examples
 
@@ -580,9 +604,21 @@ defmodule Localize.Duration do
   @doc """
   Same as `to_time_string/2` but raises on error.
 
+  ### Arguments
+
+  * `duration` is a `t:t/0` struct.
+
+  * `options` is a keyword list of options.
+
   ### Options
 
   See `to_time_string/2` for the supported options.
+
+  ### Returns
+
+  * The formatted time portion of the duration as a string.
+
+  * Raises an exception if formatting fails.
 
   ### Examples
 

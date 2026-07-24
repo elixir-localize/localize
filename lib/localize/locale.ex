@@ -90,9 +90,22 @@ defmodule Localize.Locale do
   @doc """
   Same as `display_name/2` but raises on error.
 
+  ### Arguments
+
+  * `locale` is a locale identifier string, atom, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  * `options` is a keyword list of options.
+
   ### Options
 
   * See `display_name/2` for the supported options.
+
+  ### Returns
+
+  * The localized display name as a string.
+
+  * Raises an exception if the locale cannot be resolved.
 
   ### Examples
 
