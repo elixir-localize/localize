@@ -222,6 +222,24 @@ Formatting the number (including spelled-out numerals) stays with the caller —
 
 Every quantification behavior is verified against the upstream project's QuantifyTest expectations: 286 assertions across 21 languages, all passing.
 
+## And/or lists with grammatical agreement
+
+`Localize.Inflection.ConceptList` renders lists of concepts with locale-correct conjunctions — beyond `Localize.List`'s pattern formatting, the conjunctions here are grammatical: Spanish *y* becomes *e* before an i-sound (*Jane e Ivan*) except before a diphthong (*Jane y Hierro*), *o* becomes *u* before an o-sound; Italian *e* becomes *ed* before a vowel (*aereo ed elicottero*); Hebrew prefixes ו directly to Hebrew words but hyphenates Latin ones (3 ו-4); and the Korean particle 과/와 follows the final sound of the preceding word (John과 / Angela와). Constraints put on the list propagate to every member:
+
+```elixir
+iex> concepts =
+...>   for word <- ["gato", "gata"] do
+...>     {:ok, concept} = Localize.Inflection.Concept.new(:es, word)
+...>     concept
+...>   end
+iex> {:ok, list} = Localize.Inflection.ConceptList.and_list(:es, concepts)
+iex> {:ok, list} = Localize.Inflection.ConceptList.put_constraint(list, :number, :plural)
+iex> Localize.Inflection.ConceptList.to_speakable_string(list)
+"gatos y gatas"
+```
+
+Base separators come from Localize's own CLDR list patterns; every behavior is verified against the upstream project's ListTest expectations (351 assertions across 19 language groups, all passing).
+
 ## Error handling
 
 All entry points return tagged tuples. Unknown features and invalid grammeme values are rejected against the locale's feature model:

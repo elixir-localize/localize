@@ -30,6 +30,18 @@ defmodule Localize.Inflection.FeatureModel do
   end
 
   @doc """
+  Returns true when `name` is a grammatical category of the locale
+  (number, gender, case, ...), as opposed to a display feature
+  such as an article. Concept lists return the first member's
+  value for category features and assemble the whole list for
+  display features.
+
+  """
+  def category?(locale, name) do
+    Map.has_key?(Data.metadata!(locale).features.categories, name)
+  end
+
+  @doc """
   Returns the feature definition for `name`, or nil.
 
   The definition is `%{name:, type: :bounded | :unbounded, values:}`

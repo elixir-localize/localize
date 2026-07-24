@@ -8,6 +8,7 @@ defmodule Localize.InflectionTest do
   doctest Localize.Inflection.Inflector
   doctest Localize.Inflection.DataDir
   doctest Localize.Inflection.Quantify
+  doctest Localize.Inflection.ConceptList
 
   test "inflects with invalid constraints" do
     assert {:error, %Localize.UnknownFeatureError{feature: "sizzle"}} =
