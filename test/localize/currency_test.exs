@@ -330,13 +330,28 @@ defmodule Localize.CurrencyTest do
     end
   end
 
+  # Invokes a currency function through variable function-name and
+  # argument bindings so the deliberately removed positional-filter
+  # form stays opaque to both the compiler's type analysis (a direct
+  # ill-typed call warns) and credo's Refactor.Apply check (which
+  # flags apply with a literal argument list).
+  defp assert_positional_filter_rejected(function, arguments, message \\ nil) do
+    call = fn -> apply(Currency, function, arguments) end
+
+    if message do
+      assert_raise ArgumentError, message, call
+    else
+      assert_raise ArgumentError, call
+    end
+  end
+
   describe "removed positional filter forms" do
     test "a positional :only filter raises ArgumentError" do
-      # apply/3 keeps the deliberately removed positional form out of
-      # the compiler's type analysis, which would otherwise warn.
-      assert_raise ArgumentError, ~r/removed in Localize 1.0/, fn ->
-        apply(Currency, :currencies_for_locale, [:en, :historic])
-      end
+      assert_positional_filter_rejected(
+        :currencies_for_locale,
+        [:en, :historic],
+        ~r/removed in Localize 1.0/
+      )
     end
 
     test "a positional list filter raises rather than being misread as options" do
@@ -346,17 +361,9 @@ defmodule Localize.CurrencyTest do
     end
 
     test "the bang and strings variants reject positional filters too" do
-      assert_raise ArgumentError, fn ->
-        apply(Currency, :currencies_for_locale!, [:en, :current])
-      end
-
-      assert_raise ArgumentError, fn ->
-        apply(Currency, :currency_strings, [:en, :current])
-      end
-
-      assert_raise ArgumentError, fn ->
-        apply(Currency, :currency_strings!, [:en, :current])
-      end
+      assert_positional_filter_rejected(:currencies_for_locale!, [:en, :current])
+      assert_positional_filter_rejected(:currency_strings, [:en, :current])
+      assert_positional_filter_rejected(:currency_strings!, [:en, :current])
     end
   end
 

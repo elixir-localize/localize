@@ -136,7 +136,7 @@ defmodule Localize.Data.Collation do
       han_radicals: han_radicals
     }
 
-    binary = :erlang.term_to_binary(data, [:compressed])
+    binary = :erlang.term_to_binary(data, [:compressed, :deterministic])
     size_kb = div(byte_size(binary), 1024)
 
     # Write to the build output directory

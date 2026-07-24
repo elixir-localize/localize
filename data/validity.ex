@@ -149,7 +149,7 @@ defmodule Localize.Data.Validity do
 
   defp save(name, data, output_dir) do
     path = Path.join(output_dir, "#{name}.etf")
-    File.write!(path, :erlang.term_to_binary(data))
+    File.write!(path, :erlang.term_to_binary(data, [:deterministic]))
   end
 
   defp maybe_transform_units(data, "validity_units") do

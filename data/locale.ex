@@ -234,7 +234,12 @@ defmodule Localize.Data.Locale do
     output_dir = Localize.Data.locales_output_dir()
     File.mkdir_p!(output_dir)
     output_path = Path.join(output_dir, "#{locale}.etf")
-    File.write!(output_path, :erlang.term_to_binary(content))
+    # `:deterministic` sorts map keys into canonical term order so the
+    # encoding is byte-reproducible across machines and architectures.
+    # Without it, term_to_binary reflects a map's internal representation,
+    # which differs between VM instances (e.g. macOS/arm64 vs Linux/amd64),
+    # breaking the download-integrity hash manifest.
+    File.write!(output_path, :erlang.term_to_binary(content, [:deterministic]))
     :ok
   end
 end
