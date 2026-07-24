@@ -14,12 +14,14 @@ env:
   MIX_ENV: dev
   # Toolchain pins — also part of the dependency cache key, since
   # cached BEAMs are only valid for the OTP/Elixir that built them.
-  # Must match the toolchain used to run mix localize.generate_locale_hashes
-  # locally: the bundled hash manifest pins the exact bytes of the
-  # generated ETF files, and term serialization can differ across
-  # OTP majors.
-  ELIXIR_VERSION: "1.20"
-  OTP_VERSION: "29"
+  # EXACT versions, not ranges: the committed hash manifest pins the
+  # exact bytes of the ETF files generated locally, and term_to_binary
+  # output differs even across OTP patch releases (29.0.3 produced
+  # different bytes than 29.0.1 for the same data). These pins must
+  # match the local toolchain that ran the generation and
+  # mix localize.generate_locale_hashes — bump them together.
+  ELIXIR_VERSION: "1.20.1"
+  OTP_VERSION: "29.0.1"
   R2_BUCKET: content
   # Prefix within the bucket where locale ETF files are stored.
   R2_PREFIX: locales
