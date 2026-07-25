@@ -415,21 +415,53 @@ defmodule Localize.Unit.Formatter do
        ) do
     denominator_name = normalize_unit_name(denominator_base)
     pattern = find_per_unit_pattern(unit_data, denominator_name, value, locale)
-    nouns = if count, do: denominator_nouns(unit_data, denominator_name)
-    format_per_unit(numerator_string, pattern, count, denominator_base, nouns)
+    nouns = denominator_nouns(unit_data, denominator_name)
+
+    case pattern do
+      nil ->
+        compose_per_compound(numerator_string, count, denominator_base, nouns, unit_data)
+
+      pattern ->
+        format_per_unit(numerator_string, pattern, count, denominator_base, nouns)
+    end
   end
 
-  defp format_per_unit(numerator_string, nil, count, denominator_base, nouns) do
+  # Composes a per-compound that has no precomposed `per_unit_pattern`
+  # for its denominator. Combines the formatted numerator with the
+  # localized denominator noun using the locale's `compound.per` pattern
+  # (`{0} per {1}`, `{0} par {1}`, `{0} na {1}`, …). Per the CLDR "per"
+  # derivation the denominator is singular nominative, unless a
+  # denominator constant (as in "liter-per-100-kilometer") makes it a
+  # counted plural. Falls back to a bare "per" only when the locale has
+  # no `compound.per` pattern at all.
+  defp compose_per_compound(numerator_string, count, denominator_base, nouns, unit_data) do
+    denominator = per_denominator_display(count, nouns, denominator_base)
+
+    case per_compound_pattern_tokens(unit_data) do
+      nil ->
+        {:ok, "#{numerator_string} per #{denominator}"}
+
+      per_tokens ->
+        {:ok, apply_compound_pattern(numerator_string, denominator, per_tokens)}
+    end
+  end
+
+  defp per_denominator_display(count, nouns, denominator_base) do
     fallback_noun = String.replace(denominator_base, "-", " ")
 
-    per_part =
-      case {count, nouns} do
-        {nil, _nouns} -> fallback_noun
-        {count, {_singular, plural}} -> "#{count} #{plural}"
-        {count, nil} -> "#{count} #{fallback_noun}"
-      end
+    case {count, nouns} do
+      {nil, {singular, _plural}} -> singular
+      {nil, nil} -> fallback_noun
+      {count, {_singular, plural}} -> "#{count} #{plural}"
+      {count, nil} -> "#{count} #{fallback_noun}"
+    end
+  end
 
-    {:ok, "#{numerator_string} per #{per_part}"}
+  defp per_compound_pattern_tokens(unit_data) do
+    case get_in(unit_data, [:compound, :per, :compound_unit_pattern]) do
+      tokens when is_list(tokens) -> tokens
+      _other -> nil
+    end
   end
 
   defp format_per_unit(numerator_string, pattern, count, _denominator_base, nouns) do
@@ -459,13 +491,15 @@ defmodule Localize.Unit.Formatter do
 
   # Extracts the singular and plural nouns for the denominator unit
   # from its CLDR nominative plural patterns, e.g. {"kilometer",
-  # "kilometers"} for :kilometer in "en". Returns nil when the unit or
-  # either plural form is not present in the locale data.
+  # "kilometers"} for :kilometer in "en". Locales without a plural
+  # distinction (zh, ja) carry only an `:other` form, which is reused
+  # for the singular. Returns nil when the unit has no nominative
+  # `:other` form in the locale data.
   defp denominator_nouns(unit_data, denominator_name) do
-    with %{nominative: %{one: one_pattern, other: other_pattern}} <-
+    with %{nominative: %{other: other_pattern} = nominative} <-
            find_unit_formats(unit_data, denominator_name),
-         singular when is_binary(singular) <- pattern_noun(one_pattern),
          plural when is_binary(plural) <- pattern_noun(other_pattern) do
+      singular = pattern_noun(Map.get(nominative, :one)) || plural
       {singular, plural}
     else
       _other -> nil
@@ -645,6 +679,29 @@ defmodule Localize.Unit.Formatter do
   # ── Unit name resolution ───────────────────────────────────
 
   defp find_unit_formats(unit_data, unit_name) do
+    direct = direct_unit_formats(unit_data, unit_name)
+
+    if formattable_unit_formats?(direct) do
+      direct
+    else
+      # A metadata-only entry (some locales carry a bare
+      # `%{gender: ...}` for units like "day-person" with no patterns of
+      # their own) counts as a miss, so the suffix fallback can resolve
+      # the base unit's display.
+      suffixed_unit_formats(unit_data, unit_name) || direct
+    end
+  end
+
+  # A unit-formats map is usable only if it carries a `:display_name` or
+  # at least one grammatical-case pattern map (`:nominative`, …); a
+  # gender-only entry has neither.
+  defp formattable_unit_formats?(%{} = formats) do
+    Map.has_key?(formats, :display_name) or Enum.any?(Map.values(formats), &is_map/1)
+  end
+
+  defp formattable_unit_formats?(_other), do: false
+
+  defp direct_unit_formats(unit_data, unit_name) do
     unit_atom = safe_to_atom(unit_name)
 
     # Search through all categories for this unit name
@@ -654,6 +711,30 @@ defmodule Localize.Unit.Formatter do
 
       _ ->
         nil
+    end)
+  end
+
+  # CLDR marks components such as "person" as unit-id suffixes
+  # (`unitIdComponent type="suffix"`). Units like "year-person"
+  # (person-years) carry no display data of their own and are shown as
+  # their base unit ("year" → "years"), matching ICU. When a direct
+  # lookup misses, strip a trailing recognized suffix component and retry
+  # against the base unit — which only resolves when that base is itself
+  # a real unit, so it is a no-op for identifiers without display data.
+  defp suffixed_unit_formats(unit_data, unit_name) do
+    case strip_suffix_component(unit_name) do
+      nil -> nil
+      base_name -> direct_unit_formats(unit_data, base_name)
+    end
+  end
+
+  defp strip_suffix_component(unit_name) do
+    Enum.find_value(Localize.Unit.Data.suffix_components(), fn suffix ->
+      suffixed = "_" <> suffix
+
+      if unit_name != suffixed and String.ends_with?(unit_name, suffixed) do
+        String.replace_suffix(unit_name, suffixed, "")
+      end
     end)
   end
 
@@ -839,11 +920,13 @@ defmodule Localize.Unit.Formatter do
   # `compound.times` pattern (`[0, "⋅", 1]`), matching CLDR's
   # left-associative combination for three-or-more-unit products.
   defp combine_times_nouns([first | rest], times_tokens) do
-    Enum.reduce(rest, first, &apply_times_pattern(&2, &1, times_tokens))
+    Enum.reduce(rest, first, &apply_compound_pattern(&2, &1, times_tokens))
   end
 
-  defp apply_times_pattern(left, right, times_tokens) do
-    Enum.map_join(times_tokens, "", fn
+  # Substitutes two operands into a two-placeholder compound pattern —
+  # `compound.times` (`[0, "⋅", 1]`) or `compound.per` (`[0, " per ", 1]`).
+  defp apply_compound_pattern(left, right, tokens) do
+    Enum.map_join(tokens, "", fn
       0 -> left
       1 -> right
       literal when is_binary(literal) -> literal
