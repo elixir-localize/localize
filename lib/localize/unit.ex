@@ -490,6 +490,16 @@ defmodule Localize.Unit do
   * `{:error, reason}` if the unit has no value, the target cannot
     be parsed, or the units are not convertible.
 
+  ### Value type
+
+  The converted value is a `Decimal` when the source value is a `Decimal`
+  (results stay exact) and a float otherwise. Integer and float values
+  both yield a float, because unit conversion is real-valued — an integer
+  input cannot represent a converted quantity such as `1` mile in
+  kilometers, so promoting to float is preferred over integer arithmetic,
+  which would silently lose precision. Pass a `Decimal` value when you
+  need an exact result.
+
   ### Examples
 
       iex> {:ok, meters} = Localize.Unit.new(1, "kilometer")
@@ -498,6 +508,11 @@ defmodule Localize.Unit do
       1000.0
       iex> result.name
       "meter"
+
+      iex> {:ok, tonnes} = Localize.Unit.new(Decimal.new(1), "tonne")
+      iex> {:ok, result} = Localize.Unit.convert(tonnes, "kilogram")
+      iex> match?(%Decimal{}, result.value)
+      true
 
   """
   @spec convert(t(), String.t()) :: {:ok, t()} | {:error, Exception.t()}
