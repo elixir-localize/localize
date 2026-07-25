@@ -4,17 +4,24 @@ Updated: July 22, 2026, after the full 1.0.0-rc.0 release review. This document 
 
 ## Outstanding blockers for 1.0.0
 
-**None.** Every item from the July 4 and July 15 plans is done and verified: TR35 conformance fixes, packaging and security items, the API freeze (renames, visibility, error shapes), the deprecated-delegate removal sweep, test-gap closures, and the rc.0 review (all six gates clean, `mix hex.build` verified, ~600 documentation examples execution-verified). There are no open GitHub issues.
+**None blocking a further RC.** The July 4 / July 15 plan items are done and verified (TR35 conformance, packaging/security, API freeze, deprecated-delegate removal, test-gap closures, rc.0 review). rc.0 through rc.4 are published.
 
-## Remaining release steps (mechanical, in order)
+During the rc.4 soak an external adopter (migrating from `ex_cldr`) reported a run of unit issues; see the triage below.
 
-1. ~~Tag `v1.0.0-rc.0`, push the tag, `mix hex.publish`~~ — DONE July 22 (published, hexdocs verified, fresh-install verified).
+## RC-soak triage (issues #42–46)
 
-2. **rc.1: the Intl conformance batch** — DONE July 22 (in `main`, unreleased): the six TODO items from the Intl compatibility guide (`:minimum_integer_digits`, `:trailing_zero_display`, `:rounding_priority`, `Number.to_parts/2`, relative `numeric: :always`, `known_collations/0` / `known_timezones/0`) plus the `:currency_long` fraction-digits/plural fix. Release as **1.0.0-rc.1** after a standard release review; remaining `to_parts` follow-ups are post-1.0 (see `TODO.md`).
+* **Fixed in `main` (unreleased), landing in the next RC:** #42 (unit-symbol parsing of compound identifiers), #43 (times-compound formatting via a new `grammaticalFeatures.xml` derivation table), #44 (`define_unit/2` derived `base_unit` folding), plus two follow-ups found while adding ICU-differential property tests — per-compound `compound.per` localization and person-duration unit resolution. Changelog updated.
+* **Open:** #45 — a *question* about the `convert/2` value-type contract (int → float, Decimal → Decimal); resolve by documenting the contract, not a blocker. #46 — SI-prefixed units without a precomposed CLDR pattern (`megajoule` → `"5 megajoule"` instead of `"5 MJ"`); a real display bug in the same compositional family as #43, small formatter fix. Fix before **1.0.0 final**; shippable-with-note in an interim RC.
 
-3. Soak the RC. Any issue reported during the soak is triaged here.
+## Remaining release steps (in order)
 
-4. Publish **1.0.0 final — target August 1, 2026** — after a standard release review of whatever changed during the soak. Bump the README install snippet from the pre-release requirement form to `{:localize, "~> 1.0"}` as part of this step.
+1. Publish the next RC with the #42–44 batch and the two follow-up fixes, after a standard release review.
+
+2. Fix #46 (SI-prefix display composition) and document the #45 value-type contract.
+
+3. Continue the soak; triage new reports here.
+
+4. Publish **1.0.0 final — target August 1, 2026** — after a standard release review. Bump the README install snippet from the pre-release requirement form to `{:localize, "~> 1.0"}` as part of this step.
 
 ## Post-1.0 backlog (explicitly not blockers)
 

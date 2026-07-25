@@ -51,9 +51,24 @@ defmodule Localize.Unit.FormatterPropertyTest do
     end
   end
 
-  # Biased toward compounds — the axis CLDR fixtures leave uncovered.
+  # SI-prefixed units with no precomposed CLDR pattern, composed from the
+  # prefix pattern + base noun.
+  @prefixed_units ~w(megajoule gigajoule nanogram kilobecquerel megabecquerel
+                     terawatt microsecond nanometer picofarad femtometer)
+
+  defp prefixed_unit_gen, do: member_of(@prefixed_units)
+
+  # Biased toward compounds and prefixed units — the axes CLDR fixtures
+  # leave uncovered.
   defp unit_gen do
-    one_of([base_unit_gen(), times_unit_gen(), times_unit_gen(), per_unit_gen(), per_unit_gen()])
+    one_of([
+      base_unit_gen(),
+      times_unit_gen(),
+      times_unit_gen(),
+      per_unit_gen(),
+      per_unit_gen(),
+      prefixed_unit_gen()
+    ])
   end
 
   defp locale_gen, do: member_of(@locales)

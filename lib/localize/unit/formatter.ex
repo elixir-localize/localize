@@ -785,8 +785,116 @@ defmodule Localize.Unit.Formatter do
          {:ok, string} <- format_times_compound(value, single_units, unit_data, locale, options) do
       {:ok, string}
     else
+      _ -> format_prefixed_or_fallback(value, name, parsed, unit_data, locale, options)
+    end
+  end
+
+  # An SI-prefixed unit with no precomposed CLDR pattern of its own
+  # ("megajoule") composes its display from the prefix pattern and the
+  # base unit's noun ("mega" + "joules" → "megajoules", "M" + "J" → "MJ"),
+  # per the CLDR `si_prefix` step of `patternTimes`. Prefixed units that
+  # do have their own pattern ("kilojoule", "milligram") never reach here.
+  defp format_prefixed_or_fallback(value, name, parsed, unit_data, locale, options) do
+    with {:ok, prefix, base} <- prefixed_single_unit(parsed),
+         {:ok, string} <- format_prefixed_unit(value, prefix, base, unit_data, locale, options) do
+      {:ok, string}
+    else
       _ -> format_custom_or_fallback(value, name, locale, options)
     end
+  end
+
+  # Extracts the `{prefix, base}` of a single prefixed unit with no power
+  # and no denominator ("megajoule"); anything else is `:not_prefixed`.
+  defp prefixed_single_unit({:unit, keyword}) do
+    numerator = Keyword.get(keyword, :numerator, [])
+    denominator = Keyword.get(keyword, :denominator, [])
+
+    case {numerator, denominator} do
+      {[{:single_unit, single}], []} ->
+        prefix = Keyword.get(single, :prefix)
+        power = Keyword.get(single, :power)
+        base = Keyword.get(single, :base)
+
+        if not is_nil(prefix) and is_nil(power) and is_binary(base) do
+          {:ok, prefix, base}
+        else
+          :not_prefixed
+        end
+
+      _ ->
+        :not_prefixed
+    end
+  end
+
+  defp prefixed_single_unit(_parsed), do: :not_prefixed
+
+  defp format_prefixed_unit(value, prefix, base, unit_data, locale, options) do
+    grammatical_case = Keyword.get(options, :grammatical_case, :nominative)
+    count_plural = plural_form(value, locale)
+
+    with prefix_tokens when is_list(prefix_tokens) <- si_prefix_pattern_tokens(unit_data, prefix),
+         base_formats when not is_nil(base_formats) <-
+           find_unit_formats(unit_data, normalize_unit_name(base)),
+         base_pattern when is_list(base_pattern) <-
+           resolve_pattern(base_formats, grammatical_case, count_plural),
+         base_noun when is_binary(base_noun) <- pattern_noun(base_pattern) do
+      style = Keyword.get(options, :format, Keyword.get(options, :style, :long))
+      prefixed_noun = apply_prefix_pattern(prefix_tokens, base_noun, style)
+      final_tokens = splice_combined_noun(pattern_tokens(base_pattern), base_noun, prefixed_noun)
+
+      with {:ok, number_str} <- format_number(value, options) do
+        result = Localize.Substitution.substitute(number_str, final_tokens)
+        {:ok, result |> :erlang.iolist_to_binary() |> String.trim()}
+      end
+    else
+      _ -> :error
+    end
+  end
+
+  # Prepends the SI prefix to the base noun using the prefix's
+  # single-placeholder pattern (`["M", 0]` → "M" <> noun). Applies CLDR
+  # `combineLowercasing`: for the long form with a space-free prefix, the
+  # base noun is lowercased so a capitalising language composes correctly
+  # ("Mega" + "Joule" → "Megajoule", not "MegaJoule").
+  defp apply_prefix_pattern(prefix_tokens, noun, style) do
+    prefix_literal = prefix_tokens |> Enum.filter(&is_binary/1) |> Enum.join()
+
+    noun =
+      if style == :long and prefix_literal != "" and not String.contains?(prefix_literal, " ") do
+        String.downcase(noun)
+      else
+        noun
+      end
+
+    Enum.map_join(prefix_tokens, "", fn
+      0 -> noun
+      literal when is_binary(literal) -> literal
+      _other -> ""
+    end)
+  end
+
+  defp si_prefix_pattern_tokens(unit_data, prefix) do
+    with key when is_binary(key) <- si_prefix_compound_key(prefix),
+         %{unit_prefix_pattern: pattern} <- get_in(unit_data, [:compound, safe_to_atom(key)]),
+         tokens when is_list(tokens) <- pattern do
+      tokens
+    else
+      _other -> nil
+    end
+  end
+
+  # Maps an SI prefix atom (`:mega`, `:nano`) to the CLDR `compound` key
+  # that holds its `unit_prefix_pattern` — the power of ten with a leading
+  # `_` for negative exponents (`10p6` for mega, `10p_9` for nano). Binary
+  # prefixes (kibi, mebi) have no `power10` and are left uncomposed.
+  defp si_prefix_compound_key(prefix) do
+    prefix_string = Atom.to_string(prefix)
+
+    Enum.find_value(Localize.Unit.Data.si_prefix_data(), fn
+      %{type: ^prefix_string, power10: "-" <> magnitude} -> "10p_" <> magnitude
+      %{type: ^prefix_string, power10: power10} when power10 != "" -> "10p" <> power10
+      _other -> nil
+    end)
   end
 
   defp format_compound_per_unit(

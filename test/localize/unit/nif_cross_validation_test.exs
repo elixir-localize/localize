@@ -36,6 +36,8 @@ if Localize.Nif.available?() do
       watt kilowatt joule volt ampere newton
       hectare acre byte megabyte gigabyte
       year-person month-person week-person day-person
+      megajoule gigajoule nanogram kilobecquerel megabecquerel
+      terawatt microsecond nanometer picofarad femtometer
     )
 
     # Precomposed compounds + direct-pattern per-compounds, runtime-
