@@ -66,4 +66,9 @@ Mix.Tasks.Localize.DownloadLocales.run(test_locales)
 
 # Integration tests (slow — spawn mix subprocesses, compile deps) are
 # excluded by default. Run them with `mix test --include integration`.
-ExUnit.start(exclude: [:integration])
+#
+# The `:nif_differential` unit-formatting property compares against the
+# system ICU with a version-calibrated skew quarantine, so it is opt-in
+# rather than a portable gate. Run it in a known-ICU environment with
+# `mix test --include nif_differential`.
+ExUnit.start(exclude: [:integration, :nif_differential])
