@@ -14,6 +14,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * The BCP 47 validity data generator no longer crashes on deprecated timezone codes (those with a preferred replacement, such as `camtr` → `cator`); the generated validity data is unchanged, but it can once again be regenerated from source.
 
+* `Localize.Unit.parse/2` resolves unit symbols that map to compound identifiers — `"1 m/s"` → `meter-per-second`, `"3 kWh"` → `kilowatt-hour` — instead of failing on the internal underscore key form ([#42](https://github.com/elixir-localize/localize/issues/42)).
+
+* Times-compound units with no precomposed CLDR pattern (`tonne-kilometer`) now format as their localized name (`"5 metric ton-kilometers"`, `"5 t⋅km"`, `"5 tonnes-kilomètres"`) instead of the raw identifier, composed per the CLDR grammatical derivation loaded from `grammaticalFeatures.xml` ([#43](https://github.com/elixir-localize/localize/issues/43)).
+
+* Per-compound units whose denominator has no per-unit pattern now localize through the locale's `compound.per` pattern (Polish `"5 jardów na milimetr"`) instead of falling back to an English `"per"`.
+
+* `Localize.Unit.define_unit/2` accepts a derived unit as `base_unit` (e.g. `"day"`) and folds it to its fundamental base at registration, so the custom unit is convertible and `compatible?/2` returns `true` ([#44](https://github.com/elixir-localize/localize/issues/44)).
+
+* Person-duration units (`year-person`, `month-person`, `week-person`, `day-person`) format as their base unit (`"5 years"`), matching ICU, instead of the raw identifier.
+
+* SI-prefixed units with no precomposed CLDR pattern (`megajoule`, `gigajoule`, `nanogram`) now compose their display from the prefix and base unit (`"5 MJ"`, `"5 megajoules"`, with CLDR `combineLowercasing` for capitalising locales) instead of the raw identifier ([#46](https://github.com/elixir-localize/localize/issues/46)).
+
 ### Changed
 
 * Generated locale ETF files and the download-integrity hash manifest are now serialized with the `term_to_binary` `:deterministic` option, making the bytes reproducible across operating systems, architectures, and OTP versions. This lets the manifest generated during development match the data generated in CI and served from the CDN, so runtime download verification succeeds regardless of where each was produced. All bundled supplemental, validity, and collation ETF data is regenerated with the same option.
