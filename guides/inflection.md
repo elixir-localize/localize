@@ -4,7 +4,7 @@ This guide covers the practical use of `Localize.Inflection`: inflecting words a
 
 ## Inflection data
 
-Inflection is part of Localize, and its data is optional: nothing is downloaded unless you ask for it. The compiled data (per-locale dictionaries and pronoun tables, built from the [Unicode inflection project](https://github.com/unicode-org/inflection) at a pinned commit) downloads per locale from the Localize CDN at build time:
+Inflection is part of Localize, and its data is optional: nothing is downloaded unless you ask for it. Each locale ships as a single `<locale>.etf` carrying its dictionary, grammatical metadata, and pronoun table, built from the [Unicode inflection project](https://github.com/unicode-org/inflection) at a pinned commit. Provision it per locale from the Localize CDN with the mix task:
 
 ```
 mix localize.download_inflection            # the configured :supported_locales
@@ -23,7 +23,25 @@ config :localize, otp_app: :my_app
 config :localize, inflection_data_dir: "/var/lib/localize/inflection"
 ```
 
-Once the data is present there are no runtime downloads. Locale data loads lazily: the first operation on a locale loads its artifact into `:persistent_term` and an ETS table; subsequent operations are lookups measured in microseconds.
+### On-demand download
+
+Beyond the build-time task, a missing locale can be fetched the first time it is used, reusing the same gate as CLDR locale data (off by default):
+
+```elixir
+config :localize, allow_runtime_locale_download: true
+```
+
+With downloads permitted, resolving a locale whose artifact is not present fetches `<locale>.etf` from the CDN, verifies it against the manifest, writes it to the data directory, and continues. Regional locales fall back to their parent language (`en-AU` uses `en`). An application that provisions its locales at build time leaves this off and never fetches at runtime.
+
+### Memory and the literal area
+
+A locale's artifact loads lazily: the first operation on a locale loads its lexicon and metadata into `:persistent_term`, where reads are copy-free; subsequent operations are lookups measured in microseconds. Because `:persistent_term` holds terms in the BEAM *literal area*, large lexicons are sizeable there — the biggest (German, ~1.3M entries; Arabic, ~0.8M) run to tens of megabytes each, and loading many locales at once can exhaust the default literal super carrier, aborting the emulator with `literal_alloc: Cannot allocate ...`. An application that enables inflection across many locales should raise it via an emulator flag (`vm.args`, `rel/env.sh`, or `ELIXIR_ERL_OPTIONS`):
+
+```
++MIscs 3072
+```
+
+Loading every supported locale at once needs roughly 1 GB of literal area; size the flag to the locales you actually use, with headroom. Most applications use a handful of locales and need no change.
 
 ## Quick start
 
@@ -274,4 +292,4 @@ iex> Localize.Inflection.pronoun(:en, "garbage", person: :first)
 
 ## Performance
 
-Operations are in-memory lookups and suffix rewrites: feature queries and pronoun selection run in about 2 µs, phrase inflection in 8–21 µs depending on the language (measured with `mix run bench/inflection.exs`). Loading a locale's artifact on first use takes a few milliseconds for most locales, up to about half a second for the largest lexicon (Arabic, with over 800,000 entries).
+Operations are in-memory lookups and suffix rewrites: feature queries and pronoun selection run in about 2 µs, phrase inflection in 8–21 µs depending on the language (measured with `mix run bench/inflection.exs`). Loading a locale's artifact on first use takes tens of milliseconds for most locales and up to ~700 ms for the largest lexicons (German at ~1.3M entries, Arabic at ~0.8M); it is a one-time cost per locale, after which reads are copy-free from `:persistent_term`. See the *Memory and the literal area* section above for the footprint of loading many locales at once.
