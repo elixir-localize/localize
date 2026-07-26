@@ -475,6 +475,19 @@ Two areas are explicitly out of scope:
 | Function | Notes |
 |----------|-------|
 | `:list` | Formats a list operand by delegating to `Localize.List.to_string/2`. Each element is itself formatted via `Localize.Chars`, so a list of dates, numbers, units, etc. picks up the message's locale and forwarded options. Supports a `style` (or `type`) option whose values map to CLDR list styles: `"and"`, `"and-short"`, `"and-narrow"`, `"or"`, `"or-short"`, `"or-narrow"`, `"unit"`, `"unit-short"`, `"unit-narrow"`. Default is `"and"`. |
+| `:l:inflect` | Inflects a phrase operand for the grammatical constraints in its options (`grammaticalCase`, `grammaticalGender`, `grammaticalNumber`, `grammaticalDefiniteness`, `grammaticalPerson`), delegating to `Localize.Inflection.inflect/3`. Requires the locale's inflection data; a missing locale or absent data is a clean error, never a crash. |
+| `:l:pronoun` | Selects a pronoun, or re-inflects the operand pronoun, via `Localize.Inflection.pronoun/2,3`. |
+| `:l:quantify` | Joins a `count` option with the noun operand so the noun agrees with the number (Slavic numeral government, the Arabic counted-noun cases, per-language number agreement), delegating to `Localize.Inflection.quantify/4`. |
+
+These live in the reserved single-letter `l:` namespace; see *MF2 function namespaces* below.
+
+### MF2 function namespaces
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Namespaced function names (`:ns:name`) | Implemented | The parser accepts `namespace:name`; the interpreter resolves the namespace after the built-in functions. |
+| Reserved namespaces (`l`, `u`) | Implemented | `l` is Localize's own (`:l:inflect` / `:l:pronoun` / `:l:quantify`); `u` is the CLDR-managed namespace the spec reserves for options. Neither routes to a user handler, and an unhandled `l:` / `u:` function is an Unknown Function error — which the spec permits, since implementations are not required to support every namespace. |
+| Custom namespace handlers | Implemented | Register a `Localize.Message.Namespace` handler for a namespace via `config :localize, :mf2_namespaces` or the per-call `:namespaces` option; one handler dispatches every function in its namespace by local name. The flat-string `:mf2_functions` custom registry continues to work for back-compat. Built-in functions are authoritative and cannot be shadowed by a custom function or namespace. |
 
 ### MF2 Error Handling
 

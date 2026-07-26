@@ -1047,11 +1047,12 @@ defmodule Localize.Message.Interpreter do
   #
   # `:l:inflect` inflects its phrase operand for the grammatical
   # constraints given in its options; `:l:pronoun` selects a pronoun
-  # (or re-inflects the operand pronoun). Both wrap the in-tree
-  # `Localize.Inflection` engine and need the locale's inflection data
-  # present — a missing locale or absent data resolves to a clean
-  # error tuple, never a crash. `:l:quantify` is deferred until the
-  # engine ships the concept/quantity primitives it needs.
+  # (or re-inflects the operand pronoun); `:l:quantify` joins a
+  # `count` with the noun operand so the noun agrees with the number
+  # (Slavic numeral government, the Arabic counted-noun cases, and so
+  # on). All three wrap the in-tree `Localize.Inflection` engine and
+  # need the locale's inflection data present — a missing locale or
+  # absent data resolves to a clean error tuple, never a crash.
 
   defp format_with_function("l:inflect", value, func_opts, options) when is_binary(value) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
@@ -1082,6 +1083,25 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
+  defp format_with_function("l:quantify", value, func_opts, options) when is_binary(value) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    # The count formats through Localize's own number formatter (so
+    # the joined number is locale-aware) and is also passed as
+    # `:number` so the engine selects the plural category from it.
+    with {:ok, count} <- quantify_count(func_opts),
+         {:ok, formatted} <- Localize.Number.to_string(count, locale: locale) do
+      Localize.Inflection.quantify(formatted, value, locale,
+        number: count,
+        constraints: map_inflect_constraints(func_opts)
+      )
+    end
+  end
+
+  defp format_with_function("l:quantify", value, _func_opts, _options) do
+    {:error, "the :l:quantify function requires a string (noun) operand, got #{inspect(value)}"}
+  end
+
   # ── Custom function registry ─────────────────────────────────────
   #
   # When a function name is not matched by any built-in clause
@@ -1096,16 +1116,35 @@ defmodule Localize.Message.Interpreter do
   # Function resolution error per TR35.
 
   defp format_with_function(name, value, func_opts, options) do
+    # Custom function and namespace handlers receive option keys as
+    # strings — the documented contract — even though the built-in
+    # clauses above read them as atoms. (Option names are atomized
+    # only when a matching atom already exists, so the raw map mixes
+    # atom and string keys.)
+    string_opts = stringify_option_keys(func_opts)
+
     case resolve_custom_function(name, options) do
       {:ok, module} ->
-        module.format(value, func_opts, options)
+        module.format(value, string_opts, options)
 
       :not_found ->
-        # TR35 resolution error: a function that cannot be resolved
-        # is an Unknown Function error, not a pass-through format of
-        # the operand.
-        {:error, {:unknown_function, ":" <> name}}
+        case resolve_namespace_handler(name, options) do
+          {:ok, module, local_name} ->
+            module.format(local_name, value, string_opts, options)
+
+          :not_found ->
+            # TR35 resolution error: a function that cannot be
+            # resolved is an Unknown Function error, not a
+            # pass-through format of the operand.
+            {:error, {:unknown_function, ":" <> name}}
+        end
     end
+  end
+
+  # Values are left as-is: a number-literal option is a number, not
+  # a string.
+  defp stringify_option_keys(func_opts) do
+    Map.new(func_opts, fn {key, value} -> {to_string(key), value} end)
   end
 
   # Maps MF2 grammatical option names to the inflection engine's bare
@@ -1125,6 +1164,16 @@ defmodule Localize.Message.Interpreter do
         value -> Map.put(acc, engine_key, value)
       end
     end)
+  end
+
+  # The `count` option of `:l:quantify` is required and must be
+  # numeric: it is both the number joined to the noun and the value
+  # the plural category is selected from.
+  defp quantify_count(func_opts) do
+    case Map.get(func_opts, :count) do
+      nil -> {:error, "the :l:quantify function requires a `count` option"}
+      value -> ensure_number(value)
+    end
   end
 
   defp format_number_as_unit(_number, nil, _func_opts, _options) do
@@ -1279,6 +1328,48 @@ defmodule Localize.Message.Interpreter do
         app_functions = Application.get_env(:localize, :mf2_functions, %{})
 
         case Map.get(app_functions, name) do
+          nil -> :not_found
+          module -> {:ok, module}
+        end
+
+      module ->
+        {:ok, module}
+    end
+  end
+
+  # Routes a namespaced function name (`ns:local`) to a registered
+  # namespace handler (`Localize.Message.Namespace`). The reserved
+  # single-letter namespaces `l` (Localize's own, handled by the
+  # built-in clauses above) and `u` (CLDR-managed) never route to a
+  # user handler, so an unhandled `l:`/`u:` function falls through to
+  # an Unknown Function error. The parsed `{:namespace, ns, name}` is
+  # recovered by splitting the flattened name on its single colon —
+  # MF2 identifiers contain none.
+  defp resolve_namespace_handler(name, options) do
+    case String.split(name, ":", parts: 2) do
+      [namespace, local_name]
+      when namespace not in ["l", "u"] and local_name != "" ->
+        case lookup_namespace(namespace, options) do
+          {:ok, module} -> {:ok, module, local_name}
+          :not_found -> :not_found
+        end
+
+      _other ->
+        :not_found
+    end
+  end
+
+  # Per-call `:namespaces` handlers take precedence over the
+  # application-level `:mf2_namespaces` config, mirroring the custom
+  # function registry.
+  defp lookup_namespace(namespace, options) do
+    per_call = Keyword.get(options, :namespaces, %{})
+
+    case Map.get(per_call, namespace) do
+      nil ->
+        app_namespaces = Application.get_env(:localize, :mf2_namespaces, %{})
+
+        case Map.get(app_namespaces, namespace) do
           nil -> :not_found
           module -> {:ok, module}
         end

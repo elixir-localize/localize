@@ -279,7 +279,7 @@ iex> Localize.Unit.to_string(unit, locale: :ru, grammatical_case: :prepositional
 
 ## In MessageFormat 2 messages
 
-Inflection is available inside MF2 messages through the `l:` namespace: `:l:inflect` inflects its operand phrase, and `:l:pronoun` selects or re-inflects a pronoun. Grammatical constraints are passed as `grammatical*` options — `grammaticalCase`, `grammaticalGender`, `grammaticalNumber`, `grammaticalDefiniteness`, `grammaticalPerson` — mirroring the `:unit` function's naming:
+Inflection is available inside MF2 messages through the `l:` namespace: `:l:inflect` inflects its operand phrase, `:l:pronoun` selects or re-inflects a pronoun, and `:l:quantify` joins a `count` with a noun operand so the noun agrees with the number. Grammatical constraints are passed as `grammatical*` options — `grammaticalCase`, `grammaticalGender`, `grammaticalNumber`, `grammaticalDefiniteness`, `grammaticalPerson` — mirroring the `:unit` function's naming:
 
 ```elixir
 iex> Localize.Message.format("{$w :l:inflect grammaticalNumber=plural}", %{w: "light on the patio"}, locale: :en)
@@ -287,9 +287,12 @@ iex> Localize.Message.format("{$w :l:inflect grammaticalNumber=plural}", %{w: "l
 
 iex> Localize.Message.format("{|he| :l:pronoun grammaticalCase=accusative}", %{}, locale: :en)
 {:ok, "him"}
+
+iex> Localize.Message.format("{$noun :l:quantify count=5}", %{noun: "час"}, locale: :ru)
+{:ok, "5 часов"}
 ```
 
-The functions need the locale's inflection data present; a missing locale or absent data resolves to an error rather than crashing the format. `:l:quantify` is not yet available.
+The functions need the locale's inflection data present; a missing locale or absent data resolves to an error rather than crashing the format.
 
 ## Error handling
 

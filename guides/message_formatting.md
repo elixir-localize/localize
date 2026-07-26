@@ -291,6 +291,26 @@ Selects or re-inflects a pronoun for the locale. Given a pronoun operand, it re-
 
 Takes the same `grammatical*` options as `:l:inflect`, and likewise requires the locale's inflection data, degrading to an error when the data or locale is unavailable.
 
+### `:l:quantify`
+
+Joins a number with a noun so the noun agrees with it grammatically — the count-and-noun phrase that languages build differently (Slavic numeral government, the Arabic counted-noun cases, the Finnish partitive, and so on). The operand is the noun; the number is the required `count` option.
+
+```
+{$item :l:quantify count=$n}
+{|kilometer| :l:quantify count=2}
+```
+
+The `count` drives both the number joined to the noun (formatted with the message's locale) and the plural category the noun agrees with, so one template produces the right form across categories:
+
+| Locale | Template | Result |
+|--------|----------|--------|
+| `en` | `{|kilometer| :l:quantify count=2}` | `2 kilometers` |
+| `ru` | `{|час| :l:quantify count=2}` | `2 часа` |
+| `ru` | `{|час| :l:quantify count=5}` | `5 часов` |
+| `fi` | `{|talo| :l:quantify count=3}` | `3 taloa` |
+
+It also accepts the same `grammatical*` options as `:l:inflect`, to fix a case or gender the surrounding sentence requires. Like the other `l:` functions it needs the locale's inflection data; a missing or non-numeric `count`, a non-string operand, or absent data all resolve to a clean error, never a crash.
+
 ## Declarations
 
 Declarations appear at the start of a complex message, before the body.
@@ -585,6 +605,7 @@ The Localize MF2 implementation targets the [Unicode MessageFormat 2.0 specifica
 | `:list` | Localize | Locale-aware list join via `Localize.List` |
 | `:l:inflect` | Localize | Grammatical inflection via `Localize.Inflection` |
 | `:l:pronoun` | Localize | Pronoun selection via `Localize.Inflection` |
+| `:l:quantify` | Localize | Number-and-noun agreement via `Localize.Inflection` |
 
 ### `:list` — locale-aware list formatting
 
@@ -664,7 +685,7 @@ config :localize, :mf2_functions, %{
 }
 ```
 
-Per-call functions take precedence over application-level functions, which take precedence over built-in functions. A function name with no built-in implementation and no registry entry is an unknown-function error, per the MF2 specification: `format/3` returns `{:error, %Localize.FormatError{reason: :unknown_function}}`.
+Per-call functions take precedence over application-level functions. Both registries are consulted only for a function name that no built-in already handles — the built-in functions are authoritative and cannot be shadowed. A function name with no built-in implementation and no registry entry is an unknown-function error, per the MF2 specification: `format/3` returns `{:error, %Localize.FormatError{reason: :unknown_function}}`.
 
 **Implementing a custom function:**
 
@@ -685,6 +706,38 @@ end
 ```
 
 See `Localize.Message.Function` for the full callback specification.
+
+### Function namespaces
+
+A function name may carry a namespace — `:acme:price`. Namespaced functions resolve after the built-ins, so one handler can own an entire namespace rather than registering each function by its flattened name. Register a `Localize.Message.Namespace` handler per namespace, application-wide or per call:
+
+```elixir
+# config/config.exs
+config :localize, :mf2_namespaces, %{"acme" => MyApp.AcmeFunctions}
+
+# or per call
+Localize.Message.format(message, bindings, locale: :en, namespaces: %{"acme" => MyApp.AcmeFunctions})
+```
+
+The handler dispatches every function in its namespace by local name:
+
+```elixir
+defmodule MyApp.AcmeFunctions do
+  @behaviour Localize.Message.Namespace
+
+  @impl true
+  def format("price", value, func_opts, options) do
+    locale = Keyword.get(options, :locale)
+    MyApp.Price.to_string(value, locale: locale, currency: func_opts["currency"])
+  end
+
+  def format(name, _value, _func_opts, _options) do
+    {:error, {:unknown_function, ":acme:" <> name}}
+  end
+end
+```
+
+The single-letter namespaces `l` (Localize's own `:l:inflect` / `:l:pronoun` / `:l:quantify`) and `u` (CLDR-managed) are reserved: registering a handler for them has no effect, and an `l:` or `u:` function that no built-in handles is an unknown-function error. See `Localize.Message.Namespace` for the full callback specification.
 
 ## Syntax highlighting
 

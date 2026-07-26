@@ -28,8 +28,14 @@ defmodule Localize.Message.Function do
   Application-level functions are available to all
   `Localize.Message.format/3` calls without passing `:functions`
   on every call. Per-call functions take precedence over
-  application-level functions of the same name, which in turn
-  take precedence over built-in functions.
+  application-level functions of the same name.
+
+  Built-in functions are authoritative: both registries are
+  consulted only for a function name that no built-in already
+  handles, so a custom function cannot shadow `:number`, `:date`,
+  `:l:inflect`, or any other built-in. To own a whole custom
+  namespace with a single handler rather than one registration per
+  name, implement `Localize.Message.Namespace` instead.
 
   ## Implementing a custom function
 
@@ -62,7 +68,8 @@ defmodule Localize.Message.Function do
 
   * `func_opts` — a map of MF2 function options parsed from the
     expression (e.g. `%{"format" => "long", "formality" => "formal"}`).
-    Keys and values are strings.
+    Keys are strings. Values are strings, except an option written as
+    a number literal (e.g. `digits=2`) which arrives as a number.
 
   * `options` — the interpreter's keyword list, which includes at
     least `:locale` and `:bindings`.
@@ -77,8 +84,9 @@ defmodule Localize.Message.Function do
 
   * `value` is the resolved operand from the MF2 expression.
 
-  * `func_opts` is a map of string key/value pairs from the MF2
-    function options (e.g. `%{"format" => "long"}`).
+  * `func_opts` is a map of the MF2 function options with string
+    keys (e.g. `%{"format" => "long"}`); values are strings unless
+    written as a number literal.
 
   * `options` is the interpreter's keyword list (contains at least
     `:locale`).
