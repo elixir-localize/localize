@@ -20,10 +20,18 @@ defmodule Localize.LocaleIsStaleError do
       }) do
     Localize.Exception.safe_message(
       "locale",
-      "The cached locale {$locale_id} has version {$cached_version} but the current version is {$current_version}.",
+      "The cached locale {$locale_id} has CLDR data version {$cached_version} " <>
+        "but this release of Localize requires {$current_version}. " <>
+        "Run `mix localize.download_locales {$locale_id_bare}` to refresh it, " <>
+        "or set `config :localize, :allow_runtime_locale_download, true` to " <>
+        "enable on-demand downloading.",
       locale_id: inspect(locale_id),
-      cached_version: inspect(cached_version),
-      current_version: inspect(current_version)
+      locale_id_bare: locale_id,
+      cached_version: version_string(cached_version),
+      current_version: version_string(current_version)
     )
   end
+
+  defp version_string(%Version{} = version), do: Version.to_string(version)
+  defp version_string(other), do: inspect(other)
 end
