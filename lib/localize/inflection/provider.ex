@@ -9,15 +9,14 @@ defmodule Localize.Inflection.Provider do
   upstream pin or the generation pipeline changes.
 
   Files live at `<base-url>/<data-version>/<file>` — one
-  `<locale>.etf` per locale plus a single `pronouns.etf` pack of
-  all pronoun tables. Downloads are verified against the SHA-256
-  manifest shipped in the package (`priv/localize/inflection_hashes.etf`)
-  before anything is written, mirroring the locale-file integrity
-  scheme (see `Localize.Locale.Provider`).
+  `<locale>.etf` per locale, each carrying that locale's lexicon,
+  metadata, and pronoun table. Downloads are verified against the
+  SHA-256 manifest shipped in the package
+  (`priv/localize/inflection_hashes.etf`) before anything is written,
+  mirroring the locale-file integrity scheme (see
+  `Localize.Locale.Provider`).
 
   """
-
-  alias Localize.Inflection.DataDir
 
   # The pinned unicode-org/inflection commit the data is built from
   # lives in priv/localize/localize_inflection_sha, mirroring the
@@ -92,7 +91,7 @@ defmodule Localize.Inflection.Provider do
 
   ### Arguments
 
-  * `file_name` is a file name such as "ru.etf" or "pronouns.etf".
+  * `file_name` is a file name such as "ru.etf".
 
   ### Returns
 
@@ -204,27 +203,5 @@ defmodule Localize.Inflection.Provider do
       true ->
         :ok
     end
-  end
-
-  @doc """
-  Writes the pronoun tables pack into the data directory as the
-  individual CSV files the runtime reads.
-
-  ### Arguments
-
-  * `pack` is the decoded `pronouns.etf` map of file name to
-    contents.
-
-  ### Returns
-
-  * `:ok` after writing all tables.
-
-  """
-  def unpack_pronouns(pack) when is_map(pack) do
-    File.mkdir_p!(DataDir.dir())
-
-    Enum.each(pack, fn {file_name, contents} ->
-      File.write!(DataDir.path(file_name), contents)
-    end)
   end
 end

@@ -21,6 +21,10 @@ env:
   OTP_VERSION: "29.0.3"
   R2_BUCKET: content
   R2_PREFIX: inflection
+  # The conformance suite loads every supported locale's lexicon into
+  # :persistent_term (BEAM literal area), so bump the literal super
+  # carrier above its default. See plans/MF2_NAMESPACE_INFLECTION.md.
+  ELIXIR_ERL_OPTIONS: "+MIscs 3072"
 
 permissions:
   contents: read

@@ -64,7 +64,7 @@ defmodule Mix.Tasks.Localize.DownloadInflection do
     failures =
       Enum.count(locales, fn locale ->
         download(locale <> ".etf", force?) == :error
-      end) + if download_pronouns(force?) == :error, do: 1, else: 0
+      end)
 
     if failures > 0 do
       Mix.shell().error("#{failures} download(s) failed.")
@@ -117,26 +117,6 @@ defmodule Mix.Tasks.Localize.DownloadInflection do
 
         {:error, exception} ->
           Mix.shell().error("  #{file_name} FAILED: #{Exception.message(exception)}")
-          :error
-      end
-    end
-  end
-
-  # The pronoun tables travel as a single pack and are unpacked
-  # into the individual files the runtime reads.
-  defp download_pronouns(force?) do
-    if not force? and File.exists?(DataDir.path("pronoun_en.csv")) do
-      Mix.shell().info("  pronoun tables (present)")
-      :ok
-    else
-      case Provider.download_file("pronouns.etf") do
-        {:ok, body} ->
-          body |> :erlang.binary_to_term() |> Provider.unpack_pronouns()
-          Mix.shell().info("  pronoun tables (#{format_size(byte_size(body))})")
-          :ok
-
-        {:error, exception} ->
-          Mix.shell().error("  pronouns.etf FAILED: #{Exception.message(exception)}")
           :error
       end
     end

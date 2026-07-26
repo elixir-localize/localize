@@ -141,23 +141,22 @@ defmodule Localize.Inflection.PronounConcept do
     end
   end
 
-  # Resolves the pronoun table through the upstream fallback chain
-  # (special pairs first, then the parent locale) and parses it
-  # against the model locale's features. Parsed tables are cached.
+  # Resolves the pronoun table through the fallback chain and parses
+  # it against the model locale's features. Parsed tables are cached.
+  # A supported locale sources its table from the folded artifact;
+  # script-only tables that no shipped locale owns (e.g. zh_Hant)
+  # remain CSV fixtures read from the data directory.
   defp entries_for(model_locale, locale) do
-    locale
-    |> Locale.normalize()
-    |> resolve_table_locale()
-    |> case do
+    case resolve_table(Locale.normalize(locale)) do
       nil ->
         {:error, Localize.InflectionNotSupportedError.exception(locale: locale)}
 
-      table_locale ->
+      {table_locale, source} ->
         key = {__MODULE__, model_locale, table_locale}
 
         case :persistent_term.get(key, nil) do
           nil ->
-            entries = parse_table(model_locale, table_path(table_locale))
+            entries = parse_lines(model_locale, table_lines(table_locale, source))
             :persistent_term.put(key, entries)
             {:ok, table_locale, entries}
 
@@ -167,26 +166,42 @@ defmodule Localize.Inflection.PronounConcept do
     end
   end
 
-  defp resolve_table_locale(""), do: nil
+  # Script pairs first, then the parent locale. A supported locale
+  # carries its table in the loaded artifact (`:artifact`); any other
+  # locale with a CSV on disk — the script-only fixtures — sources it
+  # from the file (`:csv`).
+  defp resolve_table(""), do: nil
 
-  defp resolve_table_locale(locale) do
-    if File.exists?(table_path(locale)) do
-      locale
-    else
-      resolve_table_locale(Map.get(@locale_fallbacks, locale) || Locale.parent(locale))
+  defp resolve_table(locale) do
+    cond do
+      locale in Locale.supported() ->
+        {locale, :artifact}
+
+      File.exists?(table_path(locale)) ->
+        {locale, :csv}
+
+      true ->
+        resolve_table(Map.get(@locale_fallbacks, locale) || Locale.parent(locale))
     end
+  end
+
+  defp table_lines(table_locale, :artifact) do
+    Data.metadata!(String.to_existing_atom(table_locale)).pronouns
+  end
+
+  defp table_lines(table_locale, :csv) do
+    table_path(table_locale)
+    |> File.read!()
+    |> String.split("\n")
+    |> Enum.reject(&(String.trim(&1) == ""))
   end
 
   defp table_path(table_locale) do
     Localize.Inflection.DataDir.path("pronoun_#{table_locale}.csv")
   end
 
-  defp parse_table(model_locale, path) do
-    path
-    |> File.read!()
-    |> String.split("\n")
-    |> Enum.reject(&(String.trim(&1) == ""))
-    |> Enum.map(fn line ->
+  defp parse_lines(model_locale, lines) do
+    Enum.map(lines, fn line ->
       [word | cells] = String.split(String.trim_trailing(line, "\r"), ",")
 
       constraints =

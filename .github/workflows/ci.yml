@@ -9,6 +9,11 @@ on:
 env:
   MIX_ENV: test
   LOCALIZE_DEFAULT_LOCALE: en
+  # Inflection lexicons load into :persistent_term, which lives in the
+  # BEAM literal area. The conformance suite loads every supported
+  # locale (~1 GB of lexicons), so the literal super carrier is bumped
+  # above its default. See plans/MF2_NAMESPACE_INFLECTION.md.
+  ELIXIR_ERL_OPTIONS: "+MIscs 3072"
 
 permissions:
   contents: read

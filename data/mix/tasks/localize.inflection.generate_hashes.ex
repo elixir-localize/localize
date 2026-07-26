@@ -43,7 +43,9 @@ defmodule Mix.Tasks.Localize.Inflection.GenerateHashes do
   end
 
   defp file_names do
-    Enum.map(Locale.supported(), &(&1 <> ".etf")) ++ ["pronouns.etf"]
+    # Each locale ships as one .etf with its pronoun table folded in;
+    # there is no separate pronouns.etf pack.
+    Enum.map(Locale.supported(), &(&1 <> ".etf"))
   end
 
   defp from_local do

@@ -34,7 +34,7 @@ defmodule Mix.Tasks.Localize.Inflection.Generate do
       end
     end)
 
-    copy_pronoun_tables()
+    copy_script_pronoun_tables()
   end
 
   # A features-only language has a grammar.xml section but no
@@ -46,26 +46,24 @@ defmodule Mix.Tasks.Localize.Inflection.Generate do
     Map.has_key?(features, locale)
   end
 
-  # Pronoun tables are small runtime CSVs parsed lazily against the
-  # locale feature model; ship them verbatim under
-  # priv/localize/inflection/, plus a single pronouns.etf pack (one
-  # CDN object) that the download task unpacks.
-  defp copy_pronoun_tables do
+  # Supported locales carry their pronoun table folded into
+  # `<locale>.etf`. The only standalone CSVs kept are the script-only
+  # fixtures that no shipped locale owns (e.g. zh_Hant), which the
+  # conformance tests reach through the fallback chain; they are not
+  # uploaded to the CDN (only `*.etf` is).
+  defp copy_script_pronoun_tables do
     File.mkdir_p!("priv/localize/inflection")
-    paths = Path.wildcard("data/inflection/pronoun/pronoun_*.csv")
+    supported = MapSet.new(Locale.supported())
 
-    for path <- paths do
+    "data/inflection/pronoun/pronoun_*.csv"
+    |> Path.wildcard()
+    |> Enum.reject(fn path ->
+      locale = path |> Path.basename(".csv") |> String.replace_prefix("pronoun_", "")
+      MapSet.member?(supported, locale)
+    end)
+    |> Enum.each(fn path ->
       File.cp!(path, Path.join("priv/localize/inflection", Path.basename(path)))
-    end
-
-    if paths != [] do
-      pack = Map.new(paths, fn path -> {Path.basename(path), File.read!(path)} end)
-
-      File.write!(
-        Path.join("priv/localize/inflection", "pronouns.etf"),
-        :erlang.term_to_binary(pack, [:compressed, :deterministic])
-      )
-    end
+    end)
   end
 
   defp generate(locale) do
@@ -73,7 +71,7 @@ defmodule Mix.Tasks.Localize.Inflection.Generate do
     artifact = Localize.Inflection.DataGen.Generate.generate(locale)
 
     Mix.shell().info(
-      "  #{length(artifact.lexicon)} lexicon entries, " <>
+      "  #{map_size(artifact.lexicon)} lexicon entries, " <>
         "#{tuple_size(artifact.patterns)} patterns, " <>
         "#{tuple_size(artifact.grammeme_names)} grammemes"
     )

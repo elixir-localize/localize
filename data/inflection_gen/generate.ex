@@ -82,7 +82,16 @@ defmodule Localize.Inflection.DataGen.Generate do
       features: features,
       contractions: contractions(locale),
       suffix_exemplars: suffix_exemplars(locale, lexicon_entries),
-      lexicon: lexicon_entries
+      # The locale's pronoun table, folded in so each locale ships as
+      # one .etf (no separate pronouns.etf pack). Stored as raw CSV
+      # lines; the runtime parses them lazily against the feature
+      # model, exactly as it did when reading the CSV directly.
+      pronouns: pronoun_lines(locale),
+      # Emit the lexicon as a map keyed by surface form so the
+      # runtime loads it straight into :persistent_term with no
+      # list->map pass. `:deterministic` term_to_binary gives the map
+      # a canonical byte layout, so artifacts stay reproducible.
+      lexicon: Map.new(lexicon_entries, fn {word, mask, indexes} -> {word, {mask, indexes}} end)
     }
 
     write_artifact(locale, artifact)
@@ -273,6 +282,22 @@ defmodule Localize.Inflection.DataGen.Generate do
     |> String.downcase()
     |> String.graphemes()
     |> Enum.any?(&(&1 in ["a", "o", "u"]))
+  end
+
+  # Reads the locale's pronoun table as raw, non-empty CSV lines for
+  # folding into the artifact. Returns [] when the locale has no
+  # pronoun table upstream.
+  defp pronoun_lines(locale) do
+    path = source_path("pronoun/pronoun_#{locale}.csv")
+
+    if File.exists?(path) do
+      path
+      |> File.read!()
+      |> String.split("\n")
+      |> Enum.reject(&(String.trim(&1) == ""))
+    else
+      []
+    end
   end
 
   defp write_artifact(locale, artifact) do
