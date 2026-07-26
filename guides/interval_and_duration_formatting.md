@@ -4,7 +4,7 @@ This guide covers two related but distinct concepts in Localize:
 
 * **Intervals** (`Localize.Interval`) — format a pair of dates, times, or datetimes as a range like "Apr 22 – 25, 2024" or "Jan 15 – Mar 20, 2024". The inputs are the endpoints; the output is a localised range string.
 
-* **Durations** (`Localize.Duration`) — format an *amount of elapsed time* like "11 months and 30 days" or "37:48:12". The input is a duration struct (calculated from two points in time, or from a number of seconds); the output is a localised length-of-time string.
+* **Durations** (`Localize.Duration`) — format an *amount of elapsed time* like "11 months, 30 days" or "37:48:12". The input is a duration struct (calculated from two points in time, or from a number of seconds); the output is a localised length-of-time string.
 
 ## Interval formatting
 
@@ -157,7 +157,7 @@ iex> {d.minute, d.second}
 ```elixir
 iex> {:ok, d} = Localize.Duration.new(~D[2019-01-01], ~D[2019-12-31])
 iex> Localize.Duration.to_string(d, locale: :en)
-{:ok, "11 months and 30 days"}
+{:ok, "11 months, 30 days"}
 ```
 
 The `:format` option switches between `:long` (default), `:short`, and `:narrow` unit forms:
@@ -165,7 +165,7 @@ The `:format` option switches between `:long` (default), `:short`, and `:narrow`
 ```elixir
 iex> {:ok, d} = Localize.Duration.new(~D[2019-01-01], ~D[2019-12-31])
 iex> Localize.Duration.to_string(d, locale: :en, format: :short)
-{:ok, "11 mths and 30 days"}
+{:ok, "11 mths, 30 days"}
 ```
 
 The `:except` option drops specific units from the output. By default, `:microsecond` is excluded:

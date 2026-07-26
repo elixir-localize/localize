@@ -6,7 +6,7 @@ defmodule Localize.Duration do
 
   A duration is represented as years, months, days, hours,
   minutes, seconds, and microseconds. This is useful for
-  producing human-readable strings like "11 months and 30 days"
+  producing human-readable strings like "11 months, 30 days"
   or numeric patterns like "37:48:12".
 
   ## Creating durations
@@ -20,7 +20,7 @@ defmodule Localize.Duration do
   ## Formatting durations
 
   * `to_string/2` — formats a duration as a localized string
-    using unit names (e.g., "11 months and 30 days") via
+    using unit names (e.g., "11 months, 30 days") via
     `Localize.Unit` and `Localize.List`.
 
   * `to_time_string/2` — formats the time portion of a duration
@@ -243,7 +243,8 @@ defmodule Localize.Duration do
   Formats a duration as a localized string using unit names.
 
   Non-zero duration parts are formatted as units and joined
-  with the locale's list conjunction (e.g., "11 months and
+  with the locale's unit list pattern for the requested width,
+  per ECMA-402 `Intl.DurationFormat` (e.g., "11 months,
   30 days").
 
   ### Arguments
@@ -285,19 +286,19 @@ defmodule Localize.Duration do
 
       iex> {:ok, d} = Localize.Duration.new(~D[2019-01-01], ~D[2019-12-31])
       iex> Localize.Duration.to_string(d, locale: :en)
-      {:ok, "11 months and 30 days"}
+      {:ok, "11 months, 30 days"}
 
       iex> {:ok, d} = Localize.Duration.new(~D[2019-01-01], ~D[2019-12-31])
       iex> Localize.Duration.to_string(d, locale: :en, format: :narrow)
-      {:ok, "11m and 30d"}
+      {:ok, "11m 30d"}
 
       iex> duration = %Localize.Duration{hour: 2}
       iex> Localize.Duration.to_string(duration, locale: :en, display: [minute: :always])
-      {:ok, "2 hours and 0 minutes"}
+      {:ok, "2 hours, 0 minutes"}
 
       iex> duration = %Localize.Duration{hour: 2, minute: 30}
       iex> Localize.Duration.to_string(duration, locale: :en, styles: [hour: :narrow])
-      {:ok, "2h and 30 minutes"}
+      {:ok, "2h, 30 minutes"}
 
   """
   @spec to_string(t(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
@@ -332,8 +333,7 @@ defmodule Localize.Duration do
 
   defp format_units(units, locale, format, styles) do
     with {:ok, formatted_parts} <- format_each(units, locale, format, styles) do
-      # :standard is the "and"-conjunction list style.
-      Localize.List.to_string(formatted_parts, locale: locale, list_style: :standard)
+      Localize.List.to_string(formatted_parts, locale: locale, list_style: list_style(format))
     end
   end
 
@@ -367,7 +367,7 @@ defmodule Localize.Duration do
          %{type: :integer, value: "2", unit: :hour},
          %{type: :literal, value: " "},
          %{type: :unit, value: "hours"},
-         %{type: :literal, value: " and "},
+         %{type: :literal, value: ", "},
          %{type: :integer, value: "30", unit: :minute},
          %{type: :literal, value: " "},
          %{type: :unit, value: "minutes"}
@@ -440,7 +440,7 @@ defmodule Localize.Duration do
   defp units_to_parts(units, locale, format, styles) do
     with {:ok, parts_lists} <- parts_each(units, locale, format, styles),
          {:ok, interspersed} <-
-           Localize.List.intersperse(parts_lists, locale: locale, list_style: :standard) do
+           Localize.List.intersperse(parts_lists, locale: locale, list_style: list_style(format)) do
       parts =
         Enum.map(interspersed, fn
           separator when is_binary(separator) -> %{type: :literal, value: separator}
@@ -486,6 +486,16 @@ defmodule Localize.Duration do
   defp unit_format(key, styles, format) do
     Keyword.get(styles, key, format)
   end
+
+  # CLDR defines dedicated *unit* list patterns for joining measures,
+  # and ECMA-402's `Intl.DurationFormat` joins duration parts with the
+  # unit list style matched to the width: "3 days, 2 hr" rather than the
+  # `:standard` prose conjunction "3 days and 2 hr". The width follows
+  # the overall `:format` option, so a per-unit `:styles` override
+  # changes only that field's unit width, not the join (as in ECMA-402).
+  defp list_style(:short), do: :unit_short
+  defp list_style(:narrow), do: :unit_narrow
+  defp list_style(_long), do: :unit
 
   defp validate_per_unit(per_unit, option_name, allowed) when is_list(per_unit) do
     Enum.find_value(per_unit, :ok, fn
@@ -550,7 +560,7 @@ defmodule Localize.Duration do
 
       iex> {:ok, d} = Localize.Duration.new(~D[2019-01-01], ~D[2019-12-31])
       iex> Localize.Duration.to_string!(d, locale: :en)
-      "11 months and 30 days"
+      "11 months, 30 days"
 
   """
   @spec to_string!(t(), Keyword.t()) :: String.t() | no_return()
