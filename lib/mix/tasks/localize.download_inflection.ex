@@ -59,19 +59,38 @@ defmodule Mix.Tasks.Localize.DownloadInflection do
       "Downloading inflection data (#{Provider.data_version()}) for #{length(locales)} locales to #{DataDir.dir()}"
     )
 
+    case download_all(locales, force?) do
+      0 ->
+        Mix.shell().info("Done.")
+
+      failures ->
+        Mix.shell().error("#{failures} download(s) failed.")
+        System.halt(1)
+    end
+  end
+
+  @doc """
+  Downloads inflection data for the inflection-supported languages
+  among `locale_names`.
+
+  Accepts locale identifiers in any form; regional locales map to
+  their parent language (`en-AU` → `en`) and locales the inflection
+  project does not support are skipped. Returns the number of failed
+  downloads (0 on success). Shared with
+  `mix localize.download_locales`, which downloads inflection data
+  alongside the locale data so one command provisions both.
+
+  """
+  def download_for(locale_names, force? \\ false) do
+    download_all(supported_languages(locale_names), force?)
+  end
+
+  defp download_all(languages, force?) do
     File.mkdir_p!(DataDir.dir())
 
-    failures =
-      Enum.count(locales, fn locale ->
-        download(locale <> ".etf", force?) == :error
-      end)
-
-    if failures > 0 do
-      Mix.shell().error("#{failures} download(s) failed.")
-      System.halt(1)
-    else
-      Mix.shell().info("Done.")
-    end
+    Enum.count(languages, fn language ->
+      download(language <> ".etf", force?) == :error
+    end)
   end
 
   defp resolve_locales(options, locale_args) do
@@ -79,11 +98,7 @@ defmodule Mix.Tasks.Localize.DownloadInflection do
 
     cond do
       locale_args != [] ->
-        locale_args
-        |> Enum.map(&Locale.normalize/1)
-        |> Enum.map(&language/1)
-        |> Enum.uniq()
-        |> Enum.filter(&(&1 in supported))
+        supported_languages(locale_args)
 
       options[:all] ->
         supported
@@ -96,6 +111,16 @@ defmodule Mix.Tasks.Localize.DownloadInflection do
           restricted -> restricted
         end
     end
+  end
+
+  defp supported_languages(locale_names) do
+    supported = Locale.supported()
+
+    locale_names
+    |> Enum.map(&Locale.normalize/1)
+    |> Enum.map(&language/1)
+    |> Enum.uniq()
+    |> Enum.filter(&(&1 in supported))
   end
 
   defp language(internal) do

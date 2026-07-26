@@ -4,14 +4,16 @@ This guide covers the practical use of `Localize.Inflection`: inflecting words a
 
 ## Inflection data
 
-Inflection is part of Localize, and its data is optional: nothing is downloaded unless you ask for it. Each locale ships as a single `<locale>.etf` carrying its dictionary, grammatical metadata, and pronoun table, built from the [Unicode inflection project](https://github.com/unicode-org/inflection) at a pinned commit. Provision it per locale from the Localize CDN with the mix task:
+Inflection is part of Localize, and its data is optional: nothing is downloaded unless you ask for it. Each locale ships as a single `<locale>.etf` carrying its dictionary, grammatical metadata, and pronoun table, built from the [Unicode inflection project](https://github.com/unicode-org/inflection) at a pinned commit.
+
+`mix localize.download_locales` downloads inflection data alongside the locale data, so the usual one command provisions both — no separate step:
 
 ```
-mix localize.download_inflection            # the configured :supported_locales
-mix localize.download_inflection en de ru   # specific locales
+mix localize.download_locales            # locales + inflection for the configured :supported_locales
+mix localize.download_locales en de ru   # locales + inflection for these
 ```
 
-Each file is verified against a SHA-256 manifest shipped in the package before it is written. Locales you never download cost nothing; inflection functions return `{:error, %Localize.InflectionDataNotAvailableError{}}` when a locale's data is not present — distinct from `%Localize.InflectionNotSupportedError{}` for languages the Unicode inflection project does not cover.
+Locales the inflection project does not support are skipped, and regional locales map to their parent language (`en-AU` uses `en`). To fetch inflection data on its own, `mix localize.download_inflection` takes the same arguments. Each file is verified against a SHA-256 manifest shipped in the package before it is written. Locales you never download cost nothing; inflection functions return `{:error, %Localize.InflectionDataNotAvailableError{}}` when a locale's data is not present — distinct from `%Localize.InflectionNotSupportedError{}` for languages the Unicode inflection project does not cover.
 
 The data directory follows the locale-cache configuration convention:
 

@@ -5,6 +5,12 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
   Downloads locale ETF files from the Localize CDN and stores
   them in the configured locale cache directory.
 
+  Inflection data for the same locales is downloaded in the same
+  step (via `mix localize.download_inflection`), so one command
+  provisions both. Locales the inflection project does not support
+  are skipped, and regional locales map to their parent language
+  (`en-AU` uses `en`).
+
   This task is intended to be run at build time (e.g. in a
   Dockerfile or CI pipeline) so that all required locales are
   available in the cache before the application starts. This
@@ -138,7 +144,26 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
       # User declined at the confirmation prompt
       :ok
     else
-      download_locales(locales, force: opts[:force] || false)
+      force? = opts[:force] || false
+      download_locales(locales, force: force?)
+      download_inflection_data(locales, force?)
+    end
+  end
+
+  # Inflection data is downloaded alongside the locale data so a single
+  # command provisions both. Only inflection-supported languages among
+  # the requested locales are fetched; the rest are skipped. Inflection
+  # is optional data, so failures are reported but do not fail the task
+  # — the locale data is already in place.
+  defp download_inflection_data(locales, force?) do
+    Mix.shell().info("Downloading inflection data for supported locales")
+
+    case Mix.Tasks.Localize.DownloadInflection.download_for(locales, force?) do
+      0 ->
+        :ok
+
+      failures ->
+        Mix.shell().error("#{failures} inflection download(s) failed; locale data is unaffected.")
     end
   end
 
