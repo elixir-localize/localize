@@ -1043,6 +1043,45 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
+  # ── Inflection (`l:` namespace) ──────────────────────────────────
+  #
+  # `:l:inflect` inflects its phrase operand for the grammatical
+  # constraints given in its options; `:l:pronoun` selects a pronoun
+  # (or re-inflects the operand pronoun). Both wrap the in-tree
+  # `Localize.Inflection` engine and need the locale's inflection data
+  # present — a missing locale or absent data resolves to a clean
+  # error tuple, never a crash. `:l:quantify` is deferred until the
+  # engine ships the concept/quantity primitives it needs.
+
+  defp format_with_function("l:inflect", value, func_opts, options) when is_binary(value) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    case Localize.Inflection.inflect(value, locale, map_inflect_constraints(func_opts)) do
+      {:ok, inflected} when is_binary(inflected) -> {:ok, inflected}
+      # Speakable strings collapse to the print form for MF2's single
+      # output channel.
+      {:ok, {print, _speak}} -> {:ok, print}
+      {:error, _} = error -> error
+    end
+  end
+
+  defp format_with_function("l:inflect", value, _func_opts, _options) do
+    {:error, "the :l:inflect function requires a string operand, got #{inspect(value)}"}
+  end
+
+  defp format_with_function("l:pronoun", value, func_opts, options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    constraints = map_inflect_constraints(func_opts)
+
+    case value do
+      seed when is_binary(seed) and seed != "" ->
+        Localize.Inflection.pronoun(locale, seed, constraints)
+
+      _ ->
+        Localize.Inflection.pronoun(locale, constraints)
+    end
+  end
+
   # ── Custom function registry ─────────────────────────────────────
   #
   # When a function name is not matched by any built-in clause
@@ -1067,6 +1106,25 @@ defmodule Localize.Message.Interpreter do
         # the operand.
         {:error, {:unknown_function, ":" <> name}}
     end
+  end
+
+  # Maps MF2 grammatical option names to the inflection engine's bare
+  # constraint names. Values stay as strings; the engine normalizes
+  # both names and values (`Localize.Inflection.Feature`).
+  defp map_inflect_constraints(func_opts) do
+    %{
+      grammaticalCase: :case,
+      grammaticalGender: :gender,
+      grammaticalNumber: :number,
+      grammaticalDefiniteness: :definiteness,
+      grammaticalPerson: :person
+    }
+    |> Enum.reduce(%{}, fn {mf2_key, engine_key}, acc ->
+      case Map.get(func_opts, mf2_key) do
+        nil -> acc
+        value -> Map.put(acc, engine_key, value)
+      end
+    end)
   end
 
   defp format_number_as_unit(_number, nil, _func_opts, _options) do

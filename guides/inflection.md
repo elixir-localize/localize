@@ -275,6 +275,20 @@ iex> Localize.Unit.to_string(unit, locale: :ru, grammatical_case: :prepositional
 {:ok, "2 километрах"}
 ```
 
+## In MessageFormat 2 messages
+
+Inflection is available inside MF2 messages through the `l:` namespace: `:l:inflect` inflects its operand phrase, and `:l:pronoun` selects or re-inflects a pronoun. Grammatical constraints are passed as `grammatical*` options — `grammaticalCase`, `grammaticalGender`, `grammaticalNumber`, `grammaticalDefiniteness`, `grammaticalPerson` — mirroring the `:unit` function's naming:
+
+```elixir
+iex> Localize.Message.format("{$w :l:inflect grammaticalNumber=plural}", %{w: "light on the patio"}, locale: :en)
+{:ok, "lights on the patio"}
+
+iex> Localize.Message.format("{|he| :l:pronoun grammaticalCase=accusative}", %{}, locale: :en)
+{:ok, "him"}
+```
+
+The functions need the locale's inflection data present; a missing locale or absent data resolves to an error rather than crashing the format. `:l:quantify` is not yet available.
+
 ## Error handling
 
 All entry points return tagged tuples. Unknown features and invalid grammeme values are rejected against the locale's feature model:
