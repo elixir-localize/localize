@@ -56,19 +56,19 @@ defmodule Localize.Locale.Provider.PersistentTerm do
     with {:ok, locale_id} <- cldr_locale_id_from(locale) do
       case Cache.get(locale_id) do
         {:ok, locale_data} -> {:ok, locale_data}
-        {:error, _} -> load_miss(locale_id, locale_id)
+        {:error, cache_error} -> load_miss(locale_id, locale_id, cache_error)
       end
     end
   end
 
   if @env in [:dev, :test] do
-    defp load_miss(_locale_id, locale) do
+    defp load_miss(_locale_id, locale, _cache_error) do
       locale_string = to_string(locale)
       locale_data = Localize.Data.Locale.generate_and_transform(locale_string)
       {:ok, locale_data}
     end
   else
-    defp load_miss(locale_id, _locale) do
+    defp load_miss(locale_id, _locale, cache_error) do
       if Localize.Locale.Provider.allow_download?(__MODULE__) do
         case Localize.Locale.Provider.download_locale(locale_id) do
           {:ok, binary} ->
@@ -79,12 +79,21 @@ defmodule Localize.Locale.Provider.PersistentTerm do
             {:error, exception}
         end
       else
-        {:error,
-         Localize.LocaleNotFoundInCacheError.exception(
-           locale_id: locale_id,
-           path: Cache.path(locale_id)
-         )}
+        {:error, cache_miss_reason(locale_id, cache_error)}
       end
+    end
+
+    # Without downloads there is no way to refresh the cache, so the
+    # cache error *is* the outcome. A stale cached locale reports
+    # staleness (the file exists but predates this release's data);
+    # anything else reports the file as absent.
+    defp cache_miss_reason(_locale_id, %Localize.LocaleIsStaleError{} = stale), do: stale
+
+    defp cache_miss_reason(locale_id, _cache_error) do
+      Localize.LocaleNotFoundInCacheError.exception(
+        locale_id: locale_id,
+        path: Cache.path(locale_id)
+      )
     end
   end
 

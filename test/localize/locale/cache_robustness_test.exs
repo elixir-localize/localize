@@ -55,6 +55,36 @@ defmodule Localize.Locale.Provider.CacheRobustnessTest do
     end
   end
 
+  describe "locale data cached from an earlier release" do
+    # The upgrade path: an installation whose cached locales were
+    # downloaded under a previous CLDR data version. The cached file
+    # exists, so reporting it as missing sends the reader looking for
+    # the wrong problem — it must be reported as stale.
+    @tag :tmp_dir
+    test "get/1 reports a version mismatch as stale, not as a cache miss" do
+      path = Cache.path(@locale_id)
+      File.mkdir_p!(Path.dirname(path))
+      %Version{} = current = Localize.version()
+      previous = %Version{current | patch: current.patch + 1}
+      File.write!(path, :erlang.term_to_binary(%{version: previous}))
+
+      assert {:error, %Localize.LocaleIsStaleError{} = error} = Cache.get(@locale_id)
+      assert Cache.stale?(@locale_id)
+
+      message = Exception.message(error)
+      assert message =~ Version.to_string(previous)
+      assert message =~ Version.to_string(current)
+      # The message must say how to recover.
+      assert message =~ "mix localize.download_locales"
+      assert message =~ "allow_runtime_locale_download"
+    end
+
+    @tag :tmp_dir
+    test "get/1 still reports a genuinely absent locale as a cache miss" do
+      assert {:error, %Localize.LocaleNotFoundInCacheError{}} = Cache.get(@locale_id)
+    end
+  end
+
   describe "atomic writes" do
     @tag :tmp_dir
     test "store/2 leaves no temporary files behind", %{tmp_dir: tmp_dir} do

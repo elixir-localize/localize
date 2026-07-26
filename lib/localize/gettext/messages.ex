@@ -203,7 +203,7 @@ defmodule Localize.Gettext.Messages do
         Localize.Gettext,
         "localize",
         "locale",
-        "The cached locale {$locale_id} has version {$cached_version} but the current version is {$current_version}."
+        "The cached locale {$locale_id} has CLDR data version {$cached_version} but this release of Localize requires {$current_version}. Run `mix localize.download_locales {$locale_id_bare}` to refresh it, or set `config :localize, :allow_runtime_locale_download, true` to enable on-demand downloading."
       ),
       Gettext.Macros.dpgettext_noop_with_backend(
         Localize.Gettext,

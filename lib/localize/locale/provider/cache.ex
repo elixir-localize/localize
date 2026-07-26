@@ -93,8 +93,21 @@ defmodule Localize.Locale.Provider.Cache do
 
   defp read_first(locale_id, [file_path | rest]) do
     case read_and_validate(locale_id, file_path) do
-      {:ok, _locale_data} = success -> success
-      {:error, _} -> read_first(locale_id, rest)
+      {:ok, _locale_data} = success ->
+        success
+
+      # A stale file in an earlier search path is the more specific
+      # diagnosis: the locale *is* cached, just at the wrong data
+      # version. Keep it rather than reporting the last path's
+      # "not found", which sends the reader looking for a missing file.
+      {:error, %Localize.LocaleIsStaleError{}} = stale ->
+        case read_first(locale_id, rest) do
+          {:ok, _locale_data} = success -> success
+          {:error, _later} -> stale
+        end
+
+      {:error, _reason} ->
+        read_first(locale_id, rest)
     end
   end
 

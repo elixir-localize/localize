@@ -149,12 +149,6 @@ msgctxt "locale"
 msgid "No parent territory found for {$territory}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:202
-#, elixir-autogen, icu-format
-msgctxt "locale"
-msgid "The cached locale {$locale_id} has version {$cached_version} but the current version is {$current_version}."
-msgstr ""
-
 #: lib/localize/gettext/messages.ex:208
 #, elixir-autogen, icu-format
 msgctxt "locale"
@@ -603,4 +597,10 @@ msgstr ""
 #, elixir-autogen, icu-format
 msgctxt "message"
 msgid "Invalid message: the variable {$detail} is declared more than once"
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:202
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "The cached locale {$locale_id} has CLDR data version {$cached_version} but this release of Localize requires {$current_version}. Run `mix localize.download_locales {$locale_id_bare}` to refresh it, or set `config :localize, :allow_runtime_locale_download, true` to enable on-demand downloading."
 msgstr ""
