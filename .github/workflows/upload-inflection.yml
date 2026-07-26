@@ -1,12 +1,17 @@
 name: Upload Inflection Data to Cloudflare R2
 
-# Reusable workflow called from ci.yml ahead of the test matrix
-# (the same shape as upload-locales), plus a manual dispatch for
-# recovery. The inflection data is versioned by the pinned
-# unicode-org/inflection commit plus a pipeline revision, so every
-# push that leaves the pin unchanged finds the data already on R2
-# and skips.
+# Publishes the inflection data to Cloudflare R2. On push to the
+# `inflection` branch it reads the data version from
+# priv/localize/localize_inflection_sha (plus the pipeline revision)
+# and uploads that version when it is not already on R2 — i.e. the
+# version changed or was never uploaded. A push that leaves the
+# version unchanged finds it already on R2 and short-circuits to a
+# cheap no-op (no filter, so the never-uploaded case fires on any
+# push). Also reusable from ci.yml (post-merge on main, ahead of the
+# test matrix) and manually dispatchable for recovery.
 on:
+  push:
+    branches: [inflection]
   workflow_call:
   workflow_dispatch:
 
