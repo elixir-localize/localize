@@ -26,7 +26,7 @@ Localize consolidates the functionality of the `ex_cldr_*` library family into a
 
 * **Intervals** — format date, time, and datetime ranges.
 
-* **Durations** — format elapsed time as calendar-unit strings ("11 months and 30 days") or numeric time strings ("37:48:12").
+* **Durations** — format elapsed time as calendar-unit strings ("11 months, 30 days") or numeric time strings ("37:48:12").
 
 * **Units** — format units of measure with plural-aware patterns and territory-based usage preferences.
 

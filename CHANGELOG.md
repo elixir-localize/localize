@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+* `Localize.Duration.to_string/2` and `to_parts/2` join duration parts with CLDR's unit list patterns matched to the format width, per ECMA-402 `Intl.DurationFormat`, instead of the standard "and" conjunction: `:en` now renders "3 days, 2 hr" (was "3 days and 2 hr") and "3d 2h" for `format: :narrow`.
+
 ## [1.0.0-rc.6] — July 27th, 2026
 
 ### Fixed

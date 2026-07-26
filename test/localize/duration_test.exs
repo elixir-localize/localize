@@ -136,7 +136,7 @@ defmodule Localize.DurationTest do
     test "formats duration with unit names" do
       {:ok, d} = Localize.Duration.new(~D[2019-01-01], ~D[2019-12-31])
       {:ok, s} = Localize.Duration.to_string(d, locale: :en)
-      assert s == "11 months and 30 days"
+      assert s == "11 months, 30 days"
     end
 
     test "omits zero parts" do
@@ -281,7 +281,7 @@ defmodule Localize.DurationTest do
   describe "to_string/2 formats and errors" do
     test "defaults the options argument" do
       duration = Localize.Duration.new!(~D[2019-01-01], ~D[2019-12-31])
-      assert {:ok, "11 months and 30 days"} = Localize.Duration.to_string(duration)
+      assert {:ok, "11 months, 30 days"} = Localize.Duration.to_string(duration)
     end
 
     test "an all-zero duration formats as zero seconds" do
@@ -292,7 +292,7 @@ defmodule Localize.DurationTest do
     test "short format abbreviates unit names" do
       duration = Localize.Duration.new!(~D[2019-01-01], ~D[2019-12-31])
 
-      assert {:ok, "11 mths and 30 days"} =
+      assert {:ok, "11 mths, 30 days"} =
                Localize.Duration.to_string(duration, locale: :en, format: :short)
     end
 
@@ -350,7 +350,7 @@ defmodule Localize.DurationTest do
 
   describe "to_string/2 per-unit options" do
     test "display :always renders zero-valued units" do
-      assert {:ok, "2 hours and 0 minutes"} =
+      assert {:ok, "2 hours, 0 minutes"} =
                Localize.Duration.to_string(%Localize.Duration{hour: 2},
                  locale: :en,
                  display: [minute: :always]
@@ -366,7 +366,7 @@ defmodule Localize.DurationTest do
     end
 
     test "per-unit styles override the format" do
-      assert {:ok, "2h and 30 minutes"} =
+      assert {:ok, "2h, 30 minutes"} =
                Localize.Duration.to_string(%Localize.Duration{hour: 2, minute: 30},
                  locale: :en,
                  styles: [hour: :narrow]
