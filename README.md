@@ -57,7 +57,7 @@ Localize ships a [Claude Code](https://claude.com/claude-code) skill that teache
 /plugin install localize@localize
 ```
 
-The skill source lives in [skills/localize](https://github.com/elixir-localize/localize/blob/v1.0.0-rc.2/skills/localize/SKILL.md).
+The skill source lives in [skills/localize](https://github.com/elixir-localize/localize/blob/v1.0.0-rc.5/skills/localize/SKILL.md).
 
 ## MCP server
 
@@ -76,7 +76,7 @@ Add `localize` to your dependencies in `mix.exs`. Note that a release-candidate 
 ```elixir
 def deps do
   [
-    {:localize, "~> 1.0.0-rc.2"}
+    {:localize, "~> 1.0.0-rc.5"}
   ]
 end
 ```
@@ -86,7 +86,7 @@ On OTP 26 only:
 ```elixir
 def deps do
   [
-    {:localize, "~> 1.0.0-rc.2"},
+    {:localize, "~> 1.0.0-rc.5"},
     {:json_polyfill, "~> 0.2 or ~> 1.0"}
   ]
 end
@@ -327,4 +327,4 @@ Localize is the core CLDR-backed formatting and validation library. The followin
 
 ## License
 
-Apache License 2.0. See the [LICENSE](https://github.com/elixir-localize/localize/blob/v1.0.0-rc.2/LICENSE.md) file for details.
+Apache License 2.0. See the [LICENSE](https://github.com/elixir-localize/localize/blob/v1.0.0-rc.5/LICENSE.md) file for details.
