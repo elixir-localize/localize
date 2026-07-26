@@ -309,3 +309,61 @@ iex> Localize.Inflection.pronoun(:en, "garbage", person: :first)
 ## Performance
 
 Operations are in-memory lookups and suffix rewrites: feature queries and pronoun selection run in about 2 µs, phrase inflection in 8–21 µs depending on the language (measured with `mix run bench/inflection.exs`). Loading a locale's artifact on first use takes tens of milliseconds for most locales and up to ~700 ms for the largest lexicons (German at ~1.3M entries, Arabic at ~0.8M); it is a one-time cost per locale, after which reads are copy-free from `:persistent_term`. See the *Memory and the literal area* section above for the footprint of loading many locales at once.
+
+## Per-locale size and memory
+
+Each locale is a single compressed `.etf` downloaded from the CDN; loading it expands the lexicon and metadata into `:persistent_term` (the BEAM literal area), where it stays resident for the life of the node. The in-memory footprint is roughly 15–20× the download. Analytic languages (`zh`, `ja`, `vi`, `id`, `ms`, `th`, `yue`) ship no dictionary, so they cost almost nothing.
+
+Size the `+MIscs` literal-area flag (see *Memory and the literal area*) against the locales you actually load. Loading **all 48 at once needs ~840 MB**; most applications use only a handful and need no change. The figures below are measured on OTP 29 (64-bit): *Download* is the `.etf` byte size, and *In memory* is the `:persistent_term` growth when the locale is loaded.
+
+| Locale | Download | In memory | Lexicon entries |
+|--------|----------|-----------|-----------------|
+| `ar` | 9.5 MB | 166.4 MB | 813,579 |
+| `de` | 6.9 MB | 123.0 MB | 1,280,915 |
+| `ru` | 4.4 MB | 97.6 MB | 917,072 |
+| `ml` | 3.6 MB | 88.3 MB | 749,381 |
+| `da` | 3.1 MB | 59.9 MB | 613,052 |
+| `es` | 2.6 MB | 55.7 MB | 559,750 |
+| `it` | 1.9 MB | 40.4 MB | 414,575 |
+| `sv` | 1.6 MB | 33.1 MB | 342,776 |
+| `he` | 1.4 MB | 25.5 MB | 147,770 |
+| `cs` | 1.3 MB | 23.0 MB | 248,422 |
+| `fr` | 1.1 MB | 25.3 MB | 257,114 |
+| `uk` | 979 KB | 25.5 MB | 238,954 |
+| `nb` | 799 KB | 15.6 MB | 166,627 |
+| `en` | 675 KB | 12.4 MB | 127,524 |
+| `sk` | 621 KB | 12.1 MB | 129,290 |
+| `bn` | 527 KB | 10.2 MB | 71,755 |
+| `el` | 326 KB | 5.6 MB | 39,070 |
+| `nl` | 208 KB | 3.3 MB | 17,318 |
+| `pt` | 190 KB | 3.8 MB | 36,095 |
+| `pl` | 175 KB | 2.9 MB | 26,483 |
+| `fi` | 96 KB | 1.9 MB | 12,416 |
+| `pa` | 80 KB | 1.3 MB | 9,545 |
+| `hi` | 66 KB | 1.1 MB | 7,514 |
+| `ur` | 66 KB | 1.1 MB | 7,573 |
+| `ta` | 54 KB | 1.1 MB | 6,526 |
+| `hr` | 39 KB | 762 KB | 5,556 |
+| `tr` | 23 KB | 339 KB | 3,685 |
+| `sr` | 12 KB | 224 KB | 1,351 |
+| `ko` | 9 KB | 120 KB | 1,409 |
+| `or` | 8 KB | 149 KB | 1,220 |
+| `ca` | 5 KB | 63 KB | 480 |
+| `mr` | 5 KB | 63 KB | 287 |
+| `bg` | 4 KB | 40 KB | 211 |
+| `ro` | 4 KB | 41 KB | 151 |
+| `te` | 3 KB | 28 KB | 72 |
+| `hu` | 3 KB | 26 KB | 65 |
+| `gu` | 2 KB | 18 KB | 47 |
+| `lt` | 2 KB | 20 KB | 67 |
+| `kn` | 2 KB | 17 KB | 36 |
+| `kk` | 2 KB | 15 KB | 35 |
+| `is` | 2 KB | 16 KB | 60 |
+| `th` | 718 B | 5 KB | 0 |
+| `vi` | 611 B | 4 KB | 0 |
+| `id` | 564 B | 4 KB | 0 |
+| `ms` | 554 B | 4 KB | 0 |
+| `ja` | 455 B | 3 KB | 0 |
+| `zh` | 445 B | 3 KB | 0 |
+| `yue` | 389 B | 2 KB | 0 |
+| **all 48** | **42.2 MB** | **838.1 MB** | **7,255,828** |

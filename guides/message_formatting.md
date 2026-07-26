@@ -256,6 +256,41 @@ Formats a combined date and time value.
 | `dateStyle` / `dateLength` | `short`, `medium`, `long`, `full` | Date portion style. |
 | `timeStyle` / `timePrecision` | `short`, `medium`, `long`, `full` | Time portion style/precision. |
 
+### `:l:inflect`
+
+Inflects a phrase for grammatical constraints using the locale's inflection data. Localize's inflection functions live in the `l:` namespace.
+
+```
+{$noun :l:inflect grammaticalCase=dative}
+{$phrase :l:inflect grammaticalNumber=plural}
+{$adjective :l:inflect grammaticalGender=feminine grammaticalCase=genitive}
+```
+
+| Option | Values | Description |
+|--------|--------|-------------|
+| `grammaticalCase` | locale case name (`dative`, `instrumental`, …) | The grammatical case to inflect to. |
+| `grammaticalGender` | locale gender name (`feminine`, `masculine`, …) | The grammatical gender. |
+| `grammaticalNumber` | `singular`, `plural`, `dual`, … | The grammatical number. |
+| `grammaticalDefiniteness` | `definite`, `indefinite`, … | Definiteness, where the locale distinguishes it. |
+| `grammaticalPerson` | `first`, `second`, `third` | Grammatical person. |
+
+Constraints the locale's feature model does not define are ignored. When the locale's inflection data is not installed, or the language is unsupported, the function resolves to an error rather than crashing the format — the message falls back per the MF2 error rules.
+
+> #### Inflection data and memory {: .warning}
+>
+> Inflection functions load per-locale data that is downloaded separately (`mix localize.download_locales` provisions it) and held in `:persistent_term`. That data is **large** — tens to well over a hundred megabytes in memory for a big locale, and loading many locales at once can require raising the BEAM literal-area size (`+MIscs`). Read the [inflection guide](https://hexdocs.pm/localize/inflection.html) — in particular its *Per-locale size and memory* table — before enabling inflection across many locales.
+
+### `:l:pronoun`
+
+Selects or re-inflects a pronoun for the locale. Given a pronoun operand, it re-inflects that pronoun for the requested grammatical constraints.
+
+```
+{|he| :l:pronoun grammaticalCase=accusative}
+{$pronoun :l:pronoun grammaticalCase=dative grammaticalNumber=plural}
+```
+
+Takes the same `grammatical*` options as `:l:inflect`, and likewise requires the locale's inflection data, degrading to an error when the data or locale is unavailable.
+
 ## Declarations
 
 Declarations appear at the start of a complex message, before the body.
@@ -548,6 +583,8 @@ The Localize MF2 implementation targets the [Unicode MessageFormat 2.0 specifica
 | `:currency` | Extended | Currency format via `Localize.Number` |
 | `:unit` | Extended | Unit format via `Localize.Unit` |
 | `:list` | Localize | Locale-aware list join via `Localize.List` |
+| `:l:inflect` | Localize | Grammatical inflection via `Localize.Inflection` |
+| `:l:pronoun` | Localize | Pronoun selection via `Localize.Inflection` |
 
 ### `:list` — locale-aware list formatting
 
