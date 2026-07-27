@@ -278,7 +278,7 @@ Constraints the locale's feature model does not define are ignored. When the loc
 
 > #### Inflection data and memory {: .warning}
 >
-> Inflection functions load per-locale data that is downloaded separately (`mix localize.download_locales` provisions it) and held in `:persistent_term`. That data is **large** — tens to well over a hundred megabytes in memory for a big locale, and loading many locales at once can require raising the BEAM literal-area size (`+MIscs`). Read the [inflection guide](https://hexdocs.pm/localize/inflection.html) — in particular its *Per-locale size and memory* table — before enabling inflection across many locales.
+> Inflection functions load per-locale data that is downloaded separately (`mix localize.download_locales` provisions it) and held in `:persistent_term`. That data is **large** — tens to well over a hundred megabytes in memory for a big locale. No emulator tuning is needed, but the footprint is worth knowing before you enable inflection across many locales: read the [inflection guide](https://hexdocs.pm/localize/inflection.html), in particular its *Per-locale size and memory* table.
 
 ### `:l:pronoun`
 

@@ -26,9 +26,10 @@ env:
   OTP_VERSION: "29.0.3"
   R2_BUCKET: content
   R2_PREFIX: inflection
-  # The conformance suite loads every supported locale's lexicon into
-  # :persistent_term (BEAM literal area), so bump the literal super
-  # carrier above its default. See plans/MF2_NAMESPACE_INFLECTION.md.
+  # No longer required: packed lexicons are binaries rather than
+  # literals, so the conformance suite loads every supported locale
+  # without bumping the literal super carrier. Retained as headroom
+  # only — safe to drop. See plans/INFLECTION_LEXICON_PACKING.md.
   ELIXIR_ERL_OPTIONS: "+MIscs 3072"
 
 permissions:

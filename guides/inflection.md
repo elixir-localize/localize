@@ -39,15 +39,17 @@ With downloads permitted, resolving a locale whose artifact is not present fetch
 
 A locale's artifact loads lazily: the first operation on a locale loads its lexicon and metadata into `:persistent_term`, where reads are copy-free; subsequent operations are lookups measured in microseconds.
 
-The lexicon — the bulk of the data — is held in a packed binary form rather than a map, which keeps it out of the BEAM *literal area*: binaries of any size are stored in the shared binary heap, and only the small wrapper is a literal. What remains in the literal area is each locale's metadata, principally its inflection patterns. That matters because `:persistent_term` holds terms in the literal area, and exhausting the default literal super carrier aborts the emulator with `literal_alloc: Cannot allocate ...`.
+The lexicon — the bulk of the data — is held in a packed binary form rather than a map, which keeps it out of the BEAM *literal area*: binaries of any size are stored in the shared binary heap, and only the small wrapper is a literal. What remains in the literal area is each locale's metadata, principally its inflection patterns.
 
-Most applications use a handful of locales and need no tuning. Loading **all 48 at once** needs roughly 114 MB of literal area (and ~195 MB in total), which still exceeds the default. Raise it with an emulator flag (`vm.args`, `rel/env.sh`, or `ELIXIR_ERL_OPTIONS`) sized to the locales you actually load, with headroom:
+**No emulator tuning is required.** Loading all 48 locales at once costs ~195 MB in total, of which ~114 MB is literal area — comfortably inside the default literal super carrier. This is measured: the full test suite loads every supported locale and passes with no emulator flags on OTP 29 (64-bit).
+
+Earlier revisions of this data did need `ELIXIR_ERL_OPTIONS="+MIscs 3072"`, because an unpacked lexicon put roughly 1 GB into the literal area and exhausting the super carrier aborts the emulator with `literal_alloc: Cannot allocate ...`. Packing removed that. If you ever do see that abort — loading many locales in an already literal-heavy release, say — raising the super carrier is still the fix:
 
 ```
 +MIscs 3072
 ```
 
-Arabic is the outlier: its ~14,000 inflection patterns account for ~82 MB of its ~109 MB, nearly all of it literal area, so an application loading Arabic should budget for it specifically.
+Arabic is the outlier worth knowing about: its ~14,000 inflection patterns account for ~82 MB of its ~109 MB, nearly all of it literal area. It is the one locale whose footprint is dominated by patterns rather than its lexicon.
 
 ## Quick start
 
@@ -323,7 +325,7 @@ Loading a locale's artifact on first use is a plain read of its packed form: a f
 
 Each locale is a single compressed `.etf` downloaded from the CDN; loading it expands the lexicon and metadata into `:persistent_term`, where it stays resident for the life of the node. The in-memory footprint is typically 4–8× the download. Analytic languages (`zh`, `ja`, `vi`, `id`, `ms`, `th`, `yue`) ship no dictionary, so they cost almost nothing.
 
-Size the `+MIscs` literal-area flag (see *Memory and the literal area*) against the locales you actually load. Loading **all 48 at once needs ~195 MB**, of which ~114 MB is literal area; most applications use only a handful and need no change. The figures below are measured on OTP 29 (64-bit), each locale loaded into a fresh VM: *Download* is the `.etf` byte size, and *In memory* is the combined literal-area and binary-heap growth when the locale is loaded. Figures under a megabyte are approximate, since allocator granularity dominates at that scale.
+Loading **all 48 at once needs ~195 MB**, of which ~114 MB is literal area — within the default limits, so no emulator tuning is needed (see *Memory and the literal area*); most applications use only a handful of locales. The figures below are measured on OTP 29 (64-bit), each locale loaded into a fresh VM: *Download* is the `.etf` byte size, and *In memory* is the combined literal-area and binary-heap growth when the locale is loaded. Figures under a megabyte are approximate, since allocator granularity dominates at that scale.
 
 Two locales are dominated by their inflection **patterns** rather than their lexicon: Arabic (~14,000 patterns) and Hebrew (~5,300). That is why Arabic costs far more than German despite having fewer entries.
 

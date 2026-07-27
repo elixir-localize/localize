@@ -28,7 +28,7 @@ The `r1` objects were deleted from R2 once `r2` was verified, and the code that 
 
 * **Lexicon memory: 433.1 MB → 40.0 MB, 10.8× smaller** — better than the 8.8× estimate below, because value interning compresses more than the model assumed.
 
-* **Literal area: 433.1 MB → effectively zero.** This was not anticipated and is the most useful result. Packed sections are large refc binaries, which live in the global binary heap rather than the BEAM literal area — and the literal area is exactly what `+MIscs` sizes. The flag pressure from lexicons therefore disappears; what remains in the literal area is the non-lexicon metadata (see *Remaining hot spot*).
+* **Literal area: 433.1 MB → effectively zero.** This was not anticipated and is the most useful result. Packed sections are large refc binaries, which live in the global binary heap rather than the BEAM literal area — and the literal area is exactly what `+MIscs` sizes. The flag pressure from lexicons therefore disappears entirely; what remains in the literal area is the non-lexicon metadata (see *Packing patterns — assessed, not pursued*).
 
 * **All 48 locales resident: ~838 MB → 203.7 MB total**, of which ~114 MB is literal area (measured one locale per fresh VM; sequential in-process deltas are unreliable at this scale because the binary allocator frees asynchronously).
 
@@ -38,13 +38,27 @@ The `r1` objects were deleted from R2 once `r2` was verified, and the code that 
 
 * **Regression to fix: first-touch load time roughly tripled** (German ~700 ms → ~2.9 s, Arabic ~620 ms → ~3.6 s) because packing adds a sort plus a linear pass on top of building the map that is then discarded. The full test suite, which loads every locale, went from 47.1 s to 61.9 s. This makes Phase 2 (pack in the generator, so loading is a plain binary read) a priority rather than the optional nicety it is described as below, and it is the natural next step: the packer already exists and simply needs to run in `data/inflection_gen/generate.ex` instead of at load.
 
-### Remaining hot spot
+### The emulator flag is no longer needed
 
-Arabic still costs ~112 MB, of which ~85 MB is literal area, because its **14,121 inflection patterns** — not its lexicon — dominate. Hebrew is the same shape at a smaller scale. Packing `patterns` the same way is the obvious follow-on if Arabic's footprint matters.
+`ELIXIR_ERL_OPTIONS="+MIscs 3072"` was required because unpacked lexicons put ~1 GB into the literal area. With packing, all 48 locales occupy ~114 MB of literal area and the full suite passes with the flag unset (OTP 29, 64-bit; verified by running the suite with and without — the difference in test count was 1 against 5 of run-to-run variance). The flag remains set in `mise.toml` `[env]`, `ci.yml` and `upload-inflection.yml` purely as headroom and is safe to drop from all three.
+
+### Packing patterns — assessed, not pursued
+
+Arabic still costs ~109 MB, of which **~81 MB is its patterns**, not its lexicon. The composition is the same overhead story as the lexicon was: 14,121 patterns hold **1,045,631 `{mask, suffix}` inflections** (74 per pattern on average) carrying only **19.8 MB of actual suffix bytes**; the rest is tuple, list-cell and binary-header overhead. Masks would intern well (only **387 distinct**), suffixes less so (**732,404 distinct of 1,045,631**).
+
+Estimated result: Arabic's patterns fall to ~25 MB with simple interning, or ~13–15 MB if the suffix table is front-coded like the lexicon keys; Hebrew's 10.7 MB to ~3 MB. Across all 48 that is ~195 MB → ~135 MB total and ~114 MB → ~40 MB of literal area. Every other locale's pattern table is under 2.2 MB, so the win is **Arabic-only** plus a little Hebrew.
+
+Not pursued, for two reasons:
+
+* **The constraint it would relieve is gone.** Packing the lexicons already removed the `+MIscs` requirement, which was the whole motivation. An application loading Arabic pays ~109 MB and needs no VM tuning.
+
+* **Neither implementation is free.** Patterns are currently zero-copy shared literals. Decoding them transparently (so `Dictionary.patterns_for_word/2` keeps returning the same maps and no consumer changes) would allocate ~74 tuples and binaries per access on the inflection hot path, which today runs at 8–21 µs with no allocation — a regression aimed precisely at the locale being optimised. Avoiding that means a targeted accessor API and rewriting **12 call sites across 5 files** (`inflector.ex` ×5, `dictionary.ex` ×4, `nl.ex` ×3, `finnish.ex` ×1), which edits the inflector's matching logic — a branchy port of the upstream C++ guarded only by the conformance suites.
+
+Revisit only if Arabic's footprint is reported as a real problem. The generator-side change would be as small as the lexicon's was; the cost is entirely in the read path.
 
 ## The problem, measured
 
-Loading all 48 locales costs ≈838 MB of BEAM literal area, which is why dev/test/CI must set `ELIXIR_ERL_OPTIONS="+MIscs 3072"`. The measurement below (11-locale spread, OTP 29, `:persistent_term.info().memory` deltas) shows that footprint is **not** the linguistic data — it is per-entry BEAM structure.
+Loading all 48 locales cost ≈838 MB of BEAM literal area, which is why dev/test/CI had to set `ELIXIR_ERL_OPTIONS="+MIscs 3072"`. The measurement below (11-locale spread, OTP 29, `:persistent_term.info().memory` deltas) shows that footprint is **not** the linguistic data — it is per-entry BEAM structure.
 
 | locale | entries | in memory | raw key bytes | front-coded keys | distinct values | mask bits | packed estimate | ratio |
 |--------|--------:|----------:|--------------:|-----------------:|----------------:|----------:|----------------:|------:|
