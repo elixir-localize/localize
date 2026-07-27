@@ -1,0 +1,143 @@
+defmodule Localize.Inflection.LexiconTest do
+  # The packed lexicon replaces a plain map, so the contract that
+  # matters is exact equivalence: for every key, the packed form must
+  # return what the map returned. An encoding bug returns a wrong
+  # inflection rather than crashing, so the real locale checks below
+  # are exhaustive rather than sampled.
+  use ExUnit.Case, async: true
+
+  import Bitwise
+
+  alias Localize.Inflection.{DataDir, Lexicon}
+
+  # Small enough to verify every key quickly; between them they cover
+  # Latin, Turkish dotted/dotless i, and a Slavic locale.
+  @exhaustive_locales [:tr, :fi, :pl]
+
+  # Large and structurally diverse (deep dedup in de/ru, almost none
+  # in ar), sampled to keep the suite fast.
+  @sampled_locales [:de, :ru, :ar]
+  @sample_size 2_000
+
+  defp lexicon_map(locale) do
+    raw = DataDir.path("#{locale}.etf") |> File.read!() |> :erlang.binary_to_term()
+
+    case raw.lexicon do
+      lexicon when is_map(lexicon) -> lexicon
+      lexicon when is_list(lexicon) -> Map.new(lexicon, fn {w, m, p} -> {w, {m, p}} end)
+    end
+  end
+
+  defp assert_equivalent(map, packed, keys) do
+    mismatches =
+      Enum.reduce(keys, [], fn key, acc ->
+        expected = Map.get(map, key)
+        actual = Lexicon.lookup(packed, key)
+        if actual == expected, do: acc, else: [{key, expected, actual} | acc]
+      end)
+
+    assert mismatches == [], "packed lookup diverged: #{inspect(Enum.take(mismatches, 5))}"
+  end
+
+  describe "pack/1 and lookup/2" do
+    test "an empty lexicon returns nil for any word" do
+      packed = Lexicon.pack(%{})
+      assert Lexicon.size(packed) == 0
+      assert Lexicon.lookup(packed, "anything") == nil
+      assert Lexicon.lookup(packed, "") == nil
+    end
+
+    test "a single entry round-trips and misses cleanly" do
+      packed = Lexicon.pack(%{"cat" => {1, [0]}})
+      assert Lexicon.lookup(packed, "cat") == {1, [0]}
+
+      for miss <- ["ca", "cats", "", "dog", "car"] do
+        assert Lexicon.lookup(packed, miss) == nil, "expected miss for #{inspect(miss)}"
+      end
+    end
+
+    test "keys that are prefixes of one another stay distinct" do
+      map = %{"ca" => {3, []}, "cat" => {1, [0]}, "cats" => {2, [1]}, "cattle" => {4, [2, 3]}}
+      packed = Lexicon.pack(map)
+
+      assert_equivalent(map, packed, Map.keys(map))
+      assert Lexicon.lookup(packed, "c") == nil
+      assert Lexicon.lookup(packed, "catt") == nil
+    end
+
+    test "empty and multi-element pattern index lists round-trip in order" do
+      map = %{"none" => {7, []}, "many" => {8, [4, 0, 9, 2, 2]}}
+      packed = Lexicon.pack(map)
+
+      assert Lexicon.lookup(packed, "none") == {7, []}
+      assert Lexicon.lookup(packed, "many") == {8, [4, 0, 9, 2, 2]}
+    end
+
+    test "a mask wider than a machine word round-trips" do
+      wide = (1 <<< 55) - 1
+      packed = Lexicon.pack(%{"w" => {wide, [1000]}})
+
+      assert Lexicon.lookup(packed, "w") == {wide, [1000]}
+    end
+
+    test "non-ASCII keys round-trip" do
+      map = %{"дом" => {5, [2]}, "домом" => {6, [3]}, "كتاب" => {7, [4]}, "日本語" => {8, [5]}}
+      packed = Lexicon.pack(map)
+
+      assert_equivalent(map, packed, Map.keys(map))
+      assert Lexicon.lookup(packed, "до") == nil
+    end
+
+    test "entries spanning many blocks are all reachable" do
+      # Well past the 32-key block size, so block boundaries, the block
+      # index, and the binary search all get exercised.
+      map =
+        for index <- 1..500,
+            into: %{},
+            do: {"word#{String.pad_leading(to_string(index), 4, "0")}", {index, [index]}}
+
+      packed = Lexicon.pack(map)
+
+      assert Lexicon.size(packed) == 500
+      assert_equivalent(map, packed, Map.keys(map))
+      assert Lexicon.lookup(packed, "word0000") == nil
+      assert Lexicon.lookup(packed, "word9999") == nil
+    end
+
+    test "duplicate values are interned without changing lookups" do
+      # Every entry shares one value, so the value table holds one
+      # record while all 100 keys still resolve to it.
+      map = for index <- 1..100, into: %{}, do: {"k#{index}", {42, [7]}}
+      packed = Lexicon.pack(map)
+
+      assert packed.value_count == 1
+      assert_equivalent(map, packed, Map.keys(map))
+    end
+  end
+
+  describe "equivalence with the map representation" do
+    for locale <- @exhaustive_locales do
+      test "#{locale}: every key resolves identically" do
+        map = lexicon_map(unquote(locale))
+        packed = Lexicon.pack(map)
+
+        assert Lexicon.size(packed) == map_size(map)
+        assert_equivalent(map, packed, Map.keys(map))
+        assert Lexicon.lookup(packed, "zzz_not_a_word_zzz") == nil
+      end
+    end
+
+    for locale <- @sampled_locales do
+      test "#{locale}: a sample of keys resolves identically" do
+        map = lexicon_map(unquote(locale))
+        packed = Lexicon.pack(map)
+
+        assert Lexicon.size(packed) == map_size(map)
+
+        keys = map |> Map.keys() |> Enum.take_random(@sample_size)
+        assert_equivalent(map, packed, keys)
+        assert Lexicon.lookup(packed, "zzz_not_a_word_zzz") == nil
+      end
+    end
+  end
+end

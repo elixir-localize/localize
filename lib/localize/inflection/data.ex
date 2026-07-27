@@ -5,11 +5,17 @@ defmodule Localize.Inflection.Data do
   #
   # The entire artifact for a locale — lexicon, grammeme registry,
   # inflection patterns, features, contractions — is stored under a
-  # single `:persistent_term` key, `{__MODULE__, locale}`. The
-  # lexicon is a map keyed by surface form; reads (`lookup/2`) hit
+  # single `:persistent_term` key, `{__MODULE__, locale}`. Reads hit
   # the shared literal directly with no copy-out. This mirrors how
   # `Localize.Locale.Provider` holds each locale's CLDR data, so
   # inflection data rides the same write-once/read-many pattern.
+  #
+  # The lexicon is held as a packed `Localize.Inflection.Lexicon`
+  # rather than a map: a map of a million surface forms costs roughly
+  # seven times its own data in per-entry BEAM structure, which the
+  # packed form removes (~8.8x smaller, measured). It is packed here
+  # at load time, so no regeneration of the published artifacts is
+  # required.
   #
   # A GenServer serializes loading so concurrent first requests for
   # the same locale load the artifact only once — one `put` per
@@ -17,6 +23,8 @@ defmodule Localize.Inflection.Data do
   # (which would trigger a global GC).
 
   use GenServer
+
+  alias Localize.Inflection.Lexicon
 
   @doc """
   Starts the data loader.
@@ -83,10 +91,10 @@ defmodule Localize.Inflection.Data do
   # Upstream falls back to the lowercased form for words not found
   # with their original case.
   defp lookup_form(lexicon, word) do
-    case Map.get(lexicon, word) do
+    case Lexicon.lookup(lexicon, word) do
       nil ->
         lowercased = String.downcase(word)
-        if lowercased != word, do: Map.get(lexicon, lowercased)
+        if lowercased != word, do: Lexicon.lookup(lexicon, lowercased)
 
       value ->
         value
@@ -131,7 +139,7 @@ defmodule Localize.Inflection.Data do
       raw = :erlang.binary_to_term(binary)
 
       artifact = %{
-        lexicon: lexicon_map(raw.lexicon),
+        lexicon: Lexicon.pack(lexicon_map(raw.lexicon)),
         grammeme_names: raw.grammeme_names,
         grammeme_bits: raw.grammeme_bits,
         patterns: raw.patterns,
@@ -147,9 +155,10 @@ defmodule Localize.Inflection.Data do
     end
   end
 
-  # The generated lexicon is a list of `{word, mask, patterns}`
-  # tuples; index it by surface form for O(1) lookup. A future
-  # artifact revision can emit the map directly and drop this step.
+  # Normalizes the generated lexicon to `%{word => {mask, patterns}}`
+  # before packing. Current artifacts store the map form; the list of
+  # `{word, mask, patterns}` tuples is the older shape, still accepted
+  # so an out-of-date cached artifact loads rather than crashing.
   defp lexicon_map(lexicon) when is_map(lexicon), do: lexicon
 
   defp lexicon_map(lexicon) when is_list(lexicon) do
