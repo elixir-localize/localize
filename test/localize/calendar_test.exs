@@ -201,6 +201,16 @@ defmodule Localize.CalendarTest do
                Localize.Calendar.localize(~D[2019-06-01], :bogus)
     end
 
+    # The parts and types are named alike across both functions, so a
+    # caller reaching for the other one's name gets a list of the
+    # right names rather than a FunctionClauseError.
+    test "an unknown display_name type is an error listing the known types" do
+      assert {:error, %Localize.InvalidValueError{value: :day, allowed_values: types}} =
+               Localize.Calendar.display_name(:day, 1)
+
+      assert :day_of_week in types
+    end
+
     test "an error is never returned as a bare value a caller might interpolate" do
       assert {:error, %Localize.InvalidLocaleError{}} =
                Localize.Calendar.localize(~D[2019-06-01], :month, locale: :xx)
@@ -493,10 +503,10 @@ defmodule Localize.CalendarTest do
     end
 
     test "day 7 is Sunday and day 8 is invalid" do
-      assert {:ok, "Sunday"} = Localize.Calendar.display_name(:day, 7)
+      assert {:ok, "Sunday"} = Localize.Calendar.display_name(:day_of_week, 7)
 
       assert {:error, %Localize.InvalidValueError{}} =
-               Localize.Calendar.display_name(:day, 8)
+               Localize.Calendar.display_name(:day_of_week, 8)
     end
   end
 
@@ -516,7 +526,7 @@ defmodule Localize.CalendarTest do
 
   describe "display_name!/3" do
     test "returns the name directly" do
-      assert Localize.Calendar.display_name!(:day, 1, style: :short) == "Mo"
+      assert Localize.Calendar.display_name!(:day_of_week, 1, style: :short) == "Mo"
     end
 
     test "raises on an invalid value" do
@@ -596,23 +606,26 @@ defmodule Localize.CalendarTest do
     end
   end
 
-  describe "localize/3 :am_pm variants and errors" do
+  describe "localize/3 :day_period variants and errors" do
     test "the :variant option selects lowercase names in en" do
-      assert Localize.Calendar.localize(~T[15:00:00], :am_pm,
+      assert Localize.Calendar.localize(~T[15:00:00], :day_period,
                locale: :en,
                style: :abbreviated,
-               am_pm: :variant
+               day_period: :variant
              ) == {:ok, "pm"}
     end
 
     test "localizes AM/PM for Japanese" do
-      assert Localize.Calendar.localize(~T[15:00:00], :am_pm, locale: :ja, style: :abbreviated) ==
+      assert Localize.Calendar.localize(~T[15:00:00], :day_period,
+               locale: :ja,
+               style: :abbreviated
+             ) ==
                {:ok, "午後"}
     end
 
     test "a value without an hour returns an InvalidValueError" do
       assert {:error, %Localize.InvalidValueError{}} =
-               Localize.Calendar.localize(~D[2024-07-06], :am_pm, locale: :en)
+               Localize.Calendar.localize(~D[2024-07-06], :day_period, locale: :en)
     end
   end
 

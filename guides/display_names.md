@@ -146,7 +146,7 @@ iex> Localize.Calendar.display_name(:month, 7)
 iex> Localize.Calendar.display_name(:month, 7, locale: :fr)
 {:ok, "juillet"}
 
-iex> Localize.Calendar.display_name(:day, 1)
+iex> Localize.Calendar.display_name(:day_of_week, 1)
 {:ok, "Monday"}
 
 iex> Localize.Calendar.display_name(:quarter, 2)
