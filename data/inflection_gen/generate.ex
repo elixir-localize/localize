@@ -87,11 +87,20 @@ defmodule Localize.Inflection.DataGen.Generate do
       # lines; the runtime parses them lazily against the feature
       # model, exactly as it did when reading the CSV directly.
       pronouns: pronoun_lines(locale),
-      # Emit the lexicon as a map keyed by surface form so the
-      # runtime loads it straight into :persistent_term with no
-      # list->map pass. `:deterministic` term_to_binary gives the map
-      # a canonical byte layout, so artifacts stay reproducible.
-      lexicon: Map.new(lexicon_entries, fn {word, mask, indexes} -> {word, {mask, indexes}} end)
+      # Emit the lexicon in its packed binary form so the runtime
+      # loads it straight into :persistent_term with no packing pass
+      # — a map of a million surface forms costs roughly seven times
+      # its own data in BEAM structure, and building it only to pack
+      # it added seconds to every first touch. `:deterministic`
+      # term_to_binary gives the packed sections a canonical byte
+      # layout, so artifacts stay reproducible.
+      #
+      # Fully qualified: this module aliases DataGen.Lexicon, which is
+      # a different module from the packed runtime lexicon.
+      lexicon:
+        Localize.Inflection.Lexicon.pack(
+          Map.new(lexicon_entries, fn {word, mask, indexes} -> {word, {mask, indexes}} end)
+        )
     }
 
     write_artifact(locale, artifact)

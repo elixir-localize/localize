@@ -1,9 +1,11 @@
 defmodule Localize.Inflection.LexiconTest do
-  # The packed lexicon replaces a plain map, so the contract that
-  # matters is exact equivalence: for every key, the packed form must
-  # return what the map returned. An encoding bug returns a wrong
-  # inflection rather than crashing, so the real locale checks below
-  # are exhaustive rather than sampled.
+  # An encoding bug here returns a wrong inflection rather than
+  # crashing, so the checks are exhaustive where they can afford to be.
+  # Synthetic cases pack a known map and assert every key reads back.
+  # Shipped artifacts arrive already packed, with no map to compare
+  # against, so they are checked by playing the two independent read
+  # paths against each other — sequential front-coded decode versus
+  # block-index binary search — plus a re-pack round trip.
   use ExUnit.Case, async: true
 
   import Bitwise
@@ -19,12 +21,22 @@ defmodule Localize.Inflection.LexiconTest do
   @sampled_locales [:de, :ru, :ar]
   @sample_size 2_000
 
-  defp lexicon_map(locale) do
+  # Generated artifacts ship the lexicon already packed. The map and
+  # list shapes are earlier artifact revisions that `Data` still
+  # accepts, so handle them here too rather than assuming the current
+  # format.
+  defp packed_lexicon(locale) do
     raw = DataDir.path("#{locale}.etf") |> File.read!() |> :erlang.binary_to_term()
 
     case raw.lexicon do
-      lexicon when is_map(lexicon) -> lexicon
-      lexicon when is_list(lexicon) -> Map.new(lexicon, fn {w, m, p} -> {w, {m, p}} end)
+      %Lexicon{} = lexicon ->
+        lexicon
+
+      lexicon when is_map(lexicon) ->
+        Lexicon.pack(lexicon)
+
+      lexicon when is_list(lexicon) ->
+        Lexicon.pack(Map.new(lexicon, fn {w, m, p} -> {w, {m, p}} end))
     end
   end
 
@@ -115,29 +127,56 @@ defmodule Localize.Inflection.LexiconTest do
     end
   end
 
-  describe "equivalence with the map representation" do
+  describe "shipped artifacts" do
+    # `to_list/1` decodes the front-coded keys sequentially while
+    # `lookup/2` reaches them through the block index and a binary
+    # search. Playing the two paths against each other catches an
+    # encoding or search bug that a single path would return
+    # consistently — and silently — wrong.
     for locale <- @exhaustive_locales do
-      test "#{locale}: every key resolves identically" do
-        map = lexicon_map(unquote(locale))
-        packed = Lexicon.pack(map)
+      test "#{locale}: every entry agrees between sequential decode and lookup" do
+        packed = packed_lexicon(unquote(locale))
+        entries = Lexicon.to_list(packed)
+        map = Map.new(entries)
 
-        assert Lexicon.size(packed) == map_size(map)
+        assert length(entries) == Lexicon.size(packed)
+        assert map_size(map) == Lexicon.size(packed), "duplicate keys decoded"
+        assert entries == Enum.sort_by(entries, &elem(&1, 0)), "keys are not in sorted order"
+
         assert_equivalent(map, packed, Map.keys(map))
         assert Lexicon.lookup(packed, "zzz_not_a_word_zzz") == nil
       end
     end
 
     for locale <- @sampled_locales do
-      test "#{locale}: a sample of keys resolves identically" do
-        map = lexicon_map(unquote(locale))
-        packed = Lexicon.pack(map)
+      test "#{locale}: a sample of entries agrees between sequential decode and lookup" do
+        packed = packed_lexicon(unquote(locale))
+        entries = Lexicon.to_list(packed)
+        map = Map.new(entries)
 
-        assert Lexicon.size(packed) == map_size(map)
+        assert length(entries) == Lexicon.size(packed)
+        assert map_size(map) == Lexicon.size(packed), "duplicate keys decoded"
 
         keys = map |> Map.keys() |> Enum.take_random(@sample_size)
         assert_equivalent(map, packed, keys)
         assert Lexicon.lookup(packed, "zzz_not_a_word_zzz") == nil
       end
+    end
+
+    test "re-packing a decoded artifact reproduces it byte for byte" do
+      # Guards the generator contract: what ships must be exactly what
+      # `pack/1` produces for the same content, so CI's manifest check
+      # cannot drift from the runtime's expectations.
+      packed = packed_lexicon(:pl)
+      repacked = packed |> Lexicon.to_list() |> Map.new() |> Lexicon.pack()
+
+      assert repacked == packed
+    end
+
+    test "packing an already-packed lexicon is a no-op" do
+      packed = packed_lexicon(:tr)
+
+      assert Lexicon.pack(packed) == packed
     end
   end
 end

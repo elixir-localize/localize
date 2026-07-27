@@ -139,7 +139,7 @@ defmodule Localize.Inflection.Data do
       raw = :erlang.binary_to_term(binary)
 
       artifact = %{
-        lexicon: Lexicon.pack(lexicon_map(raw.lexicon)),
+        lexicon: packed_lexicon(raw.lexicon),
         grammeme_names: raw.grammeme_names,
         grammeme_bits: raw.grammeme_bits,
         patterns: raw.patterns,
@@ -155,13 +155,18 @@ defmodule Localize.Inflection.Data do
     end
   end
 
-  # Normalizes the generated lexicon to `%{word => {mask, patterns}}`
-  # before packing. Current artifacts store the map form; the list of
-  # `{word, mask, patterns}` tuples is the older shape, still accepted
-  # so an out-of-date cached artifact loads rather than crashing.
-  defp lexicon_map(lexicon) when is_map(lexicon), do: lexicon
+  # Current artifacts ship the lexicon already packed, so loading is a
+  # plain read. The map and `{word, mask, patterns}` list shapes are
+  # earlier artifact revisions: a cache populated before the format
+  # changed still loads (it is packed here instead), rather than
+  # crashing or silently returning no inflections.
+  defp packed_lexicon(%Lexicon{} = lexicon), do: lexicon
 
-  defp lexicon_map(lexicon) when is_list(lexicon) do
-    Map.new(lexicon, fn {word, mask, patterns} -> {word, {mask, patterns}} end)
+  defp packed_lexicon(lexicon) when is_map(lexicon), do: Lexicon.pack(lexicon)
+
+  defp packed_lexicon(lexicon) when is_list(lexicon) do
+    lexicon
+    |> Map.new(fn {word, mask, patterns} -> {word, {mask, patterns}} end)
+    |> Lexicon.pack()
   end
 end

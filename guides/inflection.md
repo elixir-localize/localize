@@ -41,13 +41,13 @@ A locale's artifact loads lazily: the first operation on a locale loads its lexi
 
 The lexicon — the bulk of the data — is held in a packed binary form rather than a map, which keeps it out of the BEAM *literal area*: binaries of any size are stored in the shared binary heap, and only the small wrapper is a literal. What remains in the literal area is each locale's metadata, principally its inflection patterns. That matters because `:persistent_term` holds terms in the literal area, and exhausting the default literal super carrier aborts the emulator with `literal_alloc: Cannot allocate ...`.
 
-Most applications use a handful of locales and need no tuning. Loading **all 48 at once** needs roughly 115 MB of literal area (and ~205 MB in total), which still exceeds the default. Raise it with an emulator flag (`vm.args`, `rel/env.sh`, or `ELIXIR_ERL_OPTIONS`) sized to the locales you actually load, with headroom:
+Most applications use a handful of locales and need no tuning. Loading **all 48 at once** needs roughly 114 MB of literal area (and ~195 MB in total), which still exceeds the default. Raise it with an emulator flag (`vm.args`, `rel/env.sh`, or `ELIXIR_ERL_OPTIONS`) sized to the locales you actually load, with headroom:
 
 ```
 +MIscs 3072
 ```
 
-Arabic is the outlier: its ~14,000 inflection patterns account for most of its ~107 MB, so an application loading Arabic should budget for it specifically.
+Arabic is the outlier: its ~14,000 inflection patterns account for ~82 MB of its ~109 MB, nearly all of it literal area, so an application loading Arabic should budget for it specifically.
 
 ## Quick start
 
@@ -317,64 +317,64 @@ iex> Localize.Inflection.pronoun(:en, "garbage", person: :first)
 
 Operations are in-memory lookups and suffix rewrites: feature queries and pronoun selection run in about 2 µs, phrase inflection in 8–21 µs depending on the language (measured with `mix run bench/inflection.exs`). A dictionary lookup against the packed lexicon costs a few microseconds — a binary search over a block index followed by a short scan, rather than a single map read — which is immaterial beside the surrounding inflection work.
 
-Loading a locale's artifact on first use takes tens of milliseconds for most locales, and around three seconds for the largest (German at ~1.3M entries, Arabic at ~0.8M), because the lexicon is packed into its compact form as it loads. It is a one-time cost per locale, after which reads are copy-free from `:persistent_term`. Applications sensitive to that cost should provision and warm the locales they need at boot rather than on first request. See the *Memory and the literal area* section above for the footprint of loading many locales at once.
+Loading a locale's artifact on first use is a plain read of its packed form: a few milliseconds for most locales, 17 ms for German (~1.3M entries) and 208 ms for Arabic, whose several thousand inflection patterns dominate its load. It is a one-time cost per locale, after which reads are copy-free from `:persistent_term`. See the *Memory and the literal area* section above for the footprint of loading many locales at once.
 
 ## Per-locale size and memory
 
-Each locale is a single compressed `.etf` downloaded from the CDN; loading it expands the lexicon and metadata into `:persistent_term`, where it stays resident for the life of the node. The in-memory footprint is typically 2–4× the download. Analytic languages (`zh`, `ja`, `vi`, `id`, `ms`, `th`, `yue`) ship no dictionary, so they cost almost nothing.
+Each locale is a single compressed `.etf` downloaded from the CDN; loading it expands the lexicon and metadata into `:persistent_term`, where it stays resident for the life of the node. The in-memory footprint is typically 4–8× the download. Analytic languages (`zh`, `ja`, `vi`, `id`, `ms`, `th`, `yue`) ship no dictionary, so they cost almost nothing.
 
-Size the `+MIscs` literal-area flag (see *Memory and the literal area*) against the locales you actually load. Loading **all 48 at once needs ~205 MB**, of which ~115 MB is literal area; most applications use only a handful and need no change. The figures below are measured on OTP 29 (64-bit), each locale loaded into a fresh VM: *Download* is the `.etf` byte size, and *In memory* is the combined literal-area and binary-heap growth when the locale is loaded. Figures under a megabyte are approximate, since allocator granularity dominates at that scale.
+Size the `+MIscs` literal-area flag (see *Memory and the literal area*) against the locales you actually load. Loading **all 48 at once needs ~195 MB**, of which ~114 MB is literal area; most applications use only a handful and need no change. The figures below are measured on OTP 29 (64-bit), each locale loaded into a fresh VM: *Download* is the `.etf` byte size, and *In memory* is the combined literal-area and binary-heap growth when the locale is loaded. Figures under a megabyte are approximate, since allocator granularity dominates at that scale.
 
 Two locales are dominated by their inflection **patterns** rather than their lexicon: Arabic (~14,000 patterns) and Hebrew (~5,300). That is why Arabic costs far more than German despite having fewer entries.
 
 | Locale | Download | In memory | Lexicon entries |
 |--------|----------|-----------|-----------------|
-| `ar` | 9.5 MB | 106.6 MB | 813,579 |
-| `de` | 6.9 MB | 16.4 MB | 1,280,915 |
-| `ru` | 4.4 MB | 11.1 MB | 917,072 |
-| `ml` | 3.6 MB | 11.7 MB | 749,381 |
-| `da` | 3.1 MB | 7.5 MB | 613,052 |
-| `es` | 2.6 MB | 7.7 MB | 559,750 |
-| `it` | 1.9 MB | 4.6 MB | 414,575 |
-| `sv` | 1.6 MB | 3.5 MB | 342,776 |
-| `he` | 1.4 MB | 13.8 MB | 147,770 |
-| `cs` | 1.3 MB | 3.2 MB | 248,422 |
-| `fr` | 1.1 MB | 2.7 MB | 257,114 |
-| `uk` | 979 KB | 1.9 MB | 238,954 |
-| `nb` | 799 KB | 1.3 MB | 166,627 |
-| `en` | 675 KB | 1.4 MB | 127,524 |
-| `sk` | 621 KB | 1.4 MB | 129,290 |
-| `bn` | 527 KB | 3.2 MB | 71,755 |
-| `el` | 326 KB | 1.5 MB | 39,070 |
-| `nl` | 208 KB | 1.3 MB | 17,318 |
-| `pt` | 190 KB | 30 KB | 36,095 |
-| `pl` | 175 KB | 279 KB | 26,483 |
-| `fi` | 96 KB | 153 KB | 12,416 |
-| `pa` | 80 KB | 0 B | 9,545 |
-| `hi` | 66 KB | 529 KB | 7,514 |
-| `ur` | 66 KB | 521 KB | 7,573 |
-| `ta` | 54 KB | 524 KB | 6,526 |
-| `hr` | 39 KB | 332 KB | 5,556 |
-| `tr` | 23 KB | 83 KB | 3,685 |
-| `sr` | 12 KB | 118 KB | 1,351 |
-| `ko` | 9 KB | 30 KB | 1,409 |
-| `or` | 8 KB | 37 KB | 1,220 |
-| `ca` | 5 KB | 38 KB | 480 |
+| `ar` | 11.4 MB | 108.5 MB | 813,579 |
+| `de` | 3.4 MB | 12.9 MB | 1,280,915 |
+| `he` | 1.5 MB | 14.8 MB | 147,770 |
+| `ru` | 1.3 MB | 8.1 MB | 917,072 |
+| `da` | 1.2 MB | 6.4 MB | 613,052 |
+| `ml` | 1.0 MB | 9.1 MB | 749,381 |
+| `es` | 943 KB | 6.0 MB | 559,750 |
+| `it` | 655 KB | 3.3 MB | 414,575 |
+| `sv` | 608 KB | 2.4 MB | 342,776 |
+| `cs` | 562 KB | 2.4 MB | 248,422 |
+| `en` | 424 KB | 2.0 MB | 127,524 |
+| `bn` | 399 KB | 3.9 MB | 71,755 |
+| `fr` | 347 KB | 2.0 MB | 257,114 |
+| `nb` | 342 KB | 831 KB | 166,627 |
+| `el` | 273 KB | 1.5 MB | 39,070 |
+| `sk` | 253 KB | 1.9 MB | 129,290 |
+| `uk` | 213 KB | 2.0 MB | 238,954 |
+| `nl` | 193 KB | 2.1 MB | 17,318 |
+| `pl` | 117 KB | 1.0 MB | 26,483 |
+| `fi` | 103 KB | 161 KB | 12,416 |
+| `pt` | 96 KB | 773 KB | 36,095 |
+| `pa` | 67 KB | 561 KB | 9,545 |
+| `ur` | 62 KB | 516 KB | 7,573 |
+| `hi` | 61 KB | 524 KB | 7,514 |
+| `ta` | 53 KB | 523 KB | 6,526 |
+| `hr` | 33 KB | 327 KB | 5,556 |
+| `tr` | 18 KB | 79 KB | 3,685 |
+| `sr` | 11 KB | 117 KB | 1,351 |
+| `ko` | 8 KB | 29 KB | 1,409 |
+| `or` | 5 KB | 34 KB | 1,220 |
 | `mr` | 5 KB | 51 KB | 287 |
-| `bg` | 4 KB | 39 KB | 211 |
+| `ca` | 5 KB | 38 KB | 480 |
 | `ro` | 4 KB | 40 KB | 151 |
+| `bg` | 4 KB | 39 KB | 211 |
 | `te` | 3 KB | 26 KB | 72 |
 | `hu` | 3 KB | 25 KB | 65 |
-| `gu` | 2 KB | 24 KB | 47 |
 | `lt` | 2 KB | 18 KB | 67 |
-| `kn` | 2 KB | 18 KB | 36 |
-| `kk` | 2 KB | 18 KB | 35 |
+| `gu` | 2 KB | 24 KB | 47 |
 | `is` | 2 KB | 15 KB | 60 |
-| `th` | 718 B | 6 KB | 0 |
-| `vi` | 611 B | 5 KB | 0 |
-| `id` | 564 B | 5 KB | 0 |
-| `ms` | 554 B | 5 KB | 0 |
-| `ja` | 455 B | 4 KB | 0 |
-| `zh` | 445 B | 4 KB | 0 |
-| `yue` | 389 B | 3 KB | 0 |
-| **all 48** | **42.2 MB** | **203.7 MB** | **7,255,828** |
+| `kn` | 2 KB | 18 KB | 36 |
+| `kk` | 2 KB | 19 KB | 35 |
+| `th` | 831 B | 6 KB | 0 |
+| `vi` | 722 B | 5 KB | 0 |
+| `id` | 678 B | 5 KB | 0 |
+| `ms` | 665 B | 5 KB | 0 |
+| `ja` | 567 B | 4 KB | 0 |
+| `zh` | 556 B | 4 KB | 0 |
+| `yue` | 503 B | 3 KB | 0 |
+| **all 48** | **25.6 MB** | **195.0 MB** | **7,255,828** |

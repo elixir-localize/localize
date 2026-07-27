@@ -71,7 +71,7 @@ defmodule Mix.Tasks.Localize.Inflection.Generate do
     artifact = Localize.Inflection.DataGen.Generate.generate(locale)
 
     Mix.shell().info(
-      "  #{map_size(artifact.lexicon)} lexicon entries, " <>
+      "  #{Localize.Inflection.Lexicon.size(artifact.lexicon)} lexicon entries, " <>
         "#{tuple_size(artifact.patterns)} patterns, " <>
         "#{tuple_size(artifact.grammeme_names)} grammemes"
     )

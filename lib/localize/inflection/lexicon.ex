@@ -56,6 +56,11 @@ defmodule Localize.Inflection.Lexicon do
   Packs a `%{surface_form => {mask, pattern_indexes}}` map.
 
   """
+  # Already packed — generated artifacts ship this form. Idempotent so
+  # a caller cannot accidentally pack a struct (which is also a map,
+  # and would otherwise fall into the clause below).
+  def pack(%__MODULE__{} = lexicon), do: lexicon
+
   def pack(lexicon) when is_map(lexicon) do
     entries = Enum.sort_by(Map.to_list(lexicon), &elem(&1, 0))
     {value_list, value_numbers} = number_values(entries)
@@ -94,6 +99,34 @@ defmodule Localize.Inflection.Lexicon do
 
   """
   def size(%__MODULE__{entry_count: count}), do: count
+
+  @doc """
+  Returns every entry as a `{word, {mask, pattern_indexes}}` list, in
+  sorted key order.
+
+  Decodes the front-coded keys sequentially, which is a different path
+  from the binary search `lookup/2` uses — the test suite plays the two
+  against each other.
+
+  """
+  def to_list(%__MODULE__{entry_count: 0}), do: []
+
+  def to_list(%__MODULE__{} = lexicon) do
+    decode_all(lexicon.keys, <<>>, 0, lexicon, [])
+  end
+
+  defp decode_all(_rest, _previous, index, %{entry_count: count}, acc) when index >= count do
+    Enum.reverse(acc)
+  end
+
+  defp decode_all(rest, previous, index, lexicon, acc) do
+    {prefix, rest} = unvarint(rest)
+    {length, rest} = unvarint(rest)
+    <<suffix::binary-size(^length), rest::binary>> = rest
+    key = binary_part(previous, 0, prefix) <> suffix
+
+    decode_all(rest, key, index + 1, lexicon, [{key, value_at(lexicon, index)} | acc])
+  end
 
   @doc """
   Looks up `word`, returning `{mask, pattern_indexes}` or nil.

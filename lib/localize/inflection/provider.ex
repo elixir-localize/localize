@@ -34,7 +34,9 @@ defmodule Localize.Inflection.Provider do
   # changes the artifacts without an upstream commit bump; the CDN
   # path carries both the sha and the revision so objects stay
   # immutable.
-  @data_revision 1
+  # r2: the lexicon ships packed (Localize.Inflection.Lexicon) rather
+  # than as a map of surface forms.
+  @data_revision 2
 
   @default_base_url "https://elixir-localize.com/inflection"
   @manifest "inflection_hashes.etf"
@@ -52,7 +54,7 @@ defmodule Localize.Inflection.Provider do
   ### Examples
 
       iex> Localize.Inflection.Provider.data_version()
-      "2333a964e53a-r1"
+      "2333a964e53a-r2"
 
   """
   def data_version do
@@ -78,7 +80,7 @@ defmodule Localize.Inflection.Provider do
   ### Examples
 
       iex> Localize.Inflection.Provider.file_url("ru.etf")
-      "https://elixir-localize.com/inflection/2333a964e53a-r1/ru.etf"
+      "https://elixir-localize.com/inflection/2333a964e53a-r2/ru.etf"
 
   """
   def file_url(file_name) do
