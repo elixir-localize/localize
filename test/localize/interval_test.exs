@@ -66,22 +66,22 @@ defmodule Localize.IntervalTest do
     end
   end
 
-  describe "to_string/3 with styles" do
-    test "month_and_day style" do
+  describe "to_string/3 with field selections" do
+    test "month_and_day fields" do
       assert {:ok, result} =
                Interval.to_string(~D[2022-04-22], ~D[2022-04-25],
                  locale: :en,
-                 style: :month_and_day
+                 fields: :month_and_day
                )
 
       assert String.contains?(result, "Apr")
     end
 
-    test "year_and_month style" do
+    test "year_and_month fields" do
       assert {:ok, result} =
                Interval.to_string(~D[2022-01-15], ~D[2022-03-20],
                  locale: :en,
-                 style: :year_and_month
+                 fields: :year_and_month
                )
 
       assert String.contains?(result, "2022")
@@ -319,16 +319,16 @@ defmodule Localize.IntervalTest do
     end
   end
 
-  describe "date_styles/0" do
-    test "returns the locale-independent styles only" do
-      styles = Interval.date_styles()
+  describe "known_fields/0" do
+    test "returns the locale-independent field selections only" do
+      fields = Interval.known_fields()
       # `:date` is now resolved per-locale from
       # `Localize.DateTime.Format.date_formats/1` so it is NOT in
       # this static map.
-      refute Map.has_key?(styles, :date)
-      assert Map.has_key?(styles, :month)
-      assert Map.has_key?(styles, :month_and_day)
-      assert Map.has_key?(styles, :year_and_month)
+      refute Map.has_key?(fields, :date)
+      assert Map.has_key?(fields, :month)
+      assert Map.has_key?(fields, :month_and_day)
+      assert Map.has_key?(fields, :year_and_month)
     end
   end
 
@@ -348,7 +348,7 @@ defmodule Localize.IntervalTest do
       to = %{year: 2026, month: 6, day: 30, calendar: GenericGregorian}
 
       assert {:ok, result} =
-               Interval.to_string(from, to, format: :full, style: :date, locale: :en)
+               Interval.to_string(from, to, format: :full, fields: :date, locale: :en)
 
       assert String.contains?(result, "Mon")
       assert String.contains?(result, "Tue")
@@ -701,12 +701,12 @@ defmodule Localize.IntervalTest do
       assert out =~ "日"
     end
 
-    test ":full Date interval respects non-default :style options without crashing" do
+    test ":full Date interval respects non-default :fields options without crashing" do
       d1 = ~D[2012-01-05]
       d2 = ~D[2012-02-06]
 
-      for style <- [:date, :month, :month_and_day, :year_and_month] do
-        assert {:ok, _} = Interval.to_string(d1, d2, format: :full, style: style, locale: :en)
+      for fields <- [:date, :month, :month_and_day, :year_and_month] do
+        assert {:ok, _} = Interval.to_string(d1, d2, format: :full, fields: fields, locale: :en)
       end
     end
   end
@@ -776,13 +776,13 @@ defmodule Localize.IntervalTest do
       # part of single-Date semantics; they describe a deliberate
       # field selection unrelated to standard styles. They keep the
       # locale-independent `@date_styles` mapping.
-      assert {:ok, _} = Interval.to_string(d1, d2, format: :medium, style: :month, locale: :ja)
+      assert {:ok, _} = Interval.to_string(d1, d2, format: :medium, fields: :month, locale: :ja)
 
       assert {:ok, _} =
-               Interval.to_string(d1, d2, format: :medium, style: :month_and_day, locale: :ja)
+               Interval.to_string(d1, d2, format: :medium, fields: :month_and_day, locale: :ja)
 
       assert {:ok, _} =
-               Interval.to_string(d1, d2, format: :medium, style: :year_and_month, locale: :ja)
+               Interval.to_string(d1, d2, format: :medium, fields: :year_and_month, locale: :ja)
     end
   end
 

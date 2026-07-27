@@ -70,11 +70,11 @@ defmodule Localize.ExceptionRenderingTest do
   end
 
   describe "Localize.DateTimeIntervalFormatError" do
-    test "unknown_style reason includes style and format" do
+    test "unknown_fields reason includes fields and format" do
       exception =
         Localize.DateTimeIntervalFormatError.exception(
-          reason: :unknown_style,
-          style: :fancy,
+          reason: :unknown_fields,
+          fields: :fancy,
           format: :long
         )
 
