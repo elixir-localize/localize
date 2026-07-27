@@ -150,6 +150,37 @@ defmodule Localize.Unit.FormatterCoverageTest do
       assert Unit.to_string(unit!(9.8, "meter-per-square-second")) ==
                {:ok, "9.8 meters per second squared"}
     end
+
+    # A denominator constant was silently dropped in :short, because the
+    # denominator's precomposed `per_unit_pattern` ("{0}/d") states "per
+    # one day" and has nowhere to put the count. The count is now composed
+    # through the locale's `compound.per` pattern in every width.
+    test "denominator constant survives every width" do
+      unit = unit!(10, "curr-usd-per-30-day")
+
+      assert Unit.to_string(unit, format: :long) == {:ok, "$10.00 per 30 days"}
+      assert Unit.to_string(unit, format: :short) == {:ok, "$10.00/30 days"}
+      assert Unit.to_string(unit, format: :narrow) == {:ok, "$10.00/30 d"}
+    end
+
+    test "denominator constant survives every width in de" do
+      unit = unit!(10, "curr-usd-per-30-day")
+
+      assert Unit.to_string(unit, locale: "de", format: :long) ==
+               {:ok, "10,00 $ pro 30 Tage"}
+
+      assert Unit.to_string(unit, locale: "de", format: :short) == {:ok, "10,00 $/30 Tg."}
+      assert Unit.to_string(unit, locale: "de", format: :narrow) == {:ok, "10,00 $/30 T"}
+    end
+
+    # The count used to be spliced in with a blind `String.replace/3` of the
+    # denominator noun over the whole composed string, so a numerator whose
+    # own symbol contained that noun was corrupted: "candela" is "cd" in
+    # narrow, and replacing "d" with "30 d" produced "10c30 d/30 d".
+    test "a numerator symbol containing the denominator noun is not corrupted" do
+      assert Unit.to_string(unit!(10, "candela-per-30-day"), format: :narrow) ==
+               {:ok, "10cd/30 d"}
+    end
   end
 
   describe "display names and fallbacks" do

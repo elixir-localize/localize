@@ -417,12 +417,15 @@ defmodule Localize.Unit.Formatter do
     pattern = find_per_unit_pattern(unit_data, denominator_name, value, locale)
     nouns = denominator_nouns(unit_data, denominator_name)
 
-    case pattern do
-      nil ->
-        compose_per_compound(numerator_string, count, denominator_base, nouns, unit_data)
-
-      pattern ->
-        format_per_unit(numerator_string, pattern, count, denominator_base, nouns)
+    # A precomposed `per_unit_pattern` states "per one X" (TR35), so it
+    # cannot carry a denominator count: "{0}/d" has nowhere to put the
+    # "30" of "per-30-day". When the denominator has a constant, compose
+    # the counted denominator through the locale's `compound.per`
+    # pattern instead, exactly as a denominator with no per-pattern does.
+    if is_nil(pattern) or not is_nil(count) do
+      compose_per_compound(numerator_string, count, denominator_base, nouns, unit_data)
+    else
+      format_per_unit(numerator_string, pattern)
     end
   end
 
@@ -464,29 +467,18 @@ defmodule Localize.Unit.Formatter do
     end
   end
 
-  defp format_per_unit(numerator_string, pattern, count, _denominator_base, nouns) do
+  # Substitutes the formatted numerator into the denominator's
+  # precomposed `per_unit_pattern` ("{0} per second", "{0}/d"). Only
+  # reached for an uncounted denominator — a counted one is composed
+  # through `compose_per_compound/5` instead.
+  defp format_per_unit(numerator_string, pattern) do
     per_string =
       numerator_string
       |> Localize.Substitution.substitute(pattern)
       |> :erlang.iolist_to_binary()
       |> String.trim()
 
-    cond do
-      is_nil(count) ->
-        {:ok, per_string}
-
-      # With a denominator constant the unit noun is plural (compare
-      # ICU: "liter-per-100-kilometer" → "per 100 kilometers"), so
-      # replace the singular noun from the per-pattern with the count
-      # and the plural noun.
-      is_tuple(nouns) and String.contains?(per_string, elem(nouns, 0)) ->
-        {singular, plural} = nouns
-        {:ok, String.replace(per_string, singular, "#{count} #{plural}")}
-
-      true ->
-        # Insert the count before the denominator unit name in the pattern
-        {:ok, String.replace(per_string, "per ", "per #{count} ")}
-    end
+    {:ok, per_string}
   end
 
   # Extracts the singular and plural nouns for the denominator unit
