@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0-rc.7] — July 28th, 2026
+
+This release settles the `:format` / `:style` option naming across the library. The rule is now uniform: `:format` is how a **value** is rendered, `:style` is which variant of a **name or pattern** you get, and an option that selects something else again — `Localize.Interval`'s choice of which date fields appear — is named for what it selects. Every rename below is a hard break with no alias; each entry names its replacement.
 
 ### Changed
 
@@ -18,13 +20,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * **Breaking:** `Localize.Interval.to_string/3` renames its `:style` option to `:fields`, because it selects *which* date fields appear (`:date`, `:month`, `:month_and_day`, `:year_and_month`) rather than a width — `:format` remains the width axis, and the two are now named for what they do. `Localize.Interval.date_styles/0` becomes `known_fields/0`, and `Localize.DateTimeIntervalFormatError` carries `:fields` with reason `:unknown_fields` in place of `:style` / `:unknown_style`.
 
-* `Localize.Calendar.display_name/3` reports an unusable `:style` as a `:style` error listing the widths the field actually has, instead of blaming the value: `display_name(:month, 3, style: :bogus)` said `value: 3, expected: "1..13"`. `style: :short` now resolves wherever CLDR carries it (the day parts) rather than silently returning `nil`.
-
 ### Documentation
 
 * `Localize.DateTime.to_string/2` documents its `:style`, `:date_format`, and `:time_format` options, which were live but absent from the docs. `:style` selects the date/time wrapper (`:at` renders "April 8, 2026 at 12:00:00 PM", and falls back to the standard wrapper for `:medium` and `:short`, which CLDR does not define it for).
 
 ### Fixed
+
+* `Localize.Calendar.display_name/3` reports an unusable `:style` as a `:style` error listing the widths the field actually has, instead of blaming the value: `display_name(:month, 3, style: :bogus)` said `value: 3, expected: "1..13"`. `style: :short` now resolves wherever CLDR carries it (the day parts) rather than silently returning `nil`.
+
+* `Localize.Unit.to_string/2` no longer lets a stray `:style` option reach the SI-prefix and custom-unit paths, where it produced "5 MegaJoule" for `style: :short` instead of the correct "5 Megajoule". The option has been ignored since 1.0.0-rc.0 and is now ignored everywhere, as documented.
 
 * `Localize.Duration.to_string/2` and `to_parts/2` join duration parts with CLDR's unit list patterns matched to the format width, per ECMA-402 `Intl.DurationFormat`, instead of the standard "and" conjunction: `:en` now renders "3 days, 2 hr" (was "3 days and 2 hr") and "3d 2h" for `format: :narrow`.
 

@@ -44,28 +44,39 @@ iex> Localize.Interval.to_string(nil, ~D[2020-01-01], locale: :ja)
 
 The separator comes from CLDR's `intervalFormatFallback` pattern for the locale — most Western locales use an en-dash (`–`), Japanese uses a fullwidth tilde (`～`), and so on. Passing `nil` for both endpoints returns an error.
 
-### Styles and formats
+### Fields and formats
 
-The `:style` option controls which fields appear in the output:
+Two independent options shape the output. `:fields` selects *which* date fields appear:
 
-| Style | Description | Example skeleton |
-|---|---|---|
-| `:date` | Full date (default) | `:yMMMd` |
-| `:month` | Month only | `:MMM` |
-| `:month_and_day` | Month and day | `:MMMd` |
-| `:year_and_month` | Year and month | `:yMMM` |
+| Fields | Description |
+|---|---|
+| `:date` | The whole date (the default) |
+| `:month` | Month only |
+| `:month_and_day` | Month and day |
+| `:year_and_month` | Year and month |
 
-The `:format` option selects the detail level: `:short`, `:medium` (default), or `:long`.
+`:format` selects *how wide* those fields render: `:short`, `:medium` (the default), `:long`, or `:full`.
 
 ```elixir
 iex> {:ok, result} =
 ...>   Localize.Interval.to_string(~D[2022-04-22], ~D[2022-04-25],
 ...>     locale: :en,
-...>     style: :month_and_day,
+...>     fields: :month_and_day,
 ...>     format: :long
 ...>   )
 iex> String.contains?(result, "Fri") and String.contains?(result, "Mon")
 true
+```
+
+The pair selects a CLDR skeleton. `Localize.Interval.known_fields/0` returns the mapping for the non-default selections; `:date` is resolved per-locale from the same table `Localize.Date.to_string/2` uses, so it has no fixed entry here:
+
+```elixir
+iex> Localize.Interval.known_fields()
+%{
+  month: %{short: :M, full: :MMM, long: :MMM, medium: :MMM},
+  month_and_day: %{short: :Md, full: :MMMEd, long: :MMMEd, medium: :MMMd},
+  year_and_month: %{short: :yM, full: :yMMMM, long: :yMMMM, medium: :yMMM}
+}
 ```
 
 ### Intervals for times and datetimes
@@ -173,7 +184,7 @@ The `:except` option drops specific units from the output. By default, `:microse
 ```elixir
 iex> d = Localize.Duration.new_from_seconds(3665)
 iex> Localize.Duration.to_string(d, locale: :en, except: [:microsecond, :second])
-{:ok, "1 hour and 1 minute"}
+{:ok, "1 hour, 1 minute"}
 ```
 
 Other locales format durations using their native unit names and list separator:
