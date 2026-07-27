@@ -13,9 +13,9 @@ defmodule Localize.Inflection.Data do
   # The lexicon is held as a packed `Localize.Inflection.Lexicon`
   # rather than a map: a map of a million surface forms costs roughly
   # seven times its own data in per-entry BEAM structure, which the
-  # packed form removes (~8.8x smaller, measured). It is packed here
-  # at load time, so no regeneration of the published artifacts is
-  # required.
+  # packed form removes (~10x smaller, measured). Artifacts ship
+  # packed, so loading is a plain read — an artifact without a packed
+  # lexicon predates the format and is reported as incompatible.
   #
   # A GenServer serializes loading so concurrent first requests for
   # the same locale load the artifact only once — one `put` per
@@ -135,11 +135,11 @@ defmodule Localize.Inflection.Data do
   defp load(locale) do
     path = Localize.Inflection.DataDir.path("#{locale}.etf")
 
-    with {:ok, binary} <- File.read(path) do
-      raw = :erlang.binary_to_term(binary)
-
+    with {:ok, binary} <- File.read(path),
+         raw = :erlang.binary_to_term(binary),
+         %Lexicon{} = lexicon <- Map.get(raw, :lexicon) do
       artifact = %{
-        lexicon: packed_lexicon(raw.lexicon),
+        lexicon: lexicon,
         grammeme_names: raw.grammeme_names,
         grammeme_bits: raw.grammeme_bits,
         patterns: raw.patterns,
@@ -152,21 +152,15 @@ defmodule Localize.Inflection.Data do
 
       :persistent_term.put({__MODULE__, locale}, artifact)
       :ok
+    else
+      {:error, _reason} = error ->
+        error
+
+      # The artifact carries no packed lexicon, so it predates the
+      # packed format. Report it rather than raising; the caller turns
+      # a bare reason into InflectionDataNotAvailableError.
+      _other ->
+        {:error, :incompatible_inflection_artifact}
     end
-  end
-
-  # Current artifacts ship the lexicon already packed, so loading is a
-  # plain read. The map and `{word, mask, patterns}` list shapes are
-  # earlier artifact revisions: a cache populated before the format
-  # changed still loads (it is packed here instead), rather than
-  # crashing or silently returning no inflections.
-  defp packed_lexicon(%Lexicon{} = lexicon), do: lexicon
-
-  defp packed_lexicon(lexicon) when is_map(lexicon), do: Lexicon.pack(lexicon)
-
-  defp packed_lexicon(lexicon) when is_list(lexicon) do
-    lexicon
-    |> Map.new(fn {word, mask, patterns} -> {word, {mask, patterns}} end)
-    |> Lexicon.pack()
   end
 end

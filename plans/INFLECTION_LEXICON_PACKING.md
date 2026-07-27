@@ -18,7 +18,9 @@ German loads 41× faster than the original and Russian 62×. Arabic remains the 
 
 The packed form is also **smaller on the wire: the full set fell from 42 MB to 26 MB**. The exception is Arabic, which grew from 9.5 MB to 11.4 MB: with 741K distinct values across 814K entries the interning indexes cost more than they save, and the denser packed bytes compress less well than the repetitive map did. Trading ~2 MB of download for ~50 MB of memory is the right direction, but a future refinement could skip interning when dedup is poor (at the cost of a second format path).
 
-Generation is deterministic — regenerating a locale twice produces byte-identical output — and the committed manifest was regenerated and verified against all 48 files. The artifact revision is bumped to `r2` (`Localize.Inflection.Provider.@data_revision`), so the CDN path becomes `2333a964e53a-r2/` and the existing `r1` objects are untouched. `Data.load/1` still accepts the older map and list shapes, so a cache populated before the format change keeps working.
+Generation is deterministic — regenerating a locale twice produces byte-identical output — and the committed manifest was regenerated and verified against all 48 files. The artifact revision is bumped to `r2` (`Localize.Inflection.Provider.@data_revision`), so the CDN path is `2333a964e53a-r2/`.
+
+The `r1` objects were deleted from R2 once `r2` was verified, and the code that read the older map and list lexicon shapes has been removed with them: `r1` was never released and never used, so there is nothing to stay compatible with. `Data.load/1` now requires a packed lexicon and returns `{:error, :incompatible_inflection_artifact}` for an artifact without one, rather than raising.
 
 ## Phase 1 results (superseded by Phase 2 for load time)
 

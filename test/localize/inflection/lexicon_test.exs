@@ -21,23 +21,11 @@ defmodule Localize.Inflection.LexiconTest do
   @sampled_locales [:de, :ru, :ar]
   @sample_size 2_000
 
-  # Generated artifacts ship the lexicon already packed. The map and
-  # list shapes are earlier artifact revisions that `Data` still
-  # accepts, so handle them here too rather than assuming the current
-  # format.
+  # Generated artifacts ship the lexicon already packed.
   defp packed_lexicon(locale) do
     raw = DataDir.path("#{locale}.etf") |> File.read!() |> :erlang.binary_to_term()
 
-    case raw.lexicon do
-      %Lexicon{} = lexicon ->
-        lexicon
-
-      lexicon when is_map(lexicon) ->
-        Lexicon.pack(lexicon)
-
-      lexicon when is_list(lexicon) ->
-        Lexicon.pack(Map.new(lexicon, fn {w, m, p} -> {w, {m, p}} end))
-    end
+    %Lexicon{} = raw.lexicon
   end
 
   defp assert_equivalent(map, packed, keys) do
