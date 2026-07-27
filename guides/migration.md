@@ -101,7 +101,12 @@ Set the locale for the current process:
 iex> {:ok, _} = Localize.put_locale(:de)
 iex> Localize.get_locale().cldr_locale_id
 :de
+iex> {:ok, _} = Localize.put_locale(:en)
+iex> Localize.get_locale().cldr_locale_id
+:en
 ```
+
+The setting lasts for the life of the process, so the examples below reset it to `:en` first — otherwise every later result would come back in German.
 
 All formatting functions default their `:locale` option to `Localize.get_locale()`. In a Phoenix application you would typically call `Localize.put_locale/1` in a plug early in your pipeline.
 

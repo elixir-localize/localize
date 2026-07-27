@@ -836,7 +836,11 @@ defmodule Localize.Calendar do
   * `part` is one of `:era`, `:quarter`, `:month`,
     `:day_of_week`, `:days_of_week`, or `:day_period`.
 
-  * `options` is a keyword list of options. See `localize/3`.
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  See `localize/3` for the supported options.
 
   ### Returns
 

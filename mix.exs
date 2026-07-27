@@ -1,7 +1,7 @@
 defmodule Localize.MixProject do
   use Mix.Project
 
-  @version "1.0.0-rc.6"
+  @version "1.0.0-rc.7"
   @cldr_version_path "priv/localize/version"
   @localize_patch_version_path "priv/localize/localize_patch_version"
 

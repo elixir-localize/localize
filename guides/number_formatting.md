@@ -126,9 +126,9 @@ Available RBNF rules vary by locale. Query them with:
 ```elixir
 iex> {:ok, rules} = Localize.Number.Rbnf.rule_names_for_locale(:en)
 iex> rules
-["spellout_cardinal", "spellout_ordinal", "digits_ordinal",
- "spellout_numbering", "spellout_numbering_year", "spellout_cardinal_verbose",
- "spellout_numbering_verbose", "spellout_ordinal_verbose"]
+["digits_ordinal", "spellout_cardinal", "spellout_cardinal_verbose",
+ "spellout_numbering", "spellout_numbering_verbose", "spellout_numbering_year",
+ "spellout_ordinal", "spellout_ordinal_verbose"]
 ```
 
 The root locale (`:und`) provides universal rules like `roman_upper`, `roman_lower`, `hebrew`, `ethiopic`, `greek_upper`, `greek_lower`, `armenian_upper`, `armenian_lower`, `cyrillic_lower`, `georgian`, and `tamil`.
