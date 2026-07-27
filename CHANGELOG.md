@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Duration.to_string/2` and `to_parts/2` join duration parts with CLDR's unit list patterns matched to the format width, per ECMA-402 `Intl.DurationFormat`, instead of the standard "and" conjunction: `:en` now renders "3 days, 2 hr" (was "3 days and 2 hr") and "3d 2h" for `format: :narrow`.
 
+* Per-compound units whose denominator carries a constant keep that count in every width: `curr-usd-per-30-day` renders "$10.00/30 days" for `format: :short`, where the denominator's precomposed `per_unit_pattern` ("{0}/d") previously swallowed the count and gave "$10.00/d". Counted denominators now compose through the locale's `compound.per` pattern, which also stops a numerator whose symbol contains the denominator noun being corrupted (narrow `candela-per-30-day` gave "10c30 d/30 d", now "10cd/30 d").
+
 ## [1.0.0-rc.6] — July 27th, 2026
 
 ### Fixed
@@ -149,7 +151,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * The Currency positional filter forms are removed: `currencies_for_locale/3`, `currencies_for_locale!/3`, `currency_strings/3` and `currency_strings!/3`, along with the positional second argument of the arity-2 forms. Pass the `:only` and `:except` options instead; a positional filter now raises `ArgumentError` so it cannot be silently misread as empty options.
 
-* The deprecated option aliases are removed: `Localize.Duration.to_string/2` `:style` (use `:format`), `Localize.quote/2` `:style` (use `:format`), and `Localize.Unit.display_name/2` `:format` (use `:style`). The former alias keys are now ignored like any other unknown option.
+* The deprecated option aliases are removed: `Localize.Duration.to_string/2` `:style` (use `:format`), `Localize.Unit.to_string/2` `:style` (use `:format`), `Localize.quote/2` `:style` (use `:format`), and `Localize.Unit.display_name/2` `:format` (use `:style`). The former alias keys are now ignored like any other unknown option.
 
 ## [0.50.0] — July 15th, 2026
 
