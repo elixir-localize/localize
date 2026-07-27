@@ -37,6 +37,21 @@ defmodule Localize.MixProject do
     ]
   end
 
+  # Packaging runs in `:release` so that `elixirc_paths/1` resolves to
+  # `["lib"]` alone. In `:dev` it also compiles `data/`, the locale-data
+  # generation pipeline, which is build tooling rather than part of the
+  # package. Declaring the environment here means the tarball is built
+  # the same way whether or not `MIX_ENV=release` is typed on the
+  # command line — `mix hex.publish` is enough.
+  def cli do
+    [
+      preferred_envs: [
+        "hex.build": :release,
+        "hex.publish": :release
+      ]
+    ]
+  end
+
   def description do
     "Localization (parsing, formatting) of numbers, dates/time/calendar, units of measure, " <>
       "messages and lists. Includes localized collation."
