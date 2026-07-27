@@ -857,10 +857,10 @@ defmodule Localize.DateTime.Formatter do
   def period_am_pm(%{hour: _} = time, count, locale_id, options) do
     format = format_for_count(count)
 
-    localize_part(time, :am_pm,
+    localize_part(time, :day_period,
       locale: locale_id,
       style: format,
-      am_pm: options[:am_pm]
+      day_period: options[:day_period]
     )
   end
 

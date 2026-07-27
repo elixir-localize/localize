@@ -18,13 +18,13 @@ defmodule Localize.Calendar do
   | `:calendar` | `:gregorian` | `"Gregorian Calendar"` |
   | `:era` | `1` | `"Anno Domini"` |
   | `:month` | `1` | `"January"` |
-  | `:day` | `1` (ISO Monday) | `"Monday"` |
+  | `:day_of_week` | `1` (ISO Monday) | `"Monday"` |
   | `:quarter` | `1` | `"1st quarter"` |
   | `:day_period` | `:am` | `"AM"` |
   | `:date_time_field` | `:year` | `"year"` |
 
   All types support `:locale` and `:style` options. The `:month`,
-  `:day`, `:quarter`, and `:day_period` types also support a
+  `:day_of_week`, `:quarter`, and `:day_period` types also support a
   `:context` option (`:format` or `:stand_alone`).
 
   `:style` is the display width — `:wide` (the default),
@@ -73,9 +73,9 @@ defmodule Localize.Calendar do
     :roc
   ]
 
-  @parts [:era, :quarter, :month, :day_of_week, :days_of_week, :am_pm]
+  @parts [:era, :quarter, :month, :day_of_week, :days_of_week, :day_period]
 
-  @type part :: :era | :quarter | :month | :day_of_week | :days_of_week | :am_pm
+  @type part :: :era | :quarter | :month | :day_of_week | :days_of_week | :day_period
   @type format :: :wide | :abbreviated | :narrow
   @type context :: :format | :stand_alone
 
@@ -111,7 +111,7 @@ defmodule Localize.Calendar do
     :era,
     :quarter,
     :month,
-    :day,
+    :day_of_week,
     :day_period,
     :date_time_field
   ]
@@ -146,7 +146,7 @@ defmodule Localize.Calendar do
   | `:calendar` | `:gregorian` | `"Gregorian Calendar"` |
   | `:era` | `1` | `"Anno Domini"` |
   | `:month` | `1` | `"January"` |
-  | `:day` | `1` (ISO Monday) | `"Monday"` |
+  | `:day_of_week` | `1` (ISO Monday) | `"Monday"` |
   | `:quarter` | `1` | `"1st quarter"` |
   | `:day_period` | `:am` | `"AM"` |
   | `:date_time_field` | `:year` | `"year"` |
@@ -163,7 +163,7 @@ defmodule Localize.Calendar do
 
     * `:month` — a month name by number (1–12).
 
-    * `:day` — a day-of-week name by ISO day number (1–7,
+    * `:day_of_week` — a day-of-week name by ISO day number (1–7,
       Monday–Sunday).
 
     * `:day_period` — a day period name (e.g., `:am`, `:pm`,
@@ -187,7 +187,11 @@ defmodule Localize.Calendar do
     available for all types.
 
   * `:context` is `:format` (default) or `:stand_alone`.
-    Applies to `:month`, `:day`, `:quarter`, and `:day_period`.
+    Applies to `:month`, `:day_of_week`, `:quarter`, and `:day_period`.
+
+  * `:day_period` — if set to `:variant`, uses variant day period
+    names ("am"/"pm" instead of "AM"/"PM" in English). Applies to
+    the `:day_period` type.
 
   * `:calendar` is the calendar system atom. The default is
     `:gregorian`.
@@ -209,10 +213,10 @@ defmodule Localize.Calendar do
       iex> Localize.Calendar.display_name(:month, 1, style: :abbreviated)
       {:ok, "Jan"}
 
-      iex> Localize.Calendar.display_name(:day, 1)
+      iex> Localize.Calendar.display_name(:day_of_week, 1)
       {:ok, "Monday"}
 
-      iex> Localize.Calendar.display_name(:day, 1, style: :narrow)
+      iex> Localize.Calendar.display_name(:day_of_week, 1, style: :narrow)
       {:ok, "M"}
 
       iex> Localize.Calendar.display_name(:day_period, :am)
@@ -272,7 +276,7 @@ defmodule Localize.Calendar do
     lookup_calendar_field(:months, month, options, "1..13")
   end
 
-  def display_name(:day, day, options) when day in 1..7 do
+  def display_name(:day_of_week, day, options) when day in 1..7 do
     lookup_calendar_field(:days, day, options, "1..7 (ISO day)")
   end
 
@@ -291,13 +295,23 @@ defmodule Localize.Calendar do
     {:error, invalid_display_value_error(value, "a valid value for #{inspect(type)}")}
   end
 
+  def display_name(type, _value, _options) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: type,
+       expected: "a known display name type",
+       allowed_values: @display_name_types,
+       context: "Calendar.display_name"
+     )}
+  end
+
   @doc """
   Same as `display_name/3` but raises on error.
 
   ### Arguments
 
   * `type` is the type of calendar item (`:calendar`, `:era`,
-    `:quarter`, `:month`, `:day`, `:day_period`, or
+    `:quarter`, `:month`, `:day_of_week`, `:day_period`, or
     `:date_time_field`). See `display_name/3`.
 
   * `value` is the value to look up. The type depends on the
@@ -325,7 +339,7 @@ defmodule Localize.Calendar do
 
   """
   @spec display_name!(
-          :calendar | :era | :quarter | :month | :day | :day_period | :date_time_field,
+          :calendar | :era | :quarter | :month | :day_of_week | :day_period | :date_time_field,
           term(),
           Keyword.t()
         ) :: String.t()
@@ -343,7 +357,7 @@ defmodule Localize.Calendar do
   defp map_field_style(style), do: style
 
   # Shared implementation for the calendar-data lookup clauses
-  # (:era, :quarter, :month, :day, :day_period). Each takes the same
+  # (:era, :quarter, :month, :day_of_week, :day_period). Each takes the same
   # shape: resolve locale → load CLDR data for the given key → walk
   # `[context, style, value]` (or `[style, value]` for :era) → return
   # the localised name or an InvalidValueError. Per-clause variations
@@ -355,7 +369,7 @@ defmodule Localize.Calendar do
     style = Keyword.get(options, :style, Keyword.get(defaults, :style, :wide))
     calendar_type = Keyword.get(options, :calendar, @default_calendar_type)
     unwrap? = Keyword.get(defaults, :unwrap, false)
-    variant? = Keyword.get(options, :period) == :variant
+    variant? = Keyword.get(options, :day_period) == :variant
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, data} <- get_calendar_data_raw(locale_id, calendar_type, data_key),
@@ -409,7 +423,7 @@ defmodule Localize.Calendar do
   # the not-found error.
   defp unwrap_localized_name(value), do: unwrap_localized_name(value, false)
 
-  # `period: :variant` selects the CLDR `alt` name where the field has
+  # `day_period: :variant` selects the CLDR `alt` name where the field has
   # one ("am" rather than "AM"), falling back to the default when it
   # does not.
   defp unwrap_localized_name(value, true) when is_map(value),
@@ -692,7 +706,7 @@ defmodule Localize.Calendar do
     `t:NaiveDateTime.t/0`.
 
   * `part` is one of `:era`, `:quarter`, `:month`,
-    `:day_of_week`, `:days_of_week`, or `:am_pm`.
+    `:day_of_week`, `:days_of_week`, or `:day_period`.
 
   * `options` is a keyword list of options. The default is `[]`.
 
@@ -713,9 +727,9 @@ defmodule Localize.Calendar do
   * `:era` — if set to `:variant`, uses variant era names
     ("Common Era" instead of "Anno Domini" in English).
 
-  * `:period` — if set to `:variant`, uses variant day period
-    names ("am"/"pm" instead of "AM"/"PM" in English). `:am_pm`
-    is accepted as an alias.
+  * `:day_period` — if set to `:variant`, uses variant day period
+    names ("am"/"pm" instead of "AM"/"PM" in English). Each
+    variant option is named for the part it applies to.
 
   ### Returns
 
@@ -768,14 +782,14 @@ defmodule Localize.Calendar do
   end
 
   def localize(datetime, :day_of_week, options) do
-    display_name(:day, iso_day_of_week(datetime), localize_options(datetime, options))
+    display_name(:day_of_week, iso_day_of_week(datetime), localize_options(datetime, options))
   end
 
   def localize(datetime, :days_of_week, options) do
     options = localize_options(datetime, options)
 
     Enum.reduce_while(@days, {:ok, []}, fn day, {:ok, acc} ->
-      case display_name(:day, day, options) do
+      case display_name(:day_of_week, day, options) do
         {:ok, name} -> {:cont, {:ok, [{day, name} | acc]}}
         {:error, _reason} = error -> {:halt, error}
       end
@@ -786,13 +800,13 @@ defmodule Localize.Calendar do
     end
   end
 
-  def localize(%{hour: hour} = datetime, :am_pm, options) do
+  def localize(%{hour: hour} = datetime, :day_period, options) do
     am_pm = if hour < 12 or rem(hour, 24) < 12, do: :am, else: :pm
 
     display_name(:day_period, am_pm, localize_options(datetime, options))
   end
 
-  def localize(_datetime, :am_pm, _options) do
+  def localize(_datetime, :day_period, _options) do
     {:error,
      Localize.InvalidValueError.exception(
        value: nil,
@@ -820,7 +834,7 @@ defmodule Localize.Calendar do
     `t:NaiveDateTime.t/0`.
 
   * `part` is one of `:era`, `:quarter`, `:month`,
-    `:day_of_week`, `:days_of_week`, or `:am_pm`.
+    `:day_of_week`, `:days_of_week`, or `:day_period`.
 
   * `options` is a keyword list of options. See `localize/3`.
 
@@ -849,18 +863,9 @@ defmodule Localize.Calendar do
   end
 
   # The datetime carries the calendar, which `display_name/3` takes as
-  # the `:calendar` option. `:am_pm` is accepted as an alias for the
-  # `:period` variant selector so the option keeps the name of the part
-  # it applies to.
+  # the `:calendar` option.
   defp localize_options(datetime, options) do
-    options
-    |> Keyword.put_new(:calendar, calendar_type_from(datetime))
-    |> then(fn options ->
-      case Keyword.get(options, :am_pm) do
-        nil -> options
-        preference -> Keyword.put_new(options, :period, preference)
-      end
-    end)
+    Keyword.put_new(options, :calendar, calendar_type_from(datetime))
   end
 
   # ── strftime options ────────────────────────────────────────────
