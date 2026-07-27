@@ -4,7 +4,7 @@ defmodule Localize.DateTimeIntervalFormatError do
 
   """
 
-  defexception [:reason, :style, :format, :format_key, :detail]
+  defexception [:reason, :fields, :format, :format_key, :detail]
 
   @impl true
   def exception(bindings) when is_list(bindings) do
@@ -12,11 +12,11 @@ defmodule Localize.DateTimeIntervalFormatError do
   end
 
   @impl true
-  def message(%__MODULE__{reason: :unknown_style, style: style, format: format}) do
+  def message(%__MODULE__{reason: :unknown_fields, fields: fields, format: format}) do
     Localize.Exception.safe_message(
       "datetime",
-      "Unknown interval style {$style} or format {$format}.",
-      style: inspect(style),
+      "Unknown interval fields {$fields} or format {$format}.",
+      fields: inspect(fields),
       format: inspect(format)
     )
   end

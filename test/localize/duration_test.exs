@@ -365,11 +365,11 @@ defmodule Localize.DurationTest do
                )
     end
 
-    test "per-unit styles override the format" do
+    test "per-unit formats override the format" do
       assert {:ok, "2h, 30 minutes"} =
                Localize.Duration.to_string(%Localize.Duration{hour: 2, minute: 30},
                  locale: :en,
-                 styles: [hour: :narrow]
+                 formats: [hour: :narrow]
                )
     end
 
@@ -383,7 +383,7 @@ defmodule Localize.DurationTest do
       assert {:error, %Localize.InvalidValueError{}} =
                Localize.Duration.to_string(%Localize.Duration{hour: 2},
                  locale: :en,
-                 styles: [hour: :digital]
+                 formats: [hour: :digital]
                )
     end
   end

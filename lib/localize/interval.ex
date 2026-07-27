@@ -11,18 +11,18 @@ defmodule Localize.Interval do
 
   import Kernel, except: [to_string: 1]
 
-  # Locale-independent skeletons for the non-default `:style`
-  # options. The default `:date` style is resolved per-locale from
-  # `Localize.DateTime.Format.date_formats/1` (see `resolve_style/3`)
+  # Locale-independent skeletons for the non-default `:fields`
+  # options. The default `:date` selection is resolved per-locale from
+  # `Localize.DateTime.Format.date_formats/1` (see `resolve_fields/3`)
   # so date intervals follow the same conventions single
   # `Localize.Date.to_string/2` does for the same `:format`.
-  @date_styles %{
+  @field_skeletons %{
     month: %{full: :MMM, long: :MMM, medium: :MMM, short: :M},
     month_and_day: %{full: :MMMEd, long: :MMMEd, medium: :MMMd, short: :Md},
     year_and_month: %{full: :yMMMM, long: :yMMMM, medium: :yMMM, short: :yM}
   }
 
-  @default_date_style :date
+  @default_fields :date
   @default_format :medium
 
   @doc """
@@ -40,11 +40,20 @@ defmodule Localize.Interval do
 
   * `:locale` is a locale identifier. The default is `:en`.
 
-  * `:format` is `:short`, `:medium`, or `:long`. The default
-    is `:medium`.
+  * `:fields` selects *which* date fields appear: `:date` (the
+    whole date, the default), `:month`, `:month_and_day`, or
+    `:year_and_month`. See `known_fields/0`.
 
-  * `:style` is `:date`, `:month`, `:month_and_day`, or
-    `:year_and_month`. The default is `:date`.
+  * `:format` selects *how wide* those fields are rendered:
+    `:short`, `:medium`, `:long`, or `:full`. The default is
+    `:medium`.
+
+  The two are independent axes: `:fields` chooses which fields
+  appear, `:format` chooses how wide they are rendered. So
+  `fields: :year_and_month` renders the two months against a
+  single year either way — numerically for `format: :short`
+  ("1/2022" … "3/2022") and spelled out for `format: :long`
+  ("January" … "March 2022").
 
   ### Returns
 
@@ -223,10 +232,10 @@ defmodule Localize.Interval do
       Keyword.get(options, :date_format) ||
         Keyword.get(options, :format, @default_format)
 
-    style = Keyword.get(options, :style, @default_date_style)
+    fields = Keyword.get(options, :fields, @default_fields)
 
     with {:ok, locale_id} <- resolve_locale_id(locale) do
-      case resolve_style(style, format, locale_id) do
+      case resolve_fields(fields, format, locale_id) do
         {:ok, {:fallback_style, fallback_format}} ->
           # CLDR ships no skeleton-keyed interval-format data for the
           # per-locale skeleton (e.g. ja's `:yMMdd` for `:short`,
@@ -779,24 +788,25 @@ defmodule Localize.Interval do
   end
 
   @doc """
-  Returns the locale-independent date interval style configurations.
+  Returns the locale-independent skeletons for the `:fields` option of `to_string/3`.
 
-  Only the non-default `:style` options (`:month`,
-  `:month_and_day`, `:year_and_month`) appear here. The default
-  `:date` style is resolved per-locale, mirroring
-  `Localize.Date.to_string/2`'s style → skeleton mapping for that
-  locale.
+  Only the non-default `:fields` selections (`:month`,
+  `:month_and_day`, `:year_and_month`) appear here, because only
+  those are locale-independent. The default `:date` selection is
+  resolved per-locale, mirroring `Localize.Date.to_string/2`'s
+  `:format` → skeleton mapping for that locale, so it has no fixed
+  entry to list.
 
   ### Returns
 
-  * A map keyed by style (`:month`, `:month_and_day`,
-    `:year_and_month`), each value a map of format
+  * A map keyed by field selection (`:month`, `:month_and_day`,
+    `:year_and_month`), each value a map of `:format`
     (`:short`, `:medium`, `:long`, `:full`) to the CLDR
     skeleton atom used for that combination.
 
   ### Examples
 
-      iex> Localize.Interval.date_styles()
+      iex> Localize.Interval.known_fields()
       %{
         month: %{short: :M, full: :MMM, long: :MMM, medium: :MMM},
         month_and_day: %{short: :Md, full: :MMMEd, long: :MMMEd, medium: :MMMd},
@@ -804,12 +814,12 @@ defmodule Localize.Interval do
       }
 
   """
-  @spec date_styles() :: %{
+  @spec known_fields() :: %{
           month: %{short: :M, medium: :MMM, long: :MMM, full: :MMM},
           month_and_day: %{short: :Md, medium: :MMMd, long: :MMMEd, full: :MMMEd},
           year_and_month: %{short: :yM, medium: :yMMM, long: :yMMMM, full: :yMMMM}
         }
-  def date_styles, do: @date_styles
+  def known_fields, do: @field_skeletons
 
   # ── Interval pattern resolution ────────────────────────────
 
@@ -825,7 +835,7 @@ defmodule Localize.Interval do
   # Other styles (`:month`, `:month_and_day`, `:year_and_month`)
   # remain locale-independent — they describe a deliberate field
   # selection unrelated to single Date's standard styles.
-  defp resolve_style(:date, format, locale_id) when format in [:short, :medium, :long, :full] do
+  defp resolve_fields(:date, format, locale_id) when format in [:short, :medium, :long, :full] do
     with {:ok, date_formats} <- Localize.DateTime.Format.date_formats(locale_id),
          {:ok, interval_formats} <- Localize.DateTime.Format.interval_formats(locale_id) do
       case Map.get(date_formats, format) do
@@ -835,21 +845,21 @@ defmodule Localize.Interval do
         _ ->
           {:error,
            Localize.DateTimeIntervalFormatError.exception(
-             reason: :unknown_style,
-             style: :date,
+             reason: :unknown_fields,
+             fields: :date,
              format: format
            )}
       end
     end
   end
 
-  defp resolve_style(style, format, _locale_id) when is_atom(style) and is_atom(format) do
-    case get_in(@date_styles, [style, format]) do
+  defp resolve_fields(fields, format, _locale_id) when is_atom(fields) and is_atom(format) do
+    case get_in(@field_skeletons, [fields, format]) do
       nil ->
         {:error,
          Localize.DateTimeIntervalFormatError.exception(
-           reason: :unknown_style,
-           style: style,
+           reason: :unknown_fields,
+           fields: fields,
            format: format
          )}
 

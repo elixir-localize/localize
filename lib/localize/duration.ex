@@ -36,7 +36,7 @@ defmodule Localize.Duration do
   defstruct @struct_list
 
   @display_values [:auto, :always]
-  @style_values [:long, :short, :narrow]
+  @format_values [:long, :short, :narrow]
 
   @typedoc "Duration in calendar units."
   @type t :: %__MODULE__{
@@ -262,8 +262,10 @@ defmodule Localize.Duration do
   * `:locale` is a locale identifier. The default is
     `Localize.get_locale()`.
 
-  * `:format` is one of `:long`, `:short`, or `:narrow`.
-    The default is `:long`.
+  * `:format` is the display width applied to every unit: one of
+    `:long` ("11 months, 30 days"), `:short` ("11 mths, 30 days"),
+    or `:narrow` ("11m 30d"). The default is `:long`. It also
+    selects the CLDR unit list pattern that joins the parts.
 
   * `:display` is a keyword list of per-unit display control,
     mirroring ECMA-402's per-unit `*Display` options. Each key is
@@ -272,9 +274,13 @@ defmodule Localize.Duration do
     the unit when zero, the default) or `:always` (render the
     unit even when zero).
 
-  * `:styles` is a keyword list of per-unit format overrides.
-    Each key is a unit atom and each value is `:long`, `:short`,
-    or `:narrow`, overriding `:format` for that unit only.
+  * `:formats` is a keyword list of per-unit width overrides,
+    mirroring ECMA-402's per-unit width options. Each key is a
+    unit atom (the same set as `:display`) and each value is
+    `:long`, `:short`, or `:narrow`, overriding `:format` for
+    that unit alone; units not named keep `:format`. Note the
+    plural: `:format` sets the width for the whole duration,
+    `:formats` overrides individual units within it.
 
   ### Returns
 
@@ -297,7 +303,7 @@ defmodule Localize.Duration do
       {:ok, "2 hours, 0 minutes"}
 
       iex> duration = %Localize.Duration{hour: 2, minute: 30}
-      iex> Localize.Duration.to_string(duration, locale: :en, styles: [hour: :narrow])
+      iex> Localize.Duration.to_string(duration, locale: :en, formats: [hour: :narrow])
       {:ok, "2h, 30 minutes"}
 
   """
@@ -307,13 +313,13 @@ defmodule Localize.Duration do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, :long)
     display = Keyword.get(options, :display, [])
-    styles = Keyword.get(options, :styles, [])
+    formats = Keyword.get(options, :formats, [])
 
     with :ok <- validate_per_unit(display, :display, @display_values),
-         :ok <- validate_per_unit(styles, :styles, @style_values) do
+         :ok <- validate_per_unit(formats, :formats, @format_values) do
       duration
       |> duration_units(display, except)
-      |> format_units(locale, format, styles)
+      |> format_units(locale, format, formats)
     end
   end
 
@@ -326,13 +332,13 @@ defmodule Localize.Duration do
   end
 
   # All parts are zero — format as "0 seconds"
-  defp format_units([], locale, format, styles) do
+  defp format_units([], locale, format, formats) do
     unit = Localize.Unit.new!(0, "second")
-    Localize.Unit.to_string(unit, locale: locale, format: unit_format(:second, styles, format))
+    Localize.Unit.to_string(unit, locale: locale, format: unit_format(:second, formats, format))
   end
 
-  defp format_units(units, locale, format, styles) do
-    with {:ok, formatted_parts} <- format_each(units, locale, format, styles) do
+  defp format_units(units, locale, format, formats) do
+    with {:ok, formatted_parts} <- format_each(units, locale, format, formats) do
       Localize.List.to_string(formatted_parts, locale: locale, list_style: list_style(format))
     end
   end
@@ -381,13 +387,13 @@ defmodule Localize.Duration do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, :long)
     display = Keyword.get(options, :display, [])
-    styles = Keyword.get(options, :styles, [])
+    formats = Keyword.get(options, :formats, [])
 
     with :ok <- validate_per_unit(display, :display, @display_values),
-         :ok <- validate_per_unit(styles, :styles, @style_values) do
+         :ok <- validate_per_unit(formats, :formats, @format_values) do
       duration
       |> duration_units(display, except)
-      |> units_to_parts(locale, format, styles)
+      |> units_to_parts(locale, format, formats)
     end
   end
 
@@ -423,13 +429,13 @@ defmodule Localize.Duration do
   end
 
   # All parts are zero — the "0 seconds" fallback, as parts.
-  defp units_to_parts([], locale, format, styles) do
+  defp units_to_parts([], locale, format, formats) do
     unit = Localize.Unit.new!(0, "second")
 
     with {:ok, parts} <-
            Localize.Unit.to_parts(unit,
              locale: locale,
-             format: unit_format(:second, styles, format)
+             format: unit_format(:second, formats, format)
            ) do
       {:ok, tag_numeric_parts(parts, :second)}
     end
@@ -437,8 +443,8 @@ defmodule Localize.Duration do
 
   # `intersperse/2` flattens, interleaving the field part maps with
   # separator strings — each separator becomes a `:literal` part.
-  defp units_to_parts(units, locale, format, styles) do
-    with {:ok, parts_lists} <- parts_each(units, locale, format, styles),
+  defp units_to_parts(units, locale, format, formats) do
+    with {:ok, parts_lists} <- parts_each(units, locale, format, formats),
          {:ok, interspersed} <-
            Localize.List.intersperse(parts_lists, locale: locale, list_style: list_style(format)) do
       parts =
@@ -451,9 +457,9 @@ defmodule Localize.Duration do
     end
   end
 
-  defp parts_each(units, locale, format, styles) do
+  defp parts_each(units, locale, format, formats) do
     Enum.reduce_while(units, {:ok, []}, fn {key, unit}, {:ok, acc} ->
-      case Localize.Unit.to_parts(unit, locale: locale, format: unit_format(key, styles, format)) do
+      case Localize.Unit.to_parts(unit, locale: locale, format: unit_format(key, formats, format)) do
         {:ok, parts} -> {:cont, {:ok, [tag_numeric_parts(parts, key) | acc]}}
         {:error, _} = error -> {:halt, error}
       end
@@ -483,15 +489,15 @@ defmodule Localize.Duration do
     end
   end
 
-  defp unit_format(key, styles, format) do
-    Keyword.get(styles, key, format)
+  defp unit_format(key, formats, format) do
+    Keyword.get(formats, key, format)
   end
 
   # CLDR defines dedicated *unit* list patterns for joining measures,
   # and ECMA-402's `Intl.DurationFormat` joins duration parts with the
   # unit list style matched to the width: "3 days, 2 hr" rather than the
   # `:standard` prose conjunction "3 days and 2 hr". The width follows
-  # the overall `:format` option, so a per-unit `:styles` override
+  # the overall `:format` option, so a per-unit `:formats` override
   # changes only that field's unit width, not the join (as in ECMA-402).
   defp list_style(:short), do: :unit_short
   defp list_style(:narrow), do: :unit_narrow
@@ -524,9 +530,12 @@ defmodule Localize.Duration do
   # Format each unit, short-circuiting on the first error so a single
   # bad locale or unit cannot crash duration formatting with a
   # `MatchError`. Returns `{:ok, list}` only when every part formats.
-  defp format_each(units, locale, format, styles) do
+  defp format_each(units, locale, format, formats) do
     Enum.reduce_while(units, {:ok, []}, fn {key, unit}, {:ok, acc} ->
-      case Localize.Unit.to_string(unit, locale: locale, format: unit_format(key, styles, format)) do
+      case Localize.Unit.to_string(unit,
+             locale: locale,
+             format: unit_format(key, formats, format)
+           ) do
         {:ok, formatted} -> {:cont, {:ok, [formatted | acc]}}
         {:error, _} = error -> {:halt, error}
       end

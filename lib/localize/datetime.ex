@@ -42,7 +42,25 @@ defmodule Localize.DateTime do
 
   * `:format` is a standard format name (`:short`, `:medium`,
     `:long`, `:full`) or a format pattern string. The default
-    is `:medium`.
+    is `:medium`. It sets the width of the date and the time
+    together; `:date_format` and `:time_format` override each
+    axis separately.
+
+  * `:date_format` and `:time_format` are standard format names
+    that set the width of the date half and the time half
+    independently, each defaulting to `:format`. Use them for
+    the common "full date, short time" pairing:
+    `date_format: :full, time_format: :short` renders
+    "Wednesday, April 8, 2026, 12:00 PM". When `:date_format`
+    is given it also selects the wrapper width.
+
+  * `:style` selects the CLDR pattern that joins the date and
+    the time. `:default` (the default) uses the standard
+    wrapper ("April 8, 2026, 12:00:00 PM"); `:at` uses the
+    locale's "at time" wrapper ("April 8, 2026 at 12:00:00 PM",
+    de "8. April 2026 um 12:00:00"). CLDR defines the "at time"
+    wrapper only for `:full` and `:long`, so `:at` falls back to
+    the standard wrapper for `:medium` and `:short`.
 
   * `:locale` is a locale identifier. The default is `:en`.
 

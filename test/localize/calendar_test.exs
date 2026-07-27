@@ -100,73 +100,122 @@ defmodule Localize.CalendarTest do
   # ── localize/3 ──────────────────────────────────────────────────
 
   describe "localize/3 with :month" do
-    test "returns abbreviated month name" do
-      assert Localize.Calendar.localize(~D[2019-06-01], :month) == "Jun"
+    test "defaults to the wide month name, matching display_name/3" do
+      assert Localize.Calendar.localize(~D[2019-06-01], :month) == {:ok, "June"}
+      assert Localize.Calendar.display_name(:month, 6) == {:ok, "June"}
     end
 
-    test "returns wide month name" do
-      assert Localize.Calendar.localize(~D[2019-06-01], :month, format: :wide) == "June"
+    test "returns abbreviated month name" do
+      assert Localize.Calendar.localize(~D[2019-06-01], :month, style: :abbreviated) ==
+               {:ok, "Jun"}
     end
 
     test "returns narrow month name" do
-      assert Localize.Calendar.localize(~D[2019-06-01], :month, format: :narrow) == "J"
+      assert Localize.Calendar.localize(~D[2019-06-01], :month, style: :narrow) == {:ok, "J"}
     end
 
     test "returns month name in German" do
-      assert Localize.Calendar.localize(~D[2019-06-01], :month, locale: :de) == "Juni"
+      assert Localize.Calendar.localize(~D[2019-06-01], :month, locale: :de) == {:ok, "Juni"}
     end
   end
 
   describe "localize/3 with :day_of_week" do
     test "returns abbreviated day name for Saturday" do
-      assert Localize.Calendar.localize(~D[2019-06-01], :day_of_week) == "Sat"
+      assert Localize.Calendar.localize(~D[2019-06-01], :day_of_week, style: :abbreviated) ==
+               {:ok, "Sat"}
     end
 
-    test "returns wide day name" do
-      assert Localize.Calendar.localize(~D[2019-06-01], :day_of_week, format: :wide) ==
-               "Saturday"
+    test "defaults to the wide day name" do
+      assert Localize.Calendar.localize(~D[2019-06-01], :day_of_week) == {:ok, "Saturday"}
     end
 
     test "returns narrow day name" do
-      assert Localize.Calendar.localize(~D[2019-06-01], :day_of_week, format: :narrow) == "S"
+      assert Localize.Calendar.localize(~D[2019-06-01], :day_of_week, style: :narrow) ==
+               {:ok, "S"}
+    end
+
+    # `:short` exists in CLDR for days but not for months, quarters,
+    # eras or day periods — it used to return nil for every part.
+    test "returns the short day name, which only the day parts carry" do
+      assert Localize.Calendar.localize(~D[2019-06-01], :day_of_week, style: :short) ==
+               {:ok, "Sa"}
+
+      assert {:error, %Localize.InvalidValueError{value: :short, allowed_values: allowed}} =
+               Localize.Calendar.localize(~D[2019-06-01], :month, style: :short)
+
+      assert allowed == [:abbreviated, :narrow, :wide]
     end
 
     test "returns day name in Arabic" do
-      result = Localize.Calendar.localize(~D[2019-06-01], :day_of_week, locale: :ar)
+      assert {:ok, result} = Localize.Calendar.localize(~D[2019-06-01], :day_of_week, locale: :ar)
       assert is_binary(result)
     end
   end
 
   describe "localize/3 with :era" do
-    test "returns AD for positive year" do
-      assert Localize.Calendar.localize(~D[2019-01-01], :era) == "AD"
+    test "returns the wide era for a positive year" do
+      assert Localize.Calendar.localize(~D[2019-01-01], :era) == {:ok, "Anno Domini"}
     end
 
-    test "returns CE for variant era" do
-      assert Localize.Calendar.localize(~D[2019-01-01], :era, era: :variant) == "CE"
+    test "returns the variant era" do
+      assert Localize.Calendar.localize(~D[2019-01-01], :era, era: :variant) ==
+               {:ok, "Common Era"}
+    end
+
+    test "returns the abbreviated era" do
+      assert Localize.Calendar.localize(~D[2019-01-01], :era, style: :abbreviated) == {:ok, "AD"}
+
+      assert Localize.Calendar.localize(~D[2019-01-01], :era, style: :abbreviated, era: :variant) ==
+               {:ok, "CE"}
     end
   end
 
   describe "localize/3 with :quarter" do
-    test "returns Q1 for January" do
-      assert Localize.Calendar.localize(~D[2019-01-01], :quarter) == "Q1"
+    test "returns the wide quarter by default" do
+      assert Localize.Calendar.localize(~D[2019-01-01], :quarter) == {:ok, "1st quarter"}
     end
 
     test "returns Q2 for June" do
-      assert Localize.Calendar.localize(~D[2019-06-01], :quarter) == "Q2"
+      assert Localize.Calendar.localize(~D[2019-06-01], :quarter, style: :abbreviated) ==
+               {:ok, "Q2"}
     end
 
     test "returns Q4 for December" do
-      assert Localize.Calendar.localize(~D[2019-12-01], :quarter) == "Q4"
+      assert Localize.Calendar.localize(~D[2019-12-01], :quarter, style: :abbreviated) ==
+               {:ok, "Q4"}
     end
   end
 
   describe "localize/3 with :days_of_week" do
     test "returns all 7 days" do
-      days = Localize.Calendar.localize(~D[2019-01-01], :days_of_week)
+      assert {:ok, days} = Localize.Calendar.localize(~D[2019-01-01], :days_of_week)
       assert length(days) == 7
-      assert {1, "Mon"} = hd(days)
-      assert {7, "Sun"} = List.last(days)
+      assert {1, "Monday"} = hd(days)
+      assert {7, "Sunday"} = List.last(days)
+    end
+  end
+
+  describe "localize/3 error handling" do
+    test "an unknown part is an error, not a FunctionClauseError" do
+      assert {:error, %Localize.InvalidValueError{value: :bogus}} =
+               Localize.Calendar.localize(~D[2019-06-01], :bogus)
+    end
+
+    test "an error is never returned as a bare value a caller might interpolate" do
+      assert {:error, %Localize.InvalidLocaleError{}} =
+               Localize.Calendar.localize(~D[2019-06-01], :month, locale: :xx)
+    end
+  end
+
+  describe "localize!/3" do
+    test "returns the bare name" do
+      assert Localize.Calendar.localize!(~D[2019-06-01], :month) == "June"
+    end
+
+    test "raises on error" do
+      assert_raise Localize.InvalidValueError, fn ->
+        Localize.Calendar.localize!(~D[2019-06-01], :bogus)
+      end
     end
   end
 
@@ -514,35 +563,51 @@ defmodule Localize.CalendarTest do
   describe "localize/3 :era with era-aware calendars" do
     test "a calendar reporting year_of_era and a Buddhist type renders BE" do
       date = %{year: 2020, month: 6, day: 1, calendar: BuddhistLikeCalendar}
-      assert Localize.Calendar.localize(date, :era, locale: :en) == "BE"
+
+      assert Localize.Calendar.localize(date, :era, locale: :en, style: :abbreviated) ==
+               {:ok, "BE"}
     end
 
     test "a calendar without year_of_era falls back to the year sign" do
       date = %{year: 2020, month: 6, day: 1, calendar: NoYearOfEraCalendar}
-      assert Localize.Calendar.localize(date, :era, locale: :en) == "AD"
+
+      assert Localize.Calendar.localize(date, :era, locale: :en, style: :abbreviated) ==
+               {:ok, "AD"}
     end
 
     test "a calendar with a malformed year_of_era falls back to the year sign" do
       date = %{year: 2020, month: 6, day: 1, calendar: BadYearOfEraCalendar}
-      assert Localize.Calendar.localize(date, :era, locale: :en) == "AD"
+
+      assert Localize.Calendar.localize(date, :era, locale: :en, style: :abbreviated) ==
+               {:ok, "AD"}
     end
 
     test "a BC date renders the era at index zero, with variant BCE" do
       bc_date = %Date{year: -100, month: 1, day: 1, calendar: Calendar.ISO}
 
-      assert Localize.Calendar.localize(bc_date, :era, locale: :en) == "BC"
-      assert Localize.Calendar.localize(bc_date, :era, locale: :en, era: :variant) == "BCE"
+      assert Localize.Calendar.localize(bc_date, :era, locale: :en, style: :abbreviated) ==
+               {:ok, "BC"}
+
+      assert Localize.Calendar.localize(bc_date, :era,
+               locale: :en,
+               style: :abbreviated,
+               era: :variant
+             ) == {:ok, "BCE"}
     end
   end
 
   describe "localize/3 :am_pm variants and errors" do
     test "the :variant option selects lowercase names in en" do
-      assert Localize.Calendar.localize(~T[15:00:00], :am_pm, locale: :en, am_pm: :variant) ==
-               "pm"
+      assert Localize.Calendar.localize(~T[15:00:00], :am_pm,
+               locale: :en,
+               style: :abbreviated,
+               am_pm: :variant
+             ) == {:ok, "pm"}
     end
 
     test "localizes AM/PM for Japanese" do
-      assert Localize.Calendar.localize(~T[15:00:00], :am_pm, locale: :ja) == "午後"
+      assert Localize.Calendar.localize(~T[15:00:00], :am_pm, locale: :ja, style: :abbreviated) ==
+               {:ok, "午後"}
     end
 
     test "a value without an hour returns an InvalidValueError" do
@@ -554,12 +619,16 @@ defmodule Localize.CalendarTest do
   describe "localize/3 :day_of_week calendar fallbacks" do
     test "a calendar module without day_of_week/4 falls back to Calendar.ISO" do
       date = %{year: 2024, month: 7, day: 6, calendar: NoYearOfEraCalendar}
-      assert Localize.Calendar.localize(date, :day_of_week, locale: :en) == "Sat"
+
+      assert Localize.Calendar.localize(date, :day_of_week, locale: :en, style: :abbreviated) ==
+               {:ok, "Sat"}
     end
 
     test "a bare map without a :calendar key uses Calendar.ISO" do
       date = %{year: 2024, month: 7, day: 6}
-      assert Localize.Calendar.localize(date, :day_of_week, locale: :en) == "Sat"
+
+      assert Localize.Calendar.localize(date, :day_of_week, locale: :en, style: :abbreviated) ==
+               {:ok, "Sat"}
     end
   end
 
@@ -567,19 +636,23 @@ defmodule Localize.CalendarTest do
     # Characterization: maps lacking the relevant fields resolve to
     # the first value of each category rather than erroring.
     test "era defaults to the current era" do
-      assert Localize.Calendar.localize(%{}, :era, locale: :en) == "AD"
+      assert Localize.Calendar.localize(%{}, :era, locale: :en, style: :abbreviated) ==
+               {:ok, "AD"}
     end
 
     test "quarter defaults to Q1" do
-      assert Localize.Calendar.localize(%{}, :quarter, locale: :en) == "Q1"
+      assert Localize.Calendar.localize(%{}, :quarter, locale: :en, style: :abbreviated) ==
+               {:ok, "Q1"}
     end
 
     test "month defaults to January" do
-      assert Localize.Calendar.localize(%{}, :month, locale: :en) == "Jan"
+      assert Localize.Calendar.localize(%{}, :month, locale: :en, style: :abbreviated) ==
+               {:ok, "Jan"}
     end
 
     test "day of week defaults to Monday" do
-      assert Localize.Calendar.localize(%{}, :day_of_week, locale: :en) == "Mon"
+      assert Localize.Calendar.localize(%{}, :day_of_week, locale: :en, style: :abbreviated) ==
+               {:ok, "Mon"}
     end
   end
 
@@ -588,8 +661,8 @@ defmodule Localize.CalendarTest do
       assert Localize.Calendar.localize(~D[2024-01-15], :month,
                locale: :ru,
                context: :stand_alone,
-               format: :wide
-             ) == "январь"
+               style: :wide
+             ) == {:ok, "январь"}
     end
   end
 

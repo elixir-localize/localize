@@ -27,6 +27,20 @@ defmodule Localize.Calendar do
   `:day`, `:quarter`, and `:day_period` types also support a
   `:context` option (`:format` or `:stand_alone`).
 
+  `:style` is the display width — `:wide` (the default),
+  `:abbreviated`, `:narrow`, or `:short`. Widths vary by type:
+  only the day types carry `:short`, and a width the type does not
+  have returns an error naming the widths it does.
+
+  ## Naming a date's parts
+
+  `localize/3` is the same lookup addressed by a date rather than
+  by an explicit value: `localize(~D[2019-06-01], :month)` and
+  `display_name(:month, 6)` both return `{:ok, "June"}`. It derives
+  the part's value from the date and delegates, so the two take the
+  same options and always agree. Use it when you have a date, and
+  `display_name/3` when you have the value itself.
+
   ## Data access
 
   Lower-level data access functions (`eras/2`, `months/2`,
@@ -59,7 +73,9 @@ defmodule Localize.Calendar do
     :roc
   ]
 
-  @type part :: :era | :quarter | :month | :day_of_week | :days_of_week | :am_pm | :day_periods
+  @parts [:era, :quarter, :month, :day_of_week, :days_of_week, :am_pm]
+
+  @type part :: :era | :quarter | :month | :day_of_week | :days_of_week | :am_pm
   @type format :: :wide | :abbreviated | :narrow
   @type context :: :format | :stand_alone
 
@@ -271,8 +287,8 @@ defmodule Localize.Calendar do
     )
   end
 
-  def display_name(type, _value, _options) when type in @display_name_types do
-    {:error, invalid_display_value_error(type, "a valid value for the given type")}
+  def display_name(type, value, _options) when type in @display_name_types do
+    {:error, invalid_display_value_error(value, "a valid value for #{inspect(type)}")}
   end
 
   @doc """
@@ -339,20 +355,51 @@ defmodule Localize.Calendar do
     style = Keyword.get(options, :style, Keyword.get(defaults, :style, :wide))
     calendar_type = Keyword.get(options, :calendar, @default_calendar_type)
     unwrap? = Keyword.get(defaults, :unwrap, false)
-
-    key_path =
-      case data_key do
-        :eras -> [style, value]
-        _ -> [Keyword.get(options, :context, :format), style, value]
-      end
+    variant? = Keyword.get(options, :period) == :variant
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, data} <- get_calendar_data_raw(locale_id, calendar_type, data_key) do
-      data
-      |> get_in(key_path)
-      |> maybe_unwrap_name(unwrap?)
+         {:ok, data} <- get_calendar_data_raw(locale_id, calendar_type, data_key),
+         {:ok, styles} <- field_styles(data, data_key, options),
+         {:ok, names} <- field_names(styles, style) do
+      names
+      |> Map.get(value)
+      |> maybe_unwrap_name(unwrap?, variant?)
       |> wrap_or_invalid(value, expected)
     end
+  end
+
+  # `:eras` are keyed by style alone; every other calendar field is
+  # keyed by context (`:format` / `:stand_alone`) first.
+  defp field_styles(data, :eras, _options), do: {:ok, data}
+
+  defp field_styles(data, _data_key, options) do
+    context = Keyword.get(options, :context, :format)
+
+    case Map.get(data, context) do
+      styles when is_map(styles) -> {:ok, styles}
+      _ -> {:error, invalid_field_option_error(:context, context, data)}
+    end
+  end
+
+  # A style the field does not carry is a bad `:style` option, not a
+  # bad value, so the error names the style and lists what the field
+  # actually has. Widths vary by field — only `:days` has `:short` —
+  # which is why the available set is read from the data rather than
+  # hard-coded.
+  defp field_names(styles, style) do
+    case Map.get(styles, style) do
+      names when is_map(names) -> {:ok, names}
+      _ -> {:error, invalid_field_option_error(:style, style, styles)}
+    end
+  end
+
+  defp invalid_field_option_error(option, value, available) do
+    Localize.InvalidValueError.exception(
+      value: value,
+      expected: "a #{inspect(option)} supported by this calendar field",
+      allowed_values: available |> Map.keys() |> Enum.sort(),
+      context: "Calendar.display_name"
+    )
   end
 
   # Some CLDR fields (day-period names, date-field display names) wrap
@@ -360,12 +407,20 @@ defmodule Localize.Calendar do
   # Unwrap to the binary; pass plain binaries through; return nil
   # for anything else so the caller's `wrap_or_invalid/3` produces
   # the not-found error.
-  defp unwrap_localized_name(%{default: name}), do: name
-  defp unwrap_localized_name(name) when is_binary(name), do: name
-  defp unwrap_localized_name(_), do: nil
+  defp unwrap_localized_name(value), do: unwrap_localized_name(value, false)
 
-  defp maybe_unwrap_name(value, true), do: unwrap_localized_name(value)
-  defp maybe_unwrap_name(value, false), do: value
+  # `period: :variant` selects the CLDR `alt` name where the field has
+  # one ("am" rather than "AM"), falling back to the default when it
+  # does not.
+  defp unwrap_localized_name(value, true) when is_map(value),
+    do: Map.get(value, :variant) || Map.get(value, :default)
+
+  defp unwrap_localized_name(%{default: name}, _variant?), do: name
+  defp unwrap_localized_name(name, _variant?) when is_binary(name), do: name
+  defp unwrap_localized_name(_value, _variant?), do: nil
+
+  defp maybe_unwrap_name(value, true, variant?), do: unwrap_localized_name(value, variant?)
+  defp maybe_unwrap_name(value, false, _variant?), do: value
 
   defp wrap_or_invalid(nil, value, expected),
     do: {:error, invalid_display_value_error(value, expected)}
@@ -643,130 +698,169 @@ defmodule Localize.Calendar do
 
   ### Options
 
-  * `:locale` is a locale identifier. The default is `:en`.
+  * `:locale` is a locale identifier. The default is
+    `Localize.get_locale()`.
 
-  * `:format` is one of `:wide`, `:abbreviated`, or `:narrow`.
-    The default is `:abbreviated`.
+  * `:style` is the display width. One of `:wide` (default),
+    `:abbreviated`, `:narrow`, or `:short`. Not all widths exist
+    for all parts — only the day parts carry `:short` — and a
+    width the part does not have returns an error listing the
+    widths it does.
 
   * `:context` is one of `:format` or `:stand_alone`. The default
     is `:format`.
 
   * `:era` — if set to `:variant`, uses variant era names
-    (e.g., "CE" instead of "AD" in English).
+    ("Common Era" instead of "Anno Domini" in English).
 
-  * `:am_pm` — if set to `:variant`, uses variant AM/PM names
-    (e.g., "am"/"pm" instead of "AM"/"PM" in English).
+  * `:period` — if set to `:variant`, uses variant day period
+    names ("am"/"pm" instead of "AM"/"PM" in English). `:am_pm`
+    is accepted as an alias.
 
   ### Returns
 
-  * A string representing the localized date part.
+  * `{:ok, name}` where `name` is the localized string.
 
-  * A list of `{day_number, day_name}` tuples when `part`
-    is `:days_of_week`.
+  * `{:ok, days}` where `days` is a list of
+    `{day_number, day_name}` tuples, when `part` is
+    `:days_of_week`.
 
   * `{:error, exception}` if the part cannot be localized.
 
   ### Examples
 
       iex> Localize.Calendar.localize(~D[2019-06-01], :month)
-      "Jun"
+      {:ok, "June"}
 
-      iex> Localize.Calendar.localize(~D[2019-06-01], :month, format: :wide)
-      "June"
+      iex> Localize.Calendar.localize(~D[2019-06-01], :month, style: :abbreviated)
+      {:ok, "Jun"}
 
       iex> Localize.Calendar.localize(~D[2019-06-01], :day_of_week)
-      "Sat"
+      {:ok, "Saturday"}
 
       iex> Localize.Calendar.localize(~D[2019-01-01], :era)
-      "AD"
+      {:ok, "Anno Domini"}
 
       iex> Localize.Calendar.localize(~D[2019-01-01], :era, era: :variant)
-      "CE"
+      {:ok, "Common Era"}
 
       iex> Localize.Calendar.localize(~D[2019-01-01], :quarter)
-      "Q1"
+      {:ok, "1st quarter"}
 
   """
-  @spec localize(
-          map(),
-          :era | :quarter | :month | :day_of_week | :days_of_week | :am_pm,
-          Keyword.t()
-        ) :: String.t() | nil | [{1..7, String.t() | nil}] | {:error, Exception.t()}
+  @spec localize(map(), part(), Keyword.t()) ::
+          {:ok, String.t() | [{1..7, String.t()}]} | {:error, Exception.t()}
   def localize(datetime, part, options \\ [])
 
-  def localize(datetime, part, options) do
-    locale = Keyword.get(options, :locale, Localize.get_locale())
-    type = Keyword.get(options, :context, :format)
-    format = Keyword.get(options, :format, :abbreviated)
-    calendar_type = calendar_type_from(datetime)
+  def localize(datetime, :era, options) do
+    {_, era} = day_of_era(datetime)
+    era_key = if options[:era] == :variant, do: -era - 1, else: era
 
-    with {:ok, locale_id} <- resolve_locale_id(locale) do
-      do_localize(datetime, part, type, format, locale_id, calendar_type, options)
-    end
+    display_name(:era, era_key, localize_options(datetime, options))
   end
 
-  defp do_localize(datetime, :era, _type, format, locale_id, calendar_type, options) do
-    variant? = options[:era] == :variant
-
-    with {:ok, eras} <- get_calendar_data_raw(locale_id, calendar_type, :eras) do
-      {_, era} = day_of_era(datetime)
-      era_key = if variant?, do: -era - 1, else: era
-      get_in(eras, [format, era_key])
-    end
+  def localize(datetime, :quarter, options) do
+    display_name(:quarter, quarter_of_year(datetime), localize_options(datetime, options))
   end
 
-  defp do_localize(datetime, :quarter, type, format, locale_id, calendar_type, _options) do
-    with {:ok, quarters} <- get_calendar_data_raw(locale_id, calendar_type, :quarters) do
-      quarter = quarter_of_year(datetime)
-      get_in(quarters, [type, format, quarter])
-    end
+  def localize(datetime, :month, options) do
+    display_name(:month, month_of_year(datetime), localize_options(datetime, options))
   end
 
-  defp do_localize(datetime, :month, type, format, locale_id, calendar_type, _options) do
-    with {:ok, months} <- get_calendar_data_raw(locale_id, calendar_type, :months) do
-      month = month_of_year(datetime)
-      get_in(months, [type, format, month])
-    end
+  def localize(datetime, :day_of_week, options) do
+    display_name(:day, iso_day_of_week(datetime), localize_options(datetime, options))
   end
 
-  defp do_localize(datetime, :day_of_week, type, format, locale_id, calendar_type, _options) do
-    with {:ok, days} <- get_calendar_data_raw(locale_id, calendar_type, :days) do
-      day = iso_day_of_week(datetime)
-      get_in(days, [type, format, day])
-    end
-  end
+  def localize(datetime, :days_of_week, options) do
+    options = localize_options(datetime, options)
 
-  defp do_localize(_datetime, :days_of_week, type, format, locale_id, calendar_type, _options) do
-    with {:ok, days} <- get_calendar_data_raw(locale_id, calendar_type, :days) do
-      for day <- @days do
-        day_name = get_in(days, [type, format, day])
-        {day, day_name}
+    Enum.reduce_while(@days, {:ok, []}, fn day, {:ok, acc} ->
+      case display_name(:day, day, options) do
+        {:ok, name} -> {:cont, {:ok, [{day, name} | acc]}}
+        {:error, _reason} = error -> {:halt, error}
       end
+    end)
+    |> case do
+      {:ok, days} -> {:ok, Enum.reverse(days)}
+      {:error, _reason} = error -> error
     end
   end
 
-  defp do_localize(%{hour: hour} = _time, :am_pm, type, format, locale_id, calendar_type, options) do
-    with {:ok, periods} <- get_calendar_data_raw(locale_id, calendar_type, :day_periods) do
-      am_pm = if hour < 12 or rem(hour, 24) < 12, do: :am, else: :pm
-      preference = options[:am_pm] || options[:period]
-      default_or_variant = if preference == :variant, do: :variant, else: :default
-      am_pm_data = get_in(periods, [type, format, am_pm])
+  def localize(%{hour: hour} = datetime, :am_pm, options) do
+    am_pm = if hour < 12 or rem(hour, 24) < 12, do: :am, else: :pm
 
-      if is_map(am_pm_data) do
-        Map.get(am_pm_data, default_or_variant) || Map.get(am_pm_data, :default)
-      else
-        am_pm_data
-      end
-    end
+    display_name(:day_period, am_pm, localize_options(datetime, options))
   end
 
-  defp do_localize(_datetime, :am_pm, _type, _format, _locale_id, _calendar_type, _options) do
+  def localize(_datetime, :am_pm, _options) do
     {:error,
      Localize.InvalidValueError.exception(
        value: nil,
        expected: "a map with an :hour key",
        context: "Localize.Calendar.localize/3"
      )}
+  end
+
+  def localize(_datetime, part, _options) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: part,
+       expected: "a localizable date part",
+       allowed_values: @parts,
+       context: "Localize.Calendar.localize/3"
+     )}
+  end
+
+  @doc """
+  Same as `localize/3` but raises on error.
+
+  ### Arguments
+
+  * `datetime` is any `t:Date.t/0`, `t:DateTime.t/0`, or
+    `t:NaiveDateTime.t/0`.
+
+  * `part` is one of `:era`, `:quarter`, `:month`,
+    `:day_of_week`, `:days_of_week`, or `:am_pm`.
+
+  * `options` is a keyword list of options. See `localize/3`.
+
+  ### Returns
+
+  * The localized name, or the list of `{day_number, day_name}`
+    tuples when `part` is `:days_of_week`.
+
+  * Raises an exception if the part cannot be localized.
+
+  ### Examples
+
+      iex> Localize.Calendar.localize!(~D[2019-06-01], :month)
+      "June"
+
+      iex> Localize.Calendar.localize!(~D[2019-06-01], :month, style: :abbreviated)
+      "Jun"
+
+  """
+  @spec localize!(map(), part(), Keyword.t()) :: String.t() | [{1..7, String.t()}]
+  def localize!(datetime, part, options \\ []) do
+    case localize(datetime, part, options) do
+      {:ok, name} -> name
+      {:error, exception} -> raise exception
+    end
+  end
+
+  # The datetime carries the calendar, which `display_name/3` takes as
+  # the `:calendar` option. `:am_pm` is accepted as an alias for the
+  # `:period` variant selector so the option keeps the name of the part
+  # it applies to.
+  defp localize_options(datetime, options) do
+    options
+    |> Keyword.put_new(:calendar, calendar_type_from(datetime))
+    |> then(fn options ->
+      case Keyword.get(options, :am_pm) do
+        nil -> options
+        preference -> Keyword.put_new(options, :period, preference)
+      end
+    end)
   end
 
   # ── strftime options ────────────────────────────────────────────

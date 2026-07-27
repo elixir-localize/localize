@@ -470,9 +470,17 @@ iex> Localize.Language.display_name("en-GB", style: :short)
 # ex_cldr
 MyApp.Cldr.Calendar.localize(~D[2024-01-15], :month, type: :stand_alone)
 
-# Localize (option :type renamed to :context)
+# Localize (:type renamed to :context, the width option is :style,
+# the default width is :wide, and the result is an :ok tuple)
 iex> Localize.Calendar.localize(~D[2024-01-15], :month, context: :stand_alone)
-"Jan"
+{:ok, "January"}
+
+iex> Localize.Calendar.localize(~D[2024-01-15], :month, style: :abbreviated)
+{:ok, "Jan"}
+
+# Use localize!/3 where the bare name is wanted
+iex> Localize.Calendar.localize!(~D[2024-01-15], :month)
+"January"
 
 # New unified display_name API
 iex> Localize.Calendar.display_name(:month, 1)

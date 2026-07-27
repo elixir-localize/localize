@@ -352,12 +352,22 @@ defmodule Localize.DateTime.Formatter do
   defp ensure_string(nil), do: ""
   defp ensure_string(value), do: Kernel.to_string(value)
 
+  # `Localize.Calendar.localize/3` returns `{:ok, name}`. Field
+  # formatters yield the bare name and let `{:error, _}` through
+  # untouched, so `format/5` still collects it as a field failure.
+  defp localize_part(datetime, part, options) do
+    case Localize.Calendar.localize(datetime, part, options) do
+      {:ok, name} -> name
+      {:error, _reason} = error -> error
+    end
+  end
+
   # ── Era (G) ────────────────────────────────────────────────
 
   @doc false
   def era(date, count, locale_id, options) when is_date(date) do
     format = format_for_count(count)
-    Localize.Calendar.localize(date, :era, locale: locale_id, format: format, era: options[:era])
+    localize_part(date, :era, locale: locale_id, style: format, era: options[:era])
   end
 
   def era(_date, _count, _locale_id, _options), do: ""
@@ -633,15 +643,15 @@ defmodule Localize.DateTime.Formatter do
   end
 
   def quarter(date, 3, locale_id, _options) when has_month(date) do
-    Localize.Calendar.localize(date, :quarter, locale: locale_id, format: :abbreviated)
+    localize_part(date, :quarter, locale: locale_id, style: :abbreviated)
   end
 
   def quarter(date, 4, locale_id, _options) when has_month(date) do
-    Localize.Calendar.localize(date, :quarter, locale: locale_id, format: :wide)
+    localize_part(date, :quarter, locale: locale_id, style: :wide)
   end
 
   def quarter(date, 5, locale_id, _options) when has_month(date) do
-    Localize.Calendar.localize(date, :quarter, locale: locale_id, format: :narrow)
+    localize_part(date, :quarter, locale: locale_id, style: :narrow)
   end
 
   def quarter(_date, _count, _locale_id, _options), do: ""
@@ -661,10 +671,10 @@ defmodule Localize.DateTime.Formatter do
       when has_month(date) and count in 3..5 do
     format = format_for_count(count)
 
-    Localize.Calendar.localize(date, :quarter,
+    localize_part(date, :quarter,
       locale: locale_id,
       context: :stand_alone,
-      format: format
+      style: format
     )
   end
 
@@ -681,7 +691,7 @@ defmodule Localize.DateTime.Formatter do
 
   def month(date, count, locale_id, _options) when has_month(date) and count in 3..5 do
     format = format_for_count(count)
-    Localize.Calendar.localize(date, :month, locale: locale_id, format: format)
+    localize_part(date, :month, locale: locale_id, style: format)
   end
 
   def month(_date, _count, _locale_id, _options), do: ""
@@ -698,10 +708,10 @@ defmodule Localize.DateTime.Formatter do
   def standalone_month(date, count, locale_id, _options) when has_month(date) and count in 3..5 do
     format = format_for_count(count)
 
-    Localize.Calendar.localize(date, :month,
+    localize_part(date, :month,
       locale: locale_id,
       context: :stand_alone,
-      format: format
+      style: format
     )
   end
 
@@ -793,7 +803,7 @@ defmodule Localize.DateTime.Formatter do
         _ -> :abbreviated
       end
 
-    Localize.Calendar.localize(date, :day_of_week, locale: locale_id, format: format)
+    localize_part(date, :day_of_week, locale: locale_id, style: format)
   end
 
   def day_name(_date, _count, _locale_id, _options), do: ""
@@ -830,10 +840,10 @@ defmodule Localize.DateTime.Formatter do
       when is_date(date) and count >= 3 do
     format = format_for_count(count)
 
-    Localize.Calendar.localize(date, :day_of_week,
+    localize_part(date, :day_of_week,
       locale: locale_id,
       context: :stand_alone,
-      format: format
+      style: format
     )
   end
 
@@ -847,9 +857,9 @@ defmodule Localize.DateTime.Formatter do
   def period_am_pm(%{hour: _} = time, count, locale_id, options) do
     format = format_for_count(count)
 
-    Localize.Calendar.localize(time, :am_pm,
+    localize_part(time, :am_pm,
       locale: locale_id,
-      format: format,
+      style: format,
       am_pm: options[:am_pm]
     )
   end

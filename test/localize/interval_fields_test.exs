@@ -1,4 +1,4 @@
-defmodule Localize.IntervalStylesTest do
+defmodule Localize.IntervalFieldsTest do
   use ExUnit.Case, async: true
 
   alias Localize.Interval
@@ -12,18 +12,18 @@ defmodule Localize.IntervalStylesTest do
     result
   end
 
-  describe "to_string/3 date styles produce exact output" do
-    test ":month style renders abbreviated months only" do
+  describe "to_string/3 date field selections produce exact output" do
+    test ":month fields renders abbreviated months only" do
       result =
-        interval(~D[2024-01-10], ~D[2024-03-12], style: :month, locale: :en, prefer: :ascii)
+        interval(~D[2024-01-10], ~D[2024-03-12], fields: :month, locale: :en, prefer: :ascii)
 
       assert result == "Jan#{@separator}Mar"
     end
 
-    test ":year_and_month style renders months with a single year" do
+    test ":year_and_month fields renders months with a single year" do
       result =
         interval(~D[2024-01-10], ~D[2024-03-12],
-          style: :year_and_month,
+          fields: :year_and_month,
           locale: :en,
           prefer: :ascii
         )
@@ -31,10 +31,10 @@ defmodule Localize.IntervalStylesTest do
       assert result == "Jan#{@separator}Mar 2024"
     end
 
-    test ":month_and_day style renders month-day pairs" do
+    test ":month_and_day fields renders month-day pairs" do
       result =
         interval(~D[2024-01-10], ~D[2024-03-12],
-          style: :month_and_day,
+          fields: :month_and_day,
           locale: :en,
           prefer: :ascii
         )
@@ -42,10 +42,10 @@ defmodule Localize.IntervalStylesTest do
       assert result == "Jan 10#{@separator}Mar 12"
     end
 
-    test "unknown style returns a DateTimeIntervalFormatError" do
+    test "unknown fields returns a DateTimeIntervalFormatError" do
       assert {:error,
-              %Localize.DateTimeIntervalFormatError{reason: :unknown_style, style: :bogus}} =
-               Interval.to_string(~D[2024-06-01], ~D[2024-06-10], style: :bogus, locale: :en)
+              %Localize.DateTimeIntervalFormatError{reason: :unknown_fields, fields: :bogus}} =
+               Interval.to_string(~D[2024-06-01], ~D[2024-06-10], fields: :bogus, locale: :en)
     end
   end
 

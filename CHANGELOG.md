@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+* **Breaking:** `Localize.Duration.to_string/2` and `to_parts/2` rename the per-unit width override from `:styles` to `:formats`, so the whole-duration width and its per-unit overrides share one name (`format: :short, formats: [hour: :long]`). The `:styles` key, introduced in 1.0.0-rc.2 and never in a stable release, is now ignored like any other unknown option.
+
+* **Breaking:** `Localize.Calendar.localize/3` returns `{:ok, name}` or `{:error, exception}` instead of a bare string, `nil`, or an error tuple, and gains `localize!/3` for the bare name — the old union meant a template interpolating the result raised `Protocol.UndefinedError` when the locale was invalid. It now derives the part's value and delegates to `display_name/3`, so the two agree: its width option is `:style` (was `:format`), its default width is `:wide` (was `:abbreviated`), and an unknown part returns an error rather than raising `FunctionClauseError`.
+
+* **Breaking:** `Localize.Interval.to_string/3` renames its `:style` option to `:fields`, because it selects *which* date fields appear (`:date`, `:month`, `:month_and_day`, `:year_and_month`) rather than a width — `:format` remains the width axis, and the two are now named for what they do. `Localize.Interval.date_styles/0` becomes `known_fields/0`, and `Localize.DateTimeIntervalFormatError` carries `:fields` with reason `:unknown_fields` in place of `:style` / `:unknown_style`.
+
+* `Localize.Calendar.display_name/3` reports an unusable `:style` as a `:style` error listing the widths the field actually has, instead of blaming the value: `display_name(:month, 3, style: :bogus)` said `value: 3, expected: "1..13"`. `style: :short` now resolves wherever CLDR carries it (the day parts) rather than silently returning `nil`.
+
+### Documentation
+
+* `Localize.DateTime.to_string/2` documents its `:style`, `:date_format`, and `:time_format` options, which were live but absent from the docs. `:style` selects the date/time wrapper (`:at` renders "April 8, 2026 at 12:00:00 PM", and falls back to the standard wrapper for `:medium` and `:short`, which CLDR does not define it for).
+
 ### Fixed
 
 * `Localize.Duration.to_string/2` and `to_parts/2` join duration parts with CLDR's unit list patterns matched to the format width, per ECMA-402 `Intl.DurationFormat`, instead of the standard "and" conjunction: `:en` now renders "3 days, 2 hr" (was "3 days and 2 hr") and "3d 2h" for `format: :narrow`.

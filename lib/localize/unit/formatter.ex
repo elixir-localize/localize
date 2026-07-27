@@ -830,7 +830,7 @@ defmodule Localize.Unit.Formatter do
          base_pattern when is_list(base_pattern) <-
            resolve_pattern(base_formats, grammatical_case, count_plural),
          base_noun when is_binary(base_noun) <- pattern_noun(base_pattern) do
-      style = Keyword.get(options, :format, Keyword.get(options, :style, :long))
+      style = Keyword.get(options, :format, :long)
       prefixed_noun = apply_prefix_pattern(prefix_tokens, base_noun, style)
       final_tokens = splice_combined_noun(pattern_tokens(base_pattern), base_noun, prefixed_noun)
 
@@ -1083,7 +1083,7 @@ defmodule Localize.Unit.Formatter do
   # the bare "value name" format.
 
   defp format_custom_or_fallback(value, name, locale, options) do
-    style = Keyword.get(options, :format, Keyword.get(options, :style, :long))
+    style = Keyword.get(options, :format, :long)
 
     with {:ok, locale_id} <- extract_locale_id(locale) do
       case Localize.Unit.CustomRegistry.get(name) do
