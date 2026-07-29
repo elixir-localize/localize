@@ -1,55 +1,111 @@
 defmodule Localize.Message.Validator do
-  @moduledoc false
+  @moduledoc """
+  Validates a parsed MF2 message against the data-model rules of
+  TR35 Part 9, "Data Model Errors".
 
-  # MF2 data-model validation (TR35 Part 9, "Data Model Errors"),
-  # run over the parsed AST before interpretation:
-  #
-  #   * Duplicate Declaration — a variable declared more than once,
-  #     including declaring a variable after it was implicitly
-  #     declared by use in an earlier declaration, and a `.local`
-  #     referring to itself.
-  #
-  #   * Duplicate Option Name — the same identifier on the left of
-  #     more than one option in a single expression or markup.
-  #
-  #   * Duplicate Variant — the same key list (after NFC
-  #     normalization of literal keys) on more than one variant.
-  #
-  # Variant Key Mismatch and Missing Fallback Variant are enforced
-  # during match evaluation in `Localize.Message.Interpreter`.
+  `Localize.Message.Parser.parse/1` checks *syntax* only, so a
+  syntactically valid message can still be semantically invalid — most
+  commonly a `.local` declaration that reads the variable it declares.
+  Parsing and validation are kept separate so tooling that must accept
+  invalid input, such as a syntax highlighter, can parse without
+  validating; everything that formats or serializes a message runs both:
 
+      with {:ok, ast} <- Localize.Message.Parser.parse(message),
+           :ok <- Localize.Message.Validator.validate(ast) do
+        # syntax errors surface first, then data-model errors
+      end
+
+  """
+
+  @doc """
+  Validates a parsed MF2 message against the TR35 data-model rules.
+
+  The rules checked are:
+
+  * **Duplicate Declaration** — a variable declared more than once,
+    including declaring a variable after it was implicitly declared by
+    use in an earlier declaration, and a `.local` referring to itself.
+
+  * **Duplicate Option Name** — the same identifier on the left of more
+    than one option in a single expression or markup.
+
+  * **Duplicate Variant** — the same key list (after NFC normalization
+    of literal keys) on more than one variant.
+
+  * **Missing Selector Annotation** — a selector that does not resolve,
+    directly or transitively, to a declaration carrying a function.
+
+  * **Variant Key Mismatch** — a variant whose key count differs from
+    the number of selectors.
+
+  * **Missing Fallback Variant** — a matcher with no variant whose keys
+    are all `*`.
+
+  ### Arguments
+
+  * `ast` is a parsed message as returned by
+    `Localize.Message.Parser.parse/1`.
+
+  ### Returns
+
+  * `:ok` if the message satisfies every data-model rule.
+
+  * `{:error, {reason, detail}}` for the first violation found, where
+    `detail` names the offending variable, option, or key list.
+
+  ### Examples
+
+      iex> {:ok, ast} = Localize.Message.Parser.parse(".input {$n :number}\\n.match $n\\n* {{ok}}")
+      iex> Localize.Message.Validator.validate(ast)
+      :ok
+
+      iex> {:ok, ast} = Localize.Message.Parser.parse(".local $n = {$n :number}\\n.match $n\\n* {{no}}")
+      iex> Localize.Message.Validator.validate(ast)
+      {:error, {:duplicate_declaration, "n"}}
+
+  """
   @type error ::
           {:duplicate_declaration, String.t()}
           | {:duplicate_option_name, String.t()}
           | {:duplicate_variant, String.t()}
+          | {:missing_selector_annotation, String.t()}
+          | {:variant_key_mismatch, String.t()}
+          | {:missing_fallback_variant, String.t()}
 
   @spec validate(term()) :: :ok | {:error, error()}
   def validate(ast) when is_list(ast) do
-    reduce_ok(ast, &validate_node/1)
+    reduce_ok(ast, &validate_node(&1, []))
   end
 
   def validate(ast) do
-    validate_node(ast)
+    validate_node(ast, [])
   end
 
-  defp validate_node({:complex, declarations, body}) do
+  # Declarations are carried down so a matcher can check that each of
+  # its selectors resolves to an annotated declaration.
+  defp validate_node({:complex, declarations, body}, _outer) do
     with :ok <- validate_declarations(declarations),
          :ok <- reduce_ok(declarations, &validate_part_options/1) do
-      validate_node(body)
+      validate_node(body, declarations)
     end
   end
 
-  defp validate_node({:match, _selectors, variants}) do
-    with :ok <- validate_variants(variants) do
-      reduce_ok(variants, fn {:variant, _keys, pattern} -> validate_node(pattern) end)
+  defp validate_node({:match, selectors, variants}, declarations) do
+    with :ok <- validate_selector_annotations(selectors, declarations),
+         :ok <- validate_variant_arity(selectors, variants),
+         :ok <- validate_fallback_variant(variants),
+         :ok <- validate_variants(variants) do
+      reduce_ok(variants, fn {:variant, _keys, pattern} ->
+        validate_node(pattern, declarations)
+      end)
     end
   end
 
-  defp validate_node({:quoted_pattern, parts}) do
+  defp validate_node({:quoted_pattern, parts}, _declarations) do
     reduce_ok(parts, &validate_part_options/1)
   end
 
-  defp validate_node(part) do
+  defp validate_node(part, _declarations) do
     validate_part_options(part)
   end
 
@@ -141,6 +197,71 @@ defmodule Localize.Message.Validator do
     case names -- Enum.uniq(names) do
       [] -> :ok
       [duplicate | _rest] -> {:error, {:duplicate_option_name, duplicate}}
+    end
+  end
+
+  # ── Missing selector annotation ───────────────────────────────────
+  #
+  # A selector must resolve to a declaration carrying a function, either
+  # directly (`.input {$n :number}`) or transitively through a chain of
+  # unannotated locals (`.local $m = {$n}` where `$n` is annotated).
+  # A selector with no declaration at all is likewise unannotated.
+
+  defp validate_selector_annotations(selectors, declarations) do
+    annotated = annotated_names(declarations)
+
+    selectors
+    |> Enum.find(fn {:variable, name} -> not MapSet.member?(annotated, name) end)
+    |> case do
+      nil -> :ok
+      {:variable, name} -> {:error, {:missing_selector_annotation, name}}
+    end
+  end
+
+  defp annotated_names(declarations) do
+    Enum.reduce(declarations, MapSet.new(), fn declaration, annotated ->
+      case declaration do
+        {:input, {:expression, {:variable, name}, {:function, _name, _options}, _attrs}} ->
+          MapSet.put(annotated, name)
+
+        {:local, {:variable, name}, {:expression, _operand, {:function, _n, _o}, _attrs}} ->
+          MapSet.put(annotated, name)
+
+        # An unannotated local inherits its operand's annotation.
+        {:local, {:variable, name}, {:expression, {:variable, source}, nil, _attrs}} ->
+          if MapSet.member?(annotated, source),
+            do: MapSet.put(annotated, name),
+            else: annotated
+
+        _unannotated ->
+          annotated
+      end
+    end)
+  end
+
+  # ── Variant key arity and fallback ────────────────────────────────
+
+  defp validate_variant_arity(selectors, variants) do
+    expected = length(selectors)
+
+    variants
+    |> Enum.find(fn {:variant, keys, _pattern} -> length(keys) != expected end)
+    |> case do
+      nil ->
+        :ok
+
+      {:variant, keys, _pattern} ->
+        {:error, {:variant_key_mismatch, display_keys(Enum.map(keys, &normalize_key/1))}}
+    end
+  end
+
+  defp validate_fallback_variant(variants) do
+    if Enum.any?(variants, fn {:variant, keys, _pattern} ->
+         keys != [] and Enum.all?(keys, &(&1 == :catchall))
+       end) do
+      :ok
+    else
+      {:error, {:missing_fallback_variant, "*"}}
     end
   end
 

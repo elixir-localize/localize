@@ -95,8 +95,17 @@ defmodule Localize.Message.InterpreterEdgeTest do
     end
 
     test "Message.format surfaces unbound .match variables as a BindError" do
+      # The selector is annotated so the message is valid MF2; an
+      # unannotated one is a data-model error before binding is reached.
+      message = ".input {$missing :string}\n.match $missing\n* {{fallback}}"
+
       assert {:error, %Localize.BindError{unbound: ["missing"]}} =
-               Localize.Message.format(".match $missing\n* {{fallback}}", %{}, backend: :elixir)
+               Localize.Message.format(message, %{}, backend: :elixir)
+    end
+
+    test "Message.format rejects an unannotated selector as a data-model error" do
+      assert {:error, %Localize.FormatError{reason: :missing_selector_annotation, detail: "x"}} =
+               Localize.Message.format(".match $x\n* {{fallback}}", %{}, backend: :elixir)
     end
 
     test "no matching variant and no catchall reports an error" do

@@ -104,23 +104,30 @@ defmodule Localize.Gettext.Interpolation do
   defmacro compile_interpolate(_translation_type, message, bindings) do
     message = expand_to_binary!(message, __CALLER__)
 
-    case Localize.Message.Parser.parse(message) do
-      {:ok, parsed} ->
-        quote do
-          case unquote(bindings) do
-            %{__localize_skip_interpolation__: _} ->
-              {:ok, unquote(message)}
+    # Syntax first, then the TR35 data-model rules, so a mis-authored
+    # msgid fails the build rather than surfacing at runtime. Parsing and
+    # validation are separate passes — see `Localize.Message.Validator`.
+    with {:ok, parsed} <- Localize.Message.Parser.parse(message),
+         :ok <- Localize.Message.Validator.validate(parsed) do
+      quote do
+        case unquote(bindings) do
+          %{__localize_skip_interpolation__: _} ->
+            {:ok, unquote(message)}
 
-            regular_bindings ->
-              Localize.Gettext.Interpolation.do_interpolate(
-                unquote(Macro.escape(parsed)),
-                regular_bindings
-              )
-          end
+          regular_bindings ->
+            Localize.Gettext.Interpolation.do_interpolate(
+              unquote(Macro.escape(parsed)),
+              regular_bindings
+            )
         end
-
-      {:error, exception} ->
+      end
+    else
+      {:error, exception} when is_exception(exception) ->
         raise ArgumentError, "could not parse MF2 message: #{Exception.message(exception)}"
+
+      {:error, {reason, detail}} ->
+        raise ArgumentError,
+              "invalid MF2 message #{inspect(message)}: #{reason} (#{detail})"
     end
   end
 
