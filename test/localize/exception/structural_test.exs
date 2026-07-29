@@ -63,6 +63,24 @@ defmodule Localize.Exception.StructuralTest do
       reason: :duplicate_variant,
       detail: "*"
     ],
+    {Localize.FormatError, :missing_selector_annotation} => [
+      value: ".input {$x} .match $x one {{a}} * {{b}}",
+      function: :format,
+      reason: :missing_selector_annotation,
+      detail: "x"
+    ],
+    {Localize.FormatError, :variant_key_mismatch} => [
+      value: ".input {$x :string} .match $x a b {{ab}} * {{fallback}}",
+      function: :format,
+      reason: :variant_key_mismatch,
+      detail: "a b"
+    ],
+    {Localize.FormatError, :missing_fallback_variant} => [
+      value: ".input {$x :number} .match $x one {{one}}",
+      function: :format,
+      reason: :missing_fallback_variant,
+      detail: "*"
+    ],
     {Localize.FormatError, :unknown_function} => [
       value: "{$x :nonexistent}",
       function: :format,

@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+* `Localize.Message.Validator.validate/1` is public, checking a parsed message against the TR35 data-model rules. `Localize.Message.Parser.parse/1` remains syntax-only, so tooling that must accept invalid input — `to_tokens/2` and the highlighters built on it — parses without validating, while everything that formats or serializes composes the two and reports syntax errors before data-model ones.
+
+### Fixed
+
+* Three TR35 data-model rules are now enforced: **Missing Selector Annotation** (a selector that does not resolve, directly or through a chain of locals, to a declaration carrying a function), **Variant Key Mismatch** (a variant whose key count differs from the selector count), and **Missing Fallback Variant** (no variant with only `*` keys). None was detected previously — the first two were documented as enforced during match evaluation and were not, and all three could be formatted or serialized without error.
+
+* `Localize.Message.canonical_message/2` no longer serializes a message that violates the data-model rules; it previously round-tripped every invalid form, including a `.local` declaration reading the variable it declares. The compile-time Gettext interpolator validates too, so a mis-authored msgid fails the build rather than surfacing at runtime.
+
+* The MF2 working-group `data-model-errors.json` conformance cases now assert the specific error reason rather than merely that some error occurred. The WG cases pass no bindings, so an incidental unbound-variable error satisfied the old assertion — which is how three unimplemented rules stayed green.
+
 ## [1.0.0-rc.7] — July 28th, 2026
 
 This release settles the `:format` / `:style` option naming across the library. The rule is now uniform: `:format` is how a **value** is rendered, `:style` is which variant of a **name or pattern** you get, and an option that selects something else again — `Localize.Interval`'s choice of which date fields appear — is named for what it selects. Every rename below is a hard break with no alias; each entry names its replacement.

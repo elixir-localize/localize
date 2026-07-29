@@ -92,7 +92,7 @@ defmodule Localize.Message do
     # even for messages that never reach a locale-sensitive function.
     with {:ok, message} <- maybe_trim(message, options[:trim]),
          {:ok, _language_tag} <- validate_locale_option(options),
-         {:ok, parsed} <- Parser.parse(message) do
+         {:ok, parsed} <- parse_and_validate(message, :format) do
       format_options =
         options
         |> Keyword.put_new(:locale, Localize.get_locale())
@@ -339,7 +339,7 @@ defmodule Localize.Message do
 
   def format_to_iolist(message, bindings \\ %{}, options \\ []) when is_binary(message) do
     with {:ok, message} <- maybe_trim(message, options[:trim]),
-         {:ok, parsed} <- Parser.parse(message) do
+         {:ok, parsed} <- parse_and_validate(message, :format_to_iolist) do
       Interpreter.format_list(parsed, bindings, options)
     end
   end
@@ -413,7 +413,7 @@ defmodule Localize.Message do
 
   def format_to_safe_list(message, bindings \\ %{}, options \\ []) when is_binary(message) do
     with {:ok, message} <- maybe_trim(message, options[:trim]),
-         {:ok, parsed} <- Parser.parse(message) do
+         {:ok, parsed} <- parse_and_validate(message, :format_to_safe_list) do
       case Interpreter.format_structured(parsed, bindings, options) do
         {:ok, nodes, _bound, _unbound} ->
           {:ok, nodes}
@@ -427,6 +427,24 @@ defmodule Localize.Message do
     else
       {:error, %Localize.ParseError{}} = error ->
         error
+    end
+  end
+
+  # `Parser.parse/1` checks syntax only; the TR35 data-model rules are a
+  # separate pass (see `Localize.Message.Validator`). Every entry point
+  # that formats or serializes a message composes the two here, so a
+  # syntax error is reported before a data-model one. Tooling that must
+  # accept invalid input — `to_tokens/2` and the highlighters built on
+  # it — deliberately calls `Parser.parse/1` alone.
+  defp parse_and_validate(message, function) do
+    with {:ok, ast} <- Parser.parse(message) do
+      case Localize.Message.Validator.validate(ast) do
+        :ok ->
+          {:ok, ast}
+
+        {:error, payload} ->
+          {:error, format_error_from_payload(message, function, {:data_model, payload})}
+      end
     end
   end
 
@@ -475,7 +493,14 @@ defmodule Localize.Message do
   end
 
   defp format_error_from_payload(message, function, {:data_model, {reason, detail}})
-       when reason in [:duplicate_declaration, :duplicate_option_name, :duplicate_variant] do
+       when reason in [
+              :duplicate_declaration,
+              :duplicate_option_name,
+              :duplicate_variant,
+              :missing_selector_annotation,
+              :variant_key_mismatch,
+              :missing_fallback_variant
+            ] do
     Localize.FormatError.exception(
       value: message,
       function: function,
@@ -566,7 +591,7 @@ defmodule Localize.Message do
     options = Keyword.put_new(options, :trim, true)
 
     with {:ok, message} <- maybe_trim(message, options[:trim]),
-         {:ok, ast} <- Parser.parse(message) do
+         {:ok, ast} <- parse_and_validate(message, :canonical_message) do
       {:ok, Print.to_string(ast, options)}
     end
   end

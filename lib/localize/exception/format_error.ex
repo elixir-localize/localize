@@ -25,6 +25,9 @@ defmodule Localize.FormatError do
           | :duplicate_declaration
           | :duplicate_option_name
           | :duplicate_variant
+          | :missing_selector_annotation
+          | :variant_key_mismatch
+          | :missing_fallback_variant
           | :unknown_function
 
   @type t :: %__MODULE__{
@@ -45,6 +48,9 @@ defmodule Localize.FormatError do
       :duplicate_declaration,
       :duplicate_option_name,
       :duplicate_variant,
+      :missing_selector_annotation,
+      :variant_key_mismatch,
+      :missing_fallback_variant,
       :unknown_function
     ]
 
@@ -108,6 +114,29 @@ defmodule Localize.FormatError do
       "message",
       "Invalid message: the option {$detail} appears more than once in the same expression",
       detail: detail || "(unknown)"
+    )
+  end
+
+  def message(%__MODULE__{reason: :missing_selector_annotation, detail: detail}) do
+    Localize.Exception.safe_message(
+      "message",
+      "Invalid message: the selector {$detail} has no annotation; declare it with a function, as in .input {$detail :number}",
+      detail: detail || "(unknown)"
+    )
+  end
+
+  def message(%__MODULE__{reason: :variant_key_mismatch, detail: detail}) do
+    Localize.Exception.safe_message(
+      "message",
+      "Invalid message: the variant with keys {$detail} does not have one key per selector",
+      detail: detail || "(unknown)"
+    )
+  end
+
+  def message(%__MODULE__{reason: :missing_fallback_variant, detail: _detail}) do
+    Localize.Exception.safe_message(
+      "message",
+      "Invalid message: no variant has only catch-all keys; add a variant whose keys are all *"
     )
   end
 

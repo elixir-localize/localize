@@ -137,15 +137,13 @@ defmodule Localize.Message.Interpreter do
     format_list(ast, Map.new(bindings), options)
   end
 
+  # Data-model validation is the caller's job: `Localize.Message`
+  # composes `Parser.parse/1` with `Validator.validate/1` before it gets
+  # here, so this accepts an already-validated AST — including the
+  # hand-built fragments the interpreter is expected to tolerate.
   def format_list(ast, bindings, options) when is_map(bindings) do
-    case Localize.Message.Validator.validate(ast) do
-      :ok ->
-        bindings = normalize_binding_keys(bindings)
-        do_format_list(ast, bindings, options)
-
-      {:error, payload} ->
-        {:format_error, {:data_model, payload}}
-    end
+    bindings = normalize_binding_keys(bindings)
+    do_format_list(ast, bindings, options)
   end
 
   # ── Top-level AST dispatch ────────────────────────────────────
@@ -392,14 +390,8 @@ defmodule Localize.Message.Interpreter do
   end
 
   def format_structured(ast, bindings, options) when is_map(bindings) do
-    case Localize.Message.Validator.validate(ast) do
-      :ok ->
-        bindings = normalize_binding_keys(bindings)
-        do_format_structured(ast, bindings, options)
-
-      {:error, payload} ->
-        {:format_error, {:data_model, payload}}
-    end
+    bindings = normalize_binding_keys(bindings)
+    do_format_structured(ast, bindings, options)
   end
 
   defp do_format_structured([{:complex, _, _} = complex], bindings, options) do

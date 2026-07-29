@@ -93,6 +93,21 @@ defmodule Localize.Message.FormatterConformanceTest do
                  {{file, index}, reason}
                end)
 
+  # WG data-model error names mapped onto our `Localize.FormatError`
+  # reasons. Cases in `data-model-errors.json` assert the specific
+  # reason rather than merely "some error", because the WG cases pass no
+  # params and would otherwise be satisfied by an incidental unbound
+  # variable — which is how three of these rules went undetected while
+  # the suite stayed green.
+  @data_model_reasons %{
+    "duplicate-declaration" => :duplicate_declaration,
+    "duplicate-option-name" => :duplicate_option_name,
+    "duplicate-variant" => :duplicate_variant,
+    "missing-selector-annotation" => :missing_selector_annotation,
+    "variant-key-mismatch" => :variant_key_mismatch,
+    "missing-fallback-variant" => :missing_fallback_variant
+  }
+
   for file <- @files do
     data = @conformance_dir |> Path.join(file) |> File.read!() |> :json.decode()
     defaults = Map.get(data, "defaultTestProperties", %{})
@@ -143,16 +158,37 @@ defmodule Localize.Message.FormatterConformanceTest do
             end
 
           :error ->
+            expected_reasons =
+              if is_list(exp_errors) do
+                exp_errors
+                |> Enum.map(&Map.get(&1, "type"))
+                |> Enum.map(&Map.get(@data_model_reasons, &1))
+                |> Enum.reject(&is_nil/1)
+              else
+                []
+              end
+
             @tag :mf2_formatter_conformance
             test "##{index}: #{title}" do
               params = convert_params(unquote(Macro.escape(raw_params)))
 
-              assert {:error, _reason} =
-                       Localize.Message.format(
-                         unquote(src),
-                         params,
-                         unquote(format_options)
-                       )
+              result =
+                Localize.Message.format(
+                  unquote(src),
+                  params,
+                  unquote(format_options)
+                )
+
+              assert {:error, reason} = result
+
+              case unquote(expected_reasons) do
+                [] ->
+                  :ok
+
+                reasons ->
+                  assert %Localize.FormatError{reason: actual} = reason
+                  assert actual in reasons
+              end
             end
 
           :success ->
