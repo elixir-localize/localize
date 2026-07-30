@@ -198,9 +198,11 @@ Every serializable Localize/Elixir type now has an Ecto type. Those whose struct
 | Script | `Localize.Script.Ecto.Type` | text (code) | localize_sql | no |
 | Address | `Localize.Address.Ecto.Map.Type` | jsonb | localize_address | no |
 | Phone number | `Localize.PhoneNumber.Ecto.Type` | text (E.164) | localize_phonenumber | no |
+| Person name | `Localize.PersonName.Ecto.Map.Type` | jsonb | localize_person_names | no |
 | Time zone | `Localize.Ecto.Type.TimeZone` | text | localize_sql | no |
 
 * **Duration** (both the `Localize.Duration` struct and Elixir's built-in `Duration`) → PostgreSQL `interval`. `interval` keeps months/days/time as separate components, so interchangeable units normalize on load (90 minutes → 1h30m, a week → 7 days) while month vs day stays distinct; the microsecond value round-trips and its precision normalizes (0 when there are no fractional seconds, else 6). Verified with live-PostgreSQL round-trips. Gated on `Postgrex.Interval`.
+* **Person name** → `jsonb` in `localize_person_names`, following the address precedent, but with two non-string parts converted: `:preferred_order` stores as its string form, and `:locale` stores as `Localize.LanguageTag.to_string/1` and loads back through `Localize.validate_locale/1`. Neither conversion uses `String.to_atom/1` — both are compile-time lookup maps (3 name orders, 11 field names), so form input cannot grow the atom table. Storing the parts rather than a formatted string is what keeps the name re-formattable per locale.
 * **Territory / Script** → validated code atoms (`:US`, `:Latn`) stored as text, exactly like Currency, via `Localize.validate_territory/1` and `Localize.validate_script/1`. **Language was requested but skipped:** there is no standalone `validate_language` — a language subtag is only validated within a `LanguageTag`, which already has its own Ecto type. (Note: `validate_territory`'s `@spec` claims `integer()` M49 support but the implementation raises on integers — a spec bug in localize; the Ecto type accepts atoms/strings only.)
 
 Notes on the additions (all in localize_sql, 373 tests green):
