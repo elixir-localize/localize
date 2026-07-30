@@ -10,6 +10,8 @@ Locale-aware formatting, validation, and data access for Elixir, built on the [U
 
 Localize consolidates the functionality of the `ex_cldr_*` library family into a single package. No compile-time backend modules or code generation is required — all CLDR data is loaded at runtime and cached in `:persistent_term`.
 
+Try it without installing anything at the [Localize playground](https://playground.elixir-localize.com).
+
 ## Features
 
 * **Numbers** — format integers, decimals, percentages, and currencies with locale-appropriate grouping, decimal separators, and symbols.
@@ -57,7 +59,7 @@ Localize ships a [Claude Code](https://claude.com/claude-code) skill that teache
 /plugin install localize@localize
 ```
 
-The skill source lives in [skills/localize](https://github.com/elixir-localize/localize/blob/v1.0.0-rc.6/skills/localize/SKILL.md).
+The skill source lives in [skills/localize](https://github.com/elixir-localize/localize/blob/v1.0.0/skills/localize/SKILL.md).
 
 ## MCP server
 
@@ -71,12 +73,12 @@ On OTP 26, also add the [json_polyfill](https://hex.pm/packages/json_polyfill) p
 
 ## Installation
 
-Add `localize` to your dependencies in `mix.exs`. Note that a release-candidate version requires the full pre-release requirement shown here — a plain `~> 1.0` will not match a release candidate:
+Add `localize` to your dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:localize, "~> 1.0.0-rc.6"}
+    {:localize, "~> 1.0"}
   ]
 end
 ```
@@ -86,7 +88,7 @@ On OTP 26 only:
 ```elixir
 def deps do
   [
-    {:localize, "~> 1.0.0-rc.6"},
+    {:localize, "~> 1.0"},
     {:json_polyfill, "~> 0.2 or ~> 1.0"}
   ]
 end
@@ -204,20 +206,29 @@ Why `:otp_app` is the recommended anchor: `Application.app_dir/2` is re-resolved
 
 > **Why a bare relative `:locale_cache_dir` is refused.** A relative path *without* an `:otp_app` anchor resolves against the BEAM's current working directory, which differs between mix tasks (project root), `mix test`, and a release (release root) — one value cannot be correct in all phases. If you set a relative `:locale_cache_dir` without `:otp_app`, Localize raises `Localize.LocaleCacheDirError` at app start. Fix it by pairing the relative path with `:otp_app` (form 2 above) or by switching to an absolute path (form 3).
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `:default_locale` | Derived from `LOCALIZE_DEFAULT_LOCALE` env var, then `LANG` env var, then `:en`. | The application-wide default locale. Can also be set at runtime with `Localize.put_default_locale/1`. |
-| `:supported_locales` | `nil` | A list of locale identifiers that your application supports. Each entry is an atom matching a known CLDR locale (e.g., `:en`, `:"fr-CA"`), a wildcard string (e.g., `"en-*"`), a coverage-level keyword (`:modern`, `:moderate`, `:basic`), or a Gettext-style string (e.g., `"pt_BR"`, `"zh_Hans"`). POSIX-style underscores are normalised to hyphens and entries are resolved to their CLDR canonical form via likely-subtag resolution (e.g. `"pt_BR"` → `:pt`). Only exact matches (score 0) are accepted — entries that cannot be resolved log a warning with `domain: :localize` and are skipped. When set, `validate_locale/1` resolves locale identifiers against this list rather than all ~766 CLDR locales. Accessible at runtime via `Localize.supported_locales/0`. |
-| `:locale_provider` | `Localize.Locale.Provider.PersistentTerm` | Module that implements the `Localize.Locale.Provider` behaviour for loading and caching per-locale data. |
-| `:locale_cache_max_entries` | `1_000` | Maximum number of validated locales to hold in the ETS cache. A background sweeper runs every 10 seconds and evicts excess entries to prevent unbounded growth. |
-| `:format_cache_max_entries` | `2_000` | Maximum number of compiled format patterns (number and date/time) to hold in the ETS cache. A background sweeper runs every 10 seconds and evicts excess entries to prevent unbounded growth. |
-| `:otp_app` | `nil` | **Recommended.** Atom naming your application. Localize stores downloaded locale data under `Application.app_dir(<otp_app>, "priv/localize/locales")` — the same `:otp_app` convention used by `Ecto.Repo`, `Phoenix.Endpoint`, and `Gettext.Backend`. Resolved at every read, so it works correctly in mix tasks, `mix test`, and releases without per-phase config. See **Configuring the locale cache directory** above for all three supported forms. |
-| `:locale_cache_dir` | `Application.app_dir(:localize, "priv/localize/locales")` | Path to the on-disk cache. Absolute paths are used verbatim and override `:otp_app`. **Relative** paths are valid only when paired with `:otp_app` — they resolve against the app's runtime root via `Application.app_dir/2`. A bare relative path with no `:otp_app` raises `Localize.LocaleCacheDirError` at app start. See `Localize.Locale.Provider.locale_cache_dir/0`. |
-| `:allow_runtime_locale_download` | `false` | When `true`, locales not found in the on-disk cache are downloaded from the Localize CDN on first access. When `false` (the default), missing locales return an error. Use `mix localize.download_locales` to pre-populate the cache at build time. |
-| `:nif` | `false` | Enable the optional NIF for faster Unicode normalisation and collation sort-key generation. Can also be enabled with the `LOCALIZE_NIF=true` environment variable at compile time. See `Localize.Nif` for details. |
-| `:mf2_functions` | `%{}` | Map of custom MF2 formatting function modules. See `Localize.Message.Function`. |
-| `:cacertfile` | System default | Path to a custom CA certificate file for HTTPS connections (used when downloading locale data). |
-| `:https_proxy` | `nil` | HTTPS proxy URL. Also reads the `HTTPS_PROXY` environment variable. |
+* `:default_locale` is the application-wide default locale. It can also be set at runtime with `Localize.put_default_locale/1`. The default is derived from the `LOCALIZE_DEFAULT_LOCALE` environment variable, then the `LANG` environment variable, then `:en`.
+
+* `:supported_locales` is a list of locale identifiers that your application supports. Each entry is an atom matching a known CLDR locale (e.g. `:en`, `:"fr-CA"`), a wildcard string (e.g. `"en-*"`), a coverage-level keyword (`:modern`, `:moderate`, `:basic`), or a Gettext-style string (e.g. `"pt_BR"`, `"zh_Hans"`). POSIX-style underscores are normalised to hyphens and entries are resolved to their CLDR canonical form via likely-subtag resolution (e.g. `"pt_BR"` → `:pt`). Only exact matches (score 0) are accepted — entries that cannot be resolved log a warning with `domain: :localize` and are skipped. When set, `validate_locale/1` resolves locale identifiers against this list rather than all ~766 CLDR locales. Accessible at runtime via `Localize.supported_locales/0`. The default is `nil`.
+
+* `:locale_provider` is a module implementing the `Localize.Locale.Provider` behaviour, for loading and caching per-locale data. The default is `Localize.Locale.Provider.PersistentTerm`.
+
+* `:locale_cache_max_entries` is the maximum number of validated locales to hold in the ETS cache. A background sweeper runs every 10 seconds and evicts excess entries to prevent unbounded growth. The default is `1_000`.
+
+* `:format_cache_max_entries` is the maximum number of compiled format patterns (number and date/time) to hold in the ETS cache. A background sweeper runs every 10 seconds and evicts excess entries to prevent unbounded growth. The default is `2_000`.
+
+* `:otp_app` is an atom naming your application, and is **recommended**. Localize stores downloaded locale data under `Application.app_dir(<otp_app>, "priv/localize/locales")` — the same `:otp_app` convention used by `Ecto.Repo`, `Phoenix.Endpoint` and `Gettext.Backend`. It is resolved at every read, so it works correctly in mix tasks, `mix test` and releases without per-phase config. See [Configuring the locale cache directory](#configuring-the-locale-cache-directory) above for all three supported forms. The default is `nil`.
+
+* `:locale_cache_dir` is the path to the on-disk cache. Absolute paths are used verbatim and override `:otp_app`. **Relative** paths are valid only when paired with `:otp_app` — they resolve against the app's runtime root via `Application.app_dir/2`. A bare relative path with no `:otp_app` raises `Localize.LocaleCacheDirError` at app start. See `Localize.Locale.Provider.locale_cache_dir/0`. The default is `Application.app_dir(:localize, "priv/localize/locales")`.
+
+* `:allow_runtime_locale_download` determines whether locales not found in the on-disk cache are downloaded from the Localize CDN on first access. When `false`, missing locales return an error; use `mix localize.download_locales` to pre-populate the cache at build time. The default is `false`.
+
+* `:nif` enables the optional NIF for faster Unicode normalisation and collation sort-key generation. It can also be enabled with the `LOCALIZE_NIF=true` environment variable at compile time. See `Localize.Nif` for details. The default is `false`.
+
+* `:mf2_functions` is a map of custom MF2 formatting function modules. See `Localize.Message.Function`. The default is `%{}`.
+
+* `:cacertfile` is the path to a custom CA certificate file for HTTPS connections, used when downloading locale data. The default is the system certificate store.
+
+* `:https_proxy` is an HTTPS proxy URL. The `HTTPS_PROXY` environment variable is also read. The default is `nil`.
 
 ### Using Gettext locales
 
@@ -309,15 +320,41 @@ Localize is the core CLDR-backed formatting and validation library. The followin
 
 * [localize_person_names](https://hex.pm/packages/localize_person_names) — Locale-aware person name formatting implementing the CLDR TR35 person names specification. Uses Unicode word segmentation to handle given, middle, surname, and generation components across locales.
 
-* [localize_phonenumber](https://hex.pm/packages/localize_phonenumber) — Parsing, validation, and locale-aware formatting of international phone numbers, including territory detection and E.164 canonicalisation.
+* [localize_phone_number](https://hex.pm/packages/localize_phone_number) — Parsing, validation, and locale-aware formatting of international phone numbers, including territory detection and E.164 canonicalisation.
 
 * [localize_address](https://hex.pm/packages/localize_address) — Postal address parsing and locale-aware formatting using CLDR territory data and locale-specific address layouts.
 
+* [calendrical](https://hex.pm/packages/calendrical) — Localized month- and week-based calendars, and locale-aware parsing of dates, times, datetimes and date ranges across the CLDR calendars (Gregorian, Buddhist, Japanese imperial, Islamic, Persian, Hebrew, ROC).
+
+* [localize_web](https://hex.pm/packages/localize_web) — Plugs that resolve the locale from an incoming request, localized routes, and HTML helpers for Phoenix applications.
+
+* [localize_sql](https://hex.pm/packages/localize_sql) — Ecto types for the Localize data types, locale-aware `COLLATE` for PostgreSQL and SQLite queries, and PostgreSQL composite types with tag-guarded `sum`/`avg`/`min`/`max` aggregates for money and units of measure.
+
 * [intl](https://hex.pm/packages/intl) — A higher-level, ergonomic API layer over `Localize` modeled on the ECMAScript `Intl` object. Provides a unified interface for number, date, time, relative time, list, and plural formatting.
+
+### Form input components
+
+Locale-aware Phoenix LiveView inputs, so a user can enter a value under their own conventions rather than fighting a browser control. These are the newest part of the family and still `0.1.x`. The [inputs playground](https://localize-inputs-playground.fly.dev) demonstrates them live against any locale.
+
+* [localize_inputs_core](https://hex.pm/packages/localize_inputs_core) — Shared base for the input family: common exception types, Gettext backend, CSS variable tokens, and JS bootstrap helpers.
+
+* [localize_number_inputs](https://hex.pm/packages/localize_number_inputs) — `<.number_input>` for decimals and integers, and `<.unit_input>` with a `<.unit_picker>` for a number paired with a unit of measure. AutoNumeric-backed live formatting.
+
+* [localize_datetime_inputs](https://hex.pm/packages/localize_datetime_inputs) — `<.date_input>`, `<.date_range_input>`, `<.date_range_picker>` and `DatePickerLive`, built on `calendrical` for multi-calendar support.
+
+### MessageFormat 2 tooling
+
+* [mf2_treesitter](https://github.com/elixir-localize/mf2_treesitter) — The tree-sitter grammar for MessageFormat 2, giving incremental parsing and error recovery suitable for an editor.
+
+* [mf2_wasm_editor](https://hex.pm/packages/mf2_wasm_editor) — That grammar compiled to WASM with a Phoenix LiveView hook, so an MF2 textarea highlights syntax in the browser with no per-keystroke round trip.
 
 ### Libraries that depend on Localize
 
 * [ex_money version 6.0](https://hex.pm/packages/ex_money) which is updated to be based upon `Localize`.
+
+* [ex_money_sql](https://hex.pm/packages/ex_money_sql) — Database serialization for `Money`, building its composite type and aggregates on `localize_sql`.
+
+* [ex_money_input](https://hex.pm/packages/ex_money_input) — `<.money_input>` and `<.currency_picker>` components with an Ecto changeset bridge.
 
 ## Acknowledgements
 
@@ -327,4 +364,4 @@ Localize is the core CLDR-backed formatting and validation library. The followin
 
 ## License
 
-Apache License 2.0. See the [LICENSE](https://github.com/elixir-localize/localize/blob/v1.0.0-rc.6/LICENSE.md) file for details.
+Apache License 2.0. See the [LICENSE](https://github.com/elixir-localize/localize/blob/v1.0.0/LICENSE.md) file for details.

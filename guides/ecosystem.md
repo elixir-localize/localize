@@ -4,7 +4,9 @@ Localize is best understood as **an additional set of structured data types** �
 
 Having established those types, the same treatment extends outward to the types Elixir already has. An integer, a `Date`, a `String` and a `Date.Range` are every bit as locale-dependent as a money amount when they meet a human being, so Localize formats, parses and orders them too. The result is a single vocabulary across both sets: whatever the value, you ask the same four questions of it.
 
-## The four operations
+Most of it can be tried without installing anything: the [playground](https://playground.elixir-localize.com) runs the formatting, parsing and input components live in the browser against any locale.
+
+## The operations
 
 * **Formatting** turns a value into text for a particular locale — the operation that has no locale-independent answer.
 
@@ -12,24 +14,28 @@ Having established those types, the same treatment extends outward to the types 
 
 * **Ordering** arranges values. For numbers and dates this is arithmetic and needs no locale; for text it is the Unicode Collation Algorithm with CLDR tailoring, where the locale changes the answer (in Swedish `ä` sorts after `z`; in German it sorts with `a`).
 
+* **HTML input** is the browser-side counterpart of parsing: a form control that lets a user *enter* the value under their own conventions, formatting as they type and submitting something the server can parse. A German user typing `1.234,56` into a plain `<input type="number">` gets nothing useful; a locale-aware component gets it right.
+
 * **Serialization** stores a value in a database and reads it back as the same value, rather than as a string someone has to reassemble.
+
+Formatting and parsing are complete across the family. Ordering and serialization are complete for everything it makes sense for. HTML input is the newest and least complete — the components that exist are listed below, and the gaps in that column are the roadmap.
 
 ## Elixir's types
 
-| Type | Formatting | Parsing | Ordering | Serialization |
-| --- | --- | --- | --- | --- |
-| `Integer` | Localize | Localize | `Enum.sort` | Ecto |
-| `Float` | Localize | Localize | `Enum.sort` | Ecto |
-| `Decimal` | Localize | Localize | `Enum.sort` | Ecto |
-| `String` | — | — | **Localize** | Ecto |
-| `Date` | Localize | Calendrical | `Enum.sort` | Ecto |
-| `Time` | Localize | Calendrical | `Enum.sort` | Ecto |
-| `DateTime` | Localize | Calendrical | `Enum.sort` | Ecto |
-| `NaiveDateTime` | Localize | Calendrical | `Enum.sort` | Ecto |
-| `Duration` | Localize | — | `Enum.sort` | Localize |
-| `Date.Range` | Localize | Calendrical | `Enum.sort` | Localize |
-| `Range` | Localize | — | `Enum.sort` | Localize |
-| `List` | Localize | — | `Enum.sort` | Ecto |
+| Type | Formatting | Parsing | Ordering | HTML input | Serialization |
+| --- | --- | --- | --- | --- | --- |
+| `Integer` | Localize | Localize | `Enum.sort` | `<.number_input>` | Ecto |
+| `Float` | Localize | Localize | `Enum.sort` | `<.number_input>` | Ecto |
+| `Decimal` | Localize | Localize | `Enum.sort` | `<.number_input>` | Ecto |
+| `String` | — | — | **Localize** | — | Ecto |
+| `Date` | Localize | Calendrical | `Enum.sort` | `<.date_input>` | Ecto |
+| `Time` | Localize | Calendrical | `Enum.sort` | — | Ecto |
+| `DateTime` | Localize | Calendrical | `Enum.sort` | — | Ecto |
+| `NaiveDateTime` | Localize | Calendrical | `Enum.sort` | — | Ecto |
+| `Duration` | Localize | — | `Enum.sort` | — | Localize |
+| `Date.Range` | Localize | Calendrical | `Enum.sort` | `<.date_range_input>` | Localize |
+| `Range` | Localize | — | `Enum.sort` | — | Localize |
+| `List` | Localize | — | `Enum.sort` | — | Ecto |
 
 A `String` is the one row with no formatting or parsing: it is already text, so there is nothing to render it into or read it out of. It is also the only row where ordering is a Localize operation rather than a comparison, which is the point — collation is where a locale changes the sort order of values that are otherwise identical.
 
@@ -37,19 +43,19 @@ A `String` is the one row with no formatting or parsing: it is already text, so 
 
 ## Localize's types
 
-| Type | Formatting | Parsing | Ordering | Serialization |
-| --- | --- | --- | --- | --- |
-| `Localize.LanguageTag` | Localize | Localize | `Enum.sort` | Localize |
-| `Localize.Currency` | Localize | Localize | `Enum.sort` | Localize |
-| `Money` | Localize | Localize | `Enum.sort` | Localize |
-| `Localize.Unit` | Localize | Localize | `Enum.sort` | Localize |
-| `Localize.Duration` | Localize | — | `Enum.sort` | Localize |
-| `Localize.Territory` | Localize | Localize | `Enum.sort` | Localize |
-| `Localize.Script` | Localize | Localize | `Enum.sort` | Localize |
-| `Localize.Address` | Localize | Localize | **Localize** | Localize |
-| `Localize.PhoneNumber` | Localize | Localize | `Enum.sort` | Localize |
-| `Localize.PersonName` | Localize | — | **Localize** | Localize |
-| MF2 message | Localize | — | — | Gettext |
+| Type | Formatting | Parsing | Ordering | HTML input | Serialization |
+| --- | --- | --- | --- | --- | --- |
+| `Localize.LanguageTag` | Localize | Localize | `Enum.sort` | — | Localize |
+| `Localize.Currency` | Localize | Localize | `Enum.sort` | `<.currency_picker>` | Localize |
+| `Money` | Localize | Localize | `Enum.sort` | `<.money_input>` | Localize |
+| `Localize.Unit` | Localize | Localize | `Enum.sort` | `<.unit_input>` | Localize |
+| `Localize.Duration` | Localize | — | `Enum.sort` | — | Localize |
+| `Localize.Territory` | Localize | Localize | `Enum.sort` | — | Localize |
+| `Localize.Script` | Localize | Localize | `Enum.sort` | — | Localize |
+| `Localize.Address` | Localize | Localize | **Localize** | — | Localize |
+| `Localize.PhoneNumber` | Localize | Localize | `Enum.sort` | — | Localize |
+| `Localize.PersonName` | Localize | — | **Localize** | — | Localize |
+| MF2 message | Localize | — | — | MF2 editor | Gettext |
 
 Addresses and person names order through Localize because sorting them means collating their formatted text, which is the `String` case again. Both are stored as `jsonb`, keeping their parts separate — a stored name renders as "Dr. Herbert Fritz von Müller" or "Müller, Herbert" depending on the locale and format asked for at display time, which storing a formatted string would forfeit.
 
@@ -119,3 +125,27 @@ Each library adds types, operations, or both. They share the locale resolution, 
 * [localize_phone_number](https://hexdocs.pm/localize_phone_number) — phone numbers: parsing, validation and formatting via libphonenumber.
 
 * [localize_person_names](https://hexdocs.pm/localize_person_names) — person names formatted to CLDR's per-locale ordering, and its handling of given, surname and honorific order.
+
+* [localize_web](https://hexdocs.pm/localize_web) — the Phoenix layer: plugs that resolve the locale from the request, localized routes, and HTML helpers. It is what puts the right locale in `Localize.get_locale/0` for the duration of a request, so everything above formats correctly without being passed a locale explicitly.
+
+## Form input
+
+Formatting and parsing assume the value has already reached the server. Getting it there is its own problem: a plain `<input type="number">` rejects `1.234,56` from a German user, and a native date picker offers no Buddhist or Persian calendar. These libraries close that gap with Phoenix LiveView components that format as the user types and submit something the server can parse.
+
+They are the newest part of the family and still `0.1.x` — the APIs may move, and coverage is partial. The [inputs playground](https://localize-inputs-playground.fly.dev) demonstrates the components live against any locale.
+
+* [localize_inputs_core](https://hexdocs.pm/localize_inputs_core) — the shared base the input libraries build on: common exception types, Gettext backend, CSS variable tokens and JS bootstrap helpers.
+
+* [localize_number_inputs](https://hexdocs.pm/localize_number_inputs) — `<.number_input>` for decimals and integers, and `<.unit_input>` with a `<.unit_picker>` for a number paired with a unit of measure. Live formatting is AutoNumeric-backed.
+
+* [localize_datetime_inputs](https://hexdocs.pm/localize_datetime_inputs) — `<.date_input>`, `<.date_range_input>`, `<.date_range_picker>` and a `DatePickerLive` component, built on Calendrical so the picker works in Gregorian, Buddhist, Japanese imperial, Islamic, Persian, Hebrew and ROC calendars.
+
+* [ex_money_input](https://hexdocs.pm/ex_money_input) — `<.money_input>` and `<.currency_picker>`, with an Ecto changeset bridge so the submitted value casts straight into a `Money` field.
+
+### Authoring MF2 messages
+
+An MF2 message is written rather than entered, so its "input" is an editor rather than a form control.
+
+* [mf2_treesitter](https://github.com/elixir-localize/mf2_treesitter) — the tree-sitter grammar for MessageFormat 2, which gives incremental parsing and error recovery suitable for an editor.
+
+* [mf2_wasm_editor](https://hexdocs.pm/mf2_wasm_editor) — that grammar compiled to WASM with a LiveView hook, so an MF2 textarea highlights syntax in the browser with no round trip per keystroke.
