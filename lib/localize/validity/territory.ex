@@ -8,7 +8,7 @@ defmodule Localize.Validity.Territory do
     {:ok, nil, nil}
   end
 
-  def validate(code) when is_binary(code) or is_atom(code) do
+  def validate(code) when is_binary(code) or is_atom(code) or is_integer(code) do
     code
     |> normalize()
     |> valid()

@@ -1160,6 +1160,9 @@ defmodule Localize do
       iex> Localize.validate_territory("us")
       {:ok, :US}
 
+      iex> Localize.validate_territory(1)
+      {:ok, :"001"}
+
       iex> Localize.validate_territory(:ZZZZ)
       {:error, %Localize.UnknownTerritoryError{territory: :ZZZZ}}
 
