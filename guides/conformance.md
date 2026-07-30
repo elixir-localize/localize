@@ -482,7 +482,7 @@ Two areas are explicitly out of scope:
 |---------|--------|-------|
 | Syntax errors | Implemented | Parser returns `{:error, reason}`. |
 | Resolution errors (unknown function, unresolved variable) | Implemented | Unresolved variables error per spec; an unknown function is a `Localize.FormatError` with reason `:unknown_function`. |
-| Data model errors | Implemented | Duplicate declarations (including implicit-use-then-declare and self-reference), duplicate option names, and duplicate variants (NFC-normalized keys) are validated before interpretation. |
+| Data model errors | Implemented | All six rules are checked by `Localize.Message.Validator.validate/1`: duplicate declarations (including implicit-use-then-declare and self-reference), duplicate option names, duplicate variants (NFC-normalized keys), missing selector annotation, variant key mismatch, and missing fallback variant. `Localize.Message.Parser.parse/1` checks syntax only; everything that formats or serializes a message runs both passes, reporting syntax errors first. |
 | Function option and operand validation | Implemented | The `select` option must be a literal set directly on the expression; digit size options must be non-negative integers; string operands of the numeric functions must match the `number-literal` production; `:currency`, `:unit` and the date/time functions are rejected as selectors. |
 
 ### MF2 Data Model
