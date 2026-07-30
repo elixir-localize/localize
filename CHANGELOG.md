@@ -4,11 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] — August 1st, 2026
+## [1.0.0] — July 31st, 2026
 
 The first stable release. MF2 message validation is separated from parsing: `Localize.Message.Parser.parse/1` checks syntax, `Localize.Message.Validator.validate/1` checks the TR35 data-model rules, and everything that formats or serializes a message runs both. A message like `.local $count = {$count :number}` — a declaration that reads the variable it declares, which is a Duplicate Declaration error rather than a valid annotation of an external variable — is now rejected wherever it appears rather than only when formatted. The construct for annotating an external variable is `.input {$count :number}`.
 
 ### Added
+
+* An [ecosystem guide](https://hexdocs.pm/localize/ecosystem.html) sets out the library's shape: a set of structured, locale-aware types, and the four operations — formatting, parsing, ordering and serialization — that apply both to them and to most of Elixir's own types. It tabulates which library provides each operation for each type.
 
 * `Localize.Message.Validator.validate/1` is public, checking a parsed message against the TR35 data-model rules. `Localize.Message.Parser.parse/1` remains syntax-only, so tooling that must accept invalid input — `to_tokens/2` and the highlighters built on it — parses without validating, while everything that formats or serializes composes the two and reports syntax errors before data-model ones.
 
