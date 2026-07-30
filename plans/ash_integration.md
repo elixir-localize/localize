@@ -157,9 +157,22 @@ This matters more than the runtime-sort fix, because `ash_postgres` and `ash_sql
 
 `Localize.Ecto.TextSearch` additionally supplies per-locale full-text search configuration, which is the same class of problem one layer up.
 
-### 7. `Ash.Type.Enum` labels are monolingual
+### 7. `Ash.Type.Enum` labels work, via a documented workaround the user has to write
 
-`label/1` and `description/1` resolve against a compile-time map and return plain strings. These are exactly the strings that surface in admin tables, `<select>` options and GraphQL enum descriptions — the most visible user-facing text in a typical Ash application after error messages.
+This is weaker than it first appears, and the history is instructive. `label/1` and `description/1` resolve against a compile-time map, so the obvious `label: gettext("Open")` silently freezes the default locale at compile time. A user reported exactly that in [ash#2172](https://github.com/ash-project/ash/issues/2172); Zach Daniel's reply was "Yes, good call. Someone else just ran into this and I meant to fix it" — so at least two people hit it independently.
+
+The fix landed, and `lib/ash/type/enum.ex:114-139` now documents a working two-pass pattern: use the Gettext macro in `values` so the msgid is extracted at compile time, then override `label/1` to translate at runtime.
+
+```elixir
+use Ash.Type.Enum, values: [open: [label: gettext("Open")], ...]
+
+def label(value) do
+  with label when is_binary(label) <- super(value),
+    do: Gettext.gettext(MyApp.Gettext, label)
+end
+```
+
+So enum labels are localizable today. What remains is real but modest: the override is per-enum boilerplate the user writes by hand, `description/1` gets no worked example despite having the same trap, and the pattern is invisible unless you read that docs section. A locale-aware arity would remove the boilerplate, which is worth proposing — but as ergonomics, not as a missing capability. I originally scored this as a gap; it isn't one.
 
 ### 8. `ash_money` already runs on Localize, and its lock file has a stale ex_cldr entry
 
@@ -184,6 +197,22 @@ end
 ```
 
 Display configuration living in constraints is a reasonable response to there being nowhere else to put it, but it binds presentation to the schema. The same attribute cannot render as `:short` in a summary table and long-form on a detail page. A display callback taking runtime options fixes that; type constraints then set *defaults* rather than *the* format. `ash_money` is the worked example for what a display callback should look like, precisely because it is the one type that already half-has one.
+
+## Prior art: what the Ash team has already said
+
+There is no `ash_localize`. It does not exist in the `ash-project` organisation (61 repositories, none private that I can see), it is not on hex, and a GitHub-wide code search for `AshLocalize` and `ash_localize` returns no Elixir hits other than this document. A private repository would return the same 404 as a nonexistent one, so treat that as "no public evidence" rather than proof.
+
+The issue history is more useful than a package would have been, because it shows the demand is already articulated by users and acknowledged by the maintainers.
+
+[ash#1771 — "Generate gettext file for various error messages"](https://github.com/ash-project/ash/issues/1771) is the origin of `Ash.Gettext` and `mix ash.gettext.extract`. It opens with "Being able to translate error messages into different languages is quite important as most of the world speaks another language, natively", asks for humanized field names as well, and the comments record the workarounds people built in the meantime — a community blog post on wrapping Ash validation errors in Gettext, and this, from `allenwyma`:
+
+> I've just been overwriting some and including my own Gettext inside. Probably not good cause now we have the web mixed with the domains.
+
+That is a user independently deriving the argument for Phase 1. Reaching for a web-layer Gettext backend inside domain code is exactly the coupling that a locale on `Ash.Scope` and a display callback on `Ash.Type` are there to prevent. It is worth quoting back.
+
+[ash#2172](https://github.com/ash-project/ash/issues/2172) is the enum label trap in finding 7, with a maintainer confirming multiple people hit it.
+
+The pattern across both: Ash's localization surface has been built reactively, one accepted patch at a time, in response to users who needed something specific. Nobody has yet proposed the shape it should have. That is the opening — not a missing package, but a missing architecture, with a documented trail of people asking for it.
 
 ## Architectural principle
 
@@ -279,6 +308,11 @@ Being straight about the gaps, since the Ash team will ask:
 
 ## What to take to the Ash team first
 
-The error-message translator. It is the most visible defect — plurals are simply wrong today in every language with more than two forms, and I verified that Ash's `.pot` contains no `count` variable at all, so no amount of translation effort fixes it within gettext. It needs no change to Ash, it demonstrates in a screenshot, and it establishes that Localize solves problems Ash currently has rather than problems Ash might have.
+The error-message translator, framed as a follow-up to [ash#1771](https://github.com/ash-project/ash/issues/1771) rather than as a new proposal. That issue asked for translatable error messages and got the extraction half; the rendering half is still singular-only, and I verified Ash's `.pot` contains no `count` variable anywhere, so no amount of translation effort fixes plurals within gettext. It needs no change to Ash, it demonstrates in a screenshot, and it answers a request the Ash team has already accepted in principle.
 
-Pair it with the `mix deps.unlock --unused` observation on `ash_money`. Together they make the useful opening point: Localize is already in your dependency tree, and here is something it fixes that you cannot fix otherwise. Everything else follows more easily once that is on the table.
+Two things to pair with it:
+
+* The `mix deps.unlock --unused` observation on `ash_money` — Localize is already in your dependency tree; here is a dead ex_cldr entry to prove how long it has been true.
+* `allenwyma`'s comment on #1771 about web concerns leaking into domain code, as the motivation for putting locale on `Ash.Scope` instead of a Gettext backend.
+
+Together those make the opening point without asking for anything: you already ship Localize, your users have already asked for this twice, and here is the piece that cannot be built the current way. Everything else follows more easily once that is on the table.

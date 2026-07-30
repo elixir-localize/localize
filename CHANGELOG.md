@@ -22,6 +22,8 @@ The first stable release. MF2 message validation is separated from parsing: `Loc
 
 * The MF2 working-group `data-model-errors.json` conformance cases now assert the specific error reason rather than merely that some error occurred. The WG cases pass no bindings, so an incidental unbound-variable error satisfied the old assertion — which is how three unimplemented rules stayed green.
 
+* `Localize.validate_territory/1` now accepts integer M49 codes as its typespec and documentation always promised — `validate_territory(1)` returns `{:ok, :"001"}`. An integer previously raised `FunctionClauseError` because the validator's guard omitted `is_integer/1`, even though its normalization already zero-padded integers. Numeric codes may also be given as strings (`"001"`); note that country-level M49 numbers such as `840` are not in CLDR's territory validity set, which uses the alpha-2 code (`"US"`) there.
+
 ## [1.0.0-rc.7] — July 28th, 2026
 
 This release settles the `:format` / `:style` option naming across the library. The rule is now uniform: `:format` is how a **value** is rendered, `:style` is which variant of a **name or pattern** you get, and an option that selects something else again — `Localize.Interval`'s choice of which date fields appear — is named for what it selects. Every rename below is a hard break with no alias; each entry names its replacement.
