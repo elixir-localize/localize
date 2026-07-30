@@ -4,7 +4,9 @@ Rules for LLM coding agents using `Localize` as a dependency. These are not exha
 
 ## Core conventions
 
-* All public formatting and validation functions return `{:ok, result}` or `{:error, exception}`. Pattern match with `case`/`with`, never `try/rescue`. The exception is a struct (e.g. `%Localize.UnknownLocaleError{}`), not a string.
+* All public functions that take a *message, locale, number, unit or other user value* return `{:ok, result}` or `{:error, exception}`. Pattern match with `case`/`with`, never `try/rescue`. The exception is a struct (e.g. `%Localize.UnknownLocaleError{}`), not a string.
+
+* The exception is the handful of functions that operate on an already-parsed AST rather than on source: they have no message to attach to an exception, so they report a plain reason instead. `Localize.Message.Validator.validate/1` returns `:ok` or `{:error, {reason, detail}}`, and `Localize.Message.JSON.from_json/1` returns `{:error, binary}`. The message-level entry points convert these into a `%Localize.FormatError{}` carrying the source — so `Localize.Message.format/3` and `canonical_message/2` still follow the rule above.
 
 * Bang variants (`to_string!/2`, `validate_locale!/1`, etc.) exist for the rare cases where raising is preferred on error.
 
