@@ -161,6 +161,7 @@ defmodule Localize.MixProject do
   defp groups_for_extras do
     [
       Guides: [
+        "guides/ecosystem.md",
         "guides/number_formatting.md",
         "guides/plural_rules.md",
         "guides/date_time_formatting.md",
