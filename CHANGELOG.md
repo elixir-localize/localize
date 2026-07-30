@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [1.0.0] — August 1st, 2026
 
-The first stable release. MF2 message validation is separated from parsing in this release: `Localize.Message.Parser.parse/1` checks syntax, `Localize.Message.Validator.validate/1` checks the TR35 data-model rules, and everything that formats or serializes a message runs both.
+The first stable release. MF2 message validation is separated from parsing: `Localize.Message.Parser.parse/1` checks syntax, `Localize.Message.Validator.validate/1` checks the TR35 data-model rules, and everything that formats or serializes a message runs both. A message like `.local $count = {$count :number}` — a declaration that reads the variable it declares, which is a Duplicate Declaration error rather than a valid annotation of an external variable — is now rejected wherever it appears rather than only when formatted. The construct for annotating an external variable is `.input {$count :number}`.
 
 ### Added
 
@@ -14,7 +14,9 @@ The first stable release. MF2 message validation is separated from parsing in th
 
 ### Fixed
 
-* Three TR35 data-model rules are now enforced: **Missing Selector Annotation** (a selector that does not resolve, directly or through a chain of locals, to a declaration carrying a function), **Variant Key Mismatch** (a variant whose key count differs from the selector count), and **Missing Fallback Variant** (no variant with only `*` keys). None was detected previously — the first two were documented as enforced during match evaluation and were not, and all three could be formatted or serialized without error.
+* **Duplicate Declaration** is now caught wherever a message is used, not only when it is formatted. `.local $count = {$count :number}` reads the variable it declares, so it was rejected by `format/3` but serialized happily by `canonical_message/2` and accepted at compile time as a Gettext msgid. Use `.input {$count :number}` to annotate an external variable.
+
+* Three further TR35 data-model rules are now enforced: **Missing Selector Annotation** (a selector that does not resolve, directly or through a chain of locals, to a declaration carrying a function), **Variant Key Mismatch** (a variant whose key count differs from the selector count), and **Missing Fallback Variant** (no variant with only `*` keys). None was detected previously — the first two were documented as enforced during match evaluation and were not, and all three could be formatted or serialized without error.
 
 * `Localize.Message.canonical_message/2` no longer serializes a message that violates the data-model rules; it previously round-tripped every invalid form, including a `.local` declaration reading the variable it declares. The compile-time Gettext interpolator validates too, so a mis-authored msgid fails the build rather than surfacing at runtime.
 

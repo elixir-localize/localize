@@ -219,25 +219,32 @@ defmodule Localize.Message.Validator do
   end
 
   defp annotated_names(declarations) do
-    Enum.reduce(declarations, MapSet.new(), fn declaration, annotated ->
-      case declaration do
-        {:input, {:expression, {:variable, name}, {:function, _name, _options}, _attrs}} ->
-          MapSet.put(annotated, name)
-
-        {:local, {:variable, name}, {:expression, _operand, {:function, _n, _o}, _attrs}} ->
-          MapSet.put(annotated, name)
-
-        # An unannotated local inherits its operand's annotation.
-        {:local, {:variable, name}, {:expression, {:variable, source}, nil, _attrs}} ->
-          if MapSet.member?(annotated, source),
-            do: MapSet.put(annotated, name),
-            else: annotated
-
-        _unannotated ->
-          annotated
-      end
-    end)
+    Enum.reduce(declarations, MapSet.new(), &annotated_name/2)
   end
+
+  defp annotated_name(
+         {:input, {:expression, {:variable, name}, {:function, _name, _options}, _attrs}},
+         annotated
+       ) do
+    MapSet.put(annotated, name)
+  end
+
+  defp annotated_name(
+         {:local, {:variable, name}, {:expression, _operand, {:function, _n, _o}, _attrs}},
+         annotated
+       ) do
+    MapSet.put(annotated, name)
+  end
+
+  # An unannotated local inherits its operand's annotation.
+  defp annotated_name(
+         {:local, {:variable, name}, {:expression, {:variable, source}, nil, _attrs}},
+         annotated
+       ) do
+    if MapSet.member?(annotated, source), do: MapSet.put(annotated, name), else: annotated
+  end
+
+  defp annotated_name(_unannotated, annotated), do: annotated
 
   # ── Variant key arity and fallback ────────────────────────────────
 
