@@ -63,6 +63,8 @@ This package is widely used. The following invariants apply to every item in thi
 | 10 | CLDR 48.2 §Modifications retrospective            | Mixed      | Per-finding — ✅ Done. See [plans/cldr-48-retrospective.md](cldr-48-retrospective.md). |
 | 11 | `localize_emoji` sibling library                  | New package | None          |
 | 12 | `common/testData` conformance-fixture audit       | None (tests only) | None      |
+| 13 | CDN-asset checksum manifests                       | None       | None — ✅ Done in Localize 0.44.0 |
+| 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Silent data loss if not done** — CLDR 49 drops 232 of 237 eras. See [plans/japanese_eras.md](japanese_eras.md). |
 
 The remainder of this file expands each item in turn.
 
@@ -730,9 +732,9 @@ CLDR 49 is expected to land new and expanded fixtures, most notably:
 
 * May surface latent bugs that need fixes — those go through the normal changelog.
 
-## 13. CDN-asset checksum manifests for download-time validation
+## 13. CDN-asset checksum manifests for download-time validation — ✅ Done (Localize 0.44.0)
 
-**Status:** research required.
+**Status:** shipped early, ahead of the CLDR 49 cycle. `priv/localize/locale_hashes.etf` (packaged) maps locale → SHA-256 of the CDN object bytes; `Localize.Locale.Provider` verifies every download before decode and fails closed with `Localize.LocaleIntegrityError`. The manifest is regenerated with `mix localize.generate_locale_hashes --from-cdn` *after* upload, so it hashes the bytes consumers actually receive. Process and the OTP-encoding trap that motivated `--from-cdn` are documented in [CLDR_UPDATE_INTEGRATION.md](../CLDR_UPDATE_INTEGRATION.md). The research questions below are retained for the record; the signature-scheme options were not pursued — a packaged hash manifest proved sufficient.
 
 **Motivation.** Security audit §4.1 identified that `Localize.Locale.Provider.Cache` decodes downloaded ETFs with `:erlang.binary_to_term/1` (no integrity check, no `[:safe]`). The audit recommended `[:safe]`, but issue [#25](https://github.com/elixir-localize/localize/issues/25) showed that legitimate locale ETFs encode atoms the runtime hasn't yet interned, so `[:safe]` rejects valid input. We reverted `[:safe]` in 0.30.1 (see CHANGELOG). The original DOS surface — a writable `:locale_cache_dir` plus a hostile or compromised CDN serving a maliciously-crafted ETF — is therefore re-opened.
 
@@ -810,6 +812,32 @@ Generating a manifest is a natural insertion point when the CLDR 49 ETF pipeline
 
 * For air-gapped deployments: should there be a way to ship a manifest with the package (so download-and-verify works from a local mirror)?
 
+## 14. Japanese pre-Meiji eras: keep and curate
+
+The design plan — validation methodology, primary sources, per-era tracking table, and the JSON research dataset — lives in [plans/japanese_eras.md](japanese_eras.md). This section is the CLDR 49 scope statement and the pipeline hook; the child plan is the source of truth for the curation work.
+
+### Current conformance
+
+`priv/localize/supplemental_data/calendars.etf` carries all 237 CLDR Japanese eras as `[index, %{start: [y, m, d]}]` — indices 0 (大化, 645) through 236 (令和). Localize formats and parses the full range today.
+
+### Gap
+
+CLDR 49 drops era data for every era before Meiji — indices 0–231, which is **232 of the 237 entries**. Only Meiji through Reiwa (232–236) survive upstream.
+
+This is the one item in this plan where doing nothing is not a no-op. A routine Phase 1–3 run against CLDR 49 sources regenerates `calendars.etf` from upstream and silently deletes 232 eras. Nothing fails: no test asserts on ancient era data, the pipeline reports success, and the loss surfaces only when a consumer formats a historical date. Localize's position is that the use cases needing this data — academic publishing, genealogy, museum cataloguing, calendar conversion — are exactly the ones CLDR is stepping back from, so we keep shipping it and own the validation.
+
+### Plan
+
+1. **Before regenerating**, snapshot the current pre-Meiji era set out of `calendars.etf` — it is the last upstream-sourced copy.
+2. Add a pipeline merge step so era generation unions the CLDR 49 modern eras with our curated pre-Meiji snapshot, rather than taking upstream wholesale. The curated set becomes source data we maintain, not generated output.
+3. Land the corrections already identified by the first-pass research: [plans/japanese_eras.md](japanese_eras.md) records **three confirmed CLDR data errors** and two convention questions across the 237 entries.
+4. Add a regression test asserting the era count and the boundary entries (index 0 大化 and index 232 明治), so a future pipeline change cannot silently drop the set again.
+5. Continue the per-era validation pass on its own schedule — it does not gate the CLDR 49 release, but the merge step and the regression test do.
+
+### API impact / breaking risk
+
+No API change: the data stays where it is and the era range is unchanged. The risk is entirely in *not* doing this — a silent narrowing of supported dates from 645 CE to 1868 CE.
+
 ## Open questions
 
 These need answers before the corresponding work item starts. Track them as the plan evolves.
@@ -842,3 +870,5 @@ Each checkpoint should leave a dated entry at the bottom of this file noting wha
 * 2026-05-11 — Added item 12: audit `$CLDR_REPO/common/testData` at CLDR 49 alpha for new conformance fixtures, especially decimal-formatting tests that may gate item 7.
 * 2026-05-06 — Item 10 (CLDR 48.2 modifications retrospective) complete. Full audit in [plans/cldr-48-retrospective.md](cldr-48-retrospective.md): 23 modifications classified, 6 follow-up tasks filed (§A–§F). Index table and item 10 section updated.
 * 2026-05-12 — Added item 13: generate signed/checksummed manifest for CDN-downloaded locale ETFs so the runtime can verify content integrity before decode. Motivated by the 0.30.1 revert of `binary_to_term [:safe]` (issue #25), which re-opened security audit §4.1's writable-cache-dir DOS surface. Research required — manifest format, signature scheme, hot-path budget, key rotation all open.
+
+* 2026-08-02 — Plan audit. Added item 14 (Japanese pre-Meiji eras), which was tracked only in [plans/japanese_eras.md](japanese_eras.md) and referenced nowhere here despite being triggered by CLDR 49 and carrying a silent-data-loss risk during a routine pipeline run. Marked item 13 done (shipped in Localize 0.44.0) — its status still read "research required". Added index rows for items 13 and 14; the index previously stopped at 12 while the file carried a section 13.
