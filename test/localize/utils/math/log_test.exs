@@ -31,10 +31,17 @@ defmodule Localize.Utils.Math.LogTest do
     end
   end)
 
+  # A fixed seed, and `uniform_s/2` rather than `uniform/1`, so the sample
+  # is the same on every run and the RNG state of the loading process is
+  # left alone. Drawing 500 values from 10_000 collides often enough that
+  # `Enum.uniq/1` otherwise left a different number of tests each run.
   random =
-    for _i <- 1..500 do
-      :rand.uniform(10_000) / 10
-    end
+    1..500
+    |> Enum.map_reduce(:rand.seed_s(:exsss, {101, 102, 103}), fn _i, seed ->
+      {value, next_seed} = :rand.uniform_s(10_000, seed)
+      {value / 10, next_seed}
+    end)
+    |> elem(0)
     |> Enum.uniq()
 
   @diff 0.005
