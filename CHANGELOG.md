@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.LanguageTag.best_match/3` now prefers a territory's own language when candidates are otherwise equidistant, so `sgs` (Samogitian, spoken in Lithuania) matches `lt` rather than `en-LT`. The distance trie scores every candidate sharing the desired script and territory identically, which previously left the winner to depend on the order of the supported list.
 
+* `Localize.ParseError` reports an over-cap input as `reason: :input_too_large` with the byte counts in new `:size` and `:limit` fields, instead of interpolating them into a prose `:reason` string that its own type never allowed. The message, number and unit-identifier parsers all use it, and the oversized input is no longer retained on the exception.
+
 ## [1.0.0] — July 31st, 2026
 
 The first stable release. MF2 message validation is separated from parsing: `Localize.Message.Parser.parse/1` checks syntax, `Localize.Message.Validator.validate/1` checks the TR35 data-model rules, and everything that formats or serializes a message runs both. A message like `.local $count = {$count :number}` — a declaration that reads the variable it declares, which is a Duplicate Declaration error rather than a valid annotation of an external variable — is now rejected wherever it appears rather than only when formatted. The construct for annotating an external variable is `.input {$count :number}`.

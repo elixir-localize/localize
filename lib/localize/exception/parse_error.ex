@@ -20,17 +20,24 @@ defmodule Localize.ParseError do
   `:cause` carries an underlying exception when a higher-level parser
   has wrapped a lower-level one.
 
+  When `:reason` is `:input_too_large` the parse was refused before it
+  began because the input exceeded a configured byte cap. `:size` and
+  `:limit` carry the byte counts and `:detail` names what was being
+  parsed. `:input` is `nil` in this case — retaining the oversized
+  string is the thing the cap exists to prevent.
+
   """
 
   @behaviour Localize.Exception
 
-  defexception [:input, :reason, :offset, :line, :column, :rest, :detail, :cause]
+  defexception [:input, :reason, :offset, :line, :column, :rest, :detail, :cause, :size, :limit]
 
   @type reason ::
           :unexpected_trailing_input
           | :unexpected_input
           | :incomplete_input
           | :invalid_message_format
+          | :input_too_large
 
   @type t :: %__MODULE__{
           input: String.t() | nil,
@@ -40,7 +47,9 @@ defmodule Localize.ParseError do
           column: pos_integer() | nil,
           rest: String.t() | nil,
           detail: String.t() | nil,
-          cause: Exception.t() | nil
+          cause: Exception.t() | nil,
+          size: non_neg_integer() | nil,
+          limit: non_neg_integer() | nil
         }
 
   @impl Localize.Exception
@@ -49,7 +58,8 @@ defmodule Localize.ParseError do
       :unexpected_trailing_input,
       :unexpected_input,
       :incomplete_input,
-      :invalid_message_format
+      :invalid_message_format,
+      :input_too_large
     ]
 
   @impl true
@@ -150,6 +160,20 @@ defmodule Localize.ParseError do
     )
   end
 
+  # The oversized input is deliberately not retained on the struct — it
+  # is the thing we refused to hold. `:size` and `:limit` carry the byte
+  # counts and `:detail` names what was being parsed.
+  def message(%__MODULE__{reason: :input_too_large, size: size, limit: limit, detail: detail})
+      when is_integer(size) and is_integer(limit) do
+    Localize.Exception.safe_message(
+      "message",
+      "The {$detail} is {$size} bytes, which exceeds the configured maximum of {$limit} bytes",
+      detail: detail_or_default(detail, "input"),
+      size: size,
+      limit: limit
+    )
+  end
+
   def message(%__MODULE__{reason: :incomplete_input, input: input}) do
     Localize.Exception.safe_message(
       "message",
@@ -186,6 +210,9 @@ defmodule Localize.ParseError do
 
   defp detail_or_default(nil), do: ""
   defp detail_or_default(detail) when is_binary(detail), do: detail
+
+  defp detail_or_default(nil, default), do: default
+  defp detail_or_default(detail, _default) when is_binary(detail), do: detail
 
   defp rest_suffix(nil), do: ""
   defp rest_suffix(""), do: ""

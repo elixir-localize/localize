@@ -34,8 +34,10 @@ defmodule Localize.Message.Parser do
     if byte_size(input) > cap do
       {:error,
        Localize.ParseError.exception(
-         input: "<#{byte_size(input)}-byte message>",
-         reason: "message exceeds the configured maximum of #{cap} bytes"
+         reason: :input_too_large,
+         detail: "message",
+         size: byte_size(input),
+         limit: cap
        )}
     else
       do_parse(input)

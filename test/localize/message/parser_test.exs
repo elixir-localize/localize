@@ -328,8 +328,10 @@ defmodule Localize.Message.ParserTest do
       cap = Parser.max_message_bytes()
       huge = String.duplicate("a", cap + 1)
 
-      assert {:error, %Localize.ParseError{reason: reason}} = Parser.parse(huge)
-      assert reason =~ "exceeds"
+      assert {:error, %Localize.ParseError{} = exception} = Parser.parse(huge)
+      assert exception.reason == :input_too_large
+      assert exception.size == byte_size(huge)
+      assert exception.limit == cap
     end
   end
 end

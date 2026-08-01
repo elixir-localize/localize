@@ -183,6 +183,13 @@ defmodule Localize.Exception.StructuralTest do
       input: "bad",
       reason: :invalid_message_format,
       detail: "ICU MF2 rejected the pattern"
+    ],
+    # No `:input` — the oversized string is deliberately not retained.
+    {Localize.ParseError, :input_too_large} => [
+      reason: :input_too_large,
+      detail: "message",
+      size: 70_000,
+      limit: 65_536
     ]
   }
 
@@ -277,6 +284,38 @@ defmodule Localize.Exception.StructuralTest do
         )
 
       assert exception.reason == :network_error
+    end
+  end
+
+  describe "input size caps" do
+    # Each parser guards its input with a configured byte cap before
+    # parsing begins. All three must report it structurally — the byte
+    # counts in `:size`/`:limit`, not interpolated into `:reason`.
+
+    for {label, module, input} <- [
+          {"unit identifier", Localize.Unit.Parser, String.duplicate("a", 100_000)},
+          {"message", Localize.Message.Parser, String.duplicate("a", 10_000_000)},
+          {"number string", Localize.Number.Parser, String.duplicate("1", 100_000)}
+        ] do
+      @label label
+      @module module
+      @input input
+
+      test "#{label} over the cap reports :input_too_large structurally" do
+        assert {:error, %Localize.ParseError{} = exception} = @module.parse(@input)
+
+        assert exception.reason == :input_too_large
+        assert exception.detail == @label
+        assert exception.size == byte_size(@input)
+        assert is_integer(exception.limit) and exception.limit < exception.size
+
+        # The oversized input is not retained.
+        assert exception.input == nil
+
+        message = Exception.message(exception)
+        assert message =~ "exceeds the configured maximum"
+        refute message =~ @input
+      end
     end
   end
 end

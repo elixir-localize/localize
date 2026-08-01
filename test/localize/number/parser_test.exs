@@ -47,8 +47,10 @@ defmodule Localize.Number.ParserTest do
       cap = Parser.max_number_bytes()
       huge = String.duplicate("1", cap + 1)
 
-      assert {:error, %Localize.ParseError{reason: reason}} = Parser.parse(huge)
-      assert reason =~ "exceeds"
+      assert {:error, %Localize.ParseError{} = exception} = Parser.parse(huge)
+      assert exception.reason == :input_too_large
+      assert exception.size == byte_size(huge)
+      assert exception.limit == cap
     end
 
     test "rejects Decimal with exponent magnitude above the cap" do

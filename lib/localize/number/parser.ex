@@ -110,8 +110,10 @@ defmodule Localize.Number.Parser do
     if byte_size(string) > cap do
       {:error,
        Localize.ParseError.exception(
-         input: "<#{byte_size(string)}-byte number>",
-         reason: "number string exceeds the configured maximum of #{cap} bytes"
+         reason: :input_too_large,
+         detail: "number string",
+         size: byte_size(string),
+         limit: cap
        )}
     else
       do_parse(string, options)

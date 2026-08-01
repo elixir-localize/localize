@@ -41,8 +41,10 @@ defmodule Localize.Unit.Parser do
       byte_size(input) > cap ->
         {:error,
          Localize.ParseError.exception(
-           input: "<#{byte_size(input)}-byte unit identifier>",
-           reason: "unit identifier exceeds the configured maximum of #{cap} bytes"
+           reason: :input_too_large,
+           detail: "unit identifier",
+           size: byte_size(input),
+           limit: cap
          )}
 
       custom_unit_name?(input) ->
