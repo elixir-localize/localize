@@ -66,6 +66,7 @@ scripts/
 | `mix localize.generate_locales` | Regenerates per-locale ETFs (`priv/localize/locales/`). Positional args scope to specific locales. |
 | `mix localize.generate_locale_hashes` | Regenerates the download-integrity manifest. **Use `--from-cdn` after uploading** so the manifest hashes the exact bytes consumers download (see "Hash manifest and the OTP encoding trap"). |
 | `mix localize.update_mf2_conformance` | Re-vendors the 16 MessageFormat 2 working-group conformance files into `test/support/data/mf2_conformance/`. Run when the WG suite moves. |
+| `mix localize.inflection.download` | Re-vendors `unicode-org/inflection` source data into `data/inflection/` at the commit pinned in `priv/localize/localize_inflection_sha`. Own cadence — see "Reviewing the inflection upstream". |
 | `mix localize.bump_patch_version` | Bumps the Localize-side patch counter (`{cldr_version}:{patch}`); auto-resets to 0 when the CLDR version changes. Never bumped automatically. |
 | `mix localize.download_unicode_data` | Refreshes UCD tables in `priv/unicode/` (own cadence — on Unicode releases, not every CLDR drop). |
 | `mix localize.download_iso_currencies` | Refreshes ISO 4217 data from SIX Group (own cadence). |
@@ -108,11 +109,27 @@ mix localize.copy_sources
 mix localize.download_unicode_data      # UCD (Unicode release cadence)
 mix localize.download_iso_currencies    # ISO 4217 (SIX Group cadence)
 mix localize.update_mf2_conformance     # MF2 WG test suite (tracks the WG repo)
+mix localize.inflection.download        # unicode-org/inflection (own cadence — see below)
 ```
 
 Also refresh `priv/cldr/FractionalUCA.txt` from the CLDR repo when the UCA version bumps — it feeds the collation table, the reorder-group data, and the variable-weight boundaries.
 
-**Gate:** `git status` shows the expected source deltas and `priv/localize/version` carries the new CLDR version. The patch counter auto-resets to 0 at the next generation.
+#### Reviewing the inflection upstream
+
+Inflection data tracks [`unicode-org/inflection`](https://github.com/unicode-org/inflection), not CLDR, so it moves on its own cadence and is reviewed — not necessarily updated — once per CLDR cycle. The pin is a single commit SHA in `priv/localize/localize_inflection_sha`; `Localize.Inflection.Provider.data_version/0` combines its abbreviated form with the pipeline revision (`"2333a964e53a-r2"`) and **that string is the CDN path**.
+
+Compare the pin against upstream and look only at what we actually consume:
+
+```bash
+gh api "repos/unicode-org/inflection/compare/$(cat priv/localize/localize_inflection_sha)...main" \
+  --jq '.files[] | .status + "  " + .filename'
+```
+
+We ingest three upstream paths, all under `inflection/`: `resources/org/unicode/inflection/` (grammar features, dictionaries, contraction tables) and the two test trees `test/resources/inflection/dialog/{inflection,pronoun}`. A change anywhere else — upstream's own CI, release packaging, C++ sources, build files — has no effect on us.
+
+**Do not bump the pin for changes outside those paths.** Because the SHA is the CDN path, a gratuitous bump republishes the whole ~41 MB bundle under a new immutable prefix and forces every user to re-download it, and it breaks the `data_version/0` doctest. When the pin *does* move, re-run `mix localize.inflection.download`, regenerate, and treat it as a data release in its own right — bump `@data_revision` in `Localize.Inflection.Provider` instead when the generation pipeline changes without an upstream move.
+
+**Gate:** `git status` shows the expected source deltas and `priv/localize/version` carries the new CLDR version; the patch counter auto-resets to 0 at the next generation. For inflection, either the compare output touches none of the three ingested paths (pin unchanged, nothing to do) or the vendored files under `data/inflection/` show the expected deltas and the inflection test suites are green.
 
 ### Phase 2 — Regenerate supplemental data
 
