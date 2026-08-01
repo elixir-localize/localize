@@ -723,28 +723,34 @@ defmodule Localize.LanguageTag do
     end
   end
 
-  # Build the list of {locale, tag, score, index, is_paradigm} tuples
-  # for every supported locale within the distance threshold, sorted
-  # by `match_comparator/2`. "und" in supported is skipped (it only
-  # exact-matches a desired "und", handled above).
+  # Build the list of {locale, tag, score, index, is_paradigm,
+  # is_territory_language} tuples for every supported locale within the
+  # distance threshold, sorted by `match_comparator/2`. "und" in
+  # supported is skipped (it only exact-matches a desired "und",
+  # handled above).
   defp compute_match_candidates(desired_tag, supported, distance) do
+    territory_language = territory_language(desired_tag)
+
     supported
     |> Enum.with_index()
     |> Enum.reject(fn {locale, _index} -> locale == "und" end)
-    |> Enum.flat_map(&score_candidate(&1, desired_tag, distance))
+    |> Enum.flat_map(&score_candidate(&1, desired_tag, territory_language, distance))
     |> Enum.sort(&match_comparator/2)
   end
 
   # Score one supported locale. Returns a one-element list when the
   # distance is within the threshold (so the caller's `flat_map`
   # builds the candidate set), or an empty list otherwise.
-  defp score_candidate({supported_locale, index}, desired_tag, distance) do
+  defp score_candidate({supported_locale, index}, desired_tag, territory_language, distance) do
     case resolve_for_matching(supported_locale, :supported) do
       {:ok, supported_tag} ->
         score = compute_match_distance(desired_tag, supported_tag)
 
         if score <= distance do
-          [{supported_locale, supported_tag, score, index, paradigm_locale?(supported_locale)}]
+          [
+            {supported_locale, supported_tag, score, index, paradigm_locale?(supported_locale),
+             supported_tag.language == territory_language}
+          ]
         else
           []
         end
@@ -754,13 +760,30 @@ defmodule Localize.LanguageTag do
     end
   end
 
+  # The predominant language of the desired locale's territory, taken
+  # from CLDR likely subtags (`und-LT` -> `lt`). The distance trie
+  # scores every candidate that shares the desired script and territory
+  # identically — `sgs` (Samogitian, spoken in Lithuania) is exactly 80
+  # from `lt`, `lt-LT` and `en-LT` alike — so without a further signal
+  # the winner is whichever the caller happened to list first. Preferring
+  # the territory's own language picks `lt` over `en-LT`, which is both
+  # the better match and stable regardless of list order.
+  defp territory_language(%__MODULE__{territory: nil}), do: nil
+
+  defp territory_language(%__MODULE__{territory: territory}) do
+    case resolve_for_matching("und-#{territory}", :desired) do
+      {:ok, %__MODULE__{language: language}} -> language
+      _other -> nil
+    end
+  end
+
   # Pick the best candidate (head of the sorted list). When no
   # candidate is within range: a threshold below the default is
   # strict and returns an error; the default threshold falls back
   # to the first non-und supported locale, matching the CLDR
   # algorithm's guarantee that a non-empty supported list always
   # yields a match.
-  defp select_best_match([{locale, _tag, score, _idx, _paradigm} | _], _desired, _supported, _d) do
+  defp select_best_match([{locale, _tag, score, _idx, _par, _terr} | _], _desired, _supported, _d) do
     {:ok, locale, score}
   end
 
@@ -888,14 +911,15 @@ defmodule Localize.LanguageTag do
   end
 
   # Sort matches: lower distance first, then paradigm locale preference,
-  # then original order.
+  # then the desired territory's own language, then original order.
   defp match_comparator(
-         {_, _, distance_a, index_a, paradigm_a},
-         {_, _, distance_b, index_b, paradigm_b}
+         {_, _, distance_a, index_a, paradigm_a, territory_language_a},
+         {_, _, distance_b, index_b, paradigm_b, territory_language_b}
        ) do
     cond do
       distance_a != distance_b -> distance_a < distance_b
       paradigm_a != paradigm_b -> paradigm_a
+      territory_language_a != territory_language_b -> territory_language_a
       true -> index_a < index_b
     end
   end

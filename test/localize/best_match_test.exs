@@ -77,4 +77,39 @@ defmodule Localize.BestMatchTest do
       assert score == 0
     end
   end
+
+  describe "best_match/3 tie-breaking" do
+    # The distance trie scores every candidate sharing the desired
+    # script and territory identically, so these would otherwise be
+    # decided by whichever the caller happened to list first.
+
+    test "prefers the territory's own language over another language in that territory" do
+      # Samogitian is spoken in Lithuania; `lt` and `en-LT` are both 80 away.
+      assert {:ok, "lt", 80} = LanguageTag.best_match("sgs", ["en-LT", "lt"])
+    end
+
+    test "the tie-break is independent of the order of the supported list" do
+      assert {:ok, "lt", 80} = LanguageTag.best_match("sgs", ["lt", "en-LT"])
+      assert {:ok, "lt", 80} = LanguageTag.best_match("sgs", ["en-LT", "lt"])
+    end
+
+    test "applies to Livonian in Latvia" do
+      assert {:ok, "lv", 80} = LanguageTag.best_match("liv", ["en-LV", "lv"])
+    end
+
+    test "does not override a genuinely closer match" do
+      # `lt-LT` is no further away than `lt`, but neither beats an exact match.
+      assert {:ok, "sgs", 0} = LanguageTag.best_match("sgs", ["en-LT", "lt", "sgs"])
+    end
+
+    test "leaves list order deciding when no candidate is the territory language" do
+      # Neither `fr` nor `de` is the predominant language of Lithuania.
+      assert {:ok, "fr", _} = LanguageTag.best_match("sgs", ["fr", "de"])
+      assert {:ok, "de", _} = LanguageTag.best_match("sgs", ["de", "fr"])
+    end
+
+    test "a desired locale that maximizes to no territory still matches" do
+      assert {:ok, _match, _score} = LanguageTag.best_match("und-Cyrl", ["ru", "en"])
+    end
+  end
 end

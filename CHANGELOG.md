@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+* `Localize.LanguageTag.best_match/3` now prefers a territory's own language when candidates are otherwise equidistant, so `sgs` (Samogitian, spoken in Lithuania) matches `lt` rather than `en-LT`. The distance trie scores every candidate sharing the desired script and territory identically, which previously left the winner to depend on the order of the supported list.
+
 ## [1.0.0] — July 31st, 2026
 
 The first stable release. MF2 message validation is separated from parsing: `Localize.Message.Parser.parse/1` checks syntax, `Localize.Message.Validator.validate/1` checks the TR35 data-model rules, and everything that formats or serializes a message runs both. A message like `.local $count = {$count :number}` — a declaration that reads the variable it declares, which is a Duplicate Declaration error rather than a valid annotation of an external variable — is now rejected wherever it appears rather than only when formatted. The construct for annotating an external variable is `.input {$count :number}`.
