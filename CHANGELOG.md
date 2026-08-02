@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [1.0.1] — August 2nd, 2026
 
+### Added
+
+* `mix localize.unit.gen_conversions` generates a dependency-free unit conversion module from CLDR data, selected by quantity (`--types speed,temperature`), for embedded targets where compiling Localize costs more than the project itself. The generated module resolves SI prefixes and `-per-` compounds at call time, accepts CLDR identifiers, spaced names and English symbols such as `"km/h"`, and provides a `~u` sigil that converts at compile time.
+
 ### Fixed
 
 * `Localize.LanguageTag.best_match/3` now prefers a territory's own language when candidates are otherwise equidistant, so `sgs` (Samogitian, spoken in Lithuania) matches `lt` rather than `en-LT`. The distance trie scores every candidate sharing the desired script and territory identically, which previously left the winner to depend on the order of the supported list.
