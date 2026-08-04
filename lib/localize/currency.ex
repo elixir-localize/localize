@@ -34,7 +34,7 @@ defmodule Localize.Currency do
           narrow_symbol: String.t() | nil,
           cash_digits: non_neg_integer(),
           cash_rounding: non_neg_integer(),
-          iso_digits: non_neg_integer(),
+          iso_digits: non_neg_integer() | nil,
           decimal_separator: String.t() | nil,
           grouping_separator: String.t() | nil,
           count: map() | nil,
