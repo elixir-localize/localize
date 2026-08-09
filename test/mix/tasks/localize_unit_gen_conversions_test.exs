@@ -36,6 +36,22 @@ defmodule Mix.Tasks.Localize.Unit.GenConversionsTest do
     end
   end
 
+  defp generate_named!(names, module, tmp_dir) do
+    path = Path.join(tmp_dir, "#{Macro.underscore(module)}.ex")
+
+    GenConversions.run([
+      "--units",
+      Enum.join(names, ","),
+      "--module",
+      module,
+      "--output",
+      path
+    ])
+
+    [{compiled, _bytecode}] = Code.compile_file(path)
+    {compiled, path}
+  end
+
   defp generate!(types, module, tmp_dir) do
     path = Path.join(tmp_dir, "#{Macro.underscore(module)}.ex")
 
@@ -164,9 +180,84 @@ defmodule Mix.Tasks.Localize.Unit.GenConversionsTest do
       end
     end
 
-    test "requires --types" do
-      assert_raise Mix.Error, ~r/--types is required/, fn ->
+    test "requires at least one of --types and --units" do
+      assert_raise Mix.Error, ~r/Give --types, --units, or both/, fn ->
         GenConversions.run([])
+      end
+    end
+  end
+
+  # Quantity selection reaches only the compounds CLDR's preference data
+  # lists, which leaves out derived units that are perfectly convertible.
+  # These are the ones a robotics caller asked for and could not get.
+  describe "selecting units by name" do
+    @tag :tmp_dir
+    test "tabulates derived compounds no quantity offers", %{tmp_dir: tmp_dir} do
+      names = ~w(
+        newton-meter kilogram-square-meter meter-per-square-second
+        degree-per-square-meter radian-per-square-meter
+        newton-meter-second-per-degree newton-meter-second-per-radian
+        degree-per-second radian-per-second
+      )
+
+      {module, _path} = generate_named!(names, "NamedUnits", tmp_dir)
+
+      for name <- names do
+        assert {:ok, {_value, _base}} = module.to_base(1, name),
+               "#{name} was requested by name but is not in the generated table"
+      end
+    end
+
+    @tag :tmp_dir
+    test "the conversions agree with Localize", %{tmp_dir: tmp_dir} do
+      names = ~w(newton-meter degree-per-second meter-per-square-second)
+      {module, _path} = generate_named!(names, "NamedAgreement", tmp_dir)
+
+      for name <- names, value <- @values do
+        {:ok, base} = Localize.Unit.BaseUnit.base_unit(name)
+        {:ok, expected} = Localize.Unit.Conversion.convert(value, name, base)
+        {:ok, {actual, ^base}} = module.to_base(value, name)
+
+        assert_in_delta actual,
+                        expected,
+                        abs(expected) * 1.0e-9 + 1.0e-12,
+                        "#{value} #{name} disagreed with Localize"
+      end
+    end
+
+    @tag :tmp_dir
+    test "an SI prefix still resolves against a named compound", %{tmp_dir: tmp_dir} do
+      {module, _path} =
+        generate_named!(~w(meter-per-square-second), "NamedPrefixed", tmp_dir)
+
+      assert {:ok, {1.0, "meter-per-square-second"}} =
+               module.to_base(1000, "millimeter-per-square-second")
+    end
+
+    @tag :tmp_dir
+    test "--types and --units emit the union", %{tmp_dir: tmp_dir} do
+      path = Path.join(tmp_dir, "union_units.ex")
+
+      GenConversions.run([
+        "--types",
+        "temperature",
+        "--units",
+        "newton-meter",
+        "--module",
+        "UnionUnits",
+        "--output",
+        path
+      ])
+
+      [{module, _bytecode}] = Code.compile_file(path)
+
+      assert {:ok, _} = module.to_base(1, "celsius")
+      assert {:ok, _} = module.to_base(1, "newton-meter")
+    end
+
+    test "a name CLDR does not know aborts rather than being dropped" do
+      assert_raise Mix.Error, ~r/Cannot tabulate "newton-metre"/, fn ->
+        GenConversions.run(["--units", "newton-metre"])
       end
     end
   end

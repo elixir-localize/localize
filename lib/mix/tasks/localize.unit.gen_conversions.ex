@@ -12,10 +12,16 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
   generator; the emitted file is committed and compiles in milliseconds.
 
   Units are selected by *quantity* (`speed`, `temperature`, `length`),
-  not by name, so the generated module covers a coherent domain rather
-  than a hand-listed set. For each quantity the task emits every simple
-  unit CLDR knows plus the compound units CLDR's preference data lists
-  for that quantity.
+  by *name*, or by both. Selecting a quantity emits every simple unit
+  CLDR knows for it plus the compound units CLDR's preference data lists
+  for it, which covers a coherent domain rather than a hand-listed set.
+
+  Quantity selection alone does not reach every convertible unit. CLDR's
+  preference data lists the compounds people usually *display*, so
+  derived units outside that set — `newton-meter`, `kilogram-square-meter`,
+  `newton-meter-second-per-radian` — are convertible but not listed under
+  any quantity. Name them with `--units`. Anything CLDR can reduce to an
+  affine conversion is fair game, compound or not.
 
   The generated module handles SI prefixes and `-per-` compounds at
   runtime from a prefix table, so `millimeter-per-second` works even
@@ -24,8 +30,16 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
   ### Arguments
 
   * `--types` is a comma-separated list of CLDR quantities to include,
-    for example `speed,temperature`. Required. Run with `--list` to see
-    the available quantities.
+    for example `speed,temperature`. Run with `--list` to see the
+    available quantities.
+
+  * `--units` is a comma-separated list of unit names to include, for
+    example `newton-meter,degree-per-second`. Compound units are
+    accepted. A name that CLDR does not know, or whose conversion is not
+    affine, aborts the task rather than being silently omitted.
+
+  At least one of `--types` and `--units` is required; giving both
+  emits the union.
 
   * `--module` is the name of the module to generate, for example
     `Robot.Units`. The default is `Units`.
@@ -43,7 +57,17 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
 
       $ mix localize.unit.gen_conversions --types speed,temperature --module Robot.Units
       * creating lib/robot/units.ex
-        speed: 9 units, temperature: 4 units
+        speed: 9 units, temperature: 4 units (13 total)
+
+      $ mix localize.unit.gen_conversions \\
+          --units newton-meter,kilogram-square-meter,meter-per-square-second \\
+          --module Robot.Units
+      * creating lib/robot/units.ex
+        named: 3 units (3 total)
+
+      $ mix localize.unit.gen_conversions --types temperature --units newton-meter
+      * creating lib/units.ex
+        temperature: 4 units, named: 1 units (5 total)
 
       $ mix localize.unit.gen_conversions --list
 
@@ -53,7 +77,7 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
 
   alias Localize.Unit.Data
 
-  @switches [types: :string, module: :string, output: :string, list: :boolean]
+  @switches [types: :string, units: :string, module: :string, output: :string, list: :boolean]
 
   @impl Mix.Task
   def run(argv) do
@@ -79,42 +103,62 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
 
   defp generate(options) do
     types = parse_types!(options)
+    names = parse_units(options)
+
+    if types == [] and names == [] do
+      Mix.raise("Give --types, --units, or both (see --list)")
+    end
+
     module = options[:module] || "Units"
     output = options[:output] || default_output(module)
 
-    units = Enum.flat_map(types, &units_for_quantity/1)
+    units =
+      (Enum.flat_map(types, &units_for_quantity/1) ++ units_for_names(names))
+      |> Enum.uniq_by(& &1.name)
+      |> Enum.sort_by(& &1.name)
 
     if units == [] do
       Mix.raise("No convertible units found for #{Enum.join(types, ", ")}")
     end
 
-    contents = render(module, types, units)
+    contents = render(module, types, names, units)
 
     File.mkdir_p!(Path.dirname(output))
     File.write!(output, contents)
 
     Mix.shell().info([:green, "* creating ", :reset, output])
+    Mix.shell().info("  " <> summary(types, names, units))
+  end
 
-    summary =
-      Enum.map_join(types, ", ", fn type ->
+  defp summary(types, names, units) do
+    by_quantity =
+      Enum.map(types, fn type ->
         "#{type}: #{Enum.count(units, &(&1.quantity == type))} units"
       end)
 
-    Mix.shell().info("  " <> summary)
+    by_name = if names == [], do: [], else: ["named: #{length(names)} units"]
+
+    Enum.join(by_quantity ++ by_name, ", ") <> " (#{length(units)} total)"
   end
 
   defp parse_types!(options) do
-    types =
-      (options[:types] || Mix.raise("--types is required (see --list)"))
-      |> String.split(",", trim: true)
-      |> Enum.map(&String.trim/1)
-
+    types = split_option(options[:types])
     known = quantities()
 
     case Enum.reject(types, &(&1 in known)) do
       [] -> types
       unknown -> Mix.raise("Unknown quantities: #{Enum.join(unknown, ", ")} (see --list)")
     end
+  end
+
+  defp parse_units(options) do
+    split_option(options[:units])
+  end
+
+  defp split_option(nil), do: []
+
+  defp split_option(value) do
+    value |> String.split(",", trim: true) |> Enum.map(&String.trim/1)
   end
 
   defp default_output(module) do
@@ -150,6 +194,40 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
     |> Enum.reject(&String.contains?(&1, "-and-"))
     |> Enum.flat_map(&describe(&1, quantity))
     |> Enum.sort_by(& &1.name)
+  end
+
+  # Units named explicitly. Unlike quantity selection, which sweeps a domain
+  # and can reasonably drop a stray unit it cannot tabulate, a name the caller
+  # typed is a request: a misspelling or an inconvertible unit is an error,
+  # not something to omit silently from the generated table.
+  defp units_for_names(names) do
+    Enum.map(names, fn name ->
+      case describe(name, quantity_for(name)) do
+        [unit] ->
+          unit
+
+        [] ->
+          Mix.raise(
+            "Cannot tabulate #{inspect(name)}. Either CLDR does not know it, or its " <>
+              "conversion is not affine and cannot be reduced to a factor and offset. " <>
+              "Compound units are fine — `newton-meter`, `meter-per-square-second` and " <>
+              "`newton-meter-second-per-radian` all resolve."
+          )
+      end
+    end)
+  end
+
+  # CLDR assigns a quantity to base units, but several derived base units
+  # (`kilogram-square-meter`, `revolution-per-square-meter`) have none, and
+  # some classifications surprise — `newton-meter` reduces to the base unit of
+  # energy, `degree-per-second` to that of frequency. The quantity is only used
+  # for the summary line, so an unclassified unit is reported rather than
+  # rejected.
+  defp quantity_for(name) do
+    case Localize.Unit.BaseUnit.base_unit(name) do
+      {:ok, base} -> Map.get(Data.base_unit_to_quantity(), base)
+      _error -> nil
+    end
   end
 
   # Points the affine fit is derived from and then checked against. The
@@ -419,16 +497,36 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
     end
   '''
 
-  defp render(module, types, units) do
+  # The generated file records how it was produced, so a regeneration after a
+  # CLDR update reproduces exactly the same table.
+  defp selection_comment(types, names) do
+    [
+      if(types != [], do: "quantities " <> Enum.join(types, ", ")),
+      if(names != [], do: "units " <> Enum.join(names, ", "))
+    ]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join("; ")
+  end
+
+  defp regenerate_flags(types, names) do
+    [
+      if(types != [], do: "--types " <> Enum.join(types, ",")),
+      if(names != [], do: "--units " <> Enum.join(names, ","))
+    ]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join(" ")
+  end
+
+  defp render(module, types, names, units) do
     """
     # Generated by `mix localize.unit.gen_conversions`. Do not edit.
     #
-    # Quantities: #{Enum.join(types, ", ")}
+    # Selection: #{selection_comment(types, names)}
     # CLDR: #{Localize.version()}
     #
     # Regenerate with:
     #
-    #     mix localize.unit.gen_conversions --types #{Enum.join(types, ",")} --module #{module}
+    #     mix localize.unit.gen_conversions #{regenerate_flags(types, names)} --module #{module}
 
     defmodule #{module} do
       @moduledoc \"\"\"
