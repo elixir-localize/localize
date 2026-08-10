@@ -211,6 +211,16 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
       "  import #{parser_module}.Helpers\n"
     )
     |> String.replace("Localize.ParseError.exception(", "parse_error(")
+    # The constructor above no longer returns an exception, so the spec
+    # written for Localize's parser is false here. Left uncorrected,
+    # dialyzer takes `Exception.t()` at its word, decides the error branch
+    # cannot produce what the callers match on, and reports an unreachable
+    # clause in `parse_identifier/1` — in a file the caller is told to
+    # commit and may compile with `--warnings-as-errors`.
+    |> String.replace(
+      "@spec parse(String.t()) :: {:ok, tuple()} | {:error, Exception.t()}",
+      "@spec parse(String.t()) :: {:ok, tuple()} | {:error, {:parse_error, keyword()}}"
+    )
     |> String.replace("Localize.Unit.CustomRegistry.registered?(", "custom_unit?(")
     |> String.replace(
       "Application.get_env(:localize, :max_unit_bytes, @default_max_unit_bytes)",
@@ -855,8 +865,40 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
     Data.conversion_factors()
     |> Enum.sort()
     |> map_literal("@factors", fn %{factor: factor, offset: offset} ->
-      "{#{inspect(factor)}, #{inspect(offset * 1.0)}}"
+      "{#{number_literal(factor)}, #{number_literal(offset * 1.0)}}"
     end)
+  end
+
+  # CLDR's conversion factors include values like 149597870700.0, and Credo's
+  # `Readability.LargeNumbers` flags any literal of five or more digits written
+  # without separators. The generated file is committed and linted in the
+  # caller's project, so the separators are emitted here rather than left for
+  # every consumer to exempt the file.
+  defp number_literal(number) when is_integer(number) or is_float(number) do
+    case inspect(number) do
+      "-" <> magnitude -> "-" <> group_leading_digits(magnitude)
+      magnitude -> group_leading_digits(magnitude)
+    end
+  end
+
+  # Not every factor is a number: `:special` marks a conversion the factor
+  # table cannot express, and it is emitted unchanged.
+  defp number_literal(other), do: inspect(other)
+
+  # Only the integer part is grouped: a fractional tail or an exponent must be
+  # left alone, and `inspect/1` puts the integer part first in both forms.
+  defp group_leading_digits(text) do
+    case Regex.run(~r/^(\d{5,})(.*)$/s, text, capture: :all_but_first) do
+      [digits, rest] -> underscore_digits(digits) <> rest
+      nil -> text
+    end
+  end
+
+  defp underscore_digits(digits) do
+    digits
+    |> String.reverse()
+    |> String.replace(~r/(\d{3})(?=\d)/, "\\1_")
+    |> String.reverse()
   end
 
   # The irreducible units every conversion bottoms out in. `_by_length` drives
@@ -888,7 +930,7 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
     Data.si_prefix_multipliers()
     |> Enum.map(fn {name, multiplier} -> {Data.si_prefix_atom(name), multiplier} end)
     |> Enum.sort()
-    |> map_literal("@si_prefixes", &inspect/1)
+    |> map_literal("@si_prefixes", &number_literal/1)
   end
 
   defp render_aliases(aliases) do
