@@ -11,21 +11,27 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
   project itself. Localize stays on the developer's machine as the
   generator; the emitted file is committed and compiles in milliseconds.
 
-  Units are selected by *quantity* (`speed`, `temperature`, `length`),
-  not by name, so the generated module covers a coherent domain rather
-  than a hand-listed set. For each quantity the task emits every simple
-  unit CLDR knows plus the compound units CLDR's preference data lists
-  for that quantity.
+  The generated module accepts every unit `Localize.Unit` accepts, so
+  there is nothing to select and no arguments to give. That covers the
+  155 units CLDR defines a conversion for, every SI-prefixed form of
+  them, every power (`square-`, `cubic-`, `pow4-`), and every compound
+  built with `-per-` or by juxtaposition — `newton-meter`,
+  `kilogram-square-meter`, `newton-meter-second-per-radian`,
+  `millitherm-us-per-square-second`. The accepted set is unbounded, so it
+  is not tabulated: identifiers are parsed and reduced to a canonical
+  base unit at call time.
 
-  The generated module handles SI prefixes and `-per-` compounds at
-  runtime from a prefix table, so `millimeter-per-second` works even
-  though it is not itself in the emitted table.
+  Parity with `Localize.Unit` is structural rather than maintained.
+  Localize's own unit parser is written as a NimbleParsec template, and
+  `mix nimble_parsec.compile` expands it into plain Elixir functions with
+  no runtime dependency. That expansion is inlined into the generated
+  file, so the emitted module parses identifiers with the same code
+  Localize does — there is no second grammar to keep in step.
+
+  Base units are canonical: `resolve/1` returns the same base identifier
+  `Localize.Unit.BaseUnit.base_unit/1` returns, with the same factor.
 
   ### Arguments
-
-  * `--types` is a comma-separated list of CLDR quantities to include,
-    for example `speed,temperature`. Required. Run with `--list` to see
-    the available quantities.
 
   * `--module` is the name of the module to generate, for example
     `Robot.Units`. The default is `Units`.
@@ -33,19 +39,20 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
   * `--output` is the path to write. The default is derived from the
     module name under `lib/`.
 
-  * `--list` prints the available quantities and exits.
-
   ### Returns
 
   * `:ok` after writing the generated file.
 
   ### Examples
 
-      $ mix localize.unit.gen_conversions --types speed,temperature --module Robot.Units
-      * creating lib/robot/units.ex
-        speed: 9 units, temperature: 4 units
+      $ mix localize.unit.gen_conversions
+      * creating lib/units.ex
+        155 units, 655 spellings, every prefixed and compound form of them
 
-      $ mix localize.unit.gen_conversions --list
+      $ mix localize.unit.gen_conversions --module Robot.Units
+      * creating lib/robot/units.ex
+
+      $ mix localize.unit.gen_conversions --module Robot.Units --output lib/units.ex
 
   """
 
@@ -53,68 +60,51 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
 
   alias Localize.Unit.Data
 
-  @switches [types: :string, module: :string, output: :string, list: :boolean]
+  @switches [module: :string, output: :string]
+
+  # Earlier versions emitted a table of selected units, so the caller had to say
+  # which ones. The generated module now accepts everything, and a caller who
+  # still passes a selection deserves to be told why it is gone rather than
+  # given `OptionParser`'s bare "unknown option".
+  @retired_switches ~w(--types --units --list)
 
   @impl Mix.Task
   def run(argv) do
     Mix.Task.run("app.start")
+
+    case Enum.filter(@retired_switches, &(&1 in argv)) do
+      [] -> :ok
+      retired -> Mix.raise(retirement_message(retired))
+    end
+
     {options, _argv} = OptionParser.parse!(argv, strict: @switches)
 
-    if options[:list] do
-      list_quantities()
-    else
-      generate(options)
-    end
+    generate(options)
   end
 
-  defp list_quantities do
-    Mix.shell().info("Available quantities:\n")
-
-    quantities()
-    |> Enum.chunk_every(4)
-    |> Enum.each(fn row ->
-      Mix.shell().info("  " <> Enum.map_join(row, "", &String.pad_trailing(&1, 24)))
-    end)
+  defp retirement_message(retired) do
+    "#{Enum.join(retired, " and ")} #{if length(retired) == 1, do: "is", else: "are"} no longer " <>
+      "needed. The generated module accepts every unit Localize.Unit accepts — defined, " <>
+      "prefixed, powered and compound — so there is nothing to select. Run the task with no " <>
+      "arguments, or with --module to name the module."
   end
 
   defp generate(options) do
-    types = parse_types!(options)
     module = options[:module] || "Units"
     output = options[:output] || default_output(module)
+    aliases = alias_table()
 
-    units = Enum.flat_map(types, &units_for_quantity/1)
-
-    if units == [] do
-      Mix.raise("No convertible units found for #{Enum.join(types, ", ")}")
-    end
-
-    contents = render(module, types, units)
+    contents = render(module, aliases)
 
     File.mkdir_p!(Path.dirname(output))
     File.write!(output, contents)
 
     Mix.shell().info([:green, "* creating ", :reset, output])
 
-    summary =
-      Enum.map_join(types, ", ", fn type ->
-        "#{type}: #{Enum.count(units, &(&1.quantity == type))} units"
-      end)
-
-    Mix.shell().info("  " <> summary)
-  end
-
-  defp parse_types!(options) do
-    types =
-      (options[:types] || Mix.raise("--types is required (see --list)"))
-      |> String.split(",", trim: true)
-      |> Enum.map(&String.trim/1)
-
-    known = quantities()
-
-    case Enum.reject(types, &(&1 in known)) do
-      [] -> types
-      unknown -> Mix.raise("Unknown quantities: #{Enum.join(unknown, ", ")} (see --list)")
-    end
+    Mix.shell().info(
+      "  #{map_size(Map.new(Data.conversions()))} units, #{map_size(aliases)} spellings, " <>
+        "every prefixed and compound form of them"
+    )
   end
 
   defp default_output(module) do
@@ -126,92 +116,264 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
     Path.join("lib", path <> ".ex")
   end
 
-  # ── Unit selection ───────────────────────────────────────────────
+  # ── Parser generation ────────────────────────────────────────────
 
-  defp quantities do
-    Data.base_unit_to_quantity() |> Map.values() |> Enum.uniq() |> Enum.sort()
+  # The emitted module must accept every identifier Localize accepts. Rather
+  # than maintain a second parser, Localize's own is inlined: it is already
+  # written as a NimbleParsec template (the `# parsec:` markers), and
+  # `mix nimble_parsec.compile` expands it into plain functions with no
+  # runtime dependency. Parity is therefore structural, not maintained.
+  #
+  # The helpers keep their own module, as they do in Localize. Folding them
+  # into the parser would let the compiler see that a post-traverse callback
+  # never returns a two-element tuple and warn about the clauses NimbleParsec
+  # generates for one — warnings in a file the caller is expected to commit
+  # and compile with `--warnings-as-errors`.
+  #
+  # Sources are located through `module_info/1` rather than a path, so this
+  # works whether Localize is the current project or a dependency.
+  defp parser_source(module) do
+    parser_module = module <> ".Parser"
+
+    helpers_module(parser_module) <> "\n" <> compiled_parser(parser_module)
   end
 
-  # Simple units CLDR files under this quantity, plus the compound units
-  # its preference data lists for the same quantity. Mixed display units
-  # ("foot-and-inch") are formatting constructs, not convertible units,
-  # and are dropped.
-  defp units_for_quantity(quantity) do
-    simple = Map.get(Localize.Unit.known_units_by_category(), quantity, [])
+  defp compiled_parser(parser_module) do
+    # `nimble_parsec.compile` has to evaluate the template to expand the
+    # combinators, which defines the template's module in this VM. Naming it
+    # after the caller's module would leave a namesake behind carrying
+    # different code, so it is built under a scratch name and renamed in the
+    # text afterwards.
+    scratch = "Localize.Unit.GenConversions.Scratch.Parser"
 
-    compound =
-      Data.unit_preferences()
-      |> Enum.filter(&(&1.category == quantity))
-      |> Enum.flat_map(& &1.preferences)
-      |> Enum.map(& &1.unit)
+    template =
+      Localize.Unit.Parser
+      |> source_path()
+      |> File.read!()
+      |> String.replace("defmodule Localize.Unit.Parser do", "defmodule #{scratch} do")
+      |> String.replace("# parsec:Localize.Unit.Parser", "# parsec:#{scratch}")
 
-    (simple ++ compound)
-    |> Enum.uniq()
-    |> Enum.reject(&String.contains?(&1, "-and-"))
-    |> Enum.flat_map(&describe(&1, quantity))
-    |> Enum.sort_by(& &1.name)
-  end
+    directory =
+      Path.join(
+        System.tmp_dir!(),
+        "localize_gen_conversions_#{System.unique_integer([:positive])}"
+      )
 
-  # Points the affine fit is derived from and then checked against. The
-  # spread matters: Beaufort is linear over its first few steps and
-  # saturates at the top, so a fit validated only near the origin would
-  # be accepted and then be badly wrong in the field.
-  @fit_points [0, 1, 2, 7.5, 30, 100, 1000]
+    File.mkdir_p!(directory)
+    shell = Mix.shell()
 
-  # Resolves one unit into the row the template needs. A unit is dropped
-  # if it has no conversion at all, or if its conversion is not affine —
-  # `base = value * factor + offset` cannot express a piecewise or
-  # saturating scale, and emitting one would silently produce wrong
-  # numbers rather than fail.
-  defp describe(name, quantity) do
-    with {:ok, base} <- Localize.Unit.BaseUnit.base_unit(name),
-         {:ok, one} <- Localize.Unit.Conversion.convert(1, name, base),
-         {:ok, two} <- Localize.Unit.Conversion.convert(2, name, base),
-         factor = two - one,
-         offset = one - factor,
-         :ok <- verify_affine(name, base, factor, offset) do
-      [
-        %{
-          name: name,
-          base: base,
-          quantity: quantity,
-          factor: factor,
-          offset: offset,
-          aliases: aliases(name)
-        }
-      ]
-    else
-      {:error, :not_affine} ->
-        Mix.shell().info([
-          :yellow,
-          "  skipping #{name}: conversion is not affine and cannot be tabulated",
-          :reset
-        ])
+    try do
+      File.write!(Path.join(directory, "parser.ex.exs"), template)
 
-        []
+      # `nimble_parsec.compile` narrates the file it writes, which is a
+      # temporary path the caller has no interest in. The caller's own shell is
+      # put back afterwards rather than assumed to be the default one.
+      Mix.shell(Mix.Shell.Quiet)
+      Mix.Task.rerun("nimble_parsec.compile", [Path.join(directory, "parser.ex.exs")])
 
-      _error ->
-        []
+      directory
+      |> Path.join("parser.ex")
+      |> File.read!()
+      |> String.replace(scratch, parser_module)
+      |> strip_generator_banner()
+      |> localize_free(parser_module)
+      |> quiet_generated_warnings()
+    after
+      Mix.shell(shell)
+      File.rm_rf!(directory)
     end
   end
 
-  defp verify_affine(name, base, factor, offset) do
-    Enum.reduce_while(@fit_points, :ok, fn value, :ok ->
-      if fits?(name, base, factor, offset, value),
-        do: {:cont, :ok},
-        else: {:halt, {:error, :not_affine}}
+  defp source_path(module) do
+    module.module_info(:compile)[:source] |> to_string()
+  end
+
+  # `nimble_parsec.compile` stamps the source path and the time of the run into
+  # the file it writes. Both are noise here — the path is a temporary directory
+  # that no longer exists, and a timestamp would make two runs of this task on
+  # the same CLDR data produce different files, which the header promises they
+  # do not.
+  defp strip_generator_banner(source) do
+    String.replace(source, ~r/^# Generated (from|at) .*\n/m, "")
+  end
+
+  # Everything the parser reaches for outside itself. `parse/1` builds a
+  # `Localize.ParseError` on failure, which the generated module has no use for
+  # — it discards the reason and reports `{:unknown_unit, _}` — so the
+  # constructor becomes a plain tagged tuple. Custom units are registered at
+  # runtime against Localize; a generated module has no registry, so no name
+  # can be one. The byte cap is inlined at its default, there being no
+  # `:localize` application to configure it through.
+  defp localize_free(source, parser_module) do
+    source
+    |> String.replace(
+      "  import Localize.Unit.Parser.Helpers\n",
+      "  import #{parser_module}.Helpers\n"
+    )
+    |> String.replace("Localize.ParseError.exception(", "parse_error(")
+    |> String.replace("Localize.Unit.CustomRegistry.registered?(", "custom_unit?(")
+    |> String.replace(
+      "Application.get_env(:localize, :max_unit_bytes, @default_max_unit_bytes)",
+      "@default_max_unit_bytes"
+    )
+    |> strip_docs()
+    |> append_to_module("""
+        defp parse_error(bindings), do: {:parse_error, bindings}
+    """)
+  end
+
+  # The parser's documentation is written about `Localize.Unit.Parser` — its
+  # name appears in every doctest — and the generated module is not it. The
+  # module is internal, so the docs go rather than being rewritten.
+  defp strip_docs(source) do
+    source
+    |> String.replace(~r/^[ \t]*@(module)?doc[ \t]+"""\n.*?^[ \t]*"""\n/ms, "")
+    |> String.replace(~r/^[ \t]*@(module)?doc[ \t]+(false|"[^\n]*")\n/m, "")
+  end
+
+  # NimbleParsec generates code for the general case, so parts of it are
+  # unreachable for this particular grammar: entry points for sub-combinators
+  # nothing calls, an error binding nothing reads, and a compatibility clause
+  # for a post-traverse return shape none of these callbacks use. None is a
+  # defect. Compiled from AST, as NimbleParsec normally is, all three are
+  # marked generated and the compiler stays quiet; written out as source that
+  # marking is lost and they warn — in a file the caller commits.
+  defp quiet_generated_warnings(source) do
+    source
+    |> String.replace(
+      ~r/\n[ \t]*\{acc, context\} ->\n[ \t]*IO\.warn\(.*?\)\n\n[ \t]*\{rest, acc, context\}\n/s,
+      "\n"
+    )
+    # Drop the binding only where the clause body does not go on to return it;
+    # the lookahead is what tells those two shapes apart.
+    |> String.replace(~r/\} = error ->\n(?![ \t]*error\n)/, "} ->\n")
+    |> String.replace(
+      ~r/^  defp (\w+)\(binary, opts \\\\ \[\]\) when is_binary\(binary\) do$/m,
+      "  @doc false\n  def \\1(binary, opts \\\\\\\\ []) when is_binary(binary) do"
+    )
+  end
+
+  # The helpers Localize's parser imports, lifted into the generated file. Only
+  # the SI prefix lookup reaches outside the module; it is replaced by a table.
+  defp helpers_module(parser_module) do
+    body =
+      Localize.Unit.Parser.Helpers
+      |> source_path()
+      |> File.read!()
+      |> body_of_module()
+      |> strip_docs()
+      |> String.replace("Localize.Unit.Data.si_prefix_atom(value)", "si_prefix_atom(value)")
+
+    """
+    defmodule #{parser_module}.Helpers do
+      @moduledoc false
+
+      # Runtime helpers called by the pre-compiled parser, and the post-traverse
+      # callbacks its grammar refers to by name.
+    #{body}
+      @si_prefix_atoms %{#{si_prefix_atom_pairs()}}
+
+      defp si_prefix_atom(name), do: Map.get(@si_prefix_atoms, name)
+
+      @reserved_categories MapSet.new(#{inspect(Data.categories())})
+
+      def reject_categories(rest, [name] = args, context, _line, _offset) do
+        if MapSet.member?(@reserved_categories, name) do
+          {:error, "\#{name} is a reserved category name"}
+        else
+          {rest, args, context}
+        end
+      end
+
+      # Custom units are registered at runtime against Localize, and a generated
+      # module has no registry, so this set is permanently empty. It stays a set
+      # rather than becoming a literal `false` because the compiler would then
+      # see every branch guarding on it as unreachable and warn — in a file the
+      # caller is expected to commit and compile with `--warnings-as-errors`.
+      @custom_units MapSet.new()
+
+      def custom_unit?(name), do: MapSet.member?(@custom_units, name)
+
+      def validate_prefixed_custom_unit(rest, args, context, _line, _offset) do
+        case List.keyfind(args, :base, 0) do
+          {:base, base} when base != nil ->
+            if custom_unit?(base) do
+              {rest, args, context}
+            else
+              {:error, "\#{base} is not a registered custom unit"}
+            end
+
+          _other ->
+            {:error, "no base unit found"}
+        end
+      end
+    end
+    """
+  end
+
+  # Insert before a module's final `end`. `:binary.matches/2` reports byte
+  # offsets and the source is not ASCII, so the cut must be a binary operation —
+  # `String.slice/3` counts graphemes and would land past that `end`.
+  defp append_to_module(source, addition) do
+    index = source |> String.trim_trailing() |> :binary.matches("\nend") |> List.last() |> elem(0)
+
+    binary_part(source, 0, index) <> "\n" <> addition <> "end\n"
+  end
+
+  defp si_prefix_atom_pairs do
+    Data.si_prefix_names()
+    |> Enum.map_join(", ", fn name ->
+      "#{inspect(name)} => #{inspect(Data.si_prefix_atom(name))}"
     end)
   end
 
-  defp fits?(name, base, factor, offset, value) do
-    case Localize.Unit.Conversion.convert(value, name, base) do
-      {:ok, expected} ->
-        predicted = value * factor + offset
-        abs(predicted - expected) <= max(abs(expected) * 1.0e-9, 1.0e-9)
+  defp body_of_module(source) do
+    source
+    |> String.split("\n")
+    |> Enum.drop_while(&(not String.starts_with?(&1, "defmodule")))
+    |> Enum.drop(1)
+    |> Enum.reverse()
+    |> Enum.drop_while(&(String.trim(&1) != "end"))
+    |> Enum.drop(1)
+    |> Enum.reverse()
+    |> Enum.join("\n")
+  end
 
-      {:error, _reason} ->
-        false
-    end
+  # ── Spellings ────────────────────────────────────────────────────
+
+  # The parser reads CLDR identifiers, but people write "km/h" and
+  # "kilometers per hour". Those spellings are mapped onto the identifier
+  # before parsing, which is the one thing the generated module cannot derive
+  # from the parser alone.
+  #
+  # The set covered is every unit CLDR gives a display form for: the 155 it
+  # defines a conversion for, plus the compounds its preference data lists.
+  # Compounds outside that set — `newton-meter-second-per-radian` — still
+  # convert, but only under their CLDR identifier, because CLDR gives no
+  # symbol or plural for them to be spelled with.
+  defp alias_table do
+    spelled_units()
+    |> Enum.flat_map(fn name -> Enum.map(aliases(name), &{&1, name}) end)
+    |> Enum.reduce(%{}, fn {spelling, name}, acc ->
+      # First writer wins: a spelling shared by two units keeps the one that
+      # sorts first, so the table does not depend on traversal order.
+      Map.put_new(acc, spelling, name)
+    end)
+  end
+
+  defp spelled_units do
+    compound =
+      Data.unit_preferences()
+      |> Enum.flat_map(& &1.preferences)
+      |> Enum.map(& &1.unit)
+
+    simple = Localize.Unit.known_units_by_category() |> Map.values() |> List.flatten()
+
+    # "foot-and-inch" is a formatting construct, not a convertible unit.
+    (simple ++ compound)
+    |> Enum.uniq()
+    |> Enum.reject(&String.contains?(&1, "-and-"))
+    |> Enum.sort()
   end
 
   # Every spelling the generated parser should accept for a unit: the
@@ -349,142 +511,398 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
     @doc """
     Resolves a unit name to `{base_unit, factor, offset}`.
 
-    Tries the alias table first, then an SI prefix, then a `-per-`
-    compound. Returns `{:error, {:unknown_unit, unit}}` if none apply.
+    Any spelling in the alias table is mapped onto its CLDR identifier
+    first; the identifier is then parsed and reduced. Returns
+    `{:error, {:unknown_unit, unit}}` for anything that does not resolve.
 
     """
     def resolve(unit) when is_binary(unit) do
       normalized = unit |> String.trim() |> String.downcase()
 
-      with :error <- lookup(normalized),
-           :error <- lookup(String.replace(normalized, " ", "-")),
-           :error <- prefixed(normalized),
-           :error <- compound(normalized) do
-        {:error, {:unknown_unit, unit}}
+      case resolve_identifier(canonical(normalized)) do
+        {:ok, _resolved} = ok -> ok
+        {:error, _reason} -> {:error, {:unknown_unit, unit}}
       end
     end
 
     @doc """
-    Returns the canonical CLDR identifiers in the generated table.
+    Returns the CLDR identifiers of the units in the generated tables.
+
+    This is a floor rather than the full accepted set: every SI-prefixed,
+    powered and `-per-` compound form built from these also converts, and
+    that set is unbounded.
 
     """
-    def known_units, do: Map.keys(@units)
+    def known_units, do: Map.keys(@conversions) ++ @simple_base_units
 
-    # An exact hit in the table, or a spelling the alias table maps onto
-    # one. Aliases are checked second so a canonical name never pays for
-    # the indirection.
-    defp lookup(unit) do
-      case Map.fetch(@units, unit) do
-        {:ok, entry} ->
-          {:ok, entry}
-
-        :error ->
-          with {:ok, canonical} <- Map.fetch(@aliases, unit) do
-            Map.fetch(@units, canonical)
-          end
+    defp canonical(normalized) do
+      case Map.fetch(@aliases, normalized) do
+        {:ok, identifier} -> identifier
+        :error -> Map.get(@aliases, String.replace(normalized, " ", "-"), normalized)
       end
     end
 
-    # "millimeter" -> "milli" + "meter". Only scales the factor: an SI
-    # prefix on an offset unit is not meaningful and is refused.
-    defp prefixed(unit) do
-      Enum.find_value(@si_prefixes, :error, fn {prefix, multiplier} ->
-        with true <- String.starts_with?(unit, prefix),
-             stem = binary_part(unit, byte_size(prefix), byte_size(unit) - byte_size(prefix)),
-             {:ok, {base, factor, +0.0}} <- lookup(stem) do
-          {:ok, {base, factor * multiplier, 0.0}}
-        else
-          _other -> nil
+    # ── Resolution ────────────────────────────────────────────────
+    #
+    # Identifiers are parsed by the inlined Localize parser, so anything
+    # Localize accepts is accepted here: prefixes, powers, multi-unit
+    # numerators and denominators, and arbitrary `-per-` compounds. The
+    # parsed form is then reduced to a canonical base unit and an affine
+    # factor, exactly as Localize does.
+
+    defp resolve_identifier(identifier) do
+      with {:ok, ast} <- parse_identifier(identifier),
+           {:ok, powers} <- decompose(ast),
+           {:ok, factor, offset} <- scale(ast) do
+        {:ok, {recompose(powers), factor, offset}}
+      end
+    end
+
+    defp parse_identifier(identifier) do
+      case __MODULE__.Parser.parse(identifier) do
+        {:ok, ast} -> {:ok, ast}
+        _other -> {:error, {:unknown_unit, identifier}}
+      end
+    end
+
+    # ── Base unit derivation ──────────────────────────────────────
+
+    defp decompose({:unit, keyword}) do
+      with {:ok, numerator} <- decompose_list(Keyword.get(keyword, :numerator, [])),
+           {:ok, denominator} <- decompose_list(Keyword.get(keyword, :denominator, [])) do
+        {:ok, merge_powers(numerator, Map.new(denominator, fn {u, p} -> {u, -p} end))}
+      end
+    end
+
+    defp decompose({:single_unit, _} = single), do: decompose_single(single)
+
+    # A mixed unit ("foot-and-inch") is a way of displaying one quantity, not a
+    # unit with a conversion — one foot-and-inch is not a length. Localize
+    # refuses to convert them too.
+    defp decompose(_other), do: {:error, :unsupported_unit}
+
+    defp decompose_list(units) do
+      Enum.reduce_while(units, {:ok, %{}}, fn unit, {:ok, acc} ->
+        case decompose_single(unit) do
+          {:ok, powers} -> {:cont, {:ok, merge_powers(acc, powers)}}
+          error -> {:halt, error}
         end
       end)
     end
 
-    # "millimeter-per-second" -> numerator / denominator, each resolved
-    # in its own right so either side may itself be SI-prefixed. Offset
-    # units cannot participate in a compound.
-    defp compound(unit) do
-      with [numerator, denominator] <- String.split(unit, "-per-", parts: 2),
-           {:ok, {base_n, factor_n, +0.0}} <- resolve_part(numerator),
-           {:ok, {base_d, factor_d, +0.0}} <- resolve_part(denominator) do
-        {:ok, {base_n <> "-per-" <> base_d, factor_n / factor_d, 0.0}}
-      else
-        _other -> :error
+    defp decompose_single({:single_unit, keyword}) do
+      base = Keyword.fetch!(keyword, :base)
+      power = Keyword.get(keyword, :power)
+
+      case Map.fetch(@conversions, base) do
+        {:ok, base_string} ->
+          {:ok, apply_power(parse_base_string(base_string), power)}
+
+        :error ->
+          if base in @simple_base_units do
+            {:ok, apply_power(%{base => 1}, power)}
+          else
+            {:error, {:unknown_unit, base}}
+          end
       end
     end
 
-    defp resolve_part(part) do
-      with :error <- lookup(part) do
-        prefixed(part)
+    defp decompose_single({:constant, _value}), do: {:ok, %{}}
+    defp decompose_single(_other), do: {:error, :unsupported_unit}
+
+    defp parse_base_string("per-" <> denominator), do: product(denominator, -1)
+
+    defp parse_base_string(string) do
+      case String.split(string, "-per-", parts: 2) do
+        [numerator] -> product(numerator, 1)
+        [numerator, denominator] -> merge_powers(product(numerator, 1), product(denominator, -1))
       end
     end
+
+    defp product("", _sign), do: %{}
+    defp product(string, sign), do: product_tokens(string, sign, %{})
+
+    defp product_tokens("", _sign, acc), do: acc
+
+    defp product_tokens(string, sign, acc) do
+      {multiplier, rest} = consume_power_prefix(string)
+      {name, remainder} = consume_simple_unit(rest)
+      acc = Map.update(acc, name, sign * multiplier, &(&1 + sign * multiplier))
+
+      case remainder do
+        "" -> acc
+        "-" <> tail -> product_tokens(tail, sign, acc)
+        _other -> acc
+      end
+    end
+
+    defp consume_power_prefix("square-" <> rest), do: {2, rest}
+    defp consume_power_prefix("cubic-" <> rest), do: {3, rest}
+
+    defp consume_power_prefix("pow" <> rest = string) do
+      case Integer.parse(rest) do
+        {n, "-" <> tail} -> {n, tail}
+        _other -> {1, string}
+      end
+    end
+
+    defp consume_power_prefix(string), do: {1, string}
+
+    # Base unit names may themselves contain hyphens, so the longest match
+    # wins — @simple_base_units is emitted longest-first for that reason.
+    defp consume_simple_unit(string) do
+      case Enum.find(@simple_base_units_by_length, &String.starts_with?(string, &1)) do
+        nil ->
+          case String.split(string, "-", parts: 2) do
+            [token, rest] -> {token, "-" <> rest}
+            [token] -> {token, ""}
+          end
+
+        unit ->
+          {unit, String.slice(string, String.length(unit)..-1//1)}
+      end
+    end
+
+    defp apply_power(powers, nil), do: powers
+    defp apply_power(powers, :square), do: Map.new(powers, fn {u, p} -> {u, p * 2} end)
+    defp apply_power(powers, :cubic), do: Map.new(powers, fn {u, p} -> {u, p * 3} end)
+    defp apply_power(powers, {:pow, n}), do: Map.new(powers, fn {u, p} -> {u, p * n} end)
+
+    defp merge_powers(left, right) do
+      left
+      |> Map.merge(right, fn _unit, a, b -> a + b end)
+      |> Enum.reject(fn {_unit, power} -> power == 0 end)
+      |> Map.new()
+    end
+
+    defp recompose(powers) when powers == %{}, do: ""
+
+    defp recompose(powers) do
+      {numerator, denominator} =
+        powers
+        |> Enum.reject(fn {_unit, power} -> power == 0 end)
+        |> Enum.split_with(fn {_unit, power} -> power > 0 end)
+
+      numerator_string = numerator |> sort_canonically() |> format_product()
+
+      denominator_string =
+        denominator
+        |> Enum.map(fn {unit, power} -> {unit, abs(power)} end)
+        |> sort_canonically()
+        |> format_product()
+
+      case {numerator_string, denominator_string} do
+        {"", ""} -> ""
+        {n, ""} -> n
+        {"", d} -> "per-" <> d
+        {n, d} -> n <> "-per-" <> d
+      end
+    end
+
+    defp sort_canonically(units) do
+      Enum.sort_by(units, fn {unit, _power} -> Map.get(@simple_unit_order, unit, 999) end)
+    end
+
+    defp format_product([]), do: ""
+
+    defp format_product(units) do
+      Enum.map_join(units, "-", fn {unit, power} -> powered_unit(unit, power) end)
+    end
+
+    defp powered_unit(unit, 1), do: unit
+    defp powered_unit(unit, 2), do: "square-" <> unit
+    defp powered_unit(unit, 3), do: "cubic-" <> unit
+    defp powered_unit(unit, n), do: "pow" <> Integer.to_string(n) <> "-" <> unit
+
+    # ── Factor composition ────────────────────────────────────────
+
+    defp scale({:unit, keyword}) do
+      numerator = Keyword.get(keyword, :numerator, [])
+      denominator = Keyword.get(keyword, :denominator, [])
+
+      with {:ok, factor_n, offset_n} <- scale_list(numerator),
+           {:ok, factor_d, _offset_d} <- scale_list(denominator) do
+        {:ok, factor_n / factor_d, offset(offset_n, numerator, denominator)}
+      end
+    end
+
+    defp scale(_other), do: {:error, :unsupported_unit}
+
+    # An offset only means something for a unit standing on its own.
+    # "celsius" is an affine temperature; "kilocelsius" and "celsius-per-hour"
+    # are scales built from one, and carry no zero point. A power keeps it —
+    # "square-celsius" converts like "celsius" — which is how CLDR reads them.
+    defp offset(offset, [{:single_unit, keyword}], []) do
+      if Keyword.get(keyword, :prefix), do: 0.0, else: offset
+    end
+
+    defp offset(_offset, _numerator, _denominator), do: 0.0
+
+    defp scale_list(units) do
+      Enum.reduce_while(units, {:ok, 1.0, 0.0}, fn unit, {:ok, factor, offset} ->
+        case scale_single(unit) do
+          {:ok, f, o} -> {:cont, {:ok, factor * f, if(o != 0.0, do: o, else: offset)}}
+          error -> {:halt, error}
+        end
+      end)
+    end
+
+    defp scale_single({:single_unit, keyword}) do
+      base = Keyword.fetch!(keyword, :base)
+      multiplier = prefix_multiplier(Keyword.get(keyword, :prefix))
+      exponent = power_exponent(Keyword.get(keyword, :power))
+
+      case Map.fetch(@factors, base) do
+        # CLDR marks a non-affine scale (beaufort) as :special. It cannot be
+        # reduced to a factor and offset, so it is refused rather than guessed.
+        {:ok, {factor, _offset}} when not is_number(factor) ->
+          {:error, {:not_affine, base}}
+
+        {:ok, {factor, offset}} ->
+          {:ok, :math.pow(factor * multiplier, exponent), offset}
+
+        :error ->
+          if base in @simple_base_units do
+            {:ok, :math.pow(multiplier, exponent), 0.0}
+          else
+            {:error, {:unknown_unit, base}}
+          end
+      end
+    end
+
+    defp scale_single({:constant, value}) when is_number(value), do: {:ok, value * 1.0, 0.0}
+
+    defp scale_single({:constant, value}) when is_binary(value) do
+      case Float.parse(value) do
+        {number, ""} -> {:ok, number, 0.0}
+        _other -> {:error, {:unsupported_constant, value}}
+      end
+    end
+
+    defp scale_single(_other), do: {:error, :unsupported_unit}
+
+    # The parser tags prefixes as atoms; the multiplier table is keyed the same
+    # way so no conversion is needed at call time.
+    defp prefix_multiplier(nil), do: 1.0
+    defp prefix_multiplier(prefix), do: Map.get(@si_prefixes, prefix, 1.0)
+
+    defp power_exponent(nil), do: 1
+    defp power_exponent(:square), do: 2
+    defp power_exponent(:cubic), do: 3
+    defp power_exponent({:pow, n}), do: n
   '''
 
-  defp render(module, types, units) do
+  # The generated file records how it was produced, so a regeneration after a
+  # CLDR update reproduces exactly the same table.
+  defp render(module, aliases) do
     """
     # Generated by `mix localize.unit.gen_conversions`. Do not edit.
     #
-    # Quantities: #{Enum.join(types, ", ")}
     # CLDR: #{Localize.version()}
     #
     # Regenerate with:
     #
-    #     mix localize.unit.gen_conversions --types #{Enum.join(types, ",")} --module #{module}
+    #     mix localize.unit.gen_conversions --module #{module}
 
+    #{parser_source(module)}
     defmodule #{module} do
       @moduledoc \"\"\"
       Converts units to their base units. Generated from CLDR data by
       Localize; has no runtime dependencies.
 
+      Every unit `Localize.Unit` converts is converted here — defined units,
+      SI-prefixed units, powers, and `-per-` and juxtaposed compounds — to
+      the same canonical base unit, with the same factor.
+
       Conversion is affine — `base = value * factor + offset` — so both
       scaled units (kilometers) and offset units (degrees Celsius) are
-      handled. SI prefixes and `-per-` compounds are resolved at call
-      time, so units outside the generated table still convert when they
-      are built from units that are in it.
+      handled. Two things are refused rather than approximated: a unit whose
+      scale is not affine, such as `beaufort`, which no factor and offset can
+      express — this one Localize does convert, through a scale this module
+      cannot represent; and a mixed unit, such as `foot-and-inch`, which is a
+      way of displaying a quantity rather than a unit to convert, and which
+      Localize declines to convert either.
 
       \"\"\"
 
-    #{render_table(units)}
+    #{render_conversions()}
 
-    #{render_aliases(units)}
+    #{render_factors()}
+
+    #{render_base_units()}
 
     #{render_prefixes()}
+
+    #{render_aliases(aliases)}
 
     #{@runtime_body}
     end
     """
   end
 
-  defp render_table(units) do
-    rows =
-      Enum.map_join(units, "\n", fn unit ->
-        ~s(    #{inspect(unit.name)} => ) <>
-          ~s({#{inspect(unit.base)}, #{inspect(unit.factor)}, #{inspect(unit.offset)}},)
-      end)
-
-    "  # unit => {base_unit, factor, offset}\n  @units %{\n#{rows}\n  }"
+  # unit => the base unit string CLDR converts it to, which may itself be a
+  # compound ("square-meter", "kilogram-meter-per-square-second").
+  defp render_conversions do
+    Data.conversions()
+    |> Enum.sort()
+    |> map_literal("@conversions", fn base -> inspect(base) end)
   end
 
-  defp render_aliases(units) do
-    rows =
-      units
-      |> Enum.flat_map(fn unit -> Enum.map(unit.aliases, &{&1, unit.name}) end)
-      |> Enum.uniq_by(&elem(&1, 0))
-      |> Enum.sort()
-      |> Enum.map_join("\n", fn {alias_name, name} ->
-        ~s(    #{inspect(alias_name)} => #{inspect(name)},)
-      end)
+  # unit => {factor, offset}. CLDR marks a non-affine scale as `:special`;
+  # it is emitted verbatim so the generated module can refuse it by name
+  # rather than compute a wrong number from a missing entry.
+  defp render_factors do
+    Data.conversion_factors()
+    |> Enum.sort()
+    |> map_literal("@factors", fn %{factor: factor, offset: offset} ->
+      "{#{inspect(factor)}, #{inspect(offset * 1.0)}}"
+    end)
+  end
 
-    "  # every accepted spelling => canonical CLDR identifier\n  @aliases %{\n#{rows}\n  }"
+  # The irreducible units every conversion bottoms out in. `_by_length` drives
+  # longest-match tokenizing of compound base strings, whose parts are
+  # hyphen-joined and may themselves contain hyphens; the order map fixes the
+  # canonical order CLDR writes a recomposed base unit in.
+  defp render_base_units do
+    units = Data.simple_base_units()
+
+    by_length = Enum.sort_by(units, &(-String.length(&1)))
+
+    order =
+      units
+      |> Enum.with_index()
+      |> Enum.map_join("\n", fn {unit, index} -> "    #{inspect(unit)} => #{index}," end)
+
+    """
+      @simple_base_units #{inspect(Enum.sort(units))}
+
+      @simple_base_units_by_length #{inspect(by_length)}
+
+      @simple_unit_order %{
+    #{order}
+      }\
+    """
   end
 
   defp render_prefixes do
+    Data.si_prefix_multipliers()
+    |> Enum.map(fn {name, multiplier} -> {Data.si_prefix_atom(name), multiplier} end)
+    |> Enum.sort()
+    |> map_literal("@si_prefixes", &inspect/1)
+  end
+
+  defp render_aliases(aliases) do
+    aliases
+    |> Enum.sort()
+    |> map_literal("@aliases", &inspect/1)
+  end
+
+  defp map_literal(pairs, name, format_value) do
     rows =
-      Data.si_prefix_multipliers()
-      |> Enum.sort()
-      |> Enum.map_join("\n", fn {prefix, multiplier} ->
-        ~s(    #{inspect(prefix)} => #{inspect(multiplier)},)
+      Enum.map_join(pairs, "\n", fn {key, value} ->
+        "    #{inspect(key)} => #{format_value.(value)},"
       end)
 
-    "  @si_prefixes %{\n#{rows}\n  }"
+    "  #{name} %{\n#{rows}\n  }"
   end
 end
