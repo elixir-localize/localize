@@ -4,17 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.2] — August 4th, 2026
+## [1.1.0] — August 11th, 2026
 
 ### Fixed
 
 * The `t:Localize.Currency.t/0` type now declares `:iso_digits` as `non_neg_integer() | nil`. Historic currencies (for example `:BGN`) have no ISO 4217 minor-unit definition and carry `nil`, which the module's own `is_nil/1` guards already handle; the previous `non_neg_integer()` type caused false `pattern_match` warnings in downstream code that guards against `nil`.
 
-## [1.0.1] — August 2nd, 2026
-
 ### Added
 
-* `mix localize.unit.gen_conversions` generates a dependency-free unit conversion module from CLDR data, selected by quantity (`--types speed,temperature`), for embedded targets where compiling Localize costs more than the project itself. The generated module resolves SI prefixes and `-per-` compounds at call time, accepts CLDR identifiers, spaced names and English symbols such as `"km/h"`, and provides a `~u` sigil that converts at compile time.
+* `mix localize.unit.gen_conversions` generates a dependency-free unit conversion module from CLDR data, for embedded targets where compiling Localize costs more than the project itself. There is no unit selection to make: Localize's own parser is inlined into the generated module, so it accepts every identifier `Localize.Unit` accepts — prefixed, powered and `-per-` compound alike — through `to_base/2`, `resolve/1` and a compile-time `~u` sigil.
+
+## [1.0.1] — August 2nd, 2026
 
 ### Fixed
 
