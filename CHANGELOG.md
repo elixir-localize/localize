@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+* The package now declares `Unicode-3.0` alongside `Apache-2.0`, and `LICENSE.md` gains a "Unicode Data" section setting out which CLDR and UCD data is embedded, what it becomes, and reproducing the Unicode copyright and permission notice as that license requires. Modules emitted by `mix localize.unit.gen_conversions` carry the same dual-license SPDX header, so a consumer running `reuse lint` over the generated file no longer needs a `.license` sidecar.
+
 ## [1.1.0] — August 11th, 2026
 
 ### Fixed
