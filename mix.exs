@@ -60,7 +60,10 @@ defmodule Localize.MixProject do
   def package do
     [
       maintainers: ["Kip Cole"],
-      licenses: ["Apache-2.0"],
+      # Apache-2.0 covers the library; Unicode-3.0 covers the CLDR and UCD
+      # data compiled into `priv/localize/` and downloaded from the locale
+      # CDN. See the "Unicode Data" section of LICENSE.md.
+      licenses: ["Apache-2.0", "Unicode-3.0"],
       links: links(),
       files: [
         "lib",

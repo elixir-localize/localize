@@ -813,6 +813,21 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
     # Regenerate with:
     #
     #     mix localize.unit.gen_conversions --module #{module}
+    #
+    # This file is generated from Localize (https://hex.pm/packages/localize)
+    # and carries two licenses. The code — the unit parser and the conversion
+    # logic — is Localize's, under the Apache License 2.0. The conversion
+    # factors, base units and unit spellings are data from the Unicode Common
+    # Locale Data Repository (CLDR), under the Unicode License v3.
+    #
+    # SPDX-FileCopyrightText: Copyright Kip Cole
+    # SPDX-FileCopyrightText: Copyright © 1991-2026 Unicode, Inc.
+    # SPDX-License-Identifier: Apache-2.0 AND Unicode-3.0
+    #
+    # The Unicode license requires its copyright and permission notice to
+    # accompany copies of the data or appear in associated documentation. It
+    # is reproduced in the "Unicode Data" section of Localize's LICENSE.md:
+    # https://github.com/elixir-localize/localize/blob/main/LICENSE.md
 
     #{parser_source(module)}
     defmodule #{module} do
