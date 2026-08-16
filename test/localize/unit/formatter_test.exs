@@ -153,20 +153,84 @@ defmodule Localize.Unit.FormatterTest do
 
   describe "to_string/2 with Decimal values" do
     test "an integer-valued Decimal selects the :one plural form" do
-      # Regression: plural_form/2 converted Decimals to float before
-      # plural selection, losing the CLDR visible-fraction operands.
-      # Decimal "1" has v=0 so it is :one in en → "1 meter".
+      # Decimal "1" renders as "1" — v=0, so :one in en.
       assert Unit.to_string(Unit.new!(Decimal.new("1"), "meter")) == {:ok, "1 meter"}
     end
 
-    test "a Decimal with a visible fraction selects the :other plural form" do
-      # Decimal "1.0" has v=1 so it is :other in en, even though the
-      # number itself renders as "1" with default number options.
-      assert Unit.to_string(Unit.new!(Decimal.new("1.0"), "meter")) == {:ok, "1 meters"}
+    test "a fraction the default pattern does not render does not reach the plural" do
+      # Decimal "1.0" carries one decimal place, but the default pattern
+      # (`#,##0.###`, minimum 0 fraction digits) renders it as "1". TR35
+      # defines the operands over the source number — "the visual appearance
+      # of the digits of the result" — so v=0 and the noun is singular. The
+      # digits the reader sees decide, not the digits that went in.
+      assert Unit.to_string(Unit.new!(Decimal.new("1.0"), "meter")) == {:ok, "1 meter"}
+    end
+
+    test "a fraction the pattern does render selects the :other plural form" do
+      # The same Decimal, asked to show its decimal place: "1.0" is v=1, and
+      # every visible fraction is :other in en.
+      assert Unit.to_string(Unit.new!(Decimal.new("1.0"), "meter"), fractional_digits: 1) ==
+               {:ok, "1.0 meters"}
     end
 
     test "a Decimal greater than one selects the :other plural form" do
       assert Unit.to_string(Unit.new!(Decimal.new("2"), "meter")) == {:ok, "2 meters"}
+    end
+  end
+
+  # TR35 defines the plural operands over the source number, "the visual
+  # appearance of the digits of the result", so the category has to follow the
+  # formatted output. Selecting on the input value is wrong in both directions:
+  # a fraction can be rendered away, and one can be added that was never there.
+  describe "to_string/2 plural selection follows the rendered digits" do
+    test "a float whose fraction is not rendered is singular" do
+      assert Unit.to_string(Unit.new!(1.0, "hectare"), locale: "en") == {:ok, "1 hectare"}
+      assert Unit.to_string(Unit.new!(1, "hectare"), locale: "en") == {:ok, "1 hectare"}
+    end
+
+    test "digits the options add are plural, whatever the input was" do
+      # The converse case: nothing about the input 1 suggests a fraction, but
+      # it renders as "1.00" and v=2 is :other in en.
+      for value <- [1, 1.0, Decimal.new("1")] do
+        assert Unit.to_string(Unit.new!(value, "hectare"), locale: "en", fractional_digits: 2) ==
+                 {:ok, "1.00 hectares"},
+               "#{inspect(value)} with two fraction digits should be plural"
+      end
+    end
+
+    test "an integer and the float that renders identically agree" do
+      # The whole class of bug in one assertion: if two values render the same
+      # number, they must render the same noun.
+      for {integer, float} <- [{1, 1.0}, {2, 2.0}, {0, 0.0}, {21, 21.0}],
+          unit <- ~w(hectare meter second) do
+        assert Unit.to_string(Unit.new!(integer, unit), locale: "en") ==
+                 Unit.to_string(Unit.new!(float, unit), locale: "en"),
+               "#{integer} and #{float} #{unit} rendered differently"
+      end
+    end
+
+    test "across locales with richer plural systems" do
+      # English only distinguishes one/other, so it hides most of this. Russian
+      # and Czech separate few and many on the same v=0 operand.
+      for locale <- ~w(ru cs pl ar he) do
+        for {integer, float} <- [{1, 1.0}, {2, 2.0}, {5, 5.0}, {21, 21.0}] do
+          assert Unit.to_string(Unit.new!(integer, "meter"), locale: locale) ==
+                   Unit.to_string(Unit.new!(float, "meter"), locale: locale),
+                 "#{locale}: #{integer} and #{float} meters rendered differently"
+        end
+      end
+    end
+
+    test "a genuinely visible fraction is still plural" do
+      assert Unit.to_string(Unit.new!(1.5, "hectare"), locale: "en") == {:ok, "1.5 hectares"}
+      assert Unit.to_string(Unit.new!(0.5, "hectare"), locale: "en") == {:ok, "0.5 hectares"}
+    end
+
+    test "the count comes from the rendered digits, not the localized glyphs" do
+      # `hi-u-nu-deva` renders in Devanagari, so a plural derived by reading
+      # the formatted string back would have to transliterate first.
+      assert {:ok, formatted} = Unit.to_string(Unit.new!(1.0, "meter"), locale: "hi-u-nu-deva")
+      assert {:ok, ^formatted} = Unit.to_string(Unit.new!(1, "meter"), locale: "hi-u-nu-deva")
     end
   end
 

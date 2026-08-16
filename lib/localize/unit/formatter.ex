@@ -229,7 +229,7 @@ defmodule Localize.Unit.Formatter do
     unit_name = normalize_unit_name(name)
 
     with unit_formats when is_map(unit_formats) <- find_unit_formats(unit_data, unit_name),
-         plural = plural_form(value, language_tag),
+         plural = plural_form(value, language_tag, options),
          grammatical_case = Keyword.get(options, :grammatical_case, :nominative),
          tokens when is_list(tokens) <-
            pattern_tokens(resolve_pattern(unit_formats, grammatical_case, plural)) do
@@ -583,7 +583,7 @@ defmodule Localize.Unit.Formatter do
   # CLDR unit pattern resolution: grammatical-case, plural-form, and
   # pattern-shape fallbacks each contribute a branch.
   defp format_with_pattern(value, unit_formats, locale, grammatical_case, options) do
-    plural = plural_form(value, locale)
+    plural = plural_form(value, locale, options)
     pattern = resolve_pattern(unit_formats, grammatical_case, plural)
 
     case pattern do
@@ -653,20 +653,53 @@ defmodule Localize.Unit.Formatter do
 
   # ── Plural form resolution ────────────────────────────────
 
-  defp plural_form(value, locale) when is_number(value) do
-    Localize.Number.PluralRule.Cardinal.plural_rule(value, locale)
+  # TR35 defines the plural operands over the *source number* — "the visual
+  # appearance of the digits of the result" — so the category follows what the
+  # reader ends up seeing, not what was passed in. Under the default pattern
+  # the float 1.0 renders as "1" (v=0, :one in English), while the integer 1
+  # with `fractional_digits: 2` renders as "1.00" (v=2, :other). Selecting on
+  # the input value gets both of those backwards, in opposite directions.
+  defp plural_form(value, locale, options) when is_number(value) or is_struct(value, Decimal) do
+    value
+    |> source_number(options)
+    |> Localize.Number.PluralRule.Cardinal.plural_rule(locale)
   end
 
-  # Decimals are passed through unconverted: the plural rule engine
-  # computes the CLDR operands (including the visible-fraction operands
-  # v, w, f and t) from the Decimal itself. Converting to float first
-  # would lose those operands — Decimal "1" (v=0, :one in en) and
-  # Decimal "1.0" (v=1, :other in en) both become the float 1.0.
-  defp plural_form(%Decimal{} = value, locale) do
-    Localize.Number.PluralRule.Cardinal.plural_rule(value, locale)
+  defp plural_form(_value, _locale, _options), do: :other
+
+  # The value rescaled to the fraction digits that will actually be printed,
+  # which is what carries the v, w, f and t operands.
+  #
+  # The digit count comes from the formatter rather than from a second reading
+  # of the format metadata, so rounding, significant digits and `:round_nearest`
+  # cannot drift away from what is displayed. Only the count is taken: the
+  # digits themselves are localized — Devanagari under `hi-u-nu-deva` — and
+  # rescaling the original value supplies the rest of the operands without
+  # having to transliterate them back.
+  defp source_number(value, options) do
+    with {:ok, parts} <-
+           Localize.Number.to_parts(value, Keyword.take(options, @number_format_options)),
+         %Decimal{} = decimal <- to_decimal(value) do
+      Decimal.round(decimal, fraction_digit_count(parts))
+    else
+      _other -> value
+    end
   end
 
-  defp plural_form(_value, _locale), do: :other
+  defp fraction_digit_count(parts) do
+    case Enum.find(parts, &(&1.type == :fraction)) do
+      %{value: fraction} when is_binary(fraction) -> String.length(fraction)
+      _other -> 0
+    end
+  end
+
+  defp to_decimal(%Decimal{coef: coef} = value) when is_integer(coef), do: value
+  defp to_decimal(value) when is_integer(value), do: Decimal.new(value)
+  defp to_decimal(value) when is_float(value), do: Decimal.from_float(value)
+
+  # NaN and infinity have no digits to count, and `Decimal.round/2` raises on
+  # them. They fall back to the plural rule's own handling of the raw value.
+  defp to_decimal(_non_finite), do: nil
 
   # ── Unit name resolution ───────────────────────────────────
 
@@ -822,7 +855,7 @@ defmodule Localize.Unit.Formatter do
 
   defp format_prefixed_unit(value, prefix, base, unit_data, locale, options) do
     grammatical_case = Keyword.get(options, :grammatical_case, :nominative)
-    count_plural = plural_form(value, locale)
+    count_plural = plural_form(value, locale, options)
 
     with prefix_tokens when is_list(prefix_tokens) <- si_prefix_pattern_tokens(unit_data, prefix),
          base_formats when not is_nil(base_formats) <-
@@ -959,7 +992,7 @@ defmodule Localize.Unit.Formatter do
 
   defp format_times_compound(value, single_units, unit_data, locale, options) do
     grammatical_case = Keyword.get(options, :grammatical_case, :nominative)
-    count_plural = plural_form(value, locale)
+    count_plural = plural_form(value, locale, options)
 
     # CLDR derives each component's plural and case from the compound as a
     # whole (grammaticalFeatures.xml `deriveComponent structure="times"`):
@@ -1108,7 +1141,7 @@ defmodule Localize.Unit.Formatter do
   end
 
   defp format_custom_patterns(value, patterns, locale, options) do
-    plural = plural_form(value, locale)
+    plural = plural_form(value, locale, options)
 
     pattern =
       Map.get(patterns, plural) ||

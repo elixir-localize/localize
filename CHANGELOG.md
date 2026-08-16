@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.Unit.to_string/2` selects the plural category from the rendered digits rather than the input value, as TR35 defines the plural operands over the source number — "the visual appearance of the digits of the result". The float `1.0` renders as `1` and is now `"1 hectare"` rather than `"1 hectares"`, and conversely `1` with `fractional_digits: 2` renders as `1.00` and is now `"1.00 hectares"` rather than `"1.00 hectare"`.
+
 * `Localize.Unit.localize/2` now resolves preferred units whose name is more than one word. It converted the atoms from `Localize.Unit.Preference.preferred_units/2` with `Atom.to_string/1`, yielding `"cubic_inch"` where the parser wants `"cubic-inch"`, so 35 of CLDR's 90 preferred units failed with a `Localize.ParseError` — taking the default usage of speed, volume, area, energy and pressure with them.
 
 ### Changed
