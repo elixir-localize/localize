@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.parse/2` treats every character in `[:Zs:]` as a grouping space, per TR35's loose matching for lenient parsing. It previously accepted only U+0020 and the locale's own separator, so a `fr` number carrying U+00A0 or U+2009 — as copied out of formatted output — failed to parse.
 
+* `Localize.Number.parse/2` ignores every character in `[:Cf:]`, per the same passage's instruction to ignore format characters, "in particular ... any RLM, LRM or ALM used to control BIDI formatting". CLDR writes the minus sign of `ar`, `he`, `fa` and 16 other locales as a BIDI mark followed by the sign, so a negative number copied out of that text previously failed to parse.
+
 ## [1.1.1] — August 16th, 2026
 
 ### Fixed

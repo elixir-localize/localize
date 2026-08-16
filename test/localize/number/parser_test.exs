@@ -80,6 +80,60 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
+  # TR35's loose matching also ignores all format characters, "in particular ...
+  # any RLM, LRM or ALM used to control BIDI formatting". CLDR embeds those
+  # marks in the number symbols of 19 locales, so they arrive in real input
+  # rather than only in contrived input.
+  describe "parse/2 with format characters" do
+    # Written as codepoints: Elixir refuses unescaped bidi characters in source.
+    @marks %{
+      "U+200E LEFT-TO-RIGHT MARK" => 0x200E,
+      "U+200F RIGHT-TO-LEFT MARK" => 0x200F,
+      "U+061C ARABIC LETTER MARK" => 0x061C,
+      "U+200B ZERO WIDTH SPACE" => 0x200B,
+      "U+FEFF ZERO WIDTH NO-BREAK SPACE" => 0xFEFF,
+      "U+00AD SOFT HYPHEN" => 0x00AD,
+      "U+2066 LEFT-TO-RIGHT ISOLATE" => 0x2066,
+      "U+202B RIGHT-TO-LEFT EMBEDDING" => 0x202B
+    }
+
+    test "a format character inside the digits is ignored" do
+      for {name, codepoint} <- @marks do
+        assert {:ok, 1234.5} = Parser.parse("1#{<<codepoint::utf8>>}234.5", locale: "en"),
+               "#{name} was not ignored"
+      end
+    end
+
+    test "a leading BIDI mark is ignored, as CLDR's own minus sign carries one" do
+      # `ar` and `he` both write minusSign as LRM followed by "-", so this is
+      # the shape a negative number copied out of that text actually has.
+      for locale <- ~w(ar he), codepoint <- [0x200E, 0x200F, 0x061C] do
+        assert {:ok, -1234.5} =
+                 Parser.parse("#{<<codepoint::utf8>>}-1234.5", locale: locale),
+               "U+#{Integer.to_string(codepoint, 16)} was not ignored in #{locale}"
+      end
+    end
+
+    test "combines with the space handling" do
+      mark = <<0x200E::utf8>>
+      nbsp = <<0x00A0::utf8>>
+
+      assert {:ok, 1234.5} = Parser.parse("#{mark}1#{nbsp}234,5", locale: "fr")
+    end
+
+    test "the percent and per-mille signs still resolve" do
+      # Those symbols do carry BIDI marks in CLDR, but `resolve_per/2` matches
+      # them against the raw string rather than through the number
+      # normalization, so stripping there must not reach them.
+      assert ["50", :percent] = Parser.resolve_per("50%", locale: "en")
+
+      {:ok, symbols} = Localize.Number.Symbol.number_symbols_for("ar")
+
+      assert ["50", :percent] =
+               Parser.resolve_per("50" <> symbols.latn.percent_sign, locale: "ar")
+    end
+  end
+
   describe "scan/2" do
     test "scans a string with a number" do
       result = Parser.scan("The prize is 23")

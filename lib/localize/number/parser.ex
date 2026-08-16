@@ -26,6 +26,18 @@ defmodule Localize.Number.Parser do
   # digits, so it would silently read "5²" as 52.
   @spaces ~r/\p{Zs}/u
 
+  # The same passage says to ignore all format characters, "in particular, ...
+  # any RLM, LRM or ALM used to control BIDI formatting". This is not a
+  # hypothetical: CLDR embeds those marks in the number symbols of 19 locales —
+  # `ar` writes `minusSign` as LRM followed by "-", and even `root` does — so a
+  # negative number copied out of Arabic, Hebrew or Persian text carries one.
+  #
+  # Safe to strip wholesale here because no locale puts a format character in
+  # its `group` or `decimal` symbol, which are the only symbols this function
+  # matches on. The percent and per-mille signs do carry them, but those are
+  # matched by `resolve_per/2` against the raw string, not through here.
+  @format_characters ~r/\p{Cf}/u
+
   @doc """
   Scans a string in a locale-aware manner and returns a list
   of strings and numbers.
@@ -498,6 +510,7 @@ defmodule Localize.Number.Parser do
 
     string
     |> String.replace("_", "")
+    |> String.replace(@format_characters, "")
     |> String.replace(group_sep, "")
     |> String.replace(@spaces, "")
     |> String.replace(decimal_sep, ".")
