@@ -59,7 +59,7 @@ Localize ships a [Claude Code](https://claude.com/claude-code) skill that teache
 /plugin install localize@localize
 ```
 
-The skill source lives in [skills/localize](https://github.com/elixir-localize/localize/blob/v1.0.1/skills/localize/SKILL.md).
+The skill source lives in [skills/localize](https://github.com/elixir-localize/localize/blob/v1.1.1/skills/localize/SKILL.md).
 
 ## MCP server
 
@@ -364,4 +364,4 @@ Locale-aware Phoenix LiveView inputs, so a user can enter a value under their ow
 
 ## License
 
-Apache License 2.0. See the [LICENSE](https://github.com/elixir-localize/localize/blob/v1.0.1/LICENSE.md) file for details.
+Apache License 2.0, together with the Unicode License v3 for the CLDR and UCD data embedded in the package. See the [LICENSE](https://github.com/elixir-localize/localize/blob/v1.1.1/LICENSE.md) file for details, including which Unicode data is used and what it becomes.
