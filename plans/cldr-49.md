@@ -65,6 +65,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 12 | `common/testData` conformance-fixture audit       | None (tests only) | None      |
 | 13 | CDN-asset checksum manifests                       | None       | None — ✅ Done in Localize 0.44.0 |
 | 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Silent data loss if not done** — CLDR 49 drops 232 of 237 eras. See [plans/japanese_eras.md](japanese_eras.md). |
+| 15 | POSIX `yesstr` / `nostr` responses                  | New functions | None (additive; ETF schema bump) |
 
 The remainder of this file expands each item in turn.
 
@@ -838,6 +839,60 @@ This is the one item in this plan where doing nothing is not a no-op. A routine 
 
 No API change: the data stays where it is and the era range is unchanged. The risk is entirely in *not* doing this — a silent narrowing of supported dates from 645 CE to 1868 CE.
 
+## 15. POSIX `yesstr` / `nostr` affirmative and negative responses
+
+Spec: <https://unicode.org/reports/tr35/tr35-general.html#POSIX_Elements>
+
+### Current conformance
+
+Not implemented. CLDR ships these under `<posix><messages>` in the locale XML, and cldr-json exposes them as `cldr-misc-full/main/<locale>/posix.json`. All 766 locales in the CLDR 48.2.2 JSON distribution carry the file; 271 locales define the strings in the XML directly, the rest inherit.
+
+`"posix"` is absent from `@required_modules` in [data/locale.ex:13](../data/locale.ex:13), so the values never enter the locale ETFs and there is no API to read them. The existing `POSIX` references in `lib/` are about POSIX-form *locale identifiers* (`"pt_BR"`), which is unrelated.
+
+### Gap
+
+There is no way to ask Localize what a locale's affirmative and negative responses are. A CLI prompt, a terminal confirmation, or anything porting a POSIX `LC_MESSAGES` workflow has to hard-code English `y`/`n`, which is exactly the class of hard-coding this library exists to remove.
+
+The values are a colon-separated list of the forms a locale would accept:
+
+| locale | `yesstr` | `nostr` |
+|--------|----------|---------|
+| `en`   | `yes:y`  | `no:n`  |
+| `de`   | `ja:j`   | `nein:n` |
+| `fr`   | `oui:o`  | `non:n` |
+| `ja`   | `はい:y` | `いいえ:n` |
+| `ar`   | `نعم:ن`  | `لا:ل`  |
+
+### Plan
+
+1. Add `"posix"` to `@required_modules` in [data/locale.ex:13](../data/locale.ex:13) and a normalizer under `data/normalize/` that lifts `messages.yesstr` and `messages.nostr` into a `posix` key, splitting each on `":"` into a list. Regenerate the `:en` and `:und` ETFs per the data-pipeline rule in CLAUDE.md.
+2. Expose readers returning the accepted forms, defaulting the locale to `Localize.get_locale/0`:
+
+```elixir
+iex> Localize.affirmative_responses(:de)
+{:ok, ["ja", "j"]}
+
+iex> Localize.negative_responses(:fr)
+{:ok, ["non", "n"]}
+```
+
+3. Add a predicate over the two, which is the operation a caller actually wants at a prompt. TR35 is explicit that the stored value carries only the lower-case forms and that a consumer generates the upper-case and abbreviated variants, so matching must case-fold rather than compare literally:
+
+```elixir
+iex> Localize.affirmative?("Ja", locale: :de)
+true
+
+iex> Localize.affirmative?("y", locale: :de)
+false
+```
+
+4. Decide whether to follow the rest of TR35's POSIX guidance — "add the English words wherever they do not conflict", so `de` would also accept `yes`/`y` because neither collides with `nein`/`n`. It makes a prompt more forgiving and it is what POSIX tooling does, but it is a judgement call about conflicts rather than data we can read, so it belongs behind an option (`english_fallback: true`) rather than in the default.
+
+### API impact / breaking risk
+
+* New functions and one new locale-data key. Purely additive.
+* One ETF schema addition, so the data version bumps; no public API changes shape.
+
 ## Open questions
 
 These need answers before the corresponding work item starts. Track them as the plan evolves.
@@ -872,3 +927,4 @@ Each checkpoint should leave a dated entry at the bottom of this file noting wha
 * 2026-05-12 — Added item 13: generate signed/checksummed manifest for CDN-downloaded locale ETFs so the runtime can verify content integrity before decode. Motivated by the 0.30.1 revert of `binary_to_term [:safe]` (issue #25), which re-opened security audit §4.1's writable-cache-dir DOS surface. Research required — manifest format, signature scheme, hot-path budget, key rotation all open.
 
 * 2026-08-02 — Plan audit. Added item 14 (Japanese pre-Meiji eras), which was tracked only in [plans/japanese_eras.md](japanese_eras.md) and referenced nowhere here despite being triggered by CLDR 49 and carrying a silent-data-loss risk during a routine pipeline run. Marked item 13 done (shipped in Localize 0.44.0) — its status still read "research required". Added index rows for items 13 and 14; the index previously stopped at 12 while the file carried a section 13.
+* 2026-08-16 — Added item 15: POSIX `yesstr` / `nostr`. CLDR ships affirmative and negative response strings for every locale and Localize reads none of them, so any confirmation prompt hard-codes English `y`/`n`. `"posix"` is absent from the pipeline's `@required_modules`, so this needs a data-key addition as well as an API.
