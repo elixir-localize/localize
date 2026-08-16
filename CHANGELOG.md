@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+* `Localize.Number.parse/2` treats every character in `[:Zs:]` as a grouping space, per TR35's loose matching for lenient parsing. It previously accepted only U+0020 and the locale's own separator, so a `fr` number carrying U+00A0 or U+2009 — as copied out of formatted output — failed to parse.
+
 ## [1.1.1] — August 16th, 2026
 
 ### Fixed

@@ -23,6 +23,63 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
+  # TR35's loose matching for lenient parsing ignores every character in
+  # `[:Zs:]`, and separately normalizes to NFKC, which maps the whole space
+  # category onto U+0020. Either way a grouping space is a grouping space,
+  # whichever one the user's keyboard or clipboard produced.
+  describe "parse/2 with grouping spaces" do
+    # U+202F is what `fr` actually groups with, so the others are the
+    # interesting cases: U+0020 off a keyboard, U+00A0 and U+2009 out of
+    # formatted output that was copied and pasted back in.
+    @spaces %{
+      "U+0020 SPACE" => " ",
+      "U+00A0 NO-BREAK SPACE" => " ",
+      "U+2007 FIGURE SPACE" => " ",
+      "U+2009 THIN SPACE" => " ",
+      "U+202F NARROW NO-BREAK SPACE" => " ",
+      "U+205F MEDIUM MATHEMATICAL SPACE" => " ",
+      "U+3000 IDEOGRAPHIC SPACE" => "　"
+    }
+
+    test "any space groups under a locale that groups with a space" do
+      for {name, space} <- @spaces do
+        assert {:ok, 1234.5} = Parser.parse("1#{space}234,5", locale: "fr"),
+               "#{name} did not group in fr"
+      end
+    end
+
+    test "any space groups under a locale that groups with a comma" do
+      for {name, space} <- @spaces do
+        assert {:ok, 1234.5} = Parser.parse("1#{space}234.5", locale: "en"),
+               "#{name} did not group in en"
+      end
+    end
+
+    test "any space groups under a locale that groups with a period" do
+      for {name, space} <- @spaces do
+        assert {:ok, 1234.5} = Parser.parse("1#{space}234,5", locale: "de"),
+               "#{name} did not group in de"
+      end
+    end
+
+    test "the locale's own separators still work" do
+      assert {:ok, 1234.5} = Parser.parse("1,234.5", locale: "en")
+      assert {:ok, 1234.5} = Parser.parse("1.234,5", locale: "de")
+    end
+
+    test "a string that is not a number is still rejected" do
+      # Stripping spaces must not turn prose into a number.
+      assert {:error, _} = Parser.parse("1 2 3 apples", locale: "fr")
+      assert {:error, _} = Parser.parse("   ", locale: "fr")
+    end
+
+    test "superscripts are not folded into digits" do
+      # `[:Zs:]` rather than a full NFKC fold, which maps U+00B2 onto "2" and
+      # would read this as 52.
+      assert {:error, _} = Parser.parse("5²", locale: "en")
+    end
+  end
+
   describe "scan/2" do
     test "scans a string with a number" do
       result = Parser.scan("The prize is 23")

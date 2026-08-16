@@ -15,6 +15,17 @@ defmodule Localize.Number.Parser do
 
   @number_format "[-+]?[0-9]([0-9_]|[,](?=[0-9]))*(\\.?[0-9_]+([eE][-+]?[0-9]+)?)?"
 
+  # TR35's loose matching for lenient parsing says to ignore every character in
+  # `[:Zs:]`, and separately to normalize to NFKC, "thus no-break space will map
+  # to space". Both readings make the whole space category equivalent here, so a
+  # number typed with an ordinary keyboard space parses under a locale that
+  # groups with U+202F, and one copied out of formatted output — carrying
+  # U+00A0, U+2009 or U+202F — parses anywhere.
+  #
+  # `[:Zs:]` rather than a full NFKC fold: NFKC also maps superscripts onto
+  # digits, so it would silently read "5²" as 52.
+  @spaces ~r/\p{Zs}/u
+
   @doc """
   Scans a string in a locale-aware manner and returns a list
   of strings and numbers.
@@ -488,7 +499,7 @@ defmodule Localize.Number.Parser do
     string
     |> String.replace("_", "")
     |> String.replace(group_sep, "")
-    |> String.replace(" ", "")
+    |> String.replace(@spaces, "")
     |> String.replace(decimal_sep, ".")
   end
 
