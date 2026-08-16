@@ -94,8 +94,8 @@ defmodule Localize.MixProject do
   def links do
     %{
       "GitHub" => "https://github.com/elixir-localize/localize",
-      "Readme" => "https://hexdocs.pm/localize/readme.html",
-      "Changelog" => "https://hexdocs.pm/localize/changelog.html"
+      "Readme" => "https://github.com/elixir-localize/localize/blob/v#{@version}/README.md",
+      "Changelog" => "https://github.com/elixir-localize/localize/blob/v#{@version}/CHANGELOG.md"
     }
   end
 
