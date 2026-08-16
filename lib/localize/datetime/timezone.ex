@@ -773,6 +773,139 @@ defmodule Localize.DateTime.Timezone do
     end
   end
 
+  @doc """
+  Returns the exemplar city for an IANA timezone identifier.
+
+  CLDR names a representative city for most timezones — the city a
+  reader would recognise the zone by — localized, and sometimes
+  differing from the city in the identifier: `"America/Godthab"` is
+  `"Nuuk"`, which is what the place is now called.
+
+  ### Arguments
+
+  * `iana_id` is an IANA timezone identifier such as
+    `"America/Los_Angeles"` or `"America/Indiana/Knox"`.
+
+  * `locale` is a locale identifier or a `t:Localize.LanguageTag.t/0`.
+    The default is `Localize.get_locale/0`.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:derive` determines what happens when CLDR names no exemplar city
+    for the zone. `true`, the default, derives one from the identifier,
+    so `"Pacific/Wallis"` yields `"Wallis"`. `false` returns an error
+    instead, which distinguishes a name CLDR vouches for from one this
+    library invented.
+
+  ### Returns
+
+  * `{:ok, city}`, or
+
+  * `{:error, exception}` if the locale is unknown, or if the zone has
+    no exemplar city and `derive: false` was given.
+
+  ### Examples
+
+      iex> Localize.DateTime.Timezone.exemplar_city("America/Los_Angeles", :en)
+      {:ok, "Los Angeles"}
+
+      iex> Localize.DateTime.Timezone.exemplar_city("America/Godthab", :en)
+      {:ok, "Nuuk"}
+
+      iex> Localize.DateTime.Timezone.exemplar_city("America/Indiana/Knox", :en)
+      {:ok, "Knox, Indiana"}
+
+      iex> Localize.DateTime.Timezone.exemplar_city("Atlantic/Azores", :de)
+      {:ok, "Azoren"}
+
+      iex> {:error, exception} =
+      ...>   Localize.DateTime.Timezone.exemplar_city("Neverwhere/Nowhere", :en, derive: false)
+      iex> exception.__struct__
+      Localize.UnknownTimezoneError
+
+  """
+  @spec exemplar_city(String.t(), Localize.locale(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def exemplar_city(iana_id, locale \\ Localize.get_locale(), options \\ [])
+
+  def exemplar_city(iana_id, locale, options) when is_binary(iana_id) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      zone =
+        case Localize.Locale.get(language_tag, [:dates, :time_zone_names]) do
+          {:ok, tz_data} -> Map.get(tz_data, :zone, %{})
+          {:error, _reason} -> %{}
+        end
+
+      case find_exemplar_city(iana_id, zone) do
+        nil -> derived_exemplar_city(iana_id, options)
+        city -> {:ok, city}
+      end
+    end
+  end
+
+  defp derived_exemplar_city(iana_id, options) do
+    with true <- Keyword.get(options, :derive, true),
+         city when is_binary(city) <- derive_city_from_id(iana_id) do
+      {:ok, city}
+    else
+      _no_city -> {:error, Localize.UnknownTimezoneError.exception(timezone: iana_id)}
+    end
+  end
+
+  # The zone data is structured as
+  # %{america: %{los_angeles: %{type: :zone, exemplar_city: "Los Angeles"}}}.
+  # A three-part identifier — "America/Indiana/Knox" — nests one level deeper,
+  # and CLDR keys that leaf by string rather than by atom.
+  defp find_exemplar_city(iana_id, zone) do
+    case String.split(iana_id, "/") do
+      [region, city] ->
+        exemplar_city_name(zone, [zone_key(region), zone_key(city)])
+
+      [region, group, city] ->
+        exemplar_city_name(zone, [zone_key(region), zone_key(group), leaf_key(city)])
+
+      _other ->
+        nil
+    end
+  end
+
+  defp exemplar_city_name(zone, keys) do
+    if Enum.all?(keys, & &1) do
+      case get_in(zone, keys) do
+        # A zone CLDR gives no exemplar city for carries only its long and
+        # short names.
+        %{exemplar_city: city_name} -> city_name
+        _other -> nil
+      end
+    end
+  end
+
+  # Gate atomisation on existing-atom membership. The zone data has
+  # pre-atomised keys for legitimate IANA components; an attacker-controlled
+  # `-u-tz-` extension value with an unknown region or city must not be allowed
+  # to grow the atom table.
+  defp zone_key(component) do
+    component
+    |> leaf_key()
+    |> Localize.Utils.Helpers.existing_atom()
+  end
+
+  defp leaf_key(component) do
+    component
+    |> String.downcase()
+    |> String.replace(" ", "_")
+  end
+
+  # "America/Los_Angeles" -> "Los Angeles", "America/Argentina/Salta" -> "Salta"
+  defp derive_city_from_id(iana_id) do
+    case String.split(iana_id, "/") do
+      [_single_component] -> nil
+      parts -> parts |> List.last() |> String.replace("_", " ")
+    end
+  end
+
   defp pad(integer, n) when is_integer(integer) do
     str = Integer.to_string(integer)
     padding = n - String.length(str)

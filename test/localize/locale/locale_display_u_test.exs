@@ -47,6 +47,43 @@ defmodule Localize.Locale.LocaleDisplayUTest do
     end
   end
 
+  # Step 3 of CLDR's non-location format algorithm uses the zone's exemplar
+  # city. The zone data keys that `:exemplar_city`, but the lookup matched
+  # `%{city: _}`, so it never fired and every zone fell through to a city name
+  # derived from the IANA id instead — 48 zones in `en` and 190 in `ja`.
+  describe "display_name/2 -u-tz- exemplar cities" do
+    test "uses CLDR's exemplar city rather than one derived from the IANA id" do
+      # CLDR renamed this city; the IANA id still says Godthab.
+      assert {:ok, "English (Time Zone: Nuuk Time)"} =
+               LocaleDisplay.display_name("en-u-tz-glgoh")
+
+      assert {:ok, "Deutsch (Zeitzone: Nuuk [Ortszeit])"} =
+               LocaleDisplay.display_name("de-u-tz-glgoh", locale: :de)
+    end
+
+    test "keeps the accents that deriving from the id would drop" do
+      assert {:ok, "Deutsch (Zeitzone: Azoren [Ortszeit])"} =
+               LocaleDisplay.display_name("de-u-tz-ptpdl", locale: :de)
+    end
+
+    test "descends into a three-part zone id, whose leaf CLDR keys by string" do
+      # "America/Indiana/Knox" — splitting into two parts looked for a city
+      # named "Indiana/Knox", so the qualifier CLDR adds was lost.
+      assert {:ok, "English (Time Zone: Knox, Indiana Time)"} =
+               LocaleDisplay.display_name("en-u-tz-usknx")
+
+      assert {:ok, "Deutsch (Zeitzone: R\u00edo Gallegos [Ortszeit])"} =
+               LocaleDisplay.display_name("de-u-tz-arrgl", locale: :de)
+    end
+
+    test "an unknown zone still falls back to a name derived from the id" do
+      # A zone CLDR has no exemplar city for, and an unknown one, must both
+      # degrade rather than raise — and must not grow the atom table.
+      assert {:ok, "English (Time Zone: UTC Time)"} =
+               LocaleDisplay.display_name("en-u-tz-utc")
+    end
+  end
+
   describe "display_name/2 -u- key ordering and composition" do
     test "multiple keys are displayed sorted by BCP47 key, not input order" do
       # Input order is ca, nu, hc but display order is ca, hc, nu.

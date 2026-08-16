@@ -4,6 +4,8 @@ defmodule Localize.Locale.LocaleDisplay.U do
   import Localize.Locale.LocaleDisplay,
     only: [get_display_preference: 2, join_field_values: 2, replace_nested_brackets: 2]
 
+  alias Localize.DateTime.Timezone
+
   # Mapping from BCP47 U extension struct field atoms to the
   # CLDR key names used in locale_display_names[:keys] and [:types].
   # Fields not in this map use the field atom directly.
@@ -321,21 +323,12 @@ defmodule Localize.Locale.LocaleDisplay.U do
   # 4. Format using the locale's regionFormat pattern
   #    (e.g., "{0} Time").
   defp get_timezone_display_name(iana_id, locale_id) when is_binary(iana_id) do
-    alias Localize.DateTime.Timezone
-
     case Localize.Locale.get(locale_id, [:dates, :time_zone_names]) do
       {:ok, tz_data} ->
         region_format = get_in(tz_data, [:region_format, :generic])
         territory = Map.get(Timezone.territories_by_timezone(), iana_id)
 
-        location =
-          if territory && Timezone.timezone_count_for_territory(territory) == {:ok, 1} do
-            # If the territory has a single timezone, use the country name
-            get_territory_name(territory, locale_id)
-          else
-            # Otherwise use the exemplar city
-            find_exemplar_city(iana_id, tz_data) || derive_city_from_id(iana_id)
-          end
+        location = timezone_location(iana_id, territory, locale_id)
 
         if location && region_format do
           Localize.Substitution.substitute(location, region_format)
@@ -349,62 +342,25 @@ defmodule Localize.Locale.LocaleDisplay.U do
     end
   end
 
+  # Steps 2 and 3 of the non-location format algorithm: a territory with only
+  # one timezone is named by the country, and anything else by the zone's
+  # exemplar city.
+  defp timezone_location(iana_id, territory, locale_id) do
+    if territory && Timezone.timezone_count_for_territory(territory) == {:ok, 1} do
+      get_territory_name(territory, locale_id)
+    else
+      case Timezone.exemplar_city(iana_id, locale_id) do
+        {:ok, city} -> city
+        {:error, _reason} -> nil
+      end
+    end
+  end
+
   # Look up the display name for a territory.
   defp get_territory_name(territory, locale_id) do
     case Localize.Territory.display_name(territory, locale: locale_id) do
       {:ok, name} -> name
       _ -> Atom.to_string(territory)
-    end
-  end
-
-  # Look up an explicit exemplar city in the zone data.
-  # The zone data is structured as %{america: %{los_angeles: %{city: "Los Angeles"}, ...}}
-  defp find_exemplar_city(iana_id, tz_data) do
-    zone = Map.get(tz_data, :zone, %{})
-
-    case String.split(iana_id, "/", parts: 2) do
-      [region, city] ->
-        # Gate atomisation on existing-atom membership. The zone data
-        # has pre-atomised keys for legitimate IANA components; an
-        # attacker-controlled `-u-tz-` extension value with unknown
-        # region or city must not be allowed to grow the atom table.
-        region_key = region |> String.downcase() |> Localize.Utils.Helpers.existing_atom()
-
-        city_key =
-          city
-          |> String.downcase()
-          |> String.replace(" ", "_")
-          |> Localize.Utils.Helpers.existing_atom()
-
-        exemplar_city_name(zone, region_key, city_key)
-
-      _ ->
-        nil
-    end
-  end
-
-  defp exemplar_city_name(zone, region_key, city_key) do
-    if region_key && city_key do
-      case get_in(zone, [region_key, city_key]) do
-        %{city: city_name} -> city_name
-        _ -> nil
-      end
-    end
-  end
-
-  # Derive city display name from IANA timezone ID.
-  # "America/Los_Angeles" → "Los Angeles"
-  # "Europe/London" → "London"
-  # "America/Argentina/Buenos_Aires" → "Buenos Aires"
-  defp derive_city_from_id(iana_id) do
-    case String.split(iana_id, "/") do
-      [_] ->
-        nil
-
-      parts ->
-        parts
-        |> List.last()
-        |> String.replace("_", " ")
     end
   end
 
