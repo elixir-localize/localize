@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+* `Localize.Unit.localize/2` now resolves preferred units whose name is more than one word. It converted the atoms from `Localize.Unit.Preference.preferred_units/2` with `Atom.to_string/1`, yielding `"cubic_inch"` where the parser wants `"cubic-inch"`, so 35 of CLDR's 90 preferred units failed with a `Localize.ParseError` — taking the default usage of speed, volume, area, energy and pressure with them.
+
 ### Changed
 
 * The package now declares `Unicode-3.0` alongside `Apache-2.0`, and `LICENSE.md` gains a "Unicode Data" section setting out which CLDR and UCD data is embedded, what it becomes, and reproducing the Unicode copyright and permission notice as that license requires. Modules emitted by `mix localize.unit.gen_conversions` carry the same dual-license SPDX header, so a consumer running `reuse lint` over the generated file no longer needs a `.license` sidecar.

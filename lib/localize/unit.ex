@@ -1993,12 +1993,23 @@ defmodule Localize.Unit do
     with {:ok, target_atoms, format_options} <-
            Localize.Unit.Preference.preferred_units(unit, options) do
       resolved_usage = resolved_usage_string(options, unit)
-      target_strings = Enum.map(target_atoms, &Atom.to_string/1)
+      target_strings = Enum.map(target_atoms, &unit_name_string/1)
 
       with {:ok, parts} <- decompose(unit, target_strings, format_options) do
         {:ok, Enum.map(parts, &%{&1 | usage: resolved_usage})}
       end
     end
+  end
+
+  # `Localize.Unit.Preference.preferred_units/2` reports units as atoms with
+  # underscores (`:cubic_inch`), while every CLDR identifier — and so the
+  # parser — spells them with hyphens (`"cubic-inch"`). `Atom.to_string/1`
+  # alone leaves the underscores in place, which parses only for the
+  # single-word preferences (`:liter`, `:foot`) and fails for the 35 that are
+  # not, taking the default usage of speed, volume, area, energy and pressure
+  # with it.
+  defp unit_name_string(name) when is_atom(name) do
+    name |> Atom.to_string() |> String.replace("_", "-")
   end
 
   # Mirror cldr_units: stamp the resolved usage onto each decomposed child so

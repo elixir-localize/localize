@@ -90,4 +90,69 @@ defmodule Localize.Unit.LocalizeTest do
       assert single.name == "foot"
     end
   end
+
+  # `preferred_units/2` reports units as underscored atoms (`:cubic_inch`)
+  # while the parser reads hyphenated CLDR identifiers (`"cubic-inch"`), so
+  # `localize/2` has to convert between the two. Every test above uses a
+  # length unit, whose preferences are all single words and so unaffected by
+  # getting that wrong — which is how it went unnoticed.
+  describe "localize/2 with multi-word preferred units" do
+    test "a preference spelled with a hyphen resolves" do
+      {:ok, litres} = Unit.new(2, "liter")
+
+      assert {:ok, [cubic_inch]} = Unit.localize(litres, locale: "en-US")
+      assert cubic_inch.name == "cubic-inch"
+      assert_in_delta cubic_inch.value, 122.047488, 1.0e-6
+    end
+
+    test "across the categories whose default preference is multi-word" do
+      cases = [
+        {100, "kilometer-per-hour", [usage: :default, territory: :US], "mile-per-hour",
+         62.1371192},
+        {5000, "square-meter", [usage: :default, territory: :US], "acre", 1.2355269},
+        # Below a cup, so the US fluid ladder falls through to fluid ounces.
+        {0.1, "liter", [usage: :fluid, territory: :US], "fluid-ounce", 3.3814023},
+        {1000, "pascal", [usage: :default, territory: :US], "pound-force-per-square-inch",
+         0.1450377},
+        {30, "year-person", [usage: :person_age, territory: :US], "year-person", 30.0}
+      ]
+
+      for {value, name, options, expected_name, expected_value} <- cases do
+        assert {:ok, [part]} = Unit.localize(Unit.new!(value, name), options),
+               "#{value} #{name} #{inspect(options)} did not localize"
+
+        assert part.name == expected_name
+        assert_in_delta part.value, expected_value, abs(expected_value) * 1.0e-6
+      end
+    end
+
+    test "every preference CLDR ships resolves for every territory" do
+      # A sweep rather than a list: 35 of the 90 preferred units are
+      # multi-word, spread over 19 category/usage pairs, and naming them
+      # individually would go stale on the next CLDR release.
+      territories = [:US, :GB, :DE, :JP, :SE, :"001"]
+
+      failures =
+        for preference <- Localize.Unit.Data.unit_preferences(),
+            territory <- territories,
+            source = representative_unit(preference),
+            source != nil,
+            usage = String.to_atom(String.replace(preference.usage, "-", "_")),
+            result = Unit.localize(Unit.new!(2, source), usage: usage, territory: territory),
+            not match?({:ok, _units}, result),
+            do: {preference.category, preference.usage, territory, result}
+
+      assert failures == []
+    end
+  end
+
+  # A unit in the right category to exercise this preference: the first unit
+  # the preference itself names, which is convertible to the rest by
+  # construction.
+  defp representative_unit(preference) do
+    case preference.preferences do
+      [%{unit: unit} | _rest] -> unit |> String.split("-and-") |> List.first()
+      [] -> nil
+    end
+  end
 end
