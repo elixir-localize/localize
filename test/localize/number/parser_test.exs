@@ -195,6 +195,72 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
+  # ICU validates grouping positions in both of its parse modes, differing only
+  # in how strict "plausible" is: strict wants exactly the locale's grouping
+  # size, lenient wants at least two digits. Every expectation below was taken
+  # from ICU 78.3 directly rather than from the specification.
+  describe "grouping shape" do
+    test "lenient, the default, requires groups of at least two digits" do
+      assert {:ok, 1234.5} = Parser.parse("1 234,5", locale: "fr")
+      assert {:ok, 1_234_567.5} = Parser.parse("1 234 567,5", locale: "fr")
+      assert {:ok, 12_345.5} = Parser.parse("12 345,5", locale: "fr")
+      assert {:ok, 123.5} = Parser.parse("1 23,5", locale: "fr")
+
+      # A single digit after the separator is not a group in any locale, which
+      # is what stops "3 4 5" reading as 345.
+      assert {:error, _} = Parser.parse("3 4", locale: "fr")
+      assert {:error, _} = Parser.parse("1 2", locale: "fr")
+    end
+
+    test "strict requires exactly the locale's grouping size" do
+      assert {:ok, 1234.5} = Parser.parse("1 234,5", locale: "fr", lenient: false)
+      assert {:ok, 12_345.5} = Parser.parse("12 345,5", locale: "fr", lenient: false)
+
+      assert {:error, _} = Parser.parse("1 23,5", locale: "fr", lenient: false)
+      assert {:error, _} = Parser.parse("1234 567,5", locale: "fr", lenient: false)
+      assert {:error, _} = Parser.parse("1,23", locale: "en", lenient: false)
+    end
+
+    test "the grouping size comes from the locale, not a constant" do
+      # `en-IN` groups 12,34,567 — a primary run of three and a secondary of
+      # two — so the western shape is the one that fails there.
+      assert {:ok, 1_234_567} = Parser.parse("12,34,567", locale: "en-IN", lenient: false)
+      assert {:error, _} = Parser.parse("1,234,567", locale: "en-IN", lenient: false)
+
+      assert {:ok, 12_345_678} = Parser.parse("12,345,678", locale: "en", lenient: false)
+    end
+
+    test "an ungrouped number is accepted in either mode" do
+      for lenient <- [true, false] do
+        assert {:ok, 1234.5} = Parser.parse("1234,5", locale: "fr", lenient: lenient)
+        assert {:ok, 1234.5} = Parser.parse("1234.5", locale: "en", lenient: lenient)
+      end
+    end
+  end
+
+  describe "scan/2 grouping" do
+    test "finds a grouped number written with an ordinary space" do
+      # The reported case: `fr` formats with U+202F, but people type U+0020.
+      assert [1234.5] = Parser.scan("1 234,5", locale: "fr")
+      assert [1_234_567.5] = Parser.scan("1 234 567,5", locale: "fr")
+      assert [2000, " et ", 3000] = Parser.scan("2 000 et 3 000", locale: "fr")
+    end
+
+    test "does not join unrelated single-digit numbers" do
+      assert ["j'ai ", 3, " ", 4, " ", 5, " pommes"] =
+               Parser.scan("j'ai 3 4 5 pommes", locale: "fr")
+    end
+
+    test "strict declines the two-digit runs that lenient joins" do
+      # Room numbers and phone numbers are the realistic false positives, and
+      # they are what `lenient: false` exists for in a scanning context.
+      assert ["chambres ", 121_416] = Parser.scan("chambres 12 14 16", locale: "fr")
+
+      assert ["chambres ", 12, " ", 14, " ", 16] =
+               Parser.scan("chambres 12 14 16", locale: "fr", lenient: false)
+    end
+  end
+
   describe "scan/2" do
     test "scans a string with a number" do
       result = Parser.scan("The prize is 23")

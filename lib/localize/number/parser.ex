@@ -42,9 +42,35 @@ defmodule Localize.Number.Parser do
   # sign rather than a character, so there is nothing to fold them to.
   @compound_pattern ~r/\{.*?\}/u
 
+  @digits_only ~r/^[0-9]+$/
+
+  @single_space ~r/^\p{Zs}$/u
+
+  # Smallest group a lenient parse will accept after a separator. ICU's own
+  # lenient mode uses two, which is the floor that keeps "3 4 5" three numbers.
+  @lenient_group_floor 2
+
+  # {primary, secondary} for a locale whose pattern carries no grouping.
+  @default_grouping_sizes {3, 3}
+
   @doc """
   Scans a string in a locale-aware manner and returns a list
   of strings and numbers.
+
+  In a locale that groups with a space, a space between digits is
+  read as a grouping separator, which is what lets `"1 234,5"` be
+  found as one number under `fr`. The consequence is that adjacent
+  numbers separated by a space can be read as a single number when
+  each run is two digits or more — a list of room numbers or the
+  parts of a phone number among them. Pass `lenient: false` to
+  require exact grouping sizes, which reads those as separate
+  numbers again:
+
+      iex> Localize.Number.Parser.scan("chambres 12 14 16", locale: "fr")
+      ["chambres ", 121416]
+
+      iex> Localize.Number.Parser.scan("chambres 12 14 16", locale: "fr", lenient: false)
+      ["chambres ", 12, " ", 14, " ", 16]
 
   ### Arguments
 
@@ -60,6 +86,13 @@ defmodule Localize.Number.Parser do
   * `:locale` is a locale identifier. The default is `:en`.
 
   * `:number_system` is a number system name or type.
+
+  * `:lenient` governs how strictly grouping separators must be
+    positioned. `true`, the default, requires each group to be at
+    least two digits, which is ICU's lenient rule and is what keeps
+    `"3 4 5"` three numbers rather than one. `false` requires each
+    group to be exactly the locale's grouping size, so `fr` takes
+    `"1 234 567"` and refuses `"1 23"`.
 
   ### Returns
 
@@ -88,6 +121,12 @@ defmodule Localize.Number.Parser do
       scanner =
         @number_format
         |> localize_format_string(symbol, options)
+        |> group_lookahead(
+          language_tag,
+          number_system,
+          symbol,
+          Keyword.get(options, :lenient, true)
+        )
         |> Regex.compile!([:unicode])
 
       normalized_string = transliterate_digits(string, number_system)
@@ -115,6 +154,13 @@ defmodule Localize.Number.Parser do
   * `:locale` is a locale identifier. The default is `:en`.
 
   * `:number_system` is a number system name or type.
+
+  * `:lenient` governs how strictly grouping separators must be
+    positioned. `true`, the default, requires each group to be at
+    least two digits, which is ICU's lenient rule and is what keeps
+    `"3 4 5"` three numbers rather than one. `false` requires each
+    group to be exactly the locale's grouping size, so `fr` takes
+    `"1 234 567"` and refuses `"1 23"`.
 
   ### Returns
 
@@ -179,15 +225,17 @@ defmodule Localize.Number.Parser do
          {:ok, number_system} <- digits_number_system_from(language_tag, options) do
       symbol = symbols_for_number_system(symbols, number_system)
 
-      normalized_string =
-        string
-        |> transliterate_digits(number_system)
-        |> normalize_number_string(symbol, language_tag)
-        |> String.trim()
+      lenient? = Keyword.get(options, :lenient, true)
 
-      case parse_number(normalized_string, Keyword.get(options, :number)) do
-        {:error, _} -> {:error, parse_error(string)}
-        success -> bound_decimal_exponent(success, string)
+      with {:ok, normalized} <-
+             string
+             |> transliterate_digits(number_system)
+             |> normalize_number_string(symbol, language_tag, number_system, lenient?),
+           {:ok, _value} = success <-
+             normalized |> String.trim() |> parse_number(Keyword.get(options, :number)) do
+        bound_decimal_exponent(success, string)
+      else
+        _error -> {:error, parse_error(string)}
       end
     end
   end
@@ -508,7 +556,7 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  defp normalize_number_string(string, symbols, language_tag) do
+  defp normalize_number_string(string, symbols, language_tag, number_system, lenient?) do
     lenient = lenient_replacements(language_tag)
 
     # TR35 is explicit that loose matching applies "to both the input text and
@@ -520,19 +568,131 @@ defmodule Localize.Number.Parser do
     group_sep = symbols.group |> extract_separator() |> apply_lenient(lenient)
     decimal_sep = symbols.decimal |> extract_separator() |> apply_lenient(lenient)
 
-    string
-    # Elixir's own numeric literal separator, dropped before the minus fold
-    # below can introduce one of its own.
-    |> String.replace("_", "")
-    |> String.replace(@format_characters, "")
-    |> apply_lenient(lenient)
-    |> String.replace(group_sep, "")
-    |> String.replace(@spaces, "")
-    |> String.replace(decimal_sep, ".")
-    # CLDR names the minus set by the sample "_", so folding it yields that
-    # placeholder rather than a sign. Restoring it last keeps a minus from
-    # being mistaken for a separator while the separators are being removed.
-    |> String.replace("_", "-")
+    folded =
+      string
+      # Elixir's own numeric literal separator, dropped before the minus fold
+      # below can introduce one of its own.
+      |> String.replace("_", "")
+      |> String.replace(@format_characters, "")
+      |> apply_lenient(lenient)
+      |> normalize_spaces(group_sep)
+
+    with :ok <-
+           validate_grouping(
+             folded,
+             group_sep,
+             decimal_sep,
+             language_tag,
+             number_system,
+             lenient?
+           ) do
+      {:ok,
+       folded
+       |> String.replace(group_sep, "")
+       |> String.replace(@spaces, "")
+       |> String.replace(decimal_sep, ".")
+       # CLDR names the minus set by the sample "_", so folding it yields that
+       # placeholder rather than a sign. Restoring it last keeps a minus from
+       # being mistaken for a separator while the separators are being removed.
+       |> String.replace("_", "-")}
+    end
+  end
+
+  # Where the locale groups with a space, every space folds onto that separator
+  # so the grouping check below can see it. Deleting them instead — which is
+  # what makes a stray space harmless in a locale that groups with a comma —
+  # would erase the very characters whose positions are being validated.
+  defp normalize_spaces(string, group_sep) do
+    if String.match?(group_sep, @single_space) do
+      String.replace(string, @spaces, group_sep)
+    else
+      string
+    end
+  end
+
+  # ── Grouping shape ─────────────────────────────────────────────
+  #
+  # ICU validates that grouping separators sit in plausible positions, and does
+  # so in both of its modes — the two differ only in how strict "plausible" is:
+  #
+  #   * strict  — every group is exactly the locale's grouping size, so `fr`
+  #     takes "1 234 567" and refuses "1 23".
+  #
+  #   * lenient — every group is at least two digits, so "1 23" is taken but
+  #     "3 4" is not.
+  #
+  # The lenient floor of two is what keeps a space usable as a grouping
+  # separator without swallowing adjacent small numbers: "3 4 5" is three
+  # numbers in any locale, and no mode reads it as 345.
+
+  defp validate_grouping(string, group_sep, decimal_sep, language_tag, number_system, lenient?) do
+    integer_part =
+      string
+      |> String.split(decimal_sep, parts: 2)
+      |> hd()
+      |> String.replace(["_", "+"], "")
+
+    case String.split(integer_part, group_sep) do
+      # No grouping separator at all: grouping is optional in input.
+      [_ungrouped] -> :ok
+      groups -> validate_groups(groups, grouping_sizes(language_tag, number_system), lenient?)
+    end
+  end
+
+  defp validate_groups(groups, {primary, secondary}, lenient?) do
+    [leading | rest] = groups
+    {last, middle} = List.pop_at(rest, -1)
+
+    valid? =
+      cond do
+        # A group that is not all digits is not a group at all.
+        Enum.any?(groups, &(&1 == "" or not String.match?(&1, @digits_only))) -> false
+        lenient? -> Enum.all?(rest, &(String.length(&1) >= @lenient_group_floor))
+        String.length(last) != primary -> false
+        Enum.any?(middle, &(String.length(&1) != secondary)) -> false
+        true -> String.length(leading) <= secondary
+      end
+
+    if valid?, do: :ok, else: {:error, :grouping}
+  end
+
+  # The primary group is the rightmost run in the locale's standard pattern and
+  # the secondary the one before it. They differ in the Indian system —
+  # `en-IN` patterns as `#,##,##0.###`, grouping 12,34,567 — and are the same
+  # everywhere else, where a single run means the primary repeats.
+  defp grouping_sizes(language_tag, number_system) do
+    cached({:grouping_sizes, language_tag.cldr_locale_id, number_system}, fn ->
+      keys = [:number_formats, number_system, :standard]
+
+      case Localize.Locale.get(language_tag, keys, fallback: true) do
+        {:ok, pattern} -> sizes_from_pattern(pattern)
+        {:error, _reason} -> @default_grouping_sizes
+      end
+    end)
+  end
+
+  defp sizes_from_pattern(pattern) do
+    runs =
+      pattern
+      |> String.split(".")
+      |> hd()
+      |> String.split(",")
+
+    case runs do
+      [_ungrouped] ->
+        @default_grouping_sizes
+
+      runs ->
+        primary = runs |> List.last() |> String.length()
+
+        # With a single separator the leading run is the "#" wildcard rather
+        # than a group, so the primary size repeats; a second separator is what
+        # introduces a distinct secondary size, as in `en-IN`'s `#,##,##0`.
+        secondary =
+          if length(runs) >= 3, do: runs |> Enum.at(-2) |> String.length(), else: primary
+
+        {primary, secondary}
+    end
   end
 
   # The character folds CLDR's `parseLenients` data prescribes for this locale,
@@ -633,8 +793,36 @@ defmodule Localize.Number.Parser do
     decimal_sep = extract_separator(symbols.decimal)
 
     string
-    |> String.replace(",", group_sep)
+    |> String.replace(",", group_class(group_sep))
     |> String.replace("\\.", "\\" <> decimal_sep)
+  end
+
+  # What counts as a grouping separator inside the scanner's character class.
+  # Where the locale groups with a space, the whole space category counts, so a
+  # number typed with an ordinary keyboard space is found in text that a locale
+  # would format with U+202F. The grouping-shape lookahead below is what keeps
+  # that from joining unrelated numbers.
+  defp group_class(group_sep) do
+    if String.match?(group_sep, @single_space), do: "\\p{Zs}", else: group_sep
+  end
+
+  # `@number_format` admits a grouping separator whenever a digit follows. That
+  # is too permissive once the separator can be a space: it would read "3 4 5"
+  # as one number. Requiring a plausible group instead — ICU's rule, two digits
+  # leniently or an exact group size strictly — is what makes the wider class
+  # safe.
+  defp group_lookahead(pattern, language_tag, number_system, symbols, lenient?) do
+    {primary, secondary} = grouping_sizes(language_tag, number_system)
+
+    lookahead =
+      if lenient? do
+        "(?=[0-9]{#{@lenient_group_floor}})"
+      else
+        separator = symbols.group |> extract_separator() |> Regex.escape()
+        "(?=[0-9]{#{primary}}(?![0-9])|[0-9]{#{secondary}}#{separator})"
+      end
+
+    String.replace(pattern, "(?=[0-9])", lookahead)
   end
 
   defp build_per_strings(symbols) do

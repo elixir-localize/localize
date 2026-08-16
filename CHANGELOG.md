@@ -6,7 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+* **Breaking.** `Localize.Number.Parser.scan/2` now treats a space as a grouping separator in locales that group with one, so runs of digits that it previously returned separately can come back as a single number. Under `fr`, `"chambres 12 14 16"` was `["chambres ", 12, " ", 14, " ", 16]` and is now `["chambres ", 121416]`; pass `lenient: false` to require exact grouping sizes and get the old result. This is what lets `"1 234,5"` be found as one number, which is the point of the change.
+
+* **Breaking.** `Localize.Number.parse/2` and `scan/2` validate that grouping separators sit in plausible positions, matching ICU, so input that was previously accepted can now fail. Under `fr`, `parse("3 4")` was `{:ok, 34}` and is now an error, because a single digit is not a group in any locale.
+
+* `Localize.Number.parse/2` and `Localize.Number.Parser.scan/2` take a `:lenient` option governing that validation. `true`, the default, requires each group to be at least two digits, which is ICU's lenient rule; `false` requires exactly the locale's grouping size — three for most locales, and the 3-then-2 of `en-IN`.
+
 ### Fixed
+
+* `Localize.Number.Parser.scan/2` finds a grouped number written with an ordinary keyboard space in a locale that formats with U+202F. Under `fr`, `scan("1 234,5")` was `[1, " ", 234.5]` and is now `[1234.5]`.
 
 * `Localize.Number.parse/2` treats every character in `[:Zs:]` as a grouping space, per TR35's loose matching for lenient parsing. It previously accepted only U+0020 and the locale's own separator, so a `fr` number carrying U+00A0 or U+2009 — as copied out of formatted output — failed to parse.
 
