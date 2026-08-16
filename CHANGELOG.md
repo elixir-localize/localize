@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.parse/2` ignores every character in `[:Cf:]`, per the same passage's instruction to ignore format characters, "in particular ... any RLM, LRM or ALM used to control BIDI formatting". CLDR writes the minus sign of `ar`, `he`, `fa` and 16 other locales as a BIDI mark followed by the sign, so a negative number copied out of that text previously failed to parse.
 
+* `Localize.Number.parse/2` applies CLDR's `parseLenients` character folds, which were generated into the locale data but never read. The minus, plus, comma and full-stop families now fold to their canonical form, so the 18 locales writing `minusSign` as U+2212 — `fa`, `fi`, `sv` and `no` among them — parse their own negative numbers back. Per TR35 the fold applies to the locale's own separators as well as the input, which is what lets `de-CH` accept both spellings of its apostrophe group separator.
+
 ## [1.1.1] — August 16th, 2026
 
 ### Fixed

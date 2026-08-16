@@ -38,6 +38,10 @@ defmodule Localize.Number.Parser do
   # matched by `resolve_per/2` against the raw string, not through here.
   @format_characters ~r/\p{Cf}/u
 
+  # `{Rs}` and friends in CLDR's general lenient sets name a script's currency
+  # sign rather than a character, so there is nothing to fold them to.
+  @compound_pattern ~r/\{.*?\}/u
+
   @doc """
   Scans a string in a locale-aware manner and returns a list
   of strings and numbers.
@@ -178,7 +182,7 @@ defmodule Localize.Number.Parser do
       normalized_string =
         string
         |> transliterate_digits(number_system)
-        |> normalize_number_string(symbol)
+        |> normalize_number_string(symbol, language_tag)
         |> String.trim()
 
       case parse_number(normalized_string, Keyword.get(options, :number)) do
@@ -504,16 +508,87 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  defp normalize_number_string(string, symbols) do
-    group_sep = extract_separator(symbols.group)
-    decimal_sep = extract_separator(symbols.decimal)
+  defp normalize_number_string(string, symbols, language_tag) do
+    lenient = lenient_replacements(language_tag)
+
+    # TR35 is explicit that loose matching applies "to both the input text and
+    # to each of the field elements used in matching". Folding only the input
+    # would break the locales whose own separator is one of the characters
+    # being folded: `de-CH` groups with an ASCII apostrophe, which the general
+    # scope maps onto U+2019, and `ar`'s `arab` decimal separator U+066B is in
+    # the comma set. Folding both sides keeps them matching each other.
+    group_sep = symbols.group |> extract_separator() |> apply_lenient(lenient)
+    decimal_sep = symbols.decimal |> extract_separator() |> apply_lenient(lenient)
 
     string
+    # Elixir's own numeric literal separator, dropped before the minus fold
+    # below can introduce one of its own.
     |> String.replace("_", "")
     |> String.replace(@format_characters, "")
+    |> apply_lenient(lenient)
     |> String.replace(group_sep, "")
     |> String.replace(@spaces, "")
     |> String.replace(decimal_sep, ".")
+    # CLDR names the minus set by the sample "_", so folding it yields that
+    # placeholder rather than a sign. Restoring it last keeps a minus from
+    # being mistaken for a separator while the separators are being removed.
+    |> String.replace("_", "-")
+  end
+
+  # The character folds CLDR's `parseLenients` data prescribes for this locale,
+  # as {compiled pattern, replacement} pairs. The number scope covers the
+  # minus, plus and comma families; the general scope adds the full stop, the
+  # apostrophe and the currency symbols.
+  #
+  # Compiled once per locale and memoized. Assembling this walks a dozen set
+  # strings, which costs an order of magnitude more than the parse it serves,
+  # and the compiled patterns then match without rescanning per character.
+  defp lenient_replacements(language_tag) do
+    cached({:lenient_parse, language_tag.cldr_locale_id}, fn ->
+      for scope <- [:number, :general],
+          {:ok, sets} <-
+            [Localize.Locale.get(language_tag, [:lenient_parse, scope], fallback: true)],
+          {sample, set} <- sets,
+          characters = lenient_characters(set),
+          characters != [],
+          do: {:binary.compile_pattern(characters), sample}
+    end)
+  end
+
+  defp apply_lenient(string, replacements) do
+    Enum.reduce(replacements, string, fn {pattern, replacement}, acc ->
+      String.replace(acc, pattern, replacement)
+    end)
+  end
+
+  @compile {:inline, cached: 2}
+  defp cached(key, build_fn) do
+    pt_key = {__MODULE__, key}
+
+    case :persistent_term.get(pt_key, :__not_loaded__) do
+      :__not_loaded__ ->
+        value = build_fn.()
+        :persistent_term.put(pt_key, value)
+        value
+
+      value ->
+        value
+    end
+  end
+
+  # The sets are flat character lists — no ranges, and the one literal hyphen is
+  # backslash-escaped precisely so it is not read as one — so they need
+  # unwrapping rather than a UnicodeSet parser. The general scope does carry a
+  # few `{Rs}`-style compound patterns, which name no single character and are
+  # dropped rather than split into their letters.
+  defp lenient_characters(set) do
+    set
+    |> String.replace(@compound_pattern, "")
+    |> String.trim_leading("[")
+    |> String.trim_trailing("]")
+    |> String.replace("\\", "")
+    |> String.graphemes()
+    |> Enum.reject(&(String.trim(&1) == ""))
   end
 
   defp extract_separator(%{standard: value}), do: value

@@ -134,6 +134,67 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
+  # CLDR ships `parseLenients` data naming the characters a lenient parse should
+  # treat as equivalent. It was generated into the locale data but never read,
+  # so none of it applied.
+  describe "parse/2 with lenient character folding" do
+    test "a locale's own minus sign round-trips" do
+      # 18 locales write minusSign as U+2212 MINUS SIGN rather than the ASCII
+      # hyphen, so their own formatted output did not parse back.
+      minus = <<0x2212::utf8>>
+
+      assert {:ok, -1234.5} = Parser.parse("#{minus}1234,5", locale: "fi")
+      assert {:ok, -1234.5} = Parser.parse("#{minus}1234,5", locale: "sv")
+      assert {:ok, -1234.5} = Parser.parse("#{minus}1234.5", locale: "fa")
+    end
+
+    test "minus and plus variants fold to the ASCII signs" do
+      for codepoint <- [0x2212, 0x2010, 0xFF0D, 0x207B, 0x2796] do
+        assert {:ok, -1234.5} = Parser.parse("#{<<codepoint::utf8>>}1234.5", locale: "en"),
+               "U+#{Integer.to_string(codepoint, 16)} did not fold to minus"
+      end
+
+      for codepoint <- [0xFF0B, 0xFE62, 0x207A, 0x2795] do
+        assert {:ok, 1234.5} = Parser.parse("#{<<codepoint::utf8>>}1234.5", locale: "en"),
+               "U+#{Integer.to_string(codepoint, 16)} did not fold to plus"
+      end
+    end
+
+    test "comma and full stop variants fold to the separators" do
+      assert {:ok, 1234.5} = Parser.parse("1#{<<0xFF0C::utf8>>}234.5", locale: "en")
+      assert {:ok, 1234.5} = Parser.parse("1234#{<<0xFF0E::utf8>>}5", locale: "en")
+    end
+
+    test "the folding applies to the locale's separators too, not only the input" do
+      # `de-CH` groups with an ASCII apostrophe, which the general scope folds
+      # onto U+2019. Folding only the input would leave the separator unmatched
+      # and break a locale that parsed correctly before.
+      assert {:ok, 1234.5} = Parser.parse("1'234.5", locale: "de-CH")
+      assert {:ok, 1234.5} = Parser.parse("1#{<<0x2019::utf8>>}234.5", locale: "de-CH")
+
+      # `ar`'s arab decimal separator U+066B is itself in the comma set.
+      digits = <<0x661::utf8>> <> <<0x66C::utf8>> <> <<0x662::utf8>>
+      digits = digits <> <<0x663::utf8>> <> <<0x664::utf8>> <> <<0x66B::utf8>> <> <<0x665::utf8>>
+
+      assert {:ok, 1234.5} = Parser.parse(digits, locale: "ar", number_system: :arab)
+    end
+
+    test "the sets are locale-specific" do
+      # `en` folds U+2013 EN DASH onto minus; `de` does not.
+      dash = <<0x2013::utf8>>
+
+      assert {:ok, -1234.5} = Parser.parse("#{dash}1234.5", locale: "en")
+      assert {:error, _} = Parser.parse("#{dash}1234,5", locale: "de")
+    end
+
+    test "Elixir's numeric literal separator still works" do
+      # The minus fold uses "_" as its placeholder, so a literal "_" in the
+      # input has to be dealt with before the fold rather than after.
+      assert {:ok, -1_000_000.34} = Parser.parse("-1_000_000.34")
+      assert {:ok, 1_000_000} = Parser.parse("1_000_000")
+    end
+  end
+
   describe "scan/2" do
     test "scans a string with a number" do
       result = Parser.scan("The prize is 23")
