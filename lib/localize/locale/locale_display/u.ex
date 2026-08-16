@@ -323,7 +323,10 @@ defmodule Localize.Locale.LocaleDisplay.U do
   # 4. Format using the locale's regionFormat pattern
   #    (e.g., "{0} Time").
   defp get_timezone_display_name(iana_id, locale_id) when is_binary(iana_id) do
-    case Localize.Locale.get(locale_id, [:dates, :time_zone_names]) do
+    # Every locale the pipeline generates carries its own `time_zone_names`, so
+    # the parent walk costs nothing today; it is here so a locale that ever
+    # lacks the key inherits one rather than losing timezone names entirely.
+    case Localize.Locale.get(locale_id, [:dates, :time_zone_names], fallback: true) do
       {:ok, tz_data} ->
         region_format = get_in(tz_data, [:region_format, :generic])
         territory = Map.get(Timezone.territories_by_timezone(), iana_id)
