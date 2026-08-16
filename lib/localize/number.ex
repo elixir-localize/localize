@@ -1189,6 +1189,13 @@ defmodule Localize.Number do
 
   * `:number_system` is a number system name or type.
 
+  * `:lenient` governs how strictly grouping separators must be
+    positioned. `true`, the default, requires each group to be at
+    least two digits, which is ICU's lenient rule and is what keeps
+    `"3 4 5"` three numbers rather than one. `false` requires each
+    group to be exactly the locale's grouping size, so `fr` takes
+    `"1 234 567"` and refuses `"1 23"`.
+
   ### Returns
 
   * A list with percent/permille strings replaced by `:percent`
@@ -1222,6 +1229,13 @@ defmodule Localize.Number do
     returned by `Localize.get_locale/0`.
 
   * `:number_system` is a number system name or type.
+
+  * `:lenient` governs how strictly grouping separators must be
+    positioned. `true`, the default, requires each group to be at
+    least two digits, which is ICU's lenient rule and is what keeps
+    `"3 4 5"` three numbers rather than one. `false` requires each
+    group to be exactly the locale's grouping size, so `fr` takes
+    `"1 234 567"` and refuses `"1 23"`.
 
   ### Returns
 
