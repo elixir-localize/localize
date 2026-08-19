@@ -1,0 +1,192 @@
+# Introducing Localize
+
+```elixir
+Mix.install([
+  {:localize, "~> 1.0"},
+  {:calendrical, "~> 1.0"}
+])
+```
+
+## Localize 1.0
+
+<!-- slide: logo https://raw.githubusercontent.com/elixir-localize/localize/refs/heads/main/logo.png -->
+
+<!-- slide: author Kip Cole -->
+
+<!-- slide: byline Author of localize, elixir Unicode, Image, Text, ... -->
+
+<!-- slide: event Sydney Elixir Meetup -->
+
+<!-- slide: date 19 August 2026 -->
+
+* Built on over 10 years of ex_cldr (May 2016, 1,970 commits)
+* Third major release
+  * The very forgettable 1.x chain
+  * The not too bad 2.x release chain of the last few years
+  * The significantly improved 3.x, known as Localize
+
+## Localize compared to ex_cldr
+
+* No "backend" architecture
+* Faster. Often a lot faster.
+* Simplified packaging, `Localize`and `Calendrical` replace almost all of the more than 20 `ex_cldr` libraries
+* More consistent API naming of functions and arguments
+* Better and more complete documentation including guides
+* Conforms more closely to TR35
+* Includes a full Elixir-native Localized collation
+* Includes Message Format 2 (MF2) formatting
+* Straight forward migration (according to adopters)
+
+## Performance Comparison
+
+| Area                    | Headline                                                     | Localize advantage            |
+| ----------------------- | ------------------------------------------------------------ | ----------------------------- |
+| Compile (per-project)   | Bench.Cldr backend recompile vs Localize touch-and-recompile | **~7× faster** (7 s → 1 s) |
+| Number formatting       | Integers, decimals, percent, grouped                         | **~2.5–3.8×**              |
+| Currency formatting     | USD in `:en`, `:de`, `:ja`                                   | **~1.8–3.7×**              |
+| Date formatting         | Short / medium / long in 3 locales                           | **~2.2–3.1×**              |
+| **Time formatting**     | Short / medium in 3 locales                                  | **~15–19×**                |
+| **DateTime formatting** | Short / medium / long in 3 locales                           | **~7.4–9.5×**              |
+| Unit formatting (long)  | length, mass, temperature                                    | **~1.9–2.7×**              |
+| Unit formatting (short) | length, mass, temperature                                    | **~1.8–2.6×**              |
+| Memory per call         | Numbers                                                      | **~3–4×** less             |
+| Memory per call         | Time / DateTime                                              | **~7–10×** less            |
+
+## Localization considered an extended data type
+
+| Type | Formatting | Parsing | Ordering | HTML input | Serialization |
+| ---- | ---------- | ------- | -------- | ---------- | ------------- |
+
+## Elixir's types
+
+| Type            | Formatting | Parsing     | Ordering     | HTML input            | Serialization |
+| --------------- | ---------- | ----------- | ------------ | --------------------- | ------------- |
+| `Integer`       | Localize   | Localize    | `Enum.sort`  | `<.number_input>`     | Ecto          |
+| `Float`         | Localize   | Localize    | `Enum.sort`  | `<.number_input>`     | Ecto          |
+| `Decimal`       | Localize   | Localize    | `Enum.sort`  | `<.number_input>`     | Ecto          |
+| `String`        | —        | —         | **Localize** | —                   | Ecto          |
+| `Date`          | Localize   | Calendrical | `Enum.sort`  | `<.date_input>`       | Ecto          |
+| `Time`          | Localize   | Calendrical | `Enum.sort`  | —                   | Ecto          |
+| `DateTime`      | Localize   | Calendrical | `Enum.sort`  | —                   | Ecto          |
+| `NaiveDateTime` | Localize   | Calendrical | `Enum.sort`  | —                   | Ecto          |
+| `Duration`      | Localize   | —         | `Enum.sort`  | —                   | Localize      |
+| `Date.Range`    | Localize   | Calendrical | `Enum.sort`  | `<.date_range_input>` | Localize      |
+| `Range`         | Localize   | —         | `Enum.sort`  | —                   | Localize      |
+| `List`          | Localize   | —         | `Enum.sort`  | —                   | Ecto          |
+
+## Localize's types
+
+| Type                   | Formatting | Parsing  | Ordering     | HTML input           | Serialization |
+| ---------------------- | ---------- | -------- | ------------ | -------------------- | ------------- |
+| `Localize.LanguageTag` | Localize   | Localize | `Enum.sort`  | —                  | Localize      |
+| `Localize.Currency`    | Localize   | Localize | `Enum.sort`  | `<.currency_picker>` | Localize      |
+| `Money`                | Localize   | Localize | `Enum.sort`  | `<.money_input>`     | Localize      |
+| `Localize.Unit`        | Localize   | Localize | `Enum.sort`  | `<.unit_input>`      | Localize      |
+| `Localize.Duration`    | Localize   | —      | `Enum.sort`  | —                  | Localize      |
+| `Localize.Territory`   | Localize   | Localize | `Enum.sort`  | —                  | Localize      |
+| `Localize.Script`      | Localize   | Localize | `Enum.sort`  | —                  | Localize      |
+| `Localize.Address`     | Localize   | Localize | **Localize** | —                  | Localize      |
+| `Localize.PhoneNumber` | Localize   | Localize | `Enum.sort`  | —                  | Localize      |
+| `Localize.PersonName`  | Localize   | —      | **Localize** | —                  | Localize      |
+| MF2 message            | Localize   | —      | —          | MF2 editor           | Gettext       |
+
+## Localize Libraries
+
+Each library adds types, operations, or both. They share the locale resolution, CLDR data and configuration of Localize itself, so a locale set once applies across all of them.
+
+* [localize](https://hexdocs.pm/localize) — the core: number, date, time, unit, list and interval formatting; number and unit parsing; collation; plural rules; RBNF; display names for territories, languages, scripts and currencies; and MessageFormat 2.
+
+* [calendrical](https://hexdocs.pm/calendrical) — CLDR calendars beyond the ISO one, and locale-aware parsing of dates, times, datetimes and date ranges.
+
+* [localize_web](https://hexdocs.pm/localize_web) — the Phoenix layer: plugs that resolve the locale from the request, localized routes, and HTML helpers. It is what puts the right locale in `Localize.get_locale/0` for the duration of a request, so everything above formats correctly without being passed a locale explicitly.
+
+* [ex_money](https://hexdocs.pm/ex_money) and [ex_money_sql](https://hexdocs.pm/ex_money_sql) — the `Money` type, its arithmetic and formatting, and its database storage with tag-guarded aggregates.
+
+* [localize_sql](https://hexdocs.pm/localize_sql) — Ecto types for the whole set, the tagged-decimal aggregate machinery that `ex_money_sql` builds on, and locale-aware `COLLATE` for queries on PostgreSQL and SQLite.
+
+* [localize_translate](https://github.com/elixir-localize/localize_translate) - embeds translations directly into Ecto schemas, storing all of a record's translations
+
+* [localize_address](https://hexdocs.pm/localize_address) — postal addresses: parsing unstructured input, and formatting per each territory's conventions.
+
+* [localize_phone_number](https://hexdocs.pm/localize_phone_number) — phone numbers: parsing, validation and formatting via libphonenumber.
+
+* [localize_person_names](https://hexdocs.pm/localize_person_names) — person names formatted to CLDR's per-locale ordering, and its handling of given, surname and honorific order.
+
+* [intl](https://github.com/elixir-localize/intl) - a thin shim over `localize` that mirrors the JavaScript [Intl](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl) API
+
+* [unity](https://github.com/elixir-localize/unity) - A unit conversion calculator inspired by the Unix `units` utility, usable as a library, an escript, or an interactive REPL.
+
+## Form input
+
+Formatting and parsing assume the value has already reached the server. Getting it there is its own problem: a plain `<input type="number">` rejects `1.234,56` from a German user, and a native date picker offers no Buddhist or Persian calendar. These libraries close that gap with Phoenix LiveView components that format as the user types and submit something the server can parse.
+
+They are the newest part of the family and still `0.1.x` — the APIs may move, and coverage is partial. The [inputs playground](https://localize-inputs-playground.fly.dev) demonstrates the components live against any locale.
+
+* [localize_inputs_core](https://hexdocs.pm/localize_inputs_core) — the shared base the input libraries build on: common exception types, Gettext backend, CSS variable tokens and JS bootstrap helpers.
+
+* [localize_number_inputs](https://hexdocs.pm/localize_number_inputs) — `<.number_input>` for decimals and integers, and `<.unit_input>` with a `<.unit_picker>` for a number paired with a unit of measure. Live formatting is AutoNumeric-backed.
+
+* [localize_datetime_inputs](https://hexdocs.pm/localize_datetime_inputs) — `<.date_input>`, `<.date_range_input>`, `<.date_range_picker>` and a `DatePickerLive` component, built on Calendrical so the picker works in Gregorian, Buddhist, Japanese imperial, Islamic, Persian, Hebrew and ROC calendars.
+
+* [ex_money_input](https://hexdocs.pm/ex_money_input) — `<.money_input>` and `<.currency_picker>`, with an Ecto changeset bridge so the submitted value casts straight into a `Money` field.
+
+## Authoring MF2 messages
+
+An MF2 message is written rather than entered, so its "input" is an editor rather than a form control.
+
+* [mf2_treesitter](https://github.com/elixir-localize/mf2_treesitter) — the tree-sitter grammar for MessageFormat 2, which gives incremental parsing and error recovery suitable for an editor.
+
+* [mf2_wasm_editor](https://hexdocs.pm/mf2_wasm_editor) — that grammar compiled to WASM with a LiveView hook, so an MF2 textarea highlights syntax in the browser with no round trip per keystroke.
+
+## BEAM Language Bindings
+
+* Lua - [localize_lua](https://github.com/elixir-localize/localize_lua)
+
+* Lisp-flavoured Erlang - [localize_lfe](https://github.com/elixir-localize/localize_lfe)
+
+* Erlang - [localize_erl](https://github.com/elixir-localize/localize_erl)
+
+* Gleam - [localize_gleam](https://github.com/elixir-localize/localize_gleam)
+
+## Agent Support
+
+* Claude Code skill - The [localize](https://github.com/elixir-localize/localize) repository ships a [Claude Code skill](https://github.com/elixir-localize/localize/blob/main/skills/localize/SKILL.md) that teaches Claude the library's APIs and localization-first patterns — plural-correct messages instead of string interpolation, locale-aware formatting instead of `Calendar.strftime/3`, collation instead of raw `Enum.sort/1` — with every example execution-verified against the library.
+
+* [localize_mcp](https://github.com/elixir-localize/localize_mcp) - A Model Context Protocol (MCP) server that exposes the Localize API surface to AI agents — Claude Code, Claude Desktop, Codex, Zed, and any other MCP host.
+
+## Playgrounds
+
+* [Localize Playground](https://playground.elixir-localize.com) - A standalone deployment for trying the behaviour of most `Localize` languaage tag, formatting, collation capabilities
+
+* [Localize Inputs Playground](https://github.com/elixir-localize/localize_inputs_playground) - A standalone deployment wrapper that demonstrates the input components across every CLDR locale
+
+* [Localize Pad](https://pad.elixir-localize.com) - A [soulver](https://soulver.app)-style interactive notepad calulator.
+
+## Future topics we *could* cover if interested
+
+* Messaging, translation and why standard Gettext message formats aren't good enough
+
+* Collation for fun - an introduction to the Unicode Collation Algorithm and how it works in Localize, Postgres and SQLite
+
+* Custom locale provider modules - different deployment models, and how to override CLDR data if you absolutely must
+
+## Upcoming
+
+* CLDR 49, in October
+
+* Localize Inflection
+
+  * With support of 35 languages
+  * Integration with `Localize.Message`
+
+* Message workbench
+
+  * Pluggable backend storage and access for Gettext (prototype completed)
+  * Collaborative translation workbench (live translation)
+
+* Unicode 18
+
+  * Refresh of the `unicode_*` libraries, integration already complete
+  * Includes [unicode link detection and formatting](https://www.unicode.org/reports/tr58/)
+
+* Image 1.0, probably in October
