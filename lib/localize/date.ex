@@ -472,4 +472,59 @@ defmodule Localize.Date do
   # ── Locale resolution ──────────────────────────────────────
 
   defp resolve_locale_id(locale), do: Localize.Locale.cldr_locale_id_from(locale)
+
+  @doc """
+  Parses a localized date string.
+
+  Parsing lives in the companion [calendrical](https://hex.pm/packages/calendrical)
+  package, which carries the calendar systems Localize formats for.
+  `calendrical` depends on Localize, so Localize resolves it at runtime rather
+  than depending on it in return — add `{:calendrical, "~> 1.0"}` to your
+  dependencies to use this function.
+
+  ### Arguments
+
+  * `string` is a string in any shape the locale accepts, including the
+    locale's CLDR short, medium, long and full patterns and ISO 8601.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier. The default is the locale returned by
+    `Localize.get_locale/0`.
+
+  * Remaining options are passed to `Calendrical.Date.parse/2`, which
+    documents them.
+
+  ### Returns
+
+  * `{:ok, value}` where `value` is a `t:Date.t()` , or
+
+  * `{:error, exception}` if the string does not parse, or a
+    `t:Localize.DependencyRequiredError.t/0` if `calendrical` is not among
+    the application's dependencies.
+
+  ### Examples
+
+  Shown rather than run as doctests: `calendrical` is not a dependency of
+  Localize itself, so the call does not resolve in this package's own tests.
+
+      Localize.Date.parse("22.03.2026", locale: :de)
+      #=> {:ok, ~D[2026-03-22]}
+
+      Localize.Date.parse("March 22, 2026", locale: :en)
+      #=> {:ok, ~D[2026-03-22]}
+
+  """
+  @spec parse(String.t(), Keyword.t()) :: {:ok, Date.t()} | {:error, Exception.t()}
+  def parse(string, options \\ []) when is_binary(string) do
+    Localize.OptionalDependency.call(
+      "Calendrical.Date",
+      :parse,
+      [string, options],
+      package: "calendrical",
+      operation: "Localize.Date.parse/2"
+    )
+  end
 end

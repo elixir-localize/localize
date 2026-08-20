@@ -215,6 +215,18 @@ defmodule Localize.Nif do
   An integer: `-1` (less than), `0` (equal), or `1` (greater than).
 
   """
+  @spec nif_collation_cmp(
+          binary(),
+          binary(),
+          integer(),
+          integer(),
+          integer(),
+          integer(),
+          integer(),
+          integer(),
+          integer(),
+          binary()
+        ) :: -1 | 0 | 1
   @dialyzer {:no_return, nif_collation_cmp: 10}
   # The arity mirrors the C NIF signature one-to-one; collapsing the
   # collation options into a map would add per-call marshalling on a

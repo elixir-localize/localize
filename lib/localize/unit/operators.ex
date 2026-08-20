@@ -68,6 +68,7 @@ defmodule Localize.Unit.Operators do
   through to `Kernel.+/2`.
 
   """
+  @spec unquote(:+)(Unit.t() | number(), Unit.t() | number()) :: Unit.t() | number()
   def unquote(:+)(%Unit{} = left, %Unit{} = right) do
     unwrap!(Unit.Math.add(left, right))
   end
@@ -84,6 +85,7 @@ defmodule Localize.Unit.Operators do
   through to `Kernel.-/2`.
 
   """
+  @spec unquote(:-)(Unit.t() | number(), Unit.t() | number()) :: Unit.t() | number()
   def unquote(:-)(%Unit{} = left, %Unit{} = right) do
     unwrap!(Unit.Math.sub(left, right))
   end
@@ -101,6 +103,7 @@ defmodule Localize.Unit.Operators do
   `Kernel.*/2`.
 
   """
+  @spec unquote(:*)(Unit.t() | number(), Unit.t() | number()) :: Unit.t() | number()
   def unquote(:*)(%Unit{} = left, %Unit{} = right) do
     unwrap!(Unit.Math.mult(left, right))
   end
@@ -128,6 +131,7 @@ defmodule Localize.Unit.Operators do
   `Kernel.//2`.
 
   """
+  @spec unquote(:/)(Unit.t() | number(), Unit.t() | number()) :: Unit.t() | number()
   def unquote(:/)(%Unit{} = left, %Unit{} = right) do
     unwrap!(Unit.Math.div(left, right))
   end

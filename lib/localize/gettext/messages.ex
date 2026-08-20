@@ -17,6 +17,13 @@ defmodule Localize.Gettext.Messages do
   def __messages__ do
     [
       # Currency
+      # Dependencies
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "datetime",
+        "{$operation} requires the {$package} package, which is not among your dependencies."
+      ),
       Gettext.Macros.dpgettext_noop_with_backend(
         Localize.Gettext,
         "localize",
