@@ -85,6 +85,18 @@ defmodule Localize.Number.Format.Options do
 
   defstruct @options
 
+  # Keys that are not Number's own but legitimately arrive here. A list of
+  # units formats its elements by forwarding whatever options it was given
+  # minus its own, so a sibling's option reaches this function even though it
+  # means nothing to it. Tolerated rather than rejected because the forwarding
+  # is deliberately open — see `Localize.List`.
+  @forwarded_options [:style, :prefer]
+
+  @accepted_options MapSet.new(@options ++ @forwarded_options)
+
+  @doc false
+  def accepted_options, do: @accepted_options
+
   @type t :: %__MODULE__{}
 
   @currency_indicator "¤"
@@ -164,7 +176,8 @@ defmodule Localize.Number.Format.Options do
     number_system = Keyword.get(options, :number_system, :default)
     rounding_mode = Keyword.get(options, :rounding_mode, :half_even)
 
-    with {:ok, language_tag} <- Localize.validate_locale(locale),
+    with {:ok, _options} <- Localize.Options.validate_keys(options, @accepted_options),
+         {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, system_name} <- resolve_number_system(language_tag, number_system),
          {:ok, currency_struct} <- resolve_currency(format, currency, language_tag),
          format <-

@@ -25,6 +25,21 @@ defmodule Localize.Date do
   defguardp has_date_field(date)
             when is_map_key(date, :year) or is_map_key(date, :month) or is_map_key(date, :day)
 
+  # Options this function accepts. An unrecognised key is a typo, and ignoring
+  # it silently turns the typo into a wrong-looking result.
+  @accepted_options MapSet.new([
+                      :format,
+                      :locale,
+                      :number_system,
+                      :prefer,
+                      :number_system_overrides,
+                      :calendar,
+                      :era
+                    ])
+
+  @doc false
+  def accepted_options, do: @accepted_options
+
   @doc """
   Formats a date according to a CLDR format pattern.
 
@@ -81,7 +96,8 @@ defmodule Localize.Date do
   """
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(date, options \\ []) do
-    with {:ok, pattern, locale_id, formatter_options} <- formatting_plan(date, options) do
+    with {:ok, options} <- Localize.Options.validate_keys(options, @accepted_options),
+         {:ok, pattern, locale_id, formatter_options} <- formatting_plan(date, options) do
       Localize.DateTime.Formatter.format(date, pattern, locale_id, formatter_options)
     end
   end

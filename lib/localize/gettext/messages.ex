@@ -17,6 +17,19 @@ defmodule Localize.Gettext.Messages do
   def __messages__ do
     [
       # Currency
+      # Options
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "{$option} is not a known option"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "{$option} is not a known option. Did you mean {$suggestion}?"
+      ),
       # Dependencies
       Gettext.Macros.dpgettext_noop_with_backend(
         Localize.Gettext,

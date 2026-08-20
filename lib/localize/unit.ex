@@ -69,6 +69,36 @@ defmodule Localize.Unit do
     end
   end
 
+  # Options `to_string/2` accepts: its own, plus the number-formatting options
+  # it forwards to `Localize.Number` and the list options it forwards when
+  # given a list of units. Other functions in this module take different
+  # options and declare their own sets.
+  @to_string_options MapSet.new([
+                       :locale,
+                       :style,
+                       :format,
+                       :grammatical_case,
+                       :grammatical_gender,
+                       :list_options,
+                       :usage,
+                       :humanize,
+                       :prefer,
+                       :fractional_digits,
+                       :min_fractional_digits,
+                       :max_fractional_digits,
+                       :minimum_significant_digits,
+                       :maximum_significant_digits,
+                       :round_nearest,
+                       :rounding_mode,
+                       :currency,
+                       :per,
+                       :system,
+                       :backend
+                     ])
+
+  @doc false
+  def accepted_options, do: @to_string_options
+
   @doc """
   Creates a new unit with a value and a CLDR unit identifier string.
 
@@ -1363,11 +1393,14 @@ defmodule Localize.Unit do
   def to_string(unit_or_units, options \\ [])
 
   def to_string([%__MODULE__{} | _] = units, options) do
-    format_unit_list(units, options)
+    with {:ok, options} <- Localize.Options.validate_keys(options, @to_string_options) do
+      format_unit_list(units, options)
+    end
   end
 
   def to_string(%__MODULE__{} = unit, options) do
-    with {:ok, unit, options} <- maybe_humanize(unit, options) do
+    with {:ok, options} <- Localize.Options.validate_keys(options, @to_string_options),
+         {:ok, unit, options} <- maybe_humanize(unit, options) do
       format_single_unit(unit, options)
     end
   end

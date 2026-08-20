@@ -28,6 +28,24 @@ defmodule Localize.DateTime do
   @default_format :medium
   @standard_formats [:short, :medium, :long, :full]
 
+  # Options this function accepts. An unrecognised key is a typo, and ignoring
+  # it silently turns the typo into a wrong-looking result.
+  @accepted_options MapSet.new([
+                      :format,
+                      :locale,
+                      :number_system,
+                      :prefer,
+                      :number_system_overrides,
+                      :style,
+                      :date_format,
+                      :time_format,
+                      :calendar,
+                      :era
+                    ])
+
+  @doc false
+  def accepted_options, do: @accepted_options
+
   @doc """
   Formats a datetime according to a CLDR format pattern.
 
@@ -92,7 +110,9 @@ defmodule Localize.DateTime do
   """
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(datetime, options \\ []) do
-    do_format(datetime, options, :string)
+    with {:ok, options} <- Localize.Options.validate_keys(options, @accepted_options) do
+      do_format(datetime, options, :string)
+    end
   end
 
   # Full datetime: year, month, day, hour, minute, second all present.
@@ -304,8 +324,12 @@ defmodule Localize.DateTime do
       datetime
       |> Map.take([:hour, :minute, :second, :microsecond, :calendar])
 
-    date_options = Keyword.put(options, :format, date_format)
-    time_options = Keyword.put(options, :format, time_format)
+    # `:date_format`, `:time_format` and `:style` are this function's own; the
+    # component formatters do not know them and should not have to tolerate
+    # them just because they are composed from here.
+    forwardable = Keyword.drop(options, [:date_format, :time_format, :style])
+    date_options = Keyword.put(forwardable, :format, date_format)
+    time_options = Keyword.put(forwardable, :format, time_format)
 
     with {:ok, locale_id} <- resolve_locale_id(locale) do
       wrapper = fallback_wrapper(wrapper_level, locale_id)

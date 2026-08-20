@@ -349,8 +349,13 @@ defmodule Localize.Interval do
   # precedence applied in `format_time_interval/3`.
   defp single_time_options(options) do
     case Keyword.get(options, :time_format) do
-      nil -> options
-      time_format -> Keyword.put(options, :format, time_format)
+      nil ->
+        options
+
+      time_format ->
+        # Consume it: `:time_format` is this module's selector, and the time
+        # formatter it is forwarded to does not know the key.
+        options |> Keyword.delete(:time_format) |> Keyword.put(:format, time_format)
     end
   end
 
@@ -618,8 +623,10 @@ defmodule Localize.Interval do
          {right_module, to, to_options},
          fallback
        ) do
-    with {:ok, left_str} <- left_module.to_string(from, from_options),
-         {:ok, right_str} <- right_module.to_string(to, to_options) do
+    with {:ok, left_str} <-
+           left_module.to_string(from, component_options(from_options, left_module)),
+         {:ok, right_str} <-
+           right_module.to_string(to, component_options(to_options, right_module)) do
       result =
         [left_str, right_str]
         |> Localize.Substitution.substitute(fallback)
@@ -648,7 +655,8 @@ defmodule Localize.Interval do
 
   # The equal-endpoints fallback: a single formatted value, tagged
   # `:shared` throughout in parts mode.
-  defp format_single(:string, module, value, options), do: module.to_string(value, options)
+  defp format_single(:string, module, value, options),
+    do: module.to_string(value, component_options(options, module))
 
   defp format_single(:parts, module, value, options) do
     with {:ok, parts} <- module.to_parts(value, options) do
@@ -670,12 +678,25 @@ defmodule Localize.Interval do
     end
   end
 
+  # `:date_format` and `:time_format` are this module's axis selectors, and are
+  # meaningful to `Localize.DateTime` but not to the single-axis formatters.
+  # Drop whatever the target does not accept rather than making it tolerate a
+  # key it has no use for.
+  defp component_options(options, module) do
+    Enum.filter(options, fn {key, _value} ->
+      MapSet.member?(module.accepted_options(), key)
+    end)
+  end
+
   # Dispatch a single value to the appropriate formatter based on its shape.
   # Pure time values (hour but no year) go to Time; pure date values (year but
   # no hour) go to Date; everything else (including NaiveDateTime, DateTime,
   # and generic maps with both date and time fields) goes to DateTime.
-  defp format_single_value(%Time{} = value, options), do: Localize.Time.to_string(value, options)
-  defp format_single_value(%Date{} = value, options), do: Localize.Date.to_string(value, options)
+  defp format_single_value(%Time{} = value, options),
+    do: Localize.Time.to_string(value, component_options(options, Localize.Time))
+
+  defp format_single_value(%Date{} = value, options),
+    do: Localize.Date.to_string(value, component_options(options, Localize.Date))
 
   defp format_single_value(%DateTime{} = value, options),
     do: Localize.DateTime.to_string(value, options)
@@ -689,10 +710,10 @@ defmodule Localize.Interval do
         Localize.DateTime.to_string(value, options)
 
       Map.has_key?(value, :year) ->
-        Localize.Date.to_string(value, options)
+        Localize.Date.to_string(value, component_options(options, Localize.Date))
 
       Map.has_key?(value, :hour) ->
-        Localize.Time.to_string(value, options)
+        Localize.Time.to_string(value, component_options(options, Localize.Time))
 
       true ->
         {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}

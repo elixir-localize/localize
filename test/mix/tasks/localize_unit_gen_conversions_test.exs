@@ -174,13 +174,23 @@ defmodule Mix.Tasks.Localize.Unit.GenConversionsTest do
       end
     end
 
+    test "the error is a structured exception, not a tagged tuple", %{units: units} do
+      # The generated module has no dependency on Localize, so it carries its
+      # own exception rather than a bare `{:unknown_unit, name}` tuple: a
+      # caller gets something with a message it can report.
+      assert {:error, exception} = units.to_base(1, "zorkmid")
+
+      assert is_exception(exception)
+      assert exception.__struct__ == Module.concat(units, UnknownUnitError)
+      assert exception.unit == "zorkmid"
+      assert Exception.message(exception) == ~s(unknown unit "zorkmid")
+    end
+
     test "an unknown unit is an error, not a crash", %{units: units} do
       # "furlong-per-fortnight" would not do: CLDR knows both halves, so it
       # converts. A name has to be invented to be unknown.
-      assert {:error, {:unknown_unit, "zorkmid-per-blorb"}} =
-               units.to_base(1, "zorkmid-per-blorb")
-
-      assert {:error, {:unknown_unit, ""}} = units.to_base(1, "")
+      assert {:error, %{unit: "zorkmid-per-blorb"}} = units.to_base(1, "zorkmid-per-blorb")
+      assert {:error, %{unit: ""}} = units.to_base(1, "")
       assert {:ok, _furlongs_per_fortnight} = units.to_base(1, "furlong-per-fortnight")
     end
   end
@@ -212,7 +222,7 @@ defmodule Mix.Tasks.Localize.Unit.GenConversionsTest do
     test "a non-affine unit is refused rather than approximated", %{units: units} do
       # Beaufort saturates, so no factor and offset can represent it. Localize
       # itself converts it, through a scale this module cannot express.
-      assert {:error, {:unknown_unit, "beaufort"}} = units.to_base(5, "beaufort")
+      assert {:error, %{unit: "beaufort"}} = units.to_base(5, "beaufort")
       assert {:ok, 9.4} = Localize.Unit.Conversion.convert(5, "beaufort", "meter-per-second")
     end
   end

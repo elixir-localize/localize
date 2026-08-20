@@ -43,6 +43,20 @@ defmodule Localize.Time do
             when is_map_key(time, :hour) or is_map_key(time, :minute) or
                    is_map_key(time, :second)
 
+  # Options this function accepts. An unrecognised key is a typo, and ignoring
+  # it silently turns the typo into a wrong-looking result.
+  @accepted_options MapSet.new([
+                      :format,
+                      :locale,
+                      :number_system,
+                      :prefer,
+                      :number_system_overrides,
+                      :period
+                    ])
+
+  @doc false
+  def accepted_options, do: @accepted_options
+
   @doc """
   Formats a time according to a CLDR format pattern.
 
@@ -93,7 +107,8 @@ defmodule Localize.Time do
   """
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(time, options \\ []) do
-    with {:ok, pattern, locale_id, formatter_options} <- formatting_plan(time, options) do
+    with {:ok, options} <- Localize.Options.validate_keys(options, @accepted_options),
+         {:ok, pattern, locale_id, formatter_options} <- formatting_plan(time, options) do
       Localize.DateTime.Formatter.format(time, pattern, locale_id, formatter_options)
     end
   end

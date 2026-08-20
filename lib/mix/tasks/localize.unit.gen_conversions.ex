@@ -135,7 +135,44 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
   defp parser_source(module) do
     parser_module = module <> ".Parser"
 
-    helpers_module(parser_module) <> "\n" <> compiled_parser(parser_module)
+    exception_module(module) <>
+      "\n" <> helpers_module(parser_module) <> "\n" <> compiled_parser(parser_module)
+  end
+
+  # The generated module reports failures the same way Localize does — an
+  # `{:error, exception}` carrying a struct with a `message/1` — rather than a
+  # bare tagged tuple. It cannot use `Localize.UnknownUnitError`, having no
+  # dependency on Localize, so it carries its own under the caller's namespace.
+  # No Gettext: there is no backend to translate against in a generated file.
+  defp exception_module(module) do
+    """
+    defmodule #{module}.UnknownUnitError do
+      @moduledoc \"\"\"
+      Exception returned when a unit name cannot be resolved to a base unit.
+
+      Carries the name as it was given, so a caller can report or log it.
+
+      \"\"\"
+
+      defexception [:unit]
+
+      @typedoc \"\"\"
+      The unit name that did not resolve.
+
+      \"\"\"
+      @type t :: %__MODULE__{unit: String.t()}
+
+      @impl true
+      def exception(bindings) when is_list(bindings) do
+        struct!(__MODULE__, bindings)
+      end
+
+      @impl true
+      def message(%__MODULE__{unit: unit}) do
+        "unknown unit " <> inspect(unit)
+      end
+    end
+    """
   end
 
   defp compiled_parser(parser_module) do
@@ -199,7 +236,7 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
 
   # Everything the parser reaches for outside itself. `parse/1` builds a
   # `Localize.ParseError` on failure, which the generated module has no use for
-  # — it discards the reason and reports `{:unknown_unit, _}` — so the
+  # — it discards the reason and reports its own exception — so the
   # constructor becomes a plain tagged tuple. Custom units are registered at
   # runtime against Localize; a generated module has no registry, so no name
   # can be one. The byte cap is inlined at its default, there being no
@@ -460,8 +497,8 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
         {:ok, result} ->
           Macro.escape(result)
 
-        {:error, {:unknown_unit, unknown}} ->
-          raise ArgumentError, "unknown unit #{inspect(unknown)} in ~u sigil"
+        {:error, exception} ->
+          raise ArgumentError, Exception.message(exception) <> " in ~u sigil"
       end
     end
 
@@ -501,7 +538,9 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
 
     * `{:ok, {value_in_base_units, base_unit_name}}`, or
 
-    * `{:error, {:unknown_unit, unit}}`.
+    * `{:error, exception}` where `exception` is an
+      `t:#{"" <> ""}UnknownUnitError.t/0` carrying the unit that did not
+      resolve.
 
     ### Examples
 
@@ -522,8 +561,9 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
     Resolves a unit name to `{base_unit, factor, offset}`.
 
     Any spelling in the alias table is mapped onto its CLDR identifier
-    first; the identifier is then parsed and reduced. Returns
-    `{:error, {:unknown_unit, unit}}` for anything that does not resolve.
+    first; the identifier is then parsed and reduced. Anything that does
+    not resolve returns `{:error, exception}` carrying an
+    `UnknownUnitError`.
 
     """
     def resolve(unit) when is_binary(unit) do
@@ -531,7 +571,7 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
 
       case resolve_identifier(canonical(normalized)) do
         {:ok, _resolved} = ok -> ok
-        {:error, _reason} -> {:error, {:unknown_unit, unit}}
+        {:error, _reason} -> {:error, unknown_unit_error(unit)}
       end
     end
 
@@ -544,6 +584,10 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
 
     """
     def known_units, do: Map.keys(@conversions) ++ @simple_base_units
+
+    defp unknown_unit_error(unit) do
+      %__MODULE__.UnknownUnitError{unit: unit}
+    end
 
     defp canonical(normalized) do
       case Map.fetch(@aliases, normalized) do
