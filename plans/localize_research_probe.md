@@ -464,3 +464,30 @@ The headline is that the web routes on IP, not on `Accept-Language`: 13.5% of ju
 * `me-south-1` is enabled but unreachable from this network — TCP 443 filtered on the Starlink path. Recorded as unreachable each run rather than silently dropped.
 * Five opt-in regions could not be enabled: `eu-south-2`, `ap-east-1`, `ap-southeast-7`, `il-central-1`, `me-central-1`. All are newer regions gated behind a support case for young accounts. Hebrew and Thai therefore have no vantage; Chinese falls back to Singapore.
 * No Cyrillic vantage exists on AWS at all. `ru-RU` and `pl-PL` are header-axis only, which is a stated limitation rather than something to redesign around.
+
+
+---
+
+## Status — 2026-08-22, end of session
+
+All five follow-up recommendations above were acted on, and three of them changed the study rather than merely extending it.
+
+**(1) Controls replaced.** `www.wikipedia.org` (a language portal that correctly never varies) and `gnu.org` (too slow to yield two usable observations) were dropped for `mozilla.org`, `torproject.org` and `videolan.org`, all verified by hand first. All four controls now register, which is the evidence the detector works. `videolan.org` was chosen specifically because it honours the header and omits `Vary`, exercising that detector too.
+
+**(2) VPN fallback not built — and the evidence now supports that more strongly.** Re-sweeping the ten blocked sites from a residential connection found `hertz.com` blocked from **the same IP that had served it HTTP 200 earlier the same day**. Bot defences adapt within hours, so a residential vantage is a depleting resource and a shared VPN exit would degrade faster still.
+
+**(3) Rendering probe not built; the question it was for was answered another way.** Docker was unavailable and ECR is per-region, so a ~700 MB Chromium image was not viable. Instead the HTTP probe learned to classify number and date conventions from visible text. That answers the framed question for server-rendered content and leaves client-side pricing as the stated gap.
+
+**(5) Regional subtags: checked, no change needed.** Recorded above.
+
+### The second study
+
+The measurement pivoted mid-session after the negotiation result turned out not to support a claim about localization *quality* — the "adapts to neither" group contains Apple, IKEA, Microsoft, the UN and the WHO, all extensively localized behind country selectors. Taking each site's own `hreflang` declarations as ground truth removed the confound entirely: 26 sites declaring 2,317 locale variants, 2,213 audited, judged against CLDR with Localize as the oracle.
+
+Both studies are written up in `research/web-localization-measurement.md`, which replaces the earlier `accept-language-field-measurement.md`.
+
+### What is still open
+
+* **Recall on number formatting** — 242 of 2,213 variants carry a judgeable number. Client-side pricing is the binding constraint; a rendering probe is the only way past it, and is now scoped to one specific question rather than being a general capability.
+* **Twenty-two commercial brands** is enough for a claim about brands that publish many locale variants, not for a prevalence claim about the web.
+* **Date formatting** was extracted but not analysed. `year-first` dominates the classifiable observations, which reflects ISO dates in machine-readable markup more than anything a reader sees; separating rendered dates from markup dates needs the same treatment numbers got.
