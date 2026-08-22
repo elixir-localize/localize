@@ -452,10 +452,10 @@ The headline is that the web routes on IP, not on `Accept-Language`: 13.5% of ju
 
 **4. Re-run monthly and keep the runs.** The schema is keyed by run and additive, so drift is measurable at no design cost. A second data point in a month turns a snapshot into a trend, and the sweep is four minutes.
 
-**5. Feed four findings back into Localize itself.** These are the parts that change the library rather than the report:
+**5. Feed the findings back.** Three of these belong to `localize_web` rather than to Localize, which owns the HTML surface where `lang`, `dir` and `Vary` are emitted. The fourth was checked and needs no work.
 
 * Emit `dir` alongside `lang` by construction in any HTML helper. Three sites in 38 get this right unaided, which is the definition of a footgun worth removing.
-* Keep regional subtags first-class through resolution. `es-419` for `es-MX` — what Spotify returns and almost nobody else does — is the correct behaviour and Localize already produces it; make sure the guides say so explicitly.
+* Keep regional subtags first-class through resolution. **Checked 2026-08-22: Localize already does this and it does not conflict with TR35, so no change is needed.** `es-MX` formats `1,234,567.89` against `es-ES`'s `1.234.567,89`; `fr-FR` groups with U+202F and `fr-CA` with U+00A0; `en-IN` groups by lakh; and `canonical_locale_id` preserves `es-MX` rather than collapsing it. TR35's inheritance chain (tr35.md:1809) governs *data lookup* — `es-MX` inherits missing items from `es-419` then `es` then root — which is orthogonal to preserving the requested tag's identity. The two are not in tension.
 * Document `Vary: Accept-Language` wherever Localize touches content negotiation. Two sites in 53 emit it; its absence corrupts every shared cache downstream.
 * Treat an incoming locale as untrusted by default. If most sites resolve locale wrongly, a library that assumes the locale arriving at the application layer is correct is designing for a web that does not exist.
 
