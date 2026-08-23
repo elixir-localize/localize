@@ -1141,6 +1141,12 @@ defmodule Localize do
   validity data. Integer codes are zero-padded (e.g., `1` becomes
   `"001"`). String codes are uppercased.
 
+  Codes that CLDR replaces rather than lists are resolved to their
+  replacement. `"UK"` is a deprecated alias for `"GB"`, as are the
+  alpha-3 and numeric forms `"GBR"` and `"826"`. This matches
+  `validate_locale/1`, which already canonicalises the same aliases
+  when they appear in a language tag.
+
   ### Arguments
 
   * `territory` is a territory code atom, string, or integer.
@@ -1163,6 +1169,12 @@ defmodule Localize do
       iex> Localize.validate_territory(1)
       {:ok, :"001"}
 
+      iex> Localize.validate_territory("UK")
+      {:ok, :GB}
+
+      iex> Localize.validate_territory("GBR")
+      {:ok, :GB}
+
       iex> Localize.validate_territory(:ZZZZ)
       {:error, %Localize.UnknownTerritoryError{territory: :ZZZZ}}
 
@@ -1172,13 +1184,61 @@ defmodule Localize do
   def validate_territory(territory) do
     case Localize.Validity.Territory.validate(territory) do
       {:ok, nil, _status} ->
-        {:error, Localize.UnknownTerritoryError.exception(territory: territory)}
+        validate_territory_alias(territory)
 
       {:ok, territory_atom, _status} ->
         {:ok, territory_atom}
 
-      {:error, _} ->
-        {:error, Localize.UnknownTerritoryError.exception(territory: territory)}
+      {:error, _reason} ->
+        validate_territory_alias(territory)
+    end
+  end
+
+  # CLDR does not list every code that has ever identified a territory. Some
+  # it replaces instead: "UK" is a deprecated alias for "GB", as are "GBR"
+  # and "826". Rejecting those is inconsistent with `validate_locale/1`,
+  # which resolves them happily inside a language tag, and it breaks callers
+  # mapping a ccTLD to a territory since ".uk" is the domain and GB is the
+  # code.
+  #
+  # Only reached when validation has already failed, so the happy path is
+  # unchanged.
+  defp validate_territory_alias(territory) do
+    with key when is_binary(key) <- alias_key(territory),
+         replacement when not is_nil(replacement) <- territory_alias(key),
+         {:ok, territory_atom, _status} <- Localize.Validity.Territory.validate(replacement) do
+      {:ok, territory_atom}
+    else
+      _no_alias -> {:error, Localize.UnknownTerritoryError.exception(territory: territory)}
+    end
+  end
+
+  # Numeric codes are three digits in the alias data, matching the zero
+  # padding that validation itself applies.
+  defp alias_key(territory) when is_integer(territory) do
+    territory |> Integer.to_string() |> String.pad_leading(3, "0")
+  end
+
+  defp alias_key(territory) when is_atom(territory) or is_binary(territory) do
+    # Kernel.to_string/1 explicitly: this module defines its own to_string/1
+    # for localized formatting, which is not what is wanted here.
+    territory |> Kernel.to_string() |> String.upcase()
+  end
+
+  defp alias_key(_territory), do: nil
+
+  # A territory that was split has several replacements listed in CLDR's own
+  # order — "AN" became CW, SX and BQ — and the first is the conventional
+  # choice, which is what `validate_locale/1` also resolves to.
+  defp territory_alias(key) do
+    Localize.SupplementalData.aliases()
+    |> Map.get(:region, %{})
+    |> Map.get(key)
+    |> case do
+      nil -> nil
+      replacement when is_binary(replacement) -> replacement
+      [first | _rest] -> first
+      _other -> nil
     end
   end
 
