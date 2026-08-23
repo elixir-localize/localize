@@ -1141,11 +1141,16 @@ defmodule Localize do
   validity data. Integer codes are zero-padded (e.g., `1` becomes
   `"001"`). String codes are uppercased.
 
-  Codes that CLDR replaces rather than lists are resolved to their
-  replacement. `"UK"` is a deprecated alias for `"GB"`, as are the
-  alpha-3 and numeric forms `"GBR"` and `"826"`. This matches
-  `validate_locale/1`, which already canonicalises the same aliases
-  when they appear in a language tag.
+  The returned code is canonical. CLDR deprecates and replaces some
+  territory codes, and both the deprecated code and its replacement
+  may be recognisable: `"UK"` is an alias for `"GB"`, as are the
+  alpha-3 and numeric forms `"GBR"` and `"826"`, and `"AN"` (the
+  former Netherlands Antilles) resolves to `"CW"`. Whichever form is
+  supplied, the canonical code is returned.
+
+  This matches `validate_locale/1`, which canonicalises the same
+  aliases when they appear in a language tag, so the two functions
+  agree on the territory for any given input.
 
   ### Arguments
 
@@ -1175,6 +1180,9 @@ defmodule Localize do
       iex> Localize.validate_territory("GBR")
       {:ok, :GB}
 
+      iex> Localize.validate_territory("AN")
+      {:ok, :CW}
+
       iex> Localize.validate_territory(:ZZZZ)
       {:error, %Localize.UnknownTerritoryError{territory: :ZZZZ}}
 
@@ -1187,29 +1195,40 @@ defmodule Localize do
         validate_territory_alias(territory)
 
       {:ok, territory_atom, _status} ->
-        {:ok, territory_atom}
+        {:ok, canonical_territory(territory_atom)}
 
       {:error, _reason} ->
         validate_territory_alias(territory)
     end
   end
 
-  # CLDR does not list every code that has ever identified a territory. Some
-  # it replaces instead: "UK" is a deprecated alias for "GB", as are "GBR"
-  # and "826". Rejecting those is inconsistent with `validate_locale/1`,
-  # which resolves them happily inside a language tag, and it breaks callers
-  # mapping a ccTLD to a territory since ".uk" is the domain and GB is the
-  # code.
-  #
-  # Only reached when validation has already failed, so the happy path is
-  # unchanged.
+  # Some codes CLDR replaces rather than lists — "UK" for "GB", "GBR" and
+  # "826" likewise — so validation alone rejects them. Reached only after
+  # validation has failed.
   defp validate_territory_alias(territory) do
     with key when is_binary(key) <- alias_key(territory),
          replacement when not is_nil(replacement) <- territory_alias(key),
-         {:ok, territory_atom, _status} <- Localize.Validity.Territory.validate(replacement) do
-      {:ok, territory_atom}
+         {:ok, territory_atom, _status} <- Localize.Validity.Territory.validate(replacement),
+         false <- is_nil(territory_atom) do
+      {:ok, canonical_territory(territory_atom)}
     else
       _no_alias -> {:error, Localize.UnknownTerritoryError.exception(territory: territory)}
+    end
+  end
+
+  # Other codes CLDR both lists and deprecates: "AN", "SU" and "DD" all
+  # validate, and all have successors. Returning the code as supplied would
+  # leave this function disagreeing with `validate_locale/1`, which resolves
+  # `en-AN` to a territory of `:CW`. A single hop is enough — CLDR's
+  # replacements are themselves current codes.
+  defp canonical_territory(territory_atom) do
+    with replacement when not is_nil(replacement) <-
+           territory_alias(Atom.to_string(territory_atom)),
+         {:ok, canonical, _status} <- Localize.Validity.Territory.validate(replacement),
+         false <- is_nil(canonical) do
+      canonical
+    else
+      _no_alias -> territory_atom
     end
   end
 

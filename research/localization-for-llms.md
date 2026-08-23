@@ -76,6 +76,45 @@ This resolves the tension cleanly. Locale-correct presentation for the reader; u
 
 It also explains a decision made during the measurement study: our number classifier deliberately **ignores JSON-LD**, because machine-format prices are always dot-decimal and counting them would have manufactured a large false error rate. The same property that makes structured data good for machines makes it useless as evidence of localisation quality.
 
+## What the surveyed sites actually publish
+
+The 54 sites from the measurement study were re-inspected in a browser to see what structured data they carry. A browser rather than an HTTP fetch, because JSON-LD lives in `<script>` tags — which `innerText` excludes, so the earlier runs never captured it — and because markup injected by JavaScript is invisible to a plain fetch.
+
+Five of the 54 served challenge screens and are excluded. Of the **49 pages that genuinely loaded**:
+
+| | sites | |
+|---|---|---|
+| JSON-LD present | **29** | 59% |
+| microdata (`itemscope`) | 4 | |
+| RDFa | 0 | |
+| JSON-LD that fails to parse | **0** | |
+
+Adoption is real, and the markup is well-formed. But look at *what* is described:
+
+| schema.org type | sites |
+|---|---|
+| `Organization` | 17 |
+| `WebSite` | 12 |
+| `WebPage` | 11 |
+| `SearchAction` | 7 |
+| `ContactPoint`, `PostalAddress`, `BreadcrumbList` | 6 each |
+
+That is **identity markup**. It tells a machine who the company is, where its offices are, and how to search the site. Almost none of it describes the meaning of a value on the page.
+
+The machine-readable partner of a formatted value is close to absent:
+
+| | sites | who |
+|---|---|---|
+| `<time datetime>` | **2 / 49** | `european-union.europa.eu`, `debian.org` |
+| schema `inLanguage` | **6 / 49** | Samsung, Disney+, HSBC, PayPal, Avis, worldbank.org |
+| `priceCurrency` | **1 / 49** | Salesforce |
+
+The two sites publishing machine-readable dates are a public institution and a volunteer Linux distribution. No commercial brand in the survey does it.
+
+**One caveat, stated because it matters:** these are landing pages, and landing pages rarely price anything, so `priceCurrency` at 1 of 49 understates commercial adoption — product pages would score better. `<time datetime>` and `inLanguage` carry no such excuse: both apply to any page, and both are near-zero.
+
+So the picture is not that sites reject structured data. 59% publish it, and none of it is malformed. They publish it about **themselves** and not about **their content** — which means the values an LLM would most benefit from disambiguating are exactly the ones left as formatted strings, to be interpreted by guesswork.
+
 ## Guidance
 
 Seven items, in rough order of impact.
@@ -84,7 +123,7 @@ Seven items, in rough order of impact.
 
 **2. Publish `hreflang`, and publish it correctly.** It is the only way an agent learns that a locale variant exists, and it is consumed as a declaration rather than negotiated. The [measurement study](web-localization-measurement.md) found real brands shipping `es-SP`, `sq-KS`, `tc` and `es_MX`; each is silently ignored, so the site reads as having no variants at all.
 
-**3. Emit both forms.** Locale-formatted text for the reader, machine-readable attributes for the parser — `<time datetime>`, `content=` on prices, `priceCurrency` in ISO 4217.
+**3. Emit both forms.** Locale-formatted text for the reader, machine-readable attributes for the parser — `<time datetime>`, `content=` on prices, `priceCurrency` in ISO 4217. This is the widest open gap in the survey: 2 of 49 sites publish a machine-readable date, and 1 publishes a currency code.
 
 **4. Set `lang` correctly, and `dir` with it.** A model reading a page needs to know what language it is reading; `lang` is how it is told. The study found 3.5% of self-declared variants serving a `lang` that contradicts their own declaration, and nearly a quarter of right-to-left variants setting direction in CSS where a parser cannot see it.
 
@@ -100,7 +139,7 @@ The earlier conclusion — that the negotiation battle was lost and the leverage
 
 * **Server-side formatting is now a discoverability feature, not only a correctness one.** Localize formats on the server by construction. That is worth saying plainly in the guides, because the alternative silently removes a site's numbers from every AI crawler but one.
 * **`hreflang` correctness is higher-value than it looked.** Validated, canonical annotations are how an agent discovers variants at all. This is implemented in `Localize.HTML.Hreflang`.
-* **A dual-output story is missing.** Localize renders the human form well. It has no first-class way to emit the machine-readable partner — a formatted price and its `content="1234.56"`, a formatted date and its `datetime="2026-03-22"`. That is a concrete gap, it sits naturally in `localize_web`, and schema.org has already specified what the machine form should look like.
+* **A dual-output story is missing, and nobody else has one either.** Of 49 surveyed sites, 2 publish a machine-readable date and 1 a currency code, while 29 publish structured data about their own corporate identity. Localize renders the human form well. It has no first-class way to emit the machine-readable partner — a formatted price and its `content="1234.56"`, a formatted date and its `datetime="2026-03-22"`. That is a concrete gap, it sits naturally in `localize_web`, and schema.org has already specified what the machine form should look like.
 * **`lang` and `dir` belong together in whatever emits the document element**, for the same reason as before, with the added one that a parser reads them.
 
 The dual-output helpers are the clearest new work this research suggests: everything else is either already done or already recommended.

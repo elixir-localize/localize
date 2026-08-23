@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+* **Breaking.** `Localize.validate_territory/1` returns the canonical territory code. CLDR deprecates and replaces some codes, and both forms may be supplied: `validate_territory("AN")` was `{:ok, :AN}` and is now `{:ok, :CW}`, and the same applies to `SU` (now `:RU`), `DD` (now `:DE`), `CS` and `YU` (both now `:RS`). `validate_locale/1` already resolved these — `en-AN` has always had a territory of `:CW` — so the two functions now agree.
+
+### Fixed
+
+* `Localize.validate_territory/1` accepts territory codes that CLDR replaces rather than lists. `"UK"` is a deprecated alias for `"GB"` and was rejected, as were the alpha-3 and numeric forms `"GBR"` and `"826"`. This matters for anything mapping a ccTLD to a territory, since `.uk` is the domain while `GB` is the code.
+
 ## [1.2.0] — August 16th, 2026
 
 ### Changed
