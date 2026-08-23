@@ -115,6 +115,49 @@ The two sites publishing machine-readable dates are a public institution and a v
 
 So the picture is not that sites reject structured data. 59% publish it, and none of it is malformed. They publish it about **themselves** and not about **their content** — which means the values an LLM would most benefit from disambiguating are exactly the ones left as formatted strings, to be interpreted by guesswork.
 
+### Measured again, fairly, on pages that do show a price
+
+Landing pages rarely price anything, so the survey was repeated against the **244 pages the audit had already found displaying a price** — selected precisely because a human can see a number on them. All 244 loaded cleanly.
+
+| | pages | |
+|---|---|---|
+| JSON-LD present | 204 / 244 | **84%** |
+| `Offer` markup | 19 / 244 | **8%** |
+| `priceCurrency` | 19 / 244 | **8%** |
+| a published price value | 19 / 244 | **8%** |
+
+Eighty-four per cent of these pages publish structured data. Eight per cent publish the price that is visibly printed on them. The gap is not adoption — it is *what* gets described.
+
+| site | pages showing a price | of those, publishing it |
+|---|---|---|
+| `samsung.com` | 41 | 4 |
+| `airbnb.com` | 33 | **0** |
+| `ikea.com` | 33 | 1 |
+| `apple.com` | 27 | 7 |
+| `microsoft.com` | 25 | 1 |
+| `dell.com` | 24 | **0** |
+| `ibm.com` | 7 | 5 |
+
+Airbnb publishes JSON-LD on all 33 and a price on none. Dell, 23 of 24 and none.
+
+### A hypothesis that turned out to be wrong
+
+The obvious failure mode to look for was locale formatting leaking into the structured data — a site writing `"price": "1.234,56"` where schema.org requires `1234.56`, which a parser would read as one-point-two. It is exactly the mistake a single shared formatter would cause.
+
+**It did not happen once.** Of the 19 pages publishing a price, all 19 use the machine format correctly, across EUR, NZD, SGD, BRL, INR, USD, IDR and CNY:
+
+| site | published | currency |
+|---|---|---|
+| `apple.com` | `1399`, `4763.98` | EUR |
+| `apple.com` | `15999`, `47698.8` | BRL |
+| `lenovo.com` | `143991.00` | INR |
+| `samsung.com` | `2479`, `2679` | EUR |
+| `ikea.com` | `6.99` | EUR |
+
+That is a useful negative result. **Teams that publish machine-readable prices get the format right**; the schema.org guidance is clear enough and the tooling evidently follows it. The problem is not corruption of the machine channel, it is that the channel is mostly empty.
+
+It also sharpens what a library should offer. A dual-output helper is not needed to *prevent* a formatting mistake — that mistake is not being made. It is needed to make the machine form cheap enough that the other 92% emit it at all.
+
 ## Guidance
 
 Seven items, in rough order of impact.
@@ -123,7 +166,7 @@ Seven items, in rough order of impact.
 
 **2. Publish `hreflang`, and publish it correctly.** It is the only way an agent learns that a locale variant exists, and it is consumed as a declaration rather than negotiated. The [measurement study](web-localization-measurement.md) found real brands shipping `es-SP`, `sq-KS`, `tc` and `es_MX`; each is silently ignored, so the site reads as having no variants at all.
 
-**3. Emit both forms.** Locale-formatted text for the reader, machine-readable attributes for the parser — `<time datetime>`, `content=` on prices, `priceCurrency` in ISO 4217. This is the widest open gap in the survey: 2 of 49 sites publish a machine-readable date, and 1 publishes a currency code.
+**3. Emit both forms.** Locale-formatted text for the reader, machine-readable attributes for the parser — `<time datetime>`, `content=` on prices, `priceCurrency` in ISO 4217. This is the widest open gap measured: of 244 pages visibly showing a price, 84% publish structured data and 8% publish the price. Those that do publish it get the format right, so the barrier is effort, not knowledge.
 
 **4. Set `lang` correctly, and `dir` with it.** A model reading a page needs to know what language it is reading; `lang` is how it is told. The study found 3.5% of self-declared variants serving a `lang` that contradicts their own declaration, and nearly a quarter of right-to-left variants setting direction in CSS where a parser cannot see it.
 
@@ -139,7 +182,7 @@ The earlier conclusion — that the negotiation battle was lost and the leverage
 
 * **Server-side formatting is now a discoverability feature, not only a correctness one.** Localize formats on the server by construction. That is worth saying plainly in the guides, because the alternative silently removes a site's numbers from every AI crawler but one.
 * **`hreflang` correctness is higher-value than it looked.** Validated, canonical annotations are how an agent discovers variants at all. This is implemented in `Localize.HTML.Hreflang`.
-* **A dual-output story is missing, and nobody else has one either.** Of 49 surveyed sites, 2 publish a machine-readable date and 1 a currency code, while 29 publish structured data about their own corporate identity. Localize renders the human form well. It has no first-class way to emit the machine-readable partner — a formatted price and its `content="1234.56"`, a formatted date and its `datetime="2026-03-22"`. That is a concrete gap, it sits naturally in `localize_web`, and schema.org has already specified what the machine form should look like.
+* **A dual-output story is missing, and nobody else has one either.** Of 244 pages showing a price, 8% publish it machine-readably — and every one that does gets the format right. The barrier is that emitting the second form is a separate, easily-forgotten step. Localize renders the human form well. It has no first-class way to emit the machine-readable partner — a formatted price and its `content="1234.56"`, a formatted date and its `datetime="2026-03-22"`. That is a concrete gap, it sits naturally in `localize_web`, and schema.org has already specified what the machine form should look like.
 * **`lang` and `dir` belong together in whatever emits the document element**, for the same reason as before, with the added one that a parser reads them.
 
 The dual-output helpers are the clearest new work this research suggests: everything else is either already done or already recommended.
