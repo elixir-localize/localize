@@ -66,6 +66,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 13 | CDN-asset checksum manifests                       | None       | None — ✅ Done in Localize 0.44.0 |
 | 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Silent data loss if not done** — CLDR 49 drops 232 of 237 eras. See [plans/japanese_eras.md](japanese_eras.md). |
 | 15 | POSIX `yesstr` / `nostr` responses                  | New functions | None (additive; ETF schema bump) |
+| 16 | `typeValues` On/Off translations (CLDR 49, CLDR-19394) | New functions | None (additive) — added 2026-08-25 |
 
 The remainder of this file expands each item in turn.
 
@@ -928,3 +929,72 @@ Each checkpoint should leave a dated entry at the bottom of this file noting wha
 
 * 2026-08-02 — Plan audit. Added item 14 (Japanese pre-Meiji eras), which was tracked only in [plans/japanese_eras.md](japanese_eras.md) and referenced nowhere here despite being triggered by CLDR 49 and carrying a silent-data-loss risk during a routine pipeline run. Marked item 13 done (shipped in Localize 0.44.0) — its status still read "research required". Added index rows for items 13 and 14; the index previously stopped at 12 while the file carried a section 13.
 * 2026-08-16 — Added item 15: POSIX `yesstr` / `nostr`. CLDR ships affirmative and negative response strings for every locale and Localize reads none of them, so any confirmation prompt hard-codes English `y`/`n`. `"posix"` is absent from the pipeline's `@required_modules`, so this needs a data-key addition as well as an API.
+
+---
+
+## Alpha review — 2026-08-25
+
+Reviewed against `release-49-alpha1` (2026-08-14) at `~/Development/cldr/cldr_repo`. Our pinned base is CLDR 48.2.
+
+**The plan holds.** Nothing in the alpha invalidates an item. Three items get materially stronger, one new item is needed, and the alpha surfaced one pre-existing bug.
+
+### What CLDR 49 actually changes
+
+The official log in `tr35-modifications.md` lists six changes against 48.2. Assessed against our implementation:
+
+| change | our exposure |
+|---|---|
+| Calendar era `code`s: length limit added | Item 14 territory — covered by [japanese_eras.md](japanese_eras.md) |
+| `typeValues` for On/Off translations (CLDR-19394) | **Not in this plan** — see new item 16 |
+| `numberFormat` description revised (CLDR-18963) | Needs a read; description-only, no data shape change observed |
+| `dateTime`: `gmtZeroOffset` removed | **None.** Not referenced anywhere in `lib/` or `data/` |
+| `dateFormatItem` selection and `appendItems` clarified | **Completes item 5** — see below |
+| MF2: `:currency`/`:percent` Stable; `u:locale` dropped | **None.** `interpreter.ex` already lists both as Stable, and we never implemented the dropped `u:locale` |
+
+Data-level deltas: **26 new locales** (`ady`, `ary`, `brh`, `hrx`, `isv`, `kbd`, `mrh`, `sus`, `xdq` plus regional variants), **none removed**, 1122 → 1148 locale files. 100 RBNF files changed, net −10,000 lines.
+
+The Japanese era premise is confirmed incidentally: the `japanese` calendar block in `supplementalData.xml` now begins at `<era type="232" code="meiji"/>`, so the 232 earlier eras are gone as the plan anticipated.
+
+### Item 5 is no longer blocked
+
+The plan deferred item 5 because it needed `dateFields` data. CLDR 49 instead supplies the **algorithm**, in full. `tr35-dates.md` now enumerates which fields are date fields and which are time fields, specifies distance ranking when no exact `dateFormatItem` matches, gives the tie-break weighting, and states the glue-pattern selection rules including the `Time-Day-Of-Week` and `Date-Timezone` special cases.
+
+That is the whole of what was missing. **Item 5 moves from deferred to actionable in this cycle.**
+
+### Items 4, 5 and 12 gain a conformance oracle
+
+`common/testData` gains **107 new fixture files**, and three groups matter to us:
+
+| fixture | lines | serves |
+|---|---|---|
+| `datetime/skeletons.tsv` | 361 | items 4, 5 |
+| `datetime/skeletons_all_calendars.tsv` | 1,081 | items 4, 5 |
+| `datetime/skeletons_all_locales.tsv` | 4,161 | items 4, 5 |
+| `datetime/skeletons_all_skeletons.tsv` | 4,393 | items 4, 5 |
+| `datetime/skeletons_random_5percent.tsv` | 11,191 | items 4, 5 |
+| `decimal/decimals.tsv` | 226 | item 12 |
+| `decimal/decimals_extended_numbers.tsv` | 6,301 | item 12 |
+| `decimal/decimals_modern_locales.tsv` | 2,401 | item 12 |
+| `rbnf/*.ssv` | 99 files | items 8, 9 |
+
+The skeleton fixtures are `locale → calendar → skeleton → pattern` and cover the hard cases directly: `jjm` (locale-preferred hour), `Bh` (day period), `Cms` (flexible hour), `HmsS` (fractional seconds), `yMdHmsv` (date, time and zone combined), `GyMd` (era), and non-Gregorian calendars.
+
+Item 12 was written speculatively — "new decimal-formatting tests **expected** to ship with CLDR 49". They shipped. Item 12 is now concrete work with known inputs.
+
+### The fixtures already found a bug
+
+Running `decimal/decimals.tsv` against Localize 1.2.0 surfaced one genuine defect, before the fixtures are even adopted:
+
+**`ar-EG` renders Latin digits where CLDR specifies `arab`.** `Localize.Number.to_string(1234.5, locale: "ar-EG")` returns `"1,234.5"`; CLDR expects `١٬٢٣٤٫٥`.
+
+Scope checked: of the **50 locales whose CLDR default numbering system is not `latn`, 49 render correctly** and only `ar-EG` does not. `bn` correctly yields `১,২৩৪.৫`, and every other Arabic regional locale yields Arabic-Indic digits. So the mechanism is sound and this is an isolated anomaly.
+
+It is **not a CLDR 49 regression** — `ar_EG.xml` declares `arab` in 48 and 49 alike. It is a standing bug in our data or resolution, and it should be fixed independently of the 49 upgrade rather than folded into it.
+
+### New item
+
+**16. `typeValues` On/Off translations (CLDR-19394).** CLDR 49 adds centralised On/Off translations under `<typeValues>`, sibling in spirit to the `yesstr`/`nostr` work in item 15. Both are POSIX-adjacent affordances that applications ask for and we do not expose. Worth folding into item 15's release rather than tracking separately.
+
+### Checkout note
+
+`~/Development/cldr/cldr_repo` is at `release-49-alpha1`. `alpha0` was 2026-08-06, `alpha1` 2026-08-14; the beta and RC have not landed, so the delta above may still move. Re-run this review at beta.
