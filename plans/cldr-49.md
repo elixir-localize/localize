@@ -67,6 +67,10 @@ This package is widely used. The following invariants apply to every item in thi
 | 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Silent data loss if not done** — CLDR 49 drops 232 of 237 eras. See [plans/japanese_eras.md](japanese_eras.md). |
 | 15 | POSIX `yesstr` / `nostr` responses                  | New functions | None (additive; ETF schema bump) |
 | 16 | `typeValues` On/Off translations (CLDR 49, CLDR-19394) | New functions | None (additive) — added 2026-08-25 |
+| 17 | `H24` hour cycle deprecated                        | None       | Output changes for the `k` symbol at midnight |
+| 18 | Week-of-year numbering follows ISO by default       | None       | **Rendered week numbers change** for locales whose calendar week is not the ISO week, `en` among them |
+| 19 | Supplemental data files reorganized                | None       | Build-time failure if the pipeline meets reorganized sources unadjusted |
+| 20 | Iran subdivision codes stale upstream              | None       | None now; a future CLDR change invalidates stored codes |
 
 The remainder of this file expands each item in turn.
 
@@ -894,6 +898,104 @@ false
 * New functions and one new locale-data key. Purely additive.
 * One ETF schema addition, so the data version bumps; no public API changes shape.
 
+## 17. `H24` hour cycle deprecated
+
+### Current conformance
+
+`Localize.Time` treats `:h24` as a first-class hour cycle: it is in the `@type`, in the options table of the `hour_cycle/2` docs, and `hour_cycle_from_symbol("k")` returns it. Sixteen references across `lib/`.
+
+### Gap
+
+CLDR 49 deprecates `H24` ([CLDR-18303](https://unicode-org.atlassian.net/browse/CLDR-18303)). Where it is encountered it is to behave as `H23`. The release note records no known intentional usage.
+
+### Plan
+
+1. Keep accepting `:h24` and the `k` pattern symbol — deprecated in CLDR does not mean absent from data a consumer already holds, and rejecting it would break input we currently parse.
+2. Resolve `:h24` to `H23` behaviour at format time, so a `k` pattern renders midnight as `0` rather than `24`.
+3. Document `:h24` as deprecated in `Localize.Time`, noting it resolves to `:h23`.
+4. Confirm whether CLDR 49 still emits `k` in any locale's `hourCycle` or preferred-pattern data. If it does not, the resolution is defensive only.
+
+### API impact / breaking risk
+
+No signature change. Output changes for the `k` symbol at midnight, which is the intent of the deprecation.
+
+## 18. Week-of-year numbering follows ISO by default
+
+### Current conformance
+
+Week numbering has two paths in `datetime/formatter.ex`. For `Calendar.ISO` dates, `locale_week_of_year/2` computes the week locally from the locale's CLDR `firstDay` and `minDays` (`week_config/1`). For every other calendar it calls `iso_week_of_year/1`, which delegates to `calendar.iso_week_of_year/3` when the calendar exports it and otherwise falls back to `:calendar.iso_week_number/1`.
+
+That second path is already correct and needs no work: `Calendrical.Gregorian` and its siblings export `iso_week_of_year/3` and Localize honours whatever they return. Only the `Calendar.ISO` path is in scope, and only because `Calendar.ISO` itself has no week support for us to defer to.
+
+### Gap
+
+CLDR 49 changes the default week numbering to follow ISO — weeks numbered by the Thursday rule — while the calendar week is "more clearly targeted at matching usage in displayed month calendars" ([CLDR-18275](https://unicode-org.atlassian.net/browse/CLDR-18275)). The data now says so explicitly: `weekData` in `supplementalData.xml` carries the comment `this firstDay is for the first day of the week in a calendar page view`.
+
+So `firstDay` and `minDays` describe *month-calendar layout*, and using them to number weeks — which is what the `Calendar.ISO` path does — is applying the wrong data to the question. The divergence is real for locales whose calendar week is not the ISO week. Measured against CLDR 48 data:
+
+| date | `en` today | ISO |
+| --- | --- | --- |
+| 2027-01-01 | 2027-W1 | 2026-W53 |
+| 2027-01-03 | 2027-W2 | 2026-W53 |
+| 2026-12-31 | 2027-W1 | 2026-W53 |
+
+`en-GB` (`firstDay=mon`, `minDays=4`) already agrees with ISO; `en` (`firstDay=sun`, `minDays=1`) does not. The `Y`, `w` and `W` pattern symbols all render through this path, so the change is a silent difference in output rather than an error.
+
+### Plan
+
+1. Separate the two concepts. Week *numbering* for `Calendar.ISO` follows ISO by default; `firstDay`/`minDays` remain the source for month-calendar layout and for `Localize.Calendar.first_day_for_locale/1`, which is a different question with a different answer.
+2. Establish whether CLDR 49 supplies per-locale week-numbering data distinct from `weekData`, or whether ISO is simply the universal default with no locale variation. The `weekOfPreference` element is about which of `weekOfYear`/`weekOfMonth`/`weekOfInterval` a locale prefers to *display*, not how a week is numbered, so it is not that source.
+3. Decide whether an option is warranted for callers who want the old calendar-week numbering, or whether following CLDR is sufficient. Prefer following CLDR.
+4. Regression-test the year boundary specifically — 1 and 3 January, 31 December — for a locale on each side of the divide (`en`, `en-GB`) and for a non-ISO calendar, to confirm the delegating path is untouched.
+
+### API impact / breaking risk
+
+No signature change. **Rendered week numbers change** for locales whose calendar week is not the ISO week, `en` among them. Anything persisting a formatted `Y`-`w` string, or keying on one, sees different values across the upgrade. Worth a changelog entry in its own right.
+
+## 19. Supplemental data files reorganized
+
+### Current conformance
+
+The pipeline reads `common/supplemental/supplementalData.xml` and `supplementalMetadata.xml` directly, and the normalizers under `data/normalize/` are written against their current element layout.
+
+### Gap
+
+CLDR 49 announces that the major components of both files are to be "organized more logically and moved into separate files", with the release note asking implementations to "plan to update XML and JSON parsers accordingly". The data itself is unchanged; only its location moves.
+
+Whether this lands *in* 49 or is announced *by* 49 for a later release needs confirming — it appears under "V49 advance warnings", which elsewhere in that section describes changes that do land in 49.
+
+### Plan
+
+1. Confirm the timing against the alpha and beta trees: if the files have already split, the new paths are visible under `common/supplemental/`.
+2. Inventory which elements the pipeline reads from each file, so a split is a matter of repointing rather than rediscovery.
+3. Prefer resolving elements by name across the supplemental directory rather than by file, so a future reorganization is a no-op.
+
+### API impact / breaking risk
+
+None to the public API. A build-time failure if the pipeline is run against reorganized sources without adjustment, which is the good failure mode — loud, and before anything ships.
+
+## 20. Iran subdivision codes are stale upstream
+
+### Current conformance
+
+`Localize.HTML.Subdivision` (in `localize_web`) renders 31 Iranian subdivisions, all named, keyed on numeric codes (`"03"`, `"06"`, `"08"`).
+
+### Gap
+
+CLDR 49 records under Known Issues that the ISO 3166-2 subdivision codes for Iran changed in 2020 and that no equivalent stable codes yet exist ([CLDR-19060](https://unicode-org.atlassian.net/browse/CLDR-19060)). The codes we ship are therefore the pre-2020 set.
+
+This is not ours to fix — there is nothing upstream to adopt — but it matters more than it would have before, because subdivision codes are now a value a user stores in an address rather than an internal identifier.
+
+### Plan
+
+1. No code change. Track [CLDR-19060](https://unicode-org.atlassian.net/browse/CLDR-19060) and adopt whatever CLDR settles on.
+2. Note the caveat in the `Localize.HTML.Subdivision` documentation, so an application storing Iranian subdivision codes knows they are expected to change.
+3. When new codes arrive, they are a data migration for consumers, not merely a regeneration — worth a prominent changelog entry at that point.
+
+### API impact / breaking risk
+
+None now. A future CLDR change to these codes invalidates stored values, which is a consumer-facing migration whenever it lands.
+
 ## Open questions
 
 These need answers before the corresponding work item starts. Track them as the plan evolves.
@@ -920,6 +1022,8 @@ This plan must be revisited at the following checkpoints:
 Each checkpoint should leave a dated entry at the bottom of this file noting what changed and which items advanced.
 
 ## Change log for this plan
+
+* 2026-09-01 — Release-note review at Alpha 1. The 2026-08-25 review read `tr35-modifications.md`; the release note carries a "V49 advance warnings" section the modifications log does not, and four items came from it: 17 (`H24` deprecated), 18 (week numbering follows ISO), 19 (supplemental files reorganized) and 20 (Iran subdivision codes stale upstream). Galician's new `many` plural case needs no work — the category lists already enumerate it. `cnr` de-aliasing and the removal of locales without core data are **V50**, not this cycle.
 
 * 2026-05-05 — Initial draft. All 11 items at status *planned*; no child plans written yet.
 * 2026-05-05 — Item 8 (RBNF syntax audit) landed in Localize 0.26.0. Nine bugs fixed plus three follow-up items; full audit trail in [plans/rbnf.md](rbnf.md). Three latent items (Inf/NaN, `<<<`, `Nx.x`) deferred with explicit rationale. Index table, item 8, item 9, and the review-cadence-final-row updated to reflect.
