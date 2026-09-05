@@ -322,6 +322,45 @@ defmodule Localize.Data do
   end
 
   @doc """
+  Copies CLDR's RBNF conformance data from `CLDR_REPO` into
+  `test/support/data/rbnf_conformance/`.
+
+  CLDR 49 added `common/testData/rbnf`: one `.ssv` file per locale, around
+  53,000 cases, exercising every public rule set. Unlike the other test data
+  this is a whole directory rather than a handful of named files, so it is
+  copied wholesale and stale locales are cleared first — a locale that leaves
+  CLDR should leave the fixtures with it.
+
+  ### Returns
+
+  * `:ok` on success.
+
+  """
+  @spec copy_rbnf_test_data() :: :ok
+  def copy_rbnf_test_data do
+    dest = Path.join([File.cwd!(), @test_data_dir, "rbnf_conformance"])
+    src = Path.join(cldr_repo_dir(), "common/testData/rbnf")
+
+    if File.dir?(src) do
+      File.rm_rf!(dest)
+      File.mkdir_p!(dest)
+
+      count =
+        src
+        |> File.ls!()
+        |> Enum.filter(&String.ends_with?(&1, ".ssv"))
+        |> Enum.map(&File.cp!(Path.join(src, &1), Path.join(dest, &1)))
+        |> length()
+
+      IO.puts("Copied #{count} RBNF conformance files to #{dest}")
+    else
+      IO.puts("  Warning: common/testData/rbnf not found, skipping")
+    end
+
+    :ok
+  end
+
+  @doc """
   Copies `FractionalUCA.txt` from `CLDR_REPO` into `priv/cldr/`.
 
   This is the UCA weight table the whole collation implementation is

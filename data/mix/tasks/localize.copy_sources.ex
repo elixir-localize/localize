@@ -77,6 +77,7 @@ defmodule Mix.Tasks.Localize.CopySources do
 
     # Always copy test data
     Localize.Data.copy_test_data()
+    Localize.Data.copy_rbnf_test_data()
 
     Localize.Data.write_version()
     Mix.shell().info("Done.")

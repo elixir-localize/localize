@@ -82,6 +82,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 27 | Collation data pinned at Unicode 17 by hand         | None       | **Sort keys change** — ✅ Fixed. Full UCA conformance at Unicode 18 |
 | 28 | CLDR 49 decimal format conformance suite            | None       | **Output changes** — ✅ Conformant; every difference is a documented CLDR-over-ICU choice |
 | 29 | A locale did not always resolve to itself          | None       | **Resolution changes** — ✅ Fixed. 25 locales were served a neighbour's data |
+| 30 | CLDR 49 RBNF conformance suite                      | None       | **Output changes** — ✅ 52,685/52,691; eight defects fixed |
 
 The remainder of this file expands each item in turn.
 
@@ -1278,6 +1279,43 @@ One expectation moved with it. `Rbnf.to_string(5, :spellout_cardinal, locale: :u
 
 **Resolution changes for 25 locales**, each of which now reads its own data instead of a neighbour's. Output changes wherever those differ; `ar-EG` is the visible one, switching to Arabic-Indic digits. This is a correction, but a consumer who had adapted to the old behaviour will see the difference.
 
+## 30. CLDR 49 RBNF conformance suite — ✅ Wired in
+
+### Current conformance
+
+CLDR 49 added `common/testData/rbnf` alongside the decimal suite: 99 `.ssv` files, roughly 53,000 cases, exercising every public rule set in every locale that has one. We were not reading it, and nothing else exercised RBNF at that breadth.
+
+### Gap
+
+Wiring it up took the suite from 49,348 passing to **52,356 of 52,691 (99.4%)**, with **no errors at all** where there had been 1,742. Three defects, in descending order of reach:
+
+* **Alternation branches were evaluated against the remainder rather than the number.** This is the CLDR 49 `[A|B]` construct from item 22. For English's `twent[y->>|ieth]` the distinction is invisible, because the branch carries only a remainder substitution and `>>` reaches the same value either way. It is not invisible for Russian's `200: [<%spellout-cardinal-feminine<сти >>|…]`, where the branch also carries a *quotient* substitution: passing the remainder gave `<<` the value 0, and 201 spelled "нольсти" — "zero-hundred" — instead of "двести". The same fault produced every one of the 162 remaining hard errors, so `pl` and `ca` raised `No matching rule for 0` rather than merely mis-spelling. It accounted for 1,439 mismatches across the Slavic and Baltic locales.
+
+* **`root` was not a valid locale identifier.** TR35 §3.1 makes `root` a synonym for `und`, but CLDR's `languageAlias` data does not carry it, so `validate_locale("root")` failed on an unknown language — 1,580 cases in `root.ssv` alone. Worse, it had become inconsistent: item 26 taught `cldr_locale_id_from/1` to accept `"root"`, so the same string was resolved by one entry point and rejected by another. Resolved once, in alias resolution, where every entry point sees it.
+
+* **A stray leading `;`** on 23 rows of the upstream fixtures (`ga.ssv` line 53 among them) is tolerated rather than read as a malformed row.
+
+### Resolution
+
+`copy_sources` vendors the directory — clearing it first, so a locale that leaves CLDR leaves the fixtures with it — and `test/localize/number/rbnf_conformance_test.exs` runs it. **52,685 of 52,691 cases match ICU exactly**, from 49,348 when the suite was first wired up, with no errors where there had been 1,742.
+
+Eight defects, none of which the previous RBNF tests could have found:
+
+* **Alternation branches were evaluated against the remainder rather than the number** (1,439 cases, plus every hard error). Described above.
+* **`root` was not a valid locale identifier** (1,580 cases). Described above.
+* **Fraction digits were spelled with `spellout_numbering` in preference to the current rule set** (179). TR35 spells them with the current set, so a case-marked or gendered set carries into the fraction: Finnish `%spellout-cardinal-allative-plural` renders 0.5 as "nollille pilkku viisille", and trying `spellout_numbering` first answered in the nominative for every such set.
+* **A fraction rule's bracketed integer part was dropped for every non-integer** (10). `:conditional` returned "" for any float, so Russian's `x.x: [<…< $(cardinal,one{целой}other{целыми})$ ]>%%fractions…>` lost "одной целой" from 1.5.
+* **The plural in a fraction-with-rule substitution selected on the denominator** (73). The rule body runs against the denominator with `<<` substituting the numerator, and the plural has to agree with the number actually spelled: `div(10, 10)` gave "one" and Russian's 0.5 came out "пятью десятой" rather than "пятью десятыми".
+* **`x.x` was chosen over `x,x` regardless of the locale** (12). A locale may define both, and the one to use is the one matching its own decimal separator; taking whichever came first spelled Catalan's 0.5 as "zero punt cinc" instead of "zero coma cinc".
+* **The `>>>` preceding-rule chain was linked one level deep** (38). Japanese year digits are `1000: <<>>>` over `100: <<>>>` over `10: <<>>>` over `0:`, and 1001 spells "一〇〇一" only if each level reaches its own predecessor; a single link left the second `>>>` falling back to ordinary selection, losing a digit.
+* **The exact-multiple rule of a pair was never selected** (14). RBNF pairs a rule for exact multiples with one carrying a remainder, numbered one higher — Burmese `100: <<ရာ;` beside `101: <<ရာ့[>>];`, and the Hebrew numbering rules' `3000`/`3001`. Selecting purely on the largest base value not above the number always took the second, so 200 was spelled with the remainder form's suffix and no remainder to justify it.
+
+That last one took three attempts and is worth recording. Preferring the lower rule on an exact division broke 47 cases, because it also matched ordinary neighbours like English's `1:` and `2:`. Restricting the pair to `(divisor, divisor + 1)` fixed those but missed Hebrew's `3000`/`3001`. What actually separates a pair from two unrelated consecutive rules is whether the lower one *spells the quotient*: Burmese's `100: <<ရာ;` does and covers 200, while Hebrew's `10: עשרת;` is a bare literal for ten and pressing it into service for 20 spelled "ten".
+
+### API impact / breaking risk
+
+**Output changes**, and they are corrections. Ordinals in Russian, Ukrainian, Polish, Slovak, Czech, Slovenian and Lithuanian were being spelled with "zero" in place of the hundreds or thousands quotient, and some inputs raised instead of formatting. `root` is now accepted wherever `und` is.
+
 ## Open questions
 
 These need answers before the corresponding work item starts. Track them as the plan evolves.
@@ -1304,6 +1342,8 @@ This plan must be revisited at the following checkpoints:
 Each checkpoint should leave a dated entry at the bottom of this file noting what changed and which items advanced.
 
 ## Change log for this plan
+
+* 2026-09-05 — Added item 30: CLDR 49's other new fixture directory, `common/testData/rbnf`, is now vendored and run. It found that alternation branches were being evaluated against the remainder instead of the number, which was invisible in English and wrong in every Slavic locale that puts a quotient substitution inside the brackets — 201 spelled "нольсти" rather than "двести", and the same fault raised outright in `pl` and `ca`. It also found `root` rejected as a locale identifier by `validate_locale/1` while `cldr_locale_id_from/1` accepted it, an inconsistency introduced by item 26. 49,348 to 52,356 of 52,691, with no errors remaining.
 
 * 2026-09-05 — Added items 28 and 29, and noted in Scope that the Index is the authoritative item list (Scope stops at the original 13). Wired up CLDR 49's new decimal conformance suite, reading the generator to establish that it encodes ICU `NumberFormatter` defaults rather than CLDR pattern defaults. Doing so exposed item 29: `resolve_cldr_locale/1` asked the language matcher which locale was closest even when the requested locale was itself in the set, and for 25 of the 657 an equally-scored neighbour won the tie — `ar-EG` was being formatted with `ar`'s data, which is the difference between Arabic-Indic and Latin digits. Fixing it took the decimal suite from 79.5% to 86.5%. CLDR 49's other new fixture directory, `common/testData/rbnf`, is still unread.
 

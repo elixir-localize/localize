@@ -1312,6 +1312,7 @@ defmodule Localize.LanguageTag do
   # 6. Resolve variant aliases
   defp resolve_aliases(%{} = map) do
     map
+    |> resolve_root_alias()
     |> resolve_grandfathered_tag()
     |> resolve_territory_alias()
     |> resolve_simple_language_alias()
@@ -1373,6 +1374,15 @@ defmodule Localize.LanguageTag do
   end
 
   defp resolve_simple_language_alias(map), do: map
+
+  # TR35 §3.1 makes `root` a synonym for `und`, but CLDR's `languageAlias`
+  # data does not carry it, so nothing downstream recognises the subtag and
+  # `validate_subtags/1` rejects it as an unknown language. Resolving it here
+  # keeps every entry point agreeing on what `root` means: it had become
+  # possible for `cldr_locale_id_from("root")` to answer `:und` while
+  # `validate_locale("root")` returned an error for the same string.
+  defp resolve_root_alias(%{language: "root"} = map), do: %{map | language: "und"}
+  defp resolve_root_alias(map), do: map
 
   # Step 3: Compound language+territory alias (e.g., "sgn-US" → "ase")
   defp resolve_language_territory_alias(%{territory: nil} = map), do: map
