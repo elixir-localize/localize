@@ -43,26 +43,22 @@ defmodule Localize.Unit.LocalePreferenceTest do
     end
   end
 
-  # 14 of the 23 cases match. The nine that do not are two unimplemented
-  # features, not defects in what is implemented:
+  # All 23 cases match. Getting there took three fixes, each found by this
+  # fixture:
   #
-  #   * **`-u-ms` and `-u-mu` overrides** (5 cases). The region override
-  #     `-u-rg` is honoured, because `:locale` derives the territory from
-  #     it, but the measurement-system and measurement-unit keywords are
-  #     not read at all. TR35's precedence is `mu > ms > rg > (likely)
-  #     region`, so these sit above the part that works.
+  #   * Every usage CLDR defines now has an interned atom. The preference
+  #     data is keyed by usage *string*, so nothing created them, and
+  #     `String.to_existing_atom/1` failed for any usage no other module
+  #     mentioned — `usage: "fluid"` silently became `:default` and
+  #     returned cubic inches for `en-GB`.
   #
-  #   * **Base-unit fallback** (4 cases). A unit whose quantity has no
-  #     preference data — `ampere`, `kilocandela`, `candela-per-byte` —
-  #     should fall back to base units. `preferred_units/2` returns
-  #     `{:error, %Localize.InvalidValueError{}}` instead, which is the
-  #     more serious of the two: a valid unit produces an error.
+  #   * `-u-ms` and `-u-mu` are read. A measurement system stands for a
+  #     territory that uses it; a measurement unit overrides the result
+  #     outright, and is ignored when it is not convertible from the input.
   #
-  # Wiring this fixture in also found and fixed a third: every valid CLDR
-  # usage now has an interned atom, so `usage: "fluid"` no longer degrades
-  # to `:default` and return cubic inches for `en-GB`. That was 8 of the
-  # cases below before the fix.
-  @expected_matches 14
+  #   * A unit whose quantity has no preferences falls back to base units
+  #     rather than returning an error.
+  @expected_matches 23
 
   test "unit preferences honour the locale's region and keyword overrides" do
     {matched, missed} =
@@ -75,7 +71,9 @@ defmodule Localize.Unit.LocalePreferenceTest do
 
         case result do
           {:ok, [got], _options} ->
-            if to_string(got) == String.replace(want, "-", "_"),
+            # A preference unit comes back as an atom with underscores; a
+            # derived compound base unit comes back as the CLDR identifier.
+            if to_string(got) |> String.replace("_", "-") == want,
               do: {matched + 1, missed},
               else: {matched, [{tag, input, usage, want, got} | missed]}
 

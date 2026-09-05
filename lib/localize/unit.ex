@@ -2012,6 +2012,11 @@ defmodule Localize.Unit do
     name |> Atom.to_string() |> String.replace("_", "-")
   end
 
+  # A derived compound base unit — `"candela-per-bit"` — comes back as a
+  # string rather than an atom, because the set of compounds a caller can
+  # ask for is unbounded and interning them would be an atom-table vector.
+  defp unit_name_string(name) when is_binary(name), do: name
+
   # Mirror cldr_units: stamp the resolved usage onto each decomposed child so
   # downstream formatting (or struct comparisons in tests) can see it. The
   # struct stores usage as the canonical CLDR-style hyphenated string

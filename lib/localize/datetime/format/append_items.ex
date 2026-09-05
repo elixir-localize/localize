@@ -97,21 +97,41 @@ defmodule Localize.DateTime.Format.AppendItems do
 
   * `{:ok, pattern}` where `pattern` is the augmented pattern string.
 
-  * `:error` when no format is a subset of the request, or when the locale
-    ships no append-item template for a missing field.
+  * `:error` when no format is a subset of the request, or when a field it
+    lacks is not one TR35 names as an append item.
+
+  * `{:error, exception}` if the locale's data cannot be read.
 
   """
-  @spec augment(atom() | String.t(), atom(), atom(), Keyword.t()) :: {:ok, String.t()} | :error
+  @spec augment(atom() | String.t(), atom(), atom(), Keyword.t()) ::
+          {:ok, String.t()} | :error | {:error, Exception.t()}
   def augment(skeleton, locale_id, calendar_type, options \\ []) do
+    case appendable_subset(skeleton, locale_id, calendar_type) do
+      {matched_id, missing_tokens} ->
+        append_to(matched_id, missing_tokens, skeleton, locale_id, calendar_type, options)
+
+      nil ->
+        :error
+    end
+  end
+
+  # The closest subset match, but only when every field it lacks is one
+  # TR35 names as an append item.
+  defp appendable_subset(skeleton, locale_id, calendar_type) do
     with {:ok, matched_id, missing_tokens} <-
            Match.subset_match(skeleton, locale_id, calendar_type),
-         true <- Enum.all?(missing_tokens, &appendable?/1),
-         {:ok, base} <- matched_pattern(matched_id, locale_id, calendar_type, options),
+         true <- Enum.all?(missing_tokens, &appendable?/1) do
+      {matched_id, missing_tokens}
+    else
+      _not_appendable -> nil
+    end
+  end
+
+  defp append_to(matched_id, missing_tokens, skeleton, locale_id, calendar_type, options) do
+    with {:ok, base} <- matched_pattern(matched_id, locale_id, calendar_type, options),
          {:ok, adjusted} <- adjust_to_match(base, skeleton, missing_tokens),
          {:ok, templates} <- Format.append_items(locale_id, calendar_type) do
       append_all(adjusted, missing_tokens, templates, locale_id)
-    else
-      _no_subset_match -> :error
     end
   end
 
@@ -139,22 +159,35 @@ defmodule Localize.DateTime.Format.AppendItems do
 
   * `:error` when the skeleton cannot be resolved at all.
 
+  * `{:error, exception}` if the locale's data cannot be read.
+
   """
   @spec resolve_pattern(atom() | String.t(), atom(), atom(), Keyword.t()) ::
-          {:ok, String.t()} | :error
+          {:ok, String.t()} | :error | {:error, Exception.t()}
   def resolve_pattern(skeleton, locale_id, calendar_type, options \\ []) do
+    # Three sources in TR35's order. The first two return `nil` when they
+    # have nothing, so the next is asked; only the last reports failure.
+    with nil <- available_pattern(skeleton, locale_id, calendar_type, options),
+         nil <- matched_pattern_for(skeleton, locale_id, calendar_type, options) do
+      augment(skeleton, locale_id, calendar_type, options)
+    end
+  end
+
+  # The locale's own format for this exact skeleton, or `nil` if it ships
+  # none — which is the common case, not a failure.
+  defp available_pattern(skeleton, locale_id, calendar_type, options) do
     with {:ok, available} <- Format.available_formats(locale_id, calendar_type),
          id when not is_nil(id) <- existing_format_id(skeleton),
          pattern when not is_nil(pattern) <- Map.get(available, id),
          {:ok, resolved} <- variant_pattern(pattern, options) do
       {:ok, resolved}
     else
-      _not_an_available_format ->
-        resolve_via_match(skeleton, locale_id, calendar_type, options)
+      _no_format_of_its_own -> nil
     end
   end
 
-  defp resolve_via_match(skeleton, locale_id, calendar_type, options) do
+  # The closest single format, its field widths adjusted to the request.
+  defp matched_pattern_for(skeleton, locale_id, calendar_type, options) do
     with {:ok, matched_id} when is_atom(matched_id) <-
            Match.best_match(skeleton, locale_id, calendar_type),
          {:ok, pattern} <- matched_pattern(matched_id, locale_id, calendar_type, options),
@@ -162,7 +195,7 @@ defmodule Localize.DateTime.Format.AppendItems do
          {:ok, adjusted} <- Match.adjust_field_lengths(pattern, tokens) do
       {:ok, adjusted}
     else
-      _no_single_match -> augment(skeleton, locale_id, calendar_type, options)
+      _no_single_match -> nil
     end
   end
 

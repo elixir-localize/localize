@@ -34,6 +34,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* Unit preferences read the `-u-ms` and `-u-mu` locale keywords. A measurement system resolves to the preferences of a territory that uses it, and a measurement unit overrides the result outright — `en-u-rg-uszzzz-ms-metric` gives celsius, `en-US-u-rg-uszzzz-ms-uksystem` gives imperial gallons. TR35's ordering is `mu > ms > rg > (likely) region`.
+
+* A unit whose quantity CLDR ships no preferences for falls back to base units instead of returning an error: `Localize.Unit.Preference.preferred_units/2` on `ampere` gives `[:ampere]` and on `candela-per-cubic-foot` gives `["candela-per-cubic-meter"]`. A derived compound base unit comes back as a CLDR identifier string, since the set a caller can ask for is unbounded and interning it would be an atom-table vector.
+
 * A unit usage supplied as a string resolves instead of silently falling back to `:default`. Every usage CLDR defines now has an interned atom, so `usage: "fluid"` returns imperial gallons for `en-GB` where it returned cubic inches. `Localize.Unit.Preference.known_usages/0` lists them.
 
 * An unknown timezone offset renders the locale's `gmtUnknownFormat` — `"GMT+?"`, and translated where the locale translates it — instead of a hard-coded English `"GMT"`. CLDR removed `gmtZeroFormat` from the spec, so the reader for it had been resolving to nothing in all 657 locales and every zero or absent offset fell through to that literal.

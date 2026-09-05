@@ -533,7 +533,7 @@ defmodule Localize.DateTime do
             )
             |> then(&invoke_formatter(output, datetime, &1, locale_id, Map.new(options)))
 
-          :error ->
+          _unresolvable ->
             unresolved_skeleton(skeleton, locale_id)
         end
     end

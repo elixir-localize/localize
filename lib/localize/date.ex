@@ -497,7 +497,7 @@ defmodule Localize.Date do
       {:ok, pattern} ->
         {:ok, pattern}
 
-      :error ->
+      _unresolvable ->
         {:error,
          Localize.DateTimeUnresolvedFormatError.exception(
            format: skeleton,

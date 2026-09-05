@@ -791,12 +791,13 @@ The non-Gregorian rows are not run: comparing them means formatting a date conve
 
 **`units/unitLocalePreferencesTest.txt`** is wired in as [test/localize/unit/locale_preference_test.exs](../test/localize/unit/locale_preference_test.exs), exercising `-u-rg`, `-u-ms` and `-u-mu` keyword overrides against unit preference resolution. **14 of the 23 cases match.**
 
-It found a defect on the way in. `@unit_preferences` is keyed by usage *string*, so no usage atom was ever interned, and `normalize_usage/1`'s `String.to_existing_atom/1` failed for every valid CLDR usage that no other module happened to mention — silently falling back to `:default`. `usage: "fluid"` returned cubic inches for `en-GB` instead of imperial gallons. The usages are now interned at compile time from the data, which fixed 8 of the 23 cases and makes the code's own comment true for the first time. `Localize.Unit.Preference.known_usages/0` exposes the set.
+It found three defects on the way in, all now fixed — **23 of 23 cases match**.
 
-The nine that remain are two unimplemented features rather than defects in what exists:
+* **Usage atoms were never interned.** `@unit_preferences` is keyed by usage *string*, so nothing created them, and `normalize_usage/1`'s `String.to_existing_atom/1` failed for every valid CLDR usage no other module happened to mention — silently falling back to `:default`. `usage: "fluid"` returned cubic inches for `en-GB` instead of imperial gallons. The usages are now interned at compile time from the data, which makes the code's own comment true for the first time; `Localize.Unit.Preference.known_usages/0` exposes the set.
 
-* **`-u-ms` and `-u-mu` overrides** (5 cases). `-u-rg` is honoured because `:locale` derives the territory from it, but the measurement-system and measurement-unit keywords are not read at all. TR35's precedence is `mu > ms > rg > (likely) region`, so these sit above the part that works.
-* **Base-unit fallback** (4 cases). A unit whose quantity has no preference data — `ampere`, `kilocandela`, `candela-per-byte` — should fall back to base units per the fixture. `preferred_units/2` returns `{:error, %Localize.InvalidValueError{}}`, which is the more serious of the two: a valid unit produces an error.
+* **`-u-ms` and `-u-mu` were not read.** `-u-rg` was honoured because `:locale` derives the territory from it, but the measurement-system and measurement-unit keywords were ignored — and TR35 orders them `mu > ms > rg > (likely) region`, so they sit above the part that worked. A measurement system now resolves to a territory that uses it (`metric` → `001`, `ussystem` → `US`, `uksystem` → `GB`), and a measurement unit overrides the result outright, ignored when it is not convertible from the input.
+
+* **A unit with no preferences returned an error.** `ampere`, `kilocandela` and `candela-per-byte` produced `{:error, %Localize.InvalidValueError{}}` where TR35 leaves them in base units. `unit_category/1` and `find_preference/4` now answer `nil` for "nothing found" rather than manufacturing an error, so `preferred_units/2` reads as the three ordered sources it is. A derived compound base unit comes back as a CLDR identifier string rather than an atom: the set a caller can ask for is unbounded, and interning it would be an atom-table exhaustion vector.
 
 ### API impact / breaking risk
 

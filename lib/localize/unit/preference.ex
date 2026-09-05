@@ -144,15 +144,52 @@ defmodule Localize.Unit.Preference do
   @spec preferred_units(Unit.t(), Keyword.t()) ::
           {:ok, [atom()], Keyword.t()} | {:error, Exception.t()}
   def preferred_units(%Unit{} = unit, options \\ []) do
-    usage = resolve_usage(options, unit)
-    territory = resolve_territory(options)
+    # TR35 orders the sources `mu > ms > rg > (likely) region`, and leaves a
+    # unit with no preferences at all in its base units. `-u-ms` and `-u-rg`
+    # are folded into the territory, so the three that remain are ordered
+    # here: each returns `nil` when it has nothing to say, so the next one
+    # is asked.
+    measurement_unit_override(options, unit) ||
+      locale_preference(unit, options) ||
+      base_units(unit)
+  end
 
-    with {:ok, category} <- unit_category(unit),
+  defp locale_preference(%Unit{} = unit, options) do
+    with category when not is_nil(category) <- unit_category(unit),
          {:ok, base_value} <- base_unit_value(unit),
-         {:ok, territory_chain} <- Localize.Territory.territory_chain(territory) do
-      usage_chain = build_usage_chain(usage)
+         {:ok, territory_chain} <-
+           Localize.Territory.territory_chain(resolve_territory(options)) do
+      usage_chain = build_usage_chain(resolve_usage(options, unit))
       find_preference(category, usage_chain, territory_chain, abs(base_value))
     end
+  end
+
+  # The unit expressed in its base units — `kilocandela` is `candela`,
+  # `candela-per-cubic-foot` is `candela-per-cubic-meter`.
+  defp base_units(%Unit{name: name}) do
+    with {:ok, parsed} <- Parser.parse(name),
+         {:ok, base} <- BaseUnit.base_unit(parsed) do
+      {:ok, [unit_name(base)], []}
+    else
+      _no_base_unit ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: name,
+           expected: "a unit with a known category or resolvable base units"
+         )}
+    end
+  end
+
+  # A simple base unit — `candela`, `meter` — has an interned atom, and
+  # returning it keeps the shape callers expect. A *compound* base unit is
+  # derived from whatever the caller asked for, so the set is unbounded and
+  # `String.to_atom/1` would be an atom-table exhaustion vector; those come
+  # back as the CLDR identifier string instead.
+  defp unit_name(base) do
+    base
+    |> String.replace("-", "_")
+    |> Localize.Utils.Helpers.existing_atom()
+    |> Kernel.||(base)
   end
 
   # Usage may be supplied via the options keyword list (atom or string) or
@@ -254,6 +291,9 @@ defmodule Localize.Unit.Preference do
 
   # ── Category resolution ─────────────────────────────────────
 
+  # The unit's CLDR quantity, or `nil` when it has none. A unit outside
+  # every quantity — `candela-per-byte` — is not an error: it simply has no
+  # preferences, and the caller falls back to base units.
   defp unit_category(%Unit{name: name}) do
     with {:ok, parsed} <- Parser.parse(name),
          {:ok, base} <- BaseUnit.base_unit(parsed) do
@@ -261,17 +301,9 @@ defmodule Localize.Unit.Preference do
 
       # Try the original unit name first (handles compound units like
       # cubic-meter-per-meter → consumption), then fall back to base unit
-      case Map.get(btq, name) || Map.get(btq, base) do
-        nil ->
-          {:error,
-           Localize.InvalidValueError.exception(
-             value: name,
-             expected: "a unit with a known category"
-           )}
-
-        category ->
-          {:ok, category}
-      end
+      Map.get(btq, name) || Map.get(btq, base)
+    else
+      _unparseable -> nil
     end
   end
 
@@ -295,14 +327,63 @@ defmodule Localize.Unit.Preference do
       nil ->
         locale = Keyword.get(options, :locale, Localize.get_locale())
 
-        case Localize.Territory.territory_from_locale(locale) do
-          {:ok, territory} -> territory
-          _ -> :US
-        end
+        # TR35 orders the overrides `mu > ms > rg > (likely) region`. `rg`
+        # is already folded into the locale's territory, so `ms` is applied
+        # over the top of it: a measurement system stands for the
+        # preferences of a territory that uses it.
+        measurement_system_territory(locale) || territory_from(locale)
 
       territory ->
         territory
     end
+  end
+
+  defp territory_from(locale) do
+    case Localize.Territory.territory_from_locale(locale) do
+      {:ok, territory} -> territory
+      _no_territory -> :US
+    end
+  end
+
+  # `-u-ms` names a measurement system, and preferences are keyed by
+  # territory, so each system is represented by a territory that uses it.
+  # `001` is CLDR's own fallback and is metric throughout.
+  defp measurement_system_territory(locale) do
+    case measurement_system(locale) do
+      :metric -> :"001"
+      :ussystem -> :US
+      :imperial -> :GB
+      :uksystem -> :GB
+      _none_or_unknown -> nil
+    end
+  end
+
+  defp measurement_system(locale) do
+    with {:ok, %{locale: %{ms: ms}}} when not is_nil(ms) <- Localize.validate_locale(locale) do
+      ms
+    else
+      _no_measurement_system -> nil
+    end
+  end
+
+  # `-u-mu` overrides the unit itself, above every other preference. CLDR
+  # supports it for temperature only, and TR35 says an override that is not
+  # convertible from the input unit is ignored — `de-u-mu-celsius` asking
+  # for a length still gets centimetres.
+  defp measurement_unit_override(options, %Unit{} = unit) do
+    with locale when not is_nil(locale) <- Keyword.get(options, :locale),
+         {:ok, %{locale: %{mu: mu}}} when not is_nil(mu) <- Localize.validate_locale(locale),
+         true <- convertible_from?(unit, mu) do
+      {:ok, [mu], []}
+    else
+      _no_override -> nil
+    end
+  end
+
+  defp convertible_from?(%Unit{name: name}, target) do
+    target_name = target |> Atom.to_string() |> String.replace("_", "-")
+
+    Localize.Unit.Conversion.convertible?(name, target_name)
   end
 
   # ── Usage chain ─────────────────────────────────────────────
@@ -325,15 +406,12 @@ defmodule Localize.Unit.Preference do
 
   # ── Preference lookup ───────────────────────────────────────
 
+  # `nil` when no usage in the chain has preferences for this category in
+  # any territory in the chain.
   defp find_preference(category, usage_chain, territory_chain, base_value) do
     Enum.find_value(usage_chain, fn usage ->
       find_for_usage(category, usage, territory_chain, base_value)
-    end) ||
-      {:error,
-       Localize.InvalidValueError.exception(
-         value: {category, hd(usage_chain)},
-         expected: "a known unit preference"
-       )}
+    end)
   end
 
   defp find_for_usage(category, usage, territory_chain, base_value) do

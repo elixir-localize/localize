@@ -535,7 +535,7 @@ defmodule Localize.Time do
                options
              ) do
           {:ok, pattern} -> {:ok, pattern}
-          :error -> error
+          _unresolvable -> error
         end
     end
   end
