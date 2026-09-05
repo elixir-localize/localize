@@ -94,6 +94,7 @@ defmodule Localize.Data do
     {"tools/cldr-code/src/test/resources/org/unicode/cldr/unittest/data/localeMatcherTest.txt",
      "locale_matching_test_data.txt"},
     {"common/testData/datetime/datetime.json", "date_time_formatting.json"},
+    {"common/testData/datetime/skeletons.tsv", "skeleton_test_data.tsv"},
     {"common/testData/decimal/decimals.tsv", "decimal_test_data.tsv"},
     {"common/testData/decimal/decimals_modern_locales.tsv",
      "decimal_modern_locales_test_data.tsv"},
@@ -101,6 +102,8 @@ defmodule Localize.Data do
      "decimal_extended_numbers_test_data.tsv"},
     {"common/testData/units/unitsTest.txt", "conversion_test_data.txt"},
     {"common/testData/units/unitPreferencesTest.txt", "preference_test_data.txt"},
+    {"common/testData/units/unitLocalePreferencesTest.txt",
+     "unit_locale_preference_test_data.txt"},
     {"common/uca/CollationTest_CLDR_NON_IGNORABLE_SHORT.txt",
      "CollationTest_CLDR_NON_IGNORABLE_SHORT.txt"},
     {"common/uca/CollationTest_CLDR_SHIFTED_SHORT.txt", "CollationTest_CLDR_SHIFTED_SHORT.txt"}

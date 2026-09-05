@@ -1,7 +1,12 @@
 #! /bin/zsh
 
-# TODO Try to use https://github.com/unicode-org/cldr-json/blob/main/cldr-generate-json.sh
-# for CLDR 49
+# DEPRECATED. Use scripts/ldml2json_v2, which wraps unicode-org/cldr-json's
+# cldr-generate-json.sh and emits every package in one pass — including the
+# annotations and annotationsDerived packages this script misses. This script
+# is kept only so an older CLDR drop can still be reproduced, and will be
+# removed in the release after the one that ships CLDR 49.
+#
+# See CLDR_UPDATE_INTEGRATION.md.
 
 # The location of the cloned CLDR repo
 export CLDR_REPO="${CLDR_REPO:=$HOME/Development/cldr_repo}"

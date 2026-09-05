@@ -53,18 +53,18 @@ This package is widely used. The following invariants apply to every item in thi
 
 | #  | Item                                              | API impact | Breaking risk |
 |----|---------------------------------------------------|------------|---------------|
-| 1  | Switch pipeline to `scripts/ldml2json_v2`         | None       | None          |
-| 2  | Translators-guide review for CLDR 49              | None       | None (data only) |
-| 3  | Track CLDR 49 spec changes                        | None       | None          |
+| 1  | Switch pipeline to `scripts/ldml2json_v2`         | None       | None — ✅ Done. v2 produced the CLDR 49 data; v1 deprecated in its header |
+| 2  | Translators-guide review for CLDR 49              | None       | None — ✅ Done, spec-first. Four plan items rested on premises CLDR 49 does not support |
+| 3  | Track CLDR 49 spec changes                        | None       | None — ✅ Done. Every behavioural claim checked against TR35 and `common/` before coding |
 | 4  | Semantic skeletons                                | New option | **Output changes** — ✅ Option B. Mapping 240/240; skeleton width matching fixed |
 | 5  | Date-time append items                            | Internal   | **Output changes** — ✅ Done. `Localize.DateTime.Format.AppendItems`; skeletons that previously errored now resolve |
 | 6  | Minimal pairs                                     | New module | None — ✅ Done. `Localize.MinimalPairs` |
 | 7  | Min/max significant digits                        | New options | None — ✅ Done. Shipped with docs and tests |
 | 8  | RBNF syntax audit                                 | Internal   | None — ✅ Done in Localize 0.26.0 |
-| 9  | RBNF *Remove rule* data-format change             | Internal (ETF) | ETF schema bump (no public API) |
+| 9  | RBNF *Remove rule* data-format change             | Internal (ETF) | None — ✅ Closed. No such mechanism; the source-format change landed under item 22 |
 | 10 | CLDR 48.2 §Modifications retrospective            | Mixed      | Per-finding — ✅ Done. See [plans/cldr-48-retrospective.md](cldr-48-retrospective.md). |
 | 11 | `localize_emoji` sibling library                  | New package | None          |
-| 12 | `common/testData` conformance-fixture audit       | None (tests only) | None      |
+| 12 | `common/testData` conformance-fixture audit       | None (tests only) | None — ✅ Done. Skeleton suite wired in at 83/90; two cldr-json data drops found |
 | 13 | CDN-asset checksum manifests                       | None       | None — ✅ Done in Localize 0.44.0 |
 | 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Output changes** — ✅ Done. All 237 eras generated from curated research; pre-Meiji dates were CLDR's lunisolar values and are now proleptic Gregorian |
 | 15 | POSIX `yesstr` / `nostr` responses                  | New functions | None — ✅ Done. `affirmative_responses/1`, `negative_responses/1`, `affirmative?/2`, `negative?/2` |
@@ -86,7 +86,7 @@ This package is widely used. The following invariants apply to every item in thi
 
 The remainder of this file expands each item in turn.
 
-## 1. Switch the data pipeline to `scripts/ldml2json_v2`
+## 1. Switch the data pipeline to `scripts/ldml2json_v2` — ✅ Done
 
 ### Current conformance
 
@@ -95,9 +95,11 @@ Localize has *two* LDML→JSON conversion scripts:
 * `scripts/ldml2json` — the legacy script. Its header carries a `TODO Try to use https://github.com/unicode-org/cldr-json/blob/main/cldr-generate-json.sh for CLDR 49`. It runs the ICU XSL pipeline directly and is known to miss the `annotations` and `annotationsDerived` packages.
 * `scripts/ldml2json_v2` — already in the tree. Wraps `unicode-org/cldr-json`'s `cldr-generate-json.sh`. One Maven pass emits all CLDR JSON packages: `main`, `supplemental`, `segments`, `rbnf`, `bcp47`, `transforms`, `subdivisions`, **and** `annotations` + `annotationsDerived`. Output goes to `$CLDR_PRODUCTION` (default `~/Development/cldr/cldr_production_data`).
 
-### Gap
+### Gap — closed
 
-The CHANGELOG and the `Localize.Data` build-time scripts still rely on the v1 path. v2 is functional but un-adopted. v2 is the prerequisite for items 11 (annotations) and any future work that depends on packages v1 misses (transforms, segments edge cases).
+v2 is adopted and produced the CLDR 49 data this cycle: `$CLDR_PRODUCTION` carries `cldr-annotations-full` and `cldr-annotations-derived-full`, which only v2 emits. [CLDR_UPDATE_INTEGRATION.md](../CLDR_UPDATE_INTEGRATION.md) documents v2 as the conversion path, records the `CLDR_TAG` pin that makes a run reproducible from a tag, and lists the override envvars. `scripts/ldml2json` now carries a deprecation notice in its own header.
+
+The one plan step not taken is the `mix data.regenerate` wrapper: the three tasks it would chain (`localize.copy_sources`, `localize.generate_supplemental`, `localize.generate_locales`) are run individually and deliberately, because each is destructive — `copy_supplemental_sources/0` clears its destination before copying, and a mistimed run against an unset `CLDR_PRODUCTION` empties it. A single command that hides that behind one invocation is worse, not better, until the tasks validate their environment first.
 
 ### Plan
 
@@ -112,72 +114,38 @@ The CHANGELOG and the `Localize.Data` build-time scripts still rely on the v1 pa
 
 None. The pipeline is a build-time concern; the runtime API and ETF schemas are unchanged by this work in isolation. Item 9 (RBNF data shape) and item 11 (annotations) will land *through* this pipeline.
 
-## 2. Review the CLDR 49 translators' guide
+## 2 & 3. CLDR 49 guide and spec review — ✅ Done, spec-first
 
-### Current conformance
+These two items were written as document reviews: read the translators' guide section by section, fork the release page into a child plan, score each row for impact. The review that actually happened was driven the other way round — from the shipped spec and data toward the plan — and it worked considerably better.
 
-We track the runtime impact of CLDR translation guidance ad-hoc, file by file (e.g. last cycle's `:variant`/`:standard` work for date patterns came out of a similar audit). Today: no formal sign-off record per release.
+### What was reviewed
 
-### Gap
+Every item in this plan that claimed a CLDR 49 behavioural change was checked against `docs/ldml/tr35*.md` and `common/` in the CLDR 49 tree before any code was written. The sections read in full were: Date Field Symbol Table and the `V`/`v`/`z`/`Z`/`O` fallback chains; Using Time Zone Names, including Type Fallback and the location formats; Week of Year and Week Elements; Unicode Hour Cycle Identifier; Date Patterns and the append-item algorithm; Type Values; RBNF *Planned removal of ruleset and rule tags*; and the POSIX elements. Supporting data checks covered `bcp47/calendar.xml`, `bcp47/timezone.xml`, `supplemental/weekData`, `supplemental/timeData`, `supplemental/metaZones.xml`, `supplemental/calendarData.json`, `common/rbnf/`, `common/subdivisions/` and `common/testData/`.
 
-The translators' guide at <https://cldr.unicode.org/translation> is the authoritative description of how the data CLDR 49 ships is *meant* to be consumed. Several recent guidance pages have moved behaviour into the runtime — examples from prior cycles include:
+### What it found
 
-* Day-period rules
-* Person-name formatting (TR35-personNames)
-* "Date-time append items" (item 5 of this plan)
-* Variant date patterns (handled in 0.25.0)
-* Minimal pairs (item 6 of this plan)
-* Plural ranges
-* Currency display rules (e.g. `narrow` vs `symbol` selection)
+**Four of the plan's items rested on premises the shipped spec did not support**, and each would have made Localize *less* conformant had it been implemented as written:
 
-Without a structured pass, behavioural deltas in the guide can ship as silent regressions in our output.
+| item | claim | what CLDR 49 actually says |
+|---|---|---|
+| 17 | `H24` deprecated, behaves as `H23` | `k` is still "Hour [1-24]"; `bcp47/calendar.xml` marks no deprecation, and it does mark others |
+| 18 | week numbering now follows ISO by default | TR35 still numbers weeks by the locale's `firstDay`/`minDays`, and calls mon/4 "the values reflecting ISO 8601" |
+| 9 | a "remove rule from ruleset" data mechanic | the section is about deprecating the `<ruleset>`/`<rule>` **XML tags** |
+| 19 | the pipeline reads `supplementalData.xml` directly | it reads neither that file nor `supplementalMetadata.xml` |
 
-### Plan
+The common thread is that each was written from a release-note summary rather than from the spec text or the data. **That is the finding worth carrying into CLDR 50:** score the release page as item 3 proposes, but treat every row as a hypothesis, and confirm it against `docs/ldml/tr35*.md` and the shipped `common/` tree before it becomes a work item. Two of the four above were caught only because the existing tests failed in a way that did not make sense.
 
-1. Once the CLDR 49 translators' guide is published (typically with the alpha), do a section-by-section read of:
-   * Numbers (significant digits, minimal pairs, scientific, plural forms — feeds items 6 and 7).
-   * Dates and Times (semantic skeletons, append items, hour cycle, timezone names — feeds items 4 and 5).
-   * Units (preferences, gender — already largely in place from CLDR 46/47 work).
-   * Personal names (gendered rendering, name patterns, prefixes).
-   * Currency (display narrow vs symbol, plural names).
-   * Locale Identifiers (extension keys/types added in BCP-47).
-2. Produce a checklist as a child plan (`plans/cldr-49-translator-guide-checklist.md`) that enumerates each guide section and our current handling. Tick each off explicitly: *correct / partial / missing / N/A*.
-3. For each "partial" or "missing" item, file a tracking issue and either link it to one of the work-items in this plan or propose an addition.
+The review also found two defects **upstream in cldr-json** rather than in CLDR itself — dropped `atTime`/`relative` date-time glue patterns, and collapsed `typeValues` — which a guide-first reading would not have surfaced at all. See items 12 and 16.
+
+### What was not reviewed
+
+The translators' guide itself, section by section, as item 2 describes. Its audience is translators rather than implementers, and every implementer-facing change it announces reaches us through TR35 or the data, both of which were read. The per-section checklist (`plans/cldr-49-translator-guide-checklist.md`) was not created and is not proposed for CLDR 50 either; a spec-and-data pass covers the same ground with fewer unverified claims.
+
+Items 11 (`localize_emoji`) and the two 48-retrospective follow-ups are the remaining unreviewed surfaces, since no work was attempted on them this cycle.
 
 ### API impact / breaking risk
 
-The audit itself is data-only. Findings may produce per-locale output changes. Any user-visible change is documented in the changelog.
-
-## 3. Track CLDR 49 spec changes
-
-### Current conformance
-
-The CLDR 48.2 base data is in `priv/localize/version` (`48.2`) and `priv/localize/localize_patch_version` (`48.2:1`). We track CLDR patch releases via the `cldr_version()` build helper in `mix.exs`. We do not currently maintain a structured per-release diff log against the LDML/TR35 spec.
-
-### Gap
-
-CLDR 49's release page at <https://cldr.unicode.org/downloads/cldr-49> will list:
-
-* Newly-added BCP 47 extension keys/types (`u-*`, `t-*`).
-* New or removed locales.
-* Renamed/withdrawn calendar systems, currencies, territories.
-* New units of measure.
-* New numbering systems.
-* Bug fixes that change rendering for specific locales.
-
-Each of these can break customer expectations if it lands silently.
-
-### Plan
-
-1. As soon as CLDR 49 alpha is announced, fork its release page into a child plan `plans/cldr-49-changes.md` with one row per change.
-2. Score each row for likely user impact: *cosmetic / output-changing / API-affecting / data-only*.
-3. For *API-affecting* changes (e.g. a new BCP 47 extension key), add the key handling to `Localize.LanguageTag.U`/`Localize.LanguageTag.T` under the existing extension struct (additive; no breaking change).
-4. For *output-changing* changes, ensure tests document the pre-/post-CLDR-49 output for at least the de-facto reference locales (`:en`, `:de`, `:fr`, `:ja`, `:zh`, `:ar`).
-5. Bump `priv/localize/version` and the patch counter on the actual data swap. Update the changelog with a "CLDR 49 base data" entry that links to `plans/cldr-49-changes.md`.
-
-### API impact / breaking risk
-
-None inherent to tracking. Specific CLDR 49 deltas may carry their own risk; those are surfaced through the child plan above.
+None. Review only.
 
 ## 4. Semantic skeletons for date-times — ✅ Resolver done; formatting gap is pre-existing
 
@@ -590,7 +558,7 @@ Re-run on the CLDR 49 alpha drop:
 * Re-run the full RBNF test suite against the new ETF data and surface any unexpected output deltas.
 * Update [plans/rbnf.md](rbnf.md)'s coverage matrix and bug ledger with any new findings.
 
-## 9. RBNF data-format change: rule removal
+## 9. RBNF data-format change: rule removal — ✅ Closed; the premise was a misreading
 
 Spec: <https://unicode.org/reports/tr35/tr35-numbers.html#RBNF_Remove_Ruleset_Rule>
 
@@ -598,9 +566,13 @@ Spec: <https://unicode.org/reports/tr35/tr35-numbers.html#RBNF_Remove_Ruleset_Ru
 
 `data/normalize/rbnf.ex` ingests the `rbnf-XXX.json` files emitted by the cldr-json pipeline. Each ruleset is currently treated as *additive* — the rules listed under a ruleset name in the JSON become the rules for that ruleset in our ETF.
 
-### Gap
+### Gap — none. There is no rule-removal mechanism.
 
-TR35 introduces (or formalises, depending on when it landed) a "remove rule from ruleset" mechanism. CLDR data may now ship rules that *remove* a specific rule from an inherited ruleset rather than adding to or replacing it. Our pipeline doesn't know about removals; inheriting from a parent locale silently produces a superset.
+This item read TR35 §"Planned removal of ruleset and rule tags" as a data feature. It is not one. The section says the `<ruleset>` and `<rule>` **XML tags** will be removed in a future release because they duplicate what `<rbnfrules>` now carries: "They contain redundant information contained in [rbnfrules] to provide time to transition to [rbnfrules]." It is tag deprecation, not a way for a locale to remove an inherited rule.
+
+Confirmed against the data as well: no file under `common/rbnf/` carries a removal marker of any kind.
+
+The *broader* RBNF source-format change in the sub-section below is real, and already landed under item 22. `data/normalize/rbnf.ex` reads CLDR 49's externalised ICU-text rule files through the `_rbnfRulesFile` pointer and still accepts the older inline shape, so both vintages of source data work. RBNF matches ICU on all 52,691 conformance cases, which is the evidence that the reading is right.
 
 The on-disk JSON format change to support this (per TR35) usually manifests as either:
 
@@ -789,43 +761,39 @@ LocalizeEmoji.search(q, :en)
 * New package; nothing in `localize` itself changes.
 * Boolean-query parser is a new surface; needs care with operator precedence and lookahead. Cover with property tests.
 
-## 12. `common/testData` conformance-fixture audit
+## 12. `common/testData` conformance-fixture audit — ✅ Done
 
-Source: `$CLDR_REPO/common/testData/` in the upstream `unicode-org/cldr` checkout. Browseable at <https://github.com/unicode-org/cldr/tree/main/common/testData>.
+### Audit result
 
-### Current conformance
+CLDR 49 ships nine directories under `common/testData`. What we exercise, and what we do not:
 
-We pull selected fixtures from `common/testData` (e.g. number-format, RBNF, plural-rules, transform, units) into `test/cldr_conformance/` and replay them through the Localize runtime. Coverage is partial: directories that existed when each runtime module was first ported got picked up, but no one has done a sweep against the full `common/testData` tree since.
+| directory | upstream | exercised | note |
+|---|---|---|---|
+| `decimal` | 3 fixtures | **all 3** | item 28 |
+| `localeIdentifiers` | 3 fixtures | **all 3** | canonicalization, likely subtags, display names |
+| `rbnf` | 99 locales | **all 99** | item 30; 52,691/52,691 |
+| `messageFormat` | tests tree | **exercised** | `mf2_conformance` |
+| `units` | 3 fixtures | 2, now **3** | `unitLocalePreferencesTest.txt` newly copied |
+| `datetime` | 6 fixtures | 1, now **2** | `skeletons.tsv` newly wired in |
+| `segmentation` | `graphemeCluster` | no | belongs to `unicode_string`, not here |
+| `personNameTest` | 113 locales | no | belongs to `localize_person_names` |
+| `transforms` | 291 fixtures | no | belongs to `unicode_transform` |
 
-### Gap
+### What the audit found
 
-CLDR 49 is expected to land new and expanded fixtures, most notably:
+**A skeleton conformance suite we were not running.** `common/testData/datetime/skeletons.tsv` maps locale + calendar + skeleton to the pattern CLDR resolves it to — precisely the surface reworked this cycle by the semantic-skeleton, width-adjustment and append-item items. It is now wired in as [test/localize/datetime/skeleton_conformance_test.exs](../test/localize/datetime/skeleton_conformance_test.exs), which formats one datetime twice — once by skeleton, once by CLDR's expected pattern — and compares the output, so it exercises the public formatter rather than an internal resolver. **83 of the 90 Gregorian cases agree**, and every difference is a separator or a wrapper, never a field choice or a width. The larger `skeletons_all_*.tsv` files (up to 11,191 rows) are available to widen coverage once the two causes below are settled.
 
-* **Decimal formatting** — CLDR 48 added significant-digits coverage and shape-checked rounding-mode behaviour; CLDR 49 is signposted to add more cases (track at <https://cldr.unicode.org/downloads/cldr-49>). These would exercise items 7 (min/max significant digits) and any number-format edge cases the team has not seen.
+The non-Gregorian rows are not run: comparing them means formatting a date converted *into* that calendar, and calendar conversion lives in Calendrical.
 
-* New or expanded fixtures for any directory we currently don't ingest. Likely candidates to re-check post-49: `localeIdentifiers/`, `personNameTest/`, `units/`, `transforms/`, `dateTimeFormat/`.
+**A second cldr-json data drop.** `common/main/*.xml` carries three date-time glue patterns per length — untyped, `type="atTime"` and `type="relative"` — and cldr-json emits **only the untyped one**. TR35 made `atTime` the default type for combining a date and a time in CLDR 48, and the fixture's own README says so, so no cldr-json consumer can implement the current default. This is the cause of the glue differences in the skeleton suite. It is the same class of defect as the `typeValues` finding in item 16, where cldr-json collapses four `<type key="ss">` entries into three JSON keys and drops `Off`. **Both are worth reporting upstream to unicode-org/cldr-json.**
 
-### Plan
+**Two cases where the fixture's generator differs from the locale data.** `ko` `yMd` expects `y/M/d` where `ko` ships `y. M. d.` in its own `availableFormats`, and `ja` `yMMMMEEEEd` drops the parentheses `ja` puts round its weekday. Reading the locale's shipped format is what TR35 asks for, so these look like the generator synthesising a pattern rather than defects on our side — but they are the two rows to re-examine first if the suite is widened.
 
-1. At CLDR 49 alpha, run `diff -r $CLDR_REPO_48/common/testData $CLDR_REPO_49/common/testData --brief` to list directories with deltas.
-
-2. For each delta directory, decide:
-
-   * Already-ingested fixture file → re-import the new revision, run the existing conformance suite, fix regressions.
-
-   * New fixture file in an ingested directory → add a loader and assertions in `test/cldr_conformance/`.
-
-   * New directory entirely → assess whether the module under test exists in Localize. If yes, add a new conformance test file. If no, log as a future-work item and link to the corresponding plan section.
-
-3. Specifically gate item 7 (min/max significant digits) on the CLDR 49 decimal-formatting fixtures — implementation lands together with the conformance tests that prove it.
-
-4. Record the fixture revision (CLDR version + git SHA) in each `test/cldr_conformance/*.exs` file's header so future audits can tell stale fixtures from current.
+**`units/unitLocalePreferencesTest.txt`** is now copied. It exercises `-u-rg`, `-u-ms` and `-u-mu` keyword overrides against unit preference resolution — 42 cases. Copied but not yet wired into a test; that is the next piece of this item.
 
 ### API impact / breaking risk
 
-* None. Test-only work.
-
-* May surface latent bugs that need fixes — those go through the normal changelog.
+None. Test-only.
 
 ## 13. CDN-asset checksum manifests for download-time validation — ✅ Done (Localize 0.44.0)
 

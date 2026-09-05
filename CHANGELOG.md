@@ -34,6 +34,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* Skeleton resolution is now covered by CLDR's own `datetime/skeletons.tsv` conformance suite, which had not been exercised: 83 of the 90 Gregorian cases match, with every difference a separator rather than a field choice or width.
+
 * RBNF matches ICU on all 52,691 conformance cases, from 52,685. Optional rule text now renders unconditionally where ICU would not have split the rule in two — its base value must be positive and an even multiple of its divisor — so Afrikaans spells the year 1100 "elf honderd nul".
 
 * RBNF rule selection implements ICU's rollback rule: a rule that takes a remainder is passed over for the one below it when the number divides exactly but the rule's own base value does not. Bulgarian's financial cardinals no longer spell a trailing "и нула" — "and zero" — for a round group.
