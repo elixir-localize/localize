@@ -60,6 +60,10 @@
             "symbol": "CA$",
             "symbol-alt-narrow": "$"
           },
+          "CHF": {
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
+          },
           "CLP": {
             "symbol-alt-narrow": "$"
           },
@@ -83,9 +87,6 @@
             "symbol-alt-narrow": "Kč"
           },
           "DKK": {
-            "displayName": "danmarkimut koruuni",
-            "displayName-count-one": "danskinut koruuni",
-            "displayName-count-other": "danmarkimut koruuni",
             "symbol": "kr.",
             "symbol-alt-narrow": "kr"
           },
@@ -235,9 +236,6 @@
             "symbol-alt-narrow": "C$"
           },
           "NOK": {
-            "displayName": "norskit koruuni",
-            "displayName-count-other": "norskit koruuni",
-            "symbol": "Nkr",
             "symbol-alt-narrow": "kr"
           },
           "NPR": {
@@ -276,9 +274,6 @@
             "symbol-alt-narrow": "$"
           },
           "SEK": {
-            "displayName": "svenskit koruuni",
-            "displayName-count-other": "svenskit koruuni",
-            "symbol": "Skr",
             "symbol-alt-narrow": "kr"
           },
           "SGD": {

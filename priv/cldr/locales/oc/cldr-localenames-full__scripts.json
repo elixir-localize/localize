@@ -6,41 +6,7 @@
       },
       "localeDisplayNames": {
         "scripts": {
-          "Armn": "armèni",
-          "Bopo": "bopomofó",
-          "Brai": "Bralha",
-          "Cyrl": "cirilic",
-          "Deva": "devanagari",
-          "Ethi": "etiopian",
-          "Geor": "georgian",
-          "Grek": "grec",
-          "Gujr": "gojrati",
-          "Hang": "hangol",
-          "Hani": "chinés",
-          "Hans": "simplificat",
-          "Hans-alt-stand-alone": "chinés simplificat",
-          "Hant": "tradicional",
-          "Hant-alt-stand-alone": "chinés tradicional",
-          "Hebr": "ebrèu",
-          "Hira": "hiragana",
-          "Hrkt": "sillabaris japoneses",
-          "Jpan": "japonés",
-          "Kana": "katakana",
-          "Khmr": "kmèr",
-          "Kore": "corean",
-          "Laoo": "lao",
-          "Latn": "latin",
-          "Mlym": "malayalam",
-          "Mong": "mongòl",
-          "Mymr": "birman",
-          "Phnx": "fenician",
-          "Syre": "siriac estranguelo",
-          "Syrj": "siriac occidental",
-          "Syrn": "siriac oriental",
-          "Taml": "tamol",
-          "Zmth": "notacion matematica",
-          "Zxxx": "pas escricha",
-          "Zzzz": "escritura desconeguda"
+          "Latn": "latin"
         }
       }
     }

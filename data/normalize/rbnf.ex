@@ -20,6 +20,7 @@ defmodule Localize.Data.Normalize.Rbnf do
         |> :json.decode()
         |> Map.get("rbnf")
         |> Map.get("rbnf")
+        |> resolve_rule_files(Path.dirname(path))
         |> rules_from_rule_sets()
 
       {:ok, rules}
@@ -30,6 +31,73 @@ defmodule Localize.Data.Normalize.Rbnf do
 
   defp rbnf_locale_path(locale) do
     Path.join([Localize.Data.locales_source_dir(), locale, "rbnf.json"])
+  end
+
+  # Until CLDR 48 each rule group in `rbnf.json` carried its rulesets inline.
+  # CLDR 49 externalised them: a group is now `%{"_rbnfRulesFile" => "en-
+  # SpelloutRules.txt"}` naming an ICU-syntax file beside the JSON. Both shapes
+  # are handled — a group with a pointer is read from the file, and one with
+  # rules already present is passed through, so the normalizer works against
+  # either vintage of source data.
+  defp resolve_rule_files(groups, directory) do
+    Map.new(groups, fn
+      {group, %{"_rbnfRulesFile" => file}} when is_binary(file) ->
+        {group, read_rule_file(Path.join(directory, file))}
+
+      {group, sets} ->
+        {group, sets}
+    end)
+  end
+
+  defp read_rule_file(path) do
+    if File.exists?(path) do
+      path
+      |> File.read!()
+      |> parse_rule_file()
+    else
+      %{}
+    end
+  end
+
+  # The file is a flat sequence of ruleset headers (`%spellout-cardinal:`, or
+  # `%%` for a private one) each followed by its rules, one per line, as
+  # `name: definition;`. Across all 147 files CLDR 49 ships there is nothing
+  # else — no comments, no blank lines, no rule spanning two lines — and no
+  # rule name contains a colon, so the first one separates name from
+  # definition. The output matches the shape the JSON used to provide:
+  # `%{ruleset_name => [[rule_name, definition], ...]}`.
+  defp parse_rule_file(contents) do
+    contents
+    |> String.split("\n", trim: true)
+    |> Enum.reduce({nil, %{}}, fn line, {current, sets} ->
+      case parse_rule_line(line) do
+        {:ruleset, name} ->
+          {name, Map.put_new(sets, name, [])}
+
+        {:rule, rule} when is_binary(current) ->
+          {current, Map.update!(sets, current, &[rule | &1])}
+
+        _rule_before_any_ruleset ->
+          {current, sets}
+      end
+    end)
+    |> elem(1)
+    |> Map.new(fn {name, rules} -> {name, Enum.reverse(rules)} end)
+  end
+
+  defp parse_rule_line(line) do
+    trimmed = String.trim_trailing(line)
+
+    cond do
+      String.starts_with?(trimmed, "%") and String.ends_with?(trimmed, ":") ->
+        {:ruleset, String.trim_trailing(trimmed, ":")}
+
+      true ->
+        case String.split(trimmed, ":", parts: 2) do
+          [name, definition] -> {:rule, [name, String.trim_leading(definition)]}
+          _not_a_rule -> :skip
+        end
+    end
   end
 
   defp structure_rbnf(rules) do

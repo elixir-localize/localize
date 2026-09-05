@@ -10,16 +10,8 @@
           "localeSeparator": "{0}, {1}",
           "localeKeyTypePattern": "{0}: {1}"
         },
-        "keys": {
-          "calendar": "kalans"
-        },
-        "types": {
-          "calendar": {
-            "gregorian": "Kalans gregorek"
-          }
-        },
         "codePatterns": {
-          "language": "Taves: {0}",
+          "language": "{0}",
           "script": "{0}",
           "territory": "{0}"
         }

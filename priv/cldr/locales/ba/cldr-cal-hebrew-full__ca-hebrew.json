@@ -10,20 +10,20 @@
             "months": {
               "format": {
                 "abbreviated": {
-                  "1": "тишрей",
-                  "2": "хешван",
-                  "3": "кислев",
-                  "4": "тевет",
-                  "5": "шват",
-                  "6": "адар I",
-                  "7": "адар",
-                  "7-yeartype-leap": "адар II",
-                  "8": "нисан",
-                  "9": "ияр",
-                  "10": "сиван",
-                  "11": "таммуз",
-                  "12": "ав",
-                  "13": "элул"
+                  "1": "Tishri",
+                  "2": "Heshvan",
+                  "3": "Kislev",
+                  "4": "Tevet",
+                  "5": "Shevat",
+                  "6": "Adar I",
+                  "7": "Adar",
+                  "7-yeartype-leap": "Adar II",
+                  "8": "Nisan",
+                  "9": "Iyar",
+                  "10": "Sivan",
+                  "11": "Tamuz",
+                  "12": "Av",
+                  "13": "Elul"
                 },
                 "narrow": {
                   "1": "1",
@@ -42,38 +42,38 @@
                   "13": "13"
                 },
                 "wide": {
-                  "1": "тишрей",
-                  "2": "хешван",
-                  "3": "кислев",
-                  "4": "тевет",
-                  "5": "шват",
-                  "6": "адар I",
-                  "7": "адар",
-                  "7-yeartype-leap": "адар II",
-                  "8": "нисан",
-                  "9": "ияр",
-                  "10": "сиван",
-                  "11": "таммуз",
-                  "12": "ав",
-                  "13": "элул"
+                  "1": "Tishri",
+                  "2": "Heshvan",
+                  "3": "Kislev",
+                  "4": "Tevet",
+                  "5": "Shevat",
+                  "6": "Adar I",
+                  "7": "Adar",
+                  "7-yeartype-leap": "Adar II",
+                  "8": "Nisan",
+                  "9": "Iyar",
+                  "10": "Sivan",
+                  "11": "Tamuz",
+                  "12": "Av",
+                  "13": "Elul"
                 }
               },
               "stand-alone": {
                 "abbreviated": {
-                  "1": "тишрей",
-                  "2": "хешван",
-                  "3": "кислев",
-                  "4": "тевет",
-                  "5": "шват",
-                  "6": "адар I",
-                  "7": "адар",
-                  "7-yeartype-leap": "адар II",
-                  "8": "нисан",
-                  "9": "ияр",
-                  "10": "сиван",
-                  "11": "таммуз",
-                  "12": "ав",
-                  "13": "элул"
+                  "1": "Tishri",
+                  "2": "Heshvan",
+                  "3": "Kislev",
+                  "4": "Tevet",
+                  "5": "Shevat",
+                  "6": "Adar I",
+                  "7": "Adar",
+                  "7-yeartype-leap": "Adar II",
+                  "8": "Nisan",
+                  "9": "Iyar",
+                  "10": "Sivan",
+                  "11": "Tamuz",
+                  "12": "Av",
+                  "13": "Elul"
                 },
                 "narrow": {
                   "1": "1",
@@ -92,20 +92,20 @@
                   "13": "13"
                 },
                 "wide": {
-                  "1": "тишрей",
-                  "2": "хешван",
-                  "3": "кислев",
-                  "4": "тевет",
-                  "5": "шват",
-                  "6": "адар I",
-                  "7": "адар",
-                  "7-yeartype-leap": "адар II",
-                  "8": "нисан",
-                  "9": "ияр",
-                  "10": "сиван",
-                  "11": "таммуз",
-                  "12": "ав",
-                  "13": "элул"
+                  "1": "Tishri",
+                  "2": "Heshvan",
+                  "3": "Kislev",
+                  "4": "Tevet",
+                  "5": "Shevat",
+                  "6": "Adar I",
+                  "7": "Adar",
+                  "7-yeartype-leap": "Adar II",
+                  "8": "Nisan",
+                  "9": "Iyar",
+                  "10": "Sivan",
+                  "11": "Tamuz",
+                  "12": "Av",
+                  "13": "Elul"
                 }
               }
             },
@@ -261,7 +261,7 @@
             },
             "eras": {
               "eraNames": {
-                "0": "донъя яратылышынан"
+                "0": "AM"
               },
               "eraAbbr": {
                 "0": "AM"
@@ -295,6 +295,10 @@
               "short": "HHmm"
             },
             "dateTimeFormats": {
+              "numericSeparators": {
+                "numericDateSeparator": ".",
+                "numericTimeSeparator": ":"
+              },
               "full": "{1} {0}",
               "long": "{1} {0}",
               "medium": "{1} {0}",
@@ -350,19 +354,26 @@
                 "yyyyQQQQ": "QQQQ y 'й'. G"
               },
               "appendItems": {
+                "Date-Timezone": "{0} {1}",
                 "Day": "{0} ({2}: {1})",
-                "Day-Of-Week": "{0} {1}",
+                "Day-Of-Week": "{1} {0}",
                 "Era": "{1} {0}",
                 "Hour": "{0} ({2}: {1})",
                 "Minute": "{0} ({2}: {1})",
                 "Month": "{0} ({2}: {1})",
                 "Quarter": "{0} ({2}: {1})",
                 "Second": "{0} ({2}: {1})",
+                "Time-Day-Of-Week": "{1} {0}",
                 "Timezone": "{0} {1}",
                 "Week": "{0} ({2}: {1})",
                 "Year": "{1} {0}"
               },
               "intervalFormats": {
+                "intervalFormatRanges": {
+                  "mixed": "{0} – {1}",
+                  "non-numeric": "{0}–{1}",
+                  "numeric": "{0}–{1}"
+                },
                 "intervalFormatFallback": "{0} – {1}",
                 "Bh": {
                   "B": "h B – h B",
@@ -467,6 +478,10 @@
                 "MMMEd": {
                   "d": "E, d MMM – E, d MMM",
                   "M": "E, d MMM – E, d MMM"
+                },
+                "MMMMd": {
+                  "d": "MMMM d–d",
+                  "M": "MMMM d – MMMM d"
                 },
                 "y": {
                   "y": "y – y G"

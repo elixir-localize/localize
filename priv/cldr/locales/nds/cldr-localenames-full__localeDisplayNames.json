@@ -10,36 +10,6 @@
           "localeSeparator": "{0}, {1}",
           "localeKeyTypePattern": "{0}: {1}"
         },
-        "keys": {
-          "calendar": "Klenner",
-          "collation": "Bookstaven-Folgreeg",
-          "currency": "Geldteken",
-          "numbers": "Tallen"
-        },
-        "types": {
-          "calendar": {
-            "buddhist": "Buddhistisch Klenner",
-            "chinese": "Chineesch Klenner",
-            "gregorian": "Gregoriaansch Klenner",
-            "hebrew": "Hebrääsch Klenner",
-            "indian": "Indsch Nationalklenner",
-            "islamic": "Islaamsch Klenner",
-            "islamic-civil": "Islaamsch Zivilklenner",
-            "iso8601": "ISO-8601-Klenner",
-            "japanese": "Japaansch Klenner",
-            "roc": "Klenner vun de Republik China"
-          },
-          "collation": {
-            "phonebook": "Telefonbook-Sorteerregeln",
-            "pinyin": "Pinyin-Sorteerregeln",
-            "standard": "Standard-Sorteerreeg",
-            "stroke": "Streekfolg",
-            "traditional": "Traditschonelle Sorteerregeln"
-          },
-          "numbers": {
-            "latn": "Araabsch Tallen"
-          }
-        },
         "codePatterns": {
           "language": "Spraak: {0}",
           "script": "Schrift: {0}",

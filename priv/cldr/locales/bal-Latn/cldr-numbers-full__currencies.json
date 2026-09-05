@@ -187,7 +187,8 @@
             "displayName": "Swizi Fránk",
             "displayName-count-one": "Swizi fránk",
             "displayName-count-other": "Swizi fránk",
-            "symbol": "SWZF"
+            "symbol": "SWZF",
+            "symbol-alt-narrow": "Fr."
           },
           "CLP": {
             "displayName": "Chilayi Paysó",
@@ -1018,7 +1019,7 @@
           "XXX": {
             "displayName": "Nazántagén Zarr",
             "displayName-count-other": "Nazántagén Zarr",
-            "symbol": "XXX"
+            "symbol": "¤"
           },
           "YER": {
             "displayName": "Yamani Riál",

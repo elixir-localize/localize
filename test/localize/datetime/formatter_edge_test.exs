@@ -133,9 +133,13 @@ defmodule Localize.DateTime.FormatterEdgeTest do
 
   describe "flexible day periods (B) fallbacks and ranges" do
     test "a language without day-period rules falls back to AM/PM names" do
-      # `aa` has no entry in the supplemental day-period rules, so B
-      # renders the locale's AM/PM marker instead.
-      assert time_format(~T[15:00:00], "B", :aa) == "carra"
+      # `ak` has no entry in the supplemental day-period rules, so B
+      # renders the locale's AM/PM marker instead — abbreviated, since a
+      # single `B` selects that width. This was `aa` until CLDR 49 stopped
+      # publishing locales below Basic coverage; `ak` is at modern, so it
+      # clears that gate on coverage alone rather than by being one of the
+      # locales ICU happens to ship.
+      assert time_format(~T[15:00:00], "B", :ak) == "ANW"
     end
 
     test "a range that wraps midnight selects the night period" do

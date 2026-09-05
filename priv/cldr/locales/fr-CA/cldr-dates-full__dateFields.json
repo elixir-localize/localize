@@ -567,7 +567,7 @@
           },
           "hour-short": {
             "displayName": "h",
-            "relative-type-0": "cette h",
+            "relative-type-0": "cette heure-ci",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "dans {0} h",
               "relativeTimePattern-count-other": "dans {0} h"
@@ -579,7 +579,7 @@
           },
           "hour-narrow": {
             "displayName": "h",
-            "relative-type-0": "cette h",
+            "relative-type-0": "cette heure-ci",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "+{0} h",
               "relativeTimePattern-count-other": "+{0} h"
@@ -603,7 +603,7 @@
           },
           "minute-short": {
             "displayName": "min",
-            "relative-type-0": "cette min",
+            "relative-type-0": "cette minute-ci",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "dans {0} min",
               "relativeTimePattern-count-other": "dans {0} min"
@@ -615,7 +615,7 @@
           },
           "minute-narrow": {
             "displayName": "min",
-            "relative-type-0": "cette min",
+            "relative-type-0": "cette minute-ci",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "+{0} min",
               "relativeTimePattern-count-other": "+{0} min"

@@ -10,18 +10,18 @@
             "months": {
               "format": {
                 "abbreviated": {
-                  "1": "მუჰ.",
-                  "2": "საფ.",
-                  "3": "რაბ. I",
-                  "4": "რაბ. II",
-                  "5": "ჯუმ. I",
-                  "6": "ჯუმ. II",
-                  "7": "რაჯ.",
-                  "8": "შაბ.",
-                  "9": "რამ.",
-                  "10": "შავ.",
-                  "11": "ზულ-კ.",
-                  "12": "ზულ-ჰ."
+                  "1": "Muh.",
+                  "2": "Saf.",
+                  "3": "Rab. I",
+                  "4": "Rab. II",
+                  "5": "Jum. I",
+                  "6": "Jum. II",
+                  "7": "Raj.",
+                  "8": "Sha.",
+                  "9": "Ram.",
+                  "10": "Shaw.",
+                  "11": "Dhuʻl-Q.",
+                  "12": "Dhuʻl-H."
                 },
                 "narrow": {
                   "1": "1",
@@ -38,34 +38,34 @@
                   "12": "12"
                 },
                 "wide": {
-                  "1": "მუჰარამი",
-                  "2": "საფარი",
-                  "3": "რაბი ულ-ავალი",
-                  "4": "რაბი ულ-ახირი",
-                  "5": "ჯუმადა ულ-ავალი",
-                  "6": "ჯუმადა ულ-ახირი",
-                  "7": "რაჯაბი",
-                  "8": "შაბანი",
-                  "9": "რამადანი",
-                  "10": "შავალი",
-                  "11": "ზულ-კაადა",
-                  "12": "ზულ-ჰიჯა"
+                  "1": "Muharram",
+                  "2": "Safar",
+                  "3": "Rabiʻ I",
+                  "4": "Rabiʻ II",
+                  "5": "Jumada I",
+                  "6": "Jumada II",
+                  "7": "Rajab",
+                  "8": "Shaʻban",
+                  "9": "Ramadan",
+                  "10": "Shawwal",
+                  "11": "Dhuʻl-Qiʻdah",
+                  "12": "Dhuʻl-Hijjah"
                 }
               },
               "stand-alone": {
                 "abbreviated": {
-                  "1": "მუჰ.",
-                  "2": "საფ.",
-                  "3": "რაბ. I",
-                  "4": "რაბ. II",
-                  "5": "ჯუმ. I",
-                  "6": "ჯუმ. II",
-                  "7": "რაჯ.",
-                  "8": "შაბ.",
-                  "9": "რამ.",
-                  "10": "შავ.",
-                  "11": "ზულ-კ.",
-                  "12": "ზულ-ჰ."
+                  "1": "Muh.",
+                  "2": "Saf.",
+                  "3": "Rab. I",
+                  "4": "Rab. II",
+                  "5": "Jum. I",
+                  "6": "Jum. II",
+                  "7": "Raj.",
+                  "8": "Sha.",
+                  "9": "Ram.",
+                  "10": "Shaw.",
+                  "11": "Dhuʻl-Q.",
+                  "12": "Dhuʻl-H."
                 },
                 "narrow": {
                   "1": "1",
@@ -82,18 +82,27 @@
                   "12": "12"
                 },
                 "wide": {
-                  "1": "მუჰარამი",
-                  "2": "საფარი",
-                  "3": "რაბი ულ-ავალი",
-                  "4": "რაბი ულ-ახირი",
-                  "5": "ჯუმადა ულ-ავალი",
-                  "6": "ჯუმადა ულ-ახირი",
-                  "7": "რაჯაბი",
-                  "8": "შაბანი",
-                  "9": "რამადანი",
-                  "10": "შავალი",
-                  "11": "ზულ-კაადა",
-                  "12": "ზულ-ჰიჯა"
+                  "1": "Muharram",
+                  "2": "Safar",
+                  "3": "Rabiʻ I",
+                  "4": "Rabiʻ II",
+                  "5": "Jumada I",
+                  "6": "Jumada II",
+                  "7": "Rajab",
+                  "8": "Shaʻban",
+                  "9": "Ramadan",
+                  "10": "Shawwal",
+                  "11": "Dhuʻl-Qiʻdah",
+                  "12": "Dhuʻl-Hijjah"
+                }
+              }
+            },
+            "dayOfMonths": {
+              "format": {
+                "abbreviated": {
+                  "one": "{0}-ლი",
+                  "many": "{0}",
+                  "other": "{0}"
                 }
               }
             },
@@ -322,6 +331,10 @@
               "short": "HHmm"
             },
             "dateTimeFormats": {
+              "numericSeparators": {
+                "numericDateSeparator": ".",
+                "numericTimeSeparator": ":"
+              },
               "full": "{1} {0}",
               "long": "{1}, {0}",
               "medium": "{1}, {0}",
@@ -341,13 +354,15 @@
                 "EHm": "E HH:mm",
                 "Ehms": "E h:mm:ss a",
                 "EHms": "E HH:mm:ss",
-                "Gy": "y G",
+                "Gy": "G y",
                 "GyM": "G y-MM",
-                "GyMd": "d.M.y GGGGG",
+                "GyMd": "GGGGG d.M.y",
                 "GyMEd": "G y-MM-dd, E",
                 "GyMMM": "MMM, y G",
                 "GyMMMd": "d MMM, y G",
-                "GyMMMEd": "E, d MMM, y G",
+                "GyMMMddd": "G ddd MMM, y",
+                "GyMMMEd": "G E, d MMM, y",
+                "GyMMMEddd": "G E, ddd MMM, y",
                 "h": "h a",
                 "H": "HH",
                 "hm": "h:mm a",
@@ -361,35 +376,47 @@
                 "MEd": "E, d.M",
                 "MMM": "LLL",
                 "MMMd": "d MMM",
+                "MMMddd": "ddd MMM",
                 "MMMEd": "E, d MMM",
+                "MMMEddd": "E, MMM ddd",
                 "MMMMd": "d MMMM",
+                "MMMMddd": "ddd MMMM",
                 "ms": "mm:ss",
-                "y": "y G",
-                "yyyy": "y G",
-                "yyyyM": "M.y G",
-                "yyyyMd": "d.M.y G",
-                "yyyyMEd": "E, d.M.y G",
-                "yyyyMMM": "MMM, y G",
-                "yyyyMMMd": "d MMM, y G",
-                "yyyyMMMEd": "E, d MMM, y G",
+                "y": "G y",
+                "yyyy": "G y",
+                "yyyyM": "G M.y",
+                "yyyyMd": "G d.M.y",
+                "yyyyMEd": "G E, d.M.y",
+                "yyyyMMM": "G MMM, y",
+                "yyyyMMMd": "G d MMM, y",
+                "yyyyMMMddd": "G ddd MMM, y",
+                "yyyyMMMEd": "G E, d MMM, y",
+                "yyyyMMMEddd": "G E, ddd MMM, y",
                 "yyyyMMMM": "MMMM y G",
                 "yyyyQQQ": "QQQ, y G",
                 "yyyyQQQQ": "QQQQ, y G"
               },
               "appendItems": {
+                "Date-Timezone": "{0} {1}",
                 "Day": "{0} ({2}: {1})",
-                "Day-Of-Week": "{0} {1}",
+                "Day-Of-Week": "{1} {0}",
                 "Era": "{1} {0}",
                 "Hour": "{0} ({2}: {1})",
                 "Minute": "{0} ({2}: {1})",
                 "Month": "{0} ({2}: {1})",
                 "Quarter": "{0} ({2}: {1})",
                 "Second": "{0} ({2}: {1})",
+                "Time-Day-Of-Week": "{1}, {0}",
                 "Timezone": "{0} {1}",
                 "Week": "{0} ({2}: {1})",
                 "Year": "{1} {0}"
               },
               "intervalFormats": {
+                "intervalFormatRanges": {
+                  "mixed": "{0} ‑ {1}",
+                  "non-numeric": "{0}‑{1}",
+                  "numeric": "{0}‑{1}"
+                },
                 "intervalFormatFallback": "{0} – {1}",
                 "Bh": {
                   "B": "h B – h B",
@@ -493,7 +520,11 @@
                 },
                 "MMMEd": {
                   "d": "E, d – E, d MMM",
-                  "M": "E, d MMM – E, d MMM"
+                  "M": "E, d MMM ‑ E, d MMM"
+                },
+                "MMMMd": {
+                  "d": "d‑d MMMM",
+                  "M": "d MMMM ‑ d MMMM"
                 },
                 "y": {
                   "y": "y–y G"

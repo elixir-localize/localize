@@ -134,7 +134,7 @@
             "relativeTime-type-past": {
               "relativeTimePattern-count-other": "{0} нэдиэлэ анараа өттүгэр"
             },
-            "relativePeriod": "{0} нэдиэлэтэ"
+            "relativePeriod": "the week of {0}"
           },
           "week-short": {
             "displayName": "Нэдиэлэ",
@@ -147,7 +147,7 @@
             "relativeTime-type-past": {
               "relativeTimePattern-count-other": "{0} нэдиэлэ анараа өттүгэр"
             },
-            "relativePeriod": "{0} нэдиэлэтэ"
+            "relativePeriod": "the week of {0}"
           },
           "week-narrow": {
             "displayName": "Нэдиэлэ",
@@ -160,7 +160,7 @@
             "relativeTime-type-past": {
               "relativeTimePattern-count-other": "{0} нэдиэлэ анараа өттүгэр"
             },
-            "relativePeriod": "{0} нэдиэлэтэ"
+            "relativePeriod": "the week of {0}"
           },
           "weekOfMonth": {
             "displayName": "Week Of Month"
@@ -259,7 +259,7 @@
               "relativeTimePattern-count-other": "{0} баскыһыанньанан"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-other": "{0} бс. анараа өттүгэр"
+              "relativeTimePattern-count-other": "{0} баскыһыанньа анараа өттүгэр"
             }
           },
           "sun-narrow": {
@@ -270,7 +270,7 @@
               "relativeTimePattern-count-other": "{0} баскыһыанньанан"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-other": "{0} бс. анараа өттүгэр"
+              "relativeTimePattern-count-other": "{0} баскыһыанньа анараа өттүгэр"
             }
           },
           "mon": {
@@ -278,10 +278,10 @@
             "relative-type-0": "бу бэнидиэнньик",
             "relative-type-1": "кэлэр бэнидиэнньик",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-other": "{0} бэнидиэнньигинэн"
+              "relativeTimePattern-count-other": "+{0} Mondays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-other": "{0} бэнидиэнньик анараа өттүгэр"
+              "relativeTimePattern-count-other": "-{0} Mondays"
             }
           },
           "mon-short": {
@@ -289,10 +289,10 @@
             "relative-type-0": "бу бн.",
             "relative-type-1": "кэлэр бн.",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-other": "{0} бэнидиэнньигинэн"
+              "relativeTimePattern-count-other": "+{0} Mondays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-other": "{0} бн. анараа өттүгэр"
+              "relativeTimePattern-count-other": "-{0} Mondays"
             }
           },
           "mon-narrow": {
@@ -300,10 +300,10 @@
             "relative-type-0": "бу бн.",
             "relative-type-1": "кэлэр бн.",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-other": "{0} бэнидиэнньигинэн"
+              "relativeTimePattern-count-other": "+{0} Mondays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-other": "{0} бн. анараа өттүгэр"
+              "relativeTimePattern-count-other": "-{0} Mondays"
             }
           },
           "tue": {
@@ -358,7 +358,7 @@
               "relativeTimePattern-count-other": "{0} сэрэдэнэн"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-other": "{0} сэ. анараа өттүгэр"
+              "relativeTimePattern-count-other": "{0} сэрэдэ анараа өттүгэр"
             }
           },
           "wed-narrow": {
@@ -369,7 +369,7 @@
               "relativeTimePattern-count-other": "{0} сэрэдэнэн"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-other": "{0} сэ. анараа өттүгэр"
+              "relativeTimePattern-count-other": "{0} сэрэдэ анараа өттүгэр"
             }
           },
           "thu": {
@@ -482,7 +482,7 @@
           },
           "hour": {
             "displayName": "Чаас",
-            "relative-type-0": "бу чааска",
+            "relative-type-0": "this hour",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "{0} чааһынан"
             },
@@ -492,7 +492,7 @@
           },
           "hour-short": {
             "displayName": "Чаас",
-            "relative-type-0": "бу чааска",
+            "relative-type-0": "this hour",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "{0} чааһынан"
             },
@@ -502,7 +502,7 @@
           },
           "hour-narrow": {
             "displayName": "Чаас",
-            "relative-type-0": "бу чааска",
+            "relative-type-0": "this hour",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "{0} чааһынан"
             },
@@ -512,7 +512,7 @@
           },
           "minute": {
             "displayName": "Мүнүүтэ",
-            "relative-type-0": "бу мүнүүтэҕэ",
+            "relative-type-0": "this minute",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "{0} мүнүүтэннэн"
             },
@@ -522,7 +522,7 @@
           },
           "minute-short": {
             "displayName": "Мүнүүтэ",
-            "relative-type-0": "бу мүнүүтэҕэ",
+            "relative-type-0": "this minute",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "{0} мүнүүтэннэн"
             },
@@ -532,7 +532,7 @@
           },
           "minute-narrow": {
             "displayName": "Мүнүүтэ",
-            "relative-type-0": "бу мүнүүтэҕэ",
+            "relative-type-0": "this minute",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "{0} мүнүүтэннэн"
             },

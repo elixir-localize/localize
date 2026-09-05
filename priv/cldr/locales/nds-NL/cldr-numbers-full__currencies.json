@@ -20,9 +20,7 @@
             "symbol-alt-narrow": "$"
           },
           "AUD": {
-            "displayName": "Austraalsch Dollar",
-            "displayName-count-other": "Austraalsch Dollar",
-            "symbol": "AU$",
+            "symbol": "A$",
             "symbol-alt-narrow": "$"
           },
           "AZN": {
@@ -47,8 +45,6 @@
             "symbol-alt-narrow": "Bs"
           },
           "BRL": {
-            "displayName": "Brasiliaansch Real",
-            "displayName-count-other": "Brasiliaansch Real",
             "symbol": "R$",
             "symbol-alt-narrow": "R$"
           },
@@ -62,21 +58,17 @@
             "symbol-alt-narrow": "$"
           },
           "CAD": {
-            "displayName": "Kanaadsch Dollar",
-            "displayName-count-other": "Kanada-Dollar",
             "symbol": "CA$",
             "symbol-alt-narrow": "$"
           },
           "CHF": {
-            "displayName": "Swiezer Franken",
-            "displayName-count-other": "Swiezer Franken"
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CLP": {
             "symbol-alt-narrow": "$"
           },
           "CNY": {
-            "displayName": "Chineesch Yuan",
-            "displayName-count-other": "Renminbi",
             "symbol": "CN¥",
             "symbol-alt-narrow": "¥"
           },
@@ -96,8 +88,6 @@
             "symbol-alt-narrow": "Kč"
           },
           "DKK": {
-            "displayName": "Däänsch Kroon",
-            "displayName-count-other": "Däänsch Kronen",
             "symbol-alt-narrow": "kr"
           },
           "DOP": {
@@ -110,8 +100,6 @@
             "symbol-alt-narrow": "₧"
           },
           "EUR": {
-            "displayName": "Euro",
-            "displayName-count-other": "Euro",
             "symbol": "€",
             "symbol-alt-narrow": "€"
           },
@@ -122,8 +110,6 @@
             "symbol-alt-narrow": "£"
           },
           "GBP": {
-            "displayName": "Britsch Pund Sterling",
-            "displayName-count-other": "Engelsch Pund",
             "symbol": "£",
             "symbol-alt-narrow": "£"
           },
@@ -146,8 +132,6 @@
             "symbol-alt-narrow": "$"
           },
           "HKD": {
-            "displayName": "Hongkong-Dollar",
-            "displayName-count-other": "Hongkong-Dollar",
             "symbol": "HK$",
             "symbol-alt-narrow": "$"
           },
@@ -161,8 +145,6 @@
             "symbol-alt-narrow": "Ft"
           },
           "IDR": {
-            "displayName": "Indoneesch Rupje",
-            "displayName-count-other": "Indoneesch Rupje",
             "symbol-alt-narrow": "Rp"
           },
           "ILS": {
@@ -170,8 +152,6 @@
             "symbol-alt-narrow": "₪"
           },
           "INR": {
-            "displayName": "Indsch Rupje",
-            "displayName-count-other": "Indsch Rupje",
             "symbol": "₹",
             "symbol-alt-narrow": "₹"
           },
@@ -182,8 +162,6 @@
             "symbol-alt-narrow": "$"
           },
           "JPY": {
-            "displayName": "Japaansch Yen",
-            "displayName-count-other": "Japaansch Yen",
             "symbol": "JP¥",
             "symbol-alt-narrow": "¥"
           },
@@ -200,8 +178,6 @@
             "symbol-alt-narrow": "₩"
           },
           "KRW": {
-            "displayName": "Söödkoreansch Won",
-            "displayName-count-other": "Koreaansch Won",
             "symbol": "₩",
             "symbol-alt-narrow": "₩"
           },
@@ -242,8 +218,6 @@
             "symbol-alt-narrow": "Rs"
           },
           "MXN": {
-            "displayName": "Mexikaansch Peso",
-            "displayName-count-other": "Mexiko-Peso",
             "symbol": "MX$",
             "symbol-alt-narrow": "$"
           },
@@ -260,8 +234,6 @@
             "symbol-alt-narrow": "C$"
           },
           "NOK": {
-            "displayName": "Norweegsch Kroon",
-            "displayName-count-other": "Norweegsch Kronen",
             "symbol-alt-narrow": "kr"
           },
           "NPR": {
@@ -279,8 +251,6 @@
             "symbol-alt-narrow": "Rs"
           },
           "PLN": {
-            "displayName": "Poolsch Zloty",
-            "displayName-count-other": "Poolsch Zloty",
             "symbol-alt-narrow": "zł"
           },
           "PYG": {
@@ -290,24 +260,18 @@
             "symbol-alt-narrow": "lei"
           },
           "RUB": {
-            "displayName": "Russ’sch Ruvel",
-            "displayName-count-other": "Russ’sch Ruvel",
             "symbol-alt-narrow": "₽"
           },
           "RWF": {
             "symbol-alt-narrow": "RF"
           },
           "SAR": {
-            "displayName": "Saudsch Rial",
-            "displayName-count-other": "Saudiaraabsch Rial",
             "symbol-alt-variant": "⃁"
           },
           "SBD": {
             "symbol-alt-narrow": "$"
           },
           "SEK": {
-            "displayName": "Sweedsch Kroon",
-            "displayName-count-other": "Sweedsch Kronen",
             "symbol-alt-narrow": "kr"
           },
           "SGD": {
@@ -329,17 +293,12 @@
             "symbol-alt-narrow": "£"
           },
           "THB": {
-            "displayName": "Thailannsch Baht",
-            "displayName-count-other": "Thai-Baht",
-            "symbol": "฿",
             "symbol-alt-narrow": "฿"
           },
           "TOP": {
             "symbol-alt-narrow": "T$"
           },
           "TRY": {
-            "displayName": "Törksch Lira",
-            "displayName-count-other": "Törksch Lira",
             "symbol-alt-narrow": "₺",
             "symbol-alt-variant": "TL"
           },
@@ -347,18 +306,14 @@
             "symbol-alt-narrow": "$"
           },
           "TWD": {
-            "displayName": "Nieg Taiwan-Dollar",
-            "displayName-count-other": "Taiwan-Dollar",
             "symbol": "NT$",
-            "symbol-alt-narrow": "NT$"
+            "symbol-alt-narrow": "$"
           },
           "UAH": {
             "symbol-alt-narrow": "₴"
           },
           "USD": {
-            "displayName": "US-Dollar",
-            "displayName-count-other": "Dollar",
-            "symbol": "$",
+            "symbol": "US$",
             "symbol-alt-narrow": "$"
           },
           "UYU": {
@@ -388,13 +343,9 @@
             "symbol": "CFPF"
           },
           "XXX": {
-            "displayName": "Nich begäng Geldsoort",
-            "displayName-count-other": "(nich begäng Geldsoort)",
             "symbol": "¤"
           },
           "ZAR": {
-            "displayName": "Söödafrikaansch Rand",
-            "displayName-count-other": "Söödafrikaansch Rand",
             "symbol-alt-narrow": "R"
           },
           "ZMW": {

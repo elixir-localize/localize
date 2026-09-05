@@ -6,8 +6,7 @@
       },
       "personNames": {
         "givenFirst": [
-          "und",
-          "ie"
+          "und"
         ],
         "surnameFirst": [
           "ja",
@@ -16,22 +15,22 @@
           "yue",
           "zh"
         ],
-        "formality": "informal",
+        "formality": "formal",
         "length": "medium",
         "nativeSpaceReplacement": " ",
         "foreignSpaceReplacement": " ",
         "initial": "{0}.",
-        "initialSequence": "{0}{1}",
+        "initialSequence": "{0} {1}",
         "personName": {
           "givenFirst": {
             "long": {
               "referring": {
-                "formal": "{title} {given} {given2} {surname}-{surname2}, {credentials}",
-                "informal": "{given} {given2} {surname}-{surname2}"
+                "formal": "{title} {given} {given2} {surname} {surname2} {credentials}",
+                "informal": "{title} {given} {given2} {surname} {surname2} {credentials}"
               },
               "addressing": {
-                "formal": "{title} {given} {given2} {surname}-{surname2}, {credentials}",
-                "informal": "{given} {given2} {surname}-{surname2}"
+                "formal": "{title} {given} {given2} {surname} {surname2} {credentials}",
+                "informal": "{title} {given} {given2} {surname} {surname2} {credentials}"
               },
               "monogram": {
                 "formal": "{given-monogram-allCaps}{given2-monogram-allCaps}{surname-monogram-allCaps}",
@@ -40,12 +39,12 @@
             },
             "medium": {
               "referring": {
-                "formal": "{title} {given} {given2} {surname}-{surname2}, {credentials}",
-                "informal": "{title} {given} {given2} {surname}-{surname2}, {credentials}"
+                "formal": "{title} {given} {given2} {surname} {surname2} {credentials}",
+                "informal": "{title} {given} {given2} {surname} {surname2} {credentials}"
               },
               "addressing": {
-                "formal": "{title} {given} {given2} {surname}-{surname2}, {credentials}",
-                "informal": "{title} {given} {given2} {surname}-{surname2}, {credentials}"
+                "formal": "{title} {given} {given2} {surname} {surname2} {credentials}",
+                "informal": "{title} {given} {given2} {surname} {surname2} {credentials}"
               },
               "monogram": {
                 "formal": "{given-monogram-allCaps}{given2-monogram-allCaps}{surname-monogram-allCaps}",
@@ -54,12 +53,12 @@
             },
             "short": {
               "referring": {
-                "formal": "{title} {given} {given2} {surname}-{surname2}, {credentials}",
-                "informal": "{title} {given} {given2} {surname}-{surname2}, {credentials}"
+                "formal": "{title} {given} {given2} {surname} {surname2} {credentials}",
+                "informal": "{title} {given} {given2} {surname} {surname2} {credentials}"
               },
               "addressing": {
-                "formal": "{title} {given} {given2} {surname}-{surname2}, {credentials}",
-                "informal": "{title} {given} {given2} {surname}-{surname2}, {credentials}"
+                "formal": "{title} {given} {given2} {surname} {surname2} {credentials}",
+                "informal": "{title} {given} {given2} {surname} {surname2} {credentials}"
               },
               "monogram": {
                 "formal": "{given-monogram-allCaps}{given2-monogram-allCaps}{surname-monogram-allCaps}",
@@ -130,44 +129,6 @@
                 "informal": "{surname} {surname2}, {title} {given} {given2} {credentials}"
               }
             }
-          }
-        },
-        "sampleName": {
-          "nativeG": {
-            "given": "Zendaya"
-          },
-          "nativeGS": {
-            "given": "Irene",
-            "surname": "Adler"
-          },
-          "nativeGGS": {
-            "given": "Mary Sue",
-            "surname": "Peipers"
-          },
-          "nativeFull": {
-            "title": "Sr.",
-            "given": "Richard",
-            "given-informal": "Ric",
-            "surname-prefix": "de",
-            "surname-core": "Wahl"
-          },
-          "foreignG": {
-            "given": "Sinbad"
-          },
-          "foreignGS": {
-            "given": "Kurt",
-            "surname": "Prorók"
-          },
-          "foreignFull": {
-            "title": "Dr. Ing.",
-            "given": "Ada Cornelia",
-            "given-informal": "Neele",
-            "given2": "César Martín",
-            "surname-prefix": "von",
-            "surname-core": "Brühl",
-            "surname2": "González Domingo",
-            "generation": "Jr",
-            "credentials": "MD DDS"
           }
         }
       }

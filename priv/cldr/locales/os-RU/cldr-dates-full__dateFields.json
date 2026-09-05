@@ -53,7 +53,7 @@
             }
           },
           "quarter": {
-            "displayName": "квартал",
+            "displayName": "Quarter",
             "relative-type--1": "last quarter",
             "relative-type-0": "this quarter",
             "relative-type-1": "next quarter",
@@ -65,7 +65,7 @@
             }
           },
           "quarter-short": {
-            "displayName": "кв.",
+            "displayName": "Quarter",
             "relative-type--1": "last quarter",
             "relative-type-0": "this quarter",
             "relative-type-1": "next quarter",
@@ -77,7 +77,7 @@
             }
           },
           "quarter-narrow": {
-            "displayName": "кв.",
+            "displayName": "Quarter",
             "relative-type--1": "last quarter",
             "relative-type-0": "this quarter",
             "relative-type-1": "next quarter",

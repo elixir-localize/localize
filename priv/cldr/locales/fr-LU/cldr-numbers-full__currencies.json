@@ -75,16 +75,6 @@
             "displayName-count-one": "austral argentin",
             "displayName-count-other": "australs argentins"
           },
-          "ARL": {
-            "displayName": "peso lourd argentin (1970–1983)",
-            "displayName-count-one": "peso lourd argentin (1970–1983)",
-            "displayName-count-other": "pesos lourds argentins (1970–1983)"
-          },
-          "ARM": {
-            "displayName": "peso argentin (1881–1970)",
-            "displayName-count-one": "peso argentin (1881–1970)",
-            "displayName-count-other": "pesos argentins (1881–1970)"
-          },
           "ARP": {
             "displayName": "peso argentin (1983–1985)",
             "displayName-count-one": "peso argentin (1983–1985)",
@@ -136,11 +126,6 @@
             "displayName-count-other": "marks convertibles bosniaques",
             "symbol-alt-narrow": "KM"
           },
-          "BAN": {
-            "displayName": "nouveau dinar bosniaque (1994–1997)",
-            "displayName-count-one": "nouveau dinar bosniaque (1994–1997)",
-            "displayName-count-other": "nouveaux dinars bosniaques (1994–1997)"
-          },
           "BBD": {
             "displayName": "dollar barbadien",
             "displayName-count-one": "dollar barbadien",
@@ -174,20 +159,10 @@
             "displayName-count-one": "lev bulgare (1962–1999)",
             "displayName-count-other": "levs bulgares (1962–1999)"
           },
-          "BGM": {
-            "displayName": "lev socialiste bulgare",
-            "displayName-count-one": "lev socialiste bulgare",
-            "displayName-count-other": "levs socialistes bulgares"
-          },
           "BGN": {
             "displayName": "lev bulgare",
             "displayName-count-one": "lev bulgare",
             "displayName-count-other": "levs bulgares"
-          },
-          "BGO": {
-            "displayName": "lev bulgare (1879–1952)",
-            "displayName-count-one": "lev bulgare (1879–1952)",
-            "displayName-count-other": "levs bulgares (1879–1952)"
           },
           "BHD": {
             "displayName": "dinar bahreïni",
@@ -218,11 +193,6 @@
             "displayName-count-one": "boliviano bolivien",
             "displayName-count-other": "bolivianos boliviens",
             "symbol-alt-narrow": "Bs"
-          },
-          "BOL": {
-            "displayName": "boliviano bolivien (1863–1963)",
-            "displayName-count-one": "boliviano bolivien (1863–1963)",
-            "displayName-count-other": "bolivianos boliviens (1863–1963)"
           },
           "BOP": {
             "displayName": "peso bolivien",
@@ -265,11 +235,6 @@
             "displayName": "cruzeiro",
             "displayName-count-one": "cruzeiro réal brésilien (1993–1994)",
             "displayName-count-other": "cruzeiros réals brésiliens (1993–1994)"
-          },
-          "BRZ": {
-            "displayName": "cruzeiro brésilien (1942–1967)",
-            "displayName-count-one": "cruzeiro brésilien (1942–1967)",
-            "displayName-count-other": "cruzeiros brésiliens (1942–1967)"
           },
           "BSD": {
             "displayName": "dollar bahaméen",
@@ -336,17 +301,14 @@
           "CHF": {
             "displayName": "franc suisse",
             "displayName-count-one": "franc suisse",
-            "displayName-count-other": "francs suisses"
+            "displayName-count-other": "francs suisses",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "fr."
           },
           "CHW": {
             "displayName": "franc WIR",
             "displayName-count-one": "franc WIR",
             "displayName-count-other": "francs WIR"
-          },
-          "CLE": {
-            "displayName": "escudo chilien",
-            "displayName-count-one": "escudo chilien",
-            "displayName-count-other": "escudos chiliens"
           },
           "CLF": {
             "displayName": "unité d’investissement chilienne",
@@ -364,11 +326,6 @@
             "displayName": "yuan chinois (zone extracôtière)",
             "displayName-count-one": "yuan chinois (zone extracôtière)",
             "displayName-count-other": "yuans chinois (zone extracôtière)"
-          },
-          "CNX": {
-            "displayName": "dollar de la Banque populaire chinoise",
-            "displayName-count-one": "dollar de la Banque populaire chinoise",
-            "displayName-count-other": "dollars de la Banque populaire chinoise"
           },
           "CNY": {
             "displayName": "yuan renminbi chinois",
@@ -682,11 +639,6 @@
             "displayName-count-other": "livres israéliennes",
             "symbol": "£IL"
           },
-          "ILR": {
-            "displayName": "shekel israélien (1980–1985)",
-            "displayName-count-one": "shekel israélien (1980–1985)",
-            "displayName-count-other": "shekels israéliens (1980–1985)"
-          },
           "ILS": {
             "displayName": "nouveau shekel israélien",
             "displayName-count-one": "nouveau shekel israélien",
@@ -710,11 +662,6 @@
             "displayName": "riyal iranien",
             "displayName-count-one": "riyal iranien",
             "displayName-count-other": "riyals iraniens"
-          },
-          "ISJ": {
-            "displayName": "couronne islandaise (1918–1981)",
-            "displayName-count-one": "couronne islandaise (1918–1981)",
-            "displayName-count-other": "couronnes islandaises (1918–1981)"
           },
           "ISK": {
             "displayName": "couronne islandaise",
@@ -774,16 +721,6 @@
             "displayName-count-one": "won nord-coréen",
             "displayName-count-other": "wons nord-coréens",
             "symbol-alt-narrow": "₩"
-          },
-          "KRH": {
-            "displayName": "hwan sud-coréen (1953–1962)",
-            "displayName-count-one": "hwan sud-coréen (1953–1962)",
-            "displayName-count-other": "hwans sud-coréens (1953–1962)"
-          },
-          "KRO": {
-            "displayName": "won sud-coréen (1945–1953)",
-            "displayName-count-one": "won sud-coréen (1945–1953)",
-            "displayName-count-other": "wons sud-coréens (1945–1953)"
           },
           "KRW": {
             "displayName": "won sud-coréen",
@@ -890,18 +827,7 @@
           "MAF": {
             "displayName": "franc marocain",
             "displayName-count-one": "franc marocain",
-            "displayName-count-other": "francs marocains",
-            "symbol": "fMA"
-          },
-          "MCF": {
-            "displayName": "franc monégasque",
-            "displayName-count-one": "franc monégasque",
-            "displayName-count-other": "francs monégasques"
-          },
-          "MDC": {
-            "displayName": "cupon moldave",
-            "displayName-count-one": "cupon moldave",
-            "displayName-count-other": "cupons moldaves"
+            "displayName-count-other": "francs marocains"
           },
           "MDL": {
             "displayName": "leu moldave",
@@ -917,18 +843,12 @@
           "MGF": {
             "displayName": "franc malgache",
             "displayName-count-one": "franc malgache",
-            "displayName-count-other": "francs malgaches",
-            "symbol": "Fmg"
+            "displayName-count-other": "francs malgaches"
           },
           "MKD": {
             "displayName": "denar macédonien",
             "displayName-count-one": "denar macédonien",
             "displayName-count-other": "denars macédoniens"
-          },
-          "MKN": {
-            "displayName": "denar macédonien (1992–1993)",
-            "displayName-count-one": "denar macédonien (1992–1993)",
-            "displayName-count-other": "denars macédoniens (1992–1993)"
           },
           "MLF": {
             "displayName": "franc malien",
@@ -978,11 +898,6 @@
             "displayName-count-one": "roupie mauricienne",
             "displayName-count-other": "roupies mauriciennes",
             "symbol-alt-narrow": "Rs"
-          },
-          "MVP": {
-            "displayName": "roupie maldivienne (1947–1981)",
-            "displayName-count-one": "roupie maldivienne (1947–1981)",
-            "displayName-count-other": "roupies maldiviennes (1947–1981)"
           },
           "MVR": {
             "displayName": "rufiyaa maldivienne",
@@ -1181,8 +1096,7 @@
           "RUR": {
             "displayName": "rouble russe (1991–1998)",
             "displayName-count-one": "rouble russe (1991–1998)",
-            "displayName-count-other": "roubles russes (1991–1998)",
-            "symbol-alt-narrow": "р."
+            "displayName-count-other": "roubles russes (1991–1998)"
           },
           "RWF": {
             "displayName": "franc rwandais",
@@ -1445,11 +1359,6 @@
             "symbol": "$UY",
             "symbol-alt-narrow": "$"
           },
-          "UYW": {
-            "displayName": "unité de salaire nominal uruguayenne",
-            "displayName-count-one": "unité de salaire nominal uruguayenne",
-            "displayName-count-other": "unités de salaire nominales uruguayennes"
-          },
           "UZS": {
             "displayName": "sum ouzbek",
             "displayName-count-one": "sum ouzbek",
@@ -1476,11 +1385,6 @@
             "displayName-count-other": "dôngs vietnamiens",
             "symbol": "₫",
             "symbol-alt-narrow": "₫"
-          },
-          "VNN": {
-            "displayName": "dông vietnamien (1978–1985)",
-            "displayName-count-one": "dông vietnamien (1978–1985)",
-            "displayName-count-other": "dôngs vietnamiens (1978–1985)"
           },
           "VUV": {
             "displayName": "vatu vanuatuan",
@@ -1545,13 +1449,11 @@
           "XDR": {
             "displayName": "droit de tirage spécial",
             "displayName-count-one": "droit de tirage spécial",
-            "displayName-count-other": "droits de tirage spéciaux",
-            "symbol": "DTS"
+            "displayName-count-other": "droits de tirage spéciaux"
           },
           "XEU": {
             "displayName": "unité de compte européenne (ECU)",
-            "displayName-count-one": "unité de compte européenne (ECU)",
-            "displayName-count-other": "unités de compte européennes (ECU)"
+            "displayName-count-other": "unité de compte européenne (ECU)"
           },
           "XFO": {
             "displayName": "franc or",
@@ -1590,26 +1492,16 @@
             "displayName-count-one": "unité de fonds RINET",
             "displayName-count-other": "unités de fonds RINET"
           },
-          "XSU": {
-            "displayName": "sucre",
-            "displayName-count-one": "sucre",
-            "displayName-count-other": "sucres"
-          },
           "XTS": {
             "displayName": "(devise de test)",
             "displayName-count-one": "(devise de test)",
             "displayName-count-other": "(devises de test)"
           },
-          "XUA": {
-            "displayName": "unité de compte ADB",
-            "displayName-count-one": "unité de compte ADB",
-            "displayName-count-other": "unités de compte ADB"
-          },
           "XXX": {
             "displayName": "devise inconnue ou non valide",
             "displayName-count-one": "devise inconnue",
             "displayName-count-other": "devises inconnues",
-            "symbol": "XXX"
+            "symbol": "¤"
           },
           "YDD": {
             "displayName": "dinar du Yémen",
@@ -1635,11 +1527,6 @@
             "displayName": "dinar yougoslave convertible",
             "displayName-count-one": "dinar convertible yougoslave (1990–1992)",
             "displayName-count-other": "dinars convertibles yougoslaves (1990–1992)"
-          },
-          "YUR": {
-            "displayName": "dinar réformé yougoslave (1992–1993)",
-            "displayName-count-one": "dinar réformé yougoslave (1992–1993)",
-            "displayName-count-other": "dinars réformés yougoslaves (1992–1993)"
           },
           "ZAL": {
             "displayName": "rand sud-africain (financier)",
@@ -1680,7 +1567,6 @@
           },
           "ZWG": {
             "displayName": "or du Zimbabwe",
-            "displayName-count-one": "or du Zimbabwe",
             "displayName-count-other": "or du Zimbabwe"
           },
           "ZWL": {

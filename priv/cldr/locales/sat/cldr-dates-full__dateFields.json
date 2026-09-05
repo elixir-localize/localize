@@ -17,9 +17,9 @@
           },
           "year": {
             "displayName": "ᱥᱮᱨᱢᱟ/ᱵᱚᱪᱷᱚᱞᱨ",
-            "relative-type--1": "ᱢᱟᱲᱟᱝ ᱥᱮᱨᱢᱟ",
-            "relative-type-0": "ᱱᱚᱶᱟ ᱥᱮᱨᱢᱟ",
-            "relative-type-1": "ᱦᱟᱹᱡᱩᱜ ᱠᱟᱱ ᱥᱮᱨᱢᱟ",
+            "relative-type--1": "last year",
+            "relative-type-0": "this year",
+            "relative-type-1": "next year",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} y"
             },
@@ -29,9 +29,9 @@
           },
           "year-short": {
             "displayName": "ᱥᱮᱨᱢᱟ",
-            "relative-type--1": "ᱢᱟᱲᱟᱝ ᱥᱮᱨᱢᱟ",
-            "relative-type-0": "ᱱᱚᱶᱟ ᱥᱮᱨᱢᱟ",
-            "relative-type-1": "ᱦᱟᱹᱡᱩᱜ ᱠᱟᱱ ᱥᱮᱨᱢᱟ",
+            "relative-type--1": "last year",
+            "relative-type-0": "this year",
+            "relative-type-1": "next year",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} y"
             },
@@ -41,9 +41,9 @@
           },
           "year-narrow": {
             "displayName": "ᱥᱮᱨᱢᱟ",
-            "relative-type--1": "ᱢᱟᱲᱟᱝ ᱥᱮᱨᱢᱟ",
-            "relative-type-0": "ᱱᱚᱶᱟ ᱥᱮᱨᱢᱟ",
-            "relative-type-1": "ᱦᱟᱹᱡᱩᱜ ᱠᱟᱱ ᱥᱮᱨᱢᱟ",
+            "relative-type--1": "last year",
+            "relative-type-0": "this year",
+            "relative-type-1": "next year",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} y"
             },
@@ -89,9 +89,9 @@
           },
           "month": {
             "displayName": "ᱪᱟᱸᱫᱚ",
-            "relative-type--1": "ᱢᱟᱲᱟᱝ ᱪᱟᱸᱫᱚ",
-            "relative-type-0": "ᱱᱚᱶᱟ ᱪᱟᱸᱫᱚ",
-            "relative-type-1": "ᱦᱟᱹᱡᱩᱜ ᱠᱟᱱ ᱪᱟᱸᱫᱚ",
+            "relative-type--1": "last month",
+            "relative-type-0": "this month",
+            "relative-type-1": "next month",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} m"
             },
@@ -101,9 +101,9 @@
           },
           "month-short": {
             "displayName": "ᱪᱟᱸᱫᱚ",
-            "relative-type--1": "ᱢᱟᱲᱟᱝ ᱪᱟᱸᱫᱚ",
-            "relative-type-0": "ᱱᱚᱶᱟ ᱪᱟᱸᱫᱚ",
-            "relative-type-1": "ᱦᱟᱹᱡᱩᱜ ᱠᱟᱱ ᱪᱟᱸᱫᱚ",
+            "relative-type--1": "last month",
+            "relative-type-0": "this month",
+            "relative-type-1": "next month",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} m"
             },
@@ -113,9 +113,9 @@
           },
           "month-narrow": {
             "displayName": "ᱪᱟᱸᱫᱚ",
-            "relative-type--1": "ᱢᱟᱲᱟᱝ ᱪᱟᱸᱫᱚ",
-            "relative-type-0": "ᱱᱚᱶᱟ ᱪᱟᱸᱫᱚ",
-            "relative-type-1": "ᱦᱟᱹᱡᱩᱜ ᱠᱟᱱ ᱪᱟᱸᱫᱚ",
+            "relative-type--1": "last month",
+            "relative-type-0": "this month",
+            "relative-type-1": "next month",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} m"
             },
@@ -125,42 +125,42 @@
           },
           "week": {
             "displayName": "ᱦᱟᱯᱛᱟ/ᱮᱢᱦᱟ",
-            "relative-type--1": "ᱢᱟᱲᱟᱝ ᱦᱟᱯᱛᱟ",
-            "relative-type-0": "ᱱᱤᱭᱟᱹ ᱦᱟᱯᱛᱟ",
-            "relative-type-1": "ᱦᱟᱹᱡᱩᱜ ᱠᱟᱱ ᱦᱟᱯᱛᱟ",
+            "relative-type--1": "last week",
+            "relative-type-0": "this week",
+            "relative-type-1": "next week",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} w"
             },
             "relativeTime-type-past": {
               "relativeTimePattern-count-other": "-{0} w"
             },
-            "relativePeriod": "{0} ᱨᱮᱭᱟᱜ ᱦᱟᱯᱛᱟ"
+            "relativePeriod": "the week of {0}"
           },
           "week-short": {
             "displayName": "ᱦᱟᱯᱛᱟ/ᱮᱢᱦᱟ",
-            "relative-type--1": "ᱢᱟᱲᱟᱝ ᱦᱟᱯᱛᱟ",
-            "relative-type-0": "ᱱᱤᱭᱟᱹ ᱦᱟᱯᱛᱟ",
-            "relative-type-1": "ᱦᱟᱹᱡᱩᱜ ᱠᱟᱱ ᱦᱟᱯᱛᱟ",
+            "relative-type--1": "last week",
+            "relative-type-0": "this week",
+            "relative-type-1": "next week",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} w"
             },
             "relativeTime-type-past": {
               "relativeTimePattern-count-other": "-{0} w"
             },
-            "relativePeriod": "{0} ᱨᱮᱭᱟᱜ ᱦᱟᱯᱛᱟ"
+            "relativePeriod": "the week of {0}"
           },
           "week-narrow": {
             "displayName": "ᱦᱟᱯᱛᱟ/ᱮᱢᱦᱟ",
-            "relative-type--1": "ᱢᱟᱲᱟᱝ ᱦᱟᱯᱛᱟ",
-            "relative-type-0": "ᱱᱤᱭᱟᱹ ᱦᱟᱯᱛᱟ",
-            "relative-type-1": "ᱦᱟᱹᱡᱩᱜ ᱠᱟᱱ ᱦᱟᱯᱛᱟ",
+            "relative-type--1": "last week",
+            "relative-type-0": "this week",
+            "relative-type-1": "next week",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} w"
             },
             "relativeTime-type-past": {
               "relativeTimePattern-count-other": "-{0} w"
             },
-            "relativePeriod": "{0} ᱨᱮᱭᱟᱜ ᱦᱟᱯᱛᱟ"
+            "relativePeriod": "the week of {0}"
           },
           "weekOfMonth": {
             "displayName": "ᱪᱟᱸᱫᱚ ᱨᱮᱭᱟᱠ ᱦᱟᱯᱛᱟ"

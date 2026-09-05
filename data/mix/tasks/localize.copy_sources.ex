@@ -5,7 +5,7 @@ defmodule Mix.Tasks.Localize.CopySources do
   Copies raw CLDR source files into `priv/cldr/` so that the project
   contains all data needed for reproducible ETF generation.
 
-  JSON files are copied from `CLDR_PRODUCTION_DATA`. XML files
+  JSON files are copied from `CLDR_PRODUCTION`. XML files
   (supplemental and collation) are copied from `CLDR_REPO`.
 
   ## Usage
@@ -34,7 +34,7 @@ defmodule Mix.Tasks.Localize.CopySources do
 
   ## Configuration
 
-  * `CLDR_PRODUCTION_DATA` — path to the CLDR production data
+  * `CLDR_PRODUCTION` — path to the CLDR production data
     directory (default: `../cldr_production_data`).
 
   * `CLDR_REPO` — path to the Unicode CLDR repository checkout
@@ -61,6 +61,7 @@ defmodule Mix.Tasks.Localize.CopySources do
       Localize.Data.copy_validity_sources()
       Localize.Data.copy_bcp47_sources()
       Localize.Data.copy_script_metadata()
+      Localize.Data.copy_uca_table()
     end
 
     if do_locales do

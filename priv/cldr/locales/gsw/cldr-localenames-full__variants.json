@@ -22,7 +22,6 @@
           "NEDIS": "Natisone-Mundart",
           "NJIVA": "Njiva-Mundart",
           "OSOJS": "Osojane-Mundart",
-          "PINYIN": "Pinyin",
           "POLYTON": "Politonisch",
           "POSIX": "Posix",
           "REVISED": "Nööi Rächtschriibig",
@@ -31,8 +30,7 @@
           "SCOTLAND": "Schottischs Schtandardänglisch",
           "SCOUSE": "Scouse-Mundart",
           "SOLBA": "Solbica-Mundart",
-          "TARASK": "Taraskievica-Rächtschriibig",
-          "WADEGILE": "Wade-Giles"
+          "TARASK": "Taraskievica-Rächtschriibig"
         }
       }
     }

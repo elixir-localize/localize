@@ -28,11 +28,6 @@
             "displayName-count-other": "afghanske afghani",
             "symbol-alt-narrow": "؋"
           },
-          "ALK": {
-            "displayName": "albansk lek (1946–1965)",
-            "displayName-count-one": "albansk lek (1946–1965)",
-            "displayName-count-other": "albanske lek (1946–1965)"
-          },
           "ALL": {
             "displayName": "albansk lek",
             "displayName-count-one": "albansk lek",
@@ -73,16 +68,6 @@
             "displayName": "Argentinsk austral",
             "displayName-count-one": "Argentinsk austral",
             "displayName-count-other": "Argentinske austral"
-          },
-          "ARL": {
-            "displayName": "argentinsk peso ley (1970–1983)",
-            "displayName-count-one": "argentinsk peso ley (1970–1983)",
-            "displayName-count-other": "argentinske peso ley (1970–1983)"
-          },
-          "ARM": {
-            "displayName": "argentinsk peso (1881–1970)",
-            "displayName-count-one": "argentinsk peso (1881–1970)",
-            "displayName-count-other": "argentinske pesos (1881–1970)"
           },
           "ARP": {
             "displayName": "Argentinsk peso (1983–1985)",
@@ -134,11 +119,6 @@
             "displayName-count-other": "bosnien-hercegovinske konvertible mark",
             "symbol-alt-narrow": "KM"
           },
-          "BAN": {
-            "displayName": "ny bosnien-hercegovinsk dinar (1994–1997)",
-            "displayName-count-one": "ny bosnien-hercegovinsk dinar (1994–1997)",
-            "displayName-count-other": "nye bosnien-hercegovinske dinarer (1994–1997)"
-          },
           "BBD": {
             "displayName": "barbadisk dollar",
             "displayName-count-one": "barbadisk dollar",
@@ -171,20 +151,10 @@
             "displayName-count-one": "Bulgarsk hard lev",
             "displayName-count-other": "Bulgarske hard lev"
           },
-          "BGM": {
-            "displayName": "bulgarsk socialistisk lev",
-            "displayName-count-one": "bulgarsk socialistisk lev",
-            "displayName-count-other": "bulgarske socialistiske leva"
-          },
           "BGN": {
             "displayName": "bulgarsk lev",
             "displayName-count-one": "bulgarsk lev",
             "displayName-count-other": "bulgarske leva"
-          },
-          "BGO": {
-            "displayName": "bulgarsk lev (1879–1952)",
-            "displayName-count-one": "bulgarsk lev (1879–1952)",
-            "displayName-count-other": "bulgarske leva (1879–1952)"
           },
           "BHD": {
             "displayName": "bahrainsk dinar",
@@ -213,11 +183,6 @@
             "displayName-count-one": "boliviansk boliviano",
             "displayName-count-other": "bolivianske boliviano",
             "symbol-alt-narrow": "Bs"
-          },
-          "BOL": {
-            "displayName": "boliviansk boliviano (1863–1963)",
-            "displayName-count-one": "boliviansk boliviano (1863–1963)",
-            "displayName-count-other": "bolivianske bolivianos (1863–1963)"
           },
           "BOP": {
             "displayName": "Boliviansk peso",
@@ -260,11 +225,6 @@
             "displayName": "Brasiliansk cruzeiro (1993–1994)",
             "displayName-count-one": "Brasiliansk cruzeiro (1993–1994)",
             "displayName-count-other": "Brasilianske cruzeiro (1993–1994)"
-          },
-          "BRZ": {
-            "displayName": "brasiliansk cruzeiro (1942–1967)",
-            "displayName-count-one": "brasiliansk cruzeiro (1942–1967)",
-            "displayName-count-other": "brasilianske cruzeiro (1942–1967)"
           },
           "BSD": {
             "displayName": "bahamansk dollar",
@@ -314,7 +274,7 @@
             "displayName": "canadisk dollar",
             "displayName-count-one": "canadisk dollar",
             "displayName-count-other": "canadiske dollar",
-            "symbol": "CA$",
+            "symbol": "CAD",
             "symbol-alt-narrow": "$"
           },
           "CDF": {
@@ -328,16 +288,13 @@
           },
           "CHF": {
             "displayName": "schweizerfranc",
-            "displayName-count-other": "schweizerfranc"
+            "displayName-count-other": "schweizerfranc",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CHW": {
             "displayName": "WIR franc",
             "displayName-count-other": "WIR franc"
-          },
-          "CLE": {
-            "displayName": "chilensk escudo",
-            "displayName-count-one": "chilensk escudo",
-            "displayName-count-other": "chilenske escudos"
           },
           "CLP": {
             "displayName": "chilensk peso",
@@ -642,11 +599,6 @@
             "displayName-count-one": "Israelsk pund",
             "displayName-count-other": "Israelske pund"
           },
-          "ILR": {
-            "displayName": "israelsk shekel (1980–1985)",
-            "displayName-count-one": "israelsk shekel (1980–1985)",
-            "displayName-count-other": "israelske shekel (1980–1985)"
-          },
           "ILS": {
             "displayName": "ny israelsk shekel",
             "displayName-count-one": "ny israelsk shekel",
@@ -670,11 +622,6 @@
             "displayName": "iransk rial",
             "displayName-count-one": "iransk rial",
             "displayName-count-other": "iranske rialer"
-          },
-          "ISJ": {
-            "displayName": "islandsk krone (1918–1981)",
-            "displayName-count-one": "islandsk krone (1918–1981)",
-            "displayName-count-other": "islandske kroner (1918–1981)"
           },
           "ISK": {
             "displayName": "islandsk krone",
@@ -733,16 +680,6 @@
             "displayName-count-one": "nordkoreansk won",
             "displayName-count-other": "nordkoreanske won",
             "symbol-alt-narrow": "₩"
-          },
-          "KRH": {
-            "displayName": "sydkoreansk hwan (1953–1962)",
-            "displayName-count-one": "sydkoreansk hwan (1953–1962)",
-            "displayName-count-other": "sydkoreanske hwan (1953–1962)"
-          },
-          "KRO": {
-            "displayName": "sydkoreansk won (1945–1953)",
-            "displayName-count-one": "sydkoreansk won (1945–1953)",
-            "displayName-count-other": "sydkoreanske won (1945–1953)"
           },
           "KRW": {
             "displayName": "sydkoreansk won",
@@ -847,16 +784,6 @@
             "displayName-count-one": "Marokkansk franc",
             "displayName-count-other": "Marokkanske franc"
           },
-          "MCF": {
-            "displayName": "monegaskisk franc",
-            "displayName-count-one": "monegaskisk franc",
-            "displayName-count-other": "monegaskiske franc"
-          },
-          "MDC": {
-            "displayName": "moldovisk cupon",
-            "displayName-count-one": "moldovisk cupon",
-            "displayName-count-other": "moldoviske cupon"
-          },
           "MDL": {
             "displayName": "moldovisk leu",
             "displayName-count-one": "moldovisk leu",
@@ -877,11 +804,6 @@
             "displayName": "makedonsk denar",
             "displayName-count-one": "makedonsk denar",
             "displayName-count-other": "makedonske denarer"
-          },
-          "MKN": {
-            "displayName": "makedonsk denar (1992–1993)",
-            "displayName-count-one": "makedonsk denar (1992–1993)",
-            "displayName-count-other": "makedonske denarer (1992–1993)"
           },
           "MLF": {
             "displayName": "Malisk franc",
@@ -930,11 +852,6 @@
             "displayName-count-one": "mauritisk rupee",
             "displayName-count-other": "mauritiske rupees",
             "symbol-alt-narrow": "Rs"
-          },
-          "MVP": {
-            "displayName": "maldivisk rupi (1947–1981)",
-            "displayName-count-one": "maldivisk rupi (1947–1981)",
-            "displayName-count-other": "maldiviske rupier (1947–1981)"
           },
           "MVR": {
             "displayName": "maldivisk rufiyaa",
@@ -1095,11 +1012,6 @@
             "displayName": "qatarsk rial",
             "displayName-count-one": "qatarsk rial",
             "displayName-count-other": "qatarske rial"
-          },
-          "RHD": {
-            "displayName": "rhodesisk dollar",
-            "displayName-count-one": "rhodesisk dollar",
-            "displayName-count-other": "rhodesiske dollar"
           },
           "ROL": {
             "displayName": "Rumænsk leu (1952–2006)",
@@ -1352,7 +1264,7 @@
             "displayName": "amerikansk dollar",
             "displayName-count-one": "amerikansk dollar",
             "displayName-count-other": "amerikanske dollar",
-            "symbol": "US$",
+            "symbol": "USD",
             "symbol-alt-narrow": "$"
           },
           "USN": {
@@ -1404,11 +1316,6 @@
             "symbol": "₫",
             "symbol-alt-narrow": "₫"
           },
-          "VNN": {
-            "displayName": "vietnamesisk dong (1978–1985)",
-            "displayName-count-one": "vietnamesisk dong (1978–1985)",
-            "displayName-count-other": "vietnamesiske dong (1978–1985)"
-          },
           "VUV": {
             "displayName": "vanuaisk vatu",
             "displayName-count-one": "vanuaisk vatu",
@@ -1427,13 +1334,11 @@
           },
           "XAG": {
             "displayName": "Sølv",
-            "displayName-count-one": "troy ounce sølv",
-            "displayName-count-other": "troy ounces sølv"
+            "displayName-count-other": "Sølv"
           },
           "XAU": {
             "displayName": "Guld",
-            "displayName-count-one": "troy ounce guld",
-            "displayName-count-other": "troy ounces guld"
+            "displayName-count-other": "Guld"
           },
           "XBA": {
             "displayName": "EURCO",
@@ -1452,7 +1357,6 @@
           },
           "XCG": {
             "displayName": "caribiske gylden",
-            "displayName-count-one": "caribiske gylden",
             "displayName-count-other": "caribiske gylden",
             "symbol": "Cg."
           },
@@ -1481,8 +1385,7 @@
           },
           "XPD": {
             "displayName": "Palladium",
-            "displayName-count-one": "troy ounce palladium",
-            "displayName-count-other": "troy ounces palladium"
+            "displayName-count-other": "Palladium"
           },
           "XPF": {
             "displayName": "CFP-franc",
@@ -1491,8 +1394,7 @@
           },
           "XPT": {
             "displayName": "Platin",
-            "displayName-count-one": "troy ounce platin",
-            "displayName-count-other": "troy ounces platin"
+            "displayName-count-other": "Platin"
           },
           "XRE": {
             "displayName": "RINET-fond",
@@ -1534,11 +1436,6 @@
             "displayName-count-one": "Jugoslavisk konvertibel dinar (1990–1992)",
             "displayName-count-other": "Jugoslaviske konvertibel dinar (1990–1992)"
           },
-          "YUR": {
-            "displayName": "jugoslavisk reformeret dinar (1992–1993)",
-            "displayName-count-one": "jugoslavisk reformeret dinar (1992–1993)",
-            "displayName-count-other": "jugoslaviske reformerede dinarer (1992–1993)"
-          },
           "ZAL": {
             "displayName": "Sydafrikansk rand (financial)",
             "displayName-count-one": "Sydafrikansk rand (financial)",
@@ -1578,7 +1475,6 @@
           },
           "ZWG": {
             "displayName": "Zimbabwe Gold",
-            "displayName-count-one": "Zimbabwe Gold",
             "displayName-count-other": "Zimbabwe Gold"
           },
           "ZWL": {

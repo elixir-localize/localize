@@ -26,7 +26,7 @@
           ")": "]",
           "）": "］"
         },
-        "moreInformation": "؟",
+        "moreInformation": "?",
         "lenient-scope-date": {
           "-": "[\\- ‑ . /]",
           ":": "[\\:：﹕︓ ∶]"
@@ -50,7 +50,8 @@
         "stricter-scope-number": {
           ",": "[,，﹐︐ ⹁ ٫]",
           ".": "[.．․﹒ ｡]"
-        }
+        },
+        "datetime-type-digit-digit": " "
       }
     }
   }

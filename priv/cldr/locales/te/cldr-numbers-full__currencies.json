@@ -168,7 +168,9 @@
           "CHF": {
             "displayName": "స్విస్ ఫ్రాంక్",
             "displayName-count-one": "స్విస్ ఫ్రాంక్",
-            "displayName-count-other": "స్విస్ ఫ్రాంక్‌లు"
+            "displayName-count-other": "స్విస్ ఫ్రాంక్‌లు",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CLP": {
             "displayName": "చిలియన్ పెసో",
@@ -182,7 +184,6 @@
           },
           "CNY": {
             "displayName": "చైనీస్ యువాన్",
-            "displayName-count-one": "చైనీస్ యువాన్",
             "displayName-count-other": "చైనీస్ యువాన్",
             "symbol": "CN¥",
             "symbol-alt-narrow": "¥"
@@ -409,7 +410,6 @@
           },
           "JPY": {
             "displayName": "జపనీస్ యెన్",
-            "displayName-count-one": "జపనీస్ యెన్",
             "displayName-count-other": "జపనీస్ యెన్",
             "symbol": "JP¥",
             "symbol-alt-narrow": "¥"
@@ -565,11 +565,6 @@
             "displayName-count-other": "మారిషన్ రూపాయలు",
             "symbol-alt-narrow": "Rs"
           },
-          "MVP": {
-            "displayName": "మాల్దీవుల రూపాయి",
-            "displayName-count-one": "మాల్దీవుల రూపాయి",
-            "displayName-count-other": "మాల్దీవులు రూపాయిలు"
-          },
           "MVR": {
             "displayName": "మాల్దీవియన్ రుఫియా",
             "displayName-count-one": "మాల్దీవియన్ రుఫియా",
@@ -611,7 +606,7 @@
             "symbol-alt-narrow": "₦"
           },
           "NIO": {
-            "displayName": "నికరగ్యుయన్ కొర్‌డుబు",
+            "displayName": "నికరాగ్వన్ కోర్డబా",
             "displayName-count-one": "నికరాగ్వన్ కోర్డబా",
             "displayName-count-other": "నికరగ్యుయన్ కొర్‌డుబులు",
             "symbol-alt-narrow": "C$"
@@ -824,7 +819,6 @@
           },
           "TRY": {
             "displayName": "టర్కిష్ లీరా",
-            "displayName-count-one": "టర్కిష్ లీరా",
             "displayName-count-other": "టర్కిష్ లీరా",
             "symbol-alt-narrow": "₺",
             "symbol-alt-variant": "TL"
@@ -907,14 +901,6 @@
             "displayName-count-other": "సెంట్రల్ ఆఫ్రికన్ సిఎఫ్‌ఎ ఫ్రాంక్‌లు",
             "symbol": "FCFA"
           },
-          "XAG": {
-            "displayName": "వెండి",
-            "displayName-count-other": "వెండి"
-          },
-          "XAU": {
-            "displayName": "బంగారం",
-            "displayName-count-other": "బంగారం"
-          },
           "XCD": {
             "displayName": "తూర్పు కరీబియన్ డాలర్",
             "displayName-count-one": "తూర్పు కరీబియన్ డాలర్",
@@ -939,10 +925,6 @@
             "displayName-count-one": "సిఎఫ్‌పి ఫ్రాంక్",
             "displayName-count-other": "సిఎఫ్‌పి ఫ్రాంక్‌లు",
             "symbol": "CFPF"
-          },
-          "XPT": {
-            "displayName": "ప్లాటినం",
-            "displayName-count-other": "ప్లాటినం"
           },
           "XXX": {
             "displayName": "తెలియని కరెన్సీ",
@@ -972,7 +954,6 @@
           },
           "ZWG": {
             "displayName": "జింబాబ్వేయన్ గోల్డ్",
-            "displayName-count-one": "జింబాబ్వేయన్ గోల్డ్",
             "displayName-count-other": "జింబాబ్వేయన్ గోల్డ్"
           }
         }

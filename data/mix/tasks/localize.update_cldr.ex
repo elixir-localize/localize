@@ -9,7 +9,7 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
 
   The upstream checkouts must already be refreshed before running this
   task: check out the release tag in `CLDR_REPO` and regenerate
-  `CLDR_PRODUCTION_DATA` with `scripts/ldml2json_v2`. The task
+  `CLDR_PRODUCTION` with `scripts/ldml2json_v2`. The task
   verifies both and reports the source CLDR version before it starts.
 
   Each pipeline step and gate runs in a fresh VM (`mix` subprocess) so
@@ -52,7 +52,7 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
 
   ## Configuration
 
-  * `CLDR_PRODUCTION_DATA` — path to the CLDR production data
+  * `CLDR_PRODUCTION` — path to the CLDR production data
     directory (default: `../cldr_production_data`).
 
   * `CLDR_REPO` — path to the Unicode CLDR repository checkout
@@ -86,7 +86,7 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
     production_data = cldr_source_dir()
     cldr_repo = cldr_repo_dir()
 
-    verify_directory!(production_data, "CLDR_PRODUCTION_DATA", "scripts/ldml2json_v2")
+    verify_directory!(production_data, "CLDR_PRODUCTION", "scripts/ldml2json_v2")
     verify_directory!(cldr_repo, "CLDR_REPO", "git clone github.com/unicode-org/cldr")
 
     source_version = source_cldr_version(production_data)
@@ -101,7 +101,7 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
       Mix.raise("""
       Could not read the CLDR version from
       #{aliases_json_path(production_data)}.
-      Is CLDR_PRODUCTION_DATA a cldr-json layout produced by scripts/ldml2json_v2?
+      Is CLDR_PRODUCTION a cldr-json layout produced by scripts/ldml2json_v2?
       """)
     end
 
@@ -200,9 +200,14 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
   defp run_mix(label, mix_args, env) do
     Mix.shell().info("\n==> #{label}: mix #{Enum.join(mix_args, " ")}")
 
+    # `IO.stream/2` writes through the unicode translation layer, so a single
+    # byte of sub-process output that is not valid UTF-8 raises ArgumentError
+    # from `:io.put_chars` and swallows the rest of the failure report — the
+    # part we most need to read. `IO.binstream/2` passes bytes straight
+    # through.
     {_output, status} =
       System.cmd("mix", mix_args,
-        into: IO.stream(:stdio, :line),
+        into: IO.binstream(:stdio, :line),
         env: env,
         stderr_to_stdout: true
       )
@@ -231,7 +236,7 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
   # ── Source and version helpers ───────────────────────────────
 
   defp cldr_source_dir do
-    System.get_env("CLDR_PRODUCTION_DATA") ||
+    System.get_env("CLDR_PRODUCTION") ||
       Path.join([File.cwd!(), "..", "cldr_production_data"]) |> Path.expand()
   end
 

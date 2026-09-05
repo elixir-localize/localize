@@ -130,32 +130,6 @@
               }
             }
           }
-        },
-        "sampleName": {
-          "nativeG": {
-            "given": "Elisa"
-          },
-          "nativeGS": {
-            "given": "Pinina"
-          },
-          "nativeGGS": {
-            "given": "Matilda Bossa"
-          },
-          "nativeFull": {
-            "given": "March Brambilla"
-          },
-          "foreignG": {
-            "given": "Peder"
-          },
-          "foreignGS": {
-            "given": "Caterina"
-          },
-          "foreignGGS": {
-            "given": "Luisa"
-          },
-          "foreignFull": {
-            "given": "Luisa Verda"
-          }
         }
       }
     }

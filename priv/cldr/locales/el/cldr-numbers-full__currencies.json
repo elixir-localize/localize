@@ -27,10 +27,6 @@
             "displayName-count-other": "αφγάνια Αφγανιστάν",
             "symbol-alt-narrow": "؋"
           },
-          "ALK": {
-            "displayName-count-one": "Παλαιό λεκ Αλβανίας",
-            "displayName-count-other": "Παλαιά λεκ Αλβανίας"
-          },
           "ALL": {
             "displayName": "Λεκ Αλβανίας",
             "displayName-count-one": "λεκ Αλβανίας",
@@ -67,10 +63,6 @@
             "displayName": "Ωστράλ Αργετινής",
             "displayName-count-one": "αουστράλ Αργεντινής",
             "displayName-count-other": "αουστράλ Αργεντινής"
-          },
-          "ARL": {
-            "displayName-count-one": "Πέσο λέι Αργετινής",
-            "displayName-count-other": "Πέσο λέι Αργετινής"
           },
           "ARP": {
             "displayName": "Πέσο Αργεντινής (1983–1985)",
@@ -122,10 +114,6 @@
             "displayName-count-other": "μετατρέψιμα μάρκα Βοσνίας-Ερζεγοβίνης",
             "symbol-alt-narrow": "KM"
           },
-          "BAN": {
-            "displayName-count-one": "Νέο δινάριο Βοσνίας-Ερζεγοβίνης",
-            "displayName-count-other": "Νέα δινάρια Βοσνίας-Ερζεγοβίνης"
-          },
           "BBD": {
             "displayName": "Δολάριο Μπαρμπέιντος",
             "displayName-count-one": "δολάριο Μπαρμπέιντος",
@@ -158,18 +146,10 @@
             "displayName-count-one": "μεταλλικό λεβ Βουλγαρίας",
             "displayName-count-other": "μεταλλικά λεβ Βουλγαρίας"
           },
-          "BGM": {
-            "displayName-count-one": "Σοσιαλιστικό λεβ Βουλγαρίας",
-            "displayName-count-other": "Σοσιαλιστικά λεβ Βουλγαρίας"
-          },
           "BGN": {
             "displayName": "Λεβ Βουλγαρίας",
             "displayName-count-one": "λεβ Βουλγαρίας",
             "displayName-count-other": "λεβ Βουλγαρίας"
-          },
-          "BGO": {
-            "displayName-count-one": "Παλαιό λεβ Βουλγαρίας",
-            "displayName-count-other": "Παλαιά λεβ Βουλγαρίας"
           },
           "BHD": {
             "displayName": "Δηνάριο Μπαχρέιν",
@@ -198,10 +178,6 @@
             "displayName-count-one": "μπολιβιάνο Βολιβίας",
             "displayName-count-other": "μπολιβιάνο Βολιβίας",
             "symbol-alt-narrow": "Bs"
-          },
-          "BOL": {
-            "displayName-count-one": "Παλαιό βολιβιάνο Βολιβίας",
-            "displayName-count-other": "Παλαιά βολιβιάνο Βολιβίας"
           },
           "BOP": {
             "displayName": "Πέσο Βολιβίας",
@@ -244,10 +220,6 @@
             "displayName": "Κρουζιέρο Βραζιλίας",
             "displayName-count-one": "κρουζέιρο Βραζιλίας",
             "displayName-count-other": "κρουζέιρο Βραζιλίας"
-          },
-          "BRZ": {
-            "displayName-count-one": "Παλαιό κρουζέιρο Βραζιλίας",
-            "displayName-count-other": "Παλαιά κρουζέιρο Βραζιλίας"
           },
           "BSD": {
             "displayName": "Δολάριο Μπαχαμών",
@@ -313,16 +285,14 @@
           "CHF": {
             "displayName": "Φράγκο Ελβετίας",
             "displayName-count-one": "φράγκο Ελβετίας",
-            "displayName-count-other": "φράγκα Ελβετίας"
+            "displayName-count-other": "φράγκα Ελβετίας",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CHW": {
             "displayName": "Φράγκο WIR",
             "displayName-count-one": "φράγκο WIR",
             "displayName-count-other": "φράγκα WIR"
-          },
-          "CLE": {
-            "displayName": "Εσκούδο Χιλής",
-            "displayName-count-other": "Εσκούδο Χιλής"
           },
           "CLF": {
             "displayName": "Ουνιδάδες ντε φομέντο Χιλής",
@@ -339,10 +309,6 @@
             "displayName": "Γουάν Κίνας (υπεράκτιο)",
             "displayName-count-one": "γουάν Κίνας (υπεράκτιο)",
             "displayName-count-other": "γουάν Κίνας (υπεράκτια)"
-          },
-          "CNX": {
-            "displayName-count-one": "Δολάριο Λαϊκής Τράπεζας Κίνας",
-            "displayName-count-other": "Δολάρια Λαϊκής Τράπεζας Κίνας"
           },
           "CNY": {
             "displayName": "Γουάν Κίνας",
@@ -734,10 +700,6 @@
             "displayName-count-other": "γουόν Βόρειας Κορέας",
             "symbol-alt-narrow": "₩"
           },
-          "KRO": {
-            "displayName-count-one": "Παλιό γον Νότιας Κορέας",
-            "displayName-count-other": "Παλιά γον Νότιας Κορέας"
-          },
           "KRW": {
             "displayName": "Γουόν Νότιας Κορέας",
             "displayName-count-one": "γουόν Νότιας Κορέας",
@@ -841,14 +803,6 @@
             "displayName-count-one": "φράγκο Μαρόκου",
             "displayName-count-other": "φράγκα Μαρόκου"
           },
-          "MCF": {
-            "displayName-count-one": "Φράγκο Μονακό",
-            "displayName-count-other": "Φράγκα Μονακό"
-          },
-          "MDC": {
-            "displayName-count-one": "Κούπον Μολδαβίας",
-            "displayName-count-other": "Κούπον Μολδαβίας"
-          },
           "MDL": {
             "displayName": "Λέου Μολδαβίας",
             "displayName-count-one": "λέου Μολδαβίας",
@@ -869,10 +823,6 @@
             "displayName": "Δηνάριο ΠΓΔΜ",
             "displayName-count-one": "δηνάριο ΠΓΔΜ",
             "displayName-count-other": "δηνάρια ΠΓΔΜ"
-          },
-          "MKN": {
-            "displayName-count-one": "Παλιό δηνάριο ΠΓΔΜ",
-            "displayName-count-other": "Παλιά δηνάρια ΠΓΔΜ"
           },
           "MLF": {
             "displayName": "Φράγκο Μαλί",
@@ -1394,10 +1344,6 @@
             "symbol": "₫",
             "symbol-alt-narrow": "₫"
           },
-          "VNN": {
-            "displayName-count-one": "Παλαιό ντονγκ Βιετνάμ",
-            "displayName-count-other": "Παλαιά ντονγκ Βιετνάμ"
-          },
           "VUV": {
             "displayName": "Βατού Βανουάτου",
             "displayName-count-one": "βατού Βανουάτου",
@@ -1479,10 +1425,6 @@
             "displayName-count-other": "φράγκα CFP",
             "symbol": "CFPF"
           },
-          "XRE": {
-            "displayName-count-one": "Ταμείο RINET",
-            "displayName-count-other": "Ταμείο RINET"
-          },
           "XXX": {
             "displayName": "Άγνωστο νόμισμα",
             "displayName-count-one": "(άγνωστο νόμισμα)",
@@ -1513,10 +1455,6 @@
             "displayName": "Μετατρέψιμο Δηνάριο Γιουγκοσλαβίας",
             "displayName-count-one": "μετατρέψιμο δινάριο Γιουγκοσλαβίας",
             "displayName-count-other": "μετατρέψιμο δηνάριο Γιουγκοσλαβίας"
-          },
-          "YUR": {
-            "displayName-count-one": "Αναμορφωμένο δηνάριο Γιουγκοσλαβίας",
-            "displayName-count-other": "Αναμορφωμένα δηνάρια Γιουγκοσλαβίας"
           },
           "ZAL": {
             "displayName": "Ραντ Νότιας Αφρικής (οικονομικό)",
@@ -1557,16 +1495,12 @@
           },
           "ZWG": {
             "displayName": "Χρυσός της Ζιμπάμπουε",
-            "displayName-count-one": "Χρυσός της Ζιμπάμπουε",
-            "displayName-count-other": "Χρυσός της Ζιμπάμπουε"
+            "displayName-count-one": "χρυσός της Ζιμπάμπουε",
+            "displayName-count-other": "χρυσός της Ζιμπάμπουε"
           },
           "ZWL": {
             "displayName": "Δολάριο Ζιμπάμπουε (2009)",
             "displayName-count-other": "Δολάριο Ζιμπάμπουε (2009)"
-          },
-          "ZWR": {
-            "displayName-count-one": "Δολάριο Ζιμπάμπουε (2008)",
-            "displayName-count-other": "Δολάρια Ζιμπάμπουε (2008)"
           }
         }
       }

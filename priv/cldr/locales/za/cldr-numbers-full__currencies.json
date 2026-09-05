@@ -60,17 +60,15 @@
             "symbol": "CA$",
             "symbol-alt-narrow": "$"
           },
+          "CHF": {
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
+          },
           "CLP": {
             "symbol-alt-narrow": "$"
           },
-          "CNH": {
-            "displayName": "yinzminzbi (lizan)",
-            "displayName-count-other": "yinzminzbi (lizan)"
-          },
           "CNY": {
-            "displayName": "yinzminzbi",
-            "displayName-count-other": "yinzminzbi",
-            "symbol": "¥",
+            "symbol": "CN¥",
             "symbol-alt-narrow": "¥"
           },
           "COP": {
@@ -314,9 +312,7 @@
             "symbol-alt-narrow": "₴"
           },
           "USD": {
-            "displayName": "meijyenz",
-            "displayName-count-other": "meijyenz",
-            "symbol": "$",
+            "symbol": "US$",
             "symbol-alt-narrow": "$"
           },
           "UYU": {

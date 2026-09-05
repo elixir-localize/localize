@@ -98,7 +98,9 @@
           "CHF": {
             "displayName": "franc svuizar",
             "displayName-count-one": "franc svuizar",
-            "displayName-count-other": "francs svuizars"
+            "displayName-count-other": "francs svuizars",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CLP": {
             "symbol-alt-narrow": "$"
@@ -124,8 +126,7 @@
           },
           "CUP": {
             "displayName": "Peso cuban",
-            "displayName-count-one": "peso cuban",
-            "displayName-count-other": "peso cuban",
+            "displayName-count-other": "Peso cuban",
             "symbol-alt-narrow": "$"
           },
           "CZK": {
@@ -333,8 +334,7 @@
           },
           "NIO": {
             "displayName": "Córdoba oro nicaraguan",
-            "displayName-count-one": "córdoba oro nicaraguan",
-            "displayName-count-other": "córdoba oro nicaraguan",
+            "displayName-count-other": "Córdoba oro nicaraguan",
             "symbol-alt-narrow": "C$"
           },
           "NOK": {

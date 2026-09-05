@@ -37,7 +37,7 @@
           "year-short": {
             "displayName": "г.",
             "relative-type--1": "у мін. годзе",
-            "relative-type-0": "у гэт. годзе",
+            "relative-type-0": "сёлета",
             "relative-type-1": "у наст. годзе",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "праз {0} г.",
@@ -55,7 +55,7 @@
           "year-narrow": {
             "displayName": "г.",
             "relative-type--1": "у мін. годзе",
-            "relative-type-0": "у гэт. годзе",
+            "relative-type-0": "сёлета",
             "relative-type-1": "у наст. годзе",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "праз {0} г.",
@@ -79,13 +79,13 @@
               "relativeTimePattern-count-one": "праз {0} квартал",
               "relativeTimePattern-count-few": "праз {0} кварталы",
               "relativeTimePattern-count-many": "праз {0} кварталаў",
-              "relativeTimePattern-count-other": "праз {0} кварталу"
+              "relativeTimePattern-count-other": "праз {0} квартала"
             },
             "relativeTime-type-past": {
               "relativeTimePattern-count-one": "{0} квартал таму",
               "relativeTimePattern-count-few": "{0} кварталы таму",
               "relativeTimePattern-count-many": "{0} кварталаў таму",
-              "relativeTimePattern-count-other": "{0} кварталу таму"
+              "relativeTimePattern-count-other": "{0} квартала таму"
             }
           },
           "quarter-short": {
@@ -145,7 +145,7 @@
           "month-short": {
             "displayName": "мес.",
             "relative-type--1": "у мін. мес.",
-            "relative-type-0": "у гэт. мес.",
+            "relative-type-0": "у гэтым мес.",
             "relative-type-1": "у наст. мес.",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "праз {0} мес.",
@@ -163,7 +163,7 @@
           "month-narrow": {
             "displayName": "мес.",
             "relative-type--1": "у мін. мес.",
-            "relative-type-0": "у гэт. мес.",
+            "relative-type-0": "у гэтым мес.",
             "relative-type-1": "у наст. мес.",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "праз {0} мес.",
@@ -179,7 +179,7 @@
             }
           },
           "week": {
-            "displayName": "тыд.",
+            "displayName": "тыд",
             "relative-type--1": "на мінулым тыдні",
             "relative-type-0": "на гэтым тыдні",
             "relative-type-1": "на наступным тыдні",
@@ -198,40 +198,40 @@
             "relativePeriod": "тыдзень {0}"
           },
           "week-short": {
-            "displayName": "тыд.",
+            "displayName": "тыд",
             "relative-type--1": "на мін. тыд.",
-            "relative-type-0": "на гэт. тыд.",
+            "relative-type-0": "на гэтым тыд.",
             "relative-type-1": "на наст. тыд.",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "праз {0} тыд.",
-              "relativeTimePattern-count-few": "праз {0} тыд.",
-              "relativeTimePattern-count-many": "праз {0} тыд.",
-              "relativeTimePattern-count-other": "праз {0} тыд."
+              "relativeTimePattern-count-one": "праз {0} тыд",
+              "relativeTimePattern-count-few": "праз {0} тыд",
+              "relativeTimePattern-count-many": "праз {0} тыд",
+              "relativeTimePattern-count-other": "праз {0} тыд"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "{0} тыд. таму",
-              "relativeTimePattern-count-few": "{0} тыд. таму",
-              "relativeTimePattern-count-many": "{0} тыд. таму",
-              "relativeTimePattern-count-other": "{0} тыд. таму"
+              "relativeTimePattern-count-one": "{0} тыд таму",
+              "relativeTimePattern-count-few": "{0} тыд таму",
+              "relativeTimePattern-count-many": "{0} тыд таму",
+              "relativeTimePattern-count-other": "{0} тыд таму"
             },
             "relativePeriod": "тыдзень {0}"
           },
           "week-narrow": {
-            "displayName": "тыд.",
+            "displayName": "тыд",
             "relative-type--1": "на мін. тыд.",
-            "relative-type-0": "на гэт. тыд.",
+            "relative-type-0": "на гэтым тыд.",
             "relative-type-1": "на наст. тыд.",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "праз {0} тыд.",
-              "relativeTimePattern-count-few": "праз {0} тыд.",
-              "relativeTimePattern-count-many": "праз {0} тыд.",
-              "relativeTimePattern-count-other": "праз {0} тыд."
+              "relativeTimePattern-count-one": "праз {0} тыд",
+              "relativeTimePattern-count-few": "праз {0} тыд",
+              "relativeTimePattern-count-many": "праз {0} тыд",
+              "relativeTimePattern-count-other": "праз {0} тыд"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "{0} тыд. таму",
-              "relativeTimePattern-count-few": "{0} тыд. таму",
-              "relativeTimePattern-count-many": "{0} тыд. таму",
-              "relativeTimePattern-count-other": "{0} тыд. таму"
+              "relativeTimePattern-count-one": "{0} тыд таму",
+              "relativeTimePattern-count-few": "{0} тыд таму",
+              "relativeTimePattern-count-many": "{0} тыд таму",
+              "relativeTimePattern-count-other": "{0} тыд таму"
             },
             "relativePeriod": "тыдзень {0}"
           },
@@ -248,7 +248,7 @@
             "displayName": "дзень",
             "relative-type--2": "пазаўчора",
             "relative-type--1": "учора",
-            "relative-type-0": "сёньня",
+            "relative-type-0": "сёння",
             "relative-type-1": "заўтра",
             "relative-type-2": "паслязаўтра",
             "relativeTime-type-future": {
@@ -268,7 +268,7 @@
             "displayName": "дзень",
             "relative-type--2": "пазаўчора",
             "relative-type--1": "учора",
-            "relative-type-0": "сёньня",
+            "relative-type-0": "сёння",
             "relative-type-1": "заўтра",
             "relative-type-2": "паслязаўтра",
             "relativeTime-type-future": {
@@ -288,7 +288,7 @@
             "displayName": "д.",
             "relative-type--2": "пазаўчора",
             "relative-type--1": "учора",
-            "relative-type-0": "сёньня",
+            "relative-type-0": "сёння",
             "relative-type-1": "заўтра",
             "relative-type-2": "паслязаўтра",
             "relativeTime-type-future": {
@@ -305,13 +305,13 @@
             }
           },
           "dayOfYear": {
-            "displayName": "дзень году"
+            "displayName": "дзень года"
           },
           "dayOfYear-short": {
             "displayName": "дзень года"
           },
           "dayOfYear-narrow": {
-            "displayName": "дзень году"
+            "displayName": "дзень года"
           },
           "weekday": {
             "displayName": "дзень тыдня"
@@ -333,7 +333,7 @@
           },
           "sun": {
             "relative-type--1": "у мінулую нядзелю",
-            "relative-type-0": "у гэтую нядзелю",
+            "relative-type-0": "у гэту нядзелю",
             "relative-type-1": "у наступную нядзелю",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "праз {0} нядзелю",
@@ -349,26 +349,26 @@
             }
           },
           "sun-short": {
-            "relative-type--1": "у мінулую няд",
-            "relative-type-0": "у гэтую няд",
-            "relative-type-1": "у наступную няд",
+            "relative-type--1": "у мінулую нд",
+            "relative-type-0": "у гэту нд",
+            "relative-type-1": "у наступную нд",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "праз {0} няд",
+              "relativeTimePattern-count-one": "праз {0} нд",
               "relativeTimePattern-count-few": "праз {0} нядзелі",
               "relativeTimePattern-count-many": "праз {0} нядзель",
-              "relativeTimePattern-count-other": "праз {0} няд"
+              "relativeTimePattern-count-other": "праз {0} нд"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "{0} няд таму",
+              "relativeTimePattern-count-one": "{0} нд таму",
               "relativeTimePattern-count-few": "{0} нядзелі таму",
               "relativeTimePattern-count-many": "{0} нядзель таму",
-              "relativeTimePattern-count-other": "{0} няд таму"
+              "relativeTimePattern-count-other": "{0} нд таму"
             }
           },
           "sun-narrow": {
-            "relative-type--1": "у мінулую няд",
-            "relative-type-0": "у гэтую няд",
-            "relative-type-1": "у наступную няд",
+            "relative-type--1": "у мінулую нд",
+            "relative-type-0": "у гэту нд",
+            "relative-type-1": "у наступную нд",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "праз {0} нд",
               "relativeTimePattern-count-few": "праз {0} нядзелі",
@@ -486,7 +486,7 @@
           },
           "wed": {
             "relative-type--1": "у мінулую сераду",
-            "relative-type-0": "у гэтую сераду",
+            "relative-type-0": "у гэту сераду",
             "relative-type-1": "у наступную сераду",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "праз {0} сераду",
@@ -502,214 +502,214 @@
             }
           },
           "wed-short": {
-            "relative-type--1": "у мінулую сер",
-            "relative-type-0": "у гэтую сер",
-            "relative-type-1": "у наступную сер",
+            "relative-type--1": "у мінулую ср",
+            "relative-type-0": "у гэту ср",
+            "relative-type-1": "у наступную ср",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "праз {0} сер",
+              "relativeTimePattern-count-one": "праз {0} ср",
               "relativeTimePattern-count-few": "праз {0} серады",
-              "relativeTimePattern-count-many": "праз {0} серадаў",
-              "relativeTimePattern-count-other": "праз {0} сер"
+              "relativeTimePattern-count-many": "праз {0} серад",
+              "relativeTimePattern-count-other": "праз {0} ср"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "{0} сер таму",
+              "relativeTimePattern-count-one": "{0} ср таму",
               "relativeTimePattern-count-few": "{0} серады таму",
-              "relativeTimePattern-count-many": "{0} серадаў таму",
-              "relativeTimePattern-count-other": "{0} сер таму"
+              "relativeTimePattern-count-many": "{0} серад таму",
+              "relativeTimePattern-count-other": "{0} ср таму"
             }
           },
           "wed-narrow": {
-            "relative-type--1": "у мінулую сер",
-            "relative-type-0": "у гэтую сер",
-            "relative-type-1": "у наступную сер",
+            "relative-type--1": "у мінулую ср",
+            "relative-type-0": "у гэту ср",
+            "relative-type-1": "у наступную ср",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "праз {0} сер",
+              "relativeTimePattern-count-one": "праз {0} ср",
               "relativeTimePattern-count-few": "праз {0} серады",
-              "relativeTimePattern-count-many": "праз {0} серадаў",
-              "relativeTimePattern-count-other": "праз {0} сер"
+              "relativeTimePattern-count-many": "праз {0} серад",
+              "relativeTimePattern-count-other": "праз {0} ср"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "{0} сер таму",
+              "relativeTimePattern-count-one": "{0} ср таму",
               "relativeTimePattern-count-few": "{0} серады таму",
-              "relativeTimePattern-count-many": "{0} серадаў таму",
-              "relativeTimePattern-count-other": "{0} сер таму"
+              "relativeTimePattern-count-many": "{0} серад таму",
+              "relativeTimePattern-count-other": "{0} ср таму"
             }
           },
           "thu": {
-            "relative-type--1": "у мінулы чацьвер",
-            "relative-type-0": "у гэты чацьвер",
-            "relative-type-1": "у наступны чацьвер",
+            "relative-type--1": "у мінулы чацвер",
+            "relative-type-0": "у гэты чацвер",
+            "relative-type-1": "у наступны чацвер",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "праз {0} чацьвер",
-              "relativeTimePattern-count-few": "праз {0} чацьвяргі",
-              "relativeTimePattern-count-many": "праз {0} чацьвяргоў",
-              "relativeTimePattern-count-other": "праз {0} чацьвярга"
+              "relativeTimePattern-count-one": "праз {0} чацвер",
+              "relativeTimePattern-count-few": "праз {0} чацвяргі",
+              "relativeTimePattern-count-many": "праз {0} чацвяргоў",
+              "relativeTimePattern-count-other": "праз {0} чацвярга"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "{0} чацьвер таму",
-              "relativeTimePattern-count-few": "{0} чацьвяргі таму",
-              "relativeTimePattern-count-many": "{0} чацьвяргоў таму",
-              "relativeTimePattern-count-other": "{0} чацьвярга таму"
+              "relativeTimePattern-count-one": "{0} чацвер таму",
+              "relativeTimePattern-count-few": "{0} чацвяргі таму",
+              "relativeTimePattern-count-many": "{0} чацвяргоў таму",
+              "relativeTimePattern-count-other": "{0} чацвярга таму"
             }
           },
           "thu-short": {
-            "relative-type--1": "у мінулы чац",
-            "relative-type-0": "у гэты чац",
-            "relative-type-1": "у наступны чац",
+            "relative-type--1": "у мінулы чц",
+            "relative-type-0": "у гэты чц",
+            "relative-type-1": "у наступны чц",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "праз {0} чац",
-              "relativeTimePattern-count-few": "праз {0} чацьвяргі",
-              "relativeTimePattern-count-many": "праз {0} чацьвяргоў",
-              "relativeTimePattern-count-other": "праз {0} чац"
+              "relativeTimePattern-count-one": "праз {0} чц",
+              "relativeTimePattern-count-few": "праз {0} чацвяргі",
+              "relativeTimePattern-count-many": "праз {0} чацвяргоў",
+              "relativeTimePattern-count-other": "праз {0} чц"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "{0} чац таму",
-              "relativeTimePattern-count-few": "{0} чацьвяргі таму",
-              "relativeTimePattern-count-many": "{0} чацьвяргоў таму",
-              "relativeTimePattern-count-other": "{0} чац таму"
+              "relativeTimePattern-count-one": "{0} чц таму",
+              "relativeTimePattern-count-few": "{0} чацвяргі таму",
+              "relativeTimePattern-count-many": "{0} чацвяргоў таму",
+              "relativeTimePattern-count-other": "{0} чц таму"
             }
           },
           "thu-narrow": {
-            "relative-type--1": "у мінулы чац",
-            "relative-type-0": "у гэты чац",
-            "relative-type-1": "у наступны чац",
+            "relative-type--1": "у мінулы чц",
+            "relative-type-0": "у гэты чц",
+            "relative-type-1": "у наступны чц",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "праз {0} чац",
-              "relativeTimePattern-count-few": "праз {0} чацьвяргі",
-              "relativeTimePattern-count-many": "праз {0} чацьвяргоў",
-              "relativeTimePattern-count-other": "праз {0} чац"
+              "relativeTimePattern-count-one": "праз {0} чц",
+              "relativeTimePattern-count-few": "праз {0} чацвяргі",
+              "relativeTimePattern-count-many": "праз {0} чацвяргоў",
+              "relativeTimePattern-count-other": "праз {0} чц"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "{0} чац таму",
-              "relativeTimePattern-count-few": "{0} чацьвяргі таму",
-              "relativeTimePattern-count-many": "{0} чацьвяргоў таму",
-              "relativeTimePattern-count-other": "{0} чац таму"
+              "relativeTimePattern-count-one": "{0} чц таму",
+              "relativeTimePattern-count-few": "{0} чацвяргі таму",
+              "relativeTimePattern-count-many": "{0} чацвяргоў таму",
+              "relativeTimePattern-count-other": "{0} чц таму"
             }
           },
           "fri": {
             "relative-type--1": "у мінулую пятніцу",
-            "relative-type-0": "у гэтую пятніцу",
+            "relative-type-0": "у гэту пятніцу",
             "relative-type-1": "у наступную пятніцу",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "праз {0} пятніцу",
               "relativeTimePattern-count-few": "праз {0} пятніцы",
-              "relativeTimePattern-count-many": "праз {0} пятніцаў",
+              "relativeTimePattern-count-many": "праз {0} пятніц",
               "relativeTimePattern-count-other": "праз {0} пятніцы"
             },
             "relativeTime-type-past": {
               "relativeTimePattern-count-one": "{0} пятніцу таму",
               "relativeTimePattern-count-few": "{0} пятніцы таму",
-              "relativeTimePattern-count-many": "{0} пятніцаў таму",
+              "relativeTimePattern-count-many": "{0} пятніц таму",
               "relativeTimePattern-count-other": "{0} пятніцы таму"
             }
           },
           "fri-short": {
-            "relative-type--1": "у мінулую пят",
-            "relative-type-0": "у гэтую пят",
-            "relative-type-1": "у наступную пят",
+            "relative-type--1": "у мінулую пт",
+            "relative-type-0": "у гэту пт",
+            "relative-type-1": "у наступную пт",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "праз {0} пят",
+              "relativeTimePattern-count-one": "праз {0} пт",
               "relativeTimePattern-count-few": "праз {0} пятніцы",
-              "relativeTimePattern-count-many": "праз {0} пятніцаў",
-              "relativeTimePattern-count-other": "праз {0} пят"
+              "relativeTimePattern-count-many": "праз {0} пятніц",
+              "relativeTimePattern-count-other": "праз {0} пт"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "{0} пят таму",
+              "relativeTimePattern-count-one": "{0} пт таму",
               "relativeTimePattern-count-few": "{0} пятніцы таму",
-              "relativeTimePattern-count-many": "{0} пятніцаў таму",
-              "relativeTimePattern-count-other": "{0} пят таму"
+              "relativeTimePattern-count-many": "{0} пятніц таму",
+              "relativeTimePattern-count-other": "{0} пт таму"
             }
           },
           "fri-narrow": {
-            "relative-type--1": "у мінулую пят",
-            "relative-type-0": "у гэтую пят",
-            "relative-type-1": "у наступную пят",
+            "relative-type--1": "у мінулую пт",
+            "relative-type-0": "у гэту пт",
+            "relative-type-1": "у наступную пт",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "праз {0} пят",
+              "relativeTimePattern-count-one": "праз {0} пт",
               "relativeTimePattern-count-few": "праз {0} пятніцы",
-              "relativeTimePattern-count-many": "праз {0} пятніцаў",
-              "relativeTimePattern-count-other": "праз {0} пят"
+              "relativeTimePattern-count-many": "праз {0} пятніц",
+              "relativeTimePattern-count-other": "праз {0} пт"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "{0} пят таму",
+              "relativeTimePattern-count-one": "{0} пт таму",
               "relativeTimePattern-count-few": "{0} пятніцы таму",
-              "relativeTimePattern-count-many": "{0} пятніцаў таму",
-              "relativeTimePattern-count-other": "{0} пят таму"
+              "relativeTimePattern-count-many": "{0} пятніц таму",
+              "relativeTimePattern-count-other": "{0} пт таму"
             }
           },
           "sat": {
             "relative-type--1": "у мінулую суботу",
-            "relative-type-0": "у гэтую суботу",
+            "relative-type-0": "у гэту суботу",
             "relative-type-1": "у наступную суботу",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "праз {0} суботу",
               "relativeTimePattern-count-few": "праз {0} суботы",
-              "relativeTimePattern-count-many": "праз {0} суботаў",
+              "relativeTimePattern-count-many": "праз {0} субот",
               "relativeTimePattern-count-other": "праз {0} суботы"
             },
             "relativeTime-type-past": {
               "relativeTimePattern-count-one": "{0} суботу таму",
               "relativeTimePattern-count-few": "{0} суботы таму",
-              "relativeTimePattern-count-many": "{0} суботаў таму",
+              "relativeTimePattern-count-many": "{0} субот таму",
               "relativeTimePattern-count-other": "{0} суботы таму"
             }
           },
           "sat-short": {
-            "relative-type--1": "у мінулую суб",
-            "relative-type-0": "у гэтую суб",
-            "relative-type-1": "у наступную суб",
+            "relative-type--1": "у мінулую сб",
+            "relative-type-0": "у гэту сб",
+            "relative-type-1": "у наступную сб",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "праз {0} суб",
+              "relativeTimePattern-count-one": "праз {0} сб",
               "relativeTimePattern-count-few": "праз {0} суботы",
-              "relativeTimePattern-count-many": "праз {0} суботаў",
-              "relativeTimePattern-count-other": "праз {0} суб"
+              "relativeTimePattern-count-many": "праз {0} субот",
+              "relativeTimePattern-count-other": "праз {0} сб"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "{0} суб таму",
+              "relativeTimePattern-count-one": "{0} сб таму",
               "relativeTimePattern-count-few": "{0} суботы таму",
-              "relativeTimePattern-count-many": "{0} суботаў таму",
-              "relativeTimePattern-count-other": "{0} суб таму"
+              "relativeTimePattern-count-many": "{0} субот таму",
+              "relativeTimePattern-count-other": "{0} сб таму"
             }
           },
           "sat-narrow": {
-            "relative-type--1": "у мінулую суб",
-            "relative-type-0": "у гэтую суб",
-            "relative-type-1": "у наступную суб",
+            "relative-type--1": "у мінулую сб",
+            "relative-type-0": "у гэту сб",
+            "relative-type-1": "у наступную сб",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "праз {0} суб",
+              "relativeTimePattern-count-one": "праз {0} сб",
               "relativeTimePattern-count-few": "праз {0} суботы",
-              "relativeTimePattern-count-many": "праз {0} суботаў",
-              "relativeTimePattern-count-other": "праз {0} суб"
+              "relativeTimePattern-count-many": "праз {0} субот",
+              "relativeTimePattern-count-other": "праз {0} сб"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "{0} суб таму",
+              "relativeTimePattern-count-one": "{0} сб таму",
               "relativeTimePattern-count-few": "{0} суботы таму",
-              "relativeTimePattern-count-many": "{0} суботаў таму",
-              "relativeTimePattern-count-other": "{0} суб таму"
+              "relativeTimePattern-count-many": "{0} субот таму",
+              "relativeTimePattern-count-other": "{0} сб таму"
             }
           },
           "dayperiod-short": {
-            "displayName": "апоўначы/апоўдні"
+            "displayName": "Dayperiod"
           },
           "dayperiod": {
-            "displayName": "апоўначы/апоўдні"
+            "displayName": "Dayperiod"
           },
           "dayperiod-narrow": {
-            "displayName": "апоўначы/апоўдні"
+            "displayName": "Dayperiod"
           },
           "hour": {
             "displayName": "гадзіна",
-            "relative-type-0": "у гэтую гадзіну",
+            "relative-type-0": "у гэту гадзіну",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "праз {0} гадзіну",
               "relativeTimePattern-count-few": "праз {0} гадзіны",
-              "relativeTimePattern-count-many": "праз {0} гадзінаў",
+              "relativeTimePattern-count-many": "праз {0} гадзін",
               "relativeTimePattern-count-other": "праз {0} гадзіны"
             },
             "relativeTime-type-past": {
               "relativeTimePattern-count-one": "{0} гадзіну таму",
               "relativeTimePattern-count-few": "{0} гадзіны таму",
-              "relativeTimePattern-count-many": "{0} гадзінаў таму",
+              "relativeTimePattern-count-many": "{0} гадзін таму",
               "relativeTimePattern-count-other": "{0} гадзіны таму"
             }
           },
@@ -747,17 +747,17 @@
           },
           "minute": {
             "displayName": "хвіліна",
-            "relative-type-0": "у гэтую хвіліну",
+            "relative-type-0": "у гэту хвіліну",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "праз {0} хвіліну",
               "relativeTimePattern-count-few": "праз {0} хвіліны",
-              "relativeTimePattern-count-many": "праз {0} хвілінаў",
+              "relativeTimePattern-count-many": "праз {0} хвілін",
               "relativeTimePattern-count-other": "праз {0} хвіліны"
             },
             "relativeTime-type-past": {
               "relativeTimePattern-count-one": "{0} хвіліну таму",
               "relativeTimePattern-count-few": "{0} хвіліны таму",
-              "relativeTimePattern-count-many": "{0} хвілінаў таму",
+              "relativeTimePattern-count-many": "{0} хвілін таму",
               "relativeTimePattern-count-other": "{0} хвіліны таму"
             }
           },
@@ -794,19 +794,19 @@
             }
           },
           "second": {
-            "displayName": "сэкунда",
+            "displayName": "секунда",
             "relative-type-0": "цяпер",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "праз {0} сэкунду",
-              "relativeTimePattern-count-few": "праз {0} сэкунды",
-              "relativeTimePattern-count-many": "праз {0} сэкундаў",
-              "relativeTimePattern-count-other": "праз {0} сэкунды"
+              "relativeTimePattern-count-one": "праз {0} секунду",
+              "relativeTimePattern-count-few": "праз {0} секунды",
+              "relativeTimePattern-count-many": "праз {0} секунд",
+              "relativeTimePattern-count-other": "праз {0} секунды"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "{0} сэкунду таму",
-              "relativeTimePattern-count-few": "{0} сэкунды таму",
-              "relativeTimePattern-count-many": "{0} сэкундаў таму",
-              "relativeTimePattern-count-other": "{0} сэкунды таму"
+              "relativeTimePattern-count-one": "{0} секунду таму",
+              "relativeTimePattern-count-few": "{0} секунды таму",
+              "relativeTimePattern-count-many": "{0} секунд таму",
+              "relativeTimePattern-count-other": "{0} секунды таму"
             }
           },
           "second-short": {
@@ -842,13 +842,13 @@
             }
           },
           "zone": {
-            "displayName": "часавы пас"
+            "displayName": "часавы пояс"
           },
           "zone-short": {
-            "displayName": "гадзінкавы пояс"
+            "displayName": "часавы пояс"
           },
           "zone-narrow": {
-            "displayName": "гадзінкавы пояс"
+            "displayName": "часавы пояс"
           }
         }
       }

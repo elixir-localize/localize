@@ -18,9 +18,9 @@
           },
           "year": {
             "displayName": "Jaar",
-            "relative-type--1": "letzte Jaar",
-            "relative-type-0": "diese Jaar",
-            "relative-type-1": "nächste Jaar",
+            "relative-type--1": "last year",
+            "relative-type-0": "this year",
+            "relative-type-1": "next year",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} y"
             },
@@ -30,9 +30,9 @@
           },
           "year-short": {
             "displayName": "Jaar",
-            "relative-type--1": "letzte Jaar",
-            "relative-type-0": "diese Jaar",
-            "relative-type-1": "nächste Jaar",
+            "relative-type--1": "last year",
+            "relative-type-0": "this year",
+            "relative-type-1": "next year",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} y"
             },
@@ -42,9 +42,9 @@
           },
           "year-narrow": {
             "displayName": "Jaar",
-            "relative-type--1": "letzte Jaar",
-            "relative-type-0": "diese Jaar",
-            "relative-type-1": "nächste Jaar",
+            "relative-type--1": "last year",
+            "relative-type-0": "this year",
+            "relative-type-1": "next year",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} y"
             },
@@ -90,9 +90,9 @@
           },
           "month": {
             "displayName": "Monet",
-            "relative-type--1": "letzte Monet",
-            "relative-type-0": "diese Monet",
-            "relative-type-1": "nächste Monet",
+            "relative-type--1": "last month",
+            "relative-type-0": "this month",
+            "relative-type-1": "next month",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} m"
             },
@@ -102,9 +102,9 @@
           },
           "month-short": {
             "displayName": "Monet",
-            "relative-type--1": "letzte Monet",
-            "relative-type-0": "diese Monet",
-            "relative-type-1": "nächste Monet",
+            "relative-type--1": "last month",
+            "relative-type-0": "this month",
+            "relative-type-1": "next month",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} m"
             },
@@ -114,9 +114,9 @@
           },
           "month-narrow": {
             "displayName": "Monet",
-            "relative-type--1": "letzte Monet",
-            "relative-type-0": "diese Monet",
-            "relative-type-1": "nächste Monet",
+            "relative-type--1": "last month",
+            "relative-type-0": "this month",
+            "relative-type-1": "next month",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} m"
             },
@@ -126,9 +126,9 @@
           },
           "week": {
             "displayName": "Wuche",
-            "relative-type--1": "letzte Wuche",
-            "relative-type-0": "diese Wuche",
-            "relative-type-1": "nächste Wuche",
+            "relative-type--1": "last week",
+            "relative-type-0": "this week",
+            "relative-type-1": "next week",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} w"
             },
@@ -139,9 +139,9 @@
           },
           "week-short": {
             "displayName": "Wuche",
-            "relative-type--1": "letzte Wuche",
-            "relative-type-0": "diese Wuche",
-            "relative-type-1": "nächste Wuche",
+            "relative-type--1": "last week",
+            "relative-type-0": "this week",
+            "relative-type-1": "next week",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} w"
             },
@@ -152,9 +152,9 @@
           },
           "week-narrow": {
             "displayName": "Wuche",
-            "relative-type--1": "letzte Wuche",
-            "relative-type-0": "diese Wuche",
-            "relative-type-1": "nächste Wuche",
+            "relative-type--1": "last week",
+            "relative-type-0": "this week",
+            "relative-type-1": "next week",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} w"
             },
@@ -242,9 +242,9 @@
             "displayName": "Weekday Of Month"
           },
           "sun": {
-            "relative-type--1": "Sunntig letzte Wuche",
-            "relative-type-0": "Sunntig diese Wuche",
-            "relative-type-1": "Sunntig nächste Wuche",
+            "relative-type--1": "last Sunday",
+            "relative-type-0": "this Sunday",
+            "relative-type-1": "next Sunday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Sundays"
             },
@@ -253,9 +253,9 @@
             }
           },
           "sun-short": {
-            "relative-type--1": "Sunntig letzte Wuche",
-            "relative-type-0": "Sunntig diese Wuche",
-            "relative-type-1": "Sunntig nächste Wuche",
+            "relative-type--1": "last Sunday",
+            "relative-type-0": "this Sunday",
+            "relative-type-1": "next Sunday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Sundays"
             },
@@ -264,9 +264,9 @@
             }
           },
           "sun-narrow": {
-            "relative-type--1": "Sunntig letzte Wuche",
-            "relative-type-0": "Sunntig diese Wuche",
-            "relative-type-1": "Sunntig nächste Wuche",
+            "relative-type--1": "last Sunday",
+            "relative-type-0": "this Sunday",
+            "relative-type-1": "next Sunday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Sundays"
             },
@@ -275,9 +275,9 @@
             }
           },
           "mon": {
-            "relative-type--1": "Määntig letzte Wuche",
-            "relative-type-0": "Määntig diese Wuche",
-            "relative-type-1": "Määntig nächste Wuche",
+            "relative-type--1": "last Monday",
+            "relative-type-0": "this Monday",
+            "relative-type-1": "next Monday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Mondays"
             },
@@ -286,9 +286,9 @@
             }
           },
           "mon-short": {
-            "relative-type--1": "Määntig letzte Wuche",
-            "relative-type-0": "Määntig diese Wuche",
-            "relative-type-1": "Määntig nächste Wuche",
+            "relative-type--1": "last Monday",
+            "relative-type-0": "this Monday",
+            "relative-type-1": "next Monday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Mondays"
             },
@@ -297,9 +297,9 @@
             }
           },
           "mon-narrow": {
-            "relative-type--1": "Määntig letzte Wuche",
-            "relative-type-0": "Määntig diese Wuche",
-            "relative-type-1": "Määntig nächste Wuche",
+            "relative-type--1": "last Monday",
+            "relative-type-0": "this Monday",
+            "relative-type-1": "next Monday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Mondays"
             },
@@ -308,9 +308,9 @@
             }
           },
           "tue": {
-            "relative-type--1": "Ziischtig letzte Wuche",
-            "relative-type-0": "Ziischtig diese Wuche",
-            "relative-type-1": "Ziischtig nächste Wuche",
+            "relative-type--1": "last Tuesday",
+            "relative-type-0": "this Tuesday",
+            "relative-type-1": "next Tuesday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Tuesdays"
             },
@@ -319,9 +319,9 @@
             }
           },
           "tue-short": {
-            "relative-type--1": "Ziischtig letzte Wuche",
-            "relative-type-0": "Ziischtig diese Wuche",
-            "relative-type-1": "Ziischtig nächste Wuche",
+            "relative-type--1": "last Tuesday",
+            "relative-type-0": "this Tuesday",
+            "relative-type-1": "next Tuesday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Tuesdays"
             },
@@ -330,9 +330,9 @@
             }
           },
           "tue-narrow": {
-            "relative-type--1": "Ziischtig letzte Wuche",
-            "relative-type-0": "Ziischtig diese Wuche",
-            "relative-type-1": "Ziischtig nächste Wuche",
+            "relative-type--1": "last Tuesday",
+            "relative-type-0": "this Tuesday",
+            "relative-type-1": "next Tuesday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Tuesdays"
             },
@@ -341,9 +341,9 @@
             }
           },
           "wed": {
-            "relative-type--1": "Mittwuch letzte Wuche",
-            "relative-type-0": "Mittwuch diese Wuche",
-            "relative-type-1": "Mittwuch nächste Wuche",
+            "relative-type--1": "last Wednesday",
+            "relative-type-0": "this Wednesday",
+            "relative-type-1": "next Wednesday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Wednesdays"
             },
@@ -352,9 +352,9 @@
             }
           },
           "wed-short": {
-            "relative-type--1": "Mittwuch letzte Wuche",
-            "relative-type-0": "Mittwuch diese Wuche",
-            "relative-type-1": "Mittwuch nächste Wuche",
+            "relative-type--1": "last Wednesday",
+            "relative-type-0": "this Wednesday",
+            "relative-type-1": "next Wednesday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Wednesdays"
             },
@@ -363,9 +363,9 @@
             }
           },
           "wed-narrow": {
-            "relative-type--1": "Mittwuch letzte Wuche",
-            "relative-type-0": "Mittwuch diese Wuche",
-            "relative-type-1": "Mittwuch nächste Wuche",
+            "relative-type--1": "last Wednesday",
+            "relative-type-0": "this Wednesday",
+            "relative-type-1": "next Wednesday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Wednesdays"
             },
@@ -374,9 +374,9 @@
             }
           },
           "thu": {
-            "relative-type--1": "Dunschtig letzte Wuche",
-            "relative-type-0": "Dunschtig diese Wuche",
-            "relative-type-1": "Dunschtig nächste Wuche",
+            "relative-type--1": "last Thursday",
+            "relative-type-0": "this Thursday",
+            "relative-type-1": "next Thursday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Thursdays"
             },
@@ -385,9 +385,9 @@
             }
           },
           "thu-short": {
-            "relative-type--1": "Dunschtig letzte Wuche",
-            "relative-type-0": "Dunschtig diese Wuche",
-            "relative-type-1": "Dunschtig nächste Wuche",
+            "relative-type--1": "last Thursday",
+            "relative-type-0": "this Thursday",
+            "relative-type-1": "next Thursday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Thursdays"
             },
@@ -396,9 +396,9 @@
             }
           },
           "thu-narrow": {
-            "relative-type--1": "Dunschtig letzte Wuche",
-            "relative-type-0": "Dunschtig diese Wuche",
-            "relative-type-1": "Dunschtig nächste Wuche",
+            "relative-type--1": "last Thursday",
+            "relative-type-0": "this Thursday",
+            "relative-type-1": "next Thursday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Thursdays"
             },
@@ -407,9 +407,9 @@
             }
           },
           "fri": {
-            "relative-type--1": "Friitig letzte Wuche",
-            "relative-type-0": "Friitig diese Wuche",
-            "relative-type-1": "Friitig nächste Wuche",
+            "relative-type--1": "last Friday",
+            "relative-type-0": "this Friday",
+            "relative-type-1": "next Friday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Fridays"
             },
@@ -418,9 +418,9 @@
             }
           },
           "fri-short": {
-            "relative-type--1": "Friitig letzte Wuche",
-            "relative-type-0": "Friitig diese Wuche",
-            "relative-type-1": "Friitig nächste Wuche",
+            "relative-type--1": "last Friday",
+            "relative-type-0": "this Friday",
+            "relative-type-1": "next Friday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Fridays"
             },
@@ -429,9 +429,9 @@
             }
           },
           "fri-narrow": {
-            "relative-type--1": "Friitig letzte Wuche",
-            "relative-type-0": "Friitig diese Wuche",
-            "relative-type-1": "Friitig nächste Wuche",
+            "relative-type--1": "last Friday",
+            "relative-type-0": "this Friday",
+            "relative-type-1": "next Friday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Fridays"
             },
@@ -440,9 +440,9 @@
             }
           },
           "sat": {
-            "relative-type--1": "Samschtig letzte Wuche",
-            "relative-type-0": "Samschtig diese Wuche",
-            "relative-type-1": "Samschtig nächste Wuche",
+            "relative-type--1": "last Saturday",
+            "relative-type-0": "this Saturday",
+            "relative-type-1": "next Saturday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Saturdays"
             },
@@ -451,9 +451,9 @@
             }
           },
           "sat-short": {
-            "relative-type--1": "Samschtig letzte Wuche",
-            "relative-type-0": "Samschtig diese Wuche",
-            "relative-type-1": "Samschtig nächste Wuche",
+            "relative-type--1": "last Saturday",
+            "relative-type-0": "this Saturday",
+            "relative-type-1": "next Saturday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Saturdays"
             },
@@ -462,9 +462,9 @@
             }
           },
           "sat-narrow": {
-            "relative-type--1": "Samschtig letzte Wuche",
-            "relative-type-0": "Samschtig diese Wuche",
-            "relative-type-1": "Samschtig nächste Wuche",
+            "relative-type--1": "last Saturday",
+            "relative-type-0": "this Saturday",
+            "relative-type-1": "next Saturday",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} Saturdays"
             },

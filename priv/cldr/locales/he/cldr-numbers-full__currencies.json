@@ -193,7 +193,9 @@
           },
           "CHF": {
             "displayName": "פרנק שוויצרי",
-            "displayName-count-other": "פרנק שוויצרי"
+            "displayName-count-other": "פרנק שוויצרי",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CLP": {
             "displayName": "פסו צ׳ילאני",
@@ -289,14 +291,6 @@
           "ERN": {
             "displayName": "נאקפה אריתראי",
             "displayName-count-other": "נאקפה אריתראי"
-          },
-          "ESA": {
-            "displayName": "פזטה [ESA]",
-            "displayName-count-other": "פזטה [ESA]"
-          },
-          "ESB": {
-            "displayName": "פזטה [ESB]",
-            "displayName-count-other": "פזטה [ESB]"
           },
           "ESP": {
             "displayName": "פסטה ספרדי",
@@ -731,10 +725,6 @@
             "displayName-count-other": "זלוטי פולני",
             "symbol-alt-narrow": "zł"
           },
-          "PLZ": {
-            "displayName": "זלוטי (1950 – 1995)",
-            "displayName-count-other": "זלוטי (1950 – 1995)"
-          },
           "PTE": {
             "displayName": "אסקודו פורטוגלי",
             "displayName-count-other": "אסקודו פורטוגלי"
@@ -1024,8 +1014,6 @@
           },
           "XCG": {
             "displayName": "גילדר של הקריביים",
-            "displayName-count-one": "גילדר של הקריביים",
-            "displayName-count-two": "גילדר של הקריביים",
             "displayName-count-other": "גילדר של הקריביים",
             "symbol": "Cg."
           },
@@ -1074,14 +1062,6 @@
             "displayName": "ריאל תימני",
             "displayName-count-other": "ריאל תימני"
           },
-          "YUD": {
-            "displayName": "דינר יגוסלבי חדש",
-            "displayName-count-other": "דינר יגוסלבי חדש"
-          },
-          "YUM": {
-            "displayName": "דינר יגוסלבי",
-            "displayName-count-other": "דינר יגוסלבי"
-          },
           "ZAL": {
             "displayName": "ראנד דרום אפריקאי (כספי)",
             "displayName-count-other": "ראנד דרום אפריקאי (כספי)"
@@ -1110,8 +1090,6 @@
           },
           "ZWG": {
             "displayName": "זהב של זימבבואה",
-            "displayName-count-one": "זהב של זימבבואה",
-            "displayName-count-two": "זהב של זימבבואה",
             "displayName-count-other": "זהב של זימבבואה"
           }
         }

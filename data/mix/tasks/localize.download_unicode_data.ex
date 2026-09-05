@@ -18,7 +18,7 @@ defmodule Mix.Tasks.Localize.DownloadUnicodeData do
 
   use Mix.Task
 
-  @unicode_version "17.0.0"
+  @unicode_version "18.0.0"
   @base_url "https://www.unicode.org/Public/#{@unicode_version}/ucd/extracted"
 
   @files [

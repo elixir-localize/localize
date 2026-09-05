@@ -12,7 +12,6 @@
         },
         "keys": {
           "calendar": "Kalender",
-          "cf": "falutanotaasje",
           "colAlternate": "sortearje van symbolen negeren",
           "colBackwards": "Omgekeerd sortearje op accenten",
           "colCaseFirst": "Yndiele op haad/lytse letters",
@@ -22,9 +21,6 @@
           "colNumeric": "Numeriek sortearje",
           "colStrength": "Sorteervoorrang",
           "currency": "Valuta",
-          "hc": "oeresysteem (12 of 24)",
-          "lb": "styl regelôfbrekking",
-          "ms": "maatsysteem",
           "numbers": "Sifers",
           "timezone": "Tijdzone",
           "va": "Landvariant",
@@ -35,23 +31,14 @@
             "buddhist": "Boeddhistyske kalinder",
             "chinese": "Sineeske kalinder",
             "coptic": "Koptyske kalinder",
-            "dangi": "Dangi-kalinder",
             "ethiopic": "Ethiopyske kalinder",
             "ethiopic-amete-alem": "Ethiopyske Amete Alem-kalinder",
             "gregorian": "Gregoriaanske kalinder",
             "hebrew": "Hebreeuwse kalinder",
             "indian": "Indiase natjonale kalinder",
-            "islamic": "Islamityske kalinder",
-            "islamic-civil": "Islamityske kalinder (cyclysk)",
-            "islamic-umalqura": "Islamityske kalinder (Umm al-Qura)",
-            "iso8601": "ISO-8601-kalinder",
             "japanese": "Japanske kalinder",
             "persian": "Perzyske kalinder",
             "roc": "Kalinder fan de Sineeske Republyk"
-          },
-          "cf": {
-            "account": "finansjele falutanotaasje",
-            "standard": "standert falutanotaasje"
           },
           "colAlternate": {
             "non-ignorable": "Symbolen sortearje",
@@ -104,25 +91,9 @@
             "hwidth": "Halve breedte",
             "npinyin": "Numeriek"
           },
-          "hc": {
-            "h11": "12-oeresysteem (0-11)",
-            "h12": "12-oeresysteem (1-12)",
-            "h23": "12-oeresysteem (0-23)",
-            "h24": "12-oeresysteem (1-24)"
-          },
-          "lb": {
-            "loose": "losse styl regelôfbrekking",
-            "normal": "normale styl regelôfbrekking",
-            "strict": "strikte styl regelôfbrekking"
-          },
           "m0": {
             "bgn": "BGN",
             "ungegn": "UNGEGN"
-          },
-          "ms": {
-            "metric": "metrysk stelsel",
-            "uksystem": "Britsk ymperiaal stelsel",
-            "ussystem": "Amerikaansk ymperiaal stelsel"
           },
           "numbers": {
             "arab": "Arabysk-Indyske sifers",
@@ -131,7 +102,6 @@
             "armnlow": "Kleine Armeense sifers",
             "bali": "Balinese sifers",
             "beng": "Bengaalse sifers",
-            "cakm": "Chakma sifers",
             "deva": "Devanagari sifers",
             "ethi": "Ethiopyske sifers",
             "finance": "Finansjele sifers",
@@ -156,10 +126,8 @@
             "latn": "Westerse sifers",
             "mlym": "Malayalam sifers",
             "mong": "Mongoolse sifers",
-            "mtei": "Meetei Mayek sifers",
             "mymr": "Myanmarese sifers",
             "native": "Binnenlânse sifers",
-            "olck": "Ol Chiki sifers",
             "orya": "Oriya sifers",
             "roman": "Romeinske sifers",
             "romanlow": "Lytse Romeinske sifers",

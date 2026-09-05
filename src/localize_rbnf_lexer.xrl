@@ -31,6 +31,10 @@ Less_than               = [←<]
 Equals                  = =
 Dollar                  = \$
 Semicolon               = ;
+% CLDR 49 introduced `[A|B]`: the alternation supplies content for when the
+% optional part is omitted, replacing the helper-ruleset trick that expressed
+% the same thing before (`twen→%%tieth→` became `twent[y->>|ieth]`).
+Alternate               = \|
 Comma                   = ,
 Char                    = .
 
@@ -52,6 +56,7 @@ Rules.
 {Left_paren}              : {token,{left_paren,TokenLine,TokenChars}}.
 {Dollar}                  : {token,{dollar,TokenLine,TokenChars}}.
 {Comma}                   : {token,{comma,TokenLine,TokenChars}}.
+{Alternate}               : {token,{alternate,TokenLine,TokenChars}}.
 {Char}                    : {token,{char,TokenLine,TokenChars}}.
 
 Erlang code.

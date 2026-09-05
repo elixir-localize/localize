@@ -16,7 +16,7 @@
             "displayName": "Era"
           },
           "year": {
-            "displayName": "Bledhen",
+            "displayName": "Year",
             "relative-type--1": "last year",
             "relative-type-0": "this year",
             "relative-type-1": "next year",
@@ -28,7 +28,7 @@
             }
           },
           "year-short": {
-            "displayName": "Bledhen",
+            "displayName": "Year",
             "relative-type--1": "last year",
             "relative-type-0": "this year",
             "relative-type-1": "next year",
@@ -40,7 +40,7 @@
             }
           },
           "year-narrow": {
-            "displayName": "Bledhen",
+            "displayName": "Year",
             "relative-type--1": "last year",
             "relative-type-0": "this year",
             "relative-type-1": "next year",
@@ -88,7 +88,7 @@
             }
           },
           "month": {
-            "displayName": "Mis",
+            "displayName": "Month",
             "relative-type--1": "last month",
             "relative-type-0": "this month",
             "relative-type-1": "next month",
@@ -100,7 +100,7 @@
             }
           },
           "month-short": {
-            "displayName": "Mis",
+            "displayName": "Month",
             "relative-type--1": "last month",
             "relative-type-0": "this month",
             "relative-type-1": "next month",
@@ -112,7 +112,7 @@
             }
           },
           "month-narrow": {
-            "displayName": "Mis",
+            "displayName": "Month",
             "relative-type--1": "last month",
             "relative-type-0": "this month",
             "relative-type-1": "next month",
@@ -124,7 +124,7 @@
             }
           },
           "week": {
-            "displayName": "Seythun",
+            "displayName": "Week",
             "relative-type--1": "last week",
             "relative-type-0": "this week",
             "relative-type-1": "next week",
@@ -137,7 +137,7 @@
             "relativePeriod": "the week of {0}"
           },
           "week-short": {
-            "displayName": "Seythun",
+            "displayName": "Week",
             "relative-type--1": "last week",
             "relative-type-0": "this week",
             "relative-type-1": "next week",
@@ -150,7 +150,7 @@
             "relativePeriod": "the week of {0}"
           },
           "week-narrow": {
-            "displayName": "Seythun",
+            "displayName": "Week",
             "relative-type--1": "last week",
             "relative-type-0": "this week",
             "relative-type-1": "next week",
@@ -172,7 +172,7 @@
             "displayName": "Week Of Month"
           },
           "day": {
-            "displayName": "Dedh",
+            "displayName": "Day",
             "relative-type--1": "yesterday",
             "relative-type-0": "today",
             "relative-type-1": "tomorrow",
@@ -184,7 +184,7 @@
             }
           },
           "day-short": {
-            "displayName": "Dedh",
+            "displayName": "Day",
             "relative-type--1": "yesterday",
             "relative-type-0": "today",
             "relative-type-1": "tomorrow",
@@ -196,7 +196,7 @@
             }
           },
           "day-narrow": {
-            "displayName": "Dedh",
+            "displayName": "Day",
             "relative-type--1": "yesterday",
             "relative-type-0": "today",
             "relative-type-1": "tomorrow",
@@ -217,13 +217,13 @@
             "displayName": "Day Of Year"
           },
           "weekday": {
-            "displayName": "Dedh an seythun"
+            "displayName": "Day of the Week"
           },
           "weekday-short": {
-            "displayName": "Dedh an seythun"
+            "displayName": "Day of the Week"
           },
           "weekday-narrow": {
-            "displayName": "Dedh an seythun"
+            "displayName": "Day of the Week"
           },
           "weekdayOfMonth": {
             "displayName": "Weekday Of Month"
@@ -466,16 +466,16 @@
             }
           },
           "dayperiod-short": {
-            "displayName": "AM/PM"
+            "displayName": "Dayperiod"
           },
           "dayperiod": {
-            "displayName": "AM/PM"
+            "displayName": "Dayperiod"
           },
           "dayperiod-narrow": {
-            "displayName": "AM/PM"
+            "displayName": "Dayperiod"
           },
           "hour": {
-            "displayName": "Eur",
+            "displayName": "Hour",
             "relative-type-0": "this hour",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} h"
@@ -485,7 +485,7 @@
             }
           },
           "hour-short": {
-            "displayName": "Eur",
+            "displayName": "Hour",
             "relative-type-0": "this hour",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} h"
@@ -495,7 +495,7 @@
             }
           },
           "hour-narrow": {
-            "displayName": "Eur",
+            "displayName": "Hour",
             "relative-type-0": "this hour",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} h"

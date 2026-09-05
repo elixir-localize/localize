@@ -8,8 +8,10 @@
         "timeZoneNames": {
           "hourFormat": "+HH:mm;-HH:mm",
           "gmtFormat": "GMT{0}",
-          "gmtZeroFormat": "GMT",
+          "gmtFormat-alt-utc": "UTC{0}",
           "gmtUnknownFormat": "GMT+?",
+          "gmtUnknownFormat-alt-utc": "UTC+?",
+          "dualOffsetFormat": "{0}/{1}",
           "regionFormat": "Ngonga ya {0}",
           "regionFormat-type-daylight": "{0} (+1)",
           "regionFormat-type-standard": "{0} (+0)",
@@ -333,33 +335,6 @@
               "Mahe": {
                 "_type": "zone",
                 "exemplarCity": "Mahé"
-              }
-            }
-          },
-          "metazone": {
-            "Africa_Central": {
-              "long": {
-                "standard": "Ntángo ya Lubumbashi"
-              }
-            },
-            "Africa_Eastern": {
-              "long": {
-                "standard": "Ntángo ya Afríka ya Ɛ́sita"
-              }
-            },
-            "Africa_Southern": {
-              "long": {
-                "standard": "Ntángo ya Afríka ya Sidi"
-              }
-            },
-            "GMT": {
-              "long": {
-                "standard": "Ntángo ya Londoni"
-              }
-            },
-            "Seychelles": {
-              "long": {
-                "standard": "Ntángo ya Seyshel"
               }
             }
           }

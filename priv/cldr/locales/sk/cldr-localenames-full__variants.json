@@ -6,9 +6,7 @@
       },
       "localeDisplayNames": {
         "variants": {
-          "PINYIN": "romanizovaná mandarínčina",
-          "SCOTLAND": "škótska štandardná angličtina",
-          "WADEGILE": "romanizovaná mandarínčina Wade-Giles"
+          "SCOTLAND": "škótska štandardná angličtina"
         }
       }
     }

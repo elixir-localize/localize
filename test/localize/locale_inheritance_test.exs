@@ -26,13 +26,19 @@ defmodule Localize.LocaleInheritanceTest do
       assert {:error, %Localize.NoParentError{}} = Locale.parent("und")
     end
 
+    # CLDR 49 removed `<parentLocale parent="fr_HT" locales="ht"/>` (it also
+    # dropped `ht` from the coverage levels), so Haitian Creole no longer
+    # inherits French. It is asserted here rather than simply deleted because
+    # a silent return of the mapping would change resolution for every `ht`
+    # lookup, and we would want to see that.
+    test "ht no longer inherits from fr-HT (CLDR 49)" do
+      {:ok, parent} = Locale.parent("ht")
+      assert parent.language == :und
+    end
+
     test "non-standard parent from CLDR parentLocales data" do
       {:ok, parent} = Locale.parent("nb")
       assert parent.language == :no
-
-      {:ok, parent} = Locale.parent("ht")
-      assert parent.language == :fr
-      assert parent.territory == :HT
 
       {:ok, parent} = Locale.parent("zh-Hant-MO")
       assert parent.language == :zh

@@ -8,9 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* **Breaking.** Collation moves to Unicode 18 / UCA 18.0.0, from Unicode 17. Primary weights shift for every character UCA assigns ahead of an existing one, so any sort key persisted by a previous release must be regenerated — `Localize.Collation.sort_key/2` output is not comparable across Unicode versions, though `compare/3` results are unaffected for characters that existed before.
+
+* **Breaking.** CLDR 49 no longer publishes 114 locales whose coverage is below Basic and which ICU does not ship — `aa`, `ab`, `an`, `ann`, `apc`, `ht` and 108 others — and Localize follows suit rather than carrying the divergence forward. `Localize.validate_locale/1` and everything downstream now return `{:error, %Localize.InvalidLocaleError{}}` for them.
+
 * **Breaking.** `Localize.validate_territory/1` returns the canonical territory code. CLDR deprecates and replaces some codes, and both forms may be supplied: `validate_territory("AN")` was `{:ok, :AN}` and is now `{:ok, :CW}`, and the same applies to `SU` (now `:RU`), `DD` (now `:DE`), `CS` and `YU` (both now `:RS`). `validate_locale/1` already resolved these — `en-AN` has always had a territory of `:CW` — so the two functions now agree.
 
 ### Fixed
+
+* Full UCA conformance restored: all 210,155 pairs in both CLDR collation conformance files now sort correctly, where 637 (NON_IGNORABLE) and 536 (SHIFTED) failed. `FractionalUCA.txt` and the two UCD property files had been vendored by hand and left at Unicode 17 while the conformance fixtures refreshed with each CLDR update; `mix localize.copy_sources` now copies the UCA table and `generate_supplemental` rebuilds the collation table from it.
+
+* `Localize.Locale.LocaleDisplay.display_name/2` renders a locale in `root` (or `und`) as bare subtag codes per TR35's code fallback — `display_name("nl-BE", locale: :root)` is `"nl (BE)"`, where it previously answered in English. `root` is now accepted wherever `und` is, and `cldr_locale_id_from("und")` resolves to `:und` rather than `:en`, agreeing with the atom form.
 
 * `Localize.validate_territory/1` accepts territory codes that CLDR replaces rather than lists. `"UK"` is a deprecated alias for `"GB"` and was rejected, as were the alpha-3 and numeric forms `"GBR"` and `"826"`. This matters for anything mapping a ccTLD to a territory, since `.uk` is the domain while `GB` is the code.
 

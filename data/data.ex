@@ -10,10 +10,10 @@ defmodule Localize.Data do
   ## Directory layout
 
   * `priv/cldr/supplemental_data/` — raw CLDR JSON and XML source
-    files for supplemental data, copied from `CLDR_PRODUCTION_DATA`.
+    files for supplemental data, copied from `CLDR_PRODUCTION`.
 
   * `priv/cldr/locales/` — raw CLDR JSON locale files, copied from
-    the `-full` directories in `CLDR_PRODUCTION_DATA`.
+    the `-full` directories in `CLDR_PRODUCTION`.
 
   * `priv/localize/supplemental_data/` — generated ETF supplemental
     data files.
@@ -22,7 +22,7 @@ defmodule Localize.Data do
 
   * `priv/localize/version` — plain text file with the CLDR version.
 
-  The source data directory is configurable via the `CLDR_PRODUCTION_DATA`
+  The source data directory is configurable via the `CLDR_PRODUCTION`
   environment variable, falling back to `../cldr_production_data`.
 
   """
@@ -34,6 +34,7 @@ defmodule Localize.Data do
   @dialyzer {:nowarn_function, read_json_path: 1}
 
   @supplemental_etf_dir "priv/localize/supplemental_data"
+  @cldr_dir "priv/cldr"
   @cldr_supplemental_dir "priv/cldr/supplemental_data"
   @cldr_locales_dir "priv/cldr/locales"
   @cldr_collation_dir "priv/cldr/collation"
@@ -42,7 +43,7 @@ defmodule Localize.Data do
   @cldr_external_sources_dir "priv/cldr/external_sources"
   @version_file "priv/localize/version"
 
-  # JSON files from cldr-core/supplemental/ (in CLDR_PRODUCTION_DATA)
+  # JSON files from cldr-core/supplemental/ (in CLDR_PRODUCTION)
   @supplemental_json_files [
     "aliases.json",
     "calendarPreferenceData.json",
@@ -72,7 +73,7 @@ defmodule Localize.Data do
     {"common/bcp47/timezone.xml", "bcp47_timezone.xml"}
   ]
 
-  # Non-supplemental files needed from other paths in CLDR_PRODUCTION_DATA
+  # Non-supplemental files needed from other paths in CLDR_PRODUCTION
   @supplemental_extra_files [
     {"cldr-numbers-full/main/en/currencies.json", "currencies_en.json"},
     {"cldr-core/coverageLevels.json", "coverageLevels.json"}
@@ -96,6 +97,18 @@ defmodule Localize.Data do
      "CollationTest_CLDR_NON_IGNORABLE_SHORT.txt"},
     {"common/uca/CollationTest_CLDR_SHIFTED_SHORT.txt", "CollationTest_CLDR_SHIFTED_SHORT.txt"}
   ]
+
+  # Fixtures we deliberately diverge from upstream on, and must therefore
+  # never overwrite. CLDR's own conformance files disagree with CLDR's own
+  # data in a handful of places — `nn`/`no` is expected at 10 where the
+  # distance rules plainly yield 20 — and the vendored copies carry those
+  # corrections with the reasoning written beside them, ticket references
+  # included. A blind copy reverts every one of them, and because it happens
+  # during a CLDR update the resulting test failures read as upstream churn
+  # rather than as our own pipeline undoing our own decisions. Copy skips
+  # these; when upstream moves, `copy_test_data/0` says so and the merge is
+  # made by hand.
+  @curated_test_data ["locale_distance_test_data.txt", "locale_matching_test_data.txt"]
 
   @generators [
     {"aliases.etf", &Localize.Data.Supplemental.generate_aliases/0},
@@ -136,7 +149,7 @@ defmodule Localize.Data do
 
   @doc """
   Copies supplemental JSON and XML source files from
-  `CLDR_PRODUCTION_DATA` into `priv/cldr/supplemental_data/`.
+  `CLDR_PRODUCTION` into `priv/cldr/supplemental_data/`.
 
   This makes the raw source data available in the project for
   reproducible builds without requiring the external data directory.
@@ -152,7 +165,7 @@ defmodule Localize.Data do
     File.rm_rf!(dest)
     File.mkdir_p!(dest)
 
-    # Copy JSON files from CLDR_PRODUCTION_DATA/cldr-core/supplemental/
+    # Copy JSON files from CLDR_PRODUCTION/cldr-core/supplemental/
     source_supplemental = Path.join([cldr_source_dir(), "cldr-core", "supplemental"])
 
     for filename <- @supplemental_json_files do
@@ -161,7 +174,7 @@ defmodule Localize.Data do
       File.cp!(src, dst)
     end
 
-    # Copy extra JSON files from other paths in CLDR_PRODUCTION_DATA
+    # Copy extra JSON files from other paths in CLDR_PRODUCTION
     source_root = cldr_source_dir()
 
     for {src_path, dst_name} <- @supplemental_extra_files do
@@ -304,7 +317,53 @@ defmodule Localize.Data do
   end
 
   @doc """
-  Copies locale JSON files from `CLDR_PRODUCTION_DATA` into
+  Copies `FractionalUCA.txt` from `CLDR_REPO` into `priv/cldr/`.
+
+  This is the UCA weight table the whole collation implementation is
+  built from, and it is version-locked to the CLDR release that shipped
+  it. Copying it here is what keeps it in step with the conformance
+  fixtures in `test/support/data/`, which come from the same
+  `common/uca/` directory.
+
+  ### Returns
+
+  * `:ok` on success.
+
+  """
+  @spec copy_uca_table() :: :ok
+  def copy_uca_table do
+    dest = Path.join(File.cwd!(), @cldr_dir)
+    File.mkdir_p!(dest)
+
+    src = Path.join(cldr_repo_dir(), "common/uca/FractionalUCA.txt")
+
+    if File.exists?(src) do
+      File.cp!(src, Path.join(dest, "FractionalUCA.txt"))
+      IO.puts("Copied FractionalUCA.txt (#{uca_version(src)}) to #{dest}")
+    else
+      IO.puts("  Warning: common/uca/FractionalUCA.txt not found, skipping")
+    end
+
+    :ok
+  end
+
+  # The `# VERSION: UCA=18.0.0, UCD=18.0.0` line in the file header. Reported
+  # on copy because a silent version change here moves every sort key in the
+  # library.
+  defp uca_version(path) do
+    path
+    |> File.stream!()
+    |> Enum.take(5)
+    |> Enum.find_value("version unknown", fn line ->
+      case Regex.run(~r/^#\s*VERSION:\s*(.+?)\s*$/, line) do
+        [_, version] -> version
+        nil -> nil
+      end
+    end)
+  end
+
+  @doc """
+  Copies locale JSON files from `CLDR_PRODUCTION` into
   `priv/cldr/locales/`.
 
   Copies all JSON files from each `-full` directory's `main/`
@@ -375,16 +434,43 @@ defmodule Localize.Data do
         File.cp!(sub_xml, Path.join(locale_dest, "subdivisions.xml"))
       end
 
-      # Copy RBNF JSON if it exists
+      # Copy RBNF JSON if it exists, together with the rule files it names.
+      # From CLDR 49 the JSON carries no rules of its own — each rule group is
+      # a `_rbnfRulesFile` pointing at an ICU-syntax `.txt` beside it — so
+      # copying the JSON alone vendors nothing but pointers to absent files.
       rbnf_json = Path.join([source_root, "cldr-rbnf", "rbnf", "#{locale}.json"])
 
       if File.exists?(rbnf_json) do
         File.cp!(rbnf_json, Path.join(locale_dest, "rbnf.json"))
+        copy_rbnf_rule_files(rbnf_json, source_root, locale_dest)
       end
     end
 
     IO.puts("Copied locale sources for #{total} locales to #{dest_root}")
     :ok
+  end
+
+  # Each rule group in an RBNF JSON names its rule file; they sit flat in
+  # `cldr-rbnf/rbnf/` and are copied beside the JSON so the normalizer can
+  # resolve them from the locale directory.
+  defp copy_rbnf_rule_files(rbnf_json, source_root, locale_dest) do
+    rbnf_json
+    |> File.read!()
+    |> :json.decode()
+    |> get_in(["rbnf", "rbnf"])
+    |> Kernel.||(%{})
+    |> Map.values()
+    |> Enum.flat_map(fn group ->
+      case group do
+        %{"_rbnfRulesFile" => file} when is_binary(file) -> [file]
+        _no_pointer -> []
+      end
+    end)
+    |> Enum.uniq()
+    |> Enum.each(fn file ->
+      source = Path.join([source_root, "cldr-rbnf", "rbnf", file])
+      if File.exists?(source), do: File.cp!(source, Path.join(locale_dest, file))
+    end)
   end
 
   defp copy_locale_json_files(source_root, full_dirs, locale, locale_dest) do
@@ -432,18 +518,40 @@ defmodule Localize.Data do
     count =
       Enum.reduce(@test_data_files, 0, fn {src_path, dst_name}, acc ->
         src = Path.join(repo_root, src_path)
+        dst = Path.join(dest, dst_name)
 
-        if File.exists?(src) do
-          File.cp!(src, Path.join(dest, dst_name))
-          acc + 1
-        else
-          IO.puts("  Warning: #{src_path} not found, skipping")
-          acc
+        cond do
+          not File.exists?(src) ->
+            IO.puts("  Warning: #{src_path} not found, skipping")
+            acc
+
+          dst_name in @curated_test_data ->
+            report_curated(src, dst, dst_name, src_path)
+            acc
+
+          true ->
+            File.cp!(src, dst)
+            acc + 1
         end
       end)
 
     IO.puts("Copied #{count} test data files to #{dest}")
     :ok
+  end
+
+  # A curated fixture is left alone, but silence would be its own trap: were
+  # upstream to add coverage we would never pick it up. Compare instead, and
+  # say whether there is a merge waiting.
+  defp report_curated(src, dst, dst_name, src_path) do
+    if File.exists?(dst) and File.read!(src) == File.read!(dst) do
+      IO.puts("  Curated fixture #{dst_name} matches upstream; nothing to merge")
+    else
+      IO.puts("""
+        Curated fixture #{dst_name} NOT overwritten — upstream has changed.
+          Review and merge by hand:
+            diff #{dst} #{src_path}
+      """)
+    end
   end
 
   # ── Version management ──────────────────────────────────────────
@@ -586,6 +694,14 @@ defmodule Localize.Data do
     IO.puts("Generating known_territories.etf...")
     territories = derive_known_territories()
     save_etf("known_territories.etf", territories)
+
+    # Rebuild the UCA collation table from priv/cldr/FractionalUCA.txt.
+    # Not in @generators because it writes its own files rather than
+    # returning data for save_etf/2, but it belongs to the same pass: the
+    # table is derived data and leaving it out is what let it sit at
+    # Unicode 17 while the conformance fixtures moved to 18.
+    IO.puts("Generating collation_table.etf...")
+    Localize.Data.Collation.generate_collation_table()
 
     # Generate Unicode collation data ETFs
     unicode_dir = Path.join(File.cwd!(), "priv/unicode")
@@ -932,14 +1048,14 @@ defmodule Localize.Data do
   @doc """
   Returns the path to the CLDR production data directory.
 
-  Reads from the `CLDR_PRODUCTION_DATA` environment variable,
+  Reads from the `CLDR_PRODUCTION` environment variable,
   falling back to `../cldr_production_data` relative to the
   project root.
 
   """
   @spec cldr_source_dir() :: String.t()
   def cldr_source_dir do
-    System.get_env("CLDR_PRODUCTION_DATA") ||
+    System.get_env("CLDR_PRODUCTION") ||
       Path.join([File.cwd!(), "..", "cldr_production_data"])
       |> Path.expand()
   end

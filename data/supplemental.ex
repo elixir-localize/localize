@@ -319,8 +319,22 @@ defmodule Localize.Data.Supplemental do
 
   defp metazone_instant(nil), do: nil
 
+  # CLDR writes these as "YYYY-MM-DD HH:MM" and this appended the seconds. From
+  # CLDR 49 one entry carries them already: Africa/Monrovia moves to GMT at
+  # "1972-01-07 00:44:30", Liberia having run on UTC-00:44:30 until it became
+  # the last country to adopt a whole-hour offset. Appending unconditionally
+  # produced "…00:44:30:00", which is not a datetime in any format.
   defp metazone_instant(string) do
-    NaiveDateTime.from_iso8601!(string <> ":00")
+    string
+    |> pad_seconds()
+    |> NaiveDateTime.from_iso8601!()
+  end
+
+  defp pad_seconds(string) do
+    case String.split(string, ":") do
+      [_date_and_hour, _minute] -> string <> ":00"
+      _already_has_seconds -> string
+    end
   end
 
   @doc """

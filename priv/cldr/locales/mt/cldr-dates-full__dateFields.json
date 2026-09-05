@@ -76,7 +76,7 @@
             }
           },
           "quarter": {
-            "displayName": "kwart",
+            "displayName": "Quarter",
             "relative-type--1": "il-kwart ta’ sena li għadda",
             "relative-type-0": "il-kwart ta’ sena li qegħdin fih",
             "relative-type-1": "il-kwart li jmiss tas-sena",
@@ -238,7 +238,7 @@
             "relativePeriod": "fil-ġimgħa ta’ {0}"
           },
           "week-narrow": {
-            "displayName": "Ġimgħa",
+            "displayName": "ġm",
             "relative-type--1": "il-ġimgħa li għaddiet",
             "relative-type-0": "din il-ġimgħa",
             "relative-type-1": "il-ġimgħa d-dieħla",

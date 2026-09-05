@@ -418,11 +418,6 @@
             "unitPattern-count-one": "{0} 𑄇𑄳𑄠𑄣𑄮𑄢𑄨",
             "unitPattern-count-other": "{0} 𑄇𑄳𑄠𑄣𑄮𑄢𑄨"
           },
-          "energy-foodcalorie": {
-            "displayName": "𑄇𑄳𑄠𑄣𑄮𑄢𑄨",
-            "unitPattern-count-one": "{0} 𑄇𑄳𑄠𑄣𑄮𑄢𑄨",
-            "unitPattern-count-other": "{0} 𑄇𑄳𑄠𑄣𑄮𑄢𑄨"
-          },
           "energy-kilojoule": {
             "displayName": "𑄇𑄨𑄣𑄮𑄎𑄪𑄣𑄴",
             "unitPattern-count-one": "{0} 𑄇𑄨𑄣𑄮𑄎𑄪𑄣𑄴",
@@ -454,9 +449,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -566,6 +569,10 @@
             "displayName": "𑄃𑄨𑄚𑄴𑄌𑄨",
             "unitPattern-count-other": "{0} 𑄃𑄨𑄚𑄴𑄌𑄨",
             "perUnitPattern": "{0} 𑄛𑄳𑄢𑄧𑄖𑄨 𑄃𑄨𑄚𑄴𑄌𑄨"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "parsecs",
@@ -1549,11 +1556,6 @@
             "displayName": "cal",
             "unitPattern-count-other": "{0} cal"
           },
-          "energy-foodcalorie": {
-            "displayName": "Cal",
-            "unitPattern-count-one": "{0} Cal",
-            "unitPattern-count-other": "{0} Cal"
-          },
           "energy-kilojoule": {
             "displayName": "kJ",
             "unitPattern-count-other": "{0} kJ"
@@ -1582,9 +1584,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -1682,6 +1692,10 @@
             "displayName": "𑄃𑄨𑄚𑄴𑄌𑄨",
             "unitPattern-count-other": "{0} 𑄃𑄨𑄚𑄴𑄌𑄨",
             "perUnitPattern": "{0} 𑄛𑄳𑄢𑄧𑄖𑄨 𑄃𑄨𑄚𑄴𑄌𑄨"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "parsecs",
@@ -2620,11 +2634,6 @@
             "displayName": "cal",
             "unitPattern-count-other": "{0} cal"
           },
-          "energy-foodcalorie": {
-            "displayName": "Cal",
-            "unitPattern-count-one": "{0} Cal",
-            "unitPattern-count-other": "{0} Cal"
-          },
           "energy-kilojoule": {
             "displayName": "kJ",
             "unitPattern-count-other": "{0} kJ"
@@ -2653,9 +2662,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -2754,6 +2771,10 @@
             "displayName": "𑄃𑄨𑄚𑄴𑄌𑄨",
             "unitPattern-count-other": "{0} 𑄃𑄨𑄚𑄴𑄌𑄨",
             "perUnitPattern": "{0} 𑄛𑄳𑄢𑄧𑄖𑄨 𑄃𑄨𑄚𑄴𑄌𑄨"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "parsecs",

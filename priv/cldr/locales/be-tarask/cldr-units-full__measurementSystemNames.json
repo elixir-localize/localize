@@ -7,9 +7,9 @@
       },
       "localeDisplayNames": {
         "measurementSystemNames": {
-          "metric": "мэтрычная",
+          "metric": "метрычная",
           "UK": "брытанская",
-          "US": "амэрыканская"
+          "US": "амерыканская"
         }
       }
     }

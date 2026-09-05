@@ -344,7 +344,7 @@
             "perUnitPattern": "{0}/min"
           },
           "duration-second": {
-            "displayName": "sekend",
+            "displayName": "sec",
             "unitPattern-count-one": "sekend {0} wo",
             "unitPattern-count-other": "sekend {0} wo",
             "perUnitPattern": "{0}/s"
@@ -413,9 +413,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -462,15 +470,13 @@
             "unitPattern-count-other": "{0} R⊕"
           },
           "length-kilometer": {
-            "displayName": "agbadroƒe",
-            "unitPattern-count-one": "agbadroƒe {0}",
-            "unitPattern-count-other": "agbadroƒe {0}",
+            "displayName": "km",
+            "unitPattern-count-other": "{0} km",
             "perUnitPattern": "{0}/km"
           },
           "length-meter": {
-            "displayName": "abɔ",
-            "unitPattern-count-one": "abɔ {0}",
-            "unitPattern-count-other": "abɔ {0}",
+            "displayName": "meter",
+            "unitPattern-count-other": "{0} m",
             "perUnitPattern": "{0}/m"
           },
           "length-decimeter": {
@@ -515,6 +521,10 @@
             "displayName": "in",
             "unitPattern-count-other": "{0} in",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
@@ -1477,9 +1487,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -1577,6 +1595,10 @@
             "displayName": "in",
             "unitPattern-count-other": "{0} in",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
@@ -2539,9 +2561,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -2639,6 +2669,10 @@
             "displayName": "in",
             "unitPattern-count-other": "{0} in",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
@@ -3195,13 +3229,13 @@
           }
         },
         "durationUnit-type-hm": {
-          "durationUnitPattern": "'ga' h:mm"
+          "durationUnitPattern": "h:mm"
         },
         "durationUnit-type-hms": {
-          "durationUnitPattern": "'ga' h:mm:ss"
+          "durationUnitPattern": "h:mm:ss"
         },
         "durationUnit-type-ms": {
-          "durationUnitPattern": "aɖabaƒoƒo m:ss"
+          "durationUnitPattern": "m:ss"
         }
       }
     }

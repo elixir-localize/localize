@@ -437,11 +437,6 @@
             "unitPattern-count-one": "{0} ka calorie",
             "unitPattern-count-other": "{0} ka mga calorie"
           },
-          "energy-foodcalorie": {
-            "displayName": "mga Calorie",
-            "unitPattern-count-one": "{0} ka Calorie",
-            "unitPattern-count-other": "{0} ka mga Calorie"
-          },
           "energy-kilojoule": {
             "displayName": "mga kilojoule",
             "unitPattern-count-one": "{0} ka kilojoule",
@@ -477,10 +472,18 @@
             "unitPattern-count-one": "{0} ka pound sa puwersa",
             "unitPattern-count-other": "{0} ka mga pound sa puwersa"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "mga newton",
             "unitPattern-count-one": "{0} ka newton",
             "unitPattern-count-other": "{0} ka mga newton"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -530,20 +533,6 @@
             "displayName": "mga pixel kada pulgada",
             "unitPattern-count-one": "{0} ka pixel kada pulgada",
             "unitPattern-count-other": "{0} ka mga pixel kada pulgada"
-          },
-          "graphics-dot-per-centimeter": {
-            "displayName": "mga dot kada sentimetro",
-            "unitPattern-count-one": "{0} ka dot kada sentimetro",
-            "unitPattern-count-other": "{0} ka mga dot kada sentimetro"
-          },
-          "graphics-dot-per-inch": {
-            "displayName": "mga dot kada pulgada",
-            "unitPattern-count-one": "{0} ka dot kada pulgada",
-            "unitPattern-count-other": "{0} ka mga dot kada pulgada"
-          },
-          "graphics-dot": {
-            "unitPattern-count-one": "{0} dot",
-            "unitPattern-count-other": "{0} px"
           },
           "length-earth-radius": {
             "displayName": "radyus sa yuta",
@@ -614,6 +603,10 @@
             "unitPattern-count-one": "{0} ka pulgada",
             "unitPattern-count-other": "{0} ka pulgada",
             "perUnitPattern": "{0} kada pulgada"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "mga parsec",
@@ -1670,9 +1663,17 @@
             "displayName": "pound-force",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "newton",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -1771,6 +1772,10 @@
             "displayName": "mga pulgada",
             "unitPattern-count-other": "{0} in",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "mga parsec",
@@ -2757,9 +2762,17 @@
             "displayName": "pound-force",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "newton",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -2862,6 +2875,10 @@
             "displayName": "mga pulgada",
             "unitPattern-count-other": "{0} in",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "mga parsec",

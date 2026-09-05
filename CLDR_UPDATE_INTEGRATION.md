@@ -51,7 +51,7 @@ scripts/
 
 * **CLDR repository** — a checkout of `github.com/unicode-org/cldr` at the release tag. Location: `$CLDR_REPO`, default `../cldr_repo` (on the primary workstation: `~/Development/cldr/cldr_repo`).
 
-* **CLDR production data** — the pre-built JSON locale files, produced by `scripts/ldml2json_v2` (requires Java/Maven; wraps `cldr-generate-json.sh` and emits all packages including `annotations`). Location: `$CLDR_PRODUCTION_DATA`, default `../cldr_production_data`.
+* **CLDR production data** — the pre-built JSON locale files, produced by `scripts/ldml2json_v2` (requires Java/Maven; wraps `cldr-generate-json.sh` and emits all packages including `annotations`). Location: `$CLDR_PRODUCTION`, default `../cldr_production_data`.
 
 * **R2 credentials** (upload/release phase only): `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`. In CI these are repository secrets used by `.github/workflows/upload-locales.yml`.
 
@@ -60,7 +60,7 @@ scripts/
 | Task / script | Purpose |
 |---------------|---------|
 | `mix localize.update_cldr` | **Orchestrates phases 1–3** (copy sources → generate supplemental → compile gate → generate locales → test gate), each step in a fresh VM. `--check` runs the preflight and prints the plan without changing anything; `--locales en,fr` trials a subset. |
-| `scripts/ldml2json_v2` | Converts the CLDR XML repo to production JSON (all packages). Run once per CLDR drop. |
+| `scripts/ldml2json_v2` | Converts the CLDR XML repo to production JSON (all packages). Requires `CLDR_TAG` — it fetches `$CLDR_REPO` and checks that tag out before building, so a run is reproducible from the tag rather than from whatever was checked out. `CLDR_TAG=current` builds the checkout as-is without fetching. Clears `$CLDR_PRODUCTION` first so a package or locale dropped upstream cannot survive as an orphan; it refuses to clear a directory holding no `cldr-*` packages, and `CLDR_KEEP_OUTPUT=1` skips clearing. Checks the JDK against the `<java-release>` the checked-out `tools/pom.xml` declares — CLDR 49 requires JDK 21. Run once per CLDR drop. |
 | `mix localize.copy_sources` | Copies raw CLDR sources into `priv/cldr/` and writes the CLDR version to `priv/localize/version`. `--supplemental` / `--locales` scope the copy. |
 | `mix localize.generate_supplemental` | Regenerates supplemental, validity, collation and top-level ETFs under `priv/localize/`. |
 | `mix localize.generate_locales` | Regenerates per-locale ETFs (`priv/localize/locales/`). Positional args scope to specific locales. |
@@ -81,6 +81,7 @@ Run the phases in order. Every phase ends with a verification gate; do not proce
 1. Fork the CLDR release page (e.g. <https://cldr.unicode.org/downloads/cldr-49>) into `plans/cldr-<N>-changes.md`, one row per change, scored *cosmetic / output-changing / API-affecting / data-only*.
 2. Walk the translators' guide (<https://cldr.unicode.org/translation>) section by section into `plans/cldr-<N>-translator-guide-checklist.md`, marking each section *correct / partial / missing / N/A* against our implementation.
 3. Diff the conformance fixtures: `diff -r $CLDR_REPO_old/common/testData $CLDR_REPO_new/common/testData --brief`. For each delta: re-import updated fixtures we already ingest, add loaders for new ones in directories we cover, and log new directories as work items.
+   Two fixtures — `locale_distance_test_data.txt` and `locale_matching_test_data.txt` — carry deliberate local corrections where CLDR's conformance files disagree with CLDR's own data, with the reasoning and Jira references written beside each. They are listed in `@curated_test_data` and `mix localize.copy_sources` will not overwrite them; it reports instead whether upstream has moved, and the merge is made by hand. If a report says a curated fixture now matches upstream, the correction has been adopted upstream and can be dropped from the list.
 4. Diff the TR35 spec chapters relevant to shipped features (dates, numbers, collation, messageFormat) and file work items for behavioural changes. After release, walk the TR35 §Modifications log into `plans/cldr-<N>-retrospective.md` (template: `plans/cldr-48-retrospective.md`) classifying every entry as data-only / code-applied / code-pending / skipped-with-reason.
 
 ### Phases 1–3 in one command
@@ -97,9 +98,12 @@ The task stops after Phase 3 and prints the remaining manual phases. The section
 ### Phase 1 — Refresh vendored sources
 
 ```bash
-# 1. Update the upstream checkouts
-(cd $CLDR_REPO && git fetch && git checkout release-<N>)
-scripts/ldml2json_v2                     # regenerates $CLDR_PRODUCTION_DATA (Java/Maven)
+# 1. Convert the CLDR sources. The script fetches $CLDR_REPO, checks out the
+#    tag, verifies the JDK, and clears $CLDR_PRODUCTION before building, so a
+#    run is reproducible from the tag alone and carries no orphans forward.
+#    CLDR 49 needs JDK 21; set JAVA_HOME if it is not your default.
+JAVA_HOME=$(/usr/libexec/java_home -v 21) \
+  CLDR_TAG=release-<N> scripts/ldml2json_v2   # regenerates $CLDR_PRODUCTION (Java/Maven)
 
 # 2. Copy into the project (writes priv/localize/version)
 mix localize.copy_sources

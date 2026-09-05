@@ -211,7 +211,9 @@
             "displayName": "Šveices franks",
             "displayName-count-zero": "Šveices franki",
             "displayName-count-one": "Šveices franks",
-            "displayName-count-other": "Šveices franki"
+            "displayName-count-other": "Šveices franki",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CLP": {
             "displayName": "Čīles peso",
@@ -1163,15 +1165,11 @@
           },
           "XAG": {
             "displayName": "sudrabs",
-            "displayName-count-zero": "unces sudrabs",
-            "displayName-count-one": "unces sudrabs",
-            "displayName-count-other": "unces sudrabs"
+            "displayName-count-other": "sudrabs"
           },
           "XAU": {
             "displayName": "zelts",
-            "displayName-count-zero": "unces zelts",
-            "displayName-count-one": "unces zelts",
-            "displayName-count-other": "unces zelts"
+            "displayName-count-other": "zelts"
           },
           "XBA": {
             "displayName": "Eiropas norēķinu vienība EURCO",
@@ -1205,8 +1203,6 @@
           },
           "XCG": {
             "displayName": "Karību guldenis",
-            "displayName-count-zero": "Karību guldenis",
-            "displayName-count-one": "Karību guldenis",
             "displayName-count-other": "Karību guldenis",
             "symbol": "Cg."
           },
@@ -1235,9 +1231,7 @@
           },
           "XPD": {
             "displayName": "pallādijs",
-            "displayName-count-zero": "unces pallādijs",
-            "displayName-count-one": "unces pallādijs",
-            "displayName-count-other": "unces pallādijs"
+            "displayName-count-other": "pallādijs"
           },
           "XPF": {
             "displayName": "CFP franks",
@@ -1248,9 +1242,7 @@
           },
           "XPT": {
             "displayName": "platīns",
-            "displayName-count-zero": "unces platīns",
-            "displayName-count-one": "unces platīns",
-            "displayName-count-other": "unces platīns"
+            "displayName-count-other": "platīns"
           },
           "XTS": {
             "displayName": "Testa valūtas kods",
@@ -1297,8 +1289,6 @@
           },
           "ZWG": {
             "displayName": "Zimbabves zelts",
-            "displayName-count-zero": "Zimbabves zelts",
-            "displayName-count-one": "Zimbabves zelts",
             "displayName-count-other": "Zimbabves zelts"
           },
           "ZWL": {

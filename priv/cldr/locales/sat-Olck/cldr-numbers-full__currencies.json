@@ -36,10 +36,6 @@
             "symbol-alt-narrow": "৳"
           },
           "BMD": {
-            "displayName": "ᱵᱟᱹᱨᱢᱩᱰᱟ ᱰᱚᱞᱟᱨ",
-            "displayName-count-one": "ᱵᱟᱹᱨᱢᱩᱰᱟ ᱰᱚᱞᱟᱨ",
-            "displayName-count-two": "ᱵᱟᱹᱨᱢᱩᱰᱟ ᱰᱚᱞᱟᱨ ᱠᱤᱱ",
-            "displayName-count-other": "ᱵᱟᱹᱨᱢᱩᱰᱟ ᱰᱚᱞᱟᱨ ᱠᱚ",
             "symbol-alt-narrow": "$"
           },
           "BND": {
@@ -68,6 +64,10 @@
           "CAD": {
             "symbol": "CA$",
             "symbol-alt-narrow": "$"
+          },
+          "CHF": {
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CLP": {
             "symbol-alt-narrow": "$"

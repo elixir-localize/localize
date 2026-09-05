@@ -111,13 +111,12 @@
           "unitPattern-count-other": "{0} {1}"
         },
         "miscPatterns-numberSystem-latn": {
-          "approximately": "ca. {0}",
+          "approximately": "~{0}",
           "atLeast": "≥{0}",
           "atMost": "≤{0}",
-          "range": "{0}..{1}"
+          "range": "{0}–{1}"
         },
         "minimalPairs": {
-          "pluralMinimalPairs-count-other": "{0}?",
           "other": "Li {0}-im edition"
         }
       }

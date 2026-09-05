@@ -136,7 +136,9 @@
           },
           "CHF": {
             "displayName": "ⲡⲓϥⲣⲁⲛⲕ ⲛ̀ⲣⲉⲙⲛ̀ⲥⲟⲩⲓⲥⲣⲁ",
-            "displayName-count-other": "ⲡⲓϥⲣⲁⲛⲕ ⲛ̀ⲣⲉⲙⲛ̀ⲥⲟⲩⲓⲥⲣⲁ"
+            "displayName-count-other": "ⲡⲓϥⲣⲁⲛⲕ ⲛ̀ⲣⲉⲙⲛ̀ⲥⲟⲩⲓⲥⲣⲁ",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CLP": {
             "displayName": "ⲡⲓⲡⲉⲥⲟ ⲛ̀ⲣⲉⲙⲛ̀ϭⲓⲗⲉ",
@@ -144,12 +146,12 @@
             "symbol-alt-narrow": "$"
           },
           "CNH": {
-            "displayName": "ⲡⲓⲓⲟⲩⲁⲛ ⲛ̀ⲣⲉⲙⲛ̀ϭⲓⲛⲁ",
-            "displayName-count-other": "ⲡⲓⲓⲟⲩⲁⲛ ⲛ̀ⲣⲉⲙⲛ̀ϭⲓⲛⲁ"
+            "displayName": "ⲡⲓⲓⲟⲩⲁⲛ ⲛ̀ⲥⲓⲛⲓⲕⲟⲥ ⲉⲧϩⲓⲙⲏⲣ",
+            "displayName-count-other": "ⲡⲓⲓⲟⲩⲁⲛ ⲛ̀ⲥⲓⲛⲓⲕⲟⲥ ⲉⲧϩⲓⲙⲏⲣ"
           },
           "CNY": {
-            "displayName": "ⲡⲓⲓⲟⲩⲁⲛ ⲛ̀ⲣⲉⲙⲛ̀ϭⲓⲛⲁ",
-            "displayName-count-other": "ⲡⲓⲓⲟⲩⲁⲛ ⲛ̀ⲣⲉⲙⲛ̀ϭⲓⲛⲁ",
+            "displayName": "ⲡⲓⲓⲟⲩⲁⲛ ⲛ̀ⲥⲓⲛⲓⲕⲟⲥ",
+            "displayName-count-other": "ⲡⲓⲓⲟⲩⲁⲛ ⲛ̀ⲥⲓⲛⲓⲕⲟⲥ",
             "symbol": "CN¥",
             "symbol-alt-narrow": "¥"
           },
@@ -164,7 +166,7 @@
             "symbol-alt-narrow": "₡"
           },
           "CUC": {
-            "displayName": "ⲡⲓⲡⲉⲥⲟ ⲛ̀ⲣⲉⲙⲛ̀ⲕⲟⲩⲃⲁ ̀ⲛⲣⲉϥϣⲓⲃϯ",
+            "displayName": "ⲡⲓⲡⲉⲥⲟ ⲛ̀ⲣⲉⲙⲛ̀ⲕⲟⲩⲃⲁ ⲛ̀ⲣⲉϥϣⲓⲃϯ",
             "displayName-count-other": "ⲛⲓⲡⲉⲥⲟ ⲛ̀ⲣⲉⲙⲛ̀ⲕⲟⲩⲃⲁ ̀ⲛⲣⲉϥϣⲓⲃϯ",
             "symbol-alt-narrow": "$"
           },
@@ -197,11 +199,11 @@
             "symbol-alt-narrow": "$"
           },
           "DZD": {
-            "displayName": "ⲡⲓⲇⲓⲛⲁⲣ ⲛ̀ⲣⲉⲙⲛ̀ⲁⲗϫⲉⲣⲓⲁ",
+            "displayName": "ⲡⲓⲇⲏⲛⲁⲣⲓⲟⲛ ⲛ̀ⲣⲉⲙⲛ̀ⲛⲏⲥⲟⲥ",
             "displayName-count-other": "ⲛⲓⲇⲓⲛⲁⲣ ⲛ̀ⲣⲉⲙⲛ̀ⲁⲗϫⲉⲣⲓⲁ"
           },
           "EGP": {
-            "displayName": "ⲡⲓⲅⲉⲛⲉϩ ⲛ̀ⲣⲉⲙⲛ̀ⲭⲏⲙⲓ",
+            "displayName": "ϯⲗⲩⲧⲣⲁ ⲛ̀ⲣⲉⲙⲛ̀ⲭⲏⲙⲓ",
             "displayName-count-other": "ⲛⲓⲅⲉⲛⲉϩ ⲛ̀ⲣⲉⲙⲛ̀ⲭⲏⲙⲓ",
             "symbol-alt-narrow": "E£"
           },
@@ -407,7 +409,7 @@
             "symbol-alt-narrow": "$"
           },
           "LSL": {
-            "displayName": "ⲡⲓⲗⲓⲗⲁⲛⲅⲉⲛⲓ ⲛ̀ⲣⲉⲙⲛ̀ⲥⲟⲩⲁⲍⲓ",
+            "displayName": "ⲡⲓⲗⲟⲑⲓ ⲛ̀ⲧⲉ ⲗⲉⲥⲟⲑⲟ",
             "displayName-count-other": "ⲛⲓⲗⲓⲗⲁⲛⲅⲉⲛⲓ ⲛ̀ⲣⲉⲙⲛ̀ⲥⲟⲩⲁⲍⲓ"
           },
           "LTL": {
@@ -417,11 +419,11 @@
             "symbol-alt-narrow": "Ls"
           },
           "LYD": {
-            "displayName": "ⲡⲓⲇⲓⲛⲁⲣ ⲛ̀ⲣⲉⲙⲛ̀ⲗⲓⲃⲓⲁ",
+            "displayName": "ⲡⲓⲇⲏⲛⲁⲣⲓⲟⲛ ⲛ̀ϯⲗⲓⲃⲏ",
             "displayName-count-other": "ⲛⲓⲇⲓⲛⲁⲣ ⲛ̀ⲣⲉⲙⲛ̀ⲗⲓⲃⲓⲁ"
           },
           "MAD": {
-            "displayName": "ⲡⲓⲇⲓⲛⲁⲣ ⲛ̀ⲣⲉⲙⲛⲙ̀ⲁⲣⲁⲕⲉϣ",
+            "displayName": "ⲡⲓⲧⲉⲣϩⲁⲙ ⲙ̀ⲙⲁⲩⲣⲟⲕⲟⲥ",
             "displayName-count-other": "ⲛⲓⲇⲓⲛⲁⲣ ⲛ̀ⲣⲉⲙⲛⲙ̀ⲁⲣⲁⲕⲉϣ"
           },
           "MDL": {
@@ -523,7 +525,7 @@
             "displayName-count-other": "ⲛⲓⲃⲁⲗⲃⲟⲁ ⲛ̀ⲣⲉⲙⲛ̀ⲡⲁⲛⲁⲙⲁ"
           },
           "PEN": {
-            "displayName": "ⲡⲓⲅⲟⲩⲁⲣⲁⲛⲓ ⲛ̀ⲣⲉⲙⲛ̀ⲡⲁⲣⲁⲅⲟⲩⲁⲓ",
+            "displayName": "ⲡⲓⲥⲟⲗ ⲛ̀ⲣⲉⲙⲛ̀ⲡⲉⲣⲟⲩ",
             "displayName-count-other": "ⲛⲓⲅⲟⲩⲁⲣⲁⲛⲓ ⲛ̀ⲣⲉⲙⲛ̀ⲡⲁⲣⲁⲅⲟⲩⲁⲓ"
           },
           "PGK": {
@@ -547,7 +549,7 @@
             "symbol-alt-narrow": "zł"
           },
           "PYG": {
-            "displayName": "ⲡⲓⲥⲟⲗ ⲛ̀ⲣⲉⲙⲛ̀ⲡⲉⲣⲟⲩ",
+            "displayName": "ⲡⲓⲅⲟⲩⲁⲣⲁⲛⲓ ⲛ̀ⲣⲉⲙⲛ̀ⲡⲁⲣⲁⲅⲟⲩⲁⲓ",
             "displayName-count-other": "ⲛⲓⲥⲟⲗ ⲛ̀ⲣⲉⲙⲛ̀ⲡⲉⲣⲟⲩ",
             "symbol-alt-narrow": "₲"
           },
@@ -589,7 +591,7 @@
             "displayName-count-other": "ⲛⲓⲣⲟⲩⲡⲓ ⲣ̀ⲉⲙⲛ̀ⲥⲓϣⲉⲗ"
           },
           "SDG": {
-            "displayName": "ⲡⲓⲅⲉⲛⲉϩ ⲛ̀ⲣⲉⲙⲛ̀ⲥⲟⲩⲇⲁⲛ",
+            "displayName": "ϯⲗⲩⲧⲣⲁ ⲛ̀ⲣⲉⲙⲛ̀ⲥⲟⲩⲇⲁⲛ",
             "displayName-count-other": "ⲛⲓⲅⲉⲛⲉϩ ⲛ̀ⲣⲉⲙⲛ̀ⲥⲟⲩⲇⲁⲛ"
           },
           "SEK": {
@@ -657,7 +659,7 @@
             "displayName-count-other": "ⲡⲓⲙⲁⲛⲁⲧ ⲛ̀ⲣⲉⲙⲛ̀ⲑⲟⲩⲣⲕⲙⲉⲛⲓⲥⲑⲁⲛ"
           },
           "TND": {
-            "displayName": "ⲡⲓⲇⲓⲛⲁⲣ ⲛ̀ⲣⲉⲙⲛ̀ⲑⲟⲩⲛⲓⲥ",
+            "displayName": "ⲡⲓⲇⲏⲛⲁⲣⲓⲟⲛ ⲛ̀ⲧⲟⲩⲛⲓⲥ",
             "displayName-count-other": "ⲛⲓⲇⲓⲛⲁⲣ ⲛ̀ⲣⲉⲙⲛ̀ⲑⲟⲩⲛⲓⲥ"
           },
           "TOP": {
@@ -732,7 +734,7 @@
             "displayName-count-other": "ⲛⲓⲑⲁⲗⲁ ⲛ̀ⲣⲉⲙⲛ̀ⲥⲁⲙⲟⲁ"
           },
           "XAF": {
-            "displayName": "ⲡⲓϥⲣⲁⲛⲕ ⲛ̀ϯⲫⲣⲓⲕⲓⲁ ⲛ̀̀ⲑⲙⲏϯ",
+            "displayName": "ⲡⲓϥⲣⲁⲛⲕ ⲛ̀ϯⲫⲣⲓⲕⲓⲁ ⲛ̀ⲑⲙⲏϯ",
             "displayName-count-other": "ⲛⲓϥⲣⲁⲛⲕ ⲛ̀ϯⲫⲣⲓⲕⲓⲁ ⲛ̀̀ⲑⲙⲏϯ",
             "symbol": "FCFA"
           },
@@ -758,7 +760,7 @@
             "symbol": "CFPF"
           },
           "XXX": {
-            "displayName": "ⲟⲩϩⲁⲧ ⲛ̀ⲁⲧⲥⲟⲩⲏⲛ",
+            "displayName": "ⲟⲩⲭⲣⲏⲙⲁ ⲛ̀ⲁⲅⲛⲱⲧⲟⲛ",
             "displayName-count-other": "(ⲟⲩϩⲁⲧ ⲛ̀ⲁⲧⲥⲟⲩⲏⲛ)",
             "symbol": "¤"
           },

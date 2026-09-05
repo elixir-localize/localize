@@ -431,11 +431,6 @@
             "unitPattern-count-one": "{0} karorija",
             "unitPattern-count-other": "{0} karorija ag"
           },
-          "energy-foodcalorie": {
-            "displayName": "Karoria ag",
-            "unitPattern-count-one": "{0} Karorija",
-            "unitPattern-count-other": "{0} Karorija ag"
-          },
           "energy-kilojoule": {
             "displayName": "kirojoule ag",
             "unitPattern-count-one": "{0} kirojoule",
@@ -471,10 +466,18 @@
             "unitPattern-count-one": "{0} ti tar rimra",
             "unitPattern-count-other": "{0} ti tar rimra ag"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "newton ag",
             "unitPattern-count-one": "{0} newton",
             "unitPattern-count-other": "{0} newton ag"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -523,16 +526,6 @@
             "displayName": "poregana ki pixel ag",
             "unitPattern-count-one": "{0} pixel poregana ki",
             "unitPattern-count-other": "{0} pixel ag poregana ki"
-          },
-          "graphics-dot-per-centimeter": {
-            "displayName": "sẽntimẽturo ki pãntu ag",
-            "unitPattern-count-one": "{0} pãntu sẽntimẽturo ki",
-            "unitPattern-count-other": "{0} pãntu ag sẽntimẽturo ki"
-          },
-          "graphics-dot-per-inch": {
-            "displayName": "poregana ki pãntu ag",
-            "unitPattern-count-one": "{0} pãntu poregana ki",
-            "unitPattern-count-other": "{0} pãntu ag poregana ki"
           },
           "length-earth-radius": {
             "displayName": "R⊕",
@@ -602,6 +595,10 @@
             "unitPattern-count-one": "{0} poregana",
             "unitPattern-count-other": "{0} poregana ag",
             "perUnitPattern": "{0} poregana ki"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "parsec ag",
@@ -1608,11 +1605,6 @@
             "displayName": "cal",
             "unitPattern-count-other": "{0} cal"
           },
-          "energy-foodcalorie": {
-            "displayName": "cal",
-            "unitPattern-count-one": "{0} cal",
-            "unitPattern-count-other": "{0} cal"
-          },
           "energy-kilojoule": {
             "displayName": "kirojoule",
             "unitPattern-count-other": "{0} kJ"
@@ -1641,9 +1633,17 @@
             "displayName": "rimra-tar",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "newton",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -1742,6 +1742,10 @@
             "displayName": "pol.",
             "unitPattern-count-other": "{0} pol.",
             "perUnitPattern": "{0}/pol. ki"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "parsec ag",
@@ -2681,11 +2685,6 @@
             "displayName": "cal",
             "unitPattern-count-other": "{0} cal"
           },
-          "energy-foodcalorie": {
-            "displayName": "cal",
-            "unitPattern-count-one": "{0} cal",
-            "unitPattern-count-other": "{0} cal"
-          },
           "energy-kilojoule": {
             "displayName": "kirojoule",
             "unitPattern-count-other": "{0} kJ"
@@ -2714,9 +2713,17 @@
             "displayName": "rimra-tar",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "newton",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -2817,6 +2824,10 @@
             "unitPattern-count-one": "{0}″",
             "unitPattern-count-other": "{0}″",
             "perUnitPattern": "{0}/por."
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "parsec",

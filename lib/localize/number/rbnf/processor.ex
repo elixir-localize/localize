@@ -443,6 +443,44 @@ defmodule Localize.Number.Rbnf.Processor do
     ""
   end
 
+  # CLDR 49's `[A|B]`: A when the remainder is non-zero, B when it is zero.
+  # Where the plain `[A]` form renders nothing in the zero case, this renders
+  # B — which is how `twent[y->>|ieth]` yields both "twenty-first" and
+  # "twentieth" from a single rule, replacing CLDR 48's `%%tieth` helper.
+  defp do_operation(
+         :conditional_alternate,
+         number,
+         rule_set,
+         rule,
+         {present, absent},
+         all_sets,
+         locale
+       )
+       when is_integer(number) do
+    mod = number - div(number, rule.divisor) * rule.divisor
+
+    if mod > 0 do
+      do_rule(mod, rule_set, rule, present, all_sets, locale)
+    else
+      do_rule(number, rule_set, rule, absent, all_sets, locale)
+    end
+  end
+
+  # A non-integer has no whole remainder to test. The plain form omits its
+  # content here, so the alternation renders the branch that stands for
+  # omission.
+  defp do_operation(
+         :conditional_alternate,
+         number,
+         rule_set,
+         rule,
+         {_present, absent},
+         all_sets,
+         locale
+       ) do
+    do_rule(number, rule_set, rule, absent, all_sets, locale)
+  end
+
   # ── Helpers ────────────────────────────────────────────────
 
   # The value on which `$(cardinal,…)$` / `$(ordinal,…)$` selects

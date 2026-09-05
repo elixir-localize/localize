@@ -17,9 +17,9 @@
           },
           "year": {
             "displayName": "an",
-            "relative-type--1": "l’an passât",
-            "relative-type-0": "chest an",
-            "relative-type-1": "l’an che al ven",
+            "relative-type--1": "last year",
+            "relative-type-0": "this year",
+            "relative-type-1": "next year",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "ca di {0} an",
               "relativeTimePattern-count-other": "ca di {0} agns"
@@ -31,9 +31,9 @@
           },
           "year-short": {
             "displayName": "an",
-            "relative-type--1": "l’an passât",
-            "relative-type-0": "chest an",
-            "relative-type-1": "l’an che al ven",
+            "relative-type--1": "last year",
+            "relative-type-0": "this year",
+            "relative-type-1": "next year",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "ca di {0} an",
               "relativeTimePattern-count-other": "ca di {0} agns"
@@ -45,9 +45,9 @@
           },
           "year-narrow": {
             "displayName": "an",
-            "relative-type--1": "l’an passât",
-            "relative-type-0": "chest an",
-            "relative-type-1": "l’an che al ven",
+            "relative-type--1": "last year",
+            "relative-type-0": "this year",
+            "relative-type-1": "next year",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "ca di {0} an",
               "relativeTimePattern-count-other": "ca di {0} agns"
@@ -137,9 +137,9 @@
           },
           "week": {
             "displayName": "setemane",
-            "relative-type--1": "la setemane passade",
-            "relative-type-0": "chest setemane",
-            "relative-type-1": "la setemane che e ven",
+            "relative-type--1": "last week",
+            "relative-type-0": "this week",
+            "relative-type-1": "next week",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "ca di {0} setemane",
               "relativeTimePattern-count-other": "ca di {0} setemanis"
@@ -152,9 +152,9 @@
           },
           "week-short": {
             "displayName": "setemane",
-            "relative-type--1": "la setemane passade",
-            "relative-type-0": "chest setemane",
-            "relative-type-1": "la setemane che e ven",
+            "relative-type--1": "last week",
+            "relative-type-0": "this week",
+            "relative-type-1": "next week",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "ca di {0} setemane",
               "relativeTimePattern-count-other": "ca di {0} setemanis"
@@ -167,9 +167,9 @@
           },
           "week-narrow": {
             "displayName": "setemane",
-            "relative-type--1": "la setemane passade",
-            "relative-type-0": "chest setemane",
-            "relative-type-1": "la setemane che e ven",
+            "relative-type--1": "last week",
+            "relative-type-0": "this week",
+            "relative-type-1": "next week",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "ca di {0} setemane",
               "relativeTimePattern-count-other": "ca di {0} setemanis"
@@ -613,13 +613,13 @@
             }
           },
           "zone": {
-            "displayName": "fûs orari"
+            "displayName": "Zone"
           },
           "zone-short": {
-            "displayName": "fûs orari"
+            "displayName": "Zone"
           },
           "zone-narrow": {
-            "displayName": "fûs orari"
+            "displayName": "Zone"
           }
         }
       }

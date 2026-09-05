@@ -8,8 +8,10 @@
         "timeZoneNames": {
           "hourFormat": "+HH:mm;-HH:mm",
           "gmtFormat": "{0} GMT",
-          "gmtZeroFormat": "GMT",
+          "gmtFormat-alt-utc": "UTC{0}",
           "gmtUnknownFormat": "GMT+?",
+          "gmtUnknownFormat-alt-utc": "UTC+?",
+          "dualOffsetFormat": "{0}/{1}",
           "regionFormat": "{0} game",
           "regionFormat-type-daylight": "{0} ŋkekemeɣeyiɣi",
           "regionFormat-type-standard": "{0} game ɖoɖoea",
@@ -68,18 +70,6 @@
               "Busingen": {
                 "_type": "zone",
                 "exemplarCity": "Büsingen"
-              },
-              "London": {
-                "_type": "zone",
-                "long": {
-                  "daylight": "British dzomeŋɔli gaƒoƒo me"
-                }
-              },
-              "Dublin": {
-                "_type": "zone",
-                "long": {
-                  "daylight": "Ireland nutome gaƒoƒo me"
-                }
               },
               "Chisinau": {
                 "_type": "zone",
@@ -360,13 +350,6 @@
             }
           },
           "metazone": {
-            "Acre": {
-              "long": {
-                "generic": "Eker gaƒoƒome",
-                "standard": "Eker gaƒoƒoɖoanyime",
-                "daylight": "Eker dzomeŋɔli gaƒoƒome"
-              }
-            },
             "Afghanistan": {
               "long": {
                 "standard": "Afghanistan gaƒoƒo me"
@@ -411,13 +394,6 @@
                 "daylight": "Alaska kele gaƒoƒo me"
               }
             },
-            "Almaty": {
-              "long": {
-                "generic": "Almati gaƒoƒome",
-                "standard": "Almati gaƒoƒoɖoanyime",
-                "daylight": "Almati dzomeŋɔli gaƒoƒome"
-              }
-            },
             "Amazon": {
               "long": {
                 "generic": "Amazon gaƒoƒome",
@@ -453,32 +429,11 @@
                 "daylight": "Pacific kele gaƒoƒo me"
               }
             },
-            "Anadyr": {
-              "long": {
-                "generic": "Anadir gaƒoƒome",
-                "standard": "Anadir gaƒoƒoɖoanyime",
-                "daylight": "Anadir ŋkekeme gaƒoƒome"
-              }
-            },
             "Apia": {
               "long": {
                 "generic": "Apia gaƒoƒo me",
                 "standard": "Apia nutome gaƒoƒo me",
                 "daylight": "Apia kele gaƒoƒo me"
-              }
-            },
-            "Aqtau": {
-              "long": {
-                "generic": "Aktau gaƒoƒome",
-                "standard": "Aktau gaƒoƒoɖoanyime",
-                "daylight": "Aktau dzomeŋɔli gaƒoƒome"
-              }
-            },
-            "Aqtobe": {
-              "long": {
-                "generic": "Aktobe gaƒoƒome",
-                "standard": "Aktobe gaƒoƒoɖoanyime",
-                "daylight": "Akttobe gaƒoƒome"
               }
             },
             "Arabian": {
@@ -580,6 +535,13 @@
                 "generic": "Brasilia gaƒoƒo me",
                 "standard": "Brasilia nutome gaƒoƒo me",
                 "daylight": "Brasilia dzomeŋɔli gaƒoƒo me"
+              }
+            },
+            "British": {
+              "long": {
+                "generic": "Britain gaƒoƒo",
+                "standard": "Greenwich gaƒoƒo",
+                "daylight": "British dzomeŋɔli gaƒoƒo me"
               }
             },
             "Brunei": {
@@ -776,7 +738,7 @@
             },
             "Hawaii": {
               "long": {
-                "standard": "Hawaii-Aleutia nutome gaƒoƒo me"
+                "standard": "Hawaii nutome gaƒoƒo me"
               }
             },
             "Hawaii_Aleutian": {
@@ -837,6 +799,13 @@
                 "daylight": "Iran kele gaƒoƒo me"
               }
             },
+            "Irish": {
+              "long": {
+                "generic": "Ireland gaƒoƒo",
+                "standard": "Greenwich gaƒoƒo",
+                "daylight": "Ireland nutome gaƒoƒo me"
+              }
+            },
             "Irkutsk": {
               "long": {
                 "generic": "Irkutsk gaƒoƒo me",
@@ -856,13 +825,6 @@
                 "generic": "Japan gaƒoƒo me",
                 "standard": "Japan nutome gaƒoƒo me",
                 "daylight": "Japan dzomeŋɔli gaƒoƒo me"
-              }
-            },
-            "Kamchatka": {
-              "long": {
-                "generic": "Petropavlovsk-Kamtsatski gaƒoƒome",
-                "standard": "Petropavlovsk-Kamtsatski gaƒoƒoɖoanyime",
-                "daylight": "Petropavlovsk-Kamtsatski ŋkekeme gaƒoƒome"
               }
             },
             "Kazakhstan_Eastern": {
@@ -909,13 +871,6 @@
                 "generic": "Lord Howe gaƒoƒo me",
                 "standard": "Lord Howe nutome gaƒoƒo me",
                 "daylight": "Lord Howe kele gaƒoƒo me"
-              }
-            },
-            "Macau": {
-              "long": {
-                "generic": "Makau gaƒoƒome",
-                "standard": "Makau gaƒoƒoɖoanyime",
-                "daylight": "Makau ŋkekeme gaƒoƒome"
               }
             },
             "Magadan": {
@@ -1112,13 +1067,6 @@
                 "standard": "Pyongyang gaƒoƒo me"
               }
             },
-            "Qyzylorda": {
-              "long": {
-                "generic": "Kizilɔrda gaƒoƒome",
-                "standard": "Kizilɔrda gaƒoƒoɖoanyime",
-                "daylight": "Kizilɔrda dzomeŋɔli gaƒoƒome"
-              }
-            },
             "Reunion": {
               "long": {
                 "standard": "Reunion gaƒoƒo me"
@@ -1136,18 +1084,9 @@
                 "daylight": "Sakhalin dzomeŋɔli gaƒoƒo me"
               }
             },
-            "Samara": {
-              "long": {
-                "generic": "Samara gaƒoƒome",
-                "standard": "Samara gaƒoƒoɖoanyime",
-                "daylight": "Samara ŋkekeme gaƒoƒome"
-              }
-            },
             "Samoa": {
               "long": {
-                "generic": "Samoa gaƒoƒo me",
-                "standard": "Samoa nutome gaƒoƒo me",
-                "daylight": "Samoa kele gaƒoƒo me"
+                "standard": "Samoa nutome gaƒoƒo me"
               }
             },
             "Seychelles": {
@@ -1212,13 +1151,6 @@
             "Truk": {
               "long": {
                 "standard": "Chuuk gaƒoƒo me"
-              }
-            },
-            "Turkey": {
-              "long": {
-                "generic": "Tɛrki gaƒoƒome",
-                "standard": "Tɛrki gaƒoƒoɖoanyime",
-                "daylight": "Tɛrki dzomeŋɔli gaƒoƒome"
               }
             },
             "Turkmenistan": {

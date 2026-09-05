@@ -24,8 +24,6 @@
             "symbol-alt-narrow": "$"
           },
           "AZN": {
-            "displayName": "манат",
-            "displayName-count-other": "манат",
             "symbol": "₼",
             "symbol-alt-narrow": "₼",
             "symbol-alt-variant": "ман."
@@ -64,6 +62,10 @@
           "CAD": {
             "symbol": "CA$",
             "symbol-alt-narrow": "$"
+          },
+          "CHF": {
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CLP": {
             "symbol-alt-narrow": "$"

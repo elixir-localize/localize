@@ -28,6 +28,19 @@ defmodule Localize.Number.PluralRule.Cardinal do
   # Load rules at compile time for function generation only.
   # The attribute is deleted after generation so the raw data
   # is not embedded in the BEAM file.
+  #
+  # Declaring the ETF as an external resource is what makes a CLDR data
+  # refresh recompile this module. Without it `mix` sees no edge from the
+  # data to the BEAM, so a regenerated `plural_rules_cardinal.etf` leaves
+  # last release's rules compiled in — and because the sample tests are
+  # themselves generated from the fresh data, the mismatch surfaces as a
+  # wall of failures that reads like a CLDR regression rather than a stale
+  # build.
+  @external_resource Application.app_dir(
+                       :localize,
+                       "priv/localize/supplemental_data/plural_rules_cardinal.etf"
+                     )
+
   @rules_at_compile Localize.Number.PluralRule.Loader.load_plural_rules(:cardinal)
 
   @doc """

@@ -10,17 +10,6 @@
           "localeSeparator": "{0}, {1}",
           "localeKeyTypePattern": "{0}: {1}"
         },
-        "types": {
-          "calendar": {
-            "gregorian": "Gregōriskas kalāndars"
-          },
-          "collation": {
-            "standard": "sēisnas rikā"
-          },
-          "numbers": {
-            "latn": "lātiniskas cipperis"
-          }
-        },
         "codePatterns": {
           "language": "Bilā: {0}",
           "script": "Skriptan: {0}",

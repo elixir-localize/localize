@@ -7,7 +7,6 @@
       "characters": {
         "exemplarCharacters": "[aáà b cç d eéè f g h iíï j k l m n oóò p q r s t uúü v w x y z]",
         "auxiliary": "[ăâåäãā æ ĕêëē ìĭîī ñ ŏôöøō œ ùŭûū ÿ]",
-        "index": "[A B CÇ D E F G H I J K L M N O P Q R S T U V W X Y]",
         "numbers": "[\\- ‑ , . % ‰ + − 0 1 2 3 4 5 6 7 8 9]",
         "numbers-auxiliary": "[]",
         "punctuation": "[\\- ‐‑ – — , ; \\: ! ? . … ’ \"“” « » ( ) \\[ \\] § @ * / \\& # † ‡ ⋅]",
@@ -17,9 +16,9 @@
           "final": "{0}…",
           "initial": "…{0}",
           "medial": "{0}…{1}",
-          "word-final": "{0}…",
-          "word-initial": "…{0}",
-          "word-medial": "{0}… {1}"
+          "word-final": "{0} …",
+          "word-initial": "… {0}",
+          "word-medial": "{0} … {1}"
         },
         "nestedBracketReplacement": {
           "(": "[",
@@ -30,7 +29,7 @@
         "moreInformation": "?",
         "lenient-scope-date": {
           "-": "[\\- ‑ . /]",
-          ":": "[\\: ∶]"
+          ":": "[\\:：﹕︓ ∶]"
         },
         "lenient-scope-general": {
           ".": "[.．․﹒ 。｡︒]",
@@ -51,7 +50,8 @@
         "stricter-scope-number": {
           ",": "[,，﹐︐ ⹁ ٫]",
           ".": "[.．․﹒ ｡]"
-        }
+        },
+        "datetime-type-digit-digit": " "
       }
     }
   }

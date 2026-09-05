@@ -331,7 +331,9 @@
           "CHF": {
             "displayName": "franco suíço",
             "displayName-count-one": "franco suíço",
-            "displayName-count-other": "francos suíços"
+            "displayName-count-other": "francos suíços",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CHW": {
             "displayName": "Franco WIR",
@@ -358,11 +360,6 @@
             "displayName": "yuan offshore",
             "displayName-count-one": "yuan offshore",
             "displayName-count-other": "yuans offshore"
-          },
-          "CNX": {
-            "displayName": "Dólar do Banco Popular da China",
-            "displayName-count-one": "Dólar do Banco Popular da China",
-            "displayName-count-other": "Dólares do Banco Popular da China"
           },
           "CNY": {
             "displayName": "yuan",
@@ -553,7 +550,7 @@
             "symbol-alt-narrow": "₾"
           },
           "GHC": {
-            "displayName": "Cedi do Gana",
+            "displayName": "Cedi de Gana (1979–2007)",
             "displayName-count-one": "Cedi de Gana (1979–2007)",
             "displayName-count-other": "Cedis de Gana (1979–2007)"
           },
@@ -911,7 +908,7 @@
             "displayName-count-other": "Dinares macedônios (1992–1993)"
           },
           "MLF": {
-            "displayName": "Franco do Mali",
+            "displayName": "Franco de Mali",
             "displayName-count-one": "Franco de Mali",
             "displayName-count-other": "Francos de Mali"
           },
@@ -1104,7 +1101,7 @@
             "symbol-alt-narrow": "zł"
           },
           "PLZ": {
-            "displayName": "Zloti polaco (1950–1995)",
+            "displayName": "Zloti polonês (1950–1995)",
             "displayName-count-one": "Zloti polonês (1950–1995)",
             "displayName-count-other": "Zlotis poloneses (1950–1995)"
           },
@@ -1509,11 +1506,11 @@
           },
           "XDR": {
             "displayName": "Direitos Especiais de Giro",
-            "displayName-count-one": "direito especial de saque",
-            "displayName-count-other": "direitos especiais de saque"
+            "displayName-count-one": "Direitos de desenho especiais",
+            "displayName-count-other": "Direitos de desenho especiais"
           },
           "XEU": {
-            "displayName": "Unidade da Moeda Europeia",
+            "displayName": "Unidade de Moeda Europeia",
             "displayName-count-one": "Unidade de moeda europeia",
             "displayName-count-other": "Unidades de moedas europeias"
           },
@@ -1575,17 +1572,17 @@
             "displayName-count-other": "riais iemenitas"
           },
           "YUD": {
-            "displayName": "Dinar forte jugoslavo",
+            "displayName": "Dinar forte iugoslavo (1966–1990)",
             "displayName-count-one": "Dinar forte iugoslavo",
             "displayName-count-other": "Dinares fortes iugoslavos"
           },
           "YUM": {
-            "displayName": "Super Dinar jugoslavo",
+            "displayName": "Dinar noviy iugoslavo (1994–2002)",
             "displayName-count-one": "Dinar noviy da Iugoslávia",
             "displayName-count-other": "Dinares noviy da Iugoslávia"
           },
           "YUN": {
-            "displayName": "Dinar conversível jugoslavo",
+            "displayName": "Dinar conversível iugoslavo (1990–1992)",
             "displayName-count-one": "Dinar conversível da Iugoslávia",
             "displayName-count-other": "Dinares conversíveis da Iugoslávia"
           },
@@ -1627,7 +1624,7 @@
             "displayName-count-other": "Zaires do Zaire"
           },
           "ZWD": {
-            "displayName": "Dólar do Zimbabwe",
+            "displayName": "Dólar do Zimbábue (1980–2008)",
             "displayName-count-one": "Dólar do Zimbábue",
             "displayName-count-other": "Dólares do Zimbábue"
           },

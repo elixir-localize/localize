@@ -5,7 +5,7 @@
         "language": "sah"
       },
       "characterLabelPatterns": {
-        "all": "{0} — Бары",
+        "all": "{0} — all",
         "category-list": "{0}: {1}",
         "compatibility": "{0} — compatibility",
         "enclosed": "{0} — enclosed",
@@ -14,7 +14,7 @@
         "facing-right": "{0} facing right",
         "historic": "{0} — historic",
         "miscellaneous": "{0} — miscellaneous",
-        "other": "{0} — Атыттар",
+        "other": "{0} — other",
         "scripts": "scripts — {0}",
         "strokes-count-other": "{0} Strokes",
         "subscript": "subscript {0}",

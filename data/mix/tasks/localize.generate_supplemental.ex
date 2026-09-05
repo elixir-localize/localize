@@ -14,7 +14,7 @@ defmodule Mix.Tasks.Localize.GenerateSupplemental do
   This task regenerates ETF files from data already vendored in the
   repository; it does not read the external CLDR production data.
   Only `mix localize.copy_sources` (run as part of
-  `mix localize.update_cldr`) reads `CLDR_PRODUCTION_DATA` to refresh
+  `mix localize.update_cldr`) reads `CLDR_PRODUCTION` to refresh
   the vendored sources when moving to a new CLDR release.
 
   ## Usage

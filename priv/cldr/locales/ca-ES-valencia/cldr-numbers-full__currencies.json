@@ -19,25 +19,25 @@
             "displayName-count-other": "dírhams dels Emirats Àrabs Units"
           },
           "AFA": {
-            "displayName": "afgani afganés (1927–2002)",
-            "displayName-count-one": "afgani afganés (1927–2002)",
+            "displayName": "afgani afganès (1927–2002)",
+            "displayName-count-one": "afgani afganès (1927–2002)",
             "displayName-count-other": "afganis afganesos (1927–2002)"
           },
           "AFN": {
-            "displayName": "afgani afganés",
-            "displayName-count-one": "afgani afganés",
+            "displayName": "afgani afganès",
+            "displayName-count-one": "afgani afganès",
             "displayName-count-other": "afganis afganesos",
             "symbol-alt-narrow": "؋"
           },
           "ALK": {
-            "displayName": "lek albanés (1946–1965)",
-            "displayName-count-one": "lek albanés (1946–1965)",
+            "displayName": "lek albanès (1946–1965)",
+            "displayName-count-one": "lek albanès (1946–1965)",
             "displayName-count-other": "lekë albanesos (1946–1965)"
           },
           "ALL": {
-            "displayName": "lek albanés",
-            "displayName-count-one": "lek albanés",
-            "displayName-count-other": "lekë albanesos"
+            "displayName": "lek",
+            "displayName-count-one": "lek",
+            "displayName-count-other": "lekë"
           },
           "AMD": {
             "displayName": "dram",
@@ -51,24 +51,24 @@
             "displayName-count-other": "florins de les Antilles Neerlandeses"
           },
           "AOA": {
-            "displayName": "kwanza angolés",
-            "displayName-count-one": "kwanza angolés",
+            "displayName": "kwanza angolès",
+            "displayName-count-one": "kwanza angolès",
             "displayName-count-other": "kwanzas angolesos",
             "symbol-alt-narrow": "Kz"
           },
           "AOK": {
-            "displayName": "kwanza angolés (1977–1991)",
-            "displayName-count-one": "kwanza angolés (1977–1991)",
+            "displayName": "kwanza angolès (1977–1991)",
+            "displayName-count-one": "kwanza angolès (1977–1991)",
             "displayName-count-other": "kwanzas angolesos (1977–1991)"
           },
           "AON": {
-            "displayName": "nou kwanza angolés (1990–2000)",
-            "displayName-count-one": "nou kwanza angolés (1990–2000)",
+            "displayName": "nou kwanza angolès (1990–2000)",
+            "displayName-count-one": "nou kwanza angolès (1990–2000)",
             "displayName-count-other": "nous kwanzas angolesos (1990–2000)"
           },
           "AOR": {
-            "displayName": "kwanza angolés reajustat (1995–1999)",
-            "displayName-count-one": "kwanza angolés reajustat (1995–1999)",
+            "displayName": "kwanza angolès reajustat (1995–1999)",
+            "displayName-count-one": "kwanza angolès reajustat (1995–1999)",
             "displayName-count-other": "kwanzas angolesos (1995–1999)"
           },
           "ARA": {
@@ -115,13 +115,13 @@
             "displayName-count-other": "florins d’Aruba"
           },
           "AZM": {
-            "displayName": "manat azerbaidjanés (1993–2006)",
-            "displayName-count-one": "manat azerbaidjanés (1993–2006)",
+            "displayName": "manat azerbaidjanès (1993–2006)",
+            "displayName-count-one": "manat azerbaidjanès (1993–2006)",
             "displayName-count-other": "manats azerbaidjanesos (1993–2006)"
           },
           "AZN": {
-            "displayName": "manat azerbaidjanés",
-            "displayName-count-one": "manat azerbaidjanés",
+            "displayName": "manat azerbaidjanès",
+            "displayName-count-one": "manat azerbaidjanès",
             "displayName-count-other": "manats azerbaidjanesos",
             "symbol-alt-narrow": "₼"
           },
@@ -319,8 +319,8 @@
             "symbol-alt-narrow": "$"
           },
           "CDF": {
-            "displayName": "franc congolés",
-            "displayName-count-one": "franc congolés",
+            "displayName": "franc congolès",
+            "displayName-count-one": "franc congolès",
             "displayName-count-other": "francs congolesos"
           },
           "CHE": {
@@ -331,7 +331,9 @@
           "CHF": {
             "displayName": "franc suís",
             "displayName-count-one": "franc suís",
-            "displayName-count-other": "francs suïssos"
+            "displayName-count-other": "francs suïssos",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CHW": {
             "displayName": "franc WIR",
@@ -339,8 +341,8 @@
             "displayName-count-other": "francs WIR"
           },
           "CLE": {
-            "displayName": "escut xilé",
-            "displayName-count-one": "escut xilé",
+            "displayName": "escut xilè",
+            "displayName-count-one": "escudo xilè",
             "displayName-count-other": "escudos xilens"
           },
           "CLF": {
@@ -349,25 +351,20 @@
             "displayName-count-other": "unidades de fomento xilenes"
           },
           "CLP": {
-            "displayName": "peso xilé",
-            "displayName-count-one": "peso xilé",
+            "displayName": "peso xilè",
+            "displayName-count-one": "peso xilè",
             "displayName-count-other": "pesos xilens",
             "symbol-alt-narrow": "$"
           },
           "CNH": {
-            "displayName": "iuan xinés extracontinental",
-            "displayName-count-one": "iuan xinés extracontinental",
+            "displayName": "iuan xinès extracontinental",
+            "displayName-count-one": "iuan xinès extracontinental",
             "displayName-count-other": "iuans xinesos extracontinentals"
           },
-          "CNX": {
-            "displayName": "dòlar del Banc Popular Xinés",
-            "displayName-count-one": "dòlar del Banc Popular Xinés",
-            "displayName-count-other": "dòlars del Banc Popular Xinés"
-          },
           "CNY": {
-            "displayName": "iuan xinés",
-            "displayName-count-one": "iuan xinés",
-            "displayName-count-other": "iuan xinesos",
+            "displayName": "iuan",
+            "displayName-count-one": "iuan",
+            "displayName-count-other": "iuans",
             "symbol": "CNY",
             "symbol-alt-narrow": "¥"
           },
@@ -517,8 +514,8 @@
             "symbol-alt-narrow": "€"
           },
           "FIM": {
-            "displayName": "marc finlandés",
-            "displayName-count-one": "marc finlandés",
+            "displayName": "marc finlandès",
+            "displayName-count-one": "marc finlandès",
             "displayName-count-other": "marcs finlandesos"
           },
           "FJD": {
@@ -534,8 +531,8 @@
             "symbol-alt-narrow": "£"
           },
           "FRF": {
-            "displayName": "franc francés",
-            "displayName-count-one": "franc francés",
+            "displayName": "franc francès",
+            "displayName-count-one": "franc francès",
             "displayName-count-other": "francs francesos"
           },
           "GBP": {
@@ -557,13 +554,13 @@
             "symbol-alt-narrow": "₾"
           },
           "GHC": {
-            "displayName": "cedi ghanés (1979–2007)",
-            "displayName-count-one": "cedi ghanés (1979–2007)",
+            "displayName": "cedi ghanès (1979–2007)",
+            "displayName-count-one": "cedi ghanès (1979–2007)",
             "displayName-count-other": "cedis ghanesos (1979–2007)"
           },
           "GHS": {
-            "displayName": "cedi ghanés",
-            "displayName-count-one": "cedi ghanés",
+            "displayName": "cedi ghanès",
+            "displayName-count-one": "cedi ghanès",
             "displayName-count-other": "cedis ghanesos",
             "symbol-alt-narrow": "GH₵"
           },
@@ -651,9 +648,9 @@
             "displayName-count-other": "gourdes"
           },
           "HUF": {
-            "displayName": "fòrint hongarés",
-            "displayName-count-one": "fòrint hongarés",
-            "displayName-count-other": "fòrints hongaresos",
+            "displayName": "fòrint",
+            "displayName-count-one": "fòrint",
+            "displayName-count-other": "fòrints",
             "symbol-alt-narrow": "Ft"
           },
           "IDR": {
@@ -728,9 +725,9 @@
             "displayName-count-other": "dinars jordans"
           },
           "JPY": {
-            "displayName": "ien japonés",
-            "displayName-count-one": "ien japonés",
-            "displayName-count-other": "iens japonesos",
+            "displayName": "ien",
+            "displayName-count-one": "ien",
+            "displayName-count-other": "iens",
             "symbol": "¥",
             "symbol-alt-narrow": "¥"
           },
@@ -838,18 +835,18 @@
             "displayName-count-other": "talonai lituans"
           },
           "LUC": {
-            "displayName": "franc convertible luxemburgués",
-            "displayName-count-one": "franc convertible luxemburgués",
+            "displayName": "franc convertible luxemburguès",
+            "displayName-count-one": "franc convertible luxemburguès",
             "displayName-count-other": "francs convertibles luxemburguesos"
           },
           "LUF": {
-            "displayName": "franc luxemburgués",
-            "displayName-count-one": "franc luxemburgués",
+            "displayName": "franc luxemburguès",
+            "displayName-count-one": "franc luxemburguès",
             "displayName-count-other": "francs luxemburguesos"
           },
           "LUL": {
-            "displayName": "franc financer luxemburgués",
-            "displayName-count-one": "franc financer luxemburgués",
+            "displayName": "franc financer luxemburguès",
+            "displayName-count-one": "franc financer luxemburguès",
             "displayName-count-other": "francs financers luxemburguesos"
           },
           "LVL": {
@@ -996,18 +993,18 @@
             "symbol-alt-narrow": "RM"
           },
           "MZE": {
-            "displayName": "escut moçambiqués",
-            "displayName-count-one": "escut moçambiqués",
+            "displayName": "escut moçambiquès",
+            "displayName-count-one": "escut moçambiquès",
             "displayName-count-other": "escuts moçambiquesos"
           },
           "MZM": {
-            "displayName": "antic metical moçambiqués",
-            "displayName-count-one": "antic metical moçambiqués",
+            "displayName": "antic metical moçambiquès",
+            "displayName-count-one": "antic metical moçambiquès",
             "displayName-count-other": "antics meticals moçambiquesos"
           },
           "MZN": {
-            "displayName": "metical moçambiqués",
-            "displayName-count-one": "metical moçambiqués",
+            "displayName": "metical moçambiquès",
+            "displayName-count-one": "metical moçambiquès",
             "displayName-count-other": "meticals moçambiquesos"
           },
           "NAD": {
@@ -1034,8 +1031,8 @@
             "symbol-alt-narrow": "C$"
           },
           "NLG": {
-            "displayName": "florí neerlandés",
-            "displayName-count-one": "florí neerlandés",
+            "displayName": "florí neerlandès",
+            "displayName-count-one": "florí neerlandès",
             "displayName-count-other": "florins neerlandesos"
           },
           "NOK": {
@@ -1051,8 +1048,8 @@
             "symbol-alt-narrow": "Rs"
           },
           "NZD": {
-            "displayName": "dòlar neozelandés",
-            "displayName-count-one": "dòlar neozelandés",
+            "displayName": "dòlar neozelandès",
+            "displayName-count-one": "dòlar neozelandès",
             "displayName-count-other": "dòlars neozelandesos",
             "symbol": "NZ$",
             "symbol-alt-narrow": "$"
@@ -1101,19 +1098,19 @@
             "symbol-alt-narrow": "Rs"
           },
           "PLN": {
-            "displayName": "zloty polonés",
-            "displayName-count-one": "zloty polonés",
-            "displayName-count-other": "zlote polonesos",
+            "displayName": "zloty",
+            "displayName-count-one": "zloty",
+            "displayName-count-other": "zlote",
             "symbol-alt-narrow": "zł"
           },
           "PLZ": {
-            "displayName": "zloty polonés (1950–1995)",
-            "displayName-count-one": "zloty polonés (1950–1995)",
+            "displayName": "zloty polonès (1950–1995)",
+            "displayName-count-one": "zloty polonès (1950–1995)",
             "displayName-count-other": "zlote polonesos (1950–1995)"
           },
           "PTE": {
-            "displayName": "escut portugués",
-            "displayName-count-one": "escut portugués",
+            "displayName": "escut portuguès",
+            "displayName-count-one": "escut portuguès",
             "displayName-count-other": "escuts portuguesos"
           },
           "PYG": {
@@ -1133,13 +1130,13 @@
             "displayName-count-other": "dòlars rhodesians"
           },
           "ROL": {
-            "displayName": "antic leu romanés",
-            "displayName-count-one": "antic leu romanés",
+            "displayName": "antic leu romanès",
+            "displayName-count-one": "antic leu romanès",
             "displayName-count-other": "antics lei romanesos"
           },
           "RON": {
-            "displayName": "leu romanés",
-            "displayName-count-one": "leu romanés",
+            "displayName": "leu romanès",
+            "displayName-count-one": "leu romanès",
             "displayName-count-other": "lei romanesos",
             "symbol-alt-narrow": "lei"
           },
@@ -1160,8 +1157,8 @@
             "displayName-count-other": "rubles russos (1991–1998)"
           },
           "RWF": {
-            "displayName": "franc rwandés",
-            "displayName-count-one": "franc rwandés",
+            "displayName": "franc de Ruanda",
+            "displayName-count-one": "franc de Ruanda",
             "displayName-count-other": "francs de Ruanda",
             "symbol-alt-narrow": "RF"
           },
@@ -1183,8 +1180,8 @@
             "displayName-count-other": "rupies de les Seychelles"
           },
           "SDD": {
-            "displayName": "dinar sudanés",
-            "displayName-count-one": "dinar sudanés",
+            "displayName": "dinar sudanès",
+            "displayName-count-one": "dinar sudanès",
             "displayName-count-other": "dinars sudanesos"
           },
           "SDG": {
@@ -1216,8 +1213,8 @@
             "symbol-alt-narrow": "£"
           },
           "SIT": {
-            "displayName": "tolar eslové",
-            "displayName-count-one": "tolar eslové",
+            "displayName": "tolar eslovè",
+            "displayName-count-one": "tolar eslovè",
             "displayName-count-other": "tolars eslovens"
           },
           "SKK": {
@@ -1290,9 +1287,9 @@
             "displayName-count-other": "emalangeni swazis"
           },
           "THB": {
-            "displayName": "baht tailandés",
-            "displayName-count-one": "baht tailandés",
-            "displayName-count-other": "bahts tailandesos",
+            "displayName": "baht",
+            "displayName-count-one": "baht",
+            "displayName-count-other": "bahts",
             "symbol": "฿",
             "symbol-alt-narrow": "฿"
           },
@@ -1369,18 +1366,18 @@
             "symbol-alt-narrow": "₴"
           },
           "UAK": {
-            "displayName": "karbóvanets ucraïnés",
-            "displayName-count-one": "karbóvanets ucraïnés",
+            "displayName": "karbóvanets ucraïnès",
+            "displayName-count-one": "karbóvanets ucraïnès",
             "displayName-count-other": "karbóvantsiv ucraïnesos"
           },
           "UGS": {
-            "displayName": "xíling ugandés (1966–1987)",
-            "displayName-count-one": "xíling ugandés (1966–1987)",
+            "displayName": "xíling ugandès (1966–1987)",
+            "displayName-count-one": "xíling ugandès (1966–1987)",
             "displayName-count-other": "xílings ugandesos (1966–1987)"
           },
           "UGX": {
-            "displayName": "xíling ugandés",
-            "displayName-count-one": "xíling ugandés",
+            "displayName": "xíling ugandès",
+            "displayName-count-one": "xíling ugandès",
             "displayName-count-other": "xílings ugandesos"
           },
           "USD": {
@@ -1516,13 +1513,13 @@
             "displayName-count-other": "unitats de moneda europees"
           },
           "XFO": {
-            "displayName": "franc or francés",
-            "displayName-count-one": "franc or francés",
+            "displayName": "franc or francès",
+            "displayName-count-one": "franc or francès",
             "displayName-count-other": "francs or francesos"
           },
           "XFU": {
-            "displayName": "franc UIC francés",
-            "displayName-count-one": "franc UIC francés",
+            "displayName": "franc UIC francès",
+            "displayName-count-one": "franc UIC francès",
             "displayName-count-other": "francs UIC francesos"
           },
           "XOF": {
@@ -1612,33 +1609,32 @@
             "symbol-alt-narrow": "ZK"
           },
           "ZRN": {
-            "displayName": "nou zaire zairés",
-            "displayName-count-one": "nou zaire zairés",
+            "displayName": "nou zaire zairès",
+            "displayName-count-one": "nou zaire zairès",
             "displayName-count-other": "nous zaires zairesos"
           },
           "ZRZ": {
-            "displayName": "zaire zairés",
-            "displayName-count-one": "zaire zairés",
+            "displayName": "zaire zairès",
+            "displayName-count-one": "zaire zairès",
             "displayName-count-other": "zaires zairesos"
           },
           "ZWD": {
-            "displayName": "dòlar zimbabués (1980–2008)",
-            "displayName-count-one": "dòlar zimbabués (1980–2008)",
+            "displayName": "dòlar zimbabuès (1980–2008)",
+            "displayName-count-one": "dòlar zimbabuès (1980–2008)",
             "displayName-count-other": "dòlars zimbabuesos (1980–2008)"
           },
           "ZWG": {
             "displayName": "or de Zimbàbue",
-            "displayName-count-one": "or de Zimbàbue",
             "displayName-count-other": "or de Zimbàbue"
           },
           "ZWL": {
-            "displayName": "dòlar zimbabués (2009)",
-            "displayName-count-one": "dòlar zimbabués (2009)",
+            "displayName": "dòlar zimbabuès (2009)",
+            "displayName-count-one": "dòlar zimbabuès (2009)",
             "displayName-count-other": "dòlars zimbabuesos (2009)"
           },
           "ZWR": {
-            "displayName": "dòlar zimbabués (2008)",
-            "displayName-count-one": "dòlar zimbabués (2008)",
+            "displayName": "dòlar zimbabuès (2008)",
+            "displayName-count-one": "dòlar zimbabuès (2008)",
             "displayName-count-other": "dòlars zimbabuesos (2008)"
           }
         }

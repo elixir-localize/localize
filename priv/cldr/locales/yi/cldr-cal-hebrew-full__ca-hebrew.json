@@ -319,10 +319,14 @@
               "short": "HHmm"
             },
             "dateTimeFormats": {
+              "numericSeparators": {
+                "numericDateSeparator": "-",
+                "numericTimeSeparator": ":"
+              },
               "full": "{1} {0}",
               "long": "{1} {0}",
-              "medium": "{1}, {0}",
-              "short": "{1}, {0}",
+              "medium": "{1} {0}",
+              "short": "{1} {0}",
               "availableFormats": {
                 "Bh": "h B",
                 "Bhm": "h:mm B",
@@ -332,20 +336,20 @@
                 "EBh": "E h B",
                 "EBhm": "E h:mm B",
                 "EBhms": "E h:mm:ss B",
-                "Ed": "E ה-d",
+                "Ed": "d, E",
                 "Eh": "E h a",
                 "Ehm": "E h:mm a",
                 "EHm": "E HH:mm",
                 "Ehms": "E h:mm:ss a",
                 "EHms": "E HH:mm:ss",
-                "Gy": "y G",
+                "Gy": "G y",
                 "GyM": "G y-MM",
                 "GyMd": "G y-MM-dd",
                 "GyMEd": "G y-MM-dd, E",
                 "GyMMM": "MMMM y G",
                 "GyMMMd": "d MMMM y G",
                 "GyMMMEd": "E, d MMMM y G",
-                "h": "‏h a",
+                "h": "h a",
                 "H": "HH",
                 "hm": "h:mm a",
                 "Hm": "HH:mm",
@@ -361,35 +365,40 @@
                 "MMMEd": "E, d בMMMM",
                 "MMMMd": "d בMMMM",
                 "MMMMEd": "E, d בMMMM",
-                "mmss": "mm:ss",
                 "ms": "mm:ss",
-                "y": "y",
-                "yyyy": "y",
+                "y": "G y",
+                "yyyy": "G y",
                 "yyyyM": "MMMM y",
                 "yyyyMd": "d בMMMM y",
                 "yyyyMEd": "E, d בMMMM y",
-                "yyyyMM": "MM/y G",
                 "yyyyMMM": "MMMM y",
                 "yyyyMMMd": "d בMMMM y",
                 "yyyyMMMEd": "E, d בMMMM y",
                 "yyyyMMMM": "MMMM y",
-                "yyyyQQQ": "QQQ y",
-                "yyyyQQQQ": "QQQQ y"
+                "yyyyQQQ": "G y QQQ",
+                "yyyyQQQQ": "G y QQQQ"
               },
               "appendItems": {
+                "Date-Timezone": "{0} {1}",
                 "Day": "{0} ({2}: {1})",
-                "Day-Of-Week": "{0} {1}",
+                "Day-Of-Week": "{1} {0}",
                 "Era": "{1} {0}",
                 "Hour": "{0} ({2}: {1})",
                 "Minute": "{0} ({2}: {1})",
                 "Month": "{0} ({2}: {1})",
                 "Quarter": "{0} ({2}: {1})",
                 "Second": "{0} ({2}: {1})",
-                "Timezone": "{0} {1}",
+                "Time-Day-Of-Week": "{1} {0}",
+                "Timezone": "{1} {0}",
                 "Week": "{0} ({2}: {1})",
                 "Year": "{1} {0}"
               },
               "intervalFormats": {
+                "intervalFormatRanges": {
+                  "mixed": "{0} – {1}",
+                  "non-numeric": "{0}–{1}",
+                  "numeric": "{0}–{1}"
+                },
                 "intervalFormatFallback": "{0} – {1}",
                 "Bh": {
                   "B": "h B – h B",
@@ -474,64 +483,65 @@
                   "H": "HH–HH v"
                 },
                 "M": {
-                  "M": "M–M"
+                  "M": "MM–MM"
                 },
                 "Md": {
-                  "d": "d בMMMM – d בMMMM",
-                  "M": "d בMMMM – d בMMMM"
+                  "d": "MM-dd – MM-dd",
+                  "M": "MM-dd – MM-dd"
                 },
                 "MEd": {
-                  "d": "E d בMMMM – E d בMMMM",
-                  "M": "E d בMMMM – E d בMMMM"
+                  "d": "MM-dd, E – MM-dd, E",
+                  "M": "MM-dd, E – MM-dd, E"
                 },
                 "MMM": {
-                  "M": "MMMM–MMMM"
+                  "M": "LLL–LLL"
                 },
                 "MMMd": {
-                  "d": "d–d בMMMM",
-                  "M": "d בMMMM – d בMMMM"
+                  "d": "MMM d–d",
+                  "M": "MMM d – MMM d"
                 },
                 "MMMEd": {
-                  "d": "E d בMMMM – E d בMMMM",
-                  "M": "E d בMMMM – E d בMMMM"
+                  "d": "MMM d, E – MMM d, E",
+                  "M": "MMM d, E – MMM d, E"
                 },
-                "MMMM": {
-                  "M": "LLLL–LLLL"
+                "MMMMd": {
+                  "d": "MMMM d–d",
+                  "M": "MMMM d – MMMM d"
                 },
                 "y": {
-                  "y": "y–y"
+                  "y": "G y–y"
                 },
                 "yM": {
-                  "M": "MMMM y – MMMM y",
-                  "y": "MMMM y – MMMM y"
+                  "M": "G y-MM – y-MM",
+                  "y": "G y-MM – y-MM"
                 },
                 "yMd": {
-                  "d": "d בMMMM y – d בMMMM y",
-                  "M": "d בMMMM y – d בMMMM y",
-                  "y": "d בMMMM y – d בMMMM y"
+                  "d": "G y-MM-dd – y-MM-dd",
+                  "M": "G y-MM-dd – y-MM-dd",
+                  "y": "G y-MM-dd – y-MM-dd"
                 },
                 "yMEd": {
-                  "d": "E d בMMMM y – E d בMMMM y",
-                  "M": "E d בMMMM y – E d בMMMM y",
-                  "y": "E d בMMMM y – E d בMMMM y"
+                  "d": "G y-MM-dd, E – y-MM-dd, E",
+                  "M": "G y-MM-dd, E – y-MM-dd, E",
+                  "y": "G y-MM-dd, E – y-MM-dd, E"
                 },
                 "yMMM": {
-                  "M": "MMMM–MMMM y",
-                  "y": "MMMM y – MMMM y"
+                  "M": "G y MMM–MMM",
+                  "y": "G y MMM – y MMM"
                 },
                 "yMMMd": {
-                  "d": "d–d בMMMM y",
-                  "M": "d בMMMM – d בMMMM y",
-                  "y": "d בMMMM y – d בMMMM y"
+                  "d": "G y MMM d–d",
+                  "M": "G y MMM d – MMM d",
+                  "y": "G y MMM d – y MMM d"
                 },
                 "yMMMEd": {
-                  "d": "E d בMMMM – E d בMMMM y",
-                  "M": "E d בMMMM – E d בMMMM y",
-                  "y": "E d בMMMM y – E d בMMMM y"
+                  "d": "G y MMM d, E – MMM d, E",
+                  "M": "G y MMM d, E – MMM d, E",
+                  "y": "G y MMM d, E – y MMM d, E"
                 },
                 "yMMMM": {
-                  "M": "MMMM–MMMM y",
-                  "y": "MMMM y – MMMM y"
+                  "M": "G y MMMM–MMMM",
+                  "y": "G y MMMM – y MMMM"
                 }
               }
             },
@@ -539,16 +549,16 @@
               "standard": {
                 "full": "{1} {0}",
                 "long": "{1} {0}",
-                "medium": "{1}, {0}",
-                "short": "{1}, {0}"
+                "medium": "{1} {0}",
+                "short": "{1} {0}"
               }
             },
             "dateTimeFormats-relative": {
               "standard": {
                 "full": "{1} {0}",
                 "long": "{1} {0}",
-                "medium": "{1}, {0}",
-                "short": "{1}, {0}"
+                "medium": "{1} {0}",
+                "short": "{1} {0}"
               }
             }
           }

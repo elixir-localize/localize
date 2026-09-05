@@ -139,12 +139,12 @@
                 },
                 "narrow": {
                   "sun": "S",
-                  "mon": "A",
-                  "tue": "M",
-                  "wed": "P",
-                  "thu": "S",
-                  "fri": "T",
-                  "sat": "A"
+                  "mon": "M",
+                  "tue": "T",
+                  "wed": "W",
+                  "thu": "T",
+                  "fri": "F",
+                  "sat": "S"
                 },
                 "short": {
                   "sun": "sap",
@@ -177,12 +177,12 @@
                 },
                 "narrow": {
                   "sun": "S",
-                  "mon": "A",
-                  "tue": "M",
-                  "wed": "P",
-                  "thu": "S",
-                  "fri": "T",
-                  "sat": "A"
+                  "mon": "M",
+                  "tue": "T",
+                  "wed": "W",
+                  "thu": "T",
+                  "fri": "F",
+                  "sat": "S"
                 },
                 "short": {
                   "sun": "sap",
@@ -207,72 +207,72 @@
             "quarters": {
               "format": {
                 "abbreviated": {
-                  "1": "S1",
-                  "2": "S2",
-                  "3": "S3",
-                  "4": "S4"
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 },
                 "narrow": {
-                  "1": "S1",
-                  "2": "S2",
-                  "3": "S3",
-                  "4": "S4"
+                  "1": "1",
+                  "2": "2",
+                  "3": "3",
+                  "4": "4"
                 },
                 "wide": {
-                  "1": "ukiup sisamararterutaa 1",
-                  "2": "ukiup sisamararterutaa 2",
-                  "3": "ukiup sisamararterutaa 3",
-                  "4": "ukiup sisamararterutaa 4"
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 }
               },
               "stand-alone": {
                 "abbreviated": {
-                  "1": "S1",
-                  "2": "S2",
-                  "3": "S3",
-                  "4": "S4"
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 },
                 "narrow": {
-                  "1": "S1",
-                  "2": "S2",
-                  "3": "S3",
-                  "4": "S4"
+                  "1": "1",
+                  "2": "2",
+                  "3": "3",
+                  "4": "4"
                 },
                 "wide": {
-                  "1": "ukiup sisamararterutaa 1",
-                  "2": "ukiup sisamararterutaa 2",
-                  "3": "ukiup sisamararterutaa 3",
-                  "4": "ukiup sisamararterutaa 4"
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 }
               }
             },
             "dayPeriods": {
               "format": {
                 "abbreviated": {
-                  "am": "u.t.",
-                  "pm": "u.k."
+                  "am": "AM",
+                  "pm": "PM"
                 },
                 "narrow": {
-                  "am": "u.t.",
-                  "pm": "u.k."
+                  "am": "AM",
+                  "pm": "PM"
                 },
                 "wide": {
-                  "am": "ulloqeqqata-tungaa",
-                  "pm": "ulloqeqqata-kingorna"
+                  "am": "AM",
+                  "pm": "PM"
                 }
               },
               "stand-alone": {
                 "abbreviated": {
-                  "am": "u.t.",
-                  "pm": "u.k."
+                  "am": "AM",
+                  "pm": "PM"
                 },
                 "narrow": {
-                  "am": "u.t.",
-                  "pm": "u.k."
+                  "am": "AM",
+                  "pm": "PM"
                 },
                 "wide": {
-                  "am": "u.t.",
-                  "pm": "u.k."
+                  "am": "AM",
+                  "pm": "PM"
                 }
               }
             },
@@ -1047,6 +1047,10 @@
               "short": "HHmm"
             },
             "dateTimeFormats": {
+              "numericSeparators": {
+                "numericDateSeparator": "-",
+                "numericTimeSeparator": ":"
+              },
               "full": "{1} {0}",
               "long": "{1} {0}",
               "medium": "{1} {0}",
@@ -1103,19 +1107,26 @@
                 "yyyyQQQQ": "r(U) QQQQ"
               },
               "appendItems": {
+                "Date-Timezone": "{0} {1}",
                 "Day": "{0} ({2}: {1})",
-                "Day-Of-Week": "{0} {1}",
+                "Day-Of-Week": "{1} {0}",
                 "Era": "{1} {0}",
                 "Hour": "{0} ({2}: {1})",
                 "Minute": "{0} ({2}: {1})",
                 "Month": "{0} ({2}: {1})",
                 "Quarter": "{0} ({2}: {1})",
                 "Second": "{0} ({2}: {1})",
+                "Time-Day-Of-Week": "{1} {0}",
                 "Timezone": "{0} {1}",
                 "Week": "{0} ({2}: {1})",
                 "Year": "{1} {0}"
               },
               "intervalFormats": {
+                "intervalFormatRanges": {
+                  "mixed": "{0} – {1}",
+                  "non-numeric": "{0}–{1}",
+                  "numeric": "{0}–{1}"
+                },
                 "intervalFormatFallback": "{0} – {1}",
                 "Bh": {
                   "B": "h B – h B",

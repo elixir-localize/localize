@@ -60,6 +60,10 @@
             "symbol": "CA$",
             "symbol-alt-narrow": "$"
           },
+          "CHF": {
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
+          },
           "CLP": {
             "symbol-alt-narrow": "$"
           },
@@ -313,7 +317,7 @@
           "USD": {
             "displayName": "АХШ дуоллара",
             "displayName-count-other": "АХШ дуоллара",
-            "symbol": "$",
+            "symbol": "US$",
             "symbol-alt-narrow": "$"
           },
           "UYU": {

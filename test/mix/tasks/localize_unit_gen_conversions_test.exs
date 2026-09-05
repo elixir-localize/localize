@@ -102,7 +102,7 @@ defmodule Mix.Tasks.Localize.Unit.GenConversionsTest do
       assert IO.iodata_to_binary(message) =~ path
 
       assert_received {:mix_shell, :info, [summary]}
-      assert summary =~ ~r/155 units, \d+ spellings/
+      assert summary =~ ~r/157 units, \d+ spellings/
 
       Mix.shell(Mix.Shell.IO)
 

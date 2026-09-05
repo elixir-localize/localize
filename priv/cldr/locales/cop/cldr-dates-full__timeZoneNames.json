@@ -8,18 +8,20 @@
         "timeZoneNames": {
           "hourFormat": "+HH:mm;-HH:mm",
           "gmtFormat": "GMT{0}",
-          "gmtZeroFormat": "GMT",
+          "gmtFormat-alt-utc": "UTC{0}",
           "gmtUnknownFormat": "GMT+?",
-          "regionFormat": "ⲡ̀ⲥⲏⲟⲩ {0}",
-          "regionFormat-type-daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ {0}",
-          "regionFormat-type-standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ {0}",
+          "gmtUnknownFormat-alt-utc": "UTC+?",
+          "dualOffsetFormat": "{0}/{1}",
+          "regionFormat": "ⲡⲥⲏⲟⲩ {0}",
+          "regionFormat-type-daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ {0}",
+          "regionFormat-type-standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ {0}",
           "fallbackFormat": "{1} ({0})",
           "zone": {
             "Etc": {
               "UTC": {
                 "_type": "zone",
                 "long": {
-                  "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲕⲁⲑⲟⲗⲓⲕⲟⲛ"
+                  "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲕⲁⲑⲟⲗⲓⲕⲟⲛ"
                 },
                 "short": {
                   "standard": "UTC"
@@ -33,15 +35,15 @@
             "Europe": {
               "Andorra": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲛⲇⲟⲣⲣⲁ"
+                "exemplarCity": "ⲁⲛⲇⲱⲣⲁ"
               },
               "Tirane": {
                 "_type": "zone",
-                "exemplarCity": "ⲑⲓⲣⲁⲛⲁ"
+                "exemplarCity": "ⲧⲓⲣⲁⲛⲁ"
               },
               "Vienna": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲓⲉⲛⲛⲁ"
+                "exemplarCity": "ⲟⲩⲓⲏⲛⲛⲁ"
               },
               "Mariehamn": {
                 "_type": "zone",
@@ -53,27 +55,27 @@
               },
               "Brussels": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲣⲟⲩⲝⲉⲗ"
+                "exemplarCity": "ⲃⲣⲟⲩⲥⲏⲗ"
               },
               "Sofia": {
                 "_type": "zone",
-                "exemplarCity": "ⲥⲟϥⲓⲁ"
+                "exemplarCity": "ⲧⲥⲟⲫⲓⲁ"
               },
               "Minsk": {
                 "_type": "zone",
-                "exemplarCity": "ⲙⲓⲛⲥⲕ"
+                "exemplarCity": "ⲙⲓⲛⲥⲉⲕ"
               },
               "Zurich": {
                 "_type": "zone",
-                "exemplarCity": "ⲍⲟⲩⲣⲓϧ"
+                "exemplarCity": "ⲧⲍⲟⲩⲣⲓⲕ"
               },
               "Prague": {
                 "_type": "zone",
-                "exemplarCity": "ⲡⲣⲁⲅ"
+                "exemplarCity": "ⲫⲣⲁⲅ"
               },
               "Busingen": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲟⲩⲍⲓⲛⲅⲉⲛ"
+                "exemplarCity": "ⲃⲓⲟⲩⲍⲓⲛⲅⲉⲛ"
               },
               "Berlin": {
                 "_type": "zone",
@@ -81,15 +83,15 @@
               },
               "Copenhagen": {
                 "_type": "zone",
-                "exemplarCity": "ⲕⲟⲡⲉⲛϩⲁⲅⲉⲛ"
+                "exemplarCity": "ⲕⲟⲩⲡⲁⲛⲁⲃⲉ"
               },
               "Tallinn": {
                 "_type": "zone",
-                "exemplarCity": "ⲑⲁⲗⲗⲓⲛ"
+                "exemplarCity": "ⲣⲉⲃⲟⲩⲗⲉ"
               },
               "Madrid": {
                 "_type": "zone",
-                "exemplarCity": "ⲙⲁⲇⲣⲓⲇ"
+                "exemplarCity": "ⲙⲁⲇⲣⲓⲧⲏ"
               },
               "Helsinki": {
                 "_type": "zone",
@@ -101,9 +103,6 @@
               },
               "London": {
                 "_type": "zone",
-                "long": {
-                  "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲙⲃⲣⲓⲑⲁⲛⲓⲁ"
-                },
                 "exemplarCity": "ⲗⲟⲛⲇⲟⲛ"
               },
               "Guernsey": {
@@ -112,11 +111,11 @@
               },
               "Gibraltar": {
                 "_type": "zone",
-                "exemplarCity": "ϫⲓⲃⲣⲁⲗⲑⲁⲣ"
+                "exemplarCity": "ⲅⲓⲃⲣⲁⲗⲧⲁⲣ"
               },
               "Athens": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲑⲏⲛⲁⲥ"
+                "exemplarCity": "ⲁ̀ⲑⲏⲛⲁⲥ"
               },
               "Zagreb": {
                 "_type": "zone",
@@ -124,18 +123,15 @@
               },
               "Budapest": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲟⲩⲇⲁⲡⲉⲥⲧ"
+                "exemplarCity": "ⲃⲟⲩⲇⲁⲡⲉϣⲧ"
               },
               "Dublin": {
                 "_type": "zone",
-                "long": {
-                  "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲓⲉⲣⲗⲁⲛⲇⲁ"
-                },
                 "exemplarCity": "ⲇⲟⲩⲃⲗⲓⲛ"
               },
               "Isle_of_Man": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲓⲥⲉⲗ ⲛ̀ⲙⲁⲛ"
+                "exemplarCity": "ⲑⲛⲏⲥⲟⲥ ⲙ̀ⲙⲁⲛ"
               },
               "Rome": {
                 "_type": "zone",
@@ -147,43 +143,43 @@
               },
               "Vaduz": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲁⲇⲟⲩⲍ"
+                "exemplarCity": "ϥⲁⲇⲟⲩⲧⲍ"
               },
               "Vilnius": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲓⲗⲛⲓⲟⲩⲥ"
+                "exemplarCity": "ⲟⲩⲓⲗⲛⲓⲟⲥ"
               },
               "Luxembourg": {
                 "_type": "zone",
-                "exemplarCity": "ⲗⲟⲩⲝⲟⲙⲃⲟⲩⲣⲅ"
+                "exemplarCity": "ⲗⲟⲩⲕⲥⲉⲙⲃⲟⲩⲣⲅⲟⲥ"
               },
               "Riga": {
                 "_type": "zone",
-                "exemplarCity": "ⲣⲓⲅⲁ"
+                "exemplarCity": "ⲣⲏⲅⲁ"
               },
               "Monaco": {
                 "_type": "zone",
-                "exemplarCity": "ⲙⲟⲛⲁⲕⲟ"
+                "exemplarCity": "ⲙⲟⲛⲏⲕⲟⲩ"
               },
               "Chisinau": {
                 "_type": "zone",
-                "exemplarCity": "ϭⲓⲍⲓⲛⲁⲩ"
+                "exemplarCity": "ⲕⲓϣⲓⲛⲁⲩ"
               },
               "Podgorica": {
                 "_type": "zone",
-                "exemplarCity": "ⲡⲟⲇⲅⲟⲣⲓⲕⲁ"
+                "exemplarCity": "ⲡⲟⲇⲅⲟⲣⲓⲧⲍⲁ"
               },
               "Skopje": {
                 "_type": "zone",
-                "exemplarCity": "ⲥⲕⲟⲡⲓⲉ"
+                "exemplarCity": "ⲥⲕⲟⲩⲡⲏ"
               },
               "Malta": {
                 "_type": "zone",
-                "exemplarCity": "ⲙⲁⲗⲑⲁ"
+                "exemplarCity": "ⲙⲉⲗⲓⲧⲏ"
               },
               "Amsterdam": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲙⲥⲑⲉⲣⲇⲁⲙ"
+                "exemplarCity": "ⲁⲙⲥⲧⲉⲣⲇⲁⲙ"
               },
               "Oslo": {
                 "_type": "zone",
@@ -191,19 +187,19 @@
               },
               "Warsaw": {
                 "_type": "zone",
-                "exemplarCity": "ⲟⲩⲁⲣⲥⲟ"
+                "exemplarCity": "ⲃⲁⲣⲥⲱ"
               },
               "Lisbon": {
                 "_type": "zone",
-                "exemplarCity": "ⲗⲓϣⲃⲟⲛⲁ"
+                "exemplarCity": "ⲗⲓⲥⲥⲁⲃⲱⲛⲁ"
               },
               "Bucharest": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲟⲩϧⲁⲣⲉⲥⲧ"
+                "exemplarCity": "ⲃⲟⲩⲕⲁⲣⲏⲥⲧ"
               },
               "Belgrade": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲉⲗⲅⲣⲁⲇ"
+                "exemplarCity": "ⲃⲉⲗⲉⲅⲣⲁⲇⲁ"
               },
               "Kaliningrad": {
                 "_type": "zone",
@@ -211,27 +207,27 @@
               },
               "Moscow": {
                 "_type": "zone",
-                "exemplarCity": "ⲙⲟⲥⲕⲟ"
+                "exemplarCity": "ⲙⲟⲥⲭⲱⲟⲩ"
               },
               "Volgograd": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲟⲗⲅⲟⲅⲣⲁⲇ"
+                "exemplarCity": "ⲟⲩⲟⲗⲕⲟⲅⲣⲁⲇ"
               },
               "Saratov": {
                 "_type": "zone",
-                "exemplarCity": "ⲥⲁⲣⲁⲑⲟⲃ"
+                "exemplarCity": "ⲥⲁⲣⲁⲧⲟϥ"
               },
               "Astrakhan": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲥⲑⲣⲁϧⲁⲛ"
+                "exemplarCity": "ⲁⲥⲧⲣⲁϧⲁⲛ"
               },
               "Ulyanovsk": {
                 "_type": "zone",
-                "exemplarCity": "ⲟⲩⲗⲓⲁⲛⲟⲃⲥⲕ"
+                "exemplarCity": "ⲟⲩⲗⲓⲁ̀ⲛⲟϥⲥⲕ"
               },
               "Kirov": {
                 "_type": "zone",
-                "exemplarCity": "ⲕⲓⲣⲟⲃ"
+                "exemplarCity": "ⲕⲩⲣⲟϥ"
               },
               "Samara": {
                 "_type": "zone",
@@ -239,41 +235,41 @@
               },
               "Stockholm": {
                 "_type": "zone",
-                "exemplarCity": "ⲥⲑⲟⲕϩⲟⲗⲙ"
+                "exemplarCity": "ⲥⲧⲟⲕⲟⲗⲙⲟ"
               },
               "Ljubljana": {
                 "_type": "zone",
-                "exemplarCity": "ⲗϫⲟⲩⲃⲗϫⲁⲛⲁ"
+                "exemplarCity": "ⲗⲩⲡⲗⲓⲁ̀ⲛⲉ"
               },
               "Bratislava": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲣⲁⲑⲓⲥⲗⲁⲃⲁ"
+                "exemplarCity": "ⲃⲣⲁⲧⲓⲥⲗⲁⲃⲁ"
               },
               "San_Marino": {
                 "_type": "zone",
-                "exemplarCity": "ⲥⲁⲛ ⲙⲁⲣⲓⲛⲟ"
+                "exemplarCity": "ⲡⲓⲁ̀ⲅⲓⲟⲥ ⲙⲁⲣⲓⲛⲟⲥ"
               },
               "Istanbul": {
                 "_type": "zone",
-                "exemplarCity": "ⲓⲥⲑⲁⲙⲃⲟⲩⲗ"
+                "exemplarCity": "ⲕⲱⲥⲧⲁⲛⲧⲓⲛⲟⲩⲡⲟⲗⲓⲥ"
               },
               "Kiev": {
                 "_type": "zone",
-                "exemplarCity": "ⲕⲓⲉⲃ"
+                "exemplarCity": "ⲕⲓⲟ̀ⲃⲁ"
               },
               "Simferopol": {
                 "_type": "zone",
-                "exemplarCity": "ⲥⲓⲙϥⲉⲣⲟⲡⲟⲗ"
+                "exemplarCity": "ⲥⲓⲙⲫⲉⲣⲟⲡⲟⲗⲓⲥ"
               },
               "Vatican": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲁⲑⲓⲕⲁⲛ"
+                "exemplarCity": "ⲃⲁⲧⲓⲕⲁⲛⲟⲥ"
               }
             },
             "Asia": {
               "Dubai": {
                 "_type": "zone",
-                "exemplarCity": "ⲇⲟⲩⲃⲁⲓ"
+                "exemplarCity": "ⲇⲟⲃⲁⲓ"
               },
               "Kabul": {
                 "_type": "zone",
@@ -285,7 +281,7 @@
               },
               "Baku": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲁⲕⲟⲩ"
+                "exemplarCity": "ⲃⲁⲭⲟⲩ"
               },
               "Dhaka": {
                 "_type": "zone",
@@ -293,7 +289,7 @@
               },
               "Bahrain": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲁϩⲣⲁⲓⲛ"
+                "exemplarCity": "ⲃⲁϩⲣⲏⲓⲛ"
               },
               "Brunei": {
                 "_type": "zone",
@@ -305,7 +301,7 @@
               },
               "Urumqi": {
                 "_type": "zone",
-                "exemplarCity": "ⲟⲩⲣⲟⲩⲙⲕⲓ"
+                "exemplarCity": "ⲟⲩⲣⲟⲩⲙϭⲓ"
               },
               "Shanghai": {
                 "_type": "zone",
@@ -313,15 +309,15 @@
               },
               "Nicosia": {
                 "_type": "zone",
-                "exemplarCity": "ⲛⲓⲕⲟⲥⲓⲁ"
+                "exemplarCity": "ⲗⲉⲩⲕⲟⲩⲥⲓⲁ̀"
               },
               "Famagusta": {
                 "_type": "zone",
-                "exemplarCity": "ϥⲁⲙⲁⲅⲟⲩⲥⲑⲁ"
+                "exemplarCity": "ⲁⲙⲙⲟⲭⲱⲥⲧⲟⲥ"
               },
               "Tbilisi": {
                 "_type": "zone",
-                "exemplarCity": "ⲑⲉⲃⲗⲓⲥⲓ"
+                "exemplarCity": "ⲧⲓⲫⲗⲓⲥ"
               },
               "Hong_Kong": {
                 "_type": "zone",
@@ -329,7 +325,7 @@
               },
               "Jakarta": {
                 "_type": "zone",
-                "exemplarCity": "ϫⲁⲕⲁⲣⲑⲁ"
+                "exemplarCity": "ϫⲁⲕⲁⲣⲧⲁ"
               },
               "Pontianak": {
                 "_type": "zone",
@@ -353,7 +349,7 @@
               },
               "Baghdad": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲁⲅⲇⲁⲇ"
+                "exemplarCity": "ⲃⲁⲅⲇⲁⲛ"
               },
               "Tehran": {
                 "_type": "zone",
@@ -361,15 +357,15 @@
               },
               "Amman": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲙⲙⲁⲛ"
+                "exemplarCity": "ⲁⲙⲙⲱⲛ"
               },
               "Tokyo": {
                 "_type": "zone",
-                "exemplarCity": "ⲑⲟⲕⲓⲟ"
+                "exemplarCity": "ⲑⲱⲕⲓⲟ̀"
               },
               "Bishkek": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲓϣⲕⲉⲕ"
+                "exemplarCity": "ⲡⲓϣⲭⲏⲕ"
               },
               "Phnom_Penh": {
                 "_type": "zone",
@@ -385,7 +381,7 @@
               },
               "Kuwait": {
                 "_type": "zone",
-                "exemplarCity": "ⲕⲟⲩⲁⲓⲧ"
+                "exemplarCity": "ⲕⲟⲩⲏⲓⲧ"
               },
               "Aqtau": {
                 "_type": "zone",
@@ -397,15 +393,15 @@
               },
               "Atyrau": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲑⲓⲣⲁⲩ"
+                "exemplarCity": "ⲁⲧⲓⲣⲁⲩ"
               },
               "Aqtobe": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲕⲑⲟⲃ"
+                "exemplarCity": "ⲁⲕⲧⲟⲃⲏ"
               },
               "Qostanay": {
                 "_type": "zone",
-                "exemplarCity": "ⲕⲟⲥⲑⲁⲛⲁⲩ"
+                "exemplarCity": "ⲕⲟⲥⲧⲁⲛⲁⲓ"
               },
               "Qyzylorda": {
                 "_type": "zone",
@@ -413,7 +409,7 @@
               },
               "Almaty": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲗⲙⲁⲑⲓ"
+                "exemplarCity": "ⲁⲗⲙⲁⲧⲓ"
               },
               "Vientiane": {
                 "_type": "zone",
@@ -421,7 +417,7 @@
               },
               "Beirut": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲉⲓⲣⲟⲩⲧ"
+                "exemplarCity": "ⲃⲉⲣⲉⲧⲟⲥ"
               },
               "Colombo": {
                 "_type": "zone",
@@ -457,7 +453,7 @@
               },
               "Muscat": {
                 "_type": "zone",
-                "exemplarCity": "ⲙⲁⲥⲕⲁⲧ"
+                "exemplarCity": "ⲙⲟⲥⲭⲁⲧ"
               },
               "Manila": {
                 "_type": "zone",
@@ -473,7 +469,7 @@
               },
               "Hebron": {
                 "_type": "zone",
-                "exemplarCity": "ϩⲉⲃⲣⲟⲛ"
+                "exemplarCity": "ⲭⲉⲃⲣⲱⲛ"
               },
               "Qatar": {
                 "_type": "zone",
@@ -481,27 +477,27 @@
               },
               "Yekaterinburg": {
                 "_type": "zone",
-                "exemplarCity": "ⲓⲉⲕⲁⲑⲣⲓⲛⲃⲟⲩⲣⲅ"
+                "exemplarCity": "ⲉ̀ⲕⲁⲑⲉⲣⲓⲛⲫⲟⲩⲣⲅ"
               },
               "Omsk": {
                 "_type": "zone",
-                "exemplarCity": "ⲟⲙⲥⲕ"
+                "exemplarCity": "ⲱⲙⲥⲕ"
               },
               "Novosibirsk": {
                 "_type": "zone",
-                "exemplarCity": "ⲛⲟⲃⲟⲥⲓⲃⲓⲣⲥⲕ"
+                "exemplarCity": "ⲛⲟⲩⲟⲥⲓⲃⲓⲣⲥⲕ"
               },
               "Barnaul": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲁⲣⲛⲁⲩⲗ"
+                "exemplarCity": "ⲃⲁⲣⲛⲁⲟⲩⲗ"
               },
               "Tomsk": {
                 "_type": "zone",
-                "exemplarCity": "ⲑⲟⲙⲥⲕ"
+                "exemplarCity": "ⲑⲱⲙⲥⲕ"
               },
               "Novokuznetsk": {
                 "_type": "zone",
-                "exemplarCity": "ⲛⲟⲃⲟⲕⲟⲩⲍⲛⲉⲑⲥⲕ"
+                "exemplarCity": "ⲛⲟⲩⲟⲕⲟⲩⲍⲛⲏⲧⲥⲕ"
               },
               "Krasnoyarsk": {
                 "_type": "zone",
@@ -509,7 +505,7 @@
               },
               "Irkutsk": {
                 "_type": "zone",
-                "exemplarCity": "ⲓⲣⲕⲟⲩⲑⲥⲕ"
+                "exemplarCity": "ⲓⲣⲭⲟⲩⲧⲥⲕ"
               },
               "Chita": {
                 "_type": "zone",
@@ -517,11 +513,11 @@
               },
               "Yakutsk": {
                 "_type": "zone",
-                "exemplarCity": "ⲓⲁⲕⲟⲩⲑⲥⲕ"
+                "exemplarCity": "ⲓⲉⲭⲟⲩⲧⲥⲕ"
               },
               "Vladivostok": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲗⲁⲇⲓⲃⲟⲥⲑⲟⲕ"
+                "exemplarCity": "ⲃⲗⲁⲇⲓⲟⲩⲟⲥⲑⲱⲕ"
               },
               "Khandyga": {
                 "_type": "zone",
@@ -533,7 +529,7 @@
               },
               "Ust-Nera": {
                 "_type": "zone",
-                "exemplarCity": "ⲟⲩⲥⲧ-ⲛⲉⲣⲁ"
+                "exemplarCity": "ⲟⲩⲥⲧ ⲛⲏⲣⲁ"
               },
               "Magadan": {
                 "_type": "zone",
@@ -545,11 +541,11 @@
               },
               "Kamchatka": {
                 "_type": "zone",
-                "exemplarCity": "ⲕⲁⲙϭⲁⲑⲕⲁ"
+                "exemplarCity": "ⲕⲁⲙϭⲁⲧⲕⲁ"
               },
               "Anadyr": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲛⲁⲇⲓⲣ"
+                "exemplarCity": "ⲁ̀ⲛⲁⲇⲓⲣ"
               },
               "Riyadh": {
                 "_type": "zone",
@@ -569,7 +565,7 @@
               },
               "Dushanbe": {
                 "_type": "zone",
-                "exemplarCity": "ⲇⲟⲩϣⲁⲛⲃ"
+                "exemplarCity": "ⲇⲟⲩϣⲁⲛⲃⲏ"
               },
               "Dili": {
                 "_type": "zone",
@@ -577,7 +573,7 @@
               },
               "Ashgabat": {
                 "_type": "zone",
-                "exemplarCity": "ⲁϣⲅⲁⲃⲁⲧ"
+                "exemplarCity": "ⲁϣⲅⲁⲃⲁⲇ"
               },
               "Taipei": {
                 "_type": "zone",
@@ -585,29 +581,29 @@
               },
               "Samarkand": {
                 "_type": "zone",
-                "exemplarCity": "ⲥⲁⲙⲁⲣⲕⲁⲛⲇ"
+                "exemplarCity": "ⲥⲁⲙⲁⲣⲁⲕⲁⲛⲇⲁ"
               },
               "Tashkent": {
                 "_type": "zone",
-                "exemplarCity": "ⲑⲁϣⲕⲉⲛⲧ"
+                "exemplarCity": "ⲧⲁϣⲕⲏⲛⲧ"
               },
               "Saigon": {
                 "_type": "zone",
-                "exemplarCity": "ϩⲟ ϭⲓ ⲙⲓⲛϩ"
+                "exemplarCity": "ϩⲟ ϣⲓ ⲙⲓⲛ"
               },
               "Aden": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲇⲁⲛ"
+                "exemplarCity": "ⲉ̀ⲇⲉⲛ"
               }
             },
             "America": {
               "Antigua": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲛⲑⲓⲅⲁ"
+                "exemplarCity": "ⲁⲛⲧⲓⲅⲟⲩⲁ̀"
               },
               "Anguilla": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲛⲅⲓⲗⲁ"
+                "exemplarCity": "ⲁⲛⲕⲟⲩⲓⲗⲁ"
               },
               "Argentina": {
                 "Rio_Gallegos": {
@@ -669,7 +665,7 @@
               },
               "St_Barthelemy": {
                 "_type": "zone",
-                "exemplarCity": "ⲥⲁⲛⲧ ⲃⲁⲣⲑⲉⲗⲉⲙⲓ"
+                "exemplarCity": "ⲡⲓⲁ̀ⲅⲓⲟⲥ ⲃⲁⲣⲑⲟⲗⲟⲙⲁⲓⲟⲥ"
               },
               "La_Paz": {
                 "_type": "zone",
@@ -749,7 +745,7 @@
               },
               "Belize": {
                 "_type": "zone",
-                "exemplarCity": "ⲃⲉⲗⲓⲍⲉ"
+                "exemplarCity": "ⲃⲉⲗⲓⲥ"
               },
               "Dawson": {
                 "_type": "zone",
@@ -841,7 +837,7 @@
               },
               "St_Johns": {
                 "_type": "zone",
-                "exemplarCity": "ⲥⲁⲛⲧ ϫⲟⲛⲍ"
+                "exemplarCity": "ⲡⲓⲁ̀ⲅⲓⲟⲥ ⲓⲱⲁⲛⲛⲏⲥ"
               },
               "Coyhaique": {
                 "_type": "zone",
@@ -925,7 +921,7 @@
               },
               "Port-au-Prince": {
                 "_type": "zone",
-                "exemplarCity": "ⲡⲟⲣⲧ-ⲁⲩ-ⲡⲣⲓⲛⲥ"
+                "exemplarCity": "ⲫⲱⲣ ⲱ̀ ⲫⲣⲁⲛⲥ"
               },
               "Jamaica": {
                 "_type": "zone",
@@ -933,7 +929,7 @@
               },
               "St_Kitts": {
                 "_type": "zone",
-                "exemplarCity": "ⲥⲁⲛⲧ ⲕⲓⲑⲥ"
+                "exemplarCity": "ⲡⲓⲁ̀ⲅⲓⲟⲥ ⲭⲣⲓⲥⲧⲟⲫⲟⲣⲟⲥ"
               },
               "Cayman": {
                 "_type": "zone",
@@ -941,7 +937,7 @@
               },
               "St_Lucia": {
                 "_type": "zone",
-                "exemplarCity": "ⲥⲁⲛⲧ ⲗⲟⲩϭⲓⲁ"
+                "exemplarCity": "ϯⲁ̀ⲅⲓⲁ̀ ⲗⲟⲩⲕⲓⲁ̀"
               },
               "Marigot": {
                 "_type": "zone",
@@ -1021,7 +1017,7 @@
               },
               "Puerto_Rico": {
                 "_type": "zone",
-                "exemplarCity": "ⲡⲟⲩⲉⲣⲑⲟ ⲣⲓⲕⲟ"
+                "exemplarCity": "ⲡⲟⲩⲉⲣⲧⲟ ⲣⲓⲕⲟ"
               },
               "Asuncion": {
                 "_type": "zone",
@@ -1045,7 +1041,7 @@
               },
               "Port_of_Spain": {
                 "_type": "zone",
-                "exemplarCity": "ⲡⲟⲣⲧ ⲛ̀ⲉⲥⲡⲁⲛⲓⲁ"
+                "exemplarCity": "ⲡⲓⲡⲟⲣⲧⲟⲥ ⲛ̀ⲥⲡⲁⲛⲟⲥ"
               },
               "Adak": {
                 "_type": "zone",
@@ -1057,7 +1053,7 @@
               },
               "Anchorage": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲛⲕⲟⲣⲁϫ"
+                "exemplarCity": "ⲁⲛⲕⲟⲣⲓϫ"
               },
               "Yakutat": {
                 "_type": "zone",
@@ -1085,7 +1081,7 @@
               },
               "Phoenix": {
                 "_type": "zone",
-                "exemplarCity": "ⲫⲓⲛⲓⲝ"
+                "exemplarCity": "ⲫⲟⲓⲛⲓⲝ"
               },
               "Denver": {
                 "_type": "zone",
@@ -1171,7 +1167,7 @@
               },
               "St_Vincent": {
                 "_type": "zone",
-                "exemplarCity": "ⲥⲁⲛⲧ ⲃⲓⲛⲥⲉⲛⲧ"
+                "exemplarCity": "ⲡⲓⲁ̀ⲅⲓⲟⲥ ⲃⲓⲕⲉⲛⲧⲓⲟⲥ"
               },
               "Caracas": {
                 "_type": "zone",
@@ -1183,7 +1179,7 @@
               },
               "St_Thomas": {
                 "_type": "zone",
-                "exemplarCity": "ⲥⲁⲛⲧ ⲑⲟⲙⲁⲥ"
+                "exemplarCity": "ⲡⲓⲁ̀ⲅⲓⲟⲥ ⲑⲱⲙⲁⲥ"
               }
             },
             "Africa": {
@@ -1225,7 +1221,7 @@
               },
               "Abidjan": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲃⲓϫⲓⲁⲛ"
+                "exemplarCity": "ⲁ̀ⲃⲓϫⲁⲛ"
               },
               "Douala": {
                 "_type": "zone",
@@ -1237,11 +1233,11 @@
               },
               "Algiers": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲗϫⲓⲉⲣ"
+                "exemplarCity": "ⲛⲓⲛⲏⲥⲟⲥ"
               },
               "Cairo": {
                 "_type": "zone",
-                "exemplarCity": "ⲕⲁϩⲓⲣⲁ"
+                "exemplarCity": "ⲃⲁⲃⲩⲗⲱⲛ"
               },
               "El_Aaiun": {
                 "_type": "zone",
@@ -1253,7 +1249,7 @@
               },
               "Ceuta": {
                 "_type": "zone",
-                "exemplarCity": "ⲥⲉⲩⲑⲁ"
+                "exemplarCity": "ⲥⲉⲡⲧⲟⲛ"
               },
               "Addis_Ababa": {
                 "_type": "zone",
@@ -1265,7 +1261,7 @@
               },
               "Accra": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲕⲣⲁ"
+                "exemplarCity": "ⲁⲭⲣⲁ"
               },
               "Banjul": {
                 "_type": "zone",
@@ -1297,11 +1293,11 @@
               },
               "Tripoli": {
                 "_type": "zone",
-                "exemplarCity": "ⲑⲣⲓⲡⲟⲗⲓⲥ"
+                "exemplarCity": "ⲧⲣⲓⲡⲟⲗⲓⲥ"
               },
               "Casablanca": {
                 "_type": "zone",
-                "exemplarCity": "ⲕⲁⲍⲁⲃⲗⲁⲛⲕⲁ"
+                "exemplarCity": "ⲕⲁⲥⲁⲃⲗⲁⲛⲕⲁ"
               },
               "Bamako": {
                 "_type": "zone",
@@ -1337,7 +1333,7 @@
               },
               "Khartoum": {
                 "_type": "zone",
-                "exemplarCity": "ϧⲁⲣⲑⲟⲩⲙ"
+                "exemplarCity": "ϧⲁⲣⲧⲟⲩⲙ"
               },
               "Freetown": {
                 "_type": "zone",
@@ -1373,11 +1369,11 @@
               },
               "Tunis": {
                 "_type": "zone",
-                "exemplarCity": "ⲑⲟⲩⲛⲓⲥ"
+                "exemplarCity": "ⲧⲟⲩⲛⲓⲥ"
               },
               "Dar_es_Salaam": {
                 "_type": "zone",
-                "exemplarCity": "ⲇⲁⲣ ⲉⲥ ⲥⲁⲗⲁⲙ"
+                "exemplarCity": "ⲇⲁⲣ ⲉⲥⲥⲁⲗⲁⲙ"
               },
               "Kampala": {
                 "_type": "zone",
@@ -1385,7 +1381,7 @@
               },
               "Johannesburg": {
                 "_type": "zone",
-                "exemplarCity": "ⲓⲟϩⲁⲛⲥⲃⲟⲩⲣⲅ"
+                "exemplarCity": "ⲓⲱϩⲁⲛⲛⲏⲥⲃⲟⲩⲣⲅⲟⲥ"
               },
               "Lusaka": {
                 "_type": "zone",
@@ -1399,7 +1395,7 @@
             "Antarctica": {
               "Rothera": {
                 "_type": "zone",
-                "exemplarCity": "ⲡⲓⲙⲁⲛ̀ⲟϩⲓ ⲛ̀ⲣⲟⲑⲉⲣⲁ"
+                "exemplarCity": "ⲫⲙⲁⲛϫⲱⲓⲗⲓ ⲛ̀ⲣⲟⲑⲣⲉⲁ"
               },
               "Palmer": {
                 "_type": "zone",
@@ -1407,27 +1403,27 @@
               },
               "Troll": {
                 "_type": "zone",
-                "exemplarCity": "ⲡⲓⲙⲁⲛ̀ⲟϩⲓ ⲛ̀ⲑⲣⲟⲗⲗ"
+                "exemplarCity": "ⲫⲙⲁⲛϫⲱⲓⲗⲓ ⲛ̀ⲧⲣⲟⲗ"
               },
               "Syowa": {
                 "_type": "zone",
-                "exemplarCity": "ⲡⲓⲙⲁⲛ̀ⲟϩⲓ ⲛ̀ϣⲟⲩⲁ"
+                "exemplarCity": "ⲫⲙⲁⲛϫⲱⲓⲗⲓ ⲛ̀ϣⲟⲩⲁ"
               },
               "Mawson": {
                 "_type": "zone",
-                "exemplarCity": "ⲡⲓⲙⲁⲛ̀ⲟϩⲓ ⲛ̀ⲙⲁⲩⲥⲟⲛ"
+                "exemplarCity": "ⲫⲙⲁⲛϫⲱⲓⲗⲓ ⲙ̀ⲙⲁⲩⲥⲟⲛ"
               },
               "Davis": {
                 "_type": "zone",
-                "exemplarCity": "ⲇⲁⲃⲓⲥ"
+                "exemplarCity": "ⲇⲁⲩⲓⲥ"
               },
               "Vostok": {
                 "_type": "zone",
-                "exemplarCity": "ⲡⲓⲙⲁⲛ̀ⲟϩⲓ ⲛ̀ⲃⲟⲥⲑⲟⲕ"
+                "exemplarCity": "ⲫⲙⲁⲛϫⲱⲓⲗⲓ ⲙ̀ⲃⲟⲥⲧⲟⲕ"
               },
               "Casey": {
                 "_type": "zone",
-                "exemplarCity": "ⲡⲓⲙⲁⲛ̀ⲟϩⲓ ⲛ̀ⲕⲁⲍⲉⲓ"
+                "exemplarCity": "ⲫⲙⲁⲛϫⲱⲓⲗⲓ ⲛ̀ⲕⲏⲥⲓ"
               },
               "DumontDUrville": {
                 "_type": "zone",
@@ -1453,7 +1449,7 @@
               },
               "Easter": {
                 "_type": "zone",
-                "exemplarCity": "ⲙⲟⲩⲓ ⲛ̀ⲓⲥⲑⲉⲣ"
+                "exemplarCity": "ⲑⲙⲟⲩⲓ̀ ⲙ̀ⲡⲓⲡⲁⲥⲭⲁ"
               },
               "Galapagos": {
                 "_type": "zone",
@@ -1645,11 +1641,11 @@
               },
               "Cape_Verde": {
                 "_type": "zone",
-                "exemplarCity": "ⲕⲁⲡ ⲃⲉⲣⲇ"
+                "exemplarCity": "ϯⲁⲫⲉ ⲉⲧⲟⲩⲉⲧⲟⲩⲱⲧ"
               },
               "Canary": {
                 "_type": "zone",
-                "exemplarCity": "ⲕⲁⲛⲁⲣⲓⲥ"
+                "exemplarCity": "ⲕⲁⲛⲁⲣⲓⲁ̀"
               },
               "Stanley": {
                 "_type": "zone",
@@ -1669,11 +1665,11 @@
               },
               "Azores": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲍⲟⲣⲉⲥ"
+                "exemplarCity": "ⲛⲓⲁ̀ⲥⲟⲣ"
               },
               "Madeira": {
                 "_type": "zone",
-                "exemplarCity": "ⲙⲁⲇⲉⲓⲣⲁ"
+                "exemplarCity": "ⲙⲁⲇⲏⲣⲁ"
               },
               "St_Helena": {
                 "_type": "zone",
@@ -1699,7 +1695,7 @@
               },
               "Antananarivo": {
                 "_type": "zone",
-                "exemplarCity": "ⲁⲛⲑⲁⲛⲁⲛⲁⲣⲓⲃⲟ"
+                "exemplarCity": "ⲁⲛⲧⲁⲛⲁⲛⲁⲣⲓⲃⲟ"
               },
               "Mauritius": {
                 "_type": "zone",
@@ -1734,289 +1730,303 @@
             }
           },
           "metazone": {
+            "Acre": {
+              "long": {
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲁ̀ⲕⲟ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲧⲉⲁ̀ⲕⲟ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲧⲉⲁⲕⲟ"
+              }
+            },
             "Afghanistan": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲁϥⲅⲁⲛⲓⲥⲑⲁⲛ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲁϥⲅⲁⲛⲓⲥⲑⲁⲛ"
               }
             },
             "Africa_Central": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϯⲫⲣⲓⲕⲓⲁ ⲛ̀̀ⲑⲙⲏϯ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϯⲫⲣⲓⲕⲓⲁ ⲛ̀ⲑⲙⲏϯ"
               }
             },
             "Africa_Eastern": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϯⲫⲣⲓⲕⲓⲁ ⲙ̀ⲡⲉⲓⲉⲃⲧ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϯⲫⲣⲓⲕⲓⲁ ⲙ̀ⲡⲉⲓⲉⲃⲧ"
               }
             },
             "Africa_Southern": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲟϩⲣⲟⲥ ⲛ̀ϯⲫⲣⲓⲕⲓⲁ ⲙ̀ⲡⲓⲣⲏⲥ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲟϩⲣⲟⲥ ⲛ̀ϯⲫⲣⲓⲕⲓⲁ ⲙ̀ⲡⲓⲣⲏⲥ"
               }
             },
             "Africa_Western": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ϯⲫⲣⲓⲕⲓⲁ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ϯⲫⲣⲓⲕⲓⲁ"
               }
             },
             "Alaska": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲁⲗⲁⲥⲕⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲗⲁⲥⲕⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲁⲗⲁⲥⲕⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲁⲗⲁⲥⲕⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲗⲁⲥⲕⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲁⲗⲁⲥⲕⲁ"
               }
             },
             "Amazon": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲁⲙⲁⲍⲟⲛ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲙⲁⲍⲟⲛ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲁⲙⲁⲍⲟⲛ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲁⲙⲁⲍⲟⲛ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲙⲁⲍⲟⲛ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲁⲙⲁⲍⲟⲛ"
               }
             },
             "America_Central": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲑⲙⲏϯ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲑⲙⲏϯ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲑⲙⲏϯ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲑⲙⲏϯ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲑⲙⲏϯ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲑⲙⲏϯ"
               }
             },
             "America_Eastern": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲉⲓⲉⲃⲧ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲓⲉⲃⲧ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲡⲉⲓⲉⲃⲧ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲉⲓⲉⲃⲧ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲓⲉⲃⲧ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲡⲉⲓⲉⲃⲧ"
               }
             },
             "America_Mountain": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲓⲧⲱⲟⲩ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲓⲧⲱⲟⲩ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲡⲓⲧⲱⲟⲩ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲓⲧⲱⲟⲩ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲓⲧⲱⲟⲩ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲡⲓⲧⲱⲟⲩ"
               }
             },
             "America_Pacific": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲁⲥⲓϥⲓⲕ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲁⲥⲓϥⲓⲕ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲡⲁⲥⲓϥⲓⲕ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲁⲥⲓϥⲓⲕ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲁⲥⲓϥⲓⲕ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲡⲁⲥⲓϥⲓⲕ"
               }
             },
             "Apia": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲥⲁⲙⲟⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲥⲁⲙⲟⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲥⲁⲙⲟⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲥⲁⲙⲟⲁ̀ ⲙ̀ⲡⲉⲙⲉⲛⲧ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲧⲉⲥⲁⲙⲟⲁ̀ ⲙ̀ⲡⲉⲙⲉⲛⲧ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲧⲉⲥⲁⲙⲟⲁ̀ ⲙ̀ⲡⲉⲙⲉⲛⲧ"
               }
             },
             "Arabian": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲁⲣⲁⲃⲟⲥ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲣⲁⲃⲟⲥ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲁⲣⲁⲃⲟⲥ"
+                "generic": "ⲡⲭⲣⲟⲛⲟⲥ ⲛ̀ⲁⲣⲁⲃⲟⲥ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲣⲁⲃⲟⲥ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲁⲣⲁⲃⲟⲥ"
               }
             },
             "Argentina": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲁⲣϫⲉⲛⲑⲓⲛ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲣϫⲉⲛⲑⲓⲛ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲁⲣϫⲉⲛⲑⲓⲛ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲁⲣϫⲉⲛⲑⲓⲛ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲣϫⲉⲛⲑⲓⲛ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲁⲣϫⲉⲛⲑⲓⲛ"
               }
             },
             "Argentina_Western": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲁⲣϫⲉⲛⲑⲓⲛ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲁⲣϫⲉⲛⲑⲓⲛ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲁⲣϫⲉⲛⲑⲓⲛ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲁⲣϫⲉⲛⲑⲓⲛ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲁⲣϫⲉⲛⲑⲓⲛ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲁⲣϫⲉⲛⲑⲓⲛ"
               }
             },
             "Armenia": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲁⲣⲙⲉⲛⲓⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲣⲙⲉⲛⲓⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲁⲣⲙⲉⲛⲓⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲁⲣⲙⲉⲛⲓⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲣⲙⲉⲛⲓⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲁⲣⲙⲉⲛⲓⲁ"
               }
             },
             "Atlantic": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲁⲑⲗⲁⲛⲑⲓⲕ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲑⲗⲁⲛⲑⲓⲕ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲁⲑⲗⲁⲛⲑⲓⲕ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲁⲑⲗⲁⲛⲑⲓⲕ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲑⲗⲁⲛⲑⲓⲕ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲁⲑⲗⲁⲛⲑⲓⲕ"
               }
             },
             "Australia_Central": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀̀ⲑⲙⲏϯ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀̀ⲑⲙⲏϯ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀̀ⲑⲙⲏϯ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲑⲙⲏϯ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲑⲙⲏϯ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲑⲙⲏϯ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ"
               }
             },
             "Australia_CentralWestern": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀̀ⲑⲙⲏϯ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀̀ⲑⲙⲏϯ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀̀ⲑⲙⲏϯ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲑⲙⲏϯ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲑⲙⲏϯ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲑⲙⲏϯ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ"
               }
             },
             "Australia_Eastern": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ"
               }
             },
             "Australia_Western": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲁⲩⲥⲧⲣⲁⲗⲓⲁ"
               }
             },
             "Azerbaijan": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲁⲍⲉⲣⲃⲁⲓϫⲁⲛ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲍⲉⲣⲃⲁⲓϫⲁⲛ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲁⲍⲉⲣⲃⲁⲓϫⲁⲛ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲁⲍⲉⲣⲃⲁⲓϫⲁⲛ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲍⲉⲣⲃⲁⲓϫⲁⲛ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲁⲍⲉⲣⲃⲁⲓϫⲁⲛ"
               }
             },
             "Azores": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲁⲍⲟⲣⲉⲥ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲍⲟⲣⲉⲥ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲁⲍⲟⲣⲉⲥ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲁⲍⲟⲣⲉⲥ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲍⲟⲣⲉⲥ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲁⲍⲟⲣⲉⲥ"
               }
             },
             "Bangladesh": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲃⲁⲛⲅⲗⲁⲇⲉϣ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲃⲁⲛⲅⲗⲁⲇⲉϣ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲃⲁⲛⲅⲗⲁⲇⲉϣ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲃⲁⲛⲅⲗⲁⲇⲉϣ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲃⲁⲛⲅⲗⲁⲇⲉϣ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲃⲁⲛⲅⲗⲁⲇⲉϣ"
               }
             },
             "Bhutan": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲃⲟⲩⲑⲁⲛ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲃⲟⲩⲑⲁⲛ"
               }
             },
             "Bolivia": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲃⲟⲗⲓⲃⲓⲁ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲃⲟⲗⲓⲃⲓⲁ"
               }
             },
             "Brasilia": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲃⲣⲁⲍⲓⲗ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲃⲣⲁⲍⲓⲗ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲃⲣⲁⲍⲓⲗ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲃⲣⲁⲍⲓⲗ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲃⲣⲁⲍⲓⲗ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲃⲣⲁⲍⲓⲗ"
+              }
+            },
+            "British": {
+              "long": {
+                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲙⲃⲣⲓⲑⲁⲛⲓⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲑⲙⲏϯ ⲛ̀ⲅⲣⲓⲛⲓϭ",
+                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲙⲃⲣⲓⲑⲁⲛⲓⲁ"
               }
             },
             "Brunei": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲃⲣⲟⲩⲛⲉⲓ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲃⲣⲟⲩⲛⲉⲓ"
               }
             },
             "Cape_Verde": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲕⲁⲡ ⲃⲉⲣⲇⲉ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲕⲁⲡ ⲃⲉⲣⲇⲉ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲕⲁⲡ ⲃⲉⲣⲇⲉ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲕⲁⲡ ⲃⲉⲣⲇⲉ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲕⲁⲡ ⲃⲉⲣⲇⲉ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲕⲁⲡ ⲃⲉⲣⲇⲉ"
               }
             },
             "Chamorro": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϭⲁⲙⲟⲣⲟ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϭⲁⲙⲟⲣⲟ"
               }
             },
             "Chatham": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲁⲑⲁⲙ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϣⲁⲑⲁⲙ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ϣⲁⲑⲁⲙ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲁⲑⲁⲙ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϣⲁⲑⲁⲙ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ϣⲁⲑⲁⲙ"
               }
             },
             "Chile": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϭⲓⲗⲉ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϭⲓⲗⲉ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ϭⲓⲗⲉ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ϭⲓⲗⲉ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϭⲓⲗⲉ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ϭⲓⲗⲉ"
               }
             },
             "China": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϭⲓⲛⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϭⲓⲛⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛⲧⲟⲟⲩⲓ ⲛ̀ϭⲓⲛⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ϭⲓⲛⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϭⲓⲛⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛⲧⲟⲟⲩⲓ ⲛ̀ϭⲓⲛⲁ"
               }
             },
             "Christmas": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲓⲙⲟⲩⲓ ⲛ̀ⲭⲣⲓⲥⲧⲙⲁⲥ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲓⲙⲟⲩⲓ ⲛ̀ⲭⲣⲓⲥⲧⲙⲁⲥ"
               }
             },
             "Cocos": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲕⲟⲕⲟⲥ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲕⲟⲕⲟⲥ"
               }
             },
             "Colombia": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲕⲟⲗⲟⲙⲃⲓⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲕⲟⲗⲟⲙⲃⲓⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲕⲟⲗⲟⲙⲃⲓⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲕⲟⲗⲟⲙⲃⲓⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲕⲟⲗⲟⲙⲃⲓⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲕⲟⲗⲟⲙⲃⲓⲁ"
               }
             },
             "Cook": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲕⲟⲩⲕ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲕⲟⲩⲕ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲕⲟⲩⲕ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲕⲟⲩⲕ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲕⲟⲩⲕ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲕⲟⲩⲕ"
               }
             },
             "Cuba": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲉ ⲕⲟⲩⲃⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲧⲉ ⲕⲟⲩⲃⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲧⲉ ⲕⲟⲩⲃⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲉ ⲕⲟⲩⲃⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲧⲉ ⲕⲟⲩⲃⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲧⲉ ⲕⲟⲩⲃⲁ"
               }
             },
             "Davis": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲇⲁⲩⲓⲥ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲇⲁⲩⲓⲥ"
               }
             },
             "DumontDUrville": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲇⲟⲩⲣⲙⲟⲛⲧ ⲇⲟⲩⲣⲃⲓⲗ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲇⲟⲩⲣⲙⲟⲛⲧ ⲇⲟⲩⲣⲃⲓⲗ"
               }
             },
             "East_Timor": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲑⲓⲙⲟⲣ-ⲗⲉⲥⲧ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲑⲓⲙⲟⲣ-ⲗⲉⲥⲧ"
               }
             },
             "Easter": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲓⲥⲑⲉⲣ ⲁⲓⲥⲗⲁⲛⲇ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲓⲥⲑⲉⲣ ⲁⲓⲥⲗⲁⲛⲇ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲓⲥⲑⲉⲣ ⲁⲓⲥⲗⲁⲛⲇ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲓⲥⲑⲉⲣ ⲁⲓⲥⲗⲁⲛⲇ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲓⲥⲑⲉⲣ ⲁⲓⲥⲗⲁⲛⲇ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲓⲥⲑⲉⲣ ⲁⲓⲥⲗⲁⲛⲇ"
               }
             },
             "Ecuador": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲉⲕⲟⲩⲁⲇⲟⲣ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲉⲕⲟⲩⲁⲇⲟⲣ"
               }
             },
             "Europe_Central": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀̀ⲑⲙⲏϯ ⲛ̀ⲉⲩⲣⲟⲡⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀̀ⲑⲙⲏϯ ⲛ̀ⲉⲩⲣⲟⲡⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀̀ⲑⲙⲏϯ ⲛ̀ⲉⲩⲣⲟⲡⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲉⲩⲣⲱⲡⲉⲟⲥ ⲉⲧϧⲉⲛⲑⲙⲏϯ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲑⲙⲏϯ ⲛ̀ⲉⲩⲣⲟⲡⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲑⲙⲏϯ ⲛ̀ⲉⲩⲣⲟⲡⲁ"
               }
             },
             "Europe_Eastern": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲉⲩⲣⲟⲡⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲉⲩⲣⲟⲡⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲉⲩⲣⲟⲡⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲉⲩⲣⲟⲡⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲉⲩⲣⲟⲡⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲉⲩⲣⲟⲡⲁ"
               }
             },
             "Europe_Further_Eastern": {
@@ -2033,580 +2043,618 @@
             },
             "Falkland": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ϥⲟⲕⲗⲁⲛⲇ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ϥⲟⲕⲗⲁⲛⲇ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ϥⲟⲕⲗⲁⲛⲇ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ϥⲟⲕⲗⲁⲛⲇ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ϥⲟⲕⲗⲁⲛⲇ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ϥⲟⲕⲗⲁⲛⲇ"
               }
             },
             "Fiji": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϥⲓⲇϫⲓ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϥⲓⲇϫⲓ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ϥⲓⲇϫⲓ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ϥⲓⲇϫⲓ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϥⲓⲇϫⲓ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ϥⲓⲇϫⲓ"
               }
             },
             "French_Guiana": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲅⲩⲁⲛⲁ ⲛ̀ϥⲉⲣⲉⲛⲥⲟⲥ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲅⲩⲁⲛⲁ ⲛ̀ϥⲉⲣⲉⲛⲥⲟⲥ"
               }
             },
             "French_Southern": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϥⲉⲣⲉⲛⲥⲟⲥ ⲙ̀ⲡⲓⲣⲏⲥ & ⲁⲛⲧⲁⲣⲕⲑⲓⲕⲁ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲛⲓⲕⲁϩⲓ ⲙ̀ⲫⲣⲁⲅⲅⲟⲥ ⲉⲧⲥⲁⲣⲏⲥ"
               }
             },
             "Galapagos": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲅⲁⲗⲁⲡⲁⲅⲟⲥ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲅⲁⲗⲁⲡⲁⲅⲟⲥ"
               }
             },
             "Gambier": {
               "long": {
-                "standard": "̀ⲡⲥⲟⲏⲩ ⲛ̀ⲅⲁⲙⲃⲓⲉⲣ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲅⲁⲙⲃⲓⲉⲣ"
               }
             },
             "Georgia": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲅⲉⲟⲣⲅⲓⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲅⲉⲟⲣⲅⲓⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲅⲉⲟⲣⲅⲓⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲅⲉⲟⲣⲅⲓⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲅⲉⲟⲣⲅⲓⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲅⲉⲟⲣⲅⲓⲁ"
               }
             },
             "Gilbert_Islands": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ϫⲓⲗⲃⲉⲣⲧ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ϫⲓⲗⲃⲉⲣⲧ"
               }
             },
             "GMT": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲑⲙⲏϯ ⲛ̀ⲅⲣⲓⲛⲓϭ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲑⲙⲏϯ ⲛ̀ⲅⲣⲓⲛⲓϭ"
+              }
+            },
+            "Greenland": {
+              "long": {
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲅⲣⲓⲛⲗⲁⲛⲧⲏ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲧⲉⲅⲣⲓⲛⲗⲁⲛⲧⲏ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲧⲉⲅⲣⲓⲛⲗⲁⲛⲧⲏ"
               }
             },
             "Greenland_Eastern": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲧⲉ ⲅⲣⲓⲛⲗⲁⲛⲇ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲧⲉ ⲅⲣⲓⲛⲗⲁⲛⲇ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡϣⲱⲙ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲧⲉ ⲅⲣⲓⲛⲗⲁⲛⲇ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲧⲉ ⲅⲣⲓⲛⲗⲁⲛⲇ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲧⲉ ⲅⲣⲓⲛⲗⲁⲛⲇ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡϣⲱⲙ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲧⲉ ⲅⲣⲓⲛⲗⲁⲛⲇ"
               }
             },
             "Greenland_Western": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲧⲉ ⲅⲣⲓⲛⲗⲁⲛⲇ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲧⲉ ⲅⲣⲓⲛⲗⲁⲛⲇ",
-                "daylight": "̀ⲡⲥⲏⲟⲩ ⲙ̀̀ⲡϣⲱⲙ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲧⲉ ⲅⲣⲓⲛⲗⲁⲛⲇ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲧⲉ ⲅⲣⲓⲛⲗⲁⲛⲇ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲧⲉ ⲅⲣⲓⲛⲗⲁⲛⲇ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡϣⲱⲙ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲧⲉ ⲅⲣⲓⲛⲗⲁⲛⲇ"
               }
             },
             "Gulf": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲓⲅⲟⲗϥ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲓⲅⲟⲗϥ"
               }
             },
             "Guyana": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲅⲩⲁⲛⲁ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲅⲩⲁⲛⲁ"
               }
             },
             "Hawaii": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϩⲁⲟⲩⲁⲓ-ⲁⲗⲉⲩⲑⲓⲁⲛ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲁⲩⲁⲓ̀"
               }
             },
             "Hawaii_Aleutian": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲁⲟⲩⲁⲓ-ⲁⲗⲉⲩⲑⲓⲁⲛ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϩⲁⲟⲩⲁⲓ-ⲁⲗⲉⲩⲑⲓⲁⲛ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ϩⲁⲟⲩⲁⲓ-ⲁⲗⲉⲩⲑⲓⲁⲛ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲁⲩⲁⲓ̀-ⲁⲗⲉⲩⲑⲓⲁⲛ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϩⲁⲩⲁⲓ̀-ⲁⲗⲉⲩⲑⲓⲁⲛ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ϩⲁⲩⲁⲓ̀-ⲁⲗⲉⲩⲑⲓⲁⲛ"
               }
             },
             "Hong_Kong": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲛⲅ ⲕⲟⲛⲅ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϩⲟⲛⲅ ⲕⲟⲛⲅ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ϩⲟⲛⲅ ⲕⲟⲛⲅ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲛⲅ ⲕⲟⲛⲅ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϩⲟⲛⲅ ⲕⲟⲛⲅ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ϩⲟⲛⲅ ⲕⲟⲛⲅ"
               }
             },
             "Hovd": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϧⲟⲃⲇ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϧⲟⲃⲇ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ϧⲟⲃⲇ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ϧⲟⲃⲇ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϧⲟⲃⲇ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ϧⲟⲃⲇ"
               }
             },
             "India": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϩⲉⲛⲧⲟⲩ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϩⲉⲛⲧⲟⲩ"
               }
             },
             "Indian_Ocean": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲓⲱⲕⲉⲁⲛⲟⲥ ⲛ̀ϩⲉⲛⲧⲟⲩ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲓⲱⲕⲉⲁⲛⲟⲥ ⲛ̀ϩⲉⲛⲧⲟⲩ"
               }
             },
             "Indochina": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲓⲛⲇⲟϭⲓⲛⲁ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲓⲛⲇⲟϭⲓⲛⲁ"
               }
             },
             "Indonesia_Central": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀̀ⲑⲙⲏϯ ⲛ̀ⲓⲛⲇⲟⲛⲉⲥⲓⲁ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲑⲙⲏϯ ⲛ̀ⲓⲛⲇⲟⲛⲉⲥⲓⲁ"
               }
             },
             "Indonesia_Eastern": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲓⲛⲇⲟⲛⲉⲥⲓⲁ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲓⲛⲇⲟⲛⲉⲥⲓⲁ"
               }
             },
             "Indonesia_Western": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲓⲛⲇⲟⲛⲉⲥⲓⲁ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲓⲛⲇⲟⲛⲉⲥⲓⲁ"
               }
             },
             "Iran": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲓⲣⲁⲛ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲓⲣⲁⲛ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲓⲣⲁⲛ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲓⲣⲁⲛ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲓⲣⲁⲛ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲓⲣⲁⲛ"
+              }
+            },
+            "Irish": {
+              "long": {
+                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲁⲓⲉⲣⲗⲁⲛⲇⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲑⲙⲏϯ ⲛ̀ⲅⲣⲓⲛⲓϭ",
+                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲁⲓⲉⲣⲗⲁⲛⲇⲁ"
               }
             },
             "Irkutsk": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲓⲣⲕⲟⲩⲧⲥⲕ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲓⲣⲕⲟⲩⲧⲥⲕ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲓⲣⲕⲟⲩⲧⲥⲕ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲕⲁⲧⲁⲓⲣⲭⲟⲩⲧⲥⲕ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲓⲣⲕⲟⲩⲧⲥⲕ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲓⲣⲕⲟⲩⲧⲥⲕ"
               }
             },
             "Israel": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲓⲥⲣⲁⲏⲗ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲓⲥⲣⲁⲏⲗ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲡⲓⲥⲣⲁⲏⲗ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲓⲥⲣⲁⲏⲗ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲓⲥⲣⲁⲏⲗ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲡⲓⲥⲣⲁⲏⲗ"
               }
             },
             "Japan": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲓⲁⲡⲁⲛ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲓⲁⲡⲁⲛ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲓⲁⲡⲁⲛ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲓⲁⲡⲁⲛ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲓⲁⲡⲁⲛ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲓⲁⲡⲁⲛ"
+              }
+            },
+            "Kamchatka": {
+              "long": {
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲕⲁⲙϭⲁⲧⲕⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲧⲉⲕⲁⲙϭⲁⲧⲕⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲧⲉⲕⲁⲙϭⲁⲧⲕⲁ"
               }
             },
             "Kazakhstan": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲕⲁⲍⲁϧⲉⲥⲑⲁⲛ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲕⲁⲍⲁϧⲉⲥⲑⲁⲛ"
               }
             },
             "Kazakhstan_Eastern": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲕⲁⲍⲁϧⲉⲥⲑⲁⲛ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲉⲓⲉⲃⲧ ⲛ̀ⲕⲁⲍⲁϧⲉⲥⲑⲁⲛ"
               }
             },
             "Kazakhstan_Western": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲕⲁⲍⲁϧⲉⲥⲑⲁⲛ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲉⲙⲉⲛⲧ ⲛ̀ⲕⲁⲍⲁϧⲉⲥⲑⲁⲛ"
               }
             },
             "Korea": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲕⲟⲣⲉⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲕⲟⲣⲉⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲕⲟⲣⲉⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲕⲟⲣⲉⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲕⲟⲣⲉⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲕⲟⲣⲉⲁ"
               }
             },
             "Kosrae": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲕⲟⲥⲣⲁⲉ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲕⲟⲥⲣⲁⲉ"
               }
             },
             "Krasnoyarsk": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲕⲣⲁⲥⲛⲟⲓⲁⲣⲥⲕ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲕⲣⲁⲥⲛⲟⲓⲁⲣⲥⲕ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲕⲣⲁⲥⲛⲟⲓⲁⲣⲥⲕ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲕⲣⲁⲥⲛⲟⲓⲁⲣⲥⲕ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲕⲣⲁⲥⲛⲟⲓⲁⲣⲥⲕ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲕⲣⲁⲥⲛⲟⲓⲁⲣⲥⲕ"
               }
             },
             "Kyrgystan": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲕⲩⲣⲅⲩⲥⲑⲁⲛ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲕⲩⲣⲅⲩⲥⲑⲁⲛ"
               }
             },
             "Line_Islands": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲗⲓⲛ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲗⲓⲛ"
               }
             },
             "Lord_Howe": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲗⲟⲣⲇ ϩⲟⲩⲉ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲗⲟⲣⲇ ϩⲟⲩⲉ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲗⲟⲣⲇ ϩⲟⲩⲉ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲗⲟⲣⲇ ϩⲟⲩⲉ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲗⲟⲣⲇ ϩⲟⲩⲉ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲗⲟⲣⲇ ϩⲟⲩⲉ"
               }
             },
             "Magadan": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲙⲁⲅⲁⲇⲁⲛ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲙⲁⲅⲁⲇⲁⲛ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲙⲁⲅⲁⲇⲁⲛ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲙⲁⲅⲁⲇⲁⲛ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲙⲁⲅⲁⲇⲁⲛ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲙⲁⲅⲁⲇⲁⲛ"
               }
             },
             "Malaysia": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲙⲁⲗⲉⲍⲓⲁ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲙⲁⲗⲉⲍⲓⲁ"
               }
             },
             "Maldives": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲙⲁⲗⲇⲓⲃ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲙⲁⲗⲇⲓⲃ"
               }
             },
             "Marquesas": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲙⲁⲣⲕⲉⲥⲁⲥ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲙⲁⲣⲕⲉⲥⲁⲥ"
               }
             },
             "Marshall_Islands": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲙ̀ⲙⲁⲣϣⲁⲗ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲙ̀ⲙⲁⲣϣⲁⲗ"
               }
             },
             "Mauritius": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲙⲁⲩⲣⲓⲑⲓⲟⲩⲥ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲙⲁⲩⲣⲓⲑⲓⲟⲩⲥ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲙⲁⲩⲣⲓⲑⲓⲟⲩⲥ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲙⲁⲩⲣⲓⲑⲓⲟⲩⲥ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲙⲁⲩⲣⲓⲑⲓⲟⲩⲥ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲙⲁⲩⲣⲓⲑⲓⲟⲩⲥ"
               }
             },
             "Mawson": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲙⲁⲩⲥⲟⲛ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲙⲁⲩⲥⲟⲛ"
               }
             },
             "Mexico_Pacific": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲙⲉⲝⲓⲕⲟ ⲙ̀ⲡⲁⲥⲓϥⲓⲕ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲙⲉⲝⲓⲕⲟ ⲙ̀ⲡⲁⲥⲓϥⲓⲕ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲙⲉⲝⲓⲕⲟ ⲙ̀ⲡⲁⲥⲓϥⲓⲕ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲙⲉⲝⲓⲕⲟ ⲙ̀ⲡⲁⲥⲓϥⲓⲕ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲙⲉⲝⲓⲕⲟ ⲙ̀ⲡⲁⲥⲓϥⲓⲕ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲙ̀ⲙⲉⲝⲓⲕⲟ ⲙ̀ⲡⲁⲥⲓϥⲓⲕ"
               }
             },
             "Mongolia": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲟⲩⲗⲁⲛⲃⲁⲧⲁⲣ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲟⲩⲗⲁⲛⲃⲁⲧⲁⲣ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲟⲩⲗⲁⲛⲃⲁⲧⲁⲣ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲟⲩⲗⲁⲛⲃⲁⲧⲁⲣ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲟⲩⲗⲁⲛⲃⲁⲧⲁⲣ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲟⲩⲗⲁⲛⲃⲁⲧⲁⲣ"
               }
             },
             "Moscow": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲙⲟⲥⲕⲟ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲙⲟⲥⲕⲟ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲙⲟⲥⲕⲟ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲙⲟⲥⲕⲟ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲙⲟⲥⲕⲟ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲙⲟⲥⲕⲟ"
               }
             },
             "Myanmar": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲙⲓⲁⲛⲙⲁⲣ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲙⲓⲁⲛⲙⲁⲣ"
               }
             },
             "Nauru": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲁⲩⲣⲟⲩ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲁⲩⲣⲟⲩ"
               }
             },
             "Nepal": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲛⲉⲡⲁⲗ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲛⲉⲡⲁⲗ"
               }
             },
             "New_Caledonia": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲓⲟⲩⲕⲁⲗⲉⲇⲟⲛⲓⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲛⲓⲟⲩⲕⲁⲗⲉⲇⲟⲛⲓⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲛⲓⲟⲩⲕⲁⲗⲉⲇⲟⲛⲓⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲓⲟⲩⲕⲁⲗⲉⲇⲟⲛⲓⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲛⲓⲟⲩⲕⲁⲗⲉⲇⲟⲛⲓⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲛⲓⲟⲩⲕⲁⲗⲉⲇⲟⲛⲓⲁ"
               }
             },
             "New_Zealand": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲛⲓⲟⲩⲍⲓⲗⲁⲛⲇⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲛⲓⲟⲩⲍⲓⲗⲁⲛⲇⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲛⲓⲟⲩⲍⲓⲗⲁⲛⲇⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲛⲓⲟⲩⲍⲓⲗⲁⲛⲇⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲛⲓⲟⲩⲍⲓⲗⲁⲛⲇⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲛⲓⲟⲩⲍⲓⲗⲁⲛⲇⲁ"
               }
             },
             "Newfoundland": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛⲛ̀ⲓⲟⲩϥⲁⲩⲛⲇⲗⲁⲛⲇ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛⲛ̀ⲓⲟⲩϥⲁⲩⲛⲇⲗⲁⲛⲇ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛⲛ̀ⲓⲟⲩϥⲁⲩⲛⲇⲗⲁⲛⲇ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛⲛ̀ⲓⲟⲩϥⲁⲩⲛⲇⲗⲁⲛⲇ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛⲛ̀ⲓⲟⲩϥⲁⲩⲛⲇⲗⲁⲛⲇ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛⲛ̀ⲓⲟⲩϥⲁⲩⲛⲇⲗⲁⲛⲇ"
               }
             },
             "Niue": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲛⲓⲟⲩⲉ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲛⲓⲟⲩⲉ"
               }
             },
             "Norfolk": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲛⲟⲣϥⲟⲕ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲛⲟⲣϥⲟⲕ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲛⲟⲣϥⲟⲕ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲛⲟⲣϥⲟⲕ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲛⲟⲣϥⲟⲕ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲛⲟⲣϥⲟⲕ"
               }
             },
             "Noronha": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϥⲉⲣⲛⲁⲛⲇⲟ ⲇⲉ ⲛⲟⲣⲟⲛϩⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϥⲉⲣⲛⲁⲛⲇⲟ ⲇⲉ ⲛⲟⲣⲟⲛϩⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ϥⲉⲣⲛⲁⲛⲇⲟ ⲇⲉ ⲛⲟⲣⲟⲛϩⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ϥⲉⲣⲛⲁⲛⲇⲟ ⲇⲉ ⲛⲟⲣⲟⲛϩⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ϥⲉⲣⲛⲁⲛⲇⲟ ⲇⲉ ⲛⲟⲣⲟⲛϩⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ϥⲉⲣⲛⲁⲛⲇⲟ ⲇⲉ ⲛⲟⲣⲟⲛϩⲁ"
               }
             },
             "Novosibirsk": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲛⲟⲃⲟⲥⲓⲃⲓⲣⲥⲕ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲛⲟⲃⲟⲥⲓⲃⲓⲣⲥⲕ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲛⲟⲃⲟⲥⲓⲃⲓⲣⲥⲕ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲛⲟⲃⲟⲥⲓⲃⲓⲣⲥⲕ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲛⲟⲃⲟⲥⲓⲃⲓⲣⲥⲕ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲛⲟⲃⲟⲥⲓⲃⲓⲣⲥⲕ"
               }
             },
             "Omsk": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲟⲙⲥⲕ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲟⲙⲥⲕ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲟⲙⲥⲕ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲟⲙⲥⲕ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲟⲙⲥⲕ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲟⲙⲥⲕ"
               }
             },
             "Pakistan": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲁⲕⲓⲥⲑⲁⲛ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲁⲕⲓⲥⲑⲁⲛ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲡⲁⲕⲓⲥⲑⲁⲛ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲁⲕⲓⲥⲑⲁⲛ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲁⲕⲓⲥⲑⲁⲛ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲡⲁⲕⲓⲥⲑⲁⲛ"
               }
             },
             "Palau": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲙⲡⲁⲗⲁⲩ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲙⲡⲁⲗⲁⲩ"
               }
             },
             "Papua_New_Guinea": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲁⲡⲟⲩⲁ ⲛⲓⲟⲩⲅⲓⲛⲉⲁ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲁⲡⲟⲩⲁ ⲛⲓⲟⲩⲅⲓⲛⲉⲁ"
               }
             },
             "Paraguay": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲁⲣⲁⲅⲟⲩⲁⲓ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲁⲣⲁⲅⲟⲩⲁⲓ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲡⲁⲣⲁⲅⲟⲩⲁⲓ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲁⲣⲁⲅⲟⲩⲁⲓ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲁⲣⲁⲅⲟⲩⲁⲓ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲡⲁⲣⲁⲅⲟⲩⲁⲓ"
               }
             },
             "Peru": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲉⲣⲟⲩ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲣⲟⲩ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲡⲉⲣⲟⲩ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲉⲣⲟⲩ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲡⲉⲣⲟⲩ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲡⲉⲣⲟⲩ"
               }
             },
             "Philippines": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲫⲓⲗⲓⲡⲡⲓⲛ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲫⲓⲗⲓⲡⲡⲓⲛ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲫⲓⲗⲓⲡⲡⲓⲛ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲫⲓⲗⲓⲡⲡⲓⲛ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲫⲓⲗⲓⲡⲡⲓⲛ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲫⲓⲗⲓⲡⲡⲓⲛ"
               }
             },
             "Phoenix_Islands": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲙ̀ⲫⲓⲛⲓⲝ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲙ̀ⲫⲓⲛⲓⲝ"
               }
             },
             "Pierre_Miquelon": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲥⲁⲛⲧ ⲡⲓⲉⲣ & ⲙⲓⲕⲉⲗⲟⲛ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲥⲁⲛⲧ ⲡⲓⲉⲣ & ⲙⲓⲕⲉⲗⲟⲛ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲥⲁⲛⲧ ⲡⲓⲉⲣ & ⲙⲓⲕⲉⲗⲟⲛ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲥⲁⲛⲧ ⲡⲓⲉⲣ & ⲙⲓⲕⲉⲗⲟⲛ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲥⲁⲛⲧ ⲡⲓⲉⲣ & ⲙⲓⲕⲉⲗⲟⲛ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲥⲁⲛⲧ ⲡⲓⲉⲣ & ⲙⲓⲕⲉⲗⲟⲛ"
               }
             },
             "Pitcairn": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲓⲑⲕⲁⲓⲣⲛ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲓⲑⲕⲁⲓⲣⲛ"
               }
             },
             "Ponape": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲟϩⲛⲡⲉⲓ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲟϩⲛⲡⲉⲓ"
               }
             },
             "Pyongyang": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲕⲟⲣⲉⲁ ⲙ̀ⲡⲉⲙϩⲓⲧ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲕⲟⲣⲉⲁ ⲙ̀ⲡⲉⲙϩⲓⲧ"
               }
             },
             "Reunion": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲣⲉⲓⲟⲩⲛⲓⲟⲛ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲣⲉⲓⲟⲩⲛⲓⲟⲛ"
               }
             },
             "Rothera": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲣⲟⲑⲉⲣⲁ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲣⲟⲑⲉⲣⲁ"
               }
             },
             "Sakhalin": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲥⲁϧⲁⲗⲓⲛ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲥⲁϧⲁⲗⲓⲛ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲥⲁϧⲁⲗⲓⲛ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲥⲁϧⲁⲗⲓⲛ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲥⲁϧⲁⲗⲓⲛ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲥⲁϧⲁⲗⲓⲛ"
+              }
+            },
+            "Samara": {
+              "long": {
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲥⲁⲙⲁⲣⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲧⲉⲥⲁⲙⲁⲣⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲧⲉⲥⲁⲙⲁⲣⲁ"
               }
             },
             "Samoa": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲥⲁⲙⲟⲣⲁ ⲛ̀ⲁⲙⲉⲣⲓⲕⲁⲛⲟⲥ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲥⲁⲙⲟⲣⲁ ⲛ̀ⲁⲙⲉⲣⲓⲕⲁⲛⲟⲥ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲥⲁⲙⲟⲣⲁ ⲛ̀ⲁⲙⲉⲣⲓⲕⲁⲛⲟⲥ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲥⲁⲙⲟⲁ̀ ⲛ̀ⲁⲙⲉⲣⲓⲕⲁⲛⲟⲥ"
               }
             },
             "Seychelles": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲥⲩϣⲉⲗ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲥⲩϣⲉⲗ"
               }
             },
             "Singapore": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲥⲓⲛⲅⲁⲡⲟⲣ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲥⲓⲛⲅⲁⲡⲟⲣ"
               }
             },
             "Solomon": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲥⲟⲗⲟⲙⲟⲛ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲛⲓⲙⲟⲩⲓ ⲛ̀ⲥⲟⲗⲟⲙⲟⲛ"
               }
             },
             "South_Georgia": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲓⲣⲏⲥ ⲛ̀ⲅⲉⲟⲣⲅⲓⲁ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲓⲣⲏⲥ ⲛ̀ⲅⲉⲟⲣⲅⲓⲁ"
               }
             },
             "Suriname": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲥⲟⲩⲣⲓⲛⲁⲙ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲥⲟⲩⲣⲓⲛⲁⲙ"
               }
             },
             "Syowa": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲥⲩⲟⲩⲁ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲥⲩⲟⲩⲁ"
               }
             },
             "Tahiti": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲑⲁϩⲓⲑⲓ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲑⲁϩⲓⲑⲓ"
               }
             },
             "Taipei": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲑⲁⲓⲟⲩⲁⲛ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲑⲁⲓⲟⲩⲁⲛ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲑⲁⲓⲟⲩⲁⲛ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲑⲁⲓⲟⲩⲁⲛ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲑⲁⲓⲟⲩⲁⲛ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲟⲩⲓ ⲛ̀ⲑⲁⲓⲟⲩⲁⲛ"
               }
             },
             "Tajikistan": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲑⲁϫⲓⲕⲓⲥⲑⲁⲛ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲑⲁϫⲓⲕⲓⲥⲑⲁⲛ"
               }
             },
             "Tokelau": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲑⲟⲕⲉⲗⲁⲩ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲑⲟⲕⲉⲗⲁⲩ"
               }
             },
             "Tonga": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲑⲟⲛⲅⲁ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲑⲟⲛⲅⲁ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲑⲟⲛⲅⲁ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲑⲟⲛⲅⲁ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲑⲟⲛⲅⲁ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲑⲟⲛⲅⲁ"
               }
             },
             "Truk": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϭⲟⲩⲕ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϭⲟⲩⲕ"
+              }
+            },
+            "Turkey": {
+              "long": {
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲧⲟⲩⲣⲕⲓⲁ̀",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲧⲉⲧⲟⲩⲣⲕⲓⲁ̀",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲧⲉⲧⲟⲩⲣⲕⲓⲁ̀"
               }
             },
             "Turkmenistan": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲑⲟⲩⲣⲕⲙⲉⲛⲓⲥⲑⲁⲛ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲑⲟⲩⲣⲕⲙⲉⲛⲓⲥⲑⲁⲛ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲑⲟⲩⲣⲕⲙⲉⲛⲓⲥⲑⲁⲛ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲑⲟⲩⲣⲕⲙⲉⲛⲓⲥⲑⲁⲛ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲑⲟⲩⲣⲕⲙⲉⲛⲓⲥⲑⲁⲛ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲑⲟⲩⲣⲕⲙⲉⲛⲓⲥⲑⲁⲛ"
               }
             },
             "Tuvalu": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲑⲟⲩⲃⲁⲗⲟⲩ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲑⲟⲩⲃⲁⲗⲟⲩ"
               }
             },
             "Uruguay": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲟⲩⲣⲟⲩⲅⲩⲟⲁⲓ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲟⲩⲣⲟⲩⲅⲟⲩⲁⲓ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲟⲩⲣⲟⲩⲅⲟⲩⲁⲓ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲟⲩⲣⲟⲩⲅⲩⲟⲁⲓ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲟⲩⲣⲟⲩⲅⲟⲩⲁⲓ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲟⲩⲣⲟⲩⲅⲟⲩⲁⲓ"
+              }
+            },
+            "Urumqi": {
+              "long": {
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲟⲩⲣⲟⲩⲙϭⲓ"
               }
             },
             "Uzbekistan": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲟⲩⲍⲃⲉⲕⲓⲥⲑⲁⲛ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲟⲩⲍⲃⲉⲕⲓⲥⲑⲁⲛ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲟⲩⲍⲃⲉⲕⲓⲥⲑⲁⲛ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲟⲩⲍⲃⲉⲕⲓⲥⲑⲁⲛ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲟⲩⲍⲃⲉⲕⲓⲥⲑⲁⲛ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲟⲩⲍⲃⲉⲕⲓⲥⲑⲁⲛ"
               }
             },
             "Vanuatu": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲃⲁⲛⲁⲑⲟⲩ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲃⲁⲛⲁⲑⲟⲩ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲃⲁⲛⲁⲑⲟⲩ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲃⲁⲛⲁⲑⲟⲩ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲃⲁⲛⲁⲑⲟⲩ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲃⲁⲛⲁⲑⲟⲩ"
               }
             },
             "Venezuela": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲃⲉⲛⲉⲍⲟⲩⲉⲗⲁ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲃⲉⲛⲉⲍⲟⲩⲉⲗⲁ"
               }
             },
             "Vladivostok": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲃⲗⲁⲇⲓⲃⲟⲥⲑⲟⲕ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲃⲗⲁⲇⲓⲃⲟⲥⲑⲟⲕ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲃⲗⲁⲇⲓⲃⲟⲥⲑⲟⲕ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲃⲗⲁⲇⲓⲃⲟⲥⲑⲟⲕ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲃⲗⲁⲇⲓⲃⲟⲥⲑⲟⲕ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲃⲗⲁⲇⲓⲃⲟⲥⲑⲟⲕ"
               }
             },
             "Volgograd": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲃⲟⲗⲅⲟⲅⲣⲁⲇ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲃⲟⲗⲅⲟⲅⲣⲁⲇ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲃⲟⲗⲅⲟⲅⲣⲁⲇ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲙ̀ⲃⲟⲗⲅⲟⲅⲣⲁⲇ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲙ̀ⲃⲟⲗⲅⲟⲅⲣⲁⲇ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲙ̀ⲃⲟⲗⲅⲟⲅⲣⲁⲇ"
               }
             },
             "Vostok": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲃⲟⲥⲑⲟⲕ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲃⲟⲥⲑⲟⲕ"
               }
             },
             "Wake": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲙ̀ⲡⲓⲙⲟⲩⲓ ⲛ̀ⲟⲩⲁⲕ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲙ̀ⲡⲓⲙⲟⲩⲓ ⲛ̀ⲟⲩⲁⲕ"
               }
             },
             "Wallis": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲟⲩⲁⲗⲓⲥ & ϥⲟⲩⲑⲟⲩⲛⲁ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲟⲩⲁⲗⲓⲥ & ϥⲟⲩⲑⲟⲩⲛⲁ"
               }
             },
             "Yakutsk": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲓⲁⲕⲟⲩⲧⲥⲕ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲓⲁⲕⲟⲩⲧⲥⲕ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲓⲁⲕⲟⲩⲧⲥⲕ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲓⲁⲕⲟⲩⲧⲥⲕ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲓⲁⲕⲟⲩⲧⲥⲕ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲓⲁⲕⲟⲩⲧⲥⲕ"
               }
             },
             "Yekaterinburg": {
               "long": {
-                "generic": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲓⲉⲕⲁⲑⲉⲣⲓⲛⲃⲟⲩⲣⲅ",
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲓⲉⲕⲁⲑⲉⲣⲓⲛⲃⲟⲩⲣⲅ",
-                "daylight": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲓⲉⲕⲁⲑⲉⲣⲓⲛⲃⲟⲩⲣⲅ"
+                "generic": "ⲡⲥⲏⲟⲩ ⲛ̀ⲓⲉⲕⲁⲑⲉⲣⲓⲛⲃⲟⲩⲣⲅ",
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ϩⲟⲣⲟⲥ ⲛ̀ⲓⲉⲕⲁⲑⲉⲣⲓⲛⲃⲟⲩⲣⲅ",
+                "daylight": "ⲡⲥⲏⲟⲩ ⲛ̀ϣⲱⲙ ⲛ̀ⲓⲉⲕⲁⲑⲉⲣⲓⲛⲃⲟⲩⲣⲅ"
               }
             },
             "Yukon": {
               "long": {
-                "standard": "ⲡ̀ⲥⲏⲟⲩ ⲛ̀ⲓⲟⲩⲕⲟⲛ"
+                "standard": "ⲡⲥⲏⲟⲩ ⲛ̀ⲓⲟⲩⲕⲟⲛ"
               }
             }
           }

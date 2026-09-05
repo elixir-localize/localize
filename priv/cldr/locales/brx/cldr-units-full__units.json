@@ -302,7 +302,7 @@
             "unitPattern-count-other": "{0} dec"
           },
           "duration-year": {
-            "displayName": "साल",
+            "displayName": "yr",
             "unitPattern-count-one": "{0} साल",
             "unitPattern-count-other": "{0} साल",
             "perUnitPattern": "{0}/y"
@@ -313,37 +313,37 @@
             "perUnitPattern": "{0}/q"
           },
           "duration-month": {
-            "displayName": "महीने",
+            "displayName": "mon",
             "unitPattern-count-one": "{0} महीना",
             "unitPattern-count-other": "{0} महीने",
             "perUnitPattern": "{0}/m"
           },
           "duration-week": {
-            "displayName": "सप्ताह",
+            "displayName": "wk",
             "unitPattern-count-one": "{0} सप्ताह",
             "unitPattern-count-other": "{0} सप्ताह",
             "perUnitPattern": "{0}/w"
           },
           "duration-day": {
-            "displayName": "सान",
+            "displayName": "day",
             "unitPattern-count-one": "{0} सान",
             "unitPattern-count-other": "{0} सान",
             "perUnitPattern": "{0}/d"
           },
           "duration-hour": {
-            "displayName": "घंटे",
+            "displayName": "hr",
             "unitPattern-count-one": "{0} रिंगा",
             "unitPattern-count-other": "{0} घंटे",
             "perUnitPattern": "{0}/h"
           },
           "duration-minute": {
-            "displayName": "मिन.",
+            "displayName": "min",
             "unitPattern-count-one": "{0} मिन.",
             "unitPattern-count-other": "{0} मिन.",
             "perUnitPattern": "{0}/min"
           },
           "duration-second": {
-            "displayName": "सेकं.",
+            "displayName": "sec",
             "unitPattern-count-one": "{0} सेकं.",
             "unitPattern-count-other": "{0} सेकं.",
             "perUnitPattern": "{0}/s"
@@ -412,9 +412,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -512,6 +520,10 @@
             "displayName": "in",
             "unitPattern-count-other": "{0} in",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
@@ -1364,7 +1376,7 @@
             "unitPattern-count-other": "{0} dec"
           },
           "duration-year": {
-            "displayName": "साल",
+            "displayName": "yr",
             "unitPattern-count-other": "{0} y",
             "perUnitPattern": "{0}/y"
           },
@@ -1374,32 +1386,32 @@
             "perUnitPattern": "{0}/q"
           },
           "duration-month": {
-            "displayName": "महीने",
+            "displayName": "mon",
             "unitPattern-count-other": "{0} m",
             "perUnitPattern": "{0}/m"
           },
           "duration-week": {
-            "displayName": "सप्ताह",
+            "displayName": "wk",
             "unitPattern-count-other": "{0} w",
             "perUnitPattern": "{0}/w"
           },
           "duration-day": {
-            "displayName": "सान",
+            "displayName": "day",
             "unitPattern-count-other": "{0} d",
             "perUnitPattern": "{0}/d"
           },
           "duration-hour": {
-            "displayName": "घंटे",
+            "displayName": "hr",
             "unitPattern-count-other": "{0} h",
             "perUnitPattern": "{0}/h"
           },
           "duration-minute": {
-            "displayName": "मिन.",
+            "displayName": "min",
             "unitPattern-count-other": "{0} min",
             "perUnitPattern": "{0}/min"
           },
           "duration-second": {
-            "displayName": "सेकं.",
+            "displayName": "sec",
             "unitPattern-count-other": "{0} s",
             "perUnitPattern": "{0}/s"
           },
@@ -1467,9 +1479,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -1567,6 +1587,10 @@
             "displayName": "in",
             "unitPattern-count-other": "{0} in",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
@@ -2419,7 +2443,7 @@
             "unitPattern-count-other": "{0} dec"
           },
           "duration-year": {
-            "displayName": "साल",
+            "displayName": "yr",
             "unitPattern-count-other": "{0} y",
             "perUnitPattern": "{0}/y"
           },
@@ -2429,32 +2453,32 @@
             "perUnitPattern": "{0}/q"
           },
           "duration-month": {
-            "displayName": "महीने",
+            "displayName": "mon",
             "unitPattern-count-other": "{0} m",
             "perUnitPattern": "{0}/m"
           },
           "duration-week": {
-            "displayName": "सप्ताह",
+            "displayName": "wk",
             "unitPattern-count-other": "{0} w",
             "perUnitPattern": "{0}/w"
           },
           "duration-day": {
-            "displayName": "सान",
+            "displayName": "day",
             "unitPattern-count-other": "{0} d",
             "perUnitPattern": "{0}/d"
           },
           "duration-hour": {
-            "displayName": "घंटे",
+            "displayName": "hr",
             "unitPattern-count-other": "{0} h",
             "perUnitPattern": "{0}/h"
           },
           "duration-minute": {
-            "displayName": "मिन.",
+            "displayName": "min",
             "unitPattern-count-other": "{0} min",
             "perUnitPattern": "{0}/min"
           },
           "duration-second": {
-            "displayName": "सेकं.",
+            "displayName": "sec",
             "unitPattern-count-other": "{0} s",
             "perUnitPattern": "{0}/s"
           },
@@ -2522,9 +2546,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -2622,6 +2654,10 @@
             "displayName": "in",
             "unitPattern-count-other": "{0} in",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",

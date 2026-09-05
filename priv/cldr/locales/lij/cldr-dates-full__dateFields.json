@@ -7,661 +7,571 @@
       "dates": {
         "fields": {
           "era": {
-            "displayName": "era"
+            "displayName": "Era"
           },
           "era-short": {
-            "displayName": "era"
+            "displayName": "Era"
           },
           "era-narrow": {
-            "displayName": "era"
+            "displayName": "Era"
           },
           "year": {
-            "displayName": "anno",
-            "relative-type--1": "l’anno passou",
-            "relative-type-0": "st’anno",
-            "relative-type-1": "l’anno ch’o vëgne",
+            "displayName": "Year",
+            "relative-type--1": "last year",
+            "relative-type-0": "this year",
+            "relative-type-1": "next year",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} anno",
-              "relativeTimePattern-count-other": "de chì à {0} anni"
+              "relativeTimePattern-count-other": "+{0} y"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} anno",
-              "relativeTimePattern-count-other": "l’é {0} anni"
+              "relativeTimePattern-count-other": "-{0} y"
             }
           },
           "year-short": {
-            "displayName": "anno",
-            "relative-type--1": "l’anno passou",
-            "relative-type-0": "st’anno",
-            "relative-type-1": "l’anno ch’o ven",
+            "displayName": "Year",
+            "relative-type--1": "last year",
+            "relative-type-0": "this year",
+            "relative-type-1": "next year",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} anno",
-              "relativeTimePattern-count-other": "de chì à {0} anni"
+              "relativeTimePattern-count-other": "+{0} y"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} anno",
-              "relativeTimePattern-count-other": "l’é {0} anni"
+              "relativeTimePattern-count-other": "-{0} y"
             }
           },
           "year-narrow": {
-            "displayName": "a",
-            "relative-type--1": "anno passou",
-            "relative-type-0": "st’anno",
-            "relative-type-1": "anno ch’o ven",
+            "displayName": "Year",
+            "relative-type--1": "last year",
+            "relative-type-0": "this year",
+            "relative-type-1": "next year",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "+{0}a",
-              "relativeTimePattern-count-other": "+{0}a"
+              "relativeTimePattern-count-other": "+{0} y"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "-{0}a",
-              "relativeTimePattern-count-other": "-{0}a"
+              "relativeTimePattern-count-other": "-{0} y"
             }
           },
           "quarter": {
-            "displayName": "trimestre",
-            "relative-type--1": "o trimestre passou",
-            "relative-type-0": "sto trimestre",
-            "relative-type-1": "o trimestre ch’o vëgne",
+            "displayName": "Quarter",
+            "relative-type--1": "last quarter",
+            "relative-type-0": "this quarter",
+            "relative-type-1": "next quarter",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} trimestre",
-              "relativeTimePattern-count-other": "de chì à {0} trimestri"
+              "relativeTimePattern-count-other": "+{0} Q"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} trimestre",
-              "relativeTimePattern-count-other": "l’é {0} trimestri"
+              "relativeTimePattern-count-other": "-{0} Q"
             }
           },
           "quarter-short": {
-            "displayName": "trim.",
-            "relative-type--1": "o trim. passou",
-            "relative-type-0": "sto trim.",
-            "relative-type-1": "o trim. ch’o ven",
+            "displayName": "Quarter",
+            "relative-type--1": "last quarter",
+            "relative-type-0": "this quarter",
+            "relative-type-1": "next quarter",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} trim.",
-              "relativeTimePattern-count-other": "de chì à {0} trim."
+              "relativeTimePattern-count-other": "+{0} Q"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} trim.",
-              "relativeTimePattern-count-other": "l’é {0} trim."
+              "relativeTimePattern-count-other": "-{0} Q"
             }
           },
           "quarter-narrow": {
-            "displayName": "tr",
-            "relative-type--1": "tr. passou",
-            "relative-type-0": "sto tr.",
-            "relative-type-1": "tr. ch’o ven",
+            "displayName": "Quarter",
+            "relative-type--1": "last quarter",
+            "relative-type-0": "this quarter",
+            "relative-type-1": "next quarter",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "+{0}tr",
-              "relativeTimePattern-count-other": "+{0}tr"
+              "relativeTimePattern-count-other": "+{0} Q"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "-{0}tr",
-              "relativeTimePattern-count-other": "-{0}tr"
+              "relativeTimePattern-count-other": "-{0} Q"
             }
           },
           "month": {
-            "displayName": "meise",
-            "relative-type--1": "o meise passou",
-            "relative-type-0": "sto meise",
-            "relative-type-1": "o meise ch’o vëgne",
+            "displayName": "Month",
+            "relative-type--1": "last month",
+            "relative-type-0": "this month",
+            "relative-type-1": "next month",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} meise",
-              "relativeTimePattern-count-other": "de chì à {0} meixi"
+              "relativeTimePattern-count-other": "+{0} m"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} meise",
-              "relativeTimePattern-count-other": "l’é {0} meixi"
+              "relativeTimePattern-count-other": "-{0} m"
             }
           },
           "month-short": {
-            "displayName": "meise",
-            "relative-type--1": "o meise passou",
-            "relative-type-0": "sto meise",
-            "relative-type-1": "o meise ch’o ven",
+            "displayName": "Month",
+            "relative-type--1": "last month",
+            "relative-type-0": "this month",
+            "relative-type-1": "next month",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} meise",
-              "relativeTimePattern-count-other": "de chì à {0} meixi"
+              "relativeTimePattern-count-other": "+{0} m"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} meise",
-              "relativeTimePattern-count-other": "l’é {0} meixi"
+              "relativeTimePattern-count-other": "-{0} m"
             }
           },
           "month-narrow": {
-            "displayName": "meise",
-            "relative-type--1": "meise passou",
-            "relative-type-0": "sto meise",
-            "relative-type-1": "meise ch’o ven",
+            "displayName": "Month",
+            "relative-type--1": "last month",
+            "relative-type-0": "this month",
+            "relative-type-1": "next month",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "+{0}meise",
-              "relativeTimePattern-count-other": "+{0}meixi"
+              "relativeTimePattern-count-other": "+{0} m"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "-{0}meise",
-              "relativeTimePattern-count-other": "-{0}meixi"
+              "relativeTimePattern-count-other": "-{0} m"
             }
           },
           "week": {
-            "displayName": "settemaña",
-            "relative-type--1": "a settemaña passâ",
-            "relative-type-0": "sta settemaña",
-            "relative-type-1": "a settemaña ch’a vëgne",
+            "displayName": "Week",
+            "relative-type--1": "last week",
+            "relative-type-0": "this week",
+            "relative-type-1": "next week",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} settemaña",
-              "relativeTimePattern-count-other": "de chì à {0} settemañe"
+              "relativeTimePattern-count-other": "+{0} w"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} settemaña",
-              "relativeTimePattern-count-other": "l’é {0} settemañe"
+              "relativeTimePattern-count-other": "-{0} w"
             },
-            "relativePeriod": "a settemaña de {0}"
+            "relativePeriod": "the week of {0}"
           },
           "week-short": {
-            "displayName": "sett.",
-            "relative-type--1": "a sett. passâ",
-            "relative-type-0": "sta sett.",
-            "relative-type-1": "a sett. ch’a ven",
+            "displayName": "Week",
+            "relative-type--1": "last week",
+            "relative-type-0": "this week",
+            "relative-type-1": "next week",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} sett.",
-              "relativeTimePattern-count-other": "de chì à {0} sett."
+              "relativeTimePattern-count-other": "+{0} w"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} sett.",
-              "relativeTimePattern-count-other": "l’é {0} sett."
+              "relativeTimePattern-count-other": "-{0} w"
             },
-            "relativePeriod": "a sett. de {0}"
+            "relativePeriod": "the week of {0}"
           },
           "week-narrow": {
-            "displayName": "sett",
-            "relative-type--1": "sett passâ",
-            "relative-type-0": "sta sett",
-            "relative-type-1": "sett ch’a ven",
+            "displayName": "Week",
+            "relative-type--1": "last week",
+            "relative-type-0": "this week",
+            "relative-type-1": "next week",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "+{0}sett",
-              "relativeTimePattern-count-other": "+{0}sett"
+              "relativeTimePattern-count-other": "+{0} w"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "-{0}sett",
-              "relativeTimePattern-count-other": "-{0}sett"
+              "relativeTimePattern-count-other": "-{0} w"
             },
-            "relativePeriod": "sett de {0}"
+            "relativePeriod": "the week of {0}"
           },
           "weekOfMonth": {
-            "displayName": "settemaña do meise"
+            "displayName": "Week Of Month"
           },
           "weekOfMonth-short": {
-            "displayName": "sett. do meise"
+            "displayName": "Week Of Month"
           },
           "weekOfMonth-narrow": {
-            "displayName": "sett do meise"
+            "displayName": "Week Of Month"
           },
           "day": {
-            "displayName": "giorno",
-            "relative-type--1": "vëi",
-            "relative-type-0": "ancheu",
-            "relative-type-1": "doman",
+            "displayName": "Day",
+            "relative-type--1": "yesterday",
+            "relative-type-0": "today",
+            "relative-type-1": "tomorrow",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} giorno",
-              "relativeTimePattern-count-other": "de chì à {0} giorni"
+              "relativeTimePattern-count-other": "+{0} d"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} giorno",
-              "relativeTimePattern-count-other": "l’é {0} giorni"
+              "relativeTimePattern-count-other": "-{0} d"
             }
           },
           "day-short": {
-            "displayName": "giorno",
-            "relative-type--1": "vëi",
-            "relative-type-0": "ancheu",
-            "relative-type-1": "doman",
+            "displayName": "Day",
+            "relative-type--1": "yesterday",
+            "relative-type-0": "today",
+            "relative-type-1": "tomorrow",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} giorno",
-              "relativeTimePattern-count-other": "de chì à {0} giorni"
+              "relativeTimePattern-count-other": "+{0} d"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} giorno",
-              "relativeTimePattern-count-other": "l’é {0} giorni"
+              "relativeTimePattern-count-other": "-{0} d"
             }
           },
           "day-narrow": {
-            "displayName": "g",
-            "relative-type--1": "vëi",
-            "relative-type-0": "ancheu",
-            "relative-type-1": "doman",
+            "displayName": "Day",
+            "relative-type--1": "yesterday",
+            "relative-type-0": "today",
+            "relative-type-1": "tomorrow",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "+{0}g",
-              "relativeTimePattern-count-other": "+{0}g"
+              "relativeTimePattern-count-other": "+{0} d"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "-{0}g",
-              "relativeTimePattern-count-other": "-{0}g"
+              "relativeTimePattern-count-other": "-{0} d"
             }
           },
           "dayOfYear": {
-            "displayName": "giorno de l’anno"
+            "displayName": "Day Of Year"
           },
           "dayOfYear-short": {
-            "displayName": "giorno de l’anno"
+            "displayName": "Day Of Year"
           },
           "dayOfYear-narrow": {
-            "displayName": "g de l’anno"
+            "displayName": "Day Of Year"
           },
           "weekday": {
-            "displayName": "giorno da settemaña"
+            "displayName": "Day of the Week"
           },
           "weekday-short": {
-            "displayName": "giorno da sett."
+            "displayName": "Day of the Week"
           },
           "weekday-narrow": {
-            "displayName": "g da sett"
+            "displayName": "Day of the Week"
           },
           "weekdayOfMonth": {
-            "displayName": "giorno do meise"
+            "displayName": "Weekday Of Month"
           },
           "weekdayOfMonth-short": {
-            "displayName": "giorno do meise"
+            "displayName": "Weekday Of Month"
           },
           "weekdayOfMonth-narrow": {
-            "displayName": "g do meise"
+            "displayName": "Weekday Of Month"
           },
           "sun": {
-            "relative-type--1": "domenega passâ",
-            "relative-type-0": "sta domenega",
-            "relative-type-1": "domenega ch’a vëgne",
+            "relative-type--1": "last Sunday",
+            "relative-type-0": "this Sunday",
+            "relative-type-1": "next Sunday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} domenega",
-              "relativeTimePattern-count-other": "de chì à {0} domeneghe"
+              "relativeTimePattern-count-other": "+{0} Sundays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} domenega",
-              "relativeTimePattern-count-other": "l’é {0} domeneghe"
+              "relativeTimePattern-count-other": "-{0} Sundays"
             }
           },
           "sun-short": {
-            "relative-type--1": "dom. passâ",
-            "relative-type-0": "sta dom.",
-            "relative-type-1": "dom. ch’a ven",
+            "relative-type--1": "last Sunday",
+            "relative-type-0": "this Sunday",
+            "relative-type-1": "next Sunday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} dom.",
-              "relativeTimePattern-count-other": "de chì à {0} dom."
+              "relativeTimePattern-count-other": "+{0} Sundays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} dom.",
-              "relativeTimePattern-count-other": "l’é {0} dom."
+              "relativeTimePattern-count-other": "-{0} Sundays"
             }
           },
           "sun-narrow": {
-            "relative-type--1": "dom. passâ",
-            "relative-type-0": "sta dom.",
-            "relative-type-1": "dom. ch’a ven",
+            "relative-type--1": "last Sunday",
+            "relative-type-0": "this Sunday",
+            "relative-type-1": "next Sunday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} dom.",
-              "relativeTimePattern-count-other": "de chì à {0} dom."
+              "relativeTimePattern-count-other": "+{0} Sundays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} dom.",
-              "relativeTimePattern-count-other": "l’é {0} dom."
+              "relativeTimePattern-count-other": "-{0} Sundays"
             }
           },
           "mon": {
-            "relative-type--1": "lunesdì passou",
-            "relative-type-0": "sto lunesdì",
-            "relative-type-1": "lunesdì ch’o vëgne",
+            "relative-type--1": "last Monday",
+            "relative-type-0": "this Monday",
+            "relative-type-1": "next Monday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} lunesdì",
-              "relativeTimePattern-count-other": "de chì à {0} lunesdì"
+              "relativeTimePattern-count-other": "+{0} Mondays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} lunesdì",
-              "relativeTimePattern-count-other": "l’é {0} lunesdì"
+              "relativeTimePattern-count-other": "-{0} Mondays"
             }
           },
           "mon-short": {
-            "relative-type--1": "lun. passou",
-            "relative-type-0": "sto lun.",
-            "relative-type-1": "lun. ch’o ven",
+            "relative-type--1": "last Monday",
+            "relative-type-0": "this Monday",
+            "relative-type-1": "next Monday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} lun.",
-              "relativeTimePattern-count-other": "de chì à {0} lun."
+              "relativeTimePattern-count-other": "+{0} Mondays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} lun.",
-              "relativeTimePattern-count-other": "l’é {0} lun."
+              "relativeTimePattern-count-other": "-{0} Mondays"
             }
           },
           "mon-narrow": {
-            "relative-type--1": "lun. passou",
-            "relative-type-0": "sto lun.",
-            "relative-type-1": "lun. ch’o ven",
+            "relative-type--1": "last Monday",
+            "relative-type-0": "this Monday",
+            "relative-type-1": "next Monday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} lun.",
-              "relativeTimePattern-count-other": "de chì à {0} lun."
+              "relativeTimePattern-count-other": "+{0} Mondays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} lun.",
-              "relativeTimePattern-count-other": "l’é {0} lun."
+              "relativeTimePattern-count-other": "-{0} Mondays"
             }
           },
           "tue": {
-            "relative-type--1": "mätesdì passou",
-            "relative-type-0": "sto mätesdì",
-            "relative-type-1": "mätesdì ch’o vëgne",
+            "relative-type--1": "last Tuesday",
+            "relative-type-0": "this Tuesday",
+            "relative-type-1": "next Tuesday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} mätesdì",
-              "relativeTimePattern-count-other": "de chì à {0} mätesdì"
+              "relativeTimePattern-count-other": "+{0} Tuesdays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} mätesdì",
-              "relativeTimePattern-count-other": "l’é {0} mätesdì"
+              "relativeTimePattern-count-other": "-{0} Tuesdays"
             }
           },
           "tue-short": {
-            "relative-type--1": "mät. passou",
-            "relative-type-0": "sto mät.",
-            "relative-type-1": "mät. ch’o ven",
+            "relative-type--1": "last Tuesday",
+            "relative-type-0": "this Tuesday",
+            "relative-type-1": "next Tuesday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} mät.",
-              "relativeTimePattern-count-other": "de chì à {0} mät."
+              "relativeTimePattern-count-other": "+{0} Tuesdays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} mät.",
-              "relativeTimePattern-count-other": "l’é {0} mät."
+              "relativeTimePattern-count-other": "-{0} Tuesdays"
             }
           },
           "tue-narrow": {
-            "relative-type--1": "mät. passou",
-            "relative-type-0": "sto mät.",
-            "relative-type-1": "mät. ch’o ven",
+            "relative-type--1": "last Tuesday",
+            "relative-type-0": "this Tuesday",
+            "relative-type-1": "next Tuesday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} mät.",
-              "relativeTimePattern-count-other": "de chì à {0} mät."
+              "relativeTimePattern-count-other": "+{0} Tuesdays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} mät.",
-              "relativeTimePattern-count-other": "l’é {0} mät."
+              "relativeTimePattern-count-other": "-{0} Tuesdays"
             }
           },
           "wed": {
-            "relative-type--1": "mäcordì passou",
-            "relative-type-0": "sto mäcordì",
-            "relative-type-1": "mäcordì ch’o vëgne",
+            "relative-type--1": "last Wednesday",
+            "relative-type-0": "this Wednesday",
+            "relative-type-1": "next Wednesday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} mäcordì",
-              "relativeTimePattern-count-other": "de chì à {0} mäcordì"
+              "relativeTimePattern-count-other": "+{0} Wednesdays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} mäcordì",
-              "relativeTimePattern-count-other": "l’é {0} mäcordì"
+              "relativeTimePattern-count-other": "-{0} Wednesdays"
             }
           },
           "wed-short": {
-            "relative-type--1": "mäc. passou",
-            "relative-type-0": "sto mäc.",
-            "relative-type-1": "mäc. ch’o ven",
+            "relative-type--1": "last Wednesday",
+            "relative-type-0": "this Wednesday",
+            "relative-type-1": "next Wednesday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} mäc.",
-              "relativeTimePattern-count-other": "de chì à {0} mäc."
+              "relativeTimePattern-count-other": "+{0} Wednesdays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} mäc.",
-              "relativeTimePattern-count-other": "l’é {0} mäc."
+              "relativeTimePattern-count-other": "-{0} Wednesdays"
             }
           },
           "wed-narrow": {
-            "relative-type--1": "mäc. passou",
-            "relative-type-0": "sto mäc.",
-            "relative-type-1": "mäc. ch’o ven",
+            "relative-type--1": "last Wednesday",
+            "relative-type-0": "this Wednesday",
+            "relative-type-1": "next Wednesday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} mäc.",
-              "relativeTimePattern-count-other": "de chì à {0} mäc."
+              "relativeTimePattern-count-other": "+{0} Wednesdays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} mäc.",
-              "relativeTimePattern-count-other": "l’é {0} mäc."
+              "relativeTimePattern-count-other": "-{0} Wednesdays"
             }
           },
           "thu": {
-            "relative-type--1": "zeuggia passâ",
-            "relative-type-0": "sta zeuggia",
-            "relative-type-1": "zeuggia ch’a vëgne",
+            "relative-type--1": "last Thursday",
+            "relative-type-0": "this Thursday",
+            "relative-type-1": "next Thursday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} zeuggia",
-              "relativeTimePattern-count-other": "de chì à {0} zeugge"
+              "relativeTimePattern-count-other": "+{0} Thursdays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} zeuggia",
-              "relativeTimePattern-count-other": "l’é {0} zeugge"
+              "relativeTimePattern-count-other": "-{0} Thursdays"
             }
           },
           "thu-short": {
-            "relative-type--1": "zeu. passâ",
-            "relative-type-0": "sta zeu.",
-            "relative-type-1": "zeu. ch’a ven",
+            "relative-type--1": "last Thursday",
+            "relative-type-0": "this Thursday",
+            "relative-type-1": "next Thursday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} zeu.",
-              "relativeTimePattern-count-other": "de chì à {0} zeu."
+              "relativeTimePattern-count-other": "+{0} Thursdays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} zeu.",
-              "relativeTimePattern-count-other": "l’é {0} zeu."
+              "relativeTimePattern-count-other": "-{0} Thursdays"
             }
           },
           "thu-narrow": {
-            "relative-type--1": "zeu. passâ",
-            "relative-type-0": "sta zeu.",
-            "relative-type-1": "zeu. ch’a ven",
+            "relative-type--1": "last Thursday",
+            "relative-type-0": "this Thursday",
+            "relative-type-1": "next Thursday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} zeu.",
-              "relativeTimePattern-count-other": "de chì à {0} zeu."
+              "relativeTimePattern-count-other": "+{0} Thursdays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} zeu.",
-              "relativeTimePattern-count-other": "l’é {0} zeu."
+              "relativeTimePattern-count-other": "-{0} Thursdays"
             }
           },
           "fri": {
-            "relative-type--1": "venardì passou",
-            "relative-type-0": "sto venardì",
-            "relative-type-1": "venardì ch’o vëgne",
+            "relative-type--1": "last Friday",
+            "relative-type-0": "this Friday",
+            "relative-type-1": "next Friday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} venardì",
-              "relativeTimePattern-count-other": "de chì à {0} venardì"
+              "relativeTimePattern-count-other": "+{0} Fridays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} venardì",
-              "relativeTimePattern-count-other": "l’é {0} venardì"
+              "relativeTimePattern-count-other": "-{0} Fridays"
             }
           },
           "fri-short": {
-            "relative-type--1": "ven. passou",
-            "relative-type-0": "sto ven.",
-            "relative-type-1": "ven. ch’o ven",
+            "relative-type--1": "last Friday",
+            "relative-type-0": "this Friday",
+            "relative-type-1": "next Friday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} ven.",
-              "relativeTimePattern-count-other": "de chì à {0} ven."
+              "relativeTimePattern-count-other": "+{0} Fridays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} ven.",
-              "relativeTimePattern-count-other": "l’é {0} ven."
+              "relativeTimePattern-count-other": "-{0} Fridays"
             }
           },
           "fri-narrow": {
-            "relative-type--1": "ven. passou",
-            "relative-type-0": "sto ven.",
-            "relative-type-1": "ven. ch’o ven",
+            "relative-type--1": "last Friday",
+            "relative-type-0": "this Friday",
+            "relative-type-1": "next Friday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} ven.",
-              "relativeTimePattern-count-other": "de chì à {0} ven."
+              "relativeTimePattern-count-other": "+{0} Fridays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} ven.",
-              "relativeTimePattern-count-other": "l’é {0} ven."
+              "relativeTimePattern-count-other": "-{0} Fridays"
             }
           },
           "sat": {
-            "relative-type--1": "sabbo passou",
-            "relative-type-0": "sto sabbo",
-            "relative-type-1": "sabbo ch’o vëgne",
+            "relative-type--1": "last Saturday",
+            "relative-type-0": "this Saturday",
+            "relative-type-1": "next Saturday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} sabbo",
-              "relativeTimePattern-count-other": "de chì à {0} sabbi"
+              "relativeTimePattern-count-other": "+{0} Saturdays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} sabbo",
-              "relativeTimePattern-count-other": "l’é {0} sabbi"
+              "relativeTimePattern-count-other": "-{0} Saturdays"
             }
           },
           "sat-short": {
-            "relative-type--1": "sab. passou",
-            "relative-type-0": "sto sab.",
-            "relative-type-1": "sab. ch’o ven",
+            "relative-type--1": "last Saturday",
+            "relative-type-0": "this Saturday",
+            "relative-type-1": "next Saturday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} sab.",
-              "relativeTimePattern-count-other": "de chì à {0} sab."
+              "relativeTimePattern-count-other": "+{0} Saturdays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} sab.",
-              "relativeTimePattern-count-other": "l’é {0} sab."
+              "relativeTimePattern-count-other": "-{0} Saturdays"
             }
           },
           "sat-narrow": {
-            "relative-type--1": "sab. passou",
-            "relative-type-0": "sto sab.",
-            "relative-type-1": "sab. ch’o ven",
+            "relative-type--1": "last Saturday",
+            "relative-type-0": "this Saturday",
+            "relative-type-1": "next Saturday",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} sab.",
-              "relativeTimePattern-count-other": "de chì à {0} sab."
+              "relativeTimePattern-count-other": "+{0} Saturdays"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} sab.",
-              "relativeTimePattern-count-other": "l’é {0} sab."
+              "relativeTimePattern-count-other": "-{0} Saturdays"
             }
           },
           "dayperiod-short": {
-            "displayName": "AM/PM"
+            "displayName": "Dayperiod"
           },
           "dayperiod": {
-            "displayName": "AM/PM"
+            "displayName": "Dayperiod"
           },
           "dayperiod-narrow": {
-            "displayName": "AM/PM"
+            "displayName": "Dayperiod"
           },
           "hour": {
-            "displayName": "oa",
-            "relative-type-0": "st’oa chì",
+            "displayName": "Hour",
+            "relative-type-0": "this hour",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} oa",
-              "relativeTimePattern-count-other": "de chì à {0} oe"
+              "relativeTimePattern-count-other": "+{0} h"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} oa",
-              "relativeTimePattern-count-other": "l’é {0} oe"
+              "relativeTimePattern-count-other": "-{0} h"
             }
           },
           "hour-short": {
-            "displayName": "oa",
-            "relative-type-0": "st’oa chì",
+            "displayName": "Hour",
+            "relative-type-0": "this hour",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} oa",
-              "relativeTimePattern-count-other": "de chì à {0} oe"
+              "relativeTimePattern-count-other": "+{0} h"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} oa",
-              "relativeTimePattern-count-other": "l’é {0} oe"
+              "relativeTimePattern-count-other": "-{0} h"
             }
           },
           "hour-narrow": {
-            "displayName": "h",
-            "relative-type-0": "st’oa chì",
+            "displayName": "Hour",
+            "relative-type-0": "this hour",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "+{0}h",
-              "relativeTimePattern-count-other": "+{0}h"
+              "relativeTimePattern-count-other": "+{0} h"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "-{0}h",
-              "relativeTimePattern-count-other": "-{0}h"
+              "relativeTimePattern-count-other": "-{0} h"
             }
           },
           "minute": {
-            "displayName": "menuto",
-            "relative-type-0": "sto menuto chì",
+            "displayName": "Minute",
+            "relative-type-0": "this minute",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} menuto",
-              "relativeTimePattern-count-other": "de chì à {0} menuti"
+              "relativeTimePattern-count-other": "+{0} min"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} menuto",
-              "relativeTimePattern-count-other": "l’é {0} menuti"
+              "relativeTimePattern-count-other": "-{0} min"
             }
           },
           "minute-short": {
-            "displayName": "men",
-            "relative-type-0": "sto men. chì",
+            "displayName": "Minute",
+            "relative-type-0": "this minute",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} men",
-              "relativeTimePattern-count-other": "de chì à {0} men"
+              "relativeTimePattern-count-other": "+{0} min"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} men",
-              "relativeTimePattern-count-other": "l’é {0} men"
+              "relativeTimePattern-count-other": "-{0} min"
             }
           },
           "minute-narrow": {
-            "displayName": "men",
-            "relative-type-0": "sto men. chì",
+            "displayName": "Minute",
+            "relative-type-0": "this minute",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "+{0}men",
-              "relativeTimePattern-count-other": "+{0}men"
+              "relativeTimePattern-count-other": "+{0} min"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "-{0}men",
-              "relativeTimePattern-count-other": "-{0}men"
+              "relativeTimePattern-count-other": "-{0} min"
             }
           },
           "second": {
-            "displayName": "segondo",
-            "relative-type-0": "oua",
+            "displayName": "Second",
+            "relative-type-0": "now",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} segondo",
-              "relativeTimePattern-count-other": "de chì à {0} segondi"
+              "relativeTimePattern-count-other": "+{0} s"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} segondo",
-              "relativeTimePattern-count-other": "l’é {0} segondi"
+              "relativeTimePattern-count-other": "-{0} s"
             }
           },
           "second-short": {
-            "displayName": "s",
-            "relative-type-0": "oua",
+            "displayName": "Second",
+            "relative-type-0": "now",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "de chì à {0} s",
-              "relativeTimePattern-count-other": "de chì à {0} s"
+              "relativeTimePattern-count-other": "+{0} s"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "l’é {0} s",
-              "relativeTimePattern-count-other": "l’é {0} s"
+              "relativeTimePattern-count-other": "-{0} s"
             }
           },
           "second-narrow": {
-            "displayName": "s",
-            "relative-type-0": "oua",
+            "displayName": "Second",
+            "relative-type-0": "now",
             "relativeTime-type-future": {
-              "relativeTimePattern-count-one": "+{0}s",
-              "relativeTimePattern-count-other": "+{0}s"
+              "relativeTimePattern-count-other": "+{0} s"
             },
             "relativeTime-type-past": {
-              "relativeTimePattern-count-one": "-{0}s",
-              "relativeTimePattern-count-other": "-{0}s"
+              "relativeTimePattern-count-other": "-{0} s"
             }
           },
           "zone": {
-            "displayName": "fuso oräio"
+            "displayName": "Zone"
           },
           "zone-short": {
-            "displayName": "fuso"
+            "displayName": "Zone"
           },
           "zone-narrow": {
-            "displayName": "fuso"
+            "displayName": "Zone"
           }
         }
       }

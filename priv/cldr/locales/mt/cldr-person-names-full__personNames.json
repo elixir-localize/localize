@@ -6,8 +6,7 @@
       },
       "personNames": {
         "givenFirst": [
-          "und",
-          "mt"
+          "und"
         ],
         "surnameFirst": [
           "ja",
@@ -16,7 +15,7 @@
           "yue",
           "zh"
         ],
-        "formality": "informal",
+        "formality": "formal",
         "length": "medium",
         "nativeSpaceReplacement": " ",
         "foreignSpaceReplacement": " ",
@@ -130,25 +129,6 @@
                 "informal": "{surname} {surname2}, {title} {given} {given2} {credentials}"
               }
             }
-          }
-        },
-        "sampleName": {
-          "nativeGS": {
-            "surname": "Grech"
-          },
-          "nativeGGS": {
-            "given": "Maria Elena",
-            "given2": "Farrugia",
-            "surname": "Vella"
-          },
-          "nativeFull": {
-            "title": "Is-Sur",
-            "given": "Evaristu Muscat",
-            "given-informal": "Varist",
-            "given2": "George Mifsud",
-            "surname-core": "Azzopardi",
-            "generation": "Jr",
-            "credentials": "MP"
           }
         }
       }

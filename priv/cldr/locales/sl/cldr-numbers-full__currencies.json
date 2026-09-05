@@ -153,10 +153,7 @@
           },
           "BEF": {
             "displayName": "belgijski frank",
-            "displayName-count-one": "belgijski frank",
-            "displayName-count-two": "belgijska franka",
-            "displayName-count-few": "belgijski franki",
-            "displayName-count-other": "belgijskih frankov"
+            "displayName-count-other": "belgijski frank"
           },
           "BEL": {
             "displayName": "belgijski finančni frank",
@@ -327,7 +324,9 @@
             "displayName-count-one": "švicarski frank",
             "displayName-count-two": "švicarska franka",
             "displayName-count-few": "švicarski franki",
-            "displayName-count-other": "švicarskih frankov"
+            "displayName-count-other": "švicarskih frankov",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CHW": {
             "displayName": "frank WIR",
@@ -430,10 +429,7 @@
           },
           "DEM": {
             "displayName": "nemška marka",
-            "displayName-count-one": "nemška marka",
-            "displayName-count-two": "nemški marki",
-            "displayName-count-few": "nemške marke",
-            "displayName-count-other": "nemških mark"
+            "displayName-count-other": "nemška marka"
           },
           "DJF": {
             "displayName": "džibutski frank",
@@ -1311,17 +1307,11 @@
           },
           "SIT": {
             "displayName": "slovenski tolar",
-            "displayName-count-one": "slovenski tolar",
-            "displayName-count-two": "slovenska tolarja",
-            "displayName-count-few": "slovenski tolarji",
-            "displayName-count-other": "slovenskih tolarjev"
+            "displayName-count-other": "slovenski tolar"
           },
           "SKK": {
             "displayName": "slovaška krona",
-            "displayName-count-one": "slovaška krona",
-            "displayName-count-two": "slovaški kroni",
-            "displayName-count-few": "slovaške krone",
-            "displayName-count-other": "slovaških kron"
+            "displayName-count-other": "slovaška krona"
           },
           "SLE": {
             "displayName": "sierraleonski leone",

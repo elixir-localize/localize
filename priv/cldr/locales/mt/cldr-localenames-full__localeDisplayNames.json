@@ -18,25 +18,20 @@
         "keys": {
           "calendar": "Kalendarju",
           "collation": "Kollazjoni",
-          "currency": "Munita",
-          "numbers": "Numri"
+          "currency": "Munita"
         },
         "types": {
           "calendar": {
             "buddhist": "Kalendarju Buddist",
             "chinese": "Kalendarju Ċiniż",
-            "coptic": "Kalendarju Koptiku",
             "dangi": "Kalendarju Dangi",
             "ethiopic": "Kalendarju Etjopiku",
             "gregorian": "Kalendarju Gregorjan",
             "hebrew": "Kalendarju Ebrajk",
-            "islamic": "Kalendarju Iżlamiku",
-            "islamic-civil": "Kalendarju Islamiku-Ċivili",
             "iso8601": "Kalendarju ISO-8601",
             "japanese": "Kalendarju Ġappuniż"
           },
           "collation": {
-            "dictionary": "Ordni tad-Dizzjunarju",
             "phonebook": "Ordni Telefonika",
             "pinyin": "Ordni tal-Pinjin",
             "standard": "Ordni Standard",

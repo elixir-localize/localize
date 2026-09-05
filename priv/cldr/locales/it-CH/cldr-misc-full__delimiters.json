@@ -8,8 +8,8 @@
       "delimiters": {
         "quotationStart": "«",
         "quotationEnd": "»",
-        "alternateQuotationStart": "‹",
-        "alternateQuotationEnd": "›"
+        "alternateQuotationStart": "“",
+        "alternateQuotationEnd": "”"
       }
     }
   }

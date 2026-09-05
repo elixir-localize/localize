@@ -6,40 +6,7 @@
       },
       "localeDisplayNames": {
         "languages": {
-          "ar": "Arabek",
-          "ar-001": "Arabek Savonek Arnowydh",
-          "br": "Bretonek",
-          "cy": "Kembrek",
-          "da": "Danek",
-          "de": "Almaynek",
-          "de-AT": "Almaynek (Ostri)",
-          "de-CH": "Almaynek Ughel (Pow Swis)",
-          "el": "Greka",
-          "en": "Sowsnek",
-          "en-AU": "Sowsnek (Ostrali)",
-          "en-CA": "Sowsnek (Kanada)",
-          "en-GB": "Sowsnek (Breten Veur)",
-          "en-GB-alt-short": "Sowsnek (RU)",
-          "en-US-alt-short": "Sowsnek (SU)",
-          "es": "Spaynek",
-          "eu": "Baskek",
-          "fr": "Frenkek",
-          "fr-CA": "Frenkek (Kanada)",
-          "fr-CH": "Frenkek (Pow Swis)",
-          "ga": "Wordhonek",
-          "gd": "Godhalek Alban",
-          "it": "Italek",
-          "ja": "Japanek",
-          "kw": "kernewek",
-          "nl": "Iseldiryek",
-          "pt": "Portyngalek",
-          "pt-PT": "Portyngalek (Ewrop)",
-          "ro-MD": "Moldavek",
-          "ru": "Russek",
-          "yue": "Kantonek",
-          "zh": "Chinek",
-          "zh-Hans": "Chinek sempelhes",
-          "zh-Hant": "Chinek hengovek"
+          "kw": "kernewek"
         }
       }
     }

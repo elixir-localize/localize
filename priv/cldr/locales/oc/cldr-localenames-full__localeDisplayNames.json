@@ -8,24 +8,7 @@
         "localeDisplayPattern": {
           "localePattern": "{0} ({1})",
           "localeSeparator": "{0}, {1}",
-          "localeKeyTypePattern": "{0} : {1}"
-        },
-        "keys": {
-          "calendar": "calendier",
-          "collation": "òrde alfabetic",
-          "currency": "moneda"
-        },
-        "types": {
-          "calendar": {
-            "gregorian": "calendièr gregorian",
-            "iso8601": "calendièr ISO-8601"
-          },
-          "collation": {
-            "standard": "òrdre per defaut"
-          },
-          "numbers": {
-            "latn": "chifras occidentalas"
-          }
+          "localeKeyTypePattern": "{0}: {1}"
         },
         "codePatterns": {
           "language": "Lenga : {0}",

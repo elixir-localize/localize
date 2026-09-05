@@ -117,7 +117,7 @@
             "compoundUnitPattern": "{0}⋅{1}"
           },
           "acceleration-g-force": {
-            "displayName": "ئېغىرلىق كۈچى",
+            "displayName": "g-force",
             "unitPattern-count-one": "{0} ئېغىرلىق كۈچى",
             "unitPattern-count-other": "{0} ئېغىرلىق كۈچى"
           },
@@ -134,7 +134,7 @@
             "unitPattern-count-other": "{0} rad"
           },
           "angle-degree": {
-            "displayName": "گىرادۇس",
+            "displayName": "deg",
             "unitPattern-count-one": "{0} گىرادۇس",
             "unitPattern-count-other": "{0} گىرادۇس"
           },
@@ -147,18 +147,18 @@
             "unitPattern-count-other": "{0}″"
           },
           "area-square-kilometer": {
-            "displayName": "كۋادرات كىلومېتىر",
+            "displayName": "km²",
             "unitPattern-count-one": "{0} كۋادرات كىلومېتىر",
             "unitPattern-count-other": "{0} كۋادرات كىلومېتىر",
             "perUnitPattern": "{0}/km²"
           },
           "area-hectare": {
-            "displayName": "hectares",
+            "displayName": "hectare",
             "unitPattern-count-one": "{0} گېكتار",
             "unitPattern-count-other": "{0} hectares"
           },
           "area-square-meter": {
-            "displayName": "كۋادرات مېتىر",
+            "displayName": "m²",
             "unitPattern-count-one": "{0} كۋادرات مېتىر",
             "unitPattern-count-other": "{0} كۋادرات مېتىر",
             "perUnitPattern": "{0}/m²"
@@ -169,13 +169,13 @@
             "perUnitPattern": "{0}/cm²"
           },
           "area-square-mile": {
-            "displayName": "كۋادرات مىل",
+            "displayName": "mi²",
             "unitPattern-count-one": "{0} كۋادرات مىل",
             "unitPattern-count-other": "{0} كۋادرات مىل",
             "perUnitPattern": "{0}/mi²"
           },
           "area-acre": {
-            "displayName": "ئىنگلىز موسى",
+            "displayName": "acre",
             "unitPattern-count-one": "{0} ئىنگلىز موسى",
             "unitPattern-count-other": "{0} ئىنگلىز موسى"
           },
@@ -184,7 +184,7 @@
             "unitPattern-count-other": "{0} yd²"
           },
           "area-square-foot": {
-            "displayName": "كۋادرات فۇت",
+            "displayName": "ft²",
             "unitPattern-count-one": "{0} كۋادرات فۇت",
             "unitPattern-count-other": "{0} كۋادرات فۇت"
           },
@@ -310,7 +310,7 @@
             "unitPattern-count-other": "{0} dec"
           },
           "duration-year": {
-            "displayName": "يىل",
+            "displayName": "yr",
             "unitPattern-count-one": "{0} يىل",
             "unitPattern-count-other": "{0} يىل",
             "perUnitPattern": "{0}/y"
@@ -321,43 +321,43 @@
             "perUnitPattern": "{0}/q"
           },
           "duration-month": {
-            "displayName": "ئاي",
+            "displayName": "mon",
             "unitPattern-count-one": "{0} ئاي",
             "unitPattern-count-other": "{0} ئاي",
             "perUnitPattern": "{0}/m"
           },
           "duration-week": {
-            "displayName": "ھەپتە",
+            "displayName": "wk",
             "unitPattern-count-one": "{0} ھەپتە",
             "unitPattern-count-other": "{0} ھەپتە",
             "perUnitPattern": "{0}/w"
           },
           "duration-day": {
-            "displayName": "كۈن",
+            "displayName": "day",
             "unitPattern-count-one": "{0} كۈن",
             "unitPattern-count-other": "{0} كۈن",
             "perUnitPattern": "{0}/d"
           },
           "duration-hour": {
-            "displayName": "سائەت",
+            "displayName": "hr",
             "unitPattern-count-one": "{0} سائەت",
             "unitPattern-count-other": "{0} سائەت",
             "perUnitPattern": "{0}/h"
           },
           "duration-minute": {
-            "displayName": "مىنۇت",
+            "displayName": "min",
             "unitPattern-count-one": "{0} مىنۇت",
             "unitPattern-count-other": "{0} مىنۇت",
             "perUnitPattern": "{0}/min"
           },
           "duration-second": {
-            "displayName": "سېكۇنت",
+            "displayName": "sec",
             "unitPattern-count-one": "{0} سېكۇنت",
             "unitPattern-count-other": "{0} سېكۇنت",
             "perUnitPattern": "{0}/s"
           },
           "duration-millisecond": {
-            "displayName": "مىللى سېكۇنت",
+            "displayName": "ms",
             "unitPattern-count-one": "{0} مىللى سېكۇنت",
             "unitPattern-count-other": "{0} مىللى سېكۇنت"
           },
@@ -421,9 +421,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -470,13 +478,13 @@
             "unitPattern-count-other": "{0} R⊕"
           },
           "length-kilometer": {
-            "displayName": "كىلومېتىر",
+            "displayName": "km",
             "unitPattern-count-one": "{0} كىلومېتىر",
             "unitPattern-count-other": "{0} كىلومېتىر",
             "perUnitPattern": "{0}/km"
           },
           "length-meter": {
-            "displayName": "مېتىر",
+            "displayName": "meter",
             "unitPattern-count-one": "{0} مېتىر",
             "unitPattern-count-other": "{0} مېتىر",
             "perUnitPattern": "{0}/m"
@@ -486,13 +494,13 @@
             "unitPattern-count-other": "{0} dm"
           },
           "length-centimeter": {
-            "displayName": "سانتىمېتىر",
+            "displayName": "cm",
             "unitPattern-count-one": "{0} سانتىمېتىر",
             "unitPattern-count-other": "{0} سانتىمېتىر",
             "perUnitPattern": "{0}/cm"
           },
           "length-millimeter": {
-            "displayName": "مىللىمېتىر",
+            "displayName": "mm",
             "unitPattern-count-one": "{0} مىللىمېتىر",
             "unitPattern-count-other": "{0} مىللىمېتىر"
           },
@@ -505,38 +513,42 @@
             "unitPattern-count-other": "{0} nm"
           },
           "length-picometer": {
-            "displayName": "پىكومېتىر",
+            "displayName": "pm",
             "unitPattern-count-one": "{0} پىكومېتىر",
             "unitPattern-count-other": "{0} پىكومېتىر"
           },
           "length-mile": {
-            "displayName": "مىل",
+            "displayName": "mi",
             "unitPattern-count-one": "{0} مىل",
             "unitPattern-count-other": "{0} مىل"
           },
           "length-yard": {
-            "displayName": "يارد",
+            "displayName": "yd",
             "unitPattern-count-one": "{0} يارد",
             "unitPattern-count-other": "{0} يارد"
           },
           "length-foot": {
-            "displayName": "فۇت",
+            "displayName": "ft",
             "unitPattern-count-one": "{0} فۇت",
             "unitPattern-count-other": "{0} فۇت",
             "perUnitPattern": "{0}/ft"
           },
           "length-inch": {
-            "displayName": "ديۇيم",
+            "displayName": "in",
             "unitPattern-count-one": "{0} ديۇيم",
             "unitPattern-count-other": "{0} ديۇيم",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
             "unitPattern-count-other": "{0} pc"
           },
           "length-light-year": {
-            "displayName": "يورۇقلۇق يىلى",
+            "displayName": "ly",
             "unitPattern-count-one": "{0} يورۇقلۇق يىلى",
             "unitPattern-count-other": "{0} يورۇقلۇق يىلى"
           },
@@ -589,13 +601,13 @@
             "unitPattern-count-other": "{0} t"
           },
           "mass-kilogram": {
-            "displayName": "كىلوگرام",
+            "displayName": "kg",
             "unitPattern-count-one": "{0} كىلوگرام",
             "unitPattern-count-other": "{0} كىلوگرام",
             "perUnitPattern": "{0}/kg"
           },
           "mass-gram": {
-            "displayName": "گرام",
+            "displayName": "gram",
             "unitPattern-count-one": "{0} گرام",
             "unitPattern-count-other": "{0} گرام",
             "perUnitPattern": "{0}/g"
@@ -617,13 +629,13 @@
             "unitPattern-count-other": "{0} st"
           },
           "mass-pound": {
-            "displayName": "قاداق",
+            "displayName": "lb",
             "unitPattern-count-one": "{0} قاداق",
             "unitPattern-count-other": "{0} قاداق",
             "perUnitPattern": "{0}/lb"
           },
           "mass-ounce": {
-            "displayName": "ئۇنسىيە",
+            "displayName": "oz",
             "unitPattern-count-one": "{0} ئۇنسىيە",
             "unitPattern-count-other": "{0} ئۇنسىيە",
             "perUnitPattern": "{0}/oz"
@@ -661,12 +673,12 @@
             "unitPattern-count-other": "{0} MW"
           },
           "power-kilowatt": {
-            "displayName": "كىلوۋات",
+            "displayName": "kW",
             "unitPattern-count-one": "{0} كىلوۋات",
             "unitPattern-count-other": "{0} كىلوۋات"
           },
           "power-watt": {
-            "displayName": "ۋات",
+            "displayName": "watt",
             "unitPattern-count-one": "{0} ۋات",
             "unitPattern-count-other": "{0} ۋات"
           },
@@ -675,7 +687,7 @@
             "unitPattern-count-other": "{0} mW"
           },
           "power-horsepower": {
-            "displayName": "ئات كۈچى",
+            "displayName": "hp",
             "unitPattern-count-one": "{0} ئات كۈچى",
             "unitPattern-count-other": "{0} ئات كۈچى"
           },
@@ -692,7 +704,7 @@
             "unitPattern-count-other": "{0} psi"
           },
           "pressure-inch-ofhg": {
-            "displayName": "ديۇيم سىماب تۈۋرۇكى",
+            "displayName": "inHg",
             "unitPattern-count-one": "{0} ديۇيم سىماب تۈۋرۇكى",
             "unitPattern-count-other": "{0} ديۇيم سىماب تۈۋرۇكى"
           },
@@ -701,7 +713,7 @@
             "unitPattern-count-other": "{0} bar"
           },
           "pressure-millibar": {
-            "displayName": "مىللىبار",
+            "displayName": "mbar",
             "unitPattern-count-one": "{0} مىللىبار",
             "unitPattern-count-other": "{0} مىللىبار"
           },
@@ -714,7 +726,7 @@
             "unitPattern-count-other": "{0} Pa"
           },
           "pressure-hectopascal": {
-            "displayName": "يۈز پاسكال",
+            "displayName": "hPa",
             "unitPattern-count-one": "{0} يۈز پاسكال",
             "unitPattern-count-other": "{0} يۈز پاسكال"
           },
@@ -727,17 +739,17 @@
             "unitPattern-count-other": "{0} MPa"
           },
           "speed-kilometer-per-hour": {
-            "displayName": "كىلومېتىر ھەر سائەت",
+            "displayName": "km/h",
             "unitPattern-count-one": "{0} كىلومېتىر ھەر سائەت",
             "unitPattern-count-other": "{0} كىلومېتىر ھەر سائەت"
           },
           "speed-meter-per-second": {
-            "displayName": "مېتىر ھەر سېكۇنت",
+            "displayName": "m/s",
             "unitPattern-count-one": "{0} مېتىر ھەر سېكۇنت",
             "unitPattern-count-other": "{0} مېتىر ھەر سېكۇنت"
           },
           "speed-mile-per-hour": {
-            "displayName": "مىل ھەر سائەت",
+            "displayName": "mi/h",
             "unitPattern-count-one": "{0} مىل ھەر سائەت",
             "unitPattern-count-other": "{0} مىل ھەر سائەت"
           },
@@ -754,12 +766,12 @@
             "unitPattern-count-other": "{0}°"
           },
           "temperature-celsius": {
-            "displayName": "سېلسىيە گرادۇس",
+            "displayName": "°C",
             "unitPattern-count-one": "{0} سېلسىيە گرادۇس",
             "unitPattern-count-other": "{0} سېلسىيە گرادۇس"
           },
           "temperature-fahrenheit": {
-            "displayName": "فارېنگېيت گرادۇس",
+            "displayName": "°F",
             "unitPattern-count-one": "{0} فارېنگېيت گرادۇس",
             "unitPattern-count-other": "{0} فارېنگېيت گرادۇس"
           },
@@ -776,7 +788,7 @@
             "unitPattern-count-other": "{0} N⋅m"
           },
           "volume-cubic-kilometer": {
-            "displayName": "كۇب كىلومېتىر",
+            "displayName": "km³",
             "unitPattern-count-one": "{0} كۇب كىلومېتىر",
             "unitPattern-count-other": "{0} كۇب كىلومېتىر"
           },
@@ -791,7 +803,7 @@
             "perUnitPattern": "{0}/cm³"
           },
           "volume-cubic-mile": {
-            "displayName": "كۇب مىل",
+            "displayName": "mi³",
             "unitPattern-count-one": "{0} كۇب مىل",
             "unitPattern-count-other": "{0} كۇب مىل"
           },
@@ -816,7 +828,7 @@
             "unitPattern-count-other": "{0} hL"
           },
           "volume-liter": {
-            "displayName": "لىتېر",
+            "displayName": "liter",
             "unitPattern-count-one": "{0} لىتېر",
             "unitPattern-count-other": "{0} لىتېر",
             "perUnitPattern": "{0}/l"
@@ -1216,7 +1228,7 @@
             "compoundUnitPattern": "{0}⋅{1}"
           },
           "acceleration-g-force": {
-            "displayName": "ئېغىرلىق كۈچى",
+            "displayName": "g-force",
             "unitPattern-count-other": "{0} G"
           },
           "acceleration-meter-per-square-second": {
@@ -1232,7 +1244,7 @@
             "unitPattern-count-other": "{0} rad"
           },
           "angle-degree": {
-            "displayName": "گىرادۇس",
+            "displayName": "deg",
             "unitPattern-count-one": "{0} گىرادۇس",
             "unitPattern-count-other": "{0} گىرادۇس"
           },
@@ -1245,17 +1257,17 @@
             "unitPattern-count-other": "{0}″"
           },
           "area-square-kilometer": {
-            "displayName": "كۋادرات كىلومېتىر",
+            "displayName": "km²",
             "unitPattern-count-other": "{0} km²",
             "perUnitPattern": "{0}/km²"
           },
           "area-hectare": {
-            "displayName": "hectares",
+            "displayName": "hectare",
             "unitPattern-count-one": "{0} گېكتار",
             "unitPattern-count-other": "{0} گېكتار"
           },
           "area-square-meter": {
-            "displayName": "كۋادرات مېتىر",
+            "displayName": "m²",
             "unitPattern-count-other": "{0} m²",
             "perUnitPattern": "{0}/m²"
           },
@@ -1265,13 +1277,13 @@
             "perUnitPattern": "{0}/cm²"
           },
           "area-square-mile": {
-            "displayName": "كۋادرات مىل",
+            "displayName": "mi²",
             "unitPattern-count-one": "{0} كۋادرات مىل",
             "unitPattern-count-other": "{0} كۋادرات مىل",
             "perUnitPattern": "{0}/mi²"
           },
           "area-acre": {
-            "displayName": "ئىنگلىز موسى",
+            "displayName": "acre",
             "unitPattern-count-one": "{0} ئىنگلىز موسى",
             "unitPattern-count-other": "{0} ئىنگلىز موسى"
           },
@@ -1280,7 +1292,7 @@
             "unitPattern-count-other": "{0} yd²"
           },
           "area-square-foot": {
-            "displayName": "كۋادرات فۇت",
+            "displayName": "ft²",
             "unitPattern-count-one": "{0} كۋادرات فۇت",
             "unitPattern-count-other": "{0} كۋادرات فۇت"
           },
@@ -1406,7 +1418,7 @@
             "unitPattern-count-other": "{0} dec"
           },
           "duration-year": {
-            "displayName": "يىل",
+            "displayName": "yr",
             "unitPattern-count-one": "{0} يىل",
             "unitPattern-count-other": "{0} يىل",
             "perUnitPattern": "{0}/y"
@@ -1417,43 +1429,43 @@
             "perUnitPattern": "{0}/q"
           },
           "duration-month": {
-            "displayName": "ئاي",
+            "displayName": "mon",
             "unitPattern-count-one": "{0} ئاي",
             "unitPattern-count-other": "{0} ئاي",
             "perUnitPattern": "{0}/m"
           },
           "duration-week": {
-            "displayName": "ھەپتە",
+            "displayName": "wk",
             "unitPattern-count-one": "{0} ھەپتە",
             "unitPattern-count-other": "{0} ھەپتە",
             "perUnitPattern": "{0}/w"
           },
           "duration-day": {
-            "displayName": "كۈن",
+            "displayName": "day",
             "unitPattern-count-one": "{0} كۈن",
             "unitPattern-count-other": "{0} كۈن",
             "perUnitPattern": "{0}/d"
           },
           "duration-hour": {
-            "displayName": "سائەت",
+            "displayName": "hr",
             "unitPattern-count-one": "{0} سائەت",
             "unitPattern-count-other": "{0} سائەت",
             "perUnitPattern": "{0}/h"
           },
           "duration-minute": {
-            "displayName": "مىنۇت",
+            "displayName": "min",
             "unitPattern-count-one": "{0} مىنۇت",
             "unitPattern-count-other": "{0} مىنۇت",
             "perUnitPattern": "{0}/min"
           },
           "duration-second": {
-            "displayName": "سېكۇنت",
+            "displayName": "sec",
             "unitPattern-count-one": "{0} سېكۇنت",
             "unitPattern-count-other": "{0} سېكۇنت",
             "perUnitPattern": "{0}/s"
           },
           "duration-millisecond": {
-            "displayName": "مىللى سېكۇنت",
+            "displayName": "ms",
             "unitPattern-count-one": "{0} مىللىسېكۇنت",
             "unitPattern-count-other": "{0} مىللىسېكۇنت"
           },
@@ -1517,9 +1529,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -1566,13 +1586,13 @@
             "unitPattern-count-other": "{0} R⊕"
           },
           "length-kilometer": {
-            "displayName": "كىلومېتىر",
+            "displayName": "km",
             "unitPattern-count-one": "{0} كىلومېتىر",
             "unitPattern-count-other": "{0} كىلومېتىر",
             "perUnitPattern": "{0}/km"
           },
           "length-meter": {
-            "displayName": "مېتىر",
+            "displayName": "meter",
             "unitPattern-count-one": "{0} مېتىر",
             "unitPattern-count-other": "{0} مېتىر",
             "perUnitPattern": "{0}/m"
@@ -1582,13 +1602,13 @@
             "unitPattern-count-other": "{0} dm"
           },
           "length-centimeter": {
-            "displayName": "سانتىمېتىر",
+            "displayName": "cm",
             "unitPattern-count-one": "{0} سانتىمېتىر",
             "unitPattern-count-other": "{0} سانتىمېتىر",
             "perUnitPattern": "{0}/cm"
           },
           "length-millimeter": {
-            "displayName": "مىللىمېتىر",
+            "displayName": "mm",
             "unitPattern-count-one": "{0} مىللىمېتىر",
             "unitPattern-count-other": "{0} مىللىمېتىر"
           },
@@ -1601,38 +1621,42 @@
             "unitPattern-count-other": "{0} nm"
           },
           "length-picometer": {
-            "displayName": "پىكومېتىر",
+            "displayName": "pm",
             "unitPattern-count-one": "{0} پىكومېتىر",
             "unitPattern-count-other": "{0} پىكومېتىر"
           },
           "length-mile": {
-            "displayName": "مىل",
+            "displayName": "mi",
             "unitPattern-count-one": "{0} مىل",
             "unitPattern-count-other": "{0} مىل"
           },
           "length-yard": {
-            "displayName": "يارد",
+            "displayName": "yd",
             "unitPattern-count-one": "{0} يارد",
             "unitPattern-count-other": "{0} يارد"
           },
           "length-foot": {
-            "displayName": "فۇت",
+            "displayName": "ft",
             "unitPattern-count-one": "{0} پۇت",
             "unitPattern-count-other": "{0} پۇت",
             "perUnitPattern": "{0}/ft"
           },
           "length-inch": {
-            "displayName": "ديۇيم",
+            "displayName": "in",
             "unitPattern-count-one": "{0} ئىنگلىز چىسى",
             "unitPattern-count-other": "{0} ئىنگلىز چىسى",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
             "unitPattern-count-other": "{0} pc"
           },
           "length-light-year": {
-            "displayName": "يورۇقلۇق يىلى",
+            "displayName": "ly",
             "unitPattern-count-one": "{0} يورۇقلۇق يىلى",
             "unitPattern-count-other": "{0} يورۇقلۇق يىلى"
           },
@@ -1685,12 +1709,12 @@
             "unitPattern-count-other": "{0} t"
           },
           "mass-kilogram": {
-            "displayName": "كىلوگرام",
+            "displayName": "kg",
             "unitPattern-count-other": "{0} kg",
             "perUnitPattern": "{0}/kg"
           },
           "mass-gram": {
-            "displayName": "گرام",
+            "displayName": "gram",
             "unitPattern-count-other": "{0} g",
             "perUnitPattern": "{0}/g"
           },
@@ -1711,13 +1735,13 @@
             "unitPattern-count-other": "{0} st"
           },
           "mass-pound": {
-            "displayName": "قاداق",
+            "displayName": "lb",
             "unitPattern-count-one": "{0} قاداق",
             "unitPattern-count-other": "{0} قاداق",
             "perUnitPattern": "{0}/lb"
           },
           "mass-ounce": {
-            "displayName": "ئۇنسىيە",
+            "displayName": "oz",
             "unitPattern-count-one": "{0} ئۇنسىيە",
             "unitPattern-count-other": "{0} ئۇنسىيە",
             "perUnitPattern": "{0}/oz"
@@ -1755,11 +1779,11 @@
             "unitPattern-count-other": "{0} MW"
           },
           "power-kilowatt": {
-            "displayName": "كىلوۋات",
+            "displayName": "kW",
             "unitPattern-count-other": "{0} kW"
           },
           "power-watt": {
-            "displayName": "ۋات",
+            "displayName": "watt",
             "unitPattern-count-other": "{0} W"
           },
           "power-milliwatt": {
@@ -1767,7 +1791,7 @@
             "unitPattern-count-other": "{0} mW"
           },
           "power-horsepower": {
-            "displayName": "ئات كۈچى",
+            "displayName": "hp",
             "unitPattern-count-one": "{0} ئات كۈچى",
             "unitPattern-count-other": "{0} ئات كۈچى"
           },
@@ -1784,7 +1808,7 @@
             "unitPattern-count-other": "{0} psi"
           },
           "pressure-inch-ofhg": {
-            "displayName": "ديۇيم سىماب تۈۋرۇكى",
+            "displayName": "inHg",
             "unitPattern-count-other": "{0} inHg"
           },
           "pressure-bar": {
@@ -1792,7 +1816,7 @@
             "unitPattern-count-other": "{0} bar"
           },
           "pressure-millibar": {
-            "displayName": "مىللىبار",
+            "displayName": "mbar",
             "unitPattern-count-other": "{0} mbar"
           },
           "pressure-atmosphere": {
@@ -1804,7 +1828,7 @@
             "unitPattern-count-other": "{0} Pa"
           },
           "pressure-hectopascal": {
-            "displayName": "يۈز پاسكال",
+            "displayName": "hPa",
             "unitPattern-count-one": "{0} ھېكتوپاسكال",
             "unitPattern-count-other": "{0} ھېكتوپاسكال"
           },
@@ -1817,17 +1841,17 @@
             "unitPattern-count-other": "{0} MPa"
           },
           "speed-kilometer-per-hour": {
-            "displayName": "كىلومېتىر ھەر سائەت",
+            "displayName": "km/h",
             "unitPattern-count-one": "{0} سائەت/كىلومېتىر",
             "unitPattern-count-other": "{0} سائەت/كىلومېتىر"
           },
           "speed-meter-per-second": {
-            "displayName": "مېتىر ھەر سېكۇنت",
+            "displayName": "m/s",
             "unitPattern-count-one": "{0} سېكۇنت/مېتىر",
             "unitPattern-count-other": "{0} سېكۇنت/مېتىر"
           },
           "speed-mile-per-hour": {
-            "displayName": "مىل ھەر سائەت",
+            "displayName": "mi/h",
             "unitPattern-count-one": "{0} سائەت/مىل",
             "unitPattern-count-other": "{0} سائەت/مىل"
           },
@@ -1844,11 +1868,11 @@
             "unitPattern-count-other": "{0}°"
           },
           "temperature-celsius": {
-            "displayName": "سېلسىيە گرادۇس",
+            "displayName": "°C",
             "unitPattern-count-other": "{0}°C"
           },
           "temperature-fahrenheit": {
-            "displayName": "فارېنگېيت گرادۇس",
+            "displayName": "°F",
             "unitPattern-count-other": "{0}°F"
           },
           "temperature-kelvin": {
@@ -1864,7 +1888,7 @@
             "unitPattern-count-other": "{0} N⋅m"
           },
           "volume-cubic-kilometer": {
-            "displayName": "كۇب كىلومېتىر",
+            "displayName": "km³",
             "unitPattern-count-other": "{0} km³"
           },
           "volume-cubic-meter": {
@@ -1878,7 +1902,7 @@
             "perUnitPattern": "{0}/cm³"
           },
           "volume-cubic-mile": {
-            "displayName": "كۇب مىل",
+            "displayName": "mi³",
             "unitPattern-count-other": "{0} mi³"
           },
           "volume-cubic-yard": {
@@ -1902,7 +1926,7 @@
             "unitPattern-count-other": "{0} hL"
           },
           "volume-liter": {
-            "displayName": "لىتېر",
+            "displayName": "liter",
             "unitPattern-count-other": "{0} l",
             "perUnitPattern": "{0}/l"
           },
@@ -2301,7 +2325,7 @@
             "compoundUnitPattern": "{0}⋅{1}"
           },
           "acceleration-g-force": {
-            "displayName": "ئېغىرلىق كۈچى",
+            "displayName": "g-force",
             "unitPattern-count-one": "{0}G",
             "unitPattern-count-other": "{0}Gs"
           },
@@ -2318,7 +2342,7 @@
             "unitPattern-count-other": "{0} rad"
           },
           "angle-degree": {
-            "displayName": "گىرادۇس",
+            "displayName": "deg",
             "unitPattern-count-one": "{0}°",
             "unitPattern-count-other": "{0}°"
           },
@@ -2331,17 +2355,17 @@
             "unitPattern-count-other": "{0}″"
           },
           "area-square-kilometer": {
-            "displayName": "كۋادرات كىلومېتىر",
+            "displayName": "km²",
             "unitPattern-count-other": "{0} km²",
             "perUnitPattern": "{0}/km²"
           },
           "area-hectare": {
-            "displayName": "hectares",
+            "displayName": "hectare",
             "unitPattern-count-one": "{0}گېكتار",
             "unitPattern-count-other": "{0}گېكتار"
           },
           "area-square-meter": {
-            "displayName": "كۋادرات مېتىر",
+            "displayName": "m²",
             "unitPattern-count-other": "{0} m²",
             "perUnitPattern": "{0}/m²"
           },
@@ -2351,13 +2375,13 @@
             "perUnitPattern": "{0}/cm²"
           },
           "area-square-mile": {
-            "displayName": "كۋادرات مىل",
+            "displayName": "mi²",
             "unitPattern-count-one": "{0}mi²",
             "unitPattern-count-other": "{0}mi²",
             "perUnitPattern": "{0}/mi²"
           },
           "area-acre": {
-            "displayName": "ئىنگلىز موسى",
+            "displayName": "acre",
             "unitPattern-count-one": "{0}ac",
             "unitPattern-count-other": "{0}ac"
           },
@@ -2366,7 +2390,7 @@
             "unitPattern-count-other": "{0} yd²"
           },
           "area-square-foot": {
-            "displayName": "كۋادرات فۇت",
+            "displayName": "ft²",
             "unitPattern-count-one": "{0}ft²",
             "unitPattern-count-other": "{0}ft²"
           },
@@ -2492,7 +2516,7 @@
             "unitPattern-count-other": "{0} dec"
           },
           "duration-year": {
-            "displayName": "يىل",
+            "displayName": "yr",
             "unitPattern-count-one": "{0} يىل",
             "unitPattern-count-other": "{0} يىل",
             "perUnitPattern": "{0}/y"
@@ -2503,43 +2527,43 @@
             "perUnitPattern": "{0}/q"
           },
           "duration-month": {
-            "displayName": "ئاي",
+            "displayName": "mon",
             "unitPattern-count-one": "{0} ئاي",
             "unitPattern-count-other": "{0} ئاي",
             "perUnitPattern": "{0}/m"
           },
           "duration-week": {
-            "displayName": "ھەپتە",
+            "displayName": "wk",
             "unitPattern-count-one": "{0} ھەپتە",
             "unitPattern-count-other": "{0} ھەپتە",
             "perUnitPattern": "{0}/w"
           },
           "duration-day": {
-            "displayName": "كۈن",
+            "displayName": "day",
             "unitPattern-count-one": "{0} كۈن",
             "unitPattern-count-other": "{0} كۈن",
             "perUnitPattern": "{0}/d"
           },
           "duration-hour": {
-            "displayName": "سائەت",
+            "displayName": "hr",
             "unitPattern-count-one": "{0}h",
             "unitPattern-count-other": "{0}h",
             "perUnitPattern": "{0}/h"
           },
           "duration-minute": {
-            "displayName": "مىنۇت",
+            "displayName": "min",
             "unitPattern-count-one": "{0}m",
             "unitPattern-count-other": "{0}m",
             "perUnitPattern": "{0}/min"
           },
           "duration-second": {
-            "displayName": "سېكۇنت",
+            "displayName": "sec",
             "unitPattern-count-one": "{0}s",
             "unitPattern-count-other": "{0}s",
             "perUnitPattern": "{0}/s"
           },
           "duration-millisecond": {
-            "displayName": "مىللى سېكۇنت",
+            "displayName": "ms",
             "unitPattern-count-one": "{0}ms",
             "unitPattern-count-other": "{0}ms"
           },
@@ -2603,9 +2627,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -2652,13 +2684,13 @@
             "unitPattern-count-other": "{0} R⊕"
           },
           "length-kilometer": {
-            "displayName": "كىلومېتىر",
+            "displayName": "km",
             "unitPattern-count-one": "{0}km",
             "unitPattern-count-other": "{0}km",
             "perUnitPattern": "{0}/km"
           },
           "length-meter": {
-            "displayName": "مېتىر",
+            "displayName": "meter",
             "unitPattern-count-one": "{0}m",
             "unitPattern-count-other": "{0}m",
             "perUnitPattern": "{0}/m"
@@ -2668,13 +2700,13 @@
             "unitPattern-count-other": "{0} dm"
           },
           "length-centimeter": {
-            "displayName": "سانتىمېتىر",
+            "displayName": "cm",
             "unitPattern-count-one": "{0}cm",
             "unitPattern-count-other": "{0}cm",
             "perUnitPattern": "{0}/cm"
           },
           "length-millimeter": {
-            "displayName": "مىللىمېتىر",
+            "displayName": "mm",
             "unitPattern-count-one": "{0}mm",
             "unitPattern-count-other": "{0}mm"
           },
@@ -2687,38 +2719,42 @@
             "unitPattern-count-other": "{0} nm"
           },
           "length-picometer": {
-            "displayName": "پىكومېتىر",
+            "displayName": "pm",
             "unitPattern-count-one": "{0}pm",
             "unitPattern-count-other": "{0}pm"
           },
           "length-mile": {
-            "displayName": "مىل",
+            "displayName": "mi",
             "unitPattern-count-one": "{0}mi",
             "unitPattern-count-other": "{0}mi"
           },
           "length-yard": {
-            "displayName": "يارد",
+            "displayName": "yd",
             "unitPattern-count-one": "{0}yd",
             "unitPattern-count-other": "{0}yd"
           },
           "length-foot": {
-            "displayName": "فۇت",
+            "displayName": "ft",
             "unitPattern-count-one": "{0}′",
             "unitPattern-count-other": "{0}′",
             "perUnitPattern": "{0}/ft"
           },
           "length-inch": {
-            "displayName": "ديۇيم",
+            "displayName": "in",
             "unitPattern-count-one": "{0}″",
             "unitPattern-count-other": "{0}″",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
             "unitPattern-count-other": "{0} pc"
           },
           "length-light-year": {
-            "displayName": "يورۇقلۇق يىلى",
+            "displayName": "ly",
             "unitPattern-count-one": "{0}ly",
             "unitPattern-count-other": "{0}ly"
           },
@@ -2771,13 +2807,13 @@
             "unitPattern-count-other": "{0} t"
           },
           "mass-kilogram": {
-            "displayName": "كىلوگرام",
+            "displayName": "kg",
             "unitPattern-count-one": "{0}kg",
             "unitPattern-count-other": "{0}kg",
             "perUnitPattern": "{0}/kg"
           },
           "mass-gram": {
-            "displayName": "گرام",
+            "displayName": "gram",
             "unitPattern-count-one": "{0}g",
             "unitPattern-count-other": "{0}g",
             "perUnitPattern": "{0}/g"
@@ -2799,13 +2835,13 @@
             "unitPattern-count-other": "{0} st"
           },
           "mass-pound": {
-            "displayName": "قاداق",
+            "displayName": "lb",
             "unitPattern-count-one": "{0}#",
             "unitPattern-count-other": "{0}#",
             "perUnitPattern": "{0}/lb"
           },
           "mass-ounce": {
-            "displayName": "ئۇنسىيە",
+            "displayName": "oz",
             "unitPattern-count-one": "{0}oz",
             "unitPattern-count-other": "{0}oz",
             "perUnitPattern": "{0}/oz"
@@ -2843,12 +2879,12 @@
             "unitPattern-count-other": "{0} MW"
           },
           "power-kilowatt": {
-            "displayName": "كىلوۋات",
+            "displayName": "kW",
             "unitPattern-count-one": "{0}kW",
             "unitPattern-count-other": "{0}kW"
           },
           "power-watt": {
-            "displayName": "ۋات",
+            "displayName": "watt",
             "unitPattern-count-one": "{0}W",
             "unitPattern-count-other": "{0}W"
           },
@@ -2857,7 +2893,7 @@
             "unitPattern-count-other": "{0} mW"
           },
           "power-horsepower": {
-            "displayName": "ئات كۈچى",
+            "displayName": "hp",
             "unitPattern-count-one": "{0}hp",
             "unitPattern-count-other": "{0}hp"
           },
@@ -2874,7 +2910,7 @@
             "unitPattern-count-other": "{0} psi"
           },
           "pressure-inch-ofhg": {
-            "displayName": "ديۇيم سىماب تۈۋرۇكى",
+            "displayName": "inHg",
             "unitPattern-count-one": "{0}\" Hg",
             "unitPattern-count-other": "{0}\" Hg"
           },
@@ -2883,7 +2919,7 @@
             "unitPattern-count-other": "{0} bar"
           },
           "pressure-millibar": {
-            "displayName": "مىللىبار",
+            "displayName": "mbar",
             "unitPattern-count-one": "{0}mb",
             "unitPattern-count-other": "{0}mb"
           },
@@ -2896,7 +2932,7 @@
             "unitPattern-count-other": "{0} Pa"
           },
           "pressure-hectopascal": {
-            "displayName": "يۈز پاسكال",
+            "displayName": "hPa",
             "unitPattern-count-one": "{0}hPa",
             "unitPattern-count-other": "{0}hPa"
           },
@@ -2909,17 +2945,17 @@
             "unitPattern-count-other": "{0} MPa"
           },
           "speed-kilometer-per-hour": {
-            "displayName": "كىلومېتىر ھەر سائەت",
+            "displayName": "km/h",
             "unitPattern-count-one": "{0}kph",
             "unitPattern-count-other": "{0}kph"
           },
           "speed-meter-per-second": {
-            "displayName": "مېتىر ھەر سېكۇنت",
+            "displayName": "m/s",
             "unitPattern-count-one": "{0}m/s",
             "unitPattern-count-other": "{0}m/s"
           },
           "speed-mile-per-hour": {
-            "displayName": "مىل ھەر سائەت",
+            "displayName": "mi/h",
             "unitPattern-count-one": "{0}mph",
             "unitPattern-count-other": "{0}mph"
           },
@@ -2936,12 +2972,12 @@
             "unitPattern-count-other": "{0}°"
           },
           "temperature-celsius": {
-            "displayName": "سېلسىيە گرادۇس",
+            "displayName": "°C",
             "unitPattern-count-one": "{0}°",
             "unitPattern-count-other": "{0}°"
           },
           "temperature-fahrenheit": {
-            "displayName": "فارېنگېيت گرادۇس",
+            "displayName": "°F",
             "unitPattern-count-other": "{0}°F"
           },
           "temperature-kelvin": {
@@ -2957,7 +2993,7 @@
             "unitPattern-count-other": "{0} N⋅m"
           },
           "volume-cubic-kilometer": {
-            "displayName": "كۇب كىلومېتىر",
+            "displayName": "km³",
             "unitPattern-count-one": "{0}km³",
             "unitPattern-count-other": "{0}km³"
           },
@@ -2972,7 +3008,7 @@
             "perUnitPattern": "{0}/cm³"
           },
           "volume-cubic-mile": {
-            "displayName": "كۇب مىل",
+            "displayName": "mi³",
             "unitPattern-count-one": "{0}mi³",
             "unitPattern-count-other": "{0}mi³"
           },
@@ -2997,7 +3033,7 @@
             "unitPattern-count-other": "{0} hL"
           },
           "volume-liter": {
-            "displayName": "لىتېر",
+            "displayName": "liter",
             "unitPattern-count-one": "{0}l",
             "unitPattern-count-other": "{0}l",
             "perUnitPattern": "{0}/l"

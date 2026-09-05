@@ -10,26 +10,10 @@
           "localeSeparator": "{0}, {1}",
           "localeKeyTypePattern": "{0}: {1}"
         },
-        "keys": {
-          "calendar": "ullorsiut",
-          "currency": "akissaat",
-          "numbers": "normu"
-        },
-        "types": {
-          "calendar": {
-            "gregorian": "gregorianskit ullorsiutaat"
-          },
-          "numbers": {
-            "fullwide": "atitooq atugartuut normu",
-            "latn": "atugartuut normu",
-            "roman": "ruumamiut-kisitsisaat",
-            "romanlow": "naqippoq ruumamiut-kisitsisaat"
-          }
-        },
         "codePatterns": {
-          "language": "oqaatsit: {0}",
-          "script": "allaqqitaq: {0}",
-          "territory": "nunap imartaa nunataalu: {0}"
+          "language": "{0}",
+          "script": "{0}",
+          "territory": "{0}"
         }
       }
     }

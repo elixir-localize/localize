@@ -6,9 +6,9 @@
       },
       "localeDisplayNames": {
         "measurementSystemNames": {
-          "metric": "Amitran",
-          "UK": "Anglizi",
-          "US": "Amarikan"
+          "metric": "Metric",
+          "UK": "UK",
+          "US": "US"
         }
       }
     }

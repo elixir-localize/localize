@@ -315,9 +315,7 @@
           },
           "duration-century": {
             "displayName": "c",
-            "unitPattern-count-zero": "{0} Jrh",
-            "unitPattern-count-one": "{0} Jrh",
-            "unitPattern-count-other": "{0} Jrh"
+            "unitPattern-count-other": "{0} c"
           },
           "duration-decade": {
             "displayName": "dec",
@@ -328,7 +326,7 @@
             "unitPattern-count-zero": "{0} Johre",
             "unitPattern-count-one": "{0} Johre",
             "unitPattern-count-other": "{0} Johre",
-            "perUnitPattern": "{0} pro Johre"
+            "perUnitPattern": "{0}/y"
           },
           "duration-quarter": {
             "displayName": "qtr",
@@ -340,42 +338,42 @@
             "unitPattern-count-zero": "{0} Mohnde",
             "unitPattern-count-one": "{0} Mohnde",
             "unitPattern-count-other": "{0} Mohnde",
-            "perUnitPattern": "{0} pro Mohnde"
+            "perUnitPattern": "{0}/m"
           },
           "duration-week": {
             "displayName": "Woche",
             "unitPattern-count-zero": "{0} Woche",
             "unitPattern-count-one": "{0} Woche",
             "unitPattern-count-other": "{0} Woche",
-            "perUnitPattern": "{0} pro Woche"
+            "perUnitPattern": "{0}/w"
           },
           "duration-day": {
             "displayName": "Dääsch",
             "unitPattern-count-zero": "{0} Dääsch",
             "unitPattern-count-one": "{0} Dääsch",
             "unitPattern-count-other": "{0} Dääsch",
-            "perUnitPattern": "{0} pro Dääsch"
+            "perUnitPattern": "{0}/d"
           },
           "duration-hour": {
             "displayName": "Schtunde",
             "unitPattern-count-zero": "{0} Schtunde",
             "unitPattern-count-one": "{0} Schtunde",
             "unitPattern-count-other": "{0} Schtunde",
-            "perUnitPattern": "{0} pro Schtunde"
+            "perUnitPattern": "{0}/h"
           },
           "duration-minute": {
             "displayName": "Menutte",
             "unitPattern-count-zero": "{0} Menutte",
             "unitPattern-count-one": "{0} Menutte",
             "unitPattern-count-other": "{0} Menutte",
-            "perUnitPattern": "{0} pro Menutte"
+            "perUnitPattern": "{0}/min"
           },
           "duration-second": {
             "displayName": "Sekunde",
             "unitPattern-count-zero": "{0} Sekunde",
             "unitPattern-count-one": "{0} Sekunde",
             "unitPattern-count-other": "{0} Sekunde",
-            "perUnitPattern": "{0} pro Sekunde"
+            "perUnitPattern": "{0}/s"
           },
           "duration-millisecond": {
             "displayName": "Millisekunde",
@@ -443,9 +441,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -496,7 +502,7 @@
             "unitPattern-count-zero": "{0} Kilometer",
             "unitPattern-count-one": "{0} Kilometer",
             "unitPattern-count-other": "{0} Kilometer",
-            "perUnitPattern": "{0} pro Kilometer"
+            "perUnitPattern": "{0}/km"
           },
           "length-meter": {
             "displayName": "Meter",
@@ -559,6 +565,10 @@
             "unitPattern-count-one": "{0} Dumm",
             "unitPattern-count-other": "{0} Dumm",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
@@ -1440,9 +1450,7 @@
           },
           "duration-century": {
             "displayName": "c",
-            "unitPattern-count-zero": "{0} Jrh",
-            "unitPattern-count-one": "{0} Jrh",
-            "unitPattern-count-other": "{0} Jrh"
+            "unitPattern-count-other": "{0} c"
           },
           "duration-decade": {
             "displayName": "dec",
@@ -1450,10 +1458,8 @@
           },
           "duration-year": {
             "displayName": "Johre",
-            "unitPattern-count-zero": "{0} Jr",
-            "unitPattern-count-one": "{0} Jr",
-            "unitPattern-count-other": "{0} Jr",
-            "perUnitPattern": "{0}/Jr"
+            "unitPattern-count-other": "{0} y",
+            "perUnitPattern": "{0}/y"
           },
           "duration-quarter": {
             "displayName": "qtr",
@@ -1462,10 +1468,8 @@
           },
           "duration-month": {
             "displayName": "Mohnde",
-            "unitPattern-count-zero": "{0} Mohn",
-            "unitPattern-count-one": "{0} Mohn",
-            "unitPattern-count-other": "{0} Mohn",
-            "perUnitPattern": "{0}/Mohn"
+            "unitPattern-count-other": "{0} m",
+            "perUnitPattern": "{0}/m"
           },
           "duration-week": {
             "displayName": "Woche",
@@ -1480,7 +1484,7 @@
           "duration-hour": {
             "displayName": "Schtunde",
             "unitPattern-count-other": "{0} h",
-            "perUnitPattern": "{0} pro Schtunde"
+            "perUnitPattern": "{0}/h"
           },
           "duration-minute": {
             "displayName": "Menutte",
@@ -1556,9 +1560,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -1660,6 +1672,10 @@
             "unitPattern-count-one": "{0} Dumm",
             "unitPattern-count-other": "{0} Dumm",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
@@ -2519,9 +2535,7 @@
           },
           "duration-century": {
             "displayName": "c",
-            "unitPattern-count-zero": "{0} Jrh",
-            "unitPattern-count-one": "{0} Jrh",
-            "unitPattern-count-other": "{0} Jrh"
+            "unitPattern-count-other": "{0} c"
           },
           "duration-decade": {
             "displayName": "dec",
@@ -2529,10 +2543,8 @@
           },
           "duration-year": {
             "displayName": "Johre",
-            "unitPattern-count-zero": "{0} Jr",
-            "unitPattern-count-one": "{0} Jr",
-            "unitPattern-count-other": "{0} Jr",
-            "perUnitPattern": "{0}/Jr"
+            "unitPattern-count-other": "{0} y",
+            "perUnitPattern": "{0}/y"
           },
           "duration-quarter": {
             "displayName": "qtr",
@@ -2541,10 +2553,8 @@
           },
           "duration-month": {
             "displayName": "Mohnde",
-            "unitPattern-count-zero": "{0} Mohn",
-            "unitPattern-count-one": "{0} Mohn",
-            "unitPattern-count-other": "{0} Mohn",
-            "perUnitPattern": "{0}/Mohn"
+            "unitPattern-count-other": "{0} m",
+            "perUnitPattern": "{0}/m"
           },
           "duration-week": {
             "displayName": "Woche",
@@ -2563,7 +2573,7 @@
             "unitPattern-count-zero": "{0}h",
             "unitPattern-count-one": "{0}h",
             "unitPattern-count-other": "{0}h",
-            "perUnitPattern": "{0} pro Schtunde"
+            "perUnitPattern": "{0}/h"
           },
           "duration-minute": {
             "displayName": "Menutte",
@@ -2645,9 +2655,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -2759,6 +2777,10 @@
             "unitPattern-count-one": "{0} Dumm",
             "unitPattern-count-other": "{0} Dumm",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
@@ -2991,7 +3013,7 @@
             "unitPattern-count-other": "{0}°"
           },
           "temperature-celsius": {
-            "displayName": "Graad Celsius",
+            "displayName": "°C",
             "unitPattern-count-zero": "{0}°",
             "unitPattern-count-one": "{0}°",
             "unitPattern-count-other": "{0}°"

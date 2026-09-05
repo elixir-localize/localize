@@ -6,15 +6,7 @@
       },
       "localeDisplayNames": {
         "scripts": {
-          "Arab": "arābiskan",
-          "Cyrl": "cīriliskan",
-          "Hans": "prastintan",
-          "Hans-alt-stand-alone": "prastintan han",
-          "Hant": "tradiciōnalin",
-          "Hant-alt-stand-alone": "tradiciōnalin han",
-          "Jpan": "japāniskas",
           "Latn": "lātiniskan",
-          "Zxxx": "nienpeisātan",
           "Zzzz": "niwaīstan skriptan"
         }
       }

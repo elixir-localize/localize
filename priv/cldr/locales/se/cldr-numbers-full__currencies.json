@@ -60,6 +60,10 @@
             "symbol": "CA$",
             "symbol-alt-narrow": "$"
           },
+          "CHF": {
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
+          },
           "CLP": {
             "symbol-alt-narrow": "$"
           },
@@ -112,7 +116,7 @@
             "symbol-alt-narrow": "£"
           },
           "GBP": {
-            "symbol": "GB£",
+            "symbol": "£",
             "symbol-alt-narrow": "£"
           },
           "GEL": {
@@ -158,7 +162,6 @@
             "symbol-alt-narrow": "₹"
           },
           "ISK": {
-            "symbol": "Ikr",
             "symbol-alt-narrow": "kr"
           },
           "JMD": {

@@ -61,12 +61,7 @@
           },
           "ARA": {
             "displayName": "استرال أرجنتيني",
-            "displayName-count-zero": "أسترال أرجنتيني",
-            "displayName-count-one": "أسترال أرجنتيني",
-            "displayName-count-two": "أسترال أرجنتيني",
-            "displayName-count-few": "أسترال أرجنتيني",
-            "displayName-count-many": "أسترال أرجنتيني",
-            "displayName-count-other": "أسترال أرجنتيني"
+            "displayName-count-other": "استرال أرجنتيني"
           },
           "ARP": {
             "displayName": "بيزو أرجنتيني - 1983-1985",
@@ -243,7 +238,9 @@
           },
           "CHF": {
             "displayName": "فرنك سويسري",
-            "displayName-count-other": "فرنك سويسري"
+            "displayName-count-other": "فرنك سويسري",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr"
           },
           "CLP": {
             "displayName": "بيزو تشيلي",
@@ -335,12 +332,7 @@
           },
           "EEK": {
             "displayName": "كرونة استونية",
-            "displayName-count-zero": "كرونة أستونية",
-            "displayName-count-one": "كرونة أستونية",
-            "displayName-count-two": "كرونة أستونية",
-            "displayName-count-few": "كرونة أستونية",
-            "displayName-count-many": "كرونة أستونية",
-            "displayName-count-other": "كرونة أستونية"
+            "displayName-count-other": "كرونة استونية"
           },
           "EGP": {
             "displayName": "جنيه مصري",
@@ -604,8 +596,13 @@
             "symbol-alt-narrow": "₭"
           },
           "LBP": {
-            "displayName": "جنيه لبناني",
-            "displayName-count-other": "جنيه لبناني",
+            "displayName": "ليرة لبنانية",
+            "displayName-count-zero": "ليرة لبنانية",
+            "displayName-count-one": "ليرة لبنانية",
+            "displayName-count-two": "ليرة لبنانية",
+            "displayName-count-few": "ليرات لبنانية",
+            "displayName-count-many": "ليرة لبنانية",
+            "displayName-count-other": "ليرة لبنانية",
             "symbol": "ل.ل.‏",
             "symbol-alt-narrow": "L£"
           },
@@ -765,12 +762,7 @@
           },
           "MXP": {
             "displayName": "بيزو فضي مكسيكي - 1861-1992",
-            "displayName-count-zero": "بيزو فضي مكسيكي",
-            "displayName-count-one": "بيزو فضي مكسيكي",
-            "displayName-count-two": "بيزو فضي مكسيكي",
-            "displayName-count-few": "بيزو فضي مكسيكي",
-            "displayName-count-many": "بيزو فضي مكسيكي",
-            "displayName-count-other": "بيزو فضي مكسيكي"
+            "displayName-count-other": "بيزو فضي مكسيكي - 1861-1992"
           },
           "MYR": {
             "displayName": "رينغيت ماليزي",
@@ -863,12 +855,7 @@
           },
           "PTE": {
             "displayName": "اسكود برتغالي",
-            "displayName-count-zero": "أسكود برتغالي",
-            "displayName-count-one": "أسكود برتغالي",
-            "displayName-count-two": "أسكود برتغالي",
-            "displayName-count-few": "أسكود برتغالي",
-            "displayName-count-many": "أسكود برتغالي",
-            "displayName-count-other": "أسكود برتغالي"
+            "displayName-count-other": "اسكود برتغالي"
           },
           "PYG": {
             "displayName": "غواراني باراغواي",
@@ -933,12 +920,7 @@
           },
           "SDD": {
             "displayName": "دينار سوداني",
-            "displayName-count-zero": "دينار سوداني قديم",
-            "displayName-count-one": "دينار سوداني قديم",
-            "displayName-count-two": "دينار سوداني قديم",
-            "displayName-count-few": "دينار سوداني قديم",
-            "displayName-count-many": "دينار سوداني قديم",
-            "displayName-count-other": "دينار سوداني قديم",
+            "displayName-count-other": "دينار سوداني",
             "symbol": "د.س.‏"
           },
           "SDG": {
@@ -1196,12 +1178,7 @@
           },
           "XBD": {
             "displayName": "(XBD)وحدة الحساب الأوروبية",
-            "displayName-count-zero": "وحدة الحساب الأوروبية",
-            "displayName-count-one": "وحدة الحساب الأوروبية",
-            "displayName-count-two": "وحدة الحساب الأوروبية",
-            "displayName-count-few": "وحدة الحساب الأوروبية",
-            "displayName-count-many": "وحدة الحساب الأوروبية",
-            "displayName-count-other": "وحدة الحساب الأوروبية"
+            "displayName-count-other": "(XBD)وحدة الحساب الأوروبية"
           },
           "XCD": {
             "displayName": "دولار شرق الكاريبي",
@@ -1211,11 +1188,6 @@
           },
           "XCG": {
             "displayName": "غيلدر كاريبي",
-            "displayName-count-zero": "غيلدر كاريبي",
-            "displayName-count-one": "غيلدر كاريبي",
-            "displayName-count-two": "غيلدر كاريبي",
-            "displayName-count-few": "غيلدر كاريبي",
-            "displayName-count-many": "غيلدر كاريبي",
             "displayName-count-other": "غيلدر كاريبي",
             "symbol": "Cg."
           },
@@ -1316,11 +1288,6 @@
           },
           "ZWG": {
             "displayName": "ذهب زيمبابوي",
-            "displayName-count-zero": "ذهب زيمبابوي",
-            "displayName-count-one": "ذهب زيمبابوي",
-            "displayName-count-two": "ذهب زيمبابوي",
-            "displayName-count-few": "ذهب زيمبابوي",
-            "displayName-count-many": "ذهب زيمبابوي",
             "displayName-count-other": "ذهب زيمبابوي"
           },
           "ZWL": {

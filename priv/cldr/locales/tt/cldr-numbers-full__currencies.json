@@ -136,7 +136,9 @@
           },
           "CHF": {
             "displayName": "Швейцария франкы",
-            "displayName-count-other": "Швейцария франклары"
+            "displayName-count-other": "Швейцария франклары",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CLP": {
             "displayName": "Чили песосы",
@@ -569,9 +571,6 @@
             "displayName-count-other": "сум",
             "symbol": "₽",
             "symbol-alt-narrow": "₽"
-          },
-          "RUR": {
-            "symbol": "р."
           },
           "RWF": {
             "displayName": "Руанда франкы",

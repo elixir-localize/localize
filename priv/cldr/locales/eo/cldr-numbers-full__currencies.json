@@ -164,7 +164,9 @@
           "CHF": {
             "displayName": "svisa franko",
             "displayName-count-one": "svisa franko",
-            "displayName-count-other": "svisaj frankoj"
+            "displayName-count-other": "svisaj frankoj",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CLP": {
             "displayName": "ĉilia peso",
@@ -887,18 +889,6 @@
             "displayName-count-other": "ekvatorafrikaj frankoj",
             "symbol": "XAF"
           },
-          "XAG": {
-            "displayName": "arĝento",
-            "displayName-count-other": "arĝento"
-          },
-          "XAU": {
-            "displayName": "oro",
-            "displayName-count-other": "oro"
-          },
-          "XBB": {
-            "displayName": "eŭropa monunuo",
-            "displayName-count-other": "eŭropa monunuo"
-          },
           "XCD": {
             "displayName": "orientkariba dolaro",
             "displayName-count-one": "orientkariba dolaro",
@@ -912,19 +902,11 @@
             "displayName-count-other": "karibaj guldenoj",
             "symbol": "XCG"
           },
-          "XFO": {
-            "displayName": "franca ora franko",
-            "displayName-count-other": "franca ora franko"
-          },
           "XOF": {
             "displayName": "okcidentafrika franko",
             "displayName-count-one": "okcidentafrika franko",
             "displayName-count-other": "okcidentafrikaj frankoj",
             "symbol": "XOF"
-          },
-          "XPD": {
-            "displayName": "paladio",
-            "displayName-count-other": "paladio"
           },
           "XPF": {
             "displayName": "pacifika franko",
@@ -932,14 +914,10 @@
             "displayName-count-other": "pacifikaj frankoj",
             "symbol": "XPF"
           },
-          "XPT": {
-            "displayName": "plateno",
-            "displayName-count-other": "plateno"
-          },
           "XXX": {
-            "displayName": "nekonata monunuo",
-            "displayName-count-one": "(nekunata monunuo)",
-            "displayName-count-other": "(nekonata monunuo)",
+            "displayName": "nekonata valuto",
+            "displayName-count-one": "(nekonata valuto)",
+            "displayName-count-other": "(nekonata valuto)",
             "symbol": "¤"
           },
           "YER": {

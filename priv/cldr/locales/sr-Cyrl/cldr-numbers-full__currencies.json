@@ -32,11 +32,6 @@
             "displayName-count-other": "авганистанских авгана",
             "symbol-alt-narrow": "؋"
           },
-          "ALK": {
-            "displayName-count-one": "стари албански лек",
-            "displayName-count-few": "стара албанска лека",
-            "displayName-count-other": "старих албанских лека"
-          },
           "ALL": {
             "displayName": "албански лек",
             "displayName-count-one": "албански лек",
@@ -86,18 +81,6 @@
             "displayName-count-one": "аргентински аустрал",
             "displayName-count-few": "аргентинска аустрала",
             "displayName-count-other": "аргентинских аустрала"
-          },
-          "ARL": {
-            "displayName": "Аргентински пезос леј",
-            "displayName-count-one": "аргентински пезос леј",
-            "displayName-count-few": "аргентинска пезос леја",
-            "displayName-count-other": "аргентинских пезос леја"
-          },
-          "ARM": {
-            "displayName": "Аргентински пезос монедо национал",
-            "displayName-count-one": "аргентински пезос монедо национал",
-            "displayName-count-few": "аргентинска пезос монеда национал",
-            "displayName-count-other": "аргентинских пезос монеда национала"
           },
           "ARP": {
             "displayName": "Аргентински пезо (1983–1985)",
@@ -159,12 +142,6 @@
             "symbol": "КМ",
             "symbol-alt-narrow": "KM"
           },
-          "BAN": {
-            "displayName": "Босанско-херцеговачки нови динар",
-            "displayName-count-one": "босанско-херцеговачки нови динар",
-            "displayName-count-few": "босанско-херцеговачка нова динара",
-            "displayName-count-other": "босанско-херцеговачких нових динара"
-          },
           "BBD": {
             "displayName": "барбадошки долар",
             "displayName-count-one": "барбадошки долар",
@@ -203,23 +180,11 @@
             "displayName-count-few": "бугарска тврда лева",
             "displayName-count-other": "бугарских тврдих лева"
           },
-          "BGM": {
-            "displayName": "Бугарски социјалистички лев",
-            "displayName-count-one": "бугарски социјалистички лев",
-            "displayName-count-few": "бугарска социјалистичка лева",
-            "displayName-count-other": "бугарских социјалистичких лева"
-          },
           "BGN": {
             "displayName": "бугарски лев",
             "displayName-count-one": "бугарски лев",
             "displayName-count-few": "бугарска лева",
             "displayName-count-other": "бугарских лева"
-          },
-          "BGO": {
-            "displayName": "Стари бугарски лев",
-            "displayName-count-one": "стари бугарски лев",
-            "displayName-count-few": "стара бугарска лева",
-            "displayName-count-other": "старих бугарских лева"
           },
           "BHD": {
             "displayName": "бахреински динар",
@@ -253,12 +218,6 @@
             "displayName-count-few": "боливијска боливијана",
             "displayName-count-other": "боливијских боливијана",
             "symbol-alt-narrow": "Bs"
-          },
-          "BOL": {
-            "displayName": "Стари боливијски боливијано",
-            "displayName-count-one": "стари боливијски боливијано",
-            "displayName-count-few": "стара боливијска боливијана",
-            "displayName-count-other": "старих боливијских боливијана"
           },
           "BOP": {
             "displayName": "Боливијски пезо",
@@ -309,12 +268,6 @@
             "displayName-count-one": "бразилски крузеиро",
             "displayName-count-few": "бразилска крузеира",
             "displayName-count-other": "бразилских крузеира"
-          },
-          "BRZ": {
-            "displayName": "Стари бразилски крузеиро",
-            "displayName-count-one": "стари бразилски крузеиро",
-            "displayName-count-few": "стара бразилска крузеира",
-            "displayName-count-other": "старих бразилских крузеира"
           },
           "BSD": {
             "displayName": "бахамски долар",
@@ -392,19 +345,15 @@
             "displayName": "швајцарски франак",
             "displayName-count-one": "швајцарски франак",
             "displayName-count-few": "швајцарска франка",
-            "displayName-count-other": "швајцарских франака"
+            "displayName-count-other": "швајцарских франака",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CHW": {
             "displayName": "WIR франак",
             "displayName-count-one": "WIR франак",
             "displayName-count-few": "WIR франка",
             "displayName-count-other": "WIR франака"
-          },
-          "CLE": {
-            "displayName": "Чилеански ескудо",
-            "displayName-count-one": "чилеански ескудо",
-            "displayName-count-few": "чилеанска ескуда",
-            "displayName-count-other": "чилеанских ескуда"
           },
           "CLF": {
             "displayName": "Чилеовски унидадес се фоменто",
@@ -424,12 +373,6 @@
             "displayName-count-one": "кинески јуан (острвски)",
             "displayName-count-few": "кинеска јуана (острвска)",
             "displayName-count-other": "кинеских јуана (острвских)"
-          },
-          "CNX": {
-            "displayName": "Долар кинеске народне банке",
-            "displayName-count-one": "долар кинеске народне банке",
-            "displayName-count-few": "долара кинеске народне банке",
-            "displayName-count-other": "долара кинеске народне банке"
           },
           "CNY": {
             "displayName": "кинески јуан",
@@ -898,18 +841,6 @@
             "displayName-count-other": "севернокорејских вона",
             "symbol-alt-narrow": "₩"
           },
-          "KRH": {
-            "displayName": "Јужнокорејски хван",
-            "displayName-count-one": "јужнокорејски хван",
-            "displayName-count-few": "јужнокорејска хвана",
-            "displayName-count-other": "јужнокорејских хвана"
-          },
-          "KRO": {
-            "displayName": "Стари јужнокорејски вон",
-            "displayName-count-one": "стари јужнокорејски вон",
-            "displayName-count-few": "стара јужнокорејска вона",
-            "displayName-count-other": "старих јужнокорејских вона"
-          },
           "KRW": {
             "displayName": "јужнокорејски вон",
             "displayName-count-one": "јужнокорејски вон",
@@ -1034,18 +965,6 @@
             "displayName-count-few": "мароканска франка",
             "displayName-count-other": "мароканских франака"
           },
-          "MCF": {
-            "displayName": "Монегаскански франак",
-            "displayName-count-one": "монегаскански франак",
-            "displayName-count-few": "монегасканска франка",
-            "displayName-count-other": "монегасканских франака"
-          },
-          "MDC": {
-            "displayName": "Молдовански купон",
-            "displayName-count-one": "молдовански купон",
-            "displayName-count-few": "молдованска купона",
-            "displayName-count-other": "молдованских купона"
-          },
           "MDL": {
             "displayName": "молдавски леј",
             "displayName-count-one": "молдaвски леј",
@@ -1070,12 +989,6 @@
             "displayName-count-one": "македонски денар",
             "displayName-count-few": "македонска денара",
             "displayName-count-other": "македонских денара"
-          },
-          "MKN": {
-            "displayName": "Стари македонски денар",
-            "displayName-count-one": "стари македонски денар",
-            "displayName-count-few": "стара македонска денара",
-            "displayName-count-other": "старих македонских денара"
           },
           "MLF": {
             "displayName": "Малијански франак",
@@ -1774,8 +1687,6 @@
           },
           "XCG": {
             "displayName": "карипски гулден",
-            "displayName-count-one": "карипски гулден",
-            "displayName-count-few": "карипски гулден",
             "displayName-count-other": "карипски гулден",
             "symbol": "Cg."
           },
@@ -1878,12 +1789,6 @@
             "displayName-count-few": "југословенска конвертибилна динара",
             "displayName-count-other": "југословенских конвертибилних динара"
           },
-          "YUR": {
-            "displayName": "Југословенски реформирани динар",
-            "displayName-count-one": "југословенски реформирани динар",
-            "displayName-count-few": "југословенска реформирана динара",
-            "displayName-count-other": "југословенских реформираних динара"
-          },
           "ZAL": {
             "displayName": "Јужно-афрички ранд (финансијски)",
             "displayName-count-one": "јужноафрички ранд (финансијски)",
@@ -1930,8 +1835,6 @@
           },
           "ZWG": {
             "displayName": "зимбабвеанско злато",
-            "displayName-count-one": "зимбабвеанско злато",
-            "displayName-count-few": "зимбабвеанско злато",
             "displayName-count-other": "зимбабвеанско злато"
           },
           "ZWL": {

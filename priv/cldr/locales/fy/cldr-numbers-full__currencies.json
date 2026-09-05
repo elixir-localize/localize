@@ -267,7 +267,9 @@
           },
           "CHF": {
             "displayName": "Zwitserse frank",
-            "displayName-count-other": "Zwitserse frank"
+            "displayName-count-other": "Zwitserse frank",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CHW": {
             "displayName": "WIR franc",
@@ -285,11 +287,6 @@
             "displayName": "Sileenske peso",
             "displayName-count-other": "Sileenske peso",
             "symbol-alt-narrow": "$"
-          },
-          "CNH": {
-            "displayName": "Sineeske yuan (offshore)",
-            "displayName-count-one": "Sineeske yuan (offshore)",
-            "displayName-count-other": "Sineeske yuan (offshore)"
           },
           "CNY": {
             "displayName": "Sineeske yuan renminbi",
@@ -1283,7 +1280,7 @@
           "XXX": {
             "displayName": "Unbekende muntienheid",
             "displayName-count-other": "Unbekende muntienheid",
-            "symbol": "XXX"
+            "symbol": "¤"
           },
           "YDD": {
             "displayName": "Jemenityske dinar",

@@ -184,10 +184,10 @@
             "quarters": {
               "format": {
                 "abbreviated": {
-                  "1": "T1",
-                  "2": "T2",
-                  "3": "T3",
-                  "4": "T4"
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 },
                 "narrow": {
                   "1": "1",
@@ -196,18 +196,18 @@
                   "4": "4"
                 },
                 "wide": {
-                  "1": "1º trimestre",
-                  "2": "2º trimestre",
-                  "3": "3º trimestre",
-                  "4": "4º trimestre"
+                  "1": "1º quadrimestre",
+                  "2": "2º quadrimestre",
+                  "3": "3º quadrimestre",
+                  "4": "4º quadrimestre"
                 }
               },
               "stand-alone": {
                 "abbreviated": {
-                  "1": "T1",
-                  "2": "T2",
-                  "3": "T3",
-                  "4": "T4"
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 },
                 "narrow": {
                   "1": "1",
@@ -216,10 +216,10 @@
                   "4": "4"
                 },
                 "wide": {
-                  "1": "1º trimestre",
-                  "2": "2º trimestre",
-                  "3": "3º trimestre",
-                  "4": "4º trimestre"
+                  "1": "1º quadrimestre",
+                  "2": "2º quadrimestre",
+                  "3": "3º quadrimestre",
+                  "4": "4º quadrimestre"
                 }
               }
             },
@@ -231,7 +231,7 @@
                   "noon": "mëzogiorno",
                   "pm": "PM",
                   "morning1": "da mattin",
-                  "afternoon1": "do poidisnâ",
+                  "afternoon1": "de poidisnâ",
                   "evening1": "da seia",
                   "night1": "da neutte"
                 },
@@ -241,7 +241,7 @@
                   "noon": "mëzogiorno",
                   "pm": "p.",
                   "morning1": "da mattin",
-                  "afternoon1": "do poidisnâ",
+                  "afternoon1": "de poidisnâ",
                   "evening1": "da seia",
                   "night1": "da neutte"
                 },
@@ -251,7 +251,7 @@
                   "noon": "mëzogiorno",
                   "pm": "PM",
                   "morning1": "da mattin",
-                  "afternoon1": "do poidisnâ",
+                  "afternoon1": "de poidisnâ",
                   "evening1": "da seia",
                   "night1": "da neutte"
                 }
@@ -328,6 +328,10 @@
               "short": "HHmm"
             },
             "dateTimeFormats": {
+              "numericSeparators": {
+                "numericDateSeparator": "/",
+                "numericTimeSeparator": ":"
+              },
               "full": "{1}, {0}",
               "long": "{1}, {0}",
               "medium": "{1}, {0}",
@@ -348,9 +352,9 @@
                 "Ehms": "E h:mm:ss a",
                 "EHms": "E HH:mm:ss",
                 "Gy": "y G",
-                "GyM": "G y-MM",
+                "GyM": "M/y G",
                 "GyMd": "d/M/y GGGGG",
-                "GyMEd": "G y-MM-dd, E",
+                "GyMEd": "E d/M/y GGGGG",
                 "GyMMM": "LLL y G",
                 "GyMMMd": "d MMM y G",
                 "GyMMMEd": "E d MMM y G",
@@ -361,7 +365,7 @@
                 "hms": "h:mm:ss a",
                 "Hms": "HH:mm:ss",
                 "hv": "h a v",
-                "Hv": "HH v",
+                "Hv": "'h'HH v",
                 "M": "L",
                 "Md": "d/M",
                 "MEd": "E d/M",
@@ -383,19 +387,26 @@
                 "yyyyQQQQ": "QQQQ y G"
               },
               "appendItems": {
+                "Date-Timezone": "{0} {1}",
                 "Day": "{0} ({2}: {1})",
-                "Day-Of-Week": "{0} {1}",
-                "Era": "{1} {0}",
+                "Day-Of-Week": "{1} {0}",
+                "Era": "{0} {1}",
                 "Hour": "{0} ({2}: {1})",
                 "Minute": "{0} ({2}: {1})",
                 "Month": "{0} ({2}: {1})",
                 "Quarter": "{0} ({2}: {1})",
                 "Second": "{0} ({2}: {1})",
+                "Time-Day-Of-Week": "{1} {0}",
                 "Timezone": "{0} {1}",
                 "Week": "{0} ({2}: {1})",
                 "Year": "{1} {0}"
               },
               "intervalFormats": {
+                "intervalFormatRanges": {
+                  "mixed": "{0} – {1}",
+                  "non-numeric": "{0}–{1}",
+                  "numeric": "{0}–{1}"
+                },
                 "intervalFormatFallback": "{0} – {1}",
                 "Bh": {
                   "B": "h B – h B",
@@ -501,6 +512,10 @@
                   "d": "E d – E d MMM",
                   "M": "E d MMM – E d MMM"
                 },
+                "MMMMd": {
+                  "d": "d–d MMMM",
+                  "M": "d MMMM – d MMMM"
+                },
                 "y": {
                   "y": "y–y G"
                 },
@@ -548,8 +563,8 @@
             },
             "dateTimeFormats-relative": {
               "standard": {
-                "full": "{1}, {0}",
-                "long": "{1}, {0}",
+                "full": "{1} 'à' {0}",
+                "long": "{1} 'à' {0}",
                 "medium": "{1}, {0}",
                 "short": "{1}, {0}"
               }

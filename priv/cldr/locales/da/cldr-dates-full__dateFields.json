@@ -602,7 +602,7 @@
           },
           "minute-short": {
             "displayName": "min.",
-            "relative-type-0": "dette min.",
+            "relative-type-0": "dette minut",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "om {0} min.",
               "relativeTimePattern-count-other": "om {0} min."
@@ -614,7 +614,7 @@
           },
           "minute-narrow": {
             "displayName": "min.",
-            "relative-type-0": "dette min.",
+            "relative-type-0": "dette minut",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "om {0} min.",
               "relativeTimePattern-count-other": "om {0} min."

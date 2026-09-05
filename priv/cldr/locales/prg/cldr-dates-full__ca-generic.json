@@ -100,31 +100,31 @@
             "days": {
               "format": {
                 "abbreviated": {
-                  "sun": "nad",
-                  "mon": "pan",
-                  "tue": "wis",
-                  "wed": "pus",
-                  "thu": "ket",
-                  "fri": "pēn",
-                  "sat": "sab"
+                  "sun": "nadīli",
+                  "mon": "panadīli",
+                  "tue": "wisasīdis",
+                  "wed": "pussisawaiti",
+                  "thu": "ketwirtiks",
+                  "fri": "pēntniks",
+                  "sat": "sabattika"
                 },
                 "narrow": {
-                  "sun": "N",
-                  "mon": "P",
-                  "tue": "W",
-                  "wed": "P",
-                  "thu": "K",
-                  "fri": "P",
+                  "sun": "S",
+                  "mon": "M",
+                  "tue": "T",
+                  "wed": "W",
+                  "thu": "T",
+                  "fri": "F",
                   "sat": "S"
                 },
                 "short": {
-                  "sun": "nad",
-                  "mon": "pan",
-                  "tue": "wis",
-                  "wed": "pus",
-                  "thu": "ket",
-                  "fri": "pēn",
-                  "sat": "sab"
+                  "sun": "nadīli",
+                  "mon": "panadīli",
+                  "tue": "wisasīdis",
+                  "wed": "pussisawaiti",
+                  "thu": "ketwirtiks",
+                  "fri": "pēntniks",
+                  "sat": "sabattika"
                 },
                 "wide": {
                   "sun": "nadīli",
@@ -138,31 +138,31 @@
               },
               "stand-alone": {
                 "abbreviated": {
-                  "sun": "nad",
-                  "mon": "pan",
-                  "tue": "wis",
-                  "wed": "pus",
-                  "thu": "ket",
-                  "fri": "pēn",
-                  "sat": "sab"
+                  "sun": "nadīli",
+                  "mon": "panadīli",
+                  "tue": "wisasīdis",
+                  "wed": "pussisawaiti",
+                  "thu": "ketwirtiks",
+                  "fri": "pēntniks",
+                  "sat": "sabattika"
                 },
                 "narrow": {
-                  "sun": "N",
-                  "mon": "P",
-                  "tue": "W",
-                  "wed": "P",
-                  "thu": "K",
-                  "fri": "P",
+                  "sun": "S",
+                  "mon": "M",
+                  "tue": "T",
+                  "wed": "W",
+                  "thu": "T",
+                  "fri": "F",
                   "sat": "S"
                 },
                 "short": {
-                  "sun": "nad",
-                  "mon": "pan",
-                  "tue": "wis",
-                  "wed": "pus",
-                  "thu": "ket",
-                  "fri": "pēn",
-                  "sat": "sab"
+                  "sun": "nadīli",
+                  "mon": "panadīli",
+                  "tue": "wisasīdis",
+                  "wed": "pussisawaiti",
+                  "thu": "ketwirtiks",
+                  "fri": "pēntniks",
+                  "sat": "sabattika"
                 },
                 "wide": {
                   "sun": "nadīli",
@@ -178,10 +178,10 @@
             "quarters": {
               "format": {
                 "abbreviated": {
-                  "1": "1. k.",
-                  "2": "2. k.",
-                  "3": "3. k.",
-                  "4": "4. k."
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 },
                 "narrow": {
                   "1": "1",
@@ -190,18 +190,18 @@
                   "4": "4"
                 },
                 "wide": {
-                  "1": "1. ketwirts",
-                  "2": "2. ketwirts",
-                  "3": "3. ketwirts",
-                  "4": "4. ketwirts"
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 }
               },
               "stand-alone": {
                 "abbreviated": {
-                  "1": "1. ketw.",
-                  "2": "2. ketw.",
-                  "3": "3. ketw.",
-                  "4": "4. ketw."
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 },
                 "narrow": {
                   "1": "1",
@@ -210,10 +210,10 @@
                   "4": "4"
                 },
                 "wide": {
-                  "1": "1. ketwirts",
-                  "2": "2. ketwirts",
-                  "3": "3. ketwirts",
-                  "4": "4. ketwirts"
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 }
               }
             },
@@ -262,15 +262,15 @@
               }
             },
             "dateFormats": {
-              "full": "EEEE, y 'mettas' d. MMMM G",
-              "long": "y 'mettas' d. MMMM G",
-              "medium": "dd.MM 'st'. y G",
-              "short": "dd.MM.y GGGGG"
+              "full": "G y MMMM d, EEEE",
+              "long": "G y MMMM d",
+              "medium": "G y MMM d",
+              "short": "G y-MM-dd"
             },
             "dateSkeletons": {
               "full": "GyMMMMEEEEd",
               "long": "GyMMMMd",
-              "medium": "GyMMdd",
+              "medium": "GyMMMd",
               "short": "GGGGGyMMdd"
             },
             "timeFormats": {
@@ -286,6 +286,10 @@
               "short": "HHmm"
             },
             "dateTimeFormats": {
+              "numericSeparators": {
+                "numericDateSeparator": "-",
+                "numericTimeSeparator": ":"
+              },
               "full": "{1} {0}",
               "long": "{1} {0}",
               "medium": "{1} {0}",
@@ -341,19 +345,26 @@
                 "yyyyQQQQ": "G y QQQQ"
               },
               "appendItems": {
+                "Date-Timezone": "{0} {1}",
                 "Day": "{0} ({2}: {1})",
-                "Day-Of-Week": "{0} {1}",
+                "Day-Of-Week": "{1} {0}",
                 "Era": "{1} {0}",
                 "Hour": "{0} ({2}: {1})",
                 "Minute": "{0} ({2}: {1})",
                 "Month": "{0} ({2}: {1})",
                 "Quarter": "{0} ({2}: {1})",
                 "Second": "{0} ({2}: {1})",
+                "Time-Day-Of-Week": "{1} {0}",
                 "Timezone": "{0} {1}",
                 "Week": "{0} ({2}: {1})",
                 "Year": "{1} {0}"
               },
               "intervalFormats": {
+                "intervalFormatRanges": {
+                  "mixed": "{0} – {1}",
+                  "non-numeric": "{0}–{1}",
+                  "numeric": "{0}–{1}"
+                },
                 "intervalFormatFallback": "{0} – {1}",
                 "Bh": {
                   "B": "h B – h B",
@@ -459,6 +470,10 @@
                   "d": "MMM d, E – MMM d, E",
                   "M": "MMM d, E – MMM d, E"
                 },
+                "MMMMd": {
+                  "d": "MMMM d–d",
+                  "M": "MMMM d – MMMM d"
+                },
                 "y": {
                   "y": "G y–y"
                 },
@@ -517,32 +532,32 @@
             "months": {
               "format": {
                 "abbreviated": {
-                  "1": "rag",
-                  "2": "was",
-                  "3": "pūl",
-                  "4": "sak",
-                  "5": "zal",
-                  "6": "sīm",
-                  "7": "līp",
-                  "8": "dag",
-                  "9": "sil",
-                  "10": "spa",
-                  "11": "lap",
-                  "12": "sal"
+                  "1": "rags",
+                  "2": "wassarins",
+                  "3": "pūlis",
+                  "4": "sakkis",
+                  "5": "zallaws",
+                  "6": "sīmenis",
+                  "7": "līpa",
+                  "8": "daggis",
+                  "9": "sillins",
+                  "10": "spallins",
+                  "11": "lapkrūtis",
+                  "12": "sallaws"
                 },
                 "narrow": {
-                  "1": "R",
-                  "2": "W",
-                  "3": "P",
-                  "4": "S",
-                  "5": "Z",
-                  "6": "S",
-                  "7": "L",
-                  "8": "D",
-                  "9": "S",
-                  "10": "S",
-                  "11": "L",
-                  "12": "S"
+                  "1": "1",
+                  "2": "2",
+                  "3": "3",
+                  "4": "4",
+                  "5": "5",
+                  "6": "6",
+                  "7": "7",
+                  "8": "8",
+                  "9": "9",
+                  "10": "10",
+                  "11": "11",
+                  "12": "12"
                 },
                 "wide": {
                   "1": "rags",
@@ -561,32 +576,32 @@
               },
               "stand-alone": {
                 "abbreviated": {
-                  "1": "rag",
-                  "2": "was",
-                  "3": "pūl",
-                  "4": "sak",
-                  "5": "zal",
-                  "6": "sīm",
-                  "7": "līp",
-                  "8": "dag",
-                  "9": "sil",
-                  "10": "spa",
-                  "11": "lap",
-                  "12": "sal"
+                  "1": "rags",
+                  "2": "wassarins",
+                  "3": "pūlis",
+                  "4": "sakkis",
+                  "5": "zallaws",
+                  "6": "sīmenis",
+                  "7": "līpa",
+                  "8": "daggis",
+                  "9": "sillins",
+                  "10": "spallins",
+                  "11": "lapkrūtis",
+                  "12": "sallaws"
                 },
                 "narrow": {
-                  "1": "R",
-                  "2": "W",
-                  "3": "P",
-                  "4": "S",
-                  "5": "Z",
-                  "6": "S",
-                  "7": "L",
-                  "8": "D",
-                  "9": "S",
-                  "10": "S",
-                  "11": "L",
-                  "12": "S"
+                  "1": "1",
+                  "2": "2",
+                  "3": "3",
+                  "4": "4",
+                  "5": "5",
+                  "6": "6",
+                  "7": "7",
+                  "8": "8",
+                  "9": "9",
+                  "10": "10",
+                  "11": "11",
+                  "12": "12"
                 },
                 "wide": {
                   "1": "rags",
@@ -607,31 +622,31 @@
             "days": {
               "format": {
                 "abbreviated": {
-                  "sun": "nad",
-                  "mon": "pan",
-                  "tue": "wis",
-                  "wed": "pus",
-                  "thu": "ket",
-                  "fri": "pēn",
-                  "sat": "sab"
+                  "sun": "nadīli",
+                  "mon": "panadīli",
+                  "tue": "wisasīdis",
+                  "wed": "pussisawaiti",
+                  "thu": "ketwirtiks",
+                  "fri": "pēntniks",
+                  "sat": "sabattika"
                 },
                 "narrow": {
-                  "sun": "N",
-                  "mon": "P",
-                  "tue": "W",
-                  "wed": "P",
-                  "thu": "K",
-                  "fri": "P",
+                  "sun": "S",
+                  "mon": "M",
+                  "tue": "T",
+                  "wed": "W",
+                  "thu": "T",
+                  "fri": "F",
                   "sat": "S"
                 },
                 "short": {
-                  "sun": "nad",
-                  "mon": "pan",
-                  "tue": "wis",
-                  "wed": "pus",
-                  "thu": "ket",
-                  "fri": "pēn",
-                  "sat": "sab"
+                  "sun": "nadīli",
+                  "mon": "panadīli",
+                  "tue": "wisasīdis",
+                  "wed": "pussisawaiti",
+                  "thu": "ketwirtiks",
+                  "fri": "pēntniks",
+                  "sat": "sabattika"
                 },
                 "wide": {
                   "sun": "nadīli",
@@ -645,31 +660,31 @@
               },
               "stand-alone": {
                 "abbreviated": {
-                  "sun": "nad",
-                  "mon": "pan",
-                  "tue": "wis",
-                  "wed": "pus",
-                  "thu": "ket",
-                  "fri": "pēn",
-                  "sat": "sab"
+                  "sun": "nadīli",
+                  "mon": "panadīli",
+                  "tue": "wisasīdis",
+                  "wed": "pussisawaiti",
+                  "thu": "ketwirtiks",
+                  "fri": "pēntniks",
+                  "sat": "sabattika"
                 },
                 "narrow": {
-                  "sun": "N",
-                  "mon": "P",
-                  "tue": "W",
-                  "wed": "P",
-                  "thu": "K",
-                  "fri": "P",
+                  "sun": "S",
+                  "mon": "M",
+                  "tue": "T",
+                  "wed": "W",
+                  "thu": "T",
+                  "fri": "F",
                   "sat": "S"
                 },
                 "short": {
-                  "sun": "nad",
-                  "mon": "pan",
-                  "tue": "wis",
-                  "wed": "pus",
-                  "thu": "ket",
-                  "fri": "pēn",
-                  "sat": "sab"
+                  "sun": "nadīli",
+                  "mon": "panadīli",
+                  "tue": "wisasīdis",
+                  "wed": "pussisawaiti",
+                  "thu": "ketwirtiks",
+                  "fri": "pēntniks",
+                  "sat": "sabattika"
                 },
                 "wide": {
                   "sun": "nadīli",
@@ -685,10 +700,10 @@
             "quarters": {
               "format": {
                 "abbreviated": {
-                  "1": "1. k.",
-                  "2": "2. k.",
-                  "3": "3. k.",
-                  "4": "4. k."
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 },
                 "narrow": {
                   "1": "1",
@@ -697,18 +712,18 @@
                   "4": "4"
                 },
                 "wide": {
-                  "1": "1. ketwirts",
-                  "2": "2. ketwirts",
-                  "3": "3. ketwirts",
-                  "4": "4. ketwirts"
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 }
               },
               "stand-alone": {
                 "abbreviated": {
-                  "1": "1. ketw.",
-                  "2": "2. ketw.",
-                  "3": "3. ketw.",
-                  "4": "4. ketw."
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 },
                 "narrow": {
                   "1": "1",
@@ -717,10 +732,10 @@
                   "4": "4"
                 },
                 "wide": {
-                  "1": "1. ketwirts",
-                  "2": "2. ketwirts",
-                  "3": "3. ketwirts",
-                  "4": "4. ketwirts"
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 }
               }
             },
@@ -756,22 +771,22 @@
             },
             "eras": {
               "eraNames": {
-                "0": "BC",
-                "0-alt-variant": "BC",
-                "1": "AD",
-                "1-alt-variant": "AD"
+                "0": "BCE",
+                "0-alt-variant": "BCE",
+                "1": "CE",
+                "1-alt-variant": "CE"
               },
               "eraAbbr": {
-                "0": "BC",
-                "0-alt-variant": "BC",
-                "1": "AD",
-                "1-alt-variant": "AD"
+                "0": "BCE",
+                "0-alt-variant": "BCE",
+                "1": "CE",
+                "1-alt-variant": "CE"
               },
               "eraNarrow": {
-                "0": "BC",
-                "0-alt-variant": "BC",
-                "1": "AD",
-                "1-alt-variant": "AD"
+                "0": "BCE",
+                "0-alt-variant": "BCE",
+                "1": "CE",
+                "1-alt-variant": "CE"
               }
             },
             "dateFormats": {
@@ -799,6 +814,10 @@
               "short": "HHmm"
             },
             "dateTimeFormats": {
+              "numericSeparators": {
+                "numericDateSeparator": "-",
+                "numericTimeSeparator": ":"
+              },
               "full": "{1} {0}",
               "long": "{1} {0}",
               "medium": "{1} {0}",
@@ -853,19 +872,26 @@
                 "yw-count-other": "Y 'week' w"
               },
               "appendItems": {
+                "Date-Timezone": "{0} {1}",
                 "Day": "{0} ({2}: {1})",
-                "Day-Of-Week": "{0} {1}",
+                "Day-Of-Week": "{1} {0}",
                 "Era": "{1} {0}",
                 "Hour": "{0} ({2}: {1})",
                 "Minute": "{0} ({2}: {1})",
                 "Month": "{0} ({2}: {1})",
                 "Quarter": "{0} ({2}: {1})",
                 "Second": "{0} ({2}: {1})",
+                "Time-Day-Of-Week": "{1} {0}",
                 "Timezone": "{0} {1}",
                 "Week": "{0} ({2}: {1})",
                 "Year": "{1} {0}"
               },
               "intervalFormats": {
+                "intervalFormatRanges": {
+                  "mixed": "{0} – {1}",
+                  "non-numeric": "{0}–{1}",
+                  "numeric": "{0}–{1}"
+                },
                 "intervalFormatFallback": "{0} – {1}",
                 "Bh": {
                   "B": "h B – h B",

@@ -114,7 +114,7 @@
             "compoundUnitPattern1-count-other": "{0}³"
           },
           "times": {
-            "compoundUnitPattern": "{0}{1}"
+            "compoundUnitPattern": "{0}⋅{1}"
           },
           "acceleration-g-force": {
             "displayName": "G-krachten",
@@ -423,9 +423,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -532,6 +540,10 @@
             "unitPattern-count-one": "{0} tomme",
             "unitPattern-count-other": "{0} tommen",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
@@ -1096,11 +1108,11 @@
             "perUnitPattern": "{0}/night"
           },
           "coordinateUnit": {
-            "displayName": "haadwynstreek",
-            "east": "{0} easterlingte",
-            "north": "{0} noarderbreedte",
-            "south": "{0} suderbreedte",
-            "west": "{0} westerlingte"
+            "displayName": "direction",
+            "east": "{0}E",
+            "north": "{0}N",
+            "south": "{0}S",
+            "west": "{0}W"
           }
         },
         "short": {
@@ -1212,7 +1224,7 @@
             "compoundUnitPattern1-count-other": "{0}³"
           },
           "times": {
-            "compoundUnitPattern": "{0}{1}"
+            "compoundUnitPattern": "{0}⋅{1}"
           },
           "acceleration-g-force": {
             "displayName": "G-krachten",
@@ -1510,9 +1522,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -1612,6 +1632,10 @@
             "unitPattern-count-one": "{0} tm",
             "unitPattern-count-other": "{0} tm",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
@@ -2162,11 +2186,11 @@
             "perUnitPattern": "{0}/night"
           },
           "coordinateUnit": {
-            "displayName": "wynstreek",
-            "east": "{0} EL",
-            "north": "{0} NB",
-            "south": "{0} SB",
-            "west": "{0} WL"
+            "displayName": "direction",
+            "east": "{0}E",
+            "north": "{0}N",
+            "south": "{0}S",
+            "west": "{0}W"
           }
         },
         "narrow": {
@@ -2278,7 +2302,7 @@
             "compoundUnitPattern1-count-other": "{0}³"
           },
           "times": {
-            "compoundUnitPattern": "{0}{1}"
+            "compoundUnitPattern": "{0}⋅{1}"
           },
           "acceleration-g-force": {
             "displayName": "G-krachten",
@@ -2577,9 +2601,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -2679,6 +2711,10 @@
             "unitPattern-count-one": "{0}\"",
             "unitPattern-count-other": "{0}\"",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
@@ -3230,11 +3266,11 @@
             "perUnitPattern": "{0}/night"
           },
           "coordinateUnit": {
-            "displayName": "wynstreek",
-            "east": "{0} EL",
-            "north": "{0} NB",
-            "south": "{0} SB",
-            "west": "{0} WL"
+            "displayName": "direction",
+            "east": "{0}E",
+            "north": "{0}N",
+            "south": "{0}S",
+            "west": "{0}W"
           }
         },
         "durationUnit-type-hm": {

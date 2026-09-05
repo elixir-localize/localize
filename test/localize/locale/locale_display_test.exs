@@ -10,53 +10,18 @@ defmodule Localize.Locale.LocaleDisplayTest do
   if System.otp_release() >= "28" do
     # Lines with known data issues or unsupported features
     @invalid_test_results [41, 2530, 2527, 2528, 2531]
-    @unexpected_root_locale_results [2517, 2512, 2525, 2518, 2515, 2513, 2526, 2514]
 
     # Features not yet implemented:
     # - uu attribute display in U extension (47)
-    # - variant display in T extension for certain locales (ka, ko, kk)
-    # - root locale: no translations, raw subtag codes expected
-    @not_yet_implemented [
-      47,
-      627,
-      631,
-      646,
-      650,
-      2223,
-      2227,
-      2242,
-      2246,
-      2451,
-      2455,
-      2470,
-      2474,
-      3514,
-      3515,
-      3516,
-      3517,
-      3518,
-      3519,
-      3520,
-      3521,
-      3522,
-      3524,
-      3525,
-      3526,
-      3533,
-      3534,
-      3535,
-      3536,
-      3537,
-      3538,
-      3539,
-      3540,
-      3541,
-      3543,
-      3544,
-      3545
-    ]
+    #
+    # The T-extension variant cases (ka, ko, kk) and the root-locale block
+    # were listed here too, and both now pass: rendering in root exercises
+    # TR35's code fallback, and fixing that also fixed the `-t-` tlang
+    # subtags, which were falling back to the raw parsed form ("latn", "1")
+    # rather than the canonical one ("Latn", "001").
+    @not_yet_implemented [47]
 
-    @except_lines @invalid_test_results ++ @unexpected_root_locale_results ++ @not_yet_implemented
+    @except_lines @invalid_test_results ++ @not_yet_implemented
 
     # Locales with data formatting issues
     @except_format_for_locales ["hi-Latn", "zh-Hans", "zh-Hant", "zh-Hans-fonipa"]

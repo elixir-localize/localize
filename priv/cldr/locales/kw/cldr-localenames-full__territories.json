@@ -6,24 +6,7 @@
       },
       "localeDisplayNames": {
         "territories": {
-          "001": "An Bys",
-          "002": "Afrika",
-          "003": "Amerika Gledh",
-          "019": "An Amerikas",
-          "142": "Asi",
-          "150": "Europa",
-          "BR": "Brasil",
-          "CN": "China",
-          "DE": "Almayn",
-          "EU": "Unyans Europek",
-          "FR": "Pow Frenk",
-          "GB": "Rywvaneth Unys",
-          "IN": "Eynda",
-          "IT": "Itali",
-          "JP": "Japan",
-          "RU": "Russi",
-          "UN": "Kenedhlow Unys",
-          "US": "Statys Unys"
+          "GB": "Rywvaneth Unys"
         }
       }
     }

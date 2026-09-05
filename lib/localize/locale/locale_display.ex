@@ -38,7 +38,9 @@ defmodule Localize.Locale.LocaleDisplay do
     there are alternatives. The default is `:standard`.
 
   * `:locale` is the locale in which to display the name.
-    The default is `:en`.
+    The default is `:en`. Pass `:root` (or `:und`) to render the
+    bare subtag codes rather than translated names, which is what
+    TR35 specifies for a locale carrying no display names.
 
   ### Returns
 
@@ -59,6 +61,9 @@ defmodule Localize.Locale.LocaleDisplay do
 
       iex> Localize.Locale.LocaleDisplay.display_name("nl-BE", language_display: :dialect)
       {:ok, "Flemish"}
+
+      iex> Localize.Locale.LocaleDisplay.display_name("nl-BE", locale: :root)
+      {:ok, "nl (BE)"}
 
   """
   @spec display_name(Localize.LanguageTag.t() | String.t() | atom(), display_options()) ::
@@ -202,8 +207,27 @@ defmodule Localize.Locale.LocaleDisplay do
         {:ok, matched_tags, name}
 
       nil ->
-        {:error, Localize.LocaleDisplayError.exception(locale: language_tag)}
+        code_fallback(language_tag)
     end
+  end
+
+  # TR35's code fallback: where no display name exists, the subtag itself
+  # stands in for it. Script, territory and variant subtags have always done
+  # this (`get_subtag_display/4` ends in `|| value`); the language subtag
+  # raised instead, which made a whole class of locale unrenderable rather
+  # than rendered plainly.
+  #
+  # It shows up most starkly in `root`, which by design carries no
+  # `localeDisplayNames` at all: CLDR 49 added conformance cases asserting
+  # that `nl-BE` displays there as "nl (BE)". Only `:language` is reported as
+  # matched, so every other subtag falls through to be rendered separately —
+  # which is what puts `(BE)` in the parentheses rather than losing it.
+  defp code_fallback(%{language: language}) when not is_nil(language) do
+    {:ok, [:language], to_string(language)}
+  end
+
+  defp code_fallback(language_tag) do
+    {:error, Localize.LocaleDisplayError.exception(locale: language_tag)}
   end
 
   defp language_match_fun(locale_name, matched_tags, field, prefer, display_names) do

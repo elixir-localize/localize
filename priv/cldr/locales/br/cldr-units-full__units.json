@@ -37,10 +37,10 @@
             "unitPrefixPattern": "yokto{0}"
           },
           "10p-27": {
-            "unitPrefixPattern": "r{0}"
+            "unitPrefixPattern": "ronto{0}"
           },
           "10p-30": {
-            "unitPrefixPattern": "q{0}"
+            "unitPrefixPattern": "kwekto{0}"
           },
           "10p1": {
             "unitPrefixPattern": "deka{0}"
@@ -73,10 +73,10 @@
             "unitPrefixPattern": "yota{0}"
           },
           "10p27": {
-            "unitPrefixPattern": "R{0}"
+            "unitPrefixPattern": "ronna{0}"
           },
           "10p30": {
-            "unitPrefixPattern": "Q{0}"
+            "unitPrefixPattern": "kweta{0}"
           },
           "1024p1": {
             "unitPrefixPattern": "kibi{0}"
@@ -642,11 +642,11 @@
             "unitPattern-count-other": "{0} kilowatt-eur"
           },
           "energy-electronvolt": {
-            "displayName": "elektronvoltoù",
+            "displayName": "elektron-voltoù",
             "unitPattern-count-one": "{0} elektronvolt",
             "unitPattern-count-two": "{0} elektronvolt",
             "unitPattern-count-few": "{0} elektronvolt",
-            "unitPattern-count-many": "{0} a elektronvoltoù",
+            "unitPattern-count-many": "{0} a elektron-voltoù",
             "unitPattern-count-other": "{0} elektronvolt"
           },
           "energy-british-thermal-unit": {
@@ -669,6 +669,10 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "newtonoù",
             "unitPattern-count-one": "{0} newton",
@@ -676,6 +680,10 @@
             "unitPattern-count-few": "{0} newton",
             "unitPattern-count-many": "{0} a newtonoù",
             "unitPattern-count-other": "{0} newton"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -714,7 +722,7 @@
             "unitPattern-count-other": "{0} hertz"
           },
           "graphics-em": {
-            "displayName": "esaouenn em",
+            "displayName": "esaouennoù em",
             "unitPattern-count-one": "{0} esaouenn em",
             "unitPattern-count-two": "{0} esaouenn em",
             "unitPattern-count-few": "{0} esaouenn em",
@@ -770,7 +778,7 @@
             "unitPattern-count-other": "{0} pik dre veutad"
           },
           "graphics-dot": {
-            "displayName": "pik",
+            "displayName": "pikoù",
             "unitPattern-count-one": "{0} pik",
             "unitPattern-count-two": "{0} bik",
             "unitPattern-count-few": "{0} fik",
@@ -886,6 +894,10 @@
             "unitPattern-count-other": "{0} meutad",
             "perUnitPattern": "{0} dre veutad"
           },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
+          },
           "length-parsec": {
             "displayName": "parsekoù",
             "unitPattern-count-one": "{0} parsek",
@@ -983,8 +995,12 @@
             "unitPattern-count-other": "{0} lumen"
           },
           "light-solar-luminosity": {
-            "displayName": "L☉",
-            "unitPattern-count-other": "{0} L☉"
+            "displayName": "sked heol",
+            "unitPattern-count-one": "{0} sked heol",
+            "unitPattern-count-two": "{0} sked heol",
+            "unitPattern-count-few": "{0} sked heol",
+            "unitPattern-count-many": "{0} a skedoù heol",
+            "unitPattern-count-other": "{0} sked heol"
           },
           "mass-tonne": {
             "displayName": "tonennoù metrek",
@@ -1772,9 +1788,13 @@
             "unitPattern-count-other": "{0} ppb"
           },
           "duration-night": {
-            "displayName": "night",
-            "unitPattern-count-other": "{0} night",
-            "perUnitPattern": "{0}/night"
+            "displayName": "nozvezhioù",
+            "unitPattern-count-one": "{0} nozvezh",
+            "unitPattern-count-two": "{0} nozvezh",
+            "unitPattern-count-few": "{0} nozvezh",
+            "unitPattern-count-many": "{0} a nozvezhioù",
+            "unitPattern-count-other": "{0} nozvezh",
+            "perUnitPattern": "{0} dre nozvezh"
           },
           "coordinateUnit": {
             "displayName": "durcʼhadur",
@@ -2308,9 +2328,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -2445,6 +2473,10 @@
             "unitPattern-count-other": "{0} in",
             "perUnitPattern": "{0}/in"
           },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
+          },
           "length-parsec": {
             "displayName": "pc",
             "unitPattern-count-other": "{0} pc"
@@ -2498,7 +2530,7 @@
             "unitPattern-count-other": "{0} lm"
           },
           "light-solar-luminosity": {
-            "displayName": "L☉",
+            "displayName": "sked heol",
             "unitPattern-count-other": "{0} L☉"
           },
           "mass-tonne": {
@@ -3083,9 +3115,13 @@
             "unitPattern-count-other": "{0} ppb"
           },
           "duration-night": {
-            "displayName": "night",
-            "unitPattern-count-other": "{0} night",
-            "perUnitPattern": "{0}/night"
+            "displayName": "nozv.",
+            "unitPattern-count-one": "{0} nozv.",
+            "unitPattern-count-two": "{0} nozv.",
+            "unitPattern-count-few": "{0} nozv.",
+            "unitPattern-count-many": "{0} a nozv.",
+            "unitPattern-count-other": "{0} nozv.",
+            "perUnitPattern": "{0}/nozvezh"
           },
           "coordinateUnit": {
             "displayName": "durcʼhadur",
@@ -3759,6 +3795,10 @@
             "unitPattern-count-many": "{0}lbf",
             "unitPattern-count-other": "{0}lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-one": "{0}N",
@@ -3766,6 +3806,10 @@
             "unitPattern-count-few": "{0}N",
             "unitPattern-count-many": "{0}N",
             "unitPattern-count-other": "{0}N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -3976,6 +4020,10 @@
             "unitPattern-count-other": "{0}″",
             "perUnitPattern": "{0}/″"
           },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
+          },
           "length-parsec": {
             "displayName": "pc",
             "unitPattern-count-one": "{0}pc",
@@ -4073,7 +4121,7 @@
             "unitPattern-count-other": "{0}lm"
           },
           "light-solar-luminosity": {
-            "displayName": "L☉",
+            "displayName": "sked heol",
             "unitPattern-count-one": "{0}L☉",
             "unitPattern-count-two": "{0}L☉",
             "unitPattern-count-few": "{0}L☉",
@@ -4562,11 +4610,11 @@
           },
           "volume-gallon-imperial": {
             "displayName": "galIm",
-            "unitPattern-count-one": "{0}galIm",
-            "unitPattern-count-two": "{0}galIm",
-            "unitPattern-count-few": "{0}galIm",
-            "unitPattern-count-many": "{0}galIm",
-            "unitPattern-count-other": "{0}galIm",
+            "unitPattern-count-one": "{0}gal-Im",
+            "unitPattern-count-two": "{0}gal-Im",
+            "unitPattern-count-few": "{0}gal-Im",
+            "unitPattern-count-many": "{0}gal-Im",
+            "unitPattern-count-other": "{0}gal-Im",
             "perUnitPattern": "{0}/galIm"
           },
           "volume-quart": {
@@ -4858,9 +4906,13 @@
             "unitPattern-count-other": "{0} ppb"
           },
           "duration-night": {
-            "displayName": "night",
-            "unitPattern-count-other": "{0} night",
-            "perUnitPattern": "{0}/night"
+            "displayName": "nozv.",
+            "unitPattern-count-one": "{0}nozv.",
+            "unitPattern-count-two": "{0}nozv.",
+            "unitPattern-count-few": "{0}nozv.",
+            "unitPattern-count-many": "{0}nozv.",
+            "unitPattern-count-other": "{0}nozv.",
+            "perUnitPattern": "{0}/nozv."
           },
           "coordinateUnit": {
             "displayName": "durcʼhadur",

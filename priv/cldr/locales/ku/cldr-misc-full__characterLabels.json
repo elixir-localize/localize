@@ -22,13 +22,13 @@
         "superscript": "jorîndeks {0}"
       },
       "characterLabels": {
-        "activities": "aktîvîte",
-        "african_scripts": "alfabeya Afrîkayê",
-        "american_scripts": "alfabeya Amerîkayê",
+        "activities": "activity",
+        "african_scripts": "African script",
+        "american_scripts": "American script",
         "animal": "heywan",
         "animals_nature": "heywan an xweza",
-        "arrows": "tîr",
-        "body": "beden",
+        "arrows": "arrow",
+        "body": "body",
         "box_drawing": "box drawing",
         "braille": "braille",
         "building": "avahî",

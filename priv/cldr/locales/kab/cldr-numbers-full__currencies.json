@@ -6,1630 +6,530 @@
       },
       "numbers": {
         "currencies": {
-          "ADP": {
-            "displayName": "Apisetas Anduran",
-            "displayName-count-one": "Apisetas Anduran",
-            "displayName-count-other": "Ipisetasen Induranen"
-          },
           "AED": {
             "displayName": "Adirham n Tgeldunin Taɛrabin Yedduklen",
-            "displayName-count-one": "Adirham n Imarat Taɛrabin Yedduklen",
-            "displayName-count-other": "Idirhamen n Imarat Taɛrabin Yedduklen"
-          },
-          "AFA": {
-            "displayName": "Afɣani (1927–2002)",
-            "displayName-count-one": "Afɣani (1927–2002)",
-            "displayName-count-other": "Ifɣaniyen (1927–2002)"
+            "displayName-count-other": "Adirham n Tgeldunin Taɛrabin Yedduklen"
           },
           "AFN": {
-            "displayName": "Afɣani Afɣan",
-            "displayName-count-one": "Afɣani Afɣan",
-            "displayName-count-other": "Ifɣaniyen ifɣanen",
             "symbol-alt-narrow": "؋"
           },
-          "ALK": {
-            "displayName": "Alek Albani (1947–1961)",
-            "displayName-count-one": "Alek Albani (1947–1961)",
-            "displayName-count-other": "Ilekan Ilbaniyen (1947–1961)"
-          },
-          "ALL": {
-            "displayName": "Alek Albani",
-            "displayName-count-one": "Alek n Albanya",
-            "displayName-count-other": "Ilkan n Albanya"
-          },
           "AMD": {
-            "displayName": "Adram Armini",
-            "displayName-count-one": "Idramen Irminiyen",
-            "displayName-count-other": "Adram Armini",
             "symbol-alt-narrow": "֏"
-          },
-          "ANG": {
-            "displayName": "Afluran n Antilles",
-            "displayName-count-one": "Afluran n Antilles",
-            "displayName-count-other": "Ifluranen n Antilles"
           },
           "AOA": {
             "displayName": "Akwanza n Ungula",
-            "displayName-count-one": "Akwanza n Ungula",
-            "displayName-count-other": "Ikwanzayen n Ungula",
+            "displayName-count-other": "Akwanza n Ungula",
             "symbol-alt-narrow": "Kz"
           },
-          "AOK": {
-            "displayName": "Akwanza n Angula (1977–1990)",
-            "displayName-count-one": "Akwanza n Angula (1977–1990)",
-            "displayName-count-other": "Ikwanzayen n Angula (1977–1990)"
-          },
-          "AON": {
-            "displayName": "Akwanza amaynut n Angula (1990–2000)",
-            "displayName-count-one": "Akwanza amaynut n Angula (1990–2000)",
-            "displayName-count-other": "Ikwanzayen imaynuten n Angula (1990–2000)"
-          },
-          "AOR": {
-            "displayName": "Akwanza n Angula yettwaseggmen (1995–1999)",
-            "displayName-count-one": "Akwanza n Angula yettwaseggmen (1995–1999)",
-            "displayName-count-other": "Ikwanzayen n Angula yettwaseggmen (1995–1999)"
-          },
-          "ARA": {
-            "displayName": "Ustral n Arjuntin",
-            "displayName-count-one": "Ustral n Arjuntin",
-            "displayName-count-other": "Ustralen n Arjuntin"
-          },
-          "ARL": {
-            "displayName": "Apisu aẓayan n Arjuntin (1970–1983)",
-            "displayName-count-one": "Apisu aẓayan n Arjuntin (1970–1983)",
-            "displayName-count-other": "Ipisuten iẓayanen n Arjuntin (1970–1983)"
-          },
-          "ARM": {
-            "displayName": "Apisu n Arjuntin (1881–1970)",
-            "displayName-count-one": "Apisu n Arjuntin (1881–1970)",
-            "displayName-count-other": "Ipisuten n Arjuntin (1881–1970)"
-          },
-          "ARP": {
-            "displayName": "Apisu n Arjuntin (1983–1985)",
-            "displayName-count-one": "Apisu n Arjuntin (1983–1985)",
-            "displayName-count-other": "Ipisuten n Arjuntin (1983–1985)"
-          },
           "ARS": {
-            "displayName": "Apisu n Arjuntin",
-            "displayName-count-one": "Apisu n Arjuntin",
-            "displayName-count-other": "Ipisuten n Arjuntin",
-            "symbol": "$AR",
             "symbol-alt-narrow": "$"
-          },
-          "ATS": {
-            "displayName": "Aciling n Ustriya",
-            "displayName-count-one": "Aciling n Ustriya",
-            "displayName-count-other": "Icilingen n Ustriya"
           },
           "AUD": {
             "displayName": "Adular n Lusṭrali",
-            "displayName-count-one": "Adular n Ustralya",
-            "displayName-count-other": "Idularen n Ustralya",
-            "symbol": "$AU",
+            "displayName-count-other": "Adular n Lusṭrali",
+            "symbol": "A$",
             "symbol-alt-narrow": "$"
           },
-          "AWG": {
-            "displayName": "Afluran n Aruba",
-            "displayName-count-one": "Afluran n Aruba",
-            "displayName-count-other": "Ifluranen n Aruba"
-          },
-          "AZM": {
-            "displayName": "Amanat Aziri (1993–2006)",
-            "displayName-count-one": "Amanat Aziri (1993–2006)",
-            "displayName-count-other": "Imanaten Aziri (1993–2006)"
-          },
           "AZN": {
-            "displayName": "Amanat Aziri",
-            "displayName-count-one": "Amanat Aziri",
-            "displayName-count-other": "Imanaten Iziriyen",
             "symbol-alt-narrow": "₼"
           },
-          "BAD": {
-            "displayName": "Adinar Abusni",
-            "displayName-count-one": "Adinar Abusni",
-            "displayName-count-other": "Idinaren Ibusniyen"
-          },
           "BAM": {
-            "displayName": "Amark yettwaseklaten n Busni",
-            "displayName-count-one": "Amark yettwaseklaten n Busni",
-            "displayName-count-other": "Imarken yettwaseklaten n Busni",
             "symbol-alt-narrow": "KM"
           },
           "BBD": {
-            "displayName": "Adular n Barbuda",
-            "displayName-count-one": "Adular n Barbuda",
-            "displayName-count-other": "Idularen n Barbuda",
             "symbol-alt-narrow": "$"
           },
           "BDT": {
-            "displayName": "Ataka n Bangladec",
-            "displayName-count-one": "Ataka n Bangladec",
-            "displayName-count-other": "Itakaten n Bangladec",
             "symbol-alt-narrow": "৳"
-          },
-          "BEC": {
-            "displayName": "Afrank n Biljik (yettwaselkaten)",
-            "displayName-count-one": "Afrank n Biljik (yettwaselkaten)",
-            "displayName-count-other": "Ifranken n Biljik (yettwaselkaten)"
-          },
-          "BEF": {
-            "displayName": "Afrank n Biljik",
-            "displayName-count-one": "Afrank n Biljik",
-            "displayName-count-other": "Ifranken n Biljik",
-            "symbol": "FB"
-          },
-          "BEL": {
-            "displayName": "Afrank n Biljik (adriman)",
-            "displayName-count-one": "Afrank n Biljik (adriman)",
-            "displayName-count-other": "Ifranken n Biljik (idrimanen)"
-          },
-          "BGL": {
-            "displayName": "Alev n Bulgar (1962–1999)",
-            "displayName-count-one": "Alev n Bulgar (1962–1999)",
-            "displayName-count-other": "Ilevan n Bulgar (1962–1999)"
-          },
-          "BGN": {
-            "displayName": "Alev n Bulgari",
-            "displayName-count-one": "Alev n Bulgari",
-            "displayName-count-other": "Ilvan n Bulgari"
           },
           "BHD": {
             "displayName": "Adinar Abaḥrini",
-            "displayName-count-one": "Adinar n Baḥrin",
-            "displayName-count-other": "Idinaren n Baḥrin"
+            "displayName-count-other": "Adinar Abaḥrini"
           },
           "BIF": {
             "displayName": "Afrank Aburandi",
-            "displayName-count-one": "Afrank n Burundi",
-            "displayName-count-other": "Ifranken n Burundi"
+            "displayName-count-other": "Afrank Aburandi"
           },
           "BMD": {
-            "displayName": "Adular n Birmud",
-            "displayName-count-one": "Adular n Birmud",
-            "displayName-count-other": "Idularen n Birmud",
-            "symbol": "$BM",
             "symbol-alt-narrow": "$"
           },
           "BND": {
-            "displayName": "Adular n Brunay",
-            "displayName-count-one": "Adular n Brunay",
-            "displayName-count-other": "Idularen n Brunay",
-            "symbol": "$BN",
             "symbol-alt-narrow": "$"
           },
           "BOB": {
-            "displayName": "Abulivyanu n Bulivi",
-            "displayName-count-one": "Abulivyanu n Bulivi",
-            "displayName-count-other": "Ibulivyanen n Bulivi",
             "symbol-alt-narrow": "Bs"
           },
-          "BOL": {
-            "displayName": "Abulivyanu n Bulivi (1863–1963)",
-            "displayName-count-one": "Abulivyanu n Bulivi (1863–1963)",
-            "displayName-count-other": "Ibulivyanen n Bulivi (1863–1963)"
-          },
-          "BOP": {
-            "displayName": "Apisu n Bulivi",
-            "displayName-count-one": "Apisu n Bulivi",
-            "displayName-count-other": "Ipisuten n Bulivi"
-          },
-          "BOV": {
-            "displayName": "Amevdul n Bulivi",
-            "displayName-count-one": "Amevdul n Bulivi",
-            "displayName-count-other": "Imevdulen n Bulivi"
-          },
-          "BRB": {
-            "displayName": "Akruziru amaynut n Brizil (1967–1986)",
-            "displayName-count-one": "Akruziru amaynut n Brizil (1967–1986)",
-            "displayName-count-other": "Ikruziruyen imaynuten n Brizil (1967–1986)"
-          },
-          "BRC": {
-            "displayName": "Akruzadu n Brizil (1986–1989)",
-            "displayName-count-one": "Akruzadu n Brizil (1986–1989)",
-            "displayName-count-other": "Ikruzaduyen n Brizil (1986–1989)"
-          },
-          "BRE": {
-            "displayName": "Akruziru n Brizil (1990–1993)",
-            "displayName-count-one": "Akruziru n Brizil (1990–1993)",
-            "displayName-count-other": "Ikruziruyen n Brizil (1990–1993)"
-          },
           "BRL": {
-            "displayName": "Ariyal n Brizil",
-            "displayName-count-one": "Ariyal n Brizil",
-            "displayName-count-other": "Iriyalen n Brizil",
             "symbol": "R$",
             "symbol-alt-narrow": "R$"
           },
-          "BRN": {
-            "displayName": "Akruzadu amaynut n Brizil",
-            "displayName-count-one": "Akruzadu amaynut n Brizil (1989–1990)",
-            "displayName-count-other": "Ikruzaduyen imaynuten n Brizil (1989–1990)"
-          },
-          "BRR": {
-            "displayName": "Akruziru",
-            "displayName-count-one": "Akruziru Ariyal n Brizil(1993–1994)",
-            "displayName-count-other": "Ikruziruyen Iriyalen n Brizil (1993–1994)"
-          },
-          "BRZ": {
-            "displayName": "Akruziru n Brizil (1942–1967)",
-            "displayName-count-one": "Akruziru n Brizil (1942–1967)",
-            "displayName-count-other": "Ikruziruyen n Brizil (1942–1967)"
-          },
           "BSD": {
-            "displayName": "Adular n Bahamas",
-            "displayName-count-one": "Adular n Bahamas",
-            "displayName-count-other": "Idularen n Bahamas",
-            "symbol": "$BS",
             "symbol-alt-narrow": "$"
-          },
-          "BTN": {
-            "displayName": "Angultrum n Butan",
-            "displayName-count-one": "Angultrum n Butan",
-            "displayName-count-other": "Ingultrumen n Butan"
-          },
-          "BUK": {
-            "displayName": "Akyat n Burma",
-            "displayName-count-one": "Akyat n Burma",
-            "displayName-count-other": "Ikyaten n Burma"
           },
           "BWP": {
             "displayName": "Apula Abusṭwanan",
-            "displayName-count-one": "Apula n Butswana",
-            "displayName-count-other": "Ipula n Butswana",
+            "displayName-count-other": "Apula Abusṭwanan",
             "symbol-alt-narrow": "P"
           },
-          "BYB": {
-            "displayName": "Arubl amaynut n Bilarus (1994–1999)",
-            "displayName-count-one": "Arubl amaynut n Bilarus (1994–1999)",
-            "displayName-count-other": "Irublen amaynut n Bilarus (1994–1999)"
-          },
-          "BYN": {
-            "displayName": "Arubl n Bilarus",
-            "displayName-count-one": "Arubl n Bilarus",
-            "displayName-count-other": "Irublen n Bilarus",
-            "symbol-alt-narrow": "р."
-          },
-          "BYR": {
-            "displayName": "Arubl n Bilarus (2000–2016)",
-            "displayName-count-one": "Arubl n Bilarus (2000–2016)",
-            "displayName-count-other": "Irublen n Bilarus (2000–2016)"
-          },
           "BZD": {
-            "displayName": "Adular n Biliz",
-            "displayName-count-one": "Adular n Biliz",
-            "displayName-count-other": "Idularen n Biliz",
-            "symbol": "$BZ",
             "symbol-alt-narrow": "$"
           },
           "CAD": {
             "displayName": "Adular Akanadi",
-            "displayName-count-one": "Adular n Kanada",
-            "displayName-count-other": "Idularen n Kanada",
-            "symbol": "$CA",
+            "displayName-count-other": "Adular Akanadi",
+            "symbol": "CA$",
             "symbol-alt-narrow": "$"
           },
           "CDF": {
             "displayName": "Afrank Akunguli",
-            "displayName-count-one": "Afrank n Kungu",
-            "displayName-count-other": "Ifranken n Kungu"
-          },
-          "CHE": {
-            "displayName": "Uru WIR",
-            "displayName-count-one": "Uru WIR",
-            "displayName-count-other": "Uruten WIR"
+            "displayName-count-other": "Afrank Akunguli"
           },
           "CHF": {
             "displayName": "Afrank Aswis",
-            "displayName-count-one": "Afrank n Swis",
-            "displayName-count-other": "Ifranken n Swis"
-          },
-          "CHW": {
-            "displayName": "Afrank WIR",
-            "displayName-count-one": "Afrank WIR",
-            "displayName-count-other": "Ifranken WIR"
-          },
-          "CLE": {
-            "displayName": "Askudu n Cili",
-            "displayName-count-one": "Askudu n Cili",
-            "displayName-count-other": "Iskuduyen n Cili"
-          },
-          "CLF": {
-            "displayName": "Aferdis n Usefti n Cili",
-            "displayName-count-one": "Aferdis n Usefti n Cili",
-            "displayName-count-other": "Iferdisen n Usefti n Cili"
+            "displayName-count-other": "Afrank Aswis",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CLP": {
-            "displayName": "Apisu n Cili",
-            "displayName-count-one": "Apisu n Cili",
-            "displayName-count-other": "Ipisuten n Cili",
-            "symbol": "$CL",
             "symbol-alt-narrow": "$"
-          },
-          "CNX": {
-            "displayName": "Adular n Lbanka Taɣerfant n Tacinwit",
-            "displayName-count-one": "Adular n Lbanka Taɣerfant n Tacinwit",
-            "displayName-count-other": "Idularen n Lbanka Taɣerfant n Tacinwit"
           },
           "CNY": {
             "displayName": "Ayuwan Renminbi Acinwa",
-            "displayName-count-one": "Ayuwan Acinwa",
-            "displayName-count-other": "Iyuwanen Icinwaten",
-            "symbol": "CNY",
+            "displayName-count-other": "Ayuwan Renminbi Acinwa",
+            "symbol": "CN¥",
             "symbol-alt-narrow": "¥"
           },
           "COP": {
-            "displayName": "Apisu n Kulumbi",
-            "displayName-count-one": "Apisu n Kulumbi",
-            "displayName-count-other": "Ipisuten n Kulumbi",
-            "symbol": "$CO",
             "symbol-alt-narrow": "$"
           },
-          "COU": {
-            "displayName": "Aferdis n wazal ilaw n Kulumbi",
-            "displayName-count-one": "Aferdis n wazal ilaw n Kulumbi",
-            "displayName-count-other": "Iferdisen n wazal ilaw n Kulumbi"
-          },
           "CRC": {
-            "displayName": "Akulun n Kusta Rika",
-            "displayName-count-one": "Akulun n Kusta Rika",
-            "displayName-count-other": "Ikulunen n Kusta Rika",
             "symbol-alt-narrow": "₡"
           },
-          "CSD": {
-            "displayName": "Adinar n Ṣirbya-Muntinigru",
-            "displayName-count-one": "Adinar n Ṣirbya-Muntinigru",
-            "displayName-count-other": "Idinaren n Ṣirbya-Muntinigru"
-          },
-          "CSK": {
-            "displayName": "Akurun iǧehden Ačikusluvak",
-            "displayName-count-one": "Akurun iǧehden Ačikusluvak",
-            "displayName-count-other": "Ikurunen iǧehden Ičikusluvaken"
-          },
           "CUC": {
-            "displayName": "Apisu n Kuba yettwaselkaten",
-            "displayName-count-one": "Apisu n Kuba yettwaselkaten",
-            "displayName-count-other": "Ipisuten n Kuba yettwaselkaten",
             "symbol-alt-narrow": "$"
           },
           "CUP": {
-            "displayName": "Apisu n Kuba",
-            "displayName-count-one": "Apisu n Kuba",
-            "displayName-count-other": "Ipisuten n Kuba",
             "symbol-alt-narrow": "$"
           },
           "CVE": {
             "displayName": "Akabuviradinu Askudi",
-            "displayName-count-one": "Askudu n Kapvir",
-            "displayName-count-other": "Iskuduyen n Kapvir"
-          },
-          "CYP": {
-            "displayName": "Apawnd n Cipr",
-            "displayName-count-one": "Apawnd n Cipr",
-            "displayName-count-other": "Ipawnden n Cipr",
-            "symbol": "£CY"
+            "displayName-count-other": "Akabuviradinu Askudi"
           },
           "CZK": {
-            "displayName": "Akurun n Čček",
-            "displayName-count-one": "Akurun n Čček",
-            "displayName-count-other": "Ikurunen n Čček",
             "symbol-alt-narrow": "Kč"
-          },
-          "DDM": {
-            "displayName": "Amark n Walman n usammar",
-            "displayName-count-one": "Amark n Walman n usammar",
-            "displayName-count-other": "Imarken n Walman n usammar"
-          },
-          "DEM": {
-            "displayName": "Amark n Walman",
-            "displayName-count-one": "Amark n Walman",
-            "displayName-count-other": "Imarken n Walman"
           },
           "DJF": {
             "displayName": "Afrank Ajibuti",
-            "displayName-count-one": "Afrank n Jibuti",
-            "displayName-count-other": "Ifranken n Jibuti"
+            "displayName-count-other": "Afrank Ajibuti"
           },
           "DKK": {
-            "displayName": "Akurun n Danmark",
-            "displayName-count-one": "Akurun n Danmark",
-            "displayName-count-other": "Ikurunen n Danmark",
             "symbol-alt-narrow": "kr"
           },
           "DOP": {
-            "displayName": "Apisu n Duminik",
-            "displayName-count-one": "Apisu n Duminik",
-            "displayName-count-other": "Ipisuten n Duminik",
             "symbol-alt-narrow": "$"
           },
           "DZD": {
             "displayName": "Adinar Azzayri",
-            "displayName-count-one": "Adinar n Lezzayer",
-            "displayName-count-other": "Idinaren n Lezzayer",
+            "displayName-count-other": "Adinar Azzayri",
             "symbol": "DA"
-          },
-          "ECS": {
-            "displayName": "Asukr n Ikwaṭur",
-            "displayName-count-one": "Asukr n Ikwaṭur",
-            "displayName-count-other": "Isukren n Ikwaṭur"
-          },
-          "ECV": {
-            "displayName": "Aferdis n wazal ameɣlal n Ikwaṭur (UVC)",
-            "displayName-count-one": "Aferdis n wazal ameɣlal n Ikwaṭur (UVC)",
-            "displayName-count-other": "Iferdisen n wazal ameɣlal n Ikwaṭur (UVC)"
-          },
-          "EEK": {
-            "displayName": "Akurun n Isṭunya",
-            "displayName-count-one": "Akurun n Isṭunya",
-            "displayName-count-other": "Ikurunen n Isṭunya"
           },
           "EGP": {
             "displayName": "Apund Amaṣri",
-            "displayName-count-one": "Apund n Maser",
-            "displayName-count-other": "Ipunden n Maser",
-            "symbol-alt-narrow": "£E"
+            "displayName-count-other": "Apund Amaṣri",
+            "symbol-alt-narrow": "E£"
           },
           "ERN": {
             "displayName": "Anakfa Iritiri",
-            "displayName-count-one": "Anafka n Iritirya",
-            "displayName-count-other": "Inafkayen n Iritirya"
-          },
-          "ESA": {
-            "displayName": "Apisetas n Spanya (amiḍan A)",
-            "displayName-count-one": "Apisetas n Spanya (amiḍan A)",
-            "displayName-count-other": "Ipisetasen n Spanya (amiḍan A)"
-          },
-          "ESB": {
-            "displayName": "Apisetas n Spanya (amiḍan yettwaselkaten)",
-            "displayName-count-one": "Apisetas n Spanya (amiḍan yettwaselkaten)",
-            "displayName-count-other": "Ipisetasen n Spanya (amiḍan yettwaselkaten)"
+            "displayName-count-other": "Anakfa Iritiri"
           },
           "ESP": {
-            "displayName": "Apisetas n Spanya",
-            "displayName-count-one": "Apisetas n Spanya",
-            "displayName-count-other": "Ipisetasen n Spanya",
             "symbol-alt-narrow": "₧"
           },
           "ETB": {
             "displayName": "Abir Utyupi",
-            "displayName-count-one": "Abirr n Ityupya",
-            "displayName-count-other": "Ibirren n Ityupya"
+            "displayName-count-other": "Abir Utyupi"
           },
           "EUR": {
             "displayName": "Uru",
-            "displayName-count-one": "URU",
-            "displayName-count-other": "URUTEN",
+            "displayName-count-other": "Uru",
             "symbol": "€",
             "symbol-alt-narrow": "€"
           },
-          "FIM": {
-            "displayName": "Amark n Finland",
-            "displayName-count-one": "Amark n Finland",
-            "displayName-count-other": "Imarken n Finland"
-          },
           "FJD": {
-            "displayName": "Adular n Fiǧi",
-            "displayName-count-one": "Adular n Fiǧi",
-            "displayName-count-other": "Idularen n Fiǧi",
-            "symbol": "$FJ",
             "symbol-alt-narrow": "$"
           },
           "FKP": {
-            "displayName": "Apawnd n tegzrin n Malwin",
-            "displayName-count-one": "Apawnd n tegzrin n Malwin",
-            "displayName-count-other": "Ipawnden n tegzrin n Malwin",
-            "symbol": "£FK",
             "symbol-alt-narrow": "£"
-          },
-          "FRF": {
-            "displayName": "Afrank n Fṛansa",
-            "displayName-count-one": "Afrank n Fṛansa",
-            "displayName-count-other": "Ifranken n Fṛansa",
-            "symbol": "F"
           },
           "GBP": {
             "displayName": "Apund Aglizi",
-            "displayName-count-one": "Apund aglizi",
             "displayName-count-other": "Apund Aglizi",
             "symbol": "£",
             "symbol-alt-narrow": "£"
           },
-          "GEK": {
-            "displayName": "Akupun n Larin Jyujya",
-            "displayName-count-one": "Akupun n Larin Jyujya",
-            "displayName-count-other": "Ikupunen n Larin Jyujya"
-          },
           "GEL": {
-            "displayName": "Alari n Jyurjya",
-            "displayName-count-one": "Alari n Jyurjya",
-            "displayName-count-other": "Ilariyen n Jyurjya",
             "symbol-alt-narrow": "₾"
           },
           "GHC": {
             "displayName": "Asidi Aɣani",
-            "displayName-count-one": "Asidi n Ɣana (1967–2007)",
-            "displayName-count-other": "Isidiyen n Ɣana (1967–2007)"
+            "displayName-count-other": "Asidi Aɣani"
           },
           "GHS": {
-            "displayName": "Asidi n Ɣana",
-            "displayName-count-one": "Asidi n Ɣana",
-            "displayName-count-other": "Isidiyen n Ɣana",
             "symbol-alt-narrow": "GH₵"
           },
           "GIP": {
-            "displayName": "Apund n Jibraltar",
-            "displayName-count-one": "Apund n Jibraltar",
-            "displayName-count-other": "ipunden n Jibraltar",
-            "symbol": "£GI",
             "symbol-alt-narrow": "£"
           },
           "GMD": {
             "displayName": "Adalasi Agambi",
-            "displayName-count-one": "Adalasi n Gambya",
-            "displayName-count-other": "Idalasiyen n Gambya"
+            "displayName-count-other": "Adalasi Agambi"
           },
           "GNF": {
-            "displayName": "Afrank n Ɣinya",
-            "displayName-count-one": "Afrank n Ɣinya",
-            "displayName-count-other": "Ifranken n Ɣinya",
             "symbol-alt-narrow": "FG"
           },
           "GNS": {
             "displayName": "Afrank Aɣini",
-            "displayName-count-one": "Azili n Ɣinya",
-            "displayName-count-other": "Iziliyen n Ɣinya"
-          },
-          "GQE": {
-            "displayName": "Akwili n Ɣinya Tasebgast",
-            "displayName-count-other": "Akwili n Ɣinya Tasebgast"
-          },
-          "GRD": {
-            "displayName": "Adrakmi n Grik",
-            "displayName-count-one": "Adrakmi n Grik",
-            "displayName-count-other": "Idrakmiyen n Grik"
+            "displayName-count-other": "Afrank Aɣini"
           },
           "GTQ": {
-            "displayName": "Aketzal n Gwatimala",
-            "displayName-count-one": "Aketzal n Gwatimala",
-            "displayName-count-other": "Iketzalen n Gwatimala",
             "symbol-alt-narrow": "Q"
           },
-          "GWE": {
-            "displayName": "Askudu n Ɣinya tapurtugit",
-            "displayName-count-one": "Askudu n Ɣinya tapurtugit",
-            "displayName-count-other": "Iskuduyen n Ɣinya tapurtugit"
-          },
-          "GWP": {
-            "displayName": "Apisu n Ɣinya-Bisaw",
-            "displayName-count-one": "Apisu n Ɣinya-Bisaw",
-            "displayName-count-other": "Ipisuten n Ɣinya-Bisaw"
-          },
           "GYD": {
-            "displayName": "Adular n Guyana",
-            "displayName-count-one": "Adular n Guyana",
-            "displayName-count-other": "Idularen n Guyana",
             "symbol-alt-narrow": "$"
           },
           "HKD": {
-            "displayName": "Adular n Hung Kung",
-            "displayName-count-one": "Adular n Hung Kung",
-            "displayName-count-other": "Idularen n Hung Kung",
-            "symbol": "HKD",
+            "symbol": "HK$",
             "symbol-alt-narrow": "$"
           },
           "HNL": {
-            "displayName": "Alampir n Hunduras",
-            "displayName-count-one": "Alampir n Hunduras",
-            "displayName-count-other": "Ilampiren n Hunduras",
             "symbol-alt-narrow": "L"
           },
-          "HRD": {
-            "displayName": "Adinar n Kaṛwasya",
-            "displayName-count-one": "Adinar n Kaṛwasya",
-            "displayName-count-other": "Idinaren n Kaṛwasya"
-          },
           "HRK": {
-            "displayName": "Akuna n Kerwasya",
-            "displayName-count-one": "Akuna n Kerwasya",
-            "displayName-count-other": "Ikunayen n Kerwasya",
             "symbol-alt-narrow": "kn"
           },
-          "HTG": {
-            "displayName": "Agurd n Hayti",
-            "displayName-count-one": "Agurd n Hayti",
-            "displayName-count-other": "Igurden n Hayti"
-          },
           "HUF": {
-            "displayName": "Afurint Ahungri",
-            "displayName-count-one": "Afurint n Hungri",
-            "displayName-count-other": "Ifurinten n Hungri",
             "symbol-alt-narrow": "Ft"
           },
           "IDR": {
-            "displayName": "Arupi n Indunisya",
-            "displayName-count-one": "Arupi n Indunisya",
-            "displayName-count-other": "Irupiyen n Indunisya",
             "symbol-alt-narrow": "Rp"
           },
-          "IEP": {
-            "displayName": "Apawnd n Irland",
-            "displayName-count-one": "Apawnd n Irland",
-            "displayName-count-other": "Ipawnden n Irland",
-            "symbol": "£IE"
-          },
-          "ILP": {
-            "displayName": "Apawnd n Izrayil",
-            "displayName-count-one": "Apawnd n Izrayil",
-            "displayName-count-other": "Ipawnden n Izrayil",
-            "symbol": "£IL"
-          },
-          "ILR": {
-            "displayName": "Acikil n Izrayil(1980–1985)",
-            "displayName-count-one": "Acikil n Izrayil(1980–1985)",
-            "displayName-count-other": "Icikilen n Izrayil (1980–1985)"
-          },
           "ILS": {
-            "displayName": "Acikil amaynut n Izrayil",
-            "displayName-count-one": "Acikil amaynut n Izrayil",
-            "displayName-count-other": "Acikilen amaynut n Izrayil",
             "symbol": "₪",
             "symbol-alt-narrow": "₪"
           },
           "INR": {
             "displayName": "Arupi Ahendi",
-            "displayName-count-one": "Arupi n Lhend",
-            "displayName-count-other": "Irupiyen n Lhend",
+            "displayName-count-other": "Arupi Ahendi",
             "symbol": "₹",
             "symbol-alt-narrow": "₹"
           },
-          "IQD": {
-            "displayName": "Adinar Aɛiraqi",
-            "displayName-count-one": "Adinar n Ɛiraq",
-            "displayName-count-other": "Idinaren n Ɛiraq"
-          },
-          "IRR": {
-            "displayName": "Ariyal n Iran",
-            "displayName-count-one": "Ariyal n Iran",
-            "displayName-count-other": "Iriyalen n Iran"
-          },
           "ISK": {
-            "displayName": "Akurun n Island",
-            "displayName-count-one": "Akurun n Island",
-            "displayName-count-other": "Ikurunen n Island",
             "symbol-alt-narrow": "kr"
           },
-          "ITL": {
-            "displayName": "Alir n Ṭelyan",
-            "displayName-count-one": "Alir n Ṭelyan",
-            "displayName-count-other": "Iliren n Ṭelyan",
-            "symbol": "₤IT"
-          },
           "JMD": {
-            "displayName": "Adular n Jamayik",
-            "displayName-count-one": "Adular n Jamayik",
-            "displayName-count-other": "Idularen n Jamayik",
             "symbol-alt-narrow": "$"
-          },
-          "JOD": {
-            "displayName": "Adinar Urdun",
-            "displayName-count-one": "Adinar n Urdun",
-            "displayName-count-other": "Idinaren n Urdun"
           },
           "JPY": {
             "displayName": "Ayen Ajappuni",
-            "displayName-count-one": "Iyen n Japun",
-            "displayName-count-other": "Iynen n Japun",
-            "symbol": "JPY",
+            "displayName-count-other": "Ayen Ajappuni",
+            "symbol": "JP¥",
             "symbol-alt-narrow": "¥"
           },
           "KES": {
             "displayName": "Aciling Akini",
-            "displayName-count-one": "Aciling n Kinya",
-            "displayName-count-other": "Icilingen n Kinya"
+            "displayName-count-other": "Aciling Akini"
           },
           "KGS": {
-            "displayName": "Asum n Kirigistan",
-            "displayName-count-one": "Asum n Kirigistan",
-            "displayName-count-other": "Isumen n Kirigistan",
             "symbol-alt-narrow": "⃀"
           },
           "KHR": {
-            "displayName": "Ariyil n Kambuj",
-            "displayName-count-one": "Ariyil n Kambuj",
-            "displayName-count-other": "Iriyilen n Kambuj",
             "symbol-alt-narrow": "៛"
           },
           "KMF": {
             "displayName": "Afrank Akamiruni",
-            "displayName-count-one": "Afrank n Kumur",
-            "displayName-count-other": "Ifranken n Kumur",
+            "displayName-count-other": "Afrank Akamiruni",
             "symbol-alt-narrow": "CF"
           },
           "KPW": {
-            "displayName": "Awun n Kurya n Ugafa",
-            "displayName-count-one": "Awun n Kurya n Ugafa",
-            "displayName-count-other": "Iwunen n Kurya n Ugafa",
             "symbol-alt-narrow": "₩"
           },
-          "KRH": {
-            "displayName": "Ahwan n Tkirit n unẓul (1953–1962)",
-            "displayName-count-one": "Ahwan n Tkirit n unẓul (1953–1962)",
-            "displayName-count-other": "Ihwanen n Tkirit n unẓul (1953–1962)"
-          },
-          "KRO": {
-            "displayName": "Ahwan n Tkirit n unẓul (1945–1953)",
-            "displayName-count-one": "Ahwan n Tkirit n unẓul (1945–1953)",
-            "displayName-count-other": "Ihwanen n Tkirit n unẓul (1945–1953)"
-          },
           "KRW": {
-            "displayName": "Awun n Kurya n Unẓul",
-            "displayName-count-one": "Awun n Kurya n Unẓul",
-            "displayName-count-other": "Iwunen n Kurya n Unẓul",
             "symbol": "₩",
             "symbol-alt-narrow": "₩"
           },
-          "KWD": {
-            "displayName": "Adinarn Kuwayt",
-            "displayName-count-one": "Adinarn Kuwayt",
-            "displayName-count-other": "Idinaren n Kuwayt"
-          },
           "KYD": {
-            "displayName": "Adular n tegzirin Kayman",
-            "displayName-count-one": "Adular n tegzirin Kayman",
-            "displayName-count-other": "Idularen n tegzirin Kayman",
             "symbol-alt-narrow": "$"
           },
           "KZT": {
-            "displayName": "Atunj n Kazaxistan",
-            "displayName-count-one": "Atunj n Kazaxistan",
-            "displayName-count-other": "Itunjen n Kazaxistan",
             "symbol-alt-narrow": "₸"
           },
           "LAK": {
-            "displayName": "Akip n Laws",
-            "displayName-count-one": "Akip n Laws",
-            "displayName-count-other": "Ikipen n Laws",
             "symbol-alt-narrow": "₭"
           },
           "LBP": {
-            "displayName": "Apund n Lubnan",
-            "displayName-count-one": "Apund n Lubnan",
-            "displayName-count-other": "Ipunden n Lubnan",
-            "symbol": "£LB",
-            "symbol-alt-narrow": "£L"
+            "symbol-alt-narrow": "L£"
           },
           "LKR": {
-            "displayName": "Arupi n Srilanka",
-            "displayName-count-one": "Arupi n Srilanka",
-            "displayName-count-other": "Irupiyen n Srilanka",
             "symbol-alt-narrow": "Rs"
           },
           "LRD": {
             "displayName": "Adular Alibiri",
-            "displayName-count-one": "Adular n Libirya",
-            "displayName-count-other": "Idularen n Libirya",
+            "displayName-count-other": "Adular Alibiri",
             "symbol-alt-narrow": "$"
           },
           "LSL": {
             "displayName": "Aluṭi Alizuṭi",
-            "displayName-count-one": "Aluti n Lizuṭu",
-            "displayName-count-other": "Ilutiyen n Lizuṭu",
-            "symbol": "lLS"
+            "displayName-count-other": "Aluṭi Alizuṭi"
           },
           "LTL": {
-            "displayName": "Alitas n Litwanya",
-            "displayName-count-one": "Alitas n Litwanya",
-            "displayName-count-other": "Ilitasen n Litwanya",
             "symbol-alt-narrow": "Lt"
           },
-          "LTT": {
-            "displayName": "Atalonas n Litwanya",
-            "displayName-count-one": "Atalonas n Litwanya",
-            "displayName-count-other": "Italonasen n Litwanya"
-          },
-          "LUC": {
-            "displayName": "Afrank yettwaseklaten n Luksumburg",
-            "displayName-count-one": "Afrank yettwaseklaten n Luksumburg",
-            "displayName-count-other": "Ifranken yettwaseklaten n Luksumburg"
-          },
-          "LUF": {
-            "displayName": "Afrank n Luksumburg",
-            "displayName-count-one": "Afrank n Luksumburg",
-            "displayName-count-other": "Ifranken n Luksumburg"
-          },
-          "LUL": {
-            "displayName": "Afrank adriman n Luksumburg",
-            "displayName-count-one": "Afrank adriman n Luksumburg",
-            "displayName-count-other": "Ifranken idrimanen n Luksumburg"
-          },
           "LVL": {
-            "displayName": "Alats n Letunya",
-            "displayName-count-one": "Alats n Letunya",
-            "displayName-count-other": "Ilatsen n Letunya",
             "symbol-alt-narrow": "Ls"
-          },
-          "LVR": {
-            "displayName": "Arubl n Litunya",
-            "displayName-count-one": "Arubl n Litunya",
-            "displayName-count-other": "Irublen n Litunya"
           },
           "LYD": {
             "displayName": "Adinar Alibi",
-            "displayName-count-one": "Adinar n Libya",
-            "displayName-count-other": "Idinaren n Libya"
+            "displayName-count-other": "Adinar Alibi"
           },
           "MAD": {
             "displayName": "Adirham Amerruki",
-            "displayName-count-one": "Adirham n Merruk",
-            "displayName-count-other": "Idirhamen n Merruk"
-          },
-          "MAF": {
-            "displayName": "Afrank n Meṛṛuk",
-            "displayName-count-one": "Afrank n Meṛṛuk",
-            "displayName-count-other": "Ifranken n Meṛṛuk",
-            "symbol": "fMA"
-          },
-          "MDL": {
-            "displayName": "Alu n Mulduvi",
-            "displayName-count-one": "Alu n Mulduvi",
-            "displayName-count-other": "Iluten n Mulduvi"
+            "displayName-count-other": "Adirham Amerruki"
           },
           "MGA": {
             "displayName": "Aryari Amalgac",
-            "displayName-count-one": "Aryari n Madagaskar",
-            "displayName-count-other": "Iryariyen n Madagaskar",
+            "displayName-count-other": "Aryari Amalgac",
             "symbol-alt-narrow": "Ar"
           },
-          "MGF": {
-            "displayName": "Afrank n Madakaskaṛ",
-            "displayName-count-one": "Afrank n Madakaskaṛ",
-            "displayName-count-other": "Ifranken n Madakaskaṛ",
-            "symbol": "Fmg"
-          },
-          "MKD": {
-            "displayName": "Adnar n Masidunya",
-            "displayName-count-one": "Adnar n Masidunya",
-            "displayName-count-other": "I dnaren n Masidunya"
-          },
-          "MLF": {
-            "displayName": "Afrank n Mali",
-            "displayName-count-one": "Afrank n Mali",
-            "displayName-count-other": "Ifranken n Mali"
-          },
           "MMK": {
-            "displayName": "Akyat n Myanmar",
-            "displayName-count-one": "Akyat n Myanmar",
-            "displayName-count-other": "Ikyaten n Myanmar",
             "symbol-alt-narrow": "K"
           },
           "MNT": {
-            "displayName": "Atugrik n Mungulya",
-            "displayName-count-one": "Atugrik n Mungulya",
-            "displayName-count-other": "Itugriken n Mungulya",
             "symbol-alt-narrow": "₮"
-          },
-          "MOP": {
-            "displayName": "Apataka n Makaw",
-            "displayName-count-one": "Apataka n Makaw",
-            "displayName-count-other": "Ipatakayen n Makaw"
           },
           "MRO": {
             "displayName": "Agiya Amuriṭani (1973–2017)",
-            "displayName-count-one": "Ugiya n Muritaniya (1973–2017)",
-            "displayName-count-other": "Ugiyaten n Muritaniya (1973–2017)"
+            "displayName-count-other": "Agiya Amuriṭani (1973–2017)"
           },
           "MRU": {
             "displayName": "Agiya Amuriṭani",
-            "displayName-count-one": "Ugiya n Muritaniya",
-            "displayName-count-other": "Ugiyaten n Muritaniya"
-          },
-          "MTL": {
-            "displayName": "Alir n Malt",
-            "displayName-count-one": "Alir n Malt",
-            "displayName-count-other": "Iliren n Malt"
-          },
-          "MTP": {
-            "displayName": "Apawnd n Malt",
-            "displayName-count-one": "Apawnd n Malt",
-            "displayName-count-other": "Ipawnden n Malt",
-            "symbol": "£MT"
+            "displayName-count-other": "Agiya Amuriṭani"
           },
           "MUR": {
             "displayName": "Arupi Amurisi",
-            "displayName-count-one": "Arupi n Muris",
-            "displayName-count-other": "Irupiyen n Muris",
+            "displayName-count-other": "Arupi Amurisi",
             "symbol-alt-narrow": "Rs"
-          },
-          "MVP": {
-            "displayName": "Arupi n Maldiv",
-            "displayName-count-one": "Arupi n Maldiv",
-            "displayName-count-other": "Trupiyen n Maldiv"
-          },
-          "MVR": {
-            "displayName": "Arufiya n Maldiv",
-            "displayName-count-one": "Arufiya n Maldiv",
-            "displayName-count-other": "Irufiyaten n Maldiv"
           },
           "MWK": {
             "displayName": "Akwaca Amalawi",
-            "displayName-count-one": "Akwaca n Malawi",
-            "displayName-count-other": "Ikwacayen n Malawi"
+            "displayName-count-other": "Akwaca Amalawi"
           },
           "MXN": {
-            "displayName": "Apisu Miksik",
-            "displayName-count-one": "Apisu Miksik",
-            "displayName-count-other": "Ipisuten Miksik",
-            "symbol": "$MX",
+            "symbol": "MX$",
             "symbol-alt-narrow": "$"
           },
-          "MXP": {
-            "displayName": "Apisu n lfeṭṭa n Miksik (1861–1992)",
-            "displayName-count-one": "Apisu n lfeṭṭa n Miksik (1861–1992)",
-            "displayName-count-other": "Ipisuten n lfeṭṭa n Miksik (1861–1992)"
-          },
-          "MXV": {
-            "displayName": "Aferdis n uselket n Miksi (UDI)",
-            "displayName-count-one": "Aferdis n uselket n Miksi (UDI)",
-            "displayName-count-other": "Iferdisen n uselket n Miksi (UDI)"
-          },
           "MYR": {
-            "displayName": "Aringgit n Malizya",
-            "displayName-count-one": "Aringgit n Malizya",
-            "displayName-count-other": "Iringgiten n Malizya",
             "symbol-alt-narrow": "RM"
-          },
-          "MZE": {
-            "displayName": "Askudu n Muzumbik",
-            "displayName-count-one": "Askudu n Muzumbik",
-            "displayName-count-other": "Iskuduyen n Muzumbik"
           },
           "MZM": {
             "displayName": "Amitikal Amuzembiqi",
-            "displayName-count-one": "Amitikal n Muzumbik (1980–2006)",
-            "displayName-count-other": "Imitikalen n Muzumbik (1980–2006)"
-          },
-          "MZN": {
-            "displayName": "Amitikal amuzembiq",
-            "displayName-count-one": "Amitikal n Muzembiq",
-            "displayName-count-other": "Imitikalen n Muzembiq"
+            "displayName-count-other": "Amitikal Amuzembiqi"
           },
           "NAD": {
             "displayName": "Adular Anamibi",
-            "displayName-count-one": "Adular n Namibya",
-            "displayName-count-other": "Idularen n Namibya",
-            "symbol": "$NA",
+            "displayName-count-other": "Adular Anamibi",
             "symbol-alt-narrow": "$"
           },
           "NGN": {
             "displayName": "Anayra Anijiri",
-            "displayName-count-one": "Anayra n Nijirya",
-            "displayName-count-other": "Inayrayen n Nijirya",
+            "displayName-count-other": "Anayra Anijiri",
             "symbol-alt-narrow": "₦"
           },
-          "NIC": {
-            "displayName": "Akurduba n Nikaragwa (1912–1988)",
-            "displayName-count-one": "Akurduba n Nikaragwa (1912–1988)",
-            "displayName-count-other": "Ikurdubayen n Nikaragwa (1912–1988)"
-          },
           "NIO": {
-            "displayName": "Akurduba n Nikaragwa",
-            "displayName-count-one": "Akurduba n Nikaragwa",
-            "displayName-count-other": "Ikurdubayen n Nikaragwa",
-            "symbol-alt-narrow": "$C"
-          },
-          "NLG": {
-            "displayName": "Aflurin n Huland",
-            "displayName-count-one": "Aflurin n Huland",
-            "displayName-count-other": "Iflurinen n Huland"
+            "symbol-alt-narrow": "C$"
           },
           "NOK": {
-            "displayName": "Akurun n Nurvij",
-            "displayName-count-one": "Akurun n Nurvij",
-            "displayName-count-other": "Ikurunen n Nurvij",
             "symbol-alt-narrow": "kr"
           },
           "NPR": {
-            "displayName": "Arupi n Nipal",
-            "displayName-count-one": "Arupi n Nipal",
-            "displayName-count-other": "Irupiyen n Nipal",
             "symbol-alt-narrow": "Rs"
           },
           "NZD": {
-            "displayName": "Adular n Ziland Tamaynut",
-            "displayName-count-one": "Adular n Ziland Tamaynut",
-            "displayName-count-other": "Idularen n Ziland Tamaynut",
-            "symbol": "$NZ",
+            "symbol": "NZ$",
             "symbol-alt-narrow": "$"
           },
-          "OMR": {
-            "displayName": "Ariyal n Ɛuman",
-            "displayName-count-one": "Ariyal n Ɛuman",
-            "displayName-count-other": "Iriyalen n Ɛuman"
-          },
-          "PAB": {
-            "displayName": "Abalbwa n Panama",
-            "displayName-count-one": "Abalbwa n Panama",
-            "displayName-count-other": "Ibalbwayen n Panama"
-          },
-          "PEI": {
-            "displayName": "Inti n Piru",
-            "displayName-count-one": "Inti n Piru",
-            "displayName-count-other": "Intiyen n Piru"
-          },
-          "PEN": {
-            "displayName": "Asul amaynut n Piru",
-            "displayName-count-one": "Asul amaynut n Piru",
-            "displayName-count-other": "Isulen amaynut n Piru"
-          },
-          "PES": {
-            "displayName": "Asul n Piru (1863–1985)",
-            "displayName-count-one": "Asul n Piru (1863–1985)",
-            "displayName-count-other": "Isulen n Piru (1863–1985)"
-          },
-          "PGK": {
-            "displayName": "Akina n Papwazi n Ɣinya Tamaynut",
-            "displayName-count-one": "Akina n Papwazi n Ɣinya Tamaynut",
-            "displayName-count-other": "Ikinayen n Papwazi n Ɣinya Tamaynut"
-          },
           "PHP": {
-            "displayName": "Apisu n Filipin",
-            "displayName-count-one": "Apisu n Filipin",
-            "displayName-count-other": "Ipisuten n Filipin",
-            "symbol": "PHP",
+            "symbol": "₱",
             "symbol-alt-narrow": "₱"
           },
           "PKR": {
-            "displayName": "Arupi n Pakistan",
-            "displayName-count-one": "Arupi n Pakistan",
-            "displayName-count-other": "Irupiyen n Pakistan",
             "symbol-alt-narrow": "Rs"
           },
           "PLN": {
-            "displayName": "Azluti n Puland",
-            "displayName-count-one": "Azluti n Puland",
-            "displayName-count-other": "Izlutiyen n Puland",
             "symbol-alt-narrow": "zł"
           },
-          "PLZ": {
-            "displayName": "Azluti n Pulund (1950–1995)",
-            "displayName-count-one": "Azluti n Pulund (1950–1995)",
-            "displayName-count-other": "Izlutiyen n Pulund (1950–1995)"
-          },
-          "PTE": {
-            "displayName": "Askudu n Purtugal",
-            "displayName-count-one": "Askudu n Purtugal",
-            "displayName-count-other": "Iskuduten n Purtugal"
-          },
           "PYG": {
-            "displayName": "Agarani n Paragway",
-            "displayName-count-one": "Agarani n Paragway",
-            "displayName-count-other": "Igaraniyen n Paragway",
             "symbol-alt-narrow": "₲"
           },
-          "QAR": {
-            "displayName": "Ariyal n Qatar",
-            "displayName-count-one": "Ariyal n Qatar",
-            "displayName-count-other": "Iriyalen n Qatar"
-          },
-          "RHD": {
-            "displayName": "Adular Arudizyan",
-            "displayName-count-one": "Adular Arudizyan",
-            "displayName-count-other": "Idularen Irudizyanen",
-            "symbol": "$RH"
-          },
-          "ROL": {
-            "displayName": "Alu aqbuṛ n Rumanya (1952–2005)",
-            "displayName-count-one": "Alu aqbuṛ n Rumanya (1952–2005)",
-            "displayName-count-other": "Iluten iqbuṛen n Rumanya (1952–2005)"
-          },
           "RON": {
-            "displayName": "Alu n Rumanya",
-            "displayName-count-one": "Alu n Rumanya",
-            "displayName-count-other": "Aluten n Rumanya",
-            "symbol-alt-narrow": "L"
-          },
-          "RSD": {
-            "displayName": "Adinar n Ṣirbya",
-            "displayName-count-one": "Adinar n Ṣirbya",
-            "displayName-count-other": "Idinaren n Ṣirbya"
+            "symbol-alt-narrow": "lei"
           },
           "RUB": {
-            "displayName": "Arubl n Rrus",
-            "displayName-count-one": "Arubl n Rrus",
-            "displayName-count-other": "Irublen n Rrus",
             "symbol-alt-narrow": "₽"
-          },
-          "RUR": {
-            "displayName": "Arubl n Rrus (1991–1998)",
-            "displayName-count-one": "Arubl n Rrus (1991–1998)",
-            "displayName-count-other": "Irublen n Rrus (1991–1998)"
           },
           "RWF": {
             "displayName": "Afrank Aruwandi",
-            "displayName-count-one": "Afrank n Rwanda",
-            "displayName-count-other": "Ifranken n Rwanda",
+            "displayName-count-other": "Afrank Aruwandi",
             "symbol-alt-narrow": "RF"
           },
           "SAR": {
             "displayName": "Aryal Asuɛudi",
-            "displayName-count-one": "Ariyal n Saɛudya",
-            "displayName-count-other": "Iriyalen n Saɛudya",
+            "displayName-count-other": "Aryal Asuɛudi",
             "symbol-alt-variant": "⃁"
           },
           "SBD": {
-            "displayName": "Adular n Tegzirin n Salumun",
-            "displayName-count-one": "Adular n Tegzirin n Salumun",
-            "displayName-count-other": "Idularen n Tegzirin n Salumun",
-            "symbol": "$SB",
             "symbol-alt-narrow": "$"
           },
           "SCR": {
             "displayName": "Arupi Aseycili",
-            "displayName-count-one": "Arupi n Saycal",
-            "displayName-count-other": "Irupiyen n Saycal"
-          },
-          "SDD": {
-            "displayName": "Adinar n Sudan (1992–2007)",
-            "displayName-count-one": "Adinar n Sudan (1992–2007)",
-            "displayName-count-other": "Idinaren n Sudan (1992–2007)"
+            "displayName-count-other": "Arupi Aseycili"
           },
           "SDG": {
             "displayName": "Apund Asudani",
-            "displayName-count-one": "Apund n Sudan",
-            "displayName-count-other": "Ipunden n Sudan"
-          },
-          "SDP": {
-            "displayName": "Apawnd n Sudan (1956–2007)",
-            "displayName-count-one": "Apawnd n Sudan (1956–2007)",
-            "displayName-count-other": "Ipawnden n Sudan (1956–2007)"
+            "displayName-count-other": "Apund Asudani"
           },
           "SEK": {
-            "displayName": "Akurun n Swid",
-            "displayName-count-other": "Akurun n Swid",
             "symbol-alt-narrow": "kr"
           },
           "SGD": {
-            "displayName": "Adular n Sangapur",
-            "displayName-count-one": "Adular n Sangapur",
-            "displayName-count-other": "Idularen n Sangapur",
-            "symbol": "$SG",
             "symbol-alt-narrow": "$"
           },
           "SHP": {
             "displayName": "Apund Asant Ilini",
-            "displayName-count-one": "Apund n Sant Ilina",
-            "displayName-count-other": "Ipunden n Sant Ilina",
+            "displayName-count-other": "Apund Asant Ilini",
             "symbol-alt-narrow": "£"
-          },
-          "SIT": {
-            "displayName": "Atular n Sluvinya",
-            "displayName-count-one": "Atular n Sluvinya",
-            "displayName-count-other": "Itularen n Sluvinya"
-          },
-          "SKK": {
-            "displayName": "Akurun n Sluvakya",
-            "displayName-count-one": "Akurun n Sluvakya",
-            "displayName-count-other": "Ikurunen n Sluvakya"
           },
           "SLE": {
             "displayName": "Alyun",
-            "displayName-count-one": "Aliyun n Sira Lyun",
-            "displayName-count-other": "Iliyunen n Sira Lyun"
+            "displayName-count-other": "Alyun"
           },
           "SLL": {
             "displayName": "Alyun (1964—2022)",
-            "displayName-count-one": "Aliyun n Sira Lyun (1964—2022)",
-            "displayName-count-other": "Iliyunen n Sira Lyun (1964—2022)"
+            "displayName-count-other": "Alyun (1964—2022)"
           },
           "SOS": {
             "displayName": "Aciling Aṣumali",
-            "displayName-count-one": "Aciling n Ṣumal",
-            "displayName-count-other": "Icilingen n Ṣumal"
+            "displayName-count-other": "Aciling Aṣumali"
           },
           "SRD": {
-            "displayName": "Adular n Surinam",
-            "displayName-count-one": "Adular n Surinam",
-            "displayName-count-other": "Idularen n Surinam",
-            "symbol": "$SR",
             "symbol-alt-narrow": "$"
           },
-          "SRG": {
-            "displayName": "Aflurin n Surinam",
-            "displayName-count-one": "Aflurin n Surinam",
-            "displayName-count-other": "Iflurinen n Surinam"
-          },
           "SSP": {
-            "displayName": "Apund n Sudan n Unẓul",
-            "displayName-count-one": "Apund n Sudan n Unẓul",
-            "displayName-count-other": "Ipunden n Sudan n Unẓul",
             "symbol-alt-narrow": "£"
           },
           "STD": {
             "displayName": "Asw Ṭum d Udubra Amenzay (1977–2017)",
-            "displayName-count-one": "Adubra n Sint-Toma (1977–2017)",
-            "displayName-count-other": "Idubrayen n Sint-Toma (1977–2017)"
+            "displayName-count-other": "Asw Ṭum d Udubra Amenzay (1977–2017)"
           },
           "STN": {
             "displayName": "Asw Ṭum d Udubra Amenzay",
-            "displayName-count-one": "Adubra n Saw Tumi d Prinsip",
-            "displayName-count-other": "Idubrayen n Saw Tumi d Prinsip",
+            "displayName-count-other": "Asw Ṭum d Udubra Amenzay",
             "symbol-alt-narrow": "Db"
           },
-          "SUR": {
-            "displayName": "Arubl n Suvyat",
-            "displayName-count-one": "Arubl n Suvyat",
-            "displayName-count-other": "Irublen n Suvyat"
-          },
-          "SVC": {
-            "displayName": "Akulun n Salvadur",
-            "displayName-count-one": "Akulun n Salvadur",
-            "displayName-count-other": "Ikulunen n Salvadur"
-          },
           "SYP": {
-            "displayName": "Apund n Surya",
-            "displayName-count-one": "Apund n Surya",
-            "displayName-count-other": "Ipunden n Surya",
             "symbol-alt-narrow": "£"
           },
           "SZL": {
             "displayName": "Alilangini",
-            "displayName-count-one": "Alilangini n Swazilan",
-            "displayName-count-other": "Ililanginiyen n Swazilan"
+            "displayName-count-other": "Alilangini"
           },
           "THB": {
-            "displayName": "Abaht n Tayland",
-            "displayName-count-one": "Abaht n Tayland",
-            "displayName-count-other": "Ibahten n Tayland",
             "symbol-alt-narrow": "฿"
-          },
-          "TJR": {
-            "displayName": "Arubl n Ṭajikistan",
-            "displayName-count-one": "Arubl n Ṭajikistan",
-            "displayName-count-other": "Irublen n Ṭajikistan"
-          },
-          "TJS": {
-            "displayName": "Asumuni n Ṭajikistan",
-            "displayName-count-one": "Asumuni n Ṭajikistan",
-            "displayName-count-other": "Isumuniyen n Ṭajikistan"
-          },
-          "TMM": {
-            "displayName": "Amanat n Ṭurkmanistan",
-            "displayName-count-one": "Amanat n Ṭurkmanistan",
-            "displayName-count-other": "Imanaten n Ṭurkmanistan"
-          },
-          "TMT": {
-            "displayName": "Amanat amaynut n Ṭurkmanistan",
-            "displayName-count-one": "Amanat amaynut n Ṭurkmanistan",
-            "displayName-count-other": "Imanaten imaynuten n Ṭurkmanistan"
           },
           "TND": {
             "displayName": "Adinar Atunsi",
-            "displayName-count-one": "Adinar n Tunes",
-            "displayName-count-other": "Idinaren n Tunes"
+            "displayName-count-other": "Adinar Atunsi"
           },
           "TOP": {
-            "displayName": "Apanga n Tunga",
-            "displayName-count-one": "Apanga n Tunga",
-            "displayName-count-other": "Ipangayen n Tunga",
             "symbol-alt-narrow": "T$"
           },
-          "TPE": {
-            "displayName": "Askudu n Timur",
-            "displayName-count-one": "Askudu n Timur",
-            "displayName-count-other": "Iskuduyen n Timur"
-          },
-          "TRL": {
-            "displayName": "Apawnd n Ṭurk (1844–2005)",
-            "displayName-count-one": "Apawnd n Ṭurk (1844–2005)",
-            "displayName-count-other": "Ipawnden n Ṭurk (1844–2005)"
-          },
           "TRY": {
-            "displayName": "Apund n Ṭurk",
-            "displayName-count-one": "Apund n Ṭurk",
-            "displayName-count-other": "Ipunden n Ṭurk",
             "symbol-alt-narrow": "₺",
-            "symbol-alt-variant": "LT"
+            "symbol-alt-variant": "TL"
           },
           "TTD": {
-            "displayName": "Adular n Trinidad d Tubagu",
-            "displayName-count-one": "Adular n Trinidad d Tubagu",
-            "displayName-count-other": "Idularen n Trinidad d Tubagu",
-            "symbol": "$TT",
             "symbol-alt-narrow": "$"
           },
           "TWD": {
-            "displayName": "Adular amaynut n Taywan",
-            "displayName-count-one": "Adular amaynut n Taywan",
-            "displayName-count-other": "Idularen imaynuten n Taywan",
-            "symbol": "TWD",
-            "symbol-alt-narrow": "NT$"
+            "symbol": "NT$",
+            "symbol-alt-narrow": "$"
           },
           "TZS": {
             "displayName": "Aciling Aṭanẓani",
-            "displayName-count-one": "Aciling n Ṭanzanya",
-            "displayName-count-other": "Icilingen n Ṭanzanya"
+            "displayName-count-other": "Aciling Aṭanẓani"
           },
           "UAH": {
-            "displayName": "Ahrivnya n Ukran",
-            "displayName-count-one": "Ahrivnya n Ukran",
-            "displayName-count-other": "Ihrivnyaen n Ukran",
             "symbol-alt-narrow": "₴"
-          },
-          "UAK": {
-            "displayName": "Akarbuvanit n Ukrin (1992–1996)",
-            "displayName-count-one": "Akarbuvanit n Ukrin (1992–1996)",
-            "displayName-count-other": "Ikarbuvaniten n Ukrin (1992–1996)"
-          },
-          "UGS": {
-            "displayName": "Aciling n Uganda (1966–1987)",
-            "displayName-count-one": "Aciling n Uganda (1966–1987)",
-            "displayName-count-other": "Icilingen n Uganda (1966–1987)"
           },
           "UGX": {
             "displayName": "Aciling Awgandi",
-            "displayName-count-one": "Aciling n Uganda",
-            "displayName-count-other": "Icilingen n Uganda"
+            "displayName-count-other": "Aciling Awgandi"
           },
           "USD": {
             "displayName": "Adular WD",
-            "displayName-count-one": "Adular n Marikan",
-            "displayName-count-other": "Idularen n Marikan",
-            "symbol": "$",
+            "displayName-count-other": "Adular WD",
+            "symbol": "US$",
             "symbol-alt-narrow": "$"
-          },
-          "USN": {
-            "displayName": "Adular n Marikan (azekka–yen)",
-            "displayName-count-one": "Adular n Marikan (azekka–yen)",
-            "displayName-count-other": "Idularen n Marikan (azekka–yen)"
-          },
-          "USS": {
-            "displayName": "Adular n Marikan (ass–en)",
-            "displayName-count-one": "Adular n Marikan (ass–en)",
-            "displayName-count-other": "Idularen n Marikan (ass–en)"
-          },
-          "UYI": {
-            "displayName": "Apisu n Urugway (iferdisen s umatar)",
-            "displayName-count-one": "Apisu n Urugway (iferdisen s umatar)",
-            "displayName-count-other": "Ipisuten n Urugway (iferdisen s umatar)"
-          },
-          "UYP": {
-            "displayName": "Apisu n Urugway (1975–1993)",
-            "displayName-count-one": "Apisu n Urugway (1975–1993)",
-            "displayName-count-other": "Ipisuten n Urugway (1975–1993)"
           },
           "UYU": {
-            "displayName": "Apisu n Urugway",
-            "displayName-count-one": "Apisu n Urugway",
-            "displayName-count-other": "Ipisuten n Urugway",
-            "symbol": "$UY",
             "symbol-alt-narrow": "$"
           },
-          "UZS": {
-            "displayName": "Asum n Uzbikistan",
-            "displayName-count-one": "Asum n Uzbikistan",
-            "displayName-count-other": "Isumen n Uzbikistan"
-          },
-          "VEB": {
-            "displayName": "Abulivaṛ n Vinizwila (1871–2008)",
-            "displayName-count-one": "Abulivaṛ n Vinizwila (1871–2008)",
-            "displayName-count-other": "Ibulivaṛen n Vinizwila (1871–2008)"
-          },
           "VEF": {
-            "displayName": "Abulivaṛ n Vinizwila (2008–2018)",
-            "displayName-count-one": "Abulivaṛ n Vinizwila (2008–2018)",
-            "displayName-count-other": "Ibulivaṛen n Vinizwila (2008–2018)",
             "symbol-alt-narrow": "Bs"
           },
-          "VES": {
-            "displayName": "Abulivar n Vinizwila",
-            "displayName-count-one": "Abulivar n Vinizwila",
-            "displayName-count-other": "Ibulivaren n Vinizwila"
-          },
           "VND": {
-            "displayName": "Adung n Vyitnam",
-            "displayName-count-one": "Adung n Vyitnam",
-            "displayName-count-other": "Idungen n Vyitnam",
             "symbol": "₫",
             "symbol-alt-narrow": "₫"
           },
-          "VNN": {
-            "displayName": "Adung n Vyitnam (1978–1985)",
-            "displayName-count-one": "Adung n Vyitnam (1978–1985)",
-            "displayName-count-other": "Idungen n Vyitnam (1978–1985)"
-          },
-          "VUV": {
-            "displayName": "Avatu n Vanuyatu",
-            "displayName-count-one": "Avatu n Vanuyatu",
-            "displayName-count-other": "Ivatuyen n Vanuyatu"
-          },
-          "WST": {
-            "displayName": "Atala n Samwa",
-            "displayName-count-one": "Atala n Samwa",
-            "displayName-count-other": "Italayen n Samwa",
-            "symbol": "WS$"
-          },
           "XAF": {
             "displayName": "Afrank BCEA CFA",
-            "displayName-count-one": "Afrank n CFA (BEAC)",
-            "displayName-count-other": "Ifranken n CFA (BEAC)",
+            "displayName-count-other": "Afrank BCEA CFA",
             "symbol": "FCFA"
           },
-          "XAG": {
-            "displayName": "lfeṭṭa",
-            "displayName-count-one": "Uns Ṭruy n lfe",
-            "displayName-count-other": "Unsen Ṭruy n lfe"
-          },
-          "XAU": {
-            "displayName": "Awraɣ",
-            "displayName-count-one": "Uns Ṭruy n n uwraɣ",
-            "displayName-count-other": "Unsen Ṭruy n n uwraɣ"
-          },
-          "XBA": {
-            "displayName": "Aferdis n tufut uddis (URKU)",
-            "displayName-count-one": "Aferdis n tufut uddis (URKU)",
-            "displayName-count-other": "Iferdisen n tufut uddisen (URKU)"
-          },
-          "XBB": {
-            "displayName": "Aferdis n tedrimt n tufurt (UME–6)",
-            "displayName-count-other": "Aferdis n tedrimt n tufurt (UME–6)"
-          },
-          "XBC": {
-            "displayName": "Aferdis n umiḍan n turfut (UEC–9)",
-            "displayName-count-one": "Aferdis n umiḍan n turfut (UEC–9)",
-            "displayName-count-other": "Iferdisen n umiḍan n turfut (UEC–9)"
-          },
-          "XBD": {
-            "displayName": "Aferdis n umiḍan 17 n turfut (UEC–17)",
-            "displayName-count-one": "Aferdis n umiḍan 17 n turfut (UEC–17)",
-            "displayName-count-other": "Iferdisen n umiḍan 17 n turfut (UEC–17)"
-          },
           "XCD": {
-            "displayName": "Adular n Karayib n usammar",
-            "displayName-count-one": "Adular n Karayib n usammar",
-            "displayName-count-other": "Idularen n Karayib n usammar",
-            "symbol": "XCD",
+            "symbol": "EC$",
             "symbol-alt-narrow": "$"
           },
           "XCG": {
             "symbol": "Cg."
           },
-          "XDR": {
-            "displayName": "droit de tirage spécial",
-            "displayName-count-one": "droit de tirage spécial",
-            "displayName-count-other": "droits de tirage spéciaux",
-            "symbol": "DTS"
-          },
-          "XEU": {
-            "displayName": "Aferdis n umiḍan n turfut (ACU)",
-            "displayName-count-one": "Aferdis n umiḍan n turfut (ACU)",
-            "displayName-count-other": "Iferdisen n umiḍan n turfut (ACU)"
-          },
-          "XFO": {
-            "displayName": "Afrank awraɣ",
-            "displayName-count-one": "Afrank n awraɣ",
-            "displayName-count-other": "Ifranken n uwraɣ"
-          },
-          "XFU": {
-            "displayName": "Afrank UIC",
-            "displayName-count-one": "Afrank UIC",
-            "displayName-count-other": "Ifranken UIC"
-          },
           "XOF": {
             "displayName": "Afrank BCEAO CFA",
-            "displayName-count-one": "Afrank CFA (BCEAO)",
-            "displayName-count-other": "Ifranken CFA (BCEAO)",
+            "displayName-count-other": "Afrank BCEAO CFA",
             "symbol": "F CFA"
           },
-          "XPD": {
-            "displayName": "Palladium",
-            "displayName-count-one": "Uns n Ṭrwa n palladium",
-            "displayName-count-other": "Unsen n Ṭrwa n palladium"
-          },
           "XPF": {
-            "displayName": "Afrank CFP",
-            "displayName-count-one": "Afrank CFP",
-            "displayName-count-other": "Ifranken CFP",
-            "symbol": "FCFP"
-          },
-          "XPT": {
-            "displayName": "Platin",
-            "displayName-count-one": "Uns n Ṭrwa n Platin",
-            "displayName-count-other": "Unsen n Ṭrwa n Platin"
-          },
-          "XRE": {
-            "displayName": "Anaw n idran RINET",
-            "displayName-count-one": "Aferdis n idran RINET",
-            "displayName-count-other": "Aferdis n idran RINET"
-          },
-          "XSU": {
-            "displayName": "Asukr",
-            "displayName-count-one": "Asukr",
-            "displayName-count-other": "Isukren"
-          },
-          "XTS": {
-            "displayName": "(tadrimt n usefkyed)",
-            "displayName-count-other": "(tadrimt n usefkyed)"
-          },
-          "XUA": {
-            "displayName": "Aferdis n umiḍan ADB",
-            "displayName-count-one": "Aferdis n umiḍan ADB",
-            "displayName-count-other": "Iferdisen n umiḍan ADB"
+            "symbol": "CFPF"
           },
           "XXX": {
-            "displayName": "Tadrimt tarussint neɣ tarameɣtut",
-            "displayName-count-one": "Tadrimt tarussint",
-            "displayName-count-other": "Tadrimt tirussinin",
-            "symbol": "XXX"
-          },
-          "YDD": {
-            "displayName": "Adinar n Yaman",
-            "displayName-count-one": "Adinar n Yaman",
-            "displayName-count-other": "Idinaren n Yaman"
-          },
-          "YER": {
-            "displayName": "Ariyal n Yaman",
-            "displayName-count-one": "Ariyal n Yaman",
-            "displayName-count-other": "Iriyalen n Yaman"
-          },
-          "YUD": {
-            "displayName": "Adinar n Yuguslavya amaynut (1966–1989)",
-            "displayName-count-other": "Adinar n Yuguslavya amaynut (1966–1989)"
-          },
-          "YUM": {
-            "displayName": "Adinar n Yuguslavya amaynut (1994–2003)",
-            "displayName-count-one": "Adinar n Yuguslavya amaynut (1994–2003)",
-            "displayName-count-other": "Idinaren n Yuguslavya amaynut (1994–2003)"
-          },
-          "YUN": {
-            "displayName": "Adinar n Yuguslavya yettwaselkaten (1990–1992)",
-            "displayName-count-one": "Adinar n Yuguslavya yettwaselkaten (1990–1992)",
-            "displayName-count-other": "Idinaren n Yuguslavya yettwaselkaten (1990–1992)"
-          },
-          "ZAL": {
-            "displayName": "Arand n Tefriqt n unzul (adriman)",
-            "displayName-count-one": "Arand n Tefriqt n unzul (adriman)",
-            "displayName-count-other": "Iranden n Tefriqt n unzul (idrimanen)"
+            "symbol": "¤"
           },
           "ZAR": {
             "displayName": "Arand Afriqi n Wadda",
-            "displayName-count-one": "Arand n Tefriqt n Unẓul",
-            "displayName-count-other": "Iranden n Tefriqt n Unẓul",
+            "displayName-count-other": "Arand Afriqi n Wadda",
             "symbol-alt-narrow": "R"
           },
           "ZMK": {
             "displayName": "Akwaca Azambi (1968–2012)",
-            "displayName-count-one": "Akwaca n Ẓambya (1968–2012)",
-            "displayName-count-other": "Ikwacayen n Ẓambya (1968–2012)"
+            "displayName-count-other": "Akwaca Azambi (1968–2012)"
           },
           "ZMW": {
             "displayName": "Akwaca Azambi",
-            "displayName-count-one": "Akwaca n Zambya",
-            "displayName-count-other": "Ikwacayen n Zambya",
-            "symbol-alt-narrow": "Kw"
-          },
-          "ZRN": {
-            "displayName": "Azayir amaynut n Zayir",
-            "displayName-count-one": "Azayir amaynut n Zayir",
-            "displayName-count-other": "Izayiren imaynuten n Zayir"
-          },
-          "ZRZ": {
-            "displayName": "Azayir n Zayir",
-            "displayName-count-one": "Azayir n Zayir",
-            "displayName-count-other": "Izayiren n Zayir"
+            "displayName-count-other": "Akwaca Azambi",
+            "symbol-alt-narrow": "ZK"
           },
           "ZWD": {
             "displayName": "Adular Azimbabwi",
-            "displayName-count-one": "Adular n zimbabwi",
-            "displayName-count-other": "Idularen n zimbabwi"
-          },
-          "ZWL": {
-            "displayName": "Adular n zimbabwi (2009)",
-            "displayName-count-one": "Adular n zimbabwi (2009)",
-            "displayName-count-other": "Idularen n zimbabwi (2009)"
-          },
-          "ZWR": {
-            "displayName": "Adular n zimbabwi (2008)",
-            "displayName-count-one": "Adular n zimbabwi (2008)",
-            "displayName-count-other": "Idularen n zimbabwi (2008)"
+            "displayName-count-other": "Adular Azimbabwi"
           }
         }
       }

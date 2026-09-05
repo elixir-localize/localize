@@ -294,18 +294,16 @@
             "unitPattern-count-other": "{0} bit"
           },
           "duration-century": {
-            "displayName": "sekúlo",
-            "unitPattern-count-one": "{0} sekúlo",
-            "unitPattern-count-other": "{0} sekúlo"
+            "displayName": "c",
+            "unitPattern-count-other": "{0} c"
           },
           "duration-decade": {
             "displayName": "dec",
             "unitPattern-count-other": "{0} dec"
           },
           "duration-year": {
-            "displayName": "mibú",
-            "unitPattern-count-one": "{0} mobú",
-            "unitPattern-count-other": "{0} mibú",
+            "displayName": "yr",
+            "unitPattern-count-other": "{0} y",
             "perUnitPattern": "{0}/y"
           },
           "duration-quarter": {
@@ -314,55 +312,46 @@
             "perUnitPattern": "{0}/q"
           },
           "duration-month": {
-            "displayName": "sánzá",
-            "unitPattern-count-one": "{0} sánzá",
-            "unitPattern-count-other": "{0} sánzá",
-            "perUnitPattern": "{0}/sán"
+            "displayName": "mon",
+            "unitPattern-count-other": "{0} m",
+            "perUnitPattern": "{0}/m"
           },
           "duration-week": {
-            "displayName": "mpɔ́sɔ",
-            "unitPattern-count-one": "{0} mpɔ́sɔ",
-            "unitPattern-count-other": "{0} mpɔ́sɔ",
-            "perUnitPattern": "{0}/mps"
+            "displayName": "wk",
+            "unitPattern-count-other": "{0} w",
+            "perUnitPattern": "{0}/w"
           },
           "duration-day": {
-            "displayName": "mikɔlɔ",
-            "unitPattern-count-one": "{0} mokɔlɔ",
-            "unitPattern-count-other": "{0} mikɔlɔ",
+            "displayName": "day",
+            "unitPattern-count-other": "{0} d",
             "perUnitPattern": "{0}/d"
           },
           "duration-hour": {
-            "displayName": "ngonga",
-            "unitPattern-count-one": "{0} ngonga",
-            "unitPattern-count-other": "{0} ngonga",
+            "displayName": "hr",
+            "unitPattern-count-other": "{0} h",
             "perUnitPattern": "{0}/h"
           },
           "duration-minute": {
-            "displayName": "minúti",
-            "unitPattern-count-one": "{0} monúti",
-            "unitPattern-count-other": "{0} minúti",
-            "perUnitPattern": "{0}/monúti"
+            "displayName": "min",
+            "unitPattern-count-other": "{0} min",
+            "perUnitPattern": "{0}/min"
           },
           "duration-second": {
-            "displayName": "sekundí",
-            "unitPattern-count-one": "{0} sekundí",
-            "unitPattern-count-other": "{0} sekundí",
+            "displayName": "sec",
+            "unitPattern-count-other": "{0} s",
             "perUnitPattern": "{0}/s"
           },
           "duration-millisecond": {
-            "displayName": "millisekundí",
-            "unitPattern-count-one": "{0} millisekundí",
-            "unitPattern-count-other": "{0} millisekundí"
+            "displayName": "ms",
+            "unitPattern-count-other": "{0} ms"
           },
           "duration-microsecond": {
-            "displayName": "mikrosekundí",
-            "unitPattern-count-one": "{0} mikrosekundí",
-            "unitPattern-count-other": "{0} mikrosekundí"
+            "displayName": "μs",
+            "unitPattern-count-other": "{0} μs"
           },
           "duration-nanosecond": {
-            "displayName": "nanosekundí",
-            "unitPattern-count-one": "{0} nanosekundí",
-            "unitPattern-count-other": "{0} nanosekundí"
+            "displayName": "ns",
+            "unitPattern-count-other": "{0} ns"
           },
           "electric-ampere": {
             "displayName": "amp",
@@ -416,9 +405,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -516,6 +513,10 @@
             "displayName": "in",
             "unitPattern-count-other": "{0} in",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
@@ -1360,16 +1361,15 @@
             "unitPattern-count-other": "{0} bit"
           },
           "duration-century": {
-            "displayName": "sek",
-            "unitPattern-count-one": "{0} sek",
-            "unitPattern-count-other": "{0} sek"
+            "displayName": "c",
+            "unitPattern-count-other": "{0} c"
           },
           "duration-decade": {
             "displayName": "dec",
             "unitPattern-count-other": "{0} dec"
           },
           "duration-year": {
-            "displayName": "mibú",
+            "displayName": "yr",
             "unitPattern-count-other": "{0} y",
             "perUnitPattern": "{0}/y"
           },
@@ -1379,25 +1379,22 @@
             "perUnitPattern": "{0}/q"
           },
           "duration-month": {
-            "displayName": "sánzá",
-            "unitPattern-count-one": "{0} sán",
-            "unitPattern-count-other": "{0} sán",
-            "perUnitPattern": "{0}/sán"
+            "displayName": "mon",
+            "unitPattern-count-other": "{0} m",
+            "perUnitPattern": "{0}/m"
           },
           "duration-week": {
-            "displayName": "mpɔ́sɔ",
-            "unitPattern-count-one": "{0} mps",
-            "unitPattern-count-other": "{0} mps",
-            "perUnitPattern": "{0}/mps"
+            "displayName": "wk",
+            "unitPattern-count-other": "{0} w",
+            "perUnitPattern": "{0}/w"
           },
           "duration-day": {
-            "displayName": "mikɔlɔ",
-            "unitPattern-count-one": "{0} mokɔlɔ",
-            "unitPattern-count-other": "{0} mikɔlɔ",
+            "displayName": "day",
+            "unitPattern-count-other": "{0} d",
             "perUnitPattern": "{0}/d"
           },
           "duration-hour": {
-            "displayName": "ngonga",
+            "displayName": "hr",
             "unitPattern-count-other": "{0} h",
             "perUnitPattern": "{0}/h"
           },
@@ -1407,7 +1404,7 @@
             "perUnitPattern": "{0}/min"
           },
           "duration-second": {
-            "displayName": "s",
+            "displayName": "sec",
             "unitPattern-count-other": "{0} s",
             "perUnitPattern": "{0}/s"
           },
@@ -1475,9 +1472,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -1575,6 +1580,10 @@
             "displayName": "in",
             "unitPattern-count-other": "{0} in",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
@@ -2419,16 +2428,15 @@
             "unitPattern-count-other": "{0} bit"
           },
           "duration-century": {
-            "displayName": "sek",
-            "unitPattern-count-one": "{0} sek",
-            "unitPattern-count-other": "{0} sek"
+            "displayName": "c",
+            "unitPattern-count-other": "{0} c"
           },
           "duration-decade": {
             "displayName": "dec",
             "unitPattern-count-other": "{0} dec"
           },
           "duration-year": {
-            "displayName": "mibú",
+            "displayName": "yr",
             "unitPattern-count-other": "{0} y",
             "perUnitPattern": "{0}/y"
           },
@@ -2438,25 +2446,22 @@
             "perUnitPattern": "{0}/q"
           },
           "duration-month": {
-            "displayName": "sánzá",
-            "unitPattern-count-one": "{0} sán",
-            "unitPattern-count-other": "{0} sán",
-            "perUnitPattern": "{0}/sán"
+            "displayName": "mon",
+            "unitPattern-count-other": "{0} m",
+            "perUnitPattern": "{0}/m"
           },
           "duration-week": {
-            "displayName": "mps",
-            "unitPattern-count-one": "{0} mps",
-            "unitPattern-count-other": "{0} mps",
-            "perUnitPattern": "{0}/mps"
+            "displayName": "wk",
+            "unitPattern-count-other": "{0} w",
+            "perUnitPattern": "{0}/w"
           },
           "duration-day": {
-            "displayName": "mokɔlɔ",
-            "unitPattern-count-one": "{0} d",
+            "displayName": "day",
             "unitPattern-count-other": "{0} d",
             "perUnitPattern": "{0}/d"
           },
           "duration-hour": {
-            "displayName": "ngonga",
+            "displayName": "hr",
             "unitPattern-count-other": "{0} h",
             "perUnitPattern": "{0}/h"
           },
@@ -2466,7 +2471,7 @@
             "perUnitPattern": "{0}/min"
           },
           "duration-second": {
-            "displayName": "s",
+            "displayName": "sec",
             "unitPattern-count-other": "{0} s",
             "perUnitPattern": "{0}/s"
           },
@@ -2534,9 +2539,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -2634,6 +2647,10 @@
             "displayName": "in",
             "unitPattern-count-other": "{0} in",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",

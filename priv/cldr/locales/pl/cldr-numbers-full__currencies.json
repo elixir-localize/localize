@@ -351,7 +351,9 @@
             "displayName-count-one": "frank szwajcarski",
             "displayName-count-few": "franki szwajcarskie",
             "displayName-count-many": "franków szwajcarskich",
-            "displayName-count-other": "franka szwajcarskiego"
+            "displayName-count-other": "franka szwajcarskiego",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CLP": {
             "displayName": "peso chilijskie",
@@ -1359,7 +1361,7 @@
           },
           "SLL": {
             "displayName": "leone sierraleoński (1964–2022)",
-            "displayName-count-one": "leone sierraleoński (1964—2022)",
+            "displayName-count-one": "leone sierraleoński (1964–2022)",
             "displayName-count-few": "leone sierraleońskie (1964–2022)",
             "displayName-count-many": "leone sierraleońskich (1964–2022)",
             "displayName-count-other": "leone sierraleońskiego (1964–2022)"
@@ -1638,14 +1640,6 @@
           "XAU": {
             "displayName": "złoto",
             "displayName-count-other": "złoto"
-          },
-          "XBA": {
-            "displayName": "jednostka emisji euroobligacji",
-            "displayName-count-other": "jednostka emisji euroobligacji"
-          },
-          "XBB": {
-            "displayName": "europejska jednostka monetarna",
-            "displayName-count-other": "europejska jednostka monetarna"
           },
           "XBC": {
             "displayName": "europejska jednostka rozrachunkowa (XBC)",

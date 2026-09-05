@@ -6,8 +6,7 @@
       },
       "personNames": {
         "givenFirst": [
-          "und",
-          "lij"
+          "und"
         ],
         "surnameFirst": [
           "ja",
@@ -153,7 +152,31 @@
             "surname-prefix": "De",
             "surname-core": "Franchi",
             "surname2": "Carcagno Baçigalô",
+            "generation": "II",
             "credentials": "OMRI"
+          },
+          "foreignG": {
+            "given": "Sinbad"
+          },
+          "foreignGS": {
+            "given": "Käthe",
+            "surname": "Müller"
+          },
+          "foreignGGS": {
+            "given": "Zäzilia",
+            "given2": "Hamish",
+            "surname": "Stöber"
+          },
+          "foreignFull": {
+            "title": "Prof. Dr.",
+            "given": "Ada Cornelia",
+            "given-informal": "Neele",
+            "given2": "César Martín",
+            "surname-prefix": "von",
+            "surname-core": "Brühl",
+            "surname2": "González Domingo",
+            "generation": "Jr",
+            "credentials": "MD DDS"
           }
         }
       }

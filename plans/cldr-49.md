@@ -71,6 +71,13 @@ This package is widely used. The following invariants apply to every item in thi
 | 18 | Week-of-year numbering follows ISO by default       | None       | **Rendered week numbers change** for locales whose calendar week is not the ISO week, `en` among them |
 | 19 | Supplemental data files reorganized                | None       | Build-time failure if the pipeline meets reorganized sources unadjusted |
 | 20 | Iran subdivision codes stale upstream              | None       | None now; a future CLDR change invalidates stored codes |
+| 21 | Metazone transitions gain seconds precision        | None       | None — ✅ Fixed. `Africa/Monrovia` resolves 30s earlier, a correction |
+| 22 | RBNF rules externalised to ICU text, plus `[A\|B]` alternation | None | None — ✅ Fixed. New reader, lexer and parser rules; output unchanged |
+| 23 | `copy_test_data` reverts curated conformance fixtures | None | None — ✅ Fixed. Curated fixtures skipped; upstream drift reported |
+| 24 | Plural rule modules never recompile on a data change | None       | None — ✅ Fixed. The test gate was running last release's rules |
+| 25 | CLDR 49 drops 114 locales below Basic coverage       | None       | **Breaking** — ✅ Adopted. 114 locales removed; `aa` and `ht` among them |
+| 26 | Locale display in `root` falls back to English       | None       | None — ✅ Fixed. 24 new cases pass, plus 44 exclusions retired |
+| 27 | Collation data pinned at Unicode 17 by hand         | None       | **Sort keys change** — ✅ Fixed. Full UCA conformance at Unicode 18 |
 
 The remainder of this file expands each item in turn.
 
@@ -996,6 +1003,208 @@ This is not ours to fix — there is nothing upstream to adopt — but it matter
 
 None now. A future CLDR change to these codes invalidates stored values, which is a consumer-facing migration whenever it lands.
 
+## 21. Metazone transitions gain seconds precision — ✅ Fixed
+
+### Current conformance
+
+`Localize.Data.Supplemental.metazone_instant/1` parsed the `_from` / `_to` timestamps on `metazoneInfo` entries in `cldr-core/supplemental/metaZones.json`, which CLDR had always written to the minute as `"YYYY-MM-DD HH:MM"`. It appended `":00"` unconditionally to supply the seconds `NaiveDateTime.from_iso8601!/1` requires.
+
+### Gap
+
+CLDR 49 writes one of those timestamps with seconds already present. `Africa/Monrovia` moves to the `GMT` metazone at `"1972-01-07 00:44:30"`, where CLDR 48 rounded it to `"1972-01-07 00:45"` — Liberia ran on UTC−00:44:30 until 1972, the last country to adopt a whole-hour offset, and the true instant is now recorded. Appending the seconds a second time produced `"1972-01-07 00:44:30:00"`, which is not a datetime in any format, and `mix localize.generate_supplemental` aborted on it.
+
+The data is mixed rather than migrated: 487 of the 488 `_from`/`_to` values are still `HH:MM` and exactly one carries seconds, so a parser that simply assumes the new shape fails on everything else.
+
+### Resolution
+
+`metazone_instant/1` appends the seconds only when the value does not already carry them, splitting on `:` and padding the two-field form. Both shapes were confirmed to parse. Worth noting the failure mode this avoided: a lenient parser would have accepted the malformed string, recorded a wrong instant for Monrovia and shipped it. The pipeline stopping dead is the better outcome, and is why the compile gate sits where it does.
+
+### API impact / breaking risk
+
+None. The generated instant for `Africa/Monrovia` is 30 seconds earlier than the CLDR 48 value, which is a correction rather than a regression, and it affects metazone resolution only for timestamps inside that 30-second window in 1972.
+
+## 22. RBNF rules externalised to ICU text, plus `[A|B]` alternation — ✅ Fixed
+
+This is the "broader RBNF source-format change" foreshadowed in item 9, now that CLDR 49 alpha 2 shows the actual shape. The rule-removal mechanic in item 9 remains open; nothing in CLDR 49's data exercises it yet.
+
+### Current conformance
+
+`data/normalize/rbnf.ex` read every ruleset inline from `cldr-rbnf/rbnf/<locale>.json`, and `src/localize_rbnf_lexer.xrl` / `src/localize_rbnf_parser.yrl` tokenised and parsed the rule definitions found there.
+
+### Gap
+
+Two independent changes, either of which alone silently produces a locale with no RBNF at all.
+
+**The JSON no longer carries rules.** A rule group is now a pointer — `%{"_rbnfRulesFile" => "en-SpelloutRules.txt"}` — naming an ICU-syntax text file that sits flat in `cldr-rbnf/rbnf/` beside the JSON. `mix localize.copy_sources` vendored the JSON alone, so the vendored tree held 147 files of pointers to files that were never copied, and every locale normalised to `available: []`. The failure is quiet: no ruleset is malformed, there simply are none.
+
+**Rule bodies gained an alternation operator.** Where CLDR 48 wrote `20: twen→%%tieth→;` and leaned on a private `%%tieth` helper ruleset, CLDR 49 writes `20: twent[y->>|ieth];` — inside the existing optional-substitution brackets, `|` separates the text used when the remainder is non-zero from the text used when it is zero. So `twent[y->>|ieth]` spells both "twenty-first" and "twentieth" from one rule. The construct appears on 2,165 rule lines across 28 of the 147 files, including every `spellout-ordinal` scale rule in `en` from `20` to `1000000000000000`.
+
+### Resolution
+
+* `data/data.ex` — `copy_rbnf_rule_files/3` reads each `_rbnfRulesFile` out of the JSON and copies the named `.txt` beside it, so a vendored locale directory is self-contained. All 147 files now land in `priv/cldr/locales/<locale>/`.
+
+* `data/normalize/rbnf.ex` — `resolve_rule_files/2` swaps a pointer for the parsed contents of the file it names before the existing `rules_from_rule_sets/1` runs, so the rest of the normalizer is untouched and produces the same shape as before. A group that still carries inline rules passes through unchanged, which keeps the normalizer working against CLDR 48 sources.
+
+* `src/localize_rbnf_lexer.xrl` / `src/localize_rbnf_parser.yrl` — `|` is tokenised as `alternate` (ordered before the catch-all `{Char}` rule so it is never absorbed as literal text) and the grammar gains `rule_part -> conditional_start rbnf_rule alternate rbnf_rule conditional_end`, yielding `{:conditional_alternate, {present, absent}}`. No grammar conflicts; the plain `[A]`, `<<`, `>>` and `→%%rule→` forms parse exactly as before.
+
+* `lib/localize/number/rbnf/processor.ex` — `do_operation(:conditional_alternate, …)` mirrors the `:conditional` clause, rendering the second branch where the first renders `""`.
+
+A survey of all 147 files backs the text reader's assumptions: 23,538 lines, of which 1,238 are public ruleset headers, 438 private, and 21,862 rule lines — zero blank, comment or unclassified lines, no rule spanning two lines, and no rule name containing a colon, so the first colon always separates name from definition. Every `|` falls inside exactly one `[...]`, never two to a bracket.
+
+### API impact / breaking risk
+
+None. The generated ETF shape is unchanged, so this is invisible to callers; the CLDR 48 rules and the CLDR 49 rules are two spellings of the same output.
+
+## 23. `copy_test_data` reverts curated conformance fixtures — ✅ Fixed
+
+### Current conformance
+
+`Localize.Data.copy_test_data/0` copies ten conformance fixtures out of `$CLDR_REPO` into `test/support/data/`, overwriting whatever is there.
+
+### Gap
+
+Two of those fixtures are not pristine copies. CLDR's own conformance files disagree with CLDR's own data in a handful of places, and the vendored copies carry corrections with the reasoning written beside them: `nn`/`no` is expected at 10 where the distance rules plainly yield 20; `en-GB-oed` was replaced with `en-GB-oxendict` because the former is deprecated; three expectations carry Jira references (CLDR-14355, CLDR-14635, CLDR-18198) for rules that upstream has since removed or reclassified.
+
+An unconditional copy deletes every one of them, comments included. The timing is what makes it expensive: it happens during a CLDR update, so the resulting failures present as upstream churn to be triaged rather than as our own pipeline undoing our own decisions. This run produced nine such failures, and both fixtures are byte-identical upstream between `release-48` and `release-49-alpha2` — nothing about CLDR 49 caused them.
+
+### Resolution
+
+`@curated_test_data` names the two fixtures. `copy_test_data/0` skips them and instead compares the incoming upstream bytes against the vendored copy, reporting either that they now match (the curation is redundant and can go) or that upstream has moved and a hand merge is due. Silence would be its own trap — new upstream coverage would never be picked up.
+
+The other eight fixtures are pristine and keep copying unconditionally. `locale_display_names.txt` is worth noting as a near-miss: it differs from `release-48` and looks curated, but the difference is that it was already refreshed from a CLDR 49 pre-release, so overwriting it is correct.
+
+### API impact / breaking risk
+
+None. Test-fixture management only.
+
+## 24. Plural rule modules do not recompile when their data changes — ✅ Fixed
+
+### Current conformance
+
+`Localize.Number.PluralRule.Cardinal` and `.Ordinal` read `plural_rules_cardinal.etf` / `plural_rules_ordinal.etf` at compile time and generate one function clause per locale from them.
+
+### Gap
+
+Neither declared the ETF as an `@external_resource`, so `mix` had no dependency edge from the data to the BEAM and a regenerated ETF never triggered a recompile. The sibling modules that do the same thing — `Localize.Validity.Script`, `.T` and `.U` — all declare theirs, which is what makes this an omission rather than a decision.
+
+The consequence lands squarely on the CLDR update pipeline, and lands invisibly. `mix localize.generate_supplemental` rewrites the ETFs; the test gate then runs **last release's compiled rules against this release's data**. The sample tests are themselves generated at compile time from `plural_rules_for/1`, so they assert exactly what fresh CLDR says while the functions under test still answer what the previous CLDR said. This run produced 136 failures across `tg`, `bg`, `af`, `es`, `gl` and `vi` — every one of them a phantom. CLDR 49 does move all six (`tg` and `vi` gain rule sets, `gl` gains `many`), which made the failures look like exactly the genuine data change we were there to review.
+
+The same build was simultaneously correct in `dev` and wrong in `test`, because an unrelated source edit had transitively recompiled the dev copy. A pipeline whose answer depends on which environment last happened to recompile is not one that can gate a release.
+
+The pipeline had in fact been built to catch this. Its second gate is labelled "Compile (picks up `@external_resource` recompiles)" — the mechanism was anticipated and a gate placed to exercise it. It simply had nothing to act on, because the two modules that most needed the declaration did not carry it, and a gate that recompiles nothing reports success.
+
+### Resolution
+
+Both modules now declare their ETF via `@external_resource`. All 12,561 plural rule tests pass against CLDR 49.
+
+### API impact / breaking risk
+
+None at runtime. Consumers who build from source pick up a one-time recompile of the two modules.
+
+## 25. CLDR 49 drops 114 locales below Basic coverage — ✅ Adopted
+
+### Current conformance
+
+`mix localize.copy_sources` vendors every locale directory the conversion produced. Against CLDR 48 that was 766.
+
+### Gap
+
+Against `release-49-alpha2` it is 657. One hundred and fourteen locales fewer — `aa` (Afar), `ab`, `an`, `ann`, `apc`, `arn`, `az-Arab`, `bal`, `bew`, `bgn`, `blt`, `ht` (Haitian Creole) among them.
+
+CLDR has not dropped the source data. `common/main` **grew** from 1,122 to 1,148 XML files across the two releases, and `aa.xml` is byte-identical between them — 231 lines, 86 elements at `draft="unconfirmed"`, unchanged.
+
+The cause is a new gate in `GenerateProductionData`, the staging step that runs before `Ldml2JsonConverter`. CLDR 49 added a `keepPreBasic` option, default `false`, which skips every locale that is absent from ICU and whose calculated coverage is below Basic:
+
+```java
+if (!KEEP_PRE_BASIC && localeIsPreBasicNonIcu(localeId)) {
+    skippedPreBasicLocales.add(localeId);
+    return false;
+}
+```
+
+`KEEP_PRE_BASIC` does not appear anywhere in CLDR 48's copy of that file. The gate is new and on by default, which is why the same sources yield 766 locales under one release and 657 under the next with nothing in our own configuration to account for the difference. It also explains the arithmetic noticed earlier — 657 is exactly the size of CLDR 49's `effectiveCoverageLevels` map, because that map is what the gate consults.
+
+Verified directly rather than inferred: staging `aa ab an ann apc en fr` at the default emits 2 files, and at `--keepPreBasic true` emits all 7.
+
+Two hypotheses were tested and discarded on the way, both worth recording because each looks like the obvious lever:
+
+* **`-l` (coverage) on `Ldml2JsonConverter`.** Its default is `optional`, and `Level` maps `OPTIONAL` to `COMPREHENSIVE` — already the loosest setting, with nothing above it. `-l comprehensive` is a literal no-op.
+* **Draft status.** `DRAFTSTATUS=contributed` matches what the cldr-json project itself ships in `cldr-config.sh`, so it is the same policy the official CLDR JSON packages are built under, not a tightening of our own.
+
+### Resolution
+
+The 114 locales are dropped, deliberately. Not supporting pre-Basic locales keeps our locale set aligned with CLDR and ICU, and CLDR 50 is expected to continue pruning — inheriting that trajectory now is cheaper than tracking a divergence across releases.
+
+`cldr-generate-json.sh` invokes `GenerateProductionData` with a hard-coded argument list and offers no hook for extra flags, so `scripts/ldml2json_v2` now runs the staging step itself and hands the result to the converter through the documented `INDATA` path. It passes `--keepPreBasic false` explicitly rather than relying on the default being false: a default that changes underneath us is precisely what cost this cycle, and stating the value means the next such change shows up in our own diff instead of as a hundred mysterious test failures. `CLDR_KEEP_PRE_BASIC=1` overrides.
+
+### API impact / breaking risk
+
+**Breaking.** One hundred and fourteen locales that resolved under Localize 1.x no longer exist. `Localize.Locale.new/2` and every downstream call will return `{:error, %Localize.InvalidLocaleError{}}` for them. This needs to lead the release notes with the full list, and consumers pinning one of those locales need a migration note pointing at the nearest supported ancestor.
+
+## 26. Locale display in `root` falls back to English — ✅ Fixed
+
+### Current conformance
+
+`Localize.Locale.LocaleDisplay.display_name/2` renders a locale identifier in a requested display locale.
+
+### Gap
+
+CLDR 49 adds two `@locale=root` sections to `localeDisplayName.txt` (one `standard`, one `dialect`, 13 cases each). `root` carries no `localeDisplayNames`, so ICU renders the bare subtags: `nl-BE` is "nl (BE)", `en-u-nu-deva-t-de-mm-fonipa` is "en (deva, t: de, MM, fonipa)". We returned "Dutch (Belgium)" and "English (Devanagari Digits, Transform: German, Myanmar [Burma], IPA Phonetics)". Twenty-four of the 26 failed.
+
+Four separate defects sat behind it, only the first of which is about `root` at all.
+
+**`root` was not a recognised locale identifier.** `cldr_locale_id_from("root")` returned `InvalidLocaleError`, and the display path's `{:error, _} -> :en` fallback then silently answered in English. The same lookup also disagreed with itself on the locale root *is* recognised as: `cldr_locale_id_from(:und)` returned `:und` while `cldr_locale_id_from("und")` fell through to `validate_locale/1`, maximized, and came back `:en`. One locale, two answers, decided by whether the caller happened to hold an atom.
+
+**The language subtag had no code fallback.** TR35 says a subtag with no display name stands in for itself. Script, territory and variants had always done this — `get_subtag_display/4` ends in `|| value` — but the language raised `LocaleDisplayError` instead, which made every locale without language names unrenderable rather than rendered plainly.
+
+**The `-u-` extension prefixed the raw key.** With no display name for a keyword's type, we emitted `ca: buddhist` where TR35 substitutes the type code alone. No line in CLDR's conformance data renders a `-u-` key code as a prefix; `-t-` fields do take one ("s0: ascii"), which is why only the U side changed.
+
+**The `-t-` tlang subtags fell back to the raw parsed form.** A tlang arrives lowercased with numeric regions already reduced to integers, so `-t-en-latn-001` parses as `"latn"` and `1` and rendered as "latn" and "1" where BCP-47 spells them "Latn" and "001". The canonical forms were being computed for the lookup keys and simply not used for the fallback — invisible for as long as every display locale under test had names for those subtags.
+
+### Resolution
+
+All four fixed. The vendored `und.etf` needed no change; it correctly carries zero language entries, as CLDR intends.
+
+The last two were only ever reachable through a locale with no display names, which is why `root` surfaced them. Fixing them also retired exclusions that predate CLDR 49: `locale_display_test.exs` carried 8 root-locale lines in `@unexpected_root_locale_results`, 24 more in `@not_yet_implemented`, and 12 `-t-` variant cases for `ka`, `ko` and `kk`. All 44 now pass and the lists are gone; `@not_yet_implemented` retains only line 47, the `uu` attribute in the U extension, which is genuinely unimplemented.
+
+### API impact / breaking risk
+
+Additive on the display path — the affected spellings previously either raised or silently answered in English, and neither is behaviour worth preserving.
+
+`cldr_locale_id_from/1` is the wider blast radius: `"und"` now resolves to `:und` rather than `:en`, so anything asking for `"und"` explicitly gets root's own (empty) data instead of English names. That is the correct reading of the request and it makes the string agree with the atom, but it is a behaviour change for any caller that was relying on the string form to mean English.
+
+## 27. Collation data was pinned at Unicode 17 by hand — ✅ Fixed
+
+### Current conformance
+
+Both CLDR collation conformance files were failing: 637 of 210,155 pairs under NON_IGNORABLE and 536 under SHIFTED, against a threshold of zero. They had been treated as a floor.
+
+### Gap
+
+Not an implementation defect. The collation implementation reads three data files that are bound to a Unicode version, and all three were vendored by hand and never refreshed:
+
+| File | Was | CLDR 49 ships |
+|---|---|---|
+| `priv/cldr/FractionalUCA.txt` | UCA/UCD 17.0.0 | 18.0.0 |
+| `priv/unicode/combining_class.txt` | DerivedCombiningClass-17.0.0 | 18.0.0 |
+| `priv/unicode/general_category.txt` | DerivedGeneralCategory-17.0.0 | 18.0.0 |
+
+The conformance fixtures, meanwhile, *are* refreshed — they sit in `@test_data_files` and come from the same `common/uca/` directory as `FractionalUCA.txt`. So every CLDR update moved the test data forward and left the weight table behind, and the gap between them grew silently with each release. The failures were the arithmetic of that gap: characters Unicode 18 assigns that our table had no weights for, falling to implicit weights and sorting wrongly against characters that did.
+
+`FractionalUCA.txt` was the only file loose in `priv/cldr/`, and no task copied it. `generate_collation_table/0` existed but was in neither `@generators` nor any mix task, so even a refreshed file would not have rebuilt the table.
+
+### Resolution
+
+Refreshing `FractionalUCA.txt` alone took 637 failures to 6 and 536 to 6 — one stale file accounted for 99% of it. The remaining 6 were all canonical-ordering cases (`X 0334` against `0334 Y`) for combining marks new in Unicode 18: `1ADC`, `1ADE`, `1AEC`, `1AEE`, `10D6D`, `10EF9`, `05C8`, `05C9`. With no combining class recorded they defaulted to zero and never reordered. Refreshing the UCD property files closed those. **All 210,155 pairs now pass under both strengths.**
+
+Wired shut so it cannot recur: `copy_sources` copies the UCA table (reporting its `VERSION:` header, since a silent change there moves every sort key in the library), `generate_all/0` rebuilds the collation table from it, and `mix localize.download_unicode_data` is pinned to 18.0.0.
+
+One test carried the same version-coupling and is now derived rather than hard-coded: `reorder_test.exs` asserted "Latin 'a' has primary 0x23EC in allkeys". That primary is not stable — every character UCA assigns ahead of Latin shifts it, and it moved to 0x2485 in Unicode 18. The fractional lead byte, which is what the test is actually about, stayed at 0x2B throughout.
+
+### API impact / breaking risk
+
+**Sort keys change.** `Localize.Collation.sort_key/2` output is not comparable across Unicode versions, so any key persisted by a previous release must be regenerated. `compare/3` results are unaffected for characters that existed before. This wants a prominent note in the release, since a stored-sort-key index is the kind of thing that fails quietly.
+
 ## Open questions
 
 These need answers before the corresponding work item starts. Track them as the plan evolves.
@@ -1022,6 +1231,16 @@ This plan must be revisited at the following checkpoints:
 Each checkpoint should leave a dated entry at the bottom of this file noting what changed and which items advanced.
 
 ## Change log for this plan
+
+* 2026-09-05 — Added item 27. The collation conformance failures that had been accepted as a floor were not an implementation limit at all: three Unicode-version-bound data files were vendored by hand and had drifted to Unicode 17 while the conformance fixtures they are tested against refresh with every CLDR update. Refreshing `FractionalUCA.txt` alone cleared 99% of the failures; the UCD property files cleared the rest. All 210,155 pairs now pass under both strengths, and all three files plus the table rebuild are wired into the pipeline. Sort keys change as a result.
+
+* 2026-09-05 — Added items 25 and 26. Item 25 resolved: the 114-locale drop traces to a `keepPreBasic` gate that CLDR 49 added to `GenerateProductionData` and defaults on, not to the converter's `-l` coverage flag (whose default `optional` already maps to `COMPREHENSIVE`, so it is a no-op) and not to draft status (`contributed` is what cldr-json itself ships). Confirmed by staging seven locales at each setting: 2 files at the default, 7 with `--keepPreBasic true`. Decision taken to drop them and stay aligned with CLDR and ICU ahead of CLDR 50's continued pruning; `scripts/ldml2json_v2` now stages production data itself and passes the flag explicitly, so a future default change shows in our diff rather than as a hundred unexplained failures. This also corrects the Alpha 1 reading of the release note, which put locale removal in V50. Item 26 still open.
+
+* 2026-09-05 — Added items 23 and 24, both pipeline defects the Alpha 2 merge exposed rather than CLDR 49 changes, and both of a kind: the pipeline quietly substituting stale or reverted state and letting it present as upstream churn. `copy_test_data/0` deleted the documented corrections in two conformance fixtures whose upstream has not moved since CLDR 48 (9 failures), and the plural rule modules never declared their ETFs as external resources, so the test gate ran the previous release's compiled rules against the new release's samples (136 failures). Between them they accounted for 145 of the 181 gate failures, all phantom.
+
+* 2026-09-05 — Added item 22: CLDR 49 externalises RBNF rules out of the JSON into ICU-syntax `.txt` files the JSON merely points at, and adds an `[A|B]` alternation operator inside the optional-substitution brackets that replaces the private helper rulesets CLDR 48 used for ordinals. The pipeline vendored the pointers without the files, so every locale normalised to `available: []` — a silent total loss of RBNF rather than a build failure. Fixed across `data/data.ex`, `data/normalize/rbnf.ex`, the leex and yecc grammars, and the RBNF processor; this closes the "broader RBNF source-format change" half of item 9, whose rule-removal mechanic remains unexercised by CLDR 49 data.
+
+* 2026-09-05 — Alpha 2 test merge on branch `cldr-49`. Added item 21: CLDR 49 writes one metazone transition with seconds where all 488 had been minute-precision, which aborted `mix localize.generate_supplemental`; fixed in `data/supplemental.ex`. The run also exposed two pipeline defects unrelated to CLDR 49 — the data pipeline read `CLDR_PRODUCTION_DATA` while `scripts/ldml2json_v2` wrote `CLDR_PRODUCTION` (standardised on the latter), and the script neither fetched nor checked out a tag, so `release-49-alpha2` was invisible locally and a mid-stream commit would have built silently. CLDR 49 requires JDK 21, now prechecked.
 
 * 2026-09-01 — Release-note review at Alpha 1. The 2026-08-25 review read `tr35-modifications.md`; the release note carries a "V49 advance warnings" section the modifications log does not, and four items came from it: 17 (`H24` deprecated), 18 (week numbering follows ISO), 19 (supplemental files reorganized) and 20 (Iran subdivision codes stale upstream). Galician's new `many` plural case needs no work — the category lists already enumerate it. `cnr` de-aliasing and the removal of locales without core data are **V50**, not this cycle.
 

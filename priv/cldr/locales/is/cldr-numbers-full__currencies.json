@@ -205,7 +205,9 @@
           "CHF": {
             "displayName": "svissneskur franki",
             "displayName-count-one": "svissneskur franki",
-            "displayName-count-other": "svissneskir frankar"
+            "displayName-count-other": "svissneskir frankar",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CLF": {
             "displayName": "Chilean Unidades de Fomento",
@@ -1135,14 +1137,6 @@
             "displayName-count-other": "miðafrískir frankar",
             "symbol": "FCFA"
           },
-          "XAG": {
-            "displayName": "unse silfur",
-            "displayName-count-other": "unse silfur"
-          },
-          "XAU": {
-            "displayName": "unse gull",
-            "displayName-count-other": "unse gull"
-          },
           "XCD": {
             "displayName": "austurkarabískur dalur",
             "displayName-count-one": "austurkarabískur dalur",
@@ -1152,7 +1146,6 @@
           },
           "XCG": {
             "displayName": "Karíbahafsgyllini",
-            "displayName-count-one": "Karíbahafsgyllini",
             "displayName-count-other": "Karíbahafsgyllini",
             "symbol": "XCG"
           },
@@ -1174,19 +1167,11 @@
             "displayName-count-other": "vesturafrískir frankar",
             "symbol": "F CFA"
           },
-          "XPD": {
-            "displayName": "unse palladín",
-            "displayName-count-other": "unse palladín"
-          },
           "XPF": {
             "displayName": "pólinesískur franki",
             "displayName-count-one": "pólinesískur franki",
             "displayName-count-other": "pólinesískir frankar",
             "symbol": "CFPF"
-          },
-          "XPT": {
-            "displayName": "unse platína",
-            "displayName-count-other": "unse platína"
           },
           "XXX": {
             "displayName": "óþekktur gjaldmiðill",
@@ -1233,7 +1218,6 @@
           },
           "ZWG": {
             "displayName": "simbabveskt gold",
-            "displayName-count-one": "simbabveskt gold",
             "displayName-count-other": "simbabveskt gold"
           }
         }

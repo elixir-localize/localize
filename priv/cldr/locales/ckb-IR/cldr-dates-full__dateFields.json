@@ -8,19 +8,19 @@
       "dates": {
         "fields": {
           "era": {
-            "displayName": "دەم"
+            "displayName": "سەردەم"
           },
           "era-short": {
-            "displayName": "دەم"
+            "displayName": "سەردەم"
           },
           "era-narrow": {
-            "displayName": "دەم"
+            "displayName": "سەردەم"
           },
           "year": {
-            "displayName": "ساڵ",
-            "relative-type--1": "ساڵێ پێسوو",
-            "relative-type-0": "ئەم ساڵ",
-            "relative-type-1": "ساڵی داهاتوو",
+            "displayName": "Year",
+            "relative-type--1": "last year",
+            "relative-type-0": "this year",
+            "relative-type-1": "next year",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} y"
             },
@@ -29,8 +29,8 @@
             }
           },
           "year-short": {
-            "displayName": "ساڵ",
-            "relative-type--1": "ساڵێ پێسوو",
+            "displayName": "Year",
+            "relative-type--1": "ساڵی پێشوو",
             "relative-type-0": "ئەم ساڵ",
             "relative-type-1": "ساڵی داهاتوو",
             "relativeTime-type-future": {
@@ -41,8 +41,8 @@
             }
           },
           "year-narrow": {
-            "displayName": "ساڵ",
-            "relative-type--1": "ساڵێ پێسوو",
+            "displayName": "Year",
+            "relative-type--1": "ساڵی پێشوو",
             "relative-type-0": "ئەم ساڵ",
             "relative-type-1": "ساڵی داهاتوو",
             "relativeTime-type-future": {
@@ -53,7 +53,7 @@
             }
           },
           "quarter": {
-            "displayName": "چارەگ",
+            "displayName": "Quarter",
             "relative-type--1": "last quarter",
             "relative-type-0": "this quarter",
             "relative-type-1": "next quarter",
@@ -65,7 +65,7 @@
             }
           },
           "quarter-short": {
-            "displayName": "چارەگ",
+            "displayName": "Quarter",
             "relative-type--1": "last quarter",
             "relative-type-0": "this quarter",
             "relative-type-1": "next quarter",
@@ -77,7 +77,7 @@
             }
           },
           "quarter-narrow": {
-            "displayName": "چارەگ",
+            "displayName": "Quarter",
             "relative-type--1": "last quarter",
             "relative-type-0": "this quarter",
             "relative-type-1": "next quarter",
@@ -89,10 +89,10 @@
             }
           },
           "month": {
-            "displayName": "مانگ",
-            "relative-type--1": "مانگی پێشوو",
-            "relative-type-0": "ئەم مانگە",
-            "relative-type-1": "مانگی داهاتوو",
+            "displayName": "Month",
+            "relative-type--1": "last month",
+            "relative-type-0": "this month",
+            "relative-type-1": "next month",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} m"
             },
@@ -101,10 +101,10 @@
             }
           },
           "month-short": {
-            "displayName": "مانگ",
-            "relative-type--1": "مانگی پێشوو",
-            "relative-type-0": "ئەم مانگە",
-            "relative-type-1": "مانگی داهاتوو",
+            "displayName": "Month",
+            "relative-type--1": "last month",
+            "relative-type-0": "this month",
+            "relative-type-1": "next month",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} m"
             },
@@ -113,10 +113,10 @@
             }
           },
           "month-narrow": {
-            "displayName": "مانگ",
-            "relative-type--1": "مانگی پێشوو",
-            "relative-type-0": "ئەم مانگە",
-            "relative-type-1": "مانگی داهاتوو",
+            "displayName": "Month",
+            "relative-type--1": "last month",
+            "relative-type-0": "this month",
+            "relative-type-1": "next month",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} m"
             },
@@ -125,43 +125,43 @@
             }
           },
           "week": {
-            "displayName": "ھەفتە",
-            "relative-type--1": "هەفتەی پێشوو",
-            "relative-type-0": "ئەم هەفتەیە",
-            "relative-type-1": "هەفتەی داهاتوو",
+            "displayName": "Week",
+            "relative-type--1": "last week",
+            "relative-type-0": "this week",
+            "relative-type-1": "next week",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} w"
             },
             "relativeTime-type-past": {
               "relativeTimePattern-count-other": "-{0} w"
             },
-            "relativePeriod": "هەفتەی {0}"
+            "relativePeriod": "the week of {0}"
           },
           "week-short": {
-            "displayName": "ھەفتە",
-            "relative-type--1": "هەفتەی پێشوو",
-            "relative-type-0": "ئەم هەفتەیە",
-            "relative-type-1": "هەفتەی داهاتوو",
+            "displayName": "Week",
+            "relative-type--1": "last week",
+            "relative-type-0": "this week",
+            "relative-type-1": "next week",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} w"
             },
             "relativeTime-type-past": {
               "relativeTimePattern-count-other": "-{0} w"
             },
-            "relativePeriod": "هەفتەی {0}"
+            "relativePeriod": "the week of {0}"
           },
           "week-narrow": {
-            "displayName": "ھەفتە",
-            "relative-type--1": "هەفتەی پێشوو",
-            "relative-type-0": "ئەم هەفتەیە",
-            "relative-type-1": "هەفتەی داهاتوو",
+            "displayName": "Week",
+            "relative-type--1": "last week",
+            "relative-type-0": "this week",
+            "relative-type-1": "next week",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} w"
             },
             "relativeTime-type-past": {
               "relativeTimePattern-count-other": "-{0} w"
             },
-            "relativePeriod": "هەفتەی {0}"
+            "relativePeriod": "the week of {0}"
           },
           "weekOfMonth": {
             "displayName": "Week Of Month"
@@ -174,9 +174,9 @@
           },
           "day": {
             "displayName": "Day",
-            "relative-type--1": "دوێنێ",
-            "relative-type-0": "ئەمڕۆ",
-            "relative-type-1": "سبەی",
+            "relative-type--1": "yesterday",
+            "relative-type-0": "today",
+            "relative-type-1": "tomorrow",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} d"
             },
@@ -186,9 +186,9 @@
           },
           "day-short": {
             "displayName": "Day",
-            "relative-type--1": "دوێنێ",
-            "relative-type-0": "ئەمڕۆ",
-            "relative-type-1": "سبەی",
+            "relative-type--1": "yesterday",
+            "relative-type-0": "today",
+            "relative-type-1": "tomorrow",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} d"
             },
@@ -198,9 +198,9 @@
           },
           "day-narrow": {
             "displayName": "Day",
-            "relative-type--1": "دوێنێ",
-            "relative-type-0": "ئەمڕۆ",
-            "relative-type-1": "سبەی",
+            "relative-type--1": "yesterday",
+            "relative-type-0": "today",
+            "relative-type-1": "tomorrow",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} d"
             },
@@ -218,13 +218,13 @@
             "displayName": "Day Of Year"
           },
           "weekday": {
-            "displayName": "ڕۆژی ھەفتە"
+            "displayName": "Day of the Week"
           },
           "weekday-short": {
-            "displayName": "ڕۆژی ھەفتە"
+            "displayName": "Day of the Week"
           },
           "weekday-narrow": {
-            "displayName": "ڕۆژی ھەفتە"
+            "displayName": "Day of the Week"
           },
           "weekdayOfMonth": {
             "displayName": "Weekday Of Month"
@@ -467,16 +467,16 @@
             }
           },
           "dayperiod-short": {
-            "displayName": "پ.ن/د.ن"
+            "displayName": "Dayperiod"
           },
           "dayperiod": {
-            "displayName": "پ.ن/د.ن"
+            "displayName": "Dayperiod"
           },
           "dayperiod-narrow": {
-            "displayName": "پ.ن/د.ن"
+            "displayName": "Dayperiod"
           },
           "hour": {
-            "displayName": "کاتژمێر",
+            "displayName": "Hour",
             "relative-type-0": "this hour",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} h"
@@ -486,7 +486,7 @@
             }
           },
           "hour-short": {
-            "displayName": "کاتژمێر",
+            "displayName": "Hour",
             "relative-type-0": "this hour",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} h"
@@ -496,7 +496,7 @@
             }
           },
           "hour-narrow": {
-            "displayName": "کاتژمێر",
+            "displayName": "Hour",
             "relative-type-0": "this hour",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} h"
@@ -506,7 +506,7 @@
             }
           },
           "minute": {
-            "displayName": "خولەک",
+            "displayName": "Minute",
             "relative-type-0": "this minute",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} min"
@@ -516,7 +516,7 @@
             }
           },
           "minute-short": {
-            "displayName": "خولەک",
+            "displayName": "Minute",
             "relative-type-0": "this minute",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} min"
@@ -526,7 +526,7 @@
             }
           },
           "minute-narrow": {
-            "displayName": "خولەک",
+            "displayName": "Minute",
             "relative-type-0": "this minute",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} min"
@@ -536,7 +536,7 @@
             }
           },
           "second": {
-            "displayName": "چرکە",
+            "displayName": "Second",
             "relative-type-0": "now",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} s"
@@ -546,7 +546,7 @@
             }
           },
           "second-short": {
-            "displayName": "چرکە",
+            "displayName": "Second",
             "relative-type-0": "now",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} s"
@@ -556,7 +556,7 @@
             }
           },
           "second-narrow": {
-            "displayName": "چرکە",
+            "displayName": "Second",
             "relative-type-0": "now",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "+{0} s"
@@ -566,13 +566,13 @@
             }
           },
           "zone": {
-            "displayName": "کاتی هەرێمی"
+            "displayName": "Zone"
           },
           "zone-short": {
-            "displayName": "کاتی هەرێمی"
+            "displayName": "Zone"
           },
           "zone-narrow": {
-            "displayName": "کاتی هەرێمی"
+            "displayName": "Zone"
           }
         }
       }

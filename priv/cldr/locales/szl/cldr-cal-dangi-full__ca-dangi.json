@@ -129,31 +129,31 @@
             "days": {
               "format": {
                 "abbreviated": {
-                  "sun": "niy",
-                  "mon": "pyń",
-                  "tue": "wto",
-                  "wed": "str",
-                  "thu": "szt",
-                  "fri": "piō",
-                  "sat": "sob"
+                  "sun": "niydziela",
+                  "mon": "pyńdziałek",
+                  "tue": "wtorek",
+                  "wed": "strzoda",
+                  "thu": "sztwortek",
+                  "fri": "piōntek",
+                  "sat": "sobota"
                 },
                 "narrow": {
-                  "sun": "n",
-                  "mon": "p",
-                  "tue": "w",
-                  "wed": "s",
-                  "thu": "s",
-                  "fri": "p",
-                  "sat": "s"
+                  "sun": "S",
+                  "mon": "M",
+                  "tue": "T",
+                  "wed": "W",
+                  "thu": "T",
+                  "fri": "F",
+                  "sat": "S"
                 },
                 "short": {
-                  "sun": "nd",
-                  "mon": "pń",
-                  "tue": "wt",
-                  "wed": "st",
-                  "thu": "sz",
-                  "fri": "pt",
-                  "sat": "sb"
+                  "sun": "niydziela",
+                  "mon": "pyńdziałek",
+                  "tue": "wtorek",
+                  "wed": "strzoda",
+                  "thu": "sztwortek",
+                  "fri": "piōntek",
+                  "sat": "sobota"
                 },
                 "wide": {
                   "sun": "niydziela",
@@ -167,31 +167,31 @@
               },
               "stand-alone": {
                 "abbreviated": {
-                  "sun": "niy",
-                  "mon": "pyń",
-                  "tue": "wto",
-                  "wed": "str",
-                  "thu": "szt",
-                  "fri": "piō",
-                  "sat": "sob"
+                  "sun": "niydziela",
+                  "mon": "pyńdziałek",
+                  "tue": "wtorek",
+                  "wed": "strzoda",
+                  "thu": "sztwortek",
+                  "fri": "piōntek",
+                  "sat": "sobota"
                 },
                 "narrow": {
-                  "sun": "n",
-                  "mon": "p",
-                  "tue": "w",
-                  "wed": "s",
-                  "thu": "s",
-                  "fri": "p",
-                  "sat": "s"
+                  "sun": "S",
+                  "mon": "M",
+                  "tue": "T",
+                  "wed": "W",
+                  "thu": "T",
+                  "fri": "F",
+                  "sat": "S"
                 },
                 "short": {
-                  "sun": "nd",
-                  "mon": "pń",
-                  "tue": "wt",
-                  "wed": "st",
-                  "thu": "sz",
-                  "fri": "pt",
-                  "sat": "sb"
+                  "sun": "niydziela",
+                  "mon": "pyńdziałek",
+                  "tue": "wtorek",
+                  "wed": "strzoda",
+                  "thu": "sztwortek",
+                  "fri": "piōntek",
+                  "sat": "sobota"
                 },
                 "wide": {
                   "sun": "niydziela",
@@ -207,42 +207,42 @@
             "quarters": {
               "format": {
                 "abbreviated": {
-                  "1": "I szr.",
-                  "2": "II szr.",
-                  "3": "III szr.",
-                  "4": "IV szr."
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 },
                 "narrow": {
-                  "1": "I",
-                  "2": "II",
-                  "3": "III",
-                  "4": "IV"
+                  "1": "1",
+                  "2": "2",
+                  "3": "3",
+                  "4": "4"
                 },
                 "wide": {
-                  "1": "I sztwierć roku",
-                  "2": "II sztwierć roku",
-                  "3": "III sztwierć roku",
-                  "4": "IV sztwierć roku"
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 }
               },
               "stand-alone": {
                 "abbreviated": {
-                  "1": "I szr.",
-                  "2": "II szr.",
-                  "3": "III szr.",
-                  "4": "IV szr."
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 },
                 "narrow": {
-                  "1": "I",
-                  "2": "II",
-                  "3": "III",
-                  "4": "IV"
+                  "1": "1",
+                  "2": "2",
+                  "3": "3",
+                  "4": "4"
                 },
                 "wide": {
-                  "1": "I sztwierć roku",
-                  "2": "II sztwierć roku",
-                  "3": "III sztwierć roku",
-                  "4": "IV sztwierć roku"
+                  "1": "Q1",
+                  "2": "Q2",
+                  "3": "Q3",
+                  "4": "Q4"
                 }
               }
             },
@@ -1047,6 +1047,10 @@
               "short": "HHmm"
             },
             "dateTimeFormats": {
+              "numericSeparators": {
+                "numericDateSeparator": "-",
+                "numericTimeSeparator": ":"
+              },
               "full": "{1} {0}",
               "long": "{1} {0}",
               "medium": "{1} {0}",
@@ -1103,19 +1107,26 @@
                 "yyyyQQQQ": "r(U) QQQQ"
               },
               "appendItems": {
+                "Date-Timezone": "{0} {1}",
                 "Day": "{0} ({2}: {1})",
-                "Day-Of-Week": "{0} {1}",
+                "Day-Of-Week": "{1} {0}",
                 "Era": "{1} {0}",
                 "Hour": "{0} ({2}: {1})",
                 "Minute": "{0} ({2}: {1})",
                 "Month": "{0} ({2}: {1})",
                 "Quarter": "{0} ({2}: {1})",
                 "Second": "{0} ({2}: {1})",
+                "Time-Day-Of-Week": "{1} {0}",
                 "Timezone": "{0} {1}",
                 "Week": "{0} ({2}: {1})",
                 "Year": "{1} {0}"
               },
               "intervalFormats": {
+                "intervalFormatRanges": {
+                  "mixed": "{0} – {1}",
+                  "non-numeric": "{0}–{1}",
+                  "numeric": "{0}–{1}"
+                },
                 "intervalFormatFallback": "{0} – {1}",
                 "Bh": {
                   "B": "h B – h B",

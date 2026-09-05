@@ -15,8 +15,7 @@
         },
         "types": {
           "calendar": {
-            "gregorian": "ꄉꉻꃅꑍ",
-            "islamic": "ꑳꌦꇂꑍꉖ"
+            "gregorian": "ꄉꉻꃅꑍ"
           },
           "numbers": {
             "latn": "ꀊꆿꀙꃷꁨꁱꂷ"

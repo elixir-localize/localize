@@ -6,8 +6,8 @@
       },
       "posix": {
         "messages": {
-          "yesstr": "jā:j",
-          "nostr": "ni:n"
+          "yesstr": "yes:y",
+          "nostr": "no:n"
         }
       }
     }

@@ -6,8 +6,7 @@
       },
       "personNames": {
         "givenFirst": [
-          "und",
-          "fy"
+          "und"
         ],
         "surnameFirst": [
           "ja",
@@ -16,12 +15,12 @@
           "yue",
           "zh"
         ],
-        "formality": "informal",
+        "formality": "formal",
         "length": "medium",
         "nativeSpaceReplacement": " ",
         "foreignSpaceReplacement": " ",
         "initial": "{0}.",
-        "initialSequence": "{0}{1}",
+        "initialSequence": "{0} {1}",
         "personName": {
           "givenFirst": {
             "long": {
@@ -130,15 +129,6 @@
                 "informal": "{surname} {surname2}, {title} {given} {given2} {credentials}"
               }
             }
-          }
-        },
-        "sampleName": {
-          "nativeG": {
-            "given": "Fatima"
-          },
-          "nativeGS": {
-            "given": "Irene",
-            "surname": "Bakker"
           }
         }
       }

@@ -237,17 +237,24 @@ defmodule Localize.Locale.LocaleDisplay.T do
     script = if tag.script, do: tag.script |> to_string() |> capitalize_script() |> to_atom_safe()
     territory = if tag.territory, do: normalize_territory(tag.territory)
 
+    # Fall back to the canonicalised subtag, not the raw parsed one. A `-t-`
+    # tlang arrives lowercased and with numeric regions already reduced to
+    # integers — `-t-en-latn-001` parses as `"latn"` and `1` — so the raw
+    # value renders as "latn" and "1" where BCP-47 spells them "Latn" and
+    # "001". The canonical forms are computed just above for the lookup
+    # keys; the fallback simply was not using them, which went unnoticed
+    # while every display locale under test had names for these subtags.
     subtags =
       [
         if(script && :script not in consumed,
           do:
             get_display_preference(get_in(display_names, [:script, script]), prefer) ||
-              to_string(tag.script)
+              to_string(script)
         ),
         if(territory && :territory not in consumed,
           do:
             get_display_preference(get_in(display_names, [:territory, territory]), prefer) ||
-              to_string(tag.territory)
+              to_string(territory)
         )
       ]
       |> Enum.reject(&is_nil/1)

@@ -6,14 +6,16 @@
       },
       "dates": {
         "timeZoneNames": {
-          "hourFormat": "+HH:mm;−HH:mm",
+          "hourFormat": "+HH:mm;-HH:mm",
           "gmtFormat": "GMT{0}",
-          "gmtZeroFormat": "GMT",
+          "gmtFormat-alt-utc": "UTC{0}",
           "gmtUnknownFormat": "GMT+?",
+          "gmtUnknownFormat-alt-utc": "UTC+?",
+          "dualOffsetFormat": "{0}/{1}",
           "regionFormat": "{0}",
           "regionFormat-type-daylight": "{0} (+1)",
           "regionFormat-type-standard": "{0} (+0)",
-          "fallbackFormat": "{0} ({1})",
+          "fallbackFormat": "{1} ({0})",
           "zone": {
             "Etc": {
               "UTC": {
@@ -21,10 +23,6 @@
                 "short": {
                   "standard": "UTC"
                 }
-              },
-              "Unknown": {
-                "_type": "zone",
-                "exemplarCity": "atorsinnaanngitsoq nalunaaqutaqaqatigiissut"
               }
             },
             "Europe": {
@@ -121,10 +119,6 @@
               "Curacao": {
                 "_type": "zone",
                 "exemplarCity": "Curaçao"
-              },
-              "Thule": {
-                "_type": "zone",
-                "exemplarCity": "Qaanaaq"
               },
               "Godthab": {
                 "_type": "zone",

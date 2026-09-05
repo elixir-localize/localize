@@ -6,7 +6,7 @@
       },
       "localeDisplayNames": {
         "measurementSystemNames": {
-          "metric": "SI",
+          "metric": "Metric",
           "UK": "UK",
           "US": "US"
         }

@@ -492,7 +492,7 @@
           },
           "hour-short": {
             "displayName": "h.",
-            "relative-type-0": "houa ʻeni",
+            "relative-type-0": "ko e houa ʻeni",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "ʻi he houa ʻe {0}"
             },
@@ -502,7 +502,7 @@
           },
           "hour-narrow": {
             "displayName": "h",
-            "relative-type-0": "h.ʻeni",
+            "relative-type-0": "ko e houa ʻeni",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "ʻi he houa ʻe {0}"
             },
@@ -522,7 +522,7 @@
           },
           "minute-short": {
             "displayName": "m.",
-            "relative-type-0": "miniti ʻeni",
+            "relative-type-0": "ko e miniti ʻeni",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "ʻi he miniti ʻe {0}"
             },
@@ -532,7 +532,7 @@
           },
           "minute-narrow": {
             "displayName": "m",
-            "relative-type-0": "m.ʻeni",
+            "relative-type-0": "ko e miniti ʻeni",
             "relativeTime-type-future": {
               "relativeTimePattern-count-other": "ʻi he miniti ʻe {0}"
             },

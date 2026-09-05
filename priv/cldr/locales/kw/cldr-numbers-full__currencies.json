@@ -60,6 +60,10 @@
             "symbol": "CA$",
             "symbol-alt-narrow": "$"
           },
+          "CHF": {
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
+          },
           "CLP": {
             "symbol-alt-narrow": "$"
           },
@@ -95,8 +99,6 @@
             "symbol-alt-narrow": "₧"
           },
           "EUR": {
-            "displayName": "Euro",
-            "displayName-count-other": "Euro",
             "symbol": "€",
             "symbol-alt-narrow": "€"
           },

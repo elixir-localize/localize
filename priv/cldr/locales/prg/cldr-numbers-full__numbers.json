@@ -108,8 +108,6 @@
             }
           },
           "currencyPatternAppendISO": "{0} ¤¤",
-          "unitPattern-count-zero": "{0} {1}",
-          "unitPattern-count-one": "{0} {1}",
           "unitPattern-count-other": "{0} {1}"
         },
         "miscPatterns-numberSystem-latn": {
@@ -117,10 +115,6 @@
           "atLeast": "≥{0}",
           "atMost": "≤{0}",
           "range": "{0}–{1}"
-        },
-        "minimalPairs": {
-          "pluralMinimalPairs-count-other": "{0}?",
-          "other": "{0}?"
         }
       }
     }

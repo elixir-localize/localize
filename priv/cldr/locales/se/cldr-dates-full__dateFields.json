@@ -614,7 +614,7 @@
           },
           "second": {
             "displayName": "sekunda",
-            "relative-type-0": "na",
+            "relative-type-0": "now",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "{0} sekunda maŋŋilit",
               "relativeTimePattern-count-two": "{0} sekundda maŋŋilit",
@@ -628,7 +628,7 @@
           },
           "second-short": {
             "displayName": "sekunda",
-            "relative-type-0": "na",
+            "relative-type-0": "now",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "{0} sekunda maŋŋilit",
               "relativeTimePattern-count-two": "{0} sekundda maŋŋilit",
@@ -642,7 +642,7 @@
           },
           "second-narrow": {
             "displayName": "sekunda",
-            "relative-type-0": "na",
+            "relative-type-0": "now",
             "relativeTime-type-future": {
               "relativeTimePattern-count-one": "{0} sekunda maŋŋilit",
               "relativeTimePattern-count-two": "{0} sekundda maŋŋilit",

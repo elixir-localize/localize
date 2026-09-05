@@ -159,8 +159,8 @@
             "perUnitPattern": "{0}/m²"
           },
           "area-square-centimeter": {
-            "displayName": "кыбатыраатынай сэнтимиэтир",
-            "unitPattern-count-other": "{0} кыбатыраатынай сэнтимиэтир",
+            "displayName": "см²",
+            "unitPattern-count-other": "{0} см²",
             "perUnitPattern": "{0}/см²"
           },
           "area-square-mile": {
@@ -324,7 +324,7 @@
           "duration-day": {
             "displayName": "күн",
             "unitPattern-count-other": "{0} күн",
-            "perUnitPattern": "күҥҥэ {0}"
+            "perUnitPattern": "{0}/күн"
           },
           "duration-hour": {
             "displayName": "чаас",
@@ -342,7 +342,7 @@
             "perUnitPattern": "сөкүүндэҕэ {0}"
           },
           "duration-millisecond": {
-            "displayName": "миллисөкүүндэлэр",
+            "displayName": "мс",
             "unitPattern-count-other": "{0} миллисөкүүндэ"
           },
           "duration-microsecond": {
@@ -377,10 +377,6 @@
             "displayName": "калорий",
             "unitPattern-count-other": "{0} калорий"
           },
-          "energy-foodcalorie": {
-            "displayName": "Калорий",
-            "unitPattern-count-other": "{0} Калорий"
-          },
           "energy-kilojoule": {
             "displayName": "килоджоуль",
             "unitPattern-count-other": "{0} килоджоуль"
@@ -409,9 +405,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -458,14 +462,14 @@
             "unitPattern-count-other": "{0} R⊕"
           },
           "length-kilometer": {
-            "displayName": "километрдар",
-            "unitPattern-count-other": "{0} километр",
-            "perUnitPattern": "километрга {0}"
+            "displayName": "км",
+            "unitPattern-count-other": "{0} км",
+            "perUnitPattern": "{0}/км"
           },
           "length-meter": {
             "displayName": "миэтэрэ",
             "unitPattern-count-other": "{0} миэтэрэ",
-            "perUnitPattern": "миэтиргэ {0}"
+            "perUnitPattern": "{0}/м"
           },
           "length-decimeter": {
             "displayName": "dm",
@@ -509,6 +513,10 @@
             "displayName": "in",
             "unitPattern-count-other": "{0} in",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
@@ -1436,10 +1444,6 @@
             "displayName": "кал",
             "unitPattern-count-other": "{0} кал"
           },
-          "energy-foodcalorie": {
-            "displayName": "Кал",
-            "unitPattern-count-other": "{0} Кал"
-          },
           "energy-kilojoule": {
             "displayName": "кдж",
             "unitPattern-count-other": "{0} кдж"
@@ -1468,9 +1472,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -1568,6 +1580,10 @@
             "displayName": "in",
             "unitPattern-count-other": "{0} in",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",
@@ -2495,10 +2511,6 @@
             "displayName": "кал",
             "unitPattern-count-other": "{0} кал"
           },
-          "energy-foodcalorie": {
-            "displayName": "Кал",
-            "unitPattern-count-other": "{0} Кал"
-          },
           "energy-kilojoule": {
             "displayName": "кдж",
             "unitPattern-count-other": "{0} кдж"
@@ -2527,9 +2539,17 @@
             "displayName": "lbf",
             "unitPattern-count-other": "{0} lbf"
           },
+          "force-poundal": {
+            "displayName": "pdl",
+            "unitPattern-count-other": "{0} pdl"
+          },
           "force-newton": {
             "displayName": "N",
             "unitPattern-count-other": "{0} N"
+          },
+          "force-dyne": {
+            "displayName": "dyn",
+            "unitPattern-count-other": "{0} dyn"
           },
           "force-kilowatt-hour-per-100-kilometer": {
             "displayName": "kWh/100km",
@@ -2627,6 +2647,10 @@
             "displayName": "in",
             "unitPattern-count-other": "{0} in",
             "perUnitPattern": "{0}/in"
+          },
+          "length-milliinch": {
+            "displayName": "milli-inch",
+            "unitPattern-count-other": "{0} milli-inch"
           },
           "length-parsec": {
             "displayName": "pc",

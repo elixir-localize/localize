@@ -2,13 +2,17 @@
 #
 # Convert CLDR LDML (XML) to JSON via the upstream cldr-json tooling.
 #
-# Wraps unicode-org/cldr-json's `cldr-generate-json.sh`, pointing it at
-# whatever commit/tag is currently checked out in $CLDR_REPO. All packages —
+# Wraps unicode-org/cldr-json's `cldr-generate-json.sh`. Fetches $CLDR_REPO and
+# checks out the tag named by $CLDR_TAG before building, so a run is reproducible
+# from the tag alone rather than from whatever happened to be checked out. All
+# packages —
 # main, supplemental, segments, rbnf, bcp47, transforms, subdivisions, and
 # (the bit ldml2json v1 missed) annotations + annotationsDerived — are
 # emitted into $CLDR_PRODUCTION in one Maven-driven pass.
 #
 # Env overrides:
+#   CLDR_TAG          tag/branch to build from         (REQUIRED; `current` builds
+#                                                       whatever is checked out, unfetched)
 #   CLDR_REPO         clone of unicode-org/cldr        (default: ~/Development/cldr/cldr_repo)
 #   CLDR_JSON_REPO    clone of unicode-org/cldr-json   (default: ~/Development/cldr/cldr_json,
 #                                                       auto-cloned if missing)
@@ -32,15 +36,120 @@ if [[ ! -f "$CLDR_REPO/tools/pom.xml" ]]; then
   exit 1
 fi
 
+# Put $CLDR_REPO on the requested tag before building anything. Without this
+# the build silently uses whatever commit the checkout happens to sit on — and
+# a tag published since the last fetch is not even visible locally, so asking
+# for it by name would fail while a stale mid-stream commit built happily.
+if [[ -z "${CLDR_TAG:-}" ]]; then
+  print -u2 "CLDR_TAG is not set. Name the tag to build from, for example:"
+  print -u2 "    CLDR_TAG=release-49-alpha2 scripts/ldml2json_v2"
+  print -u2
+  print -u2 "Recent tags in $CLDR_REPO:"
+  ( cd "$CLDR_REPO" && git tag -l 'release-*' --sort=-creatordate | head -5 | sed 's/^/    /' ) >&2
+  print -u2
+  print -u2 "Use CLDR_TAG=current to build the checkout as it stands, without fetching."
+  exit 1
+fi
+
+if [[ "$CLDR_TAG" != "current" ]]; then
+  # Refuse to move a dirty tree: a checkout would either fail or silently carry
+  # local edits into the generated data.
+  # Tracked modifications only: an untracked stray such as .DS_Store cannot be
+  # clobbered by a checkout and must not block the build.
+  if [[ -n "$( cd "$CLDR_REPO" && git status --porcelain --untracked-files=no )" ]]; then
+    print -u2 "$CLDR_REPO has uncommitted changes; refusing to check out $CLDR_TAG."
+    print -u2 "Commit, stash or discard them, or use CLDR_TAG=current to build as-is."
+    exit 1
+  fi
+
+  print "Fetching $CLDR_REPO ..."
+  ( cd "$CLDR_REPO" && git fetch --tags --prune --quiet )
+
+  if ! ( cd "$CLDR_REPO" && git rev-parse --verify --quiet "${CLDR_TAG}^{commit}" >/dev/null ); then
+    print -u2 "No such tag or commit in $CLDR_REPO: $CLDR_TAG"
+    print -u2 "Recent tags:"
+    ( cd "$CLDR_REPO" && git tag -l 'release-*' --sort=-creatordate | head -5 | sed 's/^/    /' ) >&2
+    exit 1
+  fi
+
+  print "Checking out $CLDR_TAG ..."
+  ( cd "$CLDR_REPO" && git checkout --quiet "$CLDR_TAG" )
+fi
+
+# CLDR's tools declare the JDK release they must be compiled against, and it
+# moves between CLDR versions — 49 requires 21 where 48 did not. Checked here,
+# after the checkout so it reflects the tag being built, because Maven would
+# otherwise fail several minutes in — having first cloned cldr-json and
+# resolved its dependencies — with "invalid target release", which reads as a
+# Maven problem rather than a JDK one.
+JAVA_BIN="java"
+[[ -n "${JAVA_HOME:-}" && -x "$JAVA_HOME/bin/java" ]] && JAVA_BIN="$JAVA_HOME/bin/java"
+
+REQUIRED_JAVA="$(grep -oE '<java-release>[0-9]+</java-release>' "$CLDR_REPO/tools/pom.xml" \
+  | sed -E 's:</?java-release>::g' | head -1)"
+
+if [[ -n "$REQUIRED_JAVA" ]]; then
+  CURRENT_JAVA="$("$JAVA_BIN" -XshowSettings:properties -version 2>&1 \
+    | awk -F'= *' '/java.specification.version/ {gsub(/ /,"",$2); sub(/^1\./,"",$2); print $2}' \
+    | head -1)"
+
+  if [[ -z "$CURRENT_JAVA" ]]; then
+    print -u2 "Could not determine the Java version from '$JAVA_BIN'."
+    print -u2 "CLDR $CLDR_TAG needs JDK $REQUIRED_JAVA or later. Set \$JAVA_HOME to one."
+    exit 1
+  fi
+
+  if (( CURRENT_JAVA < REQUIRED_JAVA )); then
+    print -u2 "CLDR requires JDK $REQUIRED_JAVA or later; '$JAVA_BIN' is $CURRENT_JAVA."
+    print -u2 "  (tools/pom.xml at ${CLDR_TAG} declares <java-release>$REQUIRED_JAVA</java-release>)"
+    print -u2
+    print -u2 "Installed JDKs:"
+    # `java_home -V` prints the JDK rows indented, then the default home
+    # unindented on the last line; only the rows are wanted.
+    ( /usr/libexec/java_home -V 2>&1 | grep '^ ' | head -5 | sed 's/^ */  /' ) >&2 2>/dev/null || true
+    print -u2
+    print -u2 "Install one and point JAVA_HOME at it, for example:"
+    print -u2 "    brew install openjdk@$REQUIRED_JAVA"
+    print -u2 "    JAVA_HOME=\$(/usr/libexec/java_home -v $REQUIRED_JAVA) $0"
+    exit 1
+  fi
+fi
+
 if [[ ! -d "$CLDR_JSON_REPO" ]]; then
   print "Cloning $CLDR_JSON_REMOTE into $CLDR_JSON_REPO ..."
-  git clone "$CLDR_JSON_REMOTE" "$CLDR_JSON_REPO"
+  # Shallow: only the driver scripts and Maven config are used. A full clone
+  # also carries the generated JSON of every CLDR release ever published, which
+  # is large enough that the transfer times out more often than it succeeds.
+  git clone --depth 1 "$CLDR_JSON_REMOTE" "$CLDR_JSON_REPO"
 fi
 
 if [[ ! -x "$CLDR_JSON_REPO/cldr-generate-json.sh" ]]; then
   print -u2 "$CLDR_JSON_REPO/cldr-generate-json.sh missing or not executable."
   print -u2 "Is $CLDR_JSON_REPO actually a checkout of unicode-org/cldr-json?"
   exit 1
+fi
+
+# The converter writes into $CLDR_PRODUCTION without removing what is already
+# there, so a package or locale dropped between CLDR releases survives as an
+# orphan and gets vendored by `mix localize.copy_sources`. Clear it first —
+# but only once it is recognisably a cldr-json output tree, so a mistyped
+# $CLDR_PRODUCTION cannot take a home directory with it.
+if [[ -d "$CLDR_PRODUCTION" && -n "$( ls -A "$CLDR_PRODUCTION" 2>/dev/null )" ]]; then
+  if [[ "${CLDR_KEEP_OUTPUT:-}" == "1" ]]; then
+    print "Keeping existing contents of $CLDR_PRODUCTION (CLDR_KEEP_OUTPUT=1)."
+  else
+    existing_packages=( "$CLDR_PRODUCTION"/cldr-*(N/) )
+
+    if (( ${#existing_packages} == 0 )); then
+      print -u2 "$CLDR_PRODUCTION is not empty but holds no cldr-* packages."
+      print -u2 "Refusing to clear it — check that \$CLDR_PRODUCTION points where you think."
+      print -u2 "Use CLDR_KEEP_OUTPUT=1 to build into it as it stands."
+      exit 1
+    fi
+
+    print "Clearing $CLDR_PRODUCTION (${#existing_packages} cldr-* packages) ..."
+    rm -rf "${CLDR_PRODUCTION:?}"/*(DN)
+  fi
 fi
 
 mkdir -p "$CLDR_PRODUCTION"
@@ -59,9 +168,52 @@ print "CLDR sources    : $CLDR_REPO"
 ( cd "$CLDR_REPO" \
   && print "  description   : $(git describe --tags --always --dirty 2>/dev/null || echo '(unknown)')" \
   && print "  HEAD          : $(git rev-parse --short HEAD 2>/dev/null || echo '(unknown)')" )
+# The driver is reported rather than updated: it may be pinned deliberately, and
+# moving someone's checkout under them is worse than showing them the drift.
 print "cldr-json driver: $CLDR_JSON_REPO"
+( cd "$CLDR_JSON_REPO" \
+  && git fetch --quiet 2>/dev/null || true
+  cd "$CLDR_JSON_REPO" \
+  && behind=$(git rev-list --count "HEAD..@{upstream}" 2>/dev/null || print '?') \
+  && print "  HEAD          : $(git rev-parse --short HEAD 2>/dev/null || print '(unknown)')${behind:+, $behind behind upstream}" )
 print "Package version : $CLDR_TOOL_VERSION"
 print "Output          : $CLDR_PRODUCTION"
+print
+
+# ── Stage production data ────────────────────────────────────
+#
+# CLDR 49 added a `keepPreBasic` gate to GenerateProductionData. It defaults
+# to false, and it drops every locale that is not in ICU and whose coverage
+# is below Basic — 114 of them against release-49-alpha2, `aa` and `ht`
+# among those. CLDR 48's tool had no such gate, so the same sources yielded
+# 766 locales there and 657 here, with nothing in our own configuration to
+# show for the difference.
+#
+# cldr-generate-json.sh runs GenerateProductionData with a hard-coded
+# argument list, so the only way to pass the flag is to run the staging
+# step ourselves and hand the result over via INDATA.
+#
+# We pass CLDR's own default rather than inherit it. Not supporting
+# pre-Basic locales is the deliberate position — it keeps our locale set
+# aligned with CLDR and ICU, and CLDR 50 is expected to continue pruning —
+# but a default that changes underneath us is exactly what cost a release
+# cycle here, so the value is stated in our own diff. Set
+# CLDR_KEEP_PRE_BASIC=1 to override.
+CLDR_STAGING="${CLDR_STAGING:-$CLDR_JSON_REPO/target/data}"
+KEEP_PRE_BASIC=$([[ "${CLDR_KEEP_PRE_BASIC:-0}" == "1" ]] && print true || print false)
+
+print "Staging production data (keepPreBasic=$KEEP_PRE_BASIC) ..."
+rm -rf "${CLDR_STAGING:?}"
+mkdir -p "$CLDR_STAGING/common" "$CLDR_STAGING/seed/main" "$CLDR_STAGING/seed/annotations"
+
+MAVEN_OPTS="-Xmx16384m -Dexec.cleanupDaemonThreads=false" \
+  mvn -q --file="$CLDR_REPO/tools/pom.xml" -pl cldr-code exec:java \
+    -Dexec.mainClass=org.unicode.cldr.tool.GenerateProductionData \
+    -DCLDR_DIR="$CLDR_REPO" \
+    -Dexec.args="-d $CLDR_STAGING/common --keepPreBasic $KEEP_PRE_BASIC"
+
+staged_locales=$(ls "$CLDR_STAGING/common/main"/*.xml 2>/dev/null | wc -l | tr -d ' ')
+print "Staged $staged_locales locales into $CLDR_STAGING"
 print
 
 # cldr-generate-json.sh sources cldr-config.sh first, then ./local-config.sh
@@ -77,10 +229,10 @@ CLDR_DIR="$CLDR_REPO"
 # Land all generated packages directly in our production tree.
 OUT="$CLDR_PRODUCTION"
 
-# 'generate' makes cldr-generate-json.sh run GenerateProductionData itself
-# into a scratch ./target/data tree before invoking Ldml2JsonConverter, so
-# we do not need a separate staging directory.
-INDATA=generate
+# Point the converter at the production tree we staged above rather than
+# letting cldr-generate-json.sh call GenerateProductionData itself — its
+# invocation is hard-coded and takes no extra arguments, and we need one.
+INDATA="$CLDR_STAGING"
 
 # One pass over every RunType — main, supplemental, segments, rbnf,
 # annotations, annotationsDerived, bcp47, transforms, subdivisions.
@@ -95,8 +247,10 @@ MATCH='.*'
 # -V package version, used in the per-package package.json metadata.
 VERSION="$CLDR_TOOL_VERSION"
 
-# Reserved for ad-hoc Ldml2JsonConverter flags (e.g. -l comprehensive,
-# -n true, -M true). Empty by default.
+# Reserved for ad-hoc Ldml2JsonConverter flags (e.g. -n true, -M true).
+# Note that -l (coverage) is not a useful lever here: its default is
+# 'optional', which Level maps to COMPREHENSIVE — already the loosest
+# setting, with nothing above it.
 EXTRA_JSON_OPTS=""
 EOF
 chmod +x "$CLDR_JSON_REPO/local-config.sh"

@@ -276,7 +276,9 @@
           },
           "CHF": {
             "displayName": "switzerlandga franc",
-            "displayName-count-other": "switzerlandga franc"
+            "displayName-count-other": "switzerlandga franc",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CHW": {
             "displayName": "WIR euro CHW",
@@ -295,11 +297,6 @@
             "displayName": "chilega peso",
             "displayName-count-other": "chilega peso",
             "symbol-alt-narrow": "$"
-          },
-          "CNX": {
-            "displayName": "tsainatɔwo ƒe gadzraɖoƒe dollar",
-            "displayName-count-one": "tsainatɔwo ƒe gadzraɖoƒe dollar",
-            "displayName-count-other": "tsainatɔwo ƒe gadzraɖoƒe dollarwo"
           },
           "CNY": {
             "displayName": "Chinesega yuan",
@@ -804,10 +801,6 @@
             "displayName": "maldiviaga rufiyaa",
             "displayName-count-other": "maldiviaga rufiyaa"
           },
-          "MWK": {
-            "displayName": "malawiga kwacha",
-            "displayName-count-other": "malawiga kwacha"
-          },
           "MXN": {
             "displayName": "mexicoga peso",
             "displayName-count-other": "mexicoga peso",
@@ -819,13 +812,7 @@
             "displayName-count-other": "malaysiaga ringit",
             "symbol-alt-narrow": "RM"
           },
-          "MZN": {
-            "displayName": "mozambikga metikal",
-            "displayName-count-other": "mozambikga metikal"
-          },
           "NAD": {
-            "displayName": "namibiaga dollar",
-            "displayName-count-other": "namibiaga dollar",
             "symbol-alt-narrow": "$"
           },
           "NGN": {
@@ -1026,8 +1013,6 @@
             "displayName-count-other": "surinamega guilder"
           },
           "SSP": {
-            "displayName": "anyiehe sudanga pound",
-            "displayName-count-other": "anyiehe sudanga pound",
             "symbol-alt-narrow": "£"
           },
           "STD": {

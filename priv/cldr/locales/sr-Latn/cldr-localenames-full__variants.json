@@ -12,7 +12,6 @@
           "1996": "Nemačka ortografija iz 1996",
           "1606NICT": "Francuski iz kasnog srednjeg veka do 1606.",
           "1694ACAD": "Rani moderni francuski",
-          "1959ACAD": "Akademski",
           "AREVELA": "Istočni armenijski",
           "AREVMDA": "Zapadno jermenska",
           "BAKU1926": "Ujedinjen turski latinični alfabet",
@@ -20,7 +19,6 @@
           "BOONT": "Buntling",
           "FONIPA": "IPA fonetika",
           "FONUPA": "UPA fonetika",
-          "KKCOR": "Uobičajena ortografija",
           "LIPAW": "Lipovički dijalekt resijanski",
           "MONOTON": "Monotonik",
           "NEDIS": "Natisone dijalekt",
@@ -35,8 +33,6 @@
           "SCOUSE": "Skauz",
           "SOLBA": "Stolvica/Solbica dijalekt",
           "TARASK": "Taraskijevička ortografija",
-          "UCCOR": "Ujedinjena ortografija",
-          "UCRCOR": "Ujedinjena revidirana ortografija",
           "VALENCIA": "Valencijska"
         }
       }

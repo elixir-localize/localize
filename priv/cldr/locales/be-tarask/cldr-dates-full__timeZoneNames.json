@@ -9,11 +9,13 @@
         "timeZoneNames": {
           "hourFormat": "+HH:mm;-HH:mm",
           "gmtFormat": "GMT{0}",
-          "gmtZeroFormat": "GMT",
+          "gmtFormat-alt-utc": "UTC{0}",
           "gmtUnknownFormat": "GMT+?",
-          "regionFormat": "час: {0}",
-          "regionFormat-type-daylight": "летні час: {0}",
-          "regionFormat-type-standard": "змоўчны час: {0}",
+          "gmtUnknownFormat-alt-utc": "UTC+?",
+          "dualOffsetFormat": "{0}/{1}",
+          "regionFormat": "Час: {0}",
+          "regionFormat-type-daylight": "Летні час: {0}",
+          "regionFormat-type-standard": "Стандартны час: {0}",
           "fallbackFormat": "{1} ({0})",
           "zone": {
             "Pacific": {
@@ -31,11 +33,11 @@
               },
               "Easter": {
                 "_type": "zone",
-                "exemplarCity": "Востраў Пасхі"
+                "exemplarCity": "Вялікадня востраў"
               },
               "Galapagos": {
                 "_type": "zone",
-                "exemplarCity": "Галяпагас"
+                "exemplarCity": "Галапагас"
               },
               "Fiji": {
                 "_type": "zone",
@@ -47,11 +49,11 @@
               },
               "Ponape": {
                 "_type": "zone",
-                "exemplarCity": "Панпэі"
+                "exemplarCity": "Панпеі"
               },
               "Kosrae": {
                 "_type": "zone",
-                "exemplarCity": "Касраэ"
+                "exemplarCity": "Кусаіе"
               },
               "Guam": {
                 "_type": "zone",
@@ -59,7 +61,7 @@
               },
               "Enderbury": {
                 "_type": "zone",
-                "exemplarCity": "Эндэрбэры"
+                "exemplarCity": "Кантон"
               },
               "Kiritimati": {
                 "_type": "zone",
@@ -71,7 +73,7 @@
               },
               "Kwajalein": {
                 "_type": "zone",
-                "exemplarCity": "Кваджалэйн"
+                "exemplarCity": "Кваджалейн"
               },
               "Majuro": {
                 "_type": "zone",
@@ -95,7 +97,7 @@
               },
               "Niue": {
                 "_type": "zone",
-                "exemplarCity": "Ніўэ"
+                "exemplarCity": "Ніуэ"
               },
               "Chatham": {
                 "_type": "zone",
@@ -103,7 +105,7 @@
               },
               "Auckland": {
                 "_type": "zone",
-                "exemplarCity": "Оклэнд"
+                "exemplarCity": "Окленд"
               },
               "Tahiti": {
                 "_type": "zone",
@@ -111,7 +113,7 @@
               },
               "Marquesas": {
                 "_type": "zone",
-                "exemplarCity": "Маркіскія астравы"
+                "exemplarCity": "Маркізскія астравы"
               },
               "Gambier": {
                 "_type": "zone",
@@ -123,7 +125,7 @@
               },
               "Bougainville": {
                 "_type": "zone",
-                "exemplarCity": "Бугэнвіль"
+                "exemplarCity": "Бугенвіль"
               },
               "Pitcairn": {
                 "_type": "zone",
@@ -131,7 +133,7 @@
               },
               "Palau": {
                 "_type": "zone",
-                "exemplarCity": "Палаў"
+                "exemplarCity": "Палау"
               },
               "Guadalcanal": {
                 "_type": "zone",
@@ -151,11 +153,11 @@
               },
               "Midway": {
                 "_type": "zone",
-                "exemplarCity": "Мідўэй"
+                "exemplarCity": "Мідуэй"
               },
               "Wake": {
                 "_type": "zone",
-                "exemplarCity": "Ўэйк"
+                "exemplarCity": "Уэйк"
               },
               "Efate": {
                 "_type": "zone",
@@ -163,7 +165,7 @@
               },
               "Wallis": {
                 "_type": "zone",
-                "exemplarCity": "Ўоліс"
+                "exemplarCity": "Уоліс"
               },
               "Apia": {
                 "_type": "zone",
@@ -174,7 +176,7 @@
               "UTC": {
                 "_type": "zone",
                 "long": {
-                  "standard": "унівэрсальны каардынаваны час"
+                  "standard": "Універсальны каардынаваны час"
                 },
                 "short": {
                   "standard": "UTC"
@@ -208,7 +210,7 @@
               },
               "Brussels": {
                 "_type": "zone",
-                "exemplarCity": "Брусэль"
+                "exemplarCity": "Брусель"
               },
               "Sofia": {
                 "_type": "zone",
@@ -216,7 +218,7 @@
               },
               "Minsk": {
                 "_type": "zone",
-                "exemplarCity": "Менск"
+                "exemplarCity": "Мінск"
               },
               "Zurich": {
                 "_type": "zone",
@@ -232,11 +234,11 @@
               },
               "Berlin": {
                 "_type": "zone",
-                "exemplarCity": "Бэрлін"
+                "exemplarCity": "Берлін"
               },
               "Copenhagen": {
                 "_type": "zone",
-                "exemplarCity": "Капэнгаген"
+                "exemplarCity": "Капенгаген"
               },
               "Tallinn": {
                 "_type": "zone",
@@ -248,7 +250,7 @@
               },
               "Helsinki": {
                 "_type": "zone",
-                "exemplarCity": "Хэльсынкі"
+                "exemplarCity": "Хельсінкі"
               },
               "Paris": {
                 "_type": "zone",
@@ -256,10 +258,7 @@
               },
               "London": {
                 "_type": "zone",
-                "long": {
-                  "daylight": "Брытанскі летні час"
-                },
-                "exemplarCity": "Лёндан"
+                "exemplarCity": "Лондан"
               },
               "Guernsey": {
                 "_type": "zone",
@@ -267,11 +266,11 @@
               },
               "Gibraltar": {
                 "_type": "zone",
-                "exemplarCity": "Гібральтар"
+                "exemplarCity": "Гібралтар"
               },
               "Athens": {
                 "_type": "zone",
-                "exemplarCity": "Атэны"
+                "exemplarCity": "Афіны"
               },
               "Zagreb": {
                 "_type": "zone",
@@ -279,13 +278,10 @@
               },
               "Budapest": {
                 "_type": "zone",
-                "exemplarCity": "Будапэшт"
+                "exemplarCity": "Будапешт"
               },
               "Dublin": {
                 "_type": "zone",
-                "long": {
-                  "daylight": "Ірляндзкі змоўчны час"
-                },
                 "exemplarCity": "Дублін"
               },
               "Isle_of_Man": {
@@ -298,7 +294,7 @@
               },
               "Jersey": {
                 "_type": "zone",
-                "exemplarCity": "Джэрзі"
+                "exemplarCity": "Джэрсі"
               },
               "Vaduz": {
                 "_type": "zone",
@@ -310,7 +306,7 @@
               },
               "Luxembourg": {
                 "_type": "zone",
-                "exemplarCity": "Люксэмбург"
+                "exemplarCity": "Люксембург"
               },
               "Riga": {
                 "_type": "zone",
@@ -342,7 +338,7 @@
               },
               "Oslo": {
                 "_type": "zone",
-                "exemplarCity": "Осьлё"
+                "exemplarCity": "Осла"
               },
               "Warsaw": {
                 "_type": "zone",
@@ -418,7 +414,7 @@
               },
               "Simferopol": {
                 "_type": "zone",
-                "exemplarCity": "Сымфэропаль"
+                "exemplarCity": "Сімферопаль"
               },
               "Vatican": {
                 "_type": "zone",
@@ -452,7 +448,7 @@
               },
               "Brunei": {
                 "_type": "zone",
-                "exemplarCity": "Брунэй"
+                "exemplarCity": "Бруней"
               },
               "Thimphu": {
                 "_type": "zone",
@@ -500,7 +496,7 @@
               },
               "Jerusalem": {
                 "_type": "zone",
-                "exemplarCity": "Ерусалім"
+                "exemplarCity": "Іерусалім"
               },
               "Calcutta": {
                 "_type": "zone",
@@ -520,7 +516,7 @@
               },
               "Tokyo": {
                 "_type": "zone",
-                "exemplarCity": "Токіё"
+                "exemplarCity": "Токіа"
               },
               "Bishkek": {
                 "_type": "zone",
@@ -528,23 +524,23 @@
               },
               "Phnom_Penh": {
                 "_type": "zone",
-                "exemplarCity": "Пнампэнь"
+                "exemplarCity": "Пнампень"
               },
               "Pyongyang": {
                 "_type": "zone",
-                "exemplarCity": "Пхэньян"
+                "exemplarCity": "Пхеньян"
               },
               "Seoul": {
                 "_type": "zone",
-                "exemplarCity": "Сэул"
+                "exemplarCity": "Сеул"
               },
               "Kuwait": {
                 "_type": "zone",
-                "exemplarCity": "Кувэйт"
+                "exemplarCity": "Кувейт"
               },
               "Aqtau": {
                 "_type": "zone",
-                "exemplarCity": "Актаў"
+                "exemplarCity": "Актау"
               },
               "Oral": {
                 "_type": "zone",
@@ -552,7 +548,7 @@
               },
               "Atyrau": {
                 "_type": "zone",
-                "exemplarCity": "Атыраў"
+                "exemplarCity": "Атырау"
               },
               "Aqtobe": {
                 "_type": "zone",
@@ -564,7 +560,7 @@
               },
               "Qyzylorda": {
                 "_type": "zone",
-                "exemplarCity": "Кызыларда"
+                "exemplarCity": "Кзыл-Арда"
               },
               "Almaty": {
                 "_type": "zone",
@@ -572,11 +568,11 @@
               },
               "Vientiane": {
                 "_type": "zone",
-                "exemplarCity": "Віент’ян"
+                "exemplarCity": "В’енцьян"
               },
               "Beirut": {
                 "_type": "zone",
-                "exemplarCity": "Бэйрут"
+                "exemplarCity": "Бейрут"
               },
               "Colombo": {
                 "_type": "zone",
@@ -596,7 +592,7 @@
               },
               "Macau": {
                 "_type": "zone",
-                "exemplarCity": "Макао"
+                "exemplarCity": "Макаа"
               },
               "Kuala_Lumpur": {
                 "_type": "zone",
@@ -628,7 +624,7 @@
               },
               "Hebron": {
                 "_type": "zone",
-                "exemplarCity": "Хэўрон"
+                "exemplarCity": "Хеўрон"
               },
               "Qatar": {
                 "_type": "zone",
@@ -644,11 +640,11 @@
               },
               "Novosibirsk": {
                 "_type": "zone",
-                "exemplarCity": "Новасыбірск"
+                "exemplarCity": "Новасібірск"
               },
               "Barnaul": {
                 "_type": "zone",
-                "exemplarCity": "Барнавул"
+                "exemplarCity": "Барнаул"
               },
               "Tomsk": {
                 "_type": "zone",
@@ -656,7 +652,7 @@
               },
               "Novokuznetsk": {
                 "_type": "zone",
-                "exemplarCity": "Новакузьнецк"
+                "exemplarCity": "Новакузнецк"
               },
               "Krasnoyarsk": {
                 "_type": "zone",
@@ -708,11 +704,11 @@
               },
               "Riyadh": {
                 "_type": "zone",
-                "exemplarCity": "Рыяд"
+                "exemplarCity": "Эр-Рыяд"
               },
               "Singapore": {
                 "_type": "zone",
-                "exemplarCity": "Сынгапур"
+                "exemplarCity": "Сінгапур"
               },
               "Damascus": {
                 "_type": "zone",
@@ -779,11 +775,11 @@
                 },
                 "La_Rioja": {
                   "_type": "zone",
-                  "exemplarCity": "Рыёха"
+                  "exemplarCity": "Ла-Рыёха"
                 },
                 "San_Luis": {
                   "_type": "zone",
-                  "exemplarCity": "Сан-Люіс"
+                  "exemplarCity": "Сан-Луіс"
                 },
                 "Salta": {
                   "_type": "zone",
@@ -796,7 +792,7 @@
               },
               "Mendoza": {
                 "_type": "zone",
-                "exemplarCity": "Мэндоса"
+                "exemplarCity": "Мендоса"
               },
               "Catamarca": {
                 "_type": "zone",
@@ -824,7 +820,7 @@
               },
               "St_Barthelemy": {
                 "_type": "zone",
-                "exemplarCity": "Сэн-Бартэльмі"
+                "exemplarCity": "Сен-Бартэльмі"
               },
               "La_Paz": {
                 "_type": "zone",
@@ -832,7 +828,7 @@
               },
               "Kralendijk": {
                 "_type": "zone",
-                "exemplarCity": "Кралэндэйк"
+                "exemplarCity": "Кралендэйк"
               },
               "Eirunepe": {
                 "_type": "zone",
@@ -840,11 +836,11 @@
               },
               "Rio_Branco": {
                 "_type": "zone",
-                "exemplarCity": "Рыў-Бранку"
+                "exemplarCity": "Рыу-Бранку"
               },
               "Porto_Velho": {
                 "_type": "zone",
-                "exemplarCity": "Порту-Вэлью"
+                "exemplarCity": "Порту-Велью"
               },
               "Boa_Vista": {
                 "_type": "zone",
@@ -860,7 +856,7 @@
               },
               "Santarem": {
                 "_type": "zone",
-                "exemplarCity": "Сантарэй"
+                "exemplarCity": "Сантарэн"
               },
               "Campo_Grande": {
                 "_type": "zone",
@@ -868,7 +864,7 @@
               },
               "Belem": {
                 "_type": "zone",
-                "exemplarCity": "Белей"
+                "exemplarCity": "Белен"
               },
               "Araguaina": {
                 "_type": "zone",
@@ -904,7 +900,7 @@
               },
               "Belize": {
                 "_type": "zone",
-                "exemplarCity": "Бэліз"
+                "exemplarCity": "Беліз"
               },
               "Dawson": {
                 "_type": "zone",
@@ -912,7 +908,7 @@
               },
               "Whitehorse": {
                 "_type": "zone",
-                "exemplarCity": "Ўайтхорс"
+                "exemplarCity": "Уайтхорс"
               },
               "Inuvik": {
                 "_type": "zone",
@@ -920,11 +916,11 @@
               },
               "Vancouver": {
                 "_type": "zone",
-                "exemplarCity": "Ванкувэр"
+                "exemplarCity": "Ванкувер"
               },
               "Fort_Nelson": {
                 "_type": "zone",
-                "exemplarCity": "Форт-Нэльсан"
+                "exemplarCity": "Форт-Нельсан"
               },
               "Dawson_Creek": {
                 "_type": "zone",
@@ -940,11 +936,11 @@
               },
               "Swift_Current": {
                 "_type": "zone",
-                "exemplarCity": "Сьвіфт-Карэнт"
+                "exemplarCity": "Свіфт-Керэнт"
               },
               "Cambridge_Bay": {
                 "_type": "zone",
-                "exemplarCity": "Кембрыдж-Бэй"
+                "exemplarCity": "Кембрыдж-Бей"
               },
               "Regina": {
                 "_type": "zone",
@@ -952,7 +948,7 @@
               },
               "Winnipeg": {
                 "_type": "zone",
-                "exemplarCity": "Вініпэг"
+                "exemplarCity": "Вініпег"
               },
               "Resolute": {
                 "_type": "zone",
@@ -960,7 +956,7 @@
               },
               "Rankin_Inlet": {
                 "_type": "zone",
-                "exemplarCity": "Ранкін-Інлэт"
+                "exemplarCity": "Ранкін-Інлет"
               },
               "Coral_Harbour": {
                 "_type": "zone",
@@ -992,11 +988,11 @@
               },
               "Blanc-Sablon": {
                 "_type": "zone",
-                "exemplarCity": "Блянк-Саблён"
+                "exemplarCity": "Бланк-Саблон"
               },
               "St_Johns": {
                 "_type": "zone",
-                "exemplarCity": "Сэнт-Джонс"
+                "exemplarCity": "Сент-Джонс"
               },
               "Coyhaique": {
                 "_type": "zone",
@@ -1024,7 +1020,7 @@
               },
               "Curacao": {
                 "_type": "zone",
-                "exemplarCity": "Кюрасао"
+                "exemplarCity": "Кюрасаа"
               },
               "Dominica": {
                 "_type": "zone",
@@ -1044,11 +1040,11 @@
               },
               "Cayenne": {
                 "_type": "zone",
-                "exemplarCity": "Каэна"
+                "exemplarCity": "Каена"
               },
               "Thule": {
                 "_type": "zone",
-                "exemplarCity": "Тулэ"
+                "exemplarCity": "Туле"
               },
               "Godthab": {
                 "_type": "zone",
@@ -1064,7 +1060,7 @@
               },
               "Guadeloupe": {
                 "_type": "zone",
-                "exemplarCity": "Гвадэлюпа"
+                "exemplarCity": "Гвадэлупа"
               },
               "Guatemala": {
                 "_type": "zone",
@@ -1088,7 +1084,7 @@
               },
               "St_Kitts": {
                 "_type": "zone",
-                "exemplarCity": "Сэнт-Кітс"
+                "exemplarCity": "Сент-Кітс"
               },
               "Cayman": {
                 "_type": "zone",
@@ -1096,7 +1092,7 @@
               },
               "St_Lucia": {
                 "_type": "zone",
-                "exemplarCity": "Сэнт-Люсія"
+                "exemplarCity": "Сент-Люсія"
               },
               "Marigot": {
                 "_type": "zone",
@@ -1104,11 +1100,11 @@
               },
               "Martinique": {
                 "_type": "zone",
-                "exemplarCity": "Мартыніка"
+                "exemplarCity": "Марцініка"
               },
               "Montserrat": {
                 "_type": "zone",
-                "exemplarCity": "Мансэрат"
+                "exemplarCity": "Мантсерат"
               },
               "Tijuana": {
                 "_type": "zone",
@@ -1144,7 +1140,7 @@
               },
               "Mexico_City": {
                 "_type": "zone",
-                "exemplarCity": "Мэхіка"
+                "exemplarCity": "Мехіка"
               },
               "Matamoros": {
                 "_type": "zone",
@@ -1152,7 +1148,7 @@
               },
               "Merida": {
                 "_type": "zone",
-                "exemplarCity": "Мэрыда"
+                "exemplarCity": "Мерыда"
               },
               "Cancun": {
                 "_type": "zone",
@@ -1172,7 +1168,7 @@
               },
               "Miquelon": {
                 "_type": "zone",
-                "exemplarCity": "Мікелён"
+                "exemplarCity": "Мікелон"
               },
               "Puerto_Rico": {
                 "_type": "zone",
@@ -1200,7 +1196,7 @@
               },
               "Port_of_Spain": {
                 "_type": "zone",
-                "exemplarCity": "Порт-оф-Спэйн"
+                "exemplarCity": "Порт-оф-Спейн"
               },
               "Adak": {
                 "_type": "zone",
@@ -1228,7 +1224,7 @@
               },
               "Metlakatla": {
                 "_type": "zone",
-                "exemplarCity": "Мэтлакатла"
+                "exemplarCity": "Метлакатла"
               },
               "Los_Angeles": {
                 "_type": "zone",
@@ -1257,7 +1253,7 @@
                 },
                 "Center": {
                   "_type": "zone",
-                  "exemplarCity": "Сэнтэр, Паўночная Дакота"
+                  "exemplarCity": "Сентэр, Паўночная Дакота"
                 }
               },
               "Chicago": {
@@ -1266,16 +1262,16 @@
               },
               "Menominee": {
                 "_type": "zone",
-                "exemplarCity": "Мэноміні"
+                "exemplarCity": "Меноміні"
               },
               "Indiana": {
                 "Vincennes": {
                   "_type": "zone",
-                  "exemplarCity": "Вінсэнс, Індыяна"
+                  "exemplarCity": "Вінсенс, Індыяна"
                 },
                 "Petersburg": {
                   "_type": "zone",
-                  "exemplarCity": "Пітэрсбэрг, Індыяна"
+                  "exemplarCity": "Пітэрсберг, Індыяна"
                 },
                 "Tell_City": {
                   "_type": "zone",
@@ -1287,7 +1283,7 @@
                 },
                 "Winamac": {
                   "_type": "zone",
-                  "exemplarCity": "Ўінамак, Індыяна"
+                  "exemplarCity": "Уінамак, Індыяна"
                 },
                 "Marengo": {
                   "_type": "zone",
@@ -1309,7 +1305,7 @@
               "Kentucky": {
                 "Monticello": {
                   "_type": "zone",
-                  "exemplarCity": "Мантысэла, Кентукі"
+                  "exemplarCity": "Мантысела, Кентукі"
                 }
               },
               "Detroit": {
@@ -1322,11 +1318,11 @@
               },
               "Montevideo": {
                 "_type": "zone",
-                "exemplarCity": "Мантэвідэо"
+                "exemplarCity": "Мантэвідэа"
               },
               "St_Vincent": {
                 "_type": "zone",
-                "exemplarCity": "Сэнт-Вінсэнт"
+                "exemplarCity": "Сент-Вінсент"
               },
               "Caracas": {
                 "_type": "zone",
@@ -1338,7 +1334,7 @@
               },
               "St_Thomas": {
                 "_type": "zone",
-                "exemplarCity": "Сэнт-Томас"
+                "exemplarCity": "Сент-Томас"
               }
             },
             "Africa": {
@@ -1392,7 +1388,7 @@
               },
               "Algiers": {
                 "_type": "zone",
-                "exemplarCity": "Альжыр"
+                "exemplarCity": "Алжыр"
               },
               "Cairo": {
                 "_type": "zone",
@@ -1408,11 +1404,11 @@
               },
               "Ceuta": {
                 "_type": "zone",
-                "exemplarCity": "Сэўта"
+                "exemplarCity": "Сеута"
               },
               "Addis_Ababa": {
                 "_type": "zone",
-                "exemplarCity": "Адыс-Абэба"
+                "exemplarCity": "Адыс-Абеба"
               },
               "Libreville": {
                 "_type": "zone",
@@ -1428,15 +1424,15 @@
               },
               "Conakry": {
                 "_type": "zone",
-                "exemplarCity": "Канакры"
+                "exemplarCity": "Конакры"
               },
               "Malabo": {
                 "_type": "zone",
-                "exemplarCity": "Маляба"
+                "exemplarCity": "Малаба"
               },
               "Bissau": {
                 "_type": "zone",
-                "exemplarCity": "Бісаў"
+                "exemplarCity": "Бісау"
               },
               "Nairobi": {
                 "_type": "zone",
@@ -1448,7 +1444,7 @@
               },
               "Maseru": {
                 "_type": "zone",
-                "exemplarCity": "Масэру"
+                "exemplarCity": "Масеру"
               },
               "Tripoli": {
                 "_type": "zone",
@@ -1456,7 +1452,7 @@
               },
               "Casablanca": {
                 "_type": "zone",
-                "exemplarCity": "Касаблянка"
+                "exemplarCity": "Касабланка"
               },
               "Bamako": {
                 "_type": "zone",
@@ -1476,11 +1472,11 @@
               },
               "Windhoek": {
                 "_type": "zone",
-                "exemplarCity": "Ўіндгук"
+                "exemplarCity": "Віндхук"
               },
               "Niamey": {
                 "_type": "zone",
-                "exemplarCity": "Ніямэі"
+                "exemplarCity": "Ніямей"
               },
               "Lagos": {
                 "_type": "zone",
@@ -1524,7 +1520,7 @@
               },
               "Lome": {
                 "_type": "zone",
-                "exemplarCity": "Лямэ"
+                "exemplarCity": "Ламэ"
               },
               "Tunis": {
                 "_type": "zone",
@@ -1558,7 +1554,7 @@
               },
               "Palmer": {
                 "_type": "zone",
-                "exemplarCity": "Палмэр"
+                "exemplarCity": "Палмер"
               },
               "Troll": {
                 "_type": "zone",
@@ -1570,7 +1566,7 @@
               },
               "Mawson": {
                 "_type": "zone",
-                "exemplarCity": "Мосэн"
+                "exemplarCity": "Моўсан"
               },
               "Davis": {
                 "_type": "zone",
@@ -1578,7 +1574,7 @@
               },
               "Vostok": {
                 "_type": "zone",
-                "exemplarCity": "Усход"
+                "exemplarCity": "Васток"
               },
               "Casey": {
                 "_type": "zone",
@@ -1590,7 +1586,7 @@
               },
               "McMurdo": {
                 "_type": "zone",
-                "exemplarCity": "Мак-Мэрда"
+                "exemplarCity": "Мак-Мерда"
               },
               "Macquarie": {
                 "_type": "zone",
@@ -1600,7 +1596,7 @@
             "Australia": {
               "Perth": {
                 "_type": "zone",
-                "exemplarCity": "Пэрт"
+                "exemplarCity": "Перт"
               },
               "Eucla": {
                 "_type": "zone",
@@ -1616,11 +1612,11 @@
               },
               "Broken_Hill": {
                 "_type": "zone",
-                "exemplarCity": "Брокэн-Хіл"
+                "exemplarCity": "Брокен-Хіл"
               },
               "Melbourne": {
                 "_type": "zone",
-                "exemplarCity": "Мэльбурн"
+                "exemplarCity": "Мельбурн"
               },
               "Hobart": {
                 "_type": "zone",
@@ -1632,25 +1628,25 @@
               },
               "Sydney": {
                 "_type": "zone",
-                "exemplarCity": "Сіднэй"
+                "exemplarCity": "Сідней"
               },
               "Brisbane": {
                 "_type": "zone",
-                "exemplarCity": "Брысбэн"
+                "exemplarCity": "Брысбен"
               },
               "Lord_Howe": {
                 "_type": "zone",
-                "exemplarCity": "Лорд-Гаў"
+                "exemplarCity": "Лорд-Хау"
               }
             },
             "Atlantic": {
               "Bermuda": {
                 "_type": "zone",
-                "exemplarCity": "Бэрмудзкія астравы"
+                "exemplarCity": "Бермудскія астравы"
               },
               "Cape_Verde": {
                 "_type": "zone",
-                "exemplarCity": "Каба-Вэрдэ"
+                "exemplarCity": "Каба-Вердэ"
               },
               "Canary": {
                 "_type": "zone",
@@ -1682,7 +1678,7 @@
               },
               "St_Helena": {
                 "_type": "zone",
-                "exemplarCity": "Востраў Сьвятая Гэлена"
+                "exemplarCity": "Востраў Святой Алены"
               }
             },
             "Indian": {
@@ -1692,7 +1688,7 @@
               },
               "Christmas": {
                 "_type": "zone",
-                "exemplarCity": "Востраў Раства"
+                "exemplarCity": "Востраў Каляд"
               },
               "Chagos": {
                 "_type": "zone",
@@ -1724,7 +1720,7 @@
               },
               "Kerguelen": {
                 "_type": "zone",
-                "exemplarCity": "Кэргэлен"
+                "exemplarCity": "Кергелен"
               },
               "Mayotte": {
                 "_type": "zone",
@@ -1739,9 +1735,16 @@
             }
           },
           "metazone": {
+            "Acre": {
+              "long": {
+                "generic": "Час Акры",
+                "standard": "Стандартны час Акры",
+                "daylight": "Летні час Акры"
+              }
+            },
             "Afghanistan": {
               "long": {
-                "standard": "Аўганістанскі час"
+                "standard": "Афганістанскі час"
               }
             },
             "Africa_Central": {
@@ -1767,139 +1770,139 @@
             "Alaska": {
               "long": {
                 "generic": "Час Аляскі",
-                "standard": "Змоўчны час Аляскі",
+                "standard": "Стандартны час Аляскі",
                 "daylight": "Летні час Аляскі"
               }
             },
             "Amazon": {
               "long": {
                 "generic": "Амазонскі час",
-                "standard": "Амазонскі змоўчны час",
+                "standard": "Амазонскі стандартны час",
                 "daylight": "Амазонскі летні час"
               }
             },
             "America_Central": {
               "long": {
-                "generic": "Паўночнаамэрыканскі цэнтральны час",
-                "standard": "Паўночнаамэрыканскі цэнтральны змоўчны час",
-                "daylight": "Паўночнаамэрыканскі цэнтральны летні час"
+                "generic": "Паўночнаамерыканскі цэнтральны час",
+                "standard": "Паўночнаамерыканскі цэнтральны стандартны час",
+                "daylight": "Паўночнаамерыканскі цэнтральны летні час"
               }
             },
             "America_Eastern": {
               "long": {
-                "generic": "Паўночнаамэрыканскі ўсходні час",
-                "standard": "Паўночнаамэрыканскі ўсходні змоўчны час",
-                "daylight": "Паўночнаамэрыканскі ўсходні летні час"
+                "generic": "Паўночнаамерыканскі ўсходні час",
+                "standard": "Паўночнаамерыканскі ўсходні стандартны час",
+                "daylight": "Паўночнаамерыканскі ўсходні летні час"
               }
             },
             "America_Mountain": {
               "long": {
-                "generic": "Паўночнаамэрыканскі горны час",
-                "standard": "Паўночнаамэрыканскі горны змоўчны час",
-                "daylight": "Паўночнаамэрыканскі горны летні час"
+                "generic": "Паўночнаамерыканскі горны час",
+                "standard": "Паўночнаамерыканскі горны стандартны час",
+                "daylight": "Паўночнаамерыканскі горны летні час"
               }
             },
             "America_Pacific": {
               "long": {
                 "generic": "Ціхаакіянскі час",
-                "standard": "Ціхаакіянскі змоўчны час",
+                "standard": "Ціхаакіянскі стандартны час",
                 "daylight": "Ціхаакіянскі летні час"
               }
             },
             "Apia": {
               "long": {
                 "generic": "Час Апіі",
-                "standard": "Змоўчны час Апіі",
+                "standard": "Стандартны час Апіі",
                 "daylight": "Летні час Апіі"
               }
             },
             "Arabian": {
               "long": {
-                "generic": "Час Саудаўскай Арабіі",
-                "standard": "Змоўчны час Саудаўскай Арабіі",
-                "daylight": "Летні час Саудаўскай Арабіі"
+                "generic": "Час Саудаўскай Аравіі",
+                "standard": "Стандартны час Саудаўскай Аравіі",
+                "daylight": "Летні час Саудаўскай Аравіі"
               }
             },
             "Argentina": {
               "long": {
-                "generic": "Аргентынскі час",
-                "standard": "Аргентынскі змоўчны час",
-                "daylight": "Аргентынскі летні час"
+                "generic": "Аргенцінскі час",
+                "standard": "Аргенцінскі стандартны час",
+                "daylight": "Аргенцінскі летні час"
               }
             },
             "Argentina_Western": {
               "long": {
-                "generic": "Час Заходняй Аргэнтыны",
-                "standard": "Змоўчны час Заходняй Аргэнтыны",
-                "daylight": "Летні час Заходняй Аргэнтыны"
+                "generic": "Час Заходняй Аргенціны",
+                "standard": "Стандартны час Заходняй Аргенціны",
+                "daylight": "Летні час Заходняй Аргенціны"
               }
             },
             "Armenia": {
               "long": {
-                "generic": "Час Армэніі",
-                "standard": "Змоўчны час Армэніі",
-                "daylight": "Летні час Армэніі"
+                "generic": "Час Арменіі",
+                "standard": "Стандартны час Арменіі",
+                "daylight": "Летні час Арменіі"
               }
             },
             "Atlantic": {
               "long": {
-                "generic": "Атлянтычны час",
-                "standard": "Атлянтычны змоўчны час",
-                "daylight": "Атлянтычны летні час"
+                "generic": "Атлантычны час",
+                "standard": "Атлантычны стандартны час",
+                "daylight": "Атлантычны летні час"
               }
             },
             "Australia_Central": {
               "long": {
                 "generic": "Час цэнтральнай Аўстраліі",
-                "standard": "Змоўчны час цэнтральнай Аўстраліі",
+                "standard": "Стандартны час цэнтральнай Аўстраліі",
                 "daylight": "Летні час цэнтральнай Аўстраліі"
               }
             },
             "Australia_CentralWestern": {
               "long": {
                 "generic": "Цэнтральна-заходні час Аўстраліі",
-                "standard": "Змоўчны цэнтральна-заходні час Аўстраліі",
+                "standard": "Стандартны цэнтральна-заходні час Аўстраліі",
                 "daylight": "Летні цэнтральна-заходні час Аўстраліі"
               }
             },
             "Australia_Eastern": {
               "long": {
                 "generic": "Час усходняй Аўстраліі",
-                "standard": "Змоўчны час усходняй Аўстраліі",
+                "standard": "Стандартны час усходняй Аўстраліі",
                 "daylight": "Летні час усходняй Аўстраліі"
               }
             },
             "Australia_Western": {
               "long": {
                 "generic": "Час заходняй Аўстраліі",
-                "standard": "змоўчны час заходняй Аўстраліі",
+                "standard": "Стандартны час заходняй Аўстраліі",
                 "daylight": "Летні час заходняй Аўстраліі"
               }
             },
             "Azerbaijan": {
               "long": {
-                "generic": "Час Азэрбайджану",
-                "standard": "Змоўчны час Азэрбайджану",
-                "daylight": "Летні час Азэрбайджану"
+                "generic": "Час Азербайджана",
+                "standard": "Стандартны час Азербайджана",
+                "daylight": "Летні час Азербайджана"
               }
             },
             "Azores": {
               "long": {
                 "generic": "Час Азорскіх астравоў",
-                "standard": "Змоўчны час Азорскіх астравоў",
+                "standard": "Стандартны час Азорскіх астравоў",
                 "daylight": "Летні час Азорскіх астравоў"
               }
             },
             "Bangladesh": {
               "long": {
-                "generic": "Час Банглядэшу",
-                "standard": "Змоўчны час Банглядэшу",
-                "daylight": "Летні час Банглядэшу"
+                "generic": "Час Бангладэш",
+                "standard": "Стандартны час Бангладэш",
+                "daylight": "Летні час Бангладэш"
               }
             },
             "Bhutan": {
               "long": {
-                "standard": "Час Бутану"
+                "standard": "Час Бутана"
               }
             },
             "Bolivia": {
@@ -1909,21 +1912,28 @@
             },
             "Brasilia": {
               "long": {
-                "generic": "Бразыльскі час",
-                "standard": "Бразыльскі змоўчны час",
-                "daylight": "Бразыльскі летні час"
+                "generic": "Бразільскі час",
+                "standard": "Бразільскі стандартны час",
+                "daylight": "Бразільскі летні час"
+              }
+            },
+            "British": {
+              "long": {
+                "generic": "Брытанскі час",
+                "standard": "Час па Грынвічы",
+                "daylight": "Брытанскі летні час"
               }
             },
             "Brunei": {
               "long": {
-                "standard": "Час Брунэю"
+                "standard": "Час Брунея"
               }
             },
             "Cape_Verde": {
               "long": {
-                "generic": "Час Каба-Вэрдэ",
-                "standard": "Змоўчны час Каба-Вэрдэ",
-                "daylight": "Летні час Каба-Вэрдэ"
+                "generic": "Час Каба-Вердэ",
+                "standard": "Стандартны час Каба-Вердэ",
+                "daylight": "Летні час Каба-Вердэ"
               }
             },
             "Chamorro": {
@@ -1933,28 +1943,28 @@
             },
             "Chatham": {
               "long": {
-                "generic": "Час Чатэму",
-                "standard": "Змоўчны час Чатэму",
-                "daylight": "Летні час Чатэму"
+                "generic": "Час Чатэма",
+                "standard": "Стандартны час Чатэма",
+                "daylight": "Летні час Чатэма"
               }
             },
             "Chile": {
               "long": {
                 "generic": "Чылійскі час",
-                "standard": "Чылійскі змоўчны час",
+                "standard": "Чылійскі стандартны час",
                 "daylight": "Чылійскі летні час"
               }
             },
             "China": {
               "long": {
                 "generic": "Час Кітая",
-                "standard": "Змоўчны час Кітаю",
-                "daylight": "Летні час Кітаю"
+                "standard": "Стандартны час Кітая",
+                "daylight": "Летні час Кітая"
               }
             },
             "Christmas": {
               "long": {
-                "standard": "Час вострава Раства"
+                "standard": "Час вострава Каляд"
               }
             },
             "Cocos": {
@@ -1964,22 +1974,22 @@
             },
             "Colombia": {
               "long": {
-                "generic": "Калюмбійскі час",
-                "standard": "Калюмбійскі змоўчны час",
-                "daylight": "Калюмбійскі летні час"
+                "generic": "Калумбійскі час",
+                "standard": "Калумбійскі стандартны час",
+                "daylight": "Калумбійскі летні час"
               }
             },
             "Cook": {
               "long": {
                 "generic": "Час астравоў Кука",
-                "standard": "Змоўчны час астравоў Кука",
+                "standard": "Стандартны час астравоў Кука",
                 "daylight": "Паўлетні час астравоў Кука"
               }
             },
             "Cuba": {
               "long": {
                 "generic": "Час Кубы",
-                "standard": "Змоўчны час Кубы",
+                "standard": "Стандартны час Кубы",
                 "daylight": "Летні час Кубы"
               }
             },
@@ -1995,14 +2005,14 @@
             },
             "East_Timor": {
               "long": {
-                "standard": "Час Усходняга Тымору"
+                "standard": "Час Усходняга Тымора"
               }
             },
             "Easter": {
               "long": {
-                "generic": "Час вострава Пасхі",
-                "standard": "Змоўчны час вострава Раства",
-                "daylight": "Летні час вострава Раства"
+                "generic": "Час вострава Вялікадня",
+                "standard": "Стандартны час вострава Вялікадня",
+                "daylight": "Летні час вострава Вялікадня"
               }
             },
             "Ecuador": {
@@ -2012,57 +2022,57 @@
             },
             "Europe_Central": {
               "long": {
-                "generic": "Цэнтральнаэўрапейскі час",
-                "standard": "Цэнтральнаэўрапейскі змоўчны час",
-                "daylight": "Цэнтральнаэўрапейскі летні час"
+                "generic": "Цэнтральнаеўрапейскі час",
+                "standard": "Цэнтральнаеўрапейскі стандартны час",
+                "daylight": "Цэнтральнаеўрапейскі летні час"
               }
             },
             "Europe_Eastern": {
               "long": {
-                "generic": "Усходнеэўрапейскі час",
-                "standard": "Усходнеэўрапейскі змоўчны час",
-                "daylight": "Усходнеэўрапейскі летні час"
+                "generic": "Усходнееўрапейскі час",
+                "standard": "Усходнееўрапейскі стандартны час",
+                "daylight": "Усходнееўрапейскі летні час"
               }
             },
             "Europe_Further_Eastern": {
               "long": {
-                "standard": "Далёкаўсходнеэўрапейскі час"
+                "standard": "Далёкаўсходнееўрапейскі час"
               }
             },
             "Europe_Western": {
               "long": {
-                "generic": "Заходнеэўрапейскі час",
-                "standard": "Заходнеэўрапейскі змоўчны час",
-                "daylight": "Заходнеэўрапейскі летні час"
+                "generic": "Заходнееўрапейскі час",
+                "standard": "Заходнееўрапейскі стандартны час",
+                "daylight": "Заходнееўрапейскі летні час"
               }
             },
             "Falkland": {
               "long": {
-                "generic": "Час Фолклэндзкіх астравоў",
-                "standard": "Змоўчны час Фолклэндзкіх астравоў",
-                "daylight": "Летні час Фолклэндзкіх астравоў"
+                "generic": "Час Фалклендскіх астравоў",
+                "standard": "Стандартны час Фалклендскіх астравоў",
+                "daylight": "Летні час Фалклендскіх астравоў"
               }
             },
             "Fiji": {
               "long": {
                 "generic": "Час Фіджы",
-                "standard": "Змоўчны час Фіджы",
+                "standard": "Стандартны час Фіджы",
                 "daylight": "Летні час Фіджы"
               }
             },
             "French_Guiana": {
               "long": {
-                "standard": "Час Францускай Гвіяны"
+                "standard": "Час Французскай Гвіяны"
               }
             },
             "French_Southern": {
               "long": {
-                "standard": "Час Францускай паўднёва-антарктычнай тэрыторыі"
+                "standard": "Час Французскай паўднёва-антарктычнай тэрыторыі"
               }
             },
             "Galapagos": {
               "long": {
-                "standard": "Змоўчны час Галяпагоскіх астравоў"
+                "standard": "Стандартны час Галапагоскіх астравоў"
               }
             },
             "Gambier": {
@@ -2073,13 +2083,13 @@
             "Georgia": {
               "long": {
                 "generic": "Грузінскі час",
-                "standard": "Грузінскі змоўчны час",
+                "standard": "Грузінскі стандартны час",
                 "daylight": "Грузінскі летні час"
               }
             },
             "Gilbert_Islands": {
               "long": {
-                "standard": "Час астравоў Гілбэрта"
+                "standard": "Час астравоў Гілберта"
               }
             },
             "GMT": {
@@ -2087,23 +2097,30 @@
                 "standard": "Час па Грынвічы"
               }
             },
+            "Greenland": {
+              "long": {
+                "generic": "Грэнландскі час",
+                "standard": "Грэнландскі стандартны час",
+                "daylight": "Грэнландскі летні час"
+              }
+            },
             "Greenland_Eastern": {
               "long": {
-                "generic": "Час Усходняй Грэнляндыі",
-                "standard": "Змоўчны час Усходняй Грэнляндыі",
-                "daylight": "Летні час Усходняй Грэнляндыі"
+                "generic": "Час Усходняй Грэнландыі",
+                "standard": "Стандартны час Усходняй Грэнландыі",
+                "daylight": "Летні час Усходняй Грэнландыі"
               }
             },
             "Greenland_Western": {
               "long": {
-                "generic": "Час Заходняй Грэнляндыі",
-                "standard": "Змоўчны час Заходняй Грэнляндыі",
-                "daylight": "Летні час Заходняй Грэнляндыі"
+                "generic": "Час Заходняй Грэнландыі",
+                "standard": "Стандартны час Заходняй Грэнландыі",
+                "daylight": "Летні час Заходняй Грэнландыі"
               }
             },
             "Gulf": {
               "long": {
-                "standard": "Час Пэрсыдзкага заліву"
+                "standard": "Час Персідскага заліва"
               }
             },
             "Guyana": {
@@ -2113,27 +2130,27 @@
             },
             "Hawaii": {
               "long": {
-                "standard": "Гавайска-Алэвуцкі змоўчны час"
+                "standard": "Гавайскі час"
               }
             },
             "Hawaii_Aleutian": {
               "long": {
-                "generic": "Гавайска-Алевуцкі час",
-                "standard": "Гавайска-Алэвуцкі змоўчны час",
-                "daylight": "Гавайска-Алевуцкі летні час"
+                "generic": "Гавайска-Алеуцкі час",
+                "standard": "Гавайска-Алеуцкі стандартны час",
+                "daylight": "Гавайска-Алеуцкі летні час"
               }
             },
             "Hong_Kong": {
               "long": {
-                "generic": "Час Ганконгу",
-                "standard": "Змоўчны час Ганконга",
-                "daylight": "Летні час Ганконгу"
+                "generic": "Час Ганконга",
+                "standard": "Стандартны час Ганконга",
+                "daylight": "Летні час Ганконга"
               }
             },
             "Hovd": {
               "long": {
                 "generic": "Час Хоўда",
-                "standard": "Змоўчны час Хоўда",
+                "standard": "Стандартны час Хоўда",
                 "daylight": "Летні час Хоўда"
               }
             },
@@ -2144,7 +2161,7 @@
             },
             "Indian_Ocean": {
               "long": {
-                "standard": "Час Індыйскага акіяну"
+                "standard": "Час Індыйскага акіяна"
               }
             },
             "Indochina": {
@@ -2154,45 +2171,59 @@
             },
             "Indonesia_Central": {
               "long": {
-                "standard": "Цэнтральнаінданэзійскі час"
+                "standard": "Цэнтральнаінданезійскі час"
               }
             },
             "Indonesia_Eastern": {
               "long": {
-                "standard": "Усходнеінданэзійскі час"
+                "standard": "Усходнеінданезійскі час"
               }
             },
             "Indonesia_Western": {
               "long": {
-                "standard": "Заходнеінданэзійскі час"
+                "standard": "Заходнеінданезійскі час"
               }
             },
             "Iran": {
               "long": {
                 "generic": "Іранскі час",
-                "standard": "Іранскі змоўчны час",
+                "standard": "Іранскі стандартны час",
                 "daylight": "Іранскі летні час"
+              }
+            },
+            "Irish": {
+              "long": {
+                "generic": "Ірландскі час",
+                "standard": "Час па Грынвічы",
+                "daylight": "Ірландскі стандартны час"
               }
             },
             "Irkutsk": {
               "long": {
                 "generic": "Іркуцкі час",
-                "standard": "Іркуцкі змоўчны час",
+                "standard": "Іркуцкі стандартны час",
                 "daylight": "Іркуцкі летні час"
               }
             },
             "Israel": {
               "long": {
                 "generic": "Ізраільскі час",
-                "standard": "Ізраільскі змоўчны час",
+                "standard": "Ізраільскі стандартны час",
                 "daylight": "Ізраільскі летні час"
               }
             },
             "Japan": {
               "long": {
                 "generic": "Час Японіі",
-                "standard": "Змоўчны час Японіі",
+                "standard": "Стандартны час Японіі",
                 "daylight": "Летні час Японіі"
+              }
+            },
+            "Kamchatka": {
+              "long": {
+                "generic": "Камчацкі час",
+                "standard": "Камчацкі стандартны час",
+                "daylight": "Камчацкі летні час"
               }
             },
             "Kazakhstan": {
@@ -2213,25 +2244,25 @@
             "Korea": {
               "long": {
                 "generic": "Час Карэі",
-                "standard": "Змоўчны час Карэі",
+                "standard": "Стандартны час Карэі",
                 "daylight": "Летні час Карэі"
               }
             },
             "Kosrae": {
               "long": {
-                "standard": "Час астравоў Касраэ"
+                "standard": "Час астравоў Кусаіе"
               }
             },
             "Krasnoyarsk": {
               "long": {
                 "generic": "Краснаярскі час",
-                "standard": "Краснаярскі змоўчны час",
+                "standard": "Краснаярскі стандартны час",
                 "daylight": "Краснаярскі летні час"
               }
             },
             "Kyrgystan": {
               "long": {
-                "standard": "Час Кыргыстану"
+                "standard": "Час Кыргызстана"
               }
             },
             "Line_Islands": {
@@ -2241,15 +2272,15 @@
             },
             "Lord_Howe": {
               "long": {
-                "generic": "Час Лорд-Гаў",
-                "standard": "Змоўчны час Лорд-Гаў",
-                "daylight": "Летні час Лорд-Гаў"
+                "generic": "Час Лорд-Хау",
+                "standard": "Стандартны час Лорд-Хау",
+                "daylight": "Летні час Лорд-Хау"
               }
             },
             "Magadan": {
               "long": {
                 "generic": "Магаданскі час",
-                "standard": "Магаданскі змоўчны час",
+                "standard": "Магаданскі стандартны час",
                 "daylight": "Магаданскі летні час"
               }
             },
@@ -2265,7 +2296,7 @@
             },
             "Marquesas": {
               "long": {
-                "standard": "Час Маркіскіх астравоў"
+                "standard": "Час Маркізскіх астравоў"
               }
             },
             "Marshall_Islands": {
@@ -2275,34 +2306,34 @@
             },
             "Mauritius": {
               "long": {
-                "generic": "Час Маўрыцыю",
-                "standard": "Змоўчны час Маўрыцыю",
-                "daylight": "Летні час Маўрыцыю"
+                "generic": "Час Маўрыкія",
+                "standard": "Стандартны час Маўрыкія",
+                "daylight": "Летні час Маўрыкія"
               }
             },
             "Mawson": {
               "long": {
-                "standard": "Час станцыі Мосан"
+                "standard": "Час станцыі Моўсан"
               }
             },
             "Mexico_Pacific": {
               "long": {
-                "generic": "Мэксыканскі ціхаакіянскі час",
-                "standard": "Мэксыканскі ціхаакіянскі стандатны час",
-                "daylight": "Мэксыканскі ціхаакіянскі летні час"
+                "generic": "Мексіканскі ціхаакіянскі час",
+                "standard": "Мексіканскі ціхаакіянскі стандатны час",
+                "daylight": "Мексіканскі ціхаакіянскі летні час"
               }
             },
             "Mongolia": {
               "long": {
-                "generic": "Час Улан-Батару",
-                "standard": "Змоўчны час Улан-Батару",
-                "daylight": "Летні час Улан-Батару"
+                "generic": "Час Улан-Батара",
+                "standard": "Стандартны час Улан-Батара",
+                "daylight": "Летні час Улан-Батара"
               }
             },
             "Moscow": {
               "long": {
                 "generic": "Маскоўскі час",
-                "standard": "Маскоўскі змоўчны час",
+                "standard": "Маскоўскі стандартны час",
                 "daylight": "Маскоўскі летні час"
               }
             },
@@ -2313,33 +2344,33 @@
             },
             "Nauru": {
               "long": {
-                "standard": "Час Наўру"
+                "standard": "Час Науру"
               }
             },
             "Nepal": {
               "long": {
-                "standard": "Нэпальскі час"
+                "standard": "Непальскі час"
               }
             },
             "New_Caledonia": {
               "long": {
                 "generic": "Час Новай Каледоніі",
-                "standard": "Змоўчны час Новай Каледоніі",
+                "standard": "Стандартны час Новай Каледоніі",
                 "daylight": "Летні час Новай Каледоніі"
               }
             },
             "New_Zealand": {
               "long": {
-                "generic": "Час Новай Зэляндыі",
-                "standard": "Змоўчны час Новай Зэляндыі",
-                "daylight": "Летні час Новай Зэляндыі"
+                "generic": "Час Новай Зеландыі",
+                "standard": "Стандартны час Новай Зеландыі",
+                "daylight": "Летні час Новай Зеландыі"
               }
             },
             "Newfoundland": {
               "long": {
-                "generic": "Ньюфаўндлэндзкі час",
-                "standard": "Ньюфаўндлэндзкі змоўчны час",
-                "daylight": "Ньюфаўндлэндзкі летні час"
+                "generic": "Ньюфаўндлендскі час",
+                "standard": "Ньюфаўндлендскі стандартны час",
+                "daylight": "Ньюфаўндлендскі летні час"
               }
             },
             "Niue": {
@@ -2350,79 +2381,79 @@
             "Norfolk": {
               "long": {
                 "generic": "Час вострава Норфалк",
-                "standard": "Змоўчны час вострава Норфалк",
+                "standard": "Стандартны час вострава Норфалк",
                 "daylight": "Летні час вострава Норфалк"
               }
             },
             "Noronha": {
               "long": {
-                "generic": "Час Фэрнанду-ды-Наронья",
-                "standard": "Змоўчны час Фэрнанду-ды-Наронья",
-                "daylight": "Летні час Фэрнанду-ды-Наронья"
+                "generic": "Час Фернанду-дзі-Наронья",
+                "standard": "Стандартны час Фернанду-дзі-Наронья",
+                "daylight": "Летні час Фернанду-дзі-Наронья"
               }
             },
             "Novosibirsk": {
               "long": {
-                "generic": "Новасыбірскі час",
-                "standard": "Новасыбірскі змоўчны час",
-                "daylight": "Новасыбірскі летні час"
+                "generic": "Новасібірскі час",
+                "standard": "Новасібірскі стандартны час",
+                "daylight": "Новасібірскі летні час"
               }
             },
             "Omsk": {
               "long": {
                 "generic": "Омскі час",
-                "standard": "Омскі змоўчны час",
+                "standard": "Омскі стандартны час",
                 "daylight": "Омскі летні час"
               }
             },
             "Pakistan": {
               "long": {
                 "generic": "Пакістанскі час",
-                "standard": "Пакістанскі змоўчны час",
+                "standard": "Пакістанскі стандартны час",
                 "daylight": "Пакістанскі летні час"
               }
             },
             "Palau": {
               "long": {
-                "standard": "Час Палаў"
+                "standard": "Час Палау"
               }
             },
             "Papua_New_Guinea": {
               "long": {
-                "standard": "Час Папуа-Новай Гвінэі"
+                "standard": "Час Папуа-Новай Гвінеі"
               }
             },
             "Paraguay": {
               "long": {
-                "generic": "Час Парагваю",
-                "standard": "Змоўчны час Парагваю",
-                "daylight": "Летні час Парагваю"
+                "generic": "Час Парагвая",
+                "standard": "Стандартны час Парагвая",
+                "daylight": "Летні час Парагвая"
               }
             },
             "Peru": {
               "long": {
-                "generic": "Пэруанскі час",
-                "standard": "Пэруанскі змоўчны час",
-                "daylight": "Пэруанскі летні час"
+                "generic": "Перуанскі час",
+                "standard": "Перуанскі стандартны час",
+                "daylight": "Перуанскі летні час"
               }
             },
             "Philippines": {
               "long": {
                 "generic": "Філіпінскі час",
-                "standard": "Філіпінскі змоўчны час",
+                "standard": "Філіпінскі стандартны час",
                 "daylight": "Філіпінскі летні час"
               }
             },
             "Phoenix_Islands": {
               "long": {
-                "standard": "Час астравоў Фінікс"
+                "standard": "Час астравоў Фенікс"
               }
             },
             "Pierre_Miquelon": {
               "long": {
-                "generic": "Час Сэн-П’еру і Мікелёну",
-                "standard": "Змоўчны час Сэн-П’еру і Мікелёну",
-                "daylight": "Змоўчны летні час Сэн-П’еру і Мікелёну"
+                "generic": "Час Сен-П’ер і Мікелон",
+                "standard": "Стандартны час Сен-П’ер і Мікелон",
+                "daylight": "Стандартны летні час Сен-П’ер і Мікелон"
               }
             },
             "Pitcairn": {
@@ -2432,12 +2463,12 @@
             },
             "Ponape": {
               "long": {
-                "standard": "Час вострава Панпэі"
+                "standard": "Час вострава Панпеі"
               }
             },
             "Pyongyang": {
               "long": {
-                "standard": "Пхэньянскі час"
+                "standard": "Пхеньянскі час"
               }
             },
             "Reunion": {
@@ -2453,25 +2484,30 @@
             "Sakhalin": {
               "long": {
                 "generic": "Сахалінскі час",
-                "standard": "Сахалінскі змоўчны час",
+                "standard": "Сахалінскі стандартны час",
                 "daylight": "Сахалінскі летні час"
+              }
+            },
+            "Samara": {
+              "long": {
+                "generic": "Самарскі час",
+                "standard": "Самарскі стандартны час",
+                "daylight": "Самарскі летні час"
               }
             },
             "Samoa": {
               "long": {
-                "generic": "Час Самоа",
-                "standard": "Змоўчны час Самоа",
-                "daylight": "Летні час Самоа"
+                "standard": "Стандартны час Самоа"
               }
             },
             "Seychelles": {
               "long": {
-                "standard": "Час Сэйшэлаў"
+                "standard": "Час Сейшэльскіх астравоў"
               }
             },
             "Singapore": {
               "long": {
-                "standard": "Сынгапурскі час"
+                "standard": "Сінгапурскі час"
               }
             },
             "Solomon": {
@@ -2486,7 +2522,7 @@
             },
             "Suriname": {
               "long": {
-                "standard": "Час Сурынаму"
+                "standard": "Час Сурынама"
               }
             },
             "Syowa": {
@@ -2501,25 +2537,25 @@
             },
             "Taipei": {
               "long": {
-                "generic": "Час Тайбэю",
-                "standard": "Змоўчны час Тайбэя",
-                "daylight": "Летні час Тайбэю"
+                "generic": "Час Тайбэя",
+                "standard": "Стандартны час Тайбэя",
+                "daylight": "Летні час Тайбэя"
               }
             },
             "Tajikistan": {
               "long": {
-                "standard": "Час Таджыкістану"
+                "standard": "Час Таджыкістана"
               }
             },
             "Tokelau": {
               "long": {
-                "standard": "Час Такелаў"
+                "standard": "Час Такелау"
               }
             },
             "Tonga": {
               "long": {
                 "generic": "Час Тонга",
-                "standard": "Змоўчны час Тонга",
+                "standard": "Стандартны час Тонга",
                 "daylight": "Летні час Тонга"
               }
             },
@@ -2528,11 +2564,18 @@
                 "standard": "Час Трука"
               }
             },
+            "Turkey": {
+              "long": {
+                "generic": "Турэцкі час",
+                "standard": "Турэцкі стандартны час",
+                "daylight": "Турэцкі летні час"
+              }
+            },
             "Turkmenistan": {
               "long": {
-                "generic": "Час Туркмэністану",
-                "standard": "Змоўчны час Туркмэністана",
-                "daylight": "Летні час Туркмэністану"
+                "generic": "Час Туркменістана",
+                "standard": "Стандартны час Туркменістана",
+                "daylight": "Летні час Туркменістана"
               }
             },
             "Tuvalu": {
@@ -2543,70 +2586,75 @@
             "Uruguay": {
               "long": {
                 "generic": "Уругвайскі час",
-                "standard": "Уругвайскі змоўчны час",
+                "standard": "Уругвайскі стандартны час",
                 "daylight": "Уругвайскі летні час"
+              }
+            },
+            "Urumqi": {
+              "long": {
+                "standard": "Час Урумчы"
               }
             },
             "Uzbekistan": {
               "long": {
-                "generic": "Час Узбэкістану",
-                "standard": "Змоўчны час Узбэкістану",
-                "daylight": "Летні час Узбэкістану"
+                "generic": "Час Узбекістана",
+                "standard": "Стандартны час Узбекістана",
+                "daylight": "Летні час Узбекістана"
               }
             },
             "Vanuatu": {
               "long": {
                 "generic": "Час Вануату",
-                "standard": "Змоўчны час Вануату",
+                "standard": "Стандартны час Вануату",
                 "daylight": "Летні час Вануату"
               }
             },
             "Venezuela": {
               "long": {
-                "standard": "Вэнэсуэльскі час"
+                "standard": "Венесуэльскі час"
               }
             },
             "Vladivostok": {
               "long": {
                 "generic": "Уладзівастоцкі час",
-                "standard": "Уладзівастоцкі змоўчны час",
+                "standard": "Уладзівастоцкі стандартны час",
                 "daylight": "Уладзівастоцкі летні час"
               }
             },
             "Volgograd": {
               "long": {
-                "generic": "Валгаградзкі час",
-                "standard": "Валгаградзкі змоўчны час",
-                "daylight": "Валгаградзкі летні час"
+                "generic": "Валгаградскі час",
+                "standard": "Валгаградскі стандартны час",
+                "daylight": "Валгаградскі летні час"
               }
             },
             "Vostok": {
               "long": {
-                "standard": "Час станцыі Ўсход"
+                "standard": "Час станцыі Васток"
               }
             },
             "Wake": {
               "long": {
-                "standard": "Час вострава Ўэйк"
+                "standard": "Час вострава Уэйк"
               }
             },
             "Wallis": {
               "long": {
-                "standard": "Час астравоў Ўоліс і Футуна"
+                "standard": "Час астравоў Уоліс і Футуна"
               }
             },
             "Yakutsk": {
               "long": {
                 "generic": "Якуцкі час",
-                "standard": "Якуцкі змоўчны час",
+                "standard": "Якуцкі стандартны час",
                 "daylight": "Якуцкі летні час"
               }
             },
             "Yekaterinburg": {
               "long": {
-                "generic": "Екацярынбурскі час",
-                "standard": "Екацярынбурскі змоўчны час",
-                "daylight": "Екацярынбурскі летні час"
+                "generic": "Екацярынбургскі час",
+                "standard": "Екацярынбургскі стандартны час",
+                "daylight": "Екацярынбургскі летні час"
               }
             },
             "Yukon": {

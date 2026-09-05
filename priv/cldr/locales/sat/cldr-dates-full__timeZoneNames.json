@@ -8,8 +8,10 @@
         "timeZoneNames": {
           "hourFormat": "+HH:mm;-HH:mm",
           "gmtFormat": "ᱡᱤᱮᱢᱴᱤ{0}",
-          "gmtZeroFormat": "ᱡᱤᱮᱢᱴᱤ",
+          "gmtFormat-alt-utc": "UTC{0}",
           "gmtUnknownFormat": "GMT+?",
+          "gmtUnknownFormat-alt-utc": "UTC+?",
+          "dualOffsetFormat": "{0}/{1}",
           "regionFormat": "{0} ᱚᱠᱛᱚ",
           "regionFormat-type-daylight": "{0} ᱫᱤᱱᱵᱮᱲᱟ ᱚᱠᱛᱚ",
           "regionFormat-type-standard": "{0} ᱢᱟᱱᱚᱠ ᱚᱠᱛᱚ",
@@ -30,15 +32,35 @@
                 "exemplarCity": "ᱵᱟᱝ ᱪᱤᱱᱦᱟᱹᱣ ᱵᱟᱡᱟᱨ"
               }
             },
+            "Europe": {
+              "Tirane": {
+                "_type": "zone",
+                "exemplarCity": "Tirana"
+              },
+              "Busingen": {
+                "_type": "zone",
+                "exemplarCity": "Büsingen"
+              },
+              "Chisinau": {
+                "_type": "zone",
+                "exemplarCity": "Chișinău"
+              },
+              "Kiev": {
+                "_type": "zone",
+                "exemplarCity": "Kyiv"
+              }
+            },
+            "Antarctica": {
+              "Syowa": {
+                "_type": "zone",
+                "exemplarCity": "Showa"
+              },
+              "DumontDUrville": {
+                "_type": "zone",
+                "exemplarCity": "Dumont-d’Urville"
+              }
+            },
             "America": {
-              "Antigua": {
-                "_type": "zone",
-                "exemplarCity": "ᱟᱱᱴᱤᱜᱩᱣᱟ"
-              },
-              "Anguilla": {
-                "_type": "zone",
-                "exemplarCity": "ᱟᱱᱜᱩᱭᱞᱟ"
-              },
               "Argentina": {
                 "Rio_Gallegos": {
                   "_type": "zone",
@@ -53,21 +75,9 @@
                 "_type": "zone",
                 "exemplarCity": "Córdoba"
               },
-              "Aruba": {
-                "_type": "zone",
-                "exemplarCity": "ᱟᱨᱩᱵᱟ"
-              },
-              "Barbados": {
-                "_type": "zone",
-                "exemplarCity": "ᱵᱟᱨᱵᱟᱰᱚᱥ"
-              },
               "St_Barthelemy": {
                 "_type": "zone",
-                "exemplarCity": "ᱮᱥ ᱴᱤ ᱵᱟᱨᱛᱷᱮᱞᱢᱤ"
-              },
-              "Kralendijk": {
-                "_type": "zone",
-                "exemplarCity": "ᱠᱨᱟᱞᱮᱱᱰᱤᱡᱽᱠᱚ"
+                "exemplarCity": "St. Barthélemy"
               },
               "Eirunepe": {
                 "_type": "zone",
@@ -101,201 +111,37 @@
                 "_type": "zone",
                 "exemplarCity": "Fernando de Noronha"
               },
-              "Nassau": {
-                "_type": "zone",
-                "exemplarCity": "ᱱᱟᱥᱟᱣ"
-              },
-              "Belize": {
-                "_type": "zone",
-                "exemplarCity": "ᱵᱮᱞᱤᱡᱮ"
-              },
-              "Dawson": {
-                "_type": "zone",
-                "exemplarCity": "ᱰᱟᱣᱥᱚᱱ"
-              },
-              "Whitehorse": {
-                "_type": "zone",
-                "exemplarCity": "ᱣᱟᱭᱤᱴᱦᱚᱨᱥ"
-              },
-              "Inuvik": {
-                "_type": "zone",
-                "exemplarCity": "ᱤᱱᱩᱣᱤᱠ"
-              },
-              "Vancouver": {
-                "_type": "zone",
-                "exemplarCity": "ᱣᱟᱱᱠᱚᱣᱟᱹᱨ"
-              },
-              "Fort_Nelson": {
-                "_type": "zone",
-                "exemplarCity": "ᱯᱷᱚᱴ ᱱᱮᱞᱥᱚᱱ"
-              },
-              "Dawson_Creek": {
-                "_type": "zone",
-                "exemplarCity": "ᱰᱟᱣᱥᱚᱱ ᱠᱨᱤᱠ"
-              },
-              "Creston": {
-                "_type": "zone",
-                "exemplarCity": "ᱠᱨᱮᱥᱴᱚᱱ"
-              },
-              "Edmonton": {
-                "_type": "zone",
-                "exemplarCity": "ᱮᱰᱢᱚᱱᱴᱚᱱ"
-              },
-              "Swift_Current": {
-                "_type": "zone",
-                "exemplarCity": "ᱥᱣᱤᱯᱷᱴ ᱠᱚᱨᱮᱱᱴ"
-              },
-              "Cambridge_Bay": {
-                "_type": "zone",
-                "exemplarCity": "ᱠᱮᱢᱵᱽᱨᱮᱡᱽ ᱵᱮ"
-              },
-              "Regina": {
-                "_type": "zone",
-                "exemplarCity": "ᱨᱮᱜᱤᱭᱟᱱᱟ"
-              },
-              "Winnipeg": {
-                "_type": "zone",
-                "exemplarCity": "ᱣᱤᱱᱤᱯᱮᱜᱽ"
-              },
-              "Resolute": {
-                "_type": "zone",
-                "exemplarCity": "ᱨᱤᱥᱚᱞᱭᱩᱴ"
-              },
-              "Rankin_Inlet": {
-                "_type": "zone",
-                "exemplarCity": "ᱨᱟᱱᱠᱤᱱ ᱤᱱᱞᱮᱴ"
-              },
               "Coral_Harbour": {
                 "_type": "zone",
-                "exemplarCity": "ᱟᱴᱤᱠᱚᱠᱟᱱ"
-              },
-              "Toronto": {
-                "_type": "zone",
-                "exemplarCity": "ᱴᱚᱨᱚᱱᱴᱚ"
-              },
-              "Iqaluit": {
-                "_type": "zone",
-                "exemplarCity": "ᱤᱠᱟᱞᱩᱣᱤᱛ"
-              },
-              "Moncton": {
-                "_type": "zone",
-                "exemplarCity": "ᱢᱚᱱᱠᱴᱚᱱ"
-              },
-              "Halifax": {
-                "_type": "zone",
-                "exemplarCity": "ᱦᱟᱞᱤᱯᱷᱟᱠᱥ"
-              },
-              "Goose_Bay": {
-                "_type": "zone",
-                "exemplarCity": "ᱜᱩᱥ ᱵᱮ"
-              },
-              "Glace_Bay": {
-                "_type": "zone",
-                "exemplarCity": "ᱜᱞᱮᱥ ᱵᱮ"
-              },
-              "Blanc-Sablon": {
-                "_type": "zone",
-                "exemplarCity": "ᱵᱞᱟᱱᱠᱼᱥᱟᱵᱞᱚᱱ"
+                "exemplarCity": "Atikokan"
               },
               "St_Johns": {
                 "_type": "zone",
-                "exemplarCity": "ᱮᱥ ᱴᱤ ᱡᱚᱱᱥ"
+                "exemplarCity": "St. John’s"
               },
               "Bogota": {
                 "_type": "zone",
                 "exemplarCity": "Bogotá"
               },
-              "Costa_Rica": {
-                "_type": "zone",
-                "exemplarCity": "ᱠᱚᱥᱴᱟ ᱨᱤᱠᱟ"
-              },
-              "Havana": {
-                "_type": "zone",
-                "exemplarCity": "ᱦᱟᱣᱟᱱᱟ"
-              },
               "Curacao": {
                 "_type": "zone",
-                "exemplarCity": "ᱠᱭᱩᱨᱟᱠᱟᱣ"
-              },
-              "Dominica": {
-                "_type": "zone",
-                "exemplarCity": "ᱰᱚᱢᱤᱱᱤᱠᱟ"
-              },
-              "Santo_Domingo": {
-                "_type": "zone",
-                "exemplarCity": "ᱥᱟᱱᱴᱚ ᱰᱚᱢᱤᱱᱜᱚ"
-              },
-              "Grenada": {
-                "_type": "zone",
-                "exemplarCity": "ᱜᱽᱨᱮᱱᱟᱰᱟ"
-              },
-              "Thule": {
-                "_type": "zone",
-                "exemplarCity": "ᱛᱷᱩᱞᱮ"
+                "exemplarCity": "Curaçao"
               },
               "Godthab": {
                 "_type": "zone",
-                "exemplarCity": "ᱱᱩᱠ"
+                "exemplarCity": "Nuuk"
               },
               "Scoresbysund": {
                 "_type": "zone",
-                "exemplarCity": "ᱤᱛᱚᱠᱚᱛᱚᱨᱢᱤᱛ"
-              },
-              "Danmarkshavn": {
-                "_type": "zone",
-                "exemplarCity": "ᱰᱟᱱᱢᱟᱨᱠᱥᱟᱣᱱ"
-              },
-              "Guadeloupe": {
-                "_type": "zone",
-                "exemplarCity": "ᱜᱩᱣᱟᱰᱮᱞᱚᱯ"
-              },
-              "Guatemala": {
-                "_type": "zone",
-                "exemplarCity": "ᱜᱩᱣᱟᱴᱮᱢᱟᱞᱟ"
-              },
-              "Tegucigalpa": {
-                "_type": "zone",
-                "exemplarCity": "ᱛᱮᱜᱩᱪᱤᱜᱟᱞᱯᱟ"
-              },
-              "Port-au-Prince": {
-                "_type": "zone",
-                "exemplarCity": "ᱯᱚᱨᱴ ᱟᱣ ᱯᱨᱤᱱᱥ"
-              },
-              "Jamaica": {
-                "_type": "zone",
-                "exemplarCity": "ᱡᱟᱢᱟᱭᱠᱟ"
+                "exemplarCity": "Ittoqqortoormiit"
               },
               "St_Kitts": {
                 "_type": "zone",
-                "exemplarCity": "ᱮᱥ ᱴᱤ ᱠᱤᱴᱥ"
-              },
-              "Cayman": {
-                "_type": "zone",
-                "exemplarCity": "ᱠᱚᱢᱟᱱ"
+                "exemplarCity": "St. Kitts"
               },
               "St_Lucia": {
                 "_type": "zone",
-                "exemplarCity": "ᱮᱥ ᱴᱤ ᱞᱩᱥᱤᱭᱟ"
-              },
-              "Marigot": {
-                "_type": "zone",
-                "exemplarCity": "ᱢᱟᱨᱤᱜᱚᱴ"
-              },
-              "Martinique": {
-                "_type": "zone",
-                "exemplarCity": "ᱢᱟᱨᱴᱤᱱᱠ"
-              },
-              "Montserrat": {
-                "_type": "zone",
-                "exemplarCity": "ᱢᱚᱱᱴᱥᱮᱨᱟᱴ"
-              },
-              "Tijuana": {
-                "_type": "zone",
-                "exemplarCity": "ᱴᱤᱡᱩᱣᱟᱱᱟ"
-              },
-              "Hermosillo": {
-                "_type": "zone",
-                "exemplarCity": "ᱦᱟᱹᱨᱢᱚᱥᱤᱞᱚ"
+                "exemplarCity": "St. Lucia"
               },
               "Ciudad_Juarez": {
                 "_type": "zone",
@@ -303,277 +149,93 @@
               },
               "Mazatlan": {
                 "_type": "zone",
-                "exemplarCity": "ᱢᱟᱡᱟᱴᱞᱟᱱ"
-              },
-              "Chihuahua": {
-                "_type": "zone",
-                "exemplarCity": "ᱪᱷᱤᱦᱩᱣᱟᱦᱩᱣᱟ"
+                "exemplarCity": "Mazatlán"
               },
               "Bahia_Banderas": {
                 "_type": "zone",
-                "exemplarCity": "ᱵᱟᱦᱤᱭᱟ ᱵᱟᱱᱰᱮᱨᱟᱥ"
-              },
-              "Ojinaga": {
-                "_type": "zone",
-                "exemplarCity": "ᱚᱡᱤᱱᱟᱜᱟ"
-              },
-              "Monterrey": {
-                "_type": "zone",
-                "exemplarCity": "ᱢᱚᱱᱴᱮᱨᱮᱭ"
+                "exemplarCity": "Bahía de Banderas"
               },
               "Mexico_City": {
                 "_type": "zone",
-                "exemplarCity": "ᱢᱮᱠᱥᱤᱠᱚ ᱥᱚᱦᱚᱨ"
-              },
-              "Matamoros": {
-                "_type": "zone",
-                "exemplarCity": "ᱢᱟᱴᱟᱢᱚᱨᱚᱥ"
+                "exemplarCity": "Ciudad de México"
               },
               "Merida": {
                 "_type": "zone",
-                "exemplarCity": "ᱢᱮᱨᱤᱰᱟ"
+                "exemplarCity": "Mérida"
               },
               "Cancun": {
                 "_type": "zone",
-                "exemplarCity": "ᱠᱟᱱᱠᱩᱱ"
-              },
-              "Managua": {
-                "_type": "zone",
-                "exemplarCity": "ᱢᱟᱱᱟᱜᱩᱣᱟ"
-              },
-              "Panama": {
-                "_type": "zone",
-                "exemplarCity": "ᱯᱟᱱᱟᱢᱟ"
+                "exemplarCity": "Cancún"
               },
               "Miquelon": {
                 "_type": "zone",
-                "exemplarCity": "ᱢᱤᱠᱣᱮᱞᱚᱱ"
-              },
-              "Puerto_Rico": {
-                "_type": "zone",
-                "exemplarCity": "ᱯᱭᱩᱨᱴᱚ ᱨᱤᱠᱚ"
+                "exemplarCity": "Saint-Pierre"
               },
               "Asuncion": {
                 "_type": "zone",
                 "exemplarCity": "Asunción"
               },
-              "El_Salvador": {
-                "_type": "zone",
-                "exemplarCity": "ᱮᱞ ᱥᱟᱞᱣᱮᱰᱚᱨ"
-              },
               "Lower_Princes": {
                 "_type": "zone",
-                "exemplarCity": "ᱞᱚᱣᱟᱹᱨ ᱯᱨᱤᱱᱥ ᱠᱣᱟᱴᱟᱹᱨ"
-              },
-              "Grand_Turk": {
-                "_type": "zone",
-                "exemplarCity": "ᱜᱽᱨᱟᱱᱰ ᱴᱩᱨᱠ"
-              },
-              "Port_of_Spain": {
-                "_type": "zone",
-                "exemplarCity": "ᱯᱚᱨᱴ ᱚᱯᱷ ᱥᱯᱮᱱ"
-              },
-              "Adak": {
-                "_type": "zone",
-                "exemplarCity": "ᱟᱰᱟᱠ"
-              },
-              "Nome": {
-                "_type": "zone",
-                "exemplarCity": "ᱱᱚᱢᱮ"
-              },
-              "Anchorage": {
-                "_type": "zone",
-                "exemplarCity": "ᱟᱱᱠᱷᱚᱨᱮᱡᱽ"
-              },
-              "Yakutat": {
-                "_type": "zone",
-                "exemplarCity": "ᱭᱟᱠᱩᱛᱟᱛ"
-              },
-              "Sitka": {
-                "_type": "zone",
-                "exemplarCity": "ᱥᱤᱛᱠᱟ"
-              },
-              "Juneau": {
-                "_type": "zone",
-                "exemplarCity": "ᱡᱩᱱᱮᱟᱹᱣ"
-              },
-              "Metlakatla": {
-                "_type": "zone",
-                "exemplarCity": "ᱢᱮᱴᱞᱟᱠᱟᱴᱞᱟ"
-              },
-              "Los_Angeles": {
-                "_type": "zone",
-                "exemplarCity": "ᱞᱮᱥ ᱮᱧᱡᱮᱞᱮᱥ"
-              },
-              "Boise": {
-                "_type": "zone",
-                "exemplarCity": "ᱵᱚᱭᱤᱥ"
-              },
-              "Phoenix": {
-                "_type": "zone",
-                "exemplarCity": "ᱯᱷᱤᱱᱤᱠᱥ"
-              },
-              "Denver": {
-                "_type": "zone",
-                "exemplarCity": "ᱰᱮᱱᱣᱮᱨ"
+                "exemplarCity": "Lower Prince’s Quarter"
               },
               "North_Dakota": {
                 "Beulah": {
                   "_type": "zone",
-                  "exemplarCity": "ᱵᱮᱣᱞᱟᱦ, ᱮᱛᱚᱢ ᱰᱟᱠᱚᱴᱟ"
+                  "exemplarCity": "Beulah, North Dakota"
                 },
                 "New_Salem": {
                   "_type": "zone",
-                  "exemplarCity": "ᱱᱤᱣ ᱥᱮᱞᱮᱢ, ᱮᱛᱚᱢ ᱰᱟᱠᱚᱴᱟ"
+                  "exemplarCity": "New Salem, North Dakota"
                 },
                 "Center": {
                   "_type": "zone",
-                  "exemplarCity": "ᱥᱮᱱᱴᱚᱨ, ᱮᱛᱚᱢ ᱰᱟᱠᱚᱴᱟ"
+                  "exemplarCity": "Center, North Dakota"
                 }
-              },
-              "Chicago": {
-                "_type": "zone",
-                "exemplarCity": "ᱪᱤᱠᱟᱜᱚ"
-              },
-              "Menominee": {
-                "_type": "zone",
-                "exemplarCity": "ᱢᱮᱱᱚᱢᱤᱱᱮ"
               },
               "Indiana": {
                 "Vincennes": {
                   "_type": "zone",
-                  "exemplarCity": "ᱵᱷᱤᱱᱥᱮᱱᱥ, ᱤᱱᱰᱤᱭᱟᱱᱟ"
+                  "exemplarCity": "Vincennes, Indiana"
                 },
                 "Petersburg": {
                   "_type": "zone",
-                  "exemplarCity": "ᱯᱤᱴᱚᱨᱥᱵᱚᱨᱜᱽ, ᱤᱱᱰᱤᱭᱟᱱᱟ"
+                  "exemplarCity": "Petersburg, Indiana"
                 },
                 "Tell_City": {
                   "_type": "zone",
-                  "exemplarCity": "ᱴᱚᱞ ᱥᱤᱴᱭ, ᱤᱱᱰᱤᱭᱟᱱᱟ"
+                  "exemplarCity": "Tell City, Indiana"
                 },
                 "Knox": {
                   "_type": "zone",
-                  "exemplarCity": "ᱱᱚᱠᱥ, ᱤᱱᱰᱤᱭᱟᱱᱟ"
+                  "exemplarCity": "Knox, Indiana"
                 },
                 "Winamac": {
                   "_type": "zone",
-                  "exemplarCity": "ᱣᱤᱱᱟᱢᱟᱠ, ᱤᱱᱰᱤᱭᱟᱱᱟ"
+                  "exemplarCity": "Winamac, Indiana"
                 },
                 "Marengo": {
                   "_type": "zone",
-                  "exemplarCity": "ᱢᱮᱨᱮᱝᱜᱚ, ᱤᱱᱰᱤᱭᱟᱱᱟ"
+                  "exemplarCity": "Marengo, Indiana"
                 },
                 "Vevay": {
                   "_type": "zone",
-                  "exemplarCity": "ᱵᱷᱮᱵᱷᱟᱭ, ᱤᱱᱰᱤᱭᱟᱱᱟ"
+                  "exemplarCity": "Vevay, Indiana"
                 }
-              },
-              "Indianapolis": {
-                "_type": "zone",
-                "exemplarCity": "ᱤᱱᱰᱤᱭᱟᱱᱟᱯᱚᱞᱤᱥ"
-              },
-              "Louisville": {
-                "_type": "zone",
-                "exemplarCity": "ᱞᱩᱣᱤᱥᱣᱤᱞᱮ"
               },
               "Kentucky": {
                 "Monticello": {
                   "_type": "zone",
-                  "exemplarCity": "ᱢᱚᱱᱴᱤᱥᱮᱞᱚ, ᱠᱮᱱᱴᱩᱠᱭ"
+                  "exemplarCity": "Monticello, Kentucky"
                 }
-              },
-              "Detroit": {
-                "_type": "zone",
-                "exemplarCity": "ᱰᱮᱴᱨᱚᱭᱮᱴ"
-              },
-              "New_York": {
-                "_type": "zone",
-                "exemplarCity": "ᱱᱤᱣ ᱭᱚᱨᱠ"
               },
               "St_Vincent": {
                 "_type": "zone",
-                "exemplarCity": "ᱮᱥ ᱴᱤ ᱣᱤᱱᱥᱮᱴ"
-              },
-              "Tortola": {
-                "_type": "zone",
-                "exemplarCity": "ᱴᱚᱨᱴᱚᱞᱟ"
+                "exemplarCity": "St. Vincent"
               },
               "St_Thomas": {
                 "_type": "zone",
-                "exemplarCity": "ᱮᱥ ᱴᱤ ᱛᱷᱚᱢᱟᱥ"
-              }
-            },
-            "Europe": {
-              "Tirane": {
-                "_type": "zone",
-                "exemplarCity": "Tirana"
-              },
-              "Busingen": {
-                "_type": "zone",
-                "exemplarCity": "Büsingen"
-              },
-              "Chisinau": {
-                "_type": "zone",
-                "exemplarCity": "Chișinău"
-              },
-              "Kiev": {
-                "_type": "zone",
-                "exemplarCity": "Kyiv"
-              }
-            },
-            "Antarctica": {
-              "Syowa": {
-                "_type": "zone",
-                "exemplarCity": "Showa"
-              },
-              "DumontDUrville": {
-                "_type": "zone",
-                "exemplarCity": "Dumont-d’Urville"
-              }
-            },
-            "Atlantic": {
-              "Bermuda": {
-                "_type": "zone",
-                "exemplarCity": "ᱵᱟᱹᱨᱢᱩᱱᱰᱟ"
-              },
-              "Canary": {
-                "_type": "zone",
-                "exemplarCity": "Canarias"
-              },
-              "Faeroe": {
-                "_type": "zone",
-                "exemplarCity": "Faroe"
-              },
-              "St_Helena": {
-                "_type": "zone",
-                "exemplarCity": "St. Helena"
-              }
-            },
-            "Africa": {
-              "Abidjan": {
-                "_type": "zone",
-                "exemplarCity": "ᱟ.ᱵᱤᱰᱡᱟᱱ"
-              },
-              "El_Aaiun": {
-                "_type": "zone",
-                "exemplarCity": "El Aaiún"
-              },
-              "Asmera": {
-                "_type": "zone",
-                "exemplarCity": "Asmara"
-              },
-              "Sao_Tome": {
-                "_type": "zone",
-                "exemplarCity": "São Tomé"
-              },
-              "Ndjamena": {
-                "_type": "zone",
-                "exemplarCity": "N’Djamena"
-              },
-              "Lome": {
-                "_type": "zone",
-                "exemplarCity": "Lomé"
+                "exemplarCity": "St. Thomas"
               }
             },
             "Asia": {
@@ -630,6 +292,42 @@
               "Wallis": {
                 "_type": "zone",
                 "exemplarCity": "Wallis & Futuna"
+              }
+            },
+            "Africa": {
+              "El_Aaiun": {
+                "_type": "zone",
+                "exemplarCity": "El Aaiún"
+              },
+              "Asmera": {
+                "_type": "zone",
+                "exemplarCity": "Asmara"
+              },
+              "Sao_Tome": {
+                "_type": "zone",
+                "exemplarCity": "São Tomé"
+              },
+              "Ndjamena": {
+                "_type": "zone",
+                "exemplarCity": "N’Djamena"
+              },
+              "Lome": {
+                "_type": "zone",
+                "exemplarCity": "Lomé"
+              }
+            },
+            "Atlantic": {
+              "Canary": {
+                "_type": "zone",
+                "exemplarCity": "Canarias"
+              },
+              "Faeroe": {
+                "_type": "zone",
+                "exemplarCity": "Faroe"
+              },
+              "St_Helena": {
+                "_type": "zone",
+                "exemplarCity": "St. Helena"
               }
             },
             "Indian": {
@@ -711,11 +409,9 @@
                 "daylight": "ᱮᱴᱞᱟᱱᱴᱤᱠ ᱥᱤᱧᱟᱜ ᱚᱠᱛᱚ"
               }
             },
-            "Cuba": {
+            "British": {
               "long": {
-                "generic": "ᱠᱭᱩᱵᱟ ᱚᱠᱛᱚ",
-                "standard": "ᱠᱭᱩᱵᱟ ᱢᱟᱱᱚᱠ ᱚᱠᱛᱚ",
-                "daylight": "ᱠᱭᱩᱵᱟ ᱥᱤᱧᱟᱜ ᱚᱠᱛᱚ"
+                "standard": "ᱜᱨᱤᱱᱣᱤᱪ ᱢᱤᱱ ᱚᱠᱛᱚ"
               }
             },
             "Europe_Central": {
@@ -744,56 +440,21 @@
                 "standard": "ᱜᱨᱤᱱᱣᱤᱪ ᱢᱤᱱ ᱚᱠᱛᱚ"
               }
             },
-            "Greenland_Eastern": {
-              "long": {
-                "generic": "ᱥᱟᱢᱟᱝ ᱜᱽᱨᱤᱱᱞᱮᱱᱰ ᱚᱠᱛᱚ",
-                "standard": "ᱥᱟᱢᱟᱝ ᱜᱽᱨᱤᱱᱞᱮᱱᱰ ᱢᱟᱱᱚᱠ ᱚᱠᱛᱚ",
-                "daylight": "ᱥᱟᱢᱟᱝ ᱜᱽᱨᱤᱱᱞᱮᱱᱰ ᱥᱤᱛᱩᱝ ᱚᱠᱛᱚ"
-              }
-            },
-            "Greenland_Western": {
-              "long": {
-                "generic": "ᱯᱟᱪᱮ ᱜᱽᱨᱤᱱᱞᱮᱱᱰ ᱚᱠᱛᱚ",
-                "standard": "ᱯᱟᱪᱮ ᱜᱽᱨᱤᱱᱞᱮᱱᱰ ᱢᱟᱱᱚᱠ ᱚᱠᱛᱚ",
-                "daylight": "ᱯᱟᱪᱮ ᱜᱽᱨᱤᱱᱞᱮᱱᱰ ᱥᱤᱛᱩᱝ ᱚᱠᱛᱚ"
-              }
-            },
             "Hawaii": {
               "long": {
-                "standard": "ᱦᱟᱣᱟᱭᱤᱼᱟᱞᱮᱣᱴᱤᱭᱟᱱ ᱢᱟᱱᱚᱠ ᱚᱠᱛᱚ"
+                "standard": "ᱦᱟᱣᱟᱭᱤ ᱢᱟᱱᱚᱠ ᱚᱠᱛᱚ"
               }
             },
             "Hawaii_Aleutian": {
               "long": {
-                "generic": "ᱦᱟᱣᱟᱭᱤᱼᱟᱞᱮᱣᱴᱤᱭᱟᱱ ᱚᱠᱛᱚ",
-                "standard": "ᱦᱟᱣᱟᱭᱤᱼᱟᱞᱮᱣᱴᱤᱭᱟᱱ ᱢᱟᱱᱚᱠ ᱚᱠᱛᱚ",
-                "daylight": "ᱦᱟᱣᱟᱭᱤᱼᱟᱞᱮᱣᱴᱤᱭᱟᱱ ᱥᱤᱧᱟᱜ ᱚᱠᱛᱚ"
+                "generic": "ᱦᱟᱣᱟᱭᱤ ᱟᱞᱮᱣᱴᱤᱭᱟᱱ ᱚᱠᱛᱚ",
+                "standard": "ᱦᱟᱣᱟᱭᱤ ᱟᱞᱮᱣᱴᱤᱭᱟᱱ ᱢᱟᱱᱚᱠ ᱚᱠᱛᱚ",
+                "daylight": "ᱦᱟᱣᱟᱭᱤ ᱟᱞᱮᱣᱴᱤᱭᱟᱱ ᱥᱤᱧᱟᱜ ᱚᱠᱛᱚ"
               }
             },
-            "Mexico_Pacific": {
+            "Irish": {
               "long": {
-                "generic": "ᱢᱮᱠᱥᱤᱠᱟᱱ ᱯᱨᱚᱥᱟᱱᱛ ᱚᱠᱛᱚ",
-                "standard": "ᱢᱮᱠᱥᱤᱠᱟᱱ ᱯᱨᱚᱥᱟᱱᱛ ᱢᱟᱱᱚᱠ ᱚᱠᱛᱚ",
-                "daylight": "ᱢᱮᱠᱥᱤᱠᱟᱱ ᱯᱨᱚᱥᱟᱱᱛ ᱥᱤᱧᱟᱜ ᱚᱠᱛᱚ"
-              }
-            },
-            "Newfoundland": {
-              "long": {
-                "generic": "ᱱᱤᱭᱩᱯᱷᱟᱩᱱᱰᱞᱮᱸᱰ ᱚᱠᱛᱚ",
-                "standard": "ᱱᱤᱭᱩᱯᱷᱟᱩᱱᱰᱞᱮᱸᱰ ᱢᱟᱱᱚᱠ ᱚᱠᱛᱚ",
-                "daylight": "ᱱᱤᱭᱩᱯᱷᱟᱩᱱᱰᱞᱮᱸᱰ ᱥᱤᱧᱟᱜ ᱚᱠᱛᱚ"
-              }
-            },
-            "Pierre_Miquelon": {
-              "long": {
-                "generic": "ᱮᱥ ᱴᱤ ᱯᱤᱭᱮᱨᱮ ᱟᱨ ᱢᱤᱠᱮᱞᱚᱱ ᱚᱠᱛᱚ",
-                "standard": "ᱮᱥ ᱴᱤ ᱯᱤᱭᱮᱨᱮ ᱟᱨ ᱢᱤᱠᱮᱞᱚᱱ ᱢᱟᱱᱚᱠ ᱚᱠᱛᱚ",
-                "daylight": "ᱮᱥ ᱴᱤ ᱯᱤᱭᱮᱨᱮ ᱟᱨ ᱢᱤᱠᱮᱞᱚᱱ ᱥᱤᱧᱟᱜ ᱚᱠᱛᱚ"
-              }
-            },
-            "Yukon": {
-              "long": {
-                "standard": "ᱭᱩᱠᱚᱱ ᱚᱠᱛᱚ"
+                "standard": "ᱜᱨᱤᱱᱣᱤᱪ ᱢᱤᱱ ᱚᱠᱛᱚ"
               }
             }
           }

@@ -309,12 +309,6 @@
             "displayName-count-few": "brazilska cruzeira",
             "displayName-count-other": "brazilskih cruzeira"
           },
-          "BRZ": {
-            "displayName": "stari brazilski kruzeiro",
-            "displayName-count-one": "stari brazilski kruzeiro",
-            "displayName-count-few": "stara brazilska kruzeira",
-            "displayName-count-other": "starih brazilskih kruzeira"
-          },
           "BSD": {
             "displayName": "bahamski dolar",
             "displayName-count-one": "bahamski dolar",
@@ -391,7 +385,9 @@
             "displayName": "švicarski franak",
             "displayName-count-one": "švicarski franak",
             "displayName-count-few": "švicarska franka",
-            "displayName-count-other": "švicarskih franaka"
+            "displayName-count-other": "švicarskih franaka",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CHW": {
             "displayName": "WIR franak",
@@ -423,12 +419,6 @@
             "displayName-count-one": "kineski juan (offshore)",
             "displayName-count-few": "kineska juana (offshore)",
             "displayName-count-other": "kineskih juana (offshore)"
-          },
-          "CNX": {
-            "displayName": "kineski narodni dolar",
-            "displayName-count-one": "kineski narodni dolar",
-            "displayName-count-few": "kineska narodna dolara",
-            "displayName-count-other": "kineskih narodnih dolara"
           },
           "CNY": {
             "displayName": "kineski yuan",
@@ -1033,12 +1023,6 @@
             "displayName-count-one": "marokanski franak",
             "displayName-count-few": "marokanska franka",
             "displayName-count-other": "marokanskih franaka"
-          },
-          "MCF": {
-            "displayName": "monegaški franak",
-            "displayName-count-one": "monegaški franak",
-            "displayName-count-few": "monegaška franka",
-            "displayName-count-other": "monegaških franaka"
           },
           "MDC": {
             "displayName": "moldavski kupon",

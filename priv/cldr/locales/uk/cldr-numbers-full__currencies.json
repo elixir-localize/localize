@@ -345,7 +345,9 @@
             "displayName-count-one": "швейцарський франк",
             "displayName-count-few": "швейцарські франки",
             "displayName-count-many": "швейцарських франків",
-            "displayName-count-other": "швейцарського франка"
+            "displayName-count-other": "швейцарського франка",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CHW": {
             "displayName": "франк WIR",
@@ -1343,10 +1345,7 @@
           },
           "SKK": {
             "displayName": "словацька крона",
-            "displayName-count-one": "словацька крона",
-            "displayName-count-few": "словацькі крони",
-            "displayName-count-many": "словацьких крон",
-            "displayName-count-other": "словацької крони"
+            "displayName-count-other": "словацька крона"
           },
           "SLE": {
             "displayName": "леоне Сьєрра-Леоне",
@@ -1678,10 +1677,7 @@
           },
           "XDR": {
             "displayName": "спеціальні права запозичення",
-            "displayName-count-one": "СПЗ",
-            "displayName-count-few": "СПЗ",
-            "displayName-count-many": "СПЗ",
-            "displayName-count-other": "СПЗ"
+            "displayName-count-other": "спеціальні права запозичення"
           },
           "XEU": {
             "displayName": "європейська валютна одиниця",
@@ -1813,12 +1809,6 @@
             "displayName-count-few": "зімбабвійські долари (2009)",
             "displayName-count-many": "зімбабвійських доларів (2009)",
             "displayName-count-other": "зімбабвійського долара (2009)"
-          },
-          "ZWR": {
-            "displayName-count-one": "зімбабвійський долар (2008)",
-            "displayName-count-few": "зімбабвійські долари (2008)",
-            "displayName-count-many": "зімбабвійських доларів (2008)",
-            "displayName-count-other": "зімбабвійського долара (2008)"
           }
         }
       }

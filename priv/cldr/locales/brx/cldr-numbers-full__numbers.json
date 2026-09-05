@@ -197,7 +197,7 @@
           },
           "standard": "¤ #,##,##0.00",
           "standard-alphaNextToNumber": "¤ #,##,##0.00",
-          "standard-noCurrency": "#,##,##0.00",
+          "standard-noCurrency": "#,##0.00",
           "accounting": "¤#,##0.00;(¤#,##0.00)",
           "accounting-alphaNextToNumber": "¤ #,##0.00;(¤ #,##0.00)",
           "accounting-noCurrency": "#,##0.00;(#,##0.00)",
@@ -247,7 +247,7 @@
           },
           "standard": "¤ #,##,##0.00",
           "standard-alphaNextToNumber": "¤ #,##,##0.00",
-          "standard-noCurrency": "#,##,##0.00",
+          "standard-noCurrency": "#,##0.00",
           "accounting": "¤#,##0.00;(¤#,##0.00)",
           "accounting-alphaNextToNumber": "¤ #,##0.00;(¤ #,##0.00)",
           "accounting-noCurrency": "#,##0.00;(#,##0.00)",
@@ -293,10 +293,6 @@
           "atLeast": "{0}+",
           "atMost": "≤{0}",
           "range": "{0}–{1}"
-        },
-        "minimalPairs": {
-          "pluralMinimalPairs-count-other": "{0}?",
-          "other": "{0}?"
         }
       }
     }

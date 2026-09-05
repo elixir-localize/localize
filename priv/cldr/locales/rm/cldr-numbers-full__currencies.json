@@ -316,7 +316,9 @@
           "CHF": {
             "displayName": "franc svizzer",
             "displayName-count-one": "franc svizzer",
-            "displayName-count-other": "francs svizzers"
+            "displayName-count-other": "francs svizzers",
+            "symbol": "CHF",
+            "symbol-alt-narrow": "Fr."
           },
           "CHW": {
             "displayName": "franc WIR",
@@ -341,11 +343,6 @@
             "displayName": "yuan chinais (offshore)",
             "displayName-count-one": "yuan chinais (offshore)",
             "displayName-count-other": "yuans chinais (offshore)"
-          },
-          "CNX": {
-            "displayName": "dollar da la banca populara chinaisa",
-            "displayName-count-one": "dollar da la banca populara chinaisa",
-            "displayName-count-other": "dollars da la banca populara chinaisa"
           },
           "CNY": {
             "displayName": "yuan chinais",
@@ -560,13 +557,11 @@
           },
           "GNS": {
             "displayName": "syli da la Guinea",
-            "displayName-count-one": "sylis da la Guinea",
-            "displayName-count-other": "sylis da la Guinea"
+            "displayName-count-other": "syli da la Guinea"
           },
           "GQE": {
             "displayName": "ekwele da la Guinea Equatoriala",
-            "displayName-count-one": "ekweles da la Guinea Equatoriala",
-            "displayName-count-other": "ekweles da la Guinea Equatoriala"
+            "displayName-count-other": "ekwele da la Guinea Equatoriala"
           },
           "GRD": {
             "displayName": "drachma greca",
@@ -581,8 +576,7 @@
           },
           "GWE": {
             "displayName": "escudo da la Guinea Portugaisa",
-            "displayName-count-one": "escudos da la Guinea Portugaisa",
-            "displayName-count-other": "escudos da la Guinea Portugaisa"
+            "displayName-count-other": "escudo da la Guinea Portugaisa"
           },
           "GWP": {
             "displayName": "peso da la Guinea-Bissau",
@@ -801,19 +795,16 @@
           },
           "LTL": {
             "displayName": "litas lituan",
-            "displayName-count-one": "litas lituans",
-            "displayName-count-other": "litas lituans",
+            "displayName-count-other": "litas lituan",
             "symbol-alt-narrow": "Lt"
           },
           "LTT": {
             "displayName": "talonas lituan",
-            "displayName-count-one": "talonas lituan",
-            "displayName-count-other": "talonas lituans"
+            "displayName-count-other": "talonas lituan"
           },
           "LUC": {
             "displayName": "franc convertibel luxemburgais",
-            "displayName-count-one": "francs convertibels luxemburgais",
-            "displayName-count-other": "francs convertibels luxemburgais"
+            "displayName-count-other": "franc convertibel luxemburgais"
           },
           "LUF": {
             "displayName": "franc luxemburgais",
@@ -827,8 +818,7 @@
           },
           "LVL": {
             "displayName": "lats letton",
-            "displayName-count-one": "lats letton",
-            "displayName-count-other": "lats lettons",
+            "displayName-count-other": "lats letton",
             "symbol-alt-narrow": "Ls"
           },
           "LVR": {
@@ -1101,8 +1091,7 @@
           },
           "RHD": {
             "displayName": "dollar rodesian",
-            "displayName-count-one": "dollars rodesians",
-            "displayName-count-other": "dollars rodesians"
+            "displayName-count-other": "dollar rodesian"
           },
           "ROL": {
             "displayName": "leu rumen (1952–2006)",
@@ -1229,8 +1218,7 @@
           },
           "STD": {
             "displayName": "dobra da São Tomé e Principe (1977–2017)",
-            "displayName-count-one": "dobra da São Tomé e Príncipe (1977–2017)",
-            "displayName-count-other": "dobras da São Tomé e Príncipe (1977–2017)"
+            "displayName-count-other": "dobra da São Tomé e Principe (1977–2017)"
           },
           "STN": {
             "displayName": "dobra da São Tomé e Príncipe",
@@ -1433,23 +1421,19 @@
           },
           "XAU": {
             "displayName": "aur",
-            "displayName-count-one": "unza d’aur",
-            "displayName-count-other": "unzas d’aur"
+            "displayName-count-other": "aur"
           },
           "XBA": {
             "displayName": "unitad europeica cumponida",
-            "displayName-count-one": "unitads europeicas cumponidas",
-            "displayName-count-other": "unitads europeicas cumponidas"
+            "displayName-count-other": "unitad europeica cumponida"
           },
           "XBC": {
             "displayName": "unitad dal quint europeica (XBC)",
-            "displayName-count-one": "unitad dal quint europeica (XBC)",
-            "displayName-count-other": "unitads dal quint europeicas (XBC)"
+            "displayName-count-other": "unitad dal quint europeica (XBC)"
           },
           "XBD": {
             "displayName": "unitad dal quint europeica (XBD)",
-            "displayName-count-one": "unitads dal quint europeicas (XBD)",
-            "displayName-count-other": "unitads dal quint europeicas (XBD)"
+            "displayName-count-other": "unitad dal quint europeica (XBD)"
           },
           "XCD": {
             "displayName": "dollar da la Caribica Orientala",
@@ -1466,23 +1450,15 @@
           },
           "XDR": {
             "displayName": "dretgs da prelevaziun spezials",
-            "displayName-count-one": "dretg da prelevaziun spezial",
             "displayName-count-other": "dretgs da prelevaziun spezials"
-          },
-          "XEU": {
-            "displayName": "unitad monetara europeica",
-            "displayName-count-one": "unitad monetara europeica",
-            "displayName-count-other": "unitads monetaras europeicas"
           },
           "XFO": {
             "displayName": "franc d’aur franzos",
-            "displayName-count-one": "francs d’aur franzos",
-            "displayName-count-other": "francs d’aur franzos"
+            "displayName-count-other": "franc d’aur franzos"
           },
           "XFU": {
             "displayName": "franc UIC franzos",
-            "displayName-count-one": "francs UIC franzos",
-            "displayName-count-other": "francs UIC franzos"
+            "displayName-count-other": "franc UIC franzos"
           },
           "XOF": {
             "displayName": "franc CFA da l’Africa dal Vest",
@@ -1492,8 +1468,7 @@
           },
           "XPD": {
             "displayName": "palladi",
-            "displayName-count-one": "unza da palladi",
-            "displayName-count-other": "unzas da palladi"
+            "displayName-count-other": "palladi"
           },
           "XPF": {
             "displayName": "franc CFP",
@@ -1503,17 +1478,11 @@
           },
           "XPT": {
             "displayName": "platin",
-            "displayName-count-one": "unza da platin",
-            "displayName-count-other": "unzas da platin"
+            "displayName-count-other": "platin"
           },
           "XRE": {
             "displayName": "fonds RINET",
             "displayName-count-other": "fonds RINET"
-          },
-          "XSU": {
-            "displayName": "zutger",
-            "displayName-count-one": "zutger",
-            "displayName-count-other": "zutgers"
           },
           "XTS": {
             "displayName": "code per verifitgar la valuta",
@@ -1584,8 +1553,7 @@
           },
           "ZRZ": {
             "displayName": "zaire dal Zaire",
-            "displayName-count-one": "zaire dal Zaire (1971–1993)",
-            "displayName-count-other": "zaires dal Zaire (1971–1993)"
+            "displayName-count-other": "zaire dal Zaire"
           },
           "ZWD": {
             "displayName": "dollar dal Simbabwe (1980–2008)",
@@ -1594,7 +1562,6 @@
           },
           "ZWG": {
             "displayName": "aur dal Simbabwe",
-            "displayName-count-one": "aur dal Simbabwe",
             "displayName-count-other": "aur dal Simbabwe"
           },
           "ZWL": {

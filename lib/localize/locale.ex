@@ -895,9 +895,19 @@ defmodule Localize.Locale do
     {:ok, :und}
   end
 
-  # Same reasoning for the bare `:und` atom (the CLDR root locale id).
-  # Don't run it through `validate_locale/1` which would maximize it.
-  def cldr_locale_id_from(:und), do: {:ok, :und}
+  # Same reasoning for the bare root locale however it is spelled. `root` is
+  # BCP-47's legacy identifier for `und` and CLDR treats the two as the same
+  # locale, so both resolve here rather than through `validate_locale/1`,
+  # which would maximize them.
+  #
+  # The string forms matter as much as the atoms. `cldr_locale_id_from("und")`
+  # used to fall through to `validate_locale/1` and come back `:en`, while
+  # `cldr_locale_id_from(:und)` returned `:und` — the same locale resolving two
+  # ways depending on whether the caller happened to hold an atom. Anything
+  # asking for root explicitly wants root's own (empty) data, not English.
+  def cldr_locale_id_from(root) when root in [:und, :root, "und", "root"] do
+    {:ok, :und}
+  end
 
   def cldr_locale_id_from(input) do
     case Localize.validate_locale(input) do

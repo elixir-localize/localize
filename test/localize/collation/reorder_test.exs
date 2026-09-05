@@ -154,11 +154,31 @@ defmodule Localize.Collation.ReorderTest do
 
     test "maps Latin 'a' primary to a fractional lead byte" do
       mapping = Localize.Collation.Reorder.load_primary_to_fractional_lead()
-      # Latin 'a' has primary 0x23EC in allkeys
-      frac_lead = Map.get(mapping, 0x23EC)
+
+      # Read `a`'s DUCET primary out of the same table the mapping is built
+      # from rather than hard-coding it. It is not stable across Unicode
+      # versions — every character UCA assigns ahead of Latin shifts it, and
+      # it moved from 0x23EC to 0x2485 between Unicode 17 and 18. The
+      # fractional lead byte is the part that is meant to hold still.
+      frac_lead = Map.get(mapping, latin_a_ducet_primary())
+
       assert is_integer(frac_lead)
       # Should be in the Latin range (0x2A..0x5E)
       assert frac_lead >= 0x2A and frac_lead <= 0x5E
+    end
+
+    # `0061; [2B, 05, 05]\t# Latn Ll\t[2485.0020.0002]\t* LATIN SMALL LETTER A`
+    defp latin_a_ducet_primary do
+      path = Application.app_dir(:localize, "priv/cldr/FractionalUCA.txt")
+
+      [[_, primary]] =
+        path
+        |> File.stream!()
+        |> Stream.filter(&String.starts_with?(&1, "0061;"))
+        |> Stream.map(&Regex.run(~r/\[([0-9A-Fa-f]+)\.[0-9A-Fa-f]+\.[0-9A-Fa-f]+\]/, &1))
+        |> Enum.take(1)
+
+      String.to_integer(primary, 16)
     end
   end
 

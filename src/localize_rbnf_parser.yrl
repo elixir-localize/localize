@@ -4,7 +4,7 @@ Nonterminals quotient_rule modulo_rule invoke_rule cardinal_rule ordinal_rule
 Terminals rule_cardinal_start rule_ordinal_start number_format
           rule_name conditional_start conditional_end modulo_call
           quotient_call rule_call plural_rules right_paren
-          left_paren dollar comma char.
+          left_paren dollar comma char alternate.
 
 Rootsymbol rbnf_rule.
 
@@ -23,6 +23,12 @@ rule_part         -> invoke_rule : '$1'.
 rule_part         -> cardinal_rule : '$1'.
 rule_part         -> ordinal_rule : '$1'.
 rule_part         -> conditional_start rbnf_rule conditional_end : {conditional, '$2'}.
+
+% CLDR 49: `[A|B]` renders A when the remainder is non-zero and B when it is
+% zero, where a plain `[A]` renders nothing in the zero case. English ordinals
+% moved to this form — `twent[y->>|ieth]` gives "twenty-first" and "twentieth"
+% from one rule, where CLDR 48 delegated the zero case to a `%%tieth` helper.
+rule_part         -> conditional_start rbnf_rule alternate rbnf_rule conditional_end : {conditional_alternate, {'$2', '$4'}}.
 
 quotient_rule     ->  quotient_call rule quotient_call quotient_call : {quotient, '$2'}.
 quotient_rule     ->  quotient_call rule quotient_call : {quotient, '$2'}.

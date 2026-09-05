@@ -93,8 +93,13 @@ defmodule Localize.Locale.LocaleDisplay.U do
     if value_name = get_type(display_key, canonical_value, display_names) do
       replace_nested_brackets(value_name, display_names)
     else
-      # CLDR 48.2: fall back to key identifier when translation is missing
-      key_name = get_in(display_names, [:keys, display_key]) || to_string(display_key)
+      # No raw-key fallback here, unlike the T extension. Where a `-u-`
+      # keyword's type has no display name TR35 substitutes the type code
+      # alone — `en-u-ca-buddhist` in root is "en (buddhist)", never
+      # "en (ca: buddhist)" — and no line in CLDR's conformance data
+      # renders a `-u-` key code as a prefix. `-t-` fields do take the
+      # prefix ("s0: ascii"), which is why only this side changes.
+      key_name = get_in(display_names, [:keys, display_key])
 
       display_value(
         field,
@@ -153,17 +158,6 @@ defmodule Localize.Locale.LocaleDisplay.U do
 
   defp safe_to_atom(string) when is_binary(string) do
     Localize.Utils.Helpers.existing_atom(string) || string
-  end
-
-  # Returns the localized value when key_name is nil
-  defp display_value(_key, nil, value, _locale_ext, _locale_id, display_names, _prefer)
-       when is_binary(value) do
-    replace_nested_brackets(value, display_names)
-  end
-
-  defp display_value(_key, nil, value, _locale_ext, _locale_id, display_names, _prefer)
-       when is_atom(value) do
-    value |> to_string() |> replace_nested_brackets(display_names)
   end
 
   defp display_value(key, key_name, value, locale_ext, locale_id, display_names, prefer) do

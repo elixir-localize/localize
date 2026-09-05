@@ -228,7 +228,7 @@ defmodule Localize.Number.Rbnf do
     all_sets =
       Enum.reduce(rbnf_data, %{}, fn {_group_type, rule_sets}, acc ->
         if is_map(rule_sets) do
-          Map.merge(acc, rule_sets)
+          Map.merge(acc, rule_sets, &resolve_name_collision/3)
         else
           acc
         end
@@ -334,6 +334,32 @@ defmodule Localize.Number.Rbnf do
     end)
     |> Enum.sort()
   end
+
+  # A rule set name is unique only within its group, so flattening the groups
+  # can collide. CLDR 49 gave `en` a private `%%digits-ordinal` helper inside
+  # SpelloutRules alongside the long-standing public `%digits-ordinal` in
+  # OrdinalRules; under last-writer-wins the private one landed on top, which
+  # demoted the public rule set and dropped `digits_ordinal` from
+  # `rule_names_for_locale/1` altogether. Public wins a collision — it is the
+  # one callers can name, and it is the one that carries the full rule list
+  # (the private helper here lacks the `-x` negative rule).
+  defp resolve_name_collision(_name, existing, replacement) do
+    if rule_set_access(existing) == :public and rule_set_access(replacement) == :private do
+      existing
+    else
+      replacement
+    end
+  end
+
+  defp rule_set_access(rule_set) when is_map(rule_set) do
+    case Map.get(rule_set, :access, :public) do
+      :private -> :private
+      "private" -> :private
+      _public -> :public
+    end
+  end
+
+  defp rule_set_access(_rule_set), do: :public
 
   defp extract_rules(%{rules: rules}) when is_list(rules), do: rules
   defp extract_rules(%{"rules" => rules}) when is_list(rules), do: rules

@@ -8,8 +8,10 @@
         "timeZoneNames": {
           "hourFormat": "+HH:mm;-HH:mm",
           "gmtFormat": "GMT{0}",
-          "gmtZeroFormat": "GMT",
+          "gmtFormat-alt-utc": "UTC{0}",
           "gmtUnknownFormat": "GMT+?",
+          "gmtUnknownFormat-alt-utc": "UTC+?",
+          "dualOffsetFormat": "{0}/{1}",
           "regionFormat": "{0}-tiid",
           "regionFormat-type-daylight": "Zomertiid {0}",
           "regionFormat-type-standard": "Standaardtiid {0}",
@@ -19,7 +21,7 @@
               "UTC": {
                 "_type": "zone",
                 "long": {
-                  "standard": "koördinearre wrâldtiid"
+                  "standard": "Koördinearre Wrâldtiid"
                 },
                 "short": {
                   "standard": "UTC"
@@ -63,19 +65,12 @@
                 "_type": "zone",
                 "exemplarCity": "Kopenhagen"
               },
-              "Helsinki": {
-                "_type": "zone",
-                "exemplarCity": "Helsinky"
-              },
               "Paris": {
                 "_type": "zone",
                 "exemplarCity": "Parys"
               },
               "London": {
                 "_type": "zone",
-                "long": {
-                  "daylight": "Britse simmertiid"
-                },
                 "exemplarCity": "Londen"
               },
               "Athens": {
@@ -85,12 +80,6 @@
               "Budapest": {
                 "_type": "zone",
                 "exemplarCity": "Boedapest"
-              },
-              "Dublin": {
-                "_type": "zone",
-                "long": {
-                  "daylight": "Ierse simmertiid"
-                }
               },
               "Luxembourg": {
                 "_type": "zone",
@@ -390,7 +379,7 @@
               },
               "Cancun": {
                 "_type": "zone",
-                "exemplarCity": "Cancun"
+                "exemplarCity": "Cancún"
               },
               "Miquelon": {
                 "_type": "zone",
@@ -636,13 +625,6 @@
                 "daylight": "Alaska-simmertiid"
               }
             },
-            "Almaty": {
-              "long": {
-                "generic": "Alma-Ata-tiid",
-                "standard": "Alma-Ata-standerttiid",
-                "daylight": "Alma-Ata-simmertiid"
-              }
-            },
             "Amazon": {
               "long": {
                 "generic": "Amazone-tiid",
@@ -683,27 +665,6 @@
                 "generic": "Anadyr-tiid",
                 "standard": "Anadyr-standerttiid",
                 "daylight": "Anadyr-simmertiid"
-              }
-            },
-            "Apia": {
-              "long": {
-                "generic": "Apia-tiid",
-                "standard": "Apia-standerttiid",
-                "daylight": "Apia-simmertiid"
-              }
-            },
-            "Aqtau": {
-              "long": {
-                "generic": "Aqtau-tiid",
-                "standard": "Aqtau-standerttiid",
-                "daylight": "Aqtau-simmertiid"
-              }
-            },
-            "Aqtobe": {
-              "long": {
-                "generic": "Aqtöbe-tiid",
-                "standard": "Aqtöbe-standerttiid",
-                "daylight": "Aqtöbe-simmertiid"
               }
             },
             "Arabian": {
@@ -805,6 +766,13 @@
                 "generic": "Brazyljaanske tiid",
                 "standard": "Brazyljaanske standerttiid",
                 "daylight": "Brazyljaanske simmertiid"
+              }
+            },
+            "British": {
+              "long": {
+                "generic": "Britse tiid",
+                "standard": "Greenwich Mean Time",
+                "daylight": "Britse simmertiid"
               }
             },
             "Brunei": {
@@ -927,11 +895,6 @@
                 "daylight": "EEST"
               }
             },
-            "Europe_Further_Eastern": {
-              "long": {
-                "standard": "Fierder-eastlik-Europeeske tiid"
-              }
-            },
             "Europe_Western": {
               "long": {
                 "generic": "West-Europeeske tiid",
@@ -1009,11 +972,6 @@
                 "daylight": "West-Groenlânske simmertiid"
               }
             },
-            "Guam": {
-              "long": {
-                "standard": "Guamese standerttiid"
-              }
-            },
             "Gulf": {
               "long": {
                 "standard": "Golf standerttiid"
@@ -1026,7 +984,7 @@
             },
             "Hawaii": {
               "long": {
-                "standard": "Hawaii-Aleoetyske standerttiid"
+                "standard": "Hawaii tiid"
               }
             },
             "Hawaii_Aleutian": {
@@ -1087,6 +1045,13 @@
                 "daylight": "Iraanske simmertiid"
               }
             },
+            "Irish": {
+              "long": {
+                "generic": "Ierse tiid",
+                "standard": "Greenwich Mean Time",
+                "daylight": "Ierse simmertiid"
+              }
+            },
             "Irkutsk": {
               "long": {
                 "generic": "Irkoetsk-tiid",
@@ -1113,11 +1078,6 @@
                 "generic": "Petropavlovsk-Kamtsjatski-tiid",
                 "standard": "Petropavlovsk-Kamtsjatski-standerttiid",
                 "daylight": "Petropavlovsk-Kamtsjatski-simmertiid"
-              }
-            },
-            "Kazakhstan": {
-              "long": {
-                "standard": "Kazakhstan-tiid"
               }
             },
             "Kazakhstan_Eastern": {
@@ -1154,11 +1114,6 @@
                 "standard": "Kirgizyske tiid"
               }
             },
-            "Lanka": {
-              "long": {
-                "standard": "Lanka-tiid"
-              }
-            },
             "Line_Islands": {
               "long": {
                 "standard": "Line-eilânske tiid"
@@ -1169,13 +1124,6 @@
                 "generic": "Lord Howe-eilânske tiid",
                 "standard": "Lord Howe-eilânske standerttiid",
                 "daylight": "Lord Howe-eilânske simmertiid"
-              }
-            },
-            "Macau": {
-              "long": {
-                "generic": "Macause tiid",
-                "standard": "Macause standerttiid",
-                "daylight": "Macause simmertiid"
               }
             },
             "Magadan": {
@@ -1215,13 +1163,6 @@
             "Mawson": {
               "long": {
                 "standard": "Mawson tiid"
-              }
-            },
-            "Mexico_Pacific": {
-              "long": {
-                "generic": "Meksikaanske Pacific-tiid",
-                "standard": "Meksikaanske Pacific-standerttiid",
-                "daylight": "Meksikaanske Pacific-simmerttiid"
               }
             },
             "Mongolia": {
@@ -1291,11 +1232,6 @@
                 "generic": "Fernando de Noronha-tiid",
                 "standard": "Fernando de Noronha-standerttiid",
                 "daylight": "Fernando de Noronha-simmertiid"
-              }
-            },
-            "North_Mariana": {
-              "long": {
-                "standard": "Noardlike Mariaanske tiid"
               }
             },
             "Novosibirsk": {
@@ -1372,18 +1308,6 @@
                 "standard": "Pohnpei tiid"
               }
             },
-            "Pyongyang": {
-              "long": {
-                "standard": "Pyongyang-tiid"
-              }
-            },
-            "Qyzylorda": {
-              "long": {
-                "generic": "Qyzylorda-tiid",
-                "standard": "Qyzylorda-standerttiid",
-                "daylight": "Qyzylorda-simmertiid"
-              }
-            },
             "Reunion": {
               "long": {
                 "standard": "Réunionse tiid"
@@ -1410,9 +1334,7 @@
             },
             "Samoa": {
               "long": {
-                "generic": "Samoaanske tiid",
-                "standard": "Samoaanske standerttiid",
-                "daylight": "Samoaanske simmertiid"
+                "standard": "Samoaanske standerttiid"
               }
             },
             "Seychelles": {
@@ -1558,11 +1480,6 @@
                 "generic": "Jekaterinenburg-tiid",
                 "standard": "Jekaterinenburg-standerttiid",
                 "daylight": "Jekaterinenburg-simmertiid"
-              }
-            },
-            "Yukon": {
-              "long": {
-                "standard": "Yukon-tiid"
               }
             }
           }

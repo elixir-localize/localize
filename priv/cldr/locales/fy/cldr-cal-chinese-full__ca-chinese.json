@@ -758,28 +758,28 @@
                     "24": "major cold"
                   },
                   "wide": {
-                    "1": "begjin fan de maitiid",
-                    "2": "reinwetter",
-                    "3": "ynsekten ûntweitsje",
-                    "4": "maitiidpunt",
-                    "5": "ljocht en helder",
+                    "1": "spring begins",
+                    "2": "rain water",
+                    "3": "insects awaken",
+                    "4": "spring equinox",
+                    "5": "bright and clear",
                     "6": "grain rain",
-                    "7": "begjien fan de simmer",
+                    "7": "summer begins",
                     "8": "grain full",
                     "9": "grain in ear",
-                    "10": "simmerpunt",
-                    "11": "waarm",
-                    "12": "hjit",
-                    "13": "begjin fan de hjerst",
-                    "14": "ein fan de hjittens",
-                    "15": "wite dauwe",
-                    "16": "hjerstpunt",
-                    "17": "kâlde dauwe",
-                    "18": "earste froast",
-                    "19": "begjin fan de winter",
-                    "20": "lichte snie",
-                    "21": "swiere snie",
-                    "22": "winterpunt",
+                    "10": "summer solstice",
+                    "11": "minor heat",
+                    "12": "major heat",
+                    "13": "autumn begins",
+                    "14": "end of heat",
+                    "15": "white dew",
+                    "16": "autumn equinox",
+                    "17": "cold dew",
+                    "18": "frost descends",
+                    "19": "winter begins",
+                    "20": "minor snow",
+                    "21": "major snow",
+                    "22": "winter solstice",
                     "23": "minor cold",
                     "24": "major cold"
                   }
@@ -1047,6 +1047,10 @@
               "short": "HHmm"
             },
             "dateTimeFormats": {
+              "numericSeparators": {
+                "numericDateSeparator": "-",
+                "numericTimeSeparator": ":"
+              },
               "full": "{1} {0}",
               "long": "{1} {0}",
               "medium": "{1} {0}",
@@ -1103,19 +1107,26 @@
                 "yyyyQQQQ": "QQQQ U"
               },
               "appendItems": {
+                "Date-Timezone": "{0} {1}",
                 "Day": "{0} ({2}: {1})",
-                "Day-Of-Week": "{0} {1}",
+                "Day-Of-Week": "{1} {0}",
                 "Era": "{1} {0}",
                 "Hour": "{0} ({2}: {1})",
                 "Minute": "{0} ({2}: {1})",
                 "Month": "{0} ({2}: {1})",
                 "Quarter": "{0} ({2}: {1})",
                 "Second": "{0} ({2}: {1})",
+                "Time-Day-Of-Week": "{1} {0}",
                 "Timezone": "{0} {1}",
                 "Week": "{0} ({2}: {1})",
                 "Year": "{1} {0}"
               },
               "intervalFormats": {
+                "intervalFormatRanges": {
+                  "mixed": "{0} – {1}",
+                  "non-numeric": "{0}–{1}",
+                  "numeric": "{0}–{1}"
+                },
                 "intervalFormatFallback": "{0} – {1}",
                 "Bh": {
                   "B": "h B – h B",
