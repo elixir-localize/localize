@@ -148,17 +148,34 @@ defmodule Localize.Number.PluralRule.Cardinal do
     pluralize(number, locale, substitutions)
   end
 
+  # Converting to a float here dropped the operands the rule selects on. TR35
+  # keys plural choice on the *visible* fraction digits (v) and their value
+  # (f), and a float carries neither, so `plural_rule/2` has to assume a
+  # display precision for one — for 1.2 it assumes "1.200", giving v=3 and
+  # f=200, which answers `other` where Serbian, Croatian and Bosnian want
+  # `few`. The Decimal knows it is "1.2". Pass it through.
   def pluralize(%Decimal{} = number, %LanguageTag{} = locale, %{} = substitutions) do
-    number
-    |> Decimal.to_float()
-    |> do_pluralize(locale, substitutions)
+    do_pluralize(number, locale, substitutions)
   end
 
   defp do_pluralize(number, %LanguageTag{} = locale, %{} = substitutions) do
     plural = plural_rule(number, locale)
+
+    substitutions[exact_key(number)] || substitutions[plural] ||
+      substitutions[@default_substitution]
+  end
+
+  # Substitution maps may carry exact-value keys (`%{0 => ..., 1 => ...}`)
+  # alongside the plural categories, so an integral value is looked up as an
+  # integer first.
+  defp exact_key(%Decimal{} = number) do
+    truncated = Decimal.round(number, 0, :down)
+    if Decimal.equal?(truncated, number), do: Decimal.to_integer(truncated), else: number
+  end
+
+  defp exact_key(number) do
     truncated = trunc(number)
-    number = if truncated == number, do: truncated, else: number
-    substitutions[number] || substitutions[plural] || substitutions[@default_substitution]
+    if truncated == number, do: truncated, else: number
   end
 
   @doc """

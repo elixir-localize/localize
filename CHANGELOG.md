@@ -18,6 +18,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Decimal formatting conforms to CLDR 49's new decimal test suite for 8,857 of 8,925 cases, from 7,096. `-0.0` keeps its sign; an explicit `:max_fractional_digits` now applies to a scientific mantissa; and compact formatting keeps two significant digits below 1 (`0.00831765` is `0.0083`, not `0`), re-picks its magnitude when rounding carries (`999.9` is `1K`, not `1,000`), and groups on ICU's MIN2 rule.
 
+* Compact number formatting in Swahili was wrong by a factor of ten, and of a thousand for some ranges. The compact divisor is derived from the zero count in the pattern, which was counted across the negative subpattern as well — `elfu 000;elfu -000` read as six zeros rather than three, rendering 123,456 as "elfu 123456".
+
+* Plural selection now keeps a `Decimal`'s fraction operands. `pluralize/3` converted to a float first, and TR35 selects on the visible fraction digits and their value, so `1.2` was treated as "1.200" and chose `other` where Serbian, Croatian and Bosnian require `few`.
+
 * `Localize.Number.to_string/2` no longer raises on a very small float with a large `:max_fractional_digits` — `to_string(1.0e-308, max_fractional_digits: 400)` raised `ArithmeticError` because reconstructing the value divided by a power of ten outside the double range.
 
 * A locale that Localize holds data for now resolves to itself. `resolve_cldr_locale/1` asked the language matcher which known locale was closest even for an exact identity, and an equally-scored neighbour could win the tie: 25 of 657 locales read another locale's data, `ar-EG` (which formats in `arab` digits) resolving to `ar` (which uses `latn`) among them.

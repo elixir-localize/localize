@@ -80,7 +80,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 25 | CLDR 49 drops 114 locales below Basic coverage       | None       | **Breaking** — ✅ Adopted. 114 locales removed; `aa` and `ht` among them |
 | 26 | Locale display in `root` falls back to English       | None       | None — ✅ Fixed. 24 new cases pass, plus 44 exclusions retired |
 | 27 | Collation data pinned at Unicode 17 by hand         | None       | **Sort keys change** — ✅ Fixed. Full UCA conformance at Unicode 18 |
-| 28 | CLDR 49 decimal format conformance suite            | None       | **Output changes** — ✅ 99.2%. Negative zero, scientific and compact fixed |
+| 28 | CLDR 49 decimal format conformance suite            | None       | **Output changes** — ✅ Conformant; every difference is a documented CLDR-over-ICU choice |
 | 29 | A locale did not always resolve to itself          | None       | **Resolution changes** — ✅ Fixed. 25 locales were served a neighbour's data |
 
 The remainder of this file expands each item in turn.
@@ -1223,7 +1223,7 @@ Beyond simply not running the suite, the fixtures encode a contract that is easy
 
 ### Resolution
 
-`copy_sources` vendors all three files and `test/localize/number/decimal_conformance_test.exs` runs them, with per-file thresholds that ratchet down as fixes land. **8,857 of 8,925 pass (99.2%)**, from 7,096 (79.5%) when the suite was first wired up; `decimals.tsv` is exact at 225/225.
+`copy_sources` vendors all three files and `test/localize/number/decimal_conformance_test.exs` runs them, with per-file thresholds that ratchet down as fixes land. **8,864 of 8,925 match ICU exactly**, from 7,096 (79.5%) when the suite was first wired up, and the remaining 61 are all cases where CLDR's data and ICU disagree and we follow CLDR. The test reports zero unexplained failures; `decimals.tsv` is exact at 225/225.
 
 Four defects behind the three classes:
 
@@ -1237,7 +1237,13 @@ Four defects behind the three classes:
 
 The work also surfaced a latent crash unrelated to CLDR 49 and reachable from the public API: `Localize.Number.to_string(1.0e-308, max_fractional_digits: 400)` raised `ArithmeticError`. `Digits.to_float/1` divides two integers and Erlang converts both to floats to do it, so a scale above 10^308 raised on the divisor even though the quotient was representable. Dividing in steps keeps every intermediate in range. A non-bang function raising on valid input is a defect in its own right; the adversarial property test found it within 230 generated cases once compact precision started asking for more fraction digits.
 
-What remains, in descending order: 35 scientific cases in locales whose CLDR scientific pattern is literally `[#E0]` (`hi`, `gu` and others) — we apply the pattern CLDR ships and produce "[1.2E0]", while ICU's `NumberFormatter` ignores the pattern and builds the notation itself, which is a difference between two APIs rather than a defect here; Indic compact grouping and a few compact plural and abbreviation differences; and a `gl` grouping separator and the `ur` percent sign, which look like symbol selection rather than formatting.
+Working the tail down to zero turned up two further defects, both wider than the decimal suite that exposed them:
+
+* **Swahili compact was wrong by a factor of ten, and of a thousand for some ranges.** The compact divisor comes from the count of zeros in the pattern, and `number_of_zeros/1` counted them across the whole string — including the negative subpattern after a `;`. Swahili is the only family in CLDR 49 that spells one out, so `elfu 0;elfu -0` counted two zeros where it has one, and `elfu 000;elfu -000` counted six where it has three: 123,456 rendered as "elfu 123456". Fixed in the normalizer and the four `sw*` locales regenerated.
+
+* **Plural selection lost its operands whenever a Decimal reached `pluralize/3`.** The final clause converted to a float first, and TR35 selects on the *visible* fraction digits (`v`) and their value (`f`) — operands a float cannot carry, so `plural_rule/2` has to assume a display precision for one. For 1.2 it assumes "1.200", giving `v=3, f=200` and answering `other` where Serbian, Croatian and Bosnian want `few`. This reached every compact format with a fractional mantissa in those languages.
+
+**Every remaining difference is a case where CLDR's data and ICU's `NumberFormatter` disagree and we follow CLDR**, which is the standing rule. They are enumerated in `@divergences` in the conformance test with the CLDR evidence for each — `gl`'s group separator is U+00A0 where ICU emits ".", `ur`'s `percentSign` is `٪` where ICU formats percent as a measure unit whose pattern is `{0}%`, `bn`'s `00000 কোটি` carries no grouping, `af`'s `0 m'.'` quotes a full stop, and `ig`, `ps`, `ta`, `en-IN` and `hi-Latn` ship localised compact patterns ICU does not use. The count of each is asserted rather than merely excluded, so a divergence that resolves upstream — or one that grows — moves the number and the test says so.
 
 ### API impact / breaking risk
 

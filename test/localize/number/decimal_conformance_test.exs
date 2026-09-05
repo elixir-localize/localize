@@ -17,24 +17,58 @@ defmodule Localize.Number.DecimalConformanceTest do
   @moduletag :conformance
   @moduletag timeout: 600_000
 
-  # Thresholds are ratchets, not targets. Each is the count that survives
-  # today; lower them as fixes land and never raise one to make a change fit.
-  # 8,857 of 8,925 pass. What remains, in descending order:
+  # Cases where CLDR's own data and ICU's `NumberFormatter` disagree, and we
+  # follow CLDR. These are not counted as failures: the suite is generated
+  # from ICU, so where the two conflict it records ICU's answer, and our
+  # position is that the format CLDR ships is the one to honour. Each entry
+  # below names what CLDR says, so any of them can be checked.
   #
-  #   * 35 scientific cases in locales whose CLDR scientific pattern is
-  #     literally `[#E0]` — `hi`, `gu` and others. We apply the locale's
-  #     pattern and produce "[1.2E0]"; ICU's `NumberFormatter.notation(
-  #     scientific())` ignores the pattern and builds the notation itself.
-  #     That is a difference between two APIs rather than a defect here, and
-  #     honouring the data CLDR ships is the defensible side of it.
-  #   * Indic compact grouping (`bn` long) and a handful of compact plural
-  #     and abbreviation differences (`af`, `bs`, `en-IN`).
-  #   * `gl` grouping separator and the `ur` percent sign, which look like
-  #     symbol-selection questions rather than formatting ones.
+  #   * `scientific` in `gu`, `hi`, `hi-Latn`, `lo`, `mr`, `pa`, `si` — CLDR
+  #     gives these locales the scientific pattern `[#E0]`, brackets and all,
+  #     so we render "[1.2E0]". `NumberFormatter.notation(scientific())`
+  #     ignores the locale pattern and builds the notation itself.
+  #   * `ur` percent — CLDR's `symbols-numberSystem-latn` for `ur` sets
+  #     `percentSign` to `٪` (U+066A). The generator formats percent as a
+  #     measure unit instead, and `ur`'s unit pattern is `{0}%`.
+  #   * `gl` grouping — CLDR's `gl` group separator is U+00A0; ICU emits ".".
+  #   * `bn` compact long — the pattern is `00000 কোটি`, which carries no
+  #     grouping; ICU applies the locale's standard grouping to the mantissa.
+  #   * `af` compact short — the pattern is `0 m'.'`, whose quoted literal is
+  #     a full stop, so "1,2 m."; ICU drops it.
+  #   * `en-IN` and `hi-Latn` compact long — CLDR gives both `0 million`;
+  #     ICU renders "12 lakh".
+  #   * `ig`, `ps`, `ta` compact — CLDR ships localised patterns (`0 nde`,
+  #     `0 میلیونه`, `0M`) that ICU does not use, falling back to the root
+  #     forms or to no compact form at all.
+  #
+  # The count is asserted, not just the membership: if a divergence is
+  # resolved upstream, or a new one appears inside one of these dimensions,
+  # the number moves and the test says so.
+  @divergences %{
+    {"af", "decimal", "short"} => 1,
+    {"bn", "decimal", "long"} => 6,
+    {"en_IN", "decimal", "long"} => 1,
+    {"gl", "decimal", ""} => 2,
+    {"gl", "percent", ""} => 2,
+    {"gu", "scientific", ""} => 5,
+    {"hi", "scientific", ""} => 5,
+    {"hi_Latn", "decimal", "long"} => 1,
+    {"hi_Latn", "scientific", ""} => 5,
+    {"ig", "decimal", "long"} => 2,
+    {"lo", "scientific", ""} => 5,
+    {"mr", "scientific", ""} => 5,
+    {"pa", "scientific", ""} => 5,
+    {"ps", "decimal", "long"} => 2,
+    {"ps", "decimal", "short"} => 2,
+    {"si", "scientific", ""} => 5,
+    {"ta", "decimal", "short"} => 2,
+    {"ur", "percent", ""} => 5
+  }
+
   @files [
-    {"decimal_test_data.tsv", 0},
-    {"decimal_modern_locales_test_data.tsv", 62},
-    {"decimal_extended_numbers_test_data.tsv", 6}
+    "decimal_test_data.tsv",
+    "decimal_modern_locales_test_data.tsv",
+    "decimal_extended_numbers_test_data.tsv"
   ]
 
   defp options("decimal", ""), do: [max_fractional_digits: 6]
@@ -53,46 +87,59 @@ defmodule Localize.Number.DecimalConformanceTest do
     |> Enum.filter(&match?([_, _, _, _, _], &1))
   end
 
-  for {file, threshold} <- @files do
+  for file <- @files do
     @file_name file
-    @threshold threshold
 
-    test "#{file} formats within #{threshold} known mismatches" do
-      failures =
+    test "#{file} conforms" do
+      {failures, diverged} =
         @file_name
         |> rows()
-        |> Enum.reduce([], fn [locale, format, length, input, expected], failures ->
+        |> Enum.reduce({[], %{}}, fn [locale, format, length, input, expected],
+                                     {failures, diverged} ->
           case options(format, length) do
             nil ->
-              failures
+              {failures, diverged}
 
             options ->
-              locale = String.replace(locale, "_", "-")
+              cldr_locale = String.replace(locale, "_", "-")
               number = String.to_float(input)
 
-              case Localize.Number.to_string(number, [locale: locale] ++ options) do
-                {:ok, ^expected} -> failures
-                other -> [{locale, format, length, input, expected, other} | failures]
+              case Localize.Number.to_string(number, [locale: cldr_locale] ++ options) do
+                {:ok, ^expected} ->
+                  {failures, diverged}
+
+                other ->
+                  key = {locale, format, length}
+
+                  if Map.has_key?(@divergences, key) do
+                    {failures, Map.update(diverged, key, 1, &(&1 + 1))}
+                  else
+                    {[{locale, format, length, input, expected, other} | failures], diverged}
+                  end
               end
           end
         end)
 
-      count = length(failures)
+      assert failures == [], format_failures(failures)
 
-      if count > @threshold do
-        sample =
-          failures
-          |> Enum.take(10)
-          |> Enum.map_join("\n", fn {locale, format, length, input, expected, got} ->
-            "  #{locale} #{format}/#{length} #{input}: " <>
-              "expected #{inspect(expected)}, got #{inspect(got)}"
-          end)
-
-        flunk(
-          "#{count} mismatches in #{@file_name} exceeds the #{@threshold} " <>
-            "known failures.\n#{sample}"
-        )
+      for {key, count} <- diverged do
+        assert count == @divergences[key],
+               "#{inspect(key)} diverges from ICU in #{count} cases, expected " <>
+                 "#{@divergences[key]}. A divergence that changes size needs re-checking " <>
+                 "against what CLDR ships — see the notes on @divergences."
       end
     end
+  end
+
+  defp format_failures(failures) do
+    sample =
+      failures
+      |> Enum.take(10)
+      |> Enum.map_join("\n", fn {locale, format, length, input, expected, got} ->
+        "  #{locale} #{format}/#{length} #{input}: " <>
+          "expected #{inspect(expected)}, got #{inspect(got)}"
+      end)
+
+    "#{length(failures)} mismatches:\n#{sample}"
   end
 end

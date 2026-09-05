@@ -182,9 +182,19 @@ defmodule Localize.Data.Normalize.Number do
     |> Map.new()
   end
 
+  # The zero count fixes the compact divisor: `0` divides by the rule's range,
+  # `00` by a tenth of it, and so on. Only the positive subpattern carries it.
+  # A pattern may also spell out its negative form after a `;` — Swahili is
+  # the only family in CLDR 49 that does, with `elfu 0;elfu -0` and friends —
+  # and counting the zeros on both sides doubles the exponent. That made every
+  # Swahili compact number wrong by a factor of ten, and by a thousand for the
+  # three-zero patterns: `elfu 000;elfu -000` counted six zeros where it has
+  # three, so 123,456 rendered as "elfu 123456" rather than "elfu 123".
   defp number_of_zeros(format) do
     format
+    |> String.split(";", parts: 2)
+    |> hd()
     |> String.to_charlist()
-    |> Enum.reduce(0, fn c, acc -> if c == ?0, do: acc + 1, else: acc end)
+    |> Enum.count(&(&1 == ?0))
   end
 end
