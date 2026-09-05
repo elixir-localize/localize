@@ -32,7 +32,7 @@ The generated module is compiled into a single BEAM file whose size grows with t
 
 Localize has no backend concept. All public API functions live directly in domain modules (`Localize.Number`, `Localize.Date`, `Localize.Territory`, etc.) and are available immediately without any compile-time setup.
 
-There is nothing to configure to start using the library. All 766 CLDR locales are available at runtime without pre-declaration.
+There is nothing to configure to start using the library. All 657 CLDR locales are available at runtime without pre-declaration.
 
 ## Dynamic data loading at runtime
 

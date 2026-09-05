@@ -1,6 +1,6 @@
 # TR35 Conformance
 
-This document maps the features defined in [Unicode Technical Standard #35 (LDML)](https://www.unicode.org/reports/tr35/) version 48 against the implementation status of the Localize library.
+This document maps the features defined in [Unicode Technical Standard #35 (LDML)](https://www.unicode.org/reports/tr35/) version 49 against the implementation status of the Localize library.
 
 Two areas are explicitly out of scope:
 
@@ -63,7 +63,7 @@ Two areas are explicitly out of scope:
 | Script display names | Implemented | `Localize.Script.display_name/2` with `:standard`, `:short`, `:stand_alone`, and `:variant` styles. |
 | Territory display names | Implemented | `Localize.Territory.display_name/2` with `:standard`, `:short`, `:variant` styles. |
 | Variant display names | Not implemented | |
-| Key/type display names | Not implemented | |
+| Key/type display names | Implemented | Drives `Localize.Locale.LocaleDisplay.display_name/2` — `en-u-kn-true` renders "English (Sort Digits Numerically)". `type_value_name/2` returns the localized name of a boolean keyword value ("On"/"Off"). |
 | Locale display names | Implemented | `Localize.Locale.LocaleDisplay.display_name/2` implements the CLDR locale display name algorithm. |
 
 ### Layout
@@ -151,7 +151,7 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Yes/no strings | Not implemented | |
+| Yes/no strings | Implemented | `Localize.affirmative_responses/1` and `negative_responses/1` return CLDR's POSIX `yesstr` / `nostr` forms; `affirmative?/2` and `negative?/2` match a response, folding case. |
 | POSIX locale identifier conversion | Implemented | `Localize.Locale` handles POSIX-style identifiers (e.g., `en_US.UTF-8`). |
 
 ---
@@ -221,6 +221,7 @@ Two areas are explicitly out of scope:
 | Cardinal plural rules | Implemented | `Localize.Number.PluralRule.Cardinal` with all CLDR operands (n, i, f, t, v, w, c, e). |
 | Ordinal plural rules | Implemented | `Localize.Number.PluralRule.Ordinal`. |
 | Plural ranges | Implemented | `Localize.Number.PluralRule.Range`. |
+| Minimal pairs | Implemented | `Localize.MinimalPairs` exposes the short phrases that demonstrate a locale's plural, ordinal, case and gender forms; `format/3` picks the one a number selects. |
 | Explicit 0 and 1 | Partial | Standard plural categories used; explicit 0/1 override not independently verified. |
 
 ### Rule-Based Number Formatting (RBNF)
@@ -259,7 +260,7 @@ Two areas are explicitly out of scope:
 | Day periods (a, b, B) | Implemented | `a` renders AM/PM; `b` renders noon/midnight at the exact points and AM/PM otherwise; `B` selects flexible day periods ("in the morning", "mittags") from the CLDR day-period rules, falling back to AM/PM for languages without rules. |
 | Available formats (skeletons) | Implemented | `Localize.DateTime.Format.Match` for skeleton matching. |
 | Interval formats | Implemented | `Localize.Interval.to_string/3` for date/time/datetime intervals. |
-| Append items (missing fields) | Not implemented | |
+| Append items (missing fields) | Implemented | `Localize.DateTime.Format.AppendItems` matches the closest format that is a subset of the request and appends the fields it lacks, so `en` renders `:yMMMdQ` as "Jul 6, 2024 (quarter: 3)". |
 
 ### Date/Time Parsing
 
@@ -298,7 +299,7 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Semantic skeleton support | Not implemented | Traditional skeleton matching is implemented but the newer semantic skeleton system from TR35 Section 29-32 is not. |
+| Semantic skeleton support | Implemented | `Localize.DateTime.SemanticSkeleton` builds a skeleton from meaning (`"YMDE"`, `"MDTZ"`) with `:length`, `:year_style`, `:zone_style` and `:hour_cycle`. The mapping to classical skeletons matches CLDR on all 240 conformance cases. |
 
 ### Supported Calendars
 
@@ -533,15 +534,12 @@ The MessageFormat working group conformance suite — including the WG `:test:fu
 ### Not implemented
 
 * Date/time parsing (string to date)
-* Metazone display names
-* Semantic skeletons
 * Context-dependent capitalization
 * Collation alphabetic index (UI bucketing)
 * Coordinate unit formatting (N/S/E/W)
 * Layout direction data
 * Coverage level assessment
 * Cyclic name sets (Chinese/Dangi calendars)
-* Append items (missing date/time fields)
 
 ### Not in scope for Localize
 

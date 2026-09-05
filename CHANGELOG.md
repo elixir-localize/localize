@@ -16,13 +16,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.DateTime.Timezone.location_name/3` returns the place the generic location format names for a timezone — a country for a single-zone territory or a CLDR primary zone, a city otherwise — and `generic_location_format/2` renders it through the locale's `regionFormat`.
 
-* `Localize.DateTime.SemanticSkeleton` implements TR35 semantic skeletons — asking for a date by meaning (`"YMDE"`, `"MDTZ"`) rather than by field. `semantic/2` builds one and the `:format` option accepts it on `Localize.Date`, `Localize.Time` and `Localize.DateTime`, alongside the styles, skeletons and patterns it already took. The mapping to classical skeletons matches CLDR on all 240 conformance cases.
+* `Localize.DateTime.SemanticSkeleton` implements TR35 semantic skeletons — asking for a date by meaning (`"YMDE"`, `"MDTZ"`) rather than by field. `semantic/2` builds one, the `:format` option accepts it on `Localize.Date`, `Localize.Time` and `Localize.DateTime`, and the mapping to classical skeletons matches CLDR on all 240 conformance cases.
 
 * `Localize.MinimalPairs` exposes CLDR's minimal pairs — the short phrases that demonstrate a locale's plural, ordinal, case and gender forms. `cardinal/1`, `ordinal/1`, `grammatical_case/1` and `grammatical_gender/1` return the phrases; `format/3` picks the one a number selects, so `format(3, :cardinal, locale: :en)` is `{:ok, "3 days"}`.
 
 ### Changed
 
-* **Breaking.** `Localize.DateTime.to_string/2` joins a date and a time with the locale's "at time" wrapper by default, so `en` at `:long` is now "July 6, 2024 at 2:30:45 PM" rather than "July 6, 2024, 2:30:45 PM". TR35 makes this the default for an event time and asks that the standard wrapper stay available for a current time — pass `style: :default` for the previous output. `:medium` and `:short` are unchanged, since CLDR defines the wrapper only for `:full` and `:long`.
+* **Breaking.** `Localize.DateTime.to_string/2` joins a date and a time with the locale's "at time" wrapper by default, so `en` at `:long` is now "July 6, 2024 at 2:30:45 PM" rather than "July 6, 2024, 2:30:45 PM". TR35 makes this the default for an event time; pass `style: :default` for the previous output, and note that `:medium` and `:short` are unchanged because CLDR defines the wrapper only for `:full` and `:long`.
 
 * **Breaking for historical Japanese dates.** Pre-Meiji era start dates are now proleptic Gregorian. CLDR recorded the lunisolar proclamation date in a proleptic-Gregorian field for all 231 pre-Meiji eras, so 大化 began `[645, 6, 19]` where the proleptic Gregorian date is 645-07-20; every era before Meiji moves by days to weeks.
 
@@ -32,21 +32,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * **Breaking.** CLDR 49 no longer publishes 114 locales whose coverage is below Basic and which ICU does not ship — `aa`, `ab`, `an`, `ann`, `apc`, `ht` and 108 others — and Localize follows suit rather than carrying the divergence forward. `Localize.validate_locale/1` and everything downstream now return `{:error, %Localize.InvalidLocaleError{}}` for them.
 
-* **Breaking.** `Localize.validate_territory/1` returns the canonical territory code. CLDR deprecates and replaces some codes, and both forms may be supplied: `validate_territory("AN")` was `{:ok, :AN}` and is now `{:ok, :CW}`, and the same applies to `SU` (now `:RU`), `DD` (now `:DE`), `CS` and `YU` (both now `:RS`). `validate_locale/1` already resolved these — `en-AN` has always had a territory of `:CW` — so the two functions now agree.
+* **Breaking.** `Localize.validate_territory/1` returns the canonical territory code. Both forms may be supplied: `validate_territory("AN")` was `{:ok, :AN}` and is now `{:ok, :CW}`, as for `SU` (`:RU`), `DD` (`:DE`), `CS` and `YU` (both `:RS`), bringing it into line with `validate_locale/1`.
 
 ### Fixed
 
-* Skeleton matching is deterministic. Two available formats can sit the same distance from a requested skeleton — `ja` answers `:yMMMMEEEEd` with `yMMMEEEEd` and `yMMMMEd` equally well — and the winner was decided by the iteration order of the formats map. Erlang hashes atom keys by internal reference, so that order depended on when those atoms were created and the same skeleton could resolve to a different pattern between runs.
+* Skeleton matching is deterministic. Where two formats sit the same distance from a skeleton the winner was decided by the formats map's iteration order, and because Erlang hashes atom keys by internal reference that order depended on when those atoms were created — so the same skeleton could resolve to a different pattern between runs.
 
 * A matched format keeps a field width the locale states deliberately. TR35 leaves a pattern field alone where the matched `availableFormats` id already carries the requested width, so `ru`'s `yMd` renders `dd.MM.y` rather than being narrowed to `d.M.y`.
 
-* A skeleton combining a date and a time adjusts both halves' field widths to the request. It adjusted neither, so a requested timezone symbol was replaced by whichever the matched format carried — `:MMMMdjmsO` rendered "GMT" where `O` gives "GMT+0". Every Gregorian case in CLDR's datetime conformance fixture now passes, up from 47 of 88.
+* A skeleton combining a date and a time adjusts both halves' field widths to the request. It adjusted neither, so a requested timezone symbol was replaced by whichever the matched format carried — `:MMMMdjmsO` rendered "GMT" where `O` gives "GMT+0" — and every Gregorian case in CLDR's datetime conformance fixture now passes, up from 47 of 88.
 
-* Unit preferences read the `-u-ms` and `-u-mu` locale keywords. A measurement system resolves to the preferences of a territory that uses it, and a measurement unit overrides the result outright — `en-u-rg-uszzzz-ms-metric` gives celsius, `en-US-u-rg-uszzzz-ms-uksystem` gives imperial gallons. TR35's ordering is `mu > ms > rg > (likely) region`.
+* Unit preferences read the `-u-ms` and `-u-mu` locale keywords. A measurement system resolves to the preferences of a territory that uses it and a measurement unit overrides the result outright, in TR35's order `mu > ms > rg > (likely) region`: `en-u-rg-uszzzz-ms-metric` gives celsius and `en-US-u-rg-uszzzz-ms-uksystem` imperial gallons.
 
 * A unit whose quantity CLDR ships no preferences for falls back to base units instead of returning an error: `Localize.Unit.Preference.preferred_units/2` on `ampere` gives `[:ampere]` and on `candela-per-cubic-foot` gives `["candela-per-cubic-meter"]`. A derived compound base unit comes back as a CLDR identifier string, since the set a caller can ask for is unbounded and interning it would be an atom-table vector.
 
-* A unit usage supplied as a string resolves instead of silently falling back to `:default`. Every usage CLDR defines now has an interned atom, so `usage: "fluid"` returns imperial gallons for `en-GB` where it returned cubic inches. `Localize.Unit.Preference.known_usages/0` lists them.
+* A unit usage supplied as a string resolves instead of silently falling back to `:default`. Every usage CLDR defines now has an interned atom — `Localize.Unit.Preference.known_usages/0` lists them — so `usage: "fluid"` returns imperial gallons for `en-GB` where it returned cubic inches.
 
 * An unknown timezone offset renders the locale's `gmtUnknownFormat` — `"GMT+?"`, and translated where the locale translates it — instead of a hard-coded English `"GMT"`. CLDR removed `gmtZeroFormat` from the spec, so the reader for it had been resolving to nothing in all 657 locales and every zero or absent offset fell through to that literal.
 
@@ -66,7 +66,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `ZZZZ` spells a zero offset as `"GMT+00:00"`, matching `OOOO` as TR35 requires of the localized GMT formats. A metazone with no daylight name also resolves a generic request to its standard name, so `vvvv` is `"Greenwich Mean Time"` for `Etc/GMT` and `"India Standard Time"` for `Asia/Kolkata`.
 
-* Skeleton formats honour the field widths asked for. TR35 matches a skeleton to the closest available format and then adjusts its field widths to the request; only the first step was happening, so `format: :MMMM` rendered "Jul" in `en` — which ships an `MMM` format and no `MMMM` — where the literal pattern `"MMMM"` rendered "July". Affects `Localize.Date`, `Localize.Time` and `Localize.DateTime`.
+* Skeleton formats honour the field widths asked for. TR35 matches a skeleton to the closest available format and then adjusts its field widths to the request; only the first step was happening, so in `Localize.Date`, `Localize.Time` and `Localize.DateTime` alike `format: :MMMM` rendered "Jul" in `en` where the literal pattern `"MMMM"` rendered "July".
 
 * Decimal formatting conforms to CLDR 49's new decimal test suite for 8,857 of 8,925 cases, from 7,096. `-0.0` keeps its sign; an explicit `:max_fractional_digits` now applies to a scientific mantissa; and compact formatting keeps two significant digits below 1 (`0.00831765` is `0.0083`, not `0`), re-picks its magnitude when rounding carries (`999.9` is `1K`, not `1,000`), and groups on ICU's MIN2 rule.
 
@@ -88,7 +88,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Locale.LocaleDisplay.display_name/2` renders a locale in `root` (or `und`) as bare subtag codes per TR35's code fallback — `display_name("nl-BE", locale: :root)` is `"nl (BE)"`, where it previously answered in English. `root` is now accepted wherever `und` is, and `cldr_locale_id_from("und")` resolves to `:und` rather than `:en`, agreeing with the atom form.
 
-* `Localize.validate_territory/1` accepts territory codes that CLDR replaces rather than lists. `"UK"` is a deprecated alias for `"GB"` and was rejected, as were the alpha-3 and numeric forms `"GBR"` and `"826"`. This matters for anything mapping a ccTLD to a territory, since `.uk` is the domain while `GB` is the code.
+* `Localize.validate_territory/1` accepts territory codes that CLDR replaces rather than lists. `"UK"` is a deprecated alias for `"GB"` and was rejected, as were the alpha-3 and numeric forms `"GBR"` and `"826"` — which matters for anything mapping a ccTLD to a territory, since `.uk` is the domain while `GB` is the code.
 
 ## [1.2.0] — August 16th, 2026
 

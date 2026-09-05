@@ -14,7 +14,7 @@ See "Running the benchmarks" at the bottom of this document for instructions on 
 | Elixir | 1.20.0-rc.3 |
 | Erlang/OTP | 28.1 |
 | JIT | enabled |
-| Localize | CLDR 48.2.1 |
+| Localize | CLDR 48.2.1 (not re-measured against CLDR 49) |
 | ex_cldr | 2.x family (ex_cldr_numbers ~> 2, ex_cldr_dates_times ~> 2, ex_cldr_units ~> 3) |
 
 Every benchmark runs with 1 second warmup, 3 seconds measurement, and 1 second memory measurement per scenario. The `bench/ex_cldr_vs_localize.exs` script exercises every scenario in three locales — `:en`, `:de`, `:ja` — in four variants per locale:

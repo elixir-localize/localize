@@ -14,7 +14,7 @@ The NIF is not a drop-in replacement for all operations. Some operations are fas
 
 ## Benchmark Results
 
-All benchmarks run on Apple M4 Max, Elixir 1.19.5, OTP 28, CLDR 48.2. Times are median per-call over 10,000+ iterations after warmup.
+All benchmarks run on Apple M4 Max, Elixir 1.19.5, OTP 28, CLDR 48.2. Times are median per-call over 10,000+ iterations after warmup. The figures have not been re-measured against CLDR 49; the data changed but the code paths they exercise did not, so they are indicative rather than current.
 
 ### MessageFormat 2
 

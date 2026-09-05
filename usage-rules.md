@@ -14,7 +14,7 @@ Rules for LLM coding agents using `Localize` as a dependency. These are not exha
 
 * Locale identifiers are atoms in canonical form: `:en`, `:"en-AU"`, `:"zh-Hant"`. Strings (`"en-AU"`) are also accepted by every public function and validated on the way in. Do not mix `_` (POSIX) and `-` (BCP 47) — Localize accepts both but normalizes to `-`.
 
-* There is no compile-time backend module. Do not write `use Localize` or `defmodule MyApp.Localize`. All 766 CLDR locales are available immediately.
+* There is no compile-time backend module. Do not write `use Localize` or `defmodule MyApp.Localize`. All 657 CLDR locales are available immediately.
 
 ## Module map
 
@@ -120,7 +120,7 @@ config :localize,
   supported_locales: [:en, :fr, :de, :ja, "es-*"]
 ```
 
-* `:supported_locales` constrains `validate_locale/1` to your declared subset. If unset (the default), all 766 CLDR locales are valid. Wildcard strings (`"es-*"`) expand to every matching locale.
+* `:supported_locales` constrains `validate_locale/1` to your declared subset. If unset (the default), all 657 CLDR locales are valid. Wildcard strings (`"es-*"`) expand to every matching locale.
 
 * Runtime locale downloading is **off by default**. Set `allow_runtime_locale_download: true` to enable on-demand downloading from the Localize CDN. Otherwise pre-populate the cache at build time with `mix localize.download_locales` (downloads the configured `:supported_locales`) or `mix localize.download_locales en fr de` for specific locales. Locale data is loaded lazily into `:persistent_term` on first access.
 

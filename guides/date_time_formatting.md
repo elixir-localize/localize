@@ -278,6 +278,12 @@ CLDR format patterns use field symbols to represent date and time components. Ea
 | `Z` | 5 | +05:00 or Z |
 | `O` | 1 | GMT+5 |
 | `O` | 4 | GMT+05:00 |
+| `v` | 1 | ET |
+| `v` | 4 | Eastern Time |
+| `V` | 1 | usnyc (BCP 47 short zone id) |
+| `V` | 2 | America/New_York |
+| `V` | 3 | New York (exemplar city) |
+| `V` | 4 | New York Time (generic location) |
 | `X` | 1-5 | +05, +0500, +05:00 (Z for zero) |
 | `x` | 1-5 | +05, +0500, +05:00 (no Z) |
 
@@ -318,7 +324,7 @@ Skeleton atoms can use `j` as a meta-symbol that resolves to the locale's prefer
 | `:format` | atom or pattern string | `:medium` | Standard name, skeleton atom, or custom pattern. |
 | `:date_format` | atom | (same as `:format`) | Format level for the date portion when using separate levels. |
 | `:time_format` | atom | (same as `:format`) | Format level for the time portion when using separate levels. |
-| `:style` | atom | `:default` | Wrapper style when combining date and time. |
+| `:style` | atom | `:at` | Wrapper joining date and time. `:at` is TR35's default for an event time ("July 6, 2024 at 2:30 PM"); `:default` is the standard wrapper, for a current time ("July 6, 2024, 2:30 PM"). CLDR defines the "at" wrapper only for `:full` and `:long`. |
 | `:prefer` | `:unicode` or `:ascii` | `:unicode` | Selects Unicode or ASCII variant. |
 
 ### `Localize.Interval.to_string/3`

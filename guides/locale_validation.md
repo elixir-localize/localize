@@ -28,7 +28,7 @@ Validation performs, in one pass:
 
 * **`-u-` extension parsing** — Unicode extension keywords are validated and decoded into a `Localize.LanguageTag.U` struct on the tag's `:locale` field.
 
-* **CLDR locale matching** — the tag is matched against the candidate locales (all ~766 CLDR locales, or your configured `:supported_locales`) to populate `:cldr_locale_id`, the key used for all data lookup.
+* **CLDR locale matching** — the tag is matched against the candidate locales (all ~657 CLDR locales, or your configured `:supported_locales`) to populate `:cldr_locale_id`, the key used for all data lookup.
 
 * **Caching** — the result is cached in ETS, so repeated validation of the same identifier costs about a microsecond.
 
@@ -148,7 +148,7 @@ In short: use `validate_locale/1` unless you have a specific reason not to. `par
 
 Localize uses a consistent vocabulary for locale (and other) inventories:
 
-* **known** — the locale-independent CLDR universe, e.g. `Localize.all_locale_ids/0` (~766 locales, or filtered by coverage level with `Localize.all_locale_ids(:modern)`).
+* **known** — the locale-independent CLDR universe, e.g. `Localize.all_locale_ids/0` (~657 locales, or filtered by coverage level with `Localize.all_locale_ids(:modern)`).
 
 * **available** — present in the CLDR release: `Localize.available_locale_id?/1` answers whether an identifier is a CLDR locale id.
 

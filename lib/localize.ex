@@ -1522,7 +1522,7 @@ defmodule Localize do
 
   ### Arguments
 
-  * `locale` is any locale returned by `Localize.known_locale_names/0` or a
+  * `locale` is any locale returned by `Localize.all_locale_ids/0` or a
     `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
 
   ### Returns
@@ -1553,7 +1553,7 @@ defmodule Localize do
 
   ### Arguments
 
-  * `locale` is any locale returned by `Localize.known_locale_names/0` or a
+  * `locale` is any locale returned by `Localize.all_locale_ids/0` or a
     `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
 
   ### Returns
@@ -1593,7 +1593,7 @@ defmodule Localize do
 
   ### Options
 
-  * `:locale` is any locale returned by `Localize.known_locale_names/0` or a
+  * `:locale` is any locale returned by `Localize.all_locale_ids/0` or a
     `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
 
   ### Returns
@@ -1632,7 +1632,7 @@ defmodule Localize do
 
   ### Options
 
-  * `:locale` is any locale returned by `Localize.known_locale_names/0` or a
+  * `:locale` is any locale returned by `Localize.all_locale_ids/0` or a
     `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
 
   ### Returns

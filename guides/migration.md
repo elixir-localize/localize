@@ -16,7 +16,7 @@ defmodule MyApp.Cldr do
 end
 ```
 
-In Localize there is no equivalent. Delete your backend module. All 766 CLDR locales are available at runtime without pre-declaration, and all formatting modules are ready to use immediately.
+In Localize there is no equivalent. Delete your backend module. All 657 CLDR locales are available at runtime without pre-declaration, and all formatting modules are ready to use immediately.
 
 ## Configuration
 
@@ -58,7 +58,7 @@ Coverage-level keywords (`:modern`, `:moderate`, `:basic`) are also accepted and
 
 ```elixir
 config :localize,
-  supported_locales: [:modern]  # ~104 locales with modern CLDR coverage
+  supported_locales: [:modern]  # 421 locales with modern CLDR coverage
 ```
 
 ### Full options reference
@@ -66,7 +66,7 @@ config :localize,
 | Option | Default | Description |
 |---|---|---|
 | `:default_locale` | Derived from `LOCALIZE_DEFAULT_LOCALE` env var → `LANG` env var → `:en` | Application-wide default locale. |
-| `:supported_locales` | `nil` (all 766 CLDR locales) | List of locale atoms, wildcard strings (e.g. `"en-*"`), coverage-level keywords (`:modern`, `:moderate`, `:basic`), or Gettext-style strings (e.g. `"pt_BR"`). POSIX underscores are normalised and entries are resolved via likely-subtag resolution — only exact matches (score 0) are accepted. Invalid entries log a warning and are skipped. When set, `validate_locale/1` resolves against this list instead of all CLDR locales. |
+| `:supported_locales` | `nil` (all 657 CLDR locales) | List of locale atoms, wildcard strings (e.g. `"en-*"`), coverage-level keywords (`:modern`, `:moderate`, `:basic`), or Gettext-style strings (e.g. `"pt_BR"`). POSIX underscores are normalised and entries are resolved via likely-subtag resolution — only exact matches (score 0) are accepted. Invalid entries log a warning and are skipped. When set, `validate_locale/1` resolves against this list instead of all CLDR locales. |
 | `:preload_locales` | **deprecated** | Deprecated and ignored. Use `:supported_locales` and `mix localize.download_locales`. |
 | `:otp_app` | `nil` | **Recommended.** Atom naming your application. Localize caches downloaded locale data under `Application.app_dir(<otp_app>, "priv/localize/locales")` — the same convention as `Ecto.Repo`, `Phoenix.Endpoint`, and `Gettext.Backend`. Resolved at every read so mix tasks, `mix test`, and releases all see the right path. |
 | `:locale_cache_dir` | `Application.app_dir(:localize, "priv/localize/locales")` | Path to the on-disk cache. Absolute paths are used verbatim and override `:otp_app`. **Relative** paths are valid only when paired with `:otp_app`, in which case they resolve against `Application.app_dir(<otp_app>, <relative>)`. A bare relative path with no `:otp_app` raises `Localize.LocaleCacheDirError` at app start. |
@@ -635,7 +635,7 @@ Built-in implementations cover `Integer`, `Float`, `Decimal`, `Date`, `Time`, `D
 | Aspect | ex_cldr | Localize |
 |---|---|---|
 | Setup | `use Cldr` backend module | None required |
-| Available locales | Pre-configured list | All 766 CLDR locales (constrainable via `:supported_locales`) |
+| Available locales | Pre-configured list | All 657 CLDR locales (constrainable via `:supported_locales`) |
 | Locale data loading | Compile-time embedding | Runtime lazy loading + on-demand download |
 | Locale argument | Backend module required | Not needed — defaults to `Localize.get_locale()` |
 | Default locale | Per-backend config | Process dictionary + app config + env vars |

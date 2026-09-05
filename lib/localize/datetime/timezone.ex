@@ -1007,7 +1007,7 @@ defmodule Localize.DateTime.Timezone do
 
   * `iana_id` is an IANA timezone name such as `"Europe/Rome"`.
 
-  * `locale` is any locale returned by `Localize.known_locale_names/0` or a
+  * `locale` is any locale returned by `Localize.all_locale_ids/0` or a
     `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
 
   * `options` is a keyword list of options.
@@ -1098,7 +1098,7 @@ defmodule Localize.DateTime.Timezone do
 
   * `iana_id` is an IANA timezone name such as `"Australia/Adelaide"`.
 
-  * `locale` is any locale returned by `Localize.known_locale_names/0` or a
+  * `locale` is any locale returned by `Localize.all_locale_ids/0` or a
     `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
 
   ### Returns

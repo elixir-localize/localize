@@ -3,9 +3,9 @@ defmodule Localize.Data.Supplemental do
   Generates supplemental data ETF files from raw CLDR JSON source data.
 
   Each `generate_*` function reads raw CLDR JSON from the production
-  data directory, transforms it into the runtime format expected by
-  `Localize.SupplementalData`, and returns the data structure. The
-  caller is responsible for writing the result as an ETF file.
+  data directory, transforms it into the runtime format the supplemental
+  data accessors expect, and returns the data structure. The caller is
+  responsible for writing the result as an ETF file.
 
   """
 

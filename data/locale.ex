@@ -4,7 +4,7 @@ defmodule Localize.Data.Locale do
 
   Reads locale-specific JSON files from the CLDR production data directories,
   merges them, applies normalization transforms, and saves the result as a
-  JSON file suitable for runtime loading by `Localize.Locale.Loader`.
+  JSON file suitable for runtime loading by the locale loader.
 
   """
 

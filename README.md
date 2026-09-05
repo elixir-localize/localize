@@ -24,7 +24,7 @@ Try it without installing anything at the [Localize playground](https://playgrou
 
 * **Minimal pairs** — CLDR's worked examples of a locale's plural, ordinal, case and gender forms, useful for showing a sample or checking that a rule selects the form it should.
 
-* **Dates and times** — format `Date`, `Time`, `DateTime`, and `NaiveDateTime` values using CLDR calendar patterns.
+* **Dates and times** — format `Date`, `Time`, `DateTime`, and `NaiveDateTime` values using CLDR calendar patterns, classical skeletons, or TR35 semantic skeletons that ask for a date by meaning (`"YMDE"`, `"MDTZ"`) rather than by field.
 
 * **Relative times** — format time differences as human-readable phrases like "2 hours ago" or "in 3 days".
 
@@ -47,6 +47,8 @@ Try it without installing anything at the [Localize playground](https://playgrou
 * **Collation** — locale-sensitive string sorting using the Unicode Collation Algorithm with CLDR tailoring.
 
 * **Locale display** — full locale display names (e.g., "English (United States)").
+
+* **Affirmative and negative responses** — the forms a locale accepts as yes and no, from CLDR's POSIX data, with case-folding matchers for prompts.
 
 * **Calendars** — era names, month names, day names, and day period names for all CLDR calendars.
 
@@ -210,7 +212,7 @@ Why `:otp_app` is the recommended anchor: `Application.app_dir/2` is re-resolved
 
 * `:default_locale` is the application-wide default locale. It can also be set at runtime with `Localize.put_default_locale/1`. The default is derived from the `LOCALIZE_DEFAULT_LOCALE` environment variable, then the `LANG` environment variable, then `:en`.
 
-* `:supported_locales` is a list of locale identifiers that your application supports. Each entry is an atom matching a known CLDR locale (e.g. `:en`, `:"fr-CA"`), a wildcard string (e.g. `"en-*"`), a coverage-level keyword (`:modern`, `:moderate`, `:basic`), or a Gettext-style string (e.g. `"pt_BR"`, `"zh_Hans"`). POSIX-style underscores are normalised to hyphens and entries are resolved to their CLDR canonical form via likely-subtag resolution (e.g. `"pt_BR"` → `:pt`). Only exact matches (score 0) are accepted — entries that cannot be resolved log a warning with `domain: :localize` and are skipped. When set, `validate_locale/1` resolves locale identifiers against this list rather than all ~766 CLDR locales. Accessible at runtime via `Localize.supported_locales/0`. The default is `nil`.
+* `:supported_locales` is a list of locale identifiers that your application supports. Each entry is an atom matching a known CLDR locale (e.g. `:en`, `:"fr-CA"`), a wildcard string (e.g. `"en-*"`), a coverage-level keyword (`:modern`, `:moderate`, `:basic`), or a Gettext-style string (e.g. `"pt_BR"`, `"zh_Hans"`). POSIX-style underscores are normalised to hyphens and entries are resolved to their CLDR canonical form via likely-subtag resolution (e.g. `"pt_BR"` → `:pt`). Only exact matches (score 0) are accepted — entries that cannot be resolved log a warning with `domain: :localize` and are skipped. When set, `validate_locale/1` resolves locale identifiers against this list rather than all ~657 CLDR locales. Accessible at runtime via `Localize.supported_locales/0`. The default is `nil`.
 
 * `:locale_provider` is a module implementing the `Localize.Locale.Provider` behaviour, for loading and caching per-locale data. The default is `Localize.Locale.Provider.PersistentTerm`.
 
@@ -255,7 +257,7 @@ RUN mix localize.download_locales
 
 Specific locales can also be downloaded explicitly: `mix localize.download_locales en fr de`. Use `--all` for all CLDR locales. Locale data is loaded lazily into `:persistent_term` on first access from the cache.
 
-When `:supported_locales` is **not** configured (the default), `validate_locale/1` matches against all ~766 CLDR locales.
+When `:supported_locales` is **not** configured (the default), `validate_locale/1` matches against all ~657 CLDR locales.
 
 ## Environment variables
 
