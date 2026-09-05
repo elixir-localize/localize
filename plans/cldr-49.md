@@ -1197,7 +1197,9 @@ The conformance fixtures, meanwhile, *are* refreshed — they sit in `@test_data
 
 Refreshing `FractionalUCA.txt` alone took 637 failures to 6 and 536 to 6 — one stale file accounted for 99% of it. The remaining 6 were all canonical-ordering cases (`X 0334` against `0334 Y`) for combining marks new in Unicode 18: `1ADC`, `1ADE`, `1AEC`, `1AEE`, `10D6D`, `10EF9`, `05C8`, `05C9`. With no combining class recorded they defaulted to zero and never reordered. Refreshing the UCD property files closed those. **All 210,155 pairs now pass under both strengths.**
 
-Wired shut so it cannot recur: `copy_sources` copies the UCA table (reporting its `VERSION:` header, since a silent change there moves every sort key in the library), `generate_all/0` rebuilds the collation table from it, and `mix localize.download_unicode_data` is pinned to 18.0.0.
+Wired shut so it cannot recur, and wired so it works on a machine other than the one it was fixed on. `copy_sources` copies the UCA table from `$CLDR_REPO` (reporting its `VERSION:` header, since a silent change there moves every sort key in the library), then reads the `UCD=` version out of that header and fetches the two UCD property files from unicode.org if the vendored ones do not match. `generate_all/0` rebuilds the collation table from the result.
+
+No Unicode version is configured anywhere: `mix localize.download_unicode_data` previously hard-coded `@unicode_version "17.0.0"`, which is a second version to keep in step with CLDR and therefore a second thing to forget. CLDR already states which UCD it was generated against, so that is what the pipeline reads. The task is now a thin wrapper over the same code path the pipeline uses, so there is one implementation rather than a manual step and an automatic one that can disagree.
 
 One test carried the same version-coupling and is now derived rather than hard-coded: `reorder_test.exs` asserted "Latin 'a' has primary 0x23EC in allkeys". That primary is not stable — every character UCA assigns ahead of Latin shifts it, and it moved to 0x2485 in Unicode 18. The fractional lead byte, which is what the test is actually about, stayed at 0x2B throughout.
 

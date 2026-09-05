@@ -62,6 +62,13 @@ defmodule Mix.Tasks.Localize.CopySources do
       Localize.Data.copy_bcp47_sources()
       Localize.Data.copy_script_metadata()
       Localize.Data.copy_uca_table()
+
+      # Must follow copy_uca_table/0: the UCD version to fetch is read from
+      # the FractionalUCA.txt header it just wrote.
+      case Localize.Data.UnicodeData.ensure_ucd_files() do
+        {:ok, _} -> :ok
+        {:error, reason} -> Mix.raise(to_string(reason))
+      end
     end
 
     if do_locales do
