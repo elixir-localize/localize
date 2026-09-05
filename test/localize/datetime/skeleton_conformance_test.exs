@@ -43,10 +43,11 @@ defmodule Localize.DateTime.SkeletonConformanceTest do
   #
   # The date-time glue — `zh-Hant-TW`, `ko` and `fr` at `yMdHmsv`, and the
   # comma before the year in `vi` `yMMMMd` / `yMMMMEEEEd`. We join with the
-  # locale's `dateTimeFormat`; CLDR's generator uses a plain space. This is
-  # the visible end of a data gap: TR35 made `atTime` the default type for
-  # combining a date and a time in CLDR 48, and cldr-json does not emit the
-  # `atTime` or `relative` glue patterns that `common/main/*.xml` carries.
+  # locale's `dateTimeFormat`; CLDR's generator uses a plain space. Both
+  # glue styles are ingested and `atTime` is now the default, per TR35, but
+  # CLDR defines it only for `:full` and `:long` — these cases combine at
+  # `:medium`, where `atTime` and `standard` are the same pattern, so the
+  # difference is the generator's, not a missing style.
   #
   # The locale's own format — `ko` `yMd` renders "2024. 7. 6." from `ko`'s
   # `availableFormats` where the fixture expects a generated `y/M/d`, and

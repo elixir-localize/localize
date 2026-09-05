@@ -161,7 +161,7 @@ Combine different format levels for the date and time portions:
 
 ```elixir
 iex> Localize.DateTime.to_string(~N[2024-07-10 14:30:00], date_format: :full, time_format: :short, locale: :en, prefer: :ascii)
-{:ok, "Wednesday, July 10, 2024, 2:30 PM"}
+{:ok, "Wednesday, July 10, 2024 at 2:30 PM"}
 ```
 
 ### Locale influence on datetimes

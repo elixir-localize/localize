@@ -22,7 +22,7 @@ defmodule Localize.CharsDateTimeTest do
 
     test "honours the :format option" do
       assert Localize.Chars.to_string(@datetime, format: :long) ==
-               {:ok, "July 4, 2026, 11:30:15 AM UTC"}
+               {:ok, "July 4, 2026 at 11:30:15 AM UTC"}
     end
 
     test "combines :locale and :format options" do

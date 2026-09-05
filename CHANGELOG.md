@@ -22,6 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* **Breaking.** `Localize.DateTime.to_string/2` joins a date and a time with the locale's "at time" wrapper by default, so `en` at `:long` is now "July 6, 2024 at 2:30:45 PM" rather than "July 6, 2024, 2:30:45 PM". TR35 makes this the default for an event time and asks that the standard wrapper stay available for a current time — pass `style: :default` for the previous output. `:medium` and `:short` are unchanged, since CLDR defines the wrapper only for `:full` and `:long`.
+
 * **Breaking for historical Japanese dates.** Pre-Meiji era start dates are now proleptic Gregorian. CLDR recorded the lunisolar proclamation date in a proleptic-Gregorian field for all 231 pre-Meiji eras, so 大化 began `[645, 6, 19]` where the proleptic Gregorian date is 645-07-20; every era before Meiji moves by days to weeks.
 
 * The Japanese calendar keeps all 237 eras, from 大化 (645) to 令和, generated from curated research rather than taken from upstream — CLDR 49 ships only Meiji onwards. 白鳳 is flagged `private_era: true` as a 私年号, and four entries still lacking primary-source attestation carry `unverified: true`.

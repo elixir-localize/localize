@@ -55,12 +55,17 @@ defmodule Localize.DateTime do
     is given it also selects the wrapper width.
 
   * `:style` selects the CLDR pattern that joins the date and
-    the time. `:default` (the default) uses the standard
-    wrapper ("April 8, 2026, 12:00:00 PM"); `:at` uses the
-    locale's "at time" wrapper ("April 8, 2026 at 12:00:00 PM",
-    de "8. April 2026 um 12:00:00"). CLDR defines the "at time"
-    wrapper only for `:full` and `:long`, so `:at` falls back to
-    the standard wrapper for `:medium` and `:short`.
+    the time. `:at` (the default) uses the locale's "at time"
+    wrapper ("April 8, 2026 at 12:00:00 PM", de "8. April 2026 um
+    12:00:00"); `:default` uses the standard wrapper ("April 8,
+    2026, 12:00:00 PM").
+
+    TR35 makes the "at time" wrapper the default for a single date
+    combined with a single time — an *event* time — and asks that an
+    API also offer the standard wrapper for a *current* time, which
+    is what `:default` is. CLDR defines the "at time" wrapper only
+    for `:full` and `:long`, so both styles agree at `:medium` and
+    `:short`.
 
   * `:locale` is a locale identifier. The default is `:en`.
 
@@ -106,7 +111,7 @@ defmodule Localize.DateTime do
        ) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
-    style = Keyword.get(options, :style, :default)
+    style = Keyword.get(options, :style, :at)
     options = Keyword.put_new(options, :locale, locale)
 
     with {:ok, locale_id} <- resolve_locale_id(locale) do
@@ -607,7 +612,9 @@ defmodule Localize.DateTime do
       |> Map.put(:date_format, :medium)
       |> Map.put(:time_format, :medium)
 
-    with {:ok, wrapper} <- resolve_wrapper(:medium, locale_id, :default) do
+    style = Keyword.get(options, :style, :at)
+
+    with {:ok, wrapper} <- resolve_wrapper(:medium, locale_id, style) do
       combined = String.replace(wrapper, "{0}", time_pattern)
       combined = String.replace(combined, "{1}", date_pattern)
       invoke_formatter(output, datetime, combined, locale_id, options_map)
