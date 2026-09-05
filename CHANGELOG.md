@@ -16,6 +16,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* Decimal formatting conforms to CLDR 49's new decimal test suite for 8,857 of 8,925 cases, from 7,096. `-0.0` keeps its sign; an explicit `:max_fractional_digits` now applies to a scientific mantissa; and compact formatting keeps two significant digits below 1 (`0.00831765` is `0.0083`, not `0`), re-picks its magnitude when rounding carries (`999.9` is `1K`, not `1,000`), and groups on ICU's MIN2 rule.
+
+* `Localize.Number.to_string/2` no longer raises on a very small float with a large `:max_fractional_digits` — `to_string(1.0e-308, max_fractional_digits: 400)` raised `ArithmeticError` because reconstructing the value divided by a power of ten outside the double range.
+
 * A locale that Localize holds data for now resolves to itself. `resolve_cldr_locale/1` asked the language matcher which known locale was closest even for an exact identity, and an equally-scored neighbour could win the tie: 25 of 657 locales read another locale's data, `ar-EG` (which formats in `arab` digits) resolving to `ar` (which uses `latn`) among them.
 
 * Full UCA conformance restored: all 210,155 pairs in both CLDR collation conformance files now sort correctly, where 637 (NON_IGNORABLE) and 536 (SHIFTED) failed. `FractionalUCA.txt` and the two UCD property files had been vendored by hand and left at Unicode 17 while the conformance fixtures refreshed with each CLDR update; `mix localize.copy_sources` now copies the UCA table and `generate_supplemental` rebuilds the collation table from it.

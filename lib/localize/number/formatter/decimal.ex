@@ -520,11 +520,9 @@ defmodule Localize.Number.Formatter.Decimal do
 
   defp walk_tokens([{:minus, _} | rest], body, number_string, meta, options) do
     # Mirrors the `{:minus, _}` clause of `assemble_parts/5`: in
-    # `:auto` mode a bare zero drops the minus sign.
-    auto_sign_display? = options.sign_display in [nil, :auto]
-
-    sign =
-      if number_string == "0" and auto_sign_display?, do: "", else: options.symbols.minus_sign
+    # `:auto` mode a value that rounds down to a bare zero drops the minus
+    # sign, but an actual negative zero keeps it.
+    sign = minus_sign_for(number_string, meta, options)
 
     [
       %{type: :minus_sign, value: sign}
@@ -605,7 +603,37 @@ defmodule Localize.Number.Formatter.Decimal do
     options
   end
 
+  # In `:auto` mode a number whose digits round away to a bare zero drops its
+  # minus sign, so `-0.4` at no fraction digits is "0". Negative zero is not
+  # that case: it is already zero and its sign is the only information it
+  # carries. ECMA-402 defines `signDisplay: "auto"` as signing negative
+  # numbers "including negative zero", ICU agrees, and CLDR's decimal
+  # conformance data asserts `-0.0` formats as "-0" across every locale.
+  defp minus_sign_for(number_string, meta, options) do
+    auto_sign_display? = options.sign_display in [nil, :auto]
+
+    if number_string == "0" and auto_sign_display? and
+         not negative_zero?(Map.get(meta, :number)) do
+      ""
+    else
+      options.symbols.minus_sign
+    end
+  end
+
+  defp negative_zero?(%Decimal{sign: sign, coef: 0}), do: sign < 0
+
+  defp negative_zero?(number) when is_float(number),
+    do: number == 0.0 and match?(<<1::1, _::bitstring>>, <<number::float>>)
+
+  defp negative_zero?(_number), do: false
+
   defp negative_number?(%Decimal{sign: sign}), do: sign < 0
+
+  # Matches `Options.negative?/1` — see the note there on why the sign bit is
+  # read rather than the value.
+  defp negative_number?(number) when is_float(number),
+    do: match?(<<1::1, _::bitstring>>, <<number::float>>)
+
   defp negative_number?(number), do: number < 0
 
   # True when every rounded digit is zero — the displayed value is
@@ -743,9 +771,29 @@ defmodule Localize.Number.Formatter.Decimal do
     {number, exponent}
   end
 
-  defp round_fractional_digits({number, exponent}, %{exponent_digits: exp_digits}, _options)
+  # Scientific notation carries its fraction digits on the mantissa, and the
+  # usual `#E0` pattern declares none. For scientific that means
+  # "unconstrained", not "round to an integer", so a pattern-derived maximum
+  # is ignored here — rounding 1.5E0 to zero fraction digits would give 2E0.
+  # A maximum the caller asked for is a different thing and is applied: ICU's
+  # `Notation.scientific()` defaults to six fraction digits on the mantissa,
+  # which is what CLDR's conformance data expects, and without this the
+  # mantissa carried the input's full float precision
+  # (`-1.5000000000000002E-1` for `-1.5E-1`).
+  defp round_fractional_digits({number, exponent}, %{exponent_digits: exp_digits}, options)
        when exp_digits > 0 do
-    {number, exponent}
+    case options.max_fractional_digits || options.fractional_digits do
+      nil ->
+        {number, exponent}
+
+      max ->
+        number =
+          number
+          |> Math.round(max, options.rounding_mode)
+          |> strip_trailing_zeros()
+
+        {number, exponent}
+    end
   end
 
   defp round_fractional_digits({number, exponent}, %{fractional_digits: %{max: max}}, %{
@@ -1272,14 +1320,13 @@ defmodule Localize.Number.Formatter.Decimal do
          meta,
          %{wrapper: wrapper} = options
        ) do
-    # In `:auto` mode a bare zero drops the minus sign. With an
-    # explicit `:sign_display`, `resolve_sign_display/3` has already
-    # decided whether this zero shows its sign (`:always` keeps the
-    # minus on `-0`), so the pattern choice is final.
-    auto_sign_display? = options.sign_display in [nil, :auto]
-
+    # With an explicit `:sign_display`, `resolve_sign_display/3` has already
+    # decided whether this zero shows its sign (`:always` keeps the minus on
+    # `-0`), so the pattern choice is final; `minus_sign_for/3` handles the
+    # `:auto` case.
     sign =
-      if(number_string == "0" and auto_sign_display?, do: "", else: options.symbols.minus_sign)
+      number_string
+      |> minus_sign_for(meta, options)
       |> maybe_wrap(:minus, wrapper)
 
     [sign | assemble_parts(rest, number_string, number, meta, options)]

@@ -141,7 +141,12 @@ defmodule Localize.Test.Number.FormatData do
       {1234, "1.2K", [format: :decimal_short]},
       {12_345, "12K", [format: :decimal_short]},
       {1234.5, "1.2K", [format: :decimal_short]},
-      {1234.5, "1.234", [format: :decimal_short, locale: "de"]},
+      # Compact notation groups on ICU's MIN2 strategy — a separator only
+      # where two digits precede it — so a four-digit compact value is
+      # ungrouped. CLDR 49's own decimal fixtures agree: `de decimal short
+      # -1230.05` is `-1230`. The grouped "1.234" here predates that suite and
+      # came across with the ex_cldr data.
+      {1234.5, "1234", [format: :decimal_short, locale: "de"]},
       {123_456, "123.456", [format: :decimal_short, locale: "de"]},
       {12_345_678, "12M", [format: :decimal_short]},
       {1_234_567_890, "1.2B", [format: :decimal_short]},

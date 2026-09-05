@@ -18,6 +18,9 @@ defmodule Localize.Utils.Digits do
 
   import Bitwise
   import Localize.Utils.Math, only: [power_of_10: 1]
+
+  # The largest n for which 10^n is a finite double.
+  @max_float_exponent 308
   require Integer
 
   @typedoc """
@@ -582,11 +585,34 @@ defmodule Localize.Utils.Digits do
   end
 
   def to_float({digits, place, sign}) when length(digits) >= place do
-    Integer.undigits(digits) / power_of_10(length(digits) - place) * sign
+    scale = length(digits) - place
+
+    scaled_float(Integer.undigits(digits), scale) * sign
   end
 
   def to_float({digits, place, sign}) do
     Integer.undigits(digits) * power_of_10(place - length(digits)) * sign * 1.0
+  end
+
+  # `mantissa / power_of_10(scale)` divides two integers and Erlang converts
+  # both to floats to do it. Above 10^308 the divisor is not a finite double
+  # and the conversion raises `ArithmeticError` — for a quotient that is
+  # perfectly representable, since it is the result that is tiny, not the
+  # divisor. `1.0e-308` decomposes to 16 digits at place -308, a scale of 324,
+  # which is how `Localize.Number.to_string/2` came to raise out of a non-bang
+  # function.
+  #
+  # Dividing in steps keeps every intermediate inside the double range: a
+  # value that is representable stays exact, and one that is not underflows to
+  # zero rather than raising.
+  defp scaled_float(mantissa, scale) when scale <= @max_float_exponent do
+    mantissa / power_of_10(scale)
+  end
+
+  defp scaled_float(mantissa, scale) do
+    mantissa
+    |> Kernel./(power_of_10(@max_float_exponent))
+    |> scaled_float(scale - @max_float_exponent)
   end
 
   @doc """

@@ -1262,6 +1262,20 @@ defmodule Localize.Utils.Math do
     |> Decimal.to_integer()
   end
 
+  # A double carries at most 17 significant decimal digits and its smallest
+  # subnormal is about 5e-324, so no finite double changes when rounded beyond
+  # roughly 325 decimal places — returning it unchanged is exact, not an
+  # approximation. The guard matters because the digit pipeline reconstructs
+  # through `10^n`, which overflows on the way back to a float: without it,
+  # `Localize.Number.to_string(1.0e-308, max_fractional_digits: 400)` raised
+  # ArithmeticError out of a public, non-bang function.
+  @max_meaningful_decimal_places 325
+
+  def round(number, places, _mode)
+      when is_float(number) and is_integer(places) and places > @max_meaningful_decimal_places do
+    number
+  end
+
   def round(number, places, mode) when is_float(number) do
     number
     |> Digits.to_digits()

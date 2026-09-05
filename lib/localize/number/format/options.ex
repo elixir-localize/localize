@@ -605,6 +605,14 @@ defmodule Localize.Number.Format.Options do
   # ── Sign detection ──────────────────────────────────────────
 
   defp negative?(%Decimal{sign: sign}) when sign < 0, do: true
+
+  # IEEE-754 negative zero compares equal to zero, so `< 0` misses it, but it
+  # is negative and both ICU and CLDR's decimal conformance data expect it to
+  # render with its sign — `-0.0` is "-0", not "0". Read the sign bit rather
+  # than the value; for every other float it agrees with `< 0`.
+  defp negative?(number) when is_float(number),
+    do: match?(<<1::1, _::bitstring>>, <<number::float>>)
+
   defp negative?(number) when is_number(number) and number < 0, do: true
   defp negative?(_), do: false
 end

@@ -13,6 +13,8 @@ defmodule Localize.Number.Formatter.Short do
   alias Localize.Number.Formatter
   alias Localize.Utils.Math
 
+  @one_thousand Decimal.new(1000)
+
   # # to_string/3
   # Formats a number using short/long format style.
   #
@@ -74,17 +76,87 @@ defmodule Localize.Number.Formatter.Short do
            context: "Localize.Number.Formatter.Short"
          )}
       else
-        {normalized_number, format} = choose_short_format(number, format_rules, options)
+        {normalized_number, format} =
+          number
+          |> choose_short_format(format_rules, options)
+          |> promote_magnitude_on_carry(number, format_rules, options)
 
         options =
           options
           |> maybe_set_fractional_digits(normalized_number)
+          |> maybe_set_minimum_grouping()
           |> Map.put(:format, format)
 
         {:ok, normalized_number, format, options}
       end
     end
   end
+
+  # The compact rule is chosen from the value's magnitude, then the mantissa
+  # is rounded — and the rounding can carry into the next magnitude, leaving
+  # the value formatted against a rule it has outgrown. `999.9` matches no
+  # compact rule at all (it is below 1000), rounds to 1000 and renders
+  # "1,000" where ICU gives "1K"; `999999.9` takes the thousands rule and
+  # renders "1000K" instead of "1M".
+  #
+  # ICU re-checks the carry, and so does this: the rounded mantissa is scaled
+  # back into the original units and the rule chosen again. Re-selecting
+  # unconditionally is both simpler and safer than testing for the carry —
+  # the test has to know how the rule divided, and locales whose compact
+  # pattern is a bare "0" (German's thousands, among others) do not divide at
+  # all, so a mantissa-magnitude test silently skips exactly the cases that
+  # need it. One pass suffices: rounding carries by at most one magnitude,
+  # and where nothing carried the same rule is chosen again.
+  defp promote_magnitude_on_carry({mantissa, _format} = chosen, number, format_rules, options)
+       when mantissa == 0 do
+    _ = {number, format_rules, options}
+    chosen
+  end
+
+  defp promote_magnitude_on_carry({mantissa, _format}, number, format_rules, options) do
+    number
+    |> scale_back(mantissa, round_mantissa(mantissa, options))
+    |> choose_short_format(format_rules, options)
+  end
+
+  defp round_mantissa(mantissa, options) do
+    # `maybe_set_fractional_digits/2` leaves the options untouched when the
+    # caller supplied any precision of their own, so the maximum can still be
+    # nil here — a caller who set only `:min_fractional_digits`, say. Nothing
+    # to round to in that case, and nothing that could carry.
+    case maybe_set_fractional_digits(options, mantissa) do
+      %{max_fractional_digits: nil} -> mantissa
+      %{max_fractional_digits: max} -> Math.round(mantissa, max, options.rounding_mode)
+    end
+  end
+
+  # `number / mantissa` is the divisor the rule applied; re-applying it to the
+  # rounded mantissa gives the rounded value in the original units.
+  defp scale_back(%Decimal{} = number, %Decimal{} = mantissa, rounded) do
+    Decimal.mult(rounded, Decimal.div(number, mantissa))
+  end
+
+  defp scale_back(number, mantissa, rounded) when is_number(number) and is_number(mantissa) do
+    rounded * (number / mantissa)
+  end
+
+  # Compact notation groups on ICU's MIN2 strategy: a separator appears only
+  # where at least two digits precede it. That is one rule, and it accounts
+  # for two opposite-looking mismatches — German renders a compact 5000 as
+  # "5000" where the standard format would give "5.000", while Bengali
+  # renders 50000 as "৫০,০০০" where a compact format carrying no grouping at
+  # all would give "৫০০০০". Expressed as `minimum_grouping_digits`, MIN2 is
+  # simply 2, which `minimum_group_size/2` then adds to the locale's primary
+  # group size.
+  defp maybe_set_minimum_grouping(%{minimum_grouping_digits: nil} = options) do
+    %{options | minimum_grouping_digits: 2}
+  end
+
+  defp maybe_set_minimum_grouping(%{minimum_grouping_digits: 0} = options) do
+    %{options | minimum_grouping_digits: 2}
+  end
+
+  defp maybe_set_minimum_grouping(options), do: options
 
   # When the caller supplies no fraction-digit options, apply the
   # ECMA-402/ICU compact default: at most two significant digits on
@@ -102,16 +174,43 @@ defmodule Localize.Number.Formatter.Short do
 
   defp maybe_set_fractional_digits(options, _mantissa), do: options
 
+  # ICU's compact precision is `Precision.integer().withMinDigits(2)`: round
+  # the mantissa to an integer, but never below two significant digits. For a
+  # mantissa of 1 or more that is what "at most one fraction digit while a
+  # single integer digit remains" already gives — 1.2M, 12M, 123M. Below 1 the
+  # two diverge, because the significant digits start after the leading zeros:
+  # a compact `0.00831765` is "0.0083", where one fraction digit rounds it away
+  # to "0" entirely.
+  #
+  # Expressed in fraction digits, two significant digits need `1 - magnitude`
+  # of them, where magnitude is the base-10 exponent — 0 for 1.5 (one fraction
+  # digit), -1 for 0.15 (two), -3 for 0.0083 (four) — clamped at zero for
+  # anything with two integer digits already.
   defp compact_max_fraction(mantissa) do
-    if single_integer_digit?(mantissa), do: 1, else: 0
+    case magnitude(mantissa) do
+      nil -> 0
+      magnitude -> max(0, 1 - magnitude)
+    end
   end
 
-  defp single_integer_digit?(%Decimal{} = mantissa) do
-    mantissa |> Decimal.abs() |> Decimal.compare(10) == :lt
+  defp magnitude(%Decimal{} = mantissa) do
+    absolute = Decimal.abs(mantissa)
+
+    cond do
+      Decimal.equal?(absolute, 0) -> nil
+      # Enough to clamp to zero fraction digits, and avoids converting a
+      # large Decimal to a float just to take its logarithm.
+      Decimal.compare(absolute, 10) != :lt -> 1
+      true -> absolute |> Decimal.to_float() |> float_magnitude()
+    end
   end
 
-  defp single_integer_digit?(mantissa) when is_number(mantissa) do
-    abs(mantissa) < 10
+  defp magnitude(mantissa) when is_number(mantissa) do
+    if mantissa == 0, do: nil, else: mantissa |> abs() |> float_magnitude()
+  end
+
+  defp float_magnitude(absolute) do
+    absolute |> :math.log10() |> Float.floor() |> trunc()
   end
 
   # ── Format selection ────────────────────────────────────────
@@ -188,8 +287,6 @@ defmodule Localize.Number.Formatter.Short do
   end
 
   # ── Number normalisation ────────────────────────────────────
-
-  @one_thousand Decimal.new(1000)
 
   defp normalise_number(%Decimal{} = number, range, number_of_zeros) do
     if Decimal.compare(number, @one_thousand) == :lt do

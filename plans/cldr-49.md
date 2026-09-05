@@ -80,7 +80,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 25 | CLDR 49 drops 114 locales below Basic coverage       | None       | **Breaking** — ✅ Adopted. 114 locales removed; `aa` and `ht` among them |
 | 26 | Locale display in `root` falls back to English       | None       | None — ✅ Fixed. 24 new cases pass, plus 44 exclusions retired |
 | 27 | Collation data pinned at Unicode 17 by hand         | None       | **Sort keys change** — ✅ Fixed. Full UCA conformance at Unicode 18 |
-| 28 | CLDR 49 decimal format conformance suite            | None       | None — ✅ Wired in at 86.5%, ratcheted; three defect classes named |
+| 28 | CLDR 49 decimal format conformance suite            | None       | **Output changes** — ✅ 99.2%. Negative zero, scientific and compact fixed |
 | 29 | A locale did not always resolve to itself          | None       | **Resolution changes** — ✅ Fixed. 25 locales were served a neighbour's data |
 
 The remainder of this file expands each item in turn.
@@ -1223,17 +1223,25 @@ Beyond simply not running the suite, the fixtures encode a contract that is easy
 
 ### Resolution
 
-`copy_sources` vendors all three files and `test/localize/number/decimal_conformance_test.exs` runs them, with per-file thresholds that ratchet down as fixes land. **7,720 of 8,925 pass (86.5%)**, up from 7,096 before item 29 was fixed.
+`copy_sources` vendors all three files and `test/localize/number/decimal_conformance_test.exs` runs them, with per-file thresholds that ratchet down as fixes land. **8,857 of 8,925 pass (99.2%)**, from 7,096 (79.5%) when the suite was first wired up; `decimals.tsv` is exact at 225/225.
 
-The 1,205 that remain fall into three classes, each confirmed against the fixtures:
+Four defects behind the three classes:
 
-* **Negative zero.** `-0.0` must format as `-0`; we drop the sign. Affects decimal, percent and scientific.
-* **Scientific mantissa.** `max_fractional_digits` is not applied to the mantissa, so `-0.15000000000000002` renders as `-1.5000000000000002E-1` where ICU gives `-1.5E-1`.
-* **Compact rounding.** Three separate things: compact needs two significant digits (`0.00831765` is `0.0083`, not `0`); rounding is half-even, not half-up (`-0.135` → `-0.14` but `-0.125` → `-0.12`); and the magnitude must be re-evaluated after rounding, so `-999.9` short is `-1 thousand`, not `-1,000`.
+* **Negative zero.** `negative?/1` tested `number < 0`, which is false for `-0.0`. The IEEE sign bit is read instead. A second rule then had to be narrowed: in `:auto` mode a value whose digits round away to a bare zero drops its minus (so `-0.4` at no fraction digits is "0"), and that was also swallowing actual negative zero — which is already zero, and whose sign is the only thing it carries.
+
+* **Scientific mantissa.** Rounding was skipped outright when a format had exponent digits, because the `#E0` pattern declares no fraction digits and applying that would round `1.5E0` to `2E0`. A pattern-derived maximum is still ignored; one the caller asked for is now applied.
+
+* **Compact precision.** ICU's compact rule is `Precision.integer().withMinDigits(2)` — round to an integer, never below two significant digits. That was approximated as "one fraction digit while the mantissa has a single integer digit", which agrees for mantissas of 1 or more and diverges below 1, where the significant digits begin after the leading zeros: a compact `0.00831765` is "0.0083", and one fraction digit rounds it away to "0".
+
+* **Compact magnitude and grouping.** The compact rule is chosen from the value's size and the mantissa rounded afterwards, so a carry left the value formatted against a rule it had outgrown — `999.9` matched no rule at all and rendered "1,000" instead of "1K". The rounded value is now scaled back and the rule chosen again. Separately, compact groups on ICU's MIN2 strategy, which resolved two opposite-looking mismatches at once: German renders a compact 5000 as "5000" where the standard format gives "5.000", and Bengali renders 50000 as "৫০,০০০" where an ungrouped compact gives "৫০০০০".
+
+The work also surfaced a latent crash unrelated to CLDR 49 and reachable from the public API: `Localize.Number.to_string(1.0e-308, max_fractional_digits: 400)` raised `ArithmeticError`. `Digits.to_float/1` divides two integers and Erlang converts both to floats to do it, so a scale above 10^308 raised on the divisor even though the quotient was representable. Dividing in steps keeps every intermediate in range. A non-bang function raising on valid input is a defect in its own right; the adversarial property test found it within 230 generated cases once compact precision started asking for more fraction digits.
+
+What remains, in descending order: 35 scientific cases in locales whose CLDR scientific pattern is literally `[#E0]` (`hi`, `gu` and others) — we apply the pattern CLDR ships and produce "[1.2E0]", while ICU's `NumberFormatter` ignores the pattern and builds the notation itself, which is a difference between two APIs rather than a defect here; Indic compact grouping and a few compact plural and abbreviation differences; and a `gl` grouping separator and the `ur` percent sign, which look like symbol selection rather than formatting.
 
 ### API impact / breaking risk
 
-None yet — the suite is observation. Fixing the three classes will change output for the affected inputs, and the negative-zero and compact-rounding changes are the ones consumers could notice.
+**Output changes.** `-0.0` now formats as "-0"; compact formatting of values below 1 keeps two significant digits where it used to collapse to "0"; compact values that round up into the next magnitude take that magnitude's rule; and compact grouping follows MIN2, so four-digit compact values lose a separator they used to carry in locales like German. One inherited expectation moved with the last of these — `test/support/number_format_test_data.exs` carried a grouped "1.234" for `de` compact that came across with the ex_cldr data and predates CLDR's own fixtures, which give "-1230" for the same shape.
 
 ## 29. A locale did not always resolve to itself — ✅ Fixed
 

@@ -19,17 +19,22 @@ defmodule Localize.Number.DecimalConformanceTest do
 
   # Thresholds are ratchets, not targets. Each is the count that survives
   # today; lower them as fixes land and never raise one to make a change fit.
-  # Remaining classes, all confirmed against the fixtures:
+  # 8,857 of 8,925 pass. What remains, in descending order:
   #
-  #   * negative zero — `-0.0` must keep its sign (`-0`), we drop it
-  #   * scientific — the mantissa ignores `max_fractional_digits`
-  #   * compact — needs two significant digits, half-even rounding, and a
-  #     magnitude re-check after rounding (`-999.9` short is `-1 thousand`,
-  #     not `-1,000`)
+  #   * 35 scientific cases in locales whose CLDR scientific pattern is
+  #     literally `[#E0]` — `hi`, `gu` and others. We apply the locale's
+  #     pattern and produce "[1.2E0]"; ICU's `NumberFormatter.notation(
+  #     scientific())` ignores the pattern and builds the notation itself.
+  #     That is a difference between two APIs rather than a defect here, and
+  #     honouring the data CLDR ships is the defensible side of it.
+  #   * Indic compact grouping (`bn` long) and a handful of compact plural
+  #     and abbreviation differences (`af`, `bs`, `en-IN`).
+  #   * `gl` grouping separator and the `ur` percent sign, which look like
+  #     symbol-selection questions rather than formatting ones.
   @files [
-    {"decimal_test_data.tsv", 22},
-    {"decimal_modern_locales_test_data.tsv", 262},
-    {"decimal_extended_numbers_test_data.tsv", 921}
+    {"decimal_test_data.tsv", 0},
+    {"decimal_modern_locales_test_data.tsv", 62},
+    {"decimal_extended_numbers_test_data.tsv", 6}
   ]
 
   defp options("decimal", ""), do: [max_fractional_digits: 6]
