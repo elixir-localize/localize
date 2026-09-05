@@ -1,0 +1,1687 @@
+{
+ "description": "Curated Japanese era start dates as proleptic Gregorian. CLDR 49 ships only Meiji onwards (indices 232-236), and its pre-Meiji entries recorded the lunisolar proclamation date in a proleptic-Gregorian field; these are the researched conversions. Build input for the calendars.etf generator.",
+ "era_count": 237,
+ "eras": [
+  {
+   "confidence": "high",
+   "era": "大化",
+   "idx": 0,
+   "romaji": "Taika",
+   "start": "645-07-20",
+   "status": "verified"
+  },
+  {
+   "confidence": "high",
+   "era": "白雉",
+   "idx": 1,
+   "start": "650-03-25",
+   "status": "verified"
+  },
+  {
+   "confidence": "low",
+   "era": "白鳳",
+   "idx": 2,
+   "private_era": true,
+   "romaji": "Hakuhō",
+   "start": "672-02-08",
+   "status": "needs_research"
+  },
+  {
+   "confidence": "high",
+   "era": "朱鳥",
+   "idx": 3,
+   "start": "686-08-17",
+   "status": "verified"
+  },
+  {
+   "confidence": "high",
+   "era": "大宝",
+   "idx": 4,
+   "start": "701-05-07",
+   "status": "verified"
+  },
+  {
+   "confidence": "high",
+   "era": "慶雲",
+   "idx": 5,
+   "start": "704-06-20",
+   "status": "verified"
+  },
+  {
+   "confidence": "high",
+   "era": "和銅",
+   "idx": 6,
+   "start": "708-02-11",
+   "status": "verified"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "霊亀",
+   "idx": 7,
+   "start": "715-10-07",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "養老",
+   "idx": 8,
+   "start": "717-12-28",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "神亀",
+   "idx": 9,
+   "start": "724-03-07",
+   "status": "provisional"
+  },
+  {
+   "confidence": "high",
+   "era": "天平",
+   "idx": 10,
+   "start": "729-09-06",
+   "status": "verified"
+  },
+  {
+   "confidence": "medium",
+   "era": "天平感宝",
+   "idx": 11,
+   "start": "749-05-08",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "天平勝宝",
+   "idx": 12,
+   "start": "749-08-23",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天平宝字",
+   "idx": 13,
+   "start": "757-09-10",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天平神護",
+   "idx": 14,
+   "start": "765-02-05",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "神護景雲",
+   "idx": 15,
+   "start": "767-09-17",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "宝亀",
+   "idx": 16,
+   "start": "770-10-27",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "天応",
+   "idx": 17,
+   "start": "781-02-03",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "延暦",
+   "idx": 18,
+   "start": "782-10-04",
+   "status": "verified"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "大同",
+   "idx": 19,
+   "start": "806-06-12",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "弘仁",
+   "idx": 20,
+   "start": "810-10-24",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天長",
+   "idx": 21,
+   "start": "824-02-12",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "承和",
+   "idx": 22,
+   "start": "834-02-18",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "嘉祥",
+   "idx": 23,
+   "start": "848-07-20",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "仁寿",
+   "idx": 24,
+   "start": "851-06-05",
+   "status": "provisional"
+  },
+  {
+   "confidence": "low",
+   "era": "斉衡",
+   "idx": 25,
+   "start": "854-12-27",
+   "status": "needs_research"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天安",
+   "idx": 26,
+   "start": "857-03-24",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "貞観",
+   "idx": 27,
+   "start": "859-05-24",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "元慶",
+   "idx": 28,
+   "start": "877-06-05",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "仁和",
+   "idx": 29,
+   "start": "885-03-15",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "寛平",
+   "idx": 30,
+   "start": "889-06-03",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "昌泰",
+   "idx": 31,
+   "start": "898-05-24",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "延喜",
+   "idx": 32,
+   "start": "901-09-05",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "延長",
+   "idx": 33,
+   "start": "923-06-03",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "承平",
+   "idx": 34,
+   "start": "931-05-21",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天慶",
+   "idx": 35,
+   "start": "938-06-27",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天暦",
+   "idx": 36,
+   "start": "947-05-20",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天徳",
+   "idx": 37,
+   "start": "957-11-26",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "応和",
+   "idx": 38,
+   "start": "961-03-10",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "康保",
+   "idx": 39,
+   "start": "964-08-24",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "安和",
+   "idx": 40,
+   "start": "968-09-13",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天禄",
+   "idx": 41,
+   "start": "970-05-08",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "天延",
+   "idx": 42,
+   "start": "974-01-21",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "貞元",
+   "idx": 43,
+   "start": "976-08-16",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天元",
+   "idx": 44,
+   "start": "979-01-05",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "永観",
+   "idx": 45,
+   "start": "983-06-03",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "寛和",
+   "idx": 46,
+   "start": "985-05-24",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "永延",
+   "idx": 47,
+   "start": "987-05-10",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "永祚",
+   "idx": 48,
+   "start": "989-09-15",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "正暦",
+   "idx": 49,
+   "start": "990-12-01",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "長徳",
+   "idx": 50,
+   "start": "995-03-30",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "長保",
+   "idx": 51,
+   "start": "999-02-06",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "寛弘",
+   "idx": 52,
+   "start": "1004-08-14",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "長和",
+   "idx": 53,
+   "start": "1013-02-14",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "寛仁",
+   "idx": 54,
+   "start": "1017-05-27",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "治安",
+   "idx": 55,
+   "start": "1021-03-23",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "万寿",
+   "idx": 56,
+   "start": "1024-08-25",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "長元",
+   "idx": 57,
+   "start": "1028-08-24",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "長暦",
+   "idx": 58,
+   "start": "1037-05-15",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "長久",
+   "idx": 59,
+   "start": "1040-12-22",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "寛徳",
+   "idx": 60,
+   "start": "1044-12-22",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "永承",
+   "idx": 61,
+   "start": "1046-05-28",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天喜",
+   "idx": 62,
+   "start": "1053-02-08",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "康平",
+   "idx": 63,
+   "start": "1058-09-25",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "治暦",
+   "idx": 64,
+   "start": "1065-09-10",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "延久",
+   "idx": 65,
+   "start": "1069-05-12",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "承保",
+   "idx": 66,
+   "start": "1074-09-22",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "承暦",
+   "idx": 67,
+   "start": "1077-12-11",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "永保",
+   "idx": 68,
+   "start": "1081-03-28",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "応徳",
+   "idx": 69,
+   "start": "1084-03-21",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "寛治",
+   "idx": 70,
+   "start": "1087-05-17",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "嘉保",
+   "idx": 71,
+   "start": "1095-01-29",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "永長",
+   "idx": 72,
+   "start": "1097-01-09",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "承徳",
+   "idx": 73,
+   "start": "1098-01-02",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "康和",
+   "idx": 74,
+   "start": "1099-09-21",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "長治",
+   "idx": 75,
+   "start": "1104-03-15",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "嘉承",
+   "idx": 76,
+   "start": "1106-05-20",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天仁",
+   "idx": 77,
+   "start": "1108-09-16",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天永",
+   "idx": 78,
+   "start": "1110-08-07",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "永久",
+   "idx": 79,
+   "start": "1113-09-01",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "元永",
+   "idx": 80,
+   "start": "1118-05-02",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "保安",
+   "idx": 81,
+   "start": "1120-05-16",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "天治",
+   "idx": 82,
+   "start": "1124-05-25",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "大治",
+   "idx": 83,
+   "start": "1126-02-22",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天承",
+   "idx": 84,
+   "start": "1131-03-07",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "長承",
+   "idx": 85,
+   "start": "1132-09-28",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "保延",
+   "idx": 86,
+   "start": "1135-06-17",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "永治",
+   "idx": 87,
+   "start": "1141-08-20",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "康治",
+   "idx": 88,
+   "start": "1142-06-01",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天養",
+   "idx": 89,
+   "start": "1144-04-04",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "久安",
+   "idx": 90,
+   "start": "1145-08-19",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "仁平",
+   "idx": 91,
+   "start": "1151-02-21",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "久寿",
+   "idx": 92,
+   "start": "1154-12-11",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "保元",
+   "idx": 93,
+   "start": "1156-05-25",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "平治",
+   "idx": 94,
+   "start": "1159-05-16",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "永暦",
+   "idx": 95,
+   "start": "1160-02-25",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "応保",
+   "idx": 96,
+   "start": "1161-10-01",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "長寛",
+   "idx": 97,
+   "start": "1163-05-11",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "永万",
+   "idx": 98,
+   "start": "1165-07-21",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "仁安",
+   "idx": 99,
+   "start": "1166-09-30",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "嘉応",
+   "idx": 100,
+   "start": "1169-05-13",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "承安",
+   "idx": 101,
+   "start": "1171-06-03",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "安元",
+   "idx": 102,
+   "start": "1175-08-23",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "治承",
+   "idx": 103,
+   "start": "1177-09-05",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "養和",
+   "idx": 104,
+   "start": "1181-09-01",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "寿永",
+   "idx": 105,
+   "start": "1182-07-06",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "元暦",
+   "idx": 106,
+   "start": "1184-06-03",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "文治",
+   "idx": 107,
+   "start": "1185-09-16",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "建久",
+   "idx": 108,
+   "start": "1190-05-23",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "正治",
+   "idx": 109,
+   "start": "1199-05-30",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "建仁",
+   "idx": 110,
+   "start": "1201-03-26",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "元久",
+   "idx": 111,
+   "start": "1204-03-30",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "建永",
+   "idx": 112,
+   "start": "1206-06-12",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "承元",
+   "idx": 113,
+   "start": "1207-11-23",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "建暦",
+   "idx": 114,
+   "start": "1211-04-30",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "建保",
+   "idx": 115,
+   "start": "1214-01-25",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "承久",
+   "idx": 116,
+   "start": "1219-06-03",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "貞応",
+   "idx": 117,
+   "start": "1222-06-01",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "元仁",
+   "idx": 118,
+   "start": "1225-01-07",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "嘉禄",
+   "idx": 119,
+   "start": "1225-06-04",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "安貞",
+   "idx": 120,
+   "start": "1228-01-25",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "寛喜",
+   "idx": 121,
+   "start": "1229-04-07",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "貞永",
+   "idx": 122,
+   "start": "1232-04-30",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天福",
+   "idx": 123,
+   "start": "1233-06-01",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "文暦",
+   "idx": 124,
+   "start": "1234-12-04",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "嘉禎",
+   "idx": 125,
+   "start": "1235-11-08",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "暦仁",
+   "idx": 126,
+   "start": "1239-01-06",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "延応",
+   "idx": 127,
+   "start": "1239-03-20",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "仁治",
+   "idx": 128,
+   "start": "1240-08-12",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "寛元",
+   "idx": 129,
+   "start": "1243-03-25",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "宝治",
+   "idx": 130,
+   "start": "1247-04-12",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "建長",
+   "idx": 131,
+   "start": "1249-05-09",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "康元",
+   "idx": 132,
+   "start": "1256-10-31",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "正嘉",
+   "idx": 133,
+   "start": "1257-04-07",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "正元",
+   "idx": 134,
+   "start": "1259-04-27",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "文応",
+   "idx": 135,
+   "start": "1260-05-31",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "弘長",
+   "idx": 136,
+   "start": "1261-03-29",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "文永",
+   "idx": 137,
+   "start": "1264-04-03",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "建治",
+   "idx": 138,
+   "start": "1275-05-29",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "弘安",
+   "idx": 139,
+   "start": "1278-03-30",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "正応",
+   "idx": 140,
+   "start": "1288-06-05",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "永仁",
+   "idx": 141,
+   "start": "1293-09-13",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "正安",
+   "idx": 142,
+   "start": "1299-06-01",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "乾元",
+   "idx": 143,
+   "start": "1302-12-18",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "嘉元",
+   "idx": 144,
+   "start": "1303-09-24",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "徳治",
+   "idx": 145,
+   "start": "1307-01-26",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "延慶",
+   "idx": 146,
+   "start": "1308-11-30",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "応長",
+   "idx": 147,
+   "start": "1311-05-25",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "正和",
+   "idx": 148,
+   "start": "1312-05-05",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "文保",
+   "idx": 149,
+   "start": "1317-03-24",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "元応",
+   "idx": 150,
+   "start": "1319-05-26",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "元亨",
+   "idx": 151,
+   "start": "1321-03-30",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "正中",
+   "idx": 152,
+   "start": "1325-01-02",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "嘉暦",
+   "idx": 153,
+   "start": "1326-06-05",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "元徳",
+   "idx": 154,
+   "start": "1329-09-30",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "元弘",
+   "idx": 155,
+   "start": "1331-09-19",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "建武",
+   "idx": 156,
+   "start": "1334-03-13",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "延元",
+   "idx": 157,
+   "start": "1336-04-19",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "興国",
+   "idx": 158,
+   "start": "1340-06-02",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "正平",
+   "idx": 159,
+   "start": "1347-01-28",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "建徳",
+   "idx": 160,
+   "start": "1370-08-24",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "文中",
+   "idx": 161,
+   "romaji": "Bunchū",
+   "start": "1372-05-12",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天授",
+   "idx": 162,
+   "start": "1375-07-04",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "康暦",
+   "idx": 163,
+   "start": "1379-04-17",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "弘和",
+   "idx": 164,
+   "start": "1381-03-14",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "元中",
+   "idx": 165,
+   "start": "1384-05-26",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "嘉慶",
+   "idx": 166,
+   "romaji": "Kakei",
+   "start": "1387-10-13",
+   "status": "disputed"
+  },
+  {
+   "confidence": "unknown",
+   "era": null,
+   "idx": 167,
+   "note": "CLDR carries this index with no era name. Its lunisolar value matches 嘉慶's proclamation date at index 166, so the two are likely the same era recorded twice; the start date is that era's researched conversion.",
+   "start": "1387-10-13",
+   "status": "needs_research"
+  },
+  {
+   "confidence": "medium",
+   "era": "康応",
+   "idx": 168,
+   "start": "1389-03-15",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "明徳",
+   "idx": 169,
+   "start": "1390-04-20",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "応永",
+   "idx": 170,
+   "start": "1394-08-10",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "正長",
+   "idx": 171,
+   "start": "1428-06-19",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "永享",
+   "idx": 172,
+   "start": "1429-10-12",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "嘉吉",
+   "idx": 173,
+   "start": "1441-03-19",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "文安",
+   "idx": 174,
+   "start": "1444-03-03",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "宝徳",
+   "idx": 175,
+   "start": "1449-08-25",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "享徳",
+   "idx": 176,
+   "start": "1452-08-19",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "康正",
+   "idx": 177,
+   "start": "1455-09-15",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "長禄",
+   "idx": 178,
+   "start": "1457-10-25",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "寛正",
+   "idx": 179,
+   "start": "1461-02-10",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "文正",
+   "idx": 180,
+   "start": "1466-03-23",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "応仁",
+   "idx": 181,
+   "romaji": "Ōnin",
+   "start": "1467-04-18",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "文明",
+   "idx": 182,
+   "start": "1469-06-17",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "長享",
+   "idx": 183,
+   "romaji": "Chōkyō",
+   "start": "1487-08-18",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "延徳",
+   "idx": 184,
+   "start": "1489-09-25",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "明応",
+   "idx": 185,
+   "start": "1492-08-21",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "文亀",
+   "idx": 186,
+   "start": "1501-03-28",
+   "status": "provisional"
+  },
+  {
+   "confidence": "low",
+   "era": "永正",
+   "idx": 187,
+   "start": "1504-03-26",
+   "status": "needs_research"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "大永",
+   "idx": 188,
+   "start": "1521-10-03",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "享禄",
+   "idx": 189,
+   "start": "1528-09-13",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天文",
+   "idx": 190,
+   "start": "1532-09-08",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "弘治",
+   "idx": 191,
+   "start": "1555-11-17",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "永禄",
+   "idx": 192,
+   "start": "1558-03-28",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "元亀",
+   "idx": 193,
+   "start": "1570-06-06",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天正",
+   "idx": 194,
+   "start": "1573-09-04",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "文禄",
+   "idx": 195,
+   "start": "1593-01-10",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "慶長",
+   "idx": 196,
+   "start": "1596-12-16",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "元和",
+   "idx": 197,
+   "start": "1615-09-05",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "寛永",
+   "idx": 198,
+   "start": "1624-04-17",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "正保",
+   "idx": 199,
+   "start": "1645-01-13",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "慶安",
+   "idx": 200,
+   "start": "1648-04-07",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "承応",
+   "idx": 201,
+   "start": "1652-10-20",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "明暦",
+   "idx": 202,
+   "start": "1655-05-18",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "万治",
+   "idx": 203,
+   "start": "1658-08-21",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "寛文",
+   "idx": 204,
+   "start": "1661-05-23",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "延宝",
+   "idx": 205,
+   "start": "1673-10-30",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天和",
+   "idx": 206,
+   "start": "1681-11-09",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "貞享",
+   "idx": 207,
+   "start": "1684-04-05",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "元禄",
+   "idx": 208,
+   "start": "1688-10-23",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "宝永",
+   "idx": 209,
+   "start": "1704-04-16",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "正徳",
+   "idx": 210,
+   "start": "1711-06-11",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "享保",
+   "idx": 211,
+   "start": "1716-08-09",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "元文",
+   "idx": 212,
+   "start": "1736-06-07",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "寛保",
+   "idx": 213,
+   "start": "1741-04-12",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "延享",
+   "idx": 214,
+   "start": "1744-04-03",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "寛延",
+   "idx": 215,
+   "start": "1748-08-05",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "宝暦",
+   "idx": 216,
+   "start": "1751-12-14",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "明和",
+   "idx": 217,
+   "start": "1764-06-30",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "安永",
+   "idx": 218,
+   "start": "1772-12-10",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "天明",
+   "idx": 219,
+   "start": "1781-04-25",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "寛政",
+   "idx": 220,
+   "start": "1789-02-19",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "享和",
+   "idx": 221,
+   "start": "1801-03-19",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "文化",
+   "idx": 222,
+   "start": "1804-03-22",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "文政",
+   "idx": 223,
+   "start": "1818-05-26",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium",
+   "era": "天保",
+   "idx": 224,
+   "start": "1831-01-23",
+   "status": "disputed"
+  },
+  {
+   "confidence": "medium",
+   "era": "弘化",
+   "idx": 225,
+   "start": "1845-01-09",
+   "status": "disputed"
+  },
+  {
+   "confidence": "high",
+   "era": "嘉永",
+   "idx": 226,
+   "start": "1848-04-01",
+   "status": "verified"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "安政",
+   "idx": 227,
+   "start": "1855-01-15",
+   "status": "verified"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "万延",
+   "idx": 228,
+   "start": "1860-04-08",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "文久",
+   "idx": 229,
+   "start": "1861-03-29",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "元治",
+   "idx": 230,
+   "start": "1864-03-27",
+   "status": "provisional"
+  },
+  {
+   "confidence": "medium-high",
+   "era": "慶応",
+   "idx": 231,
+   "start": "1865-05-01",
+   "status": "provisional"
+  },
+  {
+   "code": "meiji",
+   "confidence": "high",
+   "era": "明治",
+   "idx": 232,
+   "romaji": "Meiji",
+   "start": "1868-10-23",
+   "status": "verified"
+  },
+  {
+   "code": "taisho",
+   "confidence": "high",
+   "era": "大正",
+   "idx": 233,
+   "romaji": "Taishō",
+   "start": "1912-07-30",
+   "status": "verified"
+  },
+  {
+   "code": "showa",
+   "confidence": "high",
+   "era": "昭和",
+   "idx": 234,
+   "romaji": "Shōwa",
+   "start": "1926-12-25",
+   "status": "verified"
+  },
+  {
+   "code": "heisei",
+   "confidence": "high",
+   "era": "平成",
+   "idx": 235,
+   "romaji": "Heisei",
+   "start": "1989-01-08",
+   "status": "verified"
+  },
+  {
+   "code": "reiwa",
+   "confidence": "high",
+   "era": "令和",
+   "idx": 236,
+   "romaji": "Reiwa",
+   "start": "2019-05-01",
+   "status": "verified"
+  }
+ ],
+ "methodology": "plans/japanese_eras.md",
+ "research_version": 3,
+ "source": "plans/japanese_eras_research.json",
+ "unverified_note": "Entries with status 'needs_research' are published with an `unverified` flag so consumers can filter them."
+}

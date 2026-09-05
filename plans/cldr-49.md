@@ -66,7 +66,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 11 | `localize_emoji` sibling library                  | New package | None          |
 | 12 | `common/testData` conformance-fixture audit       | None (tests only) | None      |
 | 13 | CDN-asset checksum manifests                       | None       | None — ✅ Done in Localize 0.44.0 |
-| 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Silent data loss if not done** — ✅ Guarded. All 237 eras intact, snapshot frozen, regression test verified to fail on truncation. See [plans/japanese_eras.md](japanese_eras.md). |
+| 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Output changes** — ✅ Done. All 237 eras generated from curated research; pre-Meiji dates were CLDR's lunisolar values and are now proleptic Gregorian |
 | 15 | POSIX `yesstr` / `nostr` responses                  | New functions | None (additive; ETF schema bump) |
 | 16 | `typeValues` On/Off translations (CLDR 49, CLDR-19394) | New functions | None (additive) — added 2026-08-25 |
 | 17 | `H24` hour cycle deprecated                        | None       | Output changes for the `k` symbol at midnight |
@@ -907,7 +907,7 @@ Generating a manifest is a natural insertion point when the CLDR 49 ETF pipeline
 
 * For air-gapped deployments: should there be a way to ship a manifest with the package (so download-and-verify works from a local mirror)?
 
-## 14. Japanese pre-Meiji eras: keep and curate — ✅ Guarded; curation continues
+## 14. Japanese pre-Meiji eras: keep and curate — ✅ Done
 
 The design plan — validation methodology, primary sources, per-era tracking table, and the JSON research dataset — lives in [plans/japanese_eras.md](japanese_eras.md). This section is the CLDR 49 scope statement and the pipeline hook; the child plan is the source of truth for the curation work.
 
@@ -921,17 +921,17 @@ CLDR 49 drops era data for every era before Meiji — indices 0–231, which is 
 
 Localize's position is that the use cases needing this data — academic publishing, genealogy, museum cataloguing, calendar conversion — are exactly the ones CLDR is stepping back from, so we keep shipping it and own the validation.
 
-**Correction to an earlier reading of the risk.** This section previously said a routine Phase 1–3 run regenerates `calendars.etf` from upstream and silently deletes 232 eras. It does not: `calendars.etf` has **no generator**. It is absent from the generator registry in [data/data.ex](../data/data.ex) and was committed by hand ("Add calendar support data"), so `mix localize.generate_supplemental` never touches it. The CLDR 49 regeneration performed this cycle left all 237 eras intact, which is why the file is still clean in git.
+**The curated eras are now the pipeline's output.** `calendars.etf` previously had no generator at all — it was absent from the registry in [data/data.ex](../data/data.ex) and committed by hand, so `mix localize.generate_supplemental` never touched it and the file sat unmanaged. [data/calendars.ex](../data/calendars.ex) now generates it from `calendarData.json` with the curated Japanese eras overlaid, and it is registered like any other generated file. The generator reproduces the previous file byte-for-byte for all sixteen other calendars; only the Japanese era list changes.
 
-The real exposure is different, and no less serious: the file is *unmanaged*. Nothing declares that its contents are curated rather than generated, so the natural act of wiring calendar data into the pipeline — reading `calendarData.json`, which now carries 5 eras — would drop the other 232 with the pipeline reporting success. A merge step cannot guard that, because there is nothing yet to merge into. A test can.
+**Two things CLDR got wrong, not one.** The dropped pre-Meiji range was the visible problem. The second is that CLDR's pre-Meiji entries recorded the *lunisolar* proclamation date in a field the rest of the file reads as proleptic Gregorian: 大化 was `[645, 6, 19]` — 6月19日 of the old calendar — where the proleptic Gregorian date is 645-07-20. All 231 pre-Meiji entries were affected, so historical Japanese dates formatted weeks off. Publishing the researched conversions fixes both at once.
 
 ### Plan
 
-1. ✅ **Snapshot taken.** `priv/localize/supplemental_data/japanese_eras_snapshot_cldr48.etf` freezes the full 237-entry CLDR 48.2 set — the last upstream-sourced copy — for diffing as corrections land in the active data.
-2. **Moot as written.** There is no era generation step to add a merge to; `calendars.etf` is already curated data rather than generated output. If calendar data is ever wired into the pipeline, that is the moment to union CLDR's modern eras with the curated set, and the test in step 4 is what will force the question.
-3. **Deferred, deliberately.** [plans/japanese_eras.md](japanese_eras.md) records three high-confidence CLDR data errors (indices 166 嘉慶, 181 応仁, 183 長享), but its own text gates them on primary-source verification — Tsuchihashi / Naitō / `Hyakurensho` / `Azuma Kagami` — which has not been done. The present evidence is ja.wikipedia alone. Patching on that basis would trade a suspected upstream error for an unverified local one.
-4. ✅ **Regression test landed.** [test/localize/japanese_eras_test.exs](../test/localize/japanese_eras_test.exs) asserts the count, the boundary entries (index 0 大化 645, index 232 明治, index 236 令和), contiguous indices, and that the active set still matches the frozen snapshot. Verified to fail: truncating the data to CLDR 49's five entries fails all five assertions.
-5. Continue the per-era validation pass on its own schedule — it does not gate the CLDR 49 release.
+1. ✅ **Snapshot taken.** `priv/localize/supplemental_data/japanese_eras_snapshot_cldr48.etf` freezes the full 237-entry CLDR 48.2 set — the last upstream-sourced copy — for diffing. It is deliberately no longer equal to the active set; that difference *is* the correction.
+2. ✅ **Pipeline hooked.** [data/calendars.ex](../data/calendars.ex) generates `calendars.etf`, taking CLDR's data for the other sixteen calendars and the curated set for the Japanese eras. `calendarData.json` joins the copied supplemental sources.
+3. ✅ **Research landed.** The build input is [priv/localize/curated/japanese_eras.json](../priv/localize/curated/japanese_eras.json), distilled from [plans/japanese_eras_research.json](japanese_eras_research.json) — the citation record, which stays the source of truth. Each era publishes its `best_pg`, the researched proleptic-Gregorian conversion. 白鳳 carries `private_era: true` as a 私年号; the four entries without primary-source attestation (indices 2, 25, 167, 187) carry `unverified: true` rather than being dropped, since dropping them would break the index space consumers hold.
+4. ✅ **Regression tests landed.** [test/localize/japanese_eras_test.exs](../test/localize/japanese_eras_test.exs) asserts the count and contiguity, that the pre-Meiji range is not CLDR 49's truncated set, that the conversions replaced CLDR's lunisolar values, that the modern eras still match upstream, the provenance flags, and that the curated file has not drifted from the research dataset — the CI sync check [plans/japanese_eras.md](japanese_eras.md) asked for.
+5. Continue the per-era validation pass on its own schedule — it does not gate the CLDR 49 release. Index 167 is the open row: CLDR carries it with no era name and a lunisolar value matching 嘉慶's at index 166, so the two are likely one era recorded twice.
 
 ### API impact / breaking risk
 

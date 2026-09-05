@@ -46,6 +46,7 @@ defmodule Localize.Data do
   # JSON files from cldr-core/supplemental/ (in CLDR_PRODUCTION)
   @supplemental_json_files [
     "aliases.json",
+    "calendarData.json",
     "calendarPreferenceData.json",
     "codeMappings.json",
     "currencyData.json",
@@ -138,6 +139,7 @@ defmodule Localize.Data do
     {"plural_rules_cardinal.etf", &Localize.Data.PluralRules.generate_plural_rules_cardinal/0},
     {"plural_rules_ordinal.etf", &Localize.Data.PluralRules.generate_plural_rules_ordinal/0},
     {"plural_ranges.etf", &Localize.Data.XmlExtractors.generate_plural_ranges/0},
+    {"calendars.etf", &Localize.Data.Calendars.generate_calendars/0},
     {"timezones.etf", &Localize.Data.XmlExtractors.generate_timezones/0},
     {"primary_zones.etf", &Localize.Data.XmlExtractors.generate_primary_zones/0},
     {"territory_subdivisions.etf",
