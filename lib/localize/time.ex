@@ -526,7 +526,17 @@ defmodule Localize.Time do
          )}
 
       {:error, _} = error ->
-        error
+        # See `Localize.Date`: fall back to TR35's append-item path before
+        # reporting the skeleton unresolvable.
+        case Localize.DateTime.Format.AppendItems.augment(
+               skeleton,
+               locale_id,
+               :gregorian,
+               options
+             ) do
+          {:ok, pattern} -> {:ok, pattern}
+          :error -> error
+        end
     end
   end
 

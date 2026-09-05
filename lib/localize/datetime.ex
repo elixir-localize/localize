@@ -480,13 +480,71 @@ defmodule Localize.DateTime do
           output
         )
 
-      _ ->
-        {:error,
-         Localize.DateTimeUnresolvedFormatError.exception(
-           format: skeleton,
-           locale: locale_id
-         )}
+      _no_match ->
+        format_via_append_items(
+          datetime,
+          options,
+          locale_id,
+          skeleton,
+          fraction_count,
+          output
+        )
     end
+  end
+
+  # TR35's append-item path, taken when no available format carries every
+  # requested field. A skeleton spanning both halves is split first so each
+  # half resolves on its own and the two join through the locale's
+  # date-time wrapper — otherwise `:yMMMdQhm` would append the hour and
+  # minute as parenthesised items instead of formatting them as a time.
+  defp format_via_append_items(datetime, options, locale_id, skeleton, fraction_count, output) do
+    alias Localize.DateTime.Format.AppendItems
+
+    case Localize.DateTime.Format.Match.separate_date_and_time(skeleton) do
+      {date_skeleton, time_skeleton} ->
+        with {:ok, date_pattern} <-
+               AppendItems.resolve_pattern(date_skeleton, locale_id, :gregorian, options),
+             {:ok, time_pattern} <-
+               AppendItems.resolve_pattern(time_skeleton, locale_id, :gregorian, options) do
+          format_combined_patterns(
+            date_pattern,
+            Localize.DateTime.Format.Match.append_fractional_seconds(
+              time_pattern,
+              fraction_count,
+              locale_id
+            ),
+            datetime,
+            options,
+            locale_id,
+            skeleton,
+            output
+          )
+        else
+          _unresolvable -> unresolved_skeleton(skeleton, locale_id)
+        end
+
+      nil ->
+        case AppendItems.augment(skeleton, locale_id, :gregorian, options) do
+          {:ok, pattern} ->
+            pattern
+            |> Localize.DateTime.Format.Match.append_fractional_seconds(
+              fraction_count,
+              locale_id
+            )
+            |> then(&invoke_formatter(output, datetime, &1, locale_id, Map.new(options)))
+
+          :error ->
+            unresolved_skeleton(skeleton, locale_id)
+        end
+    end
+  end
+
+  defp unresolved_skeleton(skeleton, locale_id) do
+    {:error,
+     Localize.DateTimeUnresolvedFormatError.exception(
+       format: skeleton,
+       locale: locale_id
+     )}
   end
 
   defp format_matched_skeleton(

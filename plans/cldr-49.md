@@ -57,7 +57,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 2  | Translators-guide review for CLDR 49              | None       | None (data only) |
 | 3  | Track CLDR 49 spec changes                        | None       | None          |
 | 4  | Semantic skeletons                                | New option | **Output changes** — ✅ Option B. Mapping 240/240; skeleton width matching fixed |
-| 5  | Date-time append items                            | Internal   | None (output may change for under-specified skeletons) — data verified complete; consumer outstanding |
+| 5  | Date-time append items                            | Internal   | **Output changes** — ✅ Done. `Localize.DateTime.Format.AppendItems`; skeletons that previously errored now resolve |
 | 6  | Minimal pairs                                     | New module | None — ✅ Done. `Localize.MinimalPairs` |
 | 7  | Min/max significant digits                        | New options | None — ✅ Done. Shipped with docs and tests |
 | 8  | RBNF syntax audit                                 | Internal   | None — ✅ Done in Localize 0.26.0 |
@@ -82,7 +82,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 27 | Collation data pinned at Unicode 17 by hand         | None       | **Sort keys change** — ✅ Fixed. Full UCA conformance at Unicode 18 |
 | 28 | CLDR 49 decimal format conformance suite            | None       | **Output changes** — ✅ Conformant; every difference is a documented CLDR-over-ICU choice |
 | 29 | A locale did not always resolve to itself          | None       | **Resolution changes** — ✅ Fixed. 25 locales were served a neighbour's data |
-| 30 | CLDR 49 RBNF conformance suite                      | None       | **Output changes** — ✅ 52,685/52,691; eight defects fixed |
+| 30 | CLDR 49 RBNF conformance suite                      | None       | **Output changes** — ✅ 52,691/52,691; ten defects fixed |
 
 The remainder of this file expands each item in turn.
 
@@ -360,11 +360,17 @@ Formatted output across the Gregorian conformance cases went from 27 of 60 to 36
 * New: `Localize.DateTime.SemanticSkeleton` module, `semantic/1,2` constructor, additional accepted shapes for the `:format` option.
 * No breaking change to existing `:format` values.
 
-## 5. Date-time append items (flexible patterns) — deferred to CLDR 49 cycle
+## 5. Date-time append items (flexible patterns) — ✅ Done
 
 Spec: <https://cldr.unicode.org/translation/date-time/date-time-patterns#flexible---datetime-append-items>
 
-This item is **deferred to the CLDR 49 cycle** rather than landing standalone in 0.27. The full implementation needs `dateFields` data that our pipeline doesn't currently ingest, and the CLDR 49 cadence (which already requires regenerating the locale ETFs through `scripts/ldml2json_v2`) is the natural moment to extend the normalizer rather than running an interim pipeline cycle just for this. The detail below stays in the plan so the work is ready to drop in cleanly when CLDR 49 lands.
+**Resolved.** `Localize.DateTime.Format.AppendItems` implements the TR35 algorithm and is wired into all three skeleton resolvers. Step 1 of the plan below turned out to be unnecessary: `dateFields` is already ingested, at top-level `:date_fields` rather than the `dates.fields` the plan assumed, so only the runtime consumer had to be built.
+
+Skeletons that no available format covers now resolve instead of erroring — `en` has no quarter or week format, so `:yMMMdQ` renders "Jul 6, 2024 (quarter: 3)" where it previously returned `DateTimeUnresolvedFormatError`. A skeleton spanning both halves splits first, so `:yMMMdQhm` is "Jul 6, 2024 (quarter: 3), 2:30 PM" rather than appending the time fields as parenthesised items. Fractional seconds are deliberately excluded from the symbol table: a fraction attaches to a seconds field rather than standing as an item, so `:hmSS` stays unresolvable.
+
+Two pieces beyond the plan proved necessary. `Match.subset_match/3` ranks equally-sized subsets by field distance over the fields the two have in common, so `:yMMMdQ` prefers `yMMMd` to `yMMMMd`. And a field display name is quoted before substitution — `en`'s "day of the week" would otherwise be read as pattern symbols and format as a date.
+
+The original plan follows.
 
 ### Current conformance
 

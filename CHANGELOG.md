@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* Date-time skeletons resolve through TR35's append items when no available format carries every requested field: the closest format that is a subset of the request is matched and the missing fields appended from the locale's `appendItems` templates. `en` has no quarter format, so `:yMMMdQ` now renders "Jul 6, 2024 (quarter: 3)" where it returned `Localize.DateTimeUnresolvedFormatError`.
+
 * `Localize.DateTime.Timezone.location_name/3` returns the place the generic location format names for a timezone — a country for a single-zone territory or a CLDR primary zone, a city otherwise — and `generic_location_format/2` renders it through the locale's `regionFormat`.
 
 * `Localize.DateTime.SemanticSkeleton` implements TR35 semantic skeletons — asking for a date by meaning (`"YMDE"`, `"MDTZ"`) rather than by field. `semantic/2` builds one and the `:format` option accepts it on `Localize.Date`, `Localize.Time` and `Localize.DateTime`, alongside the styles, skeletons and patterns it already took. The mapping to classical skeletons matches CLDR on all 240 conformance cases.

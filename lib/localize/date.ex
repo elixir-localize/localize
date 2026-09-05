@@ -481,13 +481,28 @@ defmodule Localize.Date do
             seen: seen
           )
 
-        _ ->
-          {:error,
-           Localize.DateTimeUnresolvedFormatError.exception(
-             format: skeleton,
-             locale: locale_id
-           )}
+        _no_match ->
+          append_items_or_error(skeleton, locale_id, calendar, options)
       end
+    end
+  end
+
+  # TR35's last resort before failing: no available format carries every
+  # requested field, so match the closest format that is a subset of the
+  # request and append the fields it lacks from the locale's append-item
+  # templates. `en` has no quarter format, so `:yMMMdQ` becomes
+  # "Jul 6, 2024 (quarter: Q3)" rather than an error.
+  defp append_items_or_error(skeleton, locale_id, calendar, options) do
+    case Localize.DateTime.Format.AppendItems.augment(skeleton, locale_id, calendar, options) do
+      {:ok, pattern} ->
+        {:ok, pattern}
+
+      :error ->
+        {:error,
+         Localize.DateTimeUnresolvedFormatError.exception(
+           format: skeleton,
+           locale: locale_id
+         )}
     end
   end
 

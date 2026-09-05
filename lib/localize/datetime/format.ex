@@ -89,6 +89,32 @@ defmodule Localize.DateTime.Format do
     Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :available_formats])
   end
 
+  # # append_items/2
+  #
+  # Returns the append-item templates for a locale.
+  #
+  # Each value is a pre-parsed substitution list where integers are the
+  # `{0}`, `{1}` and `{2}` placeholders and strings are literals, so `en`'s
+  # `:day` is `[0, " (", 2, ": ", 1, ")"]`.
+  #
+  @spec append_items(atom(), atom()) :: {:ok, map()} | {:error, Exception.t()}
+  def append_items(locale_id, calendar_type \\ @default_calendar_type) do
+    Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :append_items])
+  end
+
+  # # field_display_name/2
+  #
+  # Returns the localized display name of a date field, which fills the
+  # `{2}` placeholder in an append-item template.
+  #
+  @spec field_display_name(atom(), atom()) :: {:ok, String.t()} | :error
+  def field_display_name(locale_id, field) do
+    case Localize.Locale.get(locale_id, [:date_fields, field, :standard, :display_name]) do
+      {:ok, name} when is_binary(name) -> {:ok, name}
+      _no_display_name -> :error
+    end
+  end
+
   # # interval_formats/2
   #
   # Returns the interval format patterns for a locale.

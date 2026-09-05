@@ -109,6 +109,82 @@ defmodule Localize.DateTime.Format.Match do
     end
   end
 
+  # # subset_match/3
+  #
+  # Finds the closest available format whose fields are a strict subset of
+  # the requested skeleton's, for TR35's append-item path: where no format
+  # carries every field asked for, the nearest smaller one is augmented with
+  # the fields it lacks.
+  #
+  # ### Arguments
+  #
+  # * `original_skeleton` is the requested skeleton.
+  #
+  # * `locale_id` is a resolved locale identifier.
+  #
+  # * `calendar_type` is a CLDR calendar name. The default is `:gregorian`.
+  #
+  # ### Returns
+  #
+  # * `{:ok, format_id, missing_tokens}` where `missing_tokens` are the
+  #   requested `{symbol, count}` tuples the matched format does not carry.
+  #
+  # * `:error` when no format is a subset of the request.
+  #
+  @spec subset_match(atom() | String.t(), atom(), atom()) ::
+          {:ok, atom(), [{String.t(), pos_integer()}]} | :error
+  def subset_match(original_skeleton, locale_id, calendar_type \\ :gregorian) do
+    skeleton =
+      original_skeleton
+      |> Kernel.to_string()
+      |> replace_time_symbols(locale_id)
+
+    with {:ok, skeleton_tokens} <- tokenize_skeleton(skeleton) do
+      skeleton_ordered = sort_tokens(skeleton_tokens)
+      skeleton_keys = skeleton_ordered |> :proplists.get_keys() |> canonical_keys()
+
+      locale_id
+      |> get_available_format_tokens(calendar_type)
+      |> Enum.map(&subset_candidate(&1, skeleton_keys, skeleton_ordered))
+      |> Enum.reject(&is_nil/1)
+      |> Enum.sort_by(fn {format_id, missing, distance} ->
+        {length(missing), distance, Atom.to_string(format_id)}
+      end)
+      |> best_subset(skeleton_ordered)
+    else
+      _not_tokenizable -> :error
+    end
+  end
+
+  defp subset_candidate({format_id, tokens}, skeleton_keys, skeleton_ordered) do
+    keys = tokens |> :proplists.get_keys() |> canonical_keys()
+    missing = skeleton_keys -- keys
+
+    # A strict subset: every field the format carries is asked for, and at
+    # least one asked-for field is absent. An empty format matches nothing.
+    if keys != [] and keys -- skeleton_keys == [] and missing != [] do
+      # Rank on the fields the two have in common, so `:yMMMdQ` prefers
+      # `yMMMd` over `yMMMMd` rather than falling to an alphabetical
+      # tiebreak between two equally-sized subsets.
+      shared =
+        Enum.filter(skeleton_ordered, fn {symbol, _count} -> canonical_key(symbol) in keys end)
+
+      {_id, distance} = distance_from({format_id, tokens}, shared)
+      {format_id, missing, distance}
+    end
+  end
+
+  defp best_subset([], _skeleton_ordered), do: :error
+
+  defp best_subset([{format_id, missing_keys, _distance} | _rest], skeleton_ordered) do
+    missing_tokens =
+      Enum.filter(skeleton_ordered, fn {symbol, _count} ->
+        canonical_key(symbol) in missing_keys
+      end)
+
+    {:ok, format_id, missing_tokens}
+  end
+
   # # adjust_field_lengths/2
   #
   # Adjusts field lengths in a format pattern to match the requested
@@ -398,6 +474,18 @@ defmodule Localize.DateTime.Format.Match do
            locale: locale_id
          )}
     end
+  end
+
+  # # separate_date_and_time/1
+  #
+  # Splits a skeleton into its date and time halves, or returns `nil` when
+  # it is wholly one or the other.
+  #
+  @spec separate_date_and_time(atom() | String.t()) :: {String.t(), String.t()} | nil
+  def separate_date_and_time(skeleton) do
+    skeleton
+    |> Kernel.to_string()
+    |> separate_date_and_time_fields()
   end
 
   defp separate_date_and_time_fields(skeleton) do
