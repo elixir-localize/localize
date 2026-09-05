@@ -24,6 +24,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* RBNF matches ICU on all 52,691 conformance cases, from 52,685. Optional rule text now renders unconditionally where ICU would not have split the rule in two — its base value must be positive and an even multiple of its divisor — so Afrikaans spells the year 1100 "elf honderd nul".
+
+* RBNF rule selection implements ICU's rollback rule: a rule that takes a remainder is passed over for the one below it when the number divides exactly but the rule's own base value does not. Bulgarian's financial cardinals no longer spell a trailing "и нула" — "and zero" — for a round group.
+
 * The generic location format names a country where TR35 requires one — a territory holding a single timezone, or a zone CLDR lists in `primaryZones` — so `VVVV` renders `Europe/Rome` as `"Italy Time"` and `Europe/Berlin` as `"Germany Time"` instead of naming their cities. The `primaryZones` list is new supplemental data, read from `metaZones.xml` because `metaZones.json` does not carry it.
 
 * `v` and `vvvv` fall back to the generic location format before the localized GMT format, which TR35 specifies for the generic symbols only, so `Asia/Kolkata` is `"India Time"` rather than `"GMT+05:30"`. The specific symbols `z` and `zzzz` still fall straight through to GMT.

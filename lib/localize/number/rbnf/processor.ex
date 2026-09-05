@@ -209,48 +209,61 @@ defmodule Localize.Number.Rbnf.Processor do
         (range == "undefined" or range == nil or
            (is_integer(range) and number < range))
     end)
-    |> prefer_exact_multiple_rule(number, integer_rules)
+    |> roll_back_rule(number, integer_rules)
     |> Kernel.||(Enum.find(integer_rules, &(get_base_value(&1) == 0)))
   end
 
-  # RBNF's standard idiom pairs a rule for exact multiples with one for the
-  # same magnitude carrying a remainder, the second numbered one higher:
-  # Burmese has `100: <<ရာ;` beside `101: <<ရာ့[>>];`. Selecting purely on
-  # "largest base value not above the number" always picks the second, so 200
-  # was spelled "နှစ်ရာ့" with the remainder form's suffix and no remainder to
-  # justify it. When the number divides exactly and the rule immediately below
-  # is the same magnitude, that rule is the one meant.
-  defp prefer_exact_multiple_rule(nil, _number, _rules), do: nil
+  # ICU's *rollback rule*. RBNF's standard idiom pairs a rule for exact
+  # multiples with one for the same magnitude carrying a remainder, numbered
+  # one higher: Burmese has `100: <<ရာ;` beside `101: <<ရာ့[>>];`, and
+  # Bulgarian `20: и <%…<десет;` beside `21: <%…<десет >>;`. Selecting purely
+  # on "largest base value not above the number" always picks the second, so
+  # 200 was spelled "နှစ်ရာ့" with the remainder form's suffix and no remainder
+  # to justify it, and 40 became "четиридесет и нула" — "forty and zero".
+  #
+  # ICU rolls back to the preceding rule when the chosen rule takes a
+  # remainder, the number divides exactly, and the rule's own base value does
+  # not (`NFRule.shouldRollBack`). A base value that *is* an even multiple
+  # needs no rollback: that rule's optional part already omits itself.
+  defp roll_back_rule(nil, _number, _rules), do: nil
 
-  defp prefer_exact_multiple_rule(rule, number, rules) do
+  defp roll_back_rule(rule, number, rules) do
     base = get_base_value(rule)
     divisor = get_divisor(rule)
 
-    # The pair is the rule immediately below by base value — `100`/`101` in
-    # Burmese, `3000`/`3001` in the Hebrew numbering rules. A divisor above 1
-    # keeps ordinary neighbours out (English's `1:` and `2:` divide by 1, and
-    # everything is an exact multiple of 1), and `spells_the_quotient?/1` is
-    # what separates a genuine pair from two unrelated rules that happen to be
-    # numbered consecutively.
-    with true <- is_integer(divisor) and divisor > 1,
+    with true <- is_integer(divisor) and divisor > 0,
          0 <- rem(number, divisor),
+         true <- rem(base, divisor) != 0,
+         true <- takes_a_remainder?(rule),
          preceding when not is_nil(preceding) <-
-           Enum.find(rules, &(get_base_value(&1) == base - 1)),
-         true <- spells_the_quotient?(preceding) do
+           Enum.find(rules, &(get_base_value(&1) < base)) do
       preceding
     else
-      _not_an_exact_multiple_pair -> rule
+      _no_rollback -> rule
     end
   end
 
-  # The lower rule of the pair only stands in for an exact multiple if it
-  # spells the quotient. Burmese's `100: <<ရာ;` does, so it covers 200 and
-  # 300; Hebrew's `10: עשרת;` is a bare literal for ten alone, and pressing it
-  # into service for 20 spelled "ten". Maltese pairs the same way.
-  defp spells_the_quotient?(rule) do
-    definition = get_definition(rule) || ""
-    String.contains?(definition, "<<") or String.contains?(definition, "←←")
+  # True when the rule carries a remainder substitution — `>>`, `>%name>` or
+  # `>>>`. Optional text counts: a rule whose base value is not an even
+  # multiple of its divisor is never split, so its brackets always render and
+  # the substitution inside them always runs.
+  defp takes_a_remainder?(rule) do
+    case Rule.parse(get_definition(rule) || "") do
+      {:ok, parsed} -> remainder_operation?(parsed)
+      _unparseable -> false
+    end
   end
+
+  defp remainder_operation?(parsed) when is_list(parsed) do
+    Enum.any?(parsed, fn
+      {operation, _argument} when operation in [:modulo, :modulo_preceding] -> true
+      {:conditional, argument} -> remainder_operation?(argument)
+      {:conditional_alternate, {present, absent}} -> remainder_operation?(present ++ absent)
+      _other_operation -> false
+    end)
+  end
+
+  defp remainder_operation?(_parsed), do: false
 
   defp get_definition(%Rule{definition: definition}), do: definition
   defp get_definition(rule) when is_map(rule), do: rule[:definition] || rule["definition"]
@@ -504,12 +517,18 @@ defmodule Localize.Number.Rbnf.Processor do
     Map.get(plurals, plural) || Map.get(plurals, :other, "")
   end
 
-  # Conditional: only process if modulo > 0
+  # Optional text renders when the remainder is non-zero — but only for a rule
+  # ICU would have split in two. ICU implements `[…]` by expanding the rule
+  # into one that omits the text and one, numbered a step higher, that keeps
+  # it; it only does so when the base value is positive and an even multiple
+  # of the divisor (`NFRule.makeRules`). Any other rule keeps a single form
+  # with the text always present, which is how Afrikaans `%%2d-year`'s
+  # `0: honderd[ >%spellout-numbering>]` spells 1100 "elf honderd nul".
   defp do_operation(:conditional, number, rule_set, rule, argument, all_sets, locale)
        when is_integer(number) do
     mod = number - div(number, rule.divisor) * rule.divisor
 
-    if mod > 0 do
+    if mod > 0 or not splits_on_optional_text?(rule) do
       do_rule(mod, rule_set, rule, argument, all_sets, locale)
     else
       ""
@@ -577,6 +596,16 @@ defmodule Localize.Number.Rbnf.Processor do
   end
 
   # ── Helpers ────────────────────────────────────────────────
+
+  # ICU only splits a bracketed rule into an omitting and an including form
+  # when the base value is positive and an even multiple of the divisor; any
+  # other rule keeps its optional text unconditionally.
+  defp splits_on_optional_text?(%{base_value: base, divisor: divisor})
+       when is_integer(base) and is_integer(divisor) and divisor > 0 do
+    base > 0 and rem(base, divisor) == 0
+  end
+
+  defp splits_on_optional_text?(_rule), do: false
 
   # The value on which `$(cardinal,…)$` / `$(ordinal,…)$` selects
   # its plural category: the number divided by the rule's divisor

@@ -20,28 +20,8 @@ defmodule Localize.Number.RbnfConformanceTest do
 
   @data_dir Path.join([__DIR__, "..", "..", "support", "data", "rbnf_conformance"])
 
-  # 52,685 of 52,691 cases match ICU exactly. Six do not, in two classes,
-  # both turning on whether a zero remainder is spelled — and pulling in
-  # opposite directions, which is why neither has been resolved by guessing.
-  #
-  #   * `af` `%spellout-numbering-year` (2). ICU renders 1100 as "elf honderd
-  #     nul", spelling a trailing zero. `%%2d-year`'s `0: honderd[
-  #     >%spellout-numbering>]` omits its optional part on a zero remainder
-  #     and yields our "elf honderd"; where ICU's extra "nul" comes from is
-  #     not apparent in the rule text.
-  #   * `bg` financial cardinals at 9,007,199,254,740,991 (4). We spell "и
-  #     нула хиляди" — "and zero thousand" — where ICU omits the zero group
-  #     entirely.
-  #
-  # These are a ratchet, not accepted divergences: neither has been traced to
-  # a conflict between CLDR's rules and ICU's behaviour, so they are recorded
-  # as unfinished. Contrast `@divergences` in the decimal conformance test,
-  # where each entry names what CLDR ships and why we follow it.
-  @thresholds %{
-    "af" => 2,
-    "bg" => 4
-  }
-
+  # All 52,691 cases match ICU exactly. Any mismatch is a regression, so the
+  # test asserts zero rather than carrying a ratchet.
   defp locales do
     @data_dir
     |> File.ls!()
@@ -81,46 +61,28 @@ defmodule Localize.Number.RbnfConformanceTest do
     end
   end
 
-  test "every locale formats within its known mismatch count" do
-    {failures, mismatches} =
-      Enum.reduce(locales(), {[], %{}}, fn {locale, file}, acc ->
-        Enum.reduce(cases(file), acc, fn [_type, rule, num, expected], {failures, counts} ->
+  test "every case matches ICU" do
+    failures =
+      Enum.reduce(locales(), [], fn {locale, file}, acc ->
+        Enum.reduce(cases(file), acc, fn [_type, rule, num, expected], failures ->
           case number(num) do
             :skip ->
-              {failures, counts}
+              failures
 
             value ->
               case Localize.Number.Rbnf.to_string(value, rule_name(rule), locale: locale) do
-                {:ok, ^expected} ->
-                  {failures, counts}
-
-                other ->
-                  counts = Map.update(counts, locale, 1, &(&1 + 1))
-                  {[{locale, rule, num, expected, other} | failures], counts}
+                {:ok, ^expected} -> failures
+                other -> [{locale, rule, num, expected, other} | failures]
               end
           end
         end)
       end)
 
-    unexpected =
-      Enum.reject(mismatches, fn {locale, count} -> count <= Map.get(@thresholds, locale, 0) end)
-
-    assert unexpected == [],
+    assert failures == [],
            """
-           #{length(failures)} mismatches; these locales exceed their known counts:
-           #{Enum.map_join(unexpected, "\n", fn {locale, count} -> "  #{locale}: #{count}, expected at most #{Map.get(@thresholds, locale, 0)}" end)}
+           #{length(failures)} of the RBNF conformance cases no longer match ICU:
 
-           #{failures |> Enum.filter(fn {locale, _, _, _, _} -> Enum.any?(unexpected, &(elem(&1, 0) == locale)) end) |> Enum.take(10) |> Enum.map_join("\n", fn {locale, rule, num, expected, got} -> "  #{locale} #{rule} #{num}: expected #{inspect(expected)}, got #{inspect(got)}" end)}
+           #{failures |> Enum.reverse() |> Enum.take(10) |> Enum.map_join("\n", fn {locale, rule, num, expected, got} -> "  #{locale} #{rule} #{num}: expected #{inspect(expected)}, got #{inspect(got)}" end)}
            """
-
-    improved =
-      Enum.reject(@thresholds, fn {locale, threshold} ->
-        Map.get(mismatches, locale, 0) == threshold
-      end)
-
-    assert improved == [],
-           "These locales now have fewer mismatches than recorded — lower the " <>
-             "thresholds: #{inspect(improved)} vs actual " <>
-             "#{inspect(Map.take(mismatches, Enum.map(improved, &elem(&1, 0))))}"
   end
 end
