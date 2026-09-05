@@ -250,6 +250,11 @@ defmodule Localize.DateTime.FormatterSymbolTest do
       assert time_format(@time, "kk") == "14"
     end
 
+    # `k` stays 1-24 and midnight stays 24. CLDR 49 was expected to deprecate
+    # the H24 cycle in favour of H23, but it did not: TR35 still defines `k`
+    # as "Hour [1-24]" and `hc=h24` as "Hour system using 1–24", and
+    # `bcp47/calendar.xml` carries `h24` with no `deprecated` attribute —
+    # which that file does use elsewhere. Do not "fix" this to 0.
     test "midnight renders 12/0/0/24 across the four cycles" do
       assert time_format(@midnight, "h") == "12"
       assert time_format(@midnight, "K") == "0"

@@ -69,8 +69,8 @@ This package is widely used. The following invariants apply to every item in thi
 | 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Output changes** — ✅ Done. All 237 eras generated from curated research; pre-Meiji dates were CLDR's lunisolar values and are now proleptic Gregorian |
 | 15 | POSIX `yesstr` / `nostr` responses                  | New functions | None (additive; ETF schema bump) |
 | 16 | `typeValues` On/Off translations (CLDR 49, CLDR-19394) | New functions | None (additive) — added 2026-08-25 |
-| 17 | `H24` hour cycle deprecated                        | None       | Output changes for the `k` symbol at midnight |
-| 18 | Week-of-year numbering follows ISO by default       | None       | **Rendered week numbers change** for locales whose calendar week is not the ISO week, `en` among them |
+| 17 | `H24` hour cycle deprecated                         | None       | None — ✅ Closed. CLDR 49 does not deprecate it; TR35 and `bcp47/calendar.xml` both still carry `h24`. No change |
+| 18 | Week-of-year numbering follows ISO by default        | None       | None — ✅ Closed. TR35 still numbers weeks by the locale's `firstDay`/`minDays`; already conformant. No change |
 | 19 | Supplemental data files reorganized                | None       | Build-time failure if the pipeline meets reorganized sources unadjusted |
 | 20 | Iran subdivision codes stale upstream              | None       | None now; a future CLDR change invalidates stored codes |
 | 21 | Metazone transitions gain seconds precision        | None       | None — ✅ Fixed. `Africa/Monrovia` resolves 30s earlier, a correction |
@@ -991,28 +991,34 @@ false
 * New functions and one new locale-data key. Purely additive.
 * One ETF schema addition, so the data version bumps; no public API changes shape.
 
-## 17. `H24` hour cycle deprecated
+## 17. `H24` hour cycle deprecated — ✅ Closed; the premise did not hold
 
 ### Current conformance
 
 `Localize.Time` treats `:h24` as a first-class hour cycle: it is in the `@type`, in the options table of the `hour_cycle/2` docs, and `hour_cycle_from_symbol("k")` returns it. Sixteen references across `lib/`.
 
-### Gap
+### Gap — none. CLDR 49 did not deprecate `H24`.
 
-CLDR 49 deprecates `H24` ([CLDR-18303](https://unicode-org.atlassian.net/browse/CLDR-18303)). Where it is encountered it is to behave as `H23`. The release note records no known intentional usage.
+This item was written from the release note for [CLDR-18303](https://unicode-org.atlassian.net/browse/CLDR-18303) and expected `H24` to behave as `H23`. CLDR 49's shipped spec and data say otherwise, on four independent checks:
 
-### Plan
+* TR35 §Date Field Symbol Table still defines `k` as **"Hour [1-24]"**, unchanged.
+* TR35 §Unicode Hour Cycle Identifier still defines `h24` as **"Hour system using 1–24; corresponds to 'k' in pattern"**, with no deprecation note.
+* `common/bcp47/calendar.xml` carries `<type name="h24" …/>` with **no `deprecated` attribute**. That file does mark deprecations — `islamicc` carries `deprecated="true"` — so the absence is meaningful, not an omission.
+* `c24`, added in CLDR 48, is specified to resolve to "either `h23` or `h24`". A new key would not resolve to a deprecated value.
 
-1. Keep accepting `:h24` and the `k` pattern symbol — deprecated in CLDR does not mean absent from data a consumer already holds, and rejecting it would break input we currently parse.
-2. Resolve `:h24` to `H23` behaviour at format time, so a `k` pattern renders midnight as `0` rather than `24`.
-3. Document `:h24` as deprecated in `Localize.Time`, noting it resolves to `:h23`.
-4. Confirm whether CLDR 49 still emits `k` in any locale's `hourCycle` or preferred-pattern data. If it does not, the resolution is defensive only.
+The one supporting observation — that no locale's `timeData` lists `k` among its preferred or allowed hour symbols — holds, but is not a change: the CLDR 48 data we shipped previously has byte-identical token counts. `k` has never been a locale default.
+
+### Resolution
+
+**No change.** Resolving `:h24` to `H23` would introduce a divergence from CLDR 49 rather than remove one, and the governing rule for this cycle is to follow CLDR. Localize's existing behaviour — `k` renders 1–24, midnight as 24 — is what TR35 specifies, and is already covered in [test/localize/datetime/formatter_symbol_test.exs](../test/localize/datetime/formatter_symbol_test.exs). A comment there records this finding so the assertion is not "corrected" later from the same premise.
+
+Worth revisiting if CLDR 50 lands the deprecation; the check is the `deprecated` attribute in `bcp47/calendar.xml`.
 
 ### API impact / breaking risk
 
-No signature change. Output changes for the `k` symbol at midnight, which is the intent of the deprecation.
+None. No code changed.
 
-## 18. Week-of-year numbering follows ISO by default
+## 18. Week-of-year numbering follows ISO by default — ✅ Closed; the premise did not hold
 
 ### Current conformance
 
@@ -1020,30 +1026,27 @@ Week numbering has two paths in `datetime/formatter.ex`. For `Calendar.ISO` date
 
 That second path is already correct and needs no work: `Calendrical.Gregorian` and its siblings export `iso_week_of_year/3` and Localize honours whatever they return. Only the `Calendar.ISO` path is in scope, and only because `Calendar.ISO` itself has no week support for us to defer to.
 
-### Gap
+### Gap — none. CLDR 49 did not change week-of-year numbering.
 
-CLDR 49 changes the default week numbering to follow ISO — weeks numbered by the Thursday rule — while the calendar week is "more clearly targeted at matching usage in displayed month calendars" ([CLDR-18275](https://unicode-org.atlassian.net/browse/CLDR-18275)). The data now says so explicitly: `weekData` in `supplementalData.xml` carries the comment `this firstDay is for the first day of the week in a calendar page view`.
+This item read the `weekData` comment — `this firstDay is for the first day of the week in a calendar page view` — as separating month-calendar layout from week numbering. It does not. TR35 immediately qualifies it: "This is **not necessarily the same as the first day after the weekend** (or the first work day of the week)". The contrast is with the first *workday*, not with week numbering.
 
-So `firstDay` and `minDays` describe *month-calendar layout*, and using them to number weeks — which is what the `Calendar.ISO` path does — is applying the wrong data to the question. The divergence is real for locales whose calendar week is not the ISO week. Measured against CLDR 48 data:
+TR35 §Week of Year in CLDR 49 is explicit that `firstDay`/`minDays` govern the numbering, and works the example both ways:
 
-| date | `en` today | ISO |
-| --- | --- | --- |
-| 2027-01-01 | 2027-W1 | 2026-W53 |
-| 2027-01-03 | 2027-W2 | 2026-W53 |
-| 2026-12-31 | 2027-W1 | 2026-W53 |
+> Week 1 for a year is the first week that contains at least the specified minimum number of days from that year. … For example, January 1, 1998 was a Thursday. If the first day of the week is MONDAY and the minimum days in a week is 4 (**these are the values reflecting ISO 8601 and many national standards**), then week 1 of 1998 starts on December 29, 1997 … However, if the first day of the week is SUNDAY, then week 1 of 1998 starts on January 4, 1998.
 
-`en-GB` (`firstDay=mon`, `minDays=4`) already agrees with ISO; `en` (`firstDay=sun`, `minDays=1`) does not. The `Y`, `w` and `W` pattern symbols all render through this path, so the change is a silent difference in output rather than an error.
+So ISO is what a locale gets when its data says mon/4 — not a universal default overriding locale data. §Week Elements (line 1214 of `tr35-dates.md`) states the same rule normatively for week-of-year calculations.
 
-### Plan
+### Resolution
 
-1. Separate the two concepts. Week *numbering* for `Calendar.ISO` follows ISO by default; `firstDay`/`minDays` remain the source for month-calendar layout and for `Localize.Calendar.first_day_for_locale/1`, which is a different question with a different answer.
-2. Establish whether CLDR 49 supplies per-locale week-numbering data distinct from `weekData`, or whether ISO is simply the universal default with no locale variation. The `weekOfPreference` element is about which of `weekOfYear`/`weekOfMonth`/`weekOfInterval` a locale prefers to *display*, not how a week is numbered, so it is not that source.
-3. Decide whether an option is warranted for callers who want the old calendar-week numbering, or whether following CLDR is sufficient. Prefer following CLDR.
-4. Regression-test the year boundary specifically — 1 and 3 January, 31 December — for a locale on each side of the divide (`en`, `en-GB`) and for a non-ISO calendar, to confirm the delegating path is untouched.
+**No change.** Localize is already conformant, and verified against TR35's own worked example: `en-GB`, `de` and `fr` carry mon/4 and give the ISO answer (2027-01-01 → 2026-W53); `en` carries sun/1 and gives 2027-W1. The table earlier in this section framed the `en` result as a divergence from ISO — it is, and that is what CLDR specifies for `en`. Changing it would introduce a divergence rather than remove one.
+
+The delegating path for non-`Calendar.ISO` calendars was already correct and is likewise untouched.
+
+[test/localize/date_test.exs](../test/localize/date_test.exs) gains TR35's worked example alongside the existing `en`/`de` coverage, with the citation, so the `en` assertion is not "corrected" to ISO later.
 
 ### API impact / breaking risk
 
-No signature change. **Rendered week numbers change** for locales whose calendar week is not the ISO week, `en` among them. Anything persisting a formatted `Y`-`w` string, or keying on one, sees different values across the upgrade. Worth a changelog entry in its own right.
+None. No code changed.
 
 ## 19. Supplemental data files reorganized
 
