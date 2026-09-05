@@ -610,7 +610,7 @@ This is more general than the rule-removal change covered above; it should be re
 
 Spec: <https://unicode.org/reports/tr35/tr35-modifications.html#modifications>
 
-The full audit lives in [plans/cldr-48-retrospective.md](cldr-48-retrospective.md). 23 modifications classified; 14 covered as code applied (including person-name validation in the sibling Hex package `localize_person_names`, rational-number formatting via `Localize.Number.to_ratio_string/2`, and mixed-unit precision verified empirically), 4 as data-only, 3 deliberately skipped, 2 follow-up tasks filed (§A `gmtUnknownFormat` consumer, §B `FractionalUCA_blanked.txt` ingestion). Both follow-ups are minor data-consumption gaps and ride the CLDR 49 ETF regeneration; neither blocks the 0.27 cut. The retrospective also defines the format and process for future per-CLDR-version audits — when CLDR 49 ships its own modifications log, the same template applies.
+The full audit lives in [plans/cldr-48-retrospective.md](cldr-48-retrospective.md). 23 modifications classified; 14 covered as code applied (including person-name validation in the sibling Hex package `localize_person_names`, rational-number formatting via `Localize.Number.to_ratio_string/2`, and mixed-unit precision verified empirically), 4 as data-only, 3 deliberately skipped, 2 follow-up tasks filed (§A `gmtUnknownFormat` consumer, §B `FractionalUCA_blanked.txt` ingestion), **both now closed**. §A landed: CLDR had removed `gmtZeroFormat` from the spec, so the reader for it resolved to nothing in all 657 locales and a hard-coded English `"GMT"` stood in for both a zero and an absent offset; a known offset is now always spelled out and an unknown one renders the locale's `gmtUnknownFormat`. §B needed nothing — `FractionalUCA_blanked.txt` is a maintainer's diffing aid with every weight byte replaced by a placeholder, not a data source, so there is nothing to ingest. The retrospective also defines the format and process for future per-CLDR-version audits — when CLDR 49 ships its own modifications log, the same template applies.
 
 ### Current conformance
 
@@ -789,7 +789,14 @@ The non-Gregorian rows are not run: comparing them means formatting a date conve
 
 **Two cases where the fixture's generator differs from the locale data.** `ko` `yMd` expects `y/M/d` where `ko` ships `y. M. d.` in its own `availableFormats`, and `ja` `yMMMMEEEEd` drops the parentheses `ja` puts round its weekday. Reading the locale's shipped format is what TR35 asks for, so these look like the generator synthesising a pattern rather than defects on our side — but they are the two rows to re-examine first if the suite is widened.
 
-**`units/unitLocalePreferencesTest.txt`** is now copied. It exercises `-u-rg`, `-u-ms` and `-u-mu` keyword overrides against unit preference resolution — 42 cases. Copied but not yet wired into a test; that is the next piece of this item.
+**`units/unitLocalePreferencesTest.txt`** is wired in as [test/localize/unit/locale_preference_test.exs](../test/localize/unit/locale_preference_test.exs), exercising `-u-rg`, `-u-ms` and `-u-mu` keyword overrides against unit preference resolution. **14 of the 23 cases match.**
+
+It found a defect on the way in. `@unit_preferences` is keyed by usage *string*, so no usage atom was ever interned, and `normalize_usage/1`'s `String.to_existing_atom/1` failed for every valid CLDR usage that no other module happened to mention — silently falling back to `:default`. `usage: "fluid"` returned cubic inches for `en-GB` instead of imperial gallons. The usages are now interned at compile time from the data, which fixed 8 of the 23 cases and makes the code's own comment true for the first time. `Localize.Unit.Preference.known_usages/0` exposes the set.
+
+The nine that remain are two unimplemented features rather than defects in what exists:
+
+* **`-u-ms` and `-u-mu` overrides** (5 cases). `-u-rg` is honoured because `:locale` derives the territory from it, but the measurement-system and measurement-unit keywords are not read at all. TR35's precedence is `mu > ms > rg > (likely) region`, so these sit above the part that works.
+* **Base-unit fallback** (4 cases). A unit whose quantity has no preference data — `ampere`, `kilocandela`, `candela-per-byte` — should fall back to base units per the fixture. `preferred_units/2` returns `{:error, %Localize.InvalidValueError{}}`, which is the more serious of the two: a valid unit produces an error.
 
 ### API impact / breaking risk
 

@@ -34,6 +34,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A unit usage supplied as a string resolves instead of silently falling back to `:default`. Every usage CLDR defines now has an interned atom, so `usage: "fluid"` returns imperial gallons for `en-GB` where it returned cubic inches. `Localize.Unit.Preference.known_usages/0` lists them.
+
 * An unknown timezone offset renders the locale's `gmtUnknownFormat` — `"GMT+?"`, and translated where the locale translates it — instead of a hard-coded English `"GMT"`. CLDR removed `gmtZeroFormat` from the spec, so the reader for it had been resolving to nothing in all 657 locales and every zero or absent offset fell through to that literal.
 
 * A zero offset is spelled out wherever a localized GMT format is used: `"GMT+00:00"` long and `"GMT+0"` short, matching TR35's own examples and CLDR's conformance data. `Localize.DateTime.Timezone.gmt_format/3` drops its `:zero_format` option, which selected between the two.

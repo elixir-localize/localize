@@ -159,6 +159,42 @@ defmodule Localize.Unit.Preference do
   # carried on the struct's `:usage` field (set at `Localize.Unit.new/3` time
   # as a CLDR-style hyphenated string, e.g. `"person-height"`). Options win;
   # the struct field is the fallback; `:default` covers the no-info case.
+  # Intern an atom for every usage the preference data defines. The data is
+  # keyed by usage *string*, so nothing else creates these atoms, and
+  # `normalize_usage/1` would then fail `String.to_existing_atom/1` for a
+  # perfectly valid usage and silently fall back to `:default` — CLDR's
+  # `fluid` usage returned cubic inches for `en-GB` instead of imperial
+  # gallons. `String.to_atom/1` is safe here: it runs at compile time over
+  # a closed set from CLDR data, never over caller input.
+  @known_usages @unit_preferences
+                |> Enum.flat_map(fn {_category, by_usage} -> Map.keys(by_usage) end)
+                |> Enum.uniq()
+                |> Enum.map(&(&1 |> String.replace("-", "_") |> String.to_atom()))
+                |> Enum.sort()
+
+  @doc """
+  Returns the unit usages CLDR defines preferences for.
+
+  A usage names the context a quantity is being measured in — `:person_height`
+  and `:road` are both lengths, but a locale prefers different units for them.
+
+  ### Returns
+
+  * A sorted list of usage atoms.
+
+  ### Examples
+
+      iex> usages = Localize.Unit.Preference.known_usages()
+      iex> :fluid in usages
+      true
+
+      iex> :person_height in Localize.Unit.Preference.known_usages()
+      true
+
+  """
+  @spec known_usages() :: [atom(), ...]
+  def known_usages, do: @known_usages
+
   defp resolve_usage(options, %Unit{usage: struct_usage}) do
     case Keyword.get(options, :usage) do
       nil -> normalize_usage(struct_usage) || :default
@@ -169,11 +205,11 @@ defmodule Localize.Unit.Preference do
   defp normalize_usage(nil), do: nil
   defp normalize_usage(usage) when is_atom(usage), do: usage
 
-  # Every valid CLDR usage already exists as an atom (interned from the
-  # unit preference data at compile time), so an unknown string must not
-  # create a new atom — `:usage` may carry user input and unbounded
-  # `String.to_atom/1` is an atom-table exhaustion vector. Unknown usages
-  # resolve to `nil` and the caller falls back to `:default` per TR35.
+  # `@known_usages` interns every valid CLDR usage, so an unknown string
+  # must not create a new atom — `:usage` may carry user input and
+  # unbounded `String.to_atom/1` is an atom-table exhaustion vector.
+  # Unknown usages resolve to `nil` and the caller falls back to `:default`
+  # per TR35.
   defp normalize_usage(usage) when is_binary(usage) do
     usage
     |> String.replace("-", "_")
