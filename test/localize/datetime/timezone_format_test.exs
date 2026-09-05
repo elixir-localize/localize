@@ -115,16 +115,34 @@ defmodule Localize.DateTime.TimezoneFormatTest do
   end
 
   describe "gmt_format/3" do
-    test "zero offset renders the locale's GMT-zero pattern" do
-      assert {:ok, "GMT"} = Timezone.gmt_format(%{utc_offset: 0, std_offset: 0}, :en)
+    # CLDR removed `gmtZeroFormat` from the spec. TR35 now defines one style
+    # for a known offset — spelled out, whatever its value — and its own
+    # example list carries "GMT+00:00" and "UTC+0". CLDR's conformance data
+    # agrees: `O` on `Etc/GMT` is "GMT+0".
+    test "a zero offset is spelled out" do
+      assert {:ok, "GMT+00:00"} = Timezone.gmt_format(%{utc_offset: 0, std_offset: 0}, :en)
 
-      assert {:ok, "GMT"} =
+      assert {:ok, "GMT+0"} =
                Timezone.gmt_format(%{utc_offset: 0, std_offset: 0}, :en, format: :short)
     end
 
-    test "zero_format: :offset forces the numeric pattern at zero" do
-      assert {:ok, "GMT+00:00"} =
-               Timezone.gmt_format(%{utc_offset: 0, std_offset: 0}, :en, zero_format: :offset)
+    # The second of TR35's two styles: a zone whose offset is not known.
+    # Rendering "GMT+00:00" here would be a definite claim about a zone we
+    # know nothing about.
+    test "an unknown offset renders the locale's gmtUnknownFormat" do
+      assert {:ok, "GMT+?"} = Timezone.gmt_format(%{time_zone: "Etc/Unknown"}, :en)
+      assert {:ok, "GMT+?"} = Timezone.gmt_format(%{}, :en)
+      assert {:ok, "GMT+?"} = Timezone.gmt_format(%{utc_offset: nil}, :en)
+    end
+
+    # `gmtUnknownFormat` is translated, where the old hard-coded "GMT" was
+    # not — it was returned for every locale alike.
+    test "the unknown format is localized" do
+      for locale <- [:en, :de, :fr, :ja, :ru] do
+        {:ok, unknown} = Timezone.gmt_format(%{}, locale)
+        assert is_binary(unknown)
+        assert String.contains?(unknown, "?")
+      end
     end
 
     test "long format includes minutes for fractional-hour offsets" do

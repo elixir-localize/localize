@@ -289,7 +289,7 @@ defmodule Localize.DateTime.FormatterEdgeTest do
 
     test "O widths render localized GMT formats" do
       assert datetime_format(@utc_datetime, "O") == "GMT+0"
-      assert datetime_format(@utc_datetime, "OO") == "GMT"
+      assert datetime_format(@utc_datetime, "OO") == "GMT+00:00"
       assert datetime_format(@utc_datetime, "OOOO") == "GMT+00:00"
     end
 

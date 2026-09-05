@@ -1208,12 +1208,10 @@ defmodule Localize.DateTime.Formatter do
     result
   end
 
-  # TR35 groups `ZZZZ` with `O+` as the localized GMT formats, so the two
-  # agree on a zero offset: CLDR renders `Etc/GMT` as "GMT+0" for `O` and
-  # "GMT+00:00" here. `gmtZeroFormat` ("GMT") belongs to the name-based
-  # symbols — `z` and `v` — when they fall back, not to these.
+  # TR35 groups `ZZZZ` with `O+` as the localized GMT formats: CLDR renders
+  # `Etc/GMT` as "GMT+0" for `O` and "GMT+00:00" here.
   def zone_basic(datetime, 4, locale_id, _options) when has_zone(datetime) do
-    case Timezone.gmt_format(datetime, locale_id, format: :long, zero_format: :offset) do
+    case Timezone.gmt_format(datetime, locale_id, format: :long) do
       {:ok, result} -> result
       _ -> ""
     end
@@ -1232,14 +1230,14 @@ defmodule Localize.DateTime.Formatter do
   # O (4): Long localized GMT (GMT+01:00)
   @doc false
   def zone_gmt(datetime, 1, locale_id, _options) when has_zone(datetime) do
-    case Timezone.gmt_format(datetime, locale_id, format: :short, zero_format: :offset) do
+    case Timezone.gmt_format(datetime, locale_id, format: :short) do
       {:ok, result} -> result
       _ -> ""
     end
   end
 
   def zone_gmt(datetime, 4, locale_id, _options) when has_zone(datetime) do
-    case Timezone.gmt_format(datetime, locale_id, format: :long, zero_format: :offset) do
+    case Timezone.gmt_format(datetime, locale_id, format: :long) do
       {:ok, result} -> result
       _ -> ""
     end
@@ -1319,10 +1317,10 @@ defmodule Localize.DateTime.Formatter do
 
       :error ->
         # TR35 makes this the long localized GMT format (`OOOO`), which always
-        # carries an explicit offset — hence "GMT+00:00" rather than the bare
-        # `gmtZeroFormat`, matching the `location` zoneStyle rows of
+        # carries an explicit offset — hence "GMT+00:00", matching the
+        # `location` zoneStyle rows of
         # test/support/data/date_time_formatting.json.
-        case Timezone.gmt_format(datetime, locale_id, format: :long, zero_format: :offset) do
+        case Timezone.gmt_format(datetime, locale_id, format: :long) do
           {:ok, result} -> result
           _no_gmt_format -> ""
         end

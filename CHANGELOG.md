@@ -34,6 +34,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* An unknown timezone offset renders the locale's `gmtUnknownFormat` — `"GMT+?"`, and translated where the locale translates it — instead of a hard-coded English `"GMT"`. CLDR removed `gmtZeroFormat` from the spec, so the reader for it had been resolving to nothing in all 657 locales and every zero or absent offset fell through to that literal.
+
+* A zero offset is spelled out wherever a localized GMT format is used: `"GMT+00:00"` long and `"GMT+0"` short, matching TR35's own examples and CLDR's conformance data. `Localize.DateTime.Timezone.gmt_format/3` drops its `:zero_format` option, which selected between the two.
+
 * Skeleton resolution is now covered by CLDR's own `datetime/skeletons.tsv` conformance suite, which had not been exercised: 83 of the 90 Gregorian cases match, with every difference a separator rather than a field choice or width.
 
 * RBNF matches ICU on all 52,691 conformance cases, from 52,685. Optional rule text now renders unconditionally where ICU would not have split the rule in two — its base value must be positive and an even multiple of its divisor — so Afrikaans spells the year 1100 "elf honderd nul".

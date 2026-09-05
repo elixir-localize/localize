@@ -31,6 +31,13 @@ defmodule Localize.DateTime.Timezone do
   @timezones_by_territory Builder.timezones_by_territory(@timezones)
   @territories_by_timezone Builder.territories_by_timezone(@timezones_by_territory)
 
+  # CLDR removed `gmtZeroFormat` from the spec: a known offset is always
+  # spelled out, and `gmtUnknownFormat` covers the only other case. These
+  # are the root defaults, used when a locale ships no pattern of its own.
+  @default_gmt_format ["GMT", 0]
+  @default_hour_format "+HH:mm;-HH:mm"
+  @default_gmt_unknown_format "GMT+?"
+
   @primary_zones SupplementalData.primary_zones()
 
   @metazone_data SupplementalData.metazones()
@@ -661,14 +668,15 @@ defmodule Localize.DateTime.Timezone do
     `"GMT+1"`; minutes are dropped when zero). The default is
     `:long`.
 
-  * `:zero_format` controls rendering of a zero offset. The default,
-    `:gmt_zero`, uses the locale's zero pattern (e.g., `"GMT"`); any
-    other value formats the zero offset through the hour pattern
-    (e.g., `"GMT+00:00"`).
-
   ### Returns
 
-  * `{:ok, formatted_string}` (e.g., `"GMT+01:00"` or `"GMT"`).
+  * `{:ok, formatted_string}` (e.g., `"GMT+01:00"`). A zero offset is
+    spelled out — `"GMT+00:00"` long, `"GMT+0"` short — which is the
+    only style TR35 defines for a known offset.
+
+  * `{:ok, unknown}` using the locale's `gmtUnknownFormat` (e.g.
+    `"GMT+?"`) when `datetime` carries no offset at all. TR35 makes this
+    the second of the two localized GMT styles.
 
   * `{:error, exception}` if the locale's timezone data cannot be
     loaded.
@@ -685,24 +693,23 @@ defmodule Localize.DateTime.Timezone do
   @spec gmt_format(map(), atom(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def gmt_format(datetime, locale_id, options \\ []) do
-    offset = total_offset(datetime)
-
     with {:ok, tz_data} <- Localize.Locale.get(locale_id, [:dates, :time_zone_names]) do
-      gmt_zero = tz_data[:gmt_zero_format] || "GMT"
-      gmt_pattern = tz_data[:gmt_format] || ["GMT", 0]
-      hour_format_str = tz_data[:hour_format] || "+HH:mm;-HH:mm"
-
-      zero_format = Keyword.get(options, :zero_format, :gmt_zero)
-
-      if offset == 0 and zero_format == :gmt_zero do
-        {:ok, gmt_zero}
-      else
-        format = Keyword.get(options, :format, :long)
-        formatted_offset = format_hour_offset(offset, hour_format_str, format)
-        result = Localize.Substitution.substitute(formatted_offset, gmt_pattern) |> Enum.join()
-        {:ok, result}
+      case total_offset(datetime) do
+        nil -> {:ok, tz_data[:gmt_unknown_format] || @default_gmt_unknown_format}
+        offset -> {:ok, offset_format(offset, tz_data, options)}
       end
     end
+  end
+
+  defp offset_format(offset, tz_data, options) do
+    gmt_pattern = tz_data[:gmt_format] || @default_gmt_format
+    hour_format = tz_data[:hour_format] || @default_hour_format
+    format = Keyword.get(options, :format, :long)
+
+    offset
+    |> format_hour_offset(hour_format, format)
+    |> Localize.Substitution.substitute(gmt_pattern)
+    |> Enum.join()
   end
 
   @doc """
@@ -770,7 +777,12 @@ defmodule Localize.DateTime.Timezone do
   end
 
   defp total_offset(%{utc_offset: utc}) when is_integer(utc), do: utc
-  defp total_offset(_), do: 0
+
+  # TR35's second localized GMT style is for a zone whose offset is not
+  # known. Returning zero here would spell "GMT+00:00" — a definite claim
+  # about a zone we know nothing about — so the absence is preserved and
+  # `gmt_format/3` renders `gmtUnknownFormat`.
+  defp total_offset(_no_offset), do: nil
 
   defp resolve_type(:generic, _datetime), do: :generic
   defp resolve_type(:standard, _datetime), do: :standard
