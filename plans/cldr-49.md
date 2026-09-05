@@ -88,6 +88,8 @@ The remainder of this file expands each item in turn.
 
 ## 1. Switch the data pipeline to `scripts/ldml2json_v2` — ✅ Done
 
+> **Renamed since.** The surviving script is now `scripts/build_cldr_production_data`, and the legacy `scripts/ldml2json` is deleted. The names below are kept as they were during the cycle so the narrative still reads.
+
 ### Current conformance
 
 Localize has *two* LDML→JSON conversion scripts:

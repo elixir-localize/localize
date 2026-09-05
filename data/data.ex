@@ -436,8 +436,8 @@ defmodule Localize.Data do
     source_root = cldr_source_dir()
 
     # Per-locale subdivision XML files are read directly from
-    # `CLDR_REPO/common/subdivisions/`. CLDR's `ldml2json` does not
-    # convert these files to JSON, and the published `cldr-json`
+    # `CLDR_REPO/common/subdivisions/`. CLDR's own upstream `ldml2json`
+    # tool does not convert these files to JSON, and the published `cldr-json`
     # release artifacts do not include them, so they are sourced
     # from the CLDR repository in their original XML form. This
     # mirrors the way the global supplemental subdivisions, the

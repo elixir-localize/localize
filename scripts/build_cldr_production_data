@@ -1,14 +1,22 @@
 #!/usr/bin/env zsh
 #
-# Convert CLDR LDML (XML) to JSON via the upstream cldr-json tooling.
+# Build the CLDR production data — the JSON packages under $CLDR_PRODUCTION
+# that the rest of the pipeline reads. Run this once per CLDR release, before
+# `mix localize.copy_sources`.
 #
-# Wraps unicode-org/cldr-json's `cldr-generate-json.sh`. Fetches $CLDR_REPO and
-# checks out the tag named by $CLDR_TAG before building, so a run is reproducible
-# from the tag alone rather than from whatever happened to be checked out. All
-# packages —
-# main, supplemental, segments, rbnf, bcp47, transforms, subdivisions, and
-# (the bit ldml2json v1 missed) annotations + annotationsDerived — are
-# emitted into $CLDR_PRODUCTION in one Maven-driven pass.
+# CLDR ships its data as LDML (XML); everything downstream of here consumes the
+# JSON that unicode-org/cldr-json's `cldr-generate-json.sh` derives from it.
+# This wraps that script. $CLDR_REPO is fetched and checked out at the tag named
+# by $CLDR_TAG first, so a run is reproducible from the tag alone rather than
+# from whatever happened to be checked out.
+#
+# Note that the converter itself is built from $CLDR_REPO/tools, not from the
+# cldr-json checkout — cldr-json supplies only the driver script. The converter
+# is therefore always the one belonging to the CLDR release being built.
+#
+# Every package is emitted in one Maven-driven pass: main, supplemental,
+# segments, rbnf, bcp47, transforms, subdivisions, annotations and
+# annotationsDerived.
 #
 # Env overrides:
 #   CLDR_TAG          tag/branch to build from         (REQUIRED; `current` builds

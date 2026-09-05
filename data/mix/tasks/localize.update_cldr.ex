@@ -9,7 +9,7 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
 
   The upstream checkouts must already be refreshed before running this
   task: check out the release tag in `CLDR_REPO` and regenerate
-  `CLDR_PRODUCTION` with `scripts/ldml2json_v2`. The task
+  `CLDR_PRODUCTION` with `scripts/build_cldr_production_data`. The task
   verifies both and reports the source CLDR version before it starts.
 
   Each pipeline step and gate runs in a fresh VM (`mix` subprocess) so
@@ -86,7 +86,7 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
     production_data = cldr_source_dir()
     cldr_repo = cldr_repo_dir()
 
-    verify_directory!(production_data, "CLDR_PRODUCTION", "scripts/ldml2json_v2")
+    verify_directory!(production_data, "CLDR_PRODUCTION", "scripts/build_cldr_production_data")
     verify_directory!(cldr_repo, "CLDR_REPO", "git clone github.com/unicode-org/cldr")
 
     source_version = source_cldr_version(production_data)
@@ -101,7 +101,7 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
       Mix.raise("""
       Could not read the CLDR version from
       #{aliases_json_path(production_data)}.
-      Is CLDR_PRODUCTION a cldr-json layout produced by scripts/ldml2json_v2?
+      Is CLDR_PRODUCTION a cldr-json layout produced by scripts/build_cldr_production_data?
       """)
     end
 

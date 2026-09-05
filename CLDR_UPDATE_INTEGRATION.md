@@ -41,8 +41,7 @@ data/                              # Pipeline (compiles in :dev/:test only, not 
 └── mix/tasks/                     # Mix tasks (see reference table below)
 
 scripts/
-├── ldml2json                      # Legacy LDML→JSON wrapper (deprecated; misses annotations)
-└── ldml2json_v2                   # Wraps unicode-org/cldr-json's cldr-generate-json.sh (use this)
+└── build_cldr_production_data     # Builds $CLDR_PRODUCTION from a CLDR release tag
 ```
 
 ## Prerequisites
@@ -51,7 +50,7 @@ scripts/
 
 * **CLDR repository** — a checkout of `github.com/unicode-org/cldr` at the release tag. Location: `$CLDR_REPO`, default `../cldr_repo` (on the primary workstation: `~/Development/cldr/cldr_repo`).
 
-* **CLDR production data** — the pre-built JSON locale files, produced by `scripts/ldml2json_v2` (requires Java/Maven; wraps `cldr-generate-json.sh` and emits all packages including `annotations`). Location: `$CLDR_PRODUCTION`, default `../cldr_production_data`.
+* **CLDR production data** — the pre-built JSON locale files, produced by `scripts/build_cldr_production_data` (requires Java/Maven; wraps `cldr-generate-json.sh` and emits all packages including `annotations`). Location: `$CLDR_PRODUCTION`, default `../cldr_production_data`.
 
 * **R2 credentials** (upload/release phase only): `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`. In CI these are repository secrets used by `.github/workflows/upload-locales.yml`.
 
@@ -60,7 +59,7 @@ scripts/
 | Task / script | Purpose |
 |---------------|---------|
 | `mix localize.update_cldr` | **Orchestrates phases 1–3** (copy sources → generate supplemental → compile gate → generate locales → test gate), each step in a fresh VM. `--check` runs the preflight and prints the plan without changing anything; `--locales en,fr` trials a subset. |
-| `scripts/ldml2json_v2` | Converts the CLDR XML repo to production JSON (all packages). Requires `CLDR_TAG` — it fetches `$CLDR_REPO` and checks that tag out before building, so a run is reproducible from the tag rather than from whatever was checked out. `CLDR_TAG=current` builds the checkout as-is without fetching. Clears `$CLDR_PRODUCTION` first so a package or locale dropped upstream cannot survive as an orphan; it refuses to clear a directory holding no `cldr-*` packages, and `CLDR_KEEP_OUTPUT=1` skips clearing. Checks the JDK against the `<java-release>` the checked-out `tools/pom.xml` declares — CLDR 49 requires JDK 21. Run once per CLDR drop. |
+| `scripts/build_cldr_production_data` | Builds the CLDR production data — the JSON packages under `$CLDR_PRODUCTION` that every later step reads. Requires `CLDR_TAG` — it fetches `$CLDR_REPO` and checks that tag out before building, so a run is reproducible from the tag rather than from whatever was checked out. `CLDR_TAG=current` builds the checkout as-is without fetching. Clears `$CLDR_PRODUCTION` first so a package or locale dropped upstream cannot survive as an orphan; it refuses to clear a directory holding no `cldr-*` packages, and `CLDR_KEEP_OUTPUT=1` skips clearing. Checks the JDK against the `<java-release>` the checked-out `tools/pom.xml` declares — CLDR 49 requires JDK 21. Run once per CLDR drop. |
 | `mix localize.copy_sources` | Copies raw CLDR sources into `priv/cldr/` (including `FractionalUCA.txt`, and the UCD tables via the task below) and writes the CLDR version to `priv/localize/version`. `--supplemental` / `--locales` scope the copy. |
 | `mix localize.generate_supplemental` | Regenerates supplemental, validity, collation and top-level ETFs under `priv/localize/`. |
 | `mix localize.generate_locales` | Regenerates per-locale ETFs (`priv/localize/locales/`). Positional args scope to specific locales. |
@@ -104,7 +103,7 @@ The task stops after Phase 3 and prints the remaining manual phases. The section
 #    run is reproducible from the tag alone and carries no orphans forward.
 #    CLDR 49 needs JDK 21; set JAVA_HOME if it is not your default.
 JAVA_HOME=$(/usr/libexec/java_home -v 21) \
-  CLDR_TAG=release-<N> scripts/ldml2json_v2   # regenerates $CLDR_PRODUCTION (Java/Maven)
+  CLDR_TAG=release-<N> scripts/build_cldr_production_data   # regenerates $CLDR_PRODUCTION (Java/Maven)
 
 # 2. Copy into the project (writes priv/localize/version)
 mix localize.copy_sources
@@ -196,7 +195,7 @@ These land with the CLDR 49 cycle and then disappear from this guide. Detail and
 1. **Deterministic ETF encoding.** Encode all generated ETFs with deterministic map ordering (e.g. `term_to_binary(term, deterministic: true)`) so regeneration is byte-stable across OTP releases. Accept the one-time full-file churn in the same commit as the CLDR 49 data churn.
 2. **Collation ETF: reorder-group starts.** Emit the FDD1 group-marker fractions (SPACE/PUNCTUATION/SYMBOL/CURRENCY/DIGIT first-primary `{lead, sub}` bytes) from `FractionalUCA.txt` into the collation ETF; read them in `Localize.Collation.Variable.primary_range/1` and delete the pinned `@group_starts` constants there.
 3. **Remove the `:alt` shim.** The pipeline fix for the `"alt"` (Southern Altai) language-code atomization is already in `data/locale.ex` (`restore_alt_language_code/1`); once CLDR 49 data is regenerated, delete `fix_alt_language_key/1` from `Localize.Locale.Provider.PersistentTerm`.
-4. ✅ **`scripts/ldml2json_v2` adopted.** It is the documented conversion path and produced the CLDR 49 data in `$CLDR_PRODUCTION`, annotations packages included. `scripts/ldml2json` now carries a deprecation notice in its own header and is removed in the release after the one that ships CLDR 49.
+4. ✅ **Done.** The cldr-json path is the only conversion path and produced the CLDR 49 data in `$CLDR_PRODUCTION`, annotations packages included. The legacy `scripts/ldml2json` is deleted and the surviving script renamed `scripts/build_cldr_production_data`.
 5. ✅ **RBNF source-format change handled.** `data/normalize/rbnf.ex` reads CLDR 49's externalised ICU-text rule files through the `_rbnfRulesFile` pointer and still accepts the older inline shape. There is no *remove rule from ruleset* mechanic to adapt to — TR35's "Planned removal of ruleset and rule tags" is the deprecation of the `<ruleset>` and `<rule>` XML tags in favour of `<rbnfrules>`, not a data feature; no CLDR 49 RBNF source carries a removal marker. RBNF matches ICU on all 52,691 conformance cases.
 6. **Remaining feature items** from `plans/cldr-49.md`: `localize_emoji` (item 11, needs the annotations packages v2 now emits). Both 48-retrospective follow-ups are closed. `FractionalUCA_blanked.txt` needs nothing — it is not a data source but a maintainer's diffing aid, with every weight byte replaced by a placeholder (`0041; [pp, ss, tt]` where `FractionalUCA.txt` has `[2B, 05, 9C]`), so that a diff between CLDR releases shows reordering and weight-length changes without every byte shifting. There is nothing in it to ingest, and the shape-change signal it would give is covered far more strongly by the 210,155 UCA conformance pairs. The `gmtUnknownFormat` consumer has landed: CLDR removed `gmtZeroFormat` from the spec, so the reader for it resolved to nothing in every locale and a hard-coded English `"GMT"` stood in for both a zero and an absent offset. A known offset is now always spelled out and an unknown one renders the locale's `gmtUnknownFormat`. Semantic skeletons, append items, minimal pairs, min/max significant digits and the `common/testData` audit have all landed.
 
