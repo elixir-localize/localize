@@ -448,7 +448,35 @@ defmodule Localize.LanguageTag do
     end
   end
 
-  defp resolve_cldr_locale(%__MODULE__{} = tag) do
+  defp resolve_cldr_locale(%__MODULE__{canonical_locale_id: id} = tag) when is_binary(id) do
+    case Map.get(locale_id_index(), id) do
+      nil -> match_cldr_locale(tag)
+      exact -> %{tag | cldr_locale_id: exact}
+    end
+  end
+
+  defp resolve_cldr_locale(%__MODULE__{} = tag), do: match_cldr_locale(tag)
+
+  # A tag that names a locale we actually hold data for resolves to that
+  # locale, without consulting the matcher. Language matching answers "which
+  # of these is closest", and for an exact identity it can answer with an
+  # equally-close *different* locale: `ar` maximizes to `ar-Arab-EG`, so `ar`
+  # and `ar-EG` both score 0 against a desired `ar-EG` and the tie went to
+  # `ar`. Twenty-five of the 657 locales resolved to a neighbour this way,
+  # `zh-Hans`, `sr-Cyrl`, `ca-ES-valencia`, `be-tarask` and `el-polyton`
+  # among them, every one of which ships data that differs from what it
+  # collapsed to — `ar-EG` formats in `arab` digits where `ar` deliberately
+  # uses `latn`.
+  #
+  # The index is built once and maps the canonical string to the atom already
+  # in `all_locale_ids/0`, so no atom is created from the input.
+  defp locale_id_index do
+    cached(:locale_id_index, fn ->
+      Map.new(SupplementalData.all_locale_ids(), &{Atom.to_string(&1), &1})
+    end)
+  end
+
+  defp match_cldr_locale(%__MODULE__{} = tag) do
     case best_match(tag, SupplementalData.all_locale_ids()) do
       # A score of 80 or more is the CLDR language-mismatch distance:
       # the best "match" speaks a different language. Another

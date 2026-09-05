@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A locale that Localize holds data for now resolves to itself. `resolve_cldr_locale/1` asked the language matcher which known locale was closest even for an exact identity, and an equally-scored neighbour could win the tie: 25 of 657 locales read another locale's data, `ar-EG` (which formats in `arab` digits) resolving to `ar` (which uses `latn`) among them.
+
 * Full UCA conformance restored: all 210,155 pairs in both CLDR collation conformance files now sort correctly, where 637 (NON_IGNORABLE) and 536 (SHIFTED) failed. `FractionalUCA.txt` and the two UCD property files had been vendored by hand and left at Unicode 17 while the conformance fixtures refreshed with each CLDR update; `mix localize.copy_sources` now copies the UCA table and `generate_supplemental` rebuilds the collation table from it.
 
 * `Localize.Locale.LocaleDisplay.display_name/2` renders a locale in `root` (or `und`) as bare subtag codes per TR35's code fallback — `display_name("nl-BE", locale: :root)` is `"nl (BE)"`, where it previously answered in English. `root` is now accepted wherever `und` is, and `cldr_locale_id_from("und")` resolves to `:und` rather than `:en`, agreeing with the atom form.
