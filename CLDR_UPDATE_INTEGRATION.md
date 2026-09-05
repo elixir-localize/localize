@@ -61,13 +61,13 @@ scripts/
 |---------------|---------|
 | `mix localize.update_cldr` | **Orchestrates phases 1–3** (copy sources → generate supplemental → compile gate → generate locales → test gate), each step in a fresh VM. `--check` runs the preflight and prints the plan without changing anything; `--locales en,fr` trials a subset. |
 | `scripts/ldml2json_v2` | Converts the CLDR XML repo to production JSON (all packages). Requires `CLDR_TAG` — it fetches `$CLDR_REPO` and checks that tag out before building, so a run is reproducible from the tag rather than from whatever was checked out. `CLDR_TAG=current` builds the checkout as-is without fetching. Clears `$CLDR_PRODUCTION` first so a package or locale dropped upstream cannot survive as an orphan; it refuses to clear a directory holding no `cldr-*` packages, and `CLDR_KEEP_OUTPUT=1` skips clearing. Checks the JDK against the `<java-release>` the checked-out `tools/pom.xml` declares — CLDR 49 requires JDK 21. Run once per CLDR drop. |
-| `mix localize.copy_sources` | Copies raw CLDR sources into `priv/cldr/` and writes the CLDR version to `priv/localize/version`. `--supplemental` / `--locales` scope the copy. |
+| `mix localize.copy_sources` | Copies raw CLDR sources into `priv/cldr/` (including `FractionalUCA.txt`, and the UCD tables via the task below) and writes the CLDR version to `priv/localize/version`. `--supplemental` / `--locales` scope the copy. |
 | `mix localize.generate_supplemental` | Regenerates supplemental, validity, collation and top-level ETFs under `priv/localize/`. |
 | `mix localize.generate_locales` | Regenerates per-locale ETFs (`priv/localize/locales/`). Positional args scope to specific locales. |
 | `mix localize.generate_locale_hashes` | Regenerates the download-integrity manifest. **Use `--from-cdn` after uploading** so the manifest hashes the exact bytes consumers download (see "Hash manifest and the OTP encoding trap"). |
 | `mix localize.update_mf2_conformance` | Re-vendors the 16 MessageFormat 2 working-group conformance files into `test/support/data/mf2_conformance/`. Run when the WG suite moves. |
 | `mix localize.bump_patch_version` | Bumps the Localize-side patch counter (`{cldr_version}:{patch}`); auto-resets to 0 when the CLDR version changes. Never bumped automatically. |
-| `mix localize.download_unicode_data` | Refreshes UCD tables in `priv/unicode/` (own cadence — on Unicode releases, not every CLDR drop). |
+| `mix localize.download_unicode_data` | Fetches the UCD property tables in `priv/unicode/` for the Unicode version `priv/cldr/FractionalUCA.txt` names, and is a no-op when they already match. `mix localize.copy_sources` calls it, so running it directly is only to force a re-check. |
 | `mix localize.download_iso_currencies` | Refreshes ISO 4217 data from SIX Group (own cadence). |
 | `mix localize.upload_locale` | Generates and uploads specific locales to R2 (`--version` required). For ad-hoc fixes; full releases go through the tag-triggered workflow. |
 | `.github/workflows/upload-locales.yml` | On version-tag push: regenerates all locales in CI and uploads to R2. **Runs on a pinned CI OTP — its ETF bytes are the canonical CDN bytes.** |
@@ -81,10 +81,9 @@ Run the phases in order. Every phase ends with a verification gate; do not proce
 1. Fork the CLDR release page (e.g. <https://cldr.unicode.org/downloads/cldr-49>) into `plans/cldr-<N>-changes.md`, one row per change, scored *cosmetic / output-changing / API-affecting / data-only*.
 2. Walk the translators' guide (<https://cldr.unicode.org/translation>) section by section into `plans/cldr-<N>-translator-guide-checklist.md`, marking each section *correct / partial / missing / N/A* against our implementation.
 3. Diff the conformance fixtures: `diff -r $CLDR_REPO_old/common/testData $CLDR_REPO_new/common/testData --brief`. For each delta: re-import updated fixtures we already ingest, add loaders for new ones in directories we cover, and log new directories as work items.
-   `mix localize.copy_sources` also refreshes the three Unicode-version-bound files the collation system reads: `priv/cldr/FractionalUCA.txt` comes from `$CLDR_REPO/common/uca/` (the same directory as the conformance fixtures, which is the point — they must move together), and the two UCD property files in `priv/unicode/` are fetched from unicode.org for whatever version the `FractionalUCA.txt` header names. Nothing pins a Unicode version by hand: CLDR states which UCD it was generated against and the pipeline follows it. Do not assume these files are already on a maintainer's machine — none of them are checked out as a matter of course, which is how they came to sit two Unicode releases behind the fixtures they are tested against.
-
-   Two fixtures — `locale_distance_test_data.txt` and `locale_matching_test_data.txt` — carry deliberate local corrections where CLDR's conformance files disagree with CLDR's own data, with the reasoning and Jira references written beside each. They are listed in `@curated_test_data` and `mix localize.copy_sources` will not overwrite them; it reports instead whether upstream has moved, and the merge is made by hand. If a report says a curated fixture now matches upstream, the correction has been adopted upstream and can be dropped from the list.
-4. Diff the TR35 spec chapters relevant to shipped features (dates, numbers, collation, messageFormat) and file work items for behavioural changes. After release, walk the TR35 §Modifications log into `plans/cldr-<N>-retrospective.md` (template: `plans/cldr-48-retrospective.md`) classifying every entry as data-only / code-applied / code-pending / skipped-with-reason.
+4. Merge by hand any curated fixture `mix localize.copy_sources` reports as changed upstream. `locale_distance_test_data.txt` and `locale_matching_test_data.txt` carry deliberate local corrections where CLDR's conformance files disagree with CLDR's own data, with the reasoning and Jira references written beside each; they are listed in `@curated_test_data` and are never overwritten. If a report says a curated fixture now matches upstream, the correction has been adopted there and can be dropped from the list.
+5. Check that the three Unicode-version-bound collation inputs moved with the release. `priv/cldr/FractionalUCA.txt` is copied from `$CLDR_REPO/common/uca/` — the same directory as the conformance fixtures, which is the point, since the two must move together — and the UCD property files in `priv/unicode/` are fetched from unicode.org for whatever version that file's `UCD=` header names. No Unicode version is pinned by hand anywhere: CLDR states which UCD it was generated against and the pipeline follows it. Do not assume any of these are already on a maintainer's machine; none is checked out as a matter of course, which is how they came to sit two Unicode releases behind the fixtures they are tested against.
+6. Diff the TR35 spec chapters relevant to shipped features (dates, numbers, collation, messageFormat) and file work items for behavioural changes. After release, walk the TR35 §Modifications log into `plans/cldr-<N>-retrospective.md` (template: `plans/cldr-48-retrospective.md`) classifying every entry as data-only / code-applied / code-pending / skipped-with-reason.
 
 ### Phases 1–3 in one command
 
@@ -111,12 +110,15 @@ JAVA_HOME=$(/usr/libexec/java_home -v 21) \
 mix localize.copy_sources
 
 # 3. Auxiliary sources — only when their upstreams moved
-mix localize.download_unicode_data      # UCD (Unicode release cadence)
 mix localize.download_iso_currencies    # ISO 4217 (SIX Group cadence)
 mix localize.update_mf2_conformance     # MF2 WG test suite (tracks the WG repo)
+
+# The UCD property files are handled by copy_sources above; run this only to
+# force a re-check outside a full source refresh.
+mix localize.download_unicode_data
 ```
 
-Also refresh `priv/cldr/FractionalUCA.txt` from the CLDR repo when the UCA version bumps — it feeds the collation table, the reorder-group data, and the variable-weight boundaries.
+`mix localize.copy_sources` refreshes `priv/cldr/FractionalUCA.txt` — which feeds the collation table, the reorder-group data and the variable-weight boundaries — and then fetches the UCD property files for the Unicode version its header names. This used to be a manual step described here, and it was missed for two Unicode releases while the conformance fixtures beside it kept moving; there is nothing to do by hand now beyond reading the versions it reports.
 
 **Gate:** `git status` shows the expected source deltas and `priv/localize/version` carries the new CLDR version. The patch counter auto-resets to 0 at the next generation.
 
