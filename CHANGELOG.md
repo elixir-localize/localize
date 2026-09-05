@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* The Japanese calendar keeps all 237 eras, from 大化 (645) to 令和. CLDR 49 drops era data for everything before Meiji — 232 of the 237 — and Localize retains the full range as curated data, with the last upstream-sourced copy frozen alongside it for diffing.
+
 * **Breaking.** Collation moves to Unicode 18 / UCA 18.0.0, from Unicode 17. Primary weights shift for every character UCA assigns ahead of an existing one, so any sort key persisted by a previous release must be regenerated — `Localize.Collation.sort_key/2` output is not comparable across Unicode versions, though `compare/3` results are unaffected for characters that existed before.
 
 * **Breaking.** CLDR 49 no longer publishes 114 locales whose coverage is below Basic and which ICU does not ship — `aa`, `ab`, `an`, `ann`, `apc`, `ht` and 108 others — and Localize follows suit rather than carrying the divergence forward. `Localize.validate_locale/1` and everything downstream now return `{:error, %Localize.InvalidLocaleError{}}` for them.

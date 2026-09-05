@@ -458,7 +458,7 @@ The data itself lives in `priv/localize/supplemental_data/calendars.etf` under `
 
 ### Step 1 — Pin the current snapshot
 
-Before CLDR 49 ships and removes the pre-Meiji entries, freeze a copy of the current CLDR-48-derived data at `priv/localize/supplemental_data/japanese_eras_snapshot_cldr48.etf`. This is the starting point — every correction in the validation pass updates the *active* `calendars.etf` while the snapshot is preserved for diffing.
+✅ **Done.** `priv/localize/supplemental_data/japanese_eras_snapshot_cldr48.etf` holds the frozen copy — a map carrying `:source`, `:frozen_on`, `:era_count` and the full 237-entry `:eras` list. This is the starting point — every correction in the validation pass updates the *active* `calendars.etf` while the snapshot is preserved for diffing.
 
 ### Step 2 — Pipeline change
 

@@ -66,7 +66,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 11 | `localize_emoji` sibling library                  | New package | None          |
 | 12 | `common/testData` conformance-fixture audit       | None (tests only) | None      |
 | 13 | CDN-asset checksum manifests                       | None       | None — ✅ Done in Localize 0.44.0 |
-| 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Silent data loss if not done** — CLDR 49 drops 232 of 237 eras. See [plans/japanese_eras.md](japanese_eras.md). |
+| 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Silent data loss if not done** — ✅ Guarded. All 237 eras intact, snapshot frozen, regression test verified to fail on truncation. See [plans/japanese_eras.md](japanese_eras.md). |
 | 15 | POSIX `yesstr` / `nostr` responses                  | New functions | None (additive; ETF schema bump) |
 | 16 | `typeValues` On/Off translations (CLDR 49, CLDR-19394) | New functions | None (additive) — added 2026-08-25 |
 | 17 | `H24` hour cycle deprecated                        | None       | Output changes for the `k` symbol at midnight |
@@ -907,7 +907,7 @@ Generating a manifest is a natural insertion point when the CLDR 49 ETF pipeline
 
 * For air-gapped deployments: should there be a way to ship a manifest with the package (so download-and-verify works from a local mirror)?
 
-## 14. Japanese pre-Meiji eras: keep and curate
+## 14. Japanese pre-Meiji eras: keep and curate — ✅ Guarded; curation continues
 
 The design plan — validation methodology, primary sources, per-era tracking table, and the JSON research dataset — lives in [plans/japanese_eras.md](japanese_eras.md). This section is the CLDR 49 scope statement and the pipeline hook; the child plan is the source of truth for the curation work.
 
@@ -919,15 +919,19 @@ The design plan — validation methodology, primary sources, per-era tracking ta
 
 CLDR 49 drops era data for every era before Meiji — indices 0–231, which is **232 of the 237 entries**. Only Meiji through Reiwa (232–236) survive upstream.
 
-This is the one item in this plan where doing nothing is not a no-op. A routine Phase 1–3 run against CLDR 49 sources regenerates `calendars.etf` from upstream and silently deletes 232 eras. Nothing fails: no test asserts on ancient era data, the pipeline reports success, and the loss surfaces only when a consumer formats a historical date. Localize's position is that the use cases needing this data — academic publishing, genealogy, museum cataloguing, calendar conversion — are exactly the ones CLDR is stepping back from, so we keep shipping it and own the validation.
+Localize's position is that the use cases needing this data — academic publishing, genealogy, museum cataloguing, calendar conversion — are exactly the ones CLDR is stepping back from, so we keep shipping it and own the validation.
+
+**Correction to an earlier reading of the risk.** This section previously said a routine Phase 1–3 run regenerates `calendars.etf` from upstream and silently deletes 232 eras. It does not: `calendars.etf` has **no generator**. It is absent from the generator registry in [data/data.ex](../data/data.ex) and was committed by hand ("Add calendar support data"), so `mix localize.generate_supplemental` never touches it. The CLDR 49 regeneration performed this cycle left all 237 eras intact, which is why the file is still clean in git.
+
+The real exposure is different, and no less serious: the file is *unmanaged*. Nothing declares that its contents are curated rather than generated, so the natural act of wiring calendar data into the pipeline — reading `calendarData.json`, which now carries 5 eras — would drop the other 232 with the pipeline reporting success. A merge step cannot guard that, because there is nothing yet to merge into. A test can.
 
 ### Plan
 
-1. **Before regenerating**, snapshot the current pre-Meiji era set out of `calendars.etf` — it is the last upstream-sourced copy.
-2. Add a pipeline merge step so era generation unions the CLDR 49 modern eras with our curated pre-Meiji snapshot, rather than taking upstream wholesale. The curated set becomes source data we maintain, not generated output.
-3. Land the corrections already identified by the first-pass research: [plans/japanese_eras.md](japanese_eras.md) records **three confirmed CLDR data errors** and two convention questions across the 237 entries.
-4. Add a regression test asserting the era count and the boundary entries (index 0 大化 and index 232 明治), so a future pipeline change cannot silently drop the set again.
-5. Continue the per-era validation pass on its own schedule — it does not gate the CLDR 49 release, but the merge step and the regression test do.
+1. ✅ **Snapshot taken.** `priv/localize/supplemental_data/japanese_eras_snapshot_cldr48.etf` freezes the full 237-entry CLDR 48.2 set — the last upstream-sourced copy — for diffing as corrections land in the active data.
+2. **Moot as written.** There is no era generation step to add a merge to; `calendars.etf` is already curated data rather than generated output. If calendar data is ever wired into the pipeline, that is the moment to union CLDR's modern eras with the curated set, and the test in step 4 is what will force the question.
+3. **Deferred, deliberately.** [plans/japanese_eras.md](japanese_eras.md) records three high-confidence CLDR data errors (indices 166 嘉慶, 181 応仁, 183 長享), but its own text gates them on primary-source verification — Tsuchihashi / Naitō / `Hyakurensho` / `Azuma Kagami` — which has not been done. The present evidence is ja.wikipedia alone. Patching on that basis would trade a suspected upstream error for an unverified local one.
+4. ✅ **Regression test landed.** [test/localize/japanese_eras_test.exs](../test/localize/japanese_eras_test.exs) asserts the count, the boundary entries (index 0 大化 645, index 232 明治, index 236 令和), contiguous indices, and that the active set still matches the frozen snapshot. Verified to fail: truncating the data to CLDR 49's five entries fails all five assertions.
+5. Continue the per-era validation pass on its own schedule — it does not gate the CLDR 49 release.
 
 ### API impact / breaking risk
 
