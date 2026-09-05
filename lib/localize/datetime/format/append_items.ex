@@ -192,7 +192,7 @@ defmodule Localize.DateTime.Format.AppendItems do
            Match.best_match(skeleton, locale_id, calendar_type),
          {:ok, pattern} <- matched_pattern(matched_id, locale_id, calendar_type, options),
          {:ok, tokens} <- Match.tokenize_skeleton(Kernel.to_string(skeleton)),
-         {:ok, adjusted} <- Match.adjust_field_lengths(pattern, tokens) do
+         {:ok, adjusted} <- Match.adjust_field_lengths(pattern, tokens, matched_id) do
       {:ok, adjusted}
     else
       _no_single_match -> nil

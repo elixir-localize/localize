@@ -515,7 +515,7 @@ defmodule Localize.Time do
           # See the note in `Localize.Date`: TR35 adjusts the matched
           # format's field widths to those requested.
           {:ok, tokens} = Localize.DateTime.Format.Match.tokenize_skeleton(skeleton)
-          Localize.DateTime.Format.Match.adjust_field_lengths(pattern, tokens)
+          Localize.DateTime.Format.Match.adjust_field_lengths(pattern, tokens, matched_id)
         end
 
       {:ok, {_date_id, _time_id}} ->

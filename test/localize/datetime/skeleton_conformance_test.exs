@@ -37,7 +37,7 @@ defmodule Localize.DateTime.SkeletonConformanceTest do
     calendar: Calendar.ISO
   }
 
-  # 83 of the 90 Gregorian cases agree. Every difference is in a separator
+  # 84 of the 90 Gregorian cases agree. Every difference is in a separator
   # or a wrapper, never in which fields are chosen or how wide they are, and
   # they fall into two groups.
   #
@@ -56,14 +56,7 @@ defmodule Localize.DateTime.SkeletonConformanceTest do
   # the fixture generator's synthesis differing from the data, not defects.
   #
   # See item 12 in plans/cldr-49.md.
-  # ⚠️ This count is order-dependent: 83 when the file runs alone, 82 in the
-  # full suite, where `ru` `yMdHmsv` additionally narrows `dd.MM.y` to
-  # `d.M.y`. Something in the suite changes how that skeleton resolves and
-  # the cause is not yet found — an order-dependent formatter result is a
-  # defect in its own right and worth chasing before this ratchet is
-  # tightened. The assertion is `>=` so the suite stays green either way and
-  # still catches a regression.
-  @expected_matches 82
+  @expected_matches 84
 
   defp cases do
     [_header | rows] =
@@ -98,7 +91,7 @@ defmodule Localize.DateTime.SkeletonConformanceTest do
 
     total = length(cases())
 
-    assert matched >= @expected_matches,
+    assert matched == @expected_matches,
            """
            #{matched}/#{total} Gregorian skeleton cases match, expected #{@expected_matches}.
 

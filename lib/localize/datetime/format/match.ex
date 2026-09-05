@@ -97,7 +97,7 @@ defmodule Localize.DateTime.Format.Match do
         available_format_tokens
         |> Enum.filter(&candidates_with_the_same_tokens(&1, skeleton_keys))
         |> Enum.map(&distance_from(&1, skeleton_ordered))
-        |> Enum.sort(&compare_counts/2)
+        |> Enum.sort_by(&rank/1)
 
       case candidates do
         [] ->
@@ -185,7 +185,7 @@ defmodule Localize.DateTime.Format.Match do
     {:ok, format_id, missing_tokens}
   end
 
-  # # adjust_field_lengths/2
+  # # adjust_field_lengths/3
   #
   # Adjusts field lengths in a format pattern to match the requested
   # skeleton's field lengths.
@@ -196,17 +196,28 @@ defmodule Localize.DateTime.Format.Match do
   #
   # * `skeleton_tokens` is a list of `{symbol, count}` tuples.
   #
+  # * `matched_id` is the `availableFormats` id the pattern came from, or
+  #   `nil`. TR35 leaves a pattern field alone where the *id's* field length
+  #   already matches the request, so that locale data can override a
+  #   requested width: `ru` answers the skeleton `yMd` with `dd.MM.y`, and
+  #   narrowing that to `d.M.y` would discard the locale's own choice.
+  #
   # ### Returns
   #
   # * `{:ok, adjusted_format}`.
   #
-  @spec adjust_field_lengths(String.t() | map(), [{String.t(), non_neg_integer()}]) ::
-          {:ok, String.t() | map()}
-  def adjust_field_lengths(format, skeleton_tokens) when is_map(format) do
+  @spec adjust_field_lengths(
+          String.t() | map(),
+          [{String.t(), non_neg_integer()}],
+          atom() | String.t() | nil
+        ) :: {:ok, String.t() | map()}
+  def adjust_field_lengths(format, skeleton_tokens, matched_id \\ nil)
+
+  def adjust_field_lengths(format, skeleton_tokens, matched_id) when is_map(format) do
     revised =
       Enum.map(format, fn
         {style, pattern} when is_binary(pattern) ->
-          {:ok, adjusted} = adjust_field_lengths(pattern, skeleton_tokens)
+          {:ok, adjusted} = adjust_field_lengths(pattern, skeleton_tokens, matched_id)
           {style, adjusted}
 
         other ->
@@ -217,16 +228,39 @@ defmodule Localize.DateTime.Format.Match do
     {:ok, revised}
   end
 
-  def adjust_field_lengths(format, skeleton_tokens) when is_binary(format) do
-    format_tokens = tokenize_format_string(format)
+  def adjust_field_lengths(format, skeleton_tokens, matched_id) when is_binary(format) do
+    id_tokens = id_tokens(matched_id)
 
     adjusted =
-      Enum.reduce(format_tokens, [], &adjust_field_length(&1, &2, skeleton_tokens))
+      format
+      |> tokenize_format_string()
+      |> Enum.reduce([], &adjust_field_length(&1, &2, skeleton_tokens, id_tokens))
       |> Enum.reverse()
       |> List.flatten()
       |> List.to_string()
 
     {:ok, adjusted}
+  end
+
+  defp id_tokens(nil), do: []
+
+  defp id_tokens(matched_id) do
+    {:ok, tokens} = tokenize_skeleton(Kernel.to_string(matched_id))
+    tokens
+  end
+
+  # TR35: "When the pattern field corresponds to an availableFormats skeleton
+  # with a field length that matches the field length in the requested
+  # skeleton, the pattern field length should not be adjusted. This permits
+  # locale data to override a requested field length." `ru` answers the
+  # skeleton `yMd` with `dd.MM.y`; narrowing that to `d.M.y` would discard
+  # the locale's own choice. The rule is about width, so it does not apply to
+  # the clauses that substitute one symbol for another.
+  defp locale_states_width?(id_tokens, symbol, skeleton_tokens) do
+    case :proplists.get_value(symbol, id_tokens, nil) do
+      nil -> false
+      id_count -> id_count == :proplists.get_value(symbol, skeleton_tokens, nil)
+    end
   end
 
   # # split_fractional_seconds/1
@@ -438,7 +472,15 @@ defmodule Localize.DateTime.Format.Match do
     {token_id, distance}
   end
 
-  defp compare_counts({_, count_a}, {_, count_b}), do: count_a < count_b
+  # Two formats can sit at the same distance from a skeleton: `ja` answers
+  # `yMMMMEEEEd` with `yMMMEEEEd` and `yMMMMEd` equally well, each one alpha
+  # width away. Ordering by distance alone left the winner to the iteration
+  # order of the available-formats map, and Erlang hashes atom keys by their
+  # internal reference — so the order depended on when those atoms were
+  # created in the VM, and the same skeleton could resolve to a different
+  # pattern from one run to the next. The format id breaks the tie the same
+  # way `subset_match/3` breaks its own.
+  defp rank({format_id, distance}), do: {distance, Atom.to_string(format_id)}
 
   # ── Canonical key mapping ───────────────────────────────────
 
@@ -512,7 +554,7 @@ defmodule Localize.DateTime.Format.Match do
   @substitutable_zone_fields ["v", "V", "O", "z", "Z"]
   @hms_fields ["H", "h", "K", "k", "m", "s", "S"]
 
-  defp adjust_field_length([char | _rest] = field, acc, skeleton_tokens)
+  defp adjust_field_length([char | _rest] = field, acc, skeleton_tokens, id_tokens)
        when char in @numeric_and_alpha_fields do
     # The requested token may be spelled with either form of the field —
     # `L` and `M` are both months, `e` and `E` both weekdays — so the lookup
@@ -532,6 +574,10 @@ defmodule Localize.DateTime.Format.Match do
       requested_length == :not_found ->
         [field | acc]
 
+      # TR35 rule 2, as in the general clause below.
+      locale_states_width?(id_tokens, char, skeleton_tokens) ->
+        [field | acc]
+
       field_length == requested_length ->
         [field | acc]
 
@@ -546,7 +592,7 @@ defmodule Localize.DateTime.Format.Match do
     end
   end
 
-  defp adjust_field_length([char | _rest], acc, skeleton_tokens)
+  defp adjust_field_length([char | _rest], acc, skeleton_tokens, _id_tokens)
        when char in @substitutable_zone_fields do
     {replacement_char, requested_length} =
       find_substitutable_field(@substitutable_zone_fields, skeleton_tokens)
@@ -554,14 +600,18 @@ defmodule Localize.DateTime.Format.Match do
     [List.duplicate(replacement_char, requested_length) | acc]
   end
 
-  defp adjust_field_length([char | _rest] = field, acc, _skeleton_tokens)
+  defp adjust_field_length([char | _rest] = field, acc, _skeleton_tokens, _id_tokens)
        when char in @hms_fields do
     [field | acc]
   end
 
-  defp adjust_field_length([char | _rest] = field, acc, skeleton_tokens) do
+  defp adjust_field_length([char | _rest] = field, acc, skeleton_tokens, id_tokens) do
     field_length = length(field)
-    requested_length = :proplists.get_value(char, skeleton_tokens, field_length)
+
+    requested_length =
+      if locale_states_width?(id_tokens, char, skeleton_tokens),
+        do: field_length,
+        else: :proplists.get_value(char, skeleton_tokens, field_length)
 
     if field_length == requested_length do
       [field | acc]

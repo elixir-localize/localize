@@ -430,9 +430,9 @@ defmodule Localize.Date do
   # at the requested width: `en` has an `MMM` format and no `MMMM`, so asking
   # for `:MMMM` matched `MMM` and rendered "Jul" where the literal pattern
   # `"MMMM"` renders "July". The match was right; the width was not.
-  defp adjust_to_requested_widths(pattern, requested) do
+  defp adjust_to_requested_widths(pattern, requested, matched_id) do
     {:ok, tokens} = Localize.DateTime.Format.Match.tokenize_skeleton(requested)
-    Localize.DateTime.Format.Match.adjust_field_lengths(pattern, tokens)
+    Localize.DateTime.Format.Match.adjust_field_lengths(pattern, tokens, matched_id)
   end
 
   defp resolve_skeleton_via_best_match(skeleton, locale_id, calendar, options, seen) do
@@ -455,7 +455,7 @@ defmodule Localize.Date do
                    options: options,
                    seen: seen
                  ) do
-            adjust_to_requested_widths(pattern, skeleton)
+            adjust_to_requested_widths(pattern, skeleton, matched_id)
           end
 
         {:ok, {_date_id, _time_id}} ->

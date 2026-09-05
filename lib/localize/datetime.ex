@@ -468,13 +468,13 @@ defmodule Localize.DateTime do
           available
           |> Map.get(date_skeleton, "")
           |> Localize.DateTime.Format.resolve_variant(options)
-          |> adjust_to_requested_widths(skeleton)
+          |> adjust_to_requested_widths(skeleton, date_skeleton)
 
         time_pattern =
           available
           |> Map.get(time_skeleton, "")
           |> Localize.DateTime.Format.resolve_variant(options)
-          |> adjust_to_requested_widths(skeleton)
+          |> adjust_to_requested_widths(skeleton, time_skeleton)
           |> Localize.DateTime.Format.Match.append_fractional_seconds(fraction_count, locale_id)
 
         format_combined_patterns(
@@ -590,13 +590,18 @@ defmodule Localize.DateTime do
   # that format's field widths to the ones requested. `en` ships an `MMM`
   # format and no `MMMM`, so without this step asking for `:MMMM` matched
   # `MMM` and rendered "Jul" where the literal pattern renders "July".
-  defp adjust_to_requested_widths(pattern, skeleton) when is_binary(pattern) do
+  defp adjust_to_requested_widths(pattern, skeleton, matched_id \\ nil)
+
+  defp adjust_to_requested_widths(pattern, skeleton, matched_id) when is_binary(pattern) do
     {:ok, tokens} = Localize.DateTime.Format.Match.tokenize_skeleton(skeleton)
-    {:ok, adjusted} = Localize.DateTime.Format.Match.adjust_field_lengths(pattern, tokens)
+
+    {:ok, adjusted} =
+      Localize.DateTime.Format.Match.adjust_field_lengths(pattern, tokens, matched_id)
+
     adjusted
   end
 
-  defp adjust_to_requested_widths(pattern, _skeleton), do: pattern
+  defp adjust_to_requested_widths(pattern, _skeleton, _matched_id), do: pattern
 
   defp format_combined_patterns(
          date_pattern,

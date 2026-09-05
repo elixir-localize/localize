@@ -36,6 +36,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* Skeleton matching is deterministic. Two available formats can sit the same distance from a requested skeleton — `ja` answers `:yMMMMEEEEd` with `yMMMEEEEd` and `yMMMMEd` equally well — and the winner was decided by the iteration order of the formats map. Erlang hashes atom keys by internal reference, so that order depended on when those atoms were created and the same skeleton could resolve to a different pattern between runs.
+
+* A matched format keeps a field width the locale states deliberately. TR35 leaves a pattern field alone where the matched `availableFormats` id already carries the requested width, so `ru`'s `yMd` renders `dd.MM.y` rather than being narrowed to `d.M.y`.
+
 * A skeleton combining a date and a time adjusts both halves' field widths to the request. It adjusted neither, so a requested timezone symbol was replaced by whichever the matched format carried — `:MMMMdjmsO` rendered "GMT" where `O` gives "GMT+0". Every Gregorian case in CLDR's datetime conformance fixture now passes, up from 47 of 88.
 
 * Unit preferences read the `-u-ms` and `-u-mu` locale keywords. A measurement system resolves to the preferences of a territory that uses it, and a measurement unit overrides the result outright — `en-u-rg-uszzzz-ms-metric` gives celsius, `en-US-u-rg-uszzzz-ms-uksystem` gives imperial gallons. TR35's ordering is `mu > ms > rg > (likely) region`.
