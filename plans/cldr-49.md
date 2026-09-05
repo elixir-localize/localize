@@ -979,20 +979,25 @@ CLDR's `<types>` block carries two display names for many key-type pairs: the fu
 
 cldr-json flattens every `scope="core"` entry for a key into a **single JSON key literally named `core`**, so each successive entry overwrites the last. `en`'s `calendar` has 18 short names in the XML — Buddhist, Chinese, Coptic … Persian — and reaches the JSON as one entry, `"core": "Minguo"`, the last one parsed. The other 17 are gone, and `core` masquerades as a calendar type.
 
-Measured across CLDR 49's full XML tree:
+Measured for `en`, comparing `common/main/en.xml` against `cldr-localenames-full/main/en/localeDisplayNames.json`:
 
 | | |
 |---|---|
-| `scope="core"` entries in the XML | **12,707** |
-| surviving as a JSON `core` key | 1,934 |
-| **lost** | **10,773** (85%) |
-| locales affected | 152 |
+| `scope="core"` short names in the XML | **116** |
+| surviving in the JSON | 15 |
+| **lost** | **101 (87%)** |
 
-Worst per key: `numbers` collapses up to 28 short names into one, `calendar` 18, `collation` 15.
+Worst per key: `numbers` 28 → 1, `calendar` 18 → 1, `collation` 15 → 1. Four keys — `ka`, `kf`, `kr`, `ks` — keep none at all.
+
+Across the distribution, **6,499 (locale, key) pairs in 458 locales** carry a `core` key, each retaining exactly one of the several short names its key defines.
+
+*(An earlier version of this section reported 12,707 / 1,934 / 10,773 across 152 locales. Those came from scanning the unresolved XML, which counts only locales with a literal `<types>` block; cldr-json emits inheritance-resolved data, so both the affected-locale count and the arithmetic were wrong. The figures above are measured directly against the shipped JSON.)*
 
 **Consequence for Localize.** Our `locale_display_names.types.<key>.core` is a pseudo-type holding one arbitrary short name, and TR35's `SeparateKeyValue` display format and the menu use-case cannot be implemented from cldr-json at all. `typeValues` itself — the On/Off strings of item 16 — is emitted correctly; the loss is confined to `<types>`.
 
-**Worth reporting upstream.** If it is not fixed, the workaround is the one already used for `primaryZones` in item 14: read `common/main/*.xml` directly and merge. That is a bigger job here, since it is per-locale rather than a single supplemental file.
+**Worth reporting upstream.** The converter already has the mechanism for this: `LdmlConvertRules.NAME_PART_DISTINGUISHING_ATTR_SET` in `tools/cldr-code/src/main/java/org/unicode/cldr/json/` lists the attributes that must be folded into the key name as `name-(attribute)-(value)` so they cannot collide, and it carries `characters:parseLenients:scope` — but nothing for the `<type>` element's `scope`. Whether adding it is the whole fix has not been traced through the emitter, so the report should describe the symptom and point at that set rather than assert a patch.
+
+If it is not fixed, the workaround is the one already used for `primaryZones` in item 14: read `common/main/*.xml` directly and merge. That is a bigger job here, since it is per-locale rather than a single supplemental file.
 
 ## 17. `H24` hour cycle deprecated — ✅ Closed; the premise did not hold
 
