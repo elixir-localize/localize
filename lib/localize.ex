@@ -1462,6 +1462,15 @@ defmodule Localize do
   @doc """
   Validates a territory subdivision code.
 
+  > #### Iranian codes are known to be stale {: .warning}
+  >
+  > CLDR records under Known Issues that the ISO 3166-2 subdivision codes
+  > for Iran changed in 2020 and that no equivalent stable codes yet exist
+  > ([CLDR-19060](https://unicode-org.atlassian.net/browse/CLDR-19060)). The
+  > `ir*` codes CLDR ships — and therefore the ones validated here — are the
+  > pre-2020 set. An application storing an Iranian subdivision code should
+  > expect to migrate it when CLDR settles on replacements.
+
   Normalises the subdivision code (lowercased) and checks it
   against the CLDR validity data.
 
@@ -1502,6 +1511,171 @@ defmodule Localize do
         {:error, Localize.UnknownSubdivisionError.exception(subdivision: subdivision)}
     end
   end
+
+  @doc """
+  Returns the affirmative responses a locale accepts.
+
+  These are CLDR's POSIX `yesstr` messages: the forms a locale would
+  accept as "yes" at a prompt. TR35 stores only the lower-case forms and
+  leaves a consumer to derive the upper-case and abbreviated variants, so
+  use `affirmative?/2` rather than comparing against this list directly.
+
+  ### Arguments
+
+  * `locale` is any locale returned by `Localize.known_locale_names/0` or a
+    `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
+
+  ### Returns
+
+  * `{:ok, responses}` where `responses` is a list of strings, most
+    complete form first.
+
+  * `{:error, exception}` if the locale is unknown.
+
+  ### Examples
+
+      iex> Localize.affirmative_responses(:en)
+      {:ok, ["yes", "y"]}
+
+      iex> Localize.affirmative_responses(:de)
+      {:ok, ["ja", "j"]}
+
+  """
+  @spec affirmative_responses(locale()) :: {:ok, [String.t()]} | {:error, Exception.t()}
+  def affirmative_responses(locale \\ get_locale()) do
+    posix_responses(locale, :yes)
+  end
+
+  @doc """
+  Returns the negative responses a locale accepts.
+
+  These are CLDR's POSIX `nostr` messages. See `affirmative_responses/1`.
+
+  ### Arguments
+
+  * `locale` is any locale returned by `Localize.known_locale_names/0` or a
+    `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
+
+  ### Returns
+
+  * `{:ok, responses}` where `responses` is a list of strings, most
+    complete form first.
+
+  * `{:error, exception}` if the locale is unknown.
+
+  ### Examples
+
+      iex> Localize.negative_responses(:fr)
+      {:ok, ["non", "n"]}
+
+      iex> Localize.negative_responses(:ja)
+      {:ok, ["いいえ", "n"]}
+
+  """
+  @spec negative_responses(locale()) :: {:ok, [String.t()]} | {:error, Exception.t()}
+  def negative_responses(locale \\ get_locale()) do
+    posix_responses(locale, :no)
+  end
+
+  @doc """
+  Returns whether a response is affirmative in a locale.
+
+  Matching folds case, since CLDR stores only the lower-case forms, and
+  ignores surrounding whitespace. An unknown locale is not affirmative
+  rather than an error — this sits on the input path, where a prompt needs
+  an answer rather than an exception.
+
+  ### Arguments
+
+  * `response` is the string to test.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is any locale returned by `Localize.known_locale_names/0` or a
+    `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
+
+  ### Returns
+
+  * `true` if the response is one of the locale's affirmative forms.
+
+  * `false` otherwise.
+
+  ### Examples
+
+      iex> Localize.affirmative?("Ja", locale: :de)
+      true
+
+      iex> Localize.affirmative?("y", locale: :de)
+      false
+
+      iex> Localize.affirmative?("oui", locale: :fr)
+      true
+
+  """
+  @spec affirmative?(term(), Keyword.t()) :: boolean()
+  def affirmative?(response, options \\ []) do
+    matches_response?(response, options, &affirmative_responses/1)
+  end
+
+  @doc """
+  Returns whether a response is negative in a locale.
+
+  See `affirmative?/2` for the matching rules.
+
+  ### Arguments
+
+  * `response` is the string to test.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is any locale returned by `Localize.known_locale_names/0` or a
+    `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
+
+  ### Returns
+
+  * `true` if the response is one of the locale's negative forms.
+
+  * `false` otherwise.
+
+  ### Examples
+
+      iex> Localize.negative?("NEIN", locale: :de)
+      true
+
+      iex> Localize.negative?("no", locale: :de)
+      false
+
+  """
+  @spec negative?(term(), Keyword.t()) :: boolean()
+  def negative?(response, options \\ []) do
+    matches_response?(response, options, &negative_responses/1)
+  end
+
+  defp posix_responses(locale, key) do
+    with {:ok, language_tag} <- validate_locale(locale),
+         {:ok, posix} <- Localize.Locale.get(language_tag, [:posix]) do
+      {:ok, Map.get(posix, key, [])}
+    end
+  end
+
+  defp matches_response?(response, options, reader) when is_binary(response) do
+    locale = Keyword.get(options, :locale, get_locale())
+
+    case reader.(locale) do
+      {:ok, responses} ->
+        folded = response |> String.trim() |> String.downcase()
+        Enum.any?(responses, &(String.downcase(&1) == folded))
+
+      {:error, _unknown_locale} ->
+        false
+    end
+  end
+
+  defp matches_response?(_response, _options, _reader), do: false
 
   @doc """
   Returns the list of canonical measurement system atoms.

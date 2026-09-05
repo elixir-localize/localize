@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* `Localize.affirmative_responses/1` and `negative_responses/1` return CLDR's POSIX `yesstr` / `nostr` forms — `{:ok, ["ja", "j"]}` for `:de` — and `affirmative?/2` and `negative?/2` match a response against them, folding case as TR35 requires.
+
+* `Localize.Locale.LocaleDisplay.type_value_name/2` returns the localized name for a boolean BCP 47 keyword value: `"On"` and `"Off"` in `en`, `"Ein"` and `"Aus"` in `de`.
+
 * Date-time skeletons resolve through TR35's append items when no available format carries every requested field: the closest format that is a subset of the request is matched and the missing fields appended from the locale's `appendItems` templates. `en` has no quarter format, so `:yMMMdQ` now renders "Jul 6, 2024 (quarter: 3)" where it returned `Localize.DateTimeUnresolvedFormatError`.
 
 * `Localize.DateTime.Timezone.location_name/3` returns the place the generic location format names for a timezone — a country for a single-zone territory or a CLDR primary zone, a city otherwise — and `generic_location_format/2` renders it through the locale's `regionFormat`.

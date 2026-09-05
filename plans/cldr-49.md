@@ -67,12 +67,12 @@ This package is widely used. The following invariants apply to every item in thi
 | 12 | `common/testData` conformance-fixture audit       | None (tests only) | None      |
 | 13 | CDN-asset checksum manifests                       | None       | None — ✅ Done in Localize 0.44.0 |
 | 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Output changes** — ✅ Done. All 237 eras generated from curated research; pre-Meiji dates were CLDR's lunisolar values and are now proleptic Gregorian |
-| 15 | POSIX `yesstr` / `nostr` responses                  | New functions | None (additive; ETF schema bump) |
-| 16 | `typeValues` On/Off translations (CLDR 49, CLDR-19394) | New functions | None (additive) — added 2026-08-25 |
+| 15 | POSIX `yesstr` / `nostr` responses                  | New functions | None — ✅ Done. `affirmative_responses/1`, `negative_responses/1`, `affirmative?/2`, `negative?/2` |
+| 16 | `typeValues` On/Off translations (CLDR 49, CLDR-19394) | New functions | None — ✅ Done. Data was already ingested; `LocaleDisplay.type_value_name/2` exposes it |
 | 17 | `H24` hour cycle deprecated                         | None       | None — ✅ Closed. CLDR 49 does not deprecate it; TR35 and `bcp47/calendar.xml` both still carry `h24`. No change |
 | 18 | Week-of-year numbering follows ISO by default        | None       | None — ✅ Closed. TR35 still numbers weeks by the locale's `firstDay`/`minDays`; already conformant. No change |
-| 19 | Supplemental data files reorganized                | None       | Build-time failure if the pipeline meets reorganized sources unadjusted |
-| 20 | Iran subdivision codes stale upstream              | None       | None now; a future CLDR change invalidates stored codes |
+| 19 | Supplemental data files reorganized                  | None       | None — ✅ Closed. We read neither file; every XML source we use is already separate |
+| 20 | Iran subdivision codes stale upstream              | None       | None now — ✅ Documented. Still pre-2020 in CLDR 49; caveat on `validate_territory_subdivision/1` |
 | 21 | Metazone transitions gain seconds precision        | None       | None — ✅ Fixed. `Africa/Monrovia` resolves 30s earlier, a correction |
 | 22 | RBNF rules externalised to ICU text, plus `[A\|B]` alternation | None | None — ✅ Fixed. New reader, lexer and parser rules; output unchanged |
 | 23 | `copy_test_data` reverts curated conformance fixtures | None | None — ✅ Fixed. Curated fixtures skipped; upstream drift reported |
@@ -937,7 +937,7 @@ Localize's position is that the use cases needing this data — academic publish
 
 No API change: the data stays where it is and the era range is unchanged. The risk is entirely in *not* doing this — a silent narrowing of supported dates from 645 CE to 1868 CE.
 
-## 15. POSIX `yesstr` / `nostr` affirmative and negative responses
+## 15. POSIX `yesstr` / `nostr` affirmative and negative responses — ✅ Done
 
 Spec: <https://unicode.org/reports/tr35/tr35-general.html#POSIX_Elements>
 
@@ -1048,29 +1048,29 @@ The delegating path for non-`Calendar.ISO` calendars was already correct and is 
 
 None. No code changed.
 
-## 19. Supplemental data files reorganized
+## 19. Supplemental data files reorganized — ✅ Closed; we do not read those files
 
-### Current conformance
+### Current conformance — the premise was wrong
 
-The pipeline reads `common/supplemental/supplementalData.xml` and `supplementalMetadata.xml` directly, and the normalizers under `data/normalize/` are written against their current element layout.
+The pipeline reads **neither** file. `grep -rn "supplementalData\|supplementalMetadata" data lib` returns nothing. Every XML source we copy is already a separate file: `pluralRanges.xml`, `subdivisions.xml`, `units.xml`, `grammaticalFeatures.xml`, `metaZones.xml`, `bcp47/timezone.xml` and the validity files. Everything else comes from cldr-json's `cldr-core/supplemental/*.json`, whose shape is generated from the XML by cldr-json's own tooling.
 
 ### Gap
 
-CLDR 49 announces that the major components of both files are to be "organized more logically and moved into separate files", with the release note asking implementations to "plan to update XML and JSON parsers accordingly". The data itself is unchanged; only its location moves.
+Announced for a later release, and not landed in 49: `common/supplemental/` still contains both `supplementalData.xml` and `supplementalMetadata.xml`, unsplit.
 
-Whether this lands *in* 49 or is announced *by* 49 for a later release needs confirming — it appears under "V49 advance warnings", which elsewhere in that section describes changes that do land in 49.
+### Resolution
 
-### Plan
+**No change, and less exposure than this item assumed.** A reorganization lands in cldr-json first, and our JSON-shaped reads are insulated from it — cldr-json keeps its output layout stable across upstream XML moves. The XML files we do read are already the separate, per-topic ones a split would produce.
 
-1. Confirm the timing against the alpha and beta trees: if the files have already split, the new paths are visible under `common/supplemental/`.
-2. Inventory which elements the pipeline reads from each file, so a split is a matter of repointing rather than rediscovery.
-3. Prefer resolving elements by name across the supplemental directory rather than by file, so a future reorganization is a no-op.
+The plan's step 3 — "prefer resolving elements by name across the supplemental directory rather than by file" — is therefore not worth doing: we already resolve by file, and each file is already one topic.
+
+Worth re-checking when CLDR 50 ships, by listing `common/supplemental/`.
 
 ### API impact / breaking risk
 
-None to the public API. A build-time failure if the pipeline is run against reorganized sources without adjustment, which is the good failure mode — loud, and before anything ships.
+None. No code changed.
 
-## 20. Iran subdivision codes are stale upstream
+## 20. Iran subdivision codes are stale upstream — ✅ Documented
 
 ### Current conformance
 
@@ -1084,8 +1084,8 @@ This is not ours to fix — there is nothing upstream to adopt — but it matter
 
 ### Plan
 
-1. No code change. Track [CLDR-19060](https://unicode-org.atlassian.net/browse/CLDR-19060) and adopt whatever CLDR settles on.
-2. Note the caveat in the `Localize.HTML.Subdivision` documentation, so an application storing Iranian subdivision codes knows they are expected to change.
+1. ✅ Confirmed against CLDR 49: `common/subdivisions/en.xml` still carries the pre-2020 numeric set (`ir00`–`ir3x`, 33 entries). Nothing upstream to adopt. Track [CLDR-19060](https://unicode-org.atlassian.net/browse/CLDR-19060).
+2. ✅ Caveat documented on `Localize.validate_territory_subdivision/1`, which is the validation surface in this library. **`Localize.HTML.Subdivision` lives in `localize_web` and still needs the same note** — it is the rendering surface an application actually stores values from.
 3. When new codes arrive, they are a data migration for consumers, not merely a regeneration — worth a prominent changelog entry at that point.
 
 ### API impact / breaking risk

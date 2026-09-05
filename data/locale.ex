@@ -32,7 +32,8 @@ defmodule Localize.Data.Locale do
     "locale_display_names",
     "subdivisions",
     "person_names",
-    "layout"
+    "layout",
+    "posix"
   ]
 
   @doc """
@@ -221,6 +222,7 @@ defmodule Localize.Data.Locale do
     |> Localize.Data.Normalize.LenientParse.normalize(locale)
     |> Localize.Data.Normalize.LocaleDisplayNames.normalize(locale)
     |> Localize.Data.Normalize.PersonName.normalize(locale)
+    |> Localize.Data.Normalize.Posix.normalize(locale)
     |> Localize.Data.Normalize.Layout.normalize(locale)
   end
 

@@ -197,6 +197,84 @@ defmodule Localize.Locale.LocaleDisplay do
     end
   end
 
+  @doc """
+  Returns the localized name for a boolean keyword value.
+
+  Many BCP 47 keyword types are boolean — `ka` (ignore symbols sorting),
+  `kb` (reversed accent sorting), `kn` (numeric sorting). Rather than
+  translate each separately, CLDR centralizes the two strings in
+  `typeValues`, which TR35 intends to be shown beside the key's own name:
+  "Ignore Symbols Sorting: On".
+
+  The composition is the caller's — CLDR ships the two strings and the key
+  names, but no separator between them.
+
+  ### Arguments
+
+  * `value` is `true`, `false`, or the CLDR spellings `"yes"` and `"no"`.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is any locale returned by `Localize.known_locale_names/0` or a
+    `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
+
+  ### Returns
+
+  * `{:ok, name}`.
+
+  * `{:error, exception}` if the locale is unknown or ships no `typeValues`.
+
+  ### Examples
+
+      iex> Localize.Locale.LocaleDisplay.type_value_name(true, locale: :en)
+      {:ok, "On"}
+
+      iex> Localize.Locale.LocaleDisplay.type_value_name(false, locale: :en)
+      {:ok, "Off"}
+
+      iex> Localize.Locale.LocaleDisplay.type_value_name("yes", locale: :de)
+      {:ok, "Ein"}
+
+  """
+  @spec type_value_name(boolean() | String.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def type_value_name(value, options \\ [])
+
+  def type_value_name(true, options), do: type_value_name("yes", options)
+  def type_value_name(false, options), do: type_value_name("no", options)
+
+  def type_value_name(value, options) when value in ["yes", "no"] do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, display_names} <- Localize.Locale.get(language_tag, [:locale_display_names]),
+         %{} = type_values <- Map.get(display_names, :type_values),
+         name when is_binary(name) <- Map.get(type_values, value) do
+      {:ok, name}
+    else
+      {:error, _reason} = error ->
+        error
+
+      _no_type_values ->
+        {:error,
+         Localize.ItemNotFoundError.exception(
+           locale: locale,
+           keys: [:locale_display_names, :type_values, value]
+         )}
+    end
+  end
+
+  def type_value_name(value, _options) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: value,
+       expected: :keyword_value,
+       allowed_values: [true, false, "yes", "no"]
+     )}
+  end
+
   # ── Language Name Resolution ─────────────────────────────────
 
   defp language_name(language_tag, display_names, prefer, standard_or_dialect) do
