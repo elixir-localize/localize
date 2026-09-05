@@ -36,6 +36,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A skeleton combining a date and a time adjusts both halves' field widths to the request. It adjusted neither, so a requested timezone symbol was replaced by whichever the matched format carried — `:MMMMdjmsO` rendered "GMT" where `O` gives "GMT+0". Every Gregorian case in CLDR's datetime conformance fixture now passes, up from 47 of 88.
+
 * Unit preferences read the `-u-ms` and `-u-mu` locale keywords. A measurement system resolves to the preferences of a territory that uses it, and a measurement unit overrides the result outright — `en-u-rg-uszzzz-ms-metric` gives celsius, `en-US-u-rg-uszzzz-ms-uksystem` gives imperial gallons. TR35's ordering is `mu > ms > rg > (likely) region`.
 
 * A unit whose quantity CLDR ships no preferences for falls back to base units instead of returning an error: `Localize.Unit.Preference.preferred_units/2` on `ampere` gives `[:ampere]` and on `candela-per-cubic-foot` gives `["candela-per-cubic-meter"]`. A derived compound base unit comes back as a CLDR identifier string, since the set a caller can ask for is unbounded and interning it would be an atom-table vector.

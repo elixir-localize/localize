@@ -295,7 +295,13 @@ defmodule Localize.MixProject do
       {:sweet_xml, "~> 0.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:stream_data, "~> 1.0", only: :test}
+      {:stream_data, "~> 1.0", only: :test},
+      # Test-only: CLDR's datetime conformance fixtures format in real zones
+      # (`Australia/Adelaide`), which needs a timezone database to resolve the
+      # offset and the daylight flag. Localize itself has no runtime need for
+      # one — a consumer supplies whichever they use — so this never reaches
+      # the package requirements.
+      {:tz, "~> 0.26", only: :test}
     ] ++ maybe_json_polyfill() ++ maybe_cldr()
   end
 

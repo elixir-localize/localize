@@ -11,52 +11,28 @@ defmodule Localize.DateTime.ConformanceTest do
 
   use ExUnit.Case, async: true
 
-  # Tests where ex_cldr_dates_times also has known issues
+  # Every Gregorian case in the fixture passes. Three things got it there,
+  # each of which had been standing in for the others:
+  #
+  #   * The datetime wrapper defaults to TR35's `atTime` pattern, as CLDR 48
+  #     specified. Two cases were excluded as `@should_be_at_format`.
+  #
+  #   * The date/time split path adjusts the matched patterns' field widths.
+  #     It did not, so a requested zone symbol was silently replaced by
+  #     whichever the matched format carried — `:MMMMdjmsO` matched `hmsv`
+  #     and rendered "GMT" where `O` gives "GMT+0". That accounted for eight
+  #     of the `@timezone_tests` and all six `@skeleton_match_issues`.
+  #
+  #   * `:tz` is a test dependency, so `Australia/Adelaide` resolves to a
+  #     real offset and daylight flag. Fifteen cases needed it; without a
+  #     timezone database `DateTime.shift_zone/2` fails and the fixture's
+  #     input silently arrives as UTC.
+  #
+  # The remaining `@wrong_format` indices are not Gregorian and so never
+  # ran; they are kept for whenever the other calendars are enabled below.
   @wrong_format [283, 256, 266, 285, 258, 267, 284, 257, 265, 286]
 
-  # Tests requiring timezone name resolution (z, Z, O, v, V symbols)
-  # or the `j` meta-symbol in skeleton matching. These need
-  # full timezone support and locale-sensitive hour cycle resolution.
-  #
-  # 48, 51, 52, 56, 59 and 60 were previously excluded as `@should_be_at_format`
-  # — the datetime wrapper now defaults to TR35's `atTime` pattern, which
-  # retired 47 and 55, and showed the other six to be misfiled. They are zone
-  # symbol substitution: the skeleton matcher treats `v`, `V`, `O`, `z` and `Z`
-  # as interchangeable, so `:MMMMdjmsO` matches a format carrying `z` and
-  # renders "GMT" where the requested `O` gives "GMT+0". Each symbol formats
-  # correctly on its own; it is the match that loses the request.
-  @timezone_tests [
-    14,
-    16,
-    18,
-    38,
-    39,
-    40,
-    41,
-    42,
-    44,
-    45,
-    46,
-    48,
-    49,
-    50,
-    51,
-    52,
-    53,
-    54,
-    56,
-    57,
-    58,
-    59,
-    60
-  ]
-  @j_symbol_tests []
-  @skeleton_match_issues [19, 20, 21, 34, 35, 36]
-
-  @maybe_incorrect_test_result @wrong_format ++
-                                 @timezone_tests ++
-                                 @j_symbol_tests ++
-                                 @skeleton_match_issues
+  @maybe_incorrect_test_result @wrong_format
 
   # Only test gregorian calendar for now
   @test_calendars [:gregorian]

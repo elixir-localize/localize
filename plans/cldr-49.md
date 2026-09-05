@@ -68,7 +68,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 13 | CDN-asset checksum manifests                       | None       | None — ✅ Done in Localize 0.44.0 |
 | 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Output changes** — ✅ Done. All 237 eras generated from curated research; pre-Meiji dates were CLDR's lunisolar values and are now proleptic Gregorian |
 | 15 | POSIX `yesstr` / `nostr` responses                  | New functions | None — ✅ Done. `affirmative_responses/1`, `negative_responses/1`, `affirmative?/2`, `negative?/2` |
-| 16 | `typeValues` On/Off translations (CLDR 49, CLDR-19394) | New functions | None — ✅ Done. Data was already ingested; `LocaleDisplay.type_value_name/2` exposes it |
+| 16 | `typeValues` On/Off translations (CLDR 49, CLDR-19394) | New functions | None — ✅ Done. `LocaleDisplay.type_value_name/2`; an upstream cldr-json defect found alongside |
 | 17 | `H24` hour cycle deprecated                         | None       | None — ✅ Closed. CLDR 49 does not deprecate it; TR35 and `bcp47/calendar.xml` both still carry `h24`. No change |
 | 18 | Week-of-year numbering follows ISO by default        | None       | None — ✅ Closed. TR35 still numbers weeks by the locale's `firstDay`/`minDays`; already conformant. No change |
 | 19 | Supplemental data files reorganized                  | None       | None — ✅ Closed. We read neither file; every XML source we use is already separate |
@@ -970,6 +970,29 @@ false
 
 * New functions and one new locale-data key. Purely additive.
 * One ETF schema addition, so the data version bumps; no public API changes shape.
+
+## 16a. cldr-json discards `scope="core"` display names — upstream defect
+
+Found while implementing item 16 and re-verified in detail.
+
+CLDR's `<types>` block carries two display names for many key-type pairs: the full one, and a short one marked `scope="core"`. TR35 §Locale Display Name Algorithm specifies the short form for the `SeparateKeyValue` format — "Calendar: Buddhist" rather than "Buddhist Calendar" — and calls it out again for menus: use the key name as the menu title and the `scope="core"` values as the choices.
+
+cldr-json flattens every `scope="core"` entry for a key into a **single JSON key literally named `core`**, so each successive entry overwrites the last. `en`'s `calendar` has 18 short names in the XML — Buddhist, Chinese, Coptic … Persian — and reaches the JSON as one entry, `"core": "Minguo"`, the last one parsed. The other 17 are gone, and `core` masquerades as a calendar type.
+
+Measured across CLDR 49's full XML tree:
+
+| | |
+|---|---|
+| `scope="core"` entries in the XML | **12,707** |
+| surviving as a JSON `core` key | 1,934 |
+| **lost** | **10,773** (85%) |
+| locales affected | 152 |
+
+Worst per key: `numbers` collapses up to 28 short names into one, `calendar` 18, `collation` 15.
+
+**Consequence for Localize.** Our `locale_display_names.types.<key>.core` is a pseudo-type holding one arbitrary short name, and TR35's `SeparateKeyValue` display format and the menu use-case cannot be implemented from cldr-json at all. `typeValues` itself — the On/Off strings of item 16 — is emitted correctly; the loss is confined to `<types>`.
+
+**Worth reporting upstream.** If it is not fixed, the workaround is the one already used for `primaryZones` in item 14: read `common/main/*.xml` directly and merge. That is a bigger job here, since it is per-locale rather than a single supplemental file.
 
 ## 17. `H24` hour cycle deprecated — ✅ Closed; the premise did not hold
 

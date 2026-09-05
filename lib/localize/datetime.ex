@@ -465,14 +465,16 @@ defmodule Localize.DateTime do
 
       {:ok, {date_skeleton, time_skeleton}} ->
         date_pattern =
-          Localize.DateTime.Format.resolve_variant(
-            Map.get(available, date_skeleton, ""),
-            options
-          )
+          available
+          |> Map.get(date_skeleton, "")
+          |> Localize.DateTime.Format.resolve_variant(options)
+          |> adjust_to_requested_widths(skeleton)
 
         time_pattern =
-          Map.get(available, time_skeleton, "")
+          available
+          |> Map.get(time_skeleton, "")
           |> Localize.DateTime.Format.resolve_variant(options)
+          |> adjust_to_requested_widths(skeleton)
           |> Localize.DateTime.Format.Match.append_fractional_seconds(fraction_count, locale_id)
 
         format_combined_patterns(
