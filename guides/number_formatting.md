@@ -518,13 +518,7 @@ Localize.Nif.number_format(1234.56, "en-US", currency: "USD")
 
 ### NIF vs Elixir differences
 
-The NIF uses ICU4C's `icu::number::NumberFormatter`, which may produce slightly different output in edge cases:
-
-* Narrow no-break space handling may differ in some locales.
-
-* Short/long compact format abbreviations may use different rounding.
-
-* Some locale-specific patterns (like Indian grouping) may handle large numbers differently.
+The NIF is ICU4C's `icu::number::NumberFormatter`, so it produces ICU's answers rather than Localize's wherever the two differ. Those differences are not edge cases in the vague sense — they are enumerated, with the CLDR evidence for each, in the [ICU divergences guide](icu_divergences.md). In short: Localize renders the format CLDR ships and ICU sometimes overrides it, which shows up in the scientific notation of several Indic locales, the Urdu percent sign, Galician grouping, and the compact forms of `af`, `bn`, `en-IN`, `ig`, `ps` and `ta`.
 
 The NIF is primarily useful for cross-validation and for algorithms like collation sort-key generation where C performance is critical. For number formatting, the pre-built `Options` struct approach already delivers sub-10µs latency in pure Elixir.
 
