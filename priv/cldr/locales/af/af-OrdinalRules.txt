@@ -1,3 +1,0 @@
-%digits-ordinal:
--x: −>>;
-0: =#,##0=$(ordinal,few{de}other{ste})$;

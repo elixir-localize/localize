@@ -30,6 +30,17 @@ mise.toml
 *.so
 *.o
 
+# Raw CLDR sources copied in by mix localize.copy_sources. Build input only —
+# never shipped in the hex package, and nothing under lib/ reads it. Tracking
+# it cost roughly 14 MB of pack per regeneration, and a CLDR cycle regenerates
+# many times, so it is reproduced locally instead:
+#
+#   CLDR_TAG=release-<N> scripts/build_cldr_production_data
+#   mix localize.copy_sources
+#
+# See CLDR_UPDATE_INTEGRATION.md.
+/priv/cldr/
+
 # Generated locale ETF files (populated via mix localize.generate_locales)
 /priv/localize/locales/
 !/priv/localize/locales/en.etf

@@ -52,6 +52,8 @@ scripts/
 
 * **CLDR production data** — the pre-built JSON locale files, produced by `scripts/build_cldr_production_data` (requires Java/Maven; wraps `cldr-generate-json.sh` and emits all packages including `annotations`). Location: `$CLDR_PRODUCTION`, default `../cldr_production_data`.
 
+* **A populated `priv/cldr/`** — this is gitignored, so a fresh clone has none. Nothing under `lib/` reads it and it is not in the hex package, so the library compiles, tests and ships without it; only *regenerating* data needs it. Populate it with `scripts/build_cldr_production_data` followed by `mix localize.copy_sources`. It is kept out of git because a CLDR cycle regenerates it many times and each pass costs roughly 14 MB of pack.
+
 * **R2 credentials** (upload/release phase only): `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`. In CI these are repository secrets used by `.github/workflows/upload-locales.yml`.
 
 ## Mix task and script reference
