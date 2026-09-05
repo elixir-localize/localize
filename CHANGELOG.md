@@ -36,6 +36,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A display name with no entry for the requested preference and none for `:standard` falls back to a stable key rather than whichever the map yielded first, which depended on atom creation order in the VM. Same cause as the skeleton-matching fix above.
+
 * Skeleton matching is deterministic. Where two formats sit the same distance from a skeleton the winner was decided by the formats map's iteration order, and because Erlang hashes atom keys by internal reference that order depended on when those atoms were created — so the same skeleton could resolve to a different pattern between runs.
 
 * A matched format keeps a field width the locale states deliberately. TR35 leaves a pattern field alone where the matched `availableFormats` id already carries the requested width, so `ru`'s `yMd` renders `dd.MM.y` rather than being narrowed to `d.M.y`.

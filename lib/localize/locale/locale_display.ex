@@ -541,8 +541,14 @@ defmodule Localize.Locale.LocaleDisplay do
   end
 
   def get_display_preference(values, preference) when is_map(values) do
+    # The last resort has no preference to honour, so any key will do — but it
+    # has to be the *same* key every time. `hd(Map.keys(values))` is not:
+    # Erlang hashes atom keys by internal reference, so the order a map yields
+    # them in depends on when those atoms were created in the VM, and the same
+    # locale could display a different name between runs. Sorting first makes
+    # the choice arbitrary but stable.
     Map.get(values, preference) || Map.get(values, :standard) ||
-      Map.get(values, Map.keys(values) |> hd())
+      Map.get(values, values |> Map.keys() |> Enum.sort() |> List.first())
   end
 
   @doc false
