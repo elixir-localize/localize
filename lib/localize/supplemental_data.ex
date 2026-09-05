@@ -114,6 +114,14 @@ defmodule Localize.SupplementalData do
     load_supplemental("metazones.etf")
   end
 
+  # The zone that names its whole territory in the generic location
+  # format, keyed by IANA zone name (e.g. "Europe/Berlin" => :DE).
+  @doc false
+  @spec primary_zones() :: %{String.t() => atom()}
+  def primary_zones do
+    load_supplemental("primary_zones.etf")
+  end
+
   @doc false
   @spec unicode_script_to_subtag_mapping() :: map()
   def unicode_script_to_subtag_mapping do

@@ -18,6 +18,7 @@ defmodule Localize.Data.Locale do
     "number_systems",
     "number_symbols",
     "minimum_grouping_digits",
+    "minimal_pairs",
     "rbnf",
     "units",
     "date_fields",
@@ -203,6 +204,7 @@ defmodule Localize.Data.Locale do
   defp normalize_content(content, locale) do
     content
     |> Localize.Data.Normalize.Number.normalize(locale)
+    |> Localize.Data.Normalize.MinimalPairs.normalize(locale)
     |> Localize.Data.Normalize.Currency.normalize(locale)
     |> Localize.Data.Normalize.List.normalize(locale)
     |> Localize.Data.Normalize.NumberSystem.normalize(locale)

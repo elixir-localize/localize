@@ -22,10 +22,16 @@ defmodule Localize.DateTime.Timezone do
                        :localize,
                        "priv/localize/supplemental_data/metazones.etf"
                      )
+  @external_resource Application.app_dir(
+                       :localize,
+                       "priv/localize/supplemental_data/primary_zones.etf"
+                     )
 
   @timezones SupplementalData.timezones()
   @timezones_by_territory Builder.timezones_by_territory(@timezones)
   @territories_by_timezone Builder.territories_by_timezone(@timezones_by_territory)
+
+  @primary_zones SupplementalData.primary_zones()
 
   @metazone_data SupplementalData.metazones()
   @metazone_mapzones @metazone_data.mapzones
@@ -40,6 +46,18 @@ defmodule Localize.DateTime.Timezone do
                             alias_name <- aliases,
                             into: %{},
                             do: {alias_name, canonical}
+
+  # The reverse of the BCP 47 timezone table: every IANA alias mapped to
+  # the short identifier that owns it, which is what the `V` symbol emits.
+  @short_zone_ids for {bcp47, %{aliases: aliases}} <- @timezones,
+                      is_list(aliases),
+                      alias_name <- aliases,
+                      into: %{},
+                      do: {alias_name, bcp47}
+
+  # TR35: where the short identifier is unavailable, the special short
+  # timezone ID `unk` (Unknown Zone) is used.
+  @unknown_short_zone_id "unk"
 
   # ── Timezone Data Access ─────────────────────────────────────
 
@@ -234,6 +252,42 @@ defmodule Localize.DateTime.Timezone do
   @spec get_short_zone(String.t(), term()) :: map() | term()
   def get_short_zone(short_zone, default \\ nil) do
     Map.get(@timezones, short_zone, default)
+  end
+
+  @doc """
+  Returns the BCP 47 short timezone identifier for an IANA
+  timezone name.
+
+  This is the value of the `V` format symbol in TR35. Every alias
+  of a zone resolves to the same short identifier, so both
+  `"America/New_York"` and its alias `"US/Eastern"` return `"usnyc"`.
+
+  ### Arguments
+
+  * `iana_id` is an IANA timezone name such as `"America/New_York"`.
+
+  ### Returns
+
+  * The BCP 47 short timezone identifier as a string.
+
+  * `"unk"`, the Unknown Zone identifier, if `iana_id` is not a known
+    timezone. TR35 specifies this as the fallback for the `V` symbol.
+
+  ### Examples
+
+      iex> Localize.DateTime.Timezone.short_zone_id("America/New_York")
+      "usnyc"
+
+      iex> Localize.DateTime.Timezone.short_zone_id("US/Eastern")
+      "usnyc"
+
+      iex> Localize.DateTime.Timezone.short_zone_id("Not/AZone")
+      "unk"
+
+  """
+  @spec short_zone_id(String.t()) :: String.t()
+  def short_zone_id(iana_id) when is_binary(iana_id) do
+    Map.get(@short_zone_ids, iana_id, @unknown_short_zone_id)
   end
 
   @doc """
@@ -507,11 +561,21 @@ defmodule Localize.DateTime.Timezone do
         zone_name(time_zone, tz_data, format, type, datetime) ||
           metazone_name(metazone_for(time_zone, datetime), tz_data, format, type, datetime)
 
-      if result do
-        {:ok, result}
-      else
-        # Fallback to GMT format
-        gmt_format(datetime, locale_id, format: format)
+      cond do
+        result ->
+          {:ok, result}
+
+        # TR35 sends the generic symbols through the generic location format
+        # before the localized GMT format; the specific symbols go straight
+        # to GMT.
+        type == :generic ->
+          case generic_location_format(time_zone, locale_id) do
+            {:ok, location} -> {:ok, location}
+            :error -> gmt_format(datetime, locale_id, format: format)
+          end
+
+        true ->
+          gmt_format(datetime, locale_id, format: format)
       end
     end
   end
@@ -527,7 +591,7 @@ defmodule Localize.DateTime.Timezone do
     zone_data = get_in(tz_data[:zone], keys)
 
     metazone_data_name(zone_data, format, type, datetime) ||
-      zone_standard_for_generic(zone_data, format, type)
+      standard_for_generic(zone_data, format, type)
   end
 
   defp zone_name(_time_zone, _tz_data, _format, _type, _datetime), do: nil
@@ -538,14 +602,18 @@ defmodule Localize.DateTime.Timezone do
     ArgumentError -> nil
   end
 
-  defp zone_standard_for_generic(%{} = zone_data, format, :generic) do
-    unless get_in(zone_data, [:long, :daylight]) || get_in(zone_data, [:short, :daylight]) do
+  # TR35 **Type Fallback**: a zone or metazone with no daylight type does not
+  # require daylight support, so a request for the generic type resolves to the
+  # standard name. This is how `Etc/GMT` reaches "Greenwich Mean Time" for
+  # `vvvv` — the `gmt` metazone carries a standard name and nothing else.
+  defp standard_for_generic(%{} = name_data, format, :generic) do
+    unless get_in(name_data, [:long, :daylight]) || get_in(name_data, [:short, :daylight]) do
       format_key = if format == :short, do: :short, else: :long
-      get_in(zone_data, [format_key, :standard])
+      get_in(name_data, [format_key, :standard])
     end
   end
 
-  defp zone_standard_for_generic(_zone_data, _format, _type), do: nil
+  defp standard_for_generic(_name_data, _format, _type), do: nil
 
   # Look up the non-location name for a metazone. Returns `nil`
   # when the zone has no metazone mapping or the locale has no
@@ -553,7 +621,10 @@ defmodule Localize.DateTime.Timezone do
   defp metazone_name(nil, _tz_data, _format, _type, _datetime), do: nil
 
   defp metazone_name(metazone_key, tz_data, format, type, datetime) do
-    metazone_data_name(tz_data[:metazone][metazone_key], format, type, datetime)
+    metazone_data = tz_data[:metazone][metazone_key]
+
+    metazone_data_name(metazone_data, format, type, datetime) ||
+      standard_for_generic(metazone_data, format, type)
   end
 
   defp metazone_data_name(nil, _format, _type, _datetime), do: nil
@@ -838,8 +909,14 @@ defmodule Localize.DateTime.Timezone do
           {:error, _reason} -> %{}
         end
 
-      case find_exemplar_city(iana_id, zone) do
-        nil -> derived_exemplar_city(iana_id, options)
+      # CLDR keys exemplar cities by canonical zone name, so an alias has to
+      # be resolved first: `US/Eastern` would otherwise derive "Eastern" from
+      # its own path rather than yielding New York's city. `metazone_for/2`
+      # canonicalises for the same reason.
+      canonical = Map.get(@zone_canonical_names, iana_id, iana_id)
+
+      case find_exemplar_city(canonical, zone) do
+        nil -> derived_exemplar_city(canonical, options)
         city -> {:ok, city}
       end
     end
@@ -905,6 +982,154 @@ defmodule Localize.DateTime.Timezone do
       parts -> parts |> List.last() |> String.replace("_", " ")
     end
   end
+
+  @doc """
+  Returns the place named by the generic location format for a timezone.
+
+  TR35 names a country when the zone is the only one in its territory,
+  or when CLDR lists it as that territory's primary zone, and names the
+  zone's exemplar city otherwise. So `Europe/Rome` is "Italy" — Italy
+  keeps one zone — while `Australia/Adelaide` is "Adelaide".
+
+  ### Arguments
+
+  * `iana_id` is an IANA timezone name such as `"Europe/Rome"`.
+
+  * `locale` is any locale returned by `Localize.known_locale_names/0` or a
+    `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:derive` is a boolean determining whether an exemplar city may be
+    derived from the timezone identifier when CLDR names none. The
+    default is `true`.
+
+  ### Returns
+
+  * `{:ok, place_name}` where the place is a country or a city.
+
+  * `{:error, exception}` if the locale is unknown, or if no city can be
+    found or derived for the timezone.
+
+  ### Examples
+
+      iex> Localize.DateTime.Timezone.location_name("Europe/Rome", :en)
+      {:ok, "Italy"}
+
+      iex> Localize.DateTime.Timezone.location_name("Europe/Berlin", :en)
+      {:ok, "Germany"}
+
+      iex> Localize.DateTime.Timezone.location_name("Australia/Adelaide", :en)
+      {:ok, "Adelaide"}
+
+  """
+  @spec location_name(String.t(), Localize.locale(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def location_name(iana_id, locale \\ Localize.get_locale(), options \\ [])
+
+  def location_name(iana_id, locale, options) when is_binary(iana_id) do
+    canonical = Map.get(@zone_canonical_names, iana_id, iana_id)
+
+    with territory when not is_nil(territory) <- naming_territory(canonical),
+         {:ok, name} <- territory_name(territory, locale) do
+      {:ok, name}
+    else
+      _no_territory_name -> exemplar_city(iana_id, locale, options)
+    end
+  end
+
+  def location_name(iana_id, _locale, _options) do
+    {:error, Localize.UnknownTimezoneError.exception(timezone: iana_id)}
+  end
+
+  # A zone names its territory when CLDR lists it as that territory's
+  # primary zone, or when it is the only zone the territory has.
+  defp naming_territory(canonical) do
+    case Map.get(@primary_zones, canonical) do
+      nil -> sole_zone_territory(canonical)
+      territory -> territory
+    end
+  end
+
+  defp sole_zone_territory(canonical) do
+    with territory when not is_nil(territory) <-
+           Map.get(@territories_by_timezone, canonical),
+         [_the_only_zone] <- Map.get(@timezones_by_territory, territory) do
+      territory
+    else
+      _several_zones_or_none -> nil
+    end
+  end
+
+  # TR35 prefers the short country name where the locale has one.
+  defp territory_name(territory, locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, territories} <- Localize.Locale.get(language_tag, [:territories]),
+         %{} = names <- Map.get(territories, territory),
+         name when is_binary(name) <- Map.get(names, :short) || Map.get(names, :standard) do
+      {:ok, name}
+    else
+      _no_name -> :error
+    end
+  end
+
+  @doc """
+  Returns the generic location format for a timezone.
+
+  This is the `V` format symbol at width four: the zone's location
+  substituted into the locale's generic `regionFormat`, so
+  `Australia/Adelaide` in `en` is "Adelaide Time".
+
+  ### Arguments
+
+  * `iana_id` is an IANA timezone name such as `"Australia/Adelaide"`.
+
+  * `locale` is any locale returned by `Localize.known_locale_names/0` or a
+    `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
+
+  ### Returns
+
+  * `{:ok, formatted_string}`.
+
+  * `:error` for a zone with no place to name — the `Etc/*` zones, for
+    which TR35 falls back to the localized GMT format — or when the
+    locale has no `regionFormat`.
+
+  ### Examples
+
+      iex> Localize.DateTime.Timezone.generic_location_format("Australia/Adelaide", :en)
+      {:ok, "Adelaide Time"}
+
+      iex> Localize.DateTime.Timezone.generic_location_format("Europe/Rome", :en)
+      {:ok, "Italy Time"}
+
+      iex> Localize.DateTime.Timezone.generic_location_format("Etc/GMT", :en)
+      :error
+
+  """
+  @spec generic_location_format(String.t(), Localize.locale()) :: {:ok, String.t()} | :error
+  def generic_location_format(iana_id, locale \\ Localize.get_locale())
+
+  def generic_location_format(iana_id, locale) when is_binary(iana_id) do
+    with false <- etc_zone?(iana_id),
+         {:ok, place} <- location_name(iana_id, locale),
+         {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, names} <- Localize.Locale.get(language_tag, [:dates, :time_zone_names]),
+         %{generic: template} <- Map.get(names, :region_format, %{}) do
+      {:ok, place |> Localize.Substitution.substitute(template) |> IO.iodata_to_binary()}
+    else
+      _no_place_or_template -> :error
+    end
+  end
+
+  def generic_location_format(_iana_id, _locale), do: :error
+
+  # `Etc/*` zones are not locations — there is no place to name — so TR35
+  # sends them to the localized GMT format instead.
+  defp etc_zone?("Etc/" <> _rest), do: true
+  defp etc_zone?(_time_zone), do: false
 
   defp pad(integer, n) when is_integer(integer) do
     str = Integer.to_string(integer)

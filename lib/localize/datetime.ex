@@ -115,6 +115,20 @@ defmodule Localize.DateTime do
         is_binary(format) ->
           invoke_formatter(output, datetime, format, locale_id, Map.new(options))
 
+        # Semantic skeleton — resolve to a classical skeleton, then take the
+        # skeleton path from there.
+        match?(%Localize.DateTime.SemanticSkeleton{}, format) ->
+          case Localize.DateTime.SemanticSkeleton.to_classical_skeleton(
+                 format,
+                 cldr_calendar_for(datetime)
+               ) do
+            {:ok, skeleton} ->
+              format_with_skeleton(datetime, options, locale_id, skeleton, output)
+
+            {:error, _} = error ->
+              error
+          end
+
         # Standard format with separate date/time formats — use wrapper
         format in @standard_formats or
             (Keyword.has_key?(options, :date_format) and
@@ -365,10 +379,17 @@ defmodule Localize.DateTime do
       Localize.DateTime.Format.Match.split_fractional_seconds(skeleton)
 
     with {:ok, available} <- Localize.DateTime.Format.available_formats(locale_id) do
-      case Map.get(available, skeleton) do
-        nil ->
-          # Try best-match algorithm for skeletons not found exactly
-          format_with_best_match(
+      cond do
+        # A skeleton naming only zone fields is its own pattern: there is one
+        # field, so nothing to order, and `availableFormats` carries no
+        # zone-only entry for the matcher to find.
+        Localize.DateTime.Format.Match.zone_only_skeleton?(skeleton) ->
+          skeleton
+          |> Atom.to_string()
+          |> format_resolved_pattern(datetime, options, locale_id, skeleton, output)
+
+        true ->
+          format_from_available(
             datetime,
             options,
             locale_id,
@@ -377,18 +398,42 @@ defmodule Localize.DateTime do
             fraction_count,
             output
           )
-
-        %{} = variant_map ->
-          variant_map
-          |> Localize.DateTime.Format.resolve_variant(options)
-          |> Localize.DateTime.Format.Match.append_fractional_seconds(fraction_count, locale_id)
-          |> format_resolved_pattern(datetime, options, locale_id, skeleton, output)
-
-        pattern when is_binary(pattern) ->
-          pattern
-          |> Localize.DateTime.Format.Match.append_fractional_seconds(fraction_count, locale_id)
-          |> then(&invoke_formatter(output, datetime, &1, locale_id, Map.new(options)))
       end
+    end
+  end
+
+  defp format_from_available(
+         datetime,
+         options,
+         locale_id,
+         skeleton,
+         available,
+         fraction_count,
+         output
+       ) do
+    case Map.get(available, skeleton) do
+      nil ->
+        # Try best-match algorithm for skeletons not found exactly
+        format_with_best_match(
+          datetime,
+          options,
+          locale_id,
+          skeleton,
+          available,
+          fraction_count,
+          output
+        )
+
+      %{} = variant_map ->
+        variant_map
+        |> Localize.DateTime.Format.resolve_variant(options)
+        |> Localize.DateTime.Format.Match.append_fractional_seconds(fraction_count, locale_id)
+        |> format_resolved_pattern(datetime, options, locale_id, skeleton, output)
+
+      pattern when is_binary(pattern) ->
+        pattern
+        |> Localize.DateTime.Format.Match.append_fractional_seconds(fraction_count, locale_id)
+        |> then(&invoke_formatter(output, datetime, &1, locale_id, Map.new(options)))
     end
   end
 
@@ -471,9 +516,22 @@ defmodule Localize.DateTime do
        ) do
     matched_pattern
     |> Localize.DateTime.Format.resolve_variant(options)
+    |> adjust_to_requested_widths(skeleton)
     |> Localize.DateTime.Format.Match.append_fractional_seconds(fraction_count, locale_id)
     |> format_resolved_pattern(datetime, options, locale_id, skeleton, output)
   end
+
+  # TR35 matches a skeleton to the closest available format and then adjusts
+  # that format's field widths to the ones requested. `en` ships an `MMM`
+  # format and no `MMMM`, so without this step asking for `:MMMM` matched
+  # `MMM` and rendered "Jul" where the literal pattern renders "July".
+  defp adjust_to_requested_widths(pattern, skeleton) when is_binary(pattern) do
+    {:ok, tokens} = Localize.DateTime.Format.Match.tokenize_skeleton(skeleton)
+    {:ok, adjusted} = Localize.DateTime.Format.Match.adjust_field_lengths(pattern, tokens)
+    adjusted
+  end
+
+  defp adjust_to_requested_widths(pattern, _skeleton), do: pattern
 
   defp format_combined_patterns(
          date_pattern,
@@ -615,4 +673,21 @@ defmodule Localize.DateTime do
       operation: "Localize.DateTime.parse/2"
     )
   end
+
+  # Mirrors the same helper in `Localize.Date`: a calendar module opts in by
+  # exposing `cldr_calendar_type/0`, probed rather than depended on so
+  # Localize needs no hard dependency on the calendar library.
+  defp cldr_calendar_for(%{calendar: Calendar.ISO}), do: :gregorian
+
+  defp cldr_calendar_for(%{calendar: module}) when is_atom(module) do
+    Code.ensure_loaded?(module)
+
+    if function_exported?(module, :cldr_calendar_type, 0) do
+      module.cldr_calendar_type()
+    else
+      :gregorian
+    end
+  end
+
+  defp cldr_calendar_for(_datetime), do: :gregorian
 end

@@ -221,7 +221,46 @@ defmodule Localize.DateTime.Format.Match do
 
   # ── Token helpers ──────────────────────────────────────────
 
-  defp tokenize_skeleton(skeleton) when is_binary(skeleton) do
+  @zone_symbols ["z", "Z", "v", "V", "O", "X", "x"]
+
+  @doc """
+  Returns true when a skeleton names only time zone fields.
+
+  Such a skeleton needs no field ordering — there is only one field — so it
+  is its own pattern, and looking it up in `availableFormats` (which carries
+  no zone-only entries) or running it through the matcher only fails.
+
+  ### Arguments
+
+  * `skeleton` is a skeleton atom or string.
+
+  ### Returns
+
+  * `true` or `false`.
+
+  ### Examples
+
+      iex> Localize.DateTime.Format.Match.zone_only_skeleton?(:vvvv)
+      true
+
+      iex> Localize.DateTime.Format.Match.zone_only_skeleton?(:yMMMd)
+      false
+
+  """
+  @spec zone_only_skeleton?(String.t() | atom()) :: boolean()
+  def zone_only_skeleton?(skeleton) do
+    {:ok, tokens} = tokenize_skeleton(skeleton)
+
+    tokens != [] and Enum.all?(tokens, fn {symbol, _count} -> symbol in @zone_symbols end)
+  end
+
+  @doc false
+  @spec tokenize_skeleton(String.t() | atom()) :: {:ok, [{String.t(), pos_integer()}]}
+  def tokenize_skeleton(skeleton) when is_atom(skeleton) do
+    skeleton |> Atom.to_string() |> tokenize_skeleton()
+  end
+
+  def tokenize_skeleton(skeleton) when is_binary(skeleton) do
     skeleton
     |> String.graphemes()
     |> Enum.chunk_by(& &1)
@@ -387,8 +426,18 @@ defmodule Localize.DateTime.Format.Match do
 
   defp adjust_field_length([char | _rest] = field, acc, skeleton_tokens)
        when char in @numeric_and_alpha_fields do
+    # The requested token may be spelled with either form of the field —
+    # `L` and `M` are both months, `e` and `E` both weekdays — so the lookup
+    # canonicalises the skeleton's keys as well as the format's. Without it a
+    # requested `LLLL` never found the `MMM` format's month field and the
+    # width went unadjusted.
     canonical = canonical_key(char)
-    requested_length = :proplists.get_value(canonical, skeleton_tokens, :not_found)
+
+    requested_length =
+      Enum.find_value(skeleton_tokens, :not_found, fn {key, count} ->
+        if canonical_key(key) == canonical, do: count
+      end)
+
     field_length = length(field)
 
     cond do

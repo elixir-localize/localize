@@ -22,6 +22,8 @@ Try it without installing anything at the [Localize playground](https://playgrou
 
 * **Plural rules** — classify numbers into CLDR cardinal and ordinal plural categories for grammatically correct pluralization.
 
+* **Minimal pairs** — CLDR's worked examples of a locale's plural, ordinal, case and gender forms, useful for showing a sample or checking that a rule selects the form it should.
+
 * **Dates and times** — format `Date`, `Time`, `DateTime`, and `NaiveDateTime` values using CLDR calendar patterns.
 
 * **Relative times** — format time differences as human-readable phrases like "2 hours ago" or "in 3 days".

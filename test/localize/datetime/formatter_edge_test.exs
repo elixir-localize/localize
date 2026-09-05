@@ -279,7 +279,7 @@ defmodule Localize.DateTime.FormatterEdgeTest do
 
     test "Z widths render basic, GMT, and extended ISO forms" do
       assert datetime_format(@utc_datetime, "Z") == "+0000"
-      assert datetime_format(@utc_datetime, "ZZZZ") == "GMT"
+      assert datetime_format(@utc_datetime, "ZZZZ") == "GMT+00:00"
       assert datetime_format(@utc_datetime, "ZZZZZ") == "Z"
     end
 
@@ -299,10 +299,10 @@ defmodule Localize.DateTime.FormatterEdgeTest do
     end
 
     test "V widths render zone id and location formats" do
-      assert datetime_format(@utc_datetime, "V") == "Etc/UTC"
+      assert datetime_format(@utc_datetime, "V") == "utc"
       assert datetime_format(@utc_datetime, "VV") == "Etc/UTC"
-      assert datetime_format(@utc_datetime, "VVV") == "GMT"
-      assert datetime_format(@utc_datetime, "VVVV") == "GMT"
+      assert datetime_format(@utc_datetime, "VVV") == "UTC"
+      assert datetime_format(@utc_datetime, "VVVV") == "GMT+00:00"
     end
 
     test "x widths render ISO offsets without Z" do

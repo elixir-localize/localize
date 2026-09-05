@@ -70,6 +70,8 @@ defmodule Localize.Data do
     {"common/supplemental/subdivisions.xml", "subdivisions.xml"},
     {"common/supplemental/units.xml", "units.xml"},
     {"common/supplemental/grammaticalFeatures.xml", "grammaticalFeatures.xml"},
+    # `primaryZones` is XML-only — `metaZones.json` does not carry it.
+    {"common/supplemental/metaZones.xml", "metaZones.xml"},
     {"common/bcp47/timezone.xml", "bcp47_timezone.xml"}
   ]
 
@@ -137,6 +139,7 @@ defmodule Localize.Data do
     {"plural_rules_ordinal.etf", &Localize.Data.PluralRules.generate_plural_rules_ordinal/0},
     {"plural_ranges.etf", &Localize.Data.XmlExtractors.generate_plural_ranges/0},
     {"timezones.etf", &Localize.Data.XmlExtractors.generate_timezones/0},
+    {"primary_zones.etf", &Localize.Data.XmlExtractors.generate_primary_zones/0},
     {"territory_subdivisions.etf",
      &Localize.Data.XmlExtractors.generate_territory_subdivisions/0},
     {"territory_subdivision_containment.etf",

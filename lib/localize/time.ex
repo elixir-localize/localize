@@ -449,6 +449,15 @@ defmodule Localize.Time do
     {:ok, format}
   end
 
+  # A semantic skeleton names the meaning wanted rather than the fields; it
+  # resolves to a classical skeleton and takes the same path from there.
+  defp find_format(_time, %Localize.DateTime.SemanticSkeleton{} = semantic, locale_id, options) do
+    with {:ok, skeleton} <-
+           Localize.DateTime.SemanticSkeleton.to_classical_skeleton(semantic, :gregorian) do
+      resolve_skeleton(skeleton, locale_id, options)
+    end
+  end
+
   defp find_format(time, format, locale_id, options) when is_atom(format) do
     if format in @standard_formats and is_full_time(time) do
       Localize.DateTime.Format.resolve_format(:time, format, locale_id, :gregorian, options)
@@ -502,7 +511,12 @@ defmodule Localize.Time do
   defp resolve_skeleton_via_best_match(skeleton, locale_id, options) do
     case Localize.DateTime.Format.Match.best_match(skeleton, locale_id) do
       {:ok, matched_id} when is_atom(matched_id) ->
-        resolve_skeleton(matched_id, locale_id, options)
+        with {:ok, pattern} <- resolve_skeleton(matched_id, locale_id, options) do
+          # See the note in `Localize.Date`: TR35 adjusts the matched
+          # format's field widths to those requested.
+          {:ok, tokens} = Localize.DateTime.Format.Match.tokenize_skeleton(skeleton)
+          Localize.DateTime.Format.Match.adjust_field_lengths(pattern, tokens)
+        end
 
       {:ok, {_date_id, _time_id}} ->
         {:error,

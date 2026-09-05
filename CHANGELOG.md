@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+* `Localize.DateTime.Timezone.location_name/3` returns the place the generic location format names for a timezone — a country for a single-zone territory or a CLDR primary zone, a city otherwise — and `generic_location_format/2` renders it through the locale's `regionFormat`.
+
+* `Localize.DateTime.SemanticSkeleton` implements TR35 semantic skeletons — asking for a date by meaning (`"YMDE"`, `"MDTZ"`) rather than by field. `semantic/2` builds one and the `:format` option accepts it on `Localize.Date`, `Localize.Time` and `Localize.DateTime`, alongside the styles, skeletons and patterns it already took. The mapping to classical skeletons matches CLDR on all 240 conformance cases.
+
+* `Localize.MinimalPairs` exposes CLDR's minimal pairs — the short phrases that demonstrate a locale's plural, ordinal, case and gender forms. `cardinal/1`, `ordinal/1`, `grammatical_case/1` and `grammatical_gender/1` return the phrases; `format/3` picks the one a number selects, so `format(3, :cardinal, locale: :en)` is `{:ok, "3 days"}`.
+
 ### Changed
 
 * **Breaking.** Collation moves to Unicode 18 / UCA 18.0.0, from Unicode 17. Primary weights shift for every character UCA assigns ahead of an existing one, so any sort key persisted by a previous release must be regenerated — `Localize.Collation.sort_key/2` output is not comparable across Unicode versions, though `compare/3` results are unaffected for characters that existed before.
@@ -15,6 +23,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * **Breaking.** `Localize.validate_territory/1` returns the canonical territory code. CLDR deprecates and replaces some codes, and both forms may be supplied: `validate_territory("AN")` was `{:ok, :AN}` and is now `{:ok, :CW}`, and the same applies to `SU` (now `:RU`), `DD` (now `:DE`), `CS` and `YU` (both now `:RS`). `validate_locale/1` already resolved these — `en-AN` has always had a territory of `:CW` — so the two functions now agree.
 
 ### Fixed
+
+* The generic location format names a country where TR35 requires one — a territory holding a single timezone, or a zone CLDR lists in `primaryZones` — so `VVVV` renders `Europe/Rome` as `"Italy Time"` and `Europe/Berlin` as `"Germany Time"` instead of naming their cities. The `primaryZones` list is new supplemental data, read from `metaZones.xml` because `metaZones.json` does not carry it.
+
+* `v` and `vvvv` fall back to the generic location format before the localized GMT format, which TR35 specifies for the generic symbols only, so `Asia/Kolkata` is `"India Time"` rather than `"GMT+05:30"`. The specific symbols `z` and `zzzz` still fall straight through to GMT.
+
+* Timezone format symbols follow TR35. `V` is the BCP 47 short zone identifier (`"usnyc"`), `VVV` the exemplar city (`"New York"`) and `VVVV` the generic location format (`"New York Time"`), where all three previously returned the IANA name or a GMT offset; an alias such as `US/Eastern` now resolves to its canonical zone's city.
+
+* `ZZZZ` spells a zero offset as `"GMT+00:00"`, matching `OOOO` as TR35 requires of the localized GMT formats. A metazone with no daylight name also resolves a generic request to its standard name, so `vvvv` is `"Greenwich Mean Time"` for `Etc/GMT` and `"India Standard Time"` for `Asia/Kolkata`.
+
+* Skeleton formats honour the field widths asked for. TR35 matches a skeleton to the closest available format and then adjusts its field widths to the request; only the first step was happening, so `format: :MMMM` rendered "Jul" in `en` — which ships an `MMM` format and no `MMMM` — where the literal pattern `"MMMM"` rendered "July". Affects `Localize.Date`, `Localize.Time` and `Localize.DateTime`.
 
 * Decimal formatting conforms to CLDR 49's new decimal test suite for 8,857 of 8,925 cases, from 7,096. `-0.0` keeps its sign; an explicit `:max_fractional_digits` now applies to a scientific mantissa; and compact formatting keeps two significant digits below 1 (`0.00831765` is `0.0083`, not `0`), re-picks its magnitude when rounding carries (`999.9` is `1K`, not `1,000`), and groups on ICU's MIN2 rule.
 

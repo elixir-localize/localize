@@ -140,7 +140,7 @@ defmodule Localize.MixProject do
       # `Localize.Chars.Localize.Currency` would otherwise match the
       # `Currencies` group's regex).
       Protocols: ~r/^Localize\.Chars(\.|$)/,
-      Numbers: ~r/Localize.Number/,
+      Numbers: ~r/Localize\.(Number|MinimalPairs)(?!\w*Error)/,
       "Dates and Times": ~r/^Localize\.(Date|Time|Interval|Duration)(?!\w*Error)/,
       Locale: ~r/Localize\.Locale(?!\w*Error)/,
       "Language Tag": ~r/Localize\.(LanguageTag|Rfc5646)(?!\w*Error)/,

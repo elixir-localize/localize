@@ -1167,6 +1167,9 @@ defmodule Localize.DateTime.Formatter do
 
   alias Localize.DateTime.Timezone
 
+  # TR35 names `Etc/Unknown` as the source of the fallback exemplar city.
+  @unknown_zone "Etc/Unknown"
+
   # z (1-3): Short specific non-location (e.g., "EST")
   # z (4):   Long specific non-location (e.g., "Eastern Standard Time")
   @doc false
@@ -1205,8 +1208,12 @@ defmodule Localize.DateTime.Formatter do
     result
   end
 
+  # TR35 groups `ZZZZ` with `O+` as the localized GMT formats, so the two
+  # agree on a zero offset: CLDR renders `Etc/GMT` as "GMT+0" for `O` and
+  # "GMT+00:00" here. `gmtZeroFormat` ("GMT") belongs to the name-based
+  # symbols — `z` and `v` — when they fall back, not to these.
   def zone_basic(datetime, 4, locale_id, _options) when has_zone(datetime) do
-    case Timezone.gmt_format(datetime, locale_id, format: :long) do
+    case Timezone.gmt_format(datetime, locale_id, format: :long, zero_format: :offset) do
       {:ok, result} -> result
       _ -> ""
     end
@@ -1270,14 +1277,56 @@ defmodule Localize.DateTime.Formatter do
 
   # V (1-4): Zone ID and location formats
   @doc false
+  # `V` is the BCP 47 short timezone identifier, not the IANA name: TR35
+  # repurposed this symbol in CLDR 23 and it has meant the short ID since.
   def specific_non_location(%{time_zone: tz} = _datetime, 1, _locale_id, _options)
       when is_binary(tz) do
-    tz
+    Timezone.short_zone_id(tz)
   end
 
   def specific_non_location(%{time_zone: tz} = _datetime, 2, _locale_id, _options)
       when is_binary(tz) do
     tz
+  end
+
+  # `VVV` is the bare exemplar city, without the `regionFormat` wrapper that
+  # `VVVV` applies. TR35 falls back to the localized exemplar city of the
+  # special zone `Etc/Unknown` ("Unknown Location" in `en`).
+  def specific_non_location(%{time_zone: tz} = _datetime, 3, locale_id, _options)
+      when is_binary(tz) do
+    case Timezone.exemplar_city(tz, locale_id) do
+      {:ok, city} ->
+        city
+
+      _no_city ->
+        case Timezone.exemplar_city(@unknown_zone, locale_id) do
+          {:ok, city} -> city
+          _no_unknown_city -> ""
+        end
+    end
+  end
+
+  # `VVVV` is TR35's *generic location format*: the zone's exemplar city
+  # substituted into the locale's `regionFormat`, so `Australia/Adelaide` in
+  # `en` is "Adelaide Time". It falls back to the localized GMT format for a
+  # zone that has no city of its own, which is how `Etc/GMT` reaches
+  # "GMT+00:00" — and which is what this clause did for every zone.
+  def specific_non_location(%{time_zone: tz} = datetime, 4, locale_id, _options)
+      when has_zone(datetime) do
+    case Timezone.generic_location_format(tz, locale_id) do
+      {:ok, result} ->
+        result
+
+      :error ->
+        # TR35 makes this the long localized GMT format (`OOOO`), which always
+        # carries an explicit offset — hence "GMT+00:00" rather than the bare
+        # `gmtZeroFormat`, matching the `location` zoneStyle rows of
+        # test/support/data/date_time_formatting.json.
+        case Timezone.gmt_format(datetime, locale_id, format: :long, zero_format: :offset) do
+          {:ok, result} -> result
+          _no_gmt_format -> ""
+        end
+    end
   end
 
   def specific_non_location(datetime, count, locale_id, _options) when has_zone(datetime) do

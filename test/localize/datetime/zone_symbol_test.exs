@@ -89,8 +89,11 @@ defmodule Localize.DateTime.ZoneSymbolTest do
       assert zone_format(@kolkata, "ZZZ") == "+0530"
     end
 
+    # TR35 groups `ZZZZ` with `O+` as the localized GMT formats, so a zero
+    # offset is spelled out rather than using `gmtZeroFormat`, matching `OOOO`.
     test "ZZZZ renders the localized long GMT format" do
-      assert zone_format(@utc, "ZZZZ") == "GMT"
+      assert zone_format(@utc, "ZZZZ") == "GMT+00:00"
+      assert zone_format(@utc, "ZZZZ") == zone_format(@utc, "OOOO")
       assert zone_format(@new_york_standard, "ZZZZ") == "GMT-05:00"
       assert zone_format(@kolkata, "ZZZZ") == "GMT+05:30"
     end
@@ -128,22 +131,118 @@ defmodule Localize.DateTime.ZoneSymbolTest do
       assert zone_format(@new_york_daylight, "vvvv") == "Eastern Time"
     end
 
-    test "zone without a generic name falls back to GMT format" do
-      assert zone_format(@kolkata, "v") == "GMT+05:30"
-      assert zone_format(@kolkata, "vvvv") == "GMT+05:30"
+    # TR35 **Type Fallback**: a metazone with no daylight type does not need
+    # daylight support, so the generic request resolves to the standard name.
+    # India keeps no daylight time, so `vvvv` is "India Standard Time".
+    test "a zone that keeps no daylight time uses its standard name" do
+      assert zone_format(@kolkata, "vvvv") == "India Standard Time"
+    end
+
+    # The `gmt` metazone carries only a standard name, which is how CLDR's
+    # conformance data renders `Etc/GMT` for the generic zone style.
+    test "Etc/GMT resolves to the Greenwich Mean Time metazone name" do
+      gmt = %{@utc | time_zone: "Etc/GMT"}
+
+      assert zone_format(gmt, "vvvv") == "Greenwich Mean Time"
+    end
+
+    # CLDR ships no short India name, so `v` takes TR35's intermediate step
+    # and renders the generic location format rather than a GMT offset.
+    test "a zone with no short name falls back to the generic location format" do
+      assert zone_format(@kolkata, "v") == "India Time"
+    end
+
+    # Only the generic symbols take that step. A specific symbol with no name
+    # goes straight to the localized GMT format.
+    test "a specific symbol with no name goes straight to the GMT format" do
+      assert zone_format(@kolkata, "z") == "GMT+05:30"
     end
   end
 
-  describe "V — zone ID" do
-    test "V and VV render the IANA zone name" do
-      assert zone_format(@new_york_standard, "V") == "America/New_York"
+  describe "V — zone ID and location" do
+    # `V` has meant the BCP 47 short timezone identifier since CLDR 23; only
+    # `VV` is the IANA name. TR35's own example is `uslax` /
+    # `America/Los_Angeles`.
+    test "V renders the BCP 47 short zone identifier and VV the IANA name" do
+      assert zone_format(@new_york_standard, "V") == "usnyc"
       assert zone_format(@new_york_standard, "VV") == "America/New_York"
+      assert zone_format(@utc, "V") == "utc"
       assert zone_format(@utc, "VV") == "Etc/UTC"
     end
 
-    test "VVV and VVVV fall back to short and long GMT format" do
-      assert zone_format(@new_york_standard, "VVV") == "GMT-5"
-      assert zone_format(@new_york_standard, "VVVV") == "GMT-05:00"
+    # Every alias of a zone shares its short identifier and its exemplar city.
+    test "V and VVV resolve an alias to its canonical zone" do
+      eastern = %{@new_york_standard | time_zone: "US/Eastern"}
+
+      assert zone_format(eastern, "V") == "usnyc"
+      assert zone_format(eastern, "VVV") == "New York"
+    end
+
+    # `VVV` is the bare exemplar city; `VVVV` is the generic location format,
+    # the city substituted into the locale's `regionFormat`.
+    test "VVV renders the exemplar city and VVVV the generic location format" do
+      assert zone_format(@new_york_standard, "VVV") == "New York"
+      assert zone_format(@new_york_standard, "VVVV") == "New York Time"
+    end
+
+    # TR35 restricts the localized GMT fallback to GMT-style zone IDs, which
+    # have no place to name. CLDR's conformance data renders `Etc/GMT` as
+    # "GMT+00:00" and `Australia/Adelaide` as "Adelaide Time" for `VVVV`.
+    test "VVVV falls back to the long localized GMT format for Etc zones only" do
+      assert zone_format(@utc, "VVVV") == "GMT+00:00"
+
+      adelaide = %{@new_york_standard | time_zone: "Australia/Adelaide", utc_offset: 34_200}
+      assert zone_format(adelaide, "VVVV") == "Adelaide Time"
+    end
+
+    # TR35 rule 5.2.1: the location format names the country when the zone is
+    # the only one in its territory. Italy, Portugal and India each keep one.
+    test "VVVV names the country for a territory with a single zone" do
+      rome = %{@new_york_standard | time_zone: "Europe/Rome", utc_offset: 3_600}
+
+      assert zone_format(rome, "VVVV") == "Italy Time"
+      assert zone_format(@kolkata, "VVVV") == "India Time"
+    end
+
+    # The same rule for a zone CLDR lists in `primaryZones`, which is how a
+    # multi-zone country still gets named: Germany keeps two zones.
+    test "VVVV names the country for a primary zone" do
+      berlin = %{@new_york_standard | time_zone: "Europe/Berlin", utc_offset: 3_600}
+      shanghai = %{@new_york_standard | time_zone: "Asia/Shanghai", utc_offset: 28_800}
+
+      assert zone_format(berlin, "VVVV") == "Germany Time"
+      assert zone_format(shanghai, "VVVV") == "China Time"
+    end
+
+    # `VVV` is the exemplar city throughout — only the location *format*
+    # substitutes a country.
+    test "VVV stays the exemplar city even where VVVV names a country" do
+      rome = %{@new_york_standard | time_zone: "Europe/Rome", utc_offset: 3_600}
+
+      assert zone_format(rome, "VVV") == "Rome"
+      assert zone_format(rome, "VVVV") == "Italy Time"
+    end
+
+    # TR35 makes `unk` the fallback short identifier for any zone CLDR does
+    # not know. The city still derives from a well-formed `Region/City`
+    # identifier, which is CLDR's own convention for the zones it ships no
+    # entry for.
+    test "an unknown zone falls back to the Unknown Zone identifier" do
+      unknown = %{@new_york_standard | time_zone: "Neverwhere/Nowhere"}
+
+      assert zone_format(unknown, "V") == "unk"
+      assert zone_format(unknown, "VVV") == "Nowhere"
+      assert zone_format(unknown, "VVVV") == "Nowhere Time"
+    end
+
+    # With nothing to derive a city from, `VVV` uses the exemplar city of the
+    # special zone `Etc/Unknown` and `VVVV` the localized GMT format.
+    test "an unparseable zone falls back to the Unknown Location city" do
+      unknown = %{@new_york_standard | time_zone: "Bogus", utc_offset: 0}
+
+      assert zone_format(unknown, "V") == "unk"
+      assert zone_format(unknown, "VVV") == "Unknown Location"
+      assert zone_format(unknown, "VVVV") == "GMT+00:00"
     end
   end
 

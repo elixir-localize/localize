@@ -56,10 +56,10 @@ This package is widely used. The following invariants apply to every item in thi
 | 1  | Switch pipeline to `scripts/ldml2json_v2`         | None       | None          |
 | 2  | Translators-guide review for CLDR 49              | None       | None (data only) |
 | 3  | Track CLDR 49 spec changes                        | None       | None          |
-| 4  | Semantic skeletons                                | New option | None          |
-| 5  | Date-time append items                            | Internal   | None (output may change for under-specified skeletons) — deferred to CLDR 49 cycle (needs `dateFields` data) |
-| 6  | Minimal pairs                                     | New module | None          |
-| 7  | Min/max significant digits                        | New options | None          |
+| 4  | Semantic skeletons                                | New option | **Output changes** — ✅ Option B. Mapping 240/240; skeleton width matching fixed |
+| 5  | Date-time append items                            | Internal   | None (output may change for under-specified skeletons) — data verified complete; consumer outstanding |
+| 6  | Minimal pairs                                     | New module | None — ✅ Done. `Localize.MinimalPairs` |
+| 7  | Min/max significant digits                        | New options | None — ✅ Done. Shipped with docs and tests |
 | 8  | RBNF syntax audit                                 | Internal   | None — ✅ Done in Localize 0.26.0 |
 | 9  | RBNF *Remove rule* data-format change             | Internal (ETF) | ETF schema bump (no public API) |
 | 10 | CLDR 48.2 §Modifications retrospective            | Mixed      | Per-finding — ✅ Done. See [plans/cldr-48-retrospective.md](cldr-48-retrospective.md). |
@@ -179,7 +179,7 @@ Each of these can break customer expectations if it lands silently.
 
 None inherent to tracking. Specific CLDR 49 deltas may carry their own risk; those are surfaced through the child plan above.
 
-## 4. Semantic skeletons for date-times
+## 4. Semantic skeletons for date-times — ✅ Resolver done; formatting gap is pre-existing
 
 Spec: <https://www.unicode.org/reports/tr35/dev/tr35-dates.html#Semantic_Skeletons>
 
@@ -203,9 +203,25 @@ We do not currently honour the **semantic-skeleton** vocabulary that TR35 (dev) 
 
 ### Plan — data path
 
-1. Extend `data/normalize/date_time.ex` (or add a sibling normalizer) to extract the semantic-skeleton tables CLDR 49 ships. They live alongside `availableFormats` under each calendar.
-2. Persist them under `priv/localize/locales/<locale>/dates/calendars/<cal>/semantic_skeletons.etf` keyed by the semantic-skeleton tuple/atom shape decided below.
-3. Add `Localize.DateTime.Format.semantic_skeletons/2` mirroring `available_formats/2` for runtime lookup.
+**Corrected 2026-09-05: there is no data path, because CLDR ships no semantic-skeleton data.** The steps below were written on the assumption that CLDR 49 would ship per-locale semantic-skeleton tables alongside `availableFormats`. It does not. `semanticSkeleton` appears in exactly one file in the whole repository — `common/testData/datetime/datetime.json` — and nowhere in `common/main`, `common/supplemental` or the DTDs.
+
+A semantic skeleton is a *specification* concept, not a data table: it names the meaning a caller wants, and the implementation maps it onto a classical field skeleton, which is data we already have. The conformance file states the mapping directly:
+
+```json
+{"semanticSkeleton": "YMDE", "semanticSkeletonLength": "short",
+ "classicalSkeleton": "yyMdEEE", "calendar": "gregorian",
+ "locale": "en", "input": "2000-01-01T00:00Z[Etc/GMT]", "expected": "Sat, 1/1/00"}
+```
+
+So the work is a resolver, not an ingestion. Two things follow:
+
+* **The mapping is parameterised, not a lookup table.** The same `(YMDE, short)` pair maps to `yyMdEEE`, `GyMdEEE` or `GGGGGyMdEEE` depending on the calendar and the requested year style, and `(MDTZ, long)` to eight different classical skeletons depending on the zone style. These are TR35's `yearStyle` and `zoneStyle` parameters, and they are what the struct in Option B has to carry.
+
+* **There is a conformance target.** `common/testData/datetime/datetime.json` carries 240 semantic-skeleton cases across `en`, `ar-SA`, `ja-JP` and `th-TH`, covering the skeletons `YMDE`, `MDTZ`, `T`, `M` and `Z`. We already vendor that file as `test/support/data/date_time_formatting.json`, so the suite can be wired up without new data.
+
+The original steps 1–3 are struck. Step 1 of the implementation plan below stands.
+
+
 
 ### Plan — public API: three options
 
@@ -299,6 +315,39 @@ Resolution order in `find_format/3`:
 
 This keeps `:format` behaviour 100% backwards-compatible: every value that worked before resolves to the same path.
 
+### No data path — the concept is a resolver, not a table
+
+**CLDR ships no semantic-skeleton data.** Verified twice over: `semanticSkeleton` appears nowhere under `common/` outside `testData`, and nothing in the DTDs mentions it. It is a specification concept resolved onto classical skeletons, which are data Localize already carries in `availableFormats`. There is no table to normalize and no ETF key to add — the work is a resolver, and it lives here alongside the rest of the date-time formatting stack.
+
+### Resolution
+
+Built as Option B, chosen 2026-09-05. `Localize.DateTime.SemanticSkeleton` carries the fields and the four TR35 parameters — `length`, `year_style`, `zone_style`, `hour_cycle` — and `semantic/2` builds one for the `:format` option, which now accepts it alongside the standard styles, classical skeletons and literal patterns it already took. `Localize.Date`, `Localize.Time` and `Localize.DateTime` all resolve it.
+
+**The mapping matches CLDR on all 240 conformance cases**, across `en`, `ar-SA`, `ja-JP` and `th-TH` over the Gregorian, Buddhist, Japanese and Islamic civil calendars. Getting there meant reading rules out of the data rather than the prose, and three of them are not obvious:
+
+* **A two-digit year appears only where no era does.** `YMDE` at short length is `yyMdEEE`, but `GyMdEEE` once an era is shown — two abbreviations in one field are ambiguous, so CLDR spends the space on the era.
+
+* **Calendars whose year count restarts always carry an era, narrow at short length.** Japanese and the Islamic calendars give `GGGGGyMdEEE` where Gregorian and Buddhist give `yyMdEEE`, because a Japanese year without its reign does not identify a date.
+
+* **Zone width follows the company it keeps, not the requested length.** A zone asked for on its own is the whole answer and takes the full name (`zzzz`); a zone trailing a date and time is a qualifier and takes the short one (`z`). The `MDTZ` cases at long length pair `MMMM` with `z`, which reads as a contradiction until the rule is stated.
+
+Japanese also abbreviates the month at long length (`MMMdjms`, not `MMMMdjms`), the era names being long enough that a full month alongside one is unwieldy.
+
+### Skeleton best-match width adjustment — ✅ Fixed alongside
+
+Wiring the semantic suite up surfaced a defect in the existing skeleton matcher, reproducible with no semantic skeleton in sight:
+
+```elixir
+Localize.Date.to_string(~D[2024-07-01], format: :MMMM, locale: :en)   #=> {:ok, "Jul"}
+Localize.Date.to_string(~D[2024-07-01], format: "MMMM", locale: :en)  #=> {:ok, "July"}
+```
+
+TR35 matches a skeleton in two steps: find the closest available format, **then adjust that format's field widths to the ones requested**. Only the first step was happening. `en` ships an `MMM` available format and no `MMMM`, so a request for the full month matched `MMM` and rendered the abbreviation — the match was right and the width was not. Every locale is affected wherever CLDR ships no entry at the requested width, which is most of them for most widths.
+
+Two parts to the fix. The three resolvers — `Localize.Date`, `Localize.Time` and `Localize.DateTime`, each with its own best-match path — now adjust the resolved pattern to the originally requested skeleton, which they had been discarding on the recursive call. And `adjust_field_length/3` now canonicalises the *skeleton's* keys as well as the format's: `L` and `M` are both months and `e` and `E` both weekdays, so a request spelled `LLLL` never matched the `MMM` format's month field and went unadjusted even once the request reached it.
+
+Formatted output across the Gregorian conformance cases went from 27 of 60 to 36. The remaining 24 are zone-name and offset cases — `GMT+0` where we render `UTC`, and `Australia/Adelaide` inputs that need a timezone database to resolve at all. Those belong to time zones rather than to skeleton matching, and the semantic mapping is measured separately for exactly this reason: it is 240/240 either way.
+
 ### Plan — implementation steps
 
 1. Create `Localize.DateTime.SemanticSkeleton` with a `defstruct` and `semantic/1,2` constructors that validate components against a compile-time list derived from TR35.
@@ -320,6 +369,14 @@ This item is **deferred to the CLDR 49 cycle** rather than landing standalone in
 ### Current conformance
 
 The CLDR JSON ships per-locale `appendItems` data and our normalizer in `data/normalize/date_time.ex` already reads it via `compile_items` and stores it under `dates.calendars.<cal>.append_items` in the locale ETF. The on-disk shape is a map keyed by lowercase atom field name with values that are *pre-parsed* substitution lists where integers are placeholders (`{0}`, `{1}`, `{2}`) and strings are literals — for English: `:year` is `[0, " ", 1]` (= `"{0} {1}"`); `:day` is `[0, " (", 2, ": ", 1, ")"]` (= `"{0} ({2}: {1})"`).
+
+### The data is complete; the consumer is still to build
+
+Date-time formatting lives in Localize — `Localize.DateTime.Formatter`, `Localize.DateTime.Format.Match` and the `to_string/2` entry points are all here — so the append-item consumer belongs here too. What Calendrical holds is the timezone database (`{:tz, "~> 0.26"}`, `config :elixir, :time_zone_database, Tz.TimeZoneDatabase`), which Localize cannot depend on because it is upstream; that makes Calendrical the right home for *tests* that need a real zone, not for the formatting itself.
+
+**The data side is done.** Verified across all 657 shipped locales: 87,381 append-item templates use the `{2}` placeholder, and every one has a matching `date_fields` entry carrying a `display_name` to fill it — no gaps in either direction. The naming differs between the two tables and a consumer has to bridge it (`day_of_week` and `time_day_of_week` take the `weekday` field name, `timezone` and `date_timezone` take `zone`); the rest match on the key.
+
+So gap 2 below is closed. Gap 1 — the runtime consumer — remains, here. The original description follows.
 
 ### Gaps
 
@@ -398,7 +455,7 @@ Insertion point in the resolver: a new `augment_pattern/5` call right after `Loc
 
 Roughly 1–2 days end-to-end once CLDR 49 data ingestion lands. Implementation order inside the cycle: (1) data normalizer change ships with the ETF regeneration; (2) runtime modules and tests follow. Total scope is small enough to be one feature-branch rather than a child plan of its own.
 
-## 6. Minimal pairs
+## 6. Minimal pairs — ✅ Done
 
 Spec: <https://unicode.org/reports/tr35/tr35-numbers.html#Minimal_Pairs>
 
@@ -432,12 +489,24 @@ TR35 §Minimal_Pairs lists three categories:
 4. Cross-check our plural/ordinal selectors against the minimal-pairs data for the reference locale set: every plural form CLDR ships should round-trip to itself when fed through `plural_type/2`. This is also a useful test of the NIF cross-validation suite.
 5. Document the new module in the README's "Numbers" section.
 
+### Resolution
+
+`data/normalize/minimal_pairs.ex` extracts the pairs and `Localize.MinimalPairs` exposes them. Two things differed from the plan above, both discovered by reading the data rather than the spec:
+
+* **The four categories are not four keys.** TR35 describes `pluralMinimalPairs`, `ordinalMinimalPairs`, `caseMinimalPairs` and `genderMinimalPairs`, but the JSON flattens all of them into a single `minimalPairs` map: cardinals keep a `pluralMinimalPairs-count-` prefix and the rest appear under bare keys — `one`, `genitive`, `feminine`. They are separated by the key itself, which works because the three bare vocabularies do not overlap. Surveying all 491 locales that carry pairs turned up 28 distinct bare keys, and the classifier lists exactly those.
+
+* **An unrecognised key is dropped rather than atomised.** The keys are CLDR data, not user input, but they are still file content, and a grammatical term appearing upstream must not be able to grow the atom table.
+
+The API is `cardinal/1`, `ordinal/1`, `grammatical_case/1` and `grammatical_gender/1`, each returning `{:ok, map}` — empty for a locale that does not inflect that way, rather than an error, since "German has no gender pairs" and "Swahili is not a locale" are different answers. `format/3` picks the pair a number's plural category selects and substitutes it: `format(3, :cardinal, locale: :en)` is `{:ok, "3 days"}`. It also accepts `format(2, locale: :en)`, which is the call that reads naturally and would otherwise bind the options to the category argument.
+
+Step 4 of the plan — cross-checking the plural selectors against CLDR's own forms — is already covered from a better source. `IntegerSampleTest` and `DecimalSampleTest` generate 12,561 assertions from the `@integer` and `@decimal` sample values CLDR attaches to each plural rule, which name the numbers as well as the categories; minimal pairs name only the categories.
+
 ### API impact / breaking risk
 
 * New module `Localize.MinimalPairs`. Purely additive.
 * Cross-check audit may surface bugs in our plural-rule implementation. Any fixes there go through the normal changelog.
 
-## 7. Minimum / maximum significant digits
+## 7. Minimum / maximum significant digits — ✅ Done
 
 Spec: <https://unicode.org/reports/tr35/tr35-numbers.html#sigdig>
 
@@ -445,7 +514,9 @@ Spec: <https://unicode.org/reports/tr35/tr35-numbers.html#sigdig>
 
 Internally, `Localize.Number.Format.Compiler` and `Localize.Number.Format.Meta` already understand significant-digit patterns (`@@@`, `@@##`) — see [lib/localize/number/format/compiler.ex:362](lib/localize/number/format/compiler.ex:362) and [lib/localize/number/format/meta.ex:51](lib/localize/number/format/meta.ex:51). The decimal formatter in [lib/localize/number/formatter/decimal.ex:144](lib/localize/number/formatter/decimal.ex:144) applies `round_to_significant_digits/2` and `adjust_fraction_for_significant_digits/2` based on the `%{significant_digits: %{min: …, max: …}}` field of the compiled metadata.
 
-But — the public `Localize.Number.Format.Options` struct does *not* expose these as caller-supplied options. The struct fields are:
+**This item is complete; the paragraph below described the state before it landed and is kept for context.** `Localize.Number.Format.Options` now carries `:minimum_significant_digits` and `:maximum_significant_digits`, both validated to `1..21`, together with `:rounding_priority` for the case where fraction-digit and significant-digit bounds are both given. They are documented in `Localize.Number.to_string/2` and in the number formatting guide's option table, and covered by `test/localize/number/significant_digits_test.exs` and `rounding_priority_test.exs`. Verified against the public API: `to_string(1234.567, maximum_significant_digits: 3)` is `"1,230"`, `to_string(0.00012345, maximum_significant_digits: 2)` is `"0.00012"`, and `to_string(1.5, minimum_significant_digits: 3)` is `"1.50"`.
+
+The original description follows. The public `Localize.Number.Format.Options` struct did *not* expose these as caller-supplied options; the struct fields were:
 
 ```
 :locale, :number_system, :currency, :format, :gender,

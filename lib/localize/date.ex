@@ -277,6 +277,22 @@ defmodule Localize.Date do
     {:ok, format}
   end
 
+  # A semantic skeleton names the meaning wanted rather than the fields; it
+  # resolves to a classical skeleton and takes the same path from there.
+  defp find_format(date, %Localize.DateTime.SemanticSkeleton{} = semantic, locale_id, options) do
+    cldr_calendar = cldr_calendar_for(date)
+
+    with {:ok, skeleton} <-
+           Localize.DateTime.SemanticSkeleton.to_classical_skeleton(semantic, cldr_calendar) do
+      resolve_skeleton(
+        skeleton: skeleton,
+        locale_id: locale_id,
+        calendar: cldr_calendar,
+        options: options
+      )
+    end
+  end
+
   defp find_format(date, format, locale_id, options) when is_atom(format) do
     cldr_calendar = cldr_calendar_for(date)
 
@@ -408,6 +424,17 @@ defmodule Localize.Date do
   #
   # In both cases the recursion is guarded by a `seen` set
   # so a degenerate match cycle (`a → b → a`) terminates.
+  # TR35 matches a skeleton to the closest available format and then adjusts
+  # that format's field widths to the ones actually requested. Only the first
+  # half was happening, and the difference shows wherever CLDR ships no entry
+  # at the requested width: `en` has an `MMM` format and no `MMMM`, so asking
+  # for `:MMMM` matched `MMM` and rendered "Jul" where the literal pattern
+  # `"MMMM"` renders "July". The match was right; the width was not.
+  defp adjust_to_requested_widths(pattern, requested) do
+    {:ok, tokens} = Localize.DateTime.Format.Match.tokenize_skeleton(requested)
+    Localize.DateTime.Format.Match.adjust_field_lengths(pattern, tokens)
+  end
+
   defp resolve_skeleton_via_best_match(skeleton, locale_id, calendar, options, seen) do
     if MapSet.member?(seen, skeleton) do
       {:error,
@@ -420,13 +447,16 @@ defmodule Localize.Date do
 
       case Localize.DateTime.Format.Match.best_match(skeleton, locale_id, calendar) do
         {:ok, matched_id} when is_atom(matched_id) and matched_id != skeleton ->
-          resolve_skeleton(
-            skeleton: matched_id,
-            locale_id: locale_id,
-            calendar: calendar,
-            options: options,
-            seen: seen
-          )
+          with {:ok, pattern} <-
+                 resolve_skeleton(
+                   skeleton: matched_id,
+                   locale_id: locale_id,
+                   calendar: calendar,
+                   options: options,
+                   seen: seen
+                 ) do
+            adjust_to_requested_widths(pattern, skeleton)
+          end
 
         {:ok, {_date_id, _time_id}} ->
           # Combined date+time skeleton — not applicable for
