@@ -52,7 +52,9 @@ scripts/
 
 * **CLDR production data** — the pre-built JSON locale files, produced by `scripts/build_cldr_production_data` (requires Java/Maven; wraps `cldr-generate-json.sh` and emits all packages including `annotations`). Location: `$CLDR_PRODUCTION`, default `../cldr_production_data`.
 
-* **A populated `priv/cldr/`** — this is gitignored, so a fresh clone has none. Nothing under `lib/` reads it and it is not in the hex package, so the library compiles, tests and ships without it; only *regenerating* data needs it. Populate it with `scripts/build_cldr_production_data` followed by `mix localize.copy_sources`. It is kept out of git because a CLDR cycle regenerates it many times and each pass costs roughly 14 MB of pack.
+* **A populated `priv/cldr/`** — this is gitignored, so a fresh clone has none. Populate it with `scripts/build_cldr_production_data` followed by `mix localize.copy_sources`. It is kept out of git because a CLDR cycle regenerates it many times and each pass costs roughly 14 MB of pack.
+
+    Nothing under `lib/` reads it and it is not in the hex package, so the library compiles and ships without it. **The test suite does need it**, though: `Localize.Collation.ReorderTest` streams `priv/cldr/FractionalUCA.txt`, and `Localize.Data.Normalize.UnitsTest` normalizes `ru` straight from `priv/cldr/locales/ru/cldr-units-full__units.json`. Both fail with `File.Error` when it is absent. So a clone can use the library straight away but cannot run a full `mix test` until the two commands above have run.
 
 * **R2 credentials** (upload/release phase only): `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`. In CI these are repository secrets used by `.github/workflows/upload-locales.yml`.
 
