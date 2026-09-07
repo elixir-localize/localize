@@ -70,7 +70,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 15 | POSIX `yesstr` / `nostr` responses                  | New functions | None — ✅ Done. `affirmative_responses/1`, `negative_responses/1`, `affirmative?/2`, `negative?/2` |
 | 16 | `typeValues` On/Off translations (CLDR 49, CLDR-19394) | New functions | None — ✅ Done. `LocaleDisplay.type_value_name/2`; an upstream cldr-json defect found alongside |
 | 16a | cldr-json discards `scope="core"` display names | None (upstream) | None — upstream defect. 6,499 collapsed `(locale, key)` pairs across 458 locales; `en` keeps 15 of 102 short names |
-| 16b | Expose `scope="core"` consistently in the public API | `:prefer` replaces `:style`; new functions | **Output changes** — one `prefer: :menu` covers both shapes; corrected for 571 entries in 446 locales |
+| 16b | Harmonise the display-name preference option | `:prefer` with `:style` as alias; new functions | **Output changes** — ✅ Done. `prefer: :menu` corrected for 571 of 2,589 menu entries in 446 locales |
 | 17 | `H24` hour cycle deprecated                         | None       | None — ✅ Closed. CLDR 49 does not deprecate it; TR35 and `bcp47/calendar.xml` both still carry `h24`. No change |
 | 18 | Week-of-year numbering follows ISO by default        | None       | None — ✅ Closed. TR35 still numbers weeks by the locale's `firstDay`/`minDays`; already conformant. No change |
 | 19 | Supplemental data files reorganized                  | None       | None — ✅ Closed. We read neither file; every XML source we use is already separate |
@@ -1027,57 +1027,61 @@ Of the 1,565 that survive, **1,552 are the last entry in XML document order** �
 
 If it is not fixed, the workaround is the one already used for `primaryZones` in item 14: read `common/main/*.xml` directly and merge. That is a bigger job here, since it is per-locale rather than a single supplemental file.
 
-## 16b. `scope="core"` in the public API — one option name, one value vocabulary
+## 16b. Harmonise the display-name preference option — ✅ Done
 
-Item 16a covers what cldr-json throws away. This item covers the half we control: where the core scope *does* reach us intact we cannot ask for it, and the option that selects a display alternate is spelled two different ways in two different modules, which give two different answers from the same data.
+Item 16a is what cldr-json loses. This item is the option a caller uses to ask for what survives. Today that option has two names, two unshared value lists, and no validation, and the CLDR concept it selects is spelled `core` in two different places for two different reasons.
 
 ### Current conformance
 
-Two LDML shapes carry the core scope, and cldr-json treats them differently because the attribute differs. `<language>` uses a `menu` attribute, which the converter *does* fold into the key name, so every entry survives:
+**`core` appears in exactly two contexts.** Measured across all 657 locale ETFs:
 
-```xml
-<language type="ckb">Central Kurdish</language>
-<language type="ckb" menu="core">Kurdish</language>
-<language type="ckb" menu="extension">Central</language>
-<language type="ckb" alt="menu">Kurdish, Central</language>
-```
+| context | count | shape |
+|---|---|---|
+| `locale_display_names.types.<key>.core` | 6,499 pairs in 458 locales | one collapsed short name per key — item 16a |
+| `languages.<code>.menu.core` | always paired with `.extension` | the two halves of a composable menu name |
 
-reaches the JSON as `"ckb-menu-core"`, `"ckb-menu-extension"` and `"ckb-alt-menu"`, and `Helpers.group_alt_content/2` nests it as `%{standard: "Central Kurdish", variant: "Kurdish, Sorani", menu: %{core: "Kurdish", extension: "Central", alt: "Kurdish, Central"}}`. `<type>` uses a `scope` attribute, which the converter does not fold, so a key's core names collapse onto one — item 16a. The asymmetry sits inside a single file, which is the sharpest form the upstream report can take.
+Nowhere else — not `keys`, not `script`, not `subdivisions`, not `territories`.
 
-So the core scope is already in our data for languages, and `LocaleDisplay.display_name/2` already composes it: `format_display_name/4` has a `%{core: core, extension: extension}` clause at [lib/localize/locale/locale_display.ex:492](../lib/localize/locale/locale_display.ex:492) that renders `prefer: :menu` on `ckb` as "Kurdish (Central)".
+**The `languages` menu map comes in three shapes**, and they are largely complementary rather than competing:
+
+| shape | entries | meaning |
+|---|---|---|
+| `[:alt]` | 1,893 | only `<language alt="menu">` — the locale's own composed string, "Chinese, Mandarin" |
+| `[:core, :extension]` | 571 | only `menu="core"` + `menu="extension"` — the parts, "Kurdish" + "Kurmanji" |
+| `[:alt, :core, :extension]` | 125 | both |
+
+TR35 §Display Name Elements treats these as two separate parameters, not two spellings of one: `PreferAlt` is "a map from element to preferred alt value" and picks `alt="menu"`; `CoreAndExtension` says "use the `menu=core` variant for the name in question, add the `menu=extension` variant to the head of the LQS before it is formatted". A third parameter, `SeparateKeyValue`, is the one that uses a type's `scope="core"` value, composing it with the key name through `localeKeyTypePattern` — "Calendar: Buddhist".
 
 ### Gap
 
-**1. Two option names for one concept.** `Localize.Locale.LocaleDisplay.display_name/2` calls it `:prefer`, defaulting to `:standard` with `:default` accepted as an alias. `Localize.Language`, `Localize.Territory` and `Localize.Script` call it `:style`, each with its own hand-rolled value list — `[:standard, :short, :long, :menu, :variant]`, `[:short, :standard, :variant]`, `[:standard, :short, :stand_alone, :variant]` — and its own `validate_style/1`. Nothing shared, nothing that agrees.
+**1. Two option names for one concept.** `Localize.Locale.LocaleDisplay.display_name/2` calls it `:prefer`, defaulting to `:standard` and already accepting `:default` as an alias. `Localize.Language`, `Localize.Territory` and `Localize.Script` call it `:style`, each with its own hand-rolled list — `[:standard, :short, :long, :menu, :variant]`, `[:short, :standard, :variant]`, `[:standard, :short, :stand_alone, :variant]` — and its own `validate_style/1`. Nothing shared.
 
-**2. The two spellings disagree on the same data.** `Localize.Language.resolve_style/2` reads only `:alt` out of the menu map and discards `:core` and `:extension`, then falls back to `:standard` when there is no `:alt`:
+**2. `Localize.Language` reads only half the menu data.** `resolve_style/2` returns `names.menu.alt` and falls back to `:standard` when there is no `:alt`, so the **571 entries that ship only `core`/`extension` silently render the plain name**: `Language.display_name("ku", style: :menu)` is `"Kurdish"` where the same data yields `"Kurdish (Kurmanji)"` through `LocaleDisplay`. `LocaleDisplay` already handles all three shapes.
 
-| call | result |
-|------|--------|
-| `LocaleDisplay.display_name("ckb", prefer: :menu)` | `"Kurdish (Central)"` |
-| `Language.display_name("ckb", style: :menu)` | `"Kurdish, Central"` |
-| `LocaleDisplay.display_name("ku", prefer: :menu)` | `"Kurdish (Kurmanji)"` |
-| `Language.display_name("ku", style: :menu)` | `"Kurdish"` |
-| `LocaleDisplay.display_name("sdh", prefer: :menu)` | `"Kurdish (Southern)"` |
-| `Language.display_name("sdh", style: :menu)` | `"Southern Kurdish"` |
+*(An earlier draft of this item called that a disagreement between the two modules and proposed making `Language` compose the way `LocaleDisplay` does. That was wrong on the spec: both behaviours are valid readings of different TR35 parameters, and forcing them together would have made the `alt="menu"` string unreachable for the 125 entries that carry both. The defect is narrower — `Language` handles one parameter and not the other.)*
 
-Measured across the 657 shipped locale ETFs: 2,589 (locale, language) entries carry a nested `menu` map, and **571 of them in 446 locales have `core`/`extension` but no `alt`**, so `style: :menu` silently returns the standard name for every one. The menu form CLDR ships is unreachable from the module named after languages.
+**3. `:prefer` is not validated, so an unsupported value fails silently.** `display_name/2` validates `:language_display` but not `:prefer`, so any atom is accepted, misses in `get_display_preference/2` and lands on `:standard`. `prefer: :core` — the value a reader of TR35 reaches for first — looks supported and is not: `en-u-ca-roc` renders "English (Minguo Calendar)" under both `prefer: :standard` and `prefer: :core`.
 
-**3. `:prefer` is not validated, so an unsupported value fails silently.** `display_name/2` validates `:language_display` but not `:prefer`, so any atom is taken, misses in `get_display_preference/2` and lands on `:standard`. `prefer: :core` — the value a reader of TR35 reaches for first — looks supported and is not: `en-u-ca-roc` renders "English (Minguo Calendar)" under both `prefer: :standard` and `prefer: :core`. The three `:style` modules do validate, but each against its own list.
-
-**4. No way to ask for a key or type name on its own.** TR35 specifies the core names for menus — key name as the title, core values as the choices — but the only route to a type name is to build a whole locale identifier and read it back out of the parenthesised suffix. There is no public `key_name/2` or `type_name/3`.
+**4. No way to ask for a key or type name on its own.** The core values exist for menus — key name as the title, core values as the choices — but the only route to a type name is to build a whole locale identifier and read it back out of the parenthesised suffix.
 
 ### Plan
 
-1. **Settle on `:prefer` as the option name** across every display-name function, with `:style` accepted as a deprecated alias in `Localize.Language`, `Localize.Territory` and `Localize.Script` for one release. `:prefer` is the accurate word — the value is a preference with a documented fallback chain, not a guaranteed style — and it is already the name in the module that implements the full TR35 algorithm.
+1. **One option name: `:prefer`.** `:style` stays accepted in `Localize.Language`, `Localize.Territory` and `Localize.Script` as a documented alias, so nothing breaks. `:prefer` is the accurate word — the value is a preference with a documented fallback chain, not a guaranteed style — and it is already the name in the module implementing the full TR35 algorithm.
 
-2. **Share one value vocabulary and validate against it.** `:standard`, `:short`, `:long`, `:variant`, `:stand_alone`, `:menu`, with each module declaring its supported subset. An unsupported value returns `Localize.InvalidValueError` carrying the allowed set, the way `validate_style/1` already does, rather than falling through to `:standard`. That closes gap 3, and it is what makes `prefer: :core` — a value we deliberately do not add, see step 4 — report itself rather than quietly returning the long name.
+2. **One value vocabulary, validated.** `:standard`, `:short`, `:long`, `:variant`, `:stand_alone`, `:menu`, each module declaring its supported subset. An unsupported value returns `Localize.InvalidValueError` carrying the allowed set rather than falling through. No new vocabulary is introduced: every one of these already exists somewhere in the four modules.
 
-3. **Make `prefer: :menu` compose consistently.** `Localize.Language` should use the same core/extension composition `LocaleDisplay` uses instead of reading `:alt` alone, so the 571 entries stop returning the standard name. Where both exist, `:alt` still wins — it is the locale's own composed spelling and CLDR supplies it precisely so the pattern is not needed.
+3. **`:standard` is the only spelling for the unqualified entry; drop `:default`.** cldr-json emits the unqualified entry as a bare key — `"Adlm"`, `"Arab"` — with alternates suffixed `-alt-short`, `-alt-variant`, `-alt-stand-alone`; CLDR has no name for it at all. `"default"` is our own transient label, applied by `Helpers.group_alt_content/2` and renamed to `"standard"` three lines later in each of `language_names.ex`, `territory_names.ex` and `locale_display_names.ex`. Promoting it to the public API would resurrect an internal name we deliberately rename away, and `:standard` is already the stored data key and the canonical value in three of the four modules. `LocaleDisplay` currently accepts `prefer: :default` as an undocumented alias; remove it.
 
-4. **Reach the core names through `prefer: :menu`, not a separate `:core` value.** TR35 introduces the core scope precisely as the menu vocabulary — key name as the title, core values as the choices — and `:menu` is already accepted by both `LocaleDisplay` and `Localize.Language`, so one option value covers one user-facing intent: give me the short form fit for a menu. For languages that stays the composed menu form, "Kurdish (Central)". For `types` it resolves to the `scope="core"` short name once the data carries one, and returns `{:error, …}` naming item 16a until then, so a caller asking for the short calendar name learns it is unavailable rather than being handed the long one. What this gives up is addressing a language's bare `core` part — "Kurdish" on its own — which matters for *grouping* a menu rather than rendering it; if that is ever wanted it belongs in its own accessor, keeping `:prefer` a single-axis option.
+4. **`:menu` means "the menu-appropriate name", in every context where CLDR has one.** For `types` that is the `scope="core"` value. For `languages` it resolves against whichever of the three shapes the locale ships. The two rendering call sites legitimately differ, and that difference is TR35's, not ours:
 
-5. **Add `LocaleDisplay.key_name/2` and `LocaleDisplay.type_name/3`** so the menu use case is reachable without constructing a locale identifier, both taking the same `:prefer` option:
+   * `LocaleDisplay.display_name/2` renders a whole locale identifier, where the extension joins the same parenthesised list as the script and territory subtags. `CoreAndExtension` applies: compose. Unchanged from today.
+   * `Localize.Language.display_name/2` renders the language alone, where `alt="menu"` is the locale's own single-string menu form. `PreferAlt` applies: take `:alt`, and compose `core` + `extension` through `locale_pattern` only when there is no `:alt`.
+
+   That fixes the 571 and leaves the other 2,018 untouched.
+
+5. **`prefer: :menu` degrades per element, and errors only when asked directly.** On `display_name/2` an element with no menu form falls back to its unqualified name, as `get_display_preference/2` already does — asking for menu names should not fail a whole locale identifier because one `-u-` key cannot honour it. The hard `{:error, …}` naming item 16a belongs to `type_name/3`, where the caller asked for that one name and would otherwise be handed a value belonging to a different type.
+
+6. **Add `LocaleDisplay.key_name/2` and `LocaleDisplay.type_name/3`**, both taking `:prefer`, so the menu use case is reachable without constructing a locale identifier. Note that the caller's BCP 47 key (`:ca`) is not the data's key (`:calendar`); `@field_to_display_key` in [lib/localize/locale/locale_display/u.ex:12](../lib/localize/locale/locale_display/u.ex:12) already carries that mapping and should be shared rather than duplicated.
 
 ```elixir
 iex> Localize.Locale.LocaleDisplay.key_name(:ca, locale: :en)
@@ -1087,15 +1091,23 @@ iex> Localize.Locale.LocaleDisplay.type_name(:ca, :buddhist, locale: :en)
 {:ok, "Buddhist Calendar"}
 ```
 
-6. **Leave the `types` normalizer marked, not guessed.** [data/normalize/locale_display_names.ex:55](../data/normalize/locale_display_names.ex:55) runs only `LMap.atomize_keys/1` over `types` — no `group_alt_content/2` pass, unlike `scripts`, `territories` and `languages` — so any per-entry core key would arrive flat rather than nested under its type. That pass is the one change `prefer: :menu` on `types` needs, but its split pattern depends on the key form the upstream fix emits (`name-(attribute)-(value)` would give `buddhist-scope-core`), so it lands with the fix rather than ahead of it. Note it here so the connection is not rediscovered.
+7. **Leave the `types` normalizer marked, not guessed.** [data/normalize/locale_display_names.ex:55](../data/normalize/locale_display_names.ex:55) runs only `LMap.atomize_keys/1` over `types` — no `group_alt_content/2` pass, unlike `scripts`, `territories` and `languages` — so any per-entry core key would arrive flat rather than nested under its type. That pass is the one change `prefer: :menu` on `types` needs, but its split pattern depends on the key form the upstream fix emits, so it lands with that fix rather than ahead of it.
+
+### Outcome
+
+Shipped as planned, with two departures worth recording.
+
+`Localize.Territory` keeps `Localize.UnknownStyleError` rather than moving to the shared `Localize.InvalidValueError`. That exception is asserted in `test/localize/territory_test.exs` and is also raised for "this territory has no name in that style", so switching it would have been a breaking change to a tested contract for no gain. Option *resolution* is shared through `LocaleDisplay.preference_option/1`; only validation stays local.
+
+Step 7 is untouched, as written: the `types` normalizer pass lands with the upstream fix, not before it.
 
 ### API impact / breaking risk
 
-* `:style` becomes a deprecated alias for `:prefer` in three modules. Additive now; breaking only when the alias is removed.
-* `prefer: :menu` output changes for 571 (locale, language) pairs in 446 locales that currently return the standard name. A correction, but an output change.
-* Invalid `:prefer` and `:style` values start returning `{:error, …}` instead of silently resolving to `:standard`. Breaking for any caller relying on the silence.
+* `:style` becomes an accepted alias for `:prefer` in three modules. Additive. The one removal is `LocaleDisplay`'s undocumented `prefer: :default` alias, which now returns `{:error, …}` like any other unsupported value.
+* `prefer: :menu` output changes for **571 (locale, language) pairs in 446 locales** that currently return the unqualified name. A correction, but an output change. The other 2,018 menu entries are unchanged, as is every `LocaleDisplay.display_name/2` result.
+* Invalid `:prefer` values — `:core` and `:default` among them — start returning `{:error, …}` instead of silently resolving to `:standard`. Breaking for any caller relying on the silence.
 * `key_name/2` and `type_name/3` are new and purely additive.
-* `prefer: :menu` on `types` returns an error until item 16a is fixed upstream; no `:core` option value is introduced.
+* `type_name/3` with `prefer: :menu` returns an error until item 16a is fixed upstream. No `:core` option value is introduced.
 
 ## 17. `H24` hour cycle deprecated — ✅ Closed; the premise did not hold
 
@@ -1600,6 +1612,10 @@ This plan must be revisited at the following checkpoints:
 Each checkpoint should leave a dated entry at the bottom of this file noting what changed and which items advanced.
 
 ## Change log for this plan
+
+* 2026-09-08 — Item 16b implemented. One `:prefer` option across `Localize.Language`, `Localize.Territory`, `Localize.Script` and `LocaleDisplay`, with `:style` still accepted and `:prefer` winning when both are given; one validated vocabulary, so `prefer: :core` and the undocumented `prefer: :default` now report themselves instead of resolving silently to `:standard`. `Localize.Language` composes `menu="core"` with `menu="extension"` where a locale ships no `alt="menu"`, which is the 571-entry fix — `"ku"` renders "Kurdish (Kurmanji)" rather than "Kurdish" — and `key_name/2` and `type_name/3` make the menu use case reachable without building a locale identifier. 30,622 passing before the new tests, dialyzer clean.
+
+* 2026-09-08 — Rewrote item 16b after reading TR35 §Display Name Elements. The first draft treated `Language.display_name(style: :menu)` and `LocaleDisplay.display_name(prefer: :menu)` as a disagreement to be resolved by making one match the other; they implement different TR35 parameters — `PreferAlt` picks `alt="menu"`, `CoreAndExtension` composes `menu=core` with `menu=extension` — and merging them would have made the locale's own composed menu string unreachable. Measurement settles the shape of the fix: `core` exists in exactly two places (`languages.<code>.menu.core` and `types.<key>.core`, nothing else in any of the 657 locales), and of 2,589 menu entries 1,893 carry only `alt`, 571 only `core`/`extension`, and 125 both — so the real defect is that `Localize.Language` reads only `:alt` and silently returns the plain name for those 571. Design now: one `:prefer` option with `:style` as an alias, one validated vocabulary, `:standard` as the single spelling for the unqualified entry, and `:menu` meaning the menu-appropriate name in every context that has one.
 
 * 2026-09-08 — Added items 31 and 32, from assessing [unicode-org/cldr#6098](https://github.com/unicode-org/cldr/pull/6098). The PR is docs-only and its interval algorithm text is unchanged, so nothing in it requires work; what it documents, `intervalFormatRanges`, is new CLDR 49 data we were already ingesting under a camelCase key beside our skeleton identifiers, now underscored and compiled like its `intervalFormatFallback` sibling. It has no consumer on purpose — the spec scopes these patterns to internal survey tooling and ICU4X is contesting the synthesis algorithm on the PR. Assessing it surfaced item 31, which is not a CLDR 49 change at all: we look the style's skeleton up as a literal key in the interval table and glue on a miss, skipping TR35 step 2's closest match, so 1,814 of 2,628 `(locale, style)` pairs are glued when a width-adjusted interval item exists — German medium renders "03.05.2026 – 05.05.2026" where CLDR ships "03.–05.05.2026". CLDR ships no interval fixtures, so that one needs an oracle before any behaviour changes.
 

@@ -30,8 +30,9 @@ defmodule Localize.Script do
   """
 
   alias Localize.Utils.Helpers
+  alias Localize.Locale.LocaleDisplay
 
-  @styles [:standard, :short, :stand_alone, :variant]
+  @preferences [:standard, :short, :stand_alone, :variant]
 
   # ── Display names ───────────────────────────────────────────
 
@@ -50,10 +51,11 @@ defmodule Localize.Script do
   * `:locale` is a locale identifier. The default is
     `Localize.get_locale()`.
 
-  * `:style` is one of `:standard`, `:short`, `:stand_alone`,
+  * `:prefer` is one of `:standard`, `:short`, `:stand_alone`,
     or `:variant`. The default is `:standard`. If the requested
-    style is not available for a script, falls back to
-    `:standard`.
+    name is not available for a script, falls back to
+    `:standard`. `:style` is accepted as an older spelling of
+    this option.
 
   * `:fallback` is a boolean. When `true` and the script
     is not found in the specified locale, falls back to the
@@ -74,10 +76,10 @@ defmodule Localize.Script do
       iex> Localize.Script.display_name("Cyrl")
       {:ok, "Cyrillic"}
 
-      iex> Localize.Script.display_name(:Hans, style: :stand_alone)
+      iex> Localize.Script.display_name(:Hans, prefer: :stand_alone)
       {:ok, "Simplified Han"}
 
-      iex> Localize.Script.display_name(:Arab, style: :variant)
+      iex> Localize.Script.display_name(:Arab, prefer: :variant)
       {:ok, "Perso-Arabic"}
 
   """
@@ -86,7 +88,7 @@ defmodule Localize.Script do
   def display_name(script, options \\ []) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    with {:ok, style} <- validate_style(Keyword.get(options, :style, :standard)),
+    with {:ok, style} <- LocaleDisplay.preference_from_options(options, @preferences),
          {:ok, fallback} <- validate_fallback(Keyword.get(options, :fallback, false)),
          {:ok, script_atom} <- normalize_script_code(script),
          {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
@@ -137,7 +139,7 @@ defmodule Localize.Script do
       iex> Localize.Script.display_name!(:Latn)
       "Latin"
 
-      iex> Localize.Script.display_name!(:Hans, style: :stand_alone)
+      iex> Localize.Script.display_name!(:Hans, prefer: :stand_alone)
       "Simplified Han"
 
   """
@@ -281,17 +283,6 @@ defmodule Localize.Script do
   # Invalid option values return error tuples like every other input
   # error, so the same failure class always exits through the same
   # channel; the `!` variants raise for all of them uniformly.
-  defp validate_style(style) when style in @styles, do: {:ok, style}
-
-  defp validate_style(style) do
-    {:error,
-     Localize.InvalidValueError.exception(
-       value: style,
-       expected: :style,
-       allowed_values: @styles
-     )}
-  end
-
   defp validate_fallback(fallback) when is_boolean(fallback), do: {:ok, fallback}
 
   defp validate_fallback(fallback) do

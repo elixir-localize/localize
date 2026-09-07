@@ -22,8 +22,11 @@ defmodule Localize.Language do
     when unavailable.
 
   * `:menu` — a menu-friendly form with the language family
-    first (e.g., "Chinese, Mandarin" instead of "Mandarin
-    Chinese"). Falls back to `:standard` when unavailable.
+    first, so related languages sort together (e.g., "Chinese,
+    Mandarin" instead of "Mandarin Chinese"). Where CLDR gives
+    the family and the qualifier separately rather than as one
+    string, they are composed: `"ku"` is "Kurdish (Kurmanji)".
+    Falls back to `:standard` when unavailable.
 
   * `:variant` — an alternative variant name (e.g., "Pushto"
     instead of "Pashto"). Falls back to `:standard` when
@@ -32,8 +35,9 @@ defmodule Localize.Language do
   """
 
   alias Localize.LanguageTag
+  alias Localize.Locale.LocaleDisplay
 
-  @styles [:standard, :short, :long, :menu, :variant]
+  @preferences [:standard, :short, :long, :menu, :variant]
 
   # ── Display names ───────────────────────────────────────────
 
@@ -52,10 +56,11 @@ defmodule Localize.Language do
   * `:locale` is a locale identifier. The default is
     `Localize.get_locale()`.
 
-  * `:style` is one of `:standard`, `:short`, `:long`, `:menu`,
+  * `:prefer` is one of `:standard`, `:short`, `:long`, `:menu`,
     or `:variant`. The default is `:standard`. If the requested
-    style is not available for a language, falls back to
-    `:standard`.
+    name is not available for a language, falls back to
+    `:standard`. `:style` is accepted as an older spelling of
+    this option.
 
   * `:fallback` is a boolean. When `true` and the language
     is not found in the specified locale, falls back to the
@@ -73,7 +78,7 @@ defmodule Localize.Language do
       iex> Localize.Language.display_name("de")
       {:ok, "German"}
 
-      iex> Localize.Language.display_name("en-GB", style: :short)
+      iex> Localize.Language.display_name("en-GB", prefer: :short)
       {:ok, "UK English"}
 
       iex> Localize.Language.display_name("en", locale: :de)
@@ -104,7 +109,7 @@ defmodule Localize.Language do
   def display_name(language, options \\ []) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    with {:ok, style} <- validate_style(Keyword.get(options, :style, :standard)),
+    with {:ok, style} <- LocaleDisplay.preference_from_options(options, @preferences),
          {:ok, fallback} <- validate_fallback(Keyword.get(options, :fallback, false)),
          {:ok, language_tag} <- Localize.validate_locale(language),
          {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
@@ -152,7 +157,7 @@ defmodule Localize.Language do
       iex> Localize.Language.display_name!("de")
       "German"
 
-      iex> Localize.Language.display_name!("en-GB", style: :short)
+      iex> Localize.Language.display_name!("en-GB", prefer: :short)
       "UK English"
 
   """
@@ -257,6 +262,9 @@ defmodule Localize.Language do
       |> candidate_codes()
       |> first_matching_name(languages, style)
       |> case do
+        {:ok, %{} = menu} ->
+          compose_menu_name(menu, locale_id)
+
         {:ok, _} = result ->
           result
 
@@ -264,6 +272,22 @@ defmodule Localize.Language do
           {:error,
            Localize.UnknownLanguageError.exception(language: language_tag.canonical_locale_id)}
       end
+    end
+  end
+
+  # TR35 `CoreAndExtension`: use the `menu="core"` value as the name and put
+  # the `menu="extension"` value into `localePattern`. Reached only where the
+  # locale ships no `alt="menu"` string of its own — 571 of the 2,589 menu
+  # entries, across 446 locales, which previously fell back to the
+  # unqualified name.
+  defp compose_menu_name(%{core: core, extension: extension}, locale_id) do
+    with {:ok, display_names} <- Localize.Locale.get(locale_id, [:locale_display_names]) do
+      pattern = get_in(display_names, [:locale_display_pattern, :locale_pattern])
+
+      {:ok,
+       [core, extension]
+       |> Localize.Substitution.substitute(pattern)
+       |> List.to_string()}
     end
   end
 
@@ -335,13 +359,23 @@ defmodule Localize.Language do
     end
   end
 
-  # The :menu style stores a nested map with :alt (the composed
-  # display string), :core, and :extension keys. Return the :alt
-  # value as the display name.
+  # CLDR ships menu names in two forms, and TR35 treats them as separate
+  # parameters. `alt="menu"` is the locale's own composed string and is what
+  # `PreferAlt` selects, so it wins where present. Where the locale supplies
+  # only the `menu="core"` and `menu="extension"` halves, `CoreAndExtension`
+  # applies: the map is returned here and composed by the caller, which has
+  # the locale's `localePattern`.
   defp resolve_style(names, :menu) do
     case Map.fetch(names, :menu) do
-      {:ok, %{alt: alt}} when is_binary(alt) -> {:ok, alt}
-      _ -> :error
+      {:ok, %{alt: alt}} when is_binary(alt) ->
+        {:ok, alt}
+
+      {:ok, %{core: core, extension: extension} = menu}
+      when is_binary(core) and is_binary(extension) ->
+        {:ok, menu}
+
+      _ ->
+        :error
     end
   end
 
@@ -355,16 +389,6 @@ defmodule Localize.Language do
   # Invalid option values return error tuples like every other input
   # error, so the same failure class always exits through the same
   # channel; the `!` variants raise for all of them uniformly.
-  defp validate_style(style) when style in @styles, do: {:ok, style}
-
-  defp validate_style(style) do
-    {:error,
-     Localize.InvalidValueError.exception(
-       value: style,
-       expected: :style,
-       allowed_values: @styles
-     )}
-  end
 
   defp validate_fallback(fallback) when is_boolean(fallback), do: {:ok, fallback}
 

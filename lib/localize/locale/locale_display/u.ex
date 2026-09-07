@@ -26,6 +26,9 @@ defmodule Localize.Locale.LocaleDisplay.U do
     kr: :col_reorder
   }
 
+  @doc false
+  def display_key(field), do: Map.get(@field_to_display_key, field, field)
+
   # # display_name/4
   #
   # Returns a display name for the Unicode locale extension (U).

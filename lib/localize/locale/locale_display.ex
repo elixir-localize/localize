@@ -10,6 +10,12 @@ defmodule Localize.Locale.LocaleDisplay do
 
   """
 
+  # The closed vocabulary of display-name preferences. Every value is a
+  # CLDR alternate we actually carry: `:standard` is the unqualified entry,
+  # the rest name an `-alt-` variant. Each module declares the subset its
+  # own data can supply.
+  @known_preferences [:standard, :short, :long, :variant, :stand_alone, :menu]
+
   @basic_tag_order [:language, :script, :territory, :language_variants]
   @reinstate_subtags [:territory, :script]
 
@@ -35,7 +41,10 @@ defmodule Localize.Locale.LocaleDisplay do
     in `:standard` format (the default) or `:dialect` format.
 
   * `:prefer` signals the preferred name for a subtag when
-    there are alternatives. The default is `:standard`.
+    there are alternatives: `:standard` (the default, the
+    unqualified CLDR entry), `:short`, `:long`, `:variant`,
+    `:stand_alone` or `:menu`. A subtag with no name for the
+    requested preference falls back to its `:standard` name.
 
   * `:locale` is the locale in which to display the name.
     The default is `:en`. Pass `:root` (or `:und`) to render the
@@ -112,11 +121,10 @@ defmodule Localize.Locale.LocaleDisplay do
 
   defp do_display_name(%Localize.LanguageTag{} = language_tag, options) do
     locale_id = resolve_locale_id(options)
-    prefer = Keyword.get(options, :prefer, :standard)
-    prefer = if prefer == :default, do: :standard, else: prefer
     standard_or_dialect = Keyword.get(options, :language_display, :standard)
 
-    with :ok <- validate_language_display(standard_or_dialect),
+    with {:ok, prefer} <- preference_from_options(options, @known_preferences),
+         :ok <- validate_language_display(standard_or_dialect),
          {:ok, display_names} <- load_display_names(locale_id),
          {:ok, matched_tags, language_name} <-
            language_name(language_tag, display_names, prefer, standard_or_dialect) do
@@ -274,6 +282,154 @@ defmodule Localize.Locale.LocaleDisplay do
        allowed_values: [true, false, "yes", "no"]
      )}
   end
+
+  @doc """
+  Returns the localized name of a BCP 47 locale key.
+
+  TR35 uses the key name as the title of a menu whose choices are the
+  key's type names — "Calendar", above a list of calendars.
+
+  ### Arguments
+
+  * `key` is a BCP 47 key as an atom or string, in either its short
+    form (`:ca`) or CLDR's long form (`:calendar`).
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is any locale returned by `Localize.all_locale_ids/0` or a
+    `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
+
+  ### Returns
+
+  * `{:ok, name}`.
+
+  * `{:error, exception}` if the locale is unknown or ships no name for
+    the key.
+
+  ### Examples
+
+      iex> Localize.Locale.LocaleDisplay.key_name(:ca, locale: :en)
+      {:ok, "Calendar"}
+
+      iex> Localize.Locale.LocaleDisplay.key_name(:ms, locale: :de)
+      {:ok, "Maßsystem"}
+
+  """
+  @spec key_name(atom() | String.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def key_name(key, options \\ []) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, display_names} <- Localize.Locale.get(language_tag, [:locale_display_names]),
+         {:ok, display_key} <- display_key(key),
+         name when is_binary(name) <- get_in(display_names, [:keys, display_key]) do
+      {:ok, name}
+    else
+      {:error, _reason} = error ->
+        error
+
+      _not_found ->
+        {:error,
+         Localize.ItemNotFoundError.exception(
+           locale: locale,
+           keys: [:locale_display_names, :keys, key]
+         )}
+    end
+  end
+
+  @doc """
+  Returns the localized name of one of a BCP 47 key's type values.
+
+  ### Arguments
+
+  * `key` is a BCP 47 key as an atom or string, in either its short
+    form (`:ca`) or CLDR's long form (`:calendar`).
+
+  * `value` is a type value for that key, such as `:buddhist`.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is any locale returned by `Localize.all_locale_ids/0` or a
+    `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
+
+  * `:prefer` is `:standard` (the default) for the full name, or `:menu`
+    for the short name TR35 pairs with the key name in a menu. `:menu`
+    currently returns an error for every key: CLDR marks those names
+    `scope="core"`, and cldr-json collapses all of a key's core names
+    onto a single entry, so the name belonging to a given value is not
+    recoverable from the published data.
+
+  ### Returns
+
+  * `{:ok, name}`.
+
+  * `{:error, exception}` if the locale is unknown, or no name exists for
+    the key and value at the requested preference.
+
+  ### Examples
+
+      iex> Localize.Locale.LocaleDisplay.type_name(:ca, :buddhist, locale: :en)
+      {:ok, "Buddhist Calendar"}
+
+      iex> Localize.Locale.LocaleDisplay.type_name(:co, :phonebook, locale: :en)
+      {:ok, "Phonebook Sort Order"}
+
+  """
+  @spec type_name(atom() | String.t(), atom() | String.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def type_name(key, value, options \\ []) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    with {:ok, prefer} <- preference_from_options(options, [:standard, :menu]),
+         {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, display_names} <- Localize.Locale.get(language_tag, [:locale_display_names]),
+         {:ok, display_key} <- display_key(key),
+         {:ok, type_value} <- display_key(value),
+         name when is_binary(name) <-
+           type_name_for(prefer, display_names, display_key, type_value) do
+      {:ok, name}
+    else
+      {:error, _reason} = error ->
+        error
+
+      _not_found ->
+        {:error,
+         Localize.ItemNotFoundError.exception(
+           locale: locale,
+           keys: [:locale_display_names, :types, key, value]
+         )}
+    end
+  end
+
+  # The `scope="core"` short name for a single type value does not survive
+  # cldr-json, which collapses every core name for a key onto one `core`
+  # entry. Returning that entry would hand back a name belonging to some
+  # other type, so nothing is returned until the published data carries
+  # the names per value.
+  defp type_name_for(:menu, _display_names, _display_key, _value), do: nil
+
+  defp type_name_for(:standard, display_names, display_key, value) do
+    get_in(display_names, [:types, display_key, value])
+  end
+
+  # Keys and values arrive from callers, so they are never interned.
+  defp display_key(key) when is_atom(key) and not is_nil(key) do
+    {:ok, Localize.Locale.LocaleDisplay.U.display_key(key)}
+  end
+
+  defp display_key(key) when is_binary(key) do
+    case Localize.Utils.Helpers.existing_atom(key) do
+      nil -> :error
+      atom -> display_key(atom)
+    end
+  end
+
+  defp display_key(_key), do: :error
 
   # ── Language Name Resolution ─────────────────────────────────
 
@@ -530,6 +686,37 @@ defmodule Localize.Locale.LocaleDisplay do
   end
 
   defp merge_extensions_and_private_use(tag), do: tag
+
+  @doc false
+  def known_preferences, do: @known_preferences
+
+  # `:style` is the older spelling, kept working in the modules that shipped
+  # with it. `:prefer` wins when both are given.
+  @doc false
+  def preference_option(options) do
+    Keyword.get(options, :prefer, Keyword.get(options, :style, :standard))
+  end
+
+  # Modules carrying their own error type resolve with `preference_option/1`
+  # and validate themselves; this is for the rest.
+  @doc false
+  def preference_from_options(options, supported) do
+    options |> preference_option() |> validate_preference(supported)
+  end
+
+  @doc false
+  def validate_preference(preference, supported) do
+    if preference in supported do
+      {:ok, preference}
+    else
+      {:error,
+       Localize.InvalidValueError.exception(
+         value: preference,
+         expected: :display_preference,
+         allowed_values: supported
+       )}
+    end
+  end
 
   @doc false
   def get_display_preference(nil, _preference), do: nil

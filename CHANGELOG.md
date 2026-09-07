@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* `Localize.Locale.LocaleDisplay.key_name/2` and `type_name/3` return a BCP 47 key's localized name and the name of one of its type values — `key_name(:ca)` is "Calendar", `type_name(:ca, :buddhist)` is "Buddhist Calendar".
+
 * `Localize.affirmative_responses/1` and `negative_responses/1` return CLDR's POSIX `yesstr` / `nostr` forms — `{:ok, ["ja", "j"]}` for `:de` — and `affirmative?/2` and `negative?/2` match a response against them, folding case as TR35 requires.
 
 * `Localize.Locale.LocaleDisplay.type_value_name/2` returns the localized name for a boolean BCP 47 keyword value: `"On"` and `"Off"` in `en`, `"Ein"` and `"Aus"` in `de`.
@@ -22,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* `:prefer` is now the option that selects a display-name alternate on `Localize.Language`, `Localize.Territory` and `Localize.Script` as well as `Localize.Locale.LocaleDisplay`, with `:style` still accepted as the older spelling. An unsupported value returns `{:error, %Localize.InvalidValueError{}}` rather than silently resolving to `:standard`, which retires the undocumented `prefer: :default`.
+
 * **Breaking.** `Localize.DateTime.to_string/2` joins a date and a time with the locale's "at time" wrapper by default, so `en` at `:long` is now "July 6, 2024 at 2:30:45 PM" rather than "July 6, 2024, 2:30:45 PM". TR35 makes this the default for an event time; pass `style: :default` for the previous output, and note that `:medium` and `:short` are unchanged because CLDR defines the wrapper only for `:full` and `:long`.
 
 * **Breaking for historical Japanese dates.** Pre-Meiji era start dates are now proleptic Gregorian. CLDR recorded the lunisolar proclamation date in a proleptic-Gregorian field for all 231 pre-Meiji eras, so 大化 began `[645, 6, 19]` where the proleptic Gregorian date is 645-07-20; every era before Meiji moves by days to weeks.
@@ -35,6 +39,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * **Breaking.** `Localize.validate_territory/1` returns the canonical territory code. Both forms may be supplied: `validate_territory("AN")` was `{:ok, :AN}` and is now `{:ok, :CW}`, as for `SU` (`:RU`), `DD` (`:DE`), `CS` and `YU` (both `:RS`), bringing it into line with `validate_locale/1`.
 
 ### Fixed
+
+* `prefer: :menu` on `Localize.Language.display_name/2` composes CLDR's `menu="core"` and `menu="extension"` halves where a locale ships no `alt="menu"` string of its own, so `"ku"` renders "Kurdish (Kurmanji)" rather than the unqualified "Kurdish". Affects 571 language entries across 446 locales.
 
 * A display name with no entry for the requested preference and none for `:standard` falls back to a stable key rather than whichever the map yielded first, which depended on atom creation order in the VM. Same cause as the skeleton-matching fix above.
 

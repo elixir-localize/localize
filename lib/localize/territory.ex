@@ -24,6 +24,7 @@ defmodule Localize.Territory do
   """
 
   alias Localize.LanguageTag
+  alias Localize.Locale.LocaleDisplay
   alias Localize.SupplementalData
 
   @styles [:short, :standard, :variant]
@@ -164,8 +165,9 @@ defmodule Localize.Territory do
   * `:locale` is a locale identifier. The default is
     `Localize.get_locale()`.
 
-  * `:style` is one of `:short`, `:standard`, or `:variant`.
-    The default is `:standard`.
+  * `:prefer` is one of `:short`, `:standard`, or `:variant`.
+    The default is `:standard`. `:style` is accepted as an older
+    spelling of this option.
 
   ### Returns
 
@@ -179,7 +181,7 @@ defmodule Localize.Territory do
       iex> Localize.Territory.display_name(:GB)
       {:ok, "United Kingdom"}
 
-      iex> Localize.Territory.display_name(:GB, style: :short)
+      iex> Localize.Territory.display_name(:GB, prefer: :short)
       {:ok, "UK"}
 
       iex> Localize.Territory.display_name(:GB, locale: :pt)
@@ -192,7 +194,7 @@ defmodule Localize.Territory do
         ) :: {:ok, String.t()} | {:error, Exception.t()}
   def display_name(territory, options \\ []) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    style = Keyword.get(options, :style, :standard)
+    style = LocaleDisplay.preference_option(options)
 
     with {:ok, territory_atom} <- resolve_territory(territory),
          {:ok, style_atom} <- validate_style(style),
@@ -251,7 +253,7 @@ defmodule Localize.Territory do
       iex> Localize.Territory.display_name!(:GB)
       "United Kingdom"
 
-      iex> Localize.Territory.display_name!(:GB, style: :short)
+      iex> Localize.Territory.display_name!(:GB, prefer: :short)
       "UK"
 
   """
@@ -284,8 +286,9 @@ defmodule Localize.Territory do
   * `:to` is the target locale. The default is
     `Localize.get_locale()`.
 
-  * `:style` is one of `:short`, `:standard`, or `:variant`.
-    The default is `:standard`.
+  * `:prefer` is one of `:short`, `:standard`, or `:variant`.
+    The default is `:standard`. `:style` is accepted as an older
+    spelling of this option.
 
   ### Returns
 
@@ -307,10 +310,10 @@ defmodule Localize.Territory do
           {:ok, String.t()} | {:error, Exception.t()}
   def translate_territory(name, from_locale, options \\ []) do
     to_locale = Keyword.get(options, :to, Localize.get_locale())
-    style = Keyword.get(options, :style, :standard)
+    style = LocaleDisplay.preference_option(options)
 
     with {:ok, territory_code} <- to_territory_code(name, from_locale) do
-      display_name(territory_code, locale: to_locale, style: style)
+      display_name(territory_code, locale: to_locale, prefer: style)
     end
   end
 
