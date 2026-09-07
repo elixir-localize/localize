@@ -62,7 +62,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 7  | Min/max significant digits                        | New options | None — ✅ Done. Shipped with docs and tests |
 | 8  | RBNF syntax audit                                 | Internal   | None — ✅ Done in Localize 0.26.0 |
 | 9  | RBNF *Remove rule* data-format change             | Internal (ETF) | None — ✅ Closed. No such mechanism; the source-format change landed under item 22 |
-| 10 | CLDR 48.2 §Modifications retrospective            | Mixed      | Per-finding — ✅ Done. See [plans/cldr-48-retrospective.md](cldr-48-retrospective.md). |
+| 10 | CLDR 48.2 §Modifications retrospective            | Mixed      | Per-finding — ✅ Done. 23 modifications classified; both follow-ups (§A `gmtUnknownFormat`, §B `FractionalUCA_blanked.txt`) closed |
 | 11 | `localize_emoji` sibling library                  | New package | None          |
 | 12 | `common/testData` conformance-fixture audit       | None (tests only) | **Output changes** — ✅ Done. Skeleton suite wired in at 83/90; the date-time wrapper now defaults to TR35's `atTime` |
 | 13 | CDN-asset checksum manifests                       | None       | None — ✅ Done in Localize 0.44.0 |
@@ -156,8 +156,6 @@ None. Review only.
 ## 4. Semantic skeletons for date-times — ✅ Resolver done; formatting gap is pre-existing
 
 Spec: <https://www.unicode.org/reports/tr35/dev/tr35-dates.html#Semantic_Skeletons>
-
-The detailed design plan — vocabulary, resolver algorithm, public API, worked examples, implementation steps, and risk register — lives in [plans/semantic-skeletons.md](semantic-skeletons.md). This section keeps the high-level scope statement; the child plan resolves the seven open questions and is the source of truth for implementation.
 
 ### Current conformance
 
@@ -541,8 +539,6 @@ iex> Localize.Number.to_string(0.001234, maximum_significant_digits: 2)
 
 Spec: <https://unicode.org/reports/tr35/tr35-numbers.html#RBNF_Syntax>
 
-The full audit, eleven-bug ledger, fix-by-fix walkthrough, behavioural deltas, and remaining deferred items live in [plans/rbnf.md](rbnf.md). Summary for this CLDR-49 plan:
-
 ### Outcome
 
 Eleven bugs identified; nine fixed across nine commits on branch `rbnf-fixes` (Bugs A, B, C, D, E, F, G, H, L) plus three follow-up items (§1 numerator/denominator algorithm, §2 integer `>>>` preceding-rule semantic, §4 Decimal input). All shipped in Localize 0.26.0 (2026-05-05). Three latent bugs are deferred:
@@ -562,7 +558,6 @@ Re-run on the CLDR 49 alpha drop:
 
 * Diff `priv/cldr/locales/*/rbnf.json` for any new `>>>` or `<<<` usages, new `Nx.x`-base rules, or any new `Inf`/`NaN` rule shapes.
 * Re-run the full RBNF test suite against the new ETF data and surface any unexpected output deltas.
-* Update [plans/rbnf.md](rbnf.md)'s coverage matrix and bug ledger with any new findings.
 
 ## 9. RBNF data-format change: rule removal — ✅ Closed; the premise was a misreading
 
@@ -616,7 +611,7 @@ This is more general than the rule-removal change covered above; it should be re
 
 Spec: <https://unicode.org/reports/tr35/tr35-modifications.html#modifications>
 
-The full audit lives in [plans/cldr-48-retrospective.md](cldr-48-retrospective.md). 23 modifications classified; 14 covered as code applied (including person-name validation in the sibling Hex package `localize_person_names`, rational-number formatting via `Localize.Number.to_ratio_string/2`, and mixed-unit precision verified empirically), 4 as data-only, 3 deliberately skipped, 2 follow-up tasks filed (§A `gmtUnknownFormat` consumer, §B `FractionalUCA_blanked.txt` ingestion), **both now closed**. §A landed: CLDR had removed `gmtZeroFormat` from the spec, so the reader for it resolved to nothing in all 657 locales and a hard-coded English `"GMT"` stood in for both a zero and an absent offset; a known offset is now always spelled out and an unknown one renders the locale's `gmtUnknownFormat`. §B needed nothing — `FractionalUCA_blanked.txt` is a maintainer's diffing aid with every weight byte replaced by a placeholder, not a data source, so there is nothing to ingest. The retrospective also defines the format and process for future per-CLDR-version audits — when CLDR 49 ships its own modifications log, the same template applies.
+23 modifications classified; 14 covered as code applied (including person-name validation in the sibling Hex package `localize_person_names`, rational-number formatting via `Localize.Number.to_ratio_string/2`, and mixed-unit precision verified empirically), 4 as data-only, 3 deliberately skipped, 2 follow-up tasks filed (§A `gmtUnknownFormat` consumer, §B `FractionalUCA_blanked.txt` ingestion), **both now closed**. §A landed: CLDR had removed `gmtZeroFormat` from the spec, so the reader for it resolved to nothing in all 657 locales and a hard-coded English `"GMT"` stood in for both a zero and an absent offset; a known offset is now always spelled out and an unknown one renders the locale's `gmtUnknownFormat`. §B needed nothing — `FractionalUCA_blanked.txt` is a maintainer's diffing aid with every weight byte replaced by a placeholder, not a data source, so there is nothing to ingest. The same section-by-section walk applies when CLDR 49 ships its own modifications log; the process is recorded in [CLDR_UPDATE_INTEGRATION.md](../CLDR_UPDATE_INTEGRATION.md).
 
 ### Current conformance
 
@@ -640,7 +635,6 @@ We have not produced a structured retrospective comparing our 48.2 implementatio
    * Person-name patterns (CLDR added significant material here in 46/47/48).
    * Locale matching distance tables.
    * Likely-subtags additions/removals.
-4. Capture the result as `plans/cldr-48-retrospective.md` so future upgrades have a precedent format.
 
 ### API impact / breaking risk
 
@@ -1630,9 +1624,9 @@ Each checkpoint should leave a dated entry at the bottom of this file noting wha
 * 2026-09-01 — Release-note review at Alpha 1. The 2026-08-25 review read `tr35-modifications.md`; the release note carries a "V49 advance warnings" section the modifications log does not, and four items came from it: 17 (`H24` deprecated), 18 (week numbering follows ISO), 19 (supplemental files reorganized) and 20 (Iran subdivision codes stale upstream). Galician's new `many` plural case needs no work — the category lists already enumerate it. `cnr` de-aliasing and the removal of locales without core data are **V50**, not this cycle.
 
 * 2026-05-05 — Initial draft. All 11 items at status *planned*; no child plans written yet.
-* 2026-05-05 — Item 8 (RBNF syntax audit) landed in Localize 0.26.0. Nine bugs fixed plus three follow-up items; full audit trail in [plans/rbnf.md](rbnf.md). Three latent items (Inf/NaN, `<<<`, `Nx.x`) deferred with explicit rationale. Index table, item 8, item 9, and the review-cadence-final-row updated to reflect.
+* 2026-05-05 — Item 8 (RBNF syntax audit) landed in Localize 0.26.0. Nine bugs fixed plus three follow-up items. Three latent items (Inf/NaN, `<<<`, `Nx.x`) deferred with explicit rationale. Index table, item 8, item 9, and the review-cadence-final-row updated to reflect.
 * 2026-05-11 — Added item 12: audit `$CLDR_REPO/common/testData` at CLDR 49 alpha for new conformance fixtures, especially decimal-formatting tests that may gate item 7.
-* 2026-05-06 — Item 10 (CLDR 48.2 modifications retrospective) complete. Full audit in [plans/cldr-48-retrospective.md](cldr-48-retrospective.md): 23 modifications classified, 6 follow-up tasks filed (§A–§F). Index table and item 10 section updated.
+* 2026-05-06 — Item 10 (CLDR 48.2 modifications retrospective) complete. 23 modifications classified, 6 follow-up tasks filed (§A–§F). Index table and item 10 section updated.
 * 2026-05-12 — Added item 13: generate signed/checksummed manifest for CDN-downloaded locale ETFs so the runtime can verify content integrity before decode. Motivated by the 0.30.1 revert of `binary_to_term [:safe]` (issue #25), which re-opened security audit §4.1's writable-cache-dir DOS surface. Research required — manifest format, signature scheme, hot-path budget, key rotation all open.
 
 * 2026-08-02 — Plan audit. Added item 14 (Japanese pre-Meiji eras), which was tracked only in [plans/japanese_eras.md](japanese_eras.md) and referenced nowhere here despite being triggered by CLDR 49 and carrying a silent-data-loss risk during a routine pipeline run. Marked item 13 done (shipped in Localize 0.44.0) — its status still read "research required". Added index rows for items 13 and 14; the index previously stopped at 12 while the file carried a section 13.

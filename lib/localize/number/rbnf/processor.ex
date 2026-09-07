@@ -324,7 +324,7 @@ defmodule Localize.Number.Rbnf.Processor do
   # `%spellout-cardinal x.x: ←← бүтүн →%%z-spellout-fraction→`).
   # TR35 specifies a numerator/denominator algorithm for those
   # cases; we provide non-crashing best-effort handling here and
-  # leave the full algorithm as a follow-up. See plans/rbnf.md.
+  # leave the full algorithm as a follow-up.
   defp do_operation(:modulo, number, rule_set, _rule, nil, all_sets, locale)
        when is_float(number) do
     format_fraction(number, rule_set, all_sets, " ", locale)

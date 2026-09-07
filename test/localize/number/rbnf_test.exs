@@ -595,9 +595,9 @@ defmodule Localize.Number.RbnfTest do
     test "ky 1.5 spellout-cardinal does not crash on >%name>" do
       # x.x rule body: `←← бүтүн →%%z-spellout-fraction→`.
       # Pre-fix: FunctionClauseError. Post-fix: no crash.
-      # Output is best-effort (missing the locale's denominator
-      # word — see plans/rbnf.md for the full numerator/
-      # denominator implementation).
+      # Output is best-effort, missing the locale's denominator
+      # word; the full numerator/denominator algorithm is still
+      # to be implemented.
       assert {:ok, result} = Rbnf.to_string(1.5, "spellout-cardinal", locale: :ky)
       assert is_binary(result)
       assert String.contains?(result, "бир"), "expected 'бир' (one), got #{inspect(result)}"
