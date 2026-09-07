@@ -78,23 +78,37 @@ defmodule Localize.Data.Normalize.Currency do
 
     xml_path = Path.join(Localize.Data.external_sources_dir(), "iso_currencies.xml")
 
-    if File.exists?(xml_path) do
-      xml_path
-      |> File.read!()
-      |> xpath(~x"//CcyNtry"l,
-        code: ~x"./Ccy/text()"os,
-        digits: ~x"./CcyMnrUnts/text()"os
-      )
-      |> Enum.reject(fn %{code: code} -> code == nil or code == "" end)
-      |> Enum.map(fn %{code: code, digits: digits} ->
-        digit_value = parse_currency_digits(Integer.parse(to_string(digits)))
-        {String.to_atom(to_string(code)), digit_value}
-      end)
-      |> Enum.uniq_by(fn {code, _} -> code end)
-      |> Map.new()
-    else
-      %{}
+    # A single global source, unlike the per-locale files elsewhere in the
+    # normalizers where a missing path legitimately means "this locale has
+    # none". Absent, every currency in every locale loses `iso_digits` and
+    # the pipeline still reports success, so this fails rather than falls back.
+    unless File.exists?(xml_path) do
+      raise """
+      iso_currencies.xml not found at #{xml_path}
+
+      Without it every currency in every locale loses its `iso_digits`, which
+      changes `currency_digits: :iso` formatting and the `current?/1` and
+      `historic?/1` predicates. The file lives under `_build`, so a clean
+      build or a wiped `priv/cldr` removes it. Fetch it and regenerate:
+
+          mix localize.download_iso_currencies
+          mix localize.generate_locales
+      """
     end
+
+    xml_path
+    |> File.read!()
+    |> xpath(~x"//CcyNtry"l,
+      code: ~x"./Ccy/text()"os,
+      digits: ~x"./CcyMnrUnts/text()"os
+    )
+    |> Enum.reject(fn %{code: code} -> code == nil or code == "" end)
+    |> Enum.map(fn %{code: code, digits: digits} ->
+      digit_value = parse_currency_digits(Integer.parse(to_string(digits)))
+      {String.to_atom(to_string(code)), digit_value}
+    end)
+    |> Enum.uniq_by(fn {code, _} -> code end)
+    |> Map.new()
   end
 
   defp parse_currency_digits({digits, _remainder}), do: digits

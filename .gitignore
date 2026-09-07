@@ -42,8 +42,11 @@ mise.toml
 # See CLDR_UPDATE_INTEGRATION.md.
 /priv/cldr/
 
-# Generated locale ETF files (populated via mix localize.generate_locales)
-/priv/localize/locales/
+# Generated locale ETF files (populated via mix localize.generate_locales).
+# The trailing `/*` matters: excluding the directory itself stops git
+# descending into it, and a negation cannot re-include a file whose parent
+# directory is excluded, so `en.etf` and `und.etf` stayed ignored.
+/priv/localize/locales/*
 !/priv/localize/locales/en.etf
 !/priv/localize/locales/und.etf
 

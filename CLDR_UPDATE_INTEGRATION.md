@@ -112,9 +112,12 @@ JAVA_HOME=$(/usr/libexec/java_home -v 21) \
 # 2. Copy into the project (writes priv/localize/version)
 mix localize.copy_sources
 
-# 3. Auxiliary sources — only when their upstreams moved
+# 3. Auxiliary sources
+#    iso_currencies.xml is required, not optional: it lives under _build, so a
+#    clean build or a wiped priv/cldr removes it, and locale generation now
+#    raises rather than silently emitting `iso_digits: nil` for every currency.
 mix localize.download_iso_currencies    # ISO 4217 (SIX Group cadence)
-mix localize.update_mf2_conformance     # MF2 WG test suite (tracks the WG repo)
+mix localize.update_mf2_conformance     # MF2 WG test suite (tracks the WG repo), only when upstream moved
 
 # The UCD property files are handled by copy_sources above; run this only to
 # force a re-check outside a full source refresh.

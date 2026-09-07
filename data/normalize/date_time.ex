@@ -22,7 +22,7 @@ defmodule Localize.Data.Normalize.DateTime do
       |> LMap.rename_keys("exemplar_city_alt_formal", "formal")
       |> LMap.rename_keys("date_time_formats_at_time", "date_time_at_formats")
       |> LMap.rename_keys("date_time_formats_relative", "date_time_relative_formats")
-      |> LMap.underscore_keys(only: "intervalFormatFallback")
+      |> LMap.underscore_keys(only: ["intervalFormatFallback", "intervalFormatRanges"])
       |> LMap.deep_map(&normalize_number_system/1,
         filter: @normalize_number_systems_for,
         only: "number_system"
@@ -31,6 +31,8 @@ defmodule Localize.Data.Normalize.DateTime do
         filter: "date_time_formats",
         only: ["interval_format_fallback"]
       )
+      |> LMap.underscore_keys(filter: "interval_format_ranges")
+      |> LMap.deep_map(&compile_items/1, filter: "interval_format_ranges")
       |> LMap.deep_map(&compile_items/1,
         filter: "append_items"
       )

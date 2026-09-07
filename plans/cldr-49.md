@@ -69,6 +69,8 @@ This package is widely used. The following invariants apply to every item in thi
 | 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Output changes** — ✅ Done. All 237 eras generated from curated research; pre-Meiji dates were CLDR's lunisolar values and are now proleptic Gregorian |
 | 15 | POSIX `yesstr` / `nostr` responses                  | New functions | None — ✅ Done. `affirmative_responses/1`, `negative_responses/1`, `affirmative?/2`, `negative?/2` |
 | 16 | `typeValues` On/Off translations (CLDR 49, CLDR-19394) | New functions | None — ✅ Done. `LocaleDisplay.type_value_name/2`; an upstream cldr-json defect found alongside |
+| 16a | cldr-json discards `scope="core"` display names | None (upstream) | None — upstream defect. 6,499 collapsed `(locale, key)` pairs across 458 locales; `en` keeps 15 of 102 short names |
+| 16b | Expose `scope="core"` consistently in the public API | `:prefer` replaces `:style`; new functions | **Output changes** — one `prefer: :menu` covers both shapes; corrected for 571 entries in 446 locales |
 | 17 | `H24` hour cycle deprecated                         | None       | None — ✅ Closed. CLDR 49 does not deprecate it; TR35 and `bcp47/calendar.xml` both still carry `h24`. No change |
 | 18 | Week-of-year numbering follows ISO by default        | None       | None — ✅ Closed. TR35 still numbers weeks by the locale's `firstDay`/`minDays`; already conformant. No change |
 | 19 | Supplemental data files reorganized                  | None       | None — ✅ Closed. We read neither file; every XML source we use is already separate |
@@ -83,6 +85,8 @@ This package is widely used. The following invariants apply to every item in thi
 | 28 | CLDR 49 decimal format conformance suite            | None       | **Output changes** — ✅ Conformant; every difference is a documented CLDR-over-ICU choice |
 | 29 | A locale did not always resolve to itself          | None       | **Resolution changes** — ✅ Fixed. 25 locales were served a neighbour's data |
 | 30 | CLDR 49 RBNF conformance suite                      | None       | **Output changes** — ✅ 52,691/52,691; ten defects fixed |
+| 31 | Interval formats glue where CLDR ships a pattern     | None       | **Output changes** — 1,814 of 2,628 `(locale, style)` pairs glue instead of using a width-adjusted interval item |
+| 32 | CLDR 49 adds `intervalFormatRanges`                  | None (data key) | None — ✅ Ingested as `:interval_format_ranges`; no consumer while the spec keeps it internal |
 
 The remainder of this file expands each item in turn.
 
@@ -985,21 +989,119 @@ Measured for `en`, comparing `common/main/en.xml` against `cldr-localenames-full
 
 | | |
 |---|---|
-| `scope="core"` short names in the XML | **116** |
+| `scope="core"` short names in the XML | **102** |
 | surviving in the JSON | 15 |
-| **lost** | **101 (87%)** |
+| **lost** | **87 (85%)** |
 
-Worst per key: `numbers` 28 → 1, `calendar` 18 → 1, `collation` 15 → 1. Four keys — `ka`, `kf`, `kr`, `ks` — keep none at all.
+Worst per key: `numbers` 28 → 1, `calendar` 18 → 1, `collation` 15 → 1.
 
-Across the distribution, **6,499 (locale, key) pairs in 458 locales** carry a `core` key, each retaining exactly one of the several short names its key defines.
+### Breadth — measured twice, from both sides
 
-*(An earlier version of this section reported 12,707 / 1,934 / 10,773 across 152 locales. Those came from scanning the unresolved XML, which counts only locales with a literal `<types>` block; cldr-json emits inheritance-resolved data, so both the affected-locale count and the arithmetic were wrong. The figures above are measured directly against the shipped JSON.)*
+**From the JSON, across all 657 shipped locale files.** This is the safe count, because cldr-json emits inheritance-resolved data and so covers every locale, not just those with a literal `<types>` block:
+
+| | |
+|---|---|
+| locales carrying at least one collapsed `core` key | **458** |
+| `(locale, key)` pairs holding one | **6,499** |
+| pairs holding more than one name | **0** |
+
+`calendar` is affected in all 458, `collation` in 450, `ms` 436, `em` 435, `cf` 434, `lb` 433, `hc` 432, `lw` 432, `colReorder` 429, `ss` 429.
+
+**From the XML, across the 128 locales that carry their own `<types>` block.** Only these can be compared entry-for-entry, since the rest inherit:
+
+| | |
+|---|---|
+| locales compared | **128** |
+| of those, losing at least one name | **124** |
+| `scope="core"` names in the XML | **10,535** |
+| surviving in the JSON | 1,565 |
+| **lost** | **8,970 (85%)** |
+
+The distribution is almost flat: 95 of the 128 carry the same 102 names and keep the same 15. Only four lose nothing — `fo`, `scn`, `tyv`, `vec` — and each of those defines just two core names to begin with. A further 31 `(locale, key)` pairs define core names in the XML and get no `core` key in the JSON at all.
+
+### Which name survives is not predictable
+
+Of the 1,565 that survive, **1,552 are the last entry in XML document order** — consistent with each successive write overwriting the last. Ten more are `nn`, where the last XML entry is CLDR's `↑↑↑` inherit marker and the JSON therefore holds the resolved parent value, which is correct rather than a counter-example. **Three genuinely break the rule**: `to`/`calendar`, `to`/`collation` and `tt`/`calendar` all keep a value that is not last in the file. So the accurate statement for the upstream report is that exactly one name survives per key and *which* one cannot be derived from source order — a stronger complaint than "last wins", not a weaker one.
+
+*(Two earlier counts in this section were wrong and are recorded here so they are not reintroduced. The first, 12,707 / 1,934 / 10,773 across 152 locales, scanned the unresolved XML and mixed it with a resolved-data locale count. The second put `en` at 116 core names losing 101, from a line-based `grep` of `en.xml`: 14 of those lines — every entry under `ka`, `kf`, `kr` and `ks` — sit inside an XML comment block, so they are not live data and cldr-json is right not to emit them. That also retires the claim that those four keys "keep none at all". The figures above come from parsed XML and parsed JSON.)*
+
+**Found alongside, and not a cldr-json defect.** `tt`'s `calendar` core name is `"Gregoriano sutiyuq runa"` — Quechua, sitting among Tatar Cyrillic values. It is in `common/main/tt.xml` itself, so it is a CLDR translation error and belongs in a separate report.
 
 **Consequence for Localize.** Our `locale_display_names.types.<key>.core` is a pseudo-type holding one arbitrary short name, and TR35's `SeparateKeyValue` display format and the menu use-case cannot be implemented from cldr-json at all. `typeValues` itself — the On/Off strings of item 16 — is emitted correctly; the loss is confined to `<types>`.
 
 **Worth reporting upstream.** The converter already has the mechanism for this: `LdmlConvertRules.NAME_PART_DISTINGUISHING_ATTR_SET` in `tools/cldr-code/src/main/java/org/unicode/cldr/json/` lists the attributes that must be folded into the key name as `name-(attribute)-(value)` so they cannot collide, and it carries `characters:parseLenients:scope` — but nothing for the `<type>` element's `scope`. Whether adding it is the whole fix has not been traced through the emitter, so the report should describe the symptom and point at that set rather than assert a patch.
 
 If it is not fixed, the workaround is the one already used for `primaryZones` in item 14: read `common/main/*.xml` directly and merge. That is a bigger job here, since it is per-locale rather than a single supplemental file.
+
+## 16b. `scope="core"` in the public API — one option name, one value vocabulary
+
+Item 16a covers what cldr-json throws away. This item covers the half we control: where the core scope *does* reach us intact we cannot ask for it, and the option that selects a display alternate is spelled two different ways in two different modules, which give two different answers from the same data.
+
+### Current conformance
+
+Two LDML shapes carry the core scope, and cldr-json treats them differently because the attribute differs. `<language>` uses a `menu` attribute, which the converter *does* fold into the key name, so every entry survives:
+
+```xml
+<language type="ckb">Central Kurdish</language>
+<language type="ckb" menu="core">Kurdish</language>
+<language type="ckb" menu="extension">Central</language>
+<language type="ckb" alt="menu">Kurdish, Central</language>
+```
+
+reaches the JSON as `"ckb-menu-core"`, `"ckb-menu-extension"` and `"ckb-alt-menu"`, and `Helpers.group_alt_content/2` nests it as `%{standard: "Central Kurdish", variant: "Kurdish, Sorani", menu: %{core: "Kurdish", extension: "Central", alt: "Kurdish, Central"}}`. `<type>` uses a `scope` attribute, which the converter does not fold, so a key's core names collapse onto one — item 16a. The asymmetry sits inside a single file, which is the sharpest form the upstream report can take.
+
+So the core scope is already in our data for languages, and `LocaleDisplay.display_name/2` already composes it: `format_display_name/4` has a `%{core: core, extension: extension}` clause at [lib/localize/locale/locale_display.ex:492](../lib/localize/locale/locale_display.ex:492) that renders `prefer: :menu` on `ckb` as "Kurdish (Central)".
+
+### Gap
+
+**1. Two option names for one concept.** `Localize.Locale.LocaleDisplay.display_name/2` calls it `:prefer`, defaulting to `:standard` with `:default` accepted as an alias. `Localize.Language`, `Localize.Territory` and `Localize.Script` call it `:style`, each with its own hand-rolled value list — `[:standard, :short, :long, :menu, :variant]`, `[:short, :standard, :variant]`, `[:standard, :short, :stand_alone, :variant]` — and its own `validate_style/1`. Nothing shared, nothing that agrees.
+
+**2. The two spellings disagree on the same data.** `Localize.Language.resolve_style/2` reads only `:alt` out of the menu map and discards `:core` and `:extension`, then falls back to `:standard` when there is no `:alt`:
+
+| call | result |
+|------|--------|
+| `LocaleDisplay.display_name("ckb", prefer: :menu)` | `"Kurdish (Central)"` |
+| `Language.display_name("ckb", style: :menu)` | `"Kurdish, Central"` |
+| `LocaleDisplay.display_name("ku", prefer: :menu)` | `"Kurdish (Kurmanji)"` |
+| `Language.display_name("ku", style: :menu)` | `"Kurdish"` |
+| `LocaleDisplay.display_name("sdh", prefer: :menu)` | `"Kurdish (Southern)"` |
+| `Language.display_name("sdh", style: :menu)` | `"Southern Kurdish"` |
+
+Measured across the 657 shipped locale ETFs: 2,589 (locale, language) entries carry a nested `menu` map, and **571 of them in 446 locales have `core`/`extension` but no `alt`**, so `style: :menu` silently returns the standard name for every one. The menu form CLDR ships is unreachable from the module named after languages.
+
+**3. `:prefer` is not validated, so an unsupported value fails silently.** `display_name/2` validates `:language_display` but not `:prefer`, so any atom is taken, misses in `get_display_preference/2` and lands on `:standard`. `prefer: :core` — the value a reader of TR35 reaches for first — looks supported and is not: `en-u-ca-roc` renders "English (Minguo Calendar)" under both `prefer: :standard` and `prefer: :core`. The three `:style` modules do validate, but each against its own list.
+
+**4. No way to ask for a key or type name on its own.** TR35 specifies the core names for menus — key name as the title, core values as the choices — but the only route to a type name is to build a whole locale identifier and read it back out of the parenthesised suffix. There is no public `key_name/2` or `type_name/3`.
+
+### Plan
+
+1. **Settle on `:prefer` as the option name** across every display-name function, with `:style` accepted as a deprecated alias in `Localize.Language`, `Localize.Territory` and `Localize.Script` for one release. `:prefer` is the accurate word — the value is a preference with a documented fallback chain, not a guaranteed style — and it is already the name in the module that implements the full TR35 algorithm.
+
+2. **Share one value vocabulary and validate against it.** `:standard`, `:short`, `:long`, `:variant`, `:stand_alone`, `:menu`, with each module declaring its supported subset. An unsupported value returns `Localize.InvalidValueError` carrying the allowed set, the way `validate_style/1` already does, rather than falling through to `:standard`. That closes gap 3, and it is what makes `prefer: :core` — a value we deliberately do not add, see step 4 — report itself rather than quietly returning the long name.
+
+3. **Make `prefer: :menu` compose consistently.** `Localize.Language` should use the same core/extension composition `LocaleDisplay` uses instead of reading `:alt` alone, so the 571 entries stop returning the standard name. Where both exist, `:alt` still wins — it is the locale's own composed spelling and CLDR supplies it precisely so the pattern is not needed.
+
+4. **Reach the core names through `prefer: :menu`, not a separate `:core` value.** TR35 introduces the core scope precisely as the menu vocabulary — key name as the title, core values as the choices — and `:menu` is already accepted by both `LocaleDisplay` and `Localize.Language`, so one option value covers one user-facing intent: give me the short form fit for a menu. For languages that stays the composed menu form, "Kurdish (Central)". For `types` it resolves to the `scope="core"` short name once the data carries one, and returns `{:error, …}` naming item 16a until then, so a caller asking for the short calendar name learns it is unavailable rather than being handed the long one. What this gives up is addressing a language's bare `core` part — "Kurdish" on its own — which matters for *grouping* a menu rather than rendering it; if that is ever wanted it belongs in its own accessor, keeping `:prefer` a single-axis option.
+
+5. **Add `LocaleDisplay.key_name/2` and `LocaleDisplay.type_name/3`** so the menu use case is reachable without constructing a locale identifier, both taking the same `:prefer` option:
+
+```elixir
+iex> Localize.Locale.LocaleDisplay.key_name(:ca, locale: :en)
+{:ok, "Calendar"}
+
+iex> Localize.Locale.LocaleDisplay.type_name(:ca, :buddhist, locale: :en)
+{:ok, "Buddhist Calendar"}
+```
+
+6. **Leave the `types` normalizer marked, not guessed.** [data/normalize/locale_display_names.ex:55](../data/normalize/locale_display_names.ex:55) runs only `LMap.atomize_keys/1` over `types` — no `group_alt_content/2` pass, unlike `scripts`, `territories` and `languages` — so any per-entry core key would arrive flat rather than nested under its type. That pass is the one change `prefer: :menu` on `types` needs, but its split pattern depends on the key form the upstream fix emits (`name-(attribute)-(value)` would give `buddhist-scope-core`), so it lands with the fix rather than ahead of it. Note it here so the connection is not rediscovered.
+
+### API impact / breaking risk
+
+* `:style` becomes a deprecated alias for `:prefer` in three modules. Additive now; breaking only when the alias is removed.
+* `prefer: :menu` output changes for 571 (locale, language) pairs in 446 locales that currently return the standard name. A correction, but an output change.
+* Invalid `:prefer` and `:style` values start returning `{:error, …}` instead of silently resolving to `:standard`. Breaking for any caller relying on the silence.
+* `key_name/2` and `type_name/3` are new and purely additive.
+* `prefer: :menu` on `types` returns an error until item 16a is fixed upstream; no `:core` option value is introduced.
 
 ## 17. `H24` hour cycle deprecated — ✅ Closed; the premise did not hold
 
@@ -1410,6 +1512,74 @@ That last one took three attempts and is worth recording. Preferring the lower r
 
 **Output changes**, and they are corrections. Ordinals in Russian, Ukrainian, Polish, Slovak, Czech, Slovenian and Lithuanian were being spelled with "zero" in place of the hundreds or thousands quotient, and some inputs raised instead of formatting. `root` is now accepted wherever `und` is.
 
+## 31. Interval formats glue where CLDR ships a usable pattern
+
+### Current conformance
+
+`Localize.Interval.to_string/3` resolves a style to the locale's own date skeleton and looks that skeleton up as a *literal* key in the interval table. When it is absent, `skeleton_or_fallback_style/3` in [lib/localize/interval.ex:873](../lib/localize/interval.ex:873) signals `{:fallback_style, style}`, and the two endpoints are formatted separately and joined with `interval_format_fallback`.
+
+TR35 §Interval Formats step 2 says otherwise: *"If no match was found from the previous step, check what the closest match is in the fallback locale chain, as in `availableFormats`. That is, this allows for adjusting the string value field's width, including adjusting between 'MMM' and 'MMMM', and using different variants of the same field, such as 'v' and 'z'."* We go straight from step 1 to the final fallback step, skipping 2 entirely.
+
+### Gap
+
+German's `medium` date skeleton is `yyMMdd`; the interval table has `yMd`, whose `d` difference is `dd.–dd.MM.y`:
+
+```elixir
+Localize.Interval.to_string(~D[2026-05-03], ~D[2026-05-05], locale: :de)
+#=> {:ok, "03.05.2026 – 05.05.2026"}   # glued
+#    CLDR ships                          "03.–05.05.2026"
+```
+
+Measured over all 657 locales and the four date styles:
+
+| | |
+|---|---|
+| `(locale, style)` pairs checked | 2,628 |
+| style skeleton absent from the interval table, so glued | **1,814 (69%)** |
+| of those, an interval item exists differing only in field width | **1,814 (100%)** |
+
+By style: `long` 602, `short` 556, `full` 549, `medium` 107. (A first pass put the recoverable share at 70% by treating `E` as a numeric field. `E` through `EEE` are abbreviated day *names*, so every candidate preserves each field's numeric/text class and the figure is 100%. Recorded so the wrong number is not reintroduced.)
+
+This is not a CLDR 49 change. The gap predates the cycle and was found while assessing [unicode-org/cldr#6098](https://github.com/unicode-org/cldr/pull/6098), whose discussion turns on this exact decision point — what an implementation should do when no interval pattern matches.
+
+### Plan
+
+1. Route the interval skeleton through the matcher we already have. `Localize.DateTime.Format.Match` implements TR35's `availableFormats` distance rules — `subset_match/3` and `adjust_field_lengths/3`, built for item 4 — and step 2 points at those same rules. The interval table is a smaller candidate set of the same shape.
+2. Adjust the matched pattern to the requested field widths, as `availableFormats` does, so `yyMMdd` against `yMd` renders `dd.` rather than `d.`. Width adjustment on an interval pattern has to touch both halves of the range.
+3. Keep the glue for a genuine miss. The final fallback step still applies when nothing matches, and that is the behaviour ICU4X argues for on #6098.
+4. **Build the oracle first.** `common/testData/datetime/datetime.json` carries 312 cases and **none** are intervals, so CLDR ships no interval fixtures at all. Expectations have to come from ICU or from hand-checked per-locale cases before any behaviour changes — 1,814 pairs is too many to eyeball after the fact.
+
+### API impact / breaking risk
+
+* **Output changes**, for up to 1,814 `(locale, style)` pairs — the largest single output change left in this cycle. Each replaces a glued pair of whole dates with the locale's own interval pattern, so each is a correction, but the diff is not small.
+* No public API change; `:format` and the field selectors keep their meanings.
+
+## 32. CLDR 49 adds `intervalFormatRanges` — ingested, deliberately unused — ✅ Data key fixed
+
+### Current conformance
+
+CLDR 49 adds `<intervalFormatRanges>` inside `<intervalFormats>`, carrying three range separator patterns — `numeric`, `non-numeric` and `mixed` — beside the existing `intervalFormatFallback`. It is genuinely new: absent at `release-48` and `release-48-1`, present in `release-49-alpha2`. cldr-json emits it, and the pipeline already carried it into all 657 locale ETFs in every calendar.
+
+### Gap
+
+It arrived under a camelCase key. [data/normalize/date_time.ex:25](../data/normalize/date_time.ex:25) underscored only `intervalFormatFallback`, so the new sibling landed as `:intervalFormatRanges` holding `%{mixed: …, numeric: …, "non-numeric": …}` — a hyphenated atom, raw pattern strings where its sibling gets compiled substitution lists, and a camelCase key sitting in a map whose every other key is a skeleton identifier.
+
+Nothing read it and nothing could reach it: every access to `interval_formats` is a keyed lookup on a skeleton drawn from `date_formats` or from a fixed table, and `format: :intervalFormatRanges` returns `{:error, …}`. So there was no live defect — only a data-shape wart that would have cost another full regeneration to correct later.
+
+### Resolution
+
+Underscored alongside `intervalFormatFallback` and compiled the same way, so the key is `:interval_format_ranges` holding `%{mixed: [0, …, 1], non_numeric: […], numeric: […]}`.
+
+**No consumer, deliberately.** [unicode-org/cldr#6098](https://github.com/unicode-org/cldr/pull/6098) documents these patterns and an algorithm that synthesizes interval patterns from an available pattern, and scopes them away from clients: *"At this point, the `intervalFormatRange` patterns are intended for use in synthesizing example patterns … shown to localization experts while data is being collected."* [The selection rule](https://github.com/unicode-org/cldr/pull/6098#discussion_r3945903617) — whole patterns take `fallback`; adjacent fields of the same type take `numeric` when both are numeric and `non-numeric` when both are not; anything else takes `mixed` — ends "since these are only — as yet — for internal use".
+
+The PR is open and contested. ICU4X objects that the synthesis "assumes too much about the textual order in the pattern", citing `M/d/yyyy` and `d. MMM yyyy` as producing wrong results, and wants missing data to glue unless a pattern is explicitly marked derivable; the author conceded twice and reworked the text. The algorithm section of the spec is otherwise unchanged by the PR — steps 1–7 became 1–8 with no substantive edit — so nothing in it bears on item 31.
+
+**Re-read §Format Range Separator Patterns at CLDR 49 final.** Implement synthesis only if it becomes normative for clients and gains the explicit derivable marker ICU4X asked for.
+
+### API impact / breaking risk
+
+* One ETF key renamed and its values compiled. No consumer, so no output change; the data version bumps.
+
 ## Open questions
 
 These need answers before the corresponding work item starts. Track them as the plan evolves.
@@ -1436,6 +1606,12 @@ This plan must be revisited at the following checkpoints:
 Each checkpoint should leave a dated entry at the bottom of this file noting what changed and which items advanced.
 
 ## Change log for this plan
+
+* 2026-09-08 — Added items 31 and 32, from assessing [unicode-org/cldr#6098](https://github.com/unicode-org/cldr/pull/6098). The PR is docs-only and its interval algorithm text is unchanged, so nothing in it requires work; what it documents, `intervalFormatRanges`, is new CLDR 49 data we were already ingesting under a camelCase key beside our skeleton identifiers, now underscored and compiled like its `intervalFormatFallback` sibling. It has no consumer on purpose — the spec scopes these patterns to internal survey tooling and ICU4X is contesting the synthesis algorithm on the PR. Assessing it surfaced item 31, which is not a CLDR 49 change at all: we look the style's skeleton up as a literal key in the interval table and glue on a miss, skipping TR35 step 2's closest match, so 1,814 of 2,628 `(locale, style)` pairs are glued when a width-adjusted interval item exists — German medium renders "03.05.2026 – 05.05.2026" where CLDR ships "03.–05.05.2026". CLDR ships no interval fixtures, so that one needs an oracle before any behaviour changes.
+
+* 2026-09-06 — Added item 16b. Item 16a says what cldr-json loses; 16b says what we do with what survives. The core scope does reach us intact for languages, because `<language menu="core">` uses an attribute the converter folds into the key name while `<type scope="core">` uses one it does not — the same file both honours and discards the scope, which is the sharpest form the upstream report can take. `LocaleDisplay` already composes it, but `Localize.Language` reads only `:alt` from the menu map, so `style: :menu` silently returns the standard name for 571 (locale, language) pairs in 446 locales where CLDR ships only `core`/`extension`. Underneath sits an option-naming split — `:prefer` in one module, `:style` with three different hand-rolled value lists in three others — and `:prefer` is not validated at all, so `prefer: :core` is accepted today and does nothing. Decided against adding a `:core` option value: TR35 introduces the core scope as the menu vocabulary, `:menu` is already accepted in both spellings, and one intent should not have two names. `prefer: :menu` covers both shapes.
+
+* 2026-09-06 — Item 16a re-measured from both sides and two earlier counts corrected. Breadth from the shipped JSON: 6,499 collapsed `(locale, key)` pairs across 458 locales, none holding more than one name. Loss from the XML, over the 128 locales that carry their own `<types>` block: 10,535 core names down to 1,565, with 124 of the 128 losing something and 95 of them losing the identical 87 of 102. The survivor is the last XML entry 1,552 times, but `to` and `tt` keep a value that is not last, so the report should say one name survives and which one is not derivable from source order. The previous `en` figure of 116 names losing 101 came from a line-based grep: 14 of those lines, every entry under `ka`, `kf`, `kr` and `ks`, sit inside an XML comment block and were never live data — `en` is 102 down to 15. Also noted for separate report: `tt`'s `calendar` core name is Quechua, in `common/main/tt.xml` itself, so it is a CLDR translation error rather than a converter defect.
 
 * 2026-09-05 — Added item 30: CLDR 49's other new fixture directory, `common/testData/rbnf`, is now vendored and run. It found that alternation branches were being evaluated against the remainder instead of the number, which was invisible in English and wrong in every Slavic locale that puts a quotient substitution inside the brackets — 201 spelled "нольсти" rather than "двести", and the same fault raised outright in `pl` and `ca`. It also found `root` rejected as a locale identifier by `validate_locale/1` while `cldr_locale_id_from/1` accepted it, an inconsistency introduced by item 26. 49,348 to 52,356 of 52,691, with no errors remaining.
 
