@@ -34,7 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * **Breaking.** Collation moves to Unicode 18 / UCA 18.0.0, from Unicode 17. Primary weights shift for every character UCA assigns ahead of an existing one, so any sort key persisted by a previous release must be regenerated — `Localize.Collation.sort_key/2` output is not comparable across Unicode versions, though `compare/3` results are unaffected for characters that existed before.
 
-* **Breaking.** CLDR 49 no longer publishes 114 locales whose coverage is below Basic and which ICU does not ship — `aa`, `ab`, `an`, `ann`, `apc`, `ht` and 108 others — and Localize follows suit rather than carrying the divergence forward. `Localize.validate_locale/1` and everything downstream now return `{:error, %Localize.InvalidLocaleError{}}` for them.
+* **Breaking.** CLDR 49 no longer publishes 114 locales whose coverage is below Basic and which ICU does not ship — `aa`, `ab`, `an`, `ann`, `apc`, `ht` and 108 others — and Localize follows suit rather than carrying the divergence forward. Their data is gone, so they now resolve to a fallback: `Localize.validate_locale/1` still returns a language tag, as it does for any well-formed identifier, but `tag.cldr_locale_id` is `:und` for `aa` and `:"fr-HT"` for `ht` where each previously resolved to itself. Formatting continues to succeed against the fallback data rather than erroring.
 
 * **Breaking.** `Localize.validate_territory/1` returns the canonical territory code. Both forms may be supplied: `validate_territory("AN")` was `{:ok, :AN}` and is now `{:ok, :CW}`, as for `SU` (`:RU`), `DD` (`:DE`), `CS` and `YU` (both `:RS`), bringing it into line with `validate_locale/1`.
 

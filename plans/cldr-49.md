@@ -53,7 +53,7 @@ This package is widely used. The following invariants apply to every item in thi
 
 | #  | Item                                              | API impact | Breaking risk |
 |----|---------------------------------------------------|------------|---------------|
-| 1  | Switch pipeline to `scripts/ldml2json_v2`         | None       | None — ✅ Done. v2 produced the CLDR 49 data; v1 deprecated in its header |
+| 1  | Switch pipeline to `scripts/ldml2json_v2`         | None       | None — ✅ Done. v2 produced the CLDR 49 data; the legacy script is deleted and the survivor renamed `scripts/build_cldr_production_data` |
 | 2  | Translators-guide review for CLDR 49              | None       | None — ✅ Done, spec-first. Four plan items rested on premises CLDR 49 does not support |
 | 3  | Track CLDR 49 spec changes                        | None       | None — ✅ Done. Every behavioural claim checked against TR35 and `common/` before coding |
 | 4  | Semantic skeletons                                | New option | **Output changes** — ✅ Option B. Mapping 240/240; skeleton width matching fixed |
@@ -153,7 +153,7 @@ Items 11 (`localize_emoji`) and the two 48-retrospective follow-ups are the rema
 
 None. Review only.
 
-## 4. Semantic skeletons for date-times — ✅ Resolver done; formatting gap is pre-existing
+## 4. Semantic skeletons for date-times — ✅ Done as Option B; mapping 240/240
 
 Spec: <https://www.unicode.org/reports/tr35/dev/tr35-dates.html#Semantic_Skeletons>
 
@@ -1632,6 +1632,8 @@ This plan must be revisited at the following checkpoints:
 Each checkpoint should leave a dated entry at the bottom of this file noting what changed and which items advanced.
 
 ## Change log for this plan
+
+* 2026-09-08 — Plan review, second pass: every item's status claim checked against the code rather than taken as read. All 12 modules and functions the index names exist and are exported, the suite is green at 30,654 tests, and the 657 shipped locale files confirm item 25's data drop. Three claims did not survive. Index row 1 said the legacy `ldml2json` was "deprecated in its header" when it is deleted and the survivor renamed — item 1's own section already said so. Item 4's heading still read "resolver done; formatting gap is pre-existing" from before its Resolution was written; it is Option B, complete, matching CLDR on all 240 cases, and the residual 83/90 separator differences belong to item 12. And the `[Unreleased]` changelog entry for item 25 claimed `validate_locale/1` returns an error for the dropped locales — it does not, and cannot: it returns a tag for any well-formed identifier, and the drop shows in `cldr_locale_id` (`aa` → `:und`, `ht` → `:"fr-HT"`) with formatting falling back rather than failing. Corrected in the changelog, where it would otherwise have shipped.
 
 * 2026-09-08 — Plan review. The header block was two months stale: status still read "draft, last updated 2026-07-06" with 32 of 34 rows closed, and the target release read "Localize 0.26+" when 1.0.0 shipped on 2026-07-31 and 1.2.0 on 2026-08-16 — the CLDR 49 work all sits in `[Unreleased]` above it. The **Review cadence** table still described the alpha checkpoint as future work, including two child plans (`cldr-49-changes.md`, `cldr-49-translator-guide-checklist.md`) that were never opened because both alpha reviews were written into this file instead; its final row planned a 0.27 release carrying items already closed. Four of the six **Open questions** had been answered by their own items and are struck through rather than deleted. The Scope note added on 2026-09-05 pointed at the "Index above" when the Index is below it. No item status changed; nothing in the substance was found wrong.
 
