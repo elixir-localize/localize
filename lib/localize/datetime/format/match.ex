@@ -323,21 +323,31 @@ defmodule Localize.DateTime.Format.Match do
   # Returns `{skeleton_without_s_field, fraction_digit_count}`. The
   # count is 0 — and the skeleton unchanged — when the skeleton has
   # no S field or no s field to attach the fraction to.
-  @spec split_fractional_seconds(atom() | String.t()) :: {atom(), non_neg_integer()}
+  @spec split_fractional_seconds(atom() | String.t()) ::
+          {atom() | String.t(), non_neg_integer()}
   def split_fractional_seconds(skeleton) do
     skeleton_string = Kernel.to_string(skeleton)
 
     with [s_run] <- Regex.run(~r/S+/, skeleton_string),
          true <- String.contains?(skeleton_string, "s") do
       stripped = String.replace(skeleton_string, ~r/S+/, "")
-      {String.to_atom(stripped), String.length(s_run)}
+      {interned_or_string(stripped), String.length(s_run)}
     else
-      _no_fraction_or_no_seconds -> {to_atom(skeleton), 0}
+      _no_fraction_or_no_seconds -> {skeleton_or_string(skeleton), 0}
     end
   end
 
-  defp to_atom(skeleton) when is_atom(skeleton), do: skeleton
-  defp to_atom(skeleton) when is_binary(skeleton), do: String.to_atom(skeleton)
+  # The skeleton comes from the caller and the stripped form is derived from
+  # it, so neither is interned here. Every `availableFormats` key is an atom
+  # created when the locale data loads, so a form that is not already an atom
+  # cannot name a format; handing the matcher the string lets it take its
+  # ordinary best-match path rather than growing the atom table.
+  defp skeleton_or_string(skeleton) when is_atom(skeleton), do: skeleton
+  defp skeleton_or_string(skeleton) when is_binary(skeleton), do: interned_or_string(skeleton)
+
+  defp interned_or_string(string) do
+    Localize.Utils.Helpers.existing_atom(string) || string
+  end
 
   # # append_fractional_seconds/3
   #

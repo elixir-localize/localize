@@ -40,6 +40,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* Resolving a date-time skeleton no longer creates atoms. `Localize.DateTime.Format.Match.split_fractional_seconds/1` interned the skeleton remainder left after stripping the fractional-second field, which grew the atom table on every distinct skeleton; it now resolves against existing atoms only, with identical output.
+
 * Date intervals use the locale's interval pattern where CLDR ships one whose fields match, adjusting it to the requested widths, rather than formatting both endpoints in full and gluing them — `de` at `:medium` renders "03.–05.05.2026" instead of "03.05.2026 – 05.05.2026". TR35's closest-match step was being skipped, which affected 1,814 of 2,628 `(locale, style)` pairs.
 
 * `prefer: :menu` on `Localize.Language.display_name/2` composes CLDR's `menu="core"` and `menu="extension"` halves where a locale ships no `alt="menu"` string of its own, so `"ku"` renders "Kurdish (Kurmanji)" rather than the unqualified "Kurdish". Affects 571 language entries across 446 locales.

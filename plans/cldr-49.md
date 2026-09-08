@@ -87,6 +87,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 30 | CLDR 49 RBNF conformance suite                      | None       | **Output changes** — ✅ 52,691/52,691; ten defects fixed |
 | 31 | Interval formats glue where CLDR ships a pattern     | None       | **Output changes** — ✅ Done. Glue where ICU compresses fell from 130 of 288 sampled cases to 2 |
 | 32 | CLDR 49 adds `intervalFormatRanges`                  | None (data key) | None — ✅ Ingested as `:interval_format_ranges`; no consumer while the spec keeps it internal |
+| 33 | Skeleton resolution interned caller-derived strings  | Internal       | None — ✅ Fixed. `String.to_atom/1` replaced by `existing_atom/1`; not reachable from the public API, but the rule admits no exemption |
 
 The remainder of this file expands each item in turn.
 
@@ -971,6 +972,30 @@ false
 * New functions and one new locale-data key. Purely additive.
 * One ETF schema addition, so the data version bumps; no public API changes shape.
 
+## 16. `typeValues` On/Off translations (CLDR-19394) — ✅ Done
+
+Spec: <https://www.unicode.org/reports/tr35/tr35-general.html#type-values>
+
+### Current conformance
+
+CLDR 49 adds `<typeValues>`, one pair of translated strings per locale for the boolean BCP 47 keyword types — `ka` (ignore symbols sorting), `kb` (reversed accent sorting), `kn` (numeric sorting) and the rest. Rather than translate each key's on and off states separately, CLDR centralises the two strings and expects a consumer to pair them with the key's own name: "Ignore Symbols Sorting: On".
+
+### Gap
+
+The strings were in the JSON and reached no API.
+
+### Resolution
+
+`Localize.Locale.LocaleDisplay.type_value_name/2` returns them, accepting `true`/`false` as well as CLDR's own `"yes"`/`"no"` spellings: `{:ok, "On"}` for `en`, `{:ok, "Ein"}` for `de`. The data lands at `locale_display_names.type_values`, keyed by the CLDR spellings, and 428 of the 657 shipped locales carry it; the rest return `Localize.ItemNotFoundError`.
+
+The composition is deliberately the caller's. CLDR ships the two strings and the key names but no separator between them, so pairing a key name with its value is a presentation choice rather than something the data settles.
+
+Implementing this is what surfaced item 16a: `typeValues` itself is emitted correctly, but the `<types>` block beside it is not.
+
+### API impact / breaking risk
+
+* One new function and one new locale-data key. Purely additive.
+
 ## 16a. cldr-json discards `scope="core"` display names — upstream defect
 
 Found while implementing item 16 and re-verified in detail.
@@ -1522,7 +1547,7 @@ That last one took three attempts and is worth recording. Preferring the lower r
 
 ### Current conformance
 
-`Localize.Interval.to_string/3` resolves a style to the locale's own date skeleton and looks that skeleton up as a *literal* key in the interval table. When it is absent, `skeleton_or_fallback_style/3` in [lib/localize/interval.ex:873](../lib/localize/interval.ex:873) signals `{:fallback_style, style}`, and the two endpoints are formatted separately and joined with `interval_format_fallback`.
+`Localize.Interval.to_string/3` resolves a style to the locale's own date skeleton and looks that skeleton up as a *literal* key in the interval table. When it is absent, `skeleton_or_fallback_style/3` in [lib/localize/interval.ex:899](../lib/localize/interval.ex:899) signals `{:fallback_style, style}`, and the two endpoints are formatted separately and joined with `interval_format_fallback`.
 
 TR35 §Interval Formats step 2 says otherwise: *"If no match was found from the previous step, check what the closest match is in the fallback locale chain, as in `availableFormats`. That is, this allows for adjusting the string value field's width, including adjusting between 'MMM' and 'MMMM', and using different variants of the same field, such as 'v' and 'z'."* We go straight from step 1 to the final fallback step, skipping 2 entirely.
 
@@ -1583,7 +1608,7 @@ CLDR 49 adds `<intervalFormatRanges>` inside `<intervalFormats>`, carrying three
 
 ### Gap
 
-It arrived under a camelCase key. [data/normalize/date_time.ex:25](../data/normalize/date_time.ex:25) underscored only `intervalFormatFallback`, so the new sibling landed as `:intervalFormatRanges` holding `%{mixed: …, numeric: …, "non-numeric": …}` — a hyphenated atom, raw pattern strings where its sibling gets compiled substitution lists, and a camelCase key sitting in a map whose every other key is a skeleton identifier.
+It arrived under a camelCase key. The underscore pass in [data/normalize/date_time.ex](../data/normalize/date_time.ex) named only `intervalFormatFallback` — it now names both — so the new sibling landed as `:intervalFormatRanges` holding `%{mixed: …, numeric: …, "non-numeric": …}` — a hyphenated atom, raw pattern strings where its sibling gets compiled substitution lists, and a camelCase key sitting in a map whose every other key is a skeleton identifier.
 
 Nothing read it and nothing could reach it: every access to `interval_formats` is a keyed lookup on a skeleton drawn from `date_formats` or from a fixed table, and `format: :intervalFormatRanges` returns `{:error, …}`. So there was no live defect — only a data-shape wart that would have cost another full regeneration to correct later.
 
@@ -1600,6 +1625,26 @@ The PR is open and contested. ICU4X objects that the synthesis "assumes too much
 ### API impact / breaking risk
 
 * One ETF key renamed and its values compiled. No consumer, so no output change; the data version bumps.
+
+## 33. Skeleton resolution interned caller-derived strings — ✅ Fixed
+
+Found while implementing item 31, and not a CLDR 49 change.
+
+### Gap
+
+`Match.split_fractional_seconds/1` strips the fractional-second field from a skeleton before matching, and turned the stripped remainder into an atom with `String.to_atom/1`. The remainder is *derived*, so the call interned regardless of what was passed in: `split_fractional_seconds(:yMdsSSS)` grew the atom table by one, for `"yMds"`. A second `String.to_atom/1` sat in a binary clause that existed only to satisfy the function's `atom() | String.t()` spec.
+
+Not exploitable, and the first read of it here was too generous in saying the paths "only see atoms" — they do, and the interning happens downstream of that. A caller must intern the input atom before stripping can add one more, so there is no amplification, and neither `Localize.DateTime.to_string/2` (which dispatches a binary `:format` to the literal-pattern branch first) nor `Localize.Time`'s `resolve_skeleton/3` (guarded on atoms) can pass a binary in. `Localize.DateTime.Format.Match` is `@moduledoc false`. But the rule against `String.to_atom/1` on caller-derived data has no "unexploitable" exemption.
+
+### Resolution
+
+Both calls resolve through `Localize.Utils.Helpers.existing_atom/1` and fall through to the string when there is no such atom. This is behaviour-identical: every `availableFormats` key is an atom interned when the locale data loads, and none of the 80 contains `S`, so a stripped form that is not already an atom cannot name a format — the matcher takes its ordinary best-match path on the string instead. Two consumers were relaxed to accept it: `Localize.Time`'s `do_resolve_skeleton/3` guard, and an `Atom.to_string/1` on the zone-only branch of `Localize.DateTime`.
+
+Verified by probe: an atom input, a binary carrying a fraction, and a binary without one now all intern nothing, and `yMdhmsSSS`, `hmsSSS` and `yMMMd` render unchanged.
+
+### API impact / breaking risk
+
+* `split_fractional_seconds/1` may now return a string where it returned an atom. Internal — the module is `@moduledoc false` and both callers are in-library.
 
 ## Open questions
 
@@ -1632,6 +1677,8 @@ This plan must be revisited at the following checkpoints:
 Each checkpoint should leave a dated entry at the bottom of this file noting what changed and which items advanced.
 
 ## Change log for this plan
+
+* 2026-09-08 — Plan review, third pass, plus item 33. Three corrections: item 31's reference to `interval.ex:873` was stale by its own implementation and is now line 899; item 32's anchor pointed at the line *after* the fix while its text described the defect; and item 16, which four other passages cross-reference and which the index marks done, had an index row and no section at all — written now, with the measured 428 of 657 locales that carry `type_values`. Added item 33 for a `String.to_atom/1` on caller-derived data found while implementing item 31: unreachable from the public API but interning on every atom input, now resolved through `existing_atom/1`.
 
 * 2026-09-08 — Plan review, second pass: every item's status claim checked against the code rather than taken as read. All 12 modules and functions the index names exist and are exported, the suite is green at 30,654 tests, and the 657 shipped locale files confirm item 25's data drop. Three claims did not survive. Index row 1 said the legacy `ldml2json` was "deprecated in its header" when it is deleted and the survivor renamed — item 1's own section already said so. Item 4's heading still read "resolver done; formatting gap is pre-existing" from before its Resolution was written; it is Option B, complete, matching CLDR on all 240 cases, and the residual 83/90 separator differences belong to item 12. And the `[Unreleased]` changelog entry for item 25 claimed `validate_locale/1` returns an error for the dropped locales — it does not, and cannot: it returns a tag for any well-formed identifier, and the drop shows in `cldr_locale_id` (`aa` → `:und`, `ht` → `:"fr-HT"`) with formatting falling back rather than failing. Corrected in the changelog, where it would otherwise have shipped.
 

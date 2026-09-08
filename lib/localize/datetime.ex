@@ -390,7 +390,7 @@ defmodule Localize.DateTime do
         # zone-only entry for the matcher to find.
         Localize.DateTime.Format.Match.zone_only_skeleton?(skeleton) ->
           skeleton
-          |> Atom.to_string()
+          |> Kernel.to_string()
           |> format_resolved_pattern(datetime, options, locale_id, skeleton, output)
 
         true ->

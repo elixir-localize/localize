@@ -487,7 +487,8 @@ defmodule Localize.Time do
     end
   end
 
-  defp do_resolve_skeleton(skeleton, locale_id, options) when is_atom(skeleton) do
+  defp do_resolve_skeleton(skeleton, locale_id, options)
+       when is_atom(skeleton) or is_binary(skeleton) do
     with {:ok, available} <-
            Localize.DateTime.Format.available_formats(locale_id, :gregorian) do
       case Map.get(available, skeleton) do
