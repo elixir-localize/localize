@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* `Localize.Inflection` inflects words for grammatical constraints from CLDR's upstream inflection data — `inflect("Haus", :de, %{case: "dative", number: "plural"})` gives "Häusern" — with `pronoun/2,3` for pronoun selection and `quantify/4` for number-noun agreement. Data for 48 languages is downloaded with `mix localize.download_inflection`; without it the functions return `Localize.InflectionDataNotAvailableError`.
+
+* MessageFormat 2 gains the `l:` function namespace — `{$w :l:inflect grammaticalCase=dative}`, `:l:pronoun` and `:l:quantify` — wrapping the inflection engine. `Localize.Message.Namespace` lets an application own a whole custom namespace with one handler, registered per call with `:namespaces` or application-wide with `:mf2_namespaces`.
+
+* `Localize.Unit.to_string/2` takes `:inflect`, which synthesizes a pattern through the inflection engine when the requested `:grammatical_case` has no CLDR pattern — `:safe` uses only attested dictionary paths, `:always` also guesses from suffix exemplars. `Localize.Unit.grammatical_gender/2` returns a unit's gender, from CLDR's `gender` field where present and the engine otherwise.
+
 * `Localize.Locale.LocaleDisplay.key_name/2` and `type_name/3` return a BCP 47 key's localized name and the name of one of its type values — `key_name(:ca)` is "Calendar", `type_name(:ca, :buddhist)` is "Buddhist Calendar".
 
 * `Localize.affirmative_responses/1` and `negative_responses/1` return CLDR's POSIX `yesstr` / `nostr` forms — `{:ok, ["ja", "j"]}` for `:de` — and `affirmative?/2` and `negative?/2` match a response against them, folding case as TR35 requires.
