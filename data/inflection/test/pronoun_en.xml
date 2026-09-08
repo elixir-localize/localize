@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="en">
+    <!-- Simple inflection -->
+    <test><source/><result>they</result></test>
+    <test><source person="first"/><result>I</result></test>
+    <test><source number="plural"/><result>they</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="first" case="accusative"/><result>me</result></test>
+    <test><source person="first" pronounType="reflexive"/><result>myself</result></test>
+    <test><source person="first" case="genitive"/><result>mine</result></test>
+    <test><source person="first" case="genitive" determination="independent"/><result>mine</result></test>
+    <test><source person="first" case="genitive" determination="dependent"/><result>my</result></test>
+    <test><source person="first" number="plural"/><result>we</result></test>
+    <test><source person="second"/><result>you</result></test>
+    <test><source person="second" number="plural"/><result>you</result></test> <!-- We're not doing y'all or you all -->
+    <test><source person="third"/><result>they</result></test> <!-- You didn't specify a gender. So you get something generic in the third person. -->
+    <test><source person="third" number="plural"/><result gender="">they</result></test>
+    <test><source person="third" case="accusative"/><result>them</result></test>
+    <test><source person="third" case="accusative" number="singular"/><result>them</result></test>
+    <test><source person="third" case="accusative" number="plural"/><result>them</result></test>
+    <test><source person="third" case="accusative" number="singular" gender="masculine"/><result>him</result></test>
+    <test><source person="third" case="accusative" number="singular" gender="feminine"/><result>her</result></test>
+    <test><source person="third" case="accusative" number="singular" gender="neuter"/><result>it</result></test>
+    <test><source person="third" gender="masculine"/><result gender="masculine">he</result></test>
+    <test><source person="third" gender="feminine"/><result gender="feminine">she</result></test>
+    <test><source person="third" gender="neuter"/><result gender="neuter">it</result></test>
+    <test><source person="first" pronounType="reflexive"/><result>myself</result></test>
+    <test><source person="second" pronounType="reflexive"/><result>yourself</result></test>
+    <test><source person="second" number="plural" pronounType="reflexive"/><result>yourselves</result></test>
+    <test><source person="third" pronounType="reflexive"/><result>themself</result></test>
+    <test><source person="first" number="singular" pronounType="reflexive"/><result>myself</result></test>
+    <test><source person="first" number="plural" pronounType="reflexive"/><result>ourselves</result></test>
+    <test><source person="third" number="singular" pronounType="reflexive"/><result>themself</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive"/><result>themselves</result></test>
+    <test><source person="third" gender="masculine" pronounType="reflexive"/><result>himself</result></test>
+    <test><source person="third" gender="masculine" number="plural" pronounType="reflexive"/><result>themselves</result></test>
+    <test><source person="third" gender="feminine" pronounType="reflexive"/><result>herself</result></test>
+    <test><source person="third" gender="feminine" number="plural" pronounType="reflexive"/><result>themselves</result></test>
+    <test><source person="third" gender="neuter" pronounType="reflexive"/><result>itself</result></test>
+    <test><source person="third" gender="neuter" number="plural" pronounType="reflexive"/><result>themselves</result></test>
+
+    <test><source person="second" case="genitive" determination="dependent"/><result>your</result></test>
+    <test><source person="second" case="genitive" determination="independent"/><result>yours</result></test>
+    <test><source person="second" case="genitive" gender="masculine"/><result>yours</result></test>
+    <test><source person="second" case="genitive" determination="dependent" gender="masculine"/><result>your</result></test>
+    <test><source person="second" case="genitive" determination="independent" gender="masculine"/><result>yours</result></test>
+    <test><source person="second" case="genitive" gender="feminine"/><result>yours</result></test>
+    <test><source person="second" case="genitive" determination="dependent" gender="feminine"/><result>your</result></test>
+    <test><source person="second" case="genitive" determination="independent" gender="feminine"/><result>yours</result></test>
+    <test><source person="second" case="genitive" gender="neuter"/><result>yours</result></test>
+    <test><source person="second" case="genitive" determination="dependent" gender="neuter"/><result>your</result></test>
+    <test><source person="second" case="genitive" determination="independent" gender="neuter"/><result>yours</result></test>
+
+    <test><source person="third" case="genitive" determination="dependent"/><result>their</result></test>
+    <test><source person="third" case="genitive" determination="independent"/><result>theirs</result></test>
+    <test><source person="third" case="genitive" gender="masculine"/><result>his</result></test>
+    <test><source person="third" case="genitive" determination="dependent" gender="masculine"/><result>his</result></test>
+    <test><source person="third" case="genitive" determination="independent" gender="masculine"/><result>his</result></test>
+    <test><source person="third" case="genitive" gender="feminine"/><result>hers</result></test>
+    <test><source person="third" case="genitive" determination="dependent" gender="feminine"/><result>her</result></test>
+    <test><source person="third" case="genitive" determination="independent" gender="feminine"/><result>hers</result></test>
+    <test><source person="third" case="genitive" gender="neuter"/><result>its</result></test>
+    <test><source person="third" case="genitive" determination="dependent" gender="neuter"/><result>its</result></test>
+    <test><source person="third" case="genitive" determination="independent" gender="neuter"/><result>its</result></test>
+
+    <!-- reinflection -->
+    <test><source>they</source><result>they</result></test> <!-- If you don't modify it, don't change it -->
+    <test><source>their</source><result>their</result></test> <!-- If you don't modify it, don't change it -->
+    <test><source>They</source><result>they</result></test> <!-- If you don't modify it, don't change it, but the case is normalized to the original matched value. -->
+    <test><source>him</source><result>him</result></test> <!-- If you don't modify it, don't change it -->
+    <test><source gender="masculine">him</source><result>him</result></test> <!-- Remains unchanged -->
+    <test><source>her</source><result>her</result></test> <!-- If you don't modify it, don't change it -->
+    <test><source>it</source><result>it</result></test> <!-- If you don't modify it, don't change it -->
+    <test><source person="third">I</source><result gender="">they</result></test>
+    <test><source person="second">I</source><result gender="">you</result></test>
+    <test><source person="second">i</source><result gender="">you</result></test>
+    <test><source case="accusative">I</source><result>me</result></test>
+    <test><source pronounType="reflexive">I</source><result>myself</result></test>
+    <test><source gender="masculine">they</source><result>he</result></test>
+    <test><source gender="masculine">tHeY</source><result>he</result></test>
+    <test><source gender="feminine">they</source><result>she</result></test>
+    <test><source gender="neuter">they</source><result>it</result></test>
+    <test><source gender="masculine">its</source><result>his</result></test>
+    <test><source gender="feminine">its</source><result>hers</result></test>
+    <test><source gender="neuter">its</source><result>its</result></test>
+    <test><source person="third" pronounType="reflexive">I</source><result gender="">themself</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive">I</source><result gender="">themselves</result></test>
+    <test><source>they</source><result number="plural"/></test>
+</inflectionTest>

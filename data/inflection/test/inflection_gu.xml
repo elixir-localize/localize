@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2026 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="gu">
+    <!-- Number Lookup Tests -->
+    <!-- FIXME: <test><source>કલાક</source><result number="singular"/></test> -->
+    <!-- FIXME: <test><source>કલાકો</source><result number="plural"/></test> -->
+    <!-- FIXME: <test><source>ઘર</source><result number="singular"/></test> -->
+    <!-- FIXME: <test><source>ઘરો</source><result number="plural"/></test> -->
+    <!-- FIXME: <test><source>મિનિટ</source><result number="singular"/></test> -->
+    <!-- FIXME: <test><source>મિનિટો</source><result number="plural"/></test> -->
+    <test><source>બારી</source><result number="singular"/></test>
+    <test><source>બારીઓ</source><result number="plural"/></test>
+    <!-- FIXME: <test><source>પુસ્તક</source><result number="singular"/></test> -->
+    <!-- FIXME: <test><source>પુસ્તકો</source><result number="plural"/></test> -->
+
+    <!-- Gender Lookup Tests -->
+    <test><source>કલાક</source><result gender="masculine"/></test>
+    <test><source>બારી</source><result gender="feminine"/></test>
+    <test><source>ઘર</source><result gender="neuter"/></test>
+    <test><source>પુસ્તક</source><result gender="neuter"/></test>
+    <test><source>મિનિટ</source><result gender="feminine"/></test>
+    <test><source>છોકરો</source><result gender="masculine"/></test>
+    <test><source>છોકરી</source><result gender="feminine"/></test>
+
+    <!-- Identity Inflection Tests -->
+    <test><source number="singular">કલાક</source><result>કલાક</result></test>
+    <test><source number="singular">ઘર</source><result>ઘર</result></test>
+    <test><source number="singular">બારી</source><result>બારી</result></test>
+    <test><source number="plural">કલાકો</source><result>કલાકો</result></test>
+
+    <!-- Singular to Plural Inflection -->
+    <!-- FIXME: <test><source number="plural">કલાક</source><result>કલાકો</result></test> -->
+    <!-- FIXME: <test><source number="plural">ઘર</source><result>ઘરો</result></test> -->
+    <!-- FIXME: <test><source number="plural">મિનિટ</source><result>મિનિટો</result></test> -->
+    <!-- FIXME: <test><source number="plural">પુસ્તક</source><result>પુસ્તકો</result></test> -->
+    <test><source number="plural">બારી</source><result>બારીઓ</result></test>
+    <!-- FIXME: <test><source number="plural">કિલોમીટર</source><result>કિલોમીટર્સ</result></test> -->
+    <!-- FIXME: <test><source number="plural">મીટર</source><result>મીટર્સ</result></test> -->
+    <!-- FIXME: <test><source number="plural">ઇવેન્ટ</source><result>ઇવેન્ટ્સ</result></test> -->
+
+    <!-- Plural to Singular Inflection -->
+    <!-- FIXME: <test><source number="singular">કલાકો</source><result>કલાક</result></test> -->
+    <!-- FIXME: <test><source number="singular">ઘરો</source><result>ઘર</result></test> -->
+    <!-- FIXME: <test><source number="singular">મિનિટો</source><result>મિનિટ</result></test> -->
+    <!-- FIXME: <test><source number="singular">પુસ્તકો</source><result>પુસ્તક</result></test> -->
+    <test><source number="singular">બારીઓ</source><result>બારી</result></test>
+
+    <!-- Adjective Gender Inflection -->
+    <test><source gender="masculine">નવું</source><result>નવો</result></test>
+    <test><source gender="feminine">નવું</source><result>નવી</result></test>
+    <test><source gender="neuter">નવો</source><result>નવું</result></test>
+    <test><source gender="feminine">નવો</source><result>નવી</result></test>
+    <test><source gender="masculine">નવી</source><result>નવો</result></test>
+
+    <!-- Adjective Number + Gender Inflection -->
+    <test><source number="plural" gender="masculine">નવું</source><result>નવા</result></test>
+    <test><source number="plural" gender="feminine">નવું</source><result>નવી</result></test>
+    <test><source number="plural" gender="neuter">નવું</source><result>નવાં</result></test>
+    <test><source number="singular" gender="masculine">નવા</source><result>નવો</result></test>
+
+    <!-- Adjective + Noun Phrase -->
+    <!-- FIXME: <test><source number="plural">નવો કલાક</source><result>નવા કલાકો</result></test> -->
+    <!-- FIXME: <test><source number="singular">નવા કલાકો</source><result>નવો કલાક</result></test> -->
+    <test><source number="plural">નવી બારી</source><result>નવી બારીઓ</result></test>
+    <!-- FIXME: <test><source number="plural">નવું પુસ્તક</source><result>નવાં પુસ્તકો</result></test> -->
+
+    <!-- Vocative Case Inflection -->
+    <!-- FIXME: <test><source case="vocative">છોકરો</source><result>છોકરા</result></test> -->
+    <!-- FIXME: <test><source case="vocative">દીકરો</source><result>દીકરા</result></test> -->
+    <!-- FIXME: <test><source case="vocative">ફોટો</source><result>ફોટા</result></test> -->
+    <!-- FIXME: <test><source case="vocative">રસ્તો</source><result>રસ્તા</result></test> -->
+    <test><source case="nominative">છોકરો</source><result>છોકરો</result></test>
+    <!-- FIXME: <test><source case="vocative" number="plural">છોકરો</source><result>છોકરા</result></test> -->
+    <!-- FIXME: <test><source case="vocative" number="plural">ફોટો</source><result>ફોટા</result></test> -->
+
+    <!-- Latin Script Words -->
+    <test><source number="singular">apples</source><result>apples</result></test>
+    <test><source number="plural">apple</source><result>apple</result></test>
+
+</inflectionTest>

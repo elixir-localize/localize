@@ -1745,6 +1745,53 @@ defmodule Localize.Unit do
     end
   end
 
+  @doc """
+  Returns the grammatical gender of a simple unit in a locale.
+
+  The gender recorded in the CLDR unit data is authoritative when
+  present. For units or locales without it, the gender is derived
+  through `Localize.Inflection.feature/3` from the unit's
+  nominative singular pattern text, but only when that text is in
+  the locale's inflection dictionary — gender is never guessed.
+
+  ### Arguments
+
+  * `unit` is a `t:Localize.Unit.t/0` struct.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier atom, string, or a
+    `t:Localize.LanguageTag.t/0`. The default is the current process
+    locale.
+
+  ### Returns
+
+  * `{:ok, gender}` with a gender atom such as `:masculine`,
+    `:feminine`, `:neuter` or `:common`, or
+
+  * `{:error, exception}` when the unit has no CLDR pattern data or
+    the gender cannot be determined for the locale.
+
+  ### Examples
+
+      iex> Localize.Unit.grammatical_gender(Localize.Unit.new!(1, "kilometer"), locale: :de)
+      {:ok, :masculine}
+
+      iex> Localize.Unit.grammatical_gender(Localize.Unit.new!(1, "hour"), locale: :es)
+      {:ok, :feminine}
+
+      iex> {:error, error} = Localize.Unit.grammatical_gender(Localize.Unit.new!(1, "kilometer"), locale: :en)
+      iex> error.keys
+      [:grammatical_gender, "kilometer"]
+
+  """
+  @spec grammatical_gender(t(), Keyword.t()) :: {:ok, atom()} | {:error, Exception.t()}
+  def grammatical_gender(%__MODULE__{} = unit, options \\ []) do
+    Localize.Unit.Formatter.grammatical_gender(unit, options)
+  end
+
   # ── Arithmetic ────────────────────────────────────────────────
 
   @doc """

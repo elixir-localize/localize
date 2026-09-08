@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2023-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="hi">
+    <!-- Simple inflection -->
+    <test><source person="first" case="genitive"/><codependent gender="feminine"/><result>मेरी</result></test>
+    <test><source/><result>मैं</result></test>
+    <test><source person="first"/><result>मैं</result></test>
+    <test><source number="plural"/><result>हम</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="first" case="accusative"/><result>मुझे</result></test>
+
+    <test><source person="first" case="genitive"/><result>मेरा</result></test>
+    <test><source person="first" case="genitive"/><codependent gender="feminine"/><result>मेरी</result></test>
+    <test><source person="first" case="genitive"/><codependent number="plural"/><result>मेरे</result></test>
+
+    <test><source person="first" number="plural" case="genitive"/><result>हमारा</result></test>
+    <test><source person="first" number="plural" case="genitive"/><codependent gender="feminine"/><result>हमारी</result></test>
+    <test><source person="first" number="plural" case="genitive"/><codependent number="plural"/><result>हमारे</result></test>
+
+    <test><source person="second"/><result>तू</result></test>
+    <test><source person="second" number="singular" register="informal"/><result>तुम</result></test> <!-- We have different second-person pronouns based on register -->
+    <test><source person="second" number="singular" register="formal"/><result>आप</result></test>
+    <test><source person="second" number="plural" register="formal"/><result>आप</result></test> <!-- second-person singular formal form and plural forms are the same -->
+    <test><source person="second" number="plural" register="informal"/><result>तुम</result></test> <!-- second-person singular formal form and plural forms are the same -->
+
+
+    <!-- reinflection -->
+    <test><source>मैं</source><result>मैं</result></test> <!-- If you don't modify it, don't change it -->
+    <test><source>तुम</source><result>तुम</result></test> <!-- If you don't modify it, don't change it -->
+
+    <test><source person="second">मैं</source><result>तू</result></test>
+    <test><source person="second">हम</source><result>तुम</result></test>
+    <test><source person="first">तू</source><result>मैं</result></test>
+    <test><source person="first">तुम</source><result>मैं</result></test>
+    <test><source person="first">आप</source><result>मैं</result></test>
+
+    <test><source case="accusative">मैं</source><result>मुझे</result></test>
+
+    <test><source number="plural">मैं</source><result>हम</result></test>
+    <test><source number="plural">तू</source><result>तुम</result></test>
+
+    <test><source number="singular">हम</source><result>मैं</result></test>
+    <test><source number="singular">तुम</source><result>तू</result></test>
+</inflectionTest>

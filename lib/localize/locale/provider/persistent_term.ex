@@ -186,7 +186,25 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   @impl Localize.Locale.Provider
   @spec get(atom() | Localize.LanguageTag.t(), [atom()], Keyword.t()) ::
           {:ok, term()} | {:error, Exception.t()}
-  def get(locale, keys, _options \\ []) when is_list(keys) do
+  def get(locale, keys, options \\ [])
+
+  # `:inflection` is a locale-data category stored in its own
+  # per-locale `:persistent_term` term (see `Localize.Inflection.Data`),
+  # reached here so inflection reads ride the same provider entry point
+  # as CLDR data — with the same fallback and on-demand download, via
+  # `Localize.Inflection.Locale.resolve/1`. It is access-routing, not a
+  # sub-key of the CLDR term. A custom provider can intercept
+  # `[:inflection | _]` to override inflection data and delegate the
+  # rest here.
+  def get(locale, [:inflection | rest], _options) do
+    with {:ok, resolved} <- Localize.Inflection.Locale.resolve(locale),
+         :ok <- Localize.Inflection.Data.ensure_loaded(resolved) do
+      data = Localize.Inflection.Data.metadata!(resolved)
+      get_item(get_in(data, rest), resolved, [:inflection | rest])
+    end
+  end
+
+  def get(locale, keys, _options) when is_list(keys) do
     with {:ok, locale_id} <- cldr_locale_id_from(locale) do
       case :persistent_term.get(locale_key(locale_id), :localize_locale_not_loaded) do
         :localize_locale_not_loaded ->

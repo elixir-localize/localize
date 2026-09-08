@@ -1,0 +1,222 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2021-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="it">
+    <test><source>casa</source><result number="singular"/></test>
+    <test><source>salotto</source><result number="singular"/></test>
+    <test><source>automobile</source><result number="singular"/></test>
+    <test><source>gatto</source><result number="singular"/></test>
+    <test><source>capo redattore</source><result number="singular"/></test>
+    <test><source>case</source><result number="plural"/></test>
+    <test><source>salotti</source><result number="plural"/></test>
+    <test><source>automobili</source><result number="plural"/></test>
+    <test><source>gatti</source><result number="plural"/></test>
+    <test><source>capi redattore</source><result number="plural"/></test>
+    <test><source>notInDicta</source><result number="singular"/></test>
+    <test><source>notInDicti</source><result number="plural"/></test>
+    <test><source>notInDict</source><result number=""/></test>
+
+    <test><source>casa</source><result gender="feminine"/></test>
+    <test><source>automobile</source><result gender="feminine"/></test>
+    <test><source>donna</source><result gender="feminine"/></test>
+    <test><source>armadio</source><result gender="masculine"/></test>
+    <test><source>letto</source><result gender="masculine"/></test>
+    <test><source>pastello</source><result gender="masculine"/></test>
+    <test><source>notInDictzione</source><result gender="feminine"/></test>
+    <test><source>notInDictore</source><result gender="masculine"/></test>
+    <test><source>notInDict</source><result gender=""/></test>
+
+    <test><source>gatto</source><result definiteness=""/></test>
+    <test><source>il gatto</source><result definiteness="definite"/></test>
+    <test><source>il gatti</source><result definiteness="definite"/></test> // Yes, it's not grammatically correct.
+    <test><source>i gatti</source><result definiteness="definite"/></test>
+    <test><source>I Gatti</source><result definiteness="definite"/></test> // Titlecase
+    <test><source>I GATTI</source><result definiteness="definite"/></test> // Unusual letter casing
+    <test><source>del gatto</source><result definiteness="definite"/></test>
+    <test><source>al gatto</source><result definiteness="definite"/></test>
+    <test><source>un gatto</source><result definiteness="indefinite"/></test>
+    <test><source>uno gatto</source><result definiteness="indefinite"/></test>
+    <test><source>una gatta</source><result definiteness="indefinite"/></test>
+    <test><source>un'arancia</source><result definiteness="indefinite"/></test>
+    <test><source>un’arancia</source><result definiteness="indefinite"/></test>
+    <test><source>a gatto</source><result definiteness=""/></test>
+    <test><source/><result definiteness=""/></test>
+
+    <test><source>qzxyzq</source><result defArticle=""/></test>
+    <test><source>gatto</source><result defArticle="il "/></test>
+    <test><source>gatti</source><result defArticle="i "/></test>
+    <test><source>gatte</source><result defArticle="le "/></test>
+    <test><source>gatta</source><result defArticle="la "/></test>
+    <test><source>italiano</source><result defArticle="l’"/></test>
+    <test><source>italiani</source><result defArticle="gli "/></test>
+    <test><source>italiane</source><result defArticle="le "/></test>
+    <test><source>italiana</source><result defArticle="l’"/></test>
+    <test><source>gnocchi</source><result defArticle="gli "/></test>
+    <test><source>gnomo</source><result defArticle="lo "/></test>
+    <test><source>hotel</source><result defArticle="l’"/></test>
+    <test><source>stanza di Edoardo</source><result defArticle="la "/></test>
+    <test><source>lunedì</source><result defArticle=""/></test>
+    <test><source number="singular">lunedì</source><result defArticle="il "/></test>
+    <test><source number="plural">lunedì</source><result defArticle="i "/></test>
+    <test><source>zio</source><result defArticle="lo "/></test>
+    <test><source gender="masculine" number="singular">manager</source><result defArticle="il "/></test>
+
+    <test><source>qzxyzq</source><result indefArticle=""/></test>
+    <test><source>gatto</source><result indefArticle="un "/></test>
+    <test><source>gatti</source><result indefArticle="dei "/></test>
+    <test><source>gatte</source><result indefArticle="delle "/></test>
+    <test><source>gatta</source><result indefArticle="una "/></test>
+    <test><source>italiano</source><result indefArticle="un "/></test>
+    <test><source>italiani</source><result indefArticle="degli "/></test>
+    <test><source>italiane</source><result indefArticle="delle "/></test>
+    <test><source>italiana</source><result indefArticle="un’"/></test>
+    <test><source>gnocchi</source><result indefArticle="degli "/></test>
+    <test><source>gnomo</source><result indefArticle="uno "/></test>
+
+    <test><source>casa</source><result>casa</result></test>
+    <test><source>case</source><result>case</result></test>
+    <test><source number="singular">casa</source><result>casa</result></test>
+    <test><source number="plural">case</source><result>case</result></test>
+    <test><source number="plural">casa</source><result>case</result></test>
+    <test><source number="singular">case</source><result>casa</result></test>
+    <test><source number="singular">cinema</source><result>cinema</result></test>
+    <test><source number="plural">cinema</source><result>cinema</result></test>
+    <test><source number="singular">caffè</source><result>caffè</result></test>
+    <test><source number="plural">caffè</source><result>caffè</result></test>
+    <test><source number="plural">aperto</source><result>aperti</result></test>
+    <test><source>barcellona</source><result>barcellona</result></test>
+    <test><source number="singular">barcellona</source><result>barcellona</result></test>
+    <test><source number="plural">barcellona</source><result>barcellona</result></test>
+    <test><source definiteness="indefinite">casa</source><result>una casa</result></test>
+    <test><source definiteness="indefinite">armadio</source><result>un armadio</result></test>
+    <test><source number="singular" definiteness="indefinite">case</source><result>una casa</result></test>
+    <test><source number="plural" definiteness="definite">casa</source><result>le case</result></test>
+    <test><source number="plural" definiteness="definite">armadio</source><result>gli armadi</result></test>
+    <test><source number="singular" definiteness="definite">case</source><result>la casa</result></test>
+    <test><source definiteness="definite">prima</source><result>la prima</result></test>
+    <test><source definiteness="definite">una</source><result>l’una</result></test>
+
+    <!-- isExists() checks-->
+    <!--    Able to inflect to masculine using dictionary-->
+    <test><source gender="masculine">benvenuto</source><result exists="true"/></test>
+    <!--    Able to inflect to feminine using dictionary-->
+    <test><source gender="feminine">benvenuto</source><result exists="true"/></test>
+    <!--    Not able to inflect to feminine using dictionary-->
+    <test><source gender="feminine">assideramento</source><result exists="false"/></test>
+    <!--    Not able to inflect since word not in dictionary-->
+    <test><source gender="feminine">qwyxor</source><result exists="false"/></test>
+    <!--    Known and unknown word do not work-->
+    <test><source number="plural">benvenuto qwyxor</source><result exists="false"/></test>
+    <!--    Able to inflect unknown words to definite-->
+    <test><source definiteness="definite">qwyxor</source><result exists="true"/></test>
+    <!--    Unknown words definite inflection works but number inflect fails-->
+    <test><source definiteness="definite" number="plural">qwyxor</source><result exists="false"/></test>
+
+    <test><source gender="feminine" number="singular">benvenuto</source><result exists="true">benvenuta</result></test>
+    <test><source gender="feminine" number="plural">benvenuto</source><result exists="true">benvenute</result></test>
+    <test><source gender="masculine" number="plural">benvenuto</source><result exists="true">benvenuti</result></test>
+    <test><source gender="masculine" number="singular">benvenuta</source><result exists="true">benvenuto</result></test>
+    <test><source gender="masculine" number="plural">benvenuta</source><result exists="true">benvenuti</result></test>
+    <test><source gender="feminine" number="plural">benvenuta</source><result exists="true">benvenute</result></test>
+    <test><source gender="feminine" number="singular">Benvenuto</source><result exists="true">Benvenuta</result></test>
+    <test><source gender="feminine" number="singular">BENVENUTO</source><result exists="true">BENVENUTA</result></test>
+
+    <test><source gender="feminine">iscritto</source><result exists="true">iscritta</result></test>
+    <test><source gender="masculine">iscritta</source><result exists="true">iscritto</result></test>
+    <test><source gender="feminine">cui sei iscritto</source><result>cui sei iscritta</result></test>
+    <test><source gender="masculine">cui sei iscritta</source><result>cui sei iscritto</result></test>
+
+    <test><source gender="feminine">Benvenuto in Note</source><result exists="true">Benvenuta in Note</result></test>
+    <test><source gender="feminine">sei un delegato</source><result exists="true">sei una delegata</result></test>
+    <test><source gender="feminine">essere connesso a internet</source><result>essere connessa a internet</result></test>
+    <test><source gender="feminine">connesso</source><result exists="true">connessa</result></test>
+    <test><source gender="feminine">stato invitato</source><result exists="true">stata invitata</result></test>
+
+    <test><source gender="feminine">produttore cinematografico</source><result exists="true">produttrice cinematografica</result></test>
+    <test><source gender="feminine">attore teatrale</source><result exists="true">attrice teatrale</result></test>
+    <test><source gender="feminine">attore televisivo</source><result exists="true">attrice televisiva</result></test>
+    <test><source gender="feminine">regista cinematografico</source><result exists="true">regista cinematografica</result></test>
+    <test><source gender="feminine">cassiere di banca</source><result exists="true">cassiera di banca</result></test>
+
+    <test><source gender="feminine">allenato</source><result exists="true">allenata</result></test>
+    <test><source number="plural">è</source><result exists="true">sono</result></test>
+    <test><source number="plural">lavora</source><result exists="true">lavorano</result></test>
+
+    <test><source gender="feminine" number="plural">il</source><result exists="true">le</result></test>
+    <test><source gender="feminine">il</source><result exists="true">la</result></test>
+    <test><source gender="masculine">il</source><result exists="true">il</result></test>
+
+    <test><source number="plural">il dottore</source><result exists="true">i dottori</result></test>
+    <test><source gender="feminine">il dottore</source><result exists="true">la dottoressa</result></test>
+    <test><source number="plural">l’italiano</source><result exists="true">gli italiani</result></test>
+    <test><source gender="feminine">l’italiano</source><result exists="true">l’italiana</result></test>
+    <test><source definiteness="definite">italiano</source><result exists="true">l’italiano</result></test>
+    <test><source definiteness="definite">italiana</source><result exists="true">l’italiana</result></test>
+
+    <test><source definiteness="indefinite">ombrellone</source><result>un ombrellone</result></test>
+    <test><source definiteness="definite">ombrellone</source><result>l’ombrellone</result></test>
+    <test><source definiteness="indefinite" number="plural">ombrellone</source><result>degli ombrelloni</result></test>
+    <test><source definiteness="definite" number="plural">ombrellone</source><result>gli ombrelloni</result></test>
+    <test><source definiteness="indefinite">aula</source><result>un’aula</result></test>
+    <test><source definiteness="definite">aula</source><result>l’aula</result></test>
+    <test><source definiteness="indefinite">casa</source><result>una casa</result></test>
+    <test><source definiteness="definite">casa</source><result>la casa</result></test>
+    <test><source definiteness="indefinite">scoglio</source><result>uno scoglio</result></test>
+    <test><source definiteness="definite">scoglio</source><result>lo scoglio</result></test>
+    <test><source definiteness="indefinite">scogli</source><result>degli scogli</result></test>
+    <test><source definiteness="definite">scogli</source><result>gli scogli</result></test>
+    <test><source definiteness="definite">pneumatici</source><result>gli pneumatici</result></test>
+    <test><source definiteness="indefinite">casetta</source><result gender="feminine">una casetta</result></test>
+    <test><source definiteness="definite">casetta</source><result gender="feminine">la casetta</result></test>
+
+    <!-- valid request because it works on past participle verbs -->
+    <test><source gender="feminine">completato</source><result exists="true">completata</result></test>
+    <test><source number="plural">completato</source><result exists="true">completati</result></test>
+    <!-- This better not be completata -->
+    <test><source gender="feminine">completante</source><result exists="true">completante</result></test>
+    <!-- This better not be completati -->
+    <test><source number="plural">completante</source><result exists="true">completante</result></test>
+    <test><source number="singular">completiate</source><result exists="true">completi</result></test>
+
+    <test><source>0%</source><result aPrepArticle="allo " gender="masculine"/></test>
+    <test><source>1%</source><result aPrepArticle="all’"/></test>
+    <test><source>1</source><result aPrepArticle="all’"/></test>
+    <test><source>2%</source><result aPrepArticle="al "/></test>
+    <test><source>2</source><result aPrepArticle="al "/></test>
+    <test><source>3%</source><result aPrepArticle="al "/></test>
+    <test><source>4%</source><result aPrepArticle="al "/></test>
+    <test><source>5%</source><result aPrepArticle="al " gender="masculine" number="singular"/></test>
+    <test><source>6%</source><result aPrepArticle="al "/></test>
+    <test><source>7%</source><result aPrepArticle="al "/></test>
+    <test><source>8%</source><result aPrepArticle="all’"/></test>
+    <test><source>9%</source><result aPrepArticle="al "/></test>
+    <test><source>10%</source><result aPrepArticle="al "/></test>
+    <test><source>11%</source><result aPrepArticle="all’"/></test>
+    <test><source>12%</source><result aPrepArticle="al "/></test>
+    <test><source>80%</source><result aPrepArticle="all’"/></test>
+    <test><source>89%</source><result aPrepArticle="all’"/></test>
+    <test><source>90%</source><result aPrepArticle="al "/></test>
+    <test><source>93%</source><result aPrepArticle="al " gender="masculine" number="singular"/></test>
+    <test><source>100%</source><result aPrepArticle="al "/></test>
+    <test><source>79%</source><result aPrepArticle="al "/></test>
+    <test><source>199</source><result aPrepArticle="al "/></test>
+    <test><source>200</source><result aPrepArticle="al "/></test>
+    <test><source>800</source><result aPrepArticle="all’"/></test>
+    <test><source>1000</source><result aPrepArticle="al "/></test>
+    <test><source>1100</source><result aPrepArticle="al "/></test>
+    <test><source>1999</source><result aPrepArticle="al "/></test>
+    <test><source>2000</source><result aPrepArticle="al "/></test>
+    <test><source>8000</source><result aPrepArticle="all’"/></test>
+    <test><source>11000</source><result aPrepArticle="all’"/></test>
+    <test><source>80000</source><result aPrepArticle="all’"/></test>
+    <test><source>1000000</source><result aPrepArticle="all’"/></test>
+    <test><source>2000000</source><result aPrepArticle="al "/></test>
+    <test><source>8000000</source><result aPrepArticle="all’"/></test>
+    <test><source>1º</source><result aPrepArticle="al "/></test>
+    <test><source>8º</source><result aPrepArticle="all’"/></test>
+    <test><source>8ª</source><result aPrepArticle="all’"/></test>
+    <test><source>11º</source><result aPrepArticle="all’"/></test>
+    <test><source>0º</source><result aPrepArticle="allo "/></test>
+
+</inflectionTest>

@@ -1,0 +1,472 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2021-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="ru">
+    <test><source>hello</source><result gender=""/></test>
+    <test><source>ясперсон</source><result gender=""/></test>
+    <test><source>Иванов</source><result gender="masculine"/></test>
+    <test><source>Ивановна</source><result gender="feminine"/></test>
+    <test><source>аббатство</source><result gender="neuter"/></test>
+
+    <test><source>всадники</source><result withAboutPrep="обо всадники"/></test>
+
+    <test><source>ресторан</source><result>ресторан</result></test>
+    <test><source case="dative" number="plural">склерозы</source><result>склерозам</result></test>
+    <test><source case="genitive" number="plural">ресторан</source><result>ресторанов</result></test>
+    <test><source case="genitive" number="plural"><text print="restaurant" speak="ресторан"/></source><result><text print="restaurant" speak="ресторан"/></result></test>
+    <test><source case="genitive" number="plural">напушка</source><result>напушек</result></test>
+    <test><source case="genitive" number="singular">завтра</source><result>завтра</result></test>
+    <test><source case="genitive" number="singular">красная площадь</source><result>красной площади</result></test>
+    <!-- FIXME: <test><source case="genitive" number="singular">сан-франциско</source><result>сан-франциско</result></test> -->
+    <test><source case="genitive" number="singular">краткий рассказ</source><result>краткого рассказа</result></test>
+    <test><source case="accusative" number="singular">ботанический сад</source><result>ботанический сад</result></test>
+    <test><source case="genitive" number="singular">краткий отличный рассказ</source><result>краткого отличного рассказа</result></test>
+    <test><source case="nominative" number="singular">кремлёвская башня</source><result>кремлёвская башня</result></test>
+    <test><source case="nominative" number="singular">эйфелева башня</source><result>эйфелева башня</result></test>
+    <test><source case="instrumental" number="singular">леной</source><result>леной</result></test>
+    <test><source case="instrumental" number="singular">79264496730</source><result>79264496730</result></test>
+    <test><source case="nominative" number="singular">пятого ноль второго 1988-го</source><result>пятый ноль второй 1988-го</result></test>
+    <!-- FIXME: <test><source case="nominative" number="singular">александром сергеевичем пушкиным</source><result>александр сергеевич пушкин</result></test> -->
+    <test><source case="nominative" number="singular">12.01.1988</source><result>12.01.1988</result></test>
+    <test><source case="genitive" number="singular">10 января 2016 г.</source><result>10 января 2016 г.</result></test>
+    <test><source case="genitive" number="singular">10 марта 2016 г.</source><result>10 марта 2016 г.</result></test>
+    <test><source case="genitive" number="singular">10 мая 2016 г.</source><result>10 мая 2016 г.</result></test>
+    <!-- FIXME: <test><source case="genitive" number="singular">Света Николаева</source><result>Светы Николаевой</result></test> -->
+    <!-- FIXME: <test><source case="genitive" number="singular">Ленка Блинова</source><result>Ленки Блиновой</result></test> -->
+    <test><source case="genitive">таджикистан</source><result>таджикистана</result></test>
+    <test><source case="genitive" number="singular">сегодняшний день в 17:21</source><result>сегодняшнего дня в 17:21</result></test>
+    <test><source case="genitive" number="singular">завтрашний день в 17:59</source><result>завтрашнего дня в 17:59</result></test>
+    <test><source case="genitive" number="singular">следующая среда</source><result>следующей среды</result></test>
+    <!-- FIXME: <test><source case="genitive">Объединённые Арабские Эмираты</source><result>Объединённых Арабских Эмиратов</result></test> -->
+    <!-- FIXME: <test><source case="genitive">Соединённые Штаты Америки</source><result>Соединённых Штатов Америки</result></test> -->
+    <!-- FIXME: <test><source case="genitive">Сейшельские Острова</source><result>Сейшельских Островов</result></test> -->
+    <!-- FIXME: <test><source case="nominative">Евгения Смирнова</source><result>Евгения Смирнова</result></test> -->
+    <!-- FIXME: <test><source case="nominative">Абра Смирнова</source><result>Абра Смирнова</result></test> -->
+    <!-- FIXME: <test><source case="nominative">Алексея Смирнова</source><result>Алексей Смирнов</result></test> -->
+    <test><source case="genitive">метод платежа</source><result>метода платежа</result></test>
+    <test><source case="genitive">день рождения</source><result>дня рождения</result></test>
+    <test><source case="genitive">номер телефона</source><result>номера телефона</result></test>
+    <test><source case="genitive" pos="proper-noun">Майкл</source><result>Майкла</result></test>
+    <!-- FIXME: <test><source case="genitive" pos="proper-noun">Ринат Рашитович Мулюков</source><result>Рината Рашитовича Мулюкова</result></test> -->
+    <!-- FIXME: <test><source case="genitive" pos="proper-noun">Никита Левобережный</source><result>Никиты Левобережного</result></test> -->
+    <!-- FIXME: <test><source case="genitive" pos="proper-noun">Евгения Смирнова</source><result>Евгении Смирновой</result></test> -->
+    <!-- FIXME: <test><source case="genitive" pos="proper-noun">Абра Смирнова</source><result>Абры Смирновой</result></test> -->
+    <!-- FIXME: <test><source case="genitive" pos="proper-noun">Борис Петров-Водкин</source><result>Бориса Петрова-Водкина</result></test> -->
+    <test><source case="genitive" pos="proper-noun">Иванович</source><result>Ивановича</result></test>
+    <test><source case="genitive" pos="proper-noun">Иваныч</source><result>Иваныча</result></test>
+    <test><source case="accusative" number="singular">23 апреля 2015 г.</source><result>23 апреля 2015 г.</result></test>
+    <test><source case="genitive">lifecell центр</source><result>lifecell центра</result></test>
+    <test><source case="genitive">Ремонт Iphone</source><result>Ремонта Iphone</result></test>
+    <test><source case="genitive">❤️Муж❤️</source><result>❤️Мужа❤️</result></test>
+    <test><source case="nominative">Владимиру Владимировичу</source><result>Владимир Владимирович</result></test>
+
+    <test><source case="dative" number="singular">Селим</source><result>Селиму</result></test>
+    <test><source case="dative" number="singular">ОЛЬГА</source><result>ОЛЬГЕ</result></test>
+    <test><source case="dative" number="singular">Коля Сосед</source><result>Коле Соседу</result></test>
+    <!-- FIXME: <test><source case="dative" number="singular">Света Массаж</source><result>Свете Массаж</result></test> -->
+    <test><source case="genitive">лимонадный</source><result>лимонадного</result></test>
+
+    <!-- Example of input where the ML model changes the number of tokens -->
+    <!--  <test><source case="instrumental">Времена года Op. 37a No. 6 Июнь Barcarolle in G Minor</source><result>Временами годом Op. 37a No. 6 Июнем Barcarolle in G Minor</result></test> -->
+
+    <!-- Testing strings with hyphen -->
+    <test><source case="prepositional" number="singular">1-м</source><result>1-м</result></test>
+    <test><source case="prepositional" number="singular">м-м</source><result>м-м</result></test>
+    <test><source case="prepositional" number="singular">latin-м</source><result>latin-м</result></test>
+
+    <!-- Ukrainian character inside the Russian word (Ukrainian і) - do not inflect -->
+    <test><source case="genitive" number="singular">Сергій</source><result>Сергій</result></test>
+    <!-- Latin character inside the Russian word (Latin i) - do not inflect -->
+    <test><source case="genitive" number="singular">Сергiй</source><result>Сергiй</result></test>
+    <!-- Russian word + digit - do not send to ML -->
+    <test><source case="genitive" number="singular">Мама 2</source><result>Мамы 2</result></test>
+
+    <!-- Date time unit tests -->
+    <test><source case="genitive" number="singular">сегодняшний день в 23:30</source><result>сегодняшнего дня в 23:30</result></test>
+    <test><source case="genitive" number="singular">сегодняшний день с 13:00 по 14:00</source><result>сегодняшнего дня с 13:00 по 14:00</result></test>
+    <test><source case="genitive" number="singular">среда в 23:55</source><result>среды в 23:55</result></test>
+    <test><source case="accusative" number="singular">13:15 суббота</source><result>13:15 субботу</result></test>
+    <test><source case="instrumental" number="singular">утро в 6:00</source><result>утром в 6:00</result></test>
+    <test><source case="genitive" number="singular">завтрашний вечер в 5:21</source><result>завтрашнего вечера в 5:21</result></test>
+
+    <!-- Some nominative case tests, that were present in phrasebook -->
+    <test><source case="nominative">деревом</source><result>дерево</result></test>
+    <test><source case="nominative">дереве</source><result>дерево</result></test>
+    <test><source case="nominative">дерева</source><result>дерево</result></test>
+    <test><source case="nominative">дереву</source><result>дерево</result></test>
+
+    <test><source case="nominative">корзины</source><result>корзины</result></test>
+    <test><source case="nominative">корзине</source><result>корзина</result></test>
+    <test><source case="nominative">корзину</source><result>корзина</result></test>
+
+    <test><source case="nominative">стуле</source><result>стул</result></test>
+
+    <!-- Patronymic name -->
+    <test><source case="nominative" number="singular">Анатольевичу</source><result>Анатольевич</result></test>
+    <!-- Informal patronymic name -->
+    <test><source case="nominative" number="singular">Анатоличу</source><result>Анатолич</result></test>
+    <!-- Name -->
+    <test><source case="nominative" number="singular">Анатолию</source><result>Анатолий</result></test>
+
+    <!-- Ignore plural form while trying to inflect proper-nouns -->
+    <!-- FIXME: <test><source case="nominative" number="singular">Филипов</source><result>Филипов</result></test> -->
+    <!-- FIXME: <test><source case="nominative" number="singular">Сарапулов</source><result>Сарапулов</result></test> -->
+
+    <!-- Don't modify Cyrillic input if there are non-Russian Cyrillic characters -->
+    <test><source case="nominative">Назад Шляху Немає</source><result>Назад Шляху Немає</result></test>
+    <test><source case="genitive">Назад Шляху Немає</source><result>Назад Шляху Немає</result></test>
+
+    <test><source case="nominative">Вася Чапаєвський</source><result>Вася Чапаєвський</result></test>
+    <test><source case="genitive">Вася Чапаєвський</source><result>Вася Чапаєвський</result></test>
+
+    <test><source case="nominative">Теорія Простору</source><result>Теорія Простору</result></test>
+    <test><source case="genitive">Теорія Простору</source><result>Теорія Простору</result></test>
+    <!-- FIXME: <test><source case="genitive">человек очень быстро бежит по большому саду</source><result>человека очень быстрого бежит по большого сада</result></test> -->
+
+    <test><source case="instrumental" number="plural">кошка</source><result>кошками</result></test>
+    <test><source case="instrumental" number="singular">кошка</source><result>кошкой</result></test>
+    <test><source case="accusative" number="plural">кошка</source><result>кошек</result></test>
+    <test><source case="accusative" number="singular">кошка</source><result>кошку</result></test>
+    <test><source case="dative" number="plural">кошка</source><result>кошкам</result></test>
+    <test><source case="dative" number="singular">кошка</source><result>кошке</result></test>
+    <test><source case="genitive" number="plural">кошка</source><result>кошек</result></test>
+    <test><source case="genitive" number="singular">кошка</source><result>кошки</result></test>
+    <test><source case="prepositional" number="plural">кошка</source><result>кошках</result></test>
+    <test><source case="prepositional" number="singular">кошка</source><result>кошке</result></test>
+    <test><source case="nominative" number="plural">кошка</source><result>кошки</result></test>
+    <test><source case="nominative" number="singular">кошка</source><result>кошка</result></test>
+
+    <test><source case="instrumental" number="plural">ресторан</source><result>ресторанами</result></test>
+    <test><source case="instrumental" number="singular">ресторан</source><result>рестораном</result></test>
+    <test><source case="accusative" number="plural">ресторан</source><result>рестораны</result></test>
+    <test><source case="accusative" number="singular">ресторан</source><result>ресторан</result></test>
+    <test><source case="dative" number="plural">ресторан</source><result>ресторанам</result></test>
+    <test><source case="dative" number="singular">ресторан</source><result>ресторану</result></test>
+    <test><source case="genitive" number="plural">ресторан</source><result>ресторанов</result></test>
+    <test><source case="genitive" number="singular">ресторан</source><result>ресторана</result></test>
+    <test><source case="prepositional" number="plural">ресторан</source><result>ресторанах</result></test>
+    <test><source case="prepositional" number="singular">ресторан</source><result>ресторане</result></test>
+    <test><source case="nominative" number="plural">ресторан</source><result>рестораны</result></test>
+    <test><source case="nominative" number="singular">ресторан</source><result>ресторан</result></test>
+
+    <test><source case="instrumental" number="plural">красивый</source><result>красивыми</result></test>
+    <test><source case="instrumental" number="singular">красивый</source><result>красивым</result></test>
+    <test><source case="accusative" number="plural" animacy="inanimate">красивый</source><result>красивые</result></test>
+    <test><source case="accusative" number="singular" animacy="inanimate">красивый</source><result>красивый</result></test>
+    <test><source case="dative" number="plural">красивый</source><result>красивым</result></test>
+    <test><source case="dative" number="singular">красивый</source><result>красивому</result></test>
+    <test><source case="genitive" number="plural">красивый</source><result>красивых</result></test>
+    <test><source case="genitive" number="singular">красивый</source><result>красивого</result></test>
+    <test><source case="prepositional" number="plural">красивый</source><result>красивых</result></test>
+    <test><source case="prepositional" number="singular">красивый</source><result>красивом</result></test>
+    <test><source case="nominative" number="plural">красивый</source><result>красивые</result></test>
+    <test><source case="nominative" number="singular">красивый</source><result>красивый</result></test>
+
+    <test><source case="nominative"/><result withAboutPrep="о"/></test>
+    <!-- FIXME: <test><source case="nominative">ждлоыва</source><result withAboutPrep="о ждлоыва"/></test> -->
+    <test><source case="nominative">новости</source><result withAboutPrep="о новости"/></test>
+    <test><source case="prepositional">этом</source><result withAboutPrep="об этом"/></test>
+    <test><source case="prepositional">открытии</source><result withAboutPrep="об открытии"/></test>
+
+    <test><source case="nominative"/><result withInPrep="в"/></test>
+    <!-- FIXME: <test><source case="nominative">ждлоыва</source><result withInPrep="в ждлоыва"/></test> -->
+    <test><source>речке</source><result withInPrep="в речке"/></test>
+    <!-- FIXME: <test><source case="prepositional">мне</source><result withInPrep="во мне"/></test> -->
+    <test><source case="dative">рву</source><result withInPrep="во рву"/></test>
+
+    <test><source case="nominative"/><result withWithPrep="с"/></test>
+    <!-- FIXME: <test><source case="nominative">ждлоыва</source><result withWithPrep="со ждлоыва"/></test> -->
+    <test><source case="instrumental">тобой</source><result withWithPrep="с тобой"/></test>
+    <test><source case="instrumental">мной</source><result withWithPrep="со мной"/></test>
+    <test><source case="genitive">вторника</source><result withWithPrep="со вторника"/></test>
+    <test><source case="instrumental">сгущенкой</source><result withWithPrep="со сгущенкой"/></test>
+    <test><source case="nominative">вчерашний день</source><result withWithPrep="со вчерашний день"/></test>
+
+    <test><source case="nominative"/><result withToPrep="к"/></test>
+    <!-- FIXME: <test><source case="nominative">ждлоыва</source><result withToPrep="к ждлоыва"/></test> -->
+    <test><source case="dative">нему</source><result withToPrep="к нему"/></test>
+    <test><source case="dative">мне</source><result withToPrep="ко мне"/></test>
+    <test><source case="dative">вторнику</source><result withToPrep="ко вторнику"/></test>
+
+    <test><source case="prepositional" number="singular">Москва, Российская Федерация</source><result>Москве, Российская Федерация</result></test>
+
+    <!-- No change -->
+    <test><source pos="adjective">яркий</source><result>яркий</result></test>
+    <test><source pos="adposition">на</source><result>на</result></test>
+    <test><source pos="adposition">над</source><result>над</result></test>
+    <test><source pos="adverb">хорошо</source><result>хорошо</result></test>
+    <test><source pos="adverb">ярко</source><result>ярко</result></test>
+    <test><source pos="conjunction">чтобы</source><result>чтобы</result></test>
+    <test><source pos="interjection">ай-ай-ай</source><result>ай-ай-ай</result></test>
+    <test><source pos="particle">вот</source><result>вот</result></test>
+    <test><source pos="particle">да</source><result>да</result></test>
+
+    <!-- pronouns/demonstratives/determiners -->
+    <test><source case="dative">вы</source><result>вам</result></test>
+    <test><source case="instrumental">вы</source><result>вами</result></test>
+    <test><source case="accusative">вы</source><result>вас</result></test>
+    <test><source case="nominative">вы</source><result>вы</result></test>
+    <test><source case="nominative" number="singular" gender="masculine">ваш</source><result>ваш</result></test>
+    <test><source case="accusative" number="singular" gender="neuter">ваш</source><result>ваше</result></test>
+    <test><source case="nominative" number="singular" gender="neuter">ваш</source><result>ваше</result></test>
+    <test><source number="singular" gender="masculine" case="genitive">ваш</source><result>вашего</result></test>
+    <test><source case="prepositional" number="singular" gender="feminine">ваш</source><result>вашей</result></test>
+    <test><source case="dative" number="singular" gender="feminine">ваш</source><result>вашей</result></test>
+    <test><source case="genitive" number="singular" gender="feminine">ваш</source><result>вашей</result></test>
+    <test><source case="instrumental" number="singular" gender="feminine">ваш</source><result>вашей</result></test>
+    <test><source case="prepositional" number="singular" gender="masculine">ваш</source><result>вашем</result></test>
+    <test><source case="prepositional" number="singular" gender="neuter">ваш</source><result>вашем</result></test>
+    <test><source case="dative" number="plural">ваш</source><result>вашим</result></test>
+    <test><source case="instrumental" number="singular" gender="masculine">ваш</source><result>вашим</result></test>
+    <test><source case="instrumental" number="singular" gender="neuter">ваш</source><result>вашим</result></test>
+    <test><source case="prepositional" number="plural">ваш</source><result>ваших</result></test>
+    <test><source case="genitive" number="plural">ваш</source><result>ваших</result></test>
+    <test><source case="accusative" number="plural">ваш</source><result>ваших</result></test>
+    <test><source case="accusative" number="singular" gender="feminine">ваш</source><result>вашу</result></test>
+    <test><source number="plural" case="accusative" animacy="animate">все</source><result>всех</result></test>
+    <test><source number="plural" case="accusative" animacy="inanimate">все</source><result>все</result></test>
+    <test><source number="plural" case="nominative">все</source><result>все</result></test>
+    <test><source case="nominative" number="plural">другой</source><result>другие</result></test>
+    <test><source case="accusative" number="plural" animacy="inanimate">другой</source><result>другие</result></test>
+    <test><source case="prepositional" number="plural">другой</source><result>других</result></test>
+    <test><source case="genitive" number="plural">другой</source><result>других</result></test>
+    <test><source case="accusative" number="plural">другой</source><result>других</result></test>
+    <test><source number="singular" gender="masculine" case="accusative">он</source><result>его</result></test>
+    <test><source number="singular" gender="masculine" case="genitive">он</source><result>его</result></test>
+    <test><source number="singular" gender="masculine" case="genitive">какой</source><result>какого</result></test>
+    <!-- FIXME: <test><source number="singular" case="accusative">я</source><result>меня</result></test> -->
+    <!-- FIXME: <test><source number="singular" case="genitive">я</source><result>меня</result></test> -->
+    <!-- FIXME: <test><source number="singular" case="prepositional">я</source><result>мне</result></test> -->
+    <!-- FIXME: <test><source number="singular" case="dative">я</source><result>мне</result></test> -->
+    <test><source number="singular" case="nominative">я</source><result>я</result></test>
+    <test><source case="nominative" number="singular" gender="feminine">некоторый</source><result>некоторая</result></test>
+    <test><source case="accusative" number="singular" gender="masculine" animacy="inanimate">один</source><result>один</result></test>
+    <test><source case="nominative" number="singular" gender="masculine">один</source><result>один</result></test>
+    <test><source case="prepositional" number="singular" gender="masculine">такой</source><result>таком</result></test>
+    <test><source case="prepositional" number="singular" gender="neuter">такой</source><result>таком</result></test>
+    <test><source case="nominative" number="plural">твой</source><result>твои</result></test>
+    <test><source case="accusative" number="plural" animacy="inanimate">твой</source><result>твои</result></test>
+    <test><source number="singular" gender="neuter" animacy="inanimate" case="accusative">что</source><result>что</result></test>
+    <test><source number="singular" gender="neuter" case="nominative">что</source><result>что</result></test>
+    <test><source case="nominative" number="singular" gender="feminine">этот</source><result>эта</result></test>
+    <test><source number="singular" gender="neuter" case="instrumental">это</source><result>этим</result></test>
+    <test><source number="singular" gender="neuter" animacy="inanimate" case="accusative">это</source><result>это</result></test>
+    <test><source number="singular" gender="neuter" case="nominative">это</source><result>это</result></test>
+    <test><source case="accusative" number="singular" gender="feminine">этот</source><result>эту</result></test>
+
+    <test><source case="genitive">следующий вторник</source><result>следующего вторника</result></test>
+    <test><source case="genitive">следующий</source><result>следующего</result></test>
+    <test><source case="accusative">галерея</source><result>галерею</result></test>
+    <test><source case="accusative">музыка</source><result>музыку</result></test>
+    <test><source case="accusative">перевод</source><result>перевод</result></test>
+    <test><source gender="masculine">переводчик</source><result>переводчик</result></test>
+    <!-- FIXME: <test><source gender="feminine">переводчик</source><result>переводчица</result></test> -->
+    <!-- FIXME: <test><source gender="masculine">переводчица</source><result>переводчик</result></test> -->
+    <test><source gender="feminine">переводчица</source><result>переводчица</result></test>
+    <test><source case="accusative">режим</source><result>режим</result></test>
+    <test><source case="accusative">рулетка</source><result>рулетку</result></test>
+    <test><source case="accusative">секундомер</source><result>секундомер</result></test>
+    <test><source case="accusative">таймер</source><result>таймер</result></test>
+    <test><source gender="feminine">точный</source><result>точная</result></test>
+    <test><source case="accusative">фонарик</source><result>фонарик</result></test>
+    <test><source case="accusative">яндекс</source><result>яндекс</result></test>
+    <test><source case="dative">музыка</source><result>музыке</result></test>
+    <test><source case="genitive">автор</source><result>автора</result></test>
+    <test><source case="genitive">английский</source><result>английского</result></test>
+    <test><source number="singular">будут</source><result>будет</result></test>
+    <test><source number="plural">будет</source><result>будут</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">будильник</source><result>будильник</result></test>
+    <!-- FIXME: <test><source number="plural">буду</source><result>буды</result></test> -->
+    <test><source number="plural" pos="verb">буду</source><result>будем</result></test>
+    <test><source number="singular">будем</source><result>буду</result></test>
+    <test><source case="prepositional">будущее</source><result>будущем</result></test>
+    <test><source number="plural">ведёшь</source><result>ведёте</result></test>
+    <test><source case="accusative" number="plural">вечер</source><result>вечера</result></test>
+    <test><source case="genitive">вечер</source><result>вечера</result></test>
+    <test><source number="plural">вечер</source><result>вечера</result></test>
+    <!-- FIXME: <test><source gender="feminine">включён</source><result>включена</result></test> -->
+    <test><source gender="masculine">включил</source><result>включил</result></test>
+    <test><source gender="feminine">включил</source><result>включила</result></test>
+    <test><source number="plural">включишь</source><result>включите</result></test>
+    <test><source number="plural">включи</source><result>включите</result></test>
+    <test><source gender="feminine">возник</source><result>возникла</result></test>
+    <test><source gender="masculine">выбранный</source><result>выбранный</result></test>
+    <test><source gender="feminine">выбранный</source><result>выбранная</result></test>
+    <test><source gender="neuter">выбранный</source><result>выбранное</result></test>
+    <!-- FIXME: <test><source gender="feminine">выключен</source><result>выключена</result></test> -->
+    <test><source gender="masculine">выключен</source><result>выключен</result></test>
+    <!-- FIXME: <test><source gender="neuter">выключен</source><result>выключено</result></test> -->
+    <test><source gender="masculine">выключил</source><result>выключил</result></test>
+    <test><source gender="feminine">выключил</source><result>выключила</result></test>
+    <test><source gender="neuter">выключил</source><result>выключило</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">геолокация</source><result>геолокацию</result></test>
+    <test><source case="nominative" number="singular">геолокация</source><result>геолокация</result></test>,
+    <test><source animacy="inanimate" case="accusative" number="singular">голос</source><result>голос</result></test>
+    <test><source case="nominative" number="singular">гостиная</source><result>гостиная</result></test>
+    <test><source gender="neuter">готовый</source><result>готовое</result></test>
+    <test><source case="prepositional">громкость</source><result>громкости</result></test>
+    <test><source case="accusative">громкость</source><result>громкость</result></test>
+    <test><source case="dative">громкость</source><result>громкости</result></test>
+    <test><source case="genitive">громкость</source><result>громкости</result></test>
+    <test><source case="prepositional" number="singular" gender="masculine">далёкий</source><result>далёком</result></test>
+    <test><source case="prepositional" number="singular" gender="neuter">далёкий</source><result>далёком</result></test>
+    <test><source case="dative" number="plural">данный</source><result>данным</result></test>
+    <test><source case="instrumental" number="singular" gender="masculine">данный</source><result>данным</result></test>
+    <test><source case="instrumental" number="singular" gender="neuter">данный</source><result>данным</result></test>
+    <test><source case="nominative" gender="masculine">два</source><result>два</result></test>
+    <test><source case="accusative" gender="neuter" animacy="inanimate">два</source><result>два</result></test>
+    <!-- FIXME: <test><source case="accusative" gender="neuter" animacy="animate">два</source><result>двух</result></test> -->
+    <test><source case="nominative" gender="neuter">два</source><result>два</result></test>
+    <test><source case="genitive" number="singular">день</source><result>дня</result></test>
+    <test><source gender="masculine">добавлял</source><result>добавлял</result></test>
+    <test><source gender="feminine">добавлял</source><result>добавляла</result></test>
+    <test><source gender="neuter">добавлял</source><result>добавляло</result></test>
+    <test><source number="plural">добавлял</source><result>добавляли</result></test>
+    <test><source gender="masculine">договорился</source><result>договорился</result></test>
+    <test><source gender="feminine">договорился</source><result>договорилась</result></test>
+    <test><source gender="neuter">договорился</source><result>договорилось</result></test>
+    <test><source number="plural">договорился</source><result>договорились</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">дождь</source><result>дождь</result></test>
+    <test><source case="prepositional" number="singular">дом</source><result>доме</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">доступ</source><result>доступ</result></test>
+    <test><source number="singular" gender="masculine" case="genitive">завтрашний</source><result>завтрашнего</result></test>
+    <test><source number="plural">извинишь</source><result>извините</result></test>
+    <test><source case="prepositional" number="singular">изменение</source><result>изменении</result></test>
+    <test><source animacy="inanimate" case="accusative" number="plural">использование</source><result>использования</result></test>
+    <test><source case="genitive" number="singular">использование</source><result>использования</result></test>
+    <test><source case="nominative" number="plural">использование</source><result>использования</result></test>
+    <test><source case="prepositional" number="plural">контакт</source><result>контактах</result></test>
+    <test><source case="prepositional" number="singular">конфиденциальность</source><result>конфиденциальности</result></test>
+    <test><source animacy="inanimate" case="accusative" number="plural">конфиденциальность</source><result>конфиденциальности</result></test>
+    <test><source case="dative" number="singular">конфиденциальность</source><result>конфиденциальности</result></test>
+    <test><source case="genitive" number="singular">конфиденциальность</source><result>конфиденциальности</result></test>
+    <test><source case="nominative" number="plural">конфиденциальность</source><result>конфиденциальности</result></test>
+    <test><source case="nominative" number="plural">любимый</source><result>любимые</result></test>
+    <test><source case="dative" number="singular">машина</source><result>машине</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">машина</source><result>машину</result></test>
+    <test><source case="dative" number="singular">медиатека</source><result>медиатеке</result></test>
+    <test><source animacy="inanimate" case="accusative" number="plural">медиатека</source><result>медиатеки</result></test>
+    <test><source case="genitive" number="singular">медиатека</source><result>медиатеки</result></test>
+    <test><source case="nominative" number="plural">медиатека</source><result>медиатеки</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">медиатека</source><result>медиатеку</result></test>
+    <test><source case="instrumental" number="plural">место</source><result>местами</result></test>
+    <test><source case="prepositional" number="singular">место</source><result>месте</result></test>
+    <test><source case="genitive" number="singular">модем</source><result>модема</result></test>
+    <test><source number="plural">можешь</source><result>можете</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">момент</source><result>момент</result></test>
+    <test><source case="nominative" number="singular">музыка</source><result>музыка</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">музыка</source><result>музыку</result></test>,
+    <test><source case="instrumental" number="singular">название</source><result>названием</result></test>
+    <test><source case="genitive" number="plural">настройка</source><result>настроек</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">настройка</source><result>настройку</result></test>
+    <test><source number="plural">находиться</source><result>находитесь</result></test>
+    <test><source number="singular" gender="feminine">недоступный</source><result>недоступная</result></test>
+    <!-- FIXME: <test><source number="singular" gender="feminine">недоступен</source><result>недоступна</result></test> -->
+    <!-- FIXME: <test><source case="accusative" gender="masculine" animacy="animate">оба</source><result>обоих</result></test> -->
+    <test><source case="accusative" gender="masculine" animacy="inanimate">оба</source><result>оба</result></test>
+    <test><source case="nominative" gender="masculine">оба</source><result>оба</result></test>
+    <!-- FIXME: <test><source case="accusative" gender="neuter" animacy="animate">оба</source><result>обеих</result></test> -->
+    <test><source case="accusative" gender="neuter" animacy="inanimate">оба</source><result>оба</result></test>
+    <test><source case="nominative" gender="neuter">оба</source><result>оба</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">облачность</source><result>облачность</result></test>
+    <test><source number="plural">обнови</source><result>обновите</result></test>
+    <!-- FIXME: <test><source case="accusative" number="singular" gender="feminine">один</source><result>одну</result></test> -->
+    <!-- FIXME: <test><source case="genitive" number="plural">око</source><result>очей</result></test> -->
+    <!-- FIXME: <test><source case="prepositional">ока</source><result>оке</result></test> -->
+    <test><source case="accusative" number="singular" gender="neuter">определённый</source><result>определённое</result></test>
+    <test><source case="nominative" number="singular" gender="neuter">определённый</source><result>определённое</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">пасмурность</source><result>пасмурность</result></test>
+    <test><source case="accusative" number="singular" gender="feminine">пасмурный</source><result>пасмурную</result></test>
+    <test><source case="nominative" number="singular" gender="feminine">переменный</source><result>переменная</result></test>
+    <test><source case="prepositional" gender="masculine">перемешанном</source><result>перемешанном</result></test>
+    <test><source case="prepositional" gender="feminine">перемешанном</source><result>перемешанной</result></test>
+    <test><source case="prepositional" gender="neuter">перемешанном</source><result>перемешанном</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">переход</source><result>переход</result></test>
+    <test><source animacy="inanimate" case="accusative" number="plural">песня</source><result>песни</result></test>
+    <test><source case="genitive" number="singular">песня</source><result>песни</result></test>
+    <test><source case="nominative" number="plural">песня</source><result>песни</result></test>
+    <test><source case="nominative" number="singular">погода</source><result>погода</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">погода</source><result>погоду</result></test>
+    <test><source case="genitive" number="singular">погода</source><result>погоды</result></test>
+    <test><source number="singular">подождать</source><result>подожди</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">подписка</source><result>подписку</result></test>
+    <test><source gender="masculine">понял</source><result>понял</result></test>
+    <test><source gender="feminine">понял</source><result>поняла</result></test>
+    <test><source gender="neuter">понял</source><result>поняло</result></test>
+    <test><source number="plural">понял</source><result>поняли</result></test>
+    <test><source case="prepositional" number="singular">порядок</source><result>порядке</result></test>
+    <test><source number="singular" gender="masculine" animacy="animate">последний</source><result>последнего</result></test>
+    <test><source number="singular" gender="masculine" animacy="inanimate">последний</source><result>последний</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">приложение</source><result>приложение</result></test>
+    <test><source case="prepositional" number="singular">приложение</source><result>приложении</result></test>
+    <test><source animacy="inanimate" case="accusative" number="plural">приложение</source><result>приложения</result></test>
+    <test><source case="genitive" number="singular">приложение</source><result>приложения</result></test>
+    <test><source case="nominative" number="plural">приложение</source><result>приложения</result></test>
+    <test><source case="genitive" number="plural">проблема</source><result>проблем</result></test>
+    <test><source case="nominative" number="singular">проблема</source><result>проблема</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">прогноз</source><result>прогноз</result></test>
+    <test><source case="dative" number="singular">прогноз</source><result>прогнозу</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">прозрачность</source><result>прозрачность</result></test>
+    <test><source animacy="inanimate" case="accusative" number="plural">прослушивание</source><result>прослушивания</result></test>
+    <test><source case="genitive" number="singular">прослушивание</source><result>прослушивания</result></test>
+    <test><source case="nominative" number="plural">прослушивание</source><result>прослушивания</result></test>
+    <test><source animacy="inanimate" case="accusative" number="plural">прощение</source><result>прощения</result></test>
+    <test><source case="genitive" number="singular">прощение</source><result>прощения</result></test>
+    <test><source case="nominative" number="plural">прощение</source><result>прощения</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">радиостанция</source><result>радиостанцию</result></test>
+    <test><source case="prepositional" number="singular">регион</source><result>регионе</result></test>
+    <test><source animacy="inanimate" case="accusative" number="plural">результат</source><result>результаты</result></test>
+    <test><source case="nominative" number="plural">результат</source><result>результаты</result></test>
+    <test><source case="instrumental">руль</source><result>рулём</result></test>
+    <test><source gender="masculine">сделал</source><result>сделал</result></test>
+    <test><source gender="feminine">сделал</source><result>сделала</result></test>
+    <test><source gender="neuter">сделал</source><result>сделало</result></test>
+    <test><source number="plural">сделал</source><result>сделали</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">секунда</source><result>секунду</result></test>
+    <test><source animacy="inanimate" case="accusative" number="plural">середина</source><result>середины</result></test>
+    <test><source case="genitive" number="singular">середина</source><result>середины</result></test>
+    <test><source case="nominative" number="plural">середина</source><result>середины</result></test>
+    <test><source number="plural">слушаю</source><result>слушаем</result></test>
+    <test><source number="singular">сможем</source><result>смогу</result></test>
+    <test><source number="plural">согласный</source><result>согласные</result></test>
+    <test><source case="accusative" number="plural">соглашение</source><result>соглашения</result></test>
+    <test><source case="genitive" number="singular">соглашение</source><result>соглашения</result></test>
+    <test><source case="nominative" number="plural">соглашение</source><result>соглашения</result></test>
+    <test><source case="dative" number="singular">сожаление</source><result>сожалению</result></test>
+    <test><source case="nominative" number="singular" gender="feminine">солнечный</source><result>солнечная</result></test>
+    <test><source animacy="inanimate" case="accusative" number="plural">сообщение</source><result>сообщения</result></test>
+    <test><source case="genitive" number="singular">сообщение</source><result>сообщения</result></test>
+    <test><source case="nominative" number="plural">сообщение</source><result>сообщения</result></test>
+    <test><source case="prepositional" number="plural">сообщение</source><result>сообщениях</result></test>
+    <test><source case="nominative" number="singular">спальня</source><result>спальня</result></test>
+    <test><source case="nominative" number="singular">станция</source><result>станция</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">телевизор</source><result>телевизор</result></test>
+    <test><source case="prepositional" number="singular">телефон</source><result>телефоне</result></test>
+    <test><source animacy="inanimate" case="accusative" number="plural">трек</source><result>треки</result></test>
+    <test><source case="nominative" number="plural">трек</source><result>треки</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">тренировка</source><result>тренировку</result></test>
+    <test><source gender="masculine">удался</source><result>удался</result></test>
+    <test><source gender="neuter">удался</source><result>удалось</result></test>
+    <test><source gender="feminine">удался</source><result>удалась</result></test>
+    <test><source number="plural">удался</source><result>удались</result></test>
+    <test><source case="accusative" number="singular" gender="masculine" animacy="inanimate">украинский</source><result>украинский</result></test>
+    <test><source case="nominative" number="singular" gender="masculine">украинский</source><result>украинский</result></test>
+    <test><source case="instrumental" number="plural">условие</source><result>условиями</result></test>
+    <test><source animacy="inanimate" case="accusative" number="plural">устройство</source><result>устройства</result></test>
+    <test><source case="genitive" number="singular">устройство</source><result>устройства</result></test>
+    <test><source case="nominative" number="plural">устройство</source><result>устройства</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">устройство</source><result>устройство</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">функция</source><result>функцию</result></test>
+    <test><source case="nominative" number="singular">функция</source><result>функция</result></test>
+    <test><source case="genitive" number="singular">человек</source><result>человека</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">шумоподавление</source><result>шумоподавление</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">экран</source><result>экран</result></test>
+    <test><source animacy="inanimate" case="accusative" number="plural">энергосбережение</source><result>энергосбережения</result></test>
+    <test><source case="genitive" number="singular">энергосбережение</source><result>энергосбережения</result></test>
+    <test><source case="nominative" number="plural">энергосбережение</source><result>энергосбережения</result></test>
+    <test><source animacy="inanimate" case="accusative" number="singular">язык</source><result>язык</result></test>
+    <test><source animacy="inanimate" case="accusative" number="plural">язык</source><result>языки</result></test>
+    <test><source number="plural">язык</source><result>языки</result></test>
+    <test><source case="genitive" number="plural">язык</source><result>языков</result></test>
+</inflectionTest>

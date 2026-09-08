@@ -24,7 +24,7 @@ defmodule Localize.MixProject do
       compilers: maybe_elixir_make() ++ [:yecc, :leex] ++ Mix.compilers(),
       make_makefile: "c_src/Makefile",
       dialyzer: [
-        plt_add_apps: ~w(gettext inets mix sweet_xml nimble_parsec)a,
+        plt_add_apps: ~w(gettext inets mix sweet_xml nimble_parsec xmerl)a,
         ignore_warnings: ".dialyzer_ignore.exs",
         flags: [
           :error_handling,

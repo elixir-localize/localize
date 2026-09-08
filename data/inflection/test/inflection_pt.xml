@@ -1,0 +1,306 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2021-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="pt">
+    <test><source>luz</source><result number="singular"/></test>
+    <test><source>sala</source><result number="singular"/></test>
+    <test><source>cozinha</source><result number="singular"/></test>
+    <test><source>porta</source><result number="singular"/></test>
+    <test><source>mãe</source><result number="singular"/></test>
+    <test><source>mãe de santo</source><result number="singular"/></test>
+    <test><source>sala de estar</source><result number="singular"/></test>
+    <test><source>sala de tv</source><result number="singular"/></test>
+    <test><source>gata</source><result number="singular"/></test>
+    <test><source>portão da garagem</source><result number="singular"/></test>
+    <test><source>fogão</source><result number="singular"/></test>
+    <test><source>escritório</source><result number="singular"/></test>
+    <test><source>banheiro público</source><result number="singular"/></test>
+    <test><source>banheiro</source><result number="singular"/></test>
+    <test><source>gato</source><result number="singular"/></test>
+    <test><source>luzes</source><result number="plural"/></test>
+    <test><source>salas</source><result number="plural"/></test>
+    <test><source>cozinhas</source><result number="plural"/></test>
+    <test><source>portas</source><result number="plural"/></test>
+    <test><source>mães</source><result number="plural"/></test>
+    <test><source>mães de santo</source><result number="plural"/></test>
+    <test><source>salas de estar</source><result number="plural"/></test>
+    <test><source>salas de tv</source><result number="plural"/></test>
+    <test><source>gatas</source><result number="plural"/></test>
+    <test><source>portões da garagem</source><result number="plural"/></test>
+    <test><source>fogões</source><result number="plural"/></test>
+    <test><source>escritórios</source><result number="plural"/></test>
+    <test><source>banheiros público</source><result number="plural"/></test>
+    <test><source>banheiros</source><result number="plural"/></test>
+    <test><source>gatos</source><result number="plural"/></test>
+
+    <test><source>luz</source><result gender="feminine"/></test>
+    <test><source>Luz</source><result gender="feminine"/></test>
+    <test><source>sala</source><result gender="feminine"/></test>
+    <test><source>cozinha</source><result gender="feminine"/></test>
+    <test><source>porta</source><result gender="feminine"/></test>
+    <test><source>mesas</source><result gender="feminine"/></test>
+    <test><source>sala de estar</source><result gender="feminine"/></test>
+    <test><source>sala de tv</source><result gender="feminine"/></test>
+    <test><source>portão de garagem</source><result gender="masculine"/></test>
+    <test><source>fogão</source><result gender="masculine"/></test>
+    <test><source>escritório</source><result gender="masculine"/></test>
+    <test><source>banheiros</source><result gender="masculine"/></test>
+    <test><source>banheiro público</source><result gender="masculine"/></test>
+    <test><source>pai</source><result gender="masculine"/></test>
+    <test><source>trabalho</source><result gender="masculine"/></test>
+    <test><source>gato</source><result gender="masculine"/></test> <!-- cat (masc) -->
+    <test><source>mãe</source><result gender="feminine"/></test> <!-- mother -->
+    <test><source>mães</source><result gender="feminine"/></test> <!-- mothers -->
+    <test><source>tia</source><result gender="feminine"/></test> <!-- aunt -->
+    <test><source>avó</source><result gender="feminine"/></test> <!-- grandmother -->
+    <test><source>prima</source><result gender="feminine"/></test> <!-- cousin -->
+    <test><source>primo</source><result gender="masculine"/></test> <!-- masculine cousin -->
+    <test><source>tataravó</source><result gender="feminine"/></test> <!-- grand grandmother -->
+    <test><source>afilhada</source><result gender="feminine"/></test> <!-- goddaughter -->
+
+    <test><source>gato</source><result definiteness=""/></test>
+    <test><source>o gato</source><result definiteness="definite"/></test>
+    <test><source>os gato</source><result definiteness="definite"/></test> <!-- Yes, it's not grammatically correct. -->
+    <test><source>os gatos</source><result definiteness="definite"/></test>
+    <test><source>Os Gatos</source><result definiteness="definite"/></test> <!-- This is a city name -->
+    <test><source>OS GATOS</source><result definiteness="definite"/></test> <!-- Unusual letter casing -->
+    <test><source>do gato</source><result definiteness="definite"/></test>
+    <test><source>os(as) gatos</source><result definiteness="definite"/></test>
+    <test><source>nos gatos</source><result definiteness="definite"/></test>
+    <test><source>um gato</source><result definiteness="indefinite"/></test>
+    <test><source>uma gata</source><result definiteness="indefinite"/></test>
+    <test><source>em gato</source><result definiteness=""/></test>
+    <test><source>osos</source><result definiteness=""/></test>
+    <test><source/><result definiteness=""/></test>
+
+    <test><source>qzxyzq</source><result defArticle=""/></test>
+    <test><source>tocador</source><result defArticle="o"/></test>
+    <test><source>tocadora</source><result defArticle="a"/></test>
+    <test><source>tocadores</source><result defArticle="os"/></test>
+    <test><source>tocadoras</source><result defArticle="as"/></test>
+    <test><source>gato</source><result defArticle="o"/></test>
+    <test><source>gatos</source><result defArticle="os"/></test>
+    <test><source>Tocador de São Paulo</source><result defArticle="o"/></test>
+    <test><source>tocadora de São Paulo</source><result defArticle="a"/></test>
+
+    <test><source>qzxyzq</source><result possArticle=""/></test>
+    <test><source>tocador</source><result possArticle="seu"/></test>
+    <test><source>tocadora</source><result possArticle="sua"/></test>
+    <test><source>tocadores</source><result possArticle="seus"/></test>
+    <test><source>tocadoras</source><result possArticle="suas"/></test>
+
+    <test><source>qzxyzq</source><result dePrepArticle="de"/></test>
+    <test><source>campo</source><result dePrepArticle="do"/></test>
+    <test><source>casa</source><result dePrepArticle="da"/></test>
+    <test><source>campos</source><result dePrepArticle="dos"/></test>
+    <test><source>casas</source><result dePrepArticle="das"/></test>
+
+    <test><source>qzxyzq</source><result emPrepArticle="em"/></test>
+    <test><source>campo</source><result emPrepArticle="no"/></test>
+    <test><source>casa</source><result emPrepArticle="na"/></test>
+    <test><source>campos</source><result emPrepArticle="nos"/></test>
+    <test><source>casas</source><result emPrepArticle="nas"/></test>
+
+    <test><source>qzxyzq</source><result emPrepIndefArticle="em"/></test>
+    <test><source>campo</source><result emPrepIndefArticle="num"/></test>
+    <test><source>casa</source><result emPrepIndefArticle="numa"/></test>
+    <test><source>campos</source><result emPrepIndefArticle="nuns"/></test>
+    <test><source>casas</source><result emPrepIndefArticle="numas"/></test>
+
+    <test><source>qzxyzq</source><result porPrepArticle="por"/></test>
+    <test><source>campo</source><result porPrepArticle="pelo"/></test>
+    <test><source>casa</source><result porPrepArticle="pela"/></test>
+    <test><source>campos</source><result porPrepArticle="pelos"/></test>
+    <test><source>casas</source><result porPrepArticle="pelas"/></test>
+
+    <test><source>qzxyzq</source><result demAdj=""/></test>
+    <test><source>tocador</source><result demAdj="este"/></test>
+    <test><source>tocadora</source><result demAdj="esta"/></test>
+    <test><source>tocadores</source><result demAdj="estes"/></test>
+    <test><source>tocadoras</source><result demAdj="estas"/></test>
+
+    <test><source>qzxyzq</source><result inDemAdj=""/></test>
+    <test><source>campo</source><result inDemAdj="neste"/></test>
+    <test><source>casa</source><result inDemAdj="nesta"/></test>
+    <test><source>campos</source><result inDemAdj="nestes"/></test>
+    <test><source>casas</source><result inDemAdj="nestas"/></test>
+
+    <test><source>qzxyzq</source><result ofDemAdj=""/></test>
+    <test><source>tocador</source><result ofDemAdj="deste"/></test>
+    <test><source>tocadora</source><result ofDemAdj="desta"/></test>
+    <test><source>tocadores</source><result ofDemAdj="destes"/></test>
+    <test><source>tocadoras</source><result ofDemAdj="destas"/></test>
+
+    <test><source>qzxyzq</source><result thisDemAdj=""/></test>
+    <test><source>tocador</source><result thisDemAdj="esse"/></test>
+    <test><source>tocadora</source><result thisDemAdj="essa"/></test>
+    <test><source>tocadores</source><result thisDemAdj="esses"/></test>
+    <test><source>tocadoras</source><result thisDemAdj="essas"/></test>
+
+    <test><source>qzxyzq</source><result inThisDemAdj=""/></test>
+    <test><source>campo</source><result inThisDemAdj="nesse"/></test>
+    <test><source>casa</source><result inThisDemAdj="nessa"/></test>
+    <test><source>campos</source><result inThisDemAdj="nesses"/></test>
+    <test><source>casas</source><result inThisDemAdj="nessas"/></test>
+
+    <test><source>qzxyzq</source><result ofThisDemAdj=""/></test>
+    <test><source>tocador</source><result ofThisDemAdj="desse"/></test>
+    <test><source>tocadora</source><result ofThisDemAdj="dessa"/></test>
+    <test><source>tocadores</source><result ofThisDemAdj="desses"/></test>
+    <test><source>tocadoras</source><result ofThisDemAdj="dessas"/></test>
+
+    <test><source>qzxyzq</source><result thatDemAdj=""/></test>
+    <test><source>tocador</source><result thatDemAdj="aquele"/></test>
+    <test><source>tocadora</source><result thatDemAdj="aquela"/></test>
+    <test><source>tocadores</source><result thatDemAdj="aqueles"/></test>
+    <test><source>tocadoras</source><result thatDemAdj="aquelas"/></test>
+
+    <test><source>qzxyzq</source><result inThatDemAdj=""/></test>
+    <test><source>campo</source><result inThatDemAdj="naquele"/></test>
+    <test><source>casa</source><result inThatDemAdj="naquela"/></test>
+    <test><source>campos</source><result inThatDemAdj="naqueles"/></test>
+    <test><source>casas</source><result inThatDemAdj="naquelas"/></test>
+
+    <test><source>qzxyzq</source><result ofThatDemAdj=""/></test>
+    <test><source>tocador</source><result ofThatDemAdj="daquele"/></test>
+    <test><source>tocadora</source><result ofThatDemAdj="daquela"/></test>
+    <test><source>tocadores</source><result ofThatDemAdj="daqueles"/></test>
+    <test><source>tocadoras</source><result ofThatDemAdj="daquelas"/></test>
+
+    <test><source>barco</source><result>barco</result></test>
+    <test><source>pão</source><result>pão</result></test>
+    <test><source>linha aérea</source><result>linha aérea</result></test>
+    <test><source>pai-de-santo</source><result>pai-de-santo</result></test>
+    <test><source>guarda-chuva</source><result>guarda-chuva</result></test>
+    <test><source>para-quedas</source><result>para-quedas</result></test>
+    <test><source>preço histórico</source><result>preço histórico</result></test>
+    <test><source>mudança percentual em tempo real</source><result>mudança percentual em tempo real</result></test>
+    <test><source>mudança de percentual</source><result>mudança de percentual</result></test>
+    <test><source>fax</source><result>fax</result></test>
+    <test><source number="singular">barco</source><result>barco</result></test>
+    <test><source number="singular">pão</source><result>pão</result></test>
+    <test><source number="singular">linha aérea</source><result>linha aérea</result></test>
+    <test><source number="singular">pai-de-santo</source><result>pai-de-santo</result></test>
+    <test><source number="singular">guarda-chuva</source><result>guarda-chuva</result></test>
+    <test><source number="singular">pára-quedas</source><result>pára-quedas</result></test>
+    <test><source number="singular">preço histórico</source><result>preço histórico</result></test>
+    <test><source number="singular">mudança percentual em tempo real</source><result>mudança percentual em tempo real</result></test>
+    <test><source number="singular">mudança de percentual</source><result>mudança de percentual</result></test>
+    <test><source number="singular">fax</source><result>fax</result></test>
+
+    <test><source number="singular">barcos</source><result>barco</result></test>
+    <test><source number="singular">pães</source><result>pão</result></test>
+    <test><source number="singular">linhas aéreas</source><result>linha aérea</result></test>
+    <test><source number="singular">pais-de-santo</source><result>pai-de-santo</result></test>
+    <test><source number="singular">guarda-chuvas</source><result>guarda-chuva</result></test>
+    <test><source number="singular">preços históricos</source><result>preço histórico</result></test>
+    <test><source number="singular">mudança percentual em tempo real</source><result>mudança percentual em tempo real</result></test>
+    <test><source number="singular">mudanças de percentual</source><result>mudança de percentual</result></test>
+
+    <test><source number="plural">barco</source><result>barcos</result></test>
+    <test><source number="plural">pão</source><result>pães</result></test>
+    <test><source number="plural">linha aérea</source><result>linhas aéreas</result></test>
+    <test><source number="plural">pai-de-santo</source><result>pais-de-santo</result></test>
+    <test><source number="plural">guarda-chuva</source><result>guarda-chuvas</result></test>
+    <test><source number="plural">pára-quedas</source><result>pára-quedas</result></test>
+    <test><source number="plural">preço histórico</source><result>preços históricos</result></test>
+    <test><source number="plural">mudança percentual em tempo real</source><result>mudanças percentual em tempo real</result></test>
+    <test><source number="plural">mudança climática em tempo real</source><result>mudanças climáticas em tempo real</result></test>
+    <test><source number="plural">mudança de percentual</source><result>mudanças de percentual</result></test>
+    <test><source number="plural">fax</source><result>fax</result></test>
+    <test><source number="plural">vergalhão</source><result>vergalhões</result></test>
+    <test><source number="plural">hotel</source><result>hotéis</result></test>
+    <test><source number="plural">qwyxor</source><result>qwyxores</result></test>
+    <test><source number="plural">qwyxorão</source><result>qwyxorões</result></test>
+    <test><source number="plural">funil</source><result>funis</result></test>
+    <test><source number="plural">francês</source><result>franceses</result></test>
+    <test><source number="plural">português</source><result>portugueses</result></test>
+    <test><source number="plural">chinês</source><result>chineses</result></test>
+    <test><source number="plural">japonês</source><result>japoneses</result></test>
+    <test><source number="plural">inglês</source><result>ingleses</result></test>
+    <test><source number="plural">irlandês</source><result>irlandeses</result></test>
+    <test><source number="plural">iPad Air 2</source><result>iPad Air 2</result></test>
+    <test><source number="plural">prima</source><result>primas</result></test>
+    <test><source number="plural">qqqês</source><result>qqqeses</result></test>
+    <test><source number="plural">qqqal</source><result>qqqais</result></test>
+    <test><source number="plural">qqqil</source><result>qqqis</result></test>
+    <test><source number="plural">qqqm</source><result>qqqns</result></test>
+    <test><source number="plural">qqqq</source><result>qqqqs</result></test>
+    <test><source number="plural">qqqqx</source><result>qqqqx</result></test>
+    <test><source definiteness="indefinite">prima</source><result>uma prima</result></test>
+    <test><source definiteness="indefinite">primo</source><result>um primo</result></test>
+    <test><source definiteness="indefinite">linha aérea</source><result>uma linha aérea</result></test>
+    <test><source number="plural" definiteness="definite">primo</source><result>os primos</result></test>
+    <test><source number="plural" definiteness="definite">prima</source><result>as primas</result></test>
+
+
+    <!--    Able to inflect to masculine using dictionary-->
+    <test><source gender="masculine">carro</source><result exists="true"/></test>
+    <!--    Not able to inflect to feminine using dictionary-->
+    <test><source gender="feminine">carro</source><result exists="false"/></test>
+    <!--    Not able to inflect since word not in dictionary-->
+    <test><source gender="feminine">qwyxor</source><result exists="false"/></test>
+    <!--    Able to inflect-->
+    <test><source gender="feminine">bem-vindo</source><result exists="true"/></test>
+    <!--    Three word combination that didn't require dictionary to inflect-->
+    <test><source number="plural">iPad Air 2</source><result exists="true"/></test>
+    <!--    Known and unknown word do not work-->
+    <test><source number="plural">vergalhão qwyxor</source><result exists="false"/></test>
+    <!--    Not able to inflect verbs-->
+    <test><source number="plural">chorar dormir</source><result exists="false"/></test>
+
+    <!-- Testing lemmaless/gender inflection -->
+    <test><source gender="feminine" number="singular">bem-vindo</source><result exists="true">bem-vinda</result></test>
+    <test><source gender="masculine" number="plural">bem-vindo</source><result exists="true">bem-vindos</result></test>
+    <test><source gender="feminine" number="plural">bem-vindo</source><result exists="true">bem-vindas</result></test>
+
+    <test><source gender="masculine" number="singular">bem-vinda</source><result exists="true">bem-vindo</result></test>
+    <test><source gender="masculine" number="plural">bem-vinda</source><result exists="true">bem-vindos</result></test>
+    <test><source gender="feminine" number="plural">bem-vinda</source><result exists="true">bem-vindas</result></test>
+
+    <test><source gender="feminine" number="singular">BEM-VINDO</source><result exists="true">BEM-VINDA</result></test>
+
+    <!-- Missing feminine inflection "separada" -->
+    <test><source gender="feminine">separado</source><result exists="true">separada</result></test>
+
+    <!-- Missing feminine inflection "diagnosticada" -->
+    <test><source gender="feminine">diagnosticado</source><result exists="true">diagnosticada</result></test>
+
+    <!-- Missing feminine inflection "registrada" -->
+    <test><source gender="feminine">registrado</source><result exists="true">registrada</result></test>
+
+    <!-- Missing feminine inflection "removida" -->
+    <test><source gender="feminine">removido</source><result exists="true">removida</result></test>
+
+    <!-- Unable to inflect definite article in Portuguese as Inflection Alternative -->
+    <test><source number="plural">o</source><result exists="true">os</result></test>
+    <test><source number="plural">a</source><result exists="true">as</result></test>
+    <test><source number="plural">os</source><result exists="true">os</result></test>
+    <test><source number="plural">as</source><result exists="true">as</result></test>
+
+    <test><source number="singular">o</source><result exists="true">o</result></test>
+    <test><source number="singular">a</source><result exists="true">a</result></test>
+    <test><source number="singular">os</source><result exists="true">o</result></test>
+    <test><source number="singular">as</source><result exists="true">a</result></test>
+
+    <test><source gender="masculine">o</source><result exists="true">o</result></test>
+    <test><source gender="masculine">a</source><result exists="true">o</result></test>
+    <test><source gender="masculine">os</source><result exists="true">os</result></test>
+    <test><source gender="masculine">as</source><result exists="true">os</result></test>
+
+    <test><source gender="feminine">o</source><result exists="true">a</result></test>
+    <test><source gender="feminine">a</source><result exists="true">a</result></test>
+    <test><source gender="feminine">os</source><result exists="true">as</result></test>
+    <test><source gender="feminine">as</source><result exists="true">as</result></test>
+
+    <!-- edge cases -->
+    <!-- adjective-noun phrase returns unchanged -->
+    <test><source number="plural">grande casa</source><result>grande casa</result></test>
+    <!-- adverb-adjective phrase inflects only adjective -->
+    <test><source number="plural">muito grande</source><result>muito grandes</result></test>
+    <!-- adjective-adjective phrase inflects only second adjective -->
+    <test><source number="plural">verde escuro</source><result>verde escuros</result></test>
+    <!-- Guessing -->
+    <test><source number="plural">casa grande de qwxyz</source><result exists="false">casas grandes de qwxyzes</result></test>
+</inflectionTest>

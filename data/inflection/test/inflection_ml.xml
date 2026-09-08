@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2025 Unicode Incorporated and others. All rights reserved.
+-->
+<inflectionTest locale="ml">
+
+    <!-- Malayalam Singular Plural Inflection Tests -->
+    <test><source number="plural">മരം</source><result>മരങ്ങൾ</result></test>
+    <test><source number="plural">കഥ</source><result>കഥകൾ</result></test>
+
+    <!-- Malayalam Verb Inflection Tests -->
+    <test><source tense="future" person="first" number="singular">അട്ടുക</source><result>അട്ടുക</result></test>
+    <test><source tense="present" person="third" number="plural">അട്ടുക</source><result>അട്ടുക</result></test>
+
+    <!-- Malayalam Case Inflection Tests -->
+    <test><source case="nominative">പക്ഷി</source><result>പക്ഷി</result></test>
+    <test><source case="accusative">പക്ഷി</source><result>പക്ഷിയെ</result></test>
+    <test><source case="dative">പക്ഷി</source><result>പക്ഷിക്കു്</result></test>
+    <test><source case="genitive">പക്ഷി</source><result>പക്ഷിയുടെ</result></test>
+    <test><source case="locative">പക്ഷി</source><result>പക്ഷിയിൽ</result></test>
+    <test><source case="instrumental">പക്ഷി</source><result>പക്ഷിയാൽ</result></test>
+
+    <!-- Singular Plural Lookup Tests (no result because it’s a lookup) -->
+    <test><source>മരം</source><result number="singular"/></test>
+    <test><source>മരങ്ങൾ</source><result number="plural"/></test>
+
+    <!-- Malayalam Multi-word Noun Phrase Number Detection -->
+    <test><source>വളപ്പുറത്തെ ലൈറ്റ്</source><result number="singular"/></test>
+    <test><source>വളപ്പുറത്തെ ലൈറ്റുകൾ</source><result number="plural"/></test>
+    <test><source>തോട്ടത്തിലെ ലൈറ്റുകൾ</source><result number="plural"/></test>
+
+    <!-- Malayalam Verb Number Inflection Contrast -->
+    <test><source tense="present" person="third" number="singular">അട്ടുക</source><result>അട്ടുക</result></test>
+    <test><source tense="past" person="third" number="plural">അട്ടുക</source><result>അട്ടുക</result></test>
+    <test><source tense="future" person="third" number="plural">അട്ടുക</source><result>അട്ടുക</result></test>
+
+    <!-- Malayalam Verb Inflection with pos="verb" -->
+    <test><source number="singular" pos="verb">പോകുക</source><result>പോകുക</result></test>
+    <test><source number="plural" pos="verb">പോകുക</source><result>പോകുക</result></test>
+    <test><source number="singular" pos="verb">അട്ടുക</source><result>അട്ടുക</result></test>
+    <test><source number="plural" pos="verb">അട്ടുക</source><result>അട്ടുക</result></test>
+    <test><source number="singular" pos="verb">ആർക്കുക</source><result>ആർക്കുക</result></test>
+    <test><source number="plural" pos="verb">ആർക്കുക</source><result>ആർക്കുക</result></test>
+
+    <!-- Malayalam Noun Inflection for Units (as in "one meter to two meters") -->
+    <test><source number="singular">മീറ്റർ</source><result>മീറ്റർ</result></test>
+    <test><source number="plural">മീറ്റർ</source><result>മീറ്ററുകൾ</result></test>
+
+    <!-- Additional common plural forms -->
+    <test><source number="plural">കപ്പ്</source><result>കപ്പുകൾ</result></test>
+    <test><source number="plural">പൂച്ച</source><result>പൂച്ചകൾ</result></test>
+
+    <!-- Additional Noun/Verb Inflection Tests -->
+    <test><source>ക്യാമ്പസ് ലൈറ്റ്</source><result number="singular"/></test>
+    <test><source>തോട്ടത്തിലെ ലൈറ്റുകൾ</source><result number="plural"/></test>
+
+    <!-- Indicative (default) -->
+    <test><source tense="present" mood="indicative">അട്ടുക</source><result>അട്ടുക</result></test>
+
+    <!-- Imperative -->
+    <test><source mood="imperative" formality="informal">ഇടുക</source><result>ഇടുക</result></test>
+    <test><source mood="imperative" formality="formal">അട്ടുക</source><result>അട്ടുക</result></test>
+
+    <!-- Plural suffix token cases -->
+    <test><source number="plural" tense="present">അട്ടുക</source><result>അട്ടുക</result></test>
+    <test><source number="plural" pos="verb">പോകുക</source><result>പോകുക</result></test>
+
+</inflectionTest>

@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2025-2025 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="ro">
+    <test><source>băiat</source><result gender="masculine" definiteness="indefinite" number="singular"/></test>
+    <test><source>băieții</source><result gender="masculine" definiteness="definite" number="plural"/></test>
+    <test><source>femeie</source><result gender="feminine" definiteness="indefinite" number="singular"/></test>
+
+    <test><source definiteness="definite">mesaj</source><result>mesajul</result></test>
+    <test><source number="plural">mesaj</source><result>mesaje</result></test>
+    <test><source number="plural" definiteness="definite">mesaj</source><result>mesajele</result></test>
+    <test><source case="genitive" definiteness="definite">mesaj</source><result>mesajului</result></test>
+    <test><source definiteness="definite">nou</source><result>noul</result></test>
+    <test><source number="plural">nou</source><result>noi</result></test>
+    <test><source number="plural" definiteness="definite">nou</source><result>noii</result></test>
+    <test><source case="genitive" definiteness="definite">nou</source><result>noului</result></test>
+</inflectionTest>

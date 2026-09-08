@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2026 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="bn">
+    <!-- Singular Plural Lookup Tests -->
+    <test><source>মিটার</source><result number="singular"/></test>
+    <test><source>বার্তা</source><result number="singular"/></test>
+    <test><source>ঘণ্টা</source><result number="singular"/></test>
+    <test><source>ঘড়ি</source><result number="singular"/></test>
+    <test><source>ছবি</source><result number="singular"/></test>
+    <test><source>ইভেন্ট</source><result number="singular"/></test>
+    <test><source>অঞ্চল</source><result number="singular"/></test>
+    <test><source>ইভেন্টগুলো</source><result number="plural"/></test>
+    <test><source>অঞ্চলগুলো</source><result number="plural"/></test>
+    <!-- FIXME: <test><source>অঞ্চলগুলি</source><result number="plural"/></test> -->
+
+    <!-- Singular Plural Inflection Tests -->
+    <test><source number="plural">ইভেন্ট</source><result>ইভেন্টগুলো</result></test>
+    <test><source number="singular">ইভেন্টগুলো</source><result>ইভেন্ট</result></test>
+    <test><source number="plural">অঞ্চল</source><result>অঞ্চলগুলো</result></test>
+    <test><source number="singular">অঞ্চলগুলো</source><result>অঞ্চল</result></test>
+    <!-- FIXME: <test><source number="singular">অঞ্চলগুলি</source><result>অঞ্চল</result></test> -->
+    <!-- FIXME: <test><source number="singular">অঞ্চলসমূহ</source><result>অঞ্চল</result></test> -->
+
+    <!-- Identity Tests -->
+    <test><source number="singular">ইভেন্ট</source><result>ইভেন্ট</result></test>
+    <test><source number="singular">মিটার</source><result>মিটার</result></test>
+
+    <!-- Adjective + Noun Phrase -->
+    <test><source number="plural">নতুন ইভেন্ট</source><result>নতুন ইভেন্টগুলো</result></test>
+    <test><source number="singular">নতুন ইভেন্টগুলো</source><result>নতুন ইভেন্ট</result></test>
+
+    <!-- Latin Script Words -->
+    <test><source number="singular">apples</source><result>apples</result></test>
+    <test><source number="plural">apple</source><result>apple</result></test>
+
+</inflectionTest>

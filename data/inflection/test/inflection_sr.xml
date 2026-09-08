@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+  Copyright 2024 and later: Unicode, Inc. and others.
+  License & terms of use: http://www.unicode.org/copyright.html
+-->
+<inflectionTest locale="sr">
+    <!-- Tests of dictionary words -->
+    <test><source case="nominative" number="singular">једро</source><result>једро</result></test>
+    <test><source case="nominative" number="plural">једро</source><result>једра</result></test>
+    <test><source case="nominative" number="singular">жена</source><result>жена</result></test>
+    <test><source case="nominative" number="singular">камен</source><result>камен</result></test>
+    <test><source case="nominative" pos="proper-noun">Петар</source><result>Петар</result></test>
+    <test><source case="vocative" number="singular" gender="feminine" pos="proper-noun">Љубица</source><result>Љубице</result></test>
+    <test><source case="vocative" number="singular" gender="feminine">Србија</source><result>Србијо</result></test>
+    <test><source case="instrumental" number="plural" gender="masculine">становник</source><result>становницима</result></test>
+    <test><source case="genitive" number="plural" gender="neuter" pos="adjective">плава</source><result>плавe</result></test>
+    <!-- Words not in the dictionary but similar in shape -->
+    <!-- test><source case="vocative" number="singular" gender="masculine">уранак</source><result>уранче</result></test -->
+    <!-- test><source case="vocative" number="singular" gender="masculine">игроказ</source><result>игрокаже</result></test -->
+    <!-- test><source case="vocative" number="singular" gender="masculine">пашњак</source><result>пашњаче</result></test -->
+    <!-- Rule based inflection, group 3, all nouns ending with a -->
+    <test><source case="instrumental">Италија</source><result>Италијом</result></test>
+    <test><source case="instrumental">авенија</source><result>авенијом</result></test>
+    <test><source case="locative" number="plural" gender="feminine">авенија</source><result>авенијама</result></test>
+    <test><source case="vocative">кадија</source><result>кадија</result></test>
+    <test><source case="vocative">уметница</source><result>уметнице</result></test>
+    <test><source case="vocative">птица</source><result>птица</result></test>
+    <test><source case="vocative">Стана</source><result>Стано</result></test>
+    <test><source case="vocative">Зора</source><result>Зоро</result></test>
+    <test><source case="vocative">Божа</source><result>Божо</result></test>
+    <test><source case="vocative">Љуба</source><result>Љубо</result></test>
+    <test><source case="genitive" number="plural">пратња</source><result>пратњи</result></test>
+    <test><source case="genitive" number="plural">радња</source><result>радњи</result></test>
+    <test><source case="genitive" number="plural">лопта</source><result>лопти</result></test>
+    <test><source case="genitive" number="plural">молба</source><result>молби</result></test>
+    <test><source case="genitive" number="plural">конзерва</source><result>конзерви</result></test>
+    <test><source case="genitive" number="plural">гошћа</source><result>гошћа</result></test>
+    <test><source case="genitive" number="plural">двојка</source><result>двојака</result></test>
+    <test><source case="genitive" number="plural">битка</source><result>битака</result></test>
+    <!-- There are some exception, like pripovetka where tk -> dak because of the base word. This has to be dictionary exception -->
+    <!-- <test><source case="genitive" number="plural" gender="feminine">приповетка</source><result>приповедака</result></test> -->
+</inflectionTest>

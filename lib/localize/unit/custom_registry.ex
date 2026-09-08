@@ -26,7 +26,12 @@ defmodule Localize.Unit.CustomRegistry do
   * `:category` (required) — the unit category (e.g., `"length"`, `"mass"`).
 
   * `:display` (optional) — locale-specific display patterns. A nested map of
-    `locale => style => plural_patterns`.
+    `locale => style => plural_patterns`, where each pattern is a `"{0}"`
+    placeholder string (`%{one: "{0} smoot", other: "{0} smoots"}`).
+
+  Note that the `:inflect` engine fallback of `Localize.Unit.to_string/2`
+  applies to CLDR units only; a custom unit renders the pattern it was
+  registered with.
 
   """
 

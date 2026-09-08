@@ -1,0 +1,467 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2021-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="fr">
+    <test><source>chien</source><result number="singular"/></test>
+    <test><source>bureau</source><result number="singular"/></test>
+    <test><source>Chambre</source><result number="singular"/></test>
+    <test><source>Salon</source><result number="singular"/></test>
+    <test><source>Cour arrière</source><result number="singular"/></test>
+    <test><source>Sous-sol</source><result number="singular"/></test>
+    <test><source>Rez-de-chaussée</source><result number="singular"/></test>
+    <test><source>Rez de chaussée</source><result number="singular"/></test>
+    <test><source>Premier étage</source><result number="singular"/></test>
+    <test><source>bureaux</source><result number="plural"/></test>
+    <test><source>chaises</source><result number="plural"/></test>
+    <test><source>fax</source><result number="singular"/></test>
+    <test><source>univers</source><result number="singular"/></test>
+    <test><source>Paris</source><result number=""/></test>
+    <test><source>Félix</source><result number=""/></test>
+    <test><source>Tour Eiffel</source><result number="singular"/></test>
+    <test><source>Fête Nationale</source><result number="singular"/></test>
+    <test><source>République du Congo</source><result number="singular"/></test>
+    <test><source>livre sterling</source><result number="singular"/></test>
+    <test><source>Apple Watch</source><result number="singular"/></test>
+    <test><source>Apple TV</source><result number="singular"/></test>
+    <test><source>ma chambre</source><result number=""/></test>
+    <test><source>je</source><result number="singular"/></test>
+    <test><source>l</source><result number=""/></test>
+    <test><source>notInDicts</source><result number=""/></test>
+
+    <test><source>lumière</source><result gender="feminine"/></test>
+    <test><source>chambre</source><result gender="feminine"/></test>
+    <test><source>cuisine</source><result gender="feminine"/></test>
+    <test><source>table</source><result gender="feminine"/></test>
+    <test><source>salle à manger</source><result gender="feminine"/></test>
+    <test><source>ambiance cinéma</source><result gender="feminine"/></test>
+    <test><source>garage</source><result gender="masculine"/></test>
+    <test><source>bureau</source><result gender="masculine"/></test>
+    <test><source>salon</source><result gender="masculine"/></test>
+    <test><source>rez-de-chaussée</source><result gender="masculine"/></test>
+    <test><source>Rez de chaussée</source><result gender="masculine"/></test>
+    <test><source>Premier étage</source><result gender="masculine"/></test>
+    <test><source>chat</source><result gender="masculine"/></test>
+    <test><source>carton en bas du premier étage</source><result gender="masculine"/></test>
+    <test><source>belle</source><result gender="feminine"/></test>
+    <test><source>BELLE</source><result gender="feminine"/></test>
+    <test><source>dskhjgfage</source><result gender="masculine"/></test>
+    <test><source>dskhjgfe</source><result gender="feminine"/></test>
+    <test><source>dskhjgfin</source><result gender="masculine"/></test>
+    <test><source>dskhjgfn</source><result gender="feminine"/></test>
+    <test><source>dskhjgf</source><result gender="masculine"/></test>
+    <test><source>Apple Watch</source><result gender="feminine"/></test>
+    <test><source>Apple TV</source><result gender="feminine"/></test>
+    <test><source>café</source><result gender="masculine"/></test>
+    <test><source/><result gender=""/></test>
+
+    <test><source>chat</source><result definiteness=""/></test>
+    <test><source>le chat</source><result definiteness="definite"/></test>
+    <test><source>les chat</source><result definiteness="definite"/></test> <!-- Yes, it's not grammatically correct. -->
+    <test><source>les chats</source><result definiteness="definite"/></test>
+    <test><source>Les Chats</source><result definiteness="definite"/></test> <!-- title case -->
+    <test><source>LES CHATS</source><result definiteness="definite"/></test> <!-- Unusual letter casing -->
+    <test><source>l'homme</source><result definiteness="definite"/></test>
+    <test><source>l’homme</source><result definiteness="definite"/></test>
+    <test><source>du chat</source><result definiteness="definite"/></test>
+    <test><source>au chat</source><result definiteness="definite"/></test>
+    <test><source>un chat</source><result definiteness="indefinite"/></test>
+    <test><source>une chat</source><result definiteness="indefinite"/></test> <!-- Yes, it's not grammatically correct. -->
+    <test><source>chat</source><result definiteness=""/></test>
+    <test><source>a chat</source><result definiteness=""/></test>
+    <test><source>de chat</source><result definiteness=""/></test>
+    <test><source/><result definiteness=""/></test>
+
+    <test><source>qzxyzq</source><result defArticle=""/></test>
+    <test><source>chats</source><result defArticle="les "/></test>
+    <test><source>hindi</source><result defArticle="l’"/></test>
+    <test><source>radiant</source><result defArticle="le "/></test>
+    <test><source>nova</source><result defArticle="la "/></test>
+    <test><source>France</source><result defArticle="la "/></test>
+    <test><source>chambre de Ludovic</source><result defArticle="la "/></test>
+
+    <test><source definiteness="definite">Amsterdam</source><result>Amsterdam</result></test>
+    <test><source definiteness="definite">Paris Plages</source><result>Paris Plages</result></test>
+    <test><source definiteness="definite">Paris Plage</source><result>Paris Plage</result></test>
+    <test><source definiteness="definite">Roland Garros</source><result>Roland Garros</result></test>
+    <test><source definiteness="definite">Tour de France</source><result>le Tour de France</result></test>
+    <test><source definiteness="definite">24 heures du Mans</source><result>les 24 heures du Mans</result></test>
+    <test><source definiteness="definite">Francofolies</source><result>les Francofolies</result></test>
+    <test><source definiteness="definite">Grand prix de Monaco</source><result>le Grand prix de Monaco</result></test>
+    <test><source definiteness="definite">Fashion week</source><result>la Fashion week</result></test>
+    <test><source definiteness="definite">Hellfest</source><result>le Hellfest</result></test>
+    <test><source definiteness="definite">Japan Expo</source><result>la Japan Expo</result></test>
+    <test><source definiteness="definite">Vendée Globe</source><result>le Vendée Globe</result></test>
+    <test><source definiteness="definite">Solidays</source><result>les Solidays</result></test>
+    <test><source definiteness="definite">Eurockéennes de Belfort</source><result>les Eurockéennes de Belfort</result></test>
+    <test><source definiteness="definite">FIAC</source><result>la FIAC</result></test>
+    <test><source definiteness="definite">Royal de Luxe</source><result>le Royal de Luxe</result></test>
+    <test><source definiteness="definite">Tour Eiffel</source><result>la Tour Eiffel</result></test>
+    <test><source definiteness="definite">Télé</source><result>la Télé</result></test>
+    <test><source definiteness="definite">Salon</source><result>le Salon</result></test>
+    <test><source definiteness="definite">Lampe</source><result>la Lampe</result></test>
+    <test><source definiteness="definite">Lampadaire</source><result>le Lampadaire</result></test>
+    <test><source definiteness="definite">Ventilateur</source><result>le Ventilateur</result></test>
+    <test><source definiteness="definite">Cuisine</source><result>la Cuisine</result></test>
+    <test><source definiteness="definite">Chambre</source><result>la Chambre</result></test>
+    <test><source definiteness="definite">Bureau</source><result>le Bureau</result></test>
+    <test><source definiteness="definite">Portail</source><result>le Portail</result></test>
+    <test><source definiteness="definite">Canapé</source><result>le Canapé</result></test>
+    <test><source definiteness="definite">Plafond</source><result>le Plafond</result></test>
+    <test><source definiteness="definite">Table</source><result>la Table</result></test>
+    <test><source definiteness="definite">Télévision</source><result>la Télévision</result></test>
+    <test><source definiteness="definite">Prise</source><result>la Prise</result></test>
+    <test><source definiteness="definite">Chevet</source><result>le Chevet</result></test>
+    <test><source definiteness="definite">Volet</source><result>le Volet</result></test>
+    <test><source definiteness="definite">Clim</source><result>la Clim</result></test>
+    <test><source definiteness="definite">Lit</source><result>le Lit</result></test>
+    <test><source definiteness="definite">Entrée</source><result>l’Entrée</result></test>
+    <test><source definiteness="definite">Plafonnier</source><result>le Plafonnier</result></test>
+    <test><source definiteness="definite">Guirlande</source><result>la Guirlande</result></test>
+    <test><source definiteness="definite">Séjour</source><result>le Séjour</result></test>
+    <test><source definiteness="definite">Couloir</source><result>le Couloir</result></test>
+    <test><source definiteness="definite">Terrasse</source><result>la Terrasse</result></test>
+    <test><source definiteness="definite">Garage</source><result>le Garage</result></test>
+    <test><source definiteness="definite">Escalier</source><result>l’Escalier</result></test>
+    <test><source definiteness="definite">Toilettes</source><result>les Toilettes</result></test>
+    <test><source definiteness="definite">Dressing</source><result>le Dressing</result></test>
+    <test><source definiteness="definite">Piscine</source><result>la Piscine</result></test>
+    <test><source definiteness="definite">Apple TV</source><result>l’Apple TV</result></test>
+    <test><source definiteness="definite">Apple Watch</source><result>l’Apple Watch</result></test>
+
+    <test><source definiteness="definite">néerlandais</source><result>le néerlandais</result></test>
+    <test><source definiteness="definite">suédois</source><result>le suédois</result></test>
+
+
+    <test><source>cinéma</source><result withAPrepArticle="au cinéma"/></test>
+    <test><source>patinoire</source><result withAPrepArticle="à la patinoire"/></test>
+    <test><source>grands magasins</source><result withAPrepArticle="aux grands magasins"/></test>
+    <test><source>auditorium</source><result withAPrepArticle="à l’auditorium"/></test>
+    <test><source>Paris</source><result withAPrepArticle="à Paris"/></test>
+    <test><source>Le Caire</source><result withAPrepArticle="au Caire"/></test>
+    <test><source>Le Mans</source><result withAPrepArticle="au Mans"/></test>
+    <test><source>Les Enfoirés</source><result withAPrepArticle="aux Enfoirés"/></test>
+
+    <test><source>Pays-Bas</source><result withDePrepArticle="des Pays-Bas"/></test>
+    <test><source>Italie</source><result withDePrepArticle="de l’Italie"/></test>
+    <test><source>entrée</source><result withDePrepArticle="de l’entrée"/></test>
+    <test><source>AS Saint-Etienne</source><result withDePrepArticle="de l’AS Saint-Etienne"/></test>
+    <test><source>Japon</source><result withDePrepArticle="du Japon"/></test>
+    <test><source>salon</source><result withDePrepArticle="du salon"/></test>
+    <test><source>Moyen-Orient</source><result withDePrepArticle="du Moyen-Orient"/></test>
+    <test><source>Chine</source><result withDePrepArticle="de Chine"/></test>
+    <test><source>cuisine</source><result withDePrepArticle="de la cuisine"/></test>
+    <test><source>Tour Eiffel</source><result withDePrepArticle="de la Tour Eiffel"/></test>
+    <test><source>Amiens</source><result withDePrepArticle="d’Amiens"/></test>
+    <test><source>Ariana Grande</source><result withDePrepArticle="d’Ariana Grande"/></test>
+    <test><source>Paris</source><result withDePrepArticle="de Paris"/></test>
+    <test><source>Rihanna</source><result withDePrepArticle="de Rihanna"/></test>
+    <test><source>Paris Plages</source><result withDePrepArticle="de Paris Plages"/></test>
+    <test><source>Paris Plage</source><result withDePrepArticle="de Paris Plage"/></test>
+    <test><source>Roland Garros</source><result withDePrepArticle="de Roland Garros"/></test>
+    <test><source>Tour de France</source><result withDePrepArticle="du Tour de France"/></test>
+    <test><source>24 heures du Mans</source><result withDePrepArticle="des 24 heures du Mans"/></test>
+    <test><source>Francofolies</source><result withDePrepArticle="des Francofolies"/></test>
+    <test><source>Grand prix de Monaco</source><result withDePrepArticle="du Grand prix de Monaco"/></test>
+    <test><source>Fashion week</source><result withDePrepArticle="de la Fashion week"/></test>
+    <test><source>Hellfest</source><result withDePrepArticle="du Hellfest"/></test>
+    <test><source>Japan Expo</source><result withDePrepArticle="de la Japan Expo"/></test>
+    <test><source>Vendée Globe</source><result withDePrepArticle="du Vendée Globe"/></test>
+    <test><source>Solidays</source><result withDePrepArticle="des Solidays"/></test>
+    <test><source>Eurockéennes de Belfort</source><result withDePrepArticle="des Eurockéennes de Belfort"/></test>
+    <test><source>FIAC</source><result withDePrepArticle="de la FIAC"/></test>
+    <test><source>Royal de Luxe</source><result withDePrepArticle="du Royal de Luxe"/></test>
+    <test><source>Le Mans</source><result withDePrepArticle="du Mans"/></test>
+    <test><source>Le Caire</source><result withDePrepArticle="du Caire"/></test>
+    <test><source>Les Enfoirés</source><result withDePrepArticle="des Enfoirés"/></test>
+    <test><source>Télé</source><result withDePrepArticle="de la Télé"/></test>
+    <test><source>Salon</source><result withDePrepArticle="du Salon"/></test>
+    <test><source>Lampe</source><result withDePrepArticle="de la Lampe"/></test>
+    <test><source>Lampadaire</source><result withDePrepArticle="du Lampadaire"/></test>
+    <test><source>Ventilateur</source><result withDePrepArticle="du Ventilateur"/></test>
+    <test><source>Cuisine</source><result withDePrepArticle="de la Cuisine"/></test>
+    <test><source>Chambre</source><result withDePrepArticle="de la Chambre"/></test>
+    <test><source>Bureau</source><result withDePrepArticle="du Bureau"/></test>
+    <test><source>Portail</source><result withDePrepArticle="du Portail"/></test>
+    <test><source>Canapé</source><result withDePrepArticle="du Canapé"/></test>
+    <test><source>Plafond</source><result withDePrepArticle="du Plafond"/></test>
+    <test><source>Table</source><result withDePrepArticle="de la Table"/></test>
+    <test><source>Télévision</source><result withDePrepArticle="de la Télévision"/></test>
+    <test><source>Prise</source><result withDePrepArticle="de la Prise"/></test>
+    <test><source>Chevet</source><result withDePrepArticle="du Chevet"/></test>
+    <test><source>Volet</source><result withDePrepArticle="du Volet"/></test>
+    <test><source>Clim</source><result withDePrepArticle="de la Clim"/></test>
+    <test><source>Lit</source><result withDePrepArticle="du Lit"/></test>
+    <test><source>Entrée</source><result withDePrepArticle="de l’Entrée"/></test>
+    <test><source>Plafonnier</source><result withDePrepArticle="du Plafonnier"/></test>
+    <test><source>Guirlande</source><result withDePrepArticle="de la Guirlande"/></test>
+    <test><source>Séjour</source><result withDePrepArticle="du Séjour"/></test>
+    <test><source>Couloir</source><result withDePrepArticle="du Couloir"/></test>
+    <test><source>Terrasse</source><result withDePrepArticle="de la Terrasse"/></test>
+    <test><source>Garage</source><result withDePrepArticle="du Garage"/></test>
+    <test><source>Escalier</source><result withDePrepArticle="de l’Escalier"/></test>
+    <test><source>Toilettes</source><result withDePrepArticle="des Toilettes"/></test>
+    <test><source>Dressing</source><result withDePrepArticle="du Dressing"/></test>
+    <test><source>Piscine</source><result withDePrepArticle="de la Piscine"/></test>
+    <test><source>le</source><result withDePrepArticle="du"/></test>
+    <test><source>les</source><result withDePrepArticle="des"/></test>
+    <test><source>hôtel</source><result withDePrepArticle="de l’hôtel"/></test>
+    <test><source>Hôtel</source><result withDePrepArticle="de l’Hôtel"/></test>
+    <test><source>hôpital</source><result withDePrepArticle="de l’hôpital"/></test>
+    <test><source>Hôpital</source><result withDePrepArticle="de l’Hôpital"/></test>
+    <test><source>HomePod</source><result withDePrepArticle="du HomePod"/></test>
+
+    <test><source>téléphone</source><result genitiveArticle="de "/></test>
+    <test><source>téléphone portable</source><result genitiveArticle="de "/></test>
+    <test><source>téléphones</source><result genitiveArticle="des "/></test>
+    <test><source>machine</source><result genitiveArticle="de la "/></test>
+    <test><source>appareil</source><result genitiveArticle="de l’"/></test>
+
+    <test><source>téléphone</source><result withGenitiveArticle="de téléphone"/></test>
+    <test><source>téléphone portable</source><result withGenitiveArticle="de téléphone portable"/></test>
+    <test><source>fax professionnel</source><result withGenitiveArticle="de fax professionnel"/></test>
+    <test><source>téléphones</source><result withGenitiveArticle="des téléphones"/></test>
+    <test><source>machine</source><result withGenitiveArticle="de la machine"/></test>
+    <test><source>appareil</source><result withGenitiveArticle="de l’appareil"/></test>
+    <test><source>téléphone personnel</source><result withGenitiveArticle="de téléphone personnel"/></test>
+    <test><source>téléphone principal</source><result withGenitiveArticle="de téléphone principal"/></test>
+    <test><source>fax personnel</source><result withGenitiveArticle="de fax personnel"/></test>
+    <test><source>pager</source><result withGenitiveArticle="de pager"/></test>
+    <test><source>téléphone sans label</source><result withGenitiveArticle="de téléphone sans label"/></test>
+
+    <test><source>téléphone</source><result demonArticle="ce"/></test>
+    <test><source>village</source><result demonArticle="ce"/></test>
+    <test><source>montre</source><result demonArticle="cette"/></test>
+    <test><source>image</source><result demonArticle="cette"/></test>
+    <test><source>appareil</source><result demonArticle="cet"/></test>
+    <test><source>ordinateurs</source><result demonArticle="ces"/></test>
+    <test><source>QQQQQQQQ</source><result demonArticle="ce"/></test>
+
+    <test><source>téléphone</source><result withDemonArticle="ce téléphone"/></test>
+    <test><source>village</source><result withDemonArticle="ce village"/></test>
+    <test><source>montre</source><result withDemonArticle="cette montre"/></test>
+    <test><source>image</source><result withDemonArticle="cette image"/></test>
+    <test><source>appareil</source><result withDemonArticle="cet appareil"/></test>
+    <test><source>ordinateurs</source><result withDemonArticle="ces ordinateurs"/></test>
+    <test><source>QQQQQQQQ</source><result withDemonArticle="ce QQQQQQQQ"/></test>
+    <test><source>Apple TV</source><result withDemonArticle="cette Apple TV"/></test>
+    <test><source>Apple Watch</source><result withDemonArticle="cette Apple Watch"/></test>
+
+    <test><source>appartement</source><result withDePrep="d’appartement"/></test>
+    <test><source>qzxyzq</source><result withDePrep="de qzxyzq"/></test>
+    <test><source>maison</source><result withDePrep="de maison"/></test>
+    <test><source>Hollande</source><result withDePrep="de Hollande"/></test>
+
+    <test><source>Line</source><result que="que "/></test>
+    <test><source>Emilie</source><result que="qu’"/></test>
+
+    <test><source number="plural">ami</source><result>amis</result></test>
+    <test><source number="plural">amis</source><result>amis</result></test>
+    <test><source number="singular">carnavals</source><result>carnaval</result></test>
+    <test><source number="singular">ami</source><result>ami</result></test>
+    <test><source number="plural">abckk</source><result>abckks</result></test>
+    <test><source number="plural">abckkeu</source><result>abckkeux</result></test>
+    <test><source number="plural">abckkeau</source><result>abckkeaux</result></test>
+    <test><source number="plural">abckkx</source><result>abckkx</result></test>
+    <test><source number="plural">abckks</source><result>abckks</result></test>
+    <test><source number="plural">abckkz</source><result>abckkz</result></test>
+    <test><source number="plural">abckkal</source><result>abckkaux</result></test>
+    <test><source number="plural">abckkail</source><result>abckkaux</result></test>
+    <test><source number="singular">abckk</source><result>abckk</result></test>
+    <test><source number="plural">amical</source><result>amicaux</result></test>
+    <test><source number="plural">lieu</source><result>lieux</result></test>
+    <test><source number="plural">acajou</source><result>acajous</result></test>
+    <test><source number="plural">sas</source><result>sas</result></test>
+    <test><source number="plural">gaz</source><result>gaz</result></test>
+    <test><source number="plural">relax</source><result>relax</result></test>
+    <test><source number="plural">ciel</source><result>ciels</result></test>
+    <test><source number="plural">œil</source><result>yeux</result></test>
+    <test><source number="singular">yeux</source><result>œil</result></test>
+    <test><source number="plural">travail</source><result>travaux</result></test>
+    <test><source number="plural">aval</source><result>avals</result></test>
+    <test><source number="plural">bal</source><result>bals</result></test>
+    <test><source number="plural">carnaval</source><result>carnavals</result></test>
+    <test><source number="plural">chacal</source><result>chacals</result></test>
+    <test><source number="plural">corral</source><result>corrals</result></test>
+    <test><source number="plural">festival</source><result>festivals</result></test>
+    <test><source number="plural">récital</source><result>récitals</result></test>
+    <test><source number="plural">régal</source><result>régals</result></test>
+    <test><source number="plural">bijou</source><result>bijoux</result></test>
+    <test><source number="plural">caillou</source><result>cailloux</result></test>
+    <test><source number="plural">chou</source><result>choux</result></test>
+    <test><source number="plural">genou</source><result>genoux</result></test>
+    <test><source number="plural">hibou</source><result>hiboux</result></test>
+    <test><source number="plural">joujou</source><result>joujoux</result></test>
+    <test><source number="plural">pou</source><result>poux</result></test>
+    <test><source number="plural">bleu</source><result>bleus</result></test>
+    <test><source number="plural">émeu</source><result>émeus</result></test>
+    <test><source number="plural">pneu</source><result>pneus</result></test>
+    <test><source number="plural">landau</source><result>landaus</result></test>
+    <test><source number="plural">sarrau</source><result>sarraus</result></test>
+    <test><source number="plural">pour</source><result>pour</result></test>
+    <test><source number="plural">dans</source><result>dans</result></test>
+    <test><source number="plural">en</source><result>en</result></test>
+    <test><source number="plural">avec</source><result>avec</result></test>
+
+    <test><source number="plural">Torche électrique</source><result>Torches électriques</result></test>
+    <test><source number="plural">clinique d'avortement privée</source><result>cliniques d'avortement privées</result></test>
+    <test><source number="plural">boutique d'objets de collection</source><result>boutiques d'objets de collection</result></test>
+    <test><source number="plural">centre de désintoxication</source><result>centres de désintoxication</result></test>
+    <test><source number="plural">enfouissement des déchets</source><result>enfouissements des déchets</result></test>
+    <test><source number="plural">service de gestion du plomb</source><result>services de gestion du plomb</result></test>
+    <test><source number="plural">service des lacs et voies d'eau</source><result>services des lacs et voies d'eau</result></test>
+    <test><source number="plural">service d'aide en cas de faillite</source><result>services d'aide en cas de faillite</result></test>
+    <test><source number="plural">société de cartes de crédit d'entreprise</source><result>sociétés de cartes de crédit d'entreprise</result></test>
+    <test><source number="plural">entreprise de financement de l'investissement</source><result>entreprises de financement de l'investissements</result></test>
+    <test><source number="plural">service en ligne</source><result>services en ligne</result></test>
+    <test><source number="plural">créé</source><result>créés</result></test>
+    <test><source number="plural">modifié</source><result>modifiés</result></test>
+    <test><source number="plural">déplacée</source><result>déplacées</result></test>
+    <test><source number="plural">iMessage</source><result>iMessages</result></test>
+    <test><source number="plural">photo</source><result>photos</result></test>
+    <test><source number="plural">hôtel</source><result>hôtels</result></test>
+    <test><source number="plural">restaurant</source><result>restaurants</result></test>
+    <test><source number="plural">japonais</source><result>japonais</result></test>
+    <test><source number="plural">japonaise</source><result>japonaises</result></test>
+    <test><source number="plural">biographique</source><result>biographiques</result></test>
+    <test><source number="plural">musical</source><result>musicaux</result></test>
+    <test><source number="plural">musicale</source><result>musicales</result></test>
+    <test><source number="plural">comédie familiale</source><result>comédies familiales</result></test>
+    <test><source number="plural">pour adolescents</source><result>pour adolescents</result></test>
+    <test><source number="plural">d'action</source><result>d'action</result></test>
+    <test><source number="plural">pour la famille</source><result>pour les familles</result></test>
+    <test><source number="plural">film d’action</source><result>films d’action</result></test>
+    <test><source definiteness="indefinite">table</source><result>une table</result></test>
+    <test><source definiteness="indefinite">salon</source><result>un salon</result></test>
+    <test><source number="singular" definiteness="indefinite">yeux</source><result>un œil</result></test>
+    <test><source number="plural" definiteness="definite">ciel</source><result>les ciels</result></test>
+    <test><source number="plural" definiteness="definite">œil</source><result>les yeux</result></test>
+    <test><source number="singular" definiteness="definite">yeux</source><result>l’œil</result></test>
+    <test><source definiteness="definite">surplus</source><result>le surplus</result></test> <!-- ambiguous, but invariant -->
+    <test><source number="plural" definiteness="definite">surplus</source><result>les surplus</result></test> <!-- no ambiguity -->
+    <test><source definiteness="definite">spiritueux</source><result>le spiritueux</result></test> <!-- ambiguous, but invariant as masculine -->
+    <test><source definiteness="definite">spiritueuse</source><result>la spiritueuse</result></test> <!-- not ambiguous as feminine, but part of a pattern that could be considered invariant -->
+    <test><source definiteness="definite">spiritueuses</source><result>les spiritueuses</result></test> <!-- not ambiguous as feminine, but part of a pattern that could be considered invariant -->
+    <test><source definiteness="definite">le Havre</source><result>le Havre</result></test> <!-- Already definite -->
+    <test><source definiteness="definite">Le Havre</source><result>Le Havre</result></test> <!-- Already definite -->
+    <test><source definiteness="definite">Havre</source><result>le Havre</result></test>
+
+    <!--    Able to inflect to masculine using dictionary-->
+    <test><source gender="masculine">bienvenu</source><result exists="true"/></test>
+    <!--    Able to inflect to feminine using dictionary-->
+    <test><source gender="feminine">bienvenu</source><result exists="true"/></test>
+    <!--    Not able to inflect to masculine using dictionary-->
+    <test><source gender="masculine">lâcheté</source><result exists="false"/></test>
+    <!--    Not able to inflect since word not in dictionary-->
+    <test><source gender="feminine">qwyxor</source><result exists="false"/></test>
+    <!--    Known and unknown word do not work-->
+    <test><source number="plural">bienvenu qwyxor</source><result exists="false"/></test>
+    <!--    Able to inflect verbs in French(will mostly get wrong answer except of past participles)-->
+    <test><source number="plural">légalisât pardonnât</source><result exists="true"/></test>
+    <!--    Able to inflect unknown words to definite-->
+    <test><source definiteness="definite">acadabra</source><result exists="true"/></test>
+    <!--    Unknown words definite inflection works but number inflect fails-->
+    <test><source definiteness="definite" number="plural">acadabra</source><result exists="false"/></test>
+    <!--    Past particples work-->
+    <test><source gender="feminine">stressé</source><result exists="true"/></test>
+    <!--    Adverbs work as well-->
+    <test><source gender="feminine">très grand</source><result exists="true"/></test>
+
+
+    <!-- Testing lemmaless/gender inflection -->
+    <test><source gender="masculine" number="plural">bienvenu</source><result exists="true">bienvenus</result></test>
+    <test><source gender="feminine" number="singular">bienvenu</source><result exists="true">bienvenue</result></test>
+    <test><source gender="feminine" number="plural">bienvenu</source><result exists="true">bienvenues</result></test>
+
+    <test><source gender="masculine" number="singular">bienvenue</source><result exists="true">bienvenu</result></test>
+    <test><source gender="masculine" number="plural">bienvenue</source><result exists="true">bienvenus</result></test>
+    <test><source gender="feminine" number="plural">bienvenue</source><result exists="true">bienvenues</result></test>
+
+    <test><source gender="feminine" number="singular">BIENVENU</source><result exists="true">BIENVENUE</result></test>
+
+    <!--    Incorrect feminine inflection of "informé/informée")-->
+    <test><source gender="feminine">informé</source><result exists="true">informée</result></test>
+     <test><source gender="feminine">Vous serez informé</source><result>Vous serez informée</result></test>
+
+    <!--    Incorrect feminine inflection for "Prêt/Prête")-->
+    <test><source gender="feminine">prêt</source><result exists="true">prête</result></test>
+    <test><source gender="feminine">vous serez prêt</source><result>vous serez prête</result></test>
+
+    <!--    Incorrect feminine inflection of "mentionné/mentionnée")-->
+    <test><source gender="masculine">mentionné</source><result exists="true">mentionné</result></test>
+    <test><source gender="feminine">mentionné</source><result exists="true">mentionnée</result></test>
+
+     <test><source gender="masculine">été mentionné</source><result>été mentionné</result></test>
+    <test><source gender="feminine">été mentionné</source><result>été mentionnée</result></test>
+
+    <!--    Incorrect feminine inflection for "réveillé/réveillée" + expected symbol X in masculine form)-->
+    <test><source gender="masculine">réveillé</source><result exists="true">réveillé</result></test>
+    <test><source gender="feminine">réveillé</source><result exists="true">réveillée</result></test>
+
+    <test><source gender="masculine">Une</source><result exists="true">Un</result></test>
+    <test><source gender="feminine">Une</source><result exists="true">Une</result></test>
+
+    <test><source gender="masculine">Une fois que vous êtes réveillé</source><result>Un fois que vous êtes réveillé</result></test>
+    <test><source gender="feminine">Une fois que vous êtes réveillé</source><result>Une fois que vous êtes réveillée</result></test>
+
+    <!--    Incorrect feminine inflection for "stressé/stressée")-->
+    <test><source gender="masculine">excité</source><result exists="true">excité</result></test>
+    <test><source gender="feminine">excité</source><result exists="true">excitée</result></test>
+
+    <test><source gender="masculine">nerveux</source><result exists="true">nerveux</result></test>
+    <test><source gender="feminine">nerveux</source><result exists="true">nerveuse</result></test>
+
+    <test><source gender="masculine">stressé</source><result exists="true">stressé</result></test>
+    <test><source gender="feminine">stressé</source><result exists="true">stressée</result></test>
+
+    <test><source gender="masculine">excité, nerveux ou stressé</source><result>excité, nerveux ou stressé</result></test>
+    <test><source gender="feminine">excité, nerveux ou stressé</source><result>excitée, nerveuse ou stressée</result></test>
+
+    <!--    Incorrect feminine inflexion of the past participle "resté")-->
+    <test><source gender="masculine">resté inactif</source><result exists="true">resté inactif</result></test>
+    <test><source gender="feminine">resté inactif</source><result exists="true">restée inactive</result></test>
+
+    <test><source gender="masculine">êtes resté inactif</source><result>êtes resté inactif</result></test>
+    <test><source gender="feminine">êtes resté inactif</source><result>êtes restée inactive</result></test>
+
+    <!--    Incorrect feminine inflexion for "actif/active")-->
+    <test><source gender="masculine">actif</source><result exists="true">actif</result></test>
+    <test><source gender="feminine">actif</source><result exists="true">active</result></test>
+
+    <!--    the adjective "déshydraté" does not inflect into the feminine form)-->
+    <test><source gender="masculine">déshydraté</source><result exists="true">déshydraté</result></test>
+    <test><source gender="feminine">déshydraté</source><result exists="true">déshydratée</result></test>
+
+    <!--    definite article does not inflect into the feminine form)-->
+    <test><source gender="masculine">le délégué</source><result exists="true">le délégué</result></test>
+    <test><source gender="feminine">le délégué</source><result exists="true">la déléguée</result></test>
+
+    <!--    Noun "Organisateur" does not inflect in the feminine form)-->
+    <test><source gender="masculine">organisateur</source><result exists="true">organisateur</result></test>
+    <test><source gender="feminine">organisateur</source><result exists="true">organisatrice</result></test>
+
+    <test><source gender="masculine">l’organisateur</source><result>l’organisateur</result></test>
+    <test><source gender="feminine">l’organisateur</source><result>l’organisatrice</result></test>
+
+    <!--    French verb inflection examples-->
+    <test><source number="plural">crée</source><result exists="true">créent</result></test>
+    <test><source number="plural" pos="verb">est</source><result exists="true">sont</result></test>
+
+    <!--    French adverb + adjective examples-->
+    <test><source gender="feminine">très grand</source><result exists="true">très grande</result></test>
+
+    <test><source gender="masculine" number="plural">mien</source><result>miens</result></test>
+    <test><source gender="feminine" number="plural">mien</source><result>miennes</result></test>
+    <test><source gender="masculine" number="plural">mienne</source><result>miens</result></test>
+    <test><source gender="feminine" number="plural">mienne</source><result>miennes</result></test>
+
+    <test><source gender="masculine">quel</source><result>quel</result></test>
+    <test><source gender="feminine">quel</source><result>quelle</result></test>
+    <test><source gender="masculine" number="plural">quel</source><result>quels</result></test>
+    <test><source gender="feminine" number="plural">quel</source><result>quelles</result></test>
+
+    <test><source gender="masculine">tout</source><result>tout</result></test>
+    <test><source gender="feminine">tout</source><result>toute</result></test>
+    <test><source gender="masculine" number="plural" pos="adjective">tout</source><result>tous</result></test>
+    <test><source gender="feminine" number="plural">tout</source><result>toutes</result></test>
+</inflectionTest>

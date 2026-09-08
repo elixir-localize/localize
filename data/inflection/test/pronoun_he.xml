@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="he">
+    <!-- Simple inflection -->
+    <test><source/><result>הוא</result></test>
+    <test><source person="first"/><result>אני</result></test>
+    <test><source number="plural"/><result>הם</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="first" case="genitive"/><result>י</result></test>
+    <test><source person="first" number="plural"/><result>אנחנו</result></test>
+    <test><source person="second"/><result>אתה</result></test>
+    <test><source person="second" number="plural"/><result>אתם</result></test>
+    <test><source person="third"/><result>הוא</result></test> <!-- You didn't specify a gender. So you get something generic in the third person. -->
+
+    <test><source person="third" number="singular" case="nominative" gender="masculine"/><result>הוא</result></test>
+    <test><source person="third" number="singular" case="nominative" gender="feminine"/><result>היא</result></test>
+    <test><source person="third" number="plural" case="nominative" gender="masculine"/><result>הם</result></test>
+    <test><source person="third" number="plural" case="nominative" gender="feminine"/><result>הן</result></test>
+    <test><source person="second" number="singular" case="nominative" gender="masculine"/><result>אתה</result></test>
+    <test><source person="second" number="singular" case="nominative" gender="feminine"/><result>את</result></test>
+    <test><source person="second" number="plural" case="nominative" gender="masculine"/><result>אתם</result></test>
+    <test><source person="second" number="plural" case="nominative" gender="feminine"/><result>אתן</result></test>
+    <test><source person="first" number="singular" case="nominative"/><result>אני</result></test>
+    <test><source person="first" number="plural" case="nominative"/><result>אנחנו</result></test>
+    <test><source person="third" number="singular" case="genitive" gender="masculine"/><result>ו</result></test>
+    <test><source person="third" number="singular" case="genitive" gender="feminine"/><result>ה</result></test>
+    <test><source person="third" number="plural" case="genitive" gender="masculine"/><result>ם</result></test>
+    <test><source person="third" number="plural" case="genitive" gender="feminine"/><result>ן</result></test>
+    <test><source person="second" number="singular" case="genitive"/><result>ך</result></test>
+    <test><source person="second" number="singular" case="genitive" gender="masculine"/><result>ךְ</result></test>
+    <test><source person="second" number="singular" case="genitive" gender="feminine"/><result>ךָ</result></test>
+    <test><source person="second" number="plural" case="genitive" gender="masculine"/><result>כם</result></test>
+    <test><source person="second" number="plural" case="genitive" gender="feminine"/><result>כן</result></test>
+    <test><source person="first" number="singular" case="genitive"/><result>י</result></test>
+    <test><source person="first" number="plural" case="genitive"/><result>נו</result></test>
+    <test><source person="second" number="singular" pronounType="reflexive"/><result>עצמך</result></test>
+    <test><source person="second" number="singular" pronounType="reflexive" gender="masculine"/><result>עצמךְ</result></test>
+    <test><source person="second" number="singular" pronounType="reflexive" gender="feminine"/><result>עצמךָ</result></test>
+
+    <!-- reinflection -->
+    <test><source person="third">אני</source><result gender="masculine">הוא</result></test>
+    <test><source person="second">אני</source><result gender="masculine">אתה</result></test>
+    <test><source person="second">הוא</source><result gender="masculine">אתה</result></test>
+    <test><source person="second">היא</source><result gender="feminine">את</result></test>
+    <test><source case="genitive">אני</source><result>י</result></test>
+    <test><source gender="masculine">ך</source><result>ךְ</result></test>
+    <test><source gender="masculine">ךְ</source><result>ךְ</result></test>
+    <test><source gender="masculine">ךָ</source><result>ךְ</result></test>
+    <test><source gender="feminine">ךְ</source><result>ךָ</result></test>
+</inflectionTest>

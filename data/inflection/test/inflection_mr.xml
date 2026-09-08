@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2026 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="mr">
+    <!-- Number Lookup Tests -->
+    <test><source>पुस्तक</source><result number="singular"/></test>
+    <test><source>पुस्तके</source><result number="plural"/></test>
+    <test><source>मिनिट</source><result number="singular"/></test>
+    <!-- FIXME: <test><source>मिनिटं</source><result number="plural"/></test> -->
+    <test><source>घर</source><result number="singular"/></test>
+    <!-- FIXME: <test><source>घरं</source><result number="plural"/></test> -->
+    <test><source>गाडी</source><result number="singular"/></test>
+    <test><source>गाड्या</source><result number="plural"/></test>
+    <test><source>मुलगा</source><result number="singular"/></test>
+    <test><source>मुलगी</source><result number="singular"/></test>
+
+    <!-- Gender Lookup Tests -->
+    <test><source>पुस्तक</source><result gender="neuter"/></test>
+    <test><source>मिनिट</source><result gender="neuter"/></test>
+    <test><source>घर</source><result gender="neuter"/></test>
+    <test><source>तास</source><result gender="masculine"/></test>
+    <test><source>दिवस</source><result gender="masculine"/></test>
+    <test><source>मुलगा</source><result gender="masculine"/></test>
+    <test><source>गाडी</source><result gender="feminine"/></test>
+    <test><source>मुलगी</source><result gender="feminine"/></test>
+    <test><source>वेळ</source><result gender="feminine"/></test>
+
+    <!-- Identity Inflection Tests -->
+    <test><source number="singular">पुस्तक</source><result>पुस्तक</result></test>
+    <test><source number="singular">मिनिट</source><result>मिनिट</result></test>
+    <test><source number="plural">पुस्तके</source><result>पुस्तके</result></test>
+
+    <!-- Singular to Plural Inflection -->
+    <!-- FIXME: <test><source number="plural">पुस्तक</source><result>पुस्तके</result></test> -->
+    <!-- FIXME: <test><source number="plural">मिनिट</source><result>मिनिटं</result></test> -->
+    <!-- FIXME: <test><source number="plural">घर</source><result>घरं</result></test> -->
+    <test><source number="plural">गाडी</source><result>गाड्या</result></test>
+    <test><source number="plural">मुलगा</source><result>मुले</result></test>
+    <test><source number="plural">मुलगी</source><result>मुली</result></test>
+    <test><source number="plural">वेळ</source><result>वेळा</result></test>
+
+    <!-- Plural to Singular Inflection -->
+    <test><source number="singular">पुस्तके</source><result>पुस्तक</result></test>
+    <!-- FIXME: <test><source number="singular">घरं</source><result>घर</result></test> -->
+    <test><source number="singular">गाड्या</source><result>गाडी</result></test>
+    <test><source number="singular">मुली</source><result>मुलगी</result></test>
+    <test><source number="singular">वेळा</source><result>वेळ</result></test>
+
+    <!-- Adjective Gender Inflection -->
+    <test><source gender="masculine">नवा</source><result>नवा</result></test>
+    <test><source gender="feminine">नवा</source><result>नवी</result></test>
+    <!-- FIXME: <test><source gender="neuter">नवा</source><result>नवं</result></test> -->
+    <test><source gender="masculine">मोठा</source><result>मोठा</result></test>
+    <test><source gender="feminine">मोठा</source><result>मोठी</result></test>
+    <!-- FIXME: <test><source gender="neuter">मोठा</source><result>मोठं</result></test> -->
+    <test><source gender="masculine">चांगला</source><result>चांगला</result></test>
+    <test><source gender="feminine">चांगला</source><result>चांगली</result></test>
+    <!-- FIXME: <test><source gender="neuter">चांगला</source><result>चांगलं</result></test> -->
+
+    <!-- Adjective Oblique Case -->
+    <test><source case="oblique">नवा</source><result>नव्या</result></test>
+    <test><source case="oblique">मोठा</source><result>मोठ्या</result></test>
+    <test><source case="oblique">चांगला</source><result>चांगल्या</result></test>
+
+    <!-- Adjective Direct Case (identity) -->
+    <test><source case="direct">नवा</source><result>नवा</result></test>
+    <test><source case="direct">मोठा</source><result>मोठा</result></test>
+
+    <!-- Adjective Gender + Plural -->
+    <test><source gender="masculine" number="plural">नवा</source><result>नवी</result></test>
+    <test><source gender="feminine" number="plural">नवा</source><result>नव्या</result></test>
+    <test><source gender="neuter" number="plural">नवा</source><result>नवी</result></test>
+
+    <!-- Latin Script Words -->
+    <test><source number="singular">apples</source><result>apples</result></test>
+    <test><source number="plural">apple</source><result>apple</result></test>
+
+</inflectionTest>

@@ -1,0 +1,231 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2021-2026 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="es">
+    <test><source>farola</source><result number="singular"/></test>
+    <test><source>café</source><result number="singular"/></test>
+    <test><source>camión</source><result number="singular"/></test>
+    <test><source>móvil</source><result number="singular"/></test>
+    <test><source>hábitat</source><result number="singular"/></test>
+    <test><source>capataz</source><result number="singular"/></test>
+    <test><source>anís</source><result number="singular"/></test>
+    <test><source>compás</source><result number="singular"/></test>
+    <test><source>lápiz</source><result number="singular"/></test>
+    <test><source>clubes</source><result number="plural"/></test>
+    <test><source>papás</source><result number="plural"/></test>
+    <test><source>ítems</source><result number="plural"/></test>
+    <test><source>luces</source><result number="plural"/></test>
+    <test><source>déficits</source><result number="plural"/></test>
+
+    <test><source>universidad</source><result gender="feminine"/></test>
+    <test><source>nariz</source><result gender="feminine"/></test>
+    <test><source>televisión</source><result gender="feminine"/></test>
+    <test><source>crisis</source><result gender="feminine"/></test>
+    <test><source>superficie</source><result gender="feminine"/></test>
+    <test><source>costumbre</source><result gender="feminine"/></test>
+    <test><source>acciones</source><result gender="feminine"/></test>
+    <test><source>papel</source><result gender="masculine"/></test>
+    <test><source>pan</source><result gender="masculine"/></test>
+    <test><source>lunes</source><result gender="masculine"/></test>
+    <test><source>clima</source><result gender="masculine"/></test>
+    <test><source>planeta</source><result gender="masculine"/></test>
+    <test><source>Luz</source><result gender="feminine"/></test>
+    <!-- Inflection returns masculine for the Spanish verb "es"-->
+    <test><source>es</source><result gender=""/></test>
+
+    <!-- These are unknown words -->
+    <test><source>qwzqwza</source><result gender="feminine"/></test>
+    <test><source>qwzqwzo</source><result gender="masculine"/></test>
+    <test><source>qwzqwzas</source><result gender="feminine"/></test>
+    <test><source>qwzqwzos</source><result gender="masculine"/></test>
+
+    <test><source>gato</source><result definiteness=""/></test>
+    <test><source>el gato</source><result definiteness="definite"/></test>
+    <test><source>los gato</source><result definiteness="definite"/></test> <!-- Yes, it's not grammatically correct. -->
+    <test><source>los gatos</source><result definiteness="definite"/></test>
+    <test><source>Los Gatos</source><result definiteness="definite"/></test> <!-- This is a city name -->
+    <test><source>LOS GATOS</source><result definiteness="definite"/></test> <!-- Unusual letter casing -->
+    <test><source>del gato</source><result definiteness="definite"/></test>
+    <test><source>al gato</source><result definiteness="definite"/></test>
+    <test><source>un gato</source><result definiteness="indefinite"/></test>
+    <test><source>uno gato</source><result definiteness=""/></test> <!-- This is a number and not an indefinite article. It's not un either. -->
+    <test><source>una gata</source><result definiteness="indefinite"/></test>
+    <test><source>a gato</source><result definiteness=""/></test>
+    <test><source/><result definiteness=""/></test>
+
+    <test><source>qzxyzq</source><result defArticle="el"/></test>
+    <test><source>gato</source><result defArticle="el"/></test>
+    <test><source>gata</source><result defArticle="la"/></test>
+    <test><source>gatos</source><result defArticle="los"/></test>
+    <test><source>gatas</source><result defArticle="las"/></test>
+    <test><source>cuarto de Victoria</source><result defArticle="el"/></test>
+    <test><source>Habitación de Victor</source><result defArticle="la"/></test>
+
+    <test><source>sensor de temperatura</source><result indefArticle="un"/></test>
+    <test><source>alarma de incendios</source><result indefArticle="una"/></test>
+    <test><source>sensores de humedad</source><result indefArticle="unos"/></test>
+    <test><source>llaves de agua</source><result indefArticle="unas"/></test>
+
+    <test><source>real madrid</source><result dePrepArticle="del"/></test>
+    <test><source>pantalla para la Mac</source><result dePrepArticle="de la"/></test>
+
+    <test><source>barco</source><result>barco</result></test>
+    <test><source>pan</source><result>pan</result></test>
+    <test><source>línea aérea</source><result>línea aérea</result></test>
+    <test><source>paraguas</source><result>paraguas</result></test>
+    <test><source>paracaídas</source><result>paracaídas</result></test>
+    <test><source>precio histórico</source><result>precio histórico</result></test>
+    <test><source>cambio porcentual en tiempo real</source><result>cambio porcentual en tiempo real</result></test>
+    <test><source>cambio de porcentaje</source><result>cambio de porcentaje</result></test>
+    <test><source>fax</source><result>fax</result></test>
+    <test><source number="singular">barco</source><result>barco</result></test>
+    <test><source number="singular">pan</source><result>pan</result></test>
+    <test><source number="singular">línea aérea</source><result>línea aérea</result></test>
+    <test><source number="singular">paraguas</source><result>paraguas</result></test>
+    <test><source number="singular">paracaídas</source><result>paracaídas</result></test>
+    <test><source number="singular">precio histórico</source><result>precio histórico</result></test>
+    <test><source number="singular">cambio porcentual en tiempo real</source><result>cambio porcentual en tiempo real</result></test>
+    <test><source number="singular">cambio de porcentaje</source><result>cambio de porcentaje</result></test>
+    <test><source number="singular">fax</source><result>fax</result></test>
+    <test><source number="plural">barco</source><result>barcos</result></test>
+    <test><source number="plural">pan</source><result>panes</result></test>
+    <test><source number="plural">paraguas</source><result>paraguas</result></test>
+    <test><source number="plural">paracaídas</source><result>paracaídas</result></test>
+    <test><source number="plural">precio histórico</source><result>precios históricos</result></test>
+    <test><source number="plural">cambio porcentual en tiempo real</source><result>cambios porcentuales en tiempo real</result></test>
+    <test><source number="plural">cambio de porcentaje</source><result>cambios de porcentaje</result></test>
+    <test><source number="plural">fax</source><result>faxes</result></test>
+    <test><source number="plural">hotel</source><result>hoteles</result></test>
+    <test><source number="plural">qwyxor</source><result>qwyxores</result></test>
+    <test><source number="plural">qwyxoz</source><result>qwyxoces</result></test>
+    <test><source number="plural">qwyxión</source><result>qwyxiones</result></test>
+    <test><source number="plural">qwyxoc</source><result>qwyxoques</result></test>
+    <test><source number="plural">qwyxog</source><result>qwyxogues</result></test>
+    <test><source number="plural">avión</source><result>aviones</result></test>
+    <test><source number="plural">conversación</source><result>conversaciones</result></test>
+    <test><source number="plural">lápiz</source><result>lápices</result></test>
+    <test><source number="plural">actriz</source><result>actrices</result></test>
+    <test><source number="plural">frac</source><result>fracs</result></test>
+    <test><source number="plural">fraque</source><result>fraques</result></test>
+    <test><source number="plural">lemming</source><result>lemmings</result></test>
+    <test><source number="plural">lunes</source><result>lunes</result></test>
+    <test><source number="plural">qqqqqe</source><result>qqqqqes</result></test>
+    <test><source number="plural">análisis</source><result>análisis</result></test>
+    <test><source number="plural">app de finanzas</source><result>apps de finanzas</result></test>
+    <test><source definiteness="definite">gato</source><result>el gato</result></test>
+    <test><source definiteness="indefinite">gato</source><result>un gato</result></test>
+    <test><source definiteness="definite">gata</source><result>la gata</result></test>
+    <test><source definiteness="definite" number="plural">gato</source><result>los gatos</result></test>
+    <test><source definiteness="definite" number="plural" gender="feminine">gato</source><result>las gatas</result></test>
+    <test><source definiteness="definite" number="plural" gender="feminine">qwzqwz</source><result>las qwzqwces</result></test> <!-- Made up word -->
+
+    <test><source number="plural">toquera</source><result>toqueras</result></test>
+    <test><source number="plural">toquero</source><result>toqueros</result></test>
+    <test><source gender="feminine" number="plural">toquero</source><result>toqueras</result></test>
+    <test><source gender="masculine" number="plural">toquera</source><result>toqueros</result></test>
+    <test><source number="singular">toqueras</source><result>toquera</result></test>
+    <test><source number="singular">toqueros</source><result>toquero</result></test>
+    <test><source gender="feminine" number="singular">toqueros</source><result>toquera</result></test>
+    <test><source gender="masculine" number="singular">toqueras</source><result>toquero</result></test>
+
+    <!--    Can't inflect to neuter but neuter exists-->
+    <test><source gender="neuter">bienvenidos</source><result exists="false"/></test>
+    <!--    Able to inflect to masculine using dictionary-->
+    <test><source gender="masculine">bienvenidos</source><result exists="true"/></test>
+    <!--    Able to use algorithm to inflect to definite-->
+    <test><source definiteness="definite">bienvenidos</source><result exists="true"/></test>
+    <!--    Word not in dictionary hence can't inflect to feminine-->
+    <test><source gender="feminine">abracadabra</source><result exists="false"/></test>
+    <!--    Able to inflect unknown words to definie-->
+    <test><source definiteness="definite">abracadabra</source><result exists="true"/></test>
+    <!--    One word known other word unknown hence can't inflect without guessing-->
+    <test><source gender="feminine">bienvenidos abracadabra</source><result exists="false"/></test>
+
+    <test><source gender="feminine">bienvenida</source><result exists="true">bienvenida</result></test>
+    <test><source gender="masculine">bienvenido</source><result exists="true">bienvenido</result></test>
+    <test><source gender="feminine">bienvenido</source><result exists="true">bienvenida</result></test>
+    <test><source gender="masculine">bienvenida</source><result exists="true">bienvenido</result></test>
+
+    <test><source gender="feminine">BIENVENIDA</source><result exists="true">BIENVENIDA</result></test>
+    <test><source gender="masculine">BIENVENIDO</source><result exists="true">BIENVENIDO</result></test>
+    <test><source gender="feminine">BIENVENIDO</source><result exists="true">BIENVENIDA</result></test>
+    <test><source gender="masculine">BIENVENIDA</source><result exists="true">BIENVENIDO</result></test>
+
+    <test><source gender="feminine">Bienvenida</source><result exists="true">Bienvenida</result></test>
+    <test><source gender="masculine">Bienvenido</source><result exists="true">Bienvenido</result></test>
+    <test><source gender="feminine">Bienvenido</source><result exists="true">Bienvenida</result></test>
+    <test><source gender="masculine">Bienvenida</source><result exists="true">Bienvenido</result></test>
+
+    <!-- The word "registrada" is unstructured in both Spanish lexicons -->
+    <test><source gender="feminine">registrado</source><result exists="true">registrada</result></test>
+    <test><source gender="masculine">registrada</source><result exists="true">registrado</result></test>
+    <test><source gender="feminine">registradísimo</source><result exists="true">registradísima</result></test>
+    <test><source gender="masculine">registradísima</source><result exists="true">registradísimo</result></test>
+
+    <test><source gender="feminine">el usuario</source><result exists="true">la usuaria</result></test>
+    <test><source gender="masculine">la usuaria</source><result exists="true">el usuario</result></test>
+
+    <test><source gender="feminine">el delegado</source><result exists="true">la delegada</result></test>
+    <test><source gender="masculine">la delegada</source><result exists="true">el delegado</result></test>
+
+    <!-- These are unknown words -->
+    <test><source gender="feminine">qwzqwza</source><result>qwzqwza</result></test>
+    <test><source gender="masculine">qwzqwzo</source><result>qwzqwzo</result></test>
+    <test><source gender="feminine">qwzqwzo</source><result>qwzqwza</result></test>
+    <test><source gender="masculine">qwzqwza</source><result>qwzqwzo</result></test>
+    <test><source gender="feminine">qwzqwzas</source><result>qwzqwzas</result></test>
+    <test><source gender="masculine">qwzqwzos</source><result>qwzqwzos</result></test>
+    <test><source gender="feminine">qwzqwzos</source><result>qwzqwzas</result></test>
+    <test><source gender="masculine">qwzqwzas</source><result>qwzqwzos</result></test>
+    <test><source gender="feminine">qwzqwzq</source><result>qwzqwzq</result></test>
+    <test><source gender="masculine">qwzqwzq</source><result>qwzqwzq</result></test>
+
+    <!-- determiner "this" -->
+    <test><source number="plural">esta</source><result exists="true">estas</result></test>
+    <test><source gender="masculine">esta</source><result exists="true">este</result></test>
+
+    <!-- verb "is" -->
+    <test><source number="plural">está</source><result exists="true">están</result></test>
+    <test><source number="plural">encendido</source><result exists="true">encendidos</result></test>
+
+    <!-- Calling inflect(singular) on the string "elecciones"  gives "el cciones" -->
+    <test><source number="singular">elecciones</source><result exists="true">elección</result></test>
+    <test><source number="plural">elecciones</source><result exists="true">elecciones</result></test>
+
+
+    <test><source gender="feminine">del</source><result exists="true">de la</result></test>
+    <test><source number="plural">del</source><result exists="true">de los</result></test>
+    <test><source gender="masculine">de la</source><result exists="true">del</result></test>
+    <test><source number="singular">de los</source><result exists="true">del</result></test>
+    <test><source gender="feminine">del gato</source><result exists="true">de la gata</result></test>
+    <test><source number="plural">del gato</source><result exists="true">de los gatos</result></test>
+    <test><source gender="masculine">de la gata</source><result exists="true">del gato</result></test>
+    <test><source number="singular">de los gatos</source><result exists="true">del gato</result></test>
+
+    <test><source definiteness="definite">águila</source><result>el águila</result></test>
+    <test><source definiteness="definite">amiga</source><result>la amiga</result></test>
+    <test><source definiteness="definite">harina</source><result>la harina</result></test>
+    <test><source definiteness="definite">habitación</source><result>la habitación</result></test>
+    <test><source definiteness="definite">agua</source><result>el agua</result></test> <!-- An exception to the gender rule. -->
+    <test><source>agua</source><result withDePrepArticle="del agua"/></test> <!-- An exception to the gender rule. -->
+    <test><source>agua</source><result withDemAdj="esta agua"/></test> <!-- Normal gender rule. -->
+    <test><source definiteness="definite">agua fría</source><result>el agua fría</result></test> <!-- An exception to the gender rule. -->
+    <test><source definiteness="definite">fría agua</source><result>la fría agua</result></test>
+    <test><source definiteness="definite">aguas</source><result>las aguas</result></test>
+    <test><source definiteness="indefinite">áreas</source><result>unas áreas</result></test>
+    <test><source definiteness="indefinite" number="plural">área</source><result>unas áreas</result></test>
+    <test><source definiteness="indefinite">álgebra</source><result>un álgebra</result></test> <!-- An exception to the gender rule. -->
+    <test><source definiteness="definite">álgebra</source><result>el álgebra</result></test> <!-- An exception to the gender rule. -->
+    <test><source>álgebra</source><result withDemAdj="esta álgebra"/></test>
+    <test><source definiteness="definite">álgebra añeja</source><result>el álgebra añeja</result></test> <!-- An exception to the gender rule. -->
+    <test><source definiteness="definite">añeja álgebra</source><result>la añeja álgebra</result></test>
+    <test><source>área</source><result withDemAdj="esta área"/></test>
+
+    <!-- Tests for stating initial grammemes -->
+    <test><source definiteness="definite"><meta gender="masculine">cometa</meta></source><result number="singular" gender="masculine">el cometa</result></test>
+    <test><source definiteness="definite"><meta gender="feminine">cometa</meta></source><result number="singular" gender="feminine">la cometa</result></test>
+    <test><source definiteness="definite"><meta gender="masculine" number="plural">QQQQ</meta></source><result number="plural" gender="masculine">los QQQQ</result></test>
+    <test><source definiteness="definite"><meta gender="feminine" number="plural">QQQQ</meta></source><result number="plural" gender="feminine">las QQQQ</result></test>
+
+</inflectionTest>

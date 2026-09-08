@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="es">
+    <!-- Simple inflection -->
+    <test><source/><result>elle</result></test>
+    <test><source person="first"/><result>yo</result></test>
+    <test><source number="plural"/><result>elles</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="first" case="accusative"/><result>me</result></test>
+    <test><source person="first" pronounType="reflexive"/><result>me</result></test>
+    <test><source person="first" case="genitive"/><result>mío</result></test>
+    <test><source person="first" case="genitive" determination="independent"/><result>mío</result></test>
+    <test><source person="first" case="genitive" determination="dependent"/><result>mi</result></test>
+    <test><source person="first" number="plural"/><result>nosotres</result></test>
+    <test><source person="first" number="plural" gender="masculine"/><result>nosotros</result></test>
+    <test><source person="first" number="plural" gender="feminine"/><result>nosotras</result></test>
+    <test><source person="second"/><result>tú</result></test>
+    <test><source person="second" register="formal"/><result>usted</result></test>
+    <test><source person="second" number="plural"/><result>ustedes</result></test>
+    <test><source person="third"/><result>elle</result></test> <!-- You didn't specify a gender. So you get something generic in the third person. -->
+    <test><source person="third" number="plural"/><result gender="neuter">elles</result></test>
+    <test><source person="third" gender="masculine"/><result gender="masculine">él</result></test>
+    <test><source person="third" gender="feminine"/><result gender="feminine">ella</result></test>
+    <test><source person="third" gender="neuter"/><result gender="neuter">elle</result></test>
+    <test><source person="first" pronounType="reflexive"/><result>me</result></test>
+    <test><source person="second" pronounType="reflexive"/><result>se</result></test>
+    <test><source person="second" number="plural" pronounType="reflexive"/><result>les</result></test>
+    <test><source person="third" pronounType="reflexive"/><result>le</result></test>
+    <test><source person="first" number="singular" pronounType="reflexive"/><result>me</result></test>
+    <test><source person="first" number="plural" pronounType="reflexive"/><result>nos</result></test>
+    <test><source person="third" number="singular" pronounType="reflexive"/><result>le</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive"/><result>les</result></test>
+    <test><source person="third" gender="masculine" pronounType="reflexive"/><result>le</result></test>
+    <test><source person="third" gender="masculine" number="plural" pronounType="reflexive"/><result>les</result></test>
+    <test><source person="third" gender="feminine" pronounType="reflexive"/><result>le</result></test>
+    <test><source person="third" gender="feminine" number="plural" pronounType="reflexive"/><result>les</result></test>
+    <test><source person="third" gender="neuter" pronounType="reflexive"/><result>le</result></test>
+    <test><source person="third" gender="neuter" number="plural" pronounType="reflexive"/><result>les</result></test>
+
+    <test><source person="second" case="genitive"/><result>tuyo</result></test>
+    <test><source person="second" case="genitive" determination="dependent"/><result>tu</result></test>
+    <test><source person="second" case="genitive" determination="independent"/><result>tuyo</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="masculine"/><result>tuyo</result></test>
+    <test><source person="second" case="genitive" determination="dependent"/><codependent gender="masculine"/><result>tu</result></test>
+    <test><source person="second" case="genitive" determination="independent"/><codependent gender="masculine"/><result>tuyo</result></test>
+    <test><source person="second" case="genitive" determination="independent"/><codependent gender="masculine" number="plural"/><result>tuyos</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="feminine"/><result>tuya</result></test>
+    <test><source person="second" case="genitive" determination="dependent"/><codependent gender="feminine"/><result>tu</result></test>
+    <test><source person="second" case="genitive" determination="independent"/><codependent gender="feminine"/><result>tuya</result></test>
+    <test><source person="second" case="genitive" determination="independent"/><codependent gender="feminine" number="plural"/><result>tuyas</result></test>
+
+    <test><source person="third" case="genitive"/><result>suyo</result></test>
+    <test><source person="third" case="genitive" determination="dependent"/><result>su</result></test>
+    <test><source person="third" case="genitive" determination="independent"/><result>suyo</result></test>
+    <test><source person="third" case="genitive"/><codependent gender="masculine"/><result>suyo</result></test>
+    <test><source person="third" case="genitive" determination="dependent"/><codependent gender="masculine"/><result>su</result></test>
+    <test><source person="third" case="genitive" determination="independent"/><codependent gender="masculine"/><result>suyo</result></test>
+    <test><source person="third" case="genitive"/><codependent gender="feminine"/><result>suya</result></test>
+    <test><source person="third" case="genitive" determination="dependent"/><codependent gender="feminine"/><result>su</result></test>
+    <test><source person="third" case="genitive" determination="independent"/><codependent gender="feminine"/><result>suya</result></test>
+
+    <!-- reinflection -->
+    <test><source person="third">yo</source><result gender="neuter">elle</result></test>
+    <test><source person="second">yo</source><result gender="">tú</result></test>
+    <test><source person="second">Yo</source><result gender="">tú</result></test>
+    <test><source case="accusative">yo</source><result>me</result></test>
+    <test><source pronounType="reflexive">yo</source><result>me</result></test>
+    <test><source gender="masculine">lo</source><result>le</result></test>
+    <test><source gender="masculine">Lo</source><result>le</result></test>
+    <test><source gender="feminine">lo</source><result>la</result></test>
+    <test><source gender="neuter">lo</source><result>lo</result></test>
+    <test><source gender="masculine">ello</source><result>él</result></test>
+    <test><source gender="feminine">ello</source><result>ella</result></test>
+    <test><source gender="neuter">ello</source><result>ello</result></test>
+    <test><source person="third" pronounType="reflexive">yo</source><result gender="">le</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive">yo</source><result gender="">les</result></test>
+</inflectionTest>

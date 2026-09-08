@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ Copyright 2022-2024 Apple Inc. All rights reserved.
+-->
+<inflectionTest locale="de">
+    <!-- Simple inflection -->
+    <test><source/><result>sie</result></test>
+    <test><source person="first"/><result>ich</result></test>
+    <test><source number="plural"/><result>sie</result></test> <!-- You didn't specify the person. So you get something very generic. -->
+    <test><source person="first" case="accusative"/><result>mich</result></test>
+    <test><source person="first" pronounType="reflexive"/><result>mich</result></test>
+    <test><source person="first" case="genitive"/><result>meine</result></test>
+    <test><source person="first" number="singular" case="genitive"/><result>meine</result></test>
+    <test><source person="first" case="genitive" determination="independent"/><result>meine</result></test>
+    <test><source person="first" case="genitive" determination="dependent"/><result>meine</result></test>
+    <test><source person="first" number="plural"/><result>wir</result></test>
+    <test><source person="first" number="singular"/><result>ich</result></test>
+    <test><source person="first" number="singular" gender="masculine"/><result>ich</result></test>
+    <test><source person="first" number="singular" gender="feminine"/><result>ich</result></test>
+    <test><source person="second"/><result>du</result></test>
+    <test><source person="second" number="plural"/><result>ihr</result></test>
+    <test><source person="third"/><result>sie</result></test> <!-- You didn't specify a gender. So you get something generic in the third person. -->
+    <test><source person="third" gender="masculine"/><result gender="masculine">er</result></test>
+    <test><source person="third" gender="feminine"/><result gender="feminine">sie</result></test>
+    <test><source person="first" pronounType="reflexive"/><result>mich</result></test>
+    <test><source person="second" pronounType="reflexive"/><result>dich</result></test>
+    <test><source person="second" number="plural" pronounType="reflexive"/><result>sich</result></test>
+    <test><source person="third" pronounType="reflexive"/><result>sich</result></test>
+    <test><source person="first" number="singular" pronounType="reflexive"/><result>mich</result></test>
+    <test><source person="first" number="plural" pronounType="reflexive"/><result>uns</result></test>
+    <test><source person="third" number="singular" pronounType="reflexive"/><result>sich</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive"/><result>sich</result></test>
+    <test><source person="third" gender="masculine" pronounType="reflexive"/><result>sich</result></test>
+    <test><source person="third" gender="masculine" number="plural" pronounType="reflexive"/><result>sich</result></test>
+    <test><source person="third" gender="feminine" pronounType="reflexive"/><result>sich</result></test>
+    <test><source person="third" gender="feminine" number="plural" pronounType="reflexive"/><result>sich</result></test>
+
+    <test><source person="second" case="genitive"/><result>deine</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="masculine"/><result>deine</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="masculine" number="plural"/><result>deine</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="feminine"/><result>deine</result></test>
+    <test><source person="second" case="genitive"/><codependent gender="feminine" number="plural"/><result>deine</result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="masculine"/><result>eure</result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="masculine" number="plural"/><result>eure</result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="feminine"/><result>eure</result></test>
+    <test><source person="second" number="plural" case="genitive"/><codependent gender="feminine" number="plural"/><result>eure</result></test>
+
+    <test><source person="third" case="genitive"/><result>ihre</result></test>
+    <test><source person="third" case="genitive"/><codependent gender="masculine"/><result>ihre</result></test>
+    <test><source person="third" case="genitive"/><codependent gender="masculine" number="plural"/><result>ihre</result></test>
+    <test><source person="third" case="genitive"/><codependent gender="feminine"/><result>ihre</result></test>
+    <test><source person="third" case="genitive"/><codependent gender="feminine" number="plural"/><result>ihre</result></test>
+    <test><source person="third" number="plural" case="genitive"/><codependent gender="masculine"/><result>ihre</result></test>
+    <test><source person="third" number="plural" case="genitive"/><codependent gender="masculine" number="plural"/><result>ihre</result></test>
+    <test><source person="third" number="plural" case="genitive"/><codependent gender="feminine"/><result>ihre</result></test>
+    <test><source person="third" number="plural" case="genitive"/><codependent gender="feminine" number="plural"/><result>ihre</result></test>
+
+    <test><source person="first" number="singular" case="genitive" determination="dependent"/><result>meine</result></test>
+    <test><source person="first" number="singular" case="genitive" determination="dependent"/><codependent gender="masculine" number="singular"/><result>mein</result></test>
+    <test><source person="first" number="singular" case="genitive" determination="dependent"/><codependent gender="neuter" number="singular"/><result>mein</result></test>
+    <test><source person="first" number="singular" case="genitive" determination="dependent"/><codependent gender="feminine" number="singular"/><result>meine</result></test>
+    <test><source person="first" number="singular" case="genitive" determination="dependent"/><codependent gender="feminine" number="plural"/><result>meine</result></test>
+
+    <test><source person="first" number="singular" case="genitive" determination="dependent"/><codependent case="accusative"/><result>meine</result></test>
+    <test><source person="first" number="singular" case="genitive" determination="dependent"/><codependent case="accusative" gender="masculine" number="singular"/><result>meinen</result></test>
+    <test><source person="first" number="singular" case="genitive" determination="dependent"/><codependent case="accusative" gender="neuter" number="singular"/><result>mein</result></test>
+    <test><source person="first" number="singular" case="genitive" determination="dependent"/><codependent case="accusative" gender="feminine" number="singular"/><result>meine</result></test>
+    <test><source person="first" number="singular" case="genitive" determination="dependent"/><codependent case="accusative" gender="feminine" number="plural"/><result>meine</result></test>
+    <test><source person="first" number="singular" case="genitive" determination="dependent"/><codependent case="accusative" number="plural"/><result>meine</result></test>
+
+    <test><source person="second" number="singular" case="genitive" determination="independent"/><result>deine</result></test>
+    <test><source person="second" number="singular" case="genitive" determination="independent"/><codependent gender="masculine" number="singular"/><result>deiner</result></test>
+    <test><source person="second" number="singular" case="genitive" determination="independent"/><codependent gender="neuter" number="singular"/><result>deins</result></test>
+    <test><source person="second" number="singular" case="genitive" determination="independent"/><codependent gender="feminine" number="singular"/><result>deine</result></test>
+    <test><source person="second" number="singular" case="genitive" determination="independent"/><codependent gender="feminine" number="plural"/><result>deine</result></test>
+
+    <test><source person="second" number="singular" case="genitive" determination="independent"/><codependent case="accusative"/><result>deine</result></test>
+    <test><source person="second" number="singular" case="genitive" determination="independent"/><codependent case="accusative" gender="masculine" number="singular"/><result>deinen</result></test>
+    <test><source person="second" number="singular" case="genitive" determination="independent"/><codependent case="accusative" gender="neuter" number="singular"/><result>deins</result></test>
+    <test><source person="second" number="singular" case="genitive" determination="independent"/><codependent case="accusative" gender="feminine" number="singular"/><result>deine</result></test>
+    <test><source person="second" number="singular" case="genitive" determination="independent"/><codependent case="accusative" gender="feminine" number="plural"/><result>deine</result></test>
+    <test><source person="second" number="singular" case="genitive" determination="independent"/><codependent case="accusative" number="plural"/><result>deine</result></test>
+
+    <!-- reinflection -->
+    <test><source person="third">ich</source><result gender="masculine">er</result></test><!-- There is no gendered epicene form -->
+    <test><source person="second">ich</source><result gender="">du</result></test>
+    <test><source person="second">Ich</source><result gender="">du</result></test>
+    <test><source case="accusative">ich</source><result>mich</result></test>
+    <test><source pronounType="reflexive">ich</source><result>mich</result></test>
+    <test><source gender="masculine" case="nominative">sie</source><result>er</result></test>
+    <test><source gender="masculine" case="nominative">sIe</source><result>er</result></test>
+    <test><source gender="feminine" case="nominative">sie</source><result>sie</result></test>
+    <test><source gender="neuter" case="nominative">sie</source><result>es</result></test>
+    <test><source gender="masculine" case="nominative">sein</source><result>er</result></test>
+    <test><source gender="feminine" case="nominative">sein</source><result>sie</result></test>
+    <test><source gender="neuter">sein</source><result>es</result></test>
+    <test><source person="third" pronounType="reflexive">ich</source><result gender="">sich</result></test>
+    <test><source person="third" number="plural" pronounType="reflexive">ich</source><result gender="">sich</result></test>
+    <test><source case="dative">ich</source><result gender="">mir</result></test>
+</inflectionTest>

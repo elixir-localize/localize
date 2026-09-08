@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+  Copyright 2024 and later: Unicode, Inc. and others.
+  License & terms of use: http://www.unicode.org/copyright.html
+-->
+<inflectionTest locale="sr">
+    <!-- Simple inflection -->
+    <test><source person="first" number="plural" case="nominative"/><result>ми</result></test>
+    <test><source person="first" number="plural"/><result>ми</result></test>
+    <test><source person="first" number="singular" case="nominative"/><result>ја</result></test>
+    <test><source person="first" number="singular"/><result>ја</result></test>
+    <test><source person="first"/><result>ја</result></test>
+    <test><source person="second" number="plural" case="nominative"/><result>ви</result></test>
+    <test><source person="second" number="singular" case="nominative"/><result>ти</result></test>
+    <test><source person="third" number="plural" case="nominative"/><result>она</result></test>
+    <test><source person="third" number="plural" gender="feminine" case="nominative"/><result>оне</result></test>
+    <test><source person="third" number="plural" gender="masculine" case="nominative"/><result>они</result></test>
+    <test><source person="third" number="plural" gender="neuter" case="nominative"/><result>она</result></test>
+    <test><source person="third" number="singular" case="nominative"/><result>оно</result></test>
+    <test><source person="third" number="singular" case="nominative"/><result>оно</result></test>
+    <test><source person="third" number="singular" gender="feminine" case="nominative"/><result>она</result></test>
+    <test><source person="third" number="singular" gender="masculine" case="nominative"/><result>он</result></test>
+    <test><source person="third" number="singular" gender="neuter" case="nominative"/><result>оно</result></test>
+    <test><source/><result>оно</result></test>
+</inflectionTest>
