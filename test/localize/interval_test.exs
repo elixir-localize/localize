@@ -49,14 +49,18 @@ defmodule Localize.IntervalTest do
     end
 
     test "German interval" do
-      # Realigned with single Date's per-locale skeletons:
-      # de `:medium` is numeric (`:yMMdd` → `"15.01.2022"`), de
-      # `:long` is full month spelled out (`:yMMMMd` → `"Januar"`).
-      # The abbreviated `"Jan."` form is not a default style for de
-      # — request the `:yMMMd` skeleton explicitly to get it.
+      # de `:medium` is numeric (`:yMMdd`) and `:long` spells the month out
+      # (`:yMMMMd` → "Januar"). The abbreviated "Jan." form is not a default
+      # style for de — request the `:yMMMd` skeleton explicitly to get it.
+      #
+      # `:yMMdd` is not a literal key in de's interval table, but `yMd` is a
+      # width adjustment away, so TR35 step 2 finds it and the shared year is
+      # stated once. This used to assert "15.01.2022" and "20.03.2022" — the
+      # two whole dates glued together, which was the defect.
       assert {:ok, medium} = Interval.to_string(~D[2022-01-15], ~D[2022-03-20], locale: :de)
-      assert medium =~ "15.01.2022"
+      assert medium =~ "15.01."
       assert medium =~ "20.03.2022"
+      refute medium =~ "15.01.2022"
 
       assert {:ok, long_result} =
                Interval.to_string(~D[2022-01-15], ~D[2022-03-20], format: :long, locale: :de)

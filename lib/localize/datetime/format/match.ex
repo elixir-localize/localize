@@ -109,6 +109,56 @@ defmodule Localize.DateTime.Format.Match do
     end
   end
 
+  # # best_interval_match/3
+  #
+  # TR35 §Interval Formats step 2: where no `intervalFormatItem` matches the
+  # requested skeleton exactly, take the closest one in the fallback chain,
+  # "adjusting the string value field's width". The candidate set is the
+  # locale's interval table rather than `availableFormats`, but the distance
+  # rules are TR35's same ones, and `candidates_with_the_same_tokens/2` holds
+  # the match to a width adjustment — a format carrying different fields can
+  # never win, so a genuine miss still falls through to the fallback pattern.
+  #
+  # ### Arguments
+  #
+  # * `original_skeleton` is the requested skeleton.
+  #
+  # * `locale_id` is a resolved locale identifier.
+  #
+  # * `calendar_type` is a CLDR calendar name. The default is `:gregorian`.
+  #
+  # ### Returns
+  #
+  # * `{:ok, format_id}` naming an entry in the locale's interval table.
+  #
+  # * `:error` when no entry carries the same fields.
+  #
+  @spec best_interval_match(atom() | String.t(), atom(), atom()) :: {:ok, atom()} | :error
+  def best_interval_match(original_skeleton, locale_id, calendar_type \\ :gregorian) do
+    skeleton =
+      original_skeleton
+      |> Kernel.to_string()
+      |> replace_time_symbols(locale_id)
+
+    {:ok, skeleton_tokens} = tokenize_skeleton(skeleton)
+    skeleton_ordered = sort_tokens(skeleton_tokens)
+
+    skeleton_keys =
+      skeleton_ordered
+      |> :proplists.get_keys()
+      |> canonical_keys()
+
+    locale_id
+    |> interval_format_tokens(calendar_type)
+    |> Enum.filter(&candidates_with_the_same_tokens(&1, skeleton_keys))
+    |> Enum.map(&distance_from(&1, skeleton_ordered))
+    |> Enum.sort_by(&rank/1)
+    |> case do
+      [] -> :error
+      [{format_id, _distance} | _rest] -> {:ok, format_id}
+    end
+  end
+
   # # subset_match/3
   #
   # Finds the closest available format whose fields are a strict subset of
@@ -395,6 +445,26 @@ defmodule Localize.DateTime.Format.Match do
         end)
 
       _ ->
+        []
+    end
+  end
+
+  # The interval table is keyed by skeleton, with two siblings that are not
+  # skeletons: the fallback pattern and the range separator patterns.
+  @non_skeleton_interval_keys [:interval_format_fallback, :interval_format_ranges]
+
+  defp interval_format_tokens(locale_id, calendar_type) do
+    case Format.interval_formats(locale_id, calendar_type) do
+      {:ok, formats} ->
+        formats
+        |> Map.keys()
+        |> Enum.reject(&(&1 in @non_skeleton_interval_keys))
+        |> Enum.map(fn format_id ->
+          {:ok, tokens} = tokenize_skeleton(Atom.to_string(format_id))
+          {format_id, tokens}
+        end)
+
+      _no_interval_formats ->
         []
     end
   end

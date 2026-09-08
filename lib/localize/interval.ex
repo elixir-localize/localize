@@ -245,8 +245,19 @@ defmodule Localize.Interval do
           # join via the locale's `interval_format_fallback`.
           format_date_interval_fallback(from, to, fallback_format, locale, options, output)
 
+        {:ok, {format_key, requested_skeleton}} ->
+          format_date_interval_styled(
+            from,
+            to,
+            format_key,
+            requested_skeleton,
+            locale,
+            options,
+            output
+          )
+
         {:ok, format_key} ->
-          format_date_interval_styled(from, to, format_key, locale, options, output)
+          format_date_interval_styled(from, to, format_key, nil, locale, options, output)
 
         {:error, _} = error ->
           error
@@ -254,11 +265,21 @@ defmodule Localize.Interval do
     end
   end
 
-  defp format_date_interval_styled(from, to, format_key, locale, options, output) do
+  defp format_date_interval_styled(
+         from,
+         to,
+         format_key,
+         requested_skeleton,
+         locale,
+         options,
+         output
+       ) do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
          {:ok, greatest_diff} <- greatest_difference(from, to),
-         {:ok, interval_pattern} <- get_interval_pattern(formats, format_key, greatest_diff),
+         {:ok, matched_pattern} <- get_interval_pattern(formats, format_key, greatest_diff),
+         {:ok, interval_pattern} <-
+           adjust_interval_widths(matched_pattern, requested_skeleton, format_key),
          {:ok, [left, right]} <- split_interval(interval_pattern) do
       options_map = options |> Map.new() |> Map.put_new(:locale, locale)
       format_split(output, from, to, left, right, locale_id, options_map)
@@ -840,7 +861,7 @@ defmodule Localize.Interval do
          {:ok, interval_formats} <- Localize.DateTime.Format.interval_formats(locale_id) do
       case Map.get(date_formats, format) do
         skeleton when is_atom(skeleton) ->
-          skeleton_or_fallback_style(skeleton, interval_formats, format)
+          skeleton_or_fallback_style(skeleton, interval_formats, format, locale_id)
 
         _ ->
           {:error,
@@ -868,14 +889,37 @@ defmodule Localize.Interval do
     end
   end
 
-  # Use the locale's skeleton when CLDR ships an interval format
-  # for it, otherwise signal the endpoint-formatting fallback.
-  defp skeleton_or_fallback_style(skeleton, interval_formats, format) do
+  # Use the locale's skeleton when CLDR ships an interval format for it.
+  # Otherwise take TR35 §Interval Formats step 2 — the closest entry in the
+  # table, which may differ only in field width — before signalling the
+  # endpoint-formatting fallback of the final step. Only a genuine miss
+  # glues two whole dates together: `de` renders "03.–05.05.2026" from
+  # `yMd`, not "03.05.2026 – 05.05.2026", because its `yMMdd` style
+  # skeleton is a width adjustment away from a pattern CLDR ships.
+  defp skeleton_or_fallback_style(skeleton, interval_formats, format, locale_id) do
     if Map.has_key?(interval_formats, skeleton) do
       {:ok, skeleton}
     else
-      {:ok, {:fallback_style, format}}
+      case Localize.DateTime.Format.Match.best_interval_match(skeleton, locale_id) do
+        {:ok, matched_skeleton} -> {:ok, {matched_skeleton, skeleton}}
+        :error -> {:ok, {:fallback_style, format}}
+      end
     end
+  end
+
+  # TR35 step 2 matches on fields, not widths, so the pattern that comes back
+  # spells its fields at the *matched* skeleton's widths. Adjust them to the
+  # widths actually requested — a `yMMMd` pattern answering a requested
+  # `yMMMMd` must still render "June", not "Jun" — subject to the same rule
+  # that governs `availableFormats`: where the matched skeleton already
+  # states the requested width, the locale's own choice stands.
+  defp adjust_interval_widths(pattern, nil, _format_key), do: {:ok, pattern}
+
+  defp adjust_interval_widths(pattern, requested_skeleton, format_key) do
+    {:ok, skeleton_tokens} =
+      Localize.DateTime.Format.Match.tokenize_skeleton(requested_skeleton)
+
+    Localize.DateTime.Format.Match.adjust_field_lengths(pattern, skeleton_tokens, format_key)
   end
 
   defp get_interval_pattern(formats, format_key, greatest_diff) do

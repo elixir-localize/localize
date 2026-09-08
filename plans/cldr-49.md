@@ -85,7 +85,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 28 | CLDR 49 decimal format conformance suite            | None       | **Output changes** — ✅ Conformant; every difference is a documented CLDR-over-ICU choice |
 | 29 | A locale did not always resolve to itself          | None       | **Resolution changes** — ✅ Fixed. 25 locales were served a neighbour's data |
 | 30 | CLDR 49 RBNF conformance suite                      | None       | **Output changes** — ✅ 52,691/52,691; ten defects fixed |
-| 31 | Interval formats glue where CLDR ships a pattern     | None       | **Output changes** — 1,814 of 2,628 `(locale, style)` pairs glue instead of using a width-adjusted interval item |
+| 31 | Interval formats glue where CLDR ships a pattern     | None       | **Output changes** — ✅ Done. Glue where ICU compresses fell from 130 of 288 sampled cases to 2 |
 | 32 | CLDR 49 adds `intervalFormatRanges`                  | None (data key) | None — ✅ Ingested as `:interval_format_ranges`; no consumer while the spec keeps it internal |
 
 The remainder of this file expands each item in turn.
@@ -1518,7 +1518,7 @@ That last one took three attempts and is worth recording. Preferring the lower r
 
 **Output changes**, and they are corrections. Ordinals in Russian, Ukrainian, Polish, Slovak, Czech, Slovenian and Lithuanian were being spelled with "zero" in place of the hundreds or thousands quotient, and some inputs raised instead of formatting. `root` is now accepted wherever `und` is.
 
-## 31. Interval formats glue where CLDR ships a usable pattern
+## 31. Interval formats glue where CLDR ships a usable pattern — ✅ Done
 
 ### Current conformance
 
@@ -1528,7 +1528,7 @@ TR35 §Interval Formats step 2 says otherwise: *"If no match was found from the 
 
 ### Gap
 
-German's `medium` date skeleton is `yyMMdd`; the interval table has `yMd`, whose `d` difference is `dd.–dd.MM.y`:
+German's `medium` date skeleton is `yMMdd` (`yyMMdd` is its `short`); the interval table has `yMd`, whose `d` difference is `dd.–dd.MM.y`:
 
 ```elixir
 Localize.Interval.to_string(~D[2026-05-03], ~D[2026-05-05], locale: :de)
@@ -1554,6 +1554,21 @@ This is not a CLDR 49 change. The gap predates the cycle and was found while ass
 2. Adjust the matched pattern to the requested field widths, as `availableFormats` does, so `yyMMdd` against `yMd` renders `dd.` rather than `d.`. Width adjustment on an interval pattern has to touch both halves of the range.
 3. Keep the glue for a genuine miss. The final fallback step still applies when nothing matches, and that is the behaviour ICU4X argues for on #6098.
 4. **Build the oracle first.** `common/testData/datetime/datetime.json` carries 312 cases and **none** are intervals, so CLDR ships no interval fixtures at all. Expectations have to come from ICU or from hand-checked per-locale cases before any behaviour changes — 1,814 pairs is too many to eyeball after the fact.
+
+### Outcome
+
+Implemented as planned, and step 3 turned out not to be optional. Matching alone took the ICU agreement rate *down*, because a pattern reached by a width-adjusted match still spells its fields at the *matched* skeleton's widths: `en` `:long` asks for `yMMMMd`, matches `yMMMd`, and has to be widened back from "Jun" to "June"; `en` `:short` asks for a two-digit year and has to be narrowed to it. `Match.adjust_field_lengths/3` already did exactly that job for `availableFormats`.
+
+The oracle is Node's `Intl.DateTimeFormat.prototype.formatRange`, which is ICU's `DateIntervalFormat`. Over 36 locales × 4 styles × 3 greatest-differences — 432 cases:
+
+| | before | after |
+|---|---|---|
+| identical to ICU | 217 (50%) | **337 (78%)** |
+| glued where ICU compresses | **130** | **2** |
+
+The two are `vi`, whose CLDR 49 `yMd` item is itself `d/M/y – d/M/y` for every difference, so the repeat is the locale's own pattern rather than our fallback. Twelve cases now compress where ICU glues.
+
+Most of the 95 remaining string differences are ICU 77 shipping older CLDR than we do rather than a disagreement about the algorithm: CLDR 49 gives `ru`'s `yMd` as `dd.MM.y—dd.MM.y` with an em dash where ICU renders an en dash, and `uk`'s with a no-break space. Where CLDR and ICU conflict we follow CLDR, so exact-string agreement with ICU is the wrong target and the glue count above is the one that measures the defect.
 
 ### API impact / breaking risk
 
@@ -1612,6 +1627,8 @@ This plan must be revisited at the following checkpoints:
 Each checkpoint should leave a dated entry at the bottom of this file noting what changed and which items advanced.
 
 ## Change log for this plan
+
+* 2026-09-08 — Item 31 implemented. `Match.best_interval_match/3` applies TR35 §Interval Formats step 2 over the interval table using the same distance rules as `availableFormats`, and the matched pattern is then adjusted to the requested field widths — without that second half the change made ICU agreement *worse*, since a pattern found by width-adjusted matching still spells its fields at the matched skeleton's widths. Measured against Node's ICU `formatRange` over 432 cases: exact agreement 217 to 337, and the defect itself — gluing two whole dates where the locale ships a pattern — from 130 to 2, both of those being `vi`, whose CLDR 49 pattern genuinely repeats the date. The remaining string differences are mostly ICU 77 carrying older CLDR than we do, so they are not a target.
 
 * 2026-09-08 — Item 16b implemented. One `:prefer` option across `Localize.Language`, `Localize.Territory`, `Localize.Script` and `LocaleDisplay`, with `:style` still accepted and `:prefer` winning when both are given; one validated vocabulary, so `prefer: :core` and the undocumented `prefer: :default` now report themselves instead of resolving silently to `:standard`. `Localize.Language` composes `menu="core"` with `menu="extension"` where a locale ships no `alt="menu"`, which is the 571-entry fix — `"ku"` renders "Kurdish (Kurmanji)" rather than "Kurdish" — and `key_name/2` and `type_name/3` make the menu use case reachable without building a locale identifier. 30,622 passing before the new tests, dialyzer clean.
 
