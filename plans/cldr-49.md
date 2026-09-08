@@ -2,15 +2,15 @@
 
 > **Process note (2026-07-06):** the repeatable update mechanics (source refresh, generation, verification gates, CDN upload, hash manifest, release order) are consolidated in [CLDR_UPDATE_INTEGRATION.md](../CLDR_UPDATE_INTEGRATION.md) — the CLDR Update Guide. This plan now carries only the CLDR-49-specific work items. Item 13 (CDN checksum manifests) shipped early in Localize 0.44.0 as the hash-manifest system; see the guide's "Hash manifest and the OTP encoding trap" section.
 
-**Status:** draft, last updated 2026-07-06
+**Status:** substantially complete, last updated 2026-09-08. 32 of the 34 index rows are closed. Two remain open: **item 11** (`localize_emoji`, not yet started) and **item 16a** (an upstream cldr-json defect, to report rather than fix).
 
 **Owner:** Localize maintainers
 
-**Target release:** Localize 0.26+ (CLDR 49.x base data)
+**Release:** the CLDR 49 base data and every closed item sit unreleased in [CHANGELOG.md](../CHANGELOG.md) under `[Unreleased]`, above Localize 1.2.0 (2026-08-16). The plan originally targeted 0.26+; the 0.x → 1.x transition happened during the cycle.
 
-**Source:** plans this against the upcoming CLDR 49, expected on the usual late-October Unicode release cadence (~5 months out from this plan's draft date). Track upstream progress at <https://cldr.unicode.org/downloads/cldr-49>.
+**Source:** CLDR 49. `release-49-alpha1` (2026-08-14) and `release-49-alpha2` have both been merged on branch `cldr-49`, and `priv/localize/version` already reads 49. Track upstream at <https://cldr.unicode.org/downloads/cldr-49>.
 
-This plan must be reviewed and revised as CLDR 49 alpha → beta → RC ships and the actual delta lands. See the **Review cadence** section at the end.
+Beta and RC are still to come, and the delta they carry may reopen items. See the **Review cadence** section at the end.
 
 ## Scope
 
@@ -31,7 +31,7 @@ This document covers the CLDR-49-driven workstream plus a handful of related ite
 
 13. Generate and serve checksum manifests for the downloadable CDN assets so the runtime can validate locale ETFs before decode. Research required — see item 13 for the open design questions around manifest shape, verification path, and hot-path performance budget.
 
-Items 1–13 are the original draft scope. Items 14 onward were added as the cycle progressed — from the alpha release-note reviews, and from defects the test merge itself exposed — and the **Index above is the authoritative list**; this section is kept for the original framing only. Do not read a gap here as a gap in coverage.
+Items 1–13 are the original draft scope. Items 14 onward were added as the cycle progressed — from the alpha release-note reviews, and from defects the test merge itself exposed — and the **Index below is the authoritative list**; this section is kept for the original framing only. Do not read a gap here as a gap in coverage.
 
 For every item below, three things appear:
 
@@ -1603,14 +1603,19 @@ The PR is open and contested. ICU4X objects that the synthesis "assumes too much
 
 ## Open questions
 
-These need answers before the corresponding work item starts. Track them as the plan evolves.
+Questions raised while drafting the plan. Most were answered by the work itself; the two that remain are recorded first.
 
-* **Item 4** — Final list of "canonical semantic atoms" we promote inside `:format`. The tentative set is `:year_month_day`, `:year_month`, `:hour_minute`, `:hour_minute_second`, `:year_month_day_hour_minute`, `:year_month_day_hour_minute_second`, `:auto`. Reconcile with the exact vocabulary CLDR 49 ships.
-* **Item 4** — Does `Localize.Interval.to_string/3` need a parallel `:semantic` route, or do interval skeletons stay field-based?
-* **Item 7** — Confirm rounding precedence with significant-digit options against ECMA-402 behaviour. Document explicitly so users porting from JavaScript get expected results.
-* **Item 8** — Confirm whether CLDR 49 actually adds new RBNF syntax beyond `>>>` parity. The audit may surface that we are closer to compliant than the gap matrix suggests.
-* **Item 9** — Concrete JSON shape of "remove rule" markers in CLDR 49's rbnf-XXX.json. Resolve at alpha.
+Still open:
+
+* **Item 4** — Does `Localize.Interval.to_string/3` need a parallel `:semantic` route, or do interval skeletons stay field-based? Item 31 reworked interval matching without settling this, so it stands.
 * **Item 11** — Should `localize_emoji` ship a Phoenix LiveView picker component as a follow-up package (`localize_emoji_live`)? Out of scope for the initial 0.1.0; flag for later.
+
+Answered during the cycle, kept for the record:
+
+* ~~**Item 4** — Final list of "canonical semantic atoms"~~ — settled by taking CLDR's own vocabulary rather than a hand-picked set. `Localize.DateTime.SemanticSkeleton` matches CLDR on all 240 conformance cases.
+* ~~**Item 7** — Rounding precedence against ECMA-402~~ — resolved and documented when item 7 shipped.
+* ~~**Item 8** — Does CLDR 49 add RBNF syntax beyond `>>>` parity?~~ — yes. Item 22 found `[A|B]` alternation inside the optional-substitution brackets, replacing the private helper rulesets CLDR 48 used for ordinals.
+* ~~**Item 9** — JSON shape of "remove rule" markers~~ — there are none. Item 9 closed on a misreading; the real CLDR 49 RBNF change was the externalisation handled under item 22.
 
 ## Review cadence
 
@@ -1618,15 +1623,17 @@ This plan must be revisited at the following checkpoints:
 
 | When                                 | Action                                                                                  |
 |--------------------------------------|-----------------------------------------------------------------------------------------|
-| **CLDR 49 alpha announced**          | Open child plans `plans/cldr-49-changes.md` and `plans/cldr-49-translator-guide-checklist.md`. Confirm the JSON shape changes for items 4, 5, 9. |
-| **CLDR 49 beta**                     | Start data ingestion against the beta drop using `scripts/ldml2json_v2`. Begin running the existing test suite against beta ETFs to surface regressions early. |
+| **CLDR 49 alpha** — ✅ done          | Reviewed at alpha1 (2026-09-01) and merged at alpha2 (2026-09-05). The two child plans this row called for were never opened; the reviews were written into this file instead, as the change log below records. The JSON shape questions for items 4, 5 and 9 were all answered — item 9's by finding the mechanism does not exist. |
+| **CLDR 49 beta**                     | Re-run the pipeline against the beta drop and re-run the conformance suites. Data ingestion is already done against alpha2 and `priv/localize/version` reads 49, so this is a refresh rather than a first ingest; watch for locale-set churn (item 25) and further RBNF source-format movement (item 22). |
 | **CLDR 49 RC**                       | Lock the spec deltas in this document. No new "TBD" entries should remain after RC.     |
-| **CLDR 49 final**                    | Bump `priv/localize/version`, ship Localize 0.27 with CLDR 49 base data and items 1, 5, 6, 7, 9 landed. (Item 8 already shipped in 0.26.0.) Items 4 and 11 may follow in 0.28 if scope demands. |
+| **CLDR 49 final**                    | Refresh to the final data and release. Items 1 and 4–10 are closed and sit in `[Unreleased]`; the release carries the breaking changes listed there — the `atTime` wrapper default, the Unicode 18 collation weights, the 114 dropped locales and the Japanese pre-Meiji era dates. Item 11 (`localize_emoji`) is a separate package on its own schedule. |
 | **Quarterly thereafter**             | Sweep this file for stale TBD/check-this items; close out or roll forward into the next plan. |
 
 Each checkpoint should leave a dated entry at the bottom of this file noting what changed and which items advanced.
 
 ## Change log for this plan
+
+* 2026-09-08 — Plan review. The header block was two months stale: status still read "draft, last updated 2026-07-06" with 32 of 34 rows closed, and the target release read "Localize 0.26+" when 1.0.0 shipped on 2026-07-31 and 1.2.0 on 2026-08-16 — the CLDR 49 work all sits in `[Unreleased]` above it. The **Review cadence** table still described the alpha checkpoint as future work, including two child plans (`cldr-49-changes.md`, `cldr-49-translator-guide-checklist.md`) that were never opened because both alpha reviews were written into this file instead; its final row planned a 0.27 release carrying items already closed. Four of the six **Open questions** had been answered by their own items and are struck through rather than deleted. The Scope note added on 2026-09-05 pointed at the "Index above" when the Index is below it. No item status changed; nothing in the substance was found wrong.
 
 * 2026-09-08 — Item 31 implemented. `Match.best_interval_match/3` applies TR35 §Interval Formats step 2 over the interval table using the same distance rules as `availableFormats`, and the matched pattern is then adjusted to the requested field widths — without that second half the change made ICU agreement *worse*, since a pattern found by width-adjusted matching still spells its fields at the matched skeleton's widths. Measured against Node's ICU `formatRange` over 432 cases: exact agreement 217 to 337, and the defect itself — gluing two whole dates where the locale ships a pattern — from 130 to 2, both of those being `vi`, whose CLDR 49 pattern genuinely repeats the date. The remaining string differences are mostly ICU 77 carrying older CLDR than we do, so they are not a target.
 
@@ -1669,7 +1676,7 @@ Each checkpoint should leave a dated entry at the bottom of this file noting wha
 
 ## Alpha review — 2026-08-25
 
-Reviewed against `release-49-alpha1` (2026-08-14) at `~/Development/cldr/cldr_repo`. Our pinned base is CLDR 48.2.
+Reviewed against `release-49-alpha1` (2026-08-14) at `~/Development/cldr/cldr_repo`. Our pinned base was CLDR 48.2 at the time of this review; alpha2 was merged on 2026-09-05 and `priv/localize/version` now reads 49.
 
 **The plan holds.** Nothing in the alpha invalidates an item. Three items get materially stronger, one new item is needed, and the alpha surfaced one pre-existing bug.
 
