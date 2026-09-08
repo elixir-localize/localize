@@ -60,18 +60,18 @@ Two areas are explicitly out of scope:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Language display names | Implemented | `Localize.Language.display_name/2` with `:standard`, `:short`, `:long`, `:menu`, and `:variant` styles. |
-| Script display names | Implemented | `Localize.Script.display_name/2` with `:standard`, `:short`, `:stand_alone`, and `:variant` styles. |
-| Territory display names | Implemented | `Localize.Territory.display_name/2` with `:standard`, `:short`, `:variant` styles. |
-| Variant display names | Not implemented | |
-| Key/type display names | Implemented | Drives `Localize.Locale.LocaleDisplay.display_name/2` — `en-u-kn-true` renders "English (Sort Digits Numerically)". `type_value_name/2` returns the localized name of a boolean keyword value ("On"/"Off"). |
+| Script display names | Implemented | `Localize.Script.display_name/2` with `:prefer` values `:standard`, `:short`, `:stand_alone`, `:variant`. |
+| Territory display names | Implemented | `Localize.Territory.display_name/2` with `:prefer` values `:standard`, `:short`, `:variant`. |
+| Variant display names | Implemented | Rendered as a subtag by `Localize.Locale.LocaleDisplay.display_name/2` — `de-1901` is "German (Traditional German orthography)", `en-US-posix` is "English (United States, Computer)". |
+| Key/type display names | Implemented | Drives `Localize.Locale.LocaleDisplay.display_name/2` — `en-u-kn-true` renders "English (Sort Digits Numerically)". `type_value_name/2` returns the localized name of a boolean keyword value ("On"/"Off"), and `key_name/2` and `type_name/3` return the key and type names on their own for menu use. |
 | Locale display names | Implemented | `Localize.Locale.LocaleDisplay.display_name/2` implements the CLDR locale display name algorithm. |
 
 ### Layout
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Character order (LTR/RTL) | Not implemented | |
-| Line order | Not implemented | |
+| Character order (LTR/RTL) | Partial | Data ships and is readable — `Localize.Locale.get(:ar, [:layout])` gives `%{character_order: :rtl, line_order: :ttb}` — but there is no dedicated accessor and nothing in the library consumes it. |
+| Line order | Partial | Same `:layout` map; `:ttb` for every locale CLDR records. |
 
 ### Character Elements
 
@@ -79,7 +79,7 @@ Two areas are explicitly out of scope:
 |---------|--------|-------|
 | Exemplar characters | Not implemented | |
 | Ellipsis patterns | Implemented | `Localize.ellipsis/2` with `:initial`, `:medial`, `:final`, `:word_initial`, `:word_medial`, `:word_final` styles. |
-| Parse lenient characters | Not implemented | |
+| Parse lenient characters | Implemented | Consumed by `Localize.Number.Parser`, which accepts the locale's lenient sets for the date, general and number scopes when parsing. |
 
 ### Delimiters
 
@@ -92,7 +92,7 @@ Two areas are explicitly out of scope:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Measurement system per territory | Implemented | `Localize.validate_measurement_system/1` and supplemental data. |
-| Paper size per territory | Not implemented | |
+| Paper size per territory | Implemented | `Localize.Unit.measurement_system_for_territory(:US, :paper_size)` returns `:us_letter`, `:FR` returns `:a4`. |
 
 ### Unit Elements
 

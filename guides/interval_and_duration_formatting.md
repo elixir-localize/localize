@@ -42,7 +42,7 @@ iex> Localize.Interval.to_string(nil, ~D[2020-01-01], locale: :ja)
 {:ok, "\uFF5E2020/01/01"}
 ```
 
-The separator comes from CLDR's `intervalFormatFallback` pattern for the locale — most Western locales use an en-dash (`–`), Japanese uses a fullwidth tilde (`～`), and so on. Passing `nil` for both endpoints returns an error.
+For an open interval the separator comes from CLDR's `intervalFormatFallback` pattern — most Western locales use an en-dash (`–`), Japanese a fullwidth tilde (`～`). A closed interval usually takes its separator from the matched interval pattern instead, which is why the two can differ within one locale. Passing `nil` for both endpoints returns an error.
 
 ### Fields and formats
 
@@ -125,11 +125,15 @@ true
 
 1. The greatest difference between the two endpoints is identified (year, month, day, hour, or minute).
 
-2. The `:style` and `:format` options resolve to a CLDR skeleton atom.
+2. The `:fields` and `:format` options resolve to a CLDR skeleton atom.
 
-3. CLDR provides interval patterns that split the skeleton at the field that differs. This is why two dates in the same month produce "Apr 22 – 25, 2024" rather than repeating the month and year.
+3. That skeleton is looked up in the locale's interval table. If CLDR ships no entry under it, the closest entry carrying the same fields is taken and its pattern adjusted to the requested widths — TR35 matches on fields, not widths, so a `yMMMd` pattern answering a requested `yMMMMd` still has to spell "June" rather than "Jun". A candidate with different fields can never win.
 
-4. For open intervals (one endpoint is `nil`), the known endpoint is formatted using the appropriate single-value formatter (`Localize.Date`, `Localize.Time`, or `Localize.DateTime`), then substituted into the locale's `intervalFormatFallback` pattern with the appropriate trimming so only the separator on the "open" side remains.
+4. The matched pattern splits at the field that differs, which is why two dates in the same month produce "Apr 22 – 25, 2024" rather than repeating the month and year. German at `:medium` gives "03.–05.05.2026" for the same reason, even though its style skeleton is not itself a key in the table.
+
+5. Only when no entry carries the same fields are both endpoints formatted in full and joined with the locale's `intervalFormatFallback` pattern.
+
+6. For open intervals (one endpoint is `nil`), the known endpoint is formatted using the appropriate single-value formatter (`Localize.Date`, `Localize.Time`, or `Localize.DateTime`), then substituted into the locale's `intervalFormatFallback` pattern with the appropriate trimming so only the separator on the "open" side remains.
 
 ## Duration formatting
 

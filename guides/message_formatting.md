@@ -544,10 +544,12 @@ The Localize MF2 implementation targets the [Unicode MessageFormat 2.0 specifica
 | `:date` | Default | Date formatting via `Localize.Date` |
 | `:time` | Default | Time formatting via `Localize.Time` |
 | `:datetime` | Default | DateTime formatting via `Localize.DateTime` |
-| `:percent` | Extended | Percent format via `Localize.Number` |
-| `:currency` | Extended | Currency format via `Localize.Number` |
+| `:percent` | Stable | Percent format via `Localize.Number` |
+| `:currency` | Stable | Currency format via `Localize.Number` |
 | `:unit` | Extended | Unit format via `Localize.Unit` |
 | `:list` | Localize | Locale-aware list join via `Localize.List` |
+
+CLDR 49 promoted `:currency` and `:percent` from draft to Stable, with the same implementations as before, so nothing here changed except their standing in the specification.
 
 ### `:list` — locale-aware list formatting
 

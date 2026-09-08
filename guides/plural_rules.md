@@ -194,6 +194,23 @@ iex> Localize.Number.PluralRule.Ordinal.plural_rules_for(:en) |> Keyword.keys()
 
 `available_locale_names/0` lists the locales for which rules exist, and `plural_rules/0` returns the entire parsed rule map.
 
+## Seeing the categories in a locale
+
+CLDR ships a short phrase per category — a *minimal pair* — chosen to demonstrate what the category is for. They are the fastest way to see what a locale's plural rules actually do, and to check a translation reads naturally in every form:
+
+```elixir
+iex> Localize.MinimalPairs.cardinal(:en)
+{:ok, %{one: "{0} day", other: "{0} days"}}
+
+iex> Localize.MinimalPairs.format(3, :cardinal, locale: :en)
+{:ok, "3 days"}
+
+iex> Localize.MinimalPairs.format(1, :cardinal, locale: :en)
+{:ok, "1 day"}
+```
+
+`format/3` runs the number through the locale's rules and returns the phrase the selected category carries, so it exercises the same selection path a real message would. `cardinal/1`, `ordinal/1`, `grammatical_case/1` and `grammatical_gender/1` return the whole set for a locale.
+
 ## Plural selection in MF2 messages
 
 The same rules drive plural selection in MessageFormat 2 messages via `Localize.Message.format/3`. A `.match` on a `:number`-annotated variable selects the variant whose key matches the value's plural category:

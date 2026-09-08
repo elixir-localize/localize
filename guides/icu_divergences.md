@@ -54,7 +54,7 @@ The `ur` case is the subtlest: both `٪` and `%` come from CLDR, one from the nu
 These also appear as exclusions in the test suites and should not be read as deliberate differences:
 
 * **Unimplemented features.** `test/localize/locale/locale_display_test.exs` excludes line 47, the `uu` attribute in the `-u-` extension. That is a gap, not a decision.
-* **Timezone and skeleton gaps.** `test/localize/datetime/conformance_test.exs` excludes cases needing timezone name resolution (`z`, `Z`, `O`, `v`, `V`) and some skeleton matching. Also gaps.
+* **Calendars that are not enabled.** `test/localize/datetime/conformance_test.exs` keeps a `@wrong_format` list of non-Gregorian cases that never run; they are held for whenever the other calendars are switched on. The timezone-resolution and skeleton-matching exclusions that used to sit here are gone: zone name resolution landed, the date/time split path now adjusts the matched pattern's field widths, and `:tz` is a test dependency so a real offset is available.
 * **Upstream fixture issues.** The same file's `@invalid_test_results` and the locale-display suite's `@invalid_test_results` mark cases where the conformance data disagrees with CLDR's own data.
 
 Collation carries no exclusions at all: all 210,155 pairs in both CLDR conformance files pass under both strengths.

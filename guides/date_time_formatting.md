@@ -54,6 +54,22 @@ iex> Localize.Date.to_string(~D[2024-07-10], format: :yMd, locale: :en)
 
 Common date skeletons: `:yMd`, `:yMMMd`, `:yMMMEd`, `:yMMM`, `:yMMMM`, `:MMMd`, `:MMMEd`, `:Md`, `:MEd`.
 
+### Semantic skeletons
+
+A classical skeleton names fields. A *semantic* skeleton names what you mean, and lets CLDR choose the fields — TR35 added these so that "a year, a month, a day and a weekday" does not have to be spelled `:yMMMEd` in every locale:
+
+```elixir
+iex> skeleton = Localize.DateTime.SemanticSkeleton.semantic("YMDE")
+iex> Localize.DateTime.to_string(~U[2024-07-06 14:30:45Z], format: skeleton, locale: :en)
+{:ok, "Sat, Jul 6, 2024"}
+
+iex> long = Localize.DateTime.SemanticSkeleton.semantic("YMD", length: :long)
+iex> Localize.Date.to_string(~D[2024-07-06], format: long, locale: :en)
+{:ok, "July 6, 2024"}
+```
+
+The letters name components — `Y` year, `M` month, `D` day, `E` weekday, `T` time, `Z` zone — and `:length`, `:year_style`, `:zone_style`, `:hour_cycle` and `:alignment` adjust the rendering. A semantic skeleton is accepted anywhere a classical one is: `Localize.Date`, `Localize.Time` and `Localize.DateTime` all take it as `:format`.
+
 ### Custom pattern strings
 
 Pass a CLDR pattern string directly:
@@ -305,7 +321,7 @@ Skeleton atoms can use `j` as a meta-symbol that resolves to the locale's prefer
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `:locale` | atom, string, or `LanguageTag` | `Localize.get_locale()` | Locale for patterns and calendar names. |
-| `:format` | atom or pattern string | `:medium` | Standard name (`:short`, `:medium`, `:long`, `:full`), skeleton atom, or custom pattern. |
+| `:format` | atom, semantic skeleton, or pattern string | `:medium` | Standard name (`:short`, `:medium`, `:long`, `:full`), skeleton atom, `Localize.DateTime.SemanticSkeleton` struct, or custom pattern. |
 | `:prefer` | `:unicode` or `:ascii` | `:unicode` | Selects Unicode or ASCII variant of the format pattern. |
 
 ### `Localize.Time.to_string/2`
@@ -313,7 +329,7 @@ Skeleton atoms can use `j` as a meta-symbol that resolves to the locale's prefer
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `:locale` | atom, string, or `LanguageTag` | `Localize.get_locale()` | Locale for patterns and day period names. |
-| `:format` | atom or pattern string | `:medium` | Standard name, skeleton atom, or custom pattern. |
+| `:format` | atom, semantic skeleton, or pattern string | `:medium` | Standard name, skeleton atom, `Localize.DateTime.SemanticSkeleton` struct, or custom pattern. |
 | `:prefer` | `:unicode` or `:ascii` | `:unicode` | Selects Unicode or ASCII variant. |
 
 ### `Localize.DateTime.to_string/2`
@@ -321,7 +337,7 @@ Skeleton atoms can use `j` as a meta-symbol that resolves to the locale's prefer
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `:locale` | atom, string, or `LanguageTag` | `Localize.get_locale()` | Locale for patterns and calendar names. |
-| `:format` | atom or pattern string | `:medium` | Standard name, skeleton atom, or custom pattern. |
+| `:format` | atom, semantic skeleton, or pattern string | `:medium` | Standard name, skeleton atom, `Localize.DateTime.SemanticSkeleton` struct, or custom pattern. |
 | `:date_format` | atom | (same as `:format`) | Format level for the date portion when using separate levels. |
 | `:time_format` | atom | (same as `:format`) | Format level for the time portion when using separate levels. |
 | `:style` | atom | `:at` | Wrapper joining date and time. `:at` is TR35's default for an event time ("July 6, 2024 at 2:30 PM"); `:default` is the standard wrapper, for a current time ("July 6, 2024, 2:30 PM"). CLDR defines the "at" wrapper only for `:full` and `:long`. |
