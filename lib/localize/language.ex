@@ -5,11 +5,12 @@ defmodule Localize.Language do
 
   Language display names are loaded on demand from the locale
   data provider. Each locale provides localized names for
-  hundreds of language codes in one or more styles.
+  hundreds of language codes in one or more forms.
 
-  ## Styles
+  ## Name alternatives
 
-  Language display names come in several styles:
+  CLDR records several names per language, selected with the `:prefer`
+  option (`:style` is accepted as an older spelling):
 
   * `:standard` — the full display name (default).
 

@@ -9,9 +9,10 @@ defmodule Localize.Territory do
   measurement system, language population) is loaded from
   supplemental data.
 
-  ## Styles
+  ## Name alternatives
 
-  Territory display names come in three styles:
+  CLDR records up to three names per territory, selected with the
+  `:prefer` option (`:style` is accepted as an older spelling):
 
   * `:standard` — the full display name (default).
 
@@ -20,6 +21,10 @@ defmodule Localize.Territory do
 
   * `:variant` — an alternative form when available (e.g.,
     "Congo (Republic)" instead of "Congo - Brazzaville").
+
+  Unlike `Localize.Language` and `Localize.Script`, which fall back to
+  `:standard`, a territory with no name for the requested alternative
+  returns `Localize.UnknownStyleError`.
 
   """
 

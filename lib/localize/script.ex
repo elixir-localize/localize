@@ -5,11 +5,12 @@ defmodule Localize.Script do
 
   Script display names are loaded on demand from the locale
   data provider. Each locale provides localized names for
-  script codes in one or more styles.
+  script codes in one or more forms.
 
-  ## Styles
+  ## Name alternatives
 
-  Script display names come in several styles:
+  CLDR records several names per script, selected with the `:prefer`
+  option (`:style` is accepted as an older spelling):
 
   * `:standard` — the default form, suitable for combining with
     a language name in a locale pattern (e.g., "Simplified").

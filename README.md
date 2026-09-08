@@ -10,6 +10,8 @@ Locale-aware formatting, validation, and data access for Elixir, built on the [U
 
 Localize consolidates the functionality of the `ex_cldr_*` library family into a single package. No compile-time backend modules or code generation is required — all CLDR data is loaded at runtime and cached in `:persistent_term`.
 
+The CLDR release a given version ships is reported by `Localize.version/0`.
+
 Try it without installing anything at the [Localize playground](https://playground.elixir-localize.com).
 
 ## Features
