@@ -465,7 +465,7 @@ iex> Localize.Language.display_name("de")
 iex> Localize.Language.display_name("en", locale: :de)
 {:ok, "Englisch"}
 
-iex> Localize.Language.display_name("en-GB", style: :short)
+iex> Localize.Language.display_name("en-GB", prefer: :short)
 {:ok, "UK English"}
 ```
 

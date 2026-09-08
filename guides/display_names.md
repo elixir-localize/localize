@@ -43,28 +43,30 @@ iex> Localize.Territory.display_name("US", locale: :fr)
 {:ok, "États-Unis"}
 ```
 
-The `:style` option selects among the CLDR name alternatives — `:standard` (the default), `:short`, and `:variant`:
+The `:prefer` option selects among the CLDR name alternatives — `:standard` (the default), `:short`, and `:variant`. `:style` is accepted as an older spelling of the same option:
 
 ```elixir
-iex> Localize.Territory.display_name(:GB, style: :short)
+iex> Localize.Territory.display_name(:GB, prefer: :short)
 {:ok, "UK"}
 
 iex> Localize.Territory.display_name(:CZ)
 {:ok, "Czechia"}
 
-iex> Localize.Territory.display_name(:CZ, style: :variant)
+iex> Localize.Territory.display_name(:CZ, prefer: :variant)
 {:ok, "Czech Republic"}
 ```
 
-Not every territory has every style — CLDR only records alternatives where they exist, and a missing style returns an error rather than silently falling back:
+Not every territory has every alternative — CLDR only records them where they exist. `Localize.Territory` reports a missing one rather than silently substituting the standard name:
 
 ```elixir
-iex> {:error, error} = Localize.Territory.display_name(:US, style: :variant)
+iex> {:error, error} = Localize.Territory.display_name(:US, prefer: :variant)
 iex> error.__struct__
 Localize.UnknownStyleError
 ```
 
-`Localize.Territory.known_styles/0` lists the style vocabulary and `Localize.Territory.known_territories/0` the full territory universe.
+This is territory-specific. `Localize.Language` and `Localize.Script` fall back to `:standard` instead, so `Localize.Language.display_name("fr", prefer: :variant)` returns `{:ok, "French"}` rather than an error.
+
+`Localize.Territory.known_styles/0` lists the vocabulary and `Localize.Territory.known_territories/0` the full territory universe.
 
 ## Languages
 
@@ -84,16 +86,16 @@ iex> Localize.Language.display_name("pt-BR")
 {:ok, "Brazilian Portuguese"}
 ```
 
-The `:style` option is one of `:standard` (default), `:short`, `:long`, `:menu`, or `:variant`; as with territories, alternatives exist only where CLDR records them:
+The `:prefer` option is one of `:standard` (default), `:short`, `:long`, `:menu`, or `:variant`. Alternatives exist only where CLDR records them, and an absent one falls back to `:standard`:
 
 ```elixir
-iex> Localize.Language.display_name("en-GB", style: :short)
+iex> Localize.Language.display_name("en-GB", prefer: :short)
 {:ok, "UK English"}
 ```
 
 ## Scripts
 
-`Localize.Script.display_name/2` names ISO 15924 script codes, with styles `:standard` (default), `:short`, `:stand_alone`, and `:variant`:
+`Localize.Script.display_name/2` names ISO 15924 script codes, with `:prefer` values `:standard` (default), `:short`, `:stand_alone`, and `:variant`. As with languages, an absent alternative falls back to `:standard`:
 
 ```elixir
 iex> Localize.Script.display_name(:Latn)
@@ -102,14 +104,14 @@ iex> Localize.Script.display_name(:Latn)
 iex> Localize.Script.display_name(:Hant)
 {:ok, "Traditional"}
 
-iex> Localize.Script.display_name(:Hant, style: :stand_alone)
+iex> Localize.Script.display_name(:Hant, prefer: :stand_alone)
 {:ok, "Traditional Han"}
 
-iex> Localize.Script.display_name(:Arab, style: :variant)
+iex> Localize.Script.display_name(:Arab, prefer: :variant)
 {:ok, "Perso-Arabic"}
 ```
 
-The `:stand_alone` style exists because some script names are contextual: "Traditional" reads fine inside "Chinese (Traditional)" but needs "Traditional Han" when it stands on its own.
+The `:stand_alone` alternative exists because some script names are contextual: "Traditional" reads fine inside "Chinese (Traditional)" but needs "Traditional Han" when it stands on its own.
 
 ## Currencies
 
@@ -202,6 +204,34 @@ iex> Localize.Locale.LocaleDisplay.display_name("nl-BE", language_display: :dial
 {:ok, "Flemish"}
 ```
 
+### Naming the keys themselves
+
+A `-u-` extension renders as "American English (Buddhist Calendar)" because the whole identifier is being named. When you are building a menu rather than naming a locale, you want the two halves separately — the key as the heading, its values as the choices:
+
+```elixir
+iex> Localize.Locale.LocaleDisplay.key_name(:ca, locale: :en)
+{:ok, "Calendar"}
+
+iex> Localize.Locale.LocaleDisplay.type_name(:ca, :buddhist, locale: :en)
+{:ok, "Buddhist Calendar"}
+```
+
+Both accept a key in its short BCP 47 form (`:ca`) or CLDR's long form (`:calendar`).
+
+CLDR also records a short name for each type value, marked `scope="core"` — "Buddhist" rather than "Buddhist Calendar" — intended for exactly this use. Those are not currently reachable: cldr-json collapses every core name for a key onto a single entry, so the one belonging to a given value cannot be recovered from the published data. `type_name/3` with `prefer: :menu` therefore reports the absence rather than returning a name belonging to some other calendar.
+
+Boolean keys — `kn` (numeric sorting), `kb` (reversed accent sorting) and the rest — share one pair of translated strings instead of naming each state separately:
+
+```elixir
+iex> Localize.Locale.LocaleDisplay.type_value_name(true, locale: :en)
+{:ok, "On"}
+
+iex> Localize.Locale.LocaleDisplay.type_value_name("yes", locale: :de)
+{:ok, "Ein"}
+```
+
+CLDR ships the strings and the key names but no separator between them, so pairing them — "Numeric Sorting: On" — is yours to choose.
+
 ### Canonical, not maximized
 
 Like `Localize.Language.display_name/2`, the locale display algorithm works from the **canonical** form of the request, not the maximized one. Validation resolves `"en"` to the full tag `en-Latn-US` internally, but the display name reflects only what the caller wrote:
@@ -236,13 +266,23 @@ iex> names[:usca]
 
 The name maps carry all recorded style alternatives for each code, which is why the values are style-keyed maps. The companion functions `Localize.Language.languages_for/1`, `Localize.Script.scripts_for/1`, and `Localize.Territory.Subdivision.subdivisions_for/1` return just the codes that have names in the given locale.
 
-## Style option summary
+## Preference option summary
 
-| Module | `:style` values | Default |
-|--------|-----------------|---------|
-| `Localize.Territory` | `:standard`, `:short`, `:variant` | `:standard` |
-| `Localize.Language` | `:standard`, `:short`, `:long`, `:menu`, `:variant` | `:standard` |
-| `Localize.Script` | `:standard`, `:short`, `:stand_alone`, `:variant` | `:standard` |
-| `Localize.Locale.LocaleDisplay` | `:language_display` option: `:standard`, `:dialect` | `:standard` |
+Every display-name function takes the same `:prefer` option, and each module supports the subset its data can supply. `:style` remains accepted as the older spelling.
 
-Styles are name *alternatives* recorded by CLDR, not widths that always exist — requesting a style with no data for the given code returns an error.
+| Module | `:prefer` values | Default | Absent alternative |
+|--------|------------------|---------|--------------------|
+| `Localize.Territory` | `:standard`, `:short`, `:variant` | `:standard` | `Localize.UnknownStyleError` |
+| `Localize.Language` | `:standard`, `:short`, `:long`, `:menu`, `:variant` | `:standard` | falls back to `:standard` |
+| `Localize.Script` | `:standard`, `:short`, `:stand_alone`, `:variant` | `:standard` | falls back to `:standard` |
+| `Localize.Locale.LocaleDisplay` | `:standard`, `:short`, `:long`, `:variant`, `:stand_alone`, `:menu` | `:standard` | falls back per subtag |
+
+These are name *alternatives* recorded by CLDR, not widths that always exist. A value outside a module's list is reported rather than resolved silently:
+
+```elixir
+iex> {:error, error} = Localize.Script.display_name(:Latn, prefer: :menu)
+iex> error.__struct__
+Localize.InvalidValueError
+```
+
+`Localize.Locale.LocaleDisplay` also takes a separate `:language_display` option — `:standard` or `:dialect` — which decides whether a script or territory is folded into the language name ("American English") or rendered beside it ("English (United States)").
