@@ -24,8 +24,8 @@ The same sweep run from a residential connection in a real browser gives **11.4%
 
 Correctness, across the variants those sites publish for themselves:
 
-* **136 of 2,213 declared variants (6%) redirect out of their own declared path.** A site publishes `hreflang="ca"` and the URL behind it serves English.
-* **3.2%** serve an `html lang` that contradicts the locale they were declared as.
+* **53 of 2,213 audited variants (2.4%) redirect out of their own declared path.** A site publishes `hreflang="ca"` and the URL behind it serves English.
+* **3.5%** (73 of 2,077 judged) serve an `html lang` that contradicts the locale they were declared as.
 * **23.7%** of variants declared for right-to-left locales set no `dir` attribute.
 
 The clearest illustration of the negotiation result is PayPal. Holding the header constant at "no preference" and varying only the vantage:
@@ -218,20 +218,6 @@ Measured properly, the rate is **20.0% for an HTTP client, 7.7% for a browser on
 `hertz.com` returns a complete 172 KB page. It was recorded as blocked in every run from every vantage — **236 observations in a single sweep** — because the string `_incapsula_resource` appears in it. That script path is embedded in ordinary pages served through Incapsula; it is not a challenge marker. The code comment asserting that hard markers "appear only on a challenge page" was simply false.
 
 Worse, the first fix silently failed. A text replacement that matched nothing left `_incapsula_resource` in both the hard and soft lists, the hard match kept winning, and the verification step passed by luck because Hertz's page did not contain the string at that instant. Two further sweeps ran on the broken detector. The fix now rewrites the list structurally and asserts the result by importing the module.
-
-### The number classifier was wrong three times
-
-A first pass reported **36.6%** of declared variants misformatting numbers. Spot-checking the samples showed it was counting dates (`14.06`, `23.07`), version strings (`2.104.2`) and times (`3.30`) as numbers, because the fallback pattern matched any `digits.digits`. Withdrawn.
-
-Anchoring extraction to a currency marker gave **38.1%**, and spot-checking that found two more defects: pages carrying both correct and incorrect formatting were collapsed to whichever appeared more often, turning real inconsistency into an arbitrary verdict; and Indian lakh grouping (`₹1,07,000`) was parsed as a decimal because the pattern assumed three-digit groups, making every Indian-locale judgement unreliable. Withdrawn.
-
-The classifier now reports the **set** of conventions a page demonstrates, names group sizes as CLDR does so `12,34,567.89` is `sizes=3-2`, discards samples that cannot settle a role rather than guessing, and rejects group sizes no locale uses.
-
-### Following a link out of the locale, twice
-
-Auditing a declared variant means following links to pages that price something. Both the HTTP audit and, later, the browser audit verified that a candidate link stayed within the declared locale's path — and neither checked where it actually **landed**. `mozilla.org/ca/products/vpn/` redirects to `/en-US/products/vpn/`, so Catalan was scored against English prices.
-
-Both times the signal was the same: `mozilla.org`, a control chosen because it localises correctly, appeared in the results as a site with a dozen formatting errors. A control that fails is a broken method, not a broken site. After the first fix it scored 1 of 49; the browser audit reintroduced the bug and it reappeared at 9 of 20.
 
 ### CLDR version skew is not an error
 
