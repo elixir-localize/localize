@@ -67,6 +67,13 @@ defmodule Localize.Message.Formatter.HTML do
 
   * An HTML string.
 
+  ### Examples
+
+      iex> {:ok, ast} = Localize.Message.Parser.parse("Hello {$name}!")
+      iex> tokens = Localize.Message.Highlighter.to_tokens(ast)
+      iex> Localize.Message.Formatter.HTML.render(tokens) =~ ~s(<span class="mf2-variable">$name</span>)
+      true
+
   """
   @spec render([Highlighter.token()], options()) :: String.t()
   def render(tokens, options \\ []) do

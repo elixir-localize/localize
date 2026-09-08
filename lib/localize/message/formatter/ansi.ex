@@ -48,6 +48,14 @@ defmodule Localize.Message.Formatter.ANSI do
 
   * A string containing ANSI escape codes.
 
+  ### Examples
+
+      iex> {:ok, ast} = Localize.Message.Parser.parse("Hello {$name}!")
+      iex> tokens = Localize.Message.Highlighter.to_tokens(ast)
+      iex> rendered = Localize.Message.Formatter.ANSI.render(tokens)
+      iex> String.contains?(rendered, "$name") and String.contains?(rendered, "\e[")
+      true
+
   """
   @spec render([Highlighter.token()], options()) :: String.t()
   def render(tokens, options \\ []) do

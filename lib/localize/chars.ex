@@ -98,6 +98,10 @@ defprotocol Localize.Chars do
 
   Equivalent to `to_string(value, [])`.
 
+  ### Arguments
+
+  * `value` is any term implementing the `Localize.Chars` protocol.
+
   ### Returns
 
   * `{:ok, formatted_string}` on success.

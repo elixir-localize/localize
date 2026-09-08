@@ -5,6 +5,9 @@ defmodule Localize.Message.HighlighterTest do
   alias Localize.Message.Formatter.Plain
   alias Localize.Message.Highlighter
 
+  doctest Localize.Message.Highlighter
+  doctest Localize.Message.Print
+
   describe "token classification" do
     test "plain text produces a single :text token" do
       assert {:ok, [{:text, "Hello"}]} = Message.to_tokens("Hello")

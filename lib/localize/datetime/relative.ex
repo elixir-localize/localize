@@ -116,9 +116,24 @@ defmodule Localize.DateTime.Relative do
   @doc """
   Same as `to_string/2` but raises on error.
 
+  ### Arguments
+
+  * `relative` is an integer offset, or a `t:Date.t/0`, `t:DateTime.t/0`
+    or `t:Time.t/0` to express relative to another moment.
+
+  * `options` is a keyword list of options.
+
   ### Options
 
-  See `to_string/2` for the supported options.
+  * See `to_string/2` for the supported options.
+
+  ### Returns
+
+  * The localized relative time as a string.
+
+  ### Raises
+
+  * Raises an exception if the relative time cannot be formatted.
 
   ### Examples
 

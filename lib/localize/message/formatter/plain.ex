@@ -22,6 +22,13 @@ defmodule Localize.Message.Formatter.Plain do
 
   * A plain string — the canonical MF2 message.
 
+  ### Examples
+
+      iex> {:ok, ast} = Localize.Message.Parser.parse("Hello {$name}!")
+      iex> tokens = Localize.Message.Highlighter.to_tokens(ast)
+      iex> Localize.Message.Formatter.Plain.render(tokens)
+      "Hello {$name}!"
+
   """
   @spec render([Highlighter.token()]) :: String.t()
   def render(tokens) do

@@ -67,6 +67,33 @@ defmodule Localize.Unit.Operators do
   delegates to `Localize.Unit.Math.add/2`. Otherwise falls
   through to `Kernel.+/2`.
 
+  ### Arguments
+
+  * `left` and `right` are each a `t:Localize.Unit.t/0`, a number, or
+    a `t:Decimal.t/0`.
+
+  ### Returns
+
+  * A `t:Localize.Unit.t/0` when a unit is involved, otherwise whatever
+    `Kernel.+/2` returns.
+
+  ### Raises
+
+  * Raises if the units are incompatible — the operators use the bang
+    convention so they read as ordinary arithmetic.
+
+  ### Examples
+
+  The operators are only in scope after `use Localize.Unit.Operators`:
+
+  ```elixir
+  a = Localize.Unit.new!(3, "meter")
+  b = Localize.Unit.new!(4, "meter")
+
+  a + b
+  #=> a Localize.Unit that formats as "7 meters"
+  ```
+
   """
   @spec unquote(:+)(Unit.t() | number(), Unit.t() | number()) :: Unit.t() | number()
   def unquote(:+)(%Unit{} = left, %Unit{} = right) do
@@ -83,6 +110,33 @@ defmodule Localize.Unit.Operators do
   Subtracts two values. When both are `%Localize.Unit{}` structs,
   delegates to `Localize.Unit.Math.sub/2`. Otherwise falls
   through to `Kernel.-/2`.
+
+  ### Arguments
+
+  * `left` and `right` are each a `t:Localize.Unit.t/0`, a number, or
+    a `t:Decimal.t/0`.
+
+  ### Returns
+
+  * A `t:Localize.Unit.t/0` when a unit is involved, otherwise whatever
+    `Kernel.-/2` returns.
+
+  ### Raises
+
+  * Raises if the units are incompatible — the operators use the bang
+    convention so they read as ordinary arithmetic.
+
+  ### Examples
+
+  The operators are only in scope after `use Localize.Unit.Operators`:
+
+  ```elixir
+  a = Localize.Unit.new!(3, "meter")
+  b = Localize.Unit.new!(4, "meter")
+
+  b - a
+  #=> a Localize.Unit that formats as "1 meter"
+  ```
 
   """
   @spec unquote(:-)(Unit.t() | number(), Unit.t() | number()) :: Unit.t() | number()
@@ -101,6 +155,33 @@ defmodule Localize.Unit.Operators do
   `%Localize.Unit{}` struct, delegates to
   `Localize.Unit.Math.mult/2`. Otherwise falls through to
   `Kernel.*/2`.
+
+  ### Arguments
+
+  * `left` and `right` are each a `t:Localize.Unit.t/0`, a number, or
+    a `t:Decimal.t/0`.
+
+  ### Returns
+
+  * A `t:Localize.Unit.t/0` when a unit is involved, otherwise whatever
+    `Kernel.*/2` returns.
+
+  ### Raises
+
+  * Raises if the units are incompatible — the operators use the bang
+    convention so they read as ordinary arithmetic.
+
+  ### Examples
+
+  The operators are only in scope after `use Localize.Unit.Operators`:
+
+  ```elixir
+  a = Localize.Unit.new!(3, "meter")
+  b = Localize.Unit.new!(4, "meter")
+
+  a * 2
+  #=> a Localize.Unit that formats as "6 meters"
+  ```
 
   """
   @spec unquote(:*)(Unit.t() | number(), Unit.t() | number()) :: Unit.t() | number()
@@ -129,6 +210,33 @@ defmodule Localize.Unit.Operators do
   `%Localize.Unit{}` struct, delegates to
   `Localize.Unit.Math.div/2`. Otherwise falls through to
   `Kernel.//2`.
+
+  ### Arguments
+
+  * `left` and `right` are each a `t:Localize.Unit.t/0`, a number, or
+    a `t:Decimal.t/0`.
+
+  ### Returns
+
+  * A `t:Localize.Unit.t/0` when a unit is involved, otherwise whatever
+    `Kernel.//2` returns.
+
+  ### Raises
+
+  * Raises if the units are incompatible — the operators use the bang
+    convention so they read as ordinary arithmetic.
+
+  ### Examples
+
+  The operators are only in scope after `use Localize.Unit.Operators`:
+
+  ```elixir
+  a = Localize.Unit.new!(3, "meter")
+  b = Localize.Unit.new!(4, "meter")
+
+  a / 2
+  #=> a Localize.Unit that formats as "1.5 meters"
+  ```
 
   """
   @spec unquote(:/)(Unit.t() | number(), Unit.t() | number()) :: Unit.t() | number()

@@ -22,6 +22,12 @@ defmodule Localize.Message.Print do
 
   * A canonical message string.
 
+  ### Examples
+
+      iex> {:ok, ast} = Localize.Message.Parser.parse("Hello {$name}!")
+      iex> Localize.Message.Print.to_string(ast)
+      "Hello {$name}!"
+
   """
   @spec to_string(list() | tuple(), Keyword.t()) :: String.t()
 

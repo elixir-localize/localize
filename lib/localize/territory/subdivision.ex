@@ -93,9 +93,24 @@ defmodule Localize.Territory.Subdivision do
   @doc """
   Same as `display_name/2` but raises on error.
 
+  ### Arguments
+
+  * `subdivision` is a CLDR subdivision code as an atom or string,
+    such as `:caon`.
+
+  * `options` is a keyword list of options.
+
   ### Options
 
   * See `display_name/2` for the supported options.
+
+  ### Returns
+
+  * The localized subdivision name.
+
+  ### Raises
+
+  * Raises an exception if the subdivision name cannot be returned.
 
   ### Examples
 

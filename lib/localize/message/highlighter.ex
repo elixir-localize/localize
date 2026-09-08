@@ -79,6 +79,12 @@ defmodule Localize.Message.Highlighter do
 
   * A list of `{class, text}` tuples.
 
+  ### Examples
+
+      iex> {:ok, ast} = Localize.Message.Parser.parse("Hello {$name}!")
+      iex> Localize.Message.Highlighter.to_tokens(ast)
+      [text: "Hello ", punctuation_bracket: "{", variable: "$name", punctuation_bracket: "}", text: "!"]
+
   """
   @spec to_tokens(list() | tuple()) :: [token()]
   def to_tokens(ast) do
