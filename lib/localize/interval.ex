@@ -1093,7 +1093,7 @@ defmodule Localize.Interval do
   Parses a localized date interval.
 
   The inverse of `to_string/3`. Accepts either a single string
-  (e.g. `"May 5 \u2013 May 10, 2026"`) in which case the parser splits on the
+  (e.g. `"May 5 – May 10, 2026"`) in which case the parser splits on the
   locale's CLDR `intervalFormatFallback` separator, **or** a 2-tuple
   `{from_string, to_string}` for two-input UIs that already have the
   endpoints split.
@@ -1110,8 +1110,10 @@ defmodule Localize.Interval do
 
   ### Options
 
-  Same as `Localize.Date.parse/2` \u2014 `:locale`, `:calendar`,
-  `:reference_date`, `:as`. Plus:
+  Same as `Localize.Date.parse/2` — `:locale`, `:calendar`,
+  `:reference_date`, `:as`. As there, the calendar named by `:calendar`
+  must be available at runtime; `Calendar.ISO` always is, and the rest
+  come from [calendrical](https://hex.pm/packages/calendrical). Plus:
 
   * `:allow_inverted` is a boolean. When `true`, an end-before-start
     interval is returned as-is, since `Date.range/3` builds a descending
@@ -1126,7 +1128,7 @@ defmodule Localize.Interval do
 
   * `{:ok, {from_map, to_map}}` when `as: :map`. Each endpoint is a field
     map; missing fields are inherited from the other endpoint per the
-    CLDR interval convention, so `"May 5 \u2013 May 10, 2026"` yields two maps
+    CLDR interval convention, so `"May 5 – May 10, 2026"` yields two maps
     both carrying `:year`, or
 
   * `{:error, exception}`, a `t:Localize.DateParseError.t/0` or
@@ -1138,12 +1140,12 @@ defmodule Localize.Interval do
       iex> {range.first, range.last}
       {~D[2026-05-05], ~D[2026-05-10]}
 
-      iex> Localize.Interval.parse("May 5 \u2013 May 10, 2026", locale: :en, as: :map)
+      iex> Localize.Interval.parse("May 5 – May 10, 2026", locale: :en, as: :map)
       {:ok,
        {%{calendar: Calendar.ISO, year: 2026, month: 5, day: 5},
         %{calendar: Calendar.ISO, year: 2026, month: 5, day: 10}}}
 
-      iex> {:ok, range} = Localize.Interval.parse("May 5, 2026 \u2013 May 10, 2026", locale: :en)
+      iex> {:ok, range} = Localize.Interval.parse("May 5, 2026 – May 10, 2026", locale: :en)
       iex> {range.first, range.last}
       {~D[2026-05-05], ~D[2026-05-10]}
 

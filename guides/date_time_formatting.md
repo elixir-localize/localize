@@ -252,6 +252,157 @@ iex> Localize.DateTime.Relative.to_string(0, unit: :day, locale: :en, numeric: :
 {:ok, "in 0 days"}
 ```
 
+## Parsing
+
+Parsing is the inverse of formatting and reads the same CLDR data, so a locale that formats a date one way accepts that shape back. Each function parses one shape and returns `{:ok, value}` or `{:error, exception}`; none of them raise.
+
+| Function | Returns |
+|----------|---------|
+| `Localize.Date.parse/2` | `t:Date.t/0` |
+| `Localize.Time.parse/2` | `t:Time.t/0` |
+| `Localize.DateTime.parse/2` | `t:NaiveDateTime.t/0`, or `t:DateTime.t/0` when the input carries a zone |
+| `Localize.Interval.parse/2` | `t:Date.Range.t/0` |
+| `Localize.DateTime.Parser.parse/2` | whichever of the four the input turns out to be |
+
+### Dates and times
+
+Input is matched against the locale's own short, medium, long and full patterns, so each locale accepts what it produces:
+
+```elixir
+iex> Localize.Date.parse("March 22, 2026", locale: :en)
+{:ok, ~D[2026-03-22]}
+
+iex> Localize.Date.parse("22.03.2026", locale: :de)
+{:ok, ~D[2026-03-22]}
+
+iex> Localize.Date.parse("22/03/2026", locale: :fr)
+{:ok, ~D[2026-03-22]}
+```
+
+ISO 8601 is always accepted as well, in every locale, so a wire-format value needs no special handling:
+
+```elixir
+iex> Localize.Date.parse("2026-03-22", locale: :de)
+{:ok, ~D[2026-03-22]}
+```
+
+Parsing is lenient about the decoration a locale allows. A leading weekday is stripped, and week and quarter forms resolve to the date they begin:
+
+```elixir
+iex> Localize.Date.parse("Saturday, May 16, 2026", locale: :en)
+{:ok, ~D[2026-05-16]}
+
+iex> Localize.Date.parse("week 20 of 2026", locale: :en)
+{:ok, ~D[2026-05-11]}
+
+iex> Localize.Date.parse("Q2 2026", locale: :en)
+{:ok, ~D[2026-04-01]}
+```
+
+Times follow the locale's hour cycle, so a 12-hour locale accepts a day period and a 24-hour locale does not need one:
+
+```elixir
+iex> Localize.Time.parse("2:30 PM", locale: :en)
+{:ok, ~T[14:30:00]}
+
+iex> Localize.Time.parse("14:30", locale: :de)
+{:ok, ~T[14:30:00]}
+```
+
+### Partial input
+
+Input that omits the year is completed from a reference date, today by default, with `:reference_date` setting a different one:
+
+```elixir
+# The year comes from today, so this result moves with the calendar
+iex> Localize.Date.parse("March 22", locale: :en)
+{:ok, ~D[2026-03-22]}
+
+# Pin it with :reference_date
+iex> Localize.Date.parse("March 22", locale: :en, reference_date: ~D[2020-07-15])
+{:ok, ~D[2020-03-22]}
+```
+
+Input that omits the *day* is a different matter: there is no `t:Date.t/0` for "March 2026", so it returns a `Localize.DateParseError` rather than inventing the first of the month. Pass `as: :map` to get the fields the input actually carried:
+
+```elixir
+iex> Localize.Date.parse("March 2026", locale: :en)
+{:error, %Localize.DateParseError{input: "March 2026", locale: :en, calendar: :gregorian}}
+
+iex> Localize.Date.parse("March 2026", locale: :en, as: :map)
+{:ok, %{calendar: Calendar.ISO, month: 3, year: 2026}}
+```
+
+`as: :map` is the option to reach for when a form field genuinely means "March 2026" and completing it to a day would be a lie. It works the same way on `Localize.Time.parse/2`, `Localize.DateTime.parse/2` and `Localize.Interval.parse/2`.
+
+### Intervals
+
+`Localize.Interval.parse/2` takes either one string, which it splits on the locale's own interval separator, or a `{from, to}` pair for a two-input form that already has the endpoints apart:
+
+```elixir
+iex> Localize.Interval.parse("May 5 – May 10, 2026", locale: :en)
+{:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
+
+iex> Localize.Interval.parse("5.–10. Mai 2026", locale: :de)
+{:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
+
+iex> Localize.Interval.parse({"2026-05-05", "2026-05-10"})
+{:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
+```
+
+Fields missing from one endpoint are inherited from the other, following the CLDR interval convention, so `"5.–10. Mai 2026"` gives both endpoints a month and a year. An end-before-start interval is rejected unless `allow_inverted: true` is passed.
+
+### When the shape is not known
+
+A single text field that may hold any of these shapes is what `Localize.DateTime.Parser.parse/2` is for. It tries interval, date, time and datetime in that order and returns the first that matches, so the caller pattern-matches on the result to find out what arrived:
+
+```elixir
+iex> Localize.DateTime.Parser.parse("March 22, 2026", locale: :en)
+{:ok, ~D[2026-03-22]}
+
+iex> Localize.DateTime.Parser.parse("3:45 PM", locale: :en)
+{:ok, ~T[15:45:00]}
+
+iex> Localize.DateTime.Parser.parse("May 5, 2026 – May 10, 2026", locale: :en)
+{:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
+```
+
+When nothing matches, the returned `Localize.DateTimeParseError` carries an `:attempts` list recording what each sub-parser reported — useful for telling a user *why* their input was rejected rather than just that it was.
+
+### Time zones
+
+A datetime carrying a fixed UTC offset resolves to a `t:DateTime.t/0`. The offset may be written ISO 8601 style or in the locale's GMT format, in that locale's own spelling:
+
+```elixir
+iex> Localize.DateTime.parse("May 16, 2026 2:30 PM GMT+10:30", locale: :en)
+{:ok, #DateTime<2026-05-16 14:30:00+10:30>}
+```
+
+A *named* zone — `"PST"`, `"Asia/Tokyo"` — carries no offset of its own and needs a time-zone database to resolve, which this library does not ship. Without one the zone is dropped and the parse still succeeds, returning a `t:NaiveDateTime.t/0` rather than failing the whole input:
+
+```elixir
+iex> Localize.DateTime.parse("May 16, 2026 2:30 PM Asia/Tokyo", locale: :en)
+{:ok, ~N[2026-05-16 14:30:00]}
+```
+
+Add [calendrical](https://hex.pm/packages/calendrical) to resolve named zones to a `t:DateTime.t/0`.
+
+### Calendars
+
+The `:calendar` option accepts a CLDR calendar name or a calendar module, and parsing needs that calendar's module to be **available at runtime**. `Calendar.ISO` — the Elixir default, and CLDR's `:gregorian` — is always available, so the default case never requires anything extra. Every other calendar is supplied by [calendrical](https://hex.pm/packages/calendrical):
+
+```elixir
+# Always available
+Localize.Date.parse("22.03.2026", locale: :de, calendar: Calendar.ISO)
+#=> {:ok, ~D[2026-03-22]}
+
+# Needs calendrical
+Localize.Date.parse("22.03.2026", locale: :de, calendar: :hebrew)
+#=> {:error, %Localize.DateParseError{calendar: :hebrew}}
+```
+
+Without the calendar module, locale-formatted input returns a `Localize.DateParseError` naming the calendar it could not resolve. Note that ISO 8601 input takes a shorter path that does not consult the calendar at all, so it still parses and yields a `Calendar.ISO` date — the requested calendar is silently not applied. If you accept ISO input and a non-Gregorian `:calendar` together, check the `:calendar` field of the returned date rather than assuming the option was honoured.
+
 ## Format pattern reference
 
 CLDR format patterns use field symbols to represent date and time components. Each symbol can be repeated to control the output width.

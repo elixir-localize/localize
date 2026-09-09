@@ -542,9 +542,13 @@ defmodule Localize.Date do
     `Localize.get_locale/0`.
 
   * `:calendar` is a CLDR calendar name or calendar module. The default is
-    `:gregorian`, i.e. `Calendar.ISO`. A non-Gregorian calendar needs the
-    companion [calendrical](https://hex.pm/packages/calendrical) package;
-    without it the option resolves to `Calendar.ISO`.
+    `:gregorian`, i.e. `Calendar.ISO`. The resolved calendar must be
+    available at runtime: `Calendar.ISO` always is, and every other CLDR
+    calendar is supplied by the companion
+    [calendrical](https://hex.pm/packages/calendrical) package. Without
+    it, locale-formatted input returns a
+    `t:Localize.DateParseError.t/0` naming the calendar, while ISO 8601
+    input still parses and yields a `Calendar.ISO` date.
 
   * `:reference_date` is the `t:Date.t/0` that partial input is completed
     against. The default is today.

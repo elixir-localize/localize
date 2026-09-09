@@ -30,16 +30,16 @@ Pass `nil` as either endpoint to produce an open interval with the locale's appr
 
 ```elixir
 iex> Localize.Interval.to_string(~D[2020-01-01], nil, locale: :en)
-{:ok, "Jan 1, 2020\u2009\u2013"}
+{:ok, "Jan 1, 2020\u2009–"}
 
 iex> Localize.Interval.to_string(nil, ~D[2020-01-01], locale: :en)
-{:ok, "\u2013\u2009Jan 1, 2020"}
+{:ok, "–\u2009Jan 1, 2020"}
 
 iex> Localize.Interval.to_string(~D[2020-01-01], nil, locale: :ja)
-{:ok, "2020/01/01\uFF5E"}
+{:ok, "2020/01/01～"}
 
 iex> Localize.Interval.to_string(nil, ~D[2020-01-01], locale: :ja)
-{:ok, "\uFF5E2020/01/01"}
+{:ok, "～2020/01/01"}
 ```
 
 For an open interval the separator comes from CLDR's `intervalFormatFallback` pattern — most Western locales use an en-dash (`–`), Japanese a fullwidth tilde (`～`). A closed interval usually takes its separator from the matched interval pattern instead, which is why the two can differ within one locale. Passing `nil` for both endpoints returns an error.
