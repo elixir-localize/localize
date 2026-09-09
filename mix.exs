@@ -109,7 +109,7 @@ defmodule Localize.MixProject do
           "README.md",
           "LICENSE.md",
           "CHANGELOG.md"
-        ] ++ Path.wildcard("guides/*.md") ++ cheatsheet_extras(),
+        ] ++ ordered_extras(),
       formatters: ["html", "markdown"],
       groups_for_modules: groups_for_modules(),
       groups_for_extras: groups_for_extras(),
@@ -120,16 +120,33 @@ defmodule Localize.MixProject do
     ]
   end
 
+  # ex_doc orders the sidebar within each section by the `:extras` list,
+  # not by `groups_for_extras/0`, so a reading order declared only in the
+  # latter has no effect. Deriving `:extras` from it keeps one source of
+  # truth: to reorder a section, reorder it in `groups_for_extras/0`.
+  #
+  # Anything present on disk but absent from `groups_for_extras/0` is
+  # appended rather than dropped, so adding a guide can never silently
+  # remove it from the published docs — it just lands at the end until
+  # someone files it.
+  defp ordered_extras do
+    listed = Enum.flat_map(groups_for_extras(), fn {_section, paths} -> paths end)
+    on_disk = Path.wildcard("guides/*.md") ++ Path.wildcard("cheatsheets/*.md")
+
+    (listed ++ Enum.sort(on_disk -- listed))
+    |> Enum.map(&extra_entry/1)
+  end
+
   # Cheatsheets share basenames with guides (e.g. `collation.md`), which
   # would make ex_doc emit unstable, suffixed page names such as
   # `collation-1.html`. Giving each cheatsheet an explicit `:filename`
   # keeps the guide URLs stable (`collation.html`) and the cheatsheet
   # URLs predictable (`collation_cheatsheet.html`).
-  defp cheatsheet_extras do
-    for path <- Path.wildcard("cheatsheets/*.md") do
-      {path, filename: Path.basename(path, ".md") <> "_cheatsheet"}
-    end
+  defp extra_entry("cheatsheets/" <> _ = path) do
+    {path, filename: Path.basename(path, ".md") <> "_cheatsheet"}
   end
+
+  defp extra_entry(path), do: path
 
   def groups_for_modules do
     [
@@ -161,6 +178,9 @@ defmodule Localize.MixProject do
     ]
   end
 
+  # The order of the sections here, and of the pages within each section,
+  # is the order the docs sidebar renders — see `ordered_extras/0`. These
+  # are reading orders, not alphabetical ones.
   defp groups_for_extras do
     [
       Guides: [
@@ -176,6 +196,7 @@ defmodule Localize.MixProject do
         "guides/display_names.md",
         "guides/collation.md"
       ],
+      # Reading order: concept, then practice, then the feature reference.
       Inflection: [
         "guides/what_is_inflection.md",
         "guides/inflection.md",
@@ -192,6 +213,7 @@ defmodule Localize.MixProject do
         "guides/migration.md",
         "guides/performance_comparison.md"
       ],
+      # Mirrors the order of the guides they condense.
       Cheatsheets: [
         "cheatsheets/number_formatting.md",
         "cheatsheets/date_time_formatting.md",
