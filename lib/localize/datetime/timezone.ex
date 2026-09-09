@@ -38,6 +38,20 @@ defmodule Localize.DateTime.Timezone do
   @default_hour_format "+HH:mm;-HH:mm"
   @default_gmt_unknown_format "GMT+?"
 
+  # The ASCII spellings TR35 allows for the localized GMT format,
+  # longest first so `UTC` is not read as `UT` followed by a stray `C`.
+  @gmt_literals ["GMT", "UTC", "UT"]
+
+  # CLDR spells the negative sign three ways across the locales that ship
+  # an `hour_format`: ASCII hyphen, U+2212 MINUS SIGN (`sv`, `fa`) and
+  # U+2013 EN DASH (`eu`).
+  @minus_signs ["-", "\u2212", "\u2013"]
+
+  # Bidi controls that CLDR embeds in the `hour_format` of `fa` and `he`,
+  # and that travel with an offset pasted out of rendered text. They carry
+  # no numeric meaning, so they come off before parsing.
+  @bidi_marks ["\u200E", "\u200F", "\u061C"]
+
   @primary_zones SupplementalData.primary_zones()
 
   @metazone_data SupplementalData.metazones()
@@ -710,6 +724,268 @@ defmodule Localize.DateTime.Timezone do
     |> format_hour_offset(hour_format, format)
     |> Localize.Substitution.substitute(gmt_pattern)
     |> Enum.join()
+  end
+
+  @doc """
+  Parses a fixed UTC offset from a time zone string.
+
+  This is the inverse of `gmt_format/3` and `iso_format/2`. It resolves
+  only offsets that are pure arithmetic — an ISO 8601 offset, or the
+  localized GMT format in the locale's own spelling. A named zone
+  (`"PST"`, `"Asia/Tokyo"`) carries no offset of its own and needs a
+  time-zone database to resolve; it is rejected here.
+
+  ### Arguments
+
+  * `zone_string` is the zone portion of a parsed time, such as `"Z"`,
+    `"+05:30"`, `"GMT+10:30"` or a locale's own GMT spelling.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier, used to recognise that locale's
+    GMT format. The default is the locale returned by
+    `Localize.get_locale/0`.
+
+  ### Returns
+
+  * `{:ok, offset}` where `offset` is the number of seconds east of
+    UTC, negative for offsets west of it.
+
+  * `{:error, exception}`, a `t:Localize.UnknownTimezoneError.t/0`, when
+    the string carries no fixed offset.
+
+  ### Examples
+
+      iex> Localize.DateTime.Timezone.parse_offset("+05:30")
+      {:ok, 19800}
+
+      iex> Localize.DateTime.Timezone.parse_offset("Z")
+      {:ok, 0}
+
+      iex> Localize.DateTime.Timezone.parse_offset("GMT-8")
+      {:ok, -28800}
+
+      iex> Localize.DateTime.Timezone.parse_offset("Asia/Tokyo")
+      {:error, %Localize.UnknownTimezoneError{timezone: "Asia/Tokyo"}}
+
+  """
+  @spec parse_offset(String.t(), Keyword.t()) :: {:ok, integer()} | {:error, Exception.t()}
+  def parse_offset(zone_string, options \\ [])
+
+  def parse_offset(zone_string, options) when is_binary(zone_string) do
+    normalized = strip_bidi_marks(zone_string)
+
+    attempts = [
+      fn -> parse_iso_offset(normalized) end,
+      fn -> parse_ascii_gmt_offset(normalized) end,
+      fn -> parse_localized_gmt_offset(normalized, options) end
+    ]
+
+    Enum.reduce_while(attempts, :error, fn attempt, _no_match ->
+      case attempt.() do
+        {:ok, _offset} = ok -> {:halt, ok}
+        :error -> {:cont, :error}
+      end
+    end)
+    |> case do
+      {:ok, _offset} = ok -> ok
+      :error -> {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
+    end
+  end
+
+  def parse_offset(zone_string, _options) do
+    {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
+  end
+
+  defp strip_bidi_marks(zone_string) do
+    @bidi_marks
+    |> Enum.reduce(zone_string, &String.replace(&2, &1, ""))
+    |> String.trim()
+  end
+
+  # ── ISO 8601 offsets ─────────────────────────────────────────
+
+  defp parse_iso_offset(zone) when zone in ["Z", "z"], do: {:ok, 0}
+
+  # ISO 8601 requires a two-digit hour, so `+5` is not an ISO offset.
+  defp parse_iso_offset(zone), do: parse_signed_offset(zone, :two_digit_hour)
+
+  # ── Localized GMT format, ASCII spellings ────────────────────
+
+  defp parse_ascii_gmt_offset(zone) do
+    case strip_gmt_literal(zone) do
+      :error -> :error
+      "" -> {:ok, 0}
+      remainder -> parse_signed_offset(remainder, :short_hour)
+    end
+  end
+
+  defp strip_gmt_literal(zone) do
+    Enum.find_value(@gmt_literals, &strip_leading_literal(zone, &1)) ||
+      Enum.find_value(@gmt_literals, &strip_trailing_literal(zone, &1)) ||
+      :error
+  end
+
+  defp strip_leading_literal(zone, literal) do
+    size = byte_size(literal)
+
+    case zone do
+      <<head::binary-size(^size), rest::binary>> ->
+        if String.upcase(head) == literal, do: String.trim(rest)
+
+      _too_short ->
+        nil
+    end
+  end
+
+  # The trailing form covers the 15 locales whose `gmtFormat` puts the
+  # literal after the offset (`pt-TL`, `se-FI`) and anyone who types it
+  # that way. A zone that merely ends in these letters — `Asia/Beirut`
+  # ends in `ut` — survives because the remainder must still parse as a
+  # signed offset.
+  defp strip_trailing_literal(zone, literal) do
+    size = byte_size(literal)
+    head_size = byte_size(zone) - size
+
+    if head_size > 0 do
+      <<head::binary-size(^head_size), tail::binary-size(^size)>> = zone
+
+      if String.upcase(tail) == literal, do: String.trim(head)
+    end
+  end
+
+  # ── Localized GMT format, the locale's own spelling ──────────
+
+  defp parse_localized_gmt_offset(zone, options) do
+    with {:ok, locale_id} <- offset_locale(options),
+         {:ok, tz_data} <- Localize.Locale.get(locale_id, [:dates, :time_zone_names]),
+         {:ok, remainder} <-
+           strip_gmt_pattern(zone, tz_data[:gmt_format] || @default_gmt_format) do
+      # A bare localized literal is deliberately not read as a zero
+      # offset. Several locales spell the GMT format with a string that
+      # is also a real zone abbreviation — `yo` uses "WAT", `ga` uses
+      # "MAG" — and resolving those to UTC would be wrong, so only a
+      # literal carrying an actual offset resolves here.
+      parse_signed_offset(remainder, :short_hour)
+    else
+      _no_offset -> :error
+    end
+  end
+
+  defp offset_locale(options) do
+    case Localize.validate_locale(Keyword.get(options, :locale) || Localize.get_locale()) do
+      {:ok, locale} -> {:ok, locale.cldr_locale_id}
+      _invalid_locale -> :error
+    end
+  end
+
+  defp strip_gmt_pattern(zone, pattern) when is_list(pattern) do
+    prefix = pattern |> Enum.take_while(&(&1 != 0)) |> pattern_literal()
+    suffix = pattern |> Enum.drop_while(&(&1 != 0)) |> Enum.drop(1) |> pattern_literal()
+
+    with {:ok, without_prefix} <- strip_leading(zone, prefix),
+         {:ok, remainder} <- strip_trailing(without_prefix, suffix) do
+      {:ok, String.trim(remainder)}
+    end
+  end
+
+  defp strip_gmt_pattern(_zone, _pattern), do: :error
+
+  defp pattern_literal(parts) do
+    parts
+    |> Enum.filter(&is_binary/1)
+    |> Enum.join()
+    |> strip_bidi_marks()
+  end
+
+  defp strip_leading(string, ""), do: {:ok, string}
+
+  defp strip_leading(string, prefix) do
+    if String.starts_with?(string, prefix) do
+      size = byte_size(prefix)
+      {:ok, binary_part(string, size, byte_size(string) - size)}
+    else
+      :error
+    end
+  end
+
+  defp strip_trailing(string, ""), do: {:ok, string}
+
+  defp strip_trailing(string, suffix) do
+    if String.ends_with?(string, suffix) do
+      {:ok, binary_part(string, 0, byte_size(string) - byte_size(suffix))}
+    else
+      :error
+    end
+  end
+
+  # ── Signed offset digits ─────────────────────────────────────
+
+  defp parse_signed_offset(offset, hour_digits) do
+    with {multiplier, digits} <- split_offset_sign(offset),
+         {:ok, seconds} <- offset_seconds(digits, hour_digits) do
+      {:ok, multiplier * seconds}
+    else
+      _no_offset -> :error
+    end
+  end
+
+  defp split_offset_sign("+" <> rest), do: {1, rest}
+
+  defp split_offset_sign(offset) do
+    case Enum.find(@minus_signs, &String.starts_with?(offset, &1)) do
+      nil ->
+        :error
+
+      minus ->
+        size = byte_size(minus)
+        {-1, binary_part(offset, size, byte_size(offset) - size)}
+    end
+  end
+
+  # `:two_digit_hour` is ISO 8601, which writes `+05`. `:short_hour` also
+  # accepts the one-digit hour of the localized GMT format — `GMT-8` is
+  # exactly what `gmt_format/3` emits with `format: :short`, and `cs` and
+  # `fi` write `+H:mm` and `+H.mm` respectively.
+  defp offset_seconds(digits, hour_digits) do
+    digits
+    |> String.replace([":", "."], "")
+    |> String.trim()
+    |> offset_digit_groups(hour_digits)
+  end
+
+  defp offset_digit_groups(<<h::binary-size(2), m::binary-size(2), s::binary-size(2)>>, _hours) do
+    offset_total(h, m, s)
+  end
+
+  defp offset_digit_groups(<<h::binary-size(2), m::binary-size(2)>>, _hours) do
+    offset_total(h, m, "00")
+  end
+
+  defp offset_digit_groups(<<h::binary-size(1), m::binary-size(2)>>, :short_hour) do
+    offset_total(h, m, "00")
+  end
+
+  defp offset_digit_groups(<<h::binary-size(2)>>, _hours) do
+    offset_total(h, "00", "00")
+  end
+
+  defp offset_digit_groups(<<h::binary-size(1)>>, :short_hour) do
+    offset_total(h, "00", "00")
+  end
+
+  defp offset_digit_groups(_digits, _hours), do: :error
+
+  defp offset_total(hours, minutes, seconds) do
+    with {hh, ""} when hh <= 14 <- Integer.parse(hours),
+         {mm, ""} when mm < 60 <- Integer.parse(minutes),
+         {ss, ""} when ss < 60 <- Integer.parse(seconds) do
+      {:ok, hh * 3600 + mm * 60 + ss}
+    else
+      _invalid -> :error
+    end
   end
 
   @doc """

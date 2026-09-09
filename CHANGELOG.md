@@ -26,6 +26,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.DateTime.SemanticSkeleton` implements TR35 semantic skeletons — asking for a date by meaning (`"YMDE"`, `"MDTZ"`) rather than by field. `semantic/2` builds one, the `:format` option accepts it on `Localize.Date`, `Localize.Time` and `Localize.DateTime`, and the mapping to classical skeletons matches CLDR on all 240 conformance cases.
 
+* `Localize.DateTime.Timezone.parse_offset/2` reads a fixed UTC offset from a zone string — ISO 8601 (`"+05:30"`, `"Z"`) or the localized GMT format in any locale's own spelling, prefix or suffix — inverting `gmt_format/3`. `Localize.DateTime.parse/2` uses it, so `"May 16, 2026 2:30 PM GMT+10:30"` now returns a `DateTime` with no `calendrical` present; a named zone such as `"Asia/Tokyo"` still needs one.
+
+* `Localize.Date.parse/2`, `Localize.Time.parse/2` and `Localize.DateTime.parse/2` now parse natively, no longer requiring `calendrical` — `Localize.Date.parse("March 22, 2026", locale: :en)` gives `{:ok, ~D[2026-03-22]}`. `Localize.Date.parse_range/2` parses a date range from one string or a `{from, to}` pair, and `Localize.Temporal.parse/2` parses a string of unknown shape as whichever of the four it turns out to be.
+
 * `Localize.MinimalPairs` exposes CLDR's minimal pairs — the short phrases that demonstrate a locale's plural, ordinal, case and gender forms. `cardinal/1`, `ordinal/1`, `grammatical_case/1` and `grammatical_gender/1` return the phrases; `format/3` picks the one a number selects, so `format(3, :cardinal, locale: :en)` is `{:ok, "3 days"}`.
 
 ### Changed
