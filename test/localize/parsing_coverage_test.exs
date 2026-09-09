@@ -131,23 +131,58 @@ defmodule Localize.ParsingCoverageTest do
 
   # ── Date: calendars ──
 
+  # The `:calendar` option is resolved to a calendar module before any
+  # parsing happens, so an unavailable or unknown calendar is reported the
+  # same way whichever shape the input takes. Only `Calendar.ISO` ships
+  # with this library; the CLDR calendars come from `calendrical`, and
+  # their per-calendar parsing behaviour is covered by that package's own
+  # suite.
   describe "Date.parse/2 calendar handling" do
-    test "return_calendar: :iso forces Calendar.ISO" do
-      assert Localize.Date.parse("2026-05-16",
-               locale: :en,
-               calendar: :hebrew,
-               return_calendar: :iso
-             ) == {:ok, ~D[2026-05-16]}
+    test "the default calendar needs no dependency" do
+      for calendar <- [:gregorian, Calendar.ISO] do
+        assert Localize.Date.parse("2026-05-16", locale: :en, calendar: calendar) ==
+                 {:ok, ~D[2026-05-16]}
+      end
     end
 
-    test "unknown CLDR calendar key falls back to Calendar.ISO for the ISO path" do
-      assert Localize.Date.parse("2026-05-16", locale: :en, calendar: :bogus) ==
+    test "a CLDR calendar whose module is absent names the package it needs" do
+      for calendar <- [:hebrew, :chinese, :buddhist, :coptic, :islamic, :persian] do
+        assert {:error, %Localize.DependencyRequiredError{package: "calendrical"}} =
+                 Localize.Date.parse("2026-05-16", locale: :en, calendar: calendar)
+      end
+    end
+
+    # Both input shapes must agree. The ISO path used to skip calendar
+    # resolution entirely and return a Gregorian date, so asking for a
+    # calendar it could not honour succeeded with the wrong answer.
+    test "ISO and locale-formatted input agree about an unavailable calendar" do
+      iso = Localize.Date.parse("2026-05-16", locale: :de, calendar: :hebrew)
+      locale = Localize.Date.parse("16.05.2026", locale: :de, calendar: :hebrew)
+
+      assert {:error, %Localize.DependencyRequiredError{}} = iso
+      assert iso == locale
+    end
+
+    test "an unknown calendar is rejected rather than quietly ignored" do
+      for calendar <- [:bogus, NoSuchCalendarModule, nil, "hebrew"] do
+        assert {:error, %Localize.UnknownCalendarError{}} =
+                 Localize.Date.parse("2026-05-16", locale: :en, calendar: calendar)
+      end
+    end
+
+    # `:return_calendar` governs the calendar of the returned date, not the
+    # one the input is interpreted in, so it cannot stand in for a calendar
+    # module that is not installed.
+    test "return_calendar: :iso does not waive the parsing calendar" do
+      assert {:error, %Localize.DependencyRequiredError{}} =
+               Localize.Date.parse("2026-05-16",
+                 locale: :en,
+                 calendar: :hebrew,
+                 return_calendar: :iso
+               )
+
+      assert Localize.Date.parse("2026-05-16", locale: :en, return_calendar: :iso) ==
                {:ok, ~D[2026-05-16]}
-    end
-
-    test "chinese calendar rejects a numeric pattern that builds no valid date" do
-      assert {:error, %Localize.DateParseError{calendar: :chinese}} =
-               Localize.Date.parse("4/10/4663", locale: :en, calendar: :chinese)
     end
   end
 
@@ -219,11 +254,6 @@ defmodule Localize.ParsingCoverageTest do
     test "numeric month out of range" do
       assert {:error, %Localize.DateParseError{}} =
                Localize.Date.parse("25/45/6789", locale: :en)
-    end
-
-    test "invalid day for a coptic month" do
-      assert {:error, %Localize.DateParseError{calendar: :coptic}} =
-               Localize.Date.parse("13/8/1742", locale: :en, calendar: :coptic)
     end
   end
 
@@ -563,12 +593,24 @@ defmodule Localize.ParsingCoverageTest do
                {:ok, ~N[2026-05-23 14:30:00]}
     end
 
-    test "ISO 8601 with zone information returns a DateTime" do
+    # The offset the input carried is kept rather than normalised away, so
+    # the wall time is the one the user wrote. `DateTime.from_iso8601/1`
+    # shifts to UTC and discards the offset; that loses information the
+    # locale-formatted path preserves, and one function returning two
+    # different structs for the same instant is the bug this avoids.
+    test "ISO 8601 with zone information keeps the offset it carried" do
       assert Localize.DateTime.parse("2026-05-23T14:30:00Z", locale: :en) ==
                {:ok, ~U[2026-05-23 14:30:00Z]}
 
-      assert Localize.DateTime.parse("2026-05-23T14:30:00+05:00", locale: :en) ==
-               {:ok, ~U[2026-05-23 09:30:00Z]}
+      assert {:ok, %DateTime{hour: 14, minute: 30, utc_offset: 18_000}} =
+               Localize.DateTime.parse("2026-05-23T14:30:00+05:00", locale: :en)
+    end
+
+    test "the two spellings of one offset produce the same struct" do
+      {:ok, iso} = Localize.DateTime.parse("2026-05-16T14:30:00+10:30", locale: :en)
+      {:ok, localized} = Localize.DateTime.parse("May 16, 2026 2:30 PM GMT+10:30", locale: :en)
+
+      assert iso == localized
     end
 
     test "universal fallback glue separators" do
@@ -628,9 +670,8 @@ defmodule Localize.ParsingCoverageTest do
     end
 
     # A fixed offset is arithmetic, so it resolves with no dependency.
-    # The wall time the user typed is kept and the offset attached, which
-    # differs from the ISO 8601 path — `DateTime.from_iso8601/1`
-    # normalises to UTC and discards the original offset.
+    # The wall time the user typed is kept and the offset attached, the
+    # same as the ISO 8601 path.
     test "GMT-format offset resolves to a fixed-offset DateTime" do
       assert {:ok, %DateTime{utc_offset: 37_800, hour: 14, minute: 30, zone_abbr: "+10:30"}} =
                Localize.DateTime.parse("May 16, 2026 2:30 PM GMT+10:30", locale: :en)
@@ -835,11 +876,6 @@ defmodule Localize.ParsingCoverageTest do
                Localize.Time.parse("qqq", locale: :aa)
     end
 
-    test "buddhist-calendar patterns (with cccc weekday names) compile" do
-      assert {:error, %Localize.DateParseError{calendar: :buddhist}} =
-               Localize.Date.parse("blah", locale: :en, calendar: :buddhist)
-    end
-
     test "split fallback in :bal when interval patterns do not match" do
       assert {:error, %Localize.DateRangeParseError{reason: :from_parse_failed}} =
                Localize.Interval.parse("gibberish – 2026-05-10", locale: :bal)
@@ -851,11 +887,6 @@ defmodule Localize.ParsingCoverageTest do
 
       assert Localize.Interval.parse("5. maj – 10. maj 2026", locale: :da) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
-    end
-
-    test "hebrew day out of range for the month is rejected" do
-      assert {:error, %Localize.DateParseError{calendar: :hebrew}} =
-               Localize.Date.parse("2/30/5787", locale: :en, calendar: :hebrew)
     end
 
     test "locale can be a string or a LanguageTag" do

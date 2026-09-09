@@ -722,9 +722,10 @@ defmodule Localize.DateTime do
     available at runtime: `Calendar.ISO` always is, and every other CLDR
     calendar is supplied by the companion
     [calendrical](https://hex.pm/packages/calendrical) package. Without
-    it, locale-formatted input returns a
-    `t:Localize.DateParseError.t/0` naming the calendar, while ISO 8601
-    input still parses and yields a `Calendar.ISO` date.
+    it, a non-Gregorian calendar returns a
+    `t:Localize.DependencyRequiredError.t/0` naming the package to add,
+    and an unknown calendar returns a
+    `t:Localize.UnknownCalendarError.t/0`.
 
   * `:reference_date` is the `t:Date.t/0` that partial input is completed
     against. The default is today.

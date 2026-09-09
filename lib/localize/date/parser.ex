@@ -99,8 +99,15 @@ defmodule Localize.Date.Parser do
   @spec parse(String.t(), Keyword.t()) ::
           {:ok, Date.t() | map()} | {:error, Exception.t()}
   def parse(input, options \\ []) when is_binary(input) do
-    locale = Keyword.get(options, :locale) || Localize.get_locale()
     cldr_calendar = normalise_calendar(Keyword.get(options, :calendar, :gregorian))
+
+    with {:ok, _calendar_module} <- validate_calendar(cldr_calendar) do
+      do_parse(input, options, cldr_calendar)
+    end
+  end
+
+  defp do_parse(input, options, cldr_calendar) do
+    locale = Keyword.get(options, :locale) || Localize.get_locale()
     reference_year = (Keyword.get(options, :reference_date) || Date.utc_today()).year
     return_module = resolve_return_calendar(options, cldr_calendar)
     as = Keyword.get(options, :as, :struct)
@@ -385,8 +392,15 @@ defmodule Localize.Date.Parser do
           {:ok, Date.Range.t() | {map(), map()}} | {:error, Exception.t()}
   def parse_range(input, options \\ []) when is_binary(input) do
     options = normalise_calendar_option(options)
-    locale = Keyword.get(options, :locale) || Localize.get_locale()
     cldr_calendar = Keyword.get(options, :calendar, :gregorian)
+
+    with {:ok, _calendar_module} <- validate_calendar(cldr_calendar) do
+      do_parse_range(input, options, cldr_calendar)
+    end
+  end
+
+  defp do_parse_range(input, options, cldr_calendar) do
+    locale = Keyword.get(options, :locale) || Localize.get_locale()
     reference_year = (Keyword.get(options, :reference_date) || Date.utc_today()).year
     allow_inverted = Keyword.get(options, :allow_inverted, false)
     as = Keyword.get(options, :as, :struct)
@@ -1224,6 +1238,55 @@ defmodule Localize.Date.Parser do
         :error -> nil
       end
     end)
+  end
+
+  @doc false
+  # Resolves the `:calendar` option to a calendar module, or explains why it
+  # cannot. Every parse entry point runs this before parsing, so that an
+  # unavailable calendar is reported the same way whether the input happens
+  # to be ISO 8601 or locale-formatted. The ISO path previously skipped
+  # calendar resolution altogether and returned a `Calendar.ISO` date, so
+  # asking for `:hebrew` on ISO input silently produced a Gregorian date.
+  @spec validate_calendar(atom()) :: {:ok, module()} | {:error, Exception.t()}
+  def validate_calendar(:gregorian), do: {:ok, Calendar.ISO}
+
+  def validate_calendar(cldr_calendar) when is_atom(cldr_calendar) do
+    cond do
+      # A `Calendar` implementation passed directly. `normalise_calendar/1`
+      # has already folded modules that declare `cldr_calendar_type/0` into
+      # their CLDR atom, so what reaches here is a calendar that names no
+      # CLDR type — a consumer's own implementation, which is honoured.
+      calendar_module?(cldr_calendar) ->
+        {:ok, cldr_calendar}
+
+      cldr_calendar in Localize.known_calendars() ->
+        resolve_known_calendar(cldr_calendar)
+
+      true ->
+        {:error, Localize.UnknownCalendarError.exception(calendar: cldr_calendar)}
+    end
+  end
+
+  def validate_calendar(other) do
+    {:error, Localize.UnknownCalendarError.exception(calendar: other)}
+  end
+
+  defp calendar_module?(module) do
+    Code.ensure_loaded?(module) and function_exported?(module, :date_to_string, 3)
+  end
+
+  defp resolve_known_calendar(cldr_calendar) do
+    case resolve_calendar_module(cldr_calendar) do
+      {:ok, Calendar.ISO} when cldr_calendar != :gregorian ->
+        {:error,
+         Localize.DependencyRequiredError.exception(
+           package: "calendrical",
+           operation: "parsing a date in the #{inspect(cldr_calendar)} calendar"
+         )}
+
+      {:ok, module} ->
+        {:ok, module}
+    end
   end
 
   defp resolve_calendar_module(:gregorian), do: {:ok, Calendar.ISO}

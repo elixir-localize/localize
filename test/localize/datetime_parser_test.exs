@@ -69,14 +69,16 @@ defmodule Localize.DateTime.ParserTest do
                Localize.DateTime.Parser.parse("2026-05-16", locale: :en, calendar: Calendar.ISO)
     end
 
-    # A calendar whose module is not installed silently resolves to
-    # `Calendar.ISO` — the behaviour this code has always had, since the
-    # original mapping fell back the same way for any calendar it could not
-    # resolve. Worth knowing: asking for `:hebrew` without `calendrical`
-    # yields a Gregorian date rather than an error.
-    test "a calendar whose module is absent falls back to Calendar.ISO" do
-      assert {:ok, %Date{calendar: Calendar.ISO}} =
+    # A calendar whose module is not installed is reported rather than
+    # quietly swapped for `Calendar.ISO`. The general parser tries every
+    # shape, so the cause surfaces in `:attempts` rather than at the top
+    # level.
+    test "a calendar whose module is absent is reported, not substituted" do
+      assert {:error, %Localize.DateTimeParseError{attempts: attempts}} =
                Localize.DateTime.Parser.parse("2026-05-16", locale: :en, calendar: :hebrew)
+
+      assert %Localize.DependencyRequiredError{package: "calendrical"} =
+               Keyword.fetch!(attempts, :date)
     end
   end
 end

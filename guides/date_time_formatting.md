@@ -371,12 +371,17 @@ When nothing matches, the returned `Localize.DateTimeParseError` carries an `:at
 
 ### Time zones
 
-A datetime carrying a fixed UTC offset resolves to a `t:DateTime.t/0`. The offset may be written ISO 8601 style or in the locale's GMT format, in that locale's own spelling:
+A datetime carrying a fixed UTC offset resolves to a `t:DateTime.t/0`. The offset may be written ISO 8601 style or in the locale's GMT format, in that locale's own spelling, and both produce the same struct — the wall time you wrote, with the offset attached rather than normalised away:
 
 ```elixir
 iex> Localize.DateTime.parse("May 16, 2026 2:30 PM GMT+10:30", locale: :en)
 {:ok, #DateTime<2026-05-16 14:30:00+10:30>}
+
+iex> Localize.DateTime.parse("2026-05-16T14:30:00+10:30", locale: :en)
+{:ok, #DateTime<2026-05-16 14:30:00+10:30>}
 ```
+
+Shift to UTC yourself with `DateTime.shift_zone/3` when you want it; the parser does not do it for you, because the original offset cannot be recovered afterwards.
 
 A *named* zone — `"PST"`, `"Asia/Tokyo"` — carries no offset of its own and needs a time-zone database to resolve, which this library does not ship. Without one the zone is dropped and the parse still succeeds, returning a `t:NaiveDateTime.t/0` rather than failing the whole input:
 
@@ -398,10 +403,18 @@ Localize.Date.parse("22.03.2026", locale: :de, calendar: Calendar.ISO)
 
 # Needs calendrical
 Localize.Date.parse("22.03.2026", locale: :de, calendar: :hebrew)
-#=> {:error, %Localize.DateParseError{calendar: :hebrew}}
+#=> {:error, %Localize.DependencyRequiredError{package: "calendrical"}}
+
+# Not a calendar at all
+Localize.Date.parse("22.03.2026", locale: :de, calendar: :bogus)
+#=> {:error, %Localize.UnknownCalendarError{calendar: :bogus}}
 ```
 
-Without the calendar module, locale-formatted input returns a `Localize.DateParseError` naming the calendar it could not resolve. Note that ISO 8601 input takes a shorter path that does not consult the calendar at all, so it still parses and yields a `Calendar.ISO` date — the requested calendar is silently not applied. If you accept ISO input and a non-Gregorian `:calendar` together, check the `:calendar` field of the returned date rather than assuming the option was honoured.
+The calendar is resolved before any parsing happens, so the answer does not depend on the shape of the input: ISO 8601 and locale-formatted text both return the same error for the same `:calendar`. A `Localize.DependencyRequiredError` names the package to add; a `Localize.UnknownCalendarError` means the calendar is not a CLDR calendar and not a `Calendar` implementation. Any module implementing the `Calendar` behaviour is accepted directly, so a custom calendar needs no CLDR registration.
+
+`:return_calendar` governs the calendar of the returned date, not the one the input is read in, so it does not waive this — parsing "1 Tishrei 5787" still needs the Hebrew calendar even when you want an ISO date back.
+
+A time carries no date fields, so `Localize.Time.parse/2` resolves no calendar and the option has no effect there.
 
 ## Format pattern reference
 

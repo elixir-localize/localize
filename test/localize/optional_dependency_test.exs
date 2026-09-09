@@ -45,10 +45,11 @@ defmodule Localize.OptionalDependencyTest do
     end
 
     # A non-Gregorian calendar names a module that ships with calendrical.
-    # Without it there is no Hebrew date to return, so the caller gets a
-    # parse error naming the calendar rather than an exception.
-    test "a non-Gregorian calendar reports cleanly rather than raising" do
-      assert {:error, %Localize.DateParseError{calendar: :hebrew}} =
+    # Without it there is no Hebrew date to return, so the caller gets an
+    # error naming the package to add rather than a silently Gregorian
+    # result.
+    test "a non-Gregorian calendar names the package it needs" do
+      assert {:error, %Localize.DependencyRequiredError{package: "calendrical"}} =
                Localize.Date.parse("22.03.2026", locale: :de, calendar: :hebrew)
     end
   end

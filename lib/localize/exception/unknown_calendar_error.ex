@@ -7,6 +7,8 @@ defmodule Localize.UnknownCalendarError do
 
   defexception [:calendar]
 
+  @type t :: %__MODULE__{calendar: atom() | String.t() | nil}
+
   @impl true
   def exception(bindings) when is_list(bindings) do
     struct!(__MODULE__, bindings)

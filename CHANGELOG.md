@@ -34,6 +34,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* **Breaking.** `Localize.DateTime.parse/2` keeps the UTC offset an ISO 8601 input carried instead of normalising the instant to UTC, so `"2026-05-23T14:30:00+05:00"` now returns `14:30:00+05:00` rather than `09:30:00Z`. Both spellings of an offset — ISO and the localized GMT format — now produce the same struct; call `DateTime.shift_zone/3` for the previous output.
+
+* **Breaking.** The `:calendar` option is resolved before parsing, so an unavailable or unknown calendar is reported rather than silently replaced by `Calendar.ISO`. A CLDR calendar with no module installed returns `Localize.DependencyRequiredError` naming `calendrical`, and an unknown calendar returns `Localize.UnknownCalendarError`, whichever shape the input takes.
+
 * `:prefer` is now the option that selects a display-name alternate on `Localize.Language`, `Localize.Territory` and `Localize.Script` as well as `Localize.Locale.LocaleDisplay`, with `:style` still accepted as the older spelling. An unsupported value returns `{:error, %Localize.InvalidValueError{}}` rather than silently resolving to `:standard`, which retires the undocumented `prefer: :default`.
 
 * **Breaking.** `Localize.DateTime.to_string/2` joins a date and a time with the locale's "at time" wrapper by default, so `en` at `:long` is now "July 6, 2024 at 2:30:45 PM" rather than "July 6, 2024, 2:30:45 PM". TR35 makes this the default for an event time; pass `style: :default` for the previous output, and note that `:medium` and `:short` are unchanged because CLDR defines the wrapper only for `:full` and `:long`.

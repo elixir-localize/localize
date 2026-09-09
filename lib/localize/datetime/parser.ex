@@ -209,10 +209,16 @@ defmodule Localize.DateTime.Parser do
   @spec parse_datetime(String.t(), Keyword.t()) ::
           {:ok, NaiveDateTime.t() | DateTime.t() | map()} | {:error, Exception.t()}
   def parse_datetime(input, options \\ []) when is_binary(input) do
-    locale = Keyword.get(options, :locale) || Localize.get_locale()
-
     cldr_calendar =
       Localize.Date.Parser.normalise_calendar(Keyword.get(options, :calendar, :gregorian))
+
+    with {:ok, _calendar_module} <- Localize.Date.Parser.validate_calendar(cldr_calendar) do
+      do_parse_datetime(input, options, cldr_calendar)
+    end
+  end
+
+  defp do_parse_datetime(input, options, cldr_calendar) do
+    locale = Keyword.get(options, :locale) || Localize.get_locale()
 
     as = Keyword.get(options, :as, :struct)
 
@@ -363,9 +369,9 @@ defmodule Localize.DateTime.Parser do
 
   # `DateTime` stores local wall fields plus the offset, so the instant
   # the user typed is kept as they wrote it and rendered back as
-  # `<local +offset>`. Note this differs from the ISO 8601 path, where
-  # `DateTime.from_iso8601/1` normalises to UTC and the original offset
-  # is lost.
+  # `<local +offset>`. The ISO 8601 path funnels through here too — see
+  # `restore_offset/2` — so both spellings of one offset produce the same
+  # struct.
   defp datetime_at_offset(naive_datetime, offset) do
     %DateTime{
       calendar: naive_datetime.calendar,
@@ -443,12 +449,26 @@ defmodule Localize.DateTime.Parser do
     # accepts; widely used by Postgres, SQLite, logs, etc.).
     if iso_datetime_shape?(input) do
       case DateTime.from_iso8601(input) do
-        {:ok, dt, _offset} -> {:ok, dt}
+        {:ok, datetime, offset} -> {:ok, restore_offset(datetime, offset)}
         _ -> try_iso_naive(input)
       end
     else
       :error
     end
+  end
+
+  # `DateTime.from_iso8601/1` normalises the instant to UTC and hands back
+  # the offset it removed. Shifting by that offset restores the wall time
+  # the input actually carried, which is then attached to the offset
+  # rather than discarded — the same representation the locale-formatted
+  # path produces, so one function no longer returns two different structs
+  # for the same instant written two ways.
+  defp restore_offset(datetime, 0), do: datetime
+
+  defp restore_offset(datetime, offset) do
+    datetime
+    |> DateTime.add(offset, :second)
+    |> datetime_at_offset(offset)
   end
 
   # `Date.from_iso8601/1` and `NaiveDateTime.from_iso8601/1`
