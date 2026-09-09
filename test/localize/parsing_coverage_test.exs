@@ -2,8 +2,8 @@ defmodule Localize.ParsingCoverageTest do
   use ExUnit.Case, async: true
 
   # Systematic coverage of the parser engines through their public
-  # entry points: `Localize.Temporal.parse/2`, `Localize.Date.parse/2`,
-  # `Localize.Date.parse_range/2`, `Localize.Time.parse/2`, and
+  # entry points: `Localize.DateTime.Parser.parse/2`, `Localize.Date.parse/2`,
+  # `Localize.Interval.parse/2`, `Localize.Time.parse/2`, and
   # `Localize.DateTime.parse/2`, plus the ISO-8601 calendar
   # callbacks that route through `Calendrical.Parse`.
   #
@@ -231,92 +231,92 @@ defmodule Localize.ParsingCoverageTest do
 
   describe "Date.parse_range/2 lenient behaviors" do
     test "CLDR en-dash interval with year inheritance" do
-      assert Localize.Date.parse_range("May 5 – May 10, 2026", locale: :en) ==
+      assert Localize.Interval.parse("May 5 – May 10, 2026", locale: :en) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
     end
 
     test "ASCII hyphen where CLDR declares an en-dash" do
-      assert Localize.Date.parse_range("May 23 - 25, 2026", locale: :en) ==
+      assert Localize.Interval.parse("May 23 - 25, 2026", locale: :en) ==
                {:ok, Date.range(~D[2026-05-23], ~D[2026-05-25])}
     end
 
     test "wide month where the pattern declares abbreviated" do
-      assert Localize.Date.parse_range("May 5 – June 10, 2026", locale: :en) ==
+      assert Localize.Interval.parse("May 5 – June 10, 2026", locale: :en) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-06-10])}
 
-      assert Localize.Date.parse_range("May 5 – Jun 10, 2026", locale: :en) ==
+      assert Localize.Interval.parse("May 5 – Jun 10, 2026", locale: :en) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-06-10])}
     end
 
     test "day-first cross-endpoint month shift" do
-      assert Localize.Date.parse_range("23 - 25 May, 2026", locale: :en) ==
+      assert Localize.Interval.parse("23 - 25 May, 2026", locale: :en) ==
                {:ok, Date.range(~D[2026-05-23], ~D[2026-05-25])}
     end
 
     test "day-first per-endpoint month/day swap" do
-      assert Localize.Date.parse_range("5 May – 10 June, 2026", locale: :en) ==
+      assert Localize.Interval.parse("5 May – 10 June, 2026", locale: :en) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-06-10])}
     end
 
     test "comma omission in a range" do
-      assert Localize.Date.parse_range("23 – 25 May 2026", locale: :en) ==
+      assert Localize.Interval.parse("23 – 25 May 2026", locale: :en) ==
                {:ok, Date.range(~D[2026-05-23], ~D[2026-05-25])}
     end
 
     test "two-digit years in both endpoints pivot" do
-      assert Localize.Date.parse_range("5/5/26 – 5/10/26",
+      assert Localize.Interval.parse("5/5/26 – 5/10/26",
                locale: :en,
                reference_date: @reference_date
              ) == {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
     end
 
     test "range in :fr" do
-      assert Localize.Date.parse_range("5 mai – 10 mai 2026", locale: :fr) ==
+      assert Localize.Interval.parse("5 mai – 10 mai 2026", locale: :fr) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
 
-      assert Localize.Date.parse_range("5–10 mai 2026", locale: :fr) ==
+      assert Localize.Interval.parse("5–10 mai 2026", locale: :fr) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
     end
 
     test "range in :de" do
-      assert Localize.Date.parse_range("5.–10. Mai 2026", locale: :de) ==
+      assert Localize.Interval.parse("5.–10. Mai 2026", locale: :de) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
 
-      assert Localize.Date.parse_range("05.05.2026 – 10.05.2026", locale: :de) ==
+      assert Localize.Interval.parse("05.05.2026 – 10.05.2026", locale: :de) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
     end
 
     test "range in :ja with wave-dash separator" do
-      assert Localize.Date.parse_range("2026年5月5日～5月10日", locale: :ja) ==
+      assert Localize.Interval.parse("2026年5月5日～5月10日", locale: :ja) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
 
-      assert Localize.Date.parse_range("2026/05/05～2026/05/10", locale: :ja) ==
+      assert Localize.Interval.parse("2026/05/05～2026/05/10", locale: :ja) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
     end
 
     test "range in :es (patterns with quoted 'de' literals)" do
       assert {:ok, %Date.Range{}} =
-               Localize.Date.parse_range("5 de mayo – 10 de mayo de 2026", locale: :es)
+               Localize.Interval.parse("5 de mayo – 10 de mayo de 2026", locale: :es)
     end
   end
 
   describe "Date.parse_range/2 with as: :map" do
     test "year inheritance across endpoints" do
-      assert Localize.Date.parse_range("May 5 – May 10, 2026", locale: :en, as: :map) ==
+      assert Localize.Interval.parse("May 5 – May 10, 2026", locale: :en, as: :map) ==
                {:ok,
                 {%{calendar: Calendar.ISO, year: 2026, month: 5, day: 5},
                  %{calendar: Calendar.ISO, year: 2026, month: 5, day: 10}}}
     end
 
     test "month-only endpoints omit the day key" do
-      assert Localize.Date.parse_range("May – June 2026", locale: :en, as: :map) ==
+      assert Localize.Interval.parse("May – June 2026", locale: :en, as: :map) ==
                {:ok,
                 {%{calendar: Calendar.ISO, month: 5, year: 2026},
                  %{calendar: Calendar.ISO, month: 6, year: 2026}}}
     end
 
     test "pair form returns two maps" do
-      assert Localize.Date.parse_range({"May 5, 2026", "May 10, 2026"},
+      assert Localize.Interval.parse({"May 5, 2026", "May 10, 2026"},
                locale: :en,
                as: :map
              ) ==
@@ -329,7 +329,7 @@ defmodule Localize.ParsingCoverageTest do
   describe "Date.parse_range/2 inverted ranges" do
     test "inverted single-string range is rejected by default" do
       assert {:error, %Localize.DateRangeParseError{} = error} =
-               Localize.Date.parse_range("2026-05-10 – 2026-05-05", locale: :en)
+               Localize.Interval.parse("2026-05-10 – 2026-05-05", locale: :en)
 
       assert error.reason == :inverted
       assert error.from == ~D[2026-05-10]
@@ -341,7 +341,7 @@ defmodule Localize.ParsingCoverageTest do
     end
 
     test "inverted single-string range with allow_inverted: true descends" do
-      assert Localize.Date.parse_range("2026-05-10 – 2026-05-05",
+      assert Localize.Interval.parse("2026-05-10 – 2026-05-05",
                locale: :en,
                allow_inverted: true
              ) == {:ok, Date.range(~D[2026-05-10], ~D[2026-05-05], -1)}
@@ -349,11 +349,11 @@ defmodule Localize.ParsingCoverageTest do
 
     test "inverted pair form is rejected by default" do
       assert {:error, %Localize.DateRangeParseError{reason: :inverted}} =
-               Localize.Date.parse_range({"2026-05-10", "2026-05-05"}, locale: :en)
+               Localize.Interval.parse({"2026-05-10", "2026-05-05"}, locale: :en)
     end
 
     test "inverted pair form with allow_inverted: true descends" do
-      assert Localize.Date.parse_range({"2026-05-10", "2026-05-05"},
+      assert Localize.Interval.parse({"2026-05-10", "2026-05-05"},
                locale: :en,
                allow_inverted: true
              ) == {:ok, Date.range(~D[2026-05-10], ~D[2026-05-05], -1)}
@@ -363,7 +363,7 @@ defmodule Localize.ParsingCoverageTest do
   describe "Date.parse_range/2 error paths" do
     test ":no_separator reason and message" do
       assert {:error, %Localize.DateRangeParseError{} = error} =
-               Localize.Date.parse_range("gibberish", locale: :en)
+               Localize.Interval.parse("gibberish", locale: :en)
 
       assert error.reason == :no_separator
       assert error.locale == :en
@@ -372,7 +372,7 @@ defmodule Localize.ParsingCoverageTest do
 
     test ":from_parse_failed carries the endpoint cause" do
       assert {:error, %Localize.DateRangeParseError{} = error} =
-               Localize.Date.parse_range({"nonsense", "2026-05-10"}, locale: :en)
+               Localize.Interval.parse({"nonsense", "2026-05-10"}, locale: :en)
 
       assert error.reason == :from_parse_failed
       assert %Localize.DateParseError{input: "nonsense"} = error.cause
@@ -383,7 +383,7 @@ defmodule Localize.ParsingCoverageTest do
 
     test ":to_parse_failed carries the endpoint cause" do
       assert {:error, %Localize.DateRangeParseError{} = error} =
-               Localize.Date.parse_range({"2026-05-10", "nonsense"}, locale: :en)
+               Localize.Interval.parse({"2026-05-10", "nonsense"}, locale: :en)
 
       assert error.reason == :to_parse_failed
       assert %Localize.DateParseError{input: "nonsense"} = error.cause
@@ -391,7 +391,7 @@ defmodule Localize.ParsingCoverageTest do
 
     test "endpoint failure after separator split" do
       assert {:error, %Localize.DateRangeParseError{reason: :from_parse_failed}} =
-               Localize.Date.parse_range("25/45/2026 – 27/46/2026", locale: :en)
+               Localize.Interval.parse("25/45/2026 – 27/46/2026", locale: :en)
     end
 
     test "reason_atoms/0 enumerates the closed reason set" do
@@ -717,40 +717,40 @@ defmodule Localize.ParsingCoverageTest do
     end
   end
 
-  # ── Unified Localize.Temporal.parse/2 ──
+  # ── Unified Localize.DateTime.Parser.parse/2 ──
 
-  describe "Localize.Temporal.parse/2" do
+  describe "Localize.DateTime.Parser.parse/2" do
     test "dispatches to the date parser" do
-      assert Localize.Temporal.parse("2026-05-16", locale: :en) == {:ok, ~D[2026-05-16]}
+      assert Localize.DateTime.Parser.parse("2026-05-16", locale: :en) == {:ok, ~D[2026-05-16]}
     end
 
     test "dispatches to the time parser" do
-      assert Localize.Temporal.parse("14:30", locale: :en) == {:ok, ~T[14:30:00]}
+      assert Localize.DateTime.Parser.parse("14:30", locale: :en) == {:ok, ~T[14:30:00]}
     end
 
     test "dispatches to the datetime parser" do
-      assert Localize.Temporal.parse("2026-05-16T14:30:00", locale: :en) ==
+      assert Localize.DateTime.Parser.parse("2026-05-16T14:30:00", locale: :en) ==
                {:ok, ~N[2026-05-16 14:30:00]}
 
-      assert Localize.Temporal.parse("May 16, 2026 2:30 PM", locale: :en) ==
+      assert Localize.DateTime.Parser.parse("May 16, 2026 2:30 PM", locale: :en) ==
                {:ok, ~N[2026-05-16 14:30:00]}
     end
 
     test "dispatches to the interval parser" do
-      assert Localize.Temporal.parse("2026-05-05 – 2026-05-10", locale: :en) ==
+      assert Localize.DateTime.Parser.parse("2026-05-05 – 2026-05-10", locale: :en) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
     end
 
     test "as: :map is forwarded to the winning sub-parser" do
-      assert Localize.Temporal.parse("May 5", locale: :en, as: :map) ==
+      assert Localize.DateTime.Parser.parse("May 5", locale: :en, as: :map) ==
                {:ok, %{calendar: Calendar.ISO, month: 5, day: 5}}
 
-      assert Localize.Temporal.parse("11 am", locale: :en, as: :map) == {:ok, %{hour: 11}}
+      assert Localize.DateTime.Parser.parse("11 am", locale: :en, as: :map) == {:ok, %{hour: 11}}
     end
 
     test "failure returns a ParseError recording every attempt" do
-      assert {:error, %Localize.TemporalParseError{} = error} =
-               Localize.Temporal.parse("xyzzy", locale: :en)
+      assert {:error, %Localize.DateTimeParseError{} = error} =
+               Localize.DateTime.Parser.parse("xyzzy", locale: :en)
 
       assert [
                {:date, %Localize.DateParseError{}},
@@ -764,8 +764,8 @@ defmodule Localize.ParsingCoverageTest do
     end
 
     test "interval-shaped failure records the interval attempt first" do
-      assert {:error, %Localize.TemporalParseError{} = error} =
-               Localize.Temporal.parse("foo – bar", locale: :en)
+      assert {:error, %Localize.DateTimeParseError{} = error} =
+               Localize.DateTime.Parser.parse("foo – bar", locale: :en)
 
       assert [
                {:interval, %Localize.DateRangeParseError{}},
@@ -813,10 +813,10 @@ defmodule Localize.ParsingCoverageTest do
     end
 
     test "nonstandard interval fallback shape in :bal still splits ranges" do
-      assert Localize.Date.parse_range("2026-05-05 – 2026-05-10", locale: :bal) ==
+      assert Localize.Interval.parse("2026-05-05 – 2026-05-10", locale: :bal) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
 
-      assert Localize.Temporal.parse("2026-05-05 – 2026-05-10", locale: :bal) ==
+      assert Localize.DateTime.Parser.parse("2026-05-05 – 2026-05-10", locale: :bal) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
     end
 
@@ -842,14 +842,14 @@ defmodule Localize.ParsingCoverageTest do
 
     test "split fallback in :bal when interval patterns do not match" do
       assert {:error, %Localize.DateRangeParseError{reason: :from_parse_failed}} =
-               Localize.Date.parse_range("gibberish – 2026-05-10", locale: :bal)
+               Localize.Interval.parse("gibberish – 2026-05-10", locale: :bal)
     end
 
     test "range in :da (interval patterns with dot literals)" do
-      assert Localize.Date.parse_range("5.–10. maj 2026", locale: :da) ==
+      assert Localize.Interval.parse("5.–10. maj 2026", locale: :da) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
 
-      assert Localize.Date.parse_range("5. maj – 10. maj 2026", locale: :da) ==
+      assert Localize.Interval.parse("5. maj – 10. maj 2026", locale: :da) ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
     end
 
@@ -888,7 +888,7 @@ defmodule Localize.ParsingCoverageTest do
     test "each parser accepts input without options" do
       assert Localize.Date.Parser.parse("2026-05-16") == {:ok, ~D[2026-05-16]}
 
-      assert Localize.Date.parse_range("2026-05-05 – 2026-05-10") ==
+      assert Localize.Interval.parse("2026-05-05 – 2026-05-10") ==
                {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
 
       assert Localize.Time.Parser.parse("14:30:15") == {:ok, ~T[14:30:15]}
@@ -897,7 +897,7 @@ defmodule Localize.ParsingCoverageTest do
       assert Localize.DateTime.Parser.parse("2026-05-23T14:30:00") ==
                {:ok, ~N[2026-05-23 14:30:00]}
 
-      assert Localize.Temporal.parse("2026-05-16") == {:ok, ~D[2026-05-16]}
+      assert Localize.DateTime.Parser.parse("2026-05-16") == {:ok, ~D[2026-05-16]}
     end
   end
 
@@ -918,7 +918,7 @@ defmodule Localize.ParsingCoverageTest do
     end
 
     test "map-mode ranges prefer day-bearing interval patterns deterministically" do
-      assert Localize.Date.parse_range("May 5 – May 10", locale: :en, as: :map) ==
+      assert Localize.Interval.parse("May 5 – May 10", locale: :en, as: :map) ==
                {:ok,
                 {%{calendar: Calendar.ISO, month: 5, day: 5},
                  %{calendar: Calendar.ISO, month: 5, day: 10}}}

@@ -12,8 +12,10 @@ config :logger, :default_formatter, metadata: [:domain]
 
 # CLDR's datetime conformance fixtures format in real timezones
 # (`Australia/Adelaide`), which needs a timezone database to resolve the
-# offset and the daylight flag. `:tz` is a test-only dependency; Localize
-# has no runtime need for one and never configures it for consumers.
+# offset and the daylight flag. `:tz` is an optional dependency, installed
+# for this project but not imposed on consumers: parsing an ISO 8601 offset
+# needs no database, and a consumer who wants named zones resolved brings
+# their own (`:tz` or `:tzdata`) and configures it themselves.
 if config_env() == :test do
   config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 end

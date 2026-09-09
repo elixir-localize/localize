@@ -7,9 +7,9 @@ defmodule Mix.Tasks.Localize.Inflection.Download do
   the upstream repository with git-lfs and are fetched through the
   GitHub media endpoint at a pinned commit.
 
-  With no arguments it downloads every locale in
-  `Localize.Inflection.Locale.supported/0` — the complete set the
-  generator, the conformance suites, and the CDN publish all expect.
+  With no arguments it downloads every locale the inflection data
+  supports — the complete set the generator, the conformance suites,
+  and the CDN publish all expect.
   Pass locales explicitly only to scope a partial download while
   iterating.
 

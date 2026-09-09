@@ -1,9 +1,20 @@
 defmodule Localize.DateTime.Parser do
-  @moduledoc false
+  @moduledoc """
+  Parses a locale-formatted string as whichever temporal value it turns
+  out to be — a date, a time, a datetime, or a date range.
 
-  # Locale-aware parser for user-typed date-time strings.
-  #
-  # Public entry point: `Localize.DateTime.parse/2`.
+  `Localize.Date.parse/2`, `Localize.Time.parse/2`,
+  `Localize.DateTime.parse/2` and `Localize.Interval.parse/2` each parse
+  one shape and expect the caller to know which. `parse/2` here is for
+  the case where the shape is not known up front: a single text field
+  that may carry any of `"2026-05-16"`, `"14:30"`, `"May 16, 2026 2:30
+  PM"` or `"May 5 – May 10, 2026"`. The caller pattern-matches on the
+  returned struct to discover what was parsed.
+
+  """
+
+  # The module also hosts the internal datetime parser reached through
+  # `Localize.DateTime.parse/2`.
   #
   # Strategy:
   #
@@ -39,13 +50,165 @@ defmodule Localize.DateTime.Parser do
   @standard_formats [:short, :medium, :long, :full]
 
   @doc """
-  Parses `input` as a locale-formatted datetime string.
+  Parses a locale-formatted string as a date, time, datetime, or date
+  range — whichever matches.
 
-  See `Localize.DateTime.parse/2` for the public contract.
+  ### Arguments
+
+  * `input` is the string to parse.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is any locale returned by `Localize.all_locale_ids/0`.
+    The default is `Localize.get_locale/0`.
+
+  * Remaining options are passed to whichever sub-parser matches.
+
+  ### Returns
+
+  * `{:ok, value}` where `value` is a `t:Date.t/0`, `t:Time.t/0`,
+    `t:NaiveDateTime.t/0`, `t:DateTime.t/0` or `t:Date.Range.t/0`.
+
+  * `{:error, exception}`, a `t:Localize.DateTimeParseError.t/0` whose
+    `:attempts` records what each sub-parser reported.
+
+  ### Examples
+
+      iex> Localize.DateTime.Parser.parse("March 22, 2026", locale: :en)
+      {:ok, ~D[2026-03-22]}
+
+      iex> Localize.DateTime.Parser.parse("3:45 PM", locale: :en)
+      {:ok, ~T[15:45:00]}
+
   """
   @spec parse(String.t(), Keyword.t()) ::
-          {:ok, NaiveDateTime.t() | DateTime.t() | map()} | {:error, Exception.t()}
+          {:ok,
+           Date.t()
+           | Time.t()
+           | NaiveDateTime.t()
+           | DateTime.t()
+           | Date.Range.t()
+           | map()
+           | {map(), map()}}
+          | {:error, Exception.t()}
   def parse(input, options \\ []) when is_binary(input) do
+    options = Localize.Date.Parser.normalise_calendar_option(options)
+    locale = Keyword.get(options, :locale) || Localize.get_locale()
+    cldr_calendar = Keyword.get(options, :calendar, :gregorian)
+    trimmed = String.trim(input)
+
+    attempts = []
+
+    with {:next, attempts} <-
+           try_interval(trimmed, locale, cldr_calendar, options, attempts),
+         {:next, attempts} <- try_date(trimmed, options, attempts),
+         {:next, attempts} <- try_time(trimmed, options, attempts),
+         {:next, attempts} <- try_datetime(trimmed, options, attempts) do
+      {:error,
+       DateTimeParseError.exception(
+         input: input,
+         locale: locale,
+         attempts: Enum.reverse(attempts)
+       )}
+    end
+  end
+
+  # ### Dispatch strategy
+  #
+  # `parse/2` tries each sub-parser in the following order and returns
+  # the first success:
+  #
+  # 1. **Interval** — only attempted when the input contains an
+  # interval-shaped separator (the locale's `intervalFormatFallback`
+  # separator, or one of `–`, `—`, `−`, `〜`, `~`, ` - `, ` / `,
+  # ` to `). Cheap fail-fast.
+  #
+  # 2. **Date** — whole-string anchored, so a date+time input won't
+  # accidentally match.
+  #
+  # 3. **Time** — whole-string anchored, so a date-only input won't
+  # match (no `:`).
+  #
+  # 4. **DateTime** — the most expensive (it splits on every glue
+  # separator position and runs the date+time parsers on each half),
+  # so it runs last as a fallback for inputs carrying both.
+  #
+  # The order encodes a tiebreaker preference: for ambiguous inputs
+  # (e.g. a bare 4-digit year that could be a date or a time) the date
+  # interpretation wins.
+
+  defp try_interval(input, locale, cldr_calendar, options, attempts) do
+    if has_interval_separator?(input, locale, cldr_calendar) do
+      case Localize.Interval.parse(input, options) do
+        {:ok, _} = ok -> ok
+        {:error, err} -> {:next, [{:interval, err} | attempts]}
+      end
+    else
+      {:next, attempts}
+    end
+  end
+
+  defp try_date(input, options, attempts) do
+    case Localize.Date.parse(input, options) do
+      {:ok, _} = ok -> ok
+      {:error, err} -> {:next, [{:date, err} | attempts]}
+    end
+  end
+
+  defp try_time(input, options, attempts) do
+    case Localize.Time.parse(input, options) do
+      {:ok, _} = ok -> ok
+      {:error, err} -> {:next, [{:time, err} | attempts]}
+    end
+  end
+
+  defp try_datetime(input, options, attempts) do
+    case Localize.DateTime.parse(input, options) do
+      {:ok, _} = ok -> ok
+      {:error, err} -> {:next, [{:datetime, err} | attempts]}
+    end
+  end
+
+  # Cheap check: does the input contain an interval-shaped separator?
+  # Mirrors the candidate list used by
+  # `Localize.Date.Parser.split_on_interval_separator/3` so that
+  # anything `Localize.Interval.parse/2` could match is also detected
+  # here.
+  defp has_interval_separator?(input, locale, cldr_calendar) do
+    cldr_sep = lookup_interval_separator(locale, cldr_calendar)
+
+    candidates =
+      [cldr_sep | ["–", "—", "−", "〜", "~", " - ", " / ", " to "]]
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+
+    Enum.any?(candidates, fn sep ->
+      case String.split(input, sep, parts: 2) do
+        [left, right] -> String.trim(left) != "" and String.trim(right) != ""
+        _ -> false
+      end
+    end)
+  end
+
+  defp lookup_interval_separator(locale, cldr_calendar) do
+    case Format.interval_formats(locale, cldr_calendar) do
+      {:ok, intervals} ->
+        case Map.get(intervals, :interval_format_fallback) do
+          [0, separator, 1] when is_binary(separator) -> String.trim(separator)
+          _ -> nil
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  @doc false
+  @spec parse_datetime(String.t(), Keyword.t()) ::
+          {:ok, NaiveDateTime.t() | DateTime.t() | map()} | {:error, Exception.t()}
+  def parse_datetime(input, options \\ []) when is_binary(input) do
     locale = Keyword.get(options, :locale) || Localize.get_locale()
 
     cldr_calendar =

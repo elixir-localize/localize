@@ -2,9 +2,9 @@ defmodule Localize.OptionalDependency do
   @moduledoc false
 
   # Some operations belong to a sibling package in the Localize family rather
-  # than to Localize itself — parsing a localized date is `calendrical`'s job,
-  # and `calendrical` depends on Localize, so Localize cannot depend on it in
-  # return without a cycle.
+  # than to Localize itself — resolving a named time zone and constructing a
+  # non-Gregorian calendar are `calendrical`'s job, and `calendrical` depends
+  # on Localize, so Localize cannot depend on it in return without a cycle.
   #
   # The target module is therefore built with `Module.concat/1` and called
   # through a variable rather than named literally. The compiler records no

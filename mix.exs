@@ -301,7 +301,7 @@ defmodule Localize.MixProject do
       # offset and the daylight flag. Localize itself has no runtime need for
       # one — a consumer supplies whichever they use — so this never reaches
       # the package requirements.
-      {:tz, "~> 0.26", only: :test}
+      {:tz, "~> 0.26", optional: true}
     ] ++ maybe_json_polyfill() ++ maybe_cldr()
   end
 

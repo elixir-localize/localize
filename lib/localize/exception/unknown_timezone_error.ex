@@ -7,6 +7,8 @@ defmodule Localize.UnknownTimezoneError do
 
   defexception [:timezone]
 
+  @type t :: %__MODULE__{timezone: String.t() | atom() | nil}
+
   @impl true
   def exception(bindings) when is_list(bindings) do
     struct!(__MODULE__, bindings)

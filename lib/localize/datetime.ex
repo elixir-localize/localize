@@ -717,8 +717,17 @@ defmodule Localize.DateTime do
   * `:locale` is a locale identifier. The default is the locale returned by
     `Localize.get_locale/0`.
 
-  * Remaining options are passed to `Localize.DateTime.Parser.parse/2`, which
-    documents them.
+  * `:calendar` is a CLDR calendar name or calendar module. The default is
+    `:gregorian`, i.e. `Calendar.ISO`. A non-Gregorian calendar needs the
+    companion [calendrical](https://hex.pm/packages/calendrical) package;
+    without it the option resolves to `Calendar.ISO`.
+
+  * `:reference_date` is the `t:Date.t/0` that partial input is completed
+    against. The default is today.
+
+  * `:as` is `:struct` or `:map`. `:map` returns only the fields the input
+    actually carried, rather than completing them. The default is
+    `:struct`.
 
   ### Returns
 
@@ -739,7 +748,7 @@ defmodule Localize.DateTime do
   @spec parse(String.t(), Keyword.t()) ::
           {:ok, NaiveDateTime.t() | DateTime.t()} | {:error, Exception.t()}
   def parse(string, options \\ []) when is_binary(string) do
-    Localize.DateTime.Parser.parse(string, options)
+    Localize.DateTime.Parser.parse_datetime(string, options)
   end
 
   # Mirrors the same helper in `Localize.Date`: a calendar module opts in by

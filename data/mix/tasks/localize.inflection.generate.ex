@@ -3,9 +3,9 @@ defmodule Mix.Tasks.Localize.Inflection.Generate do
   Compiles downloaded upstream source data into per-locale runtime
   artifacts under `priv/localize/inflection/`.
 
-  With no arguments it generates every locale in
-  `Localize.Inflection.Locale.supported/0` — the complete set the
-  packaged hash manifest and the CDN publish expect. Pass locales
+  With no arguments it generates every locale the inflection data
+  supports — the complete set the packaged hash manifest and the CDN
+  publish expect. Pass locales
   explicitly only to scope a partial regeneration while iterating.
 
       mix localize.inflection.generate          # all supported locales

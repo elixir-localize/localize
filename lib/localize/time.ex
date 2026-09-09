@@ -568,11 +568,8 @@ defmodule Localize.Time do
   @doc """
   Parses a localized time string.
 
-  Parsing lives in the companion [calendrical](https://hex.pm/packages/calendrical)
-  package, which carries the calendar systems Localize formats for.
-  `calendrical` depends on Localize, so Localize resolves it at runtime rather
-  than depending on it in return — add `{:calendrical, "~> 1.0"}` to your
-  dependencies to use this function.
+  Accepts any shape the locale accepts, including the locale's CLDR short,
+  medium, long and full patterns and ISO 8601.
 
   ### Arguments
 
@@ -586,37 +583,27 @@ defmodule Localize.Time do
   * `:locale` is a locale identifier. The default is the locale returned by
     `Localize.get_locale/0`.
 
-  * Remaining options are passed to `Calendrical.Time.parse/2`, which
-    documents them.
+  * `:as` is `:struct` or `:map`. `:map` returns only the fields the input
+    actually carried, rather than completing them. The default is
+    `:struct`.
 
   ### Returns
 
-  * `{:ok, value}` where `value` is a `t:Time.t()` , or
+  * `{:ok, value}` where `value` is a `t:Time.t/0`, or
 
-  * `{:error, exception}` if the string does not parse, or a
-    `t:Localize.DependencyRequiredError.t/0` if `calendrical` is not among
-    the application's dependencies.
+  * `{:error, exception}` if the string does not parse.
 
   ### Examples
 
-  Shown rather than run as doctests: `calendrical` is not a dependency of
-  Localize itself, so the call does not resolve in this package's own tests.
+      iex> Localize.Time.parse("14:30", locale: :de)
+      {:ok, ~T[14:30:00]}
 
-      Localize.Time.parse("14:30", locale: :de)
-      #=> {:ok, ~T[14:30:00]}
-
-      Localize.Time.parse("2:30 PM", locale: :en)
-      #=> {:ok, ~T[14:30:00]}
+      iex> Localize.Time.parse("2:30 PM", locale: :en)
+      {:ok, ~T[14:30:00]}
 
   """
   @spec parse(String.t(), Keyword.t()) :: {:ok, Time.t()} | {:error, Exception.t()}
   def parse(string, options \\ []) when is_binary(string) do
-    Localize.OptionalDependency.call(
-      "Calendrical.Time",
-      :parse,
-      [string, options],
-      package: "calendrical",
-      operation: "Localize.Time.parse/2"
-    )
+    Localize.Time.Parser.parse(string, options)
   end
 end

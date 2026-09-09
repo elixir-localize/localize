@@ -330,7 +330,7 @@ Localize is the core CLDR-backed formatting and validation library. The followin
 
 * [localize_address](https://hex.pm/packages/localize_address) — Postal address parsing and locale-aware formatting using CLDR territory data and locale-specific address layouts.
 
-* [calendrical](https://hex.pm/packages/calendrical) — Localized month- and week-based calendars, and locale-aware parsing of dates, times, datetimes and date ranges across the CLDR calendars (Gregorian, Buddhist, Japanese imperial, Islamic, Persian, Hebrew, ROC).
+* [calendrical](https://hex.pm/packages/calendrical) — Localized month- and week-based calendars, calendar arithmetic and conversion across the CLDR calendars (Gregorian, Buddhist, Japanese imperial, Islamic, Persian, Hebrew, ROC), and time-zone resolution for datetimes parsed by Localize.
 
 * [localize_web](https://hex.pm/packages/localize_web) — Plugs that resolve the locale from an incoming request, localized routes, and HTML helpers for Phoenix applications.
 

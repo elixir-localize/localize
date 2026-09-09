@@ -99,11 +99,15 @@ iex> Localize.Number.parse("1.234,56", locale: :de)
 {:ok, 1234.56}
 ```
 
-Dates, times and datetimes are parsed by [Calendrical](https://hexdocs.pm/calendrical), which reads locale-formatted input across CLDR's calendars — including relative and partial forms such as `"Q2 2026"` — and is the one sibling that also parses a range:
+Dates, times and datetimes parse the same way, including relative and partial forms such as `"Q2 2026"`, and intervals through `Localize.Interval.parse/2`. [Calendrical](https://hexdocs.pm/calendrical) extends this to CLDR's non-Gregorian calendars and to named time zones:
 
 ```elixir
-iex> Calendrical.Date.parse("16.05.2026", locale: :de)
+iex> Localize.Date.parse("16.05.2026", locale: :de)
 {:ok, ~D[2026-05-16]}
+
+iex> {:ok, range} = Localize.Interval.parse("May 5 – May 10, 2026", locale: :en)
+iex> {range.first, range.last}
+{~D[2026-05-05], ~D[2026-05-10]}
 ```
 
 **Serialization keeps the type.** A column declared with a Localize Ecto type loads as the value, not as text to re-parse. Most map to ordinary `text` or `jsonb` and need no migration beyond the column; money and units map to a PostgreSQL composite type and gain database-side `sum`, `avg`, `min` and `max` aggregates that refuse to add euros to yen. See [localize_sql](https://hexdocs.pm/localize_sql).
@@ -112,9 +116,9 @@ iex> Calendrical.Date.parse("16.05.2026", locale: :de)
 
 Each library adds types, operations, or both. They share the locale resolution, CLDR data and configuration of Localize itself, so a locale set once applies across all of them.
 
-* [localize](https://hexdocs.pm/localize) — the core: number, date, time, unit, list and interval formatting; number and unit parsing; collation; plural rules; RBNF; display names for territories, languages, scripts and currencies; and MessageFormat 2.
+* [localize](https://hexdocs.pm/localize) — the core: number, date, time, unit, list and interval formatting; number, unit, date, time, datetime and date-range parsing; collation; plural rules; RBNF; display names for territories, languages, scripts and currencies; and MessageFormat 2.
 
-* [calendrical](https://hexdocs.pm/calendrical) — CLDR calendars beyond the ISO one, and locale-aware parsing of dates, times, datetimes and date ranges.
+* [calendrical](https://hexdocs.pm/calendrical) — CLDR calendars beyond the ISO one, calendar arithmetic and conversion, and time-zone resolution for parsed datetimes.
 
 * [ex_money](https://hexdocs.pm/ex_money) and [ex_money_sql](https://hexdocs.pm/ex_money_sql) — the `Money` type, its arithmetic and formatting, and its database storage with tag-guarded aggregates.
 
