@@ -176,6 +176,11 @@ defmodule Localize.MixProject do
         "guides/display_names.md",
         "guides/collation.md"
       ],
+      Inflection: [
+        "guides/what_is_inflection.md",
+        "guides/inflection.md",
+        "guides/grammatical_features.md"
+      ],
       Advanced: [
         "guides/architecture.md",
         "guides/supervision.md",

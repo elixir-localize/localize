@@ -1,4 +1,4 @@
-# User guide
+# Inflection
 
 This guide covers the practical use of `Localize.Inflection`: inflecting words and phrases, querying grammatical features, and selecting pronouns. If you are new to grammatical inflection itself, start with [What is inflection?](https://hexdocs.pm/localize/what_is_inflection.html).
 
