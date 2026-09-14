@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.validate_territory/1` accepts territory codes that CLDR replaces rather than lists. `"UK"` is a deprecated alias for `"GB"` and was rejected, as were the alpha-3 and numeric forms `"GBR"` and `"826"`. This matters for anything mapping a ccTLD to a territory, since `.uk` is the domain while `GB` is the code.
 
+* `Localize.Interval.to_string/3` and `to_parts/3` no longer raise `FunctionClauseError` for `en-CA` with `fields: :month_and_day, format: :short`. CLDR publishes an `alt="variant"` interval pattern for en-CA, and it is now resolved as a single date's pattern is, honouring `:prefer`.
+
+* `en-CA` skeleton formats such as `:yMd` and `:MEd` render the locale's standard pattern, `2026-05-03`, rather than the day-first variant `3/5/2026` they returned whatever `:prefer` asked for. `prefer: :variant` still selects the variant.
+
 ## [1.2.0] — August 16th, 2026
 
 ### Changed

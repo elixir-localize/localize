@@ -274,6 +274,15 @@ defmodule Localize.DateTime.Format do
 
   def resolve_variant(pattern, _options) when is_binary(pattern), do: pattern
 
+  # The available-format and interval-format normalizers key this pair
+  # `:default` rather than `:standard`. Left alone, the `:standard`
+  # preference below finds nothing on the variant axis and falls through
+  # to `:variant`, so the standard pattern could never be chosen.
+  def resolve_variant(%{default: standard, variant: variant} = variant_map, options)
+      when map_size(variant_map) == 2 do
+    resolve_variant(%{standard: standard, variant: variant}, options)
+  end
+
   def resolve_variant(%{} = variant_map, options) do
     prefer = options |> Keyword.get(:prefer, @default_prefer) |> List.wrap()
 

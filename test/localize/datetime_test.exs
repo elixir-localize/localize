@@ -98,6 +98,35 @@ defmodule Localize.DateTimeTest do
                  prefer: :variant
                )
     end
+
+    # The same pair on en-CA's available formats reached the resolver keyed
+    # `:default`, leaving the standard pattern unreachable: every skeleton
+    # rendered the day-first variant whatever `:prefer` asked for. Expected
+    # strings are ICU's.
+    test "en-CA skeleton formats default to the standard pattern" do
+      date = ~D[2026-05-03]
+
+      assert Localize.Date.to_string(date, locale: "en-CA", format: :yMd) == {:ok, "2026-05-03"}
+      assert Localize.Date.to_string(date, locale: "en-CA", format: :Md) == {:ok, "05-03"}
+      assert Localize.Date.to_string(date, locale: "en-CA", format: :MMdd) == {:ok, "05-03"}
+      assert Localize.Date.to_string(date, locale: "en-CA", format: :MEd) == {:ok, "Sun, 05-03"}
+
+      assert Localize.Date.to_string(date, locale: "en-CA", format: :yMEd) ==
+               {:ok, "Sun, 2026-05-03"}
+    end
+
+    test "en-CA skeleton formats honour prefer: :variant" do
+      assert Localize.Date.to_string(~D[2026-05-03],
+               locale: "en-CA",
+               format: :yMd,
+               prefer: :variant
+             ) == {:ok, "3/5/2026"}
+    end
+
+    test "en-CA DateTime skeleton defaults to the standard pattern" do
+      assert Localize.DateTime.to_string(~N[2026-05-03 14:30:00], locale: "en-CA", format: :yMd) ==
+               {:ok, "2026-05-03"}
+    end
   end
 
   describe "to_string/2 with at-style formats" do
