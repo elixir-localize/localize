@@ -83,6 +83,7 @@ defmodule Localize.MixProject do
         "priv/localize/*.etf",
         "priv/localize/version",
         "priv/localize/localize_patch_version",
+        "priv/localize/localize_inflection_sha",
         "priv/localize/supplemental_data",
         "priv/localize/validity",
         "priv/localize/locales/en.etf",

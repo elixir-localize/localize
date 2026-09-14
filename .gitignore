@@ -50,9 +50,16 @@ mise.toml
 !/priv/localize/locales/en.etf
 !/priv/localize/locales/und.etf
 
-# Inflection data (sources and generated ETFs) — belongs to the
-# inflection feature branch, not main
+# Inflection source data from unicode-org/inflection. Never vendored: the
+# commit it comes from is pinned in priv/localize/localize_inflection_sha,
+# and mix localize.inflection.download fetches every file at that commit.
+# Only the test/ conformance fixtures are tracked; add new ones with
+# `git add -f`.
 /data/inflection/
+
+# Generated inflection ETFs (mix localize.inflection.generate). Like the
+# locale ETFs, consumers download them at runtime and verify them against
+# priv/localize/inflection_hashes.etf, which is tracked.
 /priv/localize/inflection/
 
 # Experiment files
