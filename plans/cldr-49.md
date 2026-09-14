@@ -88,6 +88,9 @@ This package is widely used. The following invariants apply to every item in thi
 | 31 | Interval formats glue where CLDR ships a pattern     | None       | **Output changes** — ✅ Done. Glue where ICU compresses fell from 130 of 288 sampled cases to 2 |
 | 32 | CLDR 49 adds `intervalFormatRanges`                  | None (data key) | None — ✅ Ingested as `:interval_format_ranges`; no consumer while the spec keeps it internal |
 | 33 | Skeleton resolution interned caller-derived strings  | Internal       | None — ✅ Fixed. `String.to_atom/1` replaced by `existing_atom/1`; not reachable from the public API, but the rule admits no exemption |
+| 34 | en-CA `alt="variant"` patterns crash intervals and hide the standard pattern | None | **Output changes** — ✅ Fixed on `main` and here. Shipped since 1.0.0; en-CA skeletons render `2026-05-03` again and `month_and_day` intervals no longer raise |
+| 35 | Interval patterns inherited from a different locale level than the single date | None | None yet — Open. 141 of 656 locales disagree in field order; ICU agrees with us; tracking CLDR-14207 |
+| 36 | `fields: :month_and_day` drops the year across a year boundary | None | None yet — Open. Pre-existing in every locale; ICU shows both years |
 
 The remainder of this file expands each item in turn.
 
@@ -1616,9 +1619,11 @@ Nothing read it and nothing could reach it: every access to `interval_formats` i
 
 Underscored alongside `intervalFormatFallback` and compiled the same way, so the key is `:interval_format_ranges` holding `%{mixed: [0, …, 1], non_numeric: […], numeric: […]}`.
 
-**No consumer, deliberately.** [unicode-org/cldr#6098](https://github.com/unicode-org/cldr/pull/6098) documents these patterns and an algorithm that synthesizes interval patterns from an available pattern, and scopes them away from clients: *"At this point, the `intervalFormatRange` patterns are intended for use in synthesizing example patterns … shown to localization experts while data is being collected."* [The selection rule](https://github.com/unicode-org/cldr/pull/6098#discussion_r3945903617) — whole patterns take `fallback`; adjacent fields of the same type take `numeric` when both are numeric and `non-numeric` when both are not; anything else takes `mixed` — ends "since these are only — as yet — for internal use".
+**No consumer, deliberately.** [unicode-org/cldr#6098](https://github.com/unicode-org/cldr/pull/6098) documents these patterns and an algorithm that synthesizes interval patterns from an available pattern, and keeps them away from clients. The first draft scoped them to example patterns shown to localization experts during data collection; the text as of 2026-09-13 narrows that to synthesizing example patterns for non-numeric intervals, used internally for comparison and not in production data. [The selection rule](https://github.com/unicode-org/cldr/pull/6098#discussion_r3945903617) — whole patterns take `fallback`; adjacent fields of the same type take `numeric` when both are numeric and `non-numeric` when both are not; anything else takes `mixed` — ends "since these are only — as yet — for internal use".
 
-The PR is open and contested. ICU4X objects that the synthesis "assumes too much about the textual order in the pattern", citing `M/d/yyyy` and `d. MMM yyyy` as producing wrong results, and wants missing data to glue unless a pattern is explicitly marked derivable; the author conceded twice and reworked the text. The algorithm section of the spec is otherwise unchanged by the PR — steps 1–7 became 1–8 with no substantive edit — so nothing in it bears on item 31.
+The PR is still open at 2026-09-14, and its author signalled an intent to merge on 2026-09-13. ICU4X objects that the synthesis "assumes too much about the textual order in the pattern", citing `M/d/yyyy` and `d. MMM yyyy` as producing wrong results, and wants missing data to glue unless a pattern is explicitly marked derivable; the author conceded twice and reworked the text, narrowing synthesis to non-numeric intervals and adding a Japanese example where it goes wrong. The interval algorithm is unchanged in substance, including step 2, which item 31 implements. An earlier note here said its steps 1–7 became 1–8: the raw markdown in fact numbers them 1–4 and then 6–8, skipping 5, and still renders as 1–7.
+
+Three defects in the PR text are worth raising before it merges. It announces three types of range pattern and then lists four; its parenthetical pairs `E` with `L`, where a month and its standalone form were presumably meant; and the modifications entry describes the patterns as producing fallback patterns, which contradicts the body's statement that they are not used in production data. The review thread also raised interval patterns and date symbols arriving from different levels of the locale chain, which does apply to us — item 35.
 
 **Re-read §Format Range Separator Patterns at CLDR 49 final.** Implement synthesis only if it becomes normative for clients and gains the explicit derivable marker ICU4X asked for.
 
@@ -1646,14 +1651,105 @@ Verified by probe: an atom input, a binary carrying a fraction, and a binary wit
 
 * `split_fractional_seconds/1` may now return a string where it returned an atom. Internal — the module is `@moduledoc false` and both callers are in-library.
 
+## 34. en-CA `alt="variant"` patterns crash intervals and hide the standard pattern — ✅ Fixed
+
+Found on the second assessment of [unicode-org/cldr#6098](https://github.com/unicode-org/cldr/pull/6098), and not a CLDR 49 change: `en_CA.xml` and its JSON are identical from `release-48` through `release-49-alpha2`, and both defects shipped in published releases.
+
+### Gap
+
+CLDR gives en-CA an `alt="variant"` day-first pattern beside the default for its numeric month-day items — `Md`, `yMd`, `MEd` and `yMEd`, in both `availableFormats` and `intervalFormats` — and no other locale has one. `group_available_formats/1` and `map_interval_formats/1` in [data/normalize/date_time.ex](../data/normalize/date_time.ex) store each pair as `%{default:, variant:}`, but `Localize.DateTime.Format.resolve_variant/2` recognises only `:standard` and `:variant`. Two failures follow from that one key.
+
+**Interval crash.** The interval path never called `resolve_variant/2`, so the whole map reached `Localize.Interval.split_interval/1`, which accepts only binaries:
+
+| en-CA, `format: :short` | published 1.2.0 | this branch before the fix |
+|---|---|---|
+| `fields: :month_and_day` | raises `FunctionClauseError` | raises |
+| `fields: :date` | glues, no raise | raises — item 31's closest match reaches `yMd` |
+
+Across every locale, style, field set, interval shape and greatest difference, through both `to_string/3` and `to_parts/3`, 12 of 83,968 calls raised, all en-CA. Confirmed in published 1.2.0 by running it with en-CA's own data loaded; 1.0.0 and 1.1.0 carry the same code and normalizer at their tags.
+
+**Standard pattern unreachable.** Skeleton formats did call `resolve_variant/2`, which found no `:standard` key on the variant axis and fell through to `:variant` whatever `:prefer` asked for, `prefer: :standard` included:
+
+| skeleton | before | ICU and the CLDR default |
+|---|---|---|
+| `yMd` | 3/5/2026 | 2026-05-03 |
+| `Md`, `MMdd` | 3/5, 03/05 | 05-03 |
+| `MEd` / `yMEd` | Sun, 3/5 / Sun, 3/5/2026 | Sun, 05-03 / Sun, 2026-05-03 |
+
+It reached `Localize.Date` and `Localize.DateTime` skeleton formats, and semantic skeletons with no standard-format equivalent: `semantic("MD", length: :short)` rendered "3/5". It arrived with `93b74953`, the fix for [#21](https://github.com/elixir-localize/localize/issues/21), which taught the resolver `:standard` and `:variant` for date formats while these two normalizer functions kept emitting `:default`. Present in 1.1.0 and 1.2.0, not 1.0.0.
+
+### Resolution
+
+Fixed on `main` as `4b145ca6` and cherry-picked here, resolved against item 31's match-then-adjust interval steps.
+
+* `resolve_variant/2` reads an exact `%{default:, variant:}` pair as `%{standard:, variant:}`, so no new `:prefer` vocabulary appears and no other map shape is touched.
+* `get_interval_pattern/4` resolves the pattern with the caller's options before returning it, so `:prefer` behaves for intervals as it does for single dates.
+* `split_interval/1` returns `{:error, %Localize.DateTimeIntervalFormatError{reason: :invalid_format}}` for anything that is not a string, rather than raising.
+
+Tests assert ICU's output and open with an en-CA sentinel — its own `:short` date, `2026-05-03` — so a silent fallback to `en`, which has no variant patterns, fails instead of passing. On `main`, a scan of all 765 locales and 97,920 interval calls finds none that raise, and here the same scan over 656 locales and 83,968 calls finds none, where 12 raised before the fix. en-CA's `fields: :date, format: :short` interval now renders "5/3/26–5/5/26" through item 31's closest match: month-first, against its ISO single short date `2026-05-03`. That disagreement is CLDR's data rather than this defect, and belongs to item 35.
+
+**Deferred: the normalizer rename.** Emitting `:standard` from the two normalizer functions is the clean end state, but it is a pipeline change. It needs `mix localize.bump_patch_version`, which restamps all 657 locale files and invalidates `locale_hashes.etf`, so made now it would fail the test gate of the next `mix localize.update_cldr` on en-CA. Do it with the release regeneration, and remove the resolver's `:default` clause in the same change.
+
+### API impact / breaking risk
+
+* **Output changes** for en-CA skeleton formats, which now render the locale's standard pattern. `prefer: :variant` still selects the variant.
+* `split_interval/1` returns an error for a non-string where it raised. No other API change.
+
+## 35. Interval patterns inherited from a different locale level than the single date — Open
+
+Raised on [#6098](https://github.com/unicode-org/cldr/pull/6098)'s review thread and redirected there to a separate design ticket. Not a CLDR 49 change, but it bears on item 31.
+
+### Current conformance
+
+TR35 §Interval Formats step 1 searches the locale chain "up to, but not including root". Our locale files are fully resolved, as cldr-json is, so an interval table keeps no record of which level supplied each item, and item 31's closest match searches whatever the resolved table holds. [unicode-org/icu4x#8359](https://github.com/unicode-org/icu4x/issues/8359) sets out the invariant ICU4X is moving towards: the range pattern and the single-date pattern must come from the same locale, otherwise format with glue. Its audit reports 921 XML cases where a locale customises its single date but inherits the range from root or a conflicting ancestor, which its maintainers treat as CLDR data bugs under [CLDR-14207](https://unicode-org.atlassian.net/browse/CLDR-14207).
+
+### Gap
+
+Measured as disagreement between the field order of a locale's own single date and of its interval, over four styles and 656 locales:
+
+| interval data | locales | disagree in at least one style |
+|---|---|---|
+| identical to root's | 129 | 94 |
+| the locale's own | 527 | 47 |
+
+`agq` medium renders "3 see, 2026" for a date and "2026 see 3–5" for a range. `es-PA` short is month-first for a date, "05/03/26", and day-first for a range, "03/05/26–05/05/26", which in es-PA's own convention reads as 5 March to 5 May. `en-ZA`, `af` and `en-CA` override a parent's single short date while inheriting its interval order, and `ak` and `hy` changed their single-date patterns after CLDR 47 without changing their interval patterns.
+
+ICU 77.1 produces the same interval strings in every case sampled, apart from the zero-padding item 31 adds, so we agree with ICU and both depart from TR35 step 1.
+
+### Plan
+
+Track CLDR-14207 and hold behaviour until it settles. Two fixes are available: record provenance at generation so a range item inherited from a different level than its single date gives way to glue, or compare field order at format time and glue when they disagree. Either changes output for up to 141 locales. `es-PA` is the case for acting before upstream does, because its output is misread rather than merely awkward.
+
+### API impact / breaking risk
+
+* **Output changes** for up to 141 locales if either fix lands. None now.
+
+## 36. `fields: :month_and_day` drops the year across a year boundary — Open
+
+Found alongside item 34. Present in every locale, and not a CLDR 49 change.
+
+### Gap
+
+For dates in different years, `fields: :month_and_day` renders no year: `en` gives "5/3 – 6/5" for 3 May 2026 to 5 June 2027, where ICU gives "5/3/2026–6/5/2027". `get_interval_pattern/4` looks up the greatest difference and falls back to the item's `:M` pattern when an `Md` item has no `:y` entry, so a span of more than a year is formatted as a month difference.
+
+### Plan
+
+Settle the intended behaviour before fixing it: widen the skeleton to carry the year, as ICU does, or glue two full dates. Check `fields: :month` for the same gap.
+
+### API impact / breaking risk
+
+* **Output changes** for cross-year `month_and_day` intervals once fixed.
+
 ## Open questions
 
-Questions raised while drafting the plan. Most were answered by the work itself; the two that remain are recorded first.
+Questions raised while drafting the plan. Most were answered by the work itself; the four that remain are recorded first.
 
 Still open:
 
 * **Item 4** — Does `Localize.Interval.to_string/3` need a parallel `:semantic` route, or do interval skeletons stay field-based? Item 31 reworked interval matching without settling this, so it stands.
 * **Item 11** — Should `localize_emoji` ship a Phoenix LiveView picker component as a follow-up package (`localize_emoji_live`)? Out of scope for the initial 0.1.0; flag for later.
+* **Item 35** — When a range pattern is inherited from a different locale level than its single date, glue or keep the inherited pattern? Waiting on CLDR-14207.
+* **Item 36** — Should a cross-year `month_and_day` interval widen to carry the year, as ICU does, or glue two full dates?
 
 Answered during the cycle, kept for the record:
 
@@ -1677,6 +1773,8 @@ This plan must be revisited at the following checkpoints:
 Each checkpoint should leave a dated entry at the bottom of this file noting what changed and which items advanced.
 
 ## Change log for this plan
+
+* 2026-09-14 — Reassessed [unicode-org/cldr#6098](https://github.com/unicode-org/cldr/pull/6098), corrected item 32 and added items 34–36. The PR is still docs-only and still open, and nothing in it requires work, but its text has moved since 2026-09-08: range patterns are now scoped to internal comparison of non-numeric intervals, the sentence item 32 quoted no longer exists, and item 32's note that steps 1–7 became 1–8 was wrong — the markdown numbers them 1–4 then 6–8 and renders 1–7. Reassessing it surfaced two shipped en-CA defects with one cause, fixed as item 34: `month_and_day` intervals at `:short` raised `FunctionClauseError` in releases from 1.0.0, and en-CA skeleton formats rendered their day-first variant from 1.1.0, because the available- and interval-format normalizers key the pair `:default` where the resolver knows only `:standard`. Fixed on `main` as `4b145ca6` and cherry-picked here: 31,076 passing, dialyzer clean, and no interval call raises in any of 656 locales. The review thread's point about interval patterns inherited from a different locale level than the single date became item 35 — 141 of 656 locales disagree in field order, and ICU agrees with us — and a cross-year `month_and_day` interval dropping its year became item 36. Checking out `main` in this working tree to make the fix deleted the ignored `priv/cldr/` pipeline inputs that `main` tracks and let `main`'s test run overwrite 34 CLDR 49 locale files with CLDR 48.2 downloads, adding a stray `aa`. `scripts/build_cldr_production_data` and `mix localize.update_cldr` rebuilt everything from `release-49-alpha2`: the JSON is identical to the 2026-09-05 build, all 657 locale files match `locale_hashes.etf`, the suite passed at 31,066 before the fix was reapplied, and no tracked file changed.
 
 * 2026-09-08 — Plan review, third pass, plus item 33. Three corrections: item 31's reference to `interval.ex:873` was stale by its own implementation and is now line 899; item 32's anchor pointed at the line *after* the fix while its text described the defect; and item 16, which four other passages cross-reference and which the index marks done, had an index row and no section at all — written now, with the measured 428 of 657 locales that carry `type_values`. Added item 33 for a `String.to_atom/1` on caller-derived data found while implementing item 31: unreachable from the public API but interning on every atom input, now resolved through `existing_atom/1`.
 
