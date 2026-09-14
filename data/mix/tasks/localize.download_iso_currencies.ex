@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Localize.DownloadIsoCurrencies do
   official SIX Group (Swiss Financial Market Infrastructure) source.
 
   The downloaded XML file is saved to
-  `priv/cldr/external_sources/iso_currencies.xml`.
+  `priv/external_sources/iso_currencies.xml`.
 
   ## Usage
 

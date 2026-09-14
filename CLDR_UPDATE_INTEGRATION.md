@@ -12,14 +12,17 @@ At runtime Localize reads only compiled ETF files under `priv/localize/` (plus U
 
 ```
 priv/
-├── cldr/                          # Build-time source data (gitignored except essentials)
+├── cldr/                          # Build-time CLDR source data (gitignored)
 │   ├── bcp47/                     # BCP 47 extension key definitions (XML)
-│   ├── collation/                 # Collation tailoring (XML) + FractionalUCA.txt
-│   ├── external_sources/          # Script_Metadata.csv, iso_currencies.xml
+│   ├── collation/                 # Collation tailoring (XML)
 │   ├── locales/<locale>/          # Per-locale JSON from CLDR production data
 │   ├── supplemental_data/         # Supplemental JSON and XML
 │   ├── validity/                  # Validity XML for subtag validation
-│   └── FractionalUCA.txt          # Fractional UCA table (committed — collation + reorder data)
+│   ├── FractionalUCA.txt          # Fractional UCA table (collation + reorder data)
+│   └── Script_Metadata.csv        # Script metadata from CLDR_REPO tools data (script name → subtag)
+│
+├── external_sources/              # Build-time non-CLDR source data (committed)
+│   └── iso_currencies.xml         # ISO 4217 currency list (SIX Group)
 │
 ├── localize/                      # Runtime data (ETF) — committed except locales/
 │   ├── locales/<locale>.etf       # Only en.etf and und.etf committed / packaged
@@ -113,9 +116,10 @@ JAVA_HOME=$(/usr/libexec/java_home -v 21) \
 mix localize.copy_sources
 
 # 3. Auxiliary sources
-#    iso_currencies.xml is required, not optional: it lives under _build, so a
-#    clean build or a wiped priv/cldr removes it, and locale generation now
-#    raises rather than silently emitting `iso_digits: nil` for every currency.
+#    iso_currencies.xml is required, not optional: it is not a CLDR source, so
+#    copy_sources does not provide it, and locale generation raises rather
+#    than silently emitting `iso_digits: nil` for every currency. It lives in
+#    priv/external_sources/, outside priv/cldr/.
 mix localize.download_iso_currencies    # ISO 4217 (SIX Group cadence)
 mix localize.update_mf2_conformance     # MF2 WG test suite (tracks the WG repo), only when upstream moved
 

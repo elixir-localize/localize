@@ -40,7 +40,7 @@ defmodule Localize.Data do
   @cldr_collation_dir "priv/cldr/collation"
   @cldr_validity_dir "priv/cldr/validity"
   @cldr_bcp47_dir "priv/cldr/bcp47"
-  @cldr_external_sources_dir "priv/cldr/external_sources"
+  @external_sources_dir "priv/external_sources"
   @version_file "priv/localize/version"
 
   # JSON files from cldr-core/supplemental/ (in CLDR_PRODUCTION)
@@ -305,8 +305,7 @@ defmodule Localize.Data do
   end
 
   @doc """
-  Copies `Script_Metadata.csv` from `CLDR_REPO` into
-  `priv/cldr/external_sources/`.
+  Copies `Script_Metadata.csv` from `CLDR_REPO` into `priv/cldr/`.
 
   ### Returns
 
@@ -315,7 +314,7 @@ defmodule Localize.Data do
   """
   @spec copy_script_metadata() :: :ok
   def copy_script_metadata do
-    dest = external_sources_dir()
+    dest = cldr_dir()
     File.mkdir_p!(dest)
 
     src =
@@ -1149,15 +1148,28 @@ defmodule Localize.Data do
   end
 
   @doc """
+  Returns the path to the local CLDR source directory.
+
+  `mix localize.copy_sources` copies the raw CLDR sources, such as
+  `FractionalUCA.txt` and `Script_Metadata.csv`, into `priv/cldr/`.
+
+  """
+  @spec cldr_dir() :: String.t()
+  def cldr_dir do
+    Application.app_dir(:localize, @cldr_dir)
+  end
+
+  @doc """
   Returns the path to the external sources directory.
 
   External sources are non-CLDR data files (such as the ISO 4217
-  currency list) that supplement the CLDR data.
+  currency list) that supplement the CLDR data. They live in
+  `priv/external_sources/`, outside `priv/cldr/`.
 
   """
   @spec external_sources_dir() :: String.t()
   def external_sources_dir do
-    Application.app_dir(:localize, @cldr_external_sources_dir)
+    Application.app_dir(:localize, @external_sources_dir)
   end
 
   @doc """
