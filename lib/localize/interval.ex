@@ -277,7 +277,8 @@ defmodule Localize.Interval do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
          {:ok, greatest_diff} <- greatest_difference(from, to),
-         {:ok, matched_pattern} <- get_interval_pattern(formats, format_key, greatest_diff),
+         {:ok, matched_pattern} <-
+           get_interval_pattern(formats, format_key, options, greatest_diff),
          {:ok, interval_pattern} <-
            adjust_interval_widths(matched_pattern, requested_skeleton, format_key),
          {:ok, [left, right]} <- split_interval(interval_pattern) do
@@ -350,7 +351,7 @@ defmodule Localize.Interval do
          # the skeleton's hour symbol — `:hm`/`:Bhm` use `:h`, while
          # `:Hm`/`:Hmv` use `:H`. Pick the key that matches `format_key`.
          time_diff = normalize_time_diff(greatest_diff, format_key),
-         {:ok, interval_pattern} <- get_interval_pattern(formats, format_key, time_diff),
+         {:ok, interval_pattern} <- get_interval_pattern(formats, format_key, options, time_diff),
          {:ok, [left, right]} <- split_interval(interval_pattern) do
       options_map = options |> Map.new() |> Map.put_new(:locale, locale)
 
@@ -922,7 +923,7 @@ defmodule Localize.Interval do
     Localize.DateTime.Format.Match.adjust_field_lengths(pattern, skeleton_tokens, format_key)
   end
 
-  defp get_interval_pattern(formats, format_key, greatest_diff) do
+  defp get_interval_pattern(formats, format_key, options, greatest_diff) do
     case Map.get(formats, format_key) do
       nil ->
         {:error,
@@ -939,19 +940,30 @@ defmodule Localize.Interval do
             Map.get(format_map, :d) ||
             Map.get(format_map, :y)
 
-        if pattern do
-          {:ok, pattern}
-        else
-          {:error,
-           Localize.DateTimeIntervalFormatError.exception(
-             reason: :no_pattern,
-             format_key: format_key,
-             detail: greatest_diff
-           )}
-        end
+        resolve_interval_pattern(pattern, format_key, greatest_diff, options)
 
       pattern when is_binary(pattern) ->
         {:ok, pattern}
+    end
+  end
+
+  # CLDR can publish an `alt="variant"` interval pattern beside the default
+  # one — en-CA does for its numeric month-day items — and the data then
+  # holds a variant map rather than a string. Resolve it as a single date's
+  # pattern is resolved, honouring `:prefer`, so `split_interval/1` only
+  # ever receives a string.
+  defp resolve_interval_pattern(pattern, format_key, greatest_diff, options) do
+    case Localize.DateTime.Format.resolve_variant(pattern, options) do
+      resolved when is_binary(resolved) ->
+        {:ok, resolved}
+
+      _no_pattern ->
+        {:error,
+         Localize.DateTimeIntervalFormatError.exception(
+           reason: :no_pattern,
+           format_key: format_key,
+           detail: greatest_diff
+         )}
     end
   end
 
@@ -970,8 +982,8 @@ defmodule Localize.Interval do
   * `{:ok, [left, right]}` where `left` and `right` are the two
     halves of the interval pattern.
 
-  * `{:error, exception}` if the pattern is malformed or has no
-    repeating field.
+  * `{:error, exception}` if the pattern is malformed, has no
+    repeating field, or is not a string.
 
   ### Examples
 
@@ -979,7 +991,7 @@ defmodule Localize.Interval do
       {:ok, ["MMM d – ", "d"]}
 
   """
-  @spec split_interval(String.t()) :: {:ok, [String.t()]} | {:error, Exception.t()}
+  @spec split_interval(term()) :: {:ok, [String.t()]} | {:error, Exception.t()}
   def split_interval(interval) when is_binary(interval) do
     case do_split_interval(interval, [], "") do
       [_, _] = result ->
@@ -988,6 +1000,14 @@ defmodule Localize.Interval do
       {:error, _} = error ->
         error
     end
+  end
+
+  def split_interval(interval) do
+    {:error,
+     Localize.DateTimeIntervalFormatError.exception(
+       reason: :invalid_format,
+       detail: inspect(interval)
+     )}
   end
 
   defp do_split_interval("", _acc, left) do

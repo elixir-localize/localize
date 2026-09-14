@@ -42,6 +42,74 @@ defmodule Localize.IntervalTest do
     end
   end
 
+  # en-CA publishes an `alt="variant"` interval pattern beside the default
+  # one for its numeric month-day items, so its data holds a variant map
+  # where every other locale holds a string. That map reached
+  # `split_interval/1` and raised. Expected strings are ICU's.
+  describe "variant interval patterns (en-CA)" do
+    # A silent fallback to `en`, which has no variant patterns, would let
+    # every test below pass without exercising anything.
+    test "the data under test is en-CA's own" do
+      assert Localize.Date.to_string(~D[2026-05-03], locale: :"en-CA", format: :short) ==
+               {:ok, "2026-05-03"}
+    end
+
+    test "month and day at :short use the default pattern" do
+      assert Interval.to_string(~D[2026-05-03], ~D[2026-05-05],
+               locale: :"en-CA",
+               fields: :month_and_day,
+               format: :short
+             ) == {:ok, "5/3–5/5"}
+
+      assert Interval.to_string(~D[2026-05-03], ~D[2026-06-05],
+               locale: :"en-CA",
+               fields: :month_and_day,
+               format: :short
+             ) == {:ok, "5/3–6/5"}
+    end
+
+    test "prefer: :variant selects the alternate pattern" do
+      assert Interval.to_string(~D[2026-05-03], ~D[2026-05-05],
+               locale: :"en-CA",
+               fields: :month_and_day,
+               format: :short,
+               prefer: :variant
+             ) == {:ok, "3/5 – 5/5"}
+    end
+
+    test "to_parts/3 resolves the variant too" do
+      assert {:ok, parts} =
+               Interval.to_parts(~D[2026-05-03], ~D[2026-05-05],
+                 locale: :"en-CA",
+                 fields: :month_and_day,
+                 format: :short
+               )
+
+      assert Enum.map_join(parts, & &1.value) == "5/3–5/5"
+    end
+
+    test "no field set, format or greatest difference raises" do
+      pairs = [
+        {~D[2026-05-03], ~D[2026-05-05]},
+        {~D[2026-05-03], ~D[2026-06-05]},
+        {~D[2026-05-03], ~D[2027-06-05]}
+      ]
+
+      for fields <- [:date, :month, :month_and_day, :year_and_month],
+          format <- [:short, :medium, :long, :full],
+          {from, to} <- pairs do
+        options = [locale: :"en-CA", fields: fields, format: format]
+        assert {:ok, _} = Interval.to_string(from, to, options)
+        assert {:ok, _} = Interval.to_parts(from, to, options)
+      end
+    end
+
+    test "split_interval/1 returns an error for a pattern that is not a string" do
+      assert {:error, %Localize.DateTimeIntervalFormatError{reason: :invalid_format}} =
+               Interval.split_interval(%{default: "M/d–M/d", variant: "d/M – d/M"})
+    end
+  end
+
   describe "to_string/3 with locales" do
     test "French interval" do
       assert {:ok, result} = Interval.to_string(~D[2022-04-22], ~D[2022-04-25], locale: :fr)
