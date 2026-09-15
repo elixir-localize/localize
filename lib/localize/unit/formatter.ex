@@ -713,47 +713,17 @@ defmodule Localize.Unit.Formatter do
   # the float 1.0 renders as "1" (v=0, :one in English), while the integer 1
   # with `fractional_digits: 2` renders as "1.00" (v=2, :other). Selecting on
   # the input value gets both of those backwards, in opposite directions.
+  #
+  # The displayed digits are what carry the v, w, f and t operands, including
+  # any rounding, significant digits or `:round_nearest` increment: under
+  # `hr`, 0.0045 displays as "0,004" (`:few`), not 0.005 (`:other`).
   defp plural_form(value, locale, options) when is_number(value) or is_struct(value, Decimal) do
     value
-    |> source_number(options)
+    |> Localize.Number.source_number(Keyword.take(options, @number_format_options))
     |> Localize.Number.PluralRule.Cardinal.plural_rule(locale)
   end
 
   defp plural_form(_value, _locale, _options), do: :other
-
-  # The value rescaled to the fraction digits that will actually be printed,
-  # which is what carries the v, w, f and t operands.
-  #
-  # The digit count comes from the formatter rather than from a second reading
-  # of the format metadata, so rounding, significant digits and `:round_nearest`
-  # cannot drift away from what is displayed. Only the count is taken: the
-  # digits themselves are localized — Devanagari under `hi-u-nu-deva` — and
-  # rescaling the original value supplies the rest of the operands without
-  # having to transliterate them back.
-  defp source_number(value, options) do
-    with {:ok, parts} <-
-           Localize.Number.to_parts(value, Keyword.take(options, @number_format_options)),
-         %Decimal{} = decimal <- to_decimal(value) do
-      Decimal.round(decimal, fraction_digit_count(parts))
-    else
-      _other -> value
-    end
-  end
-
-  defp fraction_digit_count(parts) do
-    case Enum.find(parts, &(&1.type == :fraction)) do
-      %{value: fraction} when is_binary(fraction) -> String.length(fraction)
-      _other -> 0
-    end
-  end
-
-  defp to_decimal(%Decimal{coef: coef} = value) when is_integer(coef), do: value
-  defp to_decimal(value) when is_integer(value), do: Decimal.new(value)
-  defp to_decimal(value) when is_float(value), do: Decimal.from_float(value)
-
-  # NaN and infinity have no digits to count, and `Decimal.round/2` raises on
-  # them. They fall back to the plural rule's own handling of the raw value.
-  defp to_decimal(_non_finite), do: nil
 
   # ── Unit name resolution ───────────────────────────────────
 

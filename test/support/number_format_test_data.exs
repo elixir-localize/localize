@@ -29,10 +29,10 @@ defmodule Localize.Test.Number.FormatData do
       {1234.567, "01234,5670", [format: "00000.0000", locale: "fr"]},
       {1234.567, "1#{@fr_group}234,57 €", [format: "#,##0.00 ¤", locale: "fr", currency: :EUR]},
       {1234.567, "1#{@fr_group}235 JPY", [format: "#,##0 ¤", locale: "fr", currency: "JPY"]},
-      {1234.567, "1#{@fr_group}234,57 JPY",
-       [format: "#,##0.00 ¤", locale: "fr", currency: "JPY"]},
-      {1234.567, "1#{@fr_group}234,57 JPY",
-       [format: "#,##0.## ¤", locale: "fr", currency: "JPY"]},
+      # TR35: in a currency pattern the currency's decimal places override
+      # the pattern's, so the yen has none (ICU4C 78.3 agrees).
+      {1234.567, "1#{@fr_group}235 JPY", [format: "#,##0.00 ¤", locale: "fr", currency: "JPY"]},
+      {1234.567, "1#{@fr_group}235 JPY", [format: "#,##0.## ¤", locale: "fr", currency: "JPY"]},
       {1234.00, "1#{@fr_group}234 JPY", [format: "#,##0.## ¤", locale: "fr", currency: "JPY"]},
       {1234, "1#{@fr_group}234 JPY", [format: "#,##0.## ¤", locale: "fr", currency: "JPY"]},
 
@@ -63,12 +63,13 @@ defmodule Localize.Test.Number.FormatData do
       {123.4, "123.40 A$", [format: "#,##0.00 ¤", currency: :AUD]},
       {1234, "A$1,234.00", [currency: :AUD]},
 
-      # Multi-¤ patterns (¤¤ = ISO, ¤¤¤ = display name, ¤¤¤¤ = narrow)
-      # not yet supported
-      # {123.4, "123.40 AUD", [format: "#,##0.00 ¤¤", currency: :AUD]},
-      # {123.4, "123.40 Australian dollars", [format: "#,##0.00 ¤¤¤", currency: :AUD]},
-      # {123.4, "123.40 $", [format: "#,##0.00 ¤¤¤¤", currency: :AUD]},
-
+      # TR35's currency sign widths: ¤¤ is the ISO code, ¤¤¤ the plural
+      # display name and ¤¤¤¤¤ the narrow symbol, while ¤¤¤¤ is an invalid
+      # width that formats as U+FFFD.
+      {123.4, "123.40 AUD", [format: "#,##0.00 ¤¤", currency: :AUD]},
+      {123.4, "123.40 Australian dollars", [format: "#,##0.00 ¤¤¤", currency: :AUD]},
+      {123.4, "123.40 $", [format: "#,##0.00 ¤¤¤¤¤", currency: :AUD]},
+      {123.4, "123.40 �", [format: "#,##0.00 ¤¤¤¤", currency: :AUD]},
       {1234, "COP#{@nbsp}1,234.00", [currency: :COP, currency_digits: :iso]},
       {1234, "COP#{@nbsp}1,234", [currency: :COP]},
 

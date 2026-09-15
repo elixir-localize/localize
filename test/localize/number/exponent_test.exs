@@ -65,8 +65,11 @@ defmodule Localize.Number.ExponentTest do
       assert {:ok, "123.456E3"} = Localize.Number.to_string(123_456, format: "##0.#####E0")
     end
 
-    test "value already at a grouping boundary: 1234567 → 1.234567E6 (no shift)" do
-      assert {:ok, "1.234567E6"} = Localize.Number.to_string(1_234_567, format: "##0.#####E0")
+    # TR35 gives "##0.#####E0" six significant digits (the zero before the
+    # point and the five digits after it), so 1.234567 rounds to 1.23457, as
+    # ICU4C 78.3 renders it.
+    test "value already at a grouping boundary: 1234567 → 1.23457E6 (no shift)" do
+      assert {:ok, "1.23457E6"} = Localize.Number.to_string(1_234_567, format: "##0.#####E0")
     end
 
     test "negative number: -12345 → -12.345E3" do
@@ -309,8 +312,10 @@ defmodule Localize.Number.ExponentTest do
                Localize.Number.to_string(1234, format: "0.000E0", exponent_style: :superscript)
     end
 
+    # "##0.###E0" shows four significant digits under TR35's mantissa rule,
+    # so 12.345 rounds half-even to 12.34, as ICU4C 78.3 renders "12.34E3".
     test "engineering pattern + superscript style" do
-      assert {:ok, "12.345×10³"} =
+      assert {:ok, "12.34×10³"} =
                Localize.Number.to_string(12_345,
                  format: "##0.###E0",
                  exponent_style: :superscript

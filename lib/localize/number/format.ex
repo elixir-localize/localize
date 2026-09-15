@@ -205,23 +205,19 @@ defmodule Localize.Number.Format do
   end
 
   # CLDR inheritance: format elements for a numbering system the locale
-  # carries no data for (or only partial data for) inherit from the
-  # locale's default numbering system — root aliases them to `latn`.
-  # Each field inherits independently, so a partially-populated entry
-  # (for example `zh`'s `:hans` entry, which is present but empty) is
-  # filled from the default system rather than left with `nil` patterns.
+  # carries no data for (or only partial data for) inherit from the first
+  # of `System.fallback_systems/2` the locale has formats for: `latn`,
+  # which root aliases them to, or for `arab` and `arabext` the locale's
+  # default system. Each field inherits independently, so a
+  # partially-populated entry (for example `zh`'s `:hans` entry, which is
+  # present but empty) is filled rather than left with `nil` patterns.
   defp merge_with_default_formats(requested, all_formats, locale, system_name) do
-    # The locale's default system must be read from the locale data,
-    # not from `number_system_from_locale/1` — the latter honours a
-    # `-u-nu-` override, which is exactly the system we may be
-    # trying to find a fallback for.
-    case System.number_systems_for(locale) do
-      {:ok, %{default: default_system}} when default_system != system_name ->
-        merge_formats(requested, Map.get(all_formats, default_system))
+    fallback =
+      locale
+      |> System.fallback_systems(system_name)
+      |> Enum.find_value(&Map.get(all_formats, &1))
 
-      _default_or_error ->
-        requested
-    end
+    merge_formats(requested, fallback)
   end
 
   defp merge_formats(nil, default_formats), do: default_formats

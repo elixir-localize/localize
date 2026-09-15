@@ -523,7 +523,13 @@ defmodule Localize.Number.Format.Options do
     {:ok, format, formats_for_system(language_tag, system_name)}
   end
 
-  # Custom string or other: no format resolution needed
+  # A custom pattern needs no resolution, but the locale's formats still
+  # supply the currency spacing TR35 applies wherever a currency sign meets
+  # the number.
+  defp resolve_format(format, language_tag, system_name) when is_binary(format) do
+    {:ok, format, formats_for_system(language_tag, system_name)}
+  end
+
   defp resolve_format(format, _language_tag, _system_name) do
     {:ok, format, nil}
   end
@@ -544,10 +550,11 @@ defmodule Localize.Number.Format.Options do
   # ── Currency fractional digits ─────────────────────────────
 
   # Set default fractional digits from the currency data when the
-  # format is a standard currency format (atom like :currency,
-  # :accounting, etc.) and the user hasn't explicitly provided
-  # fractional_digits. Custom format strings keep their own
-  # fractional digit specification from the pattern.
+  # caller hasn't provided fractional_digits and the format is either a
+  # standard currency format (an atom like :currency or :accounting) or
+  # a pattern string with a currency sign. TR35 has the currency's
+  # supplemental data override a currency pattern's decimal places, as
+  # ICU does; a pattern with significant digits keeps them.
   @currency_fraction_formats [
     :currency,
     :accounting,
@@ -563,22 +570,31 @@ defmodule Localize.Number.Format.Options do
     :currency_long_with_symbol
   ]
 
-  defp default_currency_fractional_digits(format, %Localize.Currency{} = currency, :accounting)
+  defp default_currency_fractional_digits(format, %Localize.Currency{} = currency, digits)
        when format in @currency_fraction_formats do
-    currency.digits
+    currency_fraction_digits(currency, digits)
   end
 
-  defp default_currency_fractional_digits(format, %Localize.Currency{} = currency, :cash)
-       when format in @currency_fraction_formats do
-    currency.cash_digits
-  end
-
-  defp default_currency_fractional_digits(format, %Localize.Currency{} = currency, :iso)
-       when format in @currency_fraction_formats do
-    currency.iso_digits
+  defp default_currency_fractional_digits(format, %Localize.Currency{} = currency, digits)
+       when is_binary(format) do
+    if currency_pattern?(format), do: currency_fraction_digits(currency, digits)
   end
 
   defp default_currency_fractional_digits(_format, _currency, _currency_digits), do: nil
+
+  defp currency_fraction_digits(currency, :accounting), do: currency.digits
+  defp currency_fraction_digits(currency, :cash), do: currency.cash_digits
+  defp currency_fraction_digits(currency, :iso), do: currency.iso_digits
+  defp currency_fraction_digits(_currency, _currency_digits), do: nil
+
+  # A pattern with a currency sign and no significant digits. An invalid
+  # pattern is reported when the number is formatted.
+  defp currency_pattern?(format) do
+    case Localize.Number.Formatter.Decimal.metadata(format) do
+      {:ok, %{currency: %{}, significant_digits: %{max: 0}}} -> true
+      _other -> false
+    end
+  end
 
   # ── Currency symbol resolution ──────────────────────────────
 

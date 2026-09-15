@@ -1,0 +1,1381 @@
+# Numbers from ICU4C 78.3 (CLDR 48) formatted by DecimalFormat from a pattern with the
+# locale's symbols and the currency set. Non-ASCII characters are written as \u{hex}.
+# Columns: locale, pattern, value and ISO currency code, the formatted string, then one
+# name[begin,end)=text span for each field ICU reports, at UTF-16 offsets. An integer
+# span includes its grouping separators, which are also reported on their own, and text
+# in no span is literal.
+en	¤#,##0.00	1234.56	USD	$1,234.56	currency[0,1)=$	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=56
+en	¤#,##0.00	-1234.567	USD	-$1,234.57	sign[0,1)=-	currency[1,2)=$	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=57
+en	¤#,##0.00	1	USD	$1.00	currency[0,1)=$	integer[1,2)=1	decimal[2,3)=.	fraction[3,5)=00
+en	¤#,##0.00	2	USD	$2.00	currency[0,1)=$	integer[1,2)=2	decimal[2,3)=.	fraction[3,5)=00
+en	¤#,##0.00	5	USD	$5.00	currency[0,1)=$	integer[1,2)=5	decimal[2,3)=.	fraction[3,5)=00
+en	#,##0.00¤	1234.56	USD	1,234.56$	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[8,9)=$
+en	#,##0.00¤	-1234.567	USD	-1,234.57$	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[9,10)=$
+en	#,##0.00¤	1	USD	1.00$	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[4,5)=$
+en	#,##0.00¤	2	USD	2.00$	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[4,5)=$
+en	#,##0.00¤	5	USD	5.00$	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[4,5)=$
+en	¤¤#,##0.00	1234.56	USD	USD\u{a0}1,234.56	currency[0,3)=USD	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,12)=56
+en	¤¤#,##0.00	-1234.567	USD	-USD\u{a0}1,234.57	sign[0,1)=-	currency[1,4)=USD	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,13)=57
+en	¤¤#,##0.00	1	USD	USD\u{a0}1.00	currency[0,3)=USD	integer[4,5)=1	decimal[5,6)=.	fraction[6,8)=00
+en	¤¤#,##0.00	2	USD	USD\u{a0}2.00	currency[0,3)=USD	integer[4,5)=2	decimal[5,6)=.	fraction[6,8)=00
+en	¤¤#,##0.00	5	USD	USD\u{a0}5.00	currency[0,3)=USD	integer[4,5)=5	decimal[5,6)=.	fraction[6,8)=00
+en	#,##0.00¤¤	1234.56	USD	1,234.56\u{a0}USD	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,12)=USD
+en	#,##0.00¤¤	-1234.567	USD	-1,234.57\u{a0}USD	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,13)=USD
+en	#,##0.00¤¤	1	USD	1.00\u{a0}USD	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=USD
+en	#,##0.00¤¤	2	USD	2.00\u{a0}USD	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=USD
+en	#,##0.00¤¤	5	USD	5.00\u{a0}USD	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=USD
+en	#,##0.00 ¤¤¤	1234.56	USD	1,234.56 US dollars	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,19)=US dollars
+en	#,##0.00 ¤¤¤	-1234.567	USD	-1,234.57 US dollars	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,20)=US dollars
+en	#,##0.00 ¤¤¤	1	USD	1.00 US dollars	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,15)=US dollars
+en	#,##0.00 ¤¤¤	2	USD	2.00 US dollars	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,15)=US dollars
+en	#,##0.00 ¤¤¤	5	USD	5.00 US dollars	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,15)=US dollars
+en	#,##0.00¤¤¤	1234.56	USD	1,234.56\u{a0}US dollars	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,19)=US dollars
+en	#,##0.00¤¤¤	-1234.567	USD	-1,234.57\u{a0}US dollars	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,20)=US dollars
+en	#,##0.00¤¤¤	1	USD	1.00\u{a0}US dollars	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,15)=US dollars
+en	#,##0.00¤¤¤	2	USD	2.00\u{a0}US dollars	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,15)=US dollars
+en	#,##0.00¤¤¤	5	USD	5.00\u{a0}US dollars	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,15)=US dollars
+en	¤ #,##0.00	1234.56	USD	$ 1,234.56	currency[0,1)=$	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=56
+en	¤ #,##0.00	-1234.567	USD	-$ 1,234.57	sign[0,1)=-	currency[1,2)=$	group[4,5)=,	integer[3,8)=1,234	decimal[8,9)=.	fraction[9,11)=57
+en	¤ #,##0.00	1	USD	$ 1.00	currency[0,1)=$	integer[2,3)=1	decimal[3,4)=.	fraction[4,6)=00
+en	¤ #,##0.00	2	USD	$ 2.00	currency[0,1)=$	integer[2,3)=2	decimal[3,4)=.	fraction[4,6)=00
+en	¤ #,##0.00	5	USD	$ 5.00	currency[0,1)=$	integer[2,3)=5	decimal[3,4)=.	fraction[4,6)=00
+en	¤#,##0	1234.56	USD	$1,234.56	currency[0,1)=$	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=56
+en	¤#,##0	-1234.567	USD	-$1,234.57	sign[0,1)=-	currency[1,2)=$	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=57
+en	¤#,##0	1	USD	$1.00	currency[0,1)=$	integer[1,2)=1	decimal[2,3)=.	fraction[3,5)=00
+en	¤#,##0	2	USD	$2.00	currency[0,1)=$	integer[1,2)=2	decimal[2,3)=.	fraction[3,5)=00
+en	¤#,##0	5	USD	$5.00	currency[0,1)=$	integer[1,2)=5	decimal[2,3)=.	fraction[3,5)=00
+en	#,##0.### ¤	1234.56	USD	1,234.56 $	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,10)=$
+en	#,##0.### ¤	-1234.567	USD	-1,234.57 $	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,11)=$
+en	#,##0.### ¤	1	USD	1.00 $	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,6)=$
+en	#,##0.### ¤	2	USD	2.00 $	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,6)=$
+en	#,##0.### ¤	5	USD	5.00 $	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,6)=$
+en	¤#,##0.00;(¤#,##0.00)	1234.56	USD	$1,234.56	currency[0,1)=$	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=56
+en	¤#,##0.00;(¤#,##0.00)	-1234.567	USD	($1,234.57)	currency[1,2)=$	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=57
+en	¤#,##0.00;(¤#,##0.00)	1	USD	$1.00	currency[0,1)=$	integer[1,2)=1	decimal[2,3)=.	fraction[3,5)=00
+en	¤#,##0.00;(¤#,##0.00)	2	USD	$2.00	currency[0,1)=$	integer[1,2)=2	decimal[2,3)=.	fraction[3,5)=00
+en	¤#,##0.00;(¤#,##0.00)	5	USD	$5.00	currency[0,1)=$	integer[1,2)=5	decimal[2,3)=.	fraction[3,5)=00
+en	#,##0.000	1234.56	USD	1,234.560	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560
+en	#,##0.000	-1234.567	USD	-1,234.567	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567
+en	#,##0.000	1	USD	1.000	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000
+en	#,##0.000	2	USD	2.000	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000
+en	#,##0.000	5	USD	5.000	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000
+en	¤#,##0.00	1234.56	CHF	CHF\u{a0}1,234.56	currency[0,3)=CHF	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,12)=56
+en	¤#,##0.00	-1234.567	CHF	-CHF\u{a0}1,234.57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,13)=57
+en	¤#,##0.00	1	CHF	CHF\u{a0}1.00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=.	fraction[6,8)=00
+en	¤#,##0.00	2	CHF	CHF\u{a0}2.00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=.	fraction[6,8)=00
+en	¤#,##0.00	5	CHF	CHF\u{a0}5.00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=.	fraction[6,8)=00
+en	#,##0.00¤	1234.56	CHF	1,234.56\u{a0}CHF	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,12)=CHF
+en	#,##0.00¤	-1234.567	CHF	-1,234.57\u{a0}CHF	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,13)=CHF
+en	#,##0.00¤	1	CHF	1.00\u{a0}CHF	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+en	#,##0.00¤	2	CHF	2.00\u{a0}CHF	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+en	#,##0.00¤	5	CHF	5.00\u{a0}CHF	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+en	¤¤#,##0.00	1234.56	CHF	CHF\u{a0}1,234.56	currency[0,3)=CHF	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,12)=56
+en	¤¤#,##0.00	-1234.567	CHF	-CHF\u{a0}1,234.57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,13)=57
+en	¤¤#,##0.00	1	CHF	CHF\u{a0}1.00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=.	fraction[6,8)=00
+en	¤¤#,##0.00	2	CHF	CHF\u{a0}2.00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=.	fraction[6,8)=00
+en	¤¤#,##0.00	5	CHF	CHF\u{a0}5.00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=.	fraction[6,8)=00
+en	#,##0.00¤¤	1234.56	CHF	1,234.56\u{a0}CHF	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,12)=CHF
+en	#,##0.00¤¤	-1234.567	CHF	-1,234.57\u{a0}CHF	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,13)=CHF
+en	#,##0.00¤¤	1	CHF	1.00\u{a0}CHF	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+en	#,##0.00¤¤	2	CHF	2.00\u{a0}CHF	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+en	#,##0.00¤¤	5	CHF	5.00\u{a0}CHF	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+en	#,##0.00 ¤¤¤	1234.56	CHF	1,234.56 Swiss francs	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,21)=Swiss francs
+en	#,##0.00 ¤¤¤	-1234.567	CHF	-1,234.57 Swiss francs	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,22)=Swiss francs
+en	#,##0.00 ¤¤¤	1	CHF	1.00 Swiss francs	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,17)=Swiss francs
+en	#,##0.00 ¤¤¤	2	CHF	2.00 Swiss francs	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,17)=Swiss francs
+en	#,##0.00 ¤¤¤	5	CHF	5.00 Swiss francs	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,17)=Swiss francs
+en	#,##0.00¤¤¤	1234.56	CHF	1,234.56\u{a0}Swiss francs	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,21)=Swiss francs
+en	#,##0.00¤¤¤	-1234.567	CHF	-1,234.57\u{a0}Swiss francs	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,22)=Swiss francs
+en	#,##0.00¤¤¤	1	CHF	1.00\u{a0}Swiss francs	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,17)=Swiss francs
+en	#,##0.00¤¤¤	2	CHF	2.00\u{a0}Swiss francs	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,17)=Swiss francs
+en	#,##0.00¤¤¤	5	CHF	5.00\u{a0}Swiss francs	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,17)=Swiss francs
+en	¤ #,##0.00	1234.56	CHF	CHF 1,234.56	currency[0,3)=CHF	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,12)=56
+en	¤ #,##0.00	-1234.567	CHF	-CHF 1,234.57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,13)=57
+en	¤ #,##0.00	1	CHF	CHF 1.00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=.	fraction[6,8)=00
+en	¤ #,##0.00	2	CHF	CHF 2.00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=.	fraction[6,8)=00
+en	¤ #,##0.00	5	CHF	CHF 5.00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=.	fraction[6,8)=00
+en	¤#,##0	1234.56	CHF	CHF\u{a0}1,234.56	currency[0,3)=CHF	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,12)=56
+en	¤#,##0	-1234.567	CHF	-CHF\u{a0}1,234.57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,13)=57
+en	¤#,##0	1	CHF	CHF\u{a0}1.00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=.	fraction[6,8)=00
+en	¤#,##0	2	CHF	CHF\u{a0}2.00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=.	fraction[6,8)=00
+en	¤#,##0	5	CHF	CHF\u{a0}5.00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=.	fraction[6,8)=00
+en	#,##0.### ¤	1234.56	CHF	1,234.56 CHF	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,12)=CHF
+en	#,##0.### ¤	-1234.567	CHF	-1,234.57 CHF	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,13)=CHF
+en	#,##0.### ¤	1	CHF	1.00 CHF	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+en	#,##0.### ¤	2	CHF	2.00 CHF	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+en	#,##0.### ¤	5	CHF	5.00 CHF	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+en	¤#,##0.00;(¤#,##0.00)	1234.56	CHF	CHF\u{a0}1,234.56	currency[0,3)=CHF	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,12)=56
+en	¤#,##0.00;(¤#,##0.00)	-1234.567	CHF	(CHF\u{a0}1,234.57)	currency[1,4)=CHF	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,13)=57
+en	¤#,##0.00;(¤#,##0.00)	1	CHF	CHF\u{a0}1.00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=.	fraction[6,8)=00
+en	¤#,##0.00;(¤#,##0.00)	2	CHF	CHF\u{a0}2.00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=.	fraction[6,8)=00
+en	¤#,##0.00;(¤#,##0.00)	5	CHF	CHF\u{a0}5.00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=.	fraction[6,8)=00
+en	#,##0.000	1234.56	CHF	1,234.560	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560
+en	#,##0.000	-1234.567	CHF	-1,234.567	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567
+en	#,##0.000	1	CHF	1.000	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000
+en	#,##0.000	2	CHF	2.000	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000
+en	#,##0.000	5	CHF	5.000	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000
+en	¤#,##0.00	1234.56	EUR	\u{20ac}1,234.56	currency[0,1)=\u{20ac}	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=56
+en	¤#,##0.00	-1234.567	EUR	-\u{20ac}1,234.57	sign[0,1)=-	currency[1,2)=\u{20ac}	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=57
+en	¤#,##0.00	1	EUR	\u{20ac}1.00	currency[0,1)=\u{20ac}	integer[1,2)=1	decimal[2,3)=.	fraction[3,5)=00
+en	¤#,##0.00	2	EUR	\u{20ac}2.00	currency[0,1)=\u{20ac}	integer[1,2)=2	decimal[2,3)=.	fraction[3,5)=00
+en	¤#,##0.00	5	EUR	\u{20ac}5.00	currency[0,1)=\u{20ac}	integer[1,2)=5	decimal[2,3)=.	fraction[3,5)=00
+en	#,##0.00¤	1234.56	EUR	1,234.56\u{20ac}	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[8,9)=\u{20ac}
+en	#,##0.00¤	-1234.567	EUR	-1,234.57\u{20ac}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[9,10)=\u{20ac}
+en	#,##0.00¤	1	EUR	1.00\u{20ac}	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[4,5)=\u{20ac}
+en	#,##0.00¤	2	EUR	2.00\u{20ac}	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[4,5)=\u{20ac}
+en	#,##0.00¤	5	EUR	5.00\u{20ac}	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[4,5)=\u{20ac}
+en	¤¤#,##0.00	1234.56	EUR	EUR\u{a0}1,234.56	currency[0,3)=EUR	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,12)=56
+en	¤¤#,##0.00	-1234.567	EUR	-EUR\u{a0}1,234.57	sign[0,1)=-	currency[1,4)=EUR	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,13)=57
+en	¤¤#,##0.00	1	EUR	EUR\u{a0}1.00	currency[0,3)=EUR	integer[4,5)=1	decimal[5,6)=.	fraction[6,8)=00
+en	¤¤#,##0.00	2	EUR	EUR\u{a0}2.00	currency[0,3)=EUR	integer[4,5)=2	decimal[5,6)=.	fraction[6,8)=00
+en	¤¤#,##0.00	5	EUR	EUR\u{a0}5.00	currency[0,3)=EUR	integer[4,5)=5	decimal[5,6)=.	fraction[6,8)=00
+en	#,##0.00¤¤	1234.56	EUR	1,234.56\u{a0}EUR	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,12)=EUR
+en	#,##0.00¤¤	-1234.567	EUR	-1,234.57\u{a0}EUR	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,13)=EUR
+en	#,##0.00¤¤	1	EUR	1.00\u{a0}EUR	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=EUR
+en	#,##0.00¤¤	2	EUR	2.00\u{a0}EUR	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=EUR
+en	#,##0.00¤¤	5	EUR	5.00\u{a0}EUR	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=EUR
+en	#,##0.00 ¤¤¤	1234.56	EUR	1,234.56 euros	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,14)=euros
+en	#,##0.00 ¤¤¤	-1234.567	EUR	-1,234.57 euros	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,15)=euros
+en	#,##0.00 ¤¤¤	1	EUR	1.00 euros	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,10)=euros
+en	#,##0.00 ¤¤¤	2	EUR	2.00 euros	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,10)=euros
+en	#,##0.00 ¤¤¤	5	EUR	5.00 euros	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,10)=euros
+en	#,##0.00¤¤¤	1234.56	EUR	1,234.56\u{a0}euros	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,14)=euros
+en	#,##0.00¤¤¤	-1234.567	EUR	-1,234.57\u{a0}euros	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,15)=euros
+en	#,##0.00¤¤¤	1	EUR	1.00\u{a0}euros	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,10)=euros
+en	#,##0.00¤¤¤	2	EUR	2.00\u{a0}euros	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,10)=euros
+en	#,##0.00¤¤¤	5	EUR	5.00\u{a0}euros	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,10)=euros
+en	¤ #,##0.00	1234.56	EUR	\u{20ac} 1,234.56	currency[0,1)=\u{20ac}	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=56
+en	¤ #,##0.00	-1234.567	EUR	-\u{20ac} 1,234.57	sign[0,1)=-	currency[1,2)=\u{20ac}	group[4,5)=,	integer[3,8)=1,234	decimal[8,9)=.	fraction[9,11)=57
+en	¤ #,##0.00	1	EUR	\u{20ac} 1.00	currency[0,1)=\u{20ac}	integer[2,3)=1	decimal[3,4)=.	fraction[4,6)=00
+en	¤ #,##0.00	2	EUR	\u{20ac} 2.00	currency[0,1)=\u{20ac}	integer[2,3)=2	decimal[3,4)=.	fraction[4,6)=00
+en	¤ #,##0.00	5	EUR	\u{20ac} 5.00	currency[0,1)=\u{20ac}	integer[2,3)=5	decimal[3,4)=.	fraction[4,6)=00
+en	¤#,##0	1234.56	EUR	\u{20ac}1,234.56	currency[0,1)=\u{20ac}	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=56
+en	¤#,##0	-1234.567	EUR	-\u{20ac}1,234.57	sign[0,1)=-	currency[1,2)=\u{20ac}	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=57
+en	¤#,##0	1	EUR	\u{20ac}1.00	currency[0,1)=\u{20ac}	integer[1,2)=1	decimal[2,3)=.	fraction[3,5)=00
+en	¤#,##0	2	EUR	\u{20ac}2.00	currency[0,1)=\u{20ac}	integer[1,2)=2	decimal[2,3)=.	fraction[3,5)=00
+en	¤#,##0	5	EUR	\u{20ac}5.00	currency[0,1)=\u{20ac}	integer[1,2)=5	decimal[2,3)=.	fraction[3,5)=00
+en	#,##0.### ¤	1234.56	EUR	1,234.56 \u{20ac}	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,10)=\u{20ac}
+en	#,##0.### ¤	-1234.567	EUR	-1,234.57 \u{20ac}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,11)=\u{20ac}
+en	#,##0.### ¤	1	EUR	1.00 \u{20ac}	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,6)=\u{20ac}
+en	#,##0.### ¤	2	EUR	2.00 \u{20ac}	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,6)=\u{20ac}
+en	#,##0.### ¤	5	EUR	5.00 \u{20ac}	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,6)=\u{20ac}
+en	¤#,##0.00;(¤#,##0.00)	1234.56	EUR	\u{20ac}1,234.56	currency[0,1)=\u{20ac}	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=56
+en	¤#,##0.00;(¤#,##0.00)	-1234.567	EUR	(\u{20ac}1,234.57)	currency[1,2)=\u{20ac}	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=57
+en	¤#,##0.00;(¤#,##0.00)	1	EUR	\u{20ac}1.00	currency[0,1)=\u{20ac}	integer[1,2)=1	decimal[2,3)=.	fraction[3,5)=00
+en	¤#,##0.00;(¤#,##0.00)	2	EUR	\u{20ac}2.00	currency[0,1)=\u{20ac}	integer[1,2)=2	decimal[2,3)=.	fraction[3,5)=00
+en	¤#,##0.00;(¤#,##0.00)	5	EUR	\u{20ac}5.00	currency[0,1)=\u{20ac}	integer[1,2)=5	decimal[2,3)=.	fraction[3,5)=00
+en	#,##0.000	1234.56	EUR	1,234.560	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560
+en	#,##0.000	-1234.567	EUR	-1,234.567	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567
+en	#,##0.000	1	EUR	1.000	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000
+en	#,##0.000	2	EUR	2.000	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000
+en	#,##0.000	5	EUR	5.000	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000
+en	¤#,##0.00	1234.56	JPY	\u{a5}1,235	currency[0,1)=\u{a5}	group[2,3)=,	integer[1,6)=1,235
+en	¤#,##0.00	-1234.567	JPY	-\u{a5}1,235	sign[0,1)=-	currency[1,2)=\u{a5}	group[3,4)=,	integer[2,7)=1,235
+en	¤#,##0.00	1	JPY	\u{a5}1	currency[0,1)=\u{a5}	integer[1,2)=1
+en	¤#,##0.00	2	JPY	\u{a5}2	currency[0,1)=\u{a5}	integer[1,2)=2
+en	¤#,##0.00	5	JPY	\u{a5}5	currency[0,1)=\u{a5}	integer[1,2)=5
+en	#,##0.00¤	1234.56	JPY	1,235\u{a5}	group[1,2)=,	integer[0,5)=1,235	currency[5,6)=\u{a5}
+en	#,##0.00¤	-1234.567	JPY	-1,235\u{a5}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,235	currency[6,7)=\u{a5}
+en	#,##0.00¤	1	JPY	1\u{a5}	integer[0,1)=1	currency[1,2)=\u{a5}
+en	#,##0.00¤	2	JPY	2\u{a5}	integer[0,1)=2	currency[1,2)=\u{a5}
+en	#,##0.00¤	5	JPY	5\u{a5}	integer[0,1)=5	currency[1,2)=\u{a5}
+en	¤¤#,##0.00	1234.56	JPY	JPY\u{a0}1,235	currency[0,3)=JPY	group[5,6)=,	integer[4,9)=1,235
+en	¤¤#,##0.00	-1234.567	JPY	-JPY\u{a0}1,235	sign[0,1)=-	currency[1,4)=JPY	group[6,7)=,	integer[5,10)=1,235
+en	¤¤#,##0.00	1	JPY	JPY\u{a0}1	currency[0,3)=JPY	integer[4,5)=1
+en	¤¤#,##0.00	2	JPY	JPY\u{a0}2	currency[0,3)=JPY	integer[4,5)=2
+en	¤¤#,##0.00	5	JPY	JPY\u{a0}5	currency[0,3)=JPY	integer[4,5)=5
+en	#,##0.00¤¤	1234.56	JPY	1,235\u{a0}JPY	group[1,2)=,	integer[0,5)=1,235	currency[6,9)=JPY
+en	#,##0.00¤¤	-1234.567	JPY	-1,235\u{a0}JPY	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,235	currency[7,10)=JPY
+en	#,##0.00¤¤	1	JPY	1\u{a0}JPY	integer[0,1)=1	currency[2,5)=JPY
+en	#,##0.00¤¤	2	JPY	2\u{a0}JPY	integer[0,1)=2	currency[2,5)=JPY
+en	#,##0.00¤¤	5	JPY	5\u{a0}JPY	integer[0,1)=5	currency[2,5)=JPY
+en	#,##0.00 ¤¤¤	1234.56	JPY	1,235 Japanese yen	group[1,2)=,	integer[0,5)=1,235	currency[6,18)=Japanese yen
+en	#,##0.00 ¤¤¤	-1234.567	JPY	-1,235 Japanese yen	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,235	currency[7,19)=Japanese yen
+en	#,##0.00 ¤¤¤	1	JPY	1 Japanese yen	integer[0,1)=1	currency[2,14)=Japanese yen
+en	#,##0.00 ¤¤¤	2	JPY	2 Japanese yen	integer[0,1)=2	currency[2,14)=Japanese yen
+en	#,##0.00 ¤¤¤	5	JPY	5 Japanese yen	integer[0,1)=5	currency[2,14)=Japanese yen
+en	#,##0.00¤¤¤	1234.56	JPY	1,235\u{a0}Japanese yen	group[1,2)=,	integer[0,5)=1,235	currency[6,18)=Japanese yen
+en	#,##0.00¤¤¤	-1234.567	JPY	-1,235\u{a0}Japanese yen	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,235	currency[7,19)=Japanese yen
+en	#,##0.00¤¤¤	1	JPY	1\u{a0}Japanese yen	integer[0,1)=1	currency[2,14)=Japanese yen
+en	#,##0.00¤¤¤	2	JPY	2\u{a0}Japanese yen	integer[0,1)=2	currency[2,14)=Japanese yen
+en	#,##0.00¤¤¤	5	JPY	5\u{a0}Japanese yen	integer[0,1)=5	currency[2,14)=Japanese yen
+en	¤ #,##0.00	1234.56	JPY	\u{a5} 1,235	currency[0,1)=\u{a5}	group[3,4)=,	integer[2,7)=1,235
+en	¤ #,##0.00	-1234.567	JPY	-\u{a5} 1,235	sign[0,1)=-	currency[1,2)=\u{a5}	group[4,5)=,	integer[3,8)=1,235
+en	¤ #,##0.00	1	JPY	\u{a5} 1	currency[0,1)=\u{a5}	integer[2,3)=1
+en	¤ #,##0.00	2	JPY	\u{a5} 2	currency[0,1)=\u{a5}	integer[2,3)=2
+en	¤ #,##0.00	5	JPY	\u{a5} 5	currency[0,1)=\u{a5}	integer[2,3)=5
+en	¤#,##0	1234.56	JPY	\u{a5}1,235	currency[0,1)=\u{a5}	group[2,3)=,	integer[1,6)=1,235
+en	¤#,##0	-1234.567	JPY	-\u{a5}1,235	sign[0,1)=-	currency[1,2)=\u{a5}	group[3,4)=,	integer[2,7)=1,235
+en	¤#,##0	1	JPY	\u{a5}1	currency[0,1)=\u{a5}	integer[1,2)=1
+en	¤#,##0	2	JPY	\u{a5}2	currency[0,1)=\u{a5}	integer[1,2)=2
+en	¤#,##0	5	JPY	\u{a5}5	currency[0,1)=\u{a5}	integer[1,2)=5
+en	#,##0.### ¤	1234.56	JPY	1,235 \u{a5}	group[1,2)=,	integer[0,5)=1,235	currency[6,7)=\u{a5}
+en	#,##0.### ¤	-1234.567	JPY	-1,235 \u{a5}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,235	currency[7,8)=\u{a5}
+en	#,##0.### ¤	1	JPY	1 \u{a5}	integer[0,1)=1	currency[2,3)=\u{a5}
+en	#,##0.### ¤	2	JPY	2 \u{a5}	integer[0,1)=2	currency[2,3)=\u{a5}
+en	#,##0.### ¤	5	JPY	5 \u{a5}	integer[0,1)=5	currency[2,3)=\u{a5}
+en	¤#,##0.00;(¤#,##0.00)	1234.56	JPY	\u{a5}1,235	currency[0,1)=\u{a5}	group[2,3)=,	integer[1,6)=1,235
+en	¤#,##0.00;(¤#,##0.00)	-1234.567	JPY	(\u{a5}1,235)	currency[1,2)=\u{a5}	group[3,4)=,	integer[2,7)=1,235
+en	¤#,##0.00;(¤#,##0.00)	1	JPY	\u{a5}1	currency[0,1)=\u{a5}	integer[1,2)=1
+en	¤#,##0.00;(¤#,##0.00)	2	JPY	\u{a5}2	currency[0,1)=\u{a5}	integer[1,2)=2
+en	¤#,##0.00;(¤#,##0.00)	5	JPY	\u{a5}5	currency[0,1)=\u{a5}	integer[1,2)=5
+en	#,##0.000	1234.56	JPY	1,234.560	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560
+en	#,##0.000	-1234.567	JPY	-1,234.567	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567
+en	#,##0.000	1	JPY	1.000	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000
+en	#,##0.000	2	JPY	2.000	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000
+en	#,##0.000	5	JPY	5.000	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000
+en	¤#,##0.00	1234.56	TND	TND\u{a0}1,234.560	currency[0,3)=TND	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,13)=560
+en	¤#,##0.00	-1234.567	TND	-TND\u{a0}1,234.567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,14)=567
+en	¤#,##0.00	1	TND	TND\u{a0}1.000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=.	fraction[6,9)=000
+en	¤#,##0.00	2	TND	TND\u{a0}2.000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=.	fraction[6,9)=000
+en	¤#,##0.00	5	TND	TND\u{a0}5.000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=.	fraction[6,9)=000
+en	#,##0.00¤	1234.56	TND	1,234.560\u{a0}TND	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560	currency[10,13)=TND
+en	#,##0.00¤	-1234.567	TND	-1,234.567\u{a0}TND	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567	currency[11,14)=TND
+en	#,##0.00¤	1	TND	1.000\u{a0}TND	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+en	#,##0.00¤	2	TND	2.000\u{a0}TND	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+en	#,##0.00¤	5	TND	5.000\u{a0}TND	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+en	¤¤#,##0.00	1234.56	TND	TND\u{a0}1,234.560	currency[0,3)=TND	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,13)=560
+en	¤¤#,##0.00	-1234.567	TND	-TND\u{a0}1,234.567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,14)=567
+en	¤¤#,##0.00	1	TND	TND\u{a0}1.000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=.	fraction[6,9)=000
+en	¤¤#,##0.00	2	TND	TND\u{a0}2.000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=.	fraction[6,9)=000
+en	¤¤#,##0.00	5	TND	TND\u{a0}5.000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=.	fraction[6,9)=000
+en	#,##0.00¤¤	1234.56	TND	1,234.560\u{a0}TND	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560	currency[10,13)=TND
+en	#,##0.00¤¤	-1234.567	TND	-1,234.567\u{a0}TND	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567	currency[11,14)=TND
+en	#,##0.00¤¤	1	TND	1.000\u{a0}TND	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+en	#,##0.00¤¤	2	TND	2.000\u{a0}TND	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+en	#,##0.00¤¤	5	TND	5.000\u{a0}TND	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+en	#,##0.00 ¤¤¤	1234.56	TND	1,234.560 Tunisian dinars	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560	currency[10,25)=Tunisian dinars
+en	#,##0.00 ¤¤¤	-1234.567	TND	-1,234.567 Tunisian dinars	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567	currency[11,26)=Tunisian dinars
+en	#,##0.00 ¤¤¤	1	TND	1.000 Tunisian dinars	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000	currency[6,21)=Tunisian dinars
+en	#,##0.00 ¤¤¤	2	TND	2.000 Tunisian dinars	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000	currency[6,21)=Tunisian dinars
+en	#,##0.00 ¤¤¤	5	TND	5.000 Tunisian dinars	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000	currency[6,21)=Tunisian dinars
+en	#,##0.00¤¤¤	1234.56	TND	1,234.560\u{a0}Tunisian dinars	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560	currency[10,25)=Tunisian dinars
+en	#,##0.00¤¤¤	-1234.567	TND	-1,234.567\u{a0}Tunisian dinars	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567	currency[11,26)=Tunisian dinars
+en	#,##0.00¤¤¤	1	TND	1.000\u{a0}Tunisian dinars	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000	currency[6,21)=Tunisian dinars
+en	#,##0.00¤¤¤	2	TND	2.000\u{a0}Tunisian dinars	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000	currency[6,21)=Tunisian dinars
+en	#,##0.00¤¤¤	5	TND	5.000\u{a0}Tunisian dinars	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000	currency[6,21)=Tunisian dinars
+en	¤ #,##0.00	1234.56	TND	TND 1,234.560	currency[0,3)=TND	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,13)=560
+en	¤ #,##0.00	-1234.567	TND	-TND 1,234.567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,14)=567
+en	¤ #,##0.00	1	TND	TND 1.000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=.	fraction[6,9)=000
+en	¤ #,##0.00	2	TND	TND 2.000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=.	fraction[6,9)=000
+en	¤ #,##0.00	5	TND	TND 5.000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=.	fraction[6,9)=000
+en	¤#,##0	1234.56	TND	TND\u{a0}1,234.560	currency[0,3)=TND	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,13)=560
+en	¤#,##0	-1234.567	TND	-TND\u{a0}1,234.567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,14)=567
+en	¤#,##0	1	TND	TND\u{a0}1.000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=.	fraction[6,9)=000
+en	¤#,##0	2	TND	TND\u{a0}2.000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=.	fraction[6,9)=000
+en	¤#,##0	5	TND	TND\u{a0}5.000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=.	fraction[6,9)=000
+en	#,##0.### ¤	1234.56	TND	1,234.560 TND	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560	currency[10,13)=TND
+en	#,##0.### ¤	-1234.567	TND	-1,234.567 TND	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567	currency[11,14)=TND
+en	#,##0.### ¤	1	TND	1.000 TND	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+en	#,##0.### ¤	2	TND	2.000 TND	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+en	#,##0.### ¤	5	TND	5.000 TND	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+en	¤#,##0.00;(¤#,##0.00)	1234.56	TND	TND\u{a0}1,234.560	currency[0,3)=TND	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,13)=560
+en	¤#,##0.00;(¤#,##0.00)	-1234.567	TND	(TND\u{a0}1,234.567)	currency[1,4)=TND	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,14)=567
+en	¤#,##0.00;(¤#,##0.00)	1	TND	TND\u{a0}1.000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=.	fraction[6,9)=000
+en	¤#,##0.00;(¤#,##0.00)	2	TND	TND\u{a0}2.000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=.	fraction[6,9)=000
+en	¤#,##0.00;(¤#,##0.00)	5	TND	TND\u{a0}5.000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=.	fraction[6,9)=000
+en	#,##0.000	1234.56	TND	1,234.560	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560
+en	#,##0.000	-1234.567	TND	-1,234.567	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567
+en	#,##0.000	1	TND	1.000	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000
+en	#,##0.000	2	TND	2.000	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000
+en	#,##0.000	5	TND	5.000	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000
+de	¤#,##0.00	1234.56	USD	$1.234,56	currency[0,1)=$	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=56
+de	¤#,##0.00	-1234.567	USD	-$1.234,57	sign[0,1)=-	currency[1,2)=$	group[3,4)=.	integer[2,7)=1.234	decimal[7,8)=,	fraction[8,10)=57
+de	¤#,##0.00	1	USD	$1,00	currency[0,1)=$	integer[1,2)=1	decimal[2,3)=,	fraction[3,5)=00
+de	¤#,##0.00	2	USD	$2,00	currency[0,1)=$	integer[1,2)=2	decimal[2,3)=,	fraction[3,5)=00
+de	¤#,##0.00	5	USD	$5,00	currency[0,1)=$	integer[1,2)=5	decimal[2,3)=,	fraction[3,5)=00
+de	#,##0.00¤	1234.56	USD	1.234,56$	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,8)=56	currency[8,9)=$
+de	#,##0.00¤	-1234.567	USD	-1.234,57$	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=57	currency[9,10)=$
+de	#,##0.00¤	1	USD	1,00$	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[4,5)=$
+de	#,##0.00¤	2	USD	2,00$	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[4,5)=$
+de	#,##0.00¤	5	USD	5,00$	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[4,5)=$
+de	¤¤#,##0.00	1234.56	USD	USD\u{a0}1.234,56	currency[0,3)=USD	group[5,6)=.	integer[4,9)=1.234	decimal[9,10)=,	fraction[10,12)=56
+de	¤¤#,##0.00	-1234.567	USD	-USD\u{a0}1.234,57	sign[0,1)=-	currency[1,4)=USD	group[6,7)=.	integer[5,10)=1.234	decimal[10,11)=,	fraction[11,13)=57
+de	¤¤#,##0.00	1	USD	USD\u{a0}1,00	currency[0,3)=USD	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+de	¤¤#,##0.00	2	USD	USD\u{a0}2,00	currency[0,3)=USD	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+de	¤¤#,##0.00	5	USD	USD\u{a0}5,00	currency[0,3)=USD	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+de	#,##0.00¤¤	1234.56	USD	1.234,56\u{a0}USD	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=USD
+de	#,##0.00¤¤	-1234.567	USD	-1.234,57\u{a0}USD	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=USD
+de	#,##0.00¤¤	1	USD	1,00\u{a0}USD	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=USD
+de	#,##0.00¤¤	2	USD	2,00\u{a0}USD	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=USD
+de	#,##0.00¤¤	5	USD	5,00\u{a0}USD	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=USD
+de	#,##0.00 ¤¤¤	1234.56	USD	1.234,56 US-Dollar	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,8)=56	currency[9,18)=US-Dollar
+de	#,##0.00 ¤¤¤	-1234.567	USD	-1.234,57 US-Dollar	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=57	currency[10,19)=US-Dollar
+de	#,##0.00 ¤¤¤	1	USD	1,00 US-Dollar	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,14)=US-Dollar
+de	#,##0.00 ¤¤¤	2	USD	2,00 US-Dollar	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,14)=US-Dollar
+de	#,##0.00 ¤¤¤	5	USD	5,00 US-Dollar	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,14)=US-Dollar
+de	#,##0.00¤¤¤	1234.56	USD	1.234,56\u{a0}US-Dollar	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,8)=56	currency[9,18)=US-Dollar
+de	#,##0.00¤¤¤	-1234.567	USD	-1.234,57\u{a0}US-Dollar	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=57	currency[10,19)=US-Dollar
+de	#,##0.00¤¤¤	1	USD	1,00\u{a0}US-Dollar	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,14)=US-Dollar
+de	#,##0.00¤¤¤	2	USD	2,00\u{a0}US-Dollar	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,14)=US-Dollar
+de	#,##0.00¤¤¤	5	USD	5,00\u{a0}US-Dollar	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,14)=US-Dollar
+de	¤ #,##0.00	1234.56	USD	$ 1.234,56	currency[0,1)=$	group[3,4)=.	integer[2,7)=1.234	decimal[7,8)=,	fraction[8,10)=56
+de	¤ #,##0.00	-1234.567	USD	-$ 1.234,57	sign[0,1)=-	currency[1,2)=$	group[4,5)=.	integer[3,8)=1.234	decimal[8,9)=,	fraction[9,11)=57
+de	¤ #,##0.00	1	USD	$ 1,00	currency[0,1)=$	integer[2,3)=1	decimal[3,4)=,	fraction[4,6)=00
+de	¤ #,##0.00	2	USD	$ 2,00	currency[0,1)=$	integer[2,3)=2	decimal[3,4)=,	fraction[4,6)=00
+de	¤ #,##0.00	5	USD	$ 5,00	currency[0,1)=$	integer[2,3)=5	decimal[3,4)=,	fraction[4,6)=00
+de	¤#,##0	1234.56	USD	$1.234,56	currency[0,1)=$	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=56
+de	¤#,##0	-1234.567	USD	-$1.234,57	sign[0,1)=-	currency[1,2)=$	group[3,4)=.	integer[2,7)=1.234	decimal[7,8)=,	fraction[8,10)=57
+de	¤#,##0	1	USD	$1,00	currency[0,1)=$	integer[1,2)=1	decimal[2,3)=,	fraction[3,5)=00
+de	¤#,##0	2	USD	$2,00	currency[0,1)=$	integer[1,2)=2	decimal[2,3)=,	fraction[3,5)=00
+de	¤#,##0	5	USD	$5,00	currency[0,1)=$	integer[1,2)=5	decimal[2,3)=,	fraction[3,5)=00
+de	#,##0.### ¤	1234.56	USD	1.234,56 $	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,8)=56	currency[9,10)=$
+de	#,##0.### ¤	-1234.567	USD	-1.234,57 $	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=57	currency[10,11)=$
+de	#,##0.### ¤	1	USD	1,00 $	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,6)=$
+de	#,##0.### ¤	2	USD	2,00 $	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,6)=$
+de	#,##0.### ¤	5	USD	5,00 $	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,6)=$
+de	¤#,##0.00;(¤#,##0.00)	1234.56	USD	$1.234,56	currency[0,1)=$	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=56
+de	¤#,##0.00;(¤#,##0.00)	-1234.567	USD	($1.234,57)	currency[1,2)=$	group[3,4)=.	integer[2,7)=1.234	decimal[7,8)=,	fraction[8,10)=57
+de	¤#,##0.00;(¤#,##0.00)	1	USD	$1,00	currency[0,1)=$	integer[1,2)=1	decimal[2,3)=,	fraction[3,5)=00
+de	¤#,##0.00;(¤#,##0.00)	2	USD	$2,00	currency[0,1)=$	integer[1,2)=2	decimal[2,3)=,	fraction[3,5)=00
+de	¤#,##0.00;(¤#,##0.00)	5	USD	$5,00	currency[0,1)=$	integer[1,2)=5	decimal[2,3)=,	fraction[3,5)=00
+de	#,##0.000	1234.56	USD	1.234,560	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,9)=560
+de	#,##0.000	-1234.567	USD	-1.234,567	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,10)=567
+de	#,##0.000	1	USD	1,000	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000
+de	#,##0.000	2	USD	2,000	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000
+de	#,##0.000	5	USD	5,000	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000
+de	¤#,##0.00	1234.56	CHF	CHF\u{a0}1.234,56	currency[0,3)=CHF	group[5,6)=.	integer[4,9)=1.234	decimal[9,10)=,	fraction[10,12)=56
+de	¤#,##0.00	-1234.567	CHF	-CHF\u{a0}1.234,57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=.	integer[5,10)=1.234	decimal[10,11)=,	fraction[11,13)=57
+de	¤#,##0.00	1	CHF	CHF\u{a0}1,00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+de	¤#,##0.00	2	CHF	CHF\u{a0}2,00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+de	¤#,##0.00	5	CHF	CHF\u{a0}5,00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+de	#,##0.00¤	1234.56	CHF	1.234,56\u{a0}CHF	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=CHF
+de	#,##0.00¤	-1234.567	CHF	-1.234,57\u{a0}CHF	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=CHF
+de	#,##0.00¤	1	CHF	1,00\u{a0}CHF	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+de	#,##0.00¤	2	CHF	2,00\u{a0}CHF	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+de	#,##0.00¤	5	CHF	5,00\u{a0}CHF	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+de	¤¤#,##0.00	1234.56	CHF	CHF\u{a0}1.234,56	currency[0,3)=CHF	group[5,6)=.	integer[4,9)=1.234	decimal[9,10)=,	fraction[10,12)=56
+de	¤¤#,##0.00	-1234.567	CHF	-CHF\u{a0}1.234,57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=.	integer[5,10)=1.234	decimal[10,11)=,	fraction[11,13)=57
+de	¤¤#,##0.00	1	CHF	CHF\u{a0}1,00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+de	¤¤#,##0.00	2	CHF	CHF\u{a0}2,00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+de	¤¤#,##0.00	5	CHF	CHF\u{a0}5,00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+de	#,##0.00¤¤	1234.56	CHF	1.234,56\u{a0}CHF	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=CHF
+de	#,##0.00¤¤	-1234.567	CHF	-1.234,57\u{a0}CHF	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=CHF
+de	#,##0.00¤¤	1	CHF	1,00\u{a0}CHF	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+de	#,##0.00¤¤	2	CHF	2,00\u{a0}CHF	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+de	#,##0.00¤¤	5	CHF	5,00\u{a0}CHF	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+de	#,##0.00 ¤¤¤	1234.56	CHF	1.234,56 Schweizer Franken	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,8)=56	currency[9,26)=Schweizer Franken
+de	#,##0.00 ¤¤¤	-1234.567	CHF	-1.234,57 Schweizer Franken	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=57	currency[10,27)=Schweizer Franken
+de	#,##0.00 ¤¤¤	1	CHF	1,00 Schweizer Franken	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,22)=Schweizer Franken
+de	#,##0.00 ¤¤¤	2	CHF	2,00 Schweizer Franken	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,22)=Schweizer Franken
+de	#,##0.00 ¤¤¤	5	CHF	5,00 Schweizer Franken	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,22)=Schweizer Franken
+de	#,##0.00¤¤¤	1234.56	CHF	1.234,56\u{a0}Schweizer Franken	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,8)=56	currency[9,26)=Schweizer Franken
+de	#,##0.00¤¤¤	-1234.567	CHF	-1.234,57\u{a0}Schweizer Franken	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=57	currency[10,27)=Schweizer Franken
+de	#,##0.00¤¤¤	1	CHF	1,00\u{a0}Schweizer Franken	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,22)=Schweizer Franken
+de	#,##0.00¤¤¤	2	CHF	2,00\u{a0}Schweizer Franken	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,22)=Schweizer Franken
+de	#,##0.00¤¤¤	5	CHF	5,00\u{a0}Schweizer Franken	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,22)=Schweizer Franken
+de	¤ #,##0.00	1234.56	CHF	CHF 1.234,56	currency[0,3)=CHF	group[5,6)=.	integer[4,9)=1.234	decimal[9,10)=,	fraction[10,12)=56
+de	¤ #,##0.00	-1234.567	CHF	-CHF 1.234,57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=.	integer[5,10)=1.234	decimal[10,11)=,	fraction[11,13)=57
+de	¤ #,##0.00	1	CHF	CHF 1,00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+de	¤ #,##0.00	2	CHF	CHF 2,00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+de	¤ #,##0.00	5	CHF	CHF 5,00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+de	¤#,##0	1234.56	CHF	CHF\u{a0}1.234,56	currency[0,3)=CHF	group[5,6)=.	integer[4,9)=1.234	decimal[9,10)=,	fraction[10,12)=56
+de	¤#,##0	-1234.567	CHF	-CHF\u{a0}1.234,57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=.	integer[5,10)=1.234	decimal[10,11)=,	fraction[11,13)=57
+de	¤#,##0	1	CHF	CHF\u{a0}1,00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+de	¤#,##0	2	CHF	CHF\u{a0}2,00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+de	¤#,##0	5	CHF	CHF\u{a0}5,00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+de	#,##0.### ¤	1234.56	CHF	1.234,56 CHF	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=CHF
+de	#,##0.### ¤	-1234.567	CHF	-1.234,57 CHF	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=CHF
+de	#,##0.### ¤	1	CHF	1,00 CHF	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+de	#,##0.### ¤	2	CHF	2,00 CHF	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+de	#,##0.### ¤	5	CHF	5,00 CHF	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+de	¤#,##0.00;(¤#,##0.00)	1234.56	CHF	CHF\u{a0}1.234,56	currency[0,3)=CHF	group[5,6)=.	integer[4,9)=1.234	decimal[9,10)=,	fraction[10,12)=56
+de	¤#,##0.00;(¤#,##0.00)	-1234.567	CHF	(CHF\u{a0}1.234,57)	currency[1,4)=CHF	group[6,7)=.	integer[5,10)=1.234	decimal[10,11)=,	fraction[11,13)=57
+de	¤#,##0.00;(¤#,##0.00)	1	CHF	CHF\u{a0}1,00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+de	¤#,##0.00;(¤#,##0.00)	2	CHF	CHF\u{a0}2,00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+de	¤#,##0.00;(¤#,##0.00)	5	CHF	CHF\u{a0}5,00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+de	#,##0.000	1234.56	CHF	1.234,560	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,9)=560
+de	#,##0.000	-1234.567	CHF	-1.234,567	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,10)=567
+de	#,##0.000	1	CHF	1,000	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000
+de	#,##0.000	2	CHF	2,000	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000
+de	#,##0.000	5	CHF	5,000	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000
+de	¤#,##0.00	1234.56	EUR	\u{20ac}1.234,56	currency[0,1)=\u{20ac}	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=56
+de	¤#,##0.00	-1234.567	EUR	-\u{20ac}1.234,57	sign[0,1)=-	currency[1,2)=\u{20ac}	group[3,4)=.	integer[2,7)=1.234	decimal[7,8)=,	fraction[8,10)=57
+de	¤#,##0.00	1	EUR	\u{20ac}1,00	currency[0,1)=\u{20ac}	integer[1,2)=1	decimal[2,3)=,	fraction[3,5)=00
+de	¤#,##0.00	2	EUR	\u{20ac}2,00	currency[0,1)=\u{20ac}	integer[1,2)=2	decimal[2,3)=,	fraction[3,5)=00
+de	¤#,##0.00	5	EUR	\u{20ac}5,00	currency[0,1)=\u{20ac}	integer[1,2)=5	decimal[2,3)=,	fraction[3,5)=00
+de	#,##0.00¤	1234.56	EUR	1.234,56\u{20ac}	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,8)=56	currency[8,9)=\u{20ac}
+de	#,##0.00¤	-1234.567	EUR	-1.234,57\u{20ac}	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=57	currency[9,10)=\u{20ac}
+de	#,##0.00¤	1	EUR	1,00\u{20ac}	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[4,5)=\u{20ac}
+de	#,##0.00¤	2	EUR	2,00\u{20ac}	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[4,5)=\u{20ac}
+de	#,##0.00¤	5	EUR	5,00\u{20ac}	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[4,5)=\u{20ac}
+de	¤¤#,##0.00	1234.56	EUR	EUR\u{a0}1.234,56	currency[0,3)=EUR	group[5,6)=.	integer[4,9)=1.234	decimal[9,10)=,	fraction[10,12)=56
+de	¤¤#,##0.00	-1234.567	EUR	-EUR\u{a0}1.234,57	sign[0,1)=-	currency[1,4)=EUR	group[6,7)=.	integer[5,10)=1.234	decimal[10,11)=,	fraction[11,13)=57
+de	¤¤#,##0.00	1	EUR	EUR\u{a0}1,00	currency[0,3)=EUR	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+de	¤¤#,##0.00	2	EUR	EUR\u{a0}2,00	currency[0,3)=EUR	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+de	¤¤#,##0.00	5	EUR	EUR\u{a0}5,00	currency[0,3)=EUR	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+de	#,##0.00¤¤	1234.56	EUR	1.234,56\u{a0}EUR	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=EUR
+de	#,##0.00¤¤	-1234.567	EUR	-1.234,57\u{a0}EUR	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=EUR
+de	#,##0.00¤¤	1	EUR	1,00\u{a0}EUR	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=EUR
+de	#,##0.00¤¤	2	EUR	2,00\u{a0}EUR	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=EUR
+de	#,##0.00¤¤	5	EUR	5,00\u{a0}EUR	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=EUR
+de	#,##0.00 ¤¤¤	1234.56	EUR	1.234,56 Euro	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,8)=56	currency[9,13)=Euro
+de	#,##0.00 ¤¤¤	-1234.567	EUR	-1.234,57 Euro	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=57	currency[10,14)=Euro
+de	#,##0.00 ¤¤¤	1	EUR	1,00 Euro	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,9)=Euro
+de	#,##0.00 ¤¤¤	2	EUR	2,00 Euro	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,9)=Euro
+de	#,##0.00 ¤¤¤	5	EUR	5,00 Euro	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,9)=Euro
+de	#,##0.00¤¤¤	1234.56	EUR	1.234,56\u{a0}Euro	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,8)=56	currency[9,13)=Euro
+de	#,##0.00¤¤¤	-1234.567	EUR	-1.234,57\u{a0}Euro	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=57	currency[10,14)=Euro
+de	#,##0.00¤¤¤	1	EUR	1,00\u{a0}Euro	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,9)=Euro
+de	#,##0.00¤¤¤	2	EUR	2,00\u{a0}Euro	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,9)=Euro
+de	#,##0.00¤¤¤	5	EUR	5,00\u{a0}Euro	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,9)=Euro
+de	¤ #,##0.00	1234.56	EUR	\u{20ac} 1.234,56	currency[0,1)=\u{20ac}	group[3,4)=.	integer[2,7)=1.234	decimal[7,8)=,	fraction[8,10)=56
+de	¤ #,##0.00	-1234.567	EUR	-\u{20ac} 1.234,57	sign[0,1)=-	currency[1,2)=\u{20ac}	group[4,5)=.	integer[3,8)=1.234	decimal[8,9)=,	fraction[9,11)=57
+de	¤ #,##0.00	1	EUR	\u{20ac} 1,00	currency[0,1)=\u{20ac}	integer[2,3)=1	decimal[3,4)=,	fraction[4,6)=00
+de	¤ #,##0.00	2	EUR	\u{20ac} 2,00	currency[0,1)=\u{20ac}	integer[2,3)=2	decimal[3,4)=,	fraction[4,6)=00
+de	¤ #,##0.00	5	EUR	\u{20ac} 5,00	currency[0,1)=\u{20ac}	integer[2,3)=5	decimal[3,4)=,	fraction[4,6)=00
+de	¤#,##0	1234.56	EUR	\u{20ac}1.234,56	currency[0,1)=\u{20ac}	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=56
+de	¤#,##0	-1234.567	EUR	-\u{20ac}1.234,57	sign[0,1)=-	currency[1,2)=\u{20ac}	group[3,4)=.	integer[2,7)=1.234	decimal[7,8)=,	fraction[8,10)=57
+de	¤#,##0	1	EUR	\u{20ac}1,00	currency[0,1)=\u{20ac}	integer[1,2)=1	decimal[2,3)=,	fraction[3,5)=00
+de	¤#,##0	2	EUR	\u{20ac}2,00	currency[0,1)=\u{20ac}	integer[1,2)=2	decimal[2,3)=,	fraction[3,5)=00
+de	¤#,##0	5	EUR	\u{20ac}5,00	currency[0,1)=\u{20ac}	integer[1,2)=5	decimal[2,3)=,	fraction[3,5)=00
+de	#,##0.### ¤	1234.56	EUR	1.234,56 \u{20ac}	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,8)=56	currency[9,10)=\u{20ac}
+de	#,##0.### ¤	-1234.567	EUR	-1.234,57 \u{20ac}	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=57	currency[10,11)=\u{20ac}
+de	#,##0.### ¤	1	EUR	1,00 \u{20ac}	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,6)=\u{20ac}
+de	#,##0.### ¤	2	EUR	2,00 \u{20ac}	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,6)=\u{20ac}
+de	#,##0.### ¤	5	EUR	5,00 \u{20ac}	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,6)=\u{20ac}
+de	¤#,##0.00;(¤#,##0.00)	1234.56	EUR	\u{20ac}1.234,56	currency[0,1)=\u{20ac}	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,9)=56
+de	¤#,##0.00;(¤#,##0.00)	-1234.567	EUR	(\u{20ac}1.234,57)	currency[1,2)=\u{20ac}	group[3,4)=.	integer[2,7)=1.234	decimal[7,8)=,	fraction[8,10)=57
+de	¤#,##0.00;(¤#,##0.00)	1	EUR	\u{20ac}1,00	currency[0,1)=\u{20ac}	integer[1,2)=1	decimal[2,3)=,	fraction[3,5)=00
+de	¤#,##0.00;(¤#,##0.00)	2	EUR	\u{20ac}2,00	currency[0,1)=\u{20ac}	integer[1,2)=2	decimal[2,3)=,	fraction[3,5)=00
+de	¤#,##0.00;(¤#,##0.00)	5	EUR	\u{20ac}5,00	currency[0,1)=\u{20ac}	integer[1,2)=5	decimal[2,3)=,	fraction[3,5)=00
+de	#,##0.000	1234.56	EUR	1.234,560	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,9)=560
+de	#,##0.000	-1234.567	EUR	-1.234,567	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,10)=567
+de	#,##0.000	1	EUR	1,000	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000
+de	#,##0.000	2	EUR	2,000	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000
+de	#,##0.000	5	EUR	5,000	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000
+de	¤#,##0.00	1234.56	JPY	\u{a5}1.235	currency[0,1)=\u{a5}	group[2,3)=.	integer[1,6)=1.235
+de	¤#,##0.00	-1234.567	JPY	-\u{a5}1.235	sign[0,1)=-	currency[1,2)=\u{a5}	group[3,4)=.	integer[2,7)=1.235
+de	¤#,##0.00	1	JPY	\u{a5}1	currency[0,1)=\u{a5}	integer[1,2)=1
+de	¤#,##0.00	2	JPY	\u{a5}2	currency[0,1)=\u{a5}	integer[1,2)=2
+de	¤#,##0.00	5	JPY	\u{a5}5	currency[0,1)=\u{a5}	integer[1,2)=5
+de	#,##0.00¤	1234.56	JPY	1.235\u{a5}	group[1,2)=.	integer[0,5)=1.235	currency[5,6)=\u{a5}
+de	#,##0.00¤	-1234.567	JPY	-1.235\u{a5}	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.235	currency[6,7)=\u{a5}
+de	#,##0.00¤	1	JPY	1\u{a5}	integer[0,1)=1	currency[1,2)=\u{a5}
+de	#,##0.00¤	2	JPY	2\u{a5}	integer[0,1)=2	currency[1,2)=\u{a5}
+de	#,##0.00¤	5	JPY	5\u{a5}	integer[0,1)=5	currency[1,2)=\u{a5}
+de	¤¤#,##0.00	1234.56	JPY	JPY\u{a0}1.235	currency[0,3)=JPY	group[5,6)=.	integer[4,9)=1.235
+de	¤¤#,##0.00	-1234.567	JPY	-JPY\u{a0}1.235	sign[0,1)=-	currency[1,4)=JPY	group[6,7)=.	integer[5,10)=1.235
+de	¤¤#,##0.00	1	JPY	JPY\u{a0}1	currency[0,3)=JPY	integer[4,5)=1
+de	¤¤#,##0.00	2	JPY	JPY\u{a0}2	currency[0,3)=JPY	integer[4,5)=2
+de	¤¤#,##0.00	5	JPY	JPY\u{a0}5	currency[0,3)=JPY	integer[4,5)=5
+de	#,##0.00¤¤	1234.56	JPY	1.235\u{a0}JPY	group[1,2)=.	integer[0,5)=1.235	currency[6,9)=JPY
+de	#,##0.00¤¤	-1234.567	JPY	-1.235\u{a0}JPY	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.235	currency[7,10)=JPY
+de	#,##0.00¤¤	1	JPY	1\u{a0}JPY	integer[0,1)=1	currency[2,5)=JPY
+de	#,##0.00¤¤	2	JPY	2\u{a0}JPY	integer[0,1)=2	currency[2,5)=JPY
+de	#,##0.00¤¤	5	JPY	5\u{a0}JPY	integer[0,1)=5	currency[2,5)=JPY
+de	#,##0.00 ¤¤¤	1234.56	JPY	1.235 Japanische Yen	group[1,2)=.	integer[0,5)=1.235	currency[6,20)=Japanische Yen
+de	#,##0.00 ¤¤¤	-1234.567	JPY	-1.235 Japanische Yen	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.235	currency[7,21)=Japanische Yen
+de	#,##0.00 ¤¤¤	1	JPY	1 Japanischer Yen	integer[0,1)=1	currency[2,17)=Japanischer Yen
+de	#,##0.00 ¤¤¤	2	JPY	2 Japanische Yen	integer[0,1)=2	currency[2,16)=Japanische Yen
+de	#,##0.00 ¤¤¤	5	JPY	5 Japanische Yen	integer[0,1)=5	currency[2,16)=Japanische Yen
+de	#,##0.00¤¤¤	1234.56	JPY	1.235\u{a0}Japanische Yen	group[1,2)=.	integer[0,5)=1.235	currency[6,20)=Japanische Yen
+de	#,##0.00¤¤¤	-1234.567	JPY	-1.235\u{a0}Japanische Yen	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.235	currency[7,21)=Japanische Yen
+de	#,##0.00¤¤¤	1	JPY	1\u{a0}Japanischer Yen	integer[0,1)=1	currency[2,17)=Japanischer Yen
+de	#,##0.00¤¤¤	2	JPY	2\u{a0}Japanische Yen	integer[0,1)=2	currency[2,16)=Japanische Yen
+de	#,##0.00¤¤¤	5	JPY	5\u{a0}Japanische Yen	integer[0,1)=5	currency[2,16)=Japanische Yen
+de	¤ #,##0.00	1234.56	JPY	\u{a5} 1.235	currency[0,1)=\u{a5}	group[3,4)=.	integer[2,7)=1.235
+de	¤ #,##0.00	-1234.567	JPY	-\u{a5} 1.235	sign[0,1)=-	currency[1,2)=\u{a5}	group[4,5)=.	integer[3,8)=1.235
+de	¤ #,##0.00	1	JPY	\u{a5} 1	currency[0,1)=\u{a5}	integer[2,3)=1
+de	¤ #,##0.00	2	JPY	\u{a5} 2	currency[0,1)=\u{a5}	integer[2,3)=2
+de	¤ #,##0.00	5	JPY	\u{a5} 5	currency[0,1)=\u{a5}	integer[2,3)=5
+de	¤#,##0	1234.56	JPY	\u{a5}1.235	currency[0,1)=\u{a5}	group[2,3)=.	integer[1,6)=1.235
+de	¤#,##0	-1234.567	JPY	-\u{a5}1.235	sign[0,1)=-	currency[1,2)=\u{a5}	group[3,4)=.	integer[2,7)=1.235
+de	¤#,##0	1	JPY	\u{a5}1	currency[0,1)=\u{a5}	integer[1,2)=1
+de	¤#,##0	2	JPY	\u{a5}2	currency[0,1)=\u{a5}	integer[1,2)=2
+de	¤#,##0	5	JPY	\u{a5}5	currency[0,1)=\u{a5}	integer[1,2)=5
+de	#,##0.### ¤	1234.56	JPY	1.235 \u{a5}	group[1,2)=.	integer[0,5)=1.235	currency[6,7)=\u{a5}
+de	#,##0.### ¤	-1234.567	JPY	-1.235 \u{a5}	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.235	currency[7,8)=\u{a5}
+de	#,##0.### ¤	1	JPY	1 \u{a5}	integer[0,1)=1	currency[2,3)=\u{a5}
+de	#,##0.### ¤	2	JPY	2 \u{a5}	integer[0,1)=2	currency[2,3)=\u{a5}
+de	#,##0.### ¤	5	JPY	5 \u{a5}	integer[0,1)=5	currency[2,3)=\u{a5}
+de	¤#,##0.00;(¤#,##0.00)	1234.56	JPY	\u{a5}1.235	currency[0,1)=\u{a5}	group[2,3)=.	integer[1,6)=1.235
+de	¤#,##0.00;(¤#,##0.00)	-1234.567	JPY	(\u{a5}1.235)	currency[1,2)=\u{a5}	group[3,4)=.	integer[2,7)=1.235
+de	¤#,##0.00;(¤#,##0.00)	1	JPY	\u{a5}1	currency[0,1)=\u{a5}	integer[1,2)=1
+de	¤#,##0.00;(¤#,##0.00)	2	JPY	\u{a5}2	currency[0,1)=\u{a5}	integer[1,2)=2
+de	¤#,##0.00;(¤#,##0.00)	5	JPY	\u{a5}5	currency[0,1)=\u{a5}	integer[1,2)=5
+de	#,##0.000	1234.56	JPY	1.234,560	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,9)=560
+de	#,##0.000	-1234.567	JPY	-1.234,567	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,10)=567
+de	#,##0.000	1	JPY	1,000	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000
+de	#,##0.000	2	JPY	2,000	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000
+de	#,##0.000	5	JPY	5,000	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000
+de	¤#,##0.00	1234.56	TND	TND\u{a0}1.234,560	currency[0,3)=TND	group[5,6)=.	integer[4,9)=1.234	decimal[9,10)=,	fraction[10,13)=560
+de	¤#,##0.00	-1234.567	TND	-TND\u{a0}1.234,567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=.	integer[5,10)=1.234	decimal[10,11)=,	fraction[11,14)=567
+de	¤#,##0.00	1	TND	TND\u{a0}1,000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=,	fraction[6,9)=000
+de	¤#,##0.00	2	TND	TND\u{a0}2,000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=,	fraction[6,9)=000
+de	¤#,##0.00	5	TND	TND\u{a0}5,000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=,	fraction[6,9)=000
+de	#,##0.00¤	1234.56	TND	1.234,560\u{a0}TND	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,9)=560	currency[10,13)=TND
+de	#,##0.00¤	-1234.567	TND	-1.234,567\u{a0}TND	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,10)=567	currency[11,14)=TND
+de	#,##0.00¤	1	TND	1,000\u{a0}TND	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+de	#,##0.00¤	2	TND	2,000\u{a0}TND	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+de	#,##0.00¤	5	TND	5,000\u{a0}TND	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+de	¤¤#,##0.00	1234.56	TND	TND\u{a0}1.234,560	currency[0,3)=TND	group[5,6)=.	integer[4,9)=1.234	decimal[9,10)=,	fraction[10,13)=560
+de	¤¤#,##0.00	-1234.567	TND	-TND\u{a0}1.234,567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=.	integer[5,10)=1.234	decimal[10,11)=,	fraction[11,14)=567
+de	¤¤#,##0.00	1	TND	TND\u{a0}1,000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=,	fraction[6,9)=000
+de	¤¤#,##0.00	2	TND	TND\u{a0}2,000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=,	fraction[6,9)=000
+de	¤¤#,##0.00	5	TND	TND\u{a0}5,000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=,	fraction[6,9)=000
+de	#,##0.00¤¤	1234.56	TND	1.234,560\u{a0}TND	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,9)=560	currency[10,13)=TND
+de	#,##0.00¤¤	-1234.567	TND	-1.234,567\u{a0}TND	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,10)=567	currency[11,14)=TND
+de	#,##0.00¤¤	1	TND	1,000\u{a0}TND	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+de	#,##0.00¤¤	2	TND	2,000\u{a0}TND	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+de	#,##0.00¤¤	5	TND	5,000\u{a0}TND	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+de	#,##0.00 ¤¤¤	1234.56	TND	1.234,560 Tunesische Dinar	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,9)=560	currency[10,26)=Tunesische Dinar
+de	#,##0.00 ¤¤¤	-1234.567	TND	-1.234,567 Tunesische Dinar	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,10)=567	currency[11,27)=Tunesische Dinar
+de	#,##0.00 ¤¤¤	1	TND	1,000 Tunesische Dinar	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000	currency[6,22)=Tunesische Dinar
+de	#,##0.00 ¤¤¤	2	TND	2,000 Tunesische Dinar	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000	currency[6,22)=Tunesische Dinar
+de	#,##0.00 ¤¤¤	5	TND	5,000 Tunesische Dinar	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000	currency[6,22)=Tunesische Dinar
+de	#,##0.00¤¤¤	1234.56	TND	1.234,560\u{a0}Tunesische Dinar	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,9)=560	currency[10,26)=Tunesische Dinar
+de	#,##0.00¤¤¤	-1234.567	TND	-1.234,567\u{a0}Tunesische Dinar	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,10)=567	currency[11,27)=Tunesische Dinar
+de	#,##0.00¤¤¤	1	TND	1,000\u{a0}Tunesische Dinar	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000	currency[6,22)=Tunesische Dinar
+de	#,##0.00¤¤¤	2	TND	2,000\u{a0}Tunesische Dinar	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000	currency[6,22)=Tunesische Dinar
+de	#,##0.00¤¤¤	5	TND	5,000\u{a0}Tunesische Dinar	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000	currency[6,22)=Tunesische Dinar
+de	¤ #,##0.00	1234.56	TND	TND 1.234,560	currency[0,3)=TND	group[5,6)=.	integer[4,9)=1.234	decimal[9,10)=,	fraction[10,13)=560
+de	¤ #,##0.00	-1234.567	TND	-TND 1.234,567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=.	integer[5,10)=1.234	decimal[10,11)=,	fraction[11,14)=567
+de	¤ #,##0.00	1	TND	TND 1,000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=,	fraction[6,9)=000
+de	¤ #,##0.00	2	TND	TND 2,000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=,	fraction[6,9)=000
+de	¤ #,##0.00	5	TND	TND 5,000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=,	fraction[6,9)=000
+de	¤#,##0	1234.56	TND	TND\u{a0}1.234,560	currency[0,3)=TND	group[5,6)=.	integer[4,9)=1.234	decimal[9,10)=,	fraction[10,13)=560
+de	¤#,##0	-1234.567	TND	-TND\u{a0}1.234,567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=.	integer[5,10)=1.234	decimal[10,11)=,	fraction[11,14)=567
+de	¤#,##0	1	TND	TND\u{a0}1,000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=,	fraction[6,9)=000
+de	¤#,##0	2	TND	TND\u{a0}2,000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=,	fraction[6,9)=000
+de	¤#,##0	5	TND	TND\u{a0}5,000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=,	fraction[6,9)=000
+de	#,##0.### ¤	1234.56	TND	1.234,560 TND	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,9)=560	currency[10,13)=TND
+de	#,##0.### ¤	-1234.567	TND	-1.234,567 TND	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,10)=567	currency[11,14)=TND
+de	#,##0.### ¤	1	TND	1,000 TND	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+de	#,##0.### ¤	2	TND	2,000 TND	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+de	#,##0.### ¤	5	TND	5,000 TND	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+de	¤#,##0.00;(¤#,##0.00)	1234.56	TND	TND\u{a0}1.234,560	currency[0,3)=TND	group[5,6)=.	integer[4,9)=1.234	decimal[9,10)=,	fraction[10,13)=560
+de	¤#,##0.00;(¤#,##0.00)	-1234.567	TND	(TND\u{a0}1.234,567)	currency[1,4)=TND	group[6,7)=.	integer[5,10)=1.234	decimal[10,11)=,	fraction[11,14)=567
+de	¤#,##0.00;(¤#,##0.00)	1	TND	TND\u{a0}1,000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=,	fraction[6,9)=000
+de	¤#,##0.00;(¤#,##0.00)	2	TND	TND\u{a0}2,000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=,	fraction[6,9)=000
+de	¤#,##0.00;(¤#,##0.00)	5	TND	TND\u{a0}5,000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=,	fraction[6,9)=000
+de	#,##0.000	1234.56	TND	1.234,560	group[1,2)=.	integer[0,5)=1.234	decimal[5,6)=,	fraction[6,9)=560
+de	#,##0.000	-1234.567	TND	-1.234,567	sign[0,1)=-	group[2,3)=.	integer[1,6)=1.234	decimal[6,7)=,	fraction[7,10)=567
+de	#,##0.000	1	TND	1,000	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000
+de	#,##0.000	2	TND	2,000	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000
+de	#,##0.000	5	TND	5,000	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000
+fr	¤#,##0.00	1234.56	USD	$US\u{a0}1\u{202f}234,56	currency[0,3)=$US	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,12)=56
+fr	¤#,##0.00	-1234.567	USD	-$US\u{a0}1\u{202f}234,57	sign[0,1)=-	currency[1,4)=$US	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,13)=57
+fr	¤#,##0.00	1	USD	$US\u{a0}1,00	currency[0,3)=$US	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+fr	¤#,##0.00	2	USD	$US\u{a0}2,00	currency[0,3)=$US	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+fr	¤#,##0.00	5	USD	$US\u{a0}5,00	currency[0,3)=$US	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+fr	#,##0.00¤	1234.56	USD	1\u{202f}234,56$US	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,8)=56	currency[8,11)=$US
+fr	#,##0.00¤	-1234.567	USD	-1\u{202f}234,57$US	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=57	currency[9,12)=$US
+fr	#,##0.00¤	1	USD	1,00$US	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[4,7)=$US
+fr	#,##0.00¤	2	USD	2,00$US	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[4,7)=$US
+fr	#,##0.00¤	5	USD	5,00$US	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[4,7)=$US
+fr	¤¤#,##0.00	1234.56	USD	USD\u{a0}1\u{202f}234,56	currency[0,3)=USD	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,12)=56
+fr	¤¤#,##0.00	-1234.567	USD	-USD\u{a0}1\u{202f}234,57	sign[0,1)=-	currency[1,4)=USD	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,13)=57
+fr	¤¤#,##0.00	1	USD	USD\u{a0}1,00	currency[0,3)=USD	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+fr	¤¤#,##0.00	2	USD	USD\u{a0}2,00	currency[0,3)=USD	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+fr	¤¤#,##0.00	5	USD	USD\u{a0}5,00	currency[0,3)=USD	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+fr	#,##0.00¤¤	1234.56	USD	1\u{202f}234,56\u{a0}USD	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=USD
+fr	#,##0.00¤¤	-1234.567	USD	-1\u{202f}234,57\u{a0}USD	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=USD
+fr	#,##0.00¤¤	1	USD	1,00\u{a0}USD	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=USD
+fr	#,##0.00¤¤	2	USD	2,00\u{a0}USD	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=USD
+fr	#,##0.00¤¤	5	USD	5,00\u{a0}USD	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=USD
+fr	#,##0.00 ¤¤¤	1234.56	USD	1\u{202f}234,56 dollars des \u{c9}tats-Unis	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,31)=dollars des \u{c9}tats-Unis
+fr	#,##0.00 ¤¤¤	-1234.567	USD	-1\u{202f}234,57 dollars des \u{c9}tats-Unis	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,32)=dollars des \u{c9}tats-Unis
+fr	#,##0.00 ¤¤¤	1	USD	1,00 dollar des \u{c9}tats-Unis	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,26)=dollar des \u{c9}tats-Unis
+fr	#,##0.00 ¤¤¤	2	USD	2,00 dollars des \u{c9}tats-Unis	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,27)=dollars des \u{c9}tats-Unis
+fr	#,##0.00 ¤¤¤	5	USD	5,00 dollars des \u{c9}tats-Unis	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,27)=dollars des \u{c9}tats-Unis
+fr	#,##0.00¤¤¤	1234.56	USD	1\u{202f}234,56\u{a0}dollars des \u{c9}tats-Unis	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,31)=dollars des \u{c9}tats-Unis
+fr	#,##0.00¤¤¤	-1234.567	USD	-1\u{202f}234,57\u{a0}dollars des \u{c9}tats-Unis	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,32)=dollars des \u{c9}tats-Unis
+fr	#,##0.00¤¤¤	1	USD	1,00\u{a0}dollar des \u{c9}tats-Unis	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,26)=dollar des \u{c9}tats-Unis
+fr	#,##0.00¤¤¤	2	USD	2,00\u{a0}dollars des \u{c9}tats-Unis	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,27)=dollars des \u{c9}tats-Unis
+fr	#,##0.00¤¤¤	5	USD	5,00\u{a0}dollars des \u{c9}tats-Unis	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,27)=dollars des \u{c9}tats-Unis
+fr	¤ #,##0.00	1234.56	USD	$US 1\u{202f}234,56	currency[0,3)=$US	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,12)=56
+fr	¤ #,##0.00	-1234.567	USD	-$US 1\u{202f}234,57	sign[0,1)=-	currency[1,4)=$US	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,13)=57
+fr	¤ #,##0.00	1	USD	$US 1,00	currency[0,3)=$US	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+fr	¤ #,##0.00	2	USD	$US 2,00	currency[0,3)=$US	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+fr	¤ #,##0.00	5	USD	$US 5,00	currency[0,3)=$US	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+fr	¤#,##0	1234.56	USD	$US\u{a0}1\u{202f}234,56	currency[0,3)=$US	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,12)=56
+fr	¤#,##0	-1234.567	USD	-$US\u{a0}1\u{202f}234,57	sign[0,1)=-	currency[1,4)=$US	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,13)=57
+fr	¤#,##0	1	USD	$US\u{a0}1,00	currency[0,3)=$US	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+fr	¤#,##0	2	USD	$US\u{a0}2,00	currency[0,3)=$US	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+fr	¤#,##0	5	USD	$US\u{a0}5,00	currency[0,3)=$US	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+fr	#,##0.### ¤	1234.56	USD	1\u{202f}234,56 $US	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=$US
+fr	#,##0.### ¤	-1234.567	USD	-1\u{202f}234,57 $US	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=$US
+fr	#,##0.### ¤	1	USD	1,00 $US	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=$US
+fr	#,##0.### ¤	2	USD	2,00 $US	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=$US
+fr	#,##0.### ¤	5	USD	5,00 $US	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=$US
+fr	¤#,##0.00;(¤#,##0.00)	1234.56	USD	$US\u{a0}1\u{202f}234,56	currency[0,3)=$US	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,12)=56
+fr	¤#,##0.00;(¤#,##0.00)	-1234.567	USD	($US\u{a0}1\u{202f}234,57)	currency[1,4)=$US	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,13)=57
+fr	¤#,##0.00;(¤#,##0.00)	1	USD	$US\u{a0}1,00	currency[0,3)=$US	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+fr	¤#,##0.00;(¤#,##0.00)	2	USD	$US\u{a0}2,00	currency[0,3)=$US	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+fr	¤#,##0.00;(¤#,##0.00)	5	USD	$US\u{a0}5,00	currency[0,3)=$US	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+fr	#,##0.000	1234.56	USD	1\u{202f}234,560	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,9)=560
+fr	#,##0.000	-1234.567	USD	-1\u{202f}234,567	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,10)=567
+fr	#,##0.000	1	USD	1,000	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000
+fr	#,##0.000	2	USD	2,000	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000
+fr	#,##0.000	5	USD	5,000	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000
+fr	¤#,##0.00	1234.56	CHF	CHF\u{a0}1\u{202f}234,56	currency[0,3)=CHF	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,12)=56
+fr	¤#,##0.00	-1234.567	CHF	-CHF\u{a0}1\u{202f}234,57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,13)=57
+fr	¤#,##0.00	1	CHF	CHF\u{a0}1,00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+fr	¤#,##0.00	2	CHF	CHF\u{a0}2,00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+fr	¤#,##0.00	5	CHF	CHF\u{a0}5,00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+fr	#,##0.00¤	1234.56	CHF	1\u{202f}234,56\u{a0}CHF	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=CHF
+fr	#,##0.00¤	-1234.567	CHF	-1\u{202f}234,57\u{a0}CHF	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=CHF
+fr	#,##0.00¤	1	CHF	1,00\u{a0}CHF	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+fr	#,##0.00¤	2	CHF	2,00\u{a0}CHF	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+fr	#,##0.00¤	5	CHF	5,00\u{a0}CHF	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+fr	¤¤#,##0.00	1234.56	CHF	CHF\u{a0}1\u{202f}234,56	currency[0,3)=CHF	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,12)=56
+fr	¤¤#,##0.00	-1234.567	CHF	-CHF\u{a0}1\u{202f}234,57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,13)=57
+fr	¤¤#,##0.00	1	CHF	CHF\u{a0}1,00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+fr	¤¤#,##0.00	2	CHF	CHF\u{a0}2,00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+fr	¤¤#,##0.00	5	CHF	CHF\u{a0}5,00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+fr	#,##0.00¤¤	1234.56	CHF	1\u{202f}234,56\u{a0}CHF	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=CHF
+fr	#,##0.00¤¤	-1234.567	CHF	-1\u{202f}234,57\u{a0}CHF	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=CHF
+fr	#,##0.00¤¤	1	CHF	1,00\u{a0}CHF	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+fr	#,##0.00¤¤	2	CHF	2,00\u{a0}CHF	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+fr	#,##0.00¤¤	5	CHF	5,00\u{a0}CHF	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+fr	#,##0.00 ¤¤¤	1234.56	CHF	1\u{202f}234,56 francs suisses	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,23)=francs suisses
+fr	#,##0.00 ¤¤¤	-1234.567	CHF	-1\u{202f}234,57 francs suisses	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,24)=francs suisses
+fr	#,##0.00 ¤¤¤	1	CHF	1,00 franc suisse	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,17)=franc suisse
+fr	#,##0.00 ¤¤¤	2	CHF	2,00 francs suisses	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,19)=francs suisses
+fr	#,##0.00 ¤¤¤	5	CHF	5,00 francs suisses	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,19)=francs suisses
+fr	#,##0.00¤¤¤	1234.56	CHF	1\u{202f}234,56\u{a0}francs suisses	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,23)=francs suisses
+fr	#,##0.00¤¤¤	-1234.567	CHF	-1\u{202f}234,57\u{a0}francs suisses	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,24)=francs suisses
+fr	#,##0.00¤¤¤	1	CHF	1,00\u{a0}franc suisse	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,17)=franc suisse
+fr	#,##0.00¤¤¤	2	CHF	2,00\u{a0}francs suisses	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,19)=francs suisses
+fr	#,##0.00¤¤¤	5	CHF	5,00\u{a0}francs suisses	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,19)=francs suisses
+fr	¤ #,##0.00	1234.56	CHF	CHF 1\u{202f}234,56	currency[0,3)=CHF	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,12)=56
+fr	¤ #,##0.00	-1234.567	CHF	-CHF 1\u{202f}234,57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,13)=57
+fr	¤ #,##0.00	1	CHF	CHF 1,00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+fr	¤ #,##0.00	2	CHF	CHF 2,00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+fr	¤ #,##0.00	5	CHF	CHF 5,00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+fr	¤#,##0	1234.56	CHF	CHF\u{a0}1\u{202f}234,56	currency[0,3)=CHF	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,12)=56
+fr	¤#,##0	-1234.567	CHF	-CHF\u{a0}1\u{202f}234,57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,13)=57
+fr	¤#,##0	1	CHF	CHF\u{a0}1,00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+fr	¤#,##0	2	CHF	CHF\u{a0}2,00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+fr	¤#,##0	5	CHF	CHF\u{a0}5,00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+fr	#,##0.### ¤	1234.56	CHF	1\u{202f}234,56 CHF	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=CHF
+fr	#,##0.### ¤	-1234.567	CHF	-1\u{202f}234,57 CHF	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=CHF
+fr	#,##0.### ¤	1	CHF	1,00 CHF	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+fr	#,##0.### ¤	2	CHF	2,00 CHF	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+fr	#,##0.### ¤	5	CHF	5,00 CHF	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+fr	¤#,##0.00;(¤#,##0.00)	1234.56	CHF	CHF\u{a0}1\u{202f}234,56	currency[0,3)=CHF	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,12)=56
+fr	¤#,##0.00;(¤#,##0.00)	-1234.567	CHF	(CHF\u{a0}1\u{202f}234,57)	currency[1,4)=CHF	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,13)=57
+fr	¤#,##0.00;(¤#,##0.00)	1	CHF	CHF\u{a0}1,00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+fr	¤#,##0.00;(¤#,##0.00)	2	CHF	CHF\u{a0}2,00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+fr	¤#,##0.00;(¤#,##0.00)	5	CHF	CHF\u{a0}5,00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+fr	#,##0.000	1234.56	CHF	1\u{202f}234,560	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,9)=560
+fr	#,##0.000	-1234.567	CHF	-1\u{202f}234,567	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,10)=567
+fr	#,##0.000	1	CHF	1,000	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000
+fr	#,##0.000	2	CHF	2,000	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000
+fr	#,##0.000	5	CHF	5,000	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000
+fr	¤#,##0.00	1234.56	EUR	\u{20ac}1\u{202f}234,56	currency[0,1)=\u{20ac}	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=56
+fr	¤#,##0.00	-1234.567	EUR	-\u{20ac}1\u{202f}234,57	sign[0,1)=-	currency[1,2)=\u{20ac}	group[3,4)=\u{202f}	integer[2,7)=1\u{202f}234	decimal[7,8)=,	fraction[8,10)=57
+fr	¤#,##0.00	1	EUR	\u{20ac}1,00	currency[0,1)=\u{20ac}	integer[1,2)=1	decimal[2,3)=,	fraction[3,5)=00
+fr	¤#,##0.00	2	EUR	\u{20ac}2,00	currency[0,1)=\u{20ac}	integer[1,2)=2	decimal[2,3)=,	fraction[3,5)=00
+fr	¤#,##0.00	5	EUR	\u{20ac}5,00	currency[0,1)=\u{20ac}	integer[1,2)=5	decimal[2,3)=,	fraction[3,5)=00
+fr	#,##0.00¤	1234.56	EUR	1\u{202f}234,56\u{20ac}	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,8)=56	currency[8,9)=\u{20ac}
+fr	#,##0.00¤	-1234.567	EUR	-1\u{202f}234,57\u{20ac}	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=57	currency[9,10)=\u{20ac}
+fr	#,##0.00¤	1	EUR	1,00\u{20ac}	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[4,5)=\u{20ac}
+fr	#,##0.00¤	2	EUR	2,00\u{20ac}	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[4,5)=\u{20ac}
+fr	#,##0.00¤	5	EUR	5,00\u{20ac}	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[4,5)=\u{20ac}
+fr	¤¤#,##0.00	1234.56	EUR	EUR\u{a0}1\u{202f}234,56	currency[0,3)=EUR	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,12)=56
+fr	¤¤#,##0.00	-1234.567	EUR	-EUR\u{a0}1\u{202f}234,57	sign[0,1)=-	currency[1,4)=EUR	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,13)=57
+fr	¤¤#,##0.00	1	EUR	EUR\u{a0}1,00	currency[0,3)=EUR	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+fr	¤¤#,##0.00	2	EUR	EUR\u{a0}2,00	currency[0,3)=EUR	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+fr	¤¤#,##0.00	5	EUR	EUR\u{a0}5,00	currency[0,3)=EUR	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+fr	#,##0.00¤¤	1234.56	EUR	1\u{202f}234,56\u{a0}EUR	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=EUR
+fr	#,##0.00¤¤	-1234.567	EUR	-1\u{202f}234,57\u{a0}EUR	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=EUR
+fr	#,##0.00¤¤	1	EUR	1,00\u{a0}EUR	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=EUR
+fr	#,##0.00¤¤	2	EUR	2,00\u{a0}EUR	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=EUR
+fr	#,##0.00¤¤	5	EUR	5,00\u{a0}EUR	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=EUR
+fr	#,##0.00 ¤¤¤	1234.56	EUR	1\u{202f}234,56 euros	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,14)=euros
+fr	#,##0.00 ¤¤¤	-1234.567	EUR	-1\u{202f}234,57 euros	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,15)=euros
+fr	#,##0.00 ¤¤¤	1	EUR	1,00 euro	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,9)=euro
+fr	#,##0.00 ¤¤¤	2	EUR	2,00 euros	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,10)=euros
+fr	#,##0.00 ¤¤¤	5	EUR	5,00 euros	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,10)=euros
+fr	#,##0.00¤¤¤	1234.56	EUR	1\u{202f}234,56\u{a0}euros	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,14)=euros
+fr	#,##0.00¤¤¤	-1234.567	EUR	-1\u{202f}234,57\u{a0}euros	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,15)=euros
+fr	#,##0.00¤¤¤	1	EUR	1,00\u{a0}euro	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,9)=euro
+fr	#,##0.00¤¤¤	2	EUR	2,00\u{a0}euros	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,10)=euros
+fr	#,##0.00¤¤¤	5	EUR	5,00\u{a0}euros	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,10)=euros
+fr	¤ #,##0.00	1234.56	EUR	\u{20ac} 1\u{202f}234,56	currency[0,1)=\u{20ac}	group[3,4)=\u{202f}	integer[2,7)=1\u{202f}234	decimal[7,8)=,	fraction[8,10)=56
+fr	¤ #,##0.00	-1234.567	EUR	-\u{20ac} 1\u{202f}234,57	sign[0,1)=-	currency[1,2)=\u{20ac}	group[4,5)=\u{202f}	integer[3,8)=1\u{202f}234	decimal[8,9)=,	fraction[9,11)=57
+fr	¤ #,##0.00	1	EUR	\u{20ac} 1,00	currency[0,1)=\u{20ac}	integer[2,3)=1	decimal[3,4)=,	fraction[4,6)=00
+fr	¤ #,##0.00	2	EUR	\u{20ac} 2,00	currency[0,1)=\u{20ac}	integer[2,3)=2	decimal[3,4)=,	fraction[4,6)=00
+fr	¤ #,##0.00	5	EUR	\u{20ac} 5,00	currency[0,1)=\u{20ac}	integer[2,3)=5	decimal[3,4)=,	fraction[4,6)=00
+fr	¤#,##0	1234.56	EUR	\u{20ac}1\u{202f}234,56	currency[0,1)=\u{20ac}	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=56
+fr	¤#,##0	-1234.567	EUR	-\u{20ac}1\u{202f}234,57	sign[0,1)=-	currency[1,2)=\u{20ac}	group[3,4)=\u{202f}	integer[2,7)=1\u{202f}234	decimal[7,8)=,	fraction[8,10)=57
+fr	¤#,##0	1	EUR	\u{20ac}1,00	currency[0,1)=\u{20ac}	integer[1,2)=1	decimal[2,3)=,	fraction[3,5)=00
+fr	¤#,##0	2	EUR	\u{20ac}2,00	currency[0,1)=\u{20ac}	integer[1,2)=2	decimal[2,3)=,	fraction[3,5)=00
+fr	¤#,##0	5	EUR	\u{20ac}5,00	currency[0,1)=\u{20ac}	integer[1,2)=5	decimal[2,3)=,	fraction[3,5)=00
+fr	#,##0.### ¤	1234.56	EUR	1\u{202f}234,56 \u{20ac}	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,10)=\u{20ac}
+fr	#,##0.### ¤	-1234.567	EUR	-1\u{202f}234,57 \u{20ac}	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,11)=\u{20ac}
+fr	#,##0.### ¤	1	EUR	1,00 \u{20ac}	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,6)=\u{20ac}
+fr	#,##0.### ¤	2	EUR	2,00 \u{20ac}	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,6)=\u{20ac}
+fr	#,##0.### ¤	5	EUR	5,00 \u{20ac}	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,6)=\u{20ac}
+fr	¤#,##0.00;(¤#,##0.00)	1234.56	EUR	\u{20ac}1\u{202f}234,56	currency[0,1)=\u{20ac}	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,9)=56
+fr	¤#,##0.00;(¤#,##0.00)	-1234.567	EUR	(\u{20ac}1\u{202f}234,57)	currency[1,2)=\u{20ac}	group[3,4)=\u{202f}	integer[2,7)=1\u{202f}234	decimal[7,8)=,	fraction[8,10)=57
+fr	¤#,##0.00;(¤#,##0.00)	1	EUR	\u{20ac}1,00	currency[0,1)=\u{20ac}	integer[1,2)=1	decimal[2,3)=,	fraction[3,5)=00
+fr	¤#,##0.00;(¤#,##0.00)	2	EUR	\u{20ac}2,00	currency[0,1)=\u{20ac}	integer[1,2)=2	decimal[2,3)=,	fraction[3,5)=00
+fr	¤#,##0.00;(¤#,##0.00)	5	EUR	\u{20ac}5,00	currency[0,1)=\u{20ac}	integer[1,2)=5	decimal[2,3)=,	fraction[3,5)=00
+fr	#,##0.000	1234.56	EUR	1\u{202f}234,560	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,9)=560
+fr	#,##0.000	-1234.567	EUR	-1\u{202f}234,567	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,10)=567
+fr	#,##0.000	1	EUR	1,000	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000
+fr	#,##0.000	2	EUR	2,000	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000
+fr	#,##0.000	5	EUR	5,000	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000
+fr	¤#,##0.00	1234.56	JPY	JPY\u{a0}1\u{202f}235	currency[0,3)=JPY	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}235
+fr	¤#,##0.00	-1234.567	JPY	-JPY\u{a0}1\u{202f}235	sign[0,1)=-	currency[1,4)=JPY	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}235
+fr	¤#,##0.00	1	JPY	JPY\u{a0}1	currency[0,3)=JPY	integer[4,5)=1
+fr	¤#,##0.00	2	JPY	JPY\u{a0}2	currency[0,3)=JPY	integer[4,5)=2
+fr	¤#,##0.00	5	JPY	JPY\u{a0}5	currency[0,3)=JPY	integer[4,5)=5
+fr	#,##0.00¤	1234.56	JPY	1\u{202f}235\u{a0}JPY	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}235	currency[6,9)=JPY
+fr	#,##0.00¤	-1234.567	JPY	-1\u{202f}235\u{a0}JPY	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}235	currency[7,10)=JPY
+fr	#,##0.00¤	1	JPY	1\u{a0}JPY	integer[0,1)=1	currency[2,5)=JPY
+fr	#,##0.00¤	2	JPY	2\u{a0}JPY	integer[0,1)=2	currency[2,5)=JPY
+fr	#,##0.00¤	5	JPY	5\u{a0}JPY	integer[0,1)=5	currency[2,5)=JPY
+fr	¤¤#,##0.00	1234.56	JPY	JPY\u{a0}1\u{202f}235	currency[0,3)=JPY	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}235
+fr	¤¤#,##0.00	-1234.567	JPY	-JPY\u{a0}1\u{202f}235	sign[0,1)=-	currency[1,4)=JPY	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}235
+fr	¤¤#,##0.00	1	JPY	JPY\u{a0}1	currency[0,3)=JPY	integer[4,5)=1
+fr	¤¤#,##0.00	2	JPY	JPY\u{a0}2	currency[0,3)=JPY	integer[4,5)=2
+fr	¤¤#,##0.00	5	JPY	JPY\u{a0}5	currency[0,3)=JPY	integer[4,5)=5
+fr	#,##0.00¤¤	1234.56	JPY	1\u{202f}235\u{a0}JPY	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}235	currency[6,9)=JPY
+fr	#,##0.00¤¤	-1234.567	JPY	-1\u{202f}235\u{a0}JPY	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}235	currency[7,10)=JPY
+fr	#,##0.00¤¤	1	JPY	1\u{a0}JPY	integer[0,1)=1	currency[2,5)=JPY
+fr	#,##0.00¤¤	2	JPY	2\u{a0}JPY	integer[0,1)=2	currency[2,5)=JPY
+fr	#,##0.00¤¤	5	JPY	5\u{a0}JPY	integer[0,1)=5	currency[2,5)=JPY
+fr	#,##0.00 ¤¤¤	1234.56	JPY	1\u{202f}235 yens japonais	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}235	currency[6,19)=yens japonais
+fr	#,##0.00 ¤¤¤	-1234.567	JPY	-1\u{202f}235 yens japonais	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}235	currency[7,20)=yens japonais
+fr	#,##0.00 ¤¤¤	1	JPY	1 yen japonais	integer[0,1)=1	currency[2,14)=yen japonais
+fr	#,##0.00 ¤¤¤	2	JPY	2 yens japonais	integer[0,1)=2	currency[2,15)=yens japonais
+fr	#,##0.00 ¤¤¤	5	JPY	5 yens japonais	integer[0,1)=5	currency[2,15)=yens japonais
+fr	#,##0.00¤¤¤	1234.56	JPY	1\u{202f}235\u{a0}yens japonais	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}235	currency[6,19)=yens japonais
+fr	#,##0.00¤¤¤	-1234.567	JPY	-1\u{202f}235\u{a0}yens japonais	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}235	currency[7,20)=yens japonais
+fr	#,##0.00¤¤¤	1	JPY	1\u{a0}yen japonais	integer[0,1)=1	currency[2,14)=yen japonais
+fr	#,##0.00¤¤¤	2	JPY	2\u{a0}yens japonais	integer[0,1)=2	currency[2,15)=yens japonais
+fr	#,##0.00¤¤¤	5	JPY	5\u{a0}yens japonais	integer[0,1)=5	currency[2,15)=yens japonais
+fr	¤ #,##0.00	1234.56	JPY	JPY 1\u{202f}235	currency[0,3)=JPY	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}235
+fr	¤ #,##0.00	-1234.567	JPY	-JPY 1\u{202f}235	sign[0,1)=-	currency[1,4)=JPY	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}235
+fr	¤ #,##0.00	1	JPY	JPY 1	currency[0,3)=JPY	integer[4,5)=1
+fr	¤ #,##0.00	2	JPY	JPY 2	currency[0,3)=JPY	integer[4,5)=2
+fr	¤ #,##0.00	5	JPY	JPY 5	currency[0,3)=JPY	integer[4,5)=5
+fr	¤#,##0	1234.56	JPY	JPY\u{a0}1\u{202f}235	currency[0,3)=JPY	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}235
+fr	¤#,##0	-1234.567	JPY	-JPY\u{a0}1\u{202f}235	sign[0,1)=-	currency[1,4)=JPY	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}235
+fr	¤#,##0	1	JPY	JPY\u{a0}1	currency[0,3)=JPY	integer[4,5)=1
+fr	¤#,##0	2	JPY	JPY\u{a0}2	currency[0,3)=JPY	integer[4,5)=2
+fr	¤#,##0	5	JPY	JPY\u{a0}5	currency[0,3)=JPY	integer[4,5)=5
+fr	#,##0.### ¤	1234.56	JPY	1\u{202f}235 JPY	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}235	currency[6,9)=JPY
+fr	#,##0.### ¤	-1234.567	JPY	-1\u{202f}235 JPY	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}235	currency[7,10)=JPY
+fr	#,##0.### ¤	1	JPY	1 JPY	integer[0,1)=1	currency[2,5)=JPY
+fr	#,##0.### ¤	2	JPY	2 JPY	integer[0,1)=2	currency[2,5)=JPY
+fr	#,##0.### ¤	5	JPY	5 JPY	integer[0,1)=5	currency[2,5)=JPY
+fr	¤#,##0.00;(¤#,##0.00)	1234.56	JPY	JPY\u{a0}1\u{202f}235	currency[0,3)=JPY	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}235
+fr	¤#,##0.00;(¤#,##0.00)	-1234.567	JPY	(JPY\u{a0}1\u{202f}235)	currency[1,4)=JPY	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}235
+fr	¤#,##0.00;(¤#,##0.00)	1	JPY	JPY\u{a0}1	currency[0,3)=JPY	integer[4,5)=1
+fr	¤#,##0.00;(¤#,##0.00)	2	JPY	JPY\u{a0}2	currency[0,3)=JPY	integer[4,5)=2
+fr	¤#,##0.00;(¤#,##0.00)	5	JPY	JPY\u{a0}5	currency[0,3)=JPY	integer[4,5)=5
+fr	#,##0.000	1234.56	JPY	1\u{202f}234,560	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,9)=560
+fr	#,##0.000	-1234.567	JPY	-1\u{202f}234,567	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,10)=567
+fr	#,##0.000	1	JPY	1,000	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000
+fr	#,##0.000	2	JPY	2,000	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000
+fr	#,##0.000	5	JPY	5,000	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000
+fr	¤#,##0.00	1234.56	TND	TND\u{a0}1\u{202f}234,560	currency[0,3)=TND	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,13)=560
+fr	¤#,##0.00	-1234.567	TND	-TND\u{a0}1\u{202f}234,567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,14)=567
+fr	¤#,##0.00	1	TND	TND\u{a0}1,000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=,	fraction[6,9)=000
+fr	¤#,##0.00	2	TND	TND\u{a0}2,000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=,	fraction[6,9)=000
+fr	¤#,##0.00	5	TND	TND\u{a0}5,000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=,	fraction[6,9)=000
+fr	#,##0.00¤	1234.56	TND	1\u{202f}234,560\u{a0}TND	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,9)=560	currency[10,13)=TND
+fr	#,##0.00¤	-1234.567	TND	-1\u{202f}234,567\u{a0}TND	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,10)=567	currency[11,14)=TND
+fr	#,##0.00¤	1	TND	1,000\u{a0}TND	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+fr	#,##0.00¤	2	TND	2,000\u{a0}TND	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+fr	#,##0.00¤	5	TND	5,000\u{a0}TND	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+fr	¤¤#,##0.00	1234.56	TND	TND\u{a0}1\u{202f}234,560	currency[0,3)=TND	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,13)=560
+fr	¤¤#,##0.00	-1234.567	TND	-TND\u{a0}1\u{202f}234,567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,14)=567
+fr	¤¤#,##0.00	1	TND	TND\u{a0}1,000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=,	fraction[6,9)=000
+fr	¤¤#,##0.00	2	TND	TND\u{a0}2,000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=,	fraction[6,9)=000
+fr	¤¤#,##0.00	5	TND	TND\u{a0}5,000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=,	fraction[6,9)=000
+fr	#,##0.00¤¤	1234.56	TND	1\u{202f}234,560\u{a0}TND	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,9)=560	currency[10,13)=TND
+fr	#,##0.00¤¤	-1234.567	TND	-1\u{202f}234,567\u{a0}TND	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,10)=567	currency[11,14)=TND
+fr	#,##0.00¤¤	1	TND	1,000\u{a0}TND	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+fr	#,##0.00¤¤	2	TND	2,000\u{a0}TND	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+fr	#,##0.00¤¤	5	TND	5,000\u{a0}TND	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+fr	#,##0.00 ¤¤¤	1234.56	TND	1\u{202f}234,560 dinars tunisiens	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,9)=560	currency[10,26)=dinars tunisiens
+fr	#,##0.00 ¤¤¤	-1234.567	TND	-1\u{202f}234,567 dinars tunisiens	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,10)=567	currency[11,27)=dinars tunisiens
+fr	#,##0.00 ¤¤¤	1	TND	1,000 dinar tunisien	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000	currency[6,20)=dinar tunisien
+fr	#,##0.00 ¤¤¤	2	TND	2,000 dinars tunisiens	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000	currency[6,22)=dinars tunisiens
+fr	#,##0.00 ¤¤¤	5	TND	5,000 dinars tunisiens	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000	currency[6,22)=dinars tunisiens
+fr	#,##0.00¤¤¤	1234.56	TND	1\u{202f}234,560\u{a0}dinars tunisiens	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,9)=560	currency[10,26)=dinars tunisiens
+fr	#,##0.00¤¤¤	-1234.567	TND	-1\u{202f}234,567\u{a0}dinars tunisiens	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,10)=567	currency[11,27)=dinars tunisiens
+fr	#,##0.00¤¤¤	1	TND	1,000\u{a0}dinar tunisien	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000	currency[6,20)=dinar tunisien
+fr	#,##0.00¤¤¤	2	TND	2,000\u{a0}dinars tunisiens	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000	currency[6,22)=dinars tunisiens
+fr	#,##0.00¤¤¤	5	TND	5,000\u{a0}dinars tunisiens	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000	currency[6,22)=dinars tunisiens
+fr	¤ #,##0.00	1234.56	TND	TND 1\u{202f}234,560	currency[0,3)=TND	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,13)=560
+fr	¤ #,##0.00	-1234.567	TND	-TND 1\u{202f}234,567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,14)=567
+fr	¤ #,##0.00	1	TND	TND 1,000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=,	fraction[6,9)=000
+fr	¤ #,##0.00	2	TND	TND 2,000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=,	fraction[6,9)=000
+fr	¤ #,##0.00	5	TND	TND 5,000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=,	fraction[6,9)=000
+fr	¤#,##0	1234.56	TND	TND\u{a0}1\u{202f}234,560	currency[0,3)=TND	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,13)=560
+fr	¤#,##0	-1234.567	TND	-TND\u{a0}1\u{202f}234,567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,14)=567
+fr	¤#,##0	1	TND	TND\u{a0}1,000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=,	fraction[6,9)=000
+fr	¤#,##0	2	TND	TND\u{a0}2,000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=,	fraction[6,9)=000
+fr	¤#,##0	5	TND	TND\u{a0}5,000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=,	fraction[6,9)=000
+fr	#,##0.### ¤	1234.56	TND	1\u{202f}234,560 TND	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,9)=560	currency[10,13)=TND
+fr	#,##0.### ¤	-1234.567	TND	-1\u{202f}234,567 TND	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,10)=567	currency[11,14)=TND
+fr	#,##0.### ¤	1	TND	1,000 TND	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+fr	#,##0.### ¤	2	TND	2,000 TND	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+fr	#,##0.### ¤	5	TND	5,000 TND	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+fr	¤#,##0.00;(¤#,##0.00)	1234.56	TND	TND\u{a0}1\u{202f}234,560	currency[0,3)=TND	group[5,6)=\u{202f}	integer[4,9)=1\u{202f}234	decimal[9,10)=,	fraction[10,13)=560
+fr	¤#,##0.00;(¤#,##0.00)	-1234.567	TND	(TND\u{a0}1\u{202f}234,567)	currency[1,4)=TND	group[6,7)=\u{202f}	integer[5,10)=1\u{202f}234	decimal[10,11)=,	fraction[11,14)=567
+fr	¤#,##0.00;(¤#,##0.00)	1	TND	TND\u{a0}1,000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=,	fraction[6,9)=000
+fr	¤#,##0.00;(¤#,##0.00)	2	TND	TND\u{a0}2,000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=,	fraction[6,9)=000
+fr	¤#,##0.00;(¤#,##0.00)	5	TND	TND\u{a0}5,000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=,	fraction[6,9)=000
+fr	#,##0.000	1234.56	TND	1\u{202f}234,560	group[1,2)=\u{202f}	integer[0,5)=1\u{202f}234	decimal[5,6)=,	fraction[6,9)=560
+fr	#,##0.000	-1234.567	TND	-1\u{202f}234,567	sign[0,1)=-	group[2,3)=\u{202f}	integer[1,6)=1\u{202f}234	decimal[6,7)=,	fraction[7,10)=567
+fr	#,##0.000	1	TND	1,000	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000
+fr	#,##0.000	2	TND	2,000	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000
+fr	#,##0.000	5	TND	5,000	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000
+ja	¤#,##0.00	1234.56	USD	$1,234.56	currency[0,1)=$	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=56
+ja	¤#,##0.00	-1234.567	USD	-$1,234.57	sign[0,1)=-	currency[1,2)=$	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=57
+ja	¤#,##0.00	1	USD	$1.00	currency[0,1)=$	integer[1,2)=1	decimal[2,3)=.	fraction[3,5)=00
+ja	¤#,##0.00	2	USD	$2.00	currency[0,1)=$	integer[1,2)=2	decimal[2,3)=.	fraction[3,5)=00
+ja	¤#,##0.00	5	USD	$5.00	currency[0,1)=$	integer[1,2)=5	decimal[2,3)=.	fraction[3,5)=00
+ja	#,##0.00¤	1234.56	USD	1,234.56$	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[8,9)=$
+ja	#,##0.00¤	-1234.567	USD	-1,234.57$	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[9,10)=$
+ja	#,##0.00¤	1	USD	1.00$	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[4,5)=$
+ja	#,##0.00¤	2	USD	2.00$	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[4,5)=$
+ja	#,##0.00¤	5	USD	5.00$	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[4,5)=$
+ja	¤¤#,##0.00	1234.56	USD	USD\u{a0}1,234.56	currency[0,3)=USD	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,12)=56
+ja	¤¤#,##0.00	-1234.567	USD	-USD\u{a0}1,234.57	sign[0,1)=-	currency[1,4)=USD	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,13)=57
+ja	¤¤#,##0.00	1	USD	USD\u{a0}1.00	currency[0,3)=USD	integer[4,5)=1	decimal[5,6)=.	fraction[6,8)=00
+ja	¤¤#,##0.00	2	USD	USD\u{a0}2.00	currency[0,3)=USD	integer[4,5)=2	decimal[5,6)=.	fraction[6,8)=00
+ja	¤¤#,##0.00	5	USD	USD\u{a0}5.00	currency[0,3)=USD	integer[4,5)=5	decimal[5,6)=.	fraction[6,8)=00
+ja	#,##0.00¤¤	1234.56	USD	1,234.56\u{a0}USD	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,12)=USD
+ja	#,##0.00¤¤	-1234.567	USD	-1,234.57\u{a0}USD	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,13)=USD
+ja	#,##0.00¤¤	1	USD	1.00\u{a0}USD	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=USD
+ja	#,##0.00¤¤	2	USD	2.00\u{a0}USD	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=USD
+ja	#,##0.00¤¤	5	USD	5.00\u{a0}USD	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=USD
+ja	#,##0.00 ¤¤¤	1234.56	USD	1,234.56 \u{7c73}\u{30c9}\u{30eb}	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,12)=\u{7c73}\u{30c9}\u{30eb}
+ja	#,##0.00 ¤¤¤	-1234.567	USD	-1,234.57 \u{7c73}\u{30c9}\u{30eb}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,13)=\u{7c73}\u{30c9}\u{30eb}
+ja	#,##0.00 ¤¤¤	1	USD	1.00 \u{7c73}\u{30c9}\u{30eb}	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=\u{7c73}\u{30c9}\u{30eb}
+ja	#,##0.00 ¤¤¤	2	USD	2.00 \u{7c73}\u{30c9}\u{30eb}	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=\u{7c73}\u{30c9}\u{30eb}
+ja	#,##0.00 ¤¤¤	5	USD	5.00 \u{7c73}\u{30c9}\u{30eb}	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=\u{7c73}\u{30c9}\u{30eb}
+ja	#,##0.00¤¤¤	1234.56	USD	1,234.56\u{a0}\u{7c73}\u{30c9}\u{30eb}	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,12)=\u{7c73}\u{30c9}\u{30eb}
+ja	#,##0.00¤¤¤	-1234.567	USD	-1,234.57\u{a0}\u{7c73}\u{30c9}\u{30eb}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,13)=\u{7c73}\u{30c9}\u{30eb}
+ja	#,##0.00¤¤¤	1	USD	1.00\u{a0}\u{7c73}\u{30c9}\u{30eb}	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=\u{7c73}\u{30c9}\u{30eb}
+ja	#,##0.00¤¤¤	2	USD	2.00\u{a0}\u{7c73}\u{30c9}\u{30eb}	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=\u{7c73}\u{30c9}\u{30eb}
+ja	#,##0.00¤¤¤	5	USD	5.00\u{a0}\u{7c73}\u{30c9}\u{30eb}	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=\u{7c73}\u{30c9}\u{30eb}
+ja	¤ #,##0.00	1234.56	USD	$ 1,234.56	currency[0,1)=$	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=56
+ja	¤ #,##0.00	-1234.567	USD	-$ 1,234.57	sign[0,1)=-	currency[1,2)=$	group[4,5)=,	integer[3,8)=1,234	decimal[8,9)=.	fraction[9,11)=57
+ja	¤ #,##0.00	1	USD	$ 1.00	currency[0,1)=$	integer[2,3)=1	decimal[3,4)=.	fraction[4,6)=00
+ja	¤ #,##0.00	2	USD	$ 2.00	currency[0,1)=$	integer[2,3)=2	decimal[3,4)=.	fraction[4,6)=00
+ja	¤ #,##0.00	5	USD	$ 5.00	currency[0,1)=$	integer[2,3)=5	decimal[3,4)=.	fraction[4,6)=00
+ja	¤#,##0	1234.56	USD	$1,234.56	currency[0,1)=$	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=56
+ja	¤#,##0	-1234.567	USD	-$1,234.57	sign[0,1)=-	currency[1,2)=$	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=57
+ja	¤#,##0	1	USD	$1.00	currency[0,1)=$	integer[1,2)=1	decimal[2,3)=.	fraction[3,5)=00
+ja	¤#,##0	2	USD	$2.00	currency[0,1)=$	integer[1,2)=2	decimal[2,3)=.	fraction[3,5)=00
+ja	¤#,##0	5	USD	$5.00	currency[0,1)=$	integer[1,2)=5	decimal[2,3)=.	fraction[3,5)=00
+ja	#,##0.### ¤	1234.56	USD	1,234.56 $	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,10)=$
+ja	#,##0.### ¤	-1234.567	USD	-1,234.57 $	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,11)=$
+ja	#,##0.### ¤	1	USD	1.00 $	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,6)=$
+ja	#,##0.### ¤	2	USD	2.00 $	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,6)=$
+ja	#,##0.### ¤	5	USD	5.00 $	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,6)=$
+ja	¤#,##0.00;(¤#,##0.00)	1234.56	USD	$1,234.56	currency[0,1)=$	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=56
+ja	¤#,##0.00;(¤#,##0.00)	-1234.567	USD	($1,234.57)	currency[1,2)=$	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=57
+ja	¤#,##0.00;(¤#,##0.00)	1	USD	$1.00	currency[0,1)=$	integer[1,2)=1	decimal[2,3)=.	fraction[3,5)=00
+ja	¤#,##0.00;(¤#,##0.00)	2	USD	$2.00	currency[0,1)=$	integer[1,2)=2	decimal[2,3)=.	fraction[3,5)=00
+ja	¤#,##0.00;(¤#,##0.00)	5	USD	$5.00	currency[0,1)=$	integer[1,2)=5	decimal[2,3)=.	fraction[3,5)=00
+ja	#,##0.000	1234.56	USD	1,234.560	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560
+ja	#,##0.000	-1234.567	USD	-1,234.567	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567
+ja	#,##0.000	1	USD	1.000	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000
+ja	#,##0.000	2	USD	2.000	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000
+ja	#,##0.000	5	USD	5.000	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000
+ja	¤#,##0.00	1234.56	CHF	CHF\u{a0}1,234.56	currency[0,3)=CHF	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,12)=56
+ja	¤#,##0.00	-1234.567	CHF	-CHF\u{a0}1,234.57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,13)=57
+ja	¤#,##0.00	1	CHF	CHF\u{a0}1.00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=.	fraction[6,8)=00
+ja	¤#,##0.00	2	CHF	CHF\u{a0}2.00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=.	fraction[6,8)=00
+ja	¤#,##0.00	5	CHF	CHF\u{a0}5.00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=.	fraction[6,8)=00
+ja	#,##0.00¤	1234.56	CHF	1,234.56\u{a0}CHF	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,12)=CHF
+ja	#,##0.00¤	-1234.567	CHF	-1,234.57\u{a0}CHF	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,13)=CHF
+ja	#,##0.00¤	1	CHF	1.00\u{a0}CHF	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+ja	#,##0.00¤	2	CHF	2.00\u{a0}CHF	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+ja	#,##0.00¤	5	CHF	5.00\u{a0}CHF	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+ja	¤¤#,##0.00	1234.56	CHF	CHF\u{a0}1,234.56	currency[0,3)=CHF	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,12)=56
+ja	¤¤#,##0.00	-1234.567	CHF	-CHF\u{a0}1,234.57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,13)=57
+ja	¤¤#,##0.00	1	CHF	CHF\u{a0}1.00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=.	fraction[6,8)=00
+ja	¤¤#,##0.00	2	CHF	CHF\u{a0}2.00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=.	fraction[6,8)=00
+ja	¤¤#,##0.00	5	CHF	CHF\u{a0}5.00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=.	fraction[6,8)=00
+ja	#,##0.00¤¤	1234.56	CHF	1,234.56\u{a0}CHF	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,12)=CHF
+ja	#,##0.00¤¤	-1234.567	CHF	-1,234.57\u{a0}CHF	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,13)=CHF
+ja	#,##0.00¤¤	1	CHF	1.00\u{a0}CHF	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+ja	#,##0.00¤¤	2	CHF	2.00\u{a0}CHF	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+ja	#,##0.00¤¤	5	CHF	5.00\u{a0}CHF	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+ja	#,##0.00 ¤¤¤	1234.56	CHF	1,234.56 \u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,16)=\u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}
+ja	#,##0.00 ¤¤¤	-1234.567	CHF	-1,234.57 \u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,17)=\u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}
+ja	#,##0.00 ¤¤¤	1	CHF	1.00 \u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,12)=\u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}
+ja	#,##0.00 ¤¤¤	2	CHF	2.00 \u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,12)=\u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}
+ja	#,##0.00 ¤¤¤	5	CHF	5.00 \u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,12)=\u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}
+ja	#,##0.00¤¤¤	1234.56	CHF	1,234.56\u{a0}\u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,16)=\u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}
+ja	#,##0.00¤¤¤	-1234.567	CHF	-1,234.57\u{a0}\u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,17)=\u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}
+ja	#,##0.00¤¤¤	1	CHF	1.00\u{a0}\u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,12)=\u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}
+ja	#,##0.00¤¤¤	2	CHF	2.00\u{a0}\u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,12)=\u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}
+ja	#,##0.00¤¤¤	5	CHF	5.00\u{a0}\u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,12)=\u{30b9}\u{30a4}\u{30b9} \u{30d5}\u{30e9}\u{30f3}
+ja	¤ #,##0.00	1234.56	CHF	CHF 1,234.56	currency[0,3)=CHF	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,12)=56
+ja	¤ #,##0.00	-1234.567	CHF	-CHF 1,234.57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,13)=57
+ja	¤ #,##0.00	1	CHF	CHF 1.00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=.	fraction[6,8)=00
+ja	¤ #,##0.00	2	CHF	CHF 2.00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=.	fraction[6,8)=00
+ja	¤ #,##0.00	5	CHF	CHF 5.00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=.	fraction[6,8)=00
+ja	¤#,##0	1234.56	CHF	CHF\u{a0}1,234.56	currency[0,3)=CHF	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,12)=56
+ja	¤#,##0	-1234.567	CHF	-CHF\u{a0}1,234.57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,13)=57
+ja	¤#,##0	1	CHF	CHF\u{a0}1.00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=.	fraction[6,8)=00
+ja	¤#,##0	2	CHF	CHF\u{a0}2.00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=.	fraction[6,8)=00
+ja	¤#,##0	5	CHF	CHF\u{a0}5.00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=.	fraction[6,8)=00
+ja	#,##0.### ¤	1234.56	CHF	1,234.56 CHF	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,12)=CHF
+ja	#,##0.### ¤	-1234.567	CHF	-1,234.57 CHF	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,13)=CHF
+ja	#,##0.### ¤	1	CHF	1.00 CHF	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+ja	#,##0.### ¤	2	CHF	2.00 CHF	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+ja	#,##0.### ¤	5	CHF	5.00 CHF	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=CHF
+ja	¤#,##0.00;(¤#,##0.00)	1234.56	CHF	CHF\u{a0}1,234.56	currency[0,3)=CHF	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,12)=56
+ja	¤#,##0.00;(¤#,##0.00)	-1234.567	CHF	(CHF\u{a0}1,234.57)	currency[1,4)=CHF	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,13)=57
+ja	¤#,##0.00;(¤#,##0.00)	1	CHF	CHF\u{a0}1.00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=.	fraction[6,8)=00
+ja	¤#,##0.00;(¤#,##0.00)	2	CHF	CHF\u{a0}2.00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=.	fraction[6,8)=00
+ja	¤#,##0.00;(¤#,##0.00)	5	CHF	CHF\u{a0}5.00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=.	fraction[6,8)=00
+ja	#,##0.000	1234.56	CHF	1,234.560	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560
+ja	#,##0.000	-1234.567	CHF	-1,234.567	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567
+ja	#,##0.000	1	CHF	1.000	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000
+ja	#,##0.000	2	CHF	2.000	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000
+ja	#,##0.000	5	CHF	5.000	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000
+ja	¤#,##0.00	1234.56	EUR	\u{20ac}1,234.56	currency[0,1)=\u{20ac}	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=56
+ja	¤#,##0.00	-1234.567	EUR	-\u{20ac}1,234.57	sign[0,1)=-	currency[1,2)=\u{20ac}	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=57
+ja	¤#,##0.00	1	EUR	\u{20ac}1.00	currency[0,1)=\u{20ac}	integer[1,2)=1	decimal[2,3)=.	fraction[3,5)=00
+ja	¤#,##0.00	2	EUR	\u{20ac}2.00	currency[0,1)=\u{20ac}	integer[1,2)=2	decimal[2,3)=.	fraction[3,5)=00
+ja	¤#,##0.00	5	EUR	\u{20ac}5.00	currency[0,1)=\u{20ac}	integer[1,2)=5	decimal[2,3)=.	fraction[3,5)=00
+ja	#,##0.00¤	1234.56	EUR	1,234.56\u{20ac}	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[8,9)=\u{20ac}
+ja	#,##0.00¤	-1234.567	EUR	-1,234.57\u{20ac}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[9,10)=\u{20ac}
+ja	#,##0.00¤	1	EUR	1.00\u{20ac}	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[4,5)=\u{20ac}
+ja	#,##0.00¤	2	EUR	2.00\u{20ac}	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[4,5)=\u{20ac}
+ja	#,##0.00¤	5	EUR	5.00\u{20ac}	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[4,5)=\u{20ac}
+ja	¤¤#,##0.00	1234.56	EUR	EUR\u{a0}1,234.56	currency[0,3)=EUR	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,12)=56
+ja	¤¤#,##0.00	-1234.567	EUR	-EUR\u{a0}1,234.57	sign[0,1)=-	currency[1,4)=EUR	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,13)=57
+ja	¤¤#,##0.00	1	EUR	EUR\u{a0}1.00	currency[0,3)=EUR	integer[4,5)=1	decimal[5,6)=.	fraction[6,8)=00
+ja	¤¤#,##0.00	2	EUR	EUR\u{a0}2.00	currency[0,3)=EUR	integer[4,5)=2	decimal[5,6)=.	fraction[6,8)=00
+ja	¤¤#,##0.00	5	EUR	EUR\u{a0}5.00	currency[0,3)=EUR	integer[4,5)=5	decimal[5,6)=.	fraction[6,8)=00
+ja	#,##0.00¤¤	1234.56	EUR	1,234.56\u{a0}EUR	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,12)=EUR
+ja	#,##0.00¤¤	-1234.567	EUR	-1,234.57\u{a0}EUR	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,13)=EUR
+ja	#,##0.00¤¤	1	EUR	1.00\u{a0}EUR	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=EUR
+ja	#,##0.00¤¤	2	EUR	2.00\u{a0}EUR	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=EUR
+ja	#,##0.00¤¤	5	EUR	5.00\u{a0}EUR	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=EUR
+ja	#,##0.00 ¤¤¤	1234.56	EUR	1,234.56 \u{30e6}\u{30fc}\u{30ed}	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,12)=\u{30e6}\u{30fc}\u{30ed}
+ja	#,##0.00 ¤¤¤	-1234.567	EUR	-1,234.57 \u{30e6}\u{30fc}\u{30ed}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,13)=\u{30e6}\u{30fc}\u{30ed}
+ja	#,##0.00 ¤¤¤	1	EUR	1.00 \u{30e6}\u{30fc}\u{30ed}	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=\u{30e6}\u{30fc}\u{30ed}
+ja	#,##0.00 ¤¤¤	2	EUR	2.00 \u{30e6}\u{30fc}\u{30ed}	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=\u{30e6}\u{30fc}\u{30ed}
+ja	#,##0.00 ¤¤¤	5	EUR	5.00 \u{30e6}\u{30fc}\u{30ed}	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=\u{30e6}\u{30fc}\u{30ed}
+ja	#,##0.00¤¤¤	1234.56	EUR	1,234.56\u{a0}\u{30e6}\u{30fc}\u{30ed}	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,12)=\u{30e6}\u{30fc}\u{30ed}
+ja	#,##0.00¤¤¤	-1234.567	EUR	-1,234.57\u{a0}\u{30e6}\u{30fc}\u{30ed}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,13)=\u{30e6}\u{30fc}\u{30ed}
+ja	#,##0.00¤¤¤	1	EUR	1.00\u{a0}\u{30e6}\u{30fc}\u{30ed}	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=\u{30e6}\u{30fc}\u{30ed}
+ja	#,##0.00¤¤¤	2	EUR	2.00\u{a0}\u{30e6}\u{30fc}\u{30ed}	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=\u{30e6}\u{30fc}\u{30ed}
+ja	#,##0.00¤¤¤	5	EUR	5.00\u{a0}\u{30e6}\u{30fc}\u{30ed}	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,8)=\u{30e6}\u{30fc}\u{30ed}
+ja	¤ #,##0.00	1234.56	EUR	\u{20ac} 1,234.56	currency[0,1)=\u{20ac}	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=56
+ja	¤ #,##0.00	-1234.567	EUR	-\u{20ac} 1,234.57	sign[0,1)=-	currency[1,2)=\u{20ac}	group[4,5)=,	integer[3,8)=1,234	decimal[8,9)=.	fraction[9,11)=57
+ja	¤ #,##0.00	1	EUR	\u{20ac} 1.00	currency[0,1)=\u{20ac}	integer[2,3)=1	decimal[3,4)=.	fraction[4,6)=00
+ja	¤ #,##0.00	2	EUR	\u{20ac} 2.00	currency[0,1)=\u{20ac}	integer[2,3)=2	decimal[3,4)=.	fraction[4,6)=00
+ja	¤ #,##0.00	5	EUR	\u{20ac} 5.00	currency[0,1)=\u{20ac}	integer[2,3)=5	decimal[3,4)=.	fraction[4,6)=00
+ja	¤#,##0	1234.56	EUR	\u{20ac}1,234.56	currency[0,1)=\u{20ac}	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=56
+ja	¤#,##0	-1234.567	EUR	-\u{20ac}1,234.57	sign[0,1)=-	currency[1,2)=\u{20ac}	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=57
+ja	¤#,##0	1	EUR	\u{20ac}1.00	currency[0,1)=\u{20ac}	integer[1,2)=1	decimal[2,3)=.	fraction[3,5)=00
+ja	¤#,##0	2	EUR	\u{20ac}2.00	currency[0,1)=\u{20ac}	integer[1,2)=2	decimal[2,3)=.	fraction[3,5)=00
+ja	¤#,##0	5	EUR	\u{20ac}5.00	currency[0,1)=\u{20ac}	integer[1,2)=5	decimal[2,3)=.	fraction[3,5)=00
+ja	#,##0.### ¤	1234.56	EUR	1,234.56 \u{20ac}	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,8)=56	currency[9,10)=\u{20ac}
+ja	#,##0.### ¤	-1234.567	EUR	-1,234.57 \u{20ac}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=57	currency[10,11)=\u{20ac}
+ja	#,##0.### ¤	1	EUR	1.00 \u{20ac}	integer[0,1)=1	decimal[1,2)=.	fraction[2,4)=00	currency[5,6)=\u{20ac}
+ja	#,##0.### ¤	2	EUR	2.00 \u{20ac}	integer[0,1)=2	decimal[1,2)=.	fraction[2,4)=00	currency[5,6)=\u{20ac}
+ja	#,##0.### ¤	5	EUR	5.00 \u{20ac}	integer[0,1)=5	decimal[1,2)=.	fraction[2,4)=00	currency[5,6)=\u{20ac}
+ja	¤#,##0.00;(¤#,##0.00)	1234.56	EUR	\u{20ac}1,234.56	currency[0,1)=\u{20ac}	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,9)=56
+ja	¤#,##0.00;(¤#,##0.00)	-1234.567	EUR	(\u{20ac}1,234.57)	currency[1,2)=\u{20ac}	group[3,4)=,	integer[2,7)=1,234	decimal[7,8)=.	fraction[8,10)=57
+ja	¤#,##0.00;(¤#,##0.00)	1	EUR	\u{20ac}1.00	currency[0,1)=\u{20ac}	integer[1,2)=1	decimal[2,3)=.	fraction[3,5)=00
+ja	¤#,##0.00;(¤#,##0.00)	2	EUR	\u{20ac}2.00	currency[0,1)=\u{20ac}	integer[1,2)=2	decimal[2,3)=.	fraction[3,5)=00
+ja	¤#,##0.00;(¤#,##0.00)	5	EUR	\u{20ac}5.00	currency[0,1)=\u{20ac}	integer[1,2)=5	decimal[2,3)=.	fraction[3,5)=00
+ja	#,##0.000	1234.56	EUR	1,234.560	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560
+ja	#,##0.000	-1234.567	EUR	-1,234.567	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567
+ja	#,##0.000	1	EUR	1.000	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000
+ja	#,##0.000	2	EUR	2.000	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000
+ja	#,##0.000	5	EUR	5.000	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000
+ja	¤#,##0.00	1234.56	JPY	\u{ffe5}1,235	currency[0,1)=\u{ffe5}	group[2,3)=,	integer[1,6)=1,235
+ja	¤#,##0.00	-1234.567	JPY	-\u{ffe5}1,235	sign[0,1)=-	currency[1,2)=\u{ffe5}	group[3,4)=,	integer[2,7)=1,235
+ja	¤#,##0.00	1	JPY	\u{ffe5}1	currency[0,1)=\u{ffe5}	integer[1,2)=1
+ja	¤#,##0.00	2	JPY	\u{ffe5}2	currency[0,1)=\u{ffe5}	integer[1,2)=2
+ja	¤#,##0.00	5	JPY	\u{ffe5}5	currency[0,1)=\u{ffe5}	integer[1,2)=5
+ja	#,##0.00¤	1234.56	JPY	1,235\u{ffe5}	group[1,2)=,	integer[0,5)=1,235	currency[5,6)=\u{ffe5}
+ja	#,##0.00¤	-1234.567	JPY	-1,235\u{ffe5}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,235	currency[6,7)=\u{ffe5}
+ja	#,##0.00¤	1	JPY	1\u{ffe5}	integer[0,1)=1	currency[1,2)=\u{ffe5}
+ja	#,##0.00¤	2	JPY	2\u{ffe5}	integer[0,1)=2	currency[1,2)=\u{ffe5}
+ja	#,##0.00¤	5	JPY	5\u{ffe5}	integer[0,1)=5	currency[1,2)=\u{ffe5}
+ja	¤¤#,##0.00	1234.56	JPY	JPY\u{a0}1,235	currency[0,3)=JPY	group[5,6)=,	integer[4,9)=1,235
+ja	¤¤#,##0.00	-1234.567	JPY	-JPY\u{a0}1,235	sign[0,1)=-	currency[1,4)=JPY	group[6,7)=,	integer[5,10)=1,235
+ja	¤¤#,##0.00	1	JPY	JPY\u{a0}1	currency[0,3)=JPY	integer[4,5)=1
+ja	¤¤#,##0.00	2	JPY	JPY\u{a0}2	currency[0,3)=JPY	integer[4,5)=2
+ja	¤¤#,##0.00	5	JPY	JPY\u{a0}5	currency[0,3)=JPY	integer[4,5)=5
+ja	#,##0.00¤¤	1234.56	JPY	1,235\u{a0}JPY	group[1,2)=,	integer[0,5)=1,235	currency[6,9)=JPY
+ja	#,##0.00¤¤	-1234.567	JPY	-1,235\u{a0}JPY	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,235	currency[7,10)=JPY
+ja	#,##0.00¤¤	1	JPY	1\u{a0}JPY	integer[0,1)=1	currency[2,5)=JPY
+ja	#,##0.00¤¤	2	JPY	2\u{a0}JPY	integer[0,1)=2	currency[2,5)=JPY
+ja	#,##0.00¤¤	5	JPY	5\u{a0}JPY	integer[0,1)=5	currency[2,5)=JPY
+ja	#,##0.00 ¤¤¤	1234.56	JPY	1,235 \u{5186}	group[1,2)=,	integer[0,5)=1,235	currency[6,7)=\u{5186}
+ja	#,##0.00 ¤¤¤	-1234.567	JPY	-1,235 \u{5186}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,235	currency[7,8)=\u{5186}
+ja	#,##0.00 ¤¤¤	1	JPY	1 \u{5186}	integer[0,1)=1	currency[2,3)=\u{5186}
+ja	#,##0.00 ¤¤¤	2	JPY	2 \u{5186}	integer[0,1)=2	currency[2,3)=\u{5186}
+ja	#,##0.00 ¤¤¤	5	JPY	5 \u{5186}	integer[0,1)=5	currency[2,3)=\u{5186}
+ja	#,##0.00¤¤¤	1234.56	JPY	1,235\u{a0}\u{5186}	group[1,2)=,	integer[0,5)=1,235	currency[6,7)=\u{5186}
+ja	#,##0.00¤¤¤	-1234.567	JPY	-1,235\u{a0}\u{5186}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,235	currency[7,8)=\u{5186}
+ja	#,##0.00¤¤¤	1	JPY	1\u{a0}\u{5186}	integer[0,1)=1	currency[2,3)=\u{5186}
+ja	#,##0.00¤¤¤	2	JPY	2\u{a0}\u{5186}	integer[0,1)=2	currency[2,3)=\u{5186}
+ja	#,##0.00¤¤¤	5	JPY	5\u{a0}\u{5186}	integer[0,1)=5	currency[2,3)=\u{5186}
+ja	¤ #,##0.00	1234.56	JPY	\u{ffe5} 1,235	currency[0,1)=\u{ffe5}	group[3,4)=,	integer[2,7)=1,235
+ja	¤ #,##0.00	-1234.567	JPY	-\u{ffe5} 1,235	sign[0,1)=-	currency[1,2)=\u{ffe5}	group[4,5)=,	integer[3,8)=1,235
+ja	¤ #,##0.00	1	JPY	\u{ffe5} 1	currency[0,1)=\u{ffe5}	integer[2,3)=1
+ja	¤ #,##0.00	2	JPY	\u{ffe5} 2	currency[0,1)=\u{ffe5}	integer[2,3)=2
+ja	¤ #,##0.00	5	JPY	\u{ffe5} 5	currency[0,1)=\u{ffe5}	integer[2,3)=5
+ja	¤#,##0	1234.56	JPY	\u{ffe5}1,235	currency[0,1)=\u{ffe5}	group[2,3)=,	integer[1,6)=1,235
+ja	¤#,##0	-1234.567	JPY	-\u{ffe5}1,235	sign[0,1)=-	currency[1,2)=\u{ffe5}	group[3,4)=,	integer[2,7)=1,235
+ja	¤#,##0	1	JPY	\u{ffe5}1	currency[0,1)=\u{ffe5}	integer[1,2)=1
+ja	¤#,##0	2	JPY	\u{ffe5}2	currency[0,1)=\u{ffe5}	integer[1,2)=2
+ja	¤#,##0	5	JPY	\u{ffe5}5	currency[0,1)=\u{ffe5}	integer[1,2)=5
+ja	#,##0.### ¤	1234.56	JPY	1,235 \u{ffe5}	group[1,2)=,	integer[0,5)=1,235	currency[6,7)=\u{ffe5}
+ja	#,##0.### ¤	-1234.567	JPY	-1,235 \u{ffe5}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,235	currency[7,8)=\u{ffe5}
+ja	#,##0.### ¤	1	JPY	1 \u{ffe5}	integer[0,1)=1	currency[2,3)=\u{ffe5}
+ja	#,##0.### ¤	2	JPY	2 \u{ffe5}	integer[0,1)=2	currency[2,3)=\u{ffe5}
+ja	#,##0.### ¤	5	JPY	5 \u{ffe5}	integer[0,1)=5	currency[2,3)=\u{ffe5}
+ja	¤#,##0.00;(¤#,##0.00)	1234.56	JPY	\u{ffe5}1,235	currency[0,1)=\u{ffe5}	group[2,3)=,	integer[1,6)=1,235
+ja	¤#,##0.00;(¤#,##0.00)	-1234.567	JPY	(\u{ffe5}1,235)	currency[1,2)=\u{ffe5}	group[3,4)=,	integer[2,7)=1,235
+ja	¤#,##0.00;(¤#,##0.00)	1	JPY	\u{ffe5}1	currency[0,1)=\u{ffe5}	integer[1,2)=1
+ja	¤#,##0.00;(¤#,##0.00)	2	JPY	\u{ffe5}2	currency[0,1)=\u{ffe5}	integer[1,2)=2
+ja	¤#,##0.00;(¤#,##0.00)	5	JPY	\u{ffe5}5	currency[0,1)=\u{ffe5}	integer[1,2)=5
+ja	#,##0.000	1234.56	JPY	1,234.560	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560
+ja	#,##0.000	-1234.567	JPY	-1,234.567	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567
+ja	#,##0.000	1	JPY	1.000	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000
+ja	#,##0.000	2	JPY	2.000	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000
+ja	#,##0.000	5	JPY	5.000	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000
+ja	¤#,##0.00	1234.56	TND	TND\u{a0}1,234.560	currency[0,3)=TND	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,13)=560
+ja	¤#,##0.00	-1234.567	TND	-TND\u{a0}1,234.567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,14)=567
+ja	¤#,##0.00	1	TND	TND\u{a0}1.000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=.	fraction[6,9)=000
+ja	¤#,##0.00	2	TND	TND\u{a0}2.000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=.	fraction[6,9)=000
+ja	¤#,##0.00	5	TND	TND\u{a0}5.000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=.	fraction[6,9)=000
+ja	#,##0.00¤	1234.56	TND	1,234.560\u{a0}TND	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560	currency[10,13)=TND
+ja	#,##0.00¤	-1234.567	TND	-1,234.567\u{a0}TND	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567	currency[11,14)=TND
+ja	#,##0.00¤	1	TND	1.000\u{a0}TND	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+ja	#,##0.00¤	2	TND	2.000\u{a0}TND	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+ja	#,##0.00¤	5	TND	5.000\u{a0}TND	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+ja	¤¤#,##0.00	1234.56	TND	TND\u{a0}1,234.560	currency[0,3)=TND	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,13)=560
+ja	¤¤#,##0.00	-1234.567	TND	-TND\u{a0}1,234.567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,14)=567
+ja	¤¤#,##0.00	1	TND	TND\u{a0}1.000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=.	fraction[6,9)=000
+ja	¤¤#,##0.00	2	TND	TND\u{a0}2.000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=.	fraction[6,9)=000
+ja	¤¤#,##0.00	5	TND	TND\u{a0}5.000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=.	fraction[6,9)=000
+ja	#,##0.00¤¤	1234.56	TND	1,234.560\u{a0}TND	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560	currency[10,13)=TND
+ja	#,##0.00¤¤	-1234.567	TND	-1,234.567\u{a0}TND	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567	currency[11,14)=TND
+ja	#,##0.00¤¤	1	TND	1.000\u{a0}TND	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+ja	#,##0.00¤¤	2	TND	2.000\u{a0}TND	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+ja	#,##0.00¤¤	5	TND	5.000\u{a0}TND	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+ja	#,##0.00 ¤¤¤	1234.56	TND	1,234.560 \u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560	currency[10,21)=\u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}
+ja	#,##0.00 ¤¤¤	-1234.567	TND	-1,234.567 \u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567	currency[11,22)=\u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}
+ja	#,##0.00 ¤¤¤	1	TND	1.000 \u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000	currency[6,17)=\u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}
+ja	#,##0.00 ¤¤¤	2	TND	2.000 \u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000	currency[6,17)=\u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}
+ja	#,##0.00 ¤¤¤	5	TND	5.000 \u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000	currency[6,17)=\u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}
+ja	#,##0.00¤¤¤	1234.56	TND	1,234.560\u{a0}\u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560	currency[10,21)=\u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}
+ja	#,##0.00¤¤¤	-1234.567	TND	-1,234.567\u{a0}\u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567	currency[11,22)=\u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}
+ja	#,##0.00¤¤¤	1	TND	1.000\u{a0}\u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000	currency[6,17)=\u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}
+ja	#,##0.00¤¤¤	2	TND	2.000\u{a0}\u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000	currency[6,17)=\u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}
+ja	#,##0.00¤¤¤	5	TND	5.000\u{a0}\u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000	currency[6,17)=\u{30c1}\u{30e5}\u{30cb}\u{30b8}\u{30a2} \u{30c7}\u{30a3}\u{30ca}\u{30fc}\u{30eb}
+ja	¤ #,##0.00	1234.56	TND	TND 1,234.560	currency[0,3)=TND	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,13)=560
+ja	¤ #,##0.00	-1234.567	TND	-TND 1,234.567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,14)=567
+ja	¤ #,##0.00	1	TND	TND 1.000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=.	fraction[6,9)=000
+ja	¤ #,##0.00	2	TND	TND 2.000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=.	fraction[6,9)=000
+ja	¤ #,##0.00	5	TND	TND 5.000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=.	fraction[6,9)=000
+ja	¤#,##0	1234.56	TND	TND\u{a0}1,234.560	currency[0,3)=TND	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,13)=560
+ja	¤#,##0	-1234.567	TND	-TND\u{a0}1,234.567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,14)=567
+ja	¤#,##0	1	TND	TND\u{a0}1.000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=.	fraction[6,9)=000
+ja	¤#,##0	2	TND	TND\u{a0}2.000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=.	fraction[6,9)=000
+ja	¤#,##0	5	TND	TND\u{a0}5.000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=.	fraction[6,9)=000
+ja	#,##0.### ¤	1234.56	TND	1,234.560 TND	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560	currency[10,13)=TND
+ja	#,##0.### ¤	-1234.567	TND	-1,234.567 TND	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567	currency[11,14)=TND
+ja	#,##0.### ¤	1	TND	1.000 TND	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+ja	#,##0.### ¤	2	TND	2.000 TND	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+ja	#,##0.### ¤	5	TND	5.000 TND	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000	currency[6,9)=TND
+ja	¤#,##0.00;(¤#,##0.00)	1234.56	TND	TND\u{a0}1,234.560	currency[0,3)=TND	group[5,6)=,	integer[4,9)=1,234	decimal[9,10)=.	fraction[10,13)=560
+ja	¤#,##0.00;(¤#,##0.00)	-1234.567	TND	(TND\u{a0}1,234.567)	currency[1,4)=TND	group[6,7)=,	integer[5,10)=1,234	decimal[10,11)=.	fraction[11,14)=567
+ja	¤#,##0.00;(¤#,##0.00)	1	TND	TND\u{a0}1.000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=.	fraction[6,9)=000
+ja	¤#,##0.00;(¤#,##0.00)	2	TND	TND\u{a0}2.000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=.	fraction[6,9)=000
+ja	¤#,##0.00;(¤#,##0.00)	5	TND	TND\u{a0}5.000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=.	fraction[6,9)=000
+ja	#,##0.000	1234.56	TND	1,234.560	group[1,2)=,	integer[0,5)=1,234	decimal[5,6)=.	fraction[6,9)=560
+ja	#,##0.000	-1234.567	TND	-1,234.567	sign[0,1)=-	group[2,3)=,	integer[1,6)=1,234	decimal[6,7)=.	fraction[7,10)=567
+ja	#,##0.000	1	TND	1.000	integer[0,1)=1	decimal[1,2)=.	fraction[2,5)=000
+ja	#,##0.000	2	TND	2.000	integer[0,1)=2	decimal[1,2)=.	fraction[2,5)=000
+ja	#,##0.000	5	TND	5.000	integer[0,1)=5	decimal[1,2)=.	fraction[2,5)=000
+ru	¤#,##0.00	1234.56	USD	$1\u{a0}234,56	currency[0,1)=$	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=56
+ru	¤#,##0.00	-1234.567	USD	-$1\u{a0}234,57	sign[0,1)=-	currency[1,2)=$	group[3,4)=\u{a0}	integer[2,7)=1\u{a0}234	decimal[7,8)=,	fraction[8,10)=57
+ru	¤#,##0.00	1	USD	$1,00	currency[0,1)=$	integer[1,2)=1	decimal[2,3)=,	fraction[3,5)=00
+ru	¤#,##0.00	2	USD	$2,00	currency[0,1)=$	integer[1,2)=2	decimal[2,3)=,	fraction[3,5)=00
+ru	¤#,##0.00	5	USD	$5,00	currency[0,1)=$	integer[1,2)=5	decimal[2,3)=,	fraction[3,5)=00
+ru	#,##0.00¤	1234.56	USD	1\u{a0}234,56$	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,8)=56	currency[8,9)=$
+ru	#,##0.00¤	-1234.567	USD	-1\u{a0}234,57$	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=57	currency[9,10)=$
+ru	#,##0.00¤	1	USD	1,00$	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[4,5)=$
+ru	#,##0.00¤	2	USD	2,00$	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[4,5)=$
+ru	#,##0.00¤	5	USD	5,00$	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[4,5)=$
+ru	¤¤#,##0.00	1234.56	USD	USD\u{a0}1\u{a0}234,56	currency[0,3)=USD	group[5,6)=\u{a0}	integer[4,9)=1\u{a0}234	decimal[9,10)=,	fraction[10,12)=56
+ru	¤¤#,##0.00	-1234.567	USD	-USD\u{a0}1\u{a0}234,57	sign[0,1)=-	currency[1,4)=USD	group[6,7)=\u{a0}	integer[5,10)=1\u{a0}234	decimal[10,11)=,	fraction[11,13)=57
+ru	¤¤#,##0.00	1	USD	USD\u{a0}1,00	currency[0,3)=USD	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+ru	¤¤#,##0.00	2	USD	USD\u{a0}2,00	currency[0,3)=USD	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+ru	¤¤#,##0.00	5	USD	USD\u{a0}5,00	currency[0,3)=USD	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+ru	#,##0.00¤¤	1234.56	USD	1\u{a0}234,56\u{a0}USD	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=USD
+ru	#,##0.00¤¤	-1234.567	USD	-1\u{a0}234,57\u{a0}USD	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=USD
+ru	#,##0.00¤¤	1	USD	1,00\u{a0}USD	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=USD
+ru	#,##0.00¤¤	2	USD	2,00\u{a0}USD	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=USD
+ru	#,##0.00¤¤	5	USD	5,00\u{a0}USD	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=USD
+ru	#,##0.00 ¤¤¤	1234.56	USD	1\u{a0}234,56 \u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,20)=\u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}
+ru	#,##0.00 ¤¤¤	-1234.567	USD	-1\u{a0}234,57 \u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,21)=\u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}
+ru	#,##0.00 ¤¤¤	1	USD	1,00 \u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,16)=\u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}
+ru	#,##0.00 ¤¤¤	2	USD	2,00 \u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,16)=\u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}
+ru	#,##0.00 ¤¤¤	5	USD	5,00 \u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,16)=\u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}
+ru	#,##0.00¤¤¤	1234.56	USD	1\u{a0}234,56\u{a0}\u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,20)=\u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}
+ru	#,##0.00¤¤¤	-1234.567	USD	-1\u{a0}234,57\u{a0}\u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,21)=\u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}
+ru	#,##0.00¤¤¤	1	USD	1,00\u{a0}\u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,16)=\u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}
+ru	#,##0.00¤¤¤	2	USD	2,00\u{a0}\u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,16)=\u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}
+ru	#,##0.00¤¤¤	5	USD	5,00\u{a0}\u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,16)=\u{434}\u{43e}\u{43b}\u{43b}\u{430}\u{440}\u{430} \u{421}\u{428}\u{410}
+ru	¤ #,##0.00	1234.56	USD	$ 1\u{a0}234,56	currency[0,1)=$	group[3,4)=\u{a0}	integer[2,7)=1\u{a0}234	decimal[7,8)=,	fraction[8,10)=56
+ru	¤ #,##0.00	-1234.567	USD	-$ 1\u{a0}234,57	sign[0,1)=-	currency[1,2)=$	group[4,5)=\u{a0}	integer[3,8)=1\u{a0}234	decimal[8,9)=,	fraction[9,11)=57
+ru	¤ #,##0.00	1	USD	$ 1,00	currency[0,1)=$	integer[2,3)=1	decimal[3,4)=,	fraction[4,6)=00
+ru	¤ #,##0.00	2	USD	$ 2,00	currency[0,1)=$	integer[2,3)=2	decimal[3,4)=,	fraction[4,6)=00
+ru	¤ #,##0.00	5	USD	$ 5,00	currency[0,1)=$	integer[2,3)=5	decimal[3,4)=,	fraction[4,6)=00
+ru	¤#,##0	1234.56	USD	$1\u{a0}234,56	currency[0,1)=$	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=56
+ru	¤#,##0	-1234.567	USD	-$1\u{a0}234,57	sign[0,1)=-	currency[1,2)=$	group[3,4)=\u{a0}	integer[2,7)=1\u{a0}234	decimal[7,8)=,	fraction[8,10)=57
+ru	¤#,##0	1	USD	$1,00	currency[0,1)=$	integer[1,2)=1	decimal[2,3)=,	fraction[3,5)=00
+ru	¤#,##0	2	USD	$2,00	currency[0,1)=$	integer[1,2)=2	decimal[2,3)=,	fraction[3,5)=00
+ru	¤#,##0	5	USD	$5,00	currency[0,1)=$	integer[1,2)=5	decimal[2,3)=,	fraction[3,5)=00
+ru	#,##0.### ¤	1234.56	USD	1\u{a0}234,56 $	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,10)=$
+ru	#,##0.### ¤	-1234.567	USD	-1\u{a0}234,57 $	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,11)=$
+ru	#,##0.### ¤	1	USD	1,00 $	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,6)=$
+ru	#,##0.### ¤	2	USD	2,00 $	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,6)=$
+ru	#,##0.### ¤	5	USD	5,00 $	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,6)=$
+ru	¤#,##0.00;(¤#,##0.00)	1234.56	USD	$1\u{a0}234,56	currency[0,1)=$	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=56
+ru	¤#,##0.00;(¤#,##0.00)	-1234.567	USD	($1\u{a0}234,57)	currency[1,2)=$	group[3,4)=\u{a0}	integer[2,7)=1\u{a0}234	decimal[7,8)=,	fraction[8,10)=57
+ru	¤#,##0.00;(¤#,##0.00)	1	USD	$1,00	currency[0,1)=$	integer[1,2)=1	decimal[2,3)=,	fraction[3,5)=00
+ru	¤#,##0.00;(¤#,##0.00)	2	USD	$2,00	currency[0,1)=$	integer[1,2)=2	decimal[2,3)=,	fraction[3,5)=00
+ru	¤#,##0.00;(¤#,##0.00)	5	USD	$5,00	currency[0,1)=$	integer[1,2)=5	decimal[2,3)=,	fraction[3,5)=00
+ru	#,##0.000	1234.56	USD	1\u{a0}234,560	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,9)=560
+ru	#,##0.000	-1234.567	USD	-1\u{a0}234,567	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,10)=567
+ru	#,##0.000	1	USD	1,000	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000
+ru	#,##0.000	2	USD	2,000	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000
+ru	#,##0.000	5	USD	5,000	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000
+ru	¤#,##0.00	1234.56	CHF	CHF\u{a0}1\u{a0}234,56	currency[0,3)=CHF	group[5,6)=\u{a0}	integer[4,9)=1\u{a0}234	decimal[9,10)=,	fraction[10,12)=56
+ru	¤#,##0.00	-1234.567	CHF	-CHF\u{a0}1\u{a0}234,57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=\u{a0}	integer[5,10)=1\u{a0}234	decimal[10,11)=,	fraction[11,13)=57
+ru	¤#,##0.00	1	CHF	CHF\u{a0}1,00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+ru	¤#,##0.00	2	CHF	CHF\u{a0}2,00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+ru	¤#,##0.00	5	CHF	CHF\u{a0}5,00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+ru	#,##0.00¤	1234.56	CHF	1\u{a0}234,56\u{a0}CHF	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=CHF
+ru	#,##0.00¤	-1234.567	CHF	-1\u{a0}234,57\u{a0}CHF	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=CHF
+ru	#,##0.00¤	1	CHF	1,00\u{a0}CHF	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+ru	#,##0.00¤	2	CHF	2,00\u{a0}CHF	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+ru	#,##0.00¤	5	CHF	5,00\u{a0}CHF	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+ru	¤¤#,##0.00	1234.56	CHF	CHF\u{a0}1\u{a0}234,56	currency[0,3)=CHF	group[5,6)=\u{a0}	integer[4,9)=1\u{a0}234	decimal[9,10)=,	fraction[10,12)=56
+ru	¤¤#,##0.00	-1234.567	CHF	-CHF\u{a0}1\u{a0}234,57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=\u{a0}	integer[5,10)=1\u{a0}234	decimal[10,11)=,	fraction[11,13)=57
+ru	¤¤#,##0.00	1	CHF	CHF\u{a0}1,00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+ru	¤¤#,##0.00	2	CHF	CHF\u{a0}2,00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+ru	¤¤#,##0.00	5	CHF	CHF\u{a0}5,00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+ru	#,##0.00¤¤	1234.56	CHF	1\u{a0}234,56\u{a0}CHF	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=CHF
+ru	#,##0.00¤¤	-1234.567	CHF	-1\u{a0}234,57\u{a0}CHF	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=CHF
+ru	#,##0.00¤¤	1	CHF	1,00\u{a0}CHF	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+ru	#,##0.00¤¤	2	CHF	2,00\u{a0}CHF	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+ru	#,##0.00¤¤	5	CHF	5,00\u{a0}CHF	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+ru	#,##0.00 ¤¤¤	1234.56	CHF	1\u{a0}234,56 \u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,28)=\u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}
+ru	#,##0.00 ¤¤¤	-1234.567	CHF	-1\u{a0}234,57 \u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,29)=\u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}
+ru	#,##0.00 ¤¤¤	1	CHF	1,00 \u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,24)=\u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}
+ru	#,##0.00 ¤¤¤	2	CHF	2,00 \u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,24)=\u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}
+ru	#,##0.00 ¤¤¤	5	CHF	5,00 \u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,24)=\u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}
+ru	#,##0.00¤¤¤	1234.56	CHF	1\u{a0}234,56\u{a0}\u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,28)=\u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}
+ru	#,##0.00¤¤¤	-1234.567	CHF	-1\u{a0}234,57\u{a0}\u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,29)=\u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}
+ru	#,##0.00¤¤¤	1	CHF	1,00\u{a0}\u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,24)=\u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}
+ru	#,##0.00¤¤¤	2	CHF	2,00\u{a0}\u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,24)=\u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}
+ru	#,##0.00¤¤¤	5	CHF	5,00\u{a0}\u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,24)=\u{448}\u{432}\u{435}\u{439}\u{446}\u{430}\u{440}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{444}\u{440}\u{430}\u{43d}\u{43a}\u{430}
+ru	¤ #,##0.00	1234.56	CHF	CHF 1\u{a0}234,56	currency[0,3)=CHF	group[5,6)=\u{a0}	integer[4,9)=1\u{a0}234	decimal[9,10)=,	fraction[10,12)=56
+ru	¤ #,##0.00	-1234.567	CHF	-CHF 1\u{a0}234,57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=\u{a0}	integer[5,10)=1\u{a0}234	decimal[10,11)=,	fraction[11,13)=57
+ru	¤ #,##0.00	1	CHF	CHF 1,00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+ru	¤ #,##0.00	2	CHF	CHF 2,00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+ru	¤ #,##0.00	5	CHF	CHF 5,00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+ru	¤#,##0	1234.56	CHF	CHF\u{a0}1\u{a0}234,56	currency[0,3)=CHF	group[5,6)=\u{a0}	integer[4,9)=1\u{a0}234	decimal[9,10)=,	fraction[10,12)=56
+ru	¤#,##0	-1234.567	CHF	-CHF\u{a0}1\u{a0}234,57	sign[0,1)=-	currency[1,4)=CHF	group[6,7)=\u{a0}	integer[5,10)=1\u{a0}234	decimal[10,11)=,	fraction[11,13)=57
+ru	¤#,##0	1	CHF	CHF\u{a0}1,00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+ru	¤#,##0	2	CHF	CHF\u{a0}2,00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+ru	¤#,##0	5	CHF	CHF\u{a0}5,00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+ru	#,##0.### ¤	1234.56	CHF	1\u{a0}234,56 CHF	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=CHF
+ru	#,##0.### ¤	-1234.567	CHF	-1\u{a0}234,57 CHF	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=CHF
+ru	#,##0.### ¤	1	CHF	1,00 CHF	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+ru	#,##0.### ¤	2	CHF	2,00 CHF	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+ru	#,##0.### ¤	5	CHF	5,00 CHF	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=CHF
+ru	¤#,##0.00;(¤#,##0.00)	1234.56	CHF	CHF\u{a0}1\u{a0}234,56	currency[0,3)=CHF	group[5,6)=\u{a0}	integer[4,9)=1\u{a0}234	decimal[9,10)=,	fraction[10,12)=56
+ru	¤#,##0.00;(¤#,##0.00)	-1234.567	CHF	(CHF\u{a0}1\u{a0}234,57)	currency[1,4)=CHF	group[6,7)=\u{a0}	integer[5,10)=1\u{a0}234	decimal[10,11)=,	fraction[11,13)=57
+ru	¤#,##0.00;(¤#,##0.00)	1	CHF	CHF\u{a0}1,00	currency[0,3)=CHF	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+ru	¤#,##0.00;(¤#,##0.00)	2	CHF	CHF\u{a0}2,00	currency[0,3)=CHF	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+ru	¤#,##0.00;(¤#,##0.00)	5	CHF	CHF\u{a0}5,00	currency[0,3)=CHF	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+ru	#,##0.000	1234.56	CHF	1\u{a0}234,560	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,9)=560
+ru	#,##0.000	-1234.567	CHF	-1\u{a0}234,567	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,10)=567
+ru	#,##0.000	1	CHF	1,000	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000
+ru	#,##0.000	2	CHF	2,000	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000
+ru	#,##0.000	5	CHF	5,000	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000
+ru	¤#,##0.00	1234.56	EUR	\u{20ac}1\u{a0}234,56	currency[0,1)=\u{20ac}	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=56
+ru	¤#,##0.00	-1234.567	EUR	-\u{20ac}1\u{a0}234,57	sign[0,1)=-	currency[1,2)=\u{20ac}	group[3,4)=\u{a0}	integer[2,7)=1\u{a0}234	decimal[7,8)=,	fraction[8,10)=57
+ru	¤#,##0.00	1	EUR	\u{20ac}1,00	currency[0,1)=\u{20ac}	integer[1,2)=1	decimal[2,3)=,	fraction[3,5)=00
+ru	¤#,##0.00	2	EUR	\u{20ac}2,00	currency[0,1)=\u{20ac}	integer[1,2)=2	decimal[2,3)=,	fraction[3,5)=00
+ru	¤#,##0.00	5	EUR	\u{20ac}5,00	currency[0,1)=\u{20ac}	integer[1,2)=5	decimal[2,3)=,	fraction[3,5)=00
+ru	#,##0.00¤	1234.56	EUR	1\u{a0}234,56\u{20ac}	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,8)=56	currency[8,9)=\u{20ac}
+ru	#,##0.00¤	-1234.567	EUR	-1\u{a0}234,57\u{20ac}	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=57	currency[9,10)=\u{20ac}
+ru	#,##0.00¤	1	EUR	1,00\u{20ac}	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[4,5)=\u{20ac}
+ru	#,##0.00¤	2	EUR	2,00\u{20ac}	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[4,5)=\u{20ac}
+ru	#,##0.00¤	5	EUR	5,00\u{20ac}	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[4,5)=\u{20ac}
+ru	¤¤#,##0.00	1234.56	EUR	EUR\u{a0}1\u{a0}234,56	currency[0,3)=EUR	group[5,6)=\u{a0}	integer[4,9)=1\u{a0}234	decimal[9,10)=,	fraction[10,12)=56
+ru	¤¤#,##0.00	-1234.567	EUR	-EUR\u{a0}1\u{a0}234,57	sign[0,1)=-	currency[1,4)=EUR	group[6,7)=\u{a0}	integer[5,10)=1\u{a0}234	decimal[10,11)=,	fraction[11,13)=57
+ru	¤¤#,##0.00	1	EUR	EUR\u{a0}1,00	currency[0,3)=EUR	integer[4,5)=1	decimal[5,6)=,	fraction[6,8)=00
+ru	¤¤#,##0.00	2	EUR	EUR\u{a0}2,00	currency[0,3)=EUR	integer[4,5)=2	decimal[5,6)=,	fraction[6,8)=00
+ru	¤¤#,##0.00	5	EUR	EUR\u{a0}5,00	currency[0,3)=EUR	integer[4,5)=5	decimal[5,6)=,	fraction[6,8)=00
+ru	#,##0.00¤¤	1234.56	EUR	1\u{a0}234,56\u{a0}EUR	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,12)=EUR
+ru	#,##0.00¤¤	-1234.567	EUR	-1\u{a0}234,57\u{a0}EUR	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,13)=EUR
+ru	#,##0.00¤¤	1	EUR	1,00\u{a0}EUR	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=EUR
+ru	#,##0.00¤¤	2	EUR	2,00\u{a0}EUR	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=EUR
+ru	#,##0.00¤¤	5	EUR	5,00\u{a0}EUR	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,8)=EUR
+ru	#,##0.00 ¤¤¤	1234.56	EUR	1\u{a0}234,56 \u{435}\u{432}\u{440}\u{43e}	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,13)=\u{435}\u{432}\u{440}\u{43e}
+ru	#,##0.00 ¤¤¤	-1234.567	EUR	-1\u{a0}234,57 \u{435}\u{432}\u{440}\u{43e}	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,14)=\u{435}\u{432}\u{440}\u{43e}
+ru	#,##0.00 ¤¤¤	1	EUR	1,00 \u{435}\u{432}\u{440}\u{43e}	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,9)=\u{435}\u{432}\u{440}\u{43e}
+ru	#,##0.00 ¤¤¤	2	EUR	2,00 \u{435}\u{432}\u{440}\u{43e}	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,9)=\u{435}\u{432}\u{440}\u{43e}
+ru	#,##0.00 ¤¤¤	5	EUR	5,00 \u{435}\u{432}\u{440}\u{43e}	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,9)=\u{435}\u{432}\u{440}\u{43e}
+ru	#,##0.00¤¤¤	1234.56	EUR	1\u{a0}234,56\u{a0}\u{435}\u{432}\u{440}\u{43e}	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,13)=\u{435}\u{432}\u{440}\u{43e}
+ru	#,##0.00¤¤¤	-1234.567	EUR	-1\u{a0}234,57\u{a0}\u{435}\u{432}\u{440}\u{43e}	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,14)=\u{435}\u{432}\u{440}\u{43e}
+ru	#,##0.00¤¤¤	1	EUR	1,00\u{a0}\u{435}\u{432}\u{440}\u{43e}	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,9)=\u{435}\u{432}\u{440}\u{43e}
+ru	#,##0.00¤¤¤	2	EUR	2,00\u{a0}\u{435}\u{432}\u{440}\u{43e}	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,9)=\u{435}\u{432}\u{440}\u{43e}
+ru	#,##0.00¤¤¤	5	EUR	5,00\u{a0}\u{435}\u{432}\u{440}\u{43e}	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,9)=\u{435}\u{432}\u{440}\u{43e}
+ru	¤ #,##0.00	1234.56	EUR	\u{20ac} 1\u{a0}234,56	currency[0,1)=\u{20ac}	group[3,4)=\u{a0}	integer[2,7)=1\u{a0}234	decimal[7,8)=,	fraction[8,10)=56
+ru	¤ #,##0.00	-1234.567	EUR	-\u{20ac} 1\u{a0}234,57	sign[0,1)=-	currency[1,2)=\u{20ac}	group[4,5)=\u{a0}	integer[3,8)=1\u{a0}234	decimal[8,9)=,	fraction[9,11)=57
+ru	¤ #,##0.00	1	EUR	\u{20ac} 1,00	currency[0,1)=\u{20ac}	integer[2,3)=1	decimal[3,4)=,	fraction[4,6)=00
+ru	¤ #,##0.00	2	EUR	\u{20ac} 2,00	currency[0,1)=\u{20ac}	integer[2,3)=2	decimal[3,4)=,	fraction[4,6)=00
+ru	¤ #,##0.00	5	EUR	\u{20ac} 5,00	currency[0,1)=\u{20ac}	integer[2,3)=5	decimal[3,4)=,	fraction[4,6)=00
+ru	¤#,##0	1234.56	EUR	\u{20ac}1\u{a0}234,56	currency[0,1)=\u{20ac}	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=56
+ru	¤#,##0	-1234.567	EUR	-\u{20ac}1\u{a0}234,57	sign[0,1)=-	currency[1,2)=\u{20ac}	group[3,4)=\u{a0}	integer[2,7)=1\u{a0}234	decimal[7,8)=,	fraction[8,10)=57
+ru	¤#,##0	1	EUR	\u{20ac}1,00	currency[0,1)=\u{20ac}	integer[1,2)=1	decimal[2,3)=,	fraction[3,5)=00
+ru	¤#,##0	2	EUR	\u{20ac}2,00	currency[0,1)=\u{20ac}	integer[1,2)=2	decimal[2,3)=,	fraction[3,5)=00
+ru	¤#,##0	5	EUR	\u{20ac}5,00	currency[0,1)=\u{20ac}	integer[1,2)=5	decimal[2,3)=,	fraction[3,5)=00
+ru	#,##0.### ¤	1234.56	EUR	1\u{a0}234,56 \u{20ac}	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,8)=56	currency[9,10)=\u{20ac}
+ru	#,##0.### ¤	-1234.567	EUR	-1\u{a0}234,57 \u{20ac}	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=57	currency[10,11)=\u{20ac}
+ru	#,##0.### ¤	1	EUR	1,00 \u{20ac}	integer[0,1)=1	decimal[1,2)=,	fraction[2,4)=00	currency[5,6)=\u{20ac}
+ru	#,##0.### ¤	2	EUR	2,00 \u{20ac}	integer[0,1)=2	decimal[1,2)=,	fraction[2,4)=00	currency[5,6)=\u{20ac}
+ru	#,##0.### ¤	5	EUR	5,00 \u{20ac}	integer[0,1)=5	decimal[1,2)=,	fraction[2,4)=00	currency[5,6)=\u{20ac}
+ru	¤#,##0.00;(¤#,##0.00)	1234.56	EUR	\u{20ac}1\u{a0}234,56	currency[0,1)=\u{20ac}	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,9)=56
+ru	¤#,##0.00;(¤#,##0.00)	-1234.567	EUR	(\u{20ac}1\u{a0}234,57)	currency[1,2)=\u{20ac}	group[3,4)=\u{a0}	integer[2,7)=1\u{a0}234	decimal[7,8)=,	fraction[8,10)=57
+ru	¤#,##0.00;(¤#,##0.00)	1	EUR	\u{20ac}1,00	currency[0,1)=\u{20ac}	integer[1,2)=1	decimal[2,3)=,	fraction[3,5)=00
+ru	¤#,##0.00;(¤#,##0.00)	2	EUR	\u{20ac}2,00	currency[0,1)=\u{20ac}	integer[1,2)=2	decimal[2,3)=,	fraction[3,5)=00
+ru	¤#,##0.00;(¤#,##0.00)	5	EUR	\u{20ac}5,00	currency[0,1)=\u{20ac}	integer[1,2)=5	decimal[2,3)=,	fraction[3,5)=00
+ru	#,##0.000	1234.56	EUR	1\u{a0}234,560	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,9)=560
+ru	#,##0.000	-1234.567	EUR	-1\u{a0}234,567	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,10)=567
+ru	#,##0.000	1	EUR	1,000	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000
+ru	#,##0.000	2	EUR	2,000	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000
+ru	#,##0.000	5	EUR	5,000	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000
+ru	¤#,##0.00	1234.56	JPY	\u{a5}1\u{a0}235	currency[0,1)=\u{a5}	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}235
+ru	¤#,##0.00	-1234.567	JPY	-\u{a5}1\u{a0}235	sign[0,1)=-	currency[1,2)=\u{a5}	group[3,4)=\u{a0}	integer[2,7)=1\u{a0}235
+ru	¤#,##0.00	1	JPY	\u{a5}1	currency[0,1)=\u{a5}	integer[1,2)=1
+ru	¤#,##0.00	2	JPY	\u{a5}2	currency[0,1)=\u{a5}	integer[1,2)=2
+ru	¤#,##0.00	5	JPY	\u{a5}5	currency[0,1)=\u{a5}	integer[1,2)=5
+ru	#,##0.00¤	1234.56	JPY	1\u{a0}235\u{a5}	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}235	currency[5,6)=\u{a5}
+ru	#,##0.00¤	-1234.567	JPY	-1\u{a0}235\u{a5}	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}235	currency[6,7)=\u{a5}
+ru	#,##0.00¤	1	JPY	1\u{a5}	integer[0,1)=1	currency[1,2)=\u{a5}
+ru	#,##0.00¤	2	JPY	2\u{a5}	integer[0,1)=2	currency[1,2)=\u{a5}
+ru	#,##0.00¤	5	JPY	5\u{a5}	integer[0,1)=5	currency[1,2)=\u{a5}
+ru	¤¤#,##0.00	1234.56	JPY	JPY\u{a0}1\u{a0}235	currency[0,3)=JPY	group[5,6)=\u{a0}	integer[4,9)=1\u{a0}235
+ru	¤¤#,##0.00	-1234.567	JPY	-JPY\u{a0}1\u{a0}235	sign[0,1)=-	currency[1,4)=JPY	group[6,7)=\u{a0}	integer[5,10)=1\u{a0}235
+ru	¤¤#,##0.00	1	JPY	JPY\u{a0}1	currency[0,3)=JPY	integer[4,5)=1
+ru	¤¤#,##0.00	2	JPY	JPY\u{a0}2	currency[0,3)=JPY	integer[4,5)=2
+ru	¤¤#,##0.00	5	JPY	JPY\u{a0}5	currency[0,3)=JPY	integer[4,5)=5
+ru	#,##0.00¤¤	1234.56	JPY	1\u{a0}235\u{a0}JPY	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}235	currency[6,9)=JPY
+ru	#,##0.00¤¤	-1234.567	JPY	-1\u{a0}235\u{a0}JPY	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}235	currency[7,10)=JPY
+ru	#,##0.00¤¤	1	JPY	1\u{a0}JPY	integer[0,1)=1	currency[2,5)=JPY
+ru	#,##0.00¤¤	2	JPY	2\u{a0}JPY	integer[0,1)=2	currency[2,5)=JPY
+ru	#,##0.00¤¤	5	JPY	5\u{a0}JPY	integer[0,1)=5	currency[2,5)=JPY
+ru	#,##0.00 ¤¤¤	1234.56	JPY	1\u{a0}235 \u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{445} \u{438}\u{435}\u{43d}	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}235	currency[6,18)=\u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{445} \u{438}\u{435}\u{43d}
+ru	#,##0.00 ¤¤¤	-1234.567	JPY	-1\u{a0}235 \u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{445} \u{438}\u{435}\u{43d}	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}235	currency[7,19)=\u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{445} \u{438}\u{435}\u{43d}
+ru	#,##0.00 ¤¤¤	1	JPY	1 \u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{430}\u{44f} \u{438}\u{435}\u{43d}\u{430}	integer[0,1)=1	currency[2,15)=\u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{430}\u{44f} \u{438}\u{435}\u{43d}\u{430}
+ru	#,##0.00 ¤¤¤	2	JPY	2 \u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{435} \u{438}\u{435}\u{43d}\u{44b}	integer[0,1)=2	currency[2,15)=\u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{435} \u{438}\u{435}\u{43d}\u{44b}
+ru	#,##0.00 ¤¤¤	5	JPY	5 \u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{445} \u{438}\u{435}\u{43d}	integer[0,1)=5	currency[2,14)=\u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{445} \u{438}\u{435}\u{43d}
+ru	#,##0.00¤¤¤	1234.56	JPY	1\u{a0}235\u{a0}\u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{445} \u{438}\u{435}\u{43d}	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}235	currency[6,18)=\u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{445} \u{438}\u{435}\u{43d}
+ru	#,##0.00¤¤¤	-1234.567	JPY	-1\u{a0}235\u{a0}\u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{445} \u{438}\u{435}\u{43d}	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}235	currency[7,19)=\u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{445} \u{438}\u{435}\u{43d}
+ru	#,##0.00¤¤¤	1	JPY	1\u{a0}\u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{430}\u{44f} \u{438}\u{435}\u{43d}\u{430}	integer[0,1)=1	currency[2,15)=\u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{430}\u{44f} \u{438}\u{435}\u{43d}\u{430}
+ru	#,##0.00¤¤¤	2	JPY	2\u{a0}\u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{435} \u{438}\u{435}\u{43d}\u{44b}	integer[0,1)=2	currency[2,15)=\u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{435} \u{438}\u{435}\u{43d}\u{44b}
+ru	#,##0.00¤¤¤	5	JPY	5\u{a0}\u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{445} \u{438}\u{435}\u{43d}	integer[0,1)=5	currency[2,14)=\u{44f}\u{43f}\u{43e}\u{43d}\u{441}\u{43a}\u{438}\u{445} \u{438}\u{435}\u{43d}
+ru	¤ #,##0.00	1234.56	JPY	\u{a5} 1\u{a0}235	currency[0,1)=\u{a5}	group[3,4)=\u{a0}	integer[2,7)=1\u{a0}235
+ru	¤ #,##0.00	-1234.567	JPY	-\u{a5} 1\u{a0}235	sign[0,1)=-	currency[1,2)=\u{a5}	group[4,5)=\u{a0}	integer[3,8)=1\u{a0}235
+ru	¤ #,##0.00	1	JPY	\u{a5} 1	currency[0,1)=\u{a5}	integer[2,3)=1
+ru	¤ #,##0.00	2	JPY	\u{a5} 2	currency[0,1)=\u{a5}	integer[2,3)=2
+ru	¤ #,##0.00	5	JPY	\u{a5} 5	currency[0,1)=\u{a5}	integer[2,3)=5
+ru	¤#,##0	1234.56	JPY	\u{a5}1\u{a0}235	currency[0,1)=\u{a5}	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}235
+ru	¤#,##0	-1234.567	JPY	-\u{a5}1\u{a0}235	sign[0,1)=-	currency[1,2)=\u{a5}	group[3,4)=\u{a0}	integer[2,7)=1\u{a0}235
+ru	¤#,##0	1	JPY	\u{a5}1	currency[0,1)=\u{a5}	integer[1,2)=1
+ru	¤#,##0	2	JPY	\u{a5}2	currency[0,1)=\u{a5}	integer[1,2)=2
+ru	¤#,##0	5	JPY	\u{a5}5	currency[0,1)=\u{a5}	integer[1,2)=5
+ru	#,##0.### ¤	1234.56	JPY	1\u{a0}235 \u{a5}	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}235	currency[6,7)=\u{a5}
+ru	#,##0.### ¤	-1234.567	JPY	-1\u{a0}235 \u{a5}	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}235	currency[7,8)=\u{a5}
+ru	#,##0.### ¤	1	JPY	1 \u{a5}	integer[0,1)=1	currency[2,3)=\u{a5}
+ru	#,##0.### ¤	2	JPY	2 \u{a5}	integer[0,1)=2	currency[2,3)=\u{a5}
+ru	#,##0.### ¤	5	JPY	5 \u{a5}	integer[0,1)=5	currency[2,3)=\u{a5}
+ru	¤#,##0.00;(¤#,##0.00)	1234.56	JPY	\u{a5}1\u{a0}235	currency[0,1)=\u{a5}	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}235
+ru	¤#,##0.00;(¤#,##0.00)	-1234.567	JPY	(\u{a5}1\u{a0}235)	currency[1,2)=\u{a5}	group[3,4)=\u{a0}	integer[2,7)=1\u{a0}235
+ru	¤#,##0.00;(¤#,##0.00)	1	JPY	\u{a5}1	currency[0,1)=\u{a5}	integer[1,2)=1
+ru	¤#,##0.00;(¤#,##0.00)	2	JPY	\u{a5}2	currency[0,1)=\u{a5}	integer[1,2)=2
+ru	¤#,##0.00;(¤#,##0.00)	5	JPY	\u{a5}5	currency[0,1)=\u{a5}	integer[1,2)=5
+ru	#,##0.000	1234.56	JPY	1\u{a0}234,560	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,9)=560
+ru	#,##0.000	-1234.567	JPY	-1\u{a0}234,567	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,10)=567
+ru	#,##0.000	1	JPY	1,000	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000
+ru	#,##0.000	2	JPY	2,000	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000
+ru	#,##0.000	5	JPY	5,000	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000
+ru	¤#,##0.00	1234.56	TND	TND\u{a0}1\u{a0}234,560	currency[0,3)=TND	group[5,6)=\u{a0}	integer[4,9)=1\u{a0}234	decimal[9,10)=,	fraction[10,13)=560
+ru	¤#,##0.00	-1234.567	TND	-TND\u{a0}1\u{a0}234,567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=\u{a0}	integer[5,10)=1\u{a0}234	decimal[10,11)=,	fraction[11,14)=567
+ru	¤#,##0.00	1	TND	TND\u{a0}1,000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=,	fraction[6,9)=000
+ru	¤#,##0.00	2	TND	TND\u{a0}2,000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=,	fraction[6,9)=000
+ru	¤#,##0.00	5	TND	TND\u{a0}5,000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=,	fraction[6,9)=000
+ru	#,##0.00¤	1234.56	TND	1\u{a0}234,560\u{a0}TND	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,9)=560	currency[10,13)=TND
+ru	#,##0.00¤	-1234.567	TND	-1\u{a0}234,567\u{a0}TND	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,10)=567	currency[11,14)=TND
+ru	#,##0.00¤	1	TND	1,000\u{a0}TND	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+ru	#,##0.00¤	2	TND	2,000\u{a0}TND	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+ru	#,##0.00¤	5	TND	5,000\u{a0}TND	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+ru	¤¤#,##0.00	1234.56	TND	TND\u{a0}1\u{a0}234,560	currency[0,3)=TND	group[5,6)=\u{a0}	integer[4,9)=1\u{a0}234	decimal[9,10)=,	fraction[10,13)=560
+ru	¤¤#,##0.00	-1234.567	TND	-TND\u{a0}1\u{a0}234,567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=\u{a0}	integer[5,10)=1\u{a0}234	decimal[10,11)=,	fraction[11,14)=567
+ru	¤¤#,##0.00	1	TND	TND\u{a0}1,000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=,	fraction[6,9)=000
+ru	¤¤#,##0.00	2	TND	TND\u{a0}2,000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=,	fraction[6,9)=000
+ru	¤¤#,##0.00	5	TND	TND\u{a0}5,000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=,	fraction[6,9)=000
+ru	#,##0.00¤¤	1234.56	TND	1\u{a0}234,560\u{a0}TND	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,9)=560	currency[10,13)=TND
+ru	#,##0.00¤¤	-1234.567	TND	-1\u{a0}234,567\u{a0}TND	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,10)=567	currency[11,14)=TND
+ru	#,##0.00¤¤	1	TND	1,000\u{a0}TND	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+ru	#,##0.00¤¤	2	TND	2,000\u{a0}TND	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+ru	#,##0.00¤¤	5	TND	5,000\u{a0}TND	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+ru	#,##0.00 ¤¤¤	1234.56	TND	1\u{a0}234,560 \u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,9)=560	currency[10,27)=\u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}
+ru	#,##0.00 ¤¤¤	-1234.567	TND	-1\u{a0}234,567 \u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,10)=567	currency[11,28)=\u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}
+ru	#,##0.00 ¤¤¤	1	TND	1,000 \u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000	currency[6,23)=\u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}
+ru	#,##0.00 ¤¤¤	2	TND	2,000 \u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000	currency[6,23)=\u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}
+ru	#,##0.00 ¤¤¤	5	TND	5,000 \u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000	currency[6,23)=\u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}
+ru	#,##0.00¤¤¤	1234.56	TND	1\u{a0}234,560\u{a0}\u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,9)=560	currency[10,27)=\u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}
+ru	#,##0.00¤¤¤	-1234.567	TND	-1\u{a0}234,567\u{a0}\u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,10)=567	currency[11,28)=\u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}
+ru	#,##0.00¤¤¤	1	TND	1,000\u{a0}\u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000	currency[6,23)=\u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}
+ru	#,##0.00¤¤¤	2	TND	2,000\u{a0}\u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000	currency[6,23)=\u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}
+ru	#,##0.00¤¤¤	5	TND	5,000\u{a0}\u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000	currency[6,23)=\u{442}\u{443}\u{43d}\u{438}\u{441}\u{441}\u{43a}\u{43e}\u{433}\u{43e} \u{434}\u{438}\u{43d}\u{430}\u{440}\u{430}
+ru	¤ #,##0.00	1234.56	TND	TND 1\u{a0}234,560	currency[0,3)=TND	group[5,6)=\u{a0}	integer[4,9)=1\u{a0}234	decimal[9,10)=,	fraction[10,13)=560
+ru	¤ #,##0.00	-1234.567	TND	-TND 1\u{a0}234,567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=\u{a0}	integer[5,10)=1\u{a0}234	decimal[10,11)=,	fraction[11,14)=567
+ru	¤ #,##0.00	1	TND	TND 1,000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=,	fraction[6,9)=000
+ru	¤ #,##0.00	2	TND	TND 2,000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=,	fraction[6,9)=000
+ru	¤ #,##0.00	5	TND	TND 5,000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=,	fraction[6,9)=000
+ru	¤#,##0	1234.56	TND	TND\u{a0}1\u{a0}234,560	currency[0,3)=TND	group[5,6)=\u{a0}	integer[4,9)=1\u{a0}234	decimal[9,10)=,	fraction[10,13)=560
+ru	¤#,##0	-1234.567	TND	-TND\u{a0}1\u{a0}234,567	sign[0,1)=-	currency[1,4)=TND	group[6,7)=\u{a0}	integer[5,10)=1\u{a0}234	decimal[10,11)=,	fraction[11,14)=567
+ru	¤#,##0	1	TND	TND\u{a0}1,000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=,	fraction[6,9)=000
+ru	¤#,##0	2	TND	TND\u{a0}2,000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=,	fraction[6,9)=000
+ru	¤#,##0	5	TND	TND\u{a0}5,000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=,	fraction[6,9)=000
+ru	#,##0.### ¤	1234.56	TND	1\u{a0}234,560 TND	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,9)=560	currency[10,13)=TND
+ru	#,##0.### ¤	-1234.567	TND	-1\u{a0}234,567 TND	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,10)=567	currency[11,14)=TND
+ru	#,##0.### ¤	1	TND	1,000 TND	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+ru	#,##0.### ¤	2	TND	2,000 TND	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+ru	#,##0.### ¤	5	TND	5,000 TND	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000	currency[6,9)=TND
+ru	¤#,##0.00;(¤#,##0.00)	1234.56	TND	TND\u{a0}1\u{a0}234,560	currency[0,3)=TND	group[5,6)=\u{a0}	integer[4,9)=1\u{a0}234	decimal[9,10)=,	fraction[10,13)=560
+ru	¤#,##0.00;(¤#,##0.00)	-1234.567	TND	(TND\u{a0}1\u{a0}234,567)	currency[1,4)=TND	group[6,7)=\u{a0}	integer[5,10)=1\u{a0}234	decimal[10,11)=,	fraction[11,14)=567
+ru	¤#,##0.00;(¤#,##0.00)	1	TND	TND\u{a0}1,000	currency[0,3)=TND	integer[4,5)=1	decimal[5,6)=,	fraction[6,9)=000
+ru	¤#,##0.00;(¤#,##0.00)	2	TND	TND\u{a0}2,000	currency[0,3)=TND	integer[4,5)=2	decimal[5,6)=,	fraction[6,9)=000
+ru	¤#,##0.00;(¤#,##0.00)	5	TND	TND\u{a0}5,000	currency[0,3)=TND	integer[4,5)=5	decimal[5,6)=,	fraction[6,9)=000
+ru	#,##0.000	1234.56	TND	1\u{a0}234,560	group[1,2)=\u{a0}	integer[0,5)=1\u{a0}234	decimal[5,6)=,	fraction[6,9)=560
+ru	#,##0.000	-1234.567	TND	-1\u{a0}234,567	sign[0,1)=-	group[2,3)=\u{a0}	integer[1,6)=1\u{a0}234	decimal[6,7)=,	fraction[7,10)=567
+ru	#,##0.000	1	TND	1,000	integer[0,1)=1	decimal[1,2)=,	fraction[2,5)=000
+ru	#,##0.000	2	TND	2,000	integer[0,1)=2	decimal[1,2)=,	fraction[2,5)=000
+ru	#,##0.000	5	TND	5,000	integer[0,1)=5	decimal[1,2)=,	fraction[2,5)=000

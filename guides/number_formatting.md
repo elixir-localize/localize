@@ -241,8 +241,10 @@ Example: `¤#,##0.00;(¤#,##0.00)` — positive values use `¤#,##0.00`, negativ
 | `E` | Exponent separator. | `0.###E0` → "1.235E3" |
 | `%` | Multiply by 100 and show percent sign. | `#%` → "46%" |
 | `‰` | Multiply by 1000 and show per-mille sign. | `#‰` → "456‰" |
-| `¤` | Currency symbol placeholder. | `¤#,##0` → "$1,234" |
-| `¤¤` | ISO currency code. | `¤¤#,##0` → "USD1,234" |
+| `¤` | Currency symbol placeholder. | `¤#,##0` → "$1,234.00" |
+| `¤¤` | ISO currency code, with a no-break space before the digits. | `¤¤#,##0` → "USD 1,234.00" |
+| `¤¤¤` | Currency display name, in the plural form for the number as displayed. | `#,##0 ¤¤¤` → "1,234.00 US dollars" |
+| `¤¤¤¤¤` | Narrow currency symbol. | `¤¤¤¤¤#,##0` → "$1,234.00" |
 | `;` | Separates positive and negative subpatterns. | |
 | `+` | Plus sign in exponent. | `0E+0` → "1E+3" |
 | `-` | Minus sign. | |
@@ -254,7 +256,7 @@ The grouping pattern is read from right to left in the integer part. `#,##0` mea
 
 ### Currency symbol
 
-The `¤` placeholder is replaced at format time with the currency symbol. The placement varies by locale — English puts it before the number (`$1,234`), German puts it after with a non-breaking space (`1.234 €`).
+The `¤` placeholder is replaced at format time with the currency symbol, and the currency's decimal places replace the pattern's. The placement varies by locale — English puts it before the number (`$1,234.00`), German puts it after with a non-breaking space (`1.234,00 €`). Where a symbol that begins or ends with a letter meets the digits, CLDR's currency spacing inserts a non-breaking space, so `¤#,##0.00` formats Swiss francs as "CHF 1,234.00".
 
 ## Number systems
 
@@ -356,7 +358,7 @@ All options accepted by `Localize.Number.to_string/2`:
 | `:round_nearest` | integer | `nil` | Round to nearest increment (e.g., 5 for rounding to nearest 5). |
 | `:minimum_grouping_digits` | integer | `0` | Minimum integer digits before grouping is applied. |
 | `:currency_symbol` | atom or string | `nil` | Override currency symbol display: `:symbol`, `:narrow`, `:iso`, or a custom string. |
-| `:currency_digits` | atom | `:accounting` | How to determine currency decimal places: `:accounting`, `:cash`, or `:iso`. |
+| `:currency_digits` | atom | `:accounting` | How to determine currency decimal places: `:accounting`, `:cash`, or `:iso`. They apply to currency formats and to pattern strings with a currency sign; `:fractional_digits` overrides them. |
 | `:wrapper` | function | `nil` | `fn string, type -> string end` — wrap formatted components for HTML/markup. |
 
 ### Fractional digit examples
