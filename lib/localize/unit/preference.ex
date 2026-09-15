@@ -359,9 +359,8 @@ defmodule Localize.Unit.Preference do
   end
 
   defp measurement_system(locale) do
-    with {:ok, %{locale: %{ms: ms}}} when not is_nil(ms) <- Localize.validate_locale(locale) do
-      ms
-    else
+    case Localize.validate_locale(locale) do
+      {:ok, %{locale: %{ms: ms}}} -> ms
       _no_measurement_system -> nil
     end
   end
@@ -389,7 +388,9 @@ defmodule Localize.Unit.Preference do
   # ── Usage chain ─────────────────────────────────────────────
 
   # Build a chain of usages to try, from most specific to least.
-  # For example, :person_height → [:person_height, :person, :default]
+  # For example, :person_height → [:person_height, :person, :default].
+  # A prefix that is not already an atom names no usage in the data, so it
+  # is skipped rather than created from the caller's usage.
   defp build_usage_chain(:default), do: [:default]
 
   defp build_usage_chain(usage) when is_atom(usage) do
@@ -399,7 +400,8 @@ defmodule Localize.Unit.Preference do
       parts
       |> Enum.scan(fn part, acc -> acc <> "_" <> part end)
       |> Enum.reverse()
-      |> Enum.map(&String.to_atom/1)
+      |> Enum.map(&Localize.Utils.Helpers.existing_atom/1)
+      |> Enum.reject(&is_nil/1)
 
     chain ++ [:default]
   end

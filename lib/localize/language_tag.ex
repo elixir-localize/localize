@@ -575,8 +575,127 @@ defmodule Localize.LanguageTag do
     name
   end
 
+  # A struct built by hand renders from its fields of the right shape.
   def to_string(%__MODULE__{} = language_tag) do
-    build_canonical_name(language_tag)
+    language_tag
+    |> sanitize_fields()
+    |> build_canonical_name()
+  end
+
+  @doc false
+  # Checks the shape of a struct's fields, so that a struct built by hand is
+  # reported as an invalid locale rather than raised on. `nil` stands for an
+  # empty list or map, and a subtag given as a string is the atom it names
+  # when that atom exists.
+  @spec validate_fields(t()) :: {:ok, t()} | {:error, Exception.t()}
+  def validate_fields(%__MODULE__{} = language_tag) do
+    Enum.reduce_while(field_checks(), {:ok, language_tag}, fn {field, check, _empty},
+                                                              {:ok, tag} ->
+      case check_field(check, Map.get(tag, field)) do
+        :ok -> {:cont, {:ok, tag}}
+        {:ok, value} -> {:cont, {:ok, Map.put(tag, field, value)}}
+        :error -> {:halt, {:error, invalid_fields_error(language_tag)}}
+      end
+    end)
+  end
+
+  # Rendering needs no atoms, so a subtag held as a string, as in the
+  # tokenized source language of a `-t-` extension, is kept as it is.
+  defp sanitize_fields(language_tag) do
+    Enum.reduce(field_checks(), language_tag, fn {field, check, empty}, tag ->
+      value = Map.get(tag, field)
+
+      case check_field(check, value) do
+        _string_subtag when check == :subtag and is_binary(value) -> tag
+        :ok -> tag
+        {:ok, value} -> Map.put(tag, field, value)
+        :error -> Map.put(tag, field, empty)
+      end
+    end)
+  end
+
+  # Each field a struct built by hand could get wrong, the shape it must
+  # have and the value it takes when empty: a subtag is an atom or nil,
+  # subtags, variants and private use are lists of strings, and extensions
+  # are the structs and maps the parser stores.
+  defp field_checks do
+    [
+      {:language, :subtag, nil},
+      {:script, :subtag, nil},
+      {:territory, :subtag, nil},
+      {:language_subtags, :string_list, []},
+      {:language_variants, :string_list, []},
+      {:private_use, :string_list, []},
+      {:locale, {:extension, U}, %{}},
+      {:transform, {:extension, T}, %{}},
+      {:extensions, :extensions, %{}}
+    ]
+  end
+
+  defp check_field(:subtag, value) when is_atom(value), do: :ok
+
+  defp check_field(:subtag, value) when is_binary(value) do
+    case Localize.Utils.Helpers.existing_atom(value) do
+      nil -> :error
+      atom -> {:ok, atom}
+    end
+  end
+
+  defp check_field(:string_list, nil), do: {:ok, []}
+  defp check_field(:string_list, value) when is_list(value), do: ok_if(string_list?(value))
+  defp check_field({:extension, module}, %module{}), do: :ok
+  defp check_field({:extension, _module}, nil), do: {:ok, %{}}
+
+  # Until a tag is canonicalized the parser holds an extension as a map of
+  # its keys, such as `%{"ca" => "gregory"}`.
+  defp check_field({:extension, _module}, value) when is_map(value) and not is_struct(value) do
+    ok_if(extension_map?(value))
+  end
+
+  defp check_field(:extensions, nil), do: {:ok, %{}}
+
+  defp check_field(:extensions, value) when is_map(value) and not is_struct(value) do
+    ok_if(Enum.all?(value, &extension_entry?/1))
+  end
+
+  defp check_field(_check, _value), do: :error
+
+  defp ok_if(true), do: :ok
+  defp ok_if(false), do: :error
+
+  defp string_list?([]), do: true
+  defp string_list?([string | rest]) when is_binary(string), do: string_list?(rest)
+  defp string_list?(_other), do: false
+
+  defp extension_entry?({singleton, extension})
+       when is_binary(singleton) and is_struct(extension),
+       do: true
+
+  # A generic extension, such as "-a-bbb-ccc", is a list of its subtags.
+  defp extension_entry?({singleton, subtags}) when is_binary(singleton) and is_list(subtags),
+    do: string_list?(subtags)
+
+  defp extension_entry?({singleton, extension}) when is_binary(singleton) and is_map(extension),
+    do: extension_map?(extension)
+
+  defp extension_entry?(_entry), do: false
+
+  defp extension_map?(extension) do
+    Enum.all?(extension, fn
+      {key, value} when is_binary(key) -> extension_value?(value)
+      _entry -> false
+    end)
+  end
+
+  defp extension_value?(value) when is_nil(value) or is_binary(value), do: true
+  defp extension_value?(%__MODULE__{}), do: true
+  defp extension_value?(value) when is_list(value), do: string_list?(value)
+  defp extension_value?(_value), do: false
+
+  # The struct's own inspection renders its fields, so the error describes
+  # them as a plain map.
+  defp invalid_fields_error(language_tag) do
+    Localize.InvalidLocaleError.exception(locale_id: inspect(Map.from_struct(language_tag)))
   end
 
   @doc """
@@ -614,7 +733,8 @@ defmodule Localize.LanguageTag do
   """
   @spec canonicalize(t()) :: {:ok, t()} | {:error, term()}
   def canonicalize(%__MODULE__{} = language_tag) do
-    with {:ok, tag} <- canonicalize_extensions(language_tag) do
+    with {:ok, language_tag} <- validate_fields(language_tag),
+         {:ok, tag} <- canonicalize_extensions(language_tag) do
       tag =
         tag
         |> sort_variants()
@@ -728,8 +848,9 @@ defmodule Localize.LanguageTag do
   def best_match(desired, supported, distance \\ @default_distance)
 
   def best_match(%__MODULE__{} = desired, supported, distance) when is_list(supported) do
-    locale_string = build_canonical_name(desired)
-    best_match(locale_string, supported, distance)
+    with {:ok, desired} <- validate_fields(desired) do
+      best_match(build_canonical_name(desired), supported, distance)
+    end
   end
 
   def best_match(desired, supported, distance) when is_atom(desired) and is_list(supported) do
@@ -993,10 +1114,16 @@ defmodule Localize.LanguageTag do
 
   """
   @spec add_likely_subtags(t()) :: {:ok, t()} | {:error, Exception.t()}
+  def add_likely_subtags(%__MODULE__{} = language_tag) do
+    with {:ok, language_tag} <- validate_fields(language_tag) do
+      maximize(language_tag)
+    end
+  end
+
   # CLDR likely-subtags maximization: per-subtag presence checks plus
   # matched/unmatched and und/non-und fallback outcomes.
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
-  def add_likely_subtags(%__MODULE__{} = language_tag) do
+  defp maximize(language_tag) do
     language = language_tag.language || :und
     script = strip_sentinel(language_tag.script, :Zzzz)
     region = strip_sentinel(language_tag.territory, :ZZ)
@@ -1764,9 +1891,11 @@ defmodule Localize.LanguageTag do
     end
   end
 
+  # A parsed tag has no canonical id until it is canonicalized, so it
+  # renders from its fields as `Localize.LanguageTag.to_string/1` does.
   defimpl String.Chars do
     def to_string(language_tag) do
-      language_tag.canonical_locale_id
+      Localize.LanguageTag.to_string(language_tag)
     end
   end
 

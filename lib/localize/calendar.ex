@@ -1107,13 +1107,12 @@ defmodule Localize.Calendar do
 
   """
   @spec first_day_for_locale(Localize.locale()) :: integer() | {:error, Exception.t()}
-  def first_day_for_locale(%LanguageTag{locale: %{fw: fw}}) when not is_nil(fw) do
-    Map.fetch!(@first_day_from_fw, fw)
-  end
-
-  def first_day_for_locale(%LanguageTag{} = locale) do
-    with {:ok, territory} <- territory_from_locale(locale) do
-      first_day_for_territory(territory)
+  # A struct built by hand can carry fields of the wrong shape, including a
+  # first-day keyword CLDR does not define, which are reported or ignored
+  # rather than raised on.
+  def first_day_for_locale(%LanguageTag{} = language_tag) do
+    with {:ok, tag} <- LanguageTag.validate_fields(language_tag) do
+      first_day_for_tag(tag, Map.get(@first_day_from_fw, first_day_keyword(tag)))
     end
   end
 
@@ -1122,6 +1121,17 @@ defmodule Localize.Calendar do
       first_day_for_locale(language_tag)
     end
   end
+
+  defp first_day_for_tag(_tag, first_day) when is_integer(first_day), do: first_day
+
+  defp first_day_for_tag(tag, nil) do
+    with {:ok, territory} <- territory_from_locale(tag) do
+      first_day_for_territory(territory)
+    end
+  end
+
+  defp first_day_keyword(%LanguageTag{locale: %{fw: fw}}), do: fw
+  defp first_day_keyword(%LanguageTag{}), do: nil
 
   @doc """
   Returns the minimum days in the first week of the year

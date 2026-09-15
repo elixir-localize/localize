@@ -1288,22 +1288,34 @@ defmodule Localize.Territory do
     end
   end
 
-  def territory_from_locale(%Localize.LanguageTag{locale: %{rg: rg}})
-      when not is_nil(rg) do
+  # A struct built by hand can carry fields of the wrong shape, which are
+  # reported rather than passed on.
+  def territory_from_locale(%Localize.LanguageTag{} = language_tag) do
+    with {:ok, tag} <- Localize.LanguageTag.validate_fields(language_tag) do
+      tag_territory(tag)
+    end
+  end
+
+  defp tag_territory(%Localize.LanguageTag{locale: %{rg: rg}})
+       when not is_nil(rg) and is_atom(rg) do
     {:ok, rg}
   end
 
-  def territory_from_locale(%Localize.LanguageTag{territory: territory})
-      when not is_nil(territory) do
+  defp tag_territory(%Localize.LanguageTag{territory: territory})
+       when not is_nil(territory) do
     {:ok, territory}
   end
 
-  def territory_from_locale(%Localize.LanguageTag{} = tag) do
-    case Localize.validate_locale(tag) do
+  # A tag struct without a territory takes the one its likely subtags add.
+  # `Localize.validate_locale/1` is no substitute: given a struct it matches
+  # a CLDR locale but adds no subtags, which left "fr" with the default
+  # locale's territory rather than France.
+  defp tag_territory(%Localize.LanguageTag{} = tag) do
+    case Localize.LanguageTag.add_likely_subtags(tag) do
       {:ok, %{territory: territory}} when not is_nil(territory) ->
         {:ok, territory}
 
-      _ ->
+      _no_territory ->
         {:ok, Localize.default_locale().territory}
     end
   end

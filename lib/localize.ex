@@ -1845,13 +1845,14 @@ defmodule Localize do
   @spec validate_locale(Localize.LanguageTag.t() | String.t() | atom()) ::
           {:ok, Localize.LanguageTag.t()} | {:error, Exception.t()}
 
-  def validate_locale(%Localize.LanguageTag{cldr_locale_id: cldr_locale_id} = language_tag)
-      when not is_nil(cldr_locale_id) do
-    maybe_restrict_to_supported(language_tag)
-  end
-
-  def validate_locale(%Localize.LanguageTag{cldr_locale_id: nil} = language_tag) do
-    resolve_cldr_locale(language_tag)
+  # A struct built by hand can carry fields of the wrong shape, which are
+  # reported as an invalid locale rather than raised on.
+  def validate_locale(%Localize.LanguageTag{} = language_tag) do
+    case Localize.LanguageTag.validate_fields(language_tag) do
+      {:ok, %Localize.LanguageTag{cldr_locale_id: nil} = tag} -> resolve_cldr_locale(tag)
+      {:ok, tag} -> maybe_restrict_to_supported(tag)
+      {:error, _exception} = error -> error
+    end
   end
 
   def validate_locale(locale_id) when is_binary(locale_id) do

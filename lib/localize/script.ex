@@ -30,8 +30,8 @@ defmodule Localize.Script do
 
   """
 
-  alias Localize.Utils.Helpers
   alias Localize.Locale.LocaleDisplay
+  alias Localize.Utils.Helpers
 
   @preferences [:standard, :short, :stand_alone, :variant]
 

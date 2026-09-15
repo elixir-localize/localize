@@ -223,8 +223,11 @@ defmodule Localize.CalendarTest do
     end
 
     test "raises on error" do
+      # `apply/3` is type-opaque so the Elixir 1.20 type checker does not flag
+      # the unknown field this test passes on purpose.
       assert_raise Localize.InvalidValueError, fn ->
-        Localize.Calendar.localize!(~D[2019-06-01], :bogus)
+        # credo:disable-for-next-line Credo.Check.Refactor.Apply
+        apply(Localize.Calendar, :localize!, [~D[2019-06-01], :bogus])
       end
     end
   end

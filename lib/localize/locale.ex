@@ -160,13 +160,28 @@ defmodule Localize.Locale do
   """
   @spec parent(LanguageTag.t() | String.t()) ::
           {:ok, LanguageTag.t()} | {:error, Exception.t()}
-  def parent(
-        %LanguageTag{language: :und, script: nil, territory: nil, language_variants: []} = _tag
-      ) do
+  # A struct built by hand can carry fields of the wrong shape, which are
+  # reported as an invalid locale rather than raised on.
+  def parent(%LanguageTag{} = language_tag) do
+    with {:ok, tag} <- LanguageTag.validate_fields(language_tag) do
+      tag_parent(tag)
+    end
+  end
+
+  def parent(locale_id) when is_binary(locale_id) do
+    with {:ok, parsed} <- LanguageTag.parse(locale_id),
+         {:ok, canonical} <- LanguageTag.canonicalize(parsed) do
+      parent(canonical)
+    end
+  end
+
+  defp tag_parent(
+         %LanguageTag{language: :und, script: nil, territory: nil, language_variants: []} = _tag
+       ) do
     {:error, Localize.NoParentError.exception(locale: "und")}
   end
 
-  def parent(%LanguageTag{} = tag) do
+  defp tag_parent(%LanguageTag{} = tag) do
     parent_tag =
       case lookup_parent_locale(tag) do
         nil ->
@@ -180,13 +195,6 @@ defmodule Localize.Locale do
 
     parent_tag = transfer_extensions(parent_tag, tag)
     {:ok, parent_tag}
-  end
-
-  def parent(locale_id) when is_binary(locale_id) do
-    with {:ok, parsed} <- LanguageTag.parse(locale_id),
-         {:ok, canonical} <- LanguageTag.canonicalize(parsed) do
-      parent(canonical)
-    end
   end
 
   @doc """
