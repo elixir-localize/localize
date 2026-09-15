@@ -32,6 +32,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.MinimalPairs` exposes CLDR's minimal pairs — the short phrases that demonstrate a locale's plural, ordinal, case and gender forms. `cardinal/1`, `ordinal/1`, `grammatical_case/1` and `grammatical_gender/1` return the phrases; `format/3` picks the one a number selects, so `format(3, :cardinal, locale: :en)` is `{:ok, "3 days"}`.
 
+* The `g` pattern symbol formats the modified Julian day and the deprecated `l` is ignored, as TR35 specifies, where both returned a tokenize error.
+
+* Ordinal dates from CLDR 49: the `ddd` field formats the day with the locale's `dayOfMonths` pattern for its ordinal plural category, so `en` `:yMMMddd` renders "Jul 6th, 2024". Locales without that data, and patterns with a numeric month, format the plain day.
+
 ### Changed
 
 * **Breaking.** `Localize.DateTime.parse/2` keeps the UTC offset an ISO 8601 input carried instead of normalising the instant to UTC, so `"2026-05-23T14:30:00+05:00"` now returns `14:30:00+05:00` rather than `09:30:00Z`. Both spellings of an offset — ISO and the localized GMT format — now produce the same struct; call `DateTime.shift_zone/3` for the previous output.
@@ -52,7 +56,81 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * **Breaking.** `Localize.validate_territory/1` returns the canonical territory code. Both forms may be supplied: `validate_territory("AN")` was `{:ok, :AN}` and is now `{:ok, :CW}`, as for `SU` (`:RU`), `DD` (`:DE`), `CS` and `YU` (both `:RS`), bringing it into line with `validate_locale/1`.
 
+* **Breaking.** A pattern or skeleton that asks for a field the value does not hold returns `{:error, %Localize.DateTimeInvalidInputError{}}` naming the missing fields, where the field rendered blank — `Localize.Date.to_string(%{year: 2026, month: 6}, format: :yMMMd)` gave "Jun , 2026". Zone symbols keep TR35's fallbacks and still render empty for a zoneless value.
+
+* **Breaking.** A standard format on a partial date derives its skeleton from the fields present, with the month as wide as the format asks, where it returned `Localize.DateTimeUnresolvedFormatError`. Without a format the `:medium` default now applies too, so `%{year: 2024, month: 6}` renders "Jun 2024" rather than "6/2024".
+
+* **Breaking.** The numeric `e` and `c` weekday fields count from the locale's first day of the week, as TR35 specifies, so a Saturday is 7 in `en` and 6 in `de` where both gave 6. `cc` is one digit, like `c`, rather than zero-padded.
+
 ### Fixed
+
+* `Localize.DateTime.Relative.to_string/2` and `to_parts/2` return `{:error, %Localize.InvalidValueError{}}` for a value that is not a number, date, time or datetime, and for options that are not a keyword list, rather than raising `FunctionClauseError`.
+
+* `Localize.DateTime.Relative.to_string/2` and `to_parts/2` measure a value against a `:relative_to` of another type where the conversion is unambiguous, such as a `Date` against a `DateTime`, and return `Localize.InvalidValueError` for one that cannot be compared. The baseline was silently replaced by the current time.
+
+* `Localize.DateTime.Relative.to_string/2` and `to_parts/2` format the number for the locale ("in 1,000 days", with `:group` and `:fraction` parts as in ECMA-402) and select the pattern by the plural category of the number as displayed. A float with `:unit` is a count of that unit ("in 1.5 hours"), where it was read as seconds.
+
+* `Localize.Unit.to_string/2` selects the plural form of a rounded number by the digits the formatter displays, so `hr` 0.0045 hours is "0,004 sata" rather than "0,004 sati".
+
+* `Localize.Number` formats in a numbering system other than the locale's default with the locale's symbols for that system, or its `latn` symbols where CLDR's root aliases them, so `fa-u-nu-latn` is "1,000.5" rather than "1٬000٫5". Locale data now carries every numbering system a locale defines symbols and formats for.
+
+* `Localize.Message.format/3` selects a plural or ordinal variant by the number as its `:number`, `:integer`, `:offset` or `:percent` function displays it, so Russian `{2 :number minimumFractionDigits=1}` is `other` and 100.0 is `many`. An `:integer` operand given as a `Decimal` formats instead of raising `ArgumentError`.
+
+* `Localize.Time`, `Localize.DateTime` and `Localize.Interval` render a `-u-hc-h11` or `-u-hc-h24` hour cycle with the `K` or `k` hour ("0:30 AM", "24:30") and resolve `j` in a time interval skeleton. Under `-u-hc-`, a skeleton's explicit `h` or `H` now keeps the hour cycle it names, as in ICU, where it took the override's.
+
+* `Localize.Time.parse/2` and `Localize.DateTime.parse/2` read a time in the locale's `-u-hc-` hour cycle ("24:30" under h24) and resolve a flexible day period's hour by CLDR's day period rules. Japanese "夜中0:30" is 00:30, where it parsed as 12:30.
+
+* `Localize.Number.to_string/2` and `to_parts/2` format a pattern with quoted literal text, such as `#,##0 'units'`, where the pattern lexer looped and exhausted memory. A pattern with a character no pattern syntax accepts, such as a trailing `*`, returns an error.
+
+* `Localize.Number.to_string/2` keeps the whitespace a pattern ends with, as ICU does and as `to_parts/2` already did. A `:wrapper` function receives a quoted pattern character tagged `:literal`, which it never received.
+
+* `Localize.Date.parse/2`, `Localize.DateTime.parse/2` and `Localize.Date.parse_range/2` parse a date with an era, whose patterns never compiled, and a date whose weekday does not lead its pattern or is written in another width. Stand-alone and format month names are both accepted, and a month abbreviation that is also a weekday name (es "mar") is no longer stripped as a weekday.
+
+* Time skeletons resolve day periods as ICU does: `ha` renders "h a" and `hb` "h b" where both rendered a flexible day period, and an `H` or `k` skeleton drops a requested day period. `J` drops the day period as TR35 requires, `C` ignores a `-u-hc-` override, and CLDR's locale-specific hour data (`hi_IN` allows `hB`) is used.
+
+* `Localize.DateTime.to_string/2` applies a `-u-hc-` hour cycle to a skeleton that matches an available format exactly or takes append items, and renders an `X` or `x` zone field requested by a skeleton, which it dropped.
+
+* `b` and `B` judge noon and midnight at the precision their pattern shows, as ICU does, so "h B" renders 12:05 as "12 noon". `VVV` renders `Etc/UTC` as the unknown location, "Unknown Location" in `en`, rather than "UTC".
+
+* `Localize.Number.resolve_currencies/2` and `resolve_currency/2` match a currency name or code only as a whole word, so "100 US dolars" no longer resolves to the Argentine peso from the "ars" it ends with.
+
+* `Localize.Number.to_string/2` rounds significant digits and scientific mantissas half-even, or with the `:rounding_mode` given, where it rounded half-up. A scientific mantissa shows the significant digits TR35 derives from its pattern, so "##0.##E0" renders 12345 as "12.3E3" where it rendered "12.345E3".
+
+* Number patterns give each currency sign width its TR35 meaning — `¤¤` the ISO code, `¤¤¤` the plural display name, `¤¤¤¤¤` the narrow symbol and any other width U+FFFD — and a currency pattern takes the currency's decimal places and CLDR's currency spacing, so `¤#,##0.00` formats 1234.56 Swiss francs as "CHF 1,234.56" and yen as "¥1,235". The `:wrapper` option decides currency spacing on the symbol rather than on its markup.
+
+* `Localize.Territory.territory_from_locale/1` takes the territory of a language tag struct that has none from its likely subtags, so a parsed "fr" gives `:FR` where it gave the default locale's `:US`.
+
+* MessageFormat 2 literals keep all their code points, as TR35 requires, where the parser normalized them to NFC, and keys still match a selector's value in NFC. `Localize.Message.Print.to_string/2` and the highlighter quote a literal that is not an MF2 name, such as one containing U+2000 or starting with a digit, so a canonical message parses back unchanged.
+
+* `mix localize.download_locales` rejects a name that is not a CLDR locale rather than turning it into an atom, and unit preference lookups no longer create atoms from the prefixes of a usage.
+
+* Functions that take a `Localize.LanguageTag`, including `Localize.validate_locale/1` and every `:locale` option, no longer raise on a struct built by hand with fields of the wrong shape: a `nil` list or map is empty, a subtag given as a string is its atom, and anything else returns `Localize.InvalidLocaleError`. `Localize.Number.resolve_currency/2` reports an invalid `:fuzzy` value or locale as itself rather than as an unknown currency.
+
+* Interpolating a parsed `Localize.LanguageTag` into a string gives its BCP 47 form, where it raised because the tag had no canonical id yet.
+
+* `Localize.Number` and `Localize.Number.Parser` return `{:error, %Localize.InvalidValueError{}}` for a value or options of the wrong type. `to_parts/2`, `to_range_parts/3`, `to_ratio_string/2`, `parse/2`, `scan/2` and the `resolve_*` functions raised.
+
+* `Localize.DateTime.to_string/2` and `to_parts/2` keep both halves of a map holding some date and some time fields, joined through the locale's wrapper under `:style`, where `%{year: 2026, month: 6, hour: 14}` rendered "6/2026". A partial value given a skeleton or pattern is formatted with it, where "Jun 15, 2026,  , " came back.
+
+* Partial times keep the locale's hour cycle, so `%{hour: 14, minute: 30}` is "14:30" in `de` rather than "2:30 PM". A `-u-hc-` override now applies to partial times and throughout `Localize.DateTime`, which ignored it.
+
+* `:date_format` and `:time_format` resolve a skeleton through TR35 skeleton matching and accept a semantic skeleton, where a skeleton missing from `availableFormats` returned `Localize.DateTimeUnresolvedFormatError` and a semantic skeleton raised `FunctionClauseError`. A skeleton date format joins through the locale's date-time pattern at the length TR35 derives from its fields rather than an English comma, so `ja` renders "2026年6月15日 14:30".
+
+* A skeleton whose date and time halves no single available format covers joins them at the length TR35 derives from the requested date fields rather than always at `:medium`, bringing CLDR's skeleton conformance cases to 86 of 90.
+
+* A semantic skeleton passed as `:format` for a partial date or time is used rather than replaced by a skeleton derived from the fields present.
+
+* `S` has exactly as many digits as the field has letters, as TR35 specifies, where it stopped at six and at the value's precision, so `ss.SSS` on 45.9 seconds is "45.900" rather than "45.9". `U` without cyclic year names formats as `y`, making `UU` the two-digit year, and `YYYYYY` pads rather than rendering empty.
+
+* Pattern fields wider than TR35's table follow ICU instead of rendering empty or returning an error: numeric fields zero-pad to the width and name fields fall back to a defined width, so `LLLLLL` is "000007" and `GGGGGG` "AD". Where ICU has no output, as for `OO` or `XXXXXX`, the widest defined form is used.
+
+* The short localized GMT format drops the hour's leading zero when the offset has minutes, as TR35 specifies, so `O` for India is "GMT+5:30" rather than "GMT+05:30".
+
+* `Localize.Interval` keeps both years when the endpoints fall in different years though the fields show none, as ICU does, so `fields: :month_and_day` renders "Dec 30, 2025 – Jan 2, 2026" rather than "Dec 30 – Jan 2". Endpoints that differ in no field shown format as one value in the requested fields, as TR35 specifies, where `:year_and_month` gave "Jul – Jul 2024" and equal endpoints the default date format.
+
+* Time intervals across noon take CLDR's day-period pattern, "10:00 AM – 2:00 PM" rather than "10:00 – 2:00 PM", an `:h` interval within one hour formats one time instead of returning `:no_pattern`, and a skeleton the interval table has no item for, such as `:hms`, joins both times through the fallback pattern instead of returning `:no_format`.
+
+* Same-day datetime intervals join the date, shown once, to CLDR's time interval pattern as TR35 specifies, so `en` `:short` is "7/6/24, 10:00 – 10:30 AM" rather than "7/6/24, 10:00 AM – 10:30 AM". Datetimes differing only in seconds format as an interval at `:medium` rather than as one value.
 
 * Resolving a date-time skeleton no longer creates atoms. `Localize.DateTime.Format.Match.split_fractional_seconds/1` interned the skeleton remainder left after stripping the fractional-second field, which grew the atom table on every distinct skeleton; it now resolves against existing atoms only, with identical output.
 

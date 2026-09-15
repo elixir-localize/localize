@@ -256,8 +256,8 @@ Two areas are explicitly out of scope:
 | Time format patterns (:short/:medium/:long/:full) | Implemented | `Localize.Time.to_string/2`. |
 | DateTime combined patterns | Implemented | `Localize.DateTime.to_string/2`. |
 | All date format pattern symbols (y, M, d, E, G, etc.) | Implemented | Full symbol set in `Localize.DateTime.Formatter`. |
-| Hour cycle (h, H, k, K) | Implemented | Including territory-based preferences. |
-| Day periods (a, b, B) | Implemented | `a` renders AM/PM; `b` renders noon/midnight at the exact points and AM/PM otherwise; `B` selects flexible day periods ("in the morning", "mittags") from the CLDR day-period rules, falling back to AM/PM for languages without rules. |
+| Hour cycle (h, H, k, K) | Implemented | Including territory and locale preferences (`hi_IN` allows `hB`), the `-u-hc-` override, and the skeleton symbols `j`, `J` and `C`. |
+| Day periods (a, b, B) | Implemented | `a` renders AM/PM; `b` renders noon/midnight at the exact points and AM/PM otherwise; `B` selects flexible day periods ("in the morning", "mittags") from the CLDR day-period rules, falling back to AM/PM for languages without rules. Noon and midnight are judged at the precision the pattern shows, so "h B" renders 12:05 as "12 noon". |
 | Available formats (skeletons) | Implemented | `Localize.DateTime.Format.Match` for skeleton matching. |
 | Interval formats | Implemented | `Localize.Interval.to_string/3` for date/time/datetime intervals. |
 | Append items (missing fields) | Implemented | `Localize.DateTime.Format.AppendItems` matches the closest format that is a subset of the request and appends the fields it lacks, so `en` renders `:yMMMdQ` as "Jul 6, 2024 (quarter: 3)". |
@@ -491,6 +491,7 @@ Two areas are explicitly out of scope:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | JSON interchange format | Implemented | `Localize.Message.JSON.to_json/2` and `from_json/1` for round-trip serialization to the TR35 §8 data model. |
+| Literal code points and key normalization | Implemented | Literals keep all their code points; keys and a `:string` selector's value are compared in NFC (TR35 NormalizeKey), and names are compared as if normalized. |
 | Bidirectional text handling | Partial | `:bidi` option (`:none`, `:isolate`, `:auto`) wraps placeholder output in Unicode isolate characters (FSI/PDI), and the `@u:dir` expression *attribute* overrides direction per expression. The `u:dir` / `u:id` expression *options* are not implemented, and the `:isolate` strategy isolates every placeholder where the WG default strategy leaves known-LTR placeholders unisolated. |
 
 ### MF2 known conformance gaps

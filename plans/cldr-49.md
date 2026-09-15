@@ -90,7 +90,27 @@ This package is widely used. The following invariants apply to every item in thi
 | 33 | Skeleton resolution interned caller-derived strings  | Internal       | None — ✅ Fixed. `String.to_atom/1` replaced by `existing_atom/1`; not reachable from the public API, but the rule admits no exemption |
 | 34 | en-CA `alt="variant"` patterns crash intervals and hide the standard pattern | None | **Output changes** — ✅ Fixed on `main` and here. Shipped since 1.0.0; en-CA skeletons render `2026-05-03` again and `month_and_day` intervals no longer raise |
 | 35 | Interval patterns inherited from a different locale level than the single date | None | None yet — Open. 141 of 656 locales disagree in field order; ICU agrees with us; tracking CLDR-14207 |
-| 36 | `fields: :month_and_day` drops the year across a year boundary | None | None yet — Open. Pre-existing in every locale; ICU shows both years |
+| 36 | `fields: :month_and_day` drops the year across a year boundary | None | Done — widened as ICU does; interval defects found alongside fixed |
+| 37 | Relative time ignores the locale's number format and misreads fractional counts | None | **Output changes** — ✅ Fixed. "in 1,000 days", native digits, "in 1.5 hours"; checked against 9,576 ICU4C cases |
+| 38 | Numbering systems other than a locale's default format with the default's symbols | Internal (ETF) | **Output changes** — ✅ Fixed where CLDR has the data: `fa-u-nu-latn` is "1,000.5". Open: root's `arab` and `arabext` symbols are not in the CLDR JSON |
+| 39 | MF2 plural selection ignores the digits a numeric function displays | None | **Output changes** — ✅ Fixed. Russian `{2 :number minimumFractionDigits=1}` selects `other` |
+| 40 | `-u-hc-h11` and `-u-hc-h24` never render `K` or `k`, and parsing cannot read them back | None | **Output changes** — ✅ Fixed. `en-u-hc-h24` is "24:30" and parses back; 1,470 ICU4C cases, 40 documented exceptions |
+| 41 | Public functions raise on options or values of the wrong type | None | **Error instead of raise** — ✅ Fixed in `Localize.Number` and `Localize.Number.Parser`. Open: 16 other modules raise on options that are not a keyword list, and `Localize.Interval` and `Localize.DateTime` on some option values and struct fields of the wrong type |
+| 42 | A number pattern with quoted text loops in the lexer and exhausts memory | None | **Output changes** — ✅ Fixed. `#,##0 'units'` is "1,234 units"; tokens of all 4,122 CLDR 49 number patterns unchanged |
+| 43 | `Number.to_string/2` trims a pattern's trailing whitespace; the wrapper skips quoted characters | None | **Output changes** — ✅ Fixed. Matches ICU and `to_parts/2`; only custom patterns and pt-CV/kea CVE (trailing NBSP before the dropped zero-width symbol) change |
+| 44 | Date parsing fails on eras, trailing weekdays, other weekday widths and stand-alone months | None | **Output changes** — ✅ Fixed. ICU date sweep: 6,443 of 6,552 rows parse back; the other 109 are CLDR 48 spellings CLDR 49 changed, each parsed in its CLDR 49 spelling |
+| 45 | Time skeletons mis-resolve day periods, `J`, `C` with `-u-hc-`, and locale-specific hour data | None | **Output changes** — ✅ Fixed. ICU time-skeleton sweep in 14 locales; ICU differences kept: midnight, `J` padding, CLDR 48 `fr`/`ko` formats, zh-Hant pattern-derived skeletons |
+| 46 | `-u-hc-` skipped on exact and append-item skeleton matches; `X`/`x` dropped from skeletons | None | **Output changes** — ✅ Fixed |
+| 47 | `b`/`B` ignore the pattern's precision; `VVV` derives "UTC" for Etc/UTC | None | **Output changes** — ✅ Fixed. ICU zone sweep; `v`/`vvvv` keep TR35's type fallback and `fr` keeps CLDR's "TU", where ICU differs |
+| 48 | Significant digits and scientific mantissas round half-up and ignore TR35's mantissa precision | None | **Output changes** — ✅ Fixed. Matches ICU on ties ("@@@" renders 12250 as "12200") and engineering patterns ("##0.###E0" renders 12345 as "12.34E3") |
+| 49 | Currency resolution matches a code inside a word ("dolars" → ARS) | None | **Output changes** — ✅ Fixed. A name or code must stand as a whole word; symbols and codes against digits still match |
+| 50 | Number patterns ignore the currency sign's width (`¤¤` ISO code, `¤¤¤` plural name, `¤¤¤¤¤` narrow symbol), currency spacing and the currency's decimal places; the wrapper tests spacing on its own markup | None | **Output changes** — ✅ Fixed. ICU `DecimalFormat` sweep of 1,375 locale, currency, pattern and value rows, parts included; `¤¤¤¤¤` gives TR35's narrow symbol where ICU renders U+FFFD, and the lexer no longer makes an atom per sign width |
+| 51 | `territory_from_locale/1` gives a tag struct without a territory the default locale's territory | None | **Output changes** — ✅ Fixed. Likely subtags supply it ("fr" → FR) |
+| 52 | MF2 parser normalizes literals to NFC; the printer and highlighter leave literals that are not names unquoted | None | **Output changes** — ✅ Fixed. TR35 Part 9 keeps a literal's code points and matches keys in NFC; the WG conformance suite and a round trip over the name ranges pass |
+| 53 | Atoms made from a download task's locale names and from unit usage prefixes | None | ✅ Fixed. The other `String.to_atom` calls act on compile-time, validated or CLDR-derived values |
+| 54 | Hand-built `LanguageTag` structs with fields of the wrong shape raise in 18 public functions, among them `validate_locale/1` and so every `:locale` option | None | ✅ Fixed. Audit of 37 entry points with 47 malformed shapes: 196 raising calls before, none after; fields are checked once where a struct enters |
+| 55 | `resolve_currency/2` reports an invalid `:fuzzy` value or locale as an unknown currency | None | ✅ Fixed |
+| 56 | Interpolating a parsed `LanguageTag` raises because its `String.Chars` returns the nil canonical id | None | ✅ Fixed |
 
 The remainder of this file expands each item in turn.
 
@@ -1724,7 +1744,7 @@ Track CLDR-14207 and hold behaviour until it settles. Two fixes are available: r
 
 * **Output changes** for up to 141 locales if either fix lands. None now.
 
-## 36. `fields: :month_and_day` drops the year across a year boundary — Open
+## 36. `fields: :month_and_day` drops the year across a year boundary — Done
 
 Found alongside item 34. Present in every locale, and not a CLDR 49 change.
 
@@ -1736,20 +1756,119 @@ For dates in different years, `fields: :month_and_day` renders no year: `en` giv
 
 Settle the intended behaviour before fixing it: widen the skeleton to carry the year, as ICU does, or glue two full dates. Check `fields: :month` for the same gap.
 
+### Resolution
+
+Widened, as ICU does, by the user's decision on 2026-09-14. A year difference for a skeleton without a year takes the interval pattern of the skeleton widened with `y` (`MMMd` becomes `yMMMd`), so `en` renders "Dec 30, 2025 – Jan 2, 2026"; `fields: :month` had the same gap and takes the same fix. The cause was `get_interval_pattern/4`, which fell back to the item's month pattern when it had none for the year.
+
+Comparing against ICU4J 73's `DateIntervalFormat` over 448 date and time cases surfaced more defects, fixed together: values that differ in no field shown now format as one value in the requested fields (TR35 step 4), where `fields: :year_and_month` gave "Jul – Jul 2024" and equal endpoints the default date format; times across noon take the item's `a` pattern; an `:h` interval within one hour no longer returns `:no_pattern`; and a skeleton with no interval item joins both values through the fallback pattern. Same-day datetime intervals now follow TR35 step 3.2 where CLDR ships a time interval pattern, and keep showing the date once where it does not, by the user's decision. 434 of the 448 date and time cases and 35 of 48 datetime cases match ICU; every difference is CLDR 49 data newer than ICU 73's CLDR 43 or a documented choice, pinned in `test/localize/interval_matrix_test.exs`.
+
 ### API impact / breaking risk
 
 * **Output changes** for cross-year `month_and_day` intervals once fixed.
 
+## 37. Relative time ignores the locale's number format and misreads fractional counts — Done
+
+Found by the relative-time sweep written for the formatting coverage review on 2026-09-14. Present since relative time shipped, and not a CLDR 49 change.
+
+### Gap
+
+`Localize.DateTime.Relative` substituted `Kernel.to_string/1` of the truncated count into the CLDR pattern, so every locale printed bare ASCII digits ("in 1000 days" for "in 1,000 days", Latin digits for `ar-EG`), `to_parts/2` returned the number as one `:integer` part, and the plural category came from the raw value. A float with `:unit` was read as seconds: `to_string(1.5, unit: :hour)` returned "this hour".
+
+### Resolution
+
+The number is formatted with the locale's number format, honouring a `-u-nu-` numbering system, and `to_parts/2` returns its `:integer`, `:group`, `:decimal` and `:fraction` parts, each carrying `:unit`, as ECMA-402 does. The pattern is chosen by the plural category of the number as displayed, through `Localize.Number.source_number/2`, which unit formatting now shares; that also fixes unit plurals chosen by rounding half up where the formatter rounds half even (`hr` 0.0045 hours is "0,004 sata"). A number with `:unit` is a count of that unit, and an offset within one percent of -2 to 2 takes the named form, as ICU does.
+
+`test/localize/datetime/relative_matrix_test.exs` checks 9,576 cases from ICU4C 78.3 across 16 locales, three widths, every unit including the weekdays, both `numeric` modes, both directions and each plural category, with the number's parts compared to ICU's field positions. The 55 cases where CLDR 49 changed Hebrew and Slovenian patterns since ICU's CLDR 48 take the CLDR 49 string from `test/support/data/relative_cldr49_changes.tsv`.
+
+### API impact / breaking risk
+
+* **Output changes**: relative times localize their numbers, a fractional count formats as given, and `to_parts/2` splits the number into its parts.
+
+## 38. Numbering systems other than a locale's default format with the default's symbols — Fixed where CLDR has the data; root's data Open
+
+Found by the relative-time sweep's `-u-nu-` cases, then measured across number formatting.
+
+### Gap
+
+`fa-u-nu-latn` formatted "1٬000٫5" where ICU and ECMA-402 give "1,000.5". The locale normalizer kept symbols and formats only for a locale's default and other numbering systems, dropping the `latn` data CLDR ships for `fa`, `mr` and every locale whose default is not `latn`, and the runtime took a missing system's symbols from the default system where CLDR's root aliases them to the locale's `latn` symbols.
+
+### Resolution
+
+`data/normalize/number.ex` keeps every numbering system a locale has symbols or formats for, and `Localize.Number.System.fallback_systems/2` gives symbols and formats CLDR's inheritance: the locale's `latn` data for a system it lacks, except `arab` and `arabext`, which keep the default system's as before. All 657 locales were regenerated, and the decoded terms of the sampled locales differ from the previous set only by the added systems. `test/localize/number_system_matrix_test.exs` checks 1,365 decimal, percent and scientific cases from ICU4C 78.3 through both a `-u-nu-` locale and the `:number_system` option; four `ur` percent cases take CLDR 49's "٪" where CLDR 48 had "%".
+
+### Open
+
+Root defines `arab` and `arabext` symbols of its own, and `arab` percent and currency formats, while CLDR JSON carries a locale's symbols only for the numbering systems it uses. So `en-u-nu-arab` still formats "١,٠٠٠.٥" where ICU gives "١٬٠٠٠٫٥"; the 154 ICU cases that need root's data are left out of the fixture. Closing it needs root's blocks from `common/main/root.xml` as a pipeline source, which is a vendoring decision.
+
+### API impact / breaking risk
+
+* **Output changes** for numbers in a numbering system other than the locale's default.
+* The locale data gains symbols and formats for those systems, and `locale_hashes.etf` is regenerated from the CDN after the v49.0.0 upload, as for all CLDR 49 data.
+
+## 39. MF2 plural selection ignores the digits a numeric function displays — Done
+
+Found while checking plural selection on displayed numbers after item 37.
+
+### Gap
+
+`Localize.Message.format/3` applied the plural rules to the raw operand, so the selected variant could contradict the number it displays: Russian `{2 :number minimumFractionDigits=1}` showed "2,0" and selected `few`, `{101 :number maximumSignificantDigits=2}` showed "100" and selected `one`, `100.0` selected `other`, and `{0.215 :percent}` showed "22 %" and selected `other`. TR35 part 9's Rule Selection matches "the operand, as modified by function options", and `guides/plural_rules.md` already described that.
+
+### Resolution
+
+A numeric declaration's plural operand is read from the digits its function displays, through the same number preparation that formats it. Exact-literal keys are unchanged, since the spec defines their serialization only for integers without fraction or significant-digit options. ICU4C 78.3's MessageFormat 2 agrees on every case it can format; it cannot format `:percent`, `:offset` or `maximumFractionDigits=0`, and rounds significant digits half even where the spec's default is `halfExpand`, so those cases are checked against the CLDR plural rules for the displayed number in `test/localize/message/plural_selection_test.exs`. An `:integer` operand given as a `Decimal` raised `ArgumentError`, and now truncates.
+
+### API impact / breaking risk
+
+* **Output changes** where formatting options or a float operand change the digits displayed.
+
+## 40. `-u-hc-h11` and `-u-hc-h24` never render `K` or `k`, and parsing cannot read them back — Done
+
+Found by the coverage work of 2026-09-14, checking the untested `K` and `k` branches against ICU.
+
+### Gap
+
+TR35 part 1 gives each hour cycle its pattern symbol, h11 `K`, h12 `h`, h23 `H` and h24 `k`, but formatting only chose between the 12- and 24-hour skeletons and never changed the hour symbol: `en-u-hc-h11` rendered 00:30 as "12:30 AM" and `en-u-hc-h24` as "00:30", where ICU gives "0:30 AM" and "24:30", and `ja-u-hc-h12` kept `ja`'s `K`. A skeleton's explicit `h` or `H` was switched to the override's cycle, which ICU does not do. The matcher counted every hour symbol as equally close, so a requested `Kms` tied `hms` and `Hms` and took `Hms`; a time interval skeleton's `j` was never resolved, so `:jm` intervals glued two times. Parsing then could not read "24:30" back, and a flexible day period always put a night hour after noon, so `ja` "夜中0:30" parsed as 12:30.
+
+### Resolution
+
+Patterns resolved from a standard format or a skeleton take the hour cycle's symbol within the matched cycle (`Localize.Time.apply_hour_cycle/2`), in times, datetimes and interval halves; only `j`, `J` and `C` take the override's cycle; hour symbols of the other cycle no longer count as compatible when matching; and a time interval skeleton the interval formats lack is matched to its closest item. The time parser also tries each pattern in the locale's hour cycle, and resolves a flexible day period's 12-hour hour to whichever reading falls within the period's dayPeriodRule (TR35 §Parsing Day Periods). `test/localize/datetime/hour_cycle_matrix_test.exs` checks 1,470 cases from ICU4C 78.3's DateFormat, DateTimePatternGenerator and DateIntervalFormat across seven locales and every hour cycle, and parses each formatted time back. It documents 40 exceptions: 34 where CLDR 49 changed `fr` and `ko` formats since ICU's CLDR 48, and 6 where ICU's DateIntervalFormat keeps `ja`'s `K` under h12 although TR35's h12 counts hours from 1 and ICU's own DateFormat does too.
+
+### API impact / breaking risk
+
+* **Output changes** under `-u-hc-h11`, `-u-hc-h24` and `ja-u-hc-h12`, and for explicit `h` and `H` skeletons under `-u-hc-`.
+
+## 41. Public functions raise on options or values of the wrong type — Open beyond `Localize.Number`
+
+Found while testing the public API's default options for coverage.
+
+### Gap
+
+The library's rule is that invalid input returns `{:error, exception}`. `Localize.Number.to_parts/2`, `to_range_parts/3` and `to_ratio_string/2` raised on a value that is not a number, every `Localize.Number` function raised on options that are not a keyword list, and `Localize.Number.Parser`'s `parse/2`, `scan/2` and `resolve_*` functions raised on input of the wrong type.
+
+### Resolution
+
+`Localize.Number` and `Localize.Number.Parser` check their arguments and return `Localize.InvalidValueError`, and `test/localize/number_invalid_input_test.exs` sweeps every public function and bang variant.
+
+### Open
+
+A probe of the other public formatting modules found the same fault for options that are not a keyword list in `Localize.Unit`, `Localize.List`, `Localize.Territory`, `Localize.Language`, `Localize.Script`, `Localize.Currency`, `Localize.Calendar`, `Localize.Date`, `Localize.Time`, `Localize.DateTime`, `Localize.Interval`, `Localize.Duration`, `Localize.Message`, `Localize.Collation`, `Localize.Locale.LocaleDisplay` and `Localize.Number.PluralRule`, which raise `FunctionClauseError` or `ArgumentError`. `Localize.DateTime.Relative` already returns an error. The same fault reaches option values and struct fields of the wrong type: `Localize.Interval.to_string/3` raises `FunctionClauseError` for a date interval whose `:format`, `:fields` or `:date_format` is a string, integer or map, and `Localize.DateTime.to_string/2` raises `ArgumentError` for a `DateTime` whose `utc_offset` is not an integer when the pattern has a `Z` or `X` field. Language tag structs with fields of the wrong shape are fixed (item 54).
+
+### API impact / breaking risk
+
+* An error tuple where a call raised.
+
 ## Open questions
 
-Questions raised while drafting the plan. Most were answered by the work itself; the four that remain are recorded first.
+Questions raised while drafting the plan. Most were answered by the work itself; the five that remain are recorded first.
 
 Still open:
 
 * **Item 4** — Does `Localize.Interval.to_string/3` need a parallel `:semantic` route, or do interval skeletons stay field-based? Item 31 reworked interval matching without settling this, so it stands.
 * **Item 11** — Should `localize_emoji` ship a Phoenix LiveView picker component as a follow-up package (`localize_emoji_live`)? Out of scope for the initial 0.1.0; flag for later.
 * **Item 35** — When a range pattern is inherited from a different locale level than its single date, glue or keep the inherited pattern? Waiting on CLDR-14207.
-* **Item 36** — Should a cross-year `month_and_day` interval widen to carry the year, as ICU does, or glue two full dates?
+* **Item 38** — Should root's `arab` and `arabext` symbol and format blocks from `common/main/root.xml` become a pipeline source, since CLDR JSON does not carry them? Until then `en-u-nu-arab` formats with the locale's `latn` symbols.
+* **Item 41** — Should the sixteen other modules that raise on options of the wrong type be fixed before the CLDR 49 release, or in a release of their own? `Localize.Number` and `Localize.Number.Parser` are fixed.
+* ~~**Item 36** — Should a cross-year `month_and_day` interval widen to carry the year, as ICU does, or glue two full dates?~~ Widen, as ICU does (2026-09-14).
 
 Answered during the cycle, kept for the record:
 
