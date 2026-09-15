@@ -28,8 +28,15 @@ defmodule Localize.Data.Normalize.Units do
   }
 
   def normalize(content, locale) do
+    normalize_units(content, locale, units_for_locale(locale))
+  end
+
+  # Normalizes an already-decoded cldr-units-full JSON document, so the
+  # transformation can be exercised without the CLDR sources on disk.
+  @doc false
+  def normalize_units(content, locale, units_json) do
     units =
-      units_for_locale(locale)
+      units_json
       |> get_in(["main", locale, "units"])
       |> LMap.underscore_keys()
 

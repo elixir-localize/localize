@@ -99,12 +99,23 @@ defmodule Localize.Data.Normalize.Number do
     |> Map.new()
   end
 
+  @system_keyed_data ~w(symbols decimal_formats percent_formats currency_formats
+                        scientific_formats misc_patterns rational_formats)
+
+  # The default and other numbering systems, and every other system the
+  # locale has symbols or formats for: fa's default is arabext, and it also
+  # defines the latn data that `fa-u-nu-latn` formats with.
   def number_system_names_from(numbers) do
     default = numbers["default_numbering_system"]
     others = Map.values(numbers["other_numbering_systems"])
 
-    ([default] ++ others)
-    |> Enum.uniq()
+    with_data =
+      for key <- Map.keys(numbers),
+          [data, system] <- [String.split(key, "_number_system_")],
+          data in @system_keyed_data,
+          do: system
+
+    Enum.uniq([default] ++ others ++ Enum.sort(with_data))
   end
 
   def normalize_short_format(nil), do: nil

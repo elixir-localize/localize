@@ -1,0 +1,103 @@
+{
+  "main": {
+    "ru": {
+      "units": {
+        "long": {
+          "power2": {
+            "compoundUnitPattern1": "кв. {0}",
+            "compoundUnitPattern1-count-few": "квадратных {0}",
+            "compoundUnitPattern1-count-few-case-accusative": "квадратных {0}",
+            "compoundUnitPattern1-count-few-case-dative": "квадратным {0}",
+            "compoundUnitPattern1-count-few-case-genitive": "квадратных {0}",
+            "compoundUnitPattern1-count-few-case-instrumental": "квадратными {0}",
+            "compoundUnitPattern1-count-few-case-prepositional": "квадратных {0}",
+            "compoundUnitPattern1-count-many": "квадратных {0}",
+            "compoundUnitPattern1-count-many-case-accusative": "квадратных {0}",
+            "compoundUnitPattern1-count-many-case-dative": "квадратным {0}",
+            "compoundUnitPattern1-count-many-case-genitive": "квадратных {0}",
+            "compoundUnitPattern1-count-many-case-instrumental": "квадратными {0}",
+            "compoundUnitPattern1-count-many-case-prepositional": "квадратных {0}",
+            "compoundUnitPattern1-count-one": "квадратный {0}",
+            "compoundUnitPattern1-count-one-case-accusative": "квадратный {0}",
+            "compoundUnitPattern1-count-one-case-dative": "квадратному {0}",
+            "compoundUnitPattern1-count-one-case-genitive": "квадратного {0}",
+            "compoundUnitPattern1-count-one-case-instrumental": "квадратным {0}",
+            "compoundUnitPattern1-count-one-case-locative": "квадратном {0}",
+            "compoundUnitPattern1-count-one-case-prepositional": "квадратном {0}",
+            "compoundUnitPattern1-count-other": "квадратного {0}",
+            "compoundUnitPattern1-count-other-case-accusative": "квадратного {0}",
+            "compoundUnitPattern1-count-other-case-dative": "квадратного {0}",
+            "compoundUnitPattern1-count-other-case-genitive": "квадратного {0}",
+            "compoundUnitPattern1-count-other-case-instrumental": "квадратного {0}",
+            "compoundUnitPattern1-count-other-case-prepositional": "квадратного {0}",
+            "compoundUnitPattern1-gender-feminine-count-few": "квадратные {0}",
+            "compoundUnitPattern1-gender-feminine-count-few-case-accusative": "квадратные {0}",
+            "compoundUnitPattern1-gender-feminine-count-few-case-dative": "квадратным {0}",
+            "compoundUnitPattern1-gender-feminine-count-few-case-genitive": "квадратных {0}",
+            "compoundUnitPattern1-gender-feminine-count-few-case-instrumental": "квадратными {0}",
+            "compoundUnitPattern1-gender-feminine-count-few-case-prepositional": "квадратных {0}",
+            "compoundUnitPattern1-gender-feminine-count-few-case-vocative": "квадратные {0}",
+            "compoundUnitPattern1-gender-feminine-count-many": "квадратных {0}",
+            "compoundUnitPattern1-gender-feminine-count-many-case-accusative": "квадратных {0}",
+            "compoundUnitPattern1-gender-feminine-count-many-case-dative": "квадратным {0}",
+            "compoundUnitPattern1-gender-feminine-count-many-case-genitive": "квадратных {0}",
+            "compoundUnitPattern1-gender-feminine-count-many-case-instrumental": "квадратными {0}",
+            "compoundUnitPattern1-gender-feminine-count-many-case-prepositional": "квадратных {0}",
+            "compoundUnitPattern1-gender-feminine-count-one": "квадратная {0}",
+            "compoundUnitPattern1-gender-feminine-count-one-case-accusative": "квадратную {0}",
+            "compoundUnitPattern1-gender-feminine-count-one-case-dative": "квадратной {0}",
+            "compoundUnitPattern1-gender-feminine-count-one-case-genitive": "квадратной {0}",
+            "compoundUnitPattern1-gender-feminine-count-one-case-instrumental": "квадратной {0}",
+            "compoundUnitPattern1-gender-feminine-count-one-case-locative": "квадратной {0}",
+            "compoundUnitPattern1-gender-feminine-count-one-case-prepositional": "квадратной {0}",
+            "compoundUnitPattern1-gender-feminine-count-one-case-vocative": "квадратная {0}",
+            "compoundUnitPattern1-gender-feminine-count-other": "квадратной {0}",
+            "compoundUnitPattern1-gender-feminine-count-other-case-accusative": "квадратной {0}",
+            "compoundUnitPattern1-gender-feminine-count-other-case-dative": "квадратной {0}",
+            "compoundUnitPattern1-gender-feminine-count-other-case-genitive": "квадратной {0}",
+            "compoundUnitPattern1-gender-feminine-count-other-case-instrumental": "квадратной {0}",
+            "compoundUnitPattern1-gender-feminine-count-other-case-locative": "квадратной {0}",
+            "compoundUnitPattern1-gender-feminine-count-other-case-prepositional": "квадратной {0}",
+            "compoundUnitPattern1-gender-feminine-count-other-case-vocative": "квадратной {0}",
+            "compoundUnitPattern1-gender-masculine-count-few": "квадратных {0}",
+            "compoundUnitPattern1-gender-masculine-count-few-case-accusative": "квадратных {0}",
+            "compoundUnitPattern1-gender-masculine-count-few-case-dative": "квадратным {0}",
+            "compoundUnitPattern1-gender-masculine-count-few-case-genitive": "квадратных {0}",
+            "compoundUnitPattern1-gender-masculine-count-few-case-instrumental": "квадратными {0}",
+            "compoundUnitPattern1-gender-masculine-count-few-case-prepositional": "квадратных {0}",
+            "compoundUnitPattern1-gender-masculine-count-many": "квадратных {0}",
+            "compoundUnitPattern1-gender-masculine-count-many-case-accusative": "квадратных {0}",
+            "compoundUnitPattern1-gender-masculine-count-many-case-dative": "квадратным {0}",
+            "compoundUnitPattern1-gender-masculine-count-many-case-genitive": "квадратных {0}",
+            "compoundUnitPattern1-gender-masculine-count-many-case-instrumental": "квадратными {0}",
+            "compoundUnitPattern1-gender-masculine-count-many-case-prepositional": "квадратных {0}",
+            "compoundUnitPattern1-gender-masculine-count-one": "квадратный {0}",
+            "compoundUnitPattern1-gender-masculine-count-one-case-accusative": "квадратный {0}",
+            "compoundUnitPattern1-gender-masculine-count-one-case-dative": "квадратному {0}",
+            "compoundUnitPattern1-gender-masculine-count-one-case-genitive": "квадратного {0}",
+            "compoundUnitPattern1-gender-masculine-count-one-case-instrumental": "квадратным {0}",
+            "compoundUnitPattern1-gender-masculine-count-one-case-prepositional": "квадратном {0}",
+            "compoundUnitPattern1-gender-masculine-count-other": "квадратного {0}",
+            "compoundUnitPattern1-gender-masculine-count-other-case-accusative": "квадратного {0}",
+            "compoundUnitPattern1-gender-masculine-count-other-case-dative": "квадратного {0}",
+            "compoundUnitPattern1-gender-masculine-count-other-case-genitive": "квадратного {0}",
+            "compoundUnitPattern1-gender-masculine-count-other-case-instrumental": "квадратного {0}",
+            "compoundUnitPattern1-gender-masculine-count-other-case-prepositional": "квадратного {0}"
+          }
+        },
+        "narrow": {
+          "power2": {
+            "compoundUnitPattern1": "{0}²",
+            "compoundUnitPattern1-count-other": "{0}²"
+          }
+        },
+        "short": {
+          "power2": {
+            "compoundUnitPattern1": "{0}²",
+            "compoundUnitPattern1-count-other": "{0}²"
+          }
+        }
+      }
+    }
+  }
+}

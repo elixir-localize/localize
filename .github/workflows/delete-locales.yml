@@ -58,7 +58,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Validate inputs before touching anything.
       - name: Validate inputs
@@ -83,19 +83,27 @@ jobs:
 
       # Compute the current data version from the repository so we
       # can refuse to delete it unless allow_current is set.
+      #
+      # This mirrors `Localize.read_version/0`, as upload-locales.yml
+      # does, so the guard compares against the segment clients
+      # download from: the CLDR version is padded to major.minor ("49"
+      # becomes "49.0"), and the patch comes from
+      # "{cldr_version}:{patch}", from a bare patch number, or is 0
+      # when the recorded CLDR version is stale.
       - name: Read current data version on main
         id: current
         run: |
-          cldr_version=$(cat priv/localize/version | tr -d '[:space:]')
-          patch_raw=$(cat priv/localize/localize_patch_version | tr -d '[:space:]')
-          recorded_cldr="${patch_raw%%:*}"
-          recorded_patch="${patch_raw##*:}"
-          if [ "${recorded_cldr}" = "${cldr_version}" ]; then
-            patch_version="${recorded_patch}"
-          else
-            patch_version="0"
-          fi
-          current_data_version="v${cldr_version}.${patch_version}"
+          cldr_version=$(tr -d '[:space:]' < priv/localize/version)
+          patch_raw=$(tr -d '[:space:]' < priv/localize/localize_patch_version)
+
+          case "${patch_raw}" in
+            "${cldr_version}":*) patch_version="${patch_raw#*:}" ;;
+            *:*) patch_version="0" ;;
+            *) patch_version="${patch_raw}" ;;
+          esac
+
+          IFS=. read -r major minor _rest <<< "${cldr_version}"
+          current_data_version="v${major}.${minor:-0}.${patch_version}"
           echo "current=${current_data_version}" >> "$GITHUB_OUTPUT"
           echo "Current data version on main: ${current_data_version}"
 

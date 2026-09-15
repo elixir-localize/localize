@@ -38,13 +38,17 @@ defmodule Localize.Data.UnicodeData do
   @spec ensure_ucd_files() :: {:ok, :current | :downloaded} | {:error, term()}
   def ensure_ucd_files do
     with {:ok, required} <- required_ucd_version() do
-      if Enum.all?(@files, fn {_src, dest} -> vendored_version(dest) == required end) do
+      if ucd_files_current?(required) do
         IO.puts("UCD property files are at #{required}; nothing to fetch")
         {:ok, :current}
       else
         download_ucd_files(required)
       end
     end
+  end
+
+  defp ucd_files_current?(required) do
+    Enum.all?(@files, fn {_source, dest} -> vendored_version(dest) == required end)
   end
 
   @doc """
@@ -95,12 +99,14 @@ defmodule Localize.Data.UnicodeData do
       path
       |> File.stream!()
       |> Enum.take(1)
-      |> Enum.find_value(fn line ->
-        case Regex.run(~r/-([0-9]+\.[0-9]+\.[0-9]+)\.txt/, line) do
-          [_, version] -> version
-          nil -> nil
-        end
-      end)
+      |> Enum.find_value(&header_version/1)
+    end
+  end
+
+  defp header_version(line) do
+    case Regex.run(~r/-([0-9]+\.[0-9]+\.[0-9]+)\.txt/, line) do
+      [_, version] -> version
+      nil -> nil
     end
   end
 

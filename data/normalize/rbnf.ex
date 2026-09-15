@@ -88,15 +88,13 @@ defmodule Localize.Data.Normalize.Rbnf do
   defp parse_rule_line(line) do
     trimmed = String.trim_trailing(line)
 
-    cond do
-      String.starts_with?(trimmed, "%") and String.ends_with?(trimmed, ":") ->
-        {:ruleset, String.trim_trailing(trimmed, ":")}
-
-      true ->
-        case String.split(trimmed, ":", parts: 2) do
-          [name, definition] -> {:rule, [name, String.trim_leading(definition)]}
-          _not_a_rule -> :skip
-        end
+    if String.starts_with?(trimmed, "%") and String.ends_with?(trimmed, ":") do
+      {:ruleset, String.trim_trailing(trimmed, ":")}
+    else
+      case String.split(trimmed, ":", parts: 2) do
+        [name, definition] -> {:rule, [name, String.trim_leading(definition)]}
+        _not_a_rule -> :skip
+      end
     end
   end
 

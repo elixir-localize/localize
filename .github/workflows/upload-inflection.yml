@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # The pin lives in priv/localize/localize_inflection_sha and the
       # pipeline revision in Localize.Inflection.Provider — both read
