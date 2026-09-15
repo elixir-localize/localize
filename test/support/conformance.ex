@@ -206,4 +206,24 @@ defmodule Localize.Inflection.Conformance do
 
     {passed, Enum.reverse(failures)}
   end
+
+  @doc """
+  Returns the glob matching the upstream inflection fixture files.
+
+  """
+  def fixtures, do: "data/inflection/test/inflection_*.xml"
+
+  @doc """
+  Returns one `{locale, path}` pair per upstream inflection fixture
+  file, with the locale in the internal underscore form.
+
+  """
+  def suites do
+    fixtures()
+    |> Path.wildcard()
+    |> Enum.map(fn path ->
+      locale = path |> Path.basename(".xml") |> String.replace_prefix("inflection_", "")
+      {locale, path}
+    end)
+  end
 end

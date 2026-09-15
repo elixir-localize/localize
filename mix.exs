@@ -288,11 +288,14 @@ defmodule Localize.MixProject do
   defp coverage_ignore_modules do
     [
       ~r/^Localize\.Data(\.|$)/,
+      ~r/^Localize\.Inflection\.DataGen(\.|$)/,
       ~r/^Mix\.Tasks\./,
       GenerateNumber,
       Localize.DateTime.TestData,
       Localize.LocaleDisplayNameGenerator,
       Localize.Test.PreferenceData,
+      Localize.Inflection.Conformance,
+      Localize.Inflection.PronounConformance,
       Localize.DateTime.Timezone.Builder,
       Localize.Macros,
       Localize.Gettext.Messages,

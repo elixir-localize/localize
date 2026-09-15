@@ -206,4 +206,18 @@ defmodule Localize.Inflection.Provider do
         :ok
     end
   end
+
+  # Test seam: inject a manifest (or `:no_manifest`) without touching
+  # the priv file, as `Localize.Locale.Provider.put_locale_hashes/1` does.
+  @doc false
+  def put_inflection_hashes(hashes) do
+    :persistent_term.put(@manifest_key, hashes)
+  end
+
+  @doc false
+  def reset_inflection_hashes do
+    :persistent_term.erase(@manifest_key)
+    :persistent_term.erase({:localize, :inflection_hashes_warned})
+    :ok
+  end
 end

@@ -14,8 +14,13 @@ defmodule Localize.Inflection.AccessRoutingTest do
 
     @default Localize.Locale.Provider.PersistentTerm
 
+    @impl true
     defdelegate load(locale), to: @default
+
+    @impl true
     defdelegate store(locale_id, locale_data), to: @default
+
+    @impl true
     defdelegate loaded?(locale), to: @default
 
     @impl true

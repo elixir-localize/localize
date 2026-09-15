@@ -8,16 +8,15 @@ defmodule Localize.Inflection.ConformanceTest do
   # `mix test --include pending` to see progress).
   @pending ~w()
 
-  suites =
-    "data/inflection/test/inflection_*.xml"
-    |> Path.wildcard()
-    |> Enum.map(fn path ->
-      locale = path |> Path.basename(".xml") |> String.replace_prefix("inflection_", "")
-      {locale, path}
-    end)
-    |> Enum.filter(fn {locale, _path} ->
-      File.exists?("#{Localize.Inflection.DataDir.dir()}/#{locale}.etf")
-    end)
+  # One suite per fixture whether or not its inflection data is on disk.
+  # Filtering on the data here made a suite without data vanish from the
+  # run instead of failing; test_helper.exs downloads it from the CDN.
+  suites = Conformance.suites()
+  @suite_count length(suites)
+
+  test "upstream inflection conformance fixtures are present" do
+    assert @suite_count > 0, "no inflection conformance fixtures match #{Conformance.fixtures()}"
+  end
 
   for {locale, path} <- suites do
     if locale in @pending do
@@ -25,6 +24,11 @@ defmodule Localize.Inflection.ConformanceTest do
     end
 
     test "upstream #{locale} inflection conformance suite" do
+      case Localize.Inflection.Locale.resolve(unquote(locale)) do
+        {:ok, _data_locale} -> :ok
+        {:error, exception} -> flunk(Exception.message(exception))
+      end
+
       locale = String.to_atom(unquote(locale))
       {passed, failures} = Conformance.run_file(locale, unquote(path))
 

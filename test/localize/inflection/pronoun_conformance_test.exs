@@ -3,13 +3,13 @@ defmodule Localize.Inflection.PronounConformanceTest do
 
   alias Localize.Inflection.PronounConformance
 
-  suites =
-    "data/inflection/test/pronoun_*.xml"
-    |> Path.wildcard()
-    |> Enum.map(fn path ->
-      locale = path |> Path.basename(".xml") |> String.replace_prefix("pronoun_", "")
-      {locale, path}
-    end)
+  suites = PronounConformance.suites()
+  @suite_count length(suites)
+
+  test "upstream pronoun conformance fixtures are present" do
+    assert @suite_count > 0,
+           "no pronoun conformance fixtures match #{PronounConformance.fixtures()}"
+  end
 
   for {locale, path} <- suites do
     test "upstream #{locale} pronoun conformance suite" do
