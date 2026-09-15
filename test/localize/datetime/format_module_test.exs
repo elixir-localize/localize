@@ -145,8 +145,15 @@ defmodule Localize.DateTime.FormatModuleTest do
     end
 
     test "an unquoted non-symbol letter run returns a tokenize error" do
+      # `n` is a letter TR35 leaves unassigned.
       assert {:error, %Localize.DateTimeFormatError{reason: :tokenize_error}} =
-               Compiler.tokenize("hh:mm garbage")
+               Compiler.tokenize("hh:mm noon")
+    end
+
+    test "the deprecated l is ignored and g is the modified Julian day" do
+      # TR35: `l` "should be ignored in patterns"; `g` is a day number field.
+      assert {:ok, [{:month, 1, 2}], 1} = Compiler.tokenize("lMMl")
+      assert {:ok, [{:modified_julian_day, 1, 3}], 1} = Compiler.tokenize("ggg")
     end
   end
 end

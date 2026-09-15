@@ -38,9 +38,9 @@ defmodule Localize.Time.Parser do
   # case where timezone resolution actually matters.
   #
 
-  alias Localize.TimeParseError
   alias Localize.Calendar, as: LCalendar
   alias Localize.DateTime.Format
+  alias Localize.TimeParseError
 
   # CLDR commonly uses NBSP / NNBSP / narrow-NBSP / ideographic
   # space between time fields and AM/PM markers. Accept any of
@@ -118,22 +118,59 @@ defmodule Localize.Time.Parser do
   defp try_locale_patterns(input, locale, as) do
     with {:ok, available} <- Format.available_formats(locale, :gregorian),
          {:ok, day_periods} <- LCalendar.day_periods(locale, :gregorian) do
-      patterns = collect_patterns(available)
+      patterns = available |> collect_patterns() |> with_hour_cycle(locale)
+      day_periods = Map.put(day_periods, :rules, day_period_rules(locale))
       lenient = load_lenient_date(locale)
       regexes = pattern_regexes(patterns, locale, day_periods, lenient)
 
-      result =
-        Enum.find_value(patterns, fn {_kind, pattern} ->
-          {regex, tokens} = Map.get(regexes, pattern, {nil, nil})
-
-          case match_pattern(input, regex, tokens, day_periods, as) do
-            {:ok, value, zone} -> {:ok, value, zone}
-            :error -> nil
-          end
-        end)
-
-      result || {:error, no_match_error(input, locale)}
+      match_patterns(input, patterns, regexes, day_periods, as) ||
+        {:error, no_match_error(input, locale)}
     end
+  end
+
+  # Under a `-u-hc-` hour cycle, times format with the cycle's hour symbol
+  # ("24:30" for h24, "午前12:30" for ja h12), so those forms of the
+  # locale's patterns are tried first.
+  defp with_hour_cycle(patterns, locale) do
+    case Localize.validate_locale(locale) do
+      {:ok, %Localize.LanguageTag{locale: %{hc: hour_cycle}} = language_tag}
+      when not is_nil(hour_cycle) ->
+        converted =
+          for {skeleton, pattern} <- patterns,
+              hour_cycle_pattern = Localize.Time.apply_hour_cycle(pattern, language_tag),
+              hour_cycle_pattern != pattern,
+              do: {skeleton, hour_cycle_pattern}
+
+        converted ++ patterns
+
+      _no_hour_cycle ->
+        patterns
+    end
+  end
+
+  # The dayPeriodRules a flexible day period's 12-hour hour is resolved
+  # against, keyed by the locale's language as the formatter keys them.
+  defp day_period_rules(locale) do
+    case Localize.Locale.cldr_locale_id_from(locale) do
+      {:ok, locale_id} ->
+        language = locale_id |> Kernel.to_string() |> String.split("-") |> hd()
+        Map.get(Localize.SupplementalData.day_periods().format, language)
+
+      {:error, _reason} ->
+        nil
+    end
+  end
+
+  # The first pattern that matches the input, or nil when none does.
+  defp match_patterns(input, patterns, regexes, day_periods, as) do
+    Enum.find_value(patterns, fn {_kind, pattern} ->
+      {regex, tokens} = Map.get(regexes, pattern, {nil, nil})
+
+      case match_pattern(input, regex, tokens, day_periods, as) do
+        {:ok, value, zone} -> {:ok, value, zone}
+        :error -> nil
+      end
+    end)
   end
 
   # %{pattern => {compiled_regex_or_nil, tokens}} cached in :persistent_term
@@ -144,26 +181,26 @@ defmodule Localize.Time.Parser do
 
     case :persistent_term.get(key, nil) do
       nil ->
-        compiled =
-          Map.new(patterns, fn {_kind, pattern} ->
-            tokens = tokenize_pattern(pattern)
-            regex_string = compile_regex(tokens, day_periods, lenient)
-
-            regex =
-              case Regex.compile(regex_string, "u") do
-                {:ok, r} -> r
-                {:error, _} -> nil
-              end
-
-            {pattern, {regex, tokens}}
-          end)
-
+        compiled = Map.new(patterns, &compile_pattern_entry(&1, day_periods, lenient))
         :persistent_term.put(key, compiled)
         compiled
 
       compiled ->
         compiled
     end
+  end
+
+  defp compile_pattern_entry({_kind, pattern}, day_periods, lenient) do
+    tokens = tokenize_pattern(pattern)
+    regex_string = compile_regex(tokens, day_periods, lenient)
+
+    regex =
+      case Regex.compile(regex_string, "u") do
+        {:ok, regex} -> regex
+        {:error, _reason} -> nil
+      end
+
+    {pattern, {regex, tokens}}
   end
 
   # Iterate every parseable CLDR pattern in `availableFormats`.
@@ -247,22 +284,22 @@ defmodule Localize.Time.Parser do
     with %Regex{} <- regex,
          %{} = caps <- Regex.named_captures(regex, input),
          {:ok, hour} <- extract_hour(caps, tokens, day_periods) do
-      zone = extract_zone(caps)
+      build_match(as, caps, hour, extract_zone(caps))
+    else
+      _ -> :error
+    end
+  end
 
-      case as do
-        :map ->
-          {:ok, build_time_map(caps, hour, zone), zone}
+  defp build_match(:map, caps, hour, zone) do
+    {:ok, build_time_map(caps, hour, zone), zone}
+  end
 
-        :struct ->
-          with {:ok, minute} <- extract_field(caps, "minute", 0),
-               {:ok, second} <- extract_field(caps, "second", 0),
-               {:ok, microsecond} <- extract_microsecond(caps),
-               {:ok, time} <- Time.new(hour, minute, second, microsecond) do
-            {:ok, time, zone}
-          else
-            _ -> :error
-          end
-      end
+  defp build_match(:struct, caps, hour, zone) do
+    with {:ok, minute} <- extract_field(caps, "minute", 0),
+         {:ok, second} <- extract_field(caps, "second", 0),
+         {:ok, microsecond} <- extract_microsecond(caps),
+         {:ok, time} <- Time.new(hour, minute, second, microsecond) do
+      {:ok, time, zone}
     else
       _ -> :error
     end
@@ -628,51 +665,73 @@ defmodule Localize.Time.Parser do
     period = caps |> Map.get("day_period", "") |> String.downcase()
     flex = flex_period_from_caps(caps)
 
-    cond do
-      period in ["pm", "p.m."] ->
-        {:ok, base + 12}
-
-      # Locale day-period names that carry no ASCII am/pm signal
-      # (ja 午前/午後, el π.μ./μ.μ., narrow "a"/"p") resolve
-      # against the locale's own am/pm name sets.
-      locale_period_kind(period, day_periods) == :pm ->
-        {:ok, base + 12}
-
-      locale_period_kind(period, day_periods) == :am ->
-        {:ok, base}
-
-      period in ["am", "a.m.", ""] and flex == nil ->
-        {:ok, base}
-
-      # Locale-specific day-period name — look up via heuristic.
-      String.contains?(period, "pm") or String.contains?(period, "p.m") ->
-        {:ok, base + 12}
-
-      true ->
-        resolve_flex_period_hour(base, flex)
+    case day_period_half(period, flex, day_periods) do
+      :pm -> {:ok, base + 12}
+      :am -> {:ok, base}
+      :flex -> resolve_flex_period_hour(base, flex, day_periods)
     end
   end
 
   defp resolve_hour(_, _, _, _, _), do: :error
 
-  # No explicit AM/PM marker but a flex period (B) was captured.
-  # TR35 §Parsing Day Periods: derive AM/PM from the period's
-  # defining range. Conservative mapping that holds for every
-  # locale CLDR ships.
-  defp resolve_flex_period_hour(base, flex) do
+  # Which half of the day a captured day-period name puts the hour in, or
+  # `:flex` when only a flexible day period (B) can decide.
+  defp day_period_half(period, flex, day_periods) do
+    locale_kind = locale_period_kind(period, day_periods)
+
+    cond do
+      period in ["pm", "p.m."] ->
+        :pm
+
+      # Locale day-period names that carry no ASCII am/pm signal
+      # (ja 午前/午後, el π.μ./μ.μ., narrow "a"/"p") resolve
+      # against the locale's own am/pm name sets.
+      locale_kind in [:am, :pm] ->
+        locale_kind
+
+      period in ["am", "a.m.", ""] and flex == nil ->
+        :am
+
+      # Locale-specific day-period name — look up via heuristic.
+      String.contains?(period, "pm") or String.contains?(period, "p.m") ->
+        :pm
+
+      true ->
+        :flex
+    end
+  end
+
+  # No explicit AM/PM marker but a flex period (B) was captured. TR35
+  # §Parsing Day Periods checks the day period for consistency with the
+  # hour, so the hour is whichever of its two 12-hour readings falls within
+  # the period's dayPeriodRule: ja "夜中0:30" (night2, 23:00–04:00) is 00:30
+  # and en "1 at night" (night1, 21:00–06:00) is 01:00. Where both readings
+  # or neither fall within it, the period's name decides.
+  defp resolve_flex_period_hour(base, flex, day_periods) do
+    rule = get_in(day_periods, [:rules, flex])
+
+    case Enum.filter([base, base + 12], &hour_in_period?(&1, rule)) do
+      [hour] -> {:ok, hour}
+      _both_or_neither -> named_period_hour(base, flex)
+    end
+  end
+
+  defp hour_in_period?(hour, %{from: from, before: before}) when from < before do
+    hour * 60 >= from and hour * 60 < before
+  end
+
+  defp hour_in_period?(hour, %{from: from, before: before}) do
+    hour * 60 >= from or hour * 60 < before
+  end
+
+  defp hour_in_period?(_hour, _rule), do: false
+
+  defp named_period_hour(base, flex) do
     cond do
       flex in [:morning1, :morning2] ->
         {:ok, base}
 
       flex in [:afternoon1, :afternoon2, :evening1, :evening2, :night1, :night2] ->
-        # `night1`/`night2` cover hours straddling midnight in
-        # some locales (e.g. en covers 21:00–05:59). For the
-        # typical 12-hour input "10 at night" → 22:00 we add
-        # 12 when the base is below 6, and we add 12 always
-        # when the typed hour is in the 6-11 range. The corner
-        # case of "1 at night" meaning 01:00 is intentionally
-        # mapped to 13:00 — `night1` is locale-defined and we
-        # follow CLDR rather than guess.
         {:ok, base + 12}
 
       flex == :noon ->

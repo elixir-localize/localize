@@ -84,14 +84,25 @@ iex> Localize.Date.to_string(~D[2024-07-10], format: "EEEE d MMMM y", locale: :e
 
 ### Partial dates
 
-Maps with a subset of date fields are supported. Missing fields are omitted from the output:
+Maps with a subset of date fields are supported. A standard format, or no format, derives the skeleton from the fields present, with the month as wide as the format asks:
 
 ```elixir
-iex> Localize.Date.to_string(%{year: 2024, month: 6}, format: :yMMM, locale: :en)
+iex> Localize.Date.to_string(%{year: 2024, month: 6}, locale: :en)
 {:ok, "Jun 2024"}
+
+iex> Localize.Date.to_string(%{year: 2024, month: 6}, format: :short, locale: :en)
+{:ok, "6/2024"}
 
 iex> Localize.Date.to_string(%{year: 2024, month: 6}, format: :yMMM, locale: :fr)
 {:ok, "juin 2024"}
+```
+
+A skeleton or pattern that asks for a field the map does not have is an error rather than a blank in the output:
+
+```elixir
+iex> {:error, error} = Localize.Date.to_string(%{year: 2024, month: 6}, format: :yMMMd, locale: :en)
+iex> Exception.message(error)
+"The format \"MMM d, y\" cannot be applied to the value: missing :day."
 ```
 
 ### Locale influence on dates
@@ -148,13 +159,35 @@ iex> Localize.Time.to_string(~T[14:30:00], locale: :ja)
 {:ok, "14:30:00"}
 ```
 
+A `-u-hc-` locale extension replaces the locale's preferred hour cycle, which the standard formats and a skeleton's `j` and `J` follow, and the hour takes that cycle's symbol, so `h11` counts hours from 0 to 11 and `h24` from 1 to 24. An explicit `h` or `H` in a skeleton keeps the cycle it names, and `C`, which asks for the first of the locale's allowed hour formats, is not overridden. `J` asks for the preferred hour without a day period:
+
+```elixir
+iex> Localize.Time.to_string(~T[00:30:00], format: :short, locale: "en-u-hc-h11", prefer: :ascii)
+{:ok, "0:30 AM"}
+
+iex> Localize.Time.to_string(~T[00:30:00], format: :short, locale: "en-u-hc-h24")
+{:ok, "24:30"}
+
+iex> Localize.Time.to_string(~T[21:00:00], format: :Hm, locale: "en-u-hc-h12")
+{:ok, "21:00"}
+
+iex> Localize.Time.to_string(~T[18:00:00], format: :Jmm, locale: :en)
+{:ok, "6:00"}
+```
+
 ### Partial times
 
-Maps with a subset of time fields are supported:
+Maps with a subset of time fields are supported. Without a skeleton the hour follows the locale's hour cycle, or a `-u-hc-` override:
 
 ```elixir
 iex> Localize.Time.to_string(%{hour: 14, minute: 30}, format: :hm, locale: :en, prefer: :ascii)
 {:ok, "2:30 PM"}
+
+iex> Localize.Time.to_string(%{hour: 14, minute: 30}, locale: :de)
+{:ok, "14:30"}
+
+iex> Localize.Time.to_string(%{hour: 14, minute: 30}, locale: "en-u-hc-h23")
+{:ok, "14:30"}
 ```
 
 ## DateTime formatting
@@ -178,6 +211,18 @@ Combine different format levels for the date and time portions:
 ```elixir
 iex> Localize.DateTime.to_string(~N[2024-07-10 14:30:00], date_format: :full, time_format: :short, locale: :en, prefer: :ascii)
 {:ok, "Wednesday, July 10, 2024 at 2:30 PM"}
+```
+
+### Partial datetimes
+
+A map holding only some of the date and time fields formats its date half and its time half separately, then joins them with the locale's date-time pattern, so no field is dropped:
+
+```elixir
+iex> Localize.DateTime.to_string(%{year: 2026, month: 6, day: 15, hour: 14}, locale: :en, prefer: :ascii)
+{:ok, "Jun 15, 2026, 2 PM"}
+
+iex> Localize.DateTime.to_string(%{year: 2026, month: 6, hour: 14}, locale: :en, prefer: :ascii)
+{:ok, "Jun 2026, 2 PM"}
 ```
 
 ### Locale influence on datetimes
@@ -210,6 +255,21 @@ iex> Localize.DateTime.Relative.to_string(-60, locale: :en)
 
 iex> Localize.DateTime.Relative.to_string(3600, locale: :en)
 {:ok, "in 1 hour"}
+```
+
+### A number of units
+
+With `:unit`, the number is a count of that unit and may be fractional. It is formatted for the locale, and the plural category of the number as displayed selects the pattern:
+
+```elixir
+iex> Localize.DateTime.Relative.to_string(1.5, unit: :hour, locale: :en)
+{:ok, "in 1.5 hours"}
+
+iex> Localize.DateTime.Relative.to_string(1.5, unit: :day, locale: :fr)
+{:ok, "dans 1,5 jour"}
+
+iex> Localize.DateTime.Relative.to_string(-1000, unit: :day, locale: :de)
+{:ok, "vor 1.000 Tagen"}
 ```
 
 ### From dates and datetimes
@@ -286,14 +346,17 @@ iex> Localize.Date.parse("2026-03-22", locale: :de)
 {:ok, ~D[2026-03-22]}
 ```
 
-Parsing is lenient about the decoration a locale allows. A leading weekday is stripped, and week and quarter forms resolve to the date they begin:
+Parsing is lenient about the decoration a locale allows. A weekday is read wherever the locale's formats place it, and a leading one is stripped from a format that has none. An era is read, stand-alone and format month names are both accepted, and week and quarter forms resolve to the date they begin. Weeks are numbered by the locale's own rules, so an `en` week begins on a Sunday:
 
 ```elixir
 iex> Localize.Date.parse("Saturday, May 16, 2026", locale: :en)
 {:ok, ~D[2026-05-16]}
 
+iex> Localize.Date.parse("Jan 21, 2024 AD", locale: :en)
+{:ok, ~D[2024-01-21]}
+
 iex> Localize.Date.parse("week 20 of 2026", locale: :en)
-{:ok, ~D[2026-05-11]}
+{:ok, ~D[2026-05-10]}
 
 iex> Localize.Date.parse("Q2 2026", locale: :en)
 {:ok, ~D[2026-04-01]}
@@ -519,7 +582,8 @@ Skeleton atoms can use `j` as a meta-symbol that resolves to the locale's prefer
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `:locale` | atom, string, or `LanguageTag` | `Localize.get_locale()` | Locale for patterns and pluralization. |
+| `:locale` | atom, string, or `LanguageTag` | `Localize.get_locale()` | Locale for patterns, pluralization, and the number's digits and grouping. |
 | `:format` | atom | `:standard` | Width: `:standard`, `:short`, or `:narrow`. |
-| `:unit` | atom | (auto-derived) | Explicit unit: `:second`, `:minute`, `:hour`, `:day`, `:week`, `:month`, `:quarter`, `:year`. |
-| `:relative_to` | `DateTime` | `DateTime.utc_now()` | Baseline for calculating the difference. |
+| `:unit` | atom | (auto-derived) | Explicit unit: `:second`, `:minute`, `:hour`, `:day`, `:week`, `:month`, `:quarter`, `:year`, or a weekday from `:mon` to `:sun`. |
+| `:numeric` | atom | `:auto` | `:auto` uses named forms such as "yesterday" for offsets of -2 to 2; `:always` is always numeric. |
+| `:relative_to` | `Date`, `Time`, `NaiveDateTime`, or `DateTime` | `DateTime.utc_now()` | Baseline for calculating the difference. |

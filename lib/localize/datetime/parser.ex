@@ -44,8 +44,8 @@ defmodule Localize.DateTime.Parser do
   # * `{:error, Localize.DateTimeParseError.t()}` on failure.
   #
 
-  alias Localize.DateTimeParseError
   alias Localize.DateTime.Format
+  alias Localize.DateTimeParseError
 
   @standard_formats [:short, :medium, :long, :full]
 
@@ -72,7 +72,9 @@ defmodule Localize.DateTime.Parser do
     `t:NaiveDateTime.t/0`, `t:DateTime.t/0` or `t:Date.Range.t/0`.
 
   * `{:error, exception}`, a `t:Localize.DateTimeParseError.t/0` whose
-    `:attempts` records what each sub-parser reported.
+    `:attempts` records what each sub-parser reported, or a
+    `t:Localize.InvalidValueError.t/0` if `input` is not a string or an
+    option is malformed.
 
   ### Examples
 
@@ -93,7 +95,13 @@ defmodule Localize.DateTime.Parser do
            | map()
            | {map(), map()}}
           | {:error, Exception.t()}
-  def parse(input, options \\ []) when is_binary(input) do
+  def parse(input, options \\ []) do
+    with :ok <- Localize.DateTime.ParseOptions.validate(input, options) do
+      parse_valid(input, options)
+    end
+  end
+
+  defp parse_valid(input, options) do
     options = Localize.Date.Parser.normalise_calendar_option(options)
     locale = Keyword.get(options, :locale) || Localize.get_locale()
     cldr_calendar = Keyword.get(options, :calendar, :gregorian)
@@ -222,25 +230,46 @@ defmodule Localize.DateTime.Parser do
 
     as = Keyword.get(options, :as, :struct)
 
-    # Strip weekday prefix here too — the glue-splitting step
-    # doesn't know which half is the date, so a leading
-    # `"Sun, "` would otherwise survive into the date half
-    # regardless of where the date/time boundary lands. Ordinal
-    # stripping doesn't need to be applied here because each
-    # half is forwarded through `Localize.Date.parse/2` /
-    # `Localize.Time.parse/2`, and `Date.parse/2` already
-    # runs the ordinal-fallback retry per endpoint.
-    input =
-      input
-      |> Localize.Date.Parser.normalise_input()
-      |> Localize.Date.Parser.preprocess_safe(locale, cldr_calendar)
+    # The input as given is tried before the input with a leading
+    # weekday stripped: a CLDR pattern can carry the weekday anywhere,
+    # and a weekday name can also be a month name (es "mar" is both
+    # martes and marzo). Ordinal stripping doesn't need to be applied
+    # here because each half is forwarded through
+    # `Localize.Date.parse/2` / `Localize.Time.parse/2`, and
+    # `Date.parse/2` already runs the ordinal-fallback retry per
+    # endpoint.
+    normalised = Localize.Date.Parser.normalise_input(input)
+    stripped = Localize.Date.Parser.preprocess_safe(normalised, locale, cldr_calendar)
+    candidates = Enum.uniq([normalised, stripped])
 
-    case try_iso(input) do
+    case Enum.find_value(candidates, :error, &iso_candidate/1) do
       {:ok, value} ->
         {:ok, finalise_datetime(value, as)}
 
       :error ->
-        try_locale_glue(input, locale, options, as)
+        try_locale_glue_candidates(candidates, locale, options, as)
+    end
+  end
+
+  defp iso_candidate(input) do
+    case try_iso(input) do
+      {:ok, _value} = ok -> ok
+      :error -> nil
+    end
+  end
+
+  # The first candidate's error is the one reported.
+  defp try_locale_glue_candidates([input | rest], locale, options, as) do
+    case try_locale_glue(input, locale, options, as) do
+      {:ok, _value} = ok -> ok
+      error -> Enum.find_value(rest, error, &glue_candidate(&1, locale, options, as))
+    end
+  end
+
+  defp glue_candidate(input, locale, options, as) do
+    case try_locale_glue(input, locale, options, as) do
+      {:ok, _value} = ok -> ok
+      _error -> nil
     end
   end
 

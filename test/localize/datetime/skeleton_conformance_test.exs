@@ -37,26 +37,22 @@ defmodule Localize.DateTime.SkeletonConformanceTest do
     calendar: Calendar.ISO
   }
 
-  # 84 of the 90 Gregorian cases agree. Every difference is in a separator
-  # or a wrapper, never in which fields are chosen or how wide they are, and
-  # they fall into two groups.
+  # 86 of the 90 Gregorian cases agree. The date-time glue follows TR35's
+  # Missing Skeleton Fields rule, its length set by the requested date
+  # fields, so a numeric month joins at `:short`; joining at `:medium`
+  # whatever the fields had been the difference for `zh-Hant-TW` and `fr` at
+  # `yMdHmsv`.
   #
-  # The date-time glue — `zh-Hant-TW`, `ko` and `fr` at `yMdHmsv`, and the
-  # comma before the year in `vi` `yMMMMd` / `yMMMMEEEEd`. We join with the
-  # locale's `dateTimeFormat`; CLDR's generator uses a plain space. Both
-  # glue styles are ingested and `atTime` is now the default, per TR35, but
-  # CLDR defines it only for `:full` and `:long` — these cases combine at
-  # `:medium`, where `atTime` and `standard` are the same pattern, so the
-  # difference is the generator's, not a missing style.
-  #
-  # The locale's own format — `ko` `yMd` renders "2024. 7. 6." from `ko`'s
-  # `availableFormats` where the fixture expects a generated `y/M/d`, and
-  # `ja` `yMMMMEEEEd` keeps the parentheses `ja` puts round its weekday.
+  # The four left differ only in a separator, never in which fields are
+  # chosen or how wide they are, and come from the locale's own
+  # `availableFormats`: `ko` `yMd` (and `yMdHmsv`, which contains it)
+  # renders "2024. 7. 6." where the fixture expects a generated `y/M/d`, and
+  # `vi` `yMMMMd` / `yMMMMEEEEd` keep the comma `vi` puts before the year.
   # Reading the locale's shipped format is what TR35 asks for, so these are
   # the fixture generator's synthesis differing from the data, not defects.
   #
   # See item 12 in plans/cldr-49.md.
-  @expected_matches 84
+  @expected_matches 86
 
   defp cases do
     [_header | rows] =

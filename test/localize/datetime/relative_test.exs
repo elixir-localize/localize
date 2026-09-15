@@ -196,8 +196,8 @@ defmodule Localize.DateTime.RelativeTest do
   end
 
   describe "to_string/2 input type coverage" do
-    test "float input is truncated and scaled" do
-      assert {:ok, "in 2 minutes"} = Relative.to_string(90.5, unit: :minute, locale: :en)
+    test "a float with a unit is a count of that unit" do
+      assert {:ok, "in 90.5 minutes"} = Relative.to_string(90.5, unit: :minute, locale: :en)
     end
 
     test "NaiveDateTime with a NaiveDateTime relative_to" do

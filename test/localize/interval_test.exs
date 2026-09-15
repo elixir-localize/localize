@@ -460,13 +460,11 @@ defmodule Localize.IntervalTest do
     test ":time_format atom reaches the resolver" do
       # Before Bug 1's fix, `time_format: :y` was silently dropped
       # and the formatter fell back to the default `:medium → :hm`.
-      # After the fix, the option is honoured: `:y` produces a
-      # year-only output (no hour fields).
-      assert {:ok, result} =
+      # The option is now honoured, and because `:y` asks for a year a
+      # time does not have, the result is an error naming that field
+      # rather than the hour-only default.
+      assert {:error, %Localize.DateTimeInvalidInputError{missing: [:year]}} =
                Interval.to_string(~T[12:00:00], ~T[14:00:00], time_format: :y, locale: :ja)
-
-      refute String.contains?(result, "12"),
-             "expected `:y` skeleton (no hour) to suppress hour text, got #{inspect(result)}"
     end
 
     test ":time_format takes precedence over :format" do
@@ -907,10 +905,21 @@ defmodule Localize.IntervalTest do
                )
     end
 
-    test "an unknown time skeleton returns a :no_format error" do
-      assert {:error,
-              %Localize.DateTimeIntervalFormatError{reason: :no_format, format_key: :bogus}} =
+    test "an unknown time skeleton is reported as unresolvable" do
+      assert {:error, %Localize.DateTimeUnresolvedFormatError{format: :bogus}} =
                Interval.to_string(~T[10:00:00], ~T[12:00:00], time_format: :bogus, locale: :en)
+    end
+
+    test "a skeleton the interval table has no item for joins both times in full" do
+      # TR35 §Interval Formats step 7: with no interval pattern, format both
+      # values and join them with the fallback pattern. en `hms` is
+      # "h:mm:ss a" and its fallback "{0} – {1}", with thin spaces.
+      assert {:ok, "10:00:00 AM – 12:00:00 PM"} =
+               Interval.to_string(~T[10:00:00], ~T[12:00:00],
+                 time_format: :hms,
+                 locale: :en,
+                 prefer: :ascii
+               )
     end
   end
 
@@ -940,7 +949,10 @@ defmodule Localize.IntervalTest do
 
   describe "to_string/3 datetime interval sub-format options" do
     test ":date_format shortens the date side of a same-day interval" do
-      assert {:ok, "4/8/26, 12:00 PM – 2:00 PM"} =
+      # TR35 §Interval Formats step 3.2: the date once, joined by en's short
+      # date-time pattern "{1}, {0}" to the `hm` item's hour-difference
+      # pattern "h:mm – h:mm a".
+      assert {:ok, "4/8/26, 12:00 – 2:00 PM"} =
                Interval.to_string(
                  ~N[2026-04-08 12:00:00],
                  ~N[2026-04-08 14:00:00],

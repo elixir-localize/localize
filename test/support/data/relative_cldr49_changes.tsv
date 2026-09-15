@@ -1,0 +1,59 @@
+# Relative time formats CLDR 49 changed since ICU4C 78.3's CLDR 48, taken from the
+# CLDR 49 dateFields patterns with ICU's number text and plural category.
+# Columns: locale, style, unit, numeric, value, the CLDR 48 string from
+# relative_icu_expected.tsv, and the CLDR 49 string.
+he	long	year	auto	-1	השנה שעברה	בשנה שעברה
+he	long	year	auto	1	השנה הבאה	בשנה הבאה
+he	long	month	auto	-1	החודש שעבר	בחודש שעבר
+he	long	month	auto	1	החודש הבא	בחודש הבא
+he	long	week	auto	-1	השבוע שעבר	בשבוע שעבר
+he	long	week	auto	1	השבוע הבא	בשבוע הבא
+he	long	sun	always	-1	לפני יום ראשון 1	לפני יום ראשון אחד (1)
+he	long	sun	always	0.0045	בעוד יום ראשון 0.004	בעוד יום ראשון אחד (0.004)
+he	short	year	auto	-1	השנה שעברה	בשנה שעברה
+he	short	year	auto	1	השנה הבאה	בשנה הבאה
+he	short	month	auto	-1	החודש שעבר	בחודש שעבר
+he	short	month	auto	1	החודש הבא	בחודש הבא
+he	short	week	auto	-1	השבוע שעבר	בשבוע שעבר
+he	short	week	auto	1	השבוע הבא	בשבוע הבא
+he	short	second	always	-1234567.891	לפני 1,234,567.891 שנ׳	לפני 1,234,567.891 שני׳
+he	short	second	always	-2	לפני שתי שנ׳	לפני שתי שני׳
+he	short	second	always	-1	לפני שנ׳ (1)	לפני שני׳ (1)
+he	short	second	always	0	בעוד 0 שנ׳	בעוד 0 שני׳
+he	short	second	always	0.0045	בעוד שנ׳ (0.004)	בעוד שני׳ (0.004)
+he	short	second	always	2	בעוד 2 שנ׳	בעוד 2 שני׳
+he	short	second	auto	-2	לפני שתי שנ׳	לפני שתי שני׳
+he	short	second	auto	-1	לפני שנ׳ (1)	לפני שני׳ (1)
+he	short	second	auto	1	בעוד שנ׳ (1)	בעוד שני׳ (1)
+he	short	second	auto	2	בעוד 2 שנ׳	בעוד 2 שני׳
+he	narrow	year	auto	-1	השנה שעברה	בשנה שעברה
+he	narrow	year	auto	1	השנה הבאה	בשנה הבאה
+he	narrow	month	auto	-1	החודש שעבר	בחודש שעבר
+he	narrow	month	auto	1	החודש הבא	בחודש הבא
+he	narrow	week	auto	-1	השבוע שעבר	בשבוע שעבר
+he	narrow	week	auto	1	השבוע הבא	בשבוע הבא
+he	narrow	second	always	-1234567.891	לפני 1,234,567.891 שנ׳	לפני 1,234,567.891 שני׳
+he	narrow	second	always	-2	לפני שתי שנ׳	לפני שתי שני׳
+he	narrow	second	always	-1	לפני שנ׳ (1)	לפני שני׳ (1)
+he	narrow	second	always	0	בעוד 0 שנ׳	בעוד 0 שני׳
+he	narrow	second	always	0.0045	בעוד שנ׳ (0.004)	בעוד שני׳ (0.004)
+he	narrow	second	always	2	בעוד 2 שנ׳	בעוד 2 שני׳
+he	narrow	second	auto	-2	לפני שתי שנ׳	לפני שתי שני׳
+he	narrow	second	auto	-1	לפני שנ׳ (1)	לפני שני׳ (1)
+he	narrow	second	auto	1	בעוד שנ׳ (1)	בעוד שני׳ (1)
+he	narrow	second	auto	2	בעוד 2 שנ׳	בעוד 2 שני׳
+sl	short	year	always	-2	pred 2 letoma	pred 2 l.
+sl	short	year	always	-1	pred 1 letom	pred 1 l.
+sl	short	year	auto	-2	pred 2 letoma	pred 2 l.
+sl	short	year	auto	1	naslednje leto	nasl. leto
+sl	narrow	year	always	-1234567.891	pred 1.234.567,891 leti	pred 1.234.567,891 l.
+sl	narrow	year	always	-1000	pred 1000 leti	pred 1000 l.
+sl	narrow	year	always	-2	pred 2 letoma	pred 2 l.
+sl	narrow	year	always	-1	pred 1 letom	pred 1 l.
+sl	narrow	year	always	0	čez 0 let	čez 0 l.
+sl	narrow	year	always	0.0045	čez 0,004 leta	čez 0,004 l.
+sl	narrow	year	always	0.9999	čez 1 leto	čez 1 l.
+sl	narrow	year	always	2	čez 2 leti	čez 2 l.
+sl	narrow	year	auto	-2	pred 2 letoma	pred 2 l.
+sl	narrow	year	auto	1	naslednje leto	nasl. l.
+sl	narrow	year	auto	2	čez 2 leti	čez 2 l.

@@ -235,14 +235,18 @@ defmodule Localize.DateTime.Format.AppendItems do
           {:ok, pattern}
 
         %{} = variants ->
-          case Format.resolve_variant(variants, options) do
-            pattern when is_binary(pattern) -> {:ok, pattern}
-            _no_variant -> :error
-          end
+          resolved_variant(variants, options)
 
         _no_pattern ->
           :error
       end
+    end
+  end
+
+  defp resolved_variant(variants, options) do
+    case Format.resolve_variant(variants, options) do
+      pattern when is_binary(pattern) -> {:ok, pattern}
+      _no_variant -> :error
     end
   end
 

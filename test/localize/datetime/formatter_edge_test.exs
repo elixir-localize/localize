@@ -51,17 +51,32 @@ defmodule Localize.DateTime.FormatterEdgeTest do
     result
   end
 
-  describe "lenient rendering of missing fields" do
-    test "remaining date symbols render empty against a Time" do
-      assert time_format(@time, "Y u U r q D W F e c L") == "          "
+  describe "fields the value does not hold" do
+    # A pattern asking for a field the value lacks is an error naming the
+    # fields; only zone symbols, which TR35 gives fallbacks, render empty.
+    test "the remaining date symbols against a Time" do
+      assert {:error, %Localize.DateTimeInvalidInputError{missing: [:year, :month, :day]}} =
+               Localize.Time.to_string(@time, format: "Y u U r q D W F e c L g", locale: :en)
     end
 
-    test "time symbols and the {0} placeholder render empty against a Date" do
-      assert date_format(@date, "a b B h K k m s S A {0}") == "          "
+    test "the time symbols and the {0} placeholder against a Date" do
+      assert {:error,
+              %Localize.DateTimeInvalidInputError{
+                missing: [:hour, :minute, :second, :microsecond]
+              }} = Localize.Date.to_string(@date, format: "a b B h K k m s S A {0}", locale: :en)
     end
 
-    test "the {1} date placeholder renders empty against a Time" do
-      assert time_format(@time, "{1}") == ""
+    test "the {1} date placeholder against a Time" do
+      assert {:error, %Localize.DateTimeInvalidInputError{missing: [:year, :month, :day]}} =
+               Localize.Time.to_string(@time, format: "{1}", locale: :en)
+    end
+
+    test "a field holding the wrong type is reported as invalid" do
+      assert {:error, %Localize.DateTimeInvalidInputError{missing: [], invalid: [:year]}} =
+               Localize.Date.to_string(%{year: "2024", month: 7, day: 6},
+                 format: "y",
+                 locale: :en
+               )
     end
 
     test "the z zone symbol renders empty against a Date" do
@@ -70,8 +85,10 @@ defmodule Localize.DateTime.FormatterEdgeTest do
   end
 
   describe "wide-count padding and caps" do
-    test "S wider than the microsecond precision caps at six digits" do
-      assert time_format(@time, "SSSSSSS") == "123456"
+    test "S wider than six digits pads with zeros to its width" do
+      # TR35: a fractional second truncates, or pads, to exactly as many
+      # digits as the field has letters.
+      assert time_format(@time, "SSSSSSS") == "1234560"
     end
 
     test "A pads milliseconds of day to the requested width" do
@@ -86,8 +103,10 @@ defmodule Localize.DateTime.FormatterEdgeTest do
       assert date_format(@date, "EEEEEEE") == "Sat"
     end
 
-    test "six-wide L renders empty (no short month names)" do
-      assert date_format(@date, "LLLLLL") == ""
+    test "six-wide L is the zero-padded month number" do
+      # TR35 defines L only to five letters; past that ICU formats the month
+      # number padded to the width, and so does Localize.
+      assert date_format(@date, "LLLLLL") == "000007"
     end
 
     test "three-wide Y pads the week-aligned year" do
@@ -283,8 +302,9 @@ defmodule Localize.DateTime.FormatterEdgeTest do
       assert datetime_format(@utc_datetime, "ZZZZZ") == "Z"
     end
 
-    test "six-wide Z renders empty (no such width)" do
-      assert datetime_format(@utc_datetime, "ZZZZZZ") == ""
+    test "six-wide Z is the long localized GMT format" do
+      # Past TR35's five letters ICU formats Z as ZZZZ, and so does Localize.
+      assert datetime_format(@utc_datetime, "ZZZZZZ") == "GMT+00:00"
     end
 
     test "O widths render localized GMT formats" do
@@ -301,7 +321,9 @@ defmodule Localize.DateTime.FormatterEdgeTest do
     test "V widths render zone id and location formats" do
       assert datetime_format(@utc_datetime, "V") == "utc"
       assert datetime_format(@utc_datetime, "VV") == "Etc/UTC"
-      assert datetime_format(@utc_datetime, "VVV") == "UTC"
+      # CLDR names no exemplar city for Etc/UTC, which is no place, so TR35
+      # falls back to Etc/Unknown's, as ICU4C 78.3 renders it.
+      assert datetime_format(@utc_datetime, "VVV") == "Unknown Location"
       assert datetime_format(@utc_datetime, "VVVV") == "GMT+00:00"
     end
 
@@ -313,8 +335,9 @@ defmodule Localize.DateTime.FormatterEdgeTest do
       assert datetime_format(@utc_datetime, "xxxxx") == "+00:00"
     end
 
-    test "six-wide x falls back to the long basic ISO form" do
-      assert datetime_format(@utc_datetime, "xxxxxx") == "+0000"
+    test "six-wide x keeps the widest defined form" do
+      # ICU has no output for x past five letters; Localize uses xxxxx.
+      assert datetime_format(@utc_datetime, "xxxxxx") == "+00:00"
     end
 
     test "X widths render Z for a zero offset" do

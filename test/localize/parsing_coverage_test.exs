@@ -1,6 +1,9 @@
 defmodule Localize.ParsingCoverageTest do
   use ExUnit.Case, async: true
 
+  doctest Localize.DateTime.ParseOptions
+  doctest Localize.DateTime.Week
+
   # Systematic coverage of the parser engines through their public
   # entry points: `Localize.DateTime.Parser.parse/2`, `Localize.Date.parse/2`,
   # `Localize.Interval.parse/2`, `Localize.Time.parse/2`, and
@@ -115,7 +118,9 @@ defmodule Localize.ParsingCoverageTest do
     test "quarter and week skeletons in :en" do
       assert Localize.Date.parse("Q2 2026", locale: :en) == {:ok, ~D[2026-04-01]}
       assert Localize.Date.parse("2nd quarter 2026", locale: :en) == {:ok, ~D[2026-04-01]}
-      assert Localize.Date.parse("week 20 of 2026", locale: :en) == {:ok, ~D[2026-05-11]}
+
+      # en weeks start on Sunday, so week 20 of 2026 begins on 10 May.
+      assert Localize.Date.parse("week 20 of 2026", locale: :en) == {:ok, ~D[2026-05-10]}
     end
 
     test "trailing weekday name is validated against the date in :ja" do
@@ -953,6 +958,150 @@ defmodule Localize.ParsingCoverageTest do
                {:ok,
                 {%{calendar: Calendar.ISO, month: 5, day: 5},
                  %{calendar: Calendar.ISO, month: 5, day: 10}}}
+    end
+  end
+
+  # ── Invalid input and options return errors, never raise ──
+
+  describe "invalid input and options" do
+    @entry_points [
+      {&Localize.Date.parse/2, "May 23, 2026"},
+      {&Localize.Date.parse/2, "2026-05-23"},
+      {&Localize.Time.parse/2, "10:30 PM"},
+      {&Localize.Time.parse/2, "10:30:00"},
+      {&Localize.DateTime.parse/2, "May 23, 2026, 10:30 PM"},
+      {&Localize.DateTime.parse/2, "2026-05-23T10:30:00"},
+      {&Localize.DateTime.Parser.parse/2, "May 23, 2026"},
+      {&Localize.Interval.parse/2, "May 5 – 10, 2026"}
+    ]
+
+    test "a non-string input is an invalid value error" do
+      for {parse, _input} <- @entry_points, bad_input <- [nil, 123, :"", ~D[2026-05-23]] do
+        assert {:error, %Localize.InvalidValueError{value: ^bad_input}} = parse.(bad_input, [])
+      end
+    end
+
+    test "options that are not a keyword list are an invalid value error" do
+      for {parse, input} <- @entry_points, bad_options <- [:bogus, [:not_keyword], %{as: :map}] do
+        assert {:error, %Localize.InvalidValueError{value: ^bad_options}} =
+                 parse.(input, bad_options)
+      end
+    end
+
+    test "an :as other than :struct or :map is an invalid value error" do
+      for {parse, input} <- @entry_points, as <- [:bogus, nil, "map"] do
+        assert {:error, %Localize.InvalidValueError{value: ^as, allowed_values: [:struct, :map]}} =
+                 parse.(input, as: as)
+      end
+    end
+
+    test "a :reference_date that is not a date is an invalid value error" do
+      for {parse, input} <- @entry_points, reference_date <- ["2026-01-01", 5] do
+        assert {:error, %Localize.InvalidValueError{value: ^reference_date}} =
+                 parse.(input, reference_date: reference_date)
+      end
+    end
+
+    test "an invalid locale or calendar returns a result rather than raising" do
+      for {parse, input} <- @entry_points,
+          option <- [
+            locale: 123,
+            locale: "",
+            locale: :"",
+            locale: "xx-invalid-!!",
+            calendar: "gregorian",
+            calendar: 123
+          ] do
+        case parse.(input, [option]) do
+          {:ok, _value} -> :ok
+          {:error, exception} -> assert is_exception(exception)
+        end
+      end
+    end
+
+    test "a range with an invalid locale reports the locale error" do
+      assert {:error, %Localize.InvalidLocaleError{}} =
+               Localize.Interval.parse("May 5 – 10, 2026", locale: 123)
+    end
+
+    test "a range tuple with a non-string endpoint is an invalid value error" do
+      assert {:error, %Localize.InvalidValueError{value: nil}} =
+               Localize.Interval.parse({nil, "2026-05-10"})
+
+      assert {:error, %Localize.InvalidValueError{value: 5}} =
+               Localize.Interval.parse({"2026-05-05", 5})
+    end
+  end
+
+  # ── Week-of-year text follows the locale's week rules ──
+
+  describe "week-of-year parsing" do
+    # en and pt-BR start weeks on Sunday, ar-EG and fa on Saturday, and
+    # en-GB and de on Monday under ISO 8601 rules. Parsing a date's week text
+    # must land on the first day of the same week in every one of them.
+    test "the week text of every day around a year boundary round trips" do
+      for locale <- [:en, :"pt-BR", :"ar-EG", :fa, :"en-GB", :de, :ja],
+          date <- Date.range(~D[2026-12-20], ~D[2027-01-10]) do
+        {first_day, _min_days} = Localize.DateTime.Week.config(locale)
+        {:ok, week_text} = Localize.Date.to_string(date, locale: locale, format: :yw)
+
+        assert {:ok, parsed} = Localize.Date.parse(week_text, locale: locale)
+        assert Localize.Date.to_string(parsed, locale: locale, format: :yw) == {:ok, week_text}
+        assert Date.day_of_week(parsed) == first_day
+        assert Date.diff(date, parsed) in 0..6
+      end
+    end
+
+    test "week 1 of 2027 in en starts on Sunday 27 December 2026" do
+      assert Localize.Date.parse("week 1 of 2027", locale: :en) == {:ok, ~D[2026-12-27]}
+    end
+
+    test "week 53 of 2026 in de starts on Monday 28 December 2026" do
+      assert Localize.Date.parse("Woche 53 des Jahres 2026", locale: :de) ==
+               {:ok, ~D[2026-12-28]}
+    end
+  end
+
+  # ── Non-Latin digits ──
+
+  describe "dates written in non-Latin digits" do
+    test "each locale's short and medium dates round trip" do
+      for locale <- [:"ar-EG", :fa, :bn, :"hi-IN-u-nu-deva", :"th-TH-u-nu-thai", :my, :mr],
+          format <- [:short, :medium] do
+        {:ok, formatted} = Localize.Date.to_string(~D[2026-05-23], locale: locale, format: format)
+
+        assert Localize.Date.parse(formatted, locale: locale) == {:ok, ~D[2026-05-23]},
+               "#{locale} #{format}: #{inspect(formatted)}"
+      end
+    end
+  end
+
+  # ── Remaining date and time shapes ──
+
+  describe "further date shapes" do
+    test "ISO input returned as a map carries the calendar" do
+      assert Localize.Date.parse("2026-05-23", as: :map) ==
+               {:ok, %{calendar: Calendar.ISO, year: 2026, month: 5, day: 23}}
+    end
+
+    test "a calendar module is accepted as the :calendar option" do
+      assert Localize.Date.parse("23.05.2026", locale: :de, calendar: Calendar.ISO) ==
+               {:ok, ~D[2026-05-23]}
+    end
+
+    test "a non-Gregorian calendar without calendrical names the missing package" do
+      assert {:error, %Localize.DependencyRequiredError{package: "calendrical"}} =
+               Localize.Date.parse("令和8年5月23日", locale: :ja, calendar: :japanese)
+    end
+  end
+
+  describe "further time shapes" do
+    test "a fractional second written with a decimal comma in fr" do
+      assert Localize.Time.parse("10:30:15,5", locale: :fr) == {:ok, ~T[10:30:15.5]}
+    end
+
+    test "a flexible day period in en" do
+      assert Localize.Time.parse("10:30 at night", locale: :en) == {:ok, ~T[22:30:00]}
     end
   end
 end

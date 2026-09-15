@@ -16,6 +16,7 @@ StandAloneQuarter   = q
 
 Month               = M
 StandAloneMonth     = L
+LeapMonthMarker     = l
 
 WeekOfYear          = w
 WeekOfMonth         = W
@@ -23,6 +24,7 @@ WeekOfMonth         = W
 DayOfMonth          = d
 DayOfYear           = D
 DayOfWeekInMonth    = F
+ModifiedJulianDay   = g
 
 WeekdayName         = E
 WeekdayNumber       = e
@@ -77,11 +79,15 @@ Rules.
 {Month}+                 : {token,{month,TokenLine,count(TokenChars)}}.
 {StandAloneMonth}+       : {token,{standalone_month,TokenLine,count(TokenChars)}}.
 
+% TR35: `l` is deprecated and ignored in patterns.
+{LeapMonthMarker}+       : skip_token.
+
 {WeekOfYear}+            : {token,{week_of_year,TokenLine,count(TokenChars)}}.
 {WeekOfMonth}+           : {token,{week_of_month,TokenLine,count(TokenChars)}}.
 {DayOfMonth}+            : {token,{day_of_month,TokenLine,count(TokenChars)}}.
 {DayOfYear}+             : {token,{day_of_year,TokenLine,count(TokenChars)}}.
 {DayOfWeekInMonth}+      : {token,{day_of_week_in_month,TokenLine,count(TokenChars)}}.
+{ModifiedJulianDay}+     : {token,{modified_julian_day,TokenLine,count(TokenChars)}}.
 
 {WeekdayName}+           : {token,{day_name,TokenLine,count(TokenChars)}}.
 {WeekdayNumber}+         : {token,{day_of_week,TokenLine,count(TokenChars)}}.

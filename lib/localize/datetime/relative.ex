@@ -1,10 +1,8 @@
 defmodule Localize.DateTime.Relative do
   @moduledoc """
-  Formats relative time strings such as "3 days ago", "tomorrow",
-  or "in 10 seconds".
+  Formats relative times such as "3 days ago", "tomorrow" or "in 1.5 hours".
 
-  Supports integer offsets (in seconds), `Date`, `DateTime`,
-  `NaiveDateTime`, and `Time` structs.
+  A relative time is a number of units, or the difference between a `t:Date.t/0`, `t:Time.t/0`, `t:NaiveDateTime.t/0` or `t:DateTime.t/0` and a baseline. The number is formatted with the locale's digits and grouping, and the plural category of the number as displayed selects the unit's pattern. `to_string/2` returns the string and `to_parts/2` the same result as typed parts.
 
   """
 
@@ -36,31 +34,26 @@ defmodule Localize.DateTime.Relative do
 
   ### Arguments
 
-  * `relative` is an integer (seconds from now), or a `Date`,
-    `DateTime`, `NaiveDateTime`, or `Time` struct.
+  * `relative` is a number of `:unit`s, which may be fractional, or a number of seconds when there is no `:unit`. It may instead be a `t:Date.t/0`, `t:Time.t/0`, `t:NaiveDateTime.t/0` or `t:DateTime.t/0`, whose difference from `:relative_to` is formatted.
 
   * `options` is a keyword list of options.
 
   ### Options
 
-  * `:locale` is a locale identifier. The default is `:en`.
+  * `:locale` is a locale identifier. The number is formatted with the locale's digits and grouping, in the number system a `-u-nu-` extension names if it has one. The default is `Localize.get_locale/0`.
 
-  * `:format` is `:standard`, `:narrow`, or `:short`.
-    The default is `:standard`.
+  * `:format` is `:standard`, `:narrow`, or `:short`. The default is `:standard`.
 
-  * `:unit` is the time unit for formatting. One of `:second`,
-    `:minute`, `:hour`, `:day`, `:week`, `:month`, `:year`,
-    `:mon`, `:tue`, `:wed`, `:thu`, `:fri`, `:sat`, `:sun`,
-    `:quarter`. If omitted, a unit is derived automatically.
+  * `:unit` is the time unit for formatting. One of `:second`, `:minute`, `:hour`, `:day`, `:week`, `:month`, `:quarter`, `:year`, `:mon`, `:tue`, `:wed`, `:thu`, `:fri`, `:sat` or `:sun`. If omitted, a unit is derived from the difference in seconds.
 
-  * `:numeric` is `:auto` or `:always`, mirroring ECMA-402's
-    `numeric` option. With `:auto` (the default), named forms
-    such as "yesterday" and "tomorrow" are used when the locale
-    defines them. With `:always`, output is always numeric:
-    "1 day ago" instead of "yesterday".
+  * `:numeric` is `:auto` or `:always`, mirroring ECMA-402's `numeric` option. With `:auto` (the default), an offset of -2 to 2 takes the unit's named form, such as "yesterday" or "tomorrow", where the locale has one. With `:always`, output is always numeric: "1 day ago" instead of "yesterday".
 
-  * `:relative_to` is the baseline date/datetime from which
-    the difference is calculated. Defaults to now.
+  * `:relative_to` is the baseline from which the difference is
+    calculated. A `t:Date.t/0` or `t:Time.t/0` is measured against a
+    value of its own type, a `t:NaiveDateTime.t/0` or a `t:DateTime.t/0`,
+    a `t:NaiveDateTime.t/0` against a `t:NaiveDateTime.t/0` or a
+    `t:DateTime.t/0`, and a `t:DateTime.t/0` against a `t:DateTime.t/0`.
+    Any other pairing returns an error. Defaults to now.
 
   ### Returns
 
@@ -73,53 +66,37 @@ defmodule Localize.DateTime.Relative do
       iex> Localize.DateTime.Relative.to_string(-1, unit: :day, locale: :en)
       {:ok, "yesterday"}
 
-      iex> Localize.DateTime.Relative.to_string(1, unit: :day, locale: :en)
-      {:ok, "tomorrow"}
-
       iex> Localize.DateTime.Relative.to_string(-3, unit: :day, locale: :en)
       {:ok, "3 days ago"}
 
-      iex> Localize.DateTime.Relative.to_string(2, unit: :hour, locale: :en)
-      {:ok, "in 2 hours"}
+      iex> Localize.DateTime.Relative.to_string(1.5, unit: :hour, locale: :en)
+      {:ok, "in 1.5 hours"}
+
+      iex> Localize.DateTime.Relative.to_string(-1000, unit: :day, locale: :de)
+      {:ok, "vor 1.000 Tagen"}
 
       iex> Localize.DateTime.Relative.to_string(-1, unit: :day, locale: :en, numeric: :always)
       {:ok, "1 day ago"}
 
-      iex> Localize.DateTime.Relative.to_string(1, unit: :day, locale: :en, numeric: :always)
-      {:ok, "in 1 day"}
-
   """
-  @spec to_string(integer() | Date.t() | DateTime.t() | Time.t(), Keyword.t()) ::
+  @spec to_string(number() | Date.t() | Time.t() | NaiveDateTime.t() | DateTime.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def to_string(relative, options \\ []) do
-    locale = Keyword.get(options, :locale, Localize.get_locale())
-    format = Keyword.get(options, :format, :standard)
-    unit = Keyword.get(options, :unit)
-    numeric = Keyword.get(options, :numeric, :auto)
-    relative_to = Keyword.get_lazy(options, :relative_to, &DateTime.utc_now/0)
+  def to_string(relative, options \\ [])
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, unit} <- validate_unit(unit),
-         {:ok, format} <- validate_format(format),
-         {:ok, numeric} <- validate_numeric(numeric),
-         {:ok, time_difference} <- time_difference(relative, relative_to) do
-      {scaled, resolved_unit} =
-        derive_unit(relative, relative_to, time_difference, unit)
-
-      case format_relative(scaled, resolved_unit, format, locale_id, numeric) do
-        {:ok, _} = result -> result
-        {:error, _} -> {:ok, Kernel.to_string(scaled)}
-      end
+  def to_string(relative, options) when is_list(options) do
+    with {:ok, parts} <- to_parts(relative, options) do
+      {:ok, Enum.map_join(parts, & &1.value)}
     end
   end
+
+  def to_string(_relative, options), do: {:error, invalid_options(options)}
 
   @doc """
   Same as `to_string/2` but raises on error.
 
   ### Arguments
 
-  * `relative` is an integer offset, or a `t:Date.t/0`, `t:DateTime.t/0`
-    or `t:Time.t/0` to express relative to another moment.
+  * `relative` is a number, or a `t:Date.t/0`, `t:Time.t/0`, `t:NaiveDateTime.t/0` or `t:DateTime.t/0`. See `to_string/2`.
 
   * `options` is a keyword list of options.
 
@@ -144,7 +121,8 @@ defmodule Localize.DateTime.Relative do
       "yesterday"
 
   """
-  @spec to_string!(integer() | Date.t() | DateTime.t() | Time.t(), Keyword.t()) :: String.t()
+  @spec to_string!(number() | Date.t() | Time.t() | NaiveDateTime.t() | DateTime.t(), Keyword.t()) ::
+          String.t()
   def to_string!(relative, options \\ []) do
     case to_string(relative, options) do
       {:ok, string} -> string
@@ -155,11 +133,11 @@ defmodule Localize.DateTime.Relative do
   @doc """
   Formats a relative time into typed parts, mirroring ECMA-402's `formatToParts` for `Intl.RelativeTimeFormat`.
 
-  The parts concatenate to exactly the string `to_string/2` produces with the same options. Named forms ("yesterday") are a single `:literal` part; pattern forms tag the number as an `:integer` part carrying a `:unit` key ("3 days ago" is `:integer` "3" plus `:literal` " days ago"), matching the JS part shape.
+  The parts concatenate to exactly the string `to_string/2` produces with the same options. A named form ("yesterday") is a single `:literal` part. A pattern form places the number's parts from `Localize.Number.to_parts/2` (`:integer`, `:group`, `:decimal`, `:fraction`), each carrying a `:unit` key, between `:literal` parts, as ECMA-402 does: "in 1,000 days" is `:literal` "in ", `:integer` "1", `:group` ",", `:integer` "000" and `:literal` " days".
 
   ### Arguments
 
-  * `relative` is an integer, float, `Date`, `Time`, `DateTime`, or `NaiveDateTime`.
+  * `relative` is a number, or a `t:Date.t/0`, `t:Time.t/0`, `t:NaiveDateTime.t/0` or `t:DateTime.t/0`.
 
   * `options` is a keyword list of options.
 
@@ -169,34 +147,31 @@ defmodule Localize.DateTime.Relative do
 
   ### Returns
 
-  * `{:ok, parts}` where `parts` is a list of `%{type: atom(), value: String.t()}` maps; `:integer` parts also carry a `:unit` key.
+  * `{:ok, parts}` where `parts` is a list of `%{type: atom(), value: String.t()}` maps; the number's parts also carry a `:unit` key.
 
-  * `{:error, exception}` if the options are invalid.
+  * `{:error, exception}` if `relative` or the options are invalid.
 
   ### Examples
 
       iex> Localize.DateTime.Relative.to_parts(-1, unit: :day, locale: :en)
       {:ok, [%{type: :literal, value: "yesterday"}]}
 
-      iex> Localize.DateTime.Relative.to_parts(-3, unit: :day, locale: :en)
-      {:ok,
-       [
-         %{type: :integer, value: "3", unit: :day},
-         %{type: :literal, value: " days ago"}
-       ]}
-
-      iex> Localize.DateTime.Relative.to_parts(1, unit: :day, locale: :en, numeric: :always)
+      iex> Localize.DateTime.Relative.to_parts(1000, unit: :day, locale: :en)
       {:ok,
        [
          %{type: :literal, value: "in "},
          %{type: :integer, value: "1", unit: :day},
-         %{type: :literal, value: " day"}
+         %{type: :group, value: ",", unit: :day},
+         %{type: :integer, value: "000", unit: :day},
+         %{type: :literal, value: " days"}
        ]}
 
   """
-  @spec to_parts(integer() | Date.t() | DateTime.t() | Time.t(), Keyword.t()) ::
+  @spec to_parts(number() | Date.t() | Time.t() | NaiveDateTime.t() | DateTime.t(), Keyword.t()) ::
           {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
-  def to_parts(relative, options \\ []) do
+  def to_parts(relative, options \\ [])
+
+  def to_parts(relative, options) when is_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, :standard)
     unit = Keyword.get(options, :unit)
@@ -208,22 +183,19 @@ defmodule Localize.DateTime.Relative do
          {:ok, format} <- validate_format(format),
          {:ok, numeric} <- validate_numeric(numeric),
          {:ok, time_difference} <- time_difference(relative, relative_to) do
-      {scaled, resolved_unit} =
-        derive_unit(relative, relative_to, time_difference, unit)
-
-      case parts_relative(scaled, resolved_unit, format, locale_id, numeric) do
-        {:ok, _} = result -> result
-        {:error, _} -> {:ok, [number_part(scaled, resolved_unit)]}
-      end
+      {scaled, resolved_unit} = derive_unit(relative, relative_to, time_difference, unit)
+      {:ok, relative_parts(scaled, resolved_unit, format, locale, locale_id, numeric)}
     end
   end
+
+  def to_parts(_relative, options), do: {:error, invalid_options(options)}
 
   @doc """
   Same as `to_parts/2` but raises on error.
 
   ### Arguments
 
-  * `relative` is an integer, float, `Date`, `Time`, `DateTime`, or `NaiveDateTime`.
+  * `relative` is a number, or a `t:Date.t/0`, `t:Time.t/0`, `t:NaiveDateTime.t/0` or `t:DateTime.t/0`. See `to_string/2`.
 
   * `options` is a keyword list of options. See `to_parts/2`.
 
@@ -233,7 +205,7 @@ defmodule Localize.DateTime.Relative do
 
   ### Raises
 
-  * Raises an exception if the options are invalid.
+  * Raises an exception if `relative` or the options are invalid.
 
   ### Examples
 
@@ -241,7 +213,7 @@ defmodule Localize.DateTime.Relative do
       [%{type: :literal, value: "yesterday"}]
 
   """
-  @spec to_parts!(integer() | Date.t() | DateTime.t() | Time.t(), Keyword.t()) ::
+  @spec to_parts!(number() | Date.t() | Time.t() | NaiveDateTime.t() | DateTime.t(), Keyword.t()) ::
           [%{type: atom(), value: String.t()}]
   def to_parts!(relative, options \\ []) do
     case to_parts(relative, options) do
@@ -262,125 +234,70 @@ defmodule Localize.DateTime.Relative do
   @spec known_units() :: [atom(), ...]
   def known_units, do: @unit_keys
 
-  # ── Core formatting ───────────────────────────────────────
+  # ── Formatting ────────────────────────────────────────────
 
-  defp format_relative(relative, unit, format, locale_id, numeric) do
-    with {:ok, date_fields} <- Localize.Locale.get(locale_id, [:date_fields]) do
-      unit_data = get_in(date_fields, [unit, format])
-
-      cond do
-        is_nil(unit_data) ->
-          {:ok, Kernel.to_string(relative)}
-
-        # Special ordinal forms: "yesterday", "tomorrow", "today", etc.
-        # Skipped entirely under `numeric: :always` (ECMA-402), which
-        # forces the plural-rule pattern path below.
-        numeric == :auto and relative in -2..2 and is_map(unit_data[:relative_ordinal]) ->
-          format_ordinal_or_pattern(relative, unit_data, locale_id)
-
-        true ->
-          format_with_pattern(relative, unit_data, locale_id)
+  # `to_string/2` joins these parts, so the two always agree. A unit the
+  # locale has no data for formats as the number alone.
+  defp relative_parts(relative, unit, format, locale, locale_id, numeric) do
+    with {:ok, date_fields} <- Localize.Locale.get(locale_id, [:date_fields]),
+         %{} = unit_data <- get_in(date_fields, [unit, format]) do
+      case named_form(relative, unit_data, numeric) do
+        nil -> pattern_parts(relative, unit, unit_data, locale, locale_id)
+        name -> [%{type: :literal, value: name}]
       end
-    end
-  end
-
-  # Use the special ordinal form ("yesterday", "tomorrow", ...)
-  # when one exists for the value, otherwise fall back to the
-  # plural-rule pattern.
-  defp format_ordinal_or_pattern(relative, unit_data, locale_id) do
-    case Map.get(unit_data[:relative_ordinal], relative) do
-      nil ->
-        format_with_pattern(relative, unit_data, locale_id)
-
-      result ->
-        {:ok, result}
-    end
-  end
-
-  defp format_with_pattern(relative, unit_data, locale_id) do
-    # Zero formats with the future pattern ("in 0 days") per
-    # ECMA-402 and ICU.
-    direction = if relative >= 0, do: :relative_future, else: :relative_past
-    rules = unit_data[direction]
-
-    if is_nil(rules) do
-      {:ok, Kernel.to_string(relative)}
     else
-      # Select the correct plural form
-      plural_form =
-        Localize.Number.PluralRule.Cardinal.plural_rule(abs(relative), locale_id)
+      _no_data -> number_parts(relative, unit, locale)
+    end
+  end
 
-      pattern = Map.get(rules, plural_form) || Map.get(rules, :other)
+  # With `numeric: :auto` an offset of -2 to 2 takes the unit's named form
+  # ("yesterday", "this hour") where the locale has one. ICU matches an
+  # offset within one percent of those, so 0.9999 days is still "tomorrow".
+  defp named_form(relative, %{relative_ordinal: %{} = names}, :auto)
+       when relative > -2.1 and relative < 2.1 do
+    hundredths = round(relative * 100)
 
-      if pattern do
-        formatted_number = Kernel.to_string(abs(trunc(relative)))
-        result = Localize.Substitution.substitute(formatted_number, pattern)
-        {:ok, Enum.join(result)}
-      else
-        {:ok, Kernel.to_string(relative)}
+    if rem(hundredths, 100) == 0 do
+      Map.get(names, div(hundredths, 100))
+    end
+  end
+
+  defp named_form(_relative, _unit_data, _numeric), do: nil
+
+  # The number is formatted for the locale, and the pattern is chosen by the
+  # plural category of the number as displayed: "in 1.5 days" is `:other` in
+  # English and "dans 1,5 jour" `:one` in French. Zero takes the future
+  # pattern ("in 0 days"), as in ECMA-402 and ICU.
+  defp pattern_parts(relative, unit, unit_data, locale, locale_id) do
+    direction = if relative < 0, do: :relative_past, else: :relative_future
+    magnitude = abs(relative)
+
+    with %{} = patterns <- unit_data[direction],
+         {:ok, number} <- Localize.Number.to_parts(magnitude, locale: locale) do
+      category =
+        magnitude
+        |> Localize.Number.source_number(locale: locale)
+        |> Localize.Number.PluralRule.Cardinal.plural_rule(locale_id)
+
+      case Map.get(patterns, category) || Map.get(patterns, :other) do
+        nil -> number_parts(relative, unit, locale)
+        pattern -> Localize.Substitution.substitute_parts([with_unit(number, unit)], pattern)
       end
-    end
-  end
-
-  # ── Parts formatting ──────────────────────────────────────
-
-  # The parts sibling of `format_relative/5`: identical selection
-  # logic, producing tagged parts instead of a string. The number is
-  # rendered the same way `format_with_pattern/3` renders it so the
-  # parts always concatenate to the `to_string/2` result.
-  defp parts_relative(relative, unit, format, locale_id, numeric) do
-    with {:ok, date_fields} <- Localize.Locale.get(locale_id, [:date_fields]) do
-      unit_data = get_in(date_fields, [unit, format])
-
-      cond do
-        is_nil(unit_data) ->
-          {:ok, [number_part(relative, unit)]}
-
-        numeric == :auto and relative in -2..2 and is_map(unit_data[:relative_ordinal]) ->
-          parts_ordinal_or_pattern(relative, unit, unit_data, locale_id)
-
-        true ->
-          parts_with_pattern(relative, unit, unit_data, locale_id)
-      end
-    end
-  end
-
-  defp parts_ordinal_or_pattern(relative, unit, unit_data, locale_id) do
-    case Map.get(unit_data[:relative_ordinal], relative) do
-      nil -> parts_with_pattern(relative, unit, unit_data, locale_id)
-      result -> {:ok, [%{type: :literal, value: result}]}
-    end
-  end
-
-  defp parts_with_pattern(relative, unit, unit_data, locale_id) do
-    direction = if relative >= 0, do: :relative_future, else: :relative_past
-    rules = unit_data[direction]
-
-    if is_nil(rules) do
-      {:ok, [number_part(relative, unit)]}
     else
-      plural_form =
-        Localize.Number.PluralRule.Cardinal.plural_rule(abs(relative), locale_id)
-
-      pattern = Map.get(rules, plural_form) || Map.get(rules, :other)
-
-      if pattern do
-        number_parts = [
-          %{type: :integer, value: Kernel.to_string(abs(trunc(relative))), unit: unit}
-        ]
-
-        {:ok, Localize.Substitution.substitute_parts([number_parts], pattern)}
-      else
-        {:ok, [number_part(relative, unit)]}
-      end
+      _no_pattern -> number_parts(relative, unit, locale)
     end
   end
 
-  # Fallback rendering mirrors `to_string/2` exactly: the signed,
-  # untruncated value.
-  defp number_part(relative, unit) do
-    %{type: :integer, value: Kernel.to_string(relative), unit: unit}
+  defp number_parts(relative, unit, locale) do
+    case Localize.Number.to_parts(relative, locale: locale) do
+      {:ok, parts} -> with_unit(parts, unit)
+      {:error, _exception} -> [%{type: :integer, value: Kernel.to_string(relative), unit: unit}]
+    end
   end
+
+  # As in ECMA-402's `formatToParts`, every part of the number carries the
+  # unit.
+  defp with_unit(parts, unit), do: Enum.map(parts, &Map.put(&1, :unit, unit))
 
   # ── Time difference calculation ────────────────────────────
 
@@ -396,39 +313,83 @@ defmodule Localize.DateTime.Relative do
     {:ok, DateTime.diff(relative, relative_to)}
   end
 
-  defp time_difference(%DateTime{} = relative, _relative_to) do
-    {:ok, DateTime.diff(relative, DateTime.utc_now())}
-  end
-
   defp time_difference(%NaiveDateTime{} = relative, %NaiveDateTime{} = relative_to) do
     {:ok, NaiveDateTime.diff(relative, relative_to)}
   end
 
-  defp time_difference(%NaiveDateTime{} = relative, _relative_to) do
-    {:ok, NaiveDateTime.diff(relative, NaiveDateTime.utc_now())}
+  # A baseline of another type is converted only where the conversion is
+  # unambiguous: a date or time is taken from a datetime, and a naive
+  # datetime from a datetime's wall clock. That also covers the default
+  # baseline, `DateTime.utc_now/0`. Any other pairing is an error.
+  defp time_difference(%NaiveDateTime{} = relative, %DateTime{} = relative_to) do
+    {:ok, NaiveDateTime.diff(relative, DateTime.to_naive(relative_to))}
   end
 
   defp time_difference(%Date{} = relative, %Date{} = relative_to) do
     {:ok, Date.diff(relative, relative_to) * @day}
   end
 
-  defp time_difference(%Date{} = relative, _relative_to) do
-    {:ok, Date.diff(relative, Date.utc_today()) * @day}
+  defp time_difference(%Date{} = relative, %NaiveDateTime{} = relative_to) do
+    {:ok, Date.diff(relative, NaiveDateTime.to_date(relative_to)) * @day}
+  end
+
+  defp time_difference(%Date{} = relative, %DateTime{} = relative_to) do
+    {:ok, Date.diff(relative, DateTime.to_date(relative_to)) * @day}
   end
 
   defp time_difference(%Time{} = relative, %Time{} = relative_to) do
     {:ok, Time.diff(relative, relative_to)}
   end
 
-  defp time_difference(%Time{} = relative, _relative_to) do
-    {:ok, Time.diff(relative, Time.utc_now())}
+  defp time_difference(%Time{} = relative, %NaiveDateTime{} = relative_to) do
+    {:ok, Time.diff(relative, NaiveDateTime.to_time(relative_to))}
+  end
+
+  defp time_difference(%Time{} = relative, %DateTime{} = relative_to) do
+    {:ok, Time.diff(relative, DateTime.to_time(relative_to))}
+  end
+
+  defp time_difference(%DateTime{}, relative_to) do
+    {:error, invalid_baseline(relative_to, "a DateTime")}
+  end
+
+  defp time_difference(%NaiveDateTime{}, relative_to) do
+    {:error, invalid_baseline(relative_to, "a NaiveDateTime or DateTime")}
+  end
+
+  defp time_difference(%Date{}, relative_to) do
+    {:error, invalid_baseline(relative_to, "a Date, NaiveDateTime or DateTime")}
+  end
+
+  defp time_difference(%Time{}, relative_to) do
+    {:error, invalid_baseline(relative_to, "a Time, NaiveDateTime or DateTime")}
+  end
+
+  defp time_difference(relative, _relative_to) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: relative,
+       expected: "an integer, float, Date, Time, NaiveDateTime or DateTime"
+     )}
+  end
+
+  defp invalid_options(options) do
+    Localize.InvalidValueError.exception(value: options, expected: "a keyword list of options")
+  end
+
+  defp invalid_baseline(relative_to, expected) do
+    Localize.InvalidValueError.exception(
+      value: relative_to,
+      expected: expected,
+      context: ":relative_to"
+    )
   end
 
   # ── Unit derivation ───────────────────────────────────────
 
-  # When the user provides a unit and an integer, use the integer directly
+  # A number with a unit is a count of that unit, whole or fractional.
   defp derive_unit(relative, _relative_to, _time_difference, unit)
-       when not is_nil(unit) and is_integer(relative) do
+       when not is_nil(unit) and is_number(relative) do
     {relative, unit}
   end
 

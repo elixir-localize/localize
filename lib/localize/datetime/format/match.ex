@@ -31,9 +31,13 @@ defmodule Localize.DateTime.Format.Match do
   alias Localize.DateTime.Format
 
   @date_symbols ~w(G y Y u U r Q q M L W w d D F g E e c)
-  @time_symbols ~w(h H k K m s S v V z Z x X O a b B)
+  # `j`, `J` and `C` are TR35's input-skeleton hour symbols and `A` is the
+  # milliseconds in the day, so a split keeps them with the time.
+  @time_symbols ~w(h H k K j J C m s S A v V z Z x X O a b B)
 
   @hour ["k", "h", "K", "H"]
+  @hour_12 ["h", "K"]
+  @hour_24 ["H", "k"]
   @day_period ["a", "b", "B"]
   @month ["L", "M"]
   @day_of_week ["c", "E"]
@@ -201,8 +205,6 @@ defmodule Localize.DateTime.Format.Match do
         {length(missing), distance, Atom.to_string(format_id)}
       end)
       |> best_subset(skeleton_ordered)
-    else
-      _not_tokenizable -> :error
     end
   end
 
@@ -288,8 +290,33 @@ defmodule Localize.DateTime.Format.Match do
       |> Enum.reverse()
       |> List.flatten()
       |> List.to_string()
+      |> strip_day_periods_for_capital_j(skeleton_tokens)
 
     {:ok, adjusted}
+  end
+
+  # TR35's `J` asks for the locale's preferred hour "but, unlike 'j', it
+  # requests no dayPeriod marker", so its pattern drops the day period and
+  # the space that set it apart: "h:mm a" becomes "h:mm" and ja's "aK:mm"
+  # becomes "K:mm". Quoted text is left alone.
+  defp strip_day_periods_for_capital_j(pattern, skeleton_tokens) do
+    if :proplists.is_defined("J", skeleton_tokens) do
+      pattern
+      |> String.split("'")
+      |> Enum.with_index()
+      |> Enum.map_join("'", fn
+        {piece, index} when rem(index, 2) == 0 -> strip_day_period(piece)
+        {piece, _index} -> piece
+      end)
+    else
+      pattern
+    end
+  end
+
+  defp strip_day_period(piece) do
+    Regex.replace(~r/(\s*)[abB]+(\s*)/u, piece, fn _match, before, after_period ->
+      if before != "" and after_period != "", do: before, else: ""
+    end)
   end
 
   defp id_tokens(nil), do: []
@@ -451,7 +478,7 @@ defmodule Localize.DateTime.Format.Match do
         |> Map.keys()
         |> Enum.map(fn format_id ->
           {:ok, tokens} = tokenize_skeleton(Atom.to_string(format_id))
-          {format_id, tokens}
+          {format_id, match_tokens(tokens)}
         end)
 
       _ ->
@@ -471,7 +498,7 @@ defmodule Localize.DateTime.Format.Match do
         |> Enum.reject(&(&1 in @non_skeleton_interval_keys))
         |> Enum.map(fn format_id ->
           {:ok, tokens} = tokenize_skeleton(Atom.to_string(format_id))
-          {format_id, tokens}
+          {format_id, match_tokens(tokens)}
         end)
 
       _no_interval_formats ->
@@ -480,9 +507,32 @@ defmodule Localize.DateTime.Format.Match do
   end
 
   def sort_tokens(tokens) do
-    Enum.sort(tokens, fn {symbol_a, _}, {symbol_b, _} ->
+    tokens
+    |> match_tokens()
+    |> Enum.sort(fn {symbol_a, _}, {symbol_b, _} ->
       canonical_key(symbol_a) < canonical_key(symbol_b)
     end)
+  end
+
+  # The tokens a skeleton or an `availableFormats` id is matched on. CLDR
+  # writes a 12-hour format's id without its day period (`en`'s `h` is
+  # "h a"), so an `h` or `K` with no day period carries an implied `a`, and a
+  # request for `ha` finds "h a" where it found `Bh`'s "h B". An `H` or `k`
+  # drops any day period a skeleton asks for: TR35 lets a 24-hour hour match
+  # only a 24-hour format, and ICU's pattern generator renders `Ha` as "HH".
+  # Applying this twice changes nothing.
+  defp match_tokens(tokens) do
+    cond do
+      Enum.any?(tokens, fn {symbol, _count} -> symbol in @hour_24 end) ->
+        Enum.reject(tokens, fn {symbol, _count} -> symbol in @day_period end)
+
+      Enum.any?(tokens, fn {symbol, _count} -> symbol in @hour_12 end) and
+          not Enum.any?(tokens, fn {symbol, _count} -> symbol in @day_period end) ->
+        [{"a", 1} | tokens]
+
+      true ->
+        tokens
+    end
   end
 
   # ── Candidate filtering ────────────────────────────────────
@@ -525,12 +575,24 @@ defmodule Localize.DateTime.Format.Match do
         {symbol, _count_a}, {symbol, _count_b}, distance ->
           distance + 10
 
-        # Different compatible symbols, same type
+        # a, b and B are one field to TR35, but ICU's pattern generator keeps b
+        # nearer a than B, so `hb` takes `h a` (rendered "h b") over `Bh`.
+        {sym_a, count_a}, {sym_b, count_b}, distance
+        when sym_a in @day_period and sym_b in @day_period ->
+          pair = Enum.sort([sym_a, sym_b])
+
+          distance + abs(max(count_a, 3) - max(count_b, 3)) +
+            Map.fetch!(%{["a", "b"] => 10, ["B", "b"] => 15, ["B", "a"] => 20}, pair)
+
+        # Different compatible symbols, same type. TR35 lets an h or K
+        # skeleton field match only a 12-hour field (h or K), and an H or k
+        # only a 24-hour one, so an hour of the other cycle is not compatible.
         {sym_a, count_a}, {sym_b, count_b}, distance
         when ((sym_a in @month and sym_b in @month) or
                 (sym_a in @day_of_week and sym_b in @day_of_week) or
                 (sym_a in @day_period and sym_b in @day_period) or
-                (sym_a in @hour and sym_b in @hour) or
+                (sym_a in @hour_12 and sym_b in @hour_12) or
+                (sym_a in @hour_24 and sym_b in @hour_24) or
                 (sym_a in @time_zone and sym_b in @time_zone)) and
                ((count_a in [1, 2] and count_b in [1, 2]) or
                   (count_a > 2 and count_b > 2)) ->
@@ -541,7 +603,8 @@ defmodule Localize.DateTime.Format.Match do
         when (sym_a in @month and sym_b in @month) or
                (sym_a in @day_of_week and sym_b in @day_of_week) or
                (sym_a in @day_period and sym_b in @day_period) or
-               (sym_a in @hour and sym_b in @hour) or
+               (sym_a in @hour_12 and sym_b in @hour_12) or
+               (sym_a in @hour_24 and sym_b in @hour_24) or
                (sym_a in @time_zone and sym_b in @time_zone) ->
           distance + abs(count_a - count_b) + 20
 
@@ -631,8 +694,19 @@ defmodule Localize.DateTime.Format.Match do
   # ── Field length adjustment ─────────────────────────────────
 
   @numeric_and_alpha_fields ["M", "L", "e", "q", "Q"]
-  @substitutable_zone_fields ["v", "V", "O", "z", "Z"]
+  # TR35's zone symbols stand in for one another, the ISO 8601 `X` and `x`
+  # as well as the named forms: `jmX` matched to `hmv` renders `h:mm a X`.
+  @substitutable_zone_fields ["v", "V", "O", "z", "Z", "X", "x"]
   @hms_fields ["H", "h", "K", "k", "m", "s", "S"]
+
+  # A width changes only within its class, numeric (1 or 2) or text (3 or
+  # more). Equal widths need no change.
+  defp width_adjustable?(same_length, same_length), do: false
+
+  defp width_adjustable?(field_length, requested_length) do
+    (field_length in [1, 2] and requested_length in [1, 2]) or
+      (field_length > 2 and requested_length > 2)
+  end
 
   defp adjust_field_length([char | _rest] = field, acc, skeleton_tokens, id_tokens)
        when char in @numeric_and_alpha_fields do
@@ -648,8 +722,6 @@ defmodule Localize.DateTime.Format.Match do
         if canonical_key(key) == canonical, do: count
       end)
 
-    field_length = length(field)
-
     cond do
       requested_length == :not_found ->
         [field | acc]
@@ -658,13 +730,7 @@ defmodule Localize.DateTime.Format.Match do
       locale_states_width?(id_tokens, char, skeleton_tokens) ->
         [field | acc]
 
-      field_length == requested_length ->
-        [field | acc]
-
-      field_length in [1, 2] and requested_length in [1, 2] ->
-        [List.duplicate(char, requested_length) | acc]
-
-      field_length > 2 and requested_length > 2 ->
+      width_adjustable?(length(field), requested_length) ->
         [List.duplicate(char, requested_length) | acc]
 
       true ->
@@ -678,6 +744,17 @@ defmodule Localize.DateTime.Format.Match do
       find_substitutable_field(@substitutable_zone_fields, skeleton_tokens)
 
     [List.duplicate(replacement_char, requested_length) | acc]
+  end
+
+  # TR35 matches a, b and B as one field, so a day period the skeleton asks
+  # for replaces the pattern's: `hb` matched to `h a` renders `h b`, as ICU's
+  # pattern generator does. With none asked for, the locale's own stands.
+  defp adjust_field_length([char | _rest] = field, acc, skeleton_tokens, _id_tokens)
+       when char in @day_period do
+    case Enum.find(skeleton_tokens, fn {symbol, _count} -> symbol in @day_period end) do
+      {symbol, count} -> [List.duplicate(symbol, count) | acc]
+      nil -> [field | acc]
+    end
   end
 
   defp adjust_field_length([char | _rest] = field, acc, _skeleton_tokens, _id_tokens)
@@ -723,24 +800,42 @@ defmodule Localize.DateTime.Format.Match do
     if String.contains?(skeleton, ["j", "J", "C"]) do
       prefs = time_preferences_for(locale_id)
       preferred = prefs.preferred
-      allowed = hd(prefs.allowed)
-      do_replace_time_symbols(skeleton, preferred, allowed)
+      do_replace_time_symbols(skeleton, preferred, allowed_hour(prefs, skeleton))
     else
       skeleton
     end
   end
 
+  # `C` takes the first allowed hour format with its day period ("hB"),
+  # unless the skeleton asks for a day period itself: ICU's pattern
+  # generator renders zh-Hant's `Ca` as "ah時", not with two day periods.
+  defp allowed_hour(prefs, skeleton) do
+    allowed = hd(prefs.allowed)
+
+    if String.contains?(skeleton, @day_period),
+      do: String.replace(allowed, @day_period, ""),
+      else: allowed
+  end
+
   @doc false
   # Applies the same hour-symbol substitution as the `j`/`J`/`C`
   # meta-symbol resolution, but driven by an externally-supplied
-  # preferred hour symbol (one of `"h"`, `"H"`, `"K"`, `"k"`). Used
-  # by `Localize.Time` to honour a locale's `-u-hc-` Unicode-extension
-  # override on user-supplied skeleton atoms — per ICU/Intl reference
-  # behaviour, `hc` overrides the hour cycle in the rendered output
-  # regardless of what symbol the skeleton specifies.
-  def apply_hc_substitution(skeleton, preferred)
-      when is_binary(skeleton) and is_binary(preferred) do
-    do_replace_time_symbols(skeleton, preferred, preferred)
+  # preferred hour symbol (one of `"h"`, `"H"`, `"K"`, `"k"`) and only
+  # to the meta-symbols in `symbols`. Used by `Localize.Time` to honour
+  # a locale's `-u-hc-` Unicode-extension override on user-supplied
+  # skeleton atoms; a meta-symbol it leaves is resolved from the
+  # locale's own hour data when the skeleton is matched.
+  def apply_hc_substitution(skeleton, preferred, symbols)
+      when is_binary(skeleton) and is_binary(preferred) and is_list(symbols) do
+    kept = ["j", "J", "C"] -- symbols
+
+    skeleton
+    |> String.graphemes()
+    |> Enum.chunk_by(&(&1 in kept))
+    |> Enum.map_join(fn [first | _rest] = chunk ->
+      piece = Enum.join(chunk)
+      if first in kept, do: piece, else: do_replace_time_symbols(piece, preferred, preferred)
+    end)
   end
 
   defp do_replace_time_symbols("", _preferred, _allowed), do: ""
@@ -819,16 +914,21 @@ defmodule Localize.DateTime.Format.Match do
         true -> nil
       end
 
-    # Look up by locale name first, then by territory
-    territory =
-      if locale_atom do
-        case Localize.validate_locale(locale_atom) do
-          {:ok, %{territory: t}} when not is_nil(t) -> t
-          _ -> nil
-        end
+    # Look up by locale name first, then by language and territory, then by
+    # territory. TR35 §Time Data lets `regions` name a locale as well as a
+    # region (`hi_IN` allows "hB h H" where `IN` allows "h H"), and CLDR's
+    # JSON keys those entries by the hyphenated locale, "hi-IN".
+    {language, territory} =
+      with true <- not is_nil(locale_atom),
+           {:ok, %{language: language, territory: territory}} when not is_nil(territory) <-
+             Localize.validate_locale(locale_atom) do
+        {language, territory}
+      else
+        _no_territory -> {nil, nil}
       end
 
     Map.get(@time_preferences, locale_atom) ||
+      (territory && Map.get(@time_preferences, "#{language}-#{territory}")) ||
       (territory && Map.get(@time_preferences, territory)) ||
       Map.fetch!(@time_preferences, :"001")
   end

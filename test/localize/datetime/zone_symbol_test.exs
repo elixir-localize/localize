@@ -76,7 +76,7 @@ defmodule Localize.DateTime.ZoneSymbolTest do
     end
 
     test "zone with a long metazone name but no short one falls back to GMT format" do
-      assert zone_format(@kolkata, "z") == "GMT+05:30"
+      assert zone_format(@kolkata, "z") == "GMT+5:30"
       assert zone_format(@kolkata, "zzzz") == "India Standard Time"
     end
   end
@@ -110,7 +110,9 @@ defmodule Localize.DateTime.ZoneSymbolTest do
       assert zone_format(@utc, "O") == "GMT+0"
       assert zone_format(@new_york_standard, "O") == "GMT-5"
       assert zone_format(@new_york_daylight, "O") == "GMT-4"
-      assert zone_format(@kolkata, "O") == "GMT+05:30"
+      # TR35: the short format "uses hour fields without leading zero, with
+      # optional 2-digit minutes".
+      assert zone_format(@kolkata, "O") == "GMT+5:30"
     end
 
     test "OOOO renders the long GMT offset" do
@@ -155,7 +157,7 @@ defmodule Localize.DateTime.ZoneSymbolTest do
     # Only the generic symbols take that step. A specific symbol with no name
     # goes straight to the localized GMT format.
     test "a specific symbol with no name goes straight to the GMT format" do
-      assert zone_format(@kolkata, "z") == "GMT+05:30"
+      assert zone_format(@kolkata, "z") == "GMT+5:30"
     end
   end
 

@@ -68,8 +68,9 @@ defmodule Localize.Date.Parser do
   # from the era-year for calendars that need it (Japanese).
   #
 
-  alias Localize.{DateParseError, DateRangeParseError}
   alias Localize.Calendar, as: LCalendar
+  alias Localize.DateParseError
+  alias Localize.DateRangeParseError
   alias Localize.DateTime.Format
 
   @month_name_widths %{3 => :abbreviated, 4 => :wide, 5 => :narrow}
@@ -112,19 +113,17 @@ defmodule Localize.Date.Parser do
     return_module = resolve_return_calendar(options, cldr_calendar)
     as = Keyword.get(options, :as, :struct)
 
-    input =
-      input
-      |> normalise_input()
-      |> preprocess_safe(locale, cldr_calendar)
+    normalised = normalise_input(input)
+    candidates = Enum.uniq([normalised, preprocess_safe(normalised, locale, cldr_calendar)])
 
-    attempt = fn current ->
-      case try_iso(current, return_module) do
+    attempt = fn inputs ->
+      case Enum.find_value(inputs, &iso_date(&1, return_module)) do
         {:ok, date} ->
           {:ok, finalise_date(date, as)}
 
-        :error ->
+        nil ->
           try_locale_patterns(
-            current,
+            inputs,
             locale,
             cldr_calendar,
             reference_year,
@@ -134,12 +133,19 @@ defmodule Localize.Date.Parser do
       end
     end
 
-    case attempt.(input) do
+    case attempt.(candidates) do
       {:ok, _} = ok ->
         ok
 
       {:error, _} = err ->
-        retry_without_ordinal_affixes(attempt, input, locale, err)
+        retry_without_ordinal_affixes(attempt, candidates, locale, err)
+    end
+  end
+
+  defp iso_date(input, return_module) do
+    case try_iso(input, return_module) do
+      {:ok, _date} = ok -> ok
+      :error -> nil
     end
   end
 
@@ -147,13 +153,13 @@ defmodule Localize.Date.Parser do
   # original input couldn't be parsed, so CLDR-baked
   # ordinal text (e.g. `"2nd quarter"` quarter-wide name)
   # is preserved on the first attempt.
-  defp retry_without_ordinal_affixes(attempt, input, locale, original_error) do
-    stripped = strip_ordinal_affixes(input, locale)
+  defp retry_without_ordinal_affixes(attempt, inputs, locale, original_error) do
+    stripped = Enum.map(inputs, &strip_ordinal_affixes(&1, locale))
 
-    if stripped == input do
+    if stripped == inputs do
       original_error
     else
-      case attempt.(stripped) do
+      case attempt.(Enum.uniq(stripped)) do
         {:ok, _} = ok -> ok
         {:error, _} -> original_error
       end
@@ -407,15 +413,14 @@ defmodule Localize.Date.Parser do
 
     # Range inputs are pre-split internally by interval-pattern
     # matching, and each endpoint goes through `parse/2` for the
-    # split-and-parse fallback — so endpoint-level ordinal
-    # stripping is handled by `parse/2`. Range-level interval
+    # split-and-parse fallback — so endpoint-level ordinal and
+    # weekday stripping is handled by `parse/2`. Range-level interval
     # patterns don't bake ordinals into their literals (CLDR's
     # interval patterns share the field set with regular date
-    # patterns), so safe-pass preprocessing is sufficient here.
-    input =
-      input
-      |> normalise_input()
-      |> preprocess_safe(locale, cldr_calendar)
+    # patterns). As in `parse/2`, the interval patterns see the input
+    # as given before the input with a leading weekday stripped.
+    normalised = normalise_input(input)
+    candidates = Enum.uniq([normalised, preprocess_safe(normalised, locale, cldr_calendar)])
 
     # Strategy:
     # 1. Try the locale's CLDR interval patterns first — these
@@ -425,24 +430,33 @@ defmodule Localize.Date.Parser do
     # 2. Fall back to a naive split-then-parse-each-side. Catches
     #    inputs the interval patterns don't cover (e.g. mixed
     #    formats, ISO endpoints).
-    case match_any_interval_pattern(input, locale, cldr_calendar, reference_year, as) do
+    case match_interval_candidates(candidates, locale, cldr_calendar, reference_year, as) do
       {:ok, from, to} ->
         finalise_range(from, to, allow_inverted, as)
 
       :error ->
-        case split_on_interval_separator(input, locale, cldr_calendar) do
+        case split_on_interval_separator(normalised, locale, cldr_calendar) do
           {:ok, from_string, to_string} ->
             parse_range_pair(from_string, to_string, options)
 
           :error ->
             {:error,
              DateRangeParseError.exception(
-               input: input,
+               input: normalised,
                reason: :no_separator,
                locale: locale
              )}
         end
     end
+  end
+
+  defp match_interval_candidates(inputs, locale, cldr_calendar, reference_year, as) do
+    Enum.find_value(inputs, :error, fn input ->
+      case match_any_interval_pattern(input, locale, cldr_calendar, reference_year, as) do
+        {:ok, _from, _to} = ok -> ok
+        :error -> nil
+      end
+    end)
   end
 
   # In `:map` mode there's no `Date.Range` to build and no
@@ -503,24 +517,25 @@ defmodule Localize.Date.Parser do
         |> Enum.sort_by(&interval_pattern_specificity/1)
 
       Enum.find_value(patterns, :error, fn pattern ->
-        case match_interval_pattern(
-               transliterated,
-               pattern,
-               months_data,
-               eras_data,
-               lenient,
-               reference_year,
-               cldr_calendar,
-               as
-             ) do
-          {:ok, left, right} -> {:ok, left, right}
-          :error -> nil
-        end
+        transliterated
+        |> match_interval_pattern(
+          pattern,
+          months_data,
+          eras_data,
+          lenient,
+          reference_year,
+          cldr_calendar,
+          as
+        )
+        |> nil_when_no_match()
       end)
     else
       _ -> :error
     end
   end
+
+  defp nil_when_no_match(:error), do: nil
+  defp nil_when_no_match(match), do: match
 
   defp match_interval_pattern(
          input,
@@ -623,26 +638,25 @@ defmodule Localize.Date.Parser do
   # side. We accept day-of-week (`E`/`c`) repeats as well as
   # the date fields.
   defp split_interval_tokens(tokens) do
-    {left, right, _} =
-      Enum.reduce(tokens, {[], [], MapSet.new()}, fn token, {l, r, seen} ->
-        case classify_token(token) do
-          {:field, letter} ->
-            if MapSet.member?(seen, letter) or r != [] do
-              {l, r ++ [token], seen}
-            else
-              {l ++ [token], r, MapSet.put(seen, letter)}
-            end
-
-          :literal ->
-            if r == [] do
-              {l ++ [token], r, seen}
-            else
-              {l, r ++ [token], seen}
-            end
-        end
-      end)
-
+    {left, right, _seen} = Enum.reduce(tokens, {[], [], MapSet.new()}, &place_interval_token/2)
     {left, right}
+  end
+
+  defp place_interval_token(token, {left, right, seen}) do
+    case classify_token(token) do
+      {:field, letter} ->
+        if MapSet.member?(seen, letter) or right != [] do
+          {left, right ++ [token], seen}
+        else
+          {left ++ [token], right, MapSet.put(seen, letter)}
+        end
+
+      :literal when right == [] ->
+        {left ++ [token], right, seen}
+
+      :literal ->
+        {left, right ++ [token], seen}
+    end
   end
 
   defp classify_token({:lit, _}), do: :literal
@@ -1009,6 +1023,11 @@ defmodule Localize.Date.Parser do
            reason: reason_tag,
            cause: err
          )}
+
+      # Anything other than a parse failure, such as an invalid locale or an
+      # unavailable calendar, is reported as it stands.
+      {:error, _other} = error ->
+        error
     end
   end
 
@@ -1044,23 +1063,21 @@ defmodule Localize.Date.Parser do
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
 
-    Enum.find_value(candidates, :error, fn sep ->
-      case String.split(input, sep, parts: 2) do
-        [left, right] ->
-          left = String.trim(left)
-          right = String.trim(right)
-
-          if left != "" and right != "" do
-            {:ok, left, right}
-          else
-            nil
-          end
-
-        _ ->
-          nil
-      end
-    end)
+    Enum.find_value(candidates, :error, &split_at_separator(input, &1))
   end
+
+  # The separator divides the input into a range only when both sides are
+  # non-empty once trimmed.
+  defp split_at_separator(input, separator) do
+    case String.split(input, separator, parts: 2) do
+      [left, right] -> non_empty_endpoints(String.trim(left), String.trim(right))
+      _no_separator -> nil
+    end
+  end
+
+  defp non_empty_endpoints("", _right), do: nil
+  defp non_empty_endpoints(_left, ""), do: nil
+  defp non_empty_endpoints(left, right), do: {:ok, left, right}
 
   defp lookup_interval_separator(locale, cldr_calendar) do
     case Format.interval_formats(locale, cldr_calendar) do
@@ -1175,7 +1192,11 @@ defmodule Localize.Date.Parser do
 
   # ── Locale patterns ──────────────────────────────────────────
 
-  defp try_locale_patterns(input, locale, cldr_calendar, reference_year, return_module, as) do
+  # `inputs` are the spellings of one input to try, in order: as given,
+  # then with a leading weekday stripped. A pass tries every spelling
+  # before the next pass starts, so a strict match on either is
+  # preferred to a lax one.
+  defp try_locale_patterns(inputs, locale, cldr_calendar, reference_year, return_module, as) do
     with {:ok, calendar_module} <- resolve_calendar_module(cldr_calendar),
          {:ok, available} <- Format.available_formats(locale, cldr_calendar),
          {:ok, months_data} <- LCalendar.months(locale, cldr_calendar) do
@@ -1183,7 +1204,7 @@ defmodule Localize.Date.Parser do
       quarters_data = maybe_load_quarters(locale, cldr_calendar)
       days_data = maybe_load_days(locale, cldr_calendar)
       lenient = load_lenient_date(locale)
-      transliterated = transliterate_digits(input, locale)
+      transliterated = inputs |> Enum.map(&transliterate_digits(&1, locale)) |> Enum.uniq()
       patterns = collect_patterns(available)
 
       ctx = %{
@@ -1195,7 +1216,8 @@ defmodule Localize.Date.Parser do
         eras: eras_data,
         lenient: lenient,
         reference_year: reference_year,
-        calendar_module: calendar_module
+        calendar_module: calendar_module,
+        week_config: Localize.DateTime.Week.config(locale)
       }
 
       # The compiled regex for each pattern is a pure function of
@@ -1208,7 +1230,7 @@ defmodule Localize.Date.Parser do
       result =
         case as do
           :struct ->
-            run_locale_pass(patterns, transliterated, ctx, return_module, :struct)
+            run_candidate_pass(patterns, transliterated, ctx, return_module, :struct)
 
           :map ->
             # Pass 1 — strict: only accept a pattern whose fields
@@ -1222,12 +1244,16 @@ defmodule Localize.Date.Parser do
             # Pass 2 — lax: needed for legitimately partial inputs
             # that can't construct a date even with the reference
             # year (e.g. `"2026"` alone, or `"May"` alone).
-            run_locale_pass(patterns, transliterated, ctx, return_module, {:map, :strict}) ||
-              run_locale_pass(patterns, transliterated, ctx, return_module, {:map, :lax})
+            run_candidate_pass(patterns, transliterated, ctx, return_module, {:map, :strict}) ||
+              run_candidate_pass(patterns, transliterated, ctx, return_module, {:map, :lax})
         end
 
-      result || {:error, no_match_error(input, locale, cldr_calendar)}
+      result || {:error, no_match_error(hd(inputs), locale, cldr_calendar)}
     end
+  end
+
+  defp run_candidate_pass(patterns, inputs, ctx, return_module, pass_as) do
+    Enum.find_value(inputs, &run_locale_pass(patterns, &1, ctx, return_module, pass_as))
   end
 
   defp run_locale_pass(patterns, input, ctx, return_module, pass_as) do
@@ -1881,6 +1907,10 @@ defmodule Localize.Date.Parser do
     # single-letter display forms (en's `:narrow` is "J" for both
     # January and June), useless for parsing.
     #
+    # Format (`M`) and stand-alone (`L`) names are both accepted
+    # for either symbol: ru's format July is "июля" and its
+    # stand-alone July "июль", and ru's `yMMMM` is "LLLL y 'г'.".
+    #
     # Each index gets exactly ONE named capture group, with
     # internal alternation across the widths' name forms.
     # Duplicate names across widths (en's "May" is the same in
@@ -1888,15 +1918,11 @@ defmodule Localize.Date.Parser do
     # so the regex prefers `"June"` over `"Jun"` when both could
     # match a prefix of input.
     by_index =
-      [:wide, :abbreviated]
-      |> Enum.flat_map(fn width ->
-        names =
-          get_in(months_data, [:format, width]) ||
-            get_in(months_data, [:stand_alone, width]) ||
-            %{}
-
-        Enum.map(names, fn {index, name} -> {index, name, width} end)
-      end)
+      for context <- [:format, :stand_alone],
+          width <- [:wide, :abbreviated],
+          {index, name} <- get_in(months_data, [context, width]) || %{} do
+        {index, name, width}
+      end
       |> Enum.group_by(fn {index, _name, _w} -> index end, fn {_index, name, w} -> {name, w} end)
 
     branches =
@@ -1928,34 +1954,70 @@ defmodule Localize.Date.Parser do
 
   defp name_form({name, _width}), do: Regex.escape(name)
 
+  # `Localize.Calendar.eras/2` returns `%{width => %{index => name}}`
+  # and keeps CLDR's alternative era names at negative indices: `-1`
+  # for era 0 ("BCE") and `-2` for era 1 ("CE"). They fold onto their
+  # era here, because a regex group name cannot carry a minus sign and
+  # a pattern whose regex does not compile never matches. The wide
+  # and abbreviated names are accepted whatever the pattern's width.
   defp era_name_regex(eras_data, width) when is_map(eras_data) do
-    names =
-      eras_data
-      |> get_era_names_for_width(width)
+    declared = era_names(Map.get(eras_data, width) || Map.get(eras_data, :abbreviated))
 
-    if Enum.empty?(names) do
-      :none
-    else
-      branches =
-        names
-        |> Enum.sort_by(fn {_index, name} -> -byte_size(name) end)
-        |> Enum.map(fn {index, name} -> "(?P<__e#{index}__>#{Regex.escape(name)})" end)
+    lenient =
+      Enum.flat_map([:wide, :abbreviated], fn era_width ->
+        era_names(Map.get(eras_data, era_width))
+      end)
 
-      {:branches, "(?i:" <> Enum.join(branches, "|") <> ")"}
-    end
+    grouped_name_regex(declared, lenient, "__e")
   end
 
-  # `Localize.Calendar.eras/2` returns `%{width => %{index =>
-  # name}}` — top-level keys are width atoms (`:wide`,
-  # `:abbreviated`, `:narrow`), inner maps are
-  # `era_index => era_name`.
-  defp get_era_names_for_width(eras_data, width) do
-    inner = Map.get(eras_data, width) || Map.get(eras_data, :abbreviated) || %{}
+  defp era_names(names) when is_map(names) do
+    Enum.flat_map(names, fn
+      {index, name} when is_integer(index) and index < 0 and is_binary(name) ->
+        [{-1 - index, name}]
 
-    Enum.flat_map(inner, fn
-      {index, name} when is_integer(index) and is_binary(name) -> [{index, name}]
-      _ -> []
+      {index, name} when is_integer(index) and is_binary(name) ->
+        [{index, name}]
+
+      _other ->
+        []
     end)
+  end
+
+  defp era_names(_names), do: []
+
+  # A named capture group per index, alternating over that index's
+  # names longest first, with the groups ordered by their longest
+  # name. The names of the pattern's own width are always included.
+  # TR35 §Parsing Dates and Times also accepts a field's other forms
+  # "if they are unique", so a lenient name is added only when it
+  # belongs to a single index.
+  defp grouped_name_regex(declared, lenient, marker) do
+    indices_by_name =
+      Enum.group_by(declared ++ lenient, &String.downcase(elem(&1, 1)), &elem(&1, 0))
+
+    unique =
+      Enum.filter(lenient, fn {_index, name} ->
+        match?([_index], Enum.uniq(Map.fetch!(indices_by_name, String.downcase(name))))
+      end)
+
+    case Enum.group_by(declared ++ unique, &elem(&1, 0), &elem(&1, 1)) do
+      groups when map_size(groups) == 0 ->
+        :none
+
+      groups ->
+        branches =
+          groups
+          |> Enum.map(fn {index, names} ->
+            {index, names |> Enum.uniq() |> Enum.sort_by(&(-byte_size(&1)))}
+          end)
+          |> Enum.sort_by(fn {_index, [longest | _shorter]} -> -byte_size(longest) end)
+          |> Enum.map(fn {index, names} ->
+            "(?P<#{marker}#{index}__>#{Enum.map_join(names, "|", &Regex.escape/1)})"
+          end)
+
+        {:branches, "(?i:" <> Enum.join(branches, "|") <> ")"}
+    end
   end
 
   # CLDR width map for `E`/`e`/`c` letters.
@@ -1975,32 +2037,35 @@ defmodule Localize.Date.Parser do
 
   # Build a regex branch for day-of-week names. Capture the
   # ISO weekday index (1 = Monday … 7 = Sunday) so the
-  # builder can validate or derive a date from it.
+  # builder can validate or derive a date from it. The wide,
+  # abbreviated and short names of both contexts are accepted
+  # alongside the pattern's own width, as TR35 §Parsing Dates
+  # and Times asks: input rarely knows which width a pattern
+  # declares.
   defp day_name_field(days_data, width, context) when is_map(days_data) do
-    inner =
-      get_in(days_data, [context, width]) ||
-        get_in(days_data, [:format, width]) ||
-        %{}
+    declared =
+      day_names(get_in(days_data, [context, width]) || get_in(days_data, [:format, width]))
 
-    branches =
-      inner
-      |> Enum.filter(fn
-        {index, name} when is_integer(index) and is_binary(name) -> true
-        _ -> false
-      end)
-      |> Enum.sort_by(fn {_index, name} -> -byte_size(name) end)
-      |> Enum.map(fn {index, name} ->
-        "(?P<__d#{index}__>#{Regex.escape(name)})"
-      end)
+    lenient =
+      for name_context <- [:format, :stand_alone],
+          name_width <- [:wide, :abbreviated, :short],
+          name <- day_names(get_in(days_data, [name_context, name_width])),
+          do: name
 
-    case branches do
-      [] -> {:plain, "[\\p{L}\\.]+"}
-      _ -> {:capture, :day_of_week, "(?i:" <> Enum.join(branches, "|") <> ")"}
+    case grouped_name_regex(declared, lenient, "__d") do
+      :none -> {:plain, "[\\p{L}\\.]+"}
+      {:branches, regex} -> {:capture, :day_of_week, regex}
     end
   end
 
   defp day_name_field(_data, _width, _context),
     do: {:plain, "[\\p{L}\\.]+"}
+
+  defp day_names(names) when is_map(names) do
+    for {index, name} when is_integer(index) and is_binary(name) <- names, do: {index, name}
+  end
+
+  defp day_names(_names), do: []
 
   # Build a regex branch for quarter names. Capture the
   # quarter index 1..4 so the builder can derive the
@@ -2077,7 +2142,14 @@ defmodule Localize.Date.Parser do
          %{} = caps <- Regex.named_captures(regex, input),
          {:ok, era_index} <- extract_era(caps),
          {:ok, fields} <-
-           extract_fields(caps, year_fallback, ctx.cldr_calendar, era_index, ctx.calendar_module) do
+           extract_fields(
+             caps,
+             year_fallback,
+             ctx.cldr_calendar,
+             era_index,
+             ctx.calendar_module,
+             ctx.week_config
+           ) do
       match_result_for(as, fields, caps, ctx.calendar_module)
     else
       _ -> :error
@@ -2169,7 +2241,14 @@ defmodule Localize.Date.Parser do
   # strategy. Most patterns supply only a subset; the
   # strategy table below resolves which combination yields a
   # full Date.
-  defp extract_fields(caps, reference_year, cldr_calendar, era_index, calendar_module) do
+  defp extract_fields(
+         caps,
+         reference_year,
+         cldr_calendar,
+         era_index,
+         calendar_module,
+         week_config
+       ) do
     with {:ok, year_in_calendar} <-
            extract_year_field(caps, reference_year, cldr_calendar),
          {:ok, calendar_year} <-
@@ -2184,11 +2263,12 @@ defmodule Localize.Date.Parser do
          week_of_month: extract_optional_int(caps, "week_of_month"),
          week_based_year: extract_optional_int(caps, "week_based_year"),
          day_of_year: extract_optional_int(caps, "day_of_year"),
-         day_of_week: extract_optional_day_of_week(caps),
+         day_of_week: extract_optional_day_of_week(caps, week_config),
          day_of_week_in_month: extract_optional_int(caps, "day_of_week_in_month"),
          weekday_name_index: extract_optional_weekday_name(caps),
          calendar_module: calendar_module,
-         cldr_calendar: cldr_calendar
+         cldr_calendar: cldr_calendar,
+         week_config: week_config
        }}
     end
   end
@@ -2286,11 +2366,14 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  # Day-of-week from numeric or name capture. Returns ISO
-  # weekday 1..7 (Mon..Sun) or `nil`.
-  defp extract_optional_day_of_week(caps) do
+  # Day of week from the numeric or name capture, as an ISO day (1 is
+  # Monday) or `nil`. Numeric `e` and `c` count from the locale's first day
+  # of the week, so they are converted; a name already carries its ISO day.
+  defp extract_optional_day_of_week(caps, {first_day, _min_days}) do
     if raw = Map.get(caps, "day_of_week_numeric") do
-      parse_numeric_day_of_week(raw)
+      with local_day when is_integer(local_day) <- parse_numeric_day_of_week(raw) do
+        Localize.DateTime.Week.iso_day_of_week(local_day, first_day)
+      end
     else
       extract_day_of_week_by_name(caps)
     end
@@ -2374,16 +2457,13 @@ defmodule Localize.Date.Parser do
   defp resolve_calendar_year(year, _era_index, _calendar), do: {:ok, year}
 
   defp japanese_era_start_year(era_index) do
-    case Localize.SupplementalData.calendars()
-         |> get_in([:japanese, :eras]) do
-      eras when is_list(eras) ->
-        case Enum.find(eras, fn [idx, _] -> idx == era_index end) do
-          [_idx, %{start: [year, _m, _d]}] -> {:ok, year}
-          _ -> :error
-        end
+    eras = get_in(Localize.SupplementalData.calendars(), [:japanese, :eras])
 
-      _ ->
-        :error
+    with true <- is_list(eras),
+         [_index, %{start: [year, _month, _day]}] <- Enum.find(eras, &match?([^era_index, _], &1)) do
+      {:ok, year}
+    else
+      _ -> :error
     end
   end
 
@@ -2424,7 +2504,7 @@ defmodule Localize.Date.Parser do
       # Week-based year + week of year + day of week → the
       # exact date.
       has_week_based_year_week_day?(fields) ->
-        build_from_iso_week_date(fields, calendar_module)
+        build_from_week_date(fields, calendar_module)
 
       # Year + week of year + day of week — treat year as
       # week-based year. Common shape: `Y w E`.
@@ -2442,10 +2522,10 @@ defmodule Localize.Date.Parser do
     cond do
       # Year + week of year only → first day of that week.
       has_year_week?(fields) ->
-        date_from_iso_week(fields.year, fields.week_of_year, 1, calendar_module)
+        date_from_week(fields.year, fields.week_of_year, nil, fields, calendar_module)
 
       has_week_based_year_week?(fields) ->
-        date_from_iso_week(fields.week_based_year, fields.week_of_year, 1, calendar_module)
+        date_from_week(fields.week_based_year, fields.week_of_year, nil, fields, calendar_module)
 
       # Year + month + day-of-week-in-month → e.g. 2nd
       # Tuesday of June.
@@ -2504,20 +2584,22 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  defp build_from_iso_week_date(fields, calendar_module) do
-    date_from_iso_week(
+  defp build_from_week_date(fields, calendar_module) do
+    date_from_week(
       fields.week_based_year,
       fields.week_of_year,
       fields.day_of_week,
+      fields,
       calendar_module
     )
   end
 
   defp build_from_year_as_week_year(fields, calendar_module) do
-    date_from_iso_week(
+    date_from_week(
       fields.year,
       fields.week_of_year,
       fields.day_of_week,
+      fields,
       calendar_module
     )
   end
@@ -2551,33 +2633,28 @@ defmodule Localize.Date.Parser do
     if Date.day_of_week(date) == dow, do: {:ok, date}, else: :error
   end
 
-  # Build a date from ISO 8601 week numbering (week 1 is the
-  # week containing Jan 4). Compute in `Calendar.ISO` then
-  # convert to the target calendar so we don't need
-  # per-calendar week algorithms.
-  defp date_from_iso_week(year, week, day_of_week, calendar_module)
-       when week in 1..53 and day_of_week in 1..7 do
-    case Date.new(year, 1, 4) do
-      {:ok, jan4} ->
-        jan4_dow = Date.day_of_week(jan4)
-        week1_monday = Date.add(jan4, -(jan4_dow - 1))
-        target = Date.add(week1_monday, (week - 1) * 7 + (day_of_week - 1))
+  # Build a date from a week-based year, week and day. `Calendar.ISO` dates
+  # follow the locale's week rules, as the formatter's `w` and `Y` do; other
+  # calendars keep ISO 8601 weeks, again as the formatter does. The date is
+  # computed in `Calendar.ISO` and converted to the target calendar, so no
+  # per-calendar week algorithm is needed.
+  defp date_from_week(week_year, week, day_of_week, fields, calendar_module) do
+    config = if calendar_module == Calendar.ISO, do: fields.week_config, else: {1, 4}
 
-        if calendar_module == Calendar.ISO do
-          {:ok, target}
-        else
-          case Date.convert(target, calendar_module) do
-            {:ok, converted} -> {:ok, converted}
-            _ -> :error
-          end
-        end
-
-      _ ->
-        :error
+    with {:ok, date} <-
+           Localize.DateTime.Week.date_from_week(week_year, week, day_of_week, config) do
+      iso_date_in_calendar(date, calendar_module)
     end
   end
 
-  defp date_from_iso_week(_, _, _, _), do: :error
+  defp iso_date_in_calendar(date, Calendar.ISO), do: {:ok, date}
+
+  defp iso_date_in_calendar(date, calendar_module) do
+    case Date.convert(date, calendar_module) do
+      {:ok, converted} -> {:ok, converted}
+      _ -> :error
+    end
+  end
 
   # Compute the Nth occurrence of `weekday` in `month` of
   # `year`. N is 1..5; if N exceeds the month's count of

@@ -3,8 +3,10 @@ defmodule Localize.Date do
   Provides localized formatting of `Date` structs and date-like maps.
 
   Supports both full dates (`%{year: _, month: _, day: _}`) and partial
-  dates (any map with one or more of `:year`, `:month`, `:day`). For
-  partial dates, the format is derived from the available fields.
+  dates (any map with one or more of `:year`, `:month`, `:day`). For a
+  partial date a standard format, or no format, derives the skeleton from
+  the fields present; a skeleton or pattern that asks for a field the date
+  does not have returns `Localize.DateTimeInvalidInputError`.
 
   Formats are defined in CLDR and described in
   [TR35](http://unicode.org/reports/tr35/tr35-dates.html).
@@ -38,10 +40,12 @@ defmodule Localize.Date do
   ### Options
 
   * `:format` is a standard format name (`:short`, `:medium`,
-    `:long`, `:full`), a format skeleton atom, or a format
-    pattern string. The default is `:medium` for full dates.
-    For partial dates the format is derived from the available
-    fields.
+    `:long`, `:full`), a format skeleton atom, a
+    `Localize.DateTime.SemanticSkeleton` or a format pattern
+    string. The default is `:medium`. For a partial date a
+    standard format derives its skeleton from the fields present,
+    with the month numeric at `:short`, abbreviated at `:medium`
+    and wide at `:long` and `:full`.
 
   * `:locale` is a locale identifier. The default is `:en`.
 
@@ -77,6 +81,9 @@ defmodule Localize.Date do
 
       iex> Localize.Date.to_string(%{year: 2024, month: 6}, format: :yMMM, locale: :fr)
       {:ok, "juin 2024"}
+
+      iex> Localize.Date.to_string(%{year: 2024, month: 6}, format: :long, locale: :en)
+      {:ok, "June 2024"}
 
   """
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
@@ -122,32 +129,25 @@ defmodule Localize.Date do
     {:error, Localize.DateTimeInvalidInputError.exception(type: :date)}
   end
 
-  # Resolve the format for a partial date. Standard formats are
-  # not accepted for partial dates; when no format is given the
-  # format skeleton is derived from the available fields.
+  # Resolve the format for a partial date. A pattern string or a skeleton
+  # is used as given. A standard format, or no format at all, derives the
+  # skeleton from the fields present, with the month as wide as the format
+  # asks: numeric at `:short`, abbreviated at `:medium` (the default) and
+  # wide at `:long` and `:full`.
   defp resolve_partial_format(format, _date) when is_binary(format) do
     format
   end
 
-  defp resolve_partial_format(format, _date)
-       when is_atom(format) and format != nil and format not in @standard_formats do
+  defp resolve_partial_format(format, date) when format in @standard_formats do
+    derive_format_id(date, format)
+  end
+
+  defp resolve_partial_format(nil, date) do
+    derive_format_id(date, @default_format)
+  end
+
+  defp resolve_partial_format(format, _date) do
     format
-  end
-
-  defp resolve_partial_format(format, _date) when format in @standard_formats do
-    nil
-  end
-
-  defp resolve_partial_format(_format, date) do
-    derive_format_id(date)
-  end
-
-  defp partial_formatting_plan(nil, _date, format, locale_id, _options) do
-    {:error,
-     Localize.DateTimeUnresolvedFormatError.exception(
-       format: format,
-       locale: locale_id
-     )}
   end
 
   defp partial_formatting_plan(resolved_format, date, _format, locale_id, options) do
@@ -273,6 +273,16 @@ defmodule Localize.Date do
 
   # ── Format resolution ──────────────────────────────────────
 
+  @doc false
+  # The pattern `format` resolves to for `date`, as `to_string/2` resolves
+  # it: a standard format through the locale's date formats, a skeleton
+  # through TR35 matching and a semantic skeleton through its classical
+  # skeleton. `Localize.DateTime` resolves the `{1}` half of a date-time
+  # wrapper here.
+  def resolve_pattern(date, format, locale_id, options) do
+    find_format(date, format, locale_id, options)
+  end
+
   defp find_format(_date, format, _locale_id, _options) when is_binary(format) do
     {:ok, format}
   end
@@ -284,12 +294,9 @@ defmodule Localize.Date do
 
     with {:ok, skeleton} <-
            Localize.DateTime.SemanticSkeleton.to_classical_skeleton(semantic, cldr_calendar) do
-      resolve_skeleton(
-        skeleton: skeleton,
-        locale_id: locale_id,
-        calendar: cldr_calendar,
-        options: options
-      )
+      [skeleton: skeleton, locale_id: locale_id, calendar: cldr_calendar, options: options]
+      |> resolve_skeleton()
+      |> Localize.DateTime.Formatter.explain_unresolved(date, skeleton)
     end
   end
 
@@ -301,12 +308,9 @@ defmodule Localize.Date do
       Localize.DateTime.Format.resolve_format(:date, format, locale_id, cldr_calendar, options)
     else
       # Skeleton format — look up in available_formats
-      resolve_skeleton(
-        skeleton: format,
-        locale_id: locale_id,
-        calendar: cldr_calendar,
-        options: options
-      )
+      [skeleton: format, locale_id: locale_id, calendar: cldr_calendar, options: options]
+      |> resolve_skeleton()
+      |> Localize.DateTime.Formatter.explain_unresolved(date, format)
     end
   end
 
@@ -447,16 +451,7 @@ defmodule Localize.Date do
 
       case Localize.DateTime.Format.Match.best_match(skeleton, locale_id, calendar) do
         {:ok, matched_id} when is_atom(matched_id) and matched_id != skeleton ->
-          with {:ok, pattern} <-
-                 resolve_skeleton(
-                   skeleton: matched_id,
-                   locale_id: locale_id,
-                   calendar: calendar,
-                   options: options,
-                   seen: seen
-                 ) do
-            adjust_to_requested_widths(pattern, skeleton, matched_id)
-          end
+          resolve_matched_skeleton(skeleton, matched_id, locale_id, calendar, options, seen)
 
         {:ok, {_date_id, _time_id}} ->
           # Combined date+time skeleton — not applicable for
@@ -487,6 +482,19 @@ defmodule Localize.Date do
     end
   end
 
+  defp resolve_matched_skeleton(skeleton, matched_id, locale_id, calendar, options, seen) do
+    with {:ok, pattern} <-
+           resolve_skeleton(
+             skeleton: matched_id,
+             locale_id: locale_id,
+             calendar: calendar,
+             options: options,
+             seen: seen
+           ) do
+      adjust_to_requested_widths(pattern, skeleton, matched_id)
+    end
+  end
+
   # TR35's last resort before failing: no available format carries every
   # requested field, so match the closest format that is a subset of the
   # request and append the fields it lacks from the locale's append-item
@@ -507,12 +515,19 @@ defmodule Localize.Date do
   end
 
   @doc false
-  def derive_format_id(date) do
+  def derive_format_id(date, format \\ @default_format) do
     @date_fields_ordered
     |> Enum.filter(fn {field, _symbol} -> Map.has_key?(date, field) end)
-    |> Enum.map_join(fn {_field, symbol} -> symbol end)
+    |> Enum.map_join(fn
+      {:month, _symbol} -> month_symbol(format)
+      {_field, symbol} -> symbol
+    end)
     |> String.to_atom()
   end
+
+  defp month_symbol(:short), do: "M"
+  defp month_symbol(:medium), do: "MMM"
+  defp month_symbol(_long_or_full), do: "MMMM"
 
   # ── Locale resolution ──────────────────────────────────────
 
@@ -562,7 +577,9 @@ defmodule Localize.Date do
 
   * `{:ok, value}` where `value` is a `t:Date.t/0`, or
 
-  * `{:error, exception}` if the string does not parse.
+  * `{:error, exception}` if the string does not parse, or a
+    `t:Localize.InvalidValueError.t/0` if `string` is not a string or an
+    option is malformed.
 
   ### Examples
 
@@ -574,7 +591,9 @@ defmodule Localize.Date do
 
   """
   @spec parse(String.t(), Keyword.t()) :: {:ok, Date.t()} | {:error, Exception.t()}
-  def parse(string, options \\ []) when is_binary(string) do
-    Localize.Date.Parser.parse(string, options)
+  def parse(string, options \\ []) do
+    with :ok <- Localize.DateTime.ParseOptions.validate(string, options) do
+      Localize.Date.Parser.parse(string, options)
+    end
   end
 end

@@ -29,4 +29,50 @@ defmodule Localize.ExceptionTest do
              ) == "Could not parse abc"
     end
   end
+
+  describe "messages carry their bindings" do
+    test "inflection data errors name the locale and the command that fetches the data" do
+      message = Exception.message(Localize.InflectionDataNotAvailableError.exception(locale: :ru))
+
+      assert message =~ ":ru"
+      assert message =~ "mix localize.download_inflection"
+
+      assert Exception.message(Localize.InflectionNotSupportedError.exception(locale: :xx)) =~
+               ":xx"
+    end
+
+    test "feature, pronoun and quantify errors name what was not found" do
+      assert Exception.message(
+               Localize.UnknownFeatureError.exception(feature: "animacy", locale: :en)
+             ) =~ "animacy"
+
+      assert Exception.message(
+               Localize.UnknownPronounError.exception(pronoun: "zork", locale: :en)
+             ) =~ "zork"
+
+      assert Exception.message(Localize.NoPluralCategoryError.exception(locale: :en)) =~
+               ":plural"
+
+      assert Exception.message(
+               Localize.NoMinimalPairError.exception(
+                 locale: :en,
+                 category: :ordinal,
+                 plural_category: :few
+               )
+             ) =~ ":few"
+    end
+
+    test "a missing dependency names the package and the operation" do
+      message =
+        Exception.message(
+          Localize.DependencyRequiredError.exception(
+            package: "calendrical",
+            operation: "parsing a date in the :japanese calendar"
+          )
+        )
+
+      assert message =~ "calendrical"
+      assert message =~ "parsing a date in the :japanese calendar"
+    end
+  end
 end

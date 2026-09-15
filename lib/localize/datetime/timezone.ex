@@ -590,14 +590,18 @@ defmodule Localize.DateTime.Timezone do
         # before the localized GMT format; the specific symbols go straight
         # to GMT.
         type == :generic ->
-          case generic_location_format(time_zone, locale_id) do
-            {:ok, location} -> {:ok, location}
-            :error -> gmt_format(datetime, locale_id, format: format)
-          end
+          generic_location_or_gmt(datetime, time_zone, locale_id, format)
 
         true ->
           gmt_format(datetime, locale_id, format: format)
       end
+    end
+  end
+
+  defp generic_location_or_gmt(datetime, time_zone, locale_id, format) do
+    case generic_location_format(time_zone, locale_id) do
+      {:ok, location} -> {:ok, location}
+      :error -> gmt_format(datetime, locale_id, format: format)
     end
   end
 
@@ -1079,20 +1083,25 @@ defmodule Localize.DateTime.Timezone do
     hours = div(abs_offset, 3600)
     minutes = div(rem(abs_offset, 3600), 60)
 
-    result =
-      sign_format
-      |> String.replace("HH", pad(hours, 2))
-      |> String.replace("H", Integer.to_string(hours))
-      |> String.replace("mm", pad(minutes, 2))
+    # TR35: the long format always has two-digit hours and minutes; the
+    # short format has hours without a leading zero and two-digit minutes
+    # only when they are non-zero, so "GMT-8" and "GMT+5:30".
+    {sign_format, hour_digits} =
+      case format do
+        :short when minutes == 0 ->
+          {Regex.replace(~r/[:.]?mm/, sign_format, ""), Integer.to_string(hours)}
 
-    # For short format, remove minutes separator and part when minutes == 0,
-    # and strip leading zero from hours (e.g., "+00:00" → "+0", "+05:00" → "+5")
-    if format == :short and minutes == 0 do
-      Regex.replace(~r/[:.]00$/, result, "")
-      |> String.replace(~r/(?<=[\+\-])0(?=\d)/, "")
-    else
-      result
-    end
+        :short ->
+          {sign_format, Integer.to_string(hours)}
+
+        _long ->
+          {sign_format, pad(hours, 2)}
+      end
+
+    sign_format
+    |> String.replace("HH", hour_digits)
+    |> String.replace("H", Integer.to_string(hours))
+    |> String.replace("mm", pad(minutes, 2))
   end
 
   defp parse_hour_format(format_string) do
@@ -1264,6 +1273,19 @@ defmodule Localize.DateTime.Timezone do
   end
 
   # "America/Los_Angeles" -> "Los Angeles", "America/Argentina/Salta" -> "Salta"
+  @doc false
+  # The exemplar city the `VVV` symbol renders: CLDR's, else one derived from
+  # the identifier as `exemplar_city/3` derives it, except for an `Etc/` zone.
+  # That names an offset or a time scale rather than a place, so TR35 falls
+  # back to the exemplar city of `Etc/Unknown`, "Unknown Location" in `en`,
+  # as ICU renders `Etc/UTC`.
+  @spec location_exemplar_city(String.t(), Localize.locale()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def location_exemplar_city(iana_id, locale) when is_binary(iana_id) do
+    canonical = Map.get(@zone_canonical_names, iana_id, iana_id)
+    exemplar_city(iana_id, locale, derive: not String.starts_with?(canonical, "Etc/"))
+  end
+
   defp derive_city_from_id(iana_id) do
     case String.split(iana_id, "/") do
       [_single_component] -> nil

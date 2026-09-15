@@ -1,0 +1,482 @@
+# Interval formats expected by ICU4J 73 DateIntervalFormat, Gregorian, UTC.
+# Columns: locale, fields (date, month, month_and_day, year_and_month) or
+# time, format (a standard format, or the time skeleton), from, to, expected.
+# ICU 73 ships CLDR 43 data. 14 generated rows are left out
+# because CLDR 49 changed the locale data they use since then (de yM and M
+# are "M/y", de h inherits "h a", fr H inherits "HH"); the test checks those
+# against CLDR 49 separately.
+en	date	short	2024-07-06	2024-07-09	7/6/24 – 7/9/24
+en	date	short	2024-07-06	2024-08-09	7/6/24 – 8/9/24
+en	date	short	2025-12-30	2026-01-02	12/30/25 – 1/2/26
+en	date	short	2024-07-06	2025-07-06	7/6/24 – 7/6/25
+en	date	short	2024-07-06	2024-07-06	7/6/24
+en	date	short	2024-11-15	2025-02-10	11/15/24 – 2/10/25
+en	date	medium	2024-07-06	2024-07-09	Jul 6 – 9, 2024
+en	date	medium	2024-07-06	2024-08-09	Jul 6 – Aug 9, 2024
+en	date	medium	2025-12-30	2026-01-02	Dec 30, 2025 – Jan 2, 2026
+en	date	medium	2024-07-06	2025-07-06	Jul 6, 2024 – Jul 6, 2025
+en	date	medium	2024-07-06	2024-07-06	Jul 6, 2024
+en	date	medium	2024-11-15	2025-02-10	Nov 15, 2024 – Feb 10, 2025
+en	date	long	2024-07-06	2024-07-09	July 6 – 9, 2024
+en	date	long	2024-07-06	2024-08-09	July 6 – August 9, 2024
+en	date	long	2025-12-30	2026-01-02	December 30, 2025 – January 2, 2026
+en	date	long	2024-07-06	2025-07-06	July 6, 2024 – July 6, 2025
+en	date	long	2024-07-06	2024-07-06	July 6, 2024
+en	date	long	2024-11-15	2025-02-10	November 15, 2024 – February 10, 2025
+en	date	full	2024-07-06	2024-07-09	Saturday, July 6 – Tuesday, July 9, 2024
+en	date	full	2024-07-06	2024-08-09	Saturday, July 6 – Friday, August 9, 2024
+en	date	full	2025-12-30	2026-01-02	Tuesday, December 30, 2025 – Friday, January 2, 2026
+en	date	full	2024-07-06	2025-07-06	Saturday, July 6, 2024 – Sunday, July 6, 2025
+en	date	full	2024-07-06	2024-07-06	Saturday, July 6, 2024
+en	date	full	2024-11-15	2025-02-10	Friday, November 15, 2024 – Monday, February 10, 2025
+en	month_and_day	full	2024-07-06	2024-07-09	Sat, Jul 6 – Tue, Jul 9
+en	month_and_day	long	2024-07-06	2024-07-09	Sat, Jul 6 – Tue, Jul 9
+en	month_and_day	full	2024-07-06	2024-08-09	Sat, Jul 6 – Fri, Aug 9
+en	month_and_day	long	2024-07-06	2024-08-09	Sat, Jul 6 – Fri, Aug 9
+en	month_and_day	full	2025-12-30	2026-01-02	Tue, Dec 30, 2025 – Fri, Jan 2, 2026
+en	month_and_day	long	2025-12-30	2026-01-02	Tue, Dec 30, 2025 – Fri, Jan 2, 2026
+en	month_and_day	full	2024-07-06	2025-07-06	Sat, Jul 6, 2024 – Sun, Jul 6, 2025
+en	month_and_day	long	2024-07-06	2025-07-06	Sat, Jul 6, 2024 – Sun, Jul 6, 2025
+en	month_and_day	full	2024-07-06	2024-07-06	Sat, Jul 6
+en	month_and_day	long	2024-07-06	2024-07-06	Sat, Jul 6
+en	month_and_day	full	2024-11-15	2025-02-10	Fri, Nov 15, 2024 – Mon, Feb 10, 2025
+en	month_and_day	long	2024-11-15	2025-02-10	Fri, Nov 15, 2024 – Mon, Feb 10, 2025
+en	month_and_day	medium	2024-07-06	2024-07-09	Jul 6 – 9
+en	month_and_day	medium	2024-07-06	2024-08-09	Jul 6 – Aug 9
+en	month_and_day	medium	2025-12-30	2026-01-02	Dec 30, 2025 – Jan 2, 2026
+en	month_and_day	medium	2024-07-06	2025-07-06	Jul 6, 2024 – Jul 6, 2025
+en	month_and_day	medium	2024-07-06	2024-07-06	Jul 6
+en	month_and_day	medium	2024-11-15	2025-02-10	Nov 15, 2024 – Feb 10, 2025
+en	month_and_day	short	2024-07-06	2024-07-09	7/6 – 7/9
+en	month_and_day	short	2024-07-06	2024-08-09	7/6 – 8/9
+en	month_and_day	short	2025-12-30	2026-01-02	12/30/2025 – 1/2/2026
+en	month_and_day	short	2024-07-06	2025-07-06	7/6/2024 – 7/6/2025
+en	month_and_day	short	2024-07-06	2024-07-06	7/6
+en	month_and_day	short	2024-11-15	2025-02-10	11/15/2024 – 2/10/2025
+en	year_and_month	full	2024-07-06	2024-07-09	July 2024
+en	year_and_month	long	2024-07-06	2024-07-09	July 2024
+en	year_and_month	full	2024-07-06	2024-08-09	July – August 2024
+en	year_and_month	long	2024-07-06	2024-08-09	July – August 2024
+en	year_and_month	full	2025-12-30	2026-01-02	December 2025 – January 2026
+en	year_and_month	long	2025-12-30	2026-01-02	December 2025 – January 2026
+en	year_and_month	full	2024-07-06	2025-07-06	July 2024 – July 2025
+en	year_and_month	long	2024-07-06	2025-07-06	July 2024 – July 2025
+en	year_and_month	full	2024-07-06	2024-07-06	July 2024
+en	year_and_month	long	2024-07-06	2024-07-06	July 2024
+en	year_and_month	full	2024-11-15	2025-02-10	November 2024 – February 2025
+en	year_and_month	long	2024-11-15	2025-02-10	November 2024 – February 2025
+en	year_and_month	medium	2024-07-06	2024-07-09	Jul 2024
+en	year_and_month	medium	2024-07-06	2024-08-09	Jul – Aug 2024
+en	year_and_month	medium	2025-12-30	2026-01-02	Dec 2025 – Jan 2026
+en	year_and_month	medium	2024-07-06	2025-07-06	Jul 2024 – Jul 2025
+en	year_and_month	medium	2024-07-06	2024-07-06	Jul 2024
+en	year_and_month	medium	2024-11-15	2025-02-10	Nov 2024 – Feb 2025
+en	year_and_month	short	2024-07-06	2024-07-09	7/2024
+en	year_and_month	short	2024-07-06	2024-08-09	7/2024 – 8/2024
+en	year_and_month	short	2025-12-30	2026-01-02	12/2025 – 1/2026
+en	year_and_month	short	2024-07-06	2025-07-06	7/2024 – 7/2025
+en	year_and_month	short	2024-07-06	2024-07-06	7/2024
+en	year_and_month	short	2024-11-15	2025-02-10	11/2024 – 2/2025
+en	month	full	2024-07-06	2024-07-09	Jul
+en	month	long	2024-07-06	2024-07-09	Jul
+en	month	medium	2024-07-06	2024-07-09	Jul
+en	month	full	2024-07-06	2024-08-09	Jul – Aug
+en	month	long	2024-07-06	2024-08-09	Jul – Aug
+en	month	medium	2024-07-06	2024-08-09	Jul – Aug
+en	month	full	2025-12-30	2026-01-02	Dec 2025 – Jan 2026
+en	month	long	2025-12-30	2026-01-02	Dec 2025 – Jan 2026
+en	month	medium	2025-12-30	2026-01-02	Dec 2025 – Jan 2026
+en	month	full	2024-07-06	2025-07-06	Jul 2024 – Jul 2025
+en	month	long	2024-07-06	2025-07-06	Jul 2024 – Jul 2025
+en	month	medium	2024-07-06	2025-07-06	Jul 2024 – Jul 2025
+en	month	full	2024-07-06	2024-07-06	Jul
+en	month	long	2024-07-06	2024-07-06	Jul
+en	month	medium	2024-07-06	2024-07-06	Jul
+en	month	full	2024-11-15	2025-02-10	Nov 2024 – Feb 2025
+en	month	long	2024-11-15	2025-02-10	Nov 2024 – Feb 2025
+en	month	medium	2024-11-15	2025-02-10	Nov 2024 – Feb 2025
+en	month	short	2024-07-06	2024-07-09	7
+en	month	short	2024-07-06	2024-08-09	7 – 8
+en	month	short	2025-12-30	2026-01-02	12/2025 – 1/2026
+en	month	short	2024-07-06	2025-07-06	7/2024 – 7/2025
+en	month	short	2024-07-06	2024-07-06	7
+en	month	short	2024-11-15	2025-02-10	11/2024 – 2/2025
+en	time	hm	10:00:00	10:30:00	10:00 – 10:30 AM
+en	time	hm	10:00:00	14:00:00	10:00 AM – 2:00 PM
+en	time	hm	10:00:00	11:00:00	10:00 – 11:00 AM
+en	time	hm	00:00:00	12:00:00	12:00 AM – 12:00 PM
+en	time	Hm	10:00:00	10:30:00	10:00 – 10:30
+en	time	Hm	10:00:00	14:00:00	10:00 – 14:00
+en	time	Hm	10:00:00	11:00:00	10:00 – 11:00
+en	time	Hm	00:00:00	12:00:00	00:00 – 12:00
+en	time	h	10:00:00	10:30:00	10 AM
+en	time	h	10:00:00	14:00:00	10 AM – 2 PM
+en	time	h	10:00:00	11:00:00	10 – 11 AM
+en	time	h	00:00:00	12:00:00	12 AM – 12 PM
+en	time	H	10:00:00	10:30:00	10
+en	time	H	10:00:00	14:00:00	10 – 14
+en	time	H	10:00:00	11:00:00	10 – 11
+en	time	H	00:00:00	12:00:00	00 – 12
+de	date	short	2024-07-06	2024-07-09	06.–09.07.24
+de	date	short	2024-07-06	2024-08-09	06.07. – 09.08.24
+de	date	short	2025-12-30	2026-01-02	30.12.25 – 02.01.26
+de	date	short	2024-07-06	2025-07-06	06.07.24 – 06.07.25
+de	date	short	2024-07-06	2024-07-06	06.07.24
+de	date	short	2024-11-15	2025-02-10	15.11.24 – 10.02.25
+de	date	medium	2024-07-06	2024-07-09	06.–09.07.2024
+de	date	medium	2024-07-06	2024-08-09	06.07. – 09.08.2024
+de	date	medium	2025-12-30	2026-01-02	30.12.2025 – 02.01.2026
+de	date	medium	2024-07-06	2025-07-06	06.07.2024 – 06.07.2025
+de	date	medium	2024-07-06	2024-07-06	06.07.2024
+de	date	medium	2024-11-15	2025-02-10	15.11.2024 – 10.02.2025
+de	date	long	2024-07-06	2024-07-09	6.–9. Juli 2024
+de	date	long	2024-07-06	2024-08-09	6. Juli – 9. August 2024
+de	date	long	2025-12-30	2026-01-02	30. Dezember 2025 – 2. Januar 2026
+de	date	long	2024-07-06	2025-07-06	6. Juli 2024 – 6. Juli 2025
+de	date	long	2024-07-06	2024-07-06	6. Juli 2024
+de	date	long	2024-11-15	2025-02-10	15. November 2024 – 10. Februar 2025
+de	date	full	2024-07-06	2024-07-09	Samstag, 6. – Dienstag, 9. Juli 2024
+de	date	full	2024-07-06	2024-08-09	Samstag, 6. Juli – Freitag, 9. August 2024
+de	date	full	2025-12-30	2026-01-02	Dienstag, 30. Dezember 2025 – Freitag, 2. Januar 2026
+de	date	full	2024-07-06	2025-07-06	Samstag, 6. Juli 2024 – Sonntag, 6. Juli 2025
+de	date	full	2024-07-06	2024-07-06	Samstag, 6. Juli 2024
+de	date	full	2024-11-15	2025-02-10	Freitag, 15. November 2024 – Montag, 10. Februar 2025
+de	month_and_day	full	2024-07-06	2024-07-09	Sa., 6. – Di., 9. Juli
+de	month_and_day	long	2024-07-06	2024-07-09	Sa., 6. – Di., 9. Juli
+de	month_and_day	full	2024-07-06	2024-08-09	Sa., 6. Juli – Fr., 9. Aug.
+de	month_and_day	long	2024-07-06	2024-08-09	Sa., 6. Juli – Fr., 9. Aug.
+de	month_and_day	full	2025-12-30	2026-01-02	Di., 30. Dez. 2025 – Fr., 2. Jan. 2026
+de	month_and_day	long	2025-12-30	2026-01-02	Di., 30. Dez. 2025 – Fr., 2. Jan. 2026
+de	month_and_day	full	2024-07-06	2025-07-06	Sa., 6. Juli 2024 – So., 6. Juli 2025
+de	month_and_day	long	2024-07-06	2025-07-06	Sa., 6. Juli 2024 – So., 6. Juli 2025
+de	month_and_day	full	2024-07-06	2024-07-06	Sa., 6. Juli
+de	month_and_day	long	2024-07-06	2024-07-06	Sa., 6. Juli
+de	month_and_day	full	2024-11-15	2025-02-10	Fr., 15. Nov. 2024 – Mo., 10. Feb. 2025
+de	month_and_day	long	2024-11-15	2025-02-10	Fr., 15. Nov. 2024 – Mo., 10. Feb. 2025
+de	month_and_day	medium	2024-07-06	2024-07-09	6.–9. Juli
+de	month_and_day	medium	2024-07-06	2024-08-09	6. Juli – 9. Aug.
+de	month_and_day	medium	2025-12-30	2026-01-02	30. Dez. 2025 – 2. Jan. 2026
+de	month_and_day	medium	2024-07-06	2025-07-06	6. Juli 2024 – 6. Juli 2025
+de	month_and_day	medium	2024-07-06	2024-07-06	6. Juli
+de	month_and_day	medium	2024-11-15	2025-02-10	15. Nov. 2024 – 10. Feb. 2025
+de	month_and_day	short	2024-07-06	2024-07-09	06.–09.07.
+de	month_and_day	short	2024-07-06	2024-08-09	06.07. – 09.08.
+de	month_and_day	short	2025-12-30	2026-01-02	30.12.2025 – 02.01.2026
+de	month_and_day	short	2024-07-06	2025-07-06	06.07.2024 – 06.07.2025
+de	month_and_day	short	2024-07-06	2024-07-06	6.7.
+de	month_and_day	short	2024-11-15	2025-02-10	15.11.2024 – 10.02.2025
+de	year_and_month	full	2024-07-06	2024-07-09	Juli 2024
+de	year_and_month	long	2024-07-06	2024-07-09	Juli 2024
+de	year_and_month	full	2024-07-06	2024-08-09	Juli–August 2024
+de	year_and_month	long	2024-07-06	2024-08-09	Juli–August 2024
+de	year_and_month	full	2025-12-30	2026-01-02	Dezember 2025 – Januar 2026
+de	year_and_month	long	2025-12-30	2026-01-02	Dezember 2025 – Januar 2026
+de	year_and_month	full	2024-07-06	2025-07-06	Juli 2024 – Juli 2025
+de	year_and_month	long	2024-07-06	2025-07-06	Juli 2024 – Juli 2025
+de	year_and_month	full	2024-07-06	2024-07-06	Juli 2024
+de	year_and_month	long	2024-07-06	2024-07-06	Juli 2024
+de	year_and_month	full	2024-11-15	2025-02-10	November 2024 – Februar 2025
+de	year_and_month	long	2024-11-15	2025-02-10	November 2024 – Februar 2025
+de	year_and_month	medium	2024-07-06	2024-07-09	Juli 2024
+de	year_and_month	medium	2024-07-06	2024-08-09	Juli–Aug. 2024
+de	year_and_month	medium	2025-12-30	2026-01-02	Dez. 2025 – Jan. 2026
+de	year_and_month	medium	2024-07-06	2025-07-06	Juli 2024 – Juli 2025
+de	year_and_month	medium	2024-07-06	2024-07-06	Juli 2024
+de	year_and_month	medium	2024-11-15	2025-02-10	Nov. 2024 – Feb. 2025
+de	month	full	2024-07-06	2024-07-09	Jul
+de	month	long	2024-07-06	2024-07-09	Jul
+de	month	medium	2024-07-06	2024-07-09	Jul
+de	month	full	2024-07-06	2024-08-09	Juli–Aug.
+de	month	long	2024-07-06	2024-08-09	Juli–Aug.
+de	month	medium	2024-07-06	2024-08-09	Juli–Aug.
+de	month	full	2025-12-30	2026-01-02	Dez. 2025 – Jan. 2026
+de	month	long	2025-12-30	2026-01-02	Dez. 2025 – Jan. 2026
+de	month	medium	2025-12-30	2026-01-02	Dez. 2025 – Jan. 2026
+de	month	full	2024-07-06	2025-07-06	Juli 2024 – Juli 2025
+de	month	long	2024-07-06	2025-07-06	Juli 2024 – Juli 2025
+de	month	medium	2024-07-06	2025-07-06	Juli 2024 – Juli 2025
+de	month	full	2024-07-06	2024-07-06	Jul
+de	month	long	2024-07-06	2024-07-06	Jul
+de	month	medium	2024-07-06	2024-07-06	Jul
+de	month	full	2024-11-15	2025-02-10	Nov. 2024 – Feb. 2025
+de	month	long	2024-11-15	2025-02-10	Nov. 2024 – Feb. 2025
+de	month	medium	2024-11-15	2025-02-10	Nov. 2024 – Feb. 2025
+de	month	short	2024-07-06	2024-07-09	7
+de	month	short	2024-07-06	2024-08-09	07–08
+de	month	short	2024-07-06	2024-07-06	7
+de	time	hm	10:00:00	10:30:00	10:00–10:30 AM
+de	time	hm	10:00:00	14:00:00	10:00 AM – 2:00 PM
+de	time	hm	10:00:00	11:00:00	10:00–11:00 AM
+de	time	hm	00:00:00	12:00:00	12:00 AM – 12:00 PM
+de	time	Hm	10:00:00	10:30:00	10:00–10:30 Uhr
+de	time	Hm	10:00:00	14:00:00	10:00–14:00 Uhr
+de	time	Hm	10:00:00	11:00:00	10:00–11:00 Uhr
+de	time	Hm	00:00:00	12:00:00	00:00–12:00 Uhr
+de	time	H	10:00:00	10:30:00	10 Uhr
+de	time	H	10:00:00	14:00:00	10–14 Uhr
+de	time	H	10:00:00	11:00:00	10–11 Uhr
+de	time	H	00:00:00	12:00:00	00–12 Uhr
+ja	date	medium	2024-07-06	2024-07-09	2024/07/06～2024/07/09
+ja	date	short	2024-07-06	2024-07-09	2024/07/06～2024/07/09
+ja	date	medium	2024-07-06	2024-08-09	2024/07/06～2024/08/09
+ja	date	short	2024-07-06	2024-08-09	2024/07/06～2024/08/09
+ja	date	medium	2025-12-30	2026-01-02	2025/12/30～2026/01/02
+ja	date	short	2025-12-30	2026-01-02	2025/12/30～2026/01/02
+ja	date	medium	2024-07-06	2025-07-06	2024/07/06～2025/07/06
+ja	date	short	2024-07-06	2025-07-06	2024/07/06～2025/07/06
+ja	date	medium	2024-07-06	2024-07-06	2024/07/06
+ja	date	short	2024-07-06	2024-07-06	2024/07/06
+ja	date	medium	2024-11-15	2025-02-10	2024/11/15～2025/02/10
+ja	date	short	2024-11-15	2025-02-10	2024/11/15～2025/02/10
+ja	date	long	2024-07-06	2024-07-09	2024年7月6日～9日
+ja	date	long	2024-07-06	2024-08-09	2024年7月6日～8月9日
+ja	date	long	2025-12-30	2026-01-02	2025年12月30日～2026年1月2日
+ja	date	long	2024-07-06	2025-07-06	2024年7月6日～2025年7月6日
+ja	date	long	2024-07-06	2024-07-06	2024年7月6日
+ja	date	long	2024-11-15	2025-02-10	2024年11月15日～2025年2月10日
+ja	date	full	2024-07-06	2024-07-09	2024年7月6日(土曜日)～9日(火曜日)
+ja	date	full	2024-07-06	2024-08-09	2024年7月6日(土曜日)～8月9日(金曜日)
+ja	date	full	2025-12-30	2026-01-02	2025年12月30日(火曜日)～2026年1月2日(金曜日)
+ja	date	full	2024-07-06	2025-07-06	2024年7月6日(土曜日)～2025年7月6日(日曜日)
+ja	date	full	2024-07-06	2024-07-06	2024年7月6日土曜日
+ja	date	full	2024-11-15	2025-02-10	2024年11月15日(金曜日)～2025年2月10日(月曜日)
+ja	month_and_day	full	2024-07-06	2024-07-09	7月6日(土)～9日(火)
+ja	month_and_day	long	2024-07-06	2024-07-09	7月6日(土)～9日(火)
+ja	month_and_day	full	2024-07-06	2024-08-09	7月6日(土)～8月9日(金)
+ja	month_and_day	long	2024-07-06	2024-08-09	7月6日(土)～8月9日(金)
+ja	month_and_day	full	2025-12-30	2026-01-02	2025年12月30日(火)～2026年1月2日(金)
+ja	month_and_day	long	2025-12-30	2026-01-02	2025年12月30日(火)～2026年1月2日(金)
+ja	month_and_day	full	2024-07-06	2025-07-06	2024年7月6日(土)～2025年7月6日(日)
+ja	month_and_day	long	2024-07-06	2025-07-06	2024年7月6日(土)～2025年7月6日(日)
+ja	month_and_day	full	2024-07-06	2024-07-06	7月6日(土)
+ja	month_and_day	long	2024-07-06	2024-07-06	7月6日(土)
+ja	month_and_day	full	2024-11-15	2025-02-10	2024年11月15日(金)～2025年2月10日(月)
+ja	month_and_day	long	2024-11-15	2025-02-10	2024年11月15日(金)～2025年2月10日(月)
+ja	month_and_day	medium	2024-07-06	2024-07-09	7月6日～9日
+ja	month_and_day	medium	2024-07-06	2024-08-09	7月6日～8月9日
+ja	month_and_day	medium	2025-12-30	2026-01-02	2025年12月30日～2026年1月2日
+ja	month_and_day	medium	2024-07-06	2025-07-06	2024年7月6日～2025年7月6日
+ja	month_and_day	medium	2024-07-06	2024-07-06	7月6日
+ja	month_and_day	medium	2024-11-15	2025-02-10	2024年11月15日～2025年2月10日
+ja	month_and_day	short	2024-07-06	2024-07-09	07/06～07/09
+ja	month_and_day	short	2024-07-06	2024-08-09	07/06～08/09
+ja	month_and_day	short	2025-12-30	2026-01-02	2025/12/30～2026/01/02
+ja	month_and_day	short	2024-07-06	2025-07-06	2024/07/06～2025/07/06
+ja	month_and_day	short	2024-07-06	2024-07-06	7/6
+ja	month_and_day	short	2024-11-15	2025-02-10	2024/11/15～2025/02/10
+ja	year_and_month	full	2024-07-06	2024-07-09	2024年7月
+ja	year_and_month	long	2024-07-06	2024-07-09	2024年7月
+ja	year_and_month	full	2024-07-06	2024-08-09	2024年7月～8月
+ja	year_and_month	long	2024-07-06	2024-08-09	2024年7月～8月
+ja	year_and_month	full	2025-12-30	2026-01-02	2025年12月～2026年1月
+ja	year_and_month	long	2025-12-30	2026-01-02	2025年12月～2026年1月
+ja	year_and_month	full	2024-07-06	2025-07-06	2024年7月～2025年7月
+ja	year_and_month	long	2024-07-06	2025-07-06	2024年7月～2025年7月
+ja	year_and_month	full	2024-07-06	2024-07-06	2024年7月
+ja	year_and_month	long	2024-07-06	2024-07-06	2024年7月
+ja	year_and_month	full	2024-11-15	2025-02-10	2024年11月～2025年2月
+ja	year_and_month	long	2024-11-15	2025-02-10	2024年11月～2025年2月
+ja	year_and_month	medium	2024-07-06	2024-07-09	2024年7月
+ja	year_and_month	medium	2024-07-06	2024-08-09	2024年7月～8月
+ja	year_and_month	medium	2025-12-30	2026-01-02	2025年12月～2026年1月
+ja	year_and_month	medium	2024-07-06	2025-07-06	2024年7月～2025年7月
+ja	year_and_month	medium	2024-07-06	2024-07-06	2024年7月
+ja	year_and_month	medium	2024-11-15	2025-02-10	2024年11月～2025年2月
+ja	year_and_month	short	2024-07-06	2024-07-09	2024/7
+ja	year_and_month	short	2024-07-06	2024-08-09	2024/07～2024/08
+ja	year_and_month	short	2025-12-30	2026-01-02	2025/12～2026/01
+ja	year_and_month	short	2024-07-06	2025-07-06	2024/07～2025/07
+ja	year_and_month	short	2024-07-06	2024-07-06	2024/7
+ja	year_and_month	short	2024-11-15	2025-02-10	2024/11～2025/02
+ja	month	full	2024-07-06	2024-07-09	7月
+ja	month	long	2024-07-06	2024-07-09	7月
+ja	month	medium	2024-07-06	2024-07-09	7月
+ja	month	full	2024-07-06	2024-08-09	7月～8月
+ja	month	long	2024-07-06	2024-08-09	7月～8月
+ja	month	medium	2024-07-06	2024-08-09	7月～8月
+ja	month	full	2025-12-30	2026-01-02	2025年12月～2026年1月
+ja	month	long	2025-12-30	2026-01-02	2025年12月～2026年1月
+ja	month	medium	2025-12-30	2026-01-02	2025年12月～2026年1月
+ja	month	full	2024-07-06	2025-07-06	2024年7月～2025年7月
+ja	month	long	2024-07-06	2025-07-06	2024年7月～2025年7月
+ja	month	medium	2024-07-06	2025-07-06	2024年7月～2025年7月
+ja	month	full	2024-07-06	2024-07-06	7月
+ja	month	long	2024-07-06	2024-07-06	7月
+ja	month	medium	2024-07-06	2024-07-06	7月
+ja	month	full	2024-11-15	2025-02-10	2024年11月～2025年2月
+ja	month	long	2024-11-15	2025-02-10	2024年11月～2025年2月
+ja	month	medium	2024-11-15	2025-02-10	2024年11月～2025年2月
+ja	month	short	2024-07-06	2024-07-09	7月
+ja	month	short	2024-07-06	2024-08-09	7月～8月
+ja	month	short	2025-12-30	2026-01-02	2025/12～2026/01
+ja	month	short	2024-07-06	2025-07-06	2024/07～2025/07
+ja	month	short	2024-07-06	2024-07-06	7月
+ja	month	short	2024-11-15	2025-02-10	2024/11～2025/02
+ja	time	hm	10:00:00	10:30:00	午前10時00分～10時30分
+ja	time	hm	10:00:00	14:00:00	午前10時00分～午後2時00分
+ja	time	hm	10:00:00	11:00:00	午前10時00分～11時00分
+ja	time	hm	00:00:00	12:00:00	午前0時00分～午後0時00分
+ja	time	Hm	10:00:00	10:30:00	10時00分～10時30分
+ja	time	Hm	10:00:00	14:00:00	10時00分～14時00分
+ja	time	Hm	10:00:00	11:00:00	10時00分～11時00分
+ja	time	Hm	00:00:00	12:00:00	0時00分～12時00分
+ja	time	h	10:00:00	10:30:00	午前10時
+ja	time	h	10:00:00	14:00:00	午前10時～午後2時
+ja	time	h	10:00:00	11:00:00	午前10時～11時
+ja	time	h	00:00:00	12:00:00	午前0時～午後0時
+ja	time	H	10:00:00	10:30:00	10時
+ja	time	H	10:00:00	14:00:00	10時～14時
+ja	time	H	10:00:00	11:00:00	10時～11時
+ja	time	H	00:00:00	12:00:00	0時～12時
+fr	date	short	2024-07-06	2024-07-09	06/07/2024 – 09/07/2024
+fr	date	short	2024-07-06	2024-08-09	06/07/2024 – 09/08/2024
+fr	date	short	2025-12-30	2026-01-02	30/12/2025 – 02/01/2026
+fr	date	short	2024-07-06	2025-07-06	06/07/2024 – 06/07/2025
+fr	date	short	2024-07-06	2024-07-06	06/07/2024
+fr	date	short	2024-11-15	2025-02-10	15/11/2024 – 10/02/2025
+fr	date	medium	2024-07-06	2024-07-09	6–9 juil. 2024
+fr	date	medium	2024-07-06	2024-08-09	6 juil. – 9 août 2024
+fr	date	medium	2025-12-30	2026-01-02	30 déc. 2025 – 2 janv. 2026
+fr	date	medium	2024-07-06	2025-07-06	6 juil. 2024 – 6 juil. 2025
+fr	date	medium	2024-07-06	2024-07-06	6 juil. 2024
+fr	date	medium	2024-11-15	2025-02-10	15 nov. 2024 – 10 févr. 2025
+fr	date	long	2024-07-06	2024-07-09	6–9 juillet 2024
+fr	date	long	2024-07-06	2024-08-09	6 juillet – 9 août 2024
+fr	date	long	2025-12-30	2026-01-02	30 décembre 2025 – 2 janvier 2026
+fr	date	long	2024-07-06	2025-07-06	6 juillet 2024 – 6 juillet 2025
+fr	date	long	2024-07-06	2024-07-06	6 juillet 2024
+fr	date	long	2024-11-15	2025-02-10	15 novembre 2024 – 10 février 2025
+fr	date	full	2024-07-06	2024-07-09	samedi 6 – mardi 9 juillet 2024
+fr	date	full	2024-07-06	2024-08-09	samedi 6 juillet – vendredi 9 août 2024
+fr	date	full	2025-12-30	2026-01-02	mardi 30 décembre 2025 – vendredi 2 janvier 2026
+fr	date	full	2024-07-06	2025-07-06	samedi 6 juillet 2024 – dimanche 6 juillet 2025
+fr	date	full	2024-07-06	2024-07-06	samedi 6 juillet 2024
+fr	date	full	2024-11-15	2025-02-10	vendredi 15 novembre 2024 – lundi 10 février 2025
+fr	month_and_day	full	2024-07-06	2024-07-09	sam. 6 – mar. 9 juil.
+fr	month_and_day	long	2024-07-06	2024-07-09	sam. 6 – mar. 9 juil.
+fr	month_and_day	full	2024-07-06	2024-08-09	sam. 6 juil. – ven. 9 août
+fr	month_and_day	long	2024-07-06	2024-08-09	sam. 6 juil. – ven. 9 août
+fr	month_and_day	full	2025-12-30	2026-01-02	mar. 30 déc. 2025 – ven. 2 janv. 2026
+fr	month_and_day	long	2025-12-30	2026-01-02	mar. 30 déc. 2025 – ven. 2 janv. 2026
+fr	month_and_day	full	2024-07-06	2025-07-06	sam. 6 juil. 2024 – dim. 6 juil. 2025
+fr	month_and_day	long	2024-07-06	2025-07-06	sam. 6 juil. 2024 – dim. 6 juil. 2025
+fr	month_and_day	full	2024-07-06	2024-07-06	sam. 6 juil.
+fr	month_and_day	long	2024-07-06	2024-07-06	sam. 6 juil.
+fr	month_and_day	full	2024-11-15	2025-02-10	ven. 15 nov. 2024 – lun. 10 févr. 2025
+fr	month_and_day	long	2024-11-15	2025-02-10	ven. 15 nov. 2024 – lun. 10 févr. 2025
+fr	month_and_day	medium	2024-07-06	2024-07-09	6–9 juil.
+fr	month_and_day	medium	2024-07-06	2024-08-09	6 juil. – 9 août
+fr	month_and_day	medium	2025-12-30	2026-01-02	30 déc. 2025 – 2 janv. 2026
+fr	month_and_day	medium	2024-07-06	2025-07-06	6 juil. 2024 – 6 juil. 2025
+fr	month_and_day	medium	2024-07-06	2024-07-06	6 juil.
+fr	month_and_day	medium	2024-11-15	2025-02-10	15 nov. 2024 – 10 févr. 2025
+fr	month_and_day	short	2024-07-06	2024-07-09	06/07 – 09/07
+fr	month_and_day	short	2024-07-06	2024-08-09	06/07 – 09/08
+fr	month_and_day	short	2025-12-30	2026-01-02	30/12/2025 – 02/01/2026
+fr	month_and_day	short	2024-07-06	2025-07-06	06/07/2024 – 06/07/2025
+fr	month_and_day	short	2024-07-06	2024-07-06	06/07
+fr	month_and_day	short	2024-11-15	2025-02-10	15/11/2024 – 10/02/2025
+fr	year_and_month	full	2024-07-06	2024-07-09	juillet 2024
+fr	year_and_month	long	2024-07-06	2024-07-09	juillet 2024
+fr	year_and_month	full	2024-07-06	2024-08-09	juillet – août 2024
+fr	year_and_month	long	2024-07-06	2024-08-09	juillet – août 2024
+fr	year_and_month	full	2025-12-30	2026-01-02	décembre 2025 – janvier 2026
+fr	year_and_month	long	2025-12-30	2026-01-02	décembre 2025 – janvier 2026
+fr	year_and_month	full	2024-07-06	2025-07-06	juillet 2024 – juillet 2025
+fr	year_and_month	long	2024-07-06	2025-07-06	juillet 2024 – juillet 2025
+fr	year_and_month	full	2024-07-06	2024-07-06	juillet 2024
+fr	year_and_month	long	2024-07-06	2024-07-06	juillet 2024
+fr	year_and_month	full	2024-11-15	2025-02-10	novembre 2024 – février 2025
+fr	year_and_month	long	2024-11-15	2025-02-10	novembre 2024 – février 2025
+fr	year_and_month	medium	2024-07-06	2024-07-09	juil. 2024
+fr	year_and_month	medium	2024-07-06	2024-08-09	juil.–août 2024
+fr	year_and_month	medium	2025-12-30	2026-01-02	déc. 2025 – janv. 2026
+fr	year_and_month	medium	2024-07-06	2025-07-06	juil. 2024 – juil. 2025
+fr	year_and_month	medium	2024-07-06	2024-07-06	juil. 2024
+fr	year_and_month	medium	2024-11-15	2025-02-10	nov. 2024 – févr. 2025
+fr	year_and_month	short	2024-07-06	2024-07-09	07/2024
+fr	year_and_month	short	2024-07-06	2024-08-09	07/2024 – 08/2024
+fr	year_and_month	short	2025-12-30	2026-01-02	12/2025 – 01/2026
+fr	year_and_month	short	2024-07-06	2025-07-06	07/2024 – 07/2025
+fr	year_and_month	short	2024-07-06	2024-07-06	07/2024
+fr	year_and_month	short	2024-11-15	2025-02-10	11/2024 – 02/2025
+fr	month	full	2024-07-06	2024-07-09	juil.
+fr	month	long	2024-07-06	2024-07-09	juil.
+fr	month	medium	2024-07-06	2024-07-09	juil.
+fr	month	full	2024-07-06	2024-08-09	juil.–août
+fr	month	long	2024-07-06	2024-08-09	juil.–août
+fr	month	medium	2024-07-06	2024-08-09	juil.–août
+fr	month	full	2025-12-30	2026-01-02	déc. 2025 – janv. 2026
+fr	month	long	2025-12-30	2026-01-02	déc. 2025 – janv. 2026
+fr	month	medium	2025-12-30	2026-01-02	déc. 2025 – janv. 2026
+fr	month	full	2024-07-06	2025-07-06	juil. 2024 – juil. 2025
+fr	month	long	2024-07-06	2025-07-06	juil. 2024 – juil. 2025
+fr	month	medium	2024-07-06	2025-07-06	juil. 2024 – juil. 2025
+fr	month	full	2024-07-06	2024-07-06	juil.
+fr	month	long	2024-07-06	2024-07-06	juil.
+fr	month	medium	2024-07-06	2024-07-06	juil.
+fr	month	full	2024-11-15	2025-02-10	nov. 2024 – févr. 2025
+fr	month	long	2024-11-15	2025-02-10	nov. 2024 – févr. 2025
+fr	month	medium	2024-11-15	2025-02-10	nov. 2024 – févr. 2025
+fr	month	short	2024-07-06	2024-07-09	7
+fr	month	short	2024-07-06	2024-08-09	7–8
+fr	month	short	2025-12-30	2026-01-02	12/2025 – 01/2026
+fr	month	short	2024-07-06	2025-07-06	07/2024 – 07/2025
+fr	month	short	2024-07-06	2024-07-06	7
+fr	month	short	2024-11-15	2025-02-10	11/2024 – 02/2025
+fr	time	hm	10:00:00	10:30:00	10:00 – 10:30 AM
+fr	time	hm	10:00:00	14:00:00	10:00 AM – 2:00 PM
+fr	time	hm	10:00:00	11:00:00	10:00 – 11:00 AM
+fr	time	hm	00:00:00	12:00:00	12:00 AM – 12:00 PM
+fr	time	Hm	10:00:00	10:30:00	10:00 – 10:30
+fr	time	Hm	10:00:00	14:00:00	10:00 – 14:00
+fr	time	Hm	10:00:00	11:00:00	10:00 – 11:00
+fr	time	Hm	00:00:00	12:00:00	00:00 – 12:00
+fr	time	h	10:00:00	10:30:00	10 AM
+fr	time	h	10:00:00	14:00:00	10 AM – 2 PM
+fr	time	h	10:00:00	11:00:00	10 – 11 AM
+fr	time	h	00:00:00	12:00:00	12 AM – 12 PM
+fr	time	H	10:00:00	14:00:00	10 – 14
+fr	time	H	10:00:00	11:00:00	10 – 11
+fr	time	H	00:00:00	12:00:00	00 – 12
+# Datetime intervals, TR35 step 3, from ICU4J 73 for each locale short and
+# medium date and time skeletons. 13 generated rows are left
+# out: same-day intervals with seconds, where Localize shows the date once and
+# ICU repeats it when the hour differs (or shows it once in another date
+# pattern), and fr short, which Localize joins with the fr short date-time
+# pattern by the TR35 length rule where ICU uses the medium one.
+en	datetime	short	2024-07-06T10:00:00	2024-07-06T10:30:00	7/6/24, 10:00 – 10:30 AM
+en	datetime	short	2024-07-06T10:00:00	2024-07-06T14:00:00	7/6/24, 10:00 AM – 2:00 PM
+en	datetime	short	2024-07-06T10:00:00	2024-07-06T11:00:00	7/6/24, 10:00 – 11:00 AM
+en	datetime	short	2024-07-06T10:00:00	2024-07-07T11:00:00	7/6/24, 10:00 AM – 7/7/24, 11:00 AM
+en	datetime	short	2025-12-31T23:00:00	2026-01-01T01:00:00	12/31/25, 11:00 PM – 1/1/26, 1:00 AM
+en	datetime	short	2024-07-06T10:00:00	2024-07-06T10:00:00	7/6/24, 10:00 AM
+en	datetime	medium	2024-07-06T10:00:00	2024-07-06T10:30:00	Jul 6, 2024, 10:00:00 AM – 10:30:00 AM
+en	datetime	medium	2024-07-06T10:00:00	2024-07-07T11:00:00	Jul 6, 2024, 10:00:00 AM – Jul 7, 2024, 11:00:00 AM
+en	datetime	medium	2025-12-31T23:00:00	2026-01-01T01:00:00	Dec 31, 2025, 11:00:00 PM – Jan 1, 2026, 1:00:00 AM
+en	datetime	medium	2024-07-06T10:00:00	2024-07-06T10:00:00	Jul 6, 2024, 10:00:00 AM
+de	datetime	short	2024-07-06T10:00:00	2024-07-06T10:30:00	06.07.24, 10:00–10:30 Uhr
+de	datetime	short	2024-07-06T10:00:00	2024-07-06T14:00:00	06.07.24, 10:00–14:00 Uhr
+de	datetime	short	2024-07-06T10:00:00	2024-07-06T11:00:00	06.07.24, 10:00–11:00 Uhr
+de	datetime	short	2024-07-06T10:00:00	2024-07-07T11:00:00	06.07.24, 10:00 – 07.07.24, 11:00
+de	datetime	short	2025-12-31T23:00:00	2026-01-01T01:00:00	31.12.25, 23:00 – 01.01.26, 01:00
+de	datetime	short	2024-07-06T10:00:00	2024-07-06T10:00:00	06.07.24, 10:00
+de	datetime	medium	2024-07-06T10:00:00	2024-07-07T11:00:00	06.07.2024, 10:00:00 – 07.07.2024, 11:00:00
+de	datetime	medium	2025-12-31T23:00:00	2026-01-01T01:00:00	31.12.2025, 23:00:00 – 01.01.2026, 01:00:00
+de	datetime	medium	2024-07-06T10:00:00	2024-07-06T10:00:00	06.07.2024, 10:00:00
+ja	datetime	short	2024-07-06T10:00:00	2024-07-06T10:30:00	2024/07/06 10時00分～10時30分
+ja	datetime	short	2024-07-06T10:00:00	2024-07-06T14:00:00	2024/07/06 10時00分～14時00分
+ja	datetime	short	2024-07-06T10:00:00	2024-07-06T11:00:00	2024/07/06 10時00分～11時00分
+ja	datetime	short	2024-07-06T10:00:00	2024-07-07T11:00:00	2024/07/06 10:00～2024/07/07 11:00
+ja	datetime	short	2025-12-31T23:00:00	2026-01-01T01:00:00	2025/12/31 23:00～2026/01/01 1:00
+ja	datetime	short	2024-07-06T10:00:00	2024-07-06T10:00:00	2024/07/06 10:00
+ja	datetime	medium	2024-07-06T10:00:00	2024-07-07T11:00:00	2024/07/06 10:00:00～2024/07/07 11:00:00
+ja	datetime	medium	2025-12-31T23:00:00	2026-01-01T01:00:00	2025/12/31 23:00:00～2026/01/01 1:00:00
+ja	datetime	medium	2024-07-06T10:00:00	2024-07-06T10:00:00	2024/07/06 10:00:00
+fr	datetime	short	2024-07-06T10:00:00	2024-07-07T11:00:00	06/07/2024 10:00 – 07/07/2024 11:00
+fr	datetime	short	2025-12-31T23:00:00	2026-01-01T01:00:00	31/12/2025 23:00 – 01/01/2026 01:00
+fr	datetime	short	2024-07-06T10:00:00	2024-07-06T10:00:00	06/07/2024 10:00
+fr	datetime	medium	2024-07-06T10:00:00	2024-07-06T10:30:00	6 juil. 2024, 10:00:00 – 10:30:00
+fr	datetime	medium	2024-07-06T10:00:00	2024-07-07T11:00:00	6 juil. 2024, 10:00:00 – 7 juil. 2024, 11:00:00
+fr	datetime	medium	2025-12-31T23:00:00	2026-01-01T01:00:00	31 déc. 2025, 23:00:00 – 1 janv. 2026, 01:00:00
+fr	datetime	medium	2024-07-06T10:00:00	2024-07-06T10:00:00	6 juil. 2024, 10:00:00

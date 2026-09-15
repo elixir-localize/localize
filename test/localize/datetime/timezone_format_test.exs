@@ -157,13 +157,24 @@ defmodule Localize.DateTime.TimezoneFormatTest do
                Timezone.gmt_format(%{utc_offset: -28_800, std_offset: 0}, :en, format: :short)
     end
 
+    test "short format keeps non-zero minutes after an hour with no leading zero" do
+      # TR35: the short format "uses hour fields without leading zero, with
+      # optional 2-digit minutes".
+      assert {:ok, "GMT+5:30"} =
+               Timezone.gmt_format(%{utc_offset: 19_800, std_offset: 0}, :en, format: :short)
+
+      assert {:ok, "GMT-9:30"} =
+               Timezone.gmt_format(%{utc_offset: -34_200, std_offset: 0}, :en, format: :short)
+    end
+
     test "std_offset is added to the base offset" do
       assert {:ok, "GMT-04:00"} = Timezone.gmt_format(@new_york_daylight, :en)
     end
 
     test "locale-specific GMT patterns are honoured" do
-      # French uses "UTC" with a minus sign (U+2212) for negative offsets.
-      assert {:ok, "UTC−05"} =
+      # French uses "UTC" with a minus sign (U+2212) for negative offsets, and
+      # the short format drops the hour's leading zero after either sign.
+      assert {:ok, "UTC−5"} =
                Timezone.gmt_format(%{utc_offset: -18_000, std_offset: 0}, :fr, format: :short)
     end
   end

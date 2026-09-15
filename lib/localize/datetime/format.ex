@@ -202,6 +202,10 @@ defmodule Localize.DateTime.Format do
     end
   end
 
+  def resolve_format(_format_type, format_name, _locale_id, _calendar_type, _options) do
+    {:error, Localize.DateTimeFormatError.exception(format: format_name, reason: :invalid_format)}
+  end
+
   defp variant_pattern_result(nil, format_name, locale_id) do
     {:error,
      Localize.DateTimeUnresolvedFormatError.exception(

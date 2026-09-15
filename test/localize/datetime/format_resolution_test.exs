@@ -162,21 +162,28 @@ defmodule Localize.DateTime.FormatResolutionTest do
       assert {:ok, :hm} = Match.best_match(:hm, :en)
     end
 
+    # `en` ships `ahmm` beside `hm`, both "h:mm a": a 12-hour format's id
+    # implies its day period, and `ahmm` also matches the requested minute
+    # width, so either id answers a 12-hour request.
     test "j resolves to the locale's preferred hour cycle" do
-      # The width of the matched id is subject to the same scoring
-      # tie instability, so only the hour symbol (cycle) is pinned.
-      assert {:ok, :hm} = Match.best_match("jmm", :en)
+      assert {:ok, en_format_id} = Match.best_match("jmm", :en)
+      assert en_format_id in [:hm, :ahmm]
 
       assert {:ok, de_format_id} = Match.best_match("jmm", :de)
       assert de_format_id in [:Hm, :Hmm, :HHmm]
     end
 
     test "J strips the day period from the preferred hour symbol" do
-      assert {:ok, :hm} = Match.best_match("Jmm", :en)
+      assert {:ok, format_id} = Match.best_match("Jmm", :en)
+      assert format_id in [:hm, :ahmm]
+
+      # TR35: with "Jmm", 18:00 "would appear as “6:00” (no PM)".
+      assert Localize.Time.to_string(~T[18:00:00], format: :Jmm, locale: :en) == {:ok, "6:00"}
     end
 
     test "C uses the first allowed hour symbol" do
-      assert {:ok, :hm} = Match.best_match("Cmm", :en)
+      assert {:ok, format_id} = Match.best_match("Cmm", :en)
+      assert format_id in [:hm, :ahmm]
     end
 
     test "combined date and time skeleton splits into a format id pair" do
