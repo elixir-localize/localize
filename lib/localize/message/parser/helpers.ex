@@ -17,15 +17,15 @@ defmodule Localize.Message.Parser.Helpers do
   def wrap_identifier([name]), do: name
   def wrap_identifier([namespace, name]), do: {:namespace, namespace, name}
 
+  # TR35 Part 9: a literal's code points are all preserved. Keys are
+  # normalized when they are compared, not when they are parsed.
   @doc false
   def wrap_quoted_literal(parts) do
     text =
-      parts
-      |> Enum.map_join(fn
+      Enum.map_join(parts, fn
         {:escape, c} -> c
         s when is_binary(s) -> s
       end)
-      |> :unicode.characters_to_nfc_binary()
 
     {:literal, text}
   end

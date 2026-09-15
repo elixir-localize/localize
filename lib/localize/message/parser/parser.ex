@@ -159,11 +159,12 @@ defmodule Localize.Message.Parser do
 
   defparsecp(:variable_p, variable_v)
 
+  # An unquoted literal keeps its code points, as a quoted one does.
   unquoted_literal_v =
     choice([
       number_literal(),
       times(name_char(), min: 1)
-      |> reduce(:to_nfc_string)
+      |> reduce({List, :to_string, []})
       |> unwrap_and_tag(:literal)
     ])
 

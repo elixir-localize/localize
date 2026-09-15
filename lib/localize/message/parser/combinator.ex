@@ -184,14 +184,14 @@ defmodule Localize.Message.Parser.Combinator do
     |> reduce(:wrap_quoted_literal)
   end
 
+  # TR35 Part 9: a literal's code points are all preserved. Keys are
+  # normalized when they are compared, not when they are parsed.
   def wrap_quoted_literal(parts) do
     text =
-      parts
-      |> Enum.map_join(fn
+      Enum.map_join(parts, fn
         {:escape, c} -> c
         s when is_binary(s) -> s
       end)
-      |> :unicode.characters_to_nfc_binary()
 
     {:literal, text}
   end

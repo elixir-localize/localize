@@ -167,22 +167,31 @@ defmodule Localize.Message.Print do
     end
   end
 
+  # An unquoted literal is a `name`: a name-start character, then name
+  # characters.
   defp unquoted_literal?(value) do
-    value
-    |> String.to_charlist()
-    |> Enum.all?(&name_char?/1)
+    case String.to_charlist(value) do
+      [first | rest] -> name_start?(first) and Enum.all?(rest, &name_char?/1)
+      [] -> false
+    end
   end
 
   defp name_char?(c) when c in ?0..?9, do: true
   defp name_char?(c) when c == ?- or c == ?., do: true
   defp name_char?(c), do: name_start?(c)
 
+  # MF2's `name-start` ranges from TR35 Part 9, as the parser's
+  # `name_start/0` combinator has them. They omit whitespace (U+1680,
+  # U+2000–200A, U+2028–2029, U+202F, U+205F, U+3000), bidi controls,
+  # surrogates and noncharacters.
   defp name_start?(c) when c in ?a..?z or c in ?A..?Z, do: true
   defp name_start?(c) when c == ?_ or c == ?+, do: true
-  defp name_start?(c) when c in 0xA1..0x61B, do: true
-  defp name_start?(c) when c in 0x61D..0xD7FF, do: true
-  defp name_start?(c) when c in 0xE000..0xFFFD, do: true
-  defp name_start?(c) when c in 0x10000..0x10FFFF, do: true
+  defp name_start?(c) when c in 0xA1..0x61B or c in 0x61D..0x167F or c in 0x1681..0x1FFF, do: true
+  defp name_start?(c) when c in 0x200B..0x200D or c in 0x2010..0x2027, do: true
+  defp name_start?(c) when c in 0x2030..0x205E or c in 0x2060..0x2065, do: true
+  defp name_start?(c) when c in 0x206A..0x2FFF or c in 0x3001..0xD7FF, do: true
+  defp name_start?(c) when c in 0xE000..0xFDCF or c in 0xFDF0..0xFFFD, do: true
+  defp name_start?(c) when c in 0x10000..0x10FFFD and rem(c, 0x10000) <= 0xFFFD, do: true
   defp name_start?(_), do: false
 
   defp identifier_to_iolist({:namespace, ns, name}), do: [ns, ":", name]

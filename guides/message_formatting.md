@@ -343,6 +343,8 @@ The `:number` and `:integer` functions support plural category matching via the 
 
 * `select=exact`: matches by literal equality only, no plural category resolution.
 
+The category is that of the number as the function displays it, so formatting options take part in selection: `{$n :number minimumFractionDigits=1}` displays 1 as "1.0", which selects `other` in English, and `{$n :percent}` selects by the percentage shown.
+
 ## Markup
 
 MF2 supports markup elements for structured output. Markup is typically used to wrap regions of text that should become HTML elements, function components, or other host-format structures at render time.
@@ -457,7 +459,7 @@ Formats an MF2 message into an iolist with binding tracking.
 
 ### `Localize.Message.canonical_message/2`
 
-Normalizes a message to its canonical MF2 form.
+Returns a message in its canonical MF2 form: the source printed back from the parsed message, with a literal left unquoted only when it is an MF2 name. Literals keep all their code points, as TR35 requires, so the canonical form of a message parses back to the same message.
 
 ### `Localize.Message.jaro_distance/3`
 

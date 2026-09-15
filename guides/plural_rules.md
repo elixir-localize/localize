@@ -261,7 +261,20 @@ iex> Localize.Message.format(message, %{place: 11}, locale: :en)
 {:ok, "11th place"}
 ```
 
-Because selection runs on the *formatted* value, formatting options that change the visible fraction digits also change the selected category — exactly the `1` vs `1.0` distinction described above. See the [Message Formatting](https://hexdocs.pm/localize/message_formatting.html) guide for the full MF2 syntax.
+Because selection runs on the *formatted* value, formatting options that change the visible fraction digits also change the selected category — exactly the `1` vs `1.0` distinction described above:
+
+```elixir
+iex> message = """
+...> .input {$count :number minimumFractionDigits=1}
+...> .match $count
+...> one {{{$count} message}}
+...> *   {{{$count} messages}}
+...> """
+iex> Localize.Message.format(message, %{count: 1}, locale: :en)
+{:ok, "1.0 messages"}
+```
+
+See the [Message Formatting](https://hexdocs.pm/localize/message_formatting.html) guide for the full MF2 syntax.
 
 ## Options reference
 
