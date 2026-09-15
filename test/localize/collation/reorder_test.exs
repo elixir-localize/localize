@@ -167,18 +167,12 @@ defmodule Localize.Collation.ReorderTest do
       assert frac_lead >= 0x2A and frac_lead <= 0x5E
     end
 
-    # `0061; [2B, 05, 05]\t# Latn Ll\t[2485.0020.0002]\t* LATIN SMALL LETTER A`
+    # The root collation table carries the DUCET weights the mapping is keyed
+    # on. It is generated from FractionalUCA.txt but, unlike that source, it is
+    # tracked, so this also runs on a checkout without priv/cldr.
     defp latin_a_ducet_primary do
-      path = Application.app_dir(:localize, "priv/cldr/FractionalUCA.txt")
-
-      [[_, primary]] =
-        path
-        |> File.stream!()
-        |> Stream.filter(&String.starts_with?(&1, "0061;"))
-        |> Stream.map(&Regex.run(~r/\[([0-9A-Fa-f]+)\.[0-9A-Fa-f]+\.[0-9A-Fa-f]+\]/, &1))
-        |> Enum.take(1)
-
-      String.to_integer(primary, 16)
+      {:ok, [element]} = Localize.Collation.Table.lookup(?a)
+      Localize.Collation.Element.primary(element)
     end
   end
 
