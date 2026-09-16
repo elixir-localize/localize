@@ -22,6 +22,8 @@ defmodule Localize.Message.Formatter.HTML do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.Message.Highlighter
 
   @type options :: [
@@ -75,49 +77,72 @@ defmodule Localize.Message.Formatter.HTML do
       true
 
   """
-  @spec render([Highlighter.token()], options()) :: String.t()
-  def render(tokens, options \\ []) do
+  @spec render([Highlighter.token()], options()) :: String.t() | {:error, Exception.t()}
+  def render(tokens, options \\ [])
+
+  def render(tokens, options) when is_list(tokens) and is_keyword_list(options) do
     span_tag = Keyword.get(options, :span_tag, @default_span_tag)
     class_prefix = Keyword.get(options, :class_prefix, @default_class_prefix)
+    wrapper_tag = Keyword.get(options, :wrapper_tag, @default_wrapper_tag)
+    wrapper_class = Keyword.get(options, :wrapper_class, @default_wrapper_class)
 
-    inner =
-      tokens
-      |> Enum.map(fn {class, text} ->
-        [
-          "<",
-          span_tag,
-          ~s( class="),
-          class_prefix,
-          class_name(class),
-          ~s(">),
-          escape(text),
-          "</",
-          span_tag,
-          ">"
-        ]
-      end)
+    markup = [
+      span_tag: span_tag,
+      class_prefix: class_prefix,
+      wrapper_tag: wrapper_tag,
+      wrapper_class: wrapper_class
+    ]
 
-    output =
-      if Keyword.get(options, :standalone, false) do
-        wrapper_tag = Keyword.get(options, :wrapper_tag, @default_wrapper_tag)
-        wrapper_class = Keyword.get(options, :wrapper_class, @default_wrapper_class)
+    with :ok <- validate_markup(markup) do
+      inner =
+        for {class, text} when is_atom(class) and is_binary(text) <- tokens do
+          [
+            "<",
+            span_tag,
+            ~s( class="),
+            class_prefix,
+            class_name(class),
+            ~s(">),
+            escape(text),
+            "</",
+            span_tag,
+            ">"
+          ]
+        end
 
-        [
-          "<",
-          wrapper_tag,
-          ~s( class="),
-          wrapper_class,
-          ~s("><code>),
-          inner,
-          "</code></",
-          wrapper_tag,
-          ">"
-        ]
-      else
-        inner
-      end
+      output =
+        if Keyword.get(options, :standalone, false) do
+          [
+            "<",
+            wrapper_tag,
+            ~s( class="),
+            wrapper_class,
+            ~s("><code>),
+            inner,
+            "</code></",
+            wrapper_tag,
+            ">"
+          ]
+        else
+          inner
+        end
 
-    IO.iodata_to_binary(output)
+      IO.iodata_to_binary(output)
+    end
+  end
+
+  def render(_tokens, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def render(tokens, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(tokens, "a list of highlighter tokens")}
+
+  defp validate_markup([{_option, value} | rest]) when is_binary(value), do: validate_markup(rest)
+  defp validate_markup([]), do: :ok
+
+  defp validate_markup([{option, value} | _rest]) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(value, "a string for the #{inspect(option)} option")}
   end
 
   # Turn a class atom into its CSS-class form: underscores become

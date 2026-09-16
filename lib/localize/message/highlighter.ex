@@ -210,6 +210,8 @@ defmodule Localize.Message.Highlighter do
     ]
   end
 
+  defp walk(_node), do: []
+
   # ── Expressions ────────────────────────────────────────────────
 
   defp expression_tokens({:expression, operand, func, attrs}) do

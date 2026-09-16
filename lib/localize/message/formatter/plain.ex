@@ -30,10 +30,11 @@ defmodule Localize.Message.Formatter.Plain do
       "Hello {$name}!"
 
   """
-  @spec render([Highlighter.token()]) :: String.t()
-  def render(tokens) do
-    tokens
-    |> Enum.map(fn {_class, text} -> text end)
-    |> IO.iodata_to_binary()
+  @spec render([Highlighter.token()]) :: String.t() | {:error, Exception.t()}
+  def render(tokens) when is_list(tokens) do
+    for {_class, text} when is_binary(text) <- tokens, into: "", do: text
   end
+
+  def render(tokens),
+    do: {:error, Localize.Utils.Helpers.invalid_value(tokens, "a list of highlighter tokens")}
 end

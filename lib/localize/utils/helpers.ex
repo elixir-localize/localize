@@ -76,4 +76,28 @@ defmodule Localize.Utils.Helpers do
   end
 
   def existing_atom(_), do: nil
+
+  @doc false
+  # The error for options that are not a keyword list, as `Localize.Number`
+  # reports it.
+  @spec invalid_options(term()) :: Exception.t()
+  def invalid_options(options) do
+    Localize.InvalidValueError.exception(value: options, expected: "a keyword list of options")
+  end
+
+  @doc false
+  # The error for an argument of the wrong type, naming the type expected.
+  @spec invalid_value(term(), String.t()) :: Exception.t()
+  def invalid_value(value, expected) do
+    Localize.InvalidValueError.exception(value: value, expected: expected)
+  end
+
+  @doc false
+  # Guards for a keyword list as a function head matches one,
+  # `[{key, _value} | _rest] when is_atom(key)`, and also admits the empty
+  # list, so a function whose options default to `[]` needs one clause.
+  defguard is_keyword_list(options)
+           when options == [] or
+                  (is_list(options) and is_tuple(hd(options)) and tuple_size(hd(options)) == 2 and
+                     is_atom(elem(hd(options), 0)))
 end

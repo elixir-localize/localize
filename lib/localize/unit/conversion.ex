@@ -81,7 +81,7 @@ defmodule Localize.Unit.Conversion do
           {:ok, float() | Decimal.t()} | {:error, Exception.t() | String.t()}
   @dialyzer {:nowarn_function, convert: 3}
 
-  def convert(value, from, to) do
+  def convert(value, from, to) when is_number(value) or is_struct(value, Decimal) do
     with {:ok, parsed_from} <- Parser.parse(from),
          {:ok, parsed_to} <- Parser.parse(to),
          true <- convertible?(parsed_from, parsed_to) do
@@ -98,6 +98,9 @@ defmodule Localize.Unit.Conversion do
         error
     end
   end
+
+  def convert(value, _from, _to),
+    do: {:error, Localize.Utils.Helpers.invalid_value(value, "a number or a Decimal")}
 
   @doc """
   Converts a numeric value from one unit to another, raising on error.

@@ -10,6 +10,7 @@ defmodule Localize.Interval do
   """
 
   import Kernel, except: [to_string: 1]
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
   # Locale-independent skeletons for the non-default `:fields`
   # options. The default `:date` selection is resolved per-locale from
@@ -80,21 +81,24 @@ defmodule Localize.Interval do
           {:ok, String.t()} | {:error, Exception.t()}
   def to_string(from, to, options \\ [])
 
-  def to_string(nil, nil, _options) do
+  def to_string(nil, nil, options) when is_keyword_list(options) do
     {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}
   end
 
-  def to_string(nil, to, options) when not is_nil(to) do
+  def to_string(nil, to, options) when not is_nil(to) and is_keyword_list(options) do
     format_open_interval(to, :open_start, options)
   end
 
-  def to_string(from, nil, options) when not is_nil(from) do
+  def to_string(from, nil, options) when not is_nil(from) and is_keyword_list(options) do
     format_open_interval(from, :open_end, options)
   end
 
-  def to_string(from, to, options) do
+  def to_string(from, to, options) when is_keyword_list(options) do
     format_closed_interval(from, to, options, :string)
   end
+
+  def to_string(_from, _to, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   @doc """
   Formats a date, time, or datetime interval into typed parts, mirroring ECMA-402's `formatRangeToParts`.
@@ -136,13 +140,17 @@ defmodule Localize.Interval do
           {:ok, [%{type: atom(), value: String.t(), source: atom()}]} | {:error, Exception.t()}
   def to_parts(from, to, options \\ [])
 
-  def to_parts(from, to, _options) when is_nil(from) or is_nil(to) do
+  def to_parts(from, to, options)
+      when (is_nil(from) or is_nil(to)) and is_keyword_list(options) do
     {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}
   end
 
-  def to_parts(from, to, options) do
+  def to_parts(from, to, options) when is_keyword_list(options) do
     format_closed_interval(from, to, options, :parts)
   end
+
+  def to_parts(_from, _to, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   @doc """
   Same as `to_parts/3` but raises on error.
@@ -970,6 +978,9 @@ defmodule Localize.Interval do
     end
   end
 
+  defp format_single_value(_value, _options),
+    do: {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}
+
   @doc """
   Same as `to_string/3` but raises on error.
 
@@ -1036,7 +1047,7 @@ defmodule Localize.Interval do
   """
   @spec greatest_difference(map(), map()) ::
           {:ok, :y | :M | :d | :H | :m} | {:error, Exception.t()}
-  def greatest_difference(from, to) do
+  def greatest_difference(from, to) when is_map(from) and is_map(to) do
     cond do
       Map.get(from, :year) != Map.get(to, :year) ->
         {:ok, :y}
@@ -1057,6 +1068,12 @@ defmodule Localize.Interval do
         {:error, Localize.NoPracticalDifferenceError.exception(from: from, to: to)}
     end
   end
+
+  def greatest_difference(from, _to) when not is_map(from),
+    do: {:error, Localize.Utils.Helpers.invalid_value(from, "a date, time or datetime")}
+
+  def greatest_difference(_from, to),
+    do: {:error, Localize.Utils.Helpers.invalid_value(to, "a date, time or datetime")}
 
   @doc """
   Returns the locale-independent skeletons for the `:fields` option of `to_string/3`.
@@ -1137,6 +1154,15 @@ defmodule Localize.Interval do
       format_key ->
         {:ok, format_key}
     end
+  end
+
+  defp resolve_fields(fields, format, _locale_id) do
+    {:error,
+     Localize.DateTimeIntervalFormatError.exception(
+       reason: :unknown_fields,
+       fields: fields,
+       format: format
+     )}
   end
 
   # Use the locale's skeleton when CLDR ships an interval format for it.

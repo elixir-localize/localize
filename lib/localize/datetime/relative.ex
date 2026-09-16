@@ -6,6 +6,8 @@ defmodule Localize.DateTime.Relative do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   @second 1
   @minute 60
   @hour 3600
@@ -83,7 +85,7 @@ defmodule Localize.DateTime.Relative do
           {:ok, String.t()} | {:error, Exception.t()}
   def to_string(relative, options \\ [])
 
-  def to_string(relative, options) when is_list(options) do
+  def to_string(relative, options) when is_keyword_list(options) do
     with {:ok, parts} <- to_parts(relative, options) do
       {:ok, Enum.map_join(parts, & &1.value)}
     end
@@ -171,7 +173,7 @@ defmodule Localize.DateTime.Relative do
           {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
   def to_parts(relative, options \\ [])
 
-  def to_parts(relative, options) when is_list(options) do
+  def to_parts(relative, options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, :standard)
     unit = Keyword.get(options, :unit)

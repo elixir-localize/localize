@@ -27,6 +27,8 @@ defmodule Localize.Validity.Script do
     end
   end
 
+  def validate(code), do: {:error, code}
+
   def normalize(code) when is_binary(code) do
     String.capitalize(code)
   end

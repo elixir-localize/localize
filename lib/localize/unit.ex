@@ -29,6 +29,8 @@ defmodule Localize.Unit do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   defstruct name: nil,
             parsed: nil,
             value: nil,
@@ -116,7 +118,9 @@ defmodule Localize.Unit do
   @spec new(number() | Decimal.t(), String.t(), keyword()) ::
           {:ok, t()} | {:error, Exception.t()}
 
-  def new(amount, unit, options \\ []) when is_binary(unit) do
+  def new(amount, unit, options \\ [])
+
+  def new(amount, unit, options) when is_binary(unit) and is_keyword_list(options) do
     with {:ok, _} <- validate_value(amount),
          {:ok, parsed} <- Localize.Unit.Parser.parse(unit),
          :ok <- validate_currency_codes(parsed),
@@ -133,6 +137,12 @@ defmodule Localize.Unit do
        }}
     end
   end
+
+  def new(_amount, _unit, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def new(_amount, unit, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(unit, "a unit identifier string")}
 
   @doc """
   Creates a new unit from a CLDR unit identifier string without a value.
@@ -166,6 +176,9 @@ defmodule Localize.Unit do
     end
   end
 
+  def new(name),
+    do: {:error, Localize.Utils.Helpers.invalid_value(name, "a unit identifier string")}
+
   @doc """
   Creates a new unit with a value and a CLDR unit identifier string,
   raising on error.
@@ -198,7 +211,7 @@ defmodule Localize.Unit do
   """
   @spec new!(number() | Decimal.t(), String.t(), keyword()) :: t() | no_return()
   @dialyzer {:nowarn_function, new!: 3}
-  def new!(amount, unit, options \\ []) when is_binary(unit) do
+  def new!(amount, unit, options \\ []) do
     case new(amount, unit, options) do
       {:ok, result} -> result
       {:error, exception} -> raise exception
@@ -228,7 +241,7 @@ defmodule Localize.Unit do
   """
   @spec new!(String.t()) :: t() | no_return()
   @dialyzer {:nowarn_function, new!: 1}
-  def new!(name) when is_binary(name) do
+  def new!(name) do
     case new(name) do
       {:ok, unit} -> unit
       {:error, exception} -> raise exception
@@ -278,7 +291,9 @@ defmodule Localize.Unit do
 
   """
   @spec parse(String.t(), Keyword.t()) :: {:ok, t()} | {:error, Exception.t()}
-  def parse(unit_string, options \\ []) when is_binary(unit_string) and is_list(options) do
+  def parse(unit_string, options \\ [])
+
+  def parse(unit_string, options) when is_binary(unit_string) and is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
@@ -286,6 +301,14 @@ defmodule Localize.Unit do
          {:ok, unit_name} <- resolve_unit_name(name_token, language_tag, options) do
       new(value, unit_name)
     end
+  end
+
+  def parse(_unit_string, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def parse(unit_string, _options) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(unit_string, "a string with a number and a unit name")}
   end
 
   @doc """
@@ -351,13 +374,21 @@ defmodule Localize.Unit do
   @spec parse_unit_name(String.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def parse_unit_name(unit_name_string, options \\ [])
-      when is_binary(unit_name_string) and is_list(options) do
+
+  def parse_unit_name(unit_name_string, options)
+      when is_binary(unit_name_string) and is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, language_tag} <- Localize.validate_locale(locale) do
       resolve_unit_name(unit_name_string, language_tag, options)
     end
   end
+
+  def parse_unit_name(_unit_name_string, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def parse_unit_name(unit_name_string, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(unit_name_string, "a unit name string")}
 
   @doc """
   Same as `parse_unit_name/2` but raises on error.
@@ -415,10 +446,9 @@ defmodule Localize.Unit do
   end
 
   defp resolve_unit_name(name_token, language_tag, options) do
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(language_tag) do
-      only = List.wrap(Keyword.get(options, :only, [])) |> Enum.map(&Kernel.to_string/1)
-      except = List.wrap(Keyword.get(options, :except, [])) |> Enum.map(&Kernel.to_string/1)
-
+    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(language_tag),
+         {:ok, only} <- unit_filter(options, :only),
+         {:ok, except} <- unit_filter(options, :except) do
       candidates =
         name_token
         |> Localize.Unit.NameIndex.candidates(locale_id)
@@ -433,6 +463,32 @@ defmodule Localize.Unit do
       end
     end
   end
+
+  # `:only` and `:except` each take a unit name or category, or a list
+  # of them, as atoms or strings.
+  defp unit_filter(options, key) do
+    value = Keyword.get(options, key, [])
+
+    case unit_filter_names(List.wrap(value), []) do
+      {:ok, names} ->
+        {:ok, names}
+
+      :error ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: value,
+           expected: "a unit name or category, or a list of them",
+           context: "the #{inspect(key)} option"
+         )}
+    end
+  end
+
+  defp unit_filter_names([], names), do: {:ok, names}
+
+  defp unit_filter_names([name | rest], names) when is_atom(name) or is_binary(name),
+    do: unit_filter_names(rest, [Kernel.to_string(name) | names])
+
+  defp unit_filter_names(_other, _names), do: :error
 
   defp apply_unit_filter(candidates, only, except) do
     candidates
@@ -526,6 +582,11 @@ defmodule Localize.Unit do
       convert_parsed(source, target, target_parsed)
     end
   end
+
+  def convert(%__MODULE__{}, target),
+    do: {:error, Localize.Utils.Helpers.invalid_value(target, "a unit identifier string")}
+
+  def convert(unit, _target), do: {:error, invalid_unit(unit)}
 
   defp convert_parsed(source, target, {:mixed_unit, _units} = target_parsed) do
     convert_to_mixed(source, target, target_parsed)
@@ -671,7 +732,7 @@ defmodule Localize.Unit do
   """
   @spec convert!(t(), String.t()) :: t() | no_return()
   @dialyzer {:nowarn_function, convert!: 2}
-  def convert!(%__MODULE__{} = unit, target) when is_binary(target) do
+  def convert!(unit, target) do
     case convert(unit, target) do
       {:ok, result} -> result
       {:error, exception} -> raise exception
@@ -708,7 +769,7 @@ defmodule Localize.Unit do
 
   """
   @spec convert_measurement_system(t(), :metric | :us | :uk) ::
-          {:ok, t()} | {:error, String.t()}
+          {:ok, t()} | {:error, Exception.t()}
 
   def convert_measurement_system(%__MODULE__{value: nil}, _system) do
     {:error, Localize.UnitNoValueError.exception(operation: :convert)}
@@ -731,6 +792,8 @@ defmodule Localize.Unit do
        context: "measurement system"
      )}
   end
+
+  def convert_measurement_system(unit, _system), do: {:error, invalid_unit(unit)}
 
   # Measurement system to CLDR region code mapping.
   @system_regions %{metric: "001", us: "US", uk: "GB"}
@@ -927,11 +990,11 @@ defmodule Localize.Unit do
   @spec humanize(t(), Keyword.t()) :: {:ok, t()} | {:error, Exception.t()}
   def humanize(unit, options \\ [])
 
-  def humanize(%__MODULE__{value: nil}, _options) do
+  def humanize(%__MODULE__{value: nil}, options) when is_keyword_list(options) do
     {:error, Localize.UnitNoValueError.exception(operation: :humanize)}
   end
 
-  def humanize(%__MODULE__{} = unit, options) do
+  def humanize(%__MODULE__{} = unit, options) when is_keyword_list(options) do
     system = Keyword.get(options, :system, :si)
 
     with :ok <- validate_prefix_system(system),
@@ -942,6 +1005,13 @@ defmodule Localize.Unit do
       convert_unless_same(base_unit, target_name)
     end
   end
+
+  def humanize(_unit, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def humanize(unit, _options), do: {:error, invalid_unit(unit)}
+
+  defp invalid_unit(value), do: Localize.Utils.Helpers.invalid_value(value, "a Localize.Unit")
 
   @doc """
   Converts a bit-, byte-, hertz- or watt-based unit to the prefixed
@@ -973,7 +1043,7 @@ defmodule Localize.Unit do
 
   """
   @spec humanize!(t(), Keyword.t()) :: t() | no_return()
-  def humanize!(%__MODULE__{} = unit, options \\ []) do
+  def humanize!(unit, options \\ []) do
     case humanize(unit, options) do
       {:ok, result} -> result
       {:error, exception} -> raise exception
@@ -1362,14 +1432,22 @@ defmodule Localize.Unit do
   @spec to_string(t() | [t(), ...], Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(unit_or_units, options \\ [])
 
-  def to_string([%__MODULE__{} | _] = units, options) do
+  def to_string([%__MODULE__{} | _] = units, options) when is_keyword_list(options) do
     format_unit_list(units, options)
   end
 
-  def to_string(%__MODULE__{} = unit, options) do
+  def to_string(%__MODULE__{} = unit, options) when is_keyword_list(options) do
     with {:ok, unit, options} <- maybe_humanize(unit, options) do
       format_single_unit(unit, options)
     end
+  end
+
+  def to_string(_unit_or_units, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def to_string(unit_or_units, _options) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(unit_or_units, "a Localize.Unit or a list of them")}
   end
 
   defp format_single_unit(unit, options) do
@@ -1419,7 +1497,11 @@ defmodule Localize.Unit do
   end
 
   defp format_unit_list(units, options) do
-    {list_options, element_options} = Keyword.pop(options, :list_options, [])
+    format_unit_list(units, Keyword.get(options, :list_options, []), options)
+  end
+
+  defp format_unit_list(units, list_options, options) when is_keyword_list(list_options) do
+    element_options = Keyword.delete(options, :list_options)
 
     list_options =
       list_options
@@ -1441,6 +1523,15 @@ defmodule Localize.Unit do
       {:error, _} = error ->
         error
     end
+  end
+
+  defp format_unit_list(_units, list_options, _options) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: list_options,
+       expected: "a keyword list",
+       context: "the :list_options option"
+     )}
   end
 
   @doc """
@@ -1525,9 +1616,32 @@ defmodule Localize.Unit do
 
   """
   @spec to_range_string(t(), t(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
-  def to_range_string(%__MODULE__{} = unit_start, %__MODULE__{} = unit_end, options \\ []) do
+  def to_range_string(unit_start, unit_end, options \\ [])
+
+  def to_range_string(%__MODULE__{} = unit_start, %__MODULE__{} = unit_end, options)
+      when is_keyword_list(options) do
     Localize.Unit.Formatter.to_range_string(unit_start, unit_end, options)
   end
+
+  def to_range_string(unit_start, unit_end, options),
+    do: invalid_range_arguments(unit_start, unit_end, options)
+
+  # Range arguments of the wrong type, reporting the options first.
+  defp invalid_range_arguments(_unit_start, _unit_end, options)
+       when not is_keyword_list(options),
+       do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  defp invalid_range_arguments(%__MODULE__{}, unit_end, _options),
+    do: {:error, invalid_unit(unit_end)}
+
+  defp invalid_range_arguments(unit_start, _unit_end, _options),
+    do: {:error, invalid_unit(unit_start)}
+
+  # Single-unit arguments of the wrong type, reporting the options first.
+  defp invalid_unit_arguments(_unit, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  defp invalid_unit_arguments(unit, _options), do: {:error, invalid_unit(unit)}
 
   @doc """
   Same as `to_range_string/3` but raises on error.
@@ -1555,7 +1669,7 @@ defmodule Localize.Unit do
 
   """
   @spec to_range_string!(t(), t(), Keyword.t()) :: String.t()
-  def to_range_string!(%__MODULE__{} = unit_start, %__MODULE__{} = unit_end, options \\ []) do
+  def to_range_string!(unit_start, unit_end, options \\ []) do
     case to_range_string(unit_start, unit_end, options) do
       {:ok, string} -> string
       {:error, exception} -> raise exception
@@ -1598,9 +1712,15 @@ defmodule Localize.Unit do
   """
   @spec to_range_parts(t(), t(), Keyword.t()) ::
           {:ok, [%{type: atom(), value: String.t(), source: atom()}]} | {:error, Exception.t()}
-  def to_range_parts(%__MODULE__{} = unit_start, %__MODULE__{} = unit_end, options \\ []) do
+  def to_range_parts(unit_start, unit_end, options \\ [])
+
+  def to_range_parts(%__MODULE__{} = unit_start, %__MODULE__{} = unit_end, options)
+      when is_keyword_list(options) do
     Localize.Unit.Formatter.to_range_parts(unit_start, unit_end, options)
   end
+
+  def to_range_parts(unit_start, unit_end, options),
+    do: invalid_range_arguments(unit_start, unit_end, options)
 
   @doc """
   Same as `to_range_parts/3` but raises on error.
@@ -1629,7 +1749,7 @@ defmodule Localize.Unit do
   """
   @spec to_range_parts!(t(), t(), Keyword.t()) ::
           [%{type: atom(), value: String.t(), source: atom()}]
-  def to_range_parts!(%__MODULE__{} = unit_start, %__MODULE__{} = unit_end, options \\ []) do
+  def to_range_parts!(unit_start, unit_end, options \\ []) do
     case to_range_parts(unit_start, unit_end, options) do
       {:ok, parts} -> parts
       {:error, exception} -> raise exception
@@ -1675,9 +1795,13 @@ defmodule Localize.Unit do
   """
   @spec to_parts(t(), Keyword.t()) ::
           {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
-  def to_parts(%__MODULE__{} = unit, options \\ []) do
+  def to_parts(unit, options \\ [])
+
+  def to_parts(%__MODULE__{} = unit, options) when is_keyword_list(options) do
     Localize.Unit.Formatter.to_parts(unit, options)
   end
+
+  def to_parts(unit, options), do: invalid_unit_arguments(unit, options)
 
   @doc """
   Same as `to_parts/2` but raises on error.
@@ -1703,7 +1827,7 @@ defmodule Localize.Unit do
 
   """
   @spec to_parts!(t(), Keyword.t()) :: [%{type: atom(), value: String.t()}]
-  def to_parts!(%__MODULE__{} = unit, options \\ []) do
+  def to_parts!(unit, options \\ []) do
     case to_parts(unit, options) do
       {:ok, parts} -> parts
       {:error, exception} -> raise exception
@@ -1738,12 +1862,16 @@ defmodule Localize.Unit do
 
   """
   @spec to_iolist(t(), Keyword.t()) :: {:ok, iolist()} | {:error, Exception.t()}
-  def to_iolist(%__MODULE__{} = unit, options \\ []) do
+  def to_iolist(unit, options \\ [])
+
+  def to_iolist(%__MODULE__{} = unit, options) when is_keyword_list(options) do
     case to_string(unit, options) do
       {:ok, string} -> {:ok, [string]}
       error -> error
     end
   end
+
+  def to_iolist(unit, options), do: invalid_unit_arguments(unit, options)
 
   @doc """
   Returns the grammatical gender of a simple unit in a locale.
@@ -1788,9 +1916,13 @@ defmodule Localize.Unit do
 
   """
   @spec grammatical_gender(t(), Keyword.t()) :: {:ok, atom()} | {:error, Exception.t()}
-  def grammatical_gender(%__MODULE__{} = unit, options \\ []) do
+  def grammatical_gender(unit, options \\ [])
+
+  def grammatical_gender(%__MODULE__{} = unit, options) when is_keyword_list(options) do
     Localize.Unit.Formatter.grammatical_gender(unit, options)
   end
+
+  def grammatical_gender(unit, options), do: invalid_unit_arguments(unit, options)
 
   # ── Arithmetic ────────────────────────────────────────────────
 
@@ -1974,6 +2106,9 @@ defmodule Localize.Unit do
     end
   end
 
+  def compare(%__MODULE__{}, unit_2), do: {:error, invalid_unit(unit_2)}
+  def compare(unit_1, _unit_2), do: {:error, invalid_unit(unit_1)}
+
   # ── Localize ──────────────────────────────────────────────────
 
   @doc """
@@ -2032,11 +2167,11 @@ defmodule Localize.Unit do
   @spec localize(t(), Keyword.t()) :: {:ok, [t()]} | {:error, Exception.t()}
   def localize(unit, options \\ [])
 
-  def localize(%__MODULE__{value: nil}, _options) do
+  def localize(%__MODULE__{value: nil}, options) when is_keyword_list(options) do
     {:error, Localize.UnitNoValueError.exception(operation: :localize)}
   end
 
-  def localize(%__MODULE__{} = unit, options) do
+  def localize(%__MODULE__{} = unit, options) when is_keyword_list(options) do
     with {:ok, target_atoms, format_options} <-
            Localize.Unit.Preference.preferred_units(unit, options) do
       resolved_usage = resolved_usage_string(options, unit)
@@ -2047,6 +2182,8 @@ defmodule Localize.Unit do
       end
     end
   end
+
+  def localize(unit, options), do: invalid_unit_arguments(unit, options)
 
   # `Localize.Unit.Preference.preferred_units/2` reports units as atoms with
   # underscores (`:cubic_inch`), while every CLDR identifier — and so the
@@ -2074,6 +2211,7 @@ defmodule Localize.Unit do
       nil -> struct_usage
       explicit when is_atom(explicit) -> explicit |> Atom.to_string() |> String.replace("_", "-")
       explicit when is_binary(explicit) -> explicit
+      _other -> struct_usage
     end
   end
 
@@ -2159,11 +2297,13 @@ defmodule Localize.Unit do
   @spec decompose(t(), [String.t()], Keyword.t()) :: {:ok, [t()]} | {:error, Exception.t()}
   def decompose(unit, target_units, format_options \\ [])
 
-  def decompose(%__MODULE__{value: nil}, _targets, _format_options) do
+  def decompose(%__MODULE__{value: nil}, _targets, format_options)
+      when is_keyword_list(format_options) do
     {:error, Localize.UnitNoValueError.exception(operation: :decompose)}
   end
 
-  def decompose(%__MODULE__{} = unit, [single], format_options) do
+  def decompose(%__MODULE__{} = unit, [single], format_options)
+      when is_keyword_list(format_options) do
     case convert(unit, single) do
       {:ok, converted} ->
         if zero?(converted) do
@@ -2177,16 +2317,25 @@ defmodule Localize.Unit do
     end
   end
 
-  def decompose(%__MODULE__{} = unit, [target | rest], format_options) do
+  def decompose(%__MODULE__{} = unit, [target | rest], format_options)
+      when is_keyword_list(format_options) do
     case convert(unit, target) do
       {:ok, converted} -> split_for_decompose(converted, target, rest, format_options)
       error -> error
     end
   end
 
-  def decompose(%__MODULE__{}, [], _format_options) do
+  def decompose(%__MODULE__{}, [], format_options) when is_keyword_list(format_options) do
     {:ok, []}
   end
+
+  def decompose(_unit, _target_units, format_options) when not is_keyword_list(format_options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(format_options)}
+
+  def decompose(%__MODULE__{}, target_units, _format_options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(target_units, "a list of unit names")}
+
+  def decompose(unit, _target_units, _format_options), do: {:error, invalid_unit(unit)}
 
   defp split_for_decompose(
          %__MODULE__{value: %Decimal{} = d} = converted,
@@ -2239,6 +2388,8 @@ defmodule Localize.Unit do
 
   * The value (number, Decimal, or nil).
 
+  * `{:error, exception}` if `unit` is not a `%Localize.Unit{}`.
+
   ### Examples
 
       iex> {:ok, m} = Localize.Unit.new(42, "meter")
@@ -2246,8 +2397,9 @@ defmodule Localize.Unit do
       42
 
   """
-  @spec value(t()) :: value()
+  @spec value(t()) :: value() | {:error, Exception.t()}
   def value(%__MODULE__{value: value}), do: value
+  def value(unit), do: {:error, invalid_unit(unit)}
 
   @doc """
   Returns a zero-valued unit of the same type.
@@ -2260,6 +2412,8 @@ defmodule Localize.Unit do
 
   * A new `%Localize.Unit{}` with value `0`.
 
+  * `{:error, exception}` if `unit` is not a `%Localize.Unit{}`.
+
   ### Examples
 
       iex> {:ok, m} = Localize.Unit.new(42, "meter")
@@ -2268,8 +2422,9 @@ defmodule Localize.Unit do
       0
 
   """
-  @spec zero(t()) :: t()
+  @spec zero(t()) :: t() | {:error, Exception.t()}
   def zero(%__MODULE__{} = unit), do: %{unit | value: 0}
+  def zero(unit), do: {:error, invalid_unit(unit)}
 
   @doc """
   Returns true if the unit has a zero value.
@@ -2280,7 +2435,8 @@ defmodule Localize.Unit do
 
   ### Returns
 
-  * `true` or `false`.
+  * `true` or `false`. Anything other than a `%Localize.Unit{}`
+    returns `false`.
 
   ### Examples
 
@@ -2292,7 +2448,7 @@ defmodule Localize.Unit do
   @spec zero?(t()) :: boolean()
   def zero?(%__MODULE__{value: value}) when is_number(value) and value == 0, do: true
   def zero?(%__MODULE__{value: %Decimal{coef: 0}}), do: true
-  def zero?(%__MODULE__{}), do: false
+  def zero?(_unit), do: false
 
   # ── Introspection ─────────────────────────────────────────────
 
@@ -2331,6 +2487,10 @@ defmodule Localize.Unit do
     end
   end
 
+  def unit_category(unit) do
+    {:error, Localize.Utils.Helpers.invalid_value(unit, "a Localize.Unit or a unit name string")}
+  end
+
   defp derived_unit_category(name, base_unit_to_quantity) do
     with {:ok, parsed} <- Localize.Unit.Parser.parse(name),
          {:ok, base} <- Localize.Unit.BaseUnit.base_unit(parsed) do
@@ -2359,7 +2519,8 @@ defmodule Localize.Unit do
 
   ### Returns
 
-  * `true` or `false`.
+  * `true` or `false`. Anything other than a `%Localize.Unit{}` or
+    a unit name string returns `false`.
 
   ### Examples
 
@@ -2384,6 +2545,8 @@ defmodule Localize.Unit do
       _ -> false
     end
   end
+
+  def compatible?(_unit_1, _unit_2), do: false
 
   @doc """
   Returns the localized stand-alone display name of a unit.
@@ -2426,11 +2589,11 @@ defmodule Localize.Unit do
   @dialyzer {:nowarn_function, display_name: 2}
   def display_name(unit_or_name, options \\ [])
 
-  def display_name(%__MODULE__{} = unit, options) do
+  def display_name(%__MODULE__{} = unit, options) when is_keyword_list(options) do
     display_name(unit.name, options)
   end
 
-  def display_name(name, options) when is_binary(name) do
+  def display_name(name, options) when is_binary(name) and is_keyword_list(options) do
     case new(name) do
       {:ok, unit} ->
         Localize.Unit.Formatter.to_string(unit, translate_style_option(options))
@@ -2438,6 +2601,14 @@ defmodule Localize.Unit do
       error ->
         error
     end
+  end
+
+  def display_name(_unit_or_name, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def display_name(unit_or_name, _options) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(unit_or_name, "a Localize.Unit or a unit name string")}
   end
 
   @doc """
@@ -2556,9 +2727,18 @@ defmodule Localize.Unit do
 
   * `territory` is a territory code atom (e.g., `:US`, `:GB`).
 
+  * `category` is `:default`, `:temperature` or `:paper_size`. The
+    default is `:default`.
+
   ### Returns
 
-  * `:metric`, `:us`, or `:uk`.
+  * `:metric`, `:us`, or `:uk` for the `:default` and `:temperature`
+    categories.
+
+  * `:a4` or `:us_letter` for the `:paper_size` category.
+
+  * `{:error, exception}` if the territory is not an atom or the
+    category is not known.
 
   ### Examples
 
@@ -2581,7 +2761,8 @@ defmodule Localize.Unit do
       :a4
 
   """
-  @spec measurement_system_for_territory(atom(), :default | :temperature | :paper_size) :: atom()
+  @spec measurement_system_for_territory(atom(), :default | :temperature | :paper_size) ::
+          atom() | {:error, Exception.t()}
   def measurement_system_for_territory(territory, category \\ :default)
 
   def measurement_system_for_territory(territory, :default) when is_atom(territory) do
@@ -2603,6 +2784,20 @@ defmodule Localize.Unit do
       nil -> Map.get(category_map(:paper_size), :"001", :a4)
       explicit -> explicit
     end
+  end
+
+  def measurement_system_for_territory(territory, category)
+      when category in [:default, :temperature, :paper_size] do
+    {:error, Localize.Utils.Helpers.invalid_value(territory, "a territory code atom")}
+  end
+
+  def measurement_system_for_territory(_territory, category) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: category,
+       expected: :measurement_category,
+       allowed_values: [:default, :temperature, :paper_size]
+     )}
   end
 
   defp default_system_for(territory) do

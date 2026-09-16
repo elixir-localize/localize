@@ -192,31 +192,28 @@ defmodule Localize.CharsTest do
       assert {:ok, "hello"} = Localize.Chars.to_string(~c"hello")
     end
 
-    test "tuples raise Protocol.UndefinedError (no String.Chars impl)" do
-      assert_raise Protocol.UndefinedError, fn ->
-        # apply/3 is type-opaque; a direct call to this deliberate
-        # contract violation trips the Elixir 1.20 type checker.
-        # credo:disable-for-next-line Credo.Check.Refactor.Apply
-        apply(Localize.Chars, :to_string, [{1, 2, 3}])
-      end
+    test "tuples return InvalidValueError (no String.Chars impl)" do
+      # apply/3 is type-opaque; a direct call to this deliberate
+      # contract violation trips the Elixir 1.20 type checker.
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
+      result = apply(Localize.Chars, :to_string, [{1, 2, 3}])
+      assert {:error, %Localize.InvalidValueError{}} = result
     end
 
-    test "plain maps raise Protocol.UndefinedError (no String.Chars impl)" do
-      assert_raise Protocol.UndefinedError, fn ->
-        # apply/3 is type-opaque; a direct call to this deliberate
-        # contract violation trips the Elixir 1.20 type checker.
-        # credo:disable-for-next-line Credo.Check.Refactor.Apply
-        apply(Localize.Chars, :to_string, [%{a: 1}])
-      end
+    test "plain maps return InvalidValueError (no String.Chars impl)" do
+      # apply/3 is type-opaque; a direct call to this deliberate
+      # contract violation trips the Elixir 1.20 type checker.
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
+      result = apply(Localize.Chars, :to_string, [%{a: 1}])
+      assert {:error, %Localize.InvalidValueError{}} = result
     end
 
-    test "anonymous functions raise Protocol.UndefinedError" do
-      assert_raise Protocol.UndefinedError, fn ->
-        # apply/3 is type-opaque; a direct call to this deliberate
-        # contract violation trips the Elixir 1.20 type checker.
-        # credo:disable-for-next-line Credo.Check.Refactor.Apply
-        apply(Localize.Chars, :to_string, [fn -> :ok end])
-      end
+    test "anonymous functions return InvalidValueError" do
+      # apply/3 is type-opaque; a direct call to this deliberate
+      # contract violation trips the Elixir 1.20 type checker.
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
+      result = apply(Localize.Chars, :to_string, [fn -> :ok end])
+      assert {:error, %Localize.InvalidValueError{}} = result
     end
   end
 

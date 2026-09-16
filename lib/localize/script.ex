@@ -30,6 +30,8 @@ defmodule Localize.Script do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.Locale.LocaleDisplay
   alias Localize.Utils.Helpers
 
@@ -86,7 +88,9 @@ defmodule Localize.Script do
   """
   @spec display_name(atom() | String.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def display_name(script, options \\ []) do
+  def display_name(script, options \\ [])
+
+  def display_name(script, options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, style} <- LocaleDisplay.preference_from_options(options, @preferences),
@@ -102,6 +106,8 @@ defmodule Localize.Script do
       end
     end
   end
+
+  def display_name(_script, options), do: {:error, Helpers.invalid_options(options)}
 
   defp display_name_fallback(true, script_atom, style, _error) do
     with {:ok, default_locale_id} <-
@@ -183,7 +189,9 @@ defmodule Localize.Script do
   """
   @spec scripts_for(Keyword.t()) ::
           {:ok, [atom()]} | {:error, Exception.t()}
-  def scripts_for(options \\ []) do
+  def scripts_for(options \\ [])
+
+  def scripts_for(options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
@@ -191,6 +199,8 @@ defmodule Localize.Script do
       {:ok, scripts |> Map.keys() |> Enum.sort()}
     end
   end
+
+  def scripts_for(options), do: {:error, Helpers.invalid_options(options)}
 
   @doc """
   Returns a map of script codes to their localized names in a
@@ -221,13 +231,17 @@ defmodule Localize.Script do
   """
   @spec script_names_for(Keyword.t()) ::
           {:ok, %{atom() => map()}} | {:error, Exception.t()}
-  def script_names_for(options \\ []) do
+  def script_names_for(options \\ [])
+
+  def script_names_for(options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
       load_scripts(locale_id)
     end
   end
+
+  def script_names_for(options), do: {:error, Helpers.invalid_options(options)}
 
   # ── Private helpers ─────────────────────────────────────────
 
@@ -242,6 +256,9 @@ defmodule Localize.Script do
       atom -> {:ok, atom}
     end
   end
+
+  defp normalize_script_code(code),
+    do: {:error, Helpers.invalid_value(code, "a script code atom or string")}
 
   defp load_scripts(locale_id) do
     with {:ok, locale_display_names} <- Localize.Locale.get(locale_id, [:locale_display_names]) do

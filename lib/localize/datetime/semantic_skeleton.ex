@@ -49,6 +49,8 @@ defmodule Localize.DateTime.SemanticSkeleton do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   defstruct fields: [],
             length: :medium,
             year_style: :auto,
@@ -131,13 +133,13 @@ defmodule Localize.DateTime.SemanticSkeleton do
   @spec new(String.t() | [field()], Keyword.t()) :: {:ok, t()} | {:error, Exception.t()}
   def new(code, options \\ [])
 
-  def new(code, options) when is_binary(code) do
+  def new(code, options) when is_binary(code) and is_keyword_list(options) do
     with {:ok, fields} <- parse_code(code) do
       new(fields, options)
     end
   end
 
-  def new(fields, options) when is_list(fields) do
+  def new(fields, options) when is_list(fields) and is_keyword_list(options) do
     with {:ok, fields} <- validate_fields(fields),
          {:ok, length} <- validate(options, :length, @lengths, :medium),
          {:ok, year_style} <- validate(options, :year_style, @year_styles, :auto),
@@ -154,6 +156,18 @@ defmodule Localize.DateTime.SemanticSkeleton do
          alignment: alignment
        }}
     end
+  end
+
+  def new(_code, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def new(code, _options) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: code,
+       expected: "a field code string or a list of fields",
+       context: "Localize.DateTime.SemanticSkeleton"
+     )}
   end
 
   @doc """
@@ -241,6 +255,15 @@ defmodule Localize.DateTime.SemanticSkeleton do
       |> then(&(era_width(skeleton, calendar) <> &1))
 
     {:ok, String.to_atom(pattern)}
+  end
+
+  def to_classical_skeleton(skeleton, _calendar) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: skeleton,
+       expected: "a Localize.DateTime.SemanticSkeleton",
+       context: "Localize.DateTime.SemanticSkeleton.to_classical_skeleton/2"
+     )}
   end
 
   # ── Field patterns ──────────────────────────────────────────

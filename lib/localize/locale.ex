@@ -28,6 +28,8 @@ defmodule Localize.Locale do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.LanguageTag
   alias Localize.Locale.Provider
   alias Localize.SupplementalData
@@ -175,6 +177,8 @@ defmodule Localize.Locale do
     end
   end
 
+  def parent(locale), do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
+
   defp tag_parent(
          %LanguageTag{language: :und, script: nil, territory: nil, language_variants: []} = _tag
        ) do
@@ -313,10 +317,13 @@ defmodule Localize.Locale do
       "en"
 
   """
-  @spec locale_id_from_posix(String.t()) :: String.t()
+  @spec locale_id_from_posix(String.t()) :: String.t() | {:error, Exception.t()}
   def locale_id_from_posix(locale_id) when is_binary(locale_id) do
     String.replace(locale_id, "_", "-")
   end
+
+  def locale_id_from_posix(locale_id),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale_id)}
 
   @doc """
   Build a locale identifier string from its component parts.
@@ -350,20 +357,38 @@ defmodule Localize.Locale do
       "en"
 
   """
-  @spec locale_id_from(language(), script(), territory(), [String.t()]) :: String.t()
+  @spec locale_id_from(language(), script(), territory(), [String.t()]) ::
+          String.t() | {:error, Exception.t()}
+  def locale_id_from(language, script, territory, variants)
+      when (is_atom(language) or is_binary(language)) and (is_atom(script) or is_binary(script)) and
+             (is_atom(territory) or is_binary(territory)) do
+    with {:ok, variants} <- variant_strings(variants, []) do
+      [to_string(language)]
+      |> maybe_append(script)
+      |> maybe_append(territory)
+      |> Kernel.++(variants)
+      |> Enum.join("-")
+    end
+  end
+
   def locale_id_from(language, script, territory, variants) do
-    [to_string(language)]
-    |> maybe_append(script)
-    |> maybe_append(territory)
-    |> append_variants(variants)
-    |> Enum.join("-")
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: [language, script, territory, variants],
+       expected: "language, script and territory subtags and a list of variants"
+     )}
   end
 
   defp maybe_append(parts, nil), do: parts
   defp maybe_append(parts, value), do: parts ++ [to_string(value)]
 
-  defp append_variants(parts, []), do: parts
-  defp append_variants(parts, variants), do: parts ++ Enum.map(variants, &to_string/1)
+  defp variant_strings([], strings), do: {:ok, Enum.reverse(strings)}
+
+  defp variant_strings([variant | rest], strings) when is_atom(variant) or is_binary(variant),
+    do: variant_strings(rest, [to_string(variant) | strings])
+
+  defp variant_strings(variants, _strings),
+    do: {:error, Localize.Utils.Helpers.invalid_value(variants, "a list of variant subtags")}
 
   # ── Provider API ───────────────────────────────────────────────
 
@@ -410,6 +435,9 @@ defmodule Localize.Locale do
   * `{:error, Localize.UnknownLocaleError.t()}` if the locale is not
     recognized.
 
+  * `{:error, Localize.InvalidValueError.t()}` if `options` is not a
+    keyword list or `:provider` is not a provider module.
+
   ### Examples
 
       iex> {:ok, locale_data} = Localize.Locale.load(:en)
@@ -419,10 +447,17 @@ defmodule Localize.Locale do
   """
   @spec load(Provider.locale(), Keyword.t()) ::
           {:ok, map()} | {:error, Exception.t()}
-  def load(locale, options \\ []) do
-    {provider, _options} = Keyword.pop(options, :provider, default_provider())
-    provider.load(locale)
+  def load(locale, options \\ [])
+
+  def load(locale, options) when is_keyword_list(options) do
+    provider = Keyword.get(options, :provider, default_provider())
+
+    with :ok <- validate_provider(provider) do
+      provider.load(locale)
+    end
   end
+
+  def load(_locale, options), do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   @doc """
   Stores locale data in the provider's backing store.
@@ -446,7 +481,8 @@ defmodule Localize.Locale do
 
   * `:ok` on success.
 
-  * `{:error, reason}` on failure.
+  * `{:error, reason}` on failure, including a `locale_id` that is not
+    an atom or `locale_data` that is not a map.
 
   ### Examples
 
@@ -457,10 +493,25 @@ defmodule Localize.Locale do
   """
   @spec store(locale_id(), map(), Keyword.t()) ::
           :ok | {:error, term()}
-  def store(locale_id, locale_data, options \\ []) do
-    {provider, _options} = Keyword.pop(options, :provider, default_provider())
-    provider.store(locale_id, locale_data)
+  def store(locale_id, locale_data, options \\ [])
+
+  def store(locale_id, locale_data, options)
+      when is_atom(locale_id) and is_map(locale_data) and is_keyword_list(options) do
+    provider = Keyword.get(options, :provider, default_provider())
+
+    with :ok <- validate_provider(provider) do
+      provider.store(locale_id, locale_data)
+    end
   end
+
+  def store(_locale_id, _locale_data, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def store(locale_id, locale_data, _options) when is_atom(locale_id),
+    do: {:error, Localize.Utils.Helpers.invalid_value(locale_data, "a map of locale data")}
+
+  def store(locale_id, _locale_data, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(locale_id, "a locale identifier atom")}
 
   @doc """
   Loads and stores locale data if it has not already been loaded.
@@ -497,9 +548,14 @@ defmodule Localize.Locale do
   """
   @spec load_and_store(Provider.locale(), Keyword.t()) ::
           :ok | {:error, Exception.t()}
-  def load_and_store(locale, options \\ []) do
+  def load_and_store(locale, options \\ [])
+
+  def load_and_store(locale, options) when is_keyword_list(options) do
     Localize.Locale.Loader.load_and_store(locale, options)
   end
+
+  def load_and_store(_locale, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   @doc """
   Returns whether locale data has been loaded and is available.
@@ -532,9 +588,37 @@ defmodule Localize.Locale do
 
   """
   @spec loaded?(Provider.locale(), Keyword.t()) :: boolean()
-  def loaded?(locale, options \\ []) do
-    {provider, _options} = Keyword.pop(options, :provider, default_provider())
-    provider.loaded?(locale)
+  def loaded?(locale, options \\ [])
+
+  def loaded?(locale, options) when is_keyword_list(options) do
+    provider = Keyword.get(options, :provider, default_provider())
+    validate_provider(provider) == :ok and provider.loaded?(locale)
+  end
+
+  def loaded?(_locale, _options), do: false
+
+  @doc false
+  # A `:provider` option must name a module implementing
+  # `Localize.Locale.Provider`. The exported-function check is a BIF, so
+  # the per-call cost is negligible; a module not loaded yet is loaded first.
+  @spec validate_provider(term()) :: :ok | {:error, Exception.t()}
+  def validate_provider(provider) when is_atom(provider) do
+    if function_exported?(provider, :loaded?, 1) or
+         (Code.ensure_loaded?(provider) and function_exported?(provider, :loaded?, 1)) do
+      :ok
+    else
+      {:error, invalid_provider(provider)}
+    end
+  end
+
+  def validate_provider(provider), do: {:error, invalid_provider(provider)}
+
+  defp invalid_provider(provider) do
+    Localize.InvalidValueError.exception(
+      value: provider,
+      expected: "a module implementing Localize.Locale.Provider",
+      context: "the :provider option"
+    )
   end
 
   @doc """
@@ -581,7 +665,8 @@ defmodule Localize.Locale do
 
   * `{:ok, value}` if the key path resolves to a value.
 
-  * `{:error, reason}` if the key path cannot be resolved.
+  * `{:error, reason}` if the key path cannot be resolved, or `keys`,
+    `options` or `:provider` is not valid.
 
   ### Examples
 
@@ -595,7 +680,9 @@ defmodule Localize.Locale do
   """
   @spec get(Provider.locale(), list(), Keyword.t()) ::
           {:ok, term()} | {:error, term()}
-  def get(locale, keys, options \\ []) do
+  def get(locale, keys, options \\ [])
+
+  def get(locale, keys, options) when is_list(keys) and is_keyword_list(options) do
     {provider, options} = Keyword.pop(options, :provider, default_provider())
     {fallback?, options} = Keyword.pop(options, :fallback, false)
     {fallback_to_default, options} = Keyword.pop(options, :fallback_to_default, false)
@@ -613,6 +700,12 @@ defmodule Localize.Locale do
       end
     end
   end
+
+  def get(_locale, _keys, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def get(_locale, keys, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(keys, "a list of keys")}
 
   @doc """
   Retrieves a value from locale data, raising on error.
@@ -970,22 +1063,37 @@ defmodule Localize.Locale do
   @spec gettext_locale_id(LanguageTag.t() | atom() | String.t(), module()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def gettext_locale_id(locale, gettext_backend) when is_atom(gettext_backend) do
-    known = Gettext.known_locales(gettext_backend)
+    with {:ok, known} <- known_gettext_locales(gettext_backend),
+         {:ok, locale_string} <- gettext_locale_string(locale) do
+      case LanguageTag.best_match(locale_string, known) do
+        {:ok, matched_locale, _score} ->
+          {:ok, matched_locale}
 
-    locale_string =
-      case locale do
-        %LanguageTag{} -> LanguageTag.to_string(locale)
-        atom when is_atom(atom) -> Atom.to_string(atom)
-        binary when is_binary(binary) -> binary
+        {:error, _} ->
+          {:error, Localize.UnknownLocaleError.exception(locale_id: locale_string)}
       end
-
-    case LanguageTag.best_match(locale_string, known) do
-      {:ok, matched_locale, _score} ->
-        {:ok, matched_locale}
-
-      {:error, _} ->
-        {:error, Localize.UnknownLocaleError.exception(locale_id: locale_string)}
     end
+  end
+
+  def gettext_locale_id(_locale, gettext_backend), do: invalid_gettext_backend(gettext_backend)
+
+  defp known_gettext_locales(gettext_backend) do
+    if gettext_backend?(gettext_backend) do
+      {:ok, Gettext.known_locales(gettext_backend)}
+    else
+      invalid_gettext_backend(gettext_backend)
+    end
+  end
+
+  defp gettext_locale_string(%LanguageTag{} = locale), do: {:ok, LanguageTag.to_string(locale)}
+  defp gettext_locale_string(locale) when is_atom(locale), do: {:ok, Atom.to_string(locale)}
+  defp gettext_locale_string(locale) when is_binary(locale), do: {:ok, locale}
+
+  defp gettext_locale_string(locale),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
+
+  defp invalid_gettext_backend(gettext_backend) do
+    {:error, Localize.Utils.Helpers.invalid_value(gettext_backend, "a Gettext backend module")}
   end
 
   @doc """
@@ -1040,8 +1148,11 @@ defmodule Localize.Locale do
   """
   @coverage_levels [:basic, :moderate, :modern]
 
-  @spec expand_locale_list([atom() | String.t()], atom() | String.t()) :: [atom()]
-  def expand_locale_list(entries, context \\ :locales) when is_list(entries) do
+  @spec expand_locale_list([atom() | String.t()], atom() | String.t()) ::
+          [atom()] | {:error, Exception.t()}
+  def expand_locale_list(entries, context \\ :locales)
+
+  def expand_locale_list(entries, context) when is_list(entries) do
     all_ids = Localize.SupplementalData.all_locale_ids()
     all_strings = MapSet.new(all_ids, &Atom.to_string/1)
 
@@ -1049,6 +1160,9 @@ defmodule Localize.Locale do
     |> Enum.flat_map(fn entry -> expand_locale_entry(entry, all_ids, all_strings, context) end)
     |> Enum.uniq()
   end
+
+  def expand_locale_list(entries, _context),
+    do: {:error, Localize.Utils.Helpers.invalid_value(entries, "a list of locale ids")}
 
   # Coverage-level keywords expand to all locales at or above that level.
   defp expand_locale_entry(level, _all_ids, _all_strings, _context)
@@ -1106,6 +1220,11 @@ defmodule Localize.Locale do
           []
       end
     end
+  end
+
+  defp expand_locale_entry(entry, _all_ids, _all_strings, context) do
+    warn_unknown_locale(entry, context)
+    []
   end
 
   defp warn_unknown_locale(entry, context) do

@@ -46,6 +46,8 @@ defmodule Localize.Unit.Math do
     {:error, Localize.UnitNoValueError.exception(operation: :negate)}
   end
 
+  def negate(unit), do: {:error, Localize.Utils.Helpers.invalid_value(unit, "a Localize.Unit")}
+
   @doc """
   Adds two convertible units together.
 
@@ -88,6 +90,11 @@ defmodule Localize.Unit.Math do
     {:error, Localize.UnitNoValueError.exception(operation: :add)}
   end
 
+  def add(%Unit{}, unit_2), do: {:error, invalid_unit(unit_2)}
+  def add(unit_1, _unit_2), do: {:error, invalid_unit(unit_1)}
+
+  defp invalid_unit(value), do: Localize.Utils.Helpers.invalid_value(value, "a Localize.Unit")
+
   @doc """
   Subtracts `unit_2` from `unit_1`.
 
@@ -129,6 +136,9 @@ defmodule Localize.Unit.Math do
   def sub(%Unit{}, %Unit{}) do
     {:error, Localize.UnitNoValueError.exception(operation: :subtract)}
   end
+
+  def sub(%Unit{}, unit_2), do: {:error, invalid_unit(unit_2)}
+  def sub(unit_1, _unit_2), do: {:error, invalid_unit(unit_1)}
 
   @doc """
   Inverts a unit.
@@ -174,6 +184,11 @@ defmodule Localize.Unit.Math do
   def invert(%Unit{value: nil}) do
     {:error, Localize.UnitNoValueError.exception(operation: :invert)}
   end
+
+  def invert(%Unit{} = unit),
+    do: {:error, Localize.Utils.Helpers.invalid_value(unit, "a unit that is not a mixed unit")}
+
+  def invert(unit), do: {:error, invalid_unit(unit)}
 
   @doc """
   Multiplies a unit by a scalar number or another unit.
@@ -232,8 +247,8 @@ defmodule Localize.Unit.Math do
         %Unit{value: value_2} = unit_2
       )
       when not is_nil(value_1) and not is_nil(value_2) do
-    with {:ok, aligned_unit_2} <- maybe_align_units(unit_2, unit_1) do
-      {:unit, kw_2} = aligned_unit_2.parsed
+    with {:ok, %Unit{parsed: {:unit, kw_2}} = aligned_unit_2} <-
+           single_dimension_list(maybe_align_units(unit_2, unit_1)) do
       # (a/b) * (c/d) = (a*c) / (b*d)
       new_num = Keyword.get(kw_1, :numerator, []) ++ Keyword.get(kw_2, :numerator, [])
       new_den = Keyword.get(kw_1, :denominator, []) ++ Keyword.get(kw_2, :denominator, [])
@@ -242,6 +257,31 @@ defmodule Localize.Unit.Math do
       build_compound_result(result_value, new_num, new_den)
     end
   end
+
+  def mult(%Unit{value: nil}, _multiplier),
+    do: {:error, Localize.UnitNoValueError.exception(operation: :multiply)}
+
+  def mult(%Unit{}, %Unit{value: nil}),
+    do: {:error, Localize.UnitNoValueError.exception(operation: :multiply)}
+
+  def mult(%Unit{} = unit, %Unit{}), do: {:error, mixed_unit_error(unit)}
+
+  def mult(%Unit{}, multiplier), do: {:error, invalid_operand(multiplier)}
+
+  def mult(unit, _multiplier), do: {:error, invalid_unit(unit)}
+
+  # A unit aligned to another for multiplication or division must have
+  # numerator and denominator lists; a mixed unit that did not convert has
+  # neither.
+  defp single_dimension_list({:ok, %Unit{parsed: {:unit, _keyword}}} = aligned), do: aligned
+  defp single_dimension_list({:ok, %Unit{} = unit}), do: {:error, mixed_unit_error(unit)}
+  defp single_dimension_list(error), do: error
+
+  defp mixed_unit_error(unit),
+    do: Localize.Utils.Helpers.invalid_value(unit, "a unit that is not a mixed unit")
+
+  defp invalid_operand(value),
+    do: Localize.Utils.Helpers.invalid_value(value, "a number, a Decimal or a Localize.Unit")
 
   @doc """
   Divides a unit by a scalar number or another unit.
@@ -300,8 +340,8 @@ defmodule Localize.Unit.Math do
         %Unit{value: value_2} = unit_2
       )
       when not is_nil(value_1) and not is_nil(value_2) do
-    with {:ok, aligned_unit_2} <- maybe_align_units(unit_2, unit_1) do
-      {:unit, kw_2} = aligned_unit_2.parsed
+    with {:ok, %Unit{parsed: {:unit, kw_2}} = aligned_unit_2} <-
+           single_dimension_list(maybe_align_units(unit_2, unit_1)) do
       # (a/b) / (c/d) = (a*d) / (b*c)
       new_num = Keyword.get(kw_1, :numerator, []) ++ Keyword.get(kw_2, :denominator, [])
       new_den = Keyword.get(kw_1, :denominator, []) ++ Keyword.get(kw_2, :numerator, [])
@@ -310,6 +350,18 @@ defmodule Localize.Unit.Math do
       build_compound_result(result_value, new_num, new_den)
     end
   end
+
+  def div(%Unit{value: nil}, _divisor),
+    do: {:error, Localize.UnitNoValueError.exception(operation: :divide)}
+
+  def div(%Unit{}, %Unit{value: nil}),
+    do: {:error, Localize.UnitNoValueError.exception(operation: :divide)}
+
+  def div(%Unit{} = unit, %Unit{}), do: {:error, mixed_unit_error(unit)}
+
+  def div(%Unit{}, divisor), do: {:error, invalid_operand(divisor)}
+
+  def div(unit, _divisor), do: {:error, invalid_unit(unit)}
 
   # Build the result of a compound unit operation. When all dimensions
   # cancel (dimensionless), returns the bare scalar value. Otherwise
@@ -371,6 +423,8 @@ defmodule Localize.Unit.Math do
     {:error, no_value_error("abs")}
   end
 
+  def abs(unit), do: {:error, invalid_unit(unit)}
+
   @doc """
   Rounds the value of a unit to the nearest integer or to the
   specified number of decimal places using the given rounding mode.
@@ -408,15 +462,32 @@ defmodule Localize.Unit.Math do
   """
   @spec round(Unit.t(), non_neg_integer(), atom()) :: {:ok, Unit.t()} | {:error, Exception.t()}
 
+  @rounding_modes [:down, :half_up, :half_even, :ceiling, :floor, :half_down, :up]
+
   def round(unit, places \\ 0, mode \\ :half_up)
 
-  def round(%Unit{value: value} = unit, places, mode) when not is_nil(value) do
+  def round(%Unit{value: value} = unit, places, mode)
+      when not is_nil(value) and is_integer(places) and mode in @rounding_modes do
     {:ok, %{unit | value: round_value(value, places, mode)}}
   end
 
   def round(%Unit{value: nil}, _places, _mode) do
     {:error, no_value_error("round")}
   end
+
+  def round(%Unit{}, places, _mode) when not is_integer(places),
+    do: {:error, Localize.Utils.Helpers.invalid_value(places, "an integer number of places")}
+
+  def round(%Unit{}, _places, mode) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: mode,
+       expected: :rounding_mode,
+       allowed_values: @rounding_modes
+     )}
+  end
+
+  def round(unit, _places, _mode), do: {:error, invalid_unit(unit)}
 
   @doc """
   Rounds the value of a unit up to the nearest integer.
@@ -447,6 +518,8 @@ defmodule Localize.Unit.Math do
     {:error, no_value_error("ceil")}
   end
 
+  def ceil(unit), do: {:error, invalid_unit(unit)}
+
   @doc """
   Rounds the value of a unit down to the nearest integer.
 
@@ -475,6 +548,8 @@ defmodule Localize.Unit.Math do
   def floor(%Unit{value: nil}) do
     {:error, no_value_error("floor")}
   end
+
+  def floor(unit), do: {:error, invalid_unit(unit)}
 
   @doc """
   Truncates the value of a unit toward zero.
@@ -509,6 +584,8 @@ defmodule Localize.Unit.Math do
   def trunc(%Unit{value: nil}) do
     {:error, no_value_error("trunc")}
   end
+
+  def trunc(unit), do: {:error, invalid_unit(unit)}
 
   # ── Root functions ─────────────────────────────────────────────────
   #
@@ -554,6 +631,10 @@ defmodule Localize.Unit.Math do
     {:error, no_value_error("sqrt")}
   end
 
+  def sqrt(%Unit{} = unit), do: {:error, mixed_unit_error(unit)}
+
+  def sqrt(unit), do: {:error, invalid_unit(unit)}
+
   @doc """
   Computes the cube root of a unit.
 
@@ -590,6 +671,10 @@ defmodule Localize.Unit.Math do
   def cbrt(%Unit{value: nil}) do
     {:error, no_value_error("cbrt")}
   end
+
+  def cbrt(%Unit{} = unit), do: {:error, mixed_unit_error(unit)}
+
+  def cbrt(unit), do: {:error, invalid_unit(unit)}
 
   # ── Dimensionless functions ────────────────────────────────────────
   #
@@ -1028,8 +1113,16 @@ defmodule Localize.Unit.Math do
     {:error, "function requires a unit with a value"}
   end
 
-  def apply_dimensionless(name, _unit) do
+  def apply_dimensionless(name, unit) when name in @dimensionless_fns or name in @log_fns do
+    {:error, "function #{name} requires a Localize.Unit, got: #{inspect(unit)}"}
+  end
+
+  def apply_dimensionless(name, _unit) when is_atom(name) do
     {:error, "unknown dimensionless function: #{name}"}
+  end
+
+  def apply_dimensionless(name, _unit) do
+    {:error, "unknown dimensionless function: #{inspect(name)}"}
   end
 
   defp apply_math_fn(:sin, x), do: :math.sin(x)

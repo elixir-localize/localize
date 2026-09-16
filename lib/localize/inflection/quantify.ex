@@ -18,6 +18,8 @@ defmodule Localize.Inflection.Quantify do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.Inflection.{Concept, Locale, SpeakableString}
   alias Localize.Inflection.Quantify.{Arabic, Base, Finnish, Hebrew, Join, Slavic}
 
@@ -109,7 +111,14 @@ defmodule Localize.Inflection.Quantify do
       {:ok, "2 часа"}
 
   """
-  def quantify_formatted(locale, formatted_number, %Concept{} = concept, options \\ []) do
+  def quantify_formatted(locale, formatted_number, concept, options \\ [])
+
+  def quantify_formatted(locale, formatted_number, %Concept{} = concept, options)
+      when (is_atom(locale) or is_binary(locale) or is_struct(locale, Localize.LanguageTag)) and
+             (is_binary(formatted_number) or
+                (is_tuple(formatted_number) and tuple_size(formatted_number) == 2 and
+                   is_binary(elem(formatted_number, 0)) and is_binary(elem(formatted_number, 1)))) and
+             is_keyword_list(options) do
     internal = Locale.normalize(locale)
     number = Keyword.get(options, :number)
 
@@ -126,6 +135,23 @@ defmodule Localize.Inflection.Quantify do
       {:ok, module.quantify_formatted(formatted_number, category, state)}
     end
   end
+
+  def quantify_formatted(_locale, _formatted_number, _concept, options)
+      when not is_keyword_list(options),
+      do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def quantify_formatted(locale, _formatted_number, _concept, _options)
+      when not is_atom(locale) and not is_binary(locale) and
+             not is_struct(locale, Localize.LanguageTag),
+      do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
+
+  def quantify_formatted(_locale, formatted_number, %Concept{}, _options) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(formatted_number, "a formatted number as a string")}
+  end
+
+  def quantify_formatted(_locale, _formatted_number, concept, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(concept, "a Localize.Inflection.Concept")}
 
   @categories [:zero, :one, :two, :few, :many, :other]
 

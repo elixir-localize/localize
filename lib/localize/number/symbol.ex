@@ -160,4 +160,6 @@ defmodule Localize.Number.Symbol do
   defp to_system_atom(system) when is_binary(system) do
     Localize.Utils.Helpers.existing_atom(system)
   end
+
+  defp to_system_atom(_system), do: nil
 end

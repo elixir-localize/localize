@@ -30,6 +30,7 @@ defmodule Localize.Duration do
   """
 
   import Kernel, except: [to_string: 1]
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
   @struct_list [year: 0, month: 0, day: 0, hour: 0, minute: 0, second: 0, microsecond: {0, 6}]
   @keys Keyword.keys(@struct_list)
@@ -137,6 +138,14 @@ defmodule Localize.Duration do
     end
   end
 
+  def new(from, to) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: {from, to},
+       expected: "two dates, two times or two datetimes"
+     )}
+  end
+
   @doc """
   Calculates the calendar duration of a `t:Date.Range.t/0`.
 
@@ -163,6 +172,8 @@ defmodule Localize.Duration do
   def new(%Date.Range{first: first, last: last}) do
     new(first, last)
   end
+
+  def new(range), do: {:error, Localize.Utils.Helpers.invalid_value(range, "a Date.Range")}
 
   @doc """
   Same as `new/2` but raises on error.
@@ -209,6 +220,8 @@ defmodule Localize.Duration do
 
   * A `t:t/0` struct.
 
+  * `{:error, exception}` if `seconds` is not a number.
+
   ### Examples
 
       iex> d = Localize.Duration.new_from_seconds(136_092)
@@ -220,7 +233,7 @@ defmodule Localize.Duration do
       {1, 30}
 
   """
-  @spec new_from_seconds(seconds :: number()) :: t()
+  @spec new_from_seconds(seconds :: number()) :: t() | {:error, Exception.t()}
   def new_from_seconds(seconds) when is_number(seconds) do
     microseconds = microseconds_from_fraction(seconds)
     seconds = trunc(seconds)
@@ -236,6 +249,9 @@ defmodule Localize.Duration do
       microsecond: microseconds
     }
   end
+
+  def new_from_seconds(seconds),
+    do: {:error, Localize.Utils.Helpers.invalid_value(seconds, "a number of seconds")}
 
   # ── Formatting ──────────────────────────────────────────────────
 
@@ -308,7 +324,9 @@ defmodule Localize.Duration do
 
   """
   @spec to_string(t(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
-  def to_string(%__MODULE__{} = duration, options \\ []) do
+  def to_string(duration, options \\ [])
+
+  def to_string(%__MODULE__{} = duration, options) when is_keyword_list(options) do
     except = Keyword.get(options, :except, [:microsecond])
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, :long)
@@ -316,11 +334,32 @@ defmodule Localize.Duration do
     formats = Keyword.get(options, :formats, [])
 
     with :ok <- validate_per_unit(display, :display, @display_values),
-         :ok <- validate_per_unit(formats, :formats, @format_values) do
+         :ok <- validate_per_unit(formats, :formats, @format_values),
+         :ok <- validate_except(except) do
       duration
       |> duration_units(display, except)
       |> format_units(locale, format, formats)
     end
+  end
+
+  def to_string(duration, options), do: invalid_arguments(duration, options)
+
+  # A value that is not a duration, or options that are not a keyword list.
+  defp invalid_arguments(_duration, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  defp invalid_arguments(duration, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(duration, "a Localize.Duration")}
+
+  defp validate_except(except) when is_list(except), do: :ok
+
+  defp validate_except(except) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: except,
+       expected: "a list of time unit atoms",
+       context: "the :except option"
+     )}
   end
 
   defp duration_units(duration, display, except) do
@@ -382,7 +421,9 @@ defmodule Localize.Duration do
   """
   @spec to_parts(t(), Keyword.t()) ::
           {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
-  def to_parts(%__MODULE__{} = duration, options \\ []) do
+  def to_parts(duration, options \\ [])
+
+  def to_parts(%__MODULE__{} = duration, options) when is_keyword_list(options) do
     except = Keyword.get(options, :except, [:microsecond])
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, :long)
@@ -390,12 +431,15 @@ defmodule Localize.Duration do
     formats = Keyword.get(options, :formats, [])
 
     with :ok <- validate_per_unit(display, :display, @display_values),
-         :ok <- validate_per_unit(formats, :formats, @format_values) do
+         :ok <- validate_per_unit(formats, :formats, @format_values),
+         :ok <- validate_except(except) do
       duration
       |> duration_units(display, except)
       |> units_to_parts(locale, format, formats)
     end
   end
+
+  def to_parts(duration, options), do: invalid_arguments(duration, options)
 
   @doc """
   Same as `to_parts/2` but raises on error.
@@ -421,7 +465,7 @@ defmodule Localize.Duration do
 
   """
   @spec to_parts!(t(), Keyword.t()) :: [%{type: atom(), value: String.t()}]
-  def to_parts!(%__MODULE__{} = duration, options \\ []) do
+  def to_parts!(duration, options \\ []) do
     case to_parts(duration, options) do
       {:ok, parts} -> parts
       {:error, exception} -> raise exception
@@ -573,7 +617,7 @@ defmodule Localize.Duration do
 
   """
   @spec to_string!(t(), Keyword.t()) :: String.t() | no_return()
-  def to_string!(%__MODULE__{} = duration, options \\ []) do
+  def to_string!(duration, options \\ []) do
     case to_string(duration, options) do
       {:ok, string} -> string
       {:error, exception} -> raise exception
@@ -603,6 +647,9 @@ defmodule Localize.Duration do
 
   * `{:ok, formatted_string}` on success.
 
+  * `{:error, exception}` if `duration` is not a `t:t/0` struct,
+    `options` is not a keyword list or `:format` is not a string.
+
   ### Examples
 
       iex> d = Localize.Duration.new_from_seconds(136_092)
@@ -614,11 +661,16 @@ defmodule Localize.Duration do
       {:ok, "1:05"}
 
   """
-  @spec to_time_string(t(), Keyword.t()) :: {:ok, String.t()}
-  def to_time_string(%__MODULE__{} = duration, options \\ []) do
-    format = Keyword.get(options, :format, "hh:mm:ss")
-    {:ok, format_time_pattern(duration, format)}
+  @spec to_time_string(t(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
+  def to_time_string(duration, options \\ [])
+
+  def to_time_string(%__MODULE__{} = duration, options) when is_keyword_list(options) do
+    options
+    |> Keyword.get(:format, "hh:mm:ss")
+    |> time_string(duration)
   end
+
+  def to_time_string(duration, options), do: invalid_arguments(duration, options)
 
   @doc """
   Same as `to_time_string/2` but raises on error.
@@ -651,13 +703,20 @@ defmodule Localize.Duration do
 
   """
   @spec to_time_string!(t(), Keyword.t()) :: String.t()
-  def to_time_string!(%__MODULE__{} = duration, options \\ []) do
+  def to_time_string!(duration, options \\ []) do
     case to_time_string(duration, options) do
       {:ok, string} -> string
+      {:error, exception} -> raise exception
     end
   end
 
   # ── Time pattern formatting ─────────────────────────────────────
+
+  defp time_string(format, duration) when is_binary(format),
+    do: {:ok, format_time_pattern(duration, format)}
+
+  defp time_string(format, _duration),
+    do: {:error, Localize.Utils.Helpers.invalid_value(format, "a format pattern string")}
 
   defp format_time_pattern(duration, format) do
     format

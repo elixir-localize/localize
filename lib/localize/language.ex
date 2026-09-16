@@ -35,6 +35,8 @@ defmodule Localize.Language do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.LanguageTag
   alias Localize.Locale.LocaleDisplay
 
@@ -107,7 +109,9 @@ defmodule Localize.Language do
   """
   @spec display_name(String.t() | LanguageTag.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def display_name(language, options \\ []) do
+  def display_name(language, options \\ [])
+
+  def display_name(language, options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, style} <- LocaleDisplay.preference_from_options(options, @preferences),
@@ -120,6 +124,9 @@ defmodule Localize.Language do
       end
     end
   end
+
+  def display_name(_language, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   # When `:fallback` is enabled, retry the lookup against the default
   # locale; otherwise propagate the original error unchanged.
@@ -205,7 +212,9 @@ defmodule Localize.Language do
   """
   @spec languages_for(Keyword.t()) ::
           {:ok, [String.t()]} | {:error, Exception.t()}
-  def languages_for(options \\ []) do
+  def languages_for(options \\ [])
+
+  def languages_for(options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
@@ -213,6 +222,8 @@ defmodule Localize.Language do
       {:ok, languages |> Map.keys() |> Enum.sort()}
     end
   end
+
+  def languages_for(options), do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   @doc """
   Returns a map of language codes to their localized names in a
@@ -247,13 +258,17 @@ defmodule Localize.Language do
   """
   @spec language_names_for(Keyword.t()) ::
           {:ok, %{String.t() => map()}} | {:error, Exception.t()}
-  def language_names_for(options \\ []) do
+  def language_names_for(options \\ [])
+
+  def language_names_for(options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
       Localize.Locale.get(locale_id, [:languages])
     end
   end
+
+  def language_names_for(options), do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   # ── Private helpers ─────────────────────────────────────────
 

@@ -16,6 +16,8 @@ defmodule Localize.MinimalPairs do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.Number.PluralRule
 
   @categories [:cardinal, :ordinal, :case, :gender]
@@ -154,9 +156,9 @@ defmodule Localize.MinimalPairs do
 
   * `{:ok, string}` with the number substituted for `{0}`.
 
-  * `{:error, exception}` if the locale is unknown, the category is not
-    `:cardinal` or `:ordinal`, or the locale has no pair for the category
-    the number selects.
+  * `{:error, exception}` if the number or options are not valid, the
+    locale is unknown, the category is not `:cardinal` or `:ordinal`, or
+    the locale has no pair for the category the number selects.
 
   ### Examples
 
@@ -179,11 +181,13 @@ defmodule Localize.MinimalPairs do
 
   # `format(2, locale: :en)` is the natural call and would otherwise bind the
   # options to `category`.
-  def format(number, options, []) when is_list(options) do
+  def format(number, options, []) when is_keyword_list(options) do
     format(number, :cardinal, options)
   end
 
-  def format(number, category, options) when category in [:cardinal, :ordinal] do
+  def format(number, category, options)
+      when category in [:cardinal, :ordinal] and (is_number(number) or is_struct(number, Decimal)) and
+             is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, pairs} <- category(locale, category),
@@ -192,6 +196,13 @@ defmodule Localize.MinimalPairs do
       {:ok, String.replace(phrase, "{0}", to_string(number))}
     end
   end
+
+  def format(_number, category, options)
+      when category in [:cardinal, :ordinal] and not is_keyword_list(options),
+      do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def format(number, category, _options) when category in [:cardinal, :ordinal],
+    do: {:error, Localize.Utils.Helpers.invalid_value(number, "a number or a Decimal")}
 
   def format(_number, category, _options) do
     {:error,

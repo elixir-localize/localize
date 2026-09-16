@@ -24,6 +24,7 @@ defmodule Localize.DateTime do
   """
 
   import Kernel, except: [to_string: 1]
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
   @default_format :medium
   @standard_formats [:short, :medium, :long, :full]
@@ -127,7 +128,7 @@ defmodule Localize.DateTime do
   # `output` mode (:string | :parts) selects the formatter entry point at
   # each terminal, so `to_string/2` and `to_parts/2` share every
   # resolution path.
-  defp do_format(datetime, options, output) when is_map(datetime) do
+  defp do_format(datetime, options, output) when is_map(datetime) and is_keyword_list(options) do
     case value_shape(datetime) do
       :complete -> format_datetime(datetime, options, output, :complete)
       :partial -> format_datetime(datetime, options, output, :partial)
@@ -136,6 +137,9 @@ defmodule Localize.DateTime do
       :none -> {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}
     end
   end
+
+  defp do_format(_datetime, options, _output) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   defp do_format(_invalid, _options, _output) do
     {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}

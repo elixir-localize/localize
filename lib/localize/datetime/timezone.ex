@@ -9,6 +9,8 @@ defmodule Localize.DateTime.Timezone do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.DateTime.Timezone.Builder
   alias Localize.SupplementalData
 
@@ -311,6 +313,8 @@ defmodule Localize.DateTime.Timezone do
     Map.get(@short_zone_ids, iana_id, @unknown_short_zone_id)
   end
 
+  def short_zone_id(_iana_id), do: @unknown_short_zone_id
+
   @doc """
   Returns `{:ok, map}` for a given CLDR short zone code,
   or `:error` if no such short code exists.
@@ -557,7 +561,7 @@ defmodule Localize.DateTime.Timezone do
     `{:ok, gmt_offset_string}` when falling back to the GMT format.
 
   * `{:error, exception}` if the locale's timezone data cannot be
-    loaded.
+    loaded or `:type` is not one of the values above.
 
   ### Examples
 
@@ -572,12 +576,15 @@ defmodule Localize.DateTime.Timezone do
   """
   @spec non_location_format(map(), atom(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def non_location_format(datetime, locale_id, options \\ []) do
+  def non_location_format(datetime, locale_id, options \\ [])
+
+  def non_location_format(datetime, locale_id, options)
+      when is_map(datetime) and is_keyword_list(options) do
     time_zone = Map.get(datetime, :time_zone)
     format = Keyword.get(options, :format, :long)
-    type = Keyword.get(options, :type, :specific)
 
-    with {:ok, tz_data} <- Localize.Locale.get(locale_id, [:dates, :time_zone_names]) do
+    with {:ok, type} <- non_location_type(Keyword.get(options, :type, :specific)),
+         {:ok, tz_data} <- Localize.Locale.get(locale_id, [:dates, :time_zone_names]) do
       result =
         zone_name(time_zone, tz_data, format, type, datetime) ||
           metazone_name(metazone_for(time_zone, datetime), tz_data, format, type, datetime)
@@ -596,6 +603,25 @@ defmodule Localize.DateTime.Timezone do
           gmt_format(datetime, locale_id, format: format)
       end
     end
+  end
+
+  def non_location_format(_datetime, _locale_id, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def non_location_format(datetime, _locale_id, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(datetime, "a map with a :time_zone")}
+
+  @non_location_types [:specific, :generic, :standard, :daylight]
+
+  defp non_location_type(type) when type in @non_location_types, do: {:ok, type}
+
+  defp non_location_type(type) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: type,
+       expected: :time_zone_name_type,
+       allowed_values: @non_location_types
+     )}
   end
 
   defp generic_location_or_gmt(datetime, time_zone, locale_id, format) do
@@ -710,7 +736,9 @@ defmodule Localize.DateTime.Timezone do
   """
   @spec gmt_format(map(), atom(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def gmt_format(datetime, locale_id, options \\ []) do
+  def gmt_format(datetime, locale_id, options \\ [])
+
+  def gmt_format(datetime, locale_id, options) when is_keyword_list(options) do
     with {:ok, tz_data} <- Localize.Locale.get(locale_id, [:dates, :time_zone_names]) do
       case total_offset(datetime) do
         nil -> {:ok, tz_data[:gmt_unknown_format] || @default_gmt_unknown_format}
@@ -718,6 +746,9 @@ defmodule Localize.DateTime.Timezone do
       end
     end
   end
+
+  def gmt_format(_datetime, _locale_id, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   defp offset_format(offset, tz_data, options) do
     gmt_pattern = tz_data[:gmt_format] || @default_gmt_format
@@ -778,7 +809,8 @@ defmodule Localize.DateTime.Timezone do
   @spec parse_offset(String.t(), Keyword.t()) :: {:ok, integer()} | {:error, Exception.t()}
   def parse_offset(zone_string, options \\ [])
 
-  def parse_offset(zone_string, options) when is_binary(zone_string) do
+  def parse_offset(zone_string, options)
+      when is_binary(zone_string) and is_keyword_list(options) do
     normalized = strip_bidi_marks(zone_string)
 
     attempts = [
@@ -798,6 +830,9 @@ defmodule Localize.DateTime.Timezone do
       :error -> {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
     end
   end
+
+  def parse_offset(_zone_string, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   def parse_offset(zone_string, _options) do
     {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
@@ -1035,19 +1070,37 @@ defmodule Localize.DateTime.Timezone do
       {:ok, "Z"}
 
   """
-  @spec iso_format(map(), Keyword.t()) :: {:ok, String.t()}
-  def iso_format(datetime, options \\ []) do
-    offset = total_offset(datetime)
+  @spec iso_format(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
+  def iso_format(datetime, options \\ [])
+
+  def iso_format(datetime, options) when is_keyword_list(options) do
     format = Keyword.get(options, :format, :long)
     type = Keyword.get(options, :type, :basic)
     z_for_zero = Keyword.get(options, :z_for_zero, true)
 
-    if offset == 0 and z_for_zero do
-      {:ok, "Z"}
-    else
-      {:ok, format_iso_offset(offset, format, type)}
+    case total_offset(datetime) do
+      nil ->
+        {:error,
+         Localize.Utils.Helpers.invalid_value(datetime, "a map with an integer :utc_offset")}
+
+      _offset when format not in [:short, :long, :full] ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: format,
+           expected: :format,
+           allowed_values: [:short, :long, :full]
+         )}
+
+      0 when z_for_zero not in [false, nil] ->
+        {:ok, "Z"}
+
+      offset ->
+        {:ok, format_iso_offset(offset, format, type)}
     end
   end
+
+  def iso_format(_datetime, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   # ── Offset helpers ─────────────────────────────────────────
 
@@ -1198,7 +1251,8 @@ defmodule Localize.DateTime.Timezone do
           {:ok, String.t()} | {:error, Exception.t()}
   def exemplar_city(iana_id, locale \\ Localize.get_locale(), options \\ [])
 
-  def exemplar_city(iana_id, locale, options) when is_binary(iana_id) do
+  def exemplar_city(iana_id, locale, options)
+      when is_binary(iana_id) and is_keyword_list(options) do
     with {:ok, language_tag} <- Localize.validate_locale(locale) do
       zone =
         case Localize.Locale.get(language_tag, [:dates, :time_zone_names]) do
@@ -1218,6 +1272,12 @@ defmodule Localize.DateTime.Timezone do
       end
     end
   end
+
+  def exemplar_city(_iana_id, _locale, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def exemplar_city(iana_id, _locale, _options),
+    do: {:error, Localize.UnknownTimezoneError.exception(timezone: iana_id)}
 
   defp derived_exemplar_city(iana_id, options) do
     with true <- Keyword.get(options, :derive, true),
@@ -1339,7 +1399,8 @@ defmodule Localize.DateTime.Timezone do
           {:ok, String.t()} | {:error, Exception.t()}
   def location_name(iana_id, locale \\ Localize.get_locale(), options \\ [])
 
-  def location_name(iana_id, locale, options) when is_binary(iana_id) do
+  def location_name(iana_id, locale, options)
+      when is_binary(iana_id) and is_keyword_list(options) do
     canonical = Map.get(@zone_canonical_names, iana_id, iana_id)
 
     with territory when not is_nil(territory) <- naming_territory(canonical),
@@ -1349,6 +1410,9 @@ defmodule Localize.DateTime.Timezone do
       _no_territory_name -> exemplar_city(iana_id, locale, options)
     end
   end
+
+  def location_name(_iana_id, _locale, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   def location_name(iana_id, _locale, _options) do
     {:error, Localize.UnknownTimezoneError.exception(timezone: iana_id)}

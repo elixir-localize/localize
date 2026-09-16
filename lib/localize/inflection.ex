@@ -23,6 +23,8 @@ defmodule Localize.Inflection do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.Inflection.{Concept, Data, Feature, PronounConcept, Quantify, SpeakableString}
   alias Localize.Inflection.{Dictionary, Tokenizer}
 
@@ -69,12 +71,21 @@ defmodule Localize.Inflection do
       {:ok, "новым домом"}
 
   """
-  def inflect(phrase, locale, constraints) do
+  def inflect(phrase, locale, constraints)
+      when is_binary(phrase) and (is_map(constraints) or is_keyword_list(constraints)) do
     constraints = Feature.normalize_constraints(constraints)
 
     with {:ok, concept} <- Concept.new(locale, phrase, constraints: constraints) do
       {:ok, concept |> Concept.to_speakable_string() |> SpeakableString.print()}
     end
+  end
+
+  def inflect(phrase, _locale, _constraints) when not is_binary(phrase),
+    do: {:error, Localize.Utils.Helpers.invalid_value(phrase, "a word or phrase string")}
+
+  def inflect(_phrase, _locale, constraints) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(constraints, "a keyword list or map of constraints")}
   end
 
   @doc """
@@ -105,7 +116,7 @@ defmodule Localize.Inflection do
       {:ok, :feminine}
 
   """
-  def feature(phrase, locale, feature) do
+  def feature(phrase, locale, feature) when is_atom(feature) or is_binary(feature) do
     with {:ok, concept} <- Concept.new(locale, phrase) do
       case Concept.feature_value(concept, feature) do
         nil -> {:ok, nil}
@@ -114,6 +125,9 @@ defmodule Localize.Inflection do
       end
     end
   end
+
+  def feature(_phrase, _locale, feature),
+    do: {:error, Localize.Utils.Helpers.invalid_value(feature, "a feature name atom or string")}
 
   @doc """
   Returns true when every significant word of a phrase is in the
@@ -170,6 +184,8 @@ defmodule Localize.Inflection do
       {:error, _reason} -> false
     end
   end
+
+  def known?(_phrase, _locale), do: false
 
   @doc """
   Returns the grammatical features defined for a locale.
@@ -269,7 +285,10 @@ defmodule Localize.Inflection do
       {:ok, "te "}
 
   """
-  def pronoun(locale, initial_pronoun \\ nil, constraints) do
+  def pronoun(locale, initial_pronoun \\ nil, constraints)
+
+  def pronoun(locale, initial_pronoun, constraints)
+      when is_map(constraints) or is_keyword_list(constraints) do
     options = if initial_pronoun, do: [initial_pronoun: initial_pronoun], else: []
 
     with {:ok, concept} <- PronounConcept.new(locale, options),
@@ -279,6 +298,11 @@ defmodule Localize.Inflection do
         speakable -> {:ok, SpeakableString.print(speakable)}
       end
     end
+  end
+
+  def pronoun(_locale, _initial_pronoun, constraints) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(constraints, "a keyword list or map of constraints")}
   end
 
   @doc """
@@ -330,7 +354,9 @@ defmodule Localize.Inflection do
       {:ok, "3 taloa"}
 
   """
-  def quantify(formatted_number, phrase, locale, options \\ []) do
+  def quantify(formatted_number, phrase, locale, options \\ [])
+
+  def quantify(formatted_number, phrase, locale, options) when is_keyword_list(options) do
     constraints = Keyword.get(options, :constraints, %{})
 
     with {:ok, concept} <- Concept.new(locale, phrase, constraints: constraints),
@@ -340,12 +366,20 @@ defmodule Localize.Inflection do
     end
   end
 
+  def quantify(_formatted_number, _phrase, _locale, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  # An entry that is not a `{name, value}` pair is ignored.
   defp put_pronoun_constraints(concept, constraints) do
-    Enum.reduce_while(constraints, {:ok, concept}, fn {name, value}, {:ok, concept} ->
-      case PronounConcept.put_constraint(concept, to_string(name), value) do
-        {:ok, concept} -> {:cont, {:ok, concept}}
-        {:error, _reason} = error -> {:halt, error}
-      end
+    Enum.reduce_while(constraints, {:ok, concept}, fn
+      {name, value}, {:ok, concept} ->
+        case PronounConcept.put_constraint(concept, name, value) do
+          {:ok, concept} -> {:cont, {:ok, concept}}
+          {:error, _reason} = error -> {:halt, error}
+        end
+
+      _entry, result ->
+        {:cont, result}
     end)
   end
 end

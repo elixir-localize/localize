@@ -7,6 +7,13 @@ defmodule Localize.Message do
   alias Localize.Message.{Interpreter, Parser, Print}
 
   import Kernel, except: [to_string: 1]
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
+  # Bindings are a map or a list of `{name, value}` pairs, recognised by the
+  # first entry as `is_keyword_list/1` recognises options.
+  defguardp is_bindings(bindings)
+            when is_map(bindings) or bindings == [] or
+                   (is_list(bindings) and is_tuple(hd(bindings)) and tuple_size(hd(bindings)) == 2)
 
   @type message :: binary()
   @type bindings :: list() | map()
@@ -79,11 +86,28 @@ defmodule Localize.Message do
   @spec format(String.t(), bindings(), options()) ::
           {:ok, String.t()} | {:error, Exception.t()}
 
-  def format(message, bindings \\ %{}, options \\ []) when is_binary(message) do
+  def format(message, bindings \\ %{}, options \\ [])
+
+  def format(message, bindings, options)
+      when is_binary(message) and is_bindings(bindings) and is_keyword_list(options) do
     case Localize.Backend.resolve(options) do
       :nif -> format_nif(message, bindings, Keyword.delete(options, :backend))
       :elixir -> format_elixir(message, bindings, Keyword.delete(options, :backend))
     end
+  end
+
+  def format(message, bindings, options), do: invalid_arguments(message, bindings, options)
+
+  # Arguments of the wrong type, reporting options first as `Localize.Number`
+  # does.
+  defp invalid_arguments(_message, _bindings, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  defp invalid_arguments(message, _bindings, _options) when not is_binary(message),
+    do: {:error, Localize.Utils.Helpers.invalid_value(message, "an MF2 message string")}
+
+  defp invalid_arguments(_message, bindings, _options) do
+    {:error, Localize.Utils.Helpers.invalid_value(bindings, "a map or keyword list of bindings")}
   end
 
   defp format_elixir(message, bindings, options) do
@@ -287,7 +311,7 @@ defmodule Localize.Message do
   """
   @spec format!(String.t(), bindings(), options()) :: String.t() | no_return
 
-  def format!(message, bindings \\ %{}, options \\ []) when is_binary(message) do
+  def format!(message, bindings \\ %{}, options \\ []) do
     case format(message, bindings, options) do
       {:ok, binary} ->
         binary
@@ -334,15 +358,21 @@ defmodule Localize.Message do
   @spec format_to_iolist(String.t(), bindings(), options()) ::
           {:ok, list(), list(), list()}
           | {:error, list(), list(), list()}
-          | {:error, Localize.ParseError.t()}
+          | {:error, Exception.t()}
           | {:format_error, format_error_payload()}
 
-  def format_to_iolist(message, bindings \\ %{}, options \\ []) when is_binary(message) do
+  def format_to_iolist(message, bindings \\ %{}, options \\ [])
+
+  def format_to_iolist(message, bindings, options)
+      when is_binary(message) and is_bindings(bindings) and is_keyword_list(options) do
     with {:ok, message} <- maybe_trim(message, options[:trim]),
          {:ok, parsed} <- parse_and_validate(message, :format_to_iolist) do
       Interpreter.format_list(parsed, bindings, options)
     end
   end
+
+  def format_to_iolist(message, bindings, options),
+    do: invalid_arguments(message, bindings, options)
 
   @doc """
   Formats a message into a list of text and markup nodes preserving
@@ -411,7 +441,10 @@ defmodule Localize.Message do
   @spec format_to_safe_list(String.t(), bindings(), options()) ::
           {:ok, [safe_node()]} | {:error, Exception.t()}
 
-  def format_to_safe_list(message, bindings \\ %{}, options \\ []) when is_binary(message) do
+  def format_to_safe_list(message, bindings \\ %{}, options \\ [])
+
+  def format_to_safe_list(message, bindings, options)
+      when is_binary(message) and is_bindings(bindings) and is_keyword_list(options) do
     with {:ok, message} <- maybe_trim(message, options[:trim]),
          {:ok, parsed} <- parse_and_validate(message, :format_to_safe_list) do
       case Interpreter.format_structured(parsed, bindings, options) do
@@ -429,6 +462,9 @@ defmodule Localize.Message do
         error
     end
   end
+
+  def format_to_safe_list(message, bindings, options),
+    do: invalid_arguments(message, bindings, options)
 
   # `Parser.parse/1` checks syntax only; the TR35 data-model rules are a
   # separate pass (see `Localize.Message.Validator`). Every entry point
@@ -548,7 +584,7 @@ defmodule Localize.Message do
   """
   @spec format_to_safe_list!(String.t(), bindings(), options()) :: [safe_node()]
 
-  def format_to_safe_list!(message, bindings \\ %{}, options \\ []) when is_binary(message) do
+  def format_to_safe_list!(message, bindings \\ %{}, options \\ []) do
     case format_to_safe_list(message, bindings, options) do
       {:ok, nodes} -> nodes
       {:error, exception} -> raise exception
@@ -585,9 +621,11 @@ defmodule Localize.Message do
 
   """
   @spec canonical_message(String.t(), Keyword.t()) ::
-          {:ok, String.t()} | {:error, Localize.ParseError.t()}
+          {:ok, String.t()} | {:error, Exception.t()}
 
-  def canonical_message(message, options \\ []) do
+  def canonical_message(message, options \\ [])
+
+  def canonical_message(message, options) when is_binary(message) and is_keyword_list(options) do
     options = Keyword.put_new(options, :trim, true)
 
     with {:ok, message} <- maybe_trim(message, options[:trim]),
@@ -595,6 +633,8 @@ defmodule Localize.Message do
       {:ok, Print.to_string(ast, options)}
     end
   end
+
+  def canonical_message(message, options), do: invalid_arguments(message, %{}, options)
 
   @doc """
   Formats a message into a canonical form or raises if the message
@@ -658,9 +698,11 @@ defmodule Localize.Message do
 
   """
   @spec to_tokens(String.t(), Keyword.t()) ::
-          {:ok, [Localize.Message.Highlighter.token()]} | {:error, Localize.ParseError.t()}
+          {:ok, [Localize.Message.Highlighter.token()]} | {:error, Exception.t()}
 
-  def to_tokens(message, options \\ []) do
+  def to_tokens(message, options \\ [])
+
+  def to_tokens(message, options) when is_binary(message) and is_keyword_list(options) do
     options = Keyword.put_new(options, :trim, true)
 
     with {:ok, message} <- maybe_trim(message, options[:trim]),
@@ -668,6 +710,8 @@ defmodule Localize.Message do
       {:ok, Localize.Message.Highlighter.to_tokens(ast)}
     end
   end
+
+  def to_tokens(message, options), do: invalid_arguments(message, %{}, options)
 
   @doc """
   Parses an MF2 message and returns it formatted as HTML with
@@ -782,9 +826,12 @@ defmodule Localize.Message do
 
   """
   @spec jaro_distance(String.t(), String.t(), Keyword.t()) ::
-          {:ok, float()} | {:error, Localize.ParseError.t()}
+          {:ok, float()} | {:error, Exception.t()}
 
-  def jaro_distance(message1, message2, options \\ []) do
+  def jaro_distance(message1, message2, options \\ [])
+
+  def jaro_distance(message1, message2, options)
+      when is_binary(message1) and is_binary(message2) and is_keyword_list(options) do
     with {:ok, message1} <- maybe_trim(message1, options[:trim]),
          {:ok, message2} <- maybe_trim(message2, options[:trim]),
          {:ok, message1_ast} <- Parser.parse(message1),
@@ -794,6 +841,13 @@ defmodule Localize.Message do
       {:ok, String.jaro_distance(canonical_message1, canonical_message2)}
     end
   end
+
+  def jaro_distance(message1, _message2, options)
+      when not is_binary(message1) or not is_keyword_list(options),
+      do: invalid_arguments(message1, %{}, options)
+
+  def jaro_distance(_message1, message2, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(message2, "an MF2 message string")}
 
   @doc """
   Returns the Jaro distance between two messages or raises.

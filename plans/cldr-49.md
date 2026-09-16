@@ -95,7 +95,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 38 | Numbering systems other than a locale's default format with the default's symbols | Internal (ETF) | **Output changes** — ✅ Fixed where CLDR has the data: `fa-u-nu-latn` is "1,000.5". Open: root's `arab` and `arabext` symbols are not in the CLDR JSON |
 | 39 | MF2 plural selection ignores the digits a numeric function displays | None | **Output changes** — ✅ Fixed. Russian `{2 :number minimumFractionDigits=1}` selects `other` |
 | 40 | `-u-hc-h11` and `-u-hc-h24` never render `K` or `k`, and parsing cannot read them back | None | **Output changes** — ✅ Fixed. `en-u-hc-h24` is "24:30" and parses back; 1,470 ICU4C cases, 40 documented exceptions |
-| 41 | Public functions raise on options or values of the wrong type | None | **Error instead of raise** — ✅ Fixed in `Localize.Number` and `Localize.Number.Parser`. Open: 16 other modules raise on options that are not a keyword list, and `Localize.Interval` and `Localize.DateTime` on some option values and struct fields of the wrong type |
+| 41 | Public functions raise on options or values of the wrong type | None | **Error instead of raise** — ✅ Fixed across the public API: options that are not a keyword list, and arguments and option values of the wrong type, return `{:error, exception}`. Open: an options list whose later entries are not pairs still raises where it is rebuilt, and `SemanticSkeleton.semantic/2` and `format_to_metadata!/1` raise by design |
 | 42 | A number pattern with quoted text loops in the lexer and exhausts memory | None | **Output changes** — ✅ Fixed. `#,##0 'units'` is "1,234 units"; tokens of all 4,122 CLDR 49 number patterns unchanged |
 | 43 | `Number.to_string/2` trims a pattern's trailing whitespace; the wrapper skips quoted characters | None | **Output changes** — ✅ Fixed. Matches ICU and `to_parts/2`; only custom patterns and pt-CV/kea CVE (trailing NBSP before the dropped zero-width symbol) change |
 | 44 | Date parsing fails on eras, trailing weekdays, other weekday widths and stand-alone months | None | **Output changes** — ✅ Fixed. ICU date sweep: 6,443 of 6,552 rows parse back; the other 109 are CLDR 48 spellings CLDR 49 changed, each parsed in its CLDR 49 spelling |
@@ -1837,29 +1837,37 @@ Patterns resolved from a standard format or a skeleton take the hour cycle's sym
 
 * **Output changes** under `-u-hc-h11`, `-u-hc-h24` and `ja-u-hc-h12`, and for explicit `h` and `H` skeletons under `-u-hc-`.
 
-## 41. Public functions raise on options or values of the wrong type — Open beyond `Localize.Number`
+## 41. Public functions raise on options or values of the wrong type — Fixed
 
 Found while testing the public API's default options for coverage.
 
 ### Gap
 
-The library's rule is that invalid input returns `{:error, exception}`. `Localize.Number.to_parts/2`, `to_range_parts/3` and `to_ratio_string/2` raised on a value that is not a number, every `Localize.Number` function raised on options that are not a keyword list, and `Localize.Number.Parser`'s `parse/2`, `scan/2` and `resolve_*` functions raised on input of the wrong type.
+The library's rule is that invalid input returns `{:error, exception}`. `Localize.Number.to_parts/2`, `to_range_parts/3` and `to_ratio_string/2` raised on a value that is not a number, every `Localize.Number` function raised on options that are not a keyword list, and `Localize.Number.Parser`'s `parse/2`, `scan/2` and `resolve_*` functions raised on input of the wrong type. A sweep of the rest of the public API found the same fault in about 45 modules and 190 documented functions, for options that are not a keyword list, arguments of the wrong type and option values of the wrong type.
 
 ### Resolution
 
 `Localize.Number` and `Localize.Number.Parser` check their arguments and return `Localize.InvalidValueError`, and `test/localize/number_invalid_input_test.exs` sweeps every public function and bang variant.
 
+The rest of the public API follows the same rule. Success clauses match the shapes they accept — a keyword list by its first pair, `[{key, value} | _] when is_atom(key)` — and a catch-all clause returns `Localize.InvalidValueError`, `Localize.InvalidLocaleError` or the validator's `Unknown*Error`; predicates answer `false` and bang variants raise the Localize exception. Option values are checked where a wrong type reached a raise: `Localize.Collation.Options.new/1` checks every option with a closed set of values, and `Localize.Number`'s digit counts and `:wrapper`, the parser's `:number`, `to_ratio_string/2`'s continued-fraction bounds, `Localize.Duration`'s `:except`, `Localize.DateTime.Timezone.non_location_format/3`'s `:type`, `Localize.Unit`'s `:list_options`, `:only` and `:except`, and the locale `:provider` are checked too. A sweep that replays every documented function's doctests with each argument, option and documented option replaced by a value of the wrong type finds no raise beyond those listed under Open. `test/localize/wrong_type_input_test.exs` covers the public functions and `test/localize/wrong_type_fallback_test.exs` the functions they build on.
+
 ### Open
 
-A probe of the other public formatting modules found the same fault for options that are not a keyword list in `Localize.Unit`, `Localize.List`, `Localize.Territory`, `Localize.Language`, `Localize.Script`, `Localize.Currency`, `Localize.Calendar`, `Localize.Date`, `Localize.Time`, `Localize.DateTime`, `Localize.Interval`, `Localize.Duration`, `Localize.Message`, `Localize.Collation`, `Localize.Locale.LocaleDisplay` and `Localize.Number.PluralRule`, which raise `FunctionClauseError` or `ArgumentError`. `Localize.DateTime.Relative` already returns an error. The same fault reaches option values and struct fields of the wrong type: `Localize.Interval.to_string/3` raises `FunctionClauseError` for a date interval whose `:format`, `:fields` or `:date_format` is a string, integer or map, and `Localize.DateTime.to_string/2` raises `ArgumentError` for a `DateTime` whose `utc_offset` is not an integer when the pattern has a `Z` or `X` field. Language tag structs with fields of the wrong shape are fixed (item 54).
+* An options list whose first entry is a pair but a later entry is not passes the keyword-list guard, which checks only the head, and still raises where the options are rebuilt with `Map.new/1` or `Keyword` functions: in `Localize.Date`, `Localize.Time`, `Localize.DateTime`, `Localize.Interval`, `Localize.Unit`, `Localize.Collation`, `Localize.Message.Print` and `Localize.Number.Format.Options`. Accepted as it stands (2026-09-16): the guard is a head check by design, and making 17 rebuild sites tolerate an entry that is not a pair is not worth the change.
+
+* `Localize.DateTime.SemanticSkeleton.semantic/2` raises `Localize.InvalidValueError` for an invalid skeleton by design, and `Localize.Number.Format.Compiler.format_to_metadata!/1` raises `ArgumentError`.
+
+* Hand-built `Localize.Collation.Options` structs are not validated, and the NIF backend was not swept: the sweep, like CI, runs without the NIF.
 
 ### API impact / breaking risk
 
 * An error tuple where a call raised.
 
+* A `Localize.Collation` option value outside its documented set is an error where some were silently accepted.
+
 ## Open questions
 
-Questions raised while drafting the plan. Most were answered by the work itself; the five that remain are recorded first.
+Questions raised while drafting the plan. Most were answered by the work itself; the four that remain are recorded first.
 
 Still open:
 
@@ -1867,7 +1875,7 @@ Still open:
 * **Item 11** — Should `localize_emoji` ship a Phoenix LiveView picker component as a follow-up package (`localize_emoji_live`)? Out of scope for the initial 0.1.0; flag for later.
 * **Item 35** — When a range pattern is inherited from a different locale level than its single date, glue or keep the inherited pattern? Waiting on CLDR-14207.
 * **Item 38** — Should root's `arab` and `arabext` symbol and format blocks from `common/main/root.xml` become a pipeline source, since CLDR JSON does not carry them? Until then `en-u-nu-arab` formats with the locale's `latn` symbols.
-* **Item 41** — Should the sixteen other modules that raise on options of the wrong type be fixed before the CLDR 49 release, or in a release of their own? `Localize.Number` and `Localize.Number.Parser` are fixed.
+* ~~**Item 41** — Should the sixteen other modules that raise on options of the wrong type be fixed before the CLDR 49 release, or in a release of their own?~~ Fixed before the release, across the public API (2026-09-15).
 * ~~**Item 36** — Should a cross-year `month_and_day` interval widen to carry the year, as ICU does, or glue two full dates?~~ Widen, as ICU does (2026-09-14).
 
 Answered during the cycle, kept for the record:

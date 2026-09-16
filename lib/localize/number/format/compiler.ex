@@ -63,6 +63,9 @@ defmodule Localize.Number.Format.Compiler do
     |> :localize_decimal_formats_lexer.string()
   end
 
+  def tokenize(definition),
+    do: {:error, Localize.Utils.Helpers.invalid_value(definition, "a number format string"), 1}
+
   @doc """
   Parses a number format definition into a keyword list of
   positive and negative format elements.
@@ -87,7 +90,7 @@ defmodule Localize.Number.Format.Compiler do
 
   """
   @spec parse(String.t() | list()) :: {:ok, Keyword.t()} | {:error, term()}
-  def parse(tokens) when is_list(tokens) do
+  def parse(tokens) when tokens == [] or (is_list(tokens) and is_tuple(hd(tokens))) do
     :localize_decimal_formats_parser.parse(tokens)
   end
 
@@ -106,6 +109,10 @@ defmodule Localize.Number.Format.Compiler do
 
   def parse(nil) do
     {:error, "no format string or token list provided"}
+  end
+
+  def parse(definition) do
+    {:error, "a format string or token list was expected, got: #{inspect(definition)}"}
   end
 
   # ── Compile ──────────────────────────────────────────────────
@@ -149,6 +156,9 @@ defmodule Localize.Number.Format.Compiler do
     end
   end
 
+  def compile(definition),
+    do: {:error, "a format string was expected, got: #{inspect(definition)}"}
+
   @doc """
   Extracts metadata from a parsed format.
 
@@ -189,11 +199,22 @@ defmodule Localize.Number.Format.Compiler do
   end
 
   def format_to_metadata(format) when is_list(format) do
-    metadata = analyse(format, format[:positive][:format])
+    with {:ok, positive_format} <- positive_format(format),
+         metadata = analyse(format, positive_format),
+         :ok <- validate_scientific_constraints(metadata) do
+      {:ok, metadata}
+    end
+  end
 
-    case validate_scientific_constraints(metadata) do
-      :ok -> {:ok, metadata}
-      {:error, _} = error -> error
+  def format_to_metadata(format),
+    do: {:error, "a format string or parsed format was expected, got: #{inspect(format)}"}
+
+  # A literal-only format such as "mille" has no `:format` placeholder, so
+  # only the `:positive` list itself is required.
+  defp positive_format(format) do
+    case Keyword.get(format, :positive) do
+      positive when is_list(positive) -> {:ok, Keyword.get(positive, :format)}
+      _other -> {:error, "a parsed format was expected, got: #{inspect(format)}"}
     end
   end
 

@@ -21,6 +21,7 @@ defmodule Localize.Inflection.Inflector do
   alias Localize.Inflection.{Data, Dictionary}
 
   import Bitwise
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
   @doc """
   Inflects a word to the given constraints.
@@ -64,7 +65,12 @@ defmodule Localize.Inflection.Inflector do
       {:ok, "cats"}
 
   """
-  def inflect(locale, word, word_grammemes, constraints, options \\ []) do
+  def inflect(locale, word, word_grammemes, constraints, options \\ [])
+
+  def inflect(locale, word, word_grammemes, constraints, options)
+      when is_atom(locale) and is_binary(word) and
+             (is_integer(word_grammemes) or is_nil(word_grammemes)) and is_list(constraints) and
+             is_keyword_list(options) do
     if Enum.all?(constraints, &(&1 in [nil, ""])) do
       {:ok, word}
     else
@@ -86,6 +92,8 @@ defmodule Localize.Inflection.Inflector do
     end
   end
 
+  def inflect(_locale, _word, _word_grammemes, _constraints, _options), do: :error
+
   @doc """
   Inflects a word without trying case variants.
 
@@ -95,7 +103,9 @@ defmodule Localize.Inflection.Inflector do
   def inflect_word(_locale, _word, 0, _constraints, _options), do: :error
   def inflect_word(_locale, _word, nil, _constraints, _options), do: :error
 
-  def inflect_word(locale, word, word_grammemes, constraints, options) do
+  def inflect_word(locale, word, word_grammemes, constraints, options)
+      when is_atom(locale) and is_binary(word) and is_integer(word_grammemes) and
+             is_list(constraints) and is_keyword_list(options) do
     case Dictionary.patterns_for_word(locale, word) do
       [] ->
         :error
@@ -105,7 +115,7 @@ defmodule Localize.Inflection.Inflector do
         to_mask = Dictionary.binary_properties(locale, constraints) || 0
 
         optional_masks =
-          for name <- Keyword.get(options, :optional_constraints, []),
+          for name <- List.wrap(Keyword.get(options, :optional_constraints, [])),
               do: Dictionary.binary_properties(locale, [name]) || 0
 
         fallback? = Keyword.get(options, :fallback, true)
@@ -113,6 +123,8 @@ defmodule Localize.Inflection.Inflector do
         try_candidates(candidates, to_mask, optional_masks, word, fallback?, tie_break)
     end
   end
+
+  def inflect_word(_locale, _word, _word_grammemes, _constraints, _options), do: :error
 
   defp try_candidates([], _to_mask, _optional_masks, _word, _fallback?, _tie_break), do: :error
 
@@ -155,14 +167,23 @@ defmodule Localize.Inflection.Inflector do
 
   def reinflect(_pattern, _from, 0, _optional, surface_form, _tie_break), do: {:ok, surface_form}
 
-  def reinflect(pattern, from_grammemes, to_mask, optional_masks, surface_form, tie_break) do
+  def reinflect(
+        %{inflections: inflections},
+        from_grammemes,
+        to_mask,
+        optional_masks,
+        surface_form,
+        tie_break
+      )
+      when is_list(inflections) and is_integer(from_grammemes) and is_integer(to_mask) and
+             is_list(optional_masks) and is_binary(surface_form) do
     if contains_all?(from_grammemes, to_mask) do
       {:ok, surface_form}
     else
       to_bit_count = bit_count(to_mask)
 
       {strip_length, best} =
-        Enum.reduce(pattern.inflections, {0, nil}, fn {grammemes, suffix}, {strip, best} ->
+        Enum.reduce(inflections, {0, nil}, fn {grammemes, suffix}, {strip, best} ->
           strip = update_strip(strip, grammemes, suffix, from_grammemes, surface_form)
 
           best =
@@ -190,6 +211,9 @@ defmodule Localize.Inflection.Inflector do
       end
     end
   end
+
+  def reinflect(_pattern, _from_grammemes, _to_mask, _optional_masks, _surface_form, _tie_break),
+    do: :error
 
   defp update_strip(strip, grammemes, suffix, from_grammemes, surface_form) do
     if (from_grammemes == 0 or contains_all?(from_grammemes, grammemes)) and
@@ -232,18 +256,18 @@ defmodule Localize.Inflection.Inflector do
 
   defp candidate_readings(locale, word, word_grammemes, patterns, options) do
     ignore_masks =
-      for set <- Keyword.get(options, :ignore, []),
+      for set <- List.wrap(Keyword.get(options, :ignore, [])),
           mask = Dictionary.binary_properties(locale, set) || 0,
           mask != 0,
           do: mask
 
     disambiguation_masks =
-      for name <- Keyword.get(options, :disambiguation, []),
+      for name <- List.wrap(Keyword.get(options, :disambiguation, [])),
           do: Dictionary.binary_properties(locale, [name]) || 0
 
     priority_tables =
-      for table <- Keyword.get(options, :priorities, []) do
-        for names <- table, do: Dictionary.binary_properties(locale, [names]) || 0
+      for table <- List.wrap(Keyword.get(options, :priorities, [])) do
+        for names <- List.wrap(table), do: Dictionary.binary_properties(locale, [names]) || 0
       end
 
     candidates =

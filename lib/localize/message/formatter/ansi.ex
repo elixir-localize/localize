@@ -9,6 +9,8 @@ defmodule Localize.Message.Formatter.ANSI do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.Message.Highlighter
 
   @type options :: [palette: %{Highlighter.class() => [atom()]}]
@@ -57,26 +59,60 @@ defmodule Localize.Message.Formatter.ANSI do
       true
 
   """
-  @spec render([Highlighter.token()], options()) :: String.t()
-  def render(tokens, options \\ []) do
-    palette = Map.merge(@default_palette, Keyword.get(options, :palette, %{}))
+  @spec render([Highlighter.token()], options()) :: String.t() | {:error, Exception.t()}
+  def render(tokens, options \\ [])
 
-    tokens
-    |> Enum.map(fn {class, text} ->
-      codes = Map.get(palette, class, [])
-
-      case codes do
-        [] ->
-          text
-
-        codes ->
-          # `IO.ANSI.format/2` with `emit? = true` forces the escape
-          # sequences to be rendered even when STDOUT isn't a TTY.
-          # Without this, ANSI codes would only appear in interactive
-          # shells, making the output untestable and unpredictable.
-          IO.ANSI.format(codes ++ [text, :reset], true)
+  def render(tokens, options) when is_list(tokens) and is_keyword_list(options) do
+    with {:ok, palette} <- palette(Keyword.get(options, :palette, %{})) do
+      for {class, text} when is_binary(text) <- tokens, into: "" do
+        colorize(text, Map.get(palette, class, []))
       end
-    end)
+    end
+  end
+
+  def render(_tokens, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def render(tokens, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(tokens, "a list of highlighter tokens")}
+
+  defp colorize(text, []), do: text
+
+  # `IO.ANSI.format/2` with `emit? = true` forces the escape
+  # sequences to be rendered even when STDOUT isn't a TTY.
+  # Without this, ANSI codes would only appear in interactive
+  # shells, making the output untestable and unpredictable.
+  defp colorize(text, codes) do
+    codes
+    |> Kernel.++([text, :reset])
+    |> IO.ANSI.format(true)
     |> IO.iodata_to_binary()
+  end
+
+  # A palette overrides the default codes for some classes. Every code must be
+  # one `IO.ANSI` defines, since `IO.ANSI.format/2` raises on any other.
+  defp palette(palette) when is_map(palette) do
+    case Enum.reject(palette, &ansi_codes?/1) do
+      [] -> {:ok, Map.merge(@default_palette, palette)}
+      [invalid | _rest] -> {:error, invalid_palette(invalid)}
+    end
+  end
+
+  defp palette(palette), do: {:error, invalid_palette(palette)}
+
+  defp ansi_codes?({_class, codes}) when is_list(codes), do: Enum.all?(codes, &ansi_code?/1)
+  defp ansi_codes?(_entry), do: false
+
+  defp ansi_code?(code) when is_atom(code) do
+    Code.ensure_loaded?(IO.ANSI) and function_exported?(IO.ANSI, code, 0)
+  end
+
+  defp ansi_code?(_code), do: false
+
+  defp invalid_palette(value) do
+    Localize.Utils.Helpers.invalid_value(
+      value,
+      "a map of token classes to lists of IO.ANSI codes"
+    )
   end
 end

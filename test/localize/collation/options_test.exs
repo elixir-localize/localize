@@ -59,10 +59,8 @@ defmodule Localize.Collation.OptionsTest do
       assert Options.new(casing: :sensitive).strength == :tertiary
     end
 
-    test "invalid casing raises InvalidValueError" do
-      assert_raise Localize.InvalidValueError, fn ->
-        Options.new(casing: :sometimes)
-      end
+    test "invalid casing returns InvalidValueError" do
+      assert {:error, %Localize.InvalidValueError{}} = Options.new(casing: :sometimes)
     end
   end
 

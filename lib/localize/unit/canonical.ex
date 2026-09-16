@@ -43,8 +43,8 @@ defmodule Localize.Unit.Canonical do
 
   """
   @spec canonicalize({:unit, keyword()} | {:mixed_unit, term()}) ::
-          {String.t(), {:unit, keyword()} | {:mixed_unit, term()}}
-  def canonicalize({:unit, kw}) do
+          {String.t(), {:unit, keyword()} | {:mixed_unit, term()}} | {:error, Exception.t()}
+  def canonicalize({:unit, kw}) when is_list(kw) do
     type = Keyword.get(kw, :type)
     numerator = Keyword.get(kw, :numerator, [])
     denominator = Keyword.get(kw, :denominator, [])
@@ -60,7 +60,7 @@ defmodule Localize.Unit.Canonical do
     {canonical_name, normalised_ast}
   end
 
-  def canonicalize({:mixed_unit, units}) do
+  def canonicalize({:mixed_unit, units}) when is_list(units) do
     # Mixed units keep their order (larger unit first per CLDR spec).
     # Each component is formatted individually and joined with "-and-".
     canonical_name =
@@ -69,6 +69,8 @@ defmodule Localize.Unit.Canonical do
 
     {canonical_name, {:mixed_unit, units}}
   end
+
+  def canonicalize(ast), do: {:error, Localize.Utils.Helpers.invalid_value(ast, "a parsed unit")}
 
   @doc """
   Builds a canonical name and normalised AST from raw numerator and
@@ -102,7 +104,7 @@ defmodule Localize.Unit.Canonical do
 
   """
   @spec from_components(list(), list()) :: {:dimensionless, nil} | {String.t(), tuple()}
-  def from_components(numerator, denominator) do
+  def from_components(numerator, denominator) when is_list(numerator) and is_list(denominator) do
     consolidated_num = consolidate_units(numerator)
     consolidated_den = consolidate_units(denominator)
 
@@ -120,6 +122,12 @@ defmodule Localize.Unit.Canonical do
       {name, ast}
     end
   end
+
+  def from_components(numerator, denominator) when is_list(numerator),
+    do: {:error, Localize.Utils.Helpers.invalid_value(denominator, "a list of unit components")}
+
+  def from_components(numerator, _denominator),
+    do: {:error, Localize.Utils.Helpers.invalid_value(numerator, "a list of unit components")}
 
   # ── Formatting ─────────────────────────────────────────────────────
 
@@ -228,6 +236,7 @@ defmodule Localize.Unit.Canonical do
 
     consolidated =
       single_units
+      |> Enum.filter(&match?({:single_unit, opts} when is_list(opts), &1))
       |> Enum.reduce([], fn {:single_unit, opts}, acc ->
         key = {Keyword.get(opts, :prefix), Keyword.get(opts, :base)}
         power = power_to_integer(Keyword.get(opts, :power))

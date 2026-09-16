@@ -39,6 +39,9 @@ defmodule Localize.Inflection.ConceptList do
 
   @type t :: %__MODULE__{}
 
+  defguardp is_locale(locale)
+            when is_atom(locale) or is_binary(locale) or is_struct(locale, Localize.LanguageTag)
+
   # Language-specific list behavior, applied over the CLDR-derived
   # base wiring. `custom:` selects a Conjunction module (dynamic
   # before-last); keyword entries overwrite separators with static
@@ -107,9 +110,11 @@ defmodule Localize.Inflection.ConceptList do
       "gatos y gatas"
 
   """
-  def and_list(locale, concepts) do
+  def and_list(locale, concepts) when is_locale(locale) and is_list(concepts) do
     build(locale, concepts, :and, :standard)
   end
+
+  def and_list(locale, concepts), do: invalid_list_arguments(locale, concepts)
 
   @doc """
   Builds an or-list of concepts.
@@ -128,20 +133,41 @@ defmodule Localize.Inflection.ConceptList do
       "Jane u Omar"
 
   """
-  def or_list(locale, concepts) do
+  def or_list(locale, concepts) when is_locale(locale) and is_list(concepts) do
     build(locale, concepts, :or, :or)
   end
 
-  defp build(locale, concepts, kind, style) do
-    concepts = Enum.reject(concepts, &is_nil/1)
-    internal = Locale.normalize(locale)
-    customization = customization(internal, kind)
+  def or_list(locale, concepts), do: invalid_list_arguments(locale, concepts)
 
-    case Keyword.get(customization, :custom) do
-      nil -> base_list(locale, internal, concepts, style, customization)
-      custom -> {:ok, custom_list(internal, concepts, kind, custom)}
+  defp build(locale, concepts, kind, style) do
+    with :ok <- validate_members(concepts) do
+      concepts = Enum.reject(concepts, &is_nil/1)
+      internal = Locale.normalize(locale)
+      customization = customization(internal, kind)
+
+      case Keyword.get(customization, :custom) do
+        nil -> base_list(locale, internal, concepts, style, customization)
+        custom -> {:ok, custom_list(internal, concepts, kind, custom)}
+      end
     end
   end
+
+  defp invalid_list_arguments(locale, concepts) when is_locale(locale),
+    do: {:error, invalid_concepts(concepts)}
+
+  defp invalid_list_arguments(locale, _concepts),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
+
+  # Members are concepts or nested concept lists; nil members are dropped.
+  defp validate_members([member | rest])
+       when is_nil(member) or is_struct(member, Concept) or is_struct(member, __MODULE__),
+       do: validate_members(rest)
+
+  defp validate_members([]), do: :ok
+  defp validate_members([member | _rest]), do: {:error, invalid_concepts(member)}
+
+  defp invalid_concepts(value),
+    do: Localize.Utils.Helpers.invalid_value(value, "a list of inflection concepts")
 
   # Custom conjunction classes bypass the CLDR wiring: a plain
   # ", " delimiter and a dynamic before-last, for every size.
@@ -247,17 +273,41 @@ defmodule Localize.Inflection.ConceptList do
     Map.put(list, field, normalized)
   end
 
+  def put_separator(%__MODULE__{}, field, _value) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: field,
+       expected: :separator_field,
+       allowed_values: [
+         :before_first,
+         :after_first,
+         :item_delimiter,
+         :before_last,
+         :after_last,
+         :item_prefix,
+         :item_suffix
+       ]
+     )}
+  end
+
+  def put_separator(list, _field, _value), do: {:error, invalid_list(list)}
+
   @doc """
   Returns the number of members.
 
   """
   def size(%__MODULE__{concepts: concepts}), do: length(concepts)
+  def size(list), do: {:error, invalid_list(list)}
 
   @doc """
   Returns true when the list has at least one member.
 
   """
   def exists?(%__MODULE__{concepts: concepts}), do: concepts != []
+  def exists?(_list), do: false
+
+  defp invalid_list(value),
+    do: Localize.Utils.Helpers.invalid_value(value, "a Localize.Inflection.ConceptList")
 
   @doc """
   Puts a constraint on every member and records it on the list.
@@ -277,6 +327,8 @@ defmodule Localize.Inflection.ConceptList do
     end
   end
 
+  def put_constraint(list, _name, _value), do: {:error, invalid_list(list)}
+
   @doc """
   Returns the value of a feature for the list.
 
@@ -288,12 +340,16 @@ defmodule Localize.Inflection.ConceptList do
   def feature_value(%__MODULE__{concepts: []}, _name), do: nil
 
   def feature_value(%__MODULE__{} = list, name) do
-    if FeatureModel.category?(model_locale(list), to_string(name)) do
+    feature_name = Localize.Inflection.Feature.to_internal(name)
+
+    if FeatureModel.category?(model_locale(list), feature_name) do
       member_feature_value(List.first(list.concepts), name)
     else
       assemble(list, name)
     end
   end
+
+  def feature_value(_list, _name), do: nil
 
   # The feature model locale comes from the first member (zh_HK
   # lists carry zh concepts).
@@ -313,6 +369,8 @@ defmodule Localize.Inflection.ConceptList do
   def to_speakable_string(%__MODULE__{} = list) do
     assemble(list, nil)
   end
+
+  def to_speakable_string(list), do: {:error, invalid_list(list)}
 
   # ── Assembly ─────────────────────────────────────────────────
 

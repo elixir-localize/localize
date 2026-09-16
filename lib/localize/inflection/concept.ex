@@ -12,6 +12,8 @@ defmodule Localize.Inflection.Concept do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.Inflection.{
     Data,
     DisplayValue,
@@ -73,16 +75,26 @@ defmodule Localize.Inflection.Concept do
       ["plural", "singular"]
 
   """
-  def new(locale, value, options \\ []) do
-    constraints = options |> Keyword.get(:constraints, %{}) |> Feature.normalize_constraints()
-    initial = options |> Keyword.get(:initial, %{}) |> Feature.normalize_constraints()
+  def new(locale, value, options \\ [])
 
-    with {:ok, locale} <- Locale.resolve(locale),
+  def new(locale, value, options)
+      when (is_binary(value) or
+              (is_tuple(value) and tuple_size(value) == 2 and is_binary(elem(value, 0)) and
+                 is_binary(elem(value, 1)))) and is_keyword_list(options) do
+    with {:ok, constraints} <- Feature.constraints(Keyword.get(options, :constraints, %{})),
+         {:ok, initial} <- Feature.constraints(Keyword.get(options, :initial, %{})),
+         {:ok, locale} <- Locale.resolve(locale),
          :ok <- Data.ensure_loaded(locale),
          {:ok, concept} <- validate(%__MODULE__{locale: locale, value: value}, initial, :initial) do
       validate(concept, constraints, :constraints)
     end
   end
+
+  def new(_locale, _value, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def new(_locale, value, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(value, "a word or phrase string")}
 
   defp validate(concept, values, field) do
     Enum.reduce_while(values, {:ok, concept}, fn {name, value}, {:ok, concept} ->
@@ -127,6 +139,9 @@ defmodule Localize.Inflection.Concept do
       {:ok, %{concept | constraints: Map.put(concept.constraints, name, value)}}
     end
   end
+
+  def put_constraint(concept, _name, _value),
+    do: {:error, Localize.Utils.Helpers.invalid_value(concept, "a Localize.Inflection.Concept")}
 
   defp validate_constraint(concept, name, value) do
     case FeatureModel.feature(concept.locale, name) do
@@ -187,6 +202,8 @@ defmodule Localize.Inflection.Concept do
     Feature.to_public(concept.locale, name, value)
   end
 
+  def feature_value(_concept, _name), do: nil
+
   @doc """
   Returns true when the concept can be rendered with its
   constraints without guessing.
@@ -208,6 +225,8 @@ defmodule Localize.Inflection.Concept do
   def exists?(%__MODULE__{} = concept) do
     display_value(concept, false) != nil
   end
+
+  def exists?(_concept), do: false
 
   @doc """
   Renders the concept with all constraints applied.
@@ -242,6 +261,9 @@ defmodule Localize.Inflection.Concept do
         DisplayValue.to_speakable_string(display_value)
     end
   end
+
+  def to_speakable_string(concept),
+    do: {:error, Localize.Utils.Helpers.invalid_value(concept, "a Localize.Inflection.Concept")}
 
   defp display_value(%__MODULE__{} = concept, guess?) do
     synthesizer = Synthesizer.for_locale(concept.locale)

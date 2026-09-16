@@ -83,9 +83,12 @@ defmodule Localize.Inflection.Provider do
       "https://elixir-localize.com/inflection/2333a964e53a-r2/ru.etf"
 
   """
-  def file_url(file_name) do
+  def file_url(file_name) when is_binary(file_name) do
     base_url() <> "/" <> data_version() <> "/" <> file_name
   end
+
+  def file_url(file_name),
+    do: {:error, Localize.Utils.Helpers.invalid_value(file_name, "a data file name string")}
 
   @doc """
   Downloads a data file and verifies it against the packaged
@@ -101,7 +104,7 @@ defmodule Localize.Inflection.Provider do
     `{:error, exception}`.
 
   """
-  def download_file(file_name) do
+  def download_file(file_name) when is_binary(file_name) do
     url = file_url(file_name)
 
     case Localize.Utils.Http.get(url) do
@@ -115,6 +118,9 @@ defmodule Localize.Inflection.Provider do
         {:error, download_error(other, file_name, url)}
     end
   end
+
+  def download_file(file_name),
+    do: {:error, Localize.Utils.Helpers.invalid_value(file_name, "a data file name string")}
 
   # `Localize.Utils.Http.get/1` reports transport failures as bare
   # terms (e.g. an HTTP status integer like `404`). Localize's error

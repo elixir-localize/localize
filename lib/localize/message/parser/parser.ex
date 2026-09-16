@@ -26,7 +26,7 @@ defmodule Localize.Message.Parser do
       {:ok, [{:complex, [], {:quoted_pattern, [{:text, "Hello, world!"}]}}]}
 
   """
-  @spec parse(String.t()) :: {:ok, list()} | {:error, Localize.ParseError.t()}
+  @spec parse(String.t()) :: {:ok, list()} | {:error, Exception.t()}
 
   def parse(input) when is_binary(input) do
     cap = max_message_bytes()
@@ -43,6 +43,9 @@ defmodule Localize.Message.Parser do
       do_parse(input)
     end
   end
+
+  def parse(input),
+    do: {:error, Localize.Utils.Helpers.invalid_value(input, "an MF2 message string")}
 
   # Maximum byte length accepted by `parse/1` and `parse!/1`. Caps the
   # parser's CPU exposure on hostile or accidentally-huge messages.
@@ -103,7 +106,7 @@ defmodule Localize.Message.Parser do
   """
   @spec parse!(String.t()) :: list() | no_return
 
-  def parse!(input) when is_binary(input) do
+  def parse!(input) do
     case parse(input) do
       {:ok, parsed} -> parsed
       {:error, error} -> raise error

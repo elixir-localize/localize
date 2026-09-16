@@ -152,6 +152,7 @@ defmodule Localize.LanguageTag do
   formatting currencies with the "accounting" style.
   """
   import Kernel, except: [to_string: 1]
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
   alias Localize.LanguageTag.{Parser, T, U}
   alias Localize.Locale
@@ -266,6 +267,8 @@ defmodule Localize.LanguageTag do
     end
   end
 
+  def parse(locale_id), do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale_id)}
+
   # Maximum byte length accepted by `parse/1` and `new/1`. Even the
   # most extravagant well-formed BCP-47 tag fits in well under this
   # bound; the cap prevents unbounded grammar work on hostile input.
@@ -308,7 +311,7 @@ defmodule Localize.LanguageTag do
 
   """
   @spec parse!(String.t()) :: t() | none()
-  def parse!(locale_string) when is_binary(locale_string) do
+  def parse!(locale_string) do
     case parse(locale_string) do
       {:ok, tag} -> tag
       {:error, exception} -> raise exception
@@ -448,6 +451,8 @@ defmodule Localize.LanguageTag do
     end
   end
 
+  def new(locale_id), do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale_id)}
+
   defp resolve_cldr_locale(%__MODULE__{canonical_locale_id: id} = tag) when is_binary(id) do
     case Map.get(locale_id_index(), id) do
       nil -> match_cldr_locale(tag)
@@ -521,7 +526,7 @@ defmodule Localize.LanguageTag do
 
   """
   @spec new!(String.t()) :: t() | no_return()
-  def new!(locale_id) when is_binary(locale_id) do
+  def new!(locale_id) do
     case new(locale_id) do
       {:ok, tag} -> tag
       {:error, exception} -> raise exception
@@ -570,7 +575,7 @@ defmodule Localize.LanguageTag do
       "en-US"
 
   """
-  @spec to_string(t()) :: String.t()
+  @spec to_string(t()) :: String.t() | {:error, Exception.t()}
   def to_string(%__MODULE__{canonical_locale_id: name}) when is_binary(name) do
     name
   end
@@ -581,6 +586,9 @@ defmodule Localize.LanguageTag do
     |> sanitize_fields()
     |> build_canonical_name()
   end
+
+  def to_string(language_tag),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: language_tag)}
 
   @doc false
   # Checks the shape of a struct's fields, so that a struct built by hand is
@@ -744,6 +752,9 @@ defmodule Localize.LanguageTag do
     end
   end
 
+  def canonicalize(language_tag),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: language_tag)}
+
   @doc """
   Canonicalize a parsed language tag, raising on error.
 
@@ -770,7 +781,7 @@ defmodule Localize.LanguageTag do
 
   """
   @spec canonicalize!(t()) :: t() | no_return()
-  def canonicalize!(%__MODULE__{} = language_tag) do
+  def canonicalize!(language_tag) do
     case canonicalize(language_tag) do
       {:ok, tag} -> tag
       {:error, exception} -> raise exception
@@ -844,7 +855,8 @@ defmodule Localize.LanguageTag do
 
   """
   @spec best_match(t() | String.t() | atom(), [t() | String.t() | atom()], non_neg_integer()) ::
-          {:ok, t() | String.t() | atom(), non_neg_integer()} | {:error, String.t()}
+          {:ok, t() | String.t() | atom(), non_neg_integer()}
+          | {:error, String.t() | Exception.t()}
   def best_match(desired, supported, distance \\ @default_distance)
 
   def best_match(%__MODULE__{} = desired, supported, distance) when is_list(supported) do
@@ -871,6 +883,12 @@ defmodule Localize.LanguageTag do
       end
     end
   end
+
+  def best_match(desired, supported, _distance) when is_list(supported),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: desired)}
+
+  def best_match(_desired, supported, _distance),
+    do: {:error, Localize.Utils.Helpers.invalid_value(supported, "a list of locales")}
 
   # Build the list of {locale, tag, score, index, is_paradigm,
   # is_territory_language} tuples for every supported locale within the
@@ -1030,6 +1048,9 @@ defmodule Localize.LanguageTag do
     resolve_for_matching(Atom.to_string(locale), role)
   end
 
+  defp resolve_for_matching(locale, _role),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
+
   @dialyzer {:nowarn_function, ensure_maximized: 1}
   defp ensure_maximized(%__MODULE__{script: nil} = tag) do
     case add_likely_subtags(tag) do
@@ -1120,6 +1141,9 @@ defmodule Localize.LanguageTag do
     end
   end
 
+  def add_likely_subtags(language_tag),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: language_tag)}
+
   # CLDR likely-subtags maximization: per-subtag presence checks plus
   # matched/unmatched and und/non-und fallback outcomes.
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
@@ -1195,7 +1219,7 @@ defmodule Localize.LanguageTag do
   """
   @spec add_likely_subtags!(t()) :: t() | no_return()
   @dialyzer {:nowarn_function, add_likely_subtags!: 1}
-  def add_likely_subtags!(%__MODULE__{} = language_tag) do
+  def add_likely_subtags!(language_tag) do
     case add_likely_subtags(language_tag) do
       {:ok, tag} -> tag
       {:error, exception} -> raise exception
@@ -1254,12 +1278,19 @@ defmodule Localize.LanguageTag do
   @spec remove_likely_subtags(t(), Keyword.t()) :: {:ok, t()} | {:error, Exception.t()}
   def remove_likely_subtags(language_tag, options \\ [])
 
-  def remove_likely_subtags(%__MODULE__{} = language_tag, options) do
+  def remove_likely_subtags(%__MODULE__{} = language_tag, options)
+      when is_keyword_list(options) do
     with {:ok, favor} <- validate_favor(Keyword.get(options, :favor, :script)),
          {:ok, maximized} <- add_likely_subtags(language_tag) do
       {:ok, %{maximized | canonical_locale_id: minimized_name(maximized, favor)}}
     end
   end
+
+  def remove_likely_subtags(_language_tag, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def remove_likely_subtags(language_tag, _options),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: language_tag)}
 
   # The favor variant decides which subtag survives when either the
   # script or the territory alone round-trips through maximization:
@@ -1344,7 +1375,7 @@ defmodule Localize.LanguageTag do
   """
   @spec remove_likely_subtags!(t(), Keyword.t()) :: t() | no_return()
   @dialyzer {:nowarn_function, remove_likely_subtags!: 2}
-  def remove_likely_subtags!(%__MODULE__{} = language_tag, options \\ []) do
+  def remove_likely_subtags!(language_tag, options \\ []) do
     case remove_likely_subtags(language_tag, options) do
       {:ok, tag} -> tag
       {:error, exception} -> raise exception

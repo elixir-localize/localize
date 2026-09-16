@@ -14,6 +14,8 @@ defmodule Localize.Number.Rbnf do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.Number.Rbnf.Processor
   alias Localize.Utils.Helpers
 
@@ -40,7 +42,8 @@ defmodule Localize.Number.Rbnf do
 
   * `{:ok, formatted_string}` on success.
 
-  * `{:error, exception}` if the rules are not available.
+  * `{:error, exception}` if the number, rule name or options are
+    not valid, or the rules are not available.
 
   ### Examples
 
@@ -56,7 +59,11 @@ defmodule Localize.Number.Rbnf do
   """
   @spec to_string(number() | Decimal.t(), atom() | String.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def to_string(number, rule_name, options \\ []) do
+  def to_string(number, rule_name, options \\ [])
+
+  def to_string(number, rule_name, options)
+      when (is_number(number) or is_struct(number, Decimal)) and
+             (is_atom(rule_name) or is_binary(rule_name)) and is_keyword_list(options) do
     requested_locale = Keyword.get(options, :locale, Localize.get_locale())
 
     case Localize.validate_locale(requested_locale) do
@@ -67,6 +74,15 @@ defmodule Localize.Number.Rbnf do
         error
     end
   end
+
+  def to_string(_number, _rule_name, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def to_string(number, rule_name, _options) when is_number(number) or is_struct(number, Decimal),
+    do: {:error, Localize.Utils.Helpers.invalid_value(rule_name, "a rule name atom or string")}
+
+  def to_string(number, _rule_name, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(number, "a number or a Decimal")}
 
   # Coerce Decimal inputs to a native numeric type so the
   # `Localize.Number.Rbnf.Processor` (whose dispatch is built on

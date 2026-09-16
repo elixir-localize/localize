@@ -12,6 +12,8 @@ defmodule Localize.Currency do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.SupplementalData
   alias Localize.Utils.Helpers
 
@@ -115,6 +117,9 @@ defmodule Localize.Currency do
       {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
     end
   end
+
+  def validate_currency(currency_code),
+    do: {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
 
   # ── Known currencies ─────────────────────────────────────────
 
@@ -237,6 +242,9 @@ defmodule Localize.Currency do
     end
   end
 
+  def territory_currencies(territory),
+    do: {:error, Localize.UnknownTerritoryError.exception(territory: territory)}
+
   @doc """
   Returns the current currency for a given territory.
 
@@ -287,6 +295,8 @@ defmodule Localize.Currency do
         nil
     end
   end
+
+  def current_currency_for_territory(_territory), do: nil
 
   @doc """
   Returns a map of territory codes to their current currency.
@@ -365,6 +375,9 @@ defmodule Localize.Currency do
     current_currency_from_locale(locale)
   end
 
+  def currency_from_locale(locale),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
+
   @doc """
   Returns the effective currency format for a given locale.
 
@@ -407,6 +420,9 @@ defmodule Localize.Currency do
   def currency_format_from_locale(%Localize.LanguageTag{}) do
     {:ok, :currency}
   end
+
+  def currency_format_from_locale(locale),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
 
   @doc """
   Returns the current currency for a locale's territory.
@@ -452,6 +468,9 @@ defmodule Localize.Currency do
       {:ok, current_currency_for_territory(territory)}
     end
   end
+
+  def current_currency_from_locale(locale),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
 
   @doc """
   Returns the full currency history for a locale's territory.
@@ -502,6 +521,9 @@ defmodule Localize.Currency do
       territory_currencies(territory)
     end
   end
+
+  def currency_history_for_locale(locale),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
 
   # ── Locale-specific currency functions ────────────────────────
 
@@ -560,7 +582,9 @@ defmodule Localize.Currency do
   """
   @spec currency_for_code(atom() | String.t(), Keyword.t()) ::
           {:ok, t()} | {:error, Exception.t()}
-  def currency_for_code(currency_code, options \\ []) do
+  def currency_for_code(currency_code, options \\ [])
+
+  def currency_for_code(currency_code, options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     fallback? = Keyword.get(options, :fallback, false)
 
@@ -568,6 +592,9 @@ defmodule Localize.Currency do
       resolve_currency_for_code(code, locale, fallback?)
     end
   end
+
+  def currency_for_code(_currency_code, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   defp resolve_currency_for_code(code, locale, fallback?) do
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
@@ -598,21 +625,18 @@ defmodule Localize.Currency do
   # functions. Only a keyword list is accepted; the pre-1.0
   # positional :only filter (an atom, or a plain list of statuses
   # and currency codes — which a bare is_list/1 guard cannot
-  # discriminate from a keyword list) raises so it cannot be
+  # discriminate from a keyword list) is an error so it cannot be
   # silently misread as empty options.
-  defp filter_options(_fun, [{key, _} | _] = options) when is_atom(key) do
-    {Keyword.get(options, :only, :all), Keyword.get(options, :except)}
+  defp filter_options([{key, _} | _] = options) when is_atom(key) do
+    {:ok, Keyword.get(options, :only, :all), Keyword.get(options, :except)}
   end
 
-  defp filter_options(_fun, []) do
-    {:all, nil}
+  defp filter_options([]) do
+    {:ok, :all, nil}
   end
 
-  defp filter_options(fun, other) do
-    raise ArgumentError,
-          "Localize.Currency.#{fun} takes a keyword list of options. " <>
-            "The positional :only/:except filter arguments were removed in Localize 1.0 — " <>
-            "use the :only and :except options instead. Got: #{inspect(other)}"
+  defp filter_options(options) do
+    {:error, Localize.Utils.Helpers.invalid_options(options)}
   end
 
   @doc """
@@ -664,14 +688,16 @@ defmodule Localize.Currency do
         ) ::
           {:ok, map()} | {:error, Exception.t()}
   def currencies_for_locale(locale, options \\ []) do
-    {only, except} = filter_options("currencies_for_locale/2", options)
-    do_currencies_for_locale(locale, only, except)
+    with {:ok, only, except} <- filter_options(options) do
+      do_currencies_for_locale(locale, only, except)
+    end
   end
 
   defp do_currencies_for_locale(locale, only, except) do
     with {:ok, locale_id} <- cldr_locale_id_from(locale),
-         {:ok, currencies} <- Localize.Locale.get(locale_id, [:currencies]) do
-      {:ok, currency_filter(currencies, only, except)}
+         {:ok, currencies} <- Localize.Locale.get(locale_id, [:currencies]),
+         %{} = filtered <- currency_filter(currencies, only, except) do
+      {:ok, filtered}
     end
   end
 
@@ -724,8 +750,9 @@ defmodule Localize.Currency do
         ) ::
           {:ok, map()} | {:error, Exception.t()}
   def currency_strings(locale, options \\ []) do
-    {only, except} = filter_options("currency_strings/2", options)
-    do_currency_strings(locale, only, except)
+    with {:ok, only, except} <- filter_options(options) do
+      do_currency_strings(locale, only, except)
+    end
   end
 
   defp do_currency_strings(locale, only, except) do
@@ -820,11 +847,11 @@ defmodule Localize.Currency do
           {:ok, String.t()} | {:error, Exception.t()}
   def display_name(currency, options \\ [])
 
-  def display_name(%__MODULE__{name: nil, code: code}, _options) do
+  def display_name(%__MODULE__{name: nil, code: code}, options) when is_keyword_list(options) do
     {:error, Localize.CurrencyNoDisplayNameError.exception(currency: code)}
   end
 
-  def display_name(%__MODULE__{name: name}, _options) do
+  def display_name(%__MODULE__{name: name}, options) when is_keyword_list(options) do
     {:ok, name}
   end
 
@@ -936,7 +963,10 @@ defmodule Localize.Currency do
   """
   @spec pluralize(number(), currency_code(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def pluralize(number, currency, options \\ []) do
+  def pluralize(number, currency, options \\ [])
+
+  def pluralize(number, currency, options)
+      when (is_number(number) or is_struct(number, Decimal)) and is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, currency_code} <- validate_currency(currency),
@@ -951,6 +981,12 @@ defmodule Localize.Currency do
       {:ok, Map.get(counts, plural_category, counts[:other])}
     end
   end
+
+  def pluralize(_number, _currency, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def pluralize(number, _currency, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(number, "a number or a Decimal")}
 
   # ── Bang versions ──────────────────────────────────────────
 
@@ -1036,9 +1072,7 @@ defmodule Localize.Currency do
           Keyword.t() | filter()
         ) :: map()
   def currencies_for_locale!(locale, options \\ []) do
-    {only, except} = filter_options("currencies_for_locale!/2", options)
-
-    case do_currencies_for_locale(locale, only, except) do
+    case currencies_for_locale(locale, options) do
       {:ok, currencies} -> currencies
       {:error, exception} -> raise exception
     end
@@ -1084,9 +1118,7 @@ defmodule Localize.Currency do
           Keyword.t() | filter()
         ) :: map()
   def currency_strings!(locale, options \\ []) do
-    {only, except} = filter_options("currency_strings!/2", options)
-
-    case do_currency_strings(locale, only, except) do
+    case currency_strings(locale, options) do
       {:ok, strings} -> strings
       {:error, exception} -> raise exception
     end
@@ -1221,6 +1253,9 @@ defmodule Localize.Currency do
 
   * A filtered map of currencies.
 
+  * `{:error, exception}` if `currencies` is not a map or a filter is
+    not a currency status, a currency code or a list of them.
+
   ### Examples
 
       iex> {:ok, currencies} = Localize.Currency.currencies_for_locale(:en)
@@ -1234,21 +1269,36 @@ defmodule Localize.Currency do
       {true, false}
 
   """
-  @spec currency_filter(map(), filter(), filter()) :: map()
+  @spec currency_filter(map(), filter(), filter()) :: map() | {:error, Exception.t()}
   def currency_filter(currencies, only \\ :all, except \\ nil)
 
-  def currency_filter(currencies, :all, nil) do
+  def currency_filter(currencies, :all, nil) when is_map(currencies) do
     currencies
   end
 
   def currency_filter(currencies, only, except) when is_map(currencies) do
-    included = expand_filter(currencies, :only, List.wrap(only))
-    excluded = expand_filter(currencies, :except, List.wrap(except))
+    with :ok <- validate_filter(only),
+         :ok <- validate_filter(except) do
+      included = expand_filter(currencies, :only, List.wrap(only))
+      excluded = expand_filter(currencies, :except, List.wrap(except))
 
-    included
-    |> Kernel.--(excluded)
-    |> Map.new()
+      included
+      |> Kernel.--(excluded)
+      |> Map.new()
+    end
   end
+
+  def currency_filter(currencies, _only, _except),
+    do: {:error, Helpers.invalid_value(currencies, "a map of currencies")}
+
+  defp validate_filter([filter | rest]) when is_atom(filter) or is_binary(filter),
+    do: validate_filter(rest)
+
+  defp validate_filter(filter) when is_atom(filter) or is_binary(filter) or filter == [],
+    do: :ok
+
+  defp validate_filter(filter),
+    do: {:error, Helpers.invalid_value(filter, "a currency status or code, or a list of them")}
 
   defp expand_filter(currencies, :only, [:all | _]) do
     Enum.to_list(currencies)
@@ -1323,6 +1373,8 @@ defmodule Localize.Currency do
       (is_integer(currency.to) && currency.to < Date.utc_today().year)
   end
 
+  def historic?(_currency), do: false
+
   @doc """
   Returns whether a currency is legal tender.
 
@@ -1345,6 +1397,8 @@ defmodule Localize.Currency do
   def tender?(%__MODULE__{} = currency) do
     !!currency.tender
   end
+
+  def tender?(_currency), do: false
 
   @doc """
   Returns whether a currency is currently in use.
@@ -1373,6 +1427,8 @@ defmodule Localize.Currency do
     !is_nil(currency.iso_digits) && is_nil(currency.to)
   end
 
+  def current?(_currency), do: false
+
   @doc """
   Returns whether a currency name contains annotations.
 
@@ -1399,9 +1455,11 @@ defmodule Localize.Currency do
 
   """
   @spec annotated?(t()) :: boolean()
-  def annotated?(%__MODULE__{} = currency) do
-    String.contains?(currency.name, "(")
+  def annotated?(%__MODULE__{name: name}) when is_binary(name) do
+    String.contains?(name, "(")
   end
+
+  def annotated?(_currency), do: false
 
   @doc """
   Returns whether a currency name does not contain annotations.
@@ -1429,6 +1487,8 @@ defmodule Localize.Currency do
   def unannotated?(%__MODULE__{} = currency) do
     !annotated?(currency)
   end
+
+  def unannotated?(_currency), do: false
 
   # ── Private helpers ──────────────────────────────────────────
 

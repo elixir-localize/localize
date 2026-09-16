@@ -18,13 +18,32 @@ defmodule Localize.Inflection.Feature do
   def to_internal(value) when is_atom(value), do: Atom.to_string(value)
   def to_internal(value) when is_binary(value), do: value
 
+  # A value of another type names no feature or grammeme, so its inspected
+  # form fails validation as an unknown one would.
+  def to_internal(value), do: inspect(value)
+
   @doc """
   Normalizes a constraints map or keyword list to internal string
-  keys and values.
+  keys and values. Entries that are not pairs are ignored.
 
   """
-  def normalize_constraints(constraints) do
-    Map.new(constraints, fn {name, value} -> {to_internal(name), to_internal(value)} end)
+  def normalize_constraints(constraints) when is_map(constraints) or is_list(constraints) do
+    for {name, value} <- constraints, into: %{}, do: {to_internal(name), to_internal(value)}
+  end
+
+  def normalize_constraints(_constraints), do: %{}
+
+  @doc """
+  Returns `{:ok, constraints}` normalized as `normalize_constraints/1`
+  does, or `{:error, exception}` when they are not a map or list.
+
+  """
+  def constraints(constraints) when is_map(constraints) or is_list(constraints),
+    do: {:ok, normalize_constraints(constraints)}
+
+  def constraints(constraints) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(constraints, "a keyword list or map of constraints")}
   end
 
   @doc """

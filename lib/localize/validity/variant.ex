@@ -24,7 +24,7 @@ defmodule Localize.Validity.Variant do
     {:ok, "posix", :obsolete}
   end
 
-  def validate(code) do
+  def validate(code) when is_binary(code) or is_nil(code) do
     code
     |> normalize()
     |> valid()
@@ -33,6 +33,8 @@ defmodule Localize.Validity.Variant do
       other -> other
     end
   end
+
+  def validate(code), do: {:error, code}
 
   def normalize(list) when is_list(list) do
     list

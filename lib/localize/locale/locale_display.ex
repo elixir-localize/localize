@@ -10,6 +10,8 @@ defmodule Localize.Locale.LocaleDisplay do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   # The closed vocabulary of display-name preferences. Every value is a
   # CLDR alternate we actually carry: `:standard` is the unqualified entry,
   # the rest name an `-alt-` variant. Each module declares the subset its
@@ -77,7 +79,9 @@ defmodule Localize.Locale.LocaleDisplay do
   """
   @spec display_name(Localize.LanguageTag.t() | String.t() | atom(), display_options()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def display_name(locale, options \\ []) do
+  def display_name(locale, options \\ [])
+
+  def display_name(locale, options) when is_keyword_list(options) do
     # Validate/normalize every input through the one canonical path
     # (`Localize.validate_locale/1`), then drive the display off the
     # canonical-syntax subtags carried in `canonical_locale_id`. This
@@ -90,6 +94,9 @@ defmodule Localize.Locale.LocaleDisplay do
       |> do_display_name(options)
     end
   end
+
+  def display_name(_locale, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   # Reduce the maximized subtag fields to the canonical-syntax form held
   # in `canonical_locale_id` (the caller's explicit request), keeping the
@@ -253,7 +260,7 @@ defmodule Localize.Locale.LocaleDisplay do
   def type_value_name(true, options), do: type_value_name("yes", options)
   def type_value_name(false, options), do: type_value_name("no", options)
 
-  def type_value_name(value, options) when value in ["yes", "no"] do
+  def type_value_name(value, options) when value in ["yes", "no"] and is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
@@ -273,6 +280,9 @@ defmodule Localize.Locale.LocaleDisplay do
          )}
     end
   end
+
+  def type_value_name(_value, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   def type_value_name(value, _options) do
     {:error,
@@ -319,7 +329,9 @@ defmodule Localize.Locale.LocaleDisplay do
   """
   @spec key_name(atom() | String.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def key_name(key, options \\ []) do
+  def key_name(key, options \\ [])
+
+  def key_name(key, options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
@@ -339,6 +351,8 @@ defmodule Localize.Locale.LocaleDisplay do
          )}
     end
   end
+
+  def key_name(_key, options), do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   @doc """
   Returns the localized name of one of a BCP 47 key's type values.
@@ -382,7 +396,9 @@ defmodule Localize.Locale.LocaleDisplay do
   """
   @spec type_name(atom() | String.t(), atom() | String.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def type_name(key, value, options \\ []) do
+  def type_name(key, value, options \\ [])
+
+  def type_name(key, value, options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, prefer} <- preference_from_options(options, [:standard, :menu]),
@@ -405,6 +421,9 @@ defmodule Localize.Locale.LocaleDisplay do
          )}
     end
   end
+
+  def type_name(_key, _value, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   # The `scope="core"` short name for a single type value does not survive
   # cldr-json, which collapses every core name for a key onto one `core`

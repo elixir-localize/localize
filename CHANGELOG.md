@@ -108,7 +108,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Interpolating a parsed `Localize.LanguageTag` into a string gives its BCP 47 form, where it raised because the tag had no canonical id yet.
 
-* `Localize.Number` and `Localize.Number.Parser` return `{:error, %Localize.InvalidValueError{}}` for a value or options of the wrong type. `to_parts/2`, `to_range_parts/3`, `to_ratio_string/2`, `parse/2`, `scan/2` and the `resolve_*` functions raised.
+* Public functions across the library return `{:error, exception}`, usually `Localize.InvalidValueError`, for options that are not a keyword list and for arguments or option values of the wrong type, where they raised `FunctionClauseError`, `ArgumentError`, `KeyError` or `Protocol.UndefinedError`; predicates answer `false`. `Localize.Collation` option values outside their documented sets are now an error, and `Localize.Number.to_ratio_string/2` formats a fraction smaller than `:epsilon` rather than raising `Enum.EmptyError`.
 
 * `Localize.DateTime.to_string/2` and `to_parts/2` keep both halves of a map holding some date and some time fields, joined through the locale's wrapper under `:style`, where `%{year: 2026, month: 6, hour: 14}` rendered "6/2026". A partial value given a skeleton or pattern is formatted with it, where "Jun 15, 2026,  , " came back.
 

@@ -60,21 +60,34 @@ defmodule Localize.Inflection.Data do
   raising if the locale is not loaded and cannot be loaded.
 
   """
-  def metadata!(locale) when is_atom(locale) do
+  def metadata!(locale) do
+    case metadata(locale) do
+      {:ok, artifact} ->
+        artifact
+
+      {:error, reason} ->
+        raise ArgumentError, "cannot load locale #{inspect(locale)}: #{inspect(reason)}"
+    end
+  end
+
+  @doc """
+  Returns `{:ok, artifact}` for `locale`, loading it when needed, or
+  `{:error, reason}` when it is not loaded and cannot be.
+
+  """
+  def metadata(locale) when is_atom(locale) do
     case :persistent_term.get({__MODULE__, locale}, nil) do
       nil ->
-        case ensure_loaded(locale) do
-          :ok ->
-            :persistent_term.get({__MODULE__, locale})
-
-          {:error, reason} ->
-            raise ArgumentError, "cannot load locale #{locale}: #{inspect(reason)}"
+        with :ok <- ensure_loaded(locale) do
+          {:ok, :persistent_term.get({__MODULE__, locale})}
         end
 
       artifact ->
-        artifact
+        {:ok, artifact}
     end
   end
+
+  def metadata(locale), do: {:error, {:invalid_locale, locale}}
 
   @doc """
   Looks up a surface form in the lexicon for `locale`, returning
@@ -87,6 +100,8 @@ defmodule Localize.Inflection.Data do
       %{lexicon: lexicon} -> lookup_form(lexicon, word)
     end
   end
+
+  def lookup(_locale, _word), do: nil
 
   # Upstream falls back to the lowercased form for words not found
   # with their original case.

@@ -19,6 +19,8 @@ defmodule Localize.Inflection.PronounConcept do
   # against (see guides/inflection.md).
   # credo:disable-for-this-file Credo.Check.Refactor.Nesting
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.Inflection.{
     Concept,
     Data,
@@ -102,29 +104,51 @@ defmodule Localize.Inflection.PronounConcept do
       "he"
 
   """
-  def new(locale, options \\ []) do
-    with {:ok, model_locale} <- resolve_model_locale(locale),
-         {:ok, table_locale, table_entries} <- entries_for(model_locale, locale) do
-      custom =
-        for {word, constraints} <- Keyword.get(options, :display_data, []) do
-          {word, Feature.normalize_constraints(constraints)}
-        end
+  def new(locale, options \\ [])
 
+  def new(locale, options) when is_keyword_list(options) do
+    with {:ok, custom} <- display_data(Keyword.get(options, :display_data, [])),
+         {:ok, initial_pronoun} <- initial_pronoun(Keyword.get(options, :initial_pronoun)),
+         {:ok, default_constraints} <-
+           Feature.constraints(Keyword.get(options, :default_constraints, %{})),
+         {:ok, model_locale} <- resolve_model_locale(locale),
+         {:ok, table_locale, table_entries} <- entries_for(model_locale, locale) do
       concept = %__MODULE__{
         locale: model_locale,
         table_locale: table_locale,
         entries: custom ++ table_entries,
         custom_count: length(custom),
-        default_constraints:
-          options |> Keyword.get(:default_constraints, %{}) |> Feature.normalize_constraints()
+        default_constraints: default_constraints
       }
 
-      case Keyword.get(options, :initial_pronoun) do
+      case initial_pronoun do
         nil -> {:ok, concept}
         pronoun -> seed_from_pronoun(concept, pronoun)
       end
     end
   end
+
+  def new(_locale, options), do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  # Display data is a list of `{word, constraints}` entries; an entry of
+  # another shape is ignored.
+  defp display_data(entries) when is_list(entries) do
+    {:ok,
+     for(
+       {word, constraints} when is_binary(word) <- entries,
+       do: {word, Feature.normalize_constraints(constraints)}
+     )}
+  end
+
+  defp display_data(entries) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(entries, "a list of {word, constraints} entries")}
+  end
+
+  defp initial_pronoun(pronoun) when is_nil(pronoun) or is_binary(pronoun), do: {:ok, pronoun}
+
+  defp initial_pronoun(pronoun),
+    do: {:error, Localize.Utils.Helpers.invalid_value(pronoun, "a pronoun string")}
 
   # The feature model comes from the closest ancestor locale with
   # generated data (zh-TW uses the zh features).
@@ -338,6 +362,8 @@ defmodule Localize.Inflection.PronounConcept do
     end
   end
 
+  def put_constraint(concept, _name, _value), do: {:error, invalid_concept(concept)}
+
   @doc """
   Removes a constraint from the concept.
 
@@ -345,6 +371,11 @@ defmodule Localize.Inflection.PronounConcept do
   def clear_constraint(%__MODULE__{} = concept, name) do
     %{concept | constraints: Map.delete(concept.constraints, Feature.to_internal(name))}
   end
+
+  def clear_constraint(concept, _name), do: {:error, invalid_concept(concept)}
+
+  defp invalid_concept(value),
+    do: Localize.Utils.Helpers.invalid_value(value, "a Localize.Inflection.PronounConcept")
 
   @doc """
   Removes all constraints from the concept.
@@ -360,6 +391,8 @@ defmodule Localize.Inflection.PronounConcept do
   def reset(%__MODULE__{} = concept) do
     %{concept | constraints: %{}}
   end
+
+  def reset(concept), do: {:error, invalid_concept(concept)}
 
   @doc """
   Returns the value of a feature for the currently selected
@@ -396,6 +429,8 @@ defmodule Localize.Inflection.PronounConcept do
     end
   end
 
+  def feature_value(_concept, _name), do: nil
+
   @doc """
   Returns true when a pronoun matches the constraints without
   falling back to the default entry.
@@ -405,6 +440,8 @@ defmodule Localize.Inflection.PronounConcept do
     current_value(concept, nil, false, true) != nil
   end
 
+  def exists?(_concept), do: false
+
   @doc """
   Returns true when a custom display-data entry matches the
   constraints.
@@ -413,6 +450,8 @@ defmodule Localize.Inflection.PronounConcept do
   def custom_match?(%__MODULE__{} = concept) do
     current_value(concept, nil, false, false) != nil
   end
+
+  def custom_match?(_concept), do: false
 
   @doc """
   Renders the selected pronoun.
@@ -449,6 +488,8 @@ defmodule Localize.Inflection.PronounConcept do
         end
     end
   end
+
+  def to_speakable_string(_concept, _referenced_concept), do: nil
 
   # ── Matching ─────────────────────────────────────────────────
 

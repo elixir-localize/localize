@@ -14,6 +14,7 @@ defmodule Localize.Date do
   """
 
   import Kernel, except: [to_string: 1]
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
   @standard_formats [:short, :medium, :long, :full]
   @default_format :medium
@@ -95,7 +96,8 @@ defmodule Localize.Date do
 
   # Resolves the format pattern, locale, and formatter options for a
   # date — the shared front half of `to_string/2` and `to_parts/2`.
-  defp formatting_plan(%{year: _, month: _, day: _} = date, options) do
+  defp formatting_plan(%{year: _, month: _, day: _} = date, options)
+       when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
 
@@ -114,7 +116,7 @@ defmodule Localize.Date do
   end
 
   # Partial date
-  defp formatting_plan(date, options) when has_date_field(date) do
+  defp formatting_plan(date, options) when has_date_field(date) and is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format)
 
@@ -124,6 +126,9 @@ defmodule Localize.Date do
       partial_formatting_plan(resolved_format, date, format, locale_id, options)
     end
   end
+
+  defp formatting_plan(_date, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   defp formatting_plan(_date, _options) do
     {:error, Localize.DateTimeInvalidInputError.exception(type: :date)}

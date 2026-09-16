@@ -49,6 +49,8 @@ defmodule Localize.Calendar do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.LanguageTag
 
   @default_calendar_type :gregorian
@@ -236,7 +238,7 @@ defmodule Localize.Calendar do
           {:ok, String.t()} | {:error, Exception.t()}
   def display_name(type, value, options \\ [])
 
-  def display_name(:calendar, calendar_type, options) do
+  def display_name(:calendar, calendar_type, options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
@@ -250,7 +252,8 @@ defmodule Localize.Calendar do
     end
   end
 
-  def display_name(:date_time_field, field, options) when field in @date_time_fields do
+  def display_name(:date_time_field, field, options)
+      when field in @date_time_fields and is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     style = map_field_style(Keyword.get(options, :style, :wide))
 
@@ -264,23 +267,24 @@ defmodule Localize.Calendar do
     end
   end
 
-  def display_name(:era, era_index, options) do
+  def display_name(:era, era_index, options) when is_keyword_list(options) do
     lookup_calendar_field(:eras, era_index, options, "a valid era index", style: :wide)
   end
 
-  def display_name(:quarter, quarter, options) when quarter in 1..4 do
+  def display_name(:quarter, quarter, options)
+      when quarter in 1..4 and is_keyword_list(options) do
     lookup_calendar_field(:quarters, quarter, options, "1..4")
   end
 
-  def display_name(:month, month, options) when month in 1..13 do
+  def display_name(:month, month, options) when month in 1..13 and is_keyword_list(options) do
     lookup_calendar_field(:months, month, options, "1..13")
   end
 
-  def display_name(:day_of_week, day, options) when day in 1..7 do
+  def display_name(:day_of_week, day, options) when day in 1..7 and is_keyword_list(options) do
     lookup_calendar_field(:days, day, options, "1..7 (ISO day)")
   end
 
-  def display_name(:day_period, period, options) do
+  def display_name(:day_period, period, options) when is_keyword_list(options) do
     lookup_calendar_field(
       :day_periods,
       period,
@@ -290,6 +294,9 @@ defmodule Localize.Calendar do
       unwrap: true
     )
   end
+
+  def display_name(_type, _value, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   def display_name(type, value, _options) when type in @display_name_types do
     {:error, invalid_display_value_error(value, "a valid value for #{inspect(type)}")}
@@ -766,26 +773,26 @@ defmodule Localize.Calendar do
           {:ok, String.t() | [{1..7, String.t()}]} | {:error, Exception.t()}
   def localize(datetime, part, options \\ [])
 
-  def localize(datetime, :era, options) do
+  def localize(datetime, :era, options) when is_keyword_list(options) do
     {_, era} = day_of_era(datetime)
     era_key = if options[:era] == :variant, do: -era - 1, else: era
 
     display_name(:era, era_key, localize_options(datetime, options))
   end
 
-  def localize(datetime, :quarter, options) do
+  def localize(datetime, :quarter, options) when is_keyword_list(options) do
     display_name(:quarter, quarter_of_year(datetime), localize_options(datetime, options))
   end
 
-  def localize(datetime, :month, options) do
+  def localize(datetime, :month, options) when is_keyword_list(options) do
     display_name(:month, month_of_year(datetime), localize_options(datetime, options))
   end
 
-  def localize(datetime, :day_of_week, options) do
+  def localize(datetime, :day_of_week, options) when is_keyword_list(options) do
     display_name(:day_of_week, iso_day_of_week(datetime), localize_options(datetime, options))
   end
 
-  def localize(datetime, :days_of_week, options) do
+  def localize(datetime, :days_of_week, options) when is_keyword_list(options) do
     options = localize_options(datetime, options)
 
     Enum.reduce_while(@days, {:ok, []}, fn day, {:ok, acc} ->
@@ -800,11 +807,15 @@ defmodule Localize.Calendar do
     end
   end
 
-  def localize(%{hour: hour} = datetime, :day_period, options) do
+  def localize(%{hour: hour} = datetime, :day_period, options)
+      when is_integer(hour) and is_keyword_list(options) do
     am_pm = if hour < 12 or rem(hour, 24) < 12, do: :am, else: :pm
 
     display_name(:day_period, am_pm, localize_options(datetime, options))
   end
+
+  def localize(_datetime, _part, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   def localize(_datetime, :day_period, _options) do
     {:error,
@@ -910,7 +921,9 @@ defmodule Localize.Calendar do
 
   """
   @spec strftime_options!(Keyword.t()) :: Keyword.t()
-  def strftime_options!(options \\ []) do
+  def strftime_options!(options \\ [])
+
+  def strftime_options!(options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     calendar_type = Keyword.get(options, :calendar_type, @default_calendar_type)
 
@@ -929,6 +942,8 @@ defmodule Localize.Calendar do
       {:error, exception} -> raise exception
     end
   end
+
+  def strftime_options!(options), do: raise(Localize.Utils.Helpers.invalid_options(options))
 
   defp am_pm_callback(periods_data) do
     fn am_pm ->
@@ -962,7 +977,7 @@ defmodule Localize.Calendar do
 
   * An integer from 1 to 7.
 
-  * `{:error, exception}` if the territory is not known.
+  * `{:error, exception}` if `territory` is not an atom.
 
   ### Examples
 
@@ -986,6 +1001,8 @@ defmodule Localize.Calendar do
     end
   end
 
+  def first_day_for_territory(territory), do: invalid_territory(territory)
+
   @doc """
   Returns the minimum days in the first week of the year
   for a territory.
@@ -998,6 +1015,8 @@ defmodule Localize.Calendar do
 
   * An integer from 1 to 7.
 
+  * `{:error, exception}` if `territory` is not an atom.
+
   ### Examples
 
       iex> Localize.Calendar.min_days_for_territory(:US)
@@ -1007,7 +1026,7 @@ defmodule Localize.Calendar do
       4
 
   """
-  @spec min_days_for_territory(atom()) :: integer()
+  @spec min_days_for_territory(atom()) :: integer() | {:error, Exception.t()}
   def min_days_for_territory(territory) when is_atom(territory) do
     week_info = Localize.SupplementalData.weeks()
 
@@ -1019,6 +1038,8 @@ defmodule Localize.Calendar do
         days
     end
   end
+
+  def min_days_for_territory(territory), do: invalid_territory(territory)
 
   @doc """
   Returns the weekend days for a territory as a list
@@ -1032,6 +1053,8 @@ defmodule Localize.Calendar do
 
   * A list of integers from 1 to 7.
 
+  * `{:error, exception}` if `territory` is not an atom.
+
   ### Examples
 
       iex> Localize.Calendar.weekend(:US)
@@ -1041,7 +1064,7 @@ defmodule Localize.Calendar do
       [5, 6]
 
   """
-  @spec weekend(atom()) :: [integer()]
+  @spec weekend(atom()) :: [integer()] | {:error, Exception.t()}
   def weekend(territory) when is_atom(territory) do
     week_info = Localize.SupplementalData.weeks()
 
@@ -1056,6 +1079,8 @@ defmodule Localize.Calendar do
     Enum.to_list(starts..ends)
   end
 
+  def weekend(territory), do: invalid_territory(territory)
+
   @doc """
   Returns the weekday numbers for a territory as a list
   of ISO day-of-week numbers.
@@ -1068,16 +1093,23 @@ defmodule Localize.Calendar do
 
   * A list of integers from 1 to 7.
 
+  * `{:error, exception}` if `territory` is not an atom.
+
   ### Examples
 
       iex> Localize.Calendar.weekdays(:US)
       [1, 2, 3, 4, 5]
 
   """
-  @spec weekdays(atom()) :: [1..7, ...]
+  @spec weekdays(atom()) :: [1..7, ...] | {:error, Exception.t()}
   def weekdays(territory) when is_atom(territory) do
     @days -- weekend(territory)
   end
+
+  def weekdays(territory), do: invalid_territory(territory)
+
+  defp invalid_territory(territory),
+    do: {:error, Localize.Utils.Helpers.invalid_value(territory, "a territory code atom")}
 
   @doc """
   Returns the first day of the week for a locale.

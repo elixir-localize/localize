@@ -57,16 +57,13 @@ defmodule Localize.Locale.Loader do
   def load_and_store(locale, options \\ []) do
     provider = Keyword.get(options, :provider, Localize.Locale.default_provider())
 
-    case Localize.Locale.cldr_locale_id_from(locale) do
-      {:ok, locale_id} ->
-        if provider.loaded?(locale_id) do
-          :ok
-        else
-          GenServer.call(__MODULE__, {:load_and_store, locale_id, provider}, :infinity)
-        end
-
-      {:error, _} = error ->
-        error
+    with :ok <- Localize.Locale.validate_provider(provider),
+         {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
+      if provider.loaded?(locale_id) do
+        :ok
+      else
+        GenServer.call(__MODULE__, {:load_and_store, locale_id, provider}, :infinity)
+      end
     end
   end
 

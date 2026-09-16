@@ -114,6 +114,7 @@ defmodule Localize.Number.Parser do
     with :ok <- validate_arguments(string, :string, options),
          locale = Keyword.get(options, :locale, Localize.get_locale()),
          {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, _number_type} <- number_type(Keyword.get(options, :number)),
          {:ok, symbols} <- Symbol.number_symbols_for(language_tag),
          {:ok, number_system} <- digits_number_system_from(language_tag, options) do
       symbol = symbols_for_number_system(symbols, number_system)
@@ -162,6 +163,18 @@ defmodule Localize.Number.Parser do
       true ->
         :ok
     end
+  end
+
+  # `:number` names the type to parse to; `nil` detects it.
+  defp number_type(type) when type in [nil, :integer, :float, :decimal], do: {:ok, type}
+
+  defp number_type(type) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: type,
+       expected: :number_type,
+       allowed_values: [:integer, :float, :decimal]
+     )}
   end
 
   @doc """
@@ -250,6 +263,7 @@ defmodule Localize.Number.Parser do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, number_type} <- number_type(Keyword.get(options, :number)),
          {:ok, symbols} <- Symbol.number_symbols_for(language_tag),
          {:ok, number_system} <- digits_number_system_from(language_tag, options) do
       symbol = symbols_for_number_system(symbols, number_system)
@@ -261,7 +275,7 @@ defmodule Localize.Number.Parser do
              |> transliterate_digits(number_system)
              |> normalize_number_string(symbol, language_tag, number_system, lenient?),
            {:ok, _value} = success <-
-             normalized |> String.trim() |> parse_number(Keyword.get(options, :number)) do
+             normalized |> String.trim() |> parse_number(number_type) do
         bound_decimal_exponent(success, string)
       else
         _error -> {:error, parse_error(string)}
@@ -508,8 +522,9 @@ defmodule Localize.Number.Parser do
       ["100", :USD]
 
   """
-  @spec resolve(list(), (String.t(), Keyword.t() -> term()), Keyword.t()) :: list()
-  def resolve(list, resolver, options) do
+  @spec resolve(list(), (String.t(), Keyword.t() -> term()), Keyword.t()) ::
+          list() | {:error, Exception.t()}
+  def resolve(list, resolver, options) when is_list(list) and is_function(resolver, 2) do
     Enum.map(list, fn
       string when is_binary(string) ->
         case resolver.(string, options) do
@@ -522,6 +537,12 @@ defmodule Localize.Number.Parser do
     end)
     |> List.flatten()
   end
+
+  def resolve(list, resolver, _options) when is_list(list),
+    do: {:error, Localize.Utils.Helpers.invalid_value(resolver, "a function of arity 2")}
+
+  def resolve(list, _resolver, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(list, "a list")}
 
   @doc """
   Finds and replaces substrings from a map at the beginning
@@ -561,6 +582,14 @@ defmodule Localize.Number.Parser do
       do_find_and_replace(string_map, string, fuzzy)
     end
   end
+
+  def find_and_replace(string_map, _string, _fuzzy) when not is_map(string_map),
+    do:
+      {:error,
+       Localize.Utils.Helpers.invalid_value(string_map, "a map of strings to replacements")}
+
+  def find_and_replace(_string_map, string, _fuzzy),
+    do: {:error, Localize.Utils.Helpers.invalid_value(string, "a string")}
 
   # ── Private helpers ──────────────────────────────────────────
 

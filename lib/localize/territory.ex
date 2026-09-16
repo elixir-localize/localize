@@ -28,6 +28,8 @@ defmodule Localize.Territory do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.LanguageTag
   alias Localize.Locale.LocaleDisplay
   alias Localize.SupplementalData
@@ -145,13 +147,17 @@ defmodule Localize.Territory do
   """
   @spec territory_names_for(Keyword.t()) ::
           {:ok, %{atom() => map()}} | {:error, Exception.t()}
-  def territory_names_for(options \\ []) do
+  def territory_names_for(options \\ [])
+
+  def territory_names_for(options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
       Localize.Locale.get(locale_id, [:territories])
     end
   end
+
+  def territory_names_for(options), do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   # ── Display names ───────────────────────────────────────────
 
@@ -197,7 +203,9 @@ defmodule Localize.Territory do
           atom() | String.t() | LanguageTag.t(),
           Keyword.t()
         ) :: {:ok, String.t()} | {:error, Exception.t()}
-  def display_name(territory, options \\ []) do
+  def display_name(territory, options \\ [])
+
+  def display_name(territory, options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     style = LocaleDisplay.preference_option(options)
 
@@ -213,6 +221,9 @@ defmodule Localize.Territory do
       end
     end
   end
+
+  def display_name(_territory, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   defp territory_name_for_style(territories, territory_atom, style_atom, style) do
     case territories do
@@ -313,7 +324,9 @@ defmodule Localize.Territory do
   """
   @spec translate_territory(String.t(), atom() | String.t() | LanguageTag.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def translate_territory(name, from_locale, options \\ []) do
+  def translate_territory(name, from_locale, options \\ [])
+
+  def translate_territory(name, from_locale, options) when is_keyword_list(options) do
     to_locale = Keyword.get(options, :to, Localize.get_locale())
     style = LocaleDisplay.preference_option(options)
 
@@ -321,6 +334,9 @@ defmodule Localize.Territory do
       display_name(territory_code, locale: to_locale, prefer: style)
     end
   end
+
+  def translate_territory(_name, _from_locale, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   @doc """
   Same as `translate_territory/3` but raises on error.
@@ -389,7 +405,7 @@ defmodule Localize.Territory do
   """
   @spec to_territory_code(String.t(), atom() | String.t() | LanguageTag.t()) ::
           {:ok, atom()} | {:error, Exception.t()}
-  def to_territory_code(name, locale) do
+  def to_territory_code(name, locale) when is_binary(name) do
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
          {:ok, territories} <- Localize.Locale.get(locale_id, [:territories]) do
       normalized = normalize_name(name)
@@ -409,6 +425,9 @@ defmodule Localize.Territory do
       end
     end
   end
+
+  def to_territory_code(name, _locale),
+    do: {:error, Localize.Utils.Helpers.invalid_value(name, "a territory name string")}
 
   @doc """
   Same as `to_territory_code/2` but raises on error.
@@ -743,6 +762,8 @@ defmodule Localize.Territory do
 
   * A map of `%{territory_atom => %{alpha3: string, ...}}`.
 
+  * `{:error, exception}` if `options` is not a keyword list.
+
   ### Examples
 
       iex> codes = Localize.Territory.territory_codes()
@@ -756,8 +777,10 @@ defmodule Localize.Territory do
       false
 
   """
-  @spec territory_codes(Keyword.t()) :: %{atom() => map()}
-  def territory_codes(options \\ []) do
+  @spec territory_codes(Keyword.t()) :: %{atom() => map()} | {:error, Exception.t()}
+  def territory_codes(options \\ [])
+
+  def territory_codes(options) when is_keyword_list(options) do
     codes = SupplementalData.territory_codes()
 
     if Keyword.get(options, :iso_3166, false) do
@@ -766,6 +789,8 @@ defmodule Localize.Territory do
       codes
     end
   end
+
+  def territory_codes(options), do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   defp iso_3166?(%{numeric: numeric}) when is_binary(numeric) do
     case Integer.parse(numeric) do
@@ -1215,7 +1240,7 @@ defmodule Localize.Territory do
       "congo - brazzaville"
 
   """
-  @spec normalize_name(String.t()) :: String.t()
+  @spec normalize_name(String.t()) :: String.t() | {:error, Exception.t()}
   def normalize_name(name) when is_binary(name) do
     name
     |> String.downcase()
@@ -1223,6 +1248,9 @@ defmodule Localize.Territory do
     |> String.replace(".", "")
     |> String.replace(~r/(\s)+/u, "\\1")
   end
+
+  def normalize_name(name),
+    do: {:error, Localize.Utils.Helpers.invalid_value(name, "a territory name string")}
 
   # ── Private helpers ─────────────────────────────────────────
 
@@ -1295,6 +1323,9 @@ defmodule Localize.Territory do
       tag_territory(tag)
     end
   end
+
+  def territory_from_locale(locale),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
 
   defp tag_territory(%Localize.LanguageTag{locale: %{rg: rg}})
        when not is_nil(rg) and is_atom(rg) do

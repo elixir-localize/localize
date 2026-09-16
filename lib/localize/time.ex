@@ -15,6 +15,7 @@ defmodule Localize.Time do
   """
 
   import Kernel, except: [to_string: 1]
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
   @standard_formats [:short, :medium, :long, :full]
   @default_format :medium
@@ -109,7 +110,8 @@ defmodule Localize.Time do
 
   # Resolves the format pattern, locale, and formatter options for a
   # time — the shared front half of `to_string/2` and `to_parts/2`.
-  defp formatting_plan(%{hour: _, minute: _, second: _} = time, options) do
+  defp formatting_plan(%{hour: _, minute: _, second: _} = time, options)
+       when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
 
@@ -129,7 +131,7 @@ defmodule Localize.Time do
   # designed for full h/m/s times. For partial times we derive a
   # CLDR skeleton from the fields that are actually present
   # (`:h`, `:hm`, `:hms`, `:ms`, etc.) and resolve that instead.
-  defp formatting_plan(time, options) when has_time_field(time) do
+  defp formatting_plan(time, options) when has_time_field(time) and is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format)
 
@@ -141,6 +143,9 @@ defmodule Localize.Time do
       {:ok, hour_cycle_pattern(pattern, format, language_tag), locale_id, formatter_options}
     end
   end
+
+  defp formatting_plan(_time, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   defp formatting_plan(_time, _options) do
     {:error, Localize.DateTimeInvalidInputError.exception(type: :time)}

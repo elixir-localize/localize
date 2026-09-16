@@ -6,6 +6,7 @@ defmodule Localize.Message.Print do
 
   """
   import Kernel, except: [to_string: 1]
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
   @doc """
   Converts a parsed MF2 AST back to a canonical message string.
@@ -29,15 +30,17 @@ defmodule Localize.Message.Print do
       "Hello {$name}!"
 
   """
-  @spec to_string(list() | tuple(), Keyword.t()) :: String.t()
+  @spec to_string(list() | tuple(), Keyword.t()) :: String.t() | {:error, Exception.t()}
 
   def to_string(ast, options \\ [])
 
-  def to_string(ast, options) when is_list(options) do
+  def to_string(ast, options) when is_keyword_list(options) do
     ast
     |> to_iolist(Map.new(options))
     |> :erlang.iolist_to_binary()
   end
+
+  def to_string(_ast, options), do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   # ── Top-level ───────────────────────────────────────────────────
 
@@ -107,6 +110,8 @@ defmodule Localize.Message.Print do
   defp to_iolist({:markup_standalone, name, options, attrs}, _options) do
     ["{#", identifier_to_iolist(name), options_to_iolist(options), attrs_to_iolist(attrs), " /}"]
   end
+
+  defp to_iolist(_node, _options), do: []
 
   # ── Expressions ─────────────────────────────────────────────────
 

@@ -155,7 +155,7 @@ defmodule Localize.Message.Interpreter do
   def format_list(ast, bindings \\ %{}, options \\ [])
 
   def format_list(ast, bindings, options) when is_list(bindings) do
-    format_list(ast, Map.new(bindings), options)
+    format_list(ast, bindings_map(bindings), options)
   end
 
   # Data-model validation is the caller's job: `Localize.Message`
@@ -408,7 +408,7 @@ defmodule Localize.Message.Interpreter do
   def format_structured(ast, bindings \\ %{}, options \\ [])
 
   def format_structured(ast, bindings, options) when is_list(bindings) do
-    format_structured(ast, Map.new(bindings), options)
+    format_structured(ast, bindings_map(bindings), options)
   end
 
   def format_structured(ast, bindings, options) when is_map(bindings) do
@@ -2222,6 +2222,10 @@ defmodule Localize.Message.Interpreter do
         :error
     end
   end
+
+  # A list of `{name, value}` bindings as a map. An entry that is not a pair
+  # is ignored rather than raised on.
+  defp bindings_map(bindings), do: for({name, value} <- bindings, into: %{}, do: {name, value})
 
   defp normalize_binding_keys(bindings) when is_map(bindings) do
     Map.new(bindings, fn

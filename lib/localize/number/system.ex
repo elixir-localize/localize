@@ -368,6 +368,9 @@ defmodule Localize.Number.System do
     end
   end
 
+  def number_system_from_locale(locale),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
+
   @doc """
   Resolves a number system name from a system type or direct name
   for a locale.
@@ -625,7 +628,7 @@ defmodule Localize.Number.System do
   """
   @spec to_system(number() | Decimal.t(), system_name()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def to_system(number, system_name) do
+  def to_system(number, system_name) when is_number(number) or is_struct(number, Decimal) do
     system_name = to_atom_key(system_name)
 
     case Map.get(number_systems(), system_name) do
@@ -650,6 +653,9 @@ defmodule Localize.Number.System do
         Localize.Number.Rbnf.to_string(number, rule_name, locale: rbnf_locale)
     end
   end
+
+  def to_system(number, _system_name),
+    do: {:error, Localize.Utils.Helpers.invalid_value(number, "a number or a Decimal")}
 
   @doc """
   Same as `to_system/2` but raises on error.
@@ -732,6 +738,15 @@ defmodule Localize.Number.System do
     end
   end
 
+  def generate_transliteration_map(from, to) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: {from, to},
+       expected: "two strings of digits",
+       context: "Localize.Number.System.generate_transliteration_map/2"
+     )}
+  end
+
   # ── Private helpers ──────────────────────────────────────────
 
   # Resolve the ETF path at runtime. Storing `Application.app_dir/2` in a
@@ -773,6 +788,7 @@ defmodule Localize.Number.System do
   # input. Unknown binaries return nil; downstream callers' `Map.get`
   # / `Map.has_key?` checks fall through to the existing error paths.
   defp to_atom_key(key) when is_binary(key), do: Helpers.existing_atom(key)
+  defp to_atom_key(_key), do: nil
 
   # Parse RBNF rule reference from algorithmic number system definition.
   # Can be "rule_name" or "locale/RuleGroup/rule_name"

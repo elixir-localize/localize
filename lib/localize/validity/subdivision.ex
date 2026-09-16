@@ -8,7 +8,7 @@ defmodule Localize.Validity.Subdivision do
     {:ok, nil, nil}
   end
 
-  def validate(code) do
+  def validate(code) when is_binary(code) or is_atom(code) do
     code
     |> normalize()
     |> valid()
@@ -17,6 +17,8 @@ defmodule Localize.Validity.Subdivision do
       {:ok, code, status} -> {:ok, String.to_atom(code), status}
     end
   end
+
+  def validate(code), do: {:error, code}
 
   def normalize(code) when is_binary(code) do
     String.downcase(code)

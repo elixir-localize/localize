@@ -271,6 +271,10 @@ defmodule Localize.ParseError do
     {line, column}
   end
 
+  # A negative offset, or input that is not a string, has no position
+  # beyond the first.
+  def line_column(_input, _offset), do: {1, 1}
+
   @doc false
   # Called from `exception/1` to fill in `:line` and `:column` from
   # `:input` and `:offset` when those are supplied but the caller hasn't

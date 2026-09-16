@@ -18,6 +18,8 @@ defmodule Localize.Validity.Territory do
     end
   end
 
+  def validate(code), do: {:error, code}
+
   def normalize(code) when is_integer(code) do
     case code do
       code when code < 10 -> "00#{code}"

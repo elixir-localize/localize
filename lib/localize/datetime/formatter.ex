@@ -1416,8 +1416,10 @@ defmodule Localize.DateTime.Formatter do
   @doc false
   def zone_basic(datetime, count, _locale_id, _options)
       when has_zone(datetime) and count in 1..3 do
-    {:ok, result} = Timezone.iso_format(datetime, format: :long, type: :basic, z_for_zero: false)
-    result
+    with {:ok, result} <-
+           Timezone.iso_format(datetime, format: :long, type: :basic, z_for_zero: false) do
+      result
+    end
   end
 
   # TR35 groups `ZZZZ` with `O+` as the localized GMT formats: CLDR renders
@@ -1432,10 +1434,10 @@ defmodule Localize.DateTime.Formatter do
   end
 
   def zone_basic(datetime, 5, _locale_id, _options) when has_zone(datetime) do
-    {:ok, result} =
-      Timezone.iso_format(datetime, format: :full, type: :extended, z_for_zero: true)
-
-    result
+    with {:ok, result} <-
+           Timezone.iso_format(datetime, format: :full, type: :extended, z_for_zero: true) do
+      result
+    end
   end
 
   def zone_basic(_datetime, _count, _locale_id, _options), do: ""
@@ -1559,8 +1561,10 @@ defmodule Localize.DateTime.Formatter do
   def zone_iso_z(datetime, count, _locale_id, _options) when has_zone(datetime) do
     {format, type} = iso_format_for_count(count)
 
-    {:ok, result} = Timezone.iso_format(datetime, format: format, type: type, z_for_zero: true)
-    result
+    with {:ok, result} <-
+           Timezone.iso_format(datetime, format: format, type: type, z_for_zero: true) do
+      result
+    end
   end
 
   def zone_iso_z(_datetime, _count, _locale_id, _options), do: ""
@@ -1570,8 +1574,10 @@ defmodule Localize.DateTime.Formatter do
   def zone_iso(datetime, count, _locale_id, _options) when has_zone(datetime) do
     {format, type} = iso_format_for_count(count)
 
-    {:ok, result} = Timezone.iso_format(datetime, format: format, type: type, z_for_zero: false)
-    result
+    with {:ok, result} <-
+           Timezone.iso_format(datetime, format: format, type: type, z_for_zero: false) do
+      result
+    end
   end
 
   def zone_iso(_datetime, _count, _locale_id, _options), do: ""

@@ -32,12 +32,19 @@ defmodule Localize.Number.Transliterate do
       "١٢٣"
 
   """
-  @spec transliterate_digits(String.t(), map()) :: String.t()
-  def transliterate_digits(string, transliteration_map) do
+  @spec transliterate_digits(String.t(), map()) :: String.t() | {:error, Exception.t()}
+  def transliterate_digits(string, transliteration_map)
+      when is_binary(string) and is_map(transliteration_map) do
     string
     |> String.graphemes()
     |> Enum.map_join(fn grapheme ->
       Map.get(transliteration_map, grapheme, grapheme)
     end)
   end
+
+  def transliterate_digits(string, transliteration_map) when is_binary(string),
+    do: {:error, Localize.Utils.Helpers.invalid_value(transliteration_map, "a map of digits")}
+
+  def transliterate_digits(string, _transliteration_map),
+    do: {:error, Localize.Utils.Helpers.invalid_value(string, "a string")}
 end

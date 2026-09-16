@@ -6,6 +6,8 @@ defmodule Localize.Number.Format.Options do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.Number.{Format, Symbol, System}
 
   @options [
@@ -42,6 +44,13 @@ defmodule Localize.Number.Format.Options do
   @exponent_styles [:e, :superscript]
 
   @sign_displays [:auto, :always, :except_zero, :negative, :never]
+
+  @digit_count_options [
+    :fractional_digits,
+    :min_fractional_digits,
+    :max_fractional_digits,
+    :maximum_integer_digits
+  ]
 
   @rounding_modes [
     :down,
@@ -157,7 +166,7 @@ defmodule Localize.Number.Format.Options do
   """
   @spec validate_options(number() | Decimal.t(), Keyword.t()) ::
           {:ok, t()} | {:error, Exception.t()}
-  def validate_options(number, options) do
+  def validate_options(number, options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     currency = Keyword.get(options, :currency)
     format = options |> Keyword.get(:format, :standard) |> resolve_format_alias(currency)
@@ -181,6 +190,8 @@ defmodule Localize.Number.Format.Options do
          :ok <- validate_sign_display(Keyword.get(options, :sign_display)),
          :ok <- validate_trailing_zero_display(Keyword.get(options, :trailing_zero_display)),
          :ok <- validate_rounding_priority(Keyword.get(options, :rounding_priority)),
+         :ok <- validate_digit_counts(options, @digit_count_options),
+         :ok <- validate_wrapper(Keyword.get(options, :wrapper)),
          {:ok, symbols} <- resolve_symbols(language_tag, system_name),
          {:ok, resolved_format, formats} <- resolve_format(format, language_tag, system_name) do
       currency_symbol = resolve_currency_symbol(currency_struct, options[:currency_symbol])
@@ -215,6 +226,9 @@ defmodule Localize.Number.Format.Options do
       {:ok, result}
     end
   end
+
+  def validate_options(_number, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   # ── Format aliases ──────────────────────────────────────────
 
@@ -406,6 +420,41 @@ defmodule Localize.Number.Format.Options do
      Localize.InvalidValueError.exception(
        value: digits,
        expected: "minimum_integer_digits to be an integer in 1..21"
+     )}
+  end
+
+  # ── Digit count validation ─────────────────────────────────
+
+  # `:fractional_digits`, `:min_fractional_digits`,
+  # `:max_fractional_digits` and `:maximum_integer_digits` are digit
+  # counts. `nil` means "not set".
+  defp validate_digit_counts(_options, []), do: :ok
+
+  defp validate_digit_counts(options, [key | keys]) do
+    case Keyword.get(options, key) do
+      digits when is_nil(digits) or is_integer(digits) ->
+        validate_digit_counts(options, keys)
+
+      digits ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: digits,
+           expected: "#{key} to be an integer"
+         )}
+    end
+  end
+
+  # ── Wrapper validation ─────────────────────────────────────
+
+  # `:wrapper` is called with each formatted string and its tag.
+  defp validate_wrapper(nil), do: :ok
+  defp validate_wrapper(wrapper) when is_function(wrapper, 2), do: :ok
+
+  defp validate_wrapper(wrapper) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: wrapper,
+       expected: "wrapper to be a function of arity 2"
      )}
   end
 

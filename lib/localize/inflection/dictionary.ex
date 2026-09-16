@@ -69,8 +69,15 @@ defmodule Localize.Inflection.Dictionary do
 
   """
   def binary_properties(locale, names) when is_list(names) do
-    bits = Data.metadata!(locale).grammeme_bits
+    case Data.metadata(locale) do
+      {:ok, %{grammeme_bits: bits}} -> names_mask(names, bits)
+      _no_metadata -> nil
+    end
+  end
 
+  def binary_properties(_locale, _names), do: nil
+
+  defp names_mask(names, bits) do
     mask =
       Enum.reduce(names, 0, fn name, acc ->
         case Map.fetch(bits, name) do
@@ -95,35 +102,46 @@ defmodule Localize.Inflection.Dictionary do
   """
   def property_name(_locale, 0), do: nil
 
-  def property_name(locale, mask) when is_integer(mask) do
-    if single_bit?(mask) do
-      names = Data.metadata!(locale).grammeme_names
-      elem(names, bit_index(mask))
+  def property_name(locale, mask) when is_integer(mask) and mask > 0 do
+    with true <- single_bit?(mask),
+         {:ok, %{grammeme_names: names}} <- Data.metadata(locale),
+         index when index < tuple_size(names) <- bit_index(mask) do
+      elem(names, index)
+    else
+      _no_name -> nil
     end
   end
+
+  def property_name(_locale, _mask), do: nil
 
   @doc """
   Returns the list of grammeme names present in `mask`.
 
   """
   def property_names(locale, mask) when is_integer(mask) do
-    names = Data.metadata!(locale).grammeme_names
+    case Data.metadata(locale) do
+      {:ok, %{grammeme_names: names}} ->
+        for bit <- 0..(tuple_size(names) - 1)//1, (mask >>> bit &&& 1) == 1, do: elem(names, bit)
 
-    for bit <- 0..(tuple_size(names) - 1), (mask >>> bit &&& 1) == 1 do
-      elem(names, bit)
+      _no_metadata ->
+        []
     end
   end
+
+  def property_names(_locale, _mask), do: []
 
   @doc """
   Returns true if the word has all the properties in `mask`.
 
   """
-  def has_all_properties?(locale, word, mask) do
+  def has_all_properties?(locale, word, mask) when is_integer(mask) do
     case combined_grammemes(locale, word) do
       nil -> false
       combined -> (combined &&& mask) == mask
     end
   end
+
+  def has_all_properties?(_locale, _word, _mask), do: false
 
   @doc """
   Returns the inflection patterns for a word as a list of pattern
@@ -189,10 +207,11 @@ defmodule Localize.Inflection.Dictionary do
   only the rows with the longest matching suffix are returned.
 
   """
-  def matching_inflections(surface_form, from_grammemes, pattern) do
+  def matching_inflections(surface_form, from_grammemes, %{inflections: inflections})
+      when is_binary(surface_form) and is_integer(from_grammemes) and is_list(inflections) do
     {matches, _max_length} =
-      Enum.reduce(pattern.inflections, {[], -1}, fn {grammemes, suffix} = inflection,
-                                                    {matches, max_length} = acc ->
+      Enum.reduce(inflections, {[], -1}, fn {grammemes, suffix} = inflection,
+                                            {matches, max_length} = acc ->
         length = byte_size(suffix)
 
         cond do
@@ -205,6 +224,8 @@ defmodule Localize.Inflection.Dictionary do
 
     Enum.reverse(matches)
   end
+
+  def matching_inflections(_surface_form, _from_grammemes, _pattern), do: []
 
   defp single_bit?(mask), do: (mask &&& mask - 1) == 0
 

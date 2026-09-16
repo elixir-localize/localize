@@ -221,6 +221,12 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
       "@spec parse(String.t()) :: {:ok, tuple()} | {:error, Exception.t()}",
       "@spec parse(String.t()) :: {:ok, tuple()} | {:error, {:parse_error, keyword()}}"
     )
+    # Input that is not a string is refused before parsing, and the generated
+    # module reports that as it reports any other failure to parse.
+    |> String.replace(
+      ~s|Localize.Utils.Helpers.invalid_value(input, "a unit identifier string")|,
+      "parse_error(input: input)"
+    )
     |> String.replace("Localize.Unit.CustomRegistry.registered?(", "custom_unit?(")
     |> String.replace(
       "Application.get_env(:localize, :max_unit_bytes, @default_max_unit_bytes)",

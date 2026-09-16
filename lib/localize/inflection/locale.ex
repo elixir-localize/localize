@@ -34,6 +34,9 @@ defmodule Localize.Inflection.Locale do
     locale |> to_string() |> String.replace("-", "_")
   end
 
+  # Anything else names no locale, so no data resolves for it.
+  def normalize(_locale), do: ""
+
   @doc """
   Resolves a locale to the internal locale atom whose data artifact
   is available, downloading it on demand when permitted.

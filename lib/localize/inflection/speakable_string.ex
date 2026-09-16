@@ -10,6 +10,11 @@ defmodule Localize.Inflection.SpeakableString do
 
   @type t :: binary | {binary, binary}
 
+  defguardp is_speakable(value)
+            when is_binary(value) or
+                   (is_tuple(value) and tuple_size(value) == 2 and is_binary(elem(value, 0)) and
+                      is_binary(elem(value, 1)))
+
   @doc """
   Returns the printed form.
 
@@ -20,6 +25,8 @@ defmodule Localize.Inflection.SpeakableString do
   ### Returns
 
   * The printed form as a binary.
+
+  * `{:error, exception}` if `speakable` is not a speakable string.
 
   ### Examples
 
@@ -32,8 +39,9 @@ defmodule Localize.Inflection.SpeakableString do
   """
   def print(speakable)
 
-  def print({print, _speak}), do: print
+  def print({print, _speak} = speakable) when is_speakable(speakable), do: print
   def print(print) when is_binary(print), do: print
+  def print(speakable), do: {:error, invalid_speakable(speakable)}
 
   @doc """
   Returns the spoken form.
@@ -47,6 +55,8 @@ defmodule Localize.Inflection.SpeakableString do
   * The spoken form as a binary; the printed form when no distinct
     spoken form exists.
 
+  * `{:error, exception}` if `speakable` is not a speakable string.
+
   ### Examples
 
       iex> Localize.Inflection.SpeakableString.speak("den")
@@ -58,8 +68,9 @@ defmodule Localize.Inflection.SpeakableString do
   """
   def speak(speakable)
 
-  def speak({_print, speak}), do: speak
+  def speak({_print, speak} = speakable) when is_speakable(speakable), do: speak
   def speak(print) when is_binary(print), do: print
+  def speak(speakable), do: {:error, invalid_speakable(speakable)}
 
   @doc """
   Builds a speakable string, collapsing to a binary when both forms
@@ -102,6 +113,8 @@ defmodule Localize.Inflection.SpeakableString do
   * The concatenated speakable string, collapsed to a binary when
     the printed and spoken forms agree.
 
+  * `{:error, exception}` if either argument is not a speakable string.
+
   ### Examples
 
       iex> Localize.Inflection.SpeakableString.concat("the ", "cat")
@@ -111,7 +124,14 @@ defmodule Localize.Inflection.SpeakableString do
       {"boss’ office", "boss’s office"}
 
   """
-  def concat(left, right) do
+  def concat(left, right) when is_speakable(left) and is_speakable(right) do
     new(print(left) <> print(right), speak(left) <> speak(right))
+  end
+
+  def concat(left, right) when is_speakable(left), do: {:error, invalid_speakable(right)}
+  def concat(left, _right), do: {:error, invalid_speakable(left)}
+
+  defp invalid_speakable(value) do
+    Localize.Utils.Helpers.invalid_value(value, "a string or a {print, speak} pair of strings")
   end
 end

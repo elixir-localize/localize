@@ -15,6 +15,8 @@ defmodule Localize.Unit.Preference do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.Unit
   alias Localize.Unit.{BaseUnit, Conversion, Data, Parser}
 
@@ -143,7 +145,9 @@ defmodule Localize.Unit.Preference do
   """
   @spec preferred_units(Unit.t(), Keyword.t()) ::
           {:ok, [atom()], Keyword.t()} | {:error, Exception.t()}
-  def preferred_units(%Unit{} = unit, options \\ []) do
+  def preferred_units(unit, options \\ [])
+
+  def preferred_units(%Unit{} = unit, options) when is_keyword_list(options) do
     # TR35 orders the sources `mu > ms > rg > (likely) region`, and leaves a
     # unit with no preferences at all in its base units. `-u-ms` and `-u-rg`
     # are folded into the territory, so the three that remain are ordered
@@ -153,6 +157,12 @@ defmodule Localize.Unit.Preference do
       locale_preference(unit, options) ||
       base_units(unit)
   end
+
+  def preferred_units(_unit, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def preferred_units(unit, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(unit, "a Localize.Unit")}
 
   defp locale_preference(%Unit{} = unit, options) do
     with category when not is_nil(category) <- unit_category(unit),
@@ -253,6 +263,8 @@ defmodule Localize.Unit.Preference do
     |> Localize.Utils.Helpers.existing_atom()
   end
 
+  defp normalize_usage(_usage), do: nil
+
   @doc """
   Same as `preferred_units/2` but raises on error.
 
@@ -282,7 +294,7 @@ defmodule Localize.Unit.Preference do
 
   """
   @spec preferred_units!(Unit.t(), Keyword.t()) :: [atom()] | no_return()
-  def preferred_units!(%Unit{} = unit, options \\ []) do
+  def preferred_units!(unit, options \\ []) do
     case preferred_units(unit, options) do
       {:ok, units, _opts} -> units
       {:error, exception} -> raise exception

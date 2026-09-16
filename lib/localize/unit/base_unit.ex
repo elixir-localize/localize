@@ -89,6 +89,11 @@ defmodule Localize.Unit.BaseUnit do
     end
   end
 
+  def base_unit(input) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(input, "a unit identifier string or a parsed unit")}
+  end
+
   @doc """
   Returns the base unit string for a parsed unit AST or a unit identifier
   string, raising on error.
@@ -143,9 +148,10 @@ defmodule Localize.Unit.BaseUnit do
       {:ok, %{"kilogram" => 1, "meter" => 1, "second" => -2}}
 
   """
-  @spec decompose(tuple()) :: {:ok, %{String.t() => integer()}} | {:error, String.t()}
+  @spec decompose(tuple()) ::
+          {:ok, %{String.t() => integer()}} | {:error, Exception.t() | String.t()}
 
-  def decompose({:unit, keyword}) do
+  def decompose({:unit, keyword}) when is_list(keyword) do
     numerator = Keyword.get(keyword, :numerator, [])
     denominator = Keyword.get(keyword, :denominator, [])
 
@@ -160,9 +166,11 @@ defmodule Localize.Unit.BaseUnit do
     decompose_single(first)
   end
 
-  def decompose({:single_unit, _} = single) do
+  def decompose({:single_unit, keyword} = single) when is_list(keyword) do
     decompose_single(single)
   end
+
+  def decompose(ast), do: {:error, Localize.Utils.Helpers.invalid_value(ast, "a parsed unit")}
 
   @doc """
   Reconstructs a canonical base unit string from a powers map.
@@ -182,14 +190,14 @@ defmodule Localize.Unit.BaseUnit do
       "kilogram-meter-per-square-second"
 
   """
-  @spec recompose(%{String.t() => integer()}) :: String.t()
+  @spec recompose(%{String.t() => integer()}) :: String.t() | {:error, Exception.t()}
 
   def recompose(powers) when powers == %{}, do: ""
 
-  def recompose(powers) do
+  def recompose(powers) when is_map(powers) do
     {numerator, denominator} =
       powers
-      |> Enum.reject(fn {_unit, power} -> power == 0 end)
+      |> Enum.filter(fn {_unit, power} -> is_integer(power) and power != 0 end)
       |> Enum.split_with(fn {_unit, power} -> power > 0 end)
 
     num_sorted = sort_by_canonical_order(numerator)
@@ -210,9 +218,12 @@ defmodule Localize.Unit.BaseUnit do
     end
   end
 
+  def recompose(powers),
+    do: {:error, Localize.Utils.Helpers.invalid_value(powers, "a map of unit names to powers")}
+
   # ── Private helpers ─────────────────────────────────────────────────
 
-  defp decompose_list(units) do
+  defp decompose_list(units) when is_list(units) do
     Enum.reduce_while(units, {:ok, %{}}, fn unit, {:ok, acc} ->
       case decompose_single(unit) do
         {:ok, powers} -> {:cont, {:ok, merge_powers(acc, powers)}}
@@ -221,22 +232,27 @@ defmodule Localize.Unit.BaseUnit do
     end)
   end
 
-  defp decompose_single({:single_unit, keyword}) do
-    base = Keyword.fetch!(keyword, :base)
-    power = Keyword.get(keyword, :power)
+  defp decompose_list(units),
+    do: {:error, Localize.Utils.Helpers.invalid_value(units, "a list of parsed unit components")}
 
-    case resolve_base_unit(base) do
-      {:ok, base_powers} ->
-        {:ok, apply_power(base_powers, power)}
-
-      {:error, _} = error ->
-        error
+  defp decompose_single({:single_unit, keyword} = component) when is_list(keyword) do
+    with base when is_binary(base) <- Keyword.get(keyword, :base),
+         {:ok, base_powers} <- resolve_base_unit(base) do
+      {:ok, apply_power(base_powers, Keyword.get(keyword, :power))}
+    else
+      {:error, _} = error -> error
+      _no_base -> {:error, invalid_component(component)}
     end
   end
 
   defp decompose_single({:constant, _value}) do
     {:ok, %{}}
   end
+
+  defp decompose_single(component), do: {:error, invalid_component(component)}
+
+  defp invalid_component(component),
+    do: Localize.Utils.Helpers.invalid_value(component, "a parsed unit component")
 
   defp resolve_base_unit("curr-" <> _code = currency_base) do
     {:ok, %{currency_base => 1}}
