@@ -54,7 +54,7 @@ defmodule Localize.Inflection.Provider do
   ### Examples
 
       iex> Localize.Inflection.Provider.data_version()
-      "2333a964e53a-r2"
+      "ae92d425e57a-r2"
 
   """
   def data_version do
@@ -80,7 +80,7 @@ defmodule Localize.Inflection.Provider do
   ### Examples
 
       iex> Localize.Inflection.Provider.file_url("ru.etf")
-      "https://elixir-localize.com/inflection/2333a964e53a-r2/ru.etf"
+      "https://elixir-localize.com/inflection/ae92d425e57a-r2/ru.etf"
 
   """
   def file_url(file_name) when is_binary(file_name) do

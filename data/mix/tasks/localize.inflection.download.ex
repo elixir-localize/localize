@@ -31,9 +31,13 @@ defmodule Mix.Tasks.Localize.Inflection.Download do
   # regenerate with mix localize.inflection.generate.
   @media "https://media.githubusercontent.com/media/unicode-org/inflection"
   @raw "https://raw.githubusercontent.com/unicode-org/inflection"
-  @resources "inflection/resources/org/unicode/inflection"
-  @test_resources "inflection/test/resources/inflection/dialog/inflection"
-  @pronoun_test_resources "inflection/test/resources/inflection/dialog/pronoun"
+
+  # Upstream commit af2510d7 (Inflection-204) lifted the whole
+  # source tree out of the `inflection/` subdirectory, so these
+  # paths are only valid for pins at or after that commit.
+  @resources "resources/org/unicode/inflection"
+  @test_resources "test/resources/inflection/dialog/inflection"
+  @pronoun_test_resources "test/resources/inflection/dialog/pronoun"
 
   # Pronoun test suites exist for regional locales whose pronoun
   # tables resolve through the locale fallback chain.
