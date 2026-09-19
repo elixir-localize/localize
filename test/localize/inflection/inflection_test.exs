@@ -7,6 +7,7 @@ defmodule Localize.InflectionTest do
   doctest Localize.Inflection.Dictionary
   doctest Localize.Inflection.Inflector
   doctest Localize.Inflection.DataDir
+  doctest Localize.Inflection.Provider
   doctest Localize.Inflection.Quantify
   doctest Localize.Inflection.ConceptList
 

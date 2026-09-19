@@ -9,11 +9,26 @@ name: Upload Inflection Data to Cloudflare R2
 # cheap no-op (no filter, so the never-uploaded case fires on any
 # push). Also reusable from ci.yml (post-merge on main, ahead of the
 # test matrix) and manually dispatchable for recovery.
+#
+# The conformance suites download CLDR locale data for the version in
+# priv/localize/version, and a runner cannot generate it — priv/cldr is
+# hundreds of megabytes and untracked — so that version has to be on R2
+# already. A run that finds it missing stops in under a minute and says
+# which version to publish, rather than failing thirty minutes later on
+# a 404 per locale inside the test step. `skip_conformance` publishes
+# without the suites, for the window between a CLDR data bump and the
+# locale upload that follows it.
 on:
   push:
     branches: [inflection]
   workflow_call:
   workflow_dispatch:
+    inputs:
+      skip_conformance:
+        description: 'Publish without running the conformance suites (only when CLDR locale data for this version is not yet on R2)'
+        required: false
+        default: false
+        type: boolean
 
 env:
   MIX_ENV: test
@@ -98,6 +113,50 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # The conformance suites download CLDR locale data for the version in
+      # priv/localize/version. Only en and und are in the repository, and a
+      # runner has no CLDR sources to generate the rest from, so that version
+      # must already be on R2 — published from a maintainer machine with
+      # `mix localize.upload_locale`. Checked here, before the toolchain and
+      # the generate step, so a missing version costs a minute rather than
+      # half an hour.
+      - name: Check the CLDR locale data this version needs is published
+        id: check_locales
+        if: steps.check_existing.outputs.skip != 'true'
+        run: |
+          cldr_version=$(tr -d '[:space:]' < priv/localize/version)
+          patch_raw=$(tr -d '[:space:]' < priv/localize/localize_patch_version)
+          patch=${patch_raw##*:}
+
+          case "${cldr_version}" in
+            *.*.*) locale_version="${cldr_version%.*}.${patch}" ;;
+            *.*) locale_version="${cldr_version}.${patch}" ;;
+            *) locale_version="${cldr_version}.0.${patch}" ;;
+          esac
+
+          locale_version="v${locale_version}"
+          echo "locale_version=${locale_version}" >> "$GITHUB_OUTPUT"
+
+          # Locale data sits under its own prefix, not this workflow's
+          # R2_PREFIX of "inflection".
+          count=$(rclone lsf "r2:${R2_BUCKET}/locales/${locale_version}/" --include "*.etf" 2>/dev/null | wc -l | tr -d '[:space:]')
+
+          if [ "${count}" -gt 0 ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "Locale data ${locale_version} is on R2 with ${count} file(s)."
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Locale data ${locale_version} is not on R2."
+          fi
+
+      - name: Require the locale data the conformance suites download
+        if: steps.check_existing.outputs.skip != 'true' && steps.check_locales.outputs.available != 'true' && inputs.skip_conformance != true
+        env:
+          LOCALE_VERSION: ${{ steps.check_locales.outputs.locale_version }}
+        run: |
+          echo "::error::CLDR locale data ${LOCALE_VERSION} is not on R2, so the inflection conformance suites cannot download the locales they format in. Publish it with 'mix localize.upload_locale', or re-run this workflow with skip_conformance to publish inflection data without the suites."
+          exit 1
+
       - name: Set up Elixir
         if: steps.check_existing.outputs.skip != 'true'
         uses: erlef/setup-beam@v1
@@ -149,8 +208,17 @@ jobs:
           mix localize.inflection.generate
 
       - name: Run inflection conformance suites
-        if: steps.check_existing.outputs.skip != 'true'
+        if: steps.check_existing.outputs.skip != 'true' && steps.check_locales.outputs.available == 'true'
         run: mix test test/localize/inflection/
+
+      # Reached only when the run was dispatched with skip_conformance; the
+      # requirement step above stops every other run that gets this far.
+      - name: Note that the conformance gate was skipped
+        if: steps.check_existing.outputs.skip != 'true' && steps.check_locales.outputs.available != 'true'
+        env:
+          LOCALE_VERSION: ${{ steps.check_locales.outputs.locale_version }}
+        run: |
+          echo "::warning::Published without the inflection conformance suites: CLDR locale data ${LOCALE_VERSION} is not on R2. Run 'mix test test/localize/inflection/' locally before relying on this data."
 
       # The committed manifest pins the exact bytes downloads are
       # verified against. Generation is deterministic, so the bytes
