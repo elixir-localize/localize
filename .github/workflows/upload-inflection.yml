@@ -11,13 +11,13 @@ name: Upload Inflection Data to Cloudflare R2
 # test matrix) and manually dispatchable for recovery.
 #
 # The conformance suites download CLDR locale data for the version in
-# priv/localize/version, and a runner cannot generate it — priv/cldr is
-# hundreds of megabytes and untracked — so that version has to be on R2
-# already. A run that finds it missing stops in under a minute and says
-# which version to publish, rather than failing thirty minutes later on
-# a 404 per locale inside the test step. `skip_conformance` publishes
-# without the suites, for the window between a CLDR data bump and the
-# locale upload that follows it.
+# priv/localize/version, and this workflow never generates locale data —
+# upload-locales.yml does — so that version has to be on R2 already. A run
+# that finds it missing stops in under a minute and says which version to
+# publish, rather than failing thirty minutes later on a 404 per locale
+# inside the test step. `skip_conformance` publishes without the suites,
+# for the window between a CLDR data bump and the locale upload that
+# follows it.
 on:
   push:
     branches: [inflection]
@@ -114,12 +114,14 @@ jobs:
           fi
 
       # The conformance suites download CLDR locale data for the version in
-      # priv/localize/version. Only en and und are in the repository, and a
-      # runner has no CLDR sources to generate the rest from, so that version
-      # must already be on R2 — published from a maintainer machine with
-      # `mix localize.upload_locale`. Checked here, before the toolchain and
-      # the generate step, so a missing version costs a minute rather than
-      # half an hour.
+      # priv/localize/version, and only en and und are in the repository.
+      # This workflow generates inflection artifacts, never locale data, so
+      # that version has to be on R2 already: from upload-locales.yml, which
+      # generates it wherever the CLDR sources are vendored, or from a
+      # maintainer machine with `mix localize.upload_locale` during a CLDR
+      # beta, when priv/cldr is untracked and no runner can generate it.
+      # Checked here, before the toolchain and the generate step, so a
+      # missing version costs a minute rather than half an hour.
       - name: Check the CLDR locale data this version needs is published
         id: check_locales
         if: steps.check_existing.outputs.skip != 'true'
