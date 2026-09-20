@@ -170,6 +170,22 @@ defmodule Localize.DateTime.SymbolMatrixTest do
       assert Localize.Date.to_string(~D[2024-07-06], format: :MMMEddd, locale: :en) ==
                {:ok, "Sat, Jul 6th"}
     end
+
+    # TR35 §Element dayOfMonth: where a locale has no available format with
+    # `ddd`, the best match is the skeleton with `d` and "the width of the `d`
+    # field in the pattern is not adjusted in width". de has neither the
+    # `dayOfMonths` element nor a `ddd` format, so `yMMMddd` must render
+    # exactly as `yMMMd` does — no widening, no ordinal.
+    test "a ddd skeleton the locale has no format for matches its d format unwidened" do
+      assert Localize.Date.to_string(~D[2024-07-06], format: :yMMMddd, locale: :de) ==
+               {:ok, "6. Juli 2024"}
+
+      assert Localize.Date.to_string(~D[2024-07-06], format: :yMMMddd, locale: :de) ==
+               Localize.Date.to_string(~D[2024-07-06], format: :yMMMd, locale: :de)
+
+      assert Localize.Date.to_string(~D[2024-07-06], format: :yMMMddd, locale: :ja) ==
+               Localize.Date.to_string(~D[2024-07-06], format: :yMMMd, locale: :ja)
+    end
   end
 
   describe "zone symbols" do
