@@ -357,7 +357,7 @@ All options accepted by `Localize.Number.to_string/2`:
 | `:rounding_mode` | atom | `:half_even` | One of `:down`, `:up`, `:half_up`, `:half_down`, `:half_even`, `:ceiling`, `:floor`. |
 | `:round_nearest` | integer | `nil` | Round to nearest increment (e.g., 5 for rounding to nearest 5). |
 | `:minimum_grouping_digits` | integer | `0` | Minimum integer digits before grouping is applied. |
-| `:currency_symbol` | atom or string | `nil` | Override currency symbol display: `:symbol`, `:narrow`, `:iso`, or a custom string. |
+| `:currency_symbol` | atom or string | `nil` | Override currency symbol display: `:symbol`, `:narrow`, `:variant`, `:iso`, or a custom string. |
 | `:currency_digits` | atom | `:accounting` | How to determine currency decimal places: `:accounting`, `:cash`, or `:iso`. They apply to currency formats and to pattern strings with a currency sign; `:fractional_digits` overrides them. |
 | `:wrapper` | function | `nil` | `fn string, type -> string end` — wrap formatted components for HTML/markup. |
 

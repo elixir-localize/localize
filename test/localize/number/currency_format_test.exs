@@ -69,6 +69,31 @@ defmodule Localize.Number.CurrencyFormatTest do
                {:ok, "$1,234.56"}
     end
 
+    # Expected symbols are read from the CLDR source, not from library output:
+    # cldr-numbers-full/main/<locale>/currencies.json gives en TRY the triple
+    # symbol "TRY", symbol-alt-narrow "₺", symbol-alt-variant "TL", and hy AMD
+    # the triple "֏", "֏", "դր.". USD has no symbol-alt-variant in any locale.
+    # "TL" and "TRY" end in a letter, so en's currencySpacing afterCurrency
+    # rule (currencyMatch "[[:^S:]&[:^Z:]]", surroundingMatch "[:digit:]")
+    # inserts U+00A0 before the digits. "₺" is Sc and does not match.
+    test ":variant uses the variant symbol" do
+      assert Number.to_string(1234.56, currency: :TRY, currency_symbol: :variant) ==
+               {:ok, "TL 1,234.56"}
+    end
+
+    test ":variant is distinct from :symbol and :narrow" do
+      assert Number.to_string(1234.56, currency: :TRY, currency_symbol: :symbol) ==
+               {:ok, "TRY 1,234.56"}
+
+      assert Number.to_string(1234.56, currency: :TRY, currency_symbol: :narrow) ==
+               {:ok, "₺1,234.56"}
+    end
+
+    test ":variant falls back to the standard symbol when the currency has no variant" do
+      assert Number.to_string(1234.56, currency: :USD, currency_symbol: :variant) ==
+               {:ok, "$1,234.56"}
+    end
+
     test ":none switches to the plain decimal format" do
       assert Number.to_string(1234.56, currency: :USD, currency_symbol: :none) ==
                {:ok, "1,234.56"}

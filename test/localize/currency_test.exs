@@ -399,6 +399,49 @@ defmodule Localize.CurrencyTest do
     end
   end
 
+  describe "symbol/2 with :variant" do
+    # Expected symbols come from the CLDR source rather than library output.
+    # cldr-numbers-full/main/hy/currencies.json gives AMD the triple symbol
+    # "֏", symbol-alt-narrow "֏", symbol-alt-variant "դր."; ru gives UAH "₴",
+    # "₴", "грн."; en gives SAR "SAR" with symbol-alt-variant "⃁" and no
+    # symbol-alt-narrow.
+    test "prefers the variant symbol over the standard and narrow forms" do
+      {:ok, amd} = Currency.currency_for_code(:AMD, locale: "hy")
+
+      assert Currency.symbol(amd, :variant) == {:ok, "դր."}
+      assert Currency.symbol(amd, :symbol) == {:ok, "֏"}
+      assert Currency.symbol(amd, :narrow) == {:ok, "֏"}
+    end
+
+    test "resolves per locale" do
+      {:ok, uah} = Currency.currency_for_code(:UAH, locale: "ru")
+      assert Currency.symbol(uah, :variant) == {:ok, "грн."}
+
+      # en has no symbol-alt-variant for UAH, so it falls back to the symbol.
+      {:ok, uah} = Currency.currency_for_code(:UAH, locale: "en")
+      assert Currency.symbol(uah, :variant) == {:ok, "UAH"}
+    end
+
+    test "a variant with no narrow counterpart still resolves both kinds" do
+      {:ok, sar} = Currency.currency_for_code(:SAR, locale: "en")
+
+      assert Currency.symbol(sar, :variant) == {:ok, "⃁"}
+      assert Currency.symbol(sar, :narrow) == {:ok, "SAR"}
+    end
+
+    test "falls back to the standard symbol when the currency has no variant" do
+      {:ok, usd} = Currency.currency_for_code(:USD, locale: "en")
+
+      assert usd.variant_symbol == nil
+      assert Currency.symbol(usd, :variant) == {:ok, "$"}
+    end
+
+    test "falls back to the ISO code when the currency has neither" do
+      currency = %Currency{code: :XYZ, symbol: nil, variant_symbol: nil}
+      assert Currency.symbol(currency, :variant) == {:ok, "XYZ"}
+    end
+  end
+
   describe "currency_strings edge cases" do
     test "dollar sign maps to USD in en locale" do
       {:ok, strings} = Currency.currency_strings(:en)

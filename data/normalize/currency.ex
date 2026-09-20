@@ -18,6 +18,7 @@ defmodule Localize.Data.Normalize.Currency do
           name: currency["display_name"],
           symbol: currency["symbol"],
           narrow_symbol: currency["symbol_alt_narrow"],
+          variant_symbol: currency["symbol_alt_variant"],
           tender: String.to_atom(currency_data[code]["_tender"] || "true"),
           digits: String.to_integer(currency_data[code]["_digits"] || default["_digits"]),
           rounding: String.to_integer(currency_data[code]["_rounding"] || default["_rounding"]),

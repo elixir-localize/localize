@@ -32,6 +32,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.MinimalPairs` exposes CLDR's minimal pairs — the short phrases that demonstrate a locale's plural, ordinal, case and gender forms. `cardinal/1`, `ordinal/1`, `grammatical_case/1` and `grammatical_gender/1` return the phrases; `format/3` picks the one a number selects, so `format(3, :cardinal, locale: :en)` is `{:ok, "3 days"}`.
 
+* CLDR's `symbol-alt-variant` currency symbols are now ingested as `Localize.Currency.variant_symbol` and selected with `currency_symbol: :variant` or `Localize.Currency.symbol(currency, :variant)` — `:TRY` in `en` gives "TL", `:SAR` gives "⃁". This is where a newly encoded currency sign lands before CLDR promotes it to the standard symbol.
+
 * The `g` pattern symbol formats the modified Julian day and the deprecated `l` is ignored, as TR35 specifies, where both returned a tokenize error.
 
 * Ordinal dates from CLDR 49: the `ddd` field formats the day with the locale's `dayOfMonths` pattern for its ordinal plural category, so `en` `:yMMMddd` renders "Jul 6th, 2024". Locales without that data, and patterns with a numeric month, format the plain day.

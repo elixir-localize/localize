@@ -34,6 +34,7 @@ defmodule Localize.Currency do
           digits: non_neg_integer(),
           rounding: non_neg_integer(),
           narrow_symbol: String.t() | nil,
+          variant_symbol: String.t() | nil,
           cash_digits: non_neg_integer(),
           cash_rounding: non_neg_integer(),
           iso_digits: non_neg_integer() | nil,
@@ -49,6 +50,7 @@ defmodule Localize.Currency do
             name: "",
             symbol: "",
             narrow_symbol: nil,
+            variant_symbol: nil,
             digits: 0,
             rounding: 0,
             cash_digits: 0,
@@ -875,11 +877,15 @@ defmodule Localize.Currency do
     currency code (atom or string).
 
   * `kind` is one of `:standard` (default), `:symbol`,
-    `:narrow`, `:iso`, `:none`, or a literal binary which is
-    returned as-is. `:standard` and `:symbol` both pick the
-    locale's standard symbol; `:narrow` prefers the
-    narrow-form symbol; `:iso` returns the ISO 4217 code;
-    `:none` returns an empty string.
+    `:narrow`, `:variant`, `:iso`, `:none`, or a literal binary
+    which is returned as-is. `:standard` and `:symbol` both pick
+    the locale's standard symbol; `:narrow` prefers the
+    narrow-form symbol; `:variant` prefers CLDR's alternative
+    symbol, which is where a newly encoded currency sign lands
+    before it becomes the standard one; `:iso` returns the ISO
+    4217 code; `:none` returns an empty string. A kind the
+    currency has no symbol for falls back to the standard symbol
+    and then to the ISO code.
 
   ### Returns
 
@@ -900,6 +906,12 @@ defmodule Localize.Currency do
       iex> Localize.Currency.symbol(:USD, :none)
       {:ok, ""}
 
+      iex> Localize.Currency.symbol(:TRY, :variant)
+      {:ok, "TL"}
+
+      iex> Localize.Currency.symbol(:USD, :variant)
+      {:ok, "$"}
+
   """
   @spec symbol(t() | atom() | String.t(), atom() | String.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
@@ -914,6 +926,7 @@ defmodule Localize.Currency do
   end
 
   defp do_symbol(%__MODULE__{} = c, :narrow), do: c.narrow_symbol || c.symbol || iso_code(c)
+  defp do_symbol(%__MODULE__{} = c, :variant), do: c.variant_symbol || c.symbol || iso_code(c)
   defp do_symbol(%__MODULE__{} = c, :iso), do: iso_code(c)
   defp do_symbol(%__MODULE__{} = c, :symbol), do: c.symbol || iso_code(c)
   defp do_symbol(%__MODULE__{} = c, :standard), do: c.symbol || iso_code(c)
