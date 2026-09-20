@@ -148,6 +148,7 @@ defmodule Localize.DateTime.Formatter do
     with {:ok, options} <- with_number_system(options, locale_id),
          {:ok, tokens, _} <- tokenize_cached(format_string),
          tokens = ordinal_day_in_context(tokens),
+         tokens = substitute_numeric_separators(tokens, datetime, locale_id, options),
          :ok <- validate_fields(datetime, tokens, format_string) do
       options = with_displayed_precision(options, tokens)
 
@@ -189,6 +190,7 @@ defmodule Localize.DateTime.Formatter do
     with {:ok, options} <- with_number_system(options, locale_id),
          {:ok, tokens, _} <- tokenize_cached(format_string),
          tokens = ordinal_day_in_context(tokens),
+         tokens = substitute_numeric_separators(tokens, datetime, locale_id, options),
          :ok <- validate_fields(datetime, tokens, format_string) do
       options = with_displayed_precision(options, tokens)
 
@@ -383,18 +385,149 @@ defmodule Localize.DateTime.Formatter do
   # CLDR 49 ordinal dates: `ddd` is ignored in a pattern whose month is
   # numeric, where the day is formatted plainly.
   defp ordinal_day_in_context(tokens) do
-    numeric_month? =
-      Enum.any?(tokens, fn {field, _line, count} ->
-        field in [:month, :standalone_month] and count <= 2
-      end)
-
-    if numeric_month? do
+    if numeric_month?(tokens) do
       Enum.map(tokens, fn
         {:day_of_month, line, 3} -> {:day_of_month, line, 1}
         token -> token
       end)
     else
       tokens
+    end
+  end
+
+  defp numeric_month?(tokens) do
+    Enum.any?(tokens, fn {field, _line, count} ->
+      field in [:month, :standalone_month] and count <= 2
+    end)
+  end
+
+  # The pattern-symbol handlers that render a date field and a time field.
+  # Zone handlers belong to neither, and `decimal_separator` is the marker
+  # before fractional seconds rather than a separator a caller may choose.
+  @date_handlers [
+    :era,
+    :year,
+    :week_aligned_year,
+    :extended_year,
+    :cyclic_year,
+    :related_year,
+    :quarter,
+    :standalone_quarter,
+    :month,
+    :standalone_month,
+    :week_of_year,
+    :week_of_month,
+    :day_of_month,
+    :day_of_year,
+    :day_of_week_in_month,
+    :modified_julian_day,
+    :day_name,
+    :day_of_week,
+    :standalone_day_of_week
+  ]
+
+  @time_handlers [
+    :period_am_pm,
+    :period_noon_midnight,
+    :period_flex,
+    :h11,
+    :h12,
+    :h23,
+    :h24,
+    :minute,
+    :second,
+    :fractional_second,
+    :millisecond
+  ]
+
+  # CLDR 49 numeric separators: TR35 lets an implementation offer the
+  # locale's `numericDateSeparator` and `numericTimeSeparator` for
+  # substitution — dates as "05/06/2006" or "05-06-2006", times as "23:59"
+  # or "23.59" — by replacing them in the patterns it produces. The date
+  # separator applies only where the month is numeric, as TR35 requires.
+  defp substitute_numeric_separators(tokens, datetime, locale_id, options) do
+    date_separator = Map.get(options, :numeric_date_separator)
+    time_separator = Map.get(options, :numeric_time_separator)
+
+    if is_nil(date_separator) and is_nil(time_separator) do
+      tokens
+    else
+      replace_separators(tokens, datetime, locale_id, date_separator, time_separator)
+    end
+  end
+
+  defp replace_separators(tokens, datetime, locale_id, date_separator, time_separator) do
+    case locale_numeric_separators(datetime, locale_id) do
+      {:ok, locale_separators} ->
+        date_separator = if numeric_month?(tokens), do: date_separator
+        locale_date = locale_separators[:numeric_date_separator]
+        locale_time = locale_separators[:numeric_time_separator]
+
+        tokens
+        |> Enum.zip(literal_kinds(tokens))
+        |> Enum.map(fn
+          {{:literal, line, string}, :date} ->
+            {:literal, line, replace_separator(string, locale_date, date_separator)}
+
+          {{:literal, line, string}, :time} ->
+            {:literal, line, replace_separator(string, locale_time, time_separator)}
+
+          {token, _kind} ->
+            token
+        end)
+
+      :error ->
+        tokens
+    end
+  end
+
+  # A literal is a separator only where the fields on both sides of it are
+  # of the same kind. `da`, `fi` and `sv-FI` spell both separators ".", so
+  # the text alone cannot say which of the two a literal stands for.
+  defp literal_kinds(tokens) do
+    kinds = Enum.map(tokens, &token_kind/1)
+
+    kinds
+    |> Enum.with_index()
+    |> Enum.map(fn
+      {nil, index} ->
+        previous = kinds |> Enum.take(index) |> Enum.reverse() |> Enum.find(& &1)
+        next = kinds |> Enum.drop(index + 1) |> Enum.find(& &1)
+        neighbouring_kind(previous, next)
+
+      {_kind, _index} ->
+        nil
+    end)
+  end
+
+  defp neighbouring_kind(kind, kind), do: kind
+  defp neighbouring_kind(nil, next), do: next
+  defp neighbouring_kind(previous, nil), do: previous
+  defp neighbouring_kind(_previous, _next), do: nil
+
+  defp token_kind({handler, _line, _count}) when handler in @date_handlers, do: :date
+  defp token_kind({handler, _line, _count}) when handler in @time_handlers, do: :time
+  defp token_kind(_token), do: nil
+
+  defp replace_separator(string, _locale_separator, nil), do: string
+
+  defp replace_separator(string, locale_separator, replacement) when string == locale_separator,
+    do: replacement
+
+  defp replace_separator(string, _locale_separator, _replacement), do: string
+
+  defp locale_numeric_separators(datetime, locale_id) do
+    path = [
+      :dates,
+      :calendars,
+      cldr_calendar_for_datetime(datetime),
+      :date_time_formats,
+      :numeric_separators
+    ]
+
+    case Localize.Locale.get(locale_id, path) do
+      {:ok, %{} = separators} -> {:ok, separators}
+      _no_separator_data -> :error
     end
   end
 

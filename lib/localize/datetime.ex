@@ -99,6 +99,10 @@ defmodule Localize.DateTime do
 
   * `:number_system` is a CLDR numbering system name (for example, `:thai`). All numeric fields render in that system; a `-u-nu-` locale extension may be used instead. The default is the locale's number system.
 
+  * `:numeric_date_separator` is a string replacing the locale's `numericDateSeparator` wherever it separates the fields of a numeric-month date, as TR35 allows an implementation to offer. `Localize.DateTime.numeric_separators/2` returns the locale's own. The default is the locale's separator.
+
+  * `:numeric_time_separator` is a string replacing the locale's `numericTimeSeparator` wherever it separates time fields. The default is the locale's separator.
+
   * `:prefer` selects between CLDR `alt` variants. Accepts an
     atom or a list of atoms in priority order. Recognised values:
     `:standard` / `:variant` (locales like en-CA publish both an
@@ -714,6 +718,51 @@ defmodule Localize.DateTime do
   defp format_resolved_pattern(pattern, datetime, options, locale_id, _skeleton, output)
        when is_binary(pattern) do
     invoke_formatter(output, datetime, pattern, locale_id, Map.new(options))
+  end
+
+  @doc """
+  Returns the numeric date and time separators a locale uses.
+
+  These are CLDR 49's `numericDateSeparator` and `numericTimeSeparator`.
+  TR35 offers them so an implementation can let a caller choose a
+  separator — dates as "05/06/2006" or "05-06-2006", times as "23:59" or
+  "23.59" — which `to_string/2` does through its `:numeric_date_separator`
+  and `:numeric_time_separator` options. Read them to show a caller what
+  the locale uses before they override it.
+
+  ### Arguments
+
+  * `locale` is any locale returned by `Localize.all_locale_ids/0` or a
+    `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
+
+  * `calendar_type` is a CLDR calendar name. The default is `:gregorian`.
+
+  ### Returns
+
+  * `{:ok, separators}` where `separators` is a map with the keys
+    `:numeric_date_separator` and `:numeric_time_separator`.
+
+  * `{:error, exception}` if the locale or calendar is unknown, or the
+    locale carries no separator data.
+
+  ### Examples
+
+      iex> Localize.DateTime.numeric_separators(:en)
+      {:ok, %{numeric_date_separator: "/", numeric_time_separator: ":"}}
+
+      iex> Localize.DateTime.numeric_separators(:fi)
+      {:ok, %{numeric_date_separator: ".", numeric_time_separator: "."}}
+
+  """
+  @spec numeric_separators(Localize.locale(), atom()) ::
+          {:ok, map()} | {:error, Exception.t()}
+  def numeric_separators(locale \\ Localize.get_locale(), calendar_type \\ :gregorian) do
+    with {:ok, locale_id} <- resolve_locale_id(locale) do
+      Localize.Locale.get(
+        locale_id,
+        [:dates, :calendars, calendar_type, :date_time_formats, :numeric_separators]
+      )
+    end
   end
 
   @doc false

@@ -36,6 +36,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * The `g` pattern symbol formats the modified Julian day and the deprecated `l` is ignored, as TR35 specifies, where both returned a tokenize error.
 
+* CLDR 49's numeric separators: `Localize.DateTime.numeric_separators/2` returns the `numericDateSeparator` and `numericTimeSeparator` a locale uses, and `:numeric_date_separator` and `:numeric_time_separator` on `Localize.Date`, `Localize.Time`, `Localize.DateTime` and `Localize.Interval` substitute them — rendering a date as "7-6-2024" or a time as "2.05 PM". The two axes stay independent even in locales such as `fi` that spell both the same.
+
 * Ordinal dates from CLDR 49, as a **technical preview**: the `ddd` field formats the day with the locale's `dayOfMonths` pattern for its ordinal plural category, so `en` `:yMMMddd` renders "Jul 6th, 2024", while locales without that data and patterns with a numeric month format the plain day. CLDR's spec for this landed pre-beta and the data is still alpha, so the behaviour may change before CLDR 49 releases.
 
 ### Changed

@@ -53,6 +53,14 @@ defmodule Localize.Interval do
     `:short`, `:medium`, `:long`, or `:full`. The default is
     `:medium`.
 
+  * `:numeric_date_separator` and `:numeric_time_separator` are
+    strings replacing the locale's own separators in the rendered
+    pattern, as they do on `Localize.Date.to_string/2`. A separator
+    the pattern merges with neighbouring literal text is left alone
+    — fi's day-differing interval pattern is `"d.–d.M.y"`, whose
+    first separator carries the range dash — so an interval may
+    substitute one endpoint and not the other.
+
   The two are independent axes: `:fields` chooses which fields
   appear, `:format` chooses how wide they are rendered. So
   `fields: :year_and_month` renders the two months against a

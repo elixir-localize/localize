@@ -235,6 +235,23 @@ iex> Localize.DateTime.to_string(~N[2024-07-10 14:30:00], locale: :de, prefer: :
 {:ok, "10.07.2024, 14:30:00"}
 ```
 
+### Choosing the numeric separators
+
+CLDR 49 records the separator each locale uses between the fields of a numeric date and between the fields of a time, so an application can offer the choice — dates as "05/06/2006" or "05-06-2006", times as "23:59" or "23.59". Read the locale's own with `Localize.DateTime.numeric_separators/2` and override either axis with `:numeric_date_separator` and `:numeric_time_separator`.
+
+```elixir
+iex> Localize.DateTime.numeric_separators(:en)
+{:ok, %{numeric_date_separator: "/", numeric_time_separator: ":"}}
+
+iex> Localize.Date.to_string(~D[2024-07-06], format: :yMd, locale: :en, numeric_date_separator: "-")
+{:ok, "7-6-2024"}
+
+iex> Localize.DateTime.to_string(~U[2024-07-06 14:05:09Z], format: :short, locale: :en, numeric_time_separator: ".", prefer: :ascii)
+{:ok, "7/6/24, 2.05 PM"}
+```
+
+The two axes stay independent even where a locale spells both the same — `fi` writes both as a full stop, and each option changes only its own half. Two limits follow TR35: the date separator applies only to patterns whose month is numeric (`M` or `MM`), and a separator the pattern merges with neighbouring literal text is left alone rather than risk rewriting text that merely contains the same character.
+
 ### Automatic date-only and time-only fallback
 
 When a map contains only date fields or only time fields, `Localize.DateTime.to_string/2` delegates to `Localize.Date` or `Localize.Time` automatically.

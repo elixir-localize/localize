@@ -72,6 +72,10 @@ defmodule Localize.Time do
 
   * `:number_system` is a CLDR numbering system name (for example, `:thai`). All numeric fields render in that system; a `-u-nu-` locale extension may be used instead. The default is the locale's number system.
 
+  * `:numeric_date_separator` is a string replacing the locale's `numericDateSeparator` wherever it separates the fields of a numeric-month date, as TR35 allows an implementation to offer. `Localize.DateTime.numeric_separators/2` returns the locale's own. The default is the locale's separator.
+
+  * `:numeric_time_separator` is a string replacing the locale's `numericTimeSeparator` wherever it separates time fields. The default is the locale's separator.
+
   * `:prefer` selects between CLDR `alt` variants. Accepts an
     atom or a list of atoms in priority order. Recognised values:
     `:unicode` / `:ascii` (NBSP and curly quotes vs ASCII) and

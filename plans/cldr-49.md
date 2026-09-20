@@ -1865,13 +1865,35 @@ The rest of the public API follows the same rule. Success clauses match the shap
 
 * A `Localize.Collation` option value outside its documented set is an error where some were silently accepted.
 
+## 42. CLDR 49's numeric date and time separators were ingested but unreachable — Done
+
+Found while reviewing what CLDR 49 changes the plan does not claim. `numericDateSeparator` and `numericTimeSeparator` are listed in CLDR's own "Changes in LDML Version 49" and appear nowhere in this plan.
+
+### Gap
+
+The data was already ingested — the generic pass-through carries it to `[:dates, :calendars, <calendar>, :date_time_formats, :numeric_separators]` for every locale — but nothing read it and nothing could substitute it. TR35 offers these so an implementation can let a caller choose a separator, "by processing the patterns produced from available formats, stock formats, or interval formats".
+
+### Resolution
+
+`Localize.DateTime.numeric_separators/2` returns a locale's pair. `:numeric_date_separator` and `:numeric_time_separator` on `Localize.Date`, `Localize.Time`, `Localize.DateTime` and `Localize.Interval` substitute them; the options already reached the formatter, so the work was a token pass in `Localize.DateTime.Formatter`.
+
+Substitution is position-aware rather than textual. A literal is a separator only where the fields on both sides of it are of the same kind, because `da`, `da-GL`, `fi` and `sv-FI` spell both separators `"."` and the text alone cannot say which one a literal stands for. TR35's restriction of the date separator to numeric months (`M`, `MM`) is applied, and `decimal_separator` — the marker before fractional seconds — is a distinct token and is never touched.
+
+### Open
+
+* A separator the lexer merges with neighbouring literal text is left alone. `fi`'s `yMd` interval pattern for a differing day is `"d.–d.M.y"`, whose first literal tokenizes as `".–"`, so that endpoint keeps its separator while the other is substituted. Accepted as it stands (2026-09-20): replacing inside a literal would rewrite text that merely contains the same character, and under-replacing is the safer failure.
+
+### API impact / breaking risk
+
+* Two new options and one new function. Nothing changes unless an option is passed.
+
 ## Open questions
 
 Questions raised while drafting the plan. Most were answered by the work itself; the four that remain are recorded first.
 
 Still open:
 
-* **Item 4** — Does `Localize.Interval.to_string/3` need a parallel `:semantic` route, or do interval skeletons stay field-based? Item 31 reworked interval matching without settling this, so it stands.
+* ~~**Item 4** — Does `Localize.Interval.to_string/3` need a parallel `:semantic` route, or do interval skeletons stay field-based?~~ Not for the CLDR 49 release — interval skeletons stay field-based (2026-09-20).
 * **Item 11** — Should `localize_emoji` ship a Phoenix LiveView picker component as a follow-up package (`localize_emoji_live`)? Out of scope for the initial 0.1.0; flag for later.
 * **Item 35** — When a range pattern is inherited from a different locale level than its single date, glue or keep the inherited pattern? Waiting on CLDR-14207.
 * **Item 38** — Should root's `arab` and `arabext` symbol and format blocks from `common/main/root.xml` become a pipeline source, since CLDR JSON does not carry them? Until then `en-u-nu-arab` formats with the locale's `latn` symbols.
