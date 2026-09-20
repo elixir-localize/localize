@@ -497,7 +497,7 @@ CLDR format patterns use field symbols to represent date and time components. Ea
 | `c` | Standalone day | 2 | 02 | Mon | Monday | M |
 | `Q` | Quarter | 1 | 01 | Q1 | 1st quarter | 1 |
 
-`ddd` is CLDR 49's ordinal day of month, taken from the locale's `dayOfMonths` data for the ordinal plural category the day selects — `:yMMMddd` renders "Jul 6th, 2024" in `en` and "1er juil. 2024" in `fr`. Only some locales carry that data; the rest format the plain day, as does any pattern whose month is numeric (`M` or `MM`), where TR35 says `ddd` is ignored. A skeleton asking for `ddd` where the locale has no `ddd` format matches its `d` format instead, and the pattern's `d` is left at its own width rather than being widened.
+`ddd` is CLDR 49's ordinal day of month and is a **technical preview** — CLDR's specification for it landed pre-beta and its data is still alpha, so both the output and the surface may change before CLDR 49 is released. It is taken from the locale's `dayOfMonths` data for the ordinal plural category the day selects — `:yMMMddd` renders "Jul 6th, 2024" in `en` and "1er juil. 2024" in `fr`. Only some locales carry that data; the rest format the plain day, as does any pattern whose month is numeric (`M` or `MM`), where TR35 says `ddd` is ignored. A skeleton asking for `ddd` where the locale has no `ddd` format matches its `d` format instead, and the pattern's `d` is left at its own width rather than being widened.
 
 ### Time field symbols
 

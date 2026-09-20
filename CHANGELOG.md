@@ -36,7 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * The `g` pattern symbol formats the modified Julian day and the deprecated `l` is ignored, as TR35 specifies, where both returned a tokenize error.
 
-* Ordinal dates from CLDR 49: the `ddd` field formats the day with the locale's `dayOfMonths` pattern for its ordinal plural category, so `en` `:yMMMddd` renders "Jul 6th, 2024". Locales without that data, and patterns with a numeric month, format the plain day.
+* Ordinal dates from CLDR 49, as a **technical preview**: the `ddd` field formats the day with the locale's `dayOfMonths` pattern for its ordinal plural category, so `en` `:yMMMddd` renders "Jul 6th, 2024", while locales without that data and patterns with a numeric month format the plain day. CLDR's spec for this landed pre-beta and the data is still alpha, so the behaviour may change before CLDR 49 releases.
 
 ### Changed
 

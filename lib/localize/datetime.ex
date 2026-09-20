@@ -8,6 +8,13 @@ defmodule Localize.DateTime do
   in CLDR and described in
   [TR35](http://unicode.org/reports/tr35/tr35-dates.html).
 
+  > #### Ordinal days are a technical preview {: .warning}
+  >
+  > The `ddd` field formats the day as a date ordinal ("Jul 6th"). CLDR's
+  > specification for it landed pre-beta and its data is still alpha, so
+  > both the output and the surface may change before CLDR 49 is released.
+  > `Localize.Date` documents the detail.
+
   ## Predefined formats
 
   * `:short` — abbreviated date and time (e.g., "1/2/25, 3:04 PM").

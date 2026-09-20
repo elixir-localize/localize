@@ -11,6 +11,20 @@ defmodule Localize.Date do
   Formats are defined in CLDR and described in
   [TR35](http://unicode.org/reports/tr35/tr35-dates.html).
 
+  > #### Ordinal days are a technical preview {: .warning}
+  >
+  > CLDR 49 adds the `ddd` field, which formats the day as a date ordinal
+  > taken from the locale's `dayOfMonths` data — `:yMMMddd` renders
+  > "Jul 6th, 2024" in `en` and "1er juil. 2024" in `fr`. A locale without
+  > that data, and any pattern whose month is numeric, format the plain day.
+  >
+  > CLDR's specification for this landed pre-beta and its data is still
+  > alpha; the element shape has already been narrowed once during CLDR 49's
+  > development. Only the `abbreviated` width and the ordinal-keyed forms are
+  > read, and `Localize.Interval` cannot yet request an ordinal skeleton.
+  > Treat both the output and the surface as subject to change until CLDR 49
+  > is released.
+
   """
 
   import Kernel, except: [to_string: 1]

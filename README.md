@@ -26,7 +26,7 @@ Try it without installing anything at the [Localize playground](https://playgrou
 
 * **Minimal pairs** — CLDR's worked examples of a locale's plural, ordinal, case and gender forms, useful for showing a sample or checking that a rule selects the form it should.
 
-* **Dates and times** — format `Date`, `Time`, `DateTime`, and `NaiveDateTime` values using CLDR calendar patterns, classical skeletons, or TR35 semantic skeletons that ask for a date by meaning (`"YMDE"`, `"MDTZ"`) rather than by field.
+* **Dates and times** — format `Date`, `Time`, `DateTime`, and `NaiveDateTime` values using CLDR calendar patterns, classical skeletons, or TR35 semantic skeletons that ask for a date by meaning (`"YMDE"`, `"MDTZ"`) rather than by field. CLDR 49's ordinal days — the `ddd` field, as in "Jul 6th, 2024" — are a **technical preview**; see `Localize.Date`.
 
 * **Relative times** — format time differences as human-readable phrases like "2 hours ago" or "in 3 days".
 
