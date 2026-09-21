@@ -6,6 +6,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Make the locale downloader resilient to transient CDN failures** — `Localize.Utils.Http` treats any non-200 as final, so a CDN 500 on 2026-09-19 became a hard failure for a user. Needs retry with backoff, retryable-versus-final classification, and a look at the IPv6-first connect. Analysis in [plans/locale-downloader-resilience.md](plans/locale-downloader-resilience.md).
 
+* [ ] **Stop carrying the 554 MB CLDR source payload in the working tree** — 96% of it is JSON that `unicode-org/cldr-json` already publishes as an 80 MB release asset, and `main` tracking it while `cldr-49` ignores it is what makes switching between them error-prone. Analysis in [plans/cldr-source-payload.md](plans/cldr-source-payload.md).
+
 * [ ] **Decide what `dddd` means before 1.4.0 ships** — CLDR 49 gives `ddd` the ordinal day, but `dddd` still renders a zero-padded day ("0006") under the pre-49 numeric rule, and TR35 hints that a future `wide` `dayOfMonth` width may claim it. Settling it after release would be a breaking change.
 
 * [ ] **Report the cldr-json `scope="core"` defect upstream** — plan item 16a: cldr-json collapses display names marked `scope="core"`, so they never reach the pipeline. To report rather than work around. [plans/cldr-49.md](plans/cldr-49.md).
