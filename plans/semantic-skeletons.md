@@ -1,6 +1,6 @@
 # Semantic skeletons design plan
 
-**Status:** design draft, last updated 2026-05-05. No implementation yet.
+**Status:** draft, 2026-05-05
 
 **Owner:** Localize maintainers
 

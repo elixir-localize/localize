@@ -1,5 +1,7 @@
 # New package: localize_emoji
 
+**Status:** planning, 2026-05-18
+
 Add a new package to the localize umbrella that provides locale-aware emoji
 lookup based on CLDR annotations and annotationsDerived data.
 

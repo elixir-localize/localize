@@ -1,5 +1,7 @@
 # Product & clothing sizes in Localize — design plan
 
+**Status:** draft, 2026-05-31
+
 ## Goal
 
 Add a way to represent, convert, localise, and import **product** information — with **clothing/apparel** (and its sizing) as the first category specialisation. Clothing sizing has many competing regional standards, no single authority, and orthogonal size / colour / style axes; products in general have a globally standardised representation (GS1) that we want to import from.

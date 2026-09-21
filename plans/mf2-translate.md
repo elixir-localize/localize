@@ -1,6 +1,6 @@
 # MF2 message translation via mix task + LLM
 
-**Status:** planning, last updated 2026-05-14
+**Status:** planning, 2026-05-14
 
 **Owner:** Localize maintainers
 

@@ -1,5 +1,7 @@
 # Inflection lexicon packing — plan
 
+**Status:** implemented, 2026-09-08
+
 Date: July 27, 2026. **Post-1.0 work on the `inflection` branch**, targeting 1.1. Goal: cut the in-memory footprint of the inflection lexicons by roughly an order of magnitude by replacing the per-locale `Map` with a packed binary representation, without changing any public behaviour.
 
 ## Status: Phase 1 and Phase 2 implemented

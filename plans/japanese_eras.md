@@ -1,6 +1,6 @@
 # Japanese eras — validation and curation plan
 
-**Status:** first-pass research complete; last updated 2026-05-17
+**Status:** planning, 2026-05-17
 
 **Owner:** Localize maintainers
 

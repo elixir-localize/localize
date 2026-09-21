@@ -1,6 +1,8 @@
 # Plan: Localize.Unit ↔ Localize.Inflection integration
 
-Status: IMPLEMENTED (2026-07-24) on the `inflection` branch. All phases (0, A, B, C, D) landed; see lib/localize/unit/inflection.ex, Localize.Unit.grammatical_gender/2, the custom-registry case patterns, the MF2 grammaticalCase/inflect options and test/localize/unit/unit_inflection_test.exs. Two designs changed during implementation: the confidence gate is a guess-free engine render (Concept `guess: false`) rather than `known?/2` alone (which was too strict for Finnish compounds and is now the multi-word gate only), and the fallback noun renders through the quantify factories (upstream numeral government) with a singular-after-numeral override for az/hu/kk/tr. The prepositional/partitive/inessive/elative/illative normalizer gap ships separately on main.
+**Status:** implemented, 2026-07-24
+
+Landed on the `inflection` branch. All phases (0, A, B, C, D) landed; see lib/localize/unit/inflection.ex, Localize.Unit.grammatical_gender/2, the custom-registry case patterns, the MF2 grammaticalCase/inflect options and test/localize/unit/unit_inflection_test.exs. Two designs changed during implementation: the confidence gate is a guess-free engine render (Concept `guess: false`) rather than `known?/2` alone (which was too strict for Finnish compounds and is now the multi-word gate only), and the fallback noun renders through the quantify factories (upstream numeral government) with a singular-after-numeral override for az/hu/kk/tr. The prepositional/partitive/inessive/elative/illative normalizer gap ships separately on main.
 
 ## Goal
 

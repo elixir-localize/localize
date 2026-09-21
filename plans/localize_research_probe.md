@@ -1,6 +1,8 @@
 # `localize_research_probe` — a repeatable global localization probe
 
-**Status: plan, for review. Nothing built.** Drafted 2026-08-21.
+**Status:** draft, 2026-08-21
+
+A plan for review; nothing has been built. Drafted 2026-08-21.
 
 ## What this is for
 

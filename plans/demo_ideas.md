@@ -1,5 +1,7 @@
 # Conference demo ideas — Elixir/BEAM conference, 2027
 
+**Status:** draft, 2026-07-15
+
 The organizers cultivate a "music festival" mood: light, relaxed, creative, energetic. The brief: a new project with a very cool demo and, ideally, audience participation. Four candidates, with a recommendation at the end.
 
 ## 1. Emoji DJ — launch `localize_emoji` on stage

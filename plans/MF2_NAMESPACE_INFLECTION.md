@@ -1,5 +1,7 @@
 # MF2 namespaces + `unicode_inflection` integration — plan
 
+**Status:** planning, 2026-07-24
+
 Date: July 24, 2026 (updated). **Post-1.0 work** — nothing here is a 1.0 blocker. Goal: add MessageFormat 2 function-namespace support to Localize and use the inflection engine behind namespaced MF2 inflection functions, and — optionally, when configured — as a morphological engine under `Localize.Unit.to_string/2`.
 
 > **Direction update (Kip, July 24):** `unicode_inflection` is being **merged into Localize** in a separate session — it lands in-tree as `Localize.Inflection.*` (the supervisor already starts `Localize.Inflection.Data`, which owns the per-locale inflection dictionary ETS tables). So this is **not** an optional-dependency integration; the engine is part of Localize. The namespace + `Localize.Message` wiring below is deferred until that merge completes. Kip's namespace preference is the single letter **`l`** (with `u` aliases added later if the spec goes that way).

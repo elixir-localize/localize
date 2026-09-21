@@ -1,5 +1,7 @@
 # Inflection upstream tracking and porting notes — plan
 
+**Status:** reference, 2026-09-19
+
 Date: September 19, 2026. `Localize.Inflection` began life as the standalone `unicode_inflection` library, whose engine was ported here in `fdeb0795`. That library was never published and is being retired. This file carries forward everything it knew that the code does not record: the upstream pin and how to move it, prepared work for two open upstream PRs, and the porting lessons from all 31 languages.
 
 ## Status

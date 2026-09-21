@@ -1,6 +1,6 @@
 # E-commerce i18n: gap analysis and roadmap
 
-**Status:** research and planning, last updated 2026-05-15
+**Status:** planning, 2026-05-15
 
 **Owner:** Localize maintainers
 

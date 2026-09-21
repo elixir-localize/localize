@@ -2,7 +2,9 @@
 
 > **Process note (2026-07-06):** the repeatable update mechanics (source refresh, generation, verification gates, CDN upload, hash manifest, release order) are consolidated in [CLDR_UPDATE_INTEGRATION.md](../CLDR_UPDATE_INTEGRATION.md) — the CLDR Update Guide. This plan now carries only the CLDR-49-specific work items. Item 13 (CDN checksum manifests) shipped early in Localize 0.44.0 as the hash-manifest system; see the guide's "Hash manifest and the OTP encoding trap" section.
 
-**Status:** substantially complete, last updated 2026-09-08. 32 of the 34 index rows are closed. Two remain open: **item 11** (`localize_emoji`, not yet started) and **item 16a** (an upstream cldr-json defect, to report rather than fix).
+**Status:** in progress, 2026-09-08
+
+32 of the 34 index rows are closed. Two remain open: **item 11** (`localize_emoji`, not yet started) and **item 16a** (an upstream cldr-json defect, to report rather than fix).
 
 **Owner:** Localize maintainers
 
