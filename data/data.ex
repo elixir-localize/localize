@@ -1099,30 +1099,50 @@ defmodule Localize.Data do
   @doc """
   Returns the path to the CLDR production data directory.
 
-  Reads from the `CLDR_PRODUCTION` environment variable,
-  falling back to `../cldr_production_data` relative to the
-  project root.
+  Reads from the `CLDR_PRODUCTION` environment variable. Without it,
+  the first of the known checkout layouts that exists is used — see
+  `cldr_repo_dir/0`.
 
   """
   @spec cldr_source_dir() :: String.t()
   def cldr_source_dir do
-    System.get_env("CLDR_PRODUCTION") ||
-      Path.join([File.cwd!(), "..", "cldr_production_data"])
-      |> Path.expand()
+    System.get_env("CLDR_PRODUCTION") || default_cldr_dir("cldr_production_data")
   end
 
   @doc """
   Returns the path to the CLDR repository checkout.
 
-  Reads from the `CLDR_REPO` environment variable, falling back
-  to `../cldr_repo` relative to the project root.
+  Reads from the `CLDR_REPO` environment variable. Without it, the
+  first of these that exists is used:
+
+  * `../cldr_repo`, a sibling of this project.
+
+  * `../../cldr/cldr_repo`, the layout `scripts/build_cldr_production_data`
+    defaults to, where the CLDR checkouts sit in their own family
+    directory beside this one.
+
+  Neither existing returns the sibling path, so the caller reports a
+  path rather than `nil`.
 
   """
   @spec cldr_repo_dir() :: String.t()
   def cldr_repo_dir do
-    System.get_env("CLDR_REPO") ||
-      Path.join([File.cwd!(), "..", "cldr_repo"])
-      |> Path.expand()
+    System.get_env("CLDR_REPO") || default_cldr_dir("cldr_repo")
+  end
+
+  # The CLDR checkouts live either beside this project or in a `cldr`
+  # family directory beside it. The shell script defaults to the latter
+  # while these defaulted to the former, so a copy run that took the
+  # defaults failed partway through on a missing file.
+  defp default_cldr_dir(name) do
+    root = File.cwd!()
+
+    candidates = [
+      Path.expand(Path.join([root, "..", name])),
+      Path.expand(Path.join([root, "..", "..", "cldr", name]))
+    ]
+
+    Enum.find(candidates, hd(candidates), &File.dir?/1)
   end
 
   @doc """

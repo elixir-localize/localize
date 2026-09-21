@@ -35,10 +35,15 @@ defmodule Mix.Tasks.Localize.CopySources do
   ## Configuration
 
   * `CLDR_PRODUCTION` — path to the CLDR production data
-    directory (default: `../cldr_production_data`).
+    directory. Without it, the first of `../cldr_production_data`
+    and `../../cldr/cldr_production_data` that exists is used.
 
-  * `CLDR_REPO` — path to the Unicode CLDR repository checkout
-    (default: `../cldr_repo`).
+  * `CLDR_REPO` — path to the Unicode CLDR repository checkout.
+    Without it, the first of `../cldr_repo` and `../../cldr/cldr_repo`
+    that exists is used.
+
+  Either variable pointing at a directory that does not exist stops the
+  task before it copies anything.
 
   """
 
@@ -51,6 +56,9 @@ defmodule Mix.Tasks.Localize.CopySources do
 
     {opts, _rest} =
       OptionParser.parse!(args, strict: [supplemental: :boolean, locales: :boolean])
+
+    verify_source_dir!("CLDR_PRODUCTION", Localize.Data.cldr_source_dir())
+    verify_source_dir!("CLDR_REPO", Localize.Data.cldr_repo_dir())
 
     do_supplemental = opts[:supplemental] || (!opts[:supplemental] && !opts[:locales])
     do_locales = opts[:locales] || (!opts[:supplemental] && !opts[:locales])
@@ -81,5 +89,24 @@ defmodule Mix.Tasks.Localize.CopySources do
 
     Localize.Data.write_version()
     Mix.shell().info("Done.")
+  end
+
+  # Copying reads thousands of files, so a wrong source directory
+  # otherwise surfaces as a `File.CopyError` partway through, naming a
+  # file rather than the setting that sent it there.
+  defp verify_source_dir!(variable, path) do
+    unless File.dir?(path) do
+      Mix.raise("""
+      #{variable} directory not found at #{path}
+
+      Set #{variable} to the directory holding the CLDR sources, or place the
+      checkouts where the defaults look for them: beside this project, or in
+      a `cldr` directory beside it. For example:
+
+          #{variable}=$HOME/Development/cldr/#{Path.basename(path)} mix localize.copy_sources
+
+      `scripts/build_cldr_production_data` builds the production data.
+      """)
+    end
   end
 end
