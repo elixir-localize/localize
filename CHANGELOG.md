@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.Utils.Math.mod/2` and `amod/2` carry overloaded contracts, so integer arguments type as integer results under dialyzer. Downstream calendar arithmetic no longer types as float-possible when it flows through these functions.
+
 * `Localize.validate_territory/1` accepts territory codes that CLDR replaces rather than lists. `"UK"` is a deprecated alias for `"GB"` and was rejected, as were the alpha-3 and numeric forms `"GBR"` and `"826"`. This matters for anything mapping a ccTLD to a territory, since `.uk` is the domain while `GB` is the code.
 
 ## [1.2.0] — August 16th, 2026
