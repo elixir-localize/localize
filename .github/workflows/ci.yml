@@ -37,39 +37,43 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Elixir 1.17 — supports OTP 25–27
-          - elixir: "1.17-otp-26"
-            otp: "26"
-          - elixir: "1.17-otp-27"
-            otp: "27"
+          # Every row pins the latest patch of its Elixir minor and its OTP
+          # major, verified against the release tags. Bump every row that
+          # uses a version in the same change, never one at a time.
 
-          # # Elixir 1.18 — supports OTP 25–27
-          - elixir: "1.18-otp-26"
-            otp: "26"
-          - elixir: "1.18-otp-27"
-            otp: "27"
+          # Elixir 1.17 — supports OTP 25–27
+          - elixir: "1.17.3-otp-26"
+            otp: "26.2.5.21"
+          - elixir: "1.17.3-otp-27"
+            otp: "27.3.4.17"
+
+          # Elixir 1.18 — supports OTP 25–27
+          - elixir: "1.18.5-otp-26"
+            otp: "26.2.5.21"
+          - elixir: "1.18.5-otp-27"
+            otp: "27.3.4.17"
 
           # Elixir 1.19 — supports OTP 26–28
-          - elixir: "1.19-otp-26"
-            otp: "26"
-          - elixir: "1.19-otp-27"
-            otp: "27"
-          - elixir: "1.19-otp-28"
-            otp: "28"
+          - elixir: "1.19.6-otp-26"
+            otp: "26.2.5.21"
+          - elixir: "1.19.6-otp-27"
+            otp: "27.3.4.17"
+          - elixir: "1.19.6-otp-28"
+            otp: "28.5.0.6"
 
           # Elixir 1.20 — supports OTP 27–29
-          - elixir: "1.20.2-otp-27"
-            otp: "27"
-          - elixir: "1.20.2-otp-28"
-            otp: "28"
-          - elixir: "1.20.2-otp-29"
-            otp: "29"
+          - elixir: "1.20.4-otp-27"
+            otp: "27.3.4.17"
+          - elixir: "1.20.4-otp-28"
+            otp: "28.5.0.6"
+          - elixir: "1.20.4-otp-29"
+            otp: "29.1"
             lint: true
 
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
@@ -78,7 +82,7 @@ jobs:
           otp-version: ${{ matrix.otp }}
 
       - name: Restore dependency cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             deps
@@ -111,7 +115,7 @@ jobs:
 
       - name: Restore PLT cache
         if: matrix.lint
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: _build/dev/dialyxir_*
           key: plt-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('mix.lock') }}

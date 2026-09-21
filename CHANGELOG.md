@@ -8,11 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-* `Localize.Inflection` inflects words for grammatical constraints from CLDR's upstream inflection data — `inflect("Haus", :de, %{case: "dative", number: "plural"})` gives "Häusern" — with `pronoun/2,3` for pronoun selection and `quantify/4` for number-noun agreement. Data for 48 languages is downloaded with `mix localize.download_inflection`; without it the functions return `Localize.InflectionDataNotAvailableError`.
+* `Localize.Inflection` inflects words for grammatical constraints from CLDR's inflection data — `inflect("Haus", :de, %{case: "dative", number: "plural"})` gives "Häusern" — with `pronoun/2,3` and `quantify/4`. Data for 48 languages comes from `mix localize.download_inflection`.
 
-* MessageFormat 2 gains the `l:` function namespace — `{$w :l:inflect grammaticalCase=dative}`, `:l:pronoun` and `:l:quantify` — wrapping the inflection engine. `Localize.Message.Namespace` lets an application own a whole custom namespace with one handler, registered per call with `:namespaces` or application-wide with `:mf2_namespaces`.
+* MessageFormat 2 gains the `l:` function namespace — `{$w :l:inflect grammaticalCase=dative}`, `:l:pronoun` and `:l:quantify`. `Localize.Message.Namespace` lets an application own a custom namespace with one handler, registered with `:namespaces` or `:mf2_namespaces`.
 
-* `Localize.Unit.to_string/2` takes `:inflect`, which synthesizes a pattern through the inflection engine when the requested `:grammatical_case` has no CLDR pattern — `:safe` uses only attested dictionary paths, `:always` also guesses from suffix exemplars. `Localize.Unit.grammatical_gender/2` returns a unit's gender, from CLDR's `gender` field where present and the engine otherwise.
+* `Localize.Unit.to_string/2` takes `:inflect`, synthesizing a pattern when the requested `:grammatical_case` has no CLDR one — `:safe` uses attested paths only, `:always` also guesses from suffixes. `Localize.Unit.grammatical_gender/2` returns a unit's gender.
 
 * `Localize.Locale.LocaleDisplay.key_name/2` and `type_name/3` return a BCP 47 key's localized name and the name of one of its type values — `key_name(:ca)` is "Calendar", `type_name(:ca, :buddhist)` is "Buddhist Calendar".
 
@@ -20,49 +20,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Locale.LocaleDisplay.type_value_name/2` returns the localized name for a boolean BCP 47 keyword value: `"On"` and `"Off"` in `en`, `"Ein"` and `"Aus"` in `de`.
 
-* Date-time skeletons resolve through TR35's append items when no available format carries every requested field: the closest format that is a subset of the request is matched and the missing fields appended from the locale's `appendItems` templates. `en` has no quarter format, so `:yMMMdQ` now renders "Jul 6, 2024 (quarter: 3)" where it returned `Localize.DateTimeUnresolvedFormatError`.
+* Date-time skeletons resolve through TR35's append items when no available format carries every requested field, appending the missing ones from the locale's `appendItems` templates. `en` has no quarter format, so `:yMMMdQ` now renders "Jul 6, 2024 (quarter: 3)" where it errored.
 
 * `Localize.DateTime.Timezone.location_name/3` returns the place the generic location format names for a timezone — a country for a single-zone territory or a CLDR primary zone, a city otherwise — and `generic_location_format/2` renders it through the locale's `regionFormat`.
 
-* `Localize.DateTime.SemanticSkeleton` implements TR35 semantic skeletons — asking for a date by meaning (`"YMDE"`, `"MDTZ"`) rather than by field. `semantic/2` builds one, the `:format` option accepts it on `Localize.Date`, `Localize.Time` and `Localize.DateTime`, and the mapping to classical skeletons matches CLDR on all 240 conformance cases.
+* `Localize.DateTime.SemanticSkeleton` implements TR35 semantic skeletons — asking for a date by meaning (`"YMDE"`, `"MDTZ"`) rather than by field. `semantic/2` builds one, `:format` accepts it on `Localize.Date`, `Localize.Time` and `Localize.DateTime`, and it matches CLDR on all 240 cases.
 
-* `Localize.DateTime.Timezone.parse_offset/2` reads a fixed UTC offset from a zone string — ISO 8601 (`"+05:30"`, `"Z"`) or the localized GMT format in any locale's own spelling, prefix or suffix — inverting `gmt_format/3`. `Localize.DateTime.parse/2` uses it, so `"May 16, 2026 2:30 PM GMT+10:30"` now returns a `DateTime` with no `calendrical` present; a named zone such as `"Asia/Tokyo"` still needs one.
+* `Localize.DateTime.Timezone.parse_offset/2` reads a fixed UTC offset from a zone string — ISO 8601, or the localized GMT format in any locale's spelling — inverting `gmt_format/3`. `Localize.DateTime.parse/2` uses it, so `"May 16, 2026 2:30 PM GMT+10:30"` parses without `calendrical`.
 
-* `Localize.Date.parse/2`, `Localize.Time.parse/2` and `Localize.DateTime.parse/2` now parse natively, no longer requiring `calendrical` — `Localize.Date.parse("March 22, 2026", locale: :en)` gives `{:ok, ~D[2026-03-22]}`. `Localize.Interval.parse/2` parses a date interval from one string or a `{from, to}` pair, and `Localize.DateTime.Parser.parse/2` parses a string of unknown shape as whichever of the four it turns out to be. Parsing requires the calendar named by `:calendar` to be available at runtime — `Calendar.ISO` always is, and the other CLDR calendars come from `calendrical`.
+* `Localize.Date.parse/2`, `Localize.Time.parse/2` and `Localize.DateTime.parse/2` parse natively, no longer requiring `calendrical` — `parse("March 22, 2026", locale: :en)` gives `{:ok, ~D[2026-03-22]}`. `Localize.Interval.parse/2` and `Localize.DateTime.Parser.parse/2` join them.
 
-* `Localize.MinimalPairs` exposes CLDR's minimal pairs — the short phrases that demonstrate a locale's plural, ordinal, case and gender forms. `cardinal/1`, `ordinal/1`, `grammatical_case/1` and `grammatical_gender/1` return the phrases; `format/3` picks the one a number selects, so `format(3, :cardinal, locale: :en)` is `{:ok, "3 days"}`.
+* `Localize.MinimalPairs` exposes CLDR's minimal pairs — the phrases demonstrating a locale's plural, ordinal, case and gender forms. `cardinal/1`, `ordinal/1`, `grammatical_case/1` and `grammatical_gender/1` return them; `format/3` picks the one a number selects.
 
-* CLDR's `symbol-alt-variant` currency symbols are now ingested as `Localize.Currency.variant_symbol` and selected with `currency_symbol: :variant` or `Localize.Currency.symbol(currency, :variant)` — `:TRY` in `en` gives "TL", `:SAR` gives "⃁". This is where a newly encoded currency sign lands before CLDR promotes it to the standard symbol.
+* CLDR's `symbol-alt-variant` currency symbols are ingested as `Localize.Currency.variant_symbol` and selected with `currency_symbol: :variant` — `:TRY` in `en` gives "TL", `:SAR` gives "⃁". It is where a newly encoded currency sign lands before CLDR promotes it.
 
 * The `g` pattern symbol formats the modified Julian day and the deprecated `l` is ignored, as TR35 specifies, where both returned a tokenize error.
 
-* CLDR 49's numeric separators: `Localize.DateTime.numeric_separators/2` returns the `numericDateSeparator` and `numericTimeSeparator` a locale uses, and `:numeric_date_separator` and `:numeric_time_separator` on `Localize.Date`, `Localize.Time`, `Localize.DateTime` and `Localize.Interval` substitute them — rendering a date as "7-6-2024" or a time as "2.05 PM". The two axes stay independent even in locales such as `fi` that spell both the same.
+* CLDR 49's numeric separators: `Localize.DateTime.numeric_separators/2` returns a locale's pair, and `:numeric_date_separator` and `:numeric_time_separator` substitute them on the date, time, datetime and interval formatters. The two axes stay independent where a locale spells both alike.
 
-* Ordinal dates from CLDR 49, as a **technical preview**: the `ddd` field formats the day with the locale's `dayOfMonths` pattern for its ordinal plural category, so `en` `:yMMMddd` renders "Jul 6th, 2024", while locales without that data and patterns with a numeric month format the plain day. CLDR's spec for this landed pre-beta and the data is still alpha, so the behaviour may change before CLDR 49 releases.
+* Ordinal dates from CLDR 49, as a **technical preview**: the `ddd` field formats the day from the locale's `dayOfMonths` data, so `en` `:yMMMddd` renders "Jul 6th, 2024". CLDR's spec landed pre-beta and its data is still alpha, so the behaviour may change before release.
 
 ### Changed
 
-* **Breaking.** `Localize.DateTime.parse/2` keeps the UTC offset an ISO 8601 input carried instead of normalising the instant to UTC, so `"2026-05-23T14:30:00+05:00"` now returns `14:30:00+05:00` rather than `09:30:00Z`. Both spellings of an offset — ISO and the localized GMT format — now produce the same struct; call `DateTime.shift_zone/3` for the previous output.
+* **Breaking.** `Localize.DateTime.parse/2` keeps the UTC offset an ISO 8601 input carried rather than normalising to UTC, so `"2026-05-23T14:30:00+05:00"` now returns `14:30:00+05:00`, not `09:30:00Z`. Call `DateTime.shift_zone/3` for the previous output.
 
-* **Breaking.** The `:calendar` option is resolved before parsing, so an unavailable or unknown calendar is reported rather than silently replaced by `Calendar.ISO`. A CLDR calendar with no module installed returns `Localize.DependencyRequiredError` naming `calendrical`, and an unknown calendar returns `Localize.UnknownCalendarError`, whichever shape the input takes.
+* **Breaking.** The `:calendar` option is resolved before parsing, so an unavailable or unknown calendar is reported rather than silently replaced by `Calendar.ISO`. A missing module returns `Localize.DependencyRequiredError`, an unknown calendar `Localize.UnknownCalendarError`.
 
-* `:prefer` is now the option that selects a display-name alternate on `Localize.Language`, `Localize.Territory` and `Localize.Script` as well as `Localize.Locale.LocaleDisplay`, with `:style` still accepted as the older spelling. An unsupported value returns `{:error, %Localize.InvalidValueError{}}` rather than silently resolving to `:standard`, which retires the undocumented `prefer: :default`.
+* `:prefer` now selects a display-name alternate on `Localize.Language`, `Localize.Territory` and `Localize.Script` as well as `Localize.Locale.LocaleDisplay`, with `:style` still accepted. An unsupported value is an error rather than silently resolving to `:standard`.
 
-* **Breaking.** `Localize.DateTime.to_string/2` joins a date and a time with the locale's "at time" wrapper by default, so `en` at `:long` is now "July 6, 2024 at 2:30:45 PM" rather than "July 6, 2024, 2:30:45 PM". TR35 makes this the default for an event time; pass `style: :default` for the previous output, and note that `:medium` and `:short` are unchanged because CLDR defines the wrapper only for `:full` and `:long`.
+* **Breaking.** `Localize.DateTime.to_string/2` joins date and time with the locale's "at time" wrapper by default, so `en` at `:long` is now "July 6, 2024 at 2:30:45 PM". Pass `style: :default` for the previous output; `:medium` and `:short` are unchanged.
 
-* **Breaking for historical Japanese dates.** Pre-Meiji era start dates are now proleptic Gregorian. CLDR recorded the lunisolar proclamation date in a proleptic-Gregorian field for all 231 pre-Meiji eras, so 大化 began `[645, 6, 19]` where the proleptic Gregorian date is 645-07-20; every era before Meiji moves by days to weeks.
+* **Breaking for historical Japanese dates.** Pre-Meiji era start dates are now proleptic Gregorian. CLDR recorded the lunisolar proclamation date in a proleptic-Gregorian field for all 231 pre-Meiji eras, so every era before Meiji moves by days to weeks.
 
-* The Japanese calendar keeps all 237 eras, from 大化 (645) to 令和, generated from curated research rather than taken from upstream — CLDR 49 ships only Meiji onwards. 白鳳 is flagged `private_era: true` as a 私年号, and four entries still lacking primary-source attestation carry `unverified: true`.
+* The Japanese calendar keeps all 237 eras, from 大化 (645) to 令和, from curated research rather than upstream — CLDR 49 ships only Meiji onwards. 白鳳 is flagged `private_era: true`, and four entries lacking primary-source attestation carry `unverified: true`.
 
-* **Breaking.** Collation moves to Unicode 18 / UCA 18.0.0, from Unicode 17. Primary weights shift for every character UCA assigns ahead of an existing one, so any sort key persisted by a previous release must be regenerated — `Localize.Collation.sort_key/2` output is not comparable across Unicode versions, though `compare/3` results are unaffected for characters that existed before.
+* **Breaking.** Collation moves to Unicode 18 / UCA 18.0.0 from Unicode 17. Primary weights shift wherever UCA inserts a character ahead of an existing one, so any persisted `Localize.Collation.sort_key/2` must be regenerated; `compare/3` is unaffected for pre-existing characters.
 
-* **Breaking.** CLDR 49 no longer publishes 114 locales whose coverage is below Basic and which ICU does not ship — `aa`, `ab`, `an`, `ann`, `apc`, `ht` and 108 others — and Localize follows suit rather than carrying the divergence forward. `Localize.validate_locale/1` still returns a language tag for them, but `tag.cldr_locale_id` now resolves to a fallback — `:und` for `aa`, `:"fr-HT"` for `ht`, where each previously resolved to itself — and formatting succeeds against that data rather than erroring.
+* **Breaking.** CLDR 49 no longer publishes 114 locales below Basic coverage — `aa`, `ab`, `an`, `ht` and 110 others — and Localize follows suit. `tag.cldr_locale_id` now resolves to a fallback (`:und` for `aa`) and formatting succeeds against that data rather than erroring.
 
-* **Breaking.** `Localize.validate_territory/1` returns the canonical territory code. Both forms may be supplied: `validate_territory("AN")` was `{:ok, :AN}` and is now `{:ok, :CW}`, as for `SU` (`:RU`), `DD` (`:DE`), `CS` and `YU` (both `:RS`), bringing it into line with `validate_locale/1`.
+* **Breaking.** A pattern or skeleton asking for a field the value does not hold returns `{:error, %Localize.DateTimeInvalidInputError{}}` naming the missing fields, where it rendered blank — `format: :yMMMd` on `%{year: 2026, month: 6}` gave "Jun , 2026".
 
-* **Breaking.** A pattern or skeleton that asks for a field the value does not hold returns `{:error, %Localize.DateTimeInvalidInputError{}}` naming the missing fields, where the field rendered blank — `Localize.Date.to_string(%{year: 2026, month: 6}, format: :yMMMd)` gave "Jun , 2026". Zone symbols keep TR35's fallbacks and still render empty for a zoneless value.
-
-* **Breaking.** A standard format on a partial date derives its skeleton from the fields present, with the month as wide as the format asks, where it returned `Localize.DateTimeUnresolvedFormatError`. Without a format the `:medium` default now applies too, so `%{year: 2024, month: 6}` renders "Jun 2024" rather than "6/2024".
+* **Breaking.** A standard format on a partial date derives its skeleton from the fields present, with the month as wide as the format asks, where it errored. Without a format the `:medium` default applies, so `%{year: 2024, month: 6}` renders "Jun 2024" rather than "6/2024".
 
 * **Breaking.** The numeric `e` and `c` weekday fields count from the locale's first day of the week, as TR35 specifies, so a Saturday is 7 in `en` and 6 in `de` where both gave 6. `cc` is one digit, like `c`, rather than zero-padded.
 
@@ -70,17 +68,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.DateTime.Relative.to_string/2` and `to_parts/2` return `{:error, %Localize.InvalidValueError{}}` for a value that is not a number, date, time or datetime, and for options that are not a keyword list, rather than raising `FunctionClauseError`.
 
-* `Localize.DateTime.Relative.to_string/2` and `to_parts/2` measure a value against a `:relative_to` of another type where the conversion is unambiguous, such as a `Date` against a `DateTime`, and return `Localize.InvalidValueError` for one that cannot be compared. The baseline was silently replaced by the current time.
+* `Localize.DateTime.Relative.to_string/2` and `to_parts/2` measure a value against a `:relative_to` of another type where the conversion is unambiguous, and return `Localize.InvalidValueError` otherwise. The baseline was silently replaced by the current time.
 
-* `Localize.DateTime.Relative.to_string/2` and `to_parts/2` format the number for the locale ("in 1,000 days", with `:group` and `:fraction` parts as in ECMA-402) and select the pattern by the plural category of the number as displayed. A float with `:unit` is a count of that unit ("in 1.5 hours"), where it was read as seconds.
+* `Localize.DateTime.Relative.to_string/2` and `to_parts/2` format the number for the locale ("in 1,000 days", with ECMA-402 parts) and select the pattern by the displayed number's plural category. A float with `:unit` is a count of that unit, where it was read as seconds.
 
 * `Localize.Unit.to_string/2` selects the plural form of a rounded number by the digits the formatter displays, so `hr` 0.0045 hours is "0,004 sata" rather than "0,004 sati".
 
-* `Localize.Number` formats in a numbering system other than the locale's default with the locale's symbols for that system, or its `latn` symbols where CLDR's root aliases them, so `fa-u-nu-latn` is "1,000.5" rather than "1٬000٫5". Locale data now carries every numbering system a locale defines symbols and formats for.
+* `Localize.Number` formats in a non-default numbering system with that system's symbols, or `latn` where CLDR's root aliases them, so `fa-u-nu-latn` is "1,000.5" not "1٬000٫5". Locale data now carries every numbering system a locale defines.
 
-* `Localize.Message.format/3` selects a plural or ordinal variant by the number as its `:number`, `:integer`, `:offset` or `:percent` function displays it, so Russian `{2 :number minimumFractionDigits=1}` is `other` and 100.0 is `many`. An `:integer` operand given as a `Decimal` formats instead of raising `ArgumentError`.
+* `Localize.Message.format/3` selects a plural or ordinal variant by the number as its `:number`, `:integer`, `:offset` or `:percent` function displays it, so Russian `{2 :number minimumFractionDigits=1}` is `other`. An `:integer` operand given as a `Decimal` formats rather than raising.
 
-* `Localize.Time`, `Localize.DateTime` and `Localize.Interval` render a `-u-hc-h11` or `-u-hc-h24` hour cycle with the `K` or `k` hour ("0:30 AM", "24:30") and resolve `j` in a time interval skeleton. Under `-u-hc-`, a skeleton's explicit `h` or `H` now keeps the hour cycle it names, as in ICU, where it took the override's.
+* `Localize.Time`, `Localize.DateTime` and `Localize.Interval` render a `-u-hc-h11` or `-u-hc-h24` cycle with the `K` or `k` hour ("0:30 AM", "24:30") and resolve `j` in an interval skeleton. Under `-u-hc-`, an explicit `h` or `H` keeps the cycle it names, as in ICU.
 
 * `Localize.Time.parse/2` and `Localize.DateTime.parse/2` read a time in the locale's `-u-hc-` hour cycle ("24:30" under h24) and resolve a flexible day period's hour by CLDR's day period rules. Japanese "夜中0:30" is 00:30, where it parsed as 12:30.
 
@@ -88,9 +86,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.to_string/2` keeps the whitespace a pattern ends with, as ICU does and as `to_parts/2` already did. A `:wrapper` function receives a quoted pattern character tagged `:literal`, which it never received.
 
-* `Localize.Date.parse/2`, `Localize.DateTime.parse/2` and `Localize.Date.parse_range/2` parse a date with an era, whose patterns never compiled, and a date whose weekday does not lead its pattern or is written in another width. Stand-alone and format month names are both accepted, and a month abbreviation that is also a weekday name (es "mar") is no longer stripped as a weekday.
+* `Localize.Date.parse/2`, `Localize.DateTime.parse/2` and `Localize.Date.parse_range/2` parse a date with an era, whose patterns never compiled, and one whose weekday does not lead its pattern. A month abbreviation that is also a weekday name (es "mar") is no longer stripped.
 
-* Time skeletons resolve day periods as ICU does: `ha` renders "h a" and `hb` "h b" where both rendered a flexible day period, and an `H` or `k` skeleton drops a requested day period. `J` drops the day period as TR35 requires, `C` ignores a `-u-hc-` override, and CLDR's locale-specific hour data (`hi_IN` allows `hB`) is used.
+* Time skeletons resolve day periods as ICU does: `ha` renders "h a" and `hb` "h b" where both gave a flexible day period, and an `H` or `k` skeleton drops a requested one. `J` drops it as TR35 requires and `C` ignores a `-u-hc-` override.
 
 * `Localize.DateTime.to_string/2` applies a `-u-hc-` hour cycle to a skeleton that matches an available format exactly or takes append items, and renders an `X` or `x` zone field requested by a skeleton, which it dropped.
 
@@ -98,65 +96,65 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.resolve_currencies/2` and `resolve_currency/2` match a currency name or code only as a whole word, so "100 US dolars" no longer resolves to the Argentine peso from the "ars" it ends with.
 
-* `Localize.Number.to_string/2` rounds significant digits and scientific mantissas half-even, or with the `:rounding_mode` given, where it rounded half-up. A scientific mantissa shows the significant digits TR35 derives from its pattern, so "##0.##E0" renders 12345 as "12.3E3" where it rendered "12.345E3".
+* `Localize.Number.to_string/2` rounds significant digits and scientific mantissas half-even, or by `:rounding_mode`, where it rounded half-up. A mantissa shows the digits TR35 derives from its pattern, so "##0.##E0" renders 12345 as "12.3E3".
 
-* Number patterns give each currency sign width its TR35 meaning — `¤¤` the ISO code, `¤¤¤` the plural display name, `¤¤¤¤¤` the narrow symbol and any other width U+FFFD — and a currency pattern takes the currency's decimal places and CLDR's currency spacing, so `¤#,##0.00` formats 1234.56 Swiss francs as "CHF 1,234.56" and yen as "¥1,235". The `:wrapper` option decides currency spacing on the symbol rather than on its markup.
+* Number patterns give each currency sign width its TR35 meaning — `¤¤` the ISO code, `¤¤¤` the plural name, `¤¤¤¤¤` the narrow symbol — and take the currency's decimal places and CLDR's currency spacing, so `¤#,##0.00` gives "CHF 1,234.56" and "¥1,235".
 
 * `Localize.Territory.territory_from_locale/1` takes the territory of a language tag struct that has none from its likely subtags, so a parsed "fr" gives `:FR` where it gave the default locale's `:US`.
 
-* MessageFormat 2 literals keep all their code points, as TR35 requires, where the parser normalized them to NFC, and keys still match a selector's value in NFC. `Localize.Message.Print.to_string/2` and the highlighter quote a literal that is not an MF2 name, such as one containing U+2000 or starting with a digit, so a canonical message parses back unchanged.
+* MessageFormat 2 literals keep all their code points, as TR35 requires, where the parser normalized them to NFC; keys still match a selector's value in NFC. `Localize.Message.Print.to_string/2` quotes a literal that is not an MF2 name, so a canonical message parses back unchanged.
 
 * `mix localize.download_locales` rejects a name that is not a CLDR locale rather than turning it into an atom, and unit preference lookups no longer create atoms from the prefixes of a usage.
 
-* Functions that take a `Localize.LanguageTag`, including `Localize.validate_locale/1` and every `:locale` option, no longer raise on a struct built by hand with fields of the wrong shape: a `nil` list or map is empty, a subtag given as a string is its atom, and anything else returns `Localize.InvalidLocaleError`. `Localize.Number.resolve_currency/2` reports an invalid `:fuzzy` value or locale as itself rather than as an unknown currency.
+* Functions taking a `Localize.LanguageTag`, including every `:locale` option, no longer raise on a hand-built struct with wrong-shaped fields: a `nil` list or map is empty, a string subtag is its atom, and anything else returns `Localize.InvalidLocaleError`.
 
 * Interpolating a parsed `Localize.LanguageTag` into a string gives its BCP 47 form, where it raised because the tag had no canonical id yet.
 
-* Public functions across the library return `{:error, exception}`, usually `Localize.InvalidValueError`, for options that are not a keyword list and for arguments or option values of the wrong type, where they raised `FunctionClauseError`, `ArgumentError`, `KeyError` or `Protocol.UndefinedError`; predicates answer `false`. `Localize.Collation` option values outside their documented sets are now an error, and `Localize.Number.to_ratio_string/2` formats a fraction smaller than `:epsilon` rather than raising `Enum.EmptyError`.
+* Public functions return `{:error, exception}` — usually `Localize.InvalidValueError` — for options that are not a keyword list and for arguments or option values of the wrong type, where they raised; predicates answer `false`.
 
-* `Localize.DateTime.to_string/2` and `to_parts/2` keep both halves of a map holding some date and some time fields, joined through the locale's wrapper under `:style`, where `%{year: 2026, month: 6, hour: 14}` rendered "6/2026". A partial value given a skeleton or pattern is formatted with it, where "Jun 15, 2026,  , " came back.
+* `Localize.DateTime.to_string/2` and `to_parts/2` keep both halves of a map holding some date and some time fields, joined through the locale's wrapper, where `%{year: 2026, month: 6, hour: 14}` rendered "6/2026". A partial value given a skeleton is formatted with it.
 
 * Partial times keep the locale's hour cycle, so `%{hour: 14, minute: 30}` is "14:30" in `de` rather than "2:30 PM". A `-u-hc-` override now applies to partial times and throughout `Localize.DateTime`, which ignored it.
 
-* `:date_format` and `:time_format` resolve a skeleton through TR35 skeleton matching and accept a semantic skeleton, where a skeleton missing from `availableFormats` returned `Localize.DateTimeUnresolvedFormatError` and a semantic skeleton raised `FunctionClauseError`. A skeleton date format joins through the locale's date-time pattern at the length TR35 derives from its fields rather than an English comma, so `ja` renders "2026年6月15日 14:30".
+* `:date_format` and `:time_format` resolve a skeleton through TR35 matching and accept a semantic skeleton, where a missing skeleton errored and a semantic one raised. A skeleton date format joins through the locale's date-time pattern, so `ja` renders "2026年6月15日 14:30".
 
 * A skeleton whose date and time halves no single available format covers joins them at the length TR35 derives from the requested date fields rather than always at `:medium`, bringing CLDR's skeleton conformance cases to 86 of 90.
 
 * A semantic skeleton passed as `:format` for a partial date or time is used rather than replaced by a skeleton derived from the fields present.
 
-* `S` has exactly as many digits as the field has letters, as TR35 specifies, where it stopped at six and at the value's precision, so `ss.SSS` on 45.9 seconds is "45.900" rather than "45.9". `U` without cyclic year names formats as `y`, making `UU` the two-digit year, and `YYYYYY` pads rather than rendering empty.
+* `S` has exactly as many digits as the field has letters, as TR35 specifies, where it stopped at six and at the value's precision, so `ss.SSS` on 45.9 seconds is "45.900". `U` without cyclic year names formats as `y`, and `YYYYYY` pads rather than rendering empty.
 
-* Pattern fields wider than TR35's table follow ICU instead of rendering empty or returning an error: numeric fields zero-pad to the width and name fields fall back to a defined width, so `LLLLLL` is "000007" and `GGGGGG` "AD". Where ICU has no output, as for `OO` or `XXXXXX`, the widest defined form is used.
+* Pattern fields wider than TR35's table follow ICU rather than rendering empty or erroring: numeric fields zero-pad and name fields fall back to a defined width, so `LLLLLL` is "000007" and `GGGGGG` "AD". Where ICU has no output the widest defined form is used.
 
 * The short localized GMT format drops the hour's leading zero when the offset has minutes, as TR35 specifies, so `O` for India is "GMT+5:30" rather than "GMT+05:30".
 
-* `Localize.Interval` keeps both years when the endpoints fall in different years though the fields show none, as ICU does, so `fields: :month_and_day` renders "Dec 30, 2025 – Jan 2, 2026" rather than "Dec 30 – Jan 2". Endpoints that differ in no field shown format as one value in the requested fields, as TR35 specifies, where `:year_and_month` gave "Jul – Jul 2024" and equal endpoints the default date format.
+* `Localize.Interval` keeps both years when the endpoints fall in different years though the fields show none, as ICU does, so `fields: :month_and_day` gives "Dec 30, 2025 – Jan 2, 2026". Endpoints differing in no field shown format as one value, where `:year_and_month` gave "Jul – Jul 2024".
 
-* Time intervals across noon take CLDR's day-period pattern, "10:00 AM – 2:00 PM" rather than "10:00 – 2:00 PM", an `:h` interval within one hour formats one time instead of returning `:no_pattern`, and a skeleton the interval table has no item for, such as `:hms`, joins both times through the fallback pattern instead of returning `:no_format`.
+* Time intervals across noon take CLDR's day-period pattern, "10:00 AM – 2:00 PM" rather than "10:00 – 2:00 PM", and an `:h` interval within one hour formats a single time. A skeleton the interval table lacks, such as `:hms`, joins both times through the fallback pattern.
 
 * Same-day datetime intervals join the date, shown once, to CLDR's time interval pattern as TR35 specifies, so `en` `:short` is "7/6/24, 10:00 – 10:30 AM" rather than "7/6/24, 10:00 AM – 10:30 AM". Datetimes differing only in seconds format as an interval at `:medium` rather than as one value.
 
-* Resolving a date-time skeleton no longer creates atoms. `Localize.DateTime.Format.Match.split_fractional_seconds/1` interned the skeleton remainder left after stripping the fractional-second field, which grew the atom table on every distinct skeleton; it now resolves against existing atoms only, with identical output.
+* Resolving a date-time skeleton no longer creates atoms. `Localize.DateTime.Format.Match.split_fractional_seconds/1` interned the remainder left after stripping the fractional-second field; it now resolves against existing atoms only, with identical output.
 
-* Date intervals use the locale's interval pattern where CLDR ships one whose fields match, adjusting it to the requested widths, rather than formatting both endpoints in full and gluing them — `de` at `:medium` renders "03.–05.05.2026" instead of "03.05.2026 – 05.05.2026". TR35's closest-match step was being skipped, which affected 1,814 of 2,628 `(locale, style)` pairs.
+* Date intervals use the locale's interval pattern where CLDR ships a matching one, adjusted to the requested widths, rather than gluing two full endpoints — `de` at `:medium` renders "03.–05.05.2026". TR35's closest-match step was skipped, affecting 1,814 of 2,628 pairs.
 
 * `prefer: :menu` on `Localize.Language.display_name/2` composes CLDR's `menu="core"` and `menu="extension"` halves where a locale ships no `alt="menu"` string of its own, so `"ku"` renders "Kurdish (Kurmanji)" rather than the unqualified "Kurdish". Affects 571 language entries across 446 locales.
 
 * A display name with no entry for the requested preference and none for `:standard` falls back to a stable key rather than whichever the map yielded first, which depended on atom creation order in the VM. Same cause as the skeleton-matching fix above.
 
-* Skeleton matching is deterministic. Where two formats sit the same distance from a skeleton the winner was decided by the formats map's iteration order, and because Erlang hashes atom keys by internal reference that order depended on when those atoms were created — so the same skeleton could resolve to a different pattern between runs.
+* Skeleton matching is deterministic. Where two formats sat the same distance from a skeleton the winner came from the formats map's iteration order, which depends on when the atom keys were created — so one skeleton could resolve differently between runs.
 
 * A matched format keeps a field width the locale states deliberately. TR35 leaves a pattern field alone where the matched `availableFormats` id already carries the requested width, so `ru`'s `yMd` renders `dd.MM.y` rather than being narrowed to `d.M.y`.
 
-* A skeleton combining a date and a time adjusts both halves' field widths to the request. It adjusted neither, so a requested timezone symbol was replaced by whichever the matched format carried — `:MMMMdjmsO` rendered "GMT" where `O` gives "GMT+0" — and every Gregorian case in CLDR's datetime conformance fixture now passes, up from 47 of 88.
+* A skeleton combining a date and a time adjusts both halves' field widths to the request, where it adjusted neither and a requested zone symbol took the matched format's — `:MMMMdjmsO` gave "GMT" not "GMT+0". Every Gregorian conformance case now passes, from 47 of 88.
 
-* Unit preferences read the `-u-ms` and `-u-mu` locale keywords. A measurement system resolves to the preferences of a territory that uses it and a measurement unit overrides the result outright, in TR35's order `mu > ms > rg > (likely) region`: `en-u-rg-uszzzz-ms-metric` gives celsius and `en-US-u-rg-uszzzz-ms-uksystem` imperial gallons.
+* Unit preferences read the `-u-ms` and `-u-mu` keywords, in TR35's order `mu > ms > rg > (likely) region`: `en-u-rg-uszzzz-ms-metric` gives celsius and `en-US-u-rg-uszzzz-ms-uksystem` imperial gallons.
 
-* A unit whose quantity CLDR ships no preferences for falls back to base units instead of returning an error: `Localize.Unit.Preference.preferred_units/2` on `ampere` gives `[:ampere]` and on `candela-per-cubic-foot` gives `["candela-per-cubic-meter"]`. A derived compound base unit comes back as a CLDR identifier string, since the set a caller can ask for is unbounded and interning it would be an atom-table vector.
+* A unit whose quantity CLDR ships no preferences for falls back to base units rather than erroring: `preferred_units/2` on `ampere` gives `[:ampere]`, on `candela-per-cubic-foot` `["candela-per-cubic-meter"]`. Derived compound base units come back as strings, not atoms.
 
 * A unit usage supplied as a string resolves instead of silently falling back to `:default`. Every usage CLDR defines now has an interned atom — `Localize.Unit.Preference.known_usages/0` lists them — so `usage: "fluid"` returns imperial gallons for `en-GB` where it returned cubic inches.
 
-* An unknown timezone offset renders the locale's `gmtUnknownFormat` — `"GMT+?"`, and translated where the locale translates it — instead of a hard-coded English `"GMT"`. CLDR removed `gmtZeroFormat` from the spec, so the reader for it had been resolving to nothing in all 657 locales and every zero or absent offset fell through to that literal.
+* An unknown timezone offset renders the locale's `gmtUnknownFormat` — `"GMT+?"`, translated where the locale translates it — instead of a hard-coded English `"GMT"`. CLDR removed `gmtZeroFormat`, so its reader resolved to nothing in all 657 locales.
 
 * A zero offset is spelled out wherever a localized GMT format is used: `"GMT+00:00"` long and `"GMT+0"` short, matching TR35's own examples and CLDR's conformance data. `Localize.DateTime.Timezone.gmt_format/3` drops its `:zero_format` option, which selected between the two.
 
@@ -164,39 +162,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * RBNF matches ICU on all 52,691 conformance cases, from 52,685. Optional rule text now renders unconditionally where ICU would not have split the rule in two — its base value must be positive and an even multiple of its divisor — so Afrikaans spells the year 1100 "elf honderd nul".
 
-* RBNF rule selection implements ICU's rollback rule: a rule that takes a remainder is passed over for the one below it when the number divides exactly but the rule's own base value does not. Bulgarian's financial cardinals no longer spell a trailing "и нула" — "and zero" — for a round group.
+* RBNF rule selection implements ICU's rollback rule: a rule taking a remainder is passed over for the one below when the number divides exactly but the rule's own base value does not. Bulgarian's financial cardinals no longer spell a trailing "и нула".
 
-* The generic location format names a country where TR35 requires one — a territory holding a single timezone, or a zone CLDR lists in `primaryZones` — so `VVVV` renders `Europe/Rome` as `"Italy Time"` and `Europe/Berlin` as `"Germany Time"` instead of naming their cities. The `primaryZones` list is new supplemental data, read from `metaZones.xml` because `metaZones.json` does not carry it.
+* The generic location format names a country where TR35 requires one — a single-zone territory, or a zone in `primaryZones` — so `VVVV` renders `Europe/Rome` as "Italy Time". `primaryZones` is new supplemental data, read from `metaZones.xml` because the JSON omits it.
 
 * `v` and `vvvv` fall back to the generic location format before the localized GMT format, which TR35 specifies for the generic symbols only, so `Asia/Kolkata` is `"India Time"` rather than `"GMT+05:30"`. The specific symbols `z` and `zzzz` still fall straight through to GMT.
 
-* Timezone format symbols follow TR35. `V` is the BCP 47 short zone identifier (`"usnyc"`), `VVV` the exemplar city (`"New York"`) and `VVVV` the generic location format (`"New York Time"`), where all three previously returned the IANA name or a GMT offset; an alias such as `US/Eastern` now resolves to its canonical zone's city.
+* Timezone format symbols follow TR35: `V` is the BCP 47 short identifier ("usnyc"), `VVV` the exemplar city ("New York") and `VVVV` the generic location format, where all three returned the IANA name or a GMT offset. An alias like `US/Eastern` resolves to its canonical zone.
 
 * `ZZZZ` spells a zero offset as `"GMT+00:00"`, matching `OOOO` as TR35 requires of the localized GMT formats. A metazone with no daylight name also resolves a generic request to its standard name, so `vvvv` is `"Greenwich Mean Time"` for `Etc/GMT` and `"India Standard Time"` for `Asia/Kolkata`.
 
-* Skeleton formats honour the field widths asked for. TR35 matches a skeleton to the closest available format and then adjusts its field widths to the request; only the first step was happening, so in `Localize.Date`, `Localize.Time` and `Localize.DateTime` alike `format: :MMMM` rendered "Jul" in `en` where the literal pattern `"MMMM"` rendered "July".
+* Skeleton formats honour the field widths asked for. TR35 matches a skeleton then adjusts its widths to the request; only the first step happened, so `format: :MMMM` rendered "Jul" in `en` where the literal pattern `"MMMM"` rendered "July".
 
-* Decimal formatting conforms to CLDR 49's new decimal test suite for 8,857 of 8,925 cases, from 7,096. `-0.0` keeps its sign; an explicit `:max_fractional_digits` now applies to a scientific mantissa; and compact formatting keeps two significant digits below 1 (`0.00831765` is `0.0083`, not `0`), re-picks its magnitude when rounding carries (`999.9` is `1K`, not `1,000`), and groups on ICU's MIN2 rule.
+* Decimal formatting conforms to CLDR 49's new suite for 8,857 of 8,925 cases, from 7,096. `-0.0` keeps its sign, `:max_fractional_digits` applies to a scientific mantissa, and compact formatting keeps two significant digits below 1 and groups on ICU's MIN2 rule.
 
-* RBNF alternation branches are evaluated against the number rather than the remainder. A branch carrying a quotient substitution saw 0, so Russian's 201 spelled "нольсти" instead of "двести"; Ukrainian, Polish, Slovak, Czech, Slovenian and Lithuanian ordinals were affected the same way, and some inputs raised rather than formatting.
+* RBNF alternation branches are evaluated against the number rather than the remainder. A branch carrying a quotient substitution saw 0, so Russian's 201 spelled "нольсти" instead of "двести"; Ukrainian, Polish, Czech and others were affected the same way.
 
-* RBNF conformance against CLDR 49's new suite: 52,685 of 52,691 cases, from 49,348. Fraction digits are spelled with the current rule set rather than `spellout_numbering`, so case-marked and gendered sets carry into the fraction; a fraction rule's bracketed integer part is no longer dropped for non-integers; the plural in a fraction-with-rule substitution selects on the numerator; `x,x` is chosen over `x.x` in comma locales; the `>>>` preceding-rule chain is built in full; and the exact-multiple rule of a `100`/`101`-style pair is selected when the remainder is zero.
+* RBNF conformance against CLDR 49's new suite: 52,685 of 52,691 cases, from 49,348. Fraction digits now spell with the current rule set, a fraction rule's bracketed integer part survives, plural selection uses the numerator, and the `>>>` preceding-rule chain is built in full.
 
 * `root` is accepted wherever `und` is. TR35 makes it a synonym for `und`, but CLDR's alias data does not carry it, so `Localize.validate_locale("root")` failed while `Localize.Locale.cldr_locale_id_from("root")` succeeded.
 
-* Compact number formatting in Swahili was wrong by a factor of ten, and of a thousand for some ranges. The compact divisor is derived from the zero count in the pattern, which was counted across the negative subpattern as well — `elfu 000;elfu -000` read as six zeros rather than three, rendering 123,456 as "elfu 123456".
+* Compact number formatting in Swahili was wrong by a factor of ten, and of a thousand for some ranges. The compact divisor counts zeros in the pattern, which included the negative subpattern — `elfu 000;elfu -000` read as six zeros rather than three.
 
 * Plural selection now keeps a `Decimal`'s fraction operands. `pluralize/3` converted to a float first, and TR35 selects on the visible fraction digits and their value, so `1.2` was treated as "1.200" and chose `other` where Serbian, Croatian and Bosnian require `few`.
 
 * `Localize.Number.to_string/2` no longer raises on a very small float with a large `:max_fractional_digits` — `to_string(1.0e-308, max_fractional_digits: 400)` raised `ArithmeticError` because reconstructing the value divided by a power of ten outside the double range.
 
-* A locale that Localize holds data for now resolves to itself. `resolve_cldr_locale/1` asked the language matcher which known locale was closest even for an exact identity, and an equally-scored neighbour could win the tie: 25 of 657 locales read another locale's data, `ar-EG` (which formats in `arab` digits) resolving to `ar` (which uses `latn`) among them.
+* A locale that Localize holds data for now resolves to itself. `resolve_cldr_locale/1` asked the language matcher even for an exact identity, so 25 of 657 locales read another locale's data — `ar-EG`, which formats in `arab` digits, resolved to `ar`, which uses `latn`.
 
-* Full UCA conformance restored: all 210,155 pairs in both CLDR collation conformance files now sort correctly, where 637 (NON_IGNORABLE) and 536 (SHIFTED) failed. `FractionalUCA.txt` and the two UCD property files had been vendored by hand and left at Unicode 17 while the conformance fixtures refreshed with each CLDR update; `mix localize.copy_sources` now copies the UCA table and `generate_supplemental` rebuilds the collation table from it.
+* Full UCA conformance restored: all 210,155 pairs in both CLDR collation conformance files sort correctly, where 637 and 536 failed. `FractionalUCA.txt` and the UCD property files had been hand-vendored at Unicode 17 and are now copied by the pipeline.
 
-* `Localize.Locale.LocaleDisplay.display_name/2` renders a locale in `root` (or `und`) as bare subtag codes per TR35's code fallback — `display_name("nl-BE", locale: :root)` is `"nl (BE)"`, where it previously answered in English. `root` is now accepted wherever `und` is, and `cldr_locale_id_from("und")` resolves to `:und` rather than `:en`, agreeing with the atom form.
+* `Localize.Locale.LocaleDisplay.display_name/2` renders a locale in `root` (or `und`) as bare subtag codes per TR35's code fallback — `display_name("nl-BE", locale: :root)` is `"nl (BE)"`, where it answered in English. `root` is now accepted wherever `und` is.
 
-* `Localize.validate_territory/1` accepts territory codes that CLDR replaces rather than lists. `"UK"` is a deprecated alias for `"GB"` and was rejected, as were the alpha-3 and numeric forms `"GBR"` and `"826"` — which matters for anything mapping a ccTLD to a territory, since `.uk` is the domain while `GB` is the code.
+## [1.3.0] — September 21st, 2026
+
+### Added
+
+* `Localize.Date.parse/2`, `Localize.Time.parse/2` and `Localize.DateTime.parse/2` parse a localized date, time or datetime string back to a value. They delegate to `calendrical`, which the application must add as a dependency.
+
+* `Localize.DependencyRequiredError` is returned when an operation needs a companion package the application does not depend on, naming the `:package` and the `:operation`. It is what the new `parse/2` functions return when `calendrical` is absent.
+
+### Changed
+
+* **Breaking.** `Localize.validate_territory/1` returns the canonical territory code, so `validate_territory("AN")` is now `{:ok, :CW}` where it was `{:ok, :AN}` — likewise `SU` to `:RU`, `DD` to `:DE`, and `CS` and `YU` both to `:RS`. This matches `validate_locale/1`, which already resolved them.
+
+### Fixed
+
+* `Localize.Utils.Math.mod/2` and `amod/2` carry overloaded contracts, so integer arguments type as integer results under dialyzer. Downstream calendar arithmetic no longer types as float-possible when it flows through these functions.
+
+* `Localize.validate_territory/1` accepts territory codes that CLDR replaces rather than lists: `"UK"`, and the alpha-3 and numeric forms `"GBR"` and `"826"`, were all rejected and now resolve to `:GB`. This matters for anything mapping a ccTLD to a territory, since `.uk` is the domain while `GB` is the code.
 
 * `Localize.Interval.to_string/3` and `to_parts/3` no longer raise `FunctionClauseError` for `en-CA` with `fields: :month_and_day, format: :short`. CLDR publishes an `alt="variant"` interval pattern for en-CA, and it is now resolved as a single date's pattern is, honouring `:prefer`.
 
