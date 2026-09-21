@@ -376,7 +376,11 @@ defmodule Localize.Utils.Math do
 
   ### Returns
 
-  * The modulo result in the same type as the input.
+  * An integer when both arguments are integers.
+
+  * A float when either argument is a float.
+
+  * A `t:Decimal.t/0` when `number` is a Decimal.
 
   ### Examples
 
@@ -445,7 +449,11 @@ defmodule Localize.Utils.Math do
 
   ### Returns
 
-  * The adjusted modulo result.
+  * The modulo of `x` and `y`, typed as `mod/2` returns it, except when
+    that modulo is zero.
+
+  * `y` itself when the modulo is zero, so a float `x` with an integer `y`
+    returns an integer in that case.
 
   ### Examples
 
