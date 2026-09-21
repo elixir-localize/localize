@@ -48,6 +48,7 @@ bench_unit_parser.sh
 
 # Claude
 CLAUDE.md
+CLAUDE.local.md
 .claude/
 
 # private
