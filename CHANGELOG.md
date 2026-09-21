@@ -6,15 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [1.3.0] — September 21st, 2026
 
+### Added
+
+* `Localize.Date.parse/2`, `Localize.Time.parse/2` and `Localize.DateTime.parse/2` parse a localized date, time or datetime string back to a value. They delegate to `calendrical`, which the application must add as a dependency.
+
+* `Localize.DependencyRequiredError` is returned when an operation needs a companion package the application does not depend on, naming the `:package` and the `:operation`. It is what the new `parse/2` functions return when `calendrical` is absent.
+
 ### Changed
 
-* **Breaking.** `Localize.validate_territory/1` returns the canonical territory code. CLDR deprecates and replaces some codes, and both forms may be supplied: `validate_territory("AN")` was `{:ok, :AN}` and is now `{:ok, :CW}`, and the same applies to `SU` (now `:RU`), `DD` (now `:DE`), `CS` and `YU` (both now `:RS`). `validate_locale/1` already resolved these — `en-AN` has always had a territory of `:CW` — so the two functions now agree.
+* **Breaking.** `Localize.validate_territory/1` returns the canonical territory code, so `validate_territory("AN")` is now `{:ok, :CW}` where it was `{:ok, :AN}` — likewise `SU` to `:RU`, `DD` to `:DE`, and `CS` and `YU` both to `:RS`. This matches `validate_locale/1`, which already resolved them.
 
 ### Fixed
 
 * `Localize.Utils.Math.mod/2` and `amod/2` carry overloaded contracts, so integer arguments type as integer results under dialyzer. Downstream calendar arithmetic no longer types as float-possible when it flows through these functions.
 
-* `Localize.validate_territory/1` accepts territory codes that CLDR replaces rather than lists. `"UK"` is a deprecated alias for `"GB"` and was rejected, as were the alpha-3 and numeric forms `"GBR"` and `"826"`. This matters for anything mapping a ccTLD to a territory, since `.uk` is the domain while `GB` is the code.
+* `Localize.validate_territory/1` accepts territory codes that CLDR replaces rather than lists: `"UK"`, and the alpha-3 and numeric forms `"GBR"` and `"826"`, were all rejected and now resolve to `:GB`. This matters for anything mapping a ccTLD to a territory, since `.uk` is the domain while `GB` is the code.
 
 * `Localize.Interval.to_string/3` and `to_parts/3` no longer raise `FunctionClauseError` for `en-CA` with `fields: :month_and_day, format: :short`. CLDR publishes an `alt="variant"` interval pattern for en-CA, and it is now resolved as a single date's pattern is, honouring `:prefer`.
 
