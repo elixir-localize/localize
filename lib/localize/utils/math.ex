@@ -376,7 +376,11 @@ defmodule Localize.Utils.Math do
 
   ### Returns
 
-  * The modulo result in the same type as the input.
+  * An integer when both arguments are integers.
+
+  * A float when either argument is a float.
+
+  * A `t:Decimal.t/0` when `number` is a Decimal.
 
   ### Examples
 
@@ -387,7 +391,10 @@ defmodule Localize.Utils.Math do
       1
 
   """
-  @spec mod(number_or_decimal, number_or_decimal) :: number_or_decimal
+  @spec mod(integer, integer) :: integer
+  @spec mod(float, number) :: float
+  @spec mod(integer, float) :: float
+  @spec mod(Decimal.t(), number_or_decimal) :: Decimal.t()
   def mod(number, modulus) when is_float(number) and is_number(modulus) do
     number - Float.floor(number / modulus) * modulus
   end
@@ -442,7 +449,11 @@ defmodule Localize.Utils.Math do
 
   ### Returns
 
-  * The adjusted modulo result.
+  * The modulo of `x` and `y`, typed as `mod/2` returns it, except when
+    that modulo is zero.
+
+  * `y` itself when the modulo is zero, so a float `x` with an integer `y`
+    returns an integer in that case.
 
   ### Examples
 
@@ -453,7 +464,12 @@ defmodule Localize.Utils.Math do
       1
 
   """
-  @spec amod(number_or_decimal, number_or_decimal) :: number_or_decimal
+  # Unlike mod/2, a zero modulo returns `y` itself, so the result
+  # type unions the modulo type with the type of `y`.
+  @spec amod(integer, integer) :: integer
+  @spec amod(number, float) :: float
+  @spec amod(float, integer) :: number
+  @spec amod(Decimal.t(), number_or_decimal) :: number_or_decimal
   def amod(x, y) do
     case modulo = mod(x, y) do
       %Decimal{} = decimal_mod ->
