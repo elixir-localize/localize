@@ -32,7 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.MinimalPairs` exposes CLDR's minimal pairs — the phrases demonstrating a locale's plural, ordinal, case and gender forms. `cardinal/1`, `ordinal/1`, `grammatical_case/1` and `grammatical_gender/1` return them; `format/3` picks the one a number selects.
 
-* CLDR's `symbol-alt-variant` currency symbols are ingested as `Localize.Currency.variant_symbol` and selected with `currency_symbol: :variant` — `:TRY` in `en` gives "TL", `:SAR` gives "⃁". It is where a newly encoded currency sign lands before CLDR promotes it.
+* CLDR's `symbol-alt-variant` currency symbols are ingested as `Localize.Currency.variant_symbol` and selected with `currency_symbol: :variant` — `:TRY` in `en` gives "TL". CLDR 49's new Unicode 18 signs resolve through it: `:AED` "⃃", `:MVR` "⃂", `:OMR` "⃄" and `:SAR` "⃁".
 
 * The `g` pattern symbol formats the modified Julian day and the deprecated `l` is ignored, as TR35 specifies, where both returned a tokenize error.
 
