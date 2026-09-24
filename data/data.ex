@@ -121,6 +121,10 @@ defmodule Localize.Data do
   # made by hand.
   @curated_test_data ["locale_distance_test_data.txt", "locale_matching_test_data.txt"]
 
+  # Upstream hashes the curated fixtures were last reconciled against; see
+  # `report_curated/3`.
+  @curated_baseline_file "curated_upstream_baseline.txt"
+
   @generators [
     {"aliases.etf", &Localize.Data.Supplemental.generate_aliases/0},
     {"calendar_preferences.etf", &Localize.Data.Supplemental.generate_calendar_preferences/0},
@@ -581,7 +585,7 @@ defmodule Localize.Data do
             acc
 
           dst_name in @curated_test_data ->
-            report_curated(src, dst, dst_name, src_path)
+            report_curated(src, dst, dst_name)
             acc
 
           true ->
@@ -603,15 +607,62 @@ defmodule Localize.Data do
   # Saying "upstream has changed" sends the reader looking for a change that
   # is usually not there, so the message states the difference and leaves the
   # cause to the diff.
-  defp report_curated(src, dst, dst_name, src_path) do
-    if File.exists?(dst) and File.read!(src) == File.read!(dst) do
-      IO.puts("  Curated fixture #{dst_name} matches upstream; nothing to merge")
-    else
-      IO.puts("""
-        Curated fixture #{dst_name} differs from upstream and was left as-is.
-          Check whether upstream has gained coverage worth merging:
-            diff #{dst} #{src_path}
-      """)
+  # A curated fixture carries cases upstream does not, so it differs from
+  # upstream permanently — reporting that difference fires on every run and
+  # asks a question nobody can act on. What is worth saying is that *upstream
+  # itself* has moved since the fixture was last reconciled, which happens
+  # once or twice a CLDR cycle and may bring coverage worth taking.
+  #
+  # The baseline records the upstream hash at that reconciliation, the same
+  # way `priv/localize/localize_inflection_sha` pins its upstream commit.
+  # Both sides of the suggested `diff` are absolute: it previously printed the
+  # repo-relative source path, so the command only ran from inside CLDR_REPO.
+  defp report_curated(src, dst, dst_name) do
+    upstream_hash = :crypto.hash(:sha256, File.read!(src)) |> Base.encode16(case: :lower)
+
+    case Map.fetch(curated_baselines(), dst_name) do
+      {:ok, ^upstream_hash} ->
+        :ok
+
+      {:ok, recorded} ->
+        IO.puts("""
+          Upstream #{dst_name} has changed since it was last reconciled.
+            recorded #{String.slice(recorded, 0, 12)}, now #{String.slice(upstream_hash, 0, 12)}
+            diff #{dst} #{src}
+            After merging, record the new hash in #{@curated_baseline_file}:
+              #{dst_name} #{upstream_hash}
+        """)
+
+      :error ->
+        IO.puts("""
+          No upstream baseline recorded for curated fixture #{dst_name}.
+            Reconcile it against upstream, then add to #{@curated_baseline_file}:
+              #{dst_name} #{upstream_hash}
+        """)
+    end
+  end
+
+  defp curated_baselines do
+    path = Path.join([File.cwd!(), @test_data_dir, @curated_baseline_file])
+
+    case File.read(path) do
+      {:ok, contents} -> parse_curated_baselines(contents)
+      {:error, _absent} -> %{}
+    end
+  end
+
+  defp parse_curated_baselines(contents) do
+    contents
+    |> String.split("\n", trim: true)
+    |> Enum.reject(&String.starts_with?(&1, "#"))
+    |> Enum.flat_map(&curated_baseline_entry/1)
+    |> Map.new()
+  end
+
+  defp curated_baseline_entry(line) do
+    case String.split(line, ~r/\s+/, parts: 2, trim: true) do
+      [name, hash] -> [{name, String.trim(hash)}]
+      _malformed -> []
     end
   end
 
