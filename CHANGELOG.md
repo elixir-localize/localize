@@ -164,6 +164,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * A skeleton no available format can build on starts from its first field and appends the rest, as CLDR's reference generator does, so `:G` renders "AD" and `:QQQQ` "3rd quarter" where both errored.
 
+* Locale and inflection downloads retry a CDN server error, timeout or dropped connection up to three times with exponential backoff, where one failure was final; a 404 still fails at once. `:http_retries`, `:http_retry_delay` and `:http_ip_family` configure the retries and the address family.
+
 * A locale passed to `Localize.Inflection` must be a well-formed identifier. One containing "../" reached files outside the inflection data directory, loaded them, and created a new atom for every spelling of the path.
 
 * Quoted text in a matched format survives width adjustment: `dsb`'s `jjm` format "'zeg'. H:mm" rendered "eg. 14:30", its quoted `z` read as a zone field and deleted.

@@ -4,8 +4,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **Make the locale downloader resilient to transient CDN failures** — `Localize.Utils.Http` treats any non-200 as final, so a CDN 500 on 2026-09-19 became a hard failure for a user. Needs retry with backoff, retryable-versus-final classification, and a look at the IPv6-first connect. Analysis in [plans/locale-downloader-resilience.md](plans/locale-downloader-resilience.md).
-
 * [ ] **Stop carrying the 554 MB CLDR source payload in the working tree** — 96% of it is JSON that `unicode-org/cldr-json` already publishes as an 80 MB release asset, and `main` tracking it while `cldr-49` ignores it is what makes switching between them error-prone. Analysis in [plans/cldr-source-payload.md](plans/cldr-source-payload.md).
 
 * [ ] **Decide what `dddd` means before 1.4.0 ships** — CLDR 49 gives `ddd` the ordinal day, but `dddd` still renders a zero-padded day ("0006") under the pre-49 numeric rule, and TR35 hints that a future `wide` `dayOfMonth` width may claim it. Settling it after release would be a breaking change.
@@ -29,6 +27,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Locale downloads retry transient CDN failures** — server errors, timeouts and dropped connections are retried with backoff and jitter, a 404 fails at once, and the address family is configurable. Details in [plans/locale-downloader-resilience.md](plans/locale-downloader-resilience.md). 2026-09-24.
 
 * [x] **Atom creation audited across the library and tests** — no test mints an atom from a fixture file; `Localize.Utils.Json` lost its atom-key option; `Localize.Inflection` rejects a path-shaped locale. The remaining runtime conversions in `lib/` are bounded and say why. 2026-09-24.
 

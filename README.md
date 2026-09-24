@@ -236,6 +236,12 @@ Why `:otp_app` is the recommended anchor: `Application.app_dir/2` is re-resolved
 
 * `:https_proxy` is an HTTPS proxy URL. The `HTTPS_PROXY` environment variable is also read. The default is `nil`.
 
+* `:http_retries` is how many times a locale or inflection download is retried after a CDN server error, a timeout or a dropped connection, each retry waiting twice as long as the last, with jitter. A 404 is never retried, and `0` makes a single attempt. The default is `3`.
+
+* `:http_retry_delay` is the delay in milliseconds before the first retry, doubling up to 8 seconds. The default is `500`.
+
+* `:http_ip_family` is `:inet6fb4`, trying IPv6 before falling back to IPv4, or `:inet` or `:inet6` to use one family. Set `:inet` on a host that advertises IPv6 without a working route, where each download would otherwise wait out the connection timeout before falling back. The default is `:inet6fb4`.
+
 ### Using Gettext locales
 
 If your application uses Gettext, you can derive `:supported_locales` from your Gettext backend in `config/runtime.exs` (where the module is already compiled and available):

@@ -1,22 +1,28 @@
 # Locale downloader resilience
 
-**Status:** planning, 2026-09-21
+**Status:** implemented (v1.4.0), 2026-09-24
 
-Every locale other than `en` and `und` is fetched at runtime from the CDN (Cloudflare R2, `https://elixir-localize.com/locales/v<version>/<locale>.etf`) by `Localize.Utils.Http` and verified by `Localize.Locale.Provider` against the bundled hash manifest. A transient CDN 500 on 2026-09-19 surfaced as a hard failure for a user, because the downloader treats any non-200 as final. R2 documents occasional internal errors that clients are expected to retry, so a single-attempt downloader will keep converting brief upstream blips into user-visible breakage.
+Every locale other than `en` and `und` is fetched at runtime from the CDN (Cloudflare R2, `https://elixir-localize.com/locales/v<version>/<locale>.etf`) by `Localize.Utils.Http` and verified by `Localize.Locale.Provider` against the bundled hash manifest. A transient CDN 500 on 2026-09-19 surfaced as a hard failure for a user, because the downloader treated any non-200 as final. R2 documents occasional internal errors that clients are expected to retry, so a single-attempt downloader kept converting brief upstream blips into user-visible breakage.
+
+`Localize.Utils.Http.get_with_headers/2` now retries, and every download goes through it: locale data, inflection data, and the hash tooling. The retry decision lives in `request_with_retries/5`, the classification in `retryable?/1`, and a local scripted server (`test/support/scripted_http_server.ex`) drives the tests end to end.
 
 ## Tasks
 
-* [ ] **Retry transient failures with backoff.** `get_with_headers/2` makes exactly one attempt: a non-200 is logged as `Failed to download <url>. HTTP Error: (<code>)` and returned as `{:error, code}`. Retry 5xx responses, connection failures, and timeouts a small number of times with exponential backoff and jitter, leaving the existing single-attempt behaviour available for callers that want it.
+### Done
 
-* [ ] **Classify errors as retryable or final.** A 404 means the object is genuinely absent for that version and must fail immediately, while 500, 502, 503, 504 and connection errors should be retried. Retrying a 404 wastes time on the common misconfiguration of a version prefix that was never uploaded.
+* [x] **Retry transient failures with backoff** — a retried failure waits `:retry_delay` (500 ms by default) doubled per attempt, capped at 8 s, plus up to one base delay of jitter, for up to `:retries` (3) retries. `retries: 0` keeps the single attempt. Each retried failure logs a warning and the last an error.
 
-* [ ] **Keep conditional requests working.** The downloader already handles a `304` response as `{:not_modified, headers}`, and the CDN sends both `etag` and `cache-control: public, max-age=3600`. Any retry layer must preserve that path rather than turning a conditional request into an unconditional one.
+* [x] **Classify errors as retryable or final** — 408, 429, 500, 502, 503 and 504, request and connection timeouts, dropped connections and failed connects are retried; a 404 or any other status, an unknown host and an oversized body fail at once.
 
-* [ ] **Distinguish network failure from integrity failure in the error surface.** A download that fails to arrive and a download that arrives corrupt are different operational problems, and `LocaleIntegrityError` should remain clearly separable from a transport error so an operator can tell a CDN outage from a stale manifest.
+* [x] **Keep conditional requests working** — a retry resends the same request, headers included, so an `if-none-match` survives it, and a `304` is an outcome rather than a failure. Tested with a 503 followed by a 304.
 
-* [ ] **Reconsider the IPv6-first connection strategy.** `get_with_headers/2` sets `:inet6fb4`, so `:httpc` attempts IPv6 before falling back to IPv4. The apex publishes AAAA records, and a host that advertises IPv6 without a working route will stall on connect before falling back. Consider making the family configurable, or preferring a happy-eyeballs style race, so a broken IPv6 path costs milliseconds rather than a connect timeout.
+* [x] **Distinguish network failure from integrity failure** — they were already separate: a transport failure is a `Localize.LocaleDownloadError` carrying its reason and HTTP status, a bad download a `Localize.LocaleIntegrityError`. A test now shows an outage that outlasts the retries staying a download error.
 
-* [ ] **Consider a bounded number of parallel downloads with shared retry state.** `mix localize.download_locales` fetches many locales in sequence; a CDN blip part-way through currently abandons the run rather than retrying just the affected objects.
+* [x] **Reconsider the IPv6-first connection strategy** — `:ip_family` (per call) and `config :localize, :http_ip_family` choose `:inet6fb4`, `:inet` or `:inet6`. `:httpc` has no happy-eyeballs race, so pinning `:inet` is the remedy for a host with a broken IPv6 route; `:inet6fb4` stays the default. The connect-failure handling now reads the last attempt of either shape `:httpc` reports.
+
+### Deferred
+
+* [ ] **A bounded number of parallel downloads with shared retry state** — `mix localize.download_locales` already continues past a failed locale and reports it, and a blip is now retried in place, so the run no longer loses objects to one. Parallel workers would multiply the load on a CDN that is already failing and would need a shared breaker to avoid that; revisit if download time for `--all` becomes a complaint.
 
 ## Related operational work, outside this library
 

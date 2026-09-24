@@ -127,7 +127,8 @@ defmodule Localize.Utils.HttpTest do
         with_log(fn ->
           Localize.Utils.Http.get("https://127.0.0.1:9/nothing.etf",
             connection_timeout: 2_000,
-            timeout: 3_000
+            timeout: 3_000,
+            retries: 0
           )
         end)
 
@@ -141,7 +142,8 @@ defmodule Localize.Utils.HttpTest do
           Localize.Utils.Http.get_with_headers(
             {"https://127.0.0.1:9/nothing.etf", [{~c"accept", ~c"*/*"}]},
             connection_timeout: 2_000,
-            timeout: 3_000
+            timeout: 3_000,
+            retries: 0
           )
         end)
 
@@ -154,12 +156,115 @@ defmodule Localize.Utils.HttpTest do
           Localize.Utils.Http.get_with_headers({"https://127.0.0.1:9/x", []},
             https_proxy: "not a url",
             connection_timeout: 2_000,
-            timeout: 3_000
+            timeout: 3_000,
+            retries: 0
           )
         end)
 
       assert {:error, _reason} = result
       assert log =~ "https_proxy was set to an invalid value"
+    end
+  end
+
+  # A local server answers with scripted responses, so these exercise the
+  # transport end to end without leaving the machine.
+  describe "retries" do
+    alias Localize.Test.ScriptedHttpServer, as: Server
+
+    @quick [retry_delay: 0, ip_family: :inet]
+
+    test "a server error is retried and the body that follows returned" do
+      server = Server.start([{500, [], ""}, {200, [], "locale data"}])
+
+      {result, log} = with_log(fn -> Localize.Utils.Http.get(server.url, @quick) end)
+
+      assert result == {:ok, "locale data"}
+      assert length(Server.requests(server)) == 2
+      assert log =~ "HTTP Error: (500)"
+      assert log =~ "Retrying in"
+    end
+
+    test "every status worth retrying is retried" do
+      for status <- [408, 429, 500, 502, 503, 504] do
+        server = Server.start([{status, [], ""}, {200, [], "ok"}])
+
+        {result, _log} = with_log(fn -> Localize.Utils.Http.get(server.url, @quick) end)
+
+        assert result == {:ok, "ok"}, "#{status} was not retried"
+      end
+    end
+
+    # A 404 means the object is absent for this version; asking again
+    # only delays the error.
+    test "a 404 fails at once" do
+      server = Server.start([{404, [], ""}, {200, [], "never served"}])
+
+      {result, log} = with_log(fn -> Localize.Utils.Http.get(server.url, @quick) end)
+
+      assert result == {:error, 404}
+      assert length(Server.requests(server)) == 1
+      refute log =~ "Retrying"
+    end
+
+    test "the last failure is returned once the retries run out" do
+      server = Server.start(List.duplicate({503, [], ""}, 4))
+
+      {result, log} =
+        with_log(fn -> Localize.Utils.Http.get(server.url, [retries: 2] ++ @quick) end)
+
+      assert result == {:error, 503}
+      assert length(Server.requests(server)) == 3
+      assert log =~ "attempt 3 of 3"
+    end
+
+    test "retries: 0 makes a single attempt" do
+      server = Server.start([{500, [], ""}, {200, [], "never served"}])
+
+      {result, _log} =
+        with_log(fn -> Localize.Utils.Http.get(server.url, [retries: 0] ++ @quick) end)
+
+      assert result == {:error, 500}
+      assert length(Server.requests(server)) == 1
+    end
+
+    test "a conditional request stays conditional when retried" do
+      server = Server.start([{503, [], ""}, {304, [{"etag", ~s("abc")}], ""}])
+      request = {server.url, [{~c"if-none-match", ~c"\"abc\""}]}
+
+      {result, _log} = with_log(fn -> Localize.Utils.Http.get_with_headers(request, @quick) end)
+
+      assert {:not_modified, _headers} = result
+      requests = Server.requests(server)
+      assert length(requests) == 2
+      assert Enum.all?(requests, &(&1 =~ ~r/if-none-match: "abc"/i))
+    end
+
+    test "a not-modified answer is not retried" do
+      server = Server.start([{304, [], ""}])
+
+      assert {:not_modified, _headers} = Localize.Utils.Http.get(server.url, @quick)
+      assert length(Server.requests(server)) == 1
+    end
+
+    test "an oversized body fails at once" do
+      server = Server.start([{200, [], String.duplicate("x", 100)}, {200, [], "x"}])
+
+      {result, log} =
+        with_log(fn -> Localize.Utils.Http.get(server.url, [max_body_bytes: 10] ++ @quick) end)
+
+      assert result == {:error, :response_too_large}
+      assert length(Server.requests(server)) == 1
+      assert log =~ "Refusing oversized HTTP response"
+    end
+
+    test "an unknown IP family falls back to IPv6 first and says so" do
+      server = Server.start([{200, [], "ok"}])
+
+      {result, log} =
+        with_log(fn -> Localize.Utils.Http.get(server.url, ip_family: :ipx, retry_delay: 0) end)
+
+      assert result == {:ok, "ok"}
+      assert log =~ "ip_family must be one of"
     end
   end
 

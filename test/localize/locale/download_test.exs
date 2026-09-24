@@ -116,4 +116,45 @@ defmodule Localize.Locale.Provider.DownloadTest do
                Provider.download_locale(:it)
     end
   end
+
+  # The CDN reports brief internal errors that a client is expected to
+  # retry. A scripted server stands in for it, answering with a 503 on cue.
+  describe "download_locale/1 when the CDN fails for a moment" do
+    alias Localize.Test.ScriptedHttpServer
+
+    setup do
+      previous_delay = Application.get_env(:localize, :http_retry_delay)
+      Application.put_env(:localize, :http_retry_delay, 0)
+      on_exit(fn -> restore_env(:http_retry_delay, previous_delay) end)
+    end
+
+    test "a server error is retried and the locale arrives", %{body: body} do
+      server = ScriptedHttpServer.start([{503, [], ""}, {200, [], body}])
+      serve_locales_from(server)
+
+      {result, log} = with_log(fn -> Provider.download_locale(:fr) end)
+
+      assert result == {:ok, body}
+      assert log =~ "Retrying"
+    end
+
+    # An outage stays a transport failure, so an operator can tell it
+    # from a manifest that no longer matches the data.
+    test "an outage that outlasts the retries is a download error" do
+      server = ScriptedHttpServer.start(List.duplicate({503, [], ""}, 4))
+      serve_locales_from(server)
+
+      {result, _log} = with_log(fn -> Provider.download_locale(:fr) end)
+
+      assert {:error, %Localize.LocaleDownloadError{reason: :http_error, http_status: 503}} =
+               result
+
+      assert length(ScriptedHttpServer.requests(server)) == 4
+    end
+  end
+
+  # The outer setup restores `:locale_base_url` when the test ends.
+  defp serve_locales_from(server) do
+    Application.put_env(:localize, :locale_base_url, "http://127.0.0.1:#{server.port}/locales")
+  end
 end
