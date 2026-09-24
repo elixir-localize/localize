@@ -537,6 +537,8 @@ defmodule Localize.Date do
   end
 
   @doc false
+  # The skeleton is built from fixed symbols, so only a handful of atoms
+  # can result, whatever the value holds.
   def derive_format_id(date, format \\ @default_format) do
     @date_fields_ordered
     |> Enum.filter(fn {field, _symbol} -> Map.has_key?(date, field) end)

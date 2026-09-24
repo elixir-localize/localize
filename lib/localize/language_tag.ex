@@ -340,6 +340,7 @@ defmodule Localize.LanguageTag do
 
   defp atomize_language(value) when is_binary(value) do
     case Localize.Validity.Language.validate(value) do
+      # Only a code in CLDR's language validity data reaches here, a closed set.
       {:ok, code, _status} ->
         {:ok, String.to_atom(code)}
 

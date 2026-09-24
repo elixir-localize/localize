@@ -10,8 +10,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Decide what `dddd` means before 1.4.0 ships** — CLDR 49 gives `ddd` the ordinal day, but `dddd` still renders a zero-padded day ("0006") under the pre-49 numeric rule, and TR35 hints that a future `wide` `dayOfMonth` width may claim it. Settling it after release would be a breaking change.
 
-* [ ] **Remove the remaining `String.to_atom/1` calls on file input** — the test helpers `parse_preference_data.ex` and `locale_display_name_generator.ex`, the inflection conformance tests and `unit/localize_test.exs` mint atoms from CLDR fixture files. `mix localize.download_inflection` converts a fixed list, so it is not untrusted, but a string comparison would do.
-
 * [ ] **Decide whether root's `arab` and `arabext` blocks become a pipeline source** — plan item 38: CLDR JSON does not carry them, so `en-u-nu-arab` formats with the locale's `latn` symbols until `common/main/root.xml` is read directly.
 
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
@@ -31,6 +29,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Atom creation audited across the library and tests** — no test mints an atom from a fixture file; `Localize.Utils.Json` lost its atom-key option; `Localize.Inflection` rejects a path-shaped locale. The remaining runtime conversions in `lib/` are bounded and say why. 2026-09-24.
 
 * [x] **CLDR's spec changes since beta1 reviewed** — hour cycle variations, the Date-Timezone and Time-Day-Of-Week glue, `placeholderBoundarySpacing`, plural rules in semantic order and `ha` ≡ `h` implemented; range separator patterns confirmed example-only; pattern-only skeleton symbols are only deprecated for CLDR 50. 2026-09-24.
 

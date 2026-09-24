@@ -164,6 +164,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * A skeleton no available format can build on starts from its first field and appends the rest, as CLDR's reference generator does, so `:G` renders "AD" and `:QQQQ` "3rd quarter" where both errored.
 
+* A locale passed to `Localize.Inflection` must be a well-formed identifier. One containing "../" reached files outside the inflection data directory, loaded them, and created a new atom for every spelling of the path.
+
 * Quoted text in a matched format survives width adjustment: `dsb`'s `jjm` format "'zeg'. H:mm" rendered "eg. 14:30", its quoted `z` read as a zone field and deleted.
 
 * A skeleton combining a date and a time adjusts both halves' field widths to the request, where it adjusted neither and a requested zone symbol took the matched format's — `:MMMMdjmsO` gave "GMT" not "GMT+0". Every Gregorian conformance case now passes, from 47 of 88.

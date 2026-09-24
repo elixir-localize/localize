@@ -128,11 +128,16 @@ defmodule Localize.Collation.OptionsTest do
     end
 
     test "a string, atom, and equivalent language tag yield the same options" do
-      for locale <- ["da", "en-u-ks-level2", "pt_BR", "iw"] do
+      for {locale, locale_atom} <- [
+            {"da", :da},
+            {"en-u-ks-level2", :"en-u-ks-level2"},
+            {"pt_BR", :pt_BR},
+            {"iw", :iw}
+          ] do
         {:ok, tag} = Localize.validate_locale(locale)
 
         assert Options.from_locale(locale) == Options.from_locale(tag)
-        assert Options.from_locale(locale) == Options.from_locale(String.to_atom(locale))
+        assert Options.from_locale(locale) == Options.from_locale(locale_atom)
       end
     end
 

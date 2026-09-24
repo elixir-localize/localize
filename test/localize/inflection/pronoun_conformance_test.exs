@@ -13,7 +13,7 @@ defmodule Localize.Inflection.PronounConformanceTest do
 
   for {locale, path} <- suites do
     test "upstream #{locale} pronoun conformance suite" do
-      locale = String.to_atom(unquote(locale))
+      locale = unquote(locale)
       {passed, failures} = PronounConformance.run_file(locale, unquote(path))
 
       for {index, test_case, description} <- failures do

@@ -29,7 +29,7 @@ defmodule Localize.Inflection.ConformanceTest do
         {:error, exception} -> flunk(Exception.message(exception))
       end
 
-      locale = String.to_atom(unquote(locale))
+      locale = unquote(locale)
       {passed, failures} = Conformance.run_file(locale, unquote(path))
 
       for {index, test_case, description} <- failures do

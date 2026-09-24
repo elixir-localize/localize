@@ -11,6 +11,28 @@ defmodule Localize.InflectionTest do
   doctest Localize.Inflection.Quantify
   doctest Localize.Inflection.ConceptList
 
+  # A locale is a well-formed identifier, never a path. "../" in one once
+  # reached files outside the inflection data directory, loaded them, and
+  # minted a fresh atom for each spelling of the path.
+  test "a locale that is not a locale identifier names no inflection data" do
+    traversal = "../../localize/locales/en"
+
+    assert Localize.Inflection.Locale.normalize(traversal) == ""
+
+    assert {:error, %Localize.InflectionNotSupportedError{}} =
+             Localize.Inflection.Locale.resolve(traversal)
+
+    assert {:error, %Localize.InflectionNotSupportedError{}} =
+             Localize.Inflection.inflect("Haus", traversal, case: "dative")
+  end
+
+  test "a path-shaped locale creates no atom" do
+    probe = "./inflection_probe_#{System.unique_integer([:positive])}"
+
+    assert {:error, _exception} = Localize.Inflection.Locale.resolve(probe)
+    assert_raise ArgumentError, fn -> String.to_existing_atom(probe) end
+  end
+
   test "inflects with invalid constraints" do
     assert {:error, %Localize.UnknownFeatureError{feature: "sizzle"}} =
              Localize.Inflection.inflect("cat", :en, sizzle: "plural")

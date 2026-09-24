@@ -40,12 +40,11 @@ defmodule Localize.Test.PreferenceData do
     |> Map.new()
   end
 
+  # The fixture is a file, so its unit names, regions and usages stay
+  # strings: atoms are never minted from file input. The library takes
+  # string usages and territories, and the test compares unit names.
   defp extract_output_units(output) do
-    Enum.map(output, fn {unit_name, _values} ->
-      unit_name
-      |> String.replace("-", "_")
-      |> String.to_atom()
-    end)
+    Enum.map(output, fn {unit_name, _values} -> String.replace(unit_name, "-", "_") end)
   end
 
   defp transform({:output, parts}) do
@@ -57,11 +56,8 @@ defmodule Localize.Test.PreferenceData do
 
   defp transform({:input_double, string}), do: {:input_double, parse_number(string)}
   defp transform({:input_rational, string}), do: {:input_rational, parse_rational(string)}
-  defp transform({:region, string}), do: {:region, String.to_atom(string)}
-
-  defp transform({:usage, string}) do
-    {:usage, string |> String.replace("-", "_") |> String.to_atom()}
-  end
+  defp transform({:region, string}), do: {:region, string}
+  defp transform({:usage, string}), do: {:usage, String.replace(string, "-", "_")}
 
   defp transform({:input_unit, string}), do: {:input_unit, string}
   defp transform(other), do: other

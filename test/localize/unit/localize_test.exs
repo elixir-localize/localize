@@ -137,8 +137,8 @@ defmodule Localize.Unit.LocalizeTest do
             territory <- territories,
             source = representative_unit(preference),
             source != nil,
-            usage = String.to_atom(String.replace(preference.usage, "-", "_")),
-            result = Unit.localize(Unit.new!(2, source), usage: usage, territory: territory),
+            result =
+              Unit.localize(Unit.new!(2, source), usage: preference.usage, territory: territory),
             not match?({:ok, _units}, result),
             do: {preference.category, preference.usage, territory, result}
 

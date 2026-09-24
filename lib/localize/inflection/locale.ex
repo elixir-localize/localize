@@ -9,7 +9,9 @@ defmodule Localize.Inflection.Locale do
   #
   # Binary input only becomes an atom after the corresponding data
   # artifact is confirmed to exist, so the atom space stays bounded
-  # by the shipped data.
+  # by the shipped data. That holds because `normalize/1` admits only
+  # well-formed locale identifiers, which cannot name a file outside
+  # the data directory.
 
   alias Localize.Inflection.{DataDir, Provider}
 
@@ -30,8 +32,18 @@ defmodule Localize.Inflection.Locale do
     normalize(Localize.LanguageTag.to_string(language_tag))
   end
 
+  # A locale is subtags of letters and digits joined by hyphens or
+  # underscores. The internal form becomes a data file name, so anything
+  # else names no locale: "../" in it reached files outside the data
+  # directory, and each spelling of such a path minted a fresh atom.
+  @locale_pattern ~r/\A[A-Za-z0-9]{1,8}(?:[-_][A-Za-z0-9]{1,8})*\z/
+
   def normalize(locale) when is_atom(locale) or is_binary(locale) do
-    locale |> to_string() |> String.replace("-", "_")
+    string = to_string(locale)
+
+    if Regex.match?(@locale_pattern, string),
+      do: String.replace(string, "-", "_"),
+      else: ""
   end
 
   # Anything else names no locale, so no data resolves for it.

@@ -15,6 +15,7 @@ defmodule Localize.Validity.Unit do
     |> valid()
     |> case do
       {:error, _} -> {:error, code}
+      # `valid/1` admits only a code in CLDR's validity data, a closed set.
       {:ok, code, status} -> {:ok, String.to_atom(code), status}
     end
   end

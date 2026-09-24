@@ -38,10 +38,22 @@ defmodule Localize.LocaleDisplayNameGenerator do
               {acc, new_locale, language_display}
 
             ["@languageDisplay", new_display] ->
-              {acc, locale, String.to_atom(new_display)}
+              {acc, locale, language_display(new_display)}
           end
       end)
 
     acc
+  end
+
+  # The fixture is a file, so its values never become atoms directly: a
+  # display style it names is looked up, and one this list lacks is a
+  # fixture change worth failing on.
+  @language_displays %{"standard" => :standard, "dialect" => :dialect}
+
+  defp language_display(name) do
+    Map.get(@language_displays, name) ||
+      raise ArgumentError,
+            "locale_display_names.txt names language display #{inspect(name)}, which is " <>
+              "not in @language_displays in #{__ENV__.file}"
   end
 end

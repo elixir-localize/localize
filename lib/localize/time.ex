@@ -402,6 +402,8 @@ defmodule Localize.Time do
       substituted =
         Localize.DateTime.Format.Match.apply_hc_substitution(string, preferred, symbols)
 
+      # A rewrite of an atom the caller already holds, so it adds at most one
+      # atom per skeleton and hour cycle.
       if substituted == string or substituted == "" do
         format
       else
@@ -537,6 +539,8 @@ defmodule Localize.Time do
 
   defp do_strip_zone_chars(format, _locale_id), do: format
 
+  # A rewrite of an atom the caller or the locale data already holds, so it
+  # adds at most one atom per skeleton.
   defp strip_zone_chars_from_atom(skeleton, fallback) do
     string = Atom.to_string(skeleton)
     stripped = String.replace(string, ~r/[zZOvVxX]/, "")
@@ -696,6 +700,8 @@ defmodule Localize.Time do
   end
 
   @doc false
+  # The skeleton is built from three fixed symbols, so at most seven atoms
+  # can result, whatever the value holds.
   def derive_format_id(time) do
     @time_fields_ordered
     |> Enum.filter(fn {field, _symbol} -> Map.has_key?(time, field) end)

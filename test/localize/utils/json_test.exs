@@ -28,22 +28,15 @@ defmodule Localize.Utils.JsonTest do
         Json.decode!(~s({"a": 1} trailing))
       end
     end
-  end
 
-  describe "decode!/2 with keys: :atoms" do
-    test "decodes a charlist with atom keys" do
-      assert Json.decode!(~c({"a": 1}), keys: :atoms) == %{a: 1}
-    end
+    # Keys stay strings whatever the input: there is no way to ask for
+    # atoms, so a key from untrusted JSON never becomes one.
+    test "has no atom-key form" do
+      refute function_exported?(Json, :decode!, 2)
+      probe = "json_key_probe_#{System.unique_integer([:positive])}"
 
-    test "decodes nested objects with atom keys" do
-      assert Json.decode!(~s({"outer": {"inner": null}}), keys: :atoms) ==
-               %{outer: %{inner: nil}}
-    end
-
-    test "raises ArgumentError on trailing garbage after a valid document" do
-      assert_raise ArgumentError, ~r/unexpected trailing data/, fn ->
-        Json.decode!(~s({"a": 1} trailing), keys: :atoms)
-      end
+      assert Json.decode!(~s({"#{probe}": 1})) == %{probe => 1}
+      assert_raise ArgumentError, fn -> String.to_existing_atom(probe) end
     end
   end
 end

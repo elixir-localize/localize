@@ -104,9 +104,9 @@ defmodule Mix.Tasks.Localize.DownloadInflection do
         supported
 
       true ->
-        configured = Localize.supported_locales()
+        configured = Enum.map(Localize.supported_locales(), &to_string/1)
 
-        case Enum.filter(supported, &(String.to_atom(&1) in configured)) do
+        case Enum.filter(supported, &(&1 in configured)) do
           [] -> supported
           restricted -> restricted
         end

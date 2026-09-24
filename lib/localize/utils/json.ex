@@ -10,16 +10,13 @@ defmodule Localize.Utils.Json do
   @doc """
   Decodes a JSON string into an Elixir term.
 
-  JSON `null` values are decoded as `nil`. By default, object keys
-  are strings. Pass `keys: :atoms` to decode keys as atoms.
+  JSON `null` values are decoded as `nil`, and object keys are
+  strings. There is no option to decode keys as atoms: a key from
+  untrusted JSON must never become one.
 
   ### Arguments
 
   * `string` — a JSON-encoded string or charlist.
-
-  ### Options
-
-  * `:keys` — when set to `:atoms`, decodes object keys as atoms.
 
   ### Returns
 
@@ -29,9 +26,6 @@ defmodule Localize.Utils.Json do
 
       iex> Localize.Utils.Json.decode!(~s({"foo": 1}))
       %{"foo" => 1}
-
-      iex> Localize.Utils.Json.decode!(~s({"foo": 1}), keys: :atoms)
-      %{foo: 1}
 
       iex> Localize.Utils.Json.decode!(~s({"bar": null}))
       %{"bar" => nil}
@@ -49,29 +43,6 @@ defmodule Localize.Utils.Json do
     charlist
     |> :erlang.iolist_to_binary()
     |> decode!()
-  end
-
-  @spec decode!(String.t() | charlist(), keyword()) :: term()
-  def decode!(string, keys: :atoms) when is_binary(string) do
-    push = fn key, value, accumulator ->
-      [{String.to_atom(key), value} | accumulator]
-    end
-
-    decoders = %{
-      null: nil,
-      object_push: push
-    }
-
-    case :json.decode(string, :ok, decoders) do
-      {json, :ok, ""} -> json
-      {_json, :ok, rest} -> raise_trailing_data!(rest)
-    end
-  end
-
-  def decode!(charlist, options) when is_list(charlist) do
-    charlist
-    |> :erlang.iolist_to_binary()
-    |> decode!(options)
   end
 
   @spec raise_trailing_data!(binary()) :: no_return()

@@ -33,12 +33,14 @@ defmodule Localize.Unit.PreferenceTest do
         "is #{inspect(t.output_units)}"
 
     test test_name do
-      assert {:ok, unquote(t.output_units), _skeleton} =
+      assert {:ok, units, _skeleton} =
                Localize.Unit.Preference.preferred_units(
                  Localize.Unit.new!(unquote(t.input_double), unquote(t.input_unit)),
                  usage: unquote(t.usage),
                  territory: unquote(t.region)
                )
+
+      assert Enum.map(units, &to_string/1) == unquote(t.output_units)
     end
   end
 end

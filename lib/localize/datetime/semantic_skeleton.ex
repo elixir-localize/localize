@@ -265,6 +265,8 @@ defmodule Localize.DateTime.SemanticSkeleton do
       |> Enum.map_join(&field_pattern(&1, skeleton, calendar))
       |> then(&(era_width(skeleton, calendar) <> &1))
 
+    # Every piece comes from a fixed table keyed by validated fields and
+    # options, so the atoms this can create are a closed set.
     {:ok, String.to_atom(pattern)}
   end
 

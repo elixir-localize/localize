@@ -657,7 +657,9 @@ defmodule Localize.Number.Rbnf.Processor do
     # Try direct string match, then atom match, then underscore/hyphen variations
     # Also handle the "r" prefix for rule names that start with digits
     # (ex_cldr renames "2d_year" to "r2d_year" for valid function names,
-    # but in our data the key is :"2d_year")
+    # but in our data the key is :"2d_year"). A name reaches here from a
+    # rule's own text or after `Localize.Number.Rbnf` has matched it to an
+    # existing rule set, so the atoms are the data's own.
     stripped = strip_r_prefix(name)
 
     Map.get(all_rule_sets, name) ||
