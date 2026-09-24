@@ -314,7 +314,11 @@ defmodule Localize.Data do
   """
   @spec copy_script_metadata() :: :ok
   def copy_script_metadata do
-    dest = cldr_dir()
+    # Every sibling copy targets the source tree as `File.cwd!()/priv/...`.
+    # This used `cldr_dir()`, the `Application.app_dir/2` form, which reaches
+    # the same file through the `_build/.../priv` symlink but reports itself
+    # as a build path — reading as though the copy had missed the source tree.
+    dest = Path.join(File.cwd!(), @cldr_dir)
     File.mkdir_p!(dest)
 
     src =
@@ -593,13 +597,19 @@ defmodule Localize.Data do
   # A curated fixture is left alone, but silence would be its own trap: were
   # upstream to add coverage we would never pick it up. Compare instead, and
   # say whether there is a merge waiting.
+  #
+  # Differing does not mean upstream moved — our copies carry cases upstream
+  # does not have, so they differ permanently and this prints on every run.
+  # Saying "upstream has changed" sends the reader looking for a change that
+  # is usually not there, so the message states the difference and leaves the
+  # cause to the diff.
   defp report_curated(src, dst, dst_name, src_path) do
     if File.exists?(dst) and File.read!(src) == File.read!(dst) do
       IO.puts("  Curated fixture #{dst_name} matches upstream; nothing to merge")
     else
       IO.puts("""
-        Curated fixture #{dst_name} NOT overwritten — upstream has changed.
-          Review and merge by hand:
+        Curated fixture #{dst_name} differs from upstream and was left as-is.
+          Check whether upstream has gained coverage worth merging:
             diff #{dst} #{src_path}
       """)
     end
