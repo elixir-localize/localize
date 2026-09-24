@@ -65,7 +65,7 @@ defmodule Localize.DateTime.SemanticSkeleton do
           length: :short | :medium | :long,
           year_style: :auto | :full | :with_era,
           zone_style: :specific | :generic | :location | :offset,
-          hour_cycle: :auto | :h12 | :h23,
+          hour_cycle: :auto | :clock12 | :clock24 | :h11 | :h12 | :h23 | :h24,
           alignment: :auto | :column
         }
 
@@ -81,7 +81,13 @@ defmodule Localize.DateTime.SemanticSkeleton do
   @lengths [:short, :medium, :long]
   @year_styles [:auto, :full, :with_era]
   @zone_styles [:specific, :generic, :location, :offset]
-  @hour_cycles [:auto, :h12, :h23]
+  @hour_cycles [:auto, :clock12, :clock24, :h11, :h12, :h23, :h24]
+
+  # The exact cycles substitute their symbol into the matched pattern; the
+  # clock preferences take the pattern as the locale writes it.
+  @exact_hour_cycles %{h11: "K", h12: "h", h23: "H", h24: "k"}
+  @twelve_hour_cycles [:clock12, :h11, :h12]
+  @twenty_four_hour_cycles [:clock24, :h23, :h24]
   @alignments [:auto, :column]
 
   @doc """
@@ -107,9 +113,14 @@ defmodule Localize.DateTime.SemanticSkeleton do
   * `:zone_style` is `:specific` (the default), `:generic`, `:location` or
     `:offset`. Only consulted when the skeleton carries `Z`.
 
-  * `:hour_cycle` is `:auto` (the default), `:h12` or `:h23`. `:auto` uses
-    the locale's own cycle, which is what a semantic request usually means;
-    the other two force a 12- or 24-hour clock.
+  * `:hour_cycle` is `:auto` (the default), `:clock12`, `:clock24`, `:h11`,
+    `:h12`, `:h23` or `:h24`, in TR35's vocabulary. `:auto` uses the locale's
+    own cycle, which is what a semantic request usually means. `:clock12` and
+    `:clock24` ask for a 12- or 24-hour clock and then take the locale's
+    pattern as it stands, so `ja` renders `K` rather than `h`. The four exact
+    cycles substitute their hour symbol into the matched pattern — `:h11` `K`,
+    `:h12` `h`, `:h23` `H`, `:h24` `k` — which is the only way to be sure
+    which symbol you get.
 
   * `:alignment` is `:auto` (the default) or `:column`, the latter asking
     for fields padded to a fixed width for tabular display.
@@ -266,6 +277,39 @@ defmodule Localize.DateTime.SemanticSkeleton do
      )}
   end
 
+  @doc false
+  # TR35 §Hour Cycle Pattern Variations. Standard skeletons carry only the
+  # canonical `h` and `H`, and the matched `dateFormatItem` encodes whichever
+  # cycle the locale prefers — `ja` writes `aK:mm:ss` for `hms`. So a caller
+  # asking for an exact cycle cannot get it from skeleton choice alone; the
+  # symbol has to be substituted into the pattern after matching. The clock
+  # preferences deliberately do not substitute: they take the locale's
+  # pattern as it stands.
+  @spec apply_hour_cycle(String.t(), t() | term()) :: String.t()
+  def apply_hour_cycle(pattern, %__MODULE__{hour_cycle: cycle}) when is_binary(pattern) do
+    case Map.fetch(@exact_hour_cycles, cycle) do
+      {:ok, symbol} -> substitute_hour_symbol(pattern, symbol)
+      :error -> pattern
+    end
+  end
+
+  def apply_hour_cycle(pattern, _skeleton), do: pattern
+
+  # Each hour character is replaced individually so the pattern keeps the
+  # width it asked for: `hh` becomes `HH`, not `H`. Characters inside a
+  # quoted literal are left alone.
+  defp substitute_hour_symbol(pattern, symbol) do
+    pattern
+    |> String.graphemes()
+    |> Enum.map_reduce(false, fn
+      "'", quoted -> {"'", not quoted}
+      grapheme, false when grapheme in ["h", "H", "K", "k"] -> {symbol, false}
+      grapheme, quoted -> {grapheme, quoted}
+    end)
+    |> elem(0)
+    |> Enum.join()
+  end
+
   # ── Field patterns ──────────────────────────────────────────
 
   # The widths come from the conformance data rather than from a reading of
@@ -298,8 +342,14 @@ defmodule Localize.DateTime.SemanticSkeleton do
   # `j` asks for the locale's own hour cycle, which is what a semantic
   # request means: the caller wants a time, not a 24-hour clock. `h` and `H`
   # force one when the caller has a reason to.
-  defp field_pattern(:time, %{hour_cycle: :h12}, _calendar), do: "hms"
-  defp field_pattern(:time, %{hour_cycle: :h23}, _calendar), do: "Hms"
+  defp field_pattern(:time, %{hour_cycle: cycle}, _calendar)
+       when cycle in @twelve_hour_cycles,
+       do: "hms"
+
+  defp field_pattern(:time, %{hour_cycle: cycle}, _calendar)
+       when cycle in @twenty_four_hour_cycles,
+       do: "Hms"
+
   defp field_pattern(:time, _skeleton, _calendar), do: "jms"
 
   # Zone width follows the company it keeps, not the requested length: a zone

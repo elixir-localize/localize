@@ -34,4 +34,22 @@ defmodule Localize.Number.PluralRule.CompilerTest do
   test "parse a rule using the within operator" do
     assert {:ok, _ast} = Compiler.parse("n = 1..5 or n within 10..20")
   end
+
+  # TR35's own example (CLDR-19012): `one` and `few` both hold for 1, so the
+  # rules run in semantic order whatever order they arrive in, or 1 would be
+  # `few`. `other`, which has no condition, runs last.
+  test "rules compile in semantic order" do
+    {:ok, one} = Compiler.parse("i = 1")
+    {:ok, few} = Compiler.parse("i = 0..3")
+    other = [integer: [4]]
+
+    {:cond, [], [[do: branches]]} =
+      Localize.Number.PluralRule.Transformer.rules_to_condition_statement(
+        [few: few, other: other, one: one],
+        __MODULE__
+      )
+
+    assert Enum.map(branches, fn {:->, _meta, [_condition, category]} -> category end) ==
+             [:one, :few, :other]
+  end
 end

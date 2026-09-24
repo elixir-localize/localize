@@ -118,7 +118,12 @@ defmodule Localize.Time.Parser do
   defp try_locale_patterns(input, locale, as) do
     with {:ok, available} <- Format.available_formats(locale, :gregorian),
          {:ok, day_periods} <- LCalendar.day_periods(locale, :gregorian) do
-      patterns = available |> collect_patterns() |> with_hour_cycle(locale)
+      patterns =
+        available
+        |> Enum.concat(Format.standard_format_entries(locale, :gregorian))
+        |> collect_patterns()
+        |> with_hour_cycle(locale)
+
       day_periods = Map.put(day_periods, :rules, day_period_rules(locale))
       lenient = load_lenient_date(locale)
       regexes = pattern_regexes(patterns, locale, day_periods, lenient)
@@ -213,9 +218,12 @@ defmodule Localize.Time.Parser do
   #
   # Skeletons that lack hour/minute fields don't construct a
   # Time and fall through naturally.
+  # A standard format's pattern is often also an `availableFormats` entry,
+  # so the same pair can arrive twice.
   defp collect_patterns(available) do
     for {skeleton, pattern_data} <- available,
         pattern <- resolve_pattern_variants(pattern_data),
+        uniq: true,
         do: {skeleton, pattern}
   end
 

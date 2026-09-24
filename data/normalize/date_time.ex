@@ -73,8 +73,8 @@ defmodule Localize.Data.Normalize.DateTime do
       |> atomize_tz_structural_keys()
       |> LMap.atomize_values(only: [:type])
       |> LMap.atomize_keys(level: 1..2)
-      |> add_to_date_time_available_formats(:time_skeletons, :time_formats)
-      |> add_to_date_time_available_formats(:date_skeletons, :date_formats)
+      |> split_standard_formats(:time_skeletons, :time_formats, :time_format_patterns)
+      |> split_standard_formats(:date_skeletons, :date_formats, :date_format_patterns)
       |> hoist(:append_items)
       |> hoist(:available_formats)
       |> hoist(:interval_formats)
@@ -177,7 +177,19 @@ defmodule Localize.Data.Normalize.DateTime do
     Map.put(content, :calendars, calendars)
   end
 
-  defp add_to_date_time_available_formats(content, skeletons, standard_formats) do
+  # The standard formats keep their skeletons under `standard_formats` and
+  # their patterns under `patterns`, both keyed by format name; `:short` to
+  # `:full` resolve through the patterns, and the parsers read them.
+  #
+  # They stay out of `available_formats`. CLDR's reference pattern generator
+  # matches skeletons against `availableFormats` alone when it produces the
+  # skeleton conformance data, and CLDR 49 gives many locales an entry for a
+  # standard format's own skeleton that differs from it: `ko` has a `yMd` of
+  # "y/M/d" beside a medium date of "y. M. d.". A standard format's
+  # `datetimeSkeleton` can also disagree with its pattern — `ak`'s full date
+  # claims `EEEE` for an "EEE" pattern — which as a match candidate put the
+  # abbreviated weekday in a wide request.
+  defp split_standard_formats(content, skeletons, standard_formats, patterns) do
     calendars =
       Enum.map(content.calendars, fn {calendar, formats} ->
         merged_standard_formats =
@@ -195,19 +207,15 @@ defmodule Localize.Data.Normalize.DateTime do
           end)
           |> Map.new()
 
-        added_available_formats =
-          merged_standard_formats
-          |> Map.values()
-          |> Enum.map(&List.to_tuple/1)
-          |> Map.new()
-
-        merged_available_formats =
-          Map.merge(formats.date_time_formats.available_formats, added_available_formats)
+        standard_patterns =
+          Map.new(merged_standard_formats, fn {format, [_skeleton, pattern]} ->
+            {format, pattern}
+          end)
 
         formats =
           formats
-          |> put_in([:date_time_formats, :available_formats], merged_available_formats)
           |> put_in([standard_formats], new_standard_formats)
+          |> Map.put(patterns, standard_patterns)
           |> Map.delete(skeletons)
 
         {calendar, formats}

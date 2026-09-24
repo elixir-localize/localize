@@ -33,6 +33,35 @@ defmodule Localize.DateTime.TestData do
 
   @atomize_values [:calendar, :time_format, :date_format, :date_time_format_type, :style]
 
+  # Every key the fixture uses, after renaming, written here so the atoms
+  # exist whichever test module compiles first. A key missing from this list
+  # makes the parser raise; add it here.
+  @known_keys ~w(locale input expected calendar semantic_skeleton skeleton
+                 semantic_skeleton_length zone_style time_format date_format hour_cycle
+                 year_style style)a
+
+  @keys_by_name Map.new(@known_keys, &{Atom.to_string(&1), &1})
+
+  # The values the atomised keys take that tests compare against atoms. Any
+  # other value (`islamic-civil`) stays a string and simply matches nothing.
+  @known_values ~w(gregorian buddhist japanese short medium long full standard)a
+
+  @values_by_name Map.new(@known_values, &{Atom.to_string(&1), &1})
+
+  # Every multi-field classical skeleton the fixture uses, written here so the
+  # atoms come from source code rather than being minted from the file. The
+  # parser runs at compile time of the conformance module, before any locale
+  # data is loaded, so none of these exist otherwise — and several (the
+  # semantic-derived `yMMMdEEE`) are resolved by best-match and never appear
+  # as an `availableFormats` key at all. A skeleton missing from this list
+  # makes the parser raise rather than create an atom; add it here.
+  @known_skeletons ~w(GGGGGyMdEEE GyMMMMdEEEE GyMMMdEEE GyMMMdEEEE GyMdEEE Hms
+                      MMMMdjmsO MMMMdjmsVVVV MMMMdjmsv MMMMdjmsz MMMdjmsO MMMdjmsVVVV
+                      MMMdjmsv MMMdjmsz MdjmsO MdjmsVVVV Mdjmsv Mdjmsz hms jms
+                      yMMMMdEEEE yMMMdEEE yyMdEEE)a
+
+  @skeletons_by_name Map.new(@known_skeletons, &{Atom.to_string(&1), &1})
+
   def format_test(test, index) do
     test
     |> rename_keys()
@@ -54,9 +83,14 @@ defmodule Localize.DateTime.TestData do
     end)
   end
 
+  # The fixture is a file, and atoms are never minted from file input — not
+  # even in a test helper. Keys, values and skeletons come from the lists
+  # above, so an unknown key or skeleton is a fixture change worth failing
+  # on, and an unknown value (`islamic-civil`) stays a string and simply
+  # matches nothing.
   defp atomize_keys(map) do
     Map.new(map, fn {key, value} ->
-      atom_key = if is_binary(key), do: String.to_atom(key), else: key
+      atom_key = if is_binary(key), do: known_atom!(key), else: key
       {atom_key, value}
     end)
   end
@@ -64,21 +98,38 @@ defmodule Localize.DateTime.TestData do
   defp atomize_values(map, only) do
     Enum.reduce(only, map, fn key, acc ->
       case Map.get(acc, key) do
-        value when is_binary(value) -> Map.put(acc, key, String.to_atom(value))
-        _ -> acc
+        value when is_binary(value) ->
+          Map.put(acc, key, Map.get(@values_by_name, value, value))
+
+        _ ->
+          acc
       end
     end)
   end
 
   defp maybe_atomize_skeleton(%{skeleton: skeleton} = test) when is_binary(skeleton) do
-    if all_one_field?(skeleton) do
-      test
-    else
-      Map.put(test, :skeleton, String.to_atom(skeleton))
+    cond do
+      all_one_field?(skeleton) ->
+        test
+
+      Map.has_key?(@skeletons_by_name, skeleton) ->
+        Map.put(test, :skeleton, Map.fetch!(@skeletons_by_name, skeleton))
+
+      true ->
+        raise ArgumentError,
+              "date_time_formatting.json uses skeleton #{inspect(skeleton)}, which is " <>
+                "not in @known_skeletons in #{__ENV__.file}"
     end
   end
 
   defp maybe_atomize_skeleton(test), do: test
+
+  defp known_atom!(string) do
+    Map.get(@keys_by_name, string) ||
+      raise ArgumentError,
+            "date_time_formatting.json uses key #{inspect(string)}, which is not in " <>
+              "@known_keys in #{__ENV__.file}"
+  end
 
   defp all_one_field?(skeleton) do
     field_list =

@@ -217,11 +217,22 @@ defmodule Localize.DateTime do
       (Keyword.has_key?(options, :date_format) and Keyword.has_key?(options, :time_format))
   end
 
-  defp invoke_formatter(:string, datetime, pattern, locale_id, options_map) do
+  # Every formatting path ends here, however the pattern was resolved: a
+  # single available format, the date and time halves joined through the
+  # wrapper, append items, or a zone-only skeleton. An exact semantic hour
+  # cycle is substituted at this one point so no path can skip it — TR35
+  # applies it to the matched pattern, after skeleton matching.
+  defp invoke_formatter(output, datetime, pattern, locale_id, options_map) do
+    {semantic, options_map} = Map.pop(options_map, :semantic_skeleton)
+    pattern = Localize.DateTime.SemanticSkeleton.apply_hour_cycle(pattern, semantic)
+    run_formatter(output, datetime, pattern, locale_id, options_map)
+  end
+
+  defp run_formatter(:string, datetime, pattern, locale_id, options_map) do
     Localize.DateTime.Formatter.format(datetime, pattern, locale_id, options_map)
   end
 
-  defp invoke_formatter(:parts, datetime, pattern, locale_id, options_map) do
+  defp run_formatter(:parts, datetime, pattern, locale_id, options_map) do
     Localize.DateTime.Formatter.format_to_parts(datetime, pattern, locale_id, options_map)
   end
 
@@ -420,8 +431,14 @@ defmodule Localize.DateTime do
            semantic_skeleton,
            cldr_calendar_for(datetime)
          ) do
-      {:ok, skeleton} -> format_with_skeleton(datetime, options, locale_id, skeleton, output)
-      {:error, _} = error -> error
+      {:ok, skeleton} ->
+        # Carried through so `format_resolved_pattern/6` can substitute an
+        # exact hour cycle's symbol, which TR35 does after skeleton matching.
+        options = Keyword.put(options, :semantic_skeleton, semantic_skeleton)
+        format_with_skeleton(datetime, options, locale_id, skeleton, output)
+
+      {:error, _} = error ->
+        error
     end
   end
 
@@ -507,7 +524,7 @@ defmodule Localize.DateTime do
     case Localize.DateTime.Format.Match.best_match(skeleton, locale_id) do
       {:ok, matched_skeleton} when is_atom(matched_skeleton) ->
         format_matched_skeleton(
-          Map.get(available, matched_skeleton),
+          {matched_skeleton, Map.get(available, matched_skeleton)},
           datetime,
           options,
           locale_id,
@@ -562,26 +579,8 @@ defmodule Localize.DateTime do
 
     case Localize.DateTime.Format.Match.separate_date_and_time(skeleton) do
       {date_skeleton, time_skeleton} ->
-        with {:ok, date_pattern} <-
-               AppendItems.resolve_pattern(date_skeleton, locale_id, :gregorian, options),
-             {:ok, time_pattern} <-
-               AppendItems.resolve_pattern(time_skeleton, locale_id, :gregorian, options) do
-          format_combined_patterns(
-            date_pattern,
-            Localize.DateTime.Format.Match.append_fractional_seconds(
-              time_pattern,
-              fraction_count,
-              locale_id
-            ),
-            datetime,
-            options,
-            locale_id,
-            skeleton,
-            output
-          )
-        else
-          _unresolvable -> unresolved_skeleton(skeleton, locale_id)
-        end
+        {glue_kind(date_skeleton, time_skeleton), date_skeleton, time_skeleton, skeleton}
+        |> format_halves(datetime, options, locale_id, fraction_count, output)
 
       nil ->
         case AppendItems.augment(skeleton, locale_id, :gregorian, options) do
@@ -600,6 +599,120 @@ defmodule Localize.DateTime do
     end
   end
 
+  # Each half resolves on its own, then the two join through the glue TR35
+  # step 3 picks.
+  defp format_halves(
+         {:wrapper, date_skeleton, time_skeleton, skeleton},
+         datetime,
+         options,
+         locale_id,
+         fraction_count,
+         output
+       ) do
+    alias Localize.DateTime.Format.AppendItems
+    alias Localize.DateTime.Format.Match
+
+    with {:ok, date_pattern} <-
+           AppendItems.resolve_pattern(date_skeleton, locale_id, :gregorian, options),
+         {:ok, time_pattern} <-
+           AppendItems.resolve_pattern(time_skeleton, locale_id, :gregorian, options) do
+      time_pattern = Match.append_fractional_seconds(time_pattern, fraction_count, locale_id)
+
+      format_combined_patterns(
+        date_pattern,
+        time_pattern,
+        datetime,
+        options,
+        locale_id,
+        skeleton,
+        output
+      )
+    else
+      _unresolvable -> unresolved_skeleton(skeleton, locale_id)
+    end
+  end
+
+  defp format_halves(glued, datetime, options, locale_id, _fraction_count, output) do
+    format_glued(glued, datetime, options, locale_id, output)
+  end
+
+  @weekday_symbols ~w(E c e)
+
+  # TR35 §Missing Skeleton Fields, step 3, in the order CLDR-19066 settled:
+  # a time half that is only a zone glues through `Date-Timezone` first, and
+  # only then does a date half that is only a weekday glue through
+  # `Time-Day-Of-Week`. Anything else joins through the locale's date-time
+  # wrapper. Without the first rule a date and a zone did not format at all,
+  # since no `availableFormats` entry is a bare zone for the time half to
+  # resolve to.
+  defp glue_kind(date_skeleton, time_skeleton) do
+    cond do
+      Localize.DateTime.Format.Match.zone_only_skeleton?(time_skeleton) -> :date_timezone
+      weekday_only?(date_skeleton) -> :time_day_of_week
+      true -> :wrapper
+    end
+  end
+
+  defp weekday_only?(skeleton) do
+    skeleton
+    |> Kernel.to_string()
+    |> String.graphemes()
+    |> Enum.all?(&(&1 in @weekday_symbols))
+  end
+
+  defp format_glued(
+         {kind, date_skeleton, time_skeleton, skeleton},
+         datetime,
+         options,
+         locale_id,
+         output
+       ) do
+    alias Localize.DateTime.Format.AppendItems
+
+    with {:ok, zero, one} <- glue_parts(kind, date_skeleton, time_skeleton, locale_id, options),
+         {:ok, pattern} <- AppendItems.glue(kind, zero, one, locale_id, :gregorian) do
+      invoke_formatter(output, datetime, pattern, locale_id, Map.new(options))
+    else
+      _unresolvable -> unresolved_skeleton(skeleton, locale_id)
+    end
+  end
+
+  # A zone-only skeleton is its own pattern, as `format_with_skeleton/5`
+  # already treats it; the date half resolves as any date does.
+  defp glue_parts(:date_timezone, date_skeleton, time_skeleton, locale_id, options) do
+    alias Localize.DateTime.Format.AppendItems
+
+    with {:ok, date_pattern} <-
+           AppendItems.resolve_pattern(date_skeleton, locale_id, :gregorian, options) do
+      {:ok, date_pattern, Kernel.to_string(time_skeleton)}
+    end
+  end
+
+  # A lone weekday resolves through the available formats where it can and
+  # is otherwise its own single-field pattern. The time half takes a
+  # `-u-hc-` override exactly as the wrapper path does.
+  defp glue_parts(:time_day_of_week, date_skeleton, time_skeleton, locale_id, options) do
+    alias Localize.DateTime.Format.AppendItems
+
+    with {:ok, time_pattern} <-
+           AppendItems.resolve_pattern(time_skeleton, locale_id, :gregorian, options) do
+      time_pattern =
+        Localize.Time.apply_hour_cycle(
+          time_pattern,
+          Keyword.get(options, :locale, locale_id),
+          time_skeleton
+        )
+
+      weekday_pattern =
+        case AppendItems.resolve_pattern(date_skeleton, locale_id, :gregorian, options) do
+          {:ok, pattern} -> pattern
+          _unresolved -> Kernel.to_string(date_skeleton)
+        end
+
+      {:ok, time_pattern, weekday_pattern}
+    end
+  end
+
   defp unresolved_skeleton(skeleton, locale_id) do
     {:error,
      Localize.DateTimeUnresolvedFormatError.exception(
@@ -609,7 +722,7 @@ defmodule Localize.DateTime do
   end
 
   defp format_matched_skeleton(
-         nil,
+         {_matched_skeleton, nil},
          _datetime,
          _options,
          locale_id,
@@ -624,8 +737,11 @@ defmodule Localize.DateTime do
      )}
   end
 
+  # The matched id travels with its pattern because TR35 rule 2 needs it: a
+  # field whose width the id already asks for keeps the pattern's width, so
+  # `fr` answers `:yyMd` from `yMd`'s "dd/MM/y" as "06/07/24", not "6/7/24".
   defp format_matched_skeleton(
-         matched_pattern,
+         {matched_skeleton, matched_pattern},
          datetime,
          options,
          locale_id,
@@ -635,7 +751,7 @@ defmodule Localize.DateTime do
        ) do
     matched_pattern
     |> Localize.DateTime.Format.resolve_variant(options)
-    |> adjust_to_requested_widths(skeleton)
+    |> adjust_to_requested_widths(skeleton, matched_skeleton)
     |> Localize.DateTime.Format.Match.append_fractional_seconds(fraction_count, locale_id)
     |> Localize.Time.apply_hour_cycle(Keyword.get(options, :locale, locale_id), skeleton)
     |> format_resolved_pattern(datetime, options, locale_id, skeleton, output)
@@ -645,8 +761,6 @@ defmodule Localize.DateTime do
   # that format's field widths to the ones requested. `en` ships an `MMM`
   # format and no `MMMM`, so without this step asking for `:MMMM` matched
   # `MMM` and rendered "Jul" where the literal pattern renders "July".
-  defp adjust_to_requested_widths(pattern, skeleton, matched_id \\ nil)
-
   defp adjust_to_requested_widths(pattern, skeleton, matched_id) when is_binary(pattern) do
     {:ok, tokens} = Localize.DateTime.Format.Match.tokenize_skeleton(skeleton)
 

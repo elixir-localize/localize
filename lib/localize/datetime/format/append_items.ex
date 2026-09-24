@@ -95,10 +95,13 @@ defmodule Localize.DateTime.Format.AppendItems do
 
   ### Returns
 
-  * `{:ok, pattern}` where `pattern` is the augmented pattern string.
+  * `{:ok, pattern}` where `pattern` is the augmented pattern string. When
+    no format carries any requested field, the pattern starts from the first
+    field in CLDR's canonical order, as CLDR's reference pattern generator
+    does.
 
-  * `:error` when no format is a subset of the request, or when a field it
-    lacks is not one TR35 names as an append item.
+  * `:error` when a field the pattern would have to append is not one TR35
+    names as an append item.
 
   * `{:error, exception}` if the locale's data cannot be read.
 
@@ -111,8 +114,37 @@ defmodule Localize.DateTime.Format.AppendItems do
         append_to(matched_id, missing_tokens, skeleton, locale_id, calendar_type, options)
 
       nil ->
-        :error
+        from_fields(skeleton, locale_id, calendar_type)
     end
+  end
+
+  # CLDR's field order, which its reference pattern generator builds a
+  # fallback in.
+  @canonical_order ~w(G y Y u U r Q q M L w W E e c d D F g a b B h H K k m s S A z Z O v V X x)
+
+  # The last resort, where no available format carries any of the requested
+  # fields: `en` has no format for an era alone, so `:G` has nothing to
+  # match. CLDR's reference pattern generator starts from the first field in
+  # its canonical order, written as itself, and appends the rest, so `:G`
+  # renders "AD" and `:QQQQ` "3rd quarter". A field TR35 does not name as an
+  # append item still leaves the skeleton unresolvable, and so does a zone
+  # alone: `Localize.DateTime` formats one as its own pattern, and a date or
+  # a time has no zone to show.
+  defp from_fields(skeleton, locale_id, calendar_type) do
+    with {:ok, tokens} <- Match.tokenize_skeleton(skeleton),
+         [{symbol, count} | rest] <- Enum.sort_by(tokens, &canonical_index/1),
+         true <- Enum.all?(tokens, &appendable?/1),
+         false <- Match.zone_only_skeleton?(skeleton),
+         {:ok, templates} <- Format.append_items(locale_id, calendar_type) do
+      append_all(String.duplicate(symbol, count), rest, templates, locale_id)
+    else
+      {:error, _reason} = error -> error
+      _unresolvable -> :error
+    end
+  end
+
+  defp canonical_index({symbol, _count}) do
+    Enum.find_index(@canonical_order, &(&1 == symbol)) || length(@canonical_order)
   end
 
   # The closest subset match, but only when every field it lacks is one
@@ -129,7 +161,7 @@ defmodule Localize.DateTime.Format.AppendItems do
 
   defp append_to(matched_id, missing_tokens, skeleton, locale_id, calendar_type, options) do
     with {:ok, base} <- matched_pattern(matched_id, locale_id, calendar_type, options),
-         {:ok, adjusted} <- adjust_to_match(base, skeleton, missing_tokens),
+         {:ok, adjusted} <- adjust_to_match(base, skeleton, missing_tokens, matched_id),
          {:ok, templates} <- Format.append_items(locale_id, calendar_type) do
       append_all(adjusted, missing_tokens, templates, locale_id)
     end
@@ -252,12 +284,13 @@ defmodule Localize.DateTime.Format.AppendItems do
 
   # The matched pattern still has to take the widths the caller asked for,
   # but only for the fields it carries — a missing field's width belongs to
-  # the appended part, not to the base.
-  defp adjust_to_match(pattern, skeleton, missing_tokens) do
+  # the appended part, not to the base. The matched id lets a width the id
+  # already asks for stand, as TR35 rule 2 has it.
+  defp adjust_to_match(pattern, skeleton, missing_tokens, matched_id) do
     with {:ok, tokens} <- Match.tokenize_skeleton(skeleton) do
       missing = Enum.map(missing_tokens, &elem(&1, 0))
       kept = Enum.reject(tokens, fn {symbol, _count} -> symbol in missing end)
-      Match.adjust_field_lengths(pattern, kept)
+      Match.adjust_field_lengths(pattern, kept, matched_id)
     end
   end
 
@@ -284,6 +317,30 @@ defmodule Localize.DateTime.Format.AppendItems do
 
   defp template_for(nil, _templates), do: nil
   defp template_for(field, templates), do: Map.get(templates, field)
+
+  @doc false
+  # TR35 §Missing Skeleton Fields, step 3. Two append items are glue rather
+  # than a single field: `Date-Timezone` joins a date to a zone when the time
+  # half of a split request is only a zone, and `Time-Day-Of-Week` joins a
+  # time to a weekday when the date half is only a weekday. Each puts `{0}`
+  # and `{1}` where its own template writes them and carries no `{2}`, so the
+  # arguments are named for the template's placeholders, not for date/time.
+  @spec glue(:date_timezone | :time_day_of_week, String.t(), String.t(), atom(), atom()) ::
+          {:ok, String.t()} | :error
+  def glue(kind, zero, one, locale_id, calendar_type) do
+    with {:ok, templates} <- Format.append_items(locale_id, calendar_type),
+         template when is_list(template) <- Map.get(templates, kind) do
+      {:ok,
+       Enum.map_join(template, "", fn
+         0 -> zero
+         1 -> one
+         literal when is_binary(literal) -> literal
+         _other -> ""
+       end)}
+    else
+      _no_template -> :error
+    end
+  end
 
   # Integers in the template are the placeholders; everything else is a
   # literal. `{1}` is a pattern fragment, so it is quoted only if the

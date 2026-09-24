@@ -166,6 +166,8 @@ defmodule Localize.DateTime.Formatter do
           error
 
         nil ->
+          {tokens, results} = separate_digit_boundaries(tokens, results, locale_id)
+
           stripped =
             tokens
             |> strip_empty_zone_padding(results, [])
@@ -211,6 +213,8 @@ defmodule Localize.DateTime.Formatter do
           error
 
         nil ->
+          {tokens, results} = separate_digit_boundaries(tokens, results, locale_id)
+
           parts =
             tokens
             |> strip_empty_zone_padding(results, [])
@@ -328,6 +332,71 @@ defmodule Localize.DateTime.Formatter do
   end
 
   defp trim_leading_whitespace_in_next(rest_t, rest_r), do: {rest_t, rest_r}
+
+  # TR35 §Boundary Spacing (CLDR-19227): where substituting fields would
+  # run digits together, the locale's `placeholderBoundarySpacing` separates
+  # them. zh's `Hmsv` is "vHH:mm:ss", and a zone with no name of its own
+  # renders as "GMT+8", which ran into the hour as "GMT+814:30:45". Only a
+  # text field can surprise its neighbour with a digit; two numeric fields
+  # side by side, as in "yyyyMMdd", are meant to run together.
+  defp separate_digit_boundaries(tokens, results, locale_id) do
+    case boundary_spacing(locale_id) do
+      spacing when is_binary(spacing) and spacing != "" ->
+        tokens
+        |> Enum.zip(results)
+        |> insert_boundary_spacing(spacing, [])
+        |> Enum.unzip()
+
+      _no_spacing ->
+        {tokens, results}
+    end
+  end
+
+  defp insert_boundary_spacing([first, second | rest], spacing, acc) do
+    acc =
+      if digit_boundary?(first, second),
+        do: [{{:literal, nil, spacing}, spacing}, first | acc],
+        else: [first | acc]
+
+    insert_boundary_spacing([second | rest], spacing, acc)
+  end
+
+  defp insert_boundary_spacing(rest, _spacing, acc), do: Enum.reverse(acc, rest)
+
+  defp digit_boundary?({{:literal, _, _}, _}, _second), do: false
+  defp digit_boundary?(_first, {{:literal, _, _}, _}), do: false
+
+  defp digit_boundary?({{handler_a, _, count_a}, value_a}, {{handler_b, _, count_b}, value_b}) do
+    (text_field?(handler_a, count_a) or text_field?(handler_b, count_b)) and
+      String.match?(rendered(value_a), ~r/\p{Nd}\z/u) and
+      String.match?(rendered(value_b), ~r/\A\p{Nd}/u)
+  end
+
+  @text_handlers [:era, :cyclic_year, :day_name, :period_am_pm, :period_flex] ++
+                   [:period_noon_midnight | @zone_handlers]
+  @name_or_number_handlers [
+    :month,
+    :standalone_month,
+    :quarter,
+    :standalone_quarter,
+    :day_of_week,
+    :standalone_day_of_week
+  ]
+
+  defp text_field?(handler, _count) when handler in @text_handlers, do: true
+  defp text_field?(handler, count) when handler in @name_or_number_handlers, do: count > 2
+  defp text_field?(_handler, _count), do: false
+
+  defp rendered(value) when is_binary(value), do: value
+  defp rendered([%{value: _} | _] = parts), do: Enum.map_join(parts, & &1.value)
+  defp rendered(value), do: ensure_string(value)
+
+  defp boundary_spacing(locale_id) do
+    case Localize.Locale.get(locale_id, [:placeholder_boundary_spacing, :datetime_digit_digit]) do
+      {:ok, spacing} -> spacing
+      _no_spacing -> nil
+    end
+  end
 
   # A caller-supplied `:number_system` option overrides all numeric
   # fields, validated as a known CLDR numbering system. Without the

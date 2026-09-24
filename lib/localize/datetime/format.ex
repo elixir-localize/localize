@@ -58,6 +58,51 @@ defmodule Localize.DateTime.Format do
     Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :time_formats])
   end
 
+  # # date_format_patterns/2
+  #
+  # Returns the standard date format patterns for a locale, keyed by format
+  # name. A standard format resolves here rather than through its skeleton,
+  # because `available_formats` may hold the locale's own `availableFormats`
+  # entry for that skeleton instead.
+  #
+  @spec date_format_patterns(atom(), atom()) :: {:ok, map()} | {:error, Exception.t()}
+  def date_format_patterns(locale_id, calendar_type \\ @default_calendar_type) do
+    Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :date_format_patterns])
+  end
+
+  # # time_format_patterns/2
+  #
+  # Returns the standard time format patterns for a locale, keyed by format
+  # name.
+  #
+  @spec time_format_patterns(atom(), atom()) :: {:ok, map()} | {:error, Exception.t()}
+  def time_format_patterns(locale_id, calendar_type \\ @default_calendar_type) do
+    Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :time_format_patterns])
+  end
+
+  # # standard_format_entries/2
+  #
+  # The standard date and time formats as `{skeleton, pattern}` pairs, for a
+  # parser that tries every pattern the locale formats with. A standard
+  # format whose skeleton also names an `availableFormats` entry is missing
+  # from `available_formats/2`, so a parser takes these as well.
+  #
+  @spec standard_format_entries(atom(), atom()) :: [{atom(), term()}]
+  def standard_format_entries(locale_id, calendar_type \\ @default_calendar_type) do
+    Enum.flat_map([:date, :time], &standard_entries(&1, locale_id, calendar_type))
+  end
+
+  defp standard_entries(format_type, locale_id, calendar_type) do
+    with {:ok, skeletons} <- formats_for_type(format_type, locale_id, calendar_type),
+         {:ok, patterns} <- patterns_for_type(format_type, locale_id, calendar_type) do
+      for {format, skeleton} <- skeletons, {:ok, pattern} <- [Map.fetch(patterns, format)] do
+        {skeleton, pattern}
+      end
+    else
+      _no_standard_formats -> []
+    end
+  end
+
   # # date_time_formats/2
   #
   # Returns the datetime wrapper patterns for a locale.
@@ -129,9 +174,8 @@ defmodule Localize.DateTime.Format do
   # Resolves a standard format name to a pattern string.
   #
   # Standard formats (`:short`, `:medium`, `:long`, `:full`)
-  # first resolve to a skeleton atom via the format map,
-  # then the skeleton resolves to a pattern string via
-  # available_formats.
+  # resolve to their own patterns. Any other atom is a
+  # skeleton, looked up in available_formats.
   #
   # ### Arguments
   #
@@ -175,15 +219,21 @@ defmodule Localize.DateTime.Format do
       when is_atom(format_name) do
     with {:ok, formats_map} <- formats_for_type(format_type, locale_id, calendar_type),
          {:ok, available} <- available_formats(locale_id, calendar_type) do
-      # Standard format names resolve to skeleton atoms first
-      skeleton =
+      pattern =
         if format_name in @standard_formats do
-          Map.get(formats_map, format_name)
+          standard_pattern(
+            format_type,
+            format_name,
+            formats_map,
+            available,
+            locale_id,
+            calendar_type
+          )
         else
-          format_name
+          Map.get(available, format_name)
         end
 
-      case Map.get(available, skeleton) do
+      case pattern do
         nil ->
           {:error,
            Localize.DateTimeUnresolvedFormatError.exception(
@@ -254,14 +304,21 @@ defmodule Localize.DateTime.Format do
       when is_atom(format_name) do
     with {:ok, formats_map} <- formats_for_type(format_type, locale_id, calendar_type),
          {:ok, available} <- available_formats(locale_id, calendar_type) do
-      skeleton =
+      pattern =
         if format_name in @standard_formats do
-          Map.get(formats_map, format_name)
+          standard_pattern(
+            format_type,
+            format_name,
+            formats_map,
+            available,
+            locale_id,
+            calendar_type
+          )
         else
-          format_name
+          Map.get(available, format_name)
         end
 
-      case Map.get(available, skeleton) do
+      case pattern do
         %{number_system: %{} = overrides} -> overrides
         _ -> %{}
       end
@@ -349,6 +406,30 @@ defmodule Localize.DateTime.Format do
   defp pick(variant_map, prefer, defaults) do
     Enum.find_value(prefer ++ defaults, fn key -> Map.get(variant_map, key) end)
   end
+
+  # A standard format's own pattern. Where a calendar carries no patterns
+  # map, the format resolves through its skeleton instead.
+  defp standard_pattern(
+         format_type,
+         format_name,
+         formats_map,
+         available,
+         locale_id,
+         calendar_type
+       ) do
+    case patterns_for_type(format_type, locale_id, calendar_type) do
+      {:ok, %{^format_name => pattern}} -> pattern
+      _no_pattern_of_its_own -> Map.get(available, Map.get(formats_map, format_name))
+    end
+  end
+
+  defp patterns_for_type(:date, locale_id, calendar_type),
+    do: date_format_patterns(locale_id, calendar_type)
+
+  defp patterns_for_type(:time, locale_id, calendar_type),
+    do: time_format_patterns(locale_id, calendar_type)
+
+  defp patterns_for_type(:date_time, _locale_id, _calendar_type), do: :error
 
   defp formats_for_type(:date, locale_id, calendar_type),
     do: date_formats(locale_id, calendar_type)

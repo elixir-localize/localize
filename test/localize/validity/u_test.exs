@@ -112,7 +112,12 @@ defmodule Localize.Validity.UTest do
     end
 
     test "resolves a deprecated id through its preferred replacement" do
-      assert U.decode("tz", "est5edt") == {:ok, {:tz, "America/New_York"}}
+      assert U.decode("tz", "camtr") == {:ok, {:tz, "America/Toronto"}}
+    end
+
+    # CLDR 49 makes est5edt a zone of its own again.
+    test "resolves a POSIX-style id to its own zone" do
+      assert U.decode("tz", "est5edt") == {:ok, {:tz, "EST5EDT"}}
     end
   end
 

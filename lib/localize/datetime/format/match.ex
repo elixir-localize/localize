@@ -39,13 +39,67 @@ defmodule Localize.DateTime.Format.Match do
   @hour_12 ["h", "K"]
   @hour_24 ["H", "k"]
   @day_period ["a", "b", "B"]
+  # Each list is one field to TR35, whichever symbol spells it: the format
+  # and stand-alone forms of a month, a quarter and a weekday, and `e`, the
+  # weekday that also has a numeric form. `en` answers `E` with "ccc", so a
+  # request for `EEEE` has to find that `c`.
   @month ["L", "M"]
-  @day_of_week ["c", "E"]
+  @quarter ["Q", "q"]
+  @day_of_week ["c", "E", "e"]
   @time_zone ["x", "X", "v", "V", "z", "Z", "O"]
+  # The year symbols are one field too, though they count differently: `Y`
+  # is the week-based year, `u` the extended year, `r` the related Gregorian
+  # year and `U` the cyclic year name, numeric where a calendar has none.
+  @year ["y", "Y", "u", "U", "r"]
 
   # Symbols with no numeric form (TR35): every width is text, so a
   # width difference is never a numeric-vs-alpha type mismatch.
   @always_alpha ["E", "a", "b", "B", "G", "x", "X", "v", "V", "z", "Z", "O"]
+
+  # TR35 §Missing Skeleton Fields ranks fields in this order when two
+  # formats with missing fields are otherwise equally close: year, month,
+  # day, era, week, quarter and weekday, then hour, minute, second, period
+  # and zone.
+  @field_ranks %{
+    "y" => 0,
+    "Y" => 0,
+    "u" => 0,
+    "U" => 0,
+    "r" => 0,
+    "M" => 1,
+    "L" => 1,
+    "d" => 2,
+    "D" => 2,
+    "F" => 2,
+    "g" => 2,
+    "G" => 3,
+    "w" => 4,
+    "W" => 4,
+    "Q" => 5,
+    "q" => 5,
+    "E" => 6,
+    "e" => 6,
+    "c" => 6,
+    "h" => 7,
+    "H" => 7,
+    "K" => 7,
+    "k" => 7,
+    "m" => 8,
+    "s" => 9,
+    "S" => 9,
+    "A" => 9,
+    "a" => 10,
+    "b" => 10,
+    "B" => 10,
+    "z" => 11,
+    "Z" => 11,
+    "O" => 11,
+    "v" => 11,
+    "V" => 11,
+    "X" => 11,
+    "x" => 11
+  }
+  @unranked_field 12
 
   @prefer_cycle_24 ["H", "k"]
   # @prefer_cycle_12 ["h", "K"]
@@ -201,8 +255,8 @@ defmodule Localize.DateTime.Format.Match do
       |> get_available_format_tokens(calendar_type)
       |> Enum.map(&subset_candidate(&1, skeleton_keys, skeleton_ordered))
       |> Enum.reject(&is_nil/1)
-      |> Enum.sort_by(fn {format_id, missing, distance} ->
-        {length(missing), distance, Atom.to_string(format_id)}
+      |> Enum.sort_by(fn {format_id, missing, distance, rank} ->
+        {length(missing), distance, rank, Atom.to_string(format_id)}
       end)
       |> best_subset(skeleton_ordered)
     end
@@ -222,13 +276,13 @@ defmodule Localize.DateTime.Format.Match do
         Enum.filter(skeleton_ordered, fn {symbol, _count} -> canonical_key(symbol) in keys end)
 
       {_id, distance} = distance_from({format_id, tokens}, shared)
-      {format_id, missing, distance}
+      {format_id, missing, distance, field_rank(tokens)}
     end
   end
 
   defp best_subset([], _skeleton_ordered), do: :error
 
-  defp best_subset([{format_id, missing_keys, _distance} | _rest], skeleton_ordered) do
+  defp best_subset([{format_id, missing_keys, _distance, _rank} | _rest], skeleton_ordered) do
     missing_tokens =
       Enum.filter(skeleton_ordered, fn {symbol, _count} ->
         canonical_key(symbol) in missing_keys
@@ -465,11 +519,33 @@ defmodule Localize.DateTime.Format.Match do
     |> then(&{:ok, &1})
   end
 
+  # A pattern's fields are runs of one letter, but text in single quotes is
+  # literal and passes through untouched: dsb's `jjm` pattern is
+  # "'zeg'. H:mm", and reading its quoted `z` as a zone field deleted it.
   defp tokenize_format_string(string) do
     string
     |> String.graphemes()
-    |> Enum.chunk_by(& &1)
+    |> tokenize_format([])
   end
+
+  defp tokenize_format([], tokens), do: Enum.reverse(tokens)
+
+  defp tokenize_format(["'" | rest], tokens) do
+    {quoted, rest} = take_quoted(rest, ["'"])
+    tokenize_format(rest, [{:literal, quoted} | tokens])
+  end
+
+  defp tokenize_format([char | _rest] = graphemes, tokens) do
+    {run, rest} = Enum.split_while(graphemes, &(&1 == char))
+    tokenize_format(rest, [run | tokens])
+  end
+
+  # A doubled quote inside quoted text is an escaped quote. An unterminated
+  # quote runs to the end of the pattern.
+  defp take_quoted(["'", "'" | rest], taken), do: take_quoted(rest, ["'", "'" | taken])
+  defp take_quoted(["'" | rest], taken), do: {Enum.join(Enum.reverse(["'" | taken])), rest}
+  defp take_quoted([char | rest], taken), do: take_quoted(rest, [char | taken])
+  defp take_quoted([], taken), do: {Enum.join(Enum.reverse(taken)), []}
 
   defp get_available_format_tokens(locale_id, calendar_type) do
     case Format.available_formats(locale_id, calendar_type) do
@@ -560,20 +636,11 @@ defmodule Localize.DateTime.Format.Match do
   defp distance_from({token_id, tokens}, skeleton) do
     distance =
       Enum.zip_reduce(sort_tokens(tokens), skeleton, 0, fn
-        # Same always-text symbol: widths 1-3 are the same
-        # (abbreviated) class per TR35, wider counts differ mildly
-        {symbol, count_a}, {symbol, count_b}, distance when symbol in @always_alpha ->
-          distance + abs(max(count_a, 3) - max(count_b, 3))
-
-        # Same symbol, both numeric or both alpha
-        {symbol, count_a}, {symbol, count_b}, distance
-        when (count_a in [1, 2] and count_b in [1, 2]) or
-               (count_a > 2 and count_b > 2) ->
-          distance + abs(count_a - count_b)
-
-        # Same symbol, different type (numeric vs alpha)
-        {symbol, _count_a}, {symbol, _count_b}, distance ->
-          distance + 10
+        # Same symbol, both numeric or both text
+        {symbol, count_a}, {symbol, count_b}, distance ->
+          if text_field?(symbol, count_a) == text_field?(symbol, count_b),
+            do: distance + width_distance(symbol, count_a, symbol, count_b),
+            else: distance + 10
 
         # a, b and B are one field to TR35, but ICU's pattern generator keeps b
         # nearer a than B, so `hb` takes `h a` (rendered "h b") over `Bh`.
@@ -581,38 +648,63 @@ defmodule Localize.DateTime.Format.Match do
         when sym_a in @day_period and sym_b in @day_period ->
           pair = Enum.sort([sym_a, sym_b])
 
-          distance + abs(max(count_a, 3) - max(count_b, 3)) +
+          distance + width_distance(sym_a, count_a, sym_b, count_b) +
             Map.fetch!(%{["a", "b"] => 10, ["B", "b"] => 15, ["B", "a"] => 20}, pair)
 
-        # Different compatible symbols, same type. TR35 lets an h or K
-        # skeleton field match only a 12-hour field (h or K), and an H or k
-        # only a 24-hour one, so an hour of the other cycle is not compatible.
+        # Different compatible symbols. TR35 lets an h or K skeleton field
+        # match only a 12-hour field (h or K), and an H or k only a 24-hour
+        # one, so an hour of the other cycle is not compatible.
         {sym_a, count_a}, {sym_b, count_b}, distance
-        when ((sym_a in @month and sym_b in @month) or
-                (sym_a in @day_of_week and sym_b in @day_of_week) or
-                (sym_a in @day_period and sym_b in @day_period) or
-                (sym_a in @hour_12 and sym_b in @hour_12) or
-                (sym_a in @hour_24 and sym_b in @hour_24) or
-                (sym_a in @time_zone and sym_b in @time_zone)) and
-               ((count_a in [1, 2] and count_b in [1, 2]) or
-                  (count_a > 2 and count_b > 2)) ->
-          distance + abs(count_a - count_b) + 10
-
-        # Different compatible symbols, different type
-        {sym_a, count_a}, {sym_b, count_b}, distance
-        when (sym_a in @month and sym_b in @month) or
+        when (sym_a in @year and sym_b in @year) or
+               (sym_a in @month and sym_b in @month) or
+               (sym_a in @quarter and sym_b in @quarter) or
                (sym_a in @day_of_week and sym_b in @day_of_week) or
-               (sym_a in @day_period and sym_b in @day_period) or
                (sym_a in @hour_12 and sym_b in @hour_12) or
                (sym_a in @hour_24 and sym_b in @hour_24) or
                (sym_a in @time_zone and sym_b in @time_zone) ->
-          distance + abs(count_a - count_b) + 20
+          if text_field?(sym_a, count_a) == text_field?(sym_b, count_b),
+            do: distance + width_distance(sym_a, count_a, sym_b, count_b) + 10,
+            else: distance + abs(count_a - count_b) + 20
 
         _other_a, _other_b, distance ->
           distance + 30
       end)
 
     {token_id, distance}
+  end
+
+  # A field is text at three letters or more, and at every width for the
+  # symbols with no numeric form: `E` is the abbreviated weekday at one to
+  # three letters, where `e` and `c` are the weekday's number.
+  defp text_field?(symbol, count), do: symbol in @always_alpha or count > 2
+
+  # Numeric widths differ by digit count. Text widths do not run in letter
+  # order: CLDR's reference pattern generator places narrow (five letters)
+  # beside short (six), short beside abbreviated (three), and abbreviated
+  # beside wide (four), so a narrow request prefers an abbreviated format to
+  # a wide one. `ja` answers `EEEEEd` from `Ed`'s "d日(E)", not `EEEEd`'s
+  # "d日EEEE".
+  defp width_distance(sym_a, count_a, sym_b, count_b) do
+    if text_field?(sym_a, count_a) and text_field?(sym_b, count_b),
+      do: abs(text_width_rank(count_a) - text_width_rank(count_b)),
+      else: abs(count_a - count_b)
+  end
+
+  defp text_width_rank(count) when count <= 3, do: 3
+  defp text_width_rank(4), do: 4
+  defp text_width_rank(5), do: 1
+  defp text_width_rank(6), do: 2
+  defp text_width_rank(count), do: count
+
+  # TR35 §Missing Skeleton Fields: formats that lack a requested field and
+  # are otherwise equally close are ranked "by their matching fields in the
+  # order listed in step 1", so `en`'s `EEEEMMMM` builds on its month format
+  # and appends the weekday rather than building on `E` and appending the
+  # month.
+  defp field_rank(tokens) do
+    tokens
+    |> Enum.map(fn {symbol, _count} -> Map.get(@field_ranks, symbol, @unranked_field) end)
+    |> Enum.sort()
   end
 
   # Two formats can sit at the same distance from a skeleton: `ja` answers
@@ -635,7 +727,9 @@ defmodule Localize.DateTime.Format.Match do
 
   defp canonical_key(key) do
     cond do
+      key in @year -> "y"
       key in @month -> "M"
+      key in @quarter -> "Q"
       key in @day_of_week -> "E"
       key in @day_period -> "a"
       key in @hour -> "H"
@@ -673,17 +767,22 @@ defmodule Localize.DateTime.Format.Match do
     |> separate_date_and_time_fields()
   end
 
+  # A character that is neither a date nor a time symbol makes the skeleton
+  # unsplittable rather than being dropped, so `:bogus` does not resolve as
+  # the date "gu" and the time "bs".
   defp separate_date_and_time_fields(skeleton) do
-    {date_fields, time_fields} =
+    {date_fields, time_fields, unknown} =
       skeleton
       |> String.graphemes()
-      |> Enum.reduce({[], []}, fn char, {date_fields, time_fields} ->
-        date_fields = if char in @date_symbols, do: [char | date_fields], else: date_fields
-        time_fields = if char in @time_symbols, do: [char | time_fields], else: time_fields
-        {date_fields, time_fields}
+      |> Enum.reduce({[], [], []}, fn char, {date_fields, time_fields, unknown} ->
+        cond do
+          char in @date_symbols -> {[char | date_fields], time_fields, unknown}
+          char in @time_symbols -> {date_fields, [char | time_fields], unknown}
+          true -> {date_fields, time_fields, [char | unknown]}
+        end
       end)
 
-    if date_fields != [] and time_fields != [] do
+    if date_fields != [] and time_fields != [] and unknown == [] do
       {date_fields |> Enum.reverse() |> List.to_string(),
        time_fields |> Enum.reverse() |> List.to_string()}
     else
@@ -693,73 +792,109 @@ defmodule Localize.DateTime.Format.Match do
 
   # ── Field length adjustment ─────────────────────────────────
 
-  @numeric_and_alpha_fields ["M", "L", "e", "q", "Q"]
+  # The fields spelled by more than one symbol: month, quarter and weekday.
+  @related_symbol_fields @month ++ @quarter ++ @day_of_week
   # TR35's zone symbols stand in for one another, the ISO 8601 `X` and `x`
   # as well as the named forms: `jmX` matched to `hmv` renders `h:mm a X`.
   @substitutable_zone_fields ["v", "V", "O", "z", "Z", "X", "x"]
   @hms_fields ["H", "h", "K", "k", "m", "s", "S"]
 
-  # A width changes only within its class, numeric (1 or 2) or text (3 or
-  # more). Equal widths need no change.
-  defp width_adjustable?(same_length, same_length), do: false
-
-  defp width_adjustable?(field_length, requested_length) do
-    (field_length in [1, 2] and requested_length in [1, 2]) or
-      (field_length > 2 and requested_length > 2)
+  defp adjust_field_length({:literal, text}, acc, _skeleton_tokens, _id_tokens) do
+    [text | acc]
   end
 
   defp adjust_field_length([char | _rest] = field, acc, skeleton_tokens, id_tokens)
-       when char in @numeric_and_alpha_fields do
+       when char in @related_symbol_fields do
     # The requested token may be spelled with either form of the field —
-    # `L` and `M` are both months, `e` and `E` both weekdays — so the lookup
-    # canonicalises the skeleton's keys as well as the format's. Without it a
-    # requested `LLLL` never found the `MMM` format's month field and the
-    # width went unadjusted.
+    # `L` and `M` are both months, `E`, `e` and `c` all weekdays — so the
+    # lookup canonicalises the skeleton's keys as well as the format's.
+    # Without it a requested `LLLL` never found the `MMM` format's month, and
+    # `en`'s `EEEE` never found the "ccc" of its `E` format. The pattern keeps
+    # its own symbol: the locale chose the stand-alone or format form.
     canonical = canonical_key(char)
 
-    requested_length =
-      Enum.find_value(skeleton_tokens, :not_found, fn {key, count} ->
-        if canonical_key(key) == canonical, do: count
-      end)
+    requested =
+      Enum.find(skeleton_tokens, fn {key, _count} -> canonical_key(key) == canonical end)
 
-    cond do
-      requested_length == :not_found ->
+    stated = Enum.find(id_tokens, fn {key, _count} -> canonical_key(key) == canonical end)
+
+    case requested do
+      nil ->
         [field | acc]
 
-      # TR35 rule 2, as in the general clause below.
-      locale_states_width?(id_tokens, char, skeleton_tokens) ->
-        [field | acc]
+      # TR35 rule 2: the format's own skeleton already asks for this width,
+      # so the pattern's width is the locale's answer to it.
+      {symbol, count} when stated != nil ->
+        if same_width?(stated, {symbol, count}),
+          do: [field | acc],
+          else: [adjusted_field(field, symbol, count) | acc]
 
-      width_adjustable?(length(field), requested_length) ->
-        [List.duplicate(char, requested_length) | acc]
-
-      true ->
-        [field | acc]
+      {symbol, count} ->
+        [adjusted_field(field, symbol, count) | acc]
     end
   end
 
-  defp adjust_field_length([char | _rest], acc, skeleton_tokens, _id_tokens)
+  # The zone the skeleton asks for replaces the pattern's, keeping the
+  # pattern's width where the matched id already asks for the requested one
+  # (TR35 rule 2): el's `Hmsv` is "HH:mm:ss (vvvv)", so `Hmsv` keeps its
+  # long generic name. With no zone asked for, the pattern's zone stands.
+  defp adjust_field_length([char | _rest] = field, acc, skeleton_tokens, id_tokens)
        when char in @substitutable_zone_fields do
-    {replacement_char, requested_length} =
-      find_substitutable_field(@substitutable_zone_fields, skeleton_tokens)
+    stated = Enum.find(id_tokens, fn {key, _count} -> key in @substitutable_zone_fields end)
 
-    [List.duplicate(replacement_char, requested_length) | acc]
+    case find_substitutable_field(@substitutable_zone_fields, skeleton_tokens) do
+      {"", 0} ->
+        [field | acc]
+
+      {symbol, count} ->
+        width = if match?({_key, ^count}, stated), do: length(field), else: count
+        [List.duplicate(symbol, width) | acc]
+    end
   end
 
-  # TR35 matches a, b and B as one field, so a day period the skeleton asks
-  # for replaces the pattern's: `hb` matched to `h a` renders `h b`, as ICU's
-  # pattern generator does. With none asked for, the locale's own stands.
+  # TR35 matches a, b and B as one field. A `b` or `B` in the skeleton asks
+  # for that style of day period, so it replaces the pattern's: `hb` matched
+  # to `h a` renders `h b`. An `a` beside an hour is optional — TR35 treats
+  # `ha` as `h` — so the locale's own day period stands at the width asked
+  # for, and zh-Hant's `ha` is its "Bh時". With none asked for, it stands at
+  # the width a `j` or `C` asks for.
   defp adjust_field_length([char | _rest] = field, acc, skeleton_tokens, _id_tokens)
        when char in @day_period do
     case Enum.find(skeleton_tokens, fn {symbol, _count} -> symbol in @day_period end) do
+      {"a", count} when count > 3 -> [List.duplicate(char, count) | acc]
+      {"a", _abbreviated} -> [field | acc]
       {symbol, count} -> [List.duplicate(symbol, count) | acc]
-      nil -> [field | acc]
+      nil -> [input_hour_day_period(field, skeleton_tokens) | acc]
     end
   end
 
   defp adjust_field_length([char | _rest] = field, acc, _skeleton_tokens, _id_tokens)
        when char in @hms_fields do
     [field | acc]
+  end
+
+  # A year asked for as `Y`, `u` or `r` counts differently from the
+  # pattern's `y`, so the requested symbol replaces it; `YMd` matched to
+  # `yMd` renders "M/d/Y". A `y` request keeps the symbol the locale wrote,
+  # as en's "'week' w 'of' Y" for `yw` does, and a `U` in a calendar without
+  # cyclic years is its numeric year, so the pattern's year stands.
+  defp adjust_field_length([char | _rest] = field, acc, skeleton_tokens, id_tokens)
+       when char in @year do
+    stated = Enum.find(id_tokens, fn {key, _count} -> key in @year end)
+
+    case Enum.find(skeleton_tokens, fn {key, _count} -> key in @year end) do
+      {"U", _count} ->
+        [field | acc]
+
+      {symbol, count} ->
+        output_symbol = if symbol == "y", do: char, else: symbol
+        # TR35 rule 2, as for every other field.
+        width = if match?({_key, ^count}, stated), do: length(field), else: count
+        [List.duplicate(output_symbol, width) | acc]
+
+      nil ->
+        [field | acc]
+    end
   end
 
   defp adjust_field_length([char | _rest] = field, acc, skeleton_tokens, id_tokens) do
@@ -776,6 +911,41 @@ defmodule Localize.DateTime.Format.Match do
       [List.duplicate(char, requested_length) | acc]
     end
   end
+
+  # TR35 rule 1: a width moves only within its class, never between numeric
+  # and text. A text width carries the form it names, so a pattern's "ccc"
+  # asked for as `EEEE` becomes "cccc", and asked for as `E` stays "ccc".
+  defp adjusted_field([char | _rest] = field, symbol, count) do
+    pattern_count = length(field)
+
+    cond do
+      text_field?(char, pattern_count) != text_field?(symbol, count) -> field
+      effective_width(char, pattern_count) == effective_width(symbol, count) -> field
+      true -> List.duplicate(char, effective_width(symbol, count))
+    end
+  end
+
+  # TR35's input hour symbols carry a day-period width in their length: one
+  # or two letters of `j` or `C` ask for the abbreviated day period, three
+  # or four the wide one, five or six the narrow one. The width applies to
+  # the day period the pattern already uses, whichever symbol that is, so
+  # zh-Hant's `jjj` renders its "Bh時" as "BBBBh時".
+  defp input_hour_day_period([char | _rest] = field, skeleton_tokens) do
+    case Enum.find(skeleton_tokens, fn {symbol, _count} -> symbol in ["j", "C"] end) do
+      {_symbol, count} when count >= 5 -> List.duplicate(char, 5)
+      {_symbol, count} when count >= 3 -> List.duplicate(char, 4)
+      _abbreviated_or_none -> field
+    end
+  end
+
+  defp same_width?({symbol_a, count_a}, {symbol_b, count_b}) do
+    effective_width(symbol_a, count_a) == effective_width(symbol_b, count_b)
+  end
+
+  # One to three letters of `E` are all the abbreviated weekday, the width
+  # `ccc` and `eee` spell with three.
+  defp effective_width(symbol, count) when symbol in @always_alpha, do: max(count, 3)
+  defp effective_width(_symbol, count), do: count
 
   defp find_substitutable_field(fields, skeleton) do
     Enum.reduce_while(fields, {"", 0}, fn field, acc ->

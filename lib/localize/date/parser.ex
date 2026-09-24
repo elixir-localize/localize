@@ -1205,7 +1205,11 @@ defmodule Localize.Date.Parser do
       days_data = maybe_load_days(locale, cldr_calendar)
       lenient = load_lenient_date(locale)
       transliterated = inputs |> Enum.map(&transliterate_digits(&1, locale)) |> Enum.uniq()
-      patterns = collect_patterns(available)
+
+      patterns =
+        available
+        |> Enum.concat(Format.standard_format_entries(locale, cldr_calendar))
+        |> collect_patterns()
 
       ctx = %{
         quarters: quarters_data,

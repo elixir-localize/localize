@@ -22,9 +22,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Date-time skeletons resolve through TR35's append items when no available format carries every requested field, appending the missing ones from the locale's `appendItems` templates. `en` has no quarter format, so `:yMMMdQ` now renders "Jul 6, 2024 (quarter: 3)" where it errored.
 
+* CLDR 49's `placeholderBoundarySpacing` separates a text field from a neighbour its output would run digits into, as TR35 now specifies, so zh's "vHH:mm:ss" renders a nameless zone as "GMT+8 14:30:45" rather than "GMT+814:30:45". Numeric fields written together are left alone.
+
+* A skeleton whose time half is only a zone joins its date through CLDR 49's `Date-Timezone` item, and one whose date half is only a weekday joins its time through `Time-Day-Of-Week`, as TR35 now specifies. `en` `:yMMMdz` renders "Jul 6, 2024 EDT", where it errored.
+
 * `Localize.DateTime.Timezone.location_name/3` returns the place the generic location format names for a timezone — a country for a single-zone territory or a CLDR primary zone, a city otherwise — and `generic_location_format/2` renders it through the locale's `regionFormat`.
 
-* `Localize.DateTime.SemanticSkeleton` implements TR35 semantic skeletons — asking for a date by meaning (`"YMDE"`, `"MDTZ"`) rather than by field. `semantic/2` builds one, `:format` accepts it on `Localize.Date`, `Localize.Time` and `Localize.DateTime`, and it matches CLDR on all 240 cases.
+* `Localize.DateTime.SemanticSkeleton` implements TR35 semantic skeletons, asking for a date by meaning (`"YMDE"`) rather than by field, and `:format` accepts one throughout. `:hour_cycle` takes TR35's `:clock12` and `:clock24` preferences and the exact cycles `:h11` to `:h24`.
 
 * `Localize.DateTime.Timezone.parse_offset/2` reads a fixed UTC offset from a zone string — ISO 8601, or the localized GMT format in any locale's spelling — inverting `gmt_format/3`. `Localize.DateTime.parse/2` uses it, so `"May 16, 2026 2:30 PM GMT+10:30"` parses without `calendrical`.
 
@@ -63,6 +67,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * **Breaking.** A standard format on a partial date derives its skeleton from the fields present, with the month as wide as the format asks, where it errored. Without a format the `:medium` default applies, so `%{year: 2024, month: 6}` renders "Jun 2024" rather than "6/2024".
 
 * **Breaking.** The numeric `e` and `c` weekday fields count from the locale's first day of the week, as TR35 specifies, so a Saturday is 7 in `en` and 6 in `de` where both gave 6. `cc` is one digit, like `c`, rather than zero-padded.
+
+* **Breaking.** CLDR 49 makes `EST5EDT`, `CST6CDT`, `MST7MDT` and `PST8PDT` zones of their own again rather than aliases of New York, Chicago, Denver and Los Angeles. `-u-tz-est5edt` now resolves to "EST5EDT", which has no location or metazone and so formats by its UTC offset.
+
+* **Breaking.** Skeletons match the locale's `availableFormats` alone, as CLDR's reference pattern generator does, not the standard formats as well; CLDR 49 gives many locales an entry beside a standard format with the same skeleton. `ko` `:yMd` is now "2024/7/6"; `format: :medium` still gives "2024. 7. 6.".
+
+* Skeleton matching ranks narrow and short text widths nearer abbreviated than wide, and breaks a tie between formats missing a field by TR35's field order, as CLDR's reference generator does. `ja` `:yMdEEEEE` now renders "2024/7/6(土)", not "2024/7/6土".
 
 ### Fixed
 
@@ -118,7 +128,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `:date_format` and `:time_format` resolve a skeleton through TR35 matching and accept a semantic skeleton, where a missing skeleton errored and a semantic one raised. A skeleton date format joins through the locale's date-time pattern, so `ja` renders "2026年6月15日 14:30".
 
-* A skeleton whose date and time halves no single available format covers joins them at the length TR35 derives from the requested date fields rather than always at `:medium`, bringing CLDR's skeleton conformance cases to 86 of 90.
+* A skeleton whose date and time halves no single available format covers joins them at the length TR35 derives from the requested date fields rather than always at `:medium`.
 
 * A semantic skeleton passed as `:format` for a partial date or time is used rather than replaced by a skeleton derived from the fields present.
 
@@ -146,6 +156,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * A matched format keeps a field width the locale states deliberately. TR35 leaves a pattern field alone where the matched `availableFormats` id already carries the requested width, so `ru`'s `yMd` renders `dd.MM.y` rather than being narrowed to `d.M.y`.
 
+* `Localize.DateTime` keeps a width the matched format's own skeleton asks for, as `Localize.Date` did, so `fr` `:yyMd` renders "06/07/24" not "6/7/24". A zone keeps its width the same way, so `el` `:yMdHmsv` names the zone in full, as its `Hmsv` format does.
+
+* A skeleton's weekday matches the locale's weekday formats whether spelled `E`, `e` or `c`, and a year whichever of `y`, `Y`, `u`, `U` or `r`, taking the width asked for. `en` `:EEEE` renders "Saturday" where it gave "Sat", and `ja` `:U` "2024年".
+
+* `j` and `C` carry TR35's day-period width, three or four letters wide and five or six narrow, so `en` `:jjjjj` renders "2 p". An `a` beside an hour sets only the width of the locale's own day period, TR35 treating `ha` as `h`, so `zh-Hant` `:ha` keeps its "Bh時".
+
+* A skeleton no available format can build on starts from its first field and appends the rest, as CLDR's reference generator does, so `:G` renders "AD" and `:QQQQ` "3rd quarter" where both errored.
+
+* Quoted text in a matched format survives width adjustment: `dsb`'s `jjm` format "'zeg'. H:mm" rendered "eg. 14:30", its quoted `z` read as a zone field and deleted.
+
 * A skeleton combining a date and a time adjusts both halves' field widths to the request, where it adjusted neither and a requested zone symbol took the matched format's — `:MMMMdjmsO` gave "GMT" not "GMT+0". Every Gregorian conformance case now passes, from 47 of 88.
 
 * Unit preferences read the `-u-ms` and `-u-mu` keywords, in TR35's order `mu > ms > rg > (likely) region`: `en-u-rg-uszzzz-ms-metric` gives celsius and `en-US-u-rg-uszzzz-ms-uksystem` imperial gallons.
@@ -158,7 +178,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * A zero offset is spelled out wherever a localized GMT format is used: `"GMT+00:00"` long and `"GMT+0"` short, matching TR35's own examples and CLDR's conformance data. `Localize.DateTime.Timezone.gmt_format/3` drops its `:zero_format` option, which selected between the two.
 
-* Skeleton resolution is now covered by CLDR's own `datetime/skeletons.tsv` conformance suite, which had not been exercised: 83 of the 90 Gregorian cases match, with every difference a separator rather than a field choice or width.
+* Skeleton resolution is covered by CLDR's four skeleton conformance files, 2,871 Gregorian cases, which had not been exercised. All agree with CLDR's reference generator but 116, each recorded with its TR35 reason: hour widths, `J` padding, `C` in Indian locales and `en` `yyyy`.
 
 * RBNF matches ICU on all 52,691 conformance cases, from 52,685. Optional rule text now renders unconditionally where ICU would not have split the rule in two — its base value must be positive and an even multiple of its divisor — so Afrikaans spells the year 1100 "elf honderd nul".
 

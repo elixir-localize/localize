@@ -180,7 +180,7 @@ defmodule Localize.Validity.U do
 
   # For timezones a nil value means its an acceptable
   # time zone name but it needs to be resolved to its
-  # canonical version. For example, est5edt becomes usnyc
+  # canonical version. For example, camtr becomes cator
   @tz_values @validity_data["tz"]
   defp valid("tz", value) do
     case Map.fetch(@tz_values, value) do

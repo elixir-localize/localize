@@ -102,8 +102,11 @@ defmodule Localize.DateTime.AppendItemsTest do
                Localize.Time.to_string(@time, locale: :en, format: :hmSS)
     end
 
-    test "a skeleton with no subset at all stays unresolved" do
-      assert :error = AppendItems.augment(:QQQQ, :en, :gregorian)
+    # With no subset to build on, CLDR's reference generator starts from the
+    # field itself; a symbol that is no field stays unresolvable.
+    test "a skeleton with no subset starts from its first field" do
+      assert {:ok, "QQQQ"} = AppendItems.augment(:QQQQ, :en, :gregorian)
+      assert :error = AppendItems.augment(:QQQQo, :en, :gregorian)
     end
   end
 

@@ -11,25 +11,26 @@ defmodule Localize.Locale.PersistentTermTest do
 
   alias Localize.Locale
 
-  @parent_only_key [:dates, :calendars, :gregorian, :available_formats, :yMMdd]
+  # pt names Brasília's short zone names; pt-PT, whose parent it is, does not.
+  @parent_only_key [:dates, :time_zone_names, :metazone, :brasilia, :short, :standard]
   @grandparent_only_key [:subdivisions, :twcyi]
   @locale_specific_key [:territories, :TC, :standard]
   @missing_key [:localize_test, :missing_key]
 
   describe "get/3" do
     test "does not search parent locales by default" do
-      assert {:error, %Localize.ItemNotFoundError{locale: :"en-AU", keys: @parent_only_key}} =
-               Locale.get(:"en-AU", @parent_only_key)
+      assert {:error, %Localize.ItemNotFoundError{locale: :"pt-PT", keys: @parent_only_key}} =
+               Locale.get(:"pt-PT", @parent_only_key)
     end
 
     test "does not search parent locales when fallback is false" do
-      assert {:error, %Localize.ItemNotFoundError{locale: :"en-AU", keys: @parent_only_key}} =
-               Locale.get(:"en-AU", @parent_only_key, fallback: false)
+      assert {:error, %Localize.ItemNotFoundError{locale: :"pt-PT", keys: @parent_only_key}} =
+               Locale.get(:"pt-PT", @parent_only_key, fallback: false)
     end
 
     test "searches the immediate parent locale when fallback is enabled" do
-      assert {:ok, "dd/MM/y"} =
-               Locale.get(:"en-AU", @parent_only_key, fallback: true)
+      assert {:ok, "BRT"} =
+               Locale.get(:"pt-PT", @parent_only_key, fallback: true)
     end
 
     test "uses the requested locale before searching parents" do

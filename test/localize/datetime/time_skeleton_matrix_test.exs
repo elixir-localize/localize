@@ -27,7 +27,9 @@ defmodule Localize.DateTime.TimeSkeletonMatrixTest do
 
   * `zh-Hant`'s 12-hour formats name the flexible day period ("Bh:mm"); ICU
     derives each format's skeleton from its pattern, so a skeleton without
-    a day period finds "ah:mm" there instead.
+    a day period finds "ah:mm" there instead. TR35 treats an `a` beside an
+    hour as no day period at all ("`ha` is treated as equivalent to `h`"),
+    so `ha` renders "Bh:mm" too where ICU renders "ah:mm".
 
   """
 
@@ -68,7 +70,7 @@ defmodule Localize.DateTime.TimeSkeletonMatrixTest do
            "#{length(failures)} rows differ: " <>
              inspect(Enum.take(failures, 30), pretty: true, limit: :infinity)
 
-    assert length(rows) == 5_818
+    assert length(rows) == 5_746
   end
 
   test "b and B render midnight at a time that shows as midnight" do
@@ -110,6 +112,8 @@ defmodule Localize.DateTime.TimeSkeletonMatrixTest do
   test "zh-Hant's 12-hour formats name the flexible day period" do
     assert format("hm", ~T[00:05:09], "zh-Hant") == {:ok, "凌晨12:05"}
     assert format("hms", ~T[00:05:09], "zh-Hant") == {:ok, "凌晨12:05:09"}
+    assert format("hma", ~T[00:05:09], "zh-Hant") == {:ok, "凌晨12:05"}
+    assert format("ha", ~T[18:30:00], "zh-Hant") == format("h", ~T[18:30:00], "zh-Hant")
   end
 
   defp row([_mode, locale, skeleton, hour, minute, second, formatted, pattern]) do
@@ -149,7 +153,7 @@ defmodule Localize.DateTime.TimeSkeletonMatrixTest do
   defp cldr_48_hour_format?(_row), do: false
 
   defp pattern_derived_day_period?(%{locale: "zh-Hant", skeleton: skeleton, pattern: pattern}) do
-    not String.contains?(skeleton, ["a", "b", "B", "J"]) and String.contains?(pattern, "a")
+    not String.contains?(skeleton, ["b", "B", "J"]) and String.contains?(pattern, "a")
   end
 
   defp pattern_derived_day_period?(_row), do: false

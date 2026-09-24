@@ -150,6 +150,44 @@ defmodule Localize.DateTime.FormatterEdgeTest do
     end
   end
 
+  describe "digit boundaries between fields" do
+    # TR35 §Boundary Spacing (CLDR-19227): zh's `Hmsv` is "vHH:mm:ss". A zone
+    # with neither a name nor a location falls back to the localized GMT
+    # format, whose digits would run into the hour's; root's
+    # placeholderBoundarySpacing, a space, sets them apart.
+    @gmt_plus_8 %DateTime{
+      year: 2024,
+      month: 7,
+      day: 6,
+      hour: 14,
+      minute: 30,
+      second: 45,
+      microsecond: {0, 0},
+      time_zone: "Etc/GMT-8",
+      zone_abbr: "+08",
+      utc_offset: 28_800,
+      std_offset: 0,
+      calendar: Calendar.ISO
+    }
+
+    test "a zone ending in a digit is set apart from the hour" do
+      assert {:ok, "GMT+8 14:30:45"} =
+               Localize.DateTime.to_string(@gmt_plus_8, format: :Hmsv, locale: :zh)
+    end
+
+    test "the parts carry the spacing as a literal" do
+      assert {:ok, parts} = Localize.DateTime.to_parts(@gmt_plus_8, format: :Hmsv, locale: :zh)
+      assert Enum.map_join(parts, & &1.value) == "GMT+8 14:30:45"
+      assert %{type: :literal, value: " "} in parts
+    end
+
+    # Two numeric fields written together are meant to run together.
+    test "numeric fields written together stay together" do
+      assert {:ok, "20240706"} =
+               Localize.DateTime.to_string(@gmt_plus_8, format: "yyyyMMdd", locale: :zh)
+    end
+  end
+
   describe "flexible day periods (B) fallbacks and ranges" do
     test "a language without day-period rules falls back to AM/PM names" do
       # `ak` has no entry in the supplemental day-period rules, so B

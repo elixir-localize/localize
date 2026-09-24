@@ -106,8 +106,11 @@ defmodule Localize.LanguageTag.UExtensionTest do
 
     test "resolves timezone ids to canonical IANA names" do
       assert {:ok, %U{tz: "Australia/Sydney"}} = U.parse("tz-ausyd")
-      # est5edt is deprecated; it resolves through usnyc.
-      assert {:ok, %U{tz: "America/New_York"}} = U.parse("tz-est5edt")
+      # camtr is deprecated; it resolves through cator.
+      assert {:ok, %U{tz: "America/Toronto"}} = U.parse("tz-camtr")
+      # CLDR 49 makes est5edt a zone of its own again rather than a
+      # deprecated alias of usnyc.
+      assert {:ok, %U{tz: "EST5EDT"}} = U.parse("tz-est5edt")
     end
 
     test "returns an InvalidSubtagError for an invalid keyword value" do
@@ -130,8 +133,8 @@ defmodule Localize.LanguageTag.UExtensionTest do
 
   describe "round trip through validate_locale/1" do
     test "canonical_locale_id resolves deprecated timezone ids" do
-      {:ok, tag} = Localize.validate_locale("en-u-tz-est5edt")
-      assert tag.canonical_locale_id == "en-u-tz-usnyc"
+      {:ok, tag} = Localize.validate_locale("en-u-tz-camtr")
+      assert tag.canonical_locale_id == "en-u-tz-cator"
     end
 
     test "canonical_locale_id prefers islamic-civil over islamicc" do

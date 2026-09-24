@@ -21,15 +21,20 @@ defmodule Localize.Number.PluralRule.Transformer do
         rule_to_cond_branch(new_ast, category)
       end)
 
-    {:cond, [], [[do: move_true_branch_to_end(branches)]]}
+    {:cond, [], [[do: in_semantic_order(branches)]]}
   end
 
-  # We can't assume the order of branches and we need the
-  # `true` branch at the end since it will always match
-  # and hence potentially shadow other branches.
-  defp move_true_branch_to_end(branches) do
-    Enum.sort(branches, fn {:->, [], [[ast], _category]}, _other_branch ->
-      not (ast == true)
+  # TR35 evaluates plural rules "in semantic order: first `zero`, then
+  # `one`, `two`, `few`, and `many`", because two rules may both hold for a
+  # number and the earlier category must win; `other` takes what is left.
+  # The order is set here rather than taken from the data, and the `true`
+  # branch goes last because it always matches.
+  @semantic_order [:zero, :one, :two, :few, :many, :other]
+
+  defp in_semantic_order(branches) do
+    Enum.sort_by(branches, fn {:->, [], [[ast], category]} ->
+      {ast == true,
+       Enum.find_index(@semantic_order, &(&1 == category)) || length(@semantic_order)}
     end)
   end
 

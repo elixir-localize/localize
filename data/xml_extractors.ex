@@ -101,8 +101,8 @@ defmodule Localize.Data.XmlExtractors do
         {name, %{aliases: String.split(aliases, " "), territory: nil, preferred: preferred}}
 
       %{alias: aliases, name: name, region: "", preferred: ""} ->
-        region = String.slice(name, 0, 2) |> String.upcase() |> String.to_atom()
-        {name, %{aliases: String.split(aliases, " "), territory: region, preferred: nil}}
+        {name,
+         %{aliases: String.split(aliases, " "), territory: implied_region(name), preferred: nil}}
 
       %{alias: aliases, name: name, region: region, preferred: ""} ->
         region = String.to_atom(region)
@@ -113,6 +113,18 @@ defmodule Localize.Data.XmlExtractors do
     end)
     |> Map.new()
   end
+
+  # TR35 §Time Zone Identifiers: "The first two letters of a length 5 short
+  # identifier double as the time zone's associated region ... Short
+  # identifiers of length not equal to 5 are not associated with a region,
+  # unless the time zone has an explicit `region` attribute." CLDR 49 makes
+  # `pst8pdt` a zone of its own again, and reading its first two letters
+  # placed it in Palestine.
+  defp implied_region(name) when byte_size(name) == 5 do
+    name |> String.slice(0, 2) |> String.upcase() |> String.to_atom()
+  end
+
+  defp implied_region(_name), do: nil
 
   @doc """
   Generates territory subdivision data from `subdivisions.xml`.

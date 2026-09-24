@@ -585,6 +585,7 @@ defmodule Localize.Time do
            Localize.DateTime.SemanticSkeleton.to_classical_skeleton(semantic, :gregorian) do
       skeleton
       |> resolve_skeleton(locale_id, options)
+      |> apply_semantic_hour_cycle(semantic)
       |> Localize.DateTime.Formatter.explain_unresolved(time, skeleton)
     end
   end
@@ -602,6 +603,14 @@ defmodule Localize.Time do
   defp find_format(_time, format, _locale_id, _options) do
     {:error, Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)}
   end
+
+  # TR35 substitutes an exact hour cycle's symbol after skeleton matching,
+  # not before, so this sits on the resolved pattern rather than the skeleton.
+  defp apply_semantic_hour_cycle({:ok, pattern}, semantic) when is_binary(pattern) do
+    {:ok, Localize.DateTime.SemanticSkeleton.apply_hour_cycle(pattern, semantic)}
+  end
+
+  defp apply_semantic_hour_cycle(other, _semantic), do: other
 
   # Fractional seconds (S) never participate in skeleton matching
   # per TR35: the S field is stripped before resolution and appended
