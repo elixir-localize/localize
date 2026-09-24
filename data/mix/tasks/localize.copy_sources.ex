@@ -59,6 +59,7 @@ defmodule Mix.Tasks.Localize.CopySources do
 
     verify_source_dir!("CLDR_PRODUCTION", Localize.Data.cldr_source_dir())
     verify_source_dir!("CLDR_REPO", Localize.Data.cldr_repo_dir())
+    verify_pre_release_halves_agree!()
 
     do_supplemental = opts[:supplemental] || (!opts[:supplemental] && !opts[:locales])
     do_locales = opts[:locales] || (!opts[:supplemental] && !opts[:locales])
@@ -107,6 +108,77 @@ defmodule Mix.Tasks.Localize.CopySources do
 
       `scripts/build_cldr_production_data` builds the production data.
       """)
+    end
+  end
+
+  # The JSON half of the sources comes from CLDR_PRODUCTION and the XML half
+  # from CLDR_REPO, and nothing ties the two together. `aliases.json` records
+  # only the major version — "49" for alpha2, beta1 and final alike — so a
+  # beta1 zip unpacked beside a repo checkout sitting on some other commit
+  # produces a silently mixed build that is very hard to explain later.
+  #
+  # The cldr-json packages carry the precise pre-release in their
+  # `package.json`, which is the discriminator that makes the check possible.
+  # It is enforced only for a pre-release, where the data churns between tags
+  # and the halves can diverge meaningfully; a locally built SNAPSHOT already
+  # had its checkout positioned by `scripts/build_cldr_production_data`, and
+  # cldr-json also publishes packaging-only patches such as 48.2.1 that have
+  # no corresponding CLDR tag at all.
+  defp verify_pre_release_halves_agree! do
+    with version when is_binary(version) <- production_data_version(),
+         [_match, major, qualifier] <-
+           Regex.run(~r/^(\d+)\.\d+\.\d+-([A-Za-z]+\d*)$/, version) do
+      expected = "release-#{major}-#{String.downcase(qualifier)}"
+      actual = cldr_repo_description()
+
+      unless actual == expected do
+        Mix.raise("""
+        CLDR source halves disagree.
+
+          CLDR_PRODUCTION is #{version}, so CLDR_REPO should be at #{expected}
+          CLDR_REPO is at #{actual || "an unknown commit"}
+
+        The JSON locale data would be #{version} while the collation, validity,
+        bcp47 and subdivision XML came from somewhere else. Check the tag out:
+
+            git -C #{Localize.Data.cldr_repo_dir()} checkout #{expected}
+        """)
+      end
+    else
+      _not_a_pre_release -> report_source_halves()
+    end
+  end
+
+  # A locally built SNAPSHOT carries no precise version to check against, and
+  # the checkout it was built from can move afterwards — so the pairing is
+  # reported rather than silently accepted. Recording the tag in the
+  # production data at build time would make this checkable too.
+  defp report_source_halves do
+    Mix.shell().info(
+      "CLDR sources: #{production_data_version() || "unknown"} JSON from " <>
+        "#{Localize.Data.cldr_source_dir()}, XML from " <>
+        "#{Localize.Data.cldr_repo_dir()} at #{cldr_repo_description() || "an unknown commit"}"
+    )
+  end
+
+  defp production_data_version do
+    path = Path.join([Localize.Data.cldr_source_dir(), "cldr-core", "package.json"])
+
+    with {:ok, contents} <- File.read(path),
+         %{"version" => version} <- :json.decode(contents) do
+      version
+    else
+      _no_version -> nil
+    end
+  end
+
+  defp cldr_repo_description do
+    case System.cmd("git", ["describe", "--tags"],
+           cd: Localize.Data.cldr_repo_dir(),
+           stderr_to_stdout: true
+         ) do
+      {output, 0} -> String.trim(output)
+      _no_description -> nil
     end
   end
 end
