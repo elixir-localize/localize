@@ -10,10 +10,9 @@ defmodule Localize.DateTime do
 
   > #### Ordinal days are a technical preview {: .warning}
   >
-  > The `ddd` field formats the day as a date ordinal ("Jul 6th"). CLDR's
-  > specification for it landed pre-beta and its data is still alpha, so
-  > both the output and the surface may change before CLDR 49 is released.
-  > `Localize.Date` documents the detail.
+  > The `ddd` field formats the day as a date ordinal ("Jul 6th"). TR35
+  > designates the section a technical preview, so both the output and the
+  > surface may change. `Localize.Date` documents the detail.
 
   ## Predefined formats
 
@@ -723,7 +722,8 @@ defmodule Localize.DateTime do
   @doc """
   Returns the numeric date and time separators a locale uses.
 
-  These are CLDR 49's `numericDateSeparator` and `numericTimeSeparator`.
+  These are CLDR 49's `numericDateSeparator` and `numericTimeSeparator`, which
+  TR35 designates a technical preview — the data and the behaviour may change.
   TR35 offers them so an implementation can let a caller choose a
   separator — dates as "05/06/2006" or "05-06-2006", times as "23:59" or
   "23.59" — which `to_string/2` does through its `:numeric_date_separator`

@@ -237,7 +237,7 @@ iex> Localize.DateTime.to_string(~N[2024-07-10 14:30:00], locale: :de, prefer: :
 
 ### Choosing the numeric separators
 
-CLDR 49 records the separator each locale uses between the fields of a numeric date and between the fields of a time, so an application can offer the choice — dates as "05/06/2006" or "05-06-2006", times as "23:59" or "23.59". Read the locale's own with `Localize.DateTime.numeric_separators/2` and override either axis with `:numeric_date_separator` and `:numeric_time_separator`.
+CLDR 49 records the separator each locale uses between the fields of a numeric date and between the fields of a time, so an application can offer the choice. TR35 designates this section a **technical preview**, so the data and the behaviour may change — dates as "05/06/2006" or "05-06-2006", times as "23:59" or "23.59". Read the locale's own with `Localize.DateTime.numeric_separators/2` and override either axis with `:numeric_date_separator` and `:numeric_time_separator`.
 
 ```elixir
 iex> Localize.DateTime.numeric_separators(:en)
@@ -514,7 +514,7 @@ CLDR format patterns use field symbols to represent date and time components. Ea
 | `c` | Standalone day | 2 | 02 | Mon | Monday | M |
 | `Q` | Quarter | 1 | 01 | Q1 | 1st quarter | 1 |
 
-`ddd` is CLDR 49's ordinal day of month and is a **technical preview** — CLDR's specification for it landed pre-beta and its data is still alpha, so both the output and the surface may change before CLDR 49 is released. It is taken from the locale's `dayOfMonths` data for the ordinal plural category the day selects — `:yMMMddd` renders "Jul 6th, 2024" in `en` and "1er juil. 2024" in `fr`. Only some locales carry that data; the rest format the plain day, as does any pattern whose month is numeric (`M` or `MM`), where TR35 says `ddd` is ignored. A skeleton asking for `ddd` where the locale has no `ddd` format matches its `d` format instead, and the pattern's `d` is left at its own width rather than being widened.
+`ddd` is CLDR 49's ordinal day of month and is a **technical preview** — TR35 designates the `dayOfMonth` section one, so both the output and the surface may change. It is taken from the locale's `dayOfMonths` data for the ordinal plural category the day selects — `:yMMMddd` renders "Jul 6th, 2024" in `en` and "1er juil. 2024" in `fr`. Only some locales carry that data; the rest format the plain day, as does any pattern whose month is numeric (`M` or `MM`), where TR35 says `ddd` is ignored. A skeleton asking for `ddd` where the locale has no `ddd` format matches its `d` format instead, and the pattern's `d` is left at its own width rather than being widened.
 
 ### Time field symbols
 

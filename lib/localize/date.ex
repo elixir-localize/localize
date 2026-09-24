@@ -18,12 +18,11 @@ defmodule Localize.Date do
   > "Jul 6th, 2024" in `en` and "1er juil. 2024" in `fr`. A locale without
   > that data, and any pattern whose month is numeric, format the plain day.
   >
-  > CLDR's specification for this landed pre-beta and its data is still
-  > alpha; the element shape has already been narrowed once during CLDR 49's
-  > development. Only the `abbreviated` width and the ordinal-keyed forms are
-  > read, and `Localize.Interval` cannot yet request an ordinal skeleton.
-  > Treat both the output and the surface as subject to change until CLDR 49
-  > is released.
+  > TR35 designates the `dayOfMonth` section a technical preview, and the
+  > element shape was narrowed once during CLDR 49's development. Only the
+  > `abbreviated` width and the ordinal-keyed forms are read, and
+  > `Localize.Interval` cannot yet request an ordinal skeleton. Treat both
+  > the output and the surface as subject to change.
 
   """
 
