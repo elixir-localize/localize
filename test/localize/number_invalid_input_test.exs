@@ -12,12 +12,6 @@ defmodule Localize.NumberInvalidInputTest do
   @not_numbers [:bogus, nil, "12", [1], %{}, {1, 2}]
   @not_keyword_lists [:bogus, nil, [1], %{}, "x"]
 
-  defp outcome(fun) do
-    fun.()
-  rescue
-    exception -> {:raised, exception}
-  end
-
   defp invalid_value?(result), do: match?({:error, %Localize.InvalidValueError{}}, result)
 
   test "formatting a value that is not a number is an error" do
@@ -35,7 +29,7 @@ defmodule Localize.NumberInvalidInputTest do
             to_approximately_string: fn -> Localize.Number.to_approximately_string(value) end,
             to_ratio_string: fn -> Localize.Number.to_ratio_string(value) end
           ],
-          result = outcome(fun),
+          result = fun.(),
           not invalid_value?(result),
           do: {name, value, result}
 
@@ -63,7 +57,7 @@ defmodule Localize.NumberInvalidInputTest do
             resolve_per: fn -> Localize.Number.resolve_per("1%", options) end,
             resolve_pers: fn -> Localize.Number.resolve_pers(["1%"], options) end
           ],
-          result = outcome(fun),
+          result = fun.(),
           not invalid_value?(result),
           do: {name, options, result}
 
@@ -79,7 +73,7 @@ defmodule Localize.NumberInvalidInputTest do
             resolve_currency: fn -> Localize.Number.resolve_currency(value) end,
             resolve_per: fn -> Localize.Number.resolve_per(value) end
           ],
-          result = outcome(fun),
+          result = fun.(),
           not invalid_value?(result),
           do: {name, value, result}
 
@@ -89,7 +83,7 @@ defmodule Localize.NumberInvalidInputTest do
             resolve_currencies: fn -> Localize.Number.resolve_currencies(value) end,
             resolve_pers: fn -> Localize.Number.resolve_pers(value) end
           ],
-          result = outcome(fun),
+          result = fun.(),
           not invalid_value?(result),
           do: {name, value, result}
 

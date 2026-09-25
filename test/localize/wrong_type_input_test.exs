@@ -19,16 +19,10 @@ defmodule Localize.WrongTypeInputTest do
 
   @zoned %{time_zone: "America/New_York", utc_offset: -18_000, std_offset: 0}
 
-  defp outcome(fun, value) do
-    fun.(value)
-  rescue
-    exception -> {:raised, exception}
-  end
-
   defp failures(cases, expected?) do
     for {name, values, fun} <- cases,
         value <- values,
-        result = outcome(fun, value),
+        result = fun.(value),
         not expected?.(result),
         do: {name, value, result}
   end
@@ -47,9 +41,6 @@ defmodule Localize.WrongTypeInputTest do
 
   defp localize_error?({:error, exception}), do: localize_exception?(exception)
   defp localize_error?(_result), do: false
-
-  defp raised_localize_exception?({:raised, exception}), do: localize_exception?(exception)
-  defp raised_localize_exception?(_result), do: false
 
   test "options that are not a keyword list are an InvalidValueError" do
     unit = Localize.Unit.new!(1, "meter")
@@ -378,6 +369,13 @@ defmodule Localize.WrongTypeInputTest do
        &Localize.Unit.Preference.preferred_units!(&1, [])}
     ]
 
-    assert failures(cases, &raised_localize_exception?/1) == []
+    failures =
+      for {name, values, fun} <- cases,
+          value <- values,
+          exception = catch_error(fun.(value)),
+          not localize_exception?(exception),
+          do: {name, value, exception}
+
+    assert failures == []
   end
 end

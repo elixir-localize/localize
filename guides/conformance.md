@@ -292,8 +292,8 @@ Two areas are explicitly out of scope:
 |---------|--------|-------|
 | Timezone format symbols (z, Z, O, v, V, X, x) | Implemented | `Localize.DateTime.Formatter` handles all timezone symbols. |
 | GMT offset formatting | Implemented | `hourFormat`, `gmtFormat`, `gmtZeroFormat` patterns. |
-| Metazone names | Not implemented | Metazone data is not loaded or used for display name resolution. |
-| Exemplar cities | Not implemented | |
+| Metazone names | Implemented | The `z` and `v` symbols render the metazone's names — "Eastern Daylight Time" and "EDT", "Eastern Time" and "ET". |
+| Exemplar cities | Implemented | `VVV` renders the exemplar city ("New York") and `VVVV` the generic location format ("New York Time"). |
 | Timezone fallback formatting | Partial | Offset-based fallback works; metazone name fallback chain not implemented. |
 
 ### Semantic Skeletons

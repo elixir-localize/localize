@@ -189,15 +189,13 @@ defmodule Localize.DateTime.RelativeMatrixTest do
         if Enum.map_join(parts, & &1.value) == string, do: nil, else: {:parts_do_not_join, parts}
 
       {{:error, %{__exception__: true} = error}, {:error, %{__exception__: true}}} ->
-        # An error without a message raises here, which the rescue reports.
+        # An error without a message raises here and fails the test.
         _message = Exception.message(error)
         nil
 
       other ->
         {:unexpected, other}
     end
-  rescue
-    exception -> {:raised, Exception.format(:error, exception, __STACKTRACE__)}
   end
 
   defp report(mismatches) do

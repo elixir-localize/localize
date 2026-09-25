@@ -8,16 +8,10 @@ defmodule Localize.WrongTypeFallbackTest do
 
   use ExUnit.Case, async: true
 
-  defp outcome(fun, value) do
-    fun.(value)
-  rescue
-    exception -> {:raised, exception}
-  end
-
   defp failures(cases) do
     for {name, values, fun, expected} <- cases,
         value <- values,
-        result = outcome(fun, value),
+        result = fun.(value),
         not expected?(expected, value, result),
         do: {name, value, result}
   end
@@ -357,7 +351,8 @@ defmodule Localize.WrongTypeFallbackTest do
     tag = Localize.LanguageTag.parse!("en")
     distance = Localize.LanguageTag.default_distance()
     {:ok, tokens} = Localize.Message.to_tokens("Hello")
-    returns? = &(not match?({:raised, _exception}, &1))
+    # A raise fails the test, so any value these return is the fallback.
+    returns? = fn _result -> true end
 
     expand_quietly = fn entry ->
       {result, _log} =
@@ -431,8 +426,6 @@ defmodule Localize.WrongTypeFallbackTest do
        &Localize.Duration.to_string(duration, display: &1), &localize_error?/1},
       {"Localize.Duration.to_time_string/2 :format", [42, %{}],
        &Localize.Duration.to_time_string(duration, format: &1), &localize_error?/1},
-      {"Localize.Duration.to_time_string!/2", [nil, 42],
-       &Localize.Duration.to_time_string!(&1, []), &raised_localize_exception?/1},
       {"Localize.Interval.to_parts/3 options", [:bogus, 42],
        &Localize.Interval.to_parts(~D[2024-07-06], ~D[2024-07-10], &1), &localize_error?/1},
       {"Localize.Interval.to_string/3 open start", [42, "x"],
@@ -446,8 +439,6 @@ defmodule Localize.WrongTypeFallbackTest do
        &Localize.LanguageTag.best_match("en", &1, distance), &localize_error?/1},
       {"Localize.LanguageTag.best_match/3 desired", [42, %{}],
        &Localize.LanguageTag.best_match(&1, [:en], distance), &localize_error?/1},
-      {"Localize.LanguageTag.remove_likely_subtags!/2", [42, %{}],
-       &Localize.LanguageTag.remove_likely_subtags!(&1, []), &raised_localize_exception?/1},
       {"Localize.List.to_parts/2", [nil, :bogus, 42], &Localize.List.to_parts(&1, []),
        &localize_error?/1},
       {"Localize.List.to_string/2 :list_style", [:bogus, 42],
@@ -561,10 +552,20 @@ defmodule Localize.WrongTypeFallbackTest do
     assert failures(cases) == []
   end
 
-  defp raised_localize_exception?({:raised, %{__exception__: true} = exception}) do
-    String.starts_with?(inspect(exception.__struct__), "Localize.") and
-      is_binary(Exception.message(exception))
-  end
+  test "bang variants raise a Localize exception" do
+    for {name, values, fun} <- [
+          {"Localize.Duration.to_time_string!/2", [nil, 42],
+           &Localize.Duration.to_time_string!(&1, [])},
+          {"Localize.LanguageTag.remove_likely_subtags!/2", [42, %{}],
+           &Localize.LanguageTag.remove_likely_subtags!(&1, [])}
+        ],
+        value <- values do
+      exception = catch_error(fun.(value))
 
-  defp raised_localize_exception?(_result), do: false
+      assert String.starts_with?(inspect(exception.__struct__), "Localize."),
+             "#{name} with #{inspect(value)} raised #{inspect(exception)}"
+
+      assert is_binary(Exception.message(exception))
+    end
+  end
 end

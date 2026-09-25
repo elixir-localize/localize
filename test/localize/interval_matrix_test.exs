@@ -198,27 +198,23 @@ defmodule Localize.IntervalMatrixTest do
   defp pairing_failure(from, to, locale, format) do
     options = [format: format, locale: locale]
 
-    try do
-      string = Localize.Interval.to_string(from, to, options)
-      parts = Localize.Interval.to_parts(from, to, options)
+    string = Localize.Interval.to_string(from, to, options)
+    parts = Localize.Interval.to_parts(from, to, options)
 
-      case {string, parts} do
-        {{:ok, value}, {:ok, parts}} ->
-          if Enum.map_join(parts, & &1.value) == value, do: nil, else: {:parts_do_not_join, value}
+    case {string, parts} do
+      {{:ok, value}, {:ok, parts}} ->
+        if Enum.map_join(parts, & &1.value) == value, do: nil, else: {:parts_do_not_join, value}
 
-        {{:ok, _value}, {:error, _exception}} when is_nil(from) or is_nil(to) ->
-          nil
+      {{:ok, _value}, {:error, _exception}} when is_nil(from) or is_nil(to) ->
+        nil
 
-        {{:error, %{__exception__: true} = error}, {:error, %{__exception__: true}}} ->
-          # An error without a message raises here, which the rescue reports.
-          _message = Exception.message(error)
-          nil
+      {{:error, %{__exception__: true} = error}, {:error, %{__exception__: true}}} ->
+        # An error without a message raises here and fails the test.
+        _message = Exception.message(error)
+        nil
 
-        other ->
-          {:unexpected, other}
-      end
-    rescue
-      exception -> {:raised, Exception.format(:error, exception, __STACKTRACE__)}
+      other ->
+        {:unexpected, other}
     end
   end
 

@@ -232,14 +232,12 @@ defmodule Localize.DateTime.Format.AppendItems do
   end
 
   # A skeleton that names no known format is not an error here — it just
-  # means the match path is the one to take. `String.to_existing_atom/1`
-  # keeps an unknown skeleton from minting an atom.
+  # means the match path is the one to take. Only an existing atom is
+  # looked up, so an unknown skeleton cannot mint one.
   defp existing_format_id(skeleton) when is_atom(skeleton), do: skeleton
 
   defp existing_format_id(skeleton) when is_binary(skeleton) do
-    String.to_existing_atom(skeleton)
-  rescue
-    ArgumentError -> nil
+    Localize.Utils.Helpers.existing_atom(skeleton)
   end
 
   defp variant_pattern(pattern, _options) when is_binary(pattern), do: {:ok, pattern}

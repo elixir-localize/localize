@@ -92,17 +92,13 @@ defmodule Localize.LanguageTagFieldsTest do
     }
   end
 
+  # A raise fails the test with its stack trace.
   test "no function taking a language tag raises on fields of the wrong shape", context do
-    raised =
-      for {base_name, base} <- [validated: context.validated, unvalidated: context.unvalidated],
-          {field, value} <- @malformations,
-          {call_name, fun} <- calls(),
-          outcome = outcome(fun, Map.put(base, field, value)),
-          match?({:raised, _exception}, outcome) do
-        {call_name, base_name, field, value, outcome}
-      end
-
-    assert raised == []
+    for base <- [context.validated, context.unvalidated],
+        {field, value} <- @malformations,
+        {_call_name, fun} <- calls() do
+      fun.(Map.put(base, field, value))
+    end
   end
 
   test "empty fields given as nil are empty and string subtags are atoms", context do
@@ -125,14 +121,5 @@ defmodule Localize.LanguageTagFieldsTest do
     tag = %{context.validated | locale: %Localize.LanguageTag.U{fw: :bogus}}
 
     assert Localize.Calendar.first_day_for_locale(tag) == 7
-  end
-
-  defp outcome(fun, tag) do
-    case fun.(tag) do
-      {:error, _reason} -> :error
-      _value -> :ok
-    end
-  rescue
-    exception -> {:raised, exception.__struct__}
   end
 end

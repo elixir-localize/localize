@@ -181,8 +181,6 @@ defmodule Localize.DateTime.PartialValueMatrixTest do
 
   defp run(module, value, options) do
     {module.to_string(value, options), module.to_parts(value, options)}
-  rescue
-    exception -> {:raised, Exception.format(:error, exception, __STACKTRACE__)}
   end
 
   defp parts_problem(string, parts) do
