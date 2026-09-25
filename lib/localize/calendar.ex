@@ -707,6 +707,13 @@ defmodule Localize.Calendar do
   @doc """
   Returns a localized string for a part of a date or time.
 
+  A month is named through the calendar's `month_of_year/3` when the
+  calendar has one, so a calendar whose month names do not follow a
+  month's position in its year (the Hebrew and lunisolar calendars)
+  names each month correctly. A leap month takes CLDR's leap-year name
+  for its month (the Hebrew "Adar II"), or its month's name in the
+  calendar's leap-month pattern (the Chinese "Second Monthbis").
+
   ### Arguments
 
   * `datetime` is any `t:Date.t/0`, `t:DateTime.t/0`, or
@@ -785,7 +792,7 @@ defmodule Localize.Calendar do
   end
 
   def localize(datetime, :month, options) when is_keyword_list(options) do
-    display_name(:month, month_of_year(datetime), localize_options(datetime, options))
+    month_name(month_of_year(datetime), localize_options(datetime, options))
   end
 
   def localize(datetime, :day_of_week, options) when is_keyword_list(options) do
@@ -891,6 +898,11 @@ defmodule Localize.Calendar do
 
   The returned keyword list contains callback functions that
   produce localized month names, day names, and AM/PM indicators.
+
+  `Calendar.strftime/3` passes a month-name callback the month number
+  alone, so a month is named by that number. For a calendar whose month
+  names do not follow a month's position in its year (the Hebrew and
+  lunisolar calendars), name the month with `localize/3` instead.
 
   ### Arguments
 
@@ -1253,8 +1265,65 @@ defmodule Localize.Calendar do
 
   defp quarter_of_year(_), do: 1
 
+  # The key CLDR finds the date's month name by. A calendar whose month names
+  # do not follow a month's position in its year answers through its
+  # `month_of_year/3`: Calendrical's Hebrew calendar returns CLDR's fixed
+  # number (Nisan is 8 whatever its position) and `{7, :leap}` for Adar II,
+  # and its lunisolar calendars the traditional month, `{n, :leap}` for a
+  # leap month. Any other calendar names a month by its number.
+  defp month_of_year(%{year: year, month: month, day: day, calendar: calendar})
+       when is_integer(year) and is_integer(month) and is_integer(day) and is_atom(calendar) do
+    if Code.ensure_loaded?(calendar) and function_exported?(calendar, :month_of_year, 3) do
+      month_name_key(calendar.month_of_year(year, month, day), month)
+    else
+      month
+    end
+  end
+
   defp month_of_year(%{month: month}) when is_integer(month), do: month
   defp month_of_year(_), do: 1
+
+  defp month_name_key({name_month, :leap} = leap_month, _month) when is_integer(name_month),
+    do: leap_month
+
+  defp month_name_key(name_month, _month) when is_integer(name_month), do: name_month
+  defp month_name_key(_other, month), do: month
+
+  # CLDR's leap-year name of a month (`7_yeartype_leap`, the Hebrew "Adar II")
+  # is keyed by an atom. The keys are built here from the closed set of month
+  # numbers, so no atom is made at runtime.
+  @leap_year_name_keys Map.new(1..13, &{&1, :"#{&1}_yeartype_leap"})
+
+  defp month_name({month, :leap}, options), do: leap_month_name(month, options)
+  defp month_name(month, options), do: display_name(:month, month, options)
+
+  # A leap month takes CLDR's leap-year name for its month where the calendar
+  # has one, and otherwise its month's name in the calendar's leap-month
+  # pattern (the Chinese "Second Monthbis"), or the month's name alone.
+  defp leap_month_name(month, options) do
+    with {:ok, name} <- display_name(:month, month, options) do
+      key = Map.get(@leap_year_name_keys, month)
+
+      case lookup_calendar_field(:months, key, options, "a leap-year month name") do
+        {:ok, leap_year_name} -> {:ok, leap_year_name}
+        {:error, _no_leap_year_name} -> {:ok, in_leap_month_pattern(name, options)}
+      end
+    end
+  end
+
+  defp in_leap_month_pattern(name, options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    calendar_type = Keyword.get(options, :calendar, @default_calendar_type)
+    context = Keyword.get(options, :context, :format)
+    style = Keyword.get(options, :style, :wide)
+
+    with {:ok, patterns} <- month_patterns(locale, calendar_type),
+         pattern when is_list(pattern) <- get_in(patterns, [context, style, :leap]) do
+      [name] |> Localize.Substitution.substitute(pattern) |> IO.iodata_to_binary()
+    else
+      _no_leap_month_pattern -> name
+    end
+  end
 
   defp iso_day_of_week(%{year: year, month: month, day: day, calendar: Calendar.ISO})
        when is_integer(year) and is_integer(month) and is_integer(day) do
