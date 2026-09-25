@@ -108,26 +108,18 @@ defmodule Localize.Date.Parser do
   defp do_parse(input, options, calendar_module) do
     locale = Keyword.get(options, :locale) || Localize.get_locale()
     reference_year = (Keyword.get(options, :reference_date) || Date.utc_today()).year
-    return_module = resolve_return_calendar(options, calendar_module)
     as = Keyword.get(options, :as, :struct)
 
     normalised = normalise_input(input)
     candidates = Enum.uniq([normalised, preprocess_safe(normalised, locale, calendar_module)])
 
     attempt = fn inputs ->
-      case Enum.find_value(inputs, &iso_date(&1, return_module)) do
+      case Enum.find_value(inputs, &iso_date(&1, calendar_module)) do
         {:ok, date} ->
           {:ok, finalise_date(date, as)}
 
         nil ->
-          try_locale_patterns(
-            inputs,
-            locale,
-            calendar_module,
-            reference_year,
-            return_module,
-            as
-          )
+          try_locale_patterns(inputs, locale, calendar_module, reference_year, as)
       end
     end
 
@@ -140,8 +132,8 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  defp iso_date(input, return_module) do
-    case try_iso(input, return_module) do
+  defp iso_date(input, calendar_module) do
+    case try_iso(input, calendar_module) do
       {:ok, _date} = ok -> ok
       :error -> nil
     end
@@ -360,32 +352,6 @@ defmodule Localize.Date.Parser do
 
   defp date_to_map(%Date{year: y, month: m, day: d, calendar: cal}) do
     %{year: y, month: m, day: d, calendar: cal}
-  end
-
-  # Resolve the target calendar module for the returned Date.
-  # The `:return_calendar` option accepts:
-  #
-  #   * `:native` (default) — return the Date in the calendar
-  #     module the `:calendar` option named. So
-  #     `parse("2026-05-17", calendar: Calendrical.Hebrew)` returns
-  #     `~D[5786-09-01 Calendrical.Hebrew]`. This is the
-  #     natural behavior — the `:calendar` option says
-  #     "interpret AND return in this calendar".
-  #
-  #   * `:iso` — force the result into `Calendar.ISO`
-  #     (Gregorian). Use this when a downstream consumer
-  #     (e.g. an Ecto `:date` cast) requires ISO.
-  #
-  #   * a calendar module implementing `Calendar` —
-  #     return the Date in that specific calendar regardless
-  #     of `:calendar`.
-  #
-  defp resolve_return_calendar(options, calendar_module) do
-    case Keyword.get(options, :return_calendar, :native) do
-      :iso -> Calendar.ISO
-      :native -> calendar_module
-      module when is_atom(module) -> module
-    end
   end
 
   @doc """
@@ -1113,14 +1079,16 @@ defmodule Localize.Date.Parser do
 
   # ── ISO 8601 ─────────────────────────────────────────────────
 
-  defp try_iso(input, return_module) do
+  # An ISO 8601 date is read in `Calendar.ISO` and returned in the
+  # `:calendar` module.
+  defp try_iso(input, calendar_module) do
     with :error <- try_iso_extended(input),
          :error <- try_iso_basic(input),
          :error <- try_iso_ordinal(input),
          :error <- try_iso_week_date(input) do
       :error
     else
-      {:ok, date} -> {:ok, convert_to(date, return_module)}
+      {:ok, date} -> {:ok, convert_to(date, calendar_module)}
     end
   end
 
@@ -1215,7 +1183,7 @@ defmodule Localize.Date.Parser do
   # then with a leading weekday stripped. A pass tries every spelling
   # before the next pass starts, so a strict match on either is
   # preferred to a lax one.
-  defp try_locale_patterns(inputs, locale, calendar_module, reference_year, return_module, as) do
+  defp try_locale_patterns(inputs, locale, calendar_module, reference_year, as) do
     cldr_calendar = cldr_calendar_type(calendar_module)
 
     with {:ok, available} <- Format.available_formats(locale, cldr_calendar),
@@ -1253,7 +1221,7 @@ defmodule Localize.Date.Parser do
       result =
         case as do
           :struct ->
-            run_candidate_pass(patterns, transliterated, ctx, return_module, :struct)
+            run_candidate_pass(patterns, transliterated, ctx, :struct)
 
           :map ->
             # Pass 1 — strict: only accept a pattern whose fields
@@ -1267,22 +1235,22 @@ defmodule Localize.Date.Parser do
             # Pass 2 — lax: needed for legitimately partial inputs
             # that can't construct a date even with the reference
             # year (e.g. `"2026"` alone, or `"May"` alone).
-            run_candidate_pass(patterns, transliterated, ctx, return_module, {:map, :strict}) ||
-              run_candidate_pass(patterns, transliterated, ctx, return_module, {:map, :lax})
+            run_candidate_pass(patterns, transliterated, ctx, {:map, :strict}) ||
+              run_candidate_pass(patterns, transliterated, ctx, {:map, :lax})
         end
 
       result || {:error, no_match_error(hd(inputs), locale, calendar_module)}
     end
   end
 
-  defp run_candidate_pass(patterns, inputs, ctx, return_module, pass_as) do
-    Enum.find_value(inputs, &run_locale_pass(patterns, &1, ctx, return_module, pass_as))
+  defp run_candidate_pass(patterns, inputs, ctx, pass_as) do
+    Enum.find_value(inputs, &run_locale_pass(patterns, &1, ctx, pass_as))
   end
 
-  defp run_locale_pass(patterns, input, ctx, return_module, pass_as) do
+  defp run_locale_pass(patterns, input, ctx, pass_as) do
     Enum.find_value(patterns, fn {_kind, pattern} ->
       case match_pattern(input, pattern, ctx, pass_as) do
-        {:ok, %Date{} = date} -> {:ok, convert_to(date, return_module)}
+        {:ok, %Date{} = date} -> {:ok, convert_to(date, ctx.calendar_module)}
         {:ok, %{} = map} -> {:ok, map}
         :error -> nil
       end
@@ -2060,7 +2028,7 @@ defmodule Localize.Date.Parser do
   # ── Matching ─────────────────────────────────────────────────
 
   # `ctx` carries the per-(locale, calendar) invariants built
-  # once in `try_locale_patterns/6`: `:months`, `:eras`,
+  # once in `try_locale_patterns/5`: `:months`, `:eras`,
   # `:lenient`, `:reference_year`, `:calendar_module`, plus the
   # `:days`/`:quarters`/`:locale` keys read by `field_regex/5`.
   # Returns %{pattern => compiled_regex_or_nil} for every pattern, cached

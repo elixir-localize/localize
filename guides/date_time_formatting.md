@@ -491,7 +491,7 @@ Localize.Date.parse("22.03.2026", locale: :de, calendar: :hebrew)
 
 The calendar is checked before any parsing happens, so the answer does not depend on the shape of the input: ISO 8601 and locale-formatted text both return the same error for the same `:calendar`. Any module implementing the `Calendar` behaviour is accepted, so a custom calendar needs no CLDR registration; one that names no CLDR calendar type is read with the Gregorian patterns.
 
-`:return_calendar` governs the calendar of the returned date, not the one the input is read in, so it does not waive this — parsing "1 Tishrei 5787" still needs `Calendrical.Hebrew` even when you want an ISO date back.
+The date comes back in the `:calendar` module. When a consumer needs it in another calendar, such as `Calendar.ISO` for an Ecto `:date` field, convert it with `Date.convert/2`.
 
 A time carries no date fields, so `Localize.Time.parse/2` resolves no calendar and the option has no effect there.
 

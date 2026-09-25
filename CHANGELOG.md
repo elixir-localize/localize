@@ -48,6 +48,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * **Breaking.** The parse functions' `:calendar` option is a calendar module — `Calendar.ISO`, the default, or one such as `Calendrical.Hebrew` — and the date is built and returned in that module, where a module sharing a CLDR calendar type with another came back in the other. A CLDR calendar name such as `:hebrew` returns `Localize.UnknownCalendarError`, and `Localize.DateParseError` reports the module.
 
+* **Breaking.** The parse functions no longer take `:return_calendar`: the date comes back in the `:calendar` module, and `Date.convert/2` gives it in any other calendar.
+
 * **Breaking.** `Localize.DateTime.parse/2` keeps the UTC offset an ISO 8601 input carried rather than normalising to UTC, so `"2026-05-23T14:30:00+05:00"` now returns `14:30:00+05:00`, not `09:30:00Z`. Call `DateTime.shift_zone/3` for the previous output.
 
 * **Breaking.** The `:calendar` option is resolved before parsing, so an unavailable or unknown calendar is reported rather than silently replaced by `Calendar.ISO`. A missing module returns `Localize.DependencyRequiredError`, an unknown calendar `Localize.UnknownCalendarError`.

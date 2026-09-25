@@ -204,21 +204,6 @@ defmodule Localize.ParsingCoverageTest do
                  Localize.Date.parse("2026-05-16", locale: :en, calendar: calendar)
       end
     end
-
-    # `:return_calendar` governs the calendar of the returned date, not the
-    # one the input is interpreted in, so it cannot stand in for a calendar
-    # module that is not installed.
-    test "return_calendar: :iso does not waive the parsing calendar" do
-      assert {:error, %Localize.UnknownCalendarError{}} =
-               Localize.Date.parse("2026-05-16",
-                 locale: :en,
-                 calendar: Calendrical.Hebrew,
-                 return_calendar: :iso
-               )
-
-      assert Localize.Date.parse("2026-05-16", locale: :en, return_calendar: :iso) ==
-               {:ok, ~D[2026-05-16]}
-    end
   end
 
   # ── Date: as: :map ──
