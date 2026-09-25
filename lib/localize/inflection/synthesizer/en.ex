@@ -127,23 +127,22 @@ defmodule Localize.Inflection.Synthesizer.En do
 
   # Numbers pronounced with a leading vowel: 8, 11, 18 and their
   # thousand-groups (800, 11000, …), mirroring upstream.
-  defp starts_with_vowel_digits?(display_string) do
+  defp starts_with_vowel_digits?(<<first_digit, _rest::binary>> = display_string)
+       when first_digit in ?0..?9 do
     case Integer.parse(String.replace(display_string, ",", "")) do
-      {number, _rest} when number >= 0 ->
-        first_digit = display_string |> String.first() |> String.to_integer()
-
+      {number, _rest} ->
         cond do
-          first_digit == 8 -> true
-          first_digit == 1 -> reduce_number(number) in [11, 18]
+          first_digit == ?8 -> true
+          first_digit == ?1 -> reduce_number(number) in [11, 18]
           true -> false
         end
 
-      _other ->
+      :error ->
         false
     end
-  rescue
-    ArgumentError -> false
   end
+
+  defp starts_with_vowel_digits?(_display_string), do: false
 
   defp reduce_number(number) when number >= 1000, do: reduce_number(div(number, 1000))
   defp reduce_number(number) when number >= 100, do: div(number, 100)

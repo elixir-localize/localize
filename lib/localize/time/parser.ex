@@ -792,12 +792,9 @@ defmodule Localize.Time.Parser do
            {"__bp_" <> _, value} -> value != ""
            _ -> false
          end) do
+      # Every group name is built from `@flex_period_keys`, so the atom exists.
       {"__bp_" <> key_str, _} ->
-        try do
-          String.to_existing_atom(key_str)
-        rescue
-          _ -> nil
-        end
+        String.to_existing_atom(key_str)
 
       _ ->
         nil

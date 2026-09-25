@@ -132,4 +132,21 @@ defmodule Localize.InflectionTest do
     {:ok, plural} = Localize.Inflection.PronounConcept.put_constraint(concept, "number", "plural")
     assert Localize.Inflection.PronounConcept.to_speakable_string(plural) == "y'all"
   end
+
+  test "English takes \"an\" before numbers spoken with a leading vowel" do
+    for {text, article} <- [
+          {"8", "an"},
+          {"11", "an"},
+          {"18", "an"},
+          {"800", "an"},
+          {"18000", "an"},
+          {"7", "a"},
+          {"1,800", "a"},
+          {"+8", "a"},
+          {",8", "a"}
+        ] do
+      assert Localize.Inflection.inflect(text, :en, definiteness: :indefinite) ==
+               {:ok, "#{article} #{text}"}
+    end
+  end
 end
