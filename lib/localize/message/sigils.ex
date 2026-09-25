@@ -240,19 +240,25 @@ defmodule Localize.Message.Sigils do
   # start line + MF2 error line - 1) so IDEs jump to the right spot.
   @doc false
   def compile_time_parse_or_raise!(message, options, caller, meta, sigil_name \\ "~M") do
-    Localize.Message.canonical_message!(message, options)
-  rescue
-    error in Localize.ParseError ->
-      reraise_as_compile_error(error, caller, meta, sigil_name)
+    case Localize.Message.canonical_message(message, options) do
+      {:ok, canonical} ->
+        canonical
+
+      {:error, %Localize.ParseError{} = error} ->
+        raise_compile_error(error, caller, meta, sigil_name)
+
+      {:error, exception} ->
+        raise exception
+    end
   end
 
-  @spec reraise_as_compile_error(
+  @spec raise_compile_error(
           Localize.ParseError.t(),
           Macro.Env.t(),
           keyword(),
           String.t()
         ) :: no_return()
-  defp reraise_as_compile_error(%Localize.ParseError{} = error, caller, meta, sigil_name) do
+  defp raise_compile_error(%Localize.ParseError{} = error, caller, meta, sigil_name) do
     error_line =
       case error.line do
         nil -> caller_line(meta, caller)

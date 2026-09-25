@@ -106,13 +106,10 @@ defmodule Localize.NifTest do
     end
   end
 
-  # Runs an ICU-backed call, mapping the "NIF not loaded" error to a
-  # sentinel so each test can assert either outcome explicitly. The
-  # rescue is a true system boundary: `:erlang.nif_error/1` raises
-  # ErlangError when the shared library is absent.
+  # Runs an ICU-backed call when the shared library is loaded, and returns a
+  # sentinel otherwise, so each test can assert either outcome explicitly.
+  # Without the library the call would raise, so it is not made.
   defp safe_nif(function) do
-    function.()
-  rescue
-    ErlangError -> :nif_not_loaded
+    if Nif.available?(), do: function.(), else: :nif_not_loaded
   end
 end

@@ -34,6 +34,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Public functions return `{:error, exception}` — usually `Localize.InvalidValueError` — for options that are not a keyword list and for arguments or option values of the wrong type, where they raised; predicates answer `false`.
 
+* `Localize.Message.format/3` returns a `Localize.FormatError` where it raised when a placeholder, `:string` or a `:string` selector was given a value with no string form — a tuple, map, pid, function, a list that is not chardata, or a bitstring that is not whole bytes.
+
+* `Localize.to_string/1,2` and `Localize.List` return `Localize.InvalidValueError` for an improper list and for a bitstring that is not whole bytes, where they raised `FunctionClauseError`.
+
 * Functions taking a `Localize.LanguageTag`, including every `:locale` option, no longer raise on a hand-built struct with wrong-shaped fields: a `nil` list or map is empty, a string subtag is its atom, and anything else returns `Localize.InvalidLocaleError`.
 
 * Interpolating a parsed `Localize.LanguageTag` into a string gives its BCP 47 form, where it raised because the tag had no canonical id yet.

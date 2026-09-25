@@ -217,4 +217,52 @@ defmodule Localize.Message.FormatErrorTest do
         format_error("{$x :unit unit=invalid_xyz}", %{"x" => unit})
     end
   end
+
+  # Regression: these placeholders converted the operand with
+  # `Kernel.to_string/1`, which raises for a value that has no string
+  # form, so formatting raised instead of returning an error.
+  describe "values with no string form" do
+    @no_string_form "Expected a value that can be converted to a string"
+
+    test "are a format error wherever the operand becomes a string" do
+      messages = [
+        "{$x}",
+        "{$x :string}",
+        "{$x @attr}",
+        ".local $y = {$x} {{{$y}}}",
+        ".input {$x :string}\n.match $x\na {{A}}\n* {{other}}"
+      ]
+
+      values = [
+        fn -> nil end,
+        self(),
+        make_ref(),
+        {1, 2},
+        %{a: 1},
+        MapSet.new([1]),
+        1..3,
+        <<1::3>>,
+        [:a],
+        [a: 1],
+        [1 | 2],
+        [-1],
+        [0xD800]
+      ]
+
+      for message <- messages, value <- values do
+        result = format_error(message, %{"x" => value})
+
+        assert match?({:error, @no_string_form <> _}, result),
+               "#{inspect(message)} with #{inspect(value)} returned #{inspect(result)}"
+      end
+    end
+
+    test "leave a charlist a string" do
+      assert format_error("{$x}", %{"x" => ~c"hello"}) == {:ok, "hello"}
+
+      assert format_error(".input {$x :string}\n.match $x\nhello {{HIT}}\n* {{MISS}}", %{
+               "x" => ~c"hello"
+             }) == {:ok, "HIT"}
+    end
+  end
 end

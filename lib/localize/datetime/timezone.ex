@@ -623,7 +623,7 @@ defmodule Localize.DateTime.Timezone do
       |> Map.get(time_zone, time_zone)
       |> String.downcase()
       |> String.split("/")
-      |> Enum.map(&existing_atom/1)
+      |> Enum.map(&Localize.Utils.Helpers.existing_atom/1)
 
     zone_data = get_in(tz_data[:zone], keys)
 
@@ -632,12 +632,6 @@ defmodule Localize.DateTime.Timezone do
   end
 
   defp zone_name(_time_zone, _tz_data, _format, _type, _datetime), do: nil
-
-  defp existing_atom(string) do
-    String.to_existing_atom(string)
-  rescue
-    ArgumentError -> nil
-  end
 
   # TR35 **Type Fallback**: a zone or metazone with no daylight type does not
   # require daylight support, so a request for the generic type resolves to the

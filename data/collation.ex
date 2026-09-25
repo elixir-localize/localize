@@ -242,10 +242,6 @@ defmodule Localize.Data.Collation do
         collation_entry(language, type, clean_rules(cr))
       end
     end)
-  rescue
-    e ->
-      IO.puts(:stderr, "Warning: Could not parse #{filename}: #{Exception.message(e)}")
-      []
   end
 
   defp collation_entry(language, type, rules) do

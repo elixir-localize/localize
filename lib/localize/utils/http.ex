@@ -573,17 +573,16 @@ defmodule Localize.Utils.Http do
   # `:public_key.cacerts_get/0` returns the platform-native trust list
   # (Windows store on Windows, system keychain on macOS, and a
   # well-known PEM bundle on Linux). It raises `:enoent` rather than
-  # returning an empty list when no source has been loaded; treat both
-  # cases as "fall through".
+  # returning an empty list when no source can be loaded, and
+  # `:public_key.cacerts_load/0`, which reports that as an error, would
+  # replace certificates the application loaded itself, so it runs in a
+  # process of its own. Both cases fall through.
   defp otp_cacerts do
-    case :public_key.cacerts_get() do
-      [_ | _] = cacerts -> {:cacerts, cacerts}
-      [] -> :continue
+    case Localize.Utils.Helpers.run_isolated(&:public_key.cacerts_get/0) do
+      {:ok, [_ | _] = cacerts} -> {:cacerts, cacerts}
+      {:ok, []} -> :continue
+      {:error, _exception} -> :continue
     end
-  rescue
-    _ -> :continue
-  catch
-    _, _ -> :continue
   end
 
   defp castore_cacertfile do

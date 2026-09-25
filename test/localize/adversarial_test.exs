@@ -160,57 +160,32 @@ defmodule Localize.AdversarialTest do
     ])
   end
 
-  # ── Safe call wrapper ───────────────────────────────────────
+  # ── Result check ────────────────────────────────────────────
 
-  # Calls a function and catches all possible failure modes:
-  # exceptions, exits, and throws. Returns the result or a
-  # tagged failure tuple.
-  defp safe_call(fun) do
-    {:returned, fun.()}
-  rescue
-    exception ->
-      {:rescued, exception.__struct__, Exception.message(exception)}
-  catch
-    :exit, reason -> {:exit, reason}
-    :throw, value -> {:throw, value}
-  end
-
-  # Asserts that a safe_call result is acceptable:
-  # - {:returned, {:ok, string}} — success
-  # - {:returned, {:error, exception}} — expected error
-  # - {:rescued, FunctionClauseError, _} — acceptable for garbage types
-  # Everything else is a bug.
-  # One clause per safe_call failure mode, each with a distinct flunk
-  # message for diagnosis.
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
-  defp assert_no_crash(safe_result, label) do
-    case safe_result do
-      {:returned, {:ok, string}} when is_binary(string) ->
+  # The functions under test are called directly: one that raises, exits or
+  # throws fails the test with its stack trace, and StreamData reports the
+  # input that caused it.
+  #
+  # Asserts that a result is acceptable:
+  # - {:ok, string} — success
+  # - {:error, exception} — expected error
+  # Everything else is a bug, with a distinct flunk message for each shape.
+  defp assert_no_crash(result, label) do
+    case result do
+      {:ok, string} when is_binary(string) ->
         :ok
 
-      {:returned, {:error, exception}} when is_exception(exception) ->
+      {:error, exception} when is_exception(exception) ->
         :ok
 
-      {:returned, {:error, reason}} ->
+      {:error, reason} ->
         flunk("#{label} returned {:error, #{inspect(reason)}} (not an exception)")
 
-      {:returned, nil} ->
+      nil ->
         flunk("#{label} returned nil instead of {:ok, _} or {:error, _}")
 
-      {:returned, other} ->
+      other ->
         flunk("#{label} returned unexpected value: #{inspect(other)}")
-
-      {:rescued, FunctionClauseError, _message} ->
-        flunk("#{label} raised FunctionClauseError — should return {:error, _}")
-
-      {:rescued, exception_mod, message} ->
-        flunk("#{label} raised #{inspect(exception_mod)}: #{message}")
-
-      {:exit, reason} ->
-        flunk("#{label} exited: #{inspect(reason)}")
-
-      {:throw, value} ->
-        flunk("#{label} threw: #{inspect(value)}")
     end
   end
 
@@ -223,7 +198,7 @@ defmodule Localize.AdversarialTest do
               options <- number_options_gen(),
               max_runs: 500
             ) do
-        result = safe_call(fn -> Localize.Number.to_string(number, options) end)
+        result = Localize.Number.to_string(number, options)
         assert_no_crash(result, "Number.to_string(#{inspect(number)}, #{inspect(options)})")
       end
     end
@@ -234,7 +209,7 @@ defmodule Localize.AdversarialTest do
               options <- number_options_gen(),
               max_runs: 200
             ) do
-        result = safe_call(fn -> Localize.Number.to_string(input, options) end)
+        result = Localize.Number.to_string(input, options)
         assert_no_crash(result, "Number.to_string(#{inspect(input)}, #{inspect(options)})")
       end
     end
@@ -252,7 +227,7 @@ defmodule Localize.AdversarialTest do
               max_runs: 500
             ) do
         date = Date.new!(year, month, day)
-        result = safe_call(fn -> Localize.Date.to_string(date, options) end)
+        result = Localize.Date.to_string(date, options)
         assert_no_crash(result, "Date.to_string(#{inspect(date)}, #{inspect(options)})")
       end
     end
@@ -263,7 +238,7 @@ defmodule Localize.AdversarialTest do
               options <- options_gen(),
               max_runs: 200
             ) do
-        result = safe_call(fn -> Localize.Date.to_string(input, options) end)
+        result = Localize.Date.to_string(input, options)
         assert_no_crash(result, "Date.to_string(#{inspect(input)}, #{inspect(options)})")
       end
     end
@@ -281,7 +256,7 @@ defmodule Localize.AdversarialTest do
               max_runs: 500
             ) do
         time = Time.new!(hour, minute, second)
-        result = safe_call(fn -> Localize.Time.to_string(time, options) end)
+        result = Localize.Time.to_string(time, options)
         assert_no_crash(result, "Time.to_string(#{inspect(time)}, #{inspect(options)})")
       end
     end
@@ -292,7 +267,7 @@ defmodule Localize.AdversarialTest do
               options <- options_gen(),
               max_runs: 200
             ) do
-        result = safe_call(fn -> Localize.Time.to_string(input, options) end)
+        result = Localize.Time.to_string(input, options)
         assert_no_crash(result, "Time.to_string(#{inspect(input)}, #{inspect(options)})")
       end
     end
@@ -317,7 +292,7 @@ defmodule Localize.AdversarialTest do
               max_runs: 500
             ) do
         datetime = NaiveDateTime.new!(year, month, day, hour, minute, second)
-        result = safe_call(fn -> Localize.DateTime.to_string(datetime, options) end)
+        result = Localize.DateTime.to_string(datetime, options)
         assert_no_crash(result, "DateTime.to_string(#{inspect(datetime)}, #{inspect(options)})")
       end
     end
@@ -328,7 +303,7 @@ defmodule Localize.AdversarialTest do
               options <- options_gen(),
               max_runs: 200
             ) do
-        result = safe_call(fn -> Localize.DateTime.to_string(input, options) end)
+        result = Localize.DateTime.to_string(input, options)
         assert_no_crash(result, "DateTime.to_string(#{inspect(input)}, #{inspect(options)})")
       end
     end
@@ -353,7 +328,7 @@ defmodule Localize.AdversarialTest do
             ) do
         case Localize.Unit.new(amount, unit_name) do
           {:ok, unit} ->
-            result = safe_call(fn -> Localize.Unit.to_string(unit, options) end)
+            result = Localize.Unit.to_string(unit, options)
             assert_no_crash(result, "Unit.to_string(#{inspect(unit)}, #{inspect(options)})")
 
           {:error, _} ->
@@ -371,7 +346,7 @@ defmodule Localize.AdversarialTest do
             ) do
         case Localize.Unit.new(amount, unit_name) do
           {:ok, unit} ->
-            result = safe_call(fn -> Localize.Unit.to_string(unit, options) end)
+            result = Localize.Unit.to_string(unit, options)
             assert_no_crash(result, "Unit.to_string(#{inspect(unit)}, #{inspect(options)})")
 
           {:error, _} ->
@@ -400,7 +375,7 @@ defmodule Localize.AdversarialTest do
                 ]),
               max_runs: 500
             ) do
-        result = safe_call(fn -> Localize.Locale.LocaleDisplay.display_name(locale, options) end)
+        result = Localize.Locale.LocaleDisplay.display_name(locale, options)
 
         assert_no_crash(
           result,
@@ -427,7 +402,7 @@ defmodule Localize.AdversarialTest do
                 ]),
               max_runs: 500
             ) do
-        result = safe_call(fn -> Localize.Territory.display_name(territory, options) end)
+        result = Localize.Territory.display_name(territory, options)
 
         assert_no_crash(
           result,
@@ -451,7 +426,7 @@ defmodule Localize.AdversarialTest do
               options <- options_gen(),
               max_runs: 500
             ) do
-        result = safe_call(fn -> Localize.Currency.display_name(currency, options) end)
+        result = Localize.Currency.display_name(currency, options)
 
         assert_no_crash(
           result,

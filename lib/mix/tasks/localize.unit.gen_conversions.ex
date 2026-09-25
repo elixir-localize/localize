@@ -160,28 +160,24 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
       )
 
     File.mkdir_p!(directory)
+    File.write!(Path.join(directory, "parser.ex.exs"), template)
+
+    # `nimble_parsec.compile` narrates the file it writes, which is a
+    # temporary path the caller has no interest in. The caller's own shell is
+    # put back afterwards rather than assumed to be the default one.
     shell = Mix.shell()
+    Mix.shell(Mix.Shell.Quiet)
+    Mix.Task.rerun("nimble_parsec.compile", [Path.join(directory, "parser.ex.exs")])
+    Mix.shell(shell)
 
-    try do
-      File.write!(Path.join(directory, "parser.ex.exs"), template)
+    compiled = File.read!(Path.join(directory, "parser.ex"))
+    File.rm_rf!(directory)
 
-      # `nimble_parsec.compile` narrates the file it writes, which is a
-      # temporary path the caller has no interest in. The caller's own shell is
-      # put back afterwards rather than assumed to be the default one.
-      Mix.shell(Mix.Shell.Quiet)
-      Mix.Task.rerun("nimble_parsec.compile", [Path.join(directory, "parser.ex.exs")])
-
-      directory
-      |> Path.join("parser.ex")
-      |> File.read!()
-      |> String.replace(scratch, parser_module)
-      |> strip_generator_banner()
-      |> localize_free(parser_module)
-      |> quiet_generated_warnings()
-    after
-      Mix.shell(shell)
-      File.rm_rf!(directory)
-    end
+    compiled
+    |> String.replace(scratch, parser_module)
+    |> strip_generator_banner()
+    |> localize_free(parser_module)
+    |> quiet_generated_warnings()
   end
 
   defp source_path(module) do

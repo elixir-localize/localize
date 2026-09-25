@@ -93,6 +93,7 @@ defmodule Localize.GuidesExamplesTest do
   # A documented value may elide a long tail with `...`, as
   # `{:ok, [:AT, :BE, :CY, ...]}` does. That is a deliberate documentation
   # choice, so compare only the part before the ellipsis.
+  # An example that raises fails the test with its stack trace.
   defp evaluate(expression, documented, bad, n, binding) do
     {value, binding} = Code.eval_string(expression, binding, __ENV__)
     actual = inspect(value, limit: :infinity, printable_limit: :infinity)
@@ -102,10 +103,6 @@ defmodule Localize.GuidesExamplesTest do
     else
       {[{expression, documented, actual} | bad], n + 1, binding}
     end
-  rescue
-    error -> {[{expression, documented, Exception.message(error)} | bad], n + 1, binding}
-  catch
-    _kind, thrown -> {[{expression, documented, inspect(thrown)} | bad], n + 1, binding}
   end
 
   defp matches?(actual_value, actual_text, documented) do
@@ -125,13 +122,17 @@ defmodule Localize.GuidesExamplesTest do
     end
   end
 
+  # A documented result that is not Elixir — inspect output such as an
+  # exception banner — does not parse, and is compared as text instead.
   defp term(text) do
-    {value, _binding} = Code.eval_string(text, [], __ENV__)
-    {:ok, value}
-  rescue
-    _error -> :error
-  catch
-    _kind, _thrown -> :error
+    case Code.string_to_quoted(text) do
+      {:ok, quoted} ->
+        {value, _binding} = Code.eval_quoted(quoted, [], __ENV__)
+        {:ok, value}
+
+      {:error, _reason} ->
+        :error
+    end
   end
 
   # A guide may write a codepoint as `\\uXXXX` while `inspect/1` emits either

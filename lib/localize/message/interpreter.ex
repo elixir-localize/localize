@@ -820,7 +820,7 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp apply_function(value, nil, _options) do
-    {:ok, to_string_value(value)}
+    to_string_value(value)
   end
 
   defp apply_function(value, {:function, raw_name, func_options}, options) do
@@ -897,7 +897,7 @@ defmodule Localize.Message.Interpreter do
   # ── String formatting ──────────────────────────────────────────
 
   defp format_with_function("string", value, _func_opts, _options) do
-    {:ok, to_string_value(value)}
+    to_string_value(value)
   end
 
   # ── Date/time formatting ───────────────────────────────────────
@@ -1523,16 +1523,14 @@ defmodule Localize.Message.Interpreter do
     nfc(value) == nfc(key)
   end
 
-  defp match_value?(value, key) when is_number(value) and is_binary(key) do
-    to_string_value(value) == nfc(key)
-  end
-
-  defp match_value?(value, key) when is_binary(value) and is_number(key) do
-    nfc(value) == to_string_value(key)
-  end
-
+  # A value with no string form matches no key.
   defp match_value?(value, key) do
-    nfc(to_string_value(value)) == nfc(to_string_value(key))
+    with {:ok, value_string} <- to_string_value(value),
+         {:ok, key_string} <- to_string_value(key) do
+      nfc(value_string) == nfc(key_string)
+    else
+      {:error, _no_string_form} -> false
+    end
   end
 
   defp nfc(string), do: :unicode.characters_to_nfc_binary(string)
@@ -2152,11 +2150,44 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
-  defp to_string_value(nil), do: ""
-  defp to_string_value(value) when is_binary(value), do: value
-  defp to_string_value(value) when is_integer(value), do: Integer.to_string(value)
-  defp to_string_value(value) when is_float(value), do: Float.to_string(value)
-  defp to_string_value(value), do: Kernel.to_string(value)
+  # The string form `Kernel.to_string/1` gives an operand or a key, or an
+  # error for a value that has none — a tuple, map, pid, function, a struct
+  # without a `String.Chars` implementation, a bitstring that is not whole
+  # bytes, or a list that is not chardata — where `Kernel.to_string/1` would
+  # raise.
+  defp to_string_value(nil), do: {:ok, ""}
+  defp to_string_value(value) when is_binary(value), do: {:ok, value}
+  defp to_string_value(value) when is_bitstring(value), do: {:error, no_string_form(value)}
+  defp to_string_value(value) when is_integer(value), do: {:ok, Integer.to_string(value)}
+  defp to_string_value(value) when is_float(value), do: {:ok, Float.to_string(value)}
+
+  defp to_string_value(value) when is_list(value) do
+    with true <- chardata?(value),
+         string when is_binary(string) <- :unicode.characters_to_binary(value) do
+      {:ok, string}
+    else
+      _not_chardata -> {:error, no_string_form(value)}
+    end
+  end
+
+  defp to_string_value(value) do
+    case String.Chars.impl_for(value) do
+      nil -> {:error, no_string_form(value)}
+      impl -> {:ok, impl.to_string(value)}
+    end
+  end
+
+  # `:unicode.characters_to_binary/1` raises unless every element is an
+  # integer, a binary or a list of them, and the tail is `[]` or a binary. An
+  # integer that is not a code point is an error it returns, not a raise.
+  defp chardata?([]), do: true
+  defp chardata?([head | tail]) when is_integer(head) or is_binary(head), do: chardata?(tail)
+  defp chardata?([head | tail]) when is_list(head), do: chardata?(head) and chardata?(tail)
+  defp chardata?(tail), do: is_binary(tail)
+
+  defp no_string_form(value) do
+    Helpers.invalid_value(value, "a value that can be converted to a string")
+  end
 
   # ── Bidirectional text isolation ─────────────────────────────────
 

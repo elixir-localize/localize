@@ -337,8 +337,6 @@ defmodule Localize.CurrencyTest do
   # flags apply with a literal argument list).
   defp positional_filter_outcome(function, arguments) do
     apply(Currency, function, arguments)
-  rescue
-    exception -> {:raised, exception}
   end
 
   describe "removed positional filter forms" do
@@ -356,11 +354,13 @@ defmodule Localize.CurrencyTest do
       assert {:error, %Localize.InvalidValueError{}} =
                positional_filter_outcome(:currency_strings, [:en, :current])
 
-      assert {:raised, %Localize.InvalidValueError{}} =
-               positional_filter_outcome(:currencies_for_locale!, [:en, :current])
+      assert_raise Localize.InvalidValueError, fn ->
+        positional_filter_outcome(:currencies_for_locale!, [:en, :current])
+      end
 
-      assert {:raised, %Localize.InvalidValueError{}} =
-               positional_filter_outcome(:currency_strings!, [:en, :current])
+      assert_raise Localize.InvalidValueError, fn ->
+        positional_filter_outcome(:currency_strings!, [:en, :current])
+      end
     end
   end
 

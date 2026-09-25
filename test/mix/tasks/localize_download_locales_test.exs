@@ -53,18 +53,20 @@ defmodule Mix.Tasks.Localize.DownloadLocalesTest do
 
       previous = Application.get_env(:localize, :default_locale)
 
-      try do
-        Application.put_env(:localize, :default_locale, :"en-ZA")
+      on_exit(fn ->
+        if previous,
+          do: Application.put_env(:localize, :default_locale, previous),
+          else: Application.delete_env(:localize, :default_locale)
+      end)
 
-        capture_log(fn ->
-          banner = DownloadLocales.banner(2, "/tmp/cache")
-          assert is_binary(banner)
-          assert banner =~ "2"
-          assert banner =~ "/tmp/cache"
-        end)
-      after
-        if previous, do: Application.put_env(:localize, :default_locale, previous)
-      end
+      Application.put_env(:localize, :default_locale, :"en-ZA")
+
+      capture_log(fn ->
+        banner = DownloadLocales.banner(2, "/tmp/cache")
+        assert is_binary(banner)
+        assert banner =~ "2"
+        assert banner =~ "/tmp/cache"
+      end)
     end
 
     test "falls back to a plain ASCII banner if MF2 format ever returns an error" do

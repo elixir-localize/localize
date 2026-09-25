@@ -392,9 +392,9 @@ defmodule Localize do
 
   ### Returns
 
-  * The return value of `fun`.
+  * The return value of `fun`, or
 
-  * Raises if the locale is not valid.
+  * `{:error, exception}` if the locale is not valid.
 
   ### Examples
 
@@ -1625,13 +1625,13 @@ defmodule Localize do
   @spec validate_measurement_system(atom() | String.t()) ::
           {:ok, atom()} | {:error, Exception.t()}
   def validate_measurement_system(system) when is_binary(system) do
-    system
-    |> String.downcase()
-    |> String.to_existing_atom()
-    |> validate_measurement_system()
-  rescue
-    ArgumentError ->
-      {:error, Localize.UnknownMeasurementSystemError.exception(measurement_system: system)}
+    case system |> String.downcase() |> Localize.Utils.Helpers.existing_atom() do
+      nil ->
+        {:error, Localize.UnknownMeasurementSystemError.exception(measurement_system: system)}
+
+      atom ->
+        validate_measurement_system(atom)
+    end
   end
 
   def validate_measurement_system(system) when is_atom(system) do

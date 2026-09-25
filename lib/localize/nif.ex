@@ -32,6 +32,11 @@ defmodule Localize.Nif do
 
   @on_load :init
 
+  # Whether `init/0` loaded the shared library. The stubs below raise when
+  # it is absent, so availability is recorded when the module loads rather
+  # than probed by calling one.
+  @loaded_key {__MODULE__, :loaded?}
+
   @doc false
   def init do
     path =
@@ -49,10 +54,9 @@ defmodule Localize.Nif do
     pool_size =
       :erlang.system_info(:schedulers) + :erlang.system_info(:dirty_cpu_schedulers)
 
-    case :erlang.load_nif(path, pool_size) do
-      :ok -> :ok
-      {:error, _reason} -> :ok
-    end
+    loaded? = :erlang.load_nif(path, pool_size) == :ok
+    :persistent_term.put(@loaded_key, loaded?)
+    :ok
   end
 
   @doc """
@@ -72,9 +76,7 @@ defmodule Localize.Nif do
   """
   @spec available?() :: boolean()
   def available? do
-    match?({:ok, _}, nif_mf2_validate(""))
-  rescue
-    _ -> false
+    :persistent_term.get(@loaded_key, false)
   end
 
   # ── MessageFormat 2 ─────────────────────────────────────────────
@@ -165,6 +167,10 @@ defmodule Localize.Nif do
   @doc """
   Returns whether the collation NIF function is available.
 
+  The collation functions are part of the same shared library as the
+  rest of the NIF, so they are available exactly when `available?/0`
+  is `true`.
+
   ### Returns
 
   * `true` if the collation NIF function was loaded successfully.
@@ -173,14 +179,7 @@ defmodule Localize.Nif do
 
   """
   @spec collation_available?() :: boolean()
-  def collation_available? do
-    match?(
-      result when is_integer(result),
-      nif_collation_cmp("", "", -1, -1, -1, -1, -1, -1, -1, <<>>)
-    )
-  rescue
-    _ -> false
-  end
+  def collation_available?, do: available?()
 
   @doc """
   Compare two strings using ICU collation with full option support.

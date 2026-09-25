@@ -280,12 +280,10 @@ defmodule Localize.Message.JSON do
   """
   @spec from_json(map() | String.t()) :: {:ok, list()} | {:error, String.t()}
   def from_json(json) when is_binary(json) do
-    case :json.decode(json) do
-      map when is_map(map) -> from_json(map)
-      _ -> {:error, "expected a JSON object"}
+    case Localize.Utils.Helpers.run_isolated(fn -> decode_message(json) end) do
+      {:ok, result} -> result
+      {:error, _exception} -> {:error, "invalid JSON"}
     end
-  rescue
-    _ -> {:error, "invalid JSON"}
   end
 
   def from_json(%{"type" => "message", "declarations" => decls, "pattern" => pattern}) do
@@ -321,6 +319,16 @@ defmodule Localize.Message.JSON do
   end
 
   def from_json(_), do: {:error, "expected a message or select object with type field"}
+
+  # `:json.decode/1` raises on text that is not JSON, and the conversion
+  # can raise on a malformed data model, so `from_json/1` runs both in a
+  # process of its own.
+  defp decode_message(json) do
+    case :json.decode(json) do
+      map when is_map(map) -> from_json(map)
+      _other -> {:error, "expected a JSON object"}
+    end
+  end
 
   # ── Parse declarations ──────────────────────────────────────────
 

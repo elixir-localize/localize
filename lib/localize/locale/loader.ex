@@ -148,35 +148,11 @@ defmodule Localize.Locale.Loader do
   def handle_call({:load_and_store, locale, provider}, _from, state) do
     # Double-check inside the serialized context — another
     # request may have loaded it while we were queued.
-    #
-    # The try/rescue here is a system boundary guard: provider.load/1
-    # may call into external data generation code that can raise for
-    # invalid locales. Without this protection the GenServer would
-    # crash and become unavailable for subsequent valid requests.
     result =
       if provider.loaded?(locale) do
         :ok
       else
-        try do
-          case Localize.Locale.Provider.load_with_fallback(provider, locale) do
-            {:ok, locale_data, _resolved_locale_id} ->
-              # Store under the *requested* locale id, not the resolved
-              # fallback id. This is the behaviour of 0.29 — see
-              # `test/localize/locale/loader_fallback_test.exs` and
-              # issue #26. Storing under the resolved id meant that
-              # subsequent `provider.get(requested_locale, _)` calls
-              # missed the in-memory fallback data, surfacing as a
-              # spurious `ItemNotFoundError` even though the data was
-              # already loaded.
-              provider.store(locale, locale_data)
-
-            {:error, _reason} = error ->
-              error
-          end
-        rescue
-          exception ->
-            {:error, exception}
-        end
+        isolated_load_and_store(provider, locale)
       end
 
     {:reply, result, state}
@@ -198,5 +174,32 @@ defmodule Localize.Locale.Loader do
     end
 
     {:noreply, state}
+  end
+
+  # `provider.load/1` can reach data generation code that raises for a
+  # locale it cannot build. The load runs in a process of its own, so a
+  # raise there comes back as an error instead of taking this server —
+  # and every later load — down with it.
+  defp isolated_load_and_store(provider, locale) do
+    load = fn -> Localize.Locale.Provider.load_with_fallback(provider, locale) end
+
+    case Localize.Utils.Helpers.run_isolated(load) do
+      {:ok, {:ok, locale_data, _resolved_locale_id}} ->
+        # Store under the *requested* locale id, not the resolved
+        # fallback id. This is the behaviour of 0.29 — see
+        # `test/localize/locale/loader_fallback_test.exs` and
+        # issue #26. Storing under the resolved id meant that
+        # subsequent `provider.get(requested_locale, _)` calls
+        # missed the in-memory fallback data, surfacing as a
+        # spurious `ItemNotFoundError` even though the data was
+        # already loaded.
+        provider.store(locale, locale_data)
+
+      {:ok, {:error, _reason} = error} ->
+        error
+
+      {:error, _exception} = error ->
+        error
+    end
   end
 end

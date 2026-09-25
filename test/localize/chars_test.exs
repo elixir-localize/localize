@@ -215,6 +215,21 @@ defmodule Localize.CharsTest do
       result = apply(Localize.Chars, :to_string, [fn -> :ok end])
       assert {:error, %Localize.InvalidValueError{}} = result
     end
+
+    # Regression: these raised `FunctionClauseError` from the `BitString`
+    # implementation and from `Localize.List`.
+    test "a bitstring that is not whole bytes returns InvalidValueError" do
+      assert {:error, %Localize.InvalidValueError{}} = Localize.Chars.to_string(<<1::3>>)
+
+      assert {:error, %Localize.InvalidValueError{}} =
+               Localize.Chars.to_string(<<1::3>>, locale: :en)
+    end
+
+    test "an improper list, or a list holding a value with no string form, returns an error" do
+      for list <- [[1 | 2], ["a" | "b"], [<<1::3>>]] do
+        assert {:error, %Localize.InvalidValueError{}} = Localize.Chars.to_string(list)
+      end
+    end
   end
 
   describe "heterogeneous integration" do

@@ -790,13 +790,15 @@ defmodule Localize.Locale.Provider do
     end
   end
 
-  # `binary_to_term/1` raises on malformed content; a corrupt manifest
-  # is treated as absent (with the warning) rather than crashing every
-  # download.
+  # `binary_to_term/1` raises on malformed content and has no variant that
+  # returns an error, so it runs in a process of its own; a corrupt
+  # manifest is treated as absent (with the warning) rather than crashing
+  # every download.
   defp decode_hash_manifest(binary) do
-    {:ok, :erlang.binary_to_term(binary)}
-  rescue
-    ArgumentError -> :error
+    case Localize.Utils.Helpers.run_isolated(fn -> :erlang.binary_to_term(binary) end) do
+      {:ok, hashes} -> {:ok, hashes}
+      {:error, _exception} -> :error
+    end
   end
 
   defp warn_missing_hash_manifest do
