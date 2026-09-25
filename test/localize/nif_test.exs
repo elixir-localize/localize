@@ -42,6 +42,31 @@ defmodule Localize.NifTest do
     end
   end
 
+  # These arguments are refused before the NIF is called, so the checks
+  # hold whether or not it is loaded.
+  describe "mf2_format/3 arguments" do
+    test "arguments ICU cannot take are an error, not a raise" do
+      for args <- [
+            "{not json",
+            "[1, 2]",
+            ~s({"x": true}),
+            [x: 1],
+            %{"x" => {1, 2}},
+            %{"x" => ~U[2026-09-26 10:30:00Z]},
+            %{"x" => <<255>>},
+            %{"x" => Bitwise.bsl(1, 70)},
+            %{"x" => nil}
+          ] do
+        assert {:error, %Localize.InvalidValueError{}} = Nif.mf2_format("{$x}", "en", args)
+      end
+    end
+
+    test "a message or locale that is not a string is an error" do
+      assert {:error, %Localize.InvalidValueError{}} = Nif.mf2_format(:hello, "en", %{})
+      assert {:error, %Localize.InvalidValueError{}} = Nif.mf2_format("{$x}", :en, %{"x" => 1})
+    end
+  end
+
   describe "ICU-backed functions when the NIF is loaded" do
     test "mf2_validate/1 normalizes a valid message and rejects an invalid one" do
       case safe_nif(fn -> Nif.mf2_validate("Hello world") end) do
@@ -91,6 +116,21 @@ defmodule Localize.NifTest do
         result ->
           assert result == {:ok, "$1,234.50"}
           assert Nif.number_format(1234, "de", use_grouping: false) == {:ok, "1234"}
+      end
+    end
+
+    test "mf2_format/3 reads JSON escapes and exponent numbers" do
+      case safe_nif(fn -> Nif.mf2_format("{$x}", "en", ~s({"x": "a\\u0001b"})) end) do
+        :nif_not_loaded ->
+          refute Nif.available?()
+
+        result ->
+          assert result == {:ok, "a\u0001b"}
+          assert Nif.mf2_format("{$x}", "en", ~s({"x": "\\b\\f"})) == {:ok, "\b\f"}
+          assert Nif.mf2_format("{$x}", "en", ~s({"x": "\\ud83d\\ude00"})) == {:ok, "😀"}
+
+          assert Nif.mf2_format("{$x :number}", "en", ~s({"x": 1.0e20})) ==
+                   {:ok, "100,000,000,000,000,000,000"}
       end
     end
 

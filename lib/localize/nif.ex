@@ -103,8 +103,10 @@ defmodule Localize.Nif do
   @doc """
   Formats a MessageFormat 2 message string using ICU.
 
-  Arguments are passed as a map of `%{name => value}` and
-  encoded to JSON for the NIF.
+  The arguments reach ICU as a flat JSON object, so each value must be
+  one that crosses unchanged: a string, an integer within 64 bits or a
+  float. `Localize.Message.format/3` with `backend: :nif` formats a
+  message whose bindings hold anything else with the Elixir interpreter.
 
   ### Arguments
 
@@ -112,35 +114,107 @@ defmodule Localize.Nif do
 
   * `locale` is a locale identifier string. The default is `"en"`.
 
-  * `args` is a map of variable bindings. The default is `%{}`.
+  * `args` is a map of argument names to values, or the same map as
+    a JSON object. The default is `%{}`.
 
   ### Returns
 
   * `{:ok, formatted_string}` on success.
 
-  * `{:error, reason}` on failure.
+  * `{:error, reason}` if ICU cannot format the message.
+
+  * `{:error, exception}` if an argument the message uses is missing,
+    if any argument is not a string, a 64-bit integer or a float, if
+    `args` is neither a map nor a JSON object, or if `message` or
+    `locale` is not a string.
 
   """
   @dialyzer {:nowarn_function, mf2_format: 3}
 
   @spec mf2_format(String.t(), String.t(), map() | String.t()) ::
-          {:ok, String.t()} | {:error, String.t()}
-  def mf2_format(message, locale \\ "en", args \\ %{}) when is_binary(message) do
-    args_map =
-      case args do
-        json when is_binary(json) -> :json.decode(json)
-        map when is_map(map) -> map
+          {:ok, String.t()} | {:error, String.t() | Exception.t()}
+  def mf2_format(message, locale \\ "en", args \\ %{})
+
+  def mf2_format(message, locale, args) when is_binary(message) and is_binary(locale) do
+    with {:ok, args_map, args_json} <- mf2_arguments(args) do
+      case unbound_variables(message, args_map) do
+        [] -> nif_mf2_format(message, locale, args_json)
+        unbound -> {:error, Localize.BindError.exception(unbound: unbound)}
       end
-
-    case unbound_variables(message, args_map) do
-      [] ->
-        args_json = IO.iodata_to_binary(:json.encode(args_map))
-        nif_mf2_format(message, locale, args_json)
-
-      unbound ->
-        {:error, Localize.BindError.exception(unbound: unbound)}
     end
   end
+
+  def mf2_format(message, locale, _args) when is_binary(message),
+    do: {:error, Localize.Utils.Helpers.invalid_value(locale, "a locale identifier string")}
+
+  def mf2_format(message, _locale, _args),
+    do: {:error, Localize.Utils.Helpers.invalid_value(message, "an MF2 message string")}
+
+  @doc false
+  # Whether every argument crosses to ICU unchanged: a name that is text,
+  # and a string, an integer within 64 bits or a float. The message
+  # formatter asks before choosing the NIF for a message.
+  @spec mf2_arguments?(map()) :: boolean()
+  def mf2_arguments?(args) when is_map(args), do: Enum.all?(args, &mf2_argument?/1)
+
+  # JSON text is checked as the map it decodes to and passed on as written;
+  # a map is encoded.
+  defp mf2_arguments(json) when is_binary(json) do
+    with {:ok, args} <- decode_arguments(json),
+         :ok <- check_arguments(args) do
+      {:ok, args, json}
+    end
+  end
+
+  defp mf2_arguments(args) when is_map(args) do
+    with :ok <- check_arguments(args) do
+      {:ok, args, IO.iodata_to_binary(:json.encode(args))}
+    end
+  end
+
+  defp mf2_arguments(args) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(args, "a map of arguments or a JSON object of them")}
+  end
+
+  # `:json.decode/1` raises on text that is not JSON and has no form that
+  # returns an error, so it runs in a process of its own.
+  defp decode_arguments(json) do
+    case Localize.Utils.Helpers.run_isolated(fn -> :json.decode(json) end) do
+      {:ok, args} when is_map(args) ->
+        {:ok, args}
+
+      _not_an_object ->
+        {:error, Localize.Utils.Helpers.invalid_value(json, "a JSON object of arguments")}
+    end
+  end
+
+  defp check_arguments(args) do
+    case Enum.find(args, &(not mf2_argument?(&1))) do
+      nil ->
+        :ok
+
+      {name, value} ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: value,
+           expected: "a string, an integer within 64 bits or a float",
+           context: "the argument #{inspect(name)}"
+         )}
+    end
+  end
+
+  @min_int64 -0x8000000000000000
+  @max_int64 0x7FFFFFFFFFFFFFFF
+
+  defp mf2_argument?({name, value}), do: mf2_name?(name) and mf2_value?(value)
+
+  defp mf2_name?(name) when is_binary(name), do: String.valid?(name)
+  defp mf2_name?(name), do: is_atom(name)
+
+  defp mf2_value?(value) when is_binary(value), do: String.valid?(value)
+  defp mf2_value?(value) when is_integer(value), do: value >= @min_int64 and value <= @max_int64
+  defp mf2_value?(value), do: is_float(value)
 
   @variable_pattern ~r/\$([a-zA-Z_][a-zA-Z0-9_]*)/
   @local_declaration_pattern ~r/\.(?:local|input)\s+\$([a-zA-Z_][a-zA-Z0-9_]*)/

@@ -56,6 +56,9 @@ defmodule Localize.Message do
   * `:backend` determines which formatting engine to use.
     Accepts `:nif` or `:elixir`. When set to `:nif`, the ICU NIF
     is used if available, otherwise falls back to the pure-Elixir
+    interpreter. The NIF takes bindings that are strings, integers
+    within 64 bits or floats; a message with any other binding — a
+    date, a `Decimal`, a unit, a list — is formatted by the
     interpreter. The default is `:elixir`.
 
   * `:functions` is a map of `%{String.t() => module()}` that
@@ -90,9 +93,11 @@ defmodule Localize.Message do
 
   def format(message, bindings, options)
       when is_binary(message) and is_bindings(bindings) and is_keyword_list(options) do
-    case Localize.Backend.resolve(options) do
-      :nif -> format_nif(message, bindings, Keyword.delete(options, :backend))
-      :elixir -> format_elixir(message, bindings, Keyword.delete(options, :backend))
+    with :ok <- validate_bindings(bindings) do
+      case Localize.Backend.resolve(options) do
+        :nif -> format_nif(message, bindings, Keyword.delete(options, :backend))
+        :elixir -> format_elixir(message, bindings, Keyword.delete(options, :backend))
+      end
     end
   end
 
@@ -106,7 +111,17 @@ defmodule Localize.Message do
   defp invalid_arguments(message, _bindings, _options) when not is_binary(message),
     do: {:error, Localize.Utils.Helpers.invalid_value(message, "an MF2 message string")}
 
-  defp invalid_arguments(_message, bindings, _options) do
+  defp invalid_arguments(_message, bindings, _options), do: invalid_bindings(bindings)
+
+  # `is_bindings/1` reads only a list's head, so an improper list such as
+  # `[{:a, 1} | :b]` passes it but cannot be walked.
+  defp validate_bindings(bindings) when is_list(bindings) do
+    if List.improper?(bindings), do: invalid_bindings(bindings), else: :ok
+  end
+
+  defp validate_bindings(_bindings), do: :ok
+
+  defp invalid_bindings(bindings) do
     {:error, Localize.Utils.Helpers.invalid_value(bindings, "a map or keyword list of bindings")}
   end
 
@@ -134,20 +149,24 @@ defmodule Localize.Message do
     end
   end
 
+  # The NIF takes strings, 64-bit integers and floats. A message whose
+  # bindings hold anything else — a date, a `Decimal`, a unit, a list — is
+  # formatted by the interpreter, as it is when the NIF is not loaded.
   defp format_nif(message, bindings, options) do
+    bindings_map = normalize_bindings(bindings)
+
+    if Localize.Nif.mf2_arguments?(bindings_map),
+      do: format_with_nif(message, bindings, bindings_map, options),
+      else: format_elixir(message, bindings, options)
+  end
+
+  defp format_with_nif(message, bindings, bindings_map, options) do
     with {:ok, message} <- maybe_trim(message, options[:trim]),
-         {:ok, locale_string} <- resolve_locale_string(options) do
-      bindings_map = normalize_bindings(bindings)
-
-      case check_unbound_variables(message, bindings_map) do
-        {:error, _} = error ->
-          error
-
-        :ok ->
-          json_binary = IO.iodata_to_binary(:json.encode(bindings_map))
-          nif_result = Localize.Nif.mf2_format(message, locale_string, json_binary)
-          handle_nif_format(nif_result, message, bindings, options)
-      end
+         {:ok, locale_string} <- resolve_locale_string(options),
+         :ok <- check_unbound_variables(message, bindings_map) do
+      message
+      |> Localize.Nif.mf2_format(locale_string, bindings_map)
+      |> handle_nif_format(message, bindings, options)
     end
   end
 
@@ -160,6 +179,11 @@ defmodule Localize.Message do
 
   defp handle_nif_format({:ok, formatted}, _message, _bindings, _options) do
     {:ok, formatted}
+  end
+
+  defp handle_nif_format({:error, exception}, _message, _bindings, _options)
+       when is_exception(exception) do
+    {:error, exception}
   end
 
   defp handle_nif_format({:error, detail}, message, _bindings, _options) do
@@ -265,21 +289,14 @@ defmodule Localize.Message do
     end
   end
 
-  defp normalize_bindings(bindings) when is_map(bindings) do
-    Map.new(bindings, fn
-      {k, v} when is_atom(k) -> {Atom.to_string(k), v}
-      {k, v} -> {k, v}
-    end)
+  # A list element that is not a `{name, value}` pair is skipped, as the
+  # interpreter skips it.
+  defp normalize_bindings(bindings) do
+    for {name, value} <- bindings, into: %{}, do: {binding_name(name), value}
   end
 
-  defp normalize_bindings(bindings) when is_list(bindings) do
-    Map.new(bindings, fn
-      {k, v} when is_atom(k) -> {Atom.to_string(k), v}
-      {k, v} -> {k, v}
-    end)
-  end
-
-  defp normalize_bindings(bindings), do: bindings
+  defp binding_name(name) when is_atom(name), do: Atom.to_string(name)
+  defp binding_name(name), do: name
 
   @doc """
   Formats a message and returns the result or raises on error.
@@ -365,7 +382,8 @@ defmodule Localize.Message do
 
   def format_to_iolist(message, bindings, options)
       when is_binary(message) and is_bindings(bindings) and is_keyword_list(options) do
-    with {:ok, message} <- maybe_trim(message, options[:trim]),
+    with :ok <- validate_bindings(bindings),
+         {:ok, message} <- maybe_trim(message, options[:trim]),
          {:ok, parsed} <- parse_and_validate(message, :format_to_iolist) do
       Interpreter.format_list(parsed, bindings, options)
     end

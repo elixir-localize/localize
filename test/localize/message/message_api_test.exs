@@ -93,6 +93,24 @@ defmodule Localize.Message.ApiTest do
       assert Message.format("{{Hi {$a}}}", [a: 1], backend: :nif) == {:ok, "Hi 1"}
     end
 
+    # Regression: the NIF path raised on a list element that is not a
+    # `{name, value}` pair, and both backends raised on an improper list.
+    test "a binding list element that is not a pair is skipped on either backend" do
+      for backend <- [:elixir, :nif] do
+        assert Message.format("{{Hi {$a}}}", [{:a, 1}, :b], backend: backend) == {:ok, "Hi 1"}
+      end
+    end
+
+    test "an improper binding list is an error on either backend" do
+      for backend <- [:elixir, :nif] do
+        assert {:error, %Localize.InvalidValueError{}} =
+                 Message.format("{{Hi {$a}}}", [{:a, 1} | :b], backend: backend)
+      end
+
+      assert {:error, %Localize.InvalidValueError{}} =
+               Message.format_to_iolist("{{Hi {$a}}}", [{:a, 1} | :b])
+    end
+
     test ":locale option applies to number formatting" do
       assert Message.format(
                "{{You have {$n :number}}}",

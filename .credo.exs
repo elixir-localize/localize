@@ -21,18 +21,31 @@
 #
 # * `Refactor.Apply` stays enabled; legitimate dynamic dispatch from
 #   token/handler tables is annotated inline.
+#
+# Policy decision (September 2026):
+#
+# * `Localize.Credo.NoTryRescue` (`credo/checks/no_try_rescue.ex`)
+#   reports every `try` and every function-level `rescue`, `catch`,
+#   `else` or `after`. The agreed exceptions are a `rescue` of
+#   `ArgumentError` around a lone `String.to_existing_atom/1` call,
+#   and the `try`/`after` of the functions listed below, whose cleanup
+#   is documented behaviour. Extending the list needs its own reason.
 %{
   configs: [
     %{
       name: "default",
       strict: true,
       files: %{
-        included: ["lib/", "test/", "data/"],
+        included: ["lib/", "test/", "data/", "credo/"],
         excluded: ["test/support/data/"]
       },
+      requires: ["credo/checks/no_try_rescue.ex"],
       checks: %{
         disabled: [
           {Credo.Check.Design.AliasUsage, []}
+        ],
+        extra: [
+          {Localize.Credo.NoTryRescue, allowed_try_after: [{Localize, :with_locale, 2}]}
         ]
       }
     }
