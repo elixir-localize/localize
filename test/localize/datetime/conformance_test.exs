@@ -11,22 +11,20 @@ defmodule Localize.DateTime.ConformanceTest do
 
   use ExUnit.Case, async: true
 
-  # Tests where ex_cldr_dates_times also has known issues
-  @should_be_at_format [47, 48, 51, 52, 55, 56, 59, 60]
+  # Every Gregorian case in the fixture passes. The date/time split path
+  # adjusts the matched patterns' field widths, so a requested zone symbol
+  # is no longer replaced by whichever the matched format carried —
+  # `:MMMMdjmsO` matched `hmsv` and rendered "GMT" where `O` gives
+  # "GMT+0". And `:tz` is a test dependency, so `Australia/Adelaide`
+  # resolves to a real offset and daylight flag; without a timezone
+  # database `DateTime.shift_zone/2` fails and the fixture's input silently
+  # arrives as UTC.
+  #
+  # The remaining `@wrong_format` indices are not Gregorian and so never
+  # ran; they are kept for whenever the other calendars are enabled below.
   @wrong_format [283, 256, 266, 285, 258, 267, 284, 257, 265, 286]
 
-  # Tests requiring timezone name resolution (z, Z, O, v, V symbols)
-  # or the `j` meta-symbol in skeleton matching. These need
-  # full timezone support and locale-sensitive hour cycle resolution.
-  @timezone_tests [14, 16, 18, 38, 39, 40, 41, 42, 44, 45, 46, 49, 50, 53, 54, 57, 58]
-  @j_symbol_tests []
-  @skeleton_match_issues [19, 20, 21, 34, 35, 36]
-
-  @maybe_incorrect_test_result @should_be_at_format ++
-                                 @wrong_format ++
-                                 @timezone_tests ++
-                                 @j_symbol_tests ++
-                                 @skeleton_match_issues
+  @maybe_incorrect_test_result @wrong_format
 
   # Only test gregorian calendar for now
   @test_calendars [:gregorian]

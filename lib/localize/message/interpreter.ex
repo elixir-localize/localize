@@ -134,7 +134,7 @@ defmodule Localize.Message.Interpreter do
   def format_list(ast, bindings \\ %{}, options \\ [])
 
   def format_list(ast, bindings, options) when is_list(bindings) do
-    format_list(ast, Map.new(bindings), options)
+    format_list(ast, bindings_map(bindings), options)
   end
 
   # Data-model validation is the caller's job: `Localize.Message`
@@ -260,7 +260,7 @@ defmodule Localize.Message.Interpreter do
   defp merge_test_function({:function, name, options} = func, {:variable, operand_name}, sel_meta)
        when name in ["test:select", "test:function", "test:format"] do
     case Map.get(sel_meta, operand_name) do
-      {_value, {:function, operand_name_string, operand_options}}
+      {_value, {:function, operand_name_string, operand_options}, _plural_operand}
       when operand_name_string in ["test:select", "test:function", "test:format"] ->
         merged = Enum.uniq_by(options ++ operand_options, fn {:option, key, _value} -> key end)
         {:function, name, merged}
@@ -282,7 +282,7 @@ defmodule Localize.Message.Interpreter do
   defp operand_select_conflict({:variable, operand_name}, {:function, name, _options}, sel_meta)
        when name in ["number", "integer", "offset", "percent"] do
     case Map.get(sel_meta, operand_name) do
-      {_value, {:function, _declared_name, declared_options}} ->
+      {_value, {:function, _declared_name, declared_options}, _plural_operand} ->
         if Enum.any?(declared_options, &match?({:option, "select", _}, &1)) do
           {:error,
            "the select option of :#{name} cannot be set through the resolved value " <>
@@ -311,7 +311,8 @@ defmodule Localize.Message.Interpreter do
     case apply_function(value, func, Keyword.put(options, :bindings, bindings_acc)) do
       {:ok, formatted} ->
         sel_value = selector_value(value, func)
-        sel_meta = Map.put(sel_meta, name, {sel_value, selector_func})
+        plural_operand = plural_operand(value, func, bindings_acc, options, sel_value)
+        sel_meta = Map.put(sel_meta, name, {sel_value, selector_func, plural_operand})
         bindings_acc = Map.put(bindings_acc, name, formatted)
         {:cont, {bindings_acc, [name | bound_acc], sel_meta}}
 
@@ -386,7 +387,7 @@ defmodule Localize.Message.Interpreter do
   def format_structured(ast, bindings \\ %{}, options \\ [])
 
   def format_structured(ast, bindings, options) when is_list(bindings) do
-    format_structured(ast, Map.new(bindings), options)
+    format_structured(ast, bindings_map(bindings), options)
   end
 
   def format_structured(ast, bindings, options) when is_map(bindings) do
@@ -524,16 +525,17 @@ defmodule Localize.Message.Interpreter do
             :error -> {nil, true}
           end
 
-        {original_value, func} =
+        {original_value, func, plural_operand} =
           case Map.get(selector_meta, name) do
-            {orig, func} -> {orig, func}
-            nil -> {formatted, nil}
+            {orig, func, operand} -> {orig, func, operand}
+            nil -> {formatted, nil, formatted}
           end
 
         %{
           name: name,
           formatted: formatted,
           original: original_value,
+          plural_operand: plural_operand,
           func: func,
           unbound: unbound?
         }
@@ -760,7 +762,7 @@ defmodule Localize.Message.Interpreter do
   # `{$x :offset add=1}` produces "+42".
   defp reannotate_from_declaration({:variable, name}, value, {:function, _, _} = func, options) do
     case options |> Keyword.get(:declaration_meta, %{}) |> Map.get(name) do
-      {original, declared_func} ->
+      {original, declared_func, _plural_operand} ->
         {original, merge_declared_options(normalize_function(func), declared_func)}
 
       nil ->
@@ -878,31 +880,9 @@ defmodule Localize.Message.Interpreter do
   # MF2 specification versions. Draft functions may change in
   # future specification releases.
 
-  defp format_with_function("number", value, func_opts, options) do
-    with {:ok, number} <- ensure_number(value),
-         {:ok, options_struct} <- build_number_options(options, func_opts) do
-      format_number_result(number, options_struct, func_opts)
-    end
-  end
-
-  defp format_with_function("integer", value, func_opts, options) do
-    with {:ok, number} <- ensure_number(value),
-         {:ok, options_struct} <- build_number_options(options, func_opts) do
-      format_number_result(trunc(number), options_struct, func_opts)
-    end
-  end
-
-  defp format_with_function("offset", value, func_opts, options) do
-    with {:ok, number} <- ensure_number(value),
-         {:ok, adjustment} <- offset_adjustment(func_opts),
-         {:ok, options_struct} <- build_number_options(options, func_opts) do
-      format_number_result(apply_offset(number, adjustment), options_struct, func_opts)
-    end
-  end
-
-  defp format_with_function("percent", value, func_opts, options) do
-    with {:ok, number} <- ensure_number(value),
-         {:ok, options_struct} <- build_number_options(options, func_opts, format: :percent) do
+  defp format_with_function(name, value, func_opts, options)
+       when name in ["number", "integer", "offset", "percent"] do
+    with {:ok, number, options_struct} <- prepare_number(name, value, func_opts, options) do
       format_number_result(number, options_struct, func_opts)
     end
   end
@@ -1104,6 +1084,37 @@ defmodule Localize.Message.Interpreter do
   # it to the `:sign_display` option of `Localize.Number.to_string/2`.
   # All sign handling — pattern selection, plus-sign placement, zero
   # and NaN semantics — is done by the number formatter, never here.
+  # The number a numeric function formats, and the options it formats it
+  # with. Selection takes its plural operand from the same pair, so the two
+  # cannot disagree about the digits displayed.
+  defp prepare_number(name, value, func_opts, options) do
+    with {:ok, number} <- ensure_number(value),
+         {:ok, number} <- adjust_number(name, number, func_opts),
+         {:ok, options_struct} <- numeric_options(name, options, func_opts) do
+      {:ok, number, options_struct}
+    end
+  end
+
+  defp adjust_number("integer", %Decimal{} = number, _func_opts) do
+    {:ok, Decimal.round(number, 0, :down)}
+  end
+
+  defp adjust_number("integer", number, _func_opts), do: {:ok, trunc(number)}
+
+  defp adjust_number("offset", number, func_opts) do
+    with {:ok, adjustment} <- offset_adjustment(func_opts) do
+      {:ok, apply_offset(number, adjustment)}
+    end
+  end
+
+  defp adjust_number(_name, number, _func_opts), do: {:ok, number}
+
+  defp numeric_options("percent", options, func_opts) do
+    build_number_options(options, func_opts, format: :percent)
+  end
+
+  defp numeric_options(_name, options, func_opts), do: build_number_options(options, func_opts)
+
   defp format_number_result(number, options_struct, func_opts) do
     with {:ok, sign_display} <- sign_display_option(func_opts) do
       options_struct = %{options_struct | sign_display: sign_display}
@@ -1332,7 +1343,7 @@ defmodule Localize.Message.Interpreter do
           false
 
         plural_type ->
-          category = resolve_plural_category(info.original, plural_type, options)
+          category = resolve_plural_category(info.plural_operand, plural_type, options)
           category != nil and Atom.to_string(category) == key_str
       end
     end
@@ -1452,7 +1463,27 @@ defmodule Localize.Message.Interpreter do
 
   defp plural_match_type(_), do: nil
 
-  defp resolve_plural_category(value, plural_type, options) when is_number(value) do
+  # MF2 rule selection applies the plural rules to the operand "as modified
+  # by function options" (tr35-messageFormat.md, Rule Selection), and TR35
+  # takes the plural operands from the digits displayed, so a numeric
+  # declaration selects by the number as it formats: under
+  # `minimumFractionDigits=1` Russian 2 is "2,0" and `other`, not `few`, and
+  # 100.0 is "100" and `many`. A value that does not format as a number
+  # selects by its selector value.
+  defp plural_operand(value, {:function, name, func_options}, bindings, options, fallback)
+       when name in ["number", "integer", "offset", "percent"] do
+    with {:ok, func_opts} <- resolve_func_options(func_options, bindings),
+         {:ok, number, number_options} <- prepare_number(name, value, func_opts, options) do
+      Localize.Number.source_number(number, number_options)
+    else
+      _not_a_number -> fallback
+    end
+  end
+
+  defp plural_operand(_value, _func, _bindings, _options, fallback), do: fallback
+
+  defp resolve_plural_category(value, plural_type, options)
+       when is_number(value) or is_struct(value, Decimal) do
     locale = Keyword.get(options, :locale) || Localize.get_locale()
 
     plural_options =
@@ -1485,21 +1516,26 @@ defmodule Localize.Message.Interpreter do
     value == key
   end
 
+  # TR35 Part 9 compares a key and a selector's string value in Unicode
+  # Normalization Form C (NormalizeKey, and selection with `:string`),
+  # while the parser keeps each literal's own code points.
   defp match_value?(value, key) when is_binary(value) and is_binary(key) do
-    value == key
+    nfc(value) == nfc(key)
   end
 
   defp match_value?(value, key) when is_number(value) and is_binary(key) do
-    to_string_value(value) == key
+    to_string_value(value) == nfc(key)
   end
 
   defp match_value?(value, key) when is_binary(value) and is_number(key) do
-    value == to_string_value(key)
+    nfc(value) == to_string_value(key)
   end
 
   defp match_value?(value, key) do
-    to_string_value(value) == to_string_value(key)
+    nfc(to_string_value(value)) == nfc(to_string_value(key))
   end
+
+  defp nfc(string), do: :unicode.characters_to_nfc_binary(string)
 
   # ── Number option mapping ──────────────────────────────────────
 
@@ -2010,6 +2046,10 @@ defmodule Localize.Message.Interpreter do
         :error
     end
   end
+
+  # A list of `{name, value}` bindings as a map. An entry that is not a pair
+  # is ignored rather than raised on.
+  defp bindings_map(bindings), do: for({name, value} <- bindings, into: %{}, do: {name, value})
 
   defp normalize_binding_keys(bindings) when is_map(bindings) do
     Map.new(bindings, fn

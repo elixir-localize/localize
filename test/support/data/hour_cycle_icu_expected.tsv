@@ -1,0 +1,1477 @@
+# Times under each -u-hc- hour cycle, and under none, from ICU4C 78.3 (CLDR 48) in
+# UTC on 2024-07-06: DateFormat time and date-time formats, the best pattern
+# DateTimePatternGenerator gives a time skeleton, and DateIntervalFormat for a
+# time skeleton. Non-ASCII characters are written as \u{hex}.
+# Columns: mode (time, datetime, skeleton, interval), locale, style or skeleton,
+# hour, minute and second, for an interval the end's hour, minute and second,
+# the formatted string, and for a skeleton ICU's pattern.
+time	en	short	0	30	0	12:30\u{202f}AM
+time	en	short	12	5	9	12:05\u{202f}PM
+time	en	short	23	59	59	11:59\u{202f}PM
+time	en	medium	0	30	0	12:30:00\u{202f}AM
+time	en	medium	12	5	9	12:05:09\u{202f}PM
+time	en	medium	23	59	59	11:59:59\u{202f}PM
+datetime	en	short	0	30	0	7/6/24, 12:30\u{202f}AM
+datetime	en	short	12	5	9	7/6/24, 12:05\u{202f}PM
+skeleton	en	hm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	en	hm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	en	Hm	0	30	0	00:30	HH:mm
+skeleton	en	Hm	12	5	9	12:05	HH:mm
+skeleton	en	hms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	en	hms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	en	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	en	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	en	jm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	en	jm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	en	jms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	en	jms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	en	Kms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	en	Kms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	en	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	en	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	en	h	0	30	0	12\u{202f}AM	h\u{202f}a
+skeleton	en	h	12	5	9	12\u{202f}PM	h\u{202f}a
+skeleton	en	H	0	30	0	00	HH
+skeleton	en	H	12	5	9	12	HH
+skeleton	en	Bhm	0	30	0	12:30 in the morning	h:mm B
+skeleton	en	Bhm	12	5	9	12:05 in the afternoon	h:mm B
+interval	en	hm	0	30	0	1	15	0	12:30\u{2009}\u{2013}\u{2009}1:15\u{202f}AM
+interval	en	hm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	en	hm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	en	Hm	0	30	0	1	15	0	00:30\u{2009}\u{2013}\u{2009}01:15
+interval	en	Hm	10	0	0	14	0	0	10:00\u{2009}\u{2013}\u{2009}14:00
+interval	en	Hm	0	5	0	12	10	0	00:05\u{2009}\u{2013}\u{2009}12:10
+interval	en	jm	0	30	0	1	15	0	12:30\u{2009}\u{2013}\u{2009}1:15\u{202f}AM
+interval	en	jm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	en	jm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	en	h	0	30	0	1	15	0	12\u{2009}\u{2013}\u{2009}1\u{202f}AM
+interval	en	h	10	0	0	14	0	0	10\u{202f}AM\u{2009}\u{2013}\u{2009}2\u{202f}PM
+interval	en	h	0	5	0	12	10	0	12\u{202f}AM\u{2009}\u{2013}\u{2009}12\u{202f}PM
+time	en-u-hc-h11	short	0	30	0	0:30\u{202f}AM
+time	en-u-hc-h11	short	12	5	9	0:05\u{202f}PM
+time	en-u-hc-h11	short	23	59	59	11:59\u{202f}PM
+time	en-u-hc-h11	medium	0	30	0	0:30:00\u{202f}AM
+time	en-u-hc-h11	medium	12	5	9	0:05:09\u{202f}PM
+time	en-u-hc-h11	medium	23	59	59	11:59:59\u{202f}PM
+datetime	en-u-hc-h11	short	0	30	0	7/6/24, 0:30\u{202f}AM
+datetime	en-u-hc-h11	short	12	5	9	7/6/24, 0:05\u{202f}PM
+skeleton	en-u-hc-h11	hm	0	30	0	0:30\u{202f}AM	K:mm\u{202f}a
+skeleton	en-u-hc-h11	hm	12	5	9	0:05\u{202f}PM	K:mm\u{202f}a
+skeleton	en-u-hc-h11	Hm	0	30	0	00:30	HH:mm
+skeleton	en-u-hc-h11	Hm	12	5	9	12:05	HH:mm
+skeleton	en-u-hc-h11	hms	0	30	0	0:30:00\u{202f}AM	K:mm:ss\u{202f}a
+skeleton	en-u-hc-h11	hms	12	5	9	0:05:09\u{202f}PM	K:mm:ss\u{202f}a
+skeleton	en-u-hc-h11	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	en-u-hc-h11	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	en-u-hc-h11	jm	0	30	0	0:30\u{202f}AM	K:mm\u{202f}a
+skeleton	en-u-hc-h11	jm	12	5	9	0:05\u{202f}PM	K:mm\u{202f}a
+skeleton	en-u-hc-h11	jms	0	30	0	0:30:00\u{202f}AM	K:mm:ss\u{202f}a
+skeleton	en-u-hc-h11	jms	12	5	9	0:05:09\u{202f}PM	K:mm:ss\u{202f}a
+skeleton	en-u-hc-h11	Kms	0	30	0	0:30:00\u{202f}AM	K:mm:ss\u{202f}a
+skeleton	en-u-hc-h11	Kms	12	5	9	0:05:09\u{202f}PM	K:mm:ss\u{202f}a
+skeleton	en-u-hc-h11	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	en-u-hc-h11	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	en-u-hc-h11	h	0	30	0	0\u{202f}AM	K\u{202f}a
+skeleton	en-u-hc-h11	h	12	5	9	0\u{202f}PM	K\u{202f}a
+skeleton	en-u-hc-h11	H	0	30	0	00	HH
+skeleton	en-u-hc-h11	H	12	5	9	12	HH
+skeleton	en-u-hc-h11	Bhm	0	30	0	0:30 in the morning	K:mm B
+skeleton	en-u-hc-h11	Bhm	12	5	9	0:05 in the afternoon	K:mm B
+interval	en-u-hc-h11	hm	0	30	0	1	15	0	0:30\u{2009}\u{2013}\u{2009}1:15\u{202f}AM
+interval	en-u-hc-h11	hm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	en-u-hc-h11	hm	0	5	0	12	10	0	0:05\u{202f}AM\u{2009}\u{2013}\u{2009}0:10\u{202f}PM
+interval	en-u-hc-h11	Hm	0	30	0	1	15	0	00:30\u{2009}\u{2013}\u{2009}01:15
+interval	en-u-hc-h11	Hm	10	0	0	14	0	0	10:00\u{2009}\u{2013}\u{2009}14:00
+interval	en-u-hc-h11	Hm	0	5	0	12	10	0	00:05\u{2009}\u{2013}\u{2009}12:10
+interval	en-u-hc-h11	jm	0	30	0	1	15	0	0:30\u{2009}\u{2013}\u{2009}1:15\u{202f}AM
+interval	en-u-hc-h11	jm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	en-u-hc-h11	jm	0	5	0	12	10	0	0:05\u{202f}AM\u{2009}\u{2013}\u{2009}0:10\u{202f}PM
+interval	en-u-hc-h11	h	0	30	0	1	15	0	0\u{2009}\u{2013}\u{2009}1\u{202f}AM
+interval	en-u-hc-h11	h	10	0	0	14	0	0	10\u{202f}AM\u{2009}\u{2013}\u{2009}2\u{202f}PM
+interval	en-u-hc-h11	h	0	5	0	12	10	0	0\u{202f}AM\u{2009}\u{2013}\u{2009}0\u{202f}PM
+time	en-u-hc-h12	short	0	30	0	12:30\u{202f}AM
+time	en-u-hc-h12	short	12	5	9	12:05\u{202f}PM
+time	en-u-hc-h12	short	23	59	59	11:59\u{202f}PM
+time	en-u-hc-h12	medium	0	30	0	12:30:00\u{202f}AM
+time	en-u-hc-h12	medium	12	5	9	12:05:09\u{202f}PM
+time	en-u-hc-h12	medium	23	59	59	11:59:59\u{202f}PM
+datetime	en-u-hc-h12	short	0	30	0	7/6/24, 12:30\u{202f}AM
+datetime	en-u-hc-h12	short	12	5	9	7/6/24, 12:05\u{202f}PM
+skeleton	en-u-hc-h12	hm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	en-u-hc-h12	hm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	en-u-hc-h12	Hm	0	30	0	00:30	HH:mm
+skeleton	en-u-hc-h12	Hm	12	5	9	12:05	HH:mm
+skeleton	en-u-hc-h12	hms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	en-u-hc-h12	hms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	en-u-hc-h12	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	en-u-hc-h12	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	en-u-hc-h12	jm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	en-u-hc-h12	jm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	en-u-hc-h12	jms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	en-u-hc-h12	jms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	en-u-hc-h12	Kms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	en-u-hc-h12	Kms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	en-u-hc-h12	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	en-u-hc-h12	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	en-u-hc-h12	h	0	30	0	12\u{202f}AM	h\u{202f}a
+skeleton	en-u-hc-h12	h	12	5	9	12\u{202f}PM	h\u{202f}a
+skeleton	en-u-hc-h12	H	0	30	0	00	HH
+skeleton	en-u-hc-h12	H	12	5	9	12	HH
+skeleton	en-u-hc-h12	Bhm	0	30	0	12:30 in the morning	h:mm B
+skeleton	en-u-hc-h12	Bhm	12	5	9	12:05 in the afternoon	h:mm B
+interval	en-u-hc-h12	hm	0	30	0	1	15	0	12:30\u{2009}\u{2013}\u{2009}1:15\u{202f}AM
+interval	en-u-hc-h12	hm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	en-u-hc-h12	hm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	en-u-hc-h12	Hm	0	30	0	1	15	0	00:30\u{2009}\u{2013}\u{2009}01:15
+interval	en-u-hc-h12	Hm	10	0	0	14	0	0	10:00\u{2009}\u{2013}\u{2009}14:00
+interval	en-u-hc-h12	Hm	0	5	0	12	10	0	00:05\u{2009}\u{2013}\u{2009}12:10
+interval	en-u-hc-h12	jm	0	30	0	1	15	0	12:30\u{2009}\u{2013}\u{2009}1:15\u{202f}AM
+interval	en-u-hc-h12	jm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	en-u-hc-h12	jm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	en-u-hc-h12	h	0	30	0	1	15	0	12\u{2009}\u{2013}\u{2009}1\u{202f}AM
+interval	en-u-hc-h12	h	10	0	0	14	0	0	10\u{202f}AM\u{2009}\u{2013}\u{2009}2\u{202f}PM
+interval	en-u-hc-h12	h	0	5	0	12	10	0	12\u{202f}AM\u{2009}\u{2013}\u{2009}12\u{202f}PM
+time	en-u-hc-h23	short	0	30	0	00:30
+time	en-u-hc-h23	short	12	5	9	12:05
+time	en-u-hc-h23	short	23	59	59	23:59
+time	en-u-hc-h23	medium	0	30	0	00:30:00
+time	en-u-hc-h23	medium	12	5	9	12:05:09
+time	en-u-hc-h23	medium	23	59	59	23:59:59
+datetime	en-u-hc-h23	short	0	30	0	7/6/24, 00:30
+datetime	en-u-hc-h23	short	12	5	9	7/6/24, 12:05
+skeleton	en-u-hc-h23	hm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	en-u-hc-h23	hm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	en-u-hc-h23	Hm	0	30	0	00:30	HH:mm
+skeleton	en-u-hc-h23	Hm	12	5	9	12:05	HH:mm
+skeleton	en-u-hc-h23	hms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	en-u-hc-h23	hms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	en-u-hc-h23	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	en-u-hc-h23	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	en-u-hc-h23	jm	0	30	0	00:30	HH:mm
+skeleton	en-u-hc-h23	jm	12	5	9	12:05	HH:mm
+skeleton	en-u-hc-h23	jms	0	30	0	00:30:00	HH:mm:ss
+skeleton	en-u-hc-h23	jms	12	5	9	12:05:09	HH:mm:ss
+skeleton	en-u-hc-h23	Kms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	en-u-hc-h23	Kms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	en-u-hc-h23	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	en-u-hc-h23	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	en-u-hc-h23	h	0	30	0	12\u{202f}AM	h\u{202f}a
+skeleton	en-u-hc-h23	h	12	5	9	12\u{202f}PM	h\u{202f}a
+skeleton	en-u-hc-h23	H	0	30	0	00	HH
+skeleton	en-u-hc-h23	H	12	5	9	12	HH
+skeleton	en-u-hc-h23	Bhm	0	30	0	12:30 in the morning	h:mm B
+skeleton	en-u-hc-h23	Bhm	12	5	9	12:05 in the afternoon	h:mm B
+interval	en-u-hc-h23	hm	0	30	0	1	15	0	12:30\u{2009}\u{2013}\u{2009}1:15\u{202f}AM
+interval	en-u-hc-h23	hm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	en-u-hc-h23	hm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	en-u-hc-h23	Hm	0	30	0	1	15	0	00:30\u{2009}\u{2013}\u{2009}01:15
+interval	en-u-hc-h23	Hm	10	0	0	14	0	0	10:00\u{2009}\u{2013}\u{2009}14:00
+interval	en-u-hc-h23	Hm	0	5	0	12	10	0	00:05\u{2009}\u{2013}\u{2009}12:10
+interval	en-u-hc-h23	jm	0	30	0	1	15	0	00:30\u{2009}\u{2013}\u{2009}01:15
+interval	en-u-hc-h23	jm	10	0	0	14	0	0	10:00\u{2009}\u{2013}\u{2009}14:00
+interval	en-u-hc-h23	jm	0	5	0	12	10	0	00:05\u{2009}\u{2013}\u{2009}12:10
+interval	en-u-hc-h23	h	0	30	0	1	15	0	12\u{2009}\u{2013}\u{2009}1\u{202f}AM
+interval	en-u-hc-h23	h	10	0	0	14	0	0	10\u{202f}AM\u{2009}\u{2013}\u{2009}2\u{202f}PM
+interval	en-u-hc-h23	h	0	5	0	12	10	0	12\u{202f}AM\u{2009}\u{2013}\u{2009}12\u{202f}PM
+time	en-u-hc-h24	short	0	30	0	24:30
+time	en-u-hc-h24	short	12	5	9	12:05
+time	en-u-hc-h24	short	23	59	59	23:59
+time	en-u-hc-h24	medium	0	30	0	24:30:00
+time	en-u-hc-h24	medium	12	5	9	12:05:09
+time	en-u-hc-h24	medium	23	59	59	23:59:59
+datetime	en-u-hc-h24	short	0	30	0	7/6/24, 24:30
+datetime	en-u-hc-h24	short	12	5	9	7/6/24, 12:05
+skeleton	en-u-hc-h24	hm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	en-u-hc-h24	hm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	en-u-hc-h24	Hm	0	30	0	24:30	kk:mm
+skeleton	en-u-hc-h24	Hm	12	5	9	12:05	kk:mm
+skeleton	en-u-hc-h24	hms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	en-u-hc-h24	hms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	en-u-hc-h24	Hms	0	30	0	24:30:00	kk:mm:ss
+skeleton	en-u-hc-h24	Hms	12	5	9	12:05:09	kk:mm:ss
+skeleton	en-u-hc-h24	jm	0	30	0	24:30	kk:mm
+skeleton	en-u-hc-h24	jm	12	5	9	12:05	kk:mm
+skeleton	en-u-hc-h24	jms	0	30	0	24:30:00	kk:mm:ss
+skeleton	en-u-hc-h24	jms	12	5	9	12:05:09	kk:mm:ss
+skeleton	en-u-hc-h24	Kms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	en-u-hc-h24	Kms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	en-u-hc-h24	kms	0	30	0	24:30:00	kk:mm:ss
+skeleton	en-u-hc-h24	kms	12	5	9	12:05:09	kk:mm:ss
+skeleton	en-u-hc-h24	h	0	30	0	12\u{202f}AM	h\u{202f}a
+skeleton	en-u-hc-h24	h	12	5	9	12\u{202f}PM	h\u{202f}a
+skeleton	en-u-hc-h24	H	0	30	0	24	kk
+skeleton	en-u-hc-h24	H	12	5	9	12	kk
+skeleton	en-u-hc-h24	Bhm	0	30	0	12:30 in the morning	h:mm B
+skeleton	en-u-hc-h24	Bhm	12	5	9	12:05 in the afternoon	h:mm B
+interval	en-u-hc-h24	hm	0	30	0	1	15	0	12:30\u{2009}\u{2013}\u{2009}1:15\u{202f}AM
+interval	en-u-hc-h24	hm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	en-u-hc-h24	hm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	en-u-hc-h24	Hm	0	30	0	1	15	0	24:30\u{2009}\u{2013}\u{2009}01:15
+interval	en-u-hc-h24	Hm	10	0	0	14	0	0	10:00\u{2009}\u{2013}\u{2009}14:00
+interval	en-u-hc-h24	Hm	0	5	0	12	10	0	24:05\u{2009}\u{2013}\u{2009}12:10
+interval	en-u-hc-h24	jm	0	30	0	1	15	0	24:30\u{2009}\u{2013}\u{2009}01:15
+interval	en-u-hc-h24	jm	10	0	0	14	0	0	10:00\u{2009}\u{2013}\u{2009}14:00
+interval	en-u-hc-h24	jm	0	5	0	12	10	0	24:05\u{2009}\u{2013}\u{2009}12:10
+interval	en-u-hc-h24	h	0	30	0	1	15	0	12\u{2009}\u{2013}\u{2009}1\u{202f}AM
+interval	en-u-hc-h24	h	10	0	0	14	0	0	10\u{202f}AM\u{2009}\u{2013}\u{2009}2\u{202f}PM
+interval	en-u-hc-h24	h	0	5	0	12	10	0	12\u{202f}AM\u{2009}\u{2013}\u{2009}12\u{202f}PM
+time	ja	short	0	30	0	0:30
+time	ja	short	12	5	9	12:05
+time	ja	short	23	59	59	23:59
+time	ja	medium	0	30	0	0:30:00
+time	ja	medium	12	5	9	12:05:09
+time	ja	medium	23	59	59	23:59:59
+datetime	ja	short	0	30	0	2024/07/06 0:30
+datetime	ja	short	12	5	9	2024/07/06 12:05
+skeleton	ja	hm	0	30	0	\u{5348}\u{524d}0:30	aK:mm
+skeleton	ja	hm	12	5	9	\u{5348}\u{5f8c}0:05	aK:mm
+skeleton	ja	Hm	0	30	0	0:30	H:mm
+skeleton	ja	Hm	12	5	9	12:05	H:mm
+skeleton	ja	hms	0	30	0	\u{5348}\u{524d}0:30:00	aK:mm:ss
+skeleton	ja	hms	12	5	9	\u{5348}\u{5f8c}0:05:09	aK:mm:ss
+skeleton	ja	Hms	0	30	0	0:30:00	H:mm:ss
+skeleton	ja	Hms	12	5	9	12:05:09	H:mm:ss
+skeleton	ja	jm	0	30	0	0:30	H:mm
+skeleton	ja	jm	12	5	9	12:05	H:mm
+skeleton	ja	jms	0	30	0	0:30:00	H:mm:ss
+skeleton	ja	jms	12	5	9	12:05:09	H:mm:ss
+skeleton	ja	Kms	0	30	0	\u{5348}\u{524d}0:30:00	aK:mm:ss
+skeleton	ja	Kms	12	5	9	\u{5348}\u{5f8c}0:05:09	aK:mm:ss
+skeleton	ja	kms	0	30	0	0:30:00	H:mm:ss
+skeleton	ja	kms	12	5	9	12:05:09	H:mm:ss
+skeleton	ja	h	0	30	0	\u{5348}\u{524d}0\u{6642}	aK\u{6642}
+skeleton	ja	h	12	5	9	\u{5348}\u{5f8c}0\u{6642}	aK\u{6642}
+skeleton	ja	H	0	30	0	0\u{6642}	H\u{6642}
+skeleton	ja	H	12	5	9	12\u{6642}	H\u{6642}
+skeleton	ja	Bhm	0	30	0	\u{591c}\u{4e2d}0:30	BK:mm
+skeleton	ja	Bhm	12	5	9	\u{663c}0:05	BK:mm
+interval	ja	hm	0	30	0	1	15	0	\u{5348}\u{524d}0\u{6642}30\u{5206}\u{ff5e}1\u{6642}15\u{5206}
+interval	ja	hm	10	0	0	14	0	0	\u{5348}\u{524d}10\u{6642}00\u{5206}\u{ff5e}\u{5348}\u{5f8c}2\u{6642}00\u{5206}
+interval	ja	hm	0	5	0	12	10	0	\u{5348}\u{524d}0\u{6642}05\u{5206}\u{ff5e}\u{5348}\u{5f8c}0\u{6642}10\u{5206}
+interval	ja	Hm	0	30	0	1	15	0	0\u{6642}30\u{5206}\u{ff5e}1\u{6642}15\u{5206}
+interval	ja	Hm	10	0	0	14	0	0	10\u{6642}00\u{5206}\u{ff5e}14\u{6642}00\u{5206}
+interval	ja	Hm	0	5	0	12	10	0	0\u{6642}05\u{5206}\u{ff5e}12\u{6642}10\u{5206}
+interval	ja	jm	0	30	0	1	15	0	0\u{6642}30\u{5206}\u{ff5e}1\u{6642}15\u{5206}
+interval	ja	jm	10	0	0	14	0	0	10\u{6642}00\u{5206}\u{ff5e}14\u{6642}00\u{5206}
+interval	ja	jm	0	5	0	12	10	0	0\u{6642}05\u{5206}\u{ff5e}12\u{6642}10\u{5206}
+interval	ja	h	0	30	0	1	15	0	\u{5348}\u{524d}0\u{6642}\u{ff5e}1\u{6642}
+interval	ja	h	10	0	0	14	0	0	\u{5348}\u{524d}10\u{6642}\u{ff5e}\u{5348}\u{5f8c}2\u{6642}
+interval	ja	h	0	5	0	12	10	0	\u{5348}\u{524d}0\u{6642}\u{ff5e}\u{5348}\u{5f8c}0\u{6642}
+time	ja-u-hc-h11	short	0	30	0	\u{5348}\u{524d}0:30
+time	ja-u-hc-h11	short	12	5	9	\u{5348}\u{5f8c}0:05
+time	ja-u-hc-h11	short	23	59	59	\u{5348}\u{5f8c}11:59
+time	ja-u-hc-h11	medium	0	30	0	\u{5348}\u{524d}0:30:00
+time	ja-u-hc-h11	medium	12	5	9	\u{5348}\u{5f8c}0:05:09
+time	ja-u-hc-h11	medium	23	59	59	\u{5348}\u{5f8c}11:59:59
+datetime	ja-u-hc-h11	short	0	30	0	2024/07/06 \u{5348}\u{524d}0:30
+datetime	ja-u-hc-h11	short	12	5	9	2024/07/06 \u{5348}\u{5f8c}0:05
+skeleton	ja-u-hc-h11	hm	0	30	0	\u{5348}\u{524d}0:30	aK:mm
+skeleton	ja-u-hc-h11	hm	12	5	9	\u{5348}\u{5f8c}0:05	aK:mm
+skeleton	ja-u-hc-h11	Hm	0	30	0	0:30	H:mm
+skeleton	ja-u-hc-h11	Hm	12	5	9	12:05	H:mm
+skeleton	ja-u-hc-h11	hms	0	30	0	\u{5348}\u{524d}0:30:00	aK:mm:ss
+skeleton	ja-u-hc-h11	hms	12	5	9	\u{5348}\u{5f8c}0:05:09	aK:mm:ss
+skeleton	ja-u-hc-h11	Hms	0	30	0	0:30:00	H:mm:ss
+skeleton	ja-u-hc-h11	Hms	12	5	9	12:05:09	H:mm:ss
+skeleton	ja-u-hc-h11	jm	0	30	0	\u{5348}\u{524d}0:30	aK:mm
+skeleton	ja-u-hc-h11	jm	12	5	9	\u{5348}\u{5f8c}0:05	aK:mm
+skeleton	ja-u-hc-h11	jms	0	30	0	\u{5348}\u{524d}0:30:00	aK:mm:ss
+skeleton	ja-u-hc-h11	jms	12	5	9	\u{5348}\u{5f8c}0:05:09	aK:mm:ss
+skeleton	ja-u-hc-h11	Kms	0	30	0	\u{5348}\u{524d}0:30:00	aK:mm:ss
+skeleton	ja-u-hc-h11	Kms	12	5	9	\u{5348}\u{5f8c}0:05:09	aK:mm:ss
+skeleton	ja-u-hc-h11	kms	0	30	0	0:30:00	H:mm:ss
+skeleton	ja-u-hc-h11	kms	12	5	9	12:05:09	H:mm:ss
+skeleton	ja-u-hc-h11	h	0	30	0	\u{5348}\u{524d}0\u{6642}	aK\u{6642}
+skeleton	ja-u-hc-h11	h	12	5	9	\u{5348}\u{5f8c}0\u{6642}	aK\u{6642}
+skeleton	ja-u-hc-h11	H	0	30	0	0\u{6642}	H\u{6642}
+skeleton	ja-u-hc-h11	H	12	5	9	12\u{6642}	H\u{6642}
+skeleton	ja-u-hc-h11	Bhm	0	30	0	\u{591c}\u{4e2d}0:30	BK:mm
+skeleton	ja-u-hc-h11	Bhm	12	5	9	\u{663c}0:05	BK:mm
+interval	ja-u-hc-h11	hm	0	30	0	1	15	0	\u{5348}\u{524d}0\u{6642}30\u{5206}\u{ff5e}1\u{6642}15\u{5206}
+interval	ja-u-hc-h11	hm	10	0	0	14	0	0	\u{5348}\u{524d}10\u{6642}00\u{5206}\u{ff5e}\u{5348}\u{5f8c}2\u{6642}00\u{5206}
+interval	ja-u-hc-h11	hm	0	5	0	12	10	0	\u{5348}\u{524d}0\u{6642}05\u{5206}\u{ff5e}\u{5348}\u{5f8c}0\u{6642}10\u{5206}
+interval	ja-u-hc-h11	Hm	0	30	0	1	15	0	0\u{6642}30\u{5206}\u{ff5e}1\u{6642}15\u{5206}
+interval	ja-u-hc-h11	Hm	10	0	0	14	0	0	10\u{6642}00\u{5206}\u{ff5e}14\u{6642}00\u{5206}
+interval	ja-u-hc-h11	Hm	0	5	0	12	10	0	0\u{6642}05\u{5206}\u{ff5e}12\u{6642}10\u{5206}
+interval	ja-u-hc-h11	jm	0	30	0	1	15	0	\u{5348}\u{524d}0\u{6642}30\u{5206}\u{ff5e}1\u{6642}15\u{5206}
+interval	ja-u-hc-h11	jm	10	0	0	14	0	0	\u{5348}\u{524d}10\u{6642}00\u{5206}\u{ff5e}\u{5348}\u{5f8c}2\u{6642}00\u{5206}
+interval	ja-u-hc-h11	jm	0	5	0	12	10	0	\u{5348}\u{524d}0\u{6642}05\u{5206}\u{ff5e}\u{5348}\u{5f8c}0\u{6642}10\u{5206}
+interval	ja-u-hc-h11	h	0	30	0	1	15	0	\u{5348}\u{524d}0\u{6642}\u{ff5e}1\u{6642}
+interval	ja-u-hc-h11	h	10	0	0	14	0	0	\u{5348}\u{524d}10\u{6642}\u{ff5e}\u{5348}\u{5f8c}2\u{6642}
+interval	ja-u-hc-h11	h	0	5	0	12	10	0	\u{5348}\u{524d}0\u{6642}\u{ff5e}\u{5348}\u{5f8c}0\u{6642}
+time	ja-u-hc-h12	short	0	30	0	\u{5348}\u{524d}12:30
+time	ja-u-hc-h12	short	12	5	9	\u{5348}\u{5f8c}12:05
+time	ja-u-hc-h12	short	23	59	59	\u{5348}\u{5f8c}11:59
+time	ja-u-hc-h12	medium	0	30	0	\u{5348}\u{524d}12:30:00
+time	ja-u-hc-h12	medium	12	5	9	\u{5348}\u{5f8c}12:05:09
+time	ja-u-hc-h12	medium	23	59	59	\u{5348}\u{5f8c}11:59:59
+datetime	ja-u-hc-h12	short	0	30	0	2024/07/06 \u{5348}\u{524d}12:30
+datetime	ja-u-hc-h12	short	12	5	9	2024/07/06 \u{5348}\u{5f8c}12:05
+skeleton	ja-u-hc-h12	hm	0	30	0	\u{5348}\u{524d}12:30	ah:mm
+skeleton	ja-u-hc-h12	hm	12	5	9	\u{5348}\u{5f8c}12:05	ah:mm
+skeleton	ja-u-hc-h12	Hm	0	30	0	0:30	H:mm
+skeleton	ja-u-hc-h12	Hm	12	5	9	12:05	H:mm
+skeleton	ja-u-hc-h12	hms	0	30	0	\u{5348}\u{524d}12:30:00	ah:mm:ss
+skeleton	ja-u-hc-h12	hms	12	5	9	\u{5348}\u{5f8c}12:05:09	ah:mm:ss
+skeleton	ja-u-hc-h12	Hms	0	30	0	0:30:00	H:mm:ss
+skeleton	ja-u-hc-h12	Hms	12	5	9	12:05:09	H:mm:ss
+skeleton	ja-u-hc-h12	jm	0	30	0	\u{5348}\u{524d}12:30	ah:mm
+skeleton	ja-u-hc-h12	jm	12	5	9	\u{5348}\u{5f8c}12:05	ah:mm
+skeleton	ja-u-hc-h12	jms	0	30	0	\u{5348}\u{524d}12:30:00	ah:mm:ss
+skeleton	ja-u-hc-h12	jms	12	5	9	\u{5348}\u{5f8c}12:05:09	ah:mm:ss
+skeleton	ja-u-hc-h12	Kms	0	30	0	\u{5348}\u{524d}12:30:00	ah:mm:ss
+skeleton	ja-u-hc-h12	Kms	12	5	9	\u{5348}\u{5f8c}12:05:09	ah:mm:ss
+skeleton	ja-u-hc-h12	kms	0	30	0	0:30:00	H:mm:ss
+skeleton	ja-u-hc-h12	kms	12	5	9	12:05:09	H:mm:ss
+skeleton	ja-u-hc-h12	h	0	30	0	\u{5348}\u{524d}12\u{6642}	ah\u{6642}
+skeleton	ja-u-hc-h12	h	12	5	9	\u{5348}\u{5f8c}12\u{6642}	ah\u{6642}
+skeleton	ja-u-hc-h12	H	0	30	0	0\u{6642}	H\u{6642}
+skeleton	ja-u-hc-h12	H	12	5	9	12\u{6642}	H\u{6642}
+skeleton	ja-u-hc-h12	Bhm	0	30	0	\u{591c}\u{4e2d}12:30	Bh:mm
+skeleton	ja-u-hc-h12	Bhm	12	5	9	\u{663c}12:05	Bh:mm
+interval	ja-u-hc-h12	hm	0	30	0	1	15	0	\u{5348}\u{524d}0\u{6642}30\u{5206}\u{ff5e}1\u{6642}15\u{5206}
+interval	ja-u-hc-h12	hm	10	0	0	14	0	0	\u{5348}\u{524d}10\u{6642}00\u{5206}\u{ff5e}\u{5348}\u{5f8c}2\u{6642}00\u{5206}
+interval	ja-u-hc-h12	hm	0	5	0	12	10	0	\u{5348}\u{524d}0\u{6642}05\u{5206}\u{ff5e}\u{5348}\u{5f8c}0\u{6642}10\u{5206}
+interval	ja-u-hc-h12	Hm	0	30	0	1	15	0	0\u{6642}30\u{5206}\u{ff5e}1\u{6642}15\u{5206}
+interval	ja-u-hc-h12	Hm	10	0	0	14	0	0	10\u{6642}00\u{5206}\u{ff5e}14\u{6642}00\u{5206}
+interval	ja-u-hc-h12	Hm	0	5	0	12	10	0	0\u{6642}05\u{5206}\u{ff5e}12\u{6642}10\u{5206}
+interval	ja-u-hc-h12	jm	0	30	0	1	15	0	\u{5348}\u{524d}0\u{6642}30\u{5206}\u{ff5e}1\u{6642}15\u{5206}
+interval	ja-u-hc-h12	jm	10	0	0	14	0	0	\u{5348}\u{524d}10\u{6642}00\u{5206}\u{ff5e}\u{5348}\u{5f8c}2\u{6642}00\u{5206}
+interval	ja-u-hc-h12	jm	0	5	0	12	10	0	\u{5348}\u{524d}0\u{6642}05\u{5206}\u{ff5e}\u{5348}\u{5f8c}0\u{6642}10\u{5206}
+interval	ja-u-hc-h12	h	0	30	0	1	15	0	\u{5348}\u{524d}0\u{6642}\u{ff5e}1\u{6642}
+interval	ja-u-hc-h12	h	10	0	0	14	0	0	\u{5348}\u{524d}10\u{6642}\u{ff5e}\u{5348}\u{5f8c}2\u{6642}
+interval	ja-u-hc-h12	h	0	5	0	12	10	0	\u{5348}\u{524d}0\u{6642}\u{ff5e}\u{5348}\u{5f8c}0\u{6642}
+time	ja-u-hc-h23	short	0	30	0	0:30
+time	ja-u-hc-h23	short	12	5	9	12:05
+time	ja-u-hc-h23	short	23	59	59	23:59
+time	ja-u-hc-h23	medium	0	30	0	0:30:00
+time	ja-u-hc-h23	medium	12	5	9	12:05:09
+time	ja-u-hc-h23	medium	23	59	59	23:59:59
+datetime	ja-u-hc-h23	short	0	30	0	2024/07/06 0:30
+datetime	ja-u-hc-h23	short	12	5	9	2024/07/06 12:05
+skeleton	ja-u-hc-h23	hm	0	30	0	\u{5348}\u{524d}0:30	aK:mm
+skeleton	ja-u-hc-h23	hm	12	5	9	\u{5348}\u{5f8c}0:05	aK:mm
+skeleton	ja-u-hc-h23	Hm	0	30	0	0:30	H:mm
+skeleton	ja-u-hc-h23	Hm	12	5	9	12:05	H:mm
+skeleton	ja-u-hc-h23	hms	0	30	0	\u{5348}\u{524d}0:30:00	aK:mm:ss
+skeleton	ja-u-hc-h23	hms	12	5	9	\u{5348}\u{5f8c}0:05:09	aK:mm:ss
+skeleton	ja-u-hc-h23	Hms	0	30	0	0:30:00	H:mm:ss
+skeleton	ja-u-hc-h23	Hms	12	5	9	12:05:09	H:mm:ss
+skeleton	ja-u-hc-h23	jm	0	30	0	0:30	H:mm
+skeleton	ja-u-hc-h23	jm	12	5	9	12:05	H:mm
+skeleton	ja-u-hc-h23	jms	0	30	0	0:30:00	H:mm:ss
+skeleton	ja-u-hc-h23	jms	12	5	9	12:05:09	H:mm:ss
+skeleton	ja-u-hc-h23	Kms	0	30	0	\u{5348}\u{524d}0:30:00	aK:mm:ss
+skeleton	ja-u-hc-h23	Kms	12	5	9	\u{5348}\u{5f8c}0:05:09	aK:mm:ss
+skeleton	ja-u-hc-h23	kms	0	30	0	0:30:00	H:mm:ss
+skeleton	ja-u-hc-h23	kms	12	5	9	12:05:09	H:mm:ss
+skeleton	ja-u-hc-h23	h	0	30	0	\u{5348}\u{524d}0\u{6642}	aK\u{6642}
+skeleton	ja-u-hc-h23	h	12	5	9	\u{5348}\u{5f8c}0\u{6642}	aK\u{6642}
+skeleton	ja-u-hc-h23	H	0	30	0	0\u{6642}	H\u{6642}
+skeleton	ja-u-hc-h23	H	12	5	9	12\u{6642}	H\u{6642}
+skeleton	ja-u-hc-h23	Bhm	0	30	0	\u{591c}\u{4e2d}0:30	BK:mm
+skeleton	ja-u-hc-h23	Bhm	12	5	9	\u{663c}0:05	BK:mm
+interval	ja-u-hc-h23	hm	0	30	0	1	15	0	\u{5348}\u{524d}0\u{6642}30\u{5206}\u{ff5e}1\u{6642}15\u{5206}
+interval	ja-u-hc-h23	hm	10	0	0	14	0	0	\u{5348}\u{524d}10\u{6642}00\u{5206}\u{ff5e}\u{5348}\u{5f8c}2\u{6642}00\u{5206}
+interval	ja-u-hc-h23	hm	0	5	0	12	10	0	\u{5348}\u{524d}0\u{6642}05\u{5206}\u{ff5e}\u{5348}\u{5f8c}0\u{6642}10\u{5206}
+interval	ja-u-hc-h23	Hm	0	30	0	1	15	0	0\u{6642}30\u{5206}\u{ff5e}1\u{6642}15\u{5206}
+interval	ja-u-hc-h23	Hm	10	0	0	14	0	0	10\u{6642}00\u{5206}\u{ff5e}14\u{6642}00\u{5206}
+interval	ja-u-hc-h23	Hm	0	5	0	12	10	0	0\u{6642}05\u{5206}\u{ff5e}12\u{6642}10\u{5206}
+interval	ja-u-hc-h23	jm	0	30	0	1	15	0	0\u{6642}30\u{5206}\u{ff5e}1\u{6642}15\u{5206}
+interval	ja-u-hc-h23	jm	10	0	0	14	0	0	10\u{6642}00\u{5206}\u{ff5e}14\u{6642}00\u{5206}
+interval	ja-u-hc-h23	jm	0	5	0	12	10	0	0\u{6642}05\u{5206}\u{ff5e}12\u{6642}10\u{5206}
+interval	ja-u-hc-h23	h	0	30	0	1	15	0	\u{5348}\u{524d}0\u{6642}\u{ff5e}1\u{6642}
+interval	ja-u-hc-h23	h	10	0	0	14	0	0	\u{5348}\u{524d}10\u{6642}\u{ff5e}\u{5348}\u{5f8c}2\u{6642}
+interval	ja-u-hc-h23	h	0	5	0	12	10	0	\u{5348}\u{524d}0\u{6642}\u{ff5e}\u{5348}\u{5f8c}0\u{6642}
+time	ja-u-hc-h24	short	0	30	0	24:30
+time	ja-u-hc-h24	short	12	5	9	12:05
+time	ja-u-hc-h24	short	23	59	59	23:59
+time	ja-u-hc-h24	medium	0	30	0	24:30:00
+time	ja-u-hc-h24	medium	12	5	9	12:05:09
+time	ja-u-hc-h24	medium	23	59	59	23:59:59
+datetime	ja-u-hc-h24	short	0	30	0	2024/07/06 24:30
+datetime	ja-u-hc-h24	short	12	5	9	2024/07/06 12:05
+skeleton	ja-u-hc-h24	hm	0	30	0	\u{5348}\u{524d}0:30	aK:mm
+skeleton	ja-u-hc-h24	hm	12	5	9	\u{5348}\u{5f8c}0:05	aK:mm
+skeleton	ja-u-hc-h24	Hm	0	30	0	24:30	k:mm
+skeleton	ja-u-hc-h24	Hm	12	5	9	12:05	k:mm
+skeleton	ja-u-hc-h24	hms	0	30	0	\u{5348}\u{524d}0:30:00	aK:mm:ss
+skeleton	ja-u-hc-h24	hms	12	5	9	\u{5348}\u{5f8c}0:05:09	aK:mm:ss
+skeleton	ja-u-hc-h24	Hms	0	30	0	24:30:00	k:mm:ss
+skeleton	ja-u-hc-h24	Hms	12	5	9	12:05:09	k:mm:ss
+skeleton	ja-u-hc-h24	jm	0	30	0	24:30	k:mm
+skeleton	ja-u-hc-h24	jm	12	5	9	12:05	k:mm
+skeleton	ja-u-hc-h24	jms	0	30	0	24:30:00	k:mm:ss
+skeleton	ja-u-hc-h24	jms	12	5	9	12:05:09	k:mm:ss
+skeleton	ja-u-hc-h24	Kms	0	30	0	\u{5348}\u{524d}0:30:00	aK:mm:ss
+skeleton	ja-u-hc-h24	Kms	12	5	9	\u{5348}\u{5f8c}0:05:09	aK:mm:ss
+skeleton	ja-u-hc-h24	kms	0	30	0	24:30:00	k:mm:ss
+skeleton	ja-u-hc-h24	kms	12	5	9	12:05:09	k:mm:ss
+skeleton	ja-u-hc-h24	h	0	30	0	\u{5348}\u{524d}0\u{6642}	aK\u{6642}
+skeleton	ja-u-hc-h24	h	12	5	9	\u{5348}\u{5f8c}0\u{6642}	aK\u{6642}
+skeleton	ja-u-hc-h24	H	0	30	0	24\u{6642}	k\u{6642}
+skeleton	ja-u-hc-h24	H	12	5	9	12\u{6642}	k\u{6642}
+skeleton	ja-u-hc-h24	Bhm	0	30	0	\u{591c}\u{4e2d}0:30	BK:mm
+skeleton	ja-u-hc-h24	Bhm	12	5	9	\u{663c}0:05	BK:mm
+interval	ja-u-hc-h24	hm	0	30	0	1	15	0	\u{5348}\u{524d}0\u{6642}30\u{5206}\u{ff5e}1\u{6642}15\u{5206}
+interval	ja-u-hc-h24	hm	10	0	0	14	0	0	\u{5348}\u{524d}10\u{6642}00\u{5206}\u{ff5e}\u{5348}\u{5f8c}2\u{6642}00\u{5206}
+interval	ja-u-hc-h24	hm	0	5	0	12	10	0	\u{5348}\u{524d}0\u{6642}05\u{5206}\u{ff5e}\u{5348}\u{5f8c}0\u{6642}10\u{5206}
+interval	ja-u-hc-h24	Hm	0	30	0	1	15	0	24\u{6642}30\u{5206}\u{ff5e}1\u{6642}15\u{5206}
+interval	ja-u-hc-h24	Hm	10	0	0	14	0	0	10\u{6642}00\u{5206}\u{ff5e}14\u{6642}00\u{5206}
+interval	ja-u-hc-h24	Hm	0	5	0	12	10	0	24\u{6642}05\u{5206}\u{ff5e}12\u{6642}10\u{5206}
+interval	ja-u-hc-h24	jm	0	30	0	1	15	0	24\u{6642}30\u{5206}\u{ff5e}1\u{6642}15\u{5206}
+interval	ja-u-hc-h24	jm	10	0	0	14	0	0	10\u{6642}00\u{5206}\u{ff5e}14\u{6642}00\u{5206}
+interval	ja-u-hc-h24	jm	0	5	0	12	10	0	24\u{6642}05\u{5206}\u{ff5e}12\u{6642}10\u{5206}
+interval	ja-u-hc-h24	h	0	30	0	1	15	0	\u{5348}\u{524d}0\u{6642}\u{ff5e}1\u{6642}
+interval	ja-u-hc-h24	h	10	0	0	14	0	0	\u{5348}\u{524d}10\u{6642}\u{ff5e}\u{5348}\u{5f8c}2\u{6642}
+interval	ja-u-hc-h24	h	0	5	0	12	10	0	\u{5348}\u{524d}0\u{6642}\u{ff5e}\u{5348}\u{5f8c}0\u{6642}
+time	fr	short	0	30	0	00:30
+time	fr	short	12	5	9	12:05
+time	fr	short	23	59	59	23:59
+time	fr	medium	0	30	0	00:30:00
+time	fr	medium	12	5	9	12:05:09
+time	fr	medium	23	59	59	23:59:59
+datetime	fr	short	0	30	0	06/07/2024 00:30
+datetime	fr	short	12	5	9	06/07/2024 12:05
+skeleton	fr	hm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	fr	hm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	fr	Hm	0	30	0	00:30	HH:mm
+skeleton	fr	Hm	12	5	9	12:05	HH:mm
+skeleton	fr	hms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	fr	hms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	fr	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	fr	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	fr	jm	0	30	0	00:30	HH:mm
+skeleton	fr	jm	12	5	9	12:05	HH:mm
+skeleton	fr	jms	0	30	0	00:30:00	HH:mm:ss
+skeleton	fr	jms	12	5	9	12:05:09	HH:mm:ss
+skeleton	fr	Kms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	fr	Kms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	fr	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	fr	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	fr	h	0	30	0	12\u{202f}AM	h\u{202f}a
+skeleton	fr	h	12	5	9	12\u{202f}PM	h\u{202f}a
+skeleton	fr	H	0	30	0	00 h	HH 'h'
+skeleton	fr	H	12	5	9	12 h	HH 'h'
+skeleton	fr	Bhm	0	30	0	12:30 matin	h:mm B
+skeleton	fr	Bhm	12	5	9	12:05 apr\u{e8}s-midi	h:mm B
+interval	fr	hm	0	30	0	1	15	0	12:30\u{2009}\u{2013}\u{2009}1:15\u{202f}AM
+interval	fr	hm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	fr	hm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	fr	Hm	0	30	0	1	15	0	00:30\u{2009}\u{2013}\u{2009}01:15
+interval	fr	Hm	10	0	0	14	0	0	10:00\u{2009}\u{2013}\u{2009}14:00
+interval	fr	Hm	0	5	0	12	10	0	00:05\u{2009}\u{2013}\u{2009}12:10
+interval	fr	jm	0	30	0	1	15	0	00:30\u{2009}\u{2013}\u{2009}01:15
+interval	fr	jm	10	0	0	14	0	0	10:00\u{2009}\u{2013}\u{2009}14:00
+interval	fr	jm	0	5	0	12	10	0	00:05\u{2009}\u{2013}\u{2009}12:10
+interval	fr	h	0	30	0	1	15	0	12\u{2009}\u{2013}\u{2009}1\u{202f}AM
+interval	fr	h	10	0	0	14	0	0	10\u{202f}AM\u{2009}\u{2013}\u{2009}2\u{202f}PM
+interval	fr	h	0	5	0	12	10	0	12\u{202f}AM\u{2009}\u{2013}\u{2009}12\u{202f}PM
+time	fr-u-hc-h11	short	0	30	0	0:30\u{202f}AM
+time	fr-u-hc-h11	short	12	5	9	0:05\u{202f}PM
+time	fr-u-hc-h11	short	23	59	59	11:59\u{202f}PM
+time	fr-u-hc-h11	medium	0	30	0	0:30:00\u{202f}AM
+time	fr-u-hc-h11	medium	12	5	9	0:05:09\u{202f}PM
+time	fr-u-hc-h11	medium	23	59	59	11:59:59\u{202f}PM
+datetime	fr-u-hc-h11	short	0	30	0	06/07/2024 0:30\u{202f}AM
+datetime	fr-u-hc-h11	short	12	5	9	06/07/2024 0:05\u{202f}PM
+skeleton	fr-u-hc-h11	hm	0	30	0	0:30\u{202f}AM	K:mm\u{202f}a
+skeleton	fr-u-hc-h11	hm	12	5	9	0:05\u{202f}PM	K:mm\u{202f}a
+skeleton	fr-u-hc-h11	Hm	0	30	0	00:30	HH:mm
+skeleton	fr-u-hc-h11	Hm	12	5	9	12:05	HH:mm
+skeleton	fr-u-hc-h11	hms	0	30	0	0:30:00\u{202f}AM	K:mm:ss\u{202f}a
+skeleton	fr-u-hc-h11	hms	12	5	9	0:05:09\u{202f}PM	K:mm:ss\u{202f}a
+skeleton	fr-u-hc-h11	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	fr-u-hc-h11	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	fr-u-hc-h11	jm	0	30	0	0:30\u{202f}AM	K:mm\u{202f}a
+skeleton	fr-u-hc-h11	jm	12	5	9	0:05\u{202f}PM	K:mm\u{202f}a
+skeleton	fr-u-hc-h11	jms	0	30	0	0:30:00\u{202f}AM	K:mm:ss\u{202f}a
+skeleton	fr-u-hc-h11	jms	12	5	9	0:05:09\u{202f}PM	K:mm:ss\u{202f}a
+skeleton	fr-u-hc-h11	Kms	0	30	0	0:30:00\u{202f}AM	K:mm:ss\u{202f}a
+skeleton	fr-u-hc-h11	Kms	12	5	9	0:05:09\u{202f}PM	K:mm:ss\u{202f}a
+skeleton	fr-u-hc-h11	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	fr-u-hc-h11	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	fr-u-hc-h11	h	0	30	0	0\u{202f}AM	K\u{202f}a
+skeleton	fr-u-hc-h11	h	12	5	9	0\u{202f}PM	K\u{202f}a
+skeleton	fr-u-hc-h11	H	0	30	0	00 h	HH 'h'
+skeleton	fr-u-hc-h11	H	12	5	9	12 h	HH 'h'
+skeleton	fr-u-hc-h11	Bhm	0	30	0	0:30 matin	K:mm B
+skeleton	fr-u-hc-h11	Bhm	12	5	9	0:05 apr\u{e8}s-midi	K:mm B
+interval	fr-u-hc-h11	hm	0	30	0	1	15	0	0:30\u{2009}\u{2013}\u{2009}1:15\u{202f}AM
+interval	fr-u-hc-h11	hm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	fr-u-hc-h11	hm	0	5	0	12	10	0	0:05\u{202f}AM\u{2009}\u{2013}\u{2009}0:10\u{202f}PM
+interval	fr-u-hc-h11	Hm	0	30	0	1	15	0	00:30\u{2009}\u{2013}\u{2009}01:15
+interval	fr-u-hc-h11	Hm	10	0	0	14	0	0	10:00\u{2009}\u{2013}\u{2009}14:00
+interval	fr-u-hc-h11	Hm	0	5	0	12	10	0	00:05\u{2009}\u{2013}\u{2009}12:10
+interval	fr-u-hc-h11	jm	0	30	0	1	15	0	0:30\u{2009}\u{2013}\u{2009}1:15\u{202f}AM
+interval	fr-u-hc-h11	jm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	fr-u-hc-h11	jm	0	5	0	12	10	0	0:05\u{202f}AM\u{2009}\u{2013}\u{2009}0:10\u{202f}PM
+interval	fr-u-hc-h11	h	0	30	0	1	15	0	0\u{2009}\u{2013}\u{2009}1\u{202f}AM
+interval	fr-u-hc-h11	h	10	0	0	14	0	0	10\u{202f}AM\u{2009}\u{2013}\u{2009}2\u{202f}PM
+interval	fr-u-hc-h11	h	0	5	0	12	10	0	0\u{202f}AM\u{2009}\u{2013}\u{2009}0\u{202f}PM
+time	fr-u-hc-h12	short	0	30	0	12:30\u{202f}AM
+time	fr-u-hc-h12	short	12	5	9	12:05\u{202f}PM
+time	fr-u-hc-h12	short	23	59	59	11:59\u{202f}PM
+time	fr-u-hc-h12	medium	0	30	0	12:30:00\u{202f}AM
+time	fr-u-hc-h12	medium	12	5	9	12:05:09\u{202f}PM
+time	fr-u-hc-h12	medium	23	59	59	11:59:59\u{202f}PM
+datetime	fr-u-hc-h12	short	0	30	0	06/07/2024 12:30\u{202f}AM
+datetime	fr-u-hc-h12	short	12	5	9	06/07/2024 12:05\u{202f}PM
+skeleton	fr-u-hc-h12	hm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	fr-u-hc-h12	hm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	fr-u-hc-h12	Hm	0	30	0	00:30	HH:mm
+skeleton	fr-u-hc-h12	Hm	12	5	9	12:05	HH:mm
+skeleton	fr-u-hc-h12	hms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	fr-u-hc-h12	hms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	fr-u-hc-h12	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	fr-u-hc-h12	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	fr-u-hc-h12	jm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	fr-u-hc-h12	jm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	fr-u-hc-h12	jms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	fr-u-hc-h12	jms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	fr-u-hc-h12	Kms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	fr-u-hc-h12	Kms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	fr-u-hc-h12	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	fr-u-hc-h12	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	fr-u-hc-h12	h	0	30	0	12\u{202f}AM	h\u{202f}a
+skeleton	fr-u-hc-h12	h	12	5	9	12\u{202f}PM	h\u{202f}a
+skeleton	fr-u-hc-h12	H	0	30	0	00 h	HH 'h'
+skeleton	fr-u-hc-h12	H	12	5	9	12 h	HH 'h'
+skeleton	fr-u-hc-h12	Bhm	0	30	0	12:30 matin	h:mm B
+skeleton	fr-u-hc-h12	Bhm	12	5	9	12:05 apr\u{e8}s-midi	h:mm B
+interval	fr-u-hc-h12	hm	0	30	0	1	15	0	12:30\u{2009}\u{2013}\u{2009}1:15\u{202f}AM
+interval	fr-u-hc-h12	hm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	fr-u-hc-h12	hm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	fr-u-hc-h12	Hm	0	30	0	1	15	0	00:30\u{2009}\u{2013}\u{2009}01:15
+interval	fr-u-hc-h12	Hm	10	0	0	14	0	0	10:00\u{2009}\u{2013}\u{2009}14:00
+interval	fr-u-hc-h12	Hm	0	5	0	12	10	0	00:05\u{2009}\u{2013}\u{2009}12:10
+interval	fr-u-hc-h12	jm	0	30	0	1	15	0	12:30\u{2009}\u{2013}\u{2009}1:15\u{202f}AM
+interval	fr-u-hc-h12	jm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	fr-u-hc-h12	jm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	fr-u-hc-h12	h	0	30	0	1	15	0	12\u{2009}\u{2013}\u{2009}1\u{202f}AM
+interval	fr-u-hc-h12	h	10	0	0	14	0	0	10\u{202f}AM\u{2009}\u{2013}\u{2009}2\u{202f}PM
+interval	fr-u-hc-h12	h	0	5	0	12	10	0	12\u{202f}AM\u{2009}\u{2013}\u{2009}12\u{202f}PM
+time	fr-u-hc-h23	short	0	30	0	00:30
+time	fr-u-hc-h23	short	12	5	9	12:05
+time	fr-u-hc-h23	short	23	59	59	23:59
+time	fr-u-hc-h23	medium	0	30	0	00:30:00
+time	fr-u-hc-h23	medium	12	5	9	12:05:09
+time	fr-u-hc-h23	medium	23	59	59	23:59:59
+datetime	fr-u-hc-h23	short	0	30	0	06/07/2024 00:30
+datetime	fr-u-hc-h23	short	12	5	9	06/07/2024 12:05
+skeleton	fr-u-hc-h23	hm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	fr-u-hc-h23	hm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	fr-u-hc-h23	Hm	0	30	0	00:30	HH:mm
+skeleton	fr-u-hc-h23	Hm	12	5	9	12:05	HH:mm
+skeleton	fr-u-hc-h23	hms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	fr-u-hc-h23	hms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	fr-u-hc-h23	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	fr-u-hc-h23	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	fr-u-hc-h23	jm	0	30	0	00:30	HH:mm
+skeleton	fr-u-hc-h23	jm	12	5	9	12:05	HH:mm
+skeleton	fr-u-hc-h23	jms	0	30	0	00:30:00	HH:mm:ss
+skeleton	fr-u-hc-h23	jms	12	5	9	12:05:09	HH:mm:ss
+skeleton	fr-u-hc-h23	Kms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	fr-u-hc-h23	Kms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	fr-u-hc-h23	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	fr-u-hc-h23	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	fr-u-hc-h23	h	0	30	0	12\u{202f}AM	h\u{202f}a
+skeleton	fr-u-hc-h23	h	12	5	9	12\u{202f}PM	h\u{202f}a
+skeleton	fr-u-hc-h23	H	0	30	0	00 h	HH 'h'
+skeleton	fr-u-hc-h23	H	12	5	9	12 h	HH 'h'
+skeleton	fr-u-hc-h23	Bhm	0	30	0	12:30 matin	h:mm B
+skeleton	fr-u-hc-h23	Bhm	12	5	9	12:05 apr\u{e8}s-midi	h:mm B
+interval	fr-u-hc-h23	hm	0	30	0	1	15	0	12:30\u{2009}\u{2013}\u{2009}1:15\u{202f}AM
+interval	fr-u-hc-h23	hm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	fr-u-hc-h23	hm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	fr-u-hc-h23	Hm	0	30	0	1	15	0	00:30\u{2009}\u{2013}\u{2009}01:15
+interval	fr-u-hc-h23	Hm	10	0	0	14	0	0	10:00\u{2009}\u{2013}\u{2009}14:00
+interval	fr-u-hc-h23	Hm	0	5	0	12	10	0	00:05\u{2009}\u{2013}\u{2009}12:10
+interval	fr-u-hc-h23	jm	0	30	0	1	15	0	00:30\u{2009}\u{2013}\u{2009}01:15
+interval	fr-u-hc-h23	jm	10	0	0	14	0	0	10:00\u{2009}\u{2013}\u{2009}14:00
+interval	fr-u-hc-h23	jm	0	5	0	12	10	0	00:05\u{2009}\u{2013}\u{2009}12:10
+interval	fr-u-hc-h23	h	0	30	0	1	15	0	12\u{2009}\u{2013}\u{2009}1\u{202f}AM
+interval	fr-u-hc-h23	h	10	0	0	14	0	0	10\u{202f}AM\u{2009}\u{2013}\u{2009}2\u{202f}PM
+interval	fr-u-hc-h23	h	0	5	0	12	10	0	12\u{202f}AM\u{2009}\u{2013}\u{2009}12\u{202f}PM
+time	fr-u-hc-h24	short	0	30	0	24:30
+time	fr-u-hc-h24	short	12	5	9	12:05
+time	fr-u-hc-h24	short	23	59	59	23:59
+time	fr-u-hc-h24	medium	0	30	0	24:30:00
+time	fr-u-hc-h24	medium	12	5	9	12:05:09
+time	fr-u-hc-h24	medium	23	59	59	23:59:59
+datetime	fr-u-hc-h24	short	0	30	0	06/07/2024 24:30
+datetime	fr-u-hc-h24	short	12	5	9	06/07/2024 12:05
+skeleton	fr-u-hc-h24	hm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	fr-u-hc-h24	hm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	fr-u-hc-h24	Hm	0	30	0	24:30	kk:mm
+skeleton	fr-u-hc-h24	Hm	12	5	9	12:05	kk:mm
+skeleton	fr-u-hc-h24	hms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	fr-u-hc-h24	hms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	fr-u-hc-h24	Hms	0	30	0	24:30:00	kk:mm:ss
+skeleton	fr-u-hc-h24	Hms	12	5	9	12:05:09	kk:mm:ss
+skeleton	fr-u-hc-h24	jm	0	30	0	24:30	kk:mm
+skeleton	fr-u-hc-h24	jm	12	5	9	12:05	kk:mm
+skeleton	fr-u-hc-h24	jms	0	30	0	24:30:00	kk:mm:ss
+skeleton	fr-u-hc-h24	jms	12	5	9	12:05:09	kk:mm:ss
+skeleton	fr-u-hc-h24	Kms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	fr-u-hc-h24	Kms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	fr-u-hc-h24	kms	0	30	0	24:30:00	kk:mm:ss
+skeleton	fr-u-hc-h24	kms	12	5	9	12:05:09	kk:mm:ss
+skeleton	fr-u-hc-h24	h	0	30	0	12\u{202f}AM	h\u{202f}a
+skeleton	fr-u-hc-h24	h	12	5	9	12\u{202f}PM	h\u{202f}a
+skeleton	fr-u-hc-h24	H	0	30	0	24 h	kk 'h'
+skeleton	fr-u-hc-h24	H	12	5	9	12 h	kk 'h'
+skeleton	fr-u-hc-h24	Bhm	0	30	0	12:30 matin	h:mm B
+skeleton	fr-u-hc-h24	Bhm	12	5	9	12:05 apr\u{e8}s-midi	h:mm B
+interval	fr-u-hc-h24	hm	0	30	0	1	15	0	12:30\u{2009}\u{2013}\u{2009}1:15\u{202f}AM
+interval	fr-u-hc-h24	hm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	fr-u-hc-h24	hm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	fr-u-hc-h24	Hm	0	30	0	1	15	0	24:30\u{2009}\u{2013}\u{2009}01:15
+interval	fr-u-hc-h24	Hm	10	0	0	14	0	0	10:00\u{2009}\u{2013}\u{2009}14:00
+interval	fr-u-hc-h24	Hm	0	5	0	12	10	0	24:05\u{2009}\u{2013}\u{2009}12:10
+interval	fr-u-hc-h24	jm	0	30	0	1	15	0	24:30\u{2009}\u{2013}\u{2009}01:15
+interval	fr-u-hc-h24	jm	10	0	0	14	0	0	10:00\u{2009}\u{2013}\u{2009}14:00
+interval	fr-u-hc-h24	jm	0	5	0	12	10	0	24:05\u{2009}\u{2013}\u{2009}12:10
+interval	fr-u-hc-h24	h	0	30	0	1	15	0	12\u{2009}\u{2013}\u{2009}1\u{202f}AM
+interval	fr-u-hc-h24	h	10	0	0	14	0	0	10\u{202f}AM\u{2009}\u{2013}\u{2009}2\u{202f}PM
+interval	fr-u-hc-h24	h	0	5	0	12	10	0	12\u{202f}AM\u{2009}\u{2013}\u{2009}12\u{202f}PM
+time	de	short	0	30	0	00:30
+time	de	short	12	5	9	12:05
+time	de	short	23	59	59	23:59
+time	de	medium	0	30	0	00:30:00
+time	de	medium	12	5	9	12:05:09
+time	de	medium	23	59	59	23:59:59
+datetime	de	short	0	30	0	06.07.24, 00:30
+datetime	de	short	12	5	9	06.07.24, 12:05
+skeleton	de	hm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	de	hm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	de	Hm	0	30	0	00:30	HH:mm
+skeleton	de	Hm	12	5	9	12:05	HH:mm
+skeleton	de	hms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	de	hms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	de	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	de	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	de	jm	0	30	0	00:30	HH:mm
+skeleton	de	jm	12	5	9	12:05	HH:mm
+skeleton	de	jms	0	30	0	00:30:00	HH:mm:ss
+skeleton	de	jms	12	5	9	12:05:09	HH:mm:ss
+skeleton	de	Kms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	de	Kms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	de	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	de	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	de	h	0	30	0	12\u{202f}AM	h\u{202f}a
+skeleton	de	h	12	5	9	12\u{202f}PM	h\u{202f}a
+skeleton	de	H	0	30	0	00 Uhr	HH 'Uhr'
+skeleton	de	H	12	5	9	12 Uhr	HH 'Uhr'
+skeleton	de	Bhm	0	30	0	12:30 nachts	h:mm B
+skeleton	de	Bhm	12	5	9	12:05 mittags	h:mm B
+interval	de	hm	0	30	0	1	15	0	12:30\u{2013}1:15\u{202f}AM
+interval	de	hm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	de	hm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	de	Hm	0	30	0	1	15	0	00:30\u{2013}01:15 Uhr
+interval	de	Hm	10	0	0	14	0	0	10:00\u{2013}14:00 Uhr
+interval	de	Hm	0	5	0	12	10	0	00:05\u{2013}12:10 Uhr
+interval	de	jm	0	30	0	1	15	0	00:30\u{2013}01:15 Uhr
+interval	de	jm	10	0	0	14	0	0	10:00\u{2013}14:00 Uhr
+interval	de	jm	0	5	0	12	10	0	00:05\u{2013}12:10 Uhr
+interval	de	h	0	30	0	1	15	0	12\u{2009}\u{2013}\u{2009}1\u{202f}AM
+interval	de	h	10	0	0	14	0	0	10\u{202f}AM\u{2009}\u{2013}\u{2009}2\u{202f}PM
+interval	de	h	0	5	0	12	10	0	12\u{202f}AM\u{2009}\u{2013}\u{2009}12\u{202f}PM
+time	de-u-hc-h11	short	0	30	0	0:30\u{202f}AM
+time	de-u-hc-h11	short	12	5	9	0:05\u{202f}PM
+time	de-u-hc-h11	short	23	59	59	11:59\u{202f}PM
+time	de-u-hc-h11	medium	0	30	0	0:30:00\u{202f}AM
+time	de-u-hc-h11	medium	12	5	9	0:05:09\u{202f}PM
+time	de-u-hc-h11	medium	23	59	59	11:59:59\u{202f}PM
+datetime	de-u-hc-h11	short	0	30	0	06.07.24, 0:30\u{202f}AM
+datetime	de-u-hc-h11	short	12	5	9	06.07.24, 0:05\u{202f}PM
+skeleton	de-u-hc-h11	hm	0	30	0	0:30\u{202f}AM	K:mm\u{202f}a
+skeleton	de-u-hc-h11	hm	12	5	9	0:05\u{202f}PM	K:mm\u{202f}a
+skeleton	de-u-hc-h11	Hm	0	30	0	00:30	HH:mm
+skeleton	de-u-hc-h11	Hm	12	5	9	12:05	HH:mm
+skeleton	de-u-hc-h11	hms	0	30	0	0:30:00\u{202f}AM	K:mm:ss\u{202f}a
+skeleton	de-u-hc-h11	hms	12	5	9	0:05:09\u{202f}PM	K:mm:ss\u{202f}a
+skeleton	de-u-hc-h11	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	de-u-hc-h11	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	de-u-hc-h11	jm	0	30	0	0:30\u{202f}AM	K:mm\u{202f}a
+skeleton	de-u-hc-h11	jm	12	5	9	0:05\u{202f}PM	K:mm\u{202f}a
+skeleton	de-u-hc-h11	jms	0	30	0	0:30:00\u{202f}AM	K:mm:ss\u{202f}a
+skeleton	de-u-hc-h11	jms	12	5	9	0:05:09\u{202f}PM	K:mm:ss\u{202f}a
+skeleton	de-u-hc-h11	Kms	0	30	0	0:30:00\u{202f}AM	K:mm:ss\u{202f}a
+skeleton	de-u-hc-h11	Kms	12	5	9	0:05:09\u{202f}PM	K:mm:ss\u{202f}a
+skeleton	de-u-hc-h11	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	de-u-hc-h11	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	de-u-hc-h11	h	0	30	0	0\u{202f}AM	K\u{202f}a
+skeleton	de-u-hc-h11	h	12	5	9	0\u{202f}PM	K\u{202f}a
+skeleton	de-u-hc-h11	H	0	30	0	00 Uhr	HH 'Uhr'
+skeleton	de-u-hc-h11	H	12	5	9	12 Uhr	HH 'Uhr'
+skeleton	de-u-hc-h11	Bhm	0	30	0	0:30 nachts	K:mm B
+skeleton	de-u-hc-h11	Bhm	12	5	9	0:05 mittags	K:mm B
+interval	de-u-hc-h11	hm	0	30	0	1	15	0	0:30\u{2013}1:15\u{202f}AM
+interval	de-u-hc-h11	hm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	de-u-hc-h11	hm	0	5	0	12	10	0	0:05\u{202f}AM\u{2009}\u{2013}\u{2009}0:10\u{202f}PM
+interval	de-u-hc-h11	Hm	0	30	0	1	15	0	00:30\u{2013}01:15 Uhr
+interval	de-u-hc-h11	Hm	10	0	0	14	0	0	10:00\u{2013}14:00 Uhr
+interval	de-u-hc-h11	Hm	0	5	0	12	10	0	00:05\u{2013}12:10 Uhr
+interval	de-u-hc-h11	jm	0	30	0	1	15	0	0:30\u{2013}1:15\u{202f}AM
+interval	de-u-hc-h11	jm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	de-u-hc-h11	jm	0	5	0	12	10	0	0:05\u{202f}AM\u{2009}\u{2013}\u{2009}0:10\u{202f}PM
+interval	de-u-hc-h11	h	0	30	0	1	15	0	0\u{2009}\u{2013}\u{2009}1\u{202f}AM
+interval	de-u-hc-h11	h	10	0	0	14	0	0	10\u{202f}AM\u{2009}\u{2013}\u{2009}2\u{202f}PM
+interval	de-u-hc-h11	h	0	5	0	12	10	0	0\u{202f}AM\u{2009}\u{2013}\u{2009}0\u{202f}PM
+time	de-u-hc-h12	short	0	30	0	12:30\u{202f}AM
+time	de-u-hc-h12	short	12	5	9	12:05\u{202f}PM
+time	de-u-hc-h12	short	23	59	59	11:59\u{202f}PM
+time	de-u-hc-h12	medium	0	30	0	12:30:00\u{202f}AM
+time	de-u-hc-h12	medium	12	5	9	12:05:09\u{202f}PM
+time	de-u-hc-h12	medium	23	59	59	11:59:59\u{202f}PM
+datetime	de-u-hc-h12	short	0	30	0	06.07.24, 12:30\u{202f}AM
+datetime	de-u-hc-h12	short	12	5	9	06.07.24, 12:05\u{202f}PM
+skeleton	de-u-hc-h12	hm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	de-u-hc-h12	hm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	de-u-hc-h12	Hm	0	30	0	00:30	HH:mm
+skeleton	de-u-hc-h12	Hm	12	5	9	12:05	HH:mm
+skeleton	de-u-hc-h12	hms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	de-u-hc-h12	hms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	de-u-hc-h12	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	de-u-hc-h12	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	de-u-hc-h12	jm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	de-u-hc-h12	jm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	de-u-hc-h12	jms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	de-u-hc-h12	jms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	de-u-hc-h12	Kms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	de-u-hc-h12	Kms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	de-u-hc-h12	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	de-u-hc-h12	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	de-u-hc-h12	h	0	30	0	12\u{202f}AM	h\u{202f}a
+skeleton	de-u-hc-h12	h	12	5	9	12\u{202f}PM	h\u{202f}a
+skeleton	de-u-hc-h12	H	0	30	0	00 Uhr	HH 'Uhr'
+skeleton	de-u-hc-h12	H	12	5	9	12 Uhr	HH 'Uhr'
+skeleton	de-u-hc-h12	Bhm	0	30	0	12:30 nachts	h:mm B
+skeleton	de-u-hc-h12	Bhm	12	5	9	12:05 mittags	h:mm B
+interval	de-u-hc-h12	hm	0	30	0	1	15	0	12:30\u{2013}1:15\u{202f}AM
+interval	de-u-hc-h12	hm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	de-u-hc-h12	hm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	de-u-hc-h12	Hm	0	30	0	1	15	0	00:30\u{2013}01:15 Uhr
+interval	de-u-hc-h12	Hm	10	0	0	14	0	0	10:00\u{2013}14:00 Uhr
+interval	de-u-hc-h12	Hm	0	5	0	12	10	0	00:05\u{2013}12:10 Uhr
+interval	de-u-hc-h12	jm	0	30	0	1	15	0	12:30\u{2013}1:15\u{202f}AM
+interval	de-u-hc-h12	jm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	de-u-hc-h12	jm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	de-u-hc-h12	h	0	30	0	1	15	0	12\u{2009}\u{2013}\u{2009}1\u{202f}AM
+interval	de-u-hc-h12	h	10	0	0	14	0	0	10\u{202f}AM\u{2009}\u{2013}\u{2009}2\u{202f}PM
+interval	de-u-hc-h12	h	0	5	0	12	10	0	12\u{202f}AM\u{2009}\u{2013}\u{2009}12\u{202f}PM
+time	de-u-hc-h23	short	0	30	0	00:30
+time	de-u-hc-h23	short	12	5	9	12:05
+time	de-u-hc-h23	short	23	59	59	23:59
+time	de-u-hc-h23	medium	0	30	0	00:30:00
+time	de-u-hc-h23	medium	12	5	9	12:05:09
+time	de-u-hc-h23	medium	23	59	59	23:59:59
+datetime	de-u-hc-h23	short	0	30	0	06.07.24, 00:30
+datetime	de-u-hc-h23	short	12	5	9	06.07.24, 12:05
+skeleton	de-u-hc-h23	hm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	de-u-hc-h23	hm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	de-u-hc-h23	Hm	0	30	0	00:30	HH:mm
+skeleton	de-u-hc-h23	Hm	12	5	9	12:05	HH:mm
+skeleton	de-u-hc-h23	hms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	de-u-hc-h23	hms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	de-u-hc-h23	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	de-u-hc-h23	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	de-u-hc-h23	jm	0	30	0	00:30	HH:mm
+skeleton	de-u-hc-h23	jm	12	5	9	12:05	HH:mm
+skeleton	de-u-hc-h23	jms	0	30	0	00:30:00	HH:mm:ss
+skeleton	de-u-hc-h23	jms	12	5	9	12:05:09	HH:mm:ss
+skeleton	de-u-hc-h23	Kms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	de-u-hc-h23	Kms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	de-u-hc-h23	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	de-u-hc-h23	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	de-u-hc-h23	h	0	30	0	12\u{202f}AM	h\u{202f}a
+skeleton	de-u-hc-h23	h	12	5	9	12\u{202f}PM	h\u{202f}a
+skeleton	de-u-hc-h23	H	0	30	0	00 Uhr	HH 'Uhr'
+skeleton	de-u-hc-h23	H	12	5	9	12 Uhr	HH 'Uhr'
+skeleton	de-u-hc-h23	Bhm	0	30	0	12:30 nachts	h:mm B
+skeleton	de-u-hc-h23	Bhm	12	5	9	12:05 mittags	h:mm B
+interval	de-u-hc-h23	hm	0	30	0	1	15	0	12:30\u{2013}1:15\u{202f}AM
+interval	de-u-hc-h23	hm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	de-u-hc-h23	hm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	de-u-hc-h23	Hm	0	30	0	1	15	0	00:30\u{2013}01:15 Uhr
+interval	de-u-hc-h23	Hm	10	0	0	14	0	0	10:00\u{2013}14:00 Uhr
+interval	de-u-hc-h23	Hm	0	5	0	12	10	0	00:05\u{2013}12:10 Uhr
+interval	de-u-hc-h23	jm	0	30	0	1	15	0	00:30\u{2013}01:15 Uhr
+interval	de-u-hc-h23	jm	10	0	0	14	0	0	10:00\u{2013}14:00 Uhr
+interval	de-u-hc-h23	jm	0	5	0	12	10	0	00:05\u{2013}12:10 Uhr
+interval	de-u-hc-h23	h	0	30	0	1	15	0	12\u{2009}\u{2013}\u{2009}1\u{202f}AM
+interval	de-u-hc-h23	h	10	0	0	14	0	0	10\u{202f}AM\u{2009}\u{2013}\u{2009}2\u{202f}PM
+interval	de-u-hc-h23	h	0	5	0	12	10	0	12\u{202f}AM\u{2009}\u{2013}\u{2009}12\u{202f}PM
+time	de-u-hc-h24	short	0	30	0	24:30
+time	de-u-hc-h24	short	12	5	9	12:05
+time	de-u-hc-h24	short	23	59	59	23:59
+time	de-u-hc-h24	medium	0	30	0	24:30:00
+time	de-u-hc-h24	medium	12	5	9	12:05:09
+time	de-u-hc-h24	medium	23	59	59	23:59:59
+datetime	de-u-hc-h24	short	0	30	0	06.07.24, 24:30
+datetime	de-u-hc-h24	short	12	5	9	06.07.24, 12:05
+skeleton	de-u-hc-h24	hm	0	30	0	12:30\u{202f}AM	h:mm\u{202f}a
+skeleton	de-u-hc-h24	hm	12	5	9	12:05\u{202f}PM	h:mm\u{202f}a
+skeleton	de-u-hc-h24	Hm	0	30	0	24:30	kk:mm
+skeleton	de-u-hc-h24	Hm	12	5	9	12:05	kk:mm
+skeleton	de-u-hc-h24	hms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	de-u-hc-h24	hms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	de-u-hc-h24	Hms	0	30	0	24:30:00	kk:mm:ss
+skeleton	de-u-hc-h24	Hms	12	5	9	12:05:09	kk:mm:ss
+skeleton	de-u-hc-h24	jm	0	30	0	24:30	kk:mm
+skeleton	de-u-hc-h24	jm	12	5	9	12:05	kk:mm
+skeleton	de-u-hc-h24	jms	0	30	0	24:30:00	kk:mm:ss
+skeleton	de-u-hc-h24	jms	12	5	9	12:05:09	kk:mm:ss
+skeleton	de-u-hc-h24	Kms	0	30	0	12:30:00\u{202f}AM	h:mm:ss\u{202f}a
+skeleton	de-u-hc-h24	Kms	12	5	9	12:05:09\u{202f}PM	h:mm:ss\u{202f}a
+skeleton	de-u-hc-h24	kms	0	30	0	24:30:00	kk:mm:ss
+skeleton	de-u-hc-h24	kms	12	5	9	12:05:09	kk:mm:ss
+skeleton	de-u-hc-h24	h	0	30	0	12\u{202f}AM	h\u{202f}a
+skeleton	de-u-hc-h24	h	12	5	9	12\u{202f}PM	h\u{202f}a
+skeleton	de-u-hc-h24	H	0	30	0	24 Uhr	kk 'Uhr'
+skeleton	de-u-hc-h24	H	12	5	9	12 Uhr	kk 'Uhr'
+skeleton	de-u-hc-h24	Bhm	0	30	0	12:30 nachts	h:mm B
+skeleton	de-u-hc-h24	Bhm	12	5	9	12:05 mittags	h:mm B
+interval	de-u-hc-h24	hm	0	30	0	1	15	0	12:30\u{2013}1:15\u{202f}AM
+interval	de-u-hc-h24	hm	10	0	0	14	0	0	10:00\u{202f}AM\u{2009}\u{2013}\u{2009}2:00\u{202f}PM
+interval	de-u-hc-h24	hm	0	5	0	12	10	0	12:05\u{202f}AM\u{2009}\u{2013}\u{2009}12:10\u{202f}PM
+interval	de-u-hc-h24	Hm	0	30	0	1	15	0	24:30\u{2013}01:15 Uhr
+interval	de-u-hc-h24	Hm	10	0	0	14	0	0	10:00\u{2013}14:00 Uhr
+interval	de-u-hc-h24	Hm	0	5	0	12	10	0	24:05\u{2013}12:10 Uhr
+interval	de-u-hc-h24	jm	0	30	0	1	15	0	24:30\u{2013}01:15 Uhr
+interval	de-u-hc-h24	jm	10	0	0	14	0	0	10:00\u{2013}14:00 Uhr
+interval	de-u-hc-h24	jm	0	5	0	12	10	0	24:05\u{2013}12:10 Uhr
+interval	de-u-hc-h24	h	0	30	0	1	15	0	12\u{2009}\u{2013}\u{2009}1\u{202f}AM
+interval	de-u-hc-h24	h	10	0	0	14	0	0	10\u{202f}AM\u{2009}\u{2013}\u{2009}2\u{202f}PM
+interval	de-u-hc-h24	h	0	5	0	12	10	0	12\u{202f}AM\u{2009}\u{2013}\u{2009}12\u{202f}PM
+time	ko	short	0	30	0	\u{c624}\u{c804} 12:30
+time	ko	short	12	5	9	\u{c624}\u{d6c4} 12:05
+time	ko	short	23	59	59	\u{c624}\u{d6c4} 11:59
+time	ko	medium	0	30	0	\u{c624}\u{c804} 12:30:00
+time	ko	medium	12	5	9	\u{c624}\u{d6c4} 12:05:09
+time	ko	medium	23	59	59	\u{c624}\u{d6c4} 11:59:59
+datetime	ko	short	0	30	0	24. 7. 6. \u{c624}\u{c804} 12:30
+datetime	ko	short	12	5	9	24. 7. 6. \u{c624}\u{d6c4} 12:05
+skeleton	ko	hm	0	30	0	\u{c624}\u{c804} 12:30	a h:mm
+skeleton	ko	hm	12	5	9	\u{c624}\u{d6c4} 12:05	a h:mm
+skeleton	ko	Hm	0	30	0	00:30	HH:mm
+skeleton	ko	Hm	12	5	9	12:05	HH:mm
+skeleton	ko	hms	0	30	0	\u{c624}\u{c804} 12:30:00	a h:mm:ss
+skeleton	ko	hms	12	5	9	\u{c624}\u{d6c4} 12:05:09	a h:mm:ss
+skeleton	ko	Hms	0	30	0	0\u{c2dc} 30\u{bd84} 0\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko	Hms	12	5	9	12\u{c2dc} 5\u{bd84} 9\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko	jm	0	30	0	\u{c624}\u{c804} 12:30	a h:mm
+skeleton	ko	jm	12	5	9	\u{c624}\u{d6c4} 12:05	a h:mm
+skeleton	ko	jms	0	30	0	\u{c624}\u{c804} 12:30:00	a h:mm:ss
+skeleton	ko	jms	12	5	9	\u{c624}\u{d6c4} 12:05:09	a h:mm:ss
+skeleton	ko	Kms	0	30	0	\u{c624}\u{c804} 12:30:00	a h:mm:ss
+skeleton	ko	Kms	12	5	9	\u{c624}\u{d6c4} 12:05:09	a h:mm:ss
+skeleton	ko	kms	0	30	0	0\u{c2dc} 30\u{bd84} 0\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko	kms	12	5	9	12\u{c2dc} 5\u{bd84} 9\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko	h	0	30	0	\u{c624}\u{c804} 12\u{c2dc}	a h\u{c2dc}
+skeleton	ko	h	12	5	9	\u{c624}\u{d6c4} 12\u{c2dc}	a h\u{c2dc}
+skeleton	ko	H	0	30	0	0\u{c2dc}	H\u{c2dc}
+skeleton	ko	H	12	5	9	12\u{c2dc}	H\u{c2dc}
+skeleton	ko	Bhm	0	30	0	\u{bc24} 12:30	B h:mm
+skeleton	ko	Bhm	12	5	9	\u{c624}\u{d6c4} 12:05	B h:mm
+interval	ko	hm	0	30	0	1	15	0	\u{c624}\u{c804} 12:30~1:15
+interval	ko	hm	10	0	0	14	0	0	\u{c624}\u{c804} 10:00 ~ \u{c624}\u{d6c4} 2:00
+interval	ko	hm	0	5	0	12	10	0	\u{c624}\u{c804} 12:05 ~ \u{c624}\u{d6c4} 12:10
+interval	ko	Hm	0	30	0	1	15	0	00:30 ~ 01:15
+interval	ko	Hm	10	0	0	14	0	0	10:00 ~ 14:00
+interval	ko	Hm	0	5	0	12	10	0	00:05 ~ 12:10
+interval	ko	jm	0	30	0	1	15	0	\u{c624}\u{c804} 12:30~1:15
+interval	ko	jm	10	0	0	14	0	0	\u{c624}\u{c804} 10:00 ~ \u{c624}\u{d6c4} 2:00
+interval	ko	jm	0	5	0	12	10	0	\u{c624}\u{c804} 12:05 ~ \u{c624}\u{d6c4} 12:10
+interval	ko	h	0	30	0	1	15	0	\u{c624}\u{c804} 12\u{c2dc} ~ 1\u{c2dc}
+interval	ko	h	10	0	0	14	0	0	\u{c624}\u{c804} 10\u{c2dc} ~ \u{c624}\u{d6c4} 2\u{c2dc}
+interval	ko	h	0	5	0	12	10	0	\u{c624}\u{c804} 12\u{c2dc} ~ \u{c624}\u{d6c4} 12\u{c2dc}
+time	ko-u-hc-h11	short	0	30	0	\u{c624}\u{c804} 0:30
+time	ko-u-hc-h11	short	12	5	9	\u{c624}\u{d6c4} 0:05
+time	ko-u-hc-h11	short	23	59	59	\u{c624}\u{d6c4} 11:59
+time	ko-u-hc-h11	medium	0	30	0	\u{c624}\u{c804} 0:30:00
+time	ko-u-hc-h11	medium	12	5	9	\u{c624}\u{d6c4} 0:05:09
+time	ko-u-hc-h11	medium	23	59	59	\u{c624}\u{d6c4} 11:59:59
+datetime	ko-u-hc-h11	short	0	30	0	24. 7. 6. \u{c624}\u{c804} 0:30
+datetime	ko-u-hc-h11	short	12	5	9	24. 7. 6. \u{c624}\u{d6c4} 0:05
+skeleton	ko-u-hc-h11	hm	0	30	0	\u{c624}\u{c804} 0:30	a K:mm
+skeleton	ko-u-hc-h11	hm	12	5	9	\u{c624}\u{d6c4} 0:05	a K:mm
+skeleton	ko-u-hc-h11	Hm	0	30	0	00:30	HH:mm
+skeleton	ko-u-hc-h11	Hm	12	5	9	12:05	HH:mm
+skeleton	ko-u-hc-h11	hms	0	30	0	\u{c624}\u{c804} 0:30:00	a K:mm:ss
+skeleton	ko-u-hc-h11	hms	12	5	9	\u{c624}\u{d6c4} 0:05:09	a K:mm:ss
+skeleton	ko-u-hc-h11	Hms	0	30	0	0\u{c2dc} 30\u{bd84} 0\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h11	Hms	12	5	9	12\u{c2dc} 5\u{bd84} 9\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h11	jm	0	30	0	\u{c624}\u{c804} 0:30	a K:mm
+skeleton	ko-u-hc-h11	jm	12	5	9	\u{c624}\u{d6c4} 0:05	a K:mm
+skeleton	ko-u-hc-h11	jms	0	30	0	\u{c624}\u{c804} 0:30:00	a K:mm:ss
+skeleton	ko-u-hc-h11	jms	12	5	9	\u{c624}\u{d6c4} 0:05:09	a K:mm:ss
+skeleton	ko-u-hc-h11	Kms	0	30	0	\u{c624}\u{c804} 0:30:00	a K:mm:ss
+skeleton	ko-u-hc-h11	Kms	12	5	9	\u{c624}\u{d6c4} 0:05:09	a K:mm:ss
+skeleton	ko-u-hc-h11	kms	0	30	0	0\u{c2dc} 30\u{bd84} 0\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h11	kms	12	5	9	12\u{c2dc} 5\u{bd84} 9\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h11	h	0	30	0	\u{c624}\u{c804} 0\u{c2dc}	a K\u{c2dc}
+skeleton	ko-u-hc-h11	h	12	5	9	\u{c624}\u{d6c4} 0\u{c2dc}	a K\u{c2dc}
+skeleton	ko-u-hc-h11	H	0	30	0	0\u{c2dc}	H\u{c2dc}
+skeleton	ko-u-hc-h11	H	12	5	9	12\u{c2dc}	H\u{c2dc}
+skeleton	ko-u-hc-h11	Bhm	0	30	0	\u{bc24} 0:30	B K:mm
+skeleton	ko-u-hc-h11	Bhm	12	5	9	\u{c624}\u{d6c4} 0:05	B K:mm
+interval	ko-u-hc-h11	hm	0	30	0	1	15	0	\u{c624}\u{c804} 0:30~1:15
+interval	ko-u-hc-h11	hm	10	0	0	14	0	0	\u{c624}\u{c804} 10:00 ~ \u{c624}\u{d6c4} 2:00
+interval	ko-u-hc-h11	hm	0	5	0	12	10	0	\u{c624}\u{c804} 0:05 ~ \u{c624}\u{d6c4} 0:10
+interval	ko-u-hc-h11	Hm	0	30	0	1	15	0	00:30 ~ 01:15
+interval	ko-u-hc-h11	Hm	10	0	0	14	0	0	10:00 ~ 14:00
+interval	ko-u-hc-h11	Hm	0	5	0	12	10	0	00:05 ~ 12:10
+interval	ko-u-hc-h11	jm	0	30	0	1	15	0	\u{c624}\u{c804} 0:30~1:15
+interval	ko-u-hc-h11	jm	10	0	0	14	0	0	\u{c624}\u{c804} 10:00 ~ \u{c624}\u{d6c4} 2:00
+interval	ko-u-hc-h11	jm	0	5	0	12	10	0	\u{c624}\u{c804} 0:05 ~ \u{c624}\u{d6c4} 0:10
+interval	ko-u-hc-h11	h	0	30	0	1	15	0	\u{c624}\u{c804} 0\u{c2dc} ~ 1\u{c2dc}
+interval	ko-u-hc-h11	h	10	0	0	14	0	0	\u{c624}\u{c804} 10\u{c2dc} ~ \u{c624}\u{d6c4} 2\u{c2dc}
+interval	ko-u-hc-h11	h	0	5	0	12	10	0	\u{c624}\u{c804} 0\u{c2dc} ~ \u{c624}\u{d6c4} 0\u{c2dc}
+time	ko-u-hc-h12	short	0	30	0	\u{c624}\u{c804} 12:30
+time	ko-u-hc-h12	short	12	5	9	\u{c624}\u{d6c4} 12:05
+time	ko-u-hc-h12	short	23	59	59	\u{c624}\u{d6c4} 11:59
+time	ko-u-hc-h12	medium	0	30	0	\u{c624}\u{c804} 12:30:00
+time	ko-u-hc-h12	medium	12	5	9	\u{c624}\u{d6c4} 12:05:09
+time	ko-u-hc-h12	medium	23	59	59	\u{c624}\u{d6c4} 11:59:59
+datetime	ko-u-hc-h12	short	0	30	0	24. 7. 6. \u{c624}\u{c804} 12:30
+datetime	ko-u-hc-h12	short	12	5	9	24. 7. 6. \u{c624}\u{d6c4} 12:05
+skeleton	ko-u-hc-h12	hm	0	30	0	\u{c624}\u{c804} 12:30	a h:mm
+skeleton	ko-u-hc-h12	hm	12	5	9	\u{c624}\u{d6c4} 12:05	a h:mm
+skeleton	ko-u-hc-h12	Hm	0	30	0	00:30	HH:mm
+skeleton	ko-u-hc-h12	Hm	12	5	9	12:05	HH:mm
+skeleton	ko-u-hc-h12	hms	0	30	0	\u{c624}\u{c804} 12:30:00	a h:mm:ss
+skeleton	ko-u-hc-h12	hms	12	5	9	\u{c624}\u{d6c4} 12:05:09	a h:mm:ss
+skeleton	ko-u-hc-h12	Hms	0	30	0	0\u{c2dc} 30\u{bd84} 0\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h12	Hms	12	5	9	12\u{c2dc} 5\u{bd84} 9\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h12	jm	0	30	0	\u{c624}\u{c804} 12:30	a h:mm
+skeleton	ko-u-hc-h12	jm	12	5	9	\u{c624}\u{d6c4} 12:05	a h:mm
+skeleton	ko-u-hc-h12	jms	0	30	0	\u{c624}\u{c804} 12:30:00	a h:mm:ss
+skeleton	ko-u-hc-h12	jms	12	5	9	\u{c624}\u{d6c4} 12:05:09	a h:mm:ss
+skeleton	ko-u-hc-h12	Kms	0	30	0	\u{c624}\u{c804} 12:30:00	a h:mm:ss
+skeleton	ko-u-hc-h12	Kms	12	5	9	\u{c624}\u{d6c4} 12:05:09	a h:mm:ss
+skeleton	ko-u-hc-h12	kms	0	30	0	0\u{c2dc} 30\u{bd84} 0\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h12	kms	12	5	9	12\u{c2dc} 5\u{bd84} 9\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h12	h	0	30	0	\u{c624}\u{c804} 12\u{c2dc}	a h\u{c2dc}
+skeleton	ko-u-hc-h12	h	12	5	9	\u{c624}\u{d6c4} 12\u{c2dc}	a h\u{c2dc}
+skeleton	ko-u-hc-h12	H	0	30	0	0\u{c2dc}	H\u{c2dc}
+skeleton	ko-u-hc-h12	H	12	5	9	12\u{c2dc}	H\u{c2dc}
+skeleton	ko-u-hc-h12	Bhm	0	30	0	\u{bc24} 12:30	B h:mm
+skeleton	ko-u-hc-h12	Bhm	12	5	9	\u{c624}\u{d6c4} 12:05	B h:mm
+interval	ko-u-hc-h12	hm	0	30	0	1	15	0	\u{c624}\u{c804} 12:30~1:15
+interval	ko-u-hc-h12	hm	10	0	0	14	0	0	\u{c624}\u{c804} 10:00 ~ \u{c624}\u{d6c4} 2:00
+interval	ko-u-hc-h12	hm	0	5	0	12	10	0	\u{c624}\u{c804} 12:05 ~ \u{c624}\u{d6c4} 12:10
+interval	ko-u-hc-h12	Hm	0	30	0	1	15	0	00:30 ~ 01:15
+interval	ko-u-hc-h12	Hm	10	0	0	14	0	0	10:00 ~ 14:00
+interval	ko-u-hc-h12	Hm	0	5	0	12	10	0	00:05 ~ 12:10
+interval	ko-u-hc-h12	jm	0	30	0	1	15	0	\u{c624}\u{c804} 12:30~1:15
+interval	ko-u-hc-h12	jm	10	0	0	14	0	0	\u{c624}\u{c804} 10:00 ~ \u{c624}\u{d6c4} 2:00
+interval	ko-u-hc-h12	jm	0	5	0	12	10	0	\u{c624}\u{c804} 12:05 ~ \u{c624}\u{d6c4} 12:10
+interval	ko-u-hc-h12	h	0	30	0	1	15	0	\u{c624}\u{c804} 12\u{c2dc} ~ 1\u{c2dc}
+interval	ko-u-hc-h12	h	10	0	0	14	0	0	\u{c624}\u{c804} 10\u{c2dc} ~ \u{c624}\u{d6c4} 2\u{c2dc}
+interval	ko-u-hc-h12	h	0	5	0	12	10	0	\u{c624}\u{c804} 12\u{c2dc} ~ \u{c624}\u{d6c4} 12\u{c2dc}
+time	ko-u-hc-h23	short	0	30	0	00:30
+time	ko-u-hc-h23	short	12	5	9	12:05
+time	ko-u-hc-h23	short	23	59	59	23:59
+time	ko-u-hc-h23	medium	0	30	0	00:30:00
+time	ko-u-hc-h23	medium	12	5	9	12:05:09
+time	ko-u-hc-h23	medium	23	59	59	23:59:59
+datetime	ko-u-hc-h23	short	0	30	0	24. 7. 6. 00:30
+datetime	ko-u-hc-h23	short	12	5	9	24. 7. 6. 12:05
+skeleton	ko-u-hc-h23	hm	0	30	0	\u{c624}\u{c804} 12:30	a h:mm
+skeleton	ko-u-hc-h23	hm	12	5	9	\u{c624}\u{d6c4} 12:05	a h:mm
+skeleton	ko-u-hc-h23	Hm	0	30	0	00:30	HH:mm
+skeleton	ko-u-hc-h23	Hm	12	5	9	12:05	HH:mm
+skeleton	ko-u-hc-h23	hms	0	30	0	\u{c624}\u{c804} 12:30:00	a h:mm:ss
+skeleton	ko-u-hc-h23	hms	12	5	9	\u{c624}\u{d6c4} 12:05:09	a h:mm:ss
+skeleton	ko-u-hc-h23	Hms	0	30	0	0\u{c2dc} 30\u{bd84} 0\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h23	Hms	12	5	9	12\u{c2dc} 5\u{bd84} 9\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h23	jm	0	30	0	00:30	HH:mm
+skeleton	ko-u-hc-h23	jm	12	5	9	12:05	HH:mm
+skeleton	ko-u-hc-h23	jms	0	30	0	0\u{c2dc} 30\u{bd84} 0\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h23	jms	12	5	9	12\u{c2dc} 5\u{bd84} 9\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h23	Kms	0	30	0	\u{c624}\u{c804} 12:30:00	a h:mm:ss
+skeleton	ko-u-hc-h23	Kms	12	5	9	\u{c624}\u{d6c4} 12:05:09	a h:mm:ss
+skeleton	ko-u-hc-h23	kms	0	30	0	0\u{c2dc} 30\u{bd84} 0\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h23	kms	12	5	9	12\u{c2dc} 5\u{bd84} 9\u{cd08}	H\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h23	h	0	30	0	\u{c624}\u{c804} 12\u{c2dc}	a h\u{c2dc}
+skeleton	ko-u-hc-h23	h	12	5	9	\u{c624}\u{d6c4} 12\u{c2dc}	a h\u{c2dc}
+skeleton	ko-u-hc-h23	H	0	30	0	0\u{c2dc}	H\u{c2dc}
+skeleton	ko-u-hc-h23	H	12	5	9	12\u{c2dc}	H\u{c2dc}
+skeleton	ko-u-hc-h23	Bhm	0	30	0	\u{bc24} 12:30	B h:mm
+skeleton	ko-u-hc-h23	Bhm	12	5	9	\u{c624}\u{d6c4} 12:05	B h:mm
+interval	ko-u-hc-h23	hm	0	30	0	1	15	0	\u{c624}\u{c804} 12:30~1:15
+interval	ko-u-hc-h23	hm	10	0	0	14	0	0	\u{c624}\u{c804} 10:00 ~ \u{c624}\u{d6c4} 2:00
+interval	ko-u-hc-h23	hm	0	5	0	12	10	0	\u{c624}\u{c804} 12:05 ~ \u{c624}\u{d6c4} 12:10
+interval	ko-u-hc-h23	Hm	0	30	0	1	15	0	00:30 ~ 01:15
+interval	ko-u-hc-h23	Hm	10	0	0	14	0	0	10:00 ~ 14:00
+interval	ko-u-hc-h23	Hm	0	5	0	12	10	0	00:05 ~ 12:10
+interval	ko-u-hc-h23	jm	0	30	0	1	15	0	00:30 ~ 01:15
+interval	ko-u-hc-h23	jm	10	0	0	14	0	0	10:00 ~ 14:00
+interval	ko-u-hc-h23	jm	0	5	0	12	10	0	00:05 ~ 12:10
+interval	ko-u-hc-h23	h	0	30	0	1	15	0	\u{c624}\u{c804} 12\u{c2dc} ~ 1\u{c2dc}
+interval	ko-u-hc-h23	h	10	0	0	14	0	0	\u{c624}\u{c804} 10\u{c2dc} ~ \u{c624}\u{d6c4} 2\u{c2dc}
+interval	ko-u-hc-h23	h	0	5	0	12	10	0	\u{c624}\u{c804} 12\u{c2dc} ~ \u{c624}\u{d6c4} 12\u{c2dc}
+time	ko-u-hc-h24	short	0	30	0	24:30
+time	ko-u-hc-h24	short	12	5	9	12:05
+time	ko-u-hc-h24	short	23	59	59	23:59
+time	ko-u-hc-h24	medium	0	30	0	24:30:00
+time	ko-u-hc-h24	medium	12	5	9	12:05:09
+time	ko-u-hc-h24	medium	23	59	59	23:59:59
+datetime	ko-u-hc-h24	short	0	30	0	24. 7. 6. 24:30
+datetime	ko-u-hc-h24	short	12	5	9	24. 7. 6. 12:05
+skeleton	ko-u-hc-h24	hm	0	30	0	\u{c624}\u{c804} 12:30	a h:mm
+skeleton	ko-u-hc-h24	hm	12	5	9	\u{c624}\u{d6c4} 12:05	a h:mm
+skeleton	ko-u-hc-h24	Hm	0	30	0	24:30	kk:mm
+skeleton	ko-u-hc-h24	Hm	12	5	9	12:05	kk:mm
+skeleton	ko-u-hc-h24	hms	0	30	0	\u{c624}\u{c804} 12:30:00	a h:mm:ss
+skeleton	ko-u-hc-h24	hms	12	5	9	\u{c624}\u{d6c4} 12:05:09	a h:mm:ss
+skeleton	ko-u-hc-h24	Hms	0	30	0	24\u{c2dc} 30\u{bd84} 0\u{cd08}	k\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h24	Hms	12	5	9	12\u{c2dc} 5\u{bd84} 9\u{cd08}	k\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h24	jm	0	30	0	24:30	kk:mm
+skeleton	ko-u-hc-h24	jm	12	5	9	12:05	kk:mm
+skeleton	ko-u-hc-h24	jms	0	30	0	24\u{c2dc} 30\u{bd84} 0\u{cd08}	k\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h24	jms	12	5	9	12\u{c2dc} 5\u{bd84} 9\u{cd08}	k\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h24	Kms	0	30	0	\u{c624}\u{c804} 12:30:00	a h:mm:ss
+skeleton	ko-u-hc-h24	Kms	12	5	9	\u{c624}\u{d6c4} 12:05:09	a h:mm:ss
+skeleton	ko-u-hc-h24	kms	0	30	0	24\u{c2dc} 30\u{bd84} 0\u{cd08}	k\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h24	kms	12	5	9	12\u{c2dc} 5\u{bd84} 9\u{cd08}	k\u{c2dc} m\u{bd84} s\u{cd08}
+skeleton	ko-u-hc-h24	h	0	30	0	\u{c624}\u{c804} 12\u{c2dc}	a h\u{c2dc}
+skeleton	ko-u-hc-h24	h	12	5	9	\u{c624}\u{d6c4} 12\u{c2dc}	a h\u{c2dc}
+skeleton	ko-u-hc-h24	H	0	30	0	24\u{c2dc}	k\u{c2dc}
+skeleton	ko-u-hc-h24	H	12	5	9	12\u{c2dc}	k\u{c2dc}
+skeleton	ko-u-hc-h24	Bhm	0	30	0	\u{bc24} 12:30	B h:mm
+skeleton	ko-u-hc-h24	Bhm	12	5	9	\u{c624}\u{d6c4} 12:05	B h:mm
+interval	ko-u-hc-h24	hm	0	30	0	1	15	0	\u{c624}\u{c804} 12:30~1:15
+interval	ko-u-hc-h24	hm	10	0	0	14	0	0	\u{c624}\u{c804} 10:00 ~ \u{c624}\u{d6c4} 2:00
+interval	ko-u-hc-h24	hm	0	5	0	12	10	0	\u{c624}\u{c804} 12:05 ~ \u{c624}\u{d6c4} 12:10
+interval	ko-u-hc-h24	Hm	0	30	0	1	15	0	24:30 ~ 01:15
+interval	ko-u-hc-h24	Hm	10	0	0	14	0	0	10:00 ~ 14:00
+interval	ko-u-hc-h24	Hm	0	5	0	12	10	0	24:05 ~ 12:10
+interval	ko-u-hc-h24	jm	0	30	0	1	15	0	24:30 ~ 01:15
+interval	ko-u-hc-h24	jm	10	0	0	14	0	0	10:00 ~ 14:00
+interval	ko-u-hc-h24	jm	0	5	0	12	10	0	24:05 ~ 12:10
+interval	ko-u-hc-h24	h	0	30	0	1	15	0	\u{c624}\u{c804} 12\u{c2dc} ~ 1\u{c2dc}
+interval	ko-u-hc-h24	h	10	0	0	14	0	0	\u{c624}\u{c804} 10\u{c2dc} ~ \u{c624}\u{d6c4} 2\u{c2dc}
+interval	ko-u-hc-h24	h	0	5	0	12	10	0	\u{c624}\u{c804} 12\u{c2dc} ~ \u{c624}\u{d6c4} 12\u{c2dc}
+time	zh	short	0	30	0	00:30
+time	zh	short	12	5	9	12:05
+time	zh	short	23	59	59	23:59
+time	zh	medium	0	30	0	00:30:00
+time	zh	medium	12	5	9	12:05:09
+time	zh	medium	23	59	59	23:59:59
+datetime	zh	short	0	30	0	2024/7/6 00:30
+datetime	zh	short	12	5	9	2024/7/6 12:05
+skeleton	zh	hm	0	30	0	\u{4e0a}\u{5348}12:30	ah:mm
+skeleton	zh	hm	12	5	9	\u{4e0b}\u{5348}12:05	ah:mm
+skeleton	zh	Hm	0	30	0	00:30	HH:mm
+skeleton	zh	Hm	12	5	9	12:05	HH:mm
+skeleton	zh	hms	0	30	0	\u{4e0a}\u{5348}12:30:00	ah:mm:ss
+skeleton	zh	hms	12	5	9	\u{4e0b}\u{5348}12:05:09	ah:mm:ss
+skeleton	zh	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	zh	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	zh	jm	0	30	0	00:30	HH:mm
+skeleton	zh	jm	12	5	9	12:05	HH:mm
+skeleton	zh	jms	0	30	0	00:30:00	HH:mm:ss
+skeleton	zh	jms	12	5	9	12:05:09	HH:mm:ss
+skeleton	zh	Kms	0	30	0	\u{4e0a}\u{5348}12:30:00	ah:mm:ss
+skeleton	zh	Kms	12	5	9	\u{4e0b}\u{5348}12:05:09	ah:mm:ss
+skeleton	zh	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	zh	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	zh	h	0	30	0	\u{4e0a}\u{5348}12\u{65f6}	ah\u{65f6}
+skeleton	zh	h	12	5	9	\u{4e0b}\u{5348}12\u{65f6}	ah\u{65f6}
+skeleton	zh	H	0	30	0	0\u{65f6}	H\u{65f6}
+skeleton	zh	H	12	5	9	12\u{65f6}	H\u{65f6}
+skeleton	zh	Bhm	0	30	0	\u{51cc}\u{6668}12:30	Bh:mm
+skeleton	zh	Bhm	12	5	9	\u{4e2d}\u{5348}12:05	Bh:mm
+interval	zh	hm	0	30	0	1	15	0	\u{4e0a}\u{5348}12:30\u{81f3}1:15
+interval	zh	hm	10	0	0	14	0	0	\u{4e0a}\u{5348}10:00\u{81f3}\u{4e0b}\u{5348}2:00
+interval	zh	hm	0	5	0	12	10	0	\u{4e0a}\u{5348}12:05\u{81f3}\u{4e0b}\u{5348}12:10
+interval	zh	Hm	0	30	0	1	15	0	00:30\u{2013}01:15
+interval	zh	Hm	10	0	0	14	0	0	10:00\u{2013}14:00
+interval	zh	Hm	0	5	0	12	10	0	00:05\u{2013}12:10
+interval	zh	jm	0	30	0	1	15	0	00:30\u{2013}01:15
+interval	zh	jm	10	0	0	14	0	0	10:00\u{2013}14:00
+interval	zh	jm	0	5	0	12	10	0	00:05\u{2013}12:10
+interval	zh	h	0	30	0	1	15	0	\u{4e0a}\u{5348}12\u{65f6}\u{81f3}1\u{65f6}
+interval	zh	h	10	0	0	14	0	0	\u{4e0a}\u{5348}10\u{65f6}\u{81f3}\u{4e0b}\u{5348}2\u{65f6}
+interval	zh	h	0	5	0	12	10	0	\u{4e0a}\u{5348}12\u{65f6}\u{81f3}\u{4e0b}\u{5348}12\u{65f6}
+time	zh-u-hc-h11	short	0	30	0	\u{4e0a}\u{5348}0:30
+time	zh-u-hc-h11	short	12	5	9	\u{4e0b}\u{5348}0:05
+time	zh-u-hc-h11	short	23	59	59	\u{4e0b}\u{5348}11:59
+time	zh-u-hc-h11	medium	0	30	0	\u{4e0a}\u{5348}0:30:00
+time	zh-u-hc-h11	medium	12	5	9	\u{4e0b}\u{5348}0:05:09
+time	zh-u-hc-h11	medium	23	59	59	\u{4e0b}\u{5348}11:59:59
+datetime	zh-u-hc-h11	short	0	30	0	2024/7/6 \u{4e0a}\u{5348}0:30
+datetime	zh-u-hc-h11	short	12	5	9	2024/7/6 \u{4e0b}\u{5348}0:05
+skeleton	zh-u-hc-h11	hm	0	30	0	\u{4e0a}\u{5348}0:30	aK:mm
+skeleton	zh-u-hc-h11	hm	12	5	9	\u{4e0b}\u{5348}0:05	aK:mm
+skeleton	zh-u-hc-h11	Hm	0	30	0	00:30	HH:mm
+skeleton	zh-u-hc-h11	Hm	12	5	9	12:05	HH:mm
+skeleton	zh-u-hc-h11	hms	0	30	0	\u{4e0a}\u{5348}0:30:00	aK:mm:ss
+skeleton	zh-u-hc-h11	hms	12	5	9	\u{4e0b}\u{5348}0:05:09	aK:mm:ss
+skeleton	zh-u-hc-h11	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	zh-u-hc-h11	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	zh-u-hc-h11	jm	0	30	0	\u{4e0a}\u{5348}0:30	aK:mm
+skeleton	zh-u-hc-h11	jm	12	5	9	\u{4e0b}\u{5348}0:05	aK:mm
+skeleton	zh-u-hc-h11	jms	0	30	0	\u{4e0a}\u{5348}0:30:00	aK:mm:ss
+skeleton	zh-u-hc-h11	jms	12	5	9	\u{4e0b}\u{5348}0:05:09	aK:mm:ss
+skeleton	zh-u-hc-h11	Kms	0	30	0	\u{4e0a}\u{5348}0:30:00	aK:mm:ss
+skeleton	zh-u-hc-h11	Kms	12	5	9	\u{4e0b}\u{5348}0:05:09	aK:mm:ss
+skeleton	zh-u-hc-h11	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	zh-u-hc-h11	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	zh-u-hc-h11	h	0	30	0	\u{4e0a}\u{5348}0\u{65f6}	aK\u{65f6}
+skeleton	zh-u-hc-h11	h	12	5	9	\u{4e0b}\u{5348}0\u{65f6}	aK\u{65f6}
+skeleton	zh-u-hc-h11	H	0	30	0	0\u{65f6}	H\u{65f6}
+skeleton	zh-u-hc-h11	H	12	5	9	12\u{65f6}	H\u{65f6}
+skeleton	zh-u-hc-h11	Bhm	0	30	0	\u{51cc}\u{6668}0:30	BK:mm
+skeleton	zh-u-hc-h11	Bhm	12	5	9	\u{4e2d}\u{5348}0:05	BK:mm
+interval	zh-u-hc-h11	hm	0	30	0	1	15	0	\u{4e0a}\u{5348}0:30\u{81f3}1:15
+interval	zh-u-hc-h11	hm	10	0	0	14	0	0	\u{4e0a}\u{5348}10:00\u{81f3}\u{4e0b}\u{5348}2:00
+interval	zh-u-hc-h11	hm	0	5	0	12	10	0	\u{4e0a}\u{5348}0:05\u{81f3}\u{4e0b}\u{5348}0:10
+interval	zh-u-hc-h11	Hm	0	30	0	1	15	0	00:30\u{2013}01:15
+interval	zh-u-hc-h11	Hm	10	0	0	14	0	0	10:00\u{2013}14:00
+interval	zh-u-hc-h11	Hm	0	5	0	12	10	0	00:05\u{2013}12:10
+interval	zh-u-hc-h11	jm	0	30	0	1	15	0	\u{4e0a}\u{5348}0:30\u{81f3}1:15
+interval	zh-u-hc-h11	jm	10	0	0	14	0	0	\u{4e0a}\u{5348}10:00\u{81f3}\u{4e0b}\u{5348}2:00
+interval	zh-u-hc-h11	jm	0	5	0	12	10	0	\u{4e0a}\u{5348}0:05\u{81f3}\u{4e0b}\u{5348}0:10
+interval	zh-u-hc-h11	h	0	30	0	1	15	0	\u{4e0a}\u{5348}0\u{65f6}\u{81f3}1\u{65f6}
+interval	zh-u-hc-h11	h	10	0	0	14	0	0	\u{4e0a}\u{5348}10\u{65f6}\u{81f3}\u{4e0b}\u{5348}2\u{65f6}
+interval	zh-u-hc-h11	h	0	5	0	12	10	0	\u{4e0a}\u{5348}0\u{65f6}\u{81f3}\u{4e0b}\u{5348}0\u{65f6}
+time	zh-u-hc-h12	short	0	30	0	\u{4e0a}\u{5348}12:30
+time	zh-u-hc-h12	short	12	5	9	\u{4e0b}\u{5348}12:05
+time	zh-u-hc-h12	short	23	59	59	\u{4e0b}\u{5348}11:59
+time	zh-u-hc-h12	medium	0	30	0	\u{4e0a}\u{5348}12:30:00
+time	zh-u-hc-h12	medium	12	5	9	\u{4e0b}\u{5348}12:05:09
+time	zh-u-hc-h12	medium	23	59	59	\u{4e0b}\u{5348}11:59:59
+datetime	zh-u-hc-h12	short	0	30	0	2024/7/6 \u{4e0a}\u{5348}12:30
+datetime	zh-u-hc-h12	short	12	5	9	2024/7/6 \u{4e0b}\u{5348}12:05
+skeleton	zh-u-hc-h12	hm	0	30	0	\u{4e0a}\u{5348}12:30	ah:mm
+skeleton	zh-u-hc-h12	hm	12	5	9	\u{4e0b}\u{5348}12:05	ah:mm
+skeleton	zh-u-hc-h12	Hm	0	30	0	00:30	HH:mm
+skeleton	zh-u-hc-h12	Hm	12	5	9	12:05	HH:mm
+skeleton	zh-u-hc-h12	hms	0	30	0	\u{4e0a}\u{5348}12:30:00	ah:mm:ss
+skeleton	zh-u-hc-h12	hms	12	5	9	\u{4e0b}\u{5348}12:05:09	ah:mm:ss
+skeleton	zh-u-hc-h12	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	zh-u-hc-h12	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	zh-u-hc-h12	jm	0	30	0	\u{4e0a}\u{5348}12:30	ah:mm
+skeleton	zh-u-hc-h12	jm	12	5	9	\u{4e0b}\u{5348}12:05	ah:mm
+skeleton	zh-u-hc-h12	jms	0	30	0	\u{4e0a}\u{5348}12:30:00	ah:mm:ss
+skeleton	zh-u-hc-h12	jms	12	5	9	\u{4e0b}\u{5348}12:05:09	ah:mm:ss
+skeleton	zh-u-hc-h12	Kms	0	30	0	\u{4e0a}\u{5348}12:30:00	ah:mm:ss
+skeleton	zh-u-hc-h12	Kms	12	5	9	\u{4e0b}\u{5348}12:05:09	ah:mm:ss
+skeleton	zh-u-hc-h12	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	zh-u-hc-h12	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	zh-u-hc-h12	h	0	30	0	\u{4e0a}\u{5348}12\u{65f6}	ah\u{65f6}
+skeleton	zh-u-hc-h12	h	12	5	9	\u{4e0b}\u{5348}12\u{65f6}	ah\u{65f6}
+skeleton	zh-u-hc-h12	H	0	30	0	0\u{65f6}	H\u{65f6}
+skeleton	zh-u-hc-h12	H	12	5	9	12\u{65f6}	H\u{65f6}
+skeleton	zh-u-hc-h12	Bhm	0	30	0	\u{51cc}\u{6668}12:30	Bh:mm
+skeleton	zh-u-hc-h12	Bhm	12	5	9	\u{4e2d}\u{5348}12:05	Bh:mm
+interval	zh-u-hc-h12	hm	0	30	0	1	15	0	\u{4e0a}\u{5348}12:30\u{81f3}1:15
+interval	zh-u-hc-h12	hm	10	0	0	14	0	0	\u{4e0a}\u{5348}10:00\u{81f3}\u{4e0b}\u{5348}2:00
+interval	zh-u-hc-h12	hm	0	5	0	12	10	0	\u{4e0a}\u{5348}12:05\u{81f3}\u{4e0b}\u{5348}12:10
+interval	zh-u-hc-h12	Hm	0	30	0	1	15	0	00:30\u{2013}01:15
+interval	zh-u-hc-h12	Hm	10	0	0	14	0	0	10:00\u{2013}14:00
+interval	zh-u-hc-h12	Hm	0	5	0	12	10	0	00:05\u{2013}12:10
+interval	zh-u-hc-h12	jm	0	30	0	1	15	0	\u{4e0a}\u{5348}12:30\u{81f3}1:15
+interval	zh-u-hc-h12	jm	10	0	0	14	0	0	\u{4e0a}\u{5348}10:00\u{81f3}\u{4e0b}\u{5348}2:00
+interval	zh-u-hc-h12	jm	0	5	0	12	10	0	\u{4e0a}\u{5348}12:05\u{81f3}\u{4e0b}\u{5348}12:10
+interval	zh-u-hc-h12	h	0	30	0	1	15	0	\u{4e0a}\u{5348}12\u{65f6}\u{81f3}1\u{65f6}
+interval	zh-u-hc-h12	h	10	0	0	14	0	0	\u{4e0a}\u{5348}10\u{65f6}\u{81f3}\u{4e0b}\u{5348}2\u{65f6}
+interval	zh-u-hc-h12	h	0	5	0	12	10	0	\u{4e0a}\u{5348}12\u{65f6}\u{81f3}\u{4e0b}\u{5348}12\u{65f6}
+time	zh-u-hc-h23	short	0	30	0	00:30
+time	zh-u-hc-h23	short	12	5	9	12:05
+time	zh-u-hc-h23	short	23	59	59	23:59
+time	zh-u-hc-h23	medium	0	30	0	00:30:00
+time	zh-u-hc-h23	medium	12	5	9	12:05:09
+time	zh-u-hc-h23	medium	23	59	59	23:59:59
+datetime	zh-u-hc-h23	short	0	30	0	2024/7/6 00:30
+datetime	zh-u-hc-h23	short	12	5	9	2024/7/6 12:05
+skeleton	zh-u-hc-h23	hm	0	30	0	\u{4e0a}\u{5348}12:30	ah:mm
+skeleton	zh-u-hc-h23	hm	12	5	9	\u{4e0b}\u{5348}12:05	ah:mm
+skeleton	zh-u-hc-h23	Hm	0	30	0	00:30	HH:mm
+skeleton	zh-u-hc-h23	Hm	12	5	9	12:05	HH:mm
+skeleton	zh-u-hc-h23	hms	0	30	0	\u{4e0a}\u{5348}12:30:00	ah:mm:ss
+skeleton	zh-u-hc-h23	hms	12	5	9	\u{4e0b}\u{5348}12:05:09	ah:mm:ss
+skeleton	zh-u-hc-h23	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	zh-u-hc-h23	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	zh-u-hc-h23	jm	0	30	0	00:30	HH:mm
+skeleton	zh-u-hc-h23	jm	12	5	9	12:05	HH:mm
+skeleton	zh-u-hc-h23	jms	0	30	0	00:30:00	HH:mm:ss
+skeleton	zh-u-hc-h23	jms	12	5	9	12:05:09	HH:mm:ss
+skeleton	zh-u-hc-h23	Kms	0	30	0	\u{4e0a}\u{5348}12:30:00	ah:mm:ss
+skeleton	zh-u-hc-h23	Kms	12	5	9	\u{4e0b}\u{5348}12:05:09	ah:mm:ss
+skeleton	zh-u-hc-h23	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	zh-u-hc-h23	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	zh-u-hc-h23	h	0	30	0	\u{4e0a}\u{5348}12\u{65f6}	ah\u{65f6}
+skeleton	zh-u-hc-h23	h	12	5	9	\u{4e0b}\u{5348}12\u{65f6}	ah\u{65f6}
+skeleton	zh-u-hc-h23	H	0	30	0	0\u{65f6}	H\u{65f6}
+skeleton	zh-u-hc-h23	H	12	5	9	12\u{65f6}	H\u{65f6}
+skeleton	zh-u-hc-h23	Bhm	0	30	0	\u{51cc}\u{6668}12:30	Bh:mm
+skeleton	zh-u-hc-h23	Bhm	12	5	9	\u{4e2d}\u{5348}12:05	Bh:mm
+interval	zh-u-hc-h23	hm	0	30	0	1	15	0	\u{4e0a}\u{5348}12:30\u{81f3}1:15
+interval	zh-u-hc-h23	hm	10	0	0	14	0	0	\u{4e0a}\u{5348}10:00\u{81f3}\u{4e0b}\u{5348}2:00
+interval	zh-u-hc-h23	hm	0	5	0	12	10	0	\u{4e0a}\u{5348}12:05\u{81f3}\u{4e0b}\u{5348}12:10
+interval	zh-u-hc-h23	Hm	0	30	0	1	15	0	00:30\u{2013}01:15
+interval	zh-u-hc-h23	Hm	10	0	0	14	0	0	10:00\u{2013}14:00
+interval	zh-u-hc-h23	Hm	0	5	0	12	10	0	00:05\u{2013}12:10
+interval	zh-u-hc-h23	jm	0	30	0	1	15	0	00:30\u{2013}01:15
+interval	zh-u-hc-h23	jm	10	0	0	14	0	0	10:00\u{2013}14:00
+interval	zh-u-hc-h23	jm	0	5	0	12	10	0	00:05\u{2013}12:10
+interval	zh-u-hc-h23	h	0	30	0	1	15	0	\u{4e0a}\u{5348}12\u{65f6}\u{81f3}1\u{65f6}
+interval	zh-u-hc-h23	h	10	0	0	14	0	0	\u{4e0a}\u{5348}10\u{65f6}\u{81f3}\u{4e0b}\u{5348}2\u{65f6}
+interval	zh-u-hc-h23	h	0	5	0	12	10	0	\u{4e0a}\u{5348}12\u{65f6}\u{81f3}\u{4e0b}\u{5348}12\u{65f6}
+time	zh-u-hc-h24	short	0	30	0	24:30
+time	zh-u-hc-h24	short	12	5	9	12:05
+time	zh-u-hc-h24	short	23	59	59	23:59
+time	zh-u-hc-h24	medium	0	30	0	24:30:00
+time	zh-u-hc-h24	medium	12	5	9	12:05:09
+time	zh-u-hc-h24	medium	23	59	59	23:59:59
+datetime	zh-u-hc-h24	short	0	30	0	2024/7/6 24:30
+datetime	zh-u-hc-h24	short	12	5	9	2024/7/6 12:05
+skeleton	zh-u-hc-h24	hm	0	30	0	\u{4e0a}\u{5348}12:30	ah:mm
+skeleton	zh-u-hc-h24	hm	12	5	9	\u{4e0b}\u{5348}12:05	ah:mm
+skeleton	zh-u-hc-h24	Hm	0	30	0	24:30	kk:mm
+skeleton	zh-u-hc-h24	Hm	12	5	9	12:05	kk:mm
+skeleton	zh-u-hc-h24	hms	0	30	0	\u{4e0a}\u{5348}12:30:00	ah:mm:ss
+skeleton	zh-u-hc-h24	hms	12	5	9	\u{4e0b}\u{5348}12:05:09	ah:mm:ss
+skeleton	zh-u-hc-h24	Hms	0	30	0	24:30:00	kk:mm:ss
+skeleton	zh-u-hc-h24	Hms	12	5	9	12:05:09	kk:mm:ss
+skeleton	zh-u-hc-h24	jm	0	30	0	24:30	kk:mm
+skeleton	zh-u-hc-h24	jm	12	5	9	12:05	kk:mm
+skeleton	zh-u-hc-h24	jms	0	30	0	24:30:00	kk:mm:ss
+skeleton	zh-u-hc-h24	jms	12	5	9	12:05:09	kk:mm:ss
+skeleton	zh-u-hc-h24	Kms	0	30	0	\u{4e0a}\u{5348}12:30:00	ah:mm:ss
+skeleton	zh-u-hc-h24	Kms	12	5	9	\u{4e0b}\u{5348}12:05:09	ah:mm:ss
+skeleton	zh-u-hc-h24	kms	0	30	0	24:30:00	kk:mm:ss
+skeleton	zh-u-hc-h24	kms	12	5	9	12:05:09	kk:mm:ss
+skeleton	zh-u-hc-h24	h	0	30	0	\u{4e0a}\u{5348}12\u{65f6}	ah\u{65f6}
+skeleton	zh-u-hc-h24	h	12	5	9	\u{4e0b}\u{5348}12\u{65f6}	ah\u{65f6}
+skeleton	zh-u-hc-h24	H	0	30	0	24\u{65f6}	k\u{65f6}
+skeleton	zh-u-hc-h24	H	12	5	9	12\u{65f6}	k\u{65f6}
+skeleton	zh-u-hc-h24	Bhm	0	30	0	\u{51cc}\u{6668}12:30	Bh:mm
+skeleton	zh-u-hc-h24	Bhm	12	5	9	\u{4e2d}\u{5348}12:05	Bh:mm
+interval	zh-u-hc-h24	hm	0	30	0	1	15	0	\u{4e0a}\u{5348}12:30\u{81f3}1:15
+interval	zh-u-hc-h24	hm	10	0	0	14	0	0	\u{4e0a}\u{5348}10:00\u{81f3}\u{4e0b}\u{5348}2:00
+interval	zh-u-hc-h24	hm	0	5	0	12	10	0	\u{4e0a}\u{5348}12:05\u{81f3}\u{4e0b}\u{5348}12:10
+interval	zh-u-hc-h24	Hm	0	30	0	1	15	0	24:30\u{2013}01:15
+interval	zh-u-hc-h24	Hm	10	0	0	14	0	0	10:00\u{2013}14:00
+interval	zh-u-hc-h24	Hm	0	5	0	12	10	0	24:05\u{2013}12:10
+interval	zh-u-hc-h24	jm	0	30	0	1	15	0	24:30\u{2013}01:15
+interval	zh-u-hc-h24	jm	10	0	0	14	0	0	10:00\u{2013}14:00
+interval	zh-u-hc-h24	jm	0	5	0	12	10	0	24:05\u{2013}12:10
+interval	zh-u-hc-h24	h	0	30	0	1	15	0	\u{4e0a}\u{5348}12\u{65f6}\u{81f3}1\u{65f6}
+interval	zh-u-hc-h24	h	10	0	0	14	0	0	\u{4e0a}\u{5348}10\u{65f6}\u{81f3}\u{4e0b}\u{5348}2\u{65f6}
+interval	zh-u-hc-h24	h	0	5	0	12	10	0	\u{4e0a}\u{5348}12\u{65f6}\u{81f3}\u{4e0b}\u{5348}12\u{65f6}
+time	hi	short	0	30	0	12:30 am
+time	hi	short	12	5	9	12:05 pm
+time	hi	short	23	59	59	11:59 pm
+time	hi	medium	0	30	0	12:30:00 am
+time	hi	medium	12	5	9	12:05:09 pm
+time	hi	medium	23	59	59	11:59:59 pm
+datetime	hi	short	0	30	0	6/7/24, 12:30 am
+datetime	hi	short	12	5	9	6/7/24, 12:05 pm
+skeleton	hi	hm	0	30	0	12:30 am	h:mm a
+skeleton	hi	hm	12	5	9	12:05 pm	h:mm a
+skeleton	hi	Hm	0	30	0	00:30	HH:mm
+skeleton	hi	Hm	12	5	9	12:05	HH:mm
+skeleton	hi	hms	0	30	0	12:30:00 am	h:mm:ss a
+skeleton	hi	hms	12	5	9	12:05:09 pm	h:mm:ss a
+skeleton	hi	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	hi	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	hi	jm	0	30	0	12:30 am	h:mm a
+skeleton	hi	jm	12	5	9	12:05 pm	h:mm a
+skeleton	hi	jms	0	30	0	12:30:00 am	h:mm:ss a
+skeleton	hi	jms	12	5	9	12:05:09 pm	h:mm:ss a
+skeleton	hi	Kms	0	30	0	12:30:00 am	h:mm:ss a
+skeleton	hi	Kms	12	5	9	12:05:09 pm	h:mm:ss a
+skeleton	hi	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	hi	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	hi	h	0	30	0	12\u{202f}am	h\u{202f}a
+skeleton	hi	h	12	5	9	12\u{202f}pm	h\u{202f}a
+skeleton	hi	H	0	30	0	00	HH
+skeleton	hi	H	12	5	9	12	HH
+skeleton	hi	Bhm	0	30	0	\u{930}\u{93e}\u{924} 12:30	B h:mm
+skeleton	hi	Bhm	12	5	9	\u{926}\u{94b}\u{92a}\u{939}\u{930} 12:05	B h:mm
+interval	hi	hm	0	30	0	1	15	0	12:30\u{2013}1:15 am
+interval	hi	hm	10	0	0	14	0	0	10:00 am\u{2009}\u{2013}\u{2009}2:00 pm
+interval	hi	hm	0	5	0	12	10	0	12:05 am\u{2009}\u{2013}\u{2009}12:10 pm
+interval	hi	Hm	0	30	0	1	15	0	00:30\u{2013}01:15
+interval	hi	Hm	10	0	0	14	0	0	10:00\u{2013}14:00
+interval	hi	Hm	0	5	0	12	10	0	00:05\u{2013}12:10
+interval	hi	jm	0	30	0	1	15	0	12:30\u{2013}1:15 am
+interval	hi	jm	10	0	0	14	0	0	10:00 am\u{2009}\u{2013}\u{2009}2:00 pm
+interval	hi	jm	0	5	0	12	10	0	12:05 am\u{2009}\u{2013}\u{2009}12:10 pm
+interval	hi	h	0	30	0	1	15	0	12\u{2013}1\u{202f}am
+interval	hi	h	10	0	0	14	0	0	10\u{202f}am\u{2009}\u{2013}\u{2009}2\u{202f}pm
+interval	hi	h	0	5	0	12	10	0	12\u{202f}am\u{2009}\u{2013}\u{2009}12\u{202f}pm
+time	hi-u-hc-h11	short	0	30	0	0:30 am
+time	hi-u-hc-h11	short	12	5	9	0:05 pm
+time	hi-u-hc-h11	short	23	59	59	11:59 pm
+time	hi-u-hc-h11	medium	0	30	0	0:30:00 am
+time	hi-u-hc-h11	medium	12	5	9	0:05:09 pm
+time	hi-u-hc-h11	medium	23	59	59	11:59:59 pm
+datetime	hi-u-hc-h11	short	0	30	0	6/7/24, 0:30 am
+datetime	hi-u-hc-h11	short	12	5	9	6/7/24, 0:05 pm
+skeleton	hi-u-hc-h11	hm	0	30	0	0:30 am	K:mm a
+skeleton	hi-u-hc-h11	hm	12	5	9	0:05 pm	K:mm a
+skeleton	hi-u-hc-h11	Hm	0	30	0	00:30	HH:mm
+skeleton	hi-u-hc-h11	Hm	12	5	9	12:05	HH:mm
+skeleton	hi-u-hc-h11	hms	0	30	0	0:30:00 am	K:mm:ss a
+skeleton	hi-u-hc-h11	hms	12	5	9	0:05:09 pm	K:mm:ss a
+skeleton	hi-u-hc-h11	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	hi-u-hc-h11	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	hi-u-hc-h11	jm	0	30	0	0:30 am	K:mm a
+skeleton	hi-u-hc-h11	jm	12	5	9	0:05 pm	K:mm a
+skeleton	hi-u-hc-h11	jms	0	30	0	0:30:00 am	K:mm:ss a
+skeleton	hi-u-hc-h11	jms	12	5	9	0:05:09 pm	K:mm:ss a
+skeleton	hi-u-hc-h11	Kms	0	30	0	0:30:00 am	K:mm:ss a
+skeleton	hi-u-hc-h11	Kms	12	5	9	0:05:09 pm	K:mm:ss a
+skeleton	hi-u-hc-h11	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	hi-u-hc-h11	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	hi-u-hc-h11	h	0	30	0	0\u{202f}am	K\u{202f}a
+skeleton	hi-u-hc-h11	h	12	5	9	0\u{202f}pm	K\u{202f}a
+skeleton	hi-u-hc-h11	H	0	30	0	00	HH
+skeleton	hi-u-hc-h11	H	12	5	9	12	HH
+skeleton	hi-u-hc-h11	Bhm	0	30	0	\u{930}\u{93e}\u{924} 0:30	B K:mm
+skeleton	hi-u-hc-h11	Bhm	12	5	9	\u{926}\u{94b}\u{92a}\u{939}\u{930} 0:05	B K:mm
+interval	hi-u-hc-h11	hm	0	30	0	1	15	0	0:30\u{2013}1:15 am
+interval	hi-u-hc-h11	hm	10	0	0	14	0	0	10:00 am\u{2009}\u{2013}\u{2009}2:00 pm
+interval	hi-u-hc-h11	hm	0	5	0	12	10	0	0:05 am\u{2009}\u{2013}\u{2009}0:10 pm
+interval	hi-u-hc-h11	Hm	0	30	0	1	15	0	00:30\u{2013}01:15
+interval	hi-u-hc-h11	Hm	10	0	0	14	0	0	10:00\u{2013}14:00
+interval	hi-u-hc-h11	Hm	0	5	0	12	10	0	00:05\u{2013}12:10
+interval	hi-u-hc-h11	jm	0	30	0	1	15	0	0:30\u{2013}1:15 am
+interval	hi-u-hc-h11	jm	10	0	0	14	0	0	10:00 am\u{2009}\u{2013}\u{2009}2:00 pm
+interval	hi-u-hc-h11	jm	0	5	0	12	10	0	0:05 am\u{2009}\u{2013}\u{2009}0:10 pm
+interval	hi-u-hc-h11	h	0	30	0	1	15	0	0\u{2013}1\u{202f}am
+interval	hi-u-hc-h11	h	10	0	0	14	0	0	10\u{202f}am\u{2009}\u{2013}\u{2009}2\u{202f}pm
+interval	hi-u-hc-h11	h	0	5	0	12	10	0	0\u{202f}am\u{2009}\u{2013}\u{2009}0\u{202f}pm
+time	hi-u-hc-h12	short	0	30	0	12:30 am
+time	hi-u-hc-h12	short	12	5	9	12:05 pm
+time	hi-u-hc-h12	short	23	59	59	11:59 pm
+time	hi-u-hc-h12	medium	0	30	0	12:30:00 am
+time	hi-u-hc-h12	medium	12	5	9	12:05:09 pm
+time	hi-u-hc-h12	medium	23	59	59	11:59:59 pm
+datetime	hi-u-hc-h12	short	0	30	0	6/7/24, 12:30 am
+datetime	hi-u-hc-h12	short	12	5	9	6/7/24, 12:05 pm
+skeleton	hi-u-hc-h12	hm	0	30	0	12:30 am	h:mm a
+skeleton	hi-u-hc-h12	hm	12	5	9	12:05 pm	h:mm a
+skeleton	hi-u-hc-h12	Hm	0	30	0	00:30	HH:mm
+skeleton	hi-u-hc-h12	Hm	12	5	9	12:05	HH:mm
+skeleton	hi-u-hc-h12	hms	0	30	0	12:30:00 am	h:mm:ss a
+skeleton	hi-u-hc-h12	hms	12	5	9	12:05:09 pm	h:mm:ss a
+skeleton	hi-u-hc-h12	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	hi-u-hc-h12	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	hi-u-hc-h12	jm	0	30	0	12:30 am	h:mm a
+skeleton	hi-u-hc-h12	jm	12	5	9	12:05 pm	h:mm a
+skeleton	hi-u-hc-h12	jms	0	30	0	12:30:00 am	h:mm:ss a
+skeleton	hi-u-hc-h12	jms	12	5	9	12:05:09 pm	h:mm:ss a
+skeleton	hi-u-hc-h12	Kms	0	30	0	12:30:00 am	h:mm:ss a
+skeleton	hi-u-hc-h12	Kms	12	5	9	12:05:09 pm	h:mm:ss a
+skeleton	hi-u-hc-h12	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	hi-u-hc-h12	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	hi-u-hc-h12	h	0	30	0	12\u{202f}am	h\u{202f}a
+skeleton	hi-u-hc-h12	h	12	5	9	12\u{202f}pm	h\u{202f}a
+skeleton	hi-u-hc-h12	H	0	30	0	00	HH
+skeleton	hi-u-hc-h12	H	12	5	9	12	HH
+skeleton	hi-u-hc-h12	Bhm	0	30	0	\u{930}\u{93e}\u{924} 12:30	B h:mm
+skeleton	hi-u-hc-h12	Bhm	12	5	9	\u{926}\u{94b}\u{92a}\u{939}\u{930} 12:05	B h:mm
+interval	hi-u-hc-h12	hm	0	30	0	1	15	0	12:30\u{2013}1:15 am
+interval	hi-u-hc-h12	hm	10	0	0	14	0	0	10:00 am\u{2009}\u{2013}\u{2009}2:00 pm
+interval	hi-u-hc-h12	hm	0	5	0	12	10	0	12:05 am\u{2009}\u{2013}\u{2009}12:10 pm
+interval	hi-u-hc-h12	Hm	0	30	0	1	15	0	00:30\u{2013}01:15
+interval	hi-u-hc-h12	Hm	10	0	0	14	0	0	10:00\u{2013}14:00
+interval	hi-u-hc-h12	Hm	0	5	0	12	10	0	00:05\u{2013}12:10
+interval	hi-u-hc-h12	jm	0	30	0	1	15	0	12:30\u{2013}1:15 am
+interval	hi-u-hc-h12	jm	10	0	0	14	0	0	10:00 am\u{2009}\u{2013}\u{2009}2:00 pm
+interval	hi-u-hc-h12	jm	0	5	0	12	10	0	12:05 am\u{2009}\u{2013}\u{2009}12:10 pm
+interval	hi-u-hc-h12	h	0	30	0	1	15	0	12\u{2013}1\u{202f}am
+interval	hi-u-hc-h12	h	10	0	0	14	0	0	10\u{202f}am\u{2009}\u{2013}\u{2009}2\u{202f}pm
+interval	hi-u-hc-h12	h	0	5	0	12	10	0	12\u{202f}am\u{2009}\u{2013}\u{2009}12\u{202f}pm
+time	hi-u-hc-h23	short	0	30	0	00:30
+time	hi-u-hc-h23	short	12	5	9	12:05
+time	hi-u-hc-h23	short	23	59	59	23:59
+time	hi-u-hc-h23	medium	0	30	0	00:30:00
+time	hi-u-hc-h23	medium	12	5	9	12:05:09
+time	hi-u-hc-h23	medium	23	59	59	23:59:59
+datetime	hi-u-hc-h23	short	0	30	0	6/7/24, 00:30
+datetime	hi-u-hc-h23	short	12	5	9	6/7/24, 12:05
+skeleton	hi-u-hc-h23	hm	0	30	0	12:30 am	h:mm a
+skeleton	hi-u-hc-h23	hm	12	5	9	12:05 pm	h:mm a
+skeleton	hi-u-hc-h23	Hm	0	30	0	00:30	HH:mm
+skeleton	hi-u-hc-h23	Hm	12	5	9	12:05	HH:mm
+skeleton	hi-u-hc-h23	hms	0	30	0	12:30:00 am	h:mm:ss a
+skeleton	hi-u-hc-h23	hms	12	5	9	12:05:09 pm	h:mm:ss a
+skeleton	hi-u-hc-h23	Hms	0	30	0	00:30:00	HH:mm:ss
+skeleton	hi-u-hc-h23	Hms	12	5	9	12:05:09	HH:mm:ss
+skeleton	hi-u-hc-h23	jm	0	30	0	00:30	HH:mm
+skeleton	hi-u-hc-h23	jm	12	5	9	12:05	HH:mm
+skeleton	hi-u-hc-h23	jms	0	30	0	00:30:00	HH:mm:ss
+skeleton	hi-u-hc-h23	jms	12	5	9	12:05:09	HH:mm:ss
+skeleton	hi-u-hc-h23	Kms	0	30	0	12:30:00 am	h:mm:ss a
+skeleton	hi-u-hc-h23	Kms	12	5	9	12:05:09 pm	h:mm:ss a
+skeleton	hi-u-hc-h23	kms	0	30	0	00:30:00	HH:mm:ss
+skeleton	hi-u-hc-h23	kms	12	5	9	12:05:09	HH:mm:ss
+skeleton	hi-u-hc-h23	h	0	30	0	12\u{202f}am	h\u{202f}a
+skeleton	hi-u-hc-h23	h	12	5	9	12\u{202f}pm	h\u{202f}a
+skeleton	hi-u-hc-h23	H	0	30	0	00	HH
+skeleton	hi-u-hc-h23	H	12	5	9	12	HH
+skeleton	hi-u-hc-h23	Bhm	0	30	0	\u{930}\u{93e}\u{924} 12:30	B h:mm
+skeleton	hi-u-hc-h23	Bhm	12	5	9	\u{926}\u{94b}\u{92a}\u{939}\u{930} 12:05	B h:mm
+interval	hi-u-hc-h23	hm	0	30	0	1	15	0	12:30\u{2013}1:15 am
+interval	hi-u-hc-h23	hm	10	0	0	14	0	0	10:00 am\u{2009}\u{2013}\u{2009}2:00 pm
+interval	hi-u-hc-h23	hm	0	5	0	12	10	0	12:05 am\u{2009}\u{2013}\u{2009}12:10 pm
+interval	hi-u-hc-h23	Hm	0	30	0	1	15	0	00:30\u{2013}01:15
+interval	hi-u-hc-h23	Hm	10	0	0	14	0	0	10:00\u{2013}14:00
+interval	hi-u-hc-h23	Hm	0	5	0	12	10	0	00:05\u{2013}12:10
+interval	hi-u-hc-h23	jm	0	30	0	1	15	0	00:30\u{2013}01:15
+interval	hi-u-hc-h23	jm	10	0	0	14	0	0	10:00\u{2013}14:00
+interval	hi-u-hc-h23	jm	0	5	0	12	10	0	00:05\u{2013}12:10
+interval	hi-u-hc-h23	h	0	30	0	1	15	0	12\u{2013}1\u{202f}am
+interval	hi-u-hc-h23	h	10	0	0	14	0	0	10\u{202f}am\u{2009}\u{2013}\u{2009}2\u{202f}pm
+interval	hi-u-hc-h23	h	0	5	0	12	10	0	12\u{202f}am\u{2009}\u{2013}\u{2009}12\u{202f}pm
+time	hi-u-hc-h24	short	0	30	0	24:30
+time	hi-u-hc-h24	short	12	5	9	12:05
+time	hi-u-hc-h24	short	23	59	59	23:59
+time	hi-u-hc-h24	medium	0	30	0	24:30:00
+time	hi-u-hc-h24	medium	12	5	9	12:05:09
+time	hi-u-hc-h24	medium	23	59	59	23:59:59
+datetime	hi-u-hc-h24	short	0	30	0	6/7/24, 24:30
+datetime	hi-u-hc-h24	short	12	5	9	6/7/24, 12:05
+skeleton	hi-u-hc-h24	hm	0	30	0	12:30 am	h:mm a
+skeleton	hi-u-hc-h24	hm	12	5	9	12:05 pm	h:mm a
+skeleton	hi-u-hc-h24	Hm	0	30	0	24:30	kk:mm
+skeleton	hi-u-hc-h24	Hm	12	5	9	12:05	kk:mm
+skeleton	hi-u-hc-h24	hms	0	30	0	12:30:00 am	h:mm:ss a
+skeleton	hi-u-hc-h24	hms	12	5	9	12:05:09 pm	h:mm:ss a
+skeleton	hi-u-hc-h24	Hms	0	30	0	24:30:00	kk:mm:ss
+skeleton	hi-u-hc-h24	Hms	12	5	9	12:05:09	kk:mm:ss
+skeleton	hi-u-hc-h24	jm	0	30	0	24:30	kk:mm
+skeleton	hi-u-hc-h24	jm	12	5	9	12:05	kk:mm
+skeleton	hi-u-hc-h24	jms	0	30	0	24:30:00	kk:mm:ss
+skeleton	hi-u-hc-h24	jms	12	5	9	12:05:09	kk:mm:ss
+skeleton	hi-u-hc-h24	Kms	0	30	0	12:30:00 am	h:mm:ss a
+skeleton	hi-u-hc-h24	Kms	12	5	9	12:05:09 pm	h:mm:ss a
+skeleton	hi-u-hc-h24	kms	0	30	0	24:30:00	kk:mm:ss
+skeleton	hi-u-hc-h24	kms	12	5	9	12:05:09	kk:mm:ss
+skeleton	hi-u-hc-h24	h	0	30	0	12\u{202f}am	h\u{202f}a
+skeleton	hi-u-hc-h24	h	12	5	9	12\u{202f}pm	h\u{202f}a
+skeleton	hi-u-hc-h24	H	0	30	0	24	kk
+skeleton	hi-u-hc-h24	H	12	5	9	12	kk
+skeleton	hi-u-hc-h24	Bhm	0	30	0	\u{930}\u{93e}\u{924} 12:30	B h:mm
+skeleton	hi-u-hc-h24	Bhm	12	5	9	\u{926}\u{94b}\u{92a}\u{939}\u{930} 12:05	B h:mm
+interval	hi-u-hc-h24	hm	0	30	0	1	15	0	12:30\u{2013}1:15 am
+interval	hi-u-hc-h24	hm	10	0	0	14	0	0	10:00 am\u{2009}\u{2013}\u{2009}2:00 pm
+interval	hi-u-hc-h24	hm	0	5	0	12	10	0	12:05 am\u{2009}\u{2013}\u{2009}12:10 pm
+interval	hi-u-hc-h24	Hm	0	30	0	1	15	0	24:30\u{2013}01:15
+interval	hi-u-hc-h24	Hm	10	0	0	14	0	0	10:00\u{2013}14:00
+interval	hi-u-hc-h24	Hm	0	5	0	12	10	0	24:05\u{2013}12:10
+interval	hi-u-hc-h24	jm	0	30	0	1	15	0	24:30\u{2013}01:15
+interval	hi-u-hc-h24	jm	10	0	0	14	0	0	10:00\u{2013}14:00
+interval	hi-u-hc-h24	jm	0	5	0	12	10	0	24:05\u{2013}12:10
+interval	hi-u-hc-h24	h	0	30	0	1	15	0	12\u{2013}1\u{202f}am
+interval	hi-u-hc-h24	h	10	0	0	14	0	0	10\u{202f}am\u{2009}\u{2013}\u{2009}2\u{202f}pm
+interval	hi-u-hc-h24	h	0	5	0	12	10	0	12\u{202f}am\u{2009}\u{2013}\u{2009}12\u{202f}pm

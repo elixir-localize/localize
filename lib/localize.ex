@@ -81,6 +81,7 @@ defmodule Localize do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
   require Logger
   alias Localize.Locale
 
@@ -427,6 +428,9 @@ defmodule Localize do
     end
   end
 
+  def with_locale(_locale, fun),
+    do: {:error, Localize.Utils.Helpers.invalid_value(fun, "a function of arity 0")}
+
   defp resolve_and_cache_default_locale do
     # Pre-seed the cache with `:en` so a recursive lookup during resolution sees a
     # usable value instead of looping back here. The cache is overwritten below
@@ -700,7 +704,9 @@ defmodule Localize do
 
   """
   @spec quote(String.t(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
-  def quote(string, options \\ []) when is_binary(string) do
+  def quote(string, options \\ [])
+
+  def quote(string, options) when is_binary(string) and is_keyword_list(options) do
     locale = Keyword.get(options, :locale, get_locale())
     format = Keyword.get(options, :format, :default)
 
@@ -712,6 +718,12 @@ defmodule Localize do
       {:ok, open <> string <> close}
     end
   end
+
+  def quote(_string, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def quote(string, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(string, "a string")}
 
   # An unknown format previously fell through to empty delimiters and
   # returned the input unchanged with `{:ok, _}` \u2014 a typo in the option
@@ -777,55 +789,77 @@ defmodule Localize do
   """
   @spec ellipsis(String.t() | [String.t()], Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def ellipsis(string, options \\ []) do
+  def ellipsis(string, options \\ [])
+
+  def ellipsis(string, options) when is_binary(string) and is_keyword_list(options) do
+    ellipsis_in_locale(string, options)
+  end
+
+  def ellipsis([string_1, string_2] = strings, options)
+      when is_binary(string_1) and is_binary(string_2) and is_keyword_list(options) do
+    ellipsis_in_locale(strings, options)
+  end
+
+  def ellipsis(_string, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def ellipsis(string, _options),
+    do:
+      {:error, Localize.Utils.Helpers.invalid_value(string, "a string or a list of two strings")}
+
+  defp ellipsis_in_locale(string, options) do
     locale = Keyword.get(options, :locale, get_locale())
     format = Keyword.get(options, :format, :sentence)
     location = Keyword.get(options, :location, default_ellipsis_location(string))
 
     with {:ok, locale_id} <- Locale.cldr_locale_id_from(locale),
          {:ok, ellipsis_chars} <- Localize.Locale.get(locale_id, [:ellipsis]) do
-      result = apply_ellipsis(string, ellipsis_chars, location, format)
-      {:ok, result}
+      apply_ellipsis(string, ellipsis_chars, location, format)
     end
   end
 
   defp default_ellipsis_location(list) when is_list(list), do: :between
   defp default_ellipsis_location(_string), do: :after
 
-  defp apply_ellipsis([string_1, string_2], chars, :between, :word) do
-    [string_1, string_2]
-    |> Localize.Substitution.substitute(chars.word_medial)
+  defp apply_ellipsis(strings, chars, :between, :word) when is_list(strings),
+    do: {:ok, substitute_ellipsis(strings, chars.word_medial)}
+
+  defp apply_ellipsis(strings, chars, :between, :sentence) when is_list(strings),
+    do: {:ok, substitute_ellipsis(strings, chars.medial)}
+
+  defp apply_ellipsis(string, chars, :after, :word) when is_binary(string),
+    do: {:ok, substitute_ellipsis(string, chars.word_final)}
+
+  defp apply_ellipsis(string, chars, :after, :sentence) when is_binary(string),
+    do: {:ok, substitute_ellipsis(string, chars.final)}
+
+  defp apply_ellipsis(string, chars, :before, :word) when is_binary(string),
+    do: {:ok, substitute_ellipsis(string, chars.word_initial)}
+
+  defp apply_ellipsis(string, chars, :before, :sentence) when is_binary(string),
+    do: {:ok, substitute_ellipsis(string, chars.initial)}
+
+  defp apply_ellipsis(_string, _chars, _location, format) when format not in [:sentence, :word],
+    do: {:error, ellipsis_option_error(format, :ellipsis_format, [:sentence, :word])}
+
+  defp apply_ellipsis(strings, _chars, location, _format) when is_list(strings),
+    do: {:error, ellipsis_option_error(location, :ellipsis_location, [:between])}
+
+  defp apply_ellipsis(_string, _chars, location, _format),
+    do: {:error, ellipsis_option_error(location, :ellipsis_location, [:after, :before])}
+
+  defp substitute_ellipsis(value, pattern) do
+    value
+    |> Localize.Substitution.substitute(pattern)
     |> :erlang.iolist_to_binary()
   end
 
-  defp apply_ellipsis([string_1, string_2], chars, :between, :sentence) do
-    [string_1, string_2]
-    |> Localize.Substitution.substitute(chars.medial)
-    |> :erlang.iolist_to_binary()
-  end
-
-  defp apply_ellipsis(string, chars, :after, :word) when is_binary(string) do
-    string
-    |> Localize.Substitution.substitute(chars.word_final)
-    |> :erlang.iolist_to_binary()
-  end
-
-  defp apply_ellipsis(string, chars, :after, :sentence) when is_binary(string) do
-    string
-    |> Localize.Substitution.substitute(chars.final)
-    |> :erlang.iolist_to_binary()
-  end
-
-  defp apply_ellipsis(string, chars, :before, :word) when is_binary(string) do
-    string
-    |> Localize.Substitution.substitute(chars.word_initial)
-    |> :erlang.iolist_to_binary()
-  end
-
-  defp apply_ellipsis(string, chars, :before, :sentence) when is_binary(string) do
-    string
-    |> Localize.Substitution.substitute(chars.initial)
-    |> :erlang.iolist_to_binary()
+  defp ellipsis_option_error(value, expected, allowed_values) do
+    Localize.InvalidValueError.exception(
+      value: value,
+      expected: expected,
+      allowed_values: allowed_values
+    )
   end
 
   @doc """
@@ -937,6 +971,8 @@ defmodule Localize do
 
   * `:ok`.
 
+  * `{:error, exception}` if `locales` is not a list of atoms.
+
   ### Examples
 
       iex> original = Localize.supported_locales()
@@ -954,11 +990,15 @@ defmodule Localize do
       :ok
 
   """
-  @spec put_supported_locales([atom()]) :: :ok
-  def put_supported_locales(locales) when is_list(locales) do
+  @spec put_supported_locales([atom()]) :: :ok | {:error, Exception.t()}
+  def put_supported_locales(locales)
+      when locales == [] or (is_list(locales) and is_atom(hd(locales))) do
     :persistent_term.put({:localize, :supported_locales}, locales)
     Localize.Locale.Loader.clear_locale_cache()
   end
+
+  def put_supported_locales(locales),
+    do: {:error, Localize.Utils.Helpers.invalid_value(locales, "a list of locale ids")}
 
   @doc """
   Returns a list of all known CLDR locale name atoms.
@@ -996,6 +1036,8 @@ defmodule Localize do
 
   * A sorted list of locale ID atoms.
 
+  * `{:error, exception}` if `level` is not a coverage level.
+
   ### Examples
 
       iex> locales = Localize.all_locale_ids(:modern)
@@ -1006,10 +1048,19 @@ defmodule Localize do
       true
 
   """
-  @spec all_locale_ids(:basic | :moderate | :modern) :: [atom()]
+  @spec all_locale_ids(:basic | :moderate | :modern) :: [atom()] | {:error, Exception.t()}
   def all_locale_ids(level) when level in @coverage_levels do
     Localize.SupplementalData.coverage_levels()
     |> Map.fetch!(level)
+  end
+
+  def all_locale_ids(level) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: level,
+       expected: :coverage_level,
+       allowed_values: @coverage_levels
+     )}
   end
 
   @doc """
@@ -1045,6 +1096,8 @@ defmodule Localize do
     # caller-supplied unknown string never interns a new atom.
     MapSet.member?(all_locale_id_strings(), locale_name)
   end
+
+  def available_locale_id?(_locale_name), do: false
 
   @doc """
   Returns a list of all known CLDR calendar types
@@ -1401,6 +1454,9 @@ defmodule Localize do
     end
   end
 
+  def validate_calendar(calendar),
+    do: {:error, Localize.UnknownCalendarError.exception(calendar: calendar)}
+
   # Returns a known-calendar atom for the given string, or nil when the
   # string does not name a known calendar. Never interns a new atom.
   defp normalize_calendar(name) when is_binary(name) do
@@ -1458,6 +1514,9 @@ defmodule Localize do
       {:error, Localize.UnknownNumberSystemError.exception(number_system: number_system)}
     end
   end
+
+  def validate_number_system(number_system),
+    do: {:error, Localize.UnknownNumberSystemError.exception(number_system: number_system)}
 
   @doc """
   Validates a territory subdivision code.
@@ -1590,6 +1649,9 @@ defmodule Localize do
     end
   end
 
+  def validate_measurement_system(system),
+    do: {:error, Localize.UnknownMeasurementSystemError.exception(measurement_system: system)}
+
   @doc """
   Validates a locale identifier or language tag.
 
@@ -1671,13 +1733,14 @@ defmodule Localize do
   @spec validate_locale(Localize.LanguageTag.t() | String.t() | atom()) ::
           {:ok, Localize.LanguageTag.t()} | {:error, Exception.t()}
 
-  def validate_locale(%Localize.LanguageTag{cldr_locale_id: cldr_locale_id} = language_tag)
-      when not is_nil(cldr_locale_id) do
-    maybe_restrict_to_supported(language_tag)
-  end
-
-  def validate_locale(%Localize.LanguageTag{cldr_locale_id: nil} = language_tag) do
-    resolve_cldr_locale(language_tag)
+  # A struct built by hand can carry fields of the wrong shape, which are
+  # reported as an invalid locale rather than raised on.
+  def validate_locale(%Localize.LanguageTag{} = language_tag) do
+    case Localize.LanguageTag.validate_fields(language_tag) do
+      {:ok, %Localize.LanguageTag{cldr_locale_id: nil} = tag} -> resolve_cldr_locale(tag)
+      {:ok, tag} -> maybe_restrict_to_supported(tag)
+      {:error, _exception} = error -> error
+    end
   end
 
   def validate_locale(locale_id) when is_binary(locale_id) do

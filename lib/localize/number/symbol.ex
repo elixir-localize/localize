@@ -96,10 +96,12 @@ defmodule Localize.Number.Symbol do
     no symbols exist for the number system.
 
   When the requested number system has no symbol data of its own in
-  the locale, the symbols of the locale's default number system are
-  returned. This mirrors CLDR inheritance, where root aliases every
-  other numbering system's symbols to `latn`, and is what makes a
-  `-u-nu-` override such as `en-u-nu-thai` formattable.
+  the locale, the locale's `latn` symbols stand in, as CLDR's root
+  aliases every numbering system's symbols to `latn`. The exceptions
+  are `arab` and `arabext`, whose root symbols are not in the CLDR JSON;
+  for those the symbols of the locale's default number system stand in.
+  This is what makes a `-u-nu-` override such as `en-u-nu-thai`
+  formattable.
 
   ### Examples
 
@@ -117,8 +119,7 @@ defmodule Localize.Number.Symbol do
 
     with {:ok, locale_id} <- cldr_locale_id_from(locale),
          {:ok, symbols} <- number_symbols_for(locale_id) do
-      case Map.get(symbols, system_name) ||
-             default_system_symbols(symbols, locale_id, system_name) do
+      case Map.get(symbols, system_name) || inherited_symbols(symbols, locale_id, system_name) do
         nil ->
           {:error,
            Localize.InvalidValueError.exception(
@@ -134,19 +135,15 @@ defmodule Localize.Number.Symbol do
     end
   end
 
-  # CLDR inheritance: symbols for a numbering system the locale carries
-  # no data for inherit from the locale's default numbering system —
-  # root aliases them to `latn`. The fallback applies only to systems
-  # in the CLDR inventory so an unknown system name still errors, and
-  # the default is read from the locale data, not from any `-u-nu-`
-  # override on the locale.
-  defp default_system_symbols(symbols, locale_id, system_name) do
-    with true <- Map.has_key?(Localize.Number.System.number_systems(), system_name),
-         {:ok, %{default: default_system}} <-
-           Localize.Number.System.number_systems_for(locale_id) do
-      Map.get(symbols, default_system)
-    else
-      _unknown_system_or_error -> nil
+  # Symbols for a numbering system the locale carries no data for come from
+  # the first of `Localize.Number.System.fallback_systems/2` it has. Only
+  # systems in the CLDR inventory inherit, so an unknown system name still
+  # errors.
+  defp inherited_symbols(symbols, locale_id, system_name) do
+    if Map.has_key?(Localize.Number.System.number_systems(), system_name) do
+      locale_id
+      |> Localize.Number.System.fallback_systems(system_name)
+      |> Enum.find_value(&Map.get(symbols, &1))
     end
   end
 
@@ -163,4 +160,6 @@ defmodule Localize.Number.Symbol do
   defp to_system_atom(system) when is_binary(system) do
     Localize.Utils.Helpers.existing_atom(system)
   end
+
+  defp to_system_atom(_system), do: nil
 end

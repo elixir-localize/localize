@@ -17,6 +17,8 @@ defmodule Localize.Number.Formatter.Ratio do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.Substitution
 
   @superscript_map %{
@@ -90,15 +92,16 @@ defmodule Localize.Number.Formatter.Ratio do
   * `:max_iterations` is the maximum number of continued fraction
     iterations. The default is `20`.
 
-  * `:epsilon` is the tolerance for float comparisons. The default
-    is `1.0e-10`.
+  * `:epsilon` is the tolerance, a number between 0 and 1, below
+    which a fraction is treated as zero. The default is `1.0e-10`.
 
   ### Returns
 
   * `{:ok, formatted_string}` on success.
 
-  * `{:error, exception}` if the number cannot be converted to
-    a ratio or locale data is unavailable.
+  * `{:error, exception}` if the number or an option is not valid,
+    the number cannot be converted to a ratio, or locale data is
+    unavailable.
 
   ### Examples
 
@@ -111,32 +114,39 @@ defmodule Localize.Number.Formatter.Ratio do
   """
   @spec to_ratio_string(number() | Decimal.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def to_ratio_string(number, options \\ []) do
+  def to_ratio_string(number, options \\ [])
+
+  def to_ratio_string(number, options)
+      when (is_number(number) or is_struct(number, Decimal)) and is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     prefer = List.wrap(Keyword.get(options, :prefer, [:default]))
+    epsilon = Keyword.get(options, :epsilon, 1.0e-10)
 
     ratio_options = [
       max_denominator: Keyword.get(options, :max_denominator, 10),
       max_iterations: Keyword.get(options, :max_iterations, 20),
-      epsilon: Keyword.get(options, :epsilon, 1.0e-10)
+      epsilon: epsilon
     ]
 
     number_options = Keyword.put_new(options, :locale, locale)
 
-    with {:ok, language_tag} <- Localize.validate_locale(locale),
+    with :ok <- validate_ratio_options(ratio_options),
+         {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, number_system} <- Localize.Number.System.number_system_from_locale(language_tag),
          {:ok, formats} <- Localize.Number.Format.formats_for(language_tag, number_system),
          {:ok, rational_formats} <- extract_rational_formats(formats, language_tag) do
       float_number = to_float(number)
 
+      # A fraction within `:epsilon` of zero has no continued fraction to
+      # render, so the number formats without one.
       case number_to_integer_and_fraction(float_number) do
-        {integer, fraction} when integer == 0 and fraction == +0.0 ->
+        {0, fraction} when abs(fraction) < epsilon ->
           Localize.Number.to_string(number, number_options)
 
         {0, fraction} ->
           format_fraction(fraction, rational_formats, prefer, ratio_options, number_options)
 
-        {integer, +0.0} ->
+        {integer, fraction} when abs(fraction) < epsilon ->
           Localize.Number.to_string(integer, number_options)
 
         {integer, fraction} ->
@@ -150,6 +160,42 @@ defmodule Localize.Number.Formatter.Ratio do
           )
       end
     end
+  end
+
+  def to_ratio_string(_number, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def to_ratio_string(number, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(number, "a number or a Decimal")}
+
+  # `:max_denominator` and `:max_iterations` bound the continued-fraction
+  # search, and `:epsilon` is the tolerance below which a fraction is zero.
+  defp validate_ratio_options([]), do: :ok
+
+  defp validate_ratio_options([{key, value} | rest])
+       when key in [:max_denominator, :max_iterations] and is_integer(value) and value > 0,
+       do: validate_ratio_options(rest)
+
+  defp validate_ratio_options([{:epsilon, value} | rest])
+       when is_number(value) and value > 0 and value < 1,
+       do: validate_ratio_options(rest)
+
+  defp validate_ratio_options([{:epsilon, value} | _rest]) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: value,
+       expected: "a number between 0 and 1",
+       context: "the :epsilon option"
+     )}
+  end
+
+  defp validate_ratio_options([{key, value} | _rest]) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: value,
+       expected: "a positive integer",
+       context: "the #{inspect(key)} option"
+     )}
   end
 
   # ── Private helpers ──────────────────────────────────────────

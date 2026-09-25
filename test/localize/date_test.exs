@@ -93,7 +93,8 @@ defmodule Localize.DateTest do
 
   describe "to_string/2 with partial dates" do
     test "year and month" do
-      assert {:ok, "6/2024"} = Localize.Date.to_string(%{year: 2024, month: 6}, locale: :en)
+      # With no format the default, `:medium`, applies: an abbreviated month.
+      assert {:ok, "Jun 2024"} = Localize.Date.to_string(%{year: 2024, month: 6}, locale: :en)
     end
 
     test "year and month with skeleton" do
@@ -116,15 +117,29 @@ defmodule Localize.DateTest do
                Localize.Date.to_string(%{year: 2024}, format: :y, locale: :en)
     end
 
-    test "standard format rejected for partial date" do
-      result = Localize.Date.to_string(%{year: 2024, month: 6}, format: :medium, locale: :en)
-      assert match?({:error, _}, result)
+    test "a standard format derives the skeleton from the fields present" do
+      # en `yM` is "M/y", `yMMM` "MMM y" and `yMMMM` "MMMM y"; de `Md` is
+      # "d.M." and `MMMMd` "d. MMMM".
+      year_month = %{year: 2024, month: 6}
+
+      assert {:ok, "6/2024"} = Localize.Date.to_string(year_month, format: :short, locale: :en)
+      assert {:ok, "Jun 2024"} = Localize.Date.to_string(year_month, format: :medium, locale: :en)
+      assert {:ok, "June 2024"} = Localize.Date.to_string(year_month, format: :long, locale: :en)
+      assert {:ok, "June 2024"} = Localize.Date.to_string(year_month, format: :full, locale: :en)
+
+      assert {:ok, "15.6."} =
+               Localize.Date.to_string(%{month: 6, day: 15}, format: :short, locale: :de)
+
+      assert {:ok, "15. Juni"} =
+               Localize.Date.to_string(%{month: 6, day: 15}, format: :long, locale: :de)
     end
 
-    test "derive_format_id/1 produces canonical order" do
-      assert :yM = Localize.Date.derive_format_id(%{year: 2024, month: 6})
-      assert :Md = Localize.Date.derive_format_id(%{month: 6, day: 15})
-      assert :yMd = Localize.Date.derive_format_id(%{year: 2024, month: 6, day: 15})
+    test "derive_format_id/2 produces canonical order with the format's month width" do
+      assert :yMMM = Localize.Date.derive_format_id(%{year: 2024, month: 6})
+      assert :MMMd = Localize.Date.derive_format_id(%{month: 6, day: 15})
+      assert :yMd = Localize.Date.derive_format_id(%{year: 2024, month: 6, day: 15}, :short)
+      assert :yMMMMd = Localize.Date.derive_format_id(%{year: 2024, month: 6, day: 15}, :long)
+      assert :d = Localize.Date.derive_format_id(%{day: 15}, :full)
     end
   end
 

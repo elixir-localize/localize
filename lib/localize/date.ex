@@ -3,8 +3,10 @@ defmodule Localize.Date do
   Provides localized formatting of `Date` structs and date-like maps.
 
   Supports both full dates (`%{year: _, month: _, day: _}`) and partial
-  dates (any map with one or more of `:year`, `:month`, `:day`). For
-  partial dates, the format is derived from the available fields.
+  dates (any map with one or more of `:year`, `:month`, `:day`). For a
+  partial date a standard format, or no format, derives the skeleton from
+  the fields present; a skeleton or pattern that asks for a field the date
+  does not have returns `Localize.DateTimeInvalidInputError`.
 
   Formats are defined in CLDR and described in
   [TR35](http://unicode.org/reports/tr35/tr35-dates.html).
@@ -12,6 +14,7 @@ defmodule Localize.Date do
   """
 
   import Kernel, except: [to_string: 1]
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
   @standard_formats [:short, :medium, :long, :full]
   @default_format :medium
@@ -38,10 +41,11 @@ defmodule Localize.Date do
   ### Options
 
   * `:format` is a standard format name (`:short`, `:medium`,
-    `:long`, `:full`), a format skeleton atom, or a format
-    pattern string. The default is `:medium` for full dates.
-    For partial dates the format is derived from the available
-    fields.
+    `:long`, `:full`), a format skeleton atom or a format pattern
+    string. The default is `:medium`. For a partial date a
+    standard format derives its skeleton from the fields present,
+    with the month numeric at `:short`, abbreviated at `:medium`
+    and wide at `:long` and `:full`.
 
   * `:locale` is a locale identifier. The default is `:en`.
 
@@ -78,6 +82,9 @@ defmodule Localize.Date do
       iex> Localize.Date.to_string(%{year: 2024, month: 6}, format: :yMMM, locale: :fr)
       {:ok, "juin 2024"}
 
+      iex> Localize.Date.to_string(%{year: 2024, month: 6}, format: :long, locale: :en)
+      {:ok, "June 2024"}
+
   """
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(date, options \\ []) do
@@ -88,7 +95,8 @@ defmodule Localize.Date do
 
   # Resolves the format pattern, locale, and formatter options for a
   # date — the shared front half of `to_string/2` and `to_parts/2`.
-  defp formatting_plan(%{year: _, month: _, day: _} = date, options) do
+  defp formatting_plan(%{year: _, month: _, day: _} = date, options)
+       when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
 
@@ -107,7 +115,7 @@ defmodule Localize.Date do
   end
 
   # Partial date
-  defp formatting_plan(date, options) when has_date_field(date) do
+  defp formatting_plan(date, options) when has_date_field(date) and is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format)
 
@@ -118,36 +126,32 @@ defmodule Localize.Date do
     end
   end
 
+  defp formatting_plan(_date, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
   defp formatting_plan(_date, _options) do
     {:error, Localize.DateTimeInvalidInputError.exception(type: :date)}
   end
 
-  # Resolve the format for a partial date. Standard formats are
-  # not accepted for partial dates; when no format is given the
-  # format skeleton is derived from the available fields.
+  # Resolve the format for a partial date. A pattern string or a skeleton
+  # is used as given. A standard format, or no format at all, derives the
+  # skeleton from the fields present, with the month as wide as the format
+  # asks: numeric at `:short`, abbreviated at `:medium` (the default) and
+  # wide at `:long` and `:full`.
   defp resolve_partial_format(format, _date) when is_binary(format) do
     format
   end
 
-  defp resolve_partial_format(format, _date)
-       when is_atom(format) and format != nil and format not in @standard_formats do
+  defp resolve_partial_format(format, date) when format in @standard_formats do
+    derive_format_id(date, format)
+  end
+
+  defp resolve_partial_format(nil, date) do
+    derive_format_id(date, @default_format)
+  end
+
+  defp resolve_partial_format(format, _date) do
     format
-  end
-
-  defp resolve_partial_format(format, _date) when format in @standard_formats do
-    nil
-  end
-
-  defp resolve_partial_format(_format, date) do
-    derive_format_id(date)
-  end
-
-  defp partial_formatting_plan(nil, _date, format, locale_id, _options) do
-    {:error,
-     Localize.DateTimeUnresolvedFormatError.exception(
-       format: format,
-       locale: locale_id
-     )}
   end
 
   defp partial_formatting_plan(resolved_format, date, _format, locale_id, options) do
@@ -273,6 +277,15 @@ defmodule Localize.Date do
 
   # ── Format resolution ──────────────────────────────────────
 
+  @doc false
+  # The pattern `format` resolves to for `date`, as `to_string/2` resolves
+  # it: a standard format through the locale's date formats and a skeleton
+  # through TR35 matching. `Localize.DateTime` resolves the `{1}` half of a
+  # date-time wrapper here.
+  def resolve_pattern(date, format, locale_id, options) do
+    find_format(date, format, locale_id, options)
+  end
+
   defp find_format(_date, format, _locale_id, _options) when is_binary(format) do
     {:ok, format}
   end
@@ -285,12 +298,9 @@ defmodule Localize.Date do
       Localize.DateTime.Format.resolve_format(:date, format, locale_id, cldr_calendar, options)
     else
       # Skeleton format — look up in available_formats
-      resolve_skeleton(
-        skeleton: format,
-        locale_id: locale_id,
-        calendar: cldr_calendar,
-        options: options
-      )
+      [skeleton: format, locale_id: locale_id, calendar: cldr_calendar, options: options]
+      |> resolve_skeleton()
+      |> Localize.DateTime.Formatter.explain_unresolved(date, format)
     end
   end
 
@@ -408,6 +418,17 @@ defmodule Localize.Date do
   #
   # In both cases the recursion is guarded by a `seen` set
   # so a degenerate match cycle (`a → b → a`) terminates.
+  # TR35 matches a skeleton to the closest available format and then adjusts
+  # that format's field widths to the ones actually requested. Only the first
+  # half was happening, and the difference shows wherever CLDR ships no entry
+  # at the requested width: `en` has an `MMM` format and no `MMMM`, so asking
+  # for `:MMMM` matched `MMM` and rendered "Jul" where the literal pattern
+  # `"MMMM"` renders "July". The match was right; the width was not.
+  defp adjust_to_requested_widths(pattern, requested, matched_id) do
+    {:ok, tokens} = Localize.DateTime.Format.Match.tokenize_skeleton(requested)
+    Localize.DateTime.Format.Match.adjust_field_lengths(pattern, tokens, matched_id)
+  end
+
   defp resolve_skeleton_via_best_match(skeleton, locale_id, calendar, options, seen) do
     if MapSet.member?(seen, skeleton) do
       {:error,
@@ -420,13 +441,7 @@ defmodule Localize.Date do
 
       case Localize.DateTime.Format.Match.best_match(skeleton, locale_id, calendar) do
         {:ok, matched_id} when is_atom(matched_id) and matched_id != skeleton ->
-          resolve_skeleton(
-            skeleton: matched_id,
-            locale_id: locale_id,
-            calendar: calendar,
-            options: options,
-            seen: seen
-          )
+          resolve_matched_skeleton(skeleton, matched_id, locale_id, calendar, options, seen)
 
         {:ok, {_date_id, _time_id}} ->
           # Combined date+time skeleton — not applicable for
@@ -451,23 +466,58 @@ defmodule Localize.Date do
             seen: seen
           )
 
-        _ ->
-          {:error,
-           Localize.DateTimeUnresolvedFormatError.exception(
-             format: skeleton,
-             locale: locale_id
-           )}
+        _no_match ->
+          append_items_or_error(skeleton, locale_id, calendar, options)
       end
     end
   end
 
+  defp resolve_matched_skeleton(skeleton, matched_id, locale_id, calendar, options, seen) do
+    with {:ok, pattern} <-
+           resolve_skeleton(
+             skeleton: matched_id,
+             locale_id: locale_id,
+             calendar: calendar,
+             options: options,
+             seen: seen
+           ) do
+      adjust_to_requested_widths(pattern, skeleton, matched_id)
+    end
+  end
+
+  # TR35's last resort before failing: no available format carries every
+  # requested field, so match the closest format that is a subset of the
+  # request and append the fields it lacks from the locale's append-item
+  # templates. `en` has no quarter format, so `:yMMMdQ` becomes
+  # "Jul 6, 2024 (quarter: Q3)" rather than an error.
+  defp append_items_or_error(skeleton, locale_id, calendar, options) do
+    case Localize.DateTime.Format.AppendItems.augment(skeleton, locale_id, calendar, options) do
+      {:ok, pattern} ->
+        {:ok, pattern}
+
+      _unresolvable ->
+        {:error,
+         Localize.DateTimeUnresolvedFormatError.exception(
+           format: skeleton,
+           locale: locale_id
+         )}
+    end
+  end
+
   @doc false
-  def derive_format_id(date) do
+  def derive_format_id(date, format \\ @default_format) do
     @date_fields_ordered
     |> Enum.filter(fn {field, _symbol} -> Map.has_key?(date, field) end)
-    |> Enum.map_join(fn {_field, symbol} -> symbol end)
+    |> Enum.map_join(fn
+      {:month, _symbol} -> month_symbol(format)
+      {_field, symbol} -> symbol
+    end)
     |> String.to_atom()
   end
+
+  defp month_symbol(:short), do: "M"
+  defp month_symbol(:medium), do: "MMM"
+  defp month_symbol(_long_or_full), do: "MMMM"
 
   # ── Locale resolution ──────────────────────────────────────
 

@@ -76,6 +76,23 @@ defmodule Localize.Utils.Http do
     #{inspect(@default_connection_timeout)}. This option may also be set
     with the `LOCALIZE_HTTP_CONNECTION_TIMEOUT` environment variable.
 
+  * `:retries` is how many times a failure worth retrying is tried again: a
+    408, 429, 500, 502, 503 or 504 response, a timeout, or a connection that
+    failed or dropped. Each retry waits twice as long as the last, starting
+    from `:retry_delay`, plus jitter. Any other failure, such as a 404, is
+    returned at once. The default is 3, or `config :localize, :http_retries`;
+    `0` makes a single attempt.
+
+  * `:retry_delay` is the delay in milliseconds before the first retry,
+    capped at 8000 as it doubles. The default is 500, or
+    `config :localize, :http_retry_delay`.
+
+  * `:ip_family` is `:inet6fb4`, trying IPv6 before falling back to IPv4,
+    or `:inet` or `:inet6` to use one family. A host that advertises IPv6
+    without a working route falls back only after the connection timeout,
+    which `:inet` avoids. The default is `:inet6fb4`, or
+    `config :localize, :http_ip_family`.
+
   ### Returns
 
   * `{:ok, body}` if the return is successful.
@@ -83,8 +100,8 @@ defmodule Localize.Utils.Http do
   * `{:not_modified, headers}` if the request would result in returning
     the same results as one matching an etag.
 
-  * `{:error, error}` if the download is unsuccessful. An error will
-    also be logged in these cases.
+  * `{:error, error}` if the download is unsuccessful after any retries.
+    Each retried failure is logged as a warning and the last as an error.
 
   ### Unsafe HTTPS
 
@@ -187,6 +204,23 @@ defmodule Localize.Utils.Http do
     #{inspect(@default_connection_timeout)}. This option may also be set
     with the `LOCALIZE_HTTP_CONNECTION_TIMEOUT` environment variable.
 
+  * `:retries` is how many times a failure worth retrying is tried again: a
+    408, 429, 500, 502, 503 or 504 response, a timeout, or a connection that
+    failed or dropped. Each retry waits twice as long as the last, starting
+    from `:retry_delay`, plus jitter. Any other failure, such as a 404, is
+    returned at once. The default is 3, or `config :localize, :http_retries`;
+    `0` makes a single attempt.
+
+  * `:retry_delay` is the delay in milliseconds before the first retry,
+    capped at 8000 as it doubles. The default is 500, or
+    `config :localize, :http_retry_delay`.
+
+  * `:ip_family` is `:inet6fb4`, trying IPv6 before falling back to IPv4,
+    or `:inet` or `:inet6` to use one family. A host that advertises IPv6
+    without a working route falls back only after the connection timeout,
+    which `:inet` avoids. The default is `:inet6fb4`, or
+    `config :localize, :http_ip_family`.
+
   * `:https_proxy` is the URL of an HTTPS proxy to be used. The
     default is `nil`.
 
@@ -197,8 +231,8 @@ defmodule Localize.Utils.Http do
   * `{:not_modified, headers}` if the request would result in returning
     the same results as one matching an etag.
 
-  * `{:error, error}` if the download is unsuccessful. An error will
-    also be logged in these cases.
+  * `{:error, error}` if the download is unsuccessful after any retries.
+    Each retried failure is logged as a warning and the last as an error.
 
   ### HTTPS Proxy
 
@@ -224,15 +258,12 @@ defmodule Localize.Utils.Http do
     get_with_headers({url, []}, options)
   end
 
-  # One branch per :httpc response/error shape, each with distinct
-  # logging and error tagging.
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def get_with_headers({url, headers}, options)
       when is_binary(url) and is_list(headers) and is_list(options) do
     hostname = String.to_charlist(URI.parse(url).host)
     url = String.to_charlist(url)
     http_options = http_options(hostname, options)
-    ip_family = :inet6fb4
+    ip_family = ip_family(options)
 
     case proxy_configuration(https_proxy(options)) do
       {:invalid, invalid_proxy} ->
@@ -246,57 +277,145 @@ defmodule Localize.Utils.Http do
         :ok = configure_proxy(configuration, ip_family)
     end
 
-    case :httpc.request(
-           :get,
-           {url, headers},
-           http_options,
-           [body_format: :binary],
-           @httpc_profile
-         ) do
+    request_with_retries({url, headers}, http_options, options, 0, retries(options))
+  end
+
+  # The CDN reports brief internal errors that a client is expected to
+  # retry, and a single attempt turned each one into a failure for the
+  # user. A failure worth retrying is tried again after an exponential
+  # backoff with jitter; one that will not change — a 404, an unknown
+  # host, an oversized body — fails at once. Only the last failure is an
+  # error in the log; the ones retried are warnings.
+  defp request_with_retries(request, http_options, options, attempt, retries) do
+    case request_once(request, http_options, options) do
+      {:failed, reason, description} ->
+        if attempt < retries and retryable?(reason) do
+          delay = retry_delay(attempt, options)
+
+          Logger.warning(
+            "#{description} Retrying in #{delay}ms (attempt #{attempt + 2} of #{retries + 1})."
+          )
+
+          Process.sleep(delay)
+          request_with_retries(request, http_options, options, attempt + 1, retries)
+        else
+          Logger.error(description)
+          {:error, reason}
+        end
+
+      outcome ->
+        outcome
+    end
+  end
+
+  # One branch per :httpc response or error shape. A failure comes back
+  # with the reason the caller sees and a description for the log.
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
+  defp request_once({url, _headers} = request, http_options, options) do
+    case :httpc.request(:get, request, http_options, [body_format: :binary], @httpc_profile) do
       {:ok, {{_version, 200, _}, headers, body}} ->
-        case enforce_body_cap(body, options, url) do
-          :ok -> {:ok, headers, body}
-          {:error, _} = error -> error
+        case enforce_body_cap(body, options) do
+          :ok ->
+            {:ok, headers, body}
+
+          {:too_large, cap} ->
+            {:failed, :response_too_large,
+             "Refusing oversized HTTP response from #{url}: " <>
+               "#{byte_size(body)} bytes exceeds the cap of #{cap} bytes."}
         end
 
       {:ok, {{_version, 304, _}, headers, _body}} ->
         {:not_modified, headers}
 
       {_, {{_version, code, message}, _headers, _body}} ->
-        Logger.error(
-          "Failed to download #{url}. " <>
-            "HTTP Error: (#{code}) #{inspect(message)}"
-        )
+        {:failed, code, "Failed to download #{url}. HTTP Error: (#{code}) #{inspect(message)}"}
 
-        {:error, code}
-
-      {:error,
-       {:failed_connect, [{:to_address, {host, _port}}, {:inet6, _, _}, {_, _, :timeout}]}} ->
-        Logger.error(
-          "Timeout connecting to #{inspect(host)} to download #{inspect(url)}. " <>
-            "Connection time exceeded #{http_options[:connect_timeout]}ms."
-        )
-
-        {:error, :connection_timeout}
-
-      {:error,
-       {:failed_connect, [{:to_address, {host, _port}}, {:inet6, _, _}, {_, _, :nxdomain}]}} ->
-        Logger.error("Failed to resolve host #{inspect(host)} to download #{inspect(url)}")
-
-        {:error, :nxdomain}
+      {:error, {:failed_connect, [{:to_address, {host, _port}} | attempts]} = reason} ->
+        failed_connect(reason, host, List.last(attempts), url, http_options)
 
       {:error, :timeout} ->
-        Logger.error(
-          "Timeout downloading from #{inspect(url)}. " <>
-            "Request exceeded #{http_options[:timeout]}ms."
-        )
-
-        {:error, :timeout}
+        {:failed, :timeout,
+         "Timeout downloading from #{inspect(url)}. " <>
+           "Request exceeded #{http_options[:timeout]}ms."}
 
       {:error, other} ->
-        Logger.error("Failed to download #{inspect(url)}. Error #{inspect(other)}")
+        {:failed, other, "Failed to download #{inspect(url)}. Error #{inspect(other)}"}
+    end
+  end
 
-        {:error, other}
+  # `:httpc` lists the address and then each attempt: one under `:inet` or
+  # `:inet6`, two under `:inet6fb4`, the IPv4 fallback last. The last
+  # attempt says how the connection finally failed.
+  defp failed_connect(_reason, host, {_family, _options, :timeout}, url, http_options) do
+    {:failed, :connection_timeout,
+     "Timeout connecting to #{inspect(host)} to download #{inspect(url)}. " <>
+       "Connection time exceeded #{http_options[:connect_timeout]}ms."}
+  end
+
+  defp failed_connect(_reason, host, {_family, _options, :nxdomain}, url, _http_options) do
+    {:failed, :nxdomain, "Failed to resolve host #{inspect(host)} to download #{inspect(url)}"}
+  end
+
+  defp failed_connect(reason, _host, _last_attempt, url, _http_options) do
+    {:failed, reason, "Failed to download #{inspect(url)}. Error #{inspect(reason)}"}
+  end
+
+  # Server errors, a request the server timed out or throttled, and a
+  # connection that failed or dropped are worth another attempt. Anything
+  # else will fail the same way again: a 404 means the object is absent
+  # for this version, and an unknown host stays unknown.
+  @retryable_statuses [408, 429, 500, 502, 503, 504]
+
+  defp retryable?(status) when is_integer(status), do: status in @retryable_statuses
+  defp retryable?(:connection_timeout), do: true
+  defp retryable?(:timeout), do: true
+  defp retryable?(:socket_closed_remotely), do: true
+  defp retryable?({:failed_connect, [_address | _attempts]}), do: true
+  defp retryable?(_final), do: false
+
+  @default_retries 3
+  @default_retry_delay 500
+  @max_retry_delay 8_000
+
+  defp retries(options) do
+    case Keyword.get(options, :retries, Application.get_env(:localize, :http_retries)) do
+      retries when is_integer(retries) and retries >= 0 -> retries
+      _unset_or_invalid -> @default_retries
+    end
+  end
+
+  # Exponential backoff from the base delay, capped, with up to one base
+  # delay of jitter so that clients retrying together spread out.
+  defp retry_delay(attempt, options) do
+    base =
+      case Keyword.get(options, :retry_delay, Application.get_env(:localize, :http_retry_delay)) do
+        delay when is_integer(delay) and delay >= 0 -> delay
+        _unset_or_invalid -> @default_retry_delay
+      end
+
+    min(base * Integer.pow(2, attempt), @max_retry_delay) + :rand.uniform(base + 1) - 1
+  end
+
+  # `:inet6fb4` tries IPv6 and falls back to IPv4, but a host that
+  # advertises IPv6 without a working route only falls back after the
+  # connection timeout. `:inet` and `:inet6` pin one family.
+  @ip_families [:inet6fb4, :inet, :inet6]
+
+  defp ip_family(options) do
+    case Keyword.get(options, :ip_family, Application.get_env(:localize, :http_ip_family)) do
+      nil ->
+        :inet6fb4
+
+      family when family in @ip_families ->
+        family
+
+      invalid ->
+        Logger.warning(
+          "Localize.Utils.Http: ip_family must be one of #{inspect(@ip_families)}, " <>
+            "found #{inspect(invalid)}. Using :inet6fb4."
+        )
+
+        :inet6fb4
     end
   end
 
@@ -581,19 +700,10 @@ defmodule Localize.Utils.Http do
   # per-call `:max_body_bytes` option). Without this cap a malicious
   # or compromised CDN could feed an arbitrarily-large response and
   # OOM the BEAM — `:httpc` reads the entire body into memory.
-  defp enforce_body_cap(body, options, url) when is_binary(body) do
+  defp enforce_body_cap(body, options) when is_binary(body) do
     cap = Keyword.get(options, :max_body_bytes, max_http_body_bytes())
 
-    if byte_size(body) > cap do
-      Logger.error(
-        "Refusing oversized HTTP response from #{url}: " <>
-          "#{byte_size(body)} bytes exceeds the cap of #{cap} bytes."
-      )
-
-      {:error, :response_too_large}
-    else
-      :ok
-    end
+    if byte_size(body) > cap, do: {:too_large, cap}, else: :ok
   end
 
   @doc false

@@ -83,6 +83,9 @@ defmodule Localize.LanguageTag.U do
     end
   end
 
+  def parse(u_extension),
+    do: {:error, Localize.Utils.Helpers.invalid_value(u_extension, "a -u- extension string")}
+
   @doc """
   Same as `parse/1` but raises on error.
 
@@ -160,13 +163,18 @@ defmodule Localize.LanguageTag.U do
       [{"ca", "gregory"}, {"hc", "h23"}]
 
   """
-  @spec encode(t()) :: [{String.t(), String.t()}]
+  @spec encode(t()) :: [{String.t(), String.t()}] | {:error, Exception.t()}
   def encode(%__MODULE__{} = u_extension) do
     for field <- @fields, value = Map.get(u_extension, field), !is_nil(value) do
       Localize.Validity.U.encode(field, value)
     end
     |> Enum.sort()
   end
+
+  def encode(u_extension),
+    do:
+      {:error,
+       Localize.Utils.Helpers.invalid_value(u_extension, "a Localize.LanguageTag.U struct")}
 
   @doc false
   def to_string(%__MODULE__{} = u_extension) do

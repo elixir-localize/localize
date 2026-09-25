@@ -159,8 +159,8 @@ defmodule Localize.Unit.CustomRegistry do
 
   * `{:ok, count}` with the number of units registered.
 
-  * `{:error, reason}` if any validation fails. No units are registered
-    on error (the operation is atomic).
+  * `{:error, reason}` if any validation fails, or `definitions` is not
+    a map. No units are registered on error (the operation is atomic).
 
   ### Examples
 
@@ -172,7 +172,8 @@ defmodule Localize.Unit.CustomRegistry do
       {:ok, 2}
 
   """
-  @spec register_batch(%{String.t() => map()}) :: {:ok, non_neg_integer()}
+  @spec register_batch(%{String.t() => map()}) ::
+          {:ok, non_neg_integer()} | {:error, Exception.t()}
   def register_batch(definitions) when is_map(definitions) do
     validated_map =
       Enum.reduce(definitions, %{}, fn {name, definition}, acc ->
@@ -190,6 +191,9 @@ defmodule Localize.Unit.CustomRegistry do
     :persistent_term.put(@persistent_term_key, Map.merge(current, validated_map))
     {:ok, map_size(validated_map)}
   end
+
+  def register_batch(definitions),
+    do: {:error, Localize.Utils.Helpers.invalid_value(definitions, "a map of unit definitions")}
 
   @doc """
   Loads custom unit definitions from an `.exs` file.
@@ -231,13 +235,15 @@ defmodule Localize.Unit.CustomRegistry do
 
   """
   @spec load_file(String.t()) :: {:ok, non_neg_integer()} | {:error, String.t()}
-  def load_file(path) do
+  def load_file(path) when is_binary(path) do
     with :ok <- check_runtime_eval_allowed(),
          expanded = Path.expand(path),
          true <- file_exists_or_error(expanded) do
       do_load_file(expanded)
     end
   end
+
+  def load_file(path), do: {:error, "a file path string was expected, got: #{inspect(path)}"}
 
   defp file_exists_or_error(expanded) do
     if File.exists?(expanded) do

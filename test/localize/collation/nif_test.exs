@@ -24,10 +24,11 @@ defmodule Localize.Collation.NifTest do
       assert result_casing == result_strength
     end
 
-    test "invalid casing option raises" do
-      assert_raise Localize.InvalidValueError, ~r/casing/, fn ->
-        Localize.Collation.compare("a", "b", casing: :invalid)
-      end
+    test "invalid casing option is an error" do
+      assert {:error, %Localize.InvalidValueError{} = error} =
+               Localize.Collation.compare("a", "b", casing: :invalid)
+
+      assert Exception.message(error) =~ "casing"
     end
   end
 

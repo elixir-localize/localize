@@ -140,6 +140,7 @@ defmodule Localize.Unit.Data do
   """
   @spec si_prefix_atom(String.t()) :: atom() | nil
   def si_prefix_atom(name) when is_binary(name), do: Map.get(@si_prefix_atom_map, name)
+  def si_prefix_atom(_name), do: nil
 
   @doc """
   Returns detailed SI prefix data including symbols and powers.

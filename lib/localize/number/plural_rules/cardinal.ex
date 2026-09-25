@@ -88,6 +88,9 @@ defmodule Localize.Number.PluralRule.Cardinal do
   * The substitution value for the plural category of the
     given number, or `nil` if no matching substitution is found.
 
+  * `{:error, exception}` if the locale, the number or the
+    substitutions are not valid.
+
   ### Examples
 
       iex> Localize.Number.PluralRule.Cardinal.pluralize(1, "en", %{one: "one", other: "other"})
@@ -116,7 +119,11 @@ defmodule Localize.Number.PluralRule.Cardinal do
     do_pluralize(number, locale, substitutions)
   end
 
-  def pluralize(%Decimal{sign: _sign, coef: coef, exp: 0} = number, locale, substitutions)
+  def pluralize(
+        %Decimal{sign: _sign, coef: coef, exp: 0} = number,
+        %LanguageTag{} = locale,
+        %{} = substitutions
+      )
       when is_integer(coef) do
     number
     |> Decimal.to_integer()
@@ -135,17 +142,45 @@ defmodule Localize.Number.PluralRule.Cardinal do
     pluralize(number, locale, substitutions)
   end
 
+  # Converting to a float here dropped the operands the rule selects on. TR35
+  # keys plural choice on the *visible* fraction digits (v) and their value
+  # (f), and a float carries neither, so `plural_rule/2` has to assume a
+  # display precision for one — for 1.2 it assumes "1.200", giving v=3 and
+  # f=200, which answers `other` where Serbian, Croatian and Bosnian want
+  # `few`. The Decimal knows it is "1.2". Pass it through.
   def pluralize(%Decimal{} = number, %LanguageTag{} = locale, %{} = substitutions) do
-    number
-    |> Decimal.to_float()
-    |> do_pluralize(locale, substitutions)
+    do_pluralize(number, locale, substitutions)
   end
+
+  def pluralize(_number, %LanguageTag{}, substitutions) when not is_map(substitutions) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(substitutions, "a map of plural categories to values")}
+  end
+
+  def pluralize(number, %LanguageTag{}, _substitutions),
+    do: {:error, Localize.Utils.Helpers.invalid_value(number, "a number or a Decimal")}
+
+  def pluralize(_number, locale, _substitutions),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
 
   defp do_pluralize(number, %LanguageTag{} = locale, %{} = substitutions) do
     plural = plural_rule(number, locale)
+
+    substitutions[exact_key(number)] || substitutions[plural] ||
+      substitutions[@default_substitution]
+  end
+
+  # Substitution maps may carry exact-value keys (`%{0 => ..., 1 => ...}`)
+  # alongside the plural categories, so an integral value is looked up as an
+  # integer first.
+  defp exact_key(%Decimal{} = number) do
+    truncated = Decimal.round(number, 0, :down)
+    if Decimal.equal?(truncated, number), do: Decimal.to_integer(truncated), else: number
+  end
+
+  defp exact_key(number) do
     truncated = trunc(number)
-    number = if truncated == number, do: truncated, else: number
-    substitutions[number] || substitutions[plural] || substitutions[@default_substitution]
+    if truncated == number, do: truncated, else: number
   end
 
   @doc """
@@ -181,6 +216,9 @@ defmodule Localize.Number.PluralRule.Cardinal do
     end
   end
 
+  def plural_rules_for(locale),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
+
   # ── Plural rule function: public API ──────────────────────────
 
   @doc """
@@ -204,8 +242,8 @@ defmodule Localize.Number.PluralRule.Cardinal do
 
   * A plural category atom.
 
-  * `{:error, exception}` if no plural rules are available
-    for the locale.
+  * `{:error, exception}` if the number, locale or rounding is
+    not valid, or no plural rules are available for the locale.
 
   ### Examples
 
@@ -228,7 +266,10 @@ defmodule Localize.Number.PluralRule.Cardinal do
   def plural_rule(number, locale, rounding \\ Math.default_rounding())
 
   def plural_rule(number, %LanguageTag{} = locale, rounding) when is_binary(number) do
-    plural_rule(Decimal.new(number), locale, rounding)
+    case Decimal.parse(number) do
+      {decimal, ""} -> plural_rule(decimal, locale, rounding)
+      _other -> {:error, Localize.Utils.Helpers.invalid_value(number, "a number string")}
+    end
   end
 
   # Plural rule for an integer
@@ -291,6 +332,19 @@ defmodule Localize.Number.PluralRule.Cardinal do
       plural_rule(number, locale, rounding)
     end
   end
+
+  def plural_rule(number, %LanguageTag{}, rounding)
+      when (is_float(number) or is_struct(number, Decimal)) and
+             not (is_integer(rounding) and rounding > 0),
+      do: {:error, Localize.Utils.Helpers.invalid_value(rounding, "a positive integer")}
+
+  def plural_rule(number, %LanguageTag{}, _rounding) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(number, "a number, a Decimal or a number string")}
+  end
+
+  def plural_rule(_number, locale, _rounding),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
 
   defp plural_rule_with_exponent(%Decimal{} = number, e, locale, _rounding) do
     shifted = %{number | exp: number.exp + e}

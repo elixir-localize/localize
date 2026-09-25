@@ -164,10 +164,12 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
     end
   end
 
+  # Only CLDR locales are published, so a name that resolves to none is an
+  # error rather than an atom made from the command line.
   defp canonical_locale_id(locale_name) do
     case Localize.Locale.cldr_locale_id_from(locale_name) do
       {:ok, locale_id} -> locale_id
-      {:error, _reason} -> String.to_atom(locale_name)
+      {:error, _reason} -> Mix.raise("#{inspect(locale_name)} is not a CLDR locale")
     end
   end
 

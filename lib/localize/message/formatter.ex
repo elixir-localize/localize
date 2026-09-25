@@ -36,11 +36,28 @@ defmodule Localize.Message.Formatter do
 
   * A rendered string.
 
+  ### Examples
+
+      iex> {:ok, ast} = Localize.Message.Parser.parse("Hello {$name}!")
+      iex> tokens = Localize.Message.Highlighter.to_tokens(ast)
+      iex> Localize.Message.Formatter.render(tokens, :plain)
+      "Hello {$name}!"
+
   """
-  @spec render([Highlighter.token()], format(), Keyword.t()) :: String.t()
+  @spec render([Highlighter.token()], format(), Keyword.t()) ::
+          String.t() | {:error, Exception.t()}
   def render(tokens, format, options \\ [])
 
   def render(tokens, :plain, _options), do: Plain.render(tokens)
   def render(tokens, :html, options), do: HTML.render(tokens, options)
   def render(tokens, :ansi, options), do: ANSI.render(tokens, options)
+
+  def render(_tokens, format, _options) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: format,
+       expected: :format,
+       allowed_values: [:plain, :html, :ansi]
+     )}
+  end
 end

@@ -671,6 +671,74 @@ defmodule Localize.Utils.Math do
   end
 
   @doc """
+  Rounds a number to a number of significant digits with a rounding mode.
+
+  ### Arguments
+
+  * `number` is a float, integer, or Decimal.
+
+  * `n` is the number of significant digits to which the `number`
+    should be rounded. A value of zero or less leaves the number
+    unrounded.
+
+  * `rounding_mode` is one of `:down`, `:half_up`, `:half_even`,
+    `:ceiling`, `:floor`, `:half_down` or `:up`.
+
+  ### Returns
+
+  * The number rounded to `n` significant digits, of the same type as
+    `number`.
+
+  ### Examples
+
+      iex> Localize.Utils.Math.round_significant(12250, 3, :half_even)
+      12200
+
+      iex> Localize.Utils.Math.round_significant(12250, 3, :half_up)
+      12300
+
+      iex> Localize.Utils.Math.round_significant(Decimal.new("1.245"), 3, :half_even)
+      Decimal.new("1.24")
+
+  """
+  @spec round_significant(number_or_decimal, integer, atom()) :: number_or_decimal
+  def round_significant(number, n, _rounding_mode) when n <= 0, do: number
+
+  def round_significant(%Decimal{coef: coef} = number, _n, _rounding_mode)
+      when coef in [0, :NaN, :inf],
+      do: number
+
+  def round_significant(%Decimal{} = number, n, rounding_mode) do
+    # A Decimal is `coef * 10^exp`; rounding at `digits - n` places from the
+    # right of the coefficient keeps `n` significant digits exactly. Rounding
+    # pads the coefficient to those places, so the trailing zeros it adds are
+    # dropped again: 1.2345 to seven digits is 1.2345, not 1.234500.
+    digits = number.coef |> Integer.digits() |> length()
+    places = -(number.exp + digits - n)
+
+    number
+    |> Decimal.round(places, rounding_mode)
+    |> Decimal.normalize()
+  end
+
+  def round_significant(number, _n, _rounding_mode) when is_number(number) and number == 0,
+    do: number
+
+  def round_significant(number, n, rounding_mode) when is_integer(number) do
+    number
+    |> Decimal.new()
+    |> round_significant(n, rounding_mode)
+    |> Decimal.to_integer()
+  end
+
+  def round_significant(number, n, rounding_mode) when is_float(number) do
+    number
+    |> Decimal.from_float()
+    |> round_significant(n, rounding_mode)
+    |> Decimal.to_float()
+  end
+
+  @doc """
   Returns the natural log of a number.
 
   For integers and floats it calls the BIF `:math.log/1` function.
@@ -1276,6 +1344,20 @@ defmodule Localize.Utils.Math do
     |> Decimal.new()
     |> Decimal.round(places, mode)
     |> Decimal.to_integer()
+  end
+
+  # A double carries at most 17 significant decimal digits and its smallest
+  # subnormal is about 5e-324, so no finite double changes when rounded beyond
+  # roughly 325 decimal places — returning it unchanged is exact, not an
+  # approximation. The guard matters because the digit pipeline reconstructs
+  # through `10^n`, which overflows on the way back to a float: without it,
+  # `Localize.Number.to_string(1.0e-308, max_fractional_digits: 400)` raised
+  # ArithmeticError out of a public, non-bang function.
+  @max_meaningful_decimal_places 325
+
+  def round(number, places, _mode)
+      when is_float(number) and is_integer(places) and places > @max_meaningful_decimal_places do
+    number
   end
 
   def round(number, places, mode) when is_float(number) do

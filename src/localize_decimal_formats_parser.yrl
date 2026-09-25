@@ -2,9 +2,9 @@
 % http://unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns
 
 Nonterminals decimal_format positive_format negative_format number_format
-  prefix suffix literal_list literal_elem currency_symbol.
+  prefix suffix literal_list literal_elem.
 
-Terminals plus minus format currency_1 currency_2 currency_3 currency_4 percent
+Terminals plus minus format currency percent
   permille literal semicolon pad quote quoted_char.
 
 Rootsymbol decimal_format.
@@ -35,7 +35,7 @@ suffix            ->  prefix : '$1'.
 literal_list      ->  literal_elem literal_list : append('$1', '$2').
 literal_list      ->  literal_elem : '$1'.
 
-literal_elem      ->  currency_symbol : [{currency, unwrap('$1')}].
+literal_elem      ->  currency : [{currency, unwrap('$1')}].
 literal_elem      ->  percent :  [{percent, unwrap('$1')}].
 literal_elem      ->  permille : [{permille, unwrap('$1')}].
 literal_elem      ->  literal :  [{literal, unwrap('$1')}].
@@ -43,11 +43,6 @@ literal_elem      ->  plus  : [{plus, "+"}].
 literal_elem      ->  minus : [{minus, "-"}].
 literal_elem      ->  quote : [{quote, '\''}].
 literal_elem      ->  quoted_char : [{quoted_char, unwrap('$1')}].
-
-currency_symbol   -> currency_1 : '$1'.
-currency_symbol   -> currency_2 : '$1'.
-currency_symbol   -> currency_3 : '$1'.
-currency_symbol   -> currency_4 : '$1'.
 
 Erlang code.
 

@@ -91,6 +91,11 @@ defmodule Localize.List.Pattern do
     end
   end
 
+  def new(options),
+    do:
+      {:error,
+       Localize.Utils.Helpers.invalid_value(options, "a keyword list or map of list patterns")}
+
   @doc """
   Creates a pattern from locale data.
 
@@ -105,6 +110,8 @@ defmodule Localize.List.Pattern do
   ### Returns
 
   * A `t:t/0` struct.
+
+  * `{:error, exception}` if `data` is not a map.
 
   ### Examples
 
@@ -122,7 +129,7 @@ defmodule Localize.List.Pattern do
       }
 
   """
-  @spec from_locale_data(map()) :: t()
+  @spec from_locale_data(map()) :: t() | {:error, Exception.t()}
   def from_locale_data(data) when is_map(data) do
     %__MODULE__{
       two: Map.get(data, 2) || Map.get(data, :two),
@@ -131,6 +138,9 @@ defmodule Localize.List.Pattern do
       end: Map.get(data, :end)
     }
   end
+
+  def from_locale_data(data),
+    do: {:error, Localize.Utils.Helpers.invalid_value(data, "a map of list pattern data")}
 
   # ── Private ─────────────────────────────────────────────────
 

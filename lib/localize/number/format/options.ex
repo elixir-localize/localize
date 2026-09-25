@@ -6,6 +6,8 @@ defmodule Localize.Number.Format.Options do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.Number.{Format, Symbol, System}
 
   @options [
@@ -42,6 +44,13 @@ defmodule Localize.Number.Format.Options do
   @exponent_styles [:e, :superscript]
 
   @sign_displays [:auto, :always, :except_zero, :negative, :never]
+
+  @digit_count_options [
+    :fractional_digits,
+    :min_fractional_digits,
+    :max_fractional_digits,
+    :maximum_integer_digits
+  ]
 
   @rounding_modes [
     :down,
@@ -157,7 +166,7 @@ defmodule Localize.Number.Format.Options do
   """
   @spec validate_options(number() | Decimal.t(), Keyword.t()) ::
           {:ok, t()} | {:error, Exception.t()}
-  def validate_options(number, options) do
+  def validate_options(number, options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     currency = Keyword.get(options, :currency)
     format = options |> Keyword.get(:format, :standard) |> resolve_format_alias(currency)
@@ -181,6 +190,8 @@ defmodule Localize.Number.Format.Options do
          :ok <- validate_sign_display(Keyword.get(options, :sign_display)),
          :ok <- validate_trailing_zero_display(Keyword.get(options, :trailing_zero_display)),
          :ok <- validate_rounding_priority(Keyword.get(options, :rounding_priority)),
+         :ok <- validate_digit_counts(options, @digit_count_options),
+         :ok <- validate_wrapper(Keyword.get(options, :wrapper)),
          {:ok, symbols} <- resolve_symbols(language_tag, system_name),
          {:ok, resolved_format, formats} <- resolve_format(format, language_tag, system_name) do
       currency_symbol = resolve_currency_symbol(currency_struct, options[:currency_symbol])
@@ -215,6 +226,9 @@ defmodule Localize.Number.Format.Options do
       {:ok, result}
     end
   end
+
+  def validate_options(_number, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   # ── Format aliases ──────────────────────────────────────────
 
@@ -409,6 +423,41 @@ defmodule Localize.Number.Format.Options do
      )}
   end
 
+  # ── Digit count validation ─────────────────────────────────
+
+  # `:fractional_digits`, `:min_fractional_digits`,
+  # `:max_fractional_digits` and `:maximum_integer_digits` are digit
+  # counts. `nil` means "not set".
+  defp validate_digit_counts(_options, []), do: :ok
+
+  defp validate_digit_counts(options, [key | keys]) do
+    case Keyword.get(options, key) do
+      digits when is_nil(digits) or is_integer(digits) ->
+        validate_digit_counts(options, keys)
+
+      digits ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: digits,
+           expected: "#{key} to be an integer"
+         )}
+    end
+  end
+
+  # ── Wrapper validation ─────────────────────────────────────
+
+  # `:wrapper` is called with each formatted string and its tag.
+  defp validate_wrapper(nil), do: :ok
+  defp validate_wrapper(wrapper) when is_function(wrapper, 2), do: :ok
+
+  defp validate_wrapper(wrapper) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: wrapper,
+       expected: "wrapper to be a function of arity 2"
+     )}
+  end
+
   # ── Rounding priority validation ───────────────────────────
 
   # ECMA-402 `roundingPriority`: resolves the conflict when both
@@ -523,7 +572,13 @@ defmodule Localize.Number.Format.Options do
     {:ok, format, formats_for_system(language_tag, system_name)}
   end
 
-  # Custom string or other: no format resolution needed
+  # A custom pattern needs no resolution, but the locale's formats still
+  # supply the currency spacing TR35 applies wherever a currency sign meets
+  # the number.
+  defp resolve_format(format, language_tag, system_name) when is_binary(format) do
+    {:ok, format, formats_for_system(language_tag, system_name)}
+  end
+
   defp resolve_format(format, _language_tag, _system_name) do
     {:ok, format, nil}
   end
@@ -544,10 +599,11 @@ defmodule Localize.Number.Format.Options do
   # ── Currency fractional digits ─────────────────────────────
 
   # Set default fractional digits from the currency data when the
-  # format is a standard currency format (atom like :currency,
-  # :accounting, etc.) and the user hasn't explicitly provided
-  # fractional_digits. Custom format strings keep their own
-  # fractional digit specification from the pattern.
+  # caller hasn't provided fractional_digits and the format is either a
+  # standard currency format (an atom like :currency or :accounting) or
+  # a pattern string with a currency sign. TR35 has the currency's
+  # supplemental data override a currency pattern's decimal places, as
+  # ICU does; a pattern with significant digits keeps them.
   @currency_fraction_formats [
     :currency,
     :accounting,
@@ -563,22 +619,31 @@ defmodule Localize.Number.Format.Options do
     :currency_long_with_symbol
   ]
 
-  defp default_currency_fractional_digits(format, %Localize.Currency{} = currency, :accounting)
+  defp default_currency_fractional_digits(format, %Localize.Currency{} = currency, digits)
        when format in @currency_fraction_formats do
-    currency.digits
+    currency_fraction_digits(currency, digits)
   end
 
-  defp default_currency_fractional_digits(format, %Localize.Currency{} = currency, :cash)
-       when format in @currency_fraction_formats do
-    currency.cash_digits
-  end
-
-  defp default_currency_fractional_digits(format, %Localize.Currency{} = currency, :iso)
-       when format in @currency_fraction_formats do
-    currency.iso_digits
+  defp default_currency_fractional_digits(format, %Localize.Currency{} = currency, digits)
+       when is_binary(format) do
+    if currency_pattern?(format), do: currency_fraction_digits(currency, digits)
   end
 
   defp default_currency_fractional_digits(_format, _currency, _currency_digits), do: nil
+
+  defp currency_fraction_digits(currency, :accounting), do: currency.digits
+  defp currency_fraction_digits(currency, :cash), do: currency.cash_digits
+  defp currency_fraction_digits(currency, :iso), do: currency.iso_digits
+  defp currency_fraction_digits(_currency, _currency_digits), do: nil
+
+  # A pattern with a currency sign and no significant digits. An invalid
+  # pattern is reported when the number is formatted.
+  defp currency_pattern?(format) do
+    case Localize.Number.Formatter.Decimal.metadata(format) do
+      {:ok, %{currency: %{}, significant_digits: %{max: 0}}} -> true
+      _other -> false
+    end
+  end
 
   # ── Currency symbol resolution ──────────────────────────────
 
@@ -605,6 +670,14 @@ defmodule Localize.Number.Format.Options do
   # ── Sign detection ──────────────────────────────────────────
 
   defp negative?(%Decimal{sign: sign}) when sign < 0, do: true
+
+  # IEEE-754 negative zero compares equal to zero, so `< 0` misses it, but it
+  # is negative and both ICU and CLDR's decimal conformance data expect it to
+  # render with its sign — `-0.0` is "-0", not "0". Read the sign bit rather
+  # than the value; for every other float it agrees with `< 0`.
+  defp negative?(number) when is_float(number),
+    do: match?(<<1::1, _::bitstring>>, <<number::float>>)
+
   defp negative?(number) when is_number(number) and number < 0, do: true
   defp negative?(_), do: false
 end

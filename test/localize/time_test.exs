@@ -38,39 +38,45 @@ defmodule Localize.TimeTest do
     end
 
     test "flexible day periods (B) follow the locale's day-period rules" do
-      # Expected values verified against ICU (Intl dayPeriod: :long),
-      # except midnight: per TR35, B selects the exact-point rules
-      # (noon, midnight); ECMA-402's dayPeriod option deliberately
-      # never produces "midnight" and diverges there.
-      b = fn time, locale ->
-        {:ok, result} = Localize.Time.to_string(time, format: "BBBB", locale: locale)
+      # Expected values verified against ICU4C 78.3, except midnight: per
+      # TR35, B selects the exact-point rules (noon, midnight), where ICU
+      # never produces "midnight". A time is judged at the precision its
+      # pattern shows, as in ICU, so "BBBB" alone shows 12:01 as noon and
+      # "h:mm BBBB" shows it as 12:01 in the afternoon.
+      b = fn time, format, locale ->
+        {:ok, result} = Localize.Time.to_string(time, format: format, locale: locale)
         result
       end
 
-      assert b.(~T[08:30:00], :en) == "in the morning"
-      assert b.(~T[12:00:00], :en) == "noon"
-      assert b.(~T[12:01:00], :en) == "in the afternoon"
-      assert b.(~T[15:00:00], :en) == "in the afternoon"
-      assert b.(~T[19:00:00], :en) == "in the evening"
-      assert b.(~T[22:00:00], :en) == "at night"
-      assert b.(~T[00:00:00], :en) == "midnight"
+      assert b.(~T[08:30:00], "BBBB", :en) == "in the morning"
+      assert b.(~T[12:00:00], "BBBB", :en) == "noon"
+      assert b.(~T[12:01:00], "BBBB", :en) == "noon"
+      assert b.(~T[12:01:00], "h:mm BBBB", :en) == "12:01 in the afternoon"
+      assert b.(~T[15:00:00], "BBBB", :en) == "in the afternoon"
+      assert b.(~T[19:00:00], "BBBB", :en) == "in the evening"
+      assert b.(~T[22:00:00], "BBBB", :en) == "at night"
+      assert b.(~T[00:00:00], "BBBB", :en) == "midnight"
 
-      assert b.(~T[08:30:00], :de) == "morgens"
-      assert b.(~T[12:01:00], :de) == "mittags"
-      assert b.(~T[15:00:00], :de) == "nachmittags"
-      assert b.(~T[19:00:00], :de) == "abends"
+      assert b.(~T[08:30:00], "BBBB", :de) == "morgens"
+      assert b.(~T[12:01:00], "BBBB", :de) == "mittags"
+      assert b.(~T[15:00:00], "BBBB", :de) == "nachmittags"
+      assert b.(~T[19:00:00], "BBBB", :de) == "abends"
     end
 
     test "noon/midnight day periods (b) render at exact points only" do
-      b = fn time, locale ->
-        {:ok, result} = Localize.Time.to_string(time, format: "bbbb", locale: locale)
+      # As for B, the point is judged at the precision the pattern shows
+      # (ICU4C 78.3): a pattern that shows seconds shows 12:00:30 as PM.
+      b = fn time, format, locale ->
+        {:ok, result} = Localize.Time.to_string(time, format: format, locale: locale)
         result
       end
 
-      assert b.(~T[12:00:00], :en) == "noon"
-      assert b.(~T[00:00:00], :en) == "midnight"
-      assert b.(~T[12:01:00], :en) == "PM"
-      assert b.(~T[08:30:00], :en) == "AM"
+      assert b.(~T[12:00:00], "bbbb", :en) == "noon"
+      assert b.(~T[00:00:00], "bbbb", :en) == "midnight"
+      assert b.(~T[12:01:00], "bbbb", :en) == "noon"
+      assert b.(~T[12:01:00], "h:mm bbbb", :en) == "12:01 PM"
+      assert b.(~T[12:00:30], "h:mm:ss bbbb", :en) == "12:00:30 PM"
+      assert b.(~T[08:30:00], "bbbb", :en) == "AM"
     end
 
     test "locales without day-period rules fall back to AM/PM for B" do
@@ -123,9 +129,22 @@ defmodule Localize.TimeTest do
     end
 
     test "derive_format_id/1 produces canonical order" do
-      assert :hm = Localize.Time.derive_format_id(%{hour: 14, minute: 30})
-      assert :hms = Localize.Time.derive_format_id(%{hour: 14, minute: 30, second: 0})
+      # The hour is TR35's `j`, the locale's preferred hour symbol.
+      assert :jm = Localize.Time.derive_format_id(%{hour: 14, minute: 30})
+      assert :jms = Localize.Time.derive_format_id(%{hour: 14, minute: 30, second: 0})
       assert :ms = Localize.Time.derive_format_id(%{minute: 30, second: 0})
+    end
+
+    test "a partial time keeps the locale's hour cycle and its -u-hc- override" do
+      # CLDR's timeData prefers `H` for Germany and `h` for the United States.
+      assert {:ok, "14:30"} = Localize.Time.to_string(%{hour: 14, minute: 30}, locale: :de)
+      assert {:ok, "14 Uhr"} = Localize.Time.to_string(%{hour: 14}, locale: :de)
+
+      assert {:ok, "14:30"} =
+               Localize.Time.to_string(%{hour: 14, minute: 30}, locale: "en-u-hc-h23")
+
+      assert {:ok, "2:30 PM"} =
+               Localize.Time.to_string(%{hour: 14, minute: 30}, locale: "de-u-hc-h12")
     end
   end
 
@@ -279,31 +298,24 @@ defmodule Localize.TimeTest do
                Localize.Time.to_string(~T[21:00:00], format: :short, locale: :en, prefer: :ascii)
     end
 
-    test "skeleton atoms are also remapped by hc override (per ICU/CLDR)" do
-      # Per ICU/Intl reference behaviour, `hc` overrides the hour
-      # cycle in the rendered output regardless of which symbol the
-      # skeleton specifies — skeleton hour symbols are selectors for
-      # skeleton-matching, not assertions of the rendered cycle.
-      # `:Hms` on `fr-u-hc-h12` flips to the locale's 12-hour
-      # equivalent (`:hms` → `"h:mm:ss a"`) with AM/PM. fr
-      # ships only the unicode variant of this skeleton, so the NBSP
-      # (U+202F) before the marker is the only available form.
-      assert {:ok, "9:00:00 PM"} =
-               Localize.Time.to_string(~T[21:00:00], format: :Hms, locale: "fr-u-hc-h12")
+    test "a skeleton's j takes the hc override, and an explicit hour keeps its cycle" do
+      # TR35's `hc` replaces the locale's preferred hour cycle, which a
+      # skeleton asks for with `j`; an explicit `h` or `H` names its own
+      # cycle. ICU4C 78.3's DateTimePatternGenerator gives these results.
+      assert Localize.Time.to_string(~T[21:00:00], format: :jm, locale: "fr-u-hc-h12") ==
+               {:ok, "9:00 PM"}
 
-      # Reverse direction: `:hms` (12h with AM/PM) on `en-u-hc-h23`
-      # flips to 24h, dropping the AM/PM marker.
-      assert {:ok, "21:00:00"} =
-               Localize.Time.to_string(~T[21:00:00], format: :hms, locale: "en-u-hc-h23")
+      assert Localize.Time.to_string(~T[21:00:00], format: :jm, locale: "en-u-hc-h23") ==
+               {:ok, "21:00"}
 
-      # ja with h12 override: `:Hms` flips to `:hms` → ja's
-      # `"aK:mm:ss"` (12-hour, AM/PM marker BEFORE the time).
-      {:ok, ja_out} =
-        Localize.Time.to_string(~T[21:00:00], format: :Hms, locale: "ja-u-hc-h12")
+      assert Localize.Time.to_string(~T[21:00:00], format: :Hms, locale: "fr-u-hc-h12") ==
+               {:ok, "21:00:00"}
 
-      assert ja_out =~ "午後"
-      assert ja_out =~ "9"
-      refute ja_out =~ "21"
+      assert Localize.Time.to_string(~T[21:00:00], format: :hms, locale: "en-u-hc-h23") ==
+               {:ok, "9:00:00 PM"}
+
+      assert Localize.Time.to_string(~T[21:00:00], format: :Hms, locale: "ja-u-hc-h12") ==
+               {:ok, "21:00:00"}
     end
 
     test "binary patterns are NOT remapped by hc override (user assertion)" do

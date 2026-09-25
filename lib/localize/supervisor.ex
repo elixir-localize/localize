@@ -70,6 +70,19 @@ defmodule Localize.Supervisor do
 
   * `{:error, reason}` if startup fails.
 
+  ### Examples
+
+  Localize starts this supervisor itself. Add it to your own tree only if
+  you start Localize manually:
+
+  ```elixir
+  children = [
+    {Localize.Supervisor, []}
+  ]
+
+  Supervisor.start_link(children, strategy: :one_for_one)
+  ```
+
   """
   @spec start_link(keyword()) :: Supervisor.on_start()
   def start_link(options \\ []) when is_list(options) do

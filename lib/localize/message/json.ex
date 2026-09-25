@@ -15,6 +15,8 @@ defmodule Localize.Message.JSON do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   # ── Serialization (AST → JSON) ─────────────────────────────────
 
   @doc """
@@ -44,20 +46,20 @@ defmodule Localize.Message.JSON do
       %{"type" => "message", "declarations" => [], "pattern" => ["Hello, world!"]}
 
   """
-  @spec to_json(list(), Keyword.t()) :: map() | String.t()
+  @spec to_json(list(), Keyword.t()) :: map() | String.t() | {:error, Exception.t()}
   def to_json(ast, options \\ [])
 
-  def to_json([{:complex, declarations, body}], options) do
+  def to_json([{:complex, declarations, body}], options) when is_keyword_list(options) do
     result = convert_complex(declarations, body)
     maybe_encode(result, options)
   end
 
-  def to_json([{:match, selectors, variants}], options) do
+  def to_json([{:match, selectors, variants}], options) when is_keyword_list(options) do
     result = convert_select([], selectors, variants)
     maybe_encode(result, options)
   end
 
-  def to_json([{:quoted_pattern, parts}], options) do
+  def to_json([{:quoted_pattern, parts}], options) when is_keyword_list(options) do
     result = %{
       "type" => "message",
       "declarations" => [],
@@ -67,7 +69,7 @@ defmodule Localize.Message.JSON do
     maybe_encode(result, options)
   end
 
-  def to_json(parts, options) when is_list(parts) do
+  def to_json(parts, options) when is_list(parts) and is_keyword_list(options) do
     result = %{
       "type" => "message",
       "declarations" => [],
@@ -76,6 +78,12 @@ defmodule Localize.Message.JSON do
 
     maybe_encode(result, options)
   end
+
+  def to_json(_ast, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def to_json(ast, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(ast, "an MF2 message AST")}
 
   defp convert_complex(declarations, {:quoted_pattern, parts}) do
     %{
@@ -142,6 +150,8 @@ defmodule Localize.Message.JSON do
   defp convert_pattern_part({:markup_standalone, name, opts, attrs}) do
     convert_markup("standalone", name, opts, attrs)
   end
+
+  defp convert_pattern_part(_part), do: nil
 
   # ── Expressions ─────────────────────────────────────────────────
 

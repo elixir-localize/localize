@@ -595,9 +595,9 @@ defmodule Localize.Number.RbnfTest do
     test "ky 1.5 spellout-cardinal does not crash on >%name>" do
       # x.x rule body: `←← бүтүн →%%z-spellout-fraction→`.
       # Pre-fix: FunctionClauseError. Post-fix: no crash.
-      # Output is best-effort (missing the locale's denominator
-      # word — see plans/rbnf.md for the full numerator/
-      # denominator implementation).
+      # Output is best-effort, missing the locale's denominator
+      # word; the full numerator/denominator algorithm is still
+      # to be implemented.
       assert {:ok, result} = Rbnf.to_string(1.5, "spellout-cardinal", locale: :ky)
       assert is_binary(result)
       assert String.contains?(result, "бир"), "expected 'бир' (one), got #{inspect(result)}"
@@ -999,10 +999,18 @@ defmodule Localize.Number.RbnfTest do
       assert {:ok, "V"} = Rbnf.to_string(5, "roman-upper", locale: :ru)
     end
 
-    test "requesting :und resolves via likely subtags to English spellout" do
-      # `Localize.validate_locale(:und)` resolves to :en, so an
-      # explicit :und request never reaches the und digit stubs.
-      assert {:ok, "five"} = Rbnf.to_string(5, :spellout_cardinal, locale: :und)
+    test "requesting :und gets root's own spellout_cardinal, which is a digit stub" do
+      # `:und` used to resolve to `:en` and answer "five". That was the same
+      # silent substitution this describe block exists to prevent, just
+      # pointed the other way: a request for root was served another
+      # language's data. Root does define a public `spellout_cardinal`, and
+      # it is a digit format, so "5" is what root actually says.
+      #
+      # The guard the block is named for is unaffected — `ru`, which has only
+      # gendered spellout sets, still raises rather than falling through to
+      # these stubs (see the first test above).
+      assert {:ok, "5"} = Rbnf.to_string(5, :spellout_cardinal, locale: :und)
+      assert {:ok, "five"} = Rbnf.to_string(5, :spellout_cardinal, locale: :en)
     end
   end
 end

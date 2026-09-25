@@ -19,6 +19,8 @@ defmodule Localize.Validity.Unit do
     end
   end
 
+  def validate(code), do: {:error, code}
+
   def normalize(code) when is_binary(code) do
     String.downcase(code)
   end

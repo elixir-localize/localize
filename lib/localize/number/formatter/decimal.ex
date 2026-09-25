@@ -265,9 +265,9 @@ defmodule Localize.Number.Formatter.Decimal do
       number
       |> absolute_value()
       |> multiply_by_factor(meta)
-      |> round_to_significant_digits(meta)
+      |> round_to_significant_digits(meta, options)
       |> round_to_nearest(meta, options)
-      |> set_exponent(meta)
+      |> set_exponent(meta, options)
       |> round_fractional_digits(meta, options)
       |> output_to_tuple()
       |> adjust_leading_zeros(meta)
@@ -280,7 +280,7 @@ defmodule Localize.Number.Formatter.Decimal do
     |> apply_grouping(meta, options)
     |> reassemble_number_string(meta, options)
     |> transliterate_string(options)
-    |> assemble_format(meta, options)
+    |> assemble_format(meta, options, digit_tuple)
   end
 
   defp do_to_string(number, meta, options) do
@@ -312,9 +312,9 @@ defmodule Localize.Number.Formatter.Decimal do
       number
       |> absolute_value()
       |> multiply_by_factor(meta)
-      |> round_to_significant_digits(meta)
+      |> round_to_significant_digits(meta, options)
       |> round_to_nearest(meta, options)
-      |> set_exponent(meta)
+      |> set_exponent(meta, options)
       |> round_fractional_digits(meta, options)
       |> output_to_tuple()
       |> adjust_leading_zeros(meta)
@@ -330,7 +330,7 @@ defmodule Localize.Number.Formatter.Decimal do
       |> transliterate_string(options)
 
     body = number_body_parts(grouped_tuple, meta, options)
-    walk_format_parts(body, number_string, meta, options)
+    walk_format_parts(body, number_string, meta, options, digit_tuple)
   end
 
   defp number_body_parts({_sign, integer, fraction, exponent_sign, exponent}, meta, options) do
@@ -438,26 +438,77 @@ defmodule Localize.Number.Formatter.Decimal do
   # ECMA-402 `formatToParts` in snake_case (`:minus_sign`,
   # `:percent_sign`, `:currency`, …); currency spacing and padding
   # surface as `:literal` parts, as in `Intl.NumberFormat`.
-  defp walk_format_parts(body_parts, number_string, meta, options) do
-    tokens = pattern_parts(meta.format, options.pattern)
-
-    tokens
+  defp walk_format_parts(body_parts, number_string, meta, options, displayed \\ nil) do
+    meta.format
+    |> pattern_parts(options.pattern)
+    |> resolve_currency_tokens(displayed, options)
     |> walk_tokens(body_parts, number_string, meta, options)
     |> List.flatten()
     |> Enum.reject(&(&1.value in [nil, ""]))
   end
 
+  # TR35 gives each width of currency sign its own replacement: ¤ is the
+  # symbol the `:currency_symbol` option selects, ¤¤ the ISO code, ¤¤¤ the
+  # display name in the plural category of the number as displayed, and
+  # ¤¤¤¤¤ the narrow symbol. Any other width is invalid and formats as
+  # U+FFFD, following TR35's handling of invalid patterns. Each currency
+  # token is replaced by its symbol before assembly.
+  defp resolve_currency_tokens(tokens, displayed, options) do
+    Enum.map(tokens, fn
+      {:currency, width} -> {:currency, currency_symbol(width, displayed, options)}
+      token -> token
+    end)
+  end
+
+  defp currency_symbol(1, _digits, options), do: options.currency_symbol
+  defp currency_symbol(width, _digits, _options) when width not in [2, 3, 5], do: "�"
+  defp currency_symbol(_width, _digits, %{currency: nil}), do: ""
+  defp currency_symbol(2, _digits, %{currency: currency}), do: symbol_of_kind(currency, :iso)
+  defp currency_symbol(3, digits, options), do: currency_plural_name(digits, options)
+  defp currency_symbol(5, _digits, %{currency: currency}), do: symbol_of_kind(currency, :narrow)
+
+  defp symbol_of_kind(currency, kind) do
+    case Localize.Currency.symbol(currency, kind) do
+      {:ok, symbol} -> symbol
+      {:error, _exception} -> "�"
+    end
+  end
+
+  # The plural category is taken from the digits the number displays, so
+  # "1.00" (plural operand v=2) selects `other` in English, as it does in
+  # ICU. NaN and infinity display no digits and select `other`.
+  defp currency_plural_name(digits, %{currency: currency, locale: locale}) do
+    category =
+      case digits do
+        nil ->
+          :other
+
+        digits ->
+          Localize.Number.PluralRule.Cardinal.plural_rule(displayed_decimal(digits), locale)
+      end
+
+    counts = currency.count || %{}
+    Map.get(counts, category) || Map.get(counts, :other) || currency.name
+  end
+
+  # A digit tuple as a decimal that keeps its trailing zeros, built from
+  # integers so that no digit string, however long, is parsed.
+  defp displayed_decimal({_sign, integer, fraction, exponent_sign, exponent}) do
+    coefficient = List.to_integer([?0 | integer ++ fraction])
+    scale = exponent_sign * List.to_integer(exponent) - length(fraction)
+    Decimal.new(1, coefficient, scale)
+  end
+
   defp walk_tokens([], _body, _number_string, _meta, _options), do: []
 
   defp walk_tokens(
-         [{:format, _}, {:currency, _type} | rest],
+         [{:format, _}, {:currency, symbol} | rest],
          body,
          number_string,
          meta,
          %{currency_spacing: spacing} = options
        )
        when not is_nil(spacing) do
-    symbol = options.currency_symbol
     before_spacing = spacing[:before_currency]
 
     spacing_parts =
@@ -472,14 +523,13 @@ defmodule Localize.Number.Formatter.Decimal do
   end
 
   defp walk_tokens(
-         [{:currency, _type}, {:format, _} | rest],
+         [{:currency, symbol}, {:format, _} | rest],
          body,
          number_string,
          meta,
          %{currency_spacing: spacing} = options
        )
        when not is_nil(spacing) do
-    symbol = options.currency_symbol
     after_spacing = spacing[:after_currency]
 
     spacing_parts =
@@ -493,11 +543,8 @@ defmodule Localize.Number.Formatter.Decimal do
       [walk_tokens(rest, body, number_string, meta, options)]
   end
 
-  defp walk_tokens([{:currency, _type} | rest], body, number_string, meta, options) do
-    [
-      currency_part(options.currency_symbol)
-      | walk_tokens(rest, body, number_string, meta, options)
-    ]
+  defp walk_tokens([{:currency, symbol} | rest], body, number_string, meta, options) do
+    [currency_part(symbol) | walk_tokens(rest, body, number_string, meta, options)]
   end
 
   defp walk_tokens([{:format, _} | rest], body, number_string, meta, options) do
@@ -520,11 +567,9 @@ defmodule Localize.Number.Formatter.Decimal do
 
   defp walk_tokens([{:minus, _} | rest], body, number_string, meta, options) do
     # Mirrors the `{:minus, _}` clause of `assemble_parts/5`: in
-    # `:auto` mode a bare zero drops the minus sign.
-    auto_sign_display? = options.sign_display in [nil, :auto]
-
-    sign =
-      if number_string == "0" and auto_sign_display?, do: "", else: options.symbols.minus_sign
+    # `:auto` mode a value that rounds down to a bare zero drops the minus
+    # sign, but an actual negative zero keeps it.
+    sign = minus_sign_for(number_string, meta, options)
 
     [
       %{type: :minus_sign, value: sign}
@@ -605,7 +650,37 @@ defmodule Localize.Number.Formatter.Decimal do
     options
   end
 
+  # In `:auto` mode a number whose digits round away to a bare zero drops its
+  # minus sign, so `-0.4` at no fraction digits is "0". Negative zero is not
+  # that case: it is already zero and its sign is the only information it
+  # carries. ECMA-402 defines `signDisplay: "auto"` as signing negative
+  # numbers "including negative zero", ICU agrees, and CLDR's decimal
+  # conformance data asserts `-0.0` formats as "-0" across every locale.
+  defp minus_sign_for(number_string, meta, options) do
+    auto_sign_display? = options.sign_display in [nil, :auto]
+
+    if number_string == "0" and auto_sign_display? and
+         not negative_zero?(Map.get(meta, :number)) do
+      ""
+    else
+      options.symbols.minus_sign
+    end
+  end
+
+  defp negative_zero?(%Decimal{sign: sign, coef: 0}), do: sign < 0
+
+  defp negative_zero?(number) when is_float(number),
+    do: number == 0.0 and match?(<<1::1, _::bitstring>>, <<number::float>>)
+
+  defp negative_zero?(_number), do: false
+
   defp negative_number?(%Decimal{sign: sign}), do: sign < 0
+
+  # Matches `Options.negative?/1` — see the note there on why the sign bit is
+  # read rather than the value.
+  defp negative_number?(number) when is_float(number),
+    do: match?(<<1::1, _::bitstring>>, <<number::float>>)
+
   defp negative_number?(number), do: number < 0
 
   # True when every rounded digit is zero — the displayed value is
@@ -634,13 +709,20 @@ defmodule Localize.Number.Formatter.Decimal do
     end
   end
 
-  defp round_to_significant_digits(number, %{significant_digits: %{min: 0, max: 0}}) do
+  defp round_to_significant_digits(number, %{significant_digits: %{min: 0, max: 0}}, _options) do
     number
   end
 
-  defp round_to_significant_digits(number, %{significant_digits: %{max: max}}) do
-    Math.round_significant(number, max)
+  # TR35 rounds half-even unless another rounding mode is asked for, so
+  # "@@@" shows 12250 as 12200, as ICU does.
+  defp round_to_significant_digits(number, %{significant_digits: %{max: max}}, options) do
+    Math.round_significant(number, max, rounding_mode(options))
   end
+
+  defp rounding_mode(%{rounding_mode: rounding_mode}) when not is_nil(rounding_mode),
+    do: rounding_mode
+
+  defp rounding_mode(_options), do: :half_even
 
   defp round_to_nearest(number, %{round_nearest: rounding}, _options)
        when rounding == 0,
@@ -675,7 +757,7 @@ defmodule Localize.Number.Formatter.Decimal do
     |> trunc()
   end
 
-  defp set_exponent(number, %{exponent_digits: 0}), do: {number, 0}
+  defp set_exponent(number, %{exponent_digits: 0}, _options), do: {number, 0}
 
   # TR35 scientific notation. Three flavours, all routed here:
   #
@@ -704,11 +786,28 @@ defmodule Localize.Number.Formatter.Decimal do
   # range — e.g. 12345 → 1.2345 (float) → 12.344999999999999E3 — which
   # the scientific short-circuit in `round_fractional_digits/3` can no
   # longer mask.
-  defp set_exponent(number, meta) do
-    {coef, exponent} = number |> promote_to_decimal() |> Math.coef_exponent()
-    coef = Math.round_significant(coef, meta.scientific_rounding)
+  defp set_exponent(number, meta, options) do
+    {coef, exponent} =
+      number
+      |> promote_to_decimal()
+      |> Math.coef_exponent()
+      |> round_mantissa(meta.scientific_rounding, rounding_mode(options))
+
     shift = mantissa_shift(exponent, meta)
     {shift_decimal_point_right(coef, shift), exponent - shift}
+  end
+
+  # A mantissa rounds like any other number, half-even by default, so
+  # "0.###E0" shows 12345 as 1.234E4. Rounding can carry into a new digit —
+  # 9.9995 to four digits is 10.00 — which is 1.000 at the next exponent.
+  defp round_mantissa({coef, exponent}, digits, rounding_mode) do
+    rounded = Math.round_significant(coef, digits, rounding_mode)
+
+    if Decimal.compare(Decimal.abs(rounded), 10) == :lt do
+      {rounded, exponent}
+    else
+      {Decimal.div(rounded, 10), exponent + 1}
+    end
   end
 
   defp promote_to_decimal(%Decimal{} = decimal), do: decimal
@@ -743,9 +842,29 @@ defmodule Localize.Number.Formatter.Decimal do
     {number, exponent}
   end
 
-  defp round_fractional_digits({number, exponent}, %{exponent_digits: exp_digits}, _options)
+  # Scientific notation carries its fraction digits on the mantissa, and the
+  # usual `#E0` pattern declares none. For scientific that means
+  # "unconstrained", not "round to an integer", so a pattern-derived maximum
+  # is ignored here — rounding 1.5E0 to zero fraction digits would give 2E0.
+  # A maximum the caller asked for is a different thing and is applied: ICU's
+  # `Notation.scientific()` defaults to six fraction digits on the mantissa,
+  # which is what CLDR's conformance data expects, and without this the
+  # mantissa carried the input's full float precision
+  # (`-1.5000000000000002E-1` for `-1.5E-1`).
+  defp round_fractional_digits({number, exponent}, %{exponent_digits: exp_digits}, options)
        when exp_digits > 0 do
-    {number, exponent}
+    case options.max_fractional_digits || options.fractional_digits do
+      nil ->
+        {number, exponent}
+
+      max ->
+        number =
+          number
+          |> Math.round(max, options.rounding_mode)
+          |> strip_trailing_zeros()
+
+        {number, exponent}
+    end
   end
 
   defp round_fractional_digits({number, exponent}, %{fractional_digits: %{max: max}}, %{
@@ -1122,13 +1241,14 @@ defmodule Localize.Number.Formatter.Decimal do
   defp extract_symbol(value) when is_binary(value), do: value
   defp extract_symbol(_), do: ""
 
-  defp assemble_format(number_string, meta, options) do
-    format = pattern_parts(meta.format, options.pattern)
-    number = meta.number
+  defp assemble_format(number_string, meta, options, displayed \\ nil) do
+    format =
+      meta.format
+      |> pattern_parts(options.pattern)
+      |> resolve_currency_tokens(displayed, options)
 
-    assemble_parts(format, number_string, number, meta, options)
+    assemble_parts(format, number_string, meta.number, meta, options)
     |> :erlang.iolist_to_binary()
-    |> String.trim_trailing()
   end
 
   # The `:positive_plus` pattern is derived, not compiled: it is the
@@ -1159,77 +1279,73 @@ defmodule Localize.Number.Formatter.Decimal do
 
   defp assemble_parts([], _number_string, _number, _meta, _options), do: []
 
+  # Currency spacing is decided on the symbol itself, before a wrapper's
+  # markup surrounds it.
   defp assemble_parts(
-         [{:format, _}, {:currency, _type} | rest],
+         [{:format, _}, {:currency, symbol} | rest],
          number_string,
          number,
          meta,
-         %{currency_spacing: spacing} = options
+         %{currency_spacing: spacing, wrapper: wrapper} = options
        )
        when not is_nil(spacing) do
-    %{currency_symbol: symbol, wrapper: wrapper} = options
-
-    symbol = maybe_wrap(symbol, :currency_symbol, wrapper)
     number_string_wrapped = maybe_wrap(number_string, :number, wrapper)
-
+    symbol_wrapped = maybe_wrap(symbol, :currency_symbol, wrapper)
     before_spacing = spacing[:before_currency]
 
     if before_spacing && before_currency_match?(number_string, symbol, before_spacing) do
       [
         number_string_wrapped,
         maybe_wrap(before_spacing[:insert_between], :currency_space, wrapper),
-        symbol
+        symbol_wrapped
         | assemble_parts(rest, number_string, number, meta, options)
       ]
     else
       [
         number_string_wrapped,
-        symbol
+        symbol_wrapped
         | assemble_parts(rest, number_string, number, meta, options)
       ]
     end
   end
 
   defp assemble_parts(
-         [{:currency, _type}, {:format, _} | rest],
+         [{:currency, symbol}, {:format, _} | rest],
          number_string,
          number,
          meta,
-         %{currency_spacing: spacing} = options
+         %{currency_spacing: spacing, wrapper: wrapper} = options
        )
        when not is_nil(spacing) do
-    %{currency_symbol: symbol, wrapper: wrapper} = options
-
-    symbol = maybe_wrap(symbol, :currency_symbol, wrapper)
     number_string_wrapped = maybe_wrap(number_string, :number, wrapper)
-
+    symbol_wrapped = maybe_wrap(symbol, :currency_symbol, wrapper)
     after_spacing = spacing[:after_currency]
 
     if after_spacing && after_currency_match?(number_string, symbol, after_spacing) do
       [
-        symbol,
+        symbol_wrapped,
         maybe_wrap(after_spacing[:insert_between], :currency_space, wrapper),
         number_string_wrapped
         | assemble_parts(rest, number_string, number, meta, options)
       ]
     else
       [
-        symbol,
+        symbol_wrapped,
         number_string_wrapped
         | assemble_parts(rest, number_string, number, meta, options)
       ]
     end
   end
 
-  defp assemble_parts([{:currency, _type} | rest], number_string, number, meta, options) do
-    %{currency_symbol: symbol, wrapper: wrapper} = options
+  defp assemble_parts([{:currency, @nbsp} | rest], number_string, number, meta, options) do
+    assemble_parts(rest, number_string, number, meta, options)
+  end
 
-    if symbol == @nbsp do
-      assemble_parts(rest, number_string, number, meta, options)
-    else
-      symbol = maybe_wrap(symbol, :currency_symbol, wrapper)
-      [symbol | assemble_parts(rest, number_string, number, meta, options)]
-    end
+  defp assemble_parts([{:currency, symbol} | rest], number_string, number, meta, options) do
+    [
+      maybe_wrap(symbol, :currency_symbol, options.wrapper)
+      | assemble_parts(rest, number_string, number, meta, options)
+    ]
   end
 
   defp assemble_parts(
@@ -1272,14 +1388,13 @@ defmodule Localize.Number.Formatter.Decimal do
          meta,
          %{wrapper: wrapper} = options
        ) do
-    # In `:auto` mode a bare zero drops the minus sign. With an
-    # explicit `:sign_display`, `resolve_sign_display/3` has already
-    # decided whether this zero shows its sign (`:always` keeps the
-    # minus on `-0`), so the pattern choice is final.
-    auto_sign_display? = options.sign_display in [nil, :auto]
-
+    # With an explicit `:sign_display`, `resolve_sign_display/3` has already
+    # decided whether this zero shows its sign (`:always` keeps the minus on
+    # `-0`), so the pattern choice is final; `minus_sign_for/3` handles the
+    # `:auto` case.
     sign =
-      if(number_string == "0" and auto_sign_display?, do: "", else: options.symbols.minus_sign)
+      number_string
+      |> minus_sign_for(meta, options)
       |> maybe_wrap(:minus, wrapper)
 
     [sign | assemble_parts(rest, number_string, number, meta, options)]
@@ -1337,8 +1452,17 @@ defmodule Localize.Number.Formatter.Decimal do
     ]
   end
 
-  defp assemble_parts([{:quoted_char, char} | rest], number_string, number, meta, options) do
-    [char | assemble_parts(rest, number_string, number, meta, options)]
+  defp assemble_parts(
+         [{:quoted_char, char} | rest],
+         number_string,
+         number,
+         meta,
+         %{wrapper: wrapper} = options
+       ) do
+    [
+      maybe_wrap(char, :literal, wrapper)
+      | assemble_parts(rest, number_string, number, meta, options)
+    ]
   end
 
   defp maybe_wrap(string, _tag, nil), do: string
@@ -1463,17 +1587,17 @@ defmodule Localize.Number.Formatter.Decimal do
 
   # ── Currency spacing helpers ────────────────────────────────
 
-  @currency_match_symbol "[\\P{S}]$"
-  @currency_match_separator "[\\P{Z}]$"
-
+  # CLDR's currency match `[[:^S:]&[:^Z:]]` is a set intersection, written
+  # here as the equivalent `[^\p{S}\p{Z}]`. TR35 tests the symbol character
+  # next to the number: the first one when the symbol follows the number,
+  # the last one when it precedes it.
   defp before_currency_match?(
          number_string,
          symbol,
          %{currency_match: "[[:^S:]&[:^Z:]]"} = spacing
        ) do
     String.match?(number_string, Regex.compile!(spacing[:surrounding_match] <> "$", "u")) &&
-      String.match?(to_string(symbol), ~r/#{@currency_match_symbol}/u) &&
-      String.match?(to_string(symbol), ~r/#{@currency_match_separator}/u)
+      String.match?(to_string(symbol), ~r/^[^\p{S}\p{Z}]/u)
   end
 
   defp before_currency_match?(number_string, symbol, spacing) do
@@ -1487,8 +1611,7 @@ defmodule Localize.Number.Formatter.Decimal do
          %{currency_match: "[[:^S:]&[:^Z:]]"} = spacing
        ) do
     String.match?(number_string, Regex.compile!("^" <> spacing[:surrounding_match], "u")) &&
-      String.match?(to_string(symbol), ~r/#{@currency_match_symbol}/u) &&
-      String.match?(to_string(symbol), ~r/#{@currency_match_separator}/u)
+      String.match?(to_string(symbol), ~r/[^\p{S}\p{Z}]$/u)
   end
 
   defp after_currency_match?(number_string, symbol, spacing) do

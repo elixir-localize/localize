@@ -41,6 +41,7 @@ defmodule Localize.List do
   """
 
   import Kernel, except: [to_string: 1]
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
   alias Localize.List.Pattern
   alias Localize.Substitution
@@ -118,14 +119,32 @@ defmodule Localize.List do
 
   """
   @spec to_string([term()], Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
-  def to_string(list, options \\ []) do
-    element_options = Keyword.drop(options, @list_specific_options)
+  def to_string(list, options \\ [])
+
+  def to_string(list, options) when is_list(list) and is_keyword_list(options) do
+    element_options = element_options(options)
 
     with {:ok, interspersed} <- intersperse(list, options),
          {:ok, parts} <- format_elements(interspersed, element_options) do
       {:ok, :erlang.iolist_to_binary(parts)}
     end
   end
+
+  def to_string(list, options), do: invalid_arguments(list, options)
+
+  # The options each element is formatted with: all but the list's own.
+  # Unlike `Keyword.drop/2`, an entry that is not a keyword pair is kept
+  # rather than raised on.
+  defp element_options(options) do
+    Enum.reject(options, &match?({key, _value} when key in @list_specific_options, &1))
+  end
+
+  # A value that is not a list, or options that are not a keyword list.
+  defp invalid_arguments(_list, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  defp invalid_arguments(list, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(list, "a list")}
 
   defp format_elements(elements, options) do
     Enum.reduce_while(elements, {:ok, []}, fn elem, {:ok, acc} ->
@@ -213,14 +232,18 @@ defmodule Localize.List do
   """
   @spec to_parts([term()], Keyword.t()) ::
           {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
-  def to_parts(list, options \\ []) do
-    element_options = Keyword.drop(options, @list_specific_options)
+  def to_parts(list, options \\ [])
+
+  def to_parts(list, options) when is_list(list) and is_keyword_list(options) do
+    element_options = element_options(options)
 
     with {:ok, pattern, middle_as_end?} <- normalize_options(options),
          {:ok, element_parts} <- elements_to_parts(list, element_options) do
       {:ok, do_intersperse_parts(element_parts, pattern, middle_as_end?)}
     end
   end
+
+  def to_parts(list, options), do: invalid_arguments(list, options)
 
   @doc """
   Same as `to_parts/2` but raises on error.
@@ -354,11 +377,11 @@ defmodule Localize.List do
   @spec intersperse([term()], Keyword.t()) :: {:ok, [term()]} | {:error, Exception.t()}
   def intersperse(list, options \\ [])
 
-  def intersperse([], _options) do
+  def intersperse([], options) when is_keyword_list(options) do
     {:ok, []}
   end
 
-  def intersperse(list, options) do
+  def intersperse(list, options) when is_list(list) and is_keyword_list(options) do
     with {:ok, pattern, middle_as_end?} <- normalize_options(options) do
       result =
         list
@@ -368,6 +391,8 @@ defmodule Localize.List do
       {:ok, result}
     end
   end
+
+  def intersperse(list, options), do: invalid_arguments(list, options)
 
   @doc """
   Same as `intersperse/2` but raises on error.
@@ -575,6 +600,15 @@ defmodule Localize.List do
           {:ok, Pattern.from_locale_data(data)}
       end
     end
+  end
+
+  defp resolve_list_style(_locale_id, list_style) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: list_style,
+       expected: "a known list style",
+       context: "Localize.List"
+     )}
   end
 
   # ── Helpers ────────────────────────────────────────────────

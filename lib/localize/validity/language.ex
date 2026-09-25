@@ -8,7 +8,7 @@ defmodule Localize.Validity.Language do
     {:ok, nil, nil}
   end
 
-  def validate(code) do
+  def validate(code) when is_binary(code) or is_atom(code) do
     code
     |> to_string()
     |> String.downcase()
@@ -18,6 +18,8 @@ defmodule Localize.Validity.Language do
       other -> other
     end
   end
+
+  def validate(code), do: {:error, code}
 
   def normalize(code) when is_binary(code) do
     String.downcase(code)

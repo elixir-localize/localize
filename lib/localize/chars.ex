@@ -49,9 +49,10 @@ defprotocol Localize.Chars do
   in a locale-aware way it does so; otherwise it returns
   `{:ok, Kernel.to_string(value)}`. Types with **no** `String.Chars`
   implementation either (tuples, maps without an explicit impl,
-  PIDs, references, anonymous functions) raise the same
-  `Protocol.UndefinedError` they would from `Kernel.to_string/1`
-  — `Localize.Chars` does not invent a representation for them.
+  PIDs, references, anonymous functions), and lists that are not
+  chardata, return `{:error, exception}` where `Kernel.to_string/1`
+  would raise — `Localize.Chars` does not invent a representation
+  for them.
 
   ## Caveats
 
@@ -97,6 +98,10 @@ defprotocol Localize.Chars do
   Formats `value` as a localized string with default options.
 
   Equivalent to `to_string(value, [])`.
+
+  ### Arguments
+
+  * `value` is any term implementing the `Localize.Chars` protocol.
 
   ### Returns
 
@@ -167,12 +172,19 @@ end
 # means atoms, charlists, booleans, and `nil` work the same way
 # under `Localize.to_string/1` as they do under `Kernel.to_string/1`.
 # Types with no `String.Chars` impl (tuples, plain maps, PIDs,
-# references, anonymous functions) raise the same
-# `Protocol.UndefinedError` they would from `Kernel.to_string/1`.
+# references, anonymous functions) and lists that are not chardata
+# return an error where `Kernel.to_string/1` would raise.
 
 defimpl Localize.Chars, for: Any do
-  def to_string(value), do: {:ok, Kernel.to_string(value)}
-  def to_string(value, _options), do: {:ok, Kernel.to_string(value)}
+  def to_string(value), do: to_string(value, [])
+
+  def to_string(value, _options) do
+    {:ok, Kernel.to_string(value)}
+  rescue
+    _exception in [Protocol.UndefinedError, ArgumentError, UnicodeConversionError] ->
+      {:error,
+       Localize.Utils.Helpers.invalid_value(value, "a value that can be converted to a string")}
+  end
 end
 
 # ── Built-in implementations ─────────────────────────────────────

@@ -68,14 +68,25 @@ iex> Localize.Date.to_string(~D[2024-07-10], format: "EEEE d MMMM y", locale: :e
 
 ### Partial dates
 
-Maps with a subset of date fields are supported. Missing fields are omitted from the output:
+Maps with a subset of date fields are supported. A standard format, or no format, derives the skeleton from the fields present, with the month as wide as the format asks:
 
 ```elixir
-iex> Localize.Date.to_string(%{year: 2024, month: 6}, format: :yMMM, locale: :en)
+iex> Localize.Date.to_string(%{year: 2024, month: 6}, locale: :en)
 {:ok, "Jun 2024"}
+
+iex> Localize.Date.to_string(%{year: 2024, month: 6}, format: :short, locale: :en)
+{:ok, "6/2024"}
 
 iex> Localize.Date.to_string(%{year: 2024, month: 6}, format: :yMMM, locale: :fr)
 {:ok, "juin 2024"}
+```
+
+A skeleton or pattern that asks for a field the map does not have is an error rather than a blank in the output:
+
+```elixir
+iex> {:error, error} = Localize.Date.to_string(%{year: 2024, month: 6}, format: :yMMMd, locale: :en)
+iex> Exception.message(error)
+"The format \"MMM d, y\" cannot be applied to the value: missing :day."
 ```
 
 ### Locale influence on dates
@@ -132,13 +143,35 @@ iex> Localize.Time.to_string(~T[14:30:00], locale: :ja)
 {:ok, "14:30:00"}
 ```
 
+A `-u-hc-` locale extension replaces the locale's preferred hour cycle, which the standard formats and a skeleton's `j` and `J` follow, and the hour takes that cycle's symbol, so `h11` counts hours from 0 to 11 and `h24` from 1 to 24. An explicit `h` or `H` in a skeleton keeps the cycle it names, and `C`, which asks for the first of the locale's allowed hour formats, is not overridden. `J` asks for the preferred hour without a day period:
+
+```elixir
+iex> Localize.Time.to_string(~T[00:30:00], format: :short, locale: "en-u-hc-h11", prefer: :ascii)
+{:ok, "0:30 AM"}
+
+iex> Localize.Time.to_string(~T[00:30:00], format: :short, locale: "en-u-hc-h24")
+{:ok, "24:30"}
+
+iex> Localize.Time.to_string(~T[21:00:00], format: :Hm, locale: "en-u-hc-h12")
+{:ok, "21:00"}
+
+iex> Localize.Time.to_string(~T[18:00:00], format: :Jmm, locale: :en)
+{:ok, "6:00"}
+```
+
 ### Partial times
 
-Maps with a subset of time fields are supported:
+Maps with a subset of time fields are supported. Without a skeleton the hour follows the locale's hour cycle, or a `-u-hc-` override:
 
 ```elixir
 iex> Localize.Time.to_string(%{hour: 14, minute: 30}, format: :hm, locale: :en, prefer: :ascii)
 {:ok, "2:30 PM"}
+
+iex> Localize.Time.to_string(%{hour: 14, minute: 30}, locale: :de)
+{:ok, "14:30"}
+
+iex> Localize.Time.to_string(%{hour: 14, minute: 30}, locale: "en-u-hc-h23")
+{:ok, "14:30"}
 ```
 
 ## DateTime formatting
@@ -162,6 +195,18 @@ Combine different format levels for the date and time portions:
 ```elixir
 iex> Localize.DateTime.to_string(~N[2024-07-10 14:30:00], date_format: :full, time_format: :short, locale: :en, prefer: :ascii)
 {:ok, "Wednesday, July 10, 2024, 2:30 PM"}
+```
+
+### Partial datetimes
+
+A map holding only some of the date and time fields formats its date half and its time half separately, then joins them with the locale's date-time pattern, so no field is dropped:
+
+```elixir
+iex> Localize.DateTime.to_string(%{year: 2026, month: 6, day: 15, hour: 14}, locale: :en, prefer: :ascii)
+{:ok, "Jun 15, 2026, 2 PM"}
+
+iex> Localize.DateTime.to_string(%{year: 2026, month: 6, hour: 14}, locale: :en, prefer: :ascii)
+{:ok, "Jun 2026, 2 PM"}
 ```
 
 ### Locale influence on datetimes
@@ -194,6 +239,21 @@ iex> Localize.DateTime.Relative.to_string(-60, locale: :en)
 
 iex> Localize.DateTime.Relative.to_string(3600, locale: :en)
 {:ok, "in 1 hour"}
+```
+
+### A number of units
+
+With `:unit`, the number is a count of that unit and may be fractional. It is formatted for the locale, and the plural category of the number as displayed selects the pattern:
+
+```elixir
+iex> Localize.DateTime.Relative.to_string(1.5, unit: :hour, locale: :en)
+{:ok, "in 1.5 hours"}
+
+iex> Localize.DateTime.Relative.to_string(1.5, unit: :day, locale: :fr)
+{:ok, "dans 1,5 jour"}
+
+iex> Localize.DateTime.Relative.to_string(-1000, unit: :day, locale: :de)
+{:ok, "vor 1.000 Tagen"}
 ```
 
 ### From dates and datetimes
@@ -240,19 +300,21 @@ iex> Localize.DateTime.Relative.to_string(0, unit: :day, locale: :en, numeric: :
 
 CLDR format patterns use field symbols to represent date and time components. Each symbol can be repeated to control the output width.
 
+A symbol takes only the widths TR35's Date Field Symbol Table lists for it. At any other width — `dddd`, `MMMMMM`, `HHH` — the field is invalid and formats as U+FFFD (�), as TR35's Handling Invalid Patterns recommends, and a letter the table does not define, such as `n`, makes the pattern an error. A skeleton passes the width it asks for on to the pattern wherever TR35's matching adjusts widths, so `:MMMMMMd` formats its month as U+FFFD too. ICU pads, clamps or drops such fields instead.
+
 ### Date field symbols
 
 | Symbol | Meaning | 1 | 2 | 3 | 4 | 5 |
 |--------|---------|---|---|---|---|---|
 | `G` | Era | AD | AD | AD | Anno Domini | A |
-| `y` | Year | 2024 | 24 | - | - | - |
+| `y` | Year | 2024 | 24 | 2024 | 2024 | 02024 |
 | `M` | Month | 7 | 07 | Jul | July | J |
 | `L` | Standalone month | 7 | 07 | Jul | July | J |
-| `d` | Day of month | 1 | 01 | - | - | - |
+| `d` | Day of month | 1 | 01 | � | � | � |
 | `E` | Day name | Mon | Mon | Mon | Monday | M |
 | `e` | Day of week (numeric) | 2 | 02 | Mon | Monday | M |
-| `c` | Standalone day | 2 | 02 | Mon | Monday | M |
-| `Q` | Quarter | 1 | 01 | Q1 | 1st quarter | 1 |
+| `c` | Standalone day | 2 | 2 | Mon | Monday | M |
+| `Q` | Quarter | 3 | 03 | Q3 | 3rd quarter | 3 |
 
 ### Time field symbols
 
@@ -265,7 +327,7 @@ CLDR format patterns use field symbols to represent date and time components. Ea
 | `m` | Minute | 5 | 05 |
 | `s` | Second | 9 | 09 |
 | `S` | Fractional second | 1-N digits | |
-| `a` | AM/PM | AM | |
+| `a` | AM/PM | PM | PM |
 
 ### Timezone field symbols
 
@@ -278,6 +340,12 @@ CLDR format patterns use field symbols to represent date and time components. Ea
 | `Z` | 5 | +05:00 or Z |
 | `O` | 1 | GMT+5 |
 | `O` | 4 | GMT+05:00 |
+| `v` | 1 | ET |
+| `v` | 4 | Eastern Time |
+| `V` | 1 | usnyc (BCP 47 short zone id) |
+| `V` | 2 | America/New_York |
+| `V` | 3 | New York (exemplar city) |
+| `V` | 4 | New York Time (generic location) |
 | `X` | 1-5 | +05, +0500, +05:00 (Z for zero) |
 | `x` | 1-5 | +05, +0500, +05:00 (no Z) |
 
@@ -333,7 +401,8 @@ Skeleton atoms can use `j` as a meta-symbol that resolves to the locale's prefer
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `:locale` | atom, string, or `LanguageTag` | `Localize.get_locale()` | Locale for patterns and pluralization. |
+| `:locale` | atom, string, or `LanguageTag` | `Localize.get_locale()` | Locale for patterns, pluralization, and the number's digits and grouping. |
 | `:format` | atom | `:standard` | Width: `:standard`, `:short`, or `:narrow`. |
-| `:unit` | atom | (auto-derived) | Explicit unit: `:second`, `:minute`, `:hour`, `:day`, `:week`, `:month`, `:quarter`, `:year`. |
-| `:relative_to` | `DateTime` | `DateTime.utc_now()` | Baseline for calculating the difference. |
+| `:unit` | atom | (auto-derived) | Explicit unit: `:second`, `:minute`, `:hour`, `:day`, `:week`, `:month`, `:quarter`, `:year`, or a weekday from `:mon` to `:sun`. |
+| `:numeric` | atom | `:auto` | `:auto` uses named forms such as "yesterday" for offsets of -2 to 2; `:always` is always numeric. |
+| `:relative_to` | `Date`, `Time`, `NaiveDateTime`, or `DateTime` | `DateTime.utc_now()` | Baseline for calculating the difference. |

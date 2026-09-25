@@ -80,9 +80,11 @@ defmodule Localize.DateTime.FormatterSymbolTest do
       assert date_format(bc_date, "uuuu") == "-0100"
     end
 
-    test "U (cyclic year) and r (related year) fall back to the calendar year" do
+    test "U (cyclic year) formats as y without cyclic names, and r is the year" do
+      # TR35: with no cyclic name data U "behaves like 'y'", so UU is the two
+      # low-order digits; r gives two letters no special meaning.
       assert date_format(@date, "U") == "2024"
-      assert date_format(@date, "UU") == "2024"
+      assert date_format(@date, "UU") == "24"
       assert date_format(@date, "r") == "2024"
       assert date_format(@date, "rr") == "2024"
     end
@@ -192,8 +194,9 @@ defmodule Localize.DateTime.FormatterSymbolTest do
     end
 
     test "day of week number and name widths" do
-      assert date_format(@date, "e") == "6"
-      assert date_format(@date, "ee") == "06"
+      # 2024-07-06 is a Saturday, the seventh day of an `en` week.
+      assert date_format(@date, "e") == "7"
+      assert date_format(@date, "ee") == "07"
       assert date_format(@date, "eee") == "Sat"
       assert date_format(@date, "eeee") == "Saturday"
       assert date_format(@date, "eeeee") == "S"
@@ -201,8 +204,9 @@ defmodule Localize.DateTime.FormatterSymbolTest do
     end
 
     test "standalone day of week widths" do
-      assert date_format(@date, "c") == "6"
-      assert date_format(@date, "cc") == "06"
+      # TR35: `c..cc` is one digit, unlike `ee`.
+      assert date_format(@date, "c") == "7"
+      assert date_format(@date, "cc") == "7"
       assert date_format(@date, "ccc") == "Sat"
       assert date_format(@date, "cccc") == "Saturday"
       assert date_format(@date, "ccccc") == "S"
@@ -298,8 +302,10 @@ defmodule Localize.DateTime.FormatterSymbolTest do
       assert time_format(@time, "SSSSSS") == "123456"
     end
 
-    test "S is capped at the value's precision" do
-      assert time_format(~N[2024-07-06 14:30:45.9], "ss.SSS") == "45.9"
+    test "S has exactly as many digits as letters, whatever the value's precision" do
+      # TR35: the fraction truncates, or pads, to the field length.
+      assert time_format(~N[2024-07-06 14:30:45.9], "ss.SSS") == "45.900"
+      assert time_format(~T[14:30:45], "ss.SS") == "45.00"
     end
 
     test "seconds followed by S get an implicit decimal separator" do
@@ -339,13 +345,19 @@ defmodule Localize.DateTime.FormatterSymbolTest do
     end
   end
 
-  describe "lenient formatting of missing fields" do
-    test "time symbols render empty against a Date" do
-      assert date_format(@date, "H:mm") == ":"
+  describe "fields the value does not hold" do
+    # TR35 defines no rendering for a field the value lacks, so a pattern
+    # asking for one is an error rather than a blank in the output. Zone
+    # symbols are the exception: TR35 gives each a fallback, and a zoneless
+    # value renders them empty.
+    test "time symbols against a Date are an error naming the missing fields" do
+      assert {:error, %Localize.DateTimeInvalidInputError{missing: [:hour, :minute]}} =
+               Localize.Date.to_string(@date, format: "H:mm", locale: :en)
     end
 
-    test "date symbols render empty against a Time" do
-      assert time_format(@time, "y G Q M d E w a") == "       PM"
+    test "date symbols against a Time are an error naming the missing fields" do
+      assert {:error, %Localize.DateTimeInvalidInputError{missing: [:year, :month, :day]}} =
+               Localize.Time.to_string(@time, format: "y G Q M d E w a", locale: :en)
     end
 
     test "all zone symbols render empty for a zoneless NaiveDateTime" do
@@ -389,8 +401,9 @@ defmodule Localize.DateTime.FormatterSymbolTest do
 
   describe "error paths" do
     test "unknown symbol returns a tokenize error" do
+      # `n` is a letter TR35 leaves unassigned.
       assert {:error, %Localize.DateTimeFormatError{reason: :tokenize_error}} =
-               Localize.Time.to_string(@time, format: "hh:mm garbage", locale: :en)
+               Localize.Time.to_string(@time, format: "hh:mm noon", locale: :en)
     end
 
     test "unresolvable date_format inside a {1} placeholder returns an error" do

@@ -152,6 +152,7 @@ defmodule Localize.LanguageTag do
   formatting currencies with the "accounting" style.
   """
   import Kernel, except: [to_string: 1]
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
   alias Localize.LanguageTag.{Parser, T, U}
   alias Localize.Locale
@@ -266,6 +267,8 @@ defmodule Localize.LanguageTag do
     end
   end
 
+  def parse(locale_id), do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale_id)}
+
   # Maximum byte length accepted by `parse/1` and `new/1`. Even the
   # most extravagant well-formed BCP-47 tag fits in well under this
   # bound; the cap prevents unbounded grammar work on hostile input.
@@ -308,7 +311,7 @@ defmodule Localize.LanguageTag do
 
   """
   @spec parse!(String.t()) :: t() | none()
-  def parse!(locale_string) when is_binary(locale_string) do
+  def parse!(locale_string) do
     case parse(locale_string) do
       {:ok, tag} -> tag
       {:error, exception} -> raise exception
@@ -448,7 +451,37 @@ defmodule Localize.LanguageTag do
     end
   end
 
-  defp resolve_cldr_locale(%__MODULE__{} = tag) do
+  def new(locale_id), do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale_id)}
+
+  defp resolve_cldr_locale(%__MODULE__{canonical_locale_id: id} = tag) when is_binary(id) do
+    case Map.get(locale_id_index(), id) do
+      nil -> match_cldr_locale(tag)
+      exact -> %{tag | cldr_locale_id: exact}
+    end
+  end
+
+  defp resolve_cldr_locale(%__MODULE__{} = tag), do: match_cldr_locale(tag)
+
+  # A tag that names a locale we actually hold data for resolves to that
+  # locale, without consulting the matcher. Language matching answers "which
+  # of these is closest", and for an exact identity it can answer with an
+  # equally-close *different* locale: `ar` maximizes to `ar-Arab-EG`, so `ar`
+  # and `ar-EG` both score 0 against a desired `ar-EG` and the tie went to
+  # `ar`. Twenty-five of the 657 locales resolved to a neighbour this way,
+  # `zh-Hans`, `sr-Cyrl`, `ca-ES-valencia`, `be-tarask` and `el-polyton`
+  # among them, every one of which ships data that differs from what it
+  # collapsed to — `ar-EG` formats in `arab` digits where `ar` deliberately
+  # uses `latn`.
+  #
+  # The index is built once and maps the canonical string to the atom already
+  # in `all_locale_ids/0`, so no atom is created from the input.
+  defp locale_id_index do
+    cached(:locale_id_index, fn ->
+      Map.new(SupplementalData.all_locale_ids(), &{Atom.to_string(&1), &1})
+    end)
+  end
+
+  defp match_cldr_locale(%__MODULE__{} = tag) do
     case best_match(tag, SupplementalData.all_locale_ids()) do
       # A score of 80 or more is the CLDR language-mismatch distance:
       # the best "match" speaks a different language. Another
@@ -493,7 +526,7 @@ defmodule Localize.LanguageTag do
 
   """
   @spec new!(String.t()) :: t() | no_return()
-  def new!(locale_id) when is_binary(locale_id) do
+  def new!(locale_id) do
     case new(locale_id) do
       {:ok, tag} -> tag
       {:error, exception} -> raise exception
@@ -542,13 +575,135 @@ defmodule Localize.LanguageTag do
       "en-US"
 
   """
-  @spec to_string(t()) :: String.t()
+  @spec to_string(t()) :: String.t() | {:error, Exception.t()}
   def to_string(%__MODULE__{canonical_locale_id: name}) when is_binary(name) do
     name
   end
 
+  # A struct built by hand renders from its fields of the right shape.
   def to_string(%__MODULE__{} = language_tag) do
-    build_canonical_name(language_tag)
+    language_tag
+    |> sanitize_fields()
+    |> build_canonical_name()
+  end
+
+  def to_string(language_tag),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: language_tag)}
+
+  @doc false
+  # Checks the shape of a struct's fields, so that a struct built by hand is
+  # reported as an invalid locale rather than raised on. `nil` stands for an
+  # empty list or map, and a subtag given as a string is the atom it names
+  # when that atom exists.
+  @spec validate_fields(t()) :: {:ok, t()} | {:error, Exception.t()}
+  def validate_fields(%__MODULE__{} = language_tag) do
+    Enum.reduce_while(field_checks(), {:ok, language_tag}, fn {field, check, _empty},
+                                                              {:ok, tag} ->
+      case check_field(check, Map.get(tag, field)) do
+        :ok -> {:cont, {:ok, tag}}
+        {:ok, value} -> {:cont, {:ok, Map.put(tag, field, value)}}
+        :error -> {:halt, {:error, invalid_fields_error(language_tag)}}
+      end
+    end)
+  end
+
+  # Rendering needs no atoms, so a subtag held as a string, as in the
+  # tokenized source language of a `-t-` extension, is kept as it is.
+  defp sanitize_fields(language_tag) do
+    Enum.reduce(field_checks(), language_tag, fn {field, check, empty}, tag ->
+      value = Map.get(tag, field)
+
+      case check_field(check, value) do
+        _string_subtag when check == :subtag and is_binary(value) -> tag
+        :ok -> tag
+        {:ok, value} -> Map.put(tag, field, value)
+        :error -> Map.put(tag, field, empty)
+      end
+    end)
+  end
+
+  # Each field a struct built by hand could get wrong, the shape it must
+  # have and the value it takes when empty: a subtag is an atom or nil,
+  # subtags, variants and private use are lists of strings, and extensions
+  # are the structs and maps the parser stores.
+  defp field_checks do
+    [
+      {:language, :subtag, nil},
+      {:script, :subtag, nil},
+      {:territory, :subtag, nil},
+      {:language_subtags, :string_list, []},
+      {:language_variants, :string_list, []},
+      {:private_use, :string_list, []},
+      {:locale, {:extension, U}, %{}},
+      {:transform, {:extension, T}, %{}},
+      {:extensions, :extensions, %{}}
+    ]
+  end
+
+  defp check_field(:subtag, value) when is_atom(value), do: :ok
+
+  defp check_field(:subtag, value) when is_binary(value) do
+    case Localize.Utils.Helpers.existing_atom(value) do
+      nil -> :error
+      atom -> {:ok, atom}
+    end
+  end
+
+  defp check_field(:string_list, nil), do: {:ok, []}
+  defp check_field(:string_list, value) when is_list(value), do: ok_if(string_list?(value))
+  defp check_field({:extension, module}, %module{}), do: :ok
+  defp check_field({:extension, _module}, nil), do: {:ok, %{}}
+
+  # Until a tag is canonicalized the parser holds an extension as a map of
+  # its keys, such as `%{"ca" => "gregory"}`.
+  defp check_field({:extension, _module}, value) when is_map(value) and not is_struct(value) do
+    ok_if(extension_map?(value))
+  end
+
+  defp check_field(:extensions, nil), do: {:ok, %{}}
+
+  defp check_field(:extensions, value) when is_map(value) and not is_struct(value) do
+    ok_if(Enum.all?(value, &extension_entry?/1))
+  end
+
+  defp check_field(_check, _value), do: :error
+
+  defp ok_if(true), do: :ok
+  defp ok_if(false), do: :error
+
+  defp string_list?([]), do: true
+  defp string_list?([string | rest]) when is_binary(string), do: string_list?(rest)
+  defp string_list?(_other), do: false
+
+  defp extension_entry?({singleton, extension})
+       when is_binary(singleton) and is_struct(extension),
+       do: true
+
+  # A generic extension, such as "-a-bbb-ccc", is a list of its subtags.
+  defp extension_entry?({singleton, subtags}) when is_binary(singleton) and is_list(subtags),
+    do: string_list?(subtags)
+
+  defp extension_entry?({singleton, extension}) when is_binary(singleton) and is_map(extension),
+    do: extension_map?(extension)
+
+  defp extension_entry?(_entry), do: false
+
+  defp extension_map?(extension) do
+    Enum.all?(extension, fn
+      {key, value} when is_binary(key) -> extension_value?(value)
+      _entry -> false
+    end)
+  end
+
+  defp extension_value?(value) when is_nil(value) or is_binary(value), do: true
+  defp extension_value?(%__MODULE__{}), do: true
+  defp extension_value?(value) when is_list(value), do: string_list?(value)
+  defp extension_value?(_value), do: false
+
+  # The struct's own inspection renders its fields, so the error describes
+  # them as a plain map.
+  defp invalid_fields_error(language_tag) do
+    Localize.InvalidLocaleError.exception(locale_id: inspect(Map.from_struct(language_tag)))
   end
 
   @doc """
@@ -586,7 +741,8 @@ defmodule Localize.LanguageTag do
   """
   @spec canonicalize(t()) :: {:ok, t()} | {:error, term()}
   def canonicalize(%__MODULE__{} = language_tag) do
-    with {:ok, tag} <- canonicalize_extensions(language_tag) do
+    with {:ok, language_tag} <- validate_fields(language_tag),
+         {:ok, tag} <- canonicalize_extensions(language_tag) do
       tag =
         tag
         |> sort_variants()
@@ -595,6 +751,9 @@ defmodule Localize.LanguageTag do
       {:ok, tag}
     end
   end
+
+  def canonicalize(language_tag),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: language_tag)}
 
   @doc """
   Canonicalize a parsed language tag, raising on error.
@@ -622,7 +781,7 @@ defmodule Localize.LanguageTag do
 
   """
   @spec canonicalize!(t()) :: t() | no_return()
-  def canonicalize!(%__MODULE__{} = language_tag) do
+  def canonicalize!(language_tag) do
     case canonicalize(language_tag) do
       {:ok, tag} -> tag
       {:error, exception} -> raise exception
@@ -696,12 +855,14 @@ defmodule Localize.LanguageTag do
 
   """
   @spec best_match(t() | String.t() | atom(), [t() | String.t() | atom()], non_neg_integer()) ::
-          {:ok, t() | String.t() | atom(), non_neg_integer()} | {:error, String.t()}
+          {:ok, t() | String.t() | atom(), non_neg_integer()}
+          | {:error, String.t() | Exception.t()}
   def best_match(desired, supported, distance \\ @default_distance)
 
   def best_match(%__MODULE__{} = desired, supported, distance) when is_list(supported) do
-    locale_string = build_canonical_name(desired)
-    best_match(locale_string, supported, distance)
+    with {:ok, desired} <- validate_fields(desired) do
+      best_match(build_canonical_name(desired), supported, distance)
+    end
   end
 
   def best_match(desired, supported, distance) when is_atom(desired) and is_list(supported) do
@@ -722,6 +883,12 @@ defmodule Localize.LanguageTag do
       end
     end
   end
+
+  def best_match(desired, supported, _distance) when is_list(supported),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: desired)}
+
+  def best_match(_desired, supported, _distance),
+    do: {:error, Localize.Utils.Helpers.invalid_value(supported, "a list of locales")}
 
   # Build the list of {locale, tag, score, index, is_paradigm,
   # is_territory_language} tuples for every supported locale within the
@@ -881,6 +1048,9 @@ defmodule Localize.LanguageTag do
     resolve_for_matching(Atom.to_string(locale), role)
   end
 
+  defp resolve_for_matching(locale, _role),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
+
   @dialyzer {:nowarn_function, ensure_maximized: 1}
   defp ensure_maximized(%__MODULE__{script: nil} = tag) do
     case add_likely_subtags(tag) do
@@ -965,10 +1135,19 @@ defmodule Localize.LanguageTag do
 
   """
   @spec add_likely_subtags(t()) :: {:ok, t()} | {:error, Exception.t()}
+  def add_likely_subtags(%__MODULE__{} = language_tag) do
+    with {:ok, language_tag} <- validate_fields(language_tag) do
+      maximize(language_tag)
+    end
+  end
+
+  def add_likely_subtags(language_tag),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: language_tag)}
+
   # CLDR likely-subtags maximization: per-subtag presence checks plus
   # matched/unmatched and und/non-und fallback outcomes.
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
-  def add_likely_subtags(%__MODULE__{} = language_tag) do
+  defp maximize(language_tag) do
     language = language_tag.language || :und
     script = strip_sentinel(language_tag.script, :Zzzz)
     region = strip_sentinel(language_tag.territory, :ZZ)
@@ -1040,7 +1219,7 @@ defmodule Localize.LanguageTag do
   """
   @spec add_likely_subtags!(t()) :: t() | no_return()
   @dialyzer {:nowarn_function, add_likely_subtags!: 1}
-  def add_likely_subtags!(%__MODULE__{} = language_tag) do
+  def add_likely_subtags!(language_tag) do
     case add_likely_subtags(language_tag) do
       {:ok, tag} -> tag
       {:error, exception} -> raise exception
@@ -1099,12 +1278,19 @@ defmodule Localize.LanguageTag do
   @spec remove_likely_subtags(t(), Keyword.t()) :: {:ok, t()} | {:error, Exception.t()}
   def remove_likely_subtags(language_tag, options \\ [])
 
-  def remove_likely_subtags(%__MODULE__{} = language_tag, options) do
+  def remove_likely_subtags(%__MODULE__{} = language_tag, options)
+      when is_keyword_list(options) do
     with {:ok, favor} <- validate_favor(Keyword.get(options, :favor, :script)),
          {:ok, maximized} <- add_likely_subtags(language_tag) do
       {:ok, %{maximized | canonical_locale_id: minimized_name(maximized, favor)}}
     end
   end
+
+  def remove_likely_subtags(_language_tag, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def remove_likely_subtags(language_tag, _options),
+    do: {:error, Localize.InvalidLocaleError.exception(locale_id: language_tag)}
 
   # The favor variant decides which subtag survives when either the
   # script or the territory alone round-trips through maximization:
@@ -1189,7 +1375,7 @@ defmodule Localize.LanguageTag do
   """
   @spec remove_likely_subtags!(t(), Keyword.t()) :: t() | no_return()
   @dialyzer {:nowarn_function, remove_likely_subtags!: 2}
-  def remove_likely_subtags!(%__MODULE__{} = language_tag, options \\ []) do
+  def remove_likely_subtags!(language_tag, options \\ []) do
     case remove_likely_subtags(language_tag, options) do
       {:ok, tag} -> tag
       {:error, exception} -> raise exception
@@ -1284,6 +1470,7 @@ defmodule Localize.LanguageTag do
   # 6. Resolve variant aliases
   defp resolve_aliases(%{} = map) do
     map
+    |> resolve_root_alias()
     |> resolve_grandfathered_tag()
     |> resolve_territory_alias()
     |> resolve_simple_language_alias()
@@ -1345,6 +1532,15 @@ defmodule Localize.LanguageTag do
   end
 
   defp resolve_simple_language_alias(map), do: map
+
+  # TR35 §3.1 makes `root` a synonym for `und`, but CLDR's `languageAlias`
+  # data does not carry it, so nothing downstream recognises the subtag and
+  # `validate_subtags/1` rejects it as an unknown language. Resolving it here
+  # keeps every entry point agreeing on what `root` means: it had become
+  # possible for `cldr_locale_id_from("root")` to answer `:und` while
+  # `validate_locale("root")` returned an error for the same string.
+  defp resolve_root_alias(%{language: "root"} = map), do: %{map | language: "und"}
+  defp resolve_root_alias(map), do: map
 
   # Step 3: Compound language+territory alias (e.g., "sgn-US" → "ase")
   defp resolve_language_territory_alias(%{territory: nil} = map), do: map
@@ -1726,9 +1922,11 @@ defmodule Localize.LanguageTag do
     end
   end
 
+  # A parsed tag has no canonical id until it is canonicalized, so it
+  # renders from its fields as `Localize.LanguageTag.to_string/1` does.
   defimpl String.Chars do
     def to_string(language_tag) do
-      language_tag.canonical_locale_id
+      Localize.LanguageTag.to_string(language_tag)
     end
   end
 

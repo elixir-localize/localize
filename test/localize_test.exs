@@ -48,8 +48,8 @@ defmodule LocalizeTest do
       assert "1,234.5" = Localize.to_string!(1234.5, locale: :en)
     end
 
-    test "to_string!/1 raises Protocol.UndefinedError for types with no String.Chars impl" do
-      assert_raise Protocol.UndefinedError, fn ->
+    test "to_string!/1 raises InvalidValueError for types with no String.Chars impl" do
+      assert_raise Localize.InvalidValueError, fn ->
         # apply/3 is type-opaque; a direct call to this deliberate
         # contract violation trips the Elixir 1.20 type checker.
         # credo:disable-for-next-line Credo.Check.Refactor.Apply
@@ -57,8 +57,8 @@ defmodule LocalizeTest do
       end
     end
 
-    test "to_string!/2 raises Protocol.UndefinedError for types with no String.Chars impl" do
-      assert_raise Protocol.UndefinedError, fn ->
+    test "to_string!/2 raises InvalidValueError for types with no String.Chars impl" do
+      assert_raise Localize.InvalidValueError, fn ->
         # apply/3 is type-opaque; a direct call to this deliberate
         # contract violation trips the Elixir 1.20 type checker.
         # credo:disable-for-next-line Credo.Check.Refactor.Apply
@@ -82,13 +82,11 @@ defmodule LocalizeTest do
       assert {:ok, ""} = Localize.to_string(nil)
     end
 
-    test "tuples raise Protocol.UndefinedError via Localize.to_string" do
-      assert_raise Protocol.UndefinedError, fn ->
-        # apply/3 is type-opaque; a direct call to this deliberate
-        # contract violation trips the Elixir 1.20 type checker.
-        # credo:disable-for-next-line Credo.Check.Refactor.Apply
-        apply(Localize, :to_string, [{1, 2, 3}])
-      end
+    test "tuples return InvalidValueError via Localize.to_string" do
+      # apply/3 is type-opaque; a direct call to this deliberate
+      # contract violation trips the Elixir 1.20 type checker.
+      # credo:disable-for-next-line Credo.Check.Refactor.Apply
+      assert {:error, %Localize.InvalidValueError{}} = apply(Localize, :to_string, [{1, 2, 3}])
     end
   end
 

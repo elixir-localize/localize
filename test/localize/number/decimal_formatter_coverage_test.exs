@@ -174,8 +174,11 @@ defmodule Localize.Number.DecimalFormatterCoverageTest do
                {:ok, "1.2×10⁺⁴"}
     end
 
+    # TR35 §Scientific Notation: a mantissa pattern with a point shows the
+    # zeros before it plus the digits after it as significant digits, two
+    # for "##0.0E0", as ICU4C 78.3 renders it.
     test "engineering-style grouping of the exponent" do
-      assert Number.to_string(1234, format: "##0.0E0") == {:ok, "1.234E3"}
+      assert Number.to_string(1234, format: "##0.0E0") == {:ok, "1.2E3"}
     end
   end
 end

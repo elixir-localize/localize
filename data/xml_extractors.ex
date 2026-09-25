@@ -43,6 +43,33 @@ defmodule Localize.Data.XmlExtractors do
   end
 
   @doc """
+  Generates primary zone data from `metaZones.xml`.
+
+  A primary zone is the timezone that names its whole territory, even
+  where the territory has several zones. TR35 uses the list to decide
+  whether the generic location format names a country or a city, so
+  `Europe/Berlin` renders as "Germany Time" rather than "Berlin Time".
+
+  Returns a map of IANA zone name strings to territory atoms.
+
+  ### Returns
+
+  * A map of `%{String.t() => atom()}`.
+
+  """
+  @spec generate_primary_zones() :: %{String.t() => atom()}
+  def generate_primary_zones do
+    read_xml("meta_zones.xml")
+    |> xpath(~x"//primaryZones/primaryZone"l,
+      territory: ~x"./@iso3166"s,
+      zone: ~x"./text()"s
+    )
+    |> Map.new(fn %{territory: territory, zone: zone} ->
+      {String.trim(zone), String.to_atom(territory)}
+    end)
+  end
+
+  @doc """
   Generates timezone data from `bcp47/timezone.xml`.
 
   Returns a map of BCP47 timezone name strings to maps with
@@ -551,6 +578,7 @@ defmodule Localize.Data.XmlExtractors do
     "bcp47/measure.xml" => {:bcp47, "measure.xml"},
     "units.xml" => {:supplemental, "units.xml"},
     "grammatical_features.xml" => {:supplemental, "grammaticalFeatures.xml"},
+    "meta_zones.xml" => {:supplemental, "metaZones.xml"},
     "validity/unit.xml" => {:validity, "unit.xml"}
   }
 

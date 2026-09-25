@@ -6,6 +6,7 @@ defmodule Localize.Message.Print do
 
   """
   import Kernel, except: [to_string: 1]
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
   @doc """
   Converts a parsed MF2 AST back to a canonical message string.
@@ -22,16 +23,24 @@ defmodule Localize.Message.Print do
 
   * A canonical message string.
 
+  ### Examples
+
+      iex> {:ok, ast} = Localize.Message.Parser.parse("Hello {$name}!")
+      iex> Localize.Message.Print.to_string(ast)
+      "Hello {$name}!"
+
   """
-  @spec to_string(list() | tuple(), Keyword.t()) :: String.t()
+  @spec to_string(list() | tuple(), Keyword.t()) :: String.t() | {:error, Exception.t()}
 
   def to_string(ast, options \\ [])
 
-  def to_string(ast, options) when is_list(options) do
+  def to_string(ast, options) when is_keyword_list(options) do
     ast
     |> to_iolist(Map.new(options))
     |> :erlang.iolist_to_binary()
   end
+
+  def to_string(_ast, options), do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   # ── Top-level ───────────────────────────────────────────────────
 
@@ -102,6 +111,8 @@ defmodule Localize.Message.Print do
     ["{#", identifier_to_iolist(name), options_to_iolist(options), attrs_to_iolist(attrs), " /}"]
   end
 
+  defp to_iolist(_node, _options), do: []
+
   # ── Expressions ─────────────────────────────────────────────────
 
   defp expression_to_iolist({:expression, operand, func, attrs}, _options) do
@@ -161,22 +172,31 @@ defmodule Localize.Message.Print do
     end
   end
 
+  # An unquoted literal is a `name`: a name-start character, then name
+  # characters.
   defp unquoted_literal?(value) do
-    value
-    |> String.to_charlist()
-    |> Enum.all?(&name_char?/1)
+    case String.to_charlist(value) do
+      [first | rest] -> name_start?(first) and Enum.all?(rest, &name_char?/1)
+      [] -> false
+    end
   end
 
   defp name_char?(c) when c in ?0..?9, do: true
   defp name_char?(c) when c == ?- or c == ?., do: true
   defp name_char?(c), do: name_start?(c)
 
+  # MF2's `name-start` ranges from TR35 Part 9, as the parser's
+  # `name_start/0` combinator has them. They omit whitespace (U+1680,
+  # U+2000–200A, U+2028–2029, U+202F, U+205F, U+3000), bidi controls,
+  # surrogates and noncharacters.
   defp name_start?(c) when c in ?a..?z or c in ?A..?Z, do: true
   defp name_start?(c) when c == ?_ or c == ?+, do: true
-  defp name_start?(c) when c in 0xA1..0x61B, do: true
-  defp name_start?(c) when c in 0x61D..0xD7FF, do: true
-  defp name_start?(c) when c in 0xE000..0xFFFD, do: true
-  defp name_start?(c) when c in 0x10000..0x10FFFF, do: true
+  defp name_start?(c) when c in 0xA1..0x61B or c in 0x61D..0x167F or c in 0x1681..0x1FFF, do: true
+  defp name_start?(c) when c in 0x200B..0x200D or c in 0x2010..0x2027, do: true
+  defp name_start?(c) when c in 0x2030..0x205E or c in 0x2060..0x2065, do: true
+  defp name_start?(c) when c in 0x206A..0x2FFF or c in 0x3001..0xD7FF, do: true
+  defp name_start?(c) when c in 0xE000..0xFDCF or c in 0xFDF0..0xFFFD, do: true
+  defp name_start?(c) when c in 0x10000..0x10FFFD and rem(c, 0x10000) <= 0xFFFD, do: true
   defp name_start?(_), do: false
 
   defp identifier_to_iolist({:namespace, ns, name}), do: [ns, ":", name]

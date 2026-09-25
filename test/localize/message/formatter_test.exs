@@ -4,6 +4,11 @@ defmodule Localize.Message.FormatterTest do
   alias Localize.Message
   alias Localize.Message.Formatter
 
+  doctest Localize.Message.Formatter
+  doctest Localize.Message.Formatter.Plain
+  doctest Localize.Message.Formatter.HTML
+  doctest Localize.Message.Formatter.ANSI
+
   describe "HTML formatter" do
     test "wraps each token in a span with mf2- prefixed class" do
       {:ok, html} = Message.to_html("Hello {$name}")

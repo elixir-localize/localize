@@ -96,6 +96,8 @@ defmodule Localize.Exception do
   """
   @spec safe_message(binary(), binary(), keyword()) :: binary()
   def safe_message(msgctxt, msgid, bindings \\ [])
+
+  def safe_message(msgctxt, msgid, bindings)
       when is_binary(msgctxt) and is_binary(msgid) and is_list(bindings) do
     Gettext.dpgettext(Localize.Gettext, "localize", msgctxt, msgid, bindings)
   rescue
@@ -103,4 +105,8 @@ defmodule Localize.Exception do
   catch
     _kind, _reason -> msgid
   end
+
+  def safe_message(_msgctxt, msgid, _bindings) when is_binary(msgid), do: msgid
+
+  def safe_message(_msgctxt, msgid, _bindings), do: inspect(msgid)
 end

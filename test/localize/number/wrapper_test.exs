@@ -31,5 +31,15 @@ defmodule Localize.Number.WrapperTest do
                  wrapper: &wrapper/2
                )
     end
+
+    # A quoted special character is literal text, and `to_parts/2` types it
+    # `:literal`.
+    test "wrapping a quoted character" do
+      assert {:ok, "<literal>#<literal><number>100<number>"} =
+               Localize.Number.to_string(100, format: "'#'##", wrapper: &wrapper/2)
+
+      assert {:ok, [%{type: :literal, value: "#"}, %{type: :integer, value: "100"}]} =
+               Localize.Number.to_parts(100, format: "'#'##")
+    end
   end
 end

@@ -111,9 +111,10 @@ defmodule Localize.Number.Parser do
           list(String.t() | integer() | float() | Decimal.t())
           | {:error, Exception.t()}
   def scan(string, options \\ []) do
-    locale = Keyword.get(options, :locale, Localize.get_locale())
-
-    with {:ok, language_tag} <- Localize.validate_locale(locale),
+    with :ok <- validate_arguments(string, :string, options),
+         locale = Keyword.get(options, :locale, Localize.get_locale()),
+         {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, _number_type} <- number_type(Keyword.get(options, :number)),
          {:ok, symbols} <- Symbol.number_symbols_for(language_tag),
          {:ok, number_system} <- digits_number_system_from(language_tag, options) do
       symbol = symbols_for_number_system(symbols, number_system)
@@ -135,6 +136,45 @@ defmodule Localize.Number.Parser do
       |> Regex.split(normalized_string, include_captures: true, trim: true)
       |> Enum.map(&parse_element(&1, options))
     end
+  end
+
+  # Arguments of the wrong type are answered with an error rather than
+  # raised on: options that are not a keyword list, or input that is not the
+  # string or list the function reads.
+  defp validate_arguments(value, type, options) do
+    cond do
+      not Keyword.keyword?(options) ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: options,
+           expected: "a keyword list of options"
+         )}
+
+      type == :string and not is_binary(value) ->
+        {:error, Localize.InvalidValueError.exception(value: value, expected: "a string")}
+
+      type == :list and not is_list(value) ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: value,
+           expected: "a list of strings and numbers"
+         )}
+
+      true ->
+        :ok
+    end
+  end
+
+  # `:number` names the type to parse to; `nil` detects it.
+  defp number_type(type) when type in [nil, :integer, :float, :decimal], do: {:ok, type}
+
+  defp number_type(type) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: type,
+       expected: :number_type,
+       allowed_values: [:integer, :float, :decimal]
+     )}
   end
 
   @doc """
@@ -177,19 +217,21 @@ defmodule Localize.Number.Parser do
   @spec parse(String.t(), Keyword.t()) ::
           {:ok, integer() | float() | Decimal.t()}
           | {:error, Exception.t()}
-  def parse(string, options \\ []) when is_binary(string) and is_list(options) do
-    cap = max_number_bytes()
+  def parse(string, options \\ []) do
+    with :ok <- validate_arguments(string, :string, options) do
+      cap = max_number_bytes()
 
-    if byte_size(string) > cap do
-      {:error,
-       Localize.ParseError.exception(
-         reason: :input_too_large,
-         detail: "number string",
-         size: byte_size(string),
-         limit: cap
-       )}
-    else
-      do_parse(string, options)
+      if byte_size(string) > cap do
+        {:error,
+         Localize.ParseError.exception(
+           reason: :input_too_large,
+           detail: "number string",
+           size: byte_size(string),
+           limit: cap
+         )}
+      else
+        do_parse(string, options)
+      end
     end
   end
 
@@ -221,6 +263,7 @@ defmodule Localize.Number.Parser do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, number_type} <- number_type(Keyword.get(options, :number)),
          {:ok, symbols} <- Symbol.number_symbols_for(language_tag),
          {:ok, number_system} <- digits_number_system_from(language_tag, options) do
       symbol = symbols_for_number_system(symbols, number_system)
@@ -232,7 +275,7 @@ defmodule Localize.Number.Parser do
              |> transliterate_digits(number_system)
              |> normalize_number_string(symbol, language_tag, number_system, lenient?),
            {:ok, _value} = success <-
-             normalized |> String.trim() |> parse_number(Keyword.get(options, :number)) do
+             normalized |> String.trim() |> parse_number(number_type) do
         bound_decimal_exponent(success, string)
       else
         _error -> {:error, parse_error(string)}
@@ -287,9 +330,11 @@ defmodule Localize.Number.Parser do
 
   """
   @spec resolve_currencies([String.t() | number()], Keyword.t()) ::
-          list(atom() | String.t() | number())
-  def resolve_currencies(list, options \\ []) when is_list(list) do
-    resolve(list, &resolve_currency/2, options)
+          list(atom() | String.t() | number()) | {:error, Exception.t()}
+  def resolve_currencies(list, options \\ []) do
+    with :ok <- validate_arguments(list, :list, options) do
+      resolve(list, &resolve_currency/2, options)
+    end
   end
 
   @doc """
@@ -327,7 +372,13 @@ defmodule Localize.Number.Parser do
   """
   @spec resolve_currency(String.t(), Keyword.t()) ::
           list(atom() | String.t()) | {:error, Exception.t()}
-  def resolve_currency(string, options \\ []) when is_binary(string) do
+  def resolve_currency(string, options \\ []) do
+    with :ok <- validate_arguments(string, :string, options) do
+      find_currency(string, options)
+    end
+  end
+
+  defp find_currency(string, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     only_filter = Keyword.get(options, :only, [:all])
     except_filter = Keyword.get(options, :except, [])
@@ -343,8 +394,13 @@ defmodule Localize.Number.Parser do
          {:ok, currency} <- find_and_replace(currency_strings, string, fuzzy) do
       currency
     else
-      {:error, _} ->
+      # Only finding no currency means the currency is unknown. An invalid
+      # `:fuzzy` value or locale is reported as itself.
+      {:error, %Localize.InvalidValueError{context: "Localize.Number.Parser"}} ->
         {:error, Localize.UnknownCurrencyError.exception(currency: string)}
+
+      {:error, _exception} = error ->
+        error
     end
   end
 
@@ -379,9 +435,11 @@ defmodule Localize.Number.Parser do
 
   """
   @spec resolve_pers([String.t() | number()], Keyword.t()) ::
-          list(per() | String.t() | number())
-  def resolve_pers(list, options \\ []) when is_list(list) do
-    resolve(list, &resolve_per/2, options)
+          list(per() | String.t() | number()) | {:error, Exception.t()}
+  def resolve_pers(list, options \\ []) do
+    with :ok <- validate_arguments(list, :list, options) do
+      resolve(list, &resolve_per/2, options)
+    end
   end
 
   @doc """
@@ -417,10 +475,10 @@ defmodule Localize.Number.Parser do
   """
   @spec resolve_per(String.t(), Keyword.t()) ::
           list(per() | String.t()) | {:error, Exception.t()}
-  def resolve_per(string, options \\ []) when is_binary(string) do
-    locale = Keyword.get(options, :locale, Localize.get_locale())
-
-    with {:ok, language_tag} <- Localize.validate_locale(locale),
+  def resolve_per(string, options \\ []) do
+    with :ok <- validate_arguments(string, :string, options),
+         locale = Keyword.get(options, :locale, Localize.get_locale()),
+         {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, symbols} <- Symbol.number_symbols_for(language_tag),
          {:ok, number_system} <- digits_number_system_from(language_tag, options) do
       symbol = symbols_for_number_system(symbols, number_system)
@@ -464,8 +522,9 @@ defmodule Localize.Number.Parser do
       ["100", :USD]
 
   """
-  @spec resolve(list(), (String.t(), Keyword.t() -> term()), Keyword.t()) :: list()
-  def resolve(list, resolver, options) do
+  @spec resolve(list(), (String.t(), Keyword.t() -> term()), Keyword.t()) ::
+          list() | {:error, Exception.t()}
+  def resolve(list, resolver, options) when is_list(list) and is_function(resolver, 2) do
     Enum.map(list, fn
       string when is_binary(string) ->
         case resolver.(string, options) do
@@ -478,6 +537,12 @@ defmodule Localize.Number.Parser do
     end)
     |> List.flatten()
   end
+
+  def resolve(list, resolver, _options) when is_list(list),
+    do: {:error, Localize.Utils.Helpers.invalid_value(resolver, "a function of arity 2")}
+
+  def resolve(list, _resolver, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(list, "a list")}
 
   @doc """
   Finds and replaces substrings from a map at the beginning
@@ -517,6 +582,14 @@ defmodule Localize.Number.Parser do
       do_find_and_replace(string_map, string, fuzzy)
     end
   end
+
+  def find_and_replace(string_map, _string, _fuzzy) when not is_map(string_map),
+    do:
+      {:error,
+       Localize.Utils.Helpers.invalid_value(string_map, "a map of strings to replacements")}
+
+  def find_and_replace(_string_map, string, _fuzzy),
+    do: {:error, Localize.Utils.Helpers.invalid_value(string, "a string")}
 
   # ── Private helpers ──────────────────────────────────────────
 
@@ -897,11 +970,18 @@ defmodule Localize.Number.Parser do
      )}
   end
 
+  # A currency name or code matches only as a whole word: "dolars" ends in
+  # "ars", which is not the Argentine peso. A match that begins or ends in a
+  # letter must not run on into another letter; a symbol ("$", "€") needs no
+  # boundary, and neither does a letter next to a digit ("USD100").
   defp starting_string(string_map, search) do
     trimmed = String.downcase(String.trim_leading(search))
 
     matches =
-      Enum.filter(string_map, fn {k, _v} -> String.starts_with?(trimmed, k) end)
+      Enum.filter(string_map, fn {k, _v} ->
+        String.starts_with?(trimmed, k) and
+          word_boundary?(last_grapheme(k), String.first(binary_part_after(trimmed, k)))
+      end)
 
     case matches do
       [] ->
@@ -928,7 +1008,10 @@ defmodule Localize.Number.Parser do
     trimmed = String.downcase(String.trim_trailing(search))
 
     matches =
-      Enum.filter(string_map, fn {k, _v} -> String.ends_with?(trimmed, k) end)
+      Enum.filter(string_map, fn {k, _v} ->
+        String.ends_with?(trimmed, k) and
+          word_boundary?(String.first(k), String.last(binary_part_before(trimmed, k)))
+      end)
 
     case matches do
       [] ->
@@ -949,6 +1032,24 @@ defmodule Localize.Number.Parser do
     |> Enum.sort(fn {k1, _}, {k2, _} -> String.length(k1) > String.length(k2) end)
     |> hd()
   end
+
+  # True when a match whose edge grapheme is `key_edge` may stop where
+  # `neighbour` starts: at the end of the string, next to a non-letter, or
+  # when the match itself does not stop on a letter.
+  defp word_boundary?(_key_edge, nil), do: true
+
+  defp word_boundary?(key_edge, neighbour),
+    do: not (letter?(key_edge) and letter?(neighbour))
+
+  defp letter?(grapheme), do: String.match?(grapheme, ~r/\A\p{L}/u)
+
+  defp last_grapheme(string), do: String.last(string)
+
+  defp binary_part_after(string, prefix),
+    do: binary_part(string, byte_size(prefix), byte_size(string) - byte_size(prefix))
+
+  defp binary_part_before(string, suffix),
+    do: binary_part(string, 0, byte_size(string) - byte_size(suffix))
 
   defp find_offset(haystack, needle) do
     case :binary.match(haystack, needle) do

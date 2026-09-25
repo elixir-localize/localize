@@ -16,6 +16,7 @@ StandAloneQuarter   = q
 
 Month               = M
 StandAloneMonth     = L
+LeapMonthMarker     = l
 
 WeekOfYear          = w
 WeekOfMonth         = W
@@ -23,6 +24,7 @@ WeekOfMonth         = W
 DayOfMonth          = d
 DayOfYear           = D
 DayOfWeekInMonth    = F
+ModifiedJulianDay   = g
 
 WeekdayName         = E
 WeekdayNumber       = e
@@ -77,11 +79,16 @@ Rules.
 {Month}+                 : {token,{month,TokenLine,count(TokenChars)}}.
 {StandAloneMonth}+       : {token,{standalone_month,TokenLine,count(TokenChars)}}.
 
+% TR35: `l` is deprecated and ignored in patterns. It has no other length,
+% so a longer run is an invalid field, which the formatter marks.
+{LeapMonthMarker}+       : leap_month_marker(TokenLine, count(TokenChars)).
+
 {WeekOfYear}+            : {token,{week_of_year,TokenLine,count(TokenChars)}}.
 {WeekOfMonth}+           : {token,{week_of_month,TokenLine,count(TokenChars)}}.
 {DayOfMonth}+            : {token,{day_of_month,TokenLine,count(TokenChars)}}.
 {DayOfYear}+             : {token,{day_of_year,TokenLine,count(TokenChars)}}.
 {DayOfWeekInMonth}+      : {token,{day_of_week_in_month,TokenLine,count(TokenChars)}}.
+{ModifiedJulianDay}+     : {token,{modified_julian_day,TokenLine,count(TokenChars)}}.
 
 {WeekdayName}+           : {token,{day_name,TokenLine,count(TokenChars)}}.
 {WeekdayNumber}+         : {token,{day_of_week,TokenLine,count(TokenChars)}}.
@@ -118,6 +125,9 @@ Erlang code.
 -import('Elixir.List', [to_string/1]).
 
 count(Chars) -> string:len(Chars).
+
+leap_month_marker(_Line, 1) -> skip_token;
+leap_month_marker(Line, Count) -> {token, {leap_month_marker, Line, Count}}.
 
 % Strips the bounding quotes, then collapses each doubled
 % quote ('') inside the quoted text to a literal apostrophe,

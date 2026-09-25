@@ -44,6 +44,21 @@ defmodule Localize.Number.PluralRule.Range do
     end
   end
 
+  def plural_rule(start_category, end_category, _locale)
+      when start_category in @plural_categories,
+      do: {:error, invalid_category(end_category)}
+
+  def plural_rule(start_category, _end_category, _locale),
+    do: {:error, invalid_category(start_category)}
+
+  defp invalid_category(category) do
+    Localize.InvalidValueError.exception(
+      value: category,
+      expected: :plural_category,
+      allowed_values: @plural_categories
+    )
+  end
+
   @doc """
   Returns the plural category for a range given the numbers of its endpoints.
 
@@ -78,9 +93,11 @@ defmodule Localize.Number.PluralRule.Range do
           atom() | String.t() | Localize.LanguageTag.t()
         ) :: {:ok, atom()} | {:error, Exception.t()}
   def plural_rule_for(start_number, end_number, locale) do
-    with {:ok, language_tag} <- Localize.validate_locale(locale) do
-      start_category = Localize.Number.PluralRule.Cardinal.plural_rule(start_number, language_tag)
-      end_category = Localize.Number.PluralRule.Cardinal.plural_rule(end_number, language_tag)
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         start_category when is_atom(start_category) <-
+           Localize.Number.PluralRule.Cardinal.plural_rule(start_number, language_tag),
+         end_category when is_atom(end_category) <-
+           Localize.Number.PluralRule.Cardinal.plural_rule(end_number, language_tag) do
       plural_rule(start_category, end_category, language_tag)
     end
   end

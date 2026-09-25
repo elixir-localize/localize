@@ -99,12 +99,23 @@ defmodule Localize.Data.Normalize.Number do
     |> Map.new()
   end
 
+  @system_keyed_data ~w(symbols decimal_formats percent_formats currency_formats
+                        scientific_formats misc_patterns rational_formats)
+
+  # The default and other numbering systems, and every other system the
+  # locale has symbols or formats for: fa's default is arabext, and it also
+  # defines the latn data that `fa-u-nu-latn` formats with.
   def number_system_names_from(numbers) do
     default = numbers["default_numbering_system"]
     others = Map.values(numbers["other_numbering_systems"])
 
-    ([default] ++ others)
-    |> Enum.uniq()
+    with_data =
+      for key <- Map.keys(numbers),
+          [data, system] <- [String.split(key, "_number_system_")],
+          data in @system_keyed_data,
+          do: system
+
+    Enum.uniq([default] ++ others ++ Enum.sort(with_data))
   end
 
   def normalize_short_format(nil), do: nil
@@ -182,9 +193,19 @@ defmodule Localize.Data.Normalize.Number do
     |> Map.new()
   end
 
+  # The zero count fixes the compact divisor: `0` divides by the rule's range,
+  # `00` by a tenth of it, and so on. Only the positive subpattern carries it.
+  # A pattern may also spell out its negative form after a `;` — Swahili is
+  # the only family in CLDR 48 that does, with `elfu 0;elfu -0` and friends —
+  # and counting the zeros on both sides doubles the exponent. That made every
+  # Swahili compact number wrong by a factor of ten, and by a thousand for the
+  # three-zero patterns: `elfu 000;elfu -000` counted six zeros where it has
+  # three, so 123,456 rendered as "elfu 123456" rather than "elfu 123".
   defp number_of_zeros(format) do
     format
+    |> String.split(";", parts: 2)
+    |> hd()
     |> String.to_charlist()
-    |> Enum.reduce(0, fn c, acc -> if c == ?0, do: acc + 1, else: acc end)
+    |> Enum.count(&(&1 == ?0))
   end
 end

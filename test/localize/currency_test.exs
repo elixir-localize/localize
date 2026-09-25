@@ -335,35 +335,32 @@ defmodule Localize.CurrencyTest do
   # form stays opaque to both the compiler's type analysis (a direct
   # ill-typed call warns) and credo's Refactor.Apply check (which
   # flags apply with a literal argument list).
-  defp assert_positional_filter_rejected(function, arguments, message \\ nil) do
-    call = fn -> apply(Currency, function, arguments) end
-
-    if message do
-      assert_raise ArgumentError, message, call
-    else
-      assert_raise ArgumentError, call
-    end
+  defp positional_filter_outcome(function, arguments) do
+    apply(Currency, function, arguments)
+  rescue
+    exception -> {:raised, exception}
   end
 
   describe "removed positional filter forms" do
-    test "a positional :only filter raises ArgumentError" do
-      assert_positional_filter_rejected(
-        :currencies_for_locale,
-        [:en, :historic],
-        ~r/removed in Localize 1.0/
-      )
+    test "a positional :only filter is an error" do
+      assert {:error, %Localize.InvalidValueError{}} =
+               positional_filter_outcome(:currencies_for_locale, [:en, :historic])
     end
 
-    test "a positional list filter raises rather than being misread as options" do
-      assert_raise ArgumentError, ~r/keyword list of options/, fn ->
-        Currency.currencies_for_locale(:en, [:current, :ZWR])
-      end
+    test "a positional list filter is an error rather than being misread as options" do
+      assert {:error, %Localize.InvalidValueError{}} =
+               positional_filter_outcome(:currencies_for_locale, [:en, [:current, :ZWR]])
     end
 
-    test "the bang and strings variants reject positional filters too" do
-      assert_positional_filter_rejected(:currencies_for_locale!, [:en, :current])
-      assert_positional_filter_rejected(:currency_strings, [:en, :current])
-      assert_positional_filter_rejected(:currency_strings!, [:en, :current])
+    test "the strings variant returns the error and the bang variants raise it" do
+      assert {:error, %Localize.InvalidValueError{}} =
+               positional_filter_outcome(:currency_strings, [:en, :current])
+
+      assert {:raised, %Localize.InvalidValueError{}} =
+               positional_filter_outcome(:currencies_for_locale!, [:en, :current])
+
+      assert {:raised, %Localize.InvalidValueError{}} =
+               positional_filter_outcome(:currency_strings!, [:en, :current])
     end
   end
 

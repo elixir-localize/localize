@@ -10,6 +10,8 @@ defmodule Localize.Locale.LocaleDisplay do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   @basic_tag_order [:language, :script, :territory, :language_variants]
   @reinstate_subtags [:territory, :script]
 
@@ -63,7 +65,9 @@ defmodule Localize.Locale.LocaleDisplay do
   """
   @spec display_name(Localize.LanguageTag.t() | String.t() | atom(), display_options()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def display_name(locale, options \\ []) do
+  def display_name(locale, options \\ [])
+
+  def display_name(locale, options) when is_keyword_list(options) do
     # Validate/normalize every input through the one canonical path
     # (`Localize.validate_locale/1`), then drive the display off the
     # canonical-syntax subtags carried in `canonical_locale_id`. This
@@ -76,6 +80,9 @@ defmodule Localize.Locale.LocaleDisplay do
       |> do_display_name(options)
     end
   end
+
+  def display_name(_locale, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   # Reduce the maximized subtag fields to the canonical-syntax form held
   # in `canonical_locale_id` (the caller's explicit request), keeping the
@@ -439,8 +446,14 @@ defmodule Localize.Locale.LocaleDisplay do
   end
 
   def get_display_preference(values, preference) when is_map(values) do
+    # The last resort has no preference to honour, so any key will do — but it
+    # has to be the *same* key every time. `hd(Map.keys(values))` is not:
+    # Erlang hashes atom keys by internal reference, so the order a map yields
+    # them in depends on when those atoms were created in the VM, and the same
+    # locale could display a different name between runs. Sorting first makes
+    # the choice arbitrary but stable.
     Map.get(values, preference) || Map.get(values, :standard) ||
-      Map.get(values, Map.keys(values) |> hd())
+      Map.get(values, values |> Map.keys() |> Enum.sort() |> List.first())
   end
 
   @doc false

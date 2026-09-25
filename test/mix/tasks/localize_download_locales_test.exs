@@ -19,6 +19,15 @@ defmodule Mix.Tasks.Localize.DownloadLocalesTest do
 
   alias Mix.Tasks.Localize.DownloadLocales
 
+  describe "run/1 with a name that is not a CLDR locale" do
+    test "raises before downloading, without making the name an atom" do
+      name = "zz-notalocale-#{System.unique_integer([:positive])}"
+
+      assert_raise Mix.Error, ~r/is not a CLDR locale/, fn -> DownloadLocales.run([name]) end
+      assert Localize.Utils.Helpers.existing_atom(name) == nil
+    end
+  end
+
   describe "banner/2 — issue #26 reproducer surface" do
     test "renders the MF2 banner for plural counts under a normal config" do
       banner = DownloadLocales.banner(5, "/tmp/cache")

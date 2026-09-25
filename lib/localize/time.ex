@@ -4,8 +4,10 @@ defmodule Localize.Time do
 
   Supports both full times (`%{hour: _, minute: _, second: _}`) and
   partial times (any map with one or more of `:hour`, `:minute`,
-  `:second`). For partial times, the format is derived from the
-  available fields.
+  `:second`). For a partial time a standard format, or no format, derives
+  the skeleton from the fields present, with the hour in the locale's hour
+  cycle; a skeleton or pattern that asks for a field the time does not
+  have returns `Localize.DateTimeInvalidInputError`.
 
   Formats are defined in CLDR and described in
   [TR35](http://unicode.org/reports/tr35/tr35-dates.html).
@@ -13,11 +15,14 @@ defmodule Localize.Time do
   """
 
   import Kernel, except: [to_string: 1]
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
   @standard_formats [:short, :medium, :long, :full]
   @default_format :medium
   # Ordered by CLDR canonical skeleton order: hour, minute, second
-  @time_fields_ordered [{:hour, "h"}, {:minute, "m"}, {:second, "s"}]
+  # A derived skeleton asks for the hour with TR35's `j`, the locale's
+  # preferred hour symbol, so a partial time keeps the locale's hour cycle.
+  @time_fields_ordered [{:hour, "j"}, {:minute, "m"}, {:second, "s"}]
   # Cycle-appropriate skeletons used when the locale carries a
   # `-u-hc-` override. Both 12-hour (`:hm` family) and 24-hour
   # (`:Hm` family) variants ship in every locale's
@@ -56,10 +61,11 @@ defmodule Localize.Time do
   ### Options
 
   * `:format` is a standard format name (`:short`, `:medium`,
-    `:long`, `:full`), a format skeleton atom, or a format
-    pattern string. The default is `:medium` for full times.
-    For partial times the format is derived from the available
-    fields.
+    `:long`, `:full`), a format skeleton atom or a format pattern
+    string. The default is `:medium` for full times. For a
+    partial time a standard format, or no format, derives its
+    skeleton from the fields present, with the hour in the
+    locale's hour cycle or its `-u-hc-` override.
 
   * `:locale` is a locale identifier. The default is `:en`.
 
@@ -90,6 +96,9 @@ defmodule Localize.Time do
       iex> Localize.Time.to_string(%{hour: 14, minute: 30}, format: :hm, locale: :en, prefer: :ascii)
       {:ok, "2:30 PM"}
 
+      iex> Localize.Time.to_string(%{hour: 14, minute: 30}, locale: :de)
+      {:ok, "14:30"}
+
   """
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(time, options \\ []) do
@@ -100,7 +109,8 @@ defmodule Localize.Time do
 
   # Resolves the format pattern, locale, and formatter options for a
   # time — the shared front half of `to_string/2` and `to_parts/2`.
-  defp formatting_plan(%{hour: _, minute: _, second: _} = time, options) do
+  defp formatting_plan(%{hour: _, minute: _, second: _} = time, options)
+       when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
 
@@ -111,7 +121,7 @@ defmodule Localize.Time do
          effective_format = strip_zone_for_time_struct(hc_skeleton, time, format, locale_id),
          {:ok, pattern} <- find_format(time, effective_format, locale_id, options) do
       formatter_options = options |> Map.new() |> Map.put_new(:locale, language_tag)
-      {:ok, pattern, locale_id, formatter_options}
+      {:ok, hour_cycle_pattern(pattern, format, language_tag), locale_id, formatter_options}
     end
   end
 
@@ -120,29 +130,34 @@ defmodule Localize.Time do
   # designed for full h/m/s times. For partial times we derive a
   # CLDR skeleton from the fields that are actually present
   # (`:h`, `:hm`, `:hms`, `:ms`, etc.) and resolve that instead.
-  defp formatting_plan(time, options) when has_time_field(time) do
+  defp formatting_plan(time, options) when has_time_field(time) and is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format)
 
-    with {:ok, locale_id} <- resolve_locale_id(locale) do
-      resolved_format =
-        cond do
-          is_binary(format) -> format
-          is_atom(format) and format in @standard_formats -> derive_format_id(time)
-          is_atom(format) and not is_nil(format) -> format
-          true -> derive_format_id(time)
-        end
-
-      with {:ok, pattern} <- find_format(time, resolved_format, locale_id, options) do
-        formatter_options = options |> Map.new() |> Map.put_new(:locale, locale)
-        {:ok, pattern, locale_id, formatter_options}
-      end
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         locale_id = language_tag.cldr_locale_id,
+         hc_format = apply_hc_to_skeleton(partial_format(format, time), language_tag),
+         {:ok, pattern} <- find_format(time, hc_format, locale_id, options) do
+      formatter_options = options |> Map.new() |> Map.put_new(:locale, language_tag)
+      {:ok, hour_cycle_pattern(pattern, format, language_tag), locale_id, formatter_options}
     end
   end
+
+  defp formatting_plan(_time, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   defp formatting_plan(_time, _options) do
     {:error, Localize.DateTimeInvalidInputError.exception(type: :time)}
   end
+
+  # A standard format, or none, derives the skeleton from the fields
+  # present; a pattern string or skeleton is used as given. A `-u-hc-`
+  # override then applies to a skeleton either way.
+  defp partial_format(format, time) when is_nil(format) or format in @standard_formats do
+    derive_format_id(time)
+  end
+
+  defp partial_format(format, _time), do: format
 
   @doc """
   Same as `to_string/2` but raises on error.
@@ -352,12 +367,18 @@ defmodule Localize.Time do
   defp apply_hc_override(format, _language_tag), do: format
 
   # Applies a locale's `-u-hc-` Unicode-extension override to a
-  # user-supplied skeleton atom by substituting the hour symbol per
-  # the override (`:h11` → `K`, `:h12` → `h`, `:h23` → `H`, `:h24`
-  # → `k`). Per ICU/Intl reference behaviour, `hc` overrides the
-  # hour cycle in the rendered output regardless of which symbol
-  # the skeleton specifies — skeleton hour symbols are selectors
-  # for skeleton-matching, not assertions of the rendered cycle.
+  # user-supplied skeleton atom. TR35's hour cycle replaces the
+  # locale's preferred cycle, which a skeleton asks for with `j` or
+  # `J`, so only those take the override's symbol (`:h11` → `K`,
+  # `:h12` → `h`, `:h23` → `H`, `:h24` → `k`). `C` asks for the first
+  # of the locale's allowed hour formats instead, which the override
+  # does not change, as in ICU's pattern generator. An explicit `h` or
+  # `H` keeps the cycle it names, and `apply_hour_cycle/3` then gives
+  # the matched pattern the override's symbol within that cycle.
+  #
+  # `J` under a 12-hour cycle stays in the skeleton, so the matcher
+  # still drops its day period; `apply_hour_cycle/3` gives the pattern
+  # the cycle's symbol afterwards.
   #
   # Standard format atoms have already been remapped by
   # `apply_hc_override/2` above, and binary patterns are treated as
@@ -365,12 +386,16 @@ defmodule Localize.Time do
   # so this only fires for non-standard skeleton atoms.
   defp apply_hc_to_skeleton(format, %{locale: %{hc: hc}})
        when is_atom(format) and hc in [:h11, :h12, :h23, :h24] do
-    if format in @standard_formats do
+    string = Atom.to_string(format)
+    symbols = if hc in [:h23, :h24], do: ["j", "J"], else: ["j"]
+
+    if format in @standard_formats or not String.contains?(string, symbols) do
       format
     else
       preferred = preferred_symbol_for_cycle(hc)
-      string = Atom.to_string(format)
-      substituted = Localize.DateTime.Format.Match.apply_hc_substitution(string, preferred)
+
+      substituted =
+        Localize.DateTime.Format.Match.apply_hc_substitution(string, preferred, symbols)
 
       if substituted == string or substituted == "" do
         format
@@ -386,6 +411,79 @@ defmodule Localize.Time do
   defp preferred_symbol_for_cycle(:h12), do: "h"
   defp preferred_symbol_for_cycle(:h23), do: "H"
   defp preferred_symbol_for_cycle(:h24), do: "k"
+
+  @same_cycle_hour %{"K" => "h", "h" => "K", "H" => "k", "k" => "H"}
+
+  @doc false
+  # TR35 part 1 gives each `-u-hc-` hour cycle its pattern symbol: h11 is K,
+  # h12 h, h23 H and h24 k. A pattern resolved from a standard format or a
+  # skeleton renders an hour of the same cycle with that symbol, as ICU's
+  # pattern generator does: under `en-u-hc-h11` "h:mm a" is "K:mm a", while
+  # "HH:mm" stays as it is. Quoted text is left alone, and a locale without
+  # an `hc` keyword keeps the pattern.
+  #
+  # A `skeleton` that asks for the hour with `J` wants the cycle's hour with
+  # no day period, so its pattern takes the cycle's symbol whichever cycle
+  # it was written in: under `ja-u-hc-h11` "H:mm" is "K:mm", as in ICU.
+  def apply_hour_cycle(pattern, locale, skeleton \\ nil)
+
+  def apply_hour_cycle(pattern, locale, skeleton) when is_binary(pattern) do
+    case hour_cycle_of(locale) do
+      nil ->
+        pattern
+
+      hour_cycle ->
+        replace_hour_symbol(pattern, preferred_symbol_for_cycle(hour_cycle), skeleton)
+    end
+  end
+
+  def apply_hour_cycle(pattern, _locale, _skeleton), do: pattern
+
+  defp hour_cycle_of(%Localize.LanguageTag{locale: %{hc: hour_cycle}})
+       when hour_cycle in [:h11, :h12, :h23, :h24],
+       do: hour_cycle
+
+  defp hour_cycle_of(%Localize.LanguageTag{}), do: nil
+
+  defp hour_cycle_of(locale) when is_binary(locale) or (is_atom(locale) and not is_nil(locale)) do
+    case Localize.validate_locale(locale) do
+      {:ok, language_tag} -> hour_cycle_of(language_tag)
+      {:error, _reason} -> nil
+    end
+  end
+
+  defp hour_cycle_of(_locale), do: nil
+
+  # Quoted text alternates with pattern text around each quote, so the
+  # even-numbered pieces are pattern.
+  defp replace_hour_symbol(pattern, preferred, skeleton) do
+    replaced =
+      if hour_without_day_period?(skeleton),
+        do: ["h", "H", "K", "k"],
+        else: [Map.fetch!(@same_cycle_hour, preferred)]
+
+    pattern
+    |> String.split("'")
+    |> Enum.with_index()
+    |> Enum.map_join("'", fn
+      {piece, index} when rem(index, 2) == 0 -> String.replace(piece, replaced, preferred)
+      {piece, _index} -> piece
+    end)
+  end
+
+  defp hour_without_day_period?(skeleton) when is_atom(skeleton),
+    do: skeleton |> Atom.to_string() |> String.contains?("J")
+
+  defp hour_without_day_period?(skeleton) when is_binary(skeleton),
+    do: String.contains?(skeleton, "J")
+
+  defp hour_without_day_period?(_skeleton), do: false
+
+  # A literal pattern keeps the hour symbol it was written with.
+  defp hour_cycle_pattern(pattern, format, _language_tag) when is_binary(format), do: pattern
+
+  defp hour_cycle_pattern(pattern, format, language_tag),
+    do: apply_hour_cycle(pattern, language_tag, format)
 
   # A `%Time{}` and a `%NaiveDateTime{}` both carry no zone
   # information by construction, so a standard format whose CLDR
@@ -445,6 +543,32 @@ defmodule Localize.Time do
     end
   end
 
+  @doc false
+  # The pattern `format` resolves to for `time`, as `to_string/2` resolves
+  # it, including a `-u-hc-` override. `Localize.DateTime` resolves the `{0}`
+  # half of a date-time wrapper here.
+  def resolve_pattern(time, format, locale, options) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         hour_cycle_format =
+           format
+           |> apply_hc_override(language_tag)
+           |> apply_hc_to_skeleton(language_tag),
+         {:ok, pattern} <-
+           find_format(time, hour_cycle_format, language_tag.cldr_locale_id, options) do
+      {:ok, hour_cycle_pattern(pattern, format, language_tag)}
+    end
+  end
+
+  @doc false
+  # A skeleton with its hour symbols replaced to honour a `-u-hc-` override
+  # in `locale`, or the skeleton unchanged when there is none.
+  def hour_cycle_skeleton(skeleton, locale) do
+    case Localize.validate_locale(locale) do
+      {:ok, language_tag} -> apply_hc_to_skeleton(skeleton, language_tag)
+      {:error, _reason} -> skeleton
+    end
+  end
+
   defp find_format(_time, format, _locale_id, _options) when is_binary(format) do
     {:ok, format}
   end
@@ -453,7 +577,9 @@ defmodule Localize.Time do
     if format in @standard_formats and is_full_time(time) do
       Localize.DateTime.Format.resolve_format(:time, format, locale_id, :gregorian, options)
     else
-      resolve_skeleton(format, locale_id, options)
+      format
+      |> resolve_skeleton(locale_id, options)
+      |> Localize.DateTime.Formatter.explain_unresolved(time, format)
     end
   end
 
@@ -478,7 +604,8 @@ defmodule Localize.Time do
     end
   end
 
-  defp do_resolve_skeleton(skeleton, locale_id, options) when is_atom(skeleton) do
+  defp do_resolve_skeleton(skeleton, locale_id, options)
+       when is_atom(skeleton) or is_binary(skeleton) do
     with {:ok, available} <-
            Localize.DateTime.Format.available_formats(locale_id, :gregorian) do
       case Map.get(available, skeleton) do
@@ -502,7 +629,12 @@ defmodule Localize.Time do
   defp resolve_skeleton_via_best_match(skeleton, locale_id, options) do
     case Localize.DateTime.Format.Match.best_match(skeleton, locale_id) do
       {:ok, matched_id} when is_atom(matched_id) ->
-        resolve_skeleton(matched_id, locale_id, options)
+        with {:ok, pattern} <- resolve_skeleton(matched_id, locale_id, options) do
+          # See the note in `Localize.Date`: TR35 adjusts the matched
+          # format's field widths to those requested.
+          {:ok, tokens} = Localize.DateTime.Format.Match.tokenize_skeleton(skeleton)
+          Localize.DateTime.Format.Match.adjust_field_lengths(pattern, tokens, matched_id)
+        end
 
       {:ok, {_date_id, _time_id}} ->
         {:error,
@@ -512,7 +644,17 @@ defmodule Localize.Time do
          )}
 
       {:error, _} = error ->
-        error
+        # See `Localize.Date`: fall back to TR35's append-item path before
+        # reporting the skeleton unresolvable.
+        case Localize.DateTime.Format.AppendItems.augment(
+               skeleton,
+               locale_id,
+               :gregorian,
+               options
+             ) do
+          {:ok, pattern} -> {:ok, pattern}
+          _unresolvable -> error
+        end
     end
   end
 
@@ -535,10 +677,6 @@ defmodule Localize.Time do
     |> Enum.map_join(fn {_field, symbol} -> symbol end)
     |> String.to_atom()
   end
-
-  # ── Locale resolution ──────────────────────────────────────
-
-  defp resolve_locale_id(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   @doc """
   Parses a localized time string.

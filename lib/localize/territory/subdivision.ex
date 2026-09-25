@@ -39,6 +39,8 @@ defmodule Localize.Territory.Subdivision do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.LanguageTag
 
   @doc """
@@ -60,8 +62,8 @@ defmodule Localize.Territory.Subdivision do
 
   * `{:ok, name}` where `name` is the localized subdivision name.
 
-  * `{:error, exception}` if the subdivision is unknown or the
-    locale has no translation for it.
+  * `{:error, exception}` if the subdivision is not an atom or
+    string, is unknown, or the locale has no translation for it.
 
   ### Examples
 
@@ -74,7 +76,10 @@ defmodule Localize.Territory.Subdivision do
   """
   @spec display_name(atom() | String.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  def display_name(subdivision, options \\ []) do
+  def display_name(subdivision, options \\ [])
+
+  def display_name(subdivision, options)
+      when (is_atom(subdivision) or is_binary(subdivision)) and is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     code = normalize_subdivision_code(subdivision)
 
@@ -90,12 +95,35 @@ defmodule Localize.Territory.Subdivision do
     end
   end
 
+  def display_name(_subdivision, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def display_name(subdivision, _options) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(subdivision, "a subdivision code atom or string")}
+  end
+
   @doc """
   Same as `display_name/2` but raises on error.
+
+  ### Arguments
+
+  * `subdivision` is a CLDR subdivision code as an atom or string,
+    such as `:caon`.
+
+  * `options` is a keyword list of options.
 
   ### Options
 
   * See `display_name/2` for the supported options.
+
+  ### Returns
+
+  * The localized subdivision name.
+
+  ### Raises
+
+  * Raises an exception if the subdivision name cannot be returned.
 
   ### Examples
 
@@ -152,13 +180,18 @@ defmodule Localize.Territory.Subdivision do
   """
   @spec subdivision_names_for(Keyword.t()) ::
           {:ok, %{atom() => String.t()}} | {:error, Exception.t()}
-  def subdivision_names_for(options \\ []) do
+  def subdivision_names_for(options \\ [])
+
+  def subdivision_names_for(options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
       Localize.Locale.get(locale_id, [:subdivisions])
     end
   end
+
+  def subdivision_names_for(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   @doc """
   Returns the sorted list of subdivision codes that have translations

@@ -144,44 +144,48 @@ defmodule Localize.Number do
     dispatch_format(number, validated_options)
   end
 
-  def to_string(number, options) when is_number(number) and is_list(options) do
-    case Localize.Backend.resolve(options) do
-      :nif ->
-        locale = Keyword.get(options, :locale, Localize.get_locale())
-
-        with {:ok, locale_string} <- validated_locale_string(locale) do
-          Localize.Nif.number_format(number, locale_string, options)
-        end
-
-      :elixir ->
-        with {:ok, validated_options} <- Options.validate_options(number, options) do
-          dispatch_format(number, validated_options)
-        end
+  def to_string(number, options) do
+    with :ok <- validate_arguments([number], options) do
+      format_number(number, options, Localize.Backend.resolve(options))
     end
   end
 
-  def to_string(%Decimal{} = number, options) when is_list(options) do
-    case Localize.Backend.resolve(options) do
-      :nif ->
-        locale = Keyword.get(options, :locale, Localize.get_locale())
+  defp format_number(number, options, :nif) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
 
-        with {:ok, locale_string} <- validated_locale_string(locale) do
-          Localize.Nif.number_format(number, locale_string, options)
-        end
-
-      :elixir ->
-        with {:ok, validated_options} <- Options.validate_options(number, options) do
-          dispatch_format(number, validated_options)
-        end
+    with {:ok, locale_string} <- validated_locale_string(locale) do
+      Localize.Nif.number_format(number, locale_string, options)
     end
   end
 
-  def to_string(number, _options) do
-    {:error,
-     Localize.InvalidValueError.exception(
-       value: number,
-       expected: "a number (integer, float, or Decimal)"
-     )}
+  defp format_number(number, options, :elixir) do
+    with {:ok, validated_options} <- Options.validate_options(number, options) do
+      dispatch_format(number, validated_options)
+    end
+  end
+
+  # Arguments of the wrong type are answered with an error rather than
+  # raised on: options that are not a keyword list, or a value that is not a
+  # number.
+  defp validate_arguments(numbers, options) do
+    case {Keyword.keyword?(options), Enum.reject(numbers, &number?/1)} do
+      {false, _numbers} -> {:error, invalid_options(options)}
+      {true, [invalid | _rest]} -> {:error, invalid_number(invalid)}
+      {true, []} -> :ok
+    end
+  end
+
+  defp number?(value), do: is_number(value) or is_struct(value, Decimal)
+
+  defp invalid_options(options) do
+    Localize.InvalidValueError.exception(value: options, expected: "a keyword list of options")
+  end
+
+  defp invalid_number(value) do
+    Localize.InvalidValueError.exception(
+      value: value,
+      expected: "a number (integer, float, or Decimal)"
+    )
   end
 
   defp dispatch_format(number, validated_options) do
@@ -307,7 +311,8 @@ defmodule Localize.Number do
   @spec to_parts(number() | Decimal.t(), Keyword.t()) ::
           {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
   def to_parts(number, options \\ []) do
-    with {:ok, validated_options} <- Options.validate_options(number, options) do
+    with :ok <- validate_arguments([number], options),
+         {:ok, validated_options} <- Options.validate_options(number, options) do
       dispatch_parts(number, validated_options)
     end
   end
@@ -344,6 +349,49 @@ defmodule Localize.Number do
     case to_parts(number, options) do
       {:ok, parts} -> parts
       {:error, exception} -> raise exception
+    end
+  end
+
+  # TR35 takes the plural operands from the source number, "the visual
+  # appearance of the digits of the result", so a plural category follows
+  # the number as `to_string/2` displays it with the same options: the float
+  # 1.0 displays as "1" (`:one` in English) and the integer 1 with
+  # `fractional_digits: 2` as "1.00" (`:other`). The digits are read back
+  # from latn parts, so the value carries whatever rounding, significant
+  # digits or increment the formatter applied. It covers decimal patterns;
+  # a compact or scientific exponent is not read. A number that displays
+  # without digits (NaN, infinity) is returned unchanged.
+  @doc false
+  @spec source_number(number() | Decimal.t(), Keyword.t() | struct()) :: number() | Decimal.t()
+  def source_number(number, options \\ [])
+
+  def source_number(number, %Options{} = validated_options) do
+    number
+    |> dispatch_parts(%{validated_options | number_system: :latn})
+    |> number_from_parts(number)
+  end
+
+  def source_number(number, options) when is_list(options) do
+    number
+    |> to_parts(Keyword.put(options, :number_system, :latn))
+    |> number_from_parts(number)
+  end
+
+  defp number_from_parts({:ok, parts}, number) do
+    case Decimal.parse(displayed_digits(parts)) do
+      {%Decimal{} = decimal, ""} -> decimal
+      _other -> number
+    end
+  end
+
+  defp number_from_parts(_error, number), do: number
+
+  defp displayed_digits(parts) do
+    integer = for %{type: :integer, value: digits} <- parts, into: "", do: digits
+
+    case for(%{type: :fraction, value: digits} <- parts, into: "", do: digits) do
+      "" -> integer
+      fraction -> integer <> "." <> fraction
     end
   end
 
@@ -458,11 +506,11 @@ defmodule Localize.Number do
   @spec to_range_string(number() | Decimal.t(), number() | Decimal.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def to_range_string(number_start, number_end, options \\ []) do
-    {approximate, format_options} = Keyword.pop(options, :approximate, false)
-    locale = Keyword.get(format_options, :locale, Localize.get_locale())
-    format_options = Keyword.put_new(format_options, :locale, locale)
-
-    with {:ok, language_tag} <- Localize.validate_locale(locale),
+    with :ok <- validate_arguments([number_start, number_end], options),
+         {approximate, format_options} = Keyword.pop(options, :approximate, false),
+         locale = Keyword.get(format_options, :locale, Localize.get_locale()),
+         format_options = Keyword.put_new(format_options, :locale, locale),
+         {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, number_system} <- System.number_system_from_locale(language_tag),
          {:ok, patterns} <- Format.misc_patterns_for(language_tag, number_system) do
       cond do
@@ -616,11 +664,11 @@ defmodule Localize.Number do
   @spec to_range_parts(number() | Decimal.t(), number() | Decimal.t(), Keyword.t()) ::
           {:ok, [%{type: atom(), value: String.t(), source: atom()}]} | {:error, Exception.t()}
   def to_range_parts(number_start, number_end, options \\ []) do
-    {approximate, format_options} = Keyword.pop(options, :approximate, false)
-    locale = Keyword.get(format_options, :locale, Localize.get_locale())
-    format_options = Keyword.put_new(format_options, :locale, locale)
-
-    with {:ok, language_tag} <- Localize.validate_locale(locale),
+    with :ok <- validate_arguments([number_start, number_end], options),
+         {approximate, format_options} = Keyword.pop(options, :approximate, false),
+         locale = Keyword.get(format_options, :locale, Localize.get_locale()),
+         format_options = Keyword.put_new(format_options, :locale, locale),
+         {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, number_system} <- System.number_system_from_locale(language_tag),
          {:ok, patterns} <- Format.misc_patterns_for(language_tag, number_system) do
       cond do
@@ -906,10 +954,10 @@ defmodule Localize.Number do
   end
 
   defp format_misc_pattern(number, pattern_key, options) do
-    locale = Keyword.get(options, :locale, Localize.get_locale())
-    options = Keyword.put_new(options, :locale, locale)
-
-    with {:ok, language_tag} <- Localize.validate_locale(locale),
+    with :ok <- validate_arguments([number], options),
+         locale = Keyword.get(options, :locale, Localize.get_locale()),
+         options = Keyword.put_new(options, :locale, locale),
+         {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, number_system} <- System.number_system_from_locale(language_tag),
          {:ok, patterns} <- Format.misc_patterns_for(language_tag, number_system),
          {:ok, formatted} <- to_string(number, options) do
@@ -972,8 +1020,11 @@ defmodule Localize.Number do
   """
   @spec to_ratio_string(number() | Decimal.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
-  defdelegate to_ratio_string(number, options \\ []),
-    to: Localize.Number.Formatter.Ratio
+  def to_ratio_string(number, options \\ []) do
+    with :ok <- validate_arguments([number], options) do
+      Localize.Number.Formatter.Ratio.to_ratio_string(number, options)
+    end
+  end
 
   @doc """
   Same as `to_ratio_string/2` but raises on error.
@@ -1118,7 +1169,10 @@ defmodule Localize.Number do
 
   ### Returns
 
-  * A list with currency strings replaced by currency code atoms.
+  * A list with currency strings replaced by currency code atoms, or
+
+  * `{:error, exception}` if `list` is not a list or `options` is not a
+    keyword list.
 
   ### Examples
 
@@ -1127,7 +1181,7 @@ defmodule Localize.Number do
 
   """
   @spec resolve_currencies([String.t() | number()], Keyword.t()) ::
-          list(atom() | String.t() | number())
+          list(atom() | String.t() | number()) | {:error, Exception.t()}
   defdelegate resolve_currencies(list, options \\ []), to: Localize.Number.Parser
 
   @doc """
@@ -1199,7 +1253,10 @@ defmodule Localize.Number do
   ### Returns
 
   * A list with percent/permille strings replaced by `:percent`
-    or `:permille` atoms.
+    or `:permille` atoms, or
+
+  * `{:error, exception}` if `list` is not a list or `options` is not a
+    keyword list.
 
   ### Examples
 
@@ -1208,7 +1265,7 @@ defmodule Localize.Number do
 
   """
   @spec resolve_pers([String.t() | number()], Keyword.t()) ::
-          list(atom() | String.t() | number())
+          list(atom() | String.t() | number()) | {:error, Exception.t()}
   defdelegate resolve_pers(list, options \\ []), to: Localize.Number.Parser
 
   @doc """

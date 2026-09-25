@@ -81,7 +81,7 @@ Run the phases in order. Every phase ends with a verification gate; do not proce
 1. Fork the CLDR release page (e.g. <https://cldr.unicode.org/downloads/cldr-49>) into `plans/cldr-<N>-changes.md`, one row per change, scored *cosmetic / output-changing / API-affecting / data-only*.
 2. Walk the translators' guide (<https://cldr.unicode.org/translation>) section by section into `plans/cldr-<N>-translator-guide-checklist.md`, marking each section *correct / partial / missing / N/A* against our implementation.
 3. Diff the conformance fixtures: `diff -r $CLDR_REPO_old/common/testData $CLDR_REPO_new/common/testData --brief`. For each delta: re-import updated fixtures we already ingest, add loaders for new ones in directories we cover, and log new directories as work items.
-4. Diff the TR35 spec chapters relevant to shipped features (dates, numbers, collation, messageFormat) and file work items for behavioural changes. After release, walk the TR35 §Modifications log into `plans/cldr-<N>-retrospective.md` (template: `plans/cldr-48-retrospective.md`) classifying every entry as data-only / code-applied / code-pending / skipped-with-reason.
+4. Diff the TR35 spec chapters relevant to shipped features (dates, numbers, collation, messageFormat) and file work items for behavioural changes. After release, walk the TR35 §Modifications log into `plans/cldr-<N>-retrospective.md`, classifying every entry as data-only / code-applied / code-pending / skipped-with-reason.
 
 ### Phases 1–3 in one command
 

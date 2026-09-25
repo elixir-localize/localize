@@ -63,6 +63,9 @@ defmodule Localize.Number.Format.Compiler do
     |> :localize_decimal_formats_lexer.string()
   end
 
+  def tokenize(definition),
+    do: {:error, Localize.Utils.Helpers.invalid_value(definition, "a number format string"), 1}
+
   @doc """
   Parses a number format definition into a keyword list of
   positive and negative format elements.
@@ -87,7 +90,7 @@ defmodule Localize.Number.Format.Compiler do
 
   """
   @spec parse(String.t() | list()) :: {:ok, Keyword.t()} | {:error, term()}
-  def parse(tokens) when is_list(tokens) do
+  def parse(tokens) when tokens == [] or (is_list(tokens) and is_tuple(hd(tokens))) do
     :localize_decimal_formats_parser.parse(tokens)
   end
 
@@ -95,13 +98,21 @@ defmodule Localize.Number.Format.Compiler do
     {:error, "empty format string cannot be compiled"}
   end
 
+  # A pattern with characters no lexer rule accepts, such as a lone quote or
+  # a trailing pad marker, is an error rather than a raised MatchError.
   def parse(definition) when is_binary(definition) do
-    {:ok, tokens, _end_line} = tokenize(definition)
-    :localize_decimal_formats_parser.parse(tokens)
+    case tokenize(definition) do
+      {:ok, tokens, _end_line} -> :localize_decimal_formats_parser.parse(tokens)
+      {:error, descriptor, _end_line} -> {:error, descriptor}
+    end
   end
 
   def parse(nil) do
     {:error, "no format string or token list provided"}
+  end
+
+  def parse(definition) do
+    {:error, "a format string or token list was expected, got: #{inspect(definition)}"}
   end
 
   # ── Compile ──────────────────────────────────────────────────
@@ -145,6 +156,9 @@ defmodule Localize.Number.Format.Compiler do
     end
   end
 
+  def compile(definition),
+    do: {:error, "a format string was expected, got: #{inspect(definition)}"}
+
   @doc """
   Extracts metadata from a parsed format.
 
@@ -170,20 +184,37 @@ defmodule Localize.Number.Format.Compiler do
       {:ok, parsed} ->
         format_to_metadata(parsed)
 
+      {:error, {_line, :localize_decimal_formats_lexer, {:illegal, chars}}} ->
+        {:error, "Decimal format compiler: illegal characters #{inspect(List.to_string(chars))}"}
+
       {:error, {_line, _parser, [message, context]}} ->
         {:error, "Decimal format compiler: #{message}#{Enum.join(context)}"}
 
       {:error, reason} when is_binary(reason) ->
         {:error, reason}
+
+      {:error, descriptor} ->
+        {:error, "Decimal format compiler: #{inspect(descriptor)}"}
     end
   end
 
   def format_to_metadata(format) when is_list(format) do
-    metadata = analyse(format, format[:positive][:format])
+    with {:ok, positive_format} <- positive_format(format),
+         metadata = analyse(format, positive_format),
+         :ok <- validate_scientific_constraints(metadata) do
+      {:ok, metadata}
+    end
+  end
 
-    case validate_scientific_constraints(metadata) do
-      :ok -> {:ok, metadata}
-      {:error, _} = error -> error
+  def format_to_metadata(format),
+    do: {:error, "a format string or parsed format was expected, got: #{inspect(format)}"}
+
+  # A literal-only format such as "mille" has no `:format` placeholder, so
+  # only the `:positive` list itself is required.
+  defp positive_format(format) do
+    case Keyword.get(format, :positive) do
+      positive when is_list(positive) -> {:ok, Keyword.get(positive, :format)}
+      _other -> {:error, "a parsed format was expected, got: #{inspect(format)}"}
     end
   end
 
@@ -391,24 +422,36 @@ defmodule Localize.Number.Format.Compiler do
 
   # ── Scientific rounding ────────────────────────────────────
 
-  @scientific_match "(?<scientific_rounding>0[0#]*)?"
-
   defp scientific_rounding(%{"exponent_digits" => ""}), do: 0
 
+  # TR35 §Scientific Notation: the most significant digits a mantissa shows.
+  # With a decimal point, the zeros before it plus the digits after it, or
+  # one plus the digits after it when the mantissa has no zero at all;
+  # without a point, the zeros, or no limit when there are none. So `0.##E0`
+  # and `#.##E0` show three, `#.0#E0` two, `##0.##E0` three and `#E0` any
+  # number. Zero stands for no limit.
   defp scientific_rounding(%{
          "compact_integer" => integer_format,
          "compact_fraction" => fraction_format
        }) do
-    format = integer_format <> fraction_format
+    zeros_before_point = count_zeros(integer_format)
+    digits_after_point = String.length(fraction_format)
+    mantissa_has_zero? = zeros_before_point > 0 or String.contains?(fraction_format, "0")
 
-    if captures = Regex.named_captures(scientific_re(), format) do
-      String.length(captures["scientific_rounding"])
-    else
-      0
+    cond do
+      digits_after_point > 0 and mantissa_has_zero? -> zeros_before_point + digits_after_point
+      digits_after_point > 0 -> 1 + digits_after_point
+      true -> zeros_before_point
     end
   end
 
   defp scientific_rounding(_), do: 0
+
+  defp count_zeros(format) do
+    format
+    |> String.graphemes()
+    |> Enum.count(&(&1 == "0"))
+  end
 
   # ── Grouping extraction ────────────────────────────────────
 
@@ -616,7 +659,6 @@ defmodule Localize.Number.Format.Compiler do
     format: @format_regex,
     digits: @digits_match,
     hashes: @hashes_match,
-    scientific: @scientific_match,
     significant: @significant_digits_match,
     rounding: @rounding_pattern
   }
@@ -632,7 +674,6 @@ defmodule Localize.Number.Format.Compiler do
   defp format_re, do: regex(:format)
   defp digits_re, do: regex(:digits)
   defp hashes_re, do: regex(:hashes)
-  defp scientific_re, do: regex(:scientific)
   defp significant_re, do: regex(:significant)
   defp rounding_re, do: regex(:rounding)
 

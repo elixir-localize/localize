@@ -8,23 +8,23 @@ defmodule Localize.LanguageTag.Sigil do
   @doc """
   Handles sigil `~l` for language tags.
 
-  ## Arguments
+  ### Arguments
 
   * `locale_id` is a [BCP 47](https://unicode-org.github.io/cldr/ldml/tr35.html#Identifiers)
     locale identifier as a string.
 
-  ## Options
+  ### Options
 
   * `u` Will parse the locale but will not add
     likely subtags or resolve the CLDR locale identifier.
 
-  ## Returns
+  ### Returns
 
   * a `t:Localize.LanguageTag.t/0` struct or
 
   * raises an exception.
 
-  ## Examples
+  ### Examples
 
       iex> import Localize.LanguageTag.Sigil
       iex> tag = ~l(en-US-u-ca-gregory)

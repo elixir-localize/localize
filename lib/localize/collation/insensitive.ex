@@ -29,6 +29,8 @@ defmodule Localize.Collation.Insensitive do
 
   * `:gt` if `string_a` sorts after `string_b`.
 
+  * `{:error, exception}` if either argument is not a string.
+
   ### Examples
 
       iex> Localize.Collation.Insensitive.compare("a", "A")
@@ -38,7 +40,7 @@ defmodule Localize.Collation.Insensitive do
       :gt
 
   """
-  @spec compare(String.t(), String.t()) :: :lt | :eq | :gt
+  @spec compare(String.t(), String.t()) :: :lt | :eq | :gt | {:error, Exception.t()}
   def compare(string_a, string_b) do
     if Localize.Collation.Nif.available?() do
       Localize.Collation.Nif.nif_compare(string_a, string_b, %Localize.Collation.Options{

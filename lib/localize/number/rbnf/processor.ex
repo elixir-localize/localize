@@ -31,7 +31,7 @@ defmodule Localize.Number.Rbnf.Processor do
   @spec process(number(), String.t(), list(), map(), atom() | String.t()) ::
           {:ok, String.t()} | {:error, String.t()}
   def process(number, rule_set_name, rules, all_rule_sets, locale \\ :en) do
-    case find_matching_rule(number, rules) do
+    case find_matching_rule(number, rules, locale) do
       nil ->
         {:error, "No matching rule for #{inspect(number)} in #{rule_set_name}"}
 
@@ -109,29 +109,44 @@ defmodule Localize.Number.Rbnf.Processor do
   # order is the *original* `rules` list, not the descending-
   # base-value sort produced by `find_matching_integer_rule/2`.
   defp with_preceding_rule(rule_struct, original_rule, rules) do
-    target_base = get_base_value(original_rule)
+    %{rule_struct | preceding_rule: preceding_chain(get_base_value(original_rule), rules)}
+  end
 
-    preceding =
-      case Enum.find_index(rules, fn r -> get_base_value(r) == target_base end) do
-        nil -> nil
-        0 -> nil
-        i -> Enum.at(rules, i - 1)
-      end
+  # The chain is built all the way down, not one link. `>>>` formats the
+  # remainder with the rule preceding the current one in source order, and
+  # that rule may use `>>>` in turn. Japanese year digits are `1000: <<>>>`
+  # over `100: <<>>>` over `10: <<>>>` over `0: =%spellout-numbering=`, and
+  # 1001 spells "一〇〇一" only if each level can reach its own predecessor.
+  # Linking a single level left the second `>>>` with none, so it fell back to
+  # ordinary rule selection and lost a digit ("一〇一").
+  defp preceding_chain(base_value, rules) do
+    case Enum.find_index(rules, &(get_base_value(&1) == base_value)) do
+      nil ->
+        nil
 
-    %{rule_struct | preceding_rule: preceding}
+      0 ->
+        nil
+
+      index ->
+        preceding = Enum.at(rules, index - 1)
+
+        preceding
+        |> to_rule_struct()
+        |> Map.put(:preceding_rule, preceding_chain(get_base_value(preceding), rules))
+    end
   end
 
   # ── Rule matching ──────────────────────────────────────────
 
-  defp find_matching_rule(number, rules) when is_number(number) and number < 0 do
+  defp find_matching_rule(number, rules, locale) when is_number(number) and number < 0 do
     # Look for -x rule first
     Enum.find(rules, fn rule ->
       base = get_base_value(rule)
       base == "-x"
-    end) || find_matching_rule(abs(number), rules)
+    end) || find_matching_rule(abs(number), rules, locale)
   end
 
-  defp find_matching_rule(number, rules) when is_float(number) do
+  defp find_matching_rule(number, rules, locale) when is_float(number) do
     # Per TR35: when the integer part is zero but the value is
     # non-zero (e.g. `0.05`), prefer the `0.x` rule if the locale
     # defines one. This is currently used by `ee` and `ko`. Falls
@@ -142,17 +157,35 @@ defmodule Localize.Number.Rbnf.Processor do
         Enum.find(rules, fn rule -> get_base_value(rule) == "0.x" end)
       end
 
-    x_x_rule =
-      Enum.find(rules, fn rule ->
-        base = get_base_value(rule)
-        base in ["x.x", "x,x"]
-      end)
-
-    zero_x_rule || x_x_rule || find_matching_integer_rule(trunc(number), rules)
+    zero_x_rule || decimal_separator_rule(rules, locale) ||
+      find_matching_integer_rule(trunc(number), rules)
   end
 
-  defp find_matching_rule(number, rules) when is_integer(number) do
+  defp find_matching_rule(number, rules, _locale) when is_integer(number) do
     find_matching_integer_rule(number, rules)
+  end
+
+  # A locale may define both `x.x` and `x,x` — Catalan spells 0.5 as "zero
+  # punt cinc" under one and "zero coma cinc" under the other — and the one
+  # to use is the one matching the locale's own decimal separator. Taking
+  # whichever appeared first in the rule list meant `ca`, `es` and every
+  # other comma locale that ships both was spelled with the point form.
+  defp decimal_separator_rule(rules, locale) do
+    preferred = if decimal_separator(locale) == ",", do: "x,x", else: "x.x"
+
+    Enum.find(rules, &(get_base_value(&1) == preferred)) ||
+      Enum.find(rules, &(get_base_value(&1) in ["x.x", "x,x"]))
+  end
+
+  defp decimal_separator(locale) do
+    case Localize.Number.Symbol.number_symbols_for(locale) do
+      {:ok, %{latn: %Localize.Number.Symbol{decimal: %{standard: separator}}}}
+      when is_binary(separator) ->
+        separator
+
+      _no_latin_symbols ->
+        "."
+    end
   end
 
   defp find_matching_integer_rule(number, rules) do
@@ -175,11 +208,68 @@ defmodule Localize.Number.Rbnf.Processor do
       base <= number and
         (range == "undefined" or range == nil or
            (is_integer(range) and number < range))
-    end) ||
-      Enum.find(integer_rules, fn rule ->
-        get_base_value(rule) == 0
-      end)
+    end)
+    |> roll_back_rule(number, integer_rules)
+    |> Kernel.||(Enum.find(integer_rules, &(get_base_value(&1) == 0)))
   end
+
+  # ICU's *rollback rule*. RBNF's standard idiom pairs a rule for exact
+  # multiples with one for the same magnitude carrying a remainder, numbered
+  # one higher: Burmese has `100: <<ရာ;` beside `101: <<ရာ့[>>];`, and
+  # Bulgarian `20: и <%…<десет;` beside `21: <%…<десет >>;`. Selecting purely
+  # on "largest base value not above the number" always picks the second, so
+  # 200 was spelled "နှစ်ရာ့" with the remainder form's suffix and no remainder
+  # to justify it, and 40 became "четиридесет и нула" — "forty and zero".
+  #
+  # ICU rolls back to the preceding rule when the chosen rule takes a
+  # remainder, the number divides exactly, and the rule's own base value does
+  # not (`NFRule.shouldRollBack`). A base value that *is* an even multiple
+  # needs no rollback: that rule's optional part already omits itself.
+  defp roll_back_rule(nil, _number, _rules), do: nil
+
+  defp roll_back_rule(rule, number, rules) do
+    base = get_base_value(rule)
+    divisor = get_divisor(rule)
+
+    with true <- is_integer(divisor) and divisor > 0,
+         0 <- rem(number, divisor),
+         true <- rem(base, divisor) != 0,
+         true <- takes_a_remainder?(rule),
+         preceding when not is_nil(preceding) <-
+           Enum.find(rules, &(get_base_value(&1) < base)) do
+      preceding
+    else
+      _no_rollback -> rule
+    end
+  end
+
+  # True when the rule carries a remainder substitution — `>>`, `>%name>` or
+  # `>>>`. Optional text counts: a rule whose base value is not an even
+  # multiple of its divisor is never split, so its brackets always render and
+  # the substitution inside them always runs.
+  defp takes_a_remainder?(rule) do
+    case Rule.parse(get_definition(rule) || "") do
+      {:ok, parsed} -> remainder_operation?(parsed)
+      _unparseable -> false
+    end
+  end
+
+  defp remainder_operation?(parsed) when is_list(parsed) do
+    Enum.any?(parsed, fn
+      {operation, _argument} when operation in [:modulo, :modulo_preceding] -> true
+      {:conditional, argument} -> remainder_operation?(argument)
+      {:conditional_alternate, {present, absent}} -> remainder_operation?(present ++ absent)
+      _other_operation -> false
+    end)
+  end
+
+  defp remainder_operation?(_parsed), do: false
+
+  defp get_definition(%Rule{definition: definition}), do: definition
+  defp get_definition(rule) when is_map(rule), do: rule[:definition] || rule["definition"]
+
+  defp get_divisor(%Rule{divisor: divisor}), do: divisor
+  defp get_divisor(rule) when is_map(rule), do: rule[:divisor] || rule["divisor"]
 
   # ── Rule execution ─────────────────────────────────────────
 
@@ -234,7 +324,7 @@ defmodule Localize.Number.Rbnf.Processor do
   # `%spellout-cardinal x.x: ←← бүтүн →%%z-spellout-fraction→`).
   # TR35 specifies a numerator/denominator algorithm for those
   # cases; we provide non-crashing best-effort handling here and
-  # leave the full algorithm as a follow-up. See plans/rbnf.md.
+  # leave the full algorithm as a follow-up.
   defp do_operation(:modulo, number, rule_set, _rule, nil, all_sets, locale)
        when is_float(number) do
     format_fraction(number, rule_set, all_sets, " ", locale)
@@ -427,13 +517,34 @@ defmodule Localize.Number.Rbnf.Processor do
     Map.get(plurals, plural) || Map.get(plurals, :other, "")
   end
 
-  # Conditional: only process if modulo > 0
+  # Optional text renders when the remainder is non-zero — but only for a rule
+  # ICU would have split in two. ICU implements `[…]` by expanding the rule
+  # into one that omits the text and one, numbered a step higher, that keeps
+  # it; it only does so when the base value is positive and an even multiple
+  # of the divisor (`NFRule.makeRules`). Any other rule keeps a single form
+  # with the text always present, which is how Afrikaans `%%2d-year`'s
+  # `0: honderd[ >%spellout-numbering>]` spells 1100 "elf honderd nul".
   defp do_operation(:conditional, number, rule_set, rule, argument, all_sets, locale)
        when is_integer(number) do
     mod = number - div(number, rule.divisor) * rule.divisor
 
-    if mod > 0 do
+    if mod > 0 or not splits_on_optional_text?(rule) do
       do_rule(mod, rule_set, rule, argument, all_sets, locale)
+    else
+      ""
+    end
+  end
+
+  # A fraction rule (`x.x`) brackets the integer part, and the bracket is
+  # taken when that part is non-zero: Russian's
+  # `x.x: [<…< $(cardinal,one{целой}other{целыми})$ ]>%%fractions…>` renders
+  # 1.5 as "одной целой пятью десятыми" and 0.5 as just "пятью десятыми".
+  # Returning "" for every non-integer dropped the integer part from all of
+  # them.
+  defp do_operation(:conditional, number, rule_set, rule, argument, all_sets, locale)
+       when is_float(number) do
+    if trunc(abs(number)) > 0 do
+      do_rule(number, rule_set, rule, argument, all_sets, locale)
     else
       ""
     end
@@ -445,9 +556,31 @@ defmodule Localize.Number.Rbnf.Processor do
 
   # ── Helpers ────────────────────────────────────────────────
 
+  # ICU only splits a bracketed rule into an omitting and an including form
+  # when the base value is positive and an even multiple of the divisor; any
+  # other rule keeps its optional text unconditionally.
+  defp splits_on_optional_text?(%{base_value: base, divisor: divisor})
+       when is_integer(base) and is_integer(divisor) and divisor > 0 do
+    base > 0 and rem(base, divisor) == 0
+  end
+
+  defp splits_on_optional_text?(_rule), do: false
+
   # The value on which `$(cardinal,…)$` / `$(ordinal,…)$` selects
   # its plural category: the number divided by the rule's divisor
   # (see the comment on `do_operation(:ordinal, …)` above).
+  # In the fraction-with-rule path the rule body runs against the
+  # *denominator*, with `<<` substituting the numerator (see
+  # `format_fraction_via_rule/4`). The plural has to agree with the number
+  # actually spelled, so it selects on the numerator too. Russian's
+  # `10: <…< $(cardinal,one{десятой}other{десятыми})$` spells 0.5 as "пятью
+  # десятыми": five, so `other`. Selecting on the denominator gave
+  # `div(10, 10)` — one — and the singular "десятой".
+  defp plural_operand(_number, %Rule{fraction_numerator: numerator})
+       when is_integer(numerator) do
+    numerator
+  end
+
   defp plural_operand(number, %Rule{divisor: divisor}) when is_integer(divisor) and divisor > 0 do
     cond do
       number >= 0 and number < 1 -> round(number * divisor)
@@ -526,11 +659,16 @@ defmodule Localize.Number.Rbnf.Processor do
     number
     |> fractional_digit_list()
     |> Enum.map_join(separator, fn n ->
-      # Try spellout_numbering first, fallback to the current rule set
-      numbering_set = "spellout_numbering"
-
-      case apply_rule_set(n, numbering_set, all_sets, locale) do
-        {:error, _} -> apply_rule_set_or_string(n, rule_set, all_sets, locale)
+      # TR35 spells each fraction digit with the *current* rule set, so a
+      # case-marked or gendered set carries into the fraction: Finnish
+      # `%spellout-cardinal-allative-plural` renders 0.5 as "nollille pilkku
+      # viisille", not "... viisi". Trying `spellout_numbering` first
+      # inverted that and answered in the nominative for every such set.
+      #
+      # It stays as the fallback: a rule set need not define rules for the
+      # single digits, and `spellout_numbering` always does.
+      case apply_rule_set(n, rule_set, all_sets, locale) do
+        {:error, _} -> apply_rule_set_or_string(n, "spellout_numbering", all_sets, locale)
         result -> result
       end
     end)
@@ -604,7 +742,7 @@ defmodule Localize.Number.Rbnf.Processor do
   end
 
   defp apply_fraction_rule(numerator, denominator, rule_set_name, rules, all_sets, locale) do
-    case find_matching_rule(denominator, rules) do
+    case find_matching_rule(denominator, rules, locale) do
       nil ->
         Integer.to_string(numerator)
 

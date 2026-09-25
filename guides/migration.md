@@ -58,7 +58,7 @@ Coverage-level keywords (`:modern`, `:moderate`, `:basic`) are also accepted and
 
 ```elixir
 config :localize,
-  supported_locales: [:modern]  # ~104 locales with modern CLDR coverage
+  supported_locales: [:modern]  # 430 locales with modern CLDR coverage
 ```
 
 ### Full options reference

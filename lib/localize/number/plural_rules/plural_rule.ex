@@ -18,6 +18,8 @@ defmodule Localize.Number.PluralRule do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   alias Localize.LanguageTag
 
   @type operand :: any()
@@ -97,7 +99,10 @@ defmodule Localize.Number.PluralRule do
   @spec plural_type(number() | Decimal.t(), Keyword.t()) ::
           plural_type() | {:error, Exception.t()}
   @dialyzer {:nowarn_function, plural_type: 2}
-  def plural_type(number, options \\ []) do
+  def plural_type(number, options \\ [])
+
+  def plural_type(number, options)
+      when (is_number(number) or is_struct(number, Decimal)) and is_keyword_list(options) do
     case Localize.Backend.resolve(options) do
       :nif ->
         locale = Keyword.get(options, :locale, Localize.get_locale())
@@ -115,6 +120,12 @@ defmodule Localize.Number.PluralRule do
         plural_type_elixir(number, options)
     end
   end
+
+  def plural_type(_number, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def plural_type(number, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(number, "a number or a Decimal")}
 
   # The NIF backend validates the locale through the same canonical
   # path as the Elixir backend (`Localize.validate_locale/1`) and hands
@@ -137,13 +148,9 @@ defmodule Localize.Number.PluralRule do
       end
 
     if locale do
-      module =
-        case type do
-          :cardinal -> Localize.Number.PluralRule.Cardinal
-          :ordinal -> Localize.Number.PluralRule.Ordinal
-        end
-
-      module.plural_rule(number, locale)
+      with {:ok, module} <- plural_rules_module(type) do
+        module.plural_rule(number, locale)
+      end
     else
       {:error,
        Localize.UnknownPluralRulesError.exception(
@@ -151,6 +158,18 @@ defmodule Localize.Number.PluralRule do
          type: type
        )}
     end
+  end
+
+  defp plural_rules_module(:cardinal), do: {:ok, Localize.Number.PluralRule.Cardinal}
+  defp plural_rules_module(:ordinal), do: {:ok, Localize.Number.PluralRule.Ordinal}
+
+  defp plural_rules_module(type) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: type,
+       expected: :plural_type,
+       allowed_values: [:cardinal, :ordinal]
+     )}
   end
 
   # ── Compile-time data loading ─────────────────────────────────

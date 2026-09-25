@@ -63,7 +63,7 @@ Two areas are explicitly out of scope:
 | Script display names | Implemented | `Localize.Script.display_name/2` with `:standard`, `:short`, `:stand_alone`, and `:variant` styles. |
 | Territory display names | Implemented | `Localize.Territory.display_name/2` with `:standard`, `:short`, `:variant` styles. |
 | Variant display names | Not implemented | |
-| Key/type display names | Not implemented | |
+| Key/type display names | Implemented | Drives `Localize.Locale.LocaleDisplay.display_name/2` — `en-u-kn-true` renders "English (Sort Digits Numerically)". |
 | Locale display names | Implemented | `Localize.Locale.LocaleDisplay.display_name/2` implements the CLDR locale display name algorithm. |
 
 ### Layout
@@ -255,11 +255,12 @@ Two areas are explicitly out of scope:
 | Time format patterns (:short/:medium/:long/:full) | Implemented | `Localize.Time.to_string/2`. |
 | DateTime combined patterns | Implemented | `Localize.DateTime.to_string/2`. |
 | All date format pattern symbols (y, M, d, E, G, etc.) | Implemented | Full symbol set in `Localize.DateTime.Formatter`. |
-| Hour cycle (h, H, k, K) | Implemented | Including territory-based preferences. |
-| Day periods (a, b, B) | Implemented | `a` renders AM/PM; `b` renders noon/midnight at the exact points and AM/PM otherwise; `B` selects flexible day periods ("in the morning", "mittags") from the CLDR day-period rules, falling back to AM/PM for languages without rules. |
+| Invalid pattern fields | Implemented | A symbol at a width the Date Field Symbol Table does not list formats as U+FFFD; an undefined letter is an error. |
+| Hour cycle (h, H, k, K) | Implemented | Including territory and locale preferences (`hi_IN` allows `hB`), the `-u-hc-` override, and the skeleton symbols `j`, `J` and `C`. |
+| Day periods (a, b, B) | Implemented | `a` renders AM/PM; `b` renders noon/midnight at the exact points and AM/PM otherwise; `B` selects flexible day periods ("in the morning", "mittags") from the CLDR day-period rules, falling back to AM/PM for languages without rules. Noon and midnight are judged at the precision the pattern shows, so "h B" renders 12:05 as "12 noon". |
 | Available formats (skeletons) | Implemented | `Localize.DateTime.Format.Match` for skeleton matching. |
 | Interval formats | Implemented | `Localize.Interval.to_string/3` for date/time/datetime intervals. |
-| Append items (missing fields) | Not implemented | |
+| Append items (missing fields) | Implemented | `Localize.DateTime.Format.AppendItems` matches the closest format that is a subset of the request and appends the fields it lacks, so `en` renders `:yMMMdQ` as "Jul 6, 2024 (quarter: 3)". |
 
 ### Date/Time Parsing
 
@@ -290,8 +291,8 @@ Two areas are explicitly out of scope:
 |---------|--------|-------|
 | Timezone format symbols (z, Z, O, v, V, X, x) | Implemented | `Localize.DateTime.Formatter` handles all timezone symbols. |
 | GMT offset formatting | Implemented | `hourFormat`, `gmtFormat`, `gmtZeroFormat` patterns. |
-| Metazone names | Not implemented | Metazone data is not loaded or used for display name resolution. |
-| Exemplar cities | Not implemented | |
+| Metazone names | Implemented | The `z` and `v` symbols render the metazone's names — "Eastern Daylight Time" and "EDT", "Eastern Time" and "ET". |
+| Exemplar cities | Implemented | `VVV` renders the exemplar city ("New York") and `VVVV` the generic location format ("New York Time"). |
 | Timezone fallback formatting | Partial | Offset-based fallback works; metazone name fallback chain not implemented. |
 
 ### Semantic Skeletons
@@ -533,7 +534,6 @@ The MessageFormat working group conformance suite — including the WG `:test:fu
 ### Not implemented
 
 * Date/time parsing (string to date)
-* Metazone display names
 * Semantic skeletons
 * Context-dependent capitalization
 * Collation alphabetic index (UI bucketing)
@@ -541,7 +541,6 @@ The MessageFormat working group conformance suite — including the WG `:test:fu
 * Layout direction data
 * Coverage level assessment
 * Cyclic name sets (Chinese/Dangi calendars)
-* Append items (missing date/time fields)
 
 ### Not in scope for Localize
 

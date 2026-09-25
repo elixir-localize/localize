@@ -1,0 +1,488 @@
+# Times from ICU4C 78.3 (CLDR 48) at 13:05:09 in Etc/UTC on 2024-07-06, each formatted
+# with the best pattern DateTimePatternGenerator gives the skeleton jm, Hm or hm with
+# one time zone field of every width. Non-ASCII characters are written as \u{hex}.
+# Columns: mode, locale, skeleton, hour, minute and second, the formatted string and
+# ICU's pattern.
+skeleton	en	jmz	13	5	9	1:05\u{202f}PM UTC	h:mm\u{202f}a z
+skeleton	en	Hmz	13	5	9	13:05 UTC	HH:mm z
+skeleton	en	hmz	13	5	9	1:05\u{202f}PM UTC	h:mm\u{202f}a z
+skeleton	en	jmzzzz	13	5	9	1:05\u{202f}PM Coordinated Universal Time	h:mm\u{202f}a zzzz
+skeleton	en	Hmzzzz	13	5	9	13:05 Coordinated Universal Time	HH:mm zzzz
+skeleton	en	hmzzzz	13	5	9	1:05\u{202f}PM Coordinated Universal Time	h:mm\u{202f}a zzzz
+skeleton	en	jmv	13	5	9	1:05\u{202f}PM GMT+0	h:mm\u{202f}a v
+skeleton	en	Hmv	13	5	9	13:05 GMT+0	HH:mm v
+skeleton	en	hmv	13	5	9	1:05\u{202f}PM GMT+0	h:mm\u{202f}a v
+skeleton	en	jmvvvv	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a vvvv
+skeleton	en	Hmvvvv	13	5	9	13:05 GMT+00:00	HH:mm vvvv
+skeleton	en	hmvvvv	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a vvvv
+skeleton	en	jmO	13	5	9	1:05\u{202f}PM GMT+0	h:mm\u{202f}a O
+skeleton	en	HmO	13	5	9	13:05 GMT+0	HH:mm O
+skeleton	en	hmO	13	5	9	1:05\u{202f}PM GMT+0	h:mm\u{202f}a O
+skeleton	en	jmOOOO	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a OOOO
+skeleton	en	HmOOOO	13	5	9	13:05 GMT+00:00	HH:mm OOOO
+skeleton	en	hmOOOO	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a OOOO
+skeleton	en	jmX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a X
+skeleton	en	HmX	13	5	9	13:05 Z	HH:mm X
+skeleton	en	hmX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a X
+skeleton	en	jmXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XX
+skeleton	en	HmXX	13	5	9	13:05 Z	HH:mm XX
+skeleton	en	hmXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XX
+skeleton	en	jmXXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XXX
+skeleton	en	HmXXX	13	5	9	13:05 Z	HH:mm XXX
+skeleton	en	hmXXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XXX
+skeleton	en	jmXXXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XXXX
+skeleton	en	HmXXXX	13	5	9	13:05 Z	HH:mm XXXX
+skeleton	en	hmXXXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XXXX
+skeleton	en	jmXXXXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XXXXX
+skeleton	en	HmXXXXX	13	5	9	13:05 Z	HH:mm XXXXX
+skeleton	en	hmXXXXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XXXXX
+skeleton	en	jmx	13	5	9	1:05\u{202f}PM +00	h:mm\u{202f}a x
+skeleton	en	Hmx	13	5	9	13:05 +00	HH:mm x
+skeleton	en	hmx	13	5	9	1:05\u{202f}PM +00	h:mm\u{202f}a x
+skeleton	en	jmxx	13	5	9	1:05\u{202f}PM +0000	h:mm\u{202f}a xx
+skeleton	en	Hmxx	13	5	9	13:05 +0000	HH:mm xx
+skeleton	en	hmxx	13	5	9	1:05\u{202f}PM +0000	h:mm\u{202f}a xx
+skeleton	en	jmxxx	13	5	9	1:05\u{202f}PM +00:00	h:mm\u{202f}a xxx
+skeleton	en	Hmxxx	13	5	9	13:05 +00:00	HH:mm xxx
+skeleton	en	hmxxx	13	5	9	1:05\u{202f}PM +00:00	h:mm\u{202f}a xxx
+skeleton	en	jmxxxx	13	5	9	1:05\u{202f}PM +0000	h:mm\u{202f}a xxxx
+skeleton	en	Hmxxxx	13	5	9	13:05 +0000	HH:mm xxxx
+skeleton	en	hmxxxx	13	5	9	1:05\u{202f}PM +0000	h:mm\u{202f}a xxxx
+skeleton	en	jmxxxxx	13	5	9	1:05\u{202f}PM +00:00	h:mm\u{202f}a xxxxx
+skeleton	en	Hmxxxxx	13	5	9	13:05 +00:00	HH:mm xxxxx
+skeleton	en	hmxxxxx	13	5	9	1:05\u{202f}PM +00:00	h:mm\u{202f}a xxxxx
+skeleton	en	jmV	13	5	9	1:05\u{202f}PM utc	h:mm\u{202f}a V
+skeleton	en	HmV	13	5	9	13:05 utc	HH:mm V
+skeleton	en	hmV	13	5	9	1:05\u{202f}PM utc	h:mm\u{202f}a V
+skeleton	en	jmVV	13	5	9	1:05\u{202f}PM Etc/UTC	h:mm\u{202f}a VV
+skeleton	en	HmVV	13	5	9	13:05 Etc/UTC	HH:mm VV
+skeleton	en	hmVV	13	5	9	1:05\u{202f}PM Etc/UTC	h:mm\u{202f}a VV
+skeleton	en	jmVVV	13	5	9	1:05\u{202f}PM Unknown Location	h:mm\u{202f}a VVV
+skeleton	en	HmVVV	13	5	9	13:05 Unknown Location	HH:mm VVV
+skeleton	en	hmVVV	13	5	9	1:05\u{202f}PM Unknown Location	h:mm\u{202f}a VVV
+skeleton	en	jmVVVV	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a VVVV
+skeleton	en	HmVVVV	13	5	9	13:05 GMT+00:00	HH:mm VVVV
+skeleton	en	hmVVVV	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a VVVV
+skeleton	en	jmZ	13	5	9	1:05\u{202f}PM +0000	h:mm\u{202f}a Z
+skeleton	en	HmZ	13	5	9	13:05 +0000	HH:mm Z
+skeleton	en	hmZ	13	5	9	1:05\u{202f}PM +0000	h:mm\u{202f}a Z
+skeleton	en	jmZZZZ	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a ZZZZ
+skeleton	en	HmZZZZ	13	5	9	13:05 GMT+00:00	HH:mm ZZZZ
+skeleton	en	hmZZZZ	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a ZZZZ
+skeleton	en	jmZZZZZ	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a ZZZZZ
+skeleton	en	HmZZZZZ	13	5	9	13:05 Z	HH:mm ZZZZZ
+skeleton	en	hmZZZZZ	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a ZZZZZ
+skeleton	fr	jmz	13	5	9	13:05 UTC	HH:mm z
+skeleton	fr	Hmz	13	5	9	13:05 UTC	HH:mm z
+skeleton	fr	hmz	13	5	9	1:05\u{202f}PM UTC	h:mm\u{202f}a z
+skeleton	fr	jmzzzz	13	5	9	13:05 temps universel coordonn\u{e9}	HH:mm zzzz
+skeleton	fr	Hmzzzz	13	5	9	13:05 temps universel coordonn\u{e9}	HH:mm zzzz
+skeleton	fr	hmzzzz	13	5	9	1:05\u{202f}PM temps universel coordonn\u{e9}	h:mm\u{202f}a zzzz
+skeleton	fr	jmv	13	5	9	13:05 UTC+0	HH:mm v
+skeleton	fr	Hmv	13	5	9	13:05 UTC+0	HH:mm v
+skeleton	fr	hmv	13	5	9	1:05\u{202f}PM UTC+0	h:mm\u{202f}a v
+skeleton	fr	jmvvvv	13	5	9	13:05 UTC+00:00	HH:mm vvvv
+skeleton	fr	Hmvvvv	13	5	9	13:05 UTC+00:00	HH:mm vvvv
+skeleton	fr	hmvvvv	13	5	9	1:05\u{202f}PM UTC+00:00	h:mm\u{202f}a vvvv
+skeleton	fr	jmO	13	5	9	13:05 UTC+0	HH:mm O
+skeleton	fr	HmO	13	5	9	13:05 UTC+0	HH:mm O
+skeleton	fr	hmO	13	5	9	1:05\u{202f}PM UTC+0	h:mm\u{202f}a O
+skeleton	fr	jmOOOO	13	5	9	13:05 UTC+00:00	HH:mm OOOO
+skeleton	fr	HmOOOO	13	5	9	13:05 UTC+00:00	HH:mm OOOO
+skeleton	fr	hmOOOO	13	5	9	1:05\u{202f}PM UTC+00:00	h:mm\u{202f}a OOOO
+skeleton	fr	jmX	13	5	9	13:05 Z	HH:mm X
+skeleton	fr	HmX	13	5	9	13:05 Z	HH:mm X
+skeleton	fr	hmX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a X
+skeleton	fr	jmXX	13	5	9	13:05 Z	HH:mm XX
+skeleton	fr	HmXX	13	5	9	13:05 Z	HH:mm XX
+skeleton	fr	hmXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XX
+skeleton	fr	jmXXX	13	5	9	13:05 Z	HH:mm XXX
+skeleton	fr	HmXXX	13	5	9	13:05 Z	HH:mm XXX
+skeleton	fr	hmXXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XXX
+skeleton	fr	jmXXXX	13	5	9	13:05 Z	HH:mm XXXX
+skeleton	fr	HmXXXX	13	5	9	13:05 Z	HH:mm XXXX
+skeleton	fr	hmXXXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XXXX
+skeleton	fr	jmXXXXX	13	5	9	13:05 Z	HH:mm XXXXX
+skeleton	fr	HmXXXXX	13	5	9	13:05 Z	HH:mm XXXXX
+skeleton	fr	hmXXXXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XXXXX
+skeleton	fr	jmx	13	5	9	13:05 +00	HH:mm x
+skeleton	fr	Hmx	13	5	9	13:05 +00	HH:mm x
+skeleton	fr	hmx	13	5	9	1:05\u{202f}PM +00	h:mm\u{202f}a x
+skeleton	fr	jmxx	13	5	9	13:05 +0000	HH:mm xx
+skeleton	fr	Hmxx	13	5	9	13:05 +0000	HH:mm xx
+skeleton	fr	hmxx	13	5	9	1:05\u{202f}PM +0000	h:mm\u{202f}a xx
+skeleton	fr	jmxxx	13	5	9	13:05 +00:00	HH:mm xxx
+skeleton	fr	Hmxxx	13	5	9	13:05 +00:00	HH:mm xxx
+skeleton	fr	hmxxx	13	5	9	1:05\u{202f}PM +00:00	h:mm\u{202f}a xxx
+skeleton	fr	jmxxxx	13	5	9	13:05 +0000	HH:mm xxxx
+skeleton	fr	Hmxxxx	13	5	9	13:05 +0000	HH:mm xxxx
+skeleton	fr	hmxxxx	13	5	9	1:05\u{202f}PM +0000	h:mm\u{202f}a xxxx
+skeleton	fr	jmxxxxx	13	5	9	13:05 +00:00	HH:mm xxxxx
+skeleton	fr	Hmxxxxx	13	5	9	13:05 +00:00	HH:mm xxxxx
+skeleton	fr	hmxxxxx	13	5	9	1:05\u{202f}PM +00:00	h:mm\u{202f}a xxxxx
+skeleton	fr	jmV	13	5	9	13:05 utc	HH:mm V
+skeleton	fr	HmV	13	5	9	13:05 utc	HH:mm V
+skeleton	fr	hmV	13	5	9	1:05\u{202f}PM utc	h:mm\u{202f}a V
+skeleton	fr	jmVV	13	5	9	13:05 Etc/UTC	HH:mm VV
+skeleton	fr	HmVV	13	5	9	13:05 Etc/UTC	HH:mm VV
+skeleton	fr	hmVV	13	5	9	1:05\u{202f}PM Etc/UTC	h:mm\u{202f}a VV
+skeleton	fr	jmVVV	13	5	9	13:05 lieu inconnu	HH:mm VVV
+skeleton	fr	HmVVV	13	5	9	13:05 lieu inconnu	HH:mm VVV
+skeleton	fr	hmVVV	13	5	9	1:05\u{202f}PM lieu inconnu	h:mm\u{202f}a VVV
+skeleton	fr	jmVVVV	13	5	9	13:05 UTC+00:00	HH:mm VVVV
+skeleton	fr	HmVVVV	13	5	9	13:05 UTC+00:00	HH:mm VVVV
+skeleton	fr	hmVVVV	13	5	9	1:05\u{202f}PM UTC+00:00	h:mm\u{202f}a VVVV
+skeleton	fr	jmZ	13	5	9	13:05 +0000	HH:mm Z
+skeleton	fr	HmZ	13	5	9	13:05 +0000	HH:mm Z
+skeleton	fr	hmZ	13	5	9	1:05\u{202f}PM +0000	h:mm\u{202f}a Z
+skeleton	fr	jmZZZZ	13	5	9	13:05 UTC+00:00	HH:mm ZZZZ
+skeleton	fr	HmZZZZ	13	5	9	13:05 UTC+00:00	HH:mm ZZZZ
+skeleton	fr	hmZZZZ	13	5	9	1:05\u{202f}PM UTC+00:00	h:mm\u{202f}a ZZZZ
+skeleton	fr	jmZZZZZ	13	5	9	13:05 Z	HH:mm ZZZZZ
+skeleton	fr	HmZZZZZ	13	5	9	13:05 Z	HH:mm ZZZZZ
+skeleton	fr	hmZZZZZ	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a ZZZZZ
+skeleton	ja	jmz	13	5	9	13:05 UTC	H:mm z
+skeleton	ja	Hmz	13	5	9	13:05 UTC	H:mm z
+skeleton	ja	hmz	13	5	9	\u{5348}\u{5f8c}1:05 UTC	aK:mm z
+skeleton	ja	jmzzzz	13	5	9	13:05 \u{5354}\u{5b9a}\u{4e16}\u{754c}\u{6642}	H:mm zzzz
+skeleton	ja	Hmzzzz	13	5	9	13:05 \u{5354}\u{5b9a}\u{4e16}\u{754c}\u{6642}	H:mm zzzz
+skeleton	ja	hmzzzz	13	5	9	\u{5348}\u{5f8c}1:05 \u{5354}\u{5b9a}\u{4e16}\u{754c}\u{6642}	aK:mm zzzz
+skeleton	ja	jmv	13	5	9	13:05 GMT+0	H:mm v
+skeleton	ja	Hmv	13	5	9	13:05 GMT+0	H:mm v
+skeleton	ja	hmv	13	5	9	\u{5348}\u{5f8c}1:05 GMT+0	aK:mm v
+skeleton	ja	jmvvvv	13	5	9	13:05 GMT+00:00	H:mm vvvv
+skeleton	ja	Hmvvvv	13	5	9	13:05 GMT+00:00	H:mm vvvv
+skeleton	ja	hmvvvv	13	5	9	\u{5348}\u{5f8c}1:05 GMT+00:00	aK:mm vvvv
+skeleton	ja	jmO	13	5	9	13:05 GMT+0	H:mm O
+skeleton	ja	HmO	13	5	9	13:05 GMT+0	H:mm O
+skeleton	ja	hmO	13	5	9	\u{5348}\u{5f8c}1:05 GMT+0	aK:mm O
+skeleton	ja	jmOOOO	13	5	9	13:05 GMT+00:00	H:mm OOOO
+skeleton	ja	HmOOOO	13	5	9	13:05 GMT+00:00	H:mm OOOO
+skeleton	ja	hmOOOO	13	5	9	\u{5348}\u{5f8c}1:05 GMT+00:00	aK:mm OOOO
+skeleton	ja	jmX	13	5	9	13:05 Z	H:mm X
+skeleton	ja	HmX	13	5	9	13:05 Z	H:mm X
+skeleton	ja	hmX	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm X
+skeleton	ja	jmXX	13	5	9	13:05 Z	H:mm XX
+skeleton	ja	HmXX	13	5	9	13:05 Z	H:mm XX
+skeleton	ja	hmXX	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm XX
+skeleton	ja	jmXXX	13	5	9	13:05 Z	H:mm XXX
+skeleton	ja	HmXXX	13	5	9	13:05 Z	H:mm XXX
+skeleton	ja	hmXXX	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm XXX
+skeleton	ja	jmXXXX	13	5	9	13:05 Z	H:mm XXXX
+skeleton	ja	HmXXXX	13	5	9	13:05 Z	H:mm XXXX
+skeleton	ja	hmXXXX	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm XXXX
+skeleton	ja	jmXXXXX	13	5	9	13:05 Z	H:mm XXXXX
+skeleton	ja	HmXXXXX	13	5	9	13:05 Z	H:mm XXXXX
+skeleton	ja	hmXXXXX	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm XXXXX
+skeleton	ja	jmx	13	5	9	13:05 +00	H:mm x
+skeleton	ja	Hmx	13	5	9	13:05 +00	H:mm x
+skeleton	ja	hmx	13	5	9	\u{5348}\u{5f8c}1:05 +00	aK:mm x
+skeleton	ja	jmxx	13	5	9	13:05 +0000	H:mm xx
+skeleton	ja	Hmxx	13	5	9	13:05 +0000	H:mm xx
+skeleton	ja	hmxx	13	5	9	\u{5348}\u{5f8c}1:05 +0000	aK:mm xx
+skeleton	ja	jmxxx	13	5	9	13:05 +00:00	H:mm xxx
+skeleton	ja	Hmxxx	13	5	9	13:05 +00:00	H:mm xxx
+skeleton	ja	hmxxx	13	5	9	\u{5348}\u{5f8c}1:05 +00:00	aK:mm xxx
+skeleton	ja	jmxxxx	13	5	9	13:05 +0000	H:mm xxxx
+skeleton	ja	Hmxxxx	13	5	9	13:05 +0000	H:mm xxxx
+skeleton	ja	hmxxxx	13	5	9	\u{5348}\u{5f8c}1:05 +0000	aK:mm xxxx
+skeleton	ja	jmxxxxx	13	5	9	13:05 +00:00	H:mm xxxxx
+skeleton	ja	Hmxxxxx	13	5	9	13:05 +00:00	H:mm xxxxx
+skeleton	ja	hmxxxxx	13	5	9	\u{5348}\u{5f8c}1:05 +00:00	aK:mm xxxxx
+skeleton	ja	jmV	13	5	9	13:05 utc	H:mm V
+skeleton	ja	HmV	13	5	9	13:05 utc	H:mm V
+skeleton	ja	hmV	13	5	9	\u{5348}\u{5f8c}1:05 utc	aK:mm V
+skeleton	ja	jmVV	13	5	9	13:05 Etc/UTC	H:mm VV
+skeleton	ja	HmVV	13	5	9	13:05 Etc/UTC	H:mm VV
+skeleton	ja	hmVV	13	5	9	\u{5348}\u{5f8c}1:05 Etc/UTC	aK:mm VV
+skeleton	ja	jmVVV	13	5	9	13:05 \u{5730}\u{57df}\u{4e0d}\u{660e}	H:mm VVV
+skeleton	ja	HmVVV	13	5	9	13:05 \u{5730}\u{57df}\u{4e0d}\u{660e}	H:mm VVV
+skeleton	ja	hmVVV	13	5	9	\u{5348}\u{5f8c}1:05 \u{5730}\u{57df}\u{4e0d}\u{660e}	aK:mm VVV
+skeleton	ja	jmVVVV	13	5	9	13:05 GMT+00:00	H:mm VVVV
+skeleton	ja	HmVVVV	13	5	9	13:05 GMT+00:00	H:mm VVVV
+skeleton	ja	hmVVVV	13	5	9	\u{5348}\u{5f8c}1:05 GMT+00:00	aK:mm VVVV
+skeleton	ja	jmZ	13	5	9	13:05 +0000	H:mm Z
+skeleton	ja	HmZ	13	5	9	13:05 +0000	H:mm Z
+skeleton	ja	hmZ	13	5	9	\u{5348}\u{5f8c}1:05 +0000	aK:mm Z
+skeleton	ja	jmZZZZ	13	5	9	13:05 GMT+00:00	H:mm ZZZZ
+skeleton	ja	HmZZZZ	13	5	9	13:05 GMT+00:00	H:mm ZZZZ
+skeleton	ja	hmZZZZ	13	5	9	\u{5348}\u{5f8c}1:05 GMT+00:00	aK:mm ZZZZ
+skeleton	ja	jmZZZZZ	13	5	9	13:05 Z	H:mm ZZZZZ
+skeleton	ja	HmZZZZZ	13	5	9	13:05 Z	H:mm ZZZZZ
+skeleton	ja	hmZZZZZ	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm ZZZZZ
+skeleton	de	jmz	13	5	9	13:05 UTC	HH:mm z
+skeleton	de	Hmz	13	5	9	13:05 UTC	HH:mm z
+skeleton	de	hmz	13	5	9	1:05\u{202f}PM UTC	h:mm\u{202f}a z
+skeleton	de	jmzzzz	13	5	9	13:05 Koordinierte Weltzeit	HH:mm zzzz
+skeleton	de	Hmzzzz	13	5	9	13:05 Koordinierte Weltzeit	HH:mm zzzz
+skeleton	de	hmzzzz	13	5	9	1:05\u{202f}PM Koordinierte Weltzeit	h:mm\u{202f}a zzzz
+skeleton	de	jmv	13	5	9	13:05 GMT+0	HH:mm v
+skeleton	de	Hmv	13	5	9	13:05 GMT+0	HH:mm v
+skeleton	de	hmv	13	5	9	1:05\u{202f}PM GMT+0	h:mm\u{202f}a v
+skeleton	de	jmvvvv	13	5	9	13:05 GMT+00:00	HH:mm vvvv
+skeleton	de	Hmvvvv	13	5	9	13:05 GMT+00:00	HH:mm vvvv
+skeleton	de	hmvvvv	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a vvvv
+skeleton	de	jmO	13	5	9	13:05 GMT+0	HH:mm O
+skeleton	de	HmO	13	5	9	13:05 GMT+0	HH:mm O
+skeleton	de	hmO	13	5	9	1:05\u{202f}PM GMT+0	h:mm\u{202f}a O
+skeleton	de	jmOOOO	13	5	9	13:05 GMT+00:00	HH:mm OOOO
+skeleton	de	HmOOOO	13	5	9	13:05 GMT+00:00	HH:mm OOOO
+skeleton	de	hmOOOO	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a OOOO
+skeleton	de	jmX	13	5	9	13:05 Z	HH:mm X
+skeleton	de	HmX	13	5	9	13:05 Z	HH:mm X
+skeleton	de	hmX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a X
+skeleton	de	jmXX	13	5	9	13:05 Z	HH:mm XX
+skeleton	de	HmXX	13	5	9	13:05 Z	HH:mm XX
+skeleton	de	hmXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XX
+skeleton	de	jmXXX	13	5	9	13:05 Z	HH:mm XXX
+skeleton	de	HmXXX	13	5	9	13:05 Z	HH:mm XXX
+skeleton	de	hmXXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XXX
+skeleton	de	jmXXXX	13	5	9	13:05 Z	HH:mm XXXX
+skeleton	de	HmXXXX	13	5	9	13:05 Z	HH:mm XXXX
+skeleton	de	hmXXXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XXXX
+skeleton	de	jmXXXXX	13	5	9	13:05 Z	HH:mm XXXXX
+skeleton	de	HmXXXXX	13	5	9	13:05 Z	HH:mm XXXXX
+skeleton	de	hmXXXXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XXXXX
+skeleton	de	jmx	13	5	9	13:05 +00	HH:mm x
+skeleton	de	Hmx	13	5	9	13:05 +00	HH:mm x
+skeleton	de	hmx	13	5	9	1:05\u{202f}PM +00	h:mm\u{202f}a x
+skeleton	de	jmxx	13	5	9	13:05 +0000	HH:mm xx
+skeleton	de	Hmxx	13	5	9	13:05 +0000	HH:mm xx
+skeleton	de	hmxx	13	5	9	1:05\u{202f}PM +0000	h:mm\u{202f}a xx
+skeleton	de	jmxxx	13	5	9	13:05 +00:00	HH:mm xxx
+skeleton	de	Hmxxx	13	5	9	13:05 +00:00	HH:mm xxx
+skeleton	de	hmxxx	13	5	9	1:05\u{202f}PM +00:00	h:mm\u{202f}a xxx
+skeleton	de	jmxxxx	13	5	9	13:05 +0000	HH:mm xxxx
+skeleton	de	Hmxxxx	13	5	9	13:05 +0000	HH:mm xxxx
+skeleton	de	hmxxxx	13	5	9	1:05\u{202f}PM +0000	h:mm\u{202f}a xxxx
+skeleton	de	jmxxxxx	13	5	9	13:05 +00:00	HH:mm xxxxx
+skeleton	de	Hmxxxxx	13	5	9	13:05 +00:00	HH:mm xxxxx
+skeleton	de	hmxxxxx	13	5	9	1:05\u{202f}PM +00:00	h:mm\u{202f}a xxxxx
+skeleton	de	jmV	13	5	9	13:05 utc	HH:mm V
+skeleton	de	HmV	13	5	9	13:05 utc	HH:mm V
+skeleton	de	hmV	13	5	9	1:05\u{202f}PM utc	h:mm\u{202f}a V
+skeleton	de	jmVV	13	5	9	13:05 Etc/UTC	HH:mm VV
+skeleton	de	HmVV	13	5	9	13:05 Etc/UTC	HH:mm VV
+skeleton	de	hmVV	13	5	9	1:05\u{202f}PM Etc/UTC	h:mm\u{202f}a VV
+skeleton	de	jmVVV	13	5	9	13:05 Unbekannt	HH:mm VVV
+skeleton	de	HmVVV	13	5	9	13:05 Unbekannt	HH:mm VVV
+skeleton	de	hmVVV	13	5	9	1:05\u{202f}PM Unbekannt	h:mm\u{202f}a VVV
+skeleton	de	jmVVVV	13	5	9	13:05 GMT+00:00	HH:mm VVVV
+skeleton	de	HmVVVV	13	5	9	13:05 GMT+00:00	HH:mm VVVV
+skeleton	de	hmVVVV	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a VVVV
+skeleton	de	jmZ	13	5	9	13:05 +0000	HH:mm Z
+skeleton	de	HmZ	13	5	9	13:05 +0000	HH:mm Z
+skeleton	de	hmZ	13	5	9	1:05\u{202f}PM +0000	h:mm\u{202f}a Z
+skeleton	de	jmZZZZ	13	5	9	13:05 GMT+00:00	HH:mm ZZZZ
+skeleton	de	HmZZZZ	13	5	9	13:05 GMT+00:00	HH:mm ZZZZ
+skeleton	de	hmZZZZ	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a ZZZZ
+skeleton	de	jmZZZZZ	13	5	9	13:05 Z	HH:mm ZZZZZ
+skeleton	de	HmZZZZZ	13	5	9	13:05 Z	HH:mm ZZZZZ
+skeleton	de	hmZZZZZ	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a ZZZZZ
+skeleton	ko	jmz	13	5	9	\u{c624}\u{d6c4} 1:05 UTC	a h:mm z
+skeleton	ko	Hmz	13	5	9	13:05 UTC	HH:mm z
+skeleton	ko	hmz	13	5	9	\u{c624}\u{d6c4} 1:05 UTC	a h:mm z
+skeleton	ko	jmzzzz	13	5	9	\u{c624}\u{d6c4} 1:05 \u{d611}\u{c815} \u{c138}\u{acc4}\u{c2dc}	a h:mm zzzz
+skeleton	ko	Hmzzzz	13	5	9	13:05 \u{d611}\u{c815} \u{c138}\u{acc4}\u{c2dc}	HH:mm zzzz
+skeleton	ko	hmzzzz	13	5	9	\u{c624}\u{d6c4} 1:05 \u{d611}\u{c815} \u{c138}\u{acc4}\u{c2dc}	a h:mm zzzz
+skeleton	ko	jmv	13	5	9	\u{c624}\u{d6c4} 1:05 GMT+0	a h:mm v
+skeleton	ko	Hmv	13	5	9	13:05 GMT+0	HH:mm v
+skeleton	ko	hmv	13	5	9	\u{c624}\u{d6c4} 1:05 GMT+0	a h:mm v
+skeleton	ko	jmvvvv	13	5	9	\u{c624}\u{d6c4} 1:05 GMT+00:00	a h:mm vvvv
+skeleton	ko	Hmvvvv	13	5	9	13:05 GMT+00:00	HH:mm vvvv
+skeleton	ko	hmvvvv	13	5	9	\u{c624}\u{d6c4} 1:05 GMT+00:00	a h:mm vvvv
+skeleton	ko	jmO	13	5	9	\u{c624}\u{d6c4} 1:05 GMT+0	a h:mm O
+skeleton	ko	HmO	13	5	9	13:05 GMT+0	HH:mm O
+skeleton	ko	hmO	13	5	9	\u{c624}\u{d6c4} 1:05 GMT+0	a h:mm O
+skeleton	ko	jmOOOO	13	5	9	\u{c624}\u{d6c4} 1:05 GMT+00:00	a h:mm OOOO
+skeleton	ko	HmOOOO	13	5	9	13:05 GMT+00:00	HH:mm OOOO
+skeleton	ko	hmOOOO	13	5	9	\u{c624}\u{d6c4} 1:05 GMT+00:00	a h:mm OOOO
+skeleton	ko	jmX	13	5	9	\u{c624}\u{d6c4} 1:05 Z	a h:mm X
+skeleton	ko	HmX	13	5	9	13:05 Z	HH:mm X
+skeleton	ko	hmX	13	5	9	\u{c624}\u{d6c4} 1:05 Z	a h:mm X
+skeleton	ko	jmXX	13	5	9	\u{c624}\u{d6c4} 1:05 Z	a h:mm XX
+skeleton	ko	HmXX	13	5	9	13:05 Z	HH:mm XX
+skeleton	ko	hmXX	13	5	9	\u{c624}\u{d6c4} 1:05 Z	a h:mm XX
+skeleton	ko	jmXXX	13	5	9	\u{c624}\u{d6c4} 1:05 Z	a h:mm XXX
+skeleton	ko	HmXXX	13	5	9	13:05 Z	HH:mm XXX
+skeleton	ko	hmXXX	13	5	9	\u{c624}\u{d6c4} 1:05 Z	a h:mm XXX
+skeleton	ko	jmXXXX	13	5	9	\u{c624}\u{d6c4} 1:05 Z	a h:mm XXXX
+skeleton	ko	HmXXXX	13	5	9	13:05 Z	HH:mm XXXX
+skeleton	ko	hmXXXX	13	5	9	\u{c624}\u{d6c4} 1:05 Z	a h:mm XXXX
+skeleton	ko	jmXXXXX	13	5	9	\u{c624}\u{d6c4} 1:05 Z	a h:mm XXXXX
+skeleton	ko	HmXXXXX	13	5	9	13:05 Z	HH:mm XXXXX
+skeleton	ko	hmXXXXX	13	5	9	\u{c624}\u{d6c4} 1:05 Z	a h:mm XXXXX
+skeleton	ko	jmx	13	5	9	\u{c624}\u{d6c4} 1:05 +00	a h:mm x
+skeleton	ko	Hmx	13	5	9	13:05 +00	HH:mm x
+skeleton	ko	hmx	13	5	9	\u{c624}\u{d6c4} 1:05 +00	a h:mm x
+skeleton	ko	jmxx	13	5	9	\u{c624}\u{d6c4} 1:05 +0000	a h:mm xx
+skeleton	ko	Hmxx	13	5	9	13:05 +0000	HH:mm xx
+skeleton	ko	hmxx	13	5	9	\u{c624}\u{d6c4} 1:05 +0000	a h:mm xx
+skeleton	ko	jmxxx	13	5	9	\u{c624}\u{d6c4} 1:05 +00:00	a h:mm xxx
+skeleton	ko	Hmxxx	13	5	9	13:05 +00:00	HH:mm xxx
+skeleton	ko	hmxxx	13	5	9	\u{c624}\u{d6c4} 1:05 +00:00	a h:mm xxx
+skeleton	ko	jmxxxx	13	5	9	\u{c624}\u{d6c4} 1:05 +0000	a h:mm xxxx
+skeleton	ko	Hmxxxx	13	5	9	13:05 +0000	HH:mm xxxx
+skeleton	ko	hmxxxx	13	5	9	\u{c624}\u{d6c4} 1:05 +0000	a h:mm xxxx
+skeleton	ko	jmxxxxx	13	5	9	\u{c624}\u{d6c4} 1:05 +00:00	a h:mm xxxxx
+skeleton	ko	Hmxxxxx	13	5	9	13:05 +00:00	HH:mm xxxxx
+skeleton	ko	hmxxxxx	13	5	9	\u{c624}\u{d6c4} 1:05 +00:00	a h:mm xxxxx
+skeleton	ko	jmV	13	5	9	\u{c624}\u{d6c4} 1:05 utc	a h:mm V
+skeleton	ko	HmV	13	5	9	13:05 utc	HH:mm V
+skeleton	ko	hmV	13	5	9	\u{c624}\u{d6c4} 1:05 utc	a h:mm V
+skeleton	ko	jmVV	13	5	9	\u{c624}\u{d6c4} 1:05 Etc/UTC	a h:mm VV
+skeleton	ko	HmVV	13	5	9	13:05 Etc/UTC	HH:mm VV
+skeleton	ko	hmVV	13	5	9	\u{c624}\u{d6c4} 1:05 Etc/UTC	a h:mm VV
+skeleton	ko	jmVVV	13	5	9	\u{c624}\u{d6c4} 1:05 \u{c54c} \u{c218} \u{c5c6}\u{b294} \u{c7a5}\u{c18c}	a h:mm VVV
+skeleton	ko	HmVVV	13	5	9	13:05 \u{c54c} \u{c218} \u{c5c6}\u{b294} \u{c7a5}\u{c18c}	HH:mm VVV
+skeleton	ko	hmVVV	13	5	9	\u{c624}\u{d6c4} 1:05 \u{c54c} \u{c218} \u{c5c6}\u{b294} \u{c7a5}\u{c18c}	a h:mm VVV
+skeleton	ko	jmVVVV	13	5	9	\u{c624}\u{d6c4} 1:05 GMT+00:00	a h:mm VVVV
+skeleton	ko	HmVVVV	13	5	9	13:05 GMT+00:00	HH:mm VVVV
+skeleton	ko	hmVVVV	13	5	9	\u{c624}\u{d6c4} 1:05 GMT+00:00	a h:mm VVVV
+skeleton	ko	jmZ	13	5	9	\u{c624}\u{d6c4} 1:05 +0000	a h:mm Z
+skeleton	ko	HmZ	13	5	9	13:05 +0000	HH:mm Z
+skeleton	ko	hmZ	13	5	9	\u{c624}\u{d6c4} 1:05 +0000	a h:mm Z
+skeleton	ko	jmZZZZ	13	5	9	\u{c624}\u{d6c4} 1:05 GMT+00:00	a h:mm ZZZZ
+skeleton	ko	HmZZZZ	13	5	9	13:05 GMT+00:00	HH:mm ZZZZ
+skeleton	ko	hmZZZZ	13	5	9	\u{c624}\u{d6c4} 1:05 GMT+00:00	a h:mm ZZZZ
+skeleton	ko	jmZZZZZ	13	5	9	\u{c624}\u{d6c4} 1:05 Z	a h:mm ZZZZZ
+skeleton	ko	HmZZZZZ	13	5	9	13:05 Z	HH:mm ZZZZZ
+skeleton	ko	hmZZZZZ	13	5	9	\u{c624}\u{d6c4} 1:05 Z	a h:mm ZZZZZ
+skeleton	en-u-hc-h23	jmz	13	5	9	13:05 UTC	HH:mm z
+skeleton	en-u-hc-h23	Hmz	13	5	9	13:05 UTC	HH:mm z
+skeleton	en-u-hc-h23	hmz	13	5	9	1:05\u{202f}PM UTC	h:mm\u{202f}a z
+skeleton	en-u-hc-h23	jmzzzz	13	5	9	13:05 Coordinated Universal Time	HH:mm zzzz
+skeleton	en-u-hc-h23	Hmzzzz	13	5	9	13:05 Coordinated Universal Time	HH:mm zzzz
+skeleton	en-u-hc-h23	hmzzzz	13	5	9	1:05\u{202f}PM Coordinated Universal Time	h:mm\u{202f}a zzzz
+skeleton	en-u-hc-h23	jmv	13	5	9	13:05 GMT+0	HH:mm v
+skeleton	en-u-hc-h23	Hmv	13	5	9	13:05 GMT+0	HH:mm v
+skeleton	en-u-hc-h23	hmv	13	5	9	1:05\u{202f}PM GMT+0	h:mm\u{202f}a v
+skeleton	en-u-hc-h23	jmvvvv	13	5	9	13:05 GMT+00:00	HH:mm vvvv
+skeleton	en-u-hc-h23	Hmvvvv	13	5	9	13:05 GMT+00:00	HH:mm vvvv
+skeleton	en-u-hc-h23	hmvvvv	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a vvvv
+skeleton	en-u-hc-h23	jmO	13	5	9	13:05 GMT+0	HH:mm O
+skeleton	en-u-hc-h23	HmO	13	5	9	13:05 GMT+0	HH:mm O
+skeleton	en-u-hc-h23	hmO	13	5	9	1:05\u{202f}PM GMT+0	h:mm\u{202f}a O
+skeleton	en-u-hc-h23	jmOOOO	13	5	9	13:05 GMT+00:00	HH:mm OOOO
+skeleton	en-u-hc-h23	HmOOOO	13	5	9	13:05 GMT+00:00	HH:mm OOOO
+skeleton	en-u-hc-h23	hmOOOO	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a OOOO
+skeleton	en-u-hc-h23	jmX	13	5	9	13:05 Z	HH:mm X
+skeleton	en-u-hc-h23	HmX	13	5	9	13:05 Z	HH:mm X
+skeleton	en-u-hc-h23	hmX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a X
+skeleton	en-u-hc-h23	jmXX	13	5	9	13:05 Z	HH:mm XX
+skeleton	en-u-hc-h23	HmXX	13	5	9	13:05 Z	HH:mm XX
+skeleton	en-u-hc-h23	hmXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XX
+skeleton	en-u-hc-h23	jmXXX	13	5	9	13:05 Z	HH:mm XXX
+skeleton	en-u-hc-h23	HmXXX	13	5	9	13:05 Z	HH:mm XXX
+skeleton	en-u-hc-h23	hmXXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XXX
+skeleton	en-u-hc-h23	jmXXXX	13	5	9	13:05 Z	HH:mm XXXX
+skeleton	en-u-hc-h23	HmXXXX	13	5	9	13:05 Z	HH:mm XXXX
+skeleton	en-u-hc-h23	hmXXXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XXXX
+skeleton	en-u-hc-h23	jmXXXXX	13	5	9	13:05 Z	HH:mm XXXXX
+skeleton	en-u-hc-h23	HmXXXXX	13	5	9	13:05 Z	HH:mm XXXXX
+skeleton	en-u-hc-h23	hmXXXXX	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a XXXXX
+skeleton	en-u-hc-h23	jmx	13	5	9	13:05 +00	HH:mm x
+skeleton	en-u-hc-h23	Hmx	13	5	9	13:05 +00	HH:mm x
+skeleton	en-u-hc-h23	hmx	13	5	9	1:05\u{202f}PM +00	h:mm\u{202f}a x
+skeleton	en-u-hc-h23	jmxx	13	5	9	13:05 +0000	HH:mm xx
+skeleton	en-u-hc-h23	Hmxx	13	5	9	13:05 +0000	HH:mm xx
+skeleton	en-u-hc-h23	hmxx	13	5	9	1:05\u{202f}PM +0000	h:mm\u{202f}a xx
+skeleton	en-u-hc-h23	jmxxx	13	5	9	13:05 +00:00	HH:mm xxx
+skeleton	en-u-hc-h23	Hmxxx	13	5	9	13:05 +00:00	HH:mm xxx
+skeleton	en-u-hc-h23	hmxxx	13	5	9	1:05\u{202f}PM +00:00	h:mm\u{202f}a xxx
+skeleton	en-u-hc-h23	jmxxxx	13	5	9	13:05 +0000	HH:mm xxxx
+skeleton	en-u-hc-h23	Hmxxxx	13	5	9	13:05 +0000	HH:mm xxxx
+skeleton	en-u-hc-h23	hmxxxx	13	5	9	1:05\u{202f}PM +0000	h:mm\u{202f}a xxxx
+skeleton	en-u-hc-h23	jmxxxxx	13	5	9	13:05 +00:00	HH:mm xxxxx
+skeleton	en-u-hc-h23	Hmxxxxx	13	5	9	13:05 +00:00	HH:mm xxxxx
+skeleton	en-u-hc-h23	hmxxxxx	13	5	9	1:05\u{202f}PM +00:00	h:mm\u{202f}a xxxxx
+skeleton	en-u-hc-h23	jmV	13	5	9	13:05 utc	HH:mm V
+skeleton	en-u-hc-h23	HmV	13	5	9	13:05 utc	HH:mm V
+skeleton	en-u-hc-h23	hmV	13	5	9	1:05\u{202f}PM utc	h:mm\u{202f}a V
+skeleton	en-u-hc-h23	jmVV	13	5	9	13:05 Etc/UTC	HH:mm VV
+skeleton	en-u-hc-h23	HmVV	13	5	9	13:05 Etc/UTC	HH:mm VV
+skeleton	en-u-hc-h23	hmVV	13	5	9	1:05\u{202f}PM Etc/UTC	h:mm\u{202f}a VV
+skeleton	en-u-hc-h23	jmVVV	13	5	9	13:05 Unknown Location	HH:mm VVV
+skeleton	en-u-hc-h23	HmVVV	13	5	9	13:05 Unknown Location	HH:mm VVV
+skeleton	en-u-hc-h23	hmVVV	13	5	9	1:05\u{202f}PM Unknown Location	h:mm\u{202f}a VVV
+skeleton	en-u-hc-h23	jmVVVV	13	5	9	13:05 GMT+00:00	HH:mm VVVV
+skeleton	en-u-hc-h23	HmVVVV	13	5	9	13:05 GMT+00:00	HH:mm VVVV
+skeleton	en-u-hc-h23	hmVVVV	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a VVVV
+skeleton	en-u-hc-h23	jmZ	13	5	9	13:05 +0000	HH:mm Z
+skeleton	en-u-hc-h23	HmZ	13	5	9	13:05 +0000	HH:mm Z
+skeleton	en-u-hc-h23	hmZ	13	5	9	1:05\u{202f}PM +0000	h:mm\u{202f}a Z
+skeleton	en-u-hc-h23	jmZZZZ	13	5	9	13:05 GMT+00:00	HH:mm ZZZZ
+skeleton	en-u-hc-h23	HmZZZZ	13	5	9	13:05 GMT+00:00	HH:mm ZZZZ
+skeleton	en-u-hc-h23	hmZZZZ	13	5	9	1:05\u{202f}PM GMT+00:00	h:mm\u{202f}a ZZZZ
+skeleton	en-u-hc-h23	jmZZZZZ	13	5	9	13:05 Z	HH:mm ZZZZZ
+skeleton	en-u-hc-h23	HmZZZZZ	13	5	9	13:05 Z	HH:mm ZZZZZ
+skeleton	en-u-hc-h23	hmZZZZZ	13	5	9	1:05\u{202f}PM Z	h:mm\u{202f}a ZZZZZ
+skeleton	ja-u-hc-h11	jmz	13	5	9	\u{5348}\u{5f8c}1:05 UTC	aK:mm z
+skeleton	ja-u-hc-h11	Hmz	13	5	9	13:05 UTC	H:mm z
+skeleton	ja-u-hc-h11	hmz	13	5	9	\u{5348}\u{5f8c}1:05 UTC	aK:mm z
+skeleton	ja-u-hc-h11	jmzzzz	13	5	9	\u{5348}\u{5f8c}1:05 \u{5354}\u{5b9a}\u{4e16}\u{754c}\u{6642}	aK:mm zzzz
+skeleton	ja-u-hc-h11	Hmzzzz	13	5	9	13:05 \u{5354}\u{5b9a}\u{4e16}\u{754c}\u{6642}	H:mm zzzz
+skeleton	ja-u-hc-h11	hmzzzz	13	5	9	\u{5348}\u{5f8c}1:05 \u{5354}\u{5b9a}\u{4e16}\u{754c}\u{6642}	aK:mm zzzz
+skeleton	ja-u-hc-h11	jmv	13	5	9	\u{5348}\u{5f8c}1:05 GMT+0	aK:mm v
+skeleton	ja-u-hc-h11	Hmv	13	5	9	13:05 GMT+0	H:mm v
+skeleton	ja-u-hc-h11	hmv	13	5	9	\u{5348}\u{5f8c}1:05 GMT+0	aK:mm v
+skeleton	ja-u-hc-h11	jmvvvv	13	5	9	\u{5348}\u{5f8c}1:05 GMT+00:00	aK:mm vvvv
+skeleton	ja-u-hc-h11	Hmvvvv	13	5	9	13:05 GMT+00:00	H:mm vvvv
+skeleton	ja-u-hc-h11	hmvvvv	13	5	9	\u{5348}\u{5f8c}1:05 GMT+00:00	aK:mm vvvv
+skeleton	ja-u-hc-h11	jmO	13	5	9	\u{5348}\u{5f8c}1:05 GMT+0	aK:mm O
+skeleton	ja-u-hc-h11	HmO	13	5	9	13:05 GMT+0	H:mm O
+skeleton	ja-u-hc-h11	hmO	13	5	9	\u{5348}\u{5f8c}1:05 GMT+0	aK:mm O
+skeleton	ja-u-hc-h11	jmOOOO	13	5	9	\u{5348}\u{5f8c}1:05 GMT+00:00	aK:mm OOOO
+skeleton	ja-u-hc-h11	HmOOOO	13	5	9	13:05 GMT+00:00	H:mm OOOO
+skeleton	ja-u-hc-h11	hmOOOO	13	5	9	\u{5348}\u{5f8c}1:05 GMT+00:00	aK:mm OOOO
+skeleton	ja-u-hc-h11	jmX	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm X
+skeleton	ja-u-hc-h11	HmX	13	5	9	13:05 Z	H:mm X
+skeleton	ja-u-hc-h11	hmX	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm X
+skeleton	ja-u-hc-h11	jmXX	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm XX
+skeleton	ja-u-hc-h11	HmXX	13	5	9	13:05 Z	H:mm XX
+skeleton	ja-u-hc-h11	hmXX	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm XX
+skeleton	ja-u-hc-h11	jmXXX	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm XXX
+skeleton	ja-u-hc-h11	HmXXX	13	5	9	13:05 Z	H:mm XXX
+skeleton	ja-u-hc-h11	hmXXX	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm XXX
+skeleton	ja-u-hc-h11	jmXXXX	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm XXXX
+skeleton	ja-u-hc-h11	HmXXXX	13	5	9	13:05 Z	H:mm XXXX
+skeleton	ja-u-hc-h11	hmXXXX	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm XXXX
+skeleton	ja-u-hc-h11	jmXXXXX	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm XXXXX
+skeleton	ja-u-hc-h11	HmXXXXX	13	5	9	13:05 Z	H:mm XXXXX
+skeleton	ja-u-hc-h11	hmXXXXX	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm XXXXX
+skeleton	ja-u-hc-h11	jmx	13	5	9	\u{5348}\u{5f8c}1:05 +00	aK:mm x
+skeleton	ja-u-hc-h11	Hmx	13	5	9	13:05 +00	H:mm x
+skeleton	ja-u-hc-h11	hmx	13	5	9	\u{5348}\u{5f8c}1:05 +00	aK:mm x
+skeleton	ja-u-hc-h11	jmxx	13	5	9	\u{5348}\u{5f8c}1:05 +0000	aK:mm xx
+skeleton	ja-u-hc-h11	Hmxx	13	5	9	13:05 +0000	H:mm xx
+skeleton	ja-u-hc-h11	hmxx	13	5	9	\u{5348}\u{5f8c}1:05 +0000	aK:mm xx
+skeleton	ja-u-hc-h11	jmxxx	13	5	9	\u{5348}\u{5f8c}1:05 +00:00	aK:mm xxx
+skeleton	ja-u-hc-h11	Hmxxx	13	5	9	13:05 +00:00	H:mm xxx
+skeleton	ja-u-hc-h11	hmxxx	13	5	9	\u{5348}\u{5f8c}1:05 +00:00	aK:mm xxx
+skeleton	ja-u-hc-h11	jmxxxx	13	5	9	\u{5348}\u{5f8c}1:05 +0000	aK:mm xxxx
+skeleton	ja-u-hc-h11	Hmxxxx	13	5	9	13:05 +0000	H:mm xxxx
+skeleton	ja-u-hc-h11	hmxxxx	13	5	9	\u{5348}\u{5f8c}1:05 +0000	aK:mm xxxx
+skeleton	ja-u-hc-h11	jmxxxxx	13	5	9	\u{5348}\u{5f8c}1:05 +00:00	aK:mm xxxxx
+skeleton	ja-u-hc-h11	Hmxxxxx	13	5	9	13:05 +00:00	H:mm xxxxx
+skeleton	ja-u-hc-h11	hmxxxxx	13	5	9	\u{5348}\u{5f8c}1:05 +00:00	aK:mm xxxxx
+skeleton	ja-u-hc-h11	jmV	13	5	9	\u{5348}\u{5f8c}1:05 utc	aK:mm V
+skeleton	ja-u-hc-h11	HmV	13	5	9	13:05 utc	H:mm V
+skeleton	ja-u-hc-h11	hmV	13	5	9	\u{5348}\u{5f8c}1:05 utc	aK:mm V
+skeleton	ja-u-hc-h11	jmVV	13	5	9	\u{5348}\u{5f8c}1:05 Etc/UTC	aK:mm VV
+skeleton	ja-u-hc-h11	HmVV	13	5	9	13:05 Etc/UTC	H:mm VV
+skeleton	ja-u-hc-h11	hmVV	13	5	9	\u{5348}\u{5f8c}1:05 Etc/UTC	aK:mm VV
+skeleton	ja-u-hc-h11	jmVVV	13	5	9	\u{5348}\u{5f8c}1:05 \u{5730}\u{57df}\u{4e0d}\u{660e}	aK:mm VVV
+skeleton	ja-u-hc-h11	HmVVV	13	5	9	13:05 \u{5730}\u{57df}\u{4e0d}\u{660e}	H:mm VVV
+skeleton	ja-u-hc-h11	hmVVV	13	5	9	\u{5348}\u{5f8c}1:05 \u{5730}\u{57df}\u{4e0d}\u{660e}	aK:mm VVV
+skeleton	ja-u-hc-h11	jmVVVV	13	5	9	\u{5348}\u{5f8c}1:05 GMT+00:00	aK:mm VVVV
+skeleton	ja-u-hc-h11	HmVVVV	13	5	9	13:05 GMT+00:00	H:mm VVVV
+skeleton	ja-u-hc-h11	hmVVVV	13	5	9	\u{5348}\u{5f8c}1:05 GMT+00:00	aK:mm VVVV
+skeleton	ja-u-hc-h11	jmZ	13	5	9	\u{5348}\u{5f8c}1:05 +0000	aK:mm Z
+skeleton	ja-u-hc-h11	HmZ	13	5	9	13:05 +0000	H:mm Z
+skeleton	ja-u-hc-h11	hmZ	13	5	9	\u{5348}\u{5f8c}1:05 +0000	aK:mm Z
+skeleton	ja-u-hc-h11	jmZZZZ	13	5	9	\u{5348}\u{5f8c}1:05 GMT+00:00	aK:mm ZZZZ
+skeleton	ja-u-hc-h11	HmZZZZ	13	5	9	13:05 GMT+00:00	H:mm ZZZZ
+skeleton	ja-u-hc-h11	hmZZZZ	13	5	9	\u{5348}\u{5f8c}1:05 GMT+00:00	aK:mm ZZZZ
+skeleton	ja-u-hc-h11	jmZZZZZ	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm ZZZZZ
+skeleton	ja-u-hc-h11	HmZZZZZ	13	5	9	13:05 Z	H:mm ZZZZZ
+skeleton	ja-u-hc-h11	hmZZZZZ	13	5	9	\u{5348}\u{5f8c}1:05 Z	aK:mm ZZZZZ

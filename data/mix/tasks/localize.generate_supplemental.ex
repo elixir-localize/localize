@@ -8,7 +8,7 @@ defmodule Mix.Tasks.Localize.GenerateSupplemental do
   Reads the vendored CLDR JSON and XML source files from
   `priv/cldr/supplemental_data/` (and related `priv/cldr/` paths),
   transforms them into the runtime format expected by
-  `Localize.SupplementalData`, and writes ETF files to
+  the supplemental data accessors, and writes ETF files to
   `priv/localize/supplemental_data/`.
 
   This task regenerates ETF files from data already vendored in the

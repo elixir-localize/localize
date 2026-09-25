@@ -7,6 +7,8 @@ defmodule Localize.Collation.Options do
 
   """
 
+  import Localize.Utils.Helpers, only: [is_keyword_list: 1]
+
   defstruct strength: :tertiary,
             alternate: :non_ignorable,
             backwards: false,
@@ -86,7 +88,10 @@ defmodule Localize.Collation.Options do
 
   ### Returns
 
-  A `%Localize.Collation.Options{}` struct.
+  * A `%Localize.Collation.Options{}` struct.
+
+  * `{:error, exception}` if `options` is not a keyword list or an
+    option's value is not one of those listed above.
 
   ### Examples
 
@@ -97,17 +102,74 @@ defmodule Localize.Collation.Options do
       %Localize.Collation.Options{strength: :primary, alternate: :shifted}
 
   """
-  @spec new(keyword()) :: t()
-  def new(options \\ []) do
-    options =
-      options
-      |> resolve_ignore_accents()
-      |> resolve_ignore_case()
-      |> resolve_ignore_punctuation()
-      |> resolve_casing()
-      |> Keyword.update(:reorder, [], &List.wrap/1)
+  @spec new(keyword()) :: t() | {:error, Exception.t()}
+  def new(options \\ [])
 
-    struct(__MODULE__, options)
+  def new(options) when is_keyword_list(options) do
+    with {:ok, options} <- resolve_casing(resolve_shorthands(options)),
+         :ok <- validate_values(options) do
+      struct(__MODULE__, Keyword.update(options, :reorder, [], &List.wrap/1))
+    end
+  end
+
+  def new(options), do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  @closed_values [
+    strength: [:primary, :secondary, :tertiary, :quaternary, :identical],
+    alternate: [:non_ignorable, :shifted],
+    backwards: [false, true],
+    normalization: [false, true],
+    case_level: [false, true],
+    case_first: [false, :upper, :lower],
+    numeric: [false, true],
+    max_variable: [:space, :punct, :symbol, :currency]
+  ]
+
+  # An option with a closed set of values must take one of them and
+  # `:reorder` must be script codes. Other entries pass through to
+  # `struct/2`, which ignores keys that are not fields.
+  defp validate_values([]), do: :ok
+
+  for {key, values} <- @closed_values do
+    defp validate_values([{unquote(key), value} | rest]) when value in unquote(values),
+      do: validate_values(rest)
+
+    defp validate_values([{unquote(key), value} | _rest]) do
+      {:error,
+       Localize.InvalidValueError.exception(
+         value: value,
+         expected: unquote(key),
+         allowed_values: unquote(values)
+       )}
+    end
+  end
+
+  defp validate_values([{:reorder, codes} | rest]) do
+    case script_codes(List.wrap(codes)) do
+      :ok ->
+        validate_values(rest)
+
+      :error ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: codes,
+           expected: "a script code or a list of script codes",
+           context: "the :reorder option"
+         )}
+    end
+  end
+
+  defp validate_values([_other | rest]), do: validate_values(rest)
+
+  defp script_codes([]), do: :ok
+  defp script_codes([code | rest]) when is_atom(code) or is_binary(code), do: script_codes(rest)
+  defp script_codes(_other), do: :error
+
+  defp resolve_shorthands(options) do
+    options
+    |> resolve_ignore_accents()
+    |> resolve_ignore_case()
+    |> resolve_ignore_punctuation()
   end
 
   defp resolve_ignore_accents(options) do
@@ -157,24 +219,21 @@ defmodule Localize.Collation.Options do
   defp resolve_casing(options) do
     case Keyword.pop(options, :casing) do
       {nil, options} ->
-        options
+        {:ok, options}
 
       {:insensitive, options} ->
-        if Keyword.has_key?(options, :strength) do
-          options
-        else
-          Keyword.put(options, :strength, :secondary)
-        end
+        {:ok, Keyword.put_new(options, :strength, :secondary)}
 
       {:sensitive, options} ->
-        options
+        {:ok, options}
 
       {other, _options} ->
-        raise Localize.InvalidValueError.exception(
-                value: other,
-                expected: :casing,
-                allowed_values: [:sensitive, :insensitive]
-              )
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: other,
+           expected: :casing,
+           allowed_values: [:sensitive, :insensitive]
+         )}
     end
   end
 
@@ -200,12 +259,16 @@ defmodule Localize.Collation.Options do
       :upper
 
   """
-  @spec from_locale(String.t() | atom() | Localize.LanguageTag.t()) :: t()
-  def from_locale(locale) do
+  @spec from_locale(String.t() | atom() | Localize.LanguageTag.t()) ::
+          t() | {:error, Exception.t()}
+  def from_locale(locale)
+      when is_binary(locale) or is_atom(locale) or is_struct(locale, Localize.LanguageTag) do
     locale
     |> canonical_locale_string()
     |> from_canonical_locale()
   end
+
+  def from_locale(locale), do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
 
   # Normalize any locale representation to a canonical BCP47 string via
   # `Localize.validate_locale/1` before parsing. This resolves legacy
@@ -419,4 +482,6 @@ defmodule Localize.Collation.Options do
       options.max_variable == :punct and
       options.tailoring == nil
   end
+
+  def nif_compatible?(_options), do: false
 end

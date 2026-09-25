@@ -55,6 +55,9 @@ defmodule Localize.Unit.Parser do
     end
   end
 
+  def parse(input),
+    do: {:error, Localize.Utils.Helpers.invalid_value(input, "a unit identifier string")}
+
   # A runtime-registered custom unit name matches wholesale before
   # the grammar runs: hyphenated custom names ("double-cubit") would
   # otherwise be split at the hyphens, which the grammar treats as
@@ -136,7 +139,7 @@ defmodule Localize.Unit.Parser do
   @spec parse!(String.t()) :: {atom(), keyword()} | no_return()
   @dialyzer {:nowarn_function, parse!: 1}
 
-  def parse!(input) when is_binary(input) do
+  def parse!(input) do
     case parse(input) do
       {:ok, parsed} -> parsed
       {:error, exception} -> raise exception
@@ -237,6 +240,14 @@ defmodule Localize.Unit.Parser do
     ])
     |> eos()
 
+  defparsecp(:parse_unit_identifier, unit_identifier_v)
+
+  # parsec:Localize.Unit.Parser
+
+  # The entry point stays outside the `# parsec:` markers: `mix
+  # nimble_parsec.compile`, which `mix localize.unit.gen_conversions` runs on
+  # this file, keeps only the combinator definitions from between them.
+
   @doc """
   Parses the given `binary` as a CLDR unit identifier, returning the
   raw NimbleParsec result tuple.
@@ -249,14 +260,15 @@ defmodule Localize.Unit.Parser do
 
   * `binary` is a unit identifier string such as `"meter"`.
 
-  * `opts` is a keyword list of NimbleParsec options (`:byte_offset`,
+  * `options` is a keyword list of NimbleParsec options (`:byte_offset`,
     `:line`, and `:context`).
 
   ### Returns
 
   * `{:ok, [token], rest, context, position, byte_offset}` on success.
 
-  * `{:error, reason, rest, context, line, byte_offset}` on failure.
+  * `{:error, reason, rest, context, line, byte_offset}` on failure,
+    including a `binary` that is not a string.
 
   ### Examples
 
@@ -264,7 +276,20 @@ defmodule Localize.Unit.Parser do
       {:ok, [unit: [type: nil, numerator: [single_unit: [prefix: nil, power: nil, base: "meter"]], denominator: []]], "", %{}, {1, 0}, 5}
 
   """
-  defparsec(:unit_identifier, unit_identifier_v)
+  @spec unit_identifier(String.t(), Keyword.t()) ::
+          {:ok, list(), String.t(), map(), {pos_integer(), non_neg_integer()}, non_neg_integer()}
+          | {:error, String.t(), String.t(), map(), {pos_integer(), non_neg_integer()},
+             non_neg_integer()}
+  def unit_identifier(binary, options \\ [])
 
-  # parsec:Localize.Unit.Parser
+  def unit_identifier(binary, options) when is_binary(binary) and is_list(options),
+    do: parse_unit_identifier(binary, options)
+
+  def unit_identifier(binary, options) do
+    message =
+      "expected a unit identifier string and a keyword list of options, got: " <>
+        inspect({binary, options})
+
+    {:error, message, "", %{}, {1, 0}, 0}
+  end
 end

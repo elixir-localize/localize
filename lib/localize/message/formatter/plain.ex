@@ -22,11 +22,19 @@ defmodule Localize.Message.Formatter.Plain do
 
   * A plain string — the canonical MF2 message.
 
+  ### Examples
+
+      iex> {:ok, ast} = Localize.Message.Parser.parse("Hello {$name}!")
+      iex> tokens = Localize.Message.Highlighter.to_tokens(ast)
+      iex> Localize.Message.Formatter.Plain.render(tokens)
+      "Hello {$name}!"
+
   """
-  @spec render([Highlighter.token()]) :: String.t()
-  def render(tokens) do
-    tokens
-    |> Enum.map(fn {_class, text} -> text end)
-    |> IO.iodata_to_binary()
+  @spec render([Highlighter.token()]) :: String.t() | {:error, Exception.t()}
+  def render(tokens) when is_list(tokens) do
+    for {_class, text} when is_binary(text) <- tokens, into: "", do: text
   end
+
+  def render(tokens),
+    do: {:error, Localize.Utils.Helpers.invalid_value(tokens, "a list of highlighter tokens")}
 end
