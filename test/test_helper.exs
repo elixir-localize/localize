@@ -18,6 +18,10 @@ Application.put_env(:localize, :default_locale, :en)
 # Japanese imperial calendar, ar-SA for Islamic, th-TH for
 # Buddhist).
 #
+# Calendrical's tests read this cache too (its test_helper.exs points
+# `:locale_cache_dir` here), so the locales they reference are listed as
+# well: bal, cy, da, he and nnh.
+#
 # List the *canonical CLDR locale id* for each referenced locale:
 # non-CLDR forms canonicalise at load time (en-US -> en,
 # pt-BR -> pt, th-TH -> th, zh-TW -> zh-Hant, zh-HK -> zh-Hant-HK),
@@ -28,7 +32,10 @@ test_locales = [
   "ar",
   "ar-EG",
   "ar-SA",
+  "bal",
   "bn",
+  "cy",
+  "da",
   "de",
   "de-CH",
   "ee",
@@ -45,6 +52,7 @@ test_locales = [
   "fr",
   "fr-CA",
   "fr-CH",
+  "he",
   "hi",
   "hu",
   "it",
@@ -55,6 +63,7 @@ test_locales = [
   "mr",
   "my",
   "nl-BE",
+  "nnh",
   "pt",
   "pt-AO",
   "pt-PT",
