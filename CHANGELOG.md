@@ -228,6 +228,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Month names come from the calendar's `month_of_year/3`, so Hebrew months are named correctly in ordinary and leap years ("Adar II" included) and a Chinese leap month takes the leap-month pattern ("Second Monthbis"). They were looked up by the date's month number.
 
+## [1.3.1] — September 25th, 2026
+
+### Fixed
+
+* Month names come from the calendar's `month_of_year/3`, so Hebrew months are named correctly in ordinary and leap years ("Adar II" included) and a Chinese leap month takes the leap-month pattern ("Second Monthbis"). They were looked up by the date's month number.
+
+* The `Localize.FormatError` message for a selector without an annotation is rendered. Its example declaration was being formatted as a live placeholder, which failed, so the raw template was returned and a warning logged.
+
 ## [1.3.0] — September 21st, 2026
 
 ### Added

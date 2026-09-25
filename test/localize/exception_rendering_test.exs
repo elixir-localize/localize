@@ -175,6 +175,20 @@ defmodule Localize.ExceptionRenderingTest do
       assert message =~ "unclosed b"
     end
 
+    test "missing_selector_annotation shows its example declaration literally" do
+      # The message is itself MF2, so the example's braces are escaped;
+      # unescaped, `{$detail :number}` was formatted as a number, which failed
+      # and returned the template unformatted with a logged warning.
+      exception =
+        Localize.FormatError.exception(reason: :missing_selector_annotation, detail: "x")
+
+      {message, log} = ExUnit.CaptureLog.with_log(fn -> Exception.message(exception) end)
+
+      assert message =~ "the selector x has no annotation"
+      assert message =~ ".input {$x :number}"
+      assert log == ""
+    end
+
     test "mismatched_close includes the closing tag detail" do
       exception =
         Localize.FormatError.exception(reason: :mismatched_close, value: "{#b}x{/i}", detail: "i")

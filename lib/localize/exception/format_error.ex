@@ -120,7 +120,7 @@ defmodule Localize.FormatError do
   def message(%__MODULE__{reason: :missing_selector_annotation, detail: detail}) do
     Localize.Exception.safe_message(
       "message",
-      "Invalid message: the selector {$detail} has no annotation; declare it with a function, as in .input {$detail :number}",
+      "Invalid message: the selector {$detail} has no annotation; declare it with a function, as in .input \\{${$detail} :number\\}",
       detail: detail || "(unknown)"
     )
   end
