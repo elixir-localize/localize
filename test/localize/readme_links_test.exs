@@ -29,14 +29,16 @@ defmodule Localize.ReadmeLinksTest do
              "(the package is v#{version}). Update the blob/v... paths in README.md."
   end
 
-  # A pre-release version is never tagged, so a link pinned to it would 404 —
-  # and `@source_links` would not even match it, silently retiring this check.
-  # While `@version` carries a pre-release suffix the links stay on the last
-  # released version, and the moment the suffix is dropped for the release the
-  # check demands the new one.
+  # A `-dev` version links to the version it will be released as: the README
+  # moves to it during development, and the suffix comes off only close to the
+  # release. Any other pre-release version is never tagged, so a link pinned to
+  # it would 404 — and `@source_links` would not even match it, silently
+  # retiring this check — so under such a suffix the links stay on the last
+  # released version.
   defp expected_link_version(version) do
     case String.split(version, "-", parts: 2) do
       [release] -> release
+      [release, "dev"] -> release
       [_base, _pre_release] -> latest_released_version()
     end
   end
