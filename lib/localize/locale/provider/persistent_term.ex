@@ -23,8 +23,10 @@ defmodule Localize.Locale.Provider.PersistentTerm do
      (see `Localize.Locale.Provider.Cache`), it is returned.
 
   2. In `:dev` and `:test` environments, the locale is generated
-     from the CLDR source data via
-     `Localize.Data.Locale.generate_and_transform/1`.
+     from the CLDR sources via
+     `Localize.Data.Locale.generate_and_transform/1` when the
+     recorded sources are present (see `Localize.Data.sources_available?/0`),
+     and downloaded as in step 3 when they are not.
 
   3. Otherwise, the locale is downloaded via
      `Localize.Locale.Provider.download_locale/1`, written to the
@@ -62,22 +64,22 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   end
 
   if @env in [:dev, :test] do
-    defp load_miss(_locale_id, locale, _cache_error) do
-      locale_string = to_string(locale)
-      locale_data = Localize.Data.Locale.generate_and_transform(locale_string)
-      {:ok, locale_data}
+    # Generating from the sources is how a pipeline change is seen before its
+    # data reaches the CDN. A checkout without them — CI, or a machine that
+    # has never fetched them — downloads instead, as production does.
+    defp load_miss(locale_id, locale, _cache_error) do
+      if Localize.Data.sources_available?() do
+        locale_string = to_string(locale)
+        locale_data = Localize.Data.Locale.generate_and_transform(locale_string)
+        {:ok, locale_data}
+      else
+        download_and_cache(locale_id)
+      end
     end
   else
     defp load_miss(locale_id, _locale, cache_error) do
       if Localize.Locale.Provider.allow_download?(__MODULE__) do
-        case Localize.Locale.Provider.download_locale(locale_id) do
-          {:ok, binary} ->
-            _ = Cache.store(locale_id, binary)
-            {:ok, :erlang.binary_to_term(binary)}
-
-          {:error, exception} ->
-            {:error, exception}
-        end
+        download_and_cache(locale_id)
       else
         {:error, cache_miss_reason(locale_id, cache_error)}
       end
@@ -94,6 +96,17 @@ defmodule Localize.Locale.Provider.PersistentTerm do
         locale_id: locale_id,
         path: Cache.path(locale_id)
       )
+    end
+  end
+
+  defp download_and_cache(locale_id) do
+    case Localize.Locale.Provider.download_locale(locale_id) do
+      {:ok, binary} ->
+        _ = Cache.store(locale_id, binary)
+        {:ok, :erlang.binary_to_term(binary)}
+
+      {:error, exception} ->
+        {:error, exception}
     end
   end
 

@@ -7,13 +7,24 @@ defmodule Localize.Data do
   transforms them into the expected runtime format, and writes ETF
   (Erlang Term Format) files.
 
-  ## Directory layout
+  ## Sources
 
-  * `priv/cldr/supplemental_data/` — raw CLDR JSON and XML source
-    files for supplemental data, copied from `CLDR_PRODUCTION`.
+  The sources are read where they sit, never copied into the project:
 
-  * `priv/cldr/locales/` — raw CLDR JSON locale files, copied from
-    the `-full` directories in `CLDR_PRODUCTION`.
+  * `CLDR_PRODUCTION` — the cldr-json release bundle: locale and
+    supplemental JSON, and the RBNF rule files.
+
+  * `CLDR_REPO` — the CLDR repository: supplemental, bcp47, validity,
+    collation and subdivision XML, `FractionalUCA.txt` and
+    `Script_Metadata.csv`.
+
+  `priv/localize/cldr_json_version` and `priv/localize/cldr_repo_ref`
+  record the release and the ref the committed data was generated from,
+  and generation refuses sources that disagree with them. See
+  `cldr_source_dir/0` and `cldr_repo_dir/0` for where the two are looked
+  for.
+
+  ## Outputs
 
   * `priv/localize/supplemental_data/` — generated ETF supplemental
     data files.
@@ -22,65 +33,24 @@ defmodule Localize.Data do
 
   * `priv/localize/version` — plain text file with the CLDR version.
 
-  The source data directory is configurable via the `CLDR_PRODUCTION`
-  environment variable, falling back to `../cldr_production_data`.
-
   """
 
   @dialyzer {:nowarn_function, write_version: 0}
   @dialyzer {:nowarn_function, cldr_source_dir: 0}
   @dialyzer {:nowarn_function, cldr_repo_dir: 0}
   @dialyzer {:nowarn_function, read_json: 1}
-  @dialyzer {:nowarn_function, read_json_path: 1}
 
   @supplemental_etf_dir "priv/localize/supplemental_data"
-  @cldr_dir "priv/cldr"
-  @cldr_supplemental_dir "priv/cldr/supplemental_data"
-  @cldr_locales_dir "priv/cldr/locales"
-  @cldr_collation_dir "priv/cldr/collation"
-  @cldr_validity_dir "priv/cldr/validity"
-  @cldr_bcp47_dir "priv/cldr/bcp47"
   @external_sources_dir "priv/external_sources"
   @version_file "priv/localize/version"
+  @cldr_json_version_file "priv/localize/cldr_json_version"
+  @cldr_repo_ref_file "priv/localize/cldr_repo_ref"
 
-  # JSON files from cldr-core/supplemental/ (in CLDR_PRODUCTION)
-  @supplemental_json_files [
-    "aliases.json",
-    "calendarData.json",
-    "calendarPreferenceData.json",
-    "codeMappings.json",
-    "currencyData.json",
-    "dayPeriods.json",
-    "languageMatching.json",
-    "likelySubtags.json",
-    "measurementData.json",
-    "metaZones.json",
-    "numberingSystems.json",
-    "ordinals.json",
-    "parentLocales.json",
-    "plurals.json",
-    "territoryContainment.json",
-    "territoryInfo.json",
-    "timeData.json",
-    "weekData.json"
-  ]
-
-  # XML files from CLDR_REPO (common/supplemental/ and common/bcp47/)
-  @supplemental_xml_files [
-    {"common/supplemental/pluralRanges.xml", "pluralRanges.xml"},
-    {"common/supplemental/subdivisions.xml", "subdivisions.xml"},
-    {"common/supplemental/units.xml", "units.xml"},
-    {"common/supplemental/grammaticalFeatures.xml", "grammaticalFeatures.xml"},
-    # `primaryZones` is XML-only — `metaZones.json` does not carry it.
-    {"common/supplemental/metaZones.xml", "metaZones.xml"},
-    {"common/bcp47/timezone.xml", "bcp47_timezone.xml"}
-  ]
-
-  # Non-supplemental files needed from other paths in CLDR_PRODUCTION
-  @supplemental_extra_files [
-    {"cldr-numbers-full/main/en/currencies.json", "currencies_en.json"},
-    {"cldr-core/coverageLevels.json", "coverageLevels.json"}
-  ]
+  # Supplemental JSON is read from the bundle's `cldr-core/supplemental/`,
+  # except for the files named here, which sit elsewhere in it.
+  @supplemental_json_paths %{
+    "coverageLevels.json" => "cldr-core/coverageLevels.json"
+  }
 
   # Test data files from CLDR_REPO → test/support/data/
   @test_data_dir "test/support/data"
@@ -167,179 +137,345 @@ defmodule Localize.Data do
     {"measurement_data.etf", &Localize.Data.XmlExtractors.generate_measurement_data/0}
   ]
 
-  # ── Source data copying ─────────────────────────────────────────
+  # ── Sources ─────────────────────────────────────────────────────
+  #
+  # Everything is read where it sits: JSON from the cldr-json release bundle
+  # in `CLDR_PRODUCTION`, XML and text from the CLDR repository in
+  # `CLDR_REPO`. The sources used to be copied into `priv/cldr` first; each
+  # path here is the one its copy was taken from, so the generated data is
+  # unchanged.
 
   @doc """
-  Copies supplemental JSON and XML source files from
-  `CLDR_PRODUCTION` into `priv/cldr/supplemental_data/`.
+  Returns the path to a supplemental JSON source file.
 
-  This makes the raw source data available in the project for
-  reproducible builds without requiring the external data directory.
+  ### Arguments
+
+  * `filename` is the file's name, such as `"aliases.json"`.
 
   ### Returns
 
-  * `:ok` on success.
+  * The path to the file in the bundle's `cldr-core/supplemental/`, or in
+    the one other place the bundle publishes it.
 
   """
-  @spec copy_supplemental_sources() :: :ok
-  def copy_supplemental_sources do
-    dest = Path.join(File.cwd!(), @cldr_supplemental_dir)
-    File.rm_rf!(dest)
-    File.mkdir_p!(dest)
+  @spec supplemental_json_path(String.t()) :: String.t()
+  def supplemental_json_path(filename) do
+    relative =
+      Map.get_lazy(@supplemental_json_paths, filename, fn ->
+        Path.join(["cldr-core", "supplemental", filename])
+      end)
 
-    # Copy JSON files from CLDR_PRODUCTION/cldr-core/supplemental/
-    source_supplemental = Path.join([cldr_source_dir(), "cldr-core", "supplemental"])
-
-    for filename <- @supplemental_json_files do
-      src = Path.join(source_supplemental, filename)
-      dst = Path.join(dest, filename)
-      File.cp!(src, dst)
-    end
-
-    # Copy extra JSON files from other paths in CLDR_PRODUCTION
-    source_root = cldr_source_dir()
-
-    for {src_path, dst_name} <- @supplemental_extra_files do
-      src = Path.join(source_root, src_path)
-      dst = Path.join(dest, dst_name)
-      File.cp!(src, dst)
-    end
-
-    # Copy XML files from CLDR_REPO
-    repo_root = cldr_repo_dir()
-
-    for {src_path, dst_name} <- @supplemental_xml_files do
-      src = Path.join(repo_root, src_path)
-      dst = Path.join(dest, dst_name)
-      File.cp!(src, dst)
-    end
-
-    count =
-      length(@supplemental_json_files) +
-        length(@supplemental_xml_files) +
-        length(@supplemental_extra_files)
-
-    IO.puts("Copied #{count} supplemental source files to #{dest}")
-    :ok
+    Path.join(cldr_source_dir(), relative)
   end
 
   @doc """
-  Copies collation XML files from `CLDR_REPO` into
-  `priv/cldr/collation/`.
+  Returns a locale's JSON source files in the order they are merged.
+
+  A locale's data is spread across the bundle's `-full` packages. The files
+  are ordered by `<package>__<file>`, with the locale's RBNF source taken as
+  `rbnf.json`: the names and the order the copy into `priv/cldr` produced,
+  which the merged data depends on.
+
+  ### Arguments
+
+  * `locale` is a CLDR locale name such as `"en-AU"`.
 
   ### Returns
 
-  * `:ok` on success.
+  * A list of paths, empty for a locale the bundle has no data for.
 
   """
-  @spec copy_collation_sources() :: :ok
-  def copy_collation_sources do
-    dest = Path.join(File.cwd!(), @cldr_collation_dir)
-    File.rm_rf!(dest)
-    File.mkdir_p!(dest)
+  @spec locale_source_files(String.t()) :: [String.t()]
+  def locale_source_files(locale) do
+    root = cldr_source_dir()
 
-    src_dir = Path.join(cldr_repo_dir(), "common/collation")
+    package_files =
+      for package <- full_packages(root),
+          directory = Path.join([root, package, "main", locale]),
+          file <- json_files(directory),
+          do: {"#{package}__#{file}", Path.join(directory, file)}
 
-    xml_files =
-      src_dir
-      |> File.ls!()
-      |> Enum.filter(&String.ends_with?(&1, ".xml"))
+    rbnf_file =
+      for path <- [rbnf_source_path(locale)], File.exists?(path), do: {"rbnf.json", path}
 
-    for file <- xml_files do
-      File.cp!(Path.join(src_dir, file), Path.join(dest, file))
-    end
-
-    IO.puts("Copied #{length(xml_files)} collation XML files to #{dest}")
-    :ok
+    (package_files ++ rbnf_file)
+    |> Enum.sort()
+    |> Enum.map(fn {_name, path} -> path end)
   end
 
   @doc """
-  Copies validity XML files from `CLDR_REPO` into
-  `priv/cldr/validity/`.
+  Returns the path to a locale's source file in one cldr-json package.
+
+  ### Arguments
+
+  * `locale` is a CLDR locale name.
+
+  * `package` is a package in the bundle, such as `"cldr-units-full"`.
+
+  * `file` is the file's name in the package's `main/<locale>/`.
 
   ### Returns
 
-  * `:ok` on success.
+  * The path, whether or not the file exists.
 
   """
-  @spec copy_validity_sources() :: :ok
-  def copy_validity_sources do
-    dest = Path.join(File.cwd!(), @cldr_validity_dir)
-    File.rm_rf!(dest)
-    File.mkdir_p!(dest)
-
-    src_dir = Path.join(cldr_repo_dir(), "common/validity")
-
-    xml_files =
-      src_dir
-      |> File.ls!()
-      |> Enum.filter(&String.ends_with?(&1, ".xml"))
-
-    for file <- xml_files do
-      File.cp!(Path.join(src_dir, file), Path.join(dest, file))
-    end
-
-    IO.puts("Copied #{length(xml_files)} validity XML files to #{dest}")
-    :ok
+  @spec locale_source_path(String.t(), String.t(), String.t()) :: String.t()
+  def locale_source_path(locale, package, file) do
+    Path.join([cldr_source_dir(), package, "main", locale, file])
   end
 
   @doc """
-  Copies BCP47 XML files from `CLDR_REPO` into
-  `priv/cldr/bcp47/`.
+  Returns the path to a locale's RBNF source.
+
+  The rule files it names sit beside it in the bundle's `cldr-rbnf/rbnf/`.
+
+  ### Arguments
+
+  * `locale` is a CLDR locale name.
 
   ### Returns
 
-  * `:ok` on success.
+  * The path, whether or not the file exists.
 
   """
-  @spec copy_bcp47_sources() :: :ok
-  def copy_bcp47_sources do
-    dest = Path.join(File.cwd!(), @cldr_bcp47_dir)
-    File.rm_rf!(dest)
-    File.mkdir_p!(dest)
-
-    src_dir = Path.join(cldr_repo_dir(), "common/bcp47")
-
-    xml_files =
-      src_dir
-      |> File.ls!()
-      |> Enum.filter(&String.ends_with?(&1, ".xml"))
-
-    for file <- xml_files do
-      File.cp!(Path.join(src_dir, file), Path.join(dest, file))
-    end
-
-    IO.puts("Copied #{length(xml_files)} BCP47 XML files to #{dest}")
-    :ok
+  @spec rbnf_source_path(String.t()) :: String.t()
+  def rbnf_source_path(locale) do
+    Path.join([cldr_source_dir(), "cldr-rbnf", "rbnf", "#{locale}.json"])
   end
 
   @doc """
-  Copies `Script_Metadata.csv` from `CLDR_REPO` into `priv/cldr/`.
+  Returns the path to a locale's subdivision names.
+
+  cldr-json does not publish them, so they are read from the repository's
+  XML.
+
+  ### Arguments
+
+  * `locale` is a CLDR locale name.
 
   ### Returns
 
-  * `:ok` on success.
+  * The path, whether or not the file exists.
 
   """
-  @spec copy_script_metadata() :: :ok
-  def copy_script_metadata do
-    # Every sibling copy targets the source tree as `File.cwd!()/priv/...`.
-    # This used `cldr_dir()`, the `Application.app_dir/2` form, which reaches
-    # the same file through the `_build/.../priv` symlink but reports itself
-    # as a build path — reading as though the copy had missed the source tree.
-    dest = Path.join(File.cwd!(), @cldr_dir)
-    File.mkdir_p!(dest)
-
-    src =
-      Path.join(
-        cldr_repo_dir(),
-        "tools/cldr-code/src/main/resources/org/unicode/cldr/util/data/Script_Metadata.csv"
-      )
-
-    File.cp!(src, Path.join(dest, "Script_Metadata.csv"))
-    IO.puts("Copied Script_Metadata.csv to #{dest}")
-    :ok
+  @spec subdivisions_source_path(String.t()) :: String.t()
+  def subdivisions_source_path(locale) do
+    Path.join([cldr_repo_dir(), "common", "subdivisions", "#{locale}.xml"])
   end
+
+  @doc """
+  Returns the name of every locale the bundle has data for.
+
+  ### Returns
+
+  * A sorted list of locale name strings.
+
+  """
+  @spec source_locale_names() :: [String.t()]
+  def source_locale_names do
+    root = cldr_source_dir()
+
+    for package <- full_packages(root),
+        main = Path.join([root, package, "main"]),
+        entry <- directory_entries(main),
+        File.dir?(Path.join(main, entry)),
+        uniq: true do
+      entry
+    end
+    |> Enum.sort()
+  end
+
+  defp full_packages(root) do
+    root
+    |> directory_entries()
+    |> Enum.filter(&String.ends_with?(&1, "-full"))
+    |> Enum.sort()
+  end
+
+  defp json_files(directory) do
+    directory
+    |> directory_entries()
+    |> Enum.filter(&String.ends_with?(&1, ".json"))
+  end
+
+  defp directory_entries(directory) do
+    case File.ls(directory) do
+      {:ok, entries} -> entries
+      {:error, _absent} -> []
+    end
+  end
+
+  # ── Source versions ─────────────────────────────────────────────
+  #
+  # The bundle and the repository are two halves of one release with nothing
+  # tying them together, and neither names the other: cldr-json re-spins a
+  # release under a new name (`48.2.0-BETA0b`) and publishes packaging-only
+  # patches such as 48.2.1 that CLDR never tags. So the pair the committed
+  # data was generated from is recorded, in the way
+  # `priv/localize/localize_inflection_sha` pins the inflection sources.
+
+  @doc """
+  Returns the sources the committed data was generated from.
+
+  ### Returns
+
+  * `{cldr_json_version, cldr_repo_ref}` as recorded in
+    `priv/localize/cldr_json_version` and `priv/localize/cldr_repo_ref`,
+    either `nil` when it has not been recorded.
+
+  """
+  @spec pinned_sources() :: {String.t() | nil, String.t() | nil}
+  def pinned_sources do
+    {read_pin(@cldr_json_version_file), read_pin(@cldr_repo_ref_file)}
+  end
+
+  @doc """
+  Returns the sources in `CLDR_PRODUCTION` and `CLDR_REPO`.
+
+  ### Returns
+
+  * `{cldr_json_version, cldr_repo_ref}`: the release named in the bundle's
+    `cldr-core/package.json`, and the repository's `release-*` tag at `HEAD`,
+    another tag there, or the commit. Either is `nil` when it cannot be read.
+
+  """
+  @spec current_sources() :: {String.t() | nil, String.t() | nil}
+  def current_sources do
+    {bundle_version(), repository_ref()}
+  end
+
+  @doc """
+  Records the sources in `CLDR_PRODUCTION` and `CLDR_REPO` as the ones the
+  data is generated from.
+
+  ### Returns
+
+  * `{:ok, {cldr_json_version, cldr_repo_ref}}` when both were written.
+
+  * `{:error, message}` when either source cannot be read.
+
+  """
+  @spec record_sources() :: {:ok, {String.t(), String.t()}} | {:error, String.t()}
+  def record_sources do
+    case current_sources() do
+      {version, ref} when is_binary(version) and is_binary(ref) ->
+        File.write!(Path.join(File.cwd!(), @cldr_json_version_file), version)
+        File.write!(Path.join(File.cwd!(), @cldr_repo_ref_file), ref)
+        {:ok, {version, ref}}
+
+      {version, ref} ->
+        {:error, sources_message("Cannot read the CLDR sources to record them.", {version, ref})}
+    end
+  end
+
+  @doc """
+  Checks that `CLDR_PRODUCTION` and `CLDR_REPO` hold the recorded sources.
+
+  ### Returns
+
+  * `:ok` when both match what is recorded.
+
+  * `{:error, message}` otherwise, saying which differs and how to fix it.
+
+  """
+  @spec verify_sources() :: :ok | {:error, String.t()}
+  def verify_sources do
+    current = current_sources()
+
+    case pinned_sources() do
+      ^current ->
+        :ok
+
+      {nil, _ref} ->
+        {:error, sources_message("No CLDR sources are recorded.", current)}
+
+      {version, ref} ->
+        {:error,
+         sources_message(
+           "The CLDR sources are not the recorded ones, cldr-json #{version} " <>
+             "with the CLDR repository at #{ref}.",
+           current
+         )}
+    end
+  end
+
+  @doc """
+  Returns whether the recorded sources are present, so that locale data
+  can be generated from them.
+
+  ### Returns
+
+  * `true` when `CLDR_PRODUCTION` and `CLDR_REPO` hold the recorded sources.
+
+  * `false` otherwise.
+
+  """
+  @spec sources_available?() :: boolean()
+  def sources_available? do
+    File.dir?(cldr_source_dir()) and File.dir?(cldr_repo_dir()) and verify_sources() == :ok
+  end
+
+  defp sources_message(problem, {version, ref}) do
+    """
+    #{problem}
+
+      CLDR_PRODUCTION #{cldr_source_dir()} holds cldr-json #{version || "(unreadable)"}
+      CLDR_REPO #{cldr_repo_dir()} is at #{ref || "(unreadable)"}
+
+    `mix localize.fetch_sources` fetches the recorded pair. To generate from
+    new sources instead, run `mix localize.update_cldr`, which records them.
+    """
+  end
+
+  defp read_pin(file) do
+    case File.read(Application.app_dir(:localize, file)) do
+      {:ok, contents} -> String.trim(contents)
+      {:error, _absent} -> nil
+    end
+  end
+
+  defp bundle_version do
+    path = Path.join([cldr_source_dir(), "cldr-core", "package.json"])
+
+    with {:ok, contents} <- File.read(path),
+         %{"version" => version} when is_binary(version) <- :json.decode(contents) do
+      version
+    else
+      _unreadable -> nil
+    end
+  end
+
+  # A release tag names the ref most readably, so one is preferred when HEAD
+  # carries several tags; a checkout between tags is recorded by its commit.
+  defp repository_ref do
+    directory = cldr_repo_dir()
+
+    with true <- File.dir?(directory),
+         {:ok, tags} <- git(directory, ["tag", "--points-at", "HEAD"]) do
+      tags = tags |> String.split("\n", trim: true) |> Enum.sort()
+
+      Enum.find(tags, &String.starts_with?(&1, "release-")) || List.first(tags) ||
+        head_commit(directory)
+    else
+      _no_repository -> nil
+    end
+  end
+
+  defp head_commit(directory) do
+    case git(directory, ["rev-parse", "HEAD"]) do
+      {:ok, commit} -> String.trim(commit)
+      :error -> nil
+    end
+  end
+
+  defp git(directory, arguments) do
+    case System.cmd("git", arguments, cd: directory, stderr_to_stdout: true) do
+      {output, 0} -> {:ok, output}
+      {_output, _status} -> :error
+    end
+  end
+
+  # ── Test fixtures ───────────────────────────────────────────────
 
   @doc """
   Copies CLDR's RBNF conformance data from `CLDR_REPO` into
@@ -378,183 +514,6 @@ defmodule Localize.Data do
     end
 
     :ok
-  end
-
-  @doc """
-  Copies `FractionalUCA.txt` from `CLDR_REPO` into `priv/cldr/`.
-
-  This is the UCA weight table the whole collation implementation is
-  built from, and it is version-locked to the CLDR release that shipped
-  it. Copying it here is what keeps it in step with the conformance
-  fixtures in `test/support/data/`, which come from the same
-  `common/uca/` directory.
-
-  ### Returns
-
-  * `:ok` on success.
-
-  """
-  @spec copy_uca_table() :: :ok
-  def copy_uca_table do
-    dest = Path.join(File.cwd!(), @cldr_dir)
-    File.mkdir_p!(dest)
-
-    src = Path.join(cldr_repo_dir(), "common/uca/FractionalUCA.txt")
-
-    if File.exists?(src) do
-      File.cp!(src, Path.join(dest, "FractionalUCA.txt"))
-      IO.puts("Copied FractionalUCA.txt (#{uca_version(src)}) to #{dest}")
-    else
-      IO.puts("  Warning: common/uca/FractionalUCA.txt not found, skipping")
-    end
-
-    :ok
-  end
-
-  # The `# VERSION: UCA=18.0.0, UCD=18.0.0` line in the file header. Reported
-  # on copy because a silent version change here moves every sort key in the
-  # library.
-  defp uca_version(path) do
-    path
-    |> File.stream!()
-    |> Enum.take(5)
-    |> Enum.find_value("version unknown", fn line ->
-      case Regex.run(~r/^#\s*VERSION:\s*(.+?)\s*$/, line) do
-        [_, version] -> version
-        nil -> nil
-      end
-    end)
-  end
-
-  @doc """
-  Copies locale JSON files from `CLDR_PRODUCTION` into
-  `priv/cldr/locales/`.
-
-  Copies all JSON files from each `-full` directory's `main/`
-  subdirectory, plus subdivision XML files. The output is organized
-  as `priv/cldr/locales/<locale>/<file>`.
-
-  ### Returns
-
-  * `:ok` on success.
-
-  """
-  @spec copy_locale_sources() :: :ok
-  def copy_locale_sources do
-    dest_root = Path.join(File.cwd!(), @cldr_locales_dir)
-    File.rm_rf!(dest_root)
-    File.mkdir_p!(dest_root)
-
-    source_root = cldr_source_dir()
-
-    # Per-locale subdivision XML files are read directly from
-    # `CLDR_REPO/common/subdivisions/`. CLDR's own upstream `ldml2json`
-    # tool does not convert these files to JSON, and the published `cldr-json`
-    # release artifacts do not include them, so they are sourced
-    # from the CLDR repository in their original XML form. This
-    # mirrors the way the global supplemental subdivisions, the
-    # validity, BCP 47, and collation XML files are also sourced
-    # directly from `CLDR_REPO`.
-    repo_subdivisions_dir = Path.join(cldr_repo_dir(), "common/subdivisions")
-
-    # Find all -full directories
-    full_dirs =
-      source_root
-      |> File.ls!()
-      |> Enum.filter(&String.ends_with?(&1, "-full"))
-      |> Enum.sort()
-
-    # Collect all locale names across all -full dirs
-    all_locales =
-      full_dirs
-      |> Enum.flat_map(fn dir ->
-        main_dir = Path.join([source_root, dir, "main"])
-
-        case File.ls(main_dir) do
-          {:ok, entries} -> entries
-          {:error, _} -> []
-        end
-      end)
-      |> Enum.uniq()
-      |> Enum.sort()
-
-    total = length(all_locales)
-    IO.puts("Copying #{total} locale source directories...")
-
-    for {locale, index} <- Enum.with_index(all_locales, 1) do
-      if rem(index, 100) == 0, do: IO.puts("  #{index}/#{total}...")
-
-      locale_dest = Path.join(dest_root, locale)
-      File.mkdir_p!(locale_dest)
-
-      # Copy JSON files from each -full dir
-      copy_locale_json_files(source_root, full_dirs, locale, locale_dest)
-
-      # Copy per-locale subdivision XML directly from CLDR_REPO if
-      # one exists. Not every locale has subdivision data.
-      sub_xml = Path.join(repo_subdivisions_dir, "#{locale}.xml")
-
-      if File.exists?(sub_xml) do
-        File.cp!(sub_xml, Path.join(locale_dest, "subdivisions.xml"))
-      end
-
-      # Copy RBNF JSON if it exists, together with the rule files it names.
-      # From CLDR 49 the JSON carries no rules of its own — each rule group is
-      # a `_rbnfRulesFile` pointing at an ICU-syntax `.txt` beside it — so
-      # copying the JSON alone vendors nothing but pointers to absent files.
-      rbnf_json = Path.join([source_root, "cldr-rbnf", "rbnf", "#{locale}.json"])
-
-      if File.exists?(rbnf_json) do
-        File.cp!(rbnf_json, Path.join(locale_dest, "rbnf.json"))
-        copy_rbnf_rule_files(rbnf_json, source_root, locale_dest)
-      end
-    end
-
-    IO.puts("Copied locale sources for #{total} locales to #{dest_root}")
-    :ok
-  end
-
-  # Each rule group in an RBNF JSON names its rule file; they sit flat in
-  # `cldr-rbnf/rbnf/` and are copied beside the JSON so the normalizer can
-  # resolve them from the locale directory.
-  defp copy_rbnf_rule_files(rbnf_json, source_root, locale_dest) do
-    rbnf_json
-    |> File.read!()
-    |> :json.decode()
-    |> get_in(["rbnf", "rbnf"])
-    |> Kernel.||(%{})
-    |> Map.values()
-    |> Enum.flat_map(fn group ->
-      case group do
-        %{"_rbnfRulesFile" => file} when is_binary(file) -> [file]
-        _no_pointer -> []
-      end
-    end)
-    |> Enum.uniq()
-    |> Enum.each(fn file ->
-      source = Path.join([source_root, "cldr-rbnf", "rbnf", file])
-      if File.exists?(source), do: File.cp!(source, Path.join(locale_dest, file))
-    end)
-  end
-
-  defp copy_locale_json_files(source_root, full_dirs, locale, locale_dest) do
-    for dir <- full_dirs do
-      locale_src = Path.join([source_root, dir, "main", locale])
-      copy_json_files(File.ls(locale_src), locale_src, locale_dest, dir)
-    end
-  end
-
-  defp copy_json_files({:ok, files}, locale_src, locale_dest, dir) do
-    for file <- files, String.ends_with?(file, ".json") do
-      File.cp!(
-        Path.join(locale_src, file),
-        Path.join(locale_dest, "#{dir}__#{file}")
-      )
-    end
-  end
-
-  defp copy_json_files({:error, _}, _locale_src, _locale_dest, _dir) do
-    :skip
   end
 
   @doc """
@@ -812,7 +771,7 @@ defmodule Localize.Data do
     territories = derive_known_territories()
     save_etf("known_territories.etf", territories)
 
-    # Rebuild the UCA collation table from priv/cldr/FractionalUCA.txt.
+    # Rebuild the UCA collation table from the repository's FractionalUCA.txt.
     # Not in @generators because it writes its own files rather than
     # returning data for save_etf/2, but it belongs to the same pass: the
     # table is derived data and leaving it out is what let it sit at
@@ -838,17 +797,10 @@ defmodule Localize.Data do
     :ok
   end
 
+  # Locale names come from the bundle's own directory names, a closed set,
+  # so converting them to atoms cannot grow the atom table without bound.
   defp derive_all_locale_names do
-    locales_dir = locales_source_dir()
-
-    locales_dir
-    |> File.ls!()
-    |> Enum.filter(fn entry ->
-      Path.join(locales_dir, entry) |> File.dir?()
-    end)
-    |> Enum.uniq()
-    |> Enum.sort()
-    |> Enum.map(&String.to_atom/1)
+    Enum.map(source_locale_names(), &String.to_atom/1)
   end
 
   defp derive_known_territories do
@@ -1212,19 +1164,6 @@ defmodule Localize.Data do
   end
 
   @doc """
-  Returns the path to the local CLDR supplemental JSON directory.
-
-  This returns the path to locally copied supplemental source
-  files in `priv/cldr/supplemental_data/`, not the external
-  CLDR production data directory.
-
-  """
-  @spec supplemental_dir() :: String.t()
-  def supplemental_dir do
-    Application.app_dir(:localize, @cldr_supplemental_dir)
-  end
-
-  @doc """
   Returns the output directory for generated supplemental ETF files.
 
   """
@@ -1234,23 +1173,11 @@ defmodule Localize.Data do
   end
 
   @doc """
-  Returns the path to the local CLDR source directory.
-
-  `mix localize.copy_sources` copies the raw CLDR sources, such as
-  `FractionalUCA.txt` and `Script_Metadata.csv`, into `priv/cldr/`.
-
-  """
-  @spec cldr_dir() :: String.t()
-  def cldr_dir do
-    Application.app_dir(:localize, @cldr_dir)
-  end
-
-  @doc """
   Returns the path to the external sources directory.
 
   External sources are non-CLDR data files (such as the ISO 4217
-  currency list) that supplement the CLDR data. They live in
-  `priv/external_sources/`, outside `priv/cldr/`.
+  currency list) that supplement the CLDR data. They are vendored in
+  `priv/external_sources/`.
 
   """
   @spec external_sources_dir() :: String.t()
@@ -1259,58 +1186,65 @@ defmodule Localize.Data do
   end
 
   @doc """
-  Returns the local path to the copied CLDR locale source data.
-
-  After `copy_locale_sources/0`, locale JSON and XML files are
-  stored in `priv/cldr/locales/<locale>/`.
+  Returns the repository directory holding the supplemental XML.
 
   """
-  @spec locales_source_dir() :: String.t()
-  def locales_source_dir do
-    Application.app_dir(:localize, @cldr_locales_dir)
+  @spec supplemental_xml_dir() :: String.t()
+  def supplemental_xml_dir do
+    Path.join([cldr_repo_dir(), "common", "supplemental"])
   end
 
   @doc """
-  Returns the local path to the copied CLDR supplemental source data.
-
-  After `copy_supplemental_sources/0`, supplemental JSON and XML
-  files are stored in `priv/cldr/supplemental_data/`.
-
-  """
-  @spec supplemental_source_dir() :: String.t()
-  def supplemental_source_dir do
-    Application.app_dir(:localize, @cldr_supplemental_dir)
-  end
-
-  @doc """
-  Returns the local path to the copied CLDR collation XML data.
+  Returns the repository directory holding the collation XML.
 
   """
   @spec collation_source_dir() :: String.t()
   def collation_source_dir do
-    Application.app_dir(:localize, @cldr_collation_dir)
+    Path.join([cldr_repo_dir(), "common", "collation"])
   end
 
   @doc """
-  Returns the local path to the copied CLDR validity XML data.
+  Returns the repository directory holding the validity XML.
 
   """
   @spec validity_source_dir() :: String.t()
   def validity_source_dir do
-    Application.app_dir(:localize, @cldr_validity_dir)
+    Path.join([cldr_repo_dir(), "common", "validity"])
   end
 
   @doc """
-  Returns the local path to the copied BCP47 XML data.
+  Returns the repository directory holding the BCP 47 XML.
 
   """
   @spec bcp47_source_dir() :: String.t()
   def bcp47_source_dir do
-    Application.app_dir(:localize, @cldr_bcp47_dir)
+    Path.join([cldr_repo_dir(), "common", "bcp47"])
   end
 
   @doc """
-  Reads and decodes a JSON file from the CLDR supplemental directory.
+  Returns the path to the repository's `FractionalUCA.txt`, the UCA
+  weight table the collation implementation is built from.
+
+  """
+  @spec uca_table_path() :: String.t()
+  def uca_table_path do
+    Path.join([cldr_repo_dir(), "common", "uca", "FractionalUCA.txt"])
+  end
+
+  @doc """
+  Returns the path to the repository's `Script_Metadata.csv`.
+
+  """
+  @spec script_metadata_path() :: String.t()
+  def script_metadata_path do
+    Path.join(
+      cldr_repo_dir(),
+      "tools/cldr-code/src/main/resources/org/unicode/cldr/util/data/Script_Metadata.csv"
+    )
+  end
+
+  @doc """
+  Reads and decodes a supplemental JSON source file.
 
   ### Arguments
 
@@ -1323,29 +1257,8 @@ defmodule Localize.Data do
   """
   @spec read_json(String.t()) :: map()
   def read_json(filename) do
-    supplemental_dir()
-    |> Path.join(filename)
-    |> File.read!()
-    |> :json.decode()
-  end
-
-  @doc """
-  Reads and decodes a JSON file from an arbitrary path
-  under the CLDR production data directory.
-
-  ### Arguments
-
-  * `path` is the path relative to the CLDR production data root.
-
-  ### Returns
-
-  * The decoded JSON data as a map.
-
-  """
-  @spec read_json_path(String.t()) :: map()
-  def read_json_path(path) do
-    supplemental_source_dir()
-    |> Path.join(path)
+    filename
+    |> supplemental_json_path()
     |> File.read!()
     |> :json.decode()
   end

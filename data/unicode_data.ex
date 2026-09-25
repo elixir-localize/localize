@@ -16,7 +16,7 @@ defmodule Localize.Data.UnicodeData do
   version CLDR is built against, downloading them if it does not.
 
   The required version is read from the `# VERSION: UCA=x, UCD=y` header of
-  the vendored `FractionalUCA.txt` rather than configured separately. CLDR
+  the CLDR repository's `FractionalUCA.txt` rather than configured separately. CLDR
   states which UCD it was generated against, so deriving it leaves no second
   version to drift — and drift is exactly what put these files two Unicode
   releases behind the conformance fixtures they are tested against.
@@ -64,11 +64,11 @@ defmodule Localize.Data.UnicodeData do
   """
   @spec required_ucd_version() :: {:ok, String.t()} | {:error, term()}
   def required_ucd_version do
-    path = Path.join([File.cwd!(), "priv", "cldr", "FractionalUCA.txt"])
+    path = Localize.Data.uca_table_path()
 
     cond do
       not File.exists?(path) ->
-        {:error, "FractionalUCA.txt not found at #{path} — run mix localize.copy_sources first"}
+        {:error, "FractionalUCA.txt not found at #{path} — is CLDR_REPO a CLDR checkout?"}
 
       version = scan_ucd_version(path) ->
         {:ok, version}

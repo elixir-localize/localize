@@ -144,8 +144,8 @@ defmodule Localize.Collation.Table.ParserTest do
   end
 
   describe "parse/1 variable boundary headers in the vendored format" do
-    # The header and data lines below are literal lines from
-    # priv/cldr/FractionalUCA.txt (UCA 17.0.0). The boundary headers carry
+    # The header and data lines below are literal lines from CLDR's
+    # FractionalUCA.txt (UCA 17.0.0). The boundary headers carry
     # fractional byte weights, not dotted allkeys triples, and appear after
     # the data lines — exactly as in the vendored file.
     @vendored_fixture """

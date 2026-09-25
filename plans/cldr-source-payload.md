@@ -1,64 +1,55 @@
 # CLDR source payload
 
-**Status:** planning, 2026-09-22
+**Status:** in progress, 2026-09-25
 
-`priv/cldr` holds 554 MB of CLDR build input across 24,787 files. It is never shipped — `package.files` does not list it — and nothing under `lib/` reads it. `main` tracks it, `cldr-49` gitignores it, and that disagreement is what makes switching between the two branches slow and error-prone: git silently overwrites the ignored copy on the way in and deletes it on the way out, so the working branch's sources have to be moved aside by hand and restored afterwards. Losing them once already cost a rebuild.
+Decided 2026-09-25: Localize no longer carries CLDR sources in its working tree. The generation pipeline reads the cldr-json release bundle (`CLDR_PRODUCTION`) and the CLDR repository (`CLDR_REPO`) where they sit, and nothing is copied into `priv/cldr` any more. Which cldr-json release and which CLDR ref the committed data was generated from is recorded in the repository, the way `data/inflection` is pinned by `priv/localize/localize_inflection_sha`, and the generated ETFs stay verified by the tracked hash manifest.
 
-## What the payload actually is
+## Why
 
-Measured on `cldr-49` at CLDR 49 alpha2, 2026-09-22.
+`priv/cldr` held 554 MB of build input across 24,787 files. It is never shipped — `package.files` does not list it — and nothing under `lib/` reads it. `main` tracks it and `cldr-49` ignores it, and it is the only path where the two branches collide: checking out `main` overwrites the ignored copy and checking `cldr-49` out again deletes it, so every visit to `main` meant moving the sources aside and restoring them.
 
-| Part | Files | Size | Source |
-|---|---|---|---|
-| `locales/**/*.json` | 24,360 | **465.0 MB** | cldr-json release |
-| `locales/**/subdivisions.xml` | 95 | 19.8 MB | CLDR repo `common/subdivisions` |
-| `FractionalUCA.txt` | 1 | 5.3 MB | CLDR repo `common/uca` |
-| `collation/` | — | 1.8 MB | CLDR repo `common/collation` |
-| `supplemental_data/` | — | 1.5 MB | mixed |
-| `bcp47`, `validity`, `Script_Metadata.csv` | — | 0.2 MB | CLDR repo |
+None of it is original. On 2026-09-25 all 24,787 files were byte-identical to the files they were copied from — the cldr-json `49.0.0-BETA1` bundle and the CLDR repository at `release-49-beta1` — and the bundle held no locale file the copy lacked. Reading the upstream files in place therefore generates the same data without a second copy of them.
 
-So 465 MB — 96% of the apparent total — is JSON that upstream already publishes, and roughly 29 MB comes from the CLDR XML repository.
+## Corrections to the first analysis
 
-## Three things that were believed and are not true
+* **A fresh checkout does need the sources, as things stood.** The first draft of this plan said the test suite did not, from a run with `priv/cldr` renamed aside — but all 657 locale ETFs were already generated on that machine. In `:dev` and `:test`, `Localize.Locale.Provider.PersistentTerm` generates any locale missing from the cache from the sources, `test_helper.exs` pre-downloads only 43 locales, and the conformance suites alone reach 17 more. Without the sources that path has to fall back to the CDN, as production does.
 
-* **The test suite does not need `priv/cldr`.** `.gitignore` says it does. Renaming the directory aside and running the suite gives 31,360 of 31,361 passing, and the single failure is `ReadmeLinksTest` reacting to the `1.4.0-dev` version bump. The three test files that mention `priv/cldr` do so only in comments, two of them noting that they run without it. The data is needed by the generation pipeline alone.
+* **The repository is not carrying 500 MB.** `git count-objects -vH` reports `size-pack: 42.63 MiB` for the whole object store, including all of `main`'s tracked history for this path — CLDR JSON compresses roughly 13:1. Rewriting history is not warranted.
 
-* **The repository is not carrying 500 MB.** `git count-objects -vH` reports `size-pack: 42.63 MiB` for the whole object store, including all of main's tracked history for this path — CLDR JSON compresses roughly 13:1. The cost is working-tree churn on checkout, not repository weight, so rewriting history is not warranted.
+* **`upload-locales.yml` cannot work without the sources in the checkout.** It runs checkout → compile → `mix localize.generate_locales` with no step that produces them. It succeeds on `main` only because they are tracked there, and only has to generate when the data version is new to the CDN.
 
-* **`upload-locales.yml` cannot work on `cldr-49`.** It runs checkout → compile → `mix localize.generate_locales` with no step that produces `priv/cldr`. It succeeds on `main` only because the sources are tracked there. This asymmetry, not the byte count, is the real defect.
+## Design
+
+* **The pipeline reads in place.** Locale JSON, supplemental JSON and the RBNF rule files come from the bundle; supplemental, bcp47, validity, collation and subdivision XML, `FractionalUCA.txt` and `Script_Metadata.csv` come from the repository. A locale's JSON files are merged in the order the copy step produced — sorted by `<package>__<file>` — so the output is unchanged.
+
+* **The pairing is recorded and checked.** `priv/localize/cldr_json_version` names the cldr-json release and `priv/localize/cldr_repo_ref` the CLDR tag or commit. cldr-json re-spins a release under a new name (`48.2.0-BETA0b`) and publishes packaging-only patches such as 48.2.1 that CLDR never tags, so neither can be derived from the other. Generation refuses a bundle or checkout that disagrees with them unless it is the run that records new ones.
+
+* **CLDR's conformance fixtures are still copied** into `test/support/data`, where they are tracked and, for two files, curated.
+
+* **`:dev` and `:test` generate a locale only when the sources are present,** and otherwise download it as production does, so a checkout without them — CI, or a machine that has never fetched them — still runs.
+
+* **The test helper repairs its own locales.** A locale ETF that fails the manifest, which is what running `main`'s tests leaves behind, is regenerated from the sources when they are present.
+
+* **`mix localize.fetch_sources` fetches the pinned pair**: the release zip from cldr-json, and the repository paths the pipeline reads at the pinned ref. `upload-locales.yml` runs it before `generate_locales`.
 
 ## Why not cache the pipeline in CI
 
-The obvious fix is to build the data in CI and cache it, on the reasoning that CLDR changes twice a year so a cache would almost always hit. The opposite is true: GitHub Actions evicts cache entries after seven days without access, so a job that runs twice a year finds a cold cache essentially every time and pays the slow path anyway. Building also needs JDK 21, Maven and a clone of `unicode-org/cldr`.
-
-## Proposal — fetch the published artefact instead
-
-`unicode-org/cldr-json` publishes the production data as a release asset, for pre-release versions as well as final: `cldr-49.0.0-ALPHA2-json-full.zip`, 80 MB. Its top level is exactly the 25 `cldr-*` packages that `Localize.Data.cldr_source_dir/0` expects, and the package set is identical to the locally built `cldr_production_data` — verified by diffing the two listings. Unzipping it and pointing `CLDR_PRODUCTION` at the result needs no adaptation.
-
-That gives a clean split. The JSON is fetched on demand, by CI and by a developer restoring a checkout, keyed to the version already recorded in `priv/localize/version`. The remaining ~29 MB of XML is small enough to vendor and track on both branches, which removes the path from the branch-switch problem entirely. Caching becomes an optimisation rather than load-bearing, since a miss costs an 80 MB download rather than a 20-minute build.
-
-`scripts/build_cldr_production_data` stays as the escape hatch for a CLDR commit that has no published release yet.
-
-### Open questions
-
-* The zip ships `cldr-subdivisions-full` as JSON while the pipeline reads subdivisions from the repository's XML. Moving to the JSON would cut the vendored footprint from ~29 MB to ~9 MB, but it is a behavioural change to the generated data and needs validating against the current output rather than assuming.
-
-* `Localize.Data.generate_all/0` calls `derive_all_locale_names/0`, which lists the directory names under `priv/cldr/locales` without opening a file. `generate_supplemental` therefore needs the 657 directories to exist but none of their contents. Deriving that list from the vendored locale data instead would let the supplemental pipeline run with no JSON present at all.
-
-* Whether the released zip is byte-identical to a local build from the same tag, which decides whether generated ETFs stay reproducible across the two routes. The hash manifest already provides the check.
+The obvious alternative is to build the data in CI and cache it, on the reasoning that CLDR changes twice a year so a cache would almost always hit. The opposite is true: GitHub Actions evicts cache entries after seven days without access, so a job that runs twice a year finds a cold cache essentially every time and pays the slow path anyway. Building also needs JDK 21, Maven and a clone of `unicode-org/cldr`. Fetching the published artefact needs none of that; `scripts/build_cldr_production_data` stays as the escape hatch for a CLDR commit that has no published release yet.
 
 ## Tasks
 
-* [ ] **Confirm the released zip reproduces the current ETFs.** Fetch `cldr-49.0.0-ALPHA2-json-full.zip`, run `copy_sources` and `generate_locales` from it, and verify every file against `priv/localize/locale_hashes.etf`. Nothing else proceeds until this passes.
+* [ ] **Untrack `priv/cldr` on `main`** — the merge of `cldr-49` does this, since that branch removed it in `371d1f33`. Until then `main` still writes it on checkout and removes it again on the way back, which touches nothing `cldr-49` uses.
 
-* [ ] **Add a `mix localize.fetch_sources` task** that downloads and unpacks the release asset for the version in `priv/localize/version`, with a `CLDR_TAG` override, so CI and a developer restore take the same path.
+### Done
 
-* [ ] **Decide the subdivisions question** — keep the repo XML at ~29 MB vendored, or move to `cldr-subdivisions-full` and vendor ~9 MB.
+* [x] **Read the sources in place** — every read of `priv/cldr` now reads the bundle or repository path its copy came from; `mix localize.copy_sources` became `mix localize.prepare_sources`, which records the sources and still copies the fixtures. 2026-09-25.
 
-* [ ] **Retire `derive_all_locale_names/0`'s directory walk** so the supplemental pipeline does not need the locales tree to exist.
+* [x] **Prove the output unchanged** — with `priv/cldr` moved aside, the supplemental data, collation table and validity data regenerated byte-identical, and all 657 locales regenerated to a hash manifest identical to the tracked one. 2026-09-25.
 
-* [ ] **Vendor the XML inputs** on both branches and narrow `.gitignore` to the fetched JSON alone, correcting the comment that claims the test suite needs the sources.
+* [x] **Record and check the pairing** — `priv/localize/cldr_json_version` (`49.0.0-BETA1`) and `priv/localize/cldr_repo_ref` (`release-49-beta1`); both generate tasks refuse other sources. 2026-09-25.
 
-* [ ] **Untrack `priv/cldr` on `main`** once CI no longer depends on it being in the checkout, making both branches agree.
+* [x] **Fall back to the CDN without sources** in `:dev` and `:test`, and let the test helper regenerate a stale test locale — verified by putting `main`'s published 48.2.2 `de` and `fr` into the cache: they were regenerated byte-identical and the tests passed. 2026-09-25.
 
-* [ ] **Add the fetch step to `upload-locales.yml`** ahead of `generate_locales`, which also makes the workflow usable on `cldr-49` for the first time.
+* [x] **Add `mix localize.fetch_sources`** — from empty directories it fetched the release zip (identical to the local bundle) and a sparse checkout of the tag in under a minute, and generated a spread of locales byte-identical to the committed ones; `upload-locales.yml` runs it before `generate_locales`. 2026-09-25.
+
+* [x] **Correct the documentation** that described copying the sources: `CLDR_UPDATE_INTEGRATION.md`, `.gitignore`, the task docs and the guides. 2026-09-25.

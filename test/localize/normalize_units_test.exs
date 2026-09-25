@@ -59,7 +59,7 @@ defmodule Localize.Data.Normalize.UnitsTest do
 
   describe "normalize_units/3" do
     # The ru power2 entries of CLDR 49's cldr-units-full JSON, tracked so
-    # this runs without the gitignored priv/cldr sources.
+    # this runs without the CLDR sources.
     test "russian power2 compounds keep the full case coverage of the source" do
       units_json = "test/support/data/units_ru_power2.json" |> File.read!() |> :json.decode()
       %{"units" => units} = Units.normalize_units(%{}, "ru", units_json)

@@ -187,7 +187,7 @@ defmodule Localize.Data.Normalize.Units do
   end
 
   defp units_locale_path(locale) do
-    Path.join([Localize.Data.locales_source_dir(), locale, "cldr-units-full__units.json"])
+    Localize.Data.locale_source_path(locale, "cldr-units-full", "units.json")
   end
 
   defp group_units(units) do

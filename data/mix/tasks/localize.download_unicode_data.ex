@@ -9,12 +9,12 @@ defmodule Mix.Tasks.Localize.DownloadUnicodeData do
   combining class and decimal digit checks.
 
   The Unicode version is not configured here. It is read from the
-  `# VERSION: ... UCD=x.y.z` header of `priv/cldr/FractionalUCA.txt`, so the
-  property files always match the CLDR release the UCA table came from. Run
-  `mix localize.copy_sources` first if that file is not present.
+  `# VERSION: ... UCD=x.y.z` header of the CLDR repository's
+  `FractionalUCA.txt` in `CLDR_REPO`, so the property files always match the
+  CLDR release the UCA table came from.
 
-  `mix localize.copy_sources` calls this too, so the files are refreshed as
-  part of a normal CLDR update; run it directly to force a check.
+  `mix localize.prepare_sources` calls this too, so the files are refreshed
+  as part of a normal CLDR update; run it directly to force a check.
 
   ## Usage
 

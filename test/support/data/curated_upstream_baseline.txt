@@ -1,5 +1,5 @@
 # sha256 of the UPSTREAM fixture each curated file was last reconciled against.
-# copy_sources stays silent while these match, and reports when upstream moves.
+# prepare_sources stays silent while these match, and reports when upstream moves.
 # After reconciling, replace the hash with the one the message prints.
 locale_distance_test_data.txt dec8941d997f00b730fd02195b1f7ea12c2edc3e3907a287f8968ce6b05fc512
 locale_matching_test_data.txt aed0adf47de93e91704c86fcc3b80efa8c60af99168c23cd4540aadfb1c152aa

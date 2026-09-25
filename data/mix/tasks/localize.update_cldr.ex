@@ -1,16 +1,18 @@
 defmodule Mix.Tasks.Localize.UpdateCldr do
-  @shortdoc "Runs the CLDR update pipeline: copy sources, regenerate data, verify"
+  @shortdoc "Runs the CLDR update pipeline: record sources, regenerate data, verify"
 
   @moduledoc """
   Orchestrates phases 1–3 of the CLDR Update Guide
-  (`CLDR_UPDATE_INTEGRATION.md`): copies the CLDR sources into the
-  project, regenerates the supplemental and locale ETF data, and runs
-  the verification gates between steps.
+  (`CLDR_UPDATE_INTEGRATION.md`): records the CLDR sources the data is
+  generated from, regenerates the supplemental and locale ETF data, and
+  runs the verification gates between steps.
 
-  The upstream checkouts must already be refreshed before running this
-  task: check out the release tag in `CLDR_REPO` and regenerate
-  `CLDR_PRODUCTION` with `scripts/build_cldr_production_data`. The task
-  verifies both and reports the source CLDR version before it starts.
+  The upstream sources must already be in place before running this
+  task: unpack the cldr-json release zip into `CLDR_PRODUCTION` (or build
+  it with `scripts/build_cldr_production_data`) and check out the matching
+  release tag in `CLDR_REPO`. The task verifies both and reports the
+  source CLDR version before it starts. They are read where they sit;
+  nothing is copied into the project.
 
   Each pipeline step and gate runs in a fresh VM (`mix` subprocess) so
   regenerated data is never read through a stale in-VM cache.
@@ -24,7 +26,7 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
 
       mix localize.update_cldr
 
-  Runs the full pipeline: preflight, copy sources, generate
+  Runs the full pipeline: preflight, record sources, generate
   supplemental data (gate: compile), generate all locales (gate:
   full test suite).
 
@@ -116,7 +118,7 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
     end
 
     Mix.shell().info("\nPlan:")
-    Mix.shell().info("  1. mix localize.copy_sources")
+    Mix.shell().info("  1. mix localize.prepare_sources")
     Mix.shell().info("  2. mix localize.generate_supplemental")
     Mix.shell().info("  3. gate: mix compile --warnings-as-errors")
 
@@ -141,7 +143,7 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
   # ── Execution ────────────────────────────────────────────────
 
   defp execute(options) do
-    step("Copying CLDR sources", ["localize.copy_sources"])
+    step("Recording CLDR sources", ["localize.prepare_sources"])
     step("Generating supplemental data", ["localize.generate_supplemental"])
 
     gate(

@@ -19,7 +19,7 @@ defmodule Mix.Tasks.Localize.BumpPatchVersion do
       mix localize.generate_locales
 
   When the upstream CLDR release version changes (i.e. when
-  `mix localize.copy_sources` writes a new value to
+  `mix localize.prepare_sources` writes a new value to
   `priv/localize/version`), the patch counter is automatically
   reset to `0`. The first `mix localize.bump_patch_version` after
   a CLDR upgrade therefore takes the patch from `0` to `1`.

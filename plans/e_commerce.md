@@ -134,7 +134,7 @@ The **Home** column proposes where the missing work should land:
 What `localize_address` does **not** yet ship that the e-commerce roadmap still wants:
 
 * **Form-input schemas** (which fields are required for territory X; in what visual order should the form fields appear). OpenCageData templates know the *display* order; form *input* order and required-ness is a separate dataset (Google's i18n-libaddressinput is the canonical source — open licence). Worth filing as a follow-up.
-* **Explicit postal-code regex validation** (A4). Localize.Address parses freeform; doesn't validate. Easy add — the data lives in CLDR's `postalCodeData.xml` (already in `priv/cldr/`) and Localize.Validity exposes it indirectly. A `Localize.Address.valid_postcode?/2` helper would close the gap.
+* **Explicit postal-code regex validation** (A4). Localize.Address parses freeform; doesn't validate. Easy add — the data lives in CLDR's `postalCodeData.xml` (in `$CLDR_REPO/common/supplemental/`) and Localize.Validity exposes it indirectly. A `Localize.Address.valid_postcode?/2` helper would close the gap.
 * **Picker-list builders** for state/province dropdowns by territory (A3) — the data is reachable; a packaged helper isn't.
 
 **`localize_phonenumber` exists** and likewise covers more than the plan proposed:

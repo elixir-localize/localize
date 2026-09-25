@@ -83,9 +83,7 @@ defmodule Localize.Data.Validity do
 
   """
   def generate_validity(xml_file, etf_name) do
-    validity_dir = Path.join(File.cwd!(), "priv/cldr/validity")
-
-    validity_dir
+    Localize.Data.validity_source_dir()
     |> Path.join(xml_file)
     |> File.read!()
     |> String.replace(~r/<!DOCTYPE.*>\n/, "")
@@ -105,7 +103,7 @@ defmodule Localize.Data.Validity do
 
   """
   def generate_bcp47_u do
-    bcp47_dir = Path.join(File.cwd!(), "priv/cldr/bcp47")
+    bcp47_dir = Localize.Data.bcp47_source_dir()
 
     Enum.reduce(@u_files, [], fn file, acc ->
       acc ++ extract_u(bcp47_dir, file)
@@ -127,7 +125,7 @@ defmodule Localize.Data.Validity do
 
   """
   def generate_bcp47_t do
-    bcp47_dir = Path.join(File.cwd!(), "priv/cldr/bcp47")
+    bcp47_dir = Localize.Data.bcp47_source_dir()
 
     Enum.reduce(@t_files, [], fn file, acc ->
       acc ++ extract_t(bcp47_dir, file)

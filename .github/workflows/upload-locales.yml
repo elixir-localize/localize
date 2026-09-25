@@ -142,6 +142,13 @@ jobs:
         if: steps.check_existing.outputs.skip != 'true'
         run: mix compile
 
+      # The CLDR sources are not in the repository. This fetches the cldr-json
+      # release and the CLDR repository ref recorded in priv/localize, beside
+      # the checkout where the pipeline looks for them by default.
+      - name: Fetch CLDR sources
+        if: steps.check_existing.outputs.skip != 'true'
+        run: mix localize.fetch_sources
+
       - name: Generate locale ETFs
         if: steps.check_existing.outputs.skip != 'true'
         run: mix localize.generate_locales

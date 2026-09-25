@@ -105,7 +105,7 @@ defmodule Localize.Data.Collation do
 
   """
   def generate_collation_table do
-    source_path = Application.app_dir(:localize, "priv/cldr/FractionalUCA.txt")
+    source_path = Localize.Data.uca_table_path()
 
     unless File.exists?(source_path) do
       raise "FractionalUCA.txt not found at #{source_path}"

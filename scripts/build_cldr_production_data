@@ -1,8 +1,9 @@
 #!/usr/bin/env zsh
 #
 # Build the CLDR production data — the JSON packages under $CLDR_PRODUCTION
-# that the rest of the pipeline reads. Run this once per CLDR release, before
-# `mix localize.copy_sources`.
+# that the rest of the pipeline reads — for a CLDR commit that cldr-json has
+# not published as a release. A published release's zip unpacks to the same
+# layout. Run it before `mix localize.prepare_sources`.
 #
 # CLDR ships its data as LDML (XML); everything downstream of here consumes the
 # JSON that unicode-org/cldr-json's `cldr-generate-json.sh` derives from it.
@@ -139,7 +140,7 @@ fi
 
 # The converter writes into $CLDR_PRODUCTION without removing what is already
 # there, so a package or locale dropped between CLDR releases survives as an
-# orphan and gets vendored by `mix localize.copy_sources`. Clear it first —
+# orphan and gets read by the generation pipeline. Clear it first —
 # but only once it is recognisably a cldr-json output tree, so a mistyped
 # $CLDR_PRODUCTION cannot take a home directory with it.
 if [[ -d "$CLDR_PRODUCTION" && -n "$( ls -A "$CLDR_PRODUCTION" 2>/dev/null )" ]]; then

@@ -169,7 +169,7 @@ defmodule Localize.Collation.ReorderTest do
 
     # The root collation table carries the DUCET weights the mapping is keyed
     # on. It is generated from FractionalUCA.txt but, unlike that source, it is
-    # tracked, so this also runs on a checkout without priv/cldr.
+    # tracked, so this also runs without the CLDR sources.
     defp latin_a_ducet_primary do
       {:ok, [element]} = Localize.Collation.Table.lookup(?a)
       Localize.Collation.Element.primary(element)

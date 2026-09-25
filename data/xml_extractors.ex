@@ -582,7 +582,7 @@ defmodule Localize.Data.XmlExtractors do
 
   # ── Private helpers ─────────────────────────────────────────────
 
-  # Maps short names to their local paths under priv/cldr/
+  # Maps short names to their directory and file in the CLDR repository.
   @xml_local_paths %{
     "plural_ranges.xml" => {:supplemental, "pluralRanges.xml"},
     "subdivisions.xml" => {:supplemental, "subdivisions.xml"},
@@ -599,7 +599,7 @@ defmodule Localize.Data.XmlExtractors do
 
     dir =
       case dir_type do
-        :supplemental -> Localize.Data.supplemental_source_dir()
+        :supplemental -> Localize.Data.supplemental_xml_dir()
         :bcp47 -> Localize.Data.bcp47_source_dir()
         :validity -> Localize.Data.validity_source_dir()
       end

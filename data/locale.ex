@@ -97,27 +97,18 @@ defmodule Localize.Data.Locale do
 
   # ── Content consolidation ─────────────────────────────────────
 
-  # Reads all JSON files from priv/cldr/locales/<locale>/ and
-  # merges them into a single map. Files are named as
-  # <source-dir>__<original-name>.json by copy_locale_sources.
+  # Reads every JSON source file for the locale, across the bundle's
+  # packages, and merges them into a single map in the order
+  # `Localize.Data.locale_source_files/1` gives.
   defp consolidate_locale_content(locale) do
-    locale_dir = Path.join(Localize.Data.locales_source_dir(), locale)
-
-    case File.ls(locale_dir) do
-      {:ok, files} ->
-        files
-        |> Enum.filter(&String.ends_with?(&1, ".json"))
-        |> Enum.sort()
-        |> Enum.map(&decode_locale_file(locale_dir, &1))
-        |> merge_maps()
-
-      {:error, _} ->
-        %{}
-    end
+    locale
+    |> Localize.Data.locale_source_files()
+    |> Enum.map(&decode_locale_file/1)
+    |> merge_maps()
   end
 
-  defp decode_locale_file(locale_dir, file) do
-    content = File.read!(Path.join(locale_dir, file))
+  defp decode_locale_file(path) do
+    content = File.read!(path)
     if content == "", do: %{}, else: :json.decode(content)
   end
 
@@ -139,8 +130,7 @@ defmodule Localize.Data.Locale do
   end
 
   defp localized_subdivisions(locale) do
-    subdivisions_path =
-      Path.join([Localize.Data.locales_source_dir(), locale, "subdivisions.xml"])
+    subdivisions_path = Localize.Data.subdivisions_source_path(locale)
 
     if File.exists?(subdivisions_path) do
       parse_xml_subdivisions(subdivisions_path)

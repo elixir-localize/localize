@@ -89,8 +89,8 @@ defmodule Localize.Data.Normalize.Currency do
 
       Without it every currency in every locale loses its `iso_digits`, which
       changes `currency_digits: :iso` formatting and the `current?/1` and
-      `historic?/1` predicates. It is not a CLDR source, so
-      `mix localize.copy_sources` does not provide it. Fetch it and regenerate:
+      `historic?/1` predicates. It is not a CLDR source, so neither
+      `CLDR_PRODUCTION` nor `CLDR_REPO` provides it. Fetch it and regenerate:
 
           mix localize.download_iso_currencies
           mix localize.generate_locales

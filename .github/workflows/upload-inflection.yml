@@ -117,9 +117,8 @@ jobs:
       # priv/localize/version, and only en and und are in the repository.
       # This workflow generates inflection artifacts, never locale data, so
       # that version has to be on R2 already: from upload-locales.yml, which
-      # generates it wherever the CLDR sources are vendored, or from a
-      # maintainer machine with `mix localize.upload_locale` during a CLDR
-      # beta, when priv/cldr is untracked and no runner can generate it.
+      # fetches the recorded CLDR sources and generates it, or from a
+      # maintainer machine with `mix localize.upload_locale`.
       # Checked here, before the toolchain and the generate step, so a
       # missing version costs a minute rather than half an hour.
       - name: Check the CLDR locale data this version needs is published

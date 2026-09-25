@@ -342,7 +342,8 @@ defmodule Localize.Data.Supplemental do
 
   """
   def generate_currency_codes do
-    Path.join([Localize.Data.locales_source_dir(), "en", "cldr-numbers-full__currencies.json"])
+    "en"
+    |> Localize.Data.locale_source_path("cldr-numbers-full", "currencies.json")
     |> File.read!()
     |> :json.decode()
     |> get_in(["main", "en", "numbers", "currencies"])

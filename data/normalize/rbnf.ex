@@ -30,7 +30,7 @@ defmodule Localize.Data.Normalize.Rbnf do
   end
 
   defp rbnf_locale_path(locale) do
-    Path.join([Localize.Data.locales_source_dir(), locale, "rbnf.json"])
+    Localize.Data.rbnf_source_path(locale)
   end
 
   # Until CLDR 48 each rule group in `rbnf.json` carried its rulesets inline.

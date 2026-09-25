@@ -10,8 +10,8 @@ defmodule Localize.Data.ScriptMetadata do
   """
 
   @doc """
-  Generates the unicode_script_to_subtag_mapping from
-  `priv/cldr/Script_Metadata.csv`.
+  Generates the unicode_script_to_subtag_mapping from the CLDR
+  repository's `Script_Metadata.csv`.
 
   ### Returns
 
@@ -19,9 +19,7 @@ defmodule Localize.Data.ScriptMetadata do
 
   """
   def generate_unicode_script_to_subtag_mapping do
-    csv_path = Path.join(Localize.Data.cldr_dir(), "Script_Metadata.csv")
-
-    csv_path
+    Localize.Data.script_metadata_path()
     |> File.read!()
     |> String.split("\n")
     |> Enum.drop(2)

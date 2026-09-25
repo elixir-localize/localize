@@ -68,6 +68,21 @@ test_locales = [
   "zh-Hant-HK"
 ]
 
+# The locale cache is shared by every branch checked out here, so running
+# another branch's tests leaves that branch's data in place of this one's,
+# and data for a CLDR pre-release is not on the CDN to download again. A
+# test locale whose cached copy is missing or stale is therefore regenerated
+# from the CLDR sources when the recorded ones are present; the download
+# below fetches anything still missing.
+if Localize.Data.sources_available?() do
+  for name <- test_locales,
+      {:ok, locale_id} <- [Localize.Locale.cldr_locale_id_from(name)],
+      Localize.Locale.Provider.Cache.stale?(locale_id) do
+    IO.puts("Regenerating #{locale_id} from the CLDR sources")
+    Localize.Data.Locale.generate_and_save_locale(Atom.to_string(locale_id))
+  end
+end
+
 Mix.Tasks.Localize.DownloadLocales.run(test_locales)
 
 # The inflection conformance suites need the inflection data for every

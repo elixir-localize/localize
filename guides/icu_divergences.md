@@ -73,7 +73,7 @@ Collation carries no exclusions at all: all 210,155 pairs in both CLDR conforman
 
 ## Adding a divergence
 
-1. **Read the locale's data.** Open the relevant file under `priv/cldr/locales/<locale>/` and find the pattern or symbol in question. If Localize is not rendering what is there, it is a defect — stop and fix it.
+1. **Read the locale's data.** Open the relevant file in the cldr-json bundle, under `$CLDR_PRODUCTION/cldr-*-full/main/<locale>/`, and find the pattern or symbol in question. If Localize is not rendering what is there, it is a defect — stop and fix it.
 2. **Check what produced the fixture.** Find the generator in `$CLDR_REPO/tools/` and read the API call. A contract mismatch is fixed in the test, not recorded as a divergence.
 3. **Record it with its evidence.** Name what CLDR ships and what ICU renders, so the entry can be re-checked without repeating the investigation.
 4. **Assert the count, not just the membership.** An exclusion that silently absorbs new failures stops being a record and becomes a blind spot.

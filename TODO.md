@@ -4,11 +4,11 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **Stop carrying the 554 MB CLDR source payload in the working tree** — 96% of it is JSON that `unicode-org/cldr-json` already publishes as an 80 MB release asset, and `main` tracking it while `cldr-49` ignores it is what makes switching between them error-prone. Analysis in [plans/cldr-source-payload.md](plans/cldr-source-payload.md).
-
 * [ ] **Decide whether root's `arab` and `arabext` blocks become a pipeline source** — plan item 38: CLDR JSON does not carry them, so `en-u-nu-arab` formats with the locale's `latn` symbols until `common/main/root.xml` is read directly.
 
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
+
+* [ ] **Sort the lists public functions build from atom-keyed maps** — on OTP 26 and later a small map's atom keys come back in atom-creation order, so `Map.keys/1` output varies between VMs; `Localize.Number.System`, `Localize.Number.Format` (number systems for a locale), `Localize.Collation.Tailoring` and the allowed values in `Localize.Number.Symbol`'s error still return it unsorted. `Localize.Number.Rbnf.rule_names_for_locale/1` was fixed 2026-09-25.
 
 ## In progress
 
@@ -25,6 +25,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **The pipeline reads the CLDR sources in place** — nothing is copied into `priv/cldr` any more, the cldr-json release and CLDR ref are recorded in `priv/localize`, and `mix localize.fetch_sources` fetches them, so checking out `main` needs no ceremony. Details in [plans/cldr-source-payload.md](plans/cldr-source-payload.md). 2026-09-25.
 
 * [x] **Pattern fields at a width TR35 does not list format as U+FFFD** — `dddd`, `MMMMMM`, `HHH` and the rest follow TR35's Handling Invalid Patterns instead of ICU's padding and clamping; an undefined letter stays an error. 2026-09-25.
 
