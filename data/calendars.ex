@@ -1,27 +1,19 @@
 defmodule Localize.Data.Calendars do
   @moduledoc """
-  Generates calendar support data from `calendarData.json`, overlaying the
-  curated Japanese era set.
+  Generates calendar support data from `calendarData.json`, overlaying the curated Japanese era set.
 
-  CLDR 49 ships era data for Meiji onwards only — five of the 237 Japanese
-  eras — having dropped everything before it. Localize keeps the full range:
-  the use cases that need it (academic publishing, genealogy, museum
-  cataloguing, calendar conversion) are the ones CLDR is stepping back from.
+  CLDR 49 ships era data for Meiji onwards only — five of the 237 Japanese eras — having dropped everything before it. Localize keeps the full range: the use cases that need it (academic publishing, genealogy, museum cataloguing, calendar conversion) are the ones CLDR is stepping back from.
 
-  The curated set also corrects what CLDR recorded. A pre-Meiji CLDR entry
-  held the *lunisolar* proclamation date in a field the rest of the file
-  reads as proleptic Gregorian, so 大化 was `[645, 6, 19]` — 6月19日 of the
-  old calendar — where the proleptic Gregorian date is 645-07-20. All 231
-  pre-Meiji entries were affected. The conversions, their citations and
-  their confidence levels are recorded in
-  `plans/japanese_eras_research.json`; the build reads the distilled
-  `priv/localize/curated/japanese_eras.json`.
+  The curated set also corrects what CLDR recorded. A pre-Meiji CLDR entry held the *lunisolar* proclamation date in a field the rest of the file reads as proleptic Gregorian, so 大化 was `[645, 6, 19]` — 6月19日 of the old calendar — where the proleptic Gregorian date is 645-07-20. All 231 pre-Meiji entries were affected. The conversions, their citations and their confidence levels are recorded in `plans/japanese_eras_research.json`; the build reads the distilled `priv/localize/curated/japanese_eras.json`.
+
+  The names of the pre-Meiji eras are Localize's own data too, kept from CLDR 48.2 in `priv/localize/curated/japanese_era_names.json`. The locale generator merges them into each locale through `japanese_era_names/1`.
 
   """
 
   alias Localize.Utils.Map, as: LMap
 
   @curated_eras "priv/localize/curated/japanese_eras.json"
+  @curated_era_names "priv/localize/curated/japanese_era_names.json"
 
   # CLDR's `generic` calendar carries no data Localize consumes.
   @skip_calendars ["generic"]
@@ -90,6 +82,40 @@ defmodule Localize.Data.Calendars do
         else: attributes
 
     [index, attributes]
+  end
+
+  @doc """
+  Returns the curated names of the Japanese eras before Meiji for a locale.
+
+  CLDR 49 names the Japanese eras from Meiji onwards only; the earlier names are kept from CLDR 48.2. A locale's names are those recorded for `und`, overlaid with those of each shorter form of the locale name and then the locale's own.
+
+  ### Arguments
+
+  * `locale` is a CLDR locale name, such as `"ja"` or `"sr-Latn-BA"`.
+
+  ### Returns
+
+  * A map of CLDR's era-name keys (`"eraNames"`, `"eraAbbr"` and `"eraNarrow"`) to maps of era index strings to names, in the shape of CLDR's locale JSON.
+
+  """
+  @spec japanese_era_names(String.t()) :: %{String.t() => %{String.t() => String.t()}}
+  def japanese_era_names(locale) do
+    names_by_locale =
+      @curated_era_names
+      |> File.read!()
+      |> :json.decode()
+      |> Map.fetch!("locales")
+
+    locale
+    |> inheritance_chain()
+    |> Enum.reduce(%{}, &LMap.deep_merge(&2, Map.get(names_by_locale, &1, %{})))
+  end
+
+  # `und`, then each shorter form of the locale name, then the name itself:
+  # "sr-Latn-BA" gives ["und", "sr", "sr-Latn", "sr-Latn-BA"].
+  defp inheritance_chain(locale) do
+    subtags = String.split(locale, "-")
+    ["und" | for(count <- 1..length(subtags), do: subtags |> Enum.take(count) |> Enum.join("-"))]
   end
 
   defp calendar_data("japanese", data) do

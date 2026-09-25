@@ -52,6 +52,7 @@ defmodule Localize.Data.Locale do
   def generate_locale(locale) do
     consolidate_locale_content(locale)
     |> level_up_locale(locale)
+    |> put_japanese_era_names(locale)
     |> put_localized_subdivisions(locale)
     |> LMap.underscore_keys(
       except: "locale_display_names",
@@ -119,6 +120,22 @@ defmodule Localize.Data.Locale do
 
   defp level_up_locale(content, locale) do
     get_in(content, ["main", locale])
+  end
+
+  # CLDR 49 names the Japanese eras from Meiji onwards only. The earlier
+  # names are Localize's own data, kept from CLDR 48, and they are merged
+  # over CLDR's so that the curated names hold for every pre-Meiji era.
+  defp put_japanese_era_names(content, locale) do
+    path = ["dates", "calendars", "japanese", "eras"]
+
+    case get_in(content, path) do
+      %{} = eras ->
+        curated = Localize.Data.Calendars.japanese_era_names(locale)
+        put_in(content, path, LMap.deep_merge(eras, curated))
+
+      _no_japanese_eras ->
+        content
+    end
   end
 
   defp put_localized_subdivisions(result, locale) do

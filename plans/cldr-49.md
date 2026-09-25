@@ -68,7 +68,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 11 | `localize_emoji` sibling library                  | New package | None          |
 | 12 | `common/testData` conformance-fixture audit       | None (tests only) | **Output changes** — ✅ Done. Skeleton suite wired in at 83/90; the date-time wrapper now defaults to TR35's `atTime` |
 | 13 | CDN-asset checksum manifests                       | None       | None — ✅ Done in Localize 0.44.0 |
-| 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Output changes** — ✅ Done. All 237 eras generated from curated research; pre-Meiji dates were CLDR's lunisolar values and are now proleptic Gregorian |
+| 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Output changes** — ✅ Done. All 237 eras generated from curated research; pre-Meiji dates were CLDR's lunisolar values and are now proleptic Gregorian, and their names are kept from CLDR 48.2 |
 | 15 | POSIX `yesstr` / `nostr` responses                  | New functions | None — ✅ Done. `affirmative_responses/1`, `negative_responses/1`, `affirmative?/2`, `negative?/2` |
 | 16 | `typeValues` On/Off translations (CLDR 49, CLDR-19394) | New functions | None — ✅ Done. `LocaleDisplay.type_value_name/2`; an upstream cldr-json defect found alongside |
 | 16a | cldr-json discards `scope="core"` display names | None (upstream) | None — upstream defect. 6,499 collapsed `(locale, key)` pairs across 458 locales; `en` keeps 15 of 102 short names |
@@ -923,7 +923,7 @@ The design plan — validation methodology, primary sources, per-era tracking ta
 
 ### Gap
 
-CLDR 49 drops era data for every era before Meiji — indices 0–231, which is **232 of the 237 entries**. Only Meiji through Reiwa (232–236) survive upstream.
+CLDR 49 drops era data for every era before Meiji — indices 0–231, which is **232 of the 237 entries** — both the start dates and, in every locale, the era names. Only Meiji through Reiwa (232–236) survive upstream.
 
 Localize's position is that the use cases needing this data — academic publishing, genealogy, museum cataloguing, calendar conversion — are exactly the ones CLDR is stepping back from, so we keep shipping it and own the validation.
 
@@ -936,8 +936,9 @@ Localize's position is that the use cases needing this data — academic publish
 1. ✅ **Snapshot taken.** `priv/localize/supplemental_data/japanese_eras_snapshot_cldr48.etf` freezes the full 237-entry CLDR 48.2 set — the last upstream-sourced copy — for diffing. It is deliberately no longer equal to the active set; that difference *is* the correction.
 2. ✅ **Pipeline hooked.** [data/calendars.ex](../data/calendars.ex) generates `calendars.etf`, taking CLDR's data for the other sixteen calendars and the curated set for the Japanese eras. `calendarData.json` joins the copied supplemental sources.
 3. ✅ **Research landed.** The build input is [priv/localize/curated/japanese_eras.json](../priv/localize/curated/japanese_eras.json), distilled from [plans/japanese_eras_research.json](japanese_eras_research.json) — the citation record, which stays the source of truth. Each era publishes its `best_pg`, the researched proleptic-Gregorian conversion. 白鳳 carries `private_era: true` as a 私年号; the four entries without primary-source attestation (indices 2, 25, 167, 187) carry `unverified: true` rather than being dropped, since dropping them would break the index space consumers hold.
-4. ✅ **Regression tests landed.** [test/localize/japanese_eras_test.exs](../test/localize/japanese_eras_test.exs) asserts the count and contiguity, that the pre-Meiji range is not CLDR 49's truncated set, that the conversions replaced CLDR's lunisolar values, that the modern eras still match upstream, the provenance flags, and that the curated file has not drifted from the research dataset — the CI sync check [plans/japanese_eras.md](japanese_eras.md) asked for.
-5. Continue the per-era validation pass on its own schedule — it does not gate the CLDR 49 release. Index 167 is the open row: CLDR carries it with no era name and a lunisolar value matching 嘉慶's at index 166, so the two are likely one era recorded twice.
+4. ✅ **Names kept.** CLDR 49 drops the pre-Meiji era names from every locale too. [priv/localize/curated/japanese_era_names.json](../priv/localize/curated/japanese_era_names.json) keeps CLDR 48.2's, and `Localize.Data.Locale` merges them into each locale as it generates it.
+5. ✅ **Regression tests landed.** [test/localize/japanese_eras_test.exs](../test/localize/japanese_eras_test.exs) asserts the count and contiguity, that the pre-Meiji range is not CLDR 49's truncated set, that the conversions replaced CLDR's lunisolar values, that the modern eras still match upstream, the provenance flags, and that the curated file has not drifted from the research dataset — the CI sync check [plans/japanese_eras.md](japanese_eras.md) asked for.
+6. Continue the per-era validation pass on its own schedule — it does not gate the CLDR 49 release. Index 167 is the open row: CLDR carries it with no era name and a lunisolar value matching 嘉慶's at index 166, so the two are likely one era recorded twice.
 
 ### API impact / breaking risk
 

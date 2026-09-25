@@ -58,7 +58,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * **Breaking for historical Japanese dates.** Pre-Meiji era start dates are now proleptic Gregorian. CLDR recorded the lunisolar proclamation date in a proleptic-Gregorian field for all 231 pre-Meiji eras, so every era before Meiji moves by days to weeks.
 
-* The Japanese calendar keeps all 237 eras, from 大化 (645) to 令和, from curated research rather than upstream — CLDR 49 ships only Meiji onwards. 白鳳 is flagged `private_era: true`, and four entries lacking primary-source attestation carry `unverified: true`.
+* The Japanese calendar keeps all 237 eras, from 大化 (645) to 令和, where CLDR 49 ships only Meiji onwards: the earlier eras take their dates from curated research and their names, in every locale, from CLDR 48.2. 白鳳 is flagged `private_era: true`, and four entries lacking primary-source attestation carry `unverified: true`.
 
 * **Breaking.** Collation moves to Unicode 18 / UCA 18.0.0 from Unicode 17. Primary weights shift wherever UCA inserts a character ahead of an existing one, so any persisted `Localize.Collation.sort_key/2` must be regenerated; `compare/3` is unaffected for pre-existing characters.
 

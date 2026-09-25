@@ -8,6 +8,10 @@ defmodule Localize.JapaneseErasTest do
   proleptic Gregorian. Localize publishes the full range, converted, from
   `priv/localize/curated/japanese_eras.json`.
 
+  CLDR 49 also names only the eras from Meiji onwards. The earlier names are
+  kept from CLDR 48.2 in `priv/localize/curated/japanese_era_names.json` and
+  merged into every locale when it is generated.
+
   Nothing downstream asserts on historical era dates, so a regression here
   would otherwise be silent. See `plans/japanese_eras.md`.
   """
@@ -28,6 +32,16 @@ defmodule Localize.JapaneseErasTest do
 
   @research Path.join([__DIR__, "..", "..", "plans", "japanese_eras_research.json"])
 
+  @curated_names Path.join([
+                   __DIR__,
+                   "..",
+                   "..",
+                   "priv",
+                   "localize",
+                   "curated",
+                   "japanese_era_names.json"
+                 ])
+
   defp eras do
     Localize.SupplementalData.calendars()
     |> get_in([:japanese, :eras])
@@ -37,6 +51,43 @@ defmodule Localize.JapaneseErasTest do
 
   defp curated do
     @curated |> File.read!() |> :json.decode() |> Map.fetch!("eras")
+  end
+
+  describe "era names" do
+    test "every era is named at every width" do
+      for locale <- [:en, :ja, :fr, :"zh-Hant", :ko, :he],
+          {:ok, eras} = Localize.Calendar.eras(locale, :japanese),
+          width <- [:wide, :abbreviated, :narrow] do
+        indices = eras |> Map.fetch!(width) |> Map.keys() |> Enum.sort()
+        assert indices == Enum.to_list(0..236), "#{locale} #{width}"
+      end
+    end
+
+    test "the pre-Meiji eras keep their CLDR 48.2 names" do
+      assert {:ok, %{abbreviated: %{227 => "安政"}}} = Localize.Calendar.eras(:ja, :japanese)
+      assert {:ok, %{wide: %{0 => "Taika (645–650)"}}} = Localize.Calendar.eras(:en, :japanese)
+      assert {:ok, %{wide: %{10 => "Tenpyō (729–749)"}}} = Localize.Calendar.eras(:fr, :japanese)
+    end
+
+    test "the modern eras keep CLDR 49's names" do
+      assert {:ok, %{abbreviated: %{232 => "明治", 236 => "令和"}}} =
+               Localize.Calendar.eras(:ja, :japanese)
+    end
+
+    test "the curated names cover every pre-Meiji era and no other" do
+      locales = @curated_names |> File.read!() |> :json.decode() |> Map.fetch!("locales")
+
+      for width <- ["eraNames", "eraAbbr", "eraNarrow"] do
+        indices =
+          locales |> get_in(["und", width]) |> Map.keys() |> Enum.map(&String.to_integer/1)
+
+        assert Enum.sort(indices) == Enum.to_list(0..231), width
+      end
+
+      for {locale, widths} <- locales, {width, names} <- widths, {index, _name} <- names do
+        assert String.to_integer(index) in 0..231, "#{locale} #{width} #{index}"
+      end
+    end
   end
 
   describe "era set completeness" do
