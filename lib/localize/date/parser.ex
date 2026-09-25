@@ -605,7 +605,7 @@ defmodule Localize.Date.Parser do
   # the Date construction.
   defp partial_to_map(side, inherit_from, calendar_module) do
     year = side.year || inherit_from.year
-    month = side.month || inherit_from.month
+    month = named_month(side.month || inherit_from.month, year, calendar_module)
     day = side.day || inherit_from.day
 
     %{calendar: calendar_module}
@@ -937,10 +937,33 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  defp extract_month_by_name(caps, prefix) do
-    case prefixed_indexed_capture(caps, prefix, "__m", ~r/__m(\d+)__$/) do
-      n when is_integer(n) and n in 1..13 -> n
-      _ -> nil
+  defp extract_month_by_name(caps, prefix), do: named_month_capture(caps, prefix)
+
+  # The month a `<prefix>__mN__` capture names. A month name gives CLDR's
+  # number for the month, `{:named, n}`, or `{:named, {n, :leap}}` for
+  # CLDR's leap-year name of month `n` (the `7_yeartype_leap` capture,
+  # Hebrew "Adar II"). It becomes the month of the date only once the year
+  # is known (`named_month/3`).
+  defp named_month_capture(caps, prefix) do
+    marker = prefix <> "__m"
+
+    case Enum.find(caps, fn {key, value} -> String.starts_with?(key, marker) and value != "" end) do
+      {key, _value} ->
+        key
+        |> String.replace_prefix(marker, "")
+        |> String.replace_suffix("__", "")
+        |> named_month_index()
+
+      nil ->
+        nil
+    end
+  end
+
+  defp named_month_index(index) do
+    case Integer.parse(index) do
+      {n, ""} when n in 1..13 -> {:named, n}
+      {n, "_yeartype_leap"} when n in 1..13 -> {:named, {n, :leap}}
+      _other -> nil
     end
   end
 
@@ -976,6 +999,7 @@ defmodule Localize.Date.Parser do
       :error
     else
       with {:ok, calendar_module} <- resolve_calendar_module(cldr_calendar),
+           month when is_integer(month) <- named_month(month, year, calendar_module),
            {:ok, date} <- build_date(year, month, day, calendar_module) do
         {:ok, date}
       else
@@ -2260,7 +2284,7 @@ defmodule Localize.Date.Parser do
       {:ok,
        %{
          year: calendar_year,
-         month: extract_optional_month(caps),
+         month: caps |> extract_optional_month() |> named_month(calendar_year, calendar_module),
          day: extract_optional_day(caps),
          quarter: extract_optional_quarter(caps),
          week_of_year: extract_optional_int(caps, "week_of_year"),
@@ -2317,10 +2341,56 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  defp extract_optional_month(caps) do
-    case named_capture_index(caps, "__m") do
-      n when is_integer(n) and n in 1..13 -> n
-      _ -> nil
+  defp extract_optional_month(caps), do: named_month_capture(caps, "")
+
+  # A month name gives CLDR's number for the month. It is the month of the
+  # date only in a calendar that numbers its months that way; the month is
+  # the one of `year` whose `month_of_year/3` (the key the calendar's month
+  # names are found by) is that number. So a Hebrew month after Adar I sits
+  # one place earlier in an ordinary year, and a Chinese month one place
+  # later after a leap month. A plain name of a month that `year` has only
+  # as a leap variant (Adar, in a Hebrew leap year) names that variant. A
+  # name the year has no month for gives `nil`. Without a year, the month is
+  # CLDR's number.
+  defp named_month({:named, month}, year, calendar_module) when is_integer(year) do
+    if month_names_by_position?(calendar_module) do
+      month_named(month, year, calendar_module)
+    else
+      cldr_month_number(month)
+    end
+  end
+
+  defp named_month({:named, month}, _year, _calendar_module), do: cldr_month_number(month)
+  defp named_month(month, _year, _calendar_module), do: month
+
+  defp cldr_month_number({month, :leap}), do: month
+  defp cldr_month_number(month), do: month
+
+  # A calendar names its months through `month_of_year/3`. A week-based
+  # calendar's dates carry a week, not a month, so its month names are not
+  # positions in the year.
+  defp month_names_by_position?(calendar_module) do
+    Code.ensure_loaded?(calendar_module) and
+      function_exported?(calendar_module, :month_of_year, 3) and
+      function_exported?(calendar_module, :calendar_base, 0) and
+      calendar_module.calendar_base() == :month
+  end
+
+  defp month_named({_month, :leap} = leap_month, year, calendar_module) do
+    Enum.find(
+      1..calendar_module.months_in_year(year)//1,
+      &(calendar_module.month_of_year(year, &1, 1) == leap_month)
+    )
+  end
+
+  defp month_named(month, year, calendar_module) do
+    if calendar_module.month_of_year(year, month, 1) == month do
+      month
+    else
+      months = 1..calendar_module.months_in_year(year)//1
+
+      Enum.find(months, &(calendar_module.month_of_year(year, &1, 1) == month)) ||
+        Enum.find(months, &(calendar_module.month_of_year(year, &1, 1) == {month, :leap}))
     end
   end
 
