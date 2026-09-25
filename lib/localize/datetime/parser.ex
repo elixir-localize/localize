@@ -101,16 +101,22 @@ defmodule Localize.DateTime.Parser do
     end
   end
 
+  # The `:calendar` option is the caller's calendar module, and the date
+  # and datetime parsers build their results in it.
   defp parse_valid(input, options) do
-    options = Localize.Date.Parser.normalise_calendar_option(options)
+    with {:ok, calendar_module} <- Localize.Date.Parser.calendar_option(options) do
+      parse_with_calendar(input, options, calendar_module)
+    end
+  end
+
+  defp parse_with_calendar(input, options, calendar_module) do
     locale = Keyword.get(options, :locale) || Localize.get_locale()
-    cldr_calendar = Keyword.get(options, :calendar, :gregorian)
     trimmed = String.trim(input)
 
     attempts = []
 
     with {:next, attempts} <-
-           try_interval(trimmed, locale, cldr_calendar, options, attempts),
+           try_interval(trimmed, locale, calendar_module, options, attempts),
          {:next, attempts} <- try_date(trimmed, options, attempts),
          {:next, attempts} <- try_time(trimmed, options, attempts),
          {:next, attempts} <- try_datetime(trimmed, options, attempts) do
@@ -147,8 +153,8 @@ defmodule Localize.DateTime.Parser do
   # (e.g. a bare 4-digit year that could be a date or a time) the date
   # interpretation wins.
 
-  defp try_interval(input, locale, cldr_calendar, options, attempts) do
-    if has_interval_separator?(input, locale, cldr_calendar) do
+  defp try_interval(input, locale, calendar_module, options, attempts) do
+    if has_interval_separator?(input, locale, calendar_module) do
       case Localize.Interval.parse(input, options) do
         {:ok, _} = ok -> ok
         {:error, err} -> {:next, [{:interval, err} | attempts]}
@@ -184,8 +190,8 @@ defmodule Localize.DateTime.Parser do
   # `Localize.Date.Parser.split_on_interval_separator/3` so that
   # anything `Localize.Interval.parse/2` could match is also detected
   # here.
-  defp has_interval_separator?(input, locale, cldr_calendar) do
-    cldr_sep = lookup_interval_separator(locale, cldr_calendar)
+  defp has_interval_separator?(input, locale, calendar_module) do
+    cldr_sep = lookup_interval_separator(locale, calendar_module)
 
     candidates =
       [cldr_sep | ["–", "—", "−", "〜", "~", " - ", " / ", " to "]]
@@ -200,7 +206,9 @@ defmodule Localize.DateTime.Parser do
     end)
   end
 
-  defp lookup_interval_separator(locale, cldr_calendar) do
+  defp lookup_interval_separator(locale, calendar_module) do
+    cldr_calendar = Localize.Date.Parser.cldr_calendar_type(calendar_module)
+
     case Format.interval_formats(locale, cldr_calendar) do
       {:ok, intervals} ->
         case Map.get(intervals, :interval_format_fallback) do
@@ -217,15 +225,12 @@ defmodule Localize.DateTime.Parser do
   @spec parse_datetime(String.t(), Keyword.t()) ::
           {:ok, NaiveDateTime.t() | DateTime.t() | map()} | {:error, Exception.t()}
   def parse_datetime(input, options \\ []) when is_binary(input) do
-    cldr_calendar =
-      Localize.Date.Parser.normalise_calendar(Keyword.get(options, :calendar, :gregorian))
-
-    with {:ok, _calendar_module} <- Localize.Date.Parser.validate_calendar(cldr_calendar) do
-      do_parse_datetime(input, options, cldr_calendar)
+    with {:ok, calendar_module} <- Localize.Date.Parser.calendar_option(options) do
+      do_parse_datetime(input, options, calendar_module)
     end
   end
 
-  defp do_parse_datetime(input, options, cldr_calendar) do
+  defp do_parse_datetime(input, options, calendar_module) do
     locale = Keyword.get(options, :locale) || Localize.get_locale()
 
     as = Keyword.get(options, :as, :struct)
@@ -239,7 +244,7 @@ defmodule Localize.DateTime.Parser do
     # `Date.parse/2` already runs the ordinal-fallback retry per
     # endpoint.
     normalised = Localize.Date.Parser.normalise_input(input)
-    stripped = Localize.Date.Parser.preprocess_safe(normalised, locale, cldr_calendar)
+    stripped = Localize.Date.Parser.preprocess_safe(normalised, locale, calendar_module)
     candidates = Enum.uniq([normalised, stripped])
 
     case Enum.find_value(candidates, :error, &iso_candidate/1) do

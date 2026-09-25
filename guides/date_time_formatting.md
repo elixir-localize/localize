@@ -407,7 +407,7 @@ Input that omits the *day* is a different matter: there is no `t:Date.t/0` for "
 
 ```elixir
 iex> Localize.Date.parse("March 2026", locale: :en)
-{:error, %Localize.DateParseError{input: "March 2026", locale: :en, calendar: :gregorian}}
+{:error, %Localize.DateParseError{input: "March 2026", locale: :en, calendar: Calendar.ISO}}
 
 iex> Localize.Date.parse("March 2026", locale: :en, as: :map)
 {:ok, %{calendar: Calendar.ISO, month: 3, year: 2026}}
@@ -474,25 +474,24 @@ Add [calendrical](https://hex.pm/packages/calendrical) to resolve named zones to
 
 ### Calendars
 
-The `:calendar` option accepts a CLDR calendar name or a calendar module, and parsing needs that calendar's module to be **available at runtime**. `Calendar.ISO` — the Elixir default, and CLDR's `:gregorian` — is always available, so the default case never requires anything extra. Every other calendar is supplied by [calendrical](https://hex.pm/packages/calendrical):
+The `:calendar` option is a calendar module: `Calendar.ISO`, the default, or any module implementing the `Calendar` behaviour, such as `Calendrical.Hebrew` from [calendrical](https://hex.pm/packages/calendrical). The input is read with the locale's patterns for that calendar, and the date is built and returned in the module you name. A CLDR calendar name such as `:hebrew` is not a calendar, and neither is a module that is not installed:
 
 ```elixir
-# Always available
 Localize.Date.parse("22.03.2026", locale: :de, calendar: Calendar.ISO)
 #=> {:ok, ~D[2026-03-22]}
 
-# Needs calendrical
-Localize.Date.parse("22.03.2026", locale: :de, calendar: :hebrew)
-#=> {:error, %Localize.DependencyRequiredError{package: "calendrical"}}
+# With calendrical installed
+Localize.Date.parse("22.03.2026", locale: :de, calendar: Calendrical.Gregorian)
+#=> {:ok, ~D[2026-03-22 Calendrical.Gregorian]}
 
-# Not a calendar at all
-Localize.Date.parse("22.03.2026", locale: :de, calendar: :bogus)
-#=> {:error, %Localize.UnknownCalendarError{calendar: :bogus}}
+# A CLDR calendar name is not a calendar
+Localize.Date.parse("22.03.2026", locale: :de, calendar: :hebrew)
+#=> {:error, %Localize.UnknownCalendarError{calendar: :hebrew}}
 ```
 
-The calendar is resolved before any parsing happens, so the answer does not depend on the shape of the input: ISO 8601 and locale-formatted text both return the same error for the same `:calendar`. A `Localize.DependencyRequiredError` names the package to add; a `Localize.UnknownCalendarError` means the calendar is not a CLDR calendar and not a `Calendar` implementation. Any module implementing the `Calendar` behaviour is accepted directly, so a custom calendar needs no CLDR registration.
+The calendar is checked before any parsing happens, so the answer does not depend on the shape of the input: ISO 8601 and locale-formatted text both return the same error for the same `:calendar`. Any module implementing the `Calendar` behaviour is accepted, so a custom calendar needs no CLDR registration; one that names no CLDR calendar type is read with the Gregorian patterns.
 
-`:return_calendar` governs the calendar of the returned date, not the one the input is read in, so it does not waive this — parsing "1 Tishrei 5787" still needs the Hebrew calendar even when you want an ISO date back.
+`:return_calendar` governs the calendar of the returned date, not the one the input is read in, so it does not waive this — parsing "1 Tishrei 5787" still needs `Calendrical.Hebrew` even when you want an ISO date back.
 
 A time carries no date fields, so `Localize.Time.parse/2` resolves no calendar and the option has no effect there.
 

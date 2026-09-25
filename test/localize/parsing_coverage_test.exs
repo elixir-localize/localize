@@ -1,6 +1,22 @@
 defmodule Localize.ParsingCoverageTest do
   use ExUnit.Case, async: true
 
+  # A calendar sharing its CLDR type with another, as `Calendrical.Gregorian`
+  # does with `Calendar.ISO`: every `Calendar` callback is `Calendar.ISO`'s.
+  defmodule GregorianLike do
+    @moduledoc false
+    @behaviour Calendar
+
+    def cldr_calendar_type, do: :gregorian
+
+    for {name, arity} <- Calendar.behaviour_info(:callbacks) do
+      args = Macro.generate_arguments(arity, __MODULE__)
+
+      def unquote(name)(unquote_splicing(args)),
+        do: Calendar.ISO.unquote(name)(unquote_splicing(args))
+    end
+  end
+
   doctest Localize.DateTime.ParseOptions
   doctest Localize.DateTime.Week
 
@@ -143,28 +159,42 @@ defmodule Localize.ParsingCoverageTest do
   # their per-calendar parsing behaviour is covered by that package's own
   # suite.
   describe "Date.parse/2 calendar handling" do
-    test "the default calendar needs no dependency" do
-      for calendar <- [:gregorian, Calendar.ISO] do
-        assert Localize.Date.parse("2026-05-16", locale: :en, calendar: calendar) ==
-                 {:ok, ~D[2026-05-16]}
+    test "the default calendar is Calendar.ISO" do
+      assert Localize.Date.parse("2026-05-16", locale: :en) == {:ok, ~D[2026-05-16]}
+
+      assert Localize.Date.parse("2026-05-16", locale: :en, calendar: Calendar.ISO) ==
+               {:ok, ~D[2026-05-16]}
+    end
+
+    test "a CLDR calendar type is not a calendar" do
+      for calendar <- [:gregorian, :hebrew, :chinese, :buddhist, :coptic, :islamic, :persian] do
+        assert {:error, %Localize.UnknownCalendarError{calendar: ^calendar}} =
+                 Localize.Date.parse("2026-05-16", locale: :en, calendar: calendar)
       end
     end
 
-    test "a CLDR calendar whose module is absent names the package it needs" do
-      for calendar <- [:hebrew, :chinese, :buddhist, :coptic, :islamic, :persian] do
-        assert {:error, %Localize.DependencyRequiredError{package: "calendrical"}} =
-                 Localize.Date.parse("2026-05-16", locale: :en, calendar: calendar)
-      end
+    test "the date is built and returned in the calendar module given" do
+      assert {:ok, %Date{calendar: GregorianLike, year: 2026, month: 5, day: 16}} =
+               Localize.Date.parse("16.05.2026", locale: :de, calendar: GregorianLike)
+
+      assert {:ok, %Date{calendar: GregorianLike, year: 2026, month: 5, day: 16}} =
+               Localize.Date.parse("2026-05-16", locale: :en, calendar: GregorianLike)
+
+      assert {:ok, %{calendar: GregorianLike, year: 2026, month: 5, day: 16}} =
+               Localize.Date.parse("16.05.2026", locale: :de, calendar: GregorianLike, as: :map)
+
+      assert {:ok, %Date.Range{first: %Date{calendar: GregorianLike}}} =
+               Localize.Interval.parse("May 5 – 10, 2026", locale: :en, calendar: GregorianLike)
     end
 
     # Both input shapes must agree. The ISO path used to skip calendar
     # resolution entirely and return a Gregorian date, so asking for a
     # calendar it could not honour succeeded with the wrong answer.
     test "ISO and locale-formatted input agree about an unavailable calendar" do
-      iso = Localize.Date.parse("2026-05-16", locale: :de, calendar: :hebrew)
-      locale = Localize.Date.parse("16.05.2026", locale: :de, calendar: :hebrew)
+      iso = Localize.Date.parse("2026-05-16", locale: :de, calendar: Calendrical.Hebrew)
+      locale = Localize.Date.parse("16.05.2026", locale: :de, calendar: Calendrical.Hebrew)
 
-      assert {:error, %Localize.DependencyRequiredError{}} = iso
+      assert {:error, %Localize.UnknownCalendarError{}} = iso
       assert iso == locale
     end
 
@@ -179,10 +209,10 @@ defmodule Localize.ParsingCoverageTest do
     # one the input is interpreted in, so it cannot stand in for a calendar
     # module that is not installed.
     test "return_calendar: :iso does not waive the parsing calendar" do
-      assert {:error, %Localize.DependencyRequiredError{}} =
+      assert {:error, %Localize.UnknownCalendarError{}} =
                Localize.Date.parse("2026-05-16",
                  locale: :en,
-                 calendar: :hebrew,
+                 calendar: Calendrical.Hebrew,
                  return_calendar: :iso
                )
 
@@ -224,11 +254,11 @@ defmodule Localize.ParsingCoverageTest do
 
       assert error.input == "not a date"
       assert error.locale == :en
-      assert error.calendar == :gregorian
+      assert error.calendar == Calendar.ISO
 
       assert Exception.message(error) ==
                "could not parse \"not a date\" as a date in locale :en " <>
-                 "(calendar :gregorian); ISO-8601 (YYYY-MM-DD) is always accepted as a fallback"
+                 "(calendar Calendar.ISO); ISO-8601 (YYYY-MM-DD) is always accepted as a fallback"
     end
 
     test "unparseable input in :de (locale without ordinal suffixes)" do
@@ -1089,9 +1119,9 @@ defmodule Localize.ParsingCoverageTest do
                {:ok, ~D[2026-05-23]}
     end
 
-    test "a non-Gregorian calendar without calendrical names the missing package" do
-      assert {:error, %Localize.DependencyRequiredError{package: "calendrical"}} =
-               Localize.Date.parse("令和8年5月23日", locale: :ja, calendar: :japanese)
+    test "a calendar module that is not installed is rejected" do
+      assert {:error, %Localize.UnknownCalendarError{calendar: Calendrical.Japanese}} =
+               Localize.Date.parse("令和8年5月23日", locale: :ja, calendar: Calendrical.Japanese)
     end
   end
 

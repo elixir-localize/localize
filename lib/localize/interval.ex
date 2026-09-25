@@ -1370,9 +1370,8 @@ defmodule Localize.Interval do
   ### Options
 
   Same as `Localize.Date.parse/2` — `:locale`, `:calendar`,
-  `:reference_date`, `:as`. As there, the calendar named by `:calendar`
-  must be available at runtime; `Calendar.ISO` always is, and the rest
-  come from [calendrical](https://hex.pm/packages/calendrical). Plus:
+  `:reference_date`, `:as`. As there, `:calendar` is a calendar module and
+  the endpoints are built in it. Plus:
 
   * `:allow_inverted` is a boolean. When `true`, an end-before-start
     interval is returned as-is, since `Date.range/3` builds a descending

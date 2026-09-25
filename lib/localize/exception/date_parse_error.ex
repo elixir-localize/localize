@@ -13,7 +13,7 @@ defmodule Localize.DateParseError do
 
   * `:locale` — the locale the parser tried.
 
-  * `:calendar` — the CLDR calendar key the parser tried.
+  * `:calendar` — the calendar module the input was parsed for.
 
   """
 
@@ -22,7 +22,7 @@ defmodule Localize.DateParseError do
   @type t :: %__MODULE__{
           input: String.t() | nil,
           locale: atom() | String.t() | nil,
-          calendar: atom() | nil
+          calendar: module() | nil
         }
 
   @impl true

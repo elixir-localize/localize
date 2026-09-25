@@ -979,15 +979,12 @@ defmodule Localize.DateTime do
   * `:locale` is a locale identifier. The default is the locale returned by
     `Localize.get_locale/0`.
 
-  * `:calendar` is a CLDR calendar name or calendar module. The default is
-    `:gregorian`, i.e. `Calendar.ISO`. The resolved calendar must be
-    available at runtime: `Calendar.ISO` always is, and every other CLDR
-    calendar is supplied by the companion
-    [calendrical](https://hex.pm/packages/calendrical) package. Without
-    it, a non-Gregorian calendar returns a
-    `t:Localize.DependencyRequiredError.t/0` naming the package to add,
-    and an unknown calendar returns a
-    `t:Localize.UnknownCalendarError.t/0`.
+  * `:calendar` is a calendar module, such as `Calendar.ISO` (the
+    default), `Calendrical.Gregorian` or `Calendrical.Hebrew`. The input is
+    read with the locale's patterns for the calendar's CLDR type, and the
+    date is built and returned in this module. Anything that is not a
+    calendar module, including a CLDR calendar name such as `:hebrew` or
+    `"gregorian"`, returns a `t:Localize.UnknownCalendarError.t/0`.
 
   * `:reference_date` is the `t:Date.t/0` that partial input is completed
     against. The default is today.
