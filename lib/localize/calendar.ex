@@ -785,7 +785,7 @@ defmodule Localize.Calendar do
   end
 
   def localize(datetime, :month, options) do
-    display_name(:month, month_of_year(datetime), localize_options(datetime, options))
+    month_name(month_of_year(datetime), localize_options(datetime, options))
   end
 
   def localize(datetime, :day_of_week, options) do

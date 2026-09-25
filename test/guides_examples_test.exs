@@ -164,13 +164,18 @@ defmodule Localize.GuidesExamplesTest do
       # exactly as a doctest block does.
       Localize.put_locale(Localize.default_locale())
 
-      {failures, checked, _binding} =
-        Enum.reduce(examples, {[], 0, []}, fn {expression, documented}, {bad, n, binding} ->
-          if excused?(expression) do
-            {bad, n, binding}
-          else
-            evaluate(expression, documented, bad, n, binding)
-          end
+      # An example may print, as the `IO.puts(ansi)` one in the message
+      # formatting guide does. Its output is captured, as a doctest's would
+      # be, so it does not land in the middle of the test run.
+      {{failures, checked, _binding}, _output} =
+        ExUnit.CaptureIO.with_io(fn ->
+          Enum.reduce(examples, {[], 0, []}, fn {expression, documented}, {bad, n, binding} ->
+            if excused?(expression) do
+              {bad, n, binding}
+            else
+              evaluate(expression, documented, bad, n, binding)
+            end
+          end)
         end)
 
       assert failures == [],

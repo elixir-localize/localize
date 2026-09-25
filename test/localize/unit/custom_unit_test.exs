@@ -202,8 +202,10 @@ defmodule Localize.Unit.CustomUnitTest do
       # comparable with every CLDR unit in the category.
       :ok = Unit.define_unit("guestnight", %{base_unit: "day", factor: 1, category: "duration"})
 
-      assert %{base_unit: "second", factor: 86_400.0, offset: 0.0} =
+      assert %{base_unit: "second", factor: 86_400.0, offset: offset} =
                CustomRegistry.get("guestnight")
+
+      assert offset == 0.0
     end
 
     test "is convertible against the derived unit it was defined from" do

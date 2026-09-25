@@ -174,7 +174,7 @@ defmodule Localize.Locale.FallbackResilienceTest do
         {:error, %_{} = exception} ->
           # Also acceptable: a structured Localize exception. What is
           # *not* acceptable is a crash or a bare-string error.
-          assert is_struct(exception)
+          assert is_exception(exception)
       end
     end)
   end
