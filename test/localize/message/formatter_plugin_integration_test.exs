@@ -94,13 +94,13 @@ defmodule Localize.Message.Formatter.PluginIntegrationTest do
   # ── helpers ────────────────────────────────────────────────────────
 
   defp mix(cwd, args) do
-    System.cmd("mix", args,
-      cd: cwd,
-      stderr_to_stdout: true,
-      env: [{"MIX_ENV", "dev"}]
-    )
-  rescue
-    _ -> {"mix not found", 127}
+    case System.find_executable("mix") do
+      nil ->
+        {"mix not found", 127}
+
+      mix ->
+        System.cmd(mix, args, cd: cwd, stderr_to_stdout: true, env: [{"MIX_ENV", "dev"}])
+    end
   end
 
   defp read_tree(root) do

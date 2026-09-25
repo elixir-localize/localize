@@ -202,16 +202,19 @@ defmodule Mix.Tasks.Localize.UpdateMf2Conformance do
     ]
   end
 
+  # `:json.decode/1` raises on text that is not JSON, so it runs in a
+  # process of its own.
   defp validate_json(body, name) do
-    case :json.decode(body) do
-      %{"tests" => tests} when is_list(tests) ->
+    case Localize.Utils.Helpers.run_isolated(fn -> :json.decode(body) end) do
+      {:ok, %{"tests" => tests}} when is_list(tests) ->
         :ok
 
-      _ ->
+      {:ok, _other} ->
         {:error, "#{name} is not a valid MF2 WG test file (no \"tests\" array)"}
+
+      {:error, _exception} ->
+        {:error, "#{name} is not valid JSON"}
     end
-  rescue
-    _ -> {:error, "#{name} is not valid JSON"}
   end
 
   # Best-effort count for diagnostic output. Non-fatal if JSON parsing
@@ -219,11 +222,9 @@ defmodule Mix.Tasks.Localize.UpdateMf2Conformance do
   defp test_count(""), do: 0
 
   defp test_count(body) do
-    case :json.decode(body) do
-      %{"tests" => tests} when is_list(tests) -> length(tests)
-      _ -> "?"
+    case Localize.Utils.Helpers.run_isolated(fn -> :json.decode(body) end) do
+      {:ok, %{"tests" => tests}} when is_list(tests) -> length(tests)
+      _not_a_test_file -> "?"
     end
-  rescue
-    _ -> "?"
   end
 end

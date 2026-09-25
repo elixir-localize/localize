@@ -147,13 +147,14 @@ defmodule Localize.Locale.Provider.Cache do
   end
 
   # `binary_to_term/1` raises on anything that is not a complete,
-  # well-formed external term — this is the only place pattern
-  # matching cannot replace the raise, so the rescue is a true
-  # system boundary around corrupt file content.
+  # well-formed external term and has no variant that returns an error,
+  # so it runs in a process of its own and corrupt file content comes
+  # back as an error.
   defp decode_etf(binary) do
-    {:ok, :erlang.binary_to_term(binary)}
-  rescue
-    ArgumentError -> {:error, :undecodable}
+    case Localize.Utils.Helpers.run_isolated(fn -> :erlang.binary_to_term(binary) end) do
+      {:ok, term} -> {:ok, term}
+      {:error, _exception} -> {:error, :undecodable}
+    end
   end
 
   defp validate_version(locale_id, locale_data) do

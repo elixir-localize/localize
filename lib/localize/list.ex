@@ -146,6 +146,14 @@ defmodule Localize.List do
   defp invalid_arguments(list, _options),
     do: {:error, Localize.Utils.Helpers.invalid_value(list, "a list")}
 
+  # An improper list such as `[1 | 2]` passes `is_list/1` but cannot be
+  # walked element by element.
+  defp validate_proper_list(list) do
+    if List.improper?(list),
+      do: {:error, Localize.Utils.Helpers.invalid_value(list, "a proper list")},
+      else: :ok
+  end
+
   defp format_elements(elements, options) do
     Enum.reduce_while(elements, {:ok, []}, fn elem, {:ok, acc} ->
       case format_element(elem, options) do
@@ -237,7 +245,8 @@ defmodule Localize.List do
   def to_parts(list, options) when is_list(list) and is_keyword_list(options) do
     element_options = element_options(options)
 
-    with {:ok, pattern, middle_as_end?} <- normalize_options(options),
+    with :ok <- validate_proper_list(list),
+         {:ok, pattern, middle_as_end?} <- normalize_options(options),
          {:ok, element_parts} <- elements_to_parts(list, element_options) do
       {:ok, do_intersperse_parts(element_parts, pattern, middle_as_end?)}
     end
@@ -382,7 +391,8 @@ defmodule Localize.List do
   end
 
   def intersperse(list, options) when is_list(list) and is_keyword_list(options) do
-    with {:ok, pattern, middle_as_end?} <- normalize_options(options) do
+    with :ok <- validate_proper_list(list),
+         {:ok, pattern, middle_as_end?} <- normalize_options(options) do
       result =
         list
         |> do_intersperse(pattern, middle_as_end?)

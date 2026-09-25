@@ -172,18 +172,22 @@ end
 # means atoms, charlists, booleans, and `nil` work the same way
 # under `Localize.to_string/1` as they do under `Kernel.to_string/1`.
 # Types with no `String.Chars` impl (tuples, plain maps, PIDs,
-# references, anonymous functions) and lists that are not chardata
-# return an error where `Kernel.to_string/1` would raise.
+# references, anonymous functions) return an error where
+# `Kernel.to_string/1` would raise. Lists and binaries have
+# implementations of their own below, so they never reach this one.
 
 defimpl Localize.Chars, for: Any do
   def to_string(value), do: to_string(value, [])
 
   def to_string(value, _options) do
-    {:ok, Kernel.to_string(value)}
-  rescue
-    _exception in [Protocol.UndefinedError, ArgumentError, UnicodeConversionError] ->
-      {:error,
-       Localize.Utils.Helpers.invalid_value(value, "a value that can be converted to a string")}
+    case String.Chars.impl_for(value) do
+      nil ->
+        {:error,
+         Localize.Utils.Helpers.invalid_value(value, "a value that can be converted to a string")}
+
+      impl ->
+        {:ok, impl.to_string(value)}
+    end
   end
 end
 
@@ -230,8 +234,15 @@ defimpl Localize.Chars, for: Range do
 end
 
 defimpl Localize.Chars, for: BitString do
-  def to_string(value) when is_binary(value), do: {:ok, value}
+  # A bitstring that is not a whole number of bytes has no string form.
+  def to_string(value), do: to_string(value, [])
+
   def to_string(value, _options) when is_binary(value), do: {:ok, value}
+
+  def to_string(value, _options) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(value, "a value that can be converted to a string")}
+  end
 end
 
 defimpl Localize.Chars, for: List do

@@ -38,33 +38,15 @@ defmodule Localize.Utils.HttpTest do
 
   describe "max_http_body_bytes/0" do
     test "returns the default cap (50 MB) when unconfigured" do
-      original = Application.get_env(:localize, :max_http_body_bytes)
-      Application.delete_env(:localize, :max_http_body_bytes)
+      temporary_env(:max_http_body_bytes, nil)
 
-      try do
-        assert Localize.Utils.Http.max_http_body_bytes() == 50 * 1024 * 1024
-      after
-        if original do
-          Application.put_env(:localize, :max_http_body_bytes, original)
-        else
-          Application.delete_env(:localize, :max_http_body_bytes)
-        end
-      end
+      assert Localize.Utils.Http.max_http_body_bytes() == 50 * 1024 * 1024
     end
 
     test "honours an app-env override" do
-      original = Application.get_env(:localize, :max_http_body_bytes)
-      Application.put_env(:localize, :max_http_body_bytes, 1_024)
+      temporary_env(:max_http_body_bytes, 1_024)
 
-      try do
-        assert Localize.Utils.Http.max_http_body_bytes() == 1_024
-      after
-        if original do
-          Application.put_env(:localize, :max_http_body_bytes, original)
-        else
-          Application.delete_env(:localize, :max_http_body_bytes)
-        end
-      end
+      assert Localize.Utils.Http.max_http_body_bytes() == 1_024
     end
   end
 
@@ -77,22 +59,13 @@ defmodule Localize.Utils.HttpTest do
     end
 
     test "includes a configured :cacertfile ahead of the static locations" do
-      original = Application.get_env(:localize, :cacertfile)
-      Application.put_env(:localize, :cacertfile, "/tmp/localize-http-test.pem")
+      temporary_env(:cacertfile, "/tmp/localize-http-test.pem")
 
-      try do
-        assert List.first(Localize.Utils.Http.dynamic_certificate_locations()) ==
-                 "/tmp/localize-http-test.pem"
+      assert List.first(Localize.Utils.Http.dynamic_certificate_locations()) ==
+               "/tmp/localize-http-test.pem"
 
-        assert List.first(Localize.Utils.Http.certificate_locations()) ==
-                 "/tmp/localize-http-test.pem"
-      after
-        if original do
-          Application.put_env(:localize, :cacertfile, original)
-        else
-          Application.delete_env(:localize, :cacertfile)
-        end
-      end
+      assert List.first(Localize.Utils.Http.certificate_locations()) ==
+               "/tmp/localize-http-test.pem"
     end
   end
 
@@ -102,18 +75,9 @@ defmodule Localize.Utils.HttpTest do
       certificate_file = Path.join(tmp_dir, "fake-store.pem")
       File.write!(certificate_file, "not really a certificate")
 
-      original = Application.get_env(:localize, :cacertfile)
-      Application.put_env(:localize, :cacertfile, certificate_file)
+      temporary_env(:cacertfile, certificate_file)
 
-      try do
-        assert Localize.Utils.Http.certificate_store() == certificate_file
-      after
-        if original do
-          Application.put_env(:localize, :cacertfile, original)
-        else
-          Application.delete_env(:localize, :cacertfile)
-        end
-      end
+      assert Localize.Utils.Http.certificate_store() == certificate_file
     end
   end
 
@@ -298,38 +262,32 @@ defmodule Localize.Utils.HttpTest do
     # isolated from concurrent tests.
     test "a proxy set by one call does not leak into a later proxy-less call" do
       profile = :localize_http_test_proxy_leak
+      on_exit(fn -> :inets.stop(:httpc, profile) end)
 
-      try do
-        :ok =
-          Localize.Utils.Http.configure_proxy(
-            {:proxy, {~c"proxy.example.com", 8080}},
-            :inet6fb4,
-            profile
-          )
+      :ok =
+        Localize.Utils.Http.configure_proxy(
+          {:proxy, {~c"proxy.example.com", 8080}},
+          :inet6fb4,
+          profile
+        )
 
-        assert {:ok, [https_proxy: {{~c"proxy.example.com", 8080}, []}]} =
-                 :httpc.get_options([:https_proxy], profile)
+      assert {:ok, [https_proxy: {{~c"proxy.example.com", 8080}, []}]} =
+               :httpc.get_options([:https_proxy], profile)
 
-        :ok = Localize.Utils.Http.configure_proxy(:no_proxy, :inet6fb4, profile)
+      :ok = Localize.Utils.Http.configure_proxy(:no_proxy, :inet6fb4, profile)
 
-        assert {:ok, [https_proxy: {:undefined, []}]} =
-                 :httpc.get_options([:https_proxy], profile)
-      after
-        _ = :inets.stop(:httpc, profile)
-      end
+      assert {:ok, [https_proxy: {:undefined, []}]} =
+               :httpc.get_options([:https_proxy], profile)
     end
 
     test "configuring no proxy on a fresh profile leaves the default" do
       profile = :localize_http_test_no_proxy
+      on_exit(fn -> :inets.stop(:httpc, profile) end)
 
-      try do
-        :ok = Localize.Utils.Http.configure_proxy(:no_proxy, :inet6fb4, profile)
+      :ok = Localize.Utils.Http.configure_proxy(:no_proxy, :inet6fb4, profile)
 
-        assert {:ok, [https_proxy: {:undefined, []}]} =
-                 :httpc.get_options([:https_proxy], profile)
-      after
-        _ = :inets.stop(:httpc, profile)
-      end
+      assert {:ok, [https_proxy: {:undefined, []}]} =
+               :httpc.get_options([:https_proxy], profile)
     end
   end
 
@@ -343,43 +301,43 @@ defmodule Localize.Utils.HttpTest do
   # that gap.
   describe "resolve_ca_trust_option/0" do
     test "honours an explicit :cacertfile app config" do
-      original = Application.get_env(:localize, :cacertfile)
-      Application.put_env(:localize, :cacertfile, "/tmp/localize-fake.pem")
+      temporary_env(:cacertfile, "/tmp/localize-fake.pem")
 
-      try do
-        assert {:cacertfile, "/tmp/localize-fake.pem"} =
-                 Localize.Utils.Http.resolve_ca_trust_option()
-      after
-        if original do
-          Application.put_env(:localize, :cacertfile, original)
-        else
-          Application.delete_env(:localize, :cacertfile)
-        end
-      end
+      assert {:cacertfile, "/tmp/localize-fake.pem"} =
+               Localize.Utils.Http.resolve_ca_trust_option()
     end
 
     test "falls through to OTP cacerts_get when no override is configured" do
-      original = Application.get_env(:localize, :cacertfile)
-      Application.delete_env(:localize, :cacertfile)
+      temporary_env(:cacertfile, nil)
 
-      try do
-        # The CI environment we run on has either an OS trust store
-        # (macOS/Windows) or a populated Unix path. Either way, we
-        # must get a usable option pair back — never raise.
-        assert {tag, value} = Localize.Utils.Http.resolve_ca_trust_option()
-        assert tag in [:cacerts, :cacertfile]
+      # The CI environment we run on has either an OS trust store
+      # (macOS/Windows) or a populated Unix path. Either way, we
+      # must get a usable option pair back — never raise.
+      assert {tag, value} = Localize.Utils.Http.resolve_ca_trust_option()
+      assert tag in [:cacerts, :cacertfile]
 
-        case tag do
-          :cacerts -> assert is_list(value) and value != []
-          :cacertfile -> assert is_binary(value)
-        end
-      after
-        if original do
-          Application.put_env(:localize, :cacertfile, original)
-        else
-          Application.delete_env(:localize, :cacertfile)
-        end
+      case tag do
+        :cacerts -> assert is_list(value) and value != []
+        :cacertfile -> assert is_binary(value)
       end
     end
+  end
+
+  # Sets a `:localize` application env key for the rest of the test, or
+  # deletes it when `value` is `nil`, and restores the previous setting
+  # when the test ends.
+  defp temporary_env(key, value) do
+    previous = Application.fetch_env(:localize, key)
+
+    on_exit(fn ->
+      case previous do
+        {:ok, previous_value} -> Application.put_env(:localize, key, previous_value)
+        :error -> Application.delete_env(:localize, key)
+      end
+    end)
+
+    if is_nil(value),
+      do: Application.delete_env(:localize, key),
+      else: Application.put_env(:localize, key, value)
   end
 end

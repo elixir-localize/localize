@@ -293,12 +293,7 @@ defmodule Localize.Message.ParserTest do
     end
 
     test "parse! raises exception with location fields populated" do
-      error =
-        try do
-          Parser.parse!("Hello\n{")
-        rescue
-          e in Localize.ParseError -> e
-        end
+      error = assert_raise Localize.ParseError, fn -> Parser.parse!("Hello\n{") end
 
       assert %Localize.ParseError{line: 2, column: 1, offset: 6} = error
     end

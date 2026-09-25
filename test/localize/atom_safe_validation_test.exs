@@ -43,9 +43,6 @@ defmodule Localize.AtomSafeValidationTest do
   end
 
   defp existing_atom?(value) do
-    _ = String.to_existing_atom(value)
-    true
-  rescue
-    ArgumentError -> false
+    not is_nil(Localize.Utils.Helpers.existing_atom(value))
   end
 end

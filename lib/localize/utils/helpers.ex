@@ -77,6 +77,62 @@ defmodule Localize.Utils.Helpers do
 
   def existing_atom(_), do: nil
 
+  @doc """
+  Runs a function in a separate process and returns its result.
+
+  This is how Localize calls a function that raises on bad data and has
+  no variant returning a tagged tuple — `:erlang.binary_to_term/1` on a
+  corrupt file, `:json.decode/1` on text that is not JSON — without
+  `try`/`rescue`. If the function raises, throws or exits, its process
+  ends and the failure comes back as an exception; the caller's process
+  is unaffected. The process is started with `:proc_lib`, so a failure
+  is an OTP crash report, which `Logger` shows only when
+  `:handle_sasl_reports` is enabled — bad input is an error result, not
+  a log entry.
+
+  ### Arguments
+
+  * `fun` is a function of no arguments.
+
+  ### Returns
+
+  * `{:ok, result}` where `result` is what `fun` returned.
+
+  * `{:error, exception}` if `fun` raised, threw or exited, with the
+    reason normalised to an exception.
+
+  ### Examples
+
+      iex> Localize.Utils.Helpers.run_isolated(fn -> 1 + 1 end)
+      {:ok, 2}
+
+  """
+  @spec run_isolated((-> result)) :: {:ok, result} | {:error, Exception.t()} when result: term()
+  def run_isolated(fun) when is_function(fun, 0) do
+    caller = self()
+    reply = make_ref()
+    {pid, monitor} = :proc_lib.spawn_opt(fn -> send(caller, {reply, fun.()}) end, [:monitor])
+
+    # The result is sent before the process ends, and signals between two
+    # processes arrive in order, so a result always precedes its `:DOWN`.
+    receive do
+      {^reply, result} ->
+        Process.demonitor(monitor, [:flush])
+        {:ok, result}
+
+      {:DOWN, ^monitor, :process, ^pid, reason} ->
+        {:error, exit_exception(reason)}
+    end
+  end
+
+  # A process that raised exits with `{reason, stacktrace}`, and every
+  # stack frame is a four-element tuple.
+  defp exit_exception({reason, [{_, _, _, _} | _] = stacktrace}) do
+    Exception.normalize(:error, reason, stacktrace)
+  end
+
+  defp exit_exception(reason), do: Exception.normalize(:error, reason, [])
+
   @doc false
   # The error for options that are not a keyword list, as `Localize.Number`
   # reports it.

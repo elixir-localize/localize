@@ -64,11 +64,11 @@ defmodule Localize.Exception do
   exception's `message/1` callback.
 
   `Exception.message/1` is called from `raise`, `Exception.format/2`,
-  log handlers, and inspect paths — none of which can tolerate a
-  raise. This helper wraps `Gettext.dpgettext/5` so that any failure
-  in the message formatter (a NIF crash, a hostile `String.Chars` or
-  `Inspect` impl on a bound value, a future regression) falls back
-  to the raw msgid rather than propagating.
+  log handlers, and inspect paths. This helper asks the Gettext
+  backend for the message directly, as a tagged result, so a message
+  the formatter cannot complete — a missing binding, a msgid that is
+  not valid MF2 — falls back to the raw msgid rather than raising, as
+  `Gettext.dpgettext/5` would.
 
   Use this only in `defexception` `message/1` callbacks. General MF2
   formatting should call `Gettext.dpgettext/5` (or the higher-level
@@ -99,11 +99,18 @@ defmodule Localize.Exception do
 
   def safe_message(msgctxt, msgid, bindings)
       when is_binary(msgctxt) and is_binary(msgid) and is_list(bindings) do
-    Gettext.dpgettext(Localize.Gettext, "localize", msgctxt, msgid, bindings)
-  rescue
-    _exception -> msgid
-  catch
-    _kind, _reason -> msgid
+    if Keyword.keyword?(bindings) do
+      locale = Gettext.get_locale(Localize.Gettext)
+
+      case Localize.Gettext.lgettext(locale, "localize", msgctxt, msgid, Map.new(bindings)) do
+        {:missing_bindings, _incomplete, _missing} -> msgid
+        # `{:ok, translation}`, or `{:default, message}` when the locale
+        # has no translation for `msgid`.
+        {_translated_or_default, message} -> message
+      end
+    else
+      msgid
+    end
   end
 
   def safe_message(_msgctxt, msgid, _bindings) when is_binary(msgid), do: msgid

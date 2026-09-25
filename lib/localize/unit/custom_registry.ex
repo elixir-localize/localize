@@ -290,31 +290,40 @@ defmodule Localize.Unit.CustomRegistry do
     end
   end
 
+  # The file is code, and code can fail to compile or raise when it runs, so
+  # it is evaluated in a process of its own and a failure comes back as an
+  # error.
   defp do_load_file(expanded) do
-    {definitions, _bindings} = Code.eval_file(expanded)
-
-    case definitions do
-      defs when is_list(defs) ->
-        batch =
-          Enum.reduce_while(defs, {:ok, %{}}, fn
-            %{unit: name} = definition, {:ok, acc} ->
-              {:cont, {:ok, Map.put(acc, name, Map.delete(definition, :unit))}}
-
-            other, _acc ->
-              {:halt,
-               {:error, "invalid definition: expected map with :unit key, got #{inspect(other)}"}}
-          end)
-
-        case batch do
-          {:ok, batch_map} -> register_batch(batch_map)
-          {:error, _} = error -> error
-        end
-
-      other ->
-        {:error, "expected a list of definitions, got #{inspect(other, limit: 50)}"}
+    case Localize.Utils.Helpers.run_isolated(fn -> evaluate_file(expanded) end) do
+      {:ok, definitions} -> register_definitions(definitions)
+      {:error, exception} -> {:error, Exception.message(exception)}
     end
-  rescue
-    error -> {:error, Exception.message(error)}
+  end
+
+  defp evaluate_file(expanded) do
+    {definitions, _bindings} = Code.eval_file(expanded)
+    definitions
+  end
+
+  defp register_definitions(definitions) when is_list(definitions) do
+    batch =
+      Enum.reduce_while(definitions, {:ok, %{}}, fn
+        %{unit: name} = definition, {:ok, acc} ->
+          {:cont, {:ok, Map.put(acc, name, Map.delete(definition, :unit))}}
+
+        other, _acc ->
+          {:halt,
+           {:error, "invalid definition: expected map with :unit key, got #{inspect(other)}"}}
+      end)
+
+    case batch do
+      {:ok, batch_map} -> register_batch(batch_map)
+      {:error, _} = error -> error
+    end
+  end
+
+  defp register_definitions(other) do
+    {:error, "expected a list of definitions, got #{inspect(other, limit: 50)}"}
   end
 
   @doc """

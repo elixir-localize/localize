@@ -291,7 +291,7 @@ Two areas are explicitly out of scope:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Timezone format symbols (z, Z, O, v, V, X, x) | Implemented | `Localize.DateTime.Formatter` handles all timezone symbols. |
-| GMT offset formatting | Implemented | `hourFormat`, `gmtFormat`, `gmtZeroFormat` patterns. |
+| GMT offset formatting | Implemented | `gmtFormat` with `hourFormat` for every known offset, zero included ("GMT+00:00", "GMT+0"), and `gmtUnknownFormat` ("GMT+?") when the offset is unknown — the two styles TR35 defines. `gmtZeroFormat` is still in the data but no TR35 formatting rule uses it. |
 | Metazone names | Implemented | The `z` and `v` symbols render the metazone's names — "Eastern Daylight Time" and "EDT", "Eastern Time" and "ET". |
 | Exemplar cities | Implemented | `VVV` renders the exemplar city ("New York") and `VVVV` the generic location format ("New York Time"). |
 | Timezone fallback formatting | Partial | Offset-based fallback works; metazone name fallback chain not implemented. |

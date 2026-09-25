@@ -145,6 +145,23 @@ defmodule Localize.ListTest do
     end
   end
 
+  # Regression: an improper list passed the `is_list/1` guard and raised
+  # `FunctionClauseError` part way through the walk.
+  describe "an improper list" do
+    test "is an error from every function that walks the list" do
+      for list <- [[1 | 2], ["a", "b" | "c"]] do
+        assert {:error, %Localize.InvalidValueError{}} =
+                 ListFormatter.to_string(list, locale: :en)
+
+        assert {:error, %Localize.InvalidValueError{}} =
+                 ListFormatter.to_parts(list, locale: :en)
+
+        assert {:error, %Localize.InvalidValueError{}} =
+                 ListFormatter.intersperse(list, locale: :en)
+      end
+    end
+  end
+
   describe "to_string!/2" do
     test "returns string directly" do
       assert "a, b, and c" =
