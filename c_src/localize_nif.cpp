@@ -25,6 +25,7 @@
 #include "unicode/numberformatter.h"
 #include "unicode/plurrule.h"
 #include "unicode/unistr.h"
+#include "unicode/utf16.h"
 #include "unicode/utypes.h"
 
 using icu::Locale;
@@ -245,6 +246,45 @@ static ERL_NIF_TERM make_binary_from_string(ErlNifEnv* env, const std::string& s
 
 /* ── JSON argument parsing ──────────────────────────────────────── */
 
+// Read the four hex digits of a `\uXXXX` escape that start at `pos`.
+static bool read_hex4(const std::string& json, size_t pos, UChar32& value) {
+    if (pos + 4 > json.size()) return false;
+    value = 0;
+    for (size_t i = pos; i < pos + 4; i++) {
+        char h = json[i];
+        int digit;
+        if (h >= '0' && h <= '9') digit = h - '0';
+        else if (h >= 'a' && h <= 'f') digit = h - 'a' + 10;
+        else if (h >= 'A' && h <= 'F') digit = h - 'A' + 10;
+        else return false;
+        value = (value << 4) | digit;
+    }
+    return true;
+}
+
+// Decode the `\uXXXX` escape whose `u` is at `pos` and append it as UTF-8,
+// joining a surrogate pair written as two escapes. Leaves `pos` on the last
+// character consumed. An unpaired surrogate becomes U+FFFD, and an escape
+// without four hex digits keeps its `u` as written.
+static void append_unicode_escape(const std::string& json, size_t& pos, std::string& result) {
+    UChar32 cp;
+    if (!read_hex4(json, pos + 1, cp)) {
+        result += 'u';
+        return;
+    }
+    pos += 4;
+    if (U16_IS_LEAD(cp) && pos + 2 < json.size() && json[pos + 1] == '\\' &&
+        json[pos + 2] == 'u') {
+        UChar32 trail;
+        if (read_hex4(json, pos + 3, trail) && U16_IS_TRAIL(trail)) {
+            cp = U16_GET_SUPPLEMENTARY(cp, trail);
+            pos += 6;
+        }
+    }
+    if (U_IS_SURROGATE(cp)) cp = 0xFFFD;
+    UnicodeString(cp).toUTF8String(result);
+}
+
 // Parse a simple JSON string value (between quotes).
 // Returns the parsed string and advances pos past the closing quote.
 static std::string parse_json_string(const std::string& json, size_t& pos) {
@@ -263,9 +303,12 @@ static std::string parse_json_string(const std::string& json, size_t& pos) {
                 case '"': result += '"'; break;
                 case '\\': result += '\\'; break;
                 case '/': result += '/'; break;
+                case 'b': result += '\b'; break;
+                case 'f': result += '\f'; break;
                 case 'n': result += '\n'; break;
                 case 't': result += '\t'; break;
                 case 'r': result += '\r'; break;
+                case 'u': append_unicode_escape(json, pos, result); break;
                 default: result += escaped; break;
             }
         } else {
@@ -341,40 +384,51 @@ static bool parse_json_args(const std::string& json,
             // Try to parse as number
             std::string val = parse_json_value(json, pos);
             bool is_number = !val.empty();
-            bool has_dot = false;
+            bool is_integer = true;
             for (size_t i = 0; i < val.size(); i++) {
                 char ch = val[i];
+                if (ch >= '0' && ch <= '9') continue;
                 if (ch == '-' && i == 0) continue;
-                if (ch == '.') { has_dot = true; continue; }
-                if (ch < '0' || ch > '9') { is_number = false; break; }
+                // An exponent may carry its own sign, as in `1.0e-4`.
+                if ((ch == '-' || ch == '+') && i > 0 &&
+                    (val[i - 1] == 'e' || val[i - 1] == 'E')) continue;
+                if (ch == '.' || ch == 'e' || ch == 'E') { is_integer = false; continue; }
+                is_number = false;
+                break;
             }
-            if (is_number && has_dot) {
+            UnicodeString ukey = UnicodeString::fromUTF8(key);
+            Formattable text = Formattable(UnicodeString::fromUTF8(val));
+            if (is_number && !is_integer) {
                 /* `std::stod` throws `std::out_of_range` for inputs
                  * outside the double range. The pre-validation loop
-                 * above only checks digits/`-`/`.`, which still
-                 * permits e.g. a 100-digit literal that wraps. A C++
+                 * above only checks the characters a number may hold,
+                 * which still permits e.g. a 400-digit literal. A C++
                  * exception unwinding through the NIF entry point
                  * crashes the BEAM, so catch it and fall back to
-                 * treating the value as a string. */
+                 * treating the value as a string. Text `std::stod`
+                 * does not consume in full (`1.2.3`) is a string too. */
                 try {
-                    args[UnicodeString::fromUTF8(key)] = Formattable(std::stod(val));
+                    size_t used = 0;
+                    double number = std::stod(val, &used);
+                    args[ukey] = used == val.size() ? Formattable(number) : text;
                 } catch (const std::exception&) {
-                    UnicodeString uval = UnicodeString::fromUTF8(val);
-                    args[UnicodeString::fromUTF8(key)] = Formattable(uval);
+                    args[ukey] = text;
                 }
             } else if (is_number) {
                 /* Same protection for `std::stoll` against integer
                  * literals exceeding `int64_t` range. */
                 try {
-                    args[UnicodeString::fromUTF8(key)] = Formattable(static_cast<int64_t>(std::stoll(val)));
+                    size_t used = 0;
+                    long long number = std::stoll(val, &used);
+                    args[ukey] = used == val.size()
+                        ? Formattable(static_cast<int64_t>(number))
+                        : text;
                 } catch (const std::exception&) {
-                    UnicodeString uval = UnicodeString::fromUTF8(val);
-                    args[UnicodeString::fromUTF8(key)] = Formattable(uval);
+                    args[ukey] = text;
                 }
             } else {
                 // fallback: treat as string
-                UnicodeString uval = UnicodeString::fromUTF8(val);
-                args[UnicodeString::fromUTF8(key)] = Formattable(uval);
+                args[ukey] = text;
             }
         }
     }

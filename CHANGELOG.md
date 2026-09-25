@@ -38,6 +38,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.to_string/1,2` and `Localize.List` return `Localize.InvalidValueError` for an improper list and for a bitstring that is not whole bytes, where they raised `FunctionClauseError`.
 
+* `Localize.Message.format/3` with `backend: :nif` formats a message whose bindings are not all strings, 64-bit integers or floats with the Elixir interpreter, where a `DateTime`, tuple or invalid UTF-8 binding raised and a struct, big integer or `nil` was misformatted. The NIF now decodes JSON `\b`, `\f` and `\u` escapes and exponent-form numbers, which reached ICU as literal text.
+
+* `Localize.Nif.mf2_format/3` returns `{:error, exception}` for arguments that are not a map or JSON object of strings, 64-bit integers and floats, and for a message or locale that is not a string, where it raised.
+
+* `Localize.Message.format/3` and `format_to_iolist/3` return an error for an improper binding list, where both backends raised, and the NIF backend skips a list element that is not a `{name, value}` pair, as the interpreter does.
+
 * Functions taking a `Localize.LanguageTag`, including every `:locale` option, no longer raise on a hand-built struct with wrong-shaped fields: a `nil` list or map is empty, a string subtag is its atom, and anything else returns `Localize.InvalidLocaleError`.
 
 * Interpolating a parsed `Localize.LanguageTag` into a string gives its BCP 47 form, where it raised because the tag had no canonical id yet.

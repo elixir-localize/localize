@@ -126,6 +126,8 @@ true
 
 All NIF-capable functions accept a `:backend` option. The default is always `:elixir`. When `:nif` is specified and the NIF is available, the ICU4C implementation is used. If the NIF is not available, it silently falls back to the pure Elixir implementation.
 
+`Localize.Message.format/3` passes its bindings to ICU as strings, integers within 64 bits and floats, so a message with any other binding — a date, a `Decimal`, a unit, a list — is formatted by the Elixir interpreter even when `backend: :nif` is given.
+
 | Function | `:backend` option | NIF implementation |
 |----------|------------------|--------------------|
 | `Localize.Number.to_string/2` | `backend: :nif` | ICU4C NumberFormatter |
