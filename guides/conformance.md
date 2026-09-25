@@ -256,6 +256,7 @@ Two areas are explicitly out of scope:
 | Time format patterns (:short/:medium/:long/:full) | Implemented | `Localize.Time.to_string/2`. |
 | DateTime combined patterns | Implemented | `Localize.DateTime.to_string/2`. |
 | All date format pattern symbols (y, M, d, E, G, etc.) | Implemented | Full symbol set in `Localize.DateTime.Formatter`. |
+| Invalid pattern fields | Implemented | A symbol at a width the Date Field Symbol Table does not list formats as U+FFFD; an undefined letter is an error. |
 | Hour cycle (h, H, k, K) | Implemented | Including territory and locale preferences (`hi_IN` allows `hB`), the `-u-hc-` override, and the skeleton symbols `j`, `J` and `C`. |
 | Day periods (a, b, B) | Implemented | `a` renders AM/PM; `b` renders noon/midnight at the exact points and AM/PM otherwise; `B` selects flexible day periods ("in the morning", "mittags") from the CLDR day-period rules, falling back to AM/PM for languages without rules. Noon and midnight are judged at the precision the pattern shows, so "h B" renders 12:05 as "12 noon". |
 | Available formats (skeletons) | Implemented | `Localize.DateTime.Format.Match` for skeleton matching. |

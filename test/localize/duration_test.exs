@@ -186,6 +186,13 @@ defmodule Localize.DurationTest do
       assert {:ok, "00:00:00"} = Localize.Duration.to_time_string(d)
     end
 
+    test "a field longer than two letters formats as U+FFFD" do
+      d = Localize.Duration.new_from_seconds(136_092)
+      assert {:ok, "�:48:12"} = Localize.Duration.to_time_string(d, format: "hhh:mm:ss")
+      assert {:ok, "37:�"} = Localize.Duration.to_time_string(d, format: "h:mmm")
+      assert {:ok, "37:48:�"} = Localize.Duration.to_time_string(d, format: "h:mm:sss")
+    end
+
     test "single-quoted text is literal per TR35" do
       d = Localize.Duration.new_from_seconds(136_092)
       assert {:ok, "37h 48m"} = Localize.Duration.to_time_string(d, format: "h'h' m'm'")

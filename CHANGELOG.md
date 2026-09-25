@@ -74,7 +74,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Skeleton matching ranks narrow and short text widths nearer abbreviated than wide, and breaks a tie between formats missing a field by TR35's field order, as CLDR's reference generator does. `ja` `:yMdEEEEE` now renders "2024/7/6(土)", not "2024/7/6土".
 
+* **Breaking.** A date or time pattern field at a width TR35's symbol table does not list — `dddd`, `MMMMMM`, `HHH` — formats as U+FFFD, following TR35's Handling Invalid Patterns, instead of being padded or clamped to a defined width.
+
 ### Fixed
+
+* `Localize.Duration.to_time_string/2` no longer raises on a field longer than two letters, such as `"hhh:mm"`; the field formats as U+FFFD, as in a date pattern.
 
 * `Localize.DateTime.Relative.to_string/2` and `to_parts/2` return `{:error, %Localize.InvalidValueError{}}` for a value that is not a number, date, time or datetime, and for options that are not a keyword list, rather than raising `FunctionClauseError`.
 
@@ -97,6 +101,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * `Localize.Number.to_string/2` keeps the whitespace a pattern ends with, as ICU does and as `to_parts/2` already did. A `:wrapper` function receives a quoted pattern character tagged `:literal`, which it never received.
 
 * `Localize.Date.parse/2`, `Localize.DateTime.parse/2` and `Localize.Date.parse_range/2` parse a date with an era, whose patterns never compiled, and one whose weekday does not lead its pattern. A month abbreviation that is also a weekday name (es "mar") is no longer stripped.
+
+* `Localize.Date.parse/2` resolves a month name to that month in the parsed year, so a Hebrew month name parses to its position in an ordinary or a leap year, and "Adar II" parses.
 
 * Time skeletons resolve day periods as ICU does: `ha` renders "h a" and `hb` "h b" where both gave a flexible day period, and an `H` or `k` skeleton drops a requested one. `J` drops it as TR35 requires and `C` ignores a `-u-hc-` override.
 
@@ -217,6 +223,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * Full UCA conformance restored: all 210,155 pairs in both CLDR collation conformance files sort correctly, where 637 and 536 failed. `FractionalUCA.txt` and the UCD property files had been hand-vendored at Unicode 17 and are now copied by the pipeline.
 
 * `Localize.Locale.LocaleDisplay.display_name/2` renders a locale in `root` (or `und`) as bare subtag codes per TR35's code fallback — `display_name("nl-BE", locale: :root)` is `"nl (BE)"`, where it answered in English. `root` is now accepted wherever `und` is.
+
+* Month names come from the calendar's `month_of_year/3`, so Hebrew months are named correctly in ordinary and leap years ("Adar II" included) and a Chinese leap month takes the leap-month pattern ("Second Monthbis"). They were looked up by the date's month number.
 
 ## [1.3.0] — September 21st, 2026
 

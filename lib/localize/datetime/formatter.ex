@@ -107,6 +107,44 @@ defmodule Localize.DateTime.Formatter do
     time: [:hour, :minute]
   }
 
+  # The lengths TR35's Date Field Symbol Table lists for each pattern
+  # character. Any other length is an invalid field, which TR35's Handling
+  # Invalid Patterns formats as U+FFFD whatever the value holds. Handlers
+  # absent here take any length: `y`, `Y`, `u`, `r`, `g`, `S` and `A`.
+  @valid_lengths %{
+    era: 1..5,
+    cyclic_year: 1..5,
+    quarter: 1..5,
+    standalone_quarter: 1..5,
+    month: 1..5,
+    standalone_month: 1..5,
+    leap_month_marker: [1],
+    week_of_year: 1..2,
+    week_of_month: [1],
+    day_of_month: 1..3,
+    day_of_year: 1..3,
+    day_of_week_in_month: [1],
+    day_name: 1..6,
+    day_of_week: 1..6,
+    standalone_day_of_week: 1..6,
+    period_am_pm: 1..5,
+    period_noon_midnight: 1..5,
+    period_flex: 1..5,
+    h11: 1..2,
+    h12: 1..2,
+    h23: 1..2,
+    h24: 1..2,
+    minute: 1..2,
+    second: 1..2,
+    zone_short: 1..4,
+    zone_basic: 1..5,
+    zone_gmt: [1, 4],
+    generic_non_location: [1, 4],
+    specific_non_location: 1..4,
+    zone_iso_z: 1..5,
+    zone_iso: 1..5
+  }
+
   defguardp is_date(date)
             when is_map_key(date, :year) and is_map_key(date, :month) and is_map_key(date, :day)
 
@@ -149,16 +187,17 @@ defmodule Localize.DateTime.Formatter do
          {:ok, tokens, _} <- tokenize_cached(format_string),
          tokens = ordinal_day_in_context(tokens),
          tokens = substitute_numeric_separators(tokens, datetime, locale_id, options),
-         :ok <- validate_fields(datetime, tokens, format_string) do
-      options = with_displayed_precision(options, tokens)
+         valid_tokens = Enum.filter(tokens, &valid_length?/1),
+         :ok <- validate_fields(datetime, valid_tokens, format_string) do
+      options = with_displayed_precision(options, valid_tokens)
 
       results =
         Enum.map(tokens, fn
           {:literal, _line, string} ->
             string
 
-          {handler, _line, count} ->
-            apply(__MODULE__, handler, [datetime, count, locale_id, options])
+          token ->
+            format_field(token, datetime, locale_id, options)
         end)
 
       case Enum.find(results, &match?({:error, _}, &1)) do
@@ -193,8 +232,9 @@ defmodule Localize.DateTime.Formatter do
          {:ok, tokens, _} <- tokenize_cached(format_string),
          tokens = ordinal_day_in_context(tokens),
          tokens = substitute_numeric_separators(tokens, datetime, locale_id, options),
-         :ok <- validate_fields(datetime, tokens, format_string) do
-      options = with_displayed_precision(options, tokens)
+         valid_tokens = Enum.filter(tokens, &valid_length?/1),
+         :ok <- validate_fields(datetime, valid_tokens, format_string) do
+      options = with_displayed_precision(options, valid_tokens)
 
       results =
         Enum.map(tokens, fn
@@ -204,8 +244,8 @@ defmodule Localize.DateTime.Formatter do
           {handler, _line, count} when handler in [:date, :time] ->
             placeholder_parts(handler, datetime, count, locale_id, options)
 
-          {handler, _line, count} ->
-            apply(__MODULE__, handler, [datetime, count, locale_id, options])
+          token ->
+            format_field(token, datetime, locale_id, options)
         end)
 
       case Enum.find(results, &match?({:error, _}, &1)) do
@@ -451,6 +491,21 @@ defmodule Localize.DateTime.Formatter do
 
   defp formatting_locale(_other, locale_id), do: locale_id
 
+  # An invalid field is never handed to its handler, so it neither needs the
+  # value to hold its field nor counts towards the precision on display.
+  defp format_field({handler, _line, count} = token, datetime, locale_id, options) do
+    if valid_length?(token),
+      do: apply(__MODULE__, handler, [datetime, count, locale_id, options]),
+      else: "�"
+  end
+
+  defp valid_length?({handler, _line, count}) do
+    case Map.fetch(@valid_lengths, handler) do
+      {:ok, lengths} -> count in lengths
+      :error -> true
+    end
+  end
+
   # CLDR 49 ordinal dates: `ddd` is ignored in a pattern whose month is
   # numeric, where the day is formatted plainly.
   defp ordinal_day_in_context(tokens) do
@@ -689,7 +744,6 @@ defmodule Localize.DateTime.Formatter do
   # ── Era (G) ────────────────────────────────────────────────
 
   @doc false
-  # Widths past TR35's five fall back to the abbreviated name, as ICU does.
   def era(date, count, locale_id, options) when is_date(date) do
     format = if count in 4..5, do: format_for_count(count), else: :abbreviated
     localize_part(date, :era, locale: locale_id, style: format, era: options[:era])
@@ -897,12 +951,11 @@ defmodule Localize.DateTime.Formatter do
   # width, TR35 formats the year exactly as `y` would.
   @doc false
   def cyclic_year(%{year: year} = date, count, locale_id, options)
-      when is_integer(year) and count >= 1 do
+      when is_integer(year) and count in 1..5 do
     calendar_type = cldr_calendar_for_datetime(date)
     position = Localize.Utils.Math.amod(cyclic_year_number(date), 60)
 
-    with true <- count in 1..5,
-         {:ok, cyclic_data} <- Localize.Calendar.cyclic_years(locale_id, calendar_type),
+    with {:ok, cyclic_data} <- Localize.Calendar.cyclic_years(locale_id, calendar_type),
          name when is_binary(name) <-
            get_in(cyclic_data, [:years, :format, cyclic_year_width(count), position]) do
       name
@@ -977,8 +1030,7 @@ defmodule Localize.DateTime.Formatter do
     localize_part(date, :quarter, locale: locale_id, style: :wide)
   end
 
-  # Widths past TR35's five keep the narrow name, as ICU formats them.
-  def quarter(date, count, locale_id, _options) when has_month(date) and count >= 5 do
+  def quarter(date, 5, locale_id, _options) when has_month(date) do
     localize_part(date, :quarter, locale: locale_id, style: :narrow)
   end
 
@@ -996,13 +1048,11 @@ defmodule Localize.DateTime.Formatter do
   end
 
   def standalone_quarter(date, count, locale_id, _options)
-      when has_month(date) and count >= 3 do
-    format = if count >= 5, do: :narrow, else: format_for_count(count)
-
+      when has_month(date) and count in 3..5 do
     localize_part(date, :quarter,
       locale: locale_id,
       context: :stand_alone,
-      style: format
+      style: format_for_count(count)
     )
   end
 
@@ -1021,11 +1071,6 @@ defmodule Localize.DateTime.Formatter do
     format = format_for_count(count)
     localize_part(date, :month, locale: locale_id, style: format)
   end
-
-  # Past the narrow name's five letters the month is numeric again,
-  # zero-padded to the width, as ICU formats it.
-  def month(%{month: month}, count, locale_id, options) when count >= 6,
-    do: pad(month, count) |> apply_ns(locale_id, options, "M")
 
   def month(_date, _count, _locale_id, _options), do: ""
 
@@ -1048,9 +1093,6 @@ defmodule Localize.DateTime.Formatter do
     )
   end
 
-  def standalone_month(%{month: month}, count, locale_id, options) when count >= 6,
-    do: pad(month, count) |> apply_ns(locale_id, options, "L")
-
   def standalone_month(_date, _count, _locale_id, _options), do: ""
 
   # ── Week of Year (w) ───────────────────────────────────────
@@ -1061,10 +1103,9 @@ defmodule Localize.DateTime.Formatter do
     apply_ns(week, locale_id, options, "w")
   end
 
-  # Widths past TR35's two are a minimum digit count, as ICU formats them.
-  def week_of_year(date, count, locale_id, options) when is_date(date) and count >= 2 do
+  def week_of_year(date, 2, locale_id, options) when is_date(date) do
     {_year, week} = locale_week_of_year(date, locale_id)
-    week |> pad(count) |> apply_ns(locale_id, options, "w")
+    week |> pad(2) |> apply_ns(locale_id, options, "w")
   end
 
   def week_of_year(_date, _count, _locale_id, _options), do: ""
@@ -1072,11 +1113,9 @@ defmodule Localize.DateTime.Formatter do
   # ── Week of Month (W) ──────────────────────────────────────
 
   @doc false
-  # TR35 gives `W` one digit; a wider field is a minimum digit count, as ICU
-  # formats it.
   def week_of_month(
         %{year: year, month: month, day: day, calendar: Calendar.ISO},
-        count,
+        _count,
         locale_id,
         options
       ) do
@@ -1089,11 +1128,11 @@ defmodule Localize.DateTime.Formatter do
     # month holds at least min_days days; otherwise that partial week
     # counts as week 0 per ICU.
     week = if 7 - offset >= min_days, do: raw_week, else: raw_week - 1
-    week |> pad(count) |> apply_ns(locale_id, options, "W")
+    apply_ns(week, locale_id, options, "W")
   end
 
-  def week_of_month(%{day: day}, count, locale_id, options) when is_integer(day) do
-    (div(day - 1, 7) + 1) |> pad(count) |> apply_ns(locale_id, options, "W")
+  def week_of_month(%{day: day}, _count, locale_id, options) when is_integer(day) do
+    (div(day - 1, 7) + 1) |> apply_ns(locale_id, options, "W")
   end
 
   def week_of_month(_date, _count, _locale_id, _options), do: ""
@@ -1119,10 +1158,6 @@ defmodule Localize.DateTime.Formatter do
       :error -> number
     end
   end
-
-  # Wider than `ddd` the day is a minimum digit count, as ICU formats it.
-  def day_of_month(%{day: day}, count, locale_id, options) when count >= 4,
-    do: pad(day, count) |> apply_ns(locale_id, options, "d")
 
   def day_of_month(_date, _count, _locale_id, _options), do: ""
 
@@ -1153,10 +1188,8 @@ defmodule Localize.DateTime.Formatter do
   # ── Day of Week in Month (F) ───────────────────────────────
 
   @doc false
-  # TR35 gives `F` one digit; a wider field is a minimum digit count, as ICU
-  # formats it.
-  def day_of_week_in_month(%{day: day}, count, locale_id, options) do
-    (div(day - 1, 7) + 1) |> pad(count) |> apply_ns(locale_id, options, "F")
+  def day_of_week_in_month(%{day: day}, _count, locale_id, options) do
+    (div(day - 1, 7) + 1) |> apply_ns(locale_id, options, "F")
   end
 
   def day_of_week_in_month(_date, _count, _locale_id, _options), do: ""
@@ -1183,16 +1216,7 @@ defmodule Localize.DateTime.Formatter do
 
   @doc false
   def day_name(date, count, locale_id, _options) when is_date(date) do
-    format =
-      case count do
-        n when n in 1..3 -> :abbreviated
-        4 -> :wide
-        5 -> :narrow
-        6 -> :short
-        _ -> :abbreviated
-      end
-
-    localize_part(date, :day_of_week, locale: locale_id, style: format)
+    localize_part(date, :day_of_week, locale: locale_id, style: format_for_count(count))
   end
 
   def day_name(_date, _count, _locale_id, _options), do: ""
@@ -1208,7 +1232,7 @@ defmodule Localize.DateTime.Formatter do
     local_day(date, locale_id) |> pad(2) |> apply_ns(locale_id, options, "e")
   end
 
-  def day_of_week(date, count, locale_id, options) when is_date(date) and count >= 3 do
+  def day_of_week(date, count, locale_id, options) when is_date(date) and count in 3..6 do
     day_name(date, count, locale_id, options)
   end
 
@@ -1225,7 +1249,7 @@ defmodule Localize.DateTime.Formatter do
   end
 
   def standalone_day_of_week(date, count, locale_id, _options)
-      when is_date(date) and count >= 3 do
+      when is_date(date) and count in 3..6 do
     format = format_for_count(count)
 
     localize_part(date, :day_of_week,
@@ -1362,16 +1386,14 @@ defmodule Localize.DateTime.Formatter do
     end)
   end
 
-  # TR35's day period widths. Past them ICU keeps the narrow form for AM and
-  # PM, and the wide form for the other day periods.
+  # TR35's day period widths.
   defp am_pm_width(count) when count in 1..3, do: :abbreviated
   defp am_pm_width(4), do: :wide
-  defp am_pm_width(_count), do: :narrow
+  defp am_pm_width(5), do: :narrow
 
   defp day_period_width(count) when count in 1..3, do: :abbreviated
   defp day_period_width(4), do: :wide
   defp day_period_width(5), do: :narrow
-  defp day_period_width(_count), do: :wide
 
   # The localized name for a day period at the requested width,
   # falling back through abbreviated and wide before giving up (the
@@ -1593,8 +1615,7 @@ defmodule Localize.DateTime.Formatter do
     end
   end
 
-  # Widths past `zzzz` keep the long name, as ICU formats them.
-  def zone_short(%{time_zone: _} = datetime, count, locale_id, _options) when count >= 4 do
+  def zone_short(%{time_zone: _} = datetime, 4, locale_id, _options) do
     case Timezone.non_location_format(datetime, locale_id, format: :long, type: :specific) do
       {:ok, result} -> result
       _ -> ""
@@ -1625,10 +1646,8 @@ defmodule Localize.DateTime.Formatter do
   end
 
   # TR35 groups `ZZZZ` with `O+` as the localized GMT formats: CLDR renders
-  # `Etc/GMT` as "GMT+0" for `O` and "GMT+00:00" here. Widths past `ZZZZZ`
-  # use the same format, as ICU formats them.
-  def zone_basic(datetime, count, locale_id, _options)
-      when has_zone(datetime) and (count == 4 or count >= 6) do
+  # `Etc/GMT` as "GMT+0" for `O` and "GMT+00:00" here.
+  def zone_basic(datetime, 4, locale_id, _options) when has_zone(datetime) do
     case Timezone.gmt_format(datetime, locale_id, format: :long) do
       {:ok, result} -> result
       _ -> ""
@@ -1661,20 +1680,13 @@ defmodule Localize.DateTime.Formatter do
     end
   end
 
-  def zone_gmt(datetime, _count, locale_id, _options) when has_zone(datetime) do
-    case Timezone.gmt_format(datetime, locale_id, format: :long) do
-      {:ok, result} -> result
-      _ -> ""
-    end
-  end
-
   def zone_gmt(_datetime, _count, _locale_id, _options), do: ""
 
   # v (1): Short generic non-location (e.g., "ET")
   # v (4): Long generic non-location (e.g., "Eastern Time")
   @doc false
   def generic_non_location(%{time_zone: _} = datetime, count, locale_id, _options) do
-    format = if count in 1..3, do: :short, else: :long
+    format = if count == 1, do: :short, else: :long
 
     case Timezone.non_location_format(datetime, locale_id, format: format, type: :generic) do
       {:ok, result} -> result
@@ -1728,9 +1740,8 @@ defmodule Localize.DateTime.Formatter do
   # `en` is "Adelaide Time". It falls back to the localized GMT format for a
   # zone that has no city of its own, which is how `Etc/GMT` reaches
   # "GMT+00:00" — and which is what this clause did for every zone.
-  # Widths past `VVVV`, for which ICU has no output, keep this widest form.
-  def specific_non_location(%{time_zone: tz} = datetime, count, locale_id, _options)
-      when has_zone(datetime) and count >= 4 do
+  def specific_non_location(%{time_zone: tz} = datetime, 4, locale_id, _options)
+      when has_zone(datetime) do
     case Timezone.generic_location_format(tz, locale_id) do
       {:ok, result} ->
         result
@@ -1788,8 +1799,7 @@ defmodule Localize.DateTime.Formatter do
   defp iso_format_for_count(2), do: {:long, :basic}
   defp iso_format_for_count(3), do: {:long, :extended}
   defp iso_format_for_count(4), do: {:full, :basic}
-  # Widths past five, for which ICU has no output, keep the widest form.
-  defp iso_format_for_count(_count), do: {:full, :extended}
+  defp iso_format_for_count(5), do: {:full, :extended}
 
   # ── Calendar derivation helpers ────────────────────────────
 
@@ -1934,7 +1944,6 @@ defmodule Localize.DateTime.Formatter do
       4 -> :wide
       5 -> :narrow
       6 -> :short
-      _ -> :abbreviated
     end
   end
 

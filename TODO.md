@@ -6,15 +6,13 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Stop carrying the 554 MB CLDR source payload in the working tree** — 96% of it is JSON that `unicode-org/cldr-json` already publishes as an 80 MB release asset, and `main` tracking it while `cldr-49` ignores it is what makes switching between them error-prone. Analysis in [plans/cldr-source-payload.md](plans/cldr-source-payload.md).
 
-* [ ] **Decide what `dddd` means before 1.4.0 ships** — CLDR 49 gives `ddd` the ordinal day, but `dddd` still renders a zero-padded day ("0006") under the pre-49 numeric rule, and TR35 hints that a future `wide` `dayOfMonth` width may claim it. Settling it after release would be a breaking change.
-
 * [ ] **Decide whether root's `arab` and `arabext` blocks become a pipeline source** — plan item 38: CLDR JSON does not carry them, so `en-u-nu-arab` formats with the locale's `latn` symbols until `common/main/root.xml` is read directly.
 
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
 
 ## In progress
 
-* [ ] **CLDR 49 upgrade** — the plan's items are closed bar those listed here; what remains is the beta2 refresh below and the `dddd` decision above. Work lives on the `cldr-49` branch, which does not merge to `main` until the final beta. [plans/cldr-49.md](plans/cldr-49.md).
+* [ ] **CLDR 49 upgrade** — the plan's items are closed bar those listed here; what remains is the beta2 refresh below. Work lives on the `cldr-49` branch, which does not merge to `main` until the final beta. [plans/cldr-49.md](plans/cldr-49.md).
 
 ## Blocked
 
@@ -27,6 +25,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Pattern fields at a width TR35 does not list format as U+FFFD** — `dddd`, `MMMMMM`, `HHH` and the rest follow TR35's Handling Invalid Patterns instead of ICU's padding and clamping; an undefined letter stays an error. 2026-09-25.
 
 * [x] **Locale downloads retry transient CDN failures** — server errors, timeouts and dropped connections are retried with backoff and jitter, a 404 fails at once, and the address family is configurable. Details in [plans/locale-downloader-resilience.md](plans/locale-downloader-resilience.md). 2026-09-24.
 

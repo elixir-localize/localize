@@ -1,8 +1,7 @@
 defmodule Localize.DateTime.SymbolMatrixTest do
   @moduledoc """
   Every date, time and zone symbol in TR35's Date Field Symbol Table, at
-  every width the table defines and at wider widths too, across a spread of
-  locales and values.
+  every width the table defines, across a spread of locales and values.
 
   Expected values are computed here rather than taken from the formatter:
   numeric fields from `Calendar` arithmetic and TR35's field definitions,
@@ -12,11 +11,10 @@ defmodule Localize.DateTime.SymbolMatrixTest do
   through `to_string/2` and `to_parts/2`, whose parts must join to the same
   string.
 
-  TR35 does not define widths past its table. For those, Localize follows
-  ICU4J: numeric fields zero-pad to the width and name fields fall back to a
-  defined width, per the fallbacks recorded from ICU below. The
-  weekday-number, week and Julian-day rules were also cross-checked against
-  ICU4J, and the zone cases are ICU4J's output for the same instants.
+  A width the table does not list is an invalid field, which formats as
+  U+FFFD; `Localize.DateTime.InvalidFieldLengthTest` covers those. The
+  weekday-number, week and Julian-day rules were cross-checked against ICU4J,
+  and the zone cases are ICU4J's output for the same instants.
 
   """
 
@@ -50,40 +48,41 @@ defmodule Localize.DateTime.SymbolMatrixTest do
     ~T[09:07:08]
   ]
 
-  # Each symbol with the widths checked: TR35's own and a few past them.
-  # `ddd` is the ordinal day and has its own tests below.
+  # Each symbol at every width TR35's table lists for it, and at a spread of
+  # widths for the symbols it sets no limit on. `ddd` is the ordinal day and
+  # has its own tests below.
   @date_symbols [
-    {"G", [1, 2, 3, 4, 5, 6, 7]},
+    {"G", [1, 2, 3, 4, 5]},
     {"y", [1, 2, 3, 4, 5, 6, 7]},
     {"Y", [1, 2, 3, 4, 5, 6, 7]},
     {"u", [1, 2, 3, 4, 5, 6]},
-    {"U", [1, 2, 3, 4, 5, 6]},
+    {"U", [1, 2, 3, 4, 5]},
     {"r", [1, 2, 3, 4, 5, 6]},
-    {"Q", [1, 2, 3, 4, 5, 6, 7]},
-    {"q", [1, 2, 3, 4, 5, 6, 7]},
-    {"M", [1, 2, 3, 4, 5, 6, 7]},
-    {"L", [1, 2, 3, 4, 5, 6, 7]},
-    {"w", [1, 2, 3, 4]},
-    {"W", [1, 2, 3]},
-    {"d", [1, 2, 4, 5]},
-    {"D", [1, 2, 3, 4, 5]},
-    {"F", [1, 2, 3]},
+    {"Q", [1, 2, 3, 4, 5]},
+    {"q", [1, 2, 3, 4, 5]},
+    {"M", [1, 2, 3, 4, 5]},
+    {"L", [1, 2, 3, 4, 5]},
+    {"w", [1, 2]},
+    {"W", [1]},
+    {"d", [1, 2]},
+    {"D", [1, 2, 3]},
+    {"F", [1]},
     {"g", [1, 7, 10]},
-    {"E", [1, 2, 3, 4, 5, 6, 7, 8]},
-    {"e", [1, 2, 3, 4, 5, 6, 7, 8]},
-    {"c", [1, 2, 3, 4, 5, 6, 7, 8]}
+    {"E", [1, 2, 3, 4, 5, 6]},
+    {"e", [1, 2, 3, 4, 5, 6]},
+    {"c", [1, 2, 3, 4, 5, 6]}
   ]
 
   @time_symbols [
-    {"a", [1, 2, 3, 4, 5, 6, 7]},
-    {"b", [1, 2, 3, 4, 5, 6, 7]},
-    {"B", [1, 2, 3, 4, 5, 6, 7]},
-    {"h", [1, 2, 3, 4]},
-    {"H", [1, 2, 3, 4]},
-    {"K", [1, 2, 3, 4]},
-    {"k", [1, 2, 3, 4]},
-    {"m", [1, 2, 3, 4]},
-    {"s", [1, 2, 3, 4]},
+    {"a", [1, 2, 3, 4, 5]},
+    {"b", [1, 2, 3, 4, 5]},
+    {"B", [1, 2, 3, 4, 5]},
+    {"h", [1, 2]},
+    {"H", [1, 2]},
+    {"K", [1, 2]},
+    {"k", [1, 2]},
+    {"m", [1, 2]},
+    {"s", [1, 2]},
     {"S", [1, 2, 3, 6, 9]},
     {"A", [1, 8, 9]}
   ]
@@ -234,20 +233,17 @@ defmodule Localize.DateTime.SymbolMatrixTest do
       calendar: Calendar.ISO
     }
 
-    # ICU4J's output for each instant in en, including past TR35's widths for
-    # z and Z.
+    # ICU4J's output for each instant in en.
     @icu_zone_cases [
       {@new_york,
        [
          {"z", "EDT"},
          {"zzz", "EDT"},
          {"zzzz", "Eastern Daylight Time"},
-         {"zzzzz", "Eastern Daylight Time"},
          {"Z", "-0400"},
          {"ZZZ", "-0400"},
          {"ZZZZ", "GMT-04:00"},
          {"ZZZZZ", "-04:00"},
-         {"ZZZZZZ", "GMT-04:00"},
          {"O", "GMT-4"},
          {"OOOO", "GMT-04:00"},
          {"v", "ET"},
@@ -303,16 +299,18 @@ defmodule Localize.DateTime.SymbolMatrixTest do
        ]}
     ]
 
-    # ICU has no output past the widths TR35 defines for O, v, V, X and x;
-    # Localize uses the widest defined form of each.
-    @widest_zone_cases [
+    # Past the widths TR35 lists, each zone field is invalid and formats as
+    # U+FFFD. ICU renders the long form for z and Z and nothing for the rest.
+    @invalid_zone_cases [
       {@new_york,
        [
-         {"OOOOO", "GMT-04:00"},
-         {"vvvvv", "Eastern Time"},
-         {"VVVVV", "New York Time"},
-         {"XXXXXX", "-04:00"},
-         {"xxxxxx", "-04:00"}
+         {"zzzzz", "�"},
+         {"ZZZZZZ", "�"},
+         {"OOOOO", "�"},
+         {"vvvvv", "�"},
+         {"VVVVV", "�"},
+         {"XXXXXX", "�"},
+         {"xxxxxx", "�"}
        ]}
     ]
 
@@ -320,8 +318,8 @@ defmodule Localize.DateTime.SymbolMatrixTest do
       assert_zone_cases(@icu_zone_cases)
     end
 
-    test "past ICU's widths use the widest defined form" do
-      assert_zone_cases(@widest_zone_cases)
+    test "past TR35's widths are invalid fields" do
+      assert_zone_cases(@invalid_zone_cases)
     end
   end
 
@@ -399,10 +397,8 @@ defmodule Localize.DateTime.SymbolMatrixTest do
   defp date_value("q", width, date, locale),
     do: calendar_name(locale, :quarters, :stand_alone, quarter_width(width), quarter(date))
 
-  # Month (M, L): numeric at one or two letters, a name at three to five, and
-  # numeric again past that (ICU).
-  defp date_value(symbol, width, date, locale)
-       when symbol in ["M", "L"] and (width in 1..2 or width >= 6) do
+  # Month (M, L): numeric at one or two letters, a name at three to five.
+  defp date_value(symbol, width, date, locale) when symbol in ["M", "L"] and width in 1..2 do
     date.month |> pad(width) |> native_digits(locale)
   end
 
@@ -525,31 +521,27 @@ defmodule Localize.DateTime.SymbolMatrixTest do
 
   # ── Oracles ────────────────────────────────────────────────
 
-  # TR35's name widths; past them ICU falls back to the abbreviated name for
-  # weekdays and eras, the narrow name for quarters and AM/PM, and the wide
-  # name for other day periods.
+  # TR35's name widths.
   defp name_width(width) when width in 1..3, do: :abbreviated
   defp name_width(4), do: :wide
   defp name_width(5), do: :narrow
   defp name_width(6), do: :short
-  defp name_width(_width), do: :abbreviated
 
+  defp era_width(width) when width in 1..3, do: :abbreviated
   defp era_width(4), do: :wide
   defp era_width(5), do: :narrow
-  defp era_width(_width), do: :abbreviated
 
   defp quarter_width(3), do: :abbreviated
   defp quarter_width(4), do: :wide
-  defp quarter_width(_width), do: :narrow
+  defp quarter_width(5), do: :narrow
 
   defp am_pm_width(width) when width in 1..3, do: :abbreviated
   defp am_pm_width(4), do: :wide
-  defp am_pm_width(_width), do: :narrow
+  defp am_pm_width(5), do: :narrow
 
   defp day_period_width(width) when width in 1..3, do: :abbreviated
   defp day_period_width(4), do: :wide
   defp day_period_width(5), do: :narrow
-  defp day_period_width(_width), do: :wide
 
   defp pad(number, width), do: number |> Integer.to_string() |> String.pad_leading(width, "0")
 

@@ -95,18 +95,18 @@ defmodule Localize.DateTime.FormatterEdgeTest do
       assert time_format(@time, "AAAAAAAAAA") == "0052245123"
     end
 
-    test "hour symbols pad to counts greater than two" do
-      assert time_format(@time, "hhh:KKK:kkk") == "002:002:014"
+    # TR35 lists no longer widths for these symbols, so each is an invalid
+    # field that formats as U+FFFD, where ICU pads or clamps it.
+    test "hour symbols wider than two are invalid fields" do
+      assert time_format(@time, "hhh:KKK:kkk") == "�:�:�"
     end
 
-    test "seven-wide E falls back to the abbreviated day name" do
-      assert date_format(@date, "EEEEEEE") == "Sat"
+    test "seven-wide E is an invalid field" do
+      assert date_format(@date, "EEEEEEE") == "�"
     end
 
-    test "six-wide L is the zero-padded month number" do
-      # TR35 defines L only to five letters; past that ICU formats the month
-      # number padded to the width, and so does Localize.
-      assert date_format(@date, "LLLLLL") == "000007"
+    test "six-wide L is an invalid field" do
+      assert date_format(@date, "LLLLLL") == "�"
     end
 
     test "three-wide Y pads the week-aligned year" do
@@ -340,15 +340,19 @@ defmodule Localize.DateTime.FormatterEdgeTest do
       assert datetime_format(@utc_datetime, "ZZZZZ") == "Z"
     end
 
-    test "six-wide Z is the long localized GMT format" do
-      # Past TR35's five letters ICU formats Z as ZZZZ, and so does Localize.
-      assert datetime_format(@utc_datetime, "ZZZZZZ") == "GMT+00:00"
+    test "six-wide Z is an invalid field" do
+      # ICU formats it as ZZZZ; TR35 lists Z only to five letters.
+      assert datetime_format(@utc_datetime, "ZZZZZZ") == "�"
     end
 
     test "O widths render localized GMT formats" do
       assert datetime_format(@utc_datetime, "O") == "GMT+0"
-      assert datetime_format(@utc_datetime, "OO") == "GMT+00:00"
       assert datetime_format(@utc_datetime, "OOOO") == "GMT+00:00"
+    end
+
+    test "O widths TR35 does not list are invalid fields" do
+      assert datetime_format(@utc_datetime, "OO") == "�"
+      assert datetime_format(@utc_datetime, "OOO") == "�"
     end
 
     test "v widths render the generic non-location name" do
@@ -373,9 +377,8 @@ defmodule Localize.DateTime.FormatterEdgeTest do
       assert datetime_format(@utc_datetime, "xxxxx") == "+00:00"
     end
 
-    test "six-wide x keeps the widest defined form" do
-      # ICU has no output for x past five letters; Localize uses xxxxx.
-      assert datetime_format(@utc_datetime, "xxxxxx") == "+00:00"
+    test "six-wide x is an invalid field" do
+      assert datetime_format(@utc_datetime, "xxxxxx") == "�"
     end
 
     test "X widths render Z for a zero offset" do

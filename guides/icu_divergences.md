@@ -49,6 +49,18 @@ The `ur` case is the subtlest: both `٪` and `%` come from CLDR, one from the nu
 
 `Localize.Nif.number_format/3` is ICU4C's `NumberFormatter` and therefore produces ICU's answers, not Localize's, for every case in the table above. The NIF is built for cross-validation and for collation sort keys, not as a drop-in for `Localize.Number.to_string/2`; the two are not expected to agree in these locales. See the NIF section of the [number formatting guide](number_formatting.md).
 
+### Date and time patterns
+
+TR35 is CLDR's specification, and the rule applies to it as to the data. Its Date Field Symbol Table lists the widths each pattern letter takes, and its Handling Invalid Patterns recommends U+FFFD for a field at any other width and an error for a letter the table does not define. ICU4C 78.3 does neither; Localize follows TR35, asserted in `test/localize/datetime/invalid_field_length_test.exs`.
+
+| Pattern | TR35 and Localize | ICU4C renders |
+|---|---|---|
+| A numeric field past its widths: `dddd`, `MMMMMM`, `HHH` | U+FFFD | the number zero-padded to the width, "0006" |
+| A name field past its widths: `GGGGGG`, `EEEEEEE`, `aaaaaa` | U+FFFD | a defined width: "AD", "Sun", "AM" |
+| `zzzzz` and `ZZZZZZ` | U+FFFD | the long forms, "Eastern Daylight Time" and "GMT-04:00" |
+| Other zone widths TR35 does not list: `OO`, `vv`, `xxxxxx` | U+FFFD | nothing |
+| An undefined letter such as `n` | an error | nothing |
+
 ## Not divergences
 
 These also appear as exclusions in the test suites and should not be read as deliberate differences:

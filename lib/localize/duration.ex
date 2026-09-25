@@ -641,7 +641,9 @@ defmodule Localize.Duration do
 
   * `:format` is a format pattern string. The default is
     `"hh:mm:ss"`. Use `"h:mm:ss"` for no zero-padding on
-    hours, or `"mm:ss"` for minutes and seconds only.
+    hours, or `"mm:ss"` for minutes and seconds only. Each of
+    `h`, `m` and `s` takes one or two letters; a longer field
+    formats as U+FFFD, as TR35 recommends for an invalid field.
 
   ### Returns
 
@@ -729,6 +731,10 @@ defmodule Localize.Duration do
       {:field, "m"} -> Integer.to_string(duration.minute)
       {:field, "ss"} -> pad(duration.second, 2)
       {:field, "s"} -> Integer.to_string(duration.second)
+      # TR35's duration patterns use the date symbols `h`, `m` and `s`, which
+      # take one or two letters. A longer field is invalid and formats as
+      # U+FFFD, as it does in a date pattern.
+      {:field, _invalid} -> "�"
       {:literal, text} -> text
     end)
     |> IO.iodata_to_binary()

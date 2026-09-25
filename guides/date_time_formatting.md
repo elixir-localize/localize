@@ -500,19 +500,21 @@ A time carries no date fields, so `Localize.Time.parse/2` resolves no calendar a
 
 CLDR format patterns use field symbols to represent date and time components. Each symbol can be repeated to control the output width.
 
+A symbol takes only the widths TR35's Date Field Symbol Table lists for it. At any other width — `dddd`, `MMMMMM`, `HHH` — the field is invalid and formats as U+FFFD (�), as TR35's Handling Invalid Patterns recommends, and a letter the table does not define, such as `n`, makes the pattern an error. A skeleton passes the width it asks for on to the pattern wherever TR35's matching adjusts widths, so `:MMMMMMd` formats its month as U+FFFD too. ICU pads, clamps or drops such fields instead; see [ICU divergences](icu_divergences.md).
+
 ### Date field symbols
 
 | Symbol | Meaning | 1 | 2 | 3 | 4 | 5 |
 |--------|---------|---|---|---|---|---|
 | `G` | Era | AD | AD | AD | Anno Domini | A |
-| `y` | Year | 2024 | 24 | - | - | - |
+| `y` | Year | 2024 | 24 | 2024 | 2024 | 02024 |
 | `M` | Month | 7 | 07 | Jul | July | J |
 | `L` | Standalone month | 7 | 07 | Jul | July | J |
-| `d` | Day of month | 1 | 01 | 1st | - | - |
+| `d` | Day of month | 1 | 01 | 1st | � | � |
 | `E` | Day name | Mon | Mon | Mon | Monday | M |
 | `e` | Day of week (numeric) | 2 | 02 | Mon | Monday | M |
-| `c` | Standalone day | 2 | 02 | Mon | Monday | M |
-| `Q` | Quarter | 1 | 01 | Q1 | 1st quarter | 1 |
+| `c` | Standalone day | 2 | 2 | Mon | Monday | M |
+| `Q` | Quarter | 3 | 03 | Q3 | 3rd quarter | 3 |
 
 `ddd` is CLDR 49's ordinal day of month and is a **technical preview** — TR35 designates the `dayOfMonth` section one, so both the output and the surface may change. It is taken from the locale's `dayOfMonths` data for the ordinal plural category the day selects — `:yMMMddd` renders "Jul 6th, 2024" in `en` and "1er juil. 2024" in `fr`. Only some locales carry that data; the rest format the plain day, as does any pattern whose month is numeric (`M` or `MM`), where TR35 says `ddd` is ignored. A skeleton asking for `ddd` where the locale has no `ddd` format matches its `d` format instead, and the pattern's `d` is left at its own width rather than being widened.
 
@@ -527,7 +529,7 @@ CLDR format patterns use field symbols to represent date and time components. Ea
 | `m` | Minute | 5 | 05 |
 | `s` | Second | 9 | 09 |
 | `S` | Fractional second | 1-N digits | |
-| `a` | AM/PM | AM | |
+| `a` | AM/PM | PM | PM |
 
 ### Timezone field symbols
 
