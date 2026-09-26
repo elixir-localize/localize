@@ -781,9 +781,11 @@ defmodule Localize.Currency do
         {:ok, strings}
 
       :miss ->
+        generation = Localize.FormatCache.generation()
+
         with {:ok, currencies} <- do_currencies_for_locale(locale_id, only, except) do
           strings = build_currency_strings(currencies)
-          Localize.FormatCache.store(key, strings)
+          Localize.FormatCache.store(key, strings, generation)
           {:ok, strings}
         end
     end
