@@ -114,6 +114,14 @@ defmodule Localize.LanguageTag.UExtensionTest do
       assert {:error, %Localize.InvalidSubtagError{key: "hc", value: "h25"}} =
                U.parse("hc-h25")
     end
+
+    test "returns an InvalidSubtagError for an unknown timezone id" do
+      assert {:error, %Localize.InvalidSubtagError{key: "tz", value: "zzz"}} =
+               U.parse("tz-zzz")
+
+      assert {:error, %Localize.InvalidLocaleError{}} =
+               Localize.validate_locale("de-u-tz-gpbkce")
+    end
   end
 
   describe "to_string/1" do

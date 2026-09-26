@@ -50,6 +50,13 @@ defmodule Localize.LanguageTag.TExtensionTest do
                Localize.validate_locale("en-t-de-m0-bogus")
     end
 
+    test "rejects a numeric value that is not a date" do
+      assert {:error, %Localize.InvalidLocaleError{}} = Localize.validate_locale("de-t-d0-123")
+
+      assert {:error, %Localize.InvalidLocaleError{}} =
+               Localize.validate_locale("en-t-m0-12345")
+    end
+
     test "rejects a mechanism list where the date is not last" do
       assert {:error, %Localize.InvalidLocaleError{}} =
                Localize.validate_locale("und-t-ru-m0-2007-ungegn")
