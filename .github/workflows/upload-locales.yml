@@ -5,10 +5,17 @@ name: Upload Locales to Cloudflare R2
 # yet on R2, this generates and uploads it so the test jobs (and
 # users) can download it. When the version is already published the
 # run is a quick no-op. workflow_dispatch is the manual recovery path
-# after a transient upload failure.
+# after a transient upload failure, and with `replace` it overwrites a
+# data version already on R2, for development data.
 on:
   workflow_call:
   workflow_dispatch:
+    inputs:
+      replace:
+        description: 'Replace the data version already on R2 and purge its files from the Cloudflare cache. Development data only.'
+        required: false
+        type: boolean
+        default: false
 
 env:
   MIX_ENV: dev
@@ -28,6 +35,11 @@ env:
   # R2 allows ~1000 PUT requests/second; we use a conservative batch
   # size to avoid transient rate-limit errors.
   BATCH_SIZE: 50
+  # The public URL clients download locale files from
+  # (`Localize.Locale.Provider.base_url/0`), whose cached copies a
+  # replace purges, and the URLs sent per Cloudflare purge request.
+  PUBLIC_BASE_URL: https://elixir-localize.com/locales
+  PURGE_BATCH_SIZE: 30
 
 permissions:
   contents: read
@@ -76,6 +88,20 @@ jobs:
           echo "data_version=${data_version}" >> "$GITHUB_OUTPUT"
           echo "Data version: ${data_version}"
 
+      # A replace keeps the data version's URLs, so the copies Cloudflare
+      # caches in front of R2 must be purged after the upload. Refuse
+      # before touching anything when that is not possible.
+      - name: Check the cache purge credentials for a replace
+        if: inputs.replace == true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: |
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ] || [ -z "${CLOUDFLARE_ZONE_ID}" ]; then
+            echo "::error::replace needs the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID secrets to purge the replaced files from the Cloudflare cache."
+            exit 1
+          fi
+
       - name: Install rclone
         run: |
           curl -fsSL https://rclone.org/install.sh | sudo bash
@@ -101,15 +127,18 @@ jobs:
       # Short-circuit: if the target R2 prefix already contains ETF
       # files for this data_version, there is nothing to do. This
       # makes the CI-invoked run a cheap no-op on every push that
-      # does not change the CLDR or patch version.
+      # does not change the CLDR or patch version. A replace goes on
+      # regardless, and the listing records the files it has to purge.
       - name: Check if data version already exists on R2
         id: check_existing
         env:
           DATA_VERSION: ${{ steps.version.outputs.data_version }}
+          REPLACE: ${{ inputs.replace }}
         run: |
-          existing=$(rclone lsf "r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/" --include "*.etf" 2>/dev/null | wc -l | tr -d '[:space:]')
+          rclone lsf "r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/" --include "*.etf" > "${RUNNER_TEMP}/existing_locales.txt" 2>/dev/null || true
+          existing=$(wc -l < "${RUNNER_TEMP}/existing_locales.txt" | tr -d '[:space:]')
           echo "Found ${existing} existing ETF file(s) at r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/"
-          if [ "${existing}" -gt 0 ]; then
+          if [ "${existing}" -gt 0 ] && [ "${REPLACE}" != "true" ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "::notice::Data version ${DATA_VERSION} already exists on R2 with ${existing} file(s); skipping generation and upload."
           else
@@ -229,10 +258,44 @@ jobs:
           fi
           echo "Upload complete: ${uploaded} locale files to ${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/"
 
+      # Cloudflare serves locale files with `max-age=3600`, so after a
+      # replace a cached copy of an old file would fail the new hash
+      # manifest for up to an hour. Purge every file the version held
+      # before the sync and every file it holds now.
+      - name: Purge the replaced files from the Cloudflare cache
+        if: steps.check_existing.outputs.skip != 'true' && inputs.replace == true
+        env:
+          DATA_VERSION: ${{ steps.version.outputs.data_version }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: |
+          mapfile -t urls < <(
+            { cat "${RUNNER_TEMP}/existing_locales.txt"; for file in priv/localize/locales/*.etf; do basename "${file}"; done; } |
+              sort -u |
+              sed "s|^|${PUBLIC_BASE_URL}/${DATA_VERSION}/|"
+          )
+
+          for ((start = 0; start < ${#urls[@]}; start += PURGE_BATCH_SIZE)); do
+            batch=("${urls[@]:start:PURGE_BATCH_SIZE}")
+
+            response=$(curl -sS -X POST \
+              "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+              -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              --data "$(jq -cn '{files: $ARGS.positional}' --args "${batch[@]}")")
+
+            if ! jq -e '.success == true' <<< "${response}" > /dev/null; then
+              echo "::error::Cloudflare cache purge failed: ${response}"
+              exit 1
+            fi
+          done
+
+          echo "Purged ${#urls[@]} URL(s) under ${PUBLIC_BASE_URL}/${DATA_VERSION}/ from the Cloudflare cache."
+
       - name: Skipped summary
         if: steps.check_existing.outputs.skip == 'true'
         env:
           DATA_VERSION: ${{ steps.version.outputs.data_version }}
         run: |
           echo "Skipped: data version ${DATA_VERSION} already present on R2 at ${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/"
-          echo "Nothing was regenerated or uploaded. Bump the CLDR or Localize patch version and push to trigger a real upload."
+          echo "Nothing was regenerated or uploaded. Bump the CLDR or Localize patch version and push to trigger a real upload, or run the workflow with replace to overwrite development data."
