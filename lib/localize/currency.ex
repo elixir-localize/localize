@@ -765,14 +765,27 @@ defmodule Localize.Currency do
         ) ::
           {:ok, map()} | {:error, Exception.t()}
   def currency_strings(locale, options \\ []) do
-    with {:ok, only, except} <- filter_options(options) do
-      do_currency_strings(locale, only, except)
+    with {:ok, only, except} <- filter_options(options),
+         {:ok, locale_id} <- cldr_locale_id_from(locale) do
+      cached_currency_strings(locale_id, only, except)
     end
   end
 
-  defp do_currency_strings(locale, only, except) do
-    with {:ok, currencies} <- do_currencies_for_locale(locale, only, except) do
-      {:ok, build_currency_strings(currencies)}
+  # Building the map takes about half a millisecond, so it is cached.
+  # `Localize.Locale.store/3` clears the cache when locale data changes.
+  defp cached_currency_strings(locale_id, only, except) do
+    key = {:localize, :currency_strings, locale_id, only, except}
+
+    case Localize.FormatCache.lookup(key) do
+      {:ok, strings} ->
+        {:ok, strings}
+
+      :miss ->
+        with {:ok, currencies} <- do_currencies_for_locale(locale_id, only, except) do
+          strings = build_currency_strings(currencies)
+          Localize.FormatCache.store(key, strings)
+          {:ok, strings}
+        end
     end
   end
 

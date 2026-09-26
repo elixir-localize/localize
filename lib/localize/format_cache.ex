@@ -1,8 +1,12 @@
 defmodule Localize.FormatCache do
-  # An ETS-backed cache for compiled format patterns.
+  # An ETS-backed cache for compiled format patterns and data
+  # derived from locale data.
   #
-  # Number format metadata and datetime format tokens are cached
-  # here after first compilation. The cache is hard-bounded: when
+  # Number format metadata, datetime format tokens and the
+  # currency strings of a locale are cached here after they are
+  # first built. `Localize.Locale.store/3` clears the cache, so no
+  # entry outlives the locale data it came from. The cache is
+  # hard-bounded: when
   # inserting an entry would exceed the configured maximum, an
   # existing entry is evicted synchronously, keeping the cache at
   # or below the cap at all times.
