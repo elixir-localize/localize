@@ -192,7 +192,7 @@ defmodule Localize.Locale.Provider do
 
   Attempts to load the requested locale via `provider.load/1`. If the
   load fails, walks up the CLDR locale inheritance chain (e.g.
-  `en-AU` → `en`) trying each parent in turn. The chain stops before
+  `en-AU` → `en`) trying each parent in turn. The walk stops before
   the root locale `und`, which has no currency data and no localized
   names, and falls back to `:en`. Only an explicit request for `:und`
   loads the root locale.
@@ -259,9 +259,6 @@ defmodule Localize.Locale.Provider do
       # defence-in-depth so any future resolver quirk cannot loop the
       # provider.
       cond do
-        parent_id == :und ->
-          fallback_to_en(provider, original_locale_id)
-
         parent_id == locale_id ->
           Logger.debug(
             "Parent of #{inspect(locale_id)} resolved back to itself — stopping parent-chain walk.",
@@ -276,6 +273,9 @@ defmodule Localize.Locale.Provider do
             domain: [:localize]
           )
 
+          fallback_to_en(provider, original_locale_id)
+
+        parent_id == :und ->
           fallback_to_en(provider, original_locale_id)
 
         true ->
@@ -295,8 +295,8 @@ defmodule Localize.Locale.Provider do
       end
     else
       {:error, _} ->
-        # `und` has no parent: an explicit `:und` request that failed
-        # to load — fall back to :en
+        # Only `und` has no parent, so this is an explicit `:und`
+        # request that failed to load.
         fallback_to_en(provider, original_locale_id)
     end
   end
