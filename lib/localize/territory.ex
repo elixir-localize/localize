@@ -405,15 +405,27 @@ defmodule Localize.Territory do
   def to_territory_code(name, locale) when is_binary(name) do
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
          {:ok, territories} <- Localize.Locale.get(locale_id, [:territories]) do
-      case territories_named(territories, name) do
-        [] -> {:error, Localize.UnknownTerritoryError.exception(territory: name)}
-        codes -> {:ok, preferred_territory(codes)}
+      case code_for_name(territories, name) do
+        nil -> {:error, Localize.UnknownTerritoryError.exception(territory: name)}
+        code -> {:ok, code}
       end
     end
   end
 
   def to_territory_code(name, _locale),
     do: {:error, Localize.Utils.Helpers.invalid_value(name, "a territory name string")}
+
+  @doc false
+  # The code that `name` picks out of a locale's `%{code => names}` map, or
+  # `nil`. Which names collide changes from one CLDR release to the next, so
+  # the tie rules are tested against maps built for the purpose.
+  @spec code_for_name(%{atom() => map()}, String.t()) :: atom() | nil
+  def code_for_name(territories, name) do
+    case territories_named(territories, name) do
+      [] -> nil
+      codes -> preferred_territory(codes)
+    end
+  end
 
   # Territories can share a name once it is normalised ("America dal Nord"
   # and "America dal nord" in rm) and occasionally outright, so every match

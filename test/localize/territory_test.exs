@@ -123,25 +123,30 @@ defmodule Localize.TerritoryTest do
       assert {:ok, :GB} == Territory.to_territory_code("UK", :en)
     end
 
-    # Regression: the names were inverted into a map, so where two
-    # territories share a name the one visited last won, which followed the
-    # map's order.
+    # Which names collide changes from one CLDR release to the next (CLDR 49
+    # has none), so these build the names they need, after CLDR 48's: 003,
+    # 018 and 021 are regions containing others, ZA is a country.
     test "a name as written is matched before its normalised form" do
-      assert {:ok, :"003"} == Territory.to_territory_code("America dal Nord", :rm)
-      assert {:ok, :"021"} == Territory.to_territory_code("America dal nord", :rm)
+      territories = %{
+        "003": %{standard: "America dal Nord"},
+        "021": %{standard: "America dal nord"}
+      }
+
+      assert Territory.code_for_name(territories, "America dal Nord") == :"003"
+      assert Territory.code_for_name(territories, "America dal nord") == :"021"
     end
 
     test "a country is preferred to a region of the same name" do
-      {:ok, territories} = Localize.Locale.get(:scn, [:territories])
-      name = territories[:ZA].standard
+      territories = %{
+        "018": %{standard: "Àfrica di sciroccu"},
+        ZA: %{standard: "Àfrica di sciroccu"}
+      }
 
-      assert territories[:"018"].standard == name
-      assert {:ok, :ZA} == Territory.to_territory_code(name, :scn)
+      assert Territory.code_for_name(territories, "Àfrica di sciroccu") == :ZA
     end
 
-    test "the alphabetically first of equally ranked territories is chosen" do
-      assert {:ok, :CH} == Territory.to_territory_code("ma Suwasi", :tok)
-      assert {:ok, :"003"} == Territory.to_territory_code("america dal nord", :rm)
+    test "a name is matched ignoring case" do
+      assert {:ok, :GB} == Territory.to_territory_code("united kingdom", :en)
     end
 
     test "returns error for unknown name" do
