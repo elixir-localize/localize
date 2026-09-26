@@ -122,6 +122,11 @@ defmodule Localize.LanguageTag.UExtensionTest do
       assert {:error, %Localize.InvalidLocaleError{}} =
                Localize.validate_locale("de-u-tz-gpbkce")
     end
+
+    test "round-trips a vt value of two codepoints" do
+      {:ok, tag} = Localize.validate_locale("de-u-vt-0020-0041")
+      assert tag.canonical_locale_id == "de-u-vt-0020-0041"
+    end
   end
 
   describe "to_string/1" do

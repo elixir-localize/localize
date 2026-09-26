@@ -143,6 +143,10 @@ defmodule Localize.Validity.U do
     to_string(value)
   end
 
+  defp encode_key("vt", values) when is_list(values) do
+    Enum.map_join(values, "-", &String.downcase/1)
+  end
+
   defp encode_key("vt", value) do
     value
     |> String.downcase()
