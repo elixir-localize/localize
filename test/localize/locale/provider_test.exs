@@ -97,4 +97,39 @@ defmodule Localize.Locale.ProviderTest do
       end)
     end
   end
+
+  describe "load_with_fallback/2 — the root locale und" do
+    # Like a release with downloads off: only the bundled en and und
+    # data are in the cache.
+    defmodule BundledOnlyProvider do
+      @moduledoc false
+      def load(locale) when locale in [:en, :und], do: {:ok, %{data_of: locale}}
+      def load(locale), do: {:error, %Localize.LocaleNotFoundInCacheError{locale_id: locale}}
+    end
+
+    defmodule RootOnlyProvider do
+      @moduledoc false
+      def load(:und), do: {:ok, %{data_of: :und}}
+      def load(locale), do: {:error, %Localize.LocaleNotFoundInCacheError{locale_id: locale}}
+    end
+
+    test "de-CH without data loads en, not the und root" do
+      capture_log(fn ->
+        assert Provider.load_with_fallback(BundledOnlyProvider, :"de-CH") ==
+                 {:ok, %{data_of: :en}, :en}
+      end)
+    end
+
+    test "an explicit und request loads the und root" do
+      assert Provider.load_with_fallback(BundledOnlyProvider, :und) ==
+               {:ok, %{data_of: :und}, :und}
+    end
+
+    test "de-CH without data and without en returns the de-CH error" do
+      capture_log(fn ->
+        assert {:error, %Localize.LocaleNotFoundInCacheError{locale_id: :"de-CH"}} =
+                 Provider.load_with_fallback(RootOnlyProvider, :"de-CH")
+      end)
+    end
+  end
 end
