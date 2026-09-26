@@ -145,6 +145,11 @@ defmodule Localize.Validity.T do
     end
   end
 
+  # A keyword without a value parses as nil.
+  defp valid(key, nil) when key in @valid_keys do
+    {:error, U.invalid_value_error(key, nil)}
+  end
+
   defp valid(key, value) when key in @valid_keys do
     case Integer.parse(value) do
       {_integer, ""} when byte_size(value) in [4, 6, 8] -> {:ok, make_date_tuple(value)}
