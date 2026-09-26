@@ -1082,11 +1082,16 @@ defmodule Localize.Number do
 
   * `:number_system` is a number system name or type.
 
+  * `:currency` is a currency code or a `t:Localize.Currency.t/0`.
+    When set, numbers are read as amounts of that currency, with the
+    separators `to_string/2` formats them with.
+
   ### Returns
 
   * A list of strings and numbers.
 
-  * `{:error, exception}` if the locale or number system is invalid.
+  * `{:error, exception}` if the locale, number system, or currency is
+    invalid.
 
   ### Examples
 
@@ -1122,6 +1127,10 @@ defmodule Localize.Number do
     returned by `Localize.get_locale/0`.
 
   * `:number_system` is a number system name or type.
+
+  * `:currency` is a currency code or a `t:Localize.Currency.t/0`.
+    When set, the string is read as an amount of that currency, with
+    the separators `to_string/2` formats it with.
 
   ### Returns
 
