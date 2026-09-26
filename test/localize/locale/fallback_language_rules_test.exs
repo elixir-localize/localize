@@ -6,16 +6,17 @@ defmodule Localize.Locale.FallbackLanguageRulesTest do
   import ExUnit.CaptureLog
 
   # Like a release with downloads off: only the bundled en and und data
-  # load. Every other locale falls back to en. The data is kept apart
-  # from the default provider, which may hold the real ru and de-CH data.
-  defmodule BundledOnlyProvider do
+  # and one cached es-MX load. Every other locale falls back to en. The
+  # data is kept apart from the default provider, which may hold the real
+  # ru and de-CH data.
+  defmodule PartialCacheProvider do
     @moduledoc false
     @behaviour Localize.Locale.Provider
 
     alias Localize.Locale.Provider.PersistentTerm
 
     @impl true
-    def load(locale) when locale in [:en, :und], do: PersistentTerm.load(locale)
+    def load(locale) when locale in [:en, :und, :"es-MX"], do: PersistentTerm.load(locale)
 
     def load(locale),
       do: {:error, Localize.LocaleNotFoundInCacheError.exception(locale_id: locale)}
@@ -43,7 +44,7 @@ defmodule Localize.Locale.FallbackLanguageRulesTest do
 
   setup do
     previous = Application.fetch_env(:localize, :locale_provider)
-    Application.put_env(:localize, :locale_provider, BundledOnlyProvider)
+    Application.put_env(:localize, :locale_provider, PartialCacheProvider)
 
     on_exit(fn ->
       case previous do
@@ -130,6 +131,17 @@ defmodule Localize.Locale.FallbackLanguageRulesTest do
              {:ok, "21 days ago"}
 
     assert Localize.Number.to_string(21, format: :ordinal, locale: :ru) == {:ok, "21st"}
+  end
+
+  # es-MX has no RBNF rules of its own, so the RBNF walk takes them from
+  # its parent es-419, whose data fell back to en.
+  test "es-MX spells ordinals from the en RBNF rules with en rules: 1st, 21st, 23rd" do
+    assert Localize.Locale.data_locale_id(:"es-MX") == :"es-MX"
+
+    for {number, ordinal} <- [{1, "1st"}, {21, "21st"}, {23, "23rd"}] do
+      assert Localize.Number.to_string(number, format: :ordinal, locale: :"es-MX") ==
+               {:ok, ordinal}
+    end
   end
 
   test "de-CH names day periods with en rules: 10 at night, 12 noon" do

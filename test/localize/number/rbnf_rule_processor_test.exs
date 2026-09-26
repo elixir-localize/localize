@@ -324,7 +324,7 @@ defmodule Localize.Number.RbnfRuleProcessorTest do
         }
       ]
 
-      assert Processor.process(1234, "fmt", rules, %{}, :en) == {:ok, "1,234"}
+      assert Processor.process(1234, "fmt", rules, %{}) == {:ok, "1,234"}
     end
 
     test "ruleset calls resolve string, atom, dashed and underscored names" do
