@@ -220,7 +220,7 @@ Why `:otp_app` is the recommended anchor: `Application.app_dir/2` is re-resolved
 
 * `:locale_cache_dir` is the path to the on-disk cache. Absolute paths are used verbatim and override `:otp_app`. **Relative** paths are valid only when paired with `:otp_app` — they resolve against the app's runtime root via `Application.app_dir/2`. A bare relative path with no `:otp_app` raises `Localize.LocaleCacheDirError` at app start. See `Localize.Locale.Provider.locale_cache_dir/0`. The default is `Application.app_dir(:localize, "priv/localize/locales")`.
 
-* `:allow_runtime_locale_download` determines whether locales not found in the on-disk cache are downloaded from the Localize CDN on first access. When `false`, a locale missing from the cache uses the data of its nearest cached parent locale, or else the data of `:en`; use `mix localize.download_locales` to pre-populate the cache at build time. The default is `false`.
+* `:allow_runtime_locale_download` determines whether locales not found in the on-disk cache are downloaded from the Localize CDN on first access. When `false`, a locale missing from the cache tries its parent locales and then `:en`, and returns the error for the requested locale if none of them loads; use `mix localize.download_locales` to pre-populate the cache at build time. The default is `false`.
 
 * `:nif` enables the optional NIF for faster Unicode normalisation and collation sort-key generation. It can also be enabled with the `LOCALIZE_NIF=true` environment variable at compile time. See `Localize.Nif` for details. The default is `false`.
 
