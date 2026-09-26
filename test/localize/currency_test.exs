@@ -101,6 +101,23 @@ defmodule Localize.CurrencyTest do
     test "returns nil for territory with no current currency" do
       assert is_nil(Currency.current_currency_for_territory(:UNKNOWN))
     end
+
+    # Regression: where several currencies are current tender, the first the
+    # territory's map yielded won, which follows atom-creation order: LS gave
+    # LSL and ZW gave USD. CLDR lists the primary currency first.
+    test "returns CLDR's primary currency where several are current tender" do
+      for {territory, currency} <- [BT: :BTN, HT: :HTG, LS: :ZAR, NA: :NAD, PA: :PAB, ZW: :ZWG] do
+        assert Currency.current_currency_for_territory(territory) == currency
+      end
+    end
+
+    # Regression: ML lists XOF for two periods and the older one was kept,
+    # so ML had no current currency.
+    test "a currency listed for two periods keeps its current one" do
+      assert Currency.current_currency_for_territory(:ML) == :XOF
+      assert {:ok, %{XOF: %{from: ~D[1984-06-01]} = xof}} = Currency.territory_currencies(:ML)
+      refute Map.has_key?(xof, :to)
+    end
   end
 
   describe "current_territory_currencies/0" do
@@ -451,6 +468,24 @@ defmodule Localize.CurrencyTest do
     test "narrow symbol R maps to ZAR in en locale" do
       {:ok, strings} = Currency.currency_strings(:en)
       assert strings["r"] == :ZAR
+    end
+
+    # Regression: a shared narrow symbol went to whichever currency the
+    # locale's map yielded first, which follows atom-creation order.
+    test "a narrow symbol shared by several current currencies is left out" do
+      {:ok, strings} = Currency.currency_strings(:en)
+      refute Map.has_key?(strings, "kr")
+      refute Map.has_key?(strings, "rs")
+    end
+
+    test "a shared narrow symbol goes to the one current currency among historic ones" do
+      {:ok, strings} = Currency.currency_strings(:en)
+      assert strings["bs"] == :BOB
+    end
+
+    test "narrowing the currencies resolves a shared narrow symbol" do
+      {:ok, strings} = Currency.currency_strings(:en, only: [:SEK])
+      assert strings["kr"] == :SEK
     end
 
     test "annotated currency names are preserved" do

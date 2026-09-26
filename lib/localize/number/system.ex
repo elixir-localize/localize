@@ -275,7 +275,8 @@ defmodule Localize.Number.System do
   ### Returns
 
   * `{:ok, names}` where `names` is a list of unique
-    number system name atoms.
+    number system name atoms, in the order of the types in
+    `known_number_system_types/0`: the default system first.
 
   * `{:error, exception}` if the locale data cannot be loaded.
 
@@ -289,7 +290,15 @@ defmodule Localize.Number.System do
           {:ok, [system_name()]} | {:error, Exception.t()}
   def number_system_names_for(locale) do
     with {:ok, systems} <- number_systems_for(locale) do
-      {:ok, systems |> Map.values() |> Enum.uniq()}
+      # Walk the types rather than the map, whose atom keys iterate in the
+      # order the atoms were created.
+      names =
+        for type <- @known_number_system_types,
+            {:ok, name} <- [Map.fetch(systems, type)],
+            uniq: true,
+            do: name
+
+      {:ok, names}
     end
   end
 
