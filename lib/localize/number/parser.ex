@@ -94,6 +94,14 @@ defmodule Localize.Number.Parser do
     group to be exactly the locale's grouping size, so `fr` takes
     `"1 234 567"` and refuses `"1 23"`.
 
+  * `:currency` is a currency code or a `t:Localize.Currency.t/0`.
+    When set, numbers are read as amounts of that currency, with the
+    separators `Localize.Number.to_string/2` formats them with. See
+    `parse/2`.
+
+  * `:separators` names the set of decimal and grouping separators
+    to read with. See `parse/2`.
+
   ### Returns
 
   * A list of strings and numbers.
@@ -115,10 +123,8 @@ defmodule Localize.Number.Parser do
          locale = Keyword.get(options, :locale, Localize.get_locale()),
          {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, _number_type} <- number_type(Keyword.get(options, :number)),
-         {:ok, symbols} <- Symbol.number_symbols_for(language_tag),
-         {:ok, number_system} <- digits_number_system_from(language_tag, options) do
-      symbol = symbols_for_number_system(symbols, number_system)
-
+         {:ok, number_system} <- digits_number_system_from(language_tag, options),
+         {:ok, symbol} <- number_symbols(language_tag, number_system, options) do
       scanner =
         @number_format
         |> localize_format_string(symbol, options)
@@ -202,6 +208,20 @@ defmodule Localize.Number.Parser do
     group to be exactly the locale's grouping size, so `fr` takes
     `"1 234 567"` and refuses `"1 23"`.
 
+  * `:currency` is a currency code or a `t:Localize.Currency.t/0`.
+    When set, the string is read as an amount of that currency, with
+    the separators `Localize.Number.to_string/2` formats it with. Some
+    locales separate a currency amount differently from a plain
+    number: `de-AT` formats `€ 1.234,56` with a dot for grouping but
+    `1 234,56` with a space, so `"1.234"` is a different number with
+    and without this option. The default is `nil`, a plain number.
+
+  * `:separators` names the set of decimal and grouping separators
+    to read with, for a locale that has more than one. `en-ZA` writes
+    `1\u00A0234,56` with its `:standard` set and `1,234.56` with its
+    `:us` set. A locale without the named set reads with its standard
+    one. The default is `:standard`.
+
   ### Returns
 
   * `{:ok, number}` on success.
@@ -212,6 +232,9 @@ defmodule Localize.Number.Parser do
 
       iex> Localize.Number.Parser.parse("-1_000_000.34")
       {:ok, -1000000.34}
+
+      iex> Localize.Number.Parser.parse("1.234,56", locale: "de-AT", currency: :EUR)
+      {:ok, 1234.56}
 
   """
   @spec parse(String.t(), Keyword.t()) ::
@@ -264,10 +287,8 @@ defmodule Localize.Number.Parser do
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, number_type} <- number_type(Keyword.get(options, :number)),
-         {:ok, symbols} <- Symbol.number_symbols_for(language_tag),
-         {:ok, number_system} <- digits_number_system_from(language_tag, options) do
-      symbol = symbols_for_number_system(symbols, number_system)
-
+         {:ok, number_system} <- digits_number_system_from(language_tag, options),
+         {:ok, symbol} <- number_symbols(language_tag, number_system, options) do
       lenient? = Keyword.get(options, :lenient, true)
 
       with {:ok, normalized} <-
@@ -481,10 +502,8 @@ defmodule Localize.Number.Parser do
     with :ok <- validate_arguments(string, :string, options),
          locale = Keyword.get(options, :locale, Localize.get_locale()),
          {:ok, language_tag} <- Localize.validate_locale(locale),
-         {:ok, symbols} <- Symbol.number_symbols_for(language_tag),
-         {:ok, number_system} <- digits_number_system_from(language_tag, options) do
-      symbol = symbols_for_number_system(symbols, number_system)
-
+         {:ok, number_system} <- digits_number_system_from(language_tag, options),
+         {:ok, symbol} <- number_symbols(language_tag, number_system, []) do
       per_strings =
         build_per_strings(symbol)
 
@@ -860,9 +879,46 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  defp symbols_for_number_system(symbols, number_system) do
-    Map.get(symbols, number_system) || Map.get(symbols, :latn)
+  defp number_symbols(language_tag, number_system, options) do
+    with {:ok, symbols} <- symbols_for(language_tag, number_system, options[:currency]) do
+      separators = Keyword.get(options, :separators, :standard)
+
+      {:ok,
+       %{
+         symbols
+         | decimal: variant(symbols.decimal, separators),
+           group: variant(symbols.group, separators)
+       }}
+    end
   end
+
+  # CLDR gives a few locales a second set of separators, such as the `:us`
+  # set of `en-ZA`. A locale without the requested set reads with its standard
+  # one, as `Money.new/3` does.
+  defp variant(%{standard: standard} = separators, name), do: Map.get(separators, name, standard)
+  defp variant(separator, _name), do: separator
+
+  defp symbols_for(language_tag, number_system, nil) do
+    with {:ok, symbols} <- Symbol.number_symbols_for(language_tag) do
+      {:ok, Map.get(symbols, number_system) || Map.get(symbols, :latn)}
+    end
+  end
+
+  # A currency amount is read with the symbols `Localize.Number.to_string/2`
+  # formats it with, so what it formats parses back.
+  defp symbols_for(language_tag, number_system, currency) do
+    with {:ok, symbols} <- Symbol.number_symbols_for(language_tag, number_system),
+         {:ok, currency} <- currency_for(currency, language_tag) do
+      {:ok, Symbol.for_currency(symbols, currency)}
+    end
+  end
+
+  defp currency_for(%Localize.Currency{} = currency, _language_tag), do: {:ok, currency}
+
+  # Reading needs only the currency's separators, not its display names, so a
+  # currency the locale has no names for reads with its parent's data.
+  defp currency_for(code, language_tag),
+    do: Localize.Currency.currency_for_code(code, locale: language_tag, fallback: true)
 
   defp localize_format_string(string, symbols, _options) do
     group_sep = extract_separator(symbols.group)
@@ -870,7 +926,7 @@ defmodule Localize.Number.Parser do
 
     string
     |> String.replace(",", group_class(group_sep))
-    |> String.replace("\\.", "\\" <> decimal_sep)
+    |> String.replace("\\.", Regex.escape(decimal_sep))
   end
 
   # What counts as a grouping separator inside the scanner's character class.
