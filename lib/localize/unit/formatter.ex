@@ -114,7 +114,7 @@ defmodule Localize.Unit.Formatter do
            Localize.Number.PluralRule.Range.plural_rule_for(
              unit_1.value,
              unit_2.value,
-             language_tag
+             Localize.Locale.data_locale_id(language_tag)
            ),
          grammatical_case = Keyword.get(options, :grammatical_case, :nominative),
          tokens when is_list(tokens) <-
@@ -229,7 +229,7 @@ defmodule Localize.Unit.Formatter do
     unit_name = normalize_unit_name(name)
 
     with unit_formats when is_map(unit_formats) <- find_unit_formats(unit_data, unit_name),
-         plural = plural_form(value, language_tag, options),
+         plural = plural_form(value, Localize.Locale.data_locale_id(language_tag), options),
          grammatical_case = Keyword.get(options, :grammatical_case, :nominative),
          tokens when is_list(tokens) <-
            pattern_tokens(resolve_pattern(unit_formats, grammatical_case, plural)) do
@@ -583,7 +583,7 @@ defmodule Localize.Unit.Formatter do
   # CLDR unit pattern resolution: grammatical-case, plural-form, and
   # pattern-shape fallbacks each contribute a branch.
   defp format_with_pattern(value, unit_formats, locale, grammatical_case, options) do
-    plural = plural_form(value, locale, options)
+    plural = plural_form(value, Localize.Locale.data_locale_id(locale), options)
     pattern = resolve_pattern(unit_formats, grammatical_case, plural)
 
     case pattern do
@@ -663,6 +663,10 @@ defmodule Localize.Unit.Formatter do
   # The displayed digits are what carry the v, w, f and t operands, including
   # any rounding, significant digits or `:round_nearest` increment: under
   # `hr`, 0.0045 displays as "0,004" (`:few`), not 0.005 (`:other`).
+  #
+  # `locale` is the locale of the patterns the category selects: the loaded
+  # data's locale for CLDR patterns, the requested one for registered custom
+  # unit patterns.
   defp plural_form(value, locale, options) when is_number(value) or is_struct(value, Decimal) do
     value
     |> Localize.Number.source_number(Keyword.take(options, @number_format_options))
@@ -825,7 +829,7 @@ defmodule Localize.Unit.Formatter do
 
   defp format_prefixed_unit(value, prefix, base, unit_data, locale, options) do
     grammatical_case = Keyword.get(options, :grammatical_case, :nominative)
-    count_plural = plural_form(value, locale, options)
+    count_plural = plural_form(value, Localize.Locale.data_locale_id(locale), options)
 
     with prefix_tokens when is_list(prefix_tokens) <- si_prefix_pattern_tokens(unit_data, prefix),
          base_formats when not is_nil(base_formats) <-
@@ -962,7 +966,7 @@ defmodule Localize.Unit.Formatter do
 
   defp format_times_compound(value, single_units, unit_data, locale, options) do
     grammatical_case = Keyword.get(options, :grammatical_case, :nominative)
-    count_plural = plural_form(value, locale, options)
+    count_plural = plural_form(value, Localize.Locale.data_locale_id(locale), options)
 
     # CLDR derives each component's plural and case from the compound as a
     # whole (grammaticalFeatures.xml `deriveComponent structure="times"`):
@@ -1058,9 +1062,10 @@ defmodule Localize.Unit.Formatter do
   end
 
   # The `{plural, case}` derivations for a "times" compound in the given
-  # locale, each a `{value0, value1}` tuple. Looks up the locale's base
-  # language in the CLDR derivation table, falling back to `"root"` and
-  # then to the hard-coded root defaults if the table is unavailable.
+  # locale, each a `{value0, value1}` tuple. Looks up the base language of
+  # the loaded locale data, whose unit patterns they select, in the CLDR
+  # derivation table, falling back to `"root"` and then to the hard-coded
+  # root defaults if the table is unavailable.
   defp times_derivations(locale) do
     table = Localize.SupplementalData.unit_grammatical_derivations()
     language_table = Map.get(table, times_language(locale)) || Map.get(table, "root") || %{}
@@ -1077,7 +1082,13 @@ defmodule Localize.Unit.Formatter do
   defp resolve_derived_category(:compound, compound_category), do: compound_category
   defp resolve_derived_category(category, _compound_category), do: category
 
-  defp times_language(%Localize.LanguageTag{language: language}), do: Atom.to_string(language)
+  defp times_language(locale) do
+    locale
+    |> Localize.Locale.data_locale_id()
+    |> Atom.to_string()
+    |> String.split("-")
+    |> hd()
+  end
 
   # ── Custom unit formatting ─────────────────────────────────
   #

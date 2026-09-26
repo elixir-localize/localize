@@ -991,7 +991,10 @@ defmodule Localize.Currency do
         |> Map.put_new(:other, currency_data.name)
 
       plural_category =
-        Localize.Number.PluralRule.Cardinal.plural_rule(number, locale)
+        Localize.Number.PluralRule.Cardinal.plural_rule(
+          number,
+          Localize.Locale.data_locale_id(locale)
+        )
 
       {:ok, Map.get(counts, plural_category, counts[:other])}
     end

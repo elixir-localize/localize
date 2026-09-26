@@ -192,9 +192,10 @@ defmodule Localize.Locale.Provider do
 
   Attempts to load the requested locale via `provider.load/1`. If the
   load fails, walks up the CLDR locale inheritance chain (e.g.
-  `en-AU` → `en` → `und`) trying each parent in turn. If the entire
-  chain is exhausted without success, falls back to `:en` which is
-  guaranteed to be present.
+  `en-AU` → `en`) trying each parent in turn. The walk stops before
+  the root locale `und`, which has no currency data and no localized
+  names, and falls back to `:en`. Only an explicit request for `:und`
+  loads the root locale.
 
   Returns `{:ok, locale_data, resolved_locale_id}` so the caller
   knows which locale was actually loaded.
@@ -209,8 +210,8 @@ defmodule Localize.Locale.Provider do
 
   * `{:ok, locale_data, resolved_locale_id}` on success.
 
-  * `{:error, exception}` if even the `:en` fallback fails (should not
-    happen in normal operation).
+  * `{:error, exception}` for the requested locale if the `:en`
+    fallback fails too.
 
   """
   @spec load_with_fallback(module(), locale()) ::
@@ -221,16 +222,25 @@ defmodule Localize.Locale.Provider do
         {:ok, locale_data} ->
           {:ok, locale_data, locale_id}
 
-        {:error, _exception} ->
-          require Logger
-
-          Logger.debug(
-            "Requested locale #{inspect(locale_id)} is not available. Trying parent locales.",
-            domain: [:localize]
-          )
-
-          walk_parent_chain(provider, locale_id, locale_id, [locale_id])
+        {:error, _exception} = error ->
+          load_fallback(provider, locale_id, error)
       end
+    end
+  end
+
+  # When no fallback loads either, the error names the requested
+  # locale, not the last fallback tried.
+  defp load_fallback(provider, locale_id, error) do
+    require Logger
+
+    Logger.debug(
+      "Requested locale #{inspect(locale_id)} is not available. Trying parent locales.",
+      domain: [:localize]
+    )
+
+    case walk_parent_chain(provider, locale_id, locale_id, [locale_id]) do
+      {:ok, _locale_data, _resolved_locale_id} = result -> result
+      {:error, _} -> error
     end
   end
 
@@ -265,6 +275,9 @@ defmodule Localize.Locale.Provider do
 
           fallback_to_en(provider, original_locale_id)
 
+        parent_id == :und ->
+          fallback_to_en(provider, original_locale_id)
+
         true ->
           Logger.debug(
             "Attempting to load locale #{inspect(parent_id)} (parent locale of #{inspect(locale_id)}).",
@@ -282,7 +295,8 @@ defmodule Localize.Locale.Provider do
       end
     else
       {:error, _} ->
-        # Reached root (und) with no success — fall back to :en
+        # Only `und` has no parent, so this is an explicit `:und`
+        # request that failed to load.
         fallback_to_en(provider, original_locale_id)
     end
   end

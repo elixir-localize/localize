@@ -885,12 +885,12 @@ defmodule Localize.Number.RbnfTest do
         }
       ]
 
-      assert {:ok, "PRECEDING:ONE"} = Processor.process(100, "synth", rules, %{}, :en)
+      assert {:ok, "PRECEDING:ONE"} = Processor.process(100, "synth", rules, %{})
 
       # For input 250, mod = 50. `>>>` still uses the source-
       # preceding rule (rule 1 → "ONE") rather than running
       # selection on 50.
-      assert {:ok, "PRECEDING:ONE"} = Processor.process(250, "synth", rules, %{}, :en)
+      assert {:ok, "PRECEDING:ONE"} = Processor.process(250, "synth", rules, %{})
 
       # For input 100, the `<<` substitution is missing from the
       # synthetic rule body, so we don't exercise it. This test
