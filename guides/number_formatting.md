@@ -468,7 +468,7 @@ iex> Localize.Number.to_string(2.5, fractional_digits: 0, rounding_mode: :ceilin
 
 `to_string/2` accepts either a keyword list or a pre-validated `Localize.Number.Format.Options` struct. The keyword list path resolves the number system, loads format patterns, resolves currency data, and builds metadata on every call. Locale validation itself is cached in ETS and is fast (~1µs), but the remaining options resolution — format pattern lookup, currency data loading, symbol resolution — still adds measurable overhead, especially for currency formatting.
 
-For high-throughput formatting (rendering a table of thousands of numbers, batch processing), call `Localize.Number.Format.Options.validate_options/2` once to build an options struct, then pass it to `to_string/2` for each number. The first argument is a representative number (use `0` for a positive-number format):
+For high-throughput formatting (rendering a table of thousands of numbers, batch processing), call `Localize.Number.Format.Options.validate_options/2` once to build an options struct, then pass it to `to_string/2` for each number. The first argument is a representative number such as `0`; the struct formats numbers of either sign:
 
 ```elixir
 iex> alias Localize.Number.Format.Options
