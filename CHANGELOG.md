@@ -26,6 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * **Breaking.** A zero offset is spelled out wherever a localized GMT format is used, `"GMT+00:00"` long and `"GMT+0"` short, as TR35's examples and ICU give it. `Localize.DateTime.Timezone.gmt_format/3` drops its `:zero_format` option, which selected between the two.
 
+* `Localize.Locale.gettext_locale_id/2` caches its match per locale and known Gettext locales in `Localize.FormatCache`, so a repeated call takes about 0.4 µs and 0.4 KB where it took about 18 µs and 45 KB.
+
 ### Fixed
 
 * Month names come from the calendar's `month_of_year/3`, so Hebrew months are named correctly in ordinary and leap years ("Adar II" included) and a Chinese leap month takes the leap-month pattern ("Second Monthbis"). They were looked up by the date's month number.
