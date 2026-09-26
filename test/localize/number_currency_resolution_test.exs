@@ -38,6 +38,19 @@ defmodule Localize.NumberCurrencyResolutionTest do
     assert Localize.Number.resolve_currency("US dolars", fuzzy: 0.8) == [:USD]
   end
 
+  # Regression: equally close strings ("ac" and "ag" are equally far from
+  # "ab") were taken in whatever order the map yielded them, which for more
+  # than 32 strings is hash order.
+  test "fuzzy matching takes the alphabetically first of equally close strings" do
+    strings =
+      for(i <- 1..40, into: %{}, do: {"zzzzzzzz#{i}", :ZZZ})
+      |> Map.put("ac", :AC)
+      |> Map.put("ag", :AG)
+
+    assert Localize.Number.Parser.find_and_replace(strings, "ab", 0.5) == {:ok, [:AC]}
+    assert Localize.Number.resolve_currency("usx", fuzzy: 0.7) == [:UGX]
+  end
+
   test "an invalid fuzzy value or locale is reported as itself, not as an unknown currency" do
     assert {:error, %Localize.InvalidValueError{value: 2.0}} =
              Localize.Number.resolve_currency("US dolars", fuzzy: 2.0)

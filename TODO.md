@@ -4,7 +4,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **Choose tie rules for territory-name lookup and fuzzy currency matching** — both take whichever candidate a map yields first when two tie. [plans/map-order.md](plans/map-order.md).
+* [ ] **Audit `cldr-49`-only code for map-order dependence** — the 2026-09-26 audit covered `main`. [plans/map-order.md](plans/map-order.md).
 
 * [ ] **Report the cldr-json `scope="core"` defect upstream** — plan item 16a: cldr-json collapses display names marked `scope="core"`, so they never reach the pipeline. To report rather than work around. [plans/cldr-49.md](plans/cldr-49.md).
 
@@ -28,7 +28,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Done
 
-* [x] **Selections that followed map order** — a territory's primary currency, shared narrow currency symbols, the parser's longest match and a locale's number-system order no longer depend on atom-creation order. [plans/map-order.md](plans/map-order.md). 2026-09-26, v1.4.0.
+* [x] **Selections that followed map order** — a territory's primary currency, shared narrow currency symbols, the parser's longest and fuzzy matches, territory-name lookup and a locale's number-system order no longer depend on map order. [plans/map-order.md](plans/map-order.md). 2026-09-26, v1.4.0.
 
 * [x] **Pattern fields at a width TR35 does not list format as U+FFFD** — `dddd`, `MMMMMM`, `HHH` and the rest follow TR35's Handling Invalid Patterns instead of ICU's padding and clamping; an undefined letter stays an error. 2026-09-25, v1.4.0.
 

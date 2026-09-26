@@ -317,6 +317,7 @@ defmodule Localize.Number.Parser do
   * `:except` is a filter for currencies to exclude.
 
   * `:fuzzy` is a float for fuzzy matching via `String.jaro_distance/2`.
+    Of equally close currency strings, the alphabetically first is taken.
 
   ### Returns
 
@@ -354,7 +355,8 @@ defmodule Localize.Number.Parser do
 
   * `:except` is a filter for currencies to exclude.
 
-  * `:fuzzy` is a float for fuzzy matching.
+  * `:fuzzy` is a float for fuzzy matching. Of equally close
+    currency strings, the alphabetically first is taken.
 
   ### Returns
 
@@ -554,7 +556,8 @@ defmodule Localize.Number.Parser do
 
   * `string` is the string to search.
 
-  * `fuzzy` is an optional float for fuzzy matching.
+  * `fuzzy` is an optional float for fuzzy matching. Of equally
+    close strings, the alphabetically first is taken.
 
   ### Returns
 
@@ -948,11 +951,14 @@ defmodule Localize.Number.Parser do
        when is_float(fuzzy) and fuzzy > 0.0 and fuzzy <= 1.0 do
     canonical_search = String.downcase(search)
 
-    {distance, code} =
+    # Equally distant strings are ranked alphabetically: sorting on the
+    # distance alone left a tie to the order the map yielded them in.
+    {distance, _string, code} =
       string_map
-      |> Enum.map(fn {k, v} -> {String.jaro_distance(k, canonical_search), v} end)
-      |> Enum.sort(fn {k1, _}, {k2, _} -> k1 > k2 end)
-      |> hd()
+      |> Enum.map(fn {string, code} ->
+        {String.jaro_distance(string, canonical_search), string, code}
+      end)
+      |> Enum.min_by(fn {distance, string, _code} -> {-distance, string} end)
 
     if distance >= fuzzy do
       {:ok, [code]}

@@ -374,6 +374,11 @@ defmodule Localize.Territory do
   @doc """
   Converts a localized territory name to a territory code.
 
+  The name is matched as written first, then ignoring case and
+  punctuation as `normalize_name/1` does. Where several territories
+  share the name, a country is preferred to a region that contains
+  other territories, and then the alphabetically first code.
+
   ### Arguments
 
   * `name` is a localized territory name string.
@@ -400,26 +405,40 @@ defmodule Localize.Territory do
   def to_territory_code(name, locale) when is_binary(name) do
     with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
          {:ok, territories} <- Localize.Locale.get(locale_id, [:territories]) do
-      normalized = normalize_name(name)
-
-      inverted =
-        for {code, names} <- territories,
-            display_name <- Map.values(names),
-            into: %{},
-            do: {normalize_name(display_name), code}
-
-      case Map.get(inverted, normalized) do
-        nil ->
-          {:error, Localize.UnknownTerritoryError.exception(territory: name)}
-
-        code ->
-          {:ok, code}
+      case territories_named(territories, name) do
+        [] -> {:error, Localize.UnknownTerritoryError.exception(territory: name)}
+        codes -> {:ok, preferred_territory(codes)}
       end
     end
   end
 
   def to_territory_code(name, _locale),
     do: {:error, Localize.Utils.Helpers.invalid_value(name, "a territory name string")}
+
+  # Territories can share a name once it is normalised ("America dal Nord"
+  # and "America dal nord" in rm) and occasionally outright, so every match
+  # is collected: inverting the names into a map kept whichever territory
+  # it visited last, which followed the map's order.
+  defp territories_named(territories, name) do
+    exact = for {code, names} <- territories, name in Map.values(names), do: code
+
+    if exact == [] do
+      normalized = normalize_name(name)
+
+      for {code, names} <- territories,
+          Enum.any?(Map.values(names), &(normalize_name(&1) == normalized)),
+          do: code
+    else
+      exact
+    end
+  end
+
+  # A country is preferred to a region that contains others, then the
+  # alphabetically first code.
+  defp preferred_territory(codes) do
+    containers = SupplementalData.territory_containers()
+    Enum.min_by(codes, fn code -> {Map.has_key?(containers, code), Atom.to_string(code)} end)
+  end
 
   @doc """
   Same as `to_territory_code/2` but raises on error.

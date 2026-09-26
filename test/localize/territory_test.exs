@@ -123,6 +123,27 @@ defmodule Localize.TerritoryTest do
       assert {:ok, :GB} == Territory.to_territory_code("UK", :en)
     end
 
+    # Regression: the names were inverted into a map, so where two
+    # territories share a name the one visited last won, which followed the
+    # map's order.
+    test "a name as written is matched before its normalised form" do
+      assert {:ok, :"003"} == Territory.to_territory_code("America dal Nord", :rm)
+      assert {:ok, :"021"} == Territory.to_territory_code("America dal nord", :rm)
+    end
+
+    test "a country is preferred to a region of the same name" do
+      {:ok, territories} = Localize.Locale.get(:scn, [:territories])
+      name = territories[:ZA].standard
+
+      assert territories[:"018"].standard == name
+      assert {:ok, :ZA} == Territory.to_territory_code(name, :scn)
+    end
+
+    test "the alphabetically first of equally ranked territories is chosen" do
+      assert {:ok, :CH} == Territory.to_territory_code("ma Suwasi", :tok)
+      assert {:ok, :"003"} == Territory.to_territory_code("america dal nord", :rm)
+    end
+
     test "returns error for unknown name" do
       assert {:error, %Localize.UnknownTerritoryError{}} =
                Territory.to_territory_code("Unknown Country", :en)
