@@ -28,7 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
-* A pre-validated `Localize.Number.Format.Options` struct takes the sign from each number it formats. The sign of the number it was validated with was reused, so options validated with `0` formatted `-70` as "CHF 70.00", and options validated with `-1` formatted `70` as "-CHF 70.00".
+* A pre-validated `Localize.Number.Format.Options` struct takes the sign from each number it formats. The sign of the number it was validated with was reused, so options validated with `0` formatted `-70` as "CHF 70.00", and options validated with `-1` formatted `70` as "-CHF 70.00". `Localize.Message` now formats `-0.0` as "-0", like `Localize.Number.to_string/2`.
 
 * Month names come from the calendar's `month_of_year/3`, so Hebrew months are named correctly in ordinary and leap years ("Adar II" included) and a Chinese leap month takes the leap-month pattern ("Second Monthbis"). They were looked up by the date's month number.
 
