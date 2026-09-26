@@ -81,6 +81,17 @@ defmodule Localize.Locale.FallbackLanguageRulesTest do
     assert Localize.Currency.pluralize(21, :USD, locale: :ru) == {:ok, "US dollars"}
   end
 
+  test "ru names 21 in a USD struct from currency_for_code/2 in the en plural: 21 US dollars" do
+    {:ok, usd} = Localize.Currency.currency_for_code(:USD, locale: :ru)
+
+    assert Localize.Number.to_string(21,
+             currency: usd,
+             format: :currency_long,
+             fractional_digits: 0,
+             locale: :ru
+           ) == {:ok, "21 US dollars"}
+  end
+
   test "ru formats 21 in units with the en plural: 21 meters, 21 newton-meters, 1–21 days" do
     assert Localize.Unit.to_string(Localize.Unit.new!(21, "meter"), locale: :ru) ==
              {:ok, "21 meters"}
