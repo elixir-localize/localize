@@ -499,8 +499,11 @@ defmodule Localize.Locale do
       when is_atom(locale_id) and is_map(locale_data) and is_keyword_list(options) do
     provider = Keyword.get(options, :provider, default_provider())
 
-    with :ok <- validate_provider(provider) do
-      provider.store(locale_id, locale_data)
+    with :ok <- validate_provider(provider),
+         :ok <- provider.store(locale_id, locale_data) do
+      # The cache holds data derived from locale data, such as
+      # `Localize.Currency.currency_strings/2`.
+      Localize.FormatCache.clear()
     end
   end
 

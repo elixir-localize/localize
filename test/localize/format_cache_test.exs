@@ -88,4 +88,20 @@ defmodule Localize.FormatCacheTest do
       assert FormatCache.size() == 10
     end
   end
+
+  describe "generation" do
+    test "a value built before a clear and stored after it is dropped" do
+      generation = FormatCache.generation()
+      :ok = FormatCache.clear()
+      :ok = FormatCache.store({:built_before_clear, 1}, :stale, generation)
+
+      assert :miss = FormatCache.lookup({:built_before_clear, 1})
+    end
+
+    test "a value stored with the current generation is kept" do
+      :ok = FormatCache.store({:current, 1}, :fresh, FormatCache.generation())
+
+      assert {:ok, :fresh} = FormatCache.lookup({:current, 1})
+    end
+  end
 end

@@ -214,7 +214,7 @@ Why `:otp_app` is the recommended anchor: `Application.app_dir/2` is re-resolved
 
 * `:locale_cache_max_entries` is the maximum number of validated locales to hold in the ETS cache. A background sweeper runs every 10 seconds and evicts excess entries to prevent unbounded growth. The default is `1_000`.
 
-* `:format_cache_max_entries` is the maximum number of compiled format patterns (number and date/time) to hold in the ETS cache. A background sweeper runs every 10 seconds and evicts excess entries to prevent unbounded growth. The default is `2_000`.
+* `:format_cache_max_entries` is the maximum number of entries in the ETS cache for compiled format patterns (number and date/time) and the currency strings of each locale. An insert beyond the maximum evicts an entry first. The default is `2_000`.
 
 * `:otp_app` is an atom naming your application, and is **recommended**. Localize stores downloaded locale data under `Application.app_dir(<otp_app>, "priv/localize/locales")` — the same `:otp_app` convention used by `Ecto.Repo`, `Phoenix.Endpoint` and `Gettext.Backend`. It is resolved at every read, so it works correctly in mix tasks, `mix test` and releases without per-phase config. See [Configuring the locale cache directory](#configuring-the-locale-cache-directory) above for all three supported forms. The default is `nil`.
 
