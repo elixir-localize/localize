@@ -505,6 +505,19 @@ defmodule Localize.ParsingCoverageTest do
                {:ok, %{hour: 11, minute: 30, time_zone: "PST"}}
     end
 
+    test "as: :map resolves a captured fixed offset without a date" do
+      assert Localize.Time.parse("2:30 PM GMT+5", locale: :en, as: :map) ==
+               {:ok,
+                %{
+                  hour: 14,
+                  minute: 30,
+                  time_zone: "Etc/UTC",
+                  utc_offset: 18_000,
+                  std_offset: 0,
+                  zone_abbr: "+05:00"
+                }}
+    end
+
     test "unparseable input returns a TimeParseError with a rendered message" do
       assert {:error, %Localize.TimeParseError{} = error} =
                Localize.Time.parse("not a time", locale: :en)
@@ -916,6 +929,22 @@ defmodule Localize.ParsingCoverageTest do
       tag = Localize.LanguageTag.new!("en")
       assert Localize.Date.parse("May 5, 2026", locale: tag) == {:ok, ~D[2026-05-05]}
       assert Localize.Time.parse("2:30 PM", locale: tag) == {:ok, ~T[14:30:00]}
+    end
+
+    test "as: :map resolves a fixed offset captured through the locale glue, as the struct does" do
+      input = "May 23, 2026, 2:30 PM GMT-3:30"
+      zone_fields = [:time_zone, :utc_offset, :std_offset, :zone_abbr]
+
+      assert {:ok, map} = Localize.DateTime.parse(input, locale: :en, as: :map)
+      assert {:ok, %DateTime{} = datetime} = Localize.DateTime.parse(input, locale: :en)
+      assert Map.take(map, zone_fields) == Map.take(datetime, zone_fields)
+      assert map.utc_offset == -12_600
+    end
+
+    test "as: :map resolves a fixed offset when the date is partial" do
+      assert {:ok, map} = Localize.DateTime.parse("May 5, 2:30 PM GMT+5", locale: :en, as: :map)
+      assert %{month: 5, day: 5, time_zone: "Etc/UTC", utc_offset: 18_000} = map
+      refute Map.has_key?(map, :year)
     end
 
     test "as: :map surfaces the zone captured through the locale glue" do

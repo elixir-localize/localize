@@ -292,10 +292,11 @@ defmodule Localize.DateTime.Parser do
     dt
     |> DateTime.to_naive()
     |> naive_datetime_to_map()
-    |> Map.put(:time_zone, dt.time_zone)
-    |> Map.put(:utc_offset, dt.utc_offset)
-    |> Map.put(:std_offset, dt.std_offset)
-    |> Map.put(:zone_abbr, dt.zone_abbr)
+    |> Map.merge(datetime_zone_fields(dt))
+  end
+
+  defp datetime_zone_fields(%DateTime{} = datetime) do
+    Map.take(datetime, [:time_zone, :utc_offset, :std_offset, :zone_abbr])
   end
 
   defp naive_datetime_to_map(%NaiveDateTime{
@@ -407,21 +408,41 @@ defmodule Localize.DateTime.Parser do
   # `restore_offset/2` — so both spellings of one offset produce the same
   # struct.
   defp datetime_at_offset(naive_datetime, offset) do
-    %DateTime{
-      calendar: naive_datetime.calendar,
-      year: naive_datetime.year,
-      month: naive_datetime.month,
-      day: naive_datetime.day,
-      hour: naive_datetime.hour,
-      minute: naive_datetime.minute,
-      second: naive_datetime.second,
-      microsecond: naive_datetime.microsecond,
-      std_offset: 0,
+    struct(DateTime, Map.merge(Map.from_struct(naive_datetime), offset_zone_fields(offset)))
+  end
+
+  defp offset_zone_fields(offset) do
+    %{
+      time_zone: "Etc/UTC",
       utc_offset: offset,
-      zone_abbr: offset_abbreviation(offset),
-      time_zone: "Etc/UTC"
+      std_offset: 0,
+      zone_abbr: offset_abbreviation(offset)
     }
   end
+
+  @doc false
+  # The zone fields a map-form parse carries for a captured zone, as the
+  # struct form's `DateTime` has them. A fixed offset (`GMT+5`, `UTC-3:30`,
+  # `Z`) is the same on every date, so it resolves whether or not the input
+  # gave one. A named zone's offset depends on the date, so it resolves
+  # only against `naive_datetime`, the full date and time the input gave;
+  # without one, or when it does not resolve, the name is kept as captured.
+  @spec zone_fields_for_map(String.t(), NaiveDateTime.t() | nil, Keyword.t()) :: map()
+  def zone_fields_for_map(zone, naive_datetime, options) do
+    case Localize.DateTime.Timezone.parse_offset(zone, options) do
+      {:ok, offset} -> offset_zone_fields(offset)
+      {:error, _named_zone} -> named_zone_fields(zone, naive_datetime, options)
+    end
+  end
+
+  defp named_zone_fields(zone, %NaiveDateTime{} = naive_datetime, options) do
+    case resolve_zone(zone, naive_datetime, options) do
+      %DateTime{} = datetime -> datetime_zone_fields(datetime)
+      %NaiveDateTime{} -> %{time_zone: zone}
+    end
+  end
+
+  defp named_zone_fields(zone, nil, _options), do: %{time_zone: zone}
 
   defp offset_abbreviation(0), do: "UTC"
 
@@ -442,17 +463,42 @@ defmodule Localize.DateTime.Parser do
 
     # Time half first — cheaper and more selective — so a failing right
     # half short-circuits the expensive date parse (see try_split_as_struct).
-    with {:ok, %{} = time_map, _zone} <-
+    with {:ok, %{} = time_map, zone} <-
            Localize.Time.Parser.parse_with_zone(right, time_opts),
          {:ok, %{} = date_map} <- Localize.Date.parse(left, date_opts) do
       # Date map carries `:calendar`; time map carries the time
-      # fields plus `:time_zone` if any. Merge — date's
-      # `:calendar` wins (the time map has no calendar key).
-      {:ok, Map.merge(time_map, date_map)}
+      # fields plus the zone fields if any. Merge — date's
+      # `:calendar` wins (the time map has no calendar key) — and
+      # resolve a named zone against the full date when the input
+      # gave one.
+      merged = Map.merge(time_map, date_map)
+      {:ok, put_zone_fields(merged, zone, options)}
     else
       _ -> nil
     end
   end
+
+  defp put_zone_fields(map, nil, _options), do: map
+
+  defp put_zone_fields(map, zone, options),
+    do: Map.merge(map, zone_fields_for_map(zone, complete_naive_datetime(map), options))
+
+  # The full date and time a merged map gives, which a named zone's
+  # offset needs; `nil` when the input left the date partial.
+  defp complete_naive_datetime(
+         %{year: year, month: month, day: day, hour: hour, calendar: calendar} = map
+       ) do
+    minute = Map.get(map, :minute, 0)
+    second = Map.get(map, :second, 0)
+    microsecond = Map.get(map, :microsecond, {0, 0})
+
+    case NaiveDateTime.new(year, month, day, hour, minute, second, microsecond, calendar) do
+      {:ok, naive_datetime} -> naive_datetime
+      {:error, _reason} -> nil
+    end
+  end
+
+  defp complete_naive_datetime(_partial_map), do: nil
 
   # All non-empty splits of `input` on `sep`, ordered to try
   # the latest-position split first (the "real" glue is usually

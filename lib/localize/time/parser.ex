@@ -84,9 +84,22 @@ defmodule Localize.Time.Parser do
         {:ok, finalise_time(time, as), nil}
 
       :error ->
-        try_locale_patterns(input, locale, as)
+        input
+        |> try_locale_patterns(locale, as)
+        |> put_map_zone_fields(options)
     end
   end
+
+  # A zone captured in the map form carries the fields it resolves to
+  # without a date — a fixed offset's `DateTime` zone fields, or else the
+  # name as captured (see `Localize.DateTime.Parser.zone_fields_for_map/3`).
+  defp put_map_zone_fields({:ok, %{} = map, zone}, options)
+       when is_binary(zone) and not is_struct(map) do
+    zone_fields = Localize.DateTime.Parser.zone_fields_for_map(zone, nil, options)
+    {:ok, Map.merge(map, zone_fields), zone}
+  end
+
+  defp put_map_zone_fields(result, _options), do: result
 
   # ISO 8601 always carries hour+minute+second (the stdlib
   # parser rejects shorter forms), so the map always has those

@@ -990,8 +990,12 @@ defmodule Localize.DateTime do
     against. The default is today.
 
   * `:as` is `:struct` or `:map`. `:map` returns only the fields the input
-    actually carried, rather than completing them. The default is
-    `:struct`.
+    actually carried, rather than completing them. A zone adds the
+    `t:DateTime.t/0` zone fields (`:time_zone`, `:utc_offset`, `:std_offset`
+    and `:zone_abbr`) as the struct form resolves them: a fixed offset
+    always, and a named zone when the input gives the full date its offset
+    depends on; otherwise `:time_zone` holds the zone as written. The
+    default is `:struct`.
 
   ### Returns
 
@@ -1009,6 +1013,10 @@ defmodule Localize.DateTime do
 
       iex> Localize.DateTime.parse("March 22, 2026, 2:30 PM", locale: :en)
       {:ok, ~N[2026-03-22 14:30:00]}
+
+      iex> {:ok, map} = Localize.DateTime.parse("March 22, 2026, 2:30 PM GMT+5", locale: :en, as: :map)
+      iex> Map.take(map, [:hour, :time_zone, :utc_offset])
+      %{hour: 14, time_zone: "Etc/UTC", utc_offset: 18000}
 
   """
   @spec parse(String.t(), Keyword.t()) ::
