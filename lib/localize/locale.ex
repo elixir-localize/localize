@@ -259,15 +259,15 @@ defmodule Localize.Locale do
   # Progressively strip subtags to find the parent.
   # Order: drop variants → drop territory → drop script → und (root).
   defp find_parent(%LanguageTag{language_variants: [_ | _]} = tag) do
-    %{tag | language_variants: [], canonical_locale_id: nil}
+    %{tag | language_variants: []}
   end
 
   defp find_parent(%LanguageTag{territory: territory} = tag) when not is_nil(territory) do
-    %{tag | territory: nil, canonical_locale_id: nil}
+    %{tag | territory: nil}
   end
 
   defp find_parent(%LanguageTag{script: script} = tag) when not is_nil(script) do
-    %{tag | script: nil, canonical_locale_id: nil}
+    %{tag | script: nil}
   end
 
   defp find_parent(%LanguageTag{} = _tag) do
@@ -277,13 +277,17 @@ defmodule Localize.Locale do
   end
 
   # Transfer extensions from child to parent so that preferences like
-  # calendar, numbering system, etc. are preserved.
+  # calendar, numbering system, etc. are preserved. A parent built by
+  # stripping subtags from a validated child still carries the child's
+  # CLDR locale id, so it is cleared for `cldr_locale_id_from/1` to
+  # resolve the parent's own.
   defp transfer_extensions(%LanguageTag{} = parent, %LanguageTag{} = child) do
     updated = %{
       parent
       | locale: child.locale,
         transform: child.transform,
-        canonical_locale_id: nil
+        canonical_locale_id: nil,
+        cldr_locale_id: nil
     }
 
     canonical_id = LanguageTag.to_string(updated)
