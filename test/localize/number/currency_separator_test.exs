@@ -39,6 +39,14 @@ defmodule Localize.Number.CurrencySeparatorTest do
     assert Number.to_string(1234.56, [currency_symbol: :none] ++ options) == {:ok, "1'234.56"}
   end
 
+  test "pt-CV CVE 1234567.5 formats and splits into parts with the escudo's decimal $" do
+    options = [locale: "pt-CV", currency: :CVE]
+
+    assert {:ok, "1 234 567$50" <> _symbol} = Number.to_string(1_234_567.5, options)
+    assert {:ok, parts} = Number.to_parts(1_234_567.5, options)
+    assert %{type: :decimal, value: "$"} in parts
+  end
+
   test "de-AT EUR 1234.56 in a :currency message formats as € 1.234,56" do
     assert Localize.Message.format("{$amount :currency currency=EUR}", %{"amount" => 1234.56},
              locale: "de-AT"

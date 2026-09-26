@@ -1681,7 +1681,7 @@ defmodule Localize.Message.Interpreter do
         locale: locale,
         number_system: number_system,
         format: format_string,
-        symbols: Localize.Number.Symbol.for_currency(symbols),
+        symbols: Localize.Number.Symbol.for_currency(symbols, currency_struct),
         rounding_mode: :half_even,
         fractional_digits: if(min_fd == nil and max_fd == nil, do: default_fd, else: nil),
         min_fractional_digits: min_fd,

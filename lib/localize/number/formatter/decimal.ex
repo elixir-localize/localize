@@ -1087,9 +1087,8 @@ defmodule Localize.Number.Formatter.Decimal do
          meta,
          options
        ) do
-    decimal_sep = decimal_separator(options, @decimal_separator)
     integer = if integer == [], do: [~c"0"], else: integer
-    fraction = if fraction == [], do: fraction, else: [decimal_sep, fraction]
+    fraction = if fraction == [], do: fraction, else: [@decimal_separator, fraction]
 
     exponent_part =
       if meta.exponent_digits > 0 do
@@ -1618,8 +1617,4 @@ defmodule Localize.Number.Formatter.Decimal do
     String.match?(number_string, Regex.compile!("^" <> spacing[:surrounding_match], "u")) &&
       String.match?(to_string(symbol), Regex.compile!(spacing[:currency_match] <> "$", "u"))
   end
-
-  defp decimal_separator(%{currency: %{decimal_separator: nil}}, default), do: default
-  defp decimal_separator(%{currency: %{decimal_separator: sep}}, _default), do: sep
-  defp decimal_separator(_options, default), do: default
 end

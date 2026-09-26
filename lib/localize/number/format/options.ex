@@ -520,7 +520,7 @@ defmodule Localize.Number.Format.Options do
   defp resolve_symbols(language_tag, system_name, currency) do
     case Symbol.number_symbols_for(language_tag, system_name) do
       {:ok, symbols} when is_nil(currency) -> {:ok, symbols}
-      {:ok, symbols} -> {:ok, Symbol.for_currency(symbols)}
+      {:ok, symbols} -> {:ok, Symbol.for_currency(symbols, currency)}
       _other -> {:ok, nil}
     end
   end
