@@ -147,9 +147,9 @@ defmodule Localize.Number.Formatter.Currency do
 
       case Localize.Number.Formatter.Decimal.to_parts(number, standard_format, number_options) do
         {:ok, number_parts} ->
-          display_number = display_value_for_plural(number, number_options)
-          name = currency_display_name(display_number, options)
-          plural_format = plural_format(display_number, formats, options)
+          category = plural_category(number, number_options)
+          name = currency_display_name(category, options)
+          plural_format = select_plural(category, formats)
           {:ok, substitute_as_parts([number_parts, currency_part(name)], plural_format)}
 
         error ->
@@ -163,9 +163,9 @@ defmodule Localize.Number.Formatter.Currency do
 
     case Localize.Number.Formatter.Decimal.to_parts(number, currency_format, options) do
       {:ok, currency_parts} ->
-        display_number = display_value_for_plural(number, options)
-        name = currency_display_name(display_number, options)
-        plural_format = plural_format(display_number, currency_long_formats, options)
+        category = plural_category(number, options)
+        name = currency_display_name(category, options)
+        plural_format = select_plural(category, currency_long_formats)
         {:ok, substitute_as_parts([currency_parts, currency_part(name)], plural_format)}
 
       error ->
@@ -189,9 +189,9 @@ defmodule Localize.Number.Formatter.Currency do
 
     case Localize.Number.Formatter.Decimal.to_string(number, currency_format, options) do
       {:ok, currency_string} ->
-        display_number = display_value_for_plural(number, options)
-        name_string = currency_display_name(display_number, options)
-        plural_format = plural_format(display_number, currency_long_formats, options)
+        category = plural_category(number, options)
+        name_string = currency_display_name(category, options)
+        plural_format = select_plural(category, currency_long_formats)
         result = substitute([currency_string, name_string], plural_format)
         {:ok, :erlang.iolist_to_binary(result)}
 
@@ -216,9 +216,9 @@ defmodule Localize.Number.Formatter.Currency do
 
       case Localize.Number.Formatter.Decimal.to_string(number, standard_format, number_options) do
         {:ok, number_string} ->
-          display_number = display_value_for_plural(number, number_options)
-          currency_string = currency_display_name(display_number, options)
-          plural_format = plural_format(display_number, formats, options)
+          category = plural_category(number, number_options)
+          currency_string = currency_display_name(category, options)
+          plural_format = select_plural(category, formats)
           result = substitute([number_string, currency_string], plural_format)
           {:ok, :erlang.iolist_to_binary(result)}
 
@@ -234,29 +234,33 @@ defmodule Localize.Number.Formatter.Currency do
   # the guard this first clause matched every `Currency` struct (the
   # field always exists), making the name fallback unreachable and
   # crashing `pluralize/3` when `count` was `nil`.
-  defp currency_display_name(number, %{currency: %Localize.Currency{count: count}, locale: locale})
+  defp currency_display_name(category, %{currency: %Localize.Currency{count: count}})
        when is_map(count) and map_size(count) > 0 do
-    select_plural(number, locale, count)
+    select_plural(category, count)
   end
 
-  defp currency_display_name(_number, %{currency: %Localize.Currency{name: name}})
+  defp currency_display_name(_category, %{currency: %Localize.Currency{name: name}})
        when is_binary(name) do
     name
   end
 
-  defp currency_display_name(_number, _options), do: ""
+  defp currency_display_name(_category, _options), do: ""
 
-  defp plural_format(number, formats, %{locale: locale}) do
-    select_plural(number, locale, formats)
+  defp select_plural(category, substitutions) do
+    Map.get(substitutions, category) || Map.get(substitutions, :other)
   end
 
-  # Select by plural category directly rather than via
-  # `Cardinal.pluralize/3`, which normalizes away trailing zeros
-  # and would collapse "1.00" (operand v=2, category :other in en)
-  # back to the integer 1 (category :one).
-  defp select_plural(number, locale, substitutions) do
-    category = Localize.Number.PluralRule.Cardinal.plural_rule(number, locale)
-    Map.get(substitutions, category) || Map.get(substitutions, :other)
+  # The category comes from the plural rules of the loaded locale
+  # data, whose currency names and patterns it selects. It is taken
+  # directly rather than via `Cardinal.pluralize/3`, which normalizes
+  # away trailing zeros and would collapse "1.00" (operand v=2,
+  # category :other in en) back to the integer 1 (category :one).
+  defp plural_category(number, options) do
+    number
+    |> display_value_for_plural(options)
+    |> Localize.Number.PluralRule.Cardinal.plural_rule(
+      Localize.Locale.data_locale_id(options.locale)
+    )
   end
 
   # Plural selection follows the value as displayed, per the CLDR

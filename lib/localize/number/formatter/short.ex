@@ -235,7 +235,7 @@ defmodule Localize.Number.Formatter.Short do
         [format, _number_of_zeros] =
           Localize.Number.PluralRule.Cardinal.pluralize(
             plural_key,
-            options.locale,
+            Localize.Locale.data_locale_id(options.locale),
             plural_selectors
           )
 

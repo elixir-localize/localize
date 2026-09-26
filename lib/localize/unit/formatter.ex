@@ -114,7 +114,7 @@ defmodule Localize.Unit.Formatter do
            Localize.Number.PluralRule.Range.plural_rule_for(
              unit_1.value,
              unit_2.value,
-             language_tag
+             Localize.Locale.data_locale_id(language_tag)
            ),
          grammatical_case = Keyword.get(options, :grammatical_case, :nominative),
          tokens when is_list(tokens) <-
@@ -663,10 +663,13 @@ defmodule Localize.Unit.Formatter do
   # The displayed digits are what carry the v, w, f and t operands, including
   # any rounding, significant digits or `:round_nearest` increment: under
   # `hr`, 0.0045 displays as "0,004" (`:few`), not 0.005 (`:other`).
+  #
+  # The rules are those of the loaded locale data, whose unit patterns the
+  # category selects.
   defp plural_form(value, locale, options) when is_number(value) or is_struct(value, Decimal) do
     value
     |> Localize.Number.source_number(Keyword.take(options, @number_format_options))
-    |> Localize.Number.PluralRule.Cardinal.plural_rule(locale)
+    |> Localize.Number.PluralRule.Cardinal.plural_rule(Localize.Locale.data_locale_id(locale))
   end
 
   defp plural_form(_value, _locale, _options), do: :other
@@ -1058,9 +1061,10 @@ defmodule Localize.Unit.Formatter do
   end
 
   # The `{plural, case}` derivations for a "times" compound in the given
-  # locale, each a `{value0, value1}` tuple. Looks up the locale's base
-  # language in the CLDR derivation table, falling back to `"root"` and
-  # then to the hard-coded root defaults if the table is unavailable.
+  # locale, each a `{value0, value1}` tuple. Looks up the base language of
+  # the loaded locale data, whose unit patterns they select, in the CLDR
+  # derivation table, falling back to `"root"` and then to the hard-coded
+  # root defaults if the table is unavailable.
   defp times_derivations(locale) do
     table = Localize.SupplementalData.unit_grammatical_derivations()
     language_table = Map.get(table, times_language(locale)) || Map.get(table, "root") || %{}
@@ -1077,7 +1081,13 @@ defmodule Localize.Unit.Formatter do
   defp resolve_derived_category(:compound, compound_category), do: compound_category
   defp resolve_derived_category(category, _compound_category), do: category
 
-  defp times_language(%Localize.LanguageTag{language: language}), do: Atom.to_string(language)
+  defp times_language(locale) do
+    locale
+    |> Localize.Locale.data_locale_id()
+    |> Atom.to_string()
+    |> String.split("-")
+    |> hd()
+  end
 
   # ── Custom unit formatting ─────────────────────────────────
   #

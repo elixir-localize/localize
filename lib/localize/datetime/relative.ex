@@ -279,7 +279,9 @@ defmodule Localize.DateTime.Relative do
       category =
         magnitude
         |> Localize.Number.source_number(locale: locale)
-        |> Localize.Number.PluralRule.Cardinal.plural_rule(locale_id)
+        |> Localize.Number.PluralRule.Cardinal.plural_rule(
+          Localize.Locale.data_locale_id(locale_id)
+        )
 
       case Map.get(patterns, category) || Map.get(patterns, :other) do
         nil -> number_parts(relative, unit, locale)

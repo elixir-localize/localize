@@ -23,7 +23,7 @@ defmodule Localize.Number.Rbnf.Processor do
   #   the public entry point. This is threaded through the
   #   processor so that `$(cardinal,…)` and `$(ordinal,…)`
   #   plural-keyed substitutions look up the correct plural
-  #   form for the *requested* locale rather than always
+  #   form for the *requested* locale's data rather than always
   #   defaulting to English.
   #
   # ### Returns
@@ -504,15 +504,25 @@ defmodule Localize.Number.Rbnf.Processor do
   # with the base-1000000 rule spells the quotient `2`, so the
   # plural is `plural(2)` → `:few` → "миллиона", not
   # `plural(2_000_000)` → `:many` → "миллионов". For values below 1
-  # (fraction rules) ICU selects on `round(number * divisor)`.
+  # (fraction rules) ICU selects on `round(number * divisor)`. When the
+  # requested locale's data fell back to another locale, the plural rules
+  # follow that data, since its rule bodies hold the plural forms.
   defp do_operation(:ordinal, number, _rule_set, rule, plurals, _all_sets, locale) do
-    plural = Localize.Number.PluralRule.Ordinal.plural_rule(plural_operand(number, rule), locale)
+    plural =
+      Localize.Number.PluralRule.Ordinal.plural_rule(
+        plural_operand(number, rule),
+        Localize.Locale.data_locale_id(locale)
+      )
+
     Map.get(plurals, plural) || Map.get(plurals, :other, "")
   end
 
   defp do_operation(:cardinal, number, _rule_set, rule, plurals, _all_sets, locale) do
     plural =
-      Localize.Number.PluralRule.Cardinal.plural_rule(plural_operand(number, rule), locale)
+      Localize.Number.PluralRule.Cardinal.plural_rule(
+        plural_operand(number, rule),
+        Localize.Locale.data_locale_id(locale)
+      )
 
     Map.get(plurals, plural) || Map.get(plurals, :other, "")
   end
