@@ -146,6 +146,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * The module `mix localize.unit.gen_conversions` generates lists each unit once in `known_units/0`, where the simple base units appeared twice.
 
+* `Localize.Territory.to_territory_code/2` matches a name as written before its normalised form and, where territories share a name, prefers a country to a region, then the alphabetically first code, where it took whichever came last in map order. In `scn` the name shared by South Africa and Southern Africa now gives `:ZA`.
+
+* Fuzzy currency matching takes the alphabetically first of equally close currency strings, where it took whichever came first in map order.
+
 * Functions taking a `Localize.LanguageTag`, including every `:locale` option, no longer raise on a hand-built struct with wrong-shaped fields: a `nil` list or map is empty, a string subtag is its atom, and anything else returns `Localize.InvalidLocaleError`.
 
 * Interpolating a parsed `Localize.LanguageTag` into a string gives its BCP 47 form, where it raised because the tag had no canonical id yet.

@@ -8,7 +8,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
 
-* [ ] **Choose tie rules for territory-name lookup and fuzzy currency matching** — both take whichever candidate a map yields first when two tie. [plans/map-order.md](plans/map-order.md).
+* [ ] **Audit `cldr-49`-only code for map-order dependence** — the 2026-09-26 audit covered `main`. [plans/map-order.md](plans/map-order.md).
 
 ## In progress
 
@@ -28,7 +28,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Done
 
-* [x] **Selections that followed map order** — a territory's primary currency, shared narrow currency symbols, the parser's longest match and a locale's number-system order no longer depend on atom-creation order. [plans/map-order.md](plans/map-order.md). 2026-09-26, v1.4.0.
+* [x] **Selections that followed map order** — a territory's primary currency, shared narrow currency symbols, the parser's longest and fuzzy matches, territory-name lookup and a locale's number-system order no longer depend on map order. [plans/map-order.md](plans/map-order.md). 2026-09-26, v1.4.0.
 
 * [x] **The pipeline reads the CLDR sources in place** — nothing is copied into `priv/cldr` any more, the cldr-json release and CLDR ref are recorded in `priv/localize`, and `mix localize.fetch_sources` fetches them, so checking out `main` needs no ceremony. Details in [plans/cldr-source-payload.md](plans/cldr-source-payload.md). 2026-09-25.
 
