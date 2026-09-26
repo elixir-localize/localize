@@ -32,6 +32,15 @@ defmodule Localize.Number.CurrencyParseTest do
     end
   end
 
+  test "ar-SA SAR 1234.56 in arabext digits formats as ۱٬۲۳۴٫۵۶ and parses back" do
+    options = [locale: "ar-SA", currency: :SAR, number_system: :arabext]
+
+    assert Number.to_string(1234.56, [currency_symbol: :none] ++ options) ==
+             {:ok, "‏۱٬۲۳۴٫۵۶"}
+
+    assert Number.parse("‏۱٬۲۳۴٫۵۶", options) == {:ok, 1234.56}
+  end
+
   test "de-AT reads 1.234 as 1234 as an EUR amount and as 1.234 as a plain number" do
     assert Number.parse("1.234", locale: "de-AT", currency: :EUR) == {:ok, 1234}
     assert Number.parse("1.234", locale: "de-AT") == {:ok, 1.234}

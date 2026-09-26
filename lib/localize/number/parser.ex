@@ -870,16 +870,16 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  # A currency amount is read with the symbols `Localize.Number.to_string/2`
-  # formats it with, so what it formats parses back.
   defp number_symbols(language_tag, number_system, nil) do
     with {:ok, symbols} <- Symbol.number_symbols_for(language_tag) do
       {:ok, Map.get(symbols, number_system) || Map.get(symbols, :latn)}
     end
   end
 
+  # A currency amount is read with the symbols `Localize.Number.to_string/2`
+  # formats it with, so what it formats parses back.
   defp number_symbols(language_tag, number_system, currency) do
-    with {:ok, symbols} <- number_symbols(language_tag, number_system, nil),
+    with {:ok, symbols} <- Symbol.number_symbols_for(language_tag, number_system),
          {:ok, currency} <- currency_for(currency, language_tag) do
       {:ok, Symbol.for_currency(symbols, currency)}
     end
@@ -898,7 +898,7 @@ defmodule Localize.Number.Parser do
 
     string
     |> String.replace(",", group_class(group_sep))
-    |> String.replace("\\.", "\\" <> decimal_sep)
+    |> String.replace("\\.", Regex.escape(decimal_sep))
   end
 
   # What counts as a grouping separator inside the scanner's character class.
