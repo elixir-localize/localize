@@ -48,4 +48,15 @@ defmodule Localize.NumberCurrencyResolutionTest do
     assert {:error, %Localize.UnknownCurrencyError{}} =
              Localize.Number.resolve_currency("qwertyuiop")
   end
+
+  # Regression: te spells XAF's singular and plural with the same number of
+  # graphemes, so the plural could match as the singular and leave the rest
+  # of the word in the remainder.
+  test "the longest name matches even when a shorter one has as many graphemes" do
+    {:ok, strings} = Localize.Currency.strings_for_currency(:XAF, :te)
+    plural = Enum.max_by(strings, &byte_size/1)
+
+    assert Localize.Number.resolve_currency(plural <> " 100", locale: :te) == [:XAF, " 100"]
+    assert Localize.Number.resolve_currency("100 " <> plural, locale: :te) == ["100 ", :XAF]
+  end
 end

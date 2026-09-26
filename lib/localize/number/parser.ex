@@ -1027,10 +1027,13 @@ defmodule Localize.Number.Parser do
     end
   end
 
+  # Every match is a prefix (or every one a suffix) of the same text, so no
+  # two have the same byte size and the longest is unique. Grapheme counts
+  # can tie: in te a currency's plural adds a zero-width non-joiner and a
+  # suffix that join the last grapheme, so it counts no longer than the
+  # singular, and the tie went to whichever the map yielded first.
   defp longest_match(matches) do
-    matches
-    |> Enum.sort(fn {k1, _}, {k2, _} -> String.length(k1) > String.length(k2) end)
-    |> hd()
+    Enum.max_by(matches, fn {match_string, _code} -> byte_size(match_string) end)
   end
 
   # True when a match whose edge grapheme is `key_edge` may stop where

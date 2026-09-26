@@ -44,6 +44,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Message.format/3` and `format_to_iolist/3` return an error for an improper binding list, where both backends raised, and the NIF backend skips a list element that is not a `{name, value}` pair, as the interpreter does.
 
+* `Localize.Currency.current_currency_for_territory/1` returns CLDR's primary currency where several are current tender, where it took whichever came first in atom-creation order (LS gave LSL and ZW gave USD), and gives ML its XOF, which an older entry had displaced. The territory currency data now carries each currency's CLDR position as `:order`.
+
+* `Localize.Currency.currency_strings/2`, and so currency parsing, leaves out a narrow symbol that several current currencies share, such as "kr" in `en`, where it went to whichever currency came first in atom-creation order. One current currency among historic ones still takes it.
+
+* Currency parsing takes the longest matching currency string by bytes rather than graphemes, so a plural spelled with as many graphemes as its singular (in te, mr, ml and 14 other locales) no longer matches as the singular and leaves the rest of the word in the remainder.
+
+* `Localize.Number.System.number_system_names_for/1` and `Localize.Number.Format.format_system_types_for/1` return systems in type order (default, native, traditional, finance), where they followed atom-creation order.
+
+* The module `mix localize.unit.gen_conversions` generates lists each unit once in `known_units/0`, where the simple base units appeared twice.
+
 * Functions taking a `Localize.LanguageTag`, including every `:locale` option, no longer raise on a hand-built struct with wrong-shaped fields: a `nil` list or map is empty, a string subtag is its atom, and anything else returns `Localize.InvalidLocaleError`.
 
 * Interpolating a parsed `Localize.LanguageTag` into a string gives its BCP 47 form, where it raised because the tag had no canonical id yet.

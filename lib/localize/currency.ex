@@ -181,6 +181,11 @@ defmodule Localize.Currency do
   ### Returns
 
   * A map of `%{territory_code => %{currency_code => date_info}}`.
+    `date_info` holds `:from` and, for a currency no longer in use,
+    `:to` (both `Date`s); `:tender` is `false` for a currency that is
+    not legal tender; and `:order` is the currency's position in
+    CLDR's list for the territory, which TR35 makes the order of
+    precedence: the current tender listed first is the primary one.
 
   ### Examples
 
@@ -280,12 +285,16 @@ defmodule Localize.Currency do
   def current_currency_for_territory(territory) when is_atom(territory) do
     case territory_currencies(territory) do
       {:ok, history} ->
+        # Several currencies can be current tender (ZAR and LSL in LS).
+        # CLDR's order says which is primary, so the lowest `:order` wins;
+        # the map's own order follows atom creation.
         history
-        |> Enum.find(fn {_currency, info} ->
+        |> Enum.filter(fn {_currency, info} ->
           Map.has_key?(info, :from) &&
             !Map.has_key?(info, :to) &&
             Map.get(info, :tender, true) != false
         end)
+        |> Enum.min_by(fn {_currency, info} -> info.order end, fn -> nil end)
         |> case do
           {currency, _info} -> currency
           nil -> nil
@@ -708,6 +717,12 @@ defmodule Localize.Currency do
   A currency string is a localized name or symbol representing
   a currency in a locale-specific manner. The map can be used
   to parse user input into currency codes.
+
+  A string that several currencies share maps to the current
+  one when all the others are historic, and is otherwise left
+  out because it names no single currency: in `:en`, "kr" is
+  the narrow symbol of four current currencies. The `:only`
+  option narrows the currencies so that such a string resolves.
 
   ### Arguments
 
@@ -1560,18 +1575,40 @@ defmodule Localize.Currency do
 
   defp prefer_currency(_pair1, _c1, _pair2, _c2), do: :drop_both
 
+  # A narrow symbol is often shared: "kr" is the narrow symbol of four
+  # currencies in en and "$" of dozens in fr. Taking whichever currency the
+  # map yielded first made the answer depend on atom-creation order, so the
+  # rule for shared strings applies to each symbol's claimants as a whole.
+  # A narrow symbol never replaces a name or symbol already in the map.
   defp add_unique_narrow_symbols(string_map, currencies) do
-    Enum.reduce(currencies, string_map, fn {code, currency}, acc ->
-      cond do
-        is_nil(currency.narrow_symbol) ->
-          acc
-
-        Map.has_key?(acc, String.downcase(currency.narrow_symbol)) ->
-          acc
-
-        true ->
-          Map.put(acc, String.downcase(currency.narrow_symbol), code)
+    currencies
+    |> Enum.flat_map(&narrow_symbol_claim(&1, string_map))
+    |> Enum.group_by(fn {symbol, _code} -> symbol end, fn {_symbol, code} -> code end)
+    |> Enum.reduce(string_map, fn {symbol, codes}, acc ->
+      case preferred_claimant(codes, currencies) do
+        nil -> acc
+        code -> Map.put(acc, symbol, code)
       end
     end)
+  end
+
+  defp narrow_symbol_claim({_code, %{narrow_symbol: nil}}, _string_map), do: []
+
+  defp narrow_symbol_claim({code, currency}, string_map) do
+    symbol = String.downcase(currency.narrow_symbol)
+    if Map.has_key?(string_map, symbol), do: [], else: [{symbol, code}]
+  end
+
+  # One claimant takes the symbol. Among several, a single current currency
+  # takes it when every other claimant is historic; any other tie leaves the
+  # symbol unassigned, so that it stays ambiguous.
+  defp preferred_claimant([code], _currencies), do: code
+
+  defp preferred_claimant(codes, currencies) do
+    {current, others} = Enum.split_with(codes, &current?(Map.get(currencies, &1)))
+
+    if match?([_one], current) and Enum.all?(others, &historic?(Map.get(currencies, &1))),
+      do: hd(current),
+      else: nil
   end
 end

@@ -274,6 +274,14 @@ defmodule Mix.Tasks.Localize.Unit.GenConversionsTest do
       assert "celsius" in units
     end
 
+    # Regression: the simple base units were appended to the table's keys,
+    # which already hold them, so each appeared twice.
+    test "lists each unit once", %{units: units} do
+      units = units.known_units()
+
+      assert length(units) == length(Enum.uniq(units))
+    end
+
     test "is a floor, not the accepted set", %{units: units} do
       refute "millinewton" in units.known_units()
       assert {:ok, {1.0, "kilogram-meter-per-square-second"}} = units.to_base(1000, "millinewton")

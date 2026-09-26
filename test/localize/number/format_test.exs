@@ -64,5 +64,12 @@ defmodule Localize.Number.FormatTest do
       assert :default in types
       assert :native in types
     end
+
+    # Regression: the types came back in the atom-creation order of the
+    # locale's number-systems map, which differs between VMs.
+    test "returns the types in known_number_system_types/0 order" do
+      assert Format.format_system_types_for(:ja) ==
+               {:ok, [:default, :native, :traditional, :finance]}
+    end
   end
 end

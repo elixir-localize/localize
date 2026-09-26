@@ -536,6 +536,7 @@ defmodule Localize.Number.Format do
   ### Returns
 
   * `{:ok, types}` where `types` is a list of system type atoms
+    in the order of `Localize.Number.System.known_number_system_types/0`
     (e.g., `[:default, :native]`).
 
   * `{:error, exception}` if the locale data cannot be loaded.
@@ -550,7 +551,9 @@ defmodule Localize.Number.Format do
           {:ok, [atom()]} | {:error, Exception.t()}
   def format_system_types_for(locale) do
     with {:ok, systems} <- System.number_systems_for(locale) do
-      {:ok, Map.keys(systems)}
+      # Walk the types rather than the map, whose atom keys iterate in the
+      # order the atoms were created.
+      {:ok, Enum.filter(System.known_number_system_types(), &Map.has_key?(systems, &1))}
     end
   end
 

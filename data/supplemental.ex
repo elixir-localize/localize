@@ -341,22 +341,29 @@ defmodule Localize.Data.Supplemental do
   Generates territory currency data from `currencyData.json`.
 
   Returns a map of territory atoms to maps of currency atoms
-  to maps with `:from` and `:to` Date values and optional
-  `:tender` boolean.
+  to maps with `:from` and `:to` Date values, an optional
+  `:tender` boolean, and `:order`, the currency's position in
+  CLDR's list for the territory.
 
   """
   def generate_territory_currencies do
     Localize.Data.read_json("currencyData.json")
     |> get_in(["supplemental", "currencyData", "region"])
     |> Enum.map(fn {territory, currency_list} ->
-      currencies =
-        currency_list
-        |> Enum.map(&currency_code_entries/1)
-        |> List.flatten()
-        |> Map.new()
-
-      {String.to_atom(territory), currencies}
+      {String.to_atom(territory), ordered_currency_entries(currency_list)}
     end)
+    |> Map.new()
+  end
+
+  # CLDR lists a territory's currencies most recent period first, and TR35
+  # makes that order say which currency is primary, so each entry keeps its
+  # position. A currency listed for two periods (XOF in ML, JOD in PS) keeps
+  # its first entry: building the map directly kept the last, oldest one.
+  defp ordered_currency_entries(currency_list) do
+    currency_list
+    |> Enum.flat_map(&currency_code_entries/1)
+    |> Enum.with_index(fn {code, attrs}, order -> {code, Map.put(attrs, :order, order)} end)
+    |> Enum.uniq_by(fn {code, _attrs} -> code end)
     |> Map.new()
   end
 

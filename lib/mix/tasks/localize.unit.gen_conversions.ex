@@ -545,7 +545,7 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
     that set is unbounded.
 
     """
-    def known_units, do: Map.keys(@conversions) ++ @simple_base_units
+    def known_units, do: Enum.uniq(Map.keys(@conversions) ++ @simple_base_units)
 
     defp canonical(normalized) do
       case Map.fetch(@aliases, normalized) do

@@ -23,6 +23,14 @@ defmodule Localize.Number.SystemTest do
     end
   end
 
+  # Regression: the names came back in the atom-creation order of the
+  # locale's number-systems map, which differs between VMs.
+  describe "number_system_names_for/1" do
+    test "returns the names in known_number_system_types/0 order" do
+      assert System.number_system_names_for(:zh) == {:ok, [:latn, :hanidec, :hans, :hansfin]}
+    end
+  end
+
   describe "number_system_from_locale/1" do
     test "returns default system for a string locale" do
       {:ok, system} = System.number_system_from_locale("en-US")
