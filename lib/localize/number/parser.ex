@@ -99,6 +99,9 @@ defmodule Localize.Number.Parser do
     separators `Localize.Number.to_string/2` formats them with. See
     `parse/2`.
 
+  * `:separators` names the set of decimal and grouping separators
+    to read with. See `parse/2`.
+
   ### Returns
 
   * A list of strings and numbers.
@@ -121,7 +124,7 @@ defmodule Localize.Number.Parser do
          {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, _number_type} <- number_type(Keyword.get(options, :number)),
          {:ok, number_system} <- digits_number_system_from(language_tag, options),
-         {:ok, symbol} <- number_symbols(language_tag, number_system, options[:currency]) do
+         {:ok, symbol} <- number_symbols(language_tag, number_system, options) do
       scanner =
         @number_format
         |> localize_format_string(symbol, options)
@@ -213,6 +216,12 @@ defmodule Localize.Number.Parser do
     `1 234,56` with a space, so `"1.234"` is a different number with
     and without this option. The default is `nil`, a plain number.
 
+  * `:separators` names the set of decimal and grouping separators
+    to read with, for a locale that has more than one. `en-ZA` writes
+    `1\u00A0234,56` with its `:standard` set and `1,234.56` with its
+    `:us` set. A locale without the named set reads with its standard
+    one. The default is `:standard`.
+
   ### Returns
 
   * `{:ok, number}` on success.
@@ -279,7 +288,7 @@ defmodule Localize.Number.Parser do
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, number_type} <- number_type(Keyword.get(options, :number)),
          {:ok, number_system} <- digits_number_system_from(language_tag, options),
-         {:ok, symbol} <- number_symbols(language_tag, number_system, options[:currency]) do
+         {:ok, symbol} <- number_symbols(language_tag, number_system, options) do
       lenient? = Keyword.get(options, :lenient, true)
 
       with {:ok, normalized} <-
@@ -494,7 +503,7 @@ defmodule Localize.Number.Parser do
          locale = Keyword.get(options, :locale, Localize.get_locale()),
          {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, number_system} <- digits_number_system_from(language_tag, options),
-         {:ok, symbol} <- number_symbols(language_tag, number_system, nil) do
+         {:ok, symbol} <- number_symbols(language_tag, number_system, []) do
       per_strings =
         build_per_strings(symbol)
 
@@ -870,7 +879,26 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  defp number_symbols(language_tag, number_system, nil) do
+  defp number_symbols(language_tag, number_system, options) do
+    with {:ok, symbols} <- symbols_for(language_tag, number_system, options[:currency]) do
+      separators = Keyword.get(options, :separators, :standard)
+
+      {:ok,
+       %{
+         symbols
+         | decimal: variant(symbols.decimal, separators),
+           group: variant(symbols.group, separators)
+       }}
+    end
+  end
+
+  # CLDR gives a few locales a second set of separators, such as the `:us`
+  # set of `en-ZA`. A locale without the requested set reads with its standard
+  # one, as `Money.new/3` does.
+  defp variant(%{standard: standard} = separators, name), do: Map.get(separators, name, standard)
+  defp variant(separator, _name), do: separator
+
+  defp symbols_for(language_tag, number_system, nil) do
     with {:ok, symbols} <- Symbol.number_symbols_for(language_tag) do
       {:ok, Map.get(symbols, number_system) || Map.get(symbols, :latn)}
     end
@@ -878,7 +906,7 @@ defmodule Localize.Number.Parser do
 
   # A currency amount is read with the symbols `Localize.Number.to_string/2`
   # formats it with, so what it formats parses back.
-  defp number_symbols(language_tag, number_system, currency) do
+  defp symbols_for(language_tag, number_system, currency) do
     with {:ok, symbols} <- Symbol.number_symbols_for(language_tag, number_system),
          {:ok, currency} <- currency_for(currency, language_tag) do
       {:ok, Symbol.for_currency(symbols, currency)}

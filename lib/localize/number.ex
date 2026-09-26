@@ -1086,6 +1086,10 @@ defmodule Localize.Number do
     When set, numbers are read as amounts of that currency, with the
     separators `to_string/2` formats them with.
 
+  * `:separators` names the set of decimal and grouping separators
+    to read with, for a locale that has more than one, such as the
+    `:us` set of `en-ZA`. The default is `:standard`.
+
   ### Returns
 
   * A list of strings and numbers.
@@ -1131,6 +1135,10 @@ defmodule Localize.Number do
   * `:currency` is a currency code or a `t:Localize.Currency.t/0`.
     When set, the string is read as an amount of that currency, with
     the separators `to_string/2` formats it with.
+
+  * `:separators` names the set of decimal and grouping separators
+    to read with, for a locale that has more than one, such as the
+    `:us` set of `en-ZA`. The default is `:standard`.
 
   ### Returns
 
