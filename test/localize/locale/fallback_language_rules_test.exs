@@ -42,9 +42,15 @@ defmodule Localize.Locale.FallbackLanguageRulesTest do
   end
 
   setup do
-    previous = Application.get_env(:localize, :locale_provider)
+    previous = Application.fetch_env(:localize, :locale_provider)
     Application.put_env(:localize, :locale_provider, BundledOnlyProvider)
-    on_exit(fn -> Application.put_env(:localize, :locale_provider, previous) end)
+
+    on_exit(fn ->
+      case previous do
+        {:ok, provider} -> Application.put_env(:localize, :locale_provider, provider)
+        :error -> Application.delete_env(:localize, :locale_provider)
+      end
+    end)
 
     capture_log(fn ->
       :ok = Localize.Locale.load_and_store(:ru)
@@ -87,6 +93,25 @@ defmodule Localize.Locale.FallbackLanguageRulesTest do
              Localize.Unit.new!(21, "day"),
              locale: :ru
            ) == {:ok, "1–21 days"}
+  end
+
+  test "ru selects its own registered unit strings with ru rules: 21 смут" do
+    on_exit(fn -> Localize.Unit.CustomRegistry.clear() end)
+
+    :ok =
+      Localize.Unit.define_unit("smoot", %{
+        base_unit: "meter",
+        factor: 1.7018,
+        category: "length",
+        display: %{
+          ru: %{
+            long: %{one: "{0} смут", few: "{0} смута", many: "{0} смутов", other: "{0} смута"}
+          }
+        }
+      })
+
+    assert Localize.Unit.to_string(Localize.Unit.new!(21, "smoot"), locale: :ru) ==
+             {:ok, "21 смут"}
   end
 
   test "ru formats 21 days ago and the ordinal 21st with en rules" do
