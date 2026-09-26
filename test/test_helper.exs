@@ -28,6 +28,7 @@ test_locales = [
   "ar",
   "ar-SA",
   "de",
+  "de-AT",
   "de-CH",
   "ee",
   "en",
