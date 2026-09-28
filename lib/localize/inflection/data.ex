@@ -162,7 +162,8 @@ defmodule Localize.Inflection.Data do
         features: raw.features,
         contractions: MapSet.new(raw.contractions),
         suffix_exemplars: Map.get(raw, :suffix_exemplars, %{}),
-        pronouns: Map.get(raw, :pronouns, [])
+        pronouns: Map.get(raw, :pronouns, []),
+        script_pronouns: Map.get(raw, :script_pronouns, %{})
       }
 
       :persistent_term.put({__MODULE__, locale}, artifact)

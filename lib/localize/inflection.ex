@@ -271,7 +271,8 @@ defmodule Localize.Inflection do
 
   * `{:ok, pronoun}` with the selected pronoun, or
     `{:error, reason}` when the locale has no pronoun table, the
-    initial pronoun is unknown, or a constraint is invalid.
+    inflection data it needs has not been downloaded, the initial
+    pronoun is unknown, or a constraint is invalid.
 
   ### Examples
 

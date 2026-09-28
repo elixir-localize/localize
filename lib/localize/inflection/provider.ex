@@ -36,7 +36,9 @@ defmodule Localize.Inflection.Provider do
   # immutable.
   # r2: the lexicon ships packed (Localize.Inflection.Lexicon) rather
   # than as a map of surface forms.
-  @data_revision 2
+  # r3: the zh artifact carries the Traditional Chinese (zh_Hant)
+  # pronoun table under :script_pronouns.
+  @data_revision 3
 
   @default_base_url "https://elixir-localize.com/inflection"
   @manifest "inflection_hashes.etf"
@@ -54,7 +56,7 @@ defmodule Localize.Inflection.Provider do
   ### Examples
 
       iex> Localize.Inflection.Provider.data_version()
-      "ae92d425e57a-r2"
+      "ae92d425e57a-r3"
 
   """
   def data_version do
@@ -80,7 +82,7 @@ defmodule Localize.Inflection.Provider do
   ### Examples
 
       iex> Localize.Inflection.Provider.file_url("ru.etf")
-      "https://elixir-localize.com/inflection/ae92d425e57a-r2/ru.etf"
+      "https://elixir-localize.com/inflection/ae92d425e57a-r3/ru.etf"
 
   """
   def file_url(file_name) when is_binary(file_name) do

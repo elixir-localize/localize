@@ -49,8 +49,6 @@ defmodule Mix.Tasks.Localize.Inflection.Generate do
       {:exit, reason} ->
         Mix.shell().error("A locale failed to generate: #{inspect(reason)}")
     end)
-
-    copy_script_pronoun_tables()
   end
 
   # Parsed once and passed to every task; parsing it per locale was
@@ -68,26 +66,6 @@ defmodule Mix.Tasks.Localize.Inflection.Generate do
     else
       "Skipping #{locale}: no dictionary_#{locale}.lst downloaded"
     end
-  end
-
-  # Supported locales carry their pronoun table folded into
-  # `<locale>.etf`. The only standalone CSVs kept are the script-only
-  # fixtures that no shipped locale owns (e.g. zh_Hant), which the
-  # conformance tests reach through the fallback chain; they are not
-  # uploaded to the CDN (only `*.etf` is).
-  defp copy_script_pronoun_tables do
-    File.mkdir_p!("priv/localize/inflection")
-    supported = MapSet.new(Locale.supported())
-
-    "data/inflection/pronoun/pronoun_*.csv"
-    |> Path.wildcard()
-    |> Enum.reject(fn path ->
-      locale = path |> Path.basename(".csv") |> String.replace_prefix("pronoun_", "")
-      MapSet.member?(supported, locale)
-    end)
-    |> Enum.each(fn path ->
-      File.cp!(path, Path.join("priv/localize/inflection", Path.basename(path)))
-    end)
   end
 
   defp generate(locale) do

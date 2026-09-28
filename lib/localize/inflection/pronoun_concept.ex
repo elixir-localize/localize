@@ -70,8 +70,10 @@ defmodule Localize.Inflection.PronounConcept do
 
   * `locale` is a locale atom or string, canonically in BCP47 form
     (`:"zh-TW"`, `"zh-TW"`); the underscore form is also accepted.
-    Regional locales fall back to their parent language for both
-    the feature model and the pronoun table.
+    Regional locales fall back to their parent language for the
+    feature model, and for the pronoun table unless the region has
+    one of its own: `zh-TW` uses the Traditional Chinese table that
+    ships with `zh`, and `zh-HK` the Cantonese (`yue`) table.
 
   * `options` is a keyword list of options.
 
@@ -89,8 +91,12 @@ defmodule Localize.Inflection.PronounConcept do
 
   ### Returns
 
-  * `{:ok, concept}` or `{:error, reason}` when the locale has no
-    pronoun table or the initial pronoun is unknown.
+  * `{:ok, concept}` on success.
+
+  * `{:error, reason}` when the locale has no pronoun table, the
+    inflection data it needs (its own, or that of the language
+    whose table it uses) has not been downloaded, or the initial
+    pronoun is unknown.
 
   ### Examples
 
@@ -167,61 +173,76 @@ defmodule Localize.Inflection.PronounConcept do
 
   # Resolves the pronoun table through the fallback chain and parses
   # it against the model locale's features. Parsed tables are cached.
-  # A supported locale sources its table from the folded artifact;
-  # script-only tables that no shipped locale owns (e.g. zh_Hant)
-  # remain CSV fixtures read from the data directory.
   defp entries_for(model_locale, locale) do
     case resolve_table(Locale.normalize(locale)) do
-      nil ->
-        {:error, Localize.InflectionNotSupportedError.exception(locale: locale)}
-
-      {table_locale, source} ->
+      {:ok, table_locale, lines} ->
         key = {__MODULE__, model_locale, table_locale}
 
         case :persistent_term.get(key, nil) do
           nil ->
-            entries = parse_lines(model_locale, table_lines(table_locale, source))
+            entries = parse_lines(model_locale, lines)
             :persistent_term.put(key, entries)
             {:ok, table_locale, entries}
 
           entries ->
             {:ok, table_locale, entries}
         end
+
+      {:error, exception} ->
+        {:error, exception}
+
+      nil ->
+        {:error, Localize.InflectionNotSupportedError.exception(locale: locale)}
     end
   end
 
-  # Script pairs first, then the parent locale. A supported locale
-  # carries its table in the loaded artifact (`:artifact`); any other
-  # locale with a CSV on disk — the script-only fixtures — sources it
-  # from the file (`:csv`).
+  # Script pairs first, then the parent locale. Every table ships in an
+  # artifact: a supported locale's in its own, and a script table that
+  # no supported locale owns (zh_Hant) in its language's, under
+  # `:script_pronouns`. A table whose artifact is not available is an
+  # error, never a fall through to some other table.
   defp resolve_table(""), do: nil
 
   defp resolve_table(locale) do
     cond do
       locale in Locale.supported() ->
-        {locale, :artifact}
+        artifact_table(locale)
 
-      File.exists?(table_path(locale)) ->
-        {locale, :csv}
+      lines = script_table(locale) ->
+        {:ok, locale, lines}
 
       true ->
         resolve_table(Map.get(@locale_fallbacks, locale) || Locale.parent(locale))
     end
   end
 
-  defp table_lines(table_locale, :artifact) do
-    Data.metadata!(String.to_existing_atom(table_locale)).pronouns
+  # The table can belong to another language than the model locale
+  # (zh-HK takes yue's), so its artifact is resolved in its own right:
+  # downloaded when that is permitted, and otherwise reported as not
+  # available rather than raised.
+  defp artifact_table(table_locale) do
+    with {:ok, atom} <- Locale.resolve(table_locale),
+         {:ok, artifact} <- Data.metadata(atom) do
+      {:ok, table_locale, artifact.pronouns}
+    else
+      {:error, %{__exception__: true} = exception} ->
+        {:error, exception}
+
+      {:error, _reason} ->
+        {:error, Localize.InflectionDataNotAvailableError.exception(locale: table_locale)}
+    end
   end
 
-  defp table_lines(table_locale, :csv) do
-    table_path(table_locale)
-    |> File.read!()
-    |> String.split("\n")
-    |> Enum.reject(&(String.trim(&1) == ""))
-  end
+  defp script_table(table_locale) do
+    [language | _subtags] = String.split(table_locale, "_")
 
-  defp table_path(table_locale) do
-    Localize.Inflection.DataDir.path("pronoun_#{table_locale}.csv")
+    with true <- language in Locale.supported(),
+         {:ok, atom} <- Locale.resolve(language),
+         {:ok, artifact} <- Data.metadata(atom) do
+      Map.get(artifact.script_pronouns, table_locale)
+    else
+      _unavailable -> nil
+    end
   end
 
   defp parse_lines(model_locale, lines) do

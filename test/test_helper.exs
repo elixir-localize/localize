@@ -94,17 +94,14 @@ end
 
 Mix.Tasks.Localize.DownloadLocales.run(test_locales)
 
-# The inflection conformance suites need the inflection data for every
-# fixture locale, and most of those locales are not in the list above.
-# The ETFs come from the CDN; the upstream sources on GitHub only feed our
-# own generation. A failed download makes its suite fail with the reason.
-inflection_fixture_locales =
-  Enum.map(
-    Localize.Inflection.Conformance.suites() ++ Localize.Inflection.PronounConformance.suites(),
-    fn {locale, _path} -> locale end
-  )
-
-Mix.Tasks.Localize.DownloadInflection.download_for(inflection_fixture_locales)
+# The inflection tests need the data of every language they use, and
+# runtime downloads are off in tests, so every supported language is
+# fetched here rather than only the conformance suites' fixture locales:
+# other tests reach beyond those (the list suite uses vi and id), and the
+# twelve languages that adds come to under 600 KB. The ETFs come from the
+# CDN; the upstream sources on GitHub only feed our own generation. A
+# failed download makes the tests that need it fail with the reason.
+Mix.Tasks.Localize.DownloadInflection.download_for(Localize.Inflection.Locale.supported())
 
 # Integration tests (slow — spawn mix subprocesses, compile deps) are
 # excluded by default. Run them with `mix test --include integration`.

@@ -21,18 +21,28 @@ defmodule Localize.Number.SystemMatrixTest do
   # arabext (ur.xml `<percentSign>٪</percentSign>`), where CLDR 48 had "%".
   @cldr_49_arabic_percent_sign ["ur-u-nu-arabext", "ur-IN-u-nu-latn"]
 
-  test "numbers in another numbering system match ICU" do
-    mismatches =
-      for line <- File.stream!(@fixture),
-          line = String.trim_trailing(line, "\n"),
-          line != "" and not String.starts_with?(line, "#"),
-          [tag, style, value, icu] <- [String.split(line, "\t")],
-          expected = expected_value(tag, style, icu),
-          mismatch <- [check_case(tag, style, value, expected)],
-          mismatch != nil,
-          do: mismatch
+  fixture_cases =
+    for line <- File.stream!(@fixture),
+        line = String.trim_trailing(line, "\n"),
+        line != "" and not String.starts_with?(line, "#"),
+        [_tag, _style, _value, _icu] = fixture_case <- [String.split(line, "\t")],
+        do: fixture_case
 
-    assert mismatches == [], report(mismatches)
+  # One test per locale, so each loads only the locale it checks. A single
+  # test over the whole fixture loaded 126 locales and, where they had to be
+  # downloaded as in CI, ran past the test timeout.
+  for {locale, cases} <-
+        Enum.group_by(fixture_cases, fn [tag | _] -> hd(String.split(tag, "-u-nu-")) end) do
+    test "#{locale} numbers in another numbering system match ICU" do
+      mismatches =
+        for [tag, style, value, icu] <- unquote(Macro.escape(cases)),
+            expected = expected_value(tag, style, icu),
+            mismatch <- [check_case(tag, style, value, expected)],
+            mismatch != nil,
+            do: mismatch
+
+      assert mismatches == [], report(mismatches)
+    end
   end
 
   defp expected_value(tag, "percent", icu) when tag in @cldr_49_arabic_percent_sign do

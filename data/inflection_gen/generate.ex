@@ -103,6 +103,7 @@ defmodule Localize.Inflection.DataGen.Generate do
         )
     }
 
+    artifact = put_script_pronouns(artifact, locale)
     write_artifact(locale, artifact)
     artifact
   end
@@ -307,6 +308,27 @@ defmodule Localize.Inflection.DataGen.Generate do
     else
       []
     end
+  end
+
+  # Pronoun tables for script variants of the locale that no supported
+  # locale owns (zh_Hant for zh), keyed by table locale. Regional
+  # locales reach them through PronounConcept's fallbacks (zh_TW takes
+  # zh_Hant), so they ship in the artifact of the language they belong
+  # to. The key is added only when there is such a table, which leaves
+  # every other artifact byte for byte as it was.
+  defp put_script_pronouns(artifact, locale) do
+    supported = Localize.Inflection.Locale.supported()
+
+    tables =
+      source_path("pronoun/pronoun_#{locale}_*.csv")
+      |> Path.wildcard()
+      |> Enum.map(&(&1 |> Path.basename(".csv") |> String.replace_prefix("pronoun_", "")))
+      |> Enum.reject(&(&1 in supported))
+      |> Map.new(&{&1, pronoun_lines(&1)})
+
+    if map_size(tables) == 0,
+      do: artifact,
+      else: Map.put(artifact, :script_pronouns, tables)
   end
 
   defp write_artifact(locale, artifact) do

@@ -8,8 +8,7 @@ defmodule Mix.Tasks.Localize.Inflection.GenerateHashes do
 
       mix localize.inflection.generate_hashes
 
-  Hashes the locale artifacts and the pronoun pack under
-  `priv/localize/inflection/`.
+  Hashes the locale artifacts under `priv/localize/inflection/`.
 
       mix localize.inflection.generate_hashes --from-cdn
 
