@@ -70,6 +70,18 @@ defmodule Localize.LocaleInheritanceTest do
       assert parent.territory == :"001"
     end
 
+    test "the parent of a validated fr-CA tag resolves to fr, not fr-CA" do
+      {:ok, tag} = Localize.validate_locale(:"fr-CA")
+      {:ok, parent} = Locale.parent(tag)
+
+      assert Locale.cldr_locale_id_from(parent) == {:ok, :fr}
+    end
+
+    test "fr-CA spells 21 as vingt-et-un with the rules of its parent fr" do
+      assert Localize.Number.to_string(21, format: :spellout, locale: :"fr-CA") ==
+               {:ok, "vingt-et-un"}
+    end
+
     test "script-territory locale strips territory first" do
       {:ok, parent} = Locale.parent("zh-Hant-TW")
       # zh-Hant-TW is not in parent_locales, so strip territory → zh-Hant
