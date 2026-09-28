@@ -192,7 +192,7 @@ defmodule Localize.Number.Format.Options do
          :ok <- validate_rounding_priority(Keyword.get(options, :rounding_priority)),
          :ok <- validate_digit_counts(options, @digit_count_options),
          :ok <- validate_wrapper(Keyword.get(options, :wrapper)),
-         {:ok, symbols} <- resolve_symbols(language_tag, system_name),
+         {:ok, symbols} <- resolve_symbols(language_tag, system_name, currency_struct),
          {:ok, resolved_format, formats} <- resolve_format(format, language_tag, system_name) do
       currency_symbol = resolve_currency_symbol(currency_struct, options[:currency_symbol])
       currency_spacing = resolve_currency_spacing(currency_struct, formats)
@@ -517,9 +517,10 @@ defmodule Localize.Number.Format.Options do
 
   # ── Symbols resolution ──────────────────────────────────────
 
-  defp resolve_symbols(language_tag, system_name) do
+  defp resolve_symbols(language_tag, system_name, currency) do
     case Symbol.number_symbols_for(language_tag, system_name) do
-      {:ok, _} = result -> result
+      {:ok, symbols} when is_nil(currency) -> {:ok, symbols}
+      {:ok, symbols} -> {:ok, Symbol.for_currency(symbols)}
       _other -> {:ok, nil}
     end
   end

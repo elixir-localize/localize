@@ -22,6 +22,13 @@ defmodule Localize.Data.LocaleTransformer do
   alias Localize.Number.Format
   alias Localize.Number.Symbol
 
+  # CLDR number symbols that no formatter uses, left out by name. Any
+  # other key the struct does not define fails the generation.
+  #
+  # * `time_separator_alt_variant` - the "." that nb, nn, no and sv
+  #   use as an alternative time separator. No formatter reads it.
+  @excluded_symbols [:time_separator_alt_variant]
+
   @doc """
   Transforms raw locale data, converting maps to structs for
   number symbols, number formats, and currencies.
@@ -62,7 +69,7 @@ defmodule Localize.Data.LocaleTransformer do
   def transform_number_symbols(raw) when is_map(raw) do
     Map.new(raw, fn
       {system, nil} -> {to_atom(system), nil}
-      {system, data} -> {to_atom(system), struct(Symbol, data)}
+      {system, data} -> {to_atom(system), struct!(Symbol, Map.drop(data, @excluded_symbols))}
     end)
   end
 
@@ -83,7 +90,7 @@ defmodule Localize.Data.LocaleTransformer do
   @spec transform_number_formats(map()) :: map()
   def transform_number_formats(raw) when is_map(raw) do
     Map.new(raw, fn {system, data} ->
-      {to_atom(system), struct(Format, data)}
+      {to_atom(system), struct!(Format, data)}
     end)
   end
 
@@ -107,7 +114,7 @@ defmodule Localize.Data.LocaleTransformer do
       code_atom = to_atom(code)
 
       currency =
-        struct(Currency, %{
+        struct!(Currency, %{
           data
           | code: code_atom,
             count: atomize_count(data[:count] || data["count"])

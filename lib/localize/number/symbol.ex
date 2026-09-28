@@ -16,6 +16,8 @@ defmodule Localize.Number.Symbol do
   defstruct [
     :decimal,
     :group,
+    :currency_decimal,
+    :currency_group,
     :exponential,
     :infinity,
     :list,
@@ -32,6 +34,8 @@ defmodule Localize.Number.Symbol do
   @type t :: %__MODULE__{
           decimal: String.t() | map(),
           group: String.t() | map(),
+          currency_decimal: String.t() | nil,
+          currency_group: String.t() | nil,
           exponential: String.t(),
           infinity: String.t(),
           list: String.t(),
@@ -133,6 +137,40 @@ defmodule Localize.Number.Symbol do
           {:ok, symbol}
       end
     end
+  end
+
+  @doc """
+  Returns the symbols to format a currency amount with.
+
+  Some locales separate a currency amount differently from a plain
+  number. CLDR gives these locales a `currencyDecimal` or a
+  `currencyGroup` symbol, which this function puts in place of the
+  `:decimal` and `:group` symbols.
+
+  ### Arguments
+
+  * `symbols` is a `t:Localize.Number.Symbol.t/0` struct.
+
+  ### Returns
+
+  * A `t:Localize.Number.Symbol.t/0` struct.
+
+  ### Examples
+
+      iex> {:ok, symbols} = Localize.Number.Symbol.number_symbols_for(:"fr-CH", :latn)
+      iex> symbols.decimal
+      %{standard: ","}
+      iex> Localize.Number.Symbol.for_currency(symbols).decimal
+      "."
+
+  """
+  @spec for_currency(t()) :: t()
+  def for_currency(%__MODULE__{} = symbols) do
+    %{
+      symbols
+      | decimal: symbols.currency_decimal || symbols.decimal,
+        group: symbols.currency_group || symbols.group
+    }
   end
 
   # Symbols for a numbering system the locale carries no data for come from
