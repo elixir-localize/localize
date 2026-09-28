@@ -33,7 +33,7 @@ defmodule Localize.Message.Function do
 
   Built-in functions are authoritative: both registries are consulted
   only for a function name no built-in already handles, so a custom
-  function cannot shadow `:number`, `:date`, `:l:inflect`, or any
+  function cannot shadow `:number`, `:date`, `:i:inflect`, or any
   other built-in. To own a whole custom namespace with a single
   handler rather than one registration per name, implement
   `Localize.Message.Namespace` instead.

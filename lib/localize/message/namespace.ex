@@ -38,11 +38,12 @@ defmodule Localize.Message.Namespace do
 
   ## Reserved namespaces
 
-  The single-letter namespaces `l` and `u` are reserved and never
+  The single-letter namespaces `i` and `u` are reserved and never
   route to a user handler:
 
-  * `l` is Localize's own namespace (`:l:inflect`, `:l:pronoun`,
-    `:l:quantify`), handled by built-in functions.
+  * `i` is the namespace the Unicode inflection project gives its
+    functions, and Localize's built-in inflection functions live
+    there (`:i:inflect`, `:i:pronoun`, `:i:quantify`).
 
   * `u` is the CLDR-managed namespace defined by the MF2
     specification for options (and, in a future release, possibly

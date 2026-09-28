@@ -988,18 +988,21 @@ defmodule Localize.Message.Interpreter do
     {:error, "the :list function requires a list operand, got #{inspect(value)}"}
   end
 
-  # ── Inflection (`l:` namespace) ──────────────────────────────────
+  # ── Inflection (`i:` namespace) ──────────────────────────────────
   #
-  # `:l:inflect` inflects its phrase operand for the grammatical
-  # constraints given in its options; `:l:pronoun` selects a pronoun
-  # (or re-inflects the operand pronoun); `:l:quantify` joins a
+  # `i:` is the namespace the Unicode inflection project gives its MF2
+  # functions (unicode-org/inflection#209).
+  #
+  # `:i:inflect` inflects its phrase operand for the grammatical
+  # constraints given in its options; `:i:pronoun` selects a pronoun
+  # (or re-inflects the operand pronoun); `:i:quantify` joins a
   # `count` with the noun operand so the noun agrees with the number
   # (Slavic numeral government, the Arabic counted-noun cases, and so
   # on). All three wrap the in-tree `Localize.Inflection` engine and
   # need the locale's inflection data present — a missing locale or
   # absent data resolves to a clean error tuple, never a crash.
 
-  defp format_with_function("l:inflect", value, func_opts, options) when is_binary(value) do
+  defp format_with_function("i:inflect", value, func_opts, options) when is_binary(value) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     case Localize.Inflection.inflect(value, locale, map_inflect_constraints(func_opts)) do
@@ -1011,11 +1014,11 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
-  defp format_with_function("l:inflect", value, _func_opts, _options) do
-    {:error, "the :l:inflect function requires a string operand, got #{inspect(value)}"}
+  defp format_with_function("i:inflect", value, _func_opts, _options) do
+    {:error, "the :i:inflect function requires a string operand, got #{inspect(value)}"}
   end
 
-  defp format_with_function("l:pronoun", value, func_opts, options) do
+  defp format_with_function("i:pronoun", value, func_opts, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     constraints = map_inflect_constraints(func_opts)
 
@@ -1028,7 +1031,7 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
-  defp format_with_function("l:quantify", value, func_opts, options) when is_binary(value) do
+  defp format_with_function("i:quantify", value, func_opts, options) when is_binary(value) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     # The count formats through Localize's own number formatter (so
@@ -1043,8 +1046,8 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
-  defp format_with_function("l:quantify", value, _func_opts, _options) do
-    {:error, "the :l:quantify function requires a string (noun) operand, got #{inspect(value)}"}
+  defp format_with_function("i:quantify", value, _func_opts, _options) do
+    {:error, "the :i:quantify function requires a string (noun) operand, got #{inspect(value)}"}
   end
 
   # ── MF2 WG test registry functions ───────────────────────────────
@@ -1291,7 +1294,7 @@ defmodule Localize.Message.Interpreter do
   defp resolve_namespace_handler(name, options) do
     case String.split(name, ":", parts: 2) do
       [namespace, local_name]
-      when namespace not in ["l", "u"] and local_name != "" ->
+      when namespace not in ["i", "u"] and local_name != "" ->
         case lookup_namespace(namespace, options) do
           {:ok, module} -> {:ok, module, local_name}
           :not_found -> :not_found
@@ -2069,12 +2072,12 @@ defmodule Localize.Message.Interpreter do
     end)
   end
 
-  # The `count` option of `:l:quantify` is required and must be
+  # The `count` option of `:i:quantify` is required and must be
   # numeric: it is both the number joined to the noun and the value
   # the plural category is selected from.
   defp quantify_count(func_opts) do
     case Map.get(func_opts, :count) do
-      nil -> {:error, "the :l:quantify function requires a `count` option"}
+      nil -> {:error, "the :i:quantify function requires a `count` option"}
       value -> ensure_number(value)
     end
   end

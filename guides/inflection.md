@@ -285,16 +285,16 @@ iex> Localize.Unit.to_string(unit, locale: :ru, grammatical_case: :prepositional
 
 ## In MessageFormat 2 messages
 
-Inflection is available inside MF2 messages through the `l:` namespace: `:l:inflect` inflects its operand phrase, `:l:pronoun` selects or re-inflects a pronoun, and `:l:quantify` joins a `count` with a noun operand so the noun agrees with the number. Grammatical constraints are passed as `grammatical*` options — `grammaticalCase`, `grammaticalGender`, `grammaticalNumber`, `grammaticalDefiniteness`, `grammaticalPerson` — mirroring the `:unit` function's naming:
+Inflection is available inside MF2 messages through the `i:` namespace, the one the Unicode inflection project gives its own MF2 functions: `:i:inflect` inflects its operand phrase, `:i:pronoun` selects or re-inflects a pronoun, and `:i:quantify` joins a `count` with a noun operand so the noun agrees with the number. Grammatical constraints are passed as `grammatical*` options — `grammaticalCase`, `grammaticalGender`, `grammaticalNumber`, `grammaticalDefiniteness`, `grammaticalPerson` — mirroring the `:unit` function's naming:
 
 ```elixir
-iex> Localize.Message.format("{$w :l:inflect grammaticalNumber=plural}", %{w: "light on the patio"}, locale: :en)
+iex> Localize.Message.format("{$w :i:inflect grammaticalNumber=plural}", %{w: "light on the patio"}, locale: :en)
 {:ok, "lights on the patio"}
 
-iex> Localize.Message.format("{|he| :l:pronoun grammaticalCase=accusative}", %{}, locale: :en)
+iex> Localize.Message.format("{|he| :i:pronoun grammaticalCase=accusative}", %{}, locale: :en)
 {:ok, "him"}
 
-iex> Localize.Message.format("{$noun :l:quantify count=5}", %{noun: "час"}, locale: :ru)
+iex> Localize.Message.format("{$noun :i:quantify count=5}", %{noun: "час"}, locale: :ru)
 {:ok, "5 часов"}
 ```
 

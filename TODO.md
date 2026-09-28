@@ -4,8 +4,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **Move the MF2 inflection functions to the `i` namespace** — [unicode-org/inflection#209](https://github.com/unicode-org/inflection/pull/209) (merged 2026-09-28) names upstream's functions `:i:inflect`, `:i:pronoun`, `:i:quantify`, `:i:list` and `:i:numeral`, so ours become `:i:inflect`, `:i:pronoun` and `:i:quantify` instead of `l:`, with `i` reserved as `l` is now. They are unreleased, so the rename should land before the release; it supersedes the `l` decision in [plans/MF2_NAMESPACE_INFLECTION.md](plans/MF2_NAMESPACE_INFLECTION.md).
-
 * [ ] **Decide whether root's `arab` and `arabext` blocks become a pipeline source** — plan item 38: CLDR JSON does not carry them, so `en-u-nu-arab` formats with the locale's `latn` symbols until `common/main/root.xml` is read directly.
 
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
@@ -29,6 +27,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Move the MF2 inflection functions to the `i` namespace** — `:i:inflect`, `:i:pronoun` and `:i:quantify` replace the `l:` names, and `i` is reserved in place of `l`. 2026-09-29, v1.4.0.
 
 * [x] **Reject an impossible month in the datetime parser's map form** — the map forms of the date, datetime, time and interval parsers reject any field no date or time has, as the struct forms do, instead of dropping or keeping it. 2026-09-29, v1.4.0.
 

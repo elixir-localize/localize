@@ -100,20 +100,20 @@ defmodule Localize.Message.NamespaceDispatchTest do
              )
     end
 
-    test "l: never routes to a user handler (built-ins own the namespace)" do
+    test "i: never routes to a user handler (built-ins own the namespace)" do
       assert unknown_function?(
-               Message.format("{$w :l:shout}", %{w: "hi"},
+               Message.format("{$w :i:shout}", %{w: "hi"},
                  locale: :en,
-                 namespaces: %{"l" => AcmeNamespace}
+                 namespaces: %{"i" => AcmeNamespace}
                )
              )
     end
 
-    test "built-in l:inflect is unaffected by a registered l handler" do
+    test "built-in i:inflect is unaffected by a registered i handler" do
       assert {:ok, "lights"} =
-               Message.format("{$w :l:inflect grammaticalNumber=plural}", %{w: "light"},
+               Message.format("{$w :i:inflect grammaticalNumber=plural}", %{w: "light"},
                  locale: :en,
-                 namespaces: %{"l" => AcmeNamespace}
+                 namespaces: %{"i" => AcmeNamespace}
                )
     end
   end
