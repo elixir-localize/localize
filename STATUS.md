@@ -1,10 +1,10 @@
 # Status
 
-**Status:** active, 2026-09-25
+**Status:** active, 2026-09-28
 
-**Next release:** 1.5.0
-**Blocked on:** CLDR 49 final release, expected 2026-10
+**Next release:** 1.4.0
+**Blocked on:** CLDR 49 final release, expected 2026-10-16
 
-Localize 1.5 is built on CLDR 49 and cannot be published until the Unicode Consortium finalises CLDR 49, expected in October 2026. Its work lives on the `cldr-49` branch, which does not merge to `main` until the final beta. Downstream libraries waiting on 1.5 name it in their own STATUS.md.
+Localize 1.4.0 is built on CLDR 49 from the `cldr-49` branch, which already carries everything on `main`. It cannot be published until the Unicode Consortium finalises CLDR 49, scheduled for October 2026 with no date fixed yet. Calendrical, Tempo and the other Localize libraries publish after it.
 
-1.4.0 is an interim release from `main`, still on CLDR 48.2, and is not blocked. It carries every bug fix made on `cldr-49` that does not depend on CLDR 49, and month names read through a calendar's `month_of_year/3`, which Calendrical 1.4.0 needs.
+Decided 2026-09-28: `main` is not released on its own. An interim 1.4.0 from `main` followed by CLDR 49 as 1.5.0 two weeks later would put two significant releases, each with breaking changes, in front of users and every downstream library, and no open issue needs `main` sooner. The decision is reviewed on 2026-10-16, the date on the blocker above: if cldr-json has not published 49.0.0 by then, `main` is released as 1.4.0 and the CLDR 49 work follows as 1.5.0.
