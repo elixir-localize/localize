@@ -143,6 +143,10 @@ defmodule Localize.Validity.U do
     to_string(value)
   end
 
+  defp encode_key("vt", values) when is_list(values) do
+    Enum.map_join(values, "-", &String.downcase/1)
+  end
+
   defp encode_key("vt", value) do
     value
     |> String.downcase()
@@ -182,17 +186,17 @@ defmodule Localize.Validity.U do
   # time zone name but it needs to be resolved to its
   # canonical version. For example, est5edt becomes usnyc
   @tz_values @validity_data["tz"]
-  defp valid("tz", value) do
-    case Map.fetch(@tz_values, value) do
+  defp valid("tz", value) when is_map_key(@tz_values, value) do
+    case Map.fetch!(@tz_values, value) do
       # A deprecated timezone id carries its preferred replacement
       # directly; resolve through the replacement's alias list.
-      {:ok, {:deprecated, preferred}} ->
+      {:deprecated, preferred} ->
         case Map.fetch(@tz_values, preferred) do
           {:ok, values} when is_list(values) -> {:ok, hd(values)}
           _ -> {:ok, preferred}
         end
 
-      {:ok, values} when is_list(values) ->
+      values when is_list(values) ->
         {:ok, hd(values)}
     end
   end
