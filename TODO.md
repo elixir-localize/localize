@@ -8,6 +8,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
 
+* [ ] Currency parsing - when presented with an ambiguous currency text, resolve it by ordering the locales by the match distance to the current locale (either parameter, or Localize.get_locale/1)
+
 * [ ] **Audit `cldr-49`-only code for map-order dependence** — the 2026-09-26 audit covered `main`. [plans/map-order.md](plans/map-order.md).
 
 ### Upstream parity for the MF2 `i:` functions
