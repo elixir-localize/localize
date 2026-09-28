@@ -16,6 +16,8 @@ defmodule Localize.Number.Symbol do
   defstruct [
     :decimal,
     :group,
+    :currency_decimal,
+    :currency_group,
     :exponential,
     :infinity,
     :list,
@@ -32,6 +34,8 @@ defmodule Localize.Number.Symbol do
   @type t :: %__MODULE__{
           decimal: String.t() | map(),
           group: String.t() | map(),
+          currency_decimal: String.t() | nil,
+          currency_group: String.t() | nil,
           exponential: String.t(),
           infinity: String.t(),
           list: String.t(),
@@ -133,6 +137,49 @@ defmodule Localize.Number.Symbol do
           {:ok, symbol}
       end
     end
+  end
+
+  @doc """
+  Returns the symbols to format an amount of a currency with.
+
+  Some locales separate a currency amount differently from a plain
+  number. CLDR gives these locales a `currencyDecimal` or a
+  `currencyGroup` symbol, which this function puts in place of the
+  `:decimal` and `:group` symbols. A currency with a decimal separator
+  of its own, such as the Cape Verdean escudo in `pt-CV`, takes that
+  one instead.
+
+  `Localize.Number.to_string/2` formats with these symbols and
+  `Localize.Number.Parser.parse/2` reads with them, so a currency
+  amount parses back to the number it was formatted from.
+
+  ### Arguments
+
+  * `symbols` is a `t:Localize.Number.Symbol.t/0` struct.
+
+  * `currency` is a `t:Localize.Currency.t/0` struct.
+
+  ### Returns
+
+  * A `t:Localize.Number.Symbol.t/0` struct.
+
+  ### Examples
+
+      iex> {:ok, symbols} = Localize.Number.Symbol.number_symbols_for(:"fr-CH", :latn)
+      iex> symbols.decimal
+      %{standard: ","}
+      iex> {:ok, currency} = Localize.Currency.currency_for_code(:CHF, locale: :"fr-CH")
+      iex> Localize.Number.Symbol.for_currency(symbols, currency).decimal
+      "."
+
+  """
+  @spec for_currency(t(), Localize.Currency.t()) :: t()
+  def for_currency(%__MODULE__{} = symbols, %Localize.Currency{} = currency) do
+    %{
+      symbols
+      | decimal: currency.decimal_separator || symbols.currency_decimal || symbols.decimal,
+        group: symbols.currency_group || symbols.group
+    }
   end
 
   # Symbols for a numbering system the locale carries no data for come from

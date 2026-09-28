@@ -273,6 +273,28 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
+  describe "separators option" do
+    test "en-ZA reads 1,234.56 with its :us separators and 1 234,56 with its standard ones" do
+      assert Parser.parse("1,234.56", locale: "en-ZA", separators: :us) == {:ok, 1234.56}
+      assert {:error, _} = Parser.parse("1 234,56", locale: "en-ZA", separators: :us)
+      assert Parser.parse("1 234,56", locale: "en-ZA") == {:ok, 1234.56}
+      assert {:error, _} = Parser.parse("1,234.56", locale: "en-ZA")
+    end
+
+    test "en-ZA reads a USD amount with its :us separators" do
+      assert Parser.parse("1,234.56", locale: "en-ZA", currency: :USD, separators: :us) ==
+               {:ok, 1234.56}
+    end
+
+    test "de has no :us separators, so it reads 1.234,56 with its standard ones" do
+      assert Parser.parse("1.234,56", locale: "de", separators: :us) == {:ok, 1234.56}
+    end
+
+    test "scan/2 finds 1,234.56 in en-ZA with its :us separators" do
+      assert Parser.scan("R 1,234.56", locale: "en-ZA", separators: :us) == ["R ", 1234.56]
+    end
+  end
+
   describe "resolve_per/2" do
     test "resolves percent symbol" do
       result = Parser.resolve_per("11%")
