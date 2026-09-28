@@ -1117,8 +1117,7 @@ defmodule Localize.Message.Interpreter do
 
   defp format_number_result(number, options_struct, func_opts) do
     with {:ok, sign_display} <- sign_display_option(func_opts) do
-      options_struct = %{options_struct | sign_display: sign_display}
-      Localize.Number.to_string(number, set_number_pattern(options_struct, number))
+      Localize.Number.to_string(number, %{options_struct | sign_display: sign_display})
     end
   end
 
@@ -1539,18 +1538,6 @@ defmodule Localize.Message.Interpreter do
 
   alias Localize.Number.Format.Options, as: NumberOptions
   alias Localize.Utils.Helpers
-
-  defp set_number_pattern(options_struct, number) when is_number(number) and number < 0 do
-    %{options_struct | pattern: :negative}
-  end
-
-  defp set_number_pattern(options_struct, %Decimal{sign: sign}) when sign < 0 do
-    %{options_struct | pattern: :negative}
-  end
-
-  defp set_number_pattern(options_struct, _number) do
-    %{options_struct | pattern: :positive}
-  end
 
   defp build_number_options(options, func_opts, overrides \\ []) do
     with {:ok, locale} <- resolve_locale(options),

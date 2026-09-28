@@ -144,9 +144,9 @@ defmodule Localize.Number.Format.Options do
 
   ### Arguments
 
-  * `number` is a representative number used to determine the
-    sign pattern. Use `0` for a positive-number format or `-1`
-    for a negative-number format.
+  * `number` is a representative number, such as `0`. The
+    struct formats numbers of either sign: each call takes the
+    sign from the number it formats.
 
   * `options` is a keyword list of the same options accepted by
     `Localize.Number.to_string/2`.

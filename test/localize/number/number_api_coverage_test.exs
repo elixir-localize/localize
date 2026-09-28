@@ -21,6 +21,33 @@ defmodule Localize.Number.ApiCoverageTest do
       {:ok, options} = Options.validate_options(12, locale: "en", format: :standard)
       assert Number.to_string(12, options) == {:ok, "12"}
     end
+
+    test "options validated for CHF 0 format CHF -70 as -CHF 70.00" do
+      {:ok, options} = Options.validate_options(0, locale: :en, currency: :CHF)
+      assert Number.to_string(-70, options) == {:ok, "-CHF 70.00"}
+    end
+
+    test "options validated for CHF -1 format CHF 70 as CHF 70.00" do
+      {:ok, options} = Options.validate_options(-1, locale: :en, currency: :CHF)
+      assert Number.to_string(70, options) == {:ok, "CHF 70.00"}
+    end
+
+    test "compact options validated for 0 format -7000 as -7K" do
+      {:ok, options} = Options.validate_options(0, locale: :en, format: :decimal_short)
+      assert Number.to_string(-7000, options) == {:ok, "-7K"}
+    end
+
+    test "options validated for -1 format Decimal NaN without a minus sign" do
+      {:ok, options} = Options.validate_options(-1, locale: :en)
+      assert Number.to_string(Decimal.new("NaN"), options) == {:ok, "NaN"}
+    end
+
+    test "formatter parts for CHF -70 with options validated for CHF 0 start with a minus sign" do
+      {:ok, options} = Options.validate_options(0, locale: :en, currency: :CHF)
+
+      assert {:ok, [%{type: :minus_sign, value: "-"} | _rest]} =
+               Localize.Number.Formatter.Decimal.to_parts(-70, options.format, options)
+    end
   end
 
   describe "to_string/2 with the NIF backend" do

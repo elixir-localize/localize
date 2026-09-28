@@ -242,8 +242,8 @@ defmodule Localize.Number.Formatter.Decimal do
 
   # ── Core formatting pipeline ──────────────────────────────
 
-  defp do_to_string(%Decimal{coef: :NaN}, meta, options) do
-    options = resolve_sign_display_for_nan(options)
+  defp do_to_string(%Decimal{coef: :NaN} = number, meta, options) do
+    options = resolve_sign_display_for_nan(options, number)
 
     options.symbols.nan
     |> assemble_format(meta, options)
@@ -295,8 +295,8 @@ defmodule Localize.Number.Formatter.Decimal do
   # number string is still computed — the currency-spacing
   # predicates, padding width, and the zero-suppressed minus all
   # depend on it.
-  defp do_to_parts(%Decimal{coef: :NaN}, meta, options) do
-    options = resolve_sign_display_for_nan(options)
+  defp do_to_parts(%Decimal{coef: :NaN} = number, meta, options) do
+    options = resolve_sign_display_for_nan(options, number)
     body = [%{type: :nan, value: options.symbols.nan}]
     walk_format_parts(body, options.symbols.nan, meta, options)
   end
@@ -608,22 +608,21 @@ defmodule Localize.Number.Formatter.Decimal do
 
   # ── Sign display ────────────────────────────────────────────
 
-  # ECMA-402 `signDisplay` semantics. The `:sign_display` option
-  # overrides the sign pattern chosen by `Options.validate_options/2`:
-  # `:positive` and `:negative` select the format's subpatterns as
-  # usual; the derived `:positive_plus` pattern renders the locale's
-  # plus sign (see `pattern_parts/2`). Zero-ness is judged on the
-  # digits after rounding, matching ICU — `-0.001` at zero fractional
-  # digits is a zero for `:except_zero` and `:negative`.
-  defp resolve_sign_display(%{sign_display: sign_display} = options, number, zero?)
-       when sign_display in [:always, :except_zero, :negative, :never] do
-    %{options | pattern: sign_display_pattern(sign_display, negative_number?(number), zero?)}
+  # ECMA-402 `signDisplay` semantics. The sign pattern comes from the
+  # number being formatted, never from the number the options were
+  # validated with, so one validated options struct formats numbers of
+  # either sign. `:positive` and `:negative` select the format's
+  # subpatterns as usual; the derived `:positive_plus` pattern renders
+  # the locale's plus sign (see `pattern_parts/2`). Zero-ness is judged
+  # on the digits after rounding, matching ICU — `-0.001` at zero
+  # fractional digits is a zero for `:except_zero` and `:negative`.
+  defp resolve_sign_display(options, number, zero?) do
+    pattern = sign_display_pattern(options.sign_display, negative_number?(number), zero?)
+    %{options | pattern: pattern}
   end
 
-  defp resolve_sign_display(options, _number, _zero?) do
-    options
-  end
-
+  defp sign_display_pattern(auto, true, _zero?) when auto in [nil, :auto], do: :negative
+  defp sign_display_pattern(auto, false, _zero?) when auto in [nil, :auto], do: :positive
   defp sign_display_pattern(:never, _negative?, _zero?), do: :positive
   defp sign_display_pattern(:always, true, _zero?), do: :negative
   defp sign_display_pattern(:always, false, _zero?), do: :positive_plus
@@ -635,19 +634,19 @@ defmodule Localize.Number.Formatter.Decimal do
   defp sign_display_pattern(:negative, false, false), do: :positive
 
   # Per ECMA-402, NaN takes a plus sign under `:always` and no sign
-  # under the other explicit modes; `:auto` (and `nil`) keeps the
-  # pattern already resolved from the input's sign.
-  defp resolve_sign_display_for_nan(%{sign_display: :always} = options) do
+  # under the other explicit modes; `:auto` (and `nil`) follows the
+  # sign of the NaN itself.
+  defp resolve_sign_display_for_nan(%{sign_display: :always} = options, _number) do
     %{options | pattern: :positive_plus}
   end
 
-  defp resolve_sign_display_for_nan(%{sign_display: sign_display} = options)
+  defp resolve_sign_display_for_nan(%{sign_display: sign_display} = options, _number)
        when sign_display in [:except_zero, :negative, :never] do
     %{options | pattern: :positive}
   end
 
-  defp resolve_sign_display_for_nan(options) do
-    options
+  defp resolve_sign_display_for_nan(options, number) do
+    resolve_sign_display(options, number, false)
   end
 
   # In `:auto` mode a number whose digits round away to a bare zero drops its
