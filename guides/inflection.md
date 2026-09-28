@@ -285,20 +285,41 @@ iex> Localize.Unit.to_string(unit, locale: :ru, grammatical_case: :prepositional
 
 ## In MessageFormat 2 messages
 
-Inflection is available inside MF2 messages through the `i:` namespace, the one the Unicode inflection project gives its own MF2 functions: `:i:inflect` inflects its operand phrase, `:i:pronoun` selects or re-inflects a pronoun, and `:i:quantify` joins a `count` with a noun operand so the noun agrees with the number. Grammatical constraints are passed as `grammatical*` options — `grammaticalCase`, `grammaticalGender`, `grammaticalNumber`, `grammaticalDefiniteness`, `grammaticalPerson` — mirroring the `:unit` function's naming:
+Inflection is available inside MF2 messages through the `i:` namespace, with the functions and option names the Unicode inflection project gives its own MF2 functions:
+
+* **`:i:inflect`** — inflects its operand phrase.
+
+* **`:i:pronoun`** — selects or re-inflects a pronoun.
+
+* **`:i:quantify`** — joins the `withValue` number with a noun operand so the noun agrees with the number.
+
+* **`:i:list`** — joins a list operand as a plain list, or with `withType=and` or `withType=or` as a list with the locale's grammatical conjunctions. `withBeforeFirst`, `withAfterFirst`, `withItemDelimiter`, `withBeforeLast`, `withAfterLast`, `withItemPrefix`, `withItemSuffix` and `withAvoidItemAffixRedundancy` set the separators and item affixes.
+
+* **`:i:numeral`** — writes a number in digits or words. `withStyle` is `asWords`, `asSpokenWords`, `asDigits` or `asOrdinalDigits`, and `withVariant` names one of the locale's RBNF rule sets, such as `ordinal` or `cardinal-feminine`.
+
+Any other option names a grammatical feature of the locale — `case`, `gender`, `number`, `definiteness` and so on — and constrains the result; an option that names no feature is an error. For `:i:inflect` and `:i:pronoun`, a value that is not one of the feature's values is a word to agree with, so `number=$object` takes the number of `$object`:
 
 ```elixir
-iex> Localize.Message.format("{$w :i:inflect grammaticalNumber=plural}", %{w: "light on the patio"}, locale: :en)
+iex> Localize.Message.format("{$w :i:inflect number=plural}", %{w: "light on the patio"}, locale: :en)
 {:ok, "lights on the patio"}
 
-iex> Localize.Message.format("{|he| :i:pronoun grammaticalCase=accusative}", %{}, locale: :en)
+iex> Localize.Message.format("The {$object} {is :i:inflect number=$object} on.", %{object: "lights"}, locale: :en)
+{:ok, "The lights are on."}
+
+iex> Localize.Message.format("{|he| :i:pronoun case=accusative}", %{}, locale: :en)
 {:ok, "him"}
 
-iex> Localize.Message.format("{$noun :i:quantify count=5}", %{noun: "час"}, locale: :ru)
+iex> Localize.Message.format("{$noun :i:quantify withValue=5}", %{noun: "час"}, locale: :ru)
 {:ok, "5 часов"}
+
+iex> Localize.Message.format("{$words :i:list withType=and}", %{words: ["gatos", "idiomas"]}, locale: :es)
+{:ok, "gatos e idiomas"}
+
+iex> Localize.Message.format("Your {$n :i:numeral withStyle=asWords withVariant=ordinal} meeting", %{n: 4}, locale: :en)
+{:ok, "Your fourth meeting"}
 ```
 
-The functions need the locale's inflection data present; a missing locale or absent data resolves to an error rather than crashing the format.
+The functions need the locale's inflection data present, except `:i:numeral`, which uses the locale's RBNF rules; a missing locale or absent data resolves to an error rather than crashing the format. The `to` and `withReferent` options, and the functions' use as selectors, are not supported yet.
 
 ## Error handling
 

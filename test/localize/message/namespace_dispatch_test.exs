@@ -111,7 +111,7 @@ defmodule Localize.Message.NamespaceDispatchTest do
 
     test "built-in i:inflect is unaffected by a registered i handler" do
       assert {:ok, "lights"} =
-               Message.format("{$w :i:inflect grammaticalNumber=plural}", %{w: "light"},
+               Message.format("{$w :i:inflect number=plural}", %{w: "light"},
                  locale: :en,
                  namespaces: %{"i" => AcmeNamespace}
                )

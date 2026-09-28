@@ -991,26 +991,29 @@ defmodule Localize.Message.Interpreter do
   # ── Inflection (`i:` namespace) ──────────────────────────────────
   #
   # `i:` is the namespace the Unicode inflection project gives its MF2
-  # functions (unicode-org/inflection#209).
-  #
-  # `:i:inflect` inflects its phrase operand for the grammatical
-  # constraints given in its options; `:i:pronoun` selects a pronoun
-  # (or re-inflects the operand pronoun); `:i:quantify` joins a
-  # `count` with the noun operand so the noun agrees with the number
-  # (Slavic numeral government, the Arabic counted-noun cases, and so
-  # on). All three wrap the in-tree `Localize.Inflection` engine and
-  # need the locale's inflection data present — a missing locale or
-  # absent data resolves to a clean error tuple, never a crash.
+  # functions (unicode-org/inflection#209), and they take its option
+  # names (see `inflection_constraints/5`). `:i:inflect` inflects its
+  # phrase operand; `:i:pronoun` selects a pronoun (or re-inflects the
+  # operand pronoun); `:i:quantify` joins the `withValue` number with
+  # the noun operand so the noun agrees with it (Slavic numeral
+  # government, the Arabic counted-noun cases, and so on); `:i:list`
+  # joins its list operand as a plain, and or or list; and `:i:numeral`
+  # writes its number operand in digits or words. They wrap the in-tree
+  # `Localize.Inflection` engine, and `:i:numeral` the locale's RBNF
+  # rules; a missing locale or absent data resolves to a clean error
+  # tuple, never a crash.
 
   defp format_with_function("i:inflect", value, func_opts, options) when is_binary(value) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    case Localize.Inflection.inflect(value, locale, map_inflect_constraints(func_opts)) do
-      {:ok, inflected} when is_binary(inflected) -> {:ok, inflected}
-      # Speakable strings collapse to the print form for MF2's single
-      # output channel.
-      {:ok, {print, _speak}} -> {:ok, print}
-      {:error, _} = error -> error
+    with {:ok, constraints} <- inflection_constraints("inflect", func_opts, [], locale, :agree) do
+      case Localize.Inflection.inflect(value, locale, constraints) do
+        {:ok, inflected} when is_binary(inflected) -> {:ok, inflected}
+        # Speakable strings collapse to the print form for MF2's single
+        # output channel.
+        {:ok, {print, _speak}} -> {:ok, print}
+        {:error, _} = error -> error
+      end
     end
   end
 
@@ -1020,34 +1023,49 @@ defmodule Localize.Message.Interpreter do
 
   defp format_with_function("i:pronoun", value, func_opts, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    constraints = map_inflect_constraints(func_opts)
 
-    case value do
-      seed when is_binary(seed) and seed != "" ->
-        Localize.Inflection.pronoun(locale, seed, constraints)
+    with {:ok, constraints} <- inflection_constraints("pronoun", func_opts, [], locale, :agree) do
+      case value do
+        seed when is_binary(seed) and seed != "" ->
+          Localize.Inflection.pronoun(locale, seed, constraints)
 
-      _ ->
-        Localize.Inflection.pronoun(locale, constraints)
+        _ ->
+          Localize.Inflection.pronoun(locale, constraints)
+      end
     end
   end
 
   defp format_with_function("i:quantify", value, func_opts, options) when is_binary(value) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    # The count formats through Localize's own number formatter (so
+    # The number formats through Localize's own number formatter (so
     # the joined number is locale-aware) and is also passed as
     # `:number` so the engine selects the plural category from it.
-    with {:ok, count} <- quantify_count(func_opts),
-         {:ok, formatted} <- Localize.Number.to_string(count, locale: locale) do
+    with {:ok, number} <- quantify_value(func_opts),
+         {:ok, constraints} <-
+           inflection_constraints("quantify", func_opts, ["withValue"], locale, :direct),
+         {:ok, formatted} <- Localize.Number.to_string(number, locale: locale) do
       Localize.Inflection.quantify(formatted, value, locale,
-        number: count,
-        constraints: map_inflect_constraints(func_opts)
+        number: number,
+        constraints: constraints
       )
     end
   end
 
   defp format_with_function("i:quantify", value, _func_opts, _options) do
     {:error, "the :i:quantify function requires a string (noun) operand, got #{inspect(value)}"}
+  end
+
+  defp format_with_function("i:list", items, func_opts, options) when is_list(items) do
+    format_inflection_list(items, func_opts, Keyword.get(options, :locale, Localize.get_locale()))
+  end
+
+  defp format_with_function("i:list", value, _func_opts, _options) do
+    {:error, "the :i:list function requires a list operand, got #{inspect(value)}"}
+  end
+
+  defp format_with_function("i:numeral", value, func_opts, options) do
+    format_numeral(value, func_opts, Keyword.get(options, :locale, Localize.get_locale()))
   end
 
   # ── MF2 WG test registry functions ───────────────────────────────
@@ -2035,6 +2053,285 @@ defmodule Localize.Message.Interpreter do
   defp add_unit_inflect(opts, "always"), do: Keyword.put(opts, :inflect, :always)
   defp add_unit_inflect(opts, _other), do: opts
 
+  # ── Inflection options (`i:` functions) ───────────────────────
+  #
+  # An `i:` function's options are the upstream ones: the function's
+  # control options (`withValue`, `withType`, `withStyle`, ...) and,
+  # for any other option, a grammatical feature of the locale named by
+  # the option (`case=genitive`). An option that is neither is an
+  # error, not ignored. Option names arrive as atoms or strings (see
+  # `option_key/1`) and are compared as strings, so no atom is made
+  # from a message.
+
+  @list_separator_options %{
+    "withBeforeFirst" => :before_first,
+    "withAfterFirst" => :after_first,
+    "withItemDelimiter" => :item_delimiter,
+    "withBeforeLast" => :before_last,
+    "withAfterLast" => :after_last,
+    "withItemPrefix" => :item_prefix,
+    "withItemSuffix" => :item_suffix
+  }
+
+  @list_control_options [
+    "withType",
+    "withAvoidItemAffixRedundancy" | Map.keys(@list_separator_options)
+  ]
+
+  # The grammatical constraints the options give. With `:agree`
+  # (`:i:inflect`, `:i:pronoun`) a value that is not one of the
+  # feature's values is a word or phrase to agree with, so
+  # `number=$object` takes the number of `$object`; with `:direct`
+  # (`:i:quantify`, `:i:list`) the value passes to the engine as it is,
+  # as upstream does.
+  defp inflection_constraints(function, func_opts, control_options, locale, resolution) do
+    options =
+      for {key, value} <- func_opts,
+          name = to_string(key),
+          name not in control_options,
+          do: {name, value}
+
+    with {:ok, features} <- locale_features(options, locale) do
+      context = {function, features, locale, resolution}
+      Enum.reduce_while(options, {:ok, %{}}, &put_constraint_value(&1, &2, context))
+    end
+  end
+
+  # The locale's features by name, loaded only when an option needs
+  # them.
+  defp locale_features([], _locale), do: {:ok, %{}}
+
+  defp locale_features(_options, locale) do
+    with {:ok, features} <- Localize.Inflection.features(locale) do
+      {:ok, Map.new(features, fn {name, definition} -> {Atom.to_string(name), definition} end)}
+    end
+  end
+
+  defp put_constraint_value({name, value}, {:ok, constraints}, context) do
+    case constraint_value(name, value, context) do
+      {:ok, nil} -> {:cont, {:ok, constraints}}
+      {:ok, constraint} -> {:cont, {:ok, Map.put(constraints, name, constraint)}}
+      {:error, _reason} = error -> {:halt, error}
+    end
+  end
+
+  defp constraint_value(name, _value, {function, _features, _locale, _resolution})
+       when name in ["to", "withReferent"] do
+    {:error, "the :i:#{function} option #{name} is not supported"}
+  end
+
+  defp constraint_value(name, value, {function, features, locale, resolution}) do
+    case Map.fetch(features, name) do
+      {:ok, feature} ->
+        feature_value(name, value, feature, {function, locale, resolution})
+
+      :error ->
+        {:error,
+         "the :i:#{function} function has no option #{name}, which is not a grammatical feature of the locale"}
+    end
+  end
+
+  defp feature_value(name, value, feature, context) when is_atom(value) and not is_nil(value) do
+    feature_value(name, Atom.to_string(value), feature, context)
+  end
+
+  defp feature_value(name, value, feature, {_function, locale, resolution})
+       when is_binary(value) do
+    cond do
+      feature.type != :bounded -> {:ok, value}
+      value in Enum.map(feature.values, &Atom.to_string/1) -> {:ok, value}
+      resolution == :agree -> agreement_value(value, locale, name)
+      true -> {:ok, value}
+    end
+  end
+
+  defp feature_value(name, value, _feature, {function, _locale, _resolution}) do
+    {:error, "the :i:#{function} option #{name} requires a string value, got #{inspect(value)}"}
+  end
+
+  # The value a word or phrase has for a feature, for an option such as
+  # `number=$object`; one it has no value for leaves the feature
+  # unconstrained.
+  defp agreement_value(phrase, locale, feature) do
+    case Localize.Inflection.feature(phrase, locale, feature) do
+      {:ok, value} when is_atom(value) and not is_nil(value) -> {:ok, Atom.to_string(value)}
+      {:ok, value} -> {:ok, value}
+      {:error, _reason} = error -> error
+    end
+  end
+
+  # `{:ok, value}` for the option `name`, or nil when it is absent.
+  defp option_value(func_opts, name) do
+    Enum.find_value(func_opts, fn {key, value} -> if to_string(key) == name, do: {:ok, value} end)
+  end
+
+  defp string_option(func_opts, name) do
+    case option_value(func_opts, name) do
+      nil ->
+        {:ok, nil}
+
+      {:ok, value} when is_binary(value) ->
+        {:ok, value}
+
+      {:ok, value} when is_atom(value) and not is_nil(value) ->
+        {:ok, Atom.to_string(value)}
+
+      {:ok, value} ->
+        {:error, "the option #{name} requires a string value, got #{inspect(value)}"}
+    end
+  end
+
+  # `withValue` is required and numeric: it is both the number joined
+  # to the noun and the value the plural category is selected from.
+  # Upstream reserves `withStyle` and `withVariant` on `:i:quantify`.
+  defp quantify_value(func_opts) do
+    reserved? = Enum.any?(["withStyle", "withVariant"], &option_value(func_opts, &1))
+
+    case option_value(func_opts, "withValue") do
+      _value when reserved? ->
+        {:error, "the :i:quantify options withStyle and withVariant are reserved"}
+
+      nil ->
+        {:error, "the :i:quantify function requires a withValue option"}
+
+      {:ok, value} ->
+        ensure_number(value)
+    end
+  end
+
+  # A plain list without `withType`, else an and or an or list, with
+  # the separators and constraints the options give.
+  defp format_inflection_list(items, func_opts, locale) do
+    with {:ok, type} <- string_option(func_opts, "withType"),
+         {:ok, concepts} <- list_concepts(items, locale),
+         {:ok, list} <- new_concept_list(type, locale, concepts),
+         {:ok, list} <- put_list_settings(list, func_opts),
+         {:ok, constraints} <-
+           inflection_constraints("list", func_opts, @list_control_options, locale, :direct),
+         {:ok, list} <- put_list_constraints(list, constraints) do
+      case Localize.Inflection.ConceptList.to_speakable_string(list) do
+        nil -> {:error, "the :i:list function requires at least one item"}
+        speakable -> {:ok, Localize.Inflection.SpeakableString.print(speakable)}
+      end
+    end
+  end
+
+  defp list_concepts(items, locale) do
+    items
+    |> Enum.reduce_while({:ok, []}, fn item, {:ok, concepts} ->
+      case list_concept(item, locale) do
+        {:ok, concept} -> {:cont, {:ok, [concept | concepts]}}
+        {:error, _reason} = error -> {:halt, error}
+      end
+    end)
+    |> case do
+      {:ok, concepts} -> {:ok, Enum.reverse(concepts)}
+      {:error, _reason} = error -> error
+    end
+  end
+
+  defp list_concept(item, locale) when is_binary(item) do
+    Localize.Inflection.Concept.new(locale, item)
+  end
+
+  defp list_concept(item, _locale) do
+    {:error, "the :i:list function requires a list of strings, got the item #{inspect(item)}"}
+  end
+
+  defp new_concept_list(nil, locale, concepts),
+    do: Localize.Inflection.ConceptList.plain_list(locale, concepts)
+
+  defp new_concept_list("and", locale, concepts),
+    do: Localize.Inflection.ConceptList.and_list(locale, concepts)
+
+  defp new_concept_list("or", locale, concepts),
+    do: Localize.Inflection.ConceptList.or_list(locale, concepts)
+
+  defp new_concept_list(type, _locale, _concepts),
+    do: {:error, "the :i:list function has no type #{inspect(type)}"}
+
+  defp put_list_settings(list, func_opts) do
+    Enum.reduce_while(func_opts, {:ok, list}, fn {key, value}, {:ok, list} ->
+      case list_setting(list, to_string(key), value) do
+        {:ok, list} -> {:cont, {:ok, list}}
+        {:error, _reason} = error -> {:halt, error}
+      end
+    end)
+  end
+
+  defp list_setting(list, "withAvoidItemAffixRedundancy", value) do
+    {:ok,
+     Localize.Inflection.ConceptList.put_avoid_affix_redundancy(list, value in ["true", true])}
+  end
+
+  defp list_setting(list, name, value) do
+    case Map.fetch(@list_separator_options, name) do
+      {:ok, field} when is_binary(value) ->
+        {:ok, Localize.Inflection.ConceptList.put_separator(list, field, value)}
+
+      {:ok, _field} ->
+        {:error, "the :i:list option #{name} requires a string value, got #{inspect(value)}"}
+
+      :error ->
+        {:ok, list}
+    end
+  end
+
+  defp put_list_constraints(list, constraints) do
+    Enum.reduce_while(constraints, {:ok, list}, fn {name, value}, {:ok, list} ->
+      case Localize.Inflection.ConceptList.put_constraint(list, name, value) do
+        {:ok, list} -> {:cont, {:ok, list}}
+        {:error, _reason} = error -> {:halt, error}
+      end
+    end)
+  end
+
+  defp format_numeral(value, func_opts, locale) do
+    with {:ok, number} <- ensure_number(value),
+         {:ok, style} <- string_option(func_opts, "withStyle"),
+         {:ok, variant} <- string_option(func_opts, "withVariant") do
+      numeral(number, style, variant, locale)
+    end
+  end
+
+  # A number as the upstream `NumberConcept` writes it: the locale's
+  # decimal digits by default and for spoken words (whose words are the
+  # spoken form, which MF2's single output channel does not carry),
+  # words from a `spellout-` rule set and ordinal digits from a
+  # `digits-` rule set. The variant names the rule set; one the locale
+  # lacks falls back to the default, `spellout-numbering` or
+  # `digits-ordinal` as in ICU, and that to the locale's best available
+  # rules.
+  defp numeral(number, style, _variant, locale) when style in [nil, "asSpokenWords"] do
+    Localize.Number.to_string(number, locale: locale)
+  end
+
+  defp numeral(number, "asDigits", nil, locale) do
+    Localize.Number.to_string(number, locale: locale)
+  end
+
+  defp numeral(number, "asWords", variant, locale) do
+    format_with_rule_sets(number, rule_sets("spellout-", variant, "numbering", :spellout), locale)
+  end
+
+  defp numeral(number, style, variant, locale) when style in ["asDigits", "asOrdinalDigits"] do
+    format_with_rule_sets(number, rule_sets("digits-", variant, "ordinal", :ordinal), locale)
+  end
+
+  defp numeral(_number, style, _variant, _locale) do
+    {:error, "the :i:numeral function has no style #{inspect(style)}"}
+  end
+
+  defp rule_sets(prefix, nil, default, best), do: [prefix <> default, best]
+  defp rule_sets(prefix, variant, default, best), do: [prefix <> variant, prefix <> default, best]
+
+  defp format_with_rule_sets(number, [rule_set | fallbacks], locale) do
+    case Localize.Number.Rbnf.to_string(number, rule_set, locale: locale) do
+      {:error, _reason} when fallbacks != [] -> format_with_rule_sets(number, fallbacks, locale)
+      result -> result
+    end
+  end
+
   # ── List option mapping ────────────────────────────────────────
   #
   # Maps the MF2 `:list` function options onto the keyword
@@ -2052,36 +2349,6 @@ defmodule Localize.Message.Interpreter do
   #   * `type` — alias for `style`, accepted for symmetry with
   #     other MF2 functions that use `type` to switch presentation
   #     mode.
-
-  # Maps MF2 grammatical option names to the inflection engine's bare
-  # constraint names. Values stay as strings; the engine normalizes
-  # both names and values (`Localize.Inflection.Feature`).
-  defp map_inflect_constraints(func_opts) do
-    %{
-      grammaticalCase: :case,
-      grammaticalGender: :gender,
-      grammaticalNumber: :number,
-      grammaticalDefiniteness: :definiteness,
-      grammaticalPerson: :person
-    }
-    |> Enum.reduce(%{}, fn {mf2_key, engine_key}, acc ->
-      case Map.get(func_opts, mf2_key) do
-        nil -> acc
-        value -> Map.put(acc, engine_key, value)
-      end
-    end)
-  end
-
-  # The `count` option of `:i:quantify` is required and must be
-  # numeric: it is both the number joined to the noun and the value
-  # the plural category is selected from.
-  defp quantify_count(func_opts) do
-    case Map.get(func_opts, :count) do
-      nil -> {:error, "the :i:quantify function requires a `count` option"}
-      value -> ensure_number(value)
-    end
-  end
-
   defp map_list_options(localize_opts, func_opts) do
     style = func_opts[:style] || func_opts[:type]
     add_list_style(localize_opts, style)

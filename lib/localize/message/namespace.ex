@@ -43,7 +43,8 @@ defmodule Localize.Message.Namespace do
 
   * `i` is the namespace the Unicode inflection project gives its
     functions, and Localize's built-in inflection functions live
-    there (`:i:inflect`, `:i:pronoun`, `:i:quantify`).
+    there (`:i:inflect`, `:i:pronoun`, `:i:quantify`, `:i:list`,
+    `:i:numeral`).
 
   * `u` is the CLDR-managed namespace defined by the MF2
     specification for options (and, in a future release, possibly

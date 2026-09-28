@@ -139,6 +139,45 @@ defmodule Localize.Inflection.ConceptList do
 
   def or_list(locale, concepts), do: invalid_list_arguments(locale, concepts)
 
+  @doc """
+  Builds a plain list of concepts, with no conjunction and no
+  separators, as the upstream `SemanticConceptList` constructor
+  does. Separators are then set with `put_separator/3`.
+
+  ### Arguments
+
+  * `locale` is a locale atom or string, canonically BCP47.
+
+  * `concepts` is a list of `Localize.Inflection.Concept` or
+    nested `Localize.Inflection.ConceptList` members; nil members
+    are dropped.
+
+  ### Returns
+
+  * `{:ok, list}` or `{:error, exception}` when a member is not a
+    concept.
+
+  ### Examples
+
+      iex> concepts =
+      ...>   for word <- ["gatos", "idiomas"] do
+      ...>     {:ok, concept} = Localize.Inflection.Concept.new(:es, word)
+      ...>     concept
+      ...>   end
+      iex> {:ok, list} = Localize.Inflection.ConceptList.plain_list(:es, concepts)
+      iex> Localize.Inflection.ConceptList.to_speakable_string(list)
+      "gatosidiomas"
+
+  """
+  def plain_list(locale, concepts) when is_locale(locale) and is_list(concepts) do
+    with :ok <- validate_members(concepts) do
+      {:ok,
+       %__MODULE__{locale: Locale.normalize(locale), concepts: Enum.reject(concepts, &is_nil/1)}}
+    end
+  end
+
+  def plain_list(locale, concepts), do: invalid_list_arguments(locale, concepts)
+
   defp build(locale, concepts, kind, style) do
     with :ok <- validate_members(concepts) do
       concepts = Enum.reject(concepts, &is_nil/1)
@@ -291,6 +330,51 @@ defmodule Localize.Inflection.ConceptList do
   end
 
   def put_separator(list, _field, _value), do: {:error, invalid_list(list)}
+
+  @doc """
+  Sets whether an item that already starts with the item prefix,
+  or ends with the item suffix, is left without another.
+
+  ### Arguments
+
+  * `list` is a concept list.
+
+  * `avoid?` is `true`, the default for every list, or `false`.
+
+  ### Returns
+
+  * The updated list, or `{:error, exception}` when `list` is not a
+    concept list or `avoid?` is not a boolean.
+
+  ### Examples
+
+      iex> concepts =
+      ...>   for word <- ["[gato]", "gata"] do
+      ...>     {:ok, concept} = Localize.Inflection.Concept.new(:es, word)
+      ...>     concept
+      ...>   end
+      iex> {:ok, list} = Localize.Inflection.ConceptList.plain_list(:es, concepts)
+      iex> list =
+      ...>   list
+      ...>   |> Localize.Inflection.ConceptList.put_separator(:item_prefix, "[")
+      ...>   |> Localize.Inflection.ConceptList.put_separator(:item_suffix, "]")
+      iex> Localize.Inflection.ConceptList.to_speakable_string(list)
+      "[gato][gata]"
+      iex> list
+      ...> |> Localize.Inflection.ConceptList.put_avoid_affix_redundancy(false)
+      ...> |> Localize.Inflection.ConceptList.to_speakable_string()
+      "[[gato]][gata]"
+
+  """
+  def put_avoid_affix_redundancy(%__MODULE__{} = list, avoid?) when is_boolean(avoid?) do
+    %{list | avoid_affix_redundancy: avoid?}
+  end
+
+  def put_avoid_affix_redundancy(%__MODULE__{}, avoid?) do
+    {:error, Localize.Utils.Helpers.invalid_value(avoid?, "a boolean")}
+  end
+
+  def put_avoid_affix_redundancy(list, _avoid?), do: {:error, invalid_list(list)}
 
   @doc """
   Returns the number of members.

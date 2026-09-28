@@ -10,6 +10,18 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Audit `cldr-49`-only code for map-order dependence** — the 2026-09-26 audit covered `main`. [plans/map-order.md](plans/map-order.md).
 
+### Upstream parity for the MF2 `i:` functions
+
+* [ ] **`to=` on `:i:inflect` and `:i:pronoun`** — upstream's `to=` gives the operand's value for a feature (`to=number` gives `plural`, `to=defArticleInPreposition` gives "in die") and prints the operand when the feature is unknown; ours returns a "not supported" error. The oracle is unicode-org/inflection's `test/resources/inflection/message2/*.xml`; see [plans/MF2_NAMESPACE_INFLECTION.md](plans/MF2_NAMESPACE_INFLECTION.md).
+
+* [ ] **`:i:inflect` and `:i:pronoun` as selectors** — upstream matches `.match` keys on them, usually through a `.local` with `to=` (`.local $num = {$object :i:inflect to=number} .match $num plural {{…}}`), and an unknown feature is a selector error; ours are formatters only.
+
+* [ ] **`withReferent` on `:i:pronoun`** — upstream chooses the pronoun that agrees with a referent (`{$p :i:pronoun withReferent=$obj}` with "mío" and "casas" gives "mías"); ours returns a "not supported" error.
+
+* [ ] **Concept operands for the `i:` functions** — upstream takes pronoun and semantic concepts, with their own display data, as operands and option values (`{theirs :i:pronoun gender=$p}` with a pronoun concept); ours take strings only.
+
+* [ ] **Print and speak output for the `i:` functions** — upstream can emit a result's speak line (`:i:numeral withStyle=asSpokenWords` speaks "four", `:i:quantify` speaks "un niño"); our MF2 output carries only the print form.
+
 ## In progress
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar those listed here; what remains is the beta2 refresh below. Work lives on the `cldr-49` branch, which does not merge to `main` until the final beta. [plans/cldr-49.md](plans/cldr-49.md).
@@ -27,6 +39,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Upstream option names, `:i:list` and `:i:numeral`** — the `i:` functions take the Unicode inflection project's option names (`case=`, `withValue=`), reject unknown features, and gain `:i:list` and `:i:numeral`. 2026-09-29, v1.4.0.
 
 * [x] **Move the MF2 inflection functions to the `i` namespace** — `:i:inflect`, `:i:pronoun` and `:i:quantify` replace the `l:` names, and `i` is reserved in place of `l`. 2026-09-29, v1.4.0.
 
