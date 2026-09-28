@@ -311,8 +311,18 @@ defmodule Localize.Time.Parser do
     end
   end
 
+  # The map carries only the fields the input gave, and they must still
+  # make a time: a minute or second no time has (61) does not match.
   defp build_match(:map, caps, hour, zone) do
-    {:ok, build_time_map(caps, hour, zone), zone}
+    map = build_time_map(caps, hour, zone)
+    minute = Map.get(map, :minute, 0)
+    second = Map.get(map, :second, 0)
+    microsecond = Map.get(map, :microsecond, {0, 0})
+
+    case Time.new(hour, minute, second, microsecond) do
+      {:ok, _time} -> {:ok, map, zone}
+      {:error, _reason} -> :error
+    end
   end
 
   defp build_match(:struct, caps, hour, zone) do

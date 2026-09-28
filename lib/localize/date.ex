@@ -591,8 +591,9 @@ defmodule Localize.Date do
     against. The default is today.
 
   * `:as` is `:struct` or `:map`. `:map` returns only the fields the input
-    actually carried, rather than completing them. The default is
-    `:struct`.
+    actually carried, rather than completing them. They must still be
+    fields some date has, so `"June 31"` is an error in both forms while
+    `"February 29"` is a partial date. The default is `:struct`.
 
   ### Returns
 

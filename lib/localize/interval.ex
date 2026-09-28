@@ -1387,7 +1387,8 @@ defmodule Localize.Interval do
   * `{:ok, {from_map, to_map}}` when `as: :map`. Each endpoint is a field
     map; missing fields are inherited from the other endpoint per the
     CLDR interval convention, so `"May 5 – May 10, 2026"` yields two maps
-    both carrying `:year`, or
+    both carrying `:year`. A field given a value no date has is an error,
+    never inherited, or
 
   * `{:error, exception}`, a `t:Localize.DateParseError.t/0` or
     `t:Localize.DateRangeParseError.t/0`, on failure, or a

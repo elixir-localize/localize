@@ -1119,16 +1119,11 @@ defmodule Localize.DateTime.Formatter do
         locale_id,
         options
       ) do
-    {first_day, min_days} = Localize.DateTime.Week.config(locale_id)
-    first_of_month_dow = :calendar.day_of_the_week({year, month, 1})
-    offset = rem(first_of_month_dow - first_day + 7, 7)
-    raw_week = div(day - 1 + offset, 7) + 1
+    config = Localize.DateTime.Week.config(locale_id)
 
-    # Week 1 exists only when the first (possibly partial) week of the
-    # month holds at least min_days days; otherwise that partial week
-    # counts as week 0 per ICU.
-    week = if 7 - offset >= min_days, do: raw_week, else: raw_week - 1
-    apply_ns(week, locale_id, options, "W")
+    year
+    |> Localize.DateTime.Week.week_of_month(month, day, config)
+    |> apply_ns(locale_id, options, "W")
   end
 
   def week_of_month(%{day: day}, _count, locale_id, options) when is_integer(day) do

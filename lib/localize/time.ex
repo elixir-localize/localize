@@ -728,7 +728,8 @@ defmodule Localize.Time do
     `Localize.get_locale/0`.
 
   * `:as` is `:struct` or `:map`. `:map` returns only the fields the input
-    actually carried, rather than completing them. A fixed offset
+    actually carried, rather than completing them; a minute or second no
+    time has is an error in both forms. A fixed offset
     (`GMT+5`) adds the `t:DateTime.t/0` zone fields (`:time_zone`,
     `:utc_offset`, `:std_offset` and `:zone_abbr`); a named zone, whose
     offset depends on a date, stays in `:time_zone` as written. The default

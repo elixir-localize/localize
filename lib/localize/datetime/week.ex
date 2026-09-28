@@ -90,7 +90,8 @@ defmodule Localize.DateTime.Week do
 
   * `week_year` is the week-based year.
 
-  * `week` is the week number, from 1 to 53.
+  * `week` is the week number, from 1 to the number of weeks in
+    `week_year`, 52 or 53.
 
   * `day_of_week` is the day, from 1 (Monday) to 7, or `nil` for the first
     day of the week.
@@ -102,7 +103,8 @@ defmodule Localize.DateTime.Week do
 
   * `{:ok, date}`, a `t:Date.t/0` in `Calendar.ISO`, or
 
-  * `:error` when an argument is out of range.
+  * `:error` when an argument is out of range, including a week 53 in
+    a year of 52 weeks.
 
   ### Examples
 
@@ -112,23 +114,71 @@ defmodule Localize.DateTime.Week do
       iex> Localize.DateTime.Week.date_from_week(2027, 1, nil, {1, 4})
       {:ok, ~D[2027-01-04]}
 
+      iex> Localize.DateTime.Week.date_from_week(2026, 53, nil, {1, 4})
+      {:ok, ~D[2026-12-28]}
+
+      iex> Localize.DateTime.Week.date_from_week(2026, 53, nil, {7, 1})
+      :error
+
   """
   @spec date_from_week(integer(), integer(), 1..7 | nil, {1..7, 1..7}) ::
           {:ok, Date.t()} | :error
   def date_from_week(week_year, week, day_of_week, {first_day, min_days})
       when is_integer(week_year) and week_year >= 1 and week in 1..53 and
              (is_nil(day_of_week) or day_of_week in 1..7) do
-    offset = if day_of_week, do: rem(day_of_week - first_day + 7, 7), else: 0
-    days = week_one_start(week_year, first_day, min_days) + (week - 1) * 7 + offset
-    {year, month, day} = :calendar.gregorian_days_to_date(days)
+    week_start = week_one_start(week_year, first_day, min_days) + (week - 1) * 7
 
-    case Date.new(year, month, day) do
-      {:ok, date} -> {:ok, date}
-      {:error, _reason} -> :error
+    # A year's weeks end where the next year's week 1 begins, so week 53
+    # exists only in the years whose weeks reach it.
+    if week_start < week_one_start(week_year + 1, first_day, min_days) do
+      offset = if day_of_week, do: rem(day_of_week - first_day + 7, 7), else: 0
+      {year, month, day} = :calendar.gregorian_days_to_date(week_start + offset)
+
+      case Date.new(year, month, day) do
+        {:ok, date} -> {:ok, date}
+        {:error, _reason} -> :error
+      end
+    else
+      :error
     end
   end
 
   def date_from_week(_week_year, _week, _day_of_week, _config), do: :error
+
+  @doc """
+  Returns the week of the month of an ISO date.
+
+  Weeks start on the locale's first day. The month's first, possibly
+  partial, week is week 1 when it holds at least the minimum number of
+  days, and week 0 otherwise, as in ICU.
+
+  ### Arguments
+
+  * `year`, `month` and `day` are the ISO date.
+
+  * `config` is a `{first_day, min_days}` week configuration, as returned
+    by `config/1`.
+
+  ### Returns
+
+  * The week of the month, from 0 to 6.
+
+  ### Examples
+
+      iex> Localize.DateTime.Week.week_of_month(2026, 6, 30, {7, 1})
+      5
+
+      iex> Localize.DateTime.Week.week_of_month(2026, 8, 1, {1, 4})
+      0
+
+  """
+  @spec week_of_month(integer(), 1..12, 1..31, {1..7, 1..7}) :: 0..6
+  def week_of_month(year, month, day, {first_day, min_days}) do
+    offset = rem(:calendar.day_of_the_week({year, month, 1}) - first_day + 7, 7)
+    week = div(day - 1 + offset, 7) + 1
+
+    if 7 - offset >= min_days, do: week, else: week - 1
+  end
 
   @doc """
   Converts a locale-relative day-of-week number to the ISO day number.

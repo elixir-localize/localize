@@ -990,7 +990,8 @@ defmodule Localize.DateTime do
     against. The default is today.
 
   * `:as` is `:struct` or `:map`. `:map` returns only the fields the input
-    actually carried, rather than completing them. A zone adds the
+    actually carried, rather than completing them; a field no date or
+    time has is an error in both forms. A zone adds the
     `t:DateTime.t/0` zone fields (`:time_zone`, `:utc_offset`, `:std_offset`
     and `:zone_abbr`) as the struct form resolves them: a fixed offset
     always, and a named zone when the input gives the full date its offset

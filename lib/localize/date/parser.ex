@@ -477,7 +477,7 @@ defmodule Localize.Date.Parser do
         cldr_patterns
         |> Enum.flat_map(fn p -> [p | synthesize_day_first_variants(p)] end)
         |> Enum.uniq()
-        |> Enum.sort_by(&interval_pattern_specificity/1)
+        |> Enum.sort_by(&pattern_specificity/1)
 
       Enum.find_value(patterns, :error, fn pattern ->
         transliterated
@@ -523,7 +523,7 @@ defmodule Localize.Date.Parser do
            {:ok, left_partial} <- extract_partial(caps, "left_", reference_year, calendar_module),
            {:ok, right_partial} <-
              extract_partial(caps, "right_", reference_year, calendar_module) do
-        interval_endpoints_for(as, left_partial, right_partial, calendar_module)
+        interval_endpoints_for(as, left_partial, right_partial, calendar_module, reference_year)
       else
         _ -> :error
       end
@@ -540,7 +540,7 @@ defmodule Localize.Date.Parser do
     Regex.compile("\\A" <> left_regex <> right_regex <> "\\z", "u")
   end
 
-  defp interval_endpoints_for(:struct, left_partial, right_partial, calendar_module) do
+  defp interval_endpoints_for(:struct, left_partial, right_partial, calendar_module, _reference) do
     with {:ok, left_date} <- materialise(left_partial, right_partial, calendar_module),
          {:ok, right_date} <- materialise(right_partial, left_partial, calendar_module) do
       {:ok, left_date, right_date}
@@ -549,15 +549,16 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  defp interval_endpoints_for(:map, left_partial, right_partial, calendar_module) do
-    left_map = partial_to_map(left_partial, right_partial, calendar_module)
-    right_map = partial_to_map(right_partial, left_partial, calendar_module)
-
-    if interval_partial_meaningful?(left_partial) and
-         interval_partial_meaningful?(right_partial) do
+  defp interval_endpoints_for(:map, left_partial, right_partial, calendar_module, reference) do
+    with true <- interval_partial_meaningful?(left_partial),
+         true <- interval_partial_meaningful?(right_partial),
+         {:ok, left_map} <-
+           partial_to_map(left_partial, right_partial, calendar_module, reference),
+         {:ok, right_map} <-
+           partial_to_map(right_partial, left_partial, calendar_module, reference) do
       {:ok, left_map, right_map}
     else
-      :error
+      _ -> :error
     end
   end
 
@@ -565,16 +566,23 @@ defmodule Localize.Date.Parser do
   # fields inherit from the other endpoint (CLDR interval
   # convention) just like `materialise/3` does for the struct
   # path; the difference is we stop after inheritance and skip
-  # the Date construction.
-  defp partial_to_map(side, inherit_from, calendar_module) do
+  # the Date construction, so the endpoint is checked against
+  # the calendar instead and an impossible one does not match.
+  defp partial_to_map(side, inherit_from, calendar_module, reference_year) do
     year = side.year || inherit_from.year
     month = named_month(side.month || inherit_from.month, year, calendar_module)
     day = side.day || inherit_from.day
 
-    %{calendar: calendar_module}
-    |> maybe_put(:year, year)
-    |> maybe_put(:month, month)
-    |> maybe_put(:day, day)
+    if month != :invalid and
+         possible?(date_fields(year, month, day, calendar_module), reference_year) do
+      {:ok,
+       %{calendar: calendar_module}
+       |> maybe_put(:year, year)
+       |> maybe_put(:month, month)
+       |> maybe_put(:day, day)}
+    else
+      :error
+    end
   end
 
   defp maybe_put(map, _key, nil), do: map
@@ -587,11 +595,16 @@ defmodule Localize.Date.Parser do
   defp interval_partial_meaningful?(_), do: true
 
   # Sort key: day-bearing patterns first, then longer (more
-  # specific) patterns within each group. Quoted literals are
-  # stripped so a literal "d" in text does not count as a field.
-  defp interval_pattern_specificity(pattern) do
-    fields = String.replace(pattern, ~r/'[^']*'/u, "")
-    {if(String.contains?(fields, "d"), do: 0, else: 1), -String.length(pattern)}
+  # specific) patterns within each group, then the pattern itself,
+  # so the order never depends on the order the patterns arrived in.
+  defp pattern_specificity(pattern) do
+    {if(pattern_has_day?(pattern), do: 0, else: 1), -String.length(pattern), pattern}
+  end
+
+  # Quoted literals are stripped so a literal "d" in text does not
+  # count as a field.
+  defp pattern_has_day?(pattern) do
+    pattern |> String.replace(~r/'[^']*'/u, "") |> String.contains?("d")
   end
 
   # Walk the token stream: a field that's already been seen
@@ -820,7 +833,7 @@ defmodule Localize.Date.Parser do
     era_index = extract_partial_era_index(caps, prefix)
     year = apply_partial_era_year(year, era_index, calendar_module)
 
-    {:ok, %{year: year, month: month, day: day}}
+    reject_invalid(%{year: year, month: month, day: day})
   end
 
   defp extract_partial_year(caps, prefix, reference_year, calendar_module) do
@@ -834,7 +847,7 @@ defmodule Localize.Date.Parser do
       raw ->
         case Integer.parse(raw) do
           {n, ""} -> maybe_pivot_two_digit_year(n, raw, reference_year, calendar_module)
-          _ -> nil
+          _ -> :invalid
         end
     end
   end
@@ -855,7 +868,7 @@ defmodule Localize.Date.Parser do
       raw when is_binary(raw) and raw != "" ->
         case Integer.parse(raw) do
           {n, ""} when n in 1..13 -> n
-          _ -> nil
+          _ -> :invalid
         end
 
       _ ->
@@ -876,7 +889,7 @@ defmodule Localize.Date.Parser do
       raw ->
         case Integer.parse(raw) do
           {n, ""} when n in 1..31 -> n
-          _ -> nil
+          _ -> :invalid
         end
     end
   end
@@ -1236,15 +1249,43 @@ defmodule Localize.Date.Parser do
             # that can't construct a date even with the reference
             # year (e.g. `"2026"` alone, or `"May"` alone).
             run_candidate_pass(patterns, transliterated, ctx, {:map, :strict}) ||
-              run_candidate_pass(patterns, transliterated, ctx, {:map, :lax})
+              run_candidate_pass(lax_order(patterns), transliterated, ctx, {:map, :lax})
         end
 
       result || {:error, no_match_error(hd(inputs), locale, calendar_module)}
     end
   end
 
+  # The lax pass takes the patterns in a fixed order, day-bearing first,
+  # as the first possible reading wins (see `run_locale_pass/4`).
+  defp lax_order(patterns) do
+    Enum.sort_by(patterns, fn {_skeleton, pattern} -> pattern_specificity(pattern) end)
+  end
+
   defp run_candidate_pass(patterns, inputs, ctx, pass_as) do
     Enum.find_value(inputs, &run_locale_pass(patterns, &1, ctx, pass_as))
+  end
+
+  # A day the input gave is never read as something else: once a pattern
+  # with a day has matched, even with a day no date has, the lax pass
+  # tries no pattern without one, so "June 31" is not June 2031.
+  defp run_locale_pass(patterns, input, ctx, {:map, :lax}) do
+    {day_patterns, other_patterns} =
+      Enum.split_with(patterns, fn {_skeleton, pattern} -> pattern_has_day?(pattern) end)
+
+    case first_lax_match(day_patterns, input, ctx) do
+      {:ok, map} ->
+        {:ok, map}
+
+      :error ->
+        nil
+
+      :no_match ->
+        case first_lax_match(other_patterns, input, ctx) do
+          {:ok, map} -> {:ok, map}
+          _no_match_or_error -> nil
+        end
+    end
   end
 
   defp run_locale_pass(patterns, input, ctx, pass_as) do
@@ -1252,7 +1293,20 @@ defmodule Localize.Date.Parser do
       case match_pattern(input, pattern, ctx, pass_as) do
         {:ok, %Date{} = date} -> {:ok, convert_to(date, ctx.calendar_module)}
         {:ok, %{} = map} -> {:ok, map}
-        :error -> nil
+        _no_match_or_error -> nil
+      end
+    end)
+  end
+
+  # The first possible reading among `patterns` as `{:ok, map}`, else
+  # `:error` when a pattern matched with fields no date has, else
+  # `:no_match`.
+  defp first_lax_match(patterns, input, ctx) do
+    Enum.reduce_while(patterns, :no_match, fn {_skeleton, pattern}, outcome ->
+      case match_pattern(input, pattern, ctx, {:map, :lax}) do
+        {:ok, map} -> {:halt, {:ok, map}}
+        :error -> {:cont, :error}
+        :no_match -> {:cont, outcome}
       end
     end)
   end
@@ -2062,16 +2116,24 @@ defmodule Localize.Date.Parser do
     end
   end
 
+  # `{:ok, result}`, `:error` when the pattern matched but its fields
+  # make no date, or `:no_match` when it did not match.
   defp match_pattern(input, pattern, ctx, as) do
-    regex = Map.get(ctx.regexes, pattern)
+    with %Regex{} = regex <- Map.get(ctx.regexes, pattern),
+         %{} = caps <- Regex.named_captures(regex, input) do
+      match_captures(caps, ctx, as)
+    else
+      _ -> :no_match
+    end
+  end
+
+  defp match_captures(caps, ctx, as) do
     year_fallback = year_fallback_for(as, ctx.reference_year)
 
-    with %Regex{} <- regex,
-         %{} = caps <- Regex.named_captures(regex, input),
-         {:ok, era_index} <- extract_era(caps),
+    with {:ok, era_index} <- extract_era(caps),
          {:ok, fields} <-
            extract_fields(caps, year_fallback, era_index, ctx.calendar_module, ctx.week_config) do
-      match_result_for(as, fields, caps, ctx.calendar_module)
+      match_result_for(as, fields, caps, ctx)
     else
       _ -> :error
     end
@@ -2092,19 +2154,23 @@ defmodule Localize.Date.Parser do
   defp year_fallback_for({:map, :lax}, _reference_year), do: nil
   defp year_fallback_for(_as, reference_year), do: reference_year
 
-  defp match_result_for(:struct, fields, _caps, calendar_module) do
-    build_date_smart(fields, calendar_module)
+  defp match_result_for(:struct, fields, _caps, ctx) do
+    build_date_smart(fields, ctx.calendar_module)
   end
 
-  defp match_result_for({:map, :strict}, fields, caps, calendar_module) do
-    case build_date_smart(fields, calendar_module) do
-      {:ok, _date} -> {:ok, strict_map(fields, caps, calendar_module)}
+  defp match_result_for({:map, :strict}, fields, caps, ctx) do
+    case build_date_smart(fields, ctx.calendar_module) do
+      {:ok, _date} -> {:ok, strict_map(fields, caps, ctx.calendar_module)}
       :error -> :error
     end
   end
 
-  defp match_result_for({:map, :lax}, fields, _caps, calendar_module) do
-    {:ok, fields_to_map(fields, calendar_module)}
+  # A lax match builds no date, so its fields are checked against the
+  # calendar instead: an impossible partial date does not match.
+  defp match_result_for({:map, :lax}, fields, _caps, ctx) do
+    if possible?(fields, ctx.reference_year),
+      do: {:ok, fields_to_map(fields, ctx.calendar_module)},
+      else: :error
   end
 
   # Strict-pass map output: drop `:year` when it was supplied
@@ -2171,23 +2237,31 @@ defmodule Localize.Date.Parser do
              era_index,
              cldr_calendar_type(calendar_module)
            ) do
-      {:ok,
-       %{
-         year: calendar_year,
-         month: caps |> extract_optional_month() |> named_month(calendar_year, calendar_module),
-         day: extract_optional_day(caps),
-         quarter: extract_optional_quarter(caps),
-         week_of_year: extract_optional_int(caps, "week_of_year"),
-         week_of_month: extract_optional_int(caps, "week_of_month"),
-         week_based_year: extract_optional_int(caps, "week_based_year"),
-         day_of_year: extract_optional_int(caps, "day_of_year"),
-         day_of_week: extract_optional_day_of_week(caps, week_config),
-         day_of_week_in_month: extract_optional_int(caps, "day_of_week_in_month"),
-         weekday_name_index: extract_optional_weekday_name(caps),
-         calendar_module: calendar_module,
-         week_config: week_config
-       }}
+      reject_invalid(%{
+        year: calendar_year,
+        month: caps |> extract_optional_month() |> named_month(calendar_year, calendar_module),
+        day: extract_optional_day(caps),
+        quarter: extract_optional_quarter(caps),
+        week_of_year: extract_optional_int(caps, "week_of_year"),
+        week_of_month: extract_optional_int(caps, "week_of_month"),
+        week_based_year: extract_optional_int(caps, "week_based_year"),
+        day_of_year: extract_optional_int(caps, "day_of_year"),
+        day_of_week: extract_optional_day_of_week(caps, week_config),
+        day_of_week_in_month: extract_optional_int(caps, "day_of_week_in_month"),
+        weekday_name_index: extract_optional_weekday_name(caps),
+        calendar_module: calendar_module,
+        week_config: week_config
+      })
     end
+  end
+
+  # A field whose captured value no date can have (month 15, day 32) is
+  # `:invalid`, not absent: the pattern does not match, rather than read
+  # the input as if the field were missing.
+  defp reject_invalid(fields) do
+    if Enum.any?(fields, fn {_field, value} -> value == :invalid end),
+      do: :error,
+      else: {:ok, fields}
   end
 
   # The 2-digit-year pivot is a Gregorian convention. For era-
@@ -2226,7 +2300,7 @@ defmodule Localize.Date.Parser do
   defp extract_optional_month(%{"month" => raw}) when raw != "" do
     case Integer.parse(raw) do
       {n, ""} when n in 1..13 -> n
-      _ -> nil
+      _ -> :invalid
     end
   end
 
@@ -2239,11 +2313,11 @@ defmodule Localize.Date.Parser do
   # one place earlier in an ordinary year, and a Chinese month one place
   # later after a leap month. A plain name of a month that `year` has only
   # as a leap variant (Adar, in a Hebrew leap year) names that variant. A
-  # name the year has no month for gives `nil`. Without a year, the month is
-  # CLDR's number.
+  # name the year has no month for is `:invalid`. Without a year, the month
+  # is CLDR's number.
   defp named_month({:named, month}, year, calendar_module) when is_integer(year) do
     if month_names_by_position?(calendar_module) do
-      month_named(month, year, calendar_module)
+      month_named(month, year, calendar_module) || :invalid
     else
       cldr_month_number(month)
     end
@@ -2286,7 +2360,7 @@ defmodule Localize.Date.Parser do
   defp extract_optional_day(%{"day" => raw}) when raw != "" do
     case Integer.parse(raw) do
       {n, ""} when n in 1..31 -> n
-      _ -> nil
+      _ -> :invalid
     end
   end
 
@@ -2295,13 +2369,13 @@ defmodule Localize.Date.Parser do
   # Quarter capture comes in two flavors: numeric capture
   # under `quarter`, or one of the named branches
   # `__q1__` / `__q2__` / `__q3__` / `__q4__`. Return
-  # 1..4 or `nil`.
+  # 1..4, `nil` when there is none, or `:invalid`.
   defp extract_optional_quarter(caps) do
     case Map.get(caps, "quarter") do
       raw when is_binary(raw) and raw != "" ->
         case Integer.parse(raw) do
           {n, ""} when n in 1..4 -> n
-          _ -> nil
+          _ -> :invalid
         end
 
       _ ->
@@ -2321,7 +2395,7 @@ defmodule Localize.Date.Parser do
       raw when is_binary(raw) and raw != "" ->
         case Integer.parse(raw) do
           {n, ""} -> n
-          _ -> nil
+          _ -> :invalid
         end
 
       _ ->
@@ -2330,7 +2404,7 @@ defmodule Localize.Date.Parser do
   end
 
   # Day of week from the numeric or name capture, as an ISO day (1 is
-  # Monday) or `nil`. Numeric `e` and `c` count from the locale's first day
+  # Monday), `nil` when there is none, or `:invalid`. Numeric `e` and `c` count from the locale's first day
   # of the week, so they are converted; a name already carries its ISO day.
   defp extract_optional_day_of_week(caps, {first_day, _min_days}) do
     if raw = Map.get(caps, "day_of_week_numeric") do
@@ -2350,7 +2424,7 @@ defmodule Localize.Date.Parser do
       binary when is_binary(binary) ->
         case Integer.parse(binary) do
           {n, ""} when n in 1..7 -> n
-          _ -> nil
+          _ -> :invalid
         end
 
       _ ->
@@ -2539,7 +2613,8 @@ defmodule Localize.Date.Parser do
   end
 
   defp build_from_day_of_year(fields, calendar_module) do
-    with {:ok, jan1} <- build_date(fields.year, 1, 1, calendar_module),
+    with true <- fields.day_of_year in 1..days_in_year(fields.year, calendar_module),
+         {:ok, jan1} <- build_date(fields.year, 1, 1, calendar_module),
          %Date{} = date <- Date.add(jan1, fields.day_of_year - 1) do
       {:ok, date}
     else
@@ -2636,6 +2711,134 @@ defmodule Localize.Date.Parser do
   end
 
   defp date_from_nth_weekday(_, _, _, _, _), do: :error
+
+  # ── Partial dates ────────────────────────────────────────────
+
+  # A year the input left out ranges over this many years either side of
+  # the reference year: enough to hold every leap-day, weekday and
+  # week-count combination of the Gregorian calendar, which repeat every
+  # 28 years, and the leap years of the lunisolar calendars.
+  @partial_year_span 28
+
+  # A partial date is possible when some date of the calendar has every
+  # field it carries. A year the input left out ranges over the years
+  # around the reference year, so "February 29" is possible and
+  # "June 31" is not.
+  defp possible?(fields, reference_year) do
+    fields
+    |> candidate_years(reference_year)
+    |> Enum.any?(&possible_in_year?(fields, &1))
+  end
+
+  defp candidate_years(%{year: year}, _reference_year) when is_integer(year), do: [year]
+
+  defp candidate_years(_fields, reference_year) do
+    Enum.flat_map(0..@partial_year_span, fn
+      0 -> [reference_year]
+      span -> [reference_year + span, reference_year - span]
+    end)
+  end
+
+  defp possible_in_year?(fields, year) do
+    months_in_year = fields.calendar_module.months_in_year(year)
+    months = if fields.month, do: [fields.month], else: Enum.to_list(1..months_in_year)
+
+    (is_nil(fields.month) or fields.month in 1..months_in_year) and
+      possible_day?(fields, year, months) and
+      possible_day_of_year?(fields, year) and
+      possible_week?(fields, year) and
+      possible_week_of_month?(fields, year, months) and
+      possible_weekday_in_month?(fields, year, months)
+  end
+
+  # The day falls in one of the months and, when a weekday was captured
+  # too, on that weekday.
+  defp possible_day?(%{day: nil}, _year, _months), do: true
+
+  defp possible_day?(fields, year, months) do
+    Enum.any?(months, fn month ->
+      case build_date(year, month, fields.day, fields.calendar_module) do
+        {:ok, date} -> match?({:ok, _date}, validate_weekday(date, fields))
+        :error -> false
+      end
+    end)
+  end
+
+  defp possible_day_of_year?(%{day_of_year: nil}, _year), do: true
+
+  defp possible_day_of_year?(fields, year) do
+    fields.day_of_year in 1..days_in_year(year, fields.calendar_module)
+  end
+
+  defp possible_week?(%{week_of_year: nil}, _year), do: true
+
+  defp possible_week?(fields, year) do
+    week_year = fields.week_based_year || year
+    week = fields.week_of_year
+
+    match?(
+      {:ok, _date},
+      date_from_week(week_year, week, fields.day_of_week, fields, fields.calendar_module)
+    )
+  end
+
+  defp possible_week_of_month?(%{week_of_month: nil}, _year, _months), do: true
+
+  defp possible_week_of_month?(fields, year, months) do
+    Enum.any?(months, &(fields.week_of_month in weeks_of_month(year, &1, fields)))
+  end
+
+  # The weeks the days of a month fall in, numbered as the formatter
+  # numbers them: by the locale's week rules in `Calendar.ISO`, and in
+  # whole weeks from the first of the month in other calendars.
+  defp weeks_of_month(year, month, %{calendar_module: Calendar.ISO, week_config: config}) do
+    last_day = Calendar.ISO.days_in_month(year, month)
+    first_week = Localize.DateTime.Week.week_of_month(year, month, 1, config)
+    last_week = Localize.DateTime.Week.week_of_month(year, month, last_day, config)
+
+    first_week..last_week//1
+  end
+
+  defp weeks_of_month(year, month, %{calendar_module: calendar_module}) do
+    1..(div(calendar_module.days_in_month(year, month) - 1, 7) + 1)//1
+  end
+
+  defp possible_weekday_in_month?(%{day_of_week_in_month: nil}, _year, _months), do: true
+
+  defp possible_weekday_in_month?(fields, year, months) do
+    weekdays = if fields.day_of_week, do: [fields.day_of_week], else: Enum.to_list(1..7)
+    n = fields.day_of_week_in_month
+
+    Enum.any?(for(month <- months, weekday <- weekdays, do: {month, weekday}), fn {month, weekday} ->
+      match?({:ok, _date}, date_from_nth_weekday(year, month, weekday, n, fields.calendar_module))
+    end)
+  end
+
+  defp days_in_year(year, calendar_module) do
+    Enum.reduce(1..calendar_module.months_in_year(year), 0, fn month, days ->
+      days + calendar_module.days_in_month(year, month)
+    end)
+  end
+
+  # The fields of a date given only as year, month and day, in the shape
+  # `extract_fields/5` gives them.
+  defp date_fields(year, month, day, calendar_module) do
+    %{
+      year: year,
+      month: month,
+      day: day,
+      quarter: nil,
+      week_of_year: nil,
+      week_of_month: nil,
+      week_based_year: nil,
+      day_of_year: nil,
+      day_of_week: nil,
+      day_of_week_in_month: nil,
+      weekday_name_index: nil,
+      calendar_module: calendar_module,
+      week_config: nil
+    }
+  end
 
   # ── Errors ───────────────────────────────────────────────────
 
