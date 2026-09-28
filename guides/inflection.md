@@ -287,9 +287,9 @@ iex> Localize.Unit.to_string(unit, locale: :ru, grammatical_case: :prepositional
 
 Inflection is available inside MF2 messages through the `i:` namespace, with the functions and option names the Unicode inflection project gives its own MF2 functions:
 
-* **`:i:inflect`** — inflects its operand phrase.
+* **`:i:inflect`** — inflects its operand phrase, or with `to` gives the phrase's value for a feature: `to=number` gives `plural` for "lights".
 
-* **`:i:pronoun`** — selects or re-inflects a pronoun.
+* **`:i:pronoun`** — selects or re-inflects a pronoun. `withReferent` chooses the pronoun that agrees with a referent, and `to` gives the pronoun's value for a feature.
 
 * **`:i:quantify`** — joins the `withValue` number with a noun operand so the noun agrees with the number.
 
@@ -306,8 +306,14 @@ iex> Localize.Message.format("{$w :i:inflect number=plural}", %{w: "light on the
 iex> Localize.Message.format("The {$object} {is :i:inflect number=$object} on.", %{object: "lights"}, locale: :en)
 {:ok, "The lights are on."}
 
+iex> Localize.Message.format("{$w :i:inflect to=number}", %{w: "lights"}, locale: :en)
+{:ok, "plural"}
+
 iex> Localize.Message.format("{|he| :i:pronoun case=accusative}", %{}, locale: :en)
 {:ok, "him"}
+
+iex> Localize.Message.format("{$p :i:pronoun withReferent=$obj}", %{p: "mío", obj: "casas"}, locale: :es)
+{:ok, "mías"}
 
 iex> Localize.Message.format("{$noun :i:quantify withValue=5}", %{noun: "час"}, locale: :ru)
 {:ok, "5 часов"}
@@ -319,7 +325,27 @@ iex> Localize.Message.format("Your {$n :i:numeral withStyle=asWords withVariant=
 {:ok, "Your fourth meeting"}
 ```
 
-The functions need the locale's inflection data present, except `:i:numeral`, which uses the locale's RBNF rules; a missing locale or absent data resolves to an error rather than crashing the format. The `to` and `withReferent` options, and the functions' use as selectors, are not supported yet.
+`:i:inflect` and `:i:pronoun` are selectors too, matching a `.match` key against what they would format, which is usually a feature given by `to`. An unknown `to` feature formats as the operand but matches only the catch-all. `:i:quantify`, `:i:list` and `:i:numeral` are not selectors.
+
+```elixir
+iex> message = """
+...> .local $number = {$object :i:inflect to=number} .match $number
+...> plural {{The {$object} are on.}}
+...> * {{The {$object} is on.}}
+...> """
+iex> Localize.Message.format(message, %{object: "lights on the porch"}, locale: :en)
+{:ok, "The lights on the porch are on."}
+```
+
+A phrase or noun operand may be a `Localize.Inflection.Concept` instead of a string, and a pronoun operand a `Localize.Inflection.PronounConcept`, which can carry pronouns of its own in `:display_data`. A concept is also an option value to agree with, so `gender=$p` takes the gender of the pronoun concept `$p`:
+
+```elixir
+iex> {:ok, he} = Localize.Inflection.PronounConcept.new(:en, initial_pronoun: "he")
+iex> Localize.Message.format("{theirs :i:pronoun gender=$p}", %{p: he}, locale: :en)
+{:ok, "his"}
+```
+
+The functions need the locale's inflection data present, except `:i:numeral`, which uses the locale's RBNF rules; a missing locale or absent data resolves to an error rather than crashing the format. Upstream's semantic concepts, which carry their own form for each set of constraints, and its speak output are not supported yet.
 
 ## Error handling
 

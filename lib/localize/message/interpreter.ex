@@ -331,7 +331,7 @@ defmodule Localize.Message.Interpreter do
        ) do
     case apply_function(value, func, Keyword.put(options, :bindings, bindings_acc)) do
       {:ok, formatted} ->
-        sel_value = selector_value(value, func)
+        sel_value = declaration_selector_value(value, func, bindings_acc, options)
         plural_operand = plural_operand(value, func, bindings_acc, options, sel_value)
         sel_meta = Map.put(sel_meta, name, {sel_value, selector_func, plural_operand})
         bindings_acc = Map.put(bindings_acc, name, formatted)
@@ -507,7 +507,17 @@ defmodule Localize.Message.Interpreter do
   defp selectable_selectors(selector_info) do
     Enum.find_value(selector_info, :ok, fn
       %{func: {:function, name, _options}}
-      when name in ["currency", "unit", "date", "time", "datetime", "test:format"] ->
+      when name in [
+             "currency",
+             "unit",
+             "date",
+             "time",
+             "datetime",
+             "test:format",
+             "i:quantify",
+             "i:list",
+             "i:numeral"
+           ] ->
         {:format_error, {:formatter_failed, "the :#{name} function does not support selection"}}
 
       %{func: {:function, name, options}} when name in ["test:select", "test:function"] ->
@@ -998,44 +1008,34 @@ defmodule Localize.Message.Interpreter do
   # the noun operand so the noun agrees with it (Slavic numeral
   # government, the Arabic counted-noun cases, and so on); `:i:list`
   # joins its list operand as a plain, and or or list; and `:i:numeral`
-  # writes its number operand in digits or words. They wrap the in-tree
+  # writes its number operand in digits or words. A phrase or noun
+  # operand may also be a `Localize.Inflection.Concept`, and a pronoun
+  # operand a `Localize.Inflection.PronounConcept`, as upstream's
+  # concept arguments may; `:i:inflect` and `:i:pronoun` are selectors
+  # as well (see `inflect_projection/4`). They wrap the in-tree
   # `Localize.Inflection` engine, and `:i:numeral` the locale's RBNF
   # rules; a missing locale or absent data resolves to a clean error
   # tuple, never a crash.
 
-  defp format_with_function("i:inflect", value, func_opts, options) when is_binary(value) do
+  defp format_with_function("i:inflect", value, func_opts, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    with {:ok, constraints} <- inflection_constraints("inflect", func_opts, [], locale, :agree) do
-      case Localize.Inflection.inflect(value, locale, constraints) do
-        {:ok, inflected} when is_binary(inflected) -> {:ok, inflected}
-        # Speakable strings collapse to the print form for MF2's single
-        # output channel.
-        {:ok, {print, _speak}} -> {:ok, print}
-        {:error, _} = error -> error
-      end
+    # Speakable results collapse to the print form for MF2's single
+    # output channel.
+    with {:ok, projected} <- inflect_projection(value, func_opts, locale, :format) do
+      {:ok, Localize.Inflection.SpeakableString.print(projected)}
     end
-  end
-
-  defp format_with_function("i:inflect", value, _func_opts, _options) do
-    {:error, "the :i:inflect function requires a string operand, got #{inspect(value)}"}
   end
 
   defp format_with_function("i:pronoun", value, func_opts, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    with {:ok, constraints} <- inflection_constraints("pronoun", func_opts, [], locale, :agree) do
-      case value do
-        seed when is_binary(seed) and seed != "" ->
-          Localize.Inflection.pronoun(locale, seed, constraints)
-
-        _ ->
-          Localize.Inflection.pronoun(locale, constraints)
-      end
+    with {:ok, projected} <- pronoun_projection(value, func_opts, locale) do
+      {:ok, Localize.Inflection.SpeakableString.print(projected)}
     end
   end
 
-  defp format_with_function("i:quantify", value, func_opts, options) when is_binary(value) do
+  defp format_with_function("i:quantify", value, func_opts, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     # The number formats through Localize's own number formatter (so
@@ -1044,16 +1044,16 @@ defmodule Localize.Message.Interpreter do
     with {:ok, number} <- quantify_value(func_opts),
          {:ok, constraints} <-
            inflection_constraints("quantify", func_opts, ["withValue"], locale, :direct),
-         {:ok, formatted} <- Localize.Number.to_string(number, locale: locale) do
-      Localize.Inflection.quantify(formatted, value, locale,
-        number: number,
-        constraints: constraints
-      )
+         {:ok, concept} <- inflection_concept("quantify", value, locale),
+         {:ok, concept} <-
+           put_concept_constraints(Localize.Inflection.Concept, concept, constraints),
+         {:ok, formatted} <- Localize.Number.to_string(number, locale: locale),
+         {:ok, quantified} <-
+           Localize.Inflection.Quantify.quantify_formatted(locale, formatted, concept,
+             number: number
+           ) do
+      {:ok, Localize.Inflection.SpeakableString.print(quantified)}
     end
-  end
-
-  defp format_with_function("i:quantify", value, _func_opts, _options) do
-    {:error, "the :i:quantify function requires a string (noun) operand, got #{inspect(value)}"}
   end
 
   defp format_with_function("i:list", items, func_opts, options) when is_list(items) do
@@ -1533,6 +1533,29 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp selector_value(value, _func), do: value
+
+  # The `i:` selectors match the function's projection rather than its
+  # operand (see `inflect_projection/4`), as upstream's selectors do.
+  defp declaration_selector_value(value, {:function, name, func_options}, bindings, options)
+       when name in ["i:inflect", "i:pronoun"] do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    with {:ok, func_opts} <- resolve_func_options(func_options, bindings),
+         {:ok, projected} <- inflection_selection(name, value, func_opts, locale) do
+      Localize.Inflection.SpeakableString.print(projected)
+    else
+      _error -> ""
+    end
+  end
+
+  defp declaration_selector_value(value, func, _bindings, _options),
+    do: selector_value(value, func)
+
+  defp inflection_selection("i:inflect", value, func_opts, locale),
+    do: inflect_projection(value, func_opts, locale, :select)
+
+  defp inflection_selection("i:pronoun", value, func_opts, locale),
+    do: pronoun_projection(value, func_opts, locale)
 
   defp offset_selector_value(number, func_options) do
     with {:ok, func_opts} <- resolve_func_options(func_options, %{}),
@@ -2115,11 +2138,6 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
-  defp constraint_value(name, _value, {function, _features, _locale, _resolution})
-       when name in ["to", "withReferent"] do
-    {:error, "the :i:#{function} option #{name} is not supported"}
-  end
-
   defp constraint_value(name, value, {function, features, locale, resolution}) do
     case Map.fetch(features, name) do
       {:ok, feature} ->
@@ -2128,6 +2146,16 @@ defmodule Localize.Message.Interpreter do
       :error ->
         {:error,
          "the :i:#{function} function has no option #{name}, which is not a grammatical feature of the locale"}
+    end
+  end
+
+  # A concept given for agreement (`gender=$p` with a pronoun concept)
+  # gives its own value for the feature.
+  defp feature_value(name, %module{} = concept, _feature, {_function, _locale, :agree})
+       when module in [Localize.Inflection.Concept, Localize.Inflection.PronounConcept] do
+    case feature_projection(module.feature_value(concept, name)) do
+      nil -> {:ok, nil}
+      value -> {:ok, Localize.Inflection.SpeakableString.print(value)}
     end
   end
 
@@ -2208,7 +2236,8 @@ defmodule Localize.Message.Interpreter do
          {:ok, list} <- put_list_settings(list, func_opts),
          {:ok, constraints} <-
            inflection_constraints("list", func_opts, @list_control_options, locale, :direct),
-         {:ok, list} <- put_list_constraints(list, constraints) do
+         {:ok, list} <-
+           put_concept_constraints(Localize.Inflection.ConceptList, list, constraints) do
       case Localize.Inflection.ConceptList.to_speakable_string(list) do
         nil -> {:error, "the :i:list function requires at least one item"}
         speakable -> {:ok, Localize.Inflection.SpeakableString.print(speakable)}
@@ -2277,14 +2306,114 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
-  defp put_list_constraints(list, constraints) do
-    Enum.reduce_while(constraints, {:ok, list}, fn {name, value}, {:ok, list} ->
-      case Localize.Inflection.ConceptList.put_constraint(list, name, value) do
-        {:ok, list} -> {:cont, {:ok, list}}
+  # Puts each constraint on a concept, pronoun concept or concept list.
+  defp put_concept_constraints(module, concept, constraints) do
+    Enum.reduce_while(constraints, {:ok, concept}, fn {name, value}, {:ok, concept} ->
+      case module.put_constraint(concept, name, value) do
+        {:ok, concept} -> {:cont, {:ok, concept}}
         {:error, _reason} = error -> {:halt, error}
       end
     end)
   end
+
+  # ── `:i:inflect` and `:i:pronoun` projections ─────────────────
+  #
+  # Each function projects its operand to a speakable string: the
+  # inflected phrase or the selected pronoun; the value of the feature
+  # `to=` names; or, for `:i:pronoun` with `withReferent=`, the pronoun
+  # that agrees with the referent. Formatting prints the projection and
+  # a selector matches `.match` keys against it, as upstream's do. With
+  # nothing to project, `:i:inflect` formats as its string operand but
+  # selects only the catch-all, and `:i:pronoun` gives the empty string.
+
+  defp inflect_projection(value, func_opts, locale, mode) do
+    with {:ok, to} <- string_option(func_opts, "to"),
+         {:ok, constraints} <-
+           inflection_constraints("inflect", func_opts, ["to"], locale, :agree),
+         {:ok, concept} <- inflection_concept("inflect", value, locale),
+         {:ok, concept} <-
+           put_concept_constraints(Localize.Inflection.Concept, concept, constraints) do
+      projected =
+        if to,
+          do: feature_projection(Localize.Inflection.Concept.feature_value(concept, to)),
+          else: Localize.Inflection.Concept.to_speakable_string(concept)
+
+      {:ok, projected || unprojected(value, mode)}
+    end
+  end
+
+  defp unprojected(value, :format) when is_binary(value), do: value
+  defp unprojected(_value, _mode), do: ""
+
+  defp pronoun_projection(value, func_opts, locale) do
+    with {:ok, to} <- string_option(func_opts, "to"),
+         {:ok, referent} <- referent_option(func_opts, to, locale),
+         {:ok, constraints} <-
+           inflection_constraints("pronoun", func_opts, ["to", "withReferent"], locale, :agree),
+         {:ok, pronoun} <- pronoun_concept(value, locale),
+         {:ok, pronoun} <-
+           put_concept_constraints(Localize.Inflection.PronounConcept, pronoun, constraints) do
+      projected =
+        if to,
+          do: feature_projection(Localize.Inflection.PronounConcept.feature_value(pronoun, to)),
+          else: Localize.Inflection.PronounConcept.to_speakable_string(pronoun, referent)
+
+      {:ok, projected || ""}
+    end
+  end
+
+  # `withReferent` names the concept the pronoun agrees with; upstream
+  # does not allow it together with `to`.
+  defp referent_option(func_opts, to, locale) do
+    case option_value(func_opts, "withReferent") do
+      nil ->
+        {:ok, nil}
+
+      {:ok, _referent} when is_binary(to) ->
+        {:error, "the :i:pronoun options to and withReferent cannot be used together"}
+
+      {:ok, referent}
+      when is_binary(referent) or is_struct(referent, Localize.Inflection.Concept) ->
+        inflection_concept("pronoun", referent, locale)
+
+      {:ok, referent} ->
+        {:error,
+         "the :i:pronoun option withReferent requires a string or concept, got #{inspect(referent)}"}
+    end
+  end
+
+  # A string operand becomes a concept; a concept is used as it is.
+  defp inflection_concept(_function, %Localize.Inflection.Concept{} = concept, _locale),
+    do: {:ok, concept}
+
+  defp inflection_concept(_function, value, locale) when is_binary(value),
+    do: Localize.Inflection.Concept.new(locale, value)
+
+  defp inflection_concept(function, value, _locale) do
+    {:error,
+     "the :i:#{function} function requires a string or concept operand, got #{inspect(value)}"}
+  end
+
+  # A pronoun concept is used as it is and a string seeds one; with no
+  # operand the locale's default pronoun is the starting point.
+  defp pronoun_concept(%Localize.Inflection.PronounConcept{} = pronoun, _locale),
+    do: {:ok, pronoun}
+
+  defp pronoun_concept(value, locale) when value in [nil, ""],
+    do: Localize.Inflection.PronounConcept.new(locale)
+
+  defp pronoun_concept(seed, locale) when is_binary(seed),
+    do: Localize.Inflection.PronounConcept.new(locale, initial_pronoun: seed)
+
+  defp pronoun_concept(value, _locale) do
+    {:error,
+     "the :i:pronoun function requires a pronoun string or pronoun concept operand, got #{inspect(value)}"}
+  end
+
+  # A feature value as a string or speakable; grammemes come as atoms.
+  defp feature_projection(nil), do: nil
+  defp feature_projection(value) when is_atom(value), do: Atom.to_string(value)
+  defp feature_projection(value), do: value
 
   defp format_numeral(value, func_opts, locale) do
     with {:ok, number} <- ensure_number(value),

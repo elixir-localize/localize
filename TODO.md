@@ -12,13 +12,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ### Upstream parity for the MF2 `i:` functions
 
-* [ ] **`to=` on `:i:inflect` and `:i:pronoun`** — upstream's `to=` gives the operand's value for a feature (`to=number` gives `plural`, `to=defArticleInPreposition` gives "in die") and prints the operand when the feature is unknown; ours returns a "not supported" error. The oracle is unicode-org/inflection's `test/resources/inflection/message2/*.xml`; see [plans/MF2_NAMESPACE_INFLECTION.md](plans/MF2_NAMESPACE_INFLECTION.md).
-
-* [ ] **`:i:inflect` and `:i:pronoun` as selectors** — upstream matches `.match` keys on them, usually through a `.local` with `to=` (`.local $num = {$object :i:inflect to=number} .match $num plural {{…}}`), and an unknown feature is a selector error; ours are formatters only.
-
-* [ ] **`withReferent` on `:i:pronoun`** — upstream chooses the pronoun that agrees with a referent (`{$p :i:pronoun withReferent=$obj}` with "mío" and "casas" gives "mías"); ours returns a "not supported" error.
-
-* [ ] **Concept operands for the `i:` functions** — upstream takes pronoun and semantic concepts, with their own display data, as operands and option values (`{theirs :i:pronoun gender=$p}` with a pronoun concept); ours take strings only.
+* [ ] **Semantic concepts as `i:` operands** — upstream's semantic concepts carry a form for each set of constraints (the `ru` fixtures' concept has twelve case and number forms), as operands of `:i:inflect` and `:i:quantify`; `Localize.Inflection.Concept` has no display data. The oracle is unicode-org/inflection's `test/resources/inflection/message2/*.xml`; see [plans/mf2-namespace-inflection.md](plans/mf2-namespace-inflection.md).
 
 * [ ] **Print and speak output for the `i:` functions** — upstream can emit a result's speak line (`:i:numeral withStyle=asSpokenWords` speaks "four", `:i:quantify` speaks "un niño"); our MF2 output carries only the print form.
 
@@ -39,6 +33,14 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **`to=` on `:i:inflect` and `:i:pronoun`** — gives the operand's value for a feature (`to=number` gives `plural`), printing the operand for an unknown feature, as upstream does. 2026-09-29, v1.4.0.
+
+* [x] **`:i:inflect` and `:i:pronoun` as selectors** — `.match` keys match what the function formats, and an unknown `to` feature matches only the catch-all; `:i:quantify`, `:i:list` and `:i:numeral` are not selectors. 2026-09-29, v1.4.0.
+
+* [x] **`withReferent` on `:i:pronoun`** — chooses the pronoun that agrees with a referent string or concept ("mío" with "casas" gives "mías"). 2026-09-29, v1.4.0.
+
+* [x] **Concept and pronoun-concept operands for the `i:` functions** — `:i:inflect` and `:i:quantify` take a `Localize.Inflection.Concept`, `:i:pronoun` a `PronounConcept` with its own pronouns, and either agrees as an option value. 2026-09-29, v1.4.0.
 
 * [x] **Upstream option names, `:i:list` and `:i:numeral`** — the `i:` functions take the Unicode inflection project's option names (`case=`, `withValue=`), reject unknown features, and gain `:i:list` and `:i:numeral`. 2026-09-29, v1.4.0.
 

@@ -74,22 +74,122 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format("{$word :i:inflect bogusFeature=value}", %{word: "valid"},
                  locale: :en
                )
+
+      assert {:error, _} =
+               Message.format(
+                 ".local $v = {$word :i:inflect bogusFeature=value} .match $v\n* {{fallback}}",
+                 %{word: "valid"},
+                 locale: :en
+               )
     end
 
-    test "the to option is not supported yet" do
-      assert {:error, _} =
-               Message.format("{$w :i:inflect to=number}", %{w: "lights"}, locale: :en)
+    test "to gives the phrase's value for a feature, and a selector matches it (upstream)" do
+      message = """
+      .local $num = {$object :i:inflect to=number} .match $num
+      plural {{The {$object} are on}}
+      * {{The {$object} is on}}
+      """
+
+      for {object, expected} <- [
+            {"light", "The light is on"},
+            {"lights", "The lights are on"},
+            {"lights on the front porch", "The lights on the front porch are on"},
+            {"light on the front porch", "The light on the front porch is on"}
+          ] do
+        assert Message.format(message, %{object: object}, locale: :en) == {:ok, expected}
+      end
+
+      assert {:ok, "plural"} =
+               Message.format("{$w :i:inflect to=$feature}", %{w: "lights", feature: "number"},
+                 locale: :en
+               )
+    end
+
+    test "to gives the German article with its preposition (upstream)" do
+      assert {:ok, "The defArticleInPreposition is in die."} =
+               Message.format(
+                 "The defArticleInPreposition is " <>
+                   "{$name :i:inflect number=singular case=accusative to=defArticleInPreposition}.",
+                 %{name: "Bank"},
+                 locale: :de
+               )
+
+      message = """
+      .local $v = {$name :i:inflect number=singular case=dative to=withDefArticleInPreposition}
+      .match $v
+      |im Fundort| {{matched}}
+      * {{other}}
+      """
+
+      assert {:ok, "matched"} = Message.format(message, %{name: "Fundort"}, locale: :de)
+    end
+
+    test "two selectors match the gender and the number of one phrase (upstream)" do
+      message = """
+      .local $gender = {$name :i:inflect to=gender}
+      .local $number = {$name :i:inflect to=number}
+      .match $gender $number
+      masculine 2 {{{$name} is Masculine & 2}}
+      feminine singular {{{$name} is Feminine & Singular}}
+      foo 4 {{{$name} is Foo & 4}}
+      masculine singular {{{$name} is Masculine & Singular}}
+      hello singular {{{$name} is Hello & Singular}}
+      * * {{{$name} is other}}
+      """
+
+      assert {:ok, "gato is Masculine & Singular"} =
+               Message.format(message, %{name: "gato"}, locale: :es)
+    end
+
+    test "an unknown to feature prints the operand and selects only the catch-all (upstream)" do
+      assert {:ok, "valid"} =
+               Message.format("{$word :i:inflect to=bogus}", %{word: "valid"}, locale: :en)
+
+      message = """
+      .local $v = {$word :i:inflect to=bogus} .match $v
+      valid {{is valid}}
+      * {{other}}
+      """
+
+      assert {:ok, "other"} = Message.format(message, %{word: "valid"}, locale: :en)
+    end
+
+    test "without to, a selector matches the inflected phrase" do
+      message = """
+      .local $w = {$word :i:inflect number=plural} .match $w
+      cats {{inflected}}
+      cat {{uninflected}}
+      * {{other}}
+      """
+
+      assert {:ok, "inflected"} = Message.format(message, %{word: "cat"}, locale: :en)
+    end
+
+    test "a concept operand is inflected, and a concept option value agrees" do
+      {:ok, cat} = Localize.Inflection.Concept.new(:en, "cat")
+      {:ok, lights} = Localize.Inflection.Concept.new(:en, "lights")
+
+      assert {:ok, "cats"} =
+               Message.format("{$c :i:inflect number=plural}", %{c: cat}, locale: :en)
+
+      assert {:ok, "plural"} =
+               Message.format("{$c :i:inflect to=number}", %{c: lights}, locale: :en)
+
+      assert {:ok, "are"} = Message.format("{is :i:inflect number=$c}", %{c: lights}, locale: :en)
     end
 
     test "a non-string option value is an error" do
       assert {:error, _} =
                Message.format("{$w :i:inflect number=$n}", %{w: "light", n: 2}, locale: :en)
+
+      assert {:error, _} = Message.format("{$w :i:inflect to=5}", %{w: "lights"}, locale: :en)
     end
 
-    test "a non-string operand does not crash" do
-      result = Message.format("{$n :i:inflect case=dative}", %{n: 5}, locale: :ru)
+    test "an operand that is neither a string nor a concept is an error, not a crash" do
+      assert {:error, _} = Message.format("{$n :i:inflect case=dative}", %{n: 5}, locale: :ru)
 
-      assert match?({:ok, _}, result) or match?({:error, _}, result)
+      {:ok, pronoun} = Localize.Inflection.PronounConcept.new(:en)
+      assert {:error, _} = Message.format("{$p :i:inflect}", %{p: pronoun}, locale: :en)
     end
   end
 
@@ -105,6 +205,91 @@ defmodule Localize.Message.InflectionFunctionsTest do
 
     test "a string that is no pronoun is an error (upstream)" do
       assert {:error, _} = Message.format("{$p :i:pronoun}", %{p: "garbage"}, locale: :en)
+    end
+
+    test "a pronoun concept is an operand, and an option value to agree with (upstream)" do
+      {:ok, theirs} = Localize.Inflection.PronounConcept.new(:en, initial_pronoun: "theirs")
+      {:ok, he} = Localize.Inflection.PronounConcept.new(:en, initial_pronoun: "he")
+
+      assert {:ok, "his"} =
+               Message.format("{$p :i:pronoun gender=masculine}", %{p: theirs}, locale: :en)
+
+      assert {:ok, "his"} =
+               Message.format("{theirs :i:pronoun gender=$p}", %{p: he}, locale: :en)
+    end
+
+    test "a pronoun concept brings its own pronouns (upstream)" do
+      {:ok, xe} =
+        Localize.Inflection.PronounConcept.new(:en,
+          display_data: [
+            {"xe", %{person: :third, number: :singular, case: :nominative}},
+            {"xem", %{person: :third, number: :singular, case: :accusative}},
+            {"xyr", %{person: :third, number: :singular, case: :genitive}}
+          ]
+        )
+
+      assert {:ok, "xem xe"} =
+               Message.format("{$np :i:pronoun case=accusative} {$np :i:pronoun}", %{np: xe},
+                 locale: :en
+               )
+    end
+
+    test "to gives the pronoun's value for a feature, and a selector matches it (upstream)" do
+      message = """
+      .local $g = {$p :i:pronoun to=gender} .match $g
+      feminine {{feminine phrase}}
+      masculine {{masculine phrase}}
+      * {{other phrase}}
+      """
+
+      assert {:ok, "feminine phrase"} = Message.format(message, %{p: "she"}, locale: :en)
+      assert {:ok, "masculine phrase"} = Message.format(message, %{p: "him"}, locale: :en)
+      assert {:ok, "other phrase"} = Message.format(message, %{p: "they"}, locale: :en)
+
+      assert {:ok, "first"} = Message.format("{$p :i:pronoun to=person}", %{p: "we"}, locale: :en)
+      assert {:ok, ""} = Message.format("{$p :i:pronoun to=gender}", %{p: "they"}, locale: :en)
+    end
+
+    test "without to, a selector matches the pronoun" do
+      message = """
+      .local $p = {$s :i:pronoun case=accusative} .match $p
+      him {{him}}
+      * {{other}}
+      """
+
+      assert {:ok, "him"} = Message.format(message, %{s: "he"}, locale: :en)
+    end
+
+    test "withReferent chooses the pronoun that agrees with the referent (upstream)" do
+      {:ok, casas} = Localize.Inflection.Concept.new(:es, "casas")
+
+      for referent <- ["casas", casas] do
+        assert {:ok, "mías"} =
+                 Message.format("{$p :i:pronoun withReferent=$obj}", %{p: "mío", obj: referent},
+                   locale: :es
+                 )
+      end
+    end
+
+    test "to and withReferent together are an error (upstream)" do
+      assert {:error, _} =
+               Message.format(
+                 "{$p :i:pronoun to=gender withReferent=$obj}",
+                 %{p: "her", obj: "cat"},
+                 locale: :en
+               )
+    end
+
+    test "an operand or referent of another kind is an error, not a crash" do
+      {:ok, cat} = Localize.Inflection.Concept.new(:en, "cat")
+
+      assert {:error, _} = Message.format("{$p :i:pronoun}", %{p: cat}, locale: :en)
+      assert {:error, _} = Message.format("{$p :i:pronoun}", %{p: 5}, locale: :en)
+
+      assert {:error, _} =
+               Message.format("{$p :i:pronoun withReferent=$obj}", %{p: "mío", obj: 5},
+                 locale: :es
+               )
     end
   end
 
@@ -178,6 +363,13 @@ defmodule Localize.Message.InflectionFunctionsTest do
                  %{noun: "kilometer"},
                  locale: :en
                )
+    end
+
+    test "a concept operand is quantified" do
+      {:ok, day} = Localize.Inflection.Concept.new(:en, "day")
+
+      assert {:ok, "2 days"} =
+               Message.format("{$unit :i:quantify withValue=2}", %{unit: day}, locale: :en)
     end
 
     test "a non-string operand is an error, not a crash" do
@@ -325,6 +517,21 @@ defmodule Localize.Message.InflectionFunctionsTest do
 
       assert {:error, _} =
                Message.format("{$n :i:numeral withStyle=asWords}", %{n: "four"}, locale: :en)
+    end
+  end
+
+  describe "selection" do
+    test ":i:quantify, :i:list and :i:numeral are not selectors, as upstream registers none" do
+      for {declaration, bindings} <- [
+            {"{$w :i:quantify withValue=2}", %{w: "day"}},
+            {"{$w :i:list}", %{w: ["gatos", "idiomas"]}},
+            {"{$w :i:numeral}", %{w: 4}}
+          ] do
+        assert {:error, _} =
+                 Message.format(".local $v = #{declaration} .match $v\n* {{other}}", bindings,
+                   locale: :en
+                 )
+      end
     end
   end
 end
