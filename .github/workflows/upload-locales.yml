@@ -27,7 +27,7 @@ env:
   # and OTP versions regardless of this pin; the pre-upload manifest
   # check is the backstop if that ever stops holding.
   ELIXIR_VERSION: "1.20.4"
-  OTP_VERSION: "29.1"
+  OTP_VERSION: "29.1.1"
   R2_BUCKET: content
   # Prefix within the bucket where locale ETF files are stored.
   R2_PREFIX: locales

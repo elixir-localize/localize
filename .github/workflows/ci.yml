@@ -45,29 +45,29 @@ jobs:
           - elixir: "1.17.3-otp-26"
             otp: "26.2.5.21"
           - elixir: "1.17.3-otp-27"
-            otp: "27.3.4.17"
+            otp: "27.3.4.18"
 
           # Elixir 1.18 — supports OTP 25–27
           - elixir: "1.18.5-otp-26"
             otp: "26.2.5.21"
           - elixir: "1.18.5-otp-27"
-            otp: "27.3.4.17"
+            otp: "27.3.4.18"
 
           # Elixir 1.19 — supports OTP 26–28
           - elixir: "1.19.6-otp-26"
             otp: "26.2.5.21"
           - elixir: "1.19.6-otp-27"
-            otp: "27.3.4.17"
+            otp: "27.3.4.18"
           - elixir: "1.19.6-otp-28"
-            otp: "28.5.0.6"
+            otp: "28.5.0.7"
 
           # Elixir 1.20 — supports OTP 27–29
           - elixir: "1.20.4-otp-27"
-            otp: "27.3.4.17"
+            otp: "27.3.4.18"
           - elixir: "1.20.4-otp-28"
-            otp: "28.5.0.6"
+            otp: "28.5.0.7"
           - elixir: "1.20.4-otp-29"
-            otp: "29.1"
+            otp: "29.1.1"
             lint: true
 
 
