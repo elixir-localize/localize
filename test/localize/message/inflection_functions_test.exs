@@ -178,6 +178,24 @@ defmodule Localize.Message.InflectionFunctionsTest do
       assert {:ok, "are"} = Message.format("{is :i:inflect number=$c}", %{c: lights}, locale: :en)
     end
 
+    test "a concept with display data renders its form, and a selector matches it (upstream)" do
+      assert {:ok, "genitive,singular"} =
+               Message.format(
+                 "{$unit :i:inflect gender=neuter case=genitive number=singular}",
+                 %{unit: ru_semantic_concept()},
+                 locale: :ru
+               )
+
+      message = """
+      .local $v = {$unit :i:inflect gender=neuter case=genitive number=singular} .match $v
+      |genitive,singular| {{matched genitive singular}}
+      * {{other}}
+      """
+
+      assert {:ok, "matched genitive singular"} =
+               Message.format(message, %{unit: ru_semantic_concept()}, locale: :ru)
+    end
+
     test "a non-string option value is an error" do
       assert {:error, _} =
                Message.format("{$w :i:inflect number=$n}", %{w: "light", n: 2}, locale: :en)
@@ -372,6 +390,30 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format("{$unit :i:quantify withValue=2}", %{unit: day}, locale: :en)
     end
 
+    test "applies Russian numeral government to a concept's own forms (upstream)" do
+      message =
+        "{$unit :i:quantify withValue=$number} {$unit :i:quantify withValue=$number case=genitive} " <>
+          "{$unit :i:quantify withValue=$number case=accusative} {$unit :i:quantify withValue=$number case=dative} " <>
+          "{$unit :i:quantify withValue=$number case=instrumental} {$unit :i:quantify withValue=$number case=prepositional}"
+
+      for {number, expected} <- [
+            {1,
+             "1 nominative,singular 1 genitive,singular 1 accusative,singular " <>
+               "1 dative,singular 1 instrumental,singular 1 prepositional,singular"},
+            {2,
+             "2 genitive,singular 2 genitive,plural 2 genitive,plural " <>
+               "2 dative,plural 2 instrumental,plural 2 prepositional,plural"},
+            {5,
+             "5 genitive,plural 5 genitive,plural 5 genitive,plural " <>
+               "5 dative,plural 5 instrumental,plural 5 prepositional,plural"}
+          ] do
+        assert Message.format(message, %{unit: ru_semantic_concept(), number: number},
+                 locale: :ru
+               ) ==
+                 {:ok, expected}
+      end
+    end
+
     test "a non-string operand is an error, not a crash" do
       assert {:error, _} =
                Message.format("{$n :i:quantify withValue=2}", %{n: 5}, locale: :en)
@@ -533,5 +575,26 @@ defmodule Localize.Message.InflectionFunctionsTest do
                  )
       end
     end
+  end
+
+  # The semantic concept of upstream's ru fixtures: a neuter noun whose
+  # twelve case and number forms name themselves, in upstream's order,
+  # as display data. Its first form is its own, with the features it
+  # has.
+  defp ru_semantic_concept do
+    forms =
+      for number <- ["singular", "plural"],
+          grammatical_case <-
+            ["nominative", "instrumental", "accusative", "dative", "genitive", "prepositional"] do
+        {"#{grammatical_case},#{number}",
+         %{gender: "neuter", case: grammatical_case, number: number}}
+      end
+
+    [{value, initial} | _forms] = forms
+
+    {:ok, concept} =
+      Localize.Inflection.Concept.new(:ru, value, initial: initial, display_data: forms)
+
+    concept
   end
 end

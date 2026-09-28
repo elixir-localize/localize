@@ -5,10 +5,16 @@ defmodule Localize.Inflection.Concept do
   A concept wraps a word or phrase for a locale. Constraints (such
   as `number=plural` or `definiteness=definite`) are applied with
   `put_constraint/3`; grammatical properties are queried with
-  `feature_value/2`; and `to_string/1` renders the phrase with all
-  constraints applied.
+  `feature_value/2`; and `to_speakable_string/1` renders the phrase
+  with all constraints applied.
 
-  This is the equivalent of the upstream `InflectableStringConcept`.
+  A concept can also carry forms of its own for sets of constraints,
+  given as `:display_data` to `new/3`. It then renders as the first
+  of its forms that holds every constraint put on it, and otherwise
+  as the locale's rules inflect the phrase.
+
+  This is the equivalent of the upstream `InflectableStringConcept`,
+  and with display data of the upstream `SemanticConcept`.
 
   """
 
@@ -24,17 +30,23 @@ defmodule Localize.Inflection.Concept do
     Synthesizer
   }
 
-  defstruct [:locale, :value, constraints: %{}, initial: %{}, guess: true]
+  defstruct [:locale, :value, constraints: %{}, initial: %{}, display_data: [], guess: true]
 
   @type t :: %__MODULE__{
           locale: atom,
           value: SpeakableString.t(),
           constraints: %{optional(binary) => binary},
           initial: %{optional(binary) => binary},
+          display_data: [{SpeakableString.t(), %{optional(binary) => binary}}],
           guess: boolean
         }
 
   @speak "speak"
+
+  defguardp is_speakable(value)
+            when is_binary(value) or
+                   (is_tuple(value) and tuple_size(value) == 2 and is_binary(elem(value, 0)) and
+                      is_binary(elem(value, 1)))
 
   @doc """
   Creates a concept for a word or phrase.
@@ -57,10 +69,18 @@ defmodule Localize.Inflection.Concept do
     itself (for example a known grammatical gender), used when
     deriving other features rather than requested for rendering.
 
+  * `:display_data` is a list of `{form, constraints}` entries, forms
+    of the concept and the features each has, such as
+    `{"octopodes", %{number: :plural}}`. A form is a binary or a
+    `{print, speak}` tuple. The concept renders as the first form,
+    starting with `value` and its `:initial` features, that holds
+    every constraint put on it, and takes its features from that
+    form; when no form does, the locale's rules inflect `value`.
+
   ### Returns
 
   * `{:ok, concept}` or `{:error, reason}` when the locale data is
-    unavailable or a constraint is invalid.
+    unavailable, or a constraint or display data entry is invalid.
 
   ### Examples
 
@@ -74,18 +94,23 @@ defmodule Localize.Inflection.Concept do
       iex> error.allowed_values
       ["plural", "singular"]
 
+      iex> display_data = [{"octopodes", %{number: :plural}}]
+      iex> {:ok, concept} = Localize.Inflection.Concept.new(:en, "octopus", display_data: display_data)
+      iex> {:ok, concept} = Localize.Inflection.Concept.put_constraint(concept, :number, :plural)
+      iex> Localize.Inflection.Concept.to_speakable_string(concept)
+      "octopodes"
+
   """
   def new(locale, value, options \\ [])
 
-  def new(locale, value, options)
-      when (is_binary(value) or
-              (is_tuple(value) and tuple_size(value) == 2 and is_binary(elem(value, 0)) and
-                 is_binary(elem(value, 1)))) and is_keyword_list(options) do
+  def new(locale, value, options) when is_speakable(value) and is_keyword_list(options) do
     with {:ok, constraints} <- Feature.constraints(Keyword.get(options, :constraints, %{})),
          {:ok, initial} <- Feature.constraints(Keyword.get(options, :initial, %{})),
          {:ok, locale} <- Locale.resolve(locale),
          :ok <- Data.ensure_loaded(locale),
-         {:ok, concept} <- validate(%__MODULE__{locale: locale, value: value}, initial, :initial) do
+         {:ok, display_data} <- display_data(locale, Keyword.get(options, :display_data, [])),
+         concept = %__MODULE__{locale: locale, value: value, display_data: display_data},
+         {:ok, concept} <- validate(concept, initial, :initial) do
       validate(concept, constraints, :constraints)
     end
   end
@@ -97,14 +122,54 @@ defmodule Localize.Inflection.Concept do
     do: {:error, Localize.Utils.Helpers.invalid_value(value, "a word or phrase string")}
 
   defp validate(concept, values, field) do
-    Enum.reduce_while(values, {:ok, concept}, fn {name, value}, {:ok, concept} ->
-      value = FeatureModel.canonicalize(concept.locale, name, value)
+    with {:ok, canonical} <- canonical_constraints(concept.locale, values) do
+      {:ok, Map.update!(concept, field, &Map.merge(&1, canonical))}
+    end
+  end
 
-      case validate_constraint(concept, name, value) do
-        :ok -> {:cont, {:ok, Map.update!(concept, field, &Map.put(&1, name, value))}}
+  # Constraints in their canonical form, each checked against the
+  # locale's feature model.
+  defp canonical_constraints(locale, values) do
+    Enum.reduce_while(values, {:ok, %{}}, fn {name, value}, {:ok, canonical} ->
+      value = FeatureModel.canonicalize(locale, name, value)
+
+      case validate_constraint(locale, name, value) do
+        :ok -> {:cont, {:ok, Map.put(canonical, name, value)}}
         {:error, _reason} = error -> {:halt, error}
       end
     end)
+  end
+
+  # Display data is a list of `{form, constraints}` entries whose
+  # constraints are checked as `:initial` is.
+  defp display_data(locale, entries) when is_list(entries) do
+    entries
+    |> Enum.reduce_while({:ok, []}, fn entry, {:ok, forms} ->
+      case display_form(locale, entry) do
+        {:ok, form} -> {:cont, {:ok, [form | forms]}}
+        {:error, _reason} = error -> {:halt, error}
+      end
+    end)
+    |> case do
+      {:ok, forms} -> {:ok, Enum.reverse(forms)}
+      {:error, _reason} = error -> error
+    end
+  end
+
+  defp display_data(_locale, entries) do
+    {:error,
+     Localize.Utils.Helpers.invalid_value(entries, "a list of {form, constraints} entries")}
+  end
+
+  defp display_form(locale, {form, constraints}) when is_speakable(form) do
+    with {:ok, constraints} <- Feature.constraints(constraints),
+         {:ok, constraints} <- canonical_constraints(locale, constraints) do
+      {:ok, {form, constraints}}
+    end
+  end
+
+  defp display_form(_locale, entry) do
+    {:error, Localize.Utils.Helpers.invalid_value(entry, "a {form, constraints} entry")}
   end
 
   @doc """
@@ -135,7 +200,7 @@ defmodule Localize.Inflection.Concept do
     name = Feature.to_internal(name)
     value = FeatureModel.canonicalize(concept.locale, name, Feature.to_internal(value))
 
-    with :ok <- validate_constraint(concept, name, value) do
+    with :ok <- validate_constraint(concept.locale, name, value) do
       {:ok, %{concept | constraints: Map.put(concept.constraints, name, value)}}
     end
   end
@@ -143,10 +208,10 @@ defmodule Localize.Inflection.Concept do
   def put_constraint(concept, _name, _value),
     do: {:error, Localize.Utils.Helpers.invalid_value(concept, "a Localize.Inflection.Concept")}
 
-  defp validate_constraint(concept, name, value) do
-    case FeatureModel.feature(concept.locale, name) do
+  defp validate_constraint(locale, name, value) do
+    case FeatureModel.feature(locale, name) do
       nil ->
-        {:error, Localize.UnknownFeatureError.exception(feature: name, locale: concept.locale)}
+        {:error, Localize.UnknownFeatureError.exception(feature: name, locale: locale)}
 
       %{type: :bounded, values: values} ->
         if MapSet.member?(values, value) do
@@ -169,9 +234,16 @@ defmodule Localize.Inflection.Concept do
   @doc """
   Returns the value of a feature for this concept.
 
-  A stored constraint takes precedence; otherwise the locale's
+  A stored constraint takes precedence. A concept with display data
+  next takes the value its rendered form has; otherwise the locale's
   default feature function computes the value from the (possibly
   inflected) display string.
+
+  ### Arguments
+
+  * `concept` is a concept from `new/3`.
+
+  * `name` is a feature name such as `:number` or `"gender"`.
 
   ### Returns
 
@@ -189,20 +261,33 @@ defmodule Localize.Inflection.Concept do
 
     value =
       case Map.get(concept.constraints, name) do
-        nil ->
-          with synthesizer when not is_nil(synthesizer) <- Synthesizer.for_locale(concept.locale),
-               %DisplayValue{} = display_value <- display_value(concept, true) do
-            synthesizer.feature_value(name, display_value, concept.constraints)
-          end
-
-        constraint ->
-          constraint
+        nil -> derived_feature_value(concept, name)
+        constraint -> constraint
       end
 
     Feature.to_public(concept.locale, name, value)
   end
 
   def feature_value(_concept, _name), do: nil
+
+  # A form from display data carries some of its own features, which
+  # upstream's SemanticConcept reads first; the rest, and every
+  # feature of a plain phrase, come from the locale's synthesizer.
+  defp derived_feature_value(concept, name) do
+    with %DisplayValue{} = display_value <- display_value(concept, true) do
+      own_value =
+        if concept.display_data != [], do: DisplayValue.feature_value(display_value, name)
+
+      own_value || synthesized_feature_value(concept, name, display_value)
+    end
+  end
+
+  defp synthesized_feature_value(concept, name, display_value) do
+    case Synthesizer.for_locale(concept.locale) do
+      nil -> nil
+      synthesizer -> synthesizer.feature_value(name, display_value, concept.constraints)
+    end
+  end
 
   @doc """
   Returns true when the concept can be rendered with its
@@ -265,7 +350,7 @@ defmodule Localize.Inflection.Concept do
   def to_speakable_string(concept),
     do: {:error, Localize.Utils.Helpers.invalid_value(concept, "a Localize.Inflection.Concept")}
 
-  defp display_value(%__MODULE__{} = concept, guess?) do
+  defp display_value(%__MODULE__{display_data: []} = concept, guess?) do
     synthesizer = Synthesizer.for_locale(concept.locale)
 
     result =
@@ -283,6 +368,50 @@ defmodule Localize.Inflection.Concept do
 
       nil ->
         nil
+    end
+  end
+
+  # A concept with display data renders as the first of its forms that
+  # holds every constraint, and otherwise as the locale's rules derive a
+  # form from them, as upstream's SemanticConcept does. The speak
+  # constraint takes no part in the match; it overrides the spoken form
+  # of whatever renders.
+  defp display_value(%__MODULE__{} = concept, guess?) do
+    forms = display_forms(concept)
+    constraints = without_speak(concept.constraints)
+
+    case Enum.find(forms, &holds_all?(&1, constraints)) do
+      %DisplayValue{} = form -> apply_speak(form, concept.constraints)
+      nil -> derived_display_value(concept, forms, guess?)
+    end
+  end
+
+  defp display_forms(concept) do
+    [
+      DisplayValue.new(concept.value, concept.initial)
+      | Enum.map(concept.display_data, fn {form, constraints} ->
+          DisplayValue.new(form, constraints)
+        end)
+    ]
+  end
+
+  defp holds_all?(%DisplayValue{constraints: form_constraints}, constraints) do
+    Enum.all?(constraints, fn {name, value} -> Map.get(form_constraints, name) == value end)
+  end
+
+  # The synthesizers inflect the first form, as upstream's display
+  # functions do.
+  defp derived_display_value(concept, forms, guess?) do
+    result =
+      case Synthesizer.for_locale(concept.locale) do
+        nil -> nil
+        synthesizer -> synthesizer.display_value(forms, concept.constraints, guess?)
+      end
+
+    case result do
+      %DisplayValue{} = display_value -> apply_speak(display_value, concept.constraints)
+      nil when guess? -> apply_speak(hd(forms), concept.constraints)
+      nil -> nil
     end
   end
 

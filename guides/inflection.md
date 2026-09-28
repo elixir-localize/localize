@@ -154,15 +154,30 @@ iex> Localize.Inflection.Concept.to_speakable_string(concept)
 "Häusern"
 ```
 
-* `new/3` accepts `:constraints` (features to apply when rendering) and `:initial` (features known to hold for the value itself, such as a proper noun's gender, used when deriving other features).
+* `new/3` accepts `:constraints` (features to apply when rendering), `:initial` (features known to hold for the value itself, such as a proper noun's gender, used when deriving other features) and `:display_data` (forms of the concept, described below).
 
 * `put_constraint/3` adds one constraint, validating the feature name and value against the locale's feature model.
 
-* `feature_value/2` returns a stored constraint or computes the feature from the display string.
+* `feature_value/2` returns a stored constraint, the feature of the form the concept renders as, or the feature computed from the display string.
 
 * `exists?/1` returns true when the constraints can be satisfied without guessing — useful to decide between a grammatical message variant and a neutral fallback.
 
 * `to_speakable_string/1` renders the concept.
+
+### Display data
+
+A concept can carry forms of its own, each with the features it has, for a word the dictionary lacks or inflects differently. It renders as the first form that holds every constraint put on it and takes that form's features; when no form does, the locale's rules inflect the value. This is the upstream semantic concept:
+
+```elixir
+iex> display_data = [{"octopodes", %{number: :plural}}]
+iex> {:ok, concept} = Localize.Inflection.Concept.new(:en, "octopus", display_data: display_data)
+iex> {:ok, plural} = Localize.Inflection.Concept.put_constraint(concept, :number, :plural)
+iex> Localize.Inflection.Concept.to_speakable_string(plural)
+"octopodes"
+iex> {:ok, definite} = Localize.Inflection.Concept.put_constraint(concept, :definiteness, :definite)
+iex> Localize.Inflection.Concept.to_speakable_string(definite)
+"the octopus"
+```
 
 ### Speakable strings
 
@@ -337,7 +352,7 @@ iex> Localize.Message.format(message, %{object: "lights on the porch"}, locale: 
 {:ok, "The lights on the porch are on."}
 ```
 
-A phrase or noun operand may be a `Localize.Inflection.Concept` instead of a string, and a pronoun operand a `Localize.Inflection.PronounConcept`, which can carry pronouns of its own in `:display_data`. A concept is also an option value to agree with, so `gender=$p` takes the gender of the pronoun concept `$p`:
+A phrase or noun operand may be a `Localize.Inflection.Concept` instead of a string, including one with forms of its own in `:display_data` (upstream's semantic concept), and a pronoun operand a `Localize.Inflection.PronounConcept`, which can carry pronouns of its own the same way. A concept is also an option value to agree with, so `gender=$p` takes the gender of the pronoun concept `$p`:
 
 ```elixir
 iex> {:ok, he} = Localize.Inflection.PronounConcept.new(:en, initial_pronoun: "he")
@@ -345,7 +360,7 @@ iex> Localize.Message.format("{theirs :i:pronoun gender=$p}", %{p: he}, locale: 
 {:ok, "his"}
 ```
 
-The functions need the locale's inflection data present, except `:i:numeral`, which uses the locale's RBNF rules; a missing locale or absent data resolves to an error rather than crashing the format. Upstream's semantic concepts, which carry their own form for each set of constraints, and its speak output are not supported yet.
+The functions need the locale's inflection data present, except `:i:numeral`, which uses the locale's RBNF rules; a missing locale or absent data resolves to an error rather than crashing the format. The functions give the printed form; upstream's speak output is not supported yet.
 
 ## Error handling
 

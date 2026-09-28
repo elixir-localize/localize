@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-* `Localize.Inflection` inflects words for grammatical constraints from CLDR's inflection data — `inflect("Haus", :de, %{case: "dative", number: "plural"})` gives "Häusern" — with `pronoun/2,3` and `quantify/4`. Data for 48 languages comes from `mix localize.download_inflection`.
+* `Localize.Inflection` inflects words for grammatical constraints from CLDR's inflection data — `inflect("Haus", :de, %{case: "dative", number: "plural"})` gives "Häusern" — with `pronoun/2,3`, `quantify/4`, and concepts that carry forms of their own as `:display_data`. Data for 48 languages comes from `mix localize.download_inflection`.
 
 * MessageFormat 2 gains inflection functions in the Unicode inflection project's `i:` namespace, with its option names, `to` and `withReferent`, and selection — `{$w :i:inflect case=dative}`, `:i:pronoun`, `:i:quantify`, `:i:list` and `:i:numeral`. `Localize.Message.Namespace` lets an application own a custom namespace with one handler, registered with `:namespaces` or `:mf2_namespaces`.
 

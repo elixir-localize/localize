@@ -12,9 +12,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ### Upstream parity for the MF2 `i:` functions
 
-* [ ] **Semantic concepts as `i:` operands** — upstream's semantic concepts carry a form for each set of constraints (the `ru` fixtures' concept has twelve case and number forms), as operands of `:i:inflect` and `:i:quantify`; `Localize.Inflection.Concept` has no display data. The oracle is unicode-org/inflection's `test/resources/inflection/message2/*.xml`; see [plans/mf2-namespace-inflection.md](plans/mf2-namespace-inflection.md).
-
-* [ ] **Print and speak output for the `i:` functions** — upstream can emit a result's speak line (`:i:numeral withStyle=asSpokenWords` speaks "four", `:i:quantify` speaks "un niño"); our MF2 output carries only the print form.
+* [ ] **Print and speak output for the `i:` functions** — upstream can emit a result's speak line (`:i:numeral withStyle=asSpokenWords` speaks "four", `:i:quantify` speaks "un niño"); our MF2 output carries only the print form. The oracle is unicode-org/inflection's `test/resources/inflection/message2/*.xml`; see [plans/mf2-namespace-inflection.md](plans/mf2-namespace-inflection.md).
 
 ## In progress
 
@@ -33,6 +31,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Semantic concepts as `i:` operands** — `Localize.Inflection.Concept` takes `:display_data`, forms of its own for sets of constraints as upstream's semantic concepts have, so all 49 upstream MF2 fixtures pass on their print lines. 2026-09-29, v1.4.0.
 
 * [x] **`to=` on `:i:inflect` and `:i:pronoun`** — gives the operand's value for a feature (`to=number` gives `plural`), printing the operand for an unknown feature, as upstream does. 2026-09-29, v1.4.0.
 
