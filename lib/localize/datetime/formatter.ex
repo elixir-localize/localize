@@ -1106,10 +1106,12 @@ defmodule Localize.DateTime.Formatter do
     Map.put(options, :displayed_precision, precision)
   end
 
-  # The locale's day-period rules are keyed by language code.
+  # The day-period rules are keyed by language code. They follow the
+  # loaded locale data, whose day period names they select.
   defp day_period_rules(locale_id) do
     language =
       locale_id
+      |> Localize.Locale.data_locale_id()
       |> Kernel.to_string()
       |> String.split("-")
       |> hd()

@@ -750,6 +750,37 @@ defmodule Localize.Locale do
     end
   end
 
+  @doc """
+  Returns the id of the locale whose data is loaded for a locale.
+
+  When a locale has no data, the loader stores the data of a parent
+  locale or of `:en` in its place (see
+  `Localize.Locale.Provider.load_with_fallback/2`). Language rules,
+  such as plural rules and day period rules, must then come from the
+  locale of that data, so that they agree with its text. Territory
+  preferences, such as the currency and the first day of the week,
+  still come from the requested locale.
+
+  ### Arguments
+
+  * `locale` is a locale identifier atom or a `t:Localize.LanguageTag.t/0`.
+
+  ### Returns
+
+  * The locale identifier atom of the loaded data. It is the CLDR
+    locale id of `locale` unless its data came from a fallback.
+
+  * Raises if the locale data cannot be loaded.
+
+  ### Examples
+
+      iex> Localize.Locale.data_locale_id(:"de-CH")
+      :"de-CH"
+
+  """
+  @spec data_locale_id(Provider.locale()) :: locale_id()
+  def data_locale_id(locale), do: get!(locale, [:name])
+
   # Dispatch table for the `:fallback` and `:fallback_to_default`
   # option combinations. The clause heads encode the policy so the
   # bodies stay one or two lines each; the hot success path in `get/3`

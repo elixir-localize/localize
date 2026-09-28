@@ -122,7 +122,7 @@ defmodule Localize.Number.Rbnf do
         resolved_name,
         rule_set.rules,
         all_rule_sets,
-        requested_id
+        %{locale: requested_id, plural_locale: Localize.Locale.data_locale_id(locale_id)}
       )
     else
       {:error, %Localize.UnknownRbnfRuleError{}} ->
