@@ -781,10 +781,10 @@ defmodule Localize.Calendar do
   def localize(datetime, part, options \\ [])
 
   def localize(datetime, :era, options) when is_keyword_list(options) do
-    {_, era} = day_of_era(datetime)
-    era_key = if options[:era] == :variant, do: -era - 1, else: era
-
-    display_name(:era, era_key, localize_options(datetime, options))
+    with {:ok, era} <- era_of(datetime) do
+      era_key = if options[:era] == :variant, do: -era - 1, else: era
+      display_name(:era, era_key, localize_options(datetime, options))
+    end
   end
 
   def localize(datetime, :quarter, options) when is_keyword_list(options) do
@@ -1234,30 +1234,118 @@ defmodule Localize.Calendar do
 
   defp calendar_type_from(_), do: @default_calendar_type
 
-  # For dates carrying a non-`Calendar.ISO` calendar module
-  # (e.g. `Calendrical.Japanese`, `Calendrical.Buddhist`), the
-  # calendar's `year_of_era/3` callback returns the correct
-  # `{era_year, era_index}` for the date. The earlier
-  # year>0 → era 1 fallback is only safe for Gregorian.
-  defp day_of_era(%{year: year, month: month, day: day, calendar: calendar})
-       when is_atom(calendar) and calendar != Calendar.ISO do
-    Code.ensure_loaded?(calendar)
+  @doc false
+  # The year of era and the era of a date, whole or partial, from its
+  # calendar's `year_of_era/3`. `{:error, fields}` names the fields that
+  # would settle an era the date leaves open.
+  @spec year_of_era(term()) :: {:ok, {Calendar.year(), Calendar.era()}} | {:error, [atom()]}
+  def year_of_era(date), do: settle(date, &year_of_era_on/2)
 
-    if function_exported?(calendar, :year_of_era, 3) do
-      case calendar.year_of_era(year, month, day) do
-        {era_year, era} when is_integer(era) -> {era_year, era}
-        _ -> default_day_of_era(year)
-      end
+  @doc false
+  # The year a date shows: Calendrical's `calendar_year/3` where the
+  # calendar has one, which in the Japanese calendar is the year of its
+  # era, and otherwise the year of era, so a year before the first counts
+  # as TR35 counts it — year 0 is 1 BC.
+  @spec displayed_year(term()) :: {:ok, Calendar.year()} | {:error, [atom()]}
+  def displayed_year(date), do: settle(date, &displayed_year_on/2)
+
+  # A whole date is one day, and a partial one could be any day of its
+  # month, or of its year when it has no month, so the answer is taken on
+  # the first and the last of them and stands when the two agree. They
+  # always do where eras begin with years. Where one began mid-year, as in
+  # the Japanese calendar, a date in the year or month of the change gets
+  # the fields that would settle it instead.
+  defp settle(%{year: year} = date, answer) when is_integer(year) do
+    calendar = era_calendar(date)
+    {first, last} = date_span(date, calendar, year)
+    first_answer = answer.(calendar, first)
+
+    if first == last or answer.(calendar, last) == first_answer do
+      {:ok, first_answer}
     else
-      default_day_of_era(year)
+      {:error, unsettled_fields(first, last)}
     end
   end
 
-  defp day_of_era(%{year: year}), do: default_day_of_era(year)
-  defp day_of_era(_), do: {:current, 1}
+  defp settle(_date, _answer), do: {:error, [:year]}
 
-  defp default_day_of_era(year) when year > 0, do: {:current, 1}
-  defp default_day_of_era(_), do: {:before_current, 0}
+  # The era `localize/3` names. A value without a year names the current
+  # era, as the other parts name their first value; one whose days span two
+  # eras is an error naming the fields that would settle it.
+  defp era_of(%{year: year} = datetime) when is_integer(year) do
+    case year_of_era(datetime) do
+      {:ok, {_year_of_era, era}} ->
+        {:ok, era}
+
+      {:error, fields} ->
+        {:error, Localize.DateTimeInvalidInputError.exception(format: "G", missing: fields)}
+    end
+  end
+
+  defp era_of(_datetime), do: {:ok, 1}
+
+  # A date's calendar module when it has a loaded one, and otherwise
+  # `Calendar.ISO`.
+  defp era_calendar(%{calendar: calendar}) when is_atom(calendar) and not is_nil(calendar) do
+    if Code.ensure_loaded?(calendar), do: calendar, else: Calendar.ISO
+  end
+
+  defp era_calendar(_date), do: Calendar.ISO
+
+  # The first and last days a date could be: itself when it has a month and
+  # a day, its month when it has a month the calendar has, and otherwise its
+  # year. A calendar without the callbacks to measure them is measured as
+  # `Calendar.ISO` is.
+  defp date_span(%{month: month, day: day}, _calendar, year)
+       when is_integer(month) and is_integer(day) do
+    {{year, month, day}, {year, month, day}}
+  end
+
+  defp date_span(date, calendar, year) do
+    measure = span_calendar(calendar)
+    month = Map.get(date, :month)
+
+    if is_integer(month) and measure.valid_date?(year, month, 1) do
+      {{year, month, 1}, {year, month, measure.days_in_month(year, month)}}
+    else
+      last_month = measure.months_in_year(year)
+      {{year, 1, 1}, {year, last_month, measure.days_in_month(year, last_month)}}
+    end
+  end
+
+  defp span_calendar(calendar) do
+    if function_exported?(calendar, :valid_date?, 3) and
+         function_exported?(calendar, :days_in_month, 2) and
+         function_exported?(calendar, :months_in_year, 1) do
+      calendar
+    else
+      Calendar.ISO
+    end
+  end
+
+  defp unsettled_fields({_year, month, _first_day}, {_last_year, month, _last_day}), do: [:day]
+  defp unsettled_fields(_first, _last), do: [:month, :day]
+
+  # A calendar without `year_of_era/3`, or whose answer is malformed, counts
+  # its years as `Calendar.ISO` does.
+  defp year_of_era_on(calendar, {year, month, day}) do
+    answer =
+      if function_exported?(calendar, :year_of_era, 3),
+        do: calendar.year_of_era(year, month, day)
+
+    case answer do
+      {year_of_era, era} when is_integer(year_of_era) and is_integer(era) -> answer
+      _none_or_malformed -> Calendar.ISO.year_of_era(year, month, day)
+    end
+  end
+
+  defp displayed_year_on(calendar, {year, month, day} = date) do
+    if function_exported?(calendar, :calendar_year, 3) do
+      calendar.calendar_year(year, month, day)
+    else
+      calendar |> year_of_era_on(date) |> elem(0)
+    end
+  end
 
   defp quarter_of_year(%{month: month}) when is_integer(month) do
     div(month - 1, 3) + 1

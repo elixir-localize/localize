@@ -14,7 +14,11 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Choose a fixed-offset representation that `DateTime` functions honour** — Localize and Calendrical carry an offset such as `-05:00` under `Etc/UTC`, so `DateTime.shift_zone(parsed, "Etc/UTC")` returns it unchanged. The MF2 interpreter converts from the instant instead; `Etc/GMT+5` or an offset string would need both libraries to change together.
 
-* [ ] **An era needs a whole date, even where the year alone decides it** — the formatter asks for the month and day of any `G` field, so a year and month fail with `:Gy`, `year_style: :with_era` or `th`'s long semantic `YM`, whose year carries its era.
+* [ ] **Report `pt`'s `GyMMMM` to CLDR** — CLDR gives it as "MMMM 'de' Y G", with the week-based year `Y` where every sibling format has `y`, so 2025-12-29 renders "dezembro de 2026 d.C.".
+
+* [ ] **Calendrical calendars show a year before their first era as a signed year** — `Calendrical.Gregorian` year 0 renders "0 BC" and `Calendrical.Roc` year -5 "-5 B.R.O.C." where `Calendar.ISO` gives "1 BC": Localize prefers `calendar_year/3`, which returns the year as it is, over `year_of_era/3`. Decide whether the fix is Localize's or Calendrical's.
+
+* [ ] **`Localize.Calendar.localize/3` names the first value of a part the date lacks** — a map without a month is January, the first quarter and a Monday, and one without a year the current era; characterization tests pin this. Decide whether they should be errors.
 
 * [ ] **Settle TR35's `Auto` zone style with CLDR** — TR35 makes it the default but its mapping table gives it no row, so Localize defaults to `:specific`; ICU4X offers no automatic style at all.
 
@@ -35,6 +39,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **An era for a partial date** — its era and year of era are those its days agree on, so a year and month take `:Gy`, `year_style: :with_era` and `th`'s long `YM`; a Japanese date spanning two eras names the fields that settle it. 2026-09-29, v1.4.0.
 
 * [x] **`SemanticSkeleton` rejects the field sets and options TR35 does not allow** — `new/2` takes TR35's 34 field sets in any order and refuses an option given without the fields it applies to; the formatters check a struct built by hand rather than raising on it. 2026-09-29, v1.4.0.
 

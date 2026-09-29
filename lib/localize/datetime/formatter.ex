@@ -73,7 +73,7 @@ defmodule Localize.DateTime.Formatter do
   # absent because TR35 defines a fallback for each, and a zoneless value
   # renders them empty.
   @required_fields %{
-    era: [:year, :month, :day],
+    era: [:year],
     year: [:year],
     week_aligned_year: [:year, :month, :day],
     extended_year: [:year],
@@ -687,6 +687,7 @@ defmodule Localize.DateTime.Formatter do
 
     missing = Enum.reject(fields, &Map.has_key?(value, &1))
     invalid = Enum.reject(fields -- missing, &valid_field?(&1, Map.get(value, &1)))
+    missing = Enum.uniq(missing ++ unsettled_era_fields(value, tokens, missing ++ invalid))
 
     if missing == [] and invalid == [] do
       :ok
@@ -699,6 +700,29 @@ defmodule Localize.DateTime.Formatter do
        )}
     end
   end
+
+  # An era, and a year counted in one, need only the year where the
+  # calendar's eras begin with its years. Where one began mid-year, as in
+  # the Japanese calendar, a partial date in the year or month of the
+  # change also needs the fields that settle which era it falls in.
+  defp unsettled_era_fields(value, tokens, unusable) do
+    handlers =
+      for {handler, _line, _count} <- tokens, handler in [:era, :year], uniq: true, do: handler
+
+    if handlers == [] or :year in unusable do
+      []
+    else
+      Enum.flat_map(handlers, &era_answer_fields(&1, value))
+    end
+  end
+
+  defp era_answer_fields(:era, value), do: settled_fields(Localize.Calendar.year_of_era(value))
+
+  defp era_answer_fields(:year, value),
+    do: settled_fields(Localize.Calendar.displayed_year(value))
+
+  defp settled_fields({:ok, _answer}), do: []
+  defp settled_fields({:error, fields}), do: fields
 
   defp valid_field?(:microsecond, {microsecond, precision}),
     do: is_integer(microsecond) and is_integer(precision)
@@ -744,7 +768,7 @@ defmodule Localize.DateTime.Formatter do
   # ── Era (G) ────────────────────────────────────────────────
 
   @doc false
-  def era(date, count, locale_id, options) when is_date(date) do
+  def era(date, count, locale_id, options) when is_map_key(date, :year) do
     format = if count in 4..5, do: format_for_count(count), else: :abbreviated
     localize_part(date, :era, locale: locale_id, style: format, era: options[:era])
   end
@@ -878,34 +902,20 @@ defmodule Localize.DateTime.Formatter do
   # For era-aware calendars implementing the Calendrical
   # behaviour, `calendar_year/3` returns the displayed
   # calendar year (Heisei 12, BE 2543, AH 1420) — which is
-  # what CLDR's `y` token wants. We prefer it over
-  # `year_of_era/3` because the latter returns a Julian-day-
-  # derived counter that varies by calendar convention.
-  #
-  # `Calendar.ISO` takes the `year_of_era/3` branch (it exports
-  # no `calendar_year/3`), so BCE dates render era-relative per
-  # TR35: year -1 is "2" (with era "BC"), year 0 is "1" — never
-  # a signed proleptic year like "-1 BC".
-  defp era_year(%{year: year, month: month, day: day, calendar: calendar})
-       when is_atom(calendar) do
-    Code.ensure_loaded?(calendar)
-
-    cond do
-      function_exported?(calendar, :calendar_year, 3) ->
-        calendar.calendar_year(year, month, day)
-
-      function_exported?(calendar, :year_of_era, 3) ->
-        case calendar.year_of_era(year, month, day) do
-          {era_year, _era} -> era_year
-          _ -> year
-        end
-
-      true ->
-        year
+  # what CLDR's `y` token wants. `Calendar.ISO` exports no
+  # `calendar_year/3` and takes its `year_of_era/3`, so BCE
+  # dates render era-relative per TR35: year -1 is "2" (with
+  # era "BC"), year 0 is "1" — never a signed proleptic year
+  # like "-1 BC". A partial date shows the year its days agree
+  # on, and `validate_fields/3` has already asked for the
+  # fields of one whose days do not, so its own year is only
+  # a fallback.
+  defp era_year(%{year: year} = date) do
+    case Localize.Calendar.displayed_year(date) do
+      {:ok, displayed} -> displayed
+      {:error, _fields} -> year
     end
   end
-
-  defp era_year(%{year: year}), do: year
 
   # ── Week-aligned year (Y) ──────────────────────────────────
 

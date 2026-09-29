@@ -126,6 +126,13 @@ iex> Exception.message(error)
 "The format \"MMM d, y\" cannot be applied to the value: missing :day."
 ```
 
+An era needs only the year wherever a calendar's eras begin with its years. In the Japanese calendar, whose eras begin mid-year, a partial date in the year or month an era began is an error naming the fields that would settle it:
+
+```elixir
+iex> Localize.Date.to_string(%{year: 2024, month: 6}, format: :GyMMM, locale: :en)
+{:ok, "Jun 2024 AD"}
+```
+
 ### Locale influence on dates
 
 Different locales produce different patterns, field orders, and calendar names:

@@ -88,6 +88,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A partial date shows its era and year of era as its days do — `%{year: 2025, month: 1}` with `:GyMMM` is "Jan 2025 AD" where the era was blank, and `%{year: 0}` is year "1" — and a Japanese one whose days span two eras returns an error naming the fields that settle it.
+
 * The short localized GMT format of a whole hour keeps the offset pattern up to its hour field, as ICU does, so `he`'s "GMT-5" carries one left-to-right mark where it carried two.
 
 * A binary that is not UTF-8 is an error wherever Localize reads text — number and unit parsing, number and date/time patterns, territory names, collation and inflection — where it raised `ArgumentError` or `UnicodeConversionError`. `Localize.Unit.parse(<<255>>)` returns `Localize.InvalidValueError`.
