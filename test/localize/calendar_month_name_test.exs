@@ -32,6 +32,9 @@ defmodule Localize.CalendarMonthNameTest do
     def month_of_year(4660, 3, _day), do: {2, :leap}
     def month_of_year(4660, month, _day) when month > 3, do: month - 1
     def month_of_year(_year, month, _day), do: month
+
+    # Year 4660 began in Gregorian 2023.
+    def related_gregorian_year(year, _month, _day), do: year - 2637
   end
 
   defmodule Unanswering do
@@ -77,6 +80,40 @@ defmodule Localize.CalendarMonthNameTest do
       assert month_name(4660, 4, Chinese) == "Third Month"
       assert month_name(4660, 2, Chinese) == "Second Month"
     end
+  end
+
+  # ICU4C 78.3 writes a lunisolar month as its number among the traditional
+  # months, and a leap month in CLDR's numeric leap pattern: Gregorian
+  # 2023-04-01 is day 11 of the leap second month of Chinese year 4660,
+  # "2bis/11/2023" in `en` and "2023/闰2/11" in `zh`, and the months after it
+  # keep their numbers. It numbers the Hebrew months by their place in the
+  # year: Nisan is 8 in the leap year 5784 and 7 in the ordinary year 5785.
+  describe "a month written as a number" do
+    test "a lunisolar month is its traditional number, a leap month in the leap pattern" do
+      assert format(%{year: 4660, month: 2, day: 19}, Chinese, "M/d/r", :en) == "2/19/2023"
+      assert format(%{year: 4660, month: 3, day: 11}, Chinese, "M/d/r", :en) == "2bis/11/2023"
+      assert format(%{year: 4660, month: 4, day: 12}, Chinese, "M/d/r", :en) == "3/12/2023"
+      assert format(%{year: 4660, month: 11, day: 19}, Chinese, "M/d/r", :en) == "10/19/2023"
+      assert format(%{year: 4660, month: 3, day: 11}, Chinese, "r/M/d", :zh) == "2023/闰2/11"
+      assert format(%{year: 4660, month: 3, day: 11}, Chinese, "MM/dd/r", :en) == "02bis/11/2023"
+      assert format(%{year: 4660, month: 3, day: 11}, Chinese, "r/LL/dd", :zh) == "2023/闰02/11"
+    end
+
+    test "a partial lunisolar date writes its month and related year" do
+      assert format(%{year: 4660, month: 3}, Chinese, "M r", :en) == "2bis 2023"
+    end
+
+    test "a Hebrew month is its place in the year" do
+      assert format(%{year: 5784, month: 8, day: 12}, Hebrew, "M/d", :en) == "8/12"
+      assert format(%{year: 5785, month: 7, day: 12}, Hebrew, "M/d", :en) == "7/12"
+    end
+  end
+
+  defp format(date, calendar, pattern, locale) do
+    {:ok, formatted} =
+      Localize.Date.to_string(Map.put(date, :calendar, calendar), format: pattern, locale: locale)
+
+    formatted
   end
 
   describe "a month the calendar does not rename" do

@@ -981,12 +981,17 @@ defmodule Localize.DateTime.Formatter do
   defp cyclic_year_width(4), do: :wide
   defp cyclic_year_width(5), do: :narrow
 
-  defp cyclic_year_number(%{calendar: calendar, year: year} = date)
-       when is_atom(calendar) and is_date(date) do
+  # The cyclic year is constant through a calendar year, so a partial date
+  # is asked on the first day it could be.
+  defp cyclic_year_number(%{calendar: calendar, year: year} = date) when is_atom(calendar) do
     Code.ensure_loaded?(calendar)
 
     if function_exported?(calendar, :cyclic_year, 3) do
-      calendar.cyclic_year(year, date.month, date.day)
+      calendar.cyclic_year(
+        year,
+        integer_or(Map.get(date, :month), 1),
+        integer_or(Map.get(date, :day), 1)
+      )
     else
       year
     end
@@ -1009,12 +1014,17 @@ defmodule Localize.DateTime.Formatter do
 
   def related_year(_date, _count, _locale_id, _options), do: ""
 
-  defp related_year_number(%{calendar: calendar, year: year} = date)
-       when is_atom(calendar) and is_date(date) do
+  # The related year is constant through a calendar year, so a partial
+  # date is asked on the first day it could be.
+  defp related_year_number(%{calendar: calendar, year: year} = date) when is_atom(calendar) do
     Code.ensure_loaded?(calendar)
 
     if function_exported?(calendar, :related_gregorian_year, 3) do
-      calendar.related_gregorian_year(year, date.month, date.day)
+      calendar.related_gregorian_year(
+        year,
+        integer_or(Map.get(date, :month), 1),
+        integer_or(Map.get(date, :day), 1)
+      )
     else
       year
     end
@@ -1072,11 +1082,9 @@ defmodule Localize.DateTime.Formatter do
   # ── Month (M) ──────────────────────────────────────────────
 
   @doc false
-  def month(%{month: month}, 1, locale_id, options),
-    do: month |> apply_ns(locale_id, options, "M")
-
-  def month(%{month: month}, 2, locale_id, options),
-    do: pad(month, 2) |> apply_ns(locale_id, options, "M")
+  def month(%{month: month} = date, count, locale_id, options)
+      when is_integer(month) and count in 1..2,
+      do: numeric_month(date, count, locale_id, options, "M")
 
   def month(date, count, locale_id, _options) when has_month(date) and count in 3..5 do
     format = format_for_count(count)
@@ -1088,11 +1096,9 @@ defmodule Localize.DateTime.Formatter do
   # ── Standalone Month (L) ───────────────────────────────────
 
   @doc false
-  def standalone_month(%{month: month}, 1, locale_id, options),
-    do: month |> apply_ns(locale_id, options, "L")
-
-  def standalone_month(%{month: month}, 2, locale_id, options),
-    do: pad(month, 2) |> apply_ns(locale_id, options, "L")
+  def standalone_month(%{month: month} = date, count, locale_id, options)
+      when is_integer(month) and count in 1..2,
+      do: numeric_month(date, count, locale_id, options, "L")
 
   def standalone_month(date, count, locale_id, _options) when has_month(date) and count in 3..5 do
     format = format_for_count(count)
@@ -1105,6 +1111,46 @@ defmodule Localize.DateTime.Formatter do
   end
 
   def standalone_month(_date, _count, _locale_id, _options), do: ""
+
+  # A lunisolar calendar writes a month's number among the traditional
+  # months, and a leap month in CLDR's numeric leap pattern, so the leap
+  # second month is "2bis" in `en` and "闰2" in `zh` and the months after it
+  # keep their numbers, as ICU4C writes them. Any other calendar writes a
+  # month's place in its year, which is how ICU numbers the Hebrew months.
+  defp numeric_month(%{month: month} = date, count, locale_id, options, field) do
+    {number, leap_pattern} = lunisolar_month(date, locale_id) || {month, nil}
+    formatted = number |> pad(count) |> apply_ns(locale_id, options, field)
+
+    case leap_pattern do
+      nil -> formatted
+      pattern -> [formatted] |> Localize.Substitution.substitute(pattern) |> IO.iodata_to_binary()
+    end
+  end
+
+  # The traditional number of a month in a calendar CLDR gives a numeric
+  # leap-month pattern, with that pattern for a leap month, from the
+  # calendar's `month_of_year/3`. The number does not depend on the day.
+  defp lunisolar_month(%{year: year, month: month, calendar: calendar} = date, locale_id)
+       when is_integer(year) and is_atom(calendar) do
+    with true <- Code.ensure_loaded?(calendar),
+         true <- function_exported?(calendar, :month_of_year, 3),
+         {:ok, patterns} <-
+           Localize.Calendar.month_patterns(locale_id, cldr_calendar_for_datetime(date)),
+         [_ | _] = leap_pattern <- get_in(patterns, [:numeric, :all, :leap]) do
+      case calendar.month_of_year(year, month, integer_or(Map.get(date, :day), 1)) do
+        {number, :leap} when is_integer(number) -> {number, leap_pattern}
+        number when is_integer(number) -> {number, nil}
+        _other -> nil
+      end
+    else
+      _not_lunisolar -> nil
+    end
+  end
+
+  defp lunisolar_month(_date, _locale_id), do: nil
+
+  defp integer_or(value, _default) when is_integer(value), do: value
+  defp integer_or(_value, default), do: default
 
   # ── Week of Year (w) ───────────────────────────────────────
 

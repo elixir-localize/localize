@@ -16,7 +16,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Report `pt`'s `GyMMMM` to CLDR** — CLDR gives it as "MMMM 'de' Y G", with the week-based year `Y` where every sibling format has `y`, so 2025-12-29 renders "dezembro de 2026 d.C.".
 
-* [ ] **Lunisolar dates do not parse back** — `Calendrical.Chinese`, `Korean`, `Vietnamese` and `LunarJapanese` dates formatted with `:GyMMMd` in `en` ("Mo2 16, 2025") fail to parse, whatever the year.
+* [ ] **Lunisolar dates do not parse back** — `Calendrical.Chinese`, `Korean`, `Vietnamese` and `LunarJapanese` dates formatted with `:GyMMMd` in `en` ("Mo2 16, 2025") fail to parse, whatever the year: the parser has no `r` or `U` field, no leap-month pattern ("Mo2bis", "闰二月") and no `hanidays` day numerals (`zh`'s "初一").
 
 * [ ] **Calendrical callbacks that raise or disagree reach Localize's formatting** — Coptic and Ethiopic `year_of_era/3` raise for year 0, which `valid_date?/3` accepts; the Japanese calendars raise before their first era; `Reform.Japan`'s `calendar_year/3` gives the raw year (1000) where its era year is 21; and the Julian calendars whose year begins in March, September or on December 25 write two years alike ("Mar 17, 1 AD" for years 0 and 1), so those dates cannot parse back. The fixes are Calendrical's.
 
@@ -41,6 +41,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Lunisolar numeric months match ICU4C** — a numeric month is its traditional number, a leap month in CLDR's numeric leap pattern, and a partial date writes its related and cyclic year; every fifth day of 2020–2026 in the Chinese and Dangi calendars formats as ICU4C does (477 differed). 2026-09-29, v1.4.0.
 
 * [x] **The date parser reads a signed year** — the `y` field takes a leading minus, so a calendar without a before era reads back the year below 1 it writes ("Mar 15, -456 BE"); Calendrical's Buddhist and Indian round trips now pass. 2026-09-29, v1.4.0.
 

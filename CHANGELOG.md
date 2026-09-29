@@ -88,6 +88,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A lunisolar month written as a number is its traditional number, and a leap month is in CLDR's numeric leap pattern, as ICU4C writes them — the Chinese leap second month is "2bis" in `en` and "闰2" in `zh` where it was its place in the year. A partial lunisolar date writes its related and cyclic year.
+
 * The date parser reads a year written with its sign, as a calendar without a before era writes one below 1 — "Mar 15, -456 BE" in the Buddhist calendar — and never pivots a signed year.
 
 * The date and interval parsers read a year with its era in every calendar, as the formatter writes it — "Jun 1, 44 BC" is -0043-06-01 where it was 2044-06-01 and "1 BC" is year 0 — and no longer pivot a two-digit year its era qualifies.
