@@ -9,6 +9,10 @@ defmodule Localize.DateParseEraTest do
   takes a year its era qualifies as written, and keeps the pivot for a year
   written without one.
 
+  A calendar without a before era writes a year below 1 with its sign, as
+  Calendrical's Buddhist and Indian calendars do ("Mar 15, -456 BE"), and
+  that parses back too.
+
   The sweep's reference is the formatter: every date it writes with an era,
   in every preloaded locale, parses back to itself.
 
@@ -25,6 +29,21 @@ defmodule Localize.DateParseEraTest do
     def calendar_year(year, _month, _day), do: year
     def year_of_era(year, _month, _day) when year > 0, do: {year, 1}
     def year_of_era(year, _month, _day), do: {-year, 0}
+
+    defdelegate valid_date?(year, month, day), to: Calendar.ISO
+    defdelegate days_in_month(year, month), to: Calendar.ISO
+    defdelegate months_in_year(year), to: Calendar.ISO
+    defdelegate date_to_string(year, month, day), to: Calendar.ISO
+  end
+
+  # A calendar with no before era, numbering its years as Calendrical's
+  # Buddhist calendar does, so a year below 1 is written with its sign.
+  defmodule NoBeforeEra do
+    @moduledoc false
+
+    def cldr_calendar_type, do: :buddhist
+    def calendar_year(year, _month, _day), do: year
+    def year_of_era(year, _month, _day), do: {year, 0}
 
     defdelegate valid_date?(year, month, day), to: Calendar.ISO
     defdelegate days_in_month(year, month), to: Calendar.ISO
@@ -66,6 +85,27 @@ defmodule Localize.DateParseEraTest do
                Localize.Interval.parse("Mar 15 – 20, 44", locale: :en)
 
       assert year > 1999
+    end
+  end
+
+  describe "a year written with its sign" do
+    test "parses back in a calendar without a before era" do
+      assert Localize.Date.parse("Mar 15, -456 BE", locale: :en, calendar: NoBeforeEra, as: :map) ==
+               {:ok, %{calendar: NoBeforeEra, year: -456, month: 3, day: 15}}
+
+      for locale <- [:en, :th], year <- [-456, -1, 0, 2568] do
+        date = %{year: year, month: 3, day: 15, calendar: NoBeforeEra}
+        {:ok, text} = Localize.Date.to_string(date, format: :GyMMMd, locale: locale)
+
+        assert Localize.Date.parse(text, locale: locale, calendar: NoBeforeEra, as: :map) ==
+                 {:ok, date},
+               "#{locale} #{inspect(text)}"
+      end
+    end
+
+    test "takes either minus sign and is never pivoted" do
+      assert Localize.Date.parse("Jun 1, -4", locale: :en) == {:ok, ~D[-0004-06-01]}
+      assert Localize.Date.parse("Jun 1, −4", locale: :en) == {:ok, ~D[-0004-06-01]}
     end
   end
 

@@ -88,6 +88,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* The date parser reads a year written with its sign, as a calendar without a before era writes one below 1 — "Mar 15, -456 BE" in the Buddhist calendar — and never pivots a signed year.
+
 * The date and interval parsers read a year with its era in every calendar, as the formatter writes it — "Jun 1, 44 BC" is -0043-06-01 where it was 2044-06-01 and "1 BC" is year 0 — and no longer pivot a two-digit year its era qualifies.
 
 * A year before a Calendrical calendar's first era counts back from the era, as TR35 and `Calendar.ISO` count it — `Calendrical.Gregorian` year 0 is "1 BC" and `Calendrical.Roc` year -5 "6 B.R.O.C." — where it showed the year as it is, "0 BC".

@@ -852,7 +852,7 @@ defmodule Localize.Date.Parser do
         nil
 
       raw ->
-        case Integer.parse(raw) do
+        case parse_year(raw) do
           {n, ""} ->
             maybe_pivot_two_digit_year(n, raw, era_index, reference_year, calendar_module)
 
@@ -862,12 +862,14 @@ defmodule Localize.Date.Parser do
     end
   end
 
+  defp parse_year(raw), do: raw |> String.replace("−", "-") |> Integer.parse()
+
   # The 2-digit-year pivot is a Gregorian convention (see the
   # note on `extract_year_field/4`) for a year written without
   # its era. Non-Gregorian years, and a year its era qualifies
   # ("44 BC", "44 AD"), are taken literally.
   defp maybe_pivot_two_digit_year(n, raw, nil = _era_index, reference_year, calendar_module) do
-    if cldr_calendar_type(calendar_module) == :gregorian and String.length(raw) == 2 do
+    if cldr_calendar_type(calendar_module) == :gregorian and two_digits?(raw) do
       pivot_year(n, reference_year)
     else
       n
@@ -875,6 +877,10 @@ defmodule Localize.Date.Parser do
   end
 
   defp maybe_pivot_two_digit_year(n, _raw, _era_index, _reference_year, _calendar_module), do: n
+
+  # Two unsigned digits: "-4" is two characters, but a signed year is
+  # written in full.
+  defp two_digits?(raw), do: String.match?(raw, ~r/\A\d{2}\z/)
 
   defp extract_partial_month(caps, prefix) do
     case Map.get(caps, prefix <> "month") do
@@ -1709,11 +1715,14 @@ defmodule Localize.Date.Parser do
     {:plain, expand_literal(text, lenient)}
   end
 
+  # A calendar without a before era writes a year below 1 with its
+  # sign (`-456 BE`), as ASCII hyphen-minus or U+2212 MINUS SIGN; the
+  # two low-order digits of `yy` carry none.
   defp field_regex({:y, count}, _months, _eras, _lenient, _ctx) do
     regex =
       case count do
         2 -> "(?P<year>\\d{2})"
-        _ -> "(?P<year>\\d{1,4})"
+        _ -> "(?P<year>[-−]?\\d{1,4})"
       end
 
     {:capture, :year, regex}
@@ -2276,7 +2285,7 @@ defmodule Localize.Date.Parser do
   defp extract_year_field(caps, year_fallback, era_index, calendar_module) do
     case Map.get(caps, "year") || Map.get(caps, "week_based_year") do
       raw when is_binary(raw) and raw != "" ->
-        case Integer.parse(raw) do
+        case parse_year(raw) do
           {n, ""} ->
             reference_year = year_fallback || Date.utc_today().year
 

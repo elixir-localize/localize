@@ -16,8 +16,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Report `pt`'s `GyMMMM` to CLDR** — CLDR gives it as "MMMM 'de' Y G", with the week-based year `Y` where every sibling format has `y`, so 2025-12-29 renders "dezembro de 2026 d.C.".
 
-* [ ] **The date parser reads no signed year** — a calendar without a before era writes a year below 1 with its sign (`Calendrical.Buddhist` "Mar 15, -456 BE", `Calendrical.Indian` "-1078 Zaka"), and the `y` field accepts digits only.
-
 * [ ] **Lunisolar dates do not parse back** — `Calendrical.Chinese`, `Korean`, `Vietnamese` and `LunarJapanese` dates formatted with `:GyMMMd` in `en` ("Mo2 16, 2025") fail to parse, whatever the year.
 
 * [ ] **Calendrical callbacks that raise or disagree reach Localize's formatting** — Coptic and Ethiopic `year_of_era/3` raise for year 0, which `valid_date?/3` accepts; the Japanese calendars raise before their first era; `Reform.Japan`'s `calendar_year/3` gives the raw year (1000) where its era year is 21; and the Julian calendars whose year begins in March, September or on December 25 write two years alike ("Mar 17, 1 AD" for years 0 and 1), so those dates cannot parse back. The fixes are Calendrical's.
@@ -43,6 +41,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **The date parser reads a signed year** — the `y` field takes a leading minus, so a calendar without a before era reads back the year below 1 it writes ("Mar 15, -456 BE"); Calendrical's Buddhist and Indian round trips now pass. 2026-09-29, v1.4.0.
 
 * [x] **The date parser reads the era** — a year written with its era is found among the candidates its era could count to, checked through the formatter's own functions, so every date the formatter writes with an era parses back (1,392 across 29 locales); a year its era qualifies is not pivoted. 2026-09-29, v1.4.0.
 
