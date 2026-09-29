@@ -31,6 +31,10 @@ defmodule Localize.GuidesExamplesTest do
     # not itself an example.
     {"Localize.Unit.new(10, \"baume\")", "depends on a custom unit defined in prose above"},
     {":observer.start()", "observer is not available in a headless test run"},
+    # This suite configures `:tz`; the parse with no time zone database is
+    # asserted by `Localize.ZoneParseWithoutDatabaseTest`, which removes it.
+    {"Localize.DateTime.parse(\"May 16, 2026 2:30 PM Asia/Tokyo\"",
+     "shows the parse with no time zone database configured"},
     # `Localize.Unit.parse/2` examples document the *equivalent constructor
     # call* rather than the literal struct, which reads better and is not
     # machine-comparable.

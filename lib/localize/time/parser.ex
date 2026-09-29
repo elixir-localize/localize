@@ -32,10 +32,11 @@ defmodule Localize.Time.Parser do
   # equivalences for `:`, fractional separator, and surrounding
   # whitespace.
   #
-  # Time-zone tokens (`z`, `Z`, `v`, `V`, `x`, `X`, `O`) are
-  # captured permissively but not currently resolved to an IANA
-  # zone. See `Localize.DateTime.Parser` for the datetime
-  # case where timezone resolution actually matters.
+  # Time-zone tokens (`z`, `Z`, `v`, `V`, `x`, `X`, `O`) read any
+  # form of zone the locale writes, as
+  # `Localize.DateTime.Timezone.parse_zone/2` recognises them. A
+  # `Time` carries no zone; `Localize.DateTime.Parser` resolves
+  # it for a date-time.
   #
 
   alias Localize.Calendar, as: LCalendar
@@ -64,8 +65,9 @@ defmodule Localize.Time.Parser do
   @doc """
   Same as `parse/2` but also returns the captured time-zone
   string (or `nil` when the pattern carried no zone). The
-  `Localize.DateTime.Parser` uses this to feed
-  `Calendrical.TimeZone.resolve/3` for DateTime building.
+  `Localize.DateTime.Parser` resolves that zone with
+  `Localize.DateTime.Timezone.resolve/3` when it builds a
+  `DateTime`.
 
   In `as: :map` mode the first element is the field map (with
   `:time_zone` already embedded when a zone was captured); the
@@ -92,7 +94,7 @@ defmodule Localize.Time.Parser do
 
   # A zone captured in the map form carries the fields it resolves to
   # without a date — a fixed offset's `DateTime` zone fields, or else the
-  # name as captured (see `Localize.DateTime.Parser.zone_fields_for_map/3`).
+  # zone it names (see `Localize.DateTime.Parser.zone_fields_for_map/3`).
   defp put_map_zone_fields({:ok, %{} = map, zone}, options)
        when is_binary(zone) and not is_struct(map) do
     zone_fields = Localize.DateTime.Parser.zone_fields_for_map(zone, nil, options)
@@ -157,7 +159,7 @@ defmodule Localize.Time.Parser do
       # parser reads them.
       input
       |> Localize.Date.Parser.transliterate_digits(locale)
-      |> match_patterns(patterns, regexes, day_periods, as)
+      |> match_patterns(patterns, regexes, day_periods, as, locale)
       |> Kernel.||({:error, no_match_error(input, locale)})
     end
   end
@@ -213,11 +215,11 @@ defmodule Localize.Time.Parser do
   end
 
   # The first pattern that matches the input, or nil when none does.
-  defp match_patterns(input, patterns, regexes, day_periods, as) do
+  defp match_patterns(input, patterns, regexes, day_periods, as, locale) do
     Enum.find_value(patterns, fn {_kind, pattern} ->
       {regex, tokens} = Map.get(regexes, pattern, {nil, nil})
 
-      case match_pattern(input, regex, tokens, day_periods, as) do
+      case match_pattern(input, regex, tokens, day_periods, as, locale) do
         {:ok, value, zone} -> {:ok, value, zone}
         :error -> nil
       end
@@ -334,13 +336,29 @@ defmodule Localize.Time.Parser do
 
   # ── Pattern → regex ──────────────────────────────────────────
 
-  defp match_pattern(input, regex, tokens, day_periods, as) do
+  defp match_pattern(input, regex, tokens, day_periods, as, locale) do
     with %Regex{} <- regex,
          %{} = caps <- Regex.named_captures(regex, input),
-         {:ok, hour} <- extract_hour(caps, tokens, day_periods) do
-      build_match(as, caps, hour, extract_zone(caps))
+         {:ok, hour} <- extract_hour(caps, tokens, day_periods),
+         {:ok, zone} <- zone_capture(caps, locale) do
+      build_match(as, caps, hour, zone)
     else
       _ -> :error
+    end
+  end
+
+  # A zone field reads any text, so the pattern matches only where that
+  # text is a zone the locale writes, in any of TR35's forms.
+  defp zone_capture(caps, locale) do
+    case extract_zone(caps) do
+      nil ->
+        {:ok, nil}
+
+      zone ->
+        case Localize.DateTime.Timezone.parse_zone(zone, locale: locale) do
+          {:ok, _parsed_zone} -> {:ok, zone}
+          {:error, _not_a_zone} -> :error
+        end
     end
   end
 
@@ -495,40 +513,15 @@ defmodule Localize.Time.Parser do
   defp field_regex({:B, _count}, day_periods, _lenient),
     do: flex_period_regex(day_periods)
 
-  # Time zones (TR35 §Time Zone Parsing). Captures a strictly
-  # zone-shaped token under `zone`. The Time parser doesn't
-  # carry zone info (Time is wall-clock) so this is just
-  # validation to prevent false matches like "midnight"
-  # being eaten by a zone placeholder. The `DateTime` parser
-  # additionally resolves the captured value into an offset.
-  #
-  # Accepted shapes:
-  #   * `Z` — UTC marker
-  #   * `[+-]HHMM` / `[+-]HH:MM` / `[+-]HH:MM:SS` — ISO offsets
-  #   * `GMT` / `GMT[+-]H[:MM]` / `UTC[+-]...` — GMT format
-  #   * IANA region/city — e.g. `Asia/Tokyo` (capital letter +
-  #     slash + capital letter, optional underscores)
-  #   * Abbreviation — `PST`, `JST`, `BST` (3-5 uppercase letters)
-  #   * Locale name — `Pacific Time`, `Greenwich Mean Time`
-  #     (capital-led words; one-or-more space-separated)
+  # Time zones (TR35 §Time Zone Parsing). A zone is written in
+  # a locale's own words and spelling — "heure d’été de l’Est
+  # nord-américain", "UTC−4", "غرينتش-4", "heure : New York" —
+  # so the field captures the text the rest of the pattern
+  # leaves, and `zone_capture/2` keeps the match only where
+  # that text is a zone the locale writes, in any of TR35's
+  # forms, whichever the pattern's letter asks for.
   defp field_regex({letter, _count}, _dp, _lenient) when letter in [:z, :Z, :v, :V, :x, :X, :O] do
-    # Abbreviation. The lookahead excludes `AM`/`PM` so a
-    # generic-zone pattern like `"h:mm:ss v"` doesn't
-    # cannibalise inputs ending in an AM/PM marker — those
-    # belong to the `a` letter.
-    "(?P<zone>" <>
-      "Z" <>
-      "|" <>
-      "[+\\-](?:\\d{2}:?\\d{2}(?::?\\d{2})?|\\d{2})" <>
-      "|" <>
-      "(?:GMT|UTC|UT)(?:[+\\-]\\d{1,2}(?::?\\d{2})?)?" <>
-      "|" <>
-      "[A-Z][A-Za-z_]+(?:/[A-Z][A-Za-z_+\\-]+)+" <>
-      "|" <>
-      "(?!AM|PM|am|pm|A\\.M\\.|P\\.M\\.)[A-Z]{2,5}" <>
-      "|" <>
-      "[A-Z][a-z]+(?: [A-Z][a-z]+){1,4}" <>
-      ")"
+    "(?P<zone>.+?)"
   end
 
   # Literal text — expand each char via lenient equivalence.

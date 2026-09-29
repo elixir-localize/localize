@@ -508,14 +508,26 @@ iex> Localize.DateTime.parse("2026-05-16T14:30:00+10:30", locale: :en)
 
 Shift to UTC yourself with `DateTime.shift_zone/3` when you want it; the parser does not do it for you, because the original offset cannot be recovered afterwards.
 
-A *named* zone — `"PST"`, `"Asia/Tokyo"` — carries no offset of its own and needs a time-zone database to resolve, which this library does not ship. Without one the zone is dropped and the parse still succeeds, returning a `t:NaiveDateTime.t/0` rather than failing the whole input:
+A *named* zone resolves too, in any form the locale writes one, as TR35's time zone parsing reads them: a zone or metazone name, long or short (`"EDT"`, `"Eastern Daylight Time"`, `"heure d’été de l’Est nord-américain"`), a location (`"New York Time"`, `"heure : New York"`), a city or a zone ID (`"Asia/Tokyo"`). Its offset depends on the date, so it needs the time zone database the application configures, such as [tz](https://hex.pm/packages/tz):
+
+```elixir
+config :elixir, :time_zone_database, Tz.TimeZoneDatabase
+```
+
+```elixir
+iex> Localize.DateTime.parse("July 1, 2023 at 10:05:00 AM Eastern Daylight Time", locale: :en)
+{:ok, #DateTime<2023-07-01 10:05:00-04:00 EDT America/New_York>}
+
+iex> Localize.DateTime.parse("samedi 1 juillet 2023 à 10:05:00 heure d’été de l’Est nord-américain", locale: :fr)
+{:ok, #DateTime<2023-07-01 10:05:00-04:00 EDT America/New_York>}
+```
+
+A name of standard or daylight time keeps its own offset, as ICU reads it, so `"July 1, 2023 at 10:05:00 AM EST"` is 10:05 at -05:00 although New York keeps daylight time in July. `Localize.DateTime.Timezone.parse_zone/2` reads a zone on its own. Without a time zone database a named zone is dropped and the parse still succeeds, returning a `t:NaiveDateTime.t/0` rather than failing the whole input:
 
 ```elixir
 iex> Localize.DateTime.parse("May 16, 2026 2:30 PM Asia/Tokyo", locale: :en)
 {:ok, ~N[2026-05-16 14:30:00]}
 ```
-
-Add [calendrical](https://hex.pm/packages/calendrical) to resolve named zones to a `t:DateTime.t/0`.
 
 ### Calendars
 

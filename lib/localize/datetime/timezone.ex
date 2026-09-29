@@ -82,6 +82,39 @@ defmodule Localize.DateTime.Timezone do
   # timezone ID `unk` (Unknown Zone) is used.
   @unknown_short_zone_id "unk"
 
+  # Every IANA name CLDR knows, aliases included, by its lowercase form: a
+  # zone ID is read whatever its case.
+  @zone_ids_by_key for {alias_name, canonical} <- @zone_canonical_names,
+                       into: %{},
+                       do: {String.downcase(alias_name), canonical}
+
+  # The zone each BCP 47 short identifier stands for, as `V` writes it.
+  @zones_by_short_id for {short_id, %{aliases: [canonical | _aliases]}} <- @timezones,
+                         into: %{},
+                         do: {short_id, canonical}
+
+  # The zone a location format names by its territory, the reverse of
+  # `naming_territory/1`: the territory's primary zone, else its only one.
+  @territory_zones Map.merge(
+                     for(
+                       {territory, [%{aliases: [canonical | _aliases]}]} <-
+                         @timezones_by_territory,
+                       into: %{},
+                       do: {territory, canonical}
+                     ),
+                     for({zone, territory} <- @primary_zones, into: %{}, do: {territory, zone})
+                   )
+
+  # The zone named for no place, which a parse cannot resolve.
+  @unknown_zone "Etc/Unknown"
+
+  # The apostrophes CLDR's names use, read as one another.
+  @apostrophes Enum.map([0x2019, 0x02BC, 0x2018], &<<&1::utf8>>)
+
+  # A name that stands for several types of one place stands for the
+  # first of them here: a generic name follows the zone's own clock.
+  @zone_name_types [:generic, :standard, :daylight]
+
   # ── Timezone Data Access ─────────────────────────────────────
 
   @doc """
@@ -1037,6 +1070,600 @@ defmodule Localize.DateTime.Timezone do
       _invalid -> :error
     end
   end
+
+  # ── Parsing a zone ───────────────────────────────────────────
+
+  @doc """
+  Parses a time zone written in any of the forms a locale formats one in.
+
+  TR35's time zone parsing reads a zone as an ISO 8601 offset, the
+  localized GMT format in the locale's spelling or the global one ("GMT-4",
+  "UTC−4", "غرينتش-4"), a zone ID ("America/New_York") or its short form
+  ("usnyc"), an exemplar city ("New York"), a location ("New York Time",
+  "heure : New York"), or a zone or metazone name, long or short, generic,
+  standard or daylight ("Eastern Time", "EDT", "heure d’été de l’Est
+  nord-américain"), alone or with a city or country in the locale's
+  fallback format ("Pacific Time (Canada)").
+
+  A city or a zone's own name is read before a metazone's, as TR35 orders
+  them. A metazone name stands for the metazone's zone in the country the
+  string names, else in the locale's country, else its golden zone, so
+  "Mitteleuropäische Zeit" is `Europe/Berlin` in `de` and `Europe/Vienna` in
+  `de-AT`, as ICU reads it. Where several metazones share a name ("Greenwich
+  Mean Time") the one with a zone in that country is read, else the one
+  with zones in the most countries.
+
+  ### Arguments
+
+  * `zone_string` is the zone as written.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is the locale whose names are read, any locale returned by
+    `Localize.all_locale_ids/0` or a `t:Localize.LanguageTag.t/0`. The
+    default is `Localize.get_locale/0`.
+
+  ### Returns
+
+  * `{:ok, {:offset, offset}}` for a fixed offset, in seconds east of UTC.
+
+  * `{:ok, {:zone, time_zone, type}}` for a time zone, by CLDR's canonical
+    IANA name, where `type` is `:standard` or `:daylight` for a name of that
+    time and `:generic` for every other form.
+
+  * `{:error, exception}` when the string is not a zone the locale writes.
+
+  ### Examples
+
+      iex> Localize.DateTime.Timezone.parse_zone("Eastern Daylight Time", locale: :en)
+      {:ok, {:zone, "America/New_York", :daylight}}
+
+      iex> Localize.DateTime.Timezone.parse_zone("heure : New York", locale: :fr)
+      {:ok, {:zone, "America/New_York", :generic}}
+
+      iex> Localize.DateTime.Timezone.parse_zone("Pacific Time (Canada)", locale: :en)
+      {:ok, {:zone, "America/Vancouver", :generic}}
+
+      iex> Localize.DateTime.Timezone.parse_zone("GMT-4", locale: :en)
+      {:ok, {:offset, -14400}}
+
+  """
+  @spec parse_zone(String.t(), Keyword.t()) ::
+          {:ok, {:offset, integer()} | {:zone, String.t(), :generic | :standard | :daylight}}
+          | {:error, Exception.t()}
+  def parse_zone(zone_string, options \\ [])
+
+  def parse_zone(zone_string, options)
+      when is_binary(zone_string) and is_keyword_list(options) do
+    with {:ok, language_tag} <-
+           Localize.validate_locale(Keyword.get(options, :locale) || Localize.get_locale()) do
+      case parse_offset(zone_string, locale: language_tag) do
+        {:ok, offset} -> {:ok, {:offset, offset}}
+        {:error, _not_an_offset} -> parse_named_zone(zone_string, language_tag)
+      end
+    end
+  end
+
+  def parse_zone(_zone_string, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def parse_zone(zone_string, _options),
+    do: {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
+
+  @doc """
+  Resolves a time zone written in any form `parse_zone/2` reads, at a date
+  and time, to the `t:DateTime.t/0` it names.
+
+  A fixed offset resolves on its own, as a `t:DateTime.t/0` at that offset.
+  A time zone's offset depends on the date, so it needs the time zone
+  database the application configures, such as `:tz`
+  (`config :elixir, :time_zone_database, Tz.TimeZoneDatabase`).
+
+  A name of standard or daylight time keeps its own offset, as ICU reads it:
+  "10:00 EST" in July is 10:00 at -05:00, a fixed offset, since New York
+  keeps daylight time then; on a date the zone keeps that time it is the
+  zone's own `t:DateTime.t/0`. Any other form follows the zone's clock, and
+  a wall time its clocks pass twice is read in standard time, one they skip
+  at the offset before the change, as ICU reads them.
+
+  ### Arguments
+
+  * `zone_string` is the zone as written.
+
+  * `naive_datetime` is the date and time written with it, a
+    `t:NaiveDateTime.t/0` in any calendar.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is the locale whose names are read. The default is
+    `Localize.get_locale/0`.
+
+  ### Returns
+
+  * `{:ok, datetime}`.
+
+  * `{:error, exception}` when the string is not a zone the locale writes,
+    or names a time zone the configured database does not resolve, as
+    Elixir's default database resolves none but UTC.
+
+  ### Examples
+
+      iex> {:ok, datetime} =
+      ...>   Localize.DateTime.Timezone.resolve("UTC−4", ~N[2023-07-15 10:05:00], locale: :fr)
+      iex> {datetime.utc_offset, DateTime.to_naive(datetime)}
+      {-14400, ~N[2023-07-15 10:05:00]}
+
+  """
+  @spec resolve(String.t(), NaiveDateTime.t(), Keyword.t()) ::
+          {:ok, DateTime.t()} | {:error, Exception.t()}
+  def resolve(zone_string, naive_datetime, options \\ [])
+
+  def resolve(zone_string, %NaiveDateTime{} = naive_datetime, options)
+      when is_binary(zone_string) and is_keyword_list(options) do
+    with {:ok, zone} <- parse_zone(zone_string, options) do
+      resolve_parsed_zone(zone, naive_datetime, Calendar.get_time_zone_database())
+    end
+  end
+
+  def resolve(_zone_string, _naive_datetime, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def resolve(zone_string, _naive_datetime, _options),
+    do: {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
+
+  @doc false
+  # A date and time at a fixed offset, carried as Localize and Calendrical
+  # carry one: under `Etc/UTC` with the offset as its `utc_offset` and
+  # spelled as its `zone_abbr`, so the wall time is kept as written.
+  @spec offset_datetime(map(), integer()) :: DateTime.t()
+  def offset_datetime(naive_datetime, offset) do
+    struct(DateTime, Map.merge(Map.from_struct(naive_datetime), offset_zone_fields(offset)))
+  end
+
+  @doc false
+  # The zone fields of a fixed offset, as `offset_datetime/2` carries them.
+  @spec offset_zone_fields(integer()) :: map()
+  def offset_zone_fields(offset) do
+    %{
+      time_zone: "Etc/UTC",
+      utc_offset: offset,
+      std_offset: 0,
+      zone_abbr: offset_abbreviation(offset)
+    }
+  end
+
+  defp offset_abbreviation(0), do: "UTC"
+
+  defp offset_abbreviation(offset) do
+    sign = if offset < 0, do: "-", else: "+"
+    absolute = abs(offset)
+    hours = absolute |> div(3600) |> pad(2)
+    minutes = absolute |> rem(3600) |> div(60) |> pad(2)
+    "#{sign}#{hours}:#{minutes}"
+  end
+
+  # A name or place comes before a zone ID, which TR35's process does not
+  # read at all: "EST" is Eastern Standard Time in `en`, as ICU reads it,
+  # though the time zone database also keeps it as a link to Panama.
+  defp parse_named_zone(zone_string, language_tag) do
+    key = name_key(zone_string)
+
+    case place_zone(key, zone_name_index(language_tag), language_tag) || zone_id(key) do
+      {time_zone, type} when time_zone != @unknown_zone -> {:ok, {:zone, time_zone, type}}
+      _no_zone -> {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
+    end
+  end
+
+  # `VV` and `V`: a zone ID or its BCP 47 short form.
+  defp zone_id(key) do
+    case Map.get(@zone_ids_by_key, key) || Map.get(@zones_by_short_id, key) do
+      nil -> nil
+      time_zone -> {time_zone, :generic}
+    end
+  end
+
+  # TR35's sample process. A string in the shape of the locale's fallback
+  # format whose part in parentheses is a place is read as a name N and that
+  # place P ("Pacific Time (Canada)"), and else, or when that reading names
+  # no zone, as a name alone: `he`'s standard names are written "… (חורף)",
+  # "(winter)", which is no place.
+  defp place_zone(key, index, language_tag) do
+    readings =
+      case index.fallback_format && Regex.named_captures(index.fallback_format, key) do
+        %{"name" => name, "place" => place} ->
+          if Map.has_key?(index.countries, place) or Map.has_key?(index.cities, place),
+            do: [{name, place}, {key, nil}],
+            else: [{key, nil}]
+
+        _no_place ->
+          [{key, nil}]
+      end
+
+    Enum.find_value(readings, fn {name, place} ->
+      reading_zone(name, place, index, language_tag)
+    end)
+  end
+
+  # One reading: N may be a place in a region format ("Italy Time"), M,
+  # and a country among P, N and M is C. In TR35's order: C when it has
+  # one zone to name; P as a city; N or M as a zone's own name, or a city;
+  # then N or M as a metazone's name, whose zone is C's, else the locale's
+  # country's.
+  defp reading_zone(name, place, index, language_tag) do
+    {located, region_type} = region_place(name, index)
+    type = region_type || name_type(name, index) || :generic
+    country = Enum.find_value([place, name, located], &Map.get(index.countries, &1))
+
+    [
+      fn -> country_zone(country, type) end,
+      fn -> city_zone(place, type, index) end,
+      fn -> own_name_zone(name, index) end,
+      fn -> own_name_zone(located, index) end,
+      fn -> city_zone(located, type, index) end,
+      fn -> city_zone(name, type, index) end,
+      fn -> metazone_name_zone(name, country, index, language_tag) end,
+      fn -> metazone_name_zone(located, country, index, language_tag) end
+    ]
+    |> Enum.find_value(fn step -> step.() end)
+  end
+
+  # The place a region format ("{0} Time", "heure : {0}") names, and the
+  # type of time that format is for.
+  defp region_place(name, index) do
+    Enum.find_value(index.region_formats, {nil, nil}, fn {type, regex} ->
+      case Regex.named_captures(regex, name) do
+        %{"place" => place} -> {place, type}
+        nil -> nil
+      end
+    end)
+  end
+
+  defp name_type(name, index) do
+    case Map.get(index.names, name) do
+      %{zones: [{_zone, type} | _rest]} -> type
+      %{metazones: [{_metazone, type} | _rest]} -> type
+      _no_name -> nil
+    end
+  end
+
+  defp country_zone(nil, _type), do: nil
+
+  defp country_zone(country, type) do
+    case Map.get(@territory_zones, country) do
+      nil -> nil
+      time_zone -> {time_zone, type}
+    end
+  end
+
+  defp city_zone(nil, _type, _index), do: nil
+
+  defp city_zone(city, type, index) do
+    case Map.get(index.cities, city) do
+      nil -> nil
+      time_zone -> {time_zone, type}
+    end
+  end
+
+  defp own_name_zone(nil, _index), do: nil
+
+  defp own_name_zone(name, index) do
+    case Map.get(index.names, name) do
+      %{zones: [{time_zone, type} | _rest]} -> {time_zone, type}
+      _no_zone_name -> nil
+    end
+  end
+
+  # The metazone's zone in the country the string names, else in the
+  # locale's country, else its golden zone, which stands for every country
+  # CLDR maps no zone of its own to: "Eastern Time (United States)" is New
+  # York in `en-JM`, as ICU reads it, though Jamaica keeps Eastern time too.
+  defp metazone_name_zone(nil, _country, _index, _language_tag), do: nil
+
+  defp metazone_name_zone(name, country, index, language_tag) do
+    case Map.get(index.names, name) do
+      %{metazones: [_first | _rest] = metazones} ->
+        territory = country || locale_territory(language_tag)
+        {metazone, type} = preferred_metazone(metazones, territory)
+        territories = Map.get(@metazone_mapzones, metazone, %{})
+
+        case Map.get(territories, territory) || Map.get(territories, :"001") do
+          nil -> nil
+          time_zone -> {time_zone, type}
+        end
+
+      _no_metazone_name ->
+        nil
+    end
+  end
+
+  # Of metazones sharing a name, the one with a zone in the territory, else
+  # the one with zones in the most territories, else the first by name: ICU
+  # reads "Greenwich Mean Time", which names the GMT, British and Irish
+  # metazones, as `Atlantic/Reykjavik` in `en`, `Europe/London` in `en-GB`
+  # and `Europe/Dublin` in `en-IE`.
+  defp preferred_metazone(metazones, territory) do
+    Enum.min_by(metazones, fn {metazone, type} ->
+      zones = Map.get(@metazone_mapzones, metazone, %{})
+
+      {not metazone_in_territory?(zones, territory), -map_size(zones), metazone,
+       Enum.find_index(@zone_name_types, &(&1 == type))}
+    end)
+  end
+
+  defp metazone_in_territory?(zones, territory) do
+    Map.has_key?(zones, territory) or
+      Enum.any?(zones, fn {_territory, zone} ->
+        Map.get(@territories_by_timezone, zone) == territory
+      end)
+  end
+
+  defp locale_territory(language_tag) do
+    case Localize.Territory.territory_from_locale(language_tag) do
+      {:ok, territory} -> territory
+      _no_territory -> :"001"
+    end
+  end
+
+  # Names are matched without regard to case, spacing, bidi marks or the
+  # apostrophe used.
+  defp name_key(string), do: string |> literal_key() |> String.trim()
+
+  defp literal_key(string) do
+    string
+    |> String.replace(@bidi_marks, "")
+    |> String.replace(@apostrophes, "'")
+    |> String.replace(~r/\s+/u, " ")
+    |> String.downcase()
+  end
+
+  # ── The names a locale writes zones with ─────────────────────
+
+  # The names are the locale's, so its index is built once and kept.
+  defp zone_name_index(%Localize.LanguageTag{cldr_locale_id: locale_id} = language_tag) do
+    key = {__MODULE__, :zone_name_index, locale_id}
+
+    case :persistent_term.get(key, nil) do
+      nil ->
+        index = build_zone_name_index(language_tag)
+        :persistent_term.put(key, index)
+        index
+
+      index ->
+        index
+    end
+  end
+
+  defp build_zone_name_index(language_tag) do
+    names =
+      case Localize.Locale.get(language_tag, [:dates, :time_zone_names]) do
+        {:ok, %{} = names} -> names
+        _no_names -> %{}
+      end
+
+    territories =
+      case Localize.Locale.get(language_tag, [:territories]) do
+        {:ok, %{} = territories} -> territories
+        _no_territories -> %{}
+      end
+
+    zones = zone_leaves(Map.get(names, :zone, %{}), [])
+
+    %{
+      names: zone_names(zones, Map.get(names, :metazone, %{})),
+      cities: city_names(zones),
+      countries: country_names(territories),
+      region_formats: region_format_regexes(Map.get(names, :region_format, %{})),
+      fallback_format: template_regex(Map.get(names, :fallback_format))
+    }
+  end
+
+  # Each zone in the locale's data, by its canonical name, with its names.
+  # CLDR keys a zone by the lowercase parts of its name, and nests a
+  # three-part name one level deeper.
+  defp zone_leaves(%{} = data, path) do
+    Enum.flat_map(data, fn
+      {part, %{type: :zone} = zone} ->
+        case Map.get(@zone_ids_by_key, Enum.join(path ++ [to_string(part)], "/")) do
+          nil -> []
+          time_zone -> [{time_zone, zone}]
+        end
+
+      {part, %{} = nested} ->
+        zone_leaves(nested, path ++ [to_string(part)])
+
+      _other ->
+        []
+    end)
+  end
+
+  # Every long and short name of every zone and metazone, each to the
+  # places it stands for, in order: a name standing for several types of
+  # one place stands for the first in `@zone_name_types`.
+  defp zone_names(zones, metazones) do
+    zone_entries =
+      for {time_zone, zone} <- zones,
+          {name, type} <- names_of(zone),
+          do: {name_key(name), :zones, {time_zone, type}}
+
+    metazone_entries =
+      for {metazone, forms} <- metazones,
+          {name, type} <- names_of(forms),
+          do: {name_key(name), :metazones, {metazone, type}}
+
+    (zone_entries ++ metazone_entries)
+    |> Enum.group_by(&elem(&1, 0), &{elem(&1, 1), elem(&1, 2)})
+    |> Map.new(fn {key, places} ->
+      {key,
+       places
+       |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
+       |> Map.new(fn {kind, kind_places} -> {kind, Enum.sort_by(kind_places, &place_order/1)} end)}
+    end)
+  end
+
+  defp names_of(%{} = forms) do
+    for width <- [:long, :short],
+        type <- @zone_name_types,
+        name = get_in(forms, [width, type]),
+        is_binary(name),
+        do: {name, type}
+  end
+
+  defp names_of(_forms), do: []
+
+  defp place_order({place, type}),
+    do: {Enum.find_index(@zone_name_types, &(&1 == type)), place}
+
+  # The exemplar cities the locale names, and the city every other zone's
+  # name gives ("Los Angeles"), which the locale writes where it names none.
+  defp city_names(zones) do
+    derived =
+      for {_short_id, %{aliases: [time_zone | _aliases]}} <- @timezones,
+          not String.starts_with?(time_zone, "Etc/"),
+          city = derive_city_from_id(time_zone),
+          is_binary(city),
+          into: %{},
+          do: {name_key(city), time_zone}
+
+    named =
+      for {time_zone, %{exemplar_city: city}} <- zones,
+          is_binary(city),
+          into: %{},
+          do: {name_key(city), time_zone}
+
+    Map.merge(derived, named)
+  end
+
+  defp country_names(territories) do
+    for {territory, names} <- territories,
+        is_map(names),
+        {_form, name} <- names,
+        is_binary(name),
+        into: %{},
+        do: {name_key(name), territory}
+  end
+
+  defp region_format_regexes(region_formats) do
+    for type <- @zone_name_types,
+        regex = template_regex(Map.get(region_formats, type)),
+        regex != nil,
+        do: {type, regex}
+  end
+
+  # A region or fallback format ("{0} Time", "{1} ({0})") as a regex over
+  # the forms `name_key/1` makes, capturing {0} as the place and {1} as the
+  # name.
+  defp template_regex([_ | _] = template) do
+    source =
+      Enum.map_join(template, fn
+        0 -> "(?<place>.+)"
+        1 -> "(?<name>.+)"
+        literal when is_binary(literal) -> literal |> literal_key() |> Regex.escape()
+        _other -> ""
+      end)
+
+    case Regex.compile("\\A" <> source <> "\\z", "u") do
+      {:ok, regex} -> regex
+      {:error, _reason} -> nil
+    end
+  end
+
+  defp template_regex(_template), do: nil
+
+  # ── Resolving a parsed zone ──────────────────────────────────
+
+  defp resolve_parsed_zone({:offset, offset}, naive_datetime, _database),
+    do: {:ok, offset_datetime(naive_datetime, offset)}
+
+  defp resolve_parsed_zone({:zone, time_zone, :generic}, naive_datetime, database) do
+    case DateTime.from_naive(naive_datetime, time_zone, database) do
+      {:ok, datetime} ->
+        {:ok, datetime}
+
+      {:ambiguous, first, second} ->
+        {:ok, Enum.min_by([first, second], &total_offset/1)}
+
+      {:gap, just_before, _just_after} ->
+        across_gap(naive_datetime, time_zone, total_offset(just_before), database)
+
+      {:error, _reason} ->
+        {:error, Localize.UnknownTimezoneError.exception(timezone: time_zone)}
+    end
+  end
+
+  # A name of standard or daylight time: standard time is the zone's lesser
+  # offset and daylight time its greater, whichever way the database
+  # divides them (it may write Europe/Dublin's winter as a negative saving),
+  # found from the wall clock and the same clock every three months for nine
+  # months either side. A daylight name for a zone keeping no daylight time
+  # is an hour on its standard offset, as ICU reads it.
+  defp resolve_parsed_zone({:zone, time_zone, type}, naive_datetime, database) do
+    case DateTime.from_naive(naive_datetime, time_zone, database) do
+      {:error, _reason} ->
+        {:error, Localize.UnknownTimezoneError.exception(timezone: time_zone)}
+
+      reading ->
+        {candidates, sides} = wall_readings(reading)
+
+        offsets =
+          (candidates ++ sides ++ nearby_readings(naive_datetime, time_zone, database))
+          |> Enum.map(&total_offset/1)
+
+        offset = named_offset(type, Enum.min(offsets), Enum.max(offsets))
+
+        case Enum.find(candidates, &(total_offset(&1) == offset)) do
+          %DateTime{} = datetime -> {:ok, datetime}
+          nil -> {:ok, offset_datetime(naive_datetime, offset)}
+        end
+    end
+  end
+
+  # A wall time the clocks skip is read at the offset before the change,
+  # as ICU reads it: New York's 02:30 on the day it springs forward is 03:30
+  # daylight time.
+  defp across_gap(naive_datetime, time_zone, offset, database) do
+    with {:ok, utc} <- DateTime.from_naive(NaiveDateTime.add(naive_datetime, -offset), "Etc/UTC"),
+         {:ok, datetime} <- DateTime.shift_zone(utc, time_zone, database) do
+      {:ok, datetime}
+    else
+      _no_datetime -> {:error, Localize.UnknownTimezoneError.exception(timezone: time_zone)}
+    end
+  end
+
+  # The readings of the wall clock that can be the answer — one, or both
+  # sides of a fall-back overlap — and, in a spring-forward gap, which has
+  # none, the gap's two sides, whose offsets are still the zone's.
+  defp wall_readings({:ok, datetime}), do: {[datetime], []}
+  defp wall_readings({:ambiguous, first, second}), do: {[first, second], []}
+  defp wall_readings({:gap, just_before, just_after}), do: {[], [just_before, just_after]}
+
+  defp nearby_readings(naive_datetime, time_zone, database) do
+    case NaiveDateTime.convert(naive_datetime, Calendar.ISO) do
+      {:ok, iso} ->
+        for months <- [-9, -6, -3, 3, 6, 9],
+            reading <- nearby_reading(iso, months, time_zone, database),
+            do: reading
+
+      {:error, _reason} ->
+        []
+    end
+  end
+
+  defp nearby_reading(iso, months, time_zone, database) do
+    case DateTime.from_naive(NaiveDateTime.shift(iso, month: months), time_zone, database) do
+      {:ok, datetime} -> [datetime]
+      {:ambiguous, first, _second} -> [first]
+      {:gap, _just_before, just_after} -> [just_after]
+      {:error, _reason} -> []
+    end
+  end
+
+  defp named_offset(:standard, standard, _greatest), do: standard
+  defp named_offset(:daylight, standard, standard), do: standard + 3600
+  defp named_offset(:daylight, _standard, daylight), do: daylight
 
   @doc """
   Returns the ISO 8601 timezone offset format.

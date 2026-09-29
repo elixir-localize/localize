@@ -500,9 +500,11 @@ defmodule Localize.ParsingCoverageTest do
                {:ok, %{hour: 14, minute: 30, second: 15, microsecond: {250_000, 2}}}
     end
 
+    # Without a date a named zone has no offset, so the map carries the zone
+    # the name stands for: ICU4C reads "PST" as America/Los_Angeles.
     test "as: :map surfaces a captured zone" do
       assert Localize.Time.parse("11:30 PST", locale: :en, as: :map) ==
-               {:ok, %{hour: 11, minute: 30, time_zone: "PST"}}
+               {:ok, %{hour: 11, minute: 30, time_zone: "America/Los_Angeles"}}
     end
 
     test "as: :map resolves a captured fixed offset without a date" do
@@ -681,25 +683,28 @@ defmodule Localize.ParsingCoverageTest do
                {:ok, ~N[2023-03-03 15:45:00]}
     end
 
-    # Named-zone and GMT-format suffixes are resolved by
-    # `Calendrical.TimeZone`, reached optionally at runtime. Localize does
-    # not depend on `calendrical`, so in this suite every one of them
-    # degrades to the `NaiveDateTime` — the parse is preserved, the zone
-    # is dropped. With `calendrical` present these return a `DateTime`;
-    # that direction is covered by that package's own suite.
-    test "zone abbreviation is dropped without a zone resolver" do
-      assert Localize.DateTime.parse("May 16, 2026 2:30 PM PST", locale: :en) ==
-               {:ok, ~N[2026-05-16 14:30:00]}
+    # A named zone resolves through the time zone database this suite
+    # configures. The instants are ICU4C 78.3's readings: "PST" keeps
+    # standard time's -08:00 in May, when Los Angeles keeps daylight time,
+    # so it is a fixed offset rather than the zone's own `DateTime`.
+    test "a zone abbreviation resolves, keeping its own offset" do
+      assert {:ok, %DateTime{hour: 14, minute: 30, utc_offset: -28_800, std_offset: 0} = datetime} =
+               Localize.DateTime.parse("May 16, 2026 2:30 PM PST", locale: :en)
+
+      assert DateTime.compare(datetime, ~U[2026-05-16 22:30:00Z]) == :eq
     end
 
-    test "IANA zone name is dropped without a zone resolver" do
-      assert Localize.DateTime.parse("May 16, 2026 2:30 PM Asia/Tokyo", locale: :en) ==
-               {:ok, ~N[2026-05-16 14:30:00]}
+    test "an IANA zone name resolves" do
+      assert {:ok, %DateTime{time_zone: "Asia/Tokyo", hour: 14, minute: 30} = datetime} =
+               Localize.DateTime.parse("May 16, 2026 2:30 PM Asia/Tokyo", locale: :en)
+
+      assert DateTime.compare(datetime, ~U[2026-05-16 05:30:00Z]) == :eq
     end
 
-    test "unresolvable zone abbreviation falls back to a NaiveDateTime" do
-      assert Localize.DateTime.parse("May 16, 2026 2:30 PM XQZV", locale: :en) ==
-               {:ok, ~N[2026-05-16 14:30:00]}
+    # A zone field reads only a zone, as ICU4C's does.
+    test "text that is no zone is not read as one" do
+      assert {:error, %Localize.DateTimeParseError{}} =
+               Localize.DateTime.parse("May 16, 2026 2:30 PM XQZV", locale: :en)
     end
 
     # A fixed offset is arithmetic, so it resolves with no dependency.
@@ -727,11 +732,18 @@ defmodule Localize.ParsingCoverageTest do
                Localize.DateTime.parse("May 16, 2026 2:30 PM +05:30", locale: :en)
     end
 
-    test "a named zone still degrades when a fixed offset is not present" do
-      # The offset parser must not claim a zone it cannot resolve, or the
-      # named-zone delegation below it would never be reached.
-      assert Localize.DateTime.parse("May 16, 2026 2:30 PM America/New_York", locale: :en) ==
-               {:ok, ~N[2026-05-16 14:30:00]}
+    test "a zone ID is read as its zone, not as an offset" do
+      # The offset parser must not claim a zone ID, or the zone would lose
+      # its daylight time: New York keeps it in May.
+      assert {:ok,
+              %DateTime{
+                time_zone: "America/New_York",
+                zone_abbr: "EDT",
+                utc_offset: -18_000,
+                std_offset: 3600,
+                hour: 14
+              }} =
+               Localize.DateTime.parse("May 16, 2026 2:30 PM America/New_York", locale: :en)
     end
 
     test "as: :map for the ISO path" do
@@ -957,6 +969,8 @@ defmodule Localize.ParsingCoverageTest do
       refute Map.has_key?(map, :year)
     end
 
+    # The date is complete, so "PST" resolves as the struct form's does: to
+    # its own -08:00 in May.
     test "as: :map surfaces the zone captured through the locale glue" do
       assert Localize.DateTime.parse("May 16, 2026 2:30 PM PST", locale: :en, as: :map) ==
                {:ok,
@@ -967,7 +981,10 @@ defmodule Localize.ParsingCoverageTest do
                   day: 16,
                   hour: 14,
                   minute: 30,
-                  time_zone: "PST"
+                  time_zone: "Etc/UTC",
+                  utc_offset: -28_800,
+                  std_offset: 0,
+                  zone_abbr: "-08:00"
                 }}
     end
   end

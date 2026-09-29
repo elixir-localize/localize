@@ -76,6 +76,13 @@ The two agree on everything else here: "Jun 1, 1 BC" is year 0, and "Jun 1, 44",
 
 TR35 has a flexible day period (`B`) the locale gives no name formatted with its AM and PM names, and ICU4C 78.3 formats it so, but it does not read those names back in a `B` field: `oc`, which has no day-period rules, writes 23:59 in its `Bhm` pattern "h:mm B" as "11:59 PM", which ICU cannot parse. Localize reads a `B` field's AM and PM names as `a` reads them, so the time parses back; asserted in `test/localize/time_parse_test.exs`.
 
+TR35's time zone parsing reads a zone written in any form — a specific or generic name, a location, a city, a zone ID or the localized GMT format — and ICU4C 78.3's `TimeZoneFormat` does too, but its date formats read in a zone field only the forms of that field's letter and the GMT format: "Eastern Time" in the `zzzz` field of `en`'s full time is a parse error. Localize reads every form in every zone field, as TR35's process does, and reads a name whatever apostrophe or spacing it is written with, as TR35 allows a parse to ("heure d'été de l'Est nord-américain" with ASCII apostrophes), where ICU requires the name's own; asserted in `test/localize/zone_parse_test.exs`.
+
+| Input in `en` | TR35 and Localize | ICU4C parses |
+|---|---|---|
+| "10:00:00 AM Eastern Time" in `h:mm:ss a zzzz` | 10:00 in New York | an error |
+| "10:00:00 AM New York Time" in `h:mm:ss a z` | 10:00 in New York | an error |
+
 ### Interval formatting
 
 An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs from Localize in three places, asserted in `test/localize/interval_calendar_test.exs`; the first two follow TR35 and the third ECMA-402.

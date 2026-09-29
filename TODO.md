@@ -18,7 +18,9 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Report 12-hour patterns without a day period to CLDR** — `fr-CM`'s `h`, `hm` and `hms`, `bal-Latn`'s `hm` and `es-AR`'s `hms` are 12-hour patterns with no day period, which TR35 forbids, so the "12:30" and "1:45" they write each name two times.
 
-* [ ] **Zone names and localized GMT formats do not parse** — the zone field reads only English-shaped text, so of 7,884 zoned long and full date-times formatted in every locale 2,951 fail on their zone (`fr` "UTC−4", `de` "Nordamerikanische Ostküsten-Sommerzeit", `ar` "غرينتش-4"), and the names it does read ("EDT", "Eastern Daylight Time") are not resolved, so 1,075 come back without their zone.
+* [ ] **The generic zone format writes ambiguous names** — `v` and `vvvv` write a metazone's bare generic name where TR35 qualifies it by country or city, or uses the standard name for a zone keeping no daylight time, so 577 of 26,280 generic round trips land on another zone: Phoenix's "Mountain Time" in July reads as Denver, New York's "Eastern Time" in `en-JM` as Jamaica, London's "Greenwich Mean Time" in summer as GMT. ICU4C writes "Mountain Standard Time", "Eastern Time (United States)" and the location format.
+
+* [ ] **MF2's `calendar` option reaches into Calendrical** — `Localize.Message.Interpreter` resolves `calendar=hebrew` to a module through `Localize.OptionalDependency.call("Calendrical", ...)`, which the rule that Localize never depends on Calendrical forbids; it needs another way to a module, such as Calendrical registering its calendars with Localize.
 
 * [ ] **The localized GMT format writes Latin digits** — TR35 writes its offset in the locale's default digits, as ICU4C does (`ar-EG` "غرينتش-٤", `ne` "GMT-४"), where Localize writes "غرينتش-4" and "GMT-4"; the parser reads the two forms alike.
 
@@ -57,6 +59,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Zone names and localized GMT formats parse** — `Localize.DateTime.Timezone.parse_zone/2` reads every form TR35's time zone parsing does and `resolve/3` resolves it through the configured time zone database, no longer through Calendrical; of 52,560 zoned date-times formatted in every locale 14,099 round-tripped and 51,903 now do, the rest `nnh` and the generic format item. 2026-09-30, v1.4.0.
 
 * [x] **Native digits in the time parser** — times, and with them date-times, are read in the digits of the locale's number system, and month, quarter, weekday and era names written in those digits (`dz`, `bn`, `ckb`, `ff-Adlm`) are read too; of 59,787 times and 3,942 short and medium date-times formatted in every locale none in native digits fails to parse, and a zoned one fails only where its Latin-digit form does. 2026-09-30, v1.4.0.
 

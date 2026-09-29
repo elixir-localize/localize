@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* `Localize.DateTime.Timezone.parse_zone/2` reads a time zone in any form a locale writes one — a name, location, city, zone ID or localized GMT format — as TR35's time zone parsing does, and `resolve/3` resolves it at a date and time through the configured time zone database.
+
 * `Localize.Inflection` inflects words for grammatical constraints from CLDR's inflection data — `inflect("Haus", :de, %{case: "dative", number: "plural"})` gives "Häusern" — with `pronoun/2,3`, `quantify/4` (whose numbers are spoken in agreement with the noun), and concepts that carry forms of their own as `:display_data`. Data for 48 languages comes from `mix localize.download_inflection`.
 
 * MessageFormat 2 gains inflection functions in the Unicode inflection project's `i:` namespace, with its option names, `to` and `withReferent`, selection and SSML output (`output: :ssml`) — `{$w :i:inflect case=dative}`, `:i:pronoun`, `:i:quantify`, `:i:list` and `:i:numeral`. `Localize.Message.Namespace` lets an application own a custom namespace with one handler, registered with `:namespaces` or `:mf2_namespaces`.
@@ -48,6 +50,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* **Breaking.** A named zone in a parsed date-time resolves to a `DateTime` in Localize, through the configured time zone database, where it was dropped unless `calendrical` was installed, and an abbreviation is read where the locale's CLDR names hold it (`en` reads "EST", not "JST"). A zone field reads only a zone the locale writes, so "2:30 PM XQZV" is an error.
+
 * **Breaking.** MessageFormat 2's `{$t :time}` and `{$d :datetime}` give the time to the minute, as TR35 specifies, where they gave seconds; `precision=second` and `timePrecision=second` restore them. A date or time option other than `timeZone`, `hour12` and `calendar` set by a variable is an error, as TR35 requires.
 
 * **Breaking.** The parse functions' `:calendar` option is a calendar module — `Calendar.ISO`, the default, or one such as `Calendrical.Hebrew` — and the date is built and returned in that module, where a module sharing a CLDR calendar type with another came back in the other. A CLDR calendar name such as `:hebrew` returns `Localize.UnknownCalendarError`, and `Localize.DateParseError` reports the module.
@@ -87,6 +91,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * **Breaking.** A zero offset is spelled out wherever a localized GMT format is used, `"GMT+00:00"` long and `"GMT+0"` short, as TR35's examples and ICU give it. `Localize.DateTime.Timezone.gmt_format/3` drops its `:zero_format` option, which selected between the two.
 
 ### Fixed
+
+* A zone in a parsed date or time is read in the locale's own words and spelling — "heure d’été de l’Est nord-américain", "UTC−4", "غرينتش-4", "heure : New York" — and a name of standard or daylight time keeps its own offset, as ICU reads it. Of 52,560 zoned date-times formatted in every locale, 51,903 now round-trip, where 14,099 did.
 
 * `Localize.Time.parse/2` reads a time written in the digits of the locale's number system, as the date parser does, so `bn` "১০:০৫ AM" and `fa` "۱۰:۰۵" parse, and with them the date-times of 67 locales that write their own digits.
 

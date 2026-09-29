@@ -417,49 +417,18 @@ defmodule Localize.DateTime.Parser do
 
   # A fixed UTC offset — ISO 8601 (`+05:30`, `Z`) or the localized GMT
   # format in any locale's spelling (`GMT+10:30`, `UTC-5`, `غرينتش+03:00`)
-  # — is arithmetic, so it resolves here with no dependency.
+  # — is arithmetic, so it resolves with no time zone database.
   #
-  # A named zone (`PST`, `Asia/Tokyo`) carries no offset of its own and
-  # needs a TZ database, which this library does not ship. That is reached
-  # optionally through `calendrical`; failure for any reason — no resolver,
-  # no TZ database, an unknown IANA name — falls back to the
-  # `NaiveDateTime`, preserving the parse rather than failing the whole
-  # input.
+  # A named zone (`EDT`, `Asia/Tokyo`, "heure : New York") resolves through
+  # the time zone database the application configures, as
+  # `Localize.DateTime.Timezone.resolve/3` describes. Where none is
+  # configured the zone does not resolve, and the parse keeps the
+  # `NaiveDateTime` rather than failing the whole input.
   defp resolve_zone(zone, naive_datetime, options) do
-    case Localize.DateTime.Timezone.parse_offset(zone, options) do
-      {:ok, offset} ->
-        datetime_at_offset(naive_datetime, offset)
-
-      {:error, _not_a_fixed_offset} ->
-        case Localize.OptionalDependency.call(
-               "Calendrical.TimeZone",
-               :resolve,
-               [zone, naive_datetime, options],
-               package: "calendrical",
-               operation: "resolving the time zone #{inspect(zone)}"
-             ) do
-          {:ok, %DateTime{} = datetime} -> datetime
-          _no_resolver -> naive_datetime
-        end
+    case Localize.DateTime.Timezone.resolve(zone, naive_datetime, options) do
+      {:ok, datetime} -> datetime
+      {:error, _unresolved} -> naive_datetime
     end
-  end
-
-  # `DateTime` stores local wall fields plus the offset, so the instant
-  # the user typed is kept as they wrote it and rendered back as
-  # `<local +offset>`. The ISO 8601 path funnels through here too — see
-  # `restore_offset/2` — so both spellings of one offset produce the same
-  # struct.
-  defp datetime_at_offset(naive_datetime, offset) do
-    struct(DateTime, Map.merge(Map.from_struct(naive_datetime), offset_zone_fields(offset)))
-  end
-
-  defp offset_zone_fields(offset) do
-    %{
-      time_zone: "Etc/UTC",
-      utc_offset: offset,
-      std_offset: 0,
-      zone_abbr: offset_abbreviation(offset)
-    }
   end
 
   @doc false
@@ -468,36 +437,30 @@ defmodule Localize.DateTime.Parser do
   # `Z`) is the same on every date, so it resolves whether or not the input
   # gave one. A named zone's offset depends on the date, so it resolves
   # only against `naive_datetime`, the full date and time the input gave;
-  # without one, or when it does not resolve, the name is kept as captured.
+  # without one, or where no time zone database resolves it, the map
+  # carries the zone the name stands for.
   @spec zone_fields_for_map(String.t(), NaiveDateTime.t() | nil, Keyword.t()) :: map()
   def zone_fields_for_map(zone, naive_datetime, options) do
-    case Localize.DateTime.Timezone.parse_offset(zone, options) do
-      {:ok, offset} -> offset_zone_fields(offset)
-      {:error, _named_zone} -> named_zone_fields(zone, naive_datetime, options)
+    case Localize.DateTime.Timezone.parse_zone(zone, options) do
+      {:ok, {:offset, offset}} ->
+        Localize.DateTime.Timezone.offset_zone_fields(offset)
+
+      {:ok, {:zone, time_zone, _type}} ->
+        named_zone_fields(zone, time_zone, naive_datetime, options)
+
+      {:error, _not_a_zone} ->
+        %{time_zone: zone}
     end
   end
 
-  defp named_zone_fields(zone, %NaiveDateTime{} = naive_datetime, options) do
-    case resolve_zone(zone, naive_datetime, options) do
-      %DateTime{} = datetime -> datetime_zone_fields(datetime)
-      %NaiveDateTime{} -> %{time_zone: zone}
+  defp named_zone_fields(zone, time_zone, %NaiveDateTime{} = naive_datetime, options) do
+    case Localize.DateTime.Timezone.resolve(zone, naive_datetime, options) do
+      {:ok, datetime} -> datetime_zone_fields(datetime)
+      {:error, _unresolved} -> %{time_zone: time_zone}
     end
   end
 
-  defp named_zone_fields(zone, nil, _options), do: %{time_zone: zone}
-
-  defp offset_abbreviation(0), do: "UTC"
-
-  defp offset_abbreviation(offset) do
-    sign = if offset < 0, do: "-", else: "+"
-    absolute = abs(offset)
-    hours = absolute |> div(3600) |> pad_offset()
-    minutes = absolute |> rem(3600) |> div(60) |> pad_offset()
-    "#{sign}#{hours}:#{minutes}"
-  end
-
-  defp pad_offset(value) when value < 10, do: "0#{value}"
-  defp pad_offset(value), do: "#{value}"
+  defp named_zone_fields(_zone, time_zone, nil, _options), do: %{time_zone: time_zone}
 
   defp try_split_as_map({date_text, time_text}, options) do
     date_opts = Keyword.put(options, :as, :map)
@@ -599,7 +562,7 @@ defmodule Localize.DateTime.Parser do
   defp restore_offset(datetime, offset) do
     datetime
     |> DateTime.add(offset, :second)
-    |> datetime_at_offset(offset)
+    |> Localize.DateTime.Timezone.offset_datetime(offset)
   end
 
   # `Date.from_iso8601/1` and `NaiveDateTime.from_iso8601/1`

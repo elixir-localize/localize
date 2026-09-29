@@ -99,7 +99,7 @@ iex> Localize.Number.parse("1.234,56", locale: :de)
 {:ok, 1234.56}
 ```
 
-Dates, times and datetimes parse the same way, including relative and partial forms such as `"Q2 2026"`, and intervals through `Localize.Interval.parse/2`. [Calendrical](https://hexdocs.pm/calendrical) extends this to CLDR's non-Gregorian calendars and to named time zones:
+Dates, times and datetimes parse the same way, including relative and partial forms such as `"Q2 2026"`, and intervals through `Localize.Interval.parse/2`. A named time zone in the text resolves through the time zone database the application configures, and [Calendrical](https://hexdocs.pm/calendrical) extends parsing to CLDR's non-Gregorian calendars:
 
 ```elixir
 iex> Localize.Date.parse("16.05.2026", locale: :de)
@@ -118,7 +118,7 @@ Each library adds types, operations, or both. They share the locale resolution, 
 
 * [localize](https://hexdocs.pm/localize) — the core: number, date, time, unit, list and interval formatting; number, unit, date, time, datetime and date-range parsing; collation; plural rules; RBNF; display names for territories, languages, scripts and currencies; and MessageFormat 2.
 
-* [calendrical](https://hexdocs.pm/calendrical) — CLDR calendars beyond the ISO one, calendar arithmetic and conversion, and time-zone resolution for parsed datetimes.
+* [calendrical](https://hexdocs.pm/calendrical) — CLDR calendars beyond the ISO one, and calendar arithmetic and conversion.
 
 * [ex_money](https://hexdocs.pm/ex_money) and [ex_money_sql](https://hexdocs.pm/ex_money_sql) — the `Money` type, its arithmetic and formatting, and its database storage with tag-guarded aggregates.
 

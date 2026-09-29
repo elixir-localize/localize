@@ -1,15 +1,15 @@
 defmodule Localize.OptionalDependencyTest do
   @moduledoc """
   Parsing is implemented here, so `Localize.Date.parse/2` and its siblings
-  need no other package. Two things they reach for do live elsewhere —
-  calendar modules for non-Gregorian calendars, and time-zone resolution —
-  and `calendrical` supplies both. It depends on Localize in turn, so
-  Localize cannot depend on it back and resolves it at runtime instead.
+  need no other package. Calendar modules for non-Gregorian calendars live
+  elsewhere, in `calendrical`, which depends on Localize, so a caller names
+  them and Localize never reaches for them itself. A named time zone
+  resolves here, through the time zone database the application configures
+  (`:tz` in this suite).
 
   Localize's own test run has no `calendrical` in it, which is what makes
   these tests meaningful: they assert that its absence costs a caller
-  nothing for the ordinary case, and degrades rather than fails for the
-  rest.
+  nothing.
 
   """
 
@@ -27,12 +27,13 @@ defmodule Localize.OptionalDependencyTest do
                {:ok, ~N[2026-03-22 15:45:00]}
     end
 
-    # A named zone carries no offset of its own, so resolving it needs a
-    # TZ database Localize does not carry. Losing the zone is the
-    # documented outcome — the parse is preserved rather than failed.
-    test "a named-zone datetime degrades to a NaiveDateTime rather than failing" do
-      assert {:ok, %NaiveDateTime{}} =
+    # A named zone resolves in Localize, through the configured time zone
+    # database: 15:45 in Tokyo is 06:45 UTC.
+    test "a named-zone datetime resolves with no calendrical present" do
+      assert {:ok, %DateTime{time_zone: "Asia/Tokyo"} = datetime} =
                Localize.DateTime.parse("March 22, 2026 3:45 PM Asia/Tokyo", locale: :en)
+
+      assert DateTime.compare(datetime, ~U[2026-03-22 06:45:00Z]) == :eq
     end
 
     # A fixed offset is arithmetic, so it needs no dependency at all.
