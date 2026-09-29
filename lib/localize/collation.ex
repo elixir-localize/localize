@@ -164,7 +164,9 @@ defmodule Localize.Collation do
   def compare(string_a, string_b, options)
       when is_binary(string_a) and is_binary(string_b) and
              (is_keyword_list(options) or is_struct(options, Options)) do
-    with {:ok, options} <- resolve_options(options) do
+    with :ok <- validate_utf8(string_a),
+         :ok <- validate_utf8(string_b),
+         {:ok, options} <- resolve_options(options) do
       compare_strings(string_a, string_b, options)
     end
   end
@@ -281,9 +283,11 @@ defmodule Localize.Collation do
   end
 
   def sort_key(string, %Options{} = options) when is_binary(string) do
-    ensure_loaded()
-    codepoints = Normalizer.normalize_to_codepoints(string, options.normalization)
-    build_sort_key(codepoints, options, string)
+    with :ok <- validate_utf8(string) do
+      ensure_loaded()
+      codepoints = Normalizer.normalize_to_codepoints(string, options.normalization)
+      build_sort_key(codepoints, options, string)
+    end
   end
 
   def sort_key(codepoints, %Options{} = options) when is_list(codepoints) do
@@ -433,11 +437,22 @@ defmodule Localize.Collation do
     end
   end
 
-  defp validate_strings([string | rest]) when is_binary(string), do: validate_strings(rest)
+  defp validate_strings([string | rest]) when is_binary(string) do
+    with :ok <- validate_utf8(string), do: validate_strings(rest)
+  end
+
   defp validate_strings([]), do: :ok
 
   defp validate_strings(strings),
     do: {:error, Localize.Utils.Helpers.invalid_value(strings, "a list of strings")}
+
+  # A binary that is not UTF-8 has no code points to weigh, and normalizing
+  # it raises.
+  defp validate_utf8(string) do
+    if String.valid?(string),
+      do: :ok,
+      else: {:error, Localize.Utils.Helpers.invalid_value(string, "a UTF-8 string")}
+  end
 
   @doc """
   Returns the CLDR collation identifiers.

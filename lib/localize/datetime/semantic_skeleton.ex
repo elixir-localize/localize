@@ -179,7 +179,8 @@ defmodule Localize.DateTime.SemanticSkeleton do
   def new(code, options \\ [])
 
   def new(code, options) when is_binary(code) and is_keyword_list(options) do
-    with {:ok, fields} <- parse_code(code) do
+    with :ok <- validate_code(code),
+         {:ok, fields} <- parse_code(code) do
       new(fields, options)
     end
   end
@@ -584,6 +585,21 @@ defmodule Localize.DateTime.SemanticSkeleton do
     |> case do
       {:ok, fields} -> {:ok, Enum.reverse(fields)}
       error -> error
+    end
+  end
+
+  # A binary that is not UTF-8 names no fields, and reading it as code points
+  # would raise.
+  defp validate_code(code) do
+    if String.valid?(code) do
+      :ok
+    else
+      {:error,
+       Localize.InvalidValueError.exception(
+         value: code,
+         expected: "a field code string such as \"YMDE\"",
+         context: "Localize.DateTime.SemanticSkeleton"
+       )}
     end
   end
 

@@ -58,9 +58,14 @@ defmodule Localize.Number.Format.Compiler do
   """
   @spec tokenize(String.t()) :: {:ok, list(), integer()} | {:error, term(), integer()}
   def tokenize(definition) when is_binary(definition) do
-    definition
-    |> String.to_charlist()
-    |> :localize_decimal_formats_lexer.string()
+    if String.valid?(definition) do
+      definition
+      |> String.to_charlist()
+      |> :localize_decimal_formats_lexer.string()
+    else
+      {:error, Localize.Utils.Helpers.invalid_value(definition, "a UTF-8 number format string"),
+       1}
+    end
   end
 
   def tokenize(definition),
@@ -102,8 +107,14 @@ defmodule Localize.Number.Format.Compiler do
   # a trailing pad marker, is an error rather than a raised MatchError.
   def parse(definition) when is_binary(definition) do
     case tokenize(definition) do
-      {:ok, tokens, _end_line} -> :localize_decimal_formats_parser.parse(tokens)
-      {:error, descriptor, _end_line} -> {:error, descriptor}
+      {:ok, tokens, _end_line} ->
+        :localize_decimal_formats_parser.parse(tokens)
+
+      {:error, %{__exception__: true} = exception, _end_line} ->
+        {:error, Exception.message(exception)}
+
+      {:error, descriptor, _end_line} ->
+        {:error, descriptor}
     end
   end
 

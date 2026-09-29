@@ -411,7 +411,8 @@ defmodule Localize.Territory do
   @spec to_territory_code(String.t(), atom() | String.t() | LanguageTag.t()) ::
           {:ok, atom()} | {:error, Exception.t()}
   def to_territory_code(name, locale) when is_binary(name) do
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
+    with :ok <- validate_name(name),
+         {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
          {:ok, territories} <- Localize.Locale.get(locale_id, [:territories]) do
       case code_for_name(territories, name) do
         nil -> {:error, Localize.UnknownTerritoryError.exception(territory: name)}
@@ -1273,15 +1274,25 @@ defmodule Localize.Territory do
   """
   @spec normalize_name(String.t()) :: String.t() | {:error, Exception.t()}
   def normalize_name(name) when is_binary(name) do
-    name
-    |> String.downcase()
-    |> String.replace(" & ", "")
-    |> String.replace(".", "")
-    |> String.replace(~r/(\s)+/u, "\\1")
+    with :ok <- validate_name(name) do
+      name
+      |> String.downcase()
+      |> String.replace(" & ", "")
+      |> String.replace(".", "")
+      |> String.replace(~r/(\s)+/u, "\\1")
+    end
   end
 
   def normalize_name(name),
     do: {:error, Localize.Utils.Helpers.invalid_value(name, "a territory name string")}
+
+  # A binary that is not UTF-8 names no territory, and case folding raises on
+  # it.
+  defp validate_name(name) do
+    if String.valid?(name),
+      do: :ok,
+      else: {:error, Localize.Utils.Helpers.invalid_value(name, "a UTF-8 territory name string")}
+  end
 
   # ── Private helpers ─────────────────────────────────────────
 

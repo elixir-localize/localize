@@ -1231,17 +1231,25 @@ defmodule Localize.Interval do
 
   """
   @spec split_interval(term()) :: {:ok, [String.t()]} | {:error, Exception.t()}
+  # A binary that is not UTF-8 is no pattern, and the split walks the pattern
+  # by code point, so it is refused before the walk.
   def split_interval(interval) when is_binary(interval) do
-    case do_split_interval(interval, [], "") do
-      [_, _] = result ->
-        {:ok, result}
+    if String.valid?(interval) do
+      case do_split_interval(interval, [], "") do
+        [_, _] = result ->
+          {:ok, result}
 
-      {:error, _} = error ->
-        error
+        {:error, _} = error ->
+          error
+      end
+    else
+      invalid_interval_format(interval)
     end
   end
 
-  def split_interval(interval) do
+  def split_interval(interval), do: invalid_interval_format(interval)
+
+  defp invalid_interval_format(interval) do
     {:error,
      Localize.DateTimeIntervalFormatError.exception(
        reason: :invalid_format,

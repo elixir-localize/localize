@@ -104,7 +104,8 @@ defmodule Localize.Inflection.Concept do
   def new(locale, value, options \\ [])
 
   def new(locale, value, options) when is_speakable(value) and is_keyword_list(options) do
-    with {:ok, constraints} <- Feature.constraints(Keyword.get(options, :constraints, %{})),
+    with :ok <- validate_value(value),
+         {:ok, constraints} <- Feature.constraints(Keyword.get(options, :constraints, %{})),
          {:ok, initial} <- Feature.constraints(Keyword.get(options, :initial, %{})),
          {:ok, locale} <- Locale.resolve(locale),
          :ok <- Data.ensure_loaded(locale),
@@ -120,6 +121,18 @@ defmodule Localize.Inflection.Concept do
 
   def new(_locale, value, _options),
     do: {:error, Localize.Utils.Helpers.invalid_value(value, "a word or phrase string")}
+
+  # A binary that is not UTF-8 is no word, and the tokenizer's Unicode regular
+  # expressions raise on it.
+  defp validate_value({print, speak}) do
+    with :ok <- validate_value(print), do: validate_value(speak)
+  end
+
+  defp validate_value(value) do
+    if String.valid?(value),
+      do: :ok,
+      else: {:error, Localize.Utils.Helpers.invalid_value(value, "a UTF-8 word or phrase")}
+  end
 
   defp validate(concept, values, field) do
     with {:ok, canonical} <- canonical_constraints(concept.locale, values) do

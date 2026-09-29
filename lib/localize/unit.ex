@@ -425,8 +425,13 @@ defmodule Localize.Unit do
   # unit string has exactly one number and one non-empty text token,
   # in either order ("1kg", "kg 1").
   defp split_value_and_name(unit_string, language_tag) do
-    tokens = Localize.Number.Parser.scan(unit_string, locale: language_tag)
+    case Localize.Number.Parser.scan(unit_string, locale: language_tag) do
+      tokens when is_list(tokens) -> value_and_name(tokens, unit_string)
+      {:error, _reason} = error -> error
+    end
+  end
 
+  defp value_and_name(tokens, unit_string) do
     numbers = Enum.filter(tokens, &is_number/1)
 
     texts =

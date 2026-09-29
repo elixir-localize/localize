@@ -153,6 +153,11 @@ defmodule Localize.Number.Parser do
       type == :string and not is_binary(value) ->
         {:error, Localize.InvalidValueError.exception(value: value, expected: "a string")}
 
+      # A binary that is not UTF-8 is no string, and the scanner's Unicode
+      # regular expression raises on it rather than fail to match.
+      type == :string and not String.valid?(value) ->
+        {:error, Localize.InvalidValueError.exception(value: value, expected: "a UTF-8 string")}
+
       type == :list and not is_list(value) ->
         {:error,
          Localize.InvalidValueError.exception(

@@ -168,7 +168,8 @@ defmodule Localize.Inflection do
 
   """
   def known?(phrase, locale) when is_binary(phrase) do
-    with {:ok, locale} <- Localize.Inflection.Locale.resolve(locale),
+    with true <- String.valid?(phrase),
+         {:ok, locale} <- Localize.Inflection.Locale.resolve(locale),
          :ok <- Data.ensure_loaded(locale) do
       words =
         locale
@@ -181,7 +182,7 @@ defmodule Localize.Inflection do
             Dictionary.combined_grammemes(locale, token.clean) != nil
         end)
     else
-      {:error, _reason} -> false
+      _invalid_or_unknown -> false
     end
   end
 

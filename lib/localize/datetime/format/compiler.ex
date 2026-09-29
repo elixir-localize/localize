@@ -32,11 +32,16 @@ defmodule Localize.DateTime.Format.Compiler do
           {:ok, [{atom(), integer(), integer() | String.t()}], integer()}
           | {:error, Exception.t()}
   def tokenize(format_string) when is_binary(format_string) do
-    format_string
-    |> String.to_charlist()
-    |> :localize_date_time_format_lexer.string()
-    |> maybe_add_decimal_separator()
-    |> maybe_return_error(format_string)
+    if String.valid?(format_string) do
+      format_string
+      |> String.to_charlist()
+      |> :localize_date_time_format_lexer.string()
+      |> maybe_add_decimal_separator()
+      |> maybe_return_error(format_string)
+    else
+      {:error,
+       Localize.DateTimeFormatError.exception(format: format_string, reason: :invalid_format)}
+    end
   end
 
   def tokenize(%{number_system: _numbers, format: format_string}) do

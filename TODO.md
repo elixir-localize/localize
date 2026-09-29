@@ -14,8 +14,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Choose a fixed-offset representation that `DateTime` functions honour** — Localize and Calendrical carry an offset such as `-05:00` under `Etc/UTC`, so `DateTime.shift_zone(parsed, "Etc/UTC")` returns it unchanged. The MF2 interpreter converts from the instant instead; `Etc/GMT+5` or an offset string would need both libraries to change together.
 
-* [ ] **`Localize.Unit.parse/1` raises on invalid UTF-8** — `Localize.Unit.parse(<<255>>)` raises `ArgumentError`; it should return an error, as the date and time parsers now do.
-
 * [ ] **`he`'s localized GMT format doubles its left-to-right mark** — `Localize.DateTime.Timezone.gmt_format/3` ends `he`'s "GMT-5" with two U+200E marks, where ICU gives one.
 
 * [ ] **`SemanticSkeleton` validates `:alignment` without applying it** — TR35 conformance needs every option implemented; `:column` should pad the numeric fields to two digits.
@@ -39,6 +37,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Invalid UTF-8 is an error, not a raise** — number and unit parsing, number, date/time and interval patterns, semantic skeleton codes, territory names, collation and inflection return their errors for a binary that is not UTF-8. A sweep of every documented function, with the text in each argument and in options and MF2 bindings, finds no other raise. 2026-09-29, v1.4.0.
 
 * [x] **MF2 `:date`, `:time` and `:datetime` take TR35's options** — `fields`, `length`, `precision`, `timeZoneStyle`, `dateFields`, `dateLength` and `timePrecision` choose a semantic skeleton, and `timeZone`, `hour12` and `calendar` act on the operand. `en-AU` `fields=month-day` is "14 Jun" at TR35's default medium length; "14 June" is `length=long`. 2026-09-29, v1.4.0.
 
