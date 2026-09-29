@@ -19,7 +19,7 @@ defmodule Localize.DateTime.SemanticSkeleton do
 
   ## Field codes
 
-  The skeleton code names the fields wanted, in this order:
+  The skeleton code names the fields wanted:
 
   * `Y` — year
 
@@ -35,6 +35,13 @@ defmodule Localize.DateTime.SemanticSkeleton do
 
   So `YMD` is a plain date, `YMDE` adds the weekday, `T` is a time on its
   own, and `MDTZ` is a month, day, time and zone together.
+
+  The codes name a set, so their order does not matter, and TR35 defines
+  which sets there are: a date — `D`, `E`, `DE`, `MD`, `MDE`, `YMD` or
+  `YMDE`; a calendar period — `Y`, `M` or `YM`; a time, `T`; and a zone,
+  `Z`. A date may be joined to a time, a zone or both (`YMDT`, `MDZ`,
+  `ETZ`) and a time to a zone (`TZ`), but a calendar period stands alone.
+  Any other set, such as `YD` or `YMT`, is an error, as TR35 requires.
 
   ## Usage
 
@@ -114,6 +121,51 @@ defmodule Localize.DateTime.SemanticSkeleton do
 
   @date_fields [:year, :month, :day, :weekday]
 
+  # TR35 §Semantic Field Sets. A date names a particular day and a calendar
+  # period a span longer than one; a date may be joined to a time, a zone or
+  # both, and a time to a zone, while a calendar period stands alone. Each
+  # set is held in the order of `@codes`.
+  @date_field_sets [
+    [:day],
+    [:weekday],
+    [:day, :weekday],
+    [:month, :day],
+    [:month, :day, :weekday],
+    [:year, :month, :day],
+    [:year, :month, :day, :weekday]
+  ]
+
+  @calendar_period_field_sets [[:month], [:year], [:year, :month]]
+
+  @field_sets @date_field_sets ++
+                @calendar_period_field_sets ++
+                [[:time], [:zone], [:time, :zone]] ++
+                for(
+                  date <- @date_field_sets,
+                  joined <- [[:time], [:zone], [:time, :zone]],
+                  do: date ++ joined
+                )
+
+  @field_order %{year: 0, month: 1, day: 2, weekday: 3, time: 4, zone: 5}
+  @field_letters Map.new(@codes, fn {letter, field} -> {field, letter} end)
+
+  @field_set_codes Enum.map(@field_sets, fn field_set ->
+                     for field <- field_set, into: "", do: <<Map.fetch!(@field_letters, field)>>
+                   end)
+
+  # The fields TR35 names for each option: giving one for a field set that
+  # holds none of them is an error. `:length` applies to every field, so to
+  # every set, and `:zone_length`, Localize's own, applies to the zone as
+  # `:zone_style` does.
+  @option_fields [
+    alignment: {[:year, :month, :day, :time], "a year, month, day or time"},
+    year_style: {[:year], "a year"},
+    hour_cycle: {[:time], "a time"},
+    time_precision: {[:time], "a time"},
+    zone_style: {[:zone], "a zone"},
+    zone_length: {[:zone], "a zone"}
+  ]
+
   @doc """
   Builds a semantic skeleton.
 
@@ -136,7 +188,7 @@ defmodule Localize.DateTime.SemanticSkeleton do
     `:full` never truncates it to two digits; `:with_era` also shows the era.
 
   * `:zone_style` is `:specific` (the default), `:generic`, `:location` or
-    `:offset`. Only consulted when the skeleton carries `Z`.
+    `:offset`.
 
   * `:zone_length` is `:auto` (the default), `:short` or `:long`. `:auto` is
     TR35's rule: a zone on its own takes the long form except at short
@@ -166,11 +218,18 @@ defmodule Localize.DateTime.SemanticSkeleton do
     turns a number into text or back, and it acts on the pattern the
     skeleton resolves to, leaving the classical skeleton as it is.
 
+  Each option shapes certain fields, and TR35 makes giving one for a field
+  set that has none of them an error: `:year_style` needs `Y`, `:hour_cycle`
+  and `:time_precision` need `T`, `:zone_style` and `:zone_length` need `Z`,
+  and `:alignment` needs `Y`, `M`, `D` or `T`. `:length` suits every set.
+
   ### Returns
 
   * `{:ok, skeleton}`.
 
-  * `{:error, exception}` if a field code or option value is unknown.
+  * `{:error, exception}` if a field code or option value is unknown, the
+    fields are not a set TR35 defines, or an option is given for a set
+    without the fields it applies to.
 
   ### Examples
 
@@ -188,31 +247,12 @@ defmodule Localize.DateTime.SemanticSkeleton do
   def new(code, options) when is_binary(code) and is_keyword_list(options) do
     with :ok <- validate_code(code),
          {:ok, fields} <- parse_code(code) do
-      new(fields, options)
+      build(fields, options, code)
     end
   end
 
   def new(fields, options) when is_list(fields) and is_keyword_list(options) do
-    with {:ok, fields} <- validate_fields(fields),
-         {:ok, length} <- validate(options, :length, @lengths, :medium),
-         {:ok, year_style} <- validate(options, :year_style, @year_styles, :auto),
-         {:ok, zone_style} <- validate(options, :zone_style, @zone_styles, :specific),
-         {:ok, zone_length} <- validate(options, :zone_length, @zone_lengths, :auto),
-         {:ok, hour_cycle} <- validate(options, :hour_cycle, @hour_cycles, :auto),
-         {:ok, time_precision} <- validate_time_precision(options),
-         {:ok, alignment} <- validate(options, :alignment, @alignments, :inline) do
-      {:ok,
-       %__MODULE__{
-         fields: fields,
-         length: length,
-         year_style: year_style,
-         zone_style: zone_style,
-         zone_length: zone_length,
-         hour_cycle: hour_cycle,
-         time_precision: time_precision,
-         alignment: alignment
-       }}
-    end
+    build(fields, options, fields)
   end
 
   def new(_code, options) when not is_keyword_list(options),
@@ -243,7 +283,7 @@ defmodule Localize.DateTime.SemanticSkeleton do
 
   ### Raises
 
-  * `Localize.InvalidValueError` if a field code or option value is unknown.
+  * `Localize.InvalidValueError` wherever `new/2` returns an error.
 
   ### Examples
 
@@ -293,8 +333,8 @@ defmodule Localize.DateTime.SemanticSkeleton do
 
   * `{:ok, atom}` — the classical skeleton.
 
-  * `{:error, exception}` if the skeleton names no fields, or the locale or
-    calendar is not known.
+  * `{:error, exception}` if the skeleton is not one `new/2` builds, as a
+    struct made by hand may not be, or the locale or calendar is not known.
 
   ### Examples
 
@@ -341,17 +381,9 @@ defmodule Localize.DateTime.SemanticSkeleton do
   # type in hand already, and the value being formatted.
   @spec classical_skeleton(t(), atom(), atom(), term()) ::
           {:ok, atom()} | {:error, Exception.t()}
-  def classical_skeleton(%__MODULE__{fields: []} = skeleton, _locale_id, _calendar_type, _value) do
-    {:error,
-     Localize.InvalidValueError.exception(
-       value: skeleton,
-       expected: "a skeleton naming at least one field",
-       context: "Localize.DateTime.SemanticSkeleton.to_classical_skeleton/2"
-     )}
-  end
-
   def classical_skeleton(%__MODULE__{} = skeleton, locale_id, calendar_type, value) do
-    with {:ok, widths} <- date_widths(skeleton, locale_id, calendar_type) do
+    with {:ok, skeleton} <- validate_skeleton(skeleton),
+         {:ok, widths} <- date_widths(skeleton, locale_id, calendar_type) do
       pattern = Enum.map_join(skeleton.fields, &field_pattern(&1, skeleton, widths, value))
 
       # The pieces come from CLDR's date formats and from fixed tables keyed
@@ -372,11 +404,11 @@ defmodule Localize.DateTime.SemanticSkeleton do
   # semantic skeleton of any time fields beside it.
   @spec standard_date_format(t(), atom(), atom()) ::
           {:ok, :short | :medium | :long | :full, t() | nil} | :error
-  def standard_date_format(%__MODULE__{fields: fields} = skeleton, locale_id, calendar_type) do
-    {date_fields, time_fields} = Enum.split_with(fields, &(&1 in @date_fields))
-    date_skeleton = %{skeleton | fields: date_fields}
-
-    with true <- Enum.all?([:year, :month, :day], &(&1 in date_fields)),
+  def standard_date_format(%__MODULE__{} = skeleton, locale_id, calendar_type) do
+    with {:ok, skeleton} <- validate_skeleton(skeleton),
+         {date_fields, time_fields} = Enum.split_with(skeleton.fields, &(&1 in @date_fields)),
+         true <- Enum.all?([:year, :month, :day], &(&1 in date_fields)),
+         date_skeleton = %{skeleton | fields: date_fields},
          {:ok, classical} <- classical_skeleton(date_skeleton, locale_id, calendar_type, nil),
          {:ok, formats} <- Localize.DateTime.Format.date_formats(locale_id, calendar_type),
          format when not is_nil(format) <-
@@ -611,6 +643,94 @@ defmodule Localize.DateTime.SemanticSkeleton do
   defp zone_symbol(:offset, :long), do: "OOOO"
 
   # ── Validation ──────────────────────────────────────────────
+
+  # `given` is the code or list as the caller wrote it, for the error.
+  defp build(fields, options, given) do
+    with {:ok, field_set} <- validate_field_set(fields, given),
+         {:ok, skeleton} <- validate_options(field_set, options),
+         :ok <- validate_option_fields(options, field_set, given) do
+      {:ok, skeleton}
+    end
+  end
+
+  # A struct built by hand has not been through `new/2`, so the formatters
+  # check it here: its fields must be a TR35 field set and its option values
+  # ones `new/2` accepts. A struct holds every option, so which were given
+  # cannot be told, and the fields each applies to go unchecked.
+  defp validate_skeleton(%__MODULE__{fields: fields} = skeleton) when is_list(fields) do
+    options = skeleton |> Map.from_struct() |> Map.delete(:fields) |> Map.to_list()
+
+    with {:ok, field_set} <- validate_field_set(fields, fields) do
+      validate_options(field_set, options)
+    end
+  end
+
+  defp validate_skeleton(%__MODULE__{fields: fields}) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: fields,
+       expected: "a list of fields",
+       context: "Localize.DateTime.SemanticSkeleton"
+     )}
+  end
+
+  # TR35's conformance rules make a field set it does not define an error.
+  # The fields form a set, so each may appear once and their order does not
+  # matter; they are kept in the order of `@codes`.
+  defp validate_field_set(fields, given) do
+    with {:ok, fields} <- validate_fields(fields) do
+      field_set = Enum.sort_by(fields, &Map.fetch!(@field_order, &1))
+
+      if field_set in @field_sets do
+        {:ok, field_set}
+      else
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: given,
+           expected: :field_set,
+           allowed_values: @field_set_codes,
+           context: "Localize.DateTime.SemanticSkeleton"
+         )}
+      end
+    end
+  end
+
+  defp validate_options(field_set, options) do
+    with {:ok, length} <- validate(options, :length, @lengths, :medium),
+         {:ok, year_style} <- validate(options, :year_style, @year_styles, :auto),
+         {:ok, zone_style} <- validate(options, :zone_style, @zone_styles, :specific),
+         {:ok, zone_length} <- validate(options, :zone_length, @zone_lengths, :auto),
+         {:ok, hour_cycle} <- validate(options, :hour_cycle, @hour_cycles, :auto),
+         {:ok, time_precision} <- validate_time_precision(options),
+         {:ok, alignment} <- validate(options, :alignment, @alignments, :inline) do
+      {:ok,
+       %__MODULE__{
+         fields: field_set,
+         length: length,
+         year_style: year_style,
+         zone_style: zone_style,
+         zone_length: zone_length,
+         hour_cycle: hour_cycle,
+         time_precision: time_precision,
+         alignment: alignment
+       }}
+    end
+  end
+
+  # TR35's conformance rules make an option given for a field set holding
+  # none of the fields it applies to an error, whatever its value.
+  defp validate_option_fields(options, field_set, given) do
+    Enum.find_value(@option_fields, :ok, fn {option, {applies_to, description}} ->
+      if Keyword.has_key?(options, option) and not Enum.any?(applies_to, &(&1 in field_set)) do
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: given,
+           expected: "a field set with #{description}",
+           context: "Localize.DateTime.SemanticSkeleton #{inspect(option)}"
+         )}
+      end
+    end)
+  end
 
   defp parse_code(code) do
     code

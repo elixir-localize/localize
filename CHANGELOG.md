@@ -24,7 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * A skeleton whose time half is only a zone joins its date through CLDR 49's `Date-Timezone` item, and one whose date half is only a weekday joins its time through `Time-Day-Of-Week`, as TR35 now specifies. `en` `:yMMMdz` renders "Jul 6, 2024 EDT", where it errored.
 
-* `Localize.DateTime.SemanticSkeleton` implements TR35 semantic skeletons, asking for a date by meaning (`"YMDE"`) rather than by field, and `:format` accepts one throughout. The year, month and day take the locale's own widths, so `YMD` renders its length's standard date format; `:time_precision`, `:zone_length` and `:hour_cycle` shape the time, and `alignment: :column` pads a numeric month, day and hour to two digits.
+* `Localize.DateTime.SemanticSkeleton` implements TR35 semantic skeletons, asking for a date by meaning (`"YMDE"`) rather than by field and rejecting the field sets and option pairings TR35 does not define, and `:format` accepts one throughout. The year, month and day take the locale's own widths, so `YMD` renders its length's standard date format; `:time_precision`, `:zone_length` and `:hour_cycle` shape the time, and `alignment: :column` pads a numeric month, day and hour to two digits.
 
 * MessageFormat 2's `:date`, `:time` and `:datetime` take TR35's options — `fields`, `length`, `precision`, `dateFields`, `dateLength`, `timePrecision` and `timeZoneStyle` — and the override options `timeZone`, `hour12` and `calendar`, which a re-annotation inherits. `{$d :date fields=month-day}` in `en-AU` is "14 Jun".
 

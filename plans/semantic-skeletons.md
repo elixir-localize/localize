@@ -2,7 +2,7 @@
 
 **Status:** implemented (v1.4.0), 2026-09-29
 
-The implementation departs from this draft where TR35 49 settled the questions: CLDR ships no semantic skeleton data, so a skeleton resolves to a classical one, taking the year, month and day widths from the locale's own date format at its length and rendering with that standard format when its date fields are exactly that format's, and it carries `:time_precision` and `:zone_length`, the latter for MessageFormat 2's `timeZoneStyle`. Alignment takes TR35's names, `:inline` and `:column`, and column alignment widens a one-letter month, day or hour in the resolved pattern to two, as ICU4X does. `Localize.DateTime.SemanticSkeleton` is the reference.
+The implementation departs from this draft where TR35 49 settled the questions: CLDR ships no semantic skeleton data, so a skeleton resolves to a classical one, taking the year, month and day widths from the locale's own date format at its length and rendering with that standard format when its date fields are exactly that format's, and it carries `:time_precision` and `:zone_length`, the latter for MessageFormat 2's `timeZoneStyle`. Alignment takes TR35's names, `:inline` and `:column`, and column alignment widens a one-letter month, day or hour in the resolved pattern to two, as ICU4X does. `new/2` returns errors rather than raising, and accepts only TR35's field sets, in any order, with options whose fields the set holds. `Localize.DateTime.SemanticSkeleton` is the reference.
 
 **Owner:** Localize maintainers
 

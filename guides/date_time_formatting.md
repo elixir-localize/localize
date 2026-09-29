@@ -68,7 +68,7 @@ iex> Localize.Date.to_string(~D[2024-07-06], format: long, locale: :en)
 {:ok, "July 6, 2024"}
 ```
 
-The letters name components — `Y` year, `M` month, `D` day, `E` weekday, `T` time, `Z` zone — and `:length`, `:year_style`, `:zone_style`, `:zone_length`, `:hour_cycle`, `:time_precision` and `:alignment` adjust the rendering. A semantic skeleton is accepted anywhere a classical one is: `Localize.Date`, `Localize.Time` and `Localize.DateTime` all take it as `:format`.
+The letters name components — `Y` year, `M` month, `D` day, `E` weekday, `T` time, `Z` zone — and `:length`, `:year_style`, `:zone_style`, `:zone_length`, `:hour_cycle`, `:time_precision` and `:alignment` adjust the rendering. The letters form a set, in any order, and only the sets TR35 defines are accepted: `YD`, a year and a day without a month, is an error, as is an option for fields the set lacks, such as `:year_style` without `Y`. A semantic skeleton is accepted anywhere a classical one is: `Localize.Date`, `Localize.Time` and `Localize.DateTime` all take it as `:format`.
 
 The year, month and day take their widths from the locale's own date format at the requested length, as TR35 specifies, so a year, month and day is the standard date format of that length: numeric in German at medium length, where English abbreviates the month. A time shows its seconds unless `:time_precision` asks for `:hour` or `:minute`:
 

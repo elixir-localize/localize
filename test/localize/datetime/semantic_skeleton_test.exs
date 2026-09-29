@@ -575,6 +575,142 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
     end
   end
 
+  # TR35 §Semantic Skeleton Conformance: a field set TR35 does not describe,
+  # and an option given for a set holding none of its Required Fields, must
+  # be errors. The sets are TR35's tables as it prints them — its date,
+  # calendar period, time and zone field sets, then the composites: a date
+  # with a time, a zone or both, and a time with a zone. A calendar period
+  # joins nothing, since TR35 rules out pairing one with a time.
+  describe "TR35 field sets" do
+    @tr35_dates ~w(D E DE MD MDE YMD YMDE)
+
+    @tr35_field_sets @tr35_dates ++
+                       ~w(M Y YM T Z TZ) ++
+                       for(date <- @tr35_dates, joined <- ~w(T Z TZ), do: date <> joined)
+
+    # Each option with a value to give it and the fields of its Required
+    # Fields line: alignment "Year, Month, Day, or Hour", year style "Year",
+    # hour cycle "Hour", time precision "Time" and zone style "Zone".
+    # `:zone_length` is Localize's own form of the zone.
+    @required_fields [
+      alignment: {:column, ~w(Y M D T)},
+      year_style: {:full, ~w(Y)},
+      hour_cycle: {:h23, ~w(T)},
+      time_precision: {:minute, ~w(T)},
+      zone_style: {:generic, ~w(Z)},
+      zone_length: {:long, ~w(Z)}
+    ]
+
+    test "every TR35 field set builds, whatever the order of its codes" do
+      for code <- @tr35_field_sets do
+        assert {:ok, skeleton} = Skeleton.new(code)
+        assert Skeleton.new(String.reverse(code)) == {:ok, skeleton}, code
+      end
+
+      assert {:ok, %Skeleton{fields: [:year, :month, :day]}} = Skeleton.new([:day, :month, :year])
+    end
+
+    test "every other set of the six fields is an error" do
+      every_set = for subset <- subsets(~c"YMDETZ"), subset != [], do: List.to_string(subset)
+      others = every_set -- @tr35_field_sets
+
+      assert {length(every_set), length(@tr35_field_sets), length(others)} == {63, 34, 29}
+
+      for code <- others do
+        assert {:error, %Localize.InvalidValueError{value: ^code, expected: :field_set}} =
+                 Skeleton.new(code)
+      end
+
+      assert {:error, %Localize.InvalidValueError{value: [:year, :day]}} =
+               Skeleton.new([:year, :day])
+    end
+
+    test "a field given twice, or no field, is an error" do
+      for fields <- ["YMDD", "TT", "", [:year, :year], []] do
+        assert {:error, %Localize.InvalidValueError{value: ^fields, expected: :field_set}} =
+                 Skeleton.new(fields)
+      end
+    end
+
+    test "an option needs one of the fields TR35 requires for it" do
+      for {option, {value, letters}} <- @required_fields, code <- @tr35_field_sets do
+        result = Skeleton.new(code, [{option, value}])
+
+        if String.contains?(code, letters) do
+          assert {:ok, %Skeleton{}} = result, "#{option} on #{code}"
+        else
+          assert {:error, %Localize.InvalidValueError{value: ^code}} = result,
+                 "#{option} on #{code}"
+        end
+      end
+    end
+
+    test "an option given with its default value is still given" do
+      assert {:error, %Localize.InvalidValueError{}} = Skeleton.new("MD", year_style: :auto)
+      assert {:error, %Localize.InvalidValueError{}} = Skeleton.new("E", alignment: :inline)
+    end
+
+    test "length suits every field set" do
+      for code <- @tr35_field_sets, length <- [:short, :medium, :long] do
+        assert {:ok, %Skeleton{length: ^length}} = Skeleton.new(code, length: length)
+      end
+    end
+
+    @hand_built [
+      %Skeleton{fields: [:year, :day]},
+      %Skeleton{fields: [:year, :month, :time]},
+      %Skeleton{fields: [:year, :year, :month, :day]},
+      %Skeleton{fields: []},
+      %Skeleton{fields: "YMD"},
+      %Skeleton{fields: [:quarter]},
+      %Skeleton{fields: [:month], length: :long_ish},
+      %Skeleton{fields: [:year, :month, :day], year_style: :short},
+      %Skeleton{fields: [:time], time_precision: :millisecond},
+      %Skeleton{fields: [:time], hour_cycle: :h25},
+      %Skeleton{fields: [:time, :zone], zone_style: :daylight},
+      %Skeleton{fields: [:time, :zone], zone_length: :medium},
+      %Skeleton{fields: [:year, :month, :day], alignment: :right}
+    ]
+
+    test "a struct built by hand is checked when it formats, and never raises" do
+      values = [
+        {Localize.Date, ~D[2025-01-05]},
+        {Localize.Time, ~T[09:05:07]},
+        {Localize.DateTime, ~U[2025-01-05 09:05:07Z]}
+      ]
+
+      for skeleton <- @hand_built,
+          {module, value} <- values,
+          function <- [:to_string, :to_parts] do
+        assert {:error, %Localize.InvalidValueError{}} =
+                 apply(module, function, [value, [format: skeleton, locale: :en]]),
+               "#{inspect(module)}.#{function}/2 with #{inspect(skeleton)}"
+      end
+
+      for skeleton <- @hand_built do
+        assert {:error, %Localize.InvalidValueError{}} =
+                 Skeleton.to_classical_skeleton(skeleton, locale: :en)
+      end
+    end
+
+    test "a struct built by hand in another order formats as new/2's does" do
+      hand_built = %Skeleton{fields: [:zone, :time, :day, :month, :year], length: :short}
+      built = Skeleton.semantic("YMDTZ", length: :short)
+      instant = ~U[2025-01-05 09:05:07Z]
+
+      assert Localize.DateTime.to_string(instant, format: hand_built, locale: :en) ==
+               Localize.DateTime.to_string(instant, format: built, locale: :en)
+    end
+  end
+
+  # Every subset of `list`, each in the list's own order.
+  defp subsets([]), do: [[]]
+
+  defp subsets([head | tail]) do
+    rest = subsets(tail)
+    Enum.map(rest, &[head | &1]) ++ rest
+  end
+
   # The expected skeletons are TR35's mapping applied by hand. The year, month
   # and day widths are each locale's `dateSkeletons` in cldr-json's
   # `ca-*.json`: `en` Gregorian short `yyMd`, medium `yMMMd`, long `yMMMMd`;

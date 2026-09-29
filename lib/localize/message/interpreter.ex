@@ -2310,16 +2310,17 @@ defmodule Localize.Message.Interpreter do
   end
 
   # A zone is shown only when `timeZoneStyle` asks for one, as the specific
-  # zone name in the form it names: `zzzz` long, `z` short.
+  # zone name in the form it names: `zzzz` long, `z` short. TR35 makes an
+  # option given without its field an error, so the zone's form goes with
+  # the zone.
   defp time_skeleton(fields, precision, zone_length, hour_cycle, options) do
-    fields = if zone_length, do: fields ++ [:zone], else: fields
+    {fields, zone_options} =
+      if zone_length,
+        do: {fields ++ [:zone], [zone_length: zone_length]},
+        else: {fields, []}
 
     options =
-      [
-        time_precision: precision,
-        zone_length: zone_length || :auto,
-        hour_cycle: hour_cycle || :auto
-      ] ++ options
+      [time_precision: precision, hour_cycle: hour_cycle || :auto] ++ zone_options ++ options
 
     Localize.DateTime.SemanticSkeleton.new(fields, options)
   end
