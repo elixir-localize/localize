@@ -149,4 +149,40 @@ defmodule Localize.InflectionTest do
                {:ok, "#{article} #{text}"}
     end
   end
+
+  # Extensions name no inflection data, so a locale with them inflects
+  # by its language's rules. Expected values from upstream's QuantifyTest
+  # (ar_SA, zh_CN) and MF2 fixtures (es_MX), and the Turkish and
+  # Taiwanese grammar tested elsewhere; each but the pronoun differed
+  # while the extensions were kept.
+  test "a locale's extensions do not change its inflection rules" do
+    alias Localize.Inflection.{Concept, ConceptList, Locale, PronounConcept, Quantify}
+
+    assert Locale.normalize("ar-SA-u-nu-arab") == "ar_SA"
+    assert Locale.normalize("ca-ES-valencia-u-nu-latn") == "ca_ES_valencia"
+    assert Locale.normalize("en-US-x-twain") == "en_US"
+    assert Locale.normalize("x-twain") == ""
+
+    {:ok, message} = Concept.new("ar-SA-u-ca-islamic", "رسالة")
+    assert Quantify.quantify("ar-SA-u-ca-islamic", 2, message) == {:ok, "رسالتان"}
+
+    {:ok, word} = Concept.new("zh-u-ca-chinese", "word")
+    assert Quantify.quantify("zh-u-ca-chinese", 1, word) == {:ok, "1word"}
+
+    {:ok, cats} = Concept.new("es-u-co-trad", "gatos")
+    {:ok, languages} = Concept.new("es-u-co-trad", "idiomas")
+    {:ok, list} = ConceptList.and_list("es-u-co-trad", [cats, languages])
+    assert ConceptList.to_speakable_string(list) == "gatos e idiomas"
+
+    {:ok, you} = PronounConcept.new("zh-TW-u-ca-roc")
+    {:ok, you} = PronounConcept.put_constraint(you, :person, :second)
+    {:ok, you} = PronounConcept.put_constraint(you, :gender, :feminine)
+    assert PronounConcept.to_speakable_string(you) == "妳"
+
+    assert Localize.Unit.to_string(Localize.Unit.new!(2, "kilometer"),
+             locale: "tr-u-ca-gregory",
+             grammatical_case: :dative,
+             inflect: :safe
+           ) == {:ok, "2 kilometreye"}
+  end
 end

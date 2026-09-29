@@ -25,7 +25,8 @@ defmodule Localize.Inflection.Locale do
 
   @doc """
   Normalizes a locale atom, binary or `Localize.LanguageTag` to
-  the internal underscore string form.
+  the internal underscore string form, without extensions:
+  `"ar-SA-u-nu-arab"` is `"ar_SA"`.
 
   """
   def normalize(%Localize.LanguageTag{} = language_tag) do
@@ -38,12 +39,20 @@ defmodule Localize.Inflection.Locale do
   # directory, and each spelling of such a path minted a fresh atom.
   @locale_pattern ~r/\A[A-Za-z0-9]{1,8}(?:[-_][A-Za-z0-9]{1,8})*\z/
 
+  # Extensions (`-u-`, `-t-`, private use `-x-`) begin at the first
+  # singleton subtag. They name no inflection data, and keeping them
+  # made `ar-u-nu-arab` miss every rule keyed by `ar`.
   def normalize(locale) when is_atom(locale) or is_binary(locale) do
     string = to_string(locale)
 
-    if Regex.match?(@locale_pattern, string),
-      do: String.replace(string, "-", "_"),
-      else: ""
+    if Regex.match?(@locale_pattern, string) do
+      string
+      |> String.split(["-", "_"])
+      |> Enum.take_while(&(byte_size(&1) > 1))
+      |> Enum.join("_")
+    else
+      ""
+    end
   end
 
   # Anything else names no locale, so no data resolves for it.
